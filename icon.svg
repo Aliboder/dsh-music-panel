@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Music">
+  <rect x="6" y="6" width="52" height="52" rx="14" fill="#5b7cfa"/>
+  <g fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M26 42V20l16-3v19"/>
+    <circle cx="21" cy="42" r="5"/>
+    <circle cx="37" cy="39" r="5"/>
+  </g>
+</svg>
