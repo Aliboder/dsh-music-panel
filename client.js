@@ -1,0 +1,4447 @@
+/**
+ * Web Client half of dsh-music-panel.
+ *
+ * Three seats:
+ *   - `sidebar.panellist`  the music note icon in the left rail (id = `music`)
+ *   - `main`               the full player page dispatched by that id
+ *   - `settings.section`   folder/depth configuration
+ *
+ * Playback follows the semantics local players (APlayer, Salt Player) agree
+ * on: `loop` is all/one/none, `order` is list/random, `ended` dispatches on
+ * both, and `seek` clamps into the loaded duration.
+ */
+
+window.__ModuleLoader__.load({
+  id: 'dsh-music-panel',
+  factory: function (require) {
+    'use strict'
+
+    var React = require('react')
+    var h = React.createElement
+    var useState = React.useState
+    var useEffect = React.useEffect
+    var useRef = React.useRef
+    var useMemo = React.useMemo
+    var useCallback = React.useCallback
+
+    var PANEL_ID = 'music'
+    var API = 'music/'
+    var PREFS_KEY = 'dsh-music.prefs'
+    var CONFIG_EVENT = 'dsh-music:config-changed'
+    var PREFS_EVENT = 'dsh-music:prefs-changed'
+
+    /** Defaults for every appearance / lyric preference. */
+    var PREF_DEFAULTS = {
+      miniPlayer: true,
+      circularCover: true,
+      vinylRing: false,
+      coverSpin: true,
+      lyricOrder: ['embedded', 'lrc'],
+      lyricAlign: 'center',
+      lyricSize: 18,
+      lyricWeight: 500,
+      lyricBlur: true,
+      showTranslation: true,
+      translationScale: 80,
+      composerLyrics: false,
+      composerLyricPlace: 'input-left',
+    }
+
+    // ── locale ────────────────────────────────────────────────────────────
+
+    var DICTS = {
+      zh: {
+        'nav.label': '音乐',
+        'page.title': '歌曲',
+        'page.refresh': '重新扫描',
+        'page.scanning': '扫描中…',
+        'page.loadFailed': '加载失败',
+        'page.retry': '重试',
+        'page.emptyTitle': '还没有音乐',
+        'page.emptyHint': '在 设置 → 音乐 里添加音乐文件夹，然后回到这里刷新。',
+        'page.emptyFolder': '这些文件夹里没有找到音频文件',
+        'page.search': '搜索',
+        'page.searchPlaceholder': '搜索歌曲、歌手或专辑',
+        'page.sort': '排序',
+        'page.sortAsc': '升序',
+        'page.sortDesc': '降序',
+        'page.settings': '设置',
+        'page.listSize': '列表大小',
+        'page.moreSettings': '音乐目录等更多设置见「设置 → 音乐」。',
+        'page.select': '多选',
+        'page.selectAll': '全选',
+        'page.selectNone': '取消全选',
+        'page.playSelected': '播放选中',
+        'page.done': '完成',
+        'page.clear': '清空列表',
+        'page.loopAll': '列表循环',
+        'page.loopOne': '单曲循环',
+        'page.loopNone': '不循环',
+        'page.shuffle': '随机播放',
+        'page.play': '播放',
+        'page.pause': '暂停',
+        'page.prev': '上一首',
+        'page.next': '下一首',
+        'page.queue': '播放队列',
+        'page.more': '更多',
+        'page.copyPath': '复制文件路径',
+        'page.copied': '已复制',
+        'page.volume': '音量',
+        'page.mute': '静音',
+        'page.sortTitle': '标题',
+        'page.sortArtist': '歌手',
+        'page.sortAlbum': '专辑',
+        'page.sortDuration': '时长',
+        'page.sortName': '文件名',
+        'page.sortSize': '大小',
+        'page.sortYear': '年份',
+        'page.sortFolder': '文件夹',
+        'page.sortPlays': '播放次数',
+        'page.sortMtime': '修改时间',
+        'page.sortAdded': '添加时间',
+        'page.asc': '升序',
+        'page.desc': '降序',
+        'page.unknownArtist': '未知歌手',
+        'page.warnings': '部分文件夹无法读取',
+        'page.queueEmpty': '队列是空的',
+        'page.noTrack': '未在播放',
+        'page.format': '格式',
+        'page.bitrate': '码率',
+        'page.sampleRate': '采样率',
+        'page.none': '—',
+        'page.selectedCount': '已选 {n} 首',
+        'page.noResults': '没有匹配的歌曲',
+        'page.skipError': '音频加载失败，已跳到下一首',
+        'page.audioError': '音频加载失败',
+        'page.openPlayer': '打开播放页',
+        'page.closePlayer': '收起播放页',
+        'page.noLyrics': '暂无歌词。把同名 .lrc 文件放到歌曲旁边即可显示。',
+        'page.translation': '显示 / 隐藏翻译',
+        'page.lyricSettings': '歌词设置',
+        'page.lyricSize': '字体大小',
+        'page.lyricWeight': '字体粗细',
+        'page.lyricBlur': '模糊非当前歌词',
+        'page.translationScale': '翻译字体缩放',
+        'page.tabSongs': '全部歌曲',
+        'page.tabPlaylists': '播放列表',
+        'page.newPlaylist': '新建播放列表',
+        'page.playlistName': '播放列表名称',
+        'page.create': '创建',
+        'page.delete': '删除',
+        'page.cancel': '取消',
+        'page.deleteConfirm': '删除「{name}」？此操作不可撤销。',
+        'page.back': '返回',
+        'page.playAll': '播放全部',
+        'page.addTo': '添加到播放列表…',
+        'page.addedCount': '已添加 {n} 首',
+        'page.trackCount': '{n} 首',
+        'page.removeTrack': '从歌单移除',
+        'page.playlistEmpty': '还没有播放列表',
+        'page.playlistEmptyHint': '点顶部的 + 新建一个播放列表。',
+        'page.playlistNoTracks': '这个播放列表还没有歌曲',
+        'page.playlistNoTracksHint': '到「歌曲」里多选，再添加到播放列表。',
+        'page.rename': '保存',
+        'settings.label': '音乐',
+        'settings.title': '音乐文件夹',
+        'settings.hint': '添加包含音频文件的文件夹，支持 mp3 / flac / m4a / wav / ogg / opus / aac。',
+        'settings.roots': '文件夹',
+        'settings.add': '添加文件夹',
+        'settings.remove': '删除',
+        'settings.placeholder': '例如 D:\\Music 或 ~/Music',
+        'settings.depth': '子文件夹深度',
+        'settings.depthHint': '0 表示只扫描所选文件夹本身，默认 4 层。',
+        'settings.save': '保存',
+        'settings.saving': '保存中…',
+        'settings.saved': '已保存',
+        'settings.failed': '保存失败',
+        'settings.badRoot': '这些目录不可用：',
+        'settings.empty': '还没有添加文件夹。',
+        'settings.note': '设置保存在本机 DSH 目录下的 music/settings.json。',
+        'settings.tabAppearance': '外观',
+        'settings.tabLyrics': '歌词',
+        'settings.tabLibrary': '音乐库',
+        'settings.libraryHint': '音乐文件夹（自动保存）',
+        'settings.removeConfirm': '确定移除这个音乐文件夹？不会删除文件。',
+        'settings.up': '↑ 上级',
+        'settings.chooseFolder': '选择此文件夹',
+        'settings.pickEmpty': '没有选中文件夹。',
+        'settings.pickFailed': '无法读取文件夹路径，请重试或手动填写。',
+        'settings.miniPlayer': '迷你浮窗',
+        'settings.circularCover': '播放页圆形封面',
+        'settings.vinylRing': '圆形封面黑胶底盘',
+        'settings.coverSpin': '圆形封面旋转',
+        'settings.lyricOrder': '歌词获取顺序',
+        'settings.lyricSourceEmbedded': '内嵌歌词',
+        'settings.lyricSourceLrc': 'LRC 文件',
+        'settings.lyricAlign': '歌词对齐方式',
+        'settings.alignCenter': '居中',
+        'settings.alignLeft': '左对齐',
+        'settings.alignRight': '右对齐',
+        'settings.lyricSize': '歌词字体大小',
+        'settings.lyricWeight': '歌词字体粗细',
+        'settings.lyricBlur': '模糊非当前歌词',
+        'settings.lyricTranslation': '歌词翻译',
+        'settings.translationScale': '翻译字体缩放',
+        'settings.composerLyrics': '输入框歌词',
+        'settings.composerLyricPlace': '输入框歌词位置',
+        'settings.placeInputLeft': '输入框内',
+        'settings.placeAbove': '输入框上方',
+      },
+      en: {
+        'nav.label': 'Music',
+        'page.title': 'Songs',
+        'page.refresh': 'Rescan',
+        'page.scanning': 'Scanning…',
+        'page.loadFailed': 'Failed to load',
+        'page.retry': 'Retry',
+        'page.emptyTitle': 'No music yet',
+        'page.emptyHint': 'Add a music folder in Settings → Music, then come back and refresh.',
+        'page.emptyFolder': 'No audio files found in those folders',
+        'page.search': 'Search',
+        'page.searchPlaceholder': 'Search title, artist or album',
+        'page.sort': 'Sort',
+        'page.sortAsc': 'Ascending',
+        'page.sortDesc': 'Descending',
+        'page.settings': 'Settings',
+        'page.listSize': 'List size',
+        'page.moreSettings': 'Folders and more: Settings → Music.',
+        'page.select': 'Select',
+        'page.selectAll': 'Select all',
+        'page.selectNone': 'Clear selection',
+        'page.playSelected': 'Play selected',
+        'page.done': 'Done',
+        'page.clear': 'Clear list',
+        'page.loopAll': 'Repeat all',
+        'page.loopOne': 'Repeat one',
+        'page.loopNone': 'No repeat',
+        'page.shuffle': 'Shuffle',
+        'page.play': 'Play',
+        'page.pause': 'Pause',
+        'page.prev': 'Previous',
+        'page.next': 'Next',
+        'page.queue': 'Queue',
+        'page.more': 'More',
+        'page.copyPath': 'Copy file path',
+        'page.copied': 'Copied',
+        'page.volume': 'Volume',
+        'page.mute': 'Mute',
+        'page.sortTitle': 'Title',
+        'page.sortArtist': 'Artist',
+        'page.sortAlbum': 'Album',
+        'page.sortDuration': 'Duration',
+        'page.sortName': 'File name',
+        'page.sortSize': 'Size',
+        'page.sortYear': 'Year',
+        'page.sortFolder': 'Folder',
+        'page.sortPlays': 'Play count',
+        'page.sortMtime': 'Modified',
+        'page.sortAdded': 'Date added',
+        'page.asc': 'Ascending',
+        'page.desc': 'Descending',
+        'page.unknownArtist': 'Unknown artist',
+        'page.warnings': 'Some folders could not be read',
+        'page.queueEmpty': 'The queue is empty',
+        'page.noTrack': 'Nothing playing',
+        'page.format': 'Format',
+        'page.bitrate': 'Bitrate',
+        'page.sampleRate': 'Sample rate',
+        'page.none': '—',
+        'page.selectedCount': '{n} selected',
+        'page.noResults': 'No matching songs',
+        'page.skipError': 'Audio failed to load; skipped to the next track',
+        'page.audioError': 'Audio failed to load',
+        'page.openPlayer': 'Open player',
+        'page.closePlayer': 'Close player',
+        'page.noLyrics': 'No lyrics yet. Drop a matching .lrc file next to the track.',
+        'page.translation': 'Show / hide translation',
+        'page.lyricSettings': 'Lyric settings',
+        'page.lyricSize': 'Font size',
+        'page.lyricWeight': 'Font weight',
+        'page.lyricBlur': 'Blur inactive lines',
+        'page.translationScale': 'Translation scale',
+        'page.tabSongs': 'All songs',
+        'page.tabPlaylists': 'Playlists',
+        'page.newPlaylist': 'New playlist',
+        'page.playlistName': 'Playlist name',
+        'page.create': 'Create',
+        'page.delete': 'Delete',
+        'page.cancel': 'Cancel',
+        'page.deleteConfirm': 'Delete “{name}”? This cannot be undone.',
+        'page.back': 'Back',
+        'page.playAll': 'Play all',
+        'page.addTo': 'Add to playlist…',
+        'page.addedCount': '{n} added',
+        'page.trackCount': '{n} tracks',
+        'page.removeTrack': 'Remove from playlist',
+        'page.playlistEmpty': 'No playlists yet',
+        'page.playlistEmptyHint': 'Use the + button above to create one.',
+        'page.playlistNoTracks': 'This playlist has no tracks',
+        'page.playlistNoTracksHint': 'Select tracks under Songs, then add them here.',
+        'page.rename': 'Save',
+        'settings.label': 'Music',
+        'settings.title': 'Music folders',
+        'settings.hint': 'Add folders with audio files. Supports mp3 / flac / m4a / wav / ogg / opus / aac.',
+        'settings.roots': 'Folders',
+        'settings.add': 'Add folder',
+        'settings.remove': 'Remove',
+        'settings.placeholder': 'e.g. D:\\Music or ~/Music',
+        'settings.depth': 'Subfolder depth',
+        'settings.depthHint': '0 scans only the selected folders; the default is 4 levels.',
+        'settings.save': 'Save',
+        'settings.saving': 'Saving…',
+        'settings.saved': 'Saved',
+        'settings.failed': 'Save failed',
+        'settings.badRoot': 'These folders are not usable:',
+        'settings.empty': 'No folders added yet.',
+        'settings.note': 'Settings are stored in music/settings.json under your DSH home.',
+        'settings.tabAppearance': 'Appearance',
+        'settings.tabLyrics': 'Lyrics',
+        'settings.tabLibrary': 'Library',
+        'settings.libraryHint': 'Music folders (auto-saved)',
+        'settings.removeConfirm': 'Remove this music folder? Files are not deleted.',
+        'settings.up': '↑ Up',
+        'settings.chooseFolder': 'Choose this folder',
+        'settings.pickEmpty': 'No folder selected.',
+        'settings.pickFailed': 'Could not read the folder path. Try again or type it manually.',
+        'settings.miniPlayer': 'Mini player window',
+        'settings.circularCover': 'Circular cover on player page',
+        'settings.vinylRing': 'Vinyl ring behind the cover',
+        'settings.coverSpin': 'Rotate the cover',
+        'settings.lyricOrder': 'Lyric source order',
+        'settings.lyricSourceEmbedded': 'Embedded',
+        'settings.lyricSourceLrc': 'LRC file',
+        'settings.lyricAlign': 'Lyric alignment',
+        'settings.alignCenter': 'Center',
+        'settings.alignLeft': 'Left',
+        'settings.alignRight': 'Right',
+        'settings.lyricSize': 'Lyric font size',
+        'settings.lyricWeight': 'Lyric font weight',
+        'settings.lyricBlur': 'Blur inactive lines',
+        'settings.lyricTranslation': 'Lyric translation',
+        'settings.translationScale': 'Translation scale',
+        'settings.composerLyrics': 'Composer lyrics',
+        'settings.composerLyricPlace': 'Composer lyric position',
+        'settings.placeInputLeft': 'Inline',
+        'settings.placeAbove': 'Above input',
+      },
+    }
+
+    var LANG = (function () {
+      var lang = ''
+      try {
+        lang = document.documentElement.getAttribute('lang') || (navigator && navigator.language) || ''
+      } catch (error) {
+        lang = ''
+      }
+      return String(lang).toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en'
+    })()
+
+    /**
+     * Bound to the host locale service when the plugin applies; null keeps the
+     * built-in dictionary plus the document-language guess.
+     */
+    var localeTranslate = null
+
+    function t(key, vars) {
+      var text = null
+      if (localeTranslate !== null) {
+        try {
+          text = localeTranslate(key, vars)
+        } catch (error) {
+          text = null
+        }
+      }
+      if (typeof text !== 'string' || text === '' || text === key) {
+        var dict = DICTS[LANG] || DICTS.zh
+        text = dict[key] !== undefined ? dict[key] : DICTS.zh[key] !== undefined ? DICTS.zh[key] : key
+      }
+      if (vars !== undefined && vars !== null) {
+        Object.keys(vars).forEach(function (name) {
+          text = text.split('{' + name + '}').join(String(vars[name]))
+        })
+      }
+      return text
+    }
+
+    // ── tiny helpers ──────────────────────────────────────────────────────
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max)
+    }
+
+    function pad2(value) {
+      return value < 10 ? '0' + value : String(value)
+    }
+
+    function fmtTime(seconds) {
+      if (typeof seconds !== 'number' || !isFinite(seconds) || seconds <= 0) return '--:--'
+      var total = Math.floor(seconds)
+      var s = total % 60
+      var m = Math.floor(total / 60) % 60
+      var hours = Math.floor(total / 3600)
+      return hours > 0 ? hours + ':' + pad2(m) + ':' + pad2(s) : m + ':' + pad2(s)
+    }
+
+    function fmtKhz(sampleRate) {
+      if (typeof sampleRate !== 'number' || !isFinite(sampleRate) || sampleRate <= 0) return ''
+      var khz = Math.round(sampleRate / 100) / 10
+      return String(khz).replace(/\.0$/, '') + ' kHz'
+    }
+
+    /** Clamp a stored preference to a sane numeric range. */
+    function clampPref(value, min, max, fallback) {
+      var number = Number(value)
+      if (!isFinite(number)) return fallback
+      return Math.min(max, Math.max(min, Math.round(number)))
+    }
+
+    /** Comparable value for one sort key: numbers compare numerically. */    function sortValueOf(track, key) {
+      switch (key) {
+        case 'duration':
+          return track.durationSec || 0
+        case 'size':
+          return track.size || 0
+        case 'year':
+          return track.year || 0
+        case 'plays':
+          return track.plays || 0
+        case 'mtime':
+          return track.mtime || 0
+        case 'addedAt':
+          return track.addedAt || 0
+        default:
+          return String(track[key] || '')
+      }
+    }
+
+    function fmtKbps(bitrate) {
+      if (typeof bitrate !== 'number' || !isFinite(bitrate) || bitrate <= 0) return ''
+      return Math.round(bitrate / 1000) + ' kbps'
+    }
+
+    function readPrefs() {
+      var merged = {}
+      Object.keys(PREF_DEFAULTS).forEach(function (key) {
+        merged[key] = PREF_DEFAULTS[key]
+      })
+      try {
+        var raw = window.localStorage.getItem(PREFS_KEY)
+        if (!raw) return merged
+        var parsed = JSON.parse(raw)
+        if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return merged
+        Object.keys(parsed).forEach(function (key) {
+          if (parsed[key] !== undefined && parsed[key] !== null) merged[key] = parsed[key]
+        })
+      } catch (error) {
+        // Private mode / corrupt value: defaults stand.
+      }
+      // Only two composer-lyric positions exist: inline and above. Fold the
+      // retired above-left/above-center/above-right values into `above`.
+      merged.composerLyricPlace = String(merged.composerLyricPlace || '').indexOf('above') === 0 ? 'above' : 'input-left'
+      return merged
+    }
+
+    function savePrefs(patch) {
+      try {
+        var next = {}
+        var current = readPrefs()
+        Object.keys(current).forEach(function (key) {
+          next[key] = current[key]
+        })
+        Object.keys(patch).forEach(function (key) {
+          next[key] = patch[key]
+        })
+        window.localStorage.setItem(PREFS_KEY, JSON.stringify(next))
+      } catch (error) {
+        // Private mode / quota: preferences are best effort.
+      }
+      try {
+        var event
+        try {
+          event = new CustomEvent(PREFS_EVENT)
+        } catch (eventError) {
+          event = new Event(PREFS_EVENT)
+        }
+        window.dispatchEvent(event)
+      } catch (dispatchError) {
+        // No window (tests): nothing to notify.
+      }
+    }
+
+    function streamUrl(path) {
+      return API + 'stream?path=' + encodeURIComponent(path)
+    }
+
+    function coverUrl(path) {
+      return API + 'cover?path=' + encodeURIComponent(path)
+    }
+
+    async function getJson(url) {
+      var response = await fetch(url, { credentials: 'same-origin', headers: { accept: 'application/json' } })
+      var body = null
+      try {
+        body = await response.json()
+      } catch (error) {
+        body = null
+      }
+      if (!response.ok || body === null || body.ok !== true) {
+        var message = body !== null && body.error && body.error.message ? body.error.message : 'HTTP ' + response.status
+        throw new Error(message)
+      }
+      return body
+    }
+
+    function postJson(url, payload) {
+      return fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(payload),
+      }).then(function (response) {
+        return response.json().catch(function () {
+          return null
+        }).then(function (body) {
+          if (!response.ok || body === null || body.ok !== true) {
+            var error = new Error(
+              body !== null && body.error && body.error.message ? body.error.message : 'HTTP ' + response.status,
+            )
+            error.body = body
+            throw error
+          }
+          return body
+        })
+      })
+    }
+
+    // ── icons (Feather/Lucide paths, MIT) ─────────────────────────────────
+
+    var ICONS = {
+      check: { parts: [['path', { d: 'M20 6L9 17l-5-5' }]] },
+      refresh: {
+        parts: [
+          ['path', { d: 'M21 12a9 9 0 1 1-2.64-6.36' }],
+          ['path', { d: 'M21 3v6h-6' }],
+        ],
+      },
+      settings: {
+        parts: [
+          ['circle', { cx: 12, cy: 12, r: 3 }],
+          [
+            'path',
+            {
+              d: 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z',
+            },
+          ],
+        ],
+      },
+      checkCircle: {
+        parts: [
+          ['circle', { cx: 12, cy: 12, r: 10 }],
+          ['path', { d: 'M8 12.5l2.5 2.5L16 9.5' }],
+        ],
+      },
+      sort: {
+        parts: [
+          ['path', { d: 'M7 4v16' }],
+          ['path', { d: 'M4 7l3-3 3 3' }],
+          ['path', { d: 'M17 20V4' }],
+          ['path', { d: 'M14 17l3 3 3-3' }],
+        ],
+      },
+      search: {
+        parts: [
+          ['circle', { cx: 11, cy: 11, r: 7 }],
+          ['path', { d: 'M21 21l-4.3-4.3' }],
+        ],
+      },
+      repeat: {
+        parts: [
+          ['path', { d: 'M17 2l4 4-4 4' }],
+          ['path', { d: 'M3 11V9a4 4 0 014-4h14' }],
+          ['path', { d: 'M7 22l-4-4 4-4' }],
+          ['path', { d: 'M21 13v2a4 4 0 01-4 4H3' }],
+        ],
+      },
+      repeatOne: {
+        parts: [
+          ['path', { d: 'M17 2l4 4-4 4' }],
+          ['path', { d: 'M3 11V9a4 4 0 014-4h14' }],
+          ['path', { d: 'M7 22l-4-4 4-4' }],
+          ['path', { d: 'M21 13v2a4 4 0 01-4 4H3' }],
+          ['path', { d: 'M12 10v4' }],
+          ['path', { d: 'M11 11l1-1' }],
+        ],
+      },
+      shuffle: {
+        parts: [
+          ['path', { d: 'M16 3h5v5' }],
+          ['path', { d: 'M4 20L21 3' }],
+          ['path', { d: 'M21 16v5h-5' }],
+          ['path', { d: 'M15 15l6 6' }],
+          ['path', { d: 'M4 4l5 5' }],
+        ],
+      },
+      x: {
+        parts: [
+          ['path', { d: 'M18 6L6 18' }],
+          ['path', { d: 'M6 6l12 12' }],
+        ],
+      },
+      prev: {
+        parts: [
+          ['path', { d: 'M19 20L9 12l10-8v16z' }],
+          ['path', { d: 'M5 19V5' }],
+        ],
+      },
+      next: {
+        parts: [
+          ['path', { d: 'M5 4l10 8-10 8V4z' }],
+          ['path', { d: 'M19 5v14' }],
+        ],
+      },
+      play: { fill: true, parts: [['path', { d: 'M7 4.5v15l13-7.5-13-7.5z' }]] },
+      pause: {
+        fill: true,
+        parts: [
+          ['rect', { x: 6, y: 4, width: 4, height: 16, rx: 1 }],
+          ['rect', { x: 14, y: 4, width: 4, height: 16, rx: 1 }],
+        ],
+      },
+      list: {
+        parts: [
+          ['path', { d: 'M8 6h13' }],
+          ['path', { d: 'M8 12h13' }],
+          ['path', { d: 'M8 18h13' }],
+          ['path', { d: 'M3 6h.01' }],
+          ['path', { d: 'M3 12h.01' }],
+          ['path', { d: 'M3 18h.01' }],
+        ],
+      },
+      more: {
+        parts: [
+          ['circle', { cx: 5, cy: 12, r: 1.4 }],
+          ['circle', { cx: 12, cy: 12, r: 1.4 }],
+          ['circle', { cx: 19, cy: 12, r: 1.4 }],
+        ],
+      },
+      volume: {
+        parts: [
+          ['path', { d: 'M11 5L6 9H2v6h4l5 4V5z' }],
+          ['path', { d: 'M15.5 8.5a5 5 0 010 7' }],
+          ['path', { d: 'M18.5 5.5a9 9 0 010 13' }],
+        ],
+      },
+      volumeLow: {
+        parts: [
+          ['path', { d: 'M11 5L6 9H2v6h4l5 4V5z' }],
+          ['path', { d: 'M15.5 8.5a5 5 0 010 7' }],
+        ],
+      },
+      mute: {
+        parts: [
+          ['path', { d: 'M11 5L6 9H2v6h4l5 4V5z' }],
+          ['path', { d: 'M22 9l-6 6' }],
+          ['path', { d: 'M16 9l6 6' }],
+        ],
+      },
+      note: {
+        parts: [
+          ['path', { d: 'M9 18V5l12-2v13' }],
+          ['circle', { cx: 6, cy: 18, r: 3 }],
+          ['circle', { cx: 18, cy: 16, r: 3 }],
+        ],
+      },
+      chevronDown: {
+        parts: [['path', { d: 'M6 9l6 6 6-6' }]],
+      },
+      chevronLeft: {
+        parts: [['path', { d: 'M15 18l-6-6 6-6' }]],
+      },
+      trash: {
+        parts: [
+          ['path', { d: 'M3 6h18' }],
+          ['path', { d: 'M8 6V4h8v2' }],
+          ['path', { d: 'M19 6l-1 14H6L5 6' }],
+        ],
+      },
+      plus: {
+        parts: [
+          ['path', { d: 'M12 5v14' }],
+          ['path', { d: 'M5 12h14' }],
+        ],
+      },
+      folder: {
+        parts: [['path', { d: 'M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z' }]],
+      },
+    }
+
+    function merge(base, extra) {
+      var out = {}
+      Object.keys(base).forEach(function (key) {
+        out[key] = base[key]
+      })
+      if (extra) {
+        Object.keys(extra).forEach(function (key) {
+          out[key] = extra[key]
+        })
+      }
+      return out
+    }
+
+    function icon(name, size, extra) {
+      var spec = ICONS[name] || ICONS.note
+      var children = spec.parts.map(function (part, index) {
+        return h(part[0], merge({ key: String(index) }, part[1]))
+      })
+      var props = {
+        width: size || 18,
+        height: size || 18,
+        viewBox: '0 0 24 24',
+        'aria-hidden': 'true',
+        focusable: 'false',
+        fill: spec.fill === true ? 'currentColor' : 'none',
+        stroke: spec.fill === true ? 'none' : 'currentColor',
+        strokeWidth: 1.75,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+      }
+      return h('svg', merge(props, extra), children)
+    }
+
+    // ── cover thumbnail ───────────────────────────────────────────────────
+
+    function Cover(props) {
+      var [failed, setFailed] = useState(false)
+      var size = props.size || 42
+      var radius = props.radius === undefined ? 6 : props.radius
+
+      useEffect(
+        function () {
+          setFailed(false)
+        },
+        [props.track ? props.track.path : ''],
+      )
+      var wrapStyle = {
+        width: size + 'px',
+        height: size + 'px',
+        borderRadius: radius + 'px',
+      }
+      if (!props.track || props.track.hasCover !== true || failed) {
+        return h('div', { className: 'mu-cover', style: wrapStyle }, icon('note', Math.round(size * 0.42)))
+      }
+      return h(
+        'div',
+        { className: 'mu-cover', style: wrapStyle },
+        h('img', {
+          src: coverUrl(props.track.path),
+          alt: '',
+          loading: 'lazy',
+          draggable: 'false',
+          onError: function () {
+            setFailed(true)
+          },
+        }),
+      )
+    }
+
+    // ── sidebar icon ──────────────────────────────────────────────────────
+
+    function MusicSideIcon(props) {
+      var size = props && props.size ? props.size : 16
+      var [snap, setSnap] = useState(player.getSnapshot())
+      var [anchor, setAnchor] = useState(null)
+      var hideTimer = useRef(null)
+      var iconRef = useRef(null)
+
+      useEffect(function () {
+        return player.subscribe(function () {
+          setSnap(player.getSnapshot())
+        })
+      }, [])
+
+      // Bind to the whole sidebar row (not just the 16px icon) so hovering
+      // anywhere on the row reveals the controls, anchored to the row's right edge.
+      // Defensive: the host rail DOM is not ours, so any probe failure must not
+      // take the sidebar entry down with it.
+      useEffect(function () {
+        var icon = iconRef.current
+        if (icon === null) return undefined
+
+        var row = icon
+        try {
+          while (row !== null && row !== document.body) {
+            if (row.getBoundingClientRect().width > 120) break
+            row = row.parentElement
+          }
+        } catch (error) {
+          row = icon
+        }
+        if (row === null || row === document.body) row = icon
+
+        function keepOpen() {
+          if (hideTimer.current !== null) {
+            clearTimeout(hideTimer.current)
+            hideTimer.current = null
+          }
+        }
+
+        function scheduleHide() {
+          if (hideTimer.current !== null) clearTimeout(hideTimer.current)
+          hideTimer.current = setTimeout(function () {
+            hideTimer.current = null
+            setAnchor(null)
+          }, 180)
+        }
+
+        function onEnter() {
+          keepOpen()
+          try {
+            var rect = row.getBoundingClientRect()
+            setAnchor({ top: rect.top + rect.height / 2, left: Math.max(8, rect.right - 78) })
+          } catch (error) {
+            // Host rail DOM unavailable: keep the row usable without controls.
+          }
+        }
+
+        row.addEventListener('mouseenter', onEnter)
+        row.addEventListener('mouseleave', scheduleHide)
+        return function () {
+          row.removeEventListener('mouseenter', onEnter)
+          row.removeEventListener('mouseleave', scheduleHide)
+          if (hideTimer.current !== null) {
+            clearTimeout(hideTimer.current)
+            hideTimer.current = null
+          }
+        }
+      }, [])
+
+      function keepOpen() {
+        if (hideTimer.current !== null) {
+          clearTimeout(hideTimer.current)
+          hideTimer.current = null
+        }
+      }
+
+      function scheduleHide() {
+        if (hideTimer.current !== null) clearTimeout(hideTimer.current)
+        hideTimer.current = setTimeout(function () {
+          hideTimer.current = null
+          setAnchor(null)
+        }, 180)
+      }
+
+      var hasTrack = snap.index >= 0
+      var owner = props || {}
+
+      return h(
+        'span',
+        {
+          ref: iconRef,
+          className: 'mu-side-icon' + (owner.active ? ' is-active' : ''),
+        },
+        icon('note', size),
+        hasTrack && anchor !== null
+          ? h(
+              'span',
+              {
+                className: 'mu-side-controls',
+                style: { top: anchor.top + 'px', left: anchor.left + 'px' },
+                onMouseEnter: keepOpen,
+                onMouseLeave: scheduleHide,
+              },
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-side-btn',
+                  title: t('page.prev'),
+                  onClick: function (event) {
+                    event.stopPropagation()
+                    player.prev()
+                  },
+                },
+                icon('prev', 12),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-side-btn',
+                  title: snap.playing ? t('page.pause') : t('page.play'),
+                  onClick: function (event) {
+                    event.stopPropagation()
+                    player.toggle()
+                  },
+                },
+                icon(snap.playing ? 'pause' : 'play', 12),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-side-btn',
+                  title: t('page.next'),
+                  onClick: function (event) {
+                    event.stopPropagation()
+                    player.next()
+                  },
+                },
+                icon('next', 12),
+              ),
+            )
+          : null,
+      )
+    }
+
+    // ── main panel ────────────────────────────────────────────────────────
+
+    function randomOrderOf(size) {
+      var order = []
+      for (var i = 0; i < size; i += 1) order.push(i)
+      for (var j = order.length - 1; j > 0; j -= 1) {
+        var k = Math.floor(Math.random() * (j + 1))
+        var tmp = order[j]
+        order[j] = order[k]
+        order[k] = tmp
+      }
+      return order
+    }
+
+    function nextIndexOf(index, order, size, randomOrder) {
+      if (size <= 1) return 0
+      if (order === 'random') {
+        var pos = randomOrder.indexOf(index)
+        return randomOrder[(pos + 1) % randomOrder.length]
+      }
+      return (index + 1) % size
+    }
+
+    function prevIndexOf(index, order, size, randomOrder) {
+      if (size <= 1) return 0
+      if (order === 'random') {
+        var pos = randomOrder.indexOf(index)
+        return randomOrder[(pos - 1 + randomOrder.length) % randomOrder.length]
+      }
+      return (index - 1 + size) % size
+    }
+
+    // ── playback engine (module-level: survives panel unmount) ───────────
+    // The <audio> element lives here rather than in the React tree, so
+    // selecting another main panel keeps the current track playing.
+
+    function sameQueue(left, right) {
+      if (left.length !== right.length) return false
+      for (var i = 0; i < left.length; i += 1) {
+        if (!right[i] || left[i].path !== right[i].path) return false
+      }
+      return true
+    }
+
+    // One engine per page. Client modules can be re-executed by HMR or by a
+    // module-table rebuild; a second engine would own a second <audio> and
+    // play on top of the first. Every execution reuses the same instance.
+    var PLAYER_KEY = '__dshMusicPlayer'
+
+    /**
+     * Playback engine, one per page.
+     *
+     * The <audio> element is owned by the `shell.overlay` seat (a resident
+     * floating layer) and handed in through `attachAudio`. That keeps the
+     * element inside the document — browsers treat detached media elements
+     * differently for background playback, system media keys and autoplay —
+     * while this engine stays the single source of playback state.
+     */
+    function createPlayer() {
+      if (typeof window !== 'undefined' && window[PLAYER_KEY]) return window[PLAYER_KEY]
+      var prefs = readPrefs()
+      var audio = null
+      /** Active `blob:` URL for the loaded track (local media seeks reliably). */
+      var objectUrl = null
+      /** In-flight track download. */
+      var fetchAbort = null
+      /** Bumped per load so a stale download cannot overwrite a newer track. */
+      var loadToken = 0
+      var pendingAutoplay = false
+      var randomOrder = []
+      var listeners = []
+      var timeListeners = []
+      var errorStreak = 0
+      var state = {
+        queue: [],
+        index: -1,
+        playing: false,
+        loop: prefs.loop === 'one' || prefs.loop === 'none' ? prefs.loop : 'all',
+        order: prefs.order === 'random' ? 'random' : 'list',
+        // Volume follows the system mixer: the plugin no longer exposes its own.
+        volume: 1,
+        muted: false,
+        currentTime: 0,
+        duration: 0,
+        buffered: 0,
+      }
+
+      function emit() {
+        listeners.forEach(function (fn) {
+          fn()
+        })
+        timeListeners.forEach(function (fn) {
+          fn()
+        })
+      }
+
+      function emitTime() {
+        timeListeners.forEach(function (fn) {
+          fn()
+        })
+      }
+
+      function patch(next) {
+        state = Object.assign({}, state, next)
+        emit()
+      }
+
+      function currentItem() {
+        return state.index >= 0 && state.queue[state.index] ? state.queue[state.index] : null
+      }
+
+      // ── media session (system media keys, lock screen, OS media panel) ──
+
+      function syncMediaSession() {
+        if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return
+        var item = currentItem()
+        try {
+          if (item === null) {
+            navigator.mediaSession.metadata = null
+          } else if (typeof MediaMetadata !== 'undefined') {
+            navigator.mediaSession.metadata = new MediaMetadata({
+              title: item.title,
+              artist: item.artist || '',
+              album: item.album || '',
+              artwork: item.hasCover
+                ? [{ src: new URL(coverUrl(item.path), window.location.href).href, sizes: '512x512' }]
+                : [],
+            })
+          }
+          if (typeof navigator.mediaSession.setPlaybackState === 'function') {
+            navigator.mediaSession.setPlaybackState(state.playing ? 'playing' : 'paused')
+          }
+        } catch (error) {
+          // Media Session is best effort.
+        }
+      }
+
+      function syncMediaHandlers() {
+        if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return
+        try {
+          navigator.mediaSession.setActionHandler('play', function () {
+            api.play()
+          })
+          navigator.mediaSession.setActionHandler('pause', function () {
+            api.pause()
+          })
+          navigator.mediaSession.setActionHandler('previoustrack', function () {
+            api.prev()
+          })
+          navigator.mediaSession.setActionHandler('nexttrack', function () {
+            api.next()
+          })
+          navigator.mediaSession.setActionHandler('seekto', function (details) {
+            if (details && typeof details.seekTime === 'number') api.seek(details.seekTime)
+          })
+        } catch (error) {
+          // Older browsers expose a partial action list.
+        }
+      }
+
+      // ── audio element wiring ───────────────────────────────────────────
+
+      function onTime() {
+        if (audio === null) return
+        state = Object.assign({}, state, { currentTime: audio.currentTime })
+        emitTime()
+      }
+
+      function onDuration() {
+        if (audio === null) return
+        state = Object.assign({}, state, { duration: isFinite(audio.duration) ? audio.duration : 0 })
+        emitTime()
+      }
+
+      function onProgress() {
+        if (audio === null) return
+        if (audio.buffered && audio.buffered.length > 0) {
+          state = Object.assign({}, state, {
+            buffered: audio.buffered.end(audio.buffered.length - 1),
+          })
+          emitTime()
+        }
+      }
+
+      function onPlaying() {
+        errorStreak = 0
+      }
+
+      function onPlay() {
+        if (!state.playing) {
+          patch({ playing: true })
+          syncMediaSession()
+        }
+      }
+
+      function onPause() {
+        if (state.playing) {
+          patch({ playing: false })
+          syncMediaSession()
+        }
+      }
+
+      function onEnded() {
+        if (state.queue.length === 0) return
+        if (state.loop === 'one') {
+          if (audio) {
+            audio.currentTime = 0
+            audio.play().catch(function () {})
+          }
+          return
+        }
+        if (state.loop === 'none') {
+          if (state.order === 'random') {
+            if (randomOrder.length === 0 || randomOrder[randomOrder.length - 1] === state.index) {
+              patch({ playing: false })
+              return
+            }
+          } else if (state.index >= state.queue.length - 1) {
+            patch({ playing: false })
+            return
+          }
+        }
+        load(nextIndexOf(state.index, state.order, state.queue.length, randomOrder), true)
+      }
+
+      function onError() {
+        errorStreak += 1
+        if (errorStreak > 3 || state.queue.length <= 1) {
+          errorStreak = 0
+          patch({ playing: false })
+          return
+        }
+        load(nextIndexOf(state.index, state.order, state.queue.length, randomOrder), true)
+      }
+
+      function bind(el) {
+        el.addEventListener('timeupdate', onTime)
+        el.addEventListener('durationchange', onDuration)
+        el.addEventListener('loadedmetadata', onDuration)
+        el.addEventListener('progress', onProgress)
+        el.addEventListener('canplay', onProgress)
+        el.addEventListener('playing', onPlaying)
+        el.addEventListener('play', onPlay)
+        el.addEventListener('pause', onPause)
+        el.addEventListener('ended', onEnded)
+        el.addEventListener('error', onError)
+      }
+
+      function unbind(el) {
+        el.removeEventListener('timeupdate', onTime)
+        el.removeEventListener('durationchange', onDuration)
+        el.removeEventListener('loadedmetadata', onDuration)
+        el.removeEventListener('progress', onProgress)
+        el.removeEventListener('canplay', onProgress)
+        el.removeEventListener('playing', onPlaying)
+        el.removeEventListener('play', onPlay)
+        el.removeEventListener('pause', onPause)
+        el.removeEventListener('ended', onEnded)
+        el.removeEventListener('error', onError)
+      }
+
+      function releaseObjectUrl() {
+        if (objectUrl === null) return
+        try {
+          URL.revokeObjectURL(objectUrl)
+        } catch (error) {
+          // Revoking twice is harmless.
+        }
+        objectUrl = null
+      }
+
+      function cancelPendingFetch() {
+        if (fetchAbort === null) return
+        try {
+          fetchAbort.abort()
+        } catch (error) {
+          // Already settled.
+        }
+        fetchAbort = null
+      }
+
+      /**
+       * Load one track through a local Blob URL.
+       *
+       * Playing from `blob:` is deliberate: on the Desktop (Electron) media
+       * stack, writes to `currentTime` on this plugin's HTTP stream are
+       * silently dropped while readyState is already 4, so seeking restarted
+       * the track. A Blob is local media and seeks reliably. The download is a
+       * loopback request, so it costs one disk read, not a network hop.
+       */
+      function load(at, autoplay) {
+        var item = state.queue[at]
+        if (!item) return
+        var token = (loadToken += 1)
+        state = Object.assign({}, state, { index: at, currentTime: 0, duration: 0, buffered: 0 })
+        emit()
+        syncMediaSession()
+        pendingAutoplay = autoplay === true
+        // One load == one play; recorded so "play count" can be a sort key.
+        try {
+          window
+            .fetch(API + 'play', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ path: item.path }),
+            })
+            .catch(function () {})
+        } catch (error) {
+          // Statistics never block playback.
+        }
+        if (audio === null) return
+
+        cancelPendingFetch()
+        // Detach the old blob before revoking it: a revoked URL still
+        // assigned to the element fires a spurious `error`.
+        audio.pause()
+        audio.removeAttribute('src')
+        audio.load()
+        releaseObjectUrl()
+        var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+        fetchAbort = controller
+
+        fetch(streamUrl(item.path), controller === null ? {} : { signal: controller.signal })
+          .then(function (response) {
+            if (!response.ok) throw new Error('HTTP ' + response.status)
+            return response.blob()
+          })
+          .then(function (blob) {
+            if (token !== loadToken) return
+            fetchAbort = null
+            if (audio === null) return
+            releaseObjectUrl()
+            objectUrl = URL.createObjectURL(blob)
+            audio.src = objectUrl
+            audio.load()
+            if (pendingAutoplay) {
+              pendingAutoplay = false
+              audio.play().catch(function () {
+                if (state.playing) patch({ playing: false })
+              })
+            }
+          })
+          .catch(function (error) {
+            if (token !== loadToken) return
+            fetchAbort = null
+            if (error && error.name === 'AbortError') return
+            onError()
+          })
+      }
+
+      var api = {
+        subscribe: function (fn) {
+          listeners.push(fn)
+          return function () {
+            listeners = listeners.filter(function (item) {
+              return item !== fn
+            })
+          }
+        },
+        subscribeTime: function (fn) {
+          timeListeners.push(fn)
+          return function () {
+            timeListeners = timeListeners.filter(function (item) {
+              return item !== fn
+            })
+          }
+        },
+        getSnapshot: function () {
+          return state
+        },
+        getTime: function () {
+          return { currentTime: state.currentTime, duration: state.duration, buffered: state.buffered }
+        },
+        /** Hand the resident <audio> element to the engine (null detaches). */
+        attachAudio: function (el) {
+          if (audio === el) return
+          if (audio !== null) unbind(audio)
+          audio = el
+          if (el === null) return
+          bind(el)
+          el.preload = 'metadata'
+          el.volume = 1
+          el.muted = false
+          var item = currentItem()
+          if (item !== null) {
+            if (objectUrl !== null) {
+              el.src = objectUrl
+              el.load()
+              if (pendingAutoplay) {
+                pendingAutoplay = false
+                el.play().catch(function () {})
+              }
+            } else {
+              load(state.index, pendingAutoplay || state.playing)
+            }
+          }
+          syncMediaSession()
+        },
+        setQueue: function (list) {
+          // Never replace a queue that is already playing or paused mid-track.
+          if (state.index >= 0) return
+          state = Object.assign({}, state, { queue: list.slice(), index: -1 })
+          randomOrder = randomOrderOf(list.length)
+          emit()
+        },
+        playList: function (list, at) {
+          if (!list || list.length === 0) return
+          state = Object.assign({}, state, { queue: list.slice(), index: at })
+          randomOrder = randomOrderOf(list.length)
+          load(at, true)
+        },
+        select: function (list, at) {
+          if (!list || list.length === 0 || at < 0) return
+          if (at === state.index && sameQueue(list, state.queue)) {
+            if (state.playing) api.pause()
+            else api.play()
+            return
+          }
+          if (!sameQueue(list, state.queue)) {
+            state = Object.assign({}, state, { queue: list.slice(), index: at })
+            randomOrder = randomOrderOf(list.length)
+            load(at, true)
+            return
+          }
+          load(at, true)
+        },
+        play: function () {
+          if (state.index < 0) {
+            if (state.queue.length > 0) load(0, true)
+            return
+          }
+          if (audio === null) return
+          audio.play().catch(function () {})
+        },
+        pause: function () {
+          if (audio) audio.pause()
+        },
+        toggle: function () {
+          if (state.playing) api.pause()
+          else api.play()
+        },
+        next: function () {
+          if (state.queue.length === 0) return
+          load(nextIndexOf(state.index, state.order, state.queue.length, randomOrder), true)
+        },
+        prev: function () {
+          if (state.queue.length === 0) return
+          load(prevIndexOf(state.index, state.order, state.queue.length, randomOrder), true)
+        },
+        seek: function (seconds) {
+          if (audio === null) return
+          var el = audio
+          var item = currentItem()
+          // Media duration is unavailable until metadata lands; the scanned
+          // track duration is the correct fallback, never a 1-second guess.
+          var limit = isFinite(el.duration) && el.duration > 0
+            ? el.duration
+            : item && item.durationSec > 0
+              ? item.durationSec
+              : 0
+          var target = clamp(seconds, 0, limit > 0 ? limit : seconds)
+          if (!isFinite(target)) return
+
+          function apply() {
+            try {
+              el.currentTime = target
+            } catch (error) {
+              return
+            }
+            state = Object.assign({}, state, { currentTime: target })
+            emitTime()
+          }
+
+          if (el.readyState >= 1) {
+            apply()
+            return
+          }
+          var once = function () {
+            el.removeEventListener('loadedmetadata', once)
+            apply()
+          }
+          el.addEventListener('loadedmetadata', once)
+          try {
+            el.currentTime = target
+          } catch (error) {
+            // The listener above retries once metadata is ready.
+          }
+        },
+        setVolume: function (value) {
+          var next = clamp(value, 0, 1)
+          state = Object.assign({}, state, { volume: next, muted: next > 0 ? state.muted : false })
+          if (audio) audio.volume = next
+          savePrefs({ volume: next })
+          emit()
+        },
+        setMuted: function (value) {
+          state = Object.assign({}, state, { muted: value })
+          if (audio) audio.muted = value
+          emit()
+        },
+        setLoop: function (value) {
+          state = Object.assign({}, state, { loop: value })
+          savePrefs({ loop: value })
+          emit()
+        },
+        setOrder: function (value) {
+          state = Object.assign({}, state, { order: value })
+          savePrefs({ order: value })
+          emit()
+        },
+        clear: function () {
+          loadToken += 1
+          cancelPendingFetch()
+          releaseObjectUrl()
+          if (audio) {
+            audio.pause()
+            audio.removeAttribute('src')
+            audio.load()
+          }
+          state = Object.assign({}, state, {
+            queue: [],
+            index: -1,
+            playing: false,
+            currentTime: 0,
+            duration: 0,
+            buffered: 0,
+          })
+          randomOrder = []
+          emit()
+          syncMediaSession()
+        },
+        suspend: function () {
+          if (audio) audio.pause()
+        },
+        destroy: function () {
+          loadToken += 1
+          cancelPendingFetch()
+          releaseObjectUrl()
+          if (audio) {
+            unbind(audio)
+            audio.pause()
+            audio.removeAttribute('src')
+            audio = null
+          }
+        },
+      }
+
+      syncMediaHandlers()
+      if (typeof window !== 'undefined') window[PLAYER_KEY] = api
+      return api
+    }
+
+    var player = createPlayer()
+
+    /**
+     * Resident audio host. It lives in `shell.overlay`, so the media element
+     * stays mounted (and playing) while the Music main panel is closed.
+     */
+    function AudioHost() {
+      var ref = useRef(null)
+      useEffect(function () {
+        player.attachAudio(ref.current)
+        return function () {
+          player.attachAudio(null)
+        }
+      }, [])
+      return h('audio', {
+        ref: ref,
+        className: 'mu-audio-host',
+        preload: 'metadata',
+        'aria-hidden': 'true',
+      })
+    }
+
+    // ── composer lyrics (above the chat input) ────────────────────────────
+    // Shows the line being sung. Fetches lyrics for the current track itself,
+    // so it works even when the player page is not open.
+
+    function ComposerLyrics(props) {
+      var slot = props && props.place === 'above' ? 'above' : 'inline'
+      var [prefs, setPrefs] = useState(function () {
+        return readPrefs()
+      })
+      var [lines, setLines] = useState([])
+      var [timed, setTimed] = useState(false)
+      var [text, setText] = useState('')
+      var [track, setTrack] = useState(null)
+      var pathRef = useRef('')
+
+      useEffect(function () {
+        function onChange() {
+          setPrefs(readPrefs())
+        }
+        window.addEventListener(PREFS_EVENT, onChange)
+        return function () {
+          window.removeEventListener(PREFS_EVENT, onChange)
+        }
+      }, [])
+
+      useEffect(function () {
+        function sync() {
+          var snap = player.getSnapshot()
+          var track = snap.index >= 0 ? snap.queue[snap.index] : null
+          var path = track ? track.path : ''
+          if (path === pathRef.current) return
+          pathRef.current = path
+          setTrack(track)
+          setLines([])
+          setTimed(false)
+          setText('')
+          if (path === '') return
+          var order = Array.isArray(readPrefs().lyricOrder) ? readPrefs().lyricOrder.join(',') : 'embedded,lrc'
+          getJson(API + 'lyrics?path=' + encodeURIComponent(path) + '&order=' + encodeURIComponent(order))
+            .then(function (body) {
+              if (pathRef.current !== path) return
+              setLines(Array.isArray(body.lines) ? body.lines : [])
+              setTimed(body.timed === true)
+            })
+            .catch(function () {})
+        }
+        sync()
+        return player.subscribe(sync)
+      }, [])
+
+      useEffect(
+        function () {
+          if (!timed || lines.length === 0) return undefined
+          return player.subscribeTime(function () {
+            var index = activeLineAt(lines, player.getTime().currentTime)
+            var line = index >= 0 ? lines[index] : null
+            setText(line ? line.text : '')
+          })
+        },
+        [timed, lines],
+      )
+
+      var place = prefs.composerLyricPlace === 'above' ? 'above' : 'input-left'
+      var above = place === 'above'
+      if (slot === 'above' ? !above : above) return null
+      if (prefs.composerLyrics !== true) return null
+      if (text === '' && track === null) return null
+
+      // Above the composer: a music bar — track info left, current lyric right.
+      // The shell (width/background/border/radius) mirrors `dsh-music-player`'s
+      // dock bar so it reads as one card aligned with the input box.
+      if (slot === 'above') {
+        var name = track ? track.title || '' : ''
+        var artist = track && track.artist ? ' - ' + track.artist : ''
+        return h(
+          'div',
+          { className: 'mu-composer-bar-wrap' },
+          h(
+            'div',
+            { className: 'mu-composer-bar' },
+            h(
+              'div',
+              { className: 'mu-composer-bar-left' },
+              h('span', { className: 'mu-composer-note' }, icon('note', 14)),
+              h('span', { className: 'mu-composer-track', title: name + artist }, name + artist),
+            ),
+            h('div', { className: 'mu-composer-lyric-inline', title: text }, text),
+          ),
+        )
+      }
+
+      // Inline: one line next to the model picker.
+      return h('div', { className: 'mu-composer-lyric', title: text }, text)
+    }
+
+    // ── mini player (draggable floating window) ────────────────────────────
+
+    function MiniPlayer() {
+      var [enabled, setEnabled] = useState(function () {
+        return readPrefs().miniPlayer === true
+      })
+      var [snap, setSnap] = useState(player.getSnapshot())
+      var [pos, setPos] = useState(function () {
+        var saved = readPrefs().miniPos
+        var valid =
+          saved !== null &&
+          typeof saved === 'object' &&
+          typeof saved.x === 'number' &&
+          typeof saved.y === 'number' &&
+          isFinite(saved.x) &&
+          isFinite(saved.y)
+        return valid ? { x: saved.x, y: saved.y } : null
+      })
+      var posRef = useRef(pos)
+      posRef.current = pos
+      var dragRef = useRef(null)
+
+      useEffect(function () {
+        function onChange() {
+          setEnabled(readPrefs().miniPlayer === true)
+        }
+        window.addEventListener(PREFS_EVENT, onChange)
+        return function () {
+          window.removeEventListener(PREFS_EVENT, onChange)
+        }
+      }, [])
+
+      useEffect(function () {
+        return player.subscribe(function () {
+          setSnap(player.getSnapshot())
+        })
+      }, [])
+
+      if (!enabled) return null
+
+      var track = snap.index >= 0 && snap.queue[snap.index] ? snap.queue[snap.index] : null
+      var style =
+        pos !== null
+          ? { left: Math.max(8, pos.x) + 'px', top: Math.max(8, pos.y) + 'px', right: 'auto', bottom: 'auto' }
+          : {}
+
+      function onPointerDown(event) {
+        if (event.button !== undefined && event.button !== 0) return
+        var rect = event.currentTarget.getBoundingClientRect()
+        dragRef.current = {
+          startX: event.clientX,
+          startY: event.clientY,
+          originX: rect.left,
+          originY: rect.top,
+        }
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId)
+        } catch (error) {
+          // Pointer capture is best effort.
+        }
+      }
+
+      function onPointerMove(event) {
+        var drag = dragRef.current
+        if (drag === null) return
+        var width = 260
+        var height = 56
+        var x = Math.max(8, Math.min(window.innerWidth - width - 8, drag.originX + event.clientX - drag.startX))
+        var y = Math.max(8, Math.min(window.innerHeight - height - 8, drag.originY + event.clientY - drag.startY))
+        setPos({ x: x, y: y })
+      }
+
+      function onPointerUp() {
+        if (dragRef.current === null) return
+        dragRef.current = null
+        var current = posRef.current
+        if (current !== null) savePrefs({ miniPos: current })
+      }
+
+      return h(
+        'div',
+        {
+          className: 'mu-mini' + (pos === null ? ' is-corner' : ''),
+          style: style,
+          onPointerDown: onPointerDown,
+          onPointerMove: onPointerMove,
+          onPointerUp: onPointerUp,
+          onPointerCancel: onPointerUp,
+        },
+        h(Cover, { track: track, size: 36, radius: 8 }),
+        h(
+          'div',
+          { className: 'mu-mini-info' },
+          h('div', { className: 'mu-mini-title' }, track ? track.title : t('page.noTrack')),
+          h('div', { className: 'mu-mini-artist' }, track ? track.artist || '' : ''),
+        ),
+        h(
+          'div',
+          { className: 'mu-mini-controls' },
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-icon-btn mu-icon-btn-sm',
+              title: t('page.prev'),
+              onPointerDown: function (event) {
+                event.stopPropagation()
+              },
+              onClick: function () {
+                player.prev()
+              },
+            },
+            icon('prev', 14),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-icon-btn mu-icon-btn-sm',
+              title: snap.playing ? t('page.pause') : t('page.play'),
+              onPointerDown: function (event) {
+                event.stopPropagation()
+              },
+              onClick: function () {
+                player.toggle()
+              },
+            },
+            icon(snap.playing ? 'pause' : 'play', 14),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-icon-btn mu-icon-btn-sm',
+              title: t('page.next'),
+              onPointerDown: function (event) {
+                event.stopPropagation()
+              },
+              onClick: function () {
+                player.next()
+              },
+            },
+            icon('next', 14),
+          ),
+        ),
+      )
+    }
+
+    // ── seek bar (own subscription: time updates do not re-render the list) ──
+
+    function SeekBar(props) {
+      var [, setTick] = useState(0)
+      var [seeking, setSeeking] = useState(null)
+
+      useEffect(
+        function () {
+          return props.player.subscribeTime(function () {
+            setTick(function (n) {
+              return n + 1
+            })
+          })
+        },
+        [props.player],
+      )
+
+      var time = props.player.getTime()
+      var trackDuration = props.track && props.track.durationSec > 0 ? props.track.durationSec : 0
+      var duration = time.duration > 0 ? time.duration : trackDuration
+      var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
+      var progress = duration > 0 ? (clamp(position, 0, duration) / duration) * 100 : 0
+      var buffered = duration > 0 ? (clamp(time.buffered, 0, duration) / duration) * 100 : 0
+
+      function commit() {
+        if (seeking === null) return
+        if (duration > 0) props.player.seek(seeking)
+        setSeeking(null)
+      }
+
+      return h(
+        'div',
+        { className: 'mu-seekwrap' + (props.className ? ' ' + props.className : '') },
+        h('div', { className: 'mu-bar-buffer', style: { width: buffered + '%' } }),
+        h('input', {
+          type: 'range',
+          className: 'mu-seek',
+          min: 0,
+          max: duration > 0 ? duration : 1,
+          step: 0.1,
+          value: position,
+          disabled: duration <= 0,
+          style: { '--mu-p': progress + '%' },
+          onChange: function (event) {
+            setSeeking(Number(event.target.value))
+          },
+          onPointerUp: commit,
+          onKeyUp: commit,
+          onClick: commit,
+        }),
+      )
+    }
+
+    // ── now playing page ─────────────────────────────────────────────────
+    // Full-screen player: spinning disc on the left, scrolling lyrics on the
+    // right. The disc is a CSS animation whose play state follows playback;
+    // the lyric list translates so the active line sits in the middle — the
+    // layout APlayer / Apple-Music-style players converge on.
+
+    function activeLineAt(lines, time) {
+      if (lines.length === 0 || lines[0].time < 0) return -1
+      var low = 0
+      var high = lines.length - 1
+      var found = -1
+      while (low <= high) {
+        var mid = (low + high) >> 1
+        if (lines[mid].time <= time + 0.05) {
+          found = mid
+          low = mid + 1
+        } else {
+          high = mid - 1
+        }
+      }
+      return found
+    }
+
+    function NowPlaying(props) {
+      var player = props.player
+      var snap = props.snapshot
+      var track = snap.index >= 0 && snap.queue[snap.index] ? snap.queue[snap.index] : null
+
+      var [lyrics, setLyrics] = useState([])
+      var [lyricsTimed, setLyricsTimed] = useState(false)
+      var [active, setActive] = useState(-1)
+      var boxRef = useRef(null)
+      var innerRef = useRef(null)
+      var rowRefs = useRef([])
+      var timeRef = useRef(null)
+      var closeRef = useRef(props.onClose)
+      closeRef.current = props.onClose
+      var trackPath = track ? track.path : ''
+      var [prefs, setPrefs] = useState(function () {
+        return readPrefs()
+      })
+      var [lyricSettingsOpen, setLyricSettingsOpen] = useState(false)
+
+      useEffect(function () {
+        function onChange() {
+          setPrefs(readPrefs())
+        }
+        window.addEventListener(PREFS_EVENT, onChange)
+        return function () {
+          window.removeEventListener(PREFS_EVENT, onChange)
+        }
+      }, [])
+
+      var showTranslation = prefs.showTranslation !== false
+      var lyricSize = clampPref(prefs.lyricSize, 14, 40, 18)
+      var lyricWeight = clampPref(prefs.lyricWeight, 300, 800, 500)
+      var lyricBlur = prefs.lyricBlur !== false
+      var translationScale = clampPref(prefs.translationScale, 50, 100, 80)
+      var circularCover = prefs.circularCover !== false
+      var vinylRing = prefs.vinylRing === true
+      var coverSpin = prefs.coverSpin !== false
+      var lyricAlign = prefs.lyricAlign === 'left' || prefs.lyricAlign === 'right' ? prefs.lyricAlign : 'center'
+      var lyricOrderKey = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
+
+      useEffect(
+        function () {
+          setLyrics([])
+          setLyricsTimed(false)
+          setActive(-1)
+          if (trackPath === '') return undefined
+          var cancelled = false
+          var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
+          getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&order=' + encodeURIComponent(order))
+            .then(function (body) {
+              if (cancelled) return
+              setLyrics(Array.isArray(body.lines) ? body.lines : [])
+              setLyricsTimed(body.timed === true)
+            })
+            .catch(function () {
+              if (!cancelled) setLyrics([])
+            })
+          return function () {
+            cancelled = true
+          }
+        },
+        [trackPath, lyricOrderKey],
+      )
+
+      useEffect(
+        function () {
+          return player.subscribeTime(function () {
+            var current = player.getTime().currentTime
+            if (timeRef.current) timeRef.current.textContent = fmtTime(current)
+            if (!lyricsTimed) return
+            var next = activeLineAt(lyrics, current)
+            setActive(function (previous) {
+              return previous === next ? previous : next
+            })
+          })
+        },
+        [player, lyrics, lyricsTimed],
+      )
+
+      useEffect(
+        function () {
+          var inner = innerRef.current
+          var box = boxRef.current
+          if (!inner || !box) return
+          if (!lyricsTimed || active < 0) {
+            inner.style.transform = 'translateY(0px)'
+            return
+          }
+          var row = rowRefs.current[active]
+          if (!row) return
+          var offset = row.offsetTop - (box.clientHeight / 2 - row.offsetHeight / 2)
+          inner.style.transform = 'translateY(' + -Math.max(0, offset) + 'px)'
+        },
+        [active, lyrics, lyricsTimed],
+      )
+
+      useEffect(
+        function () {
+          function onKey(event) {
+            if (event.key === 'Escape') closeRef.current()
+          }
+          window.addEventListener('keydown', onKey)
+          return function () {
+            window.removeEventListener('keydown', onKey)
+          }
+        },
+        [],
+      )
+
+      function cycleLoop() {
+        player.setLoop(snap.loop === 'all' ? 'one' : snap.loop === 'one' ? 'none' : 'all')
+      }
+
+      function loopLabel() {
+        return snap.loop === 'one' ? t('page.loopOne') : snap.loop === 'none' ? t('page.loopNone') : t('page.loopAll')
+      }
+
+      return h(
+        'div',
+        {
+          className:
+            'mu-np' +
+            (props.visible ? ' is-open' : '') +
+            (lyricBlur ? ' is-blur' : '') +
+            ' mu-align-' +
+            lyricAlign,
+          role: 'dialog',
+          'aria-label': t('page.openPlayer'),
+          style: {
+            '--mu-lyric-size': lyricSize + 'px',
+            '--mu-lyric-weight': String(lyricWeight),
+            '--mu-lyric-trans': Math.round((lyricSize * translationScale) / 100) + 'px',
+          },
+        },
+        track && track.hasCover
+          ? h('div', { className: 'mu-np-bg' }, h('img', { src: coverUrl(track.path), alt: '' }))
+          : null,
+        h('div', { className: 'mu-np-shade' }),
+
+        h(
+          'div',
+          { className: 'mu-np-head' },
+          h(
+            'button',
+            { type: 'button', className: 'mu-icon-btn', title: t('page.closePlayer'), onClick: props.onClose },
+            icon('chevronDown', 20),
+          ),
+          h('div', { className: 'mu-np-head-title mu-ellipsis' }, track ? track.title : t('page.noTrack')),
+          h(
+            'div',
+            { className: 'mu-np-head-actions' },
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-icon-btn mu-trans-toggle' + (lyricSettingsOpen ? ' is-on' : ''),
+                title: t('page.lyricSettings'),
+                onClick: function () {
+                  setLyricSettingsOpen(!lyricSettingsOpen)
+                },
+              },
+              'Aa',
+            ),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-icon-btn mu-trans-toggle' + (showTranslation ? ' is-on' : ''),
+                title: t('page.translation'),
+                onClick: function () {
+                  savePrefs({ showTranslation: !showTranslation })
+                },
+              },
+              '译',
+            ),
+          ),
+        ),
+
+        lyricSettingsOpen
+          ? h(
+              'div',
+              { className: 'mu-np-settings' },
+              h(
+                'div',
+                { className: 'mu-np-setting' },
+                h(
+                  'div',
+                  { className: 'mu-np-setting-head' },
+                  h('span', null, t('page.lyricSize')),
+                  h('span', { className: 'mu-np-setting-value' }, lyricSize + ' px'),
+                ),
+                h('input', {
+                  type: 'range',
+                  className: 'mu-np-range',
+                  min: 14,
+                  max: 40,
+                  step: 1,
+                  value: lyricSize,
+                  onChange: function (event) {
+                    var next = Number(event.target.value)
+                    if (!isFinite(next)) return
+                    savePrefs({ lyricSize: next })
+                  },
+                }),
+              ),
+              h(
+                'div',
+                { className: 'mu-np-setting' },
+                h(
+                  'div',
+                  { className: 'mu-np-setting-head' },
+                  h('span', null, t('page.lyricWeight')),
+                  h('span', { className: 'mu-np-setting-value' }, String(lyricWeight)),
+                ),
+                h('input', {
+                  type: 'range',
+                  className: 'mu-np-range',
+                  min: 300,
+                  max: 800,
+                  step: 100,
+                  value: lyricWeight,
+                  onChange: function (event) {
+                    var next = Number(event.target.value)
+                    if (!isFinite(next)) return
+                    savePrefs({ lyricWeight: next })
+                  },
+                }),
+              ),
+              h(
+                'div',
+                { className: 'mu-np-setting mu-np-setting-inline' },
+                h('span', null, t('page.lyricBlur')),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-np-toggle' + (lyricBlur ? ' is-on' : ''),
+                    onClick: function () {
+                      var next = !lyricBlur
+                      savePrefs({ lyricBlur: next })
+                    },
+                  },
+                  h('span', { className: 'mu-np-toggle-dot' }),
+                ),
+              ),
+              h(
+                'div',
+                { className: 'mu-np-setting' },
+                h(
+                  'div',
+                  { className: 'mu-np-setting-head' },
+                  h('span', null, t('page.translationScale')),
+                  h('span', { className: 'mu-np-setting-value' }, translationScale + '%'),
+                ),
+                h('input', {
+                  type: 'range',
+                  className: 'mu-np-range',
+                  min: 50,
+                  max: 100,
+                  step: 5,
+                  value: translationScale,
+                  onChange: function (event) {
+                    var next = Number(event.target.value)
+                    if (!isFinite(next)) return
+                    savePrefs({ translationScale: next })
+                  },
+                }),
+              ),
+            )
+          : null,
+
+        h(
+          'div',
+          { className: 'mu-np-body' },
+          h(
+            'div',
+            { className: 'mu-np-left' },
+            h(
+              'div',
+              { className: 'mu-np-disc-wrap' },
+              h(
+                'div',
+                {
+                  className:
+                    'mu-np-disc' +
+                    (circularCover ? ' is-circle' : ' is-square') +
+                    (coverSpin && circularCover && snap.playing ? ' is-playing' : '') +
+                    (vinylRing && circularCover ? ' is-vinyl' : ''),
+                },
+                vinylRing && circularCover ? h('div', { className: 'mu-np-vinyl' }) : null,
+                h(
+                  'div',
+                  { className: 'mu-np-art' },
+                  track && track.hasCover
+                    ? h('img', {
+                        src: coverUrl(track.path),
+                        alt: '',
+                        draggable: 'false',
+                        onError: function (event) {
+                          event.target.style.display = 'none'
+                        },
+                      })
+                    : icon('note', 96),
+                ),
+              ),
+            ),
+            h(
+              'div',
+              { className: 'mu-np-meta' },
+              h('div', { className: 'mu-np-title mu-ellipsis' }, track ? track.title : '—'),
+              h(
+                'div',
+                { className: 'mu-np-artist mu-ellipsis' },
+                track ? track.artist || t('page.unknownArtist') : '',
+              ),
+            ),
+          ),
+          h(
+            'div',
+            { className: 'mu-np-right' },
+            h(
+              'div',
+              { className: 'mu-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: boxRef },
+              lyrics.length === 0
+                ? h('div', { className: 'mu-np-lyrics-empty' }, t('page.noLyrics'))
+                : h(
+                    'div',
+                    { className: 'mu-np-lyrics-inner', ref: innerRef },
+                    lyrics.map(function (line, index) {
+                      return h(
+                        'div',
+                        {
+                          key: String(index),
+                          ref: function (el) {
+                            rowRefs.current[index] = el
+                          },
+                          className: 'mu-np-line' + (index === active ? ' is-active' : ''),
+                          onClick: function () {
+                            if (line.time >= 0) player.seek(line.time)
+                          },
+                        },
+                        h('div', { className: 'mu-np-line-text' }, line.text),
+                        showTranslation && line.translation !== ''
+                          ? line.translation.split('\n').map(function (part, partIndex) {
+                              return h(
+                                'div',
+                                { key: 'translation-' + partIndex, className: 'mu-np-line-trans' },
+                                part,
+                              )
+                            })
+                          : null,
+                      )
+                    }),
+                  ),
+            ),
+          ),
+        ),
+
+        h(
+          'div',
+          { className: 'mu-np-bottom' },
+          h(
+            'div',
+            { className: 'mu-np-progress' },
+            h(SeekBar, { player: player, track: track, className: 'mu-seek-np' }),
+          ),
+          h(
+            'div',
+            { className: 'mu-np-bar' },
+            h(
+              'div',
+              { className: 'mu-np-time' },
+              h('span', { ref: timeRef }, fmtTime(player.getTime().currentTime)),
+              h('span', { className: 'mu-np-time-sep' }, ' / '),
+              h('span', null, fmtTime(track && track.durationSec > 0 ? track.durationSec : 0)),
+            ),
+            h(
+              'div',
+              { className: 'mu-np-controls' },
+              h(
+                'button',
+                { type: 'button', className: 'mu-icon-btn', title: loopLabel(), onClick: cycleLoop },
+                icon(snap.loop === 'one' ? 'repeatOne' : 'repeat', 18),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-icon-btn',
+                  title: t('page.prev'),
+                  onClick: function () {
+                    player.prev()
+                  },
+                },
+                icon('prev', 20),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-play-btn mu-play-btn-lg',
+                  title: snap.playing ? t('page.pause') : t('page.play'),
+                  onClick: function () {
+                    player.toggle()
+                  },
+                },
+                icon(snap.playing ? 'pause' : 'play', 24),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-icon-btn',
+                  title: t('page.next'),
+                  onClick: function () {
+                    player.next()
+                  },
+                },
+                icon('next', 20),
+              ),
+            ),
+            h(
+              'div',
+              { className: 'mu-np-vol' },
+              track && track.sampleRate ? h('span', { className: 'mu-quality' }, fmtKhz(track.sampleRate)) : null,
+            ),
+          ),
+        ),
+      )
+    }
+
+    // ── main panel ───────────────────────────────────────────────────────
+
+    function MusicPanel() {
+      var prefs = useRef(readPrefs()).current
+      var [snap, setSnap] = useState(player.getSnapshot())
+      var [config, setConfig] = useState(null)
+      var [tracks, setTracks] = useState([])
+      var [loading, setLoading] = useState(true)
+      var [error, setError] = useState(null)
+      var [warnings, setWarnings] = useState([])
+      var [query, setQuery] = useState('')
+      var [searchOpen, setSearchOpen] = useState(false)
+      var [sortBy, setSortBy] = useState(prefs.sortBy || 'title')
+      var [sortDir, setSortDir] = useState(prefs.sortDir === 'desc' ? 'desc' : 'asc')
+      var [sortOpen, setSortOpen] = useState(false)
+      var [selected, setSelected] = useState([])
+      var [queueOpen, setQueueOpen] = useState(false)
+      var [moreOpen, setMoreOpen] = useState(false)
+      var [toast, setToast] = useState('')
+      var toastTimerRef = useRef(null)
+      var [npOpen, setNpOpen] = useState(false)
+      var [npVisible, setNpVisible] = useState(false)
+      var [view, setView] = useState('songs')
+      var [playlists, setPlaylists] = useState([])
+      var [playlistId, setPlaylistId] = useState(null)
+      var [playlistDraft, setPlaylistDraft] = useState('')
+      var [prefsOpen, setPrefsOpen] = useState(false)
+      var [prefsTab, setPrefsTab] = useState('appearance')
+      var [prefsUi, setPrefsUi] = useState(function () {
+        return readPrefs()
+      })
+
+      /** Persist one preference from the in-panel settings popover. */
+      function updatePref(key, value) {
+        var patch = {}
+        patch[key] = value
+        savePrefs(patch)
+        setPrefsUi(readPrefs())
+      }
+
+      // Music library folders live here now that the settings section is gone.
+      var [roots, setRoots] = useState([])
+      var [depth, setDepth] = useState(4)
+      var [configSaving, setConfigSaving] = useState(false)
+      var [configSaved, setConfigSaved] = useState(false)
+      var [configError, setConfigError] = useState(null)
+
+      useEffect(
+        function () {
+          getJson(API + 'config')
+            .then(function (body) {
+              var loadedRoots = Array.isArray(body.config.roots) ? body.config.roots.slice() : []
+              rootsRef.current = loadedRoots
+              depthRef.current = body.config.depth
+              setRoots(loadedRoots)
+              setDepth(body.config.depth)
+            })
+            .catch(function () {})
+        },
+        [],
+      )
+
+      // Latest library values for the debounced save: React state is stale
+      // inside the timer callback, which used to submit an empty root list.
+      var rootsRef = useRef([])
+      var depthRef = useRef(4)
+
+      function setRootsNow(next) {
+        rootsRef.current = next
+        setRoots(next)
+      }
+
+      function setDepthNow(next) {
+        depthRef.current = next
+        setDepth(next)
+      }
+
+      function saveConfig() {
+        setConfigSaving(true)
+        setConfigError(null)
+        postJson(API + 'config', { roots: rootsRef.current, depth: depthRef.current })
+          .then(function (body) {
+            var savedRoots = body.config.roots.slice()
+            rootsRef.current = savedRoots
+            depthRef.current = body.config.depth
+            setRoots(savedRoots)
+            setDepth(body.config.depth)
+            setConfigSaving(false)
+            setConfigSaved(true)
+            try {
+              window.dispatchEvent(new CustomEvent(CONFIG_EVENT))
+            } catch (eventError) {
+              window.dispatchEvent(new Event(CONFIG_EVENT))
+            }
+          })
+          .catch(function (failure) {
+            setConfigSaving(false)
+            setConfigError(String((failure && failure.message) || failure))
+          })
+      }
+
+      // Library edits auto-save; the explicit save button is gone.
+      var saveTimer = useRef(null)
+      var [deleteRoot, setDeleteRoot] = useState(null)
+
+      function scheduleSave() {
+        if (saveTimer.current !== null) clearTimeout(saveTimer.current)
+        saveTimer.current = setTimeout(function () {
+          saveTimer.current = null
+          saveConfig()
+        }, 500)
+      }
+
+      useEffect(function () {
+        return function () {
+          if (saveTimer.current !== null) clearTimeout(saveTimer.current)
+        }
+      }, [])
+
+      function pickFolder() {
+        var input = pickerRef.current
+        if (input === null) return
+        input.value = ''
+        input.click()
+      }
+
+      // In-plugin folder browser: browser file APIs cannot hand us absolute
+      // paths in this Electron build, so the host lists directories instead.
+      var [browseOpen, setBrowseOpen] = useState(false)
+      var [browsePath, setBrowsePath] = useState('')
+      var [browseParent, setBrowseParent] = useState(null)
+      var [browseDirs, setBrowseDirs] = useState([])
+      var [browseLoading, setBrowseLoading] = useState(false)
+
+      function loadBrowse(target) {
+        setBrowseLoading(true)
+        getJson(API + 'browse?path=' + encodeURIComponent(target || ''))
+          .then(function (body) {
+            setBrowsePath(body.path)
+            setBrowseParent(body.parent)
+            setBrowseDirs(Array.isArray(body.dirs) ? body.dirs : [])
+            setBrowseLoading(false)
+          })
+          .catch(function (failure) {
+            setBrowseLoading(false)
+            setConfigError(String((failure && failure.message) || failure))
+          })
+      }
+
+      function openBrowse() {
+        setBrowseOpen(true)
+        loadBrowse(roots.length > 0 ? roots[0] : '')
+      }
+
+      function chooseBrowsePath() {
+        if (browsePath === '') return
+        if (rootsRef.current.indexOf(browsePath) < 0) {
+          setRootsNow(rootsRef.current.concat([browsePath]))
+        }
+        setBrowseOpen(false)
+        scheduleSave()
+      }
+
+      function removeRootAt(index) {
+        setRootsNow(
+          rootsRef.current.filter(function (_entry, position) {
+            return position !== index
+          }),
+        )
+        setDeleteRoot(null)
+        scheduleSave()
+      }
+      var [deleteConfirm, setDeleteConfirm] = useState(false)
+
+      useEffect(
+        function () {
+          reloadPlaylists()
+        },
+        [],
+      )
+      var npTimerRef = useRef(null)
+
+      var current = snap.index >= 0 && snap.queue[snap.index] ? snap.queue[snap.index] : null
+
+      function openNowPlaying() {
+        if (current === null) return
+        if (npTimerRef.current !== null) {
+          window.clearTimeout(npTimerRef.current)
+          npTimerRef.current = null
+        }
+        setNpOpen(true)
+        window.requestAnimationFrame(function () {
+          window.requestAnimationFrame(function () {
+            setNpVisible(true)
+          })
+        })
+      }
+
+      function closeNowPlaying() {
+        setNpVisible(false)
+        if (npTimerRef.current !== null) window.clearTimeout(npTimerRef.current)
+        npTimerRef.current = window.setTimeout(function () {
+          npTimerRef.current = null
+          setNpOpen(false)
+        }, 320)
+      }
+
+      useEffect(
+        function () {
+          return player.subscribe(function () {
+            setSnap(player.getSnapshot())
+          })
+        },
+        [],
+      )
+
+      useEffect(
+        function () {
+          savePrefs({ sortBy: sortBy, sortDir: sortDir })
+        },
+        [sortBy, sortDir],
+      )
+
+      function showToast(text) {
+        setToast(text)
+        if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current)
+        toastTimerRef.current = window.setTimeout(function () {
+          setToast('')
+          toastTimerRef.current = null
+        }, 1600)
+      }
+
+      var load = useCallback(function (refresh) {
+        setLoading(true)
+        setError(null)
+        return getJson(API + 'config')
+          .then(function (body) {
+            setConfig(body.config)
+            return getJson(API + 'library' + (refresh ? '?refresh=1' : ''))
+          })
+          .then(function (body) {
+            var list = Array.isArray(body.tracks) ? body.tracks : []
+            setTracks(list)
+            setWarnings(Array.isArray(body.warnings) ? body.warnings : [])
+            setLoading(false)
+            if (player.getSnapshot().queue.length === 0 && list.length > 0) {
+              player.setQueue(list)
+            }
+          })
+          .catch(function (failure) {
+            setError(String((failure && failure.message) || failure))
+            setLoading(false)
+          })
+      }, [])
+
+      useEffect(
+        function () {
+          load(false)
+        },
+        [load],
+      )
+
+      useEffect(
+        function () {
+          function onChanged() {
+            load(true)
+          }
+          window.addEventListener(CONFIG_EVENT, onChanged)
+          return function () {
+            window.removeEventListener(CONFIG_EVENT, onChanged)
+          }
+        },
+        [load],
+      )
+
+      function cycleLoop() {
+        player.setLoop(snap.loop === 'all' ? 'one' : snap.loop === 'one' ? 'none' : 'all')
+      }
+
+      function loopLabel() {
+        return snap.loop === 'one' ? t('page.loopOne') : snap.loop === 'none' ? t('page.loopNone') : t('page.loopAll')
+      }
+
+      function toggleSelect(track) {
+        setSelected(function (list) {
+          if (list.indexOf(track.path) >= 0) {
+            return list.filter(function (path) {
+              return path !== track.path
+            })
+          }
+          return list.concat([track.path])
+        })
+      }
+
+      function activate(track) {
+        var at = visible.findIndex(function (item) {
+          return item.path === track.path
+        })
+        if (at < 0) return
+        player.select(visible, at)
+      }
+
+      function clearList() {
+        player.clear()
+        setTracks([])
+        setSelected([])
+      }
+
+      function copyPath() {
+        if (!current) return
+        try {
+          navigator.clipboard.writeText(current.path).then(
+            function () {
+              showToast(t('page.copied'))
+            },
+            function () {
+              showToast(current.path)
+            },
+          )
+        } catch (error) {
+          showToast(current.path)
+        }
+      }
+
+      var trackByPath = useMemo(function () {
+        var map = {}
+        tracks.forEach(function (track) {
+          map[track.path] = track
+        })
+        return map
+      }, [tracks])
+
+      var activePlaylist = useMemo(function () {
+        return playlists.find(function (item) {
+          return item.id === playlistId
+        })
+      }, [playlists, playlistId])
+
+      /** The collection the active tab shows: all songs, or one playlist. */
+      var collectionTracks = useMemo(function () {
+        if (view !== 'playlists' || activePlaylist === undefined) return tracks
+        return activePlaylist.trackPaths
+          .map(function (path) {
+            return trackByPath[path]
+          })
+          .filter(Boolean)
+      }, [view, activePlaylist, tracks, trackByPath])
+
+      useEffect(
+        function () {
+          if (!sortOpen) return undefined
+          function onPointerDown(event) {
+            var target = event.target
+            if (target !== null && typeof target.closest === 'function') {
+              if (target.closest('.mu-menu-sort') !== null) return
+              if (target.closest('[data-sort-toggle]') !== null) return
+            }
+            setSortOpen(false)
+          }
+          document.addEventListener('mousedown', onPointerDown)
+          return function () {
+            document.removeEventListener('mousedown', onPointerDown)
+          }
+        },
+        [sortOpen],
+      )
+
+      useEffect(
+        function () {
+          if (!prefsOpen) return undefined
+          function onPointerDown(event) {
+            var target = event.target
+            if (target !== null && typeof target.closest === 'function') {
+              if (target.closest('.mu-prefs-panel, .mu-prefs') !== null) return
+              if (target.closest('[data-prefs-toggle]') !== null) return
+            }
+            setPrefsOpen(false)
+          }
+          document.addEventListener('mousedown', onPointerDown)
+          return function () {
+            document.removeEventListener('mousedown', onPointerDown)
+          }
+        },
+        [prefsOpen],
+      )
+
+      useEffect(
+        function () {
+          if (!deleteConfirm) return undefined
+          function onPointerDown(event) {
+            var target = event.target
+            if (target !== null && typeof target.closest === 'function') {
+              if (target.closest('.mu-confirm') !== null) return
+              if (target.closest('[data-delete-toggle]') !== null) return
+            }
+            setDeleteConfirm(false)
+          }
+          document.addEventListener('mousedown', onPointerDown)
+          return function () {
+            document.removeEventListener('mousedown', onPointerDown)
+          }
+        },
+        [deleteConfirm],
+      )
+
+      var visible = useMemo(
+        function () {
+          var needle = query.trim().toLowerCase()
+          var list = collectionTracks.filter(function (track) {
+            if (needle === '') return true
+            return (
+              String(track.title || '').toLowerCase().indexOf(needle) >= 0 ||
+              String(track.artist || '').toLowerCase().indexOf(needle) >= 0 ||
+              String(track.album || '').toLowerCase().indexOf(needle) >= 0 ||
+              String(track.name || '').toLowerCase().indexOf(needle) >= 0
+            )
+          })
+          var direction = sortDir === 'desc' ? -1 : 1
+          var keyed = list.map(function (track, position) {
+            return { track: track, position: position }
+          })
+          keyed.sort(function (left, right) {
+            var a = left.track
+            var b = right.track
+            var aValue = sortValueOf(a, sortBy)
+            var bValue = sortValueOf(b, sortBy)
+            var compared =
+              typeof aValue === 'number' && typeof bValue === 'number'
+                ? aValue - bValue
+                : String(aValue).localeCompare(String(bValue), LANG)
+            if (compared === 0) compared = left.position - right.position
+            return compared * direction
+          })
+          return keyed.map(function (entry) {
+            return entry.track
+          })
+        },
+        [collectionTracks, query, sortBy, sortDir],
+      )
+
+      var selectedSet = useMemo(function () {
+        var set = {}
+        selected.forEach(function (path) {
+          set[path] = true
+        })
+        return set
+      }, [selected])
+
+      var selectedTracks = useMemo(
+        function () {
+          return visible.filter(function (track) {
+            return selectedSet[track.path] === true
+          })
+        },
+        [visible, selectedSet],
+      )
+
+
+      var total = collectionTracks.length
+
+      function renderRow(track) {
+        var isCurrent = current !== null && current.path === track.path
+        var isSelected = selectedSet[track.path] === true
+        return h(
+          'div',
+          {
+            className: 'mu-row' + (isCurrent ? ' is-current' : '') + (isSelected ? ' is-selected' : ''),
+            key: track.path,
+            // Clicking the row selects just this track; the circle toggles
+            // additively. Double click plays.
+            onClick: function () {
+              setSelected(function (previous) {
+                if (previous.length === 1 && previous[0] === track.path) return []
+                return [track.path]
+              })
+            },
+            onDoubleClick: function () {
+              activate(track)
+            },
+          },
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-row-play',
+              title: t('page.play'),
+              onClick: function (event) {
+                event.stopPropagation()
+                activate(track)
+              },
+              onDoubleClick: function (event) {
+                event.stopPropagation()
+              },
+            },
+            h(Cover, { track: track, size: 55, radius: 8 }),
+            h('span', { className: 'mu-row-playmask' }, icon(isCurrent && snap.playing ? 'pause' : 'play', 16)),
+          ),
+          h(
+            'div',
+            { className: 'mu-row-main' },
+            h(
+              'div',
+              { className: 'mu-row-title' },
+              track.title,
+              isCurrent ? h('span', { className: 'mu-playing-dot' }) : null,
+            ),
+            h(
+              'div',
+              { className: 'mu-row-sub' },
+              track.artist ? h('span', { className: 'mu-cd' }, 'CD') : null,
+              h('span', { className: 'mu-ellipsis' }, track.artist || t('page.unknownArtist')),
+            ),
+          ),
+          h('div', { className: 'mu-row-album mu-ellipsis' }, track.album || ''),
+          h('div', { className: 'mu-row-dur' }, fmtTime(track.durationSec)),
+          h(
+            'div',
+            { className: 'mu-row-actions' },
+            view === 'playlists' && activePlaylist !== undefined
+              ? h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-icon-btn mu-icon-btn-sm',
+                    title: t('page.removeTrack'),
+                    onClick: function (event) {
+                      event.stopPropagation()
+                      patchPlaylist(activePlaylist.id, { remove: [track.path] }).catch(function (error) {
+                        showToast(String((error && error.message) || error))
+                      })
+                    },
+                  },
+                  icon('x', 14),
+                )
+              : null,
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-check' + (isSelected ? ' is-on' : ''),
+                'aria-label': track.title,
+                onClick: function (event) {
+                  event.stopPropagation()
+                  toggleSelect(track)
+                },
+              },
+              isSelected ? icon('check', 14) : null,
+            ),
+          ),
+        )
+      }
+
+      var sortOptions = [
+        ['title', 'page.sortTitle'],
+        ['name', 'page.sortName'],
+        ['album', 'page.sortAlbum'],
+        ['artist', 'page.sortArtist'],
+        ['size', 'page.sortSize'],
+        ['year', 'page.sortYear'],
+        ['folder', 'page.sortFolder'],
+        ['plays', 'page.sortPlays'],
+        ['duration', 'page.sortDuration'],
+        ['mtime', 'page.sortMtime'],
+        ['addedAt', 'page.sortAdded'],
+      ]
+
+      /** Persist a playlist rename from the head title input. */
+      function commitPlaylistName() {
+        if (activePlaylist === undefined) return
+        var name = playlistDraft.trim()
+        if (name === '' || name === activePlaylist.name) return
+        patchPlaylist(activePlaylist.id, { name: name }).catch(function (error) {
+          showToast(String((error && error.message) || error))
+        })
+      }
+
+      function reloadPlaylists() {
+        return getJson(API + 'playlists')
+          .then(function (body) {
+            setPlaylists(Array.isArray(body.playlists) ? body.playlists : [])
+          })
+          .catch(function () {
+            // A missing store is not an error: playlists simply stay empty.
+          })
+      }
+
+      function requestJson(method, url, payload) {
+        return fetch(url, {
+          method: method,
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json', accept: 'application/json' },
+          body: payload === undefined ? undefined : JSON.stringify(payload),
+        }).then(function (response) {
+          return response
+            .json()
+            .catch(function () {
+              return null
+            })
+            .then(function (body) {
+              if (!response.ok || body === null || body.ok !== true) {
+                throw new Error(
+                  body !== null && body.error && body.error.message
+                    ? body.error.message
+                    : 'HTTP ' + response.status,
+                )
+              }
+              return body
+            })
+        })
+      }
+
+      function autoPlaylistName() {
+        var base = t('page.newPlaylist')
+        var taken = {}
+        playlists.forEach(function (item) {
+          taken[item.name] = true
+        })
+        if (taken[base] !== true) return base
+        var index = 2
+        while (taken[base + ' ' + index] === true) index += 1
+        return base + ' ' + index
+      }
+
+      function createPlaylist() {
+        requestJson('POST', API + 'playlists', { name: autoPlaylistName() })
+          .then(function (body) {
+            setPlaylists(function (list) {
+              return [body.playlist].concat(list)
+            })
+            setView('playlists')
+            setPlaylistId(body.playlist.id)
+            setPlaylistDraft(body.playlist.name)
+            setDeleteConfirm(false)
+          })
+          .catch(function (error) {
+            showToast(String((error && error.message) || error))
+          })
+      }
+
+      function openPlaylist(id) {
+        var target = playlists.find(function (item) {
+          return item.id === id
+        })
+        if (target === undefined) return
+        setPlaylistId(id)
+        setPlaylistDraft(target.name)
+        setView('playlists')
+        setDeleteConfirm(false)
+      }
+
+      function patchPlaylist(id, patch) {
+        return requestJson('PATCH', API + 'playlists/' + encodeURIComponent(id), patch).then(function (body) {
+          setPlaylists(function (list) {
+            return list.map(function (item) {
+              return item.id === id ? body.playlist : item
+            })
+          })
+          return body.playlist
+        })
+      }
+
+      function removePlaylist(id) {
+        requestJson('DELETE', API + 'playlists/' + encodeURIComponent(id))
+          .then(function () {
+            setPlaylists(function (list) {
+              return list.filter(function (item) {
+                return item.id !== id
+              })
+            })
+            if (playlistId === id) setPlaylistId(null)
+          })
+          .catch(function (error) {
+            showToast(String((error && error.message) || error))
+          })
+      }
+
+      function addSelectedTo(id) {
+        var paths = selectedTracks.map(function (track) {
+          return track.path
+        })
+        if (paths.length === 0) return
+        patchPlaylist(id, { add: paths })
+          .then(function () {
+            showToast(t('page.addedCount', { n: paths.length }))
+          })
+          .catch(function (error) {
+            showToast(String((error && error.message) || error))
+          })
+      }
+
+      return h(
+        'div',
+        { className: 'mu-root' },
+        queueOpen || moreOpen
+          ? h('div', {
+              className: 'mu-scrim',
+              onClick: function () {
+                setQueueOpen(false)
+                setMoreOpen(false)
+              },
+            })
+          : null,
+        h(
+          'div',
+          { className: 'mu-head' },
+          h(
+            'div',
+            { className: 'mu-head-title' },
+            view === 'playlists' && activePlaylist !== undefined
+              ? h('input', {
+                  type: 'text',
+                  className: 'mu-input mu-title-input',
+                  value: playlistDraft,
+                  title: t('page.playlistName'),
+                  onChange: function (event) {
+                    setPlaylistDraft(event.target.value)
+                  },
+                  onBlur: commitPlaylistName,
+                  onKeyDown: function (event) {
+                    if (event.key === 'Enter') event.target.blur()
+                  },
+                })
+              : h('span', { className: 'mu-title' }, t('page.tabSongs')),
+            h('span', { className: 'mu-count' }, loading ? '…' : String(visible.length)),
+          ),
+          h(
+            'div',
+            { className: 'mu-head-actions' },
+            view === 'playlists' && activePlaylist !== undefined
+              ? h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-icon-btn' + (deleteConfirm ? ' is-on' : ''),
+                    title: t('page.delete'),
+                    'data-delete-toggle': 'true',
+                    onClick: function () {
+                      setDeleteConfirm(!deleteConfirm)
+                      setPrefsOpen(false)
+                      setSortOpen(false)
+                    },
+                  },
+                  icon('trash', 18),
+                )
+              : null,
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-icon-btn',
+                title: t('page.refresh'),
+                onClick: function () {
+                  load(true)
+                },
+              },
+              icon('refresh', 18),
+            ),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-icon-btn' + (sortOpen ? ' is-on' : ''),
+                title: t('page.sort'),
+                'data-sort-toggle': 'true',
+                onClick: function () {
+                  setSortOpen(!sortOpen)
+                  setMoreOpen(false)
+                  setPrefsOpen(false)
+                },
+              },
+              icon('sort', 18),
+            ),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-icon-btn' + (prefsOpen ? ' is-on' : ''),
+                title: t('page.settings'),
+                'data-prefs-toggle': 'true',
+                onClick: function () {
+                  setPrefsOpen(!prefsOpen)
+                  setSortOpen(false)
+                  setMoreOpen(false)
+                },
+              },
+              icon('settings', 18),
+            ),
+            searchOpen
+              ? h(
+                  'div',
+                  { className: 'mu-search-inline' },
+                  icon('search', 14),
+                  h('input', {
+                    type: 'text',
+                    className: 'mu-search-input',
+                    value: query,
+                    autoFocus: true,
+                    placeholder: t('page.searchPlaceholder'),
+                    onChange: function (event) {
+                      setQuery(event.target.value)
+                    },
+                    onKeyDown: function (event) {
+                      if (event.key === 'Escape') {
+                        setQuery('')
+                        setSearchOpen(false)
+                      }
+                    },
+                    onBlur: function () {
+                      if (query.trim() === '') setSearchOpen(false)
+                    },
+                  }),
+                  query !== ''
+                    ? h(
+                        'button',
+                        {
+                          type: 'button',
+                          className: 'mu-icon-btn mu-icon-btn-sm',
+                          title: t('page.done'),
+                          onClick: function () {
+                            setQuery('')
+                          },
+                        },
+                        icon('x', 12),
+                      )
+                    : null,
+                )
+              : h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-icon-btn' + (query !== '' ? ' is-on' : ''),
+                    title: t('page.search'),
+                    onClick: function () {
+                      setSearchOpen(true)
+                    },
+                  },
+                  icon('search', 18),
+                ),
+          ),
+        ),
+
+        h(
+          'div',
+          { className: 'mu-tabs' },
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-tab' + (view === 'songs' ? ' is-on' : ''),
+              onClick: function () {
+                setView('songs')
+              },
+            },
+            t('page.tabSongs'),
+          ),
+          playlists.map(function (playlist) {
+            var isOn = view === 'playlists' && playlistId === playlist.id
+            return h(
+              'button',
+              {
+                key: playlist.id,
+                type: 'button',
+                className: 'mu-tab mu-tab-pl' + (isOn ? ' is-on' : ''),
+                title: playlist.name,
+                onClick: function () {
+                  openPlaylist(playlist.id)
+                },
+              },
+              playlist.name,
+            )
+          }),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-tab mu-tab-add',
+              title: t('page.newPlaylist'),
+              onClick: createPlaylist,
+            },
+            icon('plus', 15),
+          ),
+        ),
+
+        sortOpen
+          ? h(
+              'div',
+              { className: 'mu-menu mu-menu-sort' },
+              sortOptions.map(function (option) {
+                return h(
+                  'button',
+                  {
+                    type: 'button',
+                    key: option[0],
+                    className: 'mu-menu-item' + (sortBy === option[0] ? ' is-on' : ''),
+                    onClick: function () {
+                      if (sortBy === option[0]) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
+                      else {
+                        setSortBy(option[0])
+                        setSortDir('asc')
+                      }
+                      setSortOpen(false)
+                    },
+                  },
+                  h('span', null, t(option[1])),
+                  sortBy === option[0] ? h('span', { className: 'mu-menu-hint' }, sortDir === 'asc' ? '↑' : '↓') : null,
+                )
+              }),
+            )
+          : null,
+
+        prefsOpen
+          ? h(
+              'div',
+              { className: 'mu-prefs-panel' },
+              h(
+                'div',
+                { className: 'mu-prefs-tabs' },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-prefs-tab' + (prefsTab === 'appearance' ? ' is-on' : ''),
+                    onClick: function () {
+                      setPrefsTab('appearance')
+                    },
+                  },
+                  t('settings.tabAppearance'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-prefs-tab' + (prefsTab === 'lyrics' ? ' is-on' : ''),
+                    onClick: function () {
+                      setPrefsTab('lyrics')
+                    },
+                  },
+                  t('settings.tabLyrics'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-prefs-tab' + (prefsTab === 'library' ? ' is-on' : ''),
+                    onClick: function () {
+                      setPrefsTab('library')
+                    },
+                  },
+                  t('settings.tabLibrary'),
+                ),
+              ),
+              prefsTab === 'appearance'
+                ? h(
+                    'div',
+                    { className: 'mu-prefs-body' },
+                    settingToggle(t('settings.miniPlayer'), prefsUi.miniPlayer, function (value) {
+                      updatePref('miniPlayer', value)
+                    }),
+                    settingToggle(t('settings.circularCover'), prefsUi.circularCover, function (value) {
+                      updatePref('circularCover', value)
+                    }),
+                    settingToggle(t('settings.vinylRing'), prefsUi.vinylRing, function (value) {
+                      updatePref('vinylRing', value)
+                    }),
+                    settingToggle(t('settings.coverSpin'), prefsUi.coverSpin, function (value) {
+                      updatePref('coverSpin', value)
+                    }),
+                  )
+                : prefsTab === 'lyrics'
+                  ? h(
+                      'div',
+                      { className: 'mu-prefs-body' },
+                      settingOrder(
+                      t('settings.lyricOrder'),
+                      Array.isArray(prefsUi.lyricOrder) && prefsUi.lyricOrder.length > 0
+                        ? prefsUi.lyricOrder
+                        : ['embedded', 'lrc'],
+                      {
+                        embedded: t('settings.lyricSourceEmbedded'),
+                        lrc: t('settings.lyricSourceLrc'),
+                      },
+                      function (order) {
+                        updatePref('lyricOrder', order)
+                      },
+                    ),
+                    settingChoice(
+                      t('settings.lyricAlign'),
+                      prefsUi.lyricAlign,
+                      [
+                        { value: 'center', label: t('settings.alignCenter') },
+                        { value: 'left', label: t('settings.alignLeft') },
+                        { value: 'right', label: t('settings.alignRight') },
+                      ],
+                      function (value) {
+                        updatePref('lyricAlign', value)
+                      },
+                    ),
+                    settingRange(t('settings.lyricSize'), prefsUi.lyricSize, 14, 40, 1, 'px', function (value) {
+                      updatePref('lyricSize', value)
+                    }),
+                    settingRange(t('settings.lyricWeight'), prefsUi.lyricWeight, 300, 800, 100, '', function (value) {
+                      updatePref('lyricWeight', value)
+                    }),
+                    settingToggle(t('settings.lyricBlur'), prefsUi.lyricBlur, function (value) {
+                      updatePref('lyricBlur', value)
+                    }),
+                    settingToggle(t('settings.lyricTranslation'), prefsUi.showTranslation, function (value) {
+                      updatePref('showTranslation', value)
+                    }),
+                    settingRange(t('settings.translationScale'), prefsUi.translationScale, 50, 100, 5, '%', function (value) {
+                      updatePref('translationScale', value)
+                    }),
+                    settingToggle(t('settings.composerLyrics'), prefsUi.composerLyrics, function (value) {
+                      updatePref('composerLyrics', value)
+                    }),
+                    settingChoice(
+                      t('settings.composerLyricPlace'),
+                      prefsUi.composerLyricPlace,
+                      [
+                        { value: 'input-left', label: t('settings.placeInputLeft') },
+                        { value: 'above', label: t('settings.placeAbove') },
+                      ],
+                      function (value) {
+                        updatePref('composerLyricPlace', value)
+                      },
+                    ),
+                  )
+                  : h(
+                      'div',
+                      { className: 'mu-prefs-body' },
+                      h('p', { className: 'mu-prefs-hint' }, t('settings.libraryHint')),
+                      roots.length === 0
+                        ? h('div', { className: 'mu-prefs-empty' }, t('settings.empty'))
+                        : roots.map(function (root, position) {
+                            return h(
+                              'div',
+                              { className: 'mu-prefs-folder', key: String(position) },
+                              h('span', { className: 'mu-prefs-folder-path', title: root }, root),
+                              h(
+                                'button',
+                                {
+                                  type: 'button',
+                                  className: 'mu-icon-btn mu-icon-btn-sm',
+                                  title: t('settings.remove'),
+                                  onClick: function () {
+                                    setDeleteRoot(position)
+                                  },
+                                },
+                                '×',
+                              ),
+                            )
+                          }),
+                      h(
+                        'button',
+                        {
+                          type: 'button',
+                          className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                          onClick: openBrowse,
+                        },
+                        '+ ' + t('settings.add'),
+                      ),
+                      browseOpen
+                        ? h(
+                            'div',
+                            { className: 'mu-browse' },
+                            h('input', {
+                              type: 'text',
+                              className: 'mu-input mu-input-sm mu-browse-path',
+                              key: browsePath,
+                              defaultValue: browsePath,
+                              spellCheck: 'false',
+                              onKeyDown: function (event) {
+                                if (event.key !== 'Enter') return
+                                var target = String(event.target.value || '').trim()
+                                if (target !== '') loadBrowse(target)
+                              },
+                            }),
+                            h(
+                              'div',
+                              { className: 'mu-browse-list' },
+                              browseLoading
+                                ? h('div', { className: 'mu-browse-empty' }, '…')
+                                : browseDirs.map(function (entry) {
+                                    return h(
+                                      'button',
+                                      {
+                                        type: 'button',
+                                        key: entry.path,
+                                        className: 'mu-browse-item',
+                                        onClick: function () {
+                                          loadBrowse(entry.path)
+                                        },
+                                      },
+                                      icon('folder', 14),
+                                      h('span', null, entry.name),
+                                    )
+                                  }),
+                            ),
+                            h(
+                              'div',
+                              { className: 'mu-browse-actions' },
+                              h(
+                                'button',
+                                {
+                                  type: 'button',
+                                  className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                                  disabled: browseParent === null,
+                                  onClick: function () {
+                                    loadBrowse(browseParent)
+                                  },
+                                },
+                                t('settings.up'),
+                              ),
+                              h(
+                                'button',
+                                {
+                                  type: 'button',
+                                  className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                                  onClick: function () {
+                                    setBrowseOpen(false)
+                                  },
+                                },
+                                t('page.cancel'),
+                              ),
+                              h(
+                                'button',
+                                {
+                                  type: 'button',
+                                  className: 'mu-btn mu-btn-accent mu-btn-sm',
+                                  onClick: chooseBrowsePath,
+                                },
+                                t('settings.chooseFolder'),
+                              ),
+                            ),
+                          )
+                        : null,
+                      h(
+                        'div',
+                        { className: 'mu-prefs-field' },
+                        h('span', { className: 'mu-prefs-field-label' }, t('settings.depth')),
+                        h('input', {
+                          type: 'number',
+                          className: 'mu-input mu-input-sm mu-input-num',
+                          min: 0,
+                          max: 8,
+                          value: depth,
+                          onChange: function (event) {
+                            setDepthNow(clamp(Number(event.target.value) || 0, 0, 8))
+                            scheduleSave()
+                          },
+                        }),
+                      ),
+                      configError !== null ? h('div', { className: 'mu-prefs-error' }, configError) : null,
+                      h(
+                        'div',
+                        { className: 'mu-prefs-actions' },
+                        configSaving
+                          ? h('span', { className: 'mu-prefs-saved' }, t('settings.saving'))
+                          : configSaved
+                            ? h('span', { className: 'mu-prefs-saved' }, t('settings.saved'))
+                            : null,
+                      ),
+                      deleteRoot !== null
+                        ? h(
+                            'div',
+                            { className: 'mu-prefs-confirm' },
+                            h('span', null, t('settings.removeConfirm')),
+                            h(
+                              'div',
+                              { className: 'mu-prefs-confirm-actions' },
+                              h(
+                                'button',
+                                {
+                                  type: 'button',
+                                  className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                                  onClick: function () {
+                                    setDeleteRoot(null)
+                                  },
+                                },
+                                t('page.cancel'),
+                              ),
+                              h(
+                                'button',
+                                {
+                                  type: 'button',
+                                  className: 'mu-btn mu-btn-danger mu-btn-sm',
+                                  onClick: function () {
+                                    removeRootAt(deleteRoot)
+                                  },
+                                },
+                                t('settings.remove'),
+                              ),
+                            ),
+                          )
+                        : null,
+                    ),
+            )
+          : null,
+
+        deleteConfirm && activePlaylist !== undefined
+          ? h(
+              'div',
+              { className: 'mu-menu mu-confirm' },
+              h(
+                'div',
+                { className: 'mu-confirm-text' },
+                t('page.deleteConfirm', { name: activePlaylist.name }),
+              ),
+              h(
+                'div',
+                { className: 'mu-confirm-actions' },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-btn',
+                    onClick: function () {
+                      setDeleteConfirm(false)
+                    },
+                  },
+                  t('page.cancel'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-btn mu-btn-danger',
+                    onClick: function () {
+                      var id = activePlaylist.id
+                      setDeleteConfirm(false)
+                      removePlaylist(id)
+                      setView('songs')
+                    },
+                  },
+                  t('page.delete'),
+                ),
+              ),
+            )
+          : null,
+
+        h(
+              'div',
+              { className: 'mu-view' },
+
+        h(
+          'div',
+          { className: 'mu-chips' },
+          h(
+            'button',
+            { type: 'button', className: 'mu-chip', title: loopLabel(), onClick: cycleLoop },
+            icon(snap.loop === 'one' ? 'repeatOne' : 'repeat', 15),
+            h('span', null, loopLabel()),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-chip',
+              onClick: function () {
+                if (visible.length > 0) player.playList(visible, 0)
+              },
+            },
+            icon('play', 13),
+            h('span', null, t('page.playAll')),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-chip mu-chip-round' + (snap.order === 'random' ? ' is-on' : ''),
+              title: t('page.shuffle'),
+              onClick: function () {
+                player.setOrder(snap.order === 'random' ? 'list' : 'random')
+              },
+            },
+            icon('shuffle', 15),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-chip mu-chip-round',
+              title: t('page.clear'),
+              onClick: clearList,
+            },
+            icon('x', 15),
+          ),
+          selected.length > 0
+            ? h(
+                'span',
+                { className: 'mu-selected' },
+                t('page.selectedCount', { n: selected.length }),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-chip mu-chip-accent',
+                    onClick: function () {
+                      player.playList(selectedTracks, 0)
+                    },
+                  },
+                  icon('play', 13),
+                  h('span', null, t('page.playSelected')),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-chip',
+                    onClick: function () {
+                      if (selected.length === visible.length) setSelected([])
+                      else
+                        setSelected(
+                          visible.map(function (track) {
+                            return track.path
+                          }),
+                        )
+                    },
+                  },
+                  selected.length === visible.length ? t('page.selectNone') : t('page.selectAll'),
+                ),
+                h(
+                  'select',
+                  {
+                    className: 'mu-select',
+                    value: '',
+                    title: t('page.addTo'),
+                    onChange: function (event) {
+                      var value = event.target.value
+                      event.target.value = ''
+                      if (value !== '') addSelectedTo(value)
+                    },
+                  },
+                  h('option', { value: '' }, t('page.addTo')),
+                  playlists.map(function (playlist) {
+                    return h('option', { key: playlist.id, value: playlist.id }, playlist.name)
+                  }),
+                ),
+              )
+            : null,
+        ),
+
+        h(
+          'div',
+          { className: 'mu-list' },
+          loading && tracks.length === 0
+            ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-spinner' }), t('page.scanning'))
+            : null,
+          !loading && error !== null
+            ? h(
+                'div',
+                { className: 'mu-state' },
+                h('div', { className: 'mu-state-title' }, t('page.loadFailed')),
+                h('div', { className: 'mu-state-sub' }, error),
+                h(
+                  'button',
+                  { type: 'button', className: 'mu-btn', onClick: function () { load(true) } },
+                  t('page.retry'),
+                ),
+              )
+            : null,
+          !loading && error === null && total === 0
+            ? h(
+                'div',
+                { className: 'mu-state' },
+                icon('folder', 34),
+                h('div', { className: 'mu-state-title' }, t('page.emptyTitle')),
+                h(
+                  'div',
+                  { className: 'mu-state-sub' },
+                  config !== null && config.roots && config.roots.length > 0
+                    ? t('page.emptyFolder')
+                    : t('page.emptyHint'),
+                ),
+              )
+            : null,
+          !loading && error === null && total > 0 && visible.length === 0
+            ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-state-sub' }, t('page.noResults')))
+            : null,
+          warnings.length > 0
+            ? h('div', { className: 'mu-warn' }, t('page.warnings') + '：' + warnings.slice(0, 3).join(' · '))
+            : null,
+          visible.map(renderRow),
+        ),
+
+        h(
+          'div',
+          {
+            className: 'mu-bar mu-bar-openable',
+            onClick: function (event) {
+              var target = event.target
+              // Buttons and the seek/volume inputs keep their own behaviour;
+              // the left info block handles its own click; everything else on
+              // the bar opens the player page.
+              if (
+                target &&
+                typeof target.closest === 'function' &&
+                target.closest('button, input, .mu-clickable, .mu-bar-left') !== null
+              ) {
+                return
+              }
+              openNowPlaying()
+            },
+          },
+          h(SeekBar, { player: player, track: current }),
+          h(
+            'div',
+            { className: 'mu-bar-main' },
+            h(
+              'div',
+              {
+                className: 'mu-bar-left',
+                role: 'button',
+                tabIndex: 0,
+                title: t('page.openPlayer'),
+                onClick: openNowPlaying,
+                onKeyDown: function (event) {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    openNowPlaying()
+                  }
+                },
+              },
+              h(Cover, { track: current, size: 48, radius: 8 }),
+              h(
+                'div',
+                { className: 'mu-bar-info' },
+                h('div', { className: 'mu-bar-title mu-ellipsis' }, current ? current.title : t('page.noTrack')),
+                h(
+                  'div',
+                  { className: 'mu-bar-artist mu-ellipsis' },
+                  current ? current.artist || t('page.unknownArtist') : '—',
+                ),
+              ),
+            ),
+
+            h(
+              'div',
+              { className: 'mu-bar-controls' },
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-icon-btn',
+                  title: loopLabel(),
+                  onClick: cycleLoop,
+                },
+                icon(snap.loop === 'one' ? 'repeatOne' : 'repeat', 17),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-icon-btn',
+                  title: t('page.prev'),
+                  onClick: function () {
+                    player.prev()
+                  },
+                },
+                icon('prev', 18),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-play-btn',
+                  title: snap.playing ? t('page.pause') : t('page.play'),
+                  onClick: function () {
+                    player.toggle()
+                  },
+                },
+                icon(snap.playing ? 'pause' : 'play', 20),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-icon-btn',
+                  title: t('page.next'),
+                  onClick: function () {
+                    player.next()
+                  },
+                },
+                icon('next', 18),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-icon-btn' + (queueOpen ? ' is-on' : ''),
+                  title: t('page.queue'),
+                  onClick: function () {
+                    setQueueOpen(!queueOpen)
+                    setMoreOpen(false)
+                  },
+                },
+                icon('list', 18),
+              ),
+            ),
+
+            h(
+              'div',
+              { className: 'mu-bar-right' },
+              current && current.sampleRate ? h('span', { className: 'mu-quality' }, fmtKhz(current.sampleRate)) : null,
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-icon-btn' + (moreOpen ? ' is-on' : ''),
+                  title: t('page.more'),
+                  onClick: function () {
+                    setMoreOpen(!moreOpen)
+                    setQueueOpen(false)
+                  },
+                },
+                icon('more', 18),
+              ),
+            ),
+          ),
+        ),
+
+        queueOpen
+          ? h(
+              'div',
+              { className: 'mu-pop mu-queue' },
+              h(
+                'div',
+                { className: 'mu-pop-head' },
+                h('span', null, t('page.queue')),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-icon-btn mu-icon-btn-sm',
+                    onClick: function () {
+                      setQueueOpen(false)
+                    },
+                  },
+                  icon('x', 14),
+                ),
+              ),
+              h(
+                'div',
+                { className: 'mu-pop-body' },
+                snap.queue.length === 0
+                  ? h('div', { className: 'mu-state-sub' }, t('page.queueEmpty'))
+                  : snap.queue.map(function (track, position) {
+                      return h(
+                        'div',
+                        {
+                          key: track.path,
+                          className: 'mu-queue-row' + (position === snap.index ? ' is-current' : ''),
+                          onClick: function () {
+                            player.select(snap.queue, position)
+                          },
+                        },
+                        h(
+                          'span',
+                          { className: 'mu-queue-index' },
+                          position === snap.index && snap.playing ? '▶' : String(position + 1),
+                        ),
+                        h('span', { className: 'mu-ellipsis' }, track.title),
+                        h('span', { className: 'mu-queue-artist mu-ellipsis' }, track.artist || ''),
+                      )
+                    }),
+              ),
+            )
+          : null,
+
+        moreOpen
+          ? h(
+              'div',
+              { className: 'mu-pop mu-more' },
+              current
+                ? h(
+                    'div',
+                    { className: 'mu-more-info' },
+                    [
+                      [t('page.format'), (current.codec || current.ext || '').toUpperCase()],
+                      [t('page.bitrate'), fmtKbps(current.bitrate) || t('page.none')],
+                      [t('page.sampleRate'), fmtKhz(current.sampleRate) || t('page.none')],
+                    ].map(function (row) {
+                      return h(
+                        'div',
+                        { className: 'mu-more-row', key: row[0] },
+                        h('span', { className: 'mu-more-key' }, row[0]),
+                        h('span', { className: 'mu-more-val mu-ellipsis' }, row[1]),
+                      )
+                    }),
+                  )
+                : h('div', { className: 'mu-state-sub' }, t('page.noTrack')),
+              h(
+                'button',
+                { type: 'button', className: 'mu-menu-item', disabled: !current, onClick: copyPath },
+                h('span', null, t('page.copyPath')),
+              ),
+            )
+          : null,
+
+            ),
+
+        toast !== '' ? h('div', { className: 'mu-toast' }, toast) : null,
+
+        npOpen
+          ? h(NowPlaying, {
+              player: player,
+              snapshot: snap,
+              visible: npVisible,
+              onClose: closeNowPlaying,
+            })
+          : null,
+      )
+    }
+
+    // ── settings page ─────────────────────────────────────────────────────
+
+    /** One labelled switch row. */
+    function settingToggle(label, value, onChange) {
+      return h(
+        'div',
+        { className: 'mu-set-item' },
+        h('span', { className: 'mu-set-label' }, label),
+        h(
+          'button',
+          {
+            type: 'button',
+            className: 'mu-switch' + (value ? ' is-on' : ''),
+            role: 'switch',
+            'aria-checked': value ? 'true' : 'false',
+            onClick: function () {
+              onChange(!value)
+            },
+          },
+          h('span', { className: 'mu-switch-dot' }),
+        ),
+      )
+    }
+
+    /** One labelled slider row. */
+    function settingRange(label, value, min, max, step, suffix, onChange) {
+      return h(
+        'div',
+        { className: 'mu-set-item mu-set-item-col' },
+        h(
+          'div',
+          { className: 'mu-set-item-head' },
+          h('span', { className: 'mu-set-label' }, label),
+          h('span', { className: 'mu-set-value' }, String(value) + (suffix || '')),
+        ),
+        h('input', {
+          type: 'range',
+          className: 'mu-range',
+          min: min,
+          max: max,
+          step: step,
+          value: value,
+          onChange: function (event) {
+            var next = Number(event.target.value)
+            if (isFinite(next)) onChange(next)
+          },
+        }),
+      )
+    }
+
+    /** One labelled segmented choice. */
+    function settingChoice(label, value, options, onChange) {
+      return h(
+        'div',
+        { className: 'mu-set-item mu-set-item-col' },
+        h('span', { className: 'mu-set-label' }, label),
+        h(
+          'div',
+          { className: 'mu-set-choices' },
+          options.map(function (option) {
+            return h(
+              'button',
+              {
+                type: 'button',
+                key: option.value,
+                className: 'mu-choice' + (value === option.value ? ' is-on' : ''),
+                onClick: function () {
+                  onChange(option.value)
+                },
+              },
+              option.label,
+            )
+          }),
+        ),
+      )
+    }
+
+    /** Ordered list with up/down controls. */
+    function settingOrder(label, order, labels, onChange) {
+      function move(index, delta) {
+        var target = index + delta
+        if (target < 0 || target >= order.length) return
+        var next = order.slice()
+        var tmp = next[index]
+        next[index] = next[target]
+        next[target] = tmp
+        onChange(next)
+      }
+      return h(
+        'div',
+        { className: 'mu-set-item mu-set-item-col' },
+        h('span', { className: 'mu-set-label' }, label),
+        h(
+          'div',
+          { className: 'mu-set-order' },
+          order.map(function (key, index) {
+            return h(
+              'div',
+              { className: 'mu-order-row', key: key },
+              h('span', { className: 'mu-order-text' }, index + 1 + '. ' + (labels[key] || key)),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-icon-btn mu-icon-btn-sm',
+                  disabled: index === 0,
+                  title: '↑',
+                  onClick: function () {
+                    move(index, -1)
+                  },
+                },
+                '↑',
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-icon-btn mu-icon-btn-sm',
+                  disabled: index === order.length - 1,
+                  title: '↓',
+                  onClick: function () {
+                    move(index, 1)
+                  },
+                },
+                '↓',
+              ),
+            )
+          }),
+        ),
+      )
+    }
+
+    // ── styles ────────────────────────────────────────────────────────────
+
+    var STYLE = [
+      // Surface + text follow the host palette; every color has a neutral fallback.
+      '.mu-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;line-height:1.5;user-select:none}',
+      '.mu-root input,.mu-root textarea,.mu-set input,.mu-np input{user-select:text}',
+      '.mu-head{display:flex;align-items:center;gap:10px;padding:16px 24px 8px;min-height:52px;box-sizing:border-box}',
+      '.mu-head-title{display:flex;align-items:baseline;gap:10px;min-width:0}',
+      '.mu-title{display:inline-flex;align-items:center;height:28px;font-size:20px;font-weight:600;line-height:28px}',
+      '.mu-count{font-size:13px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
+      '.mu-head-actions{margin-left:auto;display:flex;align-items:center;gap:2px}',
+      '.mu-icon-btn{display:inline-flex;flex:none;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border:none;border-radius:var(--dsw-radius-sm,6px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);line-height:1;cursor:pointer}',
+      '.mu-icon-btn:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mu-icon-btn:active{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12))}',
+      '.mu-icon-btn.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
+      '.mu-icon-btn-sm{width:24px;height:24px}',
+      '.mu-chips{display:flex;align-items:center;gap:8px;padding:2px 24px 10px;flex-wrap:wrap}',
+      '.mu-chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.14));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#e4e4e7);font-size:13px;cursor:pointer;white-space:nowrap}',
+      '.mu-chip:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mu-chip.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5);border-color:var(--dsw-alias-border-l2,rgba(255,255,255,.2))}',
+      '.mu-chip-round{width:32px;padding:0;justify-content:center}',
+      '.mu-tabs{display:flex;align-items:center;gap:4px;padding:0 24px 6px;overflow-x:auto;scrollbar-width:none}',
+      '.mu-tabs::-webkit-scrollbar{display:none}',
+      '.mu-tab{flex:none;max-width:168px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;height:30px;padding:0 12px;border:0;border-radius:var(--dsw-radius-md,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:13px;cursor:pointer}',
+      '.mu-tab-pl{text-align:left}',
+      '.mu-tab:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mu-tab.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
+      '.mu-tab-add{width:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:.5px solid var(--dsw-alias-border-l3,rgba(255,255,255,.12))}',
+      '.mu-tab-add:hover{border-color:var(--dsw-alias-border-l4,rgba(255,255,255,.2))}',
+      '.mu-view{flex:1;min-height:0;display:flex;flex-direction:column}',
+      '.mu-pl-new{display:flex;gap:8px;padding:4px 24px 12px}',
+      '.mu-pl-new .mu-input{flex:1}',
+      '.mu-pl-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--dsw-radius-md,8px);cursor:pointer}',
+      '.mu-pl-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
+      '.mu-pl-icon{display:inline-flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-pl-main{min-width:0}',
+      '.mu-pl-name{font-size:13px;font-weight:600}',
+      '.mu-pl-count{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
+      '.mu-pl-head{display:flex;align-items:center;gap:8px;padding:4px 24px 12px}',
+      '.mu-pl-title{flex:1;max-width:320px}',
+      '.mu-select{height:32px;padding:0 8px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.14));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#e4e4e7);font-size:12px;cursor:pointer}',
+      '.mu-chip-accent{background:var(--dsw-alias-button-primary-fill,#f4f4f5);border-color:transparent;color:var(--dsw-alias-label-primary-foreground,#141417)}',
+      '.mu-chip-accent:hover{background:var(--dsw-alias-button-primary-hover,#e4e4e7)}',
+      '.mu-selected{display:inline-flex;align-items:center;gap:8px;margin-left:auto;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px}',
+      '.mu-search-inline{box-sizing:border-box;display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;border:.5px solid var(--dsw-alias-border-l3,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-search-input{width:150px;border:0;outline:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12px;font-family:inherit}',
+      '.mu-search{display:flex;align-items:center;gap:8px;height:34px;margin:0 24px 10px;padding:0 12px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.14));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;font-family:inherit}',
+      '.mu-list{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;padding:0 16px 12px}',
+      '.mu-row{display:grid;grid-template-columns:calc(var(--mu-row-size,55px) + 4px) minmax(0,1.15fr) minmax(0,.85fr) 56px auto;align-items:center;gap:12px;padding:6px 10px;border-radius:var(--dsw-radius-md,8px)}',
+      '.mu-prefs{min-width:240px;padding:12px}',
+      '.mu-prefs-panel{position:absolute;top:56px;right:24px;z-index:50;width:360px;max-width:calc(100% - 48px);max-height:70vh;overflow-y:auto;padding:14px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1,#1b1b1e));box-shadow:var(--dsw-elevation-panel,0 16px 40px rgba(0,0,0,.5))}',
+      '.mu-prefs-tabs{display:flex;gap:2px;padding:3px;margin-bottom:12px;border-radius:9px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06))}',
+      '.mu-prefs-tab{flex:1;height:28px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer}',
+      '.mu-prefs-tab.is-on{background:var(--dsw-alias-bg-overlay,#202024);color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.35)}',
+      '.mu-prefs-body{display:flex;flex-direction:column}',
+      '.mu-prefs-body .mu-set-item:last-child{border-bottom:0;padding-bottom:0}',
+      '.mu-prefs-hint{margin:0 0 8px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-prefs-empty{padding:10px 0;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-prefs-folder{display:flex;align-items:center;gap:6px;margin-bottom:6px}',
+      '.mu-prefs-folder-path{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-prefs-confirm{margin-top:10px;padding:10px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.05));font-size:12px}',
+      '.mu-prefs-confirm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}',
+      '.mu-browse{margin-top:8px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));overflow:hidden}',
+      '.mu-browse-head{padding:8px 10px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-browse-path{width:100%;margin:8px 10px 0;width:calc(100% - 20px);height:28px;font-size:12px}',
+      '.mu-browse-list{max-height:220px;overflow-y:auto}',
+      '.mu-browse-item{display:flex;align-items:center;gap:8px;width:100%;padding:6px 10px;border:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;text-align:left;cursor:pointer}',
+      '.mu-browse-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08))}',
+      '.mu-browse-empty{padding:12px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-browse-actions{display:flex;justify-content:flex-end;gap:8px;padding:8px 10px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
+      '.mu-prefs-field{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0 4px}',
+      '.mu-prefs-field-label{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-prefs-error{margin-top:6px;font-size:12px;color:var(--dsw-alias-label-warning,#f0a35e)}',
+      '.mu-prefs-actions{display:flex;align-items:center;gap:8px;margin-top:10px}',
+      '.mu-prefs-saved{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-input-sm{height:28px;font-size:12px}',
+      '.mu-btn-sm{height:28px;padding:0 10px;font-size:12px}',
+      '.mu-prefs-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;margin-bottom:10px}',
+      '.mu-prefs-value{color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
+      '.mu-prefs-hint{margin-top:10px;font-size:12px;line-height:1.6;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-confirm{padding:12px;min-width:220px;max-width:280px}',
+      '.mu-confirm-text{font-size:13px;line-height:1.6;margin-bottom:12px;word-break:break-word}',
+      '.mu-confirm-actions{display:flex;justify-content:flex-end;gap:8px}',
+      '.mu-btn-danger{background:var(--dsw-alias-state-error-primary,#c0392b);color:var(--dsw-alias-label-primary-foreground,#fff);border-color:transparent}',
+      '.mu-btn-danger:hover{opacity:.9}',
+      '.mu-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
+      '.mu-row.is-current{background:rgba(244,244,245,.1);background:color-mix(in srgb,var(--dsw-alias-brand-primary,#f4f4f5) 10%,transparent);box-shadow:inset 2px 0 0 var(--dsw-alias-brand-primary,#f4f4f5)}',
+      '.mu-row.is-current .mu-row-title{font-weight:600}',
+      '.mu-row-play{position:relative;width:var(--mu-row-size,55px);height:var(--mu-row-size,55px);border:0;padding:0;background:transparent;cursor:pointer;border-radius:var(--dsw-radius-sm,6px);display:flex;align-items:center;justify-content:center}',
+      '.mu-row-playmask{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:var(--dsw-radius-sm,6px);background:rgba(0,0,0,.45);color:#fff;opacity:0;transition:opacity .12s ease}',
+      '.mu-row-play:hover .mu-row-playmask,.mu-row.is-current .mu-row-playmask{opacity:1}',
+      '.mu-row.is-selected{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
+      '.mu-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px}',
+      '.mu-check{width:20px;height:20px;margin:0;padding:0;border:1.5px solid var(--dsw-alias-border-l3,rgba(255,255,255,.24));border-radius:50%;background:transparent;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;opacity:0;transition:opacity .12s ease}',
+      '.mu-row:hover .mu-check,.mu-row.is-selected .mu-check,.mu-check:focus-visible{opacity:1}',
+      '.mu-check:hover{border-color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-check.is-on{background:var(--dsw-alias-button-primary-fill,#f4f4f5);border-color:transparent;color:var(--dsw-alias-label-primary-foreground,#141417)}',
+      '.mu-cover{flex:none;overflow:hidden;background:var(--dsw-alias-bg-layer-2,#26262b);display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-tertiary,#71717a)}',
+      '.mu-cover img{width:100%;height:100%;object-fit:cover;display:block}',
+      '.mu-row-main{min-width:0}',
+      '.mu-row-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mu-playing-dot{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-brand-primary,#f4f4f5);flex:none}',
+      '.mu-row-sub{display:flex;align-items:center;gap:6px;margin-top:1px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);min-width:0}',
+      '.mu-cd{flex:none;padding:0 4px;border-radius:var(--dsw-radius-xs,4px);border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.2));color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:9px;font-weight:600;line-height:13px;letter-spacing:.4px}',
+      '.mu-ellipsis{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mu-row-album{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-row-dur{text-align:right;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
+      '.mu-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:56px 16px;color:var(--dsw-alias-label-tertiary,#a1a1aa);text-align:center}',
+      '.mu-state-title{font-size:14px;font-weight:600;color:var(--dsw-alias-label-primary,#e4e4e7)}',
+      '.mu-state-sub{font-size:12px;max-width:420px;line-height:1.6;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-spinner{width:20px;height:20px;border-radius:50%;border:2px solid var(--dsw-alias-border-l2,rgba(255,255,255,.18));border-top-color:var(--dsw-alias-brand-primary,#f4f4f5);animation:mu-spin .8s linear infinite}',
+      '@keyframes mu-spin{to{transform:rotate(360deg)}}',
+      '.mu-warn{padding:4px 24px 8px;font-size:12px;color:var(--dsw-alias-state-warn-label,#e0a030)}',
+      '.mu-menu{position:absolute;top:56px;right:24px;z-index:50;min-width:160px;max-height:70vh;overflow-y:auto;padding:4px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-overlay,#202024);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.4))}',
+      '.mu-menu-item{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:4px 7px;border:0;border-radius:var(--dsw-radius-md,8px);background:transparent;color:var(--dsw-alias-label-primary,#e4e4e7);font-size:12px;text-align:left;cursor:pointer}',
+      '.mu-menu-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mu-menu-item.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
+      '.mu-menu-hint{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-bar{position:relative;flex:none;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,#1a1a1e);padding:12px 16px 14px}',
+      '.mu-bar-openable{cursor:pointer}',
+      // The whole bar opens the player, so the hover highlight must cover the
+      // whole bar too (it used to come from `.mu-bar-left.mu-clickable`, which
+      // only lit the left half). A gradient overlay keeps the bar's own
+      // bg-layer fill underneath the translucent hover token.
+      '.mu-bar-openable:hover{background-image:linear-gradient(var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05)),var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05)))}',
+      '.mu-bar-left:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px;border-radius:8px}',
+      '.mu-bar-openable button,.mu-bar-openable input{cursor:pointer}',
+      '.mu-bar-openable .mu-clickable{cursor:pointer}',
+      '.mu-seekwrap{position:absolute;left:0;right:0;top:-1px;height:8px;z-index:2}',
+      '.mu-bar-buffer{position:absolute;left:0;top:1px;height:3px;background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12));pointer-events:none}',
+      '.mu-seek{position:absolute;left:0;top:0;width:100%;height:8px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;margin:0;padding:0}',
+      '.mu-seek::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:linear-gradient(to right,var(--dsw-alias-brand-primary,#f4f4f5) var(--mu-p,0%),var(--dsw-alias-border-l2,rgba(255,255,255,.16)) var(--mu-p,0%))}',
+      '.mu-seek::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;margin-top:-3.5px;border-radius:50%;background:var(--dsw-alias-label-primary,#f4f4f5);opacity:0;transition:opacity .12s ease}',
+      '.mu-seek:hover::-webkit-slider-thumb{opacity:1}',
+      '.mu-seek:disabled{opacity:.4;cursor:default}',
+      '.mu-bar-main{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:14px;padding-top:10px}',
+      '.mu-bar-left{display:flex;align-items:center;gap:14px;min-width:0}',
+      '.mu-bar-info{min-width:0;max-width:260px}',
+      '.mu-bar-title{font-size:13px;font-weight:500}',
+      '.mu-bar-artist{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
+      '.mu-bar-controls{display:flex;align-items:center;gap:6px;justify-self:center}',
+      '.mu-play-btn{width:40px;height:40px;border-radius:999px;border:0;display:inline-flex;align-items:center;justify-content:center;background:var(--dsw-alias-button-primary-fill,#f4f4f5);color:var(--dsw-alias-label-primary-foreground,#141417);cursor:pointer}',
+      '.mu-play-btn:hover{background:var(--dsw-alias-button-primary-hover,#e4e4e7)}',
+      '.mu-bar-right{display:flex;align-items:center;gap:6px;justify-self:end}',
+      '.mu-quality{font-size:12px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap}',
+      '.mu-pop{position:absolute;right:16px;bottom:84px;z-index:40;width:330px;max-height:58%;display:flex;flex-direction:column;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-overlay,#202024);border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5));overflow:hidden}',
+      '.mu-pop-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 6px;font-size:12px;font-weight:600}',
+      '.mu-pop-body{overflow-y:auto;padding:0 6px 8px}',
+      '.mu-queue-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,90px);align-items:center;gap:8px;padding:5px 8px;border-radius:var(--dsw-radius-sm,6px);font-size:12px;cursor:pointer}',
+      '.mu-queue-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
+      '.mu-queue-row.is-current{color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.08))}',
+      '.mu-queue-index{font-size:12px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums}',
+      '.mu-queue-artist{color:var(--dsw-alias-label-secondary,#a1a1aa);text-align:right;font-size:12px}',
+      '.mu-more{width:280px;padding:10px 12px}',
+      '.mu-more-info{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}',
+      '.mu-more-row{display:flex;justify-content:space-between;gap:12px;font-size:12px}',
+      '.mu-more-key{color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-more-val{color:var(--dsw-alias-label-primary,#e4e4e7);text-align:right}',
+      '.mu-toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:50;padding:7px 12px;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-toast-bg,#2a2a2e);color:var(--dsw-alias-toast-label,#f4f4f5);font-size:12px;box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.4));pointer-events:none}',
+      '.mu-side-icon{position:relative;display:inline-flex;align-items:center;justify-content:center}',
+      '.mu-side-controls{position:fixed;display:flex;align-items:center;gap:2px;background:transparent;box-shadow:none;padding:0;transform:translateY(-50%);z-index:1000}',
+      '.mu-side-btn{width:20px;height:20px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none}',
+      '.mu-side-btn:hover{color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mu-side-icon.is-active{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
+      '.mu-btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 14px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#e4e4e7);font-size:13px;cursor:pointer}',
+      '.mu-btn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mu-btn:disabled{opacity:.5;cursor:default}',
+      '.mu-btn-accent{background:var(--dsw-alias-button-primary-fill,#f4f4f5);border-color:transparent;color:var(--dsw-alias-label-primary-foreground,#141417)}',
+      '.mu-btn-accent:hover{background:var(--dsw-alias-button-primary-hover,#e4e4e7)}',
+      '.mu-btn-ghost{background:transparent;border-color:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-btn-ghost:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mu-btn-wide{width:100%;justify-content:flex-start;height:36px}',
+      '.mu-set{display:flex;flex-direction:column;gap:10px;padding:4px 2px 18px;max-width:720px}',
+      '.mu-set-title{font-size:20px;font-weight:600;line-height:28px;margin:0}',
+      '.mu-set-sep{height:1px;margin:16px 0 12px;background:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mu-set-tabs{display:flex;gap:4px;margin-bottom:10px}',
+      '.mu-set-tab{height:30px;padding:0 12px;border:0;border-radius:var(--dsw-radius-md,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:13px;cursor:pointer}',
+      '.mu-set-tab:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mu-set-tab.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
+      '.mu-set-panel{display:flex;flex-direction:column}',
+      '.mu-set-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
+      '.mu-set-item-col{flex-direction:column;align-items:stretch;gap:8px}',
+      '.mu-set-item-head{display:flex;align-items:center;justify-content:space-between;gap:12px}',
+      '.mu-set-value{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
+      '.mu-switch{position:relative;width:44px;height:24px;padding:0;border:0;border-radius:12px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.12));cursor:pointer;flex:none}',
+      '.mu-switch-dot{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--dsw-alias-label-secondary,#a1a1aa);transition:transform .15s ease,background .15s ease}',
+      '.mu-switch.is-on{background:var(--dsw-alias-button-primary-fill,#f4f4f5)}',
+      '.mu-switch.is-on .mu-switch-dot{transform:translateX(20px);background:var(--dsw-alias-bg-base,#141417)}',
+      '.mu-range{width:100%;height:18px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}',
+      '.mu-range::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.14))}',
+      '.mu-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:var(--dsw-alias-label-primary,#f4f4f5);box-shadow:0 1px 3px rgba(0,0,0,.4)}',
+      '.mu-set-choices{display:flex;gap:6px;flex-wrap:wrap}',
+      '.mu-choice{height:28px;padding:0 12px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer}',
+      '.mu-choice:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mu-choice.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12));color:var(--dsw-alias-label-primary,#f4f4f5);border-color:transparent}',
+      '.mu-set-order{display:flex;flex-direction:column;gap:4px}',
+      '.mu-order-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:6px}',
+      '.mu-order-text{flex:1;font-size:12px}',
+      '.mu-set-hint{margin:0;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);line-height:1.6}',
+      '.mu-set-hint-sm{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-set-row{display:flex;align-items:center;gap:8px}',
+      '.mu-set-label{font-size:12px;min-width:96px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-input{flex:1;min-width:0;height:34px;padding:0 12px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.14));border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));font-family:inherit;font-size:13px;color:var(--dsw-alias-label-primary,#f4f4f5);outline:none}',
+      '.mu-title-input{flex:none;box-sizing:border-box;height:28px;padding:0 6px;min-width:6em;max-width:320px;border-color:transparent;background:transparent;font-size:20px;font-weight:700}',
+      '.mu-title-input:hover{border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.12))}',
+      '.mu-title-input:focus{border-color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04))}',
+      '.mu-input:focus{border-color:var(--dsw-alias-brand-primary,#f4f4f5)}',
+      '.mu-input-num{max-width:96px;flex:none}',
+      '.mu-set-empty{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-set-error{font-size:12px;color:var(--dsw-alias-label-error,#ff6b6b);white-space:pre-wrap}',
+      '.mu-set-actions{display:flex;align-items:center;gap:10px;margin-top:4px}',
+      '.mu-set-saved{font-size:12px;color:var(--dsw-alias-state-success-primary,#4ade80)}',
+      '.mu-set-note{font-size:12px;color:var(--dsw-alias-label-tertiary,#73737d);margin:6px 0 0}',
+      '.mu-scrim{position:absolute;inset:0 0 80px 0;z-index:35}',
+      '.mu-set{display:flex;flex-direction:column;gap:10px;max-width:640px;user-select:none}',
+      '.mu-mini{position:fixed;right:20px;bottom:84px;z-index:60;display:flex;align-items:center;gap:10px;width:260px;padding:8px 10px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:12px;background:var(--dsw-alias-bg-overlay,#202024);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.45));cursor:grab;touch-action:none;user-select:none}',
+      '.mu-mini.is-corner{right:20px;bottom:84px}',
+      '.mu-mini-info{flex:1;min-width:0}',
+      '.mu-mini-title{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-mini-artist{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-mini-controls{display:flex;align-items:center;gap:2px;flex:none}',
+      '.mu-composer-lyric{max-width:280px;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;line-height:20px;color:var(--dsw-alias-label-secondary,#a1a1aa);pointer-events:none;user-select:none}',
+      // No shell at all: transparent row, aligned with the composer card and
+      // sitting right above it (the negative margin only cancels the composer
+      // stack gap, it does not tuck under the card).
+      '.mu-composer-bar-wrap{box-sizing:border-box;width:100%;padding:0 var(--dsh-composer-side-clearance,16px);margin-bottom:calc(0px - var(--dsh-composer-stack-gap,6px))}',
+      '.mu-composer-bar{box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;max-width:var(--dsh-composer-card-max-width,780px);margin:0 auto;padding:4px 14px;font-size:12px;line-height:20px;color:var(--dsw-alias-label-secondary,#8a8f98);background:transparent;pointer-events:none;user-select:none}',
+      '.mu-composer-bar-left{display:flex;align-items:center;min-width:0;flex:0 1 auto;max-width:36%}',
+      '.mu-composer-note{display:inline-flex;flex:none;margin-right:4px;color:var(--dsw-alias-brand-primary,#2f9e6e)}',
+      '.mu-composer-track{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;vertical-align:middle}',
+      '.mu-composer-lyric-inline{flex:1 1 auto;min-width:0;overflow:hidden;text-align:center;color:var(--dsw-alias-label-primary,#e6e6e6);font-size:14px;line-height:20px;white-space:nowrap;text-overflow:ellipsis;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%)}',
+      '.mu-audio-host{position:fixed;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);opacity:0;pointer-events:none}',
+      '.mu-clickable{cursor:pointer;border-radius:8px;padding:4px 6px;margin:-4px -6px;min-width:0}',
+      '.mu-clickable:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
+      '.mu-clickable:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
+      '.mu-np{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);opacity:0;transform:translateY(28px) scale(.985);transition:opacity .24s ease,transform .32s cubic-bezier(.22,.61,.36,1);pointer-events:none;user-select:none}',
+      '.mu-np.is-open{opacity:1;transform:none;pointer-events:auto}',
+      '.mu-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
+      '.mu-np-bg img{width:100%;height:100%;object-fit:cover;filter:blur(72px) saturate(1.35) brightness(.42);transform:scale(1.15)}',
+      '.mu-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,10,12,.35),rgba(10,10,12,.72) 60%,rgba(10,10,12,.92));pointer-events:none}',
+      '.mu-np-head{position:relative;z-index:2;display:flex;align-items:center;gap:8px;padding:14px 20px 6px}',
+      '.mu-np-head-title{font-size:14px;font-weight:600;opacity:.9}',
+      '.mu-np-body{position:relative;z-index:2;flex:1;min-height:0;display:grid;grid-template-columns:minmax(260px,42%) minmax(0,1fr);align-items:center;gap:24px;padding:8px 40px}',
+      '.mu-np-left{display:flex;flex-direction:column;align-items:center;gap:18px;min-width:0}',
+      '.mu-np-disc-wrap{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:30px}',
+      '.mu-np-disc{position:relative;width:340px;height:340px;flex:none;aspect-ratio:1;display:flex;align-items:center;justify-content:center;animation:mu-disc-spin 24s linear infinite;animation-play-state:paused}',
+      '.mu-np-disc.is-playing{animation-play-state:running}',
+      '.mu-np-disc.is-square{animation:none}',
+      '.mu-np-vinyl{position:absolute;inset:-22px;aspect-ratio:1;border-radius:50%;clip-path:circle(50% at 50% 50%);background:repeating-radial-gradient(circle at 50% 50%,#141416 0 2px,#0b0b0d 2px 5px);box-shadow:inset 0 0 40px rgba(0,0,0,.85),0 18px 50px rgba(0,0,0,.5);z-index:0}',
+      '.mu-np-art{position:relative;z-index:1;width:320px;height:320px;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#141416;color:#71717a;box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.06)}',
+      '.mu-np-disc.is-circle .mu-np-art{border-radius:160px;clip-path:circle(50% at 50% 50%)}',
+      '.mu-np-art img{width:100%;height:100%;object-fit:cover;display:block;border-radius:18px}',
+      '.mu-np-disc.is-circle .mu-np-art img{border-radius:160px}',
+      '.mu-np.mu-align-left .mu-np-line{text-align:left}',
+      '.mu-np.mu-align-center .mu-np-line{text-align:center}',
+      '.mu-np.mu-align-right .mu-np-line{text-align:right}',
+      '@keyframes mu-disc-spin{to{transform:rotate(360deg)}}',
+      '.mu-np-meta{text-align:center;min-width:0;max-width:420px}',
+      '.mu-np-title{font-size:18px;font-weight:600}',
+      '.mu-np-artist{font-size:13px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:4px}',
+      '.mu-np-right{height:100%;min-height:0;display:flex;align-items:center;justify-content:center}',
+      '.mu-np-lyrics{position:relative;width:100%;max-width:560px;height:100%;max-height:420px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(180deg,transparent,#000 18%,#000 82%,transparent)}',
+      '.mu-np-lyrics.is-static{overflow-y:auto;-webkit-mask-image:none;mask-image:none}',
+      '.mu-np-lyrics-inner{transition:transform .45s cubic-bezier(.22,.61,.36,1);padding:0 8px}',
+      '.mu-np-lyrics-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:13px;text-align:center;padding:0 24px;line-height:1.7}',
+      '.mu-np-line{padding:10px 6px;border-radius:8px;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;transition:color .2s ease,transform .2s ease;text-align:center}',
+      '.mu-np-line:hover{color:var(--dsw-alias-label-secondary,#c4c4cc)}',
+      '.mu-np-line.is-active{color:var(--dsw-alias-label-primary,#f4f4f5);transform:scale(1.02)}',
+      '.mu-np-line-text{font-size:var(--mu-lyric-size,18px);line-height:1.55;font-weight:var(--mu-lyric-weight,500)}',
+      '.mu-np-line-trans{font-size:var(--mu-lyric-trans,13px);line-height:1.5;margin-top:2px;opacity:.72}',
+      '.mu-np.is-blur .mu-np-line:not(.is-active){opacity:.42;filter:blur(1px)}',
+      '.mu-np-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px}',
+      '.mu-trans-toggle{width:auto;padding:0 8px;font-size:12px;font-weight:600;line-height:1}',
+      '.mu-np-settings{position:absolute;top:52px;right:20px;z-index:6;width:320px;max-width:calc(100% - 40px);padding:14px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:10px;background:var(--dsw-alias-bg-overlay,#202024);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.45))}',
+      '.mu-np-setting{margin-bottom:14px}',
+      '.mu-np-setting:last-child{margin-bottom:0}',
+      '.mu-np-setting-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-np-setting-inline{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-np-range{width:100%;accent-color:var(--dsw-alias-brand-primary,#f4f4f5);cursor:pointer}',
+      '.mu-np-toggle{position:relative;width:44px;height:24px;padding:0;border:0;border-radius:12px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.12));cursor:pointer;flex:none}',
+      '.mu-np-toggle-dot{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--dsw-alias-label-secondary,#a1a1aa);transition:transform .15s ease,background .15s ease}',
+      '.mu-np-toggle.is-on{background:var(--dsw-alias-brand-primary,#f4f4f5)}',
+      '.mu-np-toggle.is-on .mu-np-toggle-dot{transform:translateX(20px);background:var(--dsw-alias-bg-base,#141417)}',
+      '.mu-trans-toggle.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1))}',
+      '.mu-np-bottom{position:relative;z-index:2;padding:10px 40px 22px}',
+      '.mu-np-progress{margin-bottom:6px}',
+      '.mu-seek-np{position:relative;left:auto;top:auto;width:100%;height:16px;margin:0}',
+      '.mu-seek-np .mu-bar-buffer{top:6px}',
+      '.mu-seek-np .mu-seek{top:4px;height:8px}',
+      '.mu-np-bar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px}',
+      '.mu-np-time{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
+      '.mu-np-time-sep{opacity:.6}',
+      '.mu-np-controls{display:flex;align-items:center;gap:10px;justify-self:center}',
+      '.mu-play-btn-lg{width:48px;height:48px}',
+      '.mu-np-vol{display:flex;align-items:center;gap:8px;justify-self:end}',
+      '.mu-icon-btn:focus-visible,.mu-btn:focus-visible,.mu-chip:focus-visible,.mu-play-btn:focus-visible,.mu-row-play:focus-visible,.mu-check:focus-visible,.mu-menu-item:focus-visible,.mu-input:focus-visible,.mu-search input:focus-visible,.mu-seek:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
+    ].join('\n')
+
+    // ── error boundary ───────────────────────────────────────────────────
+    // A render error used to blank the whole panel; show the message instead.
+
+    class MusicBoundary extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = { error: null }
+      }
+
+      static getDerivedStateFromError(error) {
+        return { error: error }
+      }
+
+      componentDidCatch(error, info) {
+        if (window.console !== undefined && typeof window.console.error === 'function') {
+          window.console.error('[dsh-music-panel]', error, info)
+        }
+      }
+
+      render() {
+        if (this.state.error !== null) {
+          return h(
+            'div',
+            { className: 'mu-root' },
+            h(
+              'div',
+              { className: 'mu-state' },
+              h('div', { className: 'mu-state-title' }, '音乐面板渲染出错'),
+              h(
+                'div',
+                { className: 'mu-state-sub' },
+                String((this.state.error && this.state.error.message) || this.state.error),
+              ),
+            ),
+          )
+        }
+        return this.props.children
+      }
+    }
+
+    // Composer seats live inside the host conversation tree; a throw there used
+    // to take the whole conversation plugin down, so this boundary stays silent.
+    class SilentBoundary extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = { failed: false }
+      }
+
+      static getDerivedStateFromError() {
+        return { failed: true }
+      }
+
+      componentDidCatch(error) {
+        try {
+          window.console.error('[dsh-music-panel:lyrics]', error)
+        } catch (ignored) {
+          // Console unavailable: nothing to report.
+        }
+      }
+
+      render() {
+        if (this.state.failed) return null
+        return this.props.children
+      }
+    }
+
+    // ── plugin ────────────────────────────────────────────────────────────
+
+    return {
+      name: 'dsh-music-panel',
+      inject: ['slots', 'locale'],
+      apply: function (ctx) {
+        // The document language is only trustworthy once the host rendered.
+        try {
+          var htmlLang = document.documentElement.getAttribute('lang') || ''
+          if (htmlLang !== '') LANG = String(htmlLang).toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en'
+        } catch (error) {
+          // keep the initial guess
+        }
+
+        // Follow the host UI language through its locale service.
+        var locale = ctx.locale
+        if (
+          locale !== null &&
+          locale !== undefined &&
+          typeof locale.register === 'function' &&
+          typeof locale.bind === 'function'
+        ) {
+          ctx.effect(function () {
+            var dispose = locale.register('dsh-music-panel', DICTS)
+            return function () {
+              if (typeof dispose === 'function') dispose()
+            }
+          })
+          try {
+            var bound = locale.bind('dsh-music-panel')
+            if (typeof bound === 'function') localeTranslate = bound
+          } catch (error) {
+            localeTranslate = null
+          }
+        }
+
+        ctx.effect(function () {
+          var style = document.createElement('style')
+          style.dataset.plugin = 'dsh-music-panel'
+          style.textContent = STYLE
+          document.head.appendChild(style)
+          return function () {
+            style.remove()
+          }
+        })
+
+        // The engine outlives the panel on purpose. On unload (including an
+        // HMR re-execution) pause instead of destroying: the next execution
+        // reuses this same singleton, so its queue and position survive.
+        ctx.effect(function () {
+          return function () {
+            player.suspend()
+          }
+        })
+
+        function mount(name, registration, component) {
+          ctx.effect(function () {
+            var dispose = ctx.slots.inject(name, function () {
+              return ctx.slots.register(registration, component)
+            })
+            return function () {
+              if (typeof dispose === 'function') dispose()
+            }
+          })
+        }
+
+        // Resident audio host: stays mounted across main-panel switches.
+        mount('shell.overlay', { name: 'shell.overlay', id: 'music-player', order: 15 }, AudioHost)
+
+        mount(
+          'sidebar.panellist',
+          {
+            name: 'sidebar.panellist',
+            id: PANEL_ID,
+            order: 20,
+            label: function () {
+              return t('nav.label')
+            },
+          },
+          function (owner) {
+            return h(MusicSideIcon, owner || {})
+          },
+        )
+
+        mount('main', { name: 'main', key: PANEL_ID }, function () {
+          return h(MusicBoundary, null, h(MusicPanel))
+        })
+
+        // Composer lyric seats: inline (left of the model picker) or above the
+        // composer with left/center/right alignment. Both mount; the position
+        // preference decides which one renders. Wrapped so a throw stays local.
+        // `conversation.input.dock` is the full-width row *above* the composer
+        // card; `conversation.composer.dock` sits *below* it, so an "above"
+        // lyric would show under the input box there.
+        mount(
+          'conversation.input.left',
+          { name: 'conversation.input.left', id: 'music-lyrics', order: -10 },
+          function () {
+            return h(SilentBoundary, null, h(ComposerLyrics, { place: 'inline' }))
+          },
+        )
+        mount(
+          'conversation.input.dock',
+          { name: 'conversation.input.dock', id: 'music-lyrics-above' },
+          function () {
+            return h(SilentBoundary, null, h(ComposerLyrics, { place: 'above' }))
+          },
+        )
+
+        // Global gradient background (lowest layer) and the mini player window.
+        mount('shell.overlay', { name: 'shell.overlay', id: 'music-mini', order: 40 }, MiniPlayer)
+
+      },
+    }
+  },
+})
