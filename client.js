@@ -1108,6 +1108,7 @@ window.__ModuleLoader__.load({
       var size = props && props.size ? props.size : 16
       var [snap, setSnap] = useState(player.getSnapshot())
       var [anchor, setAnchor] = useState(null)
+      var [wavePos, setWavePos] = useState(null)
       var hideTimer = useRef(null)
       var iconRef = useRef(null)
 
@@ -1135,6 +1136,18 @@ window.__ModuleLoader__.load({
           row = icon
         }
         if (row === null || row === document.body) row = icon
+
+        function measureWave() {
+          try {
+            var rect = row.getBoundingClientRect()
+            // Sit just left of the hover controls, after the row label.
+            setWavePos({ top: rect.top + rect.height / 2, left: Math.max(8, rect.right - 78 - 46) })
+          } catch (error) {
+            // Host rail DOM unavailable: the wave simply stays hidden.
+          }
+        }
+        measureWave()
+        window.addEventListener('resize', measureWave)
 
         function keepOpen() {
           if (hideTimer.current !== null) {
@@ -1166,6 +1179,7 @@ window.__ModuleLoader__.load({
         return function () {
           row.removeEventListener('mouseenter', onEnter)
           row.removeEventListener('mouseleave', scheduleHide)
+          window.removeEventListener('resize', measureWave)
           if (hideTimer.current !== null) {
             clearTimeout(hideTimer.current)
             hideTimer.current = null
@@ -1198,8 +1212,15 @@ window.__ModuleLoader__.load({
           className: 'mu-side-icon' + (owner.active ? ' is-active' : ''),
         },
         icon('note', size),
-        hasTrack
-          ? h(BarWave, { width: 40, height: 14, bars: 12, className: 'mu-side-wave' })
+        hasTrack && wavePos !== null
+          ? h(
+              'span',
+              {
+                className: 'mu-side-wave-float',
+                style: { top: wavePos.top + 'px', left: wavePos.left + 'px' },
+              },
+              h(BarWave, { width: 40, height: 14, bars: 12 }),
+            )
           : null,
         hasTrack && anchor !== null
           ? h(
@@ -7124,7 +7145,7 @@ window.__ModuleLoader__.load({
       '.mu-menu-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
       '.mu-menu-item.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
       '.mu-menu-hint{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-bar{position:relative;flex:none;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,#1a1a1e);padding:12px 16px 14px}',
+      '.mu-bar{position:relative;flex:none;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:rgba(26,26,30,.62);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#1a1a1e) 62%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.25);backdrop-filter:blur(18px) saturate(1.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);padding:12px 16px 14px}',
       '.mu-bar-openable{cursor:pointer}',
       // The whole bar opens the player, so the hover highlight must cover the
       // whole bar too (it used to come from `.mu-bar-left.mu-clickable`, which
@@ -7148,7 +7169,7 @@ window.__ModuleLoader__.load({
       '.mu-bar-artist{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
       '.mu-bar-controls{display:flex;align-items:center;gap:6px;justify-self:center}',
       '.mu-bar-wave{display:block;pointer-events:none;opacity:.95}',
-      '.mu-side-wave{margin-left:8px;flex:none;opacity:.85}',
+      '.mu-side-wave-float{position:fixed;transform:translateY(-50%);pointer-events:none;z-index:1;opacity:.9}',
       '.mu-bar-wave-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.6}',
       '.mu-bar > *:not(.mu-bar-wave-bg){position:relative;z-index:1}',
       '.mu-play-btn{width:40px;height:40px;border-radius:999px;border:0;display:inline-flex;align-items:center;justify-content:center;background:var(--dsw-alias-button-primary-fill,#f4f4f5);color:var(--dsw-alias-label-primary-foreground,#141417);cursor:pointer}',
