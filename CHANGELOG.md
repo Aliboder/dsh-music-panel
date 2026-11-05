@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.31
+
+### 新增
+
+- 底栏播放区新增实时频谱条：Web Audio `AnalyserNode` 驱动 canvas，28 根对数分桶、平滑衰减的跳变条（渲染方式参考 audvis / audioMotion-analyzer）
+- 频谱在用户首次点击播放控制后启用，避免无手势时 AudioContext 挂起导致无声
+
 ## 0.3.30
 
 ### 修复

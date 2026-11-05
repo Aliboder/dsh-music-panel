@@ -963,6 +963,69 @@ window.__ModuleLoader__.load({
       )
     }
 
+    /**
+     * Bottom-bar spectrum. Bars are log-spaced and smoothed the way mature
+     * visualizers do it (audvis / audioMotion-analyzer), and drawing happens in
+     * requestAnimationFrame without React state so the bar never re-renders.
+     */
+    function BarWave() {
+      var canvasRef = useRef(null)
+      useEffect(function () {
+        var canvas = canvasRef.current
+        if (canvas === null) return undefined
+        var ctx2d = canvas.getContext('2d')
+        if (ctx2d === null) return undefined
+        var dpr = Math.min(window.devicePixelRatio || 1, 2)
+        var cssWidth = 96
+        var cssHeight = 26
+        canvas.width = Math.round(cssWidth * dpr)
+        canvas.height = Math.round(cssHeight * dpr)
+        var bars = 28
+        var levels = new Float32Array(bars)
+        var gradient = ctx2d.createLinearGradient(0, canvas.height, 0, 0)
+        gradient.addColorStop(0, 'rgba(86,134,254,0.35)')
+        gradient.addColorStop(0.6, 'rgba(86,134,254,0.8)')
+        gradient.addColorStop(1, 'rgba(122,170,255,1)')
+        var raf = 0
+        function frame() {
+          raf = requestAnimationFrame(frame)
+          var data = player.getWave()
+          ctx2d.clearRect(0, 0, canvas.width, canvas.height)
+          if (data === null) return
+          var binCount = data.length
+          var barWidth = canvas.width / bars
+          for (var i = 0; i < bars; i += 1) {
+            var lo = Math.floor(Math.pow(i / bars, 1.8) * binCount * 0.72)
+            var hi = Math.max(
+              lo + 1,
+              Math.floor(Math.pow((i + 1) / bars, 1.8) * binCount * 0.72),
+            )
+            var sum = 0
+            var count = 0
+            for (var j = lo; j < hi && j < binCount; j += 1) {
+              sum += data[j]
+              count += 1
+            }
+            var target = count > 0 ? sum / count / 255 : 0
+            levels[i] = levels[i] * 0.62 + target * 0.38
+            var height = Math.max(2 * dpr, levels[i] * canvas.height * 0.92)
+            ctx2d.fillStyle = gradient
+            ctx2d.fillRect(
+              i * barWidth + 1,
+              canvas.height - height,
+              Math.max(1, barWidth - 2),
+              height,
+            )
+          }
+        }
+        raf = requestAnimationFrame(frame)
+        return function () {
+          cancelAnimationFrame(raf)
+        }
+      }, [])
+      return h('canvas', { className: 'mu-bar-wave', ref: canvasRef, 'aria-hidden': 'true' })
+    }
+
     // ── sidebar icon ──────────────────────────────────────────────────────
 
     function MusicSideIcon(props) {
@@ -1218,6 +1281,10 @@ window.__ModuleLoader__.load({
       if (typeof window !== 'undefined' && window[PLAYER_KEY]) return window[PLAYER_KEY]
       var prefs = readPrefs()
       var audio = null
+      /** Web Audio graph used by the bar visualizer (lazy, user-gesture bound). */
+      var audioContext = null
+      var analyser = null
+      var waveData = null
       /** Active `blob:` URL for the loaded track (local media seeks reliably). */
       var objectUrl = null
       /** In-flight track download. */
@@ -1741,10 +1808,53 @@ window.__ModuleLoader__.load({
         tryRestore: tryRestore,
         /** Flush statistics + resume state when the page is hidden/closed. */
         flushOnHide: flushOnHide,
+        /**
+         * Lazily build the analyser graph. Called from a user gesture so the
+         * AudioContext can start; connecting a media element source silences
+         * the element until the context runs, so it must never be automatic.
+         */
+        ensureAnalyser: function () {
+          if (audio === null) return null
+          if (analyser !== null) return analyser
+          try {
+            var Ctx = window.AudioContext || window.webkitAudioContext
+            if (!Ctx) return null
+            if (audioContext === null) audioContext = new Ctx()
+            var source = audioContext.createMediaElementSource(audio)
+            analyser = audioContext.createAnalyser()
+            analyser.fftSize = 256
+            analyser.smoothingTimeConstant = 0.82
+            source.connect(analyser)
+            analyser.connect(audioContext.destination)
+            waveData = new Uint8Array(analyser.frequencyBinCount)
+            if (audioContext.state === 'suspended') audioContext.resume().catch(function () {})
+          } catch (error) {
+            analyser = null
+            return null
+          }
+          return analyser
+        },
+        /** Latest frequency data (0..255 per bin) or null when unavailable. */
+        getWave: function () {
+          if (analyser === null || waveData === null) return null
+          analyser.getByteFrequencyData(waveData)
+          return waveData
+        },
         /** Hand the resident <audio> element to the engine (null detaches). */
         attachAudio: function (el) {
           if (audio === el) return
           if (audio !== null) unbind(audio)
+          // A new media element needs a fresh source node; close the old graph.
+          if (audioContext !== null) {
+            try {
+              audioContext.close()
+            } catch (error) {
+              // Already closed.
+            }
+          }
+          audioContext = null
+          analyser = null
+          waveData = null
           audio = el
           if (el === null) return
           bind(el)
@@ -2233,7 +2343,7 @@ window.__ModuleLoader__.load({
           { className: 'mu-qoverlay-now-controls' },
           h(
             'button',
-            { type: 'button', className: 'mu-icon-btn', title: t('page.prev'), onClick: function () { player.prev() } },
+            { type: 'button', className: 'mu-icon-btn', title: t('page.prev'), onClick: function () { player.ensureAnalyser(); player.prev() } },
             icon('prev', 16),
           ),
           h(
@@ -2242,13 +2352,13 @@ window.__ModuleLoader__.load({
               type: 'button',
               className: 'mu-icon-btn',
               title: snap.playing ? t('page.pause') : t('page.play'),
-              onClick: function () { player.toggle() },
+              onClick: function () { player.ensureAnalyser(); player.toggle() },
             },
             icon(snap.playing ? 'pause' : 'play', 18),
           ),
           h(
             'button',
-            { type: 'button', className: 'mu-icon-btn', title: t('page.next'), onClick: function () { player.next() } },
+            { type: 'button', className: 'mu-icon-btn', title: t('page.next'), onClick: function () { player.ensureAnalyser(); player.next() } },
             icon('next', 16),
           ),
         ),
@@ -2480,6 +2590,7 @@ window.__ModuleLoader__.load({
             className: 'mu-queue-row' + (visibleCurrent ? ' is-current' : ''),
             onClick: function () {
               if (Date.now() < suppressClickRef.current) return
+              player.ensureAnalyser()
               player.select(snap.queue, originalIndex)
             },
           },
@@ -4288,6 +4399,7 @@ window.__ModuleLoader__.load({
       }
 
       function activate(track) {
+        player.ensureAnalyser()
         var at = sortedCollection.findIndex(function (item) {
           return item.path === track.path
         })
@@ -5908,6 +6020,7 @@ window.__ModuleLoader__.load({
                   className: 'mu-icon-btn',
                   title: t('page.prev'),
                   onClick: function () {
+                    player.ensureAnalyser()
                     player.prev()
                   },
                 },
@@ -5920,6 +6033,7 @@ window.__ModuleLoader__.load({
                   className: 'mu-play-btn',
                   title: snap.playing ? t('page.pause') : t('page.play'),
                   onClick: function () {
+                    player.ensureAnalyser()
                     player.toggle()
                   },
                 },
@@ -5932,6 +6046,7 @@ window.__ModuleLoader__.load({
                   className: 'mu-icon-btn',
                   title: t('page.next'),
                   onClick: function () {
+                    player.ensureAnalyser()
                     player.next()
                   },
                 },
@@ -5950,6 +6065,7 @@ window.__ModuleLoader__.load({
                 },
                 icon('list', 18),
               ),
+              h(BarWave, null),
             ),
 
             h(
@@ -6952,6 +7068,7 @@ window.__ModuleLoader__.load({
       '.mu-bar-title{font-size:13px;font-weight:500}',
       '.mu-bar-artist{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
       '.mu-bar-controls{display:flex;align-items:center;gap:6px;justify-self:center}',
+      '.mu-bar-wave{width:96px;height:26px;display:block;pointer-events:none;opacity:.95}',
       '.mu-play-btn{width:40px;height:40px;border-radius:999px;border:0;display:inline-flex;align-items:center;justify-content:center;background:var(--dsw-alias-button-primary-fill,#f4f4f5);color:var(--dsw-alias-label-primary-foreground,#141417);cursor:pointer}',
       '.mu-play-btn:hover{background:var(--dsw-alias-button-primary-hover,#e4e4e7)}',
       '.mu-bar-right{display:flex;align-items:center;gap:6px;justify-self:end}',
