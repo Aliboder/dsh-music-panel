@@ -5211,7 +5211,7 @@ window.__ModuleLoader__.load({
       '.mu-fav.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
       '.mu-fav.is-on svg{fill:currentColor}',
       '.mu-chip-sm{height:24px;padding:0 8px;font-size:11px}',
-      '.mu-search-history{position:absolute;top:34px;right:0;z-index:20;display:flex;flex-wrap:wrap;gap:4px;max-width:320px;padding:6px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:8px;background:var(--dsw-alias-bg-overlay,#202024);box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.35)}',
+      '.mu-search-history{position:absolute;top:34px;right:0;z-index:20;display:flex;flex-wrap:wrap;gap:4px;max-width:320px;padding:6px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:8px;background:var(--dsw-alias-bg-overlay,#202024);box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.35))}',
       '.mu-queue-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
       '.mu-queue-row.is-current{color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.08))}',
       '.mu-queue-index{font-size:12px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums}',
@@ -5506,34 +5506,39 @@ window.__ModuleLoader__.load({
         // the first tab holds the lock, later tabs queue for it and take over
         // when the leader closes (the same pattern web-player PWAs use).
         ctx.effect(function () {
-          if (
-            typeof navigator === 'undefined' ||
-            navigator.locks === undefined ||
-            typeof navigator.locks.request !== 'function'
-          ) {
-            return
-          }
-          if (window.__dshMusicLeaderBound === true) return
-          window.__dshMusicLeaderBound = true
-          var LOCK = 'dsh-music-panel.player'
-          function hold() {
-            // The lock is released when the page unloads.
-            return new Promise(function () {})
-          }
-          function becomeLeader() {
-            player.setLeader(true)
-            return hold()
-          }
-          navigator.locks
-            .request(LOCK, { mode: 'exclusive', ifAvailable: true }, function (lock) {
-              if (lock !== null && lock !== undefined) return becomeLeader()
-              // Another tab is playing: wait in the queue, then take over.
-              player.setLeader(false)
-              return navigator.locks.request(LOCK, becomeLeader)
-            })
-            .catch(function () {
+          try {
+            if (
+              typeof navigator === 'undefined' ||
+              navigator.locks === undefined ||
+              typeof navigator.locks.request !== 'function'
+            ) {
+              return
+            }
+            if (window.__dshMusicLeaderBound === true) return
+            window.__dshMusicLeaderBound = true
+            var LOCK = 'dsh-music-panel.player'
+            function hold() {
+              // The lock is released when the page unloads.
+              return new Promise(function () {})
+            }
+            function becomeLeader() {
               player.setLeader(true)
-            })
+              return hold()
+            }
+            navigator.locks
+              .request(LOCK, { mode: 'exclusive', ifAvailable: true }, function (lock) {
+                if (lock !== null && lock !== undefined) return becomeLeader()
+                // Another tab is playing: wait in the queue, then take over.
+                player.setLeader(false)
+                return navigator.locks.request(LOCK, becomeLeader)
+              })
+              .catch(function () {
+                player.setLeader(true)
+              })
+          } catch (error) {
+            // Cross-tab coordination must never break the plugin's UI.
+            player.setLeader(true)
+          }
         })
 
         function mount(name, registration, component) {
