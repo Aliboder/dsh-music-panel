@@ -4407,35 +4407,56 @@ window.__ModuleLoader__.load({
         }
         setNpOpen(true)
         setNpVisible(true)
-        // Paint the page at its start pose first, then animate on the next
-        // frame so the browser composites transform/opacity off the main thread.
+        // Material-style container transform: the page starts as the bar's
+        // rectangle (transform only, so it stays on the compositor) and grows
+        // to full size while its content cross-fades in.
         window.requestAnimationFrame(function () {
           var page = document.querySelector('.mu-np')
           if (page === null) return
-          page.style.opacity = '0'
-          page.style.transform = 'translateY(34px) scale(.975)'
+          var content = page.querySelectorAll('.mu-np-head, .mu-np-body, .mu-np-bottom')
+          content.forEach(function (el) {
+            el.style.opacity = '0'
+          })
+          var pageRect = page.getBoundingClientRect()
+          var barRect = barEl !== null ? barEl.getBoundingClientRect() : null
+          var tx = barRect !== null ? barRect.left - pageRect.left : 0
+          var ty = barRect !== null ? barRect.top - pageRect.top : pageRect.height * 0.85
+          var sx = barRect !== null ? Math.max(0.04, barRect.width / pageRect.width) : 1
+          var sy = barRect !== null ? Math.max(0.04, barRect.height / pageRect.height) : 0.12
+          var from = 'translate(' + tx + 'px,' + ty + 'px) scale(' + sx + ',' + sy + ')'
+          page.style.transformOrigin = '0 0'
+          page.style.transform = from
+          page.style.opacity = '1'
           window.requestAnimationFrame(function () {
             if (typeof page.animate !== 'function') {
-              page.style.opacity = ''
-              page.style.transform = ''
+              page.style.transform = 'none'
+              content.forEach(function (el) {
+                el.style.opacity = ''
+              })
               return
             }
-            page.style.opacity = ''
-            page.style.transform = ''
             npAnimRef.current = page.animate(
               [
-                { transform: 'translateY(34px) scale(.975)', opacity: 0 },
-                { transform: 'translateY(0) scale(1)', opacity: 1 },
+                { transform: from, opacity: 1 },
+                { transform: 'translate(0px,0px) scale(1,1)', opacity: 1 },
               ],
-              { duration: 420, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'both' },
+              { duration: 440, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
             )
+            content.forEach(function (el) {
+              el.animate([{ opacity: 0 }, { opacity: 1 }], {
+                duration: 220,
+                delay: 180,
+                easing: 'ease-out',
+                fill: 'both',
+              })
+            })
             if (barEl !== null && typeof barEl.animate === 'function') {
               barEl.animate(
                 [
                   { opacity: 1, transform: 'translateY(0) scale(1)' },
-                  { opacity: 0, transform: 'translateY(18px) scale(.985)' },
+                  { opacity: 0, transform: 'translateY(14px) scale(.99)' },
                 ],
-                { duration: 280, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'both' },
+                { duration: 240, easing: 'ease-out', fill: 'both' },
               )
             }
           })
@@ -4449,6 +4470,19 @@ window.__ModuleLoader__.load({
           npAnimRef.current = null
           setNpVisible(false)
           setNpOpen(false)
+          if (page !== null) {
+            page.getAnimations().forEach(function (item) {
+              item.cancel()
+            })
+            page.style.transform = ''
+            page.style.opacity = ''
+            page.querySelectorAll('.mu-np-head, .mu-np-body, .mu-np-bottom').forEach(function (el) {
+              el.getAnimations().forEach(function (item) {
+                item.cancel()
+              })
+              el.style.opacity = ''
+            })
+          }
           if (bar !== null) {
             bar.getAnimations().forEach(function (item) {
               item.cancel()
@@ -4459,21 +4493,52 @@ window.__ModuleLoader__.load({
           finish()
           return
         }
+        if (npAnimRef.current !== null) {
+          try {
+            npAnimRef.current.cancel()
+          } catch (error) {
+            // Already finished.
+          }
+          npAnimRef.current = null
+        }
+        page.getAnimations().forEach(function (item) {
+          item.cancel()
+        })
+        page.style.transform = 'none'
+        page.style.opacity = '1'
+        var pageRect = page.getBoundingClientRect()
+        var barRect = bar !== null ? bar.getBoundingClientRect() : null
+        var tx = barRect !== null ? barRect.left - pageRect.left : 0
+        var ty = barRect !== null ? barRect.top - pageRect.top : pageRect.height * 0.85
+        var sx = barRect !== null ? Math.max(0.04, barRect.width / pageRect.width) : 1
+        var sy = barRect !== null ? Math.max(0.04, barRect.height / pageRect.height) : 0.12
+        var to = 'translate(' + tx + 'px,' + ty + 'px) scale(' + sx + ',' + sy + ')'
+        var content = page.querySelectorAll('.mu-np-head, .mu-np-body, .mu-np-bottom')
+        content.forEach(function (el) {
+          el.getAnimations().forEach(function (item) {
+            item.cancel()
+          })
+          el.animate([{ opacity: 1 }, { opacity: 0 }], {
+            duration: 130,
+            easing: 'ease-out',
+            fill: 'both',
+          })
+        })
         var anim = page.animate(
           [
-            { transform: 'translateY(0) scale(1)', opacity: 1 },
-            { transform: 'translateY(26px) scale(.98)', opacity: 0 },
+            { transform: 'translate(0px,0px) scale(1,1)', opacity: 1 },
+            { transform: to, opacity: 0.92 },
           ],
-          { duration: 260, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' },
+          { duration: 300, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' },
         )
         npAnimRef.current = anim
         if (bar !== null && typeof bar.animate === 'function') {
           bar.animate(
             [
-              { opacity: 0, transform: 'translateY(18px) scale(.985)' },
+              { opacity: 0, transform: 'translateY(14px) scale(.99)' },
               { opacity: 1, transform: 'translateY(0) scale(1)' },
             ],
-            { duration: 320, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'both' },
+            { duration: 300, delay: 70, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'both' },
           )
         }
         anim.finished.then(finish, finish)
@@ -7468,8 +7533,6 @@ window.__ModuleLoader__.load({
       '.mu-clickable:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
       '.mu-np{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);opacity:0;pointer-events:none;user-select:none;will-change:transform,opacity}',
       '.mu-np.is-open{opacity:1;pointer-events:auto}',
-      '.mu-np.is-open .mu-np-head,.mu-np.is-open .mu-np-body{animation:mu-np-content-in .42s cubic-bezier(.22,.61,.36,1) both}',
-      '@keyframes mu-np-content-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}',
       '.mu-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
       '.mu-np-bg img{width:100%;height:100%;object-fit:cover;filter:blur(72px) saturate(1.35) brightness(.42);transform:scale(1.15)}',
       '.mu-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,10,12,.35),rgba(10,10,12,.72) 60%,rgba(10,10,12,.92));pointer-events:none}',
