@@ -80,6 +80,9 @@ window.__ModuleLoader__.load({
         'page.done': '完成',
         'page.clear': '清空列表',
         'page.loopAll': '列表循环',
+        'page.modeSequence': '顺序播放',
+        'page.modeRandom': '随机播放',
+        'page.modeOne': '单曲循环',
         'page.loopOne': '单曲循环',
         'page.loopNone': '不循环',
         'page.shuffle': '随机播放',
@@ -251,6 +254,9 @@ window.__ModuleLoader__.load({
         'page.done': 'Done',
         'page.clear': 'Clear list',
         'page.loopAll': 'Repeat all',
+        'page.modeSequence': 'Play in order',
+        'page.modeRandom': 'Shuffle',
+        'page.modeOne': 'Repeat one',
         'page.loopOne': 'Repeat one',
         'page.loopNone': 'No repeat',
         'page.shuffle': 'Shuffle',
@@ -996,6 +1002,50 @@ window.__ModuleLoader__.load({
       return order
     }
 
+    // Three playback modes, mapped onto the engine's loop/order pair:
+    //   sequence → in order, stop at the end
+    //   random   → shuffled, looping
+    //   one      → repeat the current track
+    var PLAY_MODES = ['sequence', 'random', 'one']
+
+    function playModeOf(snap) {
+      if (snap.loop === 'one') return 'one'
+      if (snap.order === 'random') return 'random'
+      return 'sequence'
+    }
+
+    function playModeLabel(mode) {
+      return mode === 'one'
+        ? t('page.modeOne')
+        : mode === 'random'
+          ? t('page.modeRandom')
+          : t('page.modeSequence')
+    }
+
+    function playModeIcon(mode) {
+      return mode === 'one' ? 'repeatOne' : mode === 'random' ? 'shuffle' : 'list'
+    }
+
+    function applyPlayMode(mode) {
+      if (mode === 'one') {
+        player.setLoop('one')
+        player.setOrder('list')
+        return
+      }
+      if (mode === 'random') {
+        player.setLoop('all')
+        player.setOrder('random')
+        return
+      }
+      player.setLoop('none')
+      player.setOrder('list')
+    }
+
+    function cyclePlayMode(snap) {
+      var current = playModeOf(snap)
+      applyPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(current) + 1) % PLAY_MODES.length])
+    }
+
     function nextIndexOf(index, order, size, randomOrder) {
       if (size <= 1) return 0
       if (order === 'random') {
@@ -1059,8 +1109,8 @@ window.__ModuleLoader__.load({
         queue: [],
         index: -1,
         playing: false,
-        loop: prefs.loop === 'one' || prefs.loop === 'none' ? prefs.loop : 'all',
-        order: prefs.order === 'random' ? 'random' : 'list',
+        loop: prefs.loop === 'one' ? 'one' : 'none',
+        order: prefs.order === 'random' && prefs.loop !== 'one' ? 'random' : 'list',
         // Volume follows the system mixer: the plugin no longer exposes its own.
         volume: 1,
         muted: false,
@@ -1221,8 +1271,8 @@ window.__ModuleLoader__.load({
         state = Object.assign({}, state, {
           queue: queue,
           index: index,
-          loop: saved.loop === 'one' || saved.loop === 'none' ? saved.loop : 'all',
-          order: saved.order === 'random' ? 'random' : 'list',
+          loop: saved.loop === 'one' ? 'one' : saved.order === 'random' ? 'all' : 'none',
+          order: saved.order === 'random' && saved.loop !== 'one' ? 'random' : 'list',
           currentTime: saved.positionSec > 0 ? saved.positionSec : 0,
           duration: saved.durationSec > 0 ? saved.durationSec : 0,
           playing: false,
@@ -2306,11 +2356,11 @@ window.__ModuleLoader__.load({
       )
 
       function cycleLoop() {
-        player.setLoop(snap.loop === 'all' ? 'one' : snap.loop === 'one' ? 'none' : 'all')
+        cyclePlayMode(snap)
       }
 
       function loopLabel() {
-        return snap.loop === 'one' ? t('page.loopOne') : snap.loop === 'none' ? t('page.loopNone') : t('page.loopAll')
+        return playModeLabel(playModeOf(snap))
       }
 
       return h(
@@ -2623,7 +2673,7 @@ window.__ModuleLoader__.load({
               h(
                 'button',
                 { type: 'button', className: 'mu-icon-btn', title: loopLabel(), onClick: cycleLoop },
-                icon(snap.loop === 'one' ? 'repeatOne' : 'repeat', 18),
+                icon(playModeIcon(playModeOf(snap)), 18),
               ),
               h(
                 'button',
@@ -3324,11 +3374,11 @@ window.__ModuleLoader__.load({
       )
 
       function cycleLoop() {
-        player.setLoop(snap.loop === 'all' ? 'one' : snap.loop === 'one' ? 'none' : 'all')
+        cyclePlayMode(snap)
       }
 
       function loopLabel() {
-        return snap.loop === 'one' ? t('page.loopOne') : snap.loop === 'none' ? t('page.loopNone') : t('page.loopAll')
+        return playModeLabel(playModeOf(snap))
       }
 
       function toggleSelect(track) {
@@ -4445,7 +4495,7 @@ window.__ModuleLoader__.load({
           h(
             'button',
             { type: 'button', className: 'mu-chip', title: loopLabel(), onClick: cycleLoop },
-            icon(snap.loop === 'one' ? 'repeatOne' : 'repeat', 15),
+            icon(playModeIcon(playModeOf(snap)), 15),
             h('span', null, loopLabel()),
           ),
           h(
@@ -4459,18 +4509,6 @@ window.__ModuleLoader__.load({
             },
             icon('play', 13),
             h('span', null, t('page.playAll')),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-chip mu-chip-round' + (snap.order === 'random' ? ' is-on' : ''),
-              title: t('page.shuffle'),
-              onClick: function () {
-                player.setOrder(snap.order === 'random' ? 'list' : 'random')
-              },
-            },
-            icon('shuffle', 15),
           ),
           h(
             'button',
@@ -4663,7 +4701,7 @@ window.__ModuleLoader__.load({
                   title: loopLabel(),
                   onClick: cycleLoop,
                 },
-                icon(snap.loop === 'one' ? 'repeatOne' : 'repeat', 17),
+                icon(playModeIcon(playModeOf(snap)), 17),
               ),
               h(
                 'button',
@@ -4759,6 +4797,7 @@ window.__ModuleLoader__.load({
                 'div',
                 { className: 'mu-pop-head' },
                 h('span', null, t('page.queue')),
+                h('span', { className: 'mu-queue-mode' }, loopLabel()),
                 snap.queue.length > 0
                   ? h(
                       'button',
@@ -5204,6 +5243,7 @@ window.__ModuleLoader__.load({
       '.mu-pop-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 6px;font-size:12px;font-weight:600}',
       '.mu-pop-body{overflow-y:auto;padding:0 6px 8px}',
       '.mu-queue-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,70px) auto;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--dsw-radius-sm,6px);font-size:12px;cursor:pointer}',
+      '.mu-queue-mode{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));white-space:nowrap}',
       '.mu-queue-actions{display:inline-flex;align-items:center;gap:2px;justify-self:end}',
       '.mu-queue-btn{width:20px;height:20px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:12px;line-height:20px;cursor:pointer}',
       '.mu-queue-btn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06));color:var(--dsw-alias-label-primary,#f4f4f5)}',
