@@ -2124,8 +2124,11 @@ window.__ModuleLoader__.load({
     function QueueOverlay() {
       var [open, setOpen] = useState(queueOverlaySnapshot())
       var [snap, setSnap] = useState(player.getSnapshot())
-      var [dragFrom, setDragFrom] = useState(null)
       var [dragOver, setDragOver] = useState(null)
+      // Keep the source index in a ref: calling setState from dragstart makes
+      // React re-render the dragged node synchronously, which cancels the
+      // browser's drag in Chromium.
+      var dragFromRef = useRef(null)
       var ref = useRef(null)
 
       useEffect(function () {
@@ -2168,14 +2171,13 @@ window.__ModuleLoader__.load({
             className:
               'mu-queue-row' +
               (visibleCurrent ? ' is-current' : '') +
-              (dragFrom === position ? ' is-dragging' : '') +
-              (dragOver === position && dragFrom !== position ? ' is-drop-target' : ''),
+              (dragOver === position ? ' is-drop-target' : ''),
             draggable: true,
             onClick: function () {
               player.select(snap.queue, originalIndex)
             },
             onDragStart: function (event) {
-              setDragFrom(position)
+              dragFromRef.current = position
               setDragOver(position)
               if (event.dataTransfer !== null && event.dataTransfer !== undefined) {
                 event.dataTransfer.effectAllowed = 'move'
@@ -2198,7 +2200,8 @@ window.__ModuleLoader__.load({
             },
             onDrop: function (event) {
               event.preventDefault()
-              var from = dragFrom
+              event.stopPropagation()
+              var from = dragFromRef.current
               if (from !== null && from !== position) {
                 var order = queueView.map(function (item) {
                   return item.originalIndex
@@ -2207,11 +2210,11 @@ window.__ModuleLoader__.load({
                 order.splice(position, 0, moved)
                 player.reorderQueue(order)
               }
-              setDragFrom(null)
+              dragFromRef.current = null
               setDragOver(null)
             },
             onDragEnd: function () {
-              setDragFrom(null)
+              dragFromRef.current = null
               setDragOver(null)
             },
           },
@@ -2260,7 +2263,42 @@ window.__ModuleLoader__.load({
         ),
         h(
           'div',
-          { className: 'mu-qoverlay-list' },
+          {
+            className: 'mu-qoverlay-list',
+            onDragOver: function (event) {
+              event.preventDefault()
+              if (event.dataTransfer !== null && event.dataTransfer !== undefined) {
+                event.dataTransfer.dropEffect = 'move'
+              }
+            },
+            // Dropping in the gap between rows (no row handles it) still
+            // reorders: pick the row under the pointer.
+            onDrop: function (event) {
+              event.preventDefault()
+              var from = dragFromRef.current
+              if (from === null) return
+              var rowEls = event.currentTarget.querySelectorAll('.mu-queue-row')
+              var target = queueView.length - 1
+              for (var i = 0; i < rowEls.length; i += 1) {
+                var rect = rowEls[i].getBoundingClientRect()
+                if (event.clientY < rect.top + rect.height / 2) {
+                  target = i
+                  break
+                }
+                target = i
+              }
+              if (target !== from) {
+                var order = queueView.map(function (item) {
+                  return item.originalIndex
+                })
+                var moved = order.splice(from, 1)[0]
+                order.splice(target, 0, moved)
+                player.reorderQueue(order)
+              }
+              dragFromRef.current = null
+              setDragOver(null)
+            },
+          },
           snap.queue.length === 0 ? h('div', { className: 'mu-state-sub' }, t('page.queueEmpty')) : rows,
         ),
       )
