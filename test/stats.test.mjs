@@ -42,6 +42,11 @@ const positioned = await stats.setPosition('D:/a.flac', 73.456)
 assert.equal(positioned.lastPositionSec, 73.5)
 assert.equal((await stats.setPosition('D:/a.flac', -2)), null)
 
+// Lyrics calibration offset is clamped to ±60s and persisted.
+assert.equal((await stats.setLyricOffset('D:/a.flac', 1200)).lyricOffsetMs, 1200)
+assert.equal((await stats.setLyricOffset('D:/a.flac', -99_999)).lyricOffsetMs, -60_000)
+assert.equal((await stats.setLyricOffset('D:/a.flac', 500)).lyricOffsetMs, 500)
+
 // Last.fm / MusicBee threshold (half the track or 4 minutes, whichever first).
 assert.equal(playThreshold(300), 150)
 assert.equal(playThreshold(900), 240)

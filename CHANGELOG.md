@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.3.0
+
+### 功能
+
+- 收藏「我喜欢」：底栏与歌曲行爱心，独立 tab，`favorites.json` 持久化
+- 最近播放：统计页新增「收听排行 / 最近播放」模式切换
+- 队列编辑：上移、下移、移除单曲、清空队列
+- 搜索增强：标题 / 歌手 / 专辑 / 文件夹 / 路径 + 全拼 / 首字母，多关键词 AND，记住最近 8 条搜索
+- 超大曲库虚拟列表：列表只渲染可视行 + overscan
+- 歌词校准：播放页按 ±0.5s 调整；可写回 MP3（ID3 USLT）/ FLAC（Vorbis LYRICS），写前备份 `.lyrics.bak`
+- 多标签页互斥：Web Locks 选主，只有主控页发声与计时；其余页提示「另一个标签页正在播放」
+
+### 依赖
+
+- 新增 `node-id3`、`flac-tagger`（歌词写回）、`pinyin-pro`（拼音搜索）
+
+### 数据
+
+- 新增 `<DSH_HOME>/music/favorites.json`
+- `stats.json` 增加 `lyricOffsetMs`
+
 ## 0.2.0
 
 ### 功能
