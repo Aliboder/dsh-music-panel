@@ -33,6 +33,7 @@ DeepSeek Harness 的本地音乐插件：左侧栏一个音符入口，点开是
 - **收藏与最近播放**：底栏 / 歌曲行爱心（红色）加入「我喜欢」tab；统计页可切换「收听排行 / 最近播放」。
 - **右键菜单**：歌曲行右键可添加到歌单 / 添加到播放列表 / 复制文件地址 / 在文件夹中显示 / 查看详细信息 / 编辑元数据；歌单视图里还可从歌单移除。
 - **元数据编辑**：标题、艺术家、专辑、年份、音轨号、碟号、风格、专辑艺术家、作曲、作词、注释、歌词都可改；FLAC 写 Vorbis comments、MP3 写 ID3v2，临时文件 + 回读校验 + 原子替换，失败不破坏原文件。
+- **在线匹配**：编辑弹窗里一键搜索网易云 / QQ 音乐 / iTunes / MusicBrainz，候选带封面，点选回填。网易云、QQ 为非官方接口，可能随时失效；结果仅供参考，保存前请核对。
 - **添加到歌单**：多选后从下拉菜单选择目标歌单（显示曲目数），或新建歌单并添加。
 - **队列编辑**：播放队列支持拖动排序与移除单曲。
 - **搜索**：标题 / 歌手 / 专辑 / 文件夹 / 路径 + 全拼 / 首字母（如 `zhoujielun`、`zjl`），并记住最近 8 条搜索。
@@ -88,6 +89,7 @@ plugin_manager install_bundle D:/SystemFiles/Documents/Project/DSH/plugins/dsh-m
 | POST | `/music/reveal` | 在系统文件管理器中定位文件（仅已配置目录内），body `{ path }` |
 | GET | `/music/tags?path=...` | 读取可编辑标签（FLAC / MP3） |
 | PUT | `/music/tags` | 写回标签，body `{ path, tags }`；临时文件 + 回读校验后原子替换 |
+| POST | `/music/online-search` | 多源在线搜索，body `{ title, artist, album }`；返回候选与各源状态 |
 | GET | `/music/stats?range=week\|month\|all` | 按范围聚合的播放次数 / 时长 / 最近播放 |
 | GET | `/music/cover?path=…` | 内嵌封面；无封面返回 404 |
 
