@@ -6122,33 +6122,36 @@ window.__ModuleLoader__.load({
                                   },
                                 }),
                             h(
-                              'button',
-                              {
-                                type: 'button',
-                                className: 'mu-tag-cover-action',
-                                title: t('page.replaceCover'),
-                                onClick: function () {
-                                  setMatchField(null)
-                                  searchOnlineForTags()
-                                },
-                              },
-                              icon('search', 12),
-                              h('span', null, t('page.replaceCover')),
-                            ),
-                            tagCoverPreview !== null
-                              ? h(
-                                  'button',
-                                  {
-                                    type: 'button',
-                                    className: 'mu-tag-cover-reset',
-                                    onClick: function () {
-                                      setTagCoverPreview(null)
-                                      setCoverFailed(false)
-                                    },
+                              'div',
+                              { className: 'mu-tag-cover-actions' },
+                              h(
+                                'button',
+                                {
+                                  type: 'button',
+                                  className: 'mu-tag-cover-btn',
+                                  onClick: function () {
+                                    setMatchField(null)
+                                    searchOnlineForTags()
                                   },
-                                  t('page.resetCover'),
-                                )
-                              : null,
+                                },
+                                icon('search', 12),
+                                h('span', null, t('page.replaceCover')),
+                              ),
+                              tagCoverPreview !== null
+                                ? h(
+                                    'button',
+                                    {
+                                      type: 'button',
+                                      className: 'mu-tag-cover-btn is-ghost',
+                                      onClick: function () {
+                                        setTagCoverPreview(null)
+                                        setCoverFailed(false)
+                                      },
+                                    },
+                                    t('page.resetCover'),
+                                  )
+                                : null,
+                            ),
                             tagCoverPreview !== null
                               ? h('div', { className: 'mu-tag-cover-hint' }, t('page.coverPending'))
                               : null,
@@ -6775,10 +6778,11 @@ window.__ModuleLoader__.load({
       '.mu-tag-online-sources{display:flex;gap:8px;font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-tag-footer{flex:none;display:flex;justify-content:flex-end;gap:8px;padding:12px 22px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
       '.mu-tag-cover-box{position:relative;display:flex;flex-direction:column;gap:8px}',
-      '.mu-tag-cover-action{position:absolute;right:8px;bottom:8px;display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border:0;border-radius:7px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;cursor:pointer;backdrop-filter:blur(6px)}',
-      '.mu-tag-cover-action:hover{background:rgba(0,0,0,.72)}',
-      '.mu-tag-cover-reset{align-self:flex-start;height:24px;padding:0 10px;border:0;border-radius:6px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:11px;cursor:pointer}',
-      '.mu-tag-cover-reset:hover{color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mu-tag-cover-actions{display:flex;flex-wrap:wrap;gap:8px}',
+      '.mu-tag-cover-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:28px;padding:0 10px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:7px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#f4f4f5);font-size:11px;cursor:pointer;white-space:nowrap}',
+      '.mu-tag-cover-btn:hover{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));border-color:var(--dsw-static-deepseek-450,#5686fe)}',
+      '.mu-tag-cover-btn.is-ghost{background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '@media (max-width:760px){.mu-tag-layout{grid-template-columns:1fr}.mu-tag-aside{border-right:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));flex-direction:row;align-items:flex-start}.mu-tag-cover-box{width:120px;flex:none}.mu-tag-aside-meta{flex:1}.mu-tag-aside-hint{display:none}}',
       '.mu-tag-cover-hint{font-size:10px;line-height:1.4;color:var(--dsw-static-deepseek-450,#5686fe)}',
       '.mu-tag-field-head{display:flex;align-items:center;justify-content:space-between;gap:6px}',
       '.mu-tag-field-search{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border:0;border-radius:5px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;opacity:0;transition:opacity .12s}',
