@@ -33,6 +33,7 @@ window.__ModuleLoader__.load({
     /** Defaults for every appearance / lyric preference. */
     var PREF_DEFAULTS = {
       miniPlayer: true,
+      viewMode: 'list',
       queuePos: null,
       composerQueueButton: true,
       circularCover: true,
@@ -216,6 +217,8 @@ window.__ModuleLoader__.load({
         'page.resetCover': '恢复原封面',
         'page.coverPending': '已选择在线封面，保存后写入',
         'page.matchField': '搜索替换',
+        'page.gridView': '网格视图',
+        'page.listView': '列表视图',
         'page.addedCount': '已添加 {n} 首',
         'page.trackCount': '{n} 首',
         'page.removeTrack': '从歌单移除',
@@ -435,6 +438,8 @@ window.__ModuleLoader__.load({
         'page.resetCover': 'Reset cover',
         'page.coverPending': 'Online cover selected — saved with tags',
         'page.matchField': 'Search & replace',
+        'page.gridView': 'Grid view',
+        'page.listView': 'List view',
         'page.addedCount': '{n} added',
         'page.trackCount': '{n} tracks',
         'page.removeTrack': 'Remove from playlist',
@@ -797,6 +802,14 @@ window.__ModuleLoader__.load({
           ['path', { d: 'M3 6h.01' }],
           ['path', { d: 'M3 12h.01' }],
           ['path', { d: 'M3 18h.01' }],
+        ],
+      },
+      grid: {
+        parts: [
+          ['rect', { x: 3, y: 3, width: 7, height: 7 }],
+          ['rect', { x: 14, y: 3, width: 7, height: 7 }],
+          ['rect', { x: 3, y: 14, width: 7, height: 7 }],
+          ['rect', { x: 14, y: 14, width: 7, height: 7 }],
         ],
       },
       more: {
@@ -3455,6 +3468,165 @@ window.__ModuleLoader__.load({
       )
     }
 
+    /**
+     * Cover grid for the song list. Virtualised by row: the column count comes
+     * from the measured width, so the grid reflows without a fixed card size.
+     */
+    function TrackGrid(props) {
+      var items = Array.isArray(props.items) ? props.items : []
+      var gap = 14
+      var minCard = 148
+      var [width, setWidth] = useState(0)
+      var [scrollTop, setScrollTop] = useState(0)
+      var ref = useRef(null)
+
+      useEffect(function () {
+        var el = ref.current
+        if (el === null) return undefined
+        function measure() {
+          setWidth(el.clientWidth || 0)
+        }
+        measure()
+        window.addEventListener('resize', measure)
+        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
+        if (observer !== null) observer.observe(el)
+        return function () {
+          window.removeEventListener('resize', measure)
+          if (observer !== null) observer.disconnect()
+        }
+      }, [])
+
+      useEffect(function () {
+        if (ref.current !== null) ref.current.scrollTop = 0
+        setScrollTop(0)
+      }, [items.length, props.resetKey])
+
+      if (items.length === 0) {
+        return h(
+          'div',
+          {
+            className: 'mu-grid',
+            ref: ref,
+            onScroll: function (event) {
+              setScrollTop(event.currentTarget.scrollTop)
+            },
+          },
+          props.empty,
+        )
+      }
+
+      var usable = Math.max(0, width - 32)
+      var cols = Math.max(2, Math.floor((usable + gap) / (minCard + gap)))
+      var cardWidth = Math.max(96, Math.floor((usable - gap * (cols - 1)) / cols))
+      var rowHeight = cardWidth + 64
+      var rows = Math.ceil(items.length / cols)
+      var viewport = ref.current !== null ? ref.current.clientHeight || 600 : 600
+      var start = Math.max(0, Math.floor(scrollTop / rowHeight) - 2)
+      var end = Math.min(rows, Math.ceil((scrollTop + viewport) / rowHeight) + 2)
+
+      var rowsOut = []
+      for (var r = start; r < end; r += 1) {
+        var slice = items.slice(r * cols, r * cols + cols)
+        rowsOut.push(
+          h(
+            'div',
+            {
+              key: 'row-' + r,
+              className: 'mu-grid-row',
+              style: {
+                top: r * rowHeight + 'px',
+                gridTemplateColumns: 'repeat(' + cols + ', minmax(0, 1fr))',
+              },
+            },
+            slice.map(function (track) {
+              var isSelected = props.selected.indexOf(track.path) >= 0
+              var isFavorite = props.isFavorite(track)
+              var isCurrent = props.currentPath !== '' && props.currentPath === track.path
+              return h(
+                'div',
+                {
+                  key: track.path,
+                  className:
+                    'mu-card' +
+                    (isSelected ? ' is-selected' : '') +
+                    (isCurrent ? ' is-current' : ''),
+                  onClick: function () {
+                    props.onSelect(track)
+                  },
+                  onDoubleClick: function () {
+                    props.onActivate(track)
+                  },
+                  onContextMenu: function (event) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    props.onContextMenu(track, event.clientX, event.clientY)
+                  },
+                },
+                h(
+                  'div',
+                  { className: 'mu-card-cover' },
+                  h(Cover, { track: track, size: cardWidth, radius: 10 }),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-card-play',
+                      title: t('page.play'),
+                      onClick: function (event) {
+                        event.stopPropagation()
+                        props.onActivate(track)
+                      },
+                    },
+                    icon(isCurrent && props.playing ? 'pause' : 'play', 22),
+                  ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-card-fav' + (isFavorite ? ' is-on' : ''),
+                      title: t('page.favorite'),
+                      onClick: function (event) {
+                        event.stopPropagation()
+                        props.onToggleFavorite(track)
+                      },
+                    },
+                    icon('heart', 14),
+                  ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-card-check' + (isSelected ? ' is-on' : ''),
+                      'aria-label': track.title,
+                      onClick: function (event) {
+                        event.stopPropagation()
+                        props.onToggleSelect(track)
+                      },
+                    },
+                    isSelected ? icon('check', 12) : null,
+                  ),
+                ),
+                h('div', { className: 'mu-card-title mu-ellipsis' }, track.title),
+                h('div', { className: 'mu-card-artist mu-ellipsis' }, track.artist || ''),
+              )
+            }),
+          ),
+        )
+      }
+
+      return h(
+        'div',
+        {
+          className: 'mu-grid',
+          ref: ref,
+          onScroll: function (event) {
+            setScrollTop(event.currentTarget.scrollTop)
+          },
+        },
+        h('div', { className: 'mu-vlist-inner', style: { height: rows * rowHeight + 'px' } }, rowsOut),
+      )
+    }
+
     // ── listening statistics (NetEase-style listening ranking) ────────────
 
     function basenameOf(path) {
@@ -3757,6 +3929,9 @@ window.__ModuleLoader__.load({
       var [sortDir, setSortDir] = useState(prefs.sortDir === 'desc' ? 'desc' : 'asc')
       var [sortOpen, setSortOpen] = useState(false)
       var [selected, setSelected] = useState([])
+      var [viewMode, setViewMode] = useState(function () {
+        return readPrefs().viewMode === 'grid' ? 'grid' : 'list'
+      })
       var [queueOpen, setQueueOpen] = useState(queueOverlaySnapshot())
       useEffect(function () {
         return subscribeQueueOverlay(function () {
@@ -4084,6 +4259,12 @@ window.__ModuleLoader__.load({
           }
           return list.concat([track.path])
         })
+      }
+
+      function toggleViewMode() {
+        var next = viewMode === 'grid' ? 'list' : 'grid'
+        setViewMode(next)
+        savePrefs({ viewMode: next })
       }
 
       function activate(track) {
@@ -4483,6 +4664,52 @@ window.__ModuleLoader__.load({
 
 
       var total = collectionTracks.length
+
+      var emptyState = [
+        loading && tracks.length === 0
+          ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-spinner' }), t('page.scanning'))
+          : null,
+        !loading && error !== null
+          ? h(
+              'div',
+              { className: 'mu-state' },
+              h('div', { className: 'mu-state-title' }, t('page.loadFailed')),
+              h('div', { className: 'mu-state-sub' }, error),
+              h(
+                'button',
+                { type: 'button', className: 'mu-btn', onClick: function () { load(true) } },
+                t('page.retry'),
+              ),
+            )
+          : null,
+        !loading && error === null && total === 0
+          ? h(
+              'div',
+              { className: 'mu-state' },
+              icon(view === 'favorites' ? 'heart' : 'folder', 34),
+              h(
+                'div',
+                { className: 'mu-state-title' },
+                view === 'favorites' ? t('page.favoritesEmpty') : t('page.emptyTitle'),
+              ),
+              h(
+                'div',
+                { className: 'mu-state-sub' },
+                view === 'favorites'
+                  ? t('page.favoritesHint')
+                  : config !== null && config.roots && config.roots.length > 0
+                    ? t('page.emptyFolder')
+                    : t('page.emptyHint'),
+              ),
+            )
+          : null,
+        !loading && error === null && total > 0 && visible.length === 0
+          ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-state-sub' }, t('page.noResults')))
+          : null,
+        warnings.length > 0
+          ? h('div', { className: 'mu-warn' }, t('page.warnings') + '：' + warnings.slice(0, 3).join(' · '))
+          : null,
+      ]
 
       function renderRow(track) {
         var isCurrent = current !== null && current.path === track.path
@@ -5441,6 +5668,16 @@ window.__ModuleLoader__.load({
             icon('play', 13),
             h('span', null, t('page.playAll')),
           ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-chip mu-chip-icon',
+              title: viewMode === 'grid' ? t('page.listView') : t('page.gridView'),
+              onClick: toggleViewMode,
+            },
+            icon(viewMode === 'grid' ? 'list' : 'grid', 14),
+          ),
           selected.length > 0
             ? h(
                 'span',
@@ -5541,7 +5778,32 @@ window.__ModuleLoader__.load({
               { className: 'mu-list is-stats' },
               h(StatsView, { tracks: tracks, trackByPath: trackByPath, t: t }),
             )
-          : h(VirtualList, {
+          : viewMode === 'grid'
+            ? h(TrackGrid, {
+                className: 'mu-grid',
+                items: visible,
+                resetKey: view + '|' + String(playlistId),
+                selected: selected,
+                isFavorite: function (track) {
+                  return favorites.indexOf(track.path) >= 0
+                },
+                currentPath: current !== null ? current.path : '',
+                playing: snap.playing,
+                onSelect: function (track) {
+                  setSelected(function (previous) {
+                    return previous.length === 1 && previous[0] === track.path ? [] : [track.path]
+                  })
+                },
+                onActivate: activate,
+                onToggleFavorite: toggleFavorite,
+                onToggleSelect: toggleSelect,
+                onContextMenu: function (track, x, y) {
+                  setMoreOpen(false)
+                  setCtxMenu({ x: x, y: y, path: track.path, mode: 'main' })
+                },
+                empty: emptyState,
+              })
+            : h(VirtualList, {
               className: 'mu-list',
               items: visible,
               rowHeight: 72,
@@ -5549,51 +5811,7 @@ window.__ModuleLoader__.load({
                 return track.path
               },
               renderRow: renderRow,
-              empty: [
-                loading && tracks.length === 0
-                  ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-spinner' }), t('page.scanning'))
-                  : null,
-                !loading && error !== null
-                  ? h(
-                      'div',
-                      { className: 'mu-state' },
-                      h('div', { className: 'mu-state-title' }, t('page.loadFailed')),
-                      h('div', { className: 'mu-state-sub' }, error),
-                      h(
-                        'button',
-                        { type: 'button', className: 'mu-btn', onClick: function () { load(true) } },
-                        t('page.retry'),
-                      ),
-                    )
-                  : null,
-                !loading && error === null && total === 0
-                  ? h(
-                      'div',
-                      { className: 'mu-state' },
-                      icon(view === 'favorites' ? 'heart' : 'folder', 34),
-                      h(
-                        'div',
-                        { className: 'mu-state-title' },
-                        view === 'favorites' ? t('page.favoritesEmpty') : t('page.emptyTitle'),
-                      ),
-                      h(
-                        'div',
-                        { className: 'mu-state-sub' },
-                        view === 'favorites'
-                          ? t('page.favoritesHint')
-                          : config !== null && config.roots && config.roots.length > 0
-                            ? t('page.emptyFolder')
-                            : t('page.emptyHint'),
-                      ),
-                    )
-                  : null,
-                !loading && error === null && total > 0 && visible.length === 0
-                  ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-state-sub' }, t('page.noResults')))
-                  : null,
-                warnings.length > 0
-                  ? h('div', { className: 'mu-warn' }, t('page.warnings') + '：' + warnings.slice(0, 3).join(' · '))
-                  : null,
-              ],
+              empty: emptyState,
             }),
 
         h(
@@ -6587,6 +6805,28 @@ window.__ModuleLoader__.load({
       '.mu-search{display:flex;align-items:center;gap:8px;height:34px;margin:0 24px 10px;padding:0 12px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.14));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;font-family:inherit}',
       '.mu-list{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;padding:0 16px 12px}',
+      '.mu-chip-icon{padding:0 9px}',
+      '.mu-grid{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;padding:8px 16px 24px;position:relative}',
+      '.mu-grid-row{position:absolute;left:0;right:0;display:grid;gap:14px}',
+      '.mu-card{display:flex;flex-direction:column;gap:6px;min-width:0;padding:6px;border-radius:10px;cursor:pointer;transition:background .15s}',
+      '.mu-card:hover{background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03))}',
+      '.mu-card.is-selected{background:color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 10%,transparent)}',
+      '.mu-card-cover{position:relative;width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06))}',
+      '.mu-card-cover .mu-cover{width:100%!important;height:100%!important;border-radius:10px}',
+      '.mu-card-cover .mu-cover img{width:100%;height:100%;object-fit:cover;border-radius:10px}',
+      '.mu-card-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:0;background:rgba(0,0,0,.35);color:#fff;opacity:0;transition:opacity .15s;cursor:pointer}',
+      '.mu-card:hover .mu-card-play,.mu-card.is-current .mu-card-play{opacity:1}',
+      '.mu-card-fav{position:absolute;right:8px;bottom:8px;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;cursor:pointer;opacity:0;transition:opacity .15s}',
+      '.mu-card:hover .mu-card-fav,.mu-card-fav.is-on{opacity:1}',
+      '.mu-card-fav.is-on{color:var(--dsw-alias-state-error-primary,#e5484d)}',
+      '.mu-card-fav.is-on svg{fill:currentColor}',
+      '.mu-card-check{position:absolute;left:8px;top:8px;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border:.5px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;opacity:0;transition:opacity .15s}',
+      '.mu-card:hover .mu-card-check,.mu-card-check.is-on{opacity:1}',
+      '.mu-card-check.is-on{background:var(--dsw-static-deepseek-450,#5686fe);border-color:transparent}',
+      '.mu-card-title{font-size:13px;font-weight:600;line-height:1.35}',
+      '.mu-card-artist{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-card.is-current .mu-card-cover{box-shadow:0 0 0 2px var(--dsw-static-deepseek-450,#5686fe)}',
+      '.mu-card.is-current .mu-card-title{color:var(--dsw-static-deepseek-450,#5686fe)}',
       '.mu-vlist-inner{position:relative}',
       '.mu-vlist-row{position:absolute;left:0;right:0}',
       '.mu-row{display:grid;grid-template-columns:calc(var(--mu-row-size,60px) + 4px) minmax(0,1.15fr) minmax(0,.85fr) 56px auto;align-items:center;gap:12px;padding:6px 10px;border-radius:var(--dsw-radius-md,8px);height:72px;box-sizing:border-box;position:relative}',
