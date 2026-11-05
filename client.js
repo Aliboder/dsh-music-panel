@@ -33,6 +33,7 @@ window.__ModuleLoader__.load({
     /** Defaults for every appearance / lyric preference. */
     var PREF_DEFAULTS = {
       miniPlayer: true,
+      queuePos: null,
       composerQueueButton: true,
       circularCover: true,
       vinylRing: false,
@@ -2124,6 +2125,12 @@ window.__ModuleLoader__.load({
     function QueueOverlay() {
       var [open, setOpen] = useState(queueOverlaySnapshot())
       var [snap, setSnap] = useState(player.getSnapshot())
+      var [pos, setPos] = useState(function () {
+        var saved = readPrefs().queuePos
+        if (saved === null || typeof saved !== 'object') return null
+        if (!isFinite(saved.x) || !isFinite(saved.y)) return null
+        return { x: Number(saved.x), y: Number(saved.y) }
+      })
       // Drag state lives entirely in refs/DOM classes so React never
       // re-renders the dragged row mid-drag (Chromium cancels that).
       var dragFromRef = useRef(null)
@@ -2245,6 +2252,73 @@ window.__ModuleLoader__.load({
         document.addEventListener('pointercancel', onUp)
       }
 
+      // Drag the whole panel by its header strip (buttons and queue rows keep
+      // their own gestures). Position is remembered in prefs.
+      function startPanelDrag(event) {
+        if (event.button !== undefined && event.button !== 0) return
+        var target = event.target
+        if (target === null || target === undefined || typeof target.closest !== 'function') return
+        if (target.closest('button, .mu-queue-row, .mu-queue-grip') !== null) return
+        if (target.closest('.mu-qoverlay-now, .mu-qoverlay-head') === null) return
+        var el = ref.current
+        if (el === null) return
+        var rect = el.getBoundingClientRect()
+        var start = {
+          x: event.clientX,
+          y: event.clientY,
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height,
+          moved: false,
+        }
+        event.preventDefault()
+        document.body.style.userSelect = 'none'
+        document.body.style.cursor = 'grabbing'
+        el.classList.add('is-dragging-panel')
+
+        function clamp(value, min, max) {
+          return Math.max(min, Math.min(max, value))
+        }
+
+        function onMove(moveEvent) {
+          start.moved = true
+          var x = clamp(
+            start.left + (moveEvent.clientX - start.x),
+            8,
+            Math.max(8, window.innerWidth - start.width - 8),
+          )
+          var y = clamp(
+            start.top + (moveEvent.clientY - start.y),
+            8,
+            Math.max(8, window.innerHeight - start.height - 8),
+          )
+          el.style.left = x + 'px'
+          el.style.top = y + 'px'
+          el.style.right = 'auto'
+          el.style.bottom = 'auto'
+        }
+
+        function onUp() {
+          document.removeEventListener('pointermove', onMove)
+          document.removeEventListener('pointerup', onUp)
+          document.removeEventListener('pointercancel', onUp)
+          document.body.style.userSelect = ''
+          document.body.style.cursor = ''
+          el.classList.remove('is-dragging-panel')
+          if (start.moved) {
+            var next = el.getBoundingClientRect()
+            var position = { x: Math.round(next.left), y: Math.round(next.top) }
+            setPos(position)
+            savePrefs({ queuePos: position })
+          }
+        }
+
+        document.addEventListener('pointermove', onMove)
+        document.addEventListener('pointerup', onUp)
+        document.addEventListener('pointercancel', onUp)
+      }
+
       var rows = queueView.map(function (entry, position) {
         var track = entry.track
         var originalIndex = entry.originalIndex
@@ -2299,7 +2373,17 @@ window.__ModuleLoader__.load({
 
       return h(
         'div',
-        { className: 'mu-qoverlay', ref: ref },
+        {
+          className: 'mu-qoverlay',
+          ref: ref,
+          style:
+            pos !== null
+              ? { left: pos.x + 'px', top: pos.y + 'px', right: 'auto', bottom: 'auto' }
+              : undefined,
+          onPointerDown: function (event) {
+            startPanelDrag(event)
+          },
+        },
         h(QueueNowPlaying, null),
         h(
           'div',
@@ -5527,7 +5611,10 @@ window.__ModuleLoader__.load({
       '.mu-bar-right{display:flex;align-items:center;gap:6px;justify-self:end}',
       '.mu-quality{font-size:12px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap}',
       '.mu-pop{position:absolute;right:16px;bottom:84px;z-index:40;width:330px;max-height:58%;display:flex;flex-direction:column;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5));overflow:hidden}',
-      '.mu-qoverlay{position:fixed;right:24px;bottom:96px;z-index:70;width:360px;max-width:calc(100vw - 48px);max-height:62vh;display:flex;flex-direction:column;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5));overflow:hidden}',
+      '.mu-qoverlay{position:fixed;right:24px;bottom:96px;z-index:70;width:360px;max-width:calc(100vw - 48px);max-height:62vh;display:flex;flex-direction:column;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5));overflow:hidden;user-select:none}',
+      '.mu-qoverlay.is-dragging-panel{cursor:grabbing}',
+      '.mu-qoverlay-now,.mu-qoverlay-head{cursor:grab}',
+      '.mu-qoverlay-now:active,.mu-qoverlay-head:active{cursor:grabbing}',
       '.mu-qoverlay-now{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
       '.mu-qoverlay-now.is-empty{padding:14px 12px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:12px}',
       '.mu-qoverlay-now-main{flex:1;min-width:0}',
