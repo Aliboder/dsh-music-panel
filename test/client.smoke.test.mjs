@@ -59,6 +59,9 @@ global.document = {
       return 'zh-CN'
     },
   },
+  visibilityState: 'visible',
+  addEventListener() {},
+  removeEventListener() {},
 }
 
 const React = {
@@ -129,6 +132,6 @@ assert.deepEqual(mounts, [
 assert.equal(texts.length, 1, 'exactly one style element is injected')
 assert.ok(String(texts[0].textContent).includes('.mu-root'), 'the player styles are in place')
 assert.ok(String(texts[0].textContent).includes('.mu-audio-host'), 'the resident audio host style is in place')
-assert.equal(registrations.length, 8, 'style + engine teardown + six seats are effects')
+assert.equal(registrations.length, 9, 'style + engine + flush listeners + six seats are effects')
 
 console.log('client.smoke.test.mjs ok')

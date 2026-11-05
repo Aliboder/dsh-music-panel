@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.0
+
+### 功能
+
+- 记忆播放：启动 / 刷新后恢复上次的队列、当前曲目与播放位置（默认暂停，点 ▶ 继续）；设置里可开「恢复后自动播放」与「每首歌记住播放位置」
+- 播放次数按 Last.fm / MusicBee 规则记录：曲目 > 30 秒，且播放到一半或 4 分钟（先到为准）才计一次，不再每次切歌就 +1
+- 有效播放时长：只累计播放中自然前进的时间，拖动进度条不计，单次不足 30 秒的片段不计
+- 统计页：主面板新增「统计」tab，支持最近一周 / 最近一月 / 全部时间，按时长 / 次数 / 最近排序，显示累计时长、播放次数、最近播放与汇总
+- 新增接口：`GET/POST /music/state`、`POST /music/playback`、`GET/POST /music/position`、`GET /music/stats`
+- 设置面板新增「播放」标签页
+
+### 数据
+
+- `stats.json` 扩展 `playSeconds`、`lastPlayedAt`、`lastPositionSec` 与最近 31 天的每日分桶；旧文件自动兼容
+- 新增 `<DSH_HOME>/music/playback.json` 保存上次播放状态
+
 ## 0.1.0
 
 首个公开版本。
