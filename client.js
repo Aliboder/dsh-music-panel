@@ -212,6 +212,10 @@ window.__ModuleLoader__.load({
         'page.sourceItunes': 'iTunes',
         'page.sourceMusicbrainz': 'MusicBrainz',
         'page.results': '个结果',
+        'page.replaceCover': '更换封面',
+        'page.resetCover': '恢复原封面',
+        'page.coverPending': '已选择在线封面，保存后写入',
+        'page.matchField': '搜索替换',
         'page.addedCount': '已添加 {n} 首',
         'page.trackCount': '{n} 首',
         'page.removeTrack': '从歌单移除',
@@ -427,6 +431,10 @@ window.__ModuleLoader__.load({
         'page.sourceItunes': 'iTunes',
         'page.sourceMusicbrainz': 'MusicBrainz',
         'page.results': 'results',
+        'page.replaceCover': 'Change cover',
+        'page.resetCover': 'Reset cover',
+        'page.coverPending': 'Online cover selected — saved with tags',
+        'page.matchField': 'Search & replace',
         'page.addedCount': '{n} added',
         'page.trackCount': '{n} tracks',
         'page.removeTrack': 'Remove from playlist',
@@ -3769,6 +3777,8 @@ window.__ModuleLoader__.load({
       var [tagForm, setTagForm] = useState(null)
       var [tagSaving, setTagSaving] = useState(false)
       var [coverFailed, setCoverFailed] = useState(false)
+      var [tagCoverPreview, setTagCoverPreview] = useState(null)
+      var [matchField, setMatchField] = useState(null)
       var [onlineOpen, setOnlineOpen] = useState(false)
       var [onlineLoading, setOnlineLoading] = useState(false)
       var [onlineResults, setOnlineResults] = useState([])
@@ -4134,6 +4144,8 @@ window.__ModuleLoader__.load({
         setTagEditPath(path)
         setTagForm(null)
         setCoverFailed(false)
+        setTagCoverPreview(null)
+        setMatchField(null)
         setOnlineOpen(false)
         setOnlineResults([])
         setOnlineSources([])
@@ -4176,7 +4188,27 @@ window.__ModuleLoader__.load({
           })
       }
 
+      function tagFieldLabel(field) {
+        var rows = TAG_BASIC_ROWS.concat(TAG_DETAIL_ROWS)
+        for (var i = 0; i < rows.length; i += 1) {
+          if (rows[i][0] === field) return t(rows[i][1])
+        }
+        return field
+      }
+
       function applyOnlineResult(item) {
+        if (matchField !== null) {
+          var field = matchField
+          if (item[field]) {
+            setTagForm(function (previous) {
+              if (previous === null) return previous
+              return Object.assign({}, previous, { [field]: item[field] })
+            })
+          }
+          setOnlineOpen(false)
+          setMatchField(null)
+          return
+        }
         setTagForm(function (previous) {
           if (previous === null) return previous
           var next = Object.assign({}, previous)
@@ -4189,6 +4221,10 @@ window.__ModuleLoader__.load({
           if (item.genre) next.genre = item.genre
           return next
         })
+        if (item.coverUrl) {
+          setTagCoverPreview(item.coverUrl)
+          setCoverFailed(false)
+        }
         setOnlineOpen(false)
       }
 
@@ -4199,7 +4235,11 @@ window.__ModuleLoader__.load({
         var playingThis =
           snapNow.index >= 0 && snapNow.queue[snapNow.index] && snapNow.queue[snapNow.index].path === tagEditPath
         if (playingThis) player.suspend()
-        requestJson('PUT', API + 'tags', { path: tagEditPath, tags: tagForm })
+        requestJson('PUT', API + 'tags', {
+          path: tagEditPath,
+          tags: tagForm,
+          coverUrl: tagCoverPreview || '',
+        })
           .then(function () {
             showToast(t('page.metaSaved'))
             setTagSaving(false)
@@ -4217,7 +4257,26 @@ window.__ModuleLoader__.load({
         return h(
           'label',
           { className: 'mu-tag-field', key: key },
-          h('span', { className: 'mu-tag-label' }, t(labelKey)),
+          h(
+            'span',
+            { className: 'mu-tag-field-head' },
+            h('span', { className: 'mu-tag-label' }, t(labelKey)),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-tag-field-search',
+                title: t('page.matchField'),
+                onClick: function (event) {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  setMatchField(key)
+                  searchOnlineForTags()
+                },
+              },
+              icon('search', 11),
+            ),
+          ),
           h('input', {
             type: 'text',
             className: 'mu-input',
@@ -6025,7 +6084,10 @@ window.__ModuleLoader__.load({
                         type: 'button',
                         className: 'mu-chip',
                         disabled: tagForm === null || onlineLoading,
-                        onClick: searchOnlineForTags,
+                        onClick: function () {
+                          setMatchField(null)
+                          searchOnlineForTags()
+                        },
                       },
                       icon('search', 13),
                       h('span', null, t('page.onlineMatch')),
@@ -6046,16 +6108,51 @@ window.__ModuleLoader__.load({
                         h(
                           'aside',
                           { className: 'mu-tag-aside' },
-                          coverFailed
-                            ? h('div', { className: 'mu-tag-cover mu-tag-cover-empty' }, icon('note', 30))
-                            : h('img', {
-                                className: 'mu-tag-cover',
-                                src: tagCoverUrl,
-                                alt: '',
-                                onError: function () {
-                                  setCoverFailed(true)
+                          h(
+                            'div',
+                            { className: 'mu-tag-cover-box' },
+                            coverFailed
+                              ? h('div', { className: 'mu-tag-cover mu-tag-cover-empty' }, icon('note', 30))
+                              : h('img', {
+                                  className: 'mu-tag-cover',
+                                  src: tagCoverPreview !== null ? tagCoverPreview : tagCoverUrl,
+                                  alt: '',
+                                  onError: function () {
+                                    setCoverFailed(true)
+                                  },
+                                }),
+                            h(
+                              'button',
+                              {
+                                type: 'button',
+                                className: 'mu-tag-cover-action',
+                                title: t('page.replaceCover'),
+                                onClick: function () {
+                                  setMatchField(null)
+                                  searchOnlineForTags()
                                 },
-                              }),
+                              },
+                              icon('search', 12),
+                              h('span', null, t('page.replaceCover')),
+                            ),
+                            tagCoverPreview !== null
+                              ? h(
+                                  'button',
+                                  {
+                                    type: 'button',
+                                    className: 'mu-tag-cover-reset',
+                                    onClick: function () {
+                                      setTagCoverPreview(null)
+                                      setCoverFailed(false)
+                                    },
+                                  },
+                                  t('page.resetCover'),
+                                )
+                              : null,
+                            tagCoverPreview !== null
+                              ? h('div', { className: 'mu-tag-cover-hint' }, t('page.coverPending'))
+                              : null,
+                          ),
                           h(
                             'div',
                             { className: 'mu-tag-aside-meta' },
@@ -6191,7 +6288,9 @@ window.__ModuleLoader__.load({
                   h(
                     'span',
                     { className: 'mu-info-title mu-ellipsis' },
-                    t('page.onlineMatch') + (tagForm && tagForm.title ? ' · ' + tagForm.title : ''),
+                    t('page.onlineMatch') +
+                      (matchField !== null ? ' · ' + tagFieldLabel(matchField) : '') +
+                      (tagForm && tagForm.title ? ' · ' + tagForm.title : ''),
                   ),
                   h(
                     'div',
@@ -6675,6 +6774,16 @@ window.__ModuleLoader__.load({
       '.mu-tag-online-hint{font-size:10px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-tag-online-sources{display:flex;gap:8px;font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-tag-footer{flex:none;display:flex;justify-content:flex-end;gap:8px;padding:12px 22px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mu-tag-cover-box{position:relative;display:flex;flex-direction:column;gap:8px}',
+      '.mu-tag-cover-action{position:absolute;right:8px;bottom:8px;display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border:0;border-radius:7px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;cursor:pointer;backdrop-filter:blur(6px)}',
+      '.mu-tag-cover-action:hover{background:rgba(0,0,0,.72)}',
+      '.mu-tag-cover-reset{align-self:flex-start;height:24px;padding:0 10px;border:0;border-radius:6px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:11px;cursor:pointer}',
+      '.mu-tag-cover-reset:hover{color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mu-tag-cover-hint{font-size:10px;line-height:1.4;color:var(--dsw-static-deepseek-450,#5686fe)}',
+      '.mu-tag-field-head{display:flex;align-items:center;justify-content:space-between;gap:6px}',
+      '.mu-tag-field-search{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border:0;border-radius:5px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;opacity:0;transition:opacity .12s}',
+      '.mu-tag-field:hover .mu-tag-field-search,.mu-tag-field-search:focus{opacity:1}',
+      '.mu-tag-field-search:hover{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-static-deepseek-450,#5686fe)}',
       '.mu-match-layer{z-index:96}',
       '.mu-match-dialog{width:860px;max-width:calc(100vw - 64px);height:min(740px,86vh);max-height:none;padding:0;display:flex;flex-direction:column;overflow:hidden}',
       '.mu-match-dialog .mu-info-head{flex:none;padding:12px 18px;margin:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
