@@ -77,6 +77,12 @@ const statsMock = {
   async summarize(range) {
     return { [file]: { plays: 1, playSeconds: 60, lastPlayedAt: 1, range } }
   },
+  async get(path) {
+    return { lyricOffsetMs: 0 }
+  },
+  async setLyricOffset(path, offsetMs) {
+    return { lyricOffsetMs: offsetMs }
+  },
 }
 const playbackState = { value: null }
 const playbackMock = {
@@ -88,7 +94,15 @@ const playbackMock = {
     return state
   },
 }
-const full = createRoutes({ settings, library, stats: statsMock, playback: playbackMock })
+const favoritesMock = {
+  async list() {
+    return [{ path: file, addedAt: 1 }]
+  },
+  async toggle(path) {
+    return { favorite: true, favorites: [{ path, addedAt: 2 }] }
+  },
+}
+const full = createRoutes({ settings, library, stats: statsMock, playback: playbackMock, favorites: favoritesMock })
 
 res = fakeRes()
 await full(fakeReq('/music/state'), res)
@@ -119,6 +133,22 @@ await full(fakeReq('/music/stats?range=week'), res)
 assert.equal(res.status, 200)
 assert.equal(res.json().range, 'week')
 assert.equal(res.json().tracks[file].playSeconds, 60)
+
+// Favourites and lyrics calibration.
+res = fakeRes()
+await full(fakeReq('/music/favorites'), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().favorites.length, 1)
+
+res = fakeRes()
+await full(fakeReq('/music/favorites', 'POST', {}, JSON.stringify({ path: file })), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().favorite, true)
+
+res = fakeRes()
+await full(fakeReq('/music/lyrics/calibrate', 'POST', {}, JSON.stringify({ path: file, offsetMs: 500 })), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().offsetMs, 500)
 
 // Invalid seconds / unknown path are rejected.
 res = fakeRes()

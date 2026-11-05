@@ -88,6 +88,9 @@ window.__ModuleLoader__.load({
         'page.prev': '上一首',
         'page.next': '下一首',
         'page.queue': '播放队列',
+        'page.clearQueue': '清空队列',
+        'page.moveUp': '上移',
+        'page.moveDown': '下移',
         'page.more': '更多',
         'page.copyPath': '复制文件路径',
         'page.copied': '已复制',
@@ -122,12 +125,17 @@ window.__ModuleLoader__.load({
         'page.closePlayer': '收起播放页',
         'page.noLyrics': '暂无歌词。把同名 .lrc 文件放到歌曲旁边即可显示。',
         'page.translation': '显示 / 隐藏翻译',
-        'page.lyricSettings': '歌词设置',
+        'page.lyricOffset': '歌词偏移',
+        'page.writeLyrics': '写回文件',
+        'page.otherTabPlaying': '另一个标签页正在播放',
+        'page.lyricOffsetHint': '仅 MP3 / FLAC 支持写回内嵌歌词；其他格式只保存偏移。',
         'page.lyricSize': '字体大小',
         'page.lyricWeight': '字体粗细',
         'page.lyricBlur': '模糊非当前歌词',
         'page.translationScale': '翻译字体缩放',
         'stats.rangeWeek': '最近一周',
+        'stats.modeRanking': '收听排行',
+        'stats.modeRecent': '最近播放',
         'stats.rangeMonth': '最近一月',
         'stats.rangeAll': '全部时间',
         'stats.sortTime': '按时长',
@@ -143,6 +151,11 @@ window.__ModuleLoader__.load({
         'stats.retry': '重试',
         'stats.unavailable': '文件已不可用',
         'page.tabSongs': '全部歌曲',
+        'page.tabFavorites': '我喜欢',
+        'page.favorite': '收藏',
+        'page.unfavorite': '取消收藏',
+        'page.favoritesEmpty': '还没有收藏',
+        'page.favoritesHint': '点歌曲右侧的爱心加入「我喜欢」。',
         'page.tabStats': '统计',
         'page.tabPlaylists': '播放列表',
         'page.newPlaylist': '新建播放列表',
@@ -246,6 +259,9 @@ window.__ModuleLoader__.load({
         'page.prev': 'Previous',
         'page.next': 'Next',
         'page.queue': 'Queue',
+        'page.clearQueue': 'Clear queue',
+        'page.moveUp': 'Move up',
+        'page.moveDown': 'Move down',
         'page.more': 'More',
         'page.copyPath': 'Copy file path',
         'page.copied': 'Copied',
@@ -280,12 +296,17 @@ window.__ModuleLoader__.load({
         'page.closePlayer': 'Close player',
         'page.noLyrics': 'No lyrics yet. Drop a matching .lrc file next to the track.',
         'page.translation': 'Show / hide translation',
-        'page.lyricSettings': 'Lyric settings',
+        'page.lyricOffset': 'Lyric offset',
+        'page.writeLyrics': 'Write to file',
+        'page.otherTabPlaying': 'Playing in another tab',
+        'page.lyricOffsetHint': 'Writing back works for MP3 / FLAC only; other formats keep the offset in settings.',
         'page.lyricSize': 'Font size',
         'page.lyricWeight': 'Font weight',
         'page.lyricBlur': 'Blur inactive lines',
         'page.translationScale': 'Translation scale',
         'stats.rangeWeek': 'Last week',
+        'stats.modeRanking': 'Ranking',
+        'stats.modeRecent': 'Recently played',
         'stats.rangeMonth': 'Last month',
         'stats.rangeAll': 'All time',
         'stats.sortTime': 'By time',
@@ -301,6 +322,11 @@ window.__ModuleLoader__.load({
         'stats.retry': 'Retry',
         'stats.unavailable': 'File unavailable',
         'page.tabSongs': 'All songs',
+        'page.tabFavorites': 'Liked',
+        'page.favorite': 'Like',
+        'page.unfavorite': 'Unlike',
+        'page.favoritesEmpty': 'No liked songs yet',
+        'page.favoritesHint': 'Tap the heart next to a song to add it here.',
         'page.tabStats': 'Stats',
         'page.tabPlaylists': 'Playlists',
         'page.newPlaylist': 'New playlist',
@@ -709,6 +735,11 @@ window.__ModuleLoader__.load({
           ['circle', { cx: 18, cy: 16, r: 3 }],
         ],
       },
+      heart: {
+        parts: [
+          ['path', { d: 'M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z' }],
+        ],
+      },
       chevronDown: {
         parts: [['path', { d: 'M6 9l6 6 6-6' }]],
       },
@@ -1048,6 +1079,8 @@ window.__ModuleLoader__.load({
       var lastStateSave = 0
       var restoreAttempted = false
       var pendingResumeSeconds = null
+      /** Only the tab holding the player lock may produce sound / write stats. */
+      var leader = true
 
       function resetSession(item) {
         session = {
@@ -1102,15 +1135,25 @@ window.__ModuleLoader__.load({
       }
 
       function savePlaybackState() {
+        if (!leader) return
         var item = currentItem()
         if (item === null) return
         var duration = state.duration > 0 ? state.duration : item.durationSec || 0
+        // Keep the saved queue bounded (playback.json caps at 500): store a
+        // window around the current track so restore never picks the wrong one.
+        var queuePaths = state.queue.map(function (track) {
+          return track.path
+        })
+        var index = state.index
+        if (queuePaths.length > 500) {
+          var start = Math.max(0, Math.min(index - 250, queuePaths.length - 500))
+          queuePaths = queuePaths.slice(start, start + 500)
+          index -= start
+        }
         try {
           postJson(API + 'state', {
-            queue: state.queue.map(function (track) {
-              return track.path
-            }),
-            index: state.index,
+            queue: queuePaths,
+            index: index,
             positionSec: state.currentTime,
             durationSec: duration,
             loop: state.loop,
@@ -1573,13 +1616,90 @@ window.__ModuleLoader__.load({
           }
           load(at, true)
         },
+        clearQueue: function () {
+          if (audio !== null) audio.pause()
+          state = Object.assign({}, state, {
+            queue: [],
+            index: -1,
+            playing: false,
+            currentTime: 0,
+            duration: 0,
+          })
+          randomOrder = []
+          emit()
+          savePlaybackState()
+        },
+        moveQueue: function (from, to) {
+          var length = state.queue.length
+          if (from < 0 || from >= length || to < 0 || to >= length || from === to) return
+          var list = state.queue.slice()
+          var moved = list.splice(from, 1)[0]
+          list.splice(to, 0, moved)
+          var index = state.index
+          if (from === index) {
+            index = to
+          } else {
+            if (from < index) index -= 1
+            if (to <= index) index += 1
+          }
+          state = Object.assign({}, state, { queue: list, index: index })
+          randomOrder = randomOrderOf(length)
+          emit()
+          savePlaybackState()
+        },
+        removeQueueAt: function (at) {
+          var length = state.queue.length
+          if (at < 0 || at >= length) return
+          var list = state.queue.slice()
+          list.splice(at, 1)
+          if (list.length === 0) {
+            api.clearQueue()
+            return
+          }
+          if (at === state.index) {
+            var nextIndex = Math.min(at, list.length - 1)
+            var shouldPlay = state.playing === true
+            state = Object.assign({}, state, { queue: list })
+            randomOrder = randomOrderOf(list.length)
+            load(nextIndex, shouldPlay)
+            return
+          }
+          var index = at < state.index ? state.index - 1 : state.index
+          state = Object.assign({}, state, { queue: list, index: index })
+          randomOrder = randomOrderOf(list.length)
+          emit()
+          savePlaybackState()
+        },
+        /** Move a queue entry to play right after the current track. */
+        playNext: function (at) {
+          var length = state.queue.length
+          if (at < 0 || at >= length || state.index < 0) return
+          var target = Math.min(state.index + 1, length - 1)
+          if (at === state.index || at === target) return
+          api.moveQueue(at, target)
+        },
         play: function () {
+          if (!leader) return
           if (state.index < 0) {
             if (state.queue.length > 0) load(0, true)
             return
           }
           if (audio === null) return
           audio.play().catch(function () {})
+        },
+        /** Called by the cross-tab coordinator; never plays in a follower tab. */
+        setLeader: function (value) {
+          var next = value === true
+          if (leader === next) return
+          leader = next
+          if (!leader) {
+            if (audio !== null) audio.pause()
+            if (state.playing) patch({ playing: false })
+          }
+          emit()
+        },
+        isLeader: function () {
+          return leader
         },
         pause: function () {
           if (audio) audio.pause()
@@ -1734,6 +1854,7 @@ window.__ModuleLoader__.load({
       var [lines, setLines] = useState([])
       var [timed, setTimed] = useState(false)
       var [text, setText] = useState('')
+      var [lyricOffset, setLyricOffset] = useState(0)
       var [track, setTrack] = useState(null)
       var pathRef = useRef('')
 
@@ -1765,6 +1886,7 @@ window.__ModuleLoader__.load({
               if (pathRef.current !== path) return
               setLines(Array.isArray(body.lines) ? body.lines : [])
               setTimed(body.timed === true)
+              setLyricOffset(Number(body.offsetMs) || 0)
             })
             .catch(function () {})
         }
@@ -1776,12 +1898,12 @@ window.__ModuleLoader__.load({
         function () {
           if (!timed || lines.length === 0) return undefined
           return player.subscribeTime(function () {
-            var index = activeLineAt(lines, player.getTime().currentTime)
+            var index = activeLineAt(lines, player.getTime().currentTime - lyricOffset / 1000)
             var line = index >= 0 ? lines[index] : null
             setText(line ? line.text : '')
           })
         },
-        [timed, lines],
+        [timed, lines, lyricOffset],
       )
 
       var place = prefs.composerLyricPlace === 'above' ? 'above' : 'input-left'
@@ -2060,6 +2182,36 @@ window.__ModuleLoader__.load({
         return readPrefs()
       })
       var [lyricSettingsOpen, setLyricSettingsOpen] = useState(false)
+      var [lyricOffset, setLyricOffset] = useState(0)
+      var [lyricError, setLyricError] = useState('')
+
+      function applyLyricOffset(delta) {
+        if (track === null) return
+        var next = Math.max(-60_000, Math.min(60_000, lyricOffset + delta))
+        setLyricOffset(next)
+        setLyricError('')
+        postJson(API + 'lyrics/calibrate', { path: track.path, offsetMs: next }).catch(function (error) {
+          setLyricError(String((error && error.message) || error))
+        })
+      }
+
+      function writeLyricsToFile() {
+        if (track === null) return
+        setLyricError('')
+        postJson(API + 'lyrics/calibrate', { path: track.path, offsetMs: lyricOffset, write: true })
+          .then(function () {
+            var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
+            return getJson(API + 'lyrics?path=' + encodeURIComponent(track.path) + '&order=' + encodeURIComponent(order))
+          })
+          .then(function (body) {
+            setLyrics(Array.isArray(body.lines) ? body.lines : [])
+            setLyricsTimed(body.timed === true)
+            setLyricOffset(Number(body.offsetMs) || 0)
+          })
+          .catch(function (error) {
+            setLyricError(String((error && error.message) || error))
+          })
+      }
 
       useEffect(function () {
         function onChange() {
@@ -2095,6 +2247,7 @@ window.__ModuleLoader__.load({
               if (cancelled) return
               setLyrics(Array.isArray(body.lines) ? body.lines : [])
               setLyricsTimed(body.timed === true)
+              setLyricOffset(Number(body.offsetMs) || 0)
             })
             .catch(function () {
               if (!cancelled) setLyrics([])
@@ -2112,13 +2265,14 @@ window.__ModuleLoader__.load({
             var current = player.getTime().currentTime
             if (timeRef.current) timeRef.current.textContent = fmtTime(current)
             if (!lyricsTimed) return
-            var next = activeLineAt(lyrics, current)
+            // Positive offset delays the lyrics: look up an earlier timestamp.
+            var next = activeLineAt(lyrics, current - lyricOffset / 1000)
             setActive(function (previous) {
               return previous === next ? previous : next
             })
           })
         },
-        [player, lyrics, lyricsTimed],
+        [player, lyrics, lyricsTimed, lyricOffset],
       )
 
       useEffect(
@@ -2224,6 +2378,51 @@ window.__ModuleLoader__.load({
           ? h(
               'div',
               { className: 'mu-np-settings' },
+              h(
+                'div',
+                { className: 'mu-np-setting' },
+                h(
+                  'div',
+                  { className: 'mu-np-setting-head' },
+                  h('span', null, t('page.lyricOffset')),
+                  h('span', { className: 'mu-np-setting-value' }, (lyricOffset / 1000).toFixed(1) + ' s'),
+                ),
+                h(
+                  'div',
+                  { className: 'mu-np-offset-actions' },
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                      onClick: function () {
+                        applyLyricOffset(-500)
+                      },
+                    },
+                    '−0.5s',
+                  ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                      onClick: function () {
+                        applyLyricOffset(500)
+                      },
+                    },
+                    '+0.5s',
+                  ),
+                  h(
+                    'button',
+                    { type: 'button', className: 'mu-btn mu-btn-sm', onClick: writeLyricsToFile },
+                    t('page.writeLyrics'),
+                  ),
+                ),
+                h('div', { className: 'mu-np-setting-hint' }, t('page.lyricOffsetHint')),
+                lyricError !== ''
+                  ? h('div', { className: 'mu-np-setting-error' }, lyricError)
+                  : null,
+              ),
               h(
                 'div',
                 { className: 'mu-np-setting' },
@@ -2380,7 +2579,7 @@ window.__ModuleLoader__.load({
                           },
                           className: 'mu-np-line' + (index === active ? ' is-active' : ''),
                           onClick: function () {
-                            if (line.time >= 0) player.seek(line.time)
+                            if (line.time >= 0) player.seek(line.time + lyricOffset / 1000)
                           },
                         },
                         h('div', { className: 'mu-np-line-text' }, line.text),
@@ -2475,6 +2674,92 @@ window.__ModuleLoader__.load({
 
     // ── main panel ───────────────────────────────────────────────────────
 
+    // ── windowed list (fixed row height) ──────────────────────────────────
+    // Same approach as dscroll / react-window: render only the visible slice
+    // plus a small overscan, absolutely positioned inside a spacer. Keeps a
+    // 5000-track library from creating 5000 DOM rows.
+
+    function VirtualList(props) {
+      var rowHeight = props.rowHeight || 67
+      var overscan = props.overscan === undefined ? 6 : props.overscan
+      var [scrollTop, setScrollTop] = useState(0)
+      var [viewport, setViewport] = useState(600)
+      var ref = useRef(null)
+
+      useEffect(
+        function () {
+          var element = ref.current
+          if (element === null) return undefined
+          function measure() {
+            setViewport(element.clientHeight || 600)
+          }
+          measure()
+          window.addEventListener('resize', measure)
+          var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
+          if (observer !== null) observer.observe(element)
+          return function () {
+            window.removeEventListener('resize', measure)
+            if (observer !== null) observer.disconnect()
+          }
+        },
+        [],
+      )
+
+      var items = props.items
+      useEffect(
+        function () {
+          if (ref.current !== null) ref.current.scrollTop = 0
+          setScrollTop(0)
+        },
+        [items.length],
+      )
+      if (items.length === 0) {
+        return h(
+          'div',
+          {
+            className: props.className,
+            ref: ref,
+            onScroll: function (event) {
+              setScrollTop(event.currentTarget.scrollTop)
+            },
+          },
+          props.empty,
+        )
+      }
+
+      var total = items.length * rowHeight
+      var start = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan)
+      var end = Math.min(items.length, Math.ceil((scrollTop + viewport) / rowHeight) + overscan)
+      var slice = items.slice(start, end)
+
+      return h(
+        'div',
+        {
+          className: props.className,
+          ref: ref,
+          onScroll: function (event) {
+            setScrollTop(event.currentTarget.scrollTop)
+          },
+        },
+        h(
+          'div',
+          { className: 'mu-vlist-inner', style: { height: total + 'px' } },
+          slice.map(function (item, offset) {
+            var index = start + offset
+            return h(
+              'div',
+              {
+                key: props.itemKey ? props.itemKey(item, index) : index,
+                className: 'mu-vlist-row',
+                style: { height: rowHeight + 'px', top: index * rowHeight + 'px' },
+              },
+              props.renderRow(item),
+            )
+          }),
+        ),
+      )
+    }
+
     // ── listening statistics (NetEase-style listening ranking) ────────────
 
     function basenameOf(path) {
@@ -2515,6 +2800,7 @@ window.__ModuleLoader__.load({
     function StatsView(props) {
       var t = props.t
       var [range, setRange] = useState('week')
+      var [mode, setMode] = useState('ranking')
       var [sortBy, setSortBy] = useState('seconds')
       var [loading, setLoading] = useState(true)
       var [error, setError] = useState(null)
@@ -2567,13 +2853,14 @@ window.__ModuleLoader__.load({
         function () {
           var list = rows.slice()
           list.sort(function (left, right) {
+            if (mode === 'recent') return right.lastPlayedAt - left.lastPlayedAt
             if (sortBy === 'recent') return right.lastPlayedAt - left.lastPlayedAt
             if (sortBy === 'plays') return right.plays - left.plays || right.seconds - left.seconds
             return right.seconds - left.seconds || right.plays - left.plays
           })
           return list
         },
-        [rows, sortBy],
+        [rows, sortBy, mode],
       )
 
       var totals = useMemo(
@@ -2599,6 +2886,10 @@ window.__ModuleLoader__.load({
         ['plays', t('stats.sortPlays')],
         ['recent', t('stats.sortRecent')],
       ]
+      var modes = [
+        ['ranking', t('stats.modeRanking')],
+        ['recent', t('stats.modeRecent')],
+      ]
 
       return h(
         'div',
@@ -2606,6 +2897,22 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'mu-stats-toolbar' },
+          modes.map(function (entry) {
+            return h(
+              'button',
+              {
+                key: entry[0],
+                type: 'button',
+                className: 'mu-chip mu-stats-chip' + (mode === entry[0] ? ' is-on' : ''),
+                onClick: function () {
+                  setMode(entry[0])
+                  if (entry[0] === 'recent') setRange('all')
+                },
+              },
+              entry[1],
+            )
+          }),
+          h('span', { className: 'mu-stats-divider' }),
           ranges.map(function (entry) {
             return h(
               'button',
@@ -2710,12 +3017,46 @@ window.__ModuleLoader__.load({
     function MusicPanel() {
       var prefs = useRef(readPrefs()).current
       var [snap, setSnap] = useState(player.getSnapshot())
+      var leaderNow = player.isLeader()
       var [config, setConfig] = useState(null)
       var [tracks, setTracks] = useState([])
       var [loading, setLoading] = useState(true)
       var [error, setError] = useState(null)
       var [warnings, setWarnings] = useState([])
       var [query, setQuery] = useState('')
+      var [searchHistory, setSearchHistory] = useState(function () {
+        try {
+          var raw = window.localStorage.getItem('dsh-music.search-history')
+          var parsed = raw === null ? [] : JSON.parse(raw)
+          return Array.isArray(parsed)
+            ? parsed.filter(function (item) {
+                return typeof item === 'string' && item !== ''
+              }).slice(0, 8)
+            : []
+        } catch (error) {
+          return []
+        }
+      })
+
+      function pushSearchHistory(value) {
+        var text = String(value || '').trim()
+        if (text === '') return
+        setSearchHistory(function (previous) {
+          var next = [text]
+            .concat(
+              previous.filter(function (item) {
+                return item !== text
+              }),
+            )
+            .slice(0, 8)
+          try {
+            window.localStorage.setItem('dsh-music.search-history', JSON.stringify(next))
+          } catch (error) {
+            // Private mode: history stays in memory.
+          }
+          return next
+        })
+      }
       var [searchOpen, setSearchOpen] = useState(false)
       var [sortBy, setSortBy] = useState(prefs.sortBy || 'title')
       var [sortDir, setSortDir] = useState(prefs.sortDir === 'desc' ? 'desc' : 'asc')
@@ -2729,6 +3070,7 @@ window.__ModuleLoader__.load({
       var [npVisible, setNpVisible] = useState(false)
       var [view, setView] = useState('songs')
       var [playlists, setPlaylists] = useState([])
+      var [favorites, setFavorites] = useState([])
       var [playlistId, setPlaylistId] = useState(null)
       var [playlistDraft, setPlaylistDraft] = useState('')
       var [prefsOpen, setPrefsOpen] = useState(false)
@@ -2882,6 +3224,7 @@ window.__ModuleLoader__.load({
       useEffect(
         function () {
           reloadPlaylists()
+          reloadFavorites()
         },
         [],
       )
@@ -3043,15 +3386,33 @@ window.__ModuleLoader__.load({
         })
       }, [playlists, playlistId])
 
-      /** The collection the active tab shows: all songs, or one playlist. */
+      var favoritePaths = useMemo(
+        function () {
+          var set = {}
+          favorites.forEach(function (entry) {
+            set[entry.path] = true
+          })
+          return set
+        },
+        [favorites],
+      )
+
+      /** The collection the active tab shows: all songs, favourites, or one playlist. */
       var collectionTracks = useMemo(function () {
+        if (view === 'favorites') {
+          return favorites
+            .map(function (entry) {
+              return trackByPath[entry.path]
+            })
+            .filter(Boolean)
+        }
         if (view !== 'playlists' || activePlaylist === undefined) return tracks
         return activePlaylist.trackPaths
           .map(function (path) {
             return trackByPath[path]
           })
           .filter(Boolean)
-      }, [view, activePlaylist, tracks, trackByPath])
+      }, [view, activePlaylist, tracks, trackByPath, favorites])
 
       useEffect(
         function () {
@@ -3112,16 +3473,38 @@ window.__ModuleLoader__.load({
 
       var visible = useMemo(
         function () {
-          var needle = query.trim().toLowerCase()
+          var needles = query
+            .trim()
+            .toLowerCase()
+            .split(/\s+/)
+            .filter(Boolean)
           var list = collectionTracks.filter(function (track) {
-            if (needle === '') return true
-            return (
-              String(track.title || '').toLowerCase().indexOf(needle) >= 0 ||
-              String(track.artist || '').toLowerCase().indexOf(needle) >= 0 ||
-              String(track.album || '').toLowerCase().indexOf(needle) >= 0 ||
-              String(track.name || '').toLowerCase().indexOf(needle) >= 0
-            )
+            if (needles.length === 0) return true
+            // Search across metadata, folder/path and pinyin (full + initials),
+            // the way desktop players let you type "zhoujielun" / "zjl".
+            var haystack = [
+              track.title,
+              track.artist,
+              track.album,
+              track.name,
+              track.folder,
+              track.path,
+              track.py,
+              track.pyf,
+            ]
+              .map(function (part) {
+                return String(part || '').toLowerCase()
+              })
+              .join('\n')
+            return needles.every(function (needle) {
+              return haystack.indexOf(needle) >= 0
+            })
           })
+          // "Liked" is ordered by when it was liked (newest first) unless the
+          // user picks another sort, matching NetEase/Spotify liked songs.
+          if (view === 'favorites' && sortBy === 'title' && sortDir === 'asc') {
+            return list
+          }
           var direction = sortDir === 'desc' ? -1 : 1
           var keyed = list.map(function (track, position) {
             return { track: track, position: position }
@@ -3142,7 +3525,7 @@ window.__ModuleLoader__.load({
             return entry.track
           })
         },
-        [collectionTracks, query, sortBy, sortDir],
+        [collectionTracks, query, sortBy, sortDir, view],
       )
 
       var selectedSet = useMemo(function () {
@@ -3223,6 +3606,19 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'mu-row-actions' },
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-icon-btn mu-icon-btn-sm mu-fav' + (favoritePaths[track.path] ? ' is-on' : ''),
+                title: favoritePaths[track.path] ? t('page.unfavorite') : t('page.favorite'),
+                onClick: function (event) {
+                  event.stopPropagation()
+                  toggleFavorite(track)
+                },
+              },
+              icon('heart', 14),
+            ),
             view === 'playlists' && activePlaylist !== undefined
               ? h(
                   'button',
@@ -3288,6 +3684,27 @@ window.__ModuleLoader__.load({
           })
           .catch(function () {
             // A missing store is not an error: playlists simply stay empty.
+          })
+      }
+
+      function reloadFavorites() {
+        return getJson(API + 'favorites')
+          .then(function (body) {
+            setFavorites(Array.isArray(body.favorites) ? body.favorites : [])
+          })
+          .catch(function () {
+            // Favourites are optional; an old host simply returns none.
+          })
+      }
+
+      function toggleFavorite(track) {
+        if (!track) return
+        requestJson('POST', API + 'favorites', { path: track.path })
+          .then(function (body) {
+            setFavorites(Array.isArray(body.favorites) ? body.favorites : [])
+          })
+          .catch(function (error) {
+            showToast(String((error && error.message) || error))
           })
       }
 
@@ -3507,6 +3924,9 @@ window.__ModuleLoader__.load({
                       setQuery(event.target.value)
                     },
                     onKeyDown: function (event) {
+                      if (event.key === 'Enter') {
+                        pushSearchHistory(query)
+                      }
                       if (event.key === 'Escape') {
                         setQuery('')
                         setSearchOpen(false)
@@ -3528,6 +3948,28 @@ window.__ModuleLoader__.load({
                           },
                         },
                         icon('x', 12),
+                      )
+                    : null,
+                  query === '' && searchHistory.length > 0
+                    ? h(
+                        'div',
+                        { className: 'mu-search-history' },
+                        searchHistory.map(function (item) {
+                          return h(
+                            'button',
+                            {
+                              key: item,
+                              type: 'button',
+                              className: 'mu-chip mu-chip-sm',
+                              onMouseDown: function (event) {
+                                event.preventDefault()
+                                setQuery(item)
+                                pushSearchHistory(item)
+                              },
+                            },
+                            item,
+                          )
+                        }),
                       )
                     : null,
                 )
@@ -3559,6 +4001,17 @@ window.__ModuleLoader__.load({
               },
             },
             t('page.tabSongs'),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-tab' + (view === 'favorites' ? ' is-on' : ''),
+              onClick: function () {
+                setView('favorites')
+              },
+            },
+            t('page.tabFavorites'),
           ),
           h(
             'button',
@@ -4084,52 +4537,66 @@ window.__ModuleLoader__.load({
             : null,
         ),
 
-        h(
-          'div',
-          { className: 'mu-list' + (view === 'stats' ? ' is-stats' : '') },
-          view === 'stats'
-            ? h(StatsView, { tracks: tracks, trackByPath: trackByPath, t: t })
-            : [
-          loading && tracks.length === 0
-            ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-spinner' }), t('page.scanning'))
-            : null,
-          !loading && error !== null
-            ? h(
-                'div',
-                { className: 'mu-state' },
-                h('div', { className: 'mu-state-title' }, t('page.loadFailed')),
-                h('div', { className: 'mu-state-sub' }, error),
-                h(
-                  'button',
-                  { type: 'button', className: 'mu-btn', onClick: function () { load(true) } },
-                  t('page.retry'),
-                ),
-              )
-            : null,
-          !loading && error === null && total === 0
-            ? h(
-                'div',
-                { className: 'mu-state' },
-                icon('folder', 34),
-                h('div', { className: 'mu-state-title' }, t('page.emptyTitle')),
-                h(
-                  'div',
-                  { className: 'mu-state-sub' },
-                  config !== null && config.roots && config.roots.length > 0
-                    ? t('page.emptyFolder')
-                    : t('page.emptyHint'),
-                ),
-              )
-            : null,
-          !loading && error === null && total > 0 && visible.length === 0
-            ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-state-sub' }, t('page.noResults')))
-            : null,
-          warnings.length > 0
-            ? h('div', { className: 'mu-warn' }, t('page.warnings') + '：' + warnings.slice(0, 3).join(' · '))
-            : null,
-          visible.map(renderRow),
+        view === 'stats'
+          ? h(
+              'div',
+              { className: 'mu-list is-stats' },
+              h(StatsView, { tracks: tracks, trackByPath: trackByPath, t: t }),
+            )
+          : h(VirtualList, {
+              className: 'mu-list',
+              items: visible,
+              rowHeight: 67,
+              itemKey: function (track) {
+                return track.path
+              },
+              renderRow: renderRow,
+              empty: [
+                loading && tracks.length === 0
+                  ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-spinner' }), t('page.scanning'))
+                  : null,
+                !loading && error !== null
+                  ? h(
+                      'div',
+                      { className: 'mu-state' },
+                      h('div', { className: 'mu-state-title' }, t('page.loadFailed')),
+                      h('div', { className: 'mu-state-sub' }, error),
+                      h(
+                        'button',
+                        { type: 'button', className: 'mu-btn', onClick: function () { load(true) } },
+                        t('page.retry'),
+                      ),
+                    )
+                  : null,
+                !loading && error === null && total === 0
+                  ? h(
+                      'div',
+                      { className: 'mu-state' },
+                      icon(view === 'favorites' ? 'heart' : 'folder', 34),
+                      h(
+                        'div',
+                        { className: 'mu-state-title' },
+                        view === 'favorites' ? t('page.favoritesEmpty') : t('page.emptyTitle'),
+                      ),
+                      h(
+                        'div',
+                        { className: 'mu-state-sub' },
+                        view === 'favorites'
+                          ? t('page.favoritesHint')
+                          : config !== null && config.roots && config.roots.length > 0
+                            ? t('page.emptyFolder')
+                            : t('page.emptyHint'),
+                      ),
+                    )
+                  : null,
+                !loading && error === null && total > 0 && visible.length === 0
+                  ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-state-sub' }, t('page.noResults')))
+                  : null,
+                warnings.length > 0
+                  ? h('div', { className: 'mu-warn' }, t('page.warnings') + '：' + warnings.slice(0, 3).join(' · '))
+                  : null,
               ],
-        ),
+            }),
 
         h(
           'div',
@@ -4179,6 +4646,9 @@ window.__ModuleLoader__.load({
                   { className: 'mu-bar-artist mu-ellipsis' },
                   current ? current.artist || t('page.unknownArtist') : '—',
                 ),
+                leaderNow
+                  ? null
+                  : h('div', { className: 'mu-leader-hint' }, t('page.otherTabPlaying')),
               ),
             ),
 
@@ -4250,6 +4720,20 @@ window.__ModuleLoader__.load({
               'div',
               { className: 'mu-bar-right' },
               current && current.sampleRate ? h('span', { className: 'mu-quality' }, fmtKhz(current.sampleRate)) : null,
+              current
+                ? h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-fav' + (favoritePaths[current.path] ? ' is-on' : ''),
+                      title: favoritePaths[current.path] ? t('page.unfavorite') : t('page.favorite'),
+                      onClick: function () {
+                        toggleFavorite(current)
+                      },
+                    },
+                    icon('heart', 17),
+                  )
+                : null,
               h(
                 'button',
                 {
@@ -4275,6 +4759,19 @@ window.__ModuleLoader__.load({
                 'div',
                 { className: 'mu-pop-head' },
                 h('span', null, t('page.queue')),
+                snap.queue.length > 0
+                  ? h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mu-chip mu-chip-sm',
+                        onClick: function () {
+                          player.clearQueue()
+                        },
+                      },
+                      t('page.clearQueue'),
+                    )
+                  : null,
                 h(
                   'button',
                   {
@@ -4296,7 +4793,7 @@ window.__ModuleLoader__.load({
                       return h(
                         'div',
                         {
-                          key: track.path,
+                          key: position + ':' + track.path,
                           className: 'mu-queue-row' + (position === snap.index ? ' is-current' : ''),
                           onClick: function () {
                             player.select(snap.queue, position)
@@ -4309,6 +4806,51 @@ window.__ModuleLoader__.load({
                         ),
                         h('span', { className: 'mu-ellipsis' }, track.title),
                         h('span', { className: 'mu-queue-artist mu-ellipsis' }, track.artist || ''),
+                        h(
+                          'span',
+                          { className: 'mu-queue-actions' },
+                          h(
+                            'button',
+                            {
+                              type: 'button',
+                              className: 'mu-queue-btn',
+                              title: t('page.moveUp'),
+                              disabled: position === 0,
+                              onClick: function (event) {
+                                event.stopPropagation()
+                                player.moveQueue(position, position - 1)
+                              },
+                            },
+                            '↑',
+                          ),
+                          h(
+                            'button',
+                            {
+                              type: 'button',
+                              className: 'mu-queue-btn',
+                              title: t('page.moveDown'),
+                              disabled: position === snap.queue.length - 1,
+                              onClick: function (event) {
+                                event.stopPropagation()
+                                player.moveQueue(position, position + 1)
+                              },
+                            },
+                            '↓',
+                          ),
+                          h(
+                            'button',
+                            {
+                              type: 'button',
+                              className: 'mu-queue-btn',
+                              title: t('page.removeTrack'),
+                              onClick: function (event) {
+                                event.stopPropagation()
+                                player.removeQueueAt(position)
+                              },
+                            },
+                            '×',
+                          ),
+                        ),
                       )
                     }),
               ),
@@ -4554,12 +5096,14 @@ window.__ModuleLoader__.load({
       '.mu-chip-accent{background:var(--dsw-alias-button-primary-fill,#f4f4f5);border-color:transparent;color:var(--dsw-alias-label-primary-foreground,#141417)}',
       '.mu-chip-accent:hover{background:var(--dsw-alias-button-primary-hover,#e4e4e7)}',
       '.mu-selected{display:inline-flex;align-items:center;gap:8px;margin-left:auto;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px}',
-      '.mu-search-inline{box-sizing:border-box;display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;border:.5px solid var(--dsw-alias-border-l3,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-search-inline{position:relative;box-sizing:border-box;display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;border:.5px solid var(--dsw-alias-border-l3,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-search-input{width:150px;border:0;outline:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12px;font-family:inherit}',
       '.mu-search{display:flex;align-items:center;gap:8px;height:34px;margin:0 24px 10px;padding:0 12px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.14));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;font-family:inherit}',
       '.mu-list{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;padding:0 16px 12px}',
-      '.mu-row{display:grid;grid-template-columns:calc(var(--mu-row-size,55px) + 4px) minmax(0,1.15fr) minmax(0,.85fr) 56px auto;align-items:center;gap:12px;padding:6px 10px;border-radius:var(--dsw-radius-md,8px)}',
+      '.mu-vlist-inner{position:relative}',
+      '.mu-vlist-row{position:absolute;left:0;right:0}',
+      '.mu-row{display:grid;grid-template-columns:calc(var(--mu-row-size,55px) + 4px) minmax(0,1.15fr) minmax(0,.85fr) 56px auto;align-items:center;gap:12px;padding:6px 10px;border-radius:var(--dsw-radius-md,8px);height:67px;box-sizing:border-box}',
       '.mu-prefs{min-width:240px;padding:12px}',
       '.mu-prefs-panel{position:absolute;top:56px;right:24px;z-index:50;width:360px;max-width:calc(100% - 48px);max-height:70vh;overflow-y:auto;padding:14px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1,#1b1b1e));box-shadow:var(--dsw-elevation-panel,0 16px 40px rgba(0,0,0,.5))}',
       '.mu-prefs-tabs{display:flex;gap:2px;padding:3px;margin-bottom:12px;border-radius:9px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06))}',
@@ -4659,7 +5203,15 @@ window.__ModuleLoader__.load({
       '.mu-pop{position:absolute;right:16px;bottom:84px;z-index:40;width:330px;max-height:58%;display:flex;flex-direction:column;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-overlay,#202024);border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5));overflow:hidden}',
       '.mu-pop-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 6px;font-size:12px;font-weight:600}',
       '.mu-pop-body{overflow-y:auto;padding:0 6px 8px}',
-      '.mu-queue-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,90px);align-items:center;gap:8px;padding:5px 8px;border-radius:var(--dsw-radius-sm,6px);font-size:12px;cursor:pointer}',
+      '.mu-queue-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,70px) auto;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--dsw-radius-sm,6px);font-size:12px;cursor:pointer}',
+      '.mu-queue-actions{display:inline-flex;align-items:center;gap:2px;justify-self:end}',
+      '.mu-queue-btn{width:20px;height:20px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:12px;line-height:20px;cursor:pointer}',
+      '.mu-queue-btn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mu-queue-btn:disabled{opacity:.35;cursor:default}',
+      '.mu-fav.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
+      '.mu-fav.is-on svg{fill:currentColor}',
+      '.mu-chip-sm{height:24px;padding:0 8px;font-size:11px}',
+      '.mu-search-history{position:absolute;top:34px;right:0;z-index:20;display:flex;flex-wrap:wrap;gap:4px;max-width:320px;padding:6px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:8px;background:var(--dsw-alias-bg-overlay,#202024);box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.35)}',
       '.mu-queue-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
       '.mu-queue-row.is-current{color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.08))}',
       '.mu-queue-index{font-size:12px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums}',
@@ -4785,6 +5337,10 @@ window.__ModuleLoader__.load({
       '.mu-np-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px}',
       '.mu-trans-toggle{width:auto;padding:0 8px;font-size:12px;font-weight:600;line-height:1}',
       '.mu-np-settings{position:absolute;top:52px;right:20px;z-index:6;width:320px;max-width:calc(100% - 40px);padding:14px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:10px;background:var(--dsw-alias-bg-overlay,#202024);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.45))}',
+      '.mu-np-offset-actions{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}',
+      '.mu-np-setting-hint{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:6px;line-height:1.5}',
+      '.mu-np-setting-error{font-size:11px;color:var(--dsw-alias-state-error,#e5484d);margin-top:4px;word-break:break-word}',
+      '.mu-leader-hint{font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mu-np-setting{margin-bottom:14px}',
       '.mu-np-setting:last-child{margin-bottom:0}',
       '.mu-np-setting-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
@@ -4944,6 +5500,40 @@ window.__ModuleLoader__.load({
             document.removeEventListener('visibilitychange', onVisibility)
             window.removeEventListener('beforeunload', onUnload)
           }
+        })
+
+        // Only one tab may play. Web Locks gives an origin-wide singleton:
+        // the first tab holds the lock, later tabs queue for it and take over
+        // when the leader closes (the same pattern web-player PWAs use).
+        ctx.effect(function () {
+          if (
+            typeof navigator === 'undefined' ||
+            navigator.locks === undefined ||
+            typeof navigator.locks.request !== 'function'
+          ) {
+            return
+          }
+          if (window.__dshMusicLeaderBound === true) return
+          window.__dshMusicLeaderBound = true
+          var LOCK = 'dsh-music-panel.player'
+          function hold() {
+            // The lock is released when the page unloads.
+            return new Promise(function () {})
+          }
+          function becomeLeader() {
+            player.setLeader(true)
+            return hold()
+          }
+          navigator.locks
+            .request(LOCK, { mode: 'exclusive', ifAvailable: true }, function (lock) {
+              if (lock !== null && lock !== undefined) return becomeLeader()
+              // Another tab is playing: wait in the queue, then take over.
+              player.setLeader(false)
+              return navigator.locks.request(LOCK, becomeLeader)
+            })
+            .catch(function () {
+              player.setLeader(true)
+            })
         })
 
         function mount(name, registration, component) {

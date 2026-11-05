@@ -8,9 +8,18 @@ importers:
 
   .:
     dependencies:
+      flac-tagger:
+        specifier: ^2.1.0
+        version: 2.1.0
       music-metadata:
         specifier: ^12.3.4
         version: 12.3.4
+      node-id3:
+        specifier: ^0.2.9
+        version: 0.2.9
+      pinyin-pro:
+        specifier: ^3.29.5
+        version: 3.29.5
 
 packages:
 
@@ -41,8 +50,19 @@ packages:
     resolution: {integrity: sha512-PrPedgnnWl5bWz3JHgar0QSzRvzeyFh7dZ9JpYOgcPZu4KALS9zw4MMa6qXRYyjeBsAlpaWB2boLuG991+0HIQ==}
     engines: {node: '>=22'}
 
+  flac-tagger@2.1.0:
+    resolution: {integrity: sha512-W0TqWXELyyIrWHCuWusWZhtDwLYf9RCpw72BLKf6Yxo5Myq2M7mKdrb+SEHEB8iHKENfJ4R0jKr/xOljMS8OuQ==}
+
+  iconv-lite@0.6.2:
+    resolution: {integrity: sha512-2y91h5OpQlolefMPmUlivelittSWy0rP+oYVpn6A7GwVHNE8AWzoYOBNmlwks3LobaJxgHCYZAnyNo2GgpNRNQ==}
+    engines: {node: '>=0.10.0'}
+
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
+
+  imageinfo@1.0.4:
+    resolution: {integrity: sha512-BJml4q/QCO2187F4UcO/b6hTYIhbq4nnd1XNs65jyCED9em4m6XmeGWDxjewjfJoC7VJABhOdmqb64KA24rLZw==}
+    engines: {node: '>=0.4'}
 
   media-typer@2.0.0:
     resolution: {integrity: sha512-kOy3OxT2HH39N70UnKgu4NWDZjLOz8W/mfyvniHjRH/DrL3f2pOfvWQ4p60offbbtDAnXWp0v9LfMIqMec269Q==}
@@ -54,6 +74,15 @@ packages:
   music-metadata@12.3.4:
     resolution: {integrity: sha512-M0t4TlnpaNMd1XBb1rW3BmSIosxTXmXtdOVYsx1wb56l1Jbij08JV9bKEAIn68f19+xO7s7sm/7IzdnfR8BJwQ==}
     engines: {node: '>=22'}
+
+  node-id3@0.2.9:
+    resolution: {integrity: sha512-dSxhuxrkkGVRgUhDHFxdY0pilzOREcodO01HcZWfaRkCaPWGmo0dOgD8ygyL6ln4Iv4cmfRxAWn1WD9bIB9Bhw==}
+
+  pinyin-pro@3.29.5:
+    resolution: {integrity: sha512-Fk5YoRmtdHqJWqAuzYVG/NzvzeCbaG+ZEwbY6Nbps3QAIrvQQEtcm49frcyCM8i2b5najnzPDtYqrHRYTTiuwQ==}
+
+  safer-buffer@2.1.2:
+    resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
   strtok3@10.7.0:
     resolution: {integrity: sha512-iAqrCpp7UXD2FZiHWhLXqdJ6CmNeVzRkkHAyyhhKMVtbVm2KtPX3D/bJNonvtcyLTHS4rwqP2pz9fsjK1K4z0Q==}
@@ -99,7 +128,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  flac-tagger@2.1.0:
+    dependencies:
+      imageinfo: 1.0.4
+
+  iconv-lite@0.6.2:
+    dependencies:
+      safer-buffer: 2.1.2
+
   ieee754@1.2.1: {}
+
+  imageinfo@1.0.4: {}
 
   media-typer@2.0.0: {}
 
@@ -119,6 +158,14 @@ snapshots:
       win-guid: 0.2.1
     transitivePeerDependencies:
       - supports-color
+
+  node-id3@0.2.9:
+    dependencies:
+      iconv-lite: 0.6.2
+
+  pinyin-pro@3.29.5: {}
+
+  safer-buffer@2.1.2: {}
 
   strtok3@10.7.0:
     dependencies:
