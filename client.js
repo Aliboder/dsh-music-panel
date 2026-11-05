@@ -4391,115 +4391,23 @@ window.__ModuleLoader__.load({
           window.clearTimeout(npTimerRef.current)
           npTimerRef.current = null
         }
-        if (npAnimRef.current !== null) {
-          try {
-            npAnimRef.current.cancel()
-          } catch (error) {
-            // Already finished.
-          }
-          npAnimRef.current = null
-        }
-        var barEl = document.querySelector('.mu-bar')
-        if (barEl !== null) {
-          barEl.getAnimations().forEach(function (item) {
-            item.cancel()
-          })
-        }
         setNpOpen(true)
-        setNpVisible(true)
-        // Mature players (Spotify, YesPlayMusic, YouTube Music) slide the
-        // full-screen view up from the bottom instead of morphing DOM nodes:
-        // no measurement, no clones, nothing to misalign.
+        // Same two-frame handoff YesPlayMusic's .slide-up transition relies on:
+        // mount at translateY(100%), then toggle the open class next frame.
         window.requestAnimationFrame(function () {
-          var page = document.querySelector('.mu-np')
-          if (page === null) return
-          page.style.transform = 'translateY(100%)'
-          page.style.opacity = '0'
           window.requestAnimationFrame(function () {
-            if (typeof page.animate !== 'function') {
-              page.style.transform = ''
-              page.style.opacity = ''
-              return
-            }
-            page.style.transform = ''
-            page.style.opacity = ''
-            npAnimRef.current = page.animate(
-              [
-                { transform: 'translateY(100%)', opacity: 0 },
-                { transform: 'translateY(0%)', opacity: 1 },
-              ],
-              { duration: 380, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
-            )
-            if (barEl !== null && typeof barEl.animate === 'function') {
-              barEl.animate(
-                [
-                  { opacity: 1, transform: 'translateY(0px)' },
-                  { opacity: 0, transform: 'translateY(10px)' },
-                ],
-                { duration: 240, easing: 'ease-out', fill: 'both' },
-              )
-            }
+            setNpVisible(true)
           })
         })
       }
 
       function closeNowPlaying() {
-        var page = document.querySelector('.mu-np')
-        var bar = document.querySelector('.mu-bar')
-        var finished = false
-        function finish() {
-          if (finished) return
-          finished = true
-          npAnimRef.current = null
-          setNpVisible(false)
+        setNpVisible(false)
+        if (npTimerRef.current !== null) window.clearTimeout(npTimerRef.current)
+        npTimerRef.current = window.setTimeout(function () {
+          npTimerRef.current = null
           setNpOpen(false)
-          if (page !== null) {
-            page.getAnimations().forEach(function (item) {
-              item.cancel()
-            })
-            page.style.transform = ''
-            page.style.opacity = ''
-          }
-          if (bar !== null) {
-            bar.getAnimations().forEach(function (item) {
-              item.cancel()
-            })
-          }
-        }
-        if (page === null || typeof page.animate !== 'function') {
-          finish()
-          return
-        }
-        if (npAnimRef.current !== null) {
-          try {
-            npAnimRef.current.cancel()
-          } catch (error) {
-            // Already finished.
-          }
-          npAnimRef.current = null
-        }
-        page.getAnimations().forEach(function (item) {
-          item.cancel()
-        })
-        page.style.transform = ''
-        page.style.opacity = ''
-        npAnimRef.current = page.animate(
-          [
-            { transform: 'translateY(0%)', opacity: 1 },
-            { transform: 'translateY(100%)', opacity: 0.85 },
-          ],
-          { duration: 300, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' },
-        )
-        if (bar !== null && typeof bar.animate === 'function') {
-          bar.animate(
-            [
-              { opacity: 0, transform: 'translateY(10px)' },
-              { opacity: 1, transform: 'translateY(0px)' },
-            ],
-            { duration: 280, delay: 140, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
-          )
-        }
-        npAnimRef.current.finished.then(finish, finish)
+        }, 420)
       }
 
       useEffect(
@@ -6146,7 +6054,7 @@ window.__ModuleLoader__.load({
         h(
           'div',
           {
-            className: 'mu-bar mu-bar-openable',
+            className: 'mu-bar mu-bar-openable' + (npOpen ? ' is-bar-hidden' : ''),
             onClick: function (event) {
               var target = event.target
               // Buttons and the seek/volume inputs keep their own behaviour;
@@ -7242,8 +7150,9 @@ window.__ModuleLoader__.load({
       '.mu-menu-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
       '.mu-menu-item.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
       '.mu-menu-hint{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-bar{position:relative;flex:none;margin:0 10px 10px;padding:8px 12px 9px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:14px;background:rgba(24,24,28,.52);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#1a1a1e) 55%,transparent);-webkit-backdrop-filter:blur(24px) saturate(1.4);backdrop-filter:blur(24px) saturate(1.4);box-shadow:0 12px 32px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.07);overflow:hidden;transition:background .2s ease,box-shadow .2s ease}',
+      '.mu-bar{position:relative;flex:none;margin:0 10px 10px;padding:8px 12px 9px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:14px;background:rgba(24,24,28,.52);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#1a1a1e) 55%,transparent);-webkit-backdrop-filter:blur(24px) saturate(1.4);backdrop-filter:blur(24px) saturate(1.4);box-shadow:0 12px 32px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.07);overflow:hidden;transition:background .2s ease,box-shadow .2s ease,opacity .25s ease,transform .25s ease}',
       '.mu-bar:hover{background:rgba(30,30,34,.62);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#1a1a1e) 60%,transparent);box-shadow:0 14px 36px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.09)}',
+      '.mu-bar.is-bar-hidden{opacity:0;transform:translateY(10px);pointer-events:none}',
       '.mu-bar::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);pointer-events:none;z-index:1}',
       '.mu-bar-openable{cursor:pointer}',
       // The whole bar opens the player, so the hover highlight must cover the
@@ -7490,8 +7399,8 @@ window.__ModuleLoader__.load({
       '.mu-clickable{cursor:pointer;border-radius:8px;padding:4px 6px;margin:-4px -6px;min-width:0}',
       '.mu-clickable:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
       '.mu-clickable:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
-      '.mu-np{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);opacity:0;pointer-events:none;user-select:none;will-change:transform,opacity}',
-      '.mu-np.is-open{opacity:1;pointer-events:auto}',
+      '.mu-np{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);transition:transform .4s ease;pointer-events:none;user-select:none;will-change:transform}',
+      '.mu-np.is-open{transform:translateY(0);pointer-events:auto}',
       '.mu-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
       '.mu-np-bg img{width:100%;height:100%;object-fit:cover;filter:blur(72px) saturate(1.35) brightness(.42);transform:scale(1.15)}',
       '.mu-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,10,12,.35),rgba(10,10,12,.72) 60%,rgba(10,10,12,.92));pointer-events:none}',
