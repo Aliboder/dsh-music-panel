@@ -1609,6 +1609,10 @@ window.__ModuleLoader__.load({
         getTime: function () {
           return { currentTime: state.currentTime, duration: state.duration, buffered: state.buffered }
         },
+        /** Queue indices in the current playback order (random mode). */
+        getPlayOrder: function () {
+          return randomOrder.slice()
+        },
         /** Restore the last queue/position once (called by the resident host). */
         tryRestore: tryRestore,
         /** Flush statistics + resume state when the page is hidden/closed. */
@@ -1823,8 +1827,14 @@ window.__ModuleLoader__.load({
           emit()
         },
         setOrder: function (value) {
-          state = Object.assign({}, state, { order: value })
-          savePrefs({ order: value })
+          var next = value === 'random' ? 'random' : 'list'
+          if (next === 'random' && state.queue.length > 1) {
+            // Fresh shuffle whenever random is selected, so the queue panel's
+            // displayed order is the actual playback order.
+            randomOrder = randomOrderOf(state.queue.length)
+          }
+          state = Object.assign({}, state, { order: next })
+          savePrefs({ order: next })
           emit()
         },
         clear: function () {
@@ -3068,6 +3078,18 @@ window.__ModuleLoader__.load({
       var prefs = useRef(readPrefs()).current
       var [snap, setSnap] = useState(player.getSnapshot())
       var leaderNow = player.isLeader()
+      var playOrder = player.getPlayOrder()
+      // In random mode the queue panel lists songs in the order they will
+      // actually play ("from top to bottom"), while edits still target the
+      // original queue indices.
+      var queueView =
+        snap.order === 'random' && Array.isArray(playOrder) && playOrder.length === snap.queue.length
+          ? playOrder.map(function (originalIndex) {
+              return { track: snap.queue[originalIndex], originalIndex: originalIndex }
+            })
+          : snap.queue.map(function (track, originalIndex) {
+              return { track: track, originalIndex: originalIndex }
+            })
       var [config, setConfig] = useState(null)
       var [tracks, setTracks] = useState([])
       var [loading, setLoading] = useState(true)
@@ -3393,11 +3415,12 @@ window.__ModuleLoader__.load({
       }
 
       function activate(track) {
-        var at = visible.findIndex(function (item) {
+        var at = sortedCollection.findIndex(function (item) {
           return item.path === track.path
         })
         if (at < 0) return
-        player.select(visible, at)
+        // Queue the whole playlist (ignores the search filter), starting here.
+        player.playList(sortedCollection, at)
       }
 
       function clearList() {
@@ -3521,6 +3544,39 @@ window.__ModuleLoader__.load({
         [deleteConfirm],
       )
 
+      // Full collection in display order (search is a filter on top of it).
+      // Double-clicking a song queues this whole playlist, not just the
+      // filtered results, which is what desktop players do.
+      var sortedCollection = useMemo(
+        function () {
+          // "Liked" is ordered by when it was liked (newest first) unless the
+          // user picks another sort, matching NetEase/Spotify liked songs.
+          if (view === 'favorites' && sortBy === 'title' && sortDir === 'asc') {
+            return collectionTracks
+          }
+          var direction = sortDir === 'desc' ? -1 : 1
+          var keyed = collectionTracks.map(function (track, position) {
+            return { track: track, position: position }
+          })
+          keyed.sort(function (left, right) {
+            var a = left.track
+            var b = right.track
+            var aValue = sortValueOf(a, sortBy)
+            var bValue = sortValueOf(b, sortBy)
+            var compared =
+              typeof aValue === 'number' && typeof bValue === 'number'
+                ? aValue - bValue
+                : String(aValue).localeCompare(String(bValue), LANG)
+            if (compared === 0) compared = left.position - right.position
+            return compared * direction
+          })
+          return keyed.map(function (entry) {
+            return entry.track
+          })
+        },
+        [collectionTracks, sortBy, sortDir, view],
+      )
+
       var visible = useMemo(
         function () {
           var needles = query
@@ -3528,8 +3584,8 @@ window.__ModuleLoader__.load({
             .toLowerCase()
             .split(/\s+/)
             .filter(Boolean)
-          var list = collectionTracks.filter(function (track) {
-            if (needles.length === 0) return true
+          if (needles.length === 0) return sortedCollection
+          return sortedCollection.filter(function (track) {
             // Search across metadata, folder/path and pinyin (full + initials),
             // the way desktop players let you type "zhoujielun" / "zjl".
             var haystack = [
@@ -3550,32 +3606,8 @@ window.__ModuleLoader__.load({
               return haystack.indexOf(needle) >= 0
             })
           })
-          // "Liked" is ordered by when it was liked (newest first) unless the
-          // user picks another sort, matching NetEase/Spotify liked songs.
-          if (view === 'favorites' && sortBy === 'title' && sortDir === 'asc') {
-            return list
-          }
-          var direction = sortDir === 'desc' ? -1 : 1
-          var keyed = list.map(function (track, position) {
-            return { track: track, position: position }
-          })
-          keyed.sort(function (left, right) {
-            var a = left.track
-            var b = right.track
-            var aValue = sortValueOf(a, sortBy)
-            var bValue = sortValueOf(b, sortBy)
-            var compared =
-              typeof aValue === 'number' && typeof bValue === 'number'
-                ? aValue - bValue
-                : String(aValue).localeCompare(String(bValue), LANG)
-            if (compared === 0) compared = left.position - right.position
-            return compared * direction
-          })
-          return keyed.map(function (entry) {
-            return entry.track
-          })
         },
-        [collectionTracks, query, sortBy, sortDir, view],
+        [sortedCollection, query],
       )
 
       var selectedSet = useMemo(function () {
@@ -4512,7 +4544,7 @@ window.__ModuleLoader__.load({
               type: 'button',
               className: 'mu-chip',
               onClick: function () {
-                if (visible.length > 0) player.playList(visible, 0)
+                if (sortedCollection.length > 0) player.playList(sortedCollection, 0)
               },
             },
             icon('play', 13),
@@ -4826,20 +4858,23 @@ window.__ModuleLoader__.load({
                 { className: 'mu-pop-body' },
                 snap.queue.length === 0
                   ? h('div', { className: 'mu-state-sub' }, t('page.queueEmpty'))
-                  : snap.queue.map(function (track, position) {
+                  : queueView.map(function (entry, position) {
+                      var track = entry.track
+                      var originalIndex = entry.originalIndex
+                      var visibleCurrent = originalIndex === snap.index
                       return h(
                         'div',
                         {
                           key: position + ':' + track.path,
-                          className: 'mu-queue-row' + (position === snap.index ? ' is-current' : ''),
+                          className: 'mu-queue-row' + (visibleCurrent ? ' is-current' : ''),
                           onClick: function () {
-                            player.select(snap.queue, position)
+                            player.select(snap.queue, originalIndex)
                           },
                         },
                         h(
                           'span',
                           { className: 'mu-queue-index' },
-                          position === snap.index && snap.playing ? '▶' : String(position + 1),
+                          visibleCurrent && snap.playing ? '▶' : String(position + 1),
                         ),
                         h('span', { className: 'mu-ellipsis' }, track.title),
                         h('span', { className: 'mu-queue-artist mu-ellipsis' }, track.artist || ''),
@@ -4852,10 +4887,10 @@ window.__ModuleLoader__.load({
                               type: 'button',
                               className: 'mu-queue-btn',
                               title: t('page.moveUp'),
-                              disabled: position === 0,
+                              disabled: originalIndex === 0,
                               onClick: function (event) {
                                 event.stopPropagation()
-                                player.moveQueue(position, position - 1)
+                                player.moveQueue(originalIndex, originalIndex - 1)
                               },
                             },
                             '↑',
@@ -4866,10 +4901,10 @@ window.__ModuleLoader__.load({
                               type: 'button',
                               className: 'mu-queue-btn',
                               title: t('page.moveDown'),
-                              disabled: position === snap.queue.length - 1,
+                              disabled: originalIndex === snap.queue.length - 1,
                               onClick: function (event) {
                                 event.stopPropagation()
-                                player.moveQueue(position, position + 1)
+                                player.moveQueue(originalIndex, originalIndex + 1)
                               },
                             },
                             '↓',
@@ -4882,7 +4917,7 @@ window.__ModuleLoader__.load({
                               title: t('page.removeTrack'),
                               onClick: function (event) {
                                 event.stopPropagation()
-                                player.removeQueueAt(position)
+                                player.removeQueueAt(originalIndex)
                               },
                             },
                             '×',
