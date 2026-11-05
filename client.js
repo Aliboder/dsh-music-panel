@@ -2124,12 +2124,13 @@ window.__ModuleLoader__.load({
     function QueueOverlay() {
       var [open, setOpen] = useState(queueOverlaySnapshot())
       var [snap, setSnap] = useState(player.getSnapshot())
-      var [dragOver, setDragOver] = useState(null)
-      // Keep the source index in a ref: calling setState from dragstart makes
-      // React re-render the dragged node synchronously, which cancels the
-      // browser's drag in Chromium.
+      // Drag state lives entirely in refs/DOM classes so React never
+      // re-renders the dragged row mid-drag (Chromium cancels that).
       var dragFromRef = useRef(null)
+      var dragOverRef = useRef(null)
+      var suppressClickRef = useRef(0)
       var ref = useRef(null)
+      var listRef = useRef(null)
 
       useEffect(function () {
         return subscribeQueueOverlay(function () {
@@ -2160,6 +2161,90 @@ window.__ModuleLoader__.load({
 
       if (!open) return null
       var queueView = buildQueueView(snap, player.getPlayOrder())
+
+      function clearDragMarks() {
+        var list = listRef.current
+        if (list === null) return
+        var rowEls = list.querySelectorAll('.mu-queue-row')
+        for (var i = 0; i < rowEls.length; i += 1) {
+          rowEls[i].classList.remove('is-dragging', 'is-drop-target')
+        }
+      }
+
+      function moveRow(from, to) {
+        if (from === null || from === to || from < 0 || to < 0) return
+        if (from >= queueView.length || to >= queueView.length) return
+        var order = queueView.map(function (item) {
+          return item.originalIndex
+        })
+        var moved = order.splice(from, 1)[0]
+        order.splice(to, 0, moved)
+        player.reorderQueue(order)
+      }
+
+      // Pointer-driven reorder (SortableJS' approach). The harness hosts this
+      // overlay inside the composer area, where HTML5 dragstart is unreliable;
+      // DSH's sidebar rows use HTML5 DnD with a custom drag preview, so this
+      // keeps the same before/after marker semantics but with pointer events.
+      var dragMoved = false
+      function startDrag(event, position) {
+        if (event.button !== undefined && event.button !== 0) return
+        event.preventDefault()
+        event.stopPropagation()
+        var list = listRef.current
+        if (list === null) return
+        dragFromRef.current = position
+        dragOverRef.current = position
+        dragMoved = false
+        var sourceRow = event.currentTarget.closest('.mu-queue-row')
+        if (sourceRow !== null) sourceRow.classList.add('is-dragging')
+        document.body.style.userSelect = 'none'
+
+        function mark(target) {
+          dragOverRef.current = target
+          var rowEls = list.querySelectorAll('.mu-queue-row')
+          for (var i = 0; i < rowEls.length; i += 1) {
+            rowEls[i].classList.toggle('is-drop-target', i === target)
+          }
+        }
+
+        function onMove(moveEvent) {
+          dragMoved = true
+          var rowEls = list.querySelectorAll('.mu-queue-row')
+          if (rowEls.length === 0) return
+          var target = rowEls.length - 1
+          for (var i = 0; i < rowEls.length; i += 1) {
+            var rect = rowEls[i].getBoundingClientRect()
+            if (moveEvent.clientY < rect.top + rect.height / 2) {
+              target = i
+              break
+            }
+            target = i
+          }
+          mark(target)
+        }
+
+        function onUp() {
+          document.removeEventListener('pointermove', onMove)
+          document.removeEventListener('pointerup', onUp)
+          document.removeEventListener('pointercancel', onUp)
+          document.body.style.userSelect = ''
+          var from = dragFromRef.current
+          var to = dragOverRef.current
+          dragFromRef.current = null
+          dragOverRef.current = null
+          clearDragMarks()
+          if (dragMoved && from !== null && to !== null) {
+            suppressClickRef.current = Date.now() + 250
+            moveRow(from, to)
+          }
+        }
+
+        document.addEventListener('pointermove', onMove)
+        document.addEventListener('pointerup', onUp)
+        document.addEventListener('pointercancel', onUp)
+      }
+
       var rows = queueView.map(function (entry, position) {
         var track = entry.track
         var originalIndex = entry.originalIndex
@@ -2168,57 +2253,23 @@ window.__ModuleLoader__.load({
           'div',
           {
             key: position + ':' + track.path,
-            className:
-              'mu-queue-row' +
-              (visibleCurrent ? ' is-current' : '') +
-              (dragOver === position ? ' is-drop-target' : ''),
-            draggable: true,
+            className: 'mu-queue-row' + (visibleCurrent ? ' is-current' : ''),
             onClick: function () {
+              if (Date.now() < suppressClickRef.current) return
               player.select(snap.queue, originalIndex)
             },
-            onDragStart: function (event) {
-              dragFromRef.current = position
-              setDragOver(position)
-              if (event.dataTransfer !== null && event.dataTransfer !== undefined) {
-                event.dataTransfer.effectAllowed = 'move'
-                try {
-                  event.dataTransfer.setData('text/plain', String(position))
-                } catch (error) {
-                  // ignore
-                }
-              }
-            },
-            onDragOver: function (event) {
-              event.preventDefault()
-              if (event.dataTransfer !== null && event.dataTransfer !== undefined) {
-                event.dataTransfer.dropEffect = 'move'
-              }
-              if (dragOver !== position) setDragOver(position)
-            },
-            onDragLeave: function () {
-              if (dragOver === position) setDragOver(null)
-            },
-            onDrop: function (event) {
-              event.preventDefault()
-              event.stopPropagation()
-              var from = dragFromRef.current
-              if (from !== null && from !== position) {
-                var order = queueView.map(function (item) {
-                  return item.originalIndex
-                })
-                var moved = order.splice(from, 1)[0]
-                order.splice(position, 0, moved)
-                player.reorderQueue(order)
-              }
-              dragFromRef.current = null
-              setDragOver(null)
-            },
-            onDragEnd: function () {
-              dragFromRef.current = null
-              setDragOver(null)
-            },
           },
-          h('span', { className: 'mu-queue-grip', title: t('page.dragSort') }, '⋮⋮'),
+          h(
+            'span',
+            {
+              className: 'mu-queue-grip',
+              title: t('page.dragSort'),
+              onPointerDown: function (event) {
+                startDrag(event, position)
+              },
+            },
+            '⋮⋮',
+          ),
           h(
             'span',
             { className: 'mu-queue-index' },
@@ -2265,39 +2316,7 @@ window.__ModuleLoader__.load({
           'div',
           {
             className: 'mu-qoverlay-list',
-            onDragOver: function (event) {
-              event.preventDefault()
-              if (event.dataTransfer !== null && event.dataTransfer !== undefined) {
-                event.dataTransfer.dropEffect = 'move'
-              }
-            },
-            // Dropping in the gap between rows (no row handles it) still
-            // reorders: pick the row under the pointer.
-            onDrop: function (event) {
-              event.preventDefault()
-              var from = dragFromRef.current
-              if (from === null) return
-              var rowEls = event.currentTarget.querySelectorAll('.mu-queue-row')
-              var target = queueView.length - 1
-              for (var i = 0; i < rowEls.length; i += 1) {
-                var rect = rowEls[i].getBoundingClientRect()
-                if (event.clientY < rect.top + rect.height / 2) {
-                  target = i
-                  break
-                }
-                target = i
-              }
-              if (target !== from) {
-                var order = queueView.map(function (item) {
-                  return item.originalIndex
-                })
-                var moved = order.splice(from, 1)[0]
-                order.splice(target, 0, moved)
-                player.reorderQueue(order)
-              }
-              dragFromRef.current = null
-              setDragOver(null)
-            },
+            ref: listRef,
           },
           snap.queue.length === 0 ? h('div', { className: 'mu-state-sub' }, t('page.queueEmpty')) : rows,
         ),
