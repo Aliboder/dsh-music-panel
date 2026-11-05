@@ -4385,20 +4385,6 @@ window.__ModuleLoader__.load({
 
       var current = snap.index >= 0 && snap.queue[snap.index] ? snap.queue[snap.index] : null
 
-      function layoutRect(el) {
-        // Center + layout size keeps the rect steady even while the disc
-        // spins (getBoundingClientRect grows for rotated squares).
-        var rect = el.getBoundingClientRect()
-        var width = el.offsetWidth || rect.width
-        var height = el.offsetHeight || rect.height
-        return {
-          left: rect.left + rect.width / 2 - width / 2,
-          top: rect.top + rect.height / 2 - height / 2,
-          width: width,
-          height: height,
-        }
-      }
-
       function openNowPlaying() {
         if (current === null) return
         if (npTimerRef.current !== null) {
@@ -4421,124 +4407,36 @@ window.__ModuleLoader__.load({
         }
         setNpOpen(true)
         setNpVisible(true)
-        // Apple Music-style: the bar cover flies to the page cover while the
-        // page backdrop fades in behind it. Everything runs on
-        // transform/opacity so the browser composites it off the main thread.
+        // Mature players (Spotify, YesPlayMusic, YouTube Music) slide the
+        // full-screen view up from the bottom instead of morphing DOM nodes:
+        // no measurement, no clones, nothing to misalign.
         window.requestAnimationFrame(function () {
           var page = document.querySelector('.mu-np')
           if (page === null) return
-          var art = page.querySelector('.mu-np-art')
-          var bg = page.querySelector('.mu-np-bg')
-          var shade = page.querySelector('.mu-np-shade')
-          var content = page.querySelectorAll('.mu-np-head, .mu-np-body, .mu-np-bottom')
-          var barCover = barEl !== null ? barEl.querySelector('.mu-cover') : null
-          content.forEach(function (el) {
-            el.style.opacity = '0'
-          })
-          if (bg !== null) bg.style.opacity = '0'
-          if (shade !== null) shade.style.opacity = '0'
-          if (art !== null) art.style.opacity = '0'
+          page.style.transform = 'translateY(100%)'
+          page.style.opacity = '0'
           window.requestAnimationFrame(function () {
             if (typeof page.animate !== 'function') {
-              content.forEach(function (el) {
-                el.style.opacity = ''
-              })
-              if (bg !== null) bg.style.opacity = ''
-              if (shade !== null) shade.style.opacity = ''
-              if (art !== null) art.style.opacity = ''
+              page.style.transform = ''
+              page.style.opacity = ''
               return
             }
-            if (bg !== null) {
-              bg.animate([{ opacity: 0 }, { opacity: 1 }], {
-                duration: 420,
-                easing: 'ease-out',
-                fill: 'both',
-              })
-            }
-            if (shade !== null) {
-              shade.animate([{ opacity: 0 }, { opacity: 1 }], {
-                duration: 420,
-                easing: 'ease-out',
-                fill: 'both',
-              })
-            }
-            var pageRect = page.getBoundingClientRect()
-            var artRect = art !== null ? layoutRect(art) : null
-            var coverRect = barCover !== null ? layoutRect(barCover) : null
-            if (art !== null && artRect !== null && coverRect !== null && current.hasCover) {
-              var flyer = document.createElement('div')
-              flyer.style.cssText =
-                'position:absolute;z-index:5;left:0;top:0;width:' +
-                Math.round(artRect.width) +
-                'px;height:' +
-                Math.round(artRect.height) +
-                'px;border-radius:20px;overflow:hidden;pointer-events:none;will-change:transform'
-              var img = document.createElement('img')
-              img.src = coverUrl(current.path)
-              img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block'
-              flyer.appendChild(img)
-              page.appendChild(flyer)
-              var startX = coverRect.left - pageRect.left
-              var startY = coverRect.top - pageRect.top
-              var endX = artRect.left - pageRect.left
-              var endY = artRect.top - pageRect.top
-              var coverScale = Math.max(0.05, coverRect.width / artRect.width)
-              var flight = flyer.animate(
-                [
-                  {
-                    transform:
-                      'translate(' + startX + 'px,' + startY + 'px) scale(' + coverScale + ')',
-                    borderRadius: '8px',
-                  },
-                  {
-                    transform: 'translate(' + endX + 'px,' + endY + 'px) scale(1)',
-                    borderRadius: '20px',
-                  },
-                ],
-                { duration: 460, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
-              )
-              npAnimRef.current = flight
-              flight.finished.then(
-                function () {
-                  if (art !== null) {
-                    art.style.opacity = '1'
-                    art.animate([{ opacity: 0 }, { opacity: 1 }], {
-                      duration: 160,
-                      easing: 'ease-out',
-                      fill: 'both',
-                    })
-                  }
-                  if (flyer.parentElement !== null) flyer.parentElement.removeChild(flyer)
-                  npAnimRef.current = null
-                },
-                function () {
-                  if (flyer.parentElement !== null) flyer.parentElement.removeChild(flyer)
-                },
-              )
-            } else if (art !== null) {
-              art.style.opacity = '1'
-            }
-            content.forEach(function (el, index) {
-              el.animate(
-                [
-                  { opacity: 0, transform: 'translateY(10px)' },
-                  { opacity: 1, transform: 'translateY(0px)' },
-                ],
-                {
-                  duration: 340,
-                  delay: 170 + index * 50,
-                  easing: 'cubic-bezier(.22,.61,.36,1)',
-                  fill: 'both',
-                },
-              )
-            })
+            page.style.transform = ''
+            page.style.opacity = ''
+            npAnimRef.current = page.animate(
+              [
+                { transform: 'translateY(100%)', opacity: 0 },
+                { transform: 'translateY(0%)', opacity: 1 },
+              ],
+              { duration: 380, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
+            )
             if (barEl !== null && typeof barEl.animate === 'function') {
               barEl.animate(
                 [
                   { opacity: 1, transform: 'translateY(0px)' },
                   { opacity: 0, transform: 'translateY(10px)' },
                 ],
-                { duration: 220, easing: 'ease-out', fill: 'both' },
+                { duration: 240, easing: 'ease-out', fill: 'both' },
               )
             }
           })
@@ -4549,7 +4447,9 @@ window.__ModuleLoader__.load({
         var page = document.querySelector('.mu-np')
         var bar = document.querySelector('.mu-bar')
         var finished = false
-        function cleanup() {
+        function finish() {
+          if (finished) return
+          finished = true
           npAnimRef.current = null
           setNpVisible(false)
           setNpOpen(false)
@@ -4559,30 +4459,12 @@ window.__ModuleLoader__.load({
             })
             page.style.transform = ''
             page.style.opacity = ''
-            page.style.transformOrigin = ''
-            page.querySelectorAll('.mu-np-head, .mu-np-body, .mu-np-bottom').forEach(function (el) {
-              el.getAnimations().forEach(function (item) {
-                item.cancel()
-              })
-              el.style.opacity = ''
-            })
-            var stray = page.querySelector('.mu-np-flyer')
-            if (stray !== null && stray.parentElement !== null) {
-              stray.parentElement.removeChild(stray)
-            }
-            var art = page.querySelector('.mu-np-art')
-            if (art !== null) art.style.opacity = ''
           }
           if (bar !== null) {
             bar.getAnimations().forEach(function (item) {
               item.cancel()
             })
           }
-        }
-        function finish() {
-          if (finished) return
-          finished = true
-          cleanup()
         }
         if (page === null || typeof page.animate !== 'function') {
           finish()
@@ -4599,74 +4481,15 @@ window.__ModuleLoader__.load({
         page.getAnimations().forEach(function (item) {
           item.cancel()
         })
-        page.style.transform = 'none'
-        page.style.opacity = '1'
-        var art = page.querySelector('.mu-np-art')
-        var barCover = bar !== null ? bar.querySelector('.mu-cover') : null
-        var content = page.querySelectorAll('.mu-np-head, .mu-np-body, .mu-np-bottom')
-        content.forEach(function (el) {
-          el.getAnimations().forEach(function (item) {
-            item.cancel()
-          })
-          el.animate([{ opacity: 1 }, { opacity: 0 }], {
-            duration: 150,
-            easing: 'ease-out',
-            fill: 'both',
-          })
-        })
-        var pageRect = page.getBoundingClientRect()
-        var artRect = art !== null ? layoutRect(art) : null
-        var coverRect = barCover !== null ? layoutRect(barCover) : null
-        if (
-          art !== null &&
-          artRect !== null &&
-          coverRect !== null &&
-          current !== null &&
-          current.hasCover
-        ) {
-          art.style.opacity = '0'
-          var flyer = document.createElement('div')
-          flyer.style.cssText =
-            'position:absolute;z-index:5;left:0;top:0;width:' +
-            Math.round(artRect.width) +
-            'px;height:' +
-            Math.round(artRect.height) +
-            'px;border-radius:20px;overflow:hidden;pointer-events:none;will-change:transform'
-          var img = document.createElement('img')
-          img.src = coverUrl(current.path)
-          img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block'
-          flyer.appendChild(img)
-          page.appendChild(flyer)
-          var startX = artRect.left - pageRect.left
-          var startY = artRect.top - pageRect.top
-          var endX = coverRect.left - pageRect.left
-          var endY = coverRect.top - pageRect.top
-          var coverScale = Math.max(0.05, coverRect.width / artRect.width)
-          var flight = flyer.animate(
-            [
-              {
-                transform: 'translate(' + startX + 'px,' + startY + 'px) scale(1)',
-                borderRadius: '20px',
-              },
-              {
-                transform:
-                  'translate(' + endX + 'px,' + endY + 'px) scale(' + coverScale + ')',
-                borderRadius: '8px',
-              },
-            ],
-            { duration: 340, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' },
-          )
-          npAnimRef.current = flight
-          flight.finished.then(finish, finish)
-        } else {
-          page
-            .animate([{ opacity: 1 }, { opacity: 0 }], {
-              duration: 220,
-              easing: 'ease-out',
-              fill: 'both',
-            })
-            .finished.then(finish, finish)
-        }
+        page.style.transform = ''
+        page.style.opacity = ''
+        npAnimRef.current = page.animate(
+          [
+            { transform: 'translateY(0%)', opacity: 1 },
+            { transform: 'translateY(100%)', opacity: 0.85 },
+          ],
+          { duration: 300, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' },
+        )
         if (bar !== null && typeof bar.animate === 'function') {
           bar.animate(
             [
@@ -4676,6 +4499,7 @@ window.__ModuleLoader__.load({
             { duration: 280, delay: 140, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
           )
         }
+        npAnimRef.current.finished.then(finish, finish)
       }
 
       useEffect(
@@ -7251,7 +7075,7 @@ window.__ModuleLoader__.load({
 
     var STYLE = [
       // Surface + text follow the host palette; every color has a neutral fallback.
-      '.mu-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;line-height:1.5;user-select:none}',
+      '.mu-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;line-height:1.5;user-select:none}',
       '.mu-root input,.mu-root textarea,.mu-set input,.mu-np input{user-select:text}',
       '.mu-head{display:flex;align-items:center;gap:10px;padding:16px 24px 8px;min-height:52px;box-sizing:border-box}',
       '.mu-head-title{display:flex;align-items:baseline;gap:10px;min-width:0}',
