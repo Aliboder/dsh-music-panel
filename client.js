@@ -811,6 +811,12 @@ window.__ModuleLoader__.load({
           ['path', { d: 'M12 8h.01' }],
         ],
       },
+      edit: {
+        parts: [
+          ['path', { d: 'M12 20h9' }],
+          ['path', { d: 'M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z' }],
+        ],
+      },
     }
 
     function merge(base, extra) {
@@ -3642,6 +3648,9 @@ window.__ModuleLoader__.load({
       var [ctxMenu, setCtxMenu] = useState(null)
       var [addToOpen, setAddToOpen] = useState(false)
       var [infoPath, setInfoPath] = useState(null)
+      var [newPlaylistOpen, setNewPlaylistOpen] = useState(false)
+      var [newPlaylistName, setNewPlaylistName] = useState('')
+      var playlistTitleRef = useRef(null)
       var [moreOpen, setMoreOpen] = useState(false)
       var [toast, setToast] = useState('')
       var toastTimerRef = useRef(null)
@@ -4286,10 +4295,19 @@ window.__ModuleLoader__.load({
       function commitPlaylistName() {
         if (activePlaylist === undefined) return
         var name = playlistDraft.trim()
-        if (name === '' || name === activePlaylist.name) return
-        patchPlaylist(activePlaylist.id, { name: name }).catch(function (error) {
-          showToast(String((error && error.message) || error))
-        })
+        if (name === '') {
+          setPlaylistDraft(activePlaylist.name)
+          return
+        }
+        if (name === activePlaylist.name) return
+        patchPlaylist(activePlaylist.id, { name: name })
+          .then(function () {
+            setPlaylistDraft(name)
+          })
+          .catch(function (error) {
+            setPlaylistDraft(activePlaylist.name)
+            showToast(String((error && error.message) || error))
+          })
       }
 
       function reloadPlaylists() {
@@ -4360,8 +4378,9 @@ window.__ModuleLoader__.load({
         return base + ' ' + index
       }
 
-      function createPlaylist() {
-        requestJson('POST', API + 'playlists', { name: autoPlaylistName() })
+      function createPlaylist(name) {
+        var finalName = String(name || '').trim() || autoPlaylistName()
+        requestJson('POST', API + 'playlists', { name: finalName })
           .then(function (body) {
             setPlaylists(function (list) {
               return [body.playlist].concat(list)
@@ -4370,6 +4389,7 @@ window.__ModuleLoader__.load({
             setPlaylistId(body.playlist.id)
             setPlaylistDraft(body.playlist.name)
             setDeleteConfirm(false)
+            setNewPlaylistOpen(false)
           })
           .catch(function (error) {
             showToast(String((error && error.message) || error))
@@ -4455,11 +4475,16 @@ window.__ModuleLoader__.load({
             view === 'playlists' && activePlaylist !== undefined
               ? h('input', {
                   type: 'text',
+                  ref: playlistTitleRef,
                   className: 'mu-input mu-title-input',
                   value: playlistDraft,
+                  placeholder: t('page.playlistName'),
                   title: t('page.playlistName'),
                   onChange: function (event) {
                     setPlaylistDraft(event.target.value)
+                  },
+                  onFocus: function (event) {
+                    event.target.select()
                   },
                   onBlur: commitPlaylistName,
                   onKeyDown: function (event) {
@@ -4467,6 +4492,24 @@ window.__ModuleLoader__.load({
                   },
                 })
               : h('span', { className: 'mu-title' }, t('page.tabSongs')),
+            view === 'playlists' && activePlaylist !== undefined
+              ? h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-icon-btn mu-icon-btn-sm',
+                    title: t('page.playlistName'),
+                    onClick: function () {
+                      var input = playlistTitleRef.current
+                      if (input !== null) {
+                        input.focus()
+                        input.select()
+                      }
+                    },
+                  },
+                  icon('edit', 14),
+                )
+              : null,
             h('span', { className: 'mu-count' }, loading ? '…' : String(visible.length)),
           ),
           h(
@@ -4668,7 +4711,10 @@ window.__ModuleLoader__.load({
               type: 'button',
               className: 'mu-tab mu-tab-add',
               title: t('page.newPlaylist'),
-              onClick: createPlaylist,
+              onClick: function () {
+                setNewPlaylistName(autoPlaylistName())
+                setNewPlaylistOpen(true)
+              },
             },
             icon('plus', 15),
           ),
@@ -5622,6 +5668,74 @@ window.__ModuleLoader__.load({
             })()
           : null,
 
+        newPlaylistOpen
+          ? h(
+              'div',
+              { className: 'mu-info-layer' },
+              h('div', { className: 'mu-info-scrim', onClick: function () { setNewPlaylistOpen(false) } }),
+              h(
+                'div',
+                { className: 'mu-info' },
+                h(
+                  'div',
+                  { className: 'mu-info-head' },
+                  h('span', { className: 'mu-info-title' }, t('page.newPlaylist')),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-icon-btn-sm',
+                      onClick: function () {
+                        setNewPlaylistOpen(false)
+                      },
+                    },
+                    icon('x', 14),
+                  ),
+                ),
+                h('input', {
+                  type: 'text',
+                  className: 'mu-input',
+                  value: newPlaylistName,
+                  autoFocus: true,
+                  placeholder: t('page.playlistName'),
+                  onChange: function (event) {
+                    setNewPlaylistName(event.target.value)
+                  },
+                  onKeyDown: function (event) {
+                    if (event.key === 'Enter') createPlaylist(newPlaylistName)
+                    if (event.key === 'Escape') setNewPlaylistOpen(false)
+                  },
+                }),
+                h(
+                  'div',
+                  { className: 'mu-info-actions' },
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-btn',
+                      onClick: function () {
+                        setNewPlaylistOpen(false)
+                      },
+                    },
+                    t('page.cancel'),
+                  ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-btn mu-chip-accent',
+                      onClick: function () {
+                        createPlaylist(newPlaylistName)
+                      },
+                    },
+                    t('page.create'),
+                  ),
+                ),
+              ),
+            )
+          : null,
+
         toast !== '' ? h('div', { className: 'mu-toast' }, toast) : null,
 
         npOpen
@@ -5995,6 +6109,7 @@ window.__ModuleLoader__.load({
       '.mu-info{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:440px;max-width:calc(100vw - 48px);max-height:70vh;overflow-y:auto;padding:16px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 20px 60px rgba(0,0,0,.55));pointer-events:auto}',
       '.mu-info-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}',
       '.mu-info-title{font-size:14px;font-weight:600}',
+      '.mu-info-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}',
       '.mu-chip-sm{height:24px;padding:0 8px;font-size:11px}',
       '.mu-search-history{position:absolute;top:34px;right:0;z-index:20;display:flex;flex-wrap:wrap;gap:4px;max-width:320px;padding:6px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:8px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.35))}',
       '.mu-queue-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
