@@ -3246,22 +3246,36 @@ window.__ModuleLoader__.load({
         return playModeLabel(playModeOf(snap))
       }
 
+      var origin = props.origin || null
+      var originVars =
+        origin === null
+          ? {}
+          : {
+              '--mu-np-ot': origin.top + 'px',
+              '--mu-np-or': origin.right + 'px',
+              '--mu-np-ob': origin.bottom + 'px',
+              '--mu-np-ol': origin.left + 'px',
+            }
+
       return h(
         'div',
         {
           className:
             'mu-np' +
-            (props.visible ? ' is-open' : '') +
+            (props.visible ? ' is-open' : origin !== null ? ' is-from-bar' : '') +
             (lyricBlur ? ' is-blur' : '') +
             ' mu-align-' +
             lyricAlign,
           role: 'dialog',
           'aria-label': t('page.openPlayer'),
-          style: {
-            '--mu-lyric-size': lyricSize + 'px',
-            '--mu-lyric-weight': String(lyricWeight),
-            '--mu-lyric-trans': Math.round((lyricSize * translationScale) / 100) + 'px',
-          },
+          style: Object.assign(
+            {
+              '--mu-lyric-size': lyricSize + 'px',
+              '--mu-lyric-weight': String(lyricWeight),
+              '--mu-lyric-trans': Math.round((lyricSize * translationScale) / 100) + 'px',
+            },
+            originVars,
+          ),
         },
         track && track.hasCover
           ? h('div', { className: 'mu-np-bg' }, h('img', { src: coverUrl(track.path), alt: '' }))
@@ -4220,6 +4234,7 @@ window.__ModuleLoader__.load({
       var toastTimerRef = useRef(null)
       var [npOpen, setNpOpen] = useState(false)
       var [npVisible, setNpVisible] = useState(false)
+      var npOriginRef = useRef(null)
       var [view, setView] = useState('songs')
       var [playlists, setPlaylists] = useState([])
       var [favorites, setFavorites] = useState([])
@@ -4389,6 +4404,23 @@ window.__ModuleLoader__.load({
         if (npTimerRef.current !== null) {
           window.clearTimeout(npTimerRef.current)
           npTimerRef.current = null
+        }
+        // Measure the bar so the page can unfold from it (FLIP-style).
+        try {
+          var bar = document.querySelector('.mu-bar')
+          var root = document.querySelector('.mu-root')
+          if (bar !== null && root !== null) {
+            var barRect = bar.getBoundingClientRect()
+            var rootRect = root.getBoundingClientRect()
+            npOriginRef.current = {
+              top: Math.max(0, Math.round(barRect.top - rootRect.top)),
+              right: Math.max(0, Math.round(rootRect.right - barRect.right)),
+              bottom: Math.max(0, Math.round(rootRect.bottom - barRect.bottom)),
+              left: Math.max(0, Math.round(barRect.left - rootRect.left)),
+            }
+          }
+        } catch (error) {
+          npOriginRef.current = null
         }
         setNpOpen(true)
         window.requestAnimationFrame(function () {
@@ -6838,6 +6870,7 @@ window.__ModuleLoader__.load({
               player: player,
               snapshot: snap,
               visible: npVisible,
+              origin: npOriginRef.current,
               onClose: closeNowPlaying,
             })
           : null,
@@ -7393,8 +7426,11 @@ window.__ModuleLoader__.load({
       '.mu-clickable{cursor:pointer;border-radius:8px;padding:4px 6px;margin:-4px -6px;min-width:0}',
       '.mu-clickable:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
       '.mu-clickable:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
-      '.mu-np{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);opacity:0;transform:translateY(28px) scale(.985);transition:opacity .24s ease,transform .32s cubic-bezier(.22,.61,.36,1);pointer-events:none;user-select:none}',
-      '.mu-np.is-open{opacity:1;transform:none;pointer-events:auto}',
+      '.mu-np{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);clip-path:inset(0 0 0 0 round 0);opacity:0;transform:none;transition:opacity .26s ease,clip-path .36s cubic-bezier(.22,.61,.36,1),transform .36s cubic-bezier(.22,.61,.36,1);pointer-events:none;user-select:none}',
+      '.mu-np.is-from-bar{clip-path:inset(var(--mu-np-ot,0px) var(--mu-np-or,0px) var(--mu-np-ob,0px) var(--mu-np-ol,0px) round 14px);opacity:0;transform:translateY(8px) scale(.995)}',
+      '.mu-np.is-open{clip-path:inset(0 0 0 0 round 0);opacity:1;transform:none;pointer-events:auto}',
+      '.mu-np.is-open .mu-np-head,.mu-np.is-open .mu-np-body{animation:mu-np-content-in .42s cubic-bezier(.22,.61,.36,1) both}',
+      '@keyframes mu-np-content-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}',
       '.mu-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
       '.mu-np-bg img{width:100%;height:100%;object-fit:cover;filter:blur(72px) saturate(1.35) brightness(.42);transform:scale(1.15)}',
       '.mu-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,10,12,.35),rgba(10,10,12,.72) 60%,rgba(10,10,12,.92));pointer-events:none}',
