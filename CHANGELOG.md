@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.42
+
+### 变更
+
+- 播放页切换按 YesPlayMusic 源码的 `.slide-up` 过渡实现：`transform: translateY(100%)` + `transition: transform .4s ease`，挂载两帧后加 `is-open` 上滑；关闭时移除类、420ms 后卸载
+- 底栏在播放页打开时淡出上移（`.is-bar-hidden`），关闭时恢复
+
+### 修复
+
+- 移除 0.3.38–0.3.41 中基于 WAAPI / 测量 / 克隆的过渡代码，动画时序和错位问题一并消除
+
 ## 0.3.41
 
 ### 变更
