@@ -3629,7 +3629,10 @@ window.__ModuleLoader__.load({
                       type: 'button',
                       className:
                         'mu-icon-btn' +
-                        (props.favorites && props.favorites.indexOf(track.path) >= 0
+                        (props.favorites &&
+                        props.favorites.some(function (entry) {
+                          return entry && entry.path === track.path
+                        })
                           ? ' is-on'
                           : ''),
                       title: t('page.favorite'),
@@ -6057,7 +6060,7 @@ window.__ModuleLoader__.load({
                 resetKey: view + '|' + String(playlistId),
                 selected: selected,
                 isFavorite: function (track) {
-                  return favorites.indexOf(track.path) >= 0
+                  return favoritePaths[track.path] === true
                 },
                 currentPath: current !== null ? current.path : '',
                 playing: snap.playing,
