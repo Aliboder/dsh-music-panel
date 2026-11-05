@@ -33,6 +33,7 @@ window.__ModuleLoader__.load({
     /** Defaults for every appearance / lyric preference. */
     var PREF_DEFAULTS = {
       miniPlayer: true,
+      composerQueueButton: true,
       circularCover: true,
       vinylRing: false,
       coverSpin: true,
@@ -210,6 +211,7 @@ window.__ModuleLoader__.load({
         'settings.pickEmpty': '没有选中文件夹。',
         'settings.pickFailed': '无法读取文件夹路径，请重试或手动填写。',
         'settings.miniPlayer': '迷你浮窗',
+        'settings.composerQueueButton': '输入框播放列表按钮',
         'settings.circularCover': '播放页圆形封面',
         'settings.vinylRing': '圆形封面黑胶底盘',
         'settings.coverSpin': '圆形封面旋转',
@@ -385,6 +387,7 @@ window.__ModuleLoader__.load({
         'settings.pickEmpty': 'No folder selected.',
         'settings.pickFailed': 'Could not read the folder path. Try again or type it manually.',
         'settings.miniPlayer': 'Mini player window',
+        'settings.composerQueueButton': 'Playlist button in composer',
         'settings.circularCover': 'Circular cover on player page',
         'settings.vinylRing': 'Vinyl ring behind the cover',
         'settings.coverSpin': 'Rotate the cover',
@@ -2031,6 +2034,278 @@ window.__ModuleLoader__.load({
 
     // ── mini player (draggable floating window) ────────────────────────────
 
+    // ── shared playback list (queue overlay) ──────────────────────────────
+    // Opened from the composer button and the player bar. The mini player is
+    // no longer a standalone floating window: it lives in this overlay header.
+
+    var queueOverlayOpen = false
+    var queueOverlayListeners = []
+
+    function queueOverlaySnapshot() {
+      return queueOverlayOpen
+    }
+
+    function toggleQueueOverlay(next) {
+      queueOverlayOpen = next === undefined ? !queueOverlayOpen : next === true
+      queueOverlayListeners.slice().forEach(function (listener) {
+        listener()
+      })
+    }
+
+    function subscribeQueueOverlay(listener) {
+      queueOverlayListeners = queueOverlayListeners.concat([listener])
+      return function () {
+        queueOverlayListeners = queueOverlayListeners.filter(function (item) {
+          return item !== listener
+        })
+      }
+    }
+
+    /** [{ track, originalIndex }] in actual playback order. */
+    function buildQueueView(snap, playOrder) {
+      if (snap.order === 'random' && Array.isArray(playOrder) && playOrder.length === snap.queue.length) {
+        return playOrder.map(function (originalIndex) {
+          return { track: snap.queue[originalIndex], originalIndex: originalIndex }
+        })
+      }
+      return snap.queue.map(function (track, originalIndex) {
+        return { track: track, originalIndex: originalIndex }
+      })
+    }
+
+    function QueueNowPlaying() {
+      var [snap, setSnap] = useState(player.getSnapshot())
+      useEffect(function () {
+        return player.subscribe(function () {
+          setSnap(player.getSnapshot())
+        })
+      }, [])
+      var track = snap.index >= 0 && snap.queue[snap.index] ? snap.queue[snap.index] : null
+      if (track === null) {
+        return h('div', { className: 'mu-qoverlay-now is-empty' }, t('page.noTrack'))
+      }
+      return h(
+        'div',
+        { className: 'mu-qoverlay-now' },
+        h(Cover, { track: track, size: 44, radius: 8 }),
+        h(
+          'div',
+          { className: 'mu-qoverlay-now-main' },
+          h('div', { className: 'mu-qoverlay-now-title mu-ellipsis' }, track.title),
+          h('div', { className: 'mu-qoverlay-now-artist mu-ellipsis' }, track.artist || t('page.unknownArtist')),
+        ),
+        h(
+          'div',
+          { className: 'mu-qoverlay-now-controls' },
+          h(
+            'button',
+            { type: 'button', className: 'mu-icon-btn', title: t('page.prev'), onClick: function () { player.prev() } },
+            icon('prev', 16),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-icon-btn',
+              title: snap.playing ? t('page.pause') : t('page.play'),
+              onClick: function () { player.toggle() },
+            },
+            icon(snap.playing ? 'pause' : 'play', 18),
+          ),
+          h(
+            'button',
+            { type: 'button', className: 'mu-icon-btn', title: t('page.next'), onClick: function () { player.next() } },
+            icon('next', 16),
+          ),
+        ),
+      )
+    }
+
+    function QueueOverlay() {
+      var [open, setOpen] = useState(queueOverlaySnapshot())
+      var [snap, setSnap] = useState(player.getSnapshot())
+      var [dragFrom, setDragFrom] = useState(null)
+      var [dragOver, setDragOver] = useState(null)
+      var ref = useRef(null)
+
+      useEffect(function () {
+        return subscribeQueueOverlay(function () {
+          setOpen(queueOverlaySnapshot())
+        })
+      }, [])
+      useEffect(function () {
+        return player.subscribe(function () {
+          setSnap(player.getSnapshot())
+        })
+      }, [])
+      useEffect(function () {
+        if (!open) return undefined
+        function onKey(event) {
+          if (event.key === 'Escape') toggleQueueOverlay(false)
+        }
+        function onPointerDown(event) {
+          if (ref.current !== null && ref.current.contains(event.target)) return
+          toggleQueueOverlay(false)
+        }
+        document.addEventListener('keydown', onKey)
+        document.addEventListener('mousedown', onPointerDown)
+        return function () {
+          document.removeEventListener('keydown', onKey)
+          document.removeEventListener('mousedown', onPointerDown)
+        }
+      }, [open])
+
+      if (!open) return null
+      var queueView = buildQueueView(snap, player.getPlayOrder())
+      var rows = queueView.map(function (entry, position) {
+        var track = entry.track
+        var originalIndex = entry.originalIndex
+        var visibleCurrent = originalIndex === snap.index
+        return h(
+          'div',
+          {
+            key: position + ':' + track.path,
+            className:
+              'mu-queue-row' +
+              (visibleCurrent ? ' is-current' : '') +
+              (dragFrom === position ? ' is-dragging' : '') +
+              (dragOver === position && dragFrom !== position ? ' is-drop-target' : ''),
+            draggable: true,
+            onClick: function () {
+              player.select(snap.queue, originalIndex)
+            },
+            onDragStart: function (event) {
+              setDragFrom(position)
+              setDragOver(position)
+              if (event.dataTransfer !== null && event.dataTransfer !== undefined) {
+                event.dataTransfer.effectAllowed = 'move'
+                try {
+                  event.dataTransfer.setData('text/plain', String(position))
+                } catch (error) {
+                  // ignore
+                }
+              }
+            },
+            onDragOver: function (event) {
+              event.preventDefault()
+              if (event.dataTransfer !== null && event.dataTransfer !== undefined) {
+                event.dataTransfer.dropEffect = 'move'
+              }
+              if (dragOver !== position) setDragOver(position)
+            },
+            onDragLeave: function () {
+              if (dragOver === position) setDragOver(null)
+            },
+            onDrop: function (event) {
+              event.preventDefault()
+              var from = dragFrom
+              if (from !== null && from !== position) {
+                var order = queueView.map(function (item) {
+                  return item.originalIndex
+                })
+                var moved = order.splice(from, 1)[0]
+                order.splice(position, 0, moved)
+                player.reorderQueue(order)
+              }
+              setDragFrom(null)
+              setDragOver(null)
+            },
+            onDragEnd: function () {
+              setDragFrom(null)
+              setDragOver(null)
+            },
+          },
+          h('span', { className: 'mu-queue-grip', title: t('page.dragSort') }, '⋮⋮'),
+          h(
+            'span',
+            { className: 'mu-queue-index' },
+            visibleCurrent && snap.playing ? '▶' : String(position + 1),
+          ),
+          h('span', { className: 'mu-ellipsis' }, track.title),
+          h('span', { className: 'mu-queue-artist mu-ellipsis' }, track.artist || ''),
+          h(
+            'span',
+            { className: 'mu-queue-actions' },
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-queue-btn',
+                title: t('page.removeTrack'),
+                onClick: function (event) {
+                  event.stopPropagation()
+                  player.removeQueueAt(originalIndex)
+                },
+              },
+              '×',
+            ),
+          ),
+        )
+      })
+
+      return h(
+        'div',
+        { className: 'mu-qoverlay', ref: ref },
+        h(QueueNowPlaying, null),
+        h(
+          'div',
+          { className: 'mu-qoverlay-head' },
+          h('span', null, t('page.queue')),
+          h('span', { className: 'mu-queue-mode' }, playModeLabel(playModeOf(snap))),
+          h(
+            'button',
+            { type: 'button', className: 'mu-icon-btn mu-icon-btn-sm', onClick: function () { toggleQueueOverlay(false) } },
+            icon('x', 14),
+          ),
+        ),
+        h(
+          'div',
+          { className: 'mu-qoverlay-list' },
+          snap.queue.length === 0 ? h('div', { className: 'mu-state-sub' }, t('page.queueEmpty')) : rows,
+        ),
+      )
+    }
+
+    function ComposerQueueButton() {
+      var [snap, setSnap] = useState(player.getSnapshot())
+      var [enabled, setEnabled] = useState(function () {
+        return readPrefs().composerQueueButton !== false
+      })
+      var [open, setOpen] = useState(queueOverlaySnapshot())
+      useEffect(function () {
+        return player.subscribe(function () {
+          setSnap(player.getSnapshot())
+        })
+      }, [])
+      useEffect(function () {
+        function onChange() {
+          setEnabled(readPrefs().composerQueueButton !== false)
+        }
+        window.addEventListener(PREFS_EVENT, onChange)
+        return function () {
+          window.removeEventListener(PREFS_EVENT, onChange)
+        }
+      }, [])
+      useEffect(function () {
+        return subscribeQueueOverlay(function () {
+          setOpen(queueOverlaySnapshot())
+        })
+      }, [])
+      if (!enabled) return null
+      return h(
+        'button',
+        {
+          type: 'button',
+          className: 'mu-composer-queue-btn' + (open ? ' is-on' : '') + (snap.playing ? ' is-playing' : ''),
+          title: t('page.queue'),
+          onClick: function () {
+            toggleQueueOverlay()
+          },
+        },
+        icon('list', 16),
+      )
+    }
+
     function MiniPlayer() {
       var [enabled, setEnabled] = useState(function () {
         return readPrefs().miniPlayer === true
@@ -3108,18 +3383,6 @@ window.__ModuleLoader__.load({
       var prefs = useRef(readPrefs()).current
       var [snap, setSnap] = useState(player.getSnapshot())
       var leaderNow = player.isLeader()
-      var playOrder = player.getPlayOrder()
-      // In random mode the queue panel lists songs in the order they will
-      // actually play ("from top to bottom"), while edits still target the
-      // original queue indices.
-      var queueView =
-        snap.order === 'random' && Array.isArray(playOrder) && playOrder.length === snap.queue.length
-          ? playOrder.map(function (originalIndex) {
-              return { track: snap.queue[originalIndex], originalIndex: originalIndex }
-            })
-          : snap.queue.map(function (track, originalIndex) {
-              return { track: track, originalIndex: originalIndex }
-            })
       var [config, setConfig] = useState(null)
       var [tracks, setTracks] = useState([])
       var [loading, setLoading] = useState(true)
@@ -3164,9 +3427,12 @@ window.__ModuleLoader__.load({
       var [sortDir, setSortDir] = useState(prefs.sortDir === 'desc' ? 'desc' : 'asc')
       var [sortOpen, setSortOpen] = useState(false)
       var [selected, setSelected] = useState([])
-      var [queueOpen, setQueueOpen] = useState(false)
-      var [queueDragFrom, setQueueDragFrom] = useState(null)
-      var [queueDragOver, setQueueDragOver] = useState(null)
+      var [queueOpen, setQueueOpen] = useState(queueOverlaySnapshot())
+      useEffect(function () {
+        return subscribeQueueOverlay(function () {
+          setQueueOpen(queueOverlaySnapshot())
+        })
+      }, [])
       var [moreOpen, setMoreOpen] = useState(false)
       var [toast, setToast] = useState('')
       var toastTimerRef = useRef(null)
@@ -3937,11 +4203,10 @@ window.__ModuleLoader__.load({
       return h(
         'div',
         { className: 'mu-root' },
-        queueOpen || moreOpen
+        moreOpen
           ? h('div', {
               className: 'mu-scrim',
               onClick: function () {
-                setQueueOpen(false)
                 setMoreOpen(false)
               },
             })
@@ -4257,8 +4522,8 @@ window.__ModuleLoader__.load({
                 ? h(
                     'div',
                     { className: 'mu-prefs-body' },
-                    settingToggle(t('settings.miniPlayer'), prefsUi.miniPlayer, function (value) {
-                      updatePref('miniPlayer', value)
+                    settingToggle(t('settings.composerQueueButton'), prefsUi.composerQueueButton, function (value) {
+                      updatePref('composerQueueButton', value)
                     }),
                     settingToggle(t('settings.circularCover'), prefsUi.circularCover, function (value) {
                       updatePref('circularCover', value)
@@ -4808,7 +5073,7 @@ window.__ModuleLoader__.load({
                   className: 'mu-icon-btn' + (queueOpen ? ' is-on' : ''),
                   title: t('page.queue'),
                   onClick: function () {
-                    setQueueOpen(!queueOpen)
+                    toggleQueueOverlay()
                     setMoreOpen(false)
                   },
                 },
@@ -4842,7 +5107,7 @@ window.__ModuleLoader__.load({
                   title: t('page.more'),
                   onClick: function () {
                     setMoreOpen(!moreOpen)
-                    setQueueOpen(false)
+                    toggleQueueOverlay(false)
                   },
                 },
                 icon('more', 18),
@@ -4850,122 +5115,6 @@ window.__ModuleLoader__.load({
             ),
           ),
         ),
-
-        queueOpen
-          ? h(
-              'div',
-              { className: 'mu-pop mu-queue' },
-              h(
-                'div',
-                { className: 'mu-pop-head' },
-                h('span', null, t('page.queue')),
-                h('span', { className: 'mu-queue-mode' }, loopLabel()),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-icon-btn mu-icon-btn-sm',
-                    onClick: function () {
-                      setQueueOpen(false)
-                    },
-                  },
-                  icon('x', 14),
-                ),
-              ),
-              h(
-                'div',
-                { className: 'mu-pop-body' },
-                snap.queue.length === 0
-                  ? h('div', { className: 'mu-state-sub' }, t('page.queueEmpty'))
-                  : queueView.map(function (entry, position) {
-                      var track = entry.track
-                      var originalIndex = entry.originalIndex
-                      var visibleCurrent = originalIndex === snap.index
-                      return h(
-                        'div',
-                        {
-                          key: position + ':' + track.path,
-                          className:
-                            'mu-queue-row' +
-                            (visibleCurrent ? ' is-current' : '') +
-                            (queueDragFrom === position ? ' is-dragging' : '') +
-                            (queueDragOver === position && queueDragFrom !== position ? ' is-drop-target' : ''),
-                          draggable: true,
-                          onClick: function () {
-                            player.select(snap.queue, originalIndex)
-                          },
-                          onDragStart: function (event) {
-                            setQueueDragFrom(position)
-                            setQueueDragOver(position)
-                            if (event.dataTransfer !== null && event.dataTransfer !== undefined) {
-                              event.dataTransfer.effectAllowed = 'move'
-                              // Firefox needs data for a drag to start.
-                              try {
-                                event.dataTransfer.setData('text/plain', String(position))
-                              } catch (error) {
-                                // ignore
-                              }
-                            }
-                          },
-                          onDragOver: function (event) {
-                            event.preventDefault()
-                            if (event.dataTransfer !== null && event.dataTransfer !== undefined) {
-                              event.dataTransfer.dropEffect = 'move'
-                            }
-                            if (queueDragOver !== position) setQueueDragOver(position)
-                          },
-                          onDragLeave: function () {
-                            if (queueDragOver === position) setQueueDragOver(null)
-                          },
-                          onDrop: function (event) {
-                            event.preventDefault()
-                            var from = queueDragFrom
-                            if (from !== null && from !== position) {
-                              var order = queueView.map(function (item) {
-                                return item.originalIndex
-                              })
-                              var moved = order.splice(from, 1)[0]
-                              order.splice(position, 0, moved)
-                              player.reorderQueue(order)
-                            }
-                            setQueueDragFrom(null)
-                            setQueueDragOver(null)
-                          },
-                          onDragEnd: function () {
-                            setQueueDragFrom(null)
-                            setQueueDragOver(null)
-                          },
-                        },
-                        h('span', { className: 'mu-queue-grip', title: t('page.dragSort') }, '⋮⋮'),
-                        h(
-                          'span',
-                          { className: 'mu-queue-index' },
-                          visibleCurrent && snap.playing ? '▶' : String(position + 1),
-                        ),
-                        h('span', { className: 'mu-ellipsis' }, track.title),
-                        h('span', { className: 'mu-queue-artist mu-ellipsis' }, track.artist || ''),
-                        h(
-                          'span',
-                          { className: 'mu-queue-actions' },
-                          h(
-                            'button',
-                            {
-                              type: 'button',
-                              className: 'mu-queue-btn',
-                              title: t('page.removeTrack'),
-                              onClick: function (event) {
-                                event.stopPropagation()
-                                player.removeQueueAt(originalIndex)
-                              },
-                            },
-                            '×',
-                          ),
-                        ),
-                      )
-                    }),
-              ),
-            )
-          : null,
 
         moreOpen
           ? h(
@@ -5320,6 +5469,20 @@ window.__ModuleLoader__.load({
       '.mu-bar-right{display:flex;align-items:center;gap:6px;justify-self:end}',
       '.mu-quality{font-size:12px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap}',
       '.mu-pop{position:absolute;right:16px;bottom:84px;z-index:40;width:330px;max-height:58%;display:flex;flex-direction:column;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5));overflow:hidden}',
+      '.mu-qoverlay{position:fixed;right:24px;bottom:96px;z-index:70;width:360px;max-width:calc(100vw - 48px);max-height:62vh;display:flex;flex-direction:column;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5));overflow:hidden}',
+      '.mu-qoverlay-now{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mu-qoverlay-now.is-empty{padding:14px 12px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:12px}',
+      '.mu-qoverlay-now-main{flex:1;min-width:0}',
+      '.mu-qoverlay-now-title{font-size:13px;font-weight:600}',
+      '.mu-qoverlay-now-artist{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
+      '.mu-qoverlay-now-controls{display:flex;align-items:center;gap:2px}',
+      '.mu-qoverlay-head{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));font-size:12px;font-weight:600}',
+      '.mu-qoverlay-head .mu-icon-btn{margin-left:auto}',
+      '.mu-qoverlay-list{flex:1;min-height:0;overflow-y:auto;padding:6px}',
+      '.mu-composer-queue-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;flex:none}',
+      '.mu-composer-queue-btn:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mu-composer-queue-btn.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
+      '.mu-composer-queue-btn.is-playing::after{content:"";position:absolute;top:4px;right:4px;width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-brand-primary,#f4f4f5)}',
       '.mu-pop-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 6px;font-size:12px;font-weight:600}',
       '.mu-pop-body{overflow-y:auto;padding:0 6px 8px}',
       '.mu-queue-row{display:grid;grid-template-columns:14px 26px minmax(0,1fr) minmax(0,70px) auto;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--dsw-radius-sm,6px);font-size:12px;cursor:pointer}',
@@ -5718,8 +5881,14 @@ window.__ModuleLoader__.load({
           },
         )
 
-        // Global gradient background (lowest layer) and the mini player window.
-        mount('shell.overlay', { name: 'shell.overlay', id: 'music-mini', order: 40 }, MiniPlayer)
+        // Shared playback list overlay (the mini player lives in its header)
+        // and the composer shortcut button before the submit action.
+        mount('shell.overlay', { name: 'shell.overlay', id: 'music-queue', order: 16 }, QueueOverlay)
+        mount(
+          'conversation.input.right',
+          { name: 'conversation.input.right', id: 'music-queue-button', order: 10 },
+          ComposerQueueButton,
+        )
 
       },
     }
