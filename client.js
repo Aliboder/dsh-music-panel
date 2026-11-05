@@ -185,6 +185,21 @@ window.__ModuleLoader__.load({
         'page.details': '详细信息',
         'page.noPlaylists': '还没有歌单',
         'page.newPlaylistAdd': '新建歌单并添加',
+        'page.editMeta': '编辑元数据',
+        'page.metaTitle': '标题',
+        'page.year': '年份',
+        'page.trackNo': '音轨号',
+        'page.discNo': '碟号',
+        'page.genre': '风格',
+        'page.albumArtist': '专辑艺术家',
+        'page.composer': '作曲',
+        'page.lyricist': '作词',
+        'page.comment': '注释',
+        'page.lyrics': '歌词',
+        'page.save': '保存',
+        'page.saving': '保存中…',
+        'page.metaSaved': '元数据已保存',
+        'page.metaHint': '修改会直接写入音频文件标签（FLAC / MP3）；封面与未编辑的标签会保留。',
         'page.addedCount': '已添加 {n} 首',
         'page.trackCount': '{n} 首',
         'page.removeTrack': '从歌单移除',
@@ -373,6 +388,21 @@ window.__ModuleLoader__.load({
         'page.details': 'Details',
         'page.noPlaylists': 'No playlists yet',
         'page.newPlaylistAdd': 'New playlist and add',
+        'page.editMeta': 'Edit metadata',
+        'page.metaTitle': 'Title',
+        'page.year': 'Year',
+        'page.trackNo': 'Track no.',
+        'page.discNo': 'Disc no.',
+        'page.genre': 'Genre',
+        'page.albumArtist': 'Album artist',
+        'page.composer': 'Composer',
+        'page.lyricist': 'Lyricist',
+        'page.comment': 'Comment',
+        'page.lyrics': 'Lyrics',
+        'page.save': 'Save',
+        'page.saving': 'Saving…',
+        'page.metaSaved': 'Metadata saved',
+        'page.metaHint': 'Changes are written to the audio file tags (FLAC / MP3). Cover art and untouched tags are preserved.',
         'page.addedCount': '{n} added',
         'page.trackCount': '{n} tracks',
         'page.removeTrack': 'Remove from playlist',
@@ -3660,6 +3690,22 @@ window.__ModuleLoader__.load({
       var [infoPath, setInfoPath] = useState(null)
       var [newPlaylistOpen, setNewPlaylistOpen] = useState(false)
       var [newPlaylistName, setNewPlaylistName] = useState('')
+      var [tagEditPath, setTagEditPath] = useState(null)
+      var [tagForm, setTagForm] = useState(null)
+      var [tagSaving, setTagSaving] = useState(false)
+      var TAG_EDIT_ROWS = [
+        ['title', 'page.metaTitle'],
+        ['artist', 'page.artist'],
+        ['album', 'page.album'],
+        ['year', 'page.year'],
+        ['track', 'page.trackNo'],
+        ['disc', 'page.discNo'],
+        ['genre', 'page.genre'],
+        ['albumArtist', 'page.albumArtist'],
+        ['composer', 'page.composer'],
+        ['lyricist', 'page.lyricist'],
+        ['comment', 'page.comment'],
+      ]
       var playlistTitleRef = useRef(null)
       var [moreOpen, setMoreOpen] = useState(false)
       var [toast, setToast] = useState('')
@@ -3956,7 +4002,9 @@ window.__ModuleLoader__.load({
       }
 
       function copyPath(track) {
-        var target = track && track.path ? track : current
+        var snapNow = player.getSnapshot()
+        var fallback = snapNow.index >= 0 ? snapNow.queue[snapNow.index] : null
+        var target = track && track.path ? track : fallback
         if (!target) return
         try {
           navigator.clipboard.writeText(target.path).then(
@@ -3996,6 +4044,40 @@ window.__ModuleLoader__.load({
             showToast(t('page.addedCount', { n: paths.length }))
           })
           .catch(function (error) {
+            showToast(String((error && error.message) || error))
+          })
+      }
+
+      function openTagEditor(path) {
+        setTagEditPath(path)
+        setTagForm(null)
+        getJson(API + 'tags?path=' + encodeURIComponent(path))
+          .then(function (body) {
+            setTagForm(Object.assign({}, body.tags))
+          })
+          .catch(function (error) {
+            setTagEditPath(null)
+            showToast(String((error && error.message) || error))
+          })
+      }
+
+      function saveTagEditor() {
+        if (tagEditPath === null || tagForm === null || tagSaving) return
+        setTagSaving(true)
+        var snapNow = player.getSnapshot()
+        var playingThis =
+          snapNow.index >= 0 && snapNow.queue[snapNow.index] && snapNow.queue[snapNow.index].path === tagEditPath
+        if (playingThis) player.suspend()
+        requestJson('PUT', API + 'tags', { path: tagEditPath, tags: tagForm })
+          .then(function () {
+            showToast(t('page.metaSaved'))
+            setTagSaving(false)
+            setTagEditPath(null)
+            setTagForm(null)
+            return load(true)
+          })
+          .catch(function (error) {
+            setTagSaving(false)
             showToast(String((error && error.message) || error))
           })
       }
@@ -5595,6 +5677,20 @@ window.__ModuleLoader__.load({
                     icon('info', 12),
                     h('span', null, t('page.details')),
                   ),
+                  h(
+                    'button',
+                    {
+                      key: 'edit-meta',
+                      type: 'button',
+                      className: 'mu-ctx-item',
+                      onClick: function () {
+                        openTagEditor(ctxMenu.path)
+                        close()
+                      },
+                    },
+                    icon('edit', 12),
+                    h('span', null, t('page.editMeta')),
+                  ),
                   view === 'playlists' && activePlaylist !== undefined
                     ? h(
                         'button',
@@ -5742,6 +5838,114 @@ window.__ModuleLoader__.load({
                     t('page.create'),
                   ),
                 ),
+              ),
+            )
+          : null,
+
+        tagEditPath !== null
+          ? h(
+              'div',
+              { className: 'mu-info-layer' },
+              h('div', {
+                className: 'mu-info-scrim',
+                onClick: function () {
+                  if (!tagSaving) {
+                    setTagEditPath(null)
+                    setTagForm(null)
+                  }
+                },
+              }),
+              h(
+                'div',
+                { className: 'mu-info mu-tag-editor' },
+                h(
+                  'div',
+                  { className: 'mu-info-head' },
+                  h('span', { className: 'mu-info-title' }, t('page.editMeta')),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-icon-btn-sm',
+                      onClick: function () {
+                        if (!tagSaving) {
+                          setTagEditPath(null)
+                          setTagForm(null)
+                        }
+                      },
+                    },
+                    icon('x', 14),
+                  ),
+                ),
+                tagForm === null
+                  ? h('div', { className: 'mu-state-sub' }, '…')
+                  : h(
+                      'div',
+                      { className: 'mu-tag-form' },
+                      TAG_EDIT_ROWS.map(function (row) {
+                        var key = row[0]
+                        return h(
+                          'label',
+                          { className: 'mu-tag-row', key: key },
+                          h('span', { className: 'mu-tag-label' }, t(row[1])),
+                          h('input', {
+                            type: 'text',
+                            className: 'mu-input',
+                            value: tagForm[key] || '',
+                            onChange: function (event) {
+                              var value = event.target.value
+                              setTagForm(function (previous) {
+                                return Object.assign({}, previous, { [key]: value })
+                              })
+                            },
+                          }),
+                        )
+                      }),
+                      h(
+                        'label',
+                        { className: 'mu-tag-row mu-tag-row-lyrics' },
+                        h('span', { className: 'mu-tag-label' }, t('page.lyrics')),
+                        h('textarea', {
+                          className: 'mu-input mu-tag-lyrics',
+                          rows: 8,
+                          value: tagForm.lyrics || '',
+                          onChange: function (event) {
+                            var value = event.target.value
+                            setTagForm(function (previous) {
+                              return Object.assign({}, previous, { lyrics: value })
+                            })
+                          },
+                        }),
+                      ),
+                      h('p', { className: 'mu-tag-hint' }, t('page.metaHint')),
+                      h(
+                        'div',
+                        { className: 'mu-info-actions' },
+                        h(
+                          'button',
+                          {
+                            type: 'button',
+                            className: 'mu-btn',
+                            disabled: tagSaving,
+                            onClick: function () {
+                              setTagEditPath(null)
+                              setTagForm(null)
+                            },
+                          },
+                          t('page.cancel'),
+                        ),
+                        h(
+                          'button',
+                          {
+                            type: 'button',
+                            className: 'mu-btn mu-chip-accent',
+                            disabled: tagSaving,
+                            onClick: saveTagEditor,
+                          },
+                          tagSaving ? t('page.saving') : t('page.save'),
+                        ),
+                      ),
+                    ),
               ),
             )
           : null,
@@ -6120,6 +6324,13 @@ window.__ModuleLoader__.load({
       '.mu-info-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}',
       '.mu-info-title{font-size:14px;font-weight:600}',
       '.mu-info-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}',
+      '.mu-tag-editor{width:520px;max-height:82vh}',
+      '.mu-tag-form{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto;padding-right:4px}',
+      '.mu-tag-row{display:grid;grid-template-columns:88px 1fr;align-items:center;gap:10px}',
+      '.mu-tag-row-lyrics{align-items:start}',
+      '.mu-tag-label{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-tag-lyrics{min-height:150px;resize:vertical;font-family:var(--dsw-font-family,inherit);line-height:1.5}',
+      '.mu-tag-hint{margin:10px 0 0;font-size:11px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-chip-sm{height:24px;padding:0 8px;font-size:11px}',
       '.mu-search-history{position:absolute;top:34px;right:0;z-index:20;display:flex;flex-wrap:wrap;gap:4px;max-width:320px;padding:6px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:8px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.35))}',
       '.mu-queue-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
