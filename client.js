@@ -207,6 +207,11 @@ window.__ModuleLoader__.load({
         'page.onlineLoading': '在线搜索中…',
         'page.onlineEmpty': '没有找到匹配结果',
         'page.onlineResults': '在线搜索结果',
+        'page.sourceNetease': '网易云',
+        'page.sourceQq': 'QQ 音乐',
+        'page.sourceItunes': 'iTunes',
+        'page.sourceMusicbrainz': 'MusicBrainz',
+        'page.results': '个结果',
         'page.addedCount': '已添加 {n} 首',
         'page.trackCount': '{n} 首',
         'page.removeTrack': '从歌单移除',
@@ -417,6 +422,11 @@ window.__ModuleLoader__.load({
         'page.onlineLoading': 'Searching online…',
         'page.onlineEmpty': 'No matching result',
         'page.onlineResults': 'Online results',
+        'page.sourceNetease': 'NetEase',
+        'page.sourceQq': 'QQ Music',
+        'page.sourceItunes': 'iTunes',
+        'page.sourceMusicbrainz': 'MusicBrainz',
+        'page.results': 'results',
         'page.addedCount': '{n} added',
         'page.trackCount': '{n} tracks',
         'page.removeTrack': 'Remove from playlist',
@@ -2556,6 +2566,57 @@ window.__ModuleLoader__.load({
         { className: 'mu-composer-cluster' },
         h(ComposerLyrics, { place: 'inline' }),
         h(ComposerQueueButton, null),
+      )
+    }
+
+    function sourceLabel(source) {
+      if (source === 'netease') return t('page.sourceNetease')
+      if (source === 'qq') return t('page.sourceQq')
+      if (source === 'itunes') return t('page.sourceItunes')
+      if (source === 'musicbrainz') return t('page.sourceMusicbrainz')
+      return source || ''
+    }
+
+    /** One online-match candidate: cover, title/artist/album and source badges. */
+    function MatchItem(props) {
+      var [size, setSize] = useState('')
+      var item = props.item
+      return h(
+        'button',
+        { type: 'button', className: 'mu-match-item', onClick: props.onPick },
+        h(
+          'span',
+          { className: 'mu-match-thumb' },
+          item.coverUrl
+            ? h('img', {
+                className: 'mu-match-cover',
+                src: item.coverUrl,
+                loading: 'lazy',
+                alt: '',
+                onLoad: function (event) {
+                  var el = event.target
+                  if (el && el.naturalWidth > 0) setSize(el.naturalWidth + '×' + el.naturalHeight)
+                },
+              })
+            : h('span', { className: 'mu-match-cover is-empty' }, icon('note', 22)),
+        ),
+        h(
+          'span',
+          { className: 'mu-match-info' },
+          h('span', { className: 'mu-match-title mu-ellipsis' }, item.title || ''),
+          h('span', { className: 'mu-match-artist mu-ellipsis' }, item.artist || ''),
+          h('span', { className: 'mu-match-album mu-ellipsis' }, item.album || ''),
+          h(
+            'span',
+            { className: 'mu-match-meta' },
+            item.year ? h('span', { className: 'mu-match-badge', key: 'year' }, item.year) : null,
+            size !== '' ? h('span', { className: 'mu-match-badge', key: 'size' }, size) : null,
+            item.track ? h('span', { className: 'mu-match-badge', key: 'track' }, 'Track ' + item.track) : null,
+            item.disc ? h('span', { className: 'mu-match-badge', key: 'disc' }, 'Disc ' + item.disc) : null,
+            item.genre ? h('span', { className: 'mu-match-badge', key: 'genre' }, item.genre) : null,
+            h('span', { className: 'mu-match-badge is-source', key: 'source' }, sourceLabel(item.source)),
+          ),
+        ),
       )
     }
 
@@ -6044,87 +6105,6 @@ window.__ModuleLoader__.load({
                         h(
                           'div',
                           { className: 'mu-tag-main' },
-                        onlineOpen
-                          ? h(
-                              'div',
-                              { className: 'mu-tag-online' },
-                              h(
-                                'div',
-                                { className: 'mu-tag-online-head' },
-                                h('span', null, t('page.onlineResults')),
-                                h(
-                                  'button',
-                                  {
-                                    type: 'button',
-                                    className: 'mu-icon-btn mu-icon-btn-sm',
-                                    onClick: function () {
-                                      setOnlineOpen(false)
-                                    },
-                                  },
-                                  icon('x', 13),
-                                ),
-                              ),
-                              onlineLoading
-                                ? h('div', { className: 'mu-tag-online-empty' }, t('page.onlineLoading'))
-                                : onlineResults.length === 0
-                                  ? h('div', { className: 'mu-tag-online-empty' }, t('page.onlineEmpty'))
-                                  : onlineResults.map(function (item, index) {
-                                      var key = (item.source || 'x') + ':' + (item.id || index)
-                                      return h(
-                                        'button',
-                                        {
-                                          key: key,
-                                          type: 'button',
-                                          className: 'mu-online-item',
-                                          onClick: function () {
-                                            applyOnlineResult(item)
-                                          },
-                                        },
-                                        item.coverUrl
-                                          ? h('img', {
-                                              className: 'mu-online-cover',
-                                              src: item.coverUrl,
-                                              loading: 'lazy',
-                                              alt: '',
-                                            })
-                                          : h('span', { className: 'mu-online-cover' }, icon('note', 14)),
-                                        h(
-                                          'span',
-                                          { className: 'mu-online-text' },
-                                          h(
-                                            'span',
-                                            { className: 'mu-online-title mu-ellipsis' },
-                                            (item.title || '') +
-                                              (item.artist ? ' - ' + item.artist : ''),
-                                          ),
-                                          h(
-                                            'span',
-                                            { className: 'mu-online-sub mu-ellipsis' },
-                                            [item.album, item.year, item.source]
-                                              .filter(function (part) {
-                                                return part !== '' && part !== undefined
-                                              })
-                                              .join(' · '),
-                                          ),
-                                        ),
-                                      )
-                                    }),
-                              h('div', { className: 'mu-tag-online-hint' }, t('page.onlineHint')),
-                              onlineSources.length > 0
-                                ? h(
-                                    'div',
-                                    { className: 'mu-tag-online-sources' },
-                                    onlineSources.map(function (source) {
-                                      return h(
-                                        'span',
-                                        { key: source.source },
-                                        source.source + (source.ok ? ' ✓' : ' ✕'),
-                                      )
-                                    }),
-                                  )
-                                : null,
-                            )
-                          : null,
                         h(
                           'div',
                           { className: 'mu-tag-section' },
@@ -6193,6 +6173,94 @@ window.__ModuleLoader__.load({
                         ),
                       ),
                     ],
+              ),
+            )
+          : null,
+
+        onlineOpen
+          ? h(
+              'div',
+              { className: 'mu-info-layer mu-match-layer' },
+              h('div', { className: 'mu-info-scrim', onClick: function () { setOnlineOpen(false) } }),
+              h(
+                'div',
+                { className: 'mu-info mu-match-dialog' },
+                h(
+                  'div',
+                  { className: 'mu-info-head' },
+                  h(
+                    'span',
+                    { className: 'mu-info-title mu-ellipsis' },
+                    t('page.onlineMatch') + (tagForm && tagForm.title ? ' · ' + tagForm.title : ''),
+                  ),
+                  h(
+                    'div',
+                    { className: 'mu-tag-head-actions' },
+                    h(
+                      'span',
+                      { className: 'mu-match-count' },
+                      onlineLoading
+                        ? t('page.onlineLoading')
+                        : String(onlineResults.length) + ' ' + t('page.results'),
+                    ),
+                    h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mu-icon-btn mu-icon-btn-sm',
+                        onClick: function () {
+                          setOnlineOpen(false)
+                        },
+                      },
+                      icon('x', 14),
+                    ),
+                  ),
+                ),
+                h(
+                  'div',
+                  { className: 'mu-match-list' },
+                  onlineLoading
+                    ? h('div', { className: 'mu-match-empty' }, t('page.onlineLoading'))
+                    : onlineResults.length === 0
+                      ? h('div', { className: 'mu-match-empty' }, t('page.onlineEmpty'))
+                      : onlineResults.map(function (item, index) {
+                          return h(MatchItem, {
+                            key: (item.source || 'x') + ':' + (item.id || index),
+                            item: item,
+                            onPick: function () {
+                              applyOnlineResult(item)
+                            },
+                          })
+                        }),
+                ),
+                h(
+                  'div',
+                  { className: 'mu-match-foot' },
+                  h(
+                    'div',
+                    { className: 'mu-tag-online-sources' },
+                    onlineSources.length === 0
+                      ? h('span', null, t('page.onlineHint'))
+                      : onlineSources.map(function (source) {
+                          return h(
+                            'span',
+                            { key: source.source },
+                            sourceLabel(source.source) + (source.ok ? ' ✓' : ' ✕'),
+                          )
+                        }),
+                  ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-btn',
+                      onClick: function () {
+                        setOnlineOpen(false)
+                      },
+                    },
+                    t('page.cancel'),
+                  ),
+                ),
               ),
             )
           : null,
@@ -6607,6 +6675,24 @@ window.__ModuleLoader__.load({
       '.mu-tag-online-hint{font-size:10px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-tag-online-sources{display:flex;gap:8px;font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-tag-footer{flex:none;display:flex;justify-content:flex-end;gap:8px;padding:12px 22px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mu-match-layer{z-index:96}',
+      '.mu-match-dialog{width:940px;max-width:calc(100vw - 64px);height:min(780px,88vh);max-height:none;padding:0;display:flex;flex-direction:column;overflow:hidden}',
+      '.mu-match-dialog .mu-info-head{flex:none;padding:16px 22px;margin:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mu-match-count{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-match-list{flex:1;min-height:0;overflow-y:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px}',
+      '.mu-match-empty{padding:48px 0;text-align:center;font-size:13px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-match-item{display:grid;grid-template-columns:128px 1fr;gap:16px;padding:12px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03));cursor:pointer;text-align:left;color:var(--dsw-alias-label-primary,#f4f4f5);transition:border-color .12s,background .12s}',
+      '.mu-match-item:hover{border-color:color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 45%,transparent);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.05))}',
+      '.mu-match-thumb{display:block;width:128px;height:128px}',
+      '.mu-match-cover{width:128px;height:128px;border-radius:10px;object-fit:cover;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-match-info{display:flex;flex-direction:column;gap:5px;min-width:0;padding:2px 0}',
+      '.mu-match-title{font-size:16px;font-weight:600}',
+      '.mu-match-artist{font-size:13px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-match-album{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-match-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}',
+      '.mu-match-badge{font-size:10px;line-height:1;padding:4px 7px;border-radius:6px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-match-badge.is-source{color:var(--dsw-static-deepseek-450,#5686fe);background:color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 14%,transparent)}',
+      '.mu-match-foot{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 22px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
       '.mu-tag-editor .mu-input:focus{outline:none;border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.18));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.05));box-shadow:none}',
       '.mu-tag-editor .mu-input:focus-visible{outline:none}',
       '.mu-chip-sm{height:24px;padding:0 8px;font-size:11px}',
