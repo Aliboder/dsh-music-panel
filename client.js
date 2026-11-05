@@ -45,6 +45,11 @@ window.__ModuleLoader__.load({
       translationScale: 80,
       composerLyrics: false,
       composerLyricPlace: 'input-left',
+      // Resume behaviour follows mainstream desktop players: restore the queue
+      // and position on start, but stay paused until the user asks to play.
+      resumeOnStart: true,
+      autoResume: false,
+      rememberPerTrack: false,
     }
 
     // ── locale ────────────────────────────────────────────────────────────
@@ -122,7 +127,23 @@ window.__ModuleLoader__.load({
         'page.lyricWeight': '字体粗细',
         'page.lyricBlur': '模糊非当前歌词',
         'page.translationScale': '翻译字体缩放',
+        'stats.rangeWeek': '最近一周',
+        'stats.rangeMonth': '最近一月',
+        'stats.rangeAll': '全部时间',
+        'stats.sortTime': '按时长',
+        'stats.sortPlays': '按次数',
+        'stats.sortRecent': '按最近',
+        'stats.totalTime': '累计播放时长',
+        'stats.totalPlays': '总播放次数',
+        'stats.trackCount': '有记录曲目',
+        'stats.plays': '{n} 次',
+        'stats.empty': '还没有播放记录',
+        'stats.loading': '加载中…',
+        'stats.loadFailed': '统计加载失败',
+        'stats.retry': '重试',
+        'stats.unavailable': '文件已不可用',
         'page.tabSongs': '全部歌曲',
+        'page.tabStats': '统计',
         'page.tabPlaylists': '播放列表',
         'page.newPlaylist': '新建播放列表',
         'page.playlistName': '播放列表名称',
@@ -160,6 +181,11 @@ window.__ModuleLoader__.load({
         'settings.tabAppearance': '外观',
         'settings.tabLyrics': '歌词',
         'settings.tabLibrary': '音乐库',
+        'settings.tabPlayback': '播放',
+        'settings.resumeOnStart': '启动时恢复上次播放',
+        'settings.autoResume': '恢复后自动播放',
+        'settings.rememberPerTrack': '每首歌记住播放位置',
+        'settings.playbackHint': '播放次数按 Last.fm 规则记录：曲目超过 30 秒，且播放到一半或 4 分钟（先到为准）才算一次；播放时长只累计真正在播放的时间。',
         'settings.libraryHint': '音乐文件夹（自动保存）',
         'settings.removeConfirm': '确定移除这个音乐文件夹？不会删除文件。',
         'settings.up': '↑ 上级',
@@ -259,7 +285,23 @@ window.__ModuleLoader__.load({
         'page.lyricWeight': 'Font weight',
         'page.lyricBlur': 'Blur inactive lines',
         'page.translationScale': 'Translation scale',
+        'stats.rangeWeek': 'Last week',
+        'stats.rangeMonth': 'Last month',
+        'stats.rangeAll': 'All time',
+        'stats.sortTime': 'By time',
+        'stats.sortPlays': 'By plays',
+        'stats.sortRecent': 'By recent',
+        'stats.totalTime': 'Listening time',
+        'stats.totalPlays': 'Total plays',
+        'stats.trackCount': 'Tracks',
+        'stats.plays': '{n} plays',
+        'stats.empty': 'No listening history yet',
+        'stats.loading': 'Loading…',
+        'stats.loadFailed': 'Failed to load statistics',
+        'stats.retry': 'Retry',
+        'stats.unavailable': 'File unavailable',
         'page.tabSongs': 'All songs',
+        'page.tabStats': 'Stats',
         'page.tabPlaylists': 'Playlists',
         'page.newPlaylist': 'New playlist',
         'page.playlistName': 'Playlist name',
@@ -297,6 +339,11 @@ window.__ModuleLoader__.load({
         'settings.tabAppearance': 'Appearance',
         'settings.tabLyrics': 'Lyrics',
         'settings.tabLibrary': 'Library',
+        'settings.tabPlayback': 'Playback',
+        'settings.resumeOnStart': 'Resume last playback on start',
+        'settings.autoResume': 'Start playing after restore',
+        'settings.rememberPerTrack': 'Remember each track position',
+        'settings.playbackHint': 'Play counts follow the Last.fm rule: a track longer than 30 seconds counts once after half its duration or 4 minutes, whichever comes first. Listening time only counts time actually played.',
         'settings.libraryHint': 'Music folders (auto-saved)',
         'settings.removeConfirm': 'Remove this music folder? Files are not deleted.',
         'settings.up': '↑ Up',
@@ -386,6 +433,17 @@ window.__ModuleLoader__.load({
       if (typeof sampleRate !== 'number' || !isFinite(sampleRate) || sampleRate <= 0) return ''
       var khz = Math.round(sampleRate / 100) / 10
       return String(khz).replace(/\.0$/, '') + ' kHz'
+    }
+
+    /**
+     * Last.fm / MusicBee play threshold: half the track or four minutes,
+     * whichever comes first. Tracks of 30 seconds or less never count.
+     */
+    function playThresholdOf(durationSec) {
+      var duration = Number(durationSec)
+      if (!isFinite(duration) || duration <= 0) return 240
+      if (duration <= 30) return duration + 0.5
+      return Math.min(duration / 2, 240)
     }
 
     /** Clamp a stored preference to a sane numeric range. */
@@ -980,6 +1038,184 @@ window.__ModuleLoader__.load({
         buffered: 0,
       }
 
+      // ── resume + listening statistics ───────────────────────────────────
+      // Counting follows the Last.fm / MusicBee rule (half the track or four
+      // minutes, whichever comes first); resume follows the NetEase / Spotify
+      // pattern (restore the queue and position, then stay paused). The clock
+      // only counts time that naturally advanced while playing, so dragging
+      // the seek bar never inflates the statistics.
+      var session = { path: '', seconds: 0, pending: 0, lastTime: 0, counted: false }
+      var lastStateSave = 0
+      var restoreAttempted = false
+      var pendingResumeSeconds = null
+
+      function resetSession(item) {
+        session = {
+          path: item ? item.path : '',
+          seconds: 0,
+          pending: 0,
+          lastTime: 0,
+          counted: false,
+        }
+      }
+
+      function durationOf(item) {
+        if (audio !== null && isFinite(audio.duration) && audio.duration > 0) return audio.duration
+        return item && item.durationSec > 0 ? item.durationSec : 0
+      }
+
+      function recordStatsPlay(item) {
+        try {
+          postJson(API + 'play', { path: item.path }).catch(function () {})
+        } catch (error) {
+          // Statistics never block playback.
+        }
+      }
+
+      /** Flush the seconds that have not been reported yet (>= 30s only). */
+      function flushListening(force) {
+        if (session.path === '' || session.pending <= 0) return
+        if (session.seconds < 30) {
+          if (force) session.pending = 0
+          return
+        }
+        var seconds = session.pending
+        session.pending = 0
+        try {
+          postJson(API + 'playback', { path: session.path, seconds: seconds }).catch(function () {})
+        } catch (error) {
+          // Best effort.
+        }
+      }
+
+      function flushSessionPosition() {
+        if (session.path === '' || readPrefs().rememberPerTrack !== true) return
+        var item = currentItem()
+        if (item === null || item.path !== session.path) return
+        var seconds = state.currentTime
+        if (!(seconds > 0)) return
+        try {
+          postJson(API + 'position', { path: session.path, seconds: seconds }).catch(function () {})
+        } catch (error) {
+          // Best effort.
+        }
+      }
+
+      function savePlaybackState() {
+        var item = currentItem()
+        if (item === null) return
+        var duration = state.duration > 0 ? state.duration : item.durationSec || 0
+        try {
+          postJson(API + 'state', {
+            queue: state.queue.map(function (track) {
+              return track.path
+            }),
+            index: state.index,
+            positionSec: state.currentTime,
+            durationSec: duration,
+            loop: state.loop,
+            order: state.order,
+          }).catch(function () {})
+        } catch (error) {
+          // Best effort.
+        }
+      }
+
+      function trackListening() {
+        if (audio === null) return
+        var item = currentItem()
+        if (item === null) return
+        if (session.path !== item.path) resetSession(item)
+
+        var current = audio.currentTime
+        if (state.playing && !audio.paused) {
+          var delta = current - session.lastTime
+          // A seek produces a large or negative jump; only natural playback
+          // advances count toward listening time.
+          if (delta > 0 && delta <= 3) {
+            session.seconds += delta
+            session.pending += delta
+          }
+        }
+        session.lastTime = current
+
+        var duration = durationOf(item)
+        var threshold = playThresholdOf(duration)
+        if (!session.counted && duration > 30 && session.seconds >= threshold) {
+          session.counted = true
+          recordStatsPlay(item)
+        }
+
+        if (session.seconds >= 30 && session.pending >= 10) flushListening(false)
+
+        var now = Date.now()
+        if (now - lastStateSave >= 5000) {
+          lastStateSave = now
+          savePlaybackState()
+        }
+      }
+
+      function restorePlayback(saved, tracks) {
+        if (!saved || !Array.isArray(saved.queue) || saved.queue.length === 0) return false
+        if (!Array.isArray(tracks) || tracks.length === 0) return false
+        var byPath = {}
+        tracks.forEach(function (track) {
+          byPath[track.path] = track
+        })
+        var queue = []
+        saved.queue.forEach(function (path) {
+          if (byPath[path] !== undefined) queue.push(byPath[path])
+        })
+        if (queue.length === 0) return false
+        var wantedPath = saved.queue[saved.index]
+        var index = 0
+        for (var i = 0; i < queue.length; i += 1) {
+          if (typeof wantedPath === 'string' && queue[i].path === wantedPath) {
+            index = i
+            break
+          }
+        }
+        state = Object.assign({}, state, {
+          queue: queue,
+          index: index,
+          loop: saved.loop === 'one' || saved.loop === 'none' ? saved.loop : 'all',
+          order: saved.order === 'random' ? 'random' : 'list',
+          currentTime: saved.positionSec > 0 ? saved.positionSec : 0,
+          duration: saved.durationSec > 0 ? saved.durationSec : 0,
+          playing: false,
+        })
+        randomOrder = randomOrderOf(queue.length)
+        emit()
+        syncMediaSession()
+        resetSession(queue[index])
+        pendingResumeSeconds = saved.positionSec > 0 ? saved.positionSec : null
+        // Paused by default (NetEase/Spotify behaviour); the setting can ask
+        // for playback to start right after restore.
+        load(index, readPrefs().autoResume === true)
+        return true
+      }
+
+      function tryRestore() {
+        if (restoreAttempted) return
+        restoreAttempted = true
+        if (readPrefs().resumeOnStart !== true) return
+        Promise.all([getJson(API + 'state'), getJson(API + 'library')])
+          .then(function (results) {
+            var saved = results[0] !== null && results[0].state !== undefined ? results[0].state : null
+            var tracks = results[1] !== null && Array.isArray(results[1].tracks) ? results[1].tracks : []
+            restorePlayback(saved, tracks)
+          })
+          .catch(function () {
+            // Resume is best effort.
+          })
+      }
+
+      function flushOnHide() {
+        flushListening(true)
+        flushSessionPosition()
+        savePlaybackState()
+      }
+
       function emit() {
         listeners.forEach(function (fn) {
           fn()
@@ -1059,6 +1295,7 @@ window.__ModuleLoader__.load({
         if (audio === null) return
         state = Object.assign({}, state, { currentTime: audio.currentTime })
         emitTime()
+        trackListening()
       }
 
       function onDuration() {
@@ -1089,6 +1326,9 @@ window.__ModuleLoader__.load({
       }
 
       function onPause() {
+        flushListening(true)
+        flushSessionPosition()
+        savePlaybackState()
         if (state.playing) {
           patch({ playing: false })
           syncMediaSession()
@@ -1096,8 +1336,11 @@ window.__ModuleLoader__.load({
       }
 
       function onEnded() {
+        flushListening(true)
+        flushSessionPosition()
         if (state.queue.length === 0) return
         if (state.loop === 'one') {
+          resetSession(currentItem())
           if (audio) {
             audio.currentTime = 0
             audio.play().catch(function () {})
@@ -1186,23 +1429,17 @@ window.__ModuleLoader__.load({
       function load(at, autoplay) {
         var item = state.queue[at]
         if (!item) return
+        // Close the previous listening session before switching tracks.
+        flushListening(true)
+        flushSessionPosition()
         var token = (loadToken += 1)
         state = Object.assign({}, state, { index: at, currentTime: 0, duration: 0, buffered: 0 })
         emit()
         syncMediaSession()
         pendingAutoplay = autoplay === true
-        // One load == one play; recorded so "play count" can be a sort key.
-        try {
-          window
-            .fetch(API + 'play', {
-              method: 'POST',
-              headers: { 'content-type': 'application/json' },
-              body: JSON.stringify({ path: item.path }),
-            })
-            .catch(function () {})
-        } catch (error) {
-          // Statistics never block playback.
-        }
+        // A new session starts here. The play count is recorded later, and
+        // only when the Last.fm / MusicBee threshold is reached.
+        resetSession(item)
         if (audio === null) return
 
         cancelPendingFetch()
@@ -1228,6 +1465,19 @@ window.__ModuleLoader__.load({
             objectUrl = URL.createObjectURL(blob)
             audio.src = objectUrl
             audio.load()
+            if (pendingResumeSeconds !== null) {
+              var resumeAt = pendingResumeSeconds
+              pendingResumeSeconds = null
+              api.seek(resumeAt)
+            } else if (readPrefs().rememberPerTrack === true) {
+              getJson(API + 'position?path=' + encodeURIComponent(item.path))
+                .then(function (body) {
+                  if (token !== loadToken) return
+                  var seconds = Number(body.lastPositionSec)
+                  if (isFinite(seconds) && seconds > 1) api.seek(seconds)
+                })
+                .catch(function () {})
+            }
             if (pendingAutoplay) {
               pendingAutoplay = false
               audio.play().catch(function () {
@@ -1266,6 +1516,10 @@ window.__ModuleLoader__.load({
         getTime: function () {
           return { currentTime: state.currentTime, duration: state.duration, buffered: state.buffered }
         },
+        /** Restore the last queue/position once (called by the resident host). */
+        tryRestore: tryRestore,
+        /** Flush statistics + resume state when the page is hidden/closed. */
+        flushOnHide: flushOnHide,
         /** Hand the resident <audio> element to the engine (null detaches). */
         attachAudio: function (el) {
           if (audio === el) return
@@ -1455,6 +1709,7 @@ window.__ModuleLoader__.load({
       var ref = useRef(null)
       useEffect(function () {
         player.attachAudio(ref.current)
+        player.tryRestore()
         return function () {
           player.attachAudio(null)
         }
@@ -2219,6 +2474,238 @@ window.__ModuleLoader__.load({
     }
 
     // ── main panel ───────────────────────────────────────────────────────
+
+    // ── listening statistics (NetEase-style listening ranking) ────────────
+
+    function basenameOf(path) {
+      var parts = String(path || '').split(/[\\/]/)
+      return parts.length > 0 ? parts[parts.length - 1] : String(path || '')
+    }
+
+    function fmtListenTime(seconds) {
+      var total = Math.round(Number(seconds) || 0)
+      if (total <= 0) return '—'
+      var hours = Math.floor(total / 3600)
+      var minutes = Math.floor((total % 3600) / 60)
+      if (hours > 0) return hours + ' 小时 ' + minutes + ' 分'
+      if (minutes > 0) return minutes + ' 分'
+      return total + ' 秒'
+    }
+
+    function fmtRecent(ts) {
+      var value = Number(ts)
+      if (!isFinite(value) || value <= 0) return '—'
+      var date = new Date(value)
+      var now = new Date()
+      var startOfDay = function (day) {
+        return new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime()
+      }
+      var days = Math.round((startOfDay(now) - startOfDay(date)) / 86_400_000)
+      if (days <= 0) return '今天'
+      if (days === 1) return '昨天'
+      if (days < 7) return days + ' 天前'
+      return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate())
+    }
+
+    /**
+     * Listening ranking: last week / month / all time, sorted by time, plays or
+     * recency. Mirrors the NetEase "listening ranking" page, limited to what
+     * the local library can know without a server.
+     */
+    function StatsView(props) {
+      var t = props.t
+      var [range, setRange] = useState('week')
+      var [sortBy, setSortBy] = useState('seconds')
+      var [loading, setLoading] = useState(true)
+      var [error, setError] = useState(null)
+      var [rows, setRows] = useState([])
+      var [reload, setReload] = useState(0)
+
+      useEffect(
+        function () {
+          var alive = true
+          setLoading(true)
+          setError(null)
+          getJson(API + 'stats?range=' + encodeURIComponent(range))
+            .then(function (body) {
+              if (!alive) return
+              var map = body.tracks !== null && typeof body.tracks === 'object' ? body.tracks : {}
+              var list = []
+              Object.keys(map).forEach(function (path) {
+                var stat = map[path]
+                var track = props.trackByPath[path] || null
+                var seconds = Number(stat.playSeconds) || 0
+                var plays = Number(stat.plays) || 0
+                if (seconds <= 0 && plays <= 0) return
+                list.push({
+                  path: path,
+                  track: track,
+                  title: track ? track.title : basenameOf(path),
+                  artist: track ? track.artist || '' : '',
+                  seconds: seconds,
+                  plays: plays,
+                  lastPlayedAt: Number(stat.lastPlayedAt) || 0,
+                  missing: track === null,
+                })
+              })
+              setRows(list)
+              setLoading(false)
+            })
+            .catch(function (cause) {
+              if (!alive) return
+              setError(cause && cause.message ? cause.message : String(cause))
+              setLoading(false)
+            })
+          return function () {
+            alive = false
+          }
+        },
+        [range, reload],
+      )
+
+      var sorted = useMemo(
+        function () {
+          var list = rows.slice()
+          list.sort(function (left, right) {
+            if (sortBy === 'recent') return right.lastPlayedAt - left.lastPlayedAt
+            if (sortBy === 'plays') return right.plays - left.plays || right.seconds - left.seconds
+            return right.seconds - left.seconds || right.plays - left.plays
+          })
+          return list
+        },
+        [rows, sortBy],
+      )
+
+      var totals = useMemo(
+        function () {
+          var seconds = 0
+          var plays = 0
+          rows.forEach(function (row) {
+            seconds += row.seconds
+            plays += row.plays
+          })
+          return { seconds: seconds, plays: plays, tracks: rows.length }
+        },
+        [rows],
+      )
+
+      var ranges = [
+        ['week', t('stats.rangeWeek')],
+        ['month', t('stats.rangeMonth')],
+        ['all', t('stats.rangeAll')],
+      ]
+      var sorts = [
+        ['seconds', t('stats.sortTime')],
+        ['plays', t('stats.sortPlays')],
+        ['recent', t('stats.sortRecent')],
+      ]
+
+      return h(
+        'div',
+        { className: 'mu-stats' },
+        h(
+          'div',
+          { className: 'mu-stats-toolbar' },
+          ranges.map(function (entry) {
+            return h(
+              'button',
+              {
+                key: entry[0],
+                type: 'button',
+                className: 'mu-chip mu-stats-chip' + (range === entry[0] ? ' is-on' : ''),
+                onClick: function () {
+                  setRange(entry[0])
+                },
+              },
+              entry[1],
+            )
+          }),
+          h('span', { className: 'mu-stats-divider' }),
+          sorts.map(function (entry) {
+            return h(
+              'button',
+              {
+                key: entry[0],
+                type: 'button',
+                className: 'mu-chip mu-stats-chip' + (sortBy === entry[0] ? ' is-on' : ''),
+                onClick: function () {
+                  setSortBy(entry[0])
+                },
+              },
+              entry[1],
+            )
+          }),
+        ),
+        h(
+          'div',
+          { className: 'mu-stats-summary' },
+          h(
+            'div',
+            { className: 'mu-stats-card' },
+            h('div', { className: 'mu-stats-card-label' }, t('stats.totalTime')),
+            h('div', { className: 'mu-stats-card-value' }, fmtListenTime(totals.seconds)),
+          ),
+          h(
+            'div',
+            { className: 'mu-stats-card' },
+            h('div', { className: 'mu-stats-card-label' }, t('stats.totalPlays')),
+            h('div', { className: 'mu-stats-card-value' }, String(totals.plays)),
+          ),
+          h(
+            'div',
+            { className: 'mu-stats-card' },
+            h('div', { className: 'mu-stats-card-label' }, t('stats.trackCount')),
+            h('div', { className: 'mu-stats-card-value' }, String(totals.tracks)),
+          ),
+        ),
+        loading
+          ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-spinner' }), t('stats.loading'))
+          : error !== null
+            ? h(
+                'div',
+                { className: 'mu-state' },
+                h('div', { className: 'mu-state-title' }, t('stats.loadFailed')),
+                h('div', { className: 'mu-state-sub' }, error),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-btn',
+                    onClick: function () {
+                      setReload(reload + 1)
+                    },
+                  },
+                  t('stats.retry'),
+                ),
+              )
+            : sorted.length === 0
+              ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-state-sub' }, t('stats.empty')))
+              : h(
+                  'div',
+                  { className: 'mu-stats-list' },
+                  sorted.map(function (row) {
+                    return h(
+                      'div',
+                      { className: 'mu-stats-row', key: row.path, title: row.path },
+                      h(Cover, { track: row.track, size: 36, radius: 6 }),
+                      h(
+                        'div',
+                        { className: 'mu-stats-main' },
+                        h('div', { className: 'mu-stats-title' }, row.title),
+                        h(
+                          'div',
+                          { className: 'mu-stats-artist' },
+                          row.artist || (row.missing ? t('stats.unavailable') : ''),
+                        ),
+                      ),
+                      h('div', { className: 'mu-stats-seconds' }, fmtListenTime(row.seconds)),
+                      h('div', { className: 'mu-stats-plays' }, t('stats.plays', { n: row.plays })),
+                      h('div', { className: 'mu-stats-last' }, fmtRecent(row.lastPlayedAt)),
+                    )
+                  }),
+                ),
+      )
+    }
 
     function MusicPanel() {
       var prefs = useRef(readPrefs()).current
@@ -3073,6 +3560,17 @@ window.__ModuleLoader__.load({
             },
             t('page.tabSongs'),
           ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-tab' + (view === 'stats' ? ' is-on' : ''),
+              onClick: function () {
+                setView('stats')
+              },
+            },
+            t('page.tabStats'),
+          ),
           playlists.map(function (playlist) {
             var isOn = view === 'playlists' && playlistId === playlist.id
             return h(
@@ -3168,6 +3666,17 @@ window.__ModuleLoader__.load({
                   },
                   t('settings.tabLibrary'),
                 ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-prefs-tab' + (prefsTab === 'playback' ? ' is-on' : ''),
+                    onClick: function () {
+                      setPrefsTab('playback')
+                    },
+                  },
+                  t('settings.tabPlayback'),
+                ),
               ),
               prefsTab === 'appearance'
                 ? h(
@@ -3245,7 +3754,8 @@ window.__ModuleLoader__.load({
                       },
                     ),
                   )
-                  : h(
+                  : prefsTab === 'library'
+                    ? h(
                       'div',
                       { className: 'mu-prefs-body' },
                       h('p', { className: 'mu-prefs-hint' }, t('settings.libraryHint')),
@@ -3413,6 +3923,20 @@ window.__ModuleLoader__.load({
                             ),
                           )
                         : null,
+                    )
+                  : h(
+                      'div',
+                      { className: 'mu-prefs-body' },
+                      settingToggle(t('settings.resumeOnStart'), prefsUi.resumeOnStart, function (value) {
+                        updatePref('resumeOnStart', value)
+                      }),
+                      settingToggle(t('settings.autoResume'), prefsUi.autoResume, function (value) {
+                        updatePref('autoResume', value)
+                      }),
+                      settingToggle(t('settings.rememberPerTrack'), prefsUi.rememberPerTrack, function (value) {
+                        updatePref('rememberPerTrack', value)
+                      }),
+                      h('p', { className: 'mu-prefs-hint' }, t('settings.playbackHint')),
                     ),
             )
           : null,
@@ -3464,7 +3988,7 @@ window.__ModuleLoader__.load({
 
         h(
           'div',
-          { className: 'mu-chips' },
+          { className: 'mu-chips', style: view === 'stats' ? { display: 'none' } : undefined },
           h(
             'button',
             { type: 'button', className: 'mu-chip', title: loopLabel(), onClick: cycleLoop },
@@ -3562,7 +4086,10 @@ window.__ModuleLoader__.load({
 
         h(
           'div',
-          { className: 'mu-list' },
+          { className: 'mu-list' + (view === 'stats' ? ' is-stats' : '') },
+          view === 'stats'
+            ? h(StatsView, { tracks: tracks, trackByPath: trackByPath, t: t })
+            : [
           loading && tracks.length === 0
             ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-spinner' }), t('page.scanning'))
             : null,
@@ -3601,6 +4128,7 @@ window.__ModuleLoader__.load({
             ? h('div', { className: 'mu-warn' }, t('page.warnings') + '：' + warnings.slice(0, 3).join(' · '))
             : null,
           visible.map(renderRow),
+              ],
         ),
 
         h(
@@ -3993,6 +4521,24 @@ window.__ModuleLoader__.load({
       '.mu-tab.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
       '.mu-tab-add{width:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:.5px solid var(--dsw-alias-border-l3,rgba(255,255,255,.12))}',
       '.mu-tab-add:hover{border-color:var(--dsw-alias-border-l4,rgba(255,255,255,.2))}',
+      '.mu-list.is-stats{padding-top:4px}',
+      '.mu-stats{display:flex;flex-direction:column;gap:12px;padding:2px 0 10px}',
+      '.mu-stats-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}',
+      '.mu-stats-chip{height:26px;padding:0 10px;font-size:12px}',
+      '.mu-stats-divider{width:1px;height:16px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.12));margin:0 2px}',
+      '.mu-stats-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}',
+      '.mu-stats-card{border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1,#1b1b1e));padding:10px 12px;min-width:0}',
+      '.mu-stats-card-label{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
+      '.mu-stats-card-value{font-size:17px;font-weight:600;margin-top:2px;color:var(--dsw-alias-label-primary,#f4f4f5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}',
+      '.mu-stats-list{display:flex;flex-direction:column;gap:2px}',
+      '.mu-stats-row{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:var(--dsw-radius-sm,6px);min-width:0}',
+      '.mu-stats-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
+      '.mu-stats-main{flex:1;min-width:0}',
+      '.mu-stats-title{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-stats-artist{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}',
+      '.mu-stats-seconds{flex:none;width:104px;text-align:right;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
+      '.mu-stats-plays{flex:none;width:64px;text-align:right;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
+      '.mu-stats-last{flex:none;width:78px;text-align:right;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-view{flex:1;min-height:0;display:flex;flex-direction:column}',
       '.mu-pl-new{display:flex;gap:8px;padding:4px 24px 12px}',
       '.mu-pl-new .mu-input{flex:1}',
@@ -4381,6 +4927,22 @@ window.__ModuleLoader__.load({
         ctx.effect(function () {
           return function () {
             player.suspend()
+          }
+        })
+
+        // Flush resume state / listening seconds when the page goes away.
+        ctx.effect(function () {
+          function onVisibility() {
+            if (document.visibilityState === 'hidden') player.flushOnHide()
+          }
+          function onUnload() {
+            player.flushOnHide()
+          }
+          document.addEventListener('visibilitychange', onVisibility)
+          window.addEventListener('beforeunload', onUnload)
+          return function () {
+            document.removeEventListener('visibilitychange', onVisibility)
+            window.removeEventListener('beforeunload', onUnload)
           }
         })
 

@@ -1,6 +1,6 @@
 {
   "name": "dsh-music-panel",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Local music library for DeepSeek Harness: scan a folder, browse tracks with cover art and tags, and play through a sidebar-panel player with loop, shuffle and volume. · DSH 本地音乐插件：扫描音乐目录、读取封面与标签、侧栏入口 + 全屏播放器。",
   "license": "MIT",
@@ -25,8 +25,8 @@
     "audio"
   ],
   "scripts": {
-    "test": "node test/config.test.mjs && node test/meta.test.mjs && node test/library.test.mjs && node test/routes.test.mjs && node test/lyrics.test.mjs && node test/playlists.test.mjs && node test/stats.test.mjs && node test/client.smoke.test.mjs",
-    "check": "node --check index.js && node --check client.js && node --check lib/config.js && node --check lib/settings.js && node --check lib/meta.js && node --check lib/library.js && node --check lib/http.js && node --check lib/lyrics.js && node --check lib/playlists.js && node --check lib/stats.js && node --check lib/routes.js",
+    "test": "node test/config.test.mjs && node test/meta.test.mjs && node test/library.test.mjs && node test/routes.test.mjs && node test/lyrics.test.mjs && node test/playlists.test.mjs && node test/stats.test.mjs && node test/playback.test.mjs && node test/client.smoke.test.mjs",
+    "check": "node --check index.js && node --check client.js && node --check lib/config.js && node --check lib/settings.js && node --check lib/meta.js && node --check lib/library.js && node --check lib/http.js && node --check lib/lyrics.js && node --check lib/playlists.js && node --check lib/stats.js && node --check lib/playback.js && node --check lib/routes.js",
     "pack:check": "npm pack --dry-run"
   },
   "exports": {

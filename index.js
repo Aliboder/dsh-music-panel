@@ -9,6 +9,7 @@
  */
 
 import { createLibrary } from './lib/library.js'
+import { createPlayback } from './lib/playback.js'
 import { createPlaylists } from './lib/playlists.js'
 import { createRoutes } from './lib/routes.js'
 import { createSettings } from './lib/settings.js'
@@ -28,9 +29,10 @@ export function apply(ctx, rawConfig) {
   const config = rawConfig !== null && typeof rawConfig === 'object' ? rawConfig : {}
   const settings = createSettings({ dshHome: config.dshHome, seed: config })
   const stats = createStats({ dir: settings.dir })
+  const playback = createPlayback({ dir: settings.dir })
   const library = createLibrary({ getSettings: settings.read, stats })
   const playlists = createPlaylists({ dir: settings.dir })
-  const handle = createRoutes({ settings, library, playlists, stats })
+  const handle = createRoutes({ settings, library, playlists, stats, playback })
 
   ctx.effect(() => {
     const dispose = ctx.webServer.register({

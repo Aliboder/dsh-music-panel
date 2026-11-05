@@ -67,13 +67,28 @@ export function fakeRes() {
 }
 
 /** A fake node request good enough for the routes under test. */
-export function fakeReq(url, method = 'GET', headers = {}) {
-  return {
+export function fakeReq(url, method = 'GET', headers = {}, body = '') {
+  const listeners = {}
+  let delivered = false
+  const req = {
     url,
     method,
     headers,
     socket: { remoteAddress: '127.0.0.1' },
-    on() {},
+    on(event, handler) {
+      if (listeners[event] === undefined) listeners[event] = []
+      listeners[event].push(handler)
+      // `readJson` registers data → end → error; deliver once end is known.
+      if (event === 'end' && body !== '' && !delivered) {
+        delivered = true
+        queueMicrotask(() => {
+          for (const fn of listeners.data ?? []) fn(Buffer.from(body))
+          for (const fn of listeners.end ?? []) fn()
+        })
+      }
+      return req
+    },
     destroy() {},
   }
+  return req
 }

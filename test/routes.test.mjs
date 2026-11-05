@@ -61,6 +61,73 @@ remote.socket.remoteAddress = '10.0.0.8'
 await handle(remote, res)
 assert.equal(res.status, 403)
 
+// Playback state, listening time and stats endpoints.
+const statsMock = {
+  playSeconds: 0,
+  position: null,
+  plays: 0,
+  async addPlayTime(path, seconds) {
+    this.playSeconds += seconds
+    return { playSeconds: this.playSeconds, plays: this.plays }
+  },
+  async setPosition(path, seconds) {
+    this.position = seconds
+    return { lastPositionSec: seconds }
+  },
+  async summarize(range) {
+    return { [file]: { plays: 1, playSeconds: 60, lastPlayedAt: 1, range } }
+  },
+}
+const playbackState = { value: null }
+const playbackMock = {
+  async read() {
+    return playbackState.value
+  },
+  async write(state) {
+    playbackState.value = state
+    return state
+  },
+}
+const full = createRoutes({ settings, library, stats: statsMock, playback: playbackMock })
+
+res = fakeRes()
+await full(fakeReq('/music/state'), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().state, null)
+
+res = fakeRes()
+await full(
+  fakeReq('/music/state', 'POST', {}, JSON.stringify({ queue: [file], index: 0, positionSec: 12 })),
+  res,
+)
+assert.equal(res.status, 200)
+assert.equal(res.json().state.positionSec, 12)
+
+res = fakeRes()
+await full(fakeReq('/music/playback', 'POST', {}, JSON.stringify({ path: file, seconds: 12.5 })), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().playSeconds, 12.5)
+assert.equal(statsMock.playSeconds, 12.5)
+
+res = fakeRes()
+await full(fakeReq('/music/position', 'POST', {}, JSON.stringify({ path: file, seconds: 33 })), res)
+assert.equal(res.status, 200)
+assert.equal(statsMock.position, 33)
+
+res = fakeRes()
+await full(fakeReq('/music/stats?range=week'), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().range, 'week')
+assert.equal(res.json().tracks[file].playSeconds, 60)
+
+// Invalid seconds / unknown path are rejected.
+res = fakeRes()
+await full(fakeReq('/music/playback', 'POST', {}, JSON.stringify({ path: file, seconds: 0 })), res)
+assert.equal(res.status, 400)
+res = fakeRes()
+await full(fakeReq('/music/playback', 'POST', {}, JSON.stringify({ path: outside, seconds: 5 })), res)
+assert.equal(res.status, 404)
+
 // resolveTrack: inside vs outside, and extension filtering
 assert.equal(await resolveTrack(file, [root]), file)
 assert.equal(await resolveTrack(outside, [root]), null)
