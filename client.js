@@ -242,7 +242,7 @@ window.__ModuleLoader__.load({
         'settings.translationScale': '翻译字体缩放',
         'settings.composerLyrics': '输入框歌词',
         'settings.composerLyricPlace': '输入框歌词位置',
-        'settings.placeInputLeft': '输入框内',
+        'settings.placeInputLeft': '输入框内（播放列表按钮左侧）',
         'settings.placeAbove': '输入框上方',
       },
       en: {
@@ -430,7 +430,7 @@ window.__ModuleLoader__.load({
         'settings.translationScale': 'Translation scale',
         'settings.composerLyrics': 'Composer lyrics',
         'settings.composerLyricPlace': 'Composer lyric position',
-        'settings.placeInputLeft': 'Inline',
+        'settings.placeInputLeft': 'Left of the queue button',
         'settings.placeAbove': 'Above input',
       },
     }
@@ -2502,6 +2502,16 @@ window.__ModuleLoader__.load({
           },
         },
         icon('list', 16),
+      )
+    }
+
+    /** Composer cluster: current lyric + queue button, left of the send button. */
+    function ComposerCluster() {
+      return h(
+        'div',
+        { className: 'mu-composer-cluster' },
+        h(ComposerLyrics, { place: 'inline' }),
+        h(ComposerQueueButton, null),
       )
     }
 
@@ -6185,6 +6195,7 @@ window.__ModuleLoader__.load({
       '.mu-mini-artist{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mu-mini-controls{display:flex;align-items:center;gap:2px;flex:none}',
       '.mu-composer-lyric{max-width:280px;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;line-height:20px;color:var(--dsw-alias-label-secondary,#a1a1aa);pointer-events:none;user-select:none}',
+      '.mu-composer-cluster{display:inline-flex;align-items:center;gap:2px;min-width:0;max-width:360px}',
       // No shell at all: transparent row, aligned with the composer card and
       // sitting right above it (the negative margin only cancels the composer
       // stack gap, it does not tuck under the card).
@@ -6474,19 +6485,9 @@ window.__ModuleLoader__.load({
           return h(MusicBoundary, null, h(MusicPanel))
         })
 
-        // Composer lyric seats: inline (left of the model picker) or above the
-        // composer with left/center/right alignment. Both mount; the position
-        // preference decides which one renders. Wrapped so a throw stays local.
-        // `conversation.input.dock` is the full-width row *above* the composer
-        // card; `conversation.composer.dock` sits *below* it, so an "above"
-        // lyric would show under the input box there.
-        mount(
-          'conversation.input.left',
-          { name: 'conversation.input.left', id: 'music-lyrics', order: -10 },
-          function () {
-            return h(SilentBoundary, null, h(ComposerLyrics, { place: 'inline' }))
-          },
-        )
+        // Composer music cluster: the inline lyric and the playlist button are
+        // one component, rendered before the submit action. The "above" lyric
+        // stays in its own dock seat and is chosen by the position preference.
         mount(
           'conversation.input.dock',
           { name: 'conversation.input.dock', id: 'music-lyrics-above' },
@@ -6495,13 +6496,12 @@ window.__ModuleLoader__.load({
           },
         )
 
-        // Shared playback list overlay (the mini player lives in its header)
-        // and the composer shortcut button before the submit action.
+        // Shared playback list overlay (the mini player lives in its header).
         mount('shell.overlay', { name: 'shell.overlay', id: 'music-queue', order: 16 }, QueueOverlay)
         mount(
           'conversation.input.right',
-          { name: 'conversation.input.right', id: 'music-queue-button', order: 10 },
-          ComposerQueueButton,
+          { name: 'conversation.input.right', id: 'music-composer-cluster', order: 10 },
+          ComposerCluster,
         )
 
       },

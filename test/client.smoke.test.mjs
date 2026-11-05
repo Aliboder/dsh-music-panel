@@ -125,7 +125,6 @@ assert.deepEqual(mounts, [
   'shell.overlay',
   'sidebar.panellist',
   'main',
-  'conversation.input.left',
   'conversation.input.dock',
   'shell.overlay',
   'conversation.input.right',
@@ -133,6 +132,6 @@ assert.deepEqual(mounts, [
 assert.equal(texts.length, 1, 'exactly one style element is injected')
 assert.ok(String(texts[0].textContent).includes('.mu-root'), 'the player styles are in place')
 assert.ok(String(texts[0].textContent).includes('.mu-audio-host'), 'the resident audio host style is in place')
-assert.equal(registrations.length, 11, 'style + engine + flush/leader listeners + seven seats are effects')
+assert.equal(registrations.length, 10, 'style + engine + flush/leader listeners + six seats are effects')
 
 console.log('client.smoke.test.mjs ok')
