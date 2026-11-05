@@ -964,11 +964,15 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * Bottom-bar spectrum. Bars are log-spaced and smoothed the way mature
+     * Spectrum bars. Bars are log-spaced and smoothed the way mature
      * visualizers do it (audvis / audioMotion-analyzer), and drawing happens in
-     * requestAnimationFrame without React state so the bar never re-renders.
+     * requestAnimationFrame without React state so the host never re-renders.
      */
-    function BarWave() {
+    function BarWave(props) {
+      var width = props && Number(props.width) > 0 ? Number(props.width) : 96
+      var height = props && Number(props.height) > 0 ? Number(props.height) : 26
+      var barCount = props && Number(props.bars) > 0 ? Math.round(Number(props.bars)) : 28
+      var className = 'mu-bar-wave' + (props && props.className ? ' ' + props.className : '')
       var canvasRef = useRef(null)
       useEffect(function () {
         var canvas = canvasRef.current
@@ -976,12 +980,9 @@ window.__ModuleLoader__.load({
         var ctx2d = canvas.getContext('2d')
         if (ctx2d === null) return undefined
         var dpr = Math.min(window.devicePixelRatio || 1, 2)
-        var cssWidth = 96
-        var cssHeight = 26
-        canvas.width = Math.round(cssWidth * dpr)
-        canvas.height = Math.round(cssHeight * dpr)
-        var bars = 28
-        var levels = new Float32Array(bars)
+        canvas.width = Math.round(width * dpr)
+        canvas.height = Math.round(height * dpr)
+        var levels = new Float32Array(barCount)
         var gradient = ctx2d.createLinearGradient(0, canvas.height, 0, 0)
         gradient.addColorStop(0, 'rgba(86,134,254,0.35)')
         gradient.addColorStop(0.6, 'rgba(86,134,254,0.8)')
@@ -993,12 +994,12 @@ window.__ModuleLoader__.load({
           ctx2d.clearRect(0, 0, canvas.width, canvas.height)
           if (data === null) return
           var binCount = data.length
-          var barWidth = canvas.width / bars
-          for (var i = 0; i < bars; i += 1) {
-            var lo = Math.floor(Math.pow(i / bars, 1.8) * binCount * 0.72)
+          var barWidth = canvas.width / barCount
+          for (var i = 0; i < barCount; i += 1) {
+            var lo = Math.floor(Math.pow(i / barCount, 1.8) * binCount * 0.72)
             var hi = Math.max(
               lo + 1,
-              Math.floor(Math.pow((i + 1) / bars, 1.8) * binCount * 0.72),
+              Math.floor(Math.pow((i + 1) / barCount, 1.8) * binCount * 0.72),
             )
             var sum = 0
             var count = 0
@@ -1008,13 +1009,13 @@ window.__ModuleLoader__.load({
             }
             var target = count > 0 ? sum / count / 255 : 0
             levels[i] = levels[i] * 0.62 + target * 0.38
-            var height = Math.max(2 * dpr, levels[i] * canvas.height * 0.92)
+            var barHeight = Math.max(2 * dpr, levels[i] * canvas.height * 0.92)
             ctx2d.fillStyle = gradient
             ctx2d.fillRect(
               i * barWidth + 1,
-              canvas.height - height,
+              canvas.height - barHeight,
               Math.max(1, barWidth - 2),
-              height,
+              barHeight,
             )
           }
         }
@@ -1022,8 +1023,83 @@ window.__ModuleLoader__.load({
         return function () {
           cancelAnimationFrame(raf)
         }
+      }, [width, height, barCount])
+      return h('canvas', {
+        className: className,
+        ref: canvasRef,
+        style: { width: width + 'px', height: height + 'px' },
+        'aria-hidden': 'true',
+      })
+    }
+
+    /** Full-width spectrum painted behind the player bar. */
+    function BarWaveFull() {
+      var canvasRef = useRef(null)
+      useEffect(function () {
+        var canvas = canvasRef.current
+        if (canvas === null) return undefined
+        var parent = canvas.parentElement
+        var ctx2d = canvas.getContext('2d')
+        if (parent === null || ctx2d === null) return undefined
+        var dpr = Math.min(window.devicePixelRatio || 1, 2)
+        var barCount = 0
+        var levels = new Float32Array(1)
+        var gradient = null
+        function resize() {
+          var rect = parent.getBoundingClientRect()
+          var cssWidth = Math.max(1, Math.round(rect.width))
+          var cssHeight = Math.max(1, Math.round(rect.height))
+          canvas.width = Math.round(cssWidth * dpr)
+          canvas.height = Math.round(cssHeight * dpr)
+          barCount = Math.max(32, Math.round(cssWidth / 8))
+          levels = new Float32Array(barCount)
+          gradient = ctx2d.createLinearGradient(0, canvas.height, 0, 0)
+          gradient.addColorStop(0, 'rgba(86,134,254,0.06)')
+          gradient.addColorStop(0.55, 'rgba(86,134,254,0.2)')
+          gradient.addColorStop(1, 'rgba(122,170,255,0.38)')
+        }
+        resize()
+        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null
+        if (observer !== null) observer.observe(parent)
+        var raf = 0
+        function frame() {
+          raf = requestAnimationFrame(frame)
+          var data = player.getWave()
+          ctx2d.clearRect(0, 0, canvas.width, canvas.height)
+          if (data === null || barCount === 0 || gradient === null) return
+          var binCount = data.length
+          var barWidth = canvas.width / barCount
+          for (var i = 0; i < barCount; i += 1) {
+            var lo = Math.floor(Math.pow(i / barCount, 1.8) * binCount * 0.72)
+            var hi = Math.max(
+              lo + 1,
+              Math.floor(Math.pow((i + 1) / barCount, 1.8) * binCount * 0.72),
+            )
+            var sum = 0
+            var count = 0
+            for (var j = lo; j < hi && j < binCount; j += 1) {
+              sum += data[j]
+              count += 1
+            }
+            var target = count > 0 ? sum / count / 255 : 0
+            levels[i] = levels[i] * 0.62 + target * 0.38
+            var barHeight = Math.max(1, levels[i] * canvas.height)
+            ctx2d.fillStyle = gradient
+            ctx2d.fillRect(
+              i * barWidth + 1,
+              canvas.height - barHeight,
+              Math.max(1, barWidth - 3),
+              barHeight,
+            )
+          }
+        }
+        raf = requestAnimationFrame(frame)
+        return function () {
+          cancelAnimationFrame(raf)
+          if (observer !== null) observer.disconnect()
+        }
       }, [])
-      return h('canvas', { className: 'mu-bar-wave', ref: canvasRef, 'aria-hidden': 'true' })
+      return h('canvas', { className: 'mu-bar-wave-bg', ref: canvasRef, 'aria-hidden': 'true' })
     }
 
     // ── sidebar icon ──────────────────────────────────────────────────────
@@ -1122,6 +1198,9 @@ window.__ModuleLoader__.load({
           className: 'mu-side-icon' + (owner.active ? ' is-active' : ''),
         },
         icon('note', size),
+        hasTrack
+          ? h(BarWave, { width: 40, height: 14, bars: 12, className: 'mu-side-wave' })
+          : null,
         hasTrack && anchor !== null
           ? h(
               'span',
@@ -5965,6 +6044,7 @@ window.__ModuleLoader__.load({
               openNowPlaying()
             },
           },
+          h(BarWaveFull, null),
           h(SeekBar, { player: player, track: current }),
           h(
             'div',
@@ -6065,7 +6145,6 @@ window.__ModuleLoader__.load({
                 },
                 icon('list', 18),
               ),
-              h(BarWave, null),
             ),
 
             h(
@@ -7068,7 +7147,10 @@ window.__ModuleLoader__.load({
       '.mu-bar-title{font-size:13px;font-weight:500}',
       '.mu-bar-artist{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
       '.mu-bar-controls{display:flex;align-items:center;gap:6px;justify-self:center}',
-      '.mu-bar-wave{width:96px;height:26px;display:block;pointer-events:none;opacity:.95}',
+      '.mu-bar-wave{display:block;pointer-events:none;opacity:.95}',
+      '.mu-side-wave{margin-left:8px;flex:none;opacity:.85}',
+      '.mu-bar-wave-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.6}',
+      '.mu-bar > *:not(.mu-bar-wave-bg){position:relative;z-index:1}',
       '.mu-play-btn{width:40px;height:40px;border-radius:999px;border:0;display:inline-flex;align-items:center;justify-content:center;background:var(--dsw-alias-button-primary-fill,#f4f4f5);color:var(--dsw-alias-label-primary-foreground,#141417);cursor:pointer}',
       '.mu-play-btn:hover{background:var(--dsw-alias-button-primary-hover,#e4e4e7)}',
       '.mu-bar-right{display:flex;align-items:center;gap:6px;justify-self:end}',
