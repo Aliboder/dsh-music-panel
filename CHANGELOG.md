@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.13
+
+### 修复
+
+- 「在文件夹中显示」在 Windows 上没有定位到文件：explorer 参数改为 `/select,"C:\path\file"`（引号紧贴逗号），并用 `windowsVerbatimArguments` 原样传参，避免 Node 重新加引号/转义导致 explorer 忽略 `/select`
+
 ## 0.3.12
 
 ### 变更
