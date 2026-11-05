@@ -3564,7 +3564,7 @@ window.__ModuleLoader__.load({
               h(
                 'button',
                 { type: 'button', className: 'mu-icon-btn', title: loopLabel(), onClick: cycleLoop },
-                icon(playModeIcon(playModeOf(snap)), 18),
+                icon(playModeIcon(playModeOf(snap)), 17),
               ),
               h(
                 'button',
@@ -3573,22 +3573,24 @@ window.__ModuleLoader__.load({
                   className: 'mu-icon-btn',
                   title: t('page.prev'),
                   onClick: function () {
+                    player.ensureAnalyser()
                     player.prev()
                   },
                 },
-                icon('prev', 20),
+                icon('prev', 18),
               ),
               h(
                 'button',
                 {
                   type: 'button',
-                  className: 'mu-play-btn mu-play-btn-lg',
+                  className: 'mu-play-btn',
                   title: snap.playing ? t('page.pause') : t('page.play'),
                   onClick: function () {
+                    player.ensureAnalyser()
                     player.toggle()
                   },
                 },
-                icon(snap.playing ? 'pause' : 'play', 24),
+                icon(snap.playing ? 'pause' : 'play', 20),
               ),
               h(
                 'button',
@@ -3597,16 +3599,49 @@ window.__ModuleLoader__.load({
                   className: 'mu-icon-btn',
                   title: t('page.next'),
                   onClick: function () {
+                    player.ensureAnalyser()
                     player.next()
                   },
                 },
-                icon('next', 20),
+                icon('next', 18),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-icon-btn',
+                  title: t('page.queue'),
+                  onClick: function () {
+                    toggleQueueOverlay()
+                  },
+                },
+                icon('list', 18),
               ),
             ),
             h(
               'div',
               { className: 'mu-np-vol' },
               track && track.sampleRate ? h('span', { className: 'mu-quality' }, fmtKhz(track.sampleRate)) : null,
+              track
+                ? h(
+                    'button',
+                    {
+                      type: 'button',
+                      className:
+                        'mu-icon-btn' +
+                        (props.favorites && props.favorites.indexOf(track.path) >= 0
+                          ? ' is-on'
+                          : ''),
+                      title: t('page.favorite'),
+                      onClick: function () {
+                        if (typeof props.onToggleFavorite === 'function') {
+                          props.onToggleFavorite(track)
+                        }
+                      },
+                    },
+                    icon('heart', 18),
+                  )
+                : null,
             ),
           ),
         ),
@@ -6841,6 +6876,8 @@ window.__ModuleLoader__.load({
               player: player,
               snapshot: snap,
               visible: npVisible,
+              favorites: favorites,
+              onToggleFavorite: toggleFavorite,
               onClose: closeNowPlaying,
             })
           : null,
@@ -7466,7 +7503,9 @@ window.__ModuleLoader__.load({
       '.mu-np-bar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px}',
       '.mu-np-time{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
       '.mu-np-time-sep{opacity:.6}',
-      '.mu-np-controls{display:flex;align-items:center;gap:10px;justify-self:center}',
+      '.mu-np-controls{display:flex;align-items:center;gap:4px;justify-self:center}',
+      '.mu-np .mu-icon-btn.is-on{color:var(--dsw-alias-state-error-primary,#e5484d)}',
+      '.mu-np-vol{display:flex;align-items:center;gap:8px;justify-self:end}',
       '.mu-play-btn-lg{width:48px;height:48px}',
       '.mu-np-vol{display:flex;align-items:center;gap:8px;justify-self:end}',
       '.mu-icon-btn:focus-visible,.mu-btn:focus-visible,.mu-chip:focus-visible,.mu-play-btn:focus-visible,.mu-row-play:focus-visible,.mu-check:focus-visible,.mu-menu-item:focus-visible,.mu-search input:focus-visible,.mu-seek:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
