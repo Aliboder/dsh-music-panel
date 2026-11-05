@@ -2862,7 +2862,6 @@ window.__ModuleLoader__.load({
       var innerRef = useRef(null)
       var rowRefs = useRef([])
       var timeRef = useRef(null)
-      var lineTextRef = useRef(null)
       var closeRef = useRef(props.onClose)
       closeRef.current = props.onClose
       var trackPath = track ? track.path : ''
@@ -2958,17 +2957,6 @@ window.__ModuleLoader__.load({
             setActive(function (previous) {
               return previous === next ? previous : next
             })
-            // Karaoke fill for the active line: advance a CSS variable so the
-            // text highlight grows with playback without re-rendering the list.
-            var el = lineTextRef.current
-            if (el && next >= 0 && lyrics[next]) {
-              var start = lyrics[next].time + lyricOffset / 1000
-              var end =
-                next + 1 < lyrics.length ? lyrics[next + 1].time + lyricOffset / 1000 : start + 4
-              var span = Math.max(0.4, end - start)
-              var progress = Math.max(0, Math.min(1, (current - start) / span))
-              el.style.setProperty('--mu-line-progress', Math.round(progress * 100) + '%')
-            }
           })
         },
         [player, lyrics, lyricsTimed, lyricOffset],
@@ -3284,14 +3272,7 @@ window.__ModuleLoader__.load({
                             if (line.time >= 0) player.seek(line.time + lyricOffset / 1000)
                           },
                         },
-                        h(
-                          'div',
-                          {
-                            className: 'mu-np-line-text',
-                            ref: index === active ? lineTextRef : undefined,
-                          },
-                          line.text,
-                        ),
+                        h('div', { className: 'mu-np-line-text' }, line.text),
                         showTranslation && line.translation !== ''
                           ? line.translation.split('\n').map(function (part, partIndex) {
                               return h(
@@ -6945,7 +6926,7 @@ window.__ModuleLoader__.load({
       '.mu-np-title{font-size:18px;font-weight:600}',
       '.mu-np-artist{font-size:13px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:4px}',
       '.mu-np-right{height:100%;min-height:0;display:flex;align-items:center;justify-content:center}',
-      '.mu-np-lyrics{position:relative;width:100%;max-width:560px;height:100%;max-height:420px;overflow:hidden;background:radial-gradient(60% 42% at 50% 50%,color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 7%,transparent),transparent 72%);-webkit-mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent)}',
+      '.mu-np-lyrics{position:relative;width:100%;max-width:560px;height:100%;max-height:420px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent)}',
       '.mu-np-lyrics.is-static{overflow-y:auto;-webkit-mask-image:none;mask-image:none}',
       '.mu-np-lyrics.is-static .mu-np-line{opacity:.7;cursor:default}',
       '.mu-np-lyrics-inner{transition:transform .55s cubic-bezier(.22,.61,.36,1);padding:0 8px}',
@@ -6955,7 +6936,7 @@ window.__ModuleLoader__.load({
       '.mu-np-line.is-past{opacity:.34}',
       '.mu-np-line.is-active{color:var(--dsw-alias-label-primary,#f4f4f5);opacity:1}',
       '.mu-np-line-text{font-size:var(--mu-lyric-size,18px);line-height:1.6;font-weight:var(--mu-lyric-weight,500);white-space:normal;word-break:break-word;overflow-wrap:anywhere;letter-spacing:.01em;transition:background-position .2s linear}',
-      '.mu-np-line.is-active .mu-np-line-text{font-weight:700;background:linear-gradient(90deg,var(--dsw-static-deepseek-450,#5686fe) 0 var(--mu-line-progress,0%),var(--dsw-alias-label-primary,#f4f4f5) var(--mu-line-progress,0%) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 16px color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 28%,transparent))}',
+      '.mu-np-line.is-active .mu-np-line-text{font-weight:700}',
       '.mu-np-line-trans{font-size:var(--mu-lyric-trans,13px);line-height:1.5;margin-top:4px;opacity:.66}',
       '.mu-np-line.is-active .mu-np-line-trans{opacity:.85}',
       '.mu-np.is-blur .mu-np-line:not(.is-active){opacity:.34;filter:blur(1.2px)}',
