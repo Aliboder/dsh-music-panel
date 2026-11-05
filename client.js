@@ -4407,56 +4407,118 @@ window.__ModuleLoader__.load({
         }
         setNpOpen(true)
         setNpVisible(true)
-        // Material-style container transform: the page starts as the bar's
-        // rectangle (transform only, so it stays on the compositor) and grows
-        // to full size while its content cross-fades in.
+        // Apple Music-style: the bar cover flies to the page cover while the
+        // page backdrop fades in behind it. Everything runs on
+        // transform/opacity so the browser composites it off the main thread.
         window.requestAnimationFrame(function () {
           var page = document.querySelector('.mu-np')
           if (page === null) return
+          var art = page.querySelector('.mu-np-art')
+          var bg = page.querySelector('.mu-np-bg')
+          var shade = page.querySelector('.mu-np-shade')
           var content = page.querySelectorAll('.mu-np-head, .mu-np-body, .mu-np-bottom')
+          var barCover = barEl !== null ? barEl.querySelector('.mu-cover') : null
           content.forEach(function (el) {
             el.style.opacity = '0'
           })
-          var pageRect = page.getBoundingClientRect()
-          var barRect = barEl !== null ? barEl.getBoundingClientRect() : null
-          var tx = barRect !== null ? barRect.left - pageRect.left : 0
-          var ty = barRect !== null ? barRect.top - pageRect.top : pageRect.height * 0.85
-          var sx = barRect !== null ? Math.max(0.04, barRect.width / pageRect.width) : 1
-          var sy = barRect !== null ? Math.max(0.04, barRect.height / pageRect.height) : 0.12
-          var from = 'translate(' + tx + 'px,' + ty + 'px) scale(' + sx + ',' + sy + ')'
-          page.style.transformOrigin = '0 0'
-          page.style.transform = from
-          page.style.opacity = '1'
+          if (bg !== null) bg.style.opacity = '0'
+          if (shade !== null) shade.style.opacity = '0'
+          if (art !== null) art.style.opacity = '0'
           window.requestAnimationFrame(function () {
             if (typeof page.animate !== 'function') {
-              page.style.transform = 'none'
               content.forEach(function (el) {
                 el.style.opacity = ''
               })
+              if (bg !== null) bg.style.opacity = ''
+              if (shade !== null) shade.style.opacity = ''
+              if (art !== null) art.style.opacity = ''
               return
             }
-            npAnimRef.current = page.animate(
-              [
-                { transform: from, opacity: 1 },
-                { transform: 'translate(0px,0px) scale(1,1)', opacity: 1 },
-              ],
-              { duration: 440, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
-            )
-            content.forEach(function (el) {
-              el.animate([{ opacity: 0 }, { opacity: 1 }], {
-                duration: 220,
-                delay: 180,
+            if (bg !== null) {
+              bg.animate([{ opacity: 0 }, { opacity: 1 }], {
+                duration: 420,
                 easing: 'ease-out',
                 fill: 'both',
               })
+            }
+            if (shade !== null) {
+              shade.animate([{ opacity: 0 }, { opacity: 1 }], {
+                duration: 420,
+                easing: 'ease-out',
+                fill: 'both',
+              })
+            }
+            var artRect = art !== null ? art.getBoundingClientRect() : null
+            var coverRect = barCover !== null ? barCover.getBoundingClientRect() : null
+            if (art !== null && artRect !== null && coverRect !== null && current.hasCover) {
+              var flyer = document.createElement('div')
+              flyer.style.cssText =
+                'position:absolute;z-index:5;left:0;top:0;width:' +
+                Math.round(artRect.width) +
+                'px;height:' +
+                Math.round(artRect.height) +
+                'px;border-radius:20px;overflow:hidden;pointer-events:none;will-change:transform'
+              var img = document.createElement('img')
+              img.src = coverUrl(current.path)
+              img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block'
+              flyer.appendChild(img)
+              page.appendChild(flyer)
+              var dx = coverRect.left - artRect.left
+              var dy = coverRect.top - artRect.top
+              var coverScale = Math.max(0.05, coverRect.width / artRect.width)
+              var flight = flyer.animate(
+                [
+                  {
+                    transform:
+                      'translate(' + dx + 'px,' + dy + 'px) scale(' + coverScale + ')',
+                    borderRadius: '8px',
+                  },
+                  { transform: 'translate(0px,0px) scale(1)', borderRadius: '20px' },
+                ],
+                { duration: 460, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
+              )
+              npAnimRef.current = flight
+              flight.finished.then(
+                function () {
+                  if (art !== null) {
+                    art.style.opacity = '1'
+                    art.animate([{ opacity: 0 }, { opacity: 1 }], {
+                      duration: 160,
+                      easing: 'ease-out',
+                      fill: 'both',
+                    })
+                  }
+                  if (flyer.parentElement !== null) flyer.parentElement.removeChild(flyer)
+                  npAnimRef.current = null
+                },
+                function () {
+                  if (flyer.parentElement !== null) flyer.parentElement.removeChild(flyer)
+                },
+              )
+            } else if (art !== null) {
+              art.style.opacity = '1'
+            }
+            content.forEach(function (el, index) {
+              el.animate(
+                [
+                  { opacity: 0, transform: 'translateY(10px)' },
+                  { opacity: 1, transform: 'translateY(0px)' },
+                ],
+                {
+                  duration: 340,
+                  delay: 170 + index * 50,
+                  easing: 'cubic-bezier(.22,.61,.36,1)',
+                  fill: 'both',
+                },
+              )
             })
             if (barEl !== null && typeof barEl.animate === 'function') {
               barEl.animate(
                 [
-                  { opacity: 1, transform: 'translateY(0) scale(1)' },
-                  { opacity: 0, transform: 'translateY(14px) scale(.99)' },
+                  { opacity: 1, transform: 'translateY(0px)' },
+                  { opacity: 0, transform: 'translateY(10px)' },
                 ],
-                { duration: 240, easing: 'ease-out', fill: 'both' },
+                { duration: 220, easing: 'ease-out', fill: 'both' },
               )
             }
           })
@@ -4466,7 +4528,8 @@ window.__ModuleLoader__.load({
       function closeNowPlaying() {
         var page = document.querySelector('.mu-np')
         var bar = document.querySelector('.mu-bar')
-        function finish() {
+        var finished = false
+        function cleanup() {
           npAnimRef.current = null
           setNpVisible(false)
           setNpOpen(false)
@@ -4476,18 +4539,30 @@ window.__ModuleLoader__.load({
             })
             page.style.transform = ''
             page.style.opacity = ''
+            page.style.transformOrigin = ''
             page.querySelectorAll('.mu-np-head, .mu-np-body, .mu-np-bottom').forEach(function (el) {
               el.getAnimations().forEach(function (item) {
                 item.cancel()
               })
               el.style.opacity = ''
             })
+            var stray = page.querySelector('.mu-np-flyer')
+            if (stray !== null && stray.parentElement !== null) {
+              stray.parentElement.removeChild(stray)
+            }
+            var art = page.querySelector('.mu-np-art')
+            if (art !== null) art.style.opacity = ''
           }
           if (bar !== null) {
             bar.getAnimations().forEach(function (item) {
               item.cancel()
             })
           }
+        }
+        function finish() {
+          if (finished) return
+          finished = true
+          cleanup()
         }
         if (page === null || typeof page.animate !== 'function') {
           finish()
@@ -4506,42 +4581,74 @@ window.__ModuleLoader__.load({
         })
         page.style.transform = 'none'
         page.style.opacity = '1'
-        var pageRect = page.getBoundingClientRect()
-        var barRect = bar !== null ? bar.getBoundingClientRect() : null
-        var tx = barRect !== null ? barRect.left - pageRect.left : 0
-        var ty = barRect !== null ? barRect.top - pageRect.top : pageRect.height * 0.85
-        var sx = barRect !== null ? Math.max(0.04, barRect.width / pageRect.width) : 1
-        var sy = barRect !== null ? Math.max(0.04, barRect.height / pageRect.height) : 0.12
-        var to = 'translate(' + tx + 'px,' + ty + 'px) scale(' + sx + ',' + sy + ')'
+        var art = page.querySelector('.mu-np-art')
+        var barCover = bar !== null ? bar.querySelector('.mu-cover') : null
         var content = page.querySelectorAll('.mu-np-head, .mu-np-body, .mu-np-bottom')
         content.forEach(function (el) {
           el.getAnimations().forEach(function (item) {
             item.cancel()
           })
           el.animate([{ opacity: 1 }, { opacity: 0 }], {
-            duration: 130,
+            duration: 150,
             easing: 'ease-out',
             fill: 'both',
           })
         })
-        var anim = page.animate(
-          [
-            { transform: 'translate(0px,0px) scale(1,1)', opacity: 1 },
-            { transform: to, opacity: 0.92 },
-          ],
-          { duration: 300, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' },
-        )
-        npAnimRef.current = anim
+        var artRect = art !== null ? art.getBoundingClientRect() : null
+        var coverRect = barCover !== null ? barCover.getBoundingClientRect() : null
+        if (
+          art !== null &&
+          artRect !== null &&
+          coverRect !== null &&
+          current !== null &&
+          current.hasCover
+        ) {
+          art.style.opacity = '1'
+          var flyer = document.createElement('div')
+          flyer.style.cssText =
+            'position:absolute;z-index:5;left:0;top:0;width:' +
+            Math.round(artRect.width) +
+            'px;height:' +
+            Math.round(artRect.height) +
+            'px;border-radius:20px;overflow:hidden;pointer-events:none;will-change:transform'
+          var img = document.createElement('img')
+          img.src = coverUrl(current.path)
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block'
+          flyer.appendChild(img)
+          page.appendChild(flyer)
+          var dx = coverRect.left - artRect.left
+          var dy = coverRect.top - artRect.top
+          var coverScale = Math.max(0.05, coverRect.width / artRect.width)
+          var flight = flyer.animate(
+            [
+              { transform: 'translate(0px,0px) scale(1)', borderRadius: '20px' },
+              {
+                transform: 'translate(' + dx + 'px,' + dy + 'px) scale(' + coverScale + ')',
+                borderRadius: '8px',
+              },
+            ],
+            { duration: 340, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' },
+          )
+          npAnimRef.current = flight
+          flight.finished.then(finish, finish)
+        } else {
+          page
+            .animate([{ opacity: 1 }, { opacity: 0 }], {
+              duration: 220,
+              easing: 'ease-out',
+              fill: 'both',
+            })
+            .finished.then(finish, finish)
+        }
         if (bar !== null && typeof bar.animate === 'function') {
           bar.animate(
             [
-              { opacity: 0, transform: 'translateY(14px) scale(.99)' },
-              { opacity: 1, transform: 'translateY(0) scale(1)' },
+              { opacity: 0, transform: 'translateY(10px)' },
+              { opacity: 1, transform: 'translateY(0px)' },
             ],
-            { duration: 300, delay: 70, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'both' },
+            { duration: 280, delay: 140, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
           )
         }
-        anim.finished.then(finish, finish)
       }
 
       useEffect(
@@ -7536,26 +7643,27 @@ window.__ModuleLoader__.load({
       '.mu-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
       '.mu-np-bg img{width:100%;height:100%;object-fit:cover;filter:blur(72px) saturate(1.35) brightness(.42);transform:scale(1.15)}',
       '.mu-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,10,12,.35),rgba(10,10,12,.72) 60%,rgba(10,10,12,.92));pointer-events:none}',
-      '.mu-np-head{position:relative;z-index:2;display:flex;align-items:center;gap:8px;padding:14px 20px 6px}',
+      '.mu-np-head{position:relative;z-index:2;display:flex;align-items:center;gap:8px;padding:16px 24px 8px}',
       '.mu-np-head-title{font-size:14px;font-weight:600;opacity:.9}',
       '.mu-np-body{position:relative;z-index:2;flex:1;min-height:0;display:grid;grid-template-columns:minmax(260px,42%) minmax(0,1fr);align-items:center;gap:24px;padding:8px 40px}',
       '.mu-np-left{display:flex;flex-direction:column;align-items:center;gap:18px;min-width:0}',
       '.mu-np-disc-wrap{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:30px}',
-      '.mu-np-disc{position:relative;width:340px;height:340px;flex:none;aspect-ratio:1;display:flex;align-items:center;justify-content:center;animation:mu-disc-spin 24s linear infinite;animation-play-state:paused}',
+      '.mu-np-art{position:relative;z-index:1;width:340px;height:340px;border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#141416;color:#71717a;box-shadow:0 34px 80px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.07)}',
+      '.mu-np-disc{position:relative;width:380px;height:380px;flex:none;aspect-ratio:1;display:flex;align-items:center;justify-content:center;animation:mu-disc-spin 24s linear infinite;animation-play-state:paused}',
       '.mu-np-disc.is-playing{animation-play-state:running}',
       '.mu-np-disc.is-square{animation:none}',
       '.mu-np-vinyl{position:absolute;inset:-22px;aspect-ratio:1;border-radius:50%;clip-path:circle(50% at 50% 50%);background:repeating-radial-gradient(circle at 50% 50%,#141416 0 2px,#0b0b0d 2px 5px);box-shadow:inset 0 0 40px rgba(0,0,0,.85),0 18px 50px rgba(0,0,0,.5);z-index:0}',
       '.mu-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(50% 42% at 28% 26%,rgba(86,134,254,.16),transparent 72%),radial-gradient(40% 36% at 78% 74%,rgba(122,170,255,.08),transparent 70%);pointer-events:none}',
-      '.mu-np-art::after{content:"";position:absolute;inset:0;border-radius:18px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 -48px 70px rgba(0,0,0,.28);pointer-events:none;z-index:2}',
-      '.mu-np-disc.is-circle .mu-np-art{border-radius:160px;clip-path:circle(50% at 50% 50%)}',
-      '.mu-np-art img{width:100%;height:100%;object-fit:cover;display:block;border-radius:18px}',
-      '.mu-np-disc.is-circle .mu-np-art img{border-radius:160px}',
+      '.mu-np-art::after{content:"";position:absolute;inset:0;border-radius:20px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 -48px 70px rgba(0,0,0,.28);pointer-events:none;z-index:2}',
+      '.mu-np-disc.is-circle .mu-np-art{border-radius:170px;clip-path:circle(50% at 50% 50%)}',
+      '.mu-np-art img{width:100%;height:100%;object-fit:cover;display:block;border-radius:20px}',
+      '.mu-np-disc.is-circle .mu-np-art img{border-radius:170px}',
       '.mu-np.mu-align-left .mu-np-line{text-align:left}',
       '.mu-np.mu-align-center .mu-np-line{text-align:center}',
       '.mu-np.mu-align-right .mu-np-line{text-align:right}',
       '@keyframes mu-disc-spin{to{transform:rotate(360deg)}}',
       '.mu-np-meta{text-align:center;min-width:0;max-width:420px}',
-      '.mu-np-title{font-size:18px;font-weight:600}',
+      '.mu-np-title{font-size:20px;font-weight:650}',
       '.mu-np-artist{font-size:13px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:4px}',
       '.mu-np-right{height:100%;min-height:0;display:flex;align-items:center;justify-content:center}',
       '.mu-np-lyrics{position:relative;width:100%;max-width:560px;height:100%;max-height:420px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent)}',
@@ -7589,7 +7697,7 @@ window.__ModuleLoader__.load({
       '.mu-np-toggle.is-on{background:var(--dsw-alias-brand-primary,#f4f4f5)}',
       '.mu-np-toggle.is-on .mu-np-toggle-dot{transform:translateX(20px);background:var(--dsw-alias-bg-base,#141417)}',
       '.mu-trans-toggle.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1))}',
-      '.mu-np-bottom{position:relative;z-index:2;padding:10px 40px 22px;background:linear-gradient(180deg,transparent,rgba(8,8,10,.45) 45%,rgba(8,8,10,.72))}',
+      '.mu-np-bottom{position:relative;z-index:2;margin:0 40px 18px;padding:12px 18px 14px;border:.5px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(16,16,20,.5);-webkit-backdrop-filter:blur(20px) saturate(1.3);backdrop-filter:blur(20px) saturate(1.3);box-shadow:0 18px 44px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06)}',
       '.mu-np-progress{margin-bottom:6px}',
       '.mu-seek-np{position:relative;left:auto;top:auto;width:100%;height:16px;margin:0}',
       '.mu-seek-np .mu-bar-buffer{top:6px}',
