@@ -202,6 +202,11 @@ window.__ModuleLoader__.load({
         'page.metaHint': '修改会直接写入音频文件标签（FLAC / MP3）；封面与未编辑的标签会保留。',
         'page.metaBasic': '基本信息',
         'page.metaDetail': '制作信息',
+        'page.onlineMatch': '在线匹配',
+        'page.onlineHint': '在线匹配使用网易云 / QQ 音乐（非官方接口）与 iTunes / MusicBrainz；结果可能不完整或随时失效。',
+        'page.onlineLoading': '在线搜索中…',
+        'page.onlineEmpty': '没有找到匹配结果',
+        'page.onlineResults': '在线搜索结果',
         'page.addedCount': '已添加 {n} 首',
         'page.trackCount': '{n} 首',
         'page.removeTrack': '从歌单移除',
@@ -407,6 +412,11 @@ window.__ModuleLoader__.load({
         'page.metaHint': 'Changes are written to the audio file tags (FLAC / MP3). Cover art and untouched tags are preserved.',
         'page.metaBasic': 'Basic info',
         'page.metaDetail': 'Credits',
+        'page.onlineMatch': 'Match online',
+        'page.onlineHint': 'Online matching uses NetEase / QQ Music (unofficial endpoints) plus iTunes / MusicBrainz. Results can be incomplete or stop working at any time.',
+        'page.onlineLoading': 'Searching online…',
+        'page.onlineEmpty': 'No matching result',
+        'page.onlineResults': 'Online results',
         'page.addedCount': '{n} added',
         'page.trackCount': '{n} tracks',
         'page.removeTrack': 'Remove from playlist',
@@ -3697,6 +3707,10 @@ window.__ModuleLoader__.load({
       var [tagEditPath, setTagEditPath] = useState(null)
       var [tagForm, setTagForm] = useState(null)
       var [tagSaving, setTagSaving] = useState(false)
+      var [onlineOpen, setOnlineOpen] = useState(false)
+      var [onlineLoading, setOnlineLoading] = useState(false)
+      var [onlineResults, setOnlineResults] = useState([])
+      var [onlineSources, setOnlineSources] = useState([])
       var TAG_BASIC_ROWS = [
         ['title', 'page.metaTitle'],
         ['artist', 'page.artist'],
@@ -4057,6 +4071,9 @@ window.__ModuleLoader__.load({
       function openTagEditor(path) {
         setTagEditPath(path)
         setTagForm(null)
+        setOnlineOpen(false)
+        setOnlineResults([])
+        setOnlineSources([])
         getJson(API + 'tags?path=' + encodeURIComponent(path))
           .then(function (body) {
             setTagForm(Object.assign({}, body.tags))
@@ -4071,6 +4088,45 @@ window.__ModuleLoader__.load({
         if (tagSaving) return
         setTagEditPath(null)
         setTagForm(null)
+        setOnlineOpen(false)
+      }
+
+      function searchOnlineForTags() {
+        if (tagForm === null || onlineLoading) return
+        setOnlineOpen(true)
+        setOnlineLoading(true)
+        setOnlineResults([])
+        setOnlineSources([])
+        requestJson('POST', API + 'online-search', {
+          title: tagForm.title || '',
+          artist: tagForm.artist || '',
+          album: tagForm.album || '',
+        })
+          .then(function (body) {
+            setOnlineResults(Array.isArray(body.results) ? body.results : [])
+            setOnlineSources(Array.isArray(body.sources) ? body.sources : [])
+            setOnlineLoading(false)
+          })
+          .catch(function (error) {
+            setOnlineLoading(false)
+            showToast(String((error && error.message) || error))
+          })
+      }
+
+      function applyOnlineResult(item) {
+        setTagForm(function (previous) {
+          if (previous === null) return previous
+          var next = Object.assign({}, previous)
+          if (item.title) next.title = item.title
+          if (item.artist) next.artist = item.artist
+          if (item.album) next.album = item.album
+          if (item.year) next.year = item.year
+          if (item.track) next.track = item.track
+          if (item.disc) next.disc = item.disc
+          if (item.genre) next.genre = item.genre
+          return next
+        })
+        setOnlineOpen(false)
       }
 
       function saveTagEditor() {
@@ -5894,18 +5950,24 @@ window.__ModuleLoader__.load({
                   { className: 'mu-info-head' },
                   h('span', { className: 'mu-info-title' }, t('page.editMeta')),
                   h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-icon-btn-sm',
-                      onClick: function () {
-                        if (!tagSaving) {
-                          setTagEditPath(null)
-                          setTagForm(null)
-                        }
+                    'div',
+                    { className: 'mu-tag-head-actions' },
+                    h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mu-chip',
+                        disabled: tagForm === null || onlineLoading,
+                        onClick: searchOnlineForTags,
                       },
-                    },
-                    icon('x', 14),
+                      icon('search', 13),
+                      h('span', null, t('page.onlineMatch')),
+                    ),
+                    h(
+                      'button',
+                      { type: 'button', className: 'mu-icon-btn mu-icon-btn-sm', onClick: closeTagEditor },
+                      icon('x', 14),
+                    ),
                   ),
                 ),
                 tagForm === null
@@ -5914,6 +5976,87 @@ window.__ModuleLoader__.load({
                       h(
                         'div',
                         { className: 'mu-tag-body', key: 'body' },
+                        onlineOpen
+                          ? h(
+                              'div',
+                              { className: 'mu-tag-online' },
+                              h(
+                                'div',
+                                { className: 'mu-tag-online-head' },
+                                h('span', null, t('page.onlineResults')),
+                                h(
+                                  'button',
+                                  {
+                                    type: 'button',
+                                    className: 'mu-icon-btn mu-icon-btn-sm',
+                                    onClick: function () {
+                                      setOnlineOpen(false)
+                                    },
+                                  },
+                                  icon('x', 13),
+                                ),
+                              ),
+                              onlineLoading
+                                ? h('div', { className: 'mu-tag-online-empty' }, t('page.onlineLoading'))
+                                : onlineResults.length === 0
+                                  ? h('div', { className: 'mu-tag-online-empty' }, t('page.onlineEmpty'))
+                                  : onlineResults.map(function (item, index) {
+                                      var key = (item.source || 'x') + ':' + (item.id || index)
+                                      return h(
+                                        'button',
+                                        {
+                                          key: key,
+                                          type: 'button',
+                                          className: 'mu-online-item',
+                                          onClick: function () {
+                                            applyOnlineResult(item)
+                                          },
+                                        },
+                                        item.coverUrl
+                                          ? h('img', {
+                                              className: 'mu-online-cover',
+                                              src: item.coverUrl,
+                                              loading: 'lazy',
+                                              alt: '',
+                                            })
+                                          : h('span', { className: 'mu-online-cover' }, icon('note', 14)),
+                                        h(
+                                          'span',
+                                          { className: 'mu-online-text' },
+                                          h(
+                                            'span',
+                                            { className: 'mu-online-title mu-ellipsis' },
+                                            (item.title || '') +
+                                              (item.artist ? ' - ' + item.artist : ''),
+                                          ),
+                                          h(
+                                            'span',
+                                            { className: 'mu-online-sub mu-ellipsis' },
+                                            [item.album, item.year, item.source]
+                                              .filter(function (part) {
+                                                return part !== '' && part !== undefined
+                                              })
+                                              .join(' · '),
+                                          ),
+                                        ),
+                                      )
+                                    }),
+                              h('div', { className: 'mu-tag-online-hint' }, t('page.onlineHint')),
+                              onlineSources.length > 0
+                                ? h(
+                                    'div',
+                                    { className: 'mu-tag-online-sources' },
+                                    onlineSources.map(function (source) {
+                                      return h(
+                                        'span',
+                                        { key: source.source },
+                                        source.source + (source.ok ? ' ✓' : ' ✕'),
+                                      )
+                                    }),
+                                  )
+                                : null,
+                            )
+                          : null,
                         h(
                           'div',
                           { className: 'mu-tag-section' },
@@ -6371,6 +6514,19 @@ window.__ModuleLoader__.load({
       '.mu-tag-field .mu-input{width:100%;box-sizing:border-box}',
       '.mu-tag-lyrics{min-height:150px;resize:vertical;padding:10px 12px;line-height:1.6;height:auto;font-family:inherit}',
       '.mu-tag-hint{margin:0;font-size:11px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-tag-head-actions{display:flex;align-items:center;gap:8px}',
+      '.mu-tag-head-actions .mu-chip{height:26px;padding:0 10px;font-size:11px}',
+      '.mu-tag-online{display:flex;flex-direction:column;gap:6px;padding:10px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:10px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03));max-height:240px;overflow-y:auto}',
+      '.mu-tag-online-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;font-weight:600;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-tag-online-empty{padding:10px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-online-item{display:flex;align-items:center;gap:10px;width:100%;padding:6px;border:0;border-radius:8px;background:transparent;cursor:pointer;text-align:left;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mu-online-item:hover{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.05))}',
+      '.mu-online-cover{width:36px;height:36px;flex:none;border-radius:6px;object-fit:cover;display:flex;align-items:center;justify-content:center;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:11px}',
+      '.mu-online-text{display:flex;flex-direction:column;gap:2px;min-width:0}',
+      '.mu-online-title{font-size:12px}',
+      '.mu-online-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-tag-online-hint{font-size:10px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-tag-online-sources{display:flex;gap:8px;font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-tag-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,#1a1a1e)}',
       '.mu-tag-editor .mu-input:focus{outline:none;border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.18));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.05));box-shadow:none}',
       '.mu-tag-editor .mu-input:focus-visible{outline:none}',
