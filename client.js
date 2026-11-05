@@ -3246,36 +3246,22 @@ window.__ModuleLoader__.load({
         return playModeLabel(playModeOf(snap))
       }
 
-      var origin = props.origin || null
-      var originVars =
-        origin === null
-          ? {}
-          : {
-              '--mu-np-ot': origin.top + 'px',
-              '--mu-np-or': origin.right + 'px',
-              '--mu-np-ob': origin.bottom + 'px',
-              '--mu-np-ol': origin.left + 'px',
-            }
-
       return h(
         'div',
         {
           className:
             'mu-np' +
-            (props.visible ? ' is-open' : origin !== null ? ' is-from-bar' : '') +
+            (props.visible ? ' is-open' : '') +
             (lyricBlur ? ' is-blur' : '') +
             ' mu-align-' +
             lyricAlign,
           role: 'dialog',
           'aria-label': t('page.openPlayer'),
-          style: Object.assign(
-            {
-              '--mu-lyric-size': lyricSize + 'px',
-              '--mu-lyric-weight': String(lyricWeight),
-              '--mu-lyric-trans': Math.round((lyricSize * translationScale) / 100) + 'px',
-            },
-            originVars,
-          ),
+          style: {
+            '--mu-lyric-size': lyricSize + 'px',
+            '--mu-lyric-weight': String(lyricWeight),
+            '--mu-lyric-trans': Math.round((lyricSize * translationScale) / 100) + 'px',
+          },
         },
         track && track.hasCover
           ? h('div', { className: 'mu-np-bg' }, h('img', { src: coverUrl(track.path), alt: '' }))
@@ -4234,7 +4220,7 @@ window.__ModuleLoader__.load({
       var toastTimerRef = useRef(null)
       var [npOpen, setNpOpen] = useState(false)
       var [npVisible, setNpVisible] = useState(false)
-      var npOriginRef = useRef(null)
+      var npAnimRef = useRef(null)
       var [view, setView] = useState('songs')
       var [playlists, setPlaylists] = useState([])
       var [favorites, setFavorites] = useState([])
@@ -4405,38 +4391,92 @@ window.__ModuleLoader__.load({
           window.clearTimeout(npTimerRef.current)
           npTimerRef.current = null
         }
-        // Measure the bar so the page can unfold from it (FLIP-style).
-        try {
-          var bar = document.querySelector('.mu-bar')
-          var root = document.querySelector('.mu-root')
-          if (bar !== null && root !== null) {
-            var barRect = bar.getBoundingClientRect()
-            var rootRect = root.getBoundingClientRect()
-            npOriginRef.current = {
-              top: Math.max(0, Math.round(barRect.top - rootRect.top)),
-              right: Math.max(0, Math.round(rootRect.right - barRect.right)),
-              bottom: Math.max(0, Math.round(rootRect.bottom - barRect.bottom)),
-              left: Math.max(0, Math.round(barRect.left - rootRect.left)),
-            }
+        if (npAnimRef.current !== null) {
+          try {
+            npAnimRef.current.cancel()
+          } catch (error) {
+            // Already finished.
           }
-        } catch (error) {
-          npOriginRef.current = null
+          npAnimRef.current = null
+        }
+        var barEl = document.querySelector('.mu-bar')
+        if (barEl !== null) {
+          barEl.getAnimations().forEach(function (item) {
+            item.cancel()
+          })
         }
         setNpOpen(true)
+        setNpVisible(true)
+        // Paint the page at its start pose first, then animate on the next
+        // frame so the browser composites transform/opacity off the main thread.
         window.requestAnimationFrame(function () {
+          var page = document.querySelector('.mu-np')
+          if (page === null) return
+          page.style.opacity = '0'
+          page.style.transform = 'translateY(34px) scale(.975)'
           window.requestAnimationFrame(function () {
-            setNpVisible(true)
+            if (typeof page.animate !== 'function') {
+              page.style.opacity = ''
+              page.style.transform = ''
+              return
+            }
+            page.style.opacity = ''
+            page.style.transform = ''
+            npAnimRef.current = page.animate(
+              [
+                { transform: 'translateY(34px) scale(.975)', opacity: 0 },
+                { transform: 'translateY(0) scale(1)', opacity: 1 },
+              ],
+              { duration: 420, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'both' },
+            )
+            if (barEl !== null && typeof barEl.animate === 'function') {
+              barEl.animate(
+                [
+                  { opacity: 1, transform: 'translateY(0) scale(1)' },
+                  { opacity: 0, transform: 'translateY(18px) scale(.985)' },
+                ],
+                { duration: 280, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'both' },
+              )
+            }
           })
         })
       }
 
       function closeNowPlaying() {
-        setNpVisible(false)
-        if (npTimerRef.current !== null) window.clearTimeout(npTimerRef.current)
-        npTimerRef.current = window.setTimeout(function () {
-          npTimerRef.current = null
+        var page = document.querySelector('.mu-np')
+        var bar = document.querySelector('.mu-bar')
+        function finish() {
+          npAnimRef.current = null
+          setNpVisible(false)
           setNpOpen(false)
-        }, 320)
+          if (bar !== null) {
+            bar.getAnimations().forEach(function (item) {
+              item.cancel()
+            })
+          }
+        }
+        if (page === null || typeof page.animate !== 'function') {
+          finish()
+          return
+        }
+        var anim = page.animate(
+          [
+            { transform: 'translateY(0) scale(1)', opacity: 1 },
+            { transform: 'translateY(26px) scale(.98)', opacity: 0 },
+          ],
+          { duration: 260, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' },
+        )
+        npAnimRef.current = anim
+        if (bar !== null && typeof bar.animate === 'function') {
+          bar.animate(
+            [
+              { opacity: 0, transform: 'translateY(18px) scale(.985)' },
+              { opacity: 1, transform: 'translateY(0) scale(1)' },
+            ],
+            { duration: 320, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'both' },
+          )
+        }
+        anim.finished.then(finish, finish)
       }
 
       useEffect(
@@ -6870,7 +6910,6 @@ window.__ModuleLoader__.load({
               player: player,
               snapshot: snap,
               visible: npVisible,
-              origin: npOriginRef.current,
               onClose: closeNowPlaying,
             })
           : null,
@@ -7182,6 +7221,7 @@ window.__ModuleLoader__.load({
       '.mu-menu-hint{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-bar{position:relative;flex:none;margin:0 10px 10px;padding:8px 12px 9px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:14px;background:rgba(24,24,28,.52);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#1a1a1e) 55%,transparent);-webkit-backdrop-filter:blur(24px) saturate(1.4);backdrop-filter:blur(24px) saturate(1.4);box-shadow:0 12px 32px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.07);overflow:hidden;transition:background .2s ease,box-shadow .2s ease}',
       '.mu-bar:hover{background:rgba(30,30,34,.62);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#1a1a1e) 60%,transparent);box-shadow:0 14px 36px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.09)}',
+      '.mu-bar::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);pointer-events:none;z-index:1}',
       '.mu-bar-openable{cursor:pointer}',
       // The whole bar opens the player, so the hover highlight must cover the
       // whole bar too (it used to come from `.mu-bar-left.mu-clickable`, which
@@ -7194,7 +7234,7 @@ window.__ModuleLoader__.load({
       '.mu-seekwrap{position:absolute;left:0;right:0;top:0;height:5px;z-index:2}',
       '.mu-bar-buffer{position:absolute;left:0;top:1px;height:3px;background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12));pointer-events:none}',
       '.mu-seek{position:absolute;left:0;top:0;width:100%;height:5px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;margin:0;padding:0}',
-      '.mu-seek::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(to right,var(--dsw-alias-brand-primary,#f4f4f5) var(--mu-p,0%),var(--dsw-alias-border-l2,rgba(255,255,255,.16)) var(--mu-p,0%))}',
+      '.mu-seek::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(to right,rgba(255,255,255,.95) var(--mu-p,0%),rgba(255,255,255,.16) var(--mu-p,0%))}',
       '.mu-seek::-webkit-slider-thumb{-webkit-appearance:none;width:8px;height:8px;margin-top:-3px;border-radius:50%;background:var(--dsw-alias-label-primary,#f4f4f5);opacity:0;transition:opacity .12s ease}',
       '.mu-seek:hover::-webkit-slider-thumb{opacity:1}',
       '.mu-seek:disabled{opacity:.4;cursor:default}',
@@ -7426,9 +7466,8 @@ window.__ModuleLoader__.load({
       '.mu-clickable{cursor:pointer;border-radius:8px;padding:4px 6px;margin:-4px -6px;min-width:0}',
       '.mu-clickable:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
       '.mu-clickable:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
-      '.mu-np{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);clip-path:inset(0 0 0 0 round 0);opacity:0;transform:none;transition:opacity .26s ease,clip-path .36s cubic-bezier(.22,.61,.36,1),transform .36s cubic-bezier(.22,.61,.36,1);pointer-events:none;user-select:none}',
-      '.mu-np.is-from-bar{clip-path:inset(var(--mu-np-ot,0px) var(--mu-np-or,0px) var(--mu-np-ob,0px) var(--mu-np-ol,0px) round 14px);opacity:0;transform:translateY(8px) scale(.995)}',
-      '.mu-np.is-open{clip-path:inset(0 0 0 0 round 0);opacity:1;transform:none;pointer-events:auto}',
+      '.mu-np{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);opacity:0;pointer-events:none;user-select:none;will-change:transform,opacity}',
+      '.mu-np.is-open{opacity:1;pointer-events:auto}',
       '.mu-np.is-open .mu-np-head,.mu-np.is-open .mu-np-body{animation:mu-np-content-in .42s cubic-bezier(.22,.61,.36,1) both}',
       '@keyframes mu-np-content-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}',
       '.mu-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
@@ -7443,7 +7482,8 @@ window.__ModuleLoader__.load({
       '.mu-np-disc.is-playing{animation-play-state:running}',
       '.mu-np-disc.is-square{animation:none}',
       '.mu-np-vinyl{position:absolute;inset:-22px;aspect-ratio:1;border-radius:50%;clip-path:circle(50% at 50% 50%);background:repeating-radial-gradient(circle at 50% 50%,#141416 0 2px,#0b0b0d 2px 5px);box-shadow:inset 0 0 40px rgba(0,0,0,.85),0 18px 50px rgba(0,0,0,.5);z-index:0}',
-      '.mu-np-art{position:relative;z-index:1;width:320px;height:320px;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#141416;color:#71717a;box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.06)}',
+      '.mu-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(50% 42% at 28% 26%,rgba(86,134,254,.16),transparent 72%),radial-gradient(40% 36% at 78% 74%,rgba(122,170,255,.08),transparent 70%);pointer-events:none}',
+      '.mu-np-art::after{content:"";position:absolute;inset:0;border-radius:18px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 -48px 70px rgba(0,0,0,.28);pointer-events:none;z-index:2}',
       '.mu-np-disc.is-circle .mu-np-art{border-radius:160px;clip-path:circle(50% at 50% 50%)}',
       '.mu-np-art img{width:100%;height:100%;object-fit:cover;display:block;border-radius:18px}',
       '.mu-np-disc.is-circle .mu-np-art img{border-radius:160px}',
@@ -7486,7 +7526,7 @@ window.__ModuleLoader__.load({
       '.mu-np-toggle.is-on{background:var(--dsw-alias-brand-primary,#f4f4f5)}',
       '.mu-np-toggle.is-on .mu-np-toggle-dot{transform:translateX(20px);background:var(--dsw-alias-bg-base,#141417)}',
       '.mu-trans-toggle.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1))}',
-      '.mu-np-bottom{position:relative;z-index:2;padding:10px 40px 22px}',
+      '.mu-np-bottom{position:relative;z-index:2;padding:10px 40px 22px;background:linear-gradient(180deg,transparent,rgba(8,8,10,.45) 45%,rgba(8,8,10,.72))}',
       '.mu-np-progress{margin-bottom:6px}',
       '.mu-seek-np{position:relative;left:auto;top:auto;width:100%;height:16px;margin:0}',
       '.mu-seek-np .mu-bar-buffer{top:6px}',
