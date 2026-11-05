@@ -3707,6 +3707,7 @@ window.__ModuleLoader__.load({
       var [tagEditPath, setTagEditPath] = useState(null)
       var [tagForm, setTagForm] = useState(null)
       var [tagSaving, setTagSaving] = useState(false)
+      var [coverFailed, setCoverFailed] = useState(false)
       var [onlineOpen, setOnlineOpen] = useState(false)
       var [onlineLoading, setOnlineLoading] = useState(false)
       var [onlineResults, setOnlineResults] = useState([])
@@ -4071,6 +4072,7 @@ window.__ModuleLoader__.load({
       function openTagEditor(path) {
         setTagEditPath(path)
         setTagForm(null)
+        setCoverFailed(false)
         setOnlineOpen(false)
         setOnlineResults([])
         setOnlineSources([])
@@ -4625,6 +4627,10 @@ window.__ModuleLoader__.load({
             showToast(String((error && error.message) || error))
           })
       }
+
+      var tagTrack = tagEditPath !== null ? trackByPath[tagEditPath] || null : null
+      var tagFormat = tagTrack ? (tagTrack.codec || tagTrack.ext || '').toUpperCase() : ''
+      var tagCoverUrl = tagEditPath !== null ? API + 'cover?path=' + encodeURIComponent(tagEditPath) : ''
 
       return h(
         'div',
@@ -5975,7 +5981,69 @@ window.__ModuleLoader__.load({
                   : [
                       h(
                         'div',
-                        { className: 'mu-tag-body', key: 'body' },
+                        { className: 'mu-tag-layout', key: 'layout' },
+                        h(
+                          'aside',
+                          { className: 'mu-tag-aside' },
+                          coverFailed
+                            ? h('div', { className: 'mu-tag-cover mu-tag-cover-empty' }, icon('note', 30))
+                            : h('img', {
+                                className: 'mu-tag-cover',
+                                src: tagCoverUrl,
+                                alt: '',
+                                onError: function () {
+                                  setCoverFailed(true)
+                                },
+                              }),
+                          h(
+                            'div',
+                            { className: 'mu-tag-aside-meta' },
+                            h(
+                              'div',
+                              { className: 'mu-tag-aside-title mu-ellipsis' },
+                              tagForm.title || t('page.noTrack'),
+                            ),
+                            h(
+                              'div',
+                              { className: 'mu-tag-aside-artist mu-ellipsis' },
+                              tagForm.artist || '',
+                            ),
+                            h(
+                              'div',
+                              { className: 'mu-tag-badges' },
+                              [
+                                tagFormat !== ''
+                                  ? h('span', { className: 'mu-tag-badge', key: 'format' }, tagFormat)
+                                  : null,
+                                tagTrack && tagTrack.durationSec > 0
+                                  ? h(
+                                      'span',
+                                      { className: 'mu-tag-badge', key: 'duration' },
+                                      fmtTime(tagTrack.durationSec),
+                                    )
+                                  : null,
+                                tagTrack && fmtKhz(tagTrack.sampleRate) !== ''
+                                  ? h(
+                                      'span',
+                                      { className: 'mu-tag-badge', key: 'rate' },
+                                      fmtKhz(tagTrack.sampleRate),
+                                    )
+                                  : null,
+                                tagTrack && fmtKbps(tagTrack.bitrate) !== ''
+                                  ? h(
+                                      'span',
+                                      { className: 'mu-tag-badge', key: 'bitrate' },
+                                      fmtKbps(tagTrack.bitrate),
+                                    )
+                                  : null,
+                              ].filter(Boolean),
+                            ),
+                          ),
+                          h('div', { className: 'mu-tag-aside-hint' }, t('page.metaHint')),
+                        ),
+                        h(
+                          'div',
+                          { className: 'mu-tag-main' },
                         onlineOpen
                           ? h(
                               'div',
@@ -6097,11 +6165,12 @@ window.__ModuleLoader__.load({
                             },
                           }),
                         ),
-                        h('p', { className: 'mu-tag-hint' }, t('page.metaHint')),
+                            h('p', { className: 'mu-tag-hint' }, t('page.metaHint')),
+                        ),
                       ),
                       h(
                         'div',
-                        { className: 'mu-tag-actions', key: 'actions' },
+                        { className: 'mu-tag-footer', key: 'footer' },
                         h(
                           'button',
                           {
@@ -6502,9 +6571,19 @@ window.__ModuleLoader__.load({
       '.mu-info-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}',
       '.mu-info-title{font-size:14px;font-weight:600}',
       '.mu-info-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}',
-      '.mu-tag-editor{width:560px;max-width:calc(100vw - 48px);max-height:84vh;padding:0;display:flex;flex-direction:column;overflow:hidden}',
-      '.mu-tag-editor .mu-info-head{padding:16px 20px 12px;margin:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      '.mu-tag-body{flex:1;min-height:0;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:18px}',
+      '.mu-tag-editor{width:860px;max-width:calc(100vw - 64px);height:min(720px,86vh);max-height:none;padding:0;display:flex;flex-direction:column;overflow:hidden}',
+      '.mu-tag-editor .mu-info-head{flex:none;padding:16px 22px 14px;margin:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mu-tag-layout{flex:1;min-height:0;display:grid;grid-template-columns:232px 1fr;overflow:hidden}',
+      '.mu-tag-aside{display:flex;flex-direction:column;gap:14px;padding:20px 18px;border-right:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:linear-gradient(180deg,color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 6%,transparent),transparent 42%)}',
+      '.mu-tag-cover{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));box-shadow:0 12px 32px rgba(0,0,0,.35)}',
+      '.mu-tag-cover-empty{display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-tag-aside-meta{display:flex;flex-direction:column;gap:4px;min-width:0}',
+      '.mu-tag-aside-title{font-size:14px;font-weight:600}',
+      '.mu-tag-aside-artist{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-tag-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}',
+      '.mu-tag-badge{font-size:10px;line-height:1;padding:5px 7px;border-radius:6px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-tag-aside-hint{margin-top:auto;font-size:10px;line-height:1.6;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-tag-main{overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:18px}',
       '.mu-tag-section{display:flex;flex-direction:column;gap:10px}',
       '.mu-tag-section-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-tag-section-title::before{content:"";width:3px;height:12px;border-radius:2px;background:var(--dsw-static-deepseek-450,#5686fe)}',
@@ -6527,7 +6606,7 @@ window.__ModuleLoader__.load({
       '.mu-online-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-tag-online-hint{font-size:10px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-tag-online-sources{display:flex;gap:8px;font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-tag-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,#1a1a1e)}',
+      '.mu-tag-footer{flex:none;display:flex;justify-content:flex-end;gap:8px;padding:12px 22px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
       '.mu-tag-editor .mu-input:focus{outline:none;border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.18));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.05));box-shadow:none}',
       '.mu-tag-editor .mu-input:focus-visible{outline:none}',
       '.mu-chip-sm{height:24px;padding:0 8px;font-size:11px}',
