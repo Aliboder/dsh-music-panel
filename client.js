@@ -4385,6 +4385,20 @@ window.__ModuleLoader__.load({
 
       var current = snap.index >= 0 && snap.queue[snap.index] ? snap.queue[snap.index] : null
 
+      function layoutRect(el) {
+        // Center + layout size keeps the rect steady even while the disc
+        // spins (getBoundingClientRect grows for rotated squares).
+        var rect = el.getBoundingClientRect()
+        var width = el.offsetWidth || rect.width
+        var height = el.offsetHeight || rect.height
+        return {
+          left: rect.left + rect.width / 2 - width / 2,
+          top: rect.top + rect.height / 2 - height / 2,
+          width: width,
+          height: height,
+        }
+      }
+
       function openNowPlaying() {
         if (current === null) return
         if (npTimerRef.current !== null) {
@@ -4448,8 +4462,9 @@ window.__ModuleLoader__.load({
                 fill: 'both',
               })
             }
-            var artRect = art !== null ? art.getBoundingClientRect() : null
-            var coverRect = barCover !== null ? barCover.getBoundingClientRect() : null
+            var pageRect = page.getBoundingClientRect()
+            var artRect = art !== null ? layoutRect(art) : null
+            var coverRect = barCover !== null ? layoutRect(barCover) : null
             if (art !== null && artRect !== null && coverRect !== null && current.hasCover) {
               var flyer = document.createElement('div')
               flyer.style.cssText =
@@ -4463,17 +4478,22 @@ window.__ModuleLoader__.load({
               img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block'
               flyer.appendChild(img)
               page.appendChild(flyer)
-              var dx = coverRect.left - artRect.left
-              var dy = coverRect.top - artRect.top
+              var startX = coverRect.left - pageRect.left
+              var startY = coverRect.top - pageRect.top
+              var endX = artRect.left - pageRect.left
+              var endY = artRect.top - pageRect.top
               var coverScale = Math.max(0.05, coverRect.width / artRect.width)
               var flight = flyer.animate(
                 [
                   {
                     transform:
-                      'translate(' + dx + 'px,' + dy + 'px) scale(' + coverScale + ')',
+                      'translate(' + startX + 'px,' + startY + 'px) scale(' + coverScale + ')',
                     borderRadius: '8px',
                   },
-                  { transform: 'translate(0px,0px) scale(1)', borderRadius: '20px' },
+                  {
+                    transform: 'translate(' + endX + 'px,' + endY + 'px) scale(1)',
+                    borderRadius: '20px',
+                  },
                 ],
                 { duration: 460, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
               )
@@ -4594,8 +4614,9 @@ window.__ModuleLoader__.load({
             fill: 'both',
           })
         })
-        var artRect = art !== null ? art.getBoundingClientRect() : null
-        var coverRect = barCover !== null ? barCover.getBoundingClientRect() : null
+        var pageRect = page.getBoundingClientRect()
+        var artRect = art !== null ? layoutRect(art) : null
+        var coverRect = barCover !== null ? layoutRect(barCover) : null
         if (
           art !== null &&
           artRect !== null &&
@@ -4603,7 +4624,7 @@ window.__ModuleLoader__.load({
           current !== null &&
           current.hasCover
         ) {
-          art.style.opacity = '1'
+          art.style.opacity = '0'
           var flyer = document.createElement('div')
           flyer.style.cssText =
             'position:absolute;z-index:5;left:0;top:0;width:' +
@@ -4616,14 +4637,20 @@ window.__ModuleLoader__.load({
           img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block'
           flyer.appendChild(img)
           page.appendChild(flyer)
-          var dx = coverRect.left - artRect.left
-          var dy = coverRect.top - artRect.top
+          var startX = artRect.left - pageRect.left
+          var startY = artRect.top - pageRect.top
+          var endX = coverRect.left - pageRect.left
+          var endY = coverRect.top - pageRect.top
           var coverScale = Math.max(0.05, coverRect.width / artRect.width)
           var flight = flyer.animate(
             [
-              { transform: 'translate(0px,0px) scale(1)', borderRadius: '20px' },
               {
-                transform: 'translate(' + dx + 'px,' + dy + 'px) scale(' + coverScale + ')',
+                transform: 'translate(' + startX + 'px,' + startY + 'px) scale(1)',
+                borderRadius: '20px',
+              },
+              {
+                transform:
+                  'translate(' + endX + 'px,' + endY + 'px) scale(' + coverScale + ')',
                 borderRadius: '8px',
               },
             ],
@@ -6304,7 +6331,7 @@ window.__ModuleLoader__.load({
               if (
                 target &&
                 typeof target.closest === 'function' &&
-                target.closest('button, input, .mu-clickable, .mu-bar-left') !== null
+                target.closest('button, input, .mu-clickable') !== null
               ) {
                 return
               }
@@ -7523,6 +7550,7 @@ window.__ModuleLoader__.load({
       '.mu-tag-cover-btn:hover{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));border-color:var(--dsw-static-deepseek-450,#5686fe)}',
       '.mu-tag-cover-btn.is-ghost{background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '@media (max-width:760px){.mu-tag-layout{grid-template-columns:1fr}.mu-tag-aside{border-right:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));flex-direction:row;align-items:flex-start}.mu-tag-cover-box{width:120px;flex:none}.mu-tag-aside-meta{flex:1}.mu-tag-aside-hint{display:none}}',
+      '@media (max-width:980px){.mu-np-body{grid-template-columns:1fr;gap:10px;padding:4px 20px}.mu-np-left{gap:10px}.mu-np-disc-wrap{margin-bottom:12px}.mu-np-right{width:100%;max-height:34vh}.mu-np-bottom{margin:0 16px 12px;padding:10px 12px 12px}.mu-np-head{padding:12px 16px 6px}.mu-np-title{font-size:16px}}',
       '.mu-tag-cover-hint{font-size:10px;line-height:1.4;color:var(--dsw-static-deepseek-450,#5686fe)}',
       '.mu-tag-field-head{display:flex;align-items:center;justify-content:space-between;gap:6px}',
       '.mu-tag-field-search{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border:0;border-radius:5px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;opacity:0;transition:opacity .12s}',
@@ -7644,12 +7672,12 @@ window.__ModuleLoader__.load({
       '.mu-np-bg img{width:100%;height:100%;object-fit:cover;filter:blur(72px) saturate(1.35) brightness(.42);transform:scale(1.15)}',
       '.mu-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,10,12,.35),rgba(10,10,12,.72) 60%,rgba(10,10,12,.92));pointer-events:none}',
       '.mu-np-head{position:relative;z-index:2;display:flex;align-items:center;gap:8px;padding:16px 24px 8px}',
-      '.mu-np-head-title{font-size:14px;font-weight:600;opacity:.9}',
-      '.mu-np-body{position:relative;z-index:2;flex:1;min-height:0;display:grid;grid-template-columns:minmax(260px,42%) minmax(0,1fr);align-items:center;gap:24px;padding:8px 40px}',
+      '.mu-np-head-title{flex:1;min-width:0;text-align:center;font-size:14px;font-weight:600;opacity:.9}',
+      '.mu-np-body{position:relative;z-index:2;flex:1;min-height:0;display:grid;grid-template-columns:minmax(200px,38%) minmax(0,1fr);align-items:center;gap:24px;padding:8px 40px}',
       '.mu-np-left{display:flex;flex-direction:column;align-items:center;gap:18px;min-width:0}',
       '.mu-np-disc-wrap{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:30px}',
-      '.mu-np-art{position:relative;z-index:1;width:340px;height:340px;border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#141416;color:#71717a;box-shadow:0 34px 80px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.07)}',
-      '.mu-np-disc{position:relative;width:380px;height:380px;flex:none;aspect-ratio:1;display:flex;align-items:center;justify-content:center;animation:mu-disc-spin 24s linear infinite;animation-play-state:paused}',
+      '.mu-np-art{position:relative;z-index:1;width:min(340px,26vw);height:min(340px,26vw);border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#141416;color:#71717a;box-shadow:0 34px 80px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.07)}',
+      '.mu-np-disc{position:relative;width:min(380px,29vw);height:min(380px,29vw);flex:none;aspect-ratio:1;display:flex;align-items:center;justify-content:center;animation:mu-disc-spin 24s linear infinite;animation-play-state:paused}',
       '.mu-np-disc.is-playing{animation-play-state:running}',
       '.mu-np-disc.is-square{animation:none}',
       '.mu-np-vinyl{position:absolute;inset:-22px;aspect-ratio:1;border-radius:50%;clip-path:circle(50% at 50% 50%);background:repeating-radial-gradient(circle at 50% 50%,#141416 0 2px,#0b0b0d 2px 5px);box-shadow:inset 0 0 40px rgba(0,0,0,.85),0 18px 50px rgba(0,0,0,.5);z-index:0}',
