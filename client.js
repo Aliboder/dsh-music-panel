@@ -2997,14 +2997,17 @@ window.__ModuleLoader__.load({
           var inner = innerRef.current
           var box = boxRef.current
           if (!inner || !box) return
-          if (!lyricsTimed || active < 0) {
+          if (!lyricsTimed || lyrics.length === 0) {
             inner.style.transform = 'translateY(0px)'
             return
           }
-          var row = rowRefs.current[active]
+          // Before the first timestamp the opening line is already "current",
+          // and a negative offset is required to vertically center it.
+          var index = active >= 0 ? active : 0
+          var row = rowRefs.current[index]
           if (!row) return
           var offset = row.offsetTop - (box.clientHeight / 2 - row.offsetHeight / 2)
-          inner.style.transform = 'translateY(' + -Math.max(0, offset) + 'px)'
+          inner.style.transform = 'translateY(' + -offset + 'px)'
         },
         [active, lyrics, lyricsTimed],
       )
