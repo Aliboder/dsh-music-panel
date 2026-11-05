@@ -31,7 +31,8 @@ DeepSeek Harness 的本地音乐插件：左侧栏一个音符入口，点开是
 - **歌词设置**：歌词来源顺序（内嵌 / LRC，可调）、对齐方式、字体大小与粗细、模糊非当前歌词、翻译开关与翻译字号缩放、状态栏歌词（输入框内或输入框上方显示当前唱词）。
 - **歌词校准**：播放页 → 歌词设置里按 ±0.5s 调整偏移；「写回文件」把校准后的 LRC 写回 MP3（ID3 USLT）/ FLAC（Vorbis LYRICS）内嵌歌词，写前自动备份为 `<文件>.lyrics.bak`。
 - **收藏与最近播放**：底栏 / 歌曲行爱心（红色）加入「我喜欢」tab；统计页可切换「收听排行 / 最近播放」。
-- **右键菜单**：歌曲行右键可添加到歌单 / 添加到播放列表 / 复制文件地址 / 在文件夹中显示 / 查看详细信息；歌单视图里还可从歌单移除。
+- **右键菜单**：歌曲行右键可添加到歌单 / 添加到播放列表 / 复制文件地址 / 在文件夹中显示 / 查看详细信息 / 编辑元数据；歌单视图里还可从歌单移除。
+- **元数据编辑**：标题、艺术家、专辑、年份、音轨号、碟号、风格、专辑艺术家、作曲、作词、注释、歌词都可改；FLAC 写 Vorbis comments、MP3 写 ID3v2，临时文件 + 回读校验 + 原子替换，失败不破坏原文件。
 - **添加到歌单**：多选后从下拉菜单选择目标歌单（显示曲目数），或新建歌单并添加。
 - **队列编辑**：播放队列支持拖动排序与移除单曲。
 - **搜索**：标题 / 歌手 / 专辑 / 文件夹 / 路径 + 全拼 / 首字母（如 `zhoujielun`、`zjl`），并记住最近 8 条搜索。
@@ -85,6 +86,8 @@ plugin_manager install_bundle D:/SystemFiles/Documents/Project/DSH/plugins/dsh-m
 | POST | `/music/favorites` | 切换收藏，body `{ path }` |
 | POST | `/music/lyrics/calibrate` | 保存歌词偏移 `{ path, offsetMs, write? }`；`write: true` 写回内嵌并清零偏移 |
 | POST | `/music/reveal` | 在系统文件管理器中定位文件（仅已配置目录内），body `{ path }` |
+| GET | `/music/tags?path=...` | 读取可编辑标签（FLAC / MP3） |
+| PUT | `/music/tags` | 写回标签，body `{ path, tags }`；临时文件 + 回读校验后原子替换 |
 | GET | `/music/stats?range=week\|month\|all` | 按范围聚合的播放次数 / 时长 / 最近播放 |
 | GET | `/music/cover?path=…` | 内嵌封面；无封面返回 404 |
 
