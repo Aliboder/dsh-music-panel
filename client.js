@@ -2282,6 +2282,23 @@ window.__ModuleLoader__.load({
           setSnap(player.getSnapshot())
         })
       }, [])
+      // Keep the playing row visible when the track changes.
+      useEffect(
+        function () {
+          if (!open) return
+          var list = listRef.current
+          if (list === null) return
+          var row = list.querySelector('.mu-queue-row.is-current')
+          if (row === null) return
+          var rowRect = row.getBoundingClientRect()
+          var listRect = list.getBoundingClientRect()
+          if (rowRect.top < listRect.top || rowRect.bottom > listRect.bottom) {
+            list.scrollTop +=
+              rowRect.top - listRect.top - (list.clientHeight - rowRect.height) / 2
+          }
+        },
+        [snap.index, snap.queue.length, open],
+      )
       useEffect(function () {
         if (!open) return undefined
         function onKey(event) {
@@ -6814,7 +6831,7 @@ window.__ModuleLoader__.load({
       '.mu-card-cover{position:relative;width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06))}',
       '.mu-card-cover .mu-cover{width:100%!important;height:100%!important;border-radius:10px}',
       '.mu-card-cover .mu-cover img{width:100%;height:100%;object-fit:cover;border-radius:10px}',
-      '.mu-card-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:0;background:rgba(0,0,0,.35);color:#fff;opacity:0;transition:opacity .15s;cursor:pointer}',
+      '.mu-card-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;opacity:0;transition:opacity .15s;cursor:pointer}',
       '.mu-card:hover .mu-card-play,.mu-card.is-current .mu-card-play{opacity:1}',
       '.mu-card-fav{position:absolute;right:8px;bottom:8px;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;cursor:pointer;opacity:0;transition:opacity .15s}',
       '.mu-card:hover .mu-card-fav,.mu-card-fav.is-on{opacity:1}',
