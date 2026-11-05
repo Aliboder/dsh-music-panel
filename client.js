@@ -122,6 +122,11 @@ window.__ModuleLoader__.load({
         'page.format': '格式',
         'page.bitrate': '码率',
         'page.sampleRate': '采样率',
+        'page.artist': '歌手',
+        'page.album': '专辑',
+        'page.duration': '时长',
+        'page.size': '文件大小',
+        'page.plays': '播放次数',
         'page.none': '—',
         'page.selectedCount': '已选 {n} 首',
         'page.noResults': '没有匹配的歌曲',
@@ -172,7 +177,14 @@ window.__ModuleLoader__.load({
         'page.deleteConfirm': '删除「{name}」？此操作不可撤销。',
         'page.back': '返回',
         'page.playAll': '播放全部',
-        'page.addTo': '添加到播放列表…',
+        'page.addTo': '添加到歌单',
+        'page.addToPlaylist': '添加到播放列表',
+        'page.addedToPlaylist': '已添加到播放列表',
+        'page.reveal': '在文件夹中显示',
+        'page.revealed': '已在文件夹中打开',
+        'page.details': '详细信息',
+        'page.noPlaylists': '还没有歌单',
+        'page.newPlaylistAdd': '新建歌单并添加',
         'page.addedCount': '已添加 {n} 首',
         'page.trackCount': '{n} 首',
         'page.removeTrack': '从歌单移除',
@@ -298,6 +310,11 @@ window.__ModuleLoader__.load({
         'page.format': 'Format',
         'page.bitrate': 'Bitrate',
         'page.sampleRate': 'Sample rate',
+        'page.artist': 'Artist',
+        'page.album': 'Album',
+        'page.duration': 'Duration',
+        'page.size': 'File size',
+        'page.plays': 'Plays',
         'page.none': '—',
         'page.selectedCount': '{n} selected',
         'page.noResults': 'No matching songs',
@@ -348,7 +365,14 @@ window.__ModuleLoader__.load({
         'page.deleteConfirm': 'Delete “{name}”? This cannot be undone.',
         'page.back': 'Back',
         'page.playAll': 'Play all',
-        'page.addTo': 'Add to playlist…',
+        'page.addTo': 'Add to playlist',
+        'page.addToPlaylist': 'Add to play queue',
+        'page.addedToPlaylist': 'Added to play queue',
+        'page.reveal': 'Show in folder',
+        'page.revealed': 'Opened in folder',
+        'page.details': 'Details',
+        'page.noPlaylists': 'No playlists yet',
+        'page.newPlaylistAdd': 'New playlist and add',
         'page.addedCount': '{n} added',
         'page.trackCount': '{n} tracks',
         'page.removeTrack': 'Remove from playlist',
@@ -773,6 +797,19 @@ window.__ModuleLoader__.load({
       },
       folder: {
         parts: [['path', { d: 'M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z' }]],
+      },
+      copy: {
+        parts: [
+          ['rect', { x: 9, y: 9, width: 13, height: 13, rx: 2, ry: 2 }],
+          ['path', { d: 'M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1' }],
+        ],
+      },
+      info: {
+        parts: [
+          ['circle', { cx: 12, cy: 12, r: 10 }],
+          ['path', { d: 'M12 16v-4' }],
+          ['path', { d: 'M12 8h.01' }],
+        ],
       },
     }
 
@@ -1660,6 +1697,21 @@ window.__ModuleLoader__.load({
           state = Object.assign({}, state, { queue: list.slice(), index: at })
           randomOrder = randomOrderOf(list.length)
           load(at, true)
+        },
+        /** Append one track to the queue without interrupting playback. */
+        enqueue: function (track) {
+          if (track === null || track === undefined || typeof track.path !== 'string' || track.path === '') return
+          if (state.queue.length === 0) {
+            api.playList([track], 0)
+            return
+          }
+          state = Object.assign({}, state, {
+            queue: state.queue.concat([track]),
+            index: state.index < 0 ? 0 : state.index,
+          })
+          randomOrder = randomOrderOf(state.queue.length)
+          emit()
+          savePlaybackState()
         },
         select: function (list, at) {
           if (!list || list.length === 0 || at < 0) return
@@ -3574,6 +3626,22 @@ window.__ModuleLoader__.load({
           setQueueOpen(queueOverlaySnapshot())
         })
       }, [])
+      useEffect(
+        function () {
+          if (ctxMenu === null) return undefined
+          function onKey(event) {
+            if (event.key === 'Escape') setCtxMenu(null)
+          }
+          window.addEventListener('keydown', onKey)
+          return function () {
+            window.removeEventListener('keydown', onKey)
+          }
+        },
+        [ctxMenu],
+      )
+      var [ctxMenu, setCtxMenu] = useState(null)
+      var [addToOpen, setAddToOpen] = useState(false)
+      var [infoPath, setInfoPath] = useState(null)
       var [moreOpen, setMoreOpen] = useState(false)
       var [toast, setToast] = useState('')
       var toastTimerRef = useRef(null)
@@ -3868,20 +3936,49 @@ window.__ModuleLoader__.load({
         setSelected([])
       }
 
-      function copyPath() {
-        if (!current) return
+      function copyPath(track) {
+        var target = track && track.path ? track : current
+        if (!target) return
         try {
-          navigator.clipboard.writeText(current.path).then(
+          navigator.clipboard.writeText(target.path).then(
             function () {
               showToast(t('page.copied'))
             },
             function () {
-              showToast(current.path)
+              showToast(target.path)
             },
           )
         } catch (error) {
-          showToast(current.path)
+          showToast(target.path)
         }
+      }
+
+      function revealTrack(track) {
+        if (!track) return
+        requestJson('POST', API + 'reveal', { path: track.path })
+          .then(function () {
+            showToast(t('page.revealed'))
+          })
+          .catch(function (error) {
+            showToast(String((error && error.message) || error))
+          })
+      }
+
+      function createPlaylistWithSelection() {
+        var paths = selectedTracks.map(function (track) {
+          return track.path
+        })
+        if (paths.length === 0) return
+        requestJson('POST', API + 'playlists', { name: '' })
+          .then(function (body) {
+            return patchPlaylist(body.playlist.id, { add: paths })
+          })
+          .then(function () {
+            showToast(t('page.addedCount', { n: paths.length }))
+          })
+          .catch(function (error) {
+            showToast(String((error && error.message) || error))
+          })
       }
 
       var trackByPath = useMemo(function () {
@@ -4088,6 +4185,12 @@ window.__ModuleLoader__.load({
             onDoubleClick: function () {
               activate(track)
             },
+            onContextMenu: function (event) {
+              event.preventDefault()
+              event.stopPropagation()
+              setMoreOpen(false)
+              setCtxMenu({ x: event.clientX, y: event.clientY, path: track.path, mode: 'main' })
+            },
           },
           h(
             'button',
@@ -4148,23 +4251,6 @@ window.__ModuleLoader__.load({
               },
               icon('heart', 14),
             ),
-            view === 'playlists' && activePlaylist !== undefined
-              ? h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-icon-btn mu-icon-btn-sm',
-                    title: t('page.removeTrack'),
-                    onClick: function (event) {
-                      event.stopPropagation()
-                      patchPlaylist(activePlaylist.id, { remove: [track.path] }).catch(function (error) {
-                        showToast(String((error && error.message) || error))
-                      })
-                    },
-                  },
-                  icon('x', 14),
-                )
-              : null,
             h(
               'button',
               {
@@ -4349,6 +4435,14 @@ window.__ModuleLoader__.load({
               className: 'mu-scrim',
               onClick: function () {
                 setMoreOpen(false)
+              },
+            })
+          : null,
+        addToOpen
+          ? h('div', {
+              className: 'mu-addto-scrim',
+              onClick: function () {
+                setAddToOpen(false)
               },
             })
           : null,
@@ -5023,21 +5117,60 @@ window.__ModuleLoader__.load({
                   selected.length === visible.length ? t('page.selectNone') : t('page.selectAll'),
                 ),
                 h(
-                  'select',
-                  {
-                    className: 'mu-select',
-                    value: '',
-                    title: t('page.addTo'),
-                    onChange: function (event) {
-                      var value = event.target.value
-                      event.target.value = ''
-                      if (value !== '') addSelectedTo(value)
+                  'div',
+                  { className: 'mu-addto' },
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-chip' + (addToOpen ? ' is-on' : ''),
+                      onClick: function () {
+                        setAddToOpen(!addToOpen)
+                      },
                     },
-                  },
-                  h('option', { value: '' }, t('page.addTo')),
-                  playlists.map(function (playlist) {
-                    return h('option', { key: playlist.id, value: playlist.id }, playlist.name)
-                  }),
+                    icon('plus', 13),
+                    h('span', null, t('page.addTo')),
+                    icon('chevronDown', 12),
+                  ),
+                  addToOpen
+                    ? h(
+                        'div',
+                        { className: 'mu-addto-menu' },
+                        playlists.length === 0
+                          ? h('div', { className: 'mu-addto-empty' }, t('page.noPlaylists'))
+                          : playlists.map(function (playlist) {
+                              return h(
+                                'button',
+                                {
+                                  key: playlist.id,
+                                  type: 'button',
+                                  className: 'mu-addto-item',
+                                  onClick: function () {
+                                    addSelectedTo(playlist.id)
+                                    setAddToOpen(false)
+                                  },
+                                },
+                                icon('list', 12),
+                                h('span', { className: 'mu-ellipsis' }, playlist.name),
+                                h('span', { className: 'mu-addto-count' }, String(playlist.trackPaths.length)),
+                              )
+                            }),
+                        h('div', { className: 'mu-addto-sep' }),
+                        h(
+                          'button',
+                          {
+                            type: 'button',
+                            className: 'mu-addto-item',
+                            onClick: function () {
+                              createPlaylistWithSelection()
+                              setAddToOpen(false)
+                            },
+                          },
+                          icon('plus', 12),
+                          h('span', null, t('page.newPlaylistAdd')),
+                        ),
+                      )
+                    : null,
                 ),
               )
             : null,
@@ -5281,13 +5414,213 @@ window.__ModuleLoader__.load({
                 : h('div', { className: 'mu-state-sub' }, t('page.noTrack')),
               h(
                 'button',
-                { type: 'button', className: 'mu-menu-item', disabled: !current, onClick: copyPath },
+                { type: 'button', className: 'mu-menu-item', disabled: !current, onClick: function () { copyPath() } },
                 h('span', null, t('page.copyPath')),
               ),
             )
           : null,
 
             ),
+
+        ctxMenu !== null
+          ? (function () {
+              var target = trackByPath[ctxMenu.path] || null
+              var winWidth = typeof window !== 'undefined' && window.innerWidth ? window.innerWidth : 1200
+              var winHeight = typeof window !== 'undefined' && window.innerHeight ? window.innerHeight : 800
+              var left = Math.max(8, Math.min(ctxMenu.x, winWidth - 220))
+              var top = Math.max(8, Math.min(ctxMenu.y, winHeight - (ctxMenu.mode === 'playlists' ? 320 : 280)))
+              function close() {
+                setCtxMenu(null)
+              }
+              var children = []
+              if (ctxMenu.mode === 'playlists') {
+                children.push(
+                  h('div', { className: 'mu-ctx-head', key: 'head' }, t('page.addTo')),
+                  playlists.length === 0
+                    ? h('div', { className: 'mu-addto-empty', key: 'empty' }, t('page.noPlaylists'))
+                    : playlists.map(function (playlist) {
+                        return h(
+                          'button',
+                          {
+                            key: playlist.id,
+                            type: 'button',
+                            className: 'mu-ctx-item',
+                            onClick: function () {
+                              if (target === null) return
+                              patchPlaylist(playlist.id, { add: [target.path] })
+                                .then(function () {
+                                  showToast(t('page.addedCount', { n: 1 }))
+                                })
+                                .catch(function (error) {
+                                  showToast(String((error && error.message) || error))
+                                })
+                              close()
+                            },
+                          },
+                          icon('list', 12),
+                          h('span', { className: 'mu-ellipsis' }, playlist.name),
+                          h('span', { className: 'mu-addto-count' }, String(playlist.trackPaths.length)),
+                        )
+                      }),
+                )
+              } else {
+                children.push(
+                  h(
+                    'button',
+                    {
+                      key: 'add-to-playlist',
+                      type: 'button',
+                      className: 'mu-ctx-item',
+                      onClick: function () {
+                        setCtxMenu({ x: ctxMenu.x, y: ctxMenu.y, path: ctxMenu.path, mode: 'playlists' })
+                      },
+                    },
+                    icon('list', 12),
+                    h('span', { className: 'mu-ellipsis' }, t('page.addTo')),
+                    h('span', { className: 'mu-ctx-arrow' }, '›'),
+                  ),
+                  h(
+                    'button',
+                    {
+                      key: 'enqueue',
+                      type: 'button',
+                      className: 'mu-ctx-item',
+                      onClick: function () {
+                        if (target !== null) {
+                          player.enqueue(target)
+                          showToast(t('page.addedToPlaylist'))
+                        }
+                        close()
+                      },
+                    },
+                    icon('plus', 12),
+                    h('span', null, t('page.addToPlaylist')),
+                  ),
+                  h('div', { className: 'mu-ctx-sep', key: 'sep1' }),
+                  h(
+                    'button',
+                    {
+                      key: 'copy',
+                      type: 'button',
+                      className: 'mu-ctx-item',
+                      onClick: function () {
+                        copyPath(target)
+                        close()
+                      },
+                    },
+                    icon('copy', 12),
+                    h('span', null, t('page.copyPath')),
+                  ),
+                  h(
+                    'button',
+                    {
+                      key: 'reveal',
+                      type: 'button',
+                      className: 'mu-ctx-item',
+                      onClick: function () {
+                        revealTrack(target)
+                        close()
+                      },
+                    },
+                    icon('folder', 12),
+                    h('span', null, t('page.reveal')),
+                  ),
+                  h(
+                    'button',
+                    {
+                      key: 'details',
+                      type: 'button',
+                      className: 'mu-ctx-item',
+                      onClick: function () {
+                        setInfoPath(ctxMenu.path)
+                        close()
+                      },
+                    },
+                    icon('info', 12),
+                    h('span', null, t('page.details')),
+                  ),
+                  view === 'playlists' && activePlaylist !== undefined
+                    ? h(
+                        'button',
+                        {
+                          key: 'remove',
+                          type: 'button',
+                          className: 'mu-ctx-item is-danger',
+                          onClick: function () {
+                            if (target !== null) {
+                              patchPlaylist(activePlaylist.id, { remove: [target.path] }).catch(function (error) {
+                                showToast(String((error && error.message) || error))
+                              })
+                            }
+                            close()
+                          },
+                        },
+                        icon('x', 12),
+                        h('span', null, t('page.removeTrack')),
+                      )
+                    : null,
+                )
+              }
+              return h(
+                'div',
+                { key: 'ctx-layer' },
+                h('div', { className: 'mu-ctx-scrim', onClick: close }),
+                h('div', { className: 'mu-ctx', style: { left: left + 'px', top: top + 'px' } }, children),
+              )
+            })()
+          : null,
+
+        infoPath !== null
+          ? (function () {
+              var info = trackByPath[infoPath]
+              if (!info) return null
+              var rows = [
+                [t('page.title'), info.title],
+                [t('page.artist'), info.artist || t('page.unknownArtist')],
+                [t('page.album'), info.album || t('page.none')],
+                [t('page.duration'), fmtTime(info.durationSec)],
+                [t('page.format'), (info.codec || info.ext || '').toUpperCase()],
+                [t('page.bitrate'), fmtKbps(info.bitrate) || t('page.none')],
+                [t('page.sampleRate'), fmtKhz(info.sampleRate) || t('page.none')],
+                [t('page.size'), info.size > 0 ? (info.size / 1024 / 1024).toFixed(2) + ' MB' : t('page.none')],
+                [t('page.plays'), String(info.plays || 0)],
+                [t('page.path'), info.path],
+              ]
+              return h(
+                'div',
+                { className: 'mu-info-layer' },
+                h('div', { className: 'mu-info-scrim', onClick: function () { setInfoPath(null) } }),
+                h(
+                  'div',
+                  { className: 'mu-info' },
+                  h(
+                    'div',
+                    { className: 'mu-info-head' },
+                    h('span', { className: 'mu-info-title' }, t('page.details')),
+                    h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mu-icon-btn mu-icon-btn-sm',
+                        onClick: function () {
+                          setInfoPath(null)
+                        },
+                      },
+                      icon('x', 14),
+                    ),
+                  ),
+                  rows.map(function (row) {
+                    return h(
+                      'div',
+                      { className: 'mu-more-row', key: row[0] },
+                      h('span', { className: 'mu-more-key' }, row[0]),
+                      h('span', { className: 'mu-more-val mu-ellipsis', title: row[1] }, row[1]),
+                    )
+                  }),
+                ),
+              )
+            })()
+          : null,
 
         toast !== '' ? h('div', { className: 'mu-toast' }, toast) : null,
 
@@ -5639,8 +5972,29 @@ window.__ModuleLoader__.load({
       '.mu-queue-btn{width:20px;height:20px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:12px;line-height:20px;cursor:pointer}',
       '.mu-queue-btn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06));color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mu-queue-btn:disabled{opacity:.35;cursor:default}',
-      '.mu-fav.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
+      '.mu-fav.is-on{color:var(--dsw-alias-state-error-primary,#e5484d)}',
       '.mu-fav.is-on svg{fill:currentColor}',
+      '.mu-addto{position:relative}',
+      '.mu-addto-menu{position:absolute;right:0;top:calc(100% + 4px);z-index:53;min-width:210px;max-height:280px;overflow-y:auto;padding:4px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:10px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.45))}',
+      '.mu-addto-item{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12px;text-align:left;cursor:pointer}',
+      '.mu-addto-item:hover{background:var(--dsw-alias-bg-layer-2,#2a2a2e)}',
+      '.mu-addto-count{margin-left:auto;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:11px;font-variant-numeric:tabular-nums}',
+      '.mu-addto-sep{height:1px;margin:4px 6px;background:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mu-addto-empty{padding:10px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-addto-scrim{position:fixed;inset:0;z-index:52}',
+      '.mu-ctx-scrim{position:fixed;inset:0;z-index:89}',
+      '.mu-ctx{position:fixed;z-index:90;min-width:200px;max-height:320px;overflow-y:auto;padding:4px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:10px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 16px 40px rgba(0,0,0,.5))}',
+      '.mu-ctx-head{padding:6px 10px 4px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-ctx-item{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12px;text-align:left;cursor:pointer}',
+      '.mu-ctx-item:hover{background:var(--dsw-alias-bg-layer-2,#2a2a2e)}',
+      '.mu-ctx-item.is-danger:hover{background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 16%,transparent);color:var(--dsw-alias-state-error-primary,#e5484d)}',
+      '.mu-ctx-arrow{margin-left:auto;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:14px;line-height:1}',
+      '.mu-ctx-sep{height:1px;margin:4px 6px;background:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mu-info-layer{position:fixed;inset:0;z-index:94;pointer-events:none}',
+      '.mu-info-scrim{position:absolute;inset:0;background:rgba(0,0,0,.35);pointer-events:auto}',
+      '.mu-info{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:440px;max-width:calc(100vw - 48px);max-height:70vh;overflow-y:auto;padding:16px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 20px 60px rgba(0,0,0,.55));pointer-events:auto}',
+      '.mu-info-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}',
+      '.mu-info-title{font-size:14px;font-weight:600}',
       '.mu-chip-sm{height:24px;padding:0 8px;font-size:11px}',
       '.mu-search-history{position:absolute;top:34px;right:0;z-index:20;display:flex;flex-wrap:wrap;gap:4px;max-width:320px;padding:6px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:8px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.35))}',
       '.mu-queue-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
