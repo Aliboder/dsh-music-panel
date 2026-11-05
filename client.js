@@ -200,6 +200,8 @@ window.__ModuleLoader__.load({
         'page.saving': '保存中…',
         'page.metaSaved': '元数据已保存',
         'page.metaHint': '修改会直接写入音频文件标签（FLAC / MP3）；封面与未编辑的标签会保留。',
+        'page.metaBasic': '基本信息',
+        'page.metaDetail': '制作信息',
         'page.addedCount': '已添加 {n} 首',
         'page.trackCount': '{n} 首',
         'page.removeTrack': '从歌单移除',
@@ -403,6 +405,8 @@ window.__ModuleLoader__.load({
         'page.saving': 'Saving…',
         'page.metaSaved': 'Metadata saved',
         'page.metaHint': 'Changes are written to the audio file tags (FLAC / MP3). Cover art and untouched tags are preserved.',
+        'page.metaBasic': 'Basic info',
+        'page.metaDetail': 'Credits',
         'page.addedCount': '{n} added',
         'page.trackCount': '{n} tracks',
         'page.removeTrack': 'Remove from playlist',
@@ -3693,15 +3697,17 @@ window.__ModuleLoader__.load({
       var [tagEditPath, setTagEditPath] = useState(null)
       var [tagForm, setTagForm] = useState(null)
       var [tagSaving, setTagSaving] = useState(false)
-      var TAG_EDIT_ROWS = [
+      var TAG_BASIC_ROWS = [
         ['title', 'page.metaTitle'],
         ['artist', 'page.artist'],
         ['album', 'page.album'],
+        ['albumArtist', 'page.albumArtist'],
         ['year', 'page.year'],
+        ['genre', 'page.genre'],
+      ]
+      var TAG_DETAIL_ROWS = [
         ['track', 'page.trackNo'],
         ['disc', 'page.discNo'],
-        ['genre', 'page.genre'],
-        ['albumArtist', 'page.albumArtist'],
         ['composer', 'page.composer'],
         ['lyricist', 'page.lyricist'],
         ['comment', 'page.comment'],
@@ -4061,6 +4067,12 @@ window.__ModuleLoader__.load({
           })
       }
 
+      function closeTagEditor() {
+        if (tagSaving) return
+        setTagEditPath(null)
+        setTagForm(null)
+      }
+
       function saveTagEditor() {
         if (tagEditPath === null || tagForm === null || tagSaving) return
         setTagSaving(true)
@@ -4080,6 +4092,25 @@ window.__ModuleLoader__.load({
             setTagSaving(false)
             showToast(String((error && error.message) || error))
           })
+      }
+
+      function renderTagField(key, labelKey) {
+        return h(
+          'label',
+          { className: 'mu-tag-field', key: key },
+          h('span', { className: 'mu-tag-label' }, t(labelKey)),
+          h('input', {
+            type: 'text',
+            className: 'mu-input',
+            value: tagForm[key] || '',
+            onChange: function (event) {
+              var value = event.target.value
+              setTagForm(function (previous) {
+                return Object.assign({}, previous, { [key]: value })
+              })
+            },
+          }),
+        )
       }
 
       var trackByPath = useMemo(function () {
@@ -5878,59 +5909,63 @@ window.__ModuleLoader__.load({
                   ),
                 ),
                 tagForm === null
-                  ? h('div', { className: 'mu-state-sub' }, '…')
-                  : h(
-                      'div',
-                      { className: 'mu-tag-form' },
-                      TAG_EDIT_ROWS.map(function (row) {
-                        var key = row[0]
-                        return h(
-                          'label',
-                          { className: 'mu-tag-row', key: key },
-                          h('span', { className: 'mu-tag-label' }, t(row[1])),
-                          h('input', {
-                            type: 'text',
-                            className: 'mu-input',
-                            value: tagForm[key] || '',
+                  ? h('div', { className: 'mu-tag-body' }, h('div', { className: 'mu-state-sub' }, '…'))
+                  : [
+                      h(
+                        'div',
+                        { className: 'mu-tag-body', key: 'body' },
+                        h(
+                          'div',
+                          { className: 'mu-tag-section' },
+                          h('div', { className: 'mu-tag-section-title' }, t('page.metaBasic')),
+                          h(
+                            'div',
+                            { className: 'mu-tag-grid' },
+                            TAG_BASIC_ROWS.map(function (row) {
+                              return renderTagField(row[0], row[1])
+                            }),
+                          ),
+                        ),
+                        h(
+                          'div',
+                          { className: 'mu-tag-section' },
+                          h('div', { className: 'mu-tag-section-title' }, t('page.metaDetail')),
+                          h(
+                            'div',
+                            { className: 'mu-tag-grid' },
+                            TAG_DETAIL_ROWS.map(function (row) {
+                              return renderTagField(row[0], row[1])
+                            }),
+                          ),
+                        ),
+                        h(
+                          'div',
+                          { className: 'mu-tag-section' },
+                          h('div', { className: 'mu-tag-section-title' }, t('page.lyrics')),
+                          h('textarea', {
+                            className: 'mu-input mu-tag-lyrics',
+                            rows: 9,
+                            value: tagForm.lyrics || '',
                             onChange: function (event) {
                               var value = event.target.value
                               setTagForm(function (previous) {
-                                return Object.assign({}, previous, { [key]: value })
+                                return Object.assign({}, previous, { lyrics: value })
                               })
                             },
                           }),
-                        )
-                      }),
-                      h(
-                        'label',
-                        { className: 'mu-tag-row mu-tag-row-lyrics' },
-                        h('span', { className: 'mu-tag-label' }, t('page.lyrics')),
-                        h('textarea', {
-                          className: 'mu-input mu-tag-lyrics',
-                          rows: 8,
-                          value: tagForm.lyrics || '',
-                          onChange: function (event) {
-                            var value = event.target.value
-                            setTagForm(function (previous) {
-                              return Object.assign({}, previous, { lyrics: value })
-                            })
-                          },
-                        }),
+                        ),
+                        h('p', { className: 'mu-tag-hint' }, t('page.metaHint')),
                       ),
-                      h('p', { className: 'mu-tag-hint' }, t('page.metaHint')),
                       h(
                         'div',
-                        { className: 'mu-info-actions' },
+                        { className: 'mu-tag-actions', key: 'actions' },
                         h(
                           'button',
                           {
                             type: 'button',
                             className: 'mu-btn',
                             disabled: tagSaving,
-                            onClick: function () {
-                              setTagEditPath(null)
-                              setTagForm(null)
-                            },
+                            onClick: closeTagEditor,
                           },
                           t('page.cancel'),
                         ),
@@ -5945,7 +5980,7 @@ window.__ModuleLoader__.load({
                           tagSaving ? t('page.saving') : t('page.save'),
                         ),
                       ),
-                    ),
+                    ],
               ),
             )
           : null,
@@ -6324,13 +6359,21 @@ window.__ModuleLoader__.load({
       '.mu-info-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}',
       '.mu-info-title{font-size:14px;font-weight:600}',
       '.mu-info-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}',
-      '.mu-tag-editor{width:520px;max-height:82vh}',
-      '.mu-tag-form{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto;padding-right:4px}',
-      '.mu-tag-row{display:grid;grid-template-columns:88px 1fr;align-items:center;gap:10px}',
-      '.mu-tag-row-lyrics{align-items:start}',
+      '.mu-tag-editor{width:560px;max-width:calc(100vw - 48px);max-height:84vh;padding:0;display:flex;flex-direction:column;overflow:hidden}',
+      '.mu-tag-editor .mu-info-head{padding:16px 20px 12px;margin:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mu-tag-body{flex:1;min-height:0;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:18px}',
+      '.mu-tag-section{display:flex;flex-direction:column;gap:10px}',
+      '.mu-tag-section-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-tag-section-title::before{content:"";width:3px;height:12px;border-radius:2px;background:var(--dsw-static-deepseek-450,#5686fe)}',
+      '.mu-tag-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}',
+      '.mu-tag-field{display:flex;flex-direction:column;gap:5px;min-width:0}',
       '.mu-tag-label{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-tag-lyrics{min-height:150px;resize:vertical;font-family:var(--dsw-font-family,inherit);line-height:1.5}',
-      '.mu-tag-hint{margin:10px 0 0;font-size:11px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-tag-field .mu-input{width:100%;box-sizing:border-box}',
+      '.mu-tag-lyrics{min-height:150px;resize:vertical;padding:10px 12px;line-height:1.6;height:auto;font-family:inherit}',
+      '.mu-tag-hint{margin:0;font-size:11px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-tag-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,#1a1a1e)}',
+      '.mu-tag-editor .mu-input:focus{outline:none;border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.18));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.05));box-shadow:none}',
+      '.mu-tag-editor .mu-input:focus-visible{outline:none}',
       '.mu-chip-sm{height:24px;padding:0 8px;font-size:11px}',
       '.mu-search-history{position:absolute;top:34px;right:0;z-index:20;display:flex;flex-wrap:wrap;gap:4px;max-width:320px;padding:6px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:8px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.35))}',
       '.mu-queue-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
@@ -6390,7 +6433,7 @@ window.__ModuleLoader__.load({
       '.mu-title-input{flex:none;box-sizing:border-box;height:28px;padding:0 6px;min-width:6em;max-width:320px;border-color:transparent;background:transparent;font-size:20px;font-weight:700}',
       '.mu-title-input:hover{border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.12))}',
       '.mu-title-input:focus{border-color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04))}',
-      '.mu-input:focus{border-color:var(--dsw-alias-brand-primary,#f4f4f5)}',
+      '.mu-input:focus{border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.18))}',
       '.mu-input-num{max-width:96px;flex:none}',
       '.mu-set-empty{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-set-error{font-size:12px;color:var(--dsw-alias-label-error,#ff6b6b);white-space:pre-wrap}',
@@ -6484,7 +6527,7 @@ window.__ModuleLoader__.load({
       '.mu-np-controls{display:flex;align-items:center;gap:10px;justify-self:center}',
       '.mu-play-btn-lg{width:48px;height:48px}',
       '.mu-np-vol{display:flex;align-items:center;gap:8px;justify-self:end}',
-      '.mu-icon-btn:focus-visible,.mu-btn:focus-visible,.mu-chip:focus-visible,.mu-play-btn:focus-visible,.mu-row-play:focus-visible,.mu-check:focus-visible,.mu-menu-item:focus-visible,.mu-input:focus-visible,.mu-search input:focus-visible,.mu-seek:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
+      '.mu-icon-btn:focus-visible,.mu-btn:focus-visible,.mu-chip:focus-visible,.mu-play-btn:focus-visible,.mu-row-play:focus-visible,.mu-check:focus-visible,.mu-menu-item:focus-visible,.mu-search input:focus-visible,.mu-seek:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
     ].join('\n')
 
     // ── error boundary ───────────────────────────────────────────────────
