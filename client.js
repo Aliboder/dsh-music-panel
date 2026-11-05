@@ -94,6 +94,7 @@ window.__ModuleLoader__.load({
         'page.clearQueue': '清空队列',
         'page.moveUp': '上移',
         'page.moveDown': '下移',
+        'page.dragSort': '拖动排序',
         'page.more': '更多',
         'page.copyPath': '复制文件路径',
         'page.copied': '已复制',
@@ -268,6 +269,7 @@ window.__ModuleLoader__.load({
         'page.clearQueue': 'Clear queue',
         'page.moveUp': 'Move up',
         'page.moveDown': 'Move down',
+        'page.dragSort': 'Drag to reorder',
         'page.more': 'More',
         'page.copyPath': 'Copy file path',
         'page.copied': 'Copied',
@@ -1698,6 +1700,34 @@ window.__ModuleLoader__.load({
           }
           state = Object.assign({}, state, { queue: list, index: index })
           randomOrder = randomOrderOf(length)
+          emit()
+          savePlaybackState()
+        },
+        /**
+         * Reorder the queue to match the displayed order (drag & drop).
+         * `indices` are original queue indices in their new visual order.
+         * In random mode the new visual order becomes the play order too.
+         */
+        reorderQueue: function (indices) {
+          var length = state.queue.length
+          if (!Array.isArray(indices) || indices.length !== length) return
+          var seen = {}
+          for (var i = 0; i < length; i += 1) {
+            var at = indices[i]
+            if (!Number.isInteger(at) || at < 0 || at >= length || seen[at] === true) return
+            seen[at] = true
+          }
+          var list = indices.map(function (at) {
+            return state.queue[at]
+          })
+          var current = state.index >= 0 ? indices.indexOf(state.index) : -1
+          state = Object.assign({}, state, { queue: list, index: current })
+          randomOrder =
+            state.order === 'random'
+              ? list.map(function (_, position) {
+                  return position
+                })
+              : randomOrderOf(length)
           emit()
           savePlaybackState()
         },
@@ -3135,6 +3165,8 @@ window.__ModuleLoader__.load({
       var [sortOpen, setSortOpen] = useState(false)
       var [selected, setSelected] = useState([])
       var [queueOpen, setQueueOpen] = useState(false)
+      var [queueDragFrom, setQueueDragFrom] = useState(null)
+      var [queueDragOver, setQueueDragOver] = useState(null)
       var [moreOpen, setMoreOpen] = useState(false)
       var [toast, setToast] = useState('')
       var toastTimerRef = useRef(null)
@@ -4853,11 +4885,58 @@ window.__ModuleLoader__.load({
                         'div',
                         {
                           key: position + ':' + track.path,
-                          className: 'mu-queue-row' + (visibleCurrent ? ' is-current' : ''),
+                          className:
+                            'mu-queue-row' +
+                            (visibleCurrent ? ' is-current' : '') +
+                            (queueDragFrom === position ? ' is-dragging' : '') +
+                            (queueDragOver === position && queueDragFrom !== position ? ' is-drop-target' : ''),
+                          draggable: true,
                           onClick: function () {
                             player.select(snap.queue, originalIndex)
                           },
+                          onDragStart: function (event) {
+                            setQueueDragFrom(position)
+                            setQueueDragOver(position)
+                            if (event.dataTransfer !== null && event.dataTransfer !== undefined) {
+                              event.dataTransfer.effectAllowed = 'move'
+                              // Firefox needs data for a drag to start.
+                              try {
+                                event.dataTransfer.setData('text/plain', String(position))
+                              } catch (error) {
+                                // ignore
+                              }
+                            }
+                          },
+                          onDragOver: function (event) {
+                            event.preventDefault()
+                            if (event.dataTransfer !== null && event.dataTransfer !== undefined) {
+                              event.dataTransfer.dropEffect = 'move'
+                            }
+                            if (queueDragOver !== position) setQueueDragOver(position)
+                          },
+                          onDragLeave: function () {
+                            if (queueDragOver === position) setQueueDragOver(null)
+                          },
+                          onDrop: function (event) {
+                            event.preventDefault()
+                            var from = queueDragFrom
+                            if (from !== null && from !== position) {
+                              var order = queueView.map(function (item) {
+                                return item.originalIndex
+                              })
+                              var moved = order.splice(from, 1)[0]
+                              order.splice(position, 0, moved)
+                              player.reorderQueue(order)
+                            }
+                            setQueueDragFrom(null)
+                            setQueueDragOver(null)
+                          },
+                          onDragEnd: function () {
+                            setQueueDragFrom(null)
+                            setQueueDragOver(null)
+                          },
                         },
+                        h('span', { className: 'mu-queue-grip', title: t('page.dragSort') }, '⋮⋮'),
                         h(
                           'span',
                           { className: 'mu-queue-index' },
@@ -4868,34 +4947,6 @@ window.__ModuleLoader__.load({
                         h(
                           'span',
                           { className: 'mu-queue-actions' },
-                          h(
-                            'button',
-                            {
-                              type: 'button',
-                              className: 'mu-queue-btn',
-                              title: t('page.moveUp'),
-                              disabled: originalIndex === 0,
-                              onClick: function (event) {
-                                event.stopPropagation()
-                                player.moveQueue(originalIndex, originalIndex - 1)
-                              },
-                            },
-                            '↑',
-                          ),
-                          h(
-                            'button',
-                            {
-                              type: 'button',
-                              className: 'mu-queue-btn',
-                              title: t('page.moveDown'),
-                              disabled: originalIndex === snap.queue.length - 1,
-                              onClick: function (event) {
-                                event.stopPropagation()
-                                player.moveQueue(originalIndex, originalIndex + 1)
-                              },
-                            },
-                            '↓',
-                          ),
                           h(
                             'button',
                             {
@@ -5271,7 +5322,10 @@ window.__ModuleLoader__.load({
       '.mu-pop{position:absolute;right:16px;bottom:84px;z-index:40;width:330px;max-height:58%;display:flex;flex-direction:column;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5));overflow:hidden}',
       '.mu-pop-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 6px;font-size:12px;font-weight:600}',
       '.mu-pop-body{overflow-y:auto;padding:0 6px 8px}',
-      '.mu-queue-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,70px) auto;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--dsw-radius-sm,6px);font-size:12px;cursor:pointer}',
+      '.mu-queue-row{display:grid;grid-template-columns:14px 26px minmax(0,1fr) minmax(0,70px) auto;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--dsw-radius-sm,6px);font-size:12px;cursor:pointer}',
+      '.mu-queue-grip{cursor:grab;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:12px;line-height:1;letter-spacing:-2px;text-align:center;user-select:none}',
+      '.mu-queue-row.is-dragging{opacity:.4}',
+      '.mu-queue-row.is-drop-target{box-shadow:inset 0 2px 0 var(--dsw-alias-brand-primary,#f4f4f5)}',
       '.mu-queue-mode{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));white-space:nowrap}',
       '.mu-queue-actions{display:inline-flex;align-items:center;gap:2px;justify-self:end}',
       '.mu-queue-btn{width:20px;height:20px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:12px;line-height:20px;cursor:pointer}',
