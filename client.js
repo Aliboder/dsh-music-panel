@@ -198,7 +198,8 @@ window.__ModuleLoader__.load({
         'page.lyricsNoResults': '没有找到歌词',
         'page.lyricsPreviewHint': '选择一首歌查看歌词',
         'page.lyricsSave': '保存为 .lrc',
-        'page.lyricsSaved': '歌词已保存为 .lrc',
+        'page.lyricsApply': '应用',
+        'page.lyricsSaved': '歌词已写入文件内嵌',
         'settings.sleepTimer': '睡眠定时',
         'settings.sleepOff': '关闭',
         'settings.sleepTimerDone': '睡眠定时已到，已暂停播放',
@@ -437,7 +438,8 @@ window.__ModuleLoader__.load({
         'page.lyricsNoResults': 'No lyrics found',
         'page.lyricsPreviewHint': 'Pick a result to preview',
         'page.lyricsSave': 'Save as .lrc',
-        'page.lyricsSaved': 'Lyrics saved as .lrc',
+        'page.lyricsApply': 'Apply',
+        'page.lyricsSaved': 'Lyrics written into the file',
         'settings.sleepTimer': 'Sleep timer',
         'settings.sleepOff': 'Off',
         'settings.sleepTimerDone': 'Sleep timer finished — playback paused',
@@ -3134,6 +3136,165 @@ window.__ModuleLoader__.load({
       return found
     }
 
+    // ── online lyric dialog (shared by the player page and the tag editor) ──
+    // Search by "title artist", preview an LRC, then hand it to the caller:
+    // the player writes it into the file, the tag editor fills its lyrics field.
+    function OnlineLyricDialog(props) {
+      var t = props.t
+      var track = props.track || null
+      var trackPath = track ? track.path || '' : ''
+      var [query, setQuery] = useState(function () {
+        return track ? ((track.title || '') + ' ' + (track.artist || '')).trim() : ''
+      })
+      var [results, setResults] = useState([])
+      var [searching, setSearching] = useState(false)
+      var [preview, setPreview] = useState('')
+      var [previewId, setPreviewId] = useState('')
+      var [error, setError] = useState('')
+
+      function search(text) {
+        var value = String(text || '').trim()
+        if (value === '') return
+        setSearching(true)
+        setResults([])
+        setPreview('')
+        setPreviewId('')
+        setError('')
+        getJson(API + 'lyrics/search?q=' + encodeURIComponent(value))
+          .then(function (body) {
+            setResults(Array.isArray(body.candidates) ? body.candidates : [])
+          })
+          .catch(function (err) {
+            setError(String((err && err.message) || err))
+            setResults([])
+          })
+          .then(function () {
+            setSearching(false)
+          })
+      }
+
+      useEffect(function () {
+        if (trackPath !== '') search(query)
+      }, [trackPath])
+
+      function pick(candidate) {
+        setPreviewId(candidate.id)
+        setPreview('')
+        setError('')
+        getJson(API + 'lyrics/fetch?id=' + encodeURIComponent(candidate.id))
+          .then(function (body) {
+            var lrc = typeof body.lrc === 'string' ? body.lrc : ''
+            var translation = typeof body.translation === 'string' ? body.translation : ''
+            setPreview(translation === '' ? lrc : lrc + '\n\n' + translation)
+          })
+          .catch(function (err) {
+            setError(String((err && err.message) || err))
+          })
+      }
+
+      return h(
+        'div',
+        { className: 'mu-lyr-layer' },
+        h('div', { className: 'mu-lyr-scrim', onClick: props.onClose }),
+        h(
+          'div',
+          { className: 'mu-lyr-dialog' },
+          h(
+            'div',
+            { className: 'mu-lyr-head' },
+            h('span', { className: 'mu-lyr-title' }, t('page.onlineLyrics')),
+            h(
+              'button',
+              { type: 'button', className: 'mu-icon-btn mu-icon-btn-sm', onClick: props.onClose },
+              icon('x', 14),
+            ),
+          ),
+          h(
+            'div',
+            { className: 'mu-lyr-search' },
+            h('input', {
+              type: 'text',
+              className: 'mu-input mu-input-sm',
+              value: query,
+              placeholder: t('page.lyricsSearchPlaceholder'),
+              onChange: function (event) {
+                setQuery(event.target.value)
+              },
+              onKeyDown: function (event) {
+                if (event.key !== 'Enter') return
+                search(query)
+              },
+            }),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-btn mu-btn-sm',
+                disabled: searching,
+                onClick: function () {
+                  search(query)
+                },
+              },
+              searching ? '…' : t('page.lyricsSearch'),
+            ),
+          ),
+          error !== '' ? h('div', { className: 'mu-lyr-error' }, error) : null,
+          h(
+            'div',
+            { className: 'mu-lyr-results' },
+            results.map(function (candidate) {
+              return h(
+                'button',
+                {
+                  key: candidate.id,
+                  type: 'button',
+                  className: 'mu-lyr-candidate' + (previewId === candidate.id ? ' is-on' : ''),
+                  onClick: function () {
+                    pick(candidate)
+                  },
+                },
+                h('span', { className: 'mu-lyr-candidate-title mu-ellipsis' }, candidate.title),
+                h(
+                  'span',
+                  { className: 'mu-lyr-candidate-meta mu-ellipsis' },
+                  [candidate.artist, candidate.album, fmtTime(candidate.durationSec)]
+                    .filter(Boolean)
+                    .join(' · '),
+                ),
+              )
+            }),
+          ),
+          preview.trim() !== ''
+            ? h('pre', { className: 'mu-lyr-preview' }, preview)
+            : h(
+                'div',
+                { className: 'mu-lyr-empty' },
+                results.length === 0
+                  ? searching
+                    ? '…'
+                    : t('page.lyricsNoResults')
+                  : t('page.lyricsPreviewHint'),
+              ),
+          h(
+            'div',
+            { className: 'mu-lyr-actions' },
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-btn',
+                disabled: preview.trim() === '',
+                onClick: function () {
+                  if (preview.trim() !== '') props.onApply(preview)
+                },
+              },
+              t('page.lyricsApply'),
+            ),
+          ),
+        ),
+      )
+    }
+
     function NowPlaying(props) {
       var player = props.player
       var snap = props.snapshot
@@ -3157,11 +3318,6 @@ window.__ModuleLoader__.load({
       var [lyricError, setLyricError] = useState('')
       var [lyricReload, setLyricReload] = useState(0)
       var [lyricOnlineOpen, setLyricOnlineOpen] = useState(false)
-      var [lyricQuery, setLyricQuery] = useState('')
-      var [lyricResults, setLyricResults] = useState([])
-      var [lyricSearching, setLyricSearching] = useState(false)
-      var [lyricPreview, setLyricPreview] = useState('')
-      var [lyricPreviewId, setLyricPreviewId] = useState('')
       var [lyricSaving, setLyricSaving] = useState(false)
 
       function applyLyricOffset(delta) {
@@ -3192,62 +3348,21 @@ window.__ModuleLoader__.load({
           })
       }
 
-      function runLyricSearch(query) {
-        var text = String(query || '').trim()
-        if (text === '') return
-        setLyricSearching(true)
-        setLyricResults([])
-        setLyricPreview('')
-        setLyricPreviewId('')
-        getJson(API + 'lyrics/search?q=' + encodeURIComponent(text))
-          .then(function (body) {
-            setLyricResults(Array.isArray(body.candidates) ? body.candidates : [])
-          })
-          .catch(function (error) {
-            setLyricError(String((error && error.message) || error))
-            setLyricResults([])
-          })
-          .then(function () {
-            setLyricSearching(false)
-          })
-      }
-
       function openOnlineLyrics() {
-        if (track === null) return
-        var query = ((track.title || '') + ' ' + (track.artist || '')).trim()
         setLyricOnlineOpen(true)
-        setLyricQuery(query)
-        setLyricError('')
-        runLyricSearch(query)
       }
 
-      function pickOnlineLyric(candidate) {
-        setLyricPreviewId(candidate.id)
-        setLyricPreview('')
-        setLyricError('')
-        getJson(API + 'lyrics/fetch?id=' + encodeURIComponent(candidate.id))
-          .then(function (body) {
-            var lrc = typeof body.lrc === 'string' ? body.lrc : ''
-            var translation = typeof body.translation === 'string' ? body.translation : ''
-            setLyricPreview(translation === '' ? lrc : lrc + '\n\n' + translation)
-          })
-          .catch(function (error) {
-            setLyricError(String((error && error.message) || error))
-          })
-      }
-
-      function saveOnlineLyric() {
-        if (track === null || lyricPreview.trim() === '') return
+      function saveOnlineLyric(lrc) {
+        if (track === null || String(lrc).trim() === '') return
         setLyricSaving(true)
         setLyricError('')
-        postJson(API + 'lyrics/save', { path: track.path, lrc: lyricPreview })
+        postJson(API + 'lyrics/save', { path: track.path, lrc: lrc })
           .then(function () {
             setLyricSaving(false)
             setLyricOnlineOpen(false)
             setLyricReload(function (value) {
               return value + 1
             })
-            setLyricPreview('')
             if (typeof window.alert === 'function') window.alert(t('page.lyricsSaved'))
           })
           .catch(function (error) {
@@ -3573,117 +3688,14 @@ window.__ModuleLoader__.load({
           : null,
 
         lyricOnlineOpen
-          ? h(
-              'div',
-              { className: 'mu-lyr-layer' },
-              h('div', {
-                className: 'mu-lyr-scrim',
-                onClick: function () {
-                  setLyricOnlineOpen(false)
-                },
-              }),
-              h(
-                'div',
-                { className: 'mu-lyr-dialog' },
-                h(
-                  'div',
-                  { className: 'mu-lyr-head' },
-                  h('span', { className: 'mu-lyr-title' }, t('page.onlineLyrics')),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-icon-btn-sm',
-                      onClick: function () {
-                        setLyricOnlineOpen(false)
-                      },
-                    },
-                    icon('x', 14),
-                  ),
-                ),
-                h(
-                  'div',
-                  { className: 'mu-lyr-search' },
-                  h('input', {
-                    type: 'text',
-                    className: 'mu-input mu-input-sm',
-                    value: lyricQuery,
-                    placeholder: t('page.lyricsSearchPlaceholder'),
-                    onChange: function (event) {
-                      setLyricQuery(event.target.value)
-                    },
-                    onKeyDown: function (event) {
-                      if (event.key !== 'Enter') return
-                      runLyricSearch(lyricQuery)
-                    },
-                  }),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-btn mu-btn-sm',
-                      disabled: lyricSearching,
-                      onClick: function () {
-                        runLyricSearch(lyricQuery)
-                      },
-                    },
-                    lyricSearching ? '…' : t('page.lyricsSearch'),
-                  ),
-                ),
-                lyricError !== '' ? h('div', { className: 'mu-lyr-error' }, lyricError) : null,
-                h(
-                  'div',
-                  { className: 'mu-lyr-results' },
-                  lyricResults.map(function (candidate) {
-                    return h(
-                      'button',
-                      {
-                        key: candidate.id,
-                        type: 'button',
-                        className:
-                          'mu-lyr-candidate' + (lyricPreviewId === candidate.id ? ' is-on' : ''),
-                        onClick: function () {
-                          pickOnlineLyric(candidate)
-                        },
-                      },
-                      h('span', { className: 'mu-lyr-candidate-title mu-ellipsis' }, candidate.title),
-                      h(
-                        'span',
-                        { className: 'mu-lyr-candidate-meta mu-ellipsis' },
-                        [candidate.artist, candidate.album, fmtTime(candidate.durationSec)]
-                          .filter(Boolean)
-                          .join(' · '),
-                      ),
-                    )
-                  }),
-                ),
-                lyricPreview.trim() !== ''
-                  ? h('pre', { className: 'mu-lyr-preview' }, lyricPreview)
-                  : h(
-                      'div',
-                      { className: 'mu-lyr-empty' },
-                      lyricResults.length === 0
-                        ? lyricSearching
-                          ? '…'
-                          : t('page.lyricsNoResults')
-                        : t('page.lyricsPreviewHint'),
-                    ),
-                h(
-                  'div',
-                  { className: 'mu-lyr-actions' },
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-btn',
-                      disabled: lyricPreview.trim() === '' || lyricSaving,
-                      onClick: saveOnlineLyric,
-                    },
-                    lyricSaving ? '…' : t('page.lyricsSave'),
-                  ),
-                ),
-              ),
-            )
+          ? h(OnlineLyricDialog, {
+              t: t,
+              track: track,
+              onClose: function () {
+                setLyricOnlineOpen(false)
+              },
+              onApply: saveOnlineLyric,
+            })
           : null,
 
         h(
@@ -4471,6 +4483,7 @@ window.__ModuleLoader__.load({
       var [newPlaylistName, setNewPlaylistName] = useState('')
       var [tagEditPath, setTagEditPath] = useState(null)
       var [tagForm, setTagForm] = useState(null)
+      var [lyricSearchOpen, setLyricSearchOpen] = useState(false)
       var [tagSaving, setTagSaving] = useState(false)
       var [coverFailed, setCoverFailed] = useState(false)
       var [tagCoverPreview, setTagCoverPreview] = useState(null)
@@ -7183,7 +7196,22 @@ window.__ModuleLoader__.load({
                         h(
                           'div',
                           { className: 'mu-tag-section' },
-                          h('div', { className: 'mu-tag-section-title' }, t('page.lyrics')),
+                          h(
+                            'div',
+                            { className: 'mu-tag-section-title' },
+                            t('page.lyrics'),
+                            h(
+                              'button',
+                              {
+                                type: 'button',
+                                className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                                onClick: function () {
+                                  setLyricSearchOpen(true)
+                                },
+                              },
+                              t('page.onlineLyrics'),
+                            ),
+                          ),
                           h('textarea', {
                             className: 'mu-input mu-tag-lyrics',
                             rows: 9,
@@ -7226,6 +7254,24 @@ window.__ModuleLoader__.load({
                     ],
               ),
             )
+          : null,
+
+        lyricSearchOpen
+          ? h(OnlineLyricDialog, {
+              t: t,
+              track: tagForm
+                ? { path: tagEditPath, title: tagForm.title, artist: tagForm.artist }
+                : null,
+              onClose: function () {
+                setLyricSearchOpen(false)
+              },
+              onApply: function (lrc) {
+                setTagForm(function (previous) {
+                  return previous ? Object.assign({}, previous, { lyrics: lrc }) : previous
+                })
+                setLyricSearchOpen(false)
+              },
+            })
           : null,
 
         onlineOpen
