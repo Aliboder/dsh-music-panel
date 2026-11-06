@@ -7857,7 +7857,7 @@ window.__ModuleLoader__.load({
       '.mu-dup-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-dup-size{flex:none;font-variant-numeric:tabular-nums}',
       '.mu-dup-action{margin-left:auto}',
-      '.mu-lyr-layer{position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;padding:16px}',
+      '.mu-lyr-layer{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:16px}',
       '.mu-lyr-scrim{position:absolute;inset:0;background:rgba(0,0,0,.5)}',
       '.mu-lyr-dialog{position:relative;display:flex;flex-direction:column;gap:8px;width:min(560px,calc(100% - 16px));max-height:82%;padding:14px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:12px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.45))}',
       '.mu-lyr-head{display:flex;align-items:center;justify-content:space-between;gap:12px}',
