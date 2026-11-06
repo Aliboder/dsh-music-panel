@@ -3,6 +3,7 @@
 DeepSeek Harness 的本地音乐插件：左侧栏一个音符入口，点开是整页播放器；扫描你指定的音乐文件夹，读取封面、标题、歌手、专辑、时长与音质信息。
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg)](https://www.npmjs.com/package/dsh-music-panel)
+[![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
 
 ```
