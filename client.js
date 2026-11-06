@@ -2375,7 +2375,6 @@ window.__ModuleLoader__.load({
       // dock bar so it reads as one card aligned with the input box.
       if (slot === 'above') {
         var name = track ? track.title || '' : ''
-        var artist = track && track.artist ? ' - ' + track.artist : ''
         return h(
           'div',
           { className: 'mu-composer-bar-wrap' },
@@ -2386,12 +2385,12 @@ window.__ModuleLoader__.load({
               'div',
               { className: 'mu-composer-bar-left' },
               h('span', { className: 'mu-composer-note' }, icon('note', 14)),
-              h('span', { className: 'mu-composer-track', title: name + artist }, name + artist),
+              h('span', { className: 'mu-composer-track', title: name }, name),
             ),
             h(
               'div',
               { className: 'mu-composer-wave' },
-              h(BarWave, { width: 64, height: 18, bars: 18 }),
+              h(BarWave, { width: 104, height: 18, bars: 28 }),
             ),
             h('div', { className: 'mu-composer-lyric-inline', title: text }, text),
           ),
@@ -7673,7 +7672,7 @@ window.__ModuleLoader__.load({
       '.mu-composer-lyric-inline{flex:1 1 auto;min-width:0;overflow:hidden;text-align:right;color:var(--dsw-alias-label-primary,#e6e6e6);font-size:14px;line-height:20px;white-space:nowrap;text-overflow:ellipsis}',
       '@media (max-width:760px){.mu-composer-wave{display:none}}',
       '.mu-composer-note{display:inline-flex;flex:none;margin-right:4px;color:var(--dsw-alias-brand-primary,#2f9e6e)}',
-      '.mu-composer-track{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;vertical-align:middle}',
+      '.mu-composer-track{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;vertical-align:middle;font-size:14px;line-height:20px;color:var(--dsw-alias-label-primary,#e6e6e6)}',
       '.mu-audio-host{position:fixed;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);opacity:0;pointer-events:none}',
       '.mu-clickable{cursor:pointer;border-radius:8px;padding:4px 6px;margin:-4px -6px;min-width:0}',
       '.mu-clickable:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
