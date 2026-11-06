@@ -51,7 +51,6 @@ window.__ModuleLoader__.load({
       // Resume behaviour follows mainstream desktop players: restore the queue
       // and position on start, but stay paused until the user asks to play.
       resumeOnStart: true,
-      sleepTimerMinutes: 0,
       autoResume: false,
       rememberPerTrack: false,
     }
@@ -183,15 +182,7 @@ window.__ModuleLoader__.load({
         'page.addToPlaylist': '添加到播放列表',
         'page.addedToPlaylist': '已添加到播放列表',
         'page.reveal': '在文件夹中显示',
-        'page.favoriteSelected': '收藏选中',
-        'page.duplicates': '重复 {n} 组',
-        'page.duplicatesTitle': '重复歌曲',
-        'page.duplicatesHint': '标题、艺术家与时长相同，可能是重复文件',
-        'page.exportLyrics': '导出歌词',
-        'page.exportLyricsAction': '导出 .lrc',
-        'settings.sleepTimer': '睡眠定时',
-        'settings.sleepOff': '关闭',
-        'settings.sleepTimerDone': '睡眠定时已到，已暂停播放',
+        'page.revealed': '已在文件夹中打开',
         'page.details': '详细信息',
         'page.noPlaylists': '还没有歌单',
         'page.newPlaylistAdd': '新建歌单并添加',
@@ -412,15 +403,7 @@ window.__ModuleLoader__.load({
         'page.addToPlaylist': 'Add to play queue',
         'page.addedToPlaylist': 'Added to play queue',
         'page.reveal': 'Show in folder',
-        'page.favoriteSelected': 'Like selected',
-        'page.duplicates': '{n} duplicates',
-        'page.duplicatesTitle': 'Duplicate songs',
-        'page.duplicatesHint': 'Same title, artist and duration — possibly the same file twice',
-        'page.exportLyrics': 'Export lyrics',
-        'page.exportLyricsAction': 'Export .lrc',
-        'settings.sleepTimer': 'Sleep timer',
-        'settings.sleepOff': 'Off',
-        'settings.sleepTimerDone': 'Sleep timer finished — playback paused',
+        'page.revealed': 'Opened in folder',
         'page.details': 'Details',
         'page.noPlaylists': 'No playlists yet',
         'page.newPlaylistAdd': 'New playlist and add',
@@ -948,14 +931,12 @@ window.__ModuleLoader__.load({
 
     function Cover(props) {
       var [failed, setFailed] = useState(false)
-      var [attempt, setAttempt] = useState(0)
       var size = props.size || 42
       var radius = props.radius === undefined ? 6 : props.radius
 
       useEffect(
         function () {
           setFailed(false)
-          setAttempt(0)
         },
         [props.track ? props.track.path : ''],
       )
@@ -971,14 +952,12 @@ window.__ModuleLoader__.load({
         'div',
         { className: 'mu-cover', style: wrapStyle },
         h('img', {
-          key: String(attempt),
-          src: coverUrl(props.track.path) + (attempt > 0 ? '&retry=' + String(attempt) : ''),
+          src: coverUrl(props.track.path),
           alt: '',
           loading: 'lazy',
           draggable: 'false',
           onError: function () {
-            if (attempt < 1) setAttempt(attempt + 1)
-            else setFailed(true)
+            setFailed(true)
           },
         }),
       )
@@ -1079,18 +1058,8 @@ window.__ModuleLoader__.load({
           gradient.addColorStop(0.55, 'rgba(86,134,254,0.2)')
           gradient.addColorStop(1, 'rgba(122,170,255,0.38)')
         }
-        var resizeTimer = 0
-        function scheduleResize() {
-          if (resizeTimer !== 0) window.clearTimeout(resizeTimer)
-          // Resizing the canvas mid-layout-animation clears and repaints it on
-          // every frame, which reads as flicker; wait until the width settles.
-          resizeTimer = window.setTimeout(function () {
-            resizeTimer = 0
-            resize()
-          }, 140)
-        }
         resize()
-        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(scheduleResize) : null
+        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null
         if (observer !== null) observer.observe(parent)
         var raf = 0
         function frame() {
@@ -1841,25 +1810,6 @@ window.__ModuleLoader__.load({
        * the track. A Blob is local media and seeks reliably. The download is a
        * loopback request, so it costs one disk read, not a network hop.
        */
-      /** Short volume ramp so play/pause never clicks. */
-      function fadeVolume(target, duration, done) {
-        if (audio === null) {
-          if (done) done()
-          return
-        }
-        var el = audio
-        var from = el.volume
-        var startedAt = Date.now()
-        function step() {
-          if (audio !== el) return
-          var t = Math.min(1, (Date.now() - startedAt) / Math.max(1, duration))
-          el.volume = from + (target - from) * t
-          if (t < 1) window.requestAnimationFrame(step)
-          else if (done) done()
-        }
-        window.requestAnimationFrame(step)
-      }
-
       function load(at, autoplay) {
         var item = state.queue[at]
         if (!item) return
@@ -1914,15 +1864,9 @@ window.__ModuleLoader__.load({
             }
             if (pendingAutoplay) {
               pendingAutoplay = false
-              audio.volume = 0
-              audio
-                .play()
-                .then(function () {
-                  fadeVolume(1, 180)
-                })
-                .catch(function () {
-                  if (state.playing) patch({ playing: false })
-                })
+              audio.play().catch(function () {
+                if (state.playing) patch({ playing: false })
+              })
             }
           })
           .catch(function (error) {
@@ -2024,12 +1968,7 @@ window.__ModuleLoader__.load({
               el.load()
               if (pendingAutoplay) {
                 pendingAutoplay = false
-                el.volume = 0
-                el.play()
-                  .then(function () {
-                    fadeVolume(1, 180)
-                  })
-                  .catch(function () {})
+                el.play().catch(function () {})
               }
             } else {
               load(state.index, pendingAutoplay || state.playing)
@@ -2177,13 +2116,7 @@ window.__ModuleLoader__.load({
             return
           }
           if (audio === null) return
-          audio.volume = 0
-          audio
-            .play()
-            .then(function () {
-              fadeVolume(1, 180)
-            })
-            .catch(function () {})
+          audio.play().catch(function () {})
         },
         /** Called by the cross-tab coordinator; never plays in a follower tab. */
         setLeader: function (value) {
@@ -2200,13 +2133,7 @@ window.__ModuleLoader__.load({
           return leader
         },
         pause: function () {
-          if (audio === null) return
-          fadeVolume(0, 140, function () {
-            if (audio !== null) {
-              audio.pause()
-              audio.volume = 1
-            }
-          })
+          if (audio) audio.pause()
         },
         toggle: function () {
           if (state.playing) api.pause()
@@ -3319,32 +3246,6 @@ window.__ModuleLoader__.load({
         return playModeLabel(playModeOf(snap))
       }
 
-      function exportLyrics() {
-        if (lyrics.length === 0) return
-        var body = lyrics
-          .map(function (line) {
-            var minutes = Math.floor(Math.max(0, line.time) / 60)
-            var seconds = Math.max(0, line.time) - minutes * 60
-            var stamp = '[' + String(minutes).padStart(2, '0') + ':' + seconds.toFixed(2).padStart(5, '0') + ']'
-            return stamp + line.text
-          })
-          .join('\n')
-        var blob = new Blob([body], { type: 'text/plain;charset=utf-8' })
-        var url = URL.createObjectURL(blob)
-        var anchor = document.createElement('a')
-        var base = track
-          ? (track.artist ? track.artist + ' - ' : '') + track.title
-          : 'lyrics'
-        anchor.href = url
-        anchor.download = String(base).replace(/[\\\\/:*?"<>|]/g, '_') + '.lrc'
-        document.body.appendChild(anchor)
-        anchor.click()
-        document.body.removeChild(anchor)
-        window.setTimeout(function () {
-          URL.revokeObjectURL(url)
-        }, 1000)
-      }
-
       return h(
         'div',
         {
@@ -3540,21 +3441,6 @@ window.__ModuleLoader__.load({
                     savePrefs({ translationScale: next })
                   },
                 }),
-              ),
-              h(
-                'div',
-                { className: 'mu-np-setting mu-np-setting-inline' },
-                h('span', null, t('page.exportLyrics')),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-btn mu-btn-sm',
-                    disabled: lyrics.length === 0,
-                    onClick: exportLyrics,
-                  },
-                  t('page.exportLyricsAction'),
-                ),
               ),
             )
           : null,
@@ -3783,24 +3669,15 @@ window.__ModuleLoader__.load({
         function () {
           var element = ref.current
           if (element === null) return undefined
-          var timer = 0
           function measure() {
             setViewport(element.clientHeight || 600)
           }
-          function schedule() {
-            if (timer !== 0) window.clearTimeout(timer)
-            timer = window.setTimeout(function () {
-              timer = 0
-              measure()
-            }, 120)
-          }
           measure()
-          window.addEventListener('resize', schedule)
-          var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null
+          window.addEventListener('resize', measure)
+          var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
           if (observer !== null) observer.observe(element)
           return function () {
-            if (timer !== 0) window.clearTimeout(timer)
-            window.removeEventListener('resize', schedule)
+            window.removeEventListener('resize', measure)
             if (observer !== null) observer.disconnect()
           }
         },
@@ -3877,24 +3754,15 @@ window.__ModuleLoader__.load({
       useEffect(function () {
         var el = ref.current
         if (el === null) return undefined
-        var timer = 0
         function measure() {
           setWidth(el.clientWidth || 0)
         }
-        function schedule() {
-          if (timer !== 0) window.clearTimeout(timer)
-          timer = window.setTimeout(function () {
-            timer = 0
-            measure()
-          }, 120)
-        }
         measure()
-        window.addEventListener('resize', schedule)
-        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null
+        window.addEventListener('resize', measure)
+        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
         if (observer !== null) observer.observe(el)
         return function () {
-          if (timer !== 0) window.clearTimeout(timer)
-          window.removeEventListener('resize', schedule)
+          window.removeEventListener('resize', measure)
           if (observer !== null) observer.disconnect()
         }
       }, [])
@@ -4357,7 +4225,6 @@ window.__ModuleLoader__.load({
       var [ctxMenu, setCtxMenu] = useState(null)
       var [addToOpen, setAddToOpen] = useState(false)
       var [infoPath, setInfoPath] = useState(null)
-      var [dupOpen, setDupOpen] = useState(false)
       var [newPlaylistOpen, setNewPlaylistOpen] = useState(false)
       var [newPlaylistName, setNewPlaylistName] = useState('')
       var [tagEditPath, setTagEditPath] = useState(null)
@@ -4606,22 +4473,6 @@ window.__ModuleLoader__.load({
         }, 1600)
       }
 
-      useEffect(
-        function () {
-          var minutes = Number(prefsUi.sleepTimerMinutes) || 0
-          if (minutes <= 0) return undefined
-          var timer = window.setTimeout(function () {
-            player.pause()
-            updatePref('sleepTimerMinutes', 0)
-            showToast(t('settings.sleepTimerDone'))
-          }, minutes * 60 * 1000)
-          return function () {
-            window.clearTimeout(timer)
-          }
-        },
-        [prefsUi.sleepTimerMinutes],
-      )
-
       var load = useCallback(function (refresh) {
         setLoading(true)
         setError(null)
@@ -4644,45 +4495,6 @@ window.__ModuleLoader__.load({
             setLoading(false)
           })
       }, [])
-
-      useEffect(
-        function () {
-          function onKey(event) {
-            var target = event.target
-            if (target !== null && typeof target.closest === 'function') {
-              if (
-                target.closest('input, textarea, select, [contenteditable="true"], button') !== null
-              ) {
-                return
-              }
-            }
-            if (event.key === ' ' || event.code === 'Space') {
-              event.preventDefault()
-              player.toggle()
-              return
-            }
-            if (
-              (event.ctrlKey || event.metaKey) &&
-              (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
-            ) {
-              event.preventDefault()
-              if (event.key === 'ArrowLeft') player.prev()
-              else player.next()
-              return
-            }
-            if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-              event.preventDefault()
-              var search = document.querySelector('.mu-search-input')
-              if (search !== null && typeof search.focus === 'function') search.focus()
-            }
-          }
-          window.addEventListener('keydown', onKey)
-          return function () {
-            window.removeEventListener('keydown', onKey)
-          }
-        },
-        [],
-      )
 
       useEffect(
         function () {
@@ -4710,12 +4522,6 @@ window.__ModuleLoader__.load({
 
       function loopLabel() {
         return playModeLabel(playModeOf(snap))
-      }
-
-      function favoriteSelected() {
-        selectedTracks.forEach(function (track) {
-          if (favoritePaths[track.path] !== true) toggleFavorite(track)
-        })
       }
 
       function toggleSelect(track) {
@@ -4955,26 +4761,6 @@ window.__ModuleLoader__.load({
           map[track.path] = track
         })
         return map
-      }, [tracks])
-
-      var duplicateGroups = useMemo(function () {
-        var groups = {}
-        tracks.forEach(function (track) {
-          if (!track || !(track.durationSec > 0)) return
-          var key =
-            String(track.title || '').toLowerCase() +
-            '|' +
-            String(track.artist || '').toLowerCase() +
-            '|' +
-            String(Math.round(track.durationSec))
-          if (groups[key] === undefined) groups[key] = []
-          groups[key].push(track)
-        })
-        var result = []
-        Object.keys(groups).forEach(function (key) {
-          if (groups[key].length > 1) result.push(groups[key])
-        })
-        return result
       }, [tracks])
 
       var activePlaylist = useMemo(function () {
@@ -5904,35 +5690,7 @@ window.__ModuleLoader__.load({
                       },
                     ),
                   )
-                  : prefsTab === 'playback'
-                    ? h(
-                        'div',
-                        { className: 'mu-prefs-body' },
-                        settingToggle(t('settings.resumeOnStart'), prefsUi.resumeOnStart, function (value) {
-                          updatePref('resumeOnStart', value)
-                        }),
-                        settingToggle(t('settings.autoResume'), prefsUi.autoResume, function (value) {
-                          updatePref('autoResume', value)
-                        }),
-                        settingToggle(t('settings.rememberPerTrack'), prefsUi.rememberPerTrack, function (value) {
-                          updatePref('rememberPerTrack', value)
-                        }),
-                        settingChoice(
-                          t('settings.sleepTimer'),
-                          String(prefsUi.sleepTimerMinutes || 0),
-                          [
-                            { value: '0', label: t('settings.sleepOff') },
-                            { value: '15', label: '15 min' },
-                            { value: '30', label: '30 min' },
-                            { value: '60', label: '60 min' },
-                            { value: '90', label: '90 min' },
-                          ],
-                          function (value) {
-                            updatePref('sleepTimerMinutes', Number(value) || 0)
-                          },
-                        ),
-                      )
-                    : prefsTab === 'library'
+                  : prefsTab === 'library'
                     ? h(
                       'div',
                       { className: 'mu-prefs-body' },
@@ -6195,21 +5953,6 @@ window.__ModuleLoader__.load({
             },
             icon(viewMode === 'grid' ? 'list' : 'grid', 14),
           ),
-          duplicateGroups.length > 0
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-chip',
-                  title: t('page.duplicatesHint'),
-                  onClick: function () {
-                    setDupOpen(true)
-                  },
-                },
-                icon('list', 13),
-                h('span', null, t('page.duplicates', { n: duplicateGroups.length })),
-              )
-            : null,
           selected.length > 0
             ? h(
                 'span',
@@ -6226,16 +5969,6 @@ window.__ModuleLoader__.load({
                   },
                   icon('play', 13),
                   h('span', null, t('page.playSelected')),
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-chip',
-                    onClick: favoriteSelected,
-                  },
-                  icon('heart', 13),
-                  h('span', null, t('page.favoriteSelected')),
                 ),
                 h(
                   'button',
@@ -6757,66 +6490,6 @@ window.__ModuleLoader__.load({
                 ),
               )
             })()
-          : null,
-
-        dupOpen
-          ? h(
-              'div',
-              { className: 'mu-info-layer' },
-              h('div', {
-                className: 'mu-info-scrim',
-                onClick: function () {
-                  setDupOpen(false)
-                },
-              }),
-              h(
-                'div',
-                { className: 'mu-info' },
-                h(
-                  'div',
-                  { className: 'mu-info-head' },
-                  h('span', { className: 'mu-info-title' }, t('page.duplicatesTitle')),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-icon-btn-sm',
-                      onClick: function () {
-                        setDupOpen(false)
-                      },
-                    },
-                    icon('x', 14),
-                  ),
-                ),
-                duplicateGroups.map(function (group, groupIndex) {
-                  return h(
-                    'div',
-                    { className: 'mu-dup-group', key: 'dup-' + groupIndex },
-                    h(
-                      'div',
-                      { className: 'mu-dup-head' },
-                      String(group[0].title || '') +
-                        ' — ' +
-                        (group[0].artist || t('page.unknownArtist')) +
-                        ' · ' +
-                        fmtTime(group[0].durationSec),
-                    ),
-                    group.map(function (item) {
-                      return h(
-                        'div',
-                        { className: 'mu-dup-row', key: item.path },
-                        h('span', { className: 'mu-ellipsis', title: item.path }, item.path),
-                        h(
-                          'span',
-                          { className: 'mu-dup-size' },
-                          item.size > 0 ? (item.size / 1024 / 1024).toFixed(2) + ' MB' : '',
-                        ),
-                      )
-                    }),
-                  )
-                }),
-              ),
-            )
           : null,
 
         newPlaylistOpen
@@ -7350,7 +7023,7 @@ window.__ModuleLoader__.load({
 
     var STYLE = [
       // Surface + text follow the host palette; every color has a neutral fallback.
-      '.mu-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;contain:layout paint;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;line-height:1.5;user-select:none}',
+      '.mu-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;line-height:1.5;user-select:none}',
       '.mu-root input,.mu-root textarea,.mu-set input,.mu-np input{user-select:text}',
       '.mu-head{display:flex;align-items:center;gap:10px;padding:16px 24px 8px;min-height:52px;box-sizing:border-box}',
       '.mu-head-title{display:flex;align-items:baseline;gap:10px;min-width:0}',
@@ -7651,7 +7324,6 @@ window.__ModuleLoader__.load({
       '.mu-tag-cover-btn.is-ghost{background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '@media (max-width:760px){.mu-tag-layout{grid-template-columns:1fr}.mu-tag-aside{border-right:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));flex-direction:row;align-items:flex-start}.mu-tag-cover-box{width:120px;flex:none}.mu-tag-aside-meta{flex:1}.mu-tag-aside-hint{display:none}}',
       '@media (max-width:980px){.mu-np-body{grid-template-columns:1fr;gap:10px;padding:4px 20px}.mu-np-left{gap:10px}.mu-np-disc-wrap{margin-bottom:12px}.mu-np-right{width:100%;max-height:34vh}.mu-np-bottom{margin:0 16px 12px;padding:10px 12px 12px}.mu-np-head{padding:12px 16px 6px}.mu-np-title{font-size:16px}}',
-      '@media (prefers-reduced-motion:reduce){.mu-np{transition:none}.mu-np-line{transition:none}.mu-play-btn{transition:none}.mu-card{transition:none}.mu-card-fav,.mu-card-play,.mu-card-check{transition:none}.mu-bar{transition:background .2s ease,box-shadow .2s ease}.mu-seek::-webkit-slider-thumb{transition:none}}',
       '.mu-tag-cover-hint{font-size:10px;line-height:1.4;color:var(--dsw-static-deepseek-450,#5686fe)}',
       '.mu-tag-field-head{display:flex;align-items:center;justify-content:space-between;gap:6px}',
       '.mu-tag-field-search{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border:0;border-radius:5px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;opacity:0;transition:opacity .12s}',
@@ -7687,12 +7359,6 @@ window.__ModuleLoader__.load({
       '.mu-more{width:280px;padding:10px 12px}',
       '.mu-more-info{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}',
       '.mu-more-row{display:flex;justify-content:space-between;gap:12px;font-size:12px}',
-      '.mu-dup-group{padding:8px 0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
-      '.mu-dup-group:last-child{border-bottom:0}',
-      '.mu-dup-head{font-size:12px;font-weight:600;margin-bottom:4px}',
-      '.mu-dup-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-dup-size{flex:none;font-variant-numeric:tabular-nums}',
-      '.mu-info:has(.mu-dup-group){max-height:70vh;overflow-y:auto}',
       '.mu-more-key{color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-more-val{color:var(--dsw-alias-label-primary,#e4e4e7);text-align:right}',
       '.mu-toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:50;padding:7px 12px;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-toast-bg,#2a2a2e);color:var(--dsw-alias-toast-label,#f4f4f5);font-size:12px;box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.4));pointer-events:none}',

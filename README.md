@@ -3,7 +3,6 @@
 DeepSeek Harness 的本地音乐插件：左侧栏一个音符入口，点开是整页播放器；扫描你指定的音乐文件夹，读取封面、标题、歌手、专辑、时长与音质信息。
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg)](https://www.npmjs.com/package/dsh-music-panel)
-[![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
 
 ```
@@ -22,8 +21,7 @@ DeepSeek Harness 的本地音乐插件：左侧栏一个音符入口，点开是
 
 - **左侧栏入口**：`sidebar.panellist` 注册 `music` 图标，点开切换到独立主面板（与「插件市场」「定时任务」同一套宿主机制）。
 - **歌曲列表**：封面缩略图、标题、歌手（带 CD 徽标）、专辑、时长、采样率；当前曲高亮。
-- **播放控制**：列表循环 / 单曲循环 / 不循环，随机播放，上一首、下一首、进度拖动、音量与静音；播放 / 暂停带淡入淡出，支持睡眠定时。
-- **快捷键**：空格播放/暂停、Ctrl/⌘ + ←/→ 上一首/下一首、`/` 聚焦搜索。
+- **播放控制**：列表循环 / 单曲循环 / 不循环，随机播放，上一首、下一首、进度拖动、音量与静音。
 - **播放队列**：底部「队列」按钮或输入框发送按钮左侧的播放列表按钮展开当前队列（顶部带迷你播放器），点击任意条目跳转；「更多」里显示格式 / 码率 / 采样率，可复制文件路径。
 - **记忆播放**：启动 / 刷新后恢复上次的队列、当前曲目与播放位置（默认停在暂停，点 ▶ 继续）；设置里可选「恢复后自动播放」和「每首歌记住播放位置」。
 - **统计**：主面板「统计」页按最近一周 / 最近一月 / 全部时间查看每首歌的累计播放时长、播放次数与最近播放，可按时长 / 次数 / 最近排序。播放次数按 Last.fm 规则（曲目 > 30 秒且播放到一半或 4 分钟）记录，播放时长只累计真正在播放的时间。
