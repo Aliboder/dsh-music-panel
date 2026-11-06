@@ -188,8 +188,8 @@ window.__ModuleLoader__.load({
         'page.duplicates': '重复 {n} 组',
         'page.duplicatesTitle': '重复歌曲',
         'page.duplicatesHint': '标题、艺术家与时长相同，可能是重复文件',
-        'page.deleteDuplicates': '删除重复（保留最大）',
-        'page.deleteDuplicatesConfirm': '将把 {n} 个较小的重复文件移到插件回收站（可恢复），继续？',
+        'page.deleteDuplicates': '删除重复（保留音质最好的）',
+        'page.deleteDuplicatesConfirm': '按码率 → 采样率 → 文件大小保留最好的一首，把其余 {n} 个移到插件回收站（可恢复），继续？',
         'page.duplicatesRemoved': '已移除 {n} 个文件',
         'settings.sleepTimer': '睡眠定时',
         'settings.sleepOff': '关闭',
@@ -419,8 +419,8 @@ window.__ModuleLoader__.load({
         'page.duplicates': '{n} duplicates',
         'page.duplicatesTitle': 'Duplicate songs',
         'page.duplicatesHint': 'Same title, artist and duration — possibly the same file twice',
-        'page.deleteDuplicates': 'Delete duplicates (keep largest)',
-        'page.deleteDuplicatesConfirm': 'Move {n} smaller duplicate files to the plugin trash (recoverable)?',
+        'page.deleteDuplicates': 'Delete duplicates (keep best quality)',
+        'page.deleteDuplicatesConfirm': 'Keep the best of each group by bitrate → sample rate → file size, and move the other {n} files to the plugin trash (recoverable)?',
         'page.duplicatesRemoved': 'Moved {n} files',
         'settings.sleepTimer': 'Sleep timer',
         'settings.sleepOff': 'Off',
@@ -4568,12 +4568,20 @@ window.__ModuleLoader__.load({
         })
       }
 
+      function compareAudioQuality(left, right) {
+        var leftBitrate = Number(left.bitrate) || 0
+        var rightBitrate = Number(right.bitrate) || 0
+        if (leftBitrate !== rightBitrate) return rightBitrate - leftBitrate
+        var leftRate = Number(left.sampleRate) || 0
+        var rightRate = Number(right.sampleRate) || 0
+        if (leftRate !== rightRate) return rightRate - leftRate
+        return (Number(right.size) || 0) - (Number(left.size) || 0)
+      }
+
       function removeDuplicates() {
         var paths = []
         duplicateGroups.forEach(function (group) {
-          var sorted = group.slice().sort(function (left, right) {
-            return (right.size || 0) - (left.size || 0)
-          })
+          var sorted = group.slice().sort(compareAudioQuality)
           sorted.slice(1).forEach(function (track) {
             paths.push(track.path)
           })
@@ -6694,7 +6702,13 @@ window.__ModuleLoader__.load({
                         h(
                           'span',
                           { className: 'mu-dup-size' },
-                          item.size > 0 ? (item.size / 1024 / 1024).toFixed(2) + ' MB' : '',
+                          [
+                            fmtKbps(item.bitrate) || '',
+                            fmtKhz(item.sampleRate) || '',
+                            item.size > 0 ? (item.size / 1024 / 1024).toFixed(2) + ' MB' : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' · '),
                         ),
                       )
                     }),
