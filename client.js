@@ -188,6 +188,9 @@ window.__ModuleLoader__.load({
         'page.duplicates': '重复 {n} 组',
         'page.duplicatesTitle': '重复歌曲',
         'page.duplicatesHint': '标题、艺术家与时长相同，可能是重复文件',
+        'page.deleteDuplicates': '删除重复（保留最大）',
+        'page.deleteDuplicatesConfirm': '将把 {n} 个较小的重复文件移到插件回收站（可恢复），继续？',
+        'page.duplicatesRemoved': '已移除 {n} 个文件',
         'settings.sleepTimer': '睡眠定时',
         'settings.sleepOff': '关闭',
         'settings.sleepTimerDone': '睡眠定时已到，已暂停播放',
@@ -416,6 +419,9 @@ window.__ModuleLoader__.load({
         'page.duplicates': '{n} duplicates',
         'page.duplicatesTitle': 'Duplicate songs',
         'page.duplicatesHint': 'Same title, artist and duration — possibly the same file twice',
+        'page.deleteDuplicates': 'Delete duplicates (keep largest)',
+        'page.deleteDuplicatesConfirm': 'Move {n} smaller duplicate files to the plugin trash (recoverable)?',
+        'page.duplicatesRemoved': 'Moved {n} files',
         'settings.sleepTimer': 'Sleep timer',
         'settings.sleepOff': 'Off',
         'settings.sleepTimerDone': 'Sleep timer finished — playback paused',
@@ -4562,6 +4568,32 @@ window.__ModuleLoader__.load({
         })
       }
 
+      function removeDuplicates() {
+        var paths = []
+        duplicateGroups.forEach(function (group) {
+          var sorted = group.slice().sort(function (left, right) {
+            return (right.size || 0) - (left.size || 0)
+          })
+          sorted.slice(1).forEach(function (track) {
+            paths.push(track.path)
+          })
+        })
+        if (paths.length === 0) return
+        var confirmed =
+          typeof window.confirm !== 'function' ||
+          window.confirm(t('page.deleteDuplicatesConfirm', { n: paths.length }))
+        if (!confirmed) return
+        requestJson('POST', API + 'remove', { paths: paths })
+          .then(function (body) {
+            showToast(t('page.duplicatesRemoved', { n: body.moved.length }))
+            setDupOpen(false)
+            load(true)
+          })
+          .catch(function (error) {
+            showToast(String((error && error.message) || error))
+          })
+      }
+
       function toggleSelect(track) {
         setSelected(function (list) {
           if (list.indexOf(track.path) >= 0) {
@@ -6631,6 +6663,15 @@ window.__ModuleLoader__.load({
                     },
                     icon('x', 14),
                   ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-btn mu-btn-sm mu-dup-action',
+                      onClick: removeDuplicates,
+                    },
+                    t('page.deleteDuplicates'),
+                  ),
                 ),
                 duplicateGroups.map(function (group, groupIndex) {
                   return h(
@@ -7535,6 +7576,7 @@ window.__ModuleLoader__.load({
       '.mu-dup-head{font-size:12px;font-weight:600;margin-bottom:4px}',
       '.mu-dup-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-dup-size{flex:none;font-variant-numeric:tabular-nums}',
+      '.mu-dup-action{margin-left:auto}',
       '.mu-more-key{color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-more-val{color:var(--dsw-alias-label-primary,#e4e4e7);text-align:right}',
       '.mu-toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:50;padding:7px 12px;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-toast-bg,#2a2a2e);color:var(--dsw-alias-toast-label,#f4f4f5);font-size:12px;box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.4));pointer-events:none}',
