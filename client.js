@@ -1079,8 +1079,18 @@ window.__ModuleLoader__.load({
           gradient.addColorStop(0.55, 'rgba(86,134,254,0.2)')
           gradient.addColorStop(1, 'rgba(122,170,255,0.38)')
         }
+        var resizeTimer = 0
+        function scheduleResize() {
+          if (resizeTimer !== 0) window.clearTimeout(resizeTimer)
+          // Resizing the canvas mid-layout-animation clears and repaints it on
+          // every frame, which reads as flicker; wait until the width settles.
+          resizeTimer = window.setTimeout(function () {
+            resizeTimer = 0
+            resize()
+          }, 140)
+        }
         resize()
-        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null
+        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(scheduleResize) : null
         if (observer !== null) observer.observe(parent)
         var raf = 0
         function frame() {
@@ -3773,15 +3783,24 @@ window.__ModuleLoader__.load({
         function () {
           var element = ref.current
           if (element === null) return undefined
+          var timer = 0
           function measure() {
             setViewport(element.clientHeight || 600)
           }
+          function schedule() {
+            if (timer !== 0) window.clearTimeout(timer)
+            timer = window.setTimeout(function () {
+              timer = 0
+              measure()
+            }, 120)
+          }
           measure()
-          window.addEventListener('resize', measure)
-          var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
+          window.addEventListener('resize', schedule)
+          var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null
           if (observer !== null) observer.observe(element)
           return function () {
-            window.removeEventListener('resize', measure)
+            if (timer !== 0) window.clearTimeout(timer)
+            window.removeEventListener('resize', schedule)
             if (observer !== null) observer.disconnect()
           }
         },
@@ -3858,15 +3877,24 @@ window.__ModuleLoader__.load({
       useEffect(function () {
         var el = ref.current
         if (el === null) return undefined
+        var timer = 0
         function measure() {
           setWidth(el.clientWidth || 0)
         }
+        function schedule() {
+          if (timer !== 0) window.clearTimeout(timer)
+          timer = window.setTimeout(function () {
+            timer = 0
+            measure()
+          }, 120)
+        }
         measure()
-        window.addEventListener('resize', measure)
-        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
+        window.addEventListener('resize', schedule)
+        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null
         if (observer !== null) observer.observe(el)
         return function () {
-          window.removeEventListener('resize', measure)
+          if (timer !== 0) window.clearTimeout(timer)
+          window.removeEventListener('resize', schedule)
           if (observer !== null) observer.disconnect()
         }
       }, [])
@@ -7322,7 +7350,7 @@ window.__ModuleLoader__.load({
 
     var STYLE = [
       // Surface + text follow the host palette; every color has a neutral fallback.
-      '.mu-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;line-height:1.5;user-select:none}',
+      '.mu-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;contain:layout paint;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;line-height:1.5;user-select:none}',
       '.mu-root input,.mu-root textarea,.mu-set input,.mu-np input{user-select:text}',
       '.mu-head{display:flex;align-items:center;gap:10px;padding:16px 24px 8px;min-height:52px;box-sizing:border-box}',
       '.mu-head-title{display:flex;align-items:baseline;gap:10px;min-width:0}',
