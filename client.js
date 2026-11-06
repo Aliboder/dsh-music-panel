@@ -7667,10 +7667,11 @@ window.__ModuleLoader__.load({
       // sitting right above it (the negative margin only cancels the composer
       // stack gap, it does not tuck under the card).
       '.mu-composer-bar-wrap{box-sizing:border-box;width:100%;padding:0 var(--dsh-composer-side-clearance,16px);margin-bottom:calc(0px - var(--dsh-composer-stack-gap,6px))}',
-      '.mu-composer-bar{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;width:100%;max-width:var(--dsh-composer-card-max-width,780px);margin:0 auto;padding:4px 14px;font-size:12px;line-height:20px;color:var(--dsw-alias-label-secondary,#8a8f98);background:transparent;pointer-events:none;user-select:none}',
-      '.mu-composer-bar-left{display:flex;align-items:center;gap:6px;min-width:0;justify-self:start;max-width:100%}',
-      '.mu-composer-wave{display:flex;align-items:center;justify-content:center;opacity:.85}',
-      '.mu-composer-lyric-inline{min-width:0;width:100%;overflow:hidden;text-align:right;color:var(--dsw-alias-label-primary,#e6e6e6);font-size:14px;line-height:20px;white-space:nowrap;text-overflow:ellipsis;justify-self:end;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%)}',
+      '.mu-composer-bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;max-width:var(--dsh-composer-card-max-width,780px);margin:0 auto;padding:4px 14px;font-size:12px;line-height:20px;color:var(--dsw-alias-label-secondary,#8a8f98);background:transparent;pointer-events:none;user-select:none}',
+      '.mu-composer-bar-left{display:flex;align-items:center;gap:6px;min-width:0;flex:0 1 auto;max-width:45%}',
+      '.mu-composer-wave{flex:0 0 auto;display:flex;align-items:center;justify-content:center;opacity:.85}',
+      '.mu-composer-lyric-inline{flex:1 1 auto;min-width:0;overflow:hidden;text-align:right;color:var(--dsw-alias-label-primary,#e6e6e6);font-size:14px;line-height:20px;white-space:nowrap;text-overflow:ellipsis}',
+      '@media (max-width:760px){.mu-composer-wave{display:none}}',
       '.mu-composer-note{display:inline-flex;flex:none;margin-right:4px;color:var(--dsw-alias-brand-primary,#2f9e6e)}',
       '.mu-composer-track{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;vertical-align:middle}',
       '.mu-audio-host{position:fixed;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);opacity:0;pointer-events:none}',
