@@ -230,7 +230,7 @@ window.__ModuleLoader__.load({
         'page.rename': '保存',
         'settings.label': '音乐',
         'settings.title': '音乐文件夹',
-        'settings.onlineHint': '粘贴在线音频直链（http/https），添加后会出现在曲库里，可直接播放。',
+        'settings.onlineHint': '粘贴 http/https 音频直链、网络电台，或 M3U / PLS 在线歌单链接（歌单会展开成多首）。',
         'settings.onlineEmpty': '还没有添加在线源。',
         'settings.onlineName': '名称（可选）',
         'settings.onlineUrl': '音频链接（http/https）',
@@ -458,7 +458,7 @@ window.__ModuleLoader__.load({
         'page.rename': 'Save',
         'settings.label': 'Music',
         'settings.title': 'Music folders',
-        'settings.onlineHint': 'Paste a direct audio link (http/https); it will appear in your library and play right away.',
+        'settings.onlineHint': 'Paste a direct audio link, radio stream, or an M3U / PLS playlist URL (a playlist expands into many tracks).',
         'settings.onlineEmpty': 'No online sources yet.',
         'settings.onlineName': 'Name (optional)',
         'settings.onlineUrl': 'Audio URL (http/https)',
@@ -4192,6 +4192,8 @@ window.__ModuleLoader__.load({
       var [onlineSources, setOnlineSources] = useState([])
       var [onlineName, setOnlineName] = useState('')
       var [onlineUrl, setOnlineUrl] = useState('')
+      var [onlinePlaylistTracks, setOnlinePlaylistTracks] = useState({})
+      var onlinePlaylistRequests = useRef({})
       var [loading, setLoading] = useState(true)
       var [error, setError] = useState(null)
       var [warnings, setWarnings] = useState([])
@@ -4532,12 +4534,13 @@ window.__ModuleLoader__.load({
           return
         }
         var name = onlineName.trim() || parsed.hostname
-        saveOnlineSources(onlineSources.concat([{ name: name, url: parsed.toString() }])).then(
-          function () {
-            setOnlineName('')
-            setOnlineUrl('')
-          },
-        )
+        var kind = /\.(m3u8?|pls)$/i.test(parsed.pathname) ? 'playlist' : 'single'
+        saveOnlineSources(
+          onlineSources.concat([{ name: name, url: parsed.toString(), kind: kind }]),
+        ).then(function () {
+          setOnlineName('')
+          setOnlineUrl('')
+        })
       }
 
       function removeOnlineSource(id) {
@@ -4547,6 +4550,29 @@ window.__ModuleLoader__.load({
           }),
         )
       }
+
+      useEffect(
+        function () {
+          onlineSources.forEach(function (source) {
+            if (source.kind !== 'playlist') return
+            if (onlinePlaylistRequests.current[source.id]) return
+            onlinePlaylistRequests.current[source.id] = true
+            getJson(API + 'online-tracks?url=' + encodeURIComponent(source.url))
+              .then(function (body) {
+                setOnlinePlaylistTracks(function (previous) {
+                  var next = Object.assign({}, previous)
+                  next[source.id] = Array.isArray(body.tracks) ? body.tracks : []
+                  return next
+                })
+              })
+              .catch(function (error) {
+                onlinePlaylistRequests.current[source.id] = false
+                showToast(String((error && error.message) || error))
+              })
+          })
+        },
+        [onlineSources],
+      )
 
       var load = useCallback(function (refresh) {
         setLoading(true)
@@ -4834,8 +4860,30 @@ window.__ModuleLoader__.load({
       }
 
       var onlineTracks = useMemo(function () {
-        return onlineSources.map(function (source) {
-          return {
+        var list = []
+        onlineSources.forEach(function (source) {
+          if (source.kind === 'playlist') {
+            var entries = onlinePlaylistTracks[source.id]
+            if (!Array.isArray(entries)) return
+            entries.forEach(function (entry, index) {
+              list.push({
+                path: 'online:' + source.id + ':' + index,
+                name: entry.name,
+                title: entry.name,
+                artist: entry.artist || source.name,
+                album: '',
+                folder: source.name,
+                hasCover: false,
+                durationSec: Number(entry.durationSec) || 0,
+                sampleRate: 0,
+                size: 0,
+                mtime: 0,
+                onlineUrl: entry.url,
+              })
+            })
+            return
+          }
+          list.push({
             path: 'online:' + source.id,
             name: source.name,
             title: source.name,
@@ -4848,9 +4896,10 @@ window.__ModuleLoader__.load({
             size: 0,
             mtime: 0,
             onlineUrl: source.url,
-          }
+          })
         })
-      }, [onlineSources])
+        return list
+      }, [onlineSources, onlinePlaylistTracks])
 
       var trackByPath = useMemo(function () {
         var map = {}
