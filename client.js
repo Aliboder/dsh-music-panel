@@ -2391,7 +2391,7 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { className: 'mu-composer-wave' },
-              h(BarWave, { width: 64, height: 18, bars: 18 }),
+              h(BarWave, { width: 104, height: 18, bars: 28 }),
             ),
             h('div', { className: 'mu-composer-lyric-inline', title: text }, text),
           ),
