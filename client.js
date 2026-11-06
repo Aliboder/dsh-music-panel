@@ -191,6 +191,14 @@ window.__ModuleLoader__.load({
         'page.deleteDuplicates': '删除重复（保留音质最好的）',
         'page.deleteDuplicatesConfirm': '按码率 → 采样率 → 文件大小保留最好的一首，把其余 {n} 个移到插件回收站（可恢复），继续？',
         'page.duplicatesRemoved': '已移除 {n} 个文件',
+        'page.onlineLyrics': '在线歌词',
+        'page.onlineLyricsAction': '搜索',
+        'page.lyricsSearch': '搜索',
+        'page.lyricsSearchPlaceholder': '歌名 艺术家',
+        'page.lyricsNoResults': '没有找到歌词',
+        'page.lyricsPreviewHint': '选择一首歌查看歌词',
+        'page.lyricsSave': '保存为 .lrc',
+        'page.lyricsSaved': '歌词已保存为 .lrc',
         'settings.sleepTimer': '睡眠定时',
         'settings.sleepOff': '关闭',
         'settings.sleepTimerDone': '睡眠定时已到，已暂停播放',
@@ -422,6 +430,14 @@ window.__ModuleLoader__.load({
         'page.deleteDuplicates': 'Delete duplicates (keep best quality)',
         'page.deleteDuplicatesConfirm': 'Keep the best of each group by bitrate → sample rate → file size, and move the other {n} files to the plugin trash (recoverable)?',
         'page.duplicatesRemoved': 'Moved {n} files',
+        'page.onlineLyrics': 'Online lyrics',
+        'page.onlineLyricsAction': 'Search',
+        'page.lyricsSearch': 'Search',
+        'page.lyricsSearchPlaceholder': 'title artist',
+        'page.lyricsNoResults': 'No lyrics found',
+        'page.lyricsPreviewHint': 'Pick a result to preview',
+        'page.lyricsSave': 'Save as .lrc',
+        'page.lyricsSaved': 'Lyrics saved as .lrc',
         'settings.sleepTimer': 'Sleep timer',
         'settings.sleepOff': 'Off',
         'settings.sleepTimerDone': 'Sleep timer finished — playback paused',
@@ -3139,6 +3155,14 @@ window.__ModuleLoader__.load({
       var [lyricSettingsOpen, setLyricSettingsOpen] = useState(false)
       var [lyricOffset, setLyricOffset] = useState(0)
       var [lyricError, setLyricError] = useState('')
+      var [lyricReload, setLyricReload] = useState(0)
+      var [lyricOnlineOpen, setLyricOnlineOpen] = useState(false)
+      var [lyricQuery, setLyricQuery] = useState('')
+      var [lyricResults, setLyricResults] = useState([])
+      var [lyricSearching, setLyricSearching] = useState(false)
+      var [lyricPreview, setLyricPreview] = useState('')
+      var [lyricPreviewId, setLyricPreviewId] = useState('')
+      var [lyricSaving, setLyricSaving] = useState(false)
 
       function applyLyricOffset(delta) {
         if (track === null) return
@@ -3164,6 +3188,70 @@ window.__ModuleLoader__.load({
             setLyricOffset(Number(body.offsetMs) || 0)
           })
           .catch(function (error) {
+            setLyricError(String((error && error.message) || error))
+          })
+      }
+
+      function runLyricSearch(query) {
+        var text = String(query || '').trim()
+        if (text === '') return
+        setLyricSearching(true)
+        setLyricResults([])
+        setLyricPreview('')
+        setLyricPreviewId('')
+        getJson(API + 'lyrics/search?q=' + encodeURIComponent(text))
+          .then(function (body) {
+            setLyricResults(Array.isArray(body.candidates) ? body.candidates : [])
+          })
+          .catch(function (error) {
+            setLyricError(String((error && error.message) || error))
+            setLyricResults([])
+          })
+          .then(function () {
+            setLyricSearching(false)
+          })
+      }
+
+      function openOnlineLyrics() {
+        if (track === null) return
+        var query = ((track.title || '') + ' ' + (track.artist || '')).trim()
+        setLyricOnlineOpen(true)
+        setLyricQuery(query)
+        setLyricError('')
+        runLyricSearch(query)
+      }
+
+      function pickOnlineLyric(candidate) {
+        setLyricPreviewId(candidate.id)
+        setLyricPreview('')
+        setLyricError('')
+        getJson(API + 'lyrics/fetch?id=' + encodeURIComponent(candidate.id))
+          .then(function (body) {
+            var lrc = typeof body.lrc === 'string' ? body.lrc : ''
+            var translation = typeof body.translation === 'string' ? body.translation : ''
+            setLyricPreview(translation === '' ? lrc : lrc + '\n\n' + translation)
+          })
+          .catch(function (error) {
+            setLyricError(String((error && error.message) || error))
+          })
+      }
+
+      function saveOnlineLyric() {
+        if (track === null || lyricPreview.trim() === '') return
+        setLyricSaving(true)
+        setLyricError('')
+        postJson(API + 'lyrics/save', { path: track.path, lrc: lyricPreview })
+          .then(function () {
+            setLyricSaving(false)
+            setLyricOnlineOpen(false)
+            setLyricReload(function (value) {
+              return value + 1
+            })
+            setLyricPreview('')
+            if (typeof window.alert === 'function') window.alert(t('page.lyricsSaved'))
+          })
+          .catch(function (error) {
+            setLyricSaving(false)
             setLyricError(String((error && error.message) || error))
           })
       }
@@ -3211,7 +3299,7 @@ window.__ModuleLoader__.load({
             cancelled = true
           }
         },
-        [trackPath, lyricOrderKey],
+        [trackPath, lyricOrderKey, lyricReload],
       )
 
       useEffect(
@@ -3336,6 +3424,20 @@ window.__ModuleLoader__.load({
           ? h(
               'div',
               { className: 'mu-np-settings' },
+              h(
+                'div',
+                { className: 'mu-np-setting mu-np-setting-inline' },
+                h('span', null, t('page.onlineLyrics')),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-btn mu-btn-sm',
+                    onClick: openOnlineLyrics,
+                  },
+                  t('page.onlineLyricsAction'),
+                ),
+              ),
               h(
                 'div',
                 { className: 'mu-np-setting' },
@@ -3466,6 +3568,120 @@ window.__ModuleLoader__.load({
                     savePrefs({ translationScale: next })
                   },
                 }),
+              ),
+            )
+          : null,
+
+        lyricOnlineOpen
+          ? h(
+              'div',
+              { className: 'mu-lyr-layer' },
+              h('div', {
+                className: 'mu-lyr-scrim',
+                onClick: function () {
+                  setLyricOnlineOpen(false)
+                },
+              }),
+              h(
+                'div',
+                { className: 'mu-lyr-dialog' },
+                h(
+                  'div',
+                  { className: 'mu-lyr-head' },
+                  h('span', { className: 'mu-lyr-title' }, t('page.onlineLyrics')),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-icon-btn-sm',
+                      onClick: function () {
+                        setLyricOnlineOpen(false)
+                      },
+                    },
+                    icon('x', 14),
+                  ),
+                ),
+                h(
+                  'div',
+                  { className: 'mu-lyr-search' },
+                  h('input', {
+                    type: 'text',
+                    className: 'mu-input mu-input-sm',
+                    value: lyricQuery,
+                    placeholder: t('page.lyricsSearchPlaceholder'),
+                    onChange: function (event) {
+                      setLyricQuery(event.target.value)
+                    },
+                    onKeyDown: function (event) {
+                      if (event.key !== 'Enter') return
+                      runLyricSearch(lyricQuery)
+                    },
+                  }),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-btn mu-btn-sm',
+                      disabled: lyricSearching,
+                      onClick: function () {
+                        runLyricSearch(lyricQuery)
+                      },
+                    },
+                    lyricSearching ? '…' : t('page.lyricsSearch'),
+                  ),
+                ),
+                lyricError !== '' ? h('div', { className: 'mu-lyr-error' }, lyricError) : null,
+                h(
+                  'div',
+                  { className: 'mu-lyr-results' },
+                  lyricResults.map(function (candidate) {
+                    return h(
+                      'button',
+                      {
+                        key: candidate.id,
+                        type: 'button',
+                        className:
+                          'mu-lyr-candidate' + (lyricPreviewId === candidate.id ? ' is-on' : ''),
+                        onClick: function () {
+                          pickOnlineLyric(candidate)
+                        },
+                      },
+                      h('span', { className: 'mu-lyr-candidate-title mu-ellipsis' }, candidate.title),
+                      h(
+                        'span',
+                        { className: 'mu-lyr-candidate-meta mu-ellipsis' },
+                        [candidate.artist, candidate.album, fmtTime(candidate.durationSec)]
+                          .filter(Boolean)
+                          .join(' · '),
+                      ),
+                    )
+                  }),
+                ),
+                lyricPreview.trim() !== ''
+                  ? h('pre', { className: 'mu-lyr-preview' }, lyricPreview)
+                  : h(
+                      'div',
+                      { className: 'mu-lyr-empty' },
+                      lyricResults.length === 0
+                        ? lyricSearching
+                          ? '…'
+                          : t('page.lyricsNoResults')
+                        : t('page.lyricsPreviewHint'),
+                    ),
+                h(
+                  'div',
+                  { className: 'mu-lyr-actions' },
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-btn',
+                      disabled: lyricPreview.trim() === '' || lyricSaving,
+                      onClick: saveOnlineLyric,
+                    },
+                    lyricSaving ? '…' : t('page.lyricsSave'),
+                  ),
+                ),
               ),
             )
           : null,
@@ -7595,6 +7811,22 @@ window.__ModuleLoader__.load({
       '.mu-dup-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-dup-size{flex:none;font-variant-numeric:tabular-nums}',
       '.mu-dup-action{margin-left:auto}',
+      '.mu-lyr-layer{position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;padding:16px}',
+      '.mu-lyr-scrim{position:absolute;inset:0;background:rgba(0,0,0,.5)}',
+      '.mu-lyr-dialog{position:relative;display:flex;flex-direction:column;gap:8px;width:min(560px,calc(100% - 16px));max-height:82%;padding:14px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:12px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.45))}',
+      '.mu-lyr-head{display:flex;align-items:center;justify-content:space-between;gap:12px}',
+      '.mu-lyr-title{font-size:13px;font-weight:600}',
+      '.mu-lyr-search{display:flex;gap:8px}',
+      '.mu-lyr-search .mu-input{flex:1 1 auto}',
+      '.mu-lyr-error{font-size:12px;color:var(--dsw-alias-state-error-primary,#f87171)}',
+      '.mu-lyr-results{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto}',
+      '.mu-lyr-candidate{display:flex;flex-direction:column;gap:1px;padding:6px 8px;text-align:left;border:0;border-radius:6px;background:transparent;color:inherit;cursor:pointer;font:inherit}',
+      '.mu-lyr-candidate:hover,.mu-lyr-candidate.is-on{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06))}',
+      '.mu-lyr-candidate-title{font-size:12px;color:var(--dsw-alias-label-primary,#e6e6e6)}',
+      '.mu-lyr-candidate-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8f98)}',
+      '.mu-lyr-preview{flex:1 1 auto;min-height:80px;max-height:220px;margin:0;padding:8px;overflow:auto;white-space:pre-wrap;border-radius:6px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03));font-size:11px;line-height:1.6;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-lyr-empty{padding:12px 0;font-size:12px;text-align:center;color:var(--dsw-alias-label-tertiary,#8a8f98)}',
+      '.mu-lyr-actions{display:flex;justify-content:flex-end}',
       '.mu-more-key{color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-more-val{color:var(--dsw-alias-label-primary,#e4e4e7);text-align:right}',
       '.mu-toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:50;padding:7px 12px;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-toast-bg,#2a2a2e);color:var(--dsw-alias-toast-label,#f4f4f5);font-size:12px;box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.4));pointer-events:none}',
