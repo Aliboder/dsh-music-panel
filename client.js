@@ -183,7 +183,6 @@ window.__ModuleLoader__.load({
         'page.addedToPlaylist': '已添加到播放列表',
         'page.reveal': '在文件夹中显示',
         'page.revealed': '已在文件夹中打开',
-        'page.onlineSource': '在线源',
         'page.details': '详细信息',
         'page.noPlaylists': '还没有歌单',
         'page.newPlaylistAdd': '新建歌单并添加',
@@ -230,12 +229,6 @@ window.__ModuleLoader__.load({
         'page.rename': '保存',
         'settings.label': '音乐',
         'settings.title': '音乐文件夹',
-        'settings.onlineHint': '粘贴 http/https 音频直链、网络电台，或 M3U / PLS 在线歌单链接（歌单会展开成多首）。',
-        'settings.onlineEmpty': '还没有添加在线源。',
-        'settings.onlineName': '名称（可选）',
-        'settings.onlineUrl': '音频链接（http/https）',
-        'settings.onlineAdd': '添加在线源',
-        'settings.onlineInvalid': '请输入有效的 http/https 链接',
         'settings.hint': '添加包含音频文件的文件夹，支持 mp3 / flac / m4a / wav / ogg / opus / aac。',
         'settings.roots': '文件夹',
         'settings.add': '添加文件夹',
@@ -411,7 +404,6 @@ window.__ModuleLoader__.load({
         'page.addedToPlaylist': 'Added to play queue',
         'page.reveal': 'Show in folder',
         'page.revealed': 'Opened in folder',
-        'page.onlineSource': 'Online',
         'page.details': 'Details',
         'page.noPlaylists': 'No playlists yet',
         'page.newPlaylistAdd': 'New playlist and add',
@@ -458,12 +450,6 @@ window.__ModuleLoader__.load({
         'page.rename': 'Save',
         'settings.label': 'Music',
         'settings.title': 'Music folders',
-        'settings.onlineHint': 'Paste a direct audio link, radio stream, or an M3U / PLS playlist URL (a playlist expands into many tracks).',
-        'settings.onlineEmpty': 'No online sources yet.',
-        'settings.onlineName': 'Name (optional)',
-        'settings.onlineUrl': 'Audio URL (http/https)',
-        'settings.onlineAdd': 'Add online source',
-        'settings.onlineInvalid': 'Enter a valid http/https link',
         'settings.hint': 'Add folders with audio files. Supports mp3 / flac / m4a / wav / ogg / opus / aac.',
         'settings.roots': 'Folders',
         'settings.add': 'Add folder',
@@ -1839,23 +1825,6 @@ window.__ModuleLoader__.load({
         // only when the Last.fm / MusicBee threshold is reached.
         resetSession(item)
         if (audio === null) return
-        if (typeof item.onlineUrl === 'string' && item.onlineUrl !== '') {
-          // Online sources stream through the host proxy (CORS / range safe).
-          cancelPendingFetch()
-          audio.pause()
-          audio.removeAttribute('src')
-          audio.load()
-          releaseObjectUrl()
-          audio.src = API + 'proxy?url=' + encodeURIComponent(item.onlineUrl)
-          audio.load()
-          if (pendingAutoplay) {
-            pendingAutoplay = false
-            audio.play().catch(function () {
-              if (state.playing) patch({ playing: false })
-            })
-          }
-          return
-        }
 
         cancelPendingFetch()
         // Detach the old blob before revoking it: a revoked URL still
@@ -4189,11 +4158,6 @@ window.__ModuleLoader__.load({
       var leaderNow = player.isLeader()
       var [config, setConfig] = useState(null)
       var [tracks, setTracks] = useState([])
-      var [onlineSources, setOnlineSources] = useState([])
-      var [onlineName, setOnlineName] = useState('')
-      var [onlineUrl, setOnlineUrl] = useState('')
-      var [onlinePlaylistTracks, setOnlinePlaylistTracks] = useState({})
-      var onlinePlaylistRequests = useRef({})
       var [loading, setLoading] = useState(true)
       var [error, setError] = useState(null)
       var [warnings, setWarnings] = useState([])
@@ -4509,80 +4473,12 @@ window.__ModuleLoader__.load({
         }, 1600)
       }
 
-      function saveOnlineSources(next) {
-        return requestJson('POST', API + 'online', { sources: next })
-          .then(function (body) {
-            setOnlineSources(Array.isArray(body.onlineSources) ? body.onlineSources : [])
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function addOnlineSource() {
-        var url = onlineUrl.trim()
-        if (url === '') return
-        var parsed
-        try {
-          parsed = new URL(url)
-        } catch (error) {
-          showToast(t('settings.onlineInvalid'))
-          return
-        }
-        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-          showToast(t('settings.onlineInvalid'))
-          return
-        }
-        var name = onlineName.trim() || parsed.hostname
-        var kind = /\.(m3u8?|pls)$/i.test(parsed.pathname) ? 'playlist' : 'single'
-        saveOnlineSources(
-          onlineSources.concat([{ name: name, url: parsed.toString(), kind: kind }]),
-        ).then(function () {
-          setOnlineName('')
-          setOnlineUrl('')
-        })
-      }
-
-      function removeOnlineSource(id) {
-        saveOnlineSources(
-          onlineSources.filter(function (source) {
-            return source.id !== id
-          }),
-        )
-      }
-
-      useEffect(
-        function () {
-          onlineSources.forEach(function (source) {
-            if (source.kind !== 'playlist') return
-            if (onlinePlaylistRequests.current[source.id]) return
-            onlinePlaylistRequests.current[source.id] = true
-            getJson(API + 'online-tracks?url=' + encodeURIComponent(source.url))
-              .then(function (body) {
-                setOnlinePlaylistTracks(function (previous) {
-                  var next = Object.assign({}, previous)
-                  next[source.id] = Array.isArray(body.tracks) ? body.tracks : []
-                  return next
-                })
-              })
-              .catch(function (error) {
-                onlinePlaylistRequests.current[source.id] = false
-                showToast(String((error && error.message) || error))
-              })
-          })
-        },
-        [onlineSources],
-      )
-
       var load = useCallback(function (refresh) {
         setLoading(true)
         setError(null)
         return getJson(API + 'config')
           .then(function (body) {
             setConfig(body.config)
-            setOnlineSources(
-              Array.isArray(body.config.onlineSources) ? body.config.onlineSources : [],
-            )
             return getJson(API + 'library' + (refresh ? '?refresh=1' : ''))
           })
           .then(function (body) {
@@ -4859,55 +4755,13 @@ window.__ModuleLoader__.load({
         )
       }
 
-      var onlineTracks = useMemo(function () {
-        var list = []
-        onlineSources.forEach(function (source) {
-          if (source.kind === 'playlist') {
-            var entries = onlinePlaylistTracks[source.id]
-            if (!Array.isArray(entries)) return
-            entries.forEach(function (entry, index) {
-              list.push({
-                path: 'online:' + source.id + ':' + index,
-                name: entry.name,
-                title: entry.name,
-                artist: entry.artist || source.name,
-                album: '',
-                folder: source.name,
-                hasCover: false,
-                durationSec: Number(entry.durationSec) || 0,
-                sampleRate: 0,
-                size: 0,
-                mtime: 0,
-                onlineUrl: entry.url,
-              })
-            })
-            return
-          }
-          list.push({
-            path: 'online:' + source.id,
-            name: source.name,
-            title: source.name,
-            artist: t('page.onlineSource'),
-            album: '',
-            folder: t('page.onlineSource'),
-            hasCover: false,
-            durationSec: 0,
-            sampleRate: 0,
-            size: 0,
-            mtime: 0,
-            onlineUrl: source.url,
-          })
-        })
-        return list
-      }, [onlineSources, onlinePlaylistTracks])
-
       var trackByPath = useMemo(function () {
         var map = {}
-        tracks.concat(onlineTracks).forEach(function (track) {
+        tracks.forEach(function (track) {
           map[track.path] = track
         })
         return map
-      }, [tracks, onlineTracks])
+      }, [tracks])
 
       var activePlaylist = useMemo(function () {
         return playlists.find(function (item) {
@@ -4935,13 +4789,13 @@ window.__ModuleLoader__.load({
             })
             .filter(Boolean)
         }
-        if (view !== 'playlists' || activePlaylist === undefined) return tracks.concat(onlineTracks)
+        if (view !== 'playlists' || activePlaylist === undefined) return tracks
         return activePlaylist.trackPaths
           .map(function (path) {
             return trackByPath[path]
           })
           .filter(Boolean)
-      }, [view, activePlaylist, tracks, trackByPath, favorites, onlineTracks])
+      }, [view, activePlaylist, tracks, trackByPath, favorites])
 
       useEffect(
         function () {
@@ -5870,63 +5724,6 @@ window.__ModuleLoader__.load({
                           onClick: openBrowse,
                         },
                         '+ ' + t('settings.add'),
-                      ),
-                      h('div', { className: 'mu-prefs-sep' }),
-                      h('p', { className: 'mu-prefs-hint' }, t('settings.onlineHint')),
-                      onlineSources.length === 0
-                        ? h('div', { className: 'mu-prefs-empty' }, t('settings.onlineEmpty'))
-                        : onlineSources.map(function (source) {
-                            return h(
-                              'div',
-                              { className: 'mu-prefs-folder', key: source.id },
-                              h(
-                                'span',
-                                { className: 'mu-prefs-folder-path', title: source.url },
-                                source.name + ' — ' + source.url,
-                              ),
-                              h(
-                                'button',
-                                {
-                                  type: 'button',
-                                  className: 'mu-icon-btn mu-icon-btn-sm',
-                                  title: t('settings.remove'),
-                                  onClick: function () {
-                                    removeOnlineSource(source.id)
-                                  },
-                                },
-                                '×',
-                              ),
-                            )
-                          }),
-                      h(
-                        'div',
-                        { className: 'mu-prefs-online-add' },
-                        h('input', {
-                          className: 'mu-input',
-                          placeholder: t('settings.onlineName'),
-                          value: onlineName,
-                          onChange: function (event) {
-                            setOnlineName(event.target.value)
-                          },
-                        }),
-                        h('input', {
-                          className: 'mu-input',
-                          placeholder: t('settings.onlineUrl'),
-                          value: onlineUrl,
-                          onChange: function (event) {
-                            setOnlineUrl(event.target.value)
-                          },
-                        }),
-                        h(
-                          'button',
-                          {
-                            type: 'button',
-                            className: 'mu-btn mu-btn-sm',
-                            disabled: onlineUrl.trim() === '',
-                            onClick: addOnlineSource,
-                          },
-                          t('settings.onlineAdd'),
-                        ),
                       ),
                       browseOpen
                         ? h(
@@ -7320,9 +7117,6 @@ window.__ModuleLoader__.load({
       '.mu-prefs-tab{flex:1;height:28px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer}',
       '.mu-prefs-tab.is-on{background:var(--dsw-alias-bg-layer-2,#2a2a2e);color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.35)}',
       '.mu-prefs-body{display:flex;flex-direction:column}',
-      '.mu-prefs-sep{height:1px;background:var(--dsw-alias-border-l1,rgba(255,255,255,.07));margin:14px 0}',
-      '.mu-prefs-online-add{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center}',
-      '.mu-prefs-online-add .mu-input{flex:1;min-width:160px}',
       '.mu-prefs-body .mu-set-item:last-child{border-bottom:0;padding-bottom:0}',
       '.mu-prefs-hint{margin:0 0 8px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-prefs-empty{padding:10px 0;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
