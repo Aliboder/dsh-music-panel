@@ -51,6 +51,7 @@ window.__ModuleLoader__.load({
       // Resume behaviour follows mainstream desktop players: restore the queue
       // and position on start, but stay paused until the user asks to play.
       resumeOnStart: true,
+      sleepTimerMinutes: 0,
       autoResume: false,
       rememberPerTrack: false,
     }
@@ -182,7 +183,12 @@ window.__ModuleLoader__.load({
         'page.addToPlaylist': '添加到播放列表',
         'page.addedToPlaylist': '已添加到播放列表',
         'page.reveal': '在文件夹中显示',
-        'page.revealed': '已在文件夹中打开',
+        'page.favoriteSelected': '收藏选中',
+        'page.exportLyrics': '导出歌词',
+        'page.exportLyricsAction': '导出 .lrc',
+        'settings.sleepTimer': '睡眠定时',
+        'settings.sleepOff': '关闭',
+        'settings.sleepTimerDone': '睡眠定时已到，已暂停播放',
         'page.details': '详细信息',
         'page.noPlaylists': '还没有歌单',
         'page.newPlaylistAdd': '新建歌单并添加',
@@ -403,7 +409,12 @@ window.__ModuleLoader__.load({
         'page.addToPlaylist': 'Add to play queue',
         'page.addedToPlaylist': 'Added to play queue',
         'page.reveal': 'Show in folder',
-        'page.revealed': 'Opened in folder',
+        'page.favoriteSelected': 'Like selected',
+        'page.exportLyrics': 'Export lyrics',
+        'page.exportLyricsAction': 'Export .lrc',
+        'settings.sleepTimer': 'Sleep timer',
+        'settings.sleepOff': 'Off',
+        'settings.sleepTimerDone': 'Sleep timer finished — playback paused',
         'page.details': 'Details',
         'page.noPlaylists': 'No playlists yet',
         'page.newPlaylistAdd': 'New playlist and add',
@@ -931,12 +942,14 @@ window.__ModuleLoader__.load({
 
     function Cover(props) {
       var [failed, setFailed] = useState(false)
+      var [attempt, setAttempt] = useState(0)
       var size = props.size || 42
       var radius = props.radius === undefined ? 6 : props.radius
 
       useEffect(
         function () {
           setFailed(false)
+          setAttempt(0)
         },
         [props.track ? props.track.path : ''],
       )
@@ -952,12 +965,14 @@ window.__ModuleLoader__.load({
         'div',
         { className: 'mu-cover', style: wrapStyle },
         h('img', {
-          src: coverUrl(props.track.path),
+          key: String(attempt),
+          src: coverUrl(props.track.path) + (attempt > 0 ? '&retry=' + String(attempt) : ''),
           alt: '',
           loading: 'lazy',
           draggable: 'false',
           onError: function () {
-            setFailed(true)
+            if (attempt < 1) setAttempt(attempt + 1)
+            else setFailed(true)
           },
         }),
       )
@@ -1810,6 +1825,25 @@ window.__ModuleLoader__.load({
        * the track. A Blob is local media and seeks reliably. The download is a
        * loopback request, so it costs one disk read, not a network hop.
        */
+      /** Short volume ramp so play/pause never clicks. */
+      function fadeVolume(target, duration, done) {
+        if (audio === null) {
+          if (done) done()
+          return
+        }
+        var el = audio
+        var from = el.volume
+        var startedAt = Date.now()
+        function step() {
+          if (audio !== el) return
+          var t = Math.min(1, (Date.now() - startedAt) / Math.max(1, duration))
+          el.volume = from + (target - from) * t
+          if (t < 1) window.requestAnimationFrame(step)
+          else if (done) done()
+        }
+        window.requestAnimationFrame(step)
+      }
+
       function load(at, autoplay) {
         var item = state.queue[at]
         if (!item) return
@@ -1864,9 +1898,15 @@ window.__ModuleLoader__.load({
             }
             if (pendingAutoplay) {
               pendingAutoplay = false
-              audio.play().catch(function () {
-                if (state.playing) patch({ playing: false })
-              })
+              audio.volume = 0
+              audio
+                .play()
+                .then(function () {
+                  fadeVolume(1, 180)
+                })
+                .catch(function () {
+                  if (state.playing) patch({ playing: false })
+                })
             }
           })
           .catch(function (error) {
@@ -1968,7 +2008,12 @@ window.__ModuleLoader__.load({
               el.load()
               if (pendingAutoplay) {
                 pendingAutoplay = false
-                el.play().catch(function () {})
+                el.volume = 0
+                el.play()
+                  .then(function () {
+                    fadeVolume(1, 180)
+                  })
+                  .catch(function () {})
               }
             } else {
               load(state.index, pendingAutoplay || state.playing)
@@ -2116,7 +2161,13 @@ window.__ModuleLoader__.load({
             return
           }
           if (audio === null) return
-          audio.play().catch(function () {})
+          audio.volume = 0
+          audio
+            .play()
+            .then(function () {
+              fadeVolume(1, 180)
+            })
+            .catch(function () {})
         },
         /** Called by the cross-tab coordinator; never plays in a follower tab. */
         setLeader: function (value) {
@@ -2133,7 +2184,13 @@ window.__ModuleLoader__.load({
           return leader
         },
         pause: function () {
-          if (audio) audio.pause()
+          if (audio === null) return
+          fadeVolume(0, 140, function () {
+            if (audio !== null) {
+              audio.pause()
+              audio.volume = 1
+            }
+          })
         },
         toggle: function () {
           if (state.playing) api.pause()
@@ -3246,6 +3303,32 @@ window.__ModuleLoader__.load({
         return playModeLabel(playModeOf(snap))
       }
 
+      function exportLyrics() {
+        if (lyrics.length === 0) return
+        var body = lyrics
+          .map(function (line) {
+            var minutes = Math.floor(Math.max(0, line.time) / 60)
+            var seconds = Math.max(0, line.time) - minutes * 60
+            var stamp = '[' + String(minutes).padStart(2, '0') + ':' + seconds.toFixed(2).padStart(5, '0') + ']'
+            return stamp + line.text
+          })
+          .join('\n')
+        var blob = new Blob([body], { type: 'text/plain;charset=utf-8' })
+        var url = URL.createObjectURL(blob)
+        var anchor = document.createElement('a')
+        var base = track
+          ? (track.artist ? track.artist + ' - ' : '') + track.title
+          : 'lyrics'
+        anchor.href = url
+        anchor.download = String(base).replace(/[\\\\/:*?"<>|]/g, '_') + '.lrc'
+        document.body.appendChild(anchor)
+        anchor.click()
+        document.body.removeChild(anchor)
+        window.setTimeout(function () {
+          URL.revokeObjectURL(url)
+        }, 1000)
+      }
+
       return h(
         'div',
         {
@@ -3441,6 +3524,21 @@ window.__ModuleLoader__.load({
                     savePrefs({ translationScale: next })
                   },
                 }),
+              ),
+              h(
+                'div',
+                { className: 'mu-np-setting mu-np-setting-inline' },
+                h('span', null, t('page.exportLyrics')),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-btn mu-btn-sm',
+                    disabled: lyrics.length === 0,
+                    onClick: exportLyrics,
+                  },
+                  t('page.exportLyricsAction'),
+                ),
               ),
             )
           : null,
@@ -4473,6 +4571,22 @@ window.__ModuleLoader__.load({
         }, 1600)
       }
 
+      useEffect(
+        function () {
+          var minutes = Number(prefsUi.sleepTimerMinutes) || 0
+          if (minutes <= 0) return undefined
+          var timer = window.setTimeout(function () {
+            player.pause()
+            updatePref('sleepTimerMinutes', 0)
+            showToast(t('settings.sleepTimerDone'))
+          }, minutes * 60 * 1000)
+          return function () {
+            window.clearTimeout(timer)
+          }
+        },
+        [prefsUi.sleepTimerMinutes],
+      )
+
       var load = useCallback(function (refresh) {
         setLoading(true)
         setError(null)
@@ -4495,6 +4609,45 @@ window.__ModuleLoader__.load({
             setLoading(false)
           })
       }, [])
+
+      useEffect(
+        function () {
+          function onKey(event) {
+            var target = event.target
+            if (target !== null && typeof target.closest === 'function') {
+              if (
+                target.closest('input, textarea, select, [contenteditable="true"], button') !== null
+              ) {
+                return
+              }
+            }
+            if (event.key === ' ' || event.code === 'Space') {
+              event.preventDefault()
+              player.toggle()
+              return
+            }
+            if (
+              (event.ctrlKey || event.metaKey) &&
+              (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
+            ) {
+              event.preventDefault()
+              if (event.key === 'ArrowLeft') player.prev()
+              else player.next()
+              return
+            }
+            if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+              event.preventDefault()
+              var search = document.querySelector('.mu-search-input')
+              if (search !== null && typeof search.focus === 'function') search.focus()
+            }
+          }
+          window.addEventListener('keydown', onKey)
+          return function () {
+            window.removeEventListener('keydown', onKey)
+          }
+        },
+        [],
+      )
 
       useEffect(
         function () {
@@ -4522,6 +4675,12 @@ window.__ModuleLoader__.load({
 
       function loopLabel() {
         return playModeLabel(playModeOf(snap))
+      }
+
+      function favoriteSelected() {
+        selectedTracks.forEach(function (track) {
+          if (favoritePaths[track.path] !== true) toggleFavorite(track)
+        })
       }
 
       function toggleSelect(track) {
@@ -5690,7 +5849,35 @@ window.__ModuleLoader__.load({
                       },
                     ),
                   )
-                  : prefsTab === 'library'
+                  : prefsTab === 'playback'
+                    ? h(
+                        'div',
+                        { className: 'mu-prefs-body' },
+                        settingToggle(t('settings.resumeOnStart'), prefsUi.resumeOnStart, function (value) {
+                          updatePref('resumeOnStart', value)
+                        }),
+                        settingToggle(t('settings.autoResume'), prefsUi.autoResume, function (value) {
+                          updatePref('autoResume', value)
+                        }),
+                        settingToggle(t('settings.rememberPerTrack'), prefsUi.rememberPerTrack, function (value) {
+                          updatePref('rememberPerTrack', value)
+                        }),
+                        settingChoice(
+                          t('settings.sleepTimer'),
+                          String(prefsUi.sleepTimerMinutes || 0),
+                          [
+                            { value: '0', label: t('settings.sleepOff') },
+                            { value: '15', label: '15 min' },
+                            { value: '30', label: '30 min' },
+                            { value: '60', label: '60 min' },
+                            { value: '90', label: '90 min' },
+                          ],
+                          function (value) {
+                            updatePref('sleepTimerMinutes', Number(value) || 0)
+                          },
+                        ),
+                      )
+                    : prefsTab === 'library'
                     ? h(
                       'div',
                       { className: 'mu-prefs-body' },
@@ -5969,6 +6156,16 @@ window.__ModuleLoader__.load({
                   },
                   icon('play', 13),
                   h('span', null, t('page.playSelected')),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-chip',
+                    onClick: favoriteSelected,
+                  },
+                  icon('heart', 13),
+                  h('span', null, t('page.favoriteSelected')),
                 ),
                 h(
                   'button',
