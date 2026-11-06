@@ -51,6 +51,7 @@ window.__ModuleLoader__.load({
       // Resume behaviour follows mainstream desktop players: restore the queue
       // and position on start, but stay paused until the user asks to play.
       resumeOnStart: true,
+      sleepTimerMinutes: 0,
       autoResume: false,
       rememberPerTrack: false,
     }
@@ -183,6 +184,13 @@ window.__ModuleLoader__.load({
         'page.addedToPlaylist': '已添加到播放列表',
         'page.reveal': '在文件夹中显示',
         'page.revealed': '已在文件夹中打开',
+        'page.favoriteSelected': '收藏选中',
+        'page.duplicates': '重复 {n} 组',
+        'page.duplicatesTitle': '重复歌曲',
+        'page.duplicatesHint': '标题、艺术家与时长相同，可能是重复文件',
+        'settings.sleepTimer': '睡眠定时',
+        'settings.sleepOff': '关闭',
+        'settings.sleepTimerDone': '睡眠定时已到，已暂停播放',
         'page.details': '详细信息',
         'page.noPlaylists': '还没有歌单',
         'page.newPlaylistAdd': '新建歌单并添加',
@@ -404,6 +412,13 @@ window.__ModuleLoader__.load({
         'page.addedToPlaylist': 'Added to play queue',
         'page.reveal': 'Show in folder',
         'page.revealed': 'Opened in folder',
+        'page.favoriteSelected': 'Like selected',
+        'page.duplicates': '{n} duplicates',
+        'page.duplicatesTitle': 'Duplicate songs',
+        'page.duplicatesHint': 'Same title, artist and duration — possibly the same file twice',
+        'settings.sleepTimer': 'Sleep timer',
+        'settings.sleepOff': 'Off',
+        'settings.sleepTimerDone': 'Sleep timer finished — playback paused',
         'page.details': 'Details',
         'page.noPlaylists': 'No playlists yet',
         'page.newPlaylistAdd': 'New playlist and add',
@@ -4225,6 +4240,7 @@ window.__ModuleLoader__.load({
       var [ctxMenu, setCtxMenu] = useState(null)
       var [addToOpen, setAddToOpen] = useState(false)
       var [infoPath, setInfoPath] = useState(null)
+      var [dupOpen, setDupOpen] = useState(false)
       var [newPlaylistOpen, setNewPlaylistOpen] = useState(false)
       var [newPlaylistName, setNewPlaylistName] = useState('')
       var [tagEditPath, setTagEditPath] = useState(null)
@@ -4473,6 +4489,22 @@ window.__ModuleLoader__.load({
         }, 1600)
       }
 
+      useEffect(
+        function () {
+          var minutes = Number(prefsUi.sleepTimerMinutes) || 0
+          if (minutes <= 0) return undefined
+          var timer = window.setTimeout(function () {
+            player.pause()
+            updatePref('sleepTimerMinutes', 0)
+            showToast(t('settings.sleepTimerDone'))
+          }, minutes * 60 * 1000)
+          return function () {
+            window.clearTimeout(timer)
+          }
+        },
+        [prefsUi.sleepTimerMinutes],
+      )
+
       var load = useCallback(function (refresh) {
         setLoading(true)
         setError(null)
@@ -4522,6 +4554,12 @@ window.__ModuleLoader__.load({
 
       function loopLabel() {
         return playModeLabel(playModeOf(snap))
+      }
+
+      function favoriteSelected() {
+        selectedTracks.forEach(function (track) {
+          if (favoritePaths[track.path] !== true) toggleFavorite(track)
+        })
       }
 
       function toggleSelect(track) {
@@ -4761,6 +4799,26 @@ window.__ModuleLoader__.load({
           map[track.path] = track
         })
         return map
+      }, [tracks])
+
+      var duplicateGroups = useMemo(function () {
+        var groups = {}
+        tracks.forEach(function (track) {
+          if (!track || !(track.durationSec > 0)) return
+          var key =
+            String(track.title || '').toLowerCase() +
+            '|' +
+            String(track.artist || '').toLowerCase() +
+            '|' +
+            String(Math.round(track.durationSec))
+          if (groups[key] === undefined) groups[key] = []
+          groups[key].push(track)
+        })
+        var result = []
+        Object.keys(groups).forEach(function (key) {
+          if (groups[key].length > 1) result.push(groups[key])
+        })
+        return result
       }, [tracks])
 
       var activePlaylist = useMemo(function () {
@@ -5690,6 +5748,34 @@ window.__ModuleLoader__.load({
                       },
                     ),
                   )
+                  : prefsTab === 'playback'
+                    ? h(
+                        'div',
+                        { className: 'mu-prefs-body' },
+                        settingToggle(t('settings.resumeOnStart'), prefsUi.resumeOnStart, function (value) {
+                          updatePref('resumeOnStart', value)
+                        }),
+                        settingToggle(t('settings.autoResume'), prefsUi.autoResume, function (value) {
+                          updatePref('autoResume', value)
+                        }),
+                        settingToggle(t('settings.rememberPerTrack'), prefsUi.rememberPerTrack, function (value) {
+                          updatePref('rememberPerTrack', value)
+                        }),
+                        settingChoice(
+                          t('settings.sleepTimer'),
+                          String(prefsUi.sleepTimerMinutes || 0),
+                          [
+                            { value: '0', label: t('settings.sleepOff') },
+                            { value: '15', label: '15 min' },
+                            { value: '30', label: '30 min' },
+                            { value: '60', label: '60 min' },
+                            { value: '90', label: '90 min' },
+                          ],
+                          function (value) {
+                            updatePref('sleepTimerMinutes', Number(value) || 0)
+                          },
+                        ),
+                      )
                   : prefsTab === 'library'
                     ? h(
                       'div',
@@ -5953,6 +6039,21 @@ window.__ModuleLoader__.load({
             },
             icon(viewMode === 'grid' ? 'list' : 'grid', 14),
           ),
+          duplicateGroups.length > 0
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-chip',
+                  title: t('page.duplicatesHint'),
+                  onClick: function () {
+                    setDupOpen(true)
+                  },
+                },
+                icon('list', 13),
+                h('span', null, t('page.duplicates', { n: duplicateGroups.length })),
+              )
+            : null,
           selected.length > 0
             ? h(
                 'span',
@@ -5969,6 +6070,16 @@ window.__ModuleLoader__.load({
                   },
                   icon('play', 13),
                   h('span', null, t('page.playSelected')),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-chip',
+                    onClick: favoriteSelected,
+                  },
+                  icon('heart', 13),
+                  h('span', null, t('page.favoriteSelected')),
                 ),
                 h(
                   'button',
@@ -6490,6 +6601,66 @@ window.__ModuleLoader__.load({
                 ),
               )
             })()
+          : null,
+
+        dupOpen
+          ? h(
+              'div',
+              { className: 'mu-info-layer' },
+              h('div', {
+                className: 'mu-info-scrim',
+                onClick: function () {
+                  setDupOpen(false)
+                },
+              }),
+              h(
+                'div',
+                { className: 'mu-info' },
+                h(
+                  'div',
+                  { className: 'mu-info-head' },
+                  h('span', { className: 'mu-info-title' }, t('page.duplicatesTitle')),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-icon-btn-sm',
+                      onClick: function () {
+                        setDupOpen(false)
+                      },
+                    },
+                    icon('x', 14),
+                  ),
+                ),
+                duplicateGroups.map(function (group, groupIndex) {
+                  return h(
+                    'div',
+                    { className: 'mu-dup-group', key: 'dup-' + groupIndex },
+                    h(
+                      'div',
+                      { className: 'mu-dup-head' },
+                      String(group[0].title || '') +
+                        ' — ' +
+                        (group[0].artist || t('page.unknownArtist')) +
+                        ' · ' +
+                        fmtTime(group[0].durationSec),
+                    ),
+                    group.map(function (item) {
+                      return h(
+                        'div',
+                        { className: 'mu-dup-row', key: item.path },
+                        h('span', { className: 'mu-ellipsis', title: item.path }, item.path),
+                        h(
+                          'span',
+                          { className: 'mu-dup-size' },
+                          item.size > 0 ? (item.size / 1024 / 1024).toFixed(2) + ' MB' : '',
+                        ),
+                      )
+                    }),
+                  )
+                }),
+              ),
+            )
           : null,
 
         newPlaylistOpen
@@ -7359,6 +7530,11 @@ window.__ModuleLoader__.load({
       '.mu-more{width:280px;padding:10px 12px}',
       '.mu-more-info{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}',
       '.mu-more-row{display:flex;justify-content:space-between;gap:12px;font-size:12px}',
+      '.mu-dup-group{padding:8px 0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
+      '.mu-dup-group:last-child{border-bottom:0}',
+      '.mu-dup-head{font-size:12px;font-weight:600;margin-bottom:4px}',
+      '.mu-dup-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-dup-size{flex:none;font-variant-numeric:tabular-nums}',
       '.mu-more-key{color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-more-val{color:var(--dsw-alias-label-primary,#e4e4e7);text-align:right}',
       '.mu-toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:50;padding:7px 12px;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-toast-bg,#2a2a2e);color:var(--dsw-alias-toast-label,#f4f4f5);font-size:12px;box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.4));pointer-events:none}',
