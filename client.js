@@ -184,6 +184,9 @@ window.__ModuleLoader__.load({
         'page.addedToPlaylist': '已添加到播放列表',
         'page.reveal': '在文件夹中显示',
         'page.favoriteSelected': '收藏选中',
+        'page.duplicates': '重复 {n} 组',
+        'page.duplicatesTitle': '重复歌曲',
+        'page.duplicatesHint': '标题、艺术家与时长相同，可能是重复文件',
         'page.exportLyrics': '导出歌词',
         'page.exportLyricsAction': '导出 .lrc',
         'settings.sleepTimer': '睡眠定时',
@@ -410,6 +413,9 @@ window.__ModuleLoader__.load({
         'page.addedToPlaylist': 'Added to play queue',
         'page.reveal': 'Show in folder',
         'page.favoriteSelected': 'Like selected',
+        'page.duplicates': '{n} duplicates',
+        'page.duplicatesTitle': 'Duplicate songs',
+        'page.duplicatesHint': 'Same title, artist and duration — possibly the same file twice',
         'page.exportLyrics': 'Export lyrics',
         'page.exportLyricsAction': 'Export .lrc',
         'settings.sleepTimer': 'Sleep timer',
@@ -4323,6 +4329,7 @@ window.__ModuleLoader__.load({
       var [ctxMenu, setCtxMenu] = useState(null)
       var [addToOpen, setAddToOpen] = useState(false)
       var [infoPath, setInfoPath] = useState(null)
+      var [dupOpen, setDupOpen] = useState(false)
       var [newPlaylistOpen, setNewPlaylistOpen] = useState(false)
       var [newPlaylistName, setNewPlaylistName] = useState('')
       var [tagEditPath, setTagEditPath] = useState(null)
@@ -4920,6 +4927,26 @@ window.__ModuleLoader__.load({
           map[track.path] = track
         })
         return map
+      }, [tracks])
+
+      var duplicateGroups = useMemo(function () {
+        var groups = {}
+        tracks.forEach(function (track) {
+          if (!track || !(track.durationSec > 0)) return
+          var key =
+            String(track.title || '').toLowerCase() +
+            '|' +
+            String(track.artist || '').toLowerCase() +
+            '|' +
+            String(Math.round(track.durationSec))
+          if (groups[key] === undefined) groups[key] = []
+          groups[key].push(track)
+        })
+        var result = []
+        Object.keys(groups).forEach(function (key) {
+          if (groups[key].length > 1) result.push(groups[key])
+        })
+        return result
       }, [tracks])
 
       var activePlaylist = useMemo(function () {
@@ -6140,6 +6167,21 @@ window.__ModuleLoader__.load({
             },
             icon(viewMode === 'grid' ? 'list' : 'grid', 14),
           ),
+          duplicateGroups.length > 0
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-chip',
+                  title: t('page.duplicatesHint'),
+                  onClick: function () {
+                    setDupOpen(true)
+                  },
+                },
+                icon('list', 13),
+                h('span', null, t('page.duplicates', { n: duplicateGroups.length })),
+              )
+            : null,
           selected.length > 0
             ? h(
                 'span',
@@ -6687,6 +6729,66 @@ window.__ModuleLoader__.load({
                 ),
               )
             })()
+          : null,
+
+        dupOpen
+          ? h(
+              'div',
+              { className: 'mu-info-layer' },
+              h('div', {
+                className: 'mu-info-scrim',
+                onClick: function () {
+                  setDupOpen(false)
+                },
+              }),
+              h(
+                'div',
+                { className: 'mu-info' },
+                h(
+                  'div',
+                  { className: 'mu-info-head' },
+                  h('span', { className: 'mu-info-title' }, t('page.duplicatesTitle')),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-icon-btn-sm',
+                      onClick: function () {
+                        setDupOpen(false)
+                      },
+                    },
+                    icon('x', 14),
+                  ),
+                ),
+                duplicateGroups.map(function (group, groupIndex) {
+                  return h(
+                    'div',
+                    { className: 'mu-dup-group', key: 'dup-' + groupIndex },
+                    h(
+                      'div',
+                      { className: 'mu-dup-head' },
+                      String(group[0].title || '') +
+                        ' — ' +
+                        (group[0].artist || t('page.unknownArtist')) +
+                        ' · ' +
+                        fmtTime(group[0].durationSec),
+                    ),
+                    group.map(function (item) {
+                      return h(
+                        'div',
+                        { className: 'mu-dup-row', key: item.path },
+                        h('span', { className: 'mu-ellipsis', title: item.path }, item.path),
+                        h(
+                          'span',
+                          { className: 'mu-dup-size' },
+                          item.size > 0 ? (item.size / 1024 / 1024).toFixed(2) + ' MB' : '',
+                        ),
+                      )
+                    }),
+                  )
+                }),
+              ),
+            )
           : null,
 
         newPlaylistOpen
@@ -7556,6 +7658,12 @@ window.__ModuleLoader__.load({
       '.mu-more{width:280px;padding:10px 12px}',
       '.mu-more-info{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}',
       '.mu-more-row{display:flex;justify-content:space-between;gap:12px;font-size:12px}',
+      '.mu-dup-group{padding:8px 0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
+      '.mu-dup-group:last-child{border-bottom:0}',
+      '.mu-dup-head{font-size:12px;font-weight:600;margin-bottom:4px}',
+      '.mu-dup-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-dup-size{flex:none;font-variant-numeric:tabular-nums}',
+      '.mu-info:has(.mu-dup-group){max-height:70vh;overflow-y:auto}',
       '.mu-more-key{color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-more-val{color:var(--dsw-alias-label-primary,#e4e4e7);text-align:right}',
       '.mu-toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:50;padding:7px 12px;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-toast-bg,#2a2a2e);color:var(--dsw-alias-toast-label,#f4f4f5);font-size:12px;box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.4));pointer-events:none}',
