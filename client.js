@@ -2514,37 +2514,21 @@ window.__ModuleLoader__.load({
     function QueueOverlay() {
       var [open, setOpen] = useState(queueOverlaySnapshot())
       var [snap, setSnap] = useState(player.getSnapshot())
-      var [anchorPos, setAnchorPos] = useState(null)
-      // Anchor the panel right above the button that opened it (popover style).
-      useEffect(
-        function () {
-          if (!open) {
-            setAnchorPos(null)
-            return undefined
-          }
-          function place() {
-            var anchor = queueOverlayAnchor
-            if (anchor === null || typeof anchor.getBoundingClientRect !== 'function') {
-              setAnchorPos(null)
-              return
-            }
-            var rect = anchor.getBoundingClientRect()
-            var width = Math.min(360, window.innerWidth - 48)
-            var left = Math.min(
-              Math.max(8, rect.right - width),
-              Math.max(8, window.innerWidth - width - 8),
-            )
-            var bottom = Math.max(8, window.innerHeight - rect.top + 8)
-            setAnchorPos({ left: left, bottom: bottom })
-          }
-          place()
-          window.addEventListener('resize', place)
-          return function () {
-            window.removeEventListener('resize', place)
-          }
-        },
-        [open],
-      )
+      // Re-run the position calculation when the window resizes; the actual
+      // anchor maths happens during render so the first paint already has it.
+      var [, setAnchorTick] = useState(0)
+      useEffect(function () {
+        if (!open) return undefined
+        function onResize() {
+          setAnchorTick(function (value) {
+            return value + 1
+          })
+        }
+        window.addEventListener('resize', onResize)
+        return function () {
+          window.removeEventListener('resize', onResize)
+        }
+      }, [open])
       // Drag state lives entirely in refs/DOM classes so React never
       // re-renders the dragged row mid-drag (Chromium cancels that).
       var dragFromRef = useRef(null)
@@ -2738,20 +2722,34 @@ window.__ModuleLoader__.load({
         )
       })
 
+      // Compute the anchored position during render: the panel's first paint
+      // already sits next to the button instead of the default corner.
+      var anchorStyle
+      if (open) {
+        var anchor = queueOverlayAnchor
+        if (anchor !== null && typeof anchor.getBoundingClientRect === 'function') {
+          var rect = anchor.getBoundingClientRect()
+          var width = Math.min(360, window.innerWidth - 48)
+          var left = Math.min(
+            Math.max(8, rect.right - width),
+            Math.max(8, window.innerWidth - width - 8),
+          )
+          var bottom = Math.max(8, window.innerHeight - rect.top + 8)
+          anchorStyle = {
+            left: left + 'px',
+            bottom: bottom + 'px',
+            right: 'auto',
+            top: 'auto',
+          }
+        }
+      }
+
       return h(
         'div',
         {
           className: 'mu-qoverlay',
           ref: ref,
-          style:
-            anchorPos === null
-              ? undefined
-              : {
-                  left: anchorPos.left + 'px',
-                  bottom: anchorPos.bottom + 'px',
-                  right: 'auto',
-                  top: 'auto',
-                },
+          style: anchorStyle,
         },
         h(QueueNowPlaying, null),
         h(
