@@ -2427,13 +2427,16 @@ window.__ModuleLoader__.load({
 
     var queueOverlayOpen = false
     var queueOverlayListeners = []
+    var queueOverlayAnchor = null
 
     function queueOverlaySnapshot() {
       return queueOverlayOpen
     }
 
-    function toggleQueueOverlay(next) {
+    function toggleQueueOverlay(next, anchor) {
+      if (anchor !== undefined && anchor !== null) queueOverlayAnchor = anchor
       queueOverlayOpen = next === undefined ? !queueOverlayOpen : next === true
+      if (!queueOverlayOpen) queueOverlayAnchor = null
       queueOverlayListeners.slice().forEach(function (listener) {
         listener()
       })
@@ -2511,6 +2514,37 @@ window.__ModuleLoader__.load({
     function QueueOverlay() {
       var [open, setOpen] = useState(queueOverlaySnapshot())
       var [snap, setSnap] = useState(player.getSnapshot())
+      var [anchorPos, setAnchorPos] = useState(null)
+      // Anchor the panel right above the button that opened it (popover style).
+      useEffect(
+        function () {
+          if (!open) {
+            setAnchorPos(null)
+            return undefined
+          }
+          function place() {
+            var anchor = queueOverlayAnchor
+            if (anchor === null || typeof anchor.getBoundingClientRect !== 'function') {
+              setAnchorPos(null)
+              return
+            }
+            var rect = anchor.getBoundingClientRect()
+            var width = Math.min(360, window.innerWidth - 48)
+            var left = Math.min(
+              Math.max(8, rect.right - width),
+              Math.max(8, window.innerWidth - width - 8),
+            )
+            var bottom = Math.max(8, window.innerHeight - rect.top + 8)
+            setAnchorPos({ left: left, bottom: bottom })
+          }
+          place()
+          window.addEventListener('resize', place)
+          return function () {
+            window.removeEventListener('resize', place)
+          }
+        },
+        [open],
+      )
       // Drag state lives entirely in refs/DOM classes so React never
       // re-renders the dragged row mid-drag (Chromium cancels that).
       var dragFromRef = useRef(null)
@@ -2709,6 +2743,15 @@ window.__ModuleLoader__.load({
         {
           className: 'mu-qoverlay',
           ref: ref,
+          style:
+            anchorPos === null
+              ? undefined
+              : {
+                  left: anchorPos.left + 'px',
+                  bottom: anchorPos.bottom + 'px',
+                  right: 'auto',
+                  top: 'auto',
+                },
         },
         h(QueueNowPlaying, null),
         h(
@@ -2765,8 +2808,8 @@ window.__ModuleLoader__.load({
           type: 'button',
           className: 'mu-composer-queue-btn' + (open ? ' is-on' : '') + (snap.playing ? ' is-playing' : ''),
           title: t('page.queue'),
-          onClick: function () {
-            toggleQueueOverlay()
+          onClick: function (event) {
+            toggleQueueOverlay(undefined, event.currentTarget)
           },
         },
         icon('list', 16),
@@ -3784,8 +3827,8 @@ window.__ModuleLoader__.load({
                   type: 'button',
                   className: 'mu-icon-btn',
                   title: t('page.queue'),
-                  onClick: function () {
-                    toggleQueueOverlay()
+                  onClick: function (event) {
+                    toggleQueueOverlay(undefined, event.currentTarget)
                   },
                 },
                 icon('list', 18),
@@ -6506,8 +6549,8 @@ window.__ModuleLoader__.load({
                   type: 'button',
                   className: 'mu-icon-btn' + (queueOpen ? ' is-on' : ''),
                   title: t('page.queue'),
-                  onClick: function () {
-                    toggleQueueOverlay()
+                  onClick: function (event) {
+                    toggleQueueOverlay(undefined, event.currentTarget)
                     setMoreOpen(false)
                   },
                 },
