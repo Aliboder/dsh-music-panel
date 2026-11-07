@@ -1,162 +1,125 @@
-# dsh-music-panel
+<div align="center">
 
-DeepSeek Harness 的本地音乐插件：左侧栏一个音符入口，点开是整页播放器；扫描你指定的音乐文件夹，读取封面、标题、歌手、专辑、时长与音质信息。
+# 🎵 dsh-music-panel
 
-[![npm](https://img.shields.io/npm/v/dsh-music-panel.svg)](https://www.npmjs.com/package/dsh-music-panel)
+**在 DeepSeek Harness 里，把你自己的音乐库变成一台完整的播放器。**
+
+本地扫描 · 封面墙 · 歌词 · 元数据编辑 · 播放统计 · 纯本地运行
+
+[![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
+[![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
+[![DSH](https://img.shields.io/badge/DeepSeek%20Harness-plugin-5686fe)](https://github.com/Aliboder/dsh-music-panel)
+
+<img src="docs/screenshots/library-grid.png" alt="曲库封面墙" width="100%" />
+
+</div>
+
+---
+
+## ✨ 为什么是它
+
+- **你的歌，你的硬盘。** 不依赖任何在线音乐平台：不上传文件、不请求云端曲库，断网也能听。
+- **像个正经播放器。** 封面墙、播放页黑胶、逐行歌词、队列拖拽排序、播放统计，一样不少。
+- **窗口里就能整理曲库。** 在线补全元数据、替换封面、改标签、校准歌词、清理重复——不用离开 DSH。
+- **为 DSH 而生。** 左侧栏音符入口、输入框上方歌词条、会话内直接控制播放，和 Harness 融为一体。
+
+## 📸 截图
+
+| 播放页 · 黑胶 + 歌词 | 播放统计 |
+| :---: | :---: |
+| <img src="docs/screenshots/now-playing.png" alt="播放页" /> | <img src="docs/screenshots/stats.png" alt="播放统计" /> |
+
+<details>
+<summary>更多截图</summary>
+
+<img src="docs/screenshots/library-grid.png" alt="曲库封面墙" width="100%" />
+
+</details>
+
+## 🎧 功能一览
+
+### 曲库与播放
+- 扫描你指定的音乐文件夹（可配置子文件夹深度），支持 MP3 / FLAC / M4A / AAC / OGG / OPUS / WAV / AIFF / WMA / APE
+- 歌曲列表与封面网格两种视图，按播放时长、次数、最近播放排序
+- 播放控制：列表循环 / 单曲循环 / 不循环、随机、上一首 / 下一首、进度拖动、音量与静音
+- 队列面板：拖拽排序、移除、点击跳播；底栏按钮弹出、位置锚定按钮旁边
+- 快捷键：空格播放 / 暂停、Ctrl/⌘ + ←/→ 上一首 / 下一首、`/` 聚焦搜索
+- 记忆上次播放曲目与进度、每首歌断点续播
+
+### 歌词
+- 内嵌歌词（MP3 ID3 USLT / FLAC Vorbis LYRICS）与 `.lrc` 文件，来源顺序可调
+- 播放页逐行高亮、翻译显示、字号 / 粗细 / 模糊 / 对齐可调、±0.5s 偏移校准
+- **在线歌词搜索**：按歌名 / 艺术家搜索候选，预览后写入内嵌歌词（写前自动备份）
+- 输入框上方歌词条：歌名 · 实时频谱 · 当前唱词
+
+### 元数据与封面
+- 在线匹配元数据（网易云 / QQ 音乐 / iTunes / MusicBrainz），支持整曲匹配与单字段匹配
+- 编辑标题、艺术家、专辑、年份、音轨号、碟号、风格、专辑艺术家、作曲、作词、注释、歌词
+- 替换封面（本地图片 / 在线封面），写回时临时文件 + 回读校验 + 原子替换，失败不破坏原文件
+- 重复歌曲检测：按音质（码率 → 采样率 → 文件大小）保留最好的一首，其余移入插件回收站（可恢复）
+
+### 其他
+- 喜欢列表、歌单（新建 / 重命名 / 增删歌曲）、播放统计（累计时长、次数、收听排行）
+- 睡眠定时、播放设置页（启动恢复 / 自动播放 / 断点续播）
+- 跟随 DSH 深浅色主题；深色模式完整适配
+
+## 🚀 安装
+
+### 方式一：DSH 插件市场（推荐）
+
+在 DSH 的 **插件市场** 中搜索 `dsh-music-panel` 安装，或让 Agent 执行：
 
 ```
-左侧栏 × dsh-music-panel ×───────────┐
-          │ 歌曲  268        ✓ ⇅ ⌕ ↻ │
-          │ [列表循环] [随机] [×]     │
-          │ ┌──┐ 心如止水      成语接龙 03:05
-          │ │▣│ CD Ice Paper            │
-          │ └──┘ フタリ (Inst.)  ...     │
-          │ ...                        │
-          │ [▣] Trap  ──●── ⏮ ⏯ ⏭ ≡  │
-          └────────────────────────────┘
+plugin_manager install_bundle dsh-music-panel
 ```
 
-## 功能
+安装后重启 DSH（Host 代码需要重启加载），左侧栏出现音符图标。
 
-- **左侧栏入口**：`sidebar.panellist` 注册 `music` 图标，点开切换到独立主面板（与「插件市场」「定时任务」同一套宿主机制）。
-- **歌曲列表**：封面缩略图、标题、歌手（带 CD 徽标）、专辑、时长、采样率；当前曲高亮。
-- **播放控制**：列表循环 / 单曲循环 / 不循环，随机播放，上一首、下一首、进度拖动、音量与静音。
-- **播放队列**：底部「队列」按钮或输入框发送按钮左侧的播放列表按钮展开当前队列（顶部带迷你播放器），点击任意条目跳转；「更多」里显示格式 / 码率 / 采样率，可复制文件路径。
-- **记忆播放**：启动 / 刷新后恢复上次的队列、当前曲目与播放位置（默认停在暂停，点 ▶ 继续）；设置里可选「恢复后自动播放」和「每首歌记住播放位置」。
-- **统计**：主面板「统计」页按最近一周 / 最近一月 / 全部时间查看每首歌的累计播放时长、播放次数与最近播放，可按时长 / 次数 / 最近排序。播放次数按 Last.fm 规则（曲目 > 30 秒且播放到一半或 4 分钟）记录，播放时长只累计真正在播放的时间。
-- **列表操作**：搜索、排序（标题 / 文件名 / 专辑 / 艺术家 / 大小 / 年份 / 文件夹 / 播放次数 / 时长 / 修改时间 / 添加时间，点击同项切换升降序）、多选后「播放选中」或加入播放列表、清空列表。
-- **设置面板**：主面板右上角齿轮打开，含「外观 / 歌词 / 音乐库 / 播放」四个标签页：外观调整输入框播放列表按钮与圆形封面显示，歌词调整来源顺序、对齐、字号、翻译与状态栏歌词，音乐库管理音乐文件夹与子文件夹深度（保存后主面板自动重新扫描），播放控制启动恢复、自动播放与每首歌断点。
-- **外观设置**：输入框播放列表按钮（发送按钮左侧，可关闭）、播放页圆形封面 / 黑胶底盘 / 封面旋转。
-- **歌词设置**：歌词来源顺序（内嵌 / LRC，可调）、对齐方式、字体大小与粗细、模糊非当前歌词、翻译开关与翻译字号缩放、状态栏歌词（输入框内或输入框上方显示当前唱词）。
-- **歌词校准**：播放页 → 歌词设置里按 ±0.5s 调整偏移；「写回文件」把校准后的 LRC 写回 MP3（ID3 USLT）/ FLAC（Vorbis LYRICS）内嵌歌词，写前自动备份为 `<文件>.lyrics.bak`。
-- **在线歌词**：播放页 → 歌词设置 → 「在线歌词」，或元数据编辑弹窗歌词区的「在线歌词」按钮，按歌名/艺术家搜索（网易云），选中候选可预览，应用后写入内嵌歌词（写前备份为 `.lyrics.bak`）。
-- **收藏与最近播放**：底栏 / 歌曲行爱心（红色）加入「我喜欢」tab；统计页可切换「收听排行 / 最近播放」。
-- **右键菜单**：歌曲行右键可添加到歌单 / 添加到播放列表 / 复制文件地址 / 在文件夹中显示 / 查看详细信息 / 编辑元数据；歌单视图里还可从歌单移除。
-- **元数据编辑**：标题、艺术家、专辑、年份、音轨号、碟号、风格、专辑艺术家、作曲、作词、注释、歌词都可改；FLAC 写 Vorbis comments、MP3 写 ID3v2，临时文件 + 回读校验 + 原子替换，失败不破坏原文件。
-- **在线匹配**：编辑弹窗里一键搜索网易云 / QQ 音乐 / iTunes / MusicBrainz，候选带封面，点选回填。网易云、QQ 为非官方接口，可能随时失效；结果仅供参考，保存前请核对。
-- **封面替换与字段级替换**：封面可在线更换并写回文件（FLAC PICTURE / MP3 APIC）；每个字段右侧放大镜可单独搜索替换。
-- **底栏频谱**：播放时底栏显示实时频谱条（Web Audio AnalyserNode + canvas，对数分桶、平滑衰减）。
-- **添加到歌单**：多选后从下拉菜单选择目标歌单（显示曲目数），或新建歌单并添加。
-- **队列编辑**：播放队列支持拖动排序与移除单曲。
-- **搜索**：标题 / 歌手 / 专辑 / 文件夹 / 路径 + 全拼 / 首字母（如 `zhoujielun`、`zjl`），并记住最近 8 条搜索。
-- **多标签页互斥**：用 Web Locks 选主，只有一个标签页发声与计时；其他标签页底栏提示「另一个标签页正在播放」。
-- **播放列表**：顶栏「全部歌曲」与每个歌单各占一个 tab，**页面结构完全一致**（搜索、排序、多选、播放全部、循环/随机、队列）；「全部歌曲」是不可编辑集合，歌单可点标题改名、删除、逐首移除。右侧 `+` 新建歌单（自动命名，重名递增）并立即选中。歌单存于 `<DSH_HOME>/music/playlists.json`。
-- **播放页**：点击底栏空白处（封面/标题/进度条以外）以滑入动画打开全屏播放页——左侧黑胶唱片（外盘 + 圆形封面，播放时旋转、暂停即停在当前角度），右侧歌词；点歌词可跳转，Esc 或顶部按钮收起。
-- **歌词**：优先读歌曲**内嵌歌词**（ID3 USLT/SYLT、FLAC LYRICS、MP4 ©lyr），带时间戳的自动滚动高亮，纯文本的静态可滚动展示；没有内嵌时回退到同目录同名 `.lrc`。支持一行多时间戳、元数据标签、原文+翻译同时间戳合并。
-- **封面与标签**：走 [`music-metadata`](https://github.com/Borewit/music-metadata)，支持 mp3 / flac / m4a / wav / ogg / opus / aac。
-
-## 安装
+### 方式二：npm 安装
 
 ```bash
-# 方式 1（推荐）：从 npm 安装
-dsh plugin --profile <profile> add dsh-music-panel
-
-# 方式 2：从 GitHub 安装
-dsh plugin --profile <profile> add github:Aliboder/dsh-music-panel
-
-# 方式 3：本地目录（开发用）
-plugin_manager install_bundle D:/SystemFiles/Documents/Project/DSH/plugins/dsh-music
+# 在 DSH profile 目录下
+pnpm add dsh-music-panel
 ```
 
-也可以在 DSH 的 Plugin Manager 里直接 `install_bundle dsh-music-panel`。
+## ⚡ 快速开始
 
-安装后**完整重启 DSH**（Host 侧 `index.js` 变化需要重启），然后刷新页面。
+1. 点击左侧栏 **音乐** 图标，打开音乐面板
+2. 右上角 **齿轮 → 音乐库**，点「+ 添加文件夹」，选择你的音乐目录
+3. 回到主面板，曲库自动扫描完成
+4. 双击任意歌曲播放，或点「播放全部」
 
-首次使用：主面板右上角齿轮 → 音乐库 → 添加音乐文件夹 → 保存 → 回到左侧栏点音符图标。
+> 歌词、封面、元数据都会自动从文件里读取；缺什么可以点右键 →「编辑元数据」或「在线歌词」补齐。
 
-## 接口
+## ⌨️ 快捷键
 
-前缀 `/music`，全部只接受本机回环地址（远程访问下音乐面板不可用）。
+| 按键 | 功能 |
+| :--- | :--- |
+| `空格` | 播放 / 暂停 |
+| `Ctrl` / `⌘` + `←` | 上一首 |
+| `Ctrl` / `⌘` + `→` | 下一首 |
+| `/` | 聚焦搜索框 |
+| `Esc` | 关闭播放页 / 队列 / 弹窗 |
 
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
-| GET | `/music/config` | 生效配置、DSH home、配置文件路径 |
-| POST | `/music/config` | 校验并保存 `{ roots, depth, extensions }` |
-| GET | `/music/library?refresh=1` | 扫描所有根目录，返回曲目与告警 |
-| GET | `/music/stream?path=…` | 支持 `Range` 的音频流（`206` / `416`） |
-| GET | `/music/lyrics?path=…` | 内嵌歌词或同名 `.lrc`；返回 `lines`、`timed`、`source` |
-| GET | `/music/playlists` | 全部播放列表 |
-| POST | `/music/playlists` | 新建，body `{ name }` |
-| PATCH | `/music/playlists/:id` | 重命名 / 加曲 / 删曲：`{ name?, add?: string[], remove?: string[] }` |
-| DELETE | `/music/playlists/:id` | 删除播放列表 |
-| POST | `/music/play` | 记一次播放，body `{ path }` |
-| GET | `/music/state` | 上次播放状态（队列 / 索引 / 位置 / 循环 / 顺序） |
-| POST | `/music/state` | 保存上次播放状态，body `{ queue, index, positionSec, durationSec, loop, order }` |
-| POST | `/music/playback` | 累加有效播放时长，body `{ path, seconds }` |
-| GET | `/music/position?path=…` | 该曲上次停止位置（每首歌断点） |
-| POST | `/music/position` | 保存某曲停止位置，body `{ path, seconds }` |
-| GET | `/music/favorites` | 收藏列表（按收藏时间倒序） |
-| POST | `/music/favorites` | 切换收藏，body `{ path }` |
-| POST | `/music/lyrics/calibrate` | 保存歌词偏移 `{ path, offsetMs, write? }`；`write: true` 写回内嵌并清零偏移 |
-| POST | `/music/reveal` | 在系统文件管理器中定位文件（仅已配置目录内），body `{ path }` |
-| GET | `/music/tags?path=...` | 读取可编辑标签（FLAC / MP3） |
-| PUT | `/music/tags` | 写回标签，body `{ path, tags }`；临时文件 + 回读校验后原子替换 |
-| POST | `/music/online-search` | 多源在线搜索，body `{ title, artist, album }`；返回候选与各源状态 |
-| GET | `/music/stats?range=week\|month\|all` | 按范围聚合的播放次数 / 时长 / 最近播放 |
-| GET | `/music/cover?path=…` | 内嵌封面；无封面返回 404 |
+## 🛠️ 给开发者
 
-`stream` / `cover` 的 `path` 会 `realpath` 后重新校验是否位于已配置的根目录内，越界一律 404。
-
-## 配置
-
-patch 的 `config` 是首次启动的种子：
-
-```yaml
-- insert:
-    - id: music
-      name: dsh-music-panel
-      config:
-        roots: []
-        depth: 4
-        extensions: []
-```
-
-用户在设置面板的音乐库标签页保存后，以 `<DSH_HOME>/music/settings.json` 为准（`extensions: []` 表示使用全部支持的格式）。播放次数与首次入库时间存在 `<DSH_HOME>/music/stats.json`。
-
-## 播放状态与统计
-
-两个文件都在 `<DSH_HOME>/music/`：
-
-- `playback.json`：上次播放的队列（最多 500 条）、当前索引、位置、循环 / 顺序，用于启动恢复。
-- `favorites.json`：收藏（`path → 收藏时间`），「我喜欢」tab 与爱心按钮共用。
-- `stats.json`：每首歌的 `addedAt`、`plays`（Last.fm 规则计数）、`playSeconds`（有效播放秒数）、`lastPlayedAt`、`lastPositionSec`（每首歌断点，仅在设置里开启时写入）、`lyricOffsetMs`（歌词校准偏移），以及最近 31 天的每日分桶 `days`（供统计页的「最近一周 / 最近一月」使用）。
-
-写入时机：播放中每 5 秒保存一次状态；切歌、暂停、页面隐藏 / 关闭时立即 flush。播放时长只累计播放中自然前进的时间（拖动进度条不计），单次不足 30 秒的片段不进入统计（对齐网易云「有效播放」）。
-
-多个标签页同时打开时，Web Locks 只让一个标签页成为“主控”播放与计时；其他标签页不发声，底部会提示由另一页播放，主控页关闭后其余页自动接任（但不会自动开始播放）。
-
-歌词写回依赖 `node-id3`（MP3 USLT）与 `flac-tagger`（FLAC Vorbis LYRICS）；M4A/Ogg 等格式只保存偏移，不重写容器。搜索拼音依赖 `pinyin-pro`，索引在扫描时生成并随曲库缓存。
-
-## 播放宿主与后台播放
-
-- `<audio>` 元素挂在宿主的 `shell.overlay`（常驻浮层）里，主面板切走、会话切换都不会卸载它，所以播放不中断；播放状态由 `client.js` 里的引擎单例（`window.__dshMusicPlayer`）持有，模块被 HMR 重新执行也复用同一实例。
-- **曲目以本地 Blob URL 播放**（`fetch` → `blob:` → `URL.createObjectURL`）。Desktop（Electron）的媒体栈会静默丢弃对 HTTP 流写 `currentTime` 的 seek 请求（`readyState` 已是 4 也会返回 0），Blob 是本地媒体，拖动进度可靠。下载走本地回环，代价是一次磁盘读取；切歌时会 `abort` 旧请求并 `revokeObjectURL`。
-- 接入 MediaSession：曲目信息（标题/歌手/专辑/封面）同步到系统媒体面板，媒体键 / 锁屏的播放、暂停、上一首、下一首、跳转都能用。
-- 插件自身卸载时只 `suspend()`（暂停），不销毁引擎。
-
-## 已知限制
-
-- 歌词写回仅支持 MP3 / FLAC；其他格式只保存偏移。写回会重写整个标签块，建议先备份（插件会自动生成 `<文件>.lyrics.bak`）。
-- 队列编辑为按钮式（上移 / 下移 / 移除 / 清空），暂不支持拖拽排序。
-- 多标签页主控切换后，新主控不会自动开始播放（避免浏览器自动播放拦截）。
-- 搜索历史存在 `localStorage`；桌面版每次启动端口不同、origin 会变，历史可能不跨启动保留。
-- 收藏尚未实现云同步/多端同步（纯本地文件）。
-- m4a 的文本标签可读，内嵌封面暂不解析（封面支持 mp3 / flac）。
-- 扫描缓存 30 秒；文件变化后点「重新扫描」强制刷新。
-- 播放依赖浏览器的 `<audio>`：DSH 的 Web GUI 在 `http://127.0.0.1` 下可用；远程访问（非回环）会返回 403。
-- 首次点歌需要把整首文件读成 Blob（本地回环，通常不到 1 秒），超大单曲会占用同等大小的内存。
-- 单个根目录最多 5000 首，超出会截断并在 `truncated` 标出；列表目前是全量渲染，超大库首次打开会有渲染开销。
-
-## 开发
+- 宿主端 `index.js` + `lib/**` 提供本地 HTTP API（`/music/*`）：曲库扫描、封面、歌词、标签读写、在线匹配、在线歌词、统计、回收站
+- Web 端 `client.js` 零构建，通过 `window.__ModuleLoader__` 加载，CJS 包装，只依赖宿主注入的 `react`
+- 全部逻辑可测试：14 个测试文件覆盖扫描、配置、歌词、标签、在线匹配、统计、路由等
 
 ```bash
-git clone https://github.com/Aliboder/dsh-music-panel.git
-cd dsh-music-panel
-npm install
-npm test           # 8 个测试文件
-npm run check
-npm run pack:check
+npm test          # 单元测试
+npm run check     # 语法 / 清单检查
+npm run pack:check # 打包自检
 ```
 
-生效方式：`index.js` / `lib/**` 改动需完整重启 DSH；`client.js` / `locale` 改动刷新页面。
+## ⚠️ 兼容与限制
+
+- 仅支持 DSH Web / Desktop 宿主（需要浏览器载体才能播放）
+- 在线能力（元数据、歌词）使用第三方非官方接口，可能失效或被限流；离线时自动回退到本地标签
+- 删除重复走「插件回收站」`<DSH_HOME>/music/trash/`，不是永久删除
+
+## 📄 License
+
+[MIT](LICENSE) © Aliboder
