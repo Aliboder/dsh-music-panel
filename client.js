@@ -5268,6 +5268,33 @@ window.__ModuleLoader__.load({
                     ? t('page.emptyFolder')
                     : t('page.emptyHint'),
               ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className:
+                    'mu-btn' +
+                    (view === 'favorites' ? '' : ' mu-chip-accent') +
+                    ' mu-state-action',
+                  onClick: function () {
+                    if (view === 'favorites' || (config !== null && config.roots && config.roots.length > 0)) {
+                      load(true)
+                      return
+                    }
+                    openBrowse()
+                  },
+                },
+                icon(view === 'favorites' ? 'refresh' : 'plus', 14),
+                h(
+                  'span',
+                  null,
+                  view === 'favorites'
+                    ? t('page.retry')
+                    : config !== null && config.roots && config.roots.length > 0
+                      ? t('page.retry')
+                      : t('settings.add'),
+                ),
+              ),
             )
           : null,
         !loading && error === null && total > 0 && visible.length === 0
@@ -6045,81 +6072,6 @@ window.__ModuleLoader__.load({
                         },
                         '+ ' + t('settings.add'),
                       ),
-                      browseOpen
-                        ? h(
-                            'div',
-                            { className: 'mu-browse' },
-                            h('input', {
-                              type: 'text',
-                              className: 'mu-input mu-input-sm mu-browse-path',
-                              key: browsePath,
-                              defaultValue: browsePath,
-                              spellCheck: 'false',
-                              onKeyDown: function (event) {
-                                if (event.key !== 'Enter') return
-                                var target = String(event.target.value || '').trim()
-                                if (target !== '') loadBrowse(target)
-                              },
-                            }),
-                            h(
-                              'div',
-                              { className: 'mu-browse-list' },
-                              browseLoading
-                                ? h('div', { className: 'mu-browse-empty' }, '…')
-                                : browseDirs.map(function (entry) {
-                                    return h(
-                                      'button',
-                                      {
-                                        type: 'button',
-                                        key: entry.path,
-                                        className: 'mu-browse-item',
-                                        onClick: function () {
-                                          loadBrowse(entry.path)
-                                        },
-                                      },
-                                      icon('folder', 14),
-                                      h('span', null, entry.name),
-                                    )
-                                  }),
-                            ),
-                            h(
-                              'div',
-                              { className: 'mu-browse-actions' },
-                              h(
-                                'button',
-                                {
-                                  type: 'button',
-                                  className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                                  disabled: browseParent === null,
-                                  onClick: function () {
-                                    loadBrowse(browseParent)
-                                  },
-                                },
-                                t('settings.up'),
-                              ),
-                              h(
-                                'button',
-                                {
-                                  type: 'button',
-                                  className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                                  onClick: function () {
-                                    setBrowseOpen(false)
-                                  },
-                                },
-                                t('page.cancel'),
-                              ),
-                              h(
-                                'button',
-                                {
-                                  type: 'button',
-                                  className: 'mu-btn mu-btn-accent mu-btn-sm',
-                                  onClick: chooseBrowsePath,
-                                },
-                                t('settings.chooseFolder'),
-                              ),
-                            ),
-                          )
-                        : null,
                       h(
                         'div',
                         { className: 'mu-prefs-field' },
@@ -6194,6 +6146,112 @@ window.__ModuleLoader__.load({
                       }),
                       h('p', { className: 'mu-prefs-hint' }, t('settings.playbackHint')),
                     ),
+            )
+          : null,
+
+        browseOpen
+          ? h(
+              'div',
+              { className: 'mu-info-layer' },
+              h('div', {
+                className: 'mu-info-scrim',
+                onClick: function () {
+                  setBrowseOpen(false)
+                },
+              }),
+              h(
+                'div',
+                { className: 'mu-info' },
+                h(
+                  'div',
+                  { className: 'mu-info-head' },
+                  h('span', { className: 'mu-info-title' }, t('settings.add')),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-icon-btn-sm',
+                      onClick: function () {
+                        setBrowseOpen(false)
+                      },
+                    },
+                    icon('x', 14),
+                  ),
+                ),
+                h(
+                  'div',
+                  { className: 'mu-browse' },
+                  h('input', {
+                    type: 'text',
+                    className: 'mu-input mu-input-sm mu-browse-path',
+                    key: browsePath,
+                    defaultValue: browsePath,
+                    spellCheck: 'false',
+                    onKeyDown: function (event) {
+                      if (event.key !== 'Enter') return
+                      var target = String(event.target.value || '').trim()
+                      if (target !== '') loadBrowse(target)
+                    },
+                  }),
+                  h(
+                    'div',
+                    { className: 'mu-browse-list' },
+                    browseLoading
+                      ? h('div', { className: 'mu-browse-empty' }, '…')
+                      : browseDirs.map(function (entry) {
+                          return h(
+                            'button',
+                            {
+                              type: 'button',
+                              key: entry.path,
+                              className: 'mu-browse-item',
+                              onClick: function () {
+                                loadBrowse(entry.path)
+                              },
+                            },
+                            icon('folder', 14),
+                            h('span', null, entry.name),
+                          )
+                        }),
+                  ),
+                  h(
+                    'div',
+                    { className: 'mu-browse-actions' },
+                    h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                        disabled: browseParent === null,
+                        onClick: function () {
+                          loadBrowse(browseParent)
+                        },
+                      },
+                      t('settings.up'),
+                    ),
+                    h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                        onClick: function () {
+                          setBrowseOpen(false)
+                        },
+                      },
+                      t('page.cancel'),
+                    ),
+                    h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mu-btn mu-btn-accent mu-btn-sm',
+                        onClick: chooseBrowsePath,
+                      },
+                      t('settings.chooseFolder'),
+                    ),
+                  ),
+                ),
+              ),
             )
           : null,
 
@@ -7633,6 +7691,7 @@ window.__ModuleLoader__.load({
       '.mu-row-album{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-row-dur{text-align:right;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
       '.mu-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:56px 16px;color:var(--dsw-alias-label-tertiary,#a1a1aa);text-align:center}',
+      '.mu-state-action{margin-top:6px}',
       '.mu-state-title{font-size:14px;font-weight:600;color:var(--dsw-alias-label-primary,#e4e4e7)}',
       '.mu-state-sub{font-size:12px;max-width:420px;line-height:1.6;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-spinner{width:20px;height:20px;border-radius:50%;border:2px solid var(--dsw-alias-border-l2,rgba(255,255,255,.18));border-top-color:var(--dsw-alias-brand-primary,#f4f4f5);animation:mu-spin .8s linear infinite}',
