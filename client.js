@@ -2511,12 +2511,6 @@ window.__ModuleLoader__.load({
     function QueueOverlay() {
       var [open, setOpen] = useState(queueOverlaySnapshot())
       var [snap, setSnap] = useState(player.getSnapshot())
-      var [pos, setPos] = useState(function () {
-        var saved = readPrefs().queuePos
-        if (saved === null || typeof saved !== 'object') return null
-        if (!isFinite(saved.x) || !isFinite(saved.y)) return null
-        return { x: Number(saved.x), y: Number(saved.y) }
-      })
       // Drag state lives entirely in refs/DOM classes so React never
       // re-renders the dragged row mid-drag (Chromium cancels that).
       var dragFromRef = useRef(null)
@@ -2655,73 +2649,6 @@ window.__ModuleLoader__.load({
         document.addEventListener('pointercancel', onUp)
       }
 
-      // Drag the whole panel by its header strip (buttons and queue rows keep
-      // their own gestures). Position is remembered in prefs.
-      function startPanelDrag(event) {
-        if (event.button !== undefined && event.button !== 0) return
-        var target = event.target
-        if (target === null || target === undefined || typeof target.closest !== 'function') return
-        if (target.closest('button, .mu-queue-row, .mu-queue-grip') !== null) return
-        if (target.closest('.mu-qoverlay-now, .mu-qoverlay-head') === null) return
-        var el = ref.current
-        if (el === null) return
-        var rect = el.getBoundingClientRect()
-        var start = {
-          x: event.clientX,
-          y: event.clientY,
-          left: rect.left,
-          top: rect.top,
-          width: rect.width,
-          height: rect.height,
-          moved: false,
-        }
-        event.preventDefault()
-        document.body.style.userSelect = 'none'
-        document.body.style.cursor = 'grabbing'
-        el.classList.add('is-dragging-panel')
-
-        function clamp(value, min, max) {
-          return Math.max(min, Math.min(max, value))
-        }
-
-        function onMove(moveEvent) {
-          start.moved = true
-          var x = clamp(
-            start.left + (moveEvent.clientX - start.x),
-            8,
-            Math.max(8, window.innerWidth - start.width - 8),
-          )
-          var y = clamp(
-            start.top + (moveEvent.clientY - start.y),
-            8,
-            Math.max(8, window.innerHeight - start.height - 8),
-          )
-          el.style.left = x + 'px'
-          el.style.top = y + 'px'
-          el.style.right = 'auto'
-          el.style.bottom = 'auto'
-        }
-
-        function onUp() {
-          document.removeEventListener('pointermove', onMove)
-          document.removeEventListener('pointerup', onUp)
-          document.removeEventListener('pointercancel', onUp)
-          document.body.style.userSelect = ''
-          document.body.style.cursor = ''
-          el.classList.remove('is-dragging-panel')
-          if (start.moved) {
-            var next = el.getBoundingClientRect()
-            var position = { x: Math.round(next.left), y: Math.round(next.top) }
-            setPos(position)
-            savePrefs({ queuePos: position })
-          }
-        }
-
-        document.addEventListener('pointermove', onMove)
-        document.addEventListener('pointerup', onUp)
-        document.addEventListener('pointercancel', onUp)
-      }
-
       var rows = queueView.map(function (entry, position) {
         var track = entry.track
         var originalIndex = entry.originalIndex
@@ -2782,13 +2709,6 @@ window.__ModuleLoader__.load({
         {
           className: 'mu-qoverlay',
           ref: ref,
-          style:
-            pos !== null
-              ? { left: pos.x + 'px', top: pos.y + 'px', right: 'auto', bottom: 'auto' }
-              : undefined,
-          onPointerDown: function (event) {
-            startPanelDrag(event)
-          },
         },
         h(QueueNowPlaying, null),
         h(
