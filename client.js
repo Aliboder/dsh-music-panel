@@ -6013,6 +6013,18 @@ window.__ModuleLoader__.load({
                   },
                   t('settings.tabPlayback'),
                 ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-prefs-tab mu-prefs-guide',
+                    onClick: function () {
+                      setPrefsOpen(false)
+                      openOnboarding()
+                    },
+                  },
+                  '? ' + t('onboarding.reopen'),
+                ),
               ),
               prefsTab === 'appearance'
                 ? h(
@@ -7817,6 +7829,7 @@ window.__ModuleLoader__.load({
       '.mu-prefs{min-width:240px;padding:12px}',
       '.mu-prefs-panel{position:absolute;top:56px;right:24px;z-index:50;width:360px;max-width:calc(100% - 48px);max-height:70vh;overflow-y:auto;padding:14px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-panel,0 16px 40px rgba(0,0,0,.5))}',
       '.mu-prefs-tabs{display:flex;gap:2px;padding:3px;margin-bottom:12px;border-radius:9px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06))}',
+      '.mu-prefs-guide{margin-left:auto;color:var(--dsw-alias-label-tertiary,#8a8f98)}',
       '.mu-prefs-tab{flex:1;height:28px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer}',
       '.mu-prefs-tab.is-on{background:var(--dsw-alias-bg-layer-2,#2a2a2e);color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.35)}',
       '.mu-prefs-body{display:flex;flex-direction:column}',
