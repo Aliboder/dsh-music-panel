@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.3
+
+### 修复
+
+- 引导弹窗按钮点不动：外层遮罩层是 `pointer-events: none`，弹窗本身缺少 `pointer-events: auto`
+
 ## 0.7.2
 
 ### 新增
