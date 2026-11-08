@@ -4585,6 +4585,7 @@ window.__ModuleLoader__.load({
       var [prefsOpen, setPrefsOpen] = useState(false)
       var [onboardingOpen, setOnboardingOpen] = useState(false)
       var [onboardingStep, setOnboardingStep] = useState(0)
+      var [onboardingBrowseOpen, setOnboardingBrowseOpen] = useState(false)
       var [prefsTab, setPrefsTab] = useState('appearance')
       var [prefsUi, setPrefsUi] = useState(function () {
         return readPrefs()
@@ -4748,12 +4749,30 @@ window.__ModuleLoader__.load({
       function finishOnboarding() {
         setOnboardingOpen(false)
         setOnboardingStep(0)
+        setOnboardingBrowseOpen(false)
         savePrefs({ onboardingDone: true })
       }
 
       function openOnboarding() {
         setOnboardingStep(0)
+        setOnboardingBrowseOpen(false)
         setOnboardingOpen(true)
+      }
+
+      function toggleOnboardingBrowse() {
+        var next = !onboardingBrowseOpen
+        setOnboardingBrowseOpen(next)
+        if (next) loadBrowse('')
+      }
+
+      function chooseOnboardingFolder() {
+        if (browsePath === '') return
+        if (rootsRef.current.indexOf(browsePath) < 0) {
+          setRootsNow(rootsRef.current.concat([browsePath]))
+        }
+        scheduleSave()
+        setOnboardingBrowseOpen(false)
+        setOnboardingStep(1)
       }
 
       useEffect(
@@ -6448,6 +6467,70 @@ window.__ModuleLoader__.load({
                     t('onboarding.step' + (onboardingStep + 1) + 'Text'),
                   ),
                 ),
+                onboardingBrowseOpen && onboardingStep === 0
+                  ? h(
+                      'div',
+                      { className: 'mu-onb-browse' },
+                      h('input', {
+                        type: 'text',
+                        className: 'mu-input mu-input-sm mu-browse-path',
+                        key: browsePath,
+                        defaultValue: browsePath,
+                        spellCheck: 'false',
+                        onKeyDown: function (event) {
+                          if (event.key !== 'Enter') return
+                          var target = String(event.target.value || '').trim()
+                          if (target !== '') loadBrowse(target)
+                        },
+                      }),
+                      h(
+                        'div',
+                        { className: 'mu-browse-list' },
+                        browseLoading
+                          ? h('div', { className: 'mu-browse-empty' }, '…')
+                          : browseDirs.map(function (entry) {
+                              return h(
+                                'button',
+                                {
+                                  type: 'button',
+                                  key: entry.path,
+                                  className: 'mu-browse-item',
+                                  onClick: function () {
+                                    loadBrowse(entry.path)
+                                  },
+                                },
+                                icon('folder', 14),
+                                h('span', null, entry.name),
+                              )
+                            }),
+                      ),
+                      h(
+                        'div',
+                        { className: 'mu-browse-actions' },
+                        h(
+                          'button',
+                          {
+                            type: 'button',
+                            className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                            disabled: browseParent === null,
+                            onClick: function () {
+                              loadBrowse(browseParent)
+                            },
+                          },
+                          t('settings.up'),
+                        ),
+                        h(
+                          'button',
+                          {
+                            type: 'button',
+                            className: 'mu-btn mu-btn-accent mu-btn-sm',
+                            onClick: chooseOnboardingFolder,
+                          },
+                          t('settings.chooseFolder'),
+                        ),
+                      ),
+                    )
+                  : null,
                 h(
                   'div',
                   { className: 'mu-onb-dots' },
@@ -6492,7 +6575,7 @@ window.__ModuleLoader__.load({
                           {
                             type: 'button',
                             className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                            onClick: openBrowse,
+                            onClick: toggleOnboardingBrowse,
                           },
                           t('onboarding.pickFolder'),
                         )
@@ -7966,7 +8049,10 @@ window.__ModuleLoader__.load({
       '.mu-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:56px 16px;color:var(--dsw-alias-label-tertiary,#a1a1aa);text-align:center}',
       '.mu-state-action{margin-top:6px}',
       '.mu-onb-link{margin-top:2px;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8f98);font-size:11px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}',
-      '.mu-onb{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:130;pointer-events:auto;display:flex;flex-direction:column;gap:12px;width:min(420px,calc(100% - 32px));padding:18px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5))}',
+      '.mu-onb{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:130;pointer-events:auto;display:flex;flex-direction:column;gap:12px;width:min(420px,calc(100% - 32px));max-height:calc(100vh - 40px);overflow-y:auto;padding:18px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5))}',
+      '.mu-onb-browse{display:flex;flex-direction:column;gap:8px;padding-top:8px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
+      '.mu-onb-browse .mu-browse-list{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}',
+      '.mu-onb-browse .mu-browse-actions{display:flex;justify-content:flex-end;gap:8px}',
       '.mu-onb-head{display:flex;align-items:center;justify-content:space-between;gap:12px}',
       '.mu-onb-title{font-size:14px;font-weight:600;color:var(--dsw-alias-label-primary,#e6e6e6)}',
       '.mu-onb-body{display:flex;flex-direction:column;gap:6px}',
