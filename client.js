@@ -171,6 +171,11 @@ window.__ModuleLoader__.load({
         'page.favoritesEmpty': '还没有收藏',
         'page.favoritesHint': '点歌曲右侧的爱心加入「我喜欢」。',
         'page.tabStats': '统计',
+        'page.tabAlbums': '专辑',
+        'page.tabArtists': '艺术家',
+        'page.unknownAlbum': '未知专辑',
+        'page.clearFilter': '清除',
+        'page.trackCountUnit': '{n} 首',
         'page.tabPlaylists': '播放列表',
         'page.newPlaylist': '新建播放列表',
         'page.playlistName': '播放列表名称',
@@ -427,6 +432,11 @@ window.__ModuleLoader__.load({
         'page.favoritesEmpty': 'No liked songs yet',
         'page.favoritesHint': 'Tap the heart next to a song to add it here.',
         'page.tabStats': 'Stats',
+        'page.tabAlbums': 'Albums',
+        'page.tabArtists': 'Artists',
+        'page.unknownAlbum': 'Unknown album',
+        'page.clearFilter': 'Clear',
+        'page.trackCountUnit': '{n} songs',
         'page.tabPlaylists': 'Playlists',
         'page.newPlaylist': 'New playlist',
         'page.playlistName': 'Playlist name',
@@ -4578,6 +4588,7 @@ window.__ModuleLoader__.load({
       var [npVisible, setNpVisible] = useState(false)
       var npAnimRef = useRef(null)
       var [view, setView] = useState('songs')
+      var [viewFilter, setViewFilter] = useState(null)
       var [playlists, setPlaylists] = useState([])
       var [favorites, setFavorites] = useState([])
       var [playlistId, setPlaylistId] = useState(null)
@@ -5224,6 +5235,16 @@ window.__ModuleLoader__.load({
 
       /** The collection the active tab shows: all songs, favourites, or one playlist. */
       var collectionTracks = useMemo(function () {
+        if (viewFilter !== null) {
+          return tracks.filter(function (track) {
+            if (viewFilter.kind === 'album') {
+              return (
+                (track.album || '') === viewFilter.album && (track.artist || '') === viewFilter.artist
+              )
+            }
+            return (track.artist || '') === viewFilter.artist
+          })
+        }
         if (view === 'favorites') {
           return favorites
             .map(function (entry) {
@@ -5237,7 +5258,49 @@ window.__ModuleLoader__.load({
             return trackByPath[path]
           })
           .filter(Boolean)
-      }, [view, activePlaylist, tracks, trackByPath, favorites])
+      }, [view, activePlaylist, tracks, trackByPath, favorites, viewFilter])
+
+      var albumGroups = useMemo(function () {
+        var groups = {}
+        tracks.forEach(function (track) {
+          var album = (track.album || '').trim()
+          var artist = (track.artist || '').trim()
+          var key = album + '\u0000' + artist
+          if (groups[key] === undefined) {
+            groups[key] = { key: key, album: album, artist: artist, count: 0, coverPath: '' }
+          }
+          groups[key].count += 1
+          if (groups[key].coverPath === '' && track.hasCover === true) groups[key].coverPath = track.path
+        })
+        return Object.keys(groups)
+          .map(function (key) {
+            return groups[key]
+          })
+          .sort(function (left, right) {
+            return (
+              left.album.localeCompare(right.album) || left.artist.localeCompare(right.artist)
+            )
+          })
+      }, [tracks])
+
+      var artistGroups = useMemo(function () {
+        var groups = {}
+        tracks.forEach(function (track) {
+          var artist = (track.artist || '').trim()
+          if (groups[artist] === undefined) {
+            groups[artist] = { artist: artist, count: 0, coverPath: '' }
+          }
+          groups[artist].count += 1
+          if (groups[artist].coverPath === '' && track.hasCover === true) groups[artist].coverPath = track.path
+        })
+        return Object.keys(groups)
+          .map(function (key) {
+            return groups[key]
+          })
+          .sort(function (left, right) {
+            return right.count - left.count || left.artist.localeCompare(right.artist)
+          })
+      }, [tracks])
 
       useEffect(
         function () {
@@ -5955,6 +6018,7 @@ window.__ModuleLoader__.load({
               type: 'button',
               className: 'mu-tab' + (view === 'songs' ? ' is-on' : ''),
               onClick: function () {
+                setViewFilter(null)
                 setView('songs')
               },
             },
@@ -5966,6 +6030,7 @@ window.__ModuleLoader__.load({
               type: 'button',
               className: 'mu-tab' + (view === 'favorites' ? ' is-on' : ''),
               onClick: function () {
+                setViewFilter(null)
                 setView('favorites')
               },
             },
@@ -5977,10 +6042,35 @@ window.__ModuleLoader__.load({
               type: 'button',
               className: 'mu-tab' + (view === 'stats' ? ' is-on' : ''),
               onClick: function () {
+                setViewFilter(null)
                 setView('stats')
               },
             },
             t('page.tabStats'),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-tab' + (view === 'albums' ? ' is-on' : ''),
+              onClick: function () {
+                setViewFilter(null)
+                setView('albums')
+              },
+            },
+            t('page.tabAlbums'),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-tab' + (view === 'artists' ? ' is-on' : ''),
+              onClick: function () {
+                setViewFilter(null)
+                setView('artists')
+              },
+            },
+            t('page.tabArtists'),
           ),
           playlists.map(function (playlist) {
             var isOn = view === 'playlists' && playlistId === playlist.id
@@ -6796,8 +6886,125 @@ window.__ModuleLoader__.load({
             : null,
         ),
 
-        view === 'stats'
+        viewFilter !== null && view === 'songs'
           ? h(
+              'div',
+              { className: 'mu-filter-bar' },
+              h(
+                'span',
+                null,
+                (viewFilter.kind === 'album' ? t('page.album') : t('page.artist')) +
+                  '：' +
+                  (viewFilter.kind === 'album'
+                    ? viewFilter.album || t('page.unknownAlbum')
+                    : viewFilter.artist || t('page.unknownArtist')),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-filter-clear',
+                  onClick: function () {
+                    setViewFilter(null)
+                  },
+                },
+                icon('x', 12),
+                t('page.clearFilter'),
+              ),
+            )
+          : null,
+
+        view === 'albums'
+          ? h(
+              'div',
+              { className: 'mu-albums' },
+              albumGroups.map(function (group) {
+                return h(
+                  'button',
+                  {
+                    type: 'button',
+                    key: group.key,
+                    className: 'mu-album-card',
+                    onClick: function () {
+                      setViewFilter({ kind: 'album', album: group.album, artist: group.artist })
+                      setView('songs')
+                    },
+                  },
+                  h(
+                    'div',
+                    { className: 'mu-album-cover' },
+                    group.coverPath !== ''
+                      ? h('img', {
+                          src: coverUrl(group.coverPath),
+                          alt: '',
+                          loading: 'lazy',
+                          onError: function (event) {
+                            event.target.style.display = 'none'
+                          },
+                        })
+                      : icon('note', 28),
+                  ),
+                  h(
+                    'div',
+                    { className: 'mu-album-name mu-ellipsis', title: group.album || t('page.unknownAlbum') },
+                    group.album || t('page.unknownAlbum'),
+                  ),
+                  h(
+                    'div',
+                    { className: 'mu-album-meta mu-ellipsis' },
+                    (group.artist || t('page.unknownArtist')) +
+                      ' · ' +
+                      t('page.trackCountUnit', { n: group.count }),
+                  ),
+                )
+              }),
+            )
+          : view === 'artists'
+            ? h(
+                'div',
+                { className: 'mu-artists' },
+                artistGroups.map(function (group) {
+                  return h(
+                    'button',
+                    {
+                      type: 'button',
+                      key: group.artist,
+                      className: 'mu-artist-row',
+                      onClick: function () {
+                        setViewFilter({ kind: 'artist', artist: group.artist })
+                        setView('songs')
+                      },
+                    },
+                    h(
+                      'span',
+                      { className: 'mu-artist-avatar' },
+                      group.coverPath !== ''
+                        ? h('img', {
+                            src: coverUrl(group.coverPath),
+                            alt: '',
+                            loading: 'lazy',
+                            onError: function (event) {
+                              event.target.style.display = 'none'
+                            },
+                          })
+                        : icon('note', 16),
+                    ),
+                    h(
+                      'span',
+                      { className: 'mu-artist-name mu-ellipsis' },
+                      group.artist || t('page.unknownArtist'),
+                    ),
+                    h(
+                      'span',
+                      { className: 'mu-artist-count' },
+                      t('page.trackCountUnit', { n: group.count }),
+                    ),
+                    h('span', { className: 'mu-artist-arrow' }, '›'),
+                  )
+                }),
+              )
+            : view === 'stats'
+              ? h(
               'div',
               { className: 'mu-list is-stats' },
               h(StatsView, {
@@ -7908,6 +8115,24 @@ window.__ModuleLoader__.load({
       '.mu-chip.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5);border-color:var(--dsw-alias-border-l2,rgba(255,255,255,.2))}',
       '.mu-chip-round{width:32px;padding:0;justify-content:center}',
       '.mu-tabs{display:flex;align-items:center;gap:4px;padding:0 24px 6px;overflow-x:auto;scrollbar-width:none}',
+      '.mu-filter-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 24px 6px;padding:6px 10px;border-radius:8px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-filter-clear{display:inline-flex;align-items:center;gap:4px;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);font:inherit;font-size:11px;cursor:pointer}',
+      '.mu-filter-clear:hover{color:var(--dsw-alias-label-primary,#e6e6e6)}',
+      '.mu-albums{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;padding:4px 24px 24px}',
+      '.mu-album-card{display:flex;flex-direction:column;gap:8px;padding:0;border:0;background:transparent;text-align:left;cursor:pointer;color:inherit;font:inherit;min-width:0}',
+      '.mu-album-cover{position:relative;aspect-ratio:1;border-radius:var(--dsw-radius-lg,12px);overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-album-cover img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s ease}',
+      '.mu-album-card:hover .mu-album-cover img{transform:scale(1.03)}',
+      '.mu-album-name{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#e6e6e6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-album-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-artists{display:flex;flex-direction:column;gap:2px;padding:4px 24px 24px}',
+      '.mu-artist-row{display:flex;align-items:center;gap:12px;padding:8px 10px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-width:0}',
+      '.mu-artist-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
+      '.mu-artist-avatar{width:40px;height:40px;border-radius:999px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-artist-avatar img{width:100%;height:100%;object-fit:cover;display:block}',
+      '.mu-artist-name{flex:1;min-width:0;font-size:13px;color:var(--dsw-alias-label-primary,#e6e6e6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-artist-count{flex:none;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-artist-arrow{flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-tabs::-webkit-scrollbar{display:none}',
       '.mu-tab{flex:none;max-width:168px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;height:30px;padding:0 12px;border:0;border-radius:var(--dsw-radius-md,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:13px;cursor:pointer}',
       '.mu-tab-pl{text-align:left}',
