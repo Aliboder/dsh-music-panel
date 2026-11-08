@@ -3105,7 +3105,10 @@ window.__ModuleLoader__.load({
       var track = props.track || null
       var trackPath = track ? track.path || '' : ''
       var [query, setQuery] = useState(function () {
-        return track ? ((track.title || '') + ' ' + (track.artist || '')).trim() : ''
+        if (!track) return ''
+        var title = String(track.title || '').trim()
+        if (title === '' && track.path) title = stemOf(track.path)
+        return (title + ' ' + (track.artist || '')).trim()
       })
       var [results, setResults] = useState([])
       var [searching, setSearching] = useState(false)
@@ -4119,6 +4122,13 @@ window.__ModuleLoader__.load({
       return parts.length > 0 ? parts[parts.length - 1] : String(path || '')
     }
 
+    /** File name without its extension — the fallback "title" for untagged files. */
+    function stemOf(path) {
+      var name = basenameOf(path)
+      var dot = name.lastIndexOf('.')
+      return dot > 0 ? name.slice(0, dot) : name
+    }
+
     function fmtListenTime(seconds) {
       var total = Math.round(Number(seconds) || 0)
       if (total <= 0) return '—'
@@ -4904,12 +4914,15 @@ window.__ModuleLoader__.load({
 
       function searchOnlineForTags() {
         if (tagForm === null || onlineLoading) return
+        var title = String(tagForm.title || '').trim()
+        // Untagged downloads often carry the song name only in the file name.
+        if (title === '' && tagEditPath !== null) title = stemOf(tagEditPath)
         setOnlineOpen(true)
         setOnlineLoading(true)
         setOnlineResults([])
         setOnlineSources([])
         requestJson('POST', API + 'online-search', {
-          title: tagForm.title || '',
+          title: title,
           artist: tagForm.artist || '',
           album: tagForm.album || '',
         })
