@@ -4411,22 +4411,11 @@ window.__ModuleLoader__.load({
                   'div',
                   { className: 'mu-stats-list' },
                   sorted.map(function (row, index) {
-                    var rankClass =
-                      index === 0
-                        ? ' is-gold'
-                        : index === 1
-                          ? ' is-silver'
-                          : index === 2
-                            ? ' is-bronze'
-                            : ''
                     var isCurrent = props.currentPath !== undefined && props.currentPath === row.path
                     return h(
                       'div',
                       {
-                        className:
-                          'mu-row mu-stats-row' +
-                          (isCurrent ? ' is-current' : '') +
-                          (index < 3 ? ' is-top' : ''),
+                        className: 'mu-row' + (isCurrent ? ' is-current' : ''),
                         key: row.path,
                         title: row.path,
                         onDoubleClick: function () {
@@ -4440,7 +4429,6 @@ window.__ModuleLoader__.load({
                           }
                         },
                       },
-                      h('span', { className: 'mu-stats-rank' + rankClass }, String(index + 1)),
                       h(
                         'button',
                         {
@@ -4459,17 +4447,21 @@ window.__ModuleLoader__.load({
                       ),
                       h(
                         'div',
-                        { className: 'mu-stats-main' },
-                        h('div', { className: 'mu-stats-title' }, row.title),
+                        { className: 'mu-row-main' },
+                        h('div', { className: 'mu-row-title' }, row.title),
                         h(
                           'div',
-                          { className: 'mu-stats-artist' },
+                          { className: 'mu-row-sub' },
                           row.artist || (row.missing ? t('stats.unavailable') : ''),
                         ),
                       ),
-                      h('div', { className: 'mu-stats-seconds' }, fmtListenTime(row.seconds)),
-                      h('div', { className: 'mu-stats-plays' }, t('stats.plays', { n: row.plays })),
-                      h('div', { className: 'mu-stats-last' }, fmtRecent(row.lastPlayedAt)),
+                      h(
+                        'div',
+                        { className: 'mu-row-album mu-ellipsis' },
+                        fmtListenTime(row.seconds),
+                      ),
+                      h('div', { className: 'mu-row-dur' }, t('stats.plays', { n: row.plays })),
+                      h('div', { className: 'mu-row-actions mu-stats-last' }, fmtRecent(row.lastPlayedAt)),
                     )
                   }),
                 ),
@@ -7856,19 +7848,7 @@ window.__ModuleLoader__.load({
       '.mu-stats-card-label{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
       '.mu-stats-card-value{margin-top:2px;font-size:20px;font-weight:650;line-height:1.15;color:var(--dsw-alias-label-primary,#f4f4f5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}',
       '.mu-stats-list{display:flex;flex-direction:column;gap:1px;padding:4px;border-radius:12px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));background:var(--dsw-alias-bg-layer-1,#17171a)}',
-      '.mu-stats-row{grid-template-columns:24px calc(var(--mu-row-size,60px) + 4px) minmax(0,1fr) 96px 64px 76px;padding:6px 10px}',
-      '.mu-stats-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
-      '.mu-stats-row.is-top{background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03))}',
-      '.mu-stats-rank{flex:none;width:24px;text-align:center;font-size:12px;font-weight:600;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
-      '.mu-stats-rank.is-gold{color:#f5c451}',
-      '.mu-stats-rank.is-silver{color:#c8cdd6}',
-      '.mu-stats-rank.is-bronze{color:#d99a6c}',
-      '.mu-stats-main{flex:1;min-width:0}',
-      '.mu-stats-title{font-size:13px;font-weight:500;color:var(--dsw-alias-label-primary,#e6e6e6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-stats-artist{margin-top:1px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-stats-seconds{flex:none;width:96px;text-align:right;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
-      '.mu-stats-plays{flex:none;width:60px;text-align:right;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
-      '.mu-stats-last{flex:none;width:70px;text-align:right;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-stats-last{justify-content:flex-end;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-view{flex:1;min-height:0;display:flex;flex-direction:column}',
       '.mu-pl-new{display:flex;gap:8px;padding:4px 24px 12px}',
       '.mu-pl-new .mu-input{flex:1}',
