@@ -4292,51 +4292,61 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'mu-stats-toolbar' },
-          modes.map(function (entry) {
-            return h(
-              'button',
-              {
-                key: entry[0],
-                type: 'button',
-                className: 'mu-chip mu-stats-chip' + (mode === entry[0] ? ' is-on' : ''),
-                onClick: function () {
-                  setMode(entry[0])
-                  if (entry[0] === 'recent') setRange('all')
+          h(
+            'div',
+            { className: 'mu-stats-group' },
+            modes.map(function (entry) {
+              return h(
+                'button',
+                {
+                  key: entry[0],
+                  type: 'button',
+                  className: 'mu-stats-chip' + (mode === entry[0] ? ' is-on' : ''),
+                  onClick: function () {
+                    setMode(entry[0])
+                    if (entry[0] === 'recent') setRange('all')
+                  },
                 },
-              },
-              entry[1],
-            )
-          }),
-          h('span', { className: 'mu-stats-divider' }),
-          ranges.map(function (entry) {
-            return h(
-              'button',
-              {
-                key: entry[0],
-                type: 'button',
-                className: 'mu-chip mu-stats-chip' + (range === entry[0] ? ' is-on' : ''),
-                onClick: function () {
-                  setRange(entry[0])
+                entry[1],
+              )
+            }),
+          ),
+          h(
+            'div',
+            { className: 'mu-stats-group' },
+            ranges.map(function (entry) {
+              return h(
+                'button',
+                {
+                  key: entry[0],
+                  type: 'button',
+                  className: 'mu-stats-chip' + (range === entry[0] ? ' is-on' : ''),
+                  onClick: function () {
+                    setRange(entry[0])
+                  },
                 },
-              },
-              entry[1],
-            )
-          }),
-          h('span', { className: 'mu-stats-divider' }),
-          sorts.map(function (entry) {
-            return h(
-              'button',
-              {
-                key: entry[0],
-                type: 'button',
-                className: 'mu-chip mu-stats-chip' + (sortBy === entry[0] ? ' is-on' : ''),
-                onClick: function () {
-                  setSortBy(entry[0])
+                entry[1],
+              )
+            }),
+          ),
+          h(
+            'div',
+            { className: 'mu-stats-group' },
+            sorts.map(function (entry) {
+              return h(
+                'button',
+                {
+                  key: entry[0],
+                  type: 'button',
+                  className: 'mu-stats-chip' + (sortBy === entry[0] ? ' is-on' : ''),
+                  onClick: function () {
+                    setSortBy(entry[0])
+                  },
                 },
-              },
-              entry[1],
-            )
-          }),
+                entry[1],
+              )
+            }),
+          ),
         ),
         h(
           'div',
@@ -4344,20 +4354,35 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'mu-stats-card' },
-            h('div', { className: 'mu-stats-card-label' }, t('stats.totalTime')),
-            h('div', { className: 'mu-stats-card-value' }, fmtListenTime(totals.seconds)),
+            h('span', { className: 'mu-stats-card-icon' }, '⏱'),
+            h(
+              'div',
+              { className: 'mu-stats-card-body' },
+              h('div', { className: 'mu-stats-card-label' }, t('stats.totalTime')),
+              h('div', { className: 'mu-stats-card-value' }, fmtListenTime(totals.seconds)),
+            ),
           ),
           h(
             'div',
             { className: 'mu-stats-card' },
-            h('div', { className: 'mu-stats-card-label' }, t('stats.totalPlays')),
-            h('div', { className: 'mu-stats-card-value' }, String(totals.plays)),
+            h('span', { className: 'mu-stats-card-icon' }, '▶'),
+            h(
+              'div',
+              { className: 'mu-stats-card-body' },
+              h('div', { className: 'mu-stats-card-label' }, t('stats.totalPlays')),
+              h('div', { className: 'mu-stats-card-value' }, String(totals.plays)),
+            ),
           ),
           h(
             'div',
             { className: 'mu-stats-card' },
-            h('div', { className: 'mu-stats-card-label' }, t('stats.trackCount')),
-            h('div', { className: 'mu-stats-card-value' }, String(totals.tracks)),
+            h('span', { className: 'mu-stats-card-icon' }, '🎵'),
+            h(
+              'div',
+              { className: 'mu-stats-card-body' },
+              h('div', { className: 'mu-stats-card-label' }, t('stats.trackCount')),
+              h('div', { className: 'mu-stats-card-value' }, String(totals.tracks)),
+            ),
           ),
         ),
         loading
@@ -4385,11 +4410,24 @@ window.__ModuleLoader__.load({
               : h(
                   'div',
                   { className: 'mu-stats-list' },
-                  sorted.map(function (row) {
+                  sorted.map(function (row, index) {
+                    var rankClass =
+                      index === 0
+                        ? ' is-gold'
+                        : index === 1
+                          ? ' is-silver'
+                          : index === 2
+                            ? ' is-bronze'
+                            : ''
                     return h(
                       'div',
-                      { className: 'mu-stats-row', key: row.path, title: row.path },
-                      h(Cover, { track: row.track, size: 36, radius: 6 }),
+                      {
+                        className: 'mu-stats-row' + (index < 3 ? ' is-top' : ''),
+                        key: row.path,
+                        title: row.path,
+                      },
+                      h('span', { className: 'mu-stats-rank' + rankClass }, String(index + 1)),
+                      h(Cover, { track: row.track, size: 40, radius: 8 }),
                       h(
                         'div',
                         { className: 'mu-stats-main' },
@@ -7765,22 +7803,33 @@ window.__ModuleLoader__.load({
       '.mu-tab-add:hover{border-color:var(--dsw-alias-border-l4,rgba(255,255,255,.2))}',
       '.mu-list.is-stats{padding-top:4px}',
       '.mu-stats{display:flex;flex-direction:column;gap:12px;padding:2px 0 10px}',
-      '.mu-stats-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}',
-      '.mu-stats-chip{height:26px;padding:0 10px;font-size:12px}',
-      '.mu-stats-divider{width:1px;height:16px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.12));margin:0 2px}',
-      '.mu-stats-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}',
-      '.mu-stats-card{border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1,#1b1b1e));padding:10px 12px;min-width:0}',
+      '.mu-stats{display:flex;flex-direction:column;gap:12px;padding:2px 0 16px}',
+      '.mu-stats-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
+      '.mu-stats-group{display:flex;align-items:center;gap:2px;padding:3px;border-radius:10px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04))}',
+      '.mu-stats-chip{height:26px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:12px;cursor:pointer;transition:background .15s ease,color .15s ease}',
+      '.mu-stats-chip:hover{color:var(--dsw-alias-label-primary,#e6e6e6)}',
+      '.mu-stats-chip.is-on{background:var(--dsw-static-deepseek-450,#5686fe);color:#fff}',
+      '.mu-stats-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}',
+      '.mu-stats-card{display:flex;align-items:center;gap:10px;min-width:0;padding:12px 14px;border-radius:12px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));background:linear-gradient(160deg,var(--dsw-alias-bg-layer-2,rgba(255,255,255,.045)),var(--dsw-alias-bg-layer-1,#1a1a1e));transition:border-color .15s ease}',
+      '.mu-stats-card:hover{border-color:var(--dsw-alias-border-l2,rgba(255,255,255,.14))}',
+      '.mu-stats-card-icon{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));font-size:14px}',
+      '.mu-stats-card-body{min-width:0}',
       '.mu-stats-card-label{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
-      '.mu-stats-card-value{font-size:17px;font-weight:600;margin-top:2px;color:var(--dsw-alias-label-primary,#f4f4f5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}',
-      '.mu-stats-list{display:flex;flex-direction:column;gap:2px}',
-      '.mu-stats-row{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:var(--dsw-radius-sm,6px);min-width:0}',
+      '.mu-stats-card-value{margin-top:2px;font-size:20px;font-weight:650;line-height:1.15;color:var(--dsw-alias-label-primary,#f4f4f5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}',
+      '.mu-stats-list{display:flex;flex-direction:column;gap:1px;padding:4px;border-radius:12px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));background:var(--dsw-alias-bg-layer-1,#17171a)}',
+      '.mu-stats-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:9px;min-width:0}',
       '.mu-stats-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
+      '.mu-stats-row.is-top{background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03))}',
+      '.mu-stats-rank{flex:none;width:24px;text-align:center;font-size:12px;font-weight:600;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
+      '.mu-stats-rank.is-gold{color:#f5c451}',
+      '.mu-stats-rank.is-silver{color:#c8cdd6}',
+      '.mu-stats-rank.is-bronze{color:#d99a6c}',
       '.mu-stats-main{flex:1;min-width:0}',
-      '.mu-stats-title{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-stats-artist{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}',
-      '.mu-stats-seconds{flex:none;width:104px;text-align:right;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
-      '.mu-stats-plays{flex:none;width:64px;text-align:right;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
-      '.mu-stats-last{flex:none;width:78px;text-align:right;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-stats-title{font-size:13px;font-weight:500;color:var(--dsw-alias-label-primary,#e6e6e6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-stats-artist{margin-top:1px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-stats-seconds{flex:none;width:96px;text-align:right;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
+      '.mu-stats-plays{flex:none;width:60px;text-align:right;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
+      '.mu-stats-last{flex:none;width:70px;text-align:right;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-view{flex:1;min-height:0;display:flex;flex-direction:column}',
       '.mu-pl-new{display:flex;gap:8px;padding:4px 24px 12px}',
       '.mu-pl-new .mu-input{flex:1}',
