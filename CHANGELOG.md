@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.2
+
+### 新增
+
+- **Agent 控制**：注册 Host 工具 `music_control`（play / pause / next / previous），模型可在对话里直接控制音乐
+- Host 侧维护一个短队列（最多 10 条），打开的播放面板每 2 秒拉取并执行；`play` 支持按歌名或艺术家匹配曲库
+- 新增 `GET /music/control/pending` 接口
+
+### 说明
+
+- 浏览器自动播放策略可能阻止“未交互时”的自动播放，先播过一次后即正常
+
 ## 0.8.1
 
 ### 新增
