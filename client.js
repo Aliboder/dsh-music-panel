@@ -54,6 +54,7 @@ window.__ModuleLoader__.load({
       sleepTimerMinutes: 0,
       autoResume: false,
       rememberPerTrack: false,
+      onboardingDone: false,
     }
 
     // ── locale ────────────────────────────────────────────────────────────
@@ -203,6 +204,22 @@ window.__ModuleLoader__.load({
         'settings.sleepTimer': '睡眠定时',
         'settings.sleepOff': '关闭',
         'settings.sleepTimerDone': '睡眠定时已到，已暂停播放',
+        'onboarding.title': '欢迎使用音乐插件',
+        'onboarding.skip': '跳过',
+        'onboarding.back': '上一步',
+        'onboarding.next': '下一步',
+        'onboarding.start': '开始使用',
+        'onboarding.pickFolder': '选择文件夹',
+        'onboarding.reopen': '查看使用引导',
+        'onboarding.step1Icon': '📂',
+        'onboarding.step1Title': '添加你的音乐文件夹',
+        'onboarding.step1Text': '在空曲库页面点「添加文件夹」，选择你的音乐目录。插件会扫描歌曲、封面和标签，全程在你本机完成。',
+        'onboarding.step2Icon': '▶️',
+        'onboarding.step2Title': '双击播放',
+        'onboarding.step2Text': '双击任意歌曲开始播放；底栏可以切歌、打开队列、切换随机。空格暂停 / 继续，Ctrl/⌘ + ←/→ 切歌。',
+        'onboarding.step3Icon': '🎧',
+        'onboarding.step3Title': '让曲库更完整',
+        'onboarding.step3Text': '右键歌曲可编辑元数据、在线匹配封面与标签、搜索在线歌词；播放页「Aa」调整歌词样式，设置页管理外观与播放行为。',
         'page.details': '详细信息',
         'page.noPlaylists': '还没有歌单',
         'page.newPlaylistAdd': '新建歌单并添加',
@@ -443,6 +460,22 @@ window.__ModuleLoader__.load({
         'settings.sleepTimer': 'Sleep timer',
         'settings.sleepOff': 'Off',
         'settings.sleepTimerDone': 'Sleep timer finished — playback paused',
+        'onboarding.title': 'Welcome to dsh-music-panel',
+        'onboarding.skip': 'Skip',
+        'onboarding.back': 'Back',
+        'onboarding.next': 'Next',
+        'onboarding.start': 'Get started',
+        'onboarding.pickFolder': 'Pick a folder',
+        'onboarding.reopen': 'Show the guide',
+        'onboarding.step1Icon': '📂',
+        'onboarding.step1Title': 'Add your music folder',
+        'onboarding.step1Text': 'On the empty library page, click "Add folder" and pick your music directory. Everything is scanned locally — covers, tags and all.',
+        'onboarding.step2Icon': '▶️',
+        'onboarding.step2Title': 'Double-click to play',
+        'onboarding.step2Text': 'Double-click any song to start; the bar below handles next/previous, the queue and shuffle. Space pauses, Ctrl/⌘ + ←/→ skips.',
+        'onboarding.step3Icon': '🎧',
+        'onboarding.step3Title': 'Make the library complete',
+        'onboarding.step3Text': 'Right-click a song to edit tags, match covers and metadata online, or search online lyrics. The "Aa" panel on the player page tunes the lyric style.',
         'page.details': 'Details',
         'page.noPlaylists': 'No playlists yet',
         'page.newPlaylistAdd': 'New playlist and add',
@@ -4491,6 +4524,8 @@ window.__ModuleLoader__.load({
       var [playlistId, setPlaylistId] = useState(null)
       var [playlistDraft, setPlaylistDraft] = useState('')
       var [prefsOpen, setPrefsOpen] = useState(false)
+      var [onboardingOpen, setOnboardingOpen] = useState(false)
+      var [onboardingStep, setOnboardingStep] = useState(0)
       var [prefsTab, setPrefsTab] = useState('appearance')
       var [prefsUi, setPrefsUi] = useState(function () {
         return readPrefs()
@@ -4637,6 +4672,30 @@ window.__ModuleLoader__.load({
         scheduleSave()
       }
       var [deleteConfirm, setDeleteConfirm] = useState(false)
+
+      useEffect(
+        function () {
+          if (readPrefs().onboardingDone === true) return undefined
+          var timer = window.setTimeout(function () {
+            setOnboardingOpen(true)
+          }, 600)
+          return function () {
+            window.clearTimeout(timer)
+          }
+        },
+        [],
+      )
+
+      function finishOnboarding() {
+        setOnboardingOpen(false)
+        setOnboardingStep(0)
+        savePrefs({ onboardingDone: true })
+      }
+
+      function openOnboarding() {
+        setOnboardingStep(0)
+        setOnboardingOpen(true)
+      }
 
       useEffect(
         function () {
@@ -5307,6 +5366,15 @@ window.__ModuleLoader__.load({
                       ? t('page.retry')
                       : t('settings.add'),
                 ),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-onb-link',
+                  onClick: openOnboarding,
+                },
+                t('onboarding.reopen'),
               ),
             )
           : null,
@@ -6261,6 +6329,117 @@ window.__ModuleLoader__.load({
                         onClick: chooseBrowsePath,
                       },
                       t('settings.chooseFolder'),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : null,
+
+        onboardingOpen
+          ? h(
+              'div',
+              { className: 'mu-info-layer' },
+              h('div', { className: 'mu-info-scrim', onClick: finishOnboarding }),
+              h(
+                'div',
+                { className: 'mu-onb' },
+                h(
+                  'div',
+                  { className: 'mu-onb-head' },
+                  h('span', { className: 'mu-onb-title' }, t('onboarding.title')),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-icon-btn-sm',
+                      onClick: finishOnboarding,
+                    },
+                    icon('x', 14),
+                  ),
+                ),
+                h(
+                  'div',
+                  { className: 'mu-onb-body' },
+                  h(
+                    'div',
+                    { className: 'mu-onb-icon' },
+                    t('onboarding.step' + (onboardingStep + 1) + 'Icon'),
+                  ),
+                  h(
+                    'div',
+                    { className: 'mu-onb-step' },
+                    t('onboarding.step' + (onboardingStep + 1) + 'Title'),
+                  ),
+                  h(
+                    'p',
+                    { className: 'mu-onb-text' },
+                    t('onboarding.step' + (onboardingStep + 1) + 'Text'),
+                  ),
+                ),
+                h(
+                  'div',
+                  { className: 'mu-onb-dots' },
+                  [0, 1, 2].map(function (position) {
+                    return h('span', {
+                      key: 'dot-' + position,
+                      className: 'mu-onb-dot' + (position === onboardingStep ? ' is-on' : ''),
+                    })
+                  }),
+                ),
+                h(
+                  'div',
+                  { className: 'mu-onb-actions' },
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                      onClick: finishOnboarding,
+                    },
+                    t('onboarding.skip'),
+                  ),
+                  h(
+                    'div',
+                    { className: 'mu-onb-nav' },
+                    onboardingStep > 0
+                      ? h(
+                          'button',
+                          {
+                            type: 'button',
+                            className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                            onClick: function () {
+                              setOnboardingStep(onboardingStep - 1)
+                            },
+                          },
+                          t('onboarding.back'),
+                        )
+                      : null,
+                    onboardingStep === 0
+                      ? h(
+                          'button',
+                          {
+                            type: 'button',
+                            className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                            onClick: openBrowse,
+                          },
+                          t('onboarding.pickFolder'),
+                        )
+                      : null,
+                    h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mu-btn mu-chip-accent',
+                        onClick: function () {
+                          if (onboardingStep >= 2) {
+                            finishOnboarding()
+                            return
+                          }
+                          setOnboardingStep(onboardingStep + 1)
+                        },
+                      },
+                      onboardingStep >= 2 ? t('onboarding.start') : t('onboarding.next'),
                     ),
                   ),
                 ),
@@ -7705,6 +7884,19 @@ window.__ModuleLoader__.load({
       '.mu-row-dur{text-align:right;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
       '.mu-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:56px 16px;color:var(--dsw-alias-label-tertiary,#a1a1aa);text-align:center}',
       '.mu-state-action{margin-top:6px}',
+      '.mu-onb-link{margin-top:2px;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8f98);font-size:11px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}',
+      '.mu-onb{position:relative;display:flex;flex-direction:column;gap:12px;width:min(420px,calc(100% - 32px));padding:18px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5))}',
+      '.mu-onb-head{display:flex;align-items:center;justify-content:space-between;gap:12px}',
+      '.mu-onb-title{font-size:14px;font-weight:600;color:var(--dsw-alias-label-primary,#e6e6e6)}',
+      '.mu-onb-body{display:flex;flex-direction:column;gap:6px}',
+      '.mu-onb-icon{font-size:30px;line-height:1}',
+      '.mu-onb-step{font-size:14px;font-weight:600}',
+      '.mu-onb-text{margin:0;font-size:12.5px;line-height:1.7;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-onb-dots{display:flex;gap:6px}',
+      '.mu-onb-dot{width:6px;height:6px;border-radius:999px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.18))}',
+      '.mu-onb-dot.is-on{background:var(--dsw-static-deepseek-450,#5686fe)}',
+      '.mu-onb-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}',
+      '.mu-onb-nav{display:flex;align-items:center;gap:8px}',
       '.mu-state-title{font-size:14px;font-weight:600;color:var(--dsw-alias-label-primary,#e4e4e7)}',
       '.mu-state-sub{font-size:12px;max-width:420px;line-height:1.6;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-spinner{width:20px;height:20px;border-radius:50%;border:2px solid var(--dsw-alias-border-l2,rgba(255,255,255,.18));border-top-color:var(--dsw-alias-brand-primary,#f4f4f5);animation:mu-spin .8s linear infinite}',
