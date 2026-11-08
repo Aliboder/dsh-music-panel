@@ -4813,6 +4813,54 @@ window.__ModuleLoader__.load({
       )
       var npTimerRef = useRef(null)
 
+      // Drain model-tool actions queued on the Host (music_control).
+      useEffect(
+        function () {
+          function applyAction(item) {
+            var action = String(item.action || '')
+            var query = String(item.query || '').trim().toLowerCase()
+            if (action === 'pause') {
+              player.pause()
+              return
+            }
+            if (action === 'next') {
+              player.next()
+              return
+            }
+            if (action === 'previous') {
+              player.prev()
+              return
+            }
+            if (action !== 'play') return
+            var list =
+              query === ''
+                ? tracks.slice(0, 100)
+                : tracks
+                    .filter(function (track) {
+                      return (
+                        String(track.title || '').toLowerCase().indexOf(query) >= 0 ||
+                        String(track.artist || '').toLowerCase().indexOf(query) >= 0
+                      )
+                    })
+                    .slice(0, 100)
+            if (list.length > 0) player.playList(list, 0)
+          }
+          function poll() {
+            getJson(API + 'control/pending')
+              .then(function (body) {
+                var actions = Array.isArray(body.actions) ? body.actions : []
+                actions.forEach(applyAction)
+              })
+              .catch(function () {})
+          }
+          var timer = window.setInterval(poll, 2000)
+          return function () {
+            window.clearInterval(timer)
+          }
+        },
+        [tracks],
+      )
+
       var current = snap.index >= 0 && snap.queue[snap.index] ? snap.queue[snap.index] : null
 
       function openNowPlaying() {
