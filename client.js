@@ -4419,15 +4419,44 @@ window.__ModuleLoader__.load({
                           : index === 2
                             ? ' is-bronze'
                             : ''
+                    var isCurrent = props.currentPath !== undefined && props.currentPath === row.path
                     return h(
                       'div',
                       {
-                        className: 'mu-stats-row' + (index < 3 ? ' is-top' : ''),
+                        className:
+                          'mu-row mu-stats-row' +
+                          (isCurrent ? ' is-current' : '') +
+                          (index < 3 ? ' is-top' : ''),
                         key: row.path,
                         title: row.path,
+                        onDoubleClick: function () {
+                          if (row.track !== null && props.onActivate) props.onActivate(row.track)
+                        },
+                        onContextMenu: function (event) {
+                          event.preventDefault()
+                          event.stopPropagation()
+                          if (row.track !== null && props.onContextMenu) {
+                            props.onContextMenu(row.track, event.clientX, event.clientY)
+                          }
+                        },
                       },
                       h('span', { className: 'mu-stats-rank' + rankClass }, String(index + 1)),
-                      h(Cover, { track: row.track, size: 40, radius: 8 }),
+                      h(
+                        'button',
+                        {
+                          type: 'button',
+                          className: 'mu-row-play',
+                          title: t('page.play'),
+                          onClick: function (event) {
+                            event.stopPropagation()
+                            if (row.track !== null && props.onActivate) props.onActivate(row.track)
+                          },
+                          onDoubleClick: function (event) {
+                            event.stopPropagation()
+                          },
+                        },
+                        h(Cover, { track: row.track, size: 60, radius: 8 }),
+                      ),
                       h(
                         'div',
                         { className: 'mu-stats-main' },
@@ -6696,7 +6725,17 @@ window.__ModuleLoader__.load({
           ? h(
               'div',
               { className: 'mu-list is-stats' },
-              h(StatsView, { tracks: tracks, trackByPath: trackByPath, t: t }),
+              h(StatsView, {
+                tracks: tracks,
+                trackByPath: trackByPath,
+                t: t,
+                currentPath: current !== null ? current.path : '',
+                onActivate: activate,
+                onContextMenu: function (track, x, y) {
+                  setMoreOpen(false)
+                  setCtxMenu({ x: x, y: y, path: track.path, mode: 'main' })
+                },
+              }),
             )
           : viewMode === 'grid'
             ? h(TrackGrid, {
@@ -7817,7 +7856,7 @@ window.__ModuleLoader__.load({
       '.mu-stats-card-label{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
       '.mu-stats-card-value{margin-top:2px;font-size:20px;font-weight:650;line-height:1.15;color:var(--dsw-alias-label-primary,#f4f4f5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}',
       '.mu-stats-list{display:flex;flex-direction:column;gap:1px;padding:4px;border-radius:12px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));background:var(--dsw-alias-bg-layer-1,#17171a)}',
-      '.mu-stats-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:9px;min-width:0}',
+      '.mu-stats-row{grid-template-columns:24px calc(var(--mu-row-size,60px) + 4px) minmax(0,1fr) 96px 64px 76px;padding:6px 10px}',
       '.mu-stats-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
       '.mu-stats-row.is-top{background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03))}',
       '.mu-stats-rank{flex:none;width:24px;text-align:center;font-size:12px;font-weight:600;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
