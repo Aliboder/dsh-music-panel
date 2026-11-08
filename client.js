@@ -191,6 +191,11 @@ window.__ModuleLoader__.load({
         'page.reveal': '在文件夹中显示',
         'page.revealed': '已在文件夹中打开',
         'page.favoriteSelected': '收藏选中',
+        'page.batchEdit': '批量编辑',
+        'page.batchHint': '将修改选中的 {n} 首歌曲，留空的字段保持不变',
+        'page.batchSaved': '已更新 {n} 首',
+        'page.batchEmpty': '没有要修改的字段',
+        'page.keepEmpty': '留空则不修改',
         'page.duplicates': '重复 {n} 组',
         'page.duplicatesTitle': '重复歌曲',
         'page.duplicatesHint': '标题、艺术家与时长相同，可能是重复文件',
@@ -452,6 +457,11 @@ window.__ModuleLoader__.load({
         'page.reveal': 'Show in folder',
         'page.revealed': 'Opened in folder',
         'page.favoriteSelected': 'Like selected',
+        'page.batchEdit': 'Batch edit',
+        'page.batchHint': 'Applies to {n} selected songs; empty fields are left untouched',
+        'page.batchSaved': 'Updated {n} songs',
+        'page.batchEmpty': 'No fields to change',
+        'page.keepEmpty': 'Leave empty to keep',
         'page.duplicates': '{n} duplicates',
         'page.duplicatesTitle': 'Duplicate songs',
         'page.duplicatesHint': 'Same title, artist and duration — possibly the same file twice',
@@ -4557,6 +4567,14 @@ window.__ModuleLoader__.load({
       var [tagEditPath, setTagEditPath] = useState(null)
       var [tagForm, setTagForm] = useState(null)
       var [lyricSearchOpen, setLyricSearchOpen] = useState(false)
+      var [batchEditOpen, setBatchEditOpen] = useState(false)
+      var [batchForm, setBatchForm] = useState({
+        artist: '',
+        album: '',
+        genre: '',
+        albumArtist: '',
+      })
+      var [batchSaving, setBatchSaving] = useState(false)
       var [tagSaving, setTagSaving] = useState(false)
       var [coverFailed, setCoverFailed] = useState(false)
       var [tagCoverPreview, setTagCoverPreview] = useState(null)
@@ -4918,6 +4936,45 @@ window.__ModuleLoader__.load({
         selectedTracks.forEach(function (track) {
           if (favoritePaths[track.path] !== true) toggleFavorite(track)
         })
+      }
+
+      function saveBatchEdit() {
+        if (batchSaving || selectedTracks.length === 0) return
+        var patch = {}
+        ;['artist', 'album', 'genre', 'albumArtist'].forEach(function (field) {
+          var value = String(batchForm[field] || '').trim()
+          if (value !== '') patch[field] = value
+        })
+        if (Object.keys(patch).length === 0) {
+          showToast(t('page.batchEmpty'))
+          return
+        }
+        setBatchSaving(true)
+        var list = selectedTracks.slice()
+        var done = 0
+        function step(index) {
+          if (index >= list.length) {
+            setBatchSaving(false)
+            setBatchEditOpen(false)
+            showToast(t('page.batchSaved', { n: done }))
+            load(true)
+            return
+          }
+          var track = list[index]
+          getJson(API + 'tags?path=' + encodeURIComponent(track.path))
+            .then(function (body) {
+              var tags = Object.assign({}, body.tags || {}, patch)
+              return requestJson('PUT', API + 'tags', { path: track.path, tags: tags })
+            })
+            .then(function () {
+              done += 1
+              step(index + 1)
+            })
+            .catch(function () {
+              step(index + 1)
+            })
+        }
+        step(0)
       }
 
       function compareAudioQuality(left, right) {
@@ -6516,6 +6573,89 @@ window.__ModuleLoader__.load({
             )
           : null,
 
+        batchEditOpen
+          ? h(
+              'div',
+              { className: 'mu-info-layer' },
+              h('div', {
+                className: 'mu-info-scrim',
+                onClick: function () {
+                  if (!batchSaving) setBatchEditOpen(false)
+                },
+              }),
+              h(
+                'div',
+                { className: 'mu-info' },
+                h(
+                  'div',
+                  { className: 'mu-info-head' },
+                  h('span', { className: 'mu-info-title' }, t('page.batchEdit')),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-icon-btn-sm',
+                      onClick: function () {
+                        if (!batchSaving) setBatchEditOpen(false)
+                      },
+                    },
+                    icon('x', 14),
+                  ),
+                ),
+                h('p', { className: 'mu-prefs-hint' }, t('page.batchHint', { n: selectedTracks.length })),
+                h(
+                  'div',
+                  { className: 'mu-tag-grid' },
+                  ['artist', 'album', 'genre', 'albumArtist'].map(function (field) {
+                    return h(
+                      'label',
+                      { className: 'mu-tag-field', key: field },
+                      h('span', { className: 'mu-tag-field-label' }, tagFieldLabel(field)),
+                      h('input', {
+                        type: 'text',
+                        className: 'mu-input mu-input-sm',
+                        value: batchForm[field],
+                        placeholder: t('page.keepEmpty'),
+                        onChange: function (event) {
+                          var value = event.target.value
+                          setBatchForm(function (previous) {
+                            return Object.assign({}, previous, { [field]: value })
+                          })
+                        },
+                      }),
+                    )
+                  }),
+                ),
+                h(
+                  'div',
+                  { className: 'mu-tag-footer' },
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-btn',
+                      disabled: batchSaving,
+                      onClick: function () {
+                        setBatchEditOpen(false)
+                      },
+                    },
+                    t('page.cancel'),
+                  ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-btn mu-chip-accent',
+                      disabled: batchSaving,
+                      onClick: saveBatchEdit,
+                    },
+                    batchSaving ? t('page.saving') : t('page.save'),
+                  ),
+                ),
+              ),
+            )
+          : null,
+
         onboardingOpen
           ? h(
               'div',
@@ -6808,6 +6948,19 @@ window.__ModuleLoader__.load({
                   },
                   icon('heart', 13),
                   h('span', null, t('page.favoriteSelected')),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-chip',
+                    onClick: function () {
+                      setBatchForm({ artist: '', album: '', genre: '', albumArtist: '' })
+                      setBatchEditOpen(true)
+                    },
+                  },
+                  icon('edit', 13),
+                  h('span', null, t('page.batchEdit')),
                 ),
                 h(
                   'button',
