@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.9.0
+
+### 新增
+
+- 在线音乐：主面板「在线」视图，支持网易云 / QQ 音乐 / 酷狗搜索与播放（Host 取链 + 同源代理流，Range 透传）
+- 设置 → 在线：三平台扫码登录（二维码 + 轮询状态），登录态保存在 `<DSH_HOME>/music/providers.json`（0600）
+- 在线歌词：播放在线曲目时自动拉取平台 LRC（含翻译）
+- Agent：`music_control` 新增 `source`（netease / qq / kugou），模型可直接在线搜索并播放
+- 平台模块移植自 [kendu76/dsh-music-player](https://github.com/kendu76/dsh-music-player)（MIT，见 `lib/providers/LICENSE`）
+
+### 说明
+
+- 未登录只播放免费曲目；QQ / 酷狗的高音质需扫码登录
+- 在线接口为非官方接口，可能失效；失败只在在线视图提示，不影响本地库
+- 仅流式播放，不下载、不批量抓取
+
 ## 0.8.3
 
 ### 修复
