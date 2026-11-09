@@ -4146,6 +4146,13 @@ window.__ModuleLoader__.load({
                   className: 'mu-icon-btn',
                   title: t('page.queue'),
                   onClick: function (event) {
+                    // Close the full-screen player first: the queue overlay is
+                    // rendered in its own host seat and must not fight the
+                    // player for stacking order.
+                    if (typeof props.onQueue === 'function') {
+                      props.onQueue()
+                      return
+                    }
                     toggleQueueOverlay(undefined, event.currentTarget)
                   },
                 },
@@ -9420,6 +9427,10 @@ window.__ModuleLoader__.load({
               favorites: favorites,
               onToggleFavorite: toggleFavorite,
               onClose: closeNowPlaying,
+              onQueue: function () {
+                closeNowPlaying()
+                toggleQueueOverlay(true)
+              },
             })
           : null,
       )
