@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.3
+
+### 重构（阶段 4：清理）
+
+- 移除废弃的 `onlineMode` / `onlineOpenedPlaylists` 状态与不再调用的 `loadMyPlaylists`
+- 删除旧歌单模式相关的废弃样式（`mu-online-modes` / `mu-online-tab` / `mu-online-playlist-chip` / `mu-online-history` 等 8 组）
+- 定位按钮的滚动选择器改指向新的内容区容器
+
 ## 0.10.2
 
 ### 重构（阶段 3：浮层层级）

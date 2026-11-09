@@ -5042,12 +5042,10 @@ window.__ModuleLoader__.load({
       var [onlineResults, setOnlineResults] = useState([])
       var [onlineLoading, setOnlineLoading] = useState(false)
       var [onlineError, setOnlineError] = useState('')
-      var [onlineMode, setOnlineMode] = useState('search')
       var [onlinePlaylists, setOnlinePlaylists] = useState([])
       var [onlinePlaylistLoading, setOnlinePlaylistLoading] = useState(false)
       var [onlinePlaylistError, setOnlinePlaylistError] = useState('')
       var [onlineCurrentPlaylist, setOnlineCurrentPlaylist] = useState(null)
-      var [onlineOpenedPlaylists, setOnlineOpenedPlaylists] = useState([])
       var [onlineHistory, setOnlineHistory] = useState(readOnlineHistory)
       var [onlineCached, setOnlineCached] = useState({})
       var [onlineCacheProgress, setOnlineCacheProgress] = useState(null)
@@ -5935,11 +5933,11 @@ window.__ModuleLoader__.load({
             setOnlineProvider(playingProvider)
             setOnlineResults([])
             window.setTimeout(function () {
-              scrollToPlayingRow('.mu-online-history .mu-row.is-current')
+              scrollToPlayingRow('.mu-online .mu-row.is-current')
             }, 150)
             return
           }
-          if (!scrollToPlayingRow('.mu-online-history .mu-row.is-current')) {
+          if (!scrollToPlayingRow('.mu-online .mu-row.is-current')) {
             showToast(t('online.noPlaying'))
           }
           return
@@ -5970,31 +5968,6 @@ window.__ModuleLoader__.load({
         return message
       }
 
-      function loadMyPlaylists(providerOverride) {
-        var provider =
-          typeof providerOverride === 'string' && providerOverride !== ''
-            ? providerOverride
-            : onlineProvider
-        var seq = onlineSeq.current + 1
-        onlineSeq.current = seq
-        setOnlineMode('playlists')
-        setOnlinePlaylistLoading(true)
-        setOnlinePlaylistError('')
-        setOnlinePlaylists([])
-        setOnlineCurrentPlaylist(null)
-        getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(provider))
-          .then(function (body) {
-            if (onlineSeq.current !== seq) return
-            setOnlinePlaylists(Array.isArray(body.playlists) ? body.playlists : [])
-            setOnlinePlaylistLoading(false)
-          })
-          .catch(function (error) {
-            if (onlineSeq.current !== seq) return
-            setOnlinePlaylistError(onlineErrorMessage(error))
-            setOnlinePlaylistLoading(false)
-          })
-      }
-
       /** Fetch playlists without switching the sub-tab (for the inline strip). */
       function loadOnlinePlaylistsOnly(providerOverride) {
         var provider =
@@ -6018,21 +5991,7 @@ window.__ModuleLoader__.load({
       }
 
       function openOnlinePlaylist(playlist) {
-        // Playlist songs only render in the playlists mode; switch first so
-        // clicking a card always opens it.
-        setOnlineMode('playlists')
         setOnlineResults([])
-        // Keep each opened playlist as a tab next to "recently played".
-        setOnlineOpenedPlaylists(function (previous) {
-          if (
-            previous.some(function (item) {
-              return String(item.id) === String(playlist.id)
-            })
-          ) {
-            return previous
-          }
-          return previous.concat([playlist]).slice(-8)
-        })
         var seq = onlineSeq.current + 1
         onlineSeq.current = seq
         setOnlinePlaylistLoading(true)
@@ -7531,7 +7490,6 @@ window.__ModuleLoader__.load({
                   setOnlineCurrentPlaylist(null)
                   setOnlinePlaylistError('')
                   setView('online')
-                  setOnlineMode('search')
                   // The playlist strip loads itself; never open a sub-page.
                   loadOnlinePlaylistsOnly(entry[0])
                   loadOnlineProviders()
@@ -10148,15 +10106,10 @@ window.__ModuleLoader__.load({
       '.mu-online .mu-list{flex:1;min-height:0;overflow-y:auto;padding:0}',
       '.mu-online-badge{font-size:10px;padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-online-badge.is-vip{color:#f5c518;background:linear-gradient(180deg,rgba(245,197,24,.18),rgba(245,197,24,.10));border:1px solid rgba(245,197,24,.45);font-weight:600;letter-spacing:.3px}',
-      '.mu-online-modes{display:flex;gap:4px}',
-      '.mu-online-history{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px}',
       '.mu-online-login-cta{justify-content:center;gap:10px;text-align:center}',
       '.mu-online-login-cta-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}',
       '.mu-tabs-divider{flex:none;width:1px;height:14px;margin:0 2px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.12))}',
       '.mu-tab-source{font-weight:600}',
-      '.mu-online-playlist-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa);padding:2px 2px 0}',
-      '.mu-online-recent-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
-      '.mu-online-recent-actions{display:flex;align-items:center;gap:2px}',
       '.mu-online-search-row{display:flex;align-items:center;gap:8px}',
       '.mu-online-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 2px 4px}',
       '.mu-online-head-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
@@ -10173,19 +10126,6 @@ window.__ModuleLoader__.load({
       '.mu-pl-card-name{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-pl-card.is-on .mu-pl-card-cover{box-shadow:0 0 0 2px var(--dsw-static-deepseek-450,#5686fe)}',
       '.mu-pl-card.is-on .mu-pl-card-name{color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
-      '.mu-online-tabs{display:flex;gap:4px;overflow-x:auto;padding:2px 0 2px;scrollbar-width:none}',
-      '.mu-online-tabs::-webkit-scrollbar{display:none}',
-      '.mu-online-tab{flex:none;max-width:170px;height:26px;padding:0 11px;border:0;border-radius:999px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;display:flex;align-items:center;overflow:hidden}',
-      '.mu-online-tab:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.1))}',
-      '.mu-online-tab.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.14));color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mu-online-tab-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-online-playlists-inline{display:flex;flex-direction:column;gap:6px;margin-top:8px}',
-      '.mu-online-playlist-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}',
-      '.mu-online-playlist-chips-top{padding-bottom:6px}',
-      '.mu-online-playlist-chip{flex:none;width:64px;display:flex;flex-direction:column;gap:2px;padding:0;border:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer;text-align:left}',
-      '.mu-online-playlist-chip-cover{display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-online-playlist-chip-cover img{width:100%;height:100%;object-fit:cover}',
-      '.mu-online-playlist-chip-name{font-size:10.5px;line-height:1.3;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-context-layer{position:fixed;inset:0;z-index:200}',
       '.mu-context-menu{position:fixed;min-width:170px;padding:4px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:10px;background:var(--dsw-alias-bg-layer-2,#232328);box-shadow:0 10px 32px rgba(0,0,0,.5);display:flex;flex-direction:column}',
       '.mu-context-item{display:flex;align-items:center;width:100%;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12.5px;text-align:left;cursor:pointer}',
