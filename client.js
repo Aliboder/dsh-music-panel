@@ -902,6 +902,13 @@ window.__ModuleLoader__.load({
 
     var ICONS = {
       check: { parts: [['path', { d: 'M20 6L9 17l-5-5' }]] },
+      download: {
+        parts: [
+          ['path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }],
+          ['path', { d: 'M7 10l5 5 5-5' }],
+          ['path', { d: 'M12 15V3' }],
+        ],
+      },
       target: {
         parts: [
           ['circle', { cx: 12, cy: 12, r: 7 }],
@@ -5880,10 +5887,11 @@ window.__ModuleLoader__.load({
               { className: 'mu-row-title' },
               result.title,
               onlineCached[result.id] === true
-                ? h('span', {
-                    className: 'mu-cached-dot',
-                    title: t('online.cached'),
-                  })
+                ? h(
+                    'span',
+                    { className: 'mu-cached-icon', title: t('online.cached') },
+                    icon('download', 12),
+                  )
                 : null,
             ),
             h('div', { className: 'mu-row-sub' }, result.artist || ''),
@@ -10087,6 +10095,7 @@ window.__ModuleLoader__.load({
       '.mu-bar-cache{color:var(--dsw-alias-state-success-primary,#4ade80);background:rgba(74,222,128,.12)}',
       '.mu-cached-badge{margin-left:6px;padding:0 5px;font-size:10px;font-weight:500;line-height:15px;border-radius:999px;color:var(--dsw-alias-state-success-primary,#4ade80);background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3)}',
       '.mu-cached-dot{display:inline-block;flex:none;width:6px;height:6px;margin-left:6px;border-radius:50%;background:var(--dsw-alias-state-success-primary,#4ade80);box-shadow:0 0 6px rgba(74,222,128,.55)}',
+      '.mu-cached-icon{display:inline-flex;align-items:center;margin-left:5px;vertical-align:-2px;color:var(--dsw-alias-state-success-primary,#4ade80)}',
       '.mu-cache-list{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow-y:auto;margin-top:4px}',
       '.mu-cache-row{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px}',
       '.mu-cache-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
