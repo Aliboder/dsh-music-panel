@@ -8685,6 +8685,34 @@ window.__ModuleLoader__.load({
         h(
               'div',
               { className: 'mu-view' },
+        view !== 'online'
+          ? h(
+              'div',
+              { className: 'mu-view-head' },
+              h(
+                'span',
+                { className: 'mu-view-title' },
+                view === 'albums'
+                  ? t('page.tabAlbums')
+                  : view === 'artists'
+                    ? t('page.tabArtists')
+                    : view === 'favorites'
+                      ? t('page.tabFavorites')
+                      : view === 'stats'
+                        ? t('page.tabStats')
+                        : view === 'playlists'
+                          ? activePlaylist === null
+                            ? t('page.tabPlaylists')
+                            : activePlaylist.name
+                          : t('page.tabSongs'),
+              ),
+              h(
+                'span',
+                { className: 'mu-view-meta' },
+                t('page.trackCountUnit', { n: sortedCollection.length }),
+              ),
+            )
+          : null,
 
         h(
           'div',
@@ -10212,6 +10240,9 @@ window.__ModuleLoader__.load({
       '.mu-stats-list{display:flex;flex-direction:column;gap:1px;padding:4px;border-radius:12px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));background:var(--dsw-alias-bg-layer-1,#17171a)}',
       '.mu-stats-last{justify-content:flex-end;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-view{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}',
+      '.mu-view-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:6px 24px 2px;flex:none}',
+      '.mu-view-title{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-view-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);flex:none}',
       '.mu-pl-new{display:flex;gap:8px;padding:4px 24px 12px}',
       '.mu-pl-new .mu-input{flex:1}',
       '.mu-pl-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--dsw-radius-md,8px);cursor:pointer}',
