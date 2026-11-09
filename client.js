@@ -176,6 +176,8 @@ window.__ModuleLoader__.load({
         'online.loggedIn': '已登录',
         'online.loggedOut': '未登录',
         'online.login': '登录',
+        'online.loginWechat': '微信登录',
+        'online.loginQq': 'QQ 登录',
         'online.logout': '退出',
         'online.loginHint': '扫码登录：用对应 App 扫描弹出的二维码并确认，登录状态保存在本机。',
         'online.loginTitle': '登录 {provider}',
@@ -468,6 +470,8 @@ window.__ModuleLoader__.load({
         'online.loggedIn': 'Signed in',
         'online.loggedOut': 'Signed out',
         'online.login': 'Sign in',
+        'online.loginWechat': 'WeChat sign-in',
+        'online.loginQq': 'QQ sign-in',
         'online.logout': 'Sign out',
         'online.loginHint': 'Scan the QR code with the matching app, then confirm in the app. The login stays on this machine.',
         'online.loginTitle': 'Sign in to {provider}',
@@ -5215,14 +5219,16 @@ window.__ModuleLoader__.load({
         }
       }
 
-      function pollOnlineLogin(provider, key) {
+      function pollOnlineLogin(provider, key, mode) {
         function check() {
           getJson(
             API +
               'online/login/status?provider=' +
               encodeURIComponent(provider) +
               '&key=' +
-              encodeURIComponent(key),
+              encodeURIComponent(key) +
+              '&mode=' +
+              encodeURIComponent(mode || 'qq'),
           )
             .then(function (body) {
               var status = String(body.status || '')
@@ -5246,24 +5252,27 @@ window.__ModuleLoader__.load({
         onlineLoginTimer.current = window.setInterval(check, 2000)
       }
 
-      function startOnlineLogin(provider) {
+      function startOnlineLogin(provider, mode) {
+        var loginMode = mode || 'qq'
         setOnlineLoginDialog({
           provider: provider,
+          mode: loginMode,
           key: '',
           imageDataUrl: '',
           status: 'waiting',
           error: '',
         })
-        requestJson('POST', API + 'online/login/start', { provider: provider })
+        requestJson('POST', API + 'online/login/start', { provider: provider, mode: loginMode })
           .then(function (body) {
             setOnlineLoginDialog({
               provider: provider,
+              mode: loginMode,
               key: body.key || '',
               imageDataUrl: body.imageDataUrl || '',
               status: 'waiting',
               error: '',
             })
-            if (body.key) pollOnlineLogin(provider, body.key)
+            if (body.key) pollOnlineLogin(provider, body.key, loginMode)
           })
           .catch(function (error) {
             var message = String((error && error.message) || error)
@@ -6959,17 +6968,44 @@ window.__ModuleLoader__.load({
                                   },
                                   t('online.logout'),
                                 )
-                              : h(
-                                  'button',
-                                  {
-                                    type: 'button',
-                                    className: 'mu-btn mu-btn-sm',
-                                    onClick: function () {
-                                      startOnlineLogin(provider)
+                              : provider === 'qq'
+                                ? [
+                                    h(
+                                      'button',
+                                      {
+                                        key: 'wx',
+                                        type: 'button',
+                                        className: 'mu-btn mu-btn-sm',
+                                        onClick: function () {
+                                          startOnlineLogin(provider, 'wx')
+                                        },
+                                      },
+                                      t('online.loginWechat'),
+                                    ),
+                                    h(
+                                      'button',
+                                      {
+                                        key: 'qq',
+                                        type: 'button',
+                                        className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                                        onClick: function () {
+                                          startOnlineLogin(provider, 'qq')
+                                        },
+                                      },
+                                      t('online.loginQq'),
+                                    ),
+                                  ]
+                                : h(
+                                    'button',
+                                    {
+                                      type: 'button',
+                                      className: 'mu-btn mu-btn-sm',
+                                      onClick: function () {
+                                        startOnlineLogin(provider)
+                                      },
                                     },
-                                  },
-                                  t('online.login'),
-                                ),
+                                    t('online.login'),
+                                  ),
                           )
                         }),
                         h('p', { className: 'mu-prefs-hint' }, t('online.loginHint')),
