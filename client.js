@@ -5355,6 +5355,17 @@ window.__ModuleLoader__.load({
         [current === null ? '' : current.path],
       )
 
+      // Hydrate green dots for the history rows (after a page refresh the
+      // cached flags start empty even though the files still exist).
+      useEffect(
+        function () {
+          if (onlineProvider === '') return
+          var rows = onlineHistoryForProvider(onlineProvider)
+          if (rows.length > 0) refreshCachedFlags(onlineProvider, rows)
+        },
+        [onlineProvider, onlineHistory],
+      )
+
       // Track cache progress while an online track is being downloaded.
       useEffect(
         function () {
@@ -5512,6 +5523,12 @@ window.__ModuleLoader__.load({
               return list.filter(function (item) {
                 return !(item.provider === song.provider && item.id === song.id)
               })
+            })
+            // The dot is keyed by track id; drop it so the row reflects the delete.
+            setOnlineCached(function (previous) {
+              var next = Object.assign({}, previous)
+              delete next[song.id]
+              return next
             })
             showToast(t('online.cacheRemoved'))
             loadOnlineCache()
@@ -5708,7 +5725,14 @@ window.__ModuleLoader__.load({
           .then(function (body) {
             if (body && body.cached && typeof body.cached === 'object') {
               setOnlineCached(function (previous) {
-                return Object.assign({}, previous, body.cached)
+                var next = Object.assign({}, previous)
+                Object.keys(body.cached).forEach(function (key) {
+                  // A freshly finished download can race an older "not cached"
+                  // response; never let that clear an existing green dot.
+                  if (body.cached[key] === true) next[key] = true
+                  else if (next[key] !== true) next[key] = false
+                })
+                return next
               })
             }
           })
@@ -7050,6 +7074,9 @@ window.__ModuleLoader__.load({
                   }
                   setSource(entry[0])
                   setOnlineProvider(entry[0])
+                  // Invalidate in-flight searches so an old response cannot
+                  // repaint the panel (or the cached flags) with stale data.
+                  onlineSeq.current += 1
                   setOnlineResults([])
                   setOnlineError('')
                   setOnlinePlaylists([])
