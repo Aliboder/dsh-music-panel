@@ -7090,6 +7090,18 @@ window.__ModuleLoader__.load({
       return h(
         'div',
         { className: 'mu-root' },
+        current !== null
+          ? h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-locate-fab',
+                title: t('online.locatePlaying'),
+                onClick: locatePlayingRow,
+              },
+              icon('target', 18),
+            )
+          : null,
         moreOpen
           ? h('div', {
               className: 'mu-scrim',
@@ -8492,18 +8504,6 @@ window.__ModuleLoader__.load({
         h(
               'div',
               { className: 'mu-view' },
-              current !== null
-                ? h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-locate-fab',
-                      title: t('online.locatePlaying'),
-                      onClick: locatePlayingRow,
-                    },
-                    icon('target', 18),
-                  )
-                : null,
 
         h(
           'div',
@@ -8735,42 +8735,25 @@ window.__ModuleLoader__.load({
                   onlineLoading ? '…' : t('page.search'),
                 ),
               ),
-              h(
-                'div',
-                { className: 'mu-online-tabs' },
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-online-tab' + (onlineCurrentPlaylist === null ? ' is-on' : ''),
-                    onClick: function () {
-                      setOnlineMode('search')
-                      setOnlineCurrentPlaylist(null)
-                    },
-                  },
-                  t('online.recent'),
-                ),
-                onlineOpenedPlaylists.map(function (playlist) {
-                  return h(
-                    'button',
-                    {
-                      type: 'button',
-                      key: playlist.id,
-                      className:
-                        'mu-online-tab' +
-                        (onlineCurrentPlaylist !== null &&
-                        String(onlineCurrentPlaylist.id) === String(playlist.id)
-                          ? ' is-on'
-                          : ''),
-                      title: playlist.name,
-                      onClick: function () {
-                        openOnlinePlaylist(playlist)
+              onlineMode === 'playlists' && onlineCurrentPlaylist !== null
+                ? h(
+                    'div',
+                    { className: 'mu-online-playlist-title mu-online-recent-head' },
+                    h('span', { className: 'mu-ellipsis' }, onlineCurrentPlaylist.name),
+                    h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                        onClick: function () {
+                          setOnlineMode('search')
+                          setOnlineCurrentPlaylist(null)
+                        },
                       },
-                    },
-                    h('span', { className: 'mu-online-tab-name' }, playlist.name),
+                      '← ' + t('online.recent'),
+                    ),
                   )
-                }),
-              ),
+                : null,
               onlineMode === 'search'
                 ? onlineError !== ''
                   ? h('div', { className: 'mu-online-error' }, onlineError)
@@ -10174,7 +10157,7 @@ window.__ModuleLoader__.load({
       '.mu-albums{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;align-content:start;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;padding:4px 24px 24px}',
       '.mu-artists{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;display:flex;flex-direction:column;gap:2px;padding:4px 24px 24px}',
       '.mu-online{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:4px 24px 24px;position:relative}',
-      '.mu-locate-fab{position:absolute;right:22px;bottom:20px;z-index:6;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:50%;background:var(--dsw-alias-bg-layer-2,#232328);color:var(--dsw-alias-label-primary,#f4f4f5);box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:transform .12s ease,background .12s ease}',
+      '.mu-locate-fab{position:absolute;right:26px;bottom:84px;z-index:6;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:50%;background:var(--dsw-alias-bg-layer-2,#232328);color:var(--dsw-alias-label-primary,#f4f4f5);box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:transform .12s ease,background .12s ease}',
       '.mu-locate-fab:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.12));transform:translateY(-1px)}',
       '.mu-locate-fab:active{transform:translateY(0) scale(.96)}',
       '.mu-online-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
