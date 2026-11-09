@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>DSH 音乐面板 · 重构原型</title>
+<style>
+  :root{
+    --bg:#0f1013; --panel:#15161a; --panel2:#1a1b20; --layer3:#202127;
+    --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+    --text:#f1f1f3; --text2:#a7a7b0; --text3:#6f6f7a;
+    --accent:#5686fe; --green:#4ade80; --gold:#e7b24a; --red:#e05252;
+    --bar-h:64px; --top-h:48px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#07080a;color:var(--text);font:13px/1.5 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;display:flex;justify-content:center;padding:24px}
+  .window{width:1180px;height:760px;background:var(--bg);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+  .top{height:var(--top-h);flex:none;display:flex;align-items:center;gap:14px;padding:0 16px;border-bottom:1px solid var(--line)}
+  .brand{font-weight:700;font-size:13px;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
+  .brand .dot{width:16px;height:16px;border-radius:5px;background:linear-gradient(140deg,var(--accent),#8b5cf6)}
+  .sources{display:flex;gap:4px;margin-left:8px}
+  .chip{border:0;background:transparent;color:var(--text2);height:28px;padding:0 11px;border-radius:8px;font-size:12.5px;cursor:pointer}
+  .chip:hover{background:rgba(255,255,255,.06);color:var(--text)}
+  .chip.on{background:rgba(255,255,255,.1);color:var(--text);font-weight:600}
+  .top .right{margin-left:auto;display:flex;gap:2px}
+  .iconbtn{width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .iconbtn:hover{background:rgba(255,255,255,.08);color:var(--text)}
+  .iconbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+  .main{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+  .toolbar{flex:none;display:flex;align-items:center;gap:8px;padding:10px 18px 6px}
+  .search{flex:1;height:32px;border:1px solid var(--line);border-radius:9px;background:var(--layer3);color:var(--text);padding:0 12px;font-size:12.5px;outline:none}
+  .search::placeholder{color:var(--text3)}
+  .btn{height:30px;border:1px solid var(--line2);border-radius:8px;background:var(--panel2);color:var(--text);padding:0 12px;font-size:12.5px;cursor:pointer}
+  .btn:hover{background:rgba(255,255,255,.1)}
+  .btn.primary{background:var(--accent);border-color:transparent;color:#fff}
+
+  .scroll{flex:1;min-height:0;overflow:auto;padding:4px 18px 16px;scrollbar-width:thin;scrollbar-color:#2a2b31 transparent}
+  .scroll::-webkit-scrollbar{width:8px}
+  .scroll::-webkit-scrollbar-thumb{background:#2a2b31;border-radius:8px}
+
+  /* playlist strip */
+  .strip{display:flex;flex-direction:column;gap:6px;margin:6px 0 12px}
+  .strip-head{display:flex;align-items:center;justify-content:space-between}
+  .strip-title{font-size:12px;font-weight:600;color:var(--text2)}
+  .strip-cards{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+  .pl-card{flex:none;width:72px;display:flex;flex-direction:column;gap:4px;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+  .pl-cover{width:72px;height:72px;border-radius:8px;background:linear-gradient(140deg,#2b2d36,#1b1c22);display:flex;align-items:center;justify-content:center;color:var(--text3);overflow:hidden}
+  .pl-cover img{width:100%;height:100%;object-fit:cover}
+  .pl-name{font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pl-card.on .pl-cover{box-shadow:0 0 0 2px var(--accent)}
+  .pl-card.on .pl-name{color:var(--text)}
+
+  /* list rows */
+  .list-head{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 4px;position:sticky;top:0;background:linear-gradient(var(--bg) 70%,transparent);z-index:2}
+  .list-title{font-size:12px;font-weight:600;color:var(--text2)}
+  .list-actions{display:flex;gap:4px}
+  .row{display:flex;align-items:center;gap:10px;height:56px;border-radius:10px;padding:0 8px;cursor:default}
+  .row:hover{background:rgba(255,255,255,.05)}
+  .row.on{background:color-mix(in srgb,var(--accent) 10%,transparent);box-shadow:inset 2px 0 0 var(--accent)}
+  .row .cov{width:38px;height:38px;border-radius:7px;background:linear-gradient(140deg,#2b2d36,#1b1c22);display:flex;align-items:center;justify-content:center;color:var(--text3);flex:none;overflow:hidden}
+  .row .cov img{width:100%;height:100%;object-fit:cover}
+  .row .maincol{flex:1;min-width:0}
+  .row .t{font-size:13px;display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row.on .t{color:var(--accent);font-weight:600}
+  .row .s{font-size:11.5px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .album{width:190px;font-size:11.5px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none}
+  .row .dur{width:42px;text-align:right;font-size:11.5px;color:var(--text3);font-variant-numeric:tabular-nums;flex:none}
+  .badge{padding:0 5px;height:15px;line-height:15px;border-radius:999px;font-size:10px;font-weight:500}
+  .badge.vip{color:var(--gold);background:rgba(231,178,74,.12);border:1px solid rgba(231,178,74,.3)}
+  .dl{color:var(--green);display:inline-flex}
+
+  /* playing page overlay */
+  .np{position:absolute;inset:0;background:linear-gradient(160deg,#15161a,#0c0d10);z-index:40;display:none;flex-direction:column}
+  .np.open{display:flex}
+  .np-top{height:48px;display:flex;align-items:center;gap:8px;padding:0 14px;border-bottom:1px solid var(--line)}
+  .np-body{flex:1;display:flex;min-height:0}
+  .np-cover{width:44%;display:flex;align-items:center;justify-content:center}
+  .np-disc{width:300px;height:300px;border-radius:50%;background:linear-gradient(140deg,#2b2d36,#14151a);box-shadow:0 30px 80px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px}
+  .np-lyrics{flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:0 40px}
+  .ly{font-size:15px;color:var(--text3);transition:.15s}
+  .ly.on{font-size:19px;color:var(--text);font-weight:600}
+  .ly .tr{font-size:12px;color:var(--text2);font-weight:400;margin-top:2px}
+  .np-bar{flex:none;border-top:1px solid var(--line);padding:12px 20px 14px;display:flex;flex-direction:column;gap:8px}
+  .np-prog{height:4px;border-radius:2px;background:rgba(255,255,255,.12);position:relative;cursor:pointer}
+  .np-prog i{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--accent);width:32%}
+  .np-ctrl{display:flex;align-items:center;justify-content:center;gap:18px}
+  .round{width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .round.big{width:46px;height:46px;background:var(--text);color:#111}
+  .round svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+  /* player bar */
+  .bar{height:var(--bar-h);flex:none;margin:0 12px 12px;border:1px solid var(--line);border-radius:14px;background:rgba(24,25,30,.72);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);display:flex;align-items:center;gap:12px;padding:0 12px;position:relative}
+  .bar .cov{width:42px;height:42px;border-radius:8px;flex:none;background:linear-gradient(140deg,#2b2d36,#14151a)}
+  .bar .info{width:220px;min-width:0}
+  .bar .t{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
+  .bar .s{font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar .mid{flex:1;display:flex;align-items:center;gap:10px;min-width:0}
+  .bar-prog{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.12);position:relative;cursor:pointer}
+  .bar-prog i{position:absolute;inset:0 auto 0 0;border-radius:2px;background:var(--accent);width:28%}
+  .time{font-size:10.5px;color:var(--text3);font-variant-numeric:tabular-nums;flex:none}
+  .bar .ctrl{display:flex;align-items:center;gap:4px;flex:none}
+
+  /* queue overlay */
+  .queue{position:absolute;right:20px;bottom:calc(var(--bar-h) + 24px);width:340px;max-height:52%;background:var(--panel2);border:1px solid var(--line2);border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.6);display:none;flex-direction:column;z-index:30;overflow:hidden}
+  .queue.open{display:flex}
+  .q-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:600}
+  .q-head .actions{margin-left:auto;display:flex;gap:2px}
+  .q-list{overflow:auto;padding:4px}
+  .q-row{display:flex;align-items:center;gap:8px;height:38px;border-radius:8px;padding:0 8px;font-size:12px;cursor:default}
+  .q-row:hover{background:rgba(255,255,255,.06)}
+  .q-row.on{background:rgba(255,255,255,.1);color:var(--accent);font-weight:600}
+  .q-row .idx{width:18px;text-align:right;color:var(--text3);font-size:11px;font-variant-numeric:tabular-nums}
+
+  /* context menu */
+  .ctx{position:absolute;z-index:60;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;box-shadow:0 18px 44px rgba(0,0,0,.6);padding:4px;display:none;min-width:170px}
+  .ctx.open{display:block}
+  .ctx button{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;color:var(--text);font-size:12.5px;padding:7px 10px;border-radius:7px;cursor:pointer;text-align:left}
+  .ctx button:hover{background:rgba(255,255,255,.08)}
+
+  /* locate fab */
+  .fab{position:absolute;right:26px;bottom:calc(var(--bar-h) + 20px);width:38px;height:38px;border-radius:50%;border:1px solid var(--line2);background:var(--panel2);color:var(--text);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 28px rgba(0,0,0,.5);cursor:pointer;z-index:20}
+  .fab:hover{background:rgba(255,255,255,.12)}
+  .fab svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+  /* toast */
+  .toast{position:absolute;left:50%;bottom:calc(var(--bar-h) + 26px);transform:translateX(-50%);background:rgba(20,21,26,.95);border:1px solid var(--line2);border-radius:999px;padding:7px 14px;font-size:12px;opacity:0;transition:.2s;pointer-events:none;z-index:70}
+  .toast.show{opacity:1}
+
+  .note{width:1180px;margin:14px auto 0;color:#8a8a93;font-size:12px;line-height:1.8}
+  .note b{color:#cfcfd6}
+</style>
+</head>
+<body>
+<div>
+  <div class="window" id="win">
+    <div class="top">
+      <div class="brand"><span class="dot"></span>音乐</div>
+      <div class="sources" id="sources">
+        <button class="chip on" data-src="local">本地音乐</button>
+        <button class="chip" data-src="netease">网易云</button>
+        <button class="chip" data-src="qq">QQ 音乐</button>
+        <button class="chip" data-src="kugou">酷狗</button>
+      </div>
+      <div class="right">
+        <button class="iconbtn" title="刷新"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
+        <button class="iconbtn" title="设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      </div>
+    </div>
+
+    <div class="main" id="main">
+      <div class="toolbar"><input class="search" placeholder="搜索在线音乐…"><button class="btn primary" id="searchBtn">搜索</button></div>
+      <div class="scroll" id="scroll"></div>
+      <button class="fab" id="fab" title="定位到正在播放"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+
+      <div class="np" id="np">
+        <div class="np-top">
+          <button class="iconbtn" id="npClose"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+          <span style="font-size:12px;color:var(--text2)">正在播放 · 网易云</span>
+          <button class="iconbtn" style="margin-left:auto" title="翻译"><svg viewBox="0 0 24 24"><path d="M4 5h10M9 3v2c0 4-2 7-5 9M6 9c1 2 3 4 6 5"/><path d="M13 21l4-9 4 9M14.5 18h5"/></svg></button>
+        </div>
+        <div class="np-body">
+          <div class="np-cover"><div class="np-disc">封面</div></div>
+          <div class="np-lyrics">
+            <div class="ly">ただ いま 夢の中</div>
+            <div class="ly on">如果只是一场梦<div class="tr">那该有多好</div></div>
+            <div class="ly">你依旧出现在我梦里</div>
+            <div class="ly">今でも夢を見る</div>
+          </div>
+        </div>
+        <div class="np-bar">
+          <div class="np-prog"><i style="width:38%"></i></div>
+          <div class="np-ctrl">
+            <button class="round"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg></button>
+            <button class="round"><svg viewBox="0 0 24 24"><path d="M19 20L9 12l10-8v16z"/><path d="M5 19V5"/></svg></button>
+            <button class="round big"><svg viewBox="0 0 24 24"><path d="M8 5v14M19 5l-9 7 9 7z"/></svg></button>
+            <button class="round"><svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/></svg></button>
+            <button class="round"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="queue" id="queue">
+        <div class="q-head">
+          播放队列 <span style="color:var(--text3);font-weight:400;font-size:11px">· 列表循环</span>
+          <div class="actions">
+            <button class="iconbtn" id="qLocate" title="定位当前播放"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+            <button class="iconbtn" id="qClose" title="关闭"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+        </div>
+        <div class="q-list" id="qList"></div>
+      </div>
+    </div>
+
+    <div class="bar">
+      <div class="cov"></div>
+      <div class="info">
+        <div class="t">Lemon <span class="dl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></span></div>
+        <div class="s">米津玄師</div>
+      </div>
+      <div class="mid">
+        <div class="bar-prog" id="barProg"><i id="barFill" style="width:28%"></i></div>
+        <span class="time">1:32 / 4:31</span>
+      </div>
+      <div class="ctrl">
+        <button class="iconbtn" title="随机"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
+        <button class="iconbtn" title="上一首"><svg viewBox="0 0 24 24"><path d="M19 20L9 12l10-8v16z"/><path d="M5 19V5"/></svg></button>
+        <button class="round big" style="width:38px;height:38px" title="暂停"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
+        <button class="iconbtn" title="下一首"><svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/></svg></button>
+        <button class="iconbtn" id="qToggle" title="播放队列"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      </div>
+      <button class="iconbtn" title="收藏"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>
+      <button class="iconbtn" id="npOpen" title="打开播放页"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+    </div>
+
+    <div class="ctx" id="ctx"><button id="ctxRemove">从最近播放中移除</button></div>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <div class="note">
+    <b>原型说明</b>：顶部来源 tab → 内容区单一滚动（歌单横条 + 列表）→ 底栏常驻播放条 → 右下浮动定位 → 播放页/队列/右键菜单为浮层。
+    点击行播放、双击也可以；右键历史行出现菜单；点击歌单卡片切换内容区（不新增 tab 栏）；定位按钮跳到正在播放的列表并滚动。数据为演示用。
+  </div>
+</div>
+
+<script>
+(function(){
+  var PLAYLISTS=[
+    {id:'p1',name:'Aliboder 喜欢的音乐',count:121,c:'linear-gradient(140deg,#6d7cff,#3b3f7a)'},
+    {id:'p2',name:'导入音乐 2026/5/13',count:240,c:'linear-gradient(140deg,#3d6df0,#1b2a5a)'},
+    {id:'p3',name:'KUAI',count:18,c:'linear-gradient(140deg,#7fe1c3,#2f6f5e)'},
+    {id:'p4',name:'Hatsune Miku 歌词本',count:50,c:'linear-gradient(140deg,#e0e0e0,#9a9aa2)'},
+    {id:'p5',name:'4C',count:11,c:'linear-gradient(140deg,#ff9ad5,#7a4f8a)'},
+    {id:'p6',name:'每日推荐',count:30,c:'linear-gradient(140deg,#ffd166,#b07a2a)'}
+  ];
+  var HISTORY=[
+    {id:'s1',title:'蜘蛛糸モノポリー',artist:'sasakure.UK / 初音ミク',album:'EVERGREEN SONGS 2013',dur:275,dl:true},
+    {id:'s2',title:'我爱メイデン',artist:'羽生まゐご / 初音ミク',album:'',dur:183,dl:true},
+    {id:'s3',title:'Evil Eye',artist:'Franz Ferdinand',album:'Right Thoughts, Right Words, Right Action',dur:167,dl:true},
+    {id:'s4',title:'ミュージックミュージック',artist:'とあ / 初音ミク',album:'MIKU/TOA',dur:222,dl:true},
+    {id:'s5',title:'ピターチョコデコレーション/苦巧克力装饰',artist:'Chu2',album:'ピターチョコデコレーション/苦巧克力装饰',dur:198,dl:true},
+    {id:'s6',title:'Stand On the Horizon',artist:'Franz Ferdinand',album:'Right Thoughts, Right Words, Right Action',dur:263,dl:true},
+    {id:'s7',title:'pure imagination（纯粹幻想）',artist:'王璟 瑜',album:'听风',dur:22,dl:false},
+    {id:'s8',title:'春嵐',artist:'john / 初音ミク',album:'ROSE',dur:162,dl:true},
+    {id:'s9',title:'ダイダイダイダイダイキライ',artist:'雨良',album:'ダイダイダイダイダイキライ',dur:157,dl:true}
+  ];
+  var QUEUE=[
+    {t:'Lemon',a:'米津玄師'},{t:'打上花火',a:'DAOKO / 米津玄師'},{t:'春嵐',a:'john / 初音ミク'},
+    {t:'Evil Eye',a:'Franz Ferdinand'},{t:'ミュージックミュージック',a:'とあ / 初音ミク'}
+  ];
+  var state={source:'local',view:'recent',currentPlaylist:null,playingId:'s4',npOpen:false,queueOpen:false,ctxRow:null};
+  var scroll=document.getElementById('scroll');
+  var toast=document.getElementById('toast');
+  function t(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(t._h);t._h=setTimeout(function(){toast.classList.remove('show')},1600)}
+  function fmt(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+  function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+  function rowHtml(it,idx){
+    var on=it.id===state.playingId;
+    return '<div class="row'+(on?' on':'')+'" data-id="'+it.id+'" data-idx="'+idx+'">'+
+      '<div class="cov">'+(it.cover?'<img src="'+it.cover+'">':'♪')+'</div>'+
+      '<div class="maincol"><div class="t">'+esc(it.title)+(it.dl?'<span class="dl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></span>':'')+'</div>'+
+      '<div class="s">'+esc(it.artist)+'</div></div>'+
+      '<div class="album">'+esc(it.album||'')+'</div>'+
+      '<div class="dur">'+fmt(it.dur)+'</div></div>';
+  }
+
+  function render(){
+    var html='';
+    if(state.source==='local'){
+      html+='<div class="list-head"><span class="list-title">歌曲 · 本地音乐</span><span class="list-actions"><button class="btn" style="height:26px;padding:0 10px;font-size:11.5px">排序</button></span></div>';
+      html+=HISTORY.slice(0,9).map(function(it,i){return rowHtml(it,i)}).join('');
+    }else{
+      // 歌单横条常驻在上方（相当于 Tab 栏），红框区域随选择切换
+      html+='<div class="strip"><div class="strip-head"><span class="strip-title">我的歌单</span><span style="font-size:11px;color:var(--text3)">'+PLAYLISTS.length+'</span></div><div class="strip-cards">'+
+        '<button class="pl-card'+(state.currentPlaylist===null?' on':'')+'" data-pl="recent"><span class="pl-cover" style="background:linear-gradient(140deg,#31405f,#1a2030)">🕘</span><span class="pl-name">最近播放</span></button>'+
+        PLAYLISTS.map(function(p){return '<button class="pl-card'+(state.currentPlaylist&&state.currentPlaylist.id===p.id?' on':'')+'" data-pl="'+p.id+'"><span class="pl-cover" style="background:'+p.c+'">♪</span><span class="pl-name">'+esc(p.name)+'</span></button>'}).join('')+
+        '</div></div>';
+      var cur=state.currentPlaylist;
+      html+='<div class="list-head"><span class="list-title">'+(cur?esc(cur.name):'最近播放')+'</span><span class="list-actions">'+
+        (cur?'':'<button class="btn" style="height:26px;padding:0 10px;font-size:11.5px" title="清除无法播放">🗑</button>')+
+        '</span></div>';
+      html+=HISTORY.map(function(it,i){return rowHtml(it,i)}).join('');
+    }
+    scroll.innerHTML=html;
+    bind();
+  }
+
+  function bind(){
+    scroll.querySelectorAll('.row').forEach(function(row){
+      row.addEventListener('click',function(){
+        state.playingId=row.dataset.id;
+        var it=HISTORY.find(function(x){return x.id===row.dataset.id});
+        if(it){document.querySelector('.bar .t').innerHTML=esc(it.title)+' <span class="dl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></span>';document.querySelector('.bar .s').textContent=it.artist}
+        render();
+      });
+      row.addEventListener('contextmenu',function(e){
+        e.preventDefault();
+        if(state.source==='local')return;
+        state.ctxRow=row.dataset.id;
+        var ctx=document.getElementById('ctx');
+        ctx.classList.add('open');
+        var r=winRect();ctx.style.left=Math.min(e.clientX-r.left, r.width-190)+'px';ctx.style.top=Math.min(e.clientY-r.top, r.height-60)+'px';
+        document.getElementById('ctxRemove').textContent='从最近播放中移除';
+      });
+    });
+    scroll.querySelectorAll('.pl-card').forEach(function(card){
+      card.addEventListener('click',function(){
+        var id=card.dataset.pl;
+        if(id==='recent'){state.currentPlaylist=null;render();return}
+        var p=PLAYLISTS.find(function(x){return x.id===id});
+        if(p){state.currentPlaylist=p;render();toast.textContent='下方区域已切换为：'+p.name;toast.classList.add('show');clearTimeout(t._h);t._h=setTimeout(function(){toast.classList.remove('show')},1200)}
+      });
+    });
+    var back=document.getElementById('backRecent');
+    if(back)back.addEventListener('click',function(){state.currentPlaylist=null;render()});
+  }
+
+  function winRect(){return document.getElementById('win').getBoundingClientRect()}
+
+  document.getElementById('sources').addEventListener('click',function(e){
+    var b=e.target.closest('.chip');if(!b)return;
+    document.querySelectorAll('#sources .chip').forEach(function(c){c.classList.toggle('on',c===b)});
+    state.source=b.dataset.src;state.currentPlaylist=null;
+    state.playingId=b.dataset.src==='local'?'s4':'s1';
+    render();
+  });
+  document.getElementById('ctxRemove').addEventListener('click',function(){
+    if(!state.ctxRow)return;
+    var i=HISTORY.findIndex(function(x){return x.id===state.ctxRow});
+    if(i>=0)HISTORY.splice(i,1);
+    document.getElementById('ctx').classList.remove('open');state.ctxRow=null;
+    render();t('已从最近播放中移除');
+  });
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('#ctx'))document.getElementById('ctx').classList.remove('open');
+  });
+  document.getElementById('qToggle').addEventListener('click',function(){
+    var q=document.getElementById('queue');q.classList.toggle('open');
+    var list=document.getElementById('qList');
+    list.innerHTML=QUEUE.map(function(it,i){return '<div class="q-row'+(i===1?' on':'')+'"><span class="idx">'+(i+1)+'</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(it.t)+'</span><span style="color:var(--text3);font-size:11px">'+esc(it.a)+'</span></div>'}).join('');
+  });
+  document.getElementById('qClose').addEventListener('click',function(){document.getElementById('queue').classList.remove('open')});
+  document.getElementById('qLocate').addEventListener('click',function(){
+    var on=document.querySelector('#qList .q-row.on');if(on)on.scrollIntoView({block:'center',behavior:'smooth'});
+  });
+  document.getElementById('npOpen').addEventListener('click',function(){document.getElementById('np').classList.add('open')});
+  document.getElementById('npClose').addEventListener('click',function(){document.getElementById('np').classList.remove('open')});
+  document.getElementById('fab').addEventListener('click',function(){
+    if(state.source==='local'){var on=document.querySelector('.row.on');if(on)on.scrollIntoView({block:'center',behavior:'smooth'});else t('当前没有正在播放的歌曲');return}
+    state.currentPlaylist=null;render();
+    var on=document.querySelector('.row.on');if(on)on.scrollIntoView({block:'center',behavior:'smooth'});
+  });
+  document.getElementById('barProg').addEventListener('click',function(e){
+    var r=this.getBoundingClientRect();var p=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+    document.getElementById('barFill').style.width=(p*100)+'%';t('拖动到 '+Math.round(p*100)+'%');
+  });
+  render();
+})();
+</script>
+</body>
+</html>
