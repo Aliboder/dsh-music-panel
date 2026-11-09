@@ -96,6 +96,7 @@ window.__ModuleLoader__.load({
         'page.prev': '上一首',
         'page.next': '下一首',
         'page.queue': '播放队列',
+        'page.locateCurrent': '定位到当前播放',
         'page.clearQueue': '清空队列',
         'page.moveUp': '上移',
         'page.moveDown': '下移',
@@ -414,6 +415,7 @@ window.__ModuleLoader__.load({
         'page.prev': 'Previous',
         'page.next': 'Next',
         'page.queue': 'Queue',
+        'page.locateCurrent': 'Locate current track',
         'page.clearQueue': 'Clear queue',
         'page.moveUp': 'Move up',
         'page.moveDown': 'Move down',
@@ -900,6 +902,13 @@ window.__ModuleLoader__.load({
 
     var ICONS = {
       check: { parts: [['path', { d: 'M20 6L9 17l-5-5' }]] },
+      target: {
+        parts: [
+          ['circle', { cx: 12, cy: 12, r: 7 }],
+          ['circle', { cx: 12, cy: 12, r: 2.5 }],
+          ['path', { d: 'M12 2v3M12 19v3M2 12h3M19 12h3' }],
+        ],
+      },
       refresh: {
         parts: [
           ['path', { d: 'M21 12a9 9 0 1 1-2.64-6.36' }],
@@ -3065,6 +3074,23 @@ window.__ModuleLoader__.load({
           { className: 'mu-qoverlay-head' },
           h('span', null, t('page.queue')),
           h('span', { className: 'mu-queue-mode' }, playModeLabel(playModeOf(snap))),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-icon-btn mu-icon-btn-sm',
+              title: t('page.locateCurrent'),
+              onClick: function () {
+                var list = listRef.current
+                if (list === null || list === undefined) return
+                var row = list.querySelector('.mu-queue-row.is-current')
+                if (row !== null && typeof row.scrollIntoView === 'function') {
+                  row.scrollIntoView({ block: 'center', behavior: 'smooth' })
+                }
+              },
+            },
+            icon('target', 14),
+          ),
           h(
             'button',
             { type: 'button', className: 'mu-icon-btn mu-icon-btn-sm', onClick: function () { toggleQueueOverlay(false) } },
@@ -7421,34 +7447,6 @@ window.__ModuleLoader__.load({
                         'div',
                         { className: 'mu-prefs-body' },
                         h('p', { className: 'mu-prefs-hint' }, t('online.settingsHint')),
-                        h(
-                          'div',
-                          { className: 'mu-prefs-row' },
-                          h('span', { className: 'mu-prefs-label' }, t('online.quality')),
-                          h(
-                            'div',
-                            { className: 'mu-online-modes' },
-                            [
-                              ['standard', t('online.qualityStandard')],
-                              ['high', t('online.qualityHigh')],
-                              ['lossless', t('online.qualityLossless')],
-                            ].map(function (entry) {
-                              return h(
-                                'button',
-                                {
-                                  key: entry[0],
-                                  type: 'button',
-                                  className:
-                                    'mu-chip' + (onlineQuality === entry[0] ? ' is-on' : ''),
-                                  onClick: function () {
-                                    saveOnlineQuality(entry[0])
-                                  },
-                                },
-                                entry[1],
-                              )
-                            }),
-                          ),
-                        ),
                         h(
                           'div',
                           { className: 'mu-prefs-row' },
