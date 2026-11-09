@@ -6006,7 +6006,11 @@ window.__ModuleLoader__.load({
           })
       }
 
-      function openOnlinePlaylist(playlist) {        var seq = onlineSeq.current + 1
+      function openOnlinePlaylist(playlist) {
+        // Playlist songs only render in the playlists mode; switch first so
+        // clicking a card always opens it.
+        setOnlineMode('playlists')
+        var seq = onlineSeq.current + 1
         onlineSeq.current = seq
         setOnlinePlaylistLoading(true)
         setOnlinePlaylistError('')
@@ -8689,18 +8693,6 @@ window.__ModuleLoader__.load({
           ? h(
               'div',
               { className: 'mu-online' },
-              current !== null
-                ? h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-locate-fab',
-                      title: t('online.locatePlaying'),
-                      onClick: locatePlayingRow,
-                    },
-                    icon('target', 18),
-                  )
-                : null,
               h(
                 'div',
                 { className: 'mu-online-bar' },
@@ -8803,6 +8795,43 @@ window.__ModuleLoader__.load({
                       : h(
                           'div',
                           { className: 'mu-online-history' },
+                          // Compact playlist strip pinned above the history.
+                          onlinePlaylists.length > 0
+                            ? h(
+                                'div',
+                                { className: 'mu-online-playlist-chips mu-online-playlist-chips-top' },
+                                onlinePlaylists.slice(0, 10).map(function (playlist) {
+                                  return h(
+                                    'button',
+                                    {
+                                      type: 'button',
+                                      key: playlist.id,
+                                      className: 'mu-online-playlist-chip',
+                                      title: playlist.name,
+                                      onClick: function () {
+                                        openOnlinePlaylist(playlist)
+                                      },
+                                    },
+                                    h(
+                                      'span',
+                                      { className: 'mu-online-playlist-chip-cover' },
+                                      playlist.cover !== ''
+                                        ? h('img', {
+                                            src: playlist.cover,
+                                            alt: '',
+                                            loading: 'lazy',
+                                          })
+                                        : icon('list', 14),
+                                    ),
+                                    h(
+                                      'span',
+                                      { className: 'mu-online-playlist-chip-name mu-ellipsis' },
+                                      playlist.name,
+                                    ),
+                                  )
+                                }),
+                              )
+                            : null,
                           onlineHistoryForProvider(onlineProvider).length > 0
                             ? h(
                                 'div',
@@ -8840,64 +8869,6 @@ window.__ModuleLoader__.load({
                                     },
                                   )
                                 }),
-                              )
-                            : null,
-                          // My playlists stay on this panel: a quick entry point
-                          // so the feature is discoverable without a sub-tab.
-                          onlinePlaylists.length > 0
-                            ? h(
-                                'div',
-                                { className: 'mu-online-playlists-inline' },
-                                h(
-                                  'div',
-                                  { className: 'mu-online-playlist-title mu-online-recent-head' },
-                                  h('span', null, t('online.myPlaylists')),
-                                  h(
-                                    'button',
-                                    {
-                                      type: 'button',
-                                      className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                                      onClick: function () {
-                                        loadMyPlaylists()
-                                      },
-                                    },
-                                    t('online.viewAll'),
-                                  ),
-                                ),
-                                h(
-                                  'div',
-                                  { className: 'mu-online-playlist-chips' },
-                                  onlinePlaylists.slice(0, 8).map(function (playlist) {
-                                    return h(
-                                      'button',
-                                      {
-                                        type: 'button',
-                                        key: playlist.id,
-                                        className: 'mu-online-playlist-chip',
-                                        title: playlist.name,
-                                        onClick: function () {
-                                          openOnlinePlaylist(playlist)
-                                        },
-                                      },
-                                      h(
-                                        'span',
-                                        { className: 'mu-online-playlist-chip-cover' },
-                                        playlist.cover !== ''
-                                          ? h('img', {
-                                              src: playlist.cover,
-                                              alt: '',
-                                              loading: 'lazy',
-                                            })
-                                          : icon('list', 16),
-                                      ),
-                                      h(
-                                        'span',
-                                        { className: 'mu-online-playlist-chip-name mu-ellipsis' },
-                                        playlist.name,
-                                      ),
-                                    )
-                                  }),
-                                ),
                               )
                             : null,
                         )
@@ -10265,11 +10236,12 @@ window.__ModuleLoader__.load({
       '.mu-online-recent-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
       '.mu-online-recent-actions{display:flex;align-items:center;gap:2px}',
       '.mu-online-playlists-inline{display:flex;flex-direction:column;gap:6px;margin-top:8px}',
-      '.mu-online-playlist-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}',
-      '.mu-online-playlist-chip{flex:none;width:94px;display:flex;flex-direction:column;gap:4px;padding:0;border:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer;text-align:left}',
-      '.mu-online-playlist-chip-cover{display:flex;align-items:center;justify-content:center;width:94px;height:94px;border-radius:10px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-online-playlist-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}',
+      '.mu-online-playlist-chips-top{padding-bottom:6px}',
+      '.mu-online-playlist-chip{flex:none;width:64px;display:flex;flex-direction:column;gap:2px;padding:0;border:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer;text-align:left}',
+      '.mu-online-playlist-chip-cover{display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-online-playlist-chip-cover img{width:100%;height:100%;object-fit:cover}',
-      '.mu-online-playlist-chip-name{font-size:11.5px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-online-playlist-chip-name{font-size:10.5px;line-height:1.3;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-context-layer{position:fixed;inset:0;z-index:200}',
       '.mu-context-menu{position:fixed;min-width:170px;padding:4px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:10px;background:var(--dsw-alias-bg-layer-2,#232328);box-shadow:0 10px 32px rgba(0,0,0,.5);display:flex;flex-direction:column}',
       '.mu-context-item{display:flex;align-items:center;width:100%;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12.5px;text-align:left;cursor:pointer}',
