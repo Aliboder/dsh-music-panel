@@ -209,6 +209,11 @@ window.__ModuleLoader__.load({
         'online.cacheCleared': '缓存已清空',
         'online.cached': '已缓存',
         'online.cacheProgress': '缓存中 {pct}%',
+        'online.cacheList': '缓存列表',
+        'online.cacheEmpty': '还没有缓存的歌曲',
+        'online.removeCache': '删除缓存',
+        'online.cacheRemoved': '已删除该缓存',
+        'online.hasLyric': '含歌词',
         'online.networkError': '网络请求失败，请检查网络后重试',
         'online.loginExpired': '登录已过期，请重新登录（设置 → 在线）',
         'online.playFailed': '在线播放失败，已自动跳过',
@@ -522,6 +527,11 @@ window.__ModuleLoader__.load({
         'online.cacheCleared': 'Cache cleared',
         'online.cached': 'Cached',
         'online.cacheProgress': 'Caching {pct}%',
+        'online.cacheList': 'Cache',
+        'online.cacheEmpty': 'Nothing cached yet',
+        'online.removeCache': 'Remove from cache',
+        'online.cacheRemoved': 'Removed',
+        'online.hasLyric': 'lyrics',
         'online.networkError': 'Network request failed, please retry',
         'online.loginExpired': 'Sign-in expired, please sign in again (Settings → Online)',
         'online.playFailed': 'Online playback failed — skipped',
@@ -4932,6 +4942,9 @@ window.__ModuleLoader__.load({
       var [depth, setDepth] = useState(4)
       var [onlineQuality, setOnlineQuality] = useState('high')
       var [cacheStats, setCacheStats] = useState(null)
+      var [cacheDialogOpen, setCacheDialogOpen] = useState(false)
+      var [cacheSongs, setCacheSongs] = useState([])
+      var [cacheLoading, setCacheLoading] = useState(false)
       var [configSaving, setConfigSaving] = useState(false)
       var [configSaved, setConfigSaved] = useState(false)
       var [configError, setConfigError] = useState(null)
@@ -5439,6 +5452,15 @@ window.__ModuleLoader__.load({
             writeOnlineHistory(next)
             return next
           })
+          // Keep a small metadata sidecar so the cache list can show names.
+          requestJson('POST', API + 'online/cache/meta', {
+            provider: entry.provider,
+            id: entry.id,
+            title: entry.title,
+            artist: entry.artist,
+            album: entry.album,
+            coverUrl: entry.coverUrl,
+          }).catch(function () {})
         },
         [current === null ? '' : current.path],
       )
@@ -5466,6 +5488,37 @@ window.__ModuleLoader__.load({
             setCacheStats({ files: Number(body.files) || 0, bytes: Number(body.bytes) || 0 })
           })
           .catch(function () {})
+      }
+
+      function loadCacheList() {
+        setCacheLoading(true)
+        getJson(API + 'online/cache/list')
+          .then(function (body) {
+            setCacheSongs(Array.isArray(body.songs) ? body.songs : [])
+            setCacheLoading(false)
+          })
+          .catch(function () {
+            setCacheLoading(false)
+          })
+      }
+
+      function removeCacheSong(song) {
+        requestJson('POST', API + 'online/cache/remove', {
+          provider: song.provider,
+          id: song.id,
+        })
+          .then(function () {
+            setCacheSongs(function (list) {
+              return list.filter(function (item) {
+                return !(item.provider === song.provider && item.id === song.id)
+              })
+            })
+            showToast(t('online.cacheRemoved'))
+            loadOnlineCache()
+          })
+          .catch(function (error) {
+            showToast(String((error && error.message) || error))
+          })
       }
 
       function clearOnlineCache() {
@@ -5811,7 +5864,10 @@ window.__ModuleLoader__.load({
               { className: 'mu-row-title' },
               result.title,
               onlineCached[result.id] === true
-                ? h('span', { className: 'mu-cached-badge' }, t('online.cached'))
+                ? h('span', {
+                    className: 'mu-cached-dot',
+                    title: t('online.cached'),
+                  })
                 : null,
             ),
             h('div', { className: 'mu-row-sub' }, result.artist || ''),
@@ -7396,6 +7452,18 @@ window.__ModuleLoader__.load({
                             {
                               type: 'button',
                               className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                              onClick: function () {
+                                setCacheDialogOpen(true)
+                                loadCacheList()
+                              },
+                            },
+                            t('online.cacheList'),
+                          ),
+                          h(
+                            'button',
+                            {
+                              type: 'button',
+                              className: 'mu-btn mu-btn-ghost mu-btn-sm',
                               onClick: clearOnlineCache,
                             },
                             t('online.clearCache'),
@@ -7820,6 +7888,101 @@ window.__ModuleLoader__.load({
                   t('online.status' + (onlineLoginDialog.status || 'waiting')),
                 ),
                 onlineLoginDialog.error ? h('div', { className: 'mu-online-error' }, onlineLoginDialog.error) : null,
+              ),
+            )
+          : null,
+
+        cacheDialogOpen
+          ? h(
+              'div',
+              { className: 'mu-info-layer' },
+              h('div', {
+                className: 'mu-info-scrim',
+                onClick: function () {
+                  setCacheDialogOpen(false)
+                },
+              }),
+              h(
+                'div',
+                { className: 'mu-info' },
+                h(
+                  'div',
+                  { className: 'mu-info-head' },
+                  h(
+                    'span',
+                    { className: 'mu-info-title' },
+                    t('online.cacheList') + ' · ' + cacheSongs.length,
+                  ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-icon-btn-sm',
+                      onClick: function () {
+                        setCacheDialogOpen(false)
+                      },
+                    },
+                    icon('x', 14),
+                  ),
+                ),
+                cacheLoading
+                  ? h(
+                      'div',
+                      { className: 'mu-state' },
+                      h('div', { className: 'mu-spinner' }),
+                      t('page.loading'),
+                    )
+                  : cacheSongs.length === 0
+                    ? h(
+                        'div',
+                        { className: 'mu-state' },
+                        h('div', { className: 'mu-state-sub' }, t('online.cacheEmpty')),
+                      )
+                    : h(
+                        'div',
+                        { className: 'mu-cache-list' },
+                        cacheSongs.map(function (song) {
+                          var providerLabel =
+                            song.provider === 'netease'
+                              ? t('online.providerNetease')
+                              : song.provider === 'qq'
+                                ? t('online.providerQq')
+                                : t('online.providerKugou')
+                          var parts = [song.artist, providerLabel]
+                          if (song.hasLyric) parts.push(t('online.hasLyric'))
+                          return h(
+                            'div',
+                            { className: 'mu-cache-row', key: song.provider + ':' + song.id },
+                            h(
+                              'div',
+                              { className: 'mu-cache-main' },
+                              h('div', { className: 'mu-cache-title' }, song.title),
+                              h(
+                                'div',
+                                { className: 'mu-cache-sub' },
+                                parts
+                                  .filter(function (part) {
+                                    return part !== ''
+                                  })
+                                  .join(' · '),
+                              ),
+                            ),
+                            h('span', { className: 'mu-cache-size' }, formatBytes(song.size)),
+                            h(
+                              'button',
+                              {
+                                type: 'button',
+                                className: 'mu-icon-btn mu-icon-btn-sm',
+                                title: t('online.removeCache'),
+                                onClick: function () {
+                                  removeCacheSong(song)
+                                },
+                              },
+                              icon('trash', 14),
+                            ),
+                          )
+                        }),
+                      ),
               ),
             )
           : null,
@@ -9939,6 +10102,14 @@ window.__ModuleLoader__.load({
       '.mu-bar-src{display:inline-block;margin-left:6px;padding:0 5px;font-size:10px;font-weight:500;line-height:15px;border-radius:999px;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));vertical-align:1px}',
       '.mu-bar-cache{color:var(--dsw-alias-state-success-primary,#4ade80);background:rgba(74,222,128,.12)}',
       '.mu-cached-badge{margin-left:6px;padding:0 5px;font-size:10px;font-weight:500;line-height:15px;border-radius:999px;color:var(--dsw-alias-state-success-primary,#4ade80);background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3)}',
+      '.mu-cached-dot{display:inline-block;flex:none;width:6px;height:6px;margin-left:6px;border-radius:50%;background:var(--dsw-alias-state-success-primary,#4ade80);box-shadow:0 0 6px rgba(74,222,128,.55)}',
+      '.mu-cache-list{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow-y:auto;margin-top:4px}',
+      '.mu-cache-row{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px}',
+      '.mu-cache-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
+      '.mu-cache-main{flex:1;min-width:0}',
+      '.mu-cache-title{font-size:13px;color:var(--dsw-alias-label-primary,#e6e6e6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-cache-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:1px}',
+      '.mu-cache-size{flex:none;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
       '.mu-bar-artist{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
       '.mu-bar-controls{display:flex;align-items:center;gap:4px;justify-self:center}',
       '.mu-bar-wave{display:block;pointer-events:none;opacity:.95}',
