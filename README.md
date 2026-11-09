@@ -4,7 +4,7 @@
 
 **在 DeepSeek Harness 里，把你自己的音乐库变成一台完整的播放器。**
 
-本地扫描 · 封面墙 · 歌词 · 元数据编辑 · 播放统计 · 纯本地运行
+本地扫描 · 封面墙 · 歌词 · 元数据编辑 · 播放统计 · 在线音乐 · 纯本地运行
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
 [![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
@@ -46,6 +46,12 @@
 - 队列面板：拖拽排序、移除、点击跳播；底栏按钮弹出、位置锚定按钮旁边
 - 快捷键：空格播放 / 暂停、Ctrl/⌘ + ←/→ 上一首 / 下一首、`/` 聚焦搜索
 - 记忆上次播放曲目与进度、每首歌断点续播
+
+### 在线音乐
+- 主面板「在线」视图：网易云 / QQ 音乐 / 酷狗搜索与播放（Host 取链 + 同源代理流，Range 透传）
+- 设置 → 在线：三平台扫码登录，登录态只保存在本机；未登录可播放免费曲目
+- 在线曲目自动加载平台歌词（含翻译）
+- 仅流式播放，不下载、不批量抓取；接口为非官方接口，可能失效
 
 ### 歌词
 - 内嵌歌词（MP3 ID3 USLT / FLAC Vorbis LYRICS）与 `.lrc` 文件，来源顺序可调
