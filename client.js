@@ -9968,7 +9968,9 @@ window.__ModuleLoader__.load({
               onToggleFavorite: toggleFavorite,
               onClose: closeNowPlaying,
               onQueue: function () {
-                closeNowPlaying()
+                // The queue overlay is mounted in its own host seat, which
+                // stacks above the player page: open it without leaving the
+                // page so both stay reachable.
                 toggleQueueOverlay(true)
               },
             })
@@ -10671,7 +10673,7 @@ window.__ModuleLoader__.load({
       '.mu-clickable{cursor:pointer;border-radius:8px;padding:4px 6px;margin:-4px -6px;min-width:0}',
       '.mu-clickable:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
       '.mu-clickable:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
-      '.mu-np{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);transition:transform .32s ease;pointer-events:none;user-select:none;will-change:transform}',
+      '.mu-np{position:absolute;inset:0;z-index:80;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);transition:transform .32s ease;pointer-events:none;user-select:none;will-change:transform}',
       '.mu-np.is-open{transform:translateY(0);pointer-events:auto}',
       '.mu-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
       '.mu-np-bg img{width:100%;height:100%;object-fit:cover;filter:blur(72px) saturate(1.35) brightness(.42);transform:scale(1.15)}',
