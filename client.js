@@ -197,6 +197,16 @@ window.__ModuleLoader__.load({
         'online.vip': 'VIP',
         'online.recent': '最近播放',
         'online.vipOnly': 'VIP / 付费曲目无法播放（需要会员）',
+        'online.quality': '音质',
+        'online.qualityStandard': '标准',
+        'online.qualityHigh': '高音质',
+        'online.qualityLossless': '无损',
+        'online.qualitySaved': '音质设置已保存',
+        'online.cache': '缓存',
+        'online.cacheSize': '已缓存 {files} 首 · {n}',
+        'online.refresh': '刷新',
+        'online.clearCache': '清空缓存',
+        'online.cacheCleared': '缓存已清空',
         'online.modeSearch': '搜索',
         'online.modePlaylists': '我的歌单',
         'online.back': '返回',
@@ -494,6 +504,16 @@ window.__ModuleLoader__.load({
         'online.vip': 'VIP',
         'online.recent': 'Recently played',
         'online.vipOnly': 'VIP / paid tracks cannot play without a membership',
+        'online.quality': 'Quality',
+        'online.qualityStandard': 'Standard',
+        'online.qualityHigh': 'High',
+        'online.qualityLossless': 'Lossless',
+        'online.qualitySaved': 'Quality saved',
+        'online.cache': 'Cache',
+        'online.cacheSize': '{files} tracks · {n}',
+        'online.refresh': 'Refresh',
+        'online.clearCache': 'Clear cache',
+        'online.cacheCleared': 'Cache cleared',
         'online.modeSearch': 'Search',
         'online.modePlaylists': 'My playlists',
         'online.back': 'Back',
@@ -1162,6 +1182,14 @@ window.__ModuleLoader__.load({
         }
         return lines
       })
+    }
+
+    function formatBytes(bytes) {
+      var value = Number(bytes) || 0
+      if (value < 1024) return value + ' B'
+      if (value < 1024 * 1024) return (value / 1024).toFixed(0) + ' KB'
+      if (value < 1024 * 1024 * 1024) return (value / (1024 * 1024)).toFixed(1) + ' MB'
+      return (value / (1024 * 1024 * 1024)).toFixed(2) + ' GB'
     }
 
     function Cover(props) {
@@ -4862,6 +4890,8 @@ window.__ModuleLoader__.load({
       // Music library folders live here now that the settings section is gone.
       var [roots, setRoots] = useState([])
       var [depth, setDepth] = useState(4)
+      var [onlineQuality, setOnlineQuality] = useState('high')
+      var [cacheStats, setCacheStats] = useState(null)
       var [configSaving, setConfigSaving] = useState(false)
       var [configSaved, setConfigSaved] = useState(false)
       var [configError, setConfigError] = useState(null)
@@ -4875,6 +4905,7 @@ window.__ModuleLoader__.load({
               depthRef.current = body.config.depth
               setRoots(loadedRoots)
               setDepth(body.config.depth)
+              setOnlineQuality(body.config.onlineQuality || 'high')
             })
             .catch(function () {})
         },
@@ -5278,9 +5309,38 @@ window.__ModuleLoader__.load({
         })
       }
 
-      function loadOnlineProviders() {
-        getJson(API + 'online/providers')
+      function saveOnlineQuality(value) {
+        setOnlineQuality(value)
+        requestJson('POST', API + 'config', { onlineQuality: value })
+          .then(function () {
+            showToast(t('online.qualitySaved'))
+          })
+          .catch(function (error) {
+            showToast(String((error && error.message) || error))
+          })
+      }
+
+      function loadOnlineCache() {
+        getJson(API + 'online/cache')
           .then(function (body) {
+            setCacheStats({ files: Number(body.files) || 0, bytes: Number(body.bytes) || 0 })
+          })
+          .catch(function () {})
+      }
+
+      function clearOnlineCache() {
+        requestJson('POST', API + 'online/cache', {})
+          .then(function () {
+            showToast(t('online.cacheCleared'))
+            loadOnlineCache()
+          })
+          .catch(function (error) {
+            showToast(String((error && error.message) || error))
+          })
+      }
+
+      function loadOnlineProviders() {
+        getJson(API + 'online/providers')          .then(function (body) {
             var list = body.providers && typeof body.providers === 'object' ? body.providers : {}
             setOnlineProviders({
               netease: { loggedIn: list.netease ? list.netease.loggedIn === true : false, nickname: (list.netease && list.netease.nickname) || '' },
@@ -6948,6 +7008,7 @@ window.__ModuleLoader__.load({
                     onClick: function () {
                       setPrefsTab('online')
                       loadOnlineProviders()
+                      loadOnlineCache()
                     },
                   },
                   t('settings.tabOnline'),
@@ -7074,6 +7135,69 @@ window.__ModuleLoader__.load({
                         'div',
                         { className: 'mu-prefs-body' },
                         h('p', { className: 'mu-prefs-hint' }, t('online.settingsHint')),
+                        h(
+                          'div',
+                          { className: 'mu-prefs-row' },
+                          h('span', { className: 'mu-prefs-label' }, t('online.quality')),
+                          h(
+                            'div',
+                            { className: 'mu-online-modes' },
+                            [
+                              ['standard', t('online.qualityStandard')],
+                              ['high', t('online.qualityHigh')],
+                              ['lossless', t('online.qualityLossless')],
+                            ].map(function (entry) {
+                              return h(
+                                'button',
+                                {
+                                  key: entry[0],
+                                  type: 'button',
+                                  className:
+                                    'mu-chip' + (onlineQuality === entry[0] ? ' is-on' : ''),
+                                  onClick: function () {
+                                    saveOnlineQuality(entry[0])
+                                  },
+                                },
+                                entry[1],
+                              )
+                            }),
+                          ),
+                        ),
+                        h(
+                          'div',
+                          { className: 'mu-prefs-row' },
+                          h('span', { className: 'mu-prefs-label' }, t('online.cache')),
+                          h(
+                            'span',
+                            { className: 'mu-online-login-state' },
+                            cacheStats === null
+                              ? '…'
+                              : t('online.cacheSize', {
+                                  n: formatBytes(cacheStats.bytes),
+                                  files: cacheStats.files,
+                                }),
+                          ),
+                          h(
+                            'button',
+                            {
+                              type: 'button',
+                              className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                              onClick: function () {
+                                loadOnlineCache()
+                              },
+                            },
+                            t('online.refresh'),
+                          ),
+                          h(
+                            'button',
+                            {
+                              type: 'button',
+                              className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                              onClick: clearOnlineCache,
+                            },
+                            t('online.clearCache'),
+                          ),
+                        ),
                         [
                           ['netease', t('online.providerNetease')],
                           ['qq', t('online.providerQq')],
@@ -9488,6 +9612,7 @@ window.__ModuleLoader__.load({
       '.mu-input-sm{height:28px;font-size:12px}',
       '.mu-btn-sm{height:28px;padding:0 10px;font-size:12px}',
       '.mu-prefs-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;margin-bottom:10px}',
+      '.mu-prefs-label{flex:none;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-prefs-value{color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
       '.mu-prefs-hint{margin-top:10px;font-size:12px;line-height:1.6;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-confirm{padding:12px;min-width:220px;max-width:280px}',
