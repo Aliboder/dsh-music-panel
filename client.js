@@ -196,6 +196,7 @@ window.__ModuleLoader__.load({
         'online.hint': '选择平台并搜索。未登录可播放免费曲目；登录后可用高音质（设置 → 在线音乐）。',
         'online.vip': 'VIP',
         'online.recent': '最近播放',
+        'online.vipOnly': 'VIP / 付费曲目无法播放（需要会员）',
         'online.modeSearch': '搜索',
         'online.modePlaylists': '我的歌单',
         'online.back': '返回',
@@ -492,6 +493,7 @@ window.__ModuleLoader__.load({
         'online.hint': 'Pick a provider and search. Free tracks play without signing in; sign in (Settings → Online) for higher quality.',
         'online.vip': 'VIP',
         'online.recent': 'Recently played',
+        'online.vipOnly': 'VIP / paid tracks cannot play without a membership',
         'online.modeSearch': 'Search',
         'online.modePlaylists': 'My playlists',
         'online.back': 'Back',
@@ -5072,9 +5074,18 @@ window.__ModuleLoader__.load({
                   encodeURIComponent(query),
               )
                 .then(function (body) {
-                  var first =
-                    Array.isArray(body.results) && body.results.length > 0 ? body.results[0] : null
-                  if (first !== null) player.playList([onlineTrackOf(first)], 0)
+                  var list = Array.isArray(body.results) ? body.results : []
+                  var playable = list.filter(function (item) {
+                    return item.qualityHint !== 'VIP' && String(item.id || '') !== ''
+                  })
+                  if (playable.length > 0) {
+                    player.playList(
+                      playable.map(function (item) {
+                        return onlineTrackOf(item)
+                      }),
+                      0,
+                    )
+                  }
                 })
                 .catch(function () {})
               return
@@ -5470,7 +5481,40 @@ window.__ModuleLoader__.load({
           .slice(0, 30)
       }
 
-      function renderOnlineSong(result) {
+      /**
+       * Play one online row together with its sibling list. VIP/paid rows are
+       * filtered out of the queue: only tracks that can actually stream are
+       * added, and tapping a VIP row just explains why it cannot play.
+       */
+      function playOnlineResult(result, siblings) {
+        var list = Array.isArray(siblings) && siblings.length > 0 ? siblings : [result]
+        var playable = list.filter(function (item) {
+          return item.qualityHint !== 'VIP' && String(item.id || '') !== ''
+        })
+        if (playable.length === 0) {
+          showToast(t('online.vipOnly'))
+          return
+        }
+        var at = -1
+        for (var i = 0; i < playable.length; i += 1) {
+          if (playable[i].provider === result.provider && playable[i].id === result.id) {
+            at = i
+            break
+          }
+        }
+        if (at < 0) {
+          showToast(t('online.vipOnly'))
+          return
+        }
+        player.playList(
+          playable.map(function (item) {
+            return onlineTrackOf(item)
+          }),
+          at,
+        )
+      }
+
+      function renderOnlineSong(result, siblings) {
         var track = onlineTrackOf(result)
         var isCurrent = current !== null && current.path === track.path
         var providerLabel =
@@ -5487,7 +5531,7 @@ window.__ModuleLoader__.load({
             key: track.path,
             title: result.artist ? result.title + ' - ' + result.artist : result.title,
             onDoubleClick: function () {
-              player.playList([track], 0)
+              playOnlineResult(result, siblings)
             },
           },
           h(
@@ -5498,7 +5542,7 @@ window.__ModuleLoader__.load({
               title: t('page.play'),
               onClick: function (event) {
                 event.stopPropagation()
-                player.playList([track], 0)
+                playOnlineResult(result, siblings)
               },
             },
             h(Cover, { track: track, size: 60, radius: 8 }),
@@ -7977,10 +8021,14 @@ window.__ModuleLoader__.load({
                             h(
                               'div',
                               { className: 'mu-list' },
-                              onlineHistoryForProvider(onlineProvider).map(renderOnlineSong),
+                              onlineHistoryForProvider(onlineProvider).map(function (item) {
+                                return renderOnlineSong(item, onlineHistoryForProvider(onlineProvider))
+                              }),
                             ),
                           )
-                      : h('div', { className: 'mu-list' }, onlineResults.map(renderOnlineSong))
+                      : h('div', { className: 'mu-list' }, onlineResults.map(function (item) {
+                          return renderOnlineSong(item, onlineResults)
+                        }))
                 : onlinePlaylistError !== ''
                   ? h(
                       'div',
@@ -8044,7 +8092,9 @@ window.__ModuleLoader__.load({
                         : h(
                             'div',
                             { className: 'mu-list' },
-                            onlineCurrentPlaylist.songs.map(renderOnlineSong),
+                            onlineCurrentPlaylist.songs.map(function (item) {
+                              return renderOnlineSong(item, onlineCurrentPlaylist.songs)
+                            }),
                           )
                       : onlinePlaylists.length === 0
                         ? h(
