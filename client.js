@@ -194,6 +194,8 @@ window.__ModuleLoader__.load({
         'online.searchPlaceholder': '搜索在线音乐…',
         'online.searching': '搜索中…',
         'online.hint': '选择平台并搜索。未登录可播放免费曲目；登录后可用高音质（设置 → 在线音乐）。',
+        'online.vip': 'VIP',
+        'online.recent': '最近播放',
         'online.modeSearch': '搜索',
         'online.modePlaylists': '我的歌单',
         'online.back': '返回',
@@ -488,6 +490,8 @@ window.__ModuleLoader__.load({
         'online.searchPlaceholder': 'Search online music…',
         'online.searching': 'Searching…',
         'online.hint': 'Pick a provider and search. Free tracks play without signing in; sign in (Settings → Online) for higher quality.',
+        'online.vip': 'VIP',
+        'online.recent': 'Recently played',
         'online.modeSearch': 'Search',
         'online.modePlaylists': 'My playlists',
         'online.back': 'Back',
@@ -1120,6 +1124,26 @@ window.__ModuleLoader__.load({
     function onlinePathOf(path) {
       var match = /^online:([^:]+):(.+)$/.exec(String(path || ''))
       return match === null ? null : { provider: match[1], id: match[2] }
+    }
+
+    var ONLINE_HISTORY_KEY = 'mu.onlineHistory'
+
+    function readOnlineHistory() {
+      try {
+        var raw = window.localStorage.getItem(ONLINE_HISTORY_KEY)
+        var list = raw === null ? [] : JSON.parse(raw)
+        return Array.isArray(list) ? list : []
+      } catch {
+        return []
+      }
+    }
+
+    function writeOnlineHistory(list) {
+      try {
+        window.localStorage.setItem(ONLINE_HISTORY_KEY, JSON.stringify(list))
+      } catch {
+        /* storage unavailable: history is best-effort */
+      }
     }
 
     function loadOnlineLyrics(online) {
@@ -4802,6 +4826,7 @@ window.__ModuleLoader__.load({
       var [onlinePlaylistLoading, setOnlinePlaylistLoading] = useState(false)
       var [onlinePlaylistError, setOnlinePlaylistError] = useState('')
       var [onlineCurrentPlaylist, setOnlineCurrentPlaylist] = useState(null)
+      var [onlineHistory, setOnlineHistory] = useState(readOnlineHistory)
       var [playlists, setPlaylists] = useState([])
       var [favorites, setFavorites] = useState([])
       var [playlistId, setPlaylistId] = useState(null)
@@ -5193,6 +5218,40 @@ window.__ModuleLoader__.load({
         return playModeLabel(playModeOf(snap))
       }
 
+      // Remember online tracks that actually started playing (per provider).
+      useEffect(
+        function () {
+          if (current === null || typeof current.onlineProvider !== 'string' || current.onlineProvider === '') {
+            return
+          }
+          var online = onlinePathOf(current.path)
+          if (online === null) return
+          var entry = {
+            provider: current.onlineProvider,
+            id: online.id,
+            title: current.title || '',
+            artist: current.artist || '',
+            album: current.album || '',
+            durationSec: Number(current.durationSec) || 0,
+            coverUrl: current.coverUrl || '',
+            qualityHint: '',
+            at: Date.now(),
+          }
+          setOnlineHistory(function (previous) {
+            var next = [entry]
+              .concat(
+                previous.filter(function (item) {
+                  return !(item.provider === entry.provider && item.id === entry.id)
+                }),
+              )
+              .slice(0, 50)
+            writeOnlineHistory(next)
+            return next
+          })
+        },
+        [current === null ? '' : current.path],
+      )
+
       function favoriteSelected() {
         selectedTracks.forEach(function (track) {
           if (favoritePaths[track.path] !== true) toggleFavorite(track)
@@ -5389,6 +5448,14 @@ window.__ModuleLoader__.load({
           })
       }
 
+      function onlineHistoryForProvider(provider) {
+        return onlineHistory
+          .filter(function (item) {
+            return item.provider === provider
+          })
+          .slice(0, 30)
+      }
+
       function renderOnlineSong(result) {
         var track = onlineTrackOf(result)
         var isCurrent = current !== null && current.path === track.path
@@ -5398,6 +5465,7 @@ window.__ModuleLoader__.load({
             : result.provider === 'qq'
               ? t('online.providerQq')
               : t('online.providerKugou')
+        var isVip = result.qualityHint === 'VIP'
         return h(
           'div',
           {
@@ -5434,8 +5502,8 @@ window.__ModuleLoader__.load({
             { className: 'mu-row-actions' },
             h(
               'span',
-              { className: 'mu-online-badge' },
-              result.qualityHint !== '' ? result.qualityHint : providerLabel,
+              { className: 'mu-online-badge' + (isVip ? ' is-vip' : '') },
+              isVip ? t('online.vip') : result.qualityHint !== '' ? result.qualityHint : providerLabel,
             ),
           ),
         )
@@ -6609,6 +6677,8 @@ window.__ModuleLoader__.load({
                   setOnlineError('')
                   setOnlinePlaylists([])
                   setOnlineCurrentPlaylist(null)
+                  setOnlinePlaylistError('')
+                  setOnlineMode('search')
                   setView('online')
                 },
               },
@@ -7799,7 +7869,7 @@ window.__ModuleLoader__.load({
                       type: 'button',
                       className: 'mu-chip' + (onlineMode === 'playlists' ? ' is-on' : ''),
                       onClick: function () {
-                        if (onlineMode !== 'playlists') loadMyPlaylists()
+                        loadMyPlaylists()
                       },
                     },
                     t('online.modePlaylists'),
@@ -7862,11 +7932,26 @@ window.__ModuleLoader__.load({
                         t('online.searching'),
                       )
                     : onlineResults.length === 0
-                      ? h(
-                          'div',
-                          { className: 'mu-state' },
-                          h('div', { className: 'mu-state-sub' }, t('online.hint')),
-                        )
+                      ? onlineHistoryForProvider(onlineProvider).length === 0
+                        ? h(
+                            'div',
+                            { className: 'mu-state' },
+                            h('div', { className: 'mu-state-sub' }, t('online.hint')),
+                          )
+                        : h(
+                            'div',
+                            { className: 'mu-online-history' },
+                            h(
+                              'div',
+                              { className: 'mu-online-playlist-title' },
+                              t('online.recent'),
+                            ),
+                            h(
+                              'div',
+                              { className: 'mu-list' },
+                              onlineHistoryForProvider(onlineProvider).map(renderOnlineSong),
+                            ),
+                          )
                       : h('div', { className: 'mu-list' }, onlineResults.map(renderOnlineSong))
                 : onlinePlaylistError !== ''
                   ? h('div', { className: 'mu-online-error' }, onlinePlaylistError)
@@ -9147,7 +9232,9 @@ window.__ModuleLoader__.load({
       '.mu-online-error{font-size:12px;color:var(--dsw-alias-state-error-primary,#f87171)}',
       '.mu-online .mu-list{flex:1;min-height:0;overflow-y:auto;padding:0}',
       '.mu-online-badge{font-size:10px;padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-online-badge.is-vip{color:#f5c518;background:linear-gradient(180deg,rgba(245,197,24,.18),rgba(245,197,24,.10));border:1px solid rgba(245,197,24,.45);font-weight:600;letter-spacing:.3px}',
       '.mu-online-modes{display:flex;gap:4px}',
+      '.mu-online-history{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px}',
       '.mu-tabs-divider{flex:none;width:1px;height:14px;margin:0 2px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.12))}',
       '.mu-tab-source{font-weight:600}',
       '.mu-online-playlist-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa);padding:2px 2px 0}',
