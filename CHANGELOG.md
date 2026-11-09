@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.9.22
+
+### 变更
+
+- 在线音质统一为「标准」，移除高音质 / 无损选项
+
+### 新增
+
+- 播放队列头部新增「定位到当前播放」按钮，一键滚动到正在播放的歌曲
+
+### 修复
+
+- **歌词翻译对 QQ / 酷狗无效**：
+  - QQ：翻译不在 `fcg_query_lyric_new` 的 `trans` 字段（该字段恒为空），而在 `GetPlayLyricInfo` 的加密 `data.trans`；现已解密解析（实测 Lemon 57 行中文翻译）
+  - 酷狗：普通 LRC 不含翻译，翻译在 KRC 流里；现已接入 `getWordLines` 的 `translations`（实测 Lemon 54 行）
+  - 网易云一直有效（接口自带 `trans`）
+
 ## 0.9.21
 
 ### 修复
