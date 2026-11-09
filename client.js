@@ -170,6 +170,28 @@ window.__ModuleLoader__.load({
         'page.unfavorite': '取消收藏',
         'page.favoritesEmpty': '还没有收藏',
         'page.favoritesHint': '点歌曲右侧的爱心加入「我喜欢」。',
+        'page.tabOnline': '在线',
+        'settings.tabOnline': '在线',
+        'online.settingsHint': '登录后可播放高音质与更多曲目；未登录只能播放免费曲目。Cookie 只保存在本机。',
+        'online.loggedIn': '已登录',
+        'online.loggedOut': '未登录',
+        'online.login': '登录',
+        'online.logout': '退出',
+        'online.loginHint': '扫码登录：用对应 App 扫描弹出的二维码并确认，登录状态保存在本机。',
+        'online.loginTitle': '登录 {provider}',
+        'online.statuswaiting': '等待扫码',
+        'online.statusscanned': '已扫码，请在 App 中确认',
+        'online.statussuccess': '登录成功',
+        'online.statusexpired': '二维码已过期，请重新登录',
+        'online.statusfailed': '登录失败',
+        'online.loginSuccess': '登录成功',
+        'online.logoutDone': '已退出登录',
+        'online.providerNetease': '网易云',
+        'online.providerQq': 'QQ 音乐',
+        'online.providerKugou': '酷狗',
+        'online.searchPlaceholder': '搜索在线音乐…',
+        'online.searching': '搜索中…',
+        'online.hint': '选择平台并搜索。未登录可播放免费曲目；登录后可用高音质（设置 → 在线音乐）。',
         'page.tabStats': '统计',
         'page.tabAlbums': '专辑',
         'page.tabArtists': '艺术家',
@@ -436,6 +458,28 @@ window.__ModuleLoader__.load({
         'page.unfavorite': 'Unlike',
         'page.favoritesEmpty': 'No liked songs yet',
         'page.favoritesHint': 'Tap the heart next to a song to add it here.',
+        'page.tabOnline': 'Online',
+        'settings.tabOnline': 'Online',
+        'online.settingsHint': 'Sign in for higher quality and more tracks; free tracks play without an account. Cookies stay on this machine.',
+        'online.loggedIn': 'Signed in',
+        'online.loggedOut': 'Signed out',
+        'online.login': 'Sign in',
+        'online.logout': 'Sign out',
+        'online.loginHint': 'Scan the QR code with the matching app, then confirm in the app. The login stays on this machine.',
+        'online.loginTitle': 'Sign in to {provider}',
+        'online.statuswaiting': 'Waiting for scan',
+        'online.statusscanned': 'Scanned — confirm in the app',
+        'online.statussuccess': 'Signed in',
+        'online.statusexpired': 'QR expired — try again',
+        'online.statusfailed': 'Sign-in failed',
+        'online.loginSuccess': 'Signed in',
+        'online.logoutDone': 'Signed out',
+        'online.providerNetease': 'NetEase',
+        'online.providerQq': 'QQ Music',
+        'online.providerKugou': 'KuGou',
+        'online.searchPlaceholder': 'Search online music…',
+        'online.searching': 'Searching…',
+        'online.hint': 'Pick a provider and search. Free tracks play without signing in; sign in (Settings → Online) for higher quality.',
         'page.tabStats': 'Stats',
         'page.tabAlbums': 'Albums',
         'page.tabArtists': 'Artists',
@@ -1021,10 +1065,74 @@ window.__ModuleLoader__.load({
 
     // ── cover thumbnail ───────────────────────────────────────────────────
 
+    // ── online lyric helpers ──────────────────────────────────────────────
+    // The Host returns raw LRC for online tracks (local tracks get parsed lines
+    // from /lyrics), so the client needs a small parser of its own.
+    function parseLrcText(text) {
+      var lines = []
+      String(text || '')
+        .split(/\r?\n/)
+        .forEach(function (raw) {
+          var match = /^\[(\d{1,2}):(\d{1,2}(?:\.\d+)?)\](.*)$/.exec(raw.trim())
+          if (match === null) return
+          var time = Number(match[1]) * 60 + Number(match[2])
+          if (!isFinite(time)) return
+          var content = match[3].trim()
+          for (var i = 0; i < lines.length; i += 1) {
+            if (lines[i].time === time) {
+              if (lines[i].text === '' && content !== '') lines[i].text = content
+              return
+            }
+          }
+          lines.push({ time: time, text: content, translation: '' })
+        })
+      lines.sort(function (left, right) {
+        return left.time - right.time
+      })
+      return lines
+    }
+
+    function mergeLyricTranslation(lines, translationText) {
+      var map = {}
+      parseLrcText(translationText).forEach(function (item) {
+        map[item.time.toFixed(2)] = item.text
+      })
+      lines.forEach(function (line) {
+        var hit = map[line.time.toFixed(2)]
+        if (hit !== undefined) line.translation = hit
+      })
+      return lines
+    }
+
+    /** Split `online:<provider>:<id>` (null when the path is a local one). */
+    function onlinePathOf(path) {
+      var match = /^online:([^:]+):(.+)$/.exec(String(path || ''))
+      return match === null ? null : { provider: match[1], id: match[2] }
+    }
+
+    function loadOnlineLyrics(online) {
+      return getJson(
+        API +
+          'online/lyric?provider=' +
+          encodeURIComponent(online.provider) +
+          '&id=' +
+          encodeURIComponent(online.id),
+      ).then(function (body) {
+        var lines = parseLrcText(body.lrc || '')
+        if (typeof body.translation === 'string' && body.translation !== '') {
+          mergeLyricTranslation(lines, body.translation)
+        }
+        return lines
+      })
+    }
+
     function Cover(props) {
       var [failed, setFailed] = useState(false)
       var size = props.size || 42
       var radius = props.radius === undefined ? 6 : props.radius
+      var directCover =
+        props.track !== null && props.track !== undefined &&
+        typeof props.track.coverUrl === 'string' && props.track.coverUrl !== ''
 
       useEffect(
         function () {
@@ -1037,14 +1145,18 @@ window.__ModuleLoader__.load({
         height: size + 'px',
         borderRadius: radius + 'px',
       }
-      if (!props.track || props.track.hasCover !== true || failed) {
+      if (
+        !props.track ||
+        (props.track.hasCover !== true && !directCover) ||
+        failed
+      ) {
         return h('div', { className: 'mu-cover', style: wrapStyle }, icon('note', Math.round(size * 0.42)))
       }
       return h(
         'div',
         { className: 'mu-cover', style: wrapStyle },
         h('img', {
-          src: coverUrl(props.track.path),
+          src: directCover ? props.track.coverUrl : coverUrl(props.track.path),
           alt: '',
           loading: 'lazy',
           draggable: 'false',
@@ -1919,6 +2031,23 @@ window.__ModuleLoader__.load({
         if (audio === null) return
 
         cancelPendingFetch()
+        // Online providers stream through the Host, so the element points at
+        // our own route instead of a blob. Range is forwarded when supported.
+        if (typeof item.onlineUrl === 'string' && item.onlineUrl !== '') {
+          audio.pause()
+          audio.removeAttribute('src')
+          audio.load()
+          releaseObjectUrl()
+          audio.src = item.onlineUrl
+          audio.load()
+          if (pendingAutoplay) {
+            pendingAutoplay = false
+            audio.play().catch(function () {
+              if (state.playing) patch({ playing: false })
+            })
+          }
+          return
+        }
         // Detach the old blob before revoking it: a revoked URL still
         // assigned to the element fires a spurious `error`.
         audio.pause()
@@ -2409,6 +2538,18 @@ window.__ModuleLoader__.load({
           setTimed(false)
           setText('')
           if (path === '') return
+          var online = onlinePathOf(path)
+          if (online !== null) {
+            loadOnlineLyrics(online)
+              .then(function (next) {
+                if (pathRef.current !== path) return
+                setLines(next)
+                setTimed(next.length > 0)
+                setLyricOffset(0)
+              })
+              .catch(function () {})
+            return
+          }
           var order = Array.isArray(readPrefs().lyricOrder) ? readPrefs().lyricOrder.join(',') : 'embedded,lrc'
           getJson(API + 'lyrics?path=' + encodeURIComponent(path) + '&order=' + encodeURIComponent(order))
             .then(function (body) {
@@ -3416,6 +3557,22 @@ window.__ModuleLoader__.load({
           setActive(-1)
           if (trackPath === '') return undefined
           var cancelled = false
+          var online = onlinePathOf(trackPath)
+          if (online !== null) {
+            loadOnlineLyrics(online)
+              .then(function (lines) {
+                if (cancelled) return
+                setLyrics(lines)
+                setLyricsTimed(lines.length > 0)
+                setLyricOffset(0)
+              })
+              .catch(function () {
+                if (!cancelled) setLyrics([])
+              })
+            return function () {
+              cancelled = true
+            }
+          }
           var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
           getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&order=' + encodeURIComponent(order))
             .then(function (body) {
@@ -4575,6 +4732,13 @@ window.__ModuleLoader__.load({
         albumArtist: '',
       })
       var [batchSaving, setBatchSaving] = useState(false)
+      var [onlineProviders, setOnlineProviders] = useState({
+        netease: { loggedIn: false, nickname: '' },
+        qq: { loggedIn: false, nickname: '' },
+        kugou: { loggedIn: false, nickname: '' },
+      })
+      var [onlineLoginDialog, setOnlineLoginDialog] = useState(null)
+      var onlineLoginTimer = useRef(null)
       var [tagSaving, setTagSaving] = useState(false)
       var [coverFailed, setCoverFailed] = useState(false)
       var [tagCoverPreview, setTagCoverPreview] = useState(null)
@@ -4607,6 +4771,11 @@ window.__ModuleLoader__.load({
       var npAnimRef = useRef(null)
       var [view, setView] = useState('songs')
       var [viewFilter, setViewFilter] = useState(null)
+      var [onlineProvider, setOnlineProvider] = useState('netease')
+      var [onlineQuery, setOnlineQuery] = useState('')
+      var [onlineResults, setOnlineResults] = useState([])
+      var [onlineLoading, setOnlineLoading] = useState(false)
+      var [onlineError, setOnlineError] = useState('')
       var [playlists, setPlaylists] = useState([])
       var [favorites, setFavorites] = useState([])
       var [playlistId, setPlaylistId] = useState(null)
@@ -4832,6 +5001,24 @@ window.__ModuleLoader__.load({
               return
             }
             if (action !== 'play') return
+            var source = String(item.source || '')
+            if (source === 'netease' || source === 'qq' || source === 'kugou') {
+              if (query === '') return
+              getJson(
+                API +
+                  'online/search?provider=' +
+                  encodeURIComponent(source) +
+                  '&q=' +
+                  encodeURIComponent(query),
+              )
+                .then(function (body) {
+                  var first =
+                    Array.isArray(body.results) && body.results.length > 0 ? body.results[0] : null
+                  if (first !== null) player.playList([onlineTrackOf(first)], 0)
+                })
+                .catch(function () {})
+              return
+            }
             var list =
               query === ''
                 ? tracks.slice(0, 100)
@@ -4984,6 +5171,137 @@ window.__ModuleLoader__.load({
         selectedTracks.forEach(function (track) {
           if (favoritePaths[track.path] !== true) toggleFavorite(track)
         })
+      }
+
+      function loadOnlineProviders() {
+        getJson(API + 'online/providers')
+          .then(function (body) {
+            var list = body.providers && typeof body.providers === 'object' ? body.providers : {}
+            setOnlineProviders({
+              netease: { loggedIn: list.netease ? list.netease.loggedIn === true : false, nickname: (list.netease && list.netease.nickname) || '' },
+              qq: { loggedIn: list.qq ? list.qq.loggedIn === true : false, nickname: (list.qq && list.qq.nickname) || '' },
+              kugou: { loggedIn: list.kugou ? list.kugou.loggedIn === true : false, nickname: (list.kugou && list.kugou.nickname) || '' },
+            })
+          })
+          .catch(function () {})
+      }
+
+      function stopOnlineLoginPolling() {
+        if (onlineLoginTimer.current !== null) {
+          window.clearInterval(onlineLoginTimer.current)
+          onlineLoginTimer.current = null
+        }
+      }
+
+      function pollOnlineLogin(provider, key) {
+        function check() {
+          getJson(
+            API +
+              'online/login/status?provider=' +
+              encodeURIComponent(provider) +
+              '&key=' +
+              encodeURIComponent(key),
+          )
+            .then(function (body) {
+              var status = String(body.status || '')
+              setOnlineLoginDialog(function (previous) {
+                return previous === null ? previous : Object.assign({}, previous, { status: status })
+              })
+              if (status === 'success') {
+                stopOnlineLoginPolling()
+                showToast(t('online.loginSuccess'))
+                loadOnlineProviders()
+                window.setTimeout(function () {
+                  setOnlineLoginDialog(null)
+                }, 800)
+              } else if (status === 'expired' || status === 'failed') {
+                stopOnlineLoginPolling()
+              }
+            })
+            .catch(function () {})
+        }
+        stopOnlineLoginPolling()
+        onlineLoginTimer.current = window.setInterval(check, 2000)
+      }
+
+      function startOnlineLogin(provider) {
+        setOnlineLoginDialog({ provider: provider, key: '', imageDataUrl: '', status: 'waiting' })
+        requestJson('POST', API + 'online/login/start', { provider: provider })
+          .then(function (body) {
+            setOnlineLoginDialog({
+              provider: provider,
+              key: body.key || '',
+              imageDataUrl: body.imageDataUrl || '',
+              status: 'waiting',
+            })
+            if (body.key) pollOnlineLogin(provider, body.key)
+          })
+          .catch(function (error) {
+            setOnlineLoginDialog(null)
+            showToast(String((error && error.message) || error))
+          })
+      }
+
+      function closeOnlineLogin() {
+        stopOnlineLoginPolling()
+        setOnlineLoginDialog(null)
+      }
+
+      function logoutOnlineProvider(provider) {
+        requestJson('POST', API + 'online/logout', { provider: provider })
+          .then(function () {
+            showToast(t('online.loggedOut'))
+            loadOnlineProviders()
+          })
+          .catch(function (error) {
+            showToast(String((error && error.message) || error))
+          })
+      }
+
+      function onlineTrackOf(result) {
+        var provider = result.provider
+        return {
+          path: 'online:' + provider + ':' + result.id,
+          title: result.title,
+          artist: result.artist,
+          album: result.album,
+          durationSec: result.durationSec,
+          hasCover: false,
+          coverUrl: result.coverUrl || '',
+          onlineUrl:
+            API +
+            'online/stream?provider=' +
+            encodeURIComponent(provider) +
+            '&id=' +
+            encodeURIComponent(result.id),
+          onlineProvider: provider,
+          sampleRate: 0,
+          size: 0,
+          mtime: 0,
+        }
+      }
+
+      function searchOnline() {
+        var query = onlineQuery.trim()
+        if (query === '') return
+        setOnlineLoading(true)
+        setOnlineError('')
+        setOnlineResults([])
+        getJson(
+          API +
+            'online/search?provider=' +
+            encodeURIComponent(onlineProvider) +
+            '&q=' +
+            encodeURIComponent(query),
+        )
+          .then(function (body) {
+            setOnlineResults(Array.isArray(body.results) ? body.results : [])
+            setOnlineLoading(false)
+          })
+          .catch(function (error) {
+            setOnlineError(String((error && error.message) || error))
+            setOnlineLoading(false)
+          })
       }
 
       function saveBatchEdit() {
@@ -6177,6 +6495,18 @@ window.__ModuleLoader__.load({
             },
             t('page.tabArtists'),
           ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mu-tab' + (view === 'online' ? ' is-on' : ''),
+              onClick: function () {
+                setViewFilter(null)
+                setView('online')
+              },
+            },
+            t('page.tabOnline'),
+          ),
           playlists.map(function (playlist) {
             var isOn = view === 'playlists' && playlistId === playlist.id
             return h(
@@ -6285,6 +6615,18 @@ window.__ModuleLoader__.load({
                     },
                   },
                   t('settings.tabPlayback'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-prefs-tab' + (prefsTab === 'online' ? ' is-on' : ''),
+                    onClick: function () {
+                      setPrefsTab('online')
+                      loadOnlineProviders()
+                    },
+                  },
+                  t('settings.tabOnline'),
                 ),
                 h(
                   'button',
@@ -6403,7 +6745,57 @@ window.__ModuleLoader__.load({
                           },
                         ),
                       )
-                  : prefsTab === 'library'
+                  : prefsTab === 'online'
+                    ? h(
+                        'div',
+                        { className: 'mu-prefs-body' },
+                        h('p', { className: 'mu-prefs-hint' }, t('online.settingsHint')),
+                        [
+                          ['netease', t('online.providerNetease')],
+                          ['qq', t('online.providerQq')],
+                          ['kugou', t('online.providerKugou')],
+                        ].map(function (entry) {
+                          var provider = entry[0]
+                          var state = onlineProviders[provider] || { loggedIn: false, nickname: '' }
+                          return h(
+                            'div',
+                            { className: 'mu-online-login-row', key: provider },
+                            h('span', { className: 'mu-online-login-name' }, entry[1]),
+                            h(
+                              'span',
+                              { className: 'mu-online-login-state' },
+                              state.loggedIn
+                                ? t('online.loggedIn') + (state.nickname ? ' · ' + state.nickname : '')
+                                : t('online.loggedOut'),
+                            ),
+                            state.loggedIn
+                              ? h(
+                                  'button',
+                                  {
+                                    type: 'button',
+                                    className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                                    onClick: function () {
+                                      logoutOnlineProvider(provider)
+                                    },
+                                  },
+                                  t('online.logout'),
+                                )
+                              : h(
+                                  'button',
+                                  {
+                                    type: 'button',
+                                    className: 'mu-btn mu-btn-sm',
+                                    onClick: function () {
+                                      startOnlineLogin(provider)
+                                    },
+                                  },
+                                  t('online.login'),
+                                ),
+                          )
+                        }),
+                        h('p', { className: 'mu-prefs-hint' }, t('online.loginHint')),
+                      )
+                    : prefsTab === 'library'
                     ? h(
                       'div',
                       { className: 'mu-prefs-body' },
@@ -6699,6 +7091,55 @@ window.__ModuleLoader__.load({
                     },
                     batchSaving ? t('page.saving') : t('page.save'),
                   ),
+                ),
+              ),
+            )
+          : null,
+
+        onlineLoginDialog !== null
+          ? h(
+              'div',
+              { className: 'mu-info-layer' },
+              h('div', { className: 'mu-info-scrim', onClick: closeOnlineLogin }),
+              h(
+                'div',
+                { className: 'mu-info mu-online-qr-dialog' },
+                h(
+                  'div',
+                  { className: 'mu-info-head' },
+                  h(
+                    'span',
+                    { className: 'mu-info-title' },
+                    t('online.loginTitle', {
+                      provider:
+                        onlineLoginDialog.provider === 'netease'
+                          ? t('online.providerNetease')
+                          : onlineLoginDialog.provider === 'qq'
+                            ? t('online.providerQq')
+                            : t('online.providerKugou'),
+                    }),
+                  ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-icon-btn-sm',
+                      onClick: closeOnlineLogin,
+                    },
+                    icon('x', 14),
+                  ),
+                ),
+                onlineLoginDialog.imageDataUrl !== ''
+                  ? h('img', {
+                      className: 'mu-online-qr',
+                      src: onlineLoginDialog.imageDataUrl,
+                      alt: '',
+                    })
+                  : h('div', { className: 'mu-online-qr-empty' }, '…'),
+                h(
+                  'div',
+                  { className: 'mu-online-login-state' },
+                  t('online.status' + (onlineLoginDialog.status || 'waiting')),
                 ),
               ),
             )
@@ -7115,7 +7556,124 @@ window.__ModuleLoader__.load({
             )
           : null,
 
-        view === 'albums'
+        view === 'online'
+          ? h(
+              'div',
+              { className: 'mu-online' },
+              h(
+                'div',
+                { className: 'mu-online-bar' },
+                h(
+                  'div',
+                  { className: 'mu-online-providers' },
+                  [
+                    ['netease', t('online.providerNetease')],
+                    ['qq', t('online.providerQq')],
+                    ['kugou', t('online.providerKugou')],
+                  ].map(function (entry) {
+                    return h(
+                      'button',
+                      {
+                        key: entry[0],
+                        type: 'button',
+                        className: 'mu-chip' + (onlineProvider === entry[0] ? ' is-on' : ''),
+                        onClick: function () {
+                          setOnlineProvider(entry[0])
+                        },
+                      },
+                      entry[1],
+                    )
+                  }),
+                ),
+                h('input', {
+                  type: 'text',
+                  className: 'mu-input mu-input-sm mu-online-search',
+                  placeholder: t('online.searchPlaceholder'),
+                  value: onlineQuery,
+                  onChange: function (event) {
+                    setOnlineQuery(event.target.value)
+                  },
+                  onKeyDown: function (event) {
+                    if (event.key === 'Enter') searchOnline()
+                  },
+                }),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-btn mu-btn-sm',
+                    disabled: onlineLoading,
+                    onClick: searchOnline,
+                  },
+                  onlineLoading ? '…' : t('page.search'),
+                ),
+              ),
+              onlineError !== '' ? h('div', { className: 'mu-online-error' }, onlineError) : null,
+              onlineLoading
+                ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-spinner' }), t('online.searching'))
+                : onlineResults.length === 0
+                  ? h(
+                      'div',
+                      { className: 'mu-state' },
+                      h('div', { className: 'mu-state-sub' }, t('online.hint')),
+                    )
+                  : h(
+                      'div',
+                      { className: 'mu-list' },
+                      onlineResults.map(function (result) {
+                        var track = onlineTrackOf(result)
+                        var isCurrent = current !== null && current.path === track.path
+                        var providerLabel =
+                          result.provider === 'netease'
+                            ? t('online.providerNetease')
+                            : result.provider === 'qq'
+                              ? t('online.providerQq')
+                              : t('online.providerKugou')
+                        return h(
+                          'div',
+                          {
+                            className: 'mu-row' + (isCurrent ? ' is-current' : ''),
+                            key: track.path,
+                            title: result.artist ? result.title + ' - ' + result.artist : result.title,
+                            onDoubleClick: function () {
+                              player.playList([track], 0)
+                            },
+                          },
+                          h(
+                            'button',
+                            {
+                              type: 'button',
+                              className: 'mu-row-play',
+                              title: t('page.play'),
+                              onClick: function (event) {
+                                event.stopPropagation()
+                                player.playList([track], 0)
+                              },
+                            },
+                            h(Cover, { track: track, size: 60, radius: 8 }),
+                          ),
+                          h(
+                            'div',
+                            { className: 'mu-row-main' },
+                            h('div', { className: 'mu-row-title' }, result.title),
+                            h('div', { className: 'mu-row-sub' }, result.artist || ''),
+                          ),
+                          h('div', { className: 'mu-row-album mu-ellipsis' }, result.album || ''),
+                          h('div', { className: 'mu-row-dur' }, fmtTime(result.durationSec)),
+                          h(
+                            'div',
+                            { className: 'mu-row-actions' },
+                            h(
+                              'span',
+                              { className: 'mu-online-badge' },
+                              result.qualityHint !== '' ? result.qualityHint : providerLabel,
+                            ),
+                          ),
+                        )
+                      }),
+                    ),
+            )
+          : view === 'albums'
           ? h(
               'div',
               { className: 'mu-albums' },
@@ -8321,6 +8879,19 @@ window.__ModuleLoader__.load({
       '.mu-filter-clear:hover{color:var(--dsw-alias-label-primary,#e6e6e6)}',
       '.mu-albums{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;align-content:start;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;padding:4px 24px 24px}',
       '.mu-artists{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;display:flex;flex-direction:column;gap:2px;padding:4px 24px 24px}',
+      '.mu-online{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:4px 24px 24px}',
+      '.mu-online-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
+      '.mu-online-providers{display:flex;gap:4px}',
+      '.mu-online-search{flex:1 1 200px;min-width:0}',
+      '.mu-online-error{font-size:12px;color:var(--dsw-alias-state-error-primary,#f87171)}',
+      '.mu-online .mu-list{flex:1;min-height:0;overflow-y:auto;padding:0}',
+      '.mu-online-badge{font-size:10px;padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-online-login-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
+      '.mu-online-login-name{flex:none;width:80px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-online-login-state{flex:1;min-width:0;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mu-online-qr-dialog{align-items:center;text-align:center}',
+      '.mu-online-qr{width:200px;height:200px;margin:6px auto;padding:6px;border-radius:8px;background:#fff;object-fit:contain;image-rendering:pixelated}',
+      '.mu-online-qr-empty{width:200px;height:200px;margin:6px auto;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-album-card{display:flex;flex-direction:column;gap:8px;padding:0;border:0;background:transparent;text-align:left;cursor:pointer;color:inherit;font:inherit;min-width:0}',
       '.mu-album-cover{position:relative;aspect-ratio:1;border-radius:var(--dsw-radius-lg,12px);overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-album-cover img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s ease}',

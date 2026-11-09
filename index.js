@@ -12,6 +12,7 @@ import { createFavorites } from './lib/favorites.js'
 import { createLibrary } from './lib/library.js'
 import { createPlayback } from './lib/playback.js'
 import { createPlaylists } from './lib/playlists.js'
+import { createProviderStore } from './lib/provider-store.js'
 import { createRoutes } from './lib/routes.js'
 import { createSettings } from './lib/settings.js'
 import { createStats } from './lib/stats.js'
@@ -35,7 +36,8 @@ export function apply(ctx, rawConfig) {
   const favorites = createFavorites({ dir: settings.dir })
   const library = createLibrary({ getSettings: settings.read, stats })
   const playlists = createPlaylists({ dir: settings.dir })
-  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites })
+  const providerStore = createProviderStore({ dir: settings.dir })
+  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore })
 
   ctx.effect(() => {
     const dispose = ctx.webServer.register({
@@ -69,6 +71,12 @@ export function apply(ctx, rawConfig) {
                   type: 'string',
                   description: 'Song title or artist to look for when action is "play".',
                 },
+                source: {
+                  type: 'string',
+                  enum: ['local', 'netease', 'qq', 'kugou'],
+                  description:
+                    'Where to play from: local library (default), or the online providers NetEase / QQ Music / KuGou (free tracks work without signing in; sign in from the panel for higher quality).',
+                },
               },
               required: ['action'],
               additionalProperties: false,
@@ -86,13 +94,21 @@ export function apply(ctx, rawConfig) {
             async execute(args) {
               const action = args !== null && typeof args === 'object' ? args.action : ''
               const query = args !== null && typeof args === 'object' ? args.query : ''
-              const queued = enqueueControl({ action, query })
-              return { queued }
+              const source = args !== null && typeof args === 'object' ? args.source : ''
+              const queued = enqueueControl({ action, query, source })
+              return { queued, source: source || 'local' }
             },
           },
           {},
         ),
       'music-control-tool',
     )
+  })
+
+  // Let the model know about online playback sources.
+  ctx.systemPrompt.section({
+    name: 'tool:music-online',
+    order: 117,
+    text: '在线音乐：music_control 的 source 可设为 netease / qq / kugou，按歌名或歌手在线搜索并播放（未登录只播免费曲；用户可在「设置 → 在线」扫码登录以提升音质）。',
   })
 }
