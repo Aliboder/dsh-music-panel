@@ -5298,6 +5298,7 @@ window.__ModuleLoader__.load({
                 stopOnlineLoginPolling()
                 showToast(t('online.loginSuccess'))
                 loadOnlineProviders()
+                if (onlineMode === 'playlists') loadMyPlaylists(provider)
                 window.setTimeout(function () {
                   setOnlineLoginDialog(null)
                 }, 800)
@@ -5406,13 +5407,17 @@ window.__ModuleLoader__.load({
           })
       }
 
-      function loadMyPlaylists() {
+      function loadMyPlaylists(providerOverride) {
+        var provider =
+          typeof providerOverride === 'string' && providerOverride !== ''
+            ? providerOverride
+            : onlineProvider
         setOnlineMode('playlists')
         setOnlinePlaylistLoading(true)
         setOnlinePlaylistError('')
         setOnlinePlaylists([])
         setOnlineCurrentPlaylist(null)
-        getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(onlineProvider))
+        getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(provider))
           .then(function (body) {
             setOnlinePlaylists(Array.isArray(body.playlists) ? body.playlists : [])
             setOnlinePlaylistLoading(false)
@@ -6678,8 +6683,16 @@ window.__ModuleLoader__.load({
                   setOnlinePlaylists([])
                   setOnlineCurrentPlaylist(null)
                   setOnlinePlaylistError('')
-                  setOnlineMode('search')
                   setView('online')
+                  if (onlineHistoryForProvider(entry[0]).length > 0) {
+                    setOnlineMode('search')
+                  } else {
+                    // No local history yet: open the provider's playlists instead
+                    // of an empty panel, and let the user sign in from there.
+                    setOnlineMode('playlists')
+                    loadMyPlaylists(entry[0])
+                  }
+                  loadOnlineProviders()
                 },
               },
               entry[1],
@@ -7954,7 +7967,51 @@ window.__ModuleLoader__.load({
                           )
                       : h('div', { className: 'mu-list' }, onlineResults.map(renderOnlineSong))
                 : onlinePlaylistError !== ''
-                  ? h('div', { className: 'mu-online-error' }, onlinePlaylistError)
+                  ? h(
+                      'div',
+                      { className: 'mu-state mu-online-login-cta' },
+                      h('div', { className: 'mu-state-sub' }, onlinePlaylistError),
+                      h(
+                        'div',
+                        { className: 'mu-online-login-cta-row' },
+                        onlineProvider === 'qq'
+                          ? h(
+                              'button',
+                              {
+                                type: 'button',
+                                className: 'mu-btn mu-btn-sm',
+                                onClick: function () {
+                                  startOnlineLogin('qq', 'wx')
+                                },
+                              },
+                              t('online.loginWechat'),
+                            )
+                          : h(
+                              'button',
+                              {
+                                type: 'button',
+                                className: 'mu-btn mu-btn-sm',
+                                onClick: function () {
+                                  startOnlineLogin(onlineProvider)
+                                },
+                              },
+                              t('online.login'),
+                            ),
+                        onlineProvider === 'qq'
+                          ? h(
+                              'button',
+                              {
+                                type: 'button',
+                                className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                                onClick: function () {
+                                  startOnlineLogin('qq', 'qq')
+                                },
+                              },
+                              t('online.loginQq'),
+                            )
+                          : null,
+                      ),
+                    )
                   : onlinePlaylistLoading
                     ? h(
                         'div',
@@ -9235,6 +9292,8 @@ window.__ModuleLoader__.load({
       '.mu-online-badge.is-vip{color:#f5c518;background:linear-gradient(180deg,rgba(245,197,24,.18),rgba(245,197,24,.10));border:1px solid rgba(245,197,24,.45);font-weight:600;letter-spacing:.3px}',
       '.mu-online-modes{display:flex;gap:4px}',
       '.mu-online-history{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px}',
+      '.mu-online-login-cta{justify-content:center;gap:10px;text-align:center}',
+      '.mu-online-login-cta-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}',
       '.mu-tabs-divider{flex:none;width:1px;height:14px;margin:0 2px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.12))}',
       '.mu-tab-source{font-weight:600}',
       '.mu-online-playlist-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa);padding:2px 2px 0}',
