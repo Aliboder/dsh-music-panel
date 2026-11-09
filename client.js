@@ -207,6 +207,7 @@ window.__ModuleLoader__.load({
         'online.refresh': '刷新',
         'online.clearCache': '清空缓存',
         'online.cacheCleared': '缓存已清空',
+        'online.networkError': '网络请求失败，请检查网络后重试',
         'online.modeSearch': '搜索',
         'online.modePlaylists': '我的歌单',
         'online.back': '返回',
@@ -514,6 +515,7 @@ window.__ModuleLoader__.load({
         'online.refresh': 'Refresh',
         'online.clearCache': 'Clear cache',
         'online.cacheCleared': 'Cache cleared',
+        'online.networkError': 'Network request failed, please retry',
         'online.modeSearch': 'Search',
         'online.modePlaylists': 'My playlists',
         'online.back': 'Back',
@@ -4866,6 +4868,7 @@ window.__ModuleLoader__.load({
       var [onlinePlaylistError, setOnlinePlaylistError] = useState('')
       var [onlineCurrentPlaylist, setOnlineCurrentPlaylist] = useState(null)
       var [onlineHistory, setOnlineHistory] = useState(readOnlineHistory)
+      var onlineSeq = useRef(0)
       var [playlists, setPlaylists] = useState([])
       var [favorites, setFavorites] = useState([])
       var [playlistId, setPlaylistId] = useState(null)
@@ -5467,6 +5470,8 @@ window.__ModuleLoader__.load({
       function searchOnline() {
         var query = onlineQuery.trim()
         if (query === '') return
+        var seq = onlineSeq.current + 1
+        onlineSeq.current = seq
         setOnlineLoading(true)
         setOnlineError('')
         setOnlineResults([])
@@ -5478,13 +5483,24 @@ window.__ModuleLoader__.load({
             encodeURIComponent(query),
         )
           .then(function (body) {
+            if (onlineSeq.current !== seq) return
             setOnlineResults(Array.isArray(body.results) ? body.results : [])
             setOnlineLoading(false)
           })
           .catch(function (error) {
-            setOnlineError(String((error && error.message) || error))
+            if (onlineSeq.current !== seq) return
+            setOnlineError(onlineErrorMessage(error))
             setOnlineLoading(false)
           })
+      }
+
+      /** Requests that raced a newer one are dropped; network errors get a plain message. */
+      function onlineErrorMessage(error) {
+        var message = String((error && error.message) || error)
+        if (/failed to fetch|network|econn|timeout|abort/i.test(message)) {
+          return t('online.networkError')
+        }
+        return message
       }
 
       function loadMyPlaylists(providerOverride) {
@@ -5492,6 +5508,8 @@ window.__ModuleLoader__.load({
           typeof providerOverride === 'string' && providerOverride !== ''
             ? providerOverride
             : onlineProvider
+        var seq = onlineSeq.current + 1
+        onlineSeq.current = seq
         setOnlineMode('playlists')
         setOnlinePlaylistLoading(true)
         setOnlinePlaylistError('')
@@ -5499,16 +5517,20 @@ window.__ModuleLoader__.load({
         setOnlineCurrentPlaylist(null)
         getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(provider))
           .then(function (body) {
+            if (onlineSeq.current !== seq) return
             setOnlinePlaylists(Array.isArray(body.playlists) ? body.playlists : [])
             setOnlinePlaylistLoading(false)
           })
           .catch(function (error) {
-            setOnlinePlaylistError(String((error && error.message) || error))
+            if (onlineSeq.current !== seq) return
+            setOnlinePlaylistError(onlineErrorMessage(error))
             setOnlinePlaylistLoading(false)
           })
       }
 
       function openOnlinePlaylist(playlist) {
+        var seq = onlineSeq.current + 1
+        onlineSeq.current = seq
         setOnlinePlaylistLoading(true)
         setOnlinePlaylistError('')
         getJson(
@@ -5519,6 +5541,7 @@ window.__ModuleLoader__.load({
             encodeURIComponent(playlist.id),
         )
           .then(function (body) {
+            if (onlineSeq.current !== seq) return
             setOnlineCurrentPlaylist({
               id: playlist.id,
               name: body.name || playlist.name,
@@ -5528,7 +5551,8 @@ window.__ModuleLoader__.load({
             setOnlinePlaylistLoading(false)
           })
           .catch(function (error) {
-            setOnlinePlaylistError(String((error && error.message) || error))
+            if (onlineSeq.current !== seq) return
+            setOnlinePlaylistError(onlineErrorMessage(error))
             setOnlinePlaylistLoading(false)
           })
       }
@@ -8150,7 +8174,7 @@ window.__ModuleLoader__.load({
                               }),
                             ),
                           )
-                      : h('div', { className: 'mu-list' }, onlineResults.map(function (item) {
+                      : h('div', { className: 'mu-list' }, onlineResults.slice(0, 200).map(function (item) {
                           return renderOnlineSong(item, onlineResults)
                         }))
                 : onlinePlaylistError !== ''
