@@ -5880,15 +5880,56 @@ window.__ModuleLoader__.load({
         showToast(t('online.removedFromHistory'))
       }
 
-      /** Scroll the recently-played list to the row that is playing now. */      function locatePlayingRow() {
-        var rows = document.querySelectorAll('.mu-online-history .mu-row.is-current')
-        if (rows.length === 0) {
-          showToast(t('online.noPlaying'))
-          return
-        }
+      /** Scroll a list container to the playing row; false when not found. */
+      function scrollToPlayingRow(selector) {
+        var rows = document.querySelectorAll(selector)
+        if (rows.length === 0) return false
         var row = rows[rows.length - 1]
         if (typeof row.scrollIntoView === 'function') {
           row.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        }
+        return true
+      }
+
+      /**
+       * Locate the playing track: switch to the list it belongs to first
+       * (online provider / local songs) and then scroll to its row.
+       */
+      function locatePlayingRow() {
+        if (current === null) {
+          showToast(t('online.noPlaying'))
+          return
+        }
+        var playingProvider =
+          typeof current.onlineProvider === 'string' ? current.onlineProvider : ''
+        if (playingProvider !== '') {
+          if (view !== 'online' || source !== playingProvider) {
+            setView('online')
+            setSource(playingProvider)
+            setOnlineProvider(playingProvider)
+            setOnlineResults([])
+            window.setTimeout(function () {
+              scrollToPlayingRow('.mu-online-history .mu-row.is-current')
+            }, 150)
+            return
+          }
+          if (!scrollToPlayingRow('.mu-online-history .mu-row.is-current')) {
+            showToast(t('online.noPlaying'))
+          }
+          return
+        }
+        if (view === 'online') {
+          setView('songs')
+          window.setTimeout(function () {
+            scrollToPlayingRow('.mu-view .mu-row.is-current')
+          }, 150)
+          return
+        }
+        if (
+          !scrollToPlayingRow('.mu-view .mu-row.is-current') &&
+          !scrollToPlayingRow('.mu-view .mu-card.is-current')
+        ) {
+          showToast(t('online.noPlaying'))
         }
       }
 
@@ -8404,6 +8445,18 @@ window.__ModuleLoader__.load({
         h(
               'div',
               { className: 'mu-view' },
+              current !== null
+                ? h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-locate-fab',
+                      title: t('online.locatePlaying'),
+                      onClick: locatePlayingRow,
+                    },
+                    icon('target', 18),
+                  )
+                : null,
 
         h(
           'div',
@@ -10167,7 +10220,7 @@ window.__ModuleLoader__.load({
       '.mu-stats-card-value{margin-top:2px;font-size:20px;font-weight:650;line-height:1.15;color:var(--dsw-alias-label-primary,#f4f4f5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}',
       '.mu-stats-list{display:flex;flex-direction:column;gap:1px;padding:4px;border-radius:12px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));background:var(--dsw-alias-bg-layer-1,#17171a)}',
       '.mu-stats-last{justify-content:flex-end;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-view{flex:1;min-height:0;display:flex;flex-direction:column}',
+      '.mu-view{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}',
       '.mu-pl-new{display:flex;gap:8px;padding:4px 24px 12px}',
       '.mu-pl-new .mu-input{flex:1}',
       '.mu-pl-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--dsw-radius-md,8px);cursor:pointer}',
