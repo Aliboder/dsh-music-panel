@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.9.8
+
+### 修复
+
+- 酷狗「我的歌单」点开为空：我的歌单 id 是云歌单 `listid`（不是公开 `specialid`），改用 `get_list_all_file` 读取；收藏歌单用 `get_other_list_file_nofilt`
+- QQ 搜索结果没有封面：补充专辑 `albummid`，用 `y.gtimg.cn` 专辑封面地址
+- 酷狗收藏歌单读取失败时的回退逻辑
+
+### 说明
+
+- QQ / 酷狗的 VIP / 付费曲取链为空属正常（需要对应会员），免费曲三平台均可播放
+
 ## 0.9.7
 
 ### 变更
