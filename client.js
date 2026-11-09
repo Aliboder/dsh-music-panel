@@ -5225,7 +5225,13 @@ window.__ModuleLoader__.load({
       }
 
       function startOnlineLogin(provider) {
-        setOnlineLoginDialog({ provider: provider, key: '', imageDataUrl: '', status: 'waiting' })
+        setOnlineLoginDialog({
+          provider: provider,
+          key: '',
+          imageDataUrl: '',
+          status: 'waiting',
+          error: '',
+        })
         requestJson('POST', API + 'online/login/start', { provider: provider })
           .then(function (body) {
             setOnlineLoginDialog({
@@ -5233,12 +5239,18 @@ window.__ModuleLoader__.load({
               key: body.key || '',
               imageDataUrl: body.imageDataUrl || '',
               status: 'waiting',
+              error: '',
             })
             if (body.key) pollOnlineLogin(provider, body.key)
           })
           .catch(function (error) {
-            setOnlineLoginDialog(null)
-            showToast(String((error && error.message) || error))
+            var message = String((error && error.message) || error)
+            setOnlineLoginDialog(function (previous) {
+              return previous === null
+                ? previous
+                : Object.assign({}, previous, { status: 'failed', error: message })
+            })
+            showToast(message)
           })
       }
 
@@ -7141,6 +7153,7 @@ window.__ModuleLoader__.load({
                   { className: 'mu-online-login-state' },
                   t('online.status' + (onlineLoginDialog.status || 'waiting')),
                 ),
+                onlineLoginDialog.error ? h('div', { className: 'mu-online-error' }, onlineLoginDialog.error) : null,
               ),
             )
           : null,
