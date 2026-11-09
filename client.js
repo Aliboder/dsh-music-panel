@@ -4938,7 +4938,6 @@ window.__ModuleLoader__.load({
       var [onlinePlaylistError, setOnlinePlaylistError] = useState('')
       var [onlineCurrentPlaylist, setOnlineCurrentPlaylist] = useState(null)
       var [onlineHistory, setOnlineHistory] = useState(readOnlineHistory)
-      var [onlineQualityLabel, setOnlineQualityLabel] = useState('')
       var [onlineCached, setOnlineCached] = useState({})
       var [onlineCacheProgress, setOnlineCacheProgress] = useState(null)
       var onlineSeq = useRef(0)
@@ -5347,39 +5346,6 @@ window.__ModuleLoader__.load({
       function loopLabel() {
         return playModeLabel(playModeOf(snap))
       }
-
-      // Resolve the granted quality for the playing online track (badge in the bar).
-      useEffect(
-        function () {
-          if (
-            current === null ||
-            typeof current.onlineProvider !== 'string' ||
-            current.onlineProvider === ''
-          ) {
-            setOnlineQualityLabel('')
-            return undefined
-          }
-          var online = onlinePathOf(current.path)
-          if (online === null) return undefined
-          var stale = false
-          getJson(
-            API +
-              'online/quality?provider=' +
-              encodeURIComponent(online.provider) +
-              '&id=' +
-              encodeURIComponent(online.id),
-          )
-            .then(function (body) {
-              if (stale) return
-              setOnlineQualityLabel(String(body.quality || ''))
-            })
-            .catch(function () {})
-          return function () {
-            stale = true
-          }
-        },
-        [current === null ? '' : current.path],
-      )
 
       // Hydrate green dots for the history rows (after a page refresh the
       // cached flags start empty even though the files still exist).
@@ -8844,13 +8810,6 @@ window.__ModuleLoader__.load({
                   'div',
                   { className: 'mu-bar-title mu-ellipsis' },
                   current ? current.title : t('page.noTrack'),
-                  current !== null && current !== undefined && current.onlineProvider
-                    ? h(
-                        'span',
-                        { className: 'mu-bar-src' },
-                        onlineQualityLabel !== '' ? onlineQualityLabel : t('online.online'),
-                      )
-                    : null,
                   onlineCacheProgress !== null && onlineCacheProgress.total > 0
                     ? h(
                         'span',
