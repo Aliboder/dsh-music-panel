@@ -199,6 +199,8 @@ window.__ModuleLoader__.load({
         'online.recent': '最近播放',
         'online.myPlaylists': '我的歌单',
         'online.viewAll': '查看全部',
+        'online.searchResults': '搜索结果',
+        'online.emptyResults': '没有找到歌曲',
         'online.locatePlaying': '定位到正在播放',
         'online.noPlaying': '当前没有正在播放的歌曲',
         'online.clearUnplayable': '清除无法播放的歌曲',
@@ -526,6 +528,8 @@ window.__ModuleLoader__.load({
         'online.recent': 'Recently played',
         'online.myPlaylists': 'My playlists',
         'online.viewAll': 'View all',
+        'online.searchResults': 'Results',
+        'online.emptyResults': 'No tracks found',
         'online.locatePlaying': 'Locate playing track',
         'online.noPlaying': 'Nothing is playing right now',
         'online.clearUnplayable': 'Remove unplayable tracks',
@@ -918,6 +922,12 @@ window.__ModuleLoader__.load({
 
     var ICONS = {
       check: { parts: [['path', { d: 'M20 6L9 17l-5-5' }]] },
+      clock: {
+        parts: [
+          ['circle', { cx: 12, cy: 12, r: 9 }],
+          ['path', { d: 'M12 7v5l3 2' }],
+        ],
+      },
       download: {
         parts: [
           ['path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }],
@@ -6011,6 +6021,7 @@ window.__ModuleLoader__.load({
         // Playlist songs only render in the playlists mode; switch first so
         // clicking a card always opens it.
         setOnlineMode('playlists')
+        setOnlineResults([])
         // Keep each opened playlist as a tab next to "recently played".
         setOnlineOpenedPlaylists(function (previous) {
           if (
@@ -6162,6 +6173,176 @@ window.__ModuleLoader__.load({
                 ? h('span', { className: 'mu-online-badge' }, result.qualityHint)
                 : null,
           ),
+        )
+      }
+
+      /** Persistent playlist strip (acts as the online tab bar). */
+      function renderPlaylistStrip() {
+        var currentId =
+          onlineCurrentPlaylist === null ? 'recent' : String(onlineCurrentPlaylist.id)
+        return h(
+          'div',
+          { className: 'mu-pl-strip' },
+          h(
+            'div',
+            { className: 'mu-pl-strip-head' },
+            h('span', { className: 'mu-pl-strip-title' }, t('online.myPlaylists')),
+            h('span', { className: 'mu-pl-strip-count' }, String(onlinePlaylists.length)),
+          ),
+          h(
+            'div',
+            { className: 'mu-pl-strip-cards' },
+            h(
+              'button',
+              {
+                type: 'button',
+                key: 'recent',
+                className: 'mu-pl-card' + (currentId === 'recent' ? ' is-on' : ''),
+                title: t('online.recent'),
+                onClick: function () {
+                  setOnlineCurrentPlaylist(null)
+                  setOnlineResults([])
+                },
+              },
+              h('span', { className: 'mu-pl-card-cover mu-pl-card-cover-recent' }, icon('clock', 18)),
+              h('span', { className: 'mu-pl-card-name' }, t('online.recent')),
+            ),
+            onlinePlaylists.map(function (playlist) {
+              return h(
+                'button',
+                {
+                  type: 'button',
+                  key: playlist.id,
+                  className: 'mu-pl-card' + (currentId === String(playlist.id) ? ' is-on' : ''),
+                  title: playlist.name,
+                  onClick: function () {
+                    openOnlinePlaylist(playlist)
+                  },
+                },
+                h(
+                  'span',
+                  { className: 'mu-pl-card-cover' },
+                  playlist.cover !== ''
+                    ? h('img', { src: playlist.cover, alt: '', loading: 'lazy' })
+                    : icon('list', 16),
+                ),
+                h('span', { className: 'mu-pl-card-name mu-ellipsis' }, playlist.name),
+              )
+            }),
+          ),
+        )
+      }
+
+      /** Online view: search row + persistent playlist strip + content pane. */
+      function renderOnlineView() {
+        var showingSearch = onlineResults.length > 0
+        var current = onlineCurrentPlaylist
+        var heading = showingSearch
+          ? t('online.searchResults')
+          : current === null
+            ? t('online.recent')
+            : current.name
+        var list = showingSearch
+          ? onlineResults
+          : current === null
+            ? onlineHistoryForProvider(onlineProvider)
+            : current.songs
+        var listLoading = !showingSearch && current !== null && onlinePlaylistLoading
+        return h(
+          'div',
+          { className: 'mu-online' },
+          h(
+            'div',
+            { className: 'mu-online-search-row' },
+            h('input', {
+              type: 'text',
+              className: 'mu-input mu-input-sm mu-online-search',
+              placeholder: t('online.searchPlaceholder'),
+              value: onlineQuery,
+              onChange: function (event) {
+                setOnlineQuery(event.target.value)
+              },
+              onKeyDown: function (event) {
+                if (event.key === 'Enter') searchOnline()
+              },
+            }),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mu-btn mu-btn-sm',
+                disabled: onlineLoading,
+                onClick: searchOnline,
+              },
+              onlineLoading ? '…' : t('page.search'),
+            ),
+          ),
+          onlineError !== '' ? h('div', { className: 'mu-online-error' }, onlineError) : null,
+          onlinePlaylists.length > 0 || current !== null ? renderPlaylistStrip() : null,
+          h(
+            'div',
+            { className: 'mu-online-head' },
+            h('span', { className: 'mu-online-head-title mu-ellipsis' }, heading),
+            showingSearch
+              ? h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                    onClick: function () {
+                      setOnlineResults([])
+                    },
+                  },
+                  t('online.recent'),
+                )
+              : current === null
+                ? h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-icon-btn mu-icon-btn-sm',
+                      title: t('online.clearUnplayable'),
+                      disabled: clearingUnplayable,
+                      onClick: clearUnplayableHistory,
+                    },
+                    clearingUnplayable
+                      ? h('span', { className: 'mu-spinner mu-spinner-sm' })
+                      : icon('trash', 14),
+                  )
+                : null,
+          ),
+          listLoading
+            ? h(
+                'div',
+                { className: 'mu-state' },
+                h('div', { className: 'mu-spinner' }),
+                t('online.searching'),
+              )
+            : list.length === 0
+              ? h(
+                  'div',
+                  { className: 'mu-state' },
+                  h(
+                    'div',
+                    { className: 'mu-state-sub' },
+                    showingSearch ? t('online.emptyResults') : t('online.hint'),
+                  ),
+                )
+              : h(
+                  'div',
+                  { className: 'mu-list' },
+                  list.map(function (item) {
+                    return renderOnlineSong(
+                      item,
+                      list,
+                      showingSearch
+                        ? undefined
+                        : function (result, x, y) {
+                            setOnlineContext({ item: result, x: x, y: y })
+                          },
+                    )
+                  }),
+                ),
         )
       }
 
@@ -8697,237 +8878,7 @@ window.__ModuleLoader__.load({
           : null,
 
         view === 'online'
-          ? h(
-              'div',
-              { className: 'mu-online' },
-              h(
-                'div',
-                { className: 'mu-online-bar' },
-                h('input', {
-                  type: 'text',
-                  className: 'mu-input mu-input-sm mu-online-search',
-                  placeholder: t('online.searchPlaceholder'),
-                  value: onlineQuery,
-                  onChange: function (event) {
-                    setOnlineQuery(event.target.value)
-                  },
-                  onFocus: function () {
-                    if (onlineMode !== 'search') setOnlineMode('search')
-                  },
-                  onKeyDown: function (event) {
-                    if (event.key === 'Enter') {
-                      setOnlineMode('search')
-                      searchOnline()
-                    }
-                  },
-                }),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-btn mu-btn-sm',
-                    disabled: onlineLoading,
-                    onClick: function () {
-                      setOnlineMode('search')
-                      searchOnline()
-                    },
-                  },
-                  onlineLoading ? '…' : t('page.search'),
-                ),
-              ),
-              onlineMode === 'playlists' && onlineCurrentPlaylist !== null
-                ? h(
-                    'div',
-                    { className: 'mu-online-playlist-title mu-online-recent-head' },
-                    h('span', { className: 'mu-ellipsis' }, onlineCurrentPlaylist.name),
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                        onClick: function () {
-                          setOnlineMode('search')
-                          setOnlineCurrentPlaylist(null)
-                        },
-                      },
-                      '← ' + t('online.recent'),
-                    ),
-                  )
-                : null,
-              onlineMode === 'search'
-                ? onlineError !== ''
-                  ? h('div', { className: 'mu-online-error' }, onlineError)
-                  : onlineLoading
-                    ? h(
-                        'div',
-                        { className: 'mu-state' },
-                        h('div', { className: 'mu-spinner' }),
-                        t('online.searching'),
-                      )
-                    : onlineResults.length === 0
-                      ? onlineHistoryForProvider(onlineProvider).length === 0 &&
-                        onlinePlaylists.length === 0
-                      ? h(
-                          'div',
-                          { className: 'mu-state' },
-                          h('div', { className: 'mu-state-sub' }, t('online.hint')),
-                        )
-                      : h(
-                          'div',
-                          { className: 'mu-online-history' },
-                          // Compact playlist strip pinned above the history.
-                          onlinePlaylists.length > 0
-                            ? h(
-                                'div',
-                                { className: 'mu-online-playlist-chips mu-online-playlist-chips-top' },
-                                onlinePlaylists.slice(0, 10).map(function (playlist) {
-                                  return h(
-                                    'button',
-                                    {
-                                      type: 'button',
-                                      key: playlist.id,
-                                      className: 'mu-online-playlist-chip',
-                                      title: playlist.name,
-                                      onClick: function () {
-                                        openOnlinePlaylist(playlist)
-                                      },
-                                    },
-                                    h(
-                                      'span',
-                                      { className: 'mu-online-playlist-chip-cover' },
-                                      playlist.cover !== ''
-                                        ? h('img', {
-                                            src: playlist.cover,
-                                            alt: '',
-                                            loading: 'lazy',
-                                          })
-                                        : icon('list', 14),
-                                    ),
-                                    h(
-                                      'span',
-                                      { className: 'mu-online-playlist-chip-name mu-ellipsis' },
-                                      playlist.name,
-                                    ),
-                                  )
-                                }),
-                              )
-                            : null,
-                          onlineHistoryForProvider(onlineProvider).length > 0
-                            ? h(
-                                'div',
-                                { className: 'mu-online-playlist-title mu-online-recent-head' },
-                                h('span', null, t('online.recent')),
-                                h(
-                                  'span',
-                                  { className: 'mu-online-recent-actions' },
-                                  h(
-                                    'button',
-                                    {
-                                      type: 'button',
-                                      className: 'mu-icon-btn mu-icon-btn-sm',
-                                      title: t('online.clearUnplayable'),
-                                      disabled: clearingUnplayable,
-                                      onClick: clearUnplayableHistory,
-                                    },
-                                    clearingUnplayable
-                                      ? h('span', { className: 'mu-spinner mu-spinner-sm' })
-                                      : icon('trash', 14),
-                                  ),
-                                ),
-                              )
-                            : null,
-                          onlineHistoryForProvider(onlineProvider).length > 0
-                            ? h(
-                                'div',
-                                { className: 'mu-list' },
-                                onlineHistoryForProvider(onlineProvider).map(function (item) {
-                                  return renderOnlineSong(
-                                    item,
-                                    onlineHistoryForProvider(onlineProvider),
-                                    function (result, x, y) {
-                                      setOnlineContext({ item: result, x: x, y: y })
-                                    },
-                                  )
-                                }),
-                              )
-                            : null,
-                        )
-                      : h('div', { className: 'mu-list' }, onlineResults.slice(0, 200).map(function (item) {
-                          return renderOnlineSong(item, onlineResults)
-                        }))
-                : onlinePlaylistError !== ''
-                  ? h(
-                      'div',
-                      { className: 'mu-state mu-online-login-cta' },
-                      h('div', { className: 'mu-state-sub' }, onlinePlaylistError),
-                      h(
-                        'div',
-                        { className: 'mu-online-login-cta-row' },
-                        onlineProvider === 'qq'
-                          ? h(
-                              'button',
-                              {
-                                type: 'button',
-                                className: 'mu-btn mu-btn-sm',
-                                onClick: function () {
-                                  startOnlineLogin('qq', 'wx')
-                                },
-                              },
-                              t('online.loginWechat'),
-                            )
-                          : h(
-                              'button',
-                              {
-                                type: 'button',
-                                className: 'mu-btn mu-btn-sm',
-                                onClick: function () {
-                                  startOnlineLogin(onlineProvider)
-                                },
-                              },
-                              t('online.login'),
-                            ),
-                        onlineProvider === 'qq'
-                          ? h(
-                              'button',
-                              {
-                                type: 'button',
-                                className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                                onClick: function () {
-                                  startOnlineLogin('qq', 'qq')
-                                },
-                              },
-                              t('online.loginQq'),
-                            )
-                          : null,
-                      ),
-                    )
-                  : onlinePlaylistLoading
-                    ? h(
-                        'div',
-                        { className: 'mu-state' },
-                        h('div', { className: 'mu-spinner' }),
-                        t('online.searching'),
-                      )
-                    : onlineCurrentPlaylist !== null
-                      ? onlineCurrentPlaylist.songs.length === 0
-                        ? h(
-                            'div',
-                            { className: 'mu-state' },
-                            h('div', { className: 'mu-state-sub' }, t('online.hint')),
-                          )
-                        : h(
-                            'div',
-                            { className: 'mu-list' },
-                            onlineCurrentPlaylist.songs.map(function (item) {
-                              return renderOnlineSong(item, onlineCurrentPlaylist.songs)
-                            }),
-                          )
-                      : h(
-                          'div',
-                          { className: 'mu-state' },
-                          h('div', { className: 'mu-state-sub' }, t('online.hint')),
-                        ),
-            )
+          ? renderOnlineView()
           : view === 'albums'
           ? h(
               'div',
@@ -10176,6 +10127,22 @@ window.__ModuleLoader__.load({
       '.mu-online-playlist-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa);padding:2px 2px 0}',
       '.mu-online-recent-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
       '.mu-online-recent-actions{display:flex;align-items:center;gap:2px}',
+      '.mu-online-search-row{display:flex;align-items:center;gap:8px}',
+      '.mu-online-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 2px 4px}',
+      '.mu-online-head-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-pl-strip{display:flex;flex-direction:column;gap:6px;margin:2px 0 4px}',
+      '.mu-pl-strip-head{display:flex;align-items:center;justify-content:space-between}',
+      '.mu-pl-strip-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-pl-strip-count{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-pl-strip-cards{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}',
+      '.mu-pl-strip-cards::-webkit-scrollbar{display:none}',
+      '.mu-pl-card{flex:none;width:72px;display:flex;flex-direction:column;gap:4px;padding:0;border:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer;text-align:left}',
+      '.mu-pl-card-cover{display:flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-pl-card-cover img{width:100%;height:100%;object-fit:cover}',
+      '.mu-pl-card-cover-recent{background:linear-gradient(140deg,#31405f,#1a2030)}',
+      '.mu-pl-card-name{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-pl-card.is-on .mu-pl-card-cover{box-shadow:0 0 0 2px var(--dsw-static-deepseek-450,#5686fe)}',
+      '.mu-pl-card.is-on .mu-pl-card-name{color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
       '.mu-online-tabs{display:flex;gap:4px;overflow-x:auto;padding:2px 0 2px;scrollbar-width:none}',
       '.mu-online-tabs::-webkit-scrollbar{display:none}',
       '.mu-online-tab{flex:none;max-width:170px;height:26px;padding:0 11px;border:0;border-radius:999px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;display:flex;align-items:center;overflow:hidden}',
