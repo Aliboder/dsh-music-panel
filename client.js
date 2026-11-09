@@ -5514,11 +5514,11 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'mu-row-actions' },
-            h(
-              'span',
-              { className: 'mu-online-badge' + (isVip ? ' is-vip' : '') },
-              isVip ? t('online.vip') : result.qualityHint !== '' ? result.qualityHint : providerLabel,
-            ),
+            isVip
+              ? h('span', { className: 'mu-online-badge is-vip' }, t('online.vip'))
+              : result.qualityHint !== ''
+                ? h('span', { className: 'mu-online-badge' }, result.qualityHint)
+                : null,
           ),
         )
       }
@@ -7675,7 +7675,7 @@ window.__ModuleLoader__.load({
 
         h(
           'div',
-          { className: 'mu-chips', style: view === 'stats' ? { display: 'none' } : undefined },
+          { className: 'mu-chips', style: source !== 'local' || view === 'stats' ? { display: 'none' } : undefined },
           h(
             'button',
             { type: 'button', className: 'mu-chip', title: loopLabel(), onClick: cycleLoop },
@@ -7871,6 +7871,19 @@ window.__ModuleLoader__.load({
               h(
                 'div',
                 { className: 'mu-online-bar' },
+                onlineMode === 'playlists' && onlineCurrentPlaylist !== null
+                  ? h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mu-chip',
+                        onClick: function () {
+                          setOnlineCurrentPlaylist(null)
+                        },
+                      },
+                      '← ' + t('online.back'),
+                    )
+                  : null,
                 h(
                   'div',
                   { className: 'mu-online-modes' },
@@ -7928,19 +7941,6 @@ window.__ModuleLoader__.load({
                   },
                   onlineLoading ? '…' : t('page.search'),
                 ),
-                onlineMode === 'playlists' && onlineCurrentPlaylist !== null
-                  ? h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mu-chip',
-                        onClick: function () {
-                          setOnlineCurrentPlaylist(null)
-                        },
-                      },
-                      '← ' + t('online.back'),
-                    )
-                  : null,
               ),
               onlineMode === 'playlists' && onlineCurrentPlaylist !== null
                 ? h(
