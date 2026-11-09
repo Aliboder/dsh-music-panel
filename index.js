@@ -12,6 +12,7 @@ import { createFavorites } from './lib/favorites.js'
 import { createLibrary } from './lib/library.js'
 import { createPlayback } from './lib/playback.js'
 import { createPlaylists } from './lib/playlists.js'
+import { createOnlineCache } from './lib/online-cache.js'
 import { createProviderStore } from './lib/provider-store.js'
 import { createRoutes } from './lib/routes.js'
 import { createSettings } from './lib/settings.js'
@@ -37,7 +38,8 @@ export function apply(ctx, rawConfig) {
   const library = createLibrary({ getSettings: settings.read, stats })
   const playlists = createPlaylists({ dir: settings.dir })
   const providerStore = createProviderStore({ dir: settings.dir })
-  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore })
+  const onlineCache = createOnlineCache({ dir: settings.dir })
+  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, onlineCache })
 
   ctx.effect(() => {
     const dispose = ctx.webServer.register({
