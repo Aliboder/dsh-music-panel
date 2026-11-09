@@ -1164,6 +1164,7 @@ window.__ModuleLoader__.load({
 
     function Cover(props) {
       var [failed, setFailed] = useState(false)
+      var [viaProxy, setViaProxy] = useState(false)
       var size = props.size || 42
       var radius = props.radius === undefined ? 6 : props.radius
       var directCover =
@@ -1173,6 +1174,7 @@ window.__ModuleLoader__.load({
       useEffect(
         function () {
           setFailed(false)
+          setViaProxy(false)
         },
         [props.track ? props.track.path : ''],
       )
@@ -1188,16 +1190,23 @@ window.__ModuleLoader__.load({
       ) {
         return h('div', { className: 'mu-cover', style: wrapStyle }, icon('note', Math.round(size * 0.42)))
       }
+      var src = directCover
+        ? viaProxy
+          ? API + 'online/cover?url=' + encodeURIComponent(props.track.coverUrl)
+          : props.track.coverUrl
+        : coverUrl(props.track.path)
       return h(
         'div',
         { className: 'mu-cover', style: wrapStyle },
         h('img', {
-          src: directCover ? props.track.coverUrl : coverUrl(props.track.path),
+          src: src,
           alt: '',
           loading: 'lazy',
           draggable: 'false',
           onError: function () {
-            setFailed(true)
+            // Hotlink protection on provider CDNs: retry once through the Host.
+            if (directCover && !viaProxy) setViaProxy(true)
+            else setFailed(true)
           },
         }),
       )
