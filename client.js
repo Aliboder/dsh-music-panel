@@ -164,13 +164,13 @@ window.__ModuleLoader__.load({
         'stats.loadFailed': '统计加载失败',
         'stats.retry': '重试',
         'stats.unavailable': '文件已不可用',
-        'page.tabSongs': '全部歌曲',
+        'page.tabSongs': '本地歌曲',
+        'page.tabLocal': '本地音乐',
         'page.tabFavorites': '我喜欢',
         'page.favorite': '收藏',
         'page.unfavorite': '取消收藏',
         'page.favoritesEmpty': '还没有收藏',
         'page.favoritesHint': '点歌曲右侧的爱心加入「我喜欢」。',
-        'page.tabOnline': '在线',
         'settings.tabOnline': '在线',
         'online.settingsHint': '登录后可播放高音质与更多曲目；未登录只能播放免费曲目。Cookie 只保存在本机。',
         'online.loggedIn': '已登录',
@@ -456,13 +456,13 @@ window.__ModuleLoader__.load({
         'stats.loadFailed': 'Failed to load statistics',
         'stats.retry': 'Retry',
         'stats.unavailable': 'File unavailable',
-        'page.tabSongs': 'All songs',
+        'page.tabSongs': 'Local songs',
+        'page.tabLocal': 'Local',
         'page.tabFavorites': 'Liked',
         'page.favorite': 'Like',
         'page.unfavorite': 'Unlike',
         'page.favoritesEmpty': 'No liked songs yet',
         'page.favoritesHint': 'Tap the heart next to a song to add it here.',
-        'page.tabOnline': 'Online',
         'settings.tabOnline': 'Online',
         'online.settingsHint': 'Sign in for higher quality and more tracks; free tracks play without an account. Cookies stay on this machine.',
         'online.loggedIn': 'Signed in',
@@ -4785,6 +4785,8 @@ window.__ModuleLoader__.load({
       var [npVisible, setNpVisible] = useState(false)
       var npAnimRef = useRef(null)
       var [view, setView] = useState('songs')
+      var [source, setSource] = useState('local')
+      var lastLocalView = useRef('songs')
       var [viewFilter, setViewFilter] = useState(null)
       var [onlineProvider, setOnlineProvider] = useState('netease')
       var [onlineQuery, setOnlineQuery] = useState('')
@@ -6396,7 +6398,17 @@ window.__ModuleLoader__.load({
                     if (event.key === 'Enter') event.target.blur()
                   },
                 })
-              : h('span', { className: 'mu-title' }, t('page.tabSongs')),
+              : h(
+                  'span',
+                  { className: 'mu-title' },
+                  source === 'local'
+                    ? t('page.tabSongs')
+                    : source === 'netease'
+                      ? t('online.providerNetease')
+                      : source === 'qq'
+                        ? t('online.providerQq')
+                        : t('online.providerKugou'),
+                ),
             view === 'playlists' && activePlaylist !== undefined
               ? h(
                   'button',
@@ -6561,107 +6573,148 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'mu-tabs' },
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-tab' + (view === 'songs' ? ' is-on' : ''),
-              onClick: function () {
-                setViewFilter(null)
-                setView('songs')
-              },
-            },
-            t('page.tabSongs'),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-tab' + (view === 'favorites' ? ' is-on' : ''),
-              onClick: function () {
-                setViewFilter(null)
-                setView('favorites')
-              },
-            },
-            t('page.tabFavorites'),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-tab' + (view === 'stats' ? ' is-on' : ''),
-              onClick: function () {
-                setViewFilter(null)
-                setView('stats')
-              },
-            },
-            t('page.tabStats'),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-tab' + (view === 'albums' ? ' is-on' : ''),
-              onClick: function () {
-                setViewFilter(null)
-                setView('albums')
-              },
-            },
-            t('page.tabAlbums'),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-tab' + (view === 'artists' ? ' is-on' : ''),
-              onClick: function () {
-                setViewFilter(null)
-                setView('artists')
-              },
-            },
-            t('page.tabArtists'),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-tab' + (view === 'online' ? ' is-on' : ''),
-              onClick: function () {
-                setViewFilter(null)
-                setView('online')
-              },
-            },
-            t('page.tabOnline'),
-          ),
-          playlists.map(function (playlist) {
-            var isOn = view === 'playlists' && playlistId === playlist.id
+          [
+            ['local', t('page.tabLocal')],
+            ['netease', t('online.providerNetease')],
+            ['qq', t('online.providerQq')],
+            ['kugou', t('online.providerKugou')],
+          ].map(function (entry) {
             return h(
               'button',
               {
-                key: playlist.id,
+                key: entry[0],
                 type: 'button',
-                className: 'mu-tab mu-tab-pl' + (isOn ? ' is-on' : ''),
-                title: playlist.name,
+                className: 'mu-tab mu-tab-source' + (source === entry[0] ? ' is-on' : ''),
                 onClick: function () {
-                  openPlaylist(playlist.id)
+                  setViewFilter(null)
+                  if (entry[0] === 'local') {
+                    setSource('local')
+                    if (view === 'online' || view === 'playlists') {
+                      setView(lastLocalView.current || 'songs')
+                    }
+                    return
+                  }
+                  setSource(entry[0])
+                  setOnlineProvider(entry[0])
+                  setOnlineResults([])
+                  setOnlineError('')
+                  setOnlinePlaylists([])
+                  setOnlineCurrentPlaylist(null)
+                  setView('online')
                 },
               },
-              playlist.name,
+              entry[1],
             )
           }),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-tab mu-tab-add',
-              title: t('page.newPlaylist'),
-              onClick: function () {
-                setNewPlaylistName(autoPlaylistName())
-                setNewPlaylistOpen(true)
-              },
-            },
-            icon('plus', 15),
-          ),
+          source === 'local' ? h('span', { className: 'mu-tabs-divider' }) : null,
+          source === 'local'
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-tab' + (view === 'songs' ? ' is-on' : ''),
+                  onClick: function () {
+                    setViewFilter(null)
+                    setView('songs')
+                    lastLocalView.current = 'songs'
+                  },
+                },
+                t('page.tabSongs'),
+              )
+            : null,
+          source === 'local'
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-tab' + (view === 'favorites' ? ' is-on' : ''),
+                  onClick: function () {
+                    setViewFilter(null)
+                    setView('favorites')
+                    lastLocalView.current = 'favorites'
+                  },
+                },
+                t('page.tabFavorites'),
+              )
+            : null,
+          source === 'local'
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-tab' + (view === 'stats' ? ' is-on' : ''),
+                  onClick: function () {
+                    setViewFilter(null)
+                    setView('stats')
+                    lastLocalView.current = 'stats'
+                  },
+                },
+                t('page.tabStats'),
+              )
+            : null,
+          source === 'local'
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-tab' + (view === 'albums' ? ' is-on' : ''),
+                  onClick: function () {
+                    setViewFilter(null)
+                    setView('albums')
+                    lastLocalView.current = 'albums'
+                  },
+                },
+                t('page.tabAlbums'),
+              )
+            : null,
+          source === 'local'
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-tab' + (view === 'artists' ? ' is-on' : ''),
+                  onClick: function () {
+                    setViewFilter(null)
+                    setView('artists')
+                    lastLocalView.current = 'artists'
+                  },
+                },
+                t('page.tabArtists'),
+              )
+            : null,
+          source === 'local'
+            ? playlists.map(function (playlist) {
+                var isOn = view === 'playlists' && playlistId === playlist.id
+                return h(
+                  'button',
+                  {
+                    key: playlist.id,
+                    type: 'button',
+                    className: 'mu-tab mu-tab-pl' + (isOn ? ' is-on' : ''),
+                    title: playlist.name,
+                    onClick: function () {
+                      openPlaylist(playlist.id)
+                    },
+                  },
+                  playlist.name,
+                )
+              })
+            : null,
+          source === 'local'
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-tab mu-tab-add',
+                  title: t('page.newPlaylist'),
+                  onClick: function () {
+                    setNewPlaylistName(autoPlaylistName())
+                    setNewPlaylistOpen(true)
+                  },
+                },
+                icon('plus', 15),
+              )
+            : null,
         ),
 
         sortOpen
@@ -7690,30 +7743,6 @@ window.__ModuleLoader__.load({
               h(
                 'div',
                 { className: 'mu-online-bar' },
-                h(
-                  'div',
-                  { className: 'mu-online-providers' },
-                  [
-                    ['netease', t('online.providerNetease')],
-                    ['qq', t('online.providerQq')],
-                    ['kugou', t('online.providerKugou')],
-                  ].map(function (entry) {
-                    return h(
-                      'button',
-                      {
-                        key: entry[0],
-                        type: 'button',
-                        className: 'mu-chip' + (onlineProvider === entry[0] ? ' is-on' : ''),
-                        onClick: function () {
-                          setOnlineProvider(entry[0])
-                          setOnlineCurrentPlaylist(null)
-                          setOnlinePlaylists([])
-                        },
-                      },
-                      entry[1],
-                    )
-                  }),
-                ),
                 h(
                   'div',
                   { className: 'mu-online-modes' },
@@ -9083,6 +9112,8 @@ window.__ModuleLoader__.load({
       '.mu-online .mu-list{flex:1;min-height:0;overflow-y:auto;padding:0}',
       '.mu-online-badge{font-size:10px;padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-online-modes{display:flex;gap:4px}',
+      '.mu-tabs-divider{flex:none;width:1px;height:14px;margin:0 2px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.12))}',
+      '.mu-tab-source{font-weight:600}',
       '.mu-online-playlist-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa);padding:2px 2px 0}',
       '.mu-online-playlists{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;align-content:start;padding-bottom:8px}',
       '.mu-online-playlist{display:flex;align-items:center;gap:10px;min-width:0;padding:8px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));border-radius:10px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03));cursor:pointer;text-align:left;color:inherit;font:inherit}',
