@@ -8494,6 +8494,18 @@ window.__ModuleLoader__.load({
           ? h(
               'div',
               { className: 'mu-online' },
+              current !== null
+                ? h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mu-locate-fab',
+                      title: t('online.locatePlaying'),
+                      onClick: locatePlayingRow,
+                    },
+                    icon('target', 18),
+                  )
+                : null,
               h(
                 'div',
                 { className: 'mu-online-bar' },
@@ -8602,16 +8614,6 @@ window.__ModuleLoader__.load({
                               h(
                                 'span',
                                 { className: 'mu-online-recent-actions' },
-                                h(
-                                  'button',
-                                  {
-                                    type: 'button',
-                                    className: 'mu-icon-btn mu-icon-btn-sm',
-                                    title: t('online.locatePlaying'),
-                                    onClick: locatePlayingRow,
-                                  },
-                                  icon('target', 14),
-                                ),
                                 h(
                                   'button',
                                   {
@@ -9978,7 +9980,10 @@ window.__ModuleLoader__.load({
       '.mu-filter-clear:hover{color:var(--dsw-alias-label-primary,#e6e6e6)}',
       '.mu-albums{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;align-content:start;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;padding:4px 24px 24px}',
       '.mu-artists{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;display:flex;flex-direction:column;gap:2px;padding:4px 24px 24px}',
-      '.mu-online{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:4px 24px 24px}',
+      '.mu-online{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:4px 24px 24px;position:relative}',
+      '.mu-locate-fab{position:absolute;right:22px;bottom:20px;z-index:6;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:50%;background:var(--dsw-alias-bg-layer-2,#232328);color:var(--dsw-alias-label-primary,#f4f4f5);box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:transform .12s ease,background .12s ease}',
+      '.mu-locate-fab:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.12));transform:translateY(-1px)}',
+      '.mu-locate-fab:active{transform:translateY(0) scale(.96)}',
       '.mu-online-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
       '.mu-online-providers{display:flex;gap:4px}',
       '.mu-online-search{flex:1 1 200px;min-width:0}',
