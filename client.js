@@ -201,6 +201,8 @@ window.__ModuleLoader__.load({
         'online.noPlaying': '当前没有正在播放的歌曲',
         'online.clearUnplayable': '清除无法播放的歌曲',
         'online.clearedUnplayable': '已移除 {n} 首无法播放的歌曲',
+        'online.removeFromHistory': '从最近播放中移除',
+        'online.removedFromHistory': '已从最近播放中移除',
         'online.vipOnly': 'VIP / 付费曲目无法播放（需要会员）',
         'online.quality': '音质',
         'online.qualityStandard': '标准',
@@ -524,6 +526,8 @@ window.__ModuleLoader__.load({
         'online.noPlaying': 'Nothing is playing right now',
         'online.clearUnplayable': 'Remove unplayable tracks',
         'online.clearedUnplayable': 'Removed {n} unplayable track(s)',
+        'online.removeFromHistory': 'Remove from recently played',
+        'online.removedFromHistory': 'Removed from recently played',
         'online.vipOnly': 'VIP / paid tracks cannot play without a membership',
         'online.quality': 'Quality',
         'online.qualityStandard': 'Standard',
@@ -4971,8 +4975,52 @@ window.__ModuleLoader__.load({
       var [npOpen, setNpOpen] = useState(false)
       var [npVisible, setNpVisible] = useState(false)
       var npAnimRef = useRef(null)
-      var [view, setView] = useState('songs')
-      var [source, setSource] = useState('local')
+      var [view, setView] = useState(function () {
+        try {
+          var saved = window.localStorage.getItem('mu.view')
+          if (
+            ['songs', 'albums', 'artists', 'favorites', 'stats', 'playlists', 'online'].includes(
+              saved,
+            )
+          ) {
+            return saved
+          }
+        } catch (error) {
+          /* storage disabled */
+        }
+        return 'songs'
+      })
+      var [source, setSource] = useState(function () {
+        try {
+          var saved = window.localStorage.getItem('mu.source')
+          if (['local', 'netease', 'qq', 'kugou'].includes(saved)) return saved
+        } catch (error) {
+          /* storage disabled */
+        }
+        return 'local'
+      })
+
+      // Remember the active tab across panel unmounts (session switches).
+      useEffect(
+        function () {
+          try {
+            window.localStorage.setItem('mu.view', view)
+          } catch (error) {
+            /* storage disabled */
+          }
+        },
+        [view],
+      )
+      useEffect(
+        function () {
+          try {
+            window.localStorage.setItem('mu.source', source)
+          } catch (error) {
+            /* storage disabled */
+          }
+        },
+        [source],
+      )
       var lastLocalView = useRef('songs')
       var [viewFilter, setViewFilter] = useState(null)
       var [onlineProvider, setOnlineProvider] = useState('netease')
@@ -4989,6 +5037,7 @@ window.__ModuleLoader__.load({
       var [onlineCached, setOnlineCached] = useState({})
       var [onlineCacheProgress, setOnlineCacheProgress] = useState(null)
       var [clearingUnplayable, setClearingUnplayable] = useState(false)
+      var [onlineContext, setOnlineContext] = useState(null)
       var onlineSeq = useRef(0)
       var [playlists, setPlaylists] = useState([])
       var [favorites, setFavorites] = useState([])
@@ -5818,8 +5867,20 @@ window.__ModuleLoader__.load({
           })
       }
 
-      /** Scroll the recently-played list to the row that is playing now. */
-      function locatePlayingRow() {
+      /** Remove one row from the recent-played history (right-click action). */
+      function removeHistoryItem(item) {
+        if (item === null || item === undefined) return
+        setOnlineHistory(function (previous) {
+          var next = previous.filter(function (entry) {
+            return !(entry.provider === item.provider && String(entry.id) === String(item.id))
+          })
+          writeOnlineHistory(next)
+          return next
+        })
+        showToast(t('online.removedFromHistory'))
+      }
+
+      /** Scroll the recently-played list to the row that is playing now. */      function locatePlayingRow() {
         var rows = document.querySelectorAll('.mu-online-history .mu-row.is-current')
         if (rows.length === 0) {
           showToast(t('online.noPlaying'))
@@ -5939,7 +6000,7 @@ window.__ModuleLoader__.load({
         )
       }
 
-      function renderOnlineSong(result, siblings) {
+      function renderOnlineSong(result, siblings, onRemove) {
         var track = onlineTrackOf(result)
         var isCurrent = current !== null && current.path === track.path
         var providerLabel =
@@ -5958,6 +6019,14 @@ window.__ModuleLoader__.load({
             onDoubleClick: function () {
               playOnlineResult(result, siblings)
             },
+            onContextMenu:
+              typeof onRemove === 'function'
+                ? function (event) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    onRemove(result, event.clientX, event.clientY)
+                  }
+                : undefined,
           },
           h(
             'button',
@@ -7984,8 +8053,45 @@ window.__ModuleLoader__.load({
             )
           : null,
 
-        cacheDialogOpen
+        onlineContext !== null
           ? h(
+              'div',
+              {
+                className: 'mu-context-layer',
+                onClick: function () {
+                  setOnlineContext(null)
+                },
+                onContextMenu: function (event) {
+                  event.preventDefault()
+                  setOnlineContext(null)
+                },
+              },
+              h(
+                'div',
+                {
+                  className: 'mu-context-menu',
+                  style: {
+                    left: Math.min(onlineContext.x, Math.max(8, window.innerWidth - 190)) + 'px',
+                    top: Math.min(onlineContext.y, Math.max(8, window.innerHeight - 80)) + 'px',
+                  },
+                },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-context-item',
+                    onClick: function () {
+                      removeHistoryItem(onlineContext.item)
+                      setOnlineContext(null)
+                    },
+                  },
+                  t('online.removeFromHistory'),
+                ),
+              ),
+            )
+          : null,
+
+        cacheDialogOpen          ? h(
               'div',
               { className: 'mu-info-layer' },
               h('div', {
@@ -8633,7 +8739,13 @@ window.__ModuleLoader__.load({
                               'div',
                               { className: 'mu-list' },
                               onlineHistoryForProvider(onlineProvider).map(function (item) {
-                                return renderOnlineSong(item, onlineHistoryForProvider(onlineProvider))
+                                return renderOnlineSong(
+                                  item,
+                                  onlineHistoryForProvider(onlineProvider),
+                                  function (result, x, y) {
+                                    setOnlineContext({ item: result, x: x, y: y })
+                                  },
+                                )
                               }),
                             ),
                           )
@@ -10000,6 +10112,10 @@ window.__ModuleLoader__.load({
       '.mu-online-playlist-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa);padding:2px 2px 0}',
       '.mu-online-recent-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
       '.mu-online-recent-actions{display:flex;align-items:center;gap:2px}',
+      '.mu-context-layer{position:fixed;inset:0;z-index:200}',
+      '.mu-context-menu{position:fixed;min-width:170px;padding:4px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:10px;background:var(--dsw-alias-bg-layer-2,#232328);box-shadow:0 10px 32px rgba(0,0,0,.5);display:flex;flex-direction:column}',
+      '.mu-context-item{display:flex;align-items:center;width:100%;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12.5px;text-align:left;cursor:pointer}',
+      '.mu-context-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08))}',
       '.mu-online-playlists{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;align-content:start;padding-bottom:8px}',
       '.mu-online-playlist{display:flex;align-items:center;gap:10px;min-width:0;padding:8px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));border-radius:10px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03));cursor:pointer;text-align:left;color:inherit;font:inherit}',
       '.mu-online-playlist:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
