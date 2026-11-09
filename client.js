@@ -197,6 +197,10 @@ window.__ModuleLoader__.load({
         'online.hint': '选择平台并搜索。未登录可播放免费曲目；登录后可用高音质（设置 → 在线音乐）。',
         'online.vip': 'VIP',
         'online.recent': '最近播放',
+        'online.locatePlaying': '定位到正在播放',
+        'online.noPlaying': '当前没有正在播放的歌曲',
+        'online.clearUnplayable': '清除无法播放的歌曲',
+        'online.clearedUnplayable': '已移除 {n} 首无法播放的歌曲',
         'online.vipOnly': 'VIP / 付费曲目无法播放（需要会员）',
         'online.quality': '音质',
         'online.qualityStandard': '标准',
@@ -516,6 +520,10 @@ window.__ModuleLoader__.load({
         'online.hint': 'Pick a provider and search. Free tracks play without signing in; sign in (Settings → Online) for higher quality.',
         'online.vip': 'VIP',
         'online.recent': 'Recently played',
+        'online.locatePlaying': 'Locate playing track',
+        'online.noPlaying': 'Nothing is playing right now',
+        'online.clearUnplayable': 'Remove unplayable tracks',
+        'online.clearedUnplayable': 'Removed {n} unplayable track(s)',
         'online.vipOnly': 'VIP / paid tracks cannot play without a membership',
         'online.quality': 'Quality',
         'online.qualityStandard': 'Standard',
@@ -4980,6 +4988,7 @@ window.__ModuleLoader__.load({
       var [onlineHistory, setOnlineHistory] = useState(readOnlineHistory)
       var [onlineCached, setOnlineCached] = useState({})
       var [onlineCacheProgress, setOnlineCacheProgress] = useState(null)
+      var [clearingUnplayable, setClearingUnplayable] = useState(false)
       var onlineSeq = useRef(0)
       var [playlists, setPlaylists] = useState([])
       var [favorites, setFavorites] = useState([])
@@ -5769,6 +5778,57 @@ window.__ModuleLoader__.load({
             }
           })
           .catch(function () {})
+      }
+
+      /** Drop history rows the provider refuses to resolve (VIP / removed). */
+      function clearUnplayableHistory() {
+        var rows = onlineHistoryForProvider(onlineProvider)
+        if (rows.length === 0) return
+        setClearingUnplayable(true)
+        requestJson('POST', API + 'online/check-playable', {
+          provider: onlineProvider,
+          ids: rows.map(function (item) {
+            return String(item.id)
+          }),
+        })
+          .then(function (body) {
+            var playable = (body && body.playable) || {}
+            var kept = rows.filter(function (item) {
+              return playable[item.id] !== false
+            })
+            var removed = rows.length - kept.length
+            if (removed > 0) {
+              setOnlineHistory(function (previous) {
+                var next = previous.filter(function (item) {
+                  if (item.provider !== onlineProvider) return true
+                  return kept.some(function (entry) {
+                    return String(entry.id) === String(item.id)
+                  })
+                })
+                writeOnlineHistory(next)
+                return next
+              })
+            }
+            setClearingUnplayable(false)
+            showToast(t('online.clearedUnplayable', { n: removed }))
+          })
+          .catch(function (error) {
+            setClearingUnplayable(false)
+            showToast(onlineErrorMessage(error))
+          })
+      }
+
+      /** Scroll the recently-played list to the row that is playing now. */
+      function locatePlayingRow() {
+        var rows = document.querySelectorAll('.mu-online-history .mu-row.is-current')
+        if (rows.length === 0) {
+          showToast(t('online.noPlaying'))
+          return
+        }
+        var row = rows[rows.length - 1]
+        if (typeof row.scrollIntoView === 'function') {
+          row.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        }
       }
 
       function onlineErrorMessage(error) {
@@ -8537,8 +8597,35 @@ window.__ModuleLoader__.load({
                             { className: 'mu-online-history' },
                             h(
                               'div',
-                              { className: 'mu-online-playlist-title' },
-                              t('online.recent'),
+                              { className: 'mu-online-playlist-title mu-online-recent-head' },
+                              h('span', null, t('online.recent')),
+                              h(
+                                'span',
+                                { className: 'mu-online-recent-actions' },
+                                h(
+                                  'button',
+                                  {
+                                    type: 'button',
+                                    className: 'mu-icon-btn mu-icon-btn-sm',
+                                    title: t('online.locatePlaying'),
+                                    onClick: locatePlayingRow,
+                                  },
+                                  icon('target', 14),
+                                ),
+                                h(
+                                  'button',
+                                  {
+                                    type: 'button',
+                                    className: 'mu-icon-btn mu-icon-btn-sm',
+                                    title: t('online.clearUnplayable'),
+                                    disabled: clearingUnplayable,
+                                    onClick: clearUnplayableHistory,
+                                  },
+                                  clearingUnplayable
+                                    ? h('span', { className: 'mu-spinner mu-spinner-sm' })
+                                    : icon('trash', 14),
+                                ),
+                              ),
                             ),
                             h(
                               'div',
@@ -9906,6 +9993,8 @@ window.__ModuleLoader__.load({
       '.mu-tabs-divider{flex:none;width:1px;height:14px;margin:0 2px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.12))}',
       '.mu-tab-source{font-weight:600}',
       '.mu-online-playlist-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa);padding:2px 2px 0}',
+      '.mu-online-recent-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
+      '.mu-online-recent-actions{display:flex;align-items:center;gap:2px}',
       '.mu-online-playlists{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;align-content:start;padding-bottom:8px}',
       '.mu-online-playlist{display:flex;align-items:center;gap:10px;min-width:0;padding:8px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));border-radius:10px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03));cursor:pointer;text-align:left;color:inherit;font:inherit}',
       '.mu-online-playlist:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
@@ -10093,6 +10182,7 @@ window.__ModuleLoader__.load({
       '.mu-state-title{font-size:14px;font-weight:600;color:var(--dsw-alias-label-primary,#e4e4e7)}',
       '.mu-state-sub{font-size:12px;max-width:420px;line-height:1.6;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-spinner{width:20px;height:20px;border-radius:50%;border:2px solid var(--dsw-alias-border-l2,rgba(255,255,255,.18));border-top-color:var(--dsw-alias-brand-primary,#f4f4f5);animation:mu-spin .8s linear infinite}',
+      '.mu-spinner-sm{width:12px;height:12px;border-width:2px}',
       '@keyframes mu-spin{to{transform:rotate(360deg)}}',
       '.mu-warn{padding:4px 24px 8px;font-size:12px;color:var(--dsw-alias-state-warn-label,#e0a030)}',
       '.mu-menu{position:absolute;top:56px;right:24px;z-index:50;min-width:160px;max-height:70vh;overflow-y:auto;padding:4px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.4))}',
