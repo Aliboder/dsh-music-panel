@@ -4731,7 +4731,7 @@ window.__ModuleLoader__.load({
           return next
         })
       }
-      var [searchOpen, setSearchOpen] = useState(false)
+      var [searchOpen, setSearchOpen] = useState(true)
       var [sortBy, setSortBy] = useState(prefs.sortBy || 'title')
       var [sortDir, setSortDir] = useState(prefs.sortDir === 'desc' ? 'desc' : 'asc')
       var [sortOpen, setSortOpen] = useState(false)
@@ -7888,42 +7888,48 @@ window.__ModuleLoader__.load({
                     t('online.modePlaylists'),
                   ),
                 ),
-                onlineMode === 'search'
-                  ? h('input', {
-                      type: 'text',
-                      className: 'mu-input mu-input-sm mu-online-search',
-                      placeholder: t('online.searchPlaceholder'),
-                      value: onlineQuery,
-                      onChange: function (event) {
-                        setOnlineQuery(event.target.value)
-                      },
-                      onKeyDown: function (event) {
-                        if (event.key === 'Enter') searchOnline()
-                      },
-                    })
-                  : onlineCurrentPlaylist !== null
-                    ? h(
-                        'button',
-                        {
-                          type: 'button',
-                          className: 'mu-chip',
-                          onClick: function () {
-                            setOnlineCurrentPlaylist(null)
-                          },
-                        },
-                        '← ' + t('online.back'),
-                      )
-                    : null,
-                onlineMode === 'search'
+                h('input', {
+                  type: 'text',
+                  className: 'mu-input mu-input-sm mu-online-search',
+                  placeholder: t('online.searchPlaceholder'),
+                  value: onlineQuery,
+                  onChange: function (event) {
+                    setOnlineQuery(event.target.value)
+                  },
+                  onFocus: function () {
+                    if (onlineMode !== 'search') setOnlineMode('search')
+                  },
+                  onKeyDown: function (event) {
+                    if (event.key === 'Enter') {
+                      setOnlineMode('search')
+                      searchOnline()
+                    }
+                  },
+                }),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-btn mu-btn-sm',
+                    disabled: onlineLoading,
+                    onClick: function () {
+                      setOnlineMode('search')
+                      searchOnline()
+                    },
+                  },
+                  onlineLoading ? '…' : t('page.search'),
+                ),
+                onlineMode === 'playlists' && onlineCurrentPlaylist !== null
                   ? h(
                       'button',
                       {
                         type: 'button',
-                        className: 'mu-btn mu-btn-sm',
-                        disabled: onlineLoading,
-                        onClick: searchOnline,
+                        className: 'mu-chip',
+                        onClick: function () {
+                          setOnlineCurrentPlaylist(null)
+                        },
                       },
-                      onlineLoading ? '…' : t('page.search'),
+                      '← ' + t('online.back'),
                     )
                   : null,
               ),
