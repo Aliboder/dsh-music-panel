@@ -207,6 +207,8 @@ window.__ModuleLoader__.load({
         'online.refresh': '刷新',
         'online.clearCache': '清空缓存',
         'online.cacheCleared': '缓存已清空',
+        'online.cached': '已缓存',
+        'online.cacheProgress': '缓存中 {pct}%',
         'online.networkError': '网络请求失败，请检查网络后重试',
         'online.loginExpired': '登录已过期，请重新登录（设置 → 在线）',
         'online.playFailed': '在线播放失败，已自动跳过',
@@ -518,6 +520,8 @@ window.__ModuleLoader__.load({
         'online.refresh': 'Refresh',
         'online.clearCache': 'Clear cache',
         'online.cacheCleared': 'Cache cleared',
+        'online.cached': 'Cached',
+        'online.cacheProgress': 'Caching {pct}%',
         'online.networkError': 'Network request failed, please retry',
         'online.loginExpired': 'Sign-in expired, please sign in again (Settings → Online)',
         'online.playFailed': 'Online playback failed — skipped',
@@ -4899,6 +4903,8 @@ window.__ModuleLoader__.load({
       var [onlineCurrentPlaylist, setOnlineCurrentPlaylist] = useState(null)
       var [onlineHistory, setOnlineHistory] = useState(readOnlineHistory)
       var [onlineQualityLabel, setOnlineQualityLabel] = useState('')
+      var [onlineCached, setOnlineCached] = useState({})
+      var [onlineCacheProgress, setOnlineCacheProgress] = useState(null)
       var onlineSeq = useRef(0)
       var [playlists, setPlaylists] = useState([])
       var [favorites, setFavorites] = useState([])
@@ -5336,6 +5342,55 @@ window.__ModuleLoader__.load({
         [current === null ? '' : current.path],
       )
 
+      // Track cache progress while an online track is being downloaded.
+      useEffect(
+        function () {
+          setOnlineCacheProgress(null)
+          if (
+            current === null ||
+            typeof current.onlineProvider !== 'string' ||
+            current.onlineProvider === ''
+          ) {
+            return undefined
+          }
+          var online = onlinePathOf(current.path)
+          if (online === null) return undefined
+          var stale = false
+          var timer = window.setInterval(function () {
+            getJson(
+              API +
+                'online/cache/status?provider=' +
+                encodeURIComponent(online.provider) +
+                '&ids=' +
+                encodeURIComponent(online.id),
+            )
+              .then(function (body) {
+                if (stale) return
+                var live = body && body.progress ? body.progress[online.id] : null
+                if (live !== undefined && live !== null) {
+                  setOnlineCacheProgress(live)
+                  return
+                }
+                if (body && body.cached && body.cached[online.id] === true) {
+                  setOnlineCacheProgress(null)
+                  setOnlineCached(function (previous) {
+                    var next = Object.assign({}, previous)
+                    next[online.id] = true
+                    return next
+                  })
+                  window.clearInterval(timer)
+                }
+              })
+              .catch(function () {})
+          }, 1500)
+          return function () {
+            stale = true
+            window.clearInterval(timer)
+          }
+        },
+        [current === null ? '' : current.path],
+      )
+
       // Surfacing playback errors for online tracks (the player auto-skips).
       useEffect(
         function () {
@@ -5566,8 +5621,10 @@ window.__ModuleLoader__.load({
         )
           .then(function (body) {
             if (onlineSeq.current !== seq) return
-            setOnlineResults(Array.isArray(body.results) ? body.results : [])
+            var results = Array.isArray(body.results) ? body.results : []
+            setOnlineResults(results)
             setOnlineLoading(false)
+            refreshCachedFlags(onlineProvider, results)
           })
           .catch(function (error) {
             if (onlineSeq.current !== seq) return
@@ -5577,6 +5634,34 @@ window.__ModuleLoader__.load({
       }
 
       /** Requests that raced a newer one are dropped; network errors get a plain message. */
+      /** Refresh the "already cached" flags for the visible online rows. */
+      function refreshCachedFlags(provider, results) {
+        var ids = (Array.isArray(results) ? results : [])
+          .map(function (item) {
+            return String(item.id || '')
+          })
+          .filter(function (id) {
+            return id !== ''
+          })
+          .slice(0, 200)
+        if (ids.length === 0) return
+        getJson(
+          API +
+            'online/cache/status?provider=' +
+            encodeURIComponent(provider) +
+            '&ids=' +
+            encodeURIComponent(ids.join(',')),
+        )
+          .then(function (body) {
+            if (body && body.cached && typeof body.cached === 'object') {
+              setOnlineCached(function (previous) {
+                return Object.assign({}, previous, body.cached)
+              })
+            }
+          })
+          .catch(function () {})
+      }
+
       function onlineErrorMessage(error) {
         var message = String((error && error.message) || error)
         if (/20017|20018|登录态|重新扫码|登录已过期|未登录|sign in/i.test(message)) {
@@ -5627,13 +5712,15 @@ window.__ModuleLoader__.load({
         )
           .then(function (body) {
             if (onlineSeq.current !== seq) return
+            var songs = Array.isArray(body.songs) ? body.songs : []
             setOnlineCurrentPlaylist({
               id: playlist.id,
               name: body.name || playlist.name,
               cover: body.cover || playlist.cover,
-              songs: Array.isArray(body.songs) ? body.songs : [],
+              songs: songs,
             })
             setOnlinePlaylistLoading(false)
+            refreshCachedFlags(onlineProvider, songs)
           })
           .catch(function (error) {
             if (onlineSeq.current !== seq) return
@@ -5719,7 +5806,14 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'mu-row-main' },
-            h('div', { className: 'mu-row-title' }, result.title),
+            h(
+              'div',
+              { className: 'mu-row-title' },
+              result.title,
+              onlineCached[result.id] === true
+                ? h('span', { className: 'mu-cached-badge' }, t('online.cached'))
+                : null,
+            ),
             h('div', { className: 'mu-row-sub' }, result.artist || ''),
           ),
           h('div', { className: 'mu-row-album mu-ellipsis' }, result.album || ''),
@@ -8569,6 +8663,20 @@ window.__ModuleLoader__.load({
                         onlineQualityLabel !== '' ? onlineQualityLabel : t('online.online'),
                       )
                     : null,
+                  onlineCacheProgress !== null && onlineCacheProgress.total > 0
+                    ? h(
+                        'span',
+                        { className: 'mu-bar-src mu-bar-cache' },
+                        t('online.cacheProgress', {
+                          pct: Math.min(
+                            99,
+                            Math.round(
+                              (onlineCacheProgress.bytes / onlineCacheProgress.total) * 100,
+                            ),
+                          ),
+                        }),
+                      )
+                    : null,
                 ),
                 h(
                   'div',
@@ -9829,6 +9937,8 @@ window.__ModuleLoader__.load({
       '.mu-bar-info{min-width:0;max-width:260px}',
       '.mu-bar-title{font-size:12.5px;font-weight:600}',
       '.mu-bar-src{display:inline-block;margin-left:6px;padding:0 5px;font-size:10px;font-weight:500;line-height:15px;border-radius:999px;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));vertical-align:1px}',
+      '.mu-bar-cache{color:var(--dsw-alias-state-success-primary,#4ade80);background:rgba(74,222,128,.12)}',
+      '.mu-cached-badge{margin-left:6px;padding:0 5px;font-size:10px;font-weight:500;line-height:15px;border-radius:999px;color:var(--dsw-alias-state-success-primary,#4ade80);background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3)}',
       '.mu-bar-artist{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
       '.mu-bar-controls{display:flex;align-items:center;gap:4px;justify-self:center}',
       '.mu-bar-wave{display:block;pointer-events:none;opacity:.95}',
