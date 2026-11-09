@@ -5693,7 +5693,7 @@ window.__ModuleLoader__.load({
                 stopOnlineLoginPolling()
                 showToast(t('online.loginSuccess'))
                 loadOnlineProviders()
-                if (onlineMode === 'playlists') loadMyPlaylists(provider)
+                if (view === 'online') loadOnlinePlaylistsOnly(provider)
                 window.setTimeout(function () {
                   setOnlineLoginDialog(null)
                 }, 800)
@@ -7326,14 +7326,9 @@ window.__ModuleLoader__.load({
                   setOnlineCurrentPlaylist(null)
                   setOnlinePlaylistError('')
                   setView('online')
-                  if (onlineHistoryForProvider(entry[0]).length > 0) {
-                    setOnlineMode('search')
-                  } else {
-                    // No local history yet: open the provider's playlists instead
-                    // of an empty panel, and let the user sign in from there.
-                    setOnlineMode('playlists')
-                    loadMyPlaylists(entry[0])
-                  }
+                  setOnlineMode('search')
+                  // The playlist strip loads itself; never open a sub-page.
+                  loadOnlinePlaylistsOnly(entry[0])
                   loadOnlineProviders()
                 },
               },
@@ -8704,37 +8699,12 @@ window.__ModuleLoader__.load({
                         className: 'mu-chip',
                         onClick: function () {
                           setOnlineCurrentPlaylist(null)
+                          setOnlineMode('search')
                         },
                       },
                       '← ' + t('online.back'),
                     )
                   : null,
-                h(
-                  'div',
-                  { className: 'mu-online-modes' },
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-chip' + (onlineMode === 'search' ? ' is-on' : ''),
-                      onClick: function () {
-                        setOnlineMode('search')
-                      },
-                    },
-                    t('online.modeSearch'),
-                  ),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-chip' + (onlineMode === 'playlists' ? ' is-on' : ''),
-                      onClick: function () {
-                        loadMyPlaylists()
-                      },
-                    },
-                    t('online.modePlaylists'),
-                  ),
-                ),
                 h('input', {
                   type: 'text',
                   className: 'mu-input mu-input-sm mu-online-search',
@@ -8942,50 +8912,11 @@ window.__ModuleLoader__.load({
                               return renderOnlineSong(item, onlineCurrentPlaylist.songs)
                             }),
                           )
-                      : onlinePlaylists.length === 0
-                        ? h(
-                            'div',
-                            { className: 'mu-state' },
-                            h('div', { className: 'mu-state-sub' }, t('online.playlistsHint')),
-                          )
-                        : h(
-                            'div',
-                            { className: 'mu-online-playlists' },
-                            onlinePlaylists.map(function (playlist) {
-                              return h(
-                                'button',
-                                {
-                                  type: 'button',
-                                  key: playlist.id,
-                                  className: 'mu-online-playlist',
-                                  onClick: function () {
-                                    openOnlinePlaylist(playlist)
-                                  },
-                                },
-                                h(
-                                  'span',
-                                  { className: 'mu-online-playlist-cover' },
-                                  playlist.cover !== ''
-                                    ? h('img', { src: playlist.cover, alt: '', loading: 'lazy' })
-                                    : icon('list', 20),
-                                ),
-                                h(
-                                  'span',
-                                  { className: 'mu-online-playlist-main' },
-                                  h(
-                                    'span',
-                                    { className: 'mu-online-playlist-name mu-ellipsis' },
-                                    playlist.name,
-                                  ),
-                                  h(
-                                    'span',
-                                    { className: 'mu-online-playlist-meta' },
-                                    t('page.trackCountUnit', { n: playlist.trackCount }),
-                                  ),
-                                ),
-                              )
-                            }),
-                          ),
+                      : h(
+                          'div',
+                          { className: 'mu-state' },
+                          h('div', { className: 'mu-state-sub' }, t('online.hint')),
+                        ),
             )
           : view === 'albums'
           ? h(
