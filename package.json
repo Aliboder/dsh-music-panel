@@ -1,6 +1,6 @@
 {
   "name": "dsh-music-panel",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "type": "module",
   "description": "Local music library for DeepSeek Harness: scan a folder, browse tracks with cover art and tags, and play through a sidebar-panel player with loop, shuffle and volume. · DSH 本地音乐插件：扫描音乐目录、读取封面与标签、侧栏入口 + 全屏播放器。",
   "license": "MIT",
