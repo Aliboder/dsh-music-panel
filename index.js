@@ -51,64 +51,72 @@ export function apply(ctx, rawConfig) {
   })
 
   // Model-facing control: queue an action the open player panel applies.
-  ctx.inject(['tools'], (toolsCtx) => {
-    toolsCtx.effect(
-      () =>
-        toolsCtx.tools.register(
-          {
-            name: 'music_control',
-            description:
-              'Control the local music player: play a song by title/artist, pause, next, previous. Actions are queued and applied by the open music panel within about two seconds.',
-            parameters: {
-              type: 'object',
-              properties: {
-                action: {
-                  type: 'string',
-                  enum: ['play', 'pause', 'next', 'previous'],
-                  description: 'play starts a song, pause stops playback, next/previous switch tracks.',
-                },
-                query: {
-                  type: 'string',
-                  description: 'Song title or artist to look for when action is "play".',
-                },
-                source: {
-                  type: 'string',
-                  enum: ['local', 'netease', 'qq', 'kugou'],
-                  description:
-                    'Where to play from: local library (default), or the online providers NetEase / QQ Music / KuGou (free tracks work without signing in; sign in from the panel for higher quality).',
-                },
+  // Tools / systemPrompt are optional services: read them defensively so the
+  // plugin still loads where they are unavailable.
+  const tools = typeof ctx.get === 'function' ? ctx.get('tools') : undefined
+  if (tools !== undefined && tools !== null && typeof tools.register === 'function') {
+    ctx.effect(() => {
+      const dispose = tools.register(
+        {
+          name: 'music_control',
+          description:
+            'Control the music player: play a song by title/artist (local library or an online provider), pause, next, previous. Actions are queued and applied by the open music panel within about two seconds.',
+          parameters: {
+            type: 'object',
+            properties: {
+              action: {
+                type: 'string',
+                enum: ['play', 'pause', 'next', 'previous'],
+                description: 'play starts a song, pause stops playback, next/previous switch tracks.',
               },
-              required: ['action'],
-              additionalProperties: false,
-            },
-            output: {
-              schema: {
-                type: 'object',
-                properties: { queued: { type: 'boolean' } },
-                additionalProperties: true,
+              query: {
+                type: 'string',
+                description: 'Song title or artist to look for when action is "play".',
               },
-              render: (args) => [
-                { type: 'text', text: 'music: queued ' + String(args?.action ?? '') },
-              ],
+              source: {
+                type: 'string',
+                enum: ['local', 'netease', 'qq', 'kugou'],
+                description:
+                  'Where to play from: local library (default), or the online providers NetEase / QQ Music / KuGou (free tracks work without signing in; sign in from the panel for higher quality).',
+              },
             },
-            async execute(args) {
-              const action = args !== null && typeof args === 'object' ? args.action : ''
-              const query = args !== null && typeof args === 'object' ? args.query : ''
-              const source = args !== null && typeof args === 'object' ? args.source : ''
-              const queued = enqueueControl({ action, query, source })
-              return { queued, source: source || 'local' }
-            },
+            required: ['action'],
+            additionalProperties: false,
           },
-          {},
-        ),
-      'music-control-tool',
-    )
-  })
+          output: {
+            schema: {
+              type: 'object',
+              properties: { queued: { type: 'boolean' } },
+              additionalProperties: true,
+            },
+            render: (args) => [
+              { type: 'text', text: 'music: queued ' + String(args?.action ?? '') },
+            ],
+          },
+          async execute(args) {
+            const action = args !== null && typeof args === 'object' ? args.action : ''
+            const query = args !== null && typeof args === 'object' ? args.query : ''
+            const source = args !== null && typeof args === 'object' ? args.source : ''
+            const queued = enqueueControl({ action, query, source })
+            return { queued, source: source || 'local' }
+          },
+        },
+        {},
+      )
+      return typeof dispose === 'function' ? dispose : () => {}
+    }, 'music-control-tool')
+  }
 
   // Let the model know about online playback sources.
-  ctx.systemPrompt.section({
-    name: 'tool:music-online',
-    order: 117,
-    text: '在线音乐：music_control 的 source 可设为 netease / qq / kugou，按歌名或歌手在线搜索并播放（未登录只播免费曲；用户可在「设置 → 在线」扫码登录以提升音质）。',
-  })
+  const systemPrompt = typeof ctx.get === 'function' ? ctx.get('systemPrompt') : undefined
+  if (systemPrompt !== undefined && systemPrompt !== null && typeof systemPrompt.section === 'function') {
+    ctx.effect(() => {
+      systemPrompt.section({
+        name: 'tool:music-online',
+        order: 117,
+        text: '在线音乐：music_control 的 source 可设为 netease / qq / kugou，按歌名或歌手在线搜索并播放（未登录只播免费曲；用户可在「设置 → 在线」扫码登录以提升音质）。',
+      })
+      return () => {}
+    }, 'music-online-prompt')
+  }
 }
