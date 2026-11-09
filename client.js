@@ -197,6 +197,8 @@ window.__ModuleLoader__.load({
         'online.hint': '选择平台并搜索。未登录可播放免费曲目；登录后可用高音质（设置 → 在线音乐）。',
         'online.vip': 'VIP',
         'online.recent': '最近播放',
+        'online.myPlaylists': '我的歌单',
+        'online.viewAll': '查看全部',
         'online.locatePlaying': '定位到正在播放',
         'online.noPlaying': '当前没有正在播放的歌曲',
         'online.clearUnplayable': '清除无法播放的歌曲',
@@ -522,6 +524,8 @@ window.__ModuleLoader__.load({
         'online.hint': 'Pick a provider and search. Free tracks play without signing in; sign in (Settings → Online) for higher quality.',
         'online.vip': 'VIP',
         'online.recent': 'Recently played',
+        'online.myPlaylists': 'My playlists',
+        'online.viewAll': 'View all',
         'online.locatePlaying': 'Locate playing track',
         'online.noPlaying': 'Nothing is playing right now',
         'online.clearUnplayable': 'Remove unplayable tracks',
@@ -5456,6 +5460,17 @@ window.__ModuleLoader__.load({
         [onlineProvider, onlineHistory],
       )
 
+      // Keep the playlist strip populated whenever the online panel opens.
+      useEffect(
+        function () {
+          if (view !== 'online') return
+          if (onlinePlaylistLoading) return
+          if (onlinePlaylists.length > 0) return
+          loadOnlinePlaylistsOnly(onlineProvider)
+        },
+        [view, onlineProvider],
+      )
+
       // Track cache progress while an online track is being downloaded.
       useEffect(
         function () {
@@ -5969,8 +5984,29 @@ window.__ModuleLoader__.load({
           })
       }
 
-      function openOnlinePlaylist(playlist) {
+      /** Fetch playlists without switching the sub-tab (for the inline strip). */
+      function loadOnlinePlaylistsOnly(providerOverride) {
+        var provider =
+          typeof providerOverride === 'string' && providerOverride !== ''
+            ? providerOverride
+            : onlineProvider
+        if (provider === '') return
         var seq = onlineSeq.current + 1
+        onlineSeq.current = seq
+        setOnlinePlaylistLoading(true)
+        getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(provider))
+          .then(function (body) {
+            if (onlineSeq.current !== seq) return
+            setOnlinePlaylists(Array.isArray(body.playlists) ? body.playlists : [])
+            setOnlinePlaylistLoading(false)
+          })
+          .catch(function () {
+            if (onlineSeq.current !== seq) return
+            setOnlinePlaylistLoading(false)
+          })
+      }
+
+      function openOnlinePlaylist(playlist) {        var seq = onlineSeq.current + 1
         onlineSeq.current = seq
         setOnlinePlaylistLoading(true)
         setOnlinePlaylistError('')
@@ -8757,51 +8793,114 @@ window.__ModuleLoader__.load({
                         t('online.searching'),
                       )
                     : onlineResults.length === 0
-                      ? onlineHistoryForProvider(onlineProvider).length === 0
-                        ? h(
-                            'div',
-                            { className: 'mu-state' },
-                            h('div', { className: 'mu-state-sub' }, t('online.hint')),
-                          )
-                        : h(
-                            'div',
-                            { className: 'mu-online-history' },
-                            h(
-                              'div',
-                              { className: 'mu-online-playlist-title mu-online-recent-head' },
-                              h('span', null, t('online.recent')),
-                              h(
-                                'span',
-                                { className: 'mu-online-recent-actions' },
+                      ? onlineHistoryForProvider(onlineProvider).length === 0 &&
+                        onlinePlaylists.length === 0
+                      ? h(
+                          'div',
+                          { className: 'mu-state' },
+                          h('div', { className: 'mu-state-sub' }, t('online.hint')),
+                        )
+                      : h(
+                          'div',
+                          { className: 'mu-online-history' },
+                          onlineHistoryForProvider(onlineProvider).length > 0
+                            ? h(
+                                'div',
+                                { className: 'mu-online-playlist-title mu-online-recent-head' },
+                                h('span', null, t('online.recent')),
                                 h(
-                                  'button',
-                                  {
-                                    type: 'button',
-                                    className: 'mu-icon-btn mu-icon-btn-sm',
-                                    title: t('online.clearUnplayable'),
-                                    disabled: clearingUnplayable,
-                                    onClick: clearUnplayableHistory,
-                                  },
-                                  clearingUnplayable
-                                    ? h('span', { className: 'mu-spinner mu-spinner-sm' })
-                                    : icon('trash', 14),
+                                  'span',
+                                  { className: 'mu-online-recent-actions' },
+                                  h(
+                                    'button',
+                                    {
+                                      type: 'button',
+                                      className: 'mu-icon-btn mu-icon-btn-sm',
+                                      title: t('online.clearUnplayable'),
+                                      disabled: clearingUnplayable,
+                                      onClick: clearUnplayableHistory,
+                                    },
+                                    clearingUnplayable
+                                      ? h('span', { className: 'mu-spinner mu-spinner-sm' })
+                                      : icon('trash', 14),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            h(
-                              'div',
-                              { className: 'mu-list' },
-                              onlineHistoryForProvider(onlineProvider).map(function (item) {
-                                return renderOnlineSong(
-                                  item,
-                                  onlineHistoryForProvider(onlineProvider),
-                                  function (result, x, y) {
-                                    setOnlineContext({ item: result, x: x, y: y })
-                                  },
-                                )
-                              }),
-                            ),
-                          )
+                              )
+                            : null,
+                          onlineHistoryForProvider(onlineProvider).length > 0
+                            ? h(
+                                'div',
+                                { className: 'mu-list' },
+                                onlineHistoryForProvider(onlineProvider).map(function (item) {
+                                  return renderOnlineSong(
+                                    item,
+                                    onlineHistoryForProvider(onlineProvider),
+                                    function (result, x, y) {
+                                      setOnlineContext({ item: result, x: x, y: y })
+                                    },
+                                  )
+                                }),
+                              )
+                            : null,
+                          // My playlists stay on this panel: a quick entry point
+                          // so the feature is discoverable without a sub-tab.
+                          onlinePlaylists.length > 0
+                            ? h(
+                                'div',
+                                { className: 'mu-online-playlists-inline' },
+                                h(
+                                  'div',
+                                  { className: 'mu-online-playlist-title mu-online-recent-head' },
+                                  h('span', null, t('online.myPlaylists')),
+                                  h(
+                                    'button',
+                                    {
+                                      type: 'button',
+                                      className: 'mu-btn mu-btn-ghost mu-btn-sm',
+                                      onClick: function () {
+                                        loadMyPlaylists()
+                                      },
+                                    },
+                                    t('online.viewAll'),
+                                  ),
+                                ),
+                                h(
+                                  'div',
+                                  { className: 'mu-online-playlist-chips' },
+                                  onlinePlaylists.slice(0, 8).map(function (playlist) {
+                                    return h(
+                                      'button',
+                                      {
+                                        type: 'button',
+                                        key: playlist.id,
+                                        className: 'mu-online-playlist-chip',
+                                        title: playlist.name,
+                                        onClick: function () {
+                                          openOnlinePlaylist(playlist)
+                                        },
+                                      },
+                                      h(
+                                        'span',
+                                        { className: 'mu-online-playlist-chip-cover' },
+                                        playlist.cover !== ''
+                                          ? h('img', {
+                                              src: playlist.cover,
+                                              alt: '',
+                                              loading: 'lazy',
+                                            })
+                                          : icon('list', 16),
+                                      ),
+                                      h(
+                                        'span',
+                                        { className: 'mu-online-playlist-chip-name mu-ellipsis' },
+                                        playlist.name,
+                                      ),
+                                    )
+                                  }),
+                                ),
+                              )
+                            : null,
+                        )
                       : h('div', { className: 'mu-list' }, onlineResults.slice(0, 200).map(function (item) {
                           return renderOnlineSong(item, onlineResults)
                         }))
@@ -10165,6 +10264,12 @@ window.__ModuleLoader__.load({
       '.mu-online-playlist-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa);padding:2px 2px 0}',
       '.mu-online-recent-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
       '.mu-online-recent-actions{display:flex;align-items:center;gap:2px}',
+      '.mu-online-playlists-inline{display:flex;flex-direction:column;gap:6px;margin-top:8px}',
+      '.mu-online-playlist-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}',
+      '.mu-online-playlist-chip{flex:none;width:94px;display:flex;flex-direction:column;gap:4px;padding:0;border:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer;text-align:left}',
+      '.mu-online-playlist-chip-cover{display:flex;align-items:center;justify-content:center;width:94px;height:94px;border-radius:10px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-online-playlist-chip-cover img{width:100%;height:100%;object-fit:cover}',
+      '.mu-online-playlist-chip-name{font-size:11.5px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mu-context-layer{position:fixed;inset:0;z-index:200}',
       '.mu-context-menu{position:fixed;min-width:170px;padding:4px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:10px;background:var(--dsw-alias-bg-layer-2,#232328);box-shadow:0 10px 32px rgba(0,0,0,.5);display:flex;flex-direction:column}',
       '.mu-context-item{display:flex;align-items:center;width:100%;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12.5px;text-align:left;cursor:pointer}',
