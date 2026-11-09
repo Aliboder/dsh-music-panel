@@ -208,6 +208,9 @@ window.__ModuleLoader__.load({
         'online.clearCache': '清空缓存',
         'online.cacheCleared': '缓存已清空',
         'online.networkError': '网络请求失败，请检查网络后重试',
+        'online.loginExpired': '登录已过期，请重新登录（设置 → 在线）',
+        'online.playFailed': '在线播放失败，已自动跳过',
+        'online.online': '在线',
         'online.modeSearch': '搜索',
         'online.modePlaylists': '我的歌单',
         'online.back': '返回',
@@ -516,6 +519,9 @@ window.__ModuleLoader__.load({
         'online.clearCache': 'Clear cache',
         'online.cacheCleared': 'Cache cleared',
         'online.networkError': 'Network request failed, please retry',
+        'online.loginExpired': 'Sign-in expired, please sign in again (Settings → Online)',
+        'online.playFailed': 'Online playback failed — skipped',
+        'online.online': 'Online',
         'online.modeSearch': 'Search',
         'online.modePlaylists': 'My playlists',
         'online.back': 'Back',
@@ -1676,6 +1682,7 @@ window.__ModuleLoader__.load({
       var randomOrder = []
       var listeners = []
       var timeListeners = []
+      var errorListeners = []
       var errorStreak = 0
       var state = {
         queue: [],
@@ -2028,6 +2035,14 @@ window.__ModuleLoader__.load({
 
       function onError() {
         errorStreak += 1
+        var failedTrack = state.queue[state.index] || null
+        errorListeners.forEach(function (fn) {
+          try {
+            fn({ track: failedTrack, streak: errorStreak })
+          } catch {
+            /* a listener must never break playback */
+          }
+        })
         if (errorStreak > 3 || state.queue.length <= 1) {
           errorStreak = 0
           patch({ playing: false })
@@ -2188,6 +2203,14 @@ window.__ModuleLoader__.load({
           timeListeners.push(fn)
           return function () {
             timeListeners = timeListeners.filter(function (item) {
+              return item !== fn
+            })
+          }
+        },
+        subscribeError: function (fn) {
+          errorListeners.push(fn)
+          return function () {
+            errorListeners = errorListeners.filter(function (item) {
               return item !== fn
             })
           }
@@ -4868,6 +4891,7 @@ window.__ModuleLoader__.load({
       var [onlinePlaylistError, setOnlinePlaylistError] = useState('')
       var [onlineCurrentPlaylist, setOnlineCurrentPlaylist] = useState(null)
       var [onlineHistory, setOnlineHistory] = useState(readOnlineHistory)
+      var [onlineQualityLabel, setOnlineQualityLabel] = useState('')
       var onlineSeq = useRef(0)
       var [playlists, setPlaylists] = useState([])
       var [favorites, setFavorites] = useState([])
@@ -5272,6 +5296,57 @@ window.__ModuleLoader__.load({
         return playModeLabel(playModeOf(snap))
       }
 
+      // Resolve the granted quality for the playing online track (badge in the bar).
+      useEffect(
+        function () {
+          if (
+            current === null ||
+            typeof current.onlineProvider !== 'string' ||
+            current.onlineProvider === ''
+          ) {
+            setOnlineQualityLabel('')
+            return undefined
+          }
+          var online = onlinePathOf(current.path)
+          if (online === null) return undefined
+          var stale = false
+          getJson(
+            API +
+              'online/quality?provider=' +
+              encodeURIComponent(online.provider) +
+              '&id=' +
+              encodeURIComponent(online.id),
+          )
+            .then(function (body) {
+              if (stale) return
+              setOnlineQualityLabel(String(body.quality || ''))
+            })
+            .catch(function () {})
+          return function () {
+            stale = true
+          }
+        },
+        [current === null ? '' : current.path],
+      )
+
+      // Surfacing playback errors for online tracks (the player auto-skips).
+      useEffect(
+        function () {
+          return player.subscribeError(function (info) {
+            var failed = info && info.track
+            if (
+              failed !== null &&
+              failed !== undefined &&
+              typeof failed.onlineProvider === 'string' &&
+              failed.onlineProvider !== ''
+            ) {
+              showToast(t('online.playFailed'))
+            }
+          })
+        },
+        [player],
+      )
+
       // Remember online tracks that actually started playing (per provider).
       useEffect(
         function () {
@@ -5497,6 +5572,9 @@ window.__ModuleLoader__.load({
       /** Requests that raced a newer one are dropped; network errors get a plain message. */
       function onlineErrorMessage(error) {
         var message = String((error && error.message) || error)
+        if (/20017|20018|登录态|重新扫码|登录已过期|未登录|sign in/i.test(message)) {
+          return t('online.loginExpired')
+        }
         if (/failed to fetch|network|econn|timeout|abort/i.test(message)) {
           return t('online.networkError')
         }
@@ -8473,7 +8551,18 @@ window.__ModuleLoader__.load({
               h(
                 'div',
                 { className: 'mu-bar-info' },
-                h('div', { className: 'mu-bar-title mu-ellipsis' }, current ? current.title : t('page.noTrack')),
+                h(
+                  'div',
+                  { className: 'mu-bar-title mu-ellipsis' },
+                  current ? current.title : t('page.noTrack'),
+                  current !== null && current !== undefined && current.onlineProvider
+                    ? h(
+                        'span',
+                        { className: 'mu-bar-src' },
+                        onlineQualityLabel !== '' ? onlineQualityLabel : t('online.online'),
+                      )
+                    : null,
+                ),
                 h(
                   'div',
                   { className: 'mu-bar-artist mu-ellipsis' },
@@ -9728,6 +9817,7 @@ window.__ModuleLoader__.load({
       '.mu-bar-left{display:flex;align-items:center;gap:10px;min-width:0}',
       '.mu-bar-info{min-width:0;max-width:260px}',
       '.mu-bar-title{font-size:12.5px;font-weight:600}',
+      '.mu-bar-src{display:inline-block;margin-left:6px;padding:0 5px;font-size:10px;font-weight:500;line-height:15px;border-radius:999px;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));vertical-align:1px}',
       '.mu-bar-artist{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
       '.mu-bar-controls{display:flex;align-items:center;gap:4px;justify-self:center}',
       '.mu-bar-wave{display:block;pointer-events:none;opacity:.95}',
