@@ -2153,21 +2153,54 @@ window.__ModuleLoader__.load({
         if (audio === null) return
 
         cancelPendingFetch()
-        // Online providers stream through the Host, so the element points at
-        // our own route instead of a blob. Range is forwarded when supported.
+        // Online providers stream through the Host. The Desktop media stack
+        // silently drops `currentTime` writes on this HTTP stream (seeking
+        // restarted the track), so download the file first — when it is cached
+        // this is a local read — and play from a blob like local tracks.
         if (typeof item.onlineUrl === 'string' && item.onlineUrl !== '') {
           audio.pause()
           audio.removeAttribute('src')
           audio.load()
           releaseObjectUrl()
-          audio.src = item.onlineUrl
-          audio.load()
-          if (pendingAutoplay) {
-            pendingAutoplay = false
-            audio.play().catch(function () {
-              if (state.playing) patch({ playing: false })
+          var onlineToken = token
+          var onlineController =
+            typeof AbortController !== 'undefined' ? new AbortController() : null
+          fetchAbort = onlineController
+          fetch(item.onlineUrl, onlineController === null ? {} : { signal: onlineController.signal })
+            .then(function (response) {
+              if (!response.ok) throw new Error('HTTP ' + response.status)
+              return response.blob()
             })
-          }
+            .then(function (blob) {
+              if (onlineToken !== loadToken) return
+              fetchAbort = null
+              if (audio === null) return
+              releaseObjectUrl()
+              objectUrl = URL.createObjectURL(blob)
+              audio.src = objectUrl
+              audio.load()
+              if (pendingAutoplay) {
+                pendingAutoplay = false
+                audio.play().catch(function () {
+                  if (state.playing) patch({ playing: false })
+                })
+              }
+            })
+            .catch(function () {
+              if (onlineToken !== loadToken) return
+              fetchAbort = null
+              if (audio === null) return
+              // Streaming fallback: playback still starts even if the prefetch
+              // failed (seeking may be less reliable in this rare path).
+              audio.src = item.onlineUrl
+              audio.load()
+              if (pendingAutoplay) {
+                pendingAutoplay = false
+                audio.play().catch(function () {
+                  if (state.playing) patch({ playing: false })
+                })
+              }
+            })
           return
         }
         // Detach the old blob before revoking it: a revoked URL still
