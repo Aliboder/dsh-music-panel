@@ -1,14 +1,7 @@
 /**
- * Web Client half of dsh-music-panel.
+ * dsh-music-panel — Web Client half.
  *
- * Three seats:
- *   - `sidebar.panellist`  the music note icon in the left rail (id = `music`)
- *   - `main`               the full player page dispatched by that id
- *   - `settings.section`   folder/depth configuration
- *
- * Playback follows the semantics local players (APlayer, Salt Player) agree
- * on: `loop` is all/one/none, `order` is list/random, `ended` dispatches on
- * both, and `seek` clamps into the loaded duration.
+ * GENERATED FILE. Edit src/** instead, then run: node scripts/build-client.mjs
  */
 
 window.__ModuleLoader__.load({
@@ -16,6 +9,14 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
 
+    // ── src/00-runtime.js
+    /**
+     * runtime: React bindings, plugin constants.
+     *
+     * Every other fragment runs in the same factory scope, so these names are
+     * shared by all of them; the build script fails on duplicate declarations.
+     */
+    
     var React = require('react')
     var h = React.createElement
     var useState = React.useState
@@ -23,42 +24,76 @@ window.__ModuleLoader__.load({
     var useRef = React.useRef
     var useMemo = React.useMemo
     var useCallback = React.useCallback
-
+    var useLayoutEffect = React.useLayoutEffect || React.useEffect
+    
     var PANEL_ID = 'music'
-    var API = 'music/'
-    var PREFS_KEY = 'dsh-music.prefs'
-    var CONFIG_EVENT = 'dsh-music:config-changed'
     var PREFS_EVENT = 'dsh-music:prefs-changed'
 
-    /** Defaults for every appearance / lyric preference. */
-    var PREF_DEFAULTS = {
-      miniPlayer: true,
-      viewMode: 'list',
-      queuePos: null,
-      composerQueueButton: true,
-      circularCover: true,
-      vinylRing: false,
-      coverSpin: true,
-      lyricOrder: ['embedded', 'lrc'],
-      lyricAlign: 'center',
-      lyricSize: 18,
-      lyricWeight: 500,
-      lyricBlur: true,
-      showTranslation: true,
-      translationScale: 80,
-      composerLyrics: false,
-      composerLyricPlace: 'input-left',
-      // Resume behaviour follows mainstream desktop players: restore the queue
-      // and position on start, but stay paused until the user asks to play.
-      resumeOnStart: true,
-      sleepTimerMinutes: 0,
-      autoResume: false,
-      rememberPerTrack: false,
-      onboardingDone: false,
+    // ── src/00-host-ui.js
+    /**
+     * Optional host UI kit.
+     *
+     * DSH exposes its own primitives to plugin bundles. We prefer them so controls
+     * look and behave exactly like the host, but the load is best-effort: tests,
+     * the harness, or a future DSH without this module fall back to the local
+     * primitives (same markup we render today).
+     *
+     * Rules: docs/theme-guidelines.md.
+     */
+    
+    var hostUi = null
+    try {
+      hostUi = require('@deepseek-ai/dsh-client-ui-primitives')
+    } catch (error) {
+      hostUi = null
+    }
+    
+    function hostComponent(name) {
+      if (!hostUi) return null
+      var value = hostUi[name]
+      if (typeof value === 'function') return value
+      if (value && typeof value === 'object' && value.$$typeof) return value
+      return null
+    }
+    
+    /** Local icon name -> host icon component. Unmapped names keep the local SVG. */
+    var HOST_ICON_MAP = {
+      search: 'IconSearchOutlineRegular',
+      settings: 'IconSettingsOutlineRegular',
+      plus: 'IconPlusOutlineRegular',
+      trash: 'IconTrashOutlineRegular',
+      user: 'IconUserOutlineRegular',
+      refresh: 'IconRefreshOutlineRegular',
+      play: 'IconPlayOutlineRegular',
+      pause: 'IconPauseOutlineRegular',
+      info: 'IconInfoOutlineRegular',
+      warning: 'IconWarningOutlineRegular',
+      download: 'IconDownloadOutlineRegular',
+      edit: 'IconEditOutlineRegular',
+      copy: 'IconCopyOutlineRegular',
+      clock: 'IconClockOutlineRegular',
+      folder: 'IconFolderOpenOutlineRegular',
+      check: 'IconCheckOutlineRegular',
+      checkCircle: 'IconCheckCircleOutlineRegular',
+      x: 'IconCloseOutlineRegular',
+      more: 'IconEllipsisOutlineRegular',
+      chevronDown: 'IconChevronDownOutlineRegular',
+      chevronLeft: 'IconChevronLeftOutlineRegular',
+      chevronRight: 'IconChevronRightOutlineRegular',
+      chevronUp: 'IconChevronUpOutlineRegular',
+      sort: 'IconChevronsUpDownOutlineRegular',
+      heart: 'IconLikeOutlineRegular',
+      heartFill: 'IconLikeFillRegular',
+      list: 'IconQueueOutlineRegular',
     }
 
-    // ── locale ────────────────────────────────────────────────────────────
-
+    // ── src/05-i18n.js
+    /**
+     * locale dictionaries, language detection and t().
+     *
+     * Extracted from client.js at the 0.11.1 baseline (3931c14).
+     */
+    
     var DICTS = {
       zh: {
         'nav.label': '音乐',
@@ -168,10 +203,10 @@ window.__ModuleLoader__.load({
         'page.tabSongs': '本地歌曲',
         'page.tabLocal': '本地音乐',
         'page.tabFavorites': '我喜欢',
-        'page.favorite': '收藏',
-        'page.unfavorite': '取消收藏',
+        'page.favorite': '喜欢',
+        'page.unfavorite': '取消喜欢',
         'page.favoritesEmpty': '还没有收藏',
-        'page.favoritesHint': '点歌曲右侧的爱心加入「我喜欢」。',
+        'page.favoritesHint': '点歌曲右侧的爱心加入喜欢。',
         'settings.tabOnline': '在线',
         'online.settingsHint': '登录后可播放高音质与更多曲目；未登录只能播放免费曲目。Cookie 只保存在本机。',
         'online.loggedIn': '已登录',
@@ -256,7 +291,7 @@ window.__ModuleLoader__.load({
         'page.addedToPlaylist': '已添加到播放列表',
         'page.reveal': '在文件夹中显示',
         'page.revealed': '已在文件夹中打开',
-        'page.favoriteSelected': '收藏选中',
+        'page.favoriteSelected': '喜欢选中',
         'page.batchEdit': '批量编辑',
         'page.batchHint': '将修改选中的 {n} 首歌曲，留空的字段保持不变',
         'page.batchSaved': '已更新 {n} 首',
@@ -330,7 +365,6 @@ window.__ModuleLoader__.load({
         'page.resetCover': '恢复原封面',
         'page.coverPending': '已选择在线封面，保存后写入',
         'page.matchField': '搜索替换',
-        'page.gridView': '网格视图',
         'page.listView': '列表视图',
         'page.addedCount': '已添加 {n} 首',
         'page.trackCount': '{n} 首',
@@ -662,7 +696,6 @@ window.__ModuleLoader__.load({
         'page.resetCover': 'Reset cover',
         'page.coverPending': 'Online cover selected — saved with tags',
         'page.matchField': 'Search & replace',
-        'page.gridView': 'Grid view',
         'page.listView': 'List view',
         'page.addedCount': '{n} added',
         'page.trackCount': '{n} tracks',
@@ -725,7 +758,7 @@ window.__ModuleLoader__.load({
         'settings.placeAbove': 'Above input',
       },
     }
-
+    
     var LANG = (function () {
       var lang = ''
       try {
@@ -735,13 +768,13 @@ window.__ModuleLoader__.load({
       }
       return String(lang).toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en'
     })()
-
+    
     /**
      * Bound to the host locale service when the plugin applies; null keeps the
      * built-in dictionary plus the document-language guess.
      */
     var localeTranslate = null
-
+    
     function t(key, vars) {
       var text = null
       if (localeTranslate !== null) {
@@ -763,16 +796,268 @@ window.__ModuleLoader__.load({
       return text
     }
 
-    // ── tiny helpers ──────────────────────────────────────────────────────
+    // ── src/06-strings.js
+    /**
+     * strings: keys introduced by the v2 UI.
+     *
+     * The large zh/en dictionaries from 0.11.1 stay in 05-i18n; this file only adds
+     * the labels the new shell needs, so both languages keep working.
+     */
+    
+    var EXTRA_STRINGS = {
+      zh: {
+        'v2.songs': '歌曲',
+        'v2.albums': '专辑',
+        'v2.artists': '歌手',
+        'v2.folders': '文件夹',
+        'v2.favorites': '喜欢',
+        'v2.playlists': '歌单',
+        'v2.stats': '统计',
+        'v2.recent': '最近播放',
+        'v2.cache': '缓存',
+        'v2.sectionLibrary': '音乐库',
+        'v2.sectionCollection': '收藏',
+        'v2.sectionOnline': '在线',
+        'v2.allSongs': '全部歌曲',
+        'v2.layout': '布局',
+        'v2.layoutTop': '顶栏分区',
+        'v2.layoutRail': '左侧导航',
+        'v2.layoutHint': '顶栏分区不会和宿主左侧栏重复；左侧导航适合歌单很多时常驻浏览。',
+        'v2.clearFilter': '全部',
+        'v2.loading': '正在加载…',
+        'v2.scanning': '正在扫描曲库…',
+        'v2.scanFailed': '曲库加载失败',
+        'v2.noTracks': '还没有音乐',
+        'v2.noTracksHint': '在设置 → 音乐库添加文件夹，然后点刷新。',
+        'v2.noFavorites': '还没有喜欢的歌',
+        'v2.noFavoritesHint': '点歌曲右侧的爱心加入喜欢。',
+        'v2.noPlaylistTracks': '这个歌单还没有歌',
+        'v2.noHistory': '还没有播放记录',
+        'v2.noHistoryHint': '在线播放过的歌会出现在这里。',
+        'v2.noPlaylists': '还没有歌单',
+        'v2.newPlaylist': '新建歌单',
+        'v2.playlistName': '歌单名称',
+        'v2.rename': '重命名',
+        'v2.delete': '删除',
+        'v2.close': '关闭',
+        'v2.back': '全部',
+        'v2.cached': '已缓存',
+        'v2.cacheProgress': '缓存中 {pct}%',
+        'v2.sortTitle': '标题',
+        'v2.sortArtist': '歌手',
+        'v2.sortDuration': '时长',
+        'v2.sortAdded': '添加时间',
+        'v2.sortRecent': '最近播放',
+        'v2.appearance': '外观',
+        'v2.lyrics': '歌词',
+        'v2.playback': '播放',
+        'v2.library': '音乐库',
+        'v2.folderAdd': '添加文件夹',
+        'v2.folderPick': '选择文件夹',
+        'v2.folderUp': '上一级',
+        'v2.folderHere': '使用此文件夹',
+        'v2.folderHidden': '已隐藏',
+        'v2.folderVisible': '显示中',
+        'v2.folderHideHint': '隐藏这个文件夹里的歌曲',
+        'v2.folderAdded': '已添加文件夹',
+        'v2.folderEmpty': '没有子文件夹',
+        'v2.folderBrowse': '浏览…',
+        'online.addedToCloudPlaylist': '已加入歌单',
+        'online.noCloudPlaylists': '还没有云端歌单',
+        'online.addToCloudPlaylist': '添加到歌单',
+    
+        'v2.online': '在线',
+        'v2.cacheTab': '缓存',
+        'v2.listenTime': '累计播放时长',
+        'v2.totalPlays': '总播放次数',
+        'v2.trackedTracks': '有记录曲目',
+        'v2.rangeAll': '全部时间',
+        'v2.rangeWeek': '最近一周',
+        'v2.rangeMonth': '最近一月',
+        'v2.playing': '正在播放',
+        'v2.lyricSettings': '歌词设置',
+        'v2.removeSelectedConfirm': '把选中的 {n} 首移到回收站（可恢复）？',
+        'v2.removed': '已移除 {n} 首',
+        'v2.match': '在线匹配',
+        'v2.minutes': '{n} 分钟',
+        'v2.pickTrack': '从列表里选一首歌开始播放',
+        'v2.selAll': '全部选择',
+        'v2.hostKit': '宿主组件',
+        'v2.hostKitDesc': 'native = 正在使用 DSH 官方组件；fallback = 本地回退实现',
+        'v2.hostKitNative': 'native',
+        'v2.hostKitFallback': 'fallback',
+        'v2.selNone': '全部取消',
+        'v2.selRange': '区域选择',
+        'v2.selInvert': '反向选择',
+        'v2.rangePickHint': '区域选择：先点起点，再点终点',
+        'v2.searchFocus': '搜索',
+        'v2.sleepRemaining': '剩余 {time}',
+        'v2.sleepCancel': '取消定时',
+        'v2.cover': '封面',
+        'v2.matchHint': '点整行应用全部；点字段只应用该字段',
+        'v2.trash': '回收站',
+        'v2.trashHint': '删除的曲目会移到这里，可随时恢复',
+        'v2.trashEmpty': '回收站是空的',
+        'v2.restore': '恢复',
+        'v2.restored': '已恢复：{name}',
+        'v2.trashNoPath': '原路径未知',
+        'v2.spin': '封面旋转',
+        'v2.spinDesc': '播放时唱片转动',
+        'v2.roundCover': '圆形封面',
+        'v2.vinylRing': '黑胶环',
+        'v2.vinylRingDesc': '圆形封面外圈的唱片纹路',
+        'v2.roundCoverDesc': '列表行使用圆形封面',
+        'v2.paused': '已暂停',
+        'v2.filters': '筛选',
+        'v2.albumFilter': '专辑：{name}',
+        'v2.artistFilter': '歌手：{name}',
+        'v2.folderFilter': '文件夹：{name}',
+        'v2.playAllHint': '从第一首开始播放',
+        'v2.queueHint': '点击播放，右键更多操作',
+        'v2.loginNeeded': '登录后可查看歌单',
+        'v2.relogin': '重新登录',
+        'v2.logout': '退出登录',
+      },
+      en: {
+        'v2.songs': 'Songs',
+        'v2.albums': 'Albums',
+        'v2.artists': 'Artists',
+        'v2.folders': 'Folders',
+        'v2.favorites': 'Favorites',
+        'v2.playlists': 'Playlists',
+        'v2.stats': 'Stats',
+        'v2.recent': 'Recent',
+        'v2.cache': 'Cache',
+        'v2.sectionLibrary': 'Library',
+        'v2.sectionCollection': 'Collection',
+        'v2.sectionOnline': 'Online',
+        'v2.allSongs': 'All songs',
+        'v2.layout': 'Layout',
+        'v2.layoutTop': 'Top sections',
+        'v2.layoutRail': 'Left rail',
+        'v2.layoutHint': 'Top sections avoid a second sidebar next to the host; the left rail is better for many playlists.',
+        'v2.clearFilter': 'All',
+        'v2.loading': 'Loading…',
+        'v2.scanning': 'Scanning library…',
+        'v2.scanFailed': 'Failed to load library',
+        'v2.noTracks': 'No music yet',
+        'v2.noTracksHint': 'Add a folder in Settings → Library, then refresh.',
+        'v2.noFavorites': 'No favorites yet',
+        'v2.noFavoritesHint': 'Use the heart on a row to add one.',
+        'v2.noPlaylistTracks': 'This playlist is empty',
+        'v2.noHistory': 'No history yet',
+        'v2.noHistoryHint': 'Tracks you play online show up here.',
+        'v2.noPlaylists': 'No playlists yet',
+        'v2.newPlaylist': 'New playlist',
+        'v2.playlistName': 'Playlist name',
+        'v2.rename': 'Rename',
+        'v2.delete': 'Delete',
+        'v2.close': 'Close',
+        'v2.back': 'All',
+        'v2.cached': 'Cached',
+        'v2.cacheProgress': 'Caching {pct}%',
+        'v2.sortTitle': 'Title',
+        'v2.sortArtist': 'Artist',
+        'v2.sortDuration': 'Duration',
+        'v2.sortAdded': 'Date added',
+        'v2.sortRecent': 'Recently played',
+        'v2.appearance': 'Appearance',
+        'v2.lyrics': 'Lyrics',
+        'v2.playback': 'Playback',
+        'v2.library': 'Library',
+        'v2.folderAdd': 'Add folder',
+        'v2.folderPick': 'Choose folder',
+        'v2.folderUp': 'Up',
+        'v2.folderHere': 'Use this folder',
+        'v2.folderHidden': 'Hidden',
+        'v2.folderVisible': 'Visible',
+        'v2.folderHideHint': 'Hide songs inside this folder',
+        'v2.folderAdded': 'Folder added',
+        'v2.folderEmpty': 'No subfolders',
+        'v2.folderBrowse': 'Browse…',
+        'online.addedToCloudPlaylist': 'Added to playlist',
+        'online.noCloudPlaylists': 'No cloud playlists yet',
+        'online.addToCloudPlaylist': 'Add to playlist',
+    
+        'v2.online': 'Online',
+        'v2.cacheTab': 'Cache',
+        'v2.listenTime': 'Listening time',
+        'v2.totalPlays': 'Total plays',
+        'v2.trackedTracks': 'Tracks tracked',
+        'v2.rangeAll': 'All time',
+        'v2.rangeWeek': 'Last week',
+        'v2.rangeMonth': 'Last month',
+        'v2.playing': 'Playing',
+        'v2.lyricSettings': 'Lyric settings',
+        'v2.removeSelectedConfirm': 'Move {n} selected tracks to the trash (recoverable)?',
+        'v2.removed': 'Removed {n} tracks',
+        'v2.match': 'Online match',
+        'v2.minutes': '{n} min',
+        'v2.pickTrack': 'Pick a track from the list to start',
+        'v2.selAll': 'Select all',
+        'v2.hostKit': 'Host components',
+        'v2.hostKitDesc': 'native = using DSH primitives; fallback = local implementations',
+        'v2.hostKitNative': 'native',
+        'v2.hostKitFallback': 'fallback',
+        'v2.selNone': 'Clear selection',
+        'v2.selRange': 'Range select',
+        'v2.selInvert': 'Invert selection',
+        'v2.rangePickHint': 'Range select: click the start, then the end',
+        'v2.searchFocus': 'Search',
+        'v2.sleepRemaining': '{time} left',
+        'v2.sleepCancel': 'Cancel timer',
+        'v2.cover': 'Cover',
+        'v2.matchHint': 'Click a row to apply everything, or a field chip for just that field',
+        'v2.trash': 'Trash',
+        'v2.trashHint': 'Removed tracks land here and can be restored',
+        'v2.trashEmpty': 'The trash is empty',
+        'v2.restore': 'Restore',
+        'v2.restored': 'Restored: {name}',
+        'v2.trashNoPath': 'Original path unknown',
+        'v2.spin': 'Cover rotation',
+        'v2.spinDesc': 'The disc spins while playing',
+        'v2.roundCover': 'Round covers',
+        'v2.vinylRing': 'Vinyl ring',
+        'v2.vinylRingDesc': 'Record grooves around a circular cover',
+        'v2.roundCoverDesc': 'Use round covers in lists',
+        'v2.paused': 'Paused',
+        'v2.filters': 'Filters',
+        'v2.albumFilter': 'Album: {name}',
+        'v2.artistFilter': 'Artist: {name}',
+        'v2.folderFilter': 'Folder: {name}',
+        'v2.playAllHint': 'Start from the first track',
+        'v2.queueHint': 'Click to play, right-click for more',
+        'v2.loginNeeded': 'Sign in to see playlists',
+        'v2.relogin': 'Sign in again',
+        'v2.logout': 'Sign out',
+      },
+    }
+    
+    Object.keys(EXTRA_STRINGS).forEach(function (lang) {
+      if (!DICTS[lang]) return
+      Object.keys(EXTRA_STRINGS[lang]).forEach(function (key) {
+        DICTS[lang][key] = EXTRA_STRINGS[lang][key]
+      })
+    })
 
+    // ── src/10-base.js
+    /**
+     * base: formatting, storage and small pure helpers.
+     *
+     * The playback engine (50-player) calls `clamp` and `pad2` directly and the
+     * rest of the UI leans on the formatters, so these names are part of the
+     * internal contract.
+     */
+    
     function clamp(value, min, max) {
       return Math.min(Math.max(value, min), max)
     }
-
+    
     function pad2(value) {
       return value < 10 ? '0' + value : String(value)
     }
-
+    
+    /** Duration for track lists: unknown durations read as `--:--`. */
     function fmtTime(seconds) {
       if (typeof seconds !== 'number' || !isFinite(seconds) || seconds <= 0) return '--:--'
       var total = Math.floor(seconds)
@@ -781,151 +1066,192 @@ window.__ModuleLoader__.load({
       var hours = Math.floor(total / 3600)
       return hours > 0 ? hours + ':' + pad2(m) + ':' + pad2(s) : m + ':' + pad2(s)
     }
-
+    
+    /** Player clock: always a number, zero reads as `0:00`. */
+    function fmtClock(seconds) {
+      var total = Math.floor(isFinite(seconds) && seconds > 0 ? seconds : 0)
+      var s = total % 60
+      var m = Math.floor(total / 60) % 60
+      var hours = Math.floor(total / 3600)
+      return hours > 0 ? hours + ':' + pad2(m) + ':' + pad2(s) : m + ':' + pad2(s)
+    }
+    
     function fmtKhz(sampleRate) {
       if (typeof sampleRate !== 'number' || !isFinite(sampleRate) || sampleRate <= 0) return ''
       var khz = Math.round(sampleRate / 100) / 10
       return String(khz).replace(/\.0$/, '') + ' kHz'
     }
-
-    /**
-     * Last.fm / MusicBee play threshold: half the track or four minutes,
-     * whichever comes first. Tracks of 30 seconds or less never count.
-     */
+    
+    function fmtKbps(bitrate) {
+      if (typeof bitrate !== 'number' || !isFinite(bitrate) || bitrate <= 0) return ''
+      return Math.round(bitrate / 1000) + ' kbps'
+    }
+    
+    function fmtBytes(bytes) {
+      var n = Number(bytes)
+      if (!isFinite(n) || n <= 0) return '0 B'
+      var units = ['B', 'KB', 'MB', 'GB', 'TB']
+      var i = 0
+      while (n >= 1024 && i < units.length - 1) {
+        n = n / 1024
+        i += 1
+      }
+      return (i === 0 ? String(Math.round(n)) : n.toFixed(1)) + ' ' + units[i]
+    }
+    
+    /** Last.fm / MusicBee play threshold: half the track or four minutes. */
     function playThresholdOf(durationSec) {
       var duration = Number(durationSec)
       if (!isFinite(duration) || duration <= 0) return 240
       if (duration <= 30) return duration + 0.5
       return Math.min(duration / 2, 240)
     }
-
-    /** Clamp a stored preference to a sane numeric range. */
+    
     function clampPref(value, min, max, fallback) {
       var number = Number(value)
       if (!isFinite(number)) return fallback
       return Math.min(max, Math.max(min, Math.round(number)))
     }
-
-    /** Comparable value for one sort key: numbers compare numerically. */    function sortValueOf(track, key) {
-      switch (key) {
-        case 'duration':
-          return track.durationSec || 0
-        case 'size':
-          return track.size || 0
-        case 'year':
-          return track.year || 0
-        case 'plays':
-          return track.plays || 0
-        case 'mtime':
-          return track.mtime || 0
-        case 'addedAt':
-          return track.addedAt || 0
-        default:
-          return String(track[key] || '')
+    
+    /** Class name joiner: falsy values are dropped. */
+    function cx() {
+      var out = []
+      for (var i = 0; i < arguments.length; i += 1) {
+        var part = arguments[i]
+        if (typeof part === 'string' && part !== '') out.push(part)
       }
+      return out.join(' ')
     }
-
-    function fmtKbps(bitrate) {
-      if (typeof bitrate !== 'number' || !isFinite(bitrate) || bitrate <= 0) return ''
-      return Math.round(bitrate / 1000) + ' kbps'
-    }
-
-    function readPrefs() {
-      var merged = {}
-      Object.keys(PREF_DEFAULTS).forEach(function (key) {
-        merged[key] = PREF_DEFAULTS[key]
-      })
+    
+    function storageGet(key, fallback) {
       try {
-        var raw = window.localStorage.getItem(PREFS_KEY)
-        if (!raw) return merged
-        var parsed = JSON.parse(raw)
-        if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return merged
-        Object.keys(parsed).forEach(function (key) {
-          if (parsed[key] !== undefined && parsed[key] !== null) merged[key] = parsed[key]
-        })
+        var raw = window.localStorage.getItem(key)
+        if (raw === null || raw === undefined) return fallback
+        return JSON.parse(raw)
       } catch (error) {
-        // Private mode / corrupt value: defaults stand.
+        return fallback
       }
-      // Only two composer-lyric positions exist: inline and above. Fold the
-      // retired above-left/above-center/above-right values into `above`.
-      merged.composerLyricPlace = String(merged.composerLyricPlace || '').indexOf('above') === 0 ? 'above' : 'input-left'
-      return merged
     }
-
-    function savePrefs(patch) {
+    
+    function storageSet(key, value) {
       try {
-        var next = {}
-        var current = readPrefs()
-        Object.keys(current).forEach(function (key) {
-          next[key] = current[key]
-        })
-        Object.keys(patch).forEach(function (key) {
-          next[key] = patch[key]
-        })
-        window.localStorage.setItem(PREFS_KEY, JSON.stringify(next))
+        window.localStorage.setItem(key, JSON.stringify(value))
       } catch (error) {
-        // Private mode / quota: preferences are best effort.
+        // Private mode / quota: best effort only.
       }
-      try {
-        var event
-        try {
-          event = new CustomEvent(PREFS_EVENT)
-        } catch (eventError) {
-          event = new Event(PREFS_EVENT)
+    }
+    
+    function errorText(error) {
+      if (error === null || error === undefined) return ''
+      if (typeof error === 'string') return error
+      if (typeof error.message === 'string' && error.message !== '') return error.message
+      return String(error)
+    }
+    
+    /** Absolute directory of a track (backslashes kept for display). */
+    function trackDirOf(track) {
+      var path = String((track && track.path) || '')
+      var at = Math.max(path.lastIndexOf('\\'), path.lastIndexOf('/'))
+      return at > 0 ? path.slice(0, at) : path
+    }
+    
+    /** Last path segment of a directory; drive roots fall back to "D:". */
+    function folderNameOf(dir) {
+      var text = String(dir || '').replace(/[\\/]+$/, '')
+      var at = Math.max(text.lastIndexOf('\\'), text.lastIndexOf('/'))
+      var name = at >= 0 ? text.slice(at + 1) : text
+      return name || text || '/'
+    }
+    
+    /** Stable, case-insensitive search across metadata, path and pinyin. */
+    function trackHaystack(track) {
+      return [
+        track.title,
+        track.artist,
+        track.album,
+        track.name,
+        track.folder,
+        track.path,
+        track.py,
+        track.pyf,
+      ]
+        .map(function (part) {
+          return String(part || '').toLowerCase()
+        })
+        .join('\n')
+    }
+    
+    function filterTracks(list, query) {
+      var text = String(query || '').trim().toLowerCase()
+      if (text === '') return list
+      var needles = text.split(/\s+/).filter(Boolean)
+      if (needles.length === 0) return list
+      return list.filter(function (track) {
+        var hay = trackHaystack(track)
+        for (var i = 0; i < needles.length; i += 1) {
+          if (hay.indexOf(needles[i]) < 0) return false
         }
-        window.dispatchEvent(event)
-      } catch (dispatchError) {
-        // No window (tests): nothing to notify.
-      }
-    }
-
-    function streamUrl(path) {
-      return API + 'stream?path=' + encodeURIComponent(path)
-    }
-
-    function coverUrl(path) {
-      return API + 'cover?path=' + encodeURIComponent(path)
-    }
-
-    async function getJson(url) {
-      var response = await fetch(url, { credentials: 'same-origin', headers: { accept: 'application/json' } })
-      var body = null
-      try {
-        body = await response.json()
-      } catch (error) {
-        body = null
-      }
-      if (!response.ok || body === null || body.ok !== true) {
-        var message = body !== null && body.error && body.error.message ? body.error.message : 'HTTP ' + response.status
-        throw new Error(message)
-      }
-      return body
-    }
-
-    function postJson(url, payload) {
-      return fetch(url, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify(payload),
-      }).then(function (response) {
-        return response.json().catch(function () {
-          return null
-        }).then(function (body) {
-          if (!response.ok || body === null || body.ok !== true) {
-            var error = new Error(
-              body !== null && body.error && body.error.message ? body.error.message : 'HTTP ' + response.status,
-            )
-            error.body = body
-            throw error
-          }
-          return body
-        })
+        return true
       })
     }
+    
+    function sortTracks(list, key, dir) {
+      var out = list.slice()
+      var desc = dir === 'desc'
+      out.sort(function (left, right) {
+        var a
+        var b
+        switch (key) {
+          case 'artist':
+            a = String(left.artist || '')
+            b = String(right.artist || '')
+            break
+          case 'album':
+            a = String(left.album || '')
+            b = String(right.album || '')
+            break
+          case 'duration':
+            a = left.durationSec || 0
+            b = right.durationSec || 0
+            break
+          case 'added':
+            a = left.addedAt || 0
+            b = right.addedAt || 0
+            break
+          case 'plays':
+            a = left.plays || 0
+            b = right.plays || 0
+            break
+          case 'recent':
+            a = left.lastPlayedAt || 0
+            b = right.lastPlayedAt || 0
+            break
+          default:
+            a = String(left.title || '')
+            b = String(right.title || '')
+        }
+        if (typeof a === 'number' && typeof b === 'number') return desc ? b - a : a - b
+        var result = String(a).localeCompare(String(b), 'zh')
+        return desc ? -result : result
+      })
+      return out
+    }
+    
+    function basename(path) {
+      var text = String(path || '')
+      var slash = Math.max(text.lastIndexOf('/'), text.lastIndexOf('\\'))
+      return slash >= 0 ? text.slice(slash + 1) : text
+    }
 
+    // ── src/15-icons.js
+    /**
+     * inline SVG icon set (Feather/Lucide paths, MIT).
+     *
+     * Extracted from client.js at the 0.11.1 baseline (3931c14).
+     */
+    
     // ── icons (Feather/Lucide paths, MIT) ─────────────────────────────────
-
+    
     var ICONS = {
       check: { parts: [['path', { d: 'M20 6L9 17l-5-5' }]] },
       clock: {
@@ -1048,14 +1374,6 @@ window.__ModuleLoader__.load({
           ['path', { d: 'M3 18h.01' }],
         ],
       },
-      grid: {
-        parts: [
-          ['rect', { x: 3, y: 3, width: 7, height: 7 }],
-          ['rect', { x: 14, y: 3, width: 7, height: 7 }],
-          ['rect', { x: 3, y: 14, width: 7, height: 7 }],
-          ['rect', { x: 14, y: 14, width: 7, height: 7 }],
-        ],
-      },
       more: {
         parts: [
           ['circle', { cx: 5, cy: 12, r: 1.4 }],
@@ -1091,6 +1409,12 @@ window.__ModuleLoader__.load({
         ],
       },
       heart: {
+        parts: [
+          ['path', { d: 'M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z' }],
+        ],
+      },
+      heartFill: {
+        fill: true,
         parts: [
           ['path', { d: 'M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z' }],
         ],
@@ -1137,7 +1461,7 @@ window.__ModuleLoader__.load({
         ],
       },
     }
-
+    
     function merge(base, extra) {
       var out = {}
       Object.keys(base).forEach(function (key) {
@@ -1150,8 +1474,13 @@ window.__ModuleLoader__.load({
       }
       return out
     }
-
+    
     function icon(name, size, extra) {
+      var hostName = HOST_ICON_MAP && HOST_ICON_MAP[name]
+      var HostIcon = hostName ? hostComponent(hostName) : null
+      if (HostIcon !== null) {
+        return h(HostIcon, { size: size || 18, 'aria-hidden': 'true', focusable: 'false' })
+      }
       var spec = ICONS[name] || ICONS.note
       var children = spec.parts.map(function (part, index) {
         return h(part[0], merge({ key: String(index) }, part[1]))
@@ -1171,8 +1500,13 @@ window.__ModuleLoader__.load({
       return h('svg', merge(props, extra), children)
     }
 
-    // ── cover thumbnail ───────────────────────────────────────────────────
-
+    // ── src/16-lyrics.js
+    /**
+     * LRC parsing, translation merge and online path helpers.
+     *
+     * Extracted from client.js at the 0.11.1 baseline (3931c14).
+     */
+    
     // ── online lyric helpers ──────────────────────────────────────────────
     // The Host returns raw LRC for online tracks (local tracks get parsed lines
     // from /lyrics), so the client needs a small parser of its own.
@@ -1199,7 +1533,7 @@ window.__ModuleLoader__.load({
       })
       return lines
     }
-
+    
     function mergeLyricTranslation(lines, translationText) {
       var map = {}
       parseLrcText(translationText).forEach(function (item) {
@@ -1211,421 +1545,775 @@ window.__ModuleLoader__.load({
       })
       return lines
     }
-
+    
     /** Split `online:<provider>:<id>` (null when the path is a local one). */
     function onlinePathOf(path) {
       var match = /^online:([^:]+):(.+)$/.exec(String(path || ''))
       return match === null ? null : { provider: match[1], id: match[2] }
     }
 
-    var ONLINE_HISTORY_KEY = 'mu.onlineHistory'
-
-    function readOnlineHistory() {
-      try {
-        var raw = window.localStorage.getItem(ONLINE_HISTORY_KEY)
-        var list = raw === null ? [] : JSON.parse(raw)
-        return Array.isArray(list) ? list : []
-      } catch {
-        return []
-      }
-    }
-
-    function writeOnlineHistory(list) {
-      try {
-        window.localStorage.setItem(ONLINE_HISTORY_KEY, JSON.stringify(list))
-      } catch {
-        /* storage unavailable: history is best-effort */
-      }
-    }
-
-    function loadOnlineLyrics(online) {
-      return getJson(
-        API +
-          'online/lyric?provider=' +
-          encodeURIComponent(online.provider) +
-          '&id=' +
-          encodeURIComponent(online.id),
-      ).then(function (body) {
-        var lines = parseLrcText(body.lrc || '')
-        if (typeof body.translation === 'string' && body.translation !== '') {
-          mergeLyricTranslation(lines, body.translation)
-        }
-        return lines
-      })
-    }
-
-    function formatBytes(bytes) {
-      var value = Number(bytes) || 0
-      if (value < 1024) return value + ' B'
-      if (value < 1024 * 1024) return (value / 1024).toFixed(0) + ' KB'
-      if (value < 1024 * 1024 * 1024) return (value / (1024 * 1024)).toFixed(1) + ' MB'
-      return (value / (1024 * 1024 * 1024)).toFixed(2) + ' GB'
-    }
-
-    function Cover(props) {
-      var [failed, setFailed] = useState(false)
-      var [viaProxy, setViaProxy] = useState(false)
-      var size = props.size || 42
-      var radius = props.radius === undefined ? 6 : props.radius
-      var directCover =
-        props.track !== null && props.track !== undefined &&
-        typeof props.track.coverUrl === 'string' && props.track.coverUrl !== ''
-
-      useEffect(
-        function () {
-          setFailed(false)
-          setViaProxy(false)
-        },
-        [props.track ? props.track.path : ''],
-      )
-      var wrapStyle = {
-        width: size + 'px',
-        height: size + 'px',
-        borderRadius: radius + 'px',
-      }
-      if (
-        !props.track ||
-        (props.track.hasCover !== true && !directCover) ||
-        failed
-      ) {
-        return h('div', { className: 'mu-cover', style: wrapStyle }, icon('note', Math.round(size * 0.42)))
-      }
-      var src = directCover
-        ? viaProxy
-          ? API + 'online/cover?url=' + encodeURIComponent(props.track.coverUrl)
-          : props.track.coverUrl
-        : coverUrl(props.track.path)
-      return h(
-        'div',
-        { className: 'mu-cover', style: wrapStyle },
-        h('img', {
-          src: src,
-          alt: '',
-          loading: 'lazy',
-          draggable: 'false',
-          onError: function () {
-            // Hotlink protection on provider CDNs: retry once through the Host.
-            if (directCover && !viaProxy) setViaProxy(true)
-            else setFailed(true)
-          },
-        }),
-      )
-    }
-
+    // ── src/17-list.js
     /**
-     * Spectrum bars. Bars are log-spaced and smoothed the way mature
-     * visualizers do it (audvis / audioMotion-analyzer), and drawing happens in
-     * requestAnimationFrame without React state so the host never re-renders.
+     * windowed list (fixed row height).
+     *
+     * Renders the visible slice inside an absolutely positioned spacer. The list is
+     * the single scroll container for a track view; `resetKey` decides when the
+     * scroll position should go back to the top (view / filter / query change), so
+     * a scan that adds or removes a track no longer jumps the list.
      */
-    function BarWave(props) {
-      var width = props && Number(props.width) > 0 ? Number(props.width) : 96
-      var height = props && Number(props.height) > 0 ? Number(props.height) : 26
-      var barCount = props && Number(props.bars) > 0 ? Math.round(Number(props.bars)) : 28
-      var className = 'mu-bar-wave' + (props && props.className ? ' ' + props.className : '')
-      var canvasRef = useRef(null)
+    
+    function VirtualList(props) {
+      var rowHeight = props.rowHeight || 56
+      var overscan = props.overscan === undefined ? 6 : props.overscan
+      var topPair = useState(props.initialScroll || 0)
+      var scrollTop = topPair[0]
+      var setScrollTop = topPair[1]
+      var viewPair = useState(600)
+      var viewport = viewPair[0]
+      var setViewport = viewPair[1]
+      var ref = useRef(null)
+    
       useEffect(function () {
-        var canvas = canvasRef.current
-        if (canvas === null) return undefined
-        var ctx2d = canvas.getContext('2d')
-        if (ctx2d === null) return undefined
-        var dpr = Math.min(window.devicePixelRatio || 1, 2)
-        canvas.width = Math.round(width * dpr)
-        canvas.height = Math.round(height * dpr)
-        var levels = new Float32Array(barCount)
-        var gradient = ctx2d.createLinearGradient(0, canvas.height, 0, 0)
-        gradient.addColorStop(0, 'rgba(86,134,254,0.35)')
-        gradient.addColorStop(0.6, 'rgba(86,134,254,0.8)')
-        gradient.addColorStop(1, 'rgba(122,170,255,1)')
-        var raf = 0
-        function frame() {
-          raf = requestAnimationFrame(frame)
-          var data = player.getWave()
-          ctx2d.clearRect(0, 0, canvas.width, canvas.height)
-          if (data === null) return
-          var binCount = data.length
-          var barWidth = canvas.width / barCount
-          for (var i = 0; i < barCount; i += 1) {
-            var lo = Math.floor(Math.pow(i / barCount, 1.8) * binCount * 0.72)
-            var hi = Math.max(
-              lo + 1,
-              Math.floor(Math.pow((i + 1) / barCount, 1.8) * binCount * 0.72),
-            )
-            var sum = 0
-            var count = 0
-            for (var j = lo; j < hi && j < binCount; j += 1) {
-              sum += data[j]
-              count += 1
-            }
-            var target = count > 0 ? sum / count / 255 : 0
-            levels[i] = levels[i] * 0.62 + target * 0.38
-            var barHeight = Math.max(2 * dpr, levels[i] * canvas.height * 0.92)
-            ctx2d.fillStyle = gradient
-            ctx2d.fillRect(
-              i * barWidth + 1,
-              canvas.height - barHeight,
-              Math.max(1, barWidth - 2),
-              barHeight,
-            )
-          }
+        var element = ref.current
+        if (element === null) return undefined
+        function measure() {
+          setViewport(element.clientHeight || 600)
         }
-        raf = requestAnimationFrame(frame)
+        measure()
+        window.addEventListener('resize', measure)
+        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
+        if (observer !== null) observer.observe(element)
         return function () {
-          cancelAnimationFrame(raf)
-        }
-      }, [width, height, barCount])
-      return h('canvas', {
-        className: className,
-        ref: canvasRef,
-        style: { width: width + 'px', height: height + 'px' },
-        'aria-hidden': 'true',
-      })
-    }
-
-    /** Full-width spectrum painted behind the player bar. */
-    function BarWaveFull() {
-      var canvasRef = useRef(null)
-      useEffect(function () {
-        var canvas = canvasRef.current
-        if (canvas === null) return undefined
-        var parent = canvas.parentElement
-        var ctx2d = canvas.getContext('2d')
-        if (parent === null || ctx2d === null) return undefined
-        var dpr = Math.min(window.devicePixelRatio || 1, 2)
-        var barCount = 0
-        var levels = new Float32Array(1)
-        var gradient = null
-        function resize() {
-          var rect = parent.getBoundingClientRect()
-          var cssWidth = Math.max(1, Math.round(rect.width))
-          var cssHeight = Math.max(1, Math.round(rect.height))
-          canvas.width = Math.round(cssWidth * dpr)
-          canvas.height = Math.round(cssHeight * dpr)
-          barCount = Math.max(32, Math.round(cssWidth / 8))
-          levels = new Float32Array(barCount)
-          gradient = ctx2d.createLinearGradient(0, canvas.height, 0, 0)
-          gradient.addColorStop(0, 'rgba(86,134,254,0.06)')
-          gradient.addColorStop(0.55, 'rgba(86,134,254,0.2)')
-          gradient.addColorStop(1, 'rgba(122,170,255,0.38)')
-        }
-        resize()
-        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null
-        if (observer !== null) observer.observe(parent)
-        var raf = 0
-        function frame() {
-          raf = requestAnimationFrame(frame)
-          var data = player.getWave()
-          ctx2d.clearRect(0, 0, canvas.width, canvas.height)
-          if (data === null || barCount === 0 || gradient === null) return
-          var binCount = data.length
-          var barWidth = canvas.width / barCount
-          for (var i = 0; i < barCount; i += 1) {
-            var lo = Math.floor(Math.pow(i / barCount, 1.8) * binCount * 0.72)
-            var hi = Math.max(
-              lo + 1,
-              Math.floor(Math.pow((i + 1) / barCount, 1.8) * binCount * 0.72),
-            )
-            var sum = 0
-            var count = 0
-            for (var j = lo; j < hi && j < binCount; j += 1) {
-              sum += data[j]
-              count += 1
-            }
-            var target = count > 0 ? sum / count / 255 : 0
-            levels[i] = levels[i] * 0.62 + target * 0.38
-            var barHeight = Math.max(1, levels[i] * canvas.height)
-            ctx2d.fillStyle = gradient
-            ctx2d.fillRect(
-              i * barWidth + 1,
-              canvas.height - barHeight,
-              Math.max(1, barWidth - 3),
-              barHeight,
-            )
-          }
-        }
-        raf = requestAnimationFrame(frame)
-        return function () {
-          cancelAnimationFrame(raf)
+          window.removeEventListener('resize', measure)
           if (observer !== null) observer.disconnect()
         }
       }, [])
-      return h('canvas', { className: 'mu-bar-wave-bg', ref: canvasRef, 'aria-hidden': 'true' })
-    }
-
-    // ── sidebar icon ──────────────────────────────────────────────────────
-
-    function MusicSideIcon(props) {
-      var size = props && props.size ? props.size : 16
-      var [snap, setSnap] = useState(player.getSnapshot())
-      var [anchor, setAnchor] = useState(null)
-      var [wavePos, setWavePos] = useState(null)
-      var hideTimer = useRef(null)
-      var iconRef = useRef(null)
-
-      useEffect(function () {
-        return player.subscribe(function () {
-          setSnap(player.getSnapshot())
-        })
-      }, [])
-
-      // Bind to the whole sidebar row (not just the 16px icon) so hovering
-      // anywhere on the row reveals the controls, anchored to the row's right edge.
-      // Defensive: the host rail DOM is not ours, so any probe failure must not
-      // take the sidebar entry down with it.
-      useEffect(function () {
-        var icon = iconRef.current
-        if (icon === null) return undefined
-
-        var row = icon
-        try {
-          while (row !== null && row !== document.body) {
-            if (row.getBoundingClientRect().width > 120) break
-            row = row.parentElement
-          }
-        } catch (error) {
-          row = icon
-        }
-        if (row === null || row === document.body) row = icon
-
-        function measureWave() {
-          try {
-            var rect = row.getBoundingClientRect()
-            // Sit just left of the hover controls, after the row label.
-            setWavePos({ top: rect.top + rect.height / 2, left: Math.max(8, rect.right - 78 - 46) })
-          } catch (error) {
-            // Host rail DOM unavailable: the wave simply stays hidden.
-          }
-        }
-        measureWave()
-        window.addEventListener('resize', measureWave)
-
-        function keepOpen() {
-          if (hideTimer.current !== null) {
-            clearTimeout(hideTimer.current)
-            hideTimer.current = null
-          }
-        }
-
-        function scheduleHide() {
-          if (hideTimer.current !== null) clearTimeout(hideTimer.current)
-          hideTimer.current = setTimeout(function () {
-            hideTimer.current = null
-            setAnchor(null)
-          }, 180)
-        }
-
-        function onEnter() {
-          keepOpen()
-          try {
-            var rect = row.getBoundingClientRect()
-            setAnchor({ top: rect.top + rect.height / 2, left: Math.max(8, rect.right - 78) })
-          } catch (error) {
-            // Host rail DOM unavailable: keep the row usable without controls.
-          }
-        }
-
-        row.addEventListener('mouseenter', onEnter)
-        row.addEventListener('mouseleave', scheduleHide)
-        return function () {
-          row.removeEventListener('mouseenter', onEnter)
-          row.removeEventListener('mouseleave', scheduleHide)
-          window.removeEventListener('resize', measureWave)
-          if (hideTimer.current !== null) {
-            clearTimeout(hideTimer.current)
-            hideTimer.current = null
-          }
-        }
-      }, [])
-
-      function keepOpen() {
-        if (hideTimer.current !== null) {
-          clearTimeout(hideTimer.current)
-          hideTimer.current = null
-        }
-      }
-
-      function scheduleHide() {
-        if (hideTimer.current !== null) clearTimeout(hideTimer.current)
-        hideTimer.current = setTimeout(function () {
-          hideTimer.current = null
-          setAnchor(null)
-        }, 180)
-      }
-
-      var hasTrack = snap.index >= 0
-      var owner = props || {}
-
-      return h(
-        'span',
-        {
-          ref: iconRef,
-          className: 'mu-side-icon' + (owner.active ? ' is-active' : ''),
+    
+      useEffect(
+        function () {
+          var element = ref.current
+          var start = props.initialScroll || 0
+          if (element !== null) element.scrollTop = start
+          setScrollTop(start)
         },
-        icon('note', size),
-        hasTrack && snap.playing && wavePos !== null
-          ? h(
-              'span',
+        [props.resetKey],
+      )
+    
+      var items = props.items || []
+    
+      useEffect(
+        function () {
+          if (!props.focusPath) return
+          var index = -1
+          for (var i = 0; i < items.length; i += 1) {
+            if (items[i].path === props.focusPath) {
+              index = i
+              break
+            }
+          }
+          if (index < 0) return
+          var top = Math.max(0, index * rowHeight - Math.max(0, viewport / 2 - rowHeight / 2))
+          if (ref.current !== null) ref.current.scrollTop = top
+          setScrollTop(top)
+        },
+        [props.focusPath],
+      )
+    
+      function onScroll(event) {
+        var top = event.currentTarget.scrollTop
+        setScrollTop(top)
+        if (typeof props.onScrollTop === 'function') props.onScrollTop(top)
+      }
+    
+      if (items.length === 0) {
+        return h(
+          'div',
+          { className: props.className, ref: ref, onScroll: onScroll },
+          props.empty || null,
+        )
+      }
+    
+      var total = items.length * rowHeight
+      var start = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan)
+      var end = Math.min(items.length, Math.ceil((scrollTop + viewport) / rowHeight) + overscan)
+      var slice = items.slice(start, end)
+    
+      return h(
+        'div',
+        { className: props.className, ref: ref, onScroll: onScroll },
+        h(
+          'div',
+          { className: 'mp-vlist-inner', style: { height: total + 'px' } },
+          slice.map(function (item, offset) {
+            var index = start + offset
+            return h(
+              'div',
               {
-                className: 'mu-side-wave-float',
-                style: { top: wavePos.top + 'px', left: wavePos.left + 'px' },
+                key: props.itemKey ? props.itemKey(item, index) : index,
+                className: 'mp-vlist-row',
+                style: { height: rowHeight + 'px', top: index * rowHeight + 'px' },
               },
-              h(BarWave, { width: 40, height: 14, bars: 12 }),
+              props.renderRow(item, index),
             )
-          : null,
-        hasTrack && anchor !== null
-          ? h(
-              'span',
-              {
-                className: 'mu-side-controls',
-                style: { top: anchor.top + 'px', left: anchor.left + 'px' },
-                onMouseEnter: keepOpen,
-                onMouseLeave: scheduleHide,
-              },
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-side-btn',
-                  title: t('page.prev'),
-                  onClick: function (event) {
-                    event.stopPropagation()
-                    player.prev()
-                  },
-                },
-                icon('prev', 12),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-side-btn',
-                  title: snap.playing ? t('page.pause') : t('page.play'),
-                  onClick: function (event) {
-                    event.stopPropagation()
-                    player.toggle()
-                  },
-                },
-                icon(snap.playing ? 'pause' : 'play', 12),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-side-btn',
-                  title: t('page.next'),
-                  onClick: function (event) {
-                    event.stopPropagation()
-                    player.next()
-                  },
-                },
-                icon('next', 12),
-              ),
-            )
-          : null,
+          }),
+        ),
       )
     }
 
-    // ── main panel ────────────────────────────────────────────────────────
+    // ── src/18-stats.js
+    /**
+     * stats formatting and folder helpers.
+     *
+     * Extracted from client.js at the 0.11.1 baseline (3931c14).
+     */
+    
+    function basenameOf(path) {
+      var parts = String(path || '').split(/[\\/]/)
+      return parts.length > 0 ? parts[parts.length - 1] : String(path || '')
+    }
+    
+    /** File name without its extension — the fallback "title" for untagged files. */
+    function stemOf(path) {
+      var name = basenameOf(path)
+      var dot = name.lastIndexOf('.')
+      return dot > 0 ? name.slice(0, dot) : name
+    }
+    
+    /** Normalized folder (directory) part of a track path, no trailing slash. */
+    function folderOf(filePath) {
+      var normalized = String(filePath || '').replace(/\\/g, '/')
+      var index = normalized.lastIndexOf('/')
+      if (index <= 0) return ''
+      return normalized.slice(0, index)
+    }
+    
+    /** Human label for a folder: path relative to its scan root when possible. */
+    function folderLabelOf(folder, roots) {
+      var normalized = String(folder || '').replace(/\\/g, '/')
+      for (var index = 0; index < roots.length; index += 1) {
+        var root = String(roots[index] || '')
+          .replace(/\\/g, '/')
+          .replace(/\/+$/, '')
+        if (root !== '' && (normalized === root || normalized.indexOf(root + '/') === 0)) {
+          var relative = normalized.slice(root.length).replace(/^\/+/, '')
+          return relative === '' ? root.split('/').pop() : relative
+        }
+      }
+      var parts = normalized.split('/')
+      return parts[parts.length - 1] || normalized
+    }
+    
+    function fmtListenTime(seconds) {
+      var total = Math.round(Number(seconds) || 0)
+      if (total <= 0) return '—'
+      var hours = Math.floor(total / 3600)
+      var minutes = Math.floor((total % 3600) / 60)
+      if (hours > 0) return hours + ' 小时 ' + minutes + ' 分'
+      if (minutes > 0) return minutes + ' 分'
+      return total + ' 秒'
+    }
+    
+    function fmtRecent(ts) {
+      var value = Number(ts)
+      if (!isFinite(value) || value <= 0) return '—'
+      var date = new Date(value)
+      var now = new Date()
+      var startOfDay = function (day) {
+        return new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime()
+      }
+      var days = Math.round((startOfDay(now) - startOfDay(date)) / 86_400_000)
+      if (days <= 0) return '今天'
+      if (days === 1) return '昨天'
+      if (days < 7) return days + ' 天前'
+      return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate())
+    }
+    
+    /**
+     * Listening ranking: last week / month / all time, sorted by time, plays or
+     * recency. Mirrors the NetEase "listening ranking" page, limited to what
+     * the local library can know without a server.
+     */
 
+    // ── src/19-extra-icons.js
+    /**
+     * extra icons used by the v2 shell (the 0.11.1 set stays in 15-icons).
+     */
+    
+    ICONS.user = { parts: [['circle', { cx: 12, cy: 8, r: 3.6 }], ['path', { d: 'M5 20a7 7 0 0 1 14 0' }]] }
+    ICONS.chart = { parts: [['path', { d: 'M4 20V10M10 20V4M16 20v-7M21 20H2' }]] }
+    ICONS.disc = { parts: [['circle', { cx: 12, cy: 12, r: 9 }], ['circle', { cx: 12, cy: 12, r: 2.2 }]] }
+    ICONS.qr = {
+      parts: [
+        ['rect', { x: 4, y: 4, width: 6, height: 6 }],
+        ['rect', { x: 14, y: 4, width: 6, height: 6 }],
+        ['rect', { x: 4, y: 14, width: 6, height: 6 }],
+        ['path', { d: 'M14 14h3v3h-3zM19 17v3M14 20h2' }],
+      ],
+    }
+    ICONS.translate = {
+      parts: [
+        ['path', { d: 'M3 6h8M7 6v2c0 4-2 7-4 8' }],
+        ['path', { d: 'M5 12c1 2 3 3 5 3' }],
+        ['path', { d: 'M13 20l4-10 4 10M14.5 16h5' }],
+      ],
+    }
+    ICONS.logout = {
+      parts: [
+        ['path', { d: 'M14 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8' }],
+        ['path', { d: 'M17 8l4 4-4 4M21 12H10' }],
+      ],
+    }
+    ICONS.chevronRight = { parts: [['path', { d: 'M9 6l6 6-6 6' }]] }
+
+    // ── src/20-api.js
+    /**
+     * api: every call into the Host half lives here.
+     *
+     * The playback engine expects `API`, `getJson`, `postJson`, `streamUrl` and
+     * `coverUrl` under these exact names.
+     */
+    
+    var API = 'music/'
+    
+    function streamUrl(path) {
+      return API + 'stream?path=' + encodeURIComponent(path)
+    }
+    
+    function coverUrl(path) {
+      return API + 'cover?path=' + encodeURIComponent(path)
+    }
+    
+    function onlineStreamUrl(provider, id) {
+      return API + 'online/stream?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(id)
+    }
+    
+    async function getJson(url) {
+      var response = await fetch(url, {
+        credentials: 'same-origin',
+        headers: { accept: 'application/json' },
+      })
+      var body = null
+      try {
+        body = await response.json()
+      } catch (error) {
+        body = null
+      }
+      if (!response.ok || body === null || body.ok !== true) {
+        var message =
+          body !== null && body.error && body.error.message ? body.error.message : 'HTTP ' + response.status
+        throw new Error(message)
+      }
+      return body
+    }
+    
+    function postJson(url, payload) {
+      return fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(payload === undefined ? {} : payload),
+      }).then(function (response) {
+        return response
+          .json()
+          .catch(function () {
+            return null
+          })
+          .then(function (body) {
+            if (!response.ok || body === null || body.ok !== true) {
+              var error = new Error(
+                body !== null && body.error && body.error.message
+                  ? body.error.message
+                  : 'HTTP ' + response.status,
+              )
+              error.body = body
+              throw error
+            }
+            return body
+          })
+      })
+    }
+    
+    /** PATCH / DELETE with the same envelope as postJson. */
+    function sendJson(method, url, payload) {
+      return fetch(url, {
+        method: method,
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: payload === undefined ? undefined : JSON.stringify(payload),
+      }).then(function (response) {
+        return response
+          .json()
+          .catch(function () {
+            return null
+          })
+          .then(function (body) {
+            if (!response.ok || body === null || body.ok !== true) {
+              var error = new Error(
+                body !== null && body.error && body.error.message
+                  ? body.error.message
+                  : 'HTTP ' + response.status,
+              )
+              error.body = body
+              throw error
+            }
+            return body
+          })
+      })
+    }
+    
+    /** Cover URL for a library or online track ('' when it has no art). */
+    function trackCoverSrc(track) {
+      if (!track) return ''
+      if (track.onlineProvider) {
+        return typeof track.coverUrl === 'string' && track.coverUrl !== ''
+          ? API + 'online/cover?url=' + encodeURIComponent(track.coverUrl)
+          : ''
+      }
+      if (track.hasCover === true && track.path) return coverUrl(track.path)
+      return ''
+    }
+    
+    /** Map one online search / playlist result into the queue's track shape. */
+    function onlineTrackOf(result) {
+      var provider = result.provider
+      return {
+        path: 'online:' + provider + ':' + result.id,
+        title: result.title,
+        artist: result.artist,
+        album: result.album,
+        durationSec: result.durationSec,
+        hasCover: false,
+        coverUrl: result.coverUrl || '',
+        onlineUrl: onlineStreamUrl(provider, result.id),
+        onlineProvider: provider,
+        onlineId: result.id,
+        qualityHint: result.qualityHint || '',
+        sampleRate: 0,
+        size: 0,
+        mtime: 0,
+      }
+    }
+    
+    function onlineCoverSrc(result) {
+      if (!result || typeof result.coverUrl !== 'string' || result.coverUrl === '') return ''
+      return API + 'online/cover?url=' + encodeURIComponent(result.coverUrl)
+    }
+
+    // ── src/30-prefs.js
+    /**
+     * prefs: user preferences, persisted in localStorage.
+     *
+     * The playback engine calls `readPrefs()` / `savePrefs()` directly, so the
+     * shape below must stay compatible with 0.11.1 (loop / order / volume /
+     * resumeOnStart / rememberPerTrack / sleepTimerMinutes).
+     */
+    
+    var PREFS_KEY = 'music.prefs.v2'
+    var LEGACY_PREFS_KEY = 'dsh-music.prefs'
+    
+    var PREF_DEFAULTS = {
+      layout: 'top',
+      sortBy: 'title',
+      sortDir: 'asc',
+      circularCover: true,
+      vinylRing: false,
+      npLookMigrated: true,
+      coverSpin: true,
+      lyricOrder: ['embedded', 'lrc'],
+      lyricAlign: 'center',
+      lyricSize: 18,
+      lyricWeight: 500,
+      lyricBlur: true,
+      showTranslation: true,
+      translationScale: 80,
+      composerLyrics: false,
+      composerLyricPlace: 'input-left',
+      volume: 1,
+      loop: 'none',
+      order: 'list',
+      resumeOnStart: true,
+      sleepTimerMinutes: 0,
+      sleepDeadline: 0,
+      autoResume: false,
+      rememberPerTrack: false,
+      onboardingDone: true,
+    }
+    
+    function readPrefs() {
+      var merged = {}
+      Object.keys(PREF_DEFAULTS).forEach(function (key) {
+        merged[key] = PREF_DEFAULTS[key]
+      })
+      var raw = null
+      try {
+        raw = window.localStorage.getItem(PREFS_KEY)
+      } catch (error) {
+        raw = null
+      }
+      // One-time migration from the 0.11 key so nobody loses their settings.
+      if (raw === null) {
+        try {
+          raw = window.localStorage.getItem(LEGACY_PREFS_KEY)
+          if (raw !== null) window.localStorage.setItem(PREFS_KEY, raw)
+        } catch (error) {
+          raw = null
+        }
+      }
+      if (raw === null) return merged
+      try {
+        var parsed = JSON.parse(raw)
+        if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return merged
+        Object.keys(parsed).forEach(function (key) {
+          if (parsed[key] !== undefined && parsed[key] !== null) merged[key] = parsed[key]
+        })
+      } catch (error) {
+        // Corrupt value: defaults stand.
+      }
+      merged.composerLyricPlace =
+        String(merged.composerLyricPlace || '').indexOf('above') === 0 ? 'above' : 'input-left'
+      // 0.12.0 briefly defaulted to square covers; restore the 0.11 player look once.
+      if (merged.npLookMigrated !== true) {
+        merged.circularCover = PREF_DEFAULTS.circularCover
+        merged.npLookMigrated = true
+        try {
+          window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
+        } catch (error) {
+          // Best effort only.
+        }
+      }
+      return merged
+    }
+    
+    function savePrefs(patch) {
+      var next = readPrefs()
+      if (patch !== null && typeof patch === 'object') {
+        Object.keys(patch).forEach(function (key) {
+          next[key] = patch[key]
+        })
+      }
+      try {
+        window.localStorage.setItem(PREFS_KEY, JSON.stringify(next))
+      } catch (error) {
+        // Private mode / quota: preferences are best effort.
+      }
+      if (prefsStore !== undefined) prefsStore.set(next)
+      return next
+    }
+    
+    var prefsStore = createStore(readPrefs())
+    
+    function setPrefs(patch) {
+      return savePrefs(patch)
+    }
+
+    // ── src/40-store.js
+    /**
+     * store: the smallest possible subscription store used by every view.
+     *
+     * No React context: views read a module-level store through `useStore`, which
+     * keeps the panel a single tree and avoids provider plumbing.
+     */
+    
+    function createStore(initial) {
+      var state = initial
+      var listeners = []
+      return {
+        get: function () {
+          return state
+        },
+        set: function (patch) {
+          var next = typeof patch === 'function' ? patch(state) : Object.assign({}, state, patch)
+          if (next === state) return state
+          state = next
+          listeners.slice().forEach(function (fn) {
+            try {
+              fn(state)
+            } catch (error) {
+              // A broken listener must not stop the others.
+            }
+          })
+          return state
+        },
+        subscribe: function (fn) {
+          listeners.push(fn)
+          return function () {
+            var at = listeners.indexOf(fn)
+            if (at >= 0) listeners.splice(at, 1)
+          }
+        },
+      }
+    }
+    
+    function useStore(store) {
+      var pair = useState(store.get())
+      var state = pair[0]
+      var setState = pair[1]
+      useEffect(
+        function () {
+          setState(store.get())
+          return store.subscribe(setState)
+        },
+        [store],
+      )
+      return state
+    }
+
+    // ── src/45-ui.js
+    /**
+     * ui state: source, section, filter, query and the two panel-level toggles.
+     *
+     * Persisted subset: source / nav / playlistId (localStorage `music.ui.v2`),
+     * migrated once from the 0.11 keys `mu.source` and `mu.view`.
+     */
+    
+    var UI_KEY = 'music.ui.v2'
+    var LEGACY_UI_KEYS = ['mu.source', 'mu.view']
+    
+    function isOnlineSource(source) {
+      return source === 'netease' || source === 'qq' || source === 'kugou'
+    }
+    
+    function sourceLabelOf(source) {
+      if (source === 'netease') return t('online.providerNetease')
+      if (source === 'qq') return t('online.providerQq')
+      if (source === 'kugou') return t('online.providerKugou')
+      return t('page.tabLocal')
+    }
+    
+    function rawStorageGet(key, fallback) {
+      try {
+        var value = window.localStorage.getItem(key)
+        return value === null || value === undefined ? fallback : String(value)
+      } catch (error) {
+        return fallback
+      }
+    }
+    
+    function readUiState() {
+      var saved = storageGet(UI_KEY, null)
+      if (saved === null || typeof saved !== 'object') {
+        // Migrate the 0.11 keys once so the panel opens where it was left.
+        var legacySource = rawStorageGet(LEGACY_UI_KEYS[0], '')
+        var legacyView = rawStorageGet(LEGACY_UI_KEYS[1], '')
+        var source = ['local', 'netease', 'qq', 'kugou'].indexOf(legacySource) >= 0 ? legacySource : 'local'
+        var nav = 'songs'
+        if (source !== 'local') nav = 'recent'
+        else if (['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'stats'].indexOf(legacyView) >= 0) {
+          nav = legacyView
+        }
+        return { source: source, nav: nav, playlistId: '' }
+      }
+      var source = ['local', 'netease', 'qq', 'kugou'].indexOf(saved.source) >= 0 ? saved.source : 'local'
+      var nav = typeof saved.nav === 'string' && saved.nav !== '' ? saved.nav : 'songs'
+      var playlistId = typeof saved.playlistId === 'string' ? saved.playlistId : ''
+      if (nav === 'playlists') nav = source === 'local' ? 'songs' : 'recent'
+      if (nav === 'playlist' && (source !== 'local' || playlistId === '')) nav = source === 'local' ? 'songs' : 'recent'
+      return { source: source, nav: nav, playlistId: playlistId }
+    }
+    
+    var uiStore = createStore(
+      Object.assign(
+        {
+          filter: null,
+          query: '',
+          queueOpen: false,
+          npOpen: false,
+        },
+        readUiState(),
+      ),
+    )
+    
+    function setUi(patch) {
+      return uiStore.set(patch)
+    }
+    
+    function isLocalNav(nav) {
+      return ['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'playlist', 'stats'].indexOf(nav) >= 0
+    }
+    
+    /** Section groups for the current source (rail or top bar). */
+    function navGroupsFor(source, favoritesCount) {
+      var library = libraryStore.get()
+      if (isOnlineSource(source)) {
+        var online = onlineStore.get()
+        var playlists = online.playlists || []
+        var signedIn = (online.providers[source] || {}).loggedIn === true
+        var groups = [
+          {
+            label: t('v2.sectionOnline'),
+            items: [
+              { key: 'recent', label: t('v2.recent'), icon: 'clock', count: null },
+              { key: 'cache', label: t('v2.cache'), icon: 'download', count: null },
+            ],
+          },
+        ]
+        if (signedIn) {
+          groups.push({
+            label: t('v2.playlists'),
+            showLabel: true,
+            items: playlists.map(function (playlist) {
+              return {
+                key: 'online-playlist:' + playlist.id,
+                label: playlist.name || '',
+                icon: 'list',
+                count: playlist.trackCount || 0,
+                onlinePlaylist: playlist,
+              }
+            }),
+          })
+        }
+        return groups
+      }
+      return [
+        {
+          label: t('v2.sectionLibrary'),
+          items: [
+            { key: 'songs', label: t('v2.songs'), icon: 'note', count: library.tracks.length },
+            { key: 'albums', label: t('v2.albums'), icon: 'disc', count: null },
+            { key: 'artists', label: t('v2.artists'), icon: 'user', count: null },
+            { key: 'folders', label: t('v2.folders'), icon: 'folder', count: null },
+          ],
+        },
+        {
+          label: t('v2.sectionCollection'),
+          items: [
+            { key: 'favorites', label: t('v2.favorites'), icon: 'heart', count: favoritesCount },
+            { key: 'stats', label: t('v2.stats'), icon: 'chart', count: null },
+          ],
+        },
+        {
+          label: t('v2.playlists'),
+          showLabel: true,
+          action: {
+            icon: 'plus',
+            title: t('v2.newPlaylist'),
+            run: function () {
+              pushLayer('newPlaylist')
+            },
+          },
+          items: (library.playlists || []).map(function (playlist) {
+            return {
+              key: 'local-playlist:' + playlist.id,
+              label: playlist.name || '',
+              icon: 'list',
+              count: (playlist.trackPaths || []).length,
+              localPlaylistId: playlist.id,
+              playlist: playlist,
+            }
+          }),
+        },
+      ]
+    }
+    
+    /** One click path for every nav shape: plain sections, local/online playlists. */
+    function activateNavItem(item) {
+      if (item.localPlaylistId) {
+        openLocalPlaylist(item.localPlaylistId)
+        return
+      }
+      if (item.onlinePlaylist) {
+        void openOnlinePlaylist(item.onlinePlaylist)
+        setNav('playlist')
+        return
+      }
+      setNav(item.key)
+    }
+    
+    function activeNavKey(nav) {
+      var ui = uiStore.get()
+      if (nav === 'playlist') {
+        if (isOnlineSource(ui.source)) return 'online-playlist:' + (onlineStore.get().playlistId || '')
+        return 'local-playlist:' + (ui.playlistId || '')
+      }
+      return nav
+    }
+    
+    function sectionTitleOf(ui) {
+      switch (ui.nav) {
+        case 'songs':
+          return t('v2.allSongs')
+        case 'albums':
+          return t('v2.albums')
+        case 'artists':
+          return t('v2.artists')
+        case 'folders':
+          return t('v2.folders')
+        case 'favorites':
+          return t('v2.favorites')
+        case 'playlists':
+          return t('v2.playlists')
+        case 'playlist':
+          return (playlistById(ui.playlistId) || {}).name || t('v2.playlists')
+        case 'stats':
+          return t('v2.stats')
+        case 'recent':
+          return t('v2.recent')
+        case 'cache':
+          return t('v2.cache')
+        default:
+          return t('v2.songs')
+      }
+    }
+    
+    function setSource(source) {
+      var ui = uiStore.get()
+      if (ui.source === source) return
+      selectionStore.set({ active: false, paths: [] })
+      uiStore.set({
+        source: source,
+        nav: isOnlineSource(source) ? 'recent' : 'songs',
+        filter: null,
+        query: '',
+        playlistId: '',
+      })
+      onlineStore.set({
+        provider: isOnlineSource(source) ? source : onlineStore.get().provider,
+        playlists: [],
+        playlistsPhase: 'idle',
+        playlistsProvider: '',
+        liked: {},
+        playlistId: '',
+        playlistName: '',
+        playlistSongs: [],
+        playlistPhase: 'idle',
+        query: '',
+        results: [],
+        phase: 'idle',
+        error: '',
+      })
+      if (isOnlineSource(source)) void loadProviders()
+    }
+    
+    function setNav(nav) {
+      selectionStore.set({ active: false, paths: [] })
+      uiStore.set({ nav: nav, filter: null, playlistId: nav === 'playlist' ? uiStore.get().playlistId : '' })
+    }
+    
+    function openLocalPlaylist(id) {
+      selectionStore.set({ active: false, paths: [] })
+      uiStore.set({ nav: 'playlist', playlistId: id, filter: null, query: '' })
+    }
+    
+    function openOnlineSection(nav) {
+      closeOnlinePlaylist()
+      uiStore.set({ nav: nav, filter: null })
+    }
+    
+    uiStore.subscribe(function (state) {
+      storageSet(UI_KEY, {
+        source: state.source,
+        nav: state.nav,
+        playlistId: state.playlistId,
+      })
+    })
+
+    // ── src/50-player.js
+    /**
+     * playback engine moved verbatim from 0.11.1. It relies on the helpers in 10-base / 20-api / 30-prefs keeping their names.
+     *
+     * Extracted from client.js at the 0.11.1 baseline (3931c14).
+     */
+    
     function randomOrderOf(size) {
       var order = []
       for (var i = 0; i < size; i += 1) order.push(i)
@@ -1637,19 +2325,19 @@ window.__ModuleLoader__.load({
       }
       return order
     }
-
+    
     // Three playback modes, mapped onto the engine's loop/order pair:
     //   sequence → in order, stop at the end
     //   random   → shuffled, looping
     //   one      → repeat the current track
     var PLAY_MODES = ['sequence', 'random', 'one']
-
+    
     function playModeOf(snap) {
       if (snap.loop === 'one') return 'one'
       if (snap.order === 'random') return 'random'
       return 'sequence'
     }
-
+    
     function playModeLabel(mode) {
       return mode === 'one'
         ? t('page.modeOne')
@@ -1657,11 +2345,11 @@ window.__ModuleLoader__.load({
           ? t('page.modeRandom')
           : t('page.modeSequence')
     }
-
+    
     function playModeIcon(mode) {
       return mode === 'one' ? 'repeatOne' : mode === 'random' ? 'shuffle' : 'list'
     }
-
+    
     function applyPlayMode(mode) {
       if (mode === 'one') {
         player.setLoop('one')
@@ -1676,12 +2364,12 @@ window.__ModuleLoader__.load({
       player.setLoop('none')
       player.setOrder('list')
     }
-
+    
     function cyclePlayMode(snap) {
       var current = playModeOf(snap)
       applyPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(current) + 1) % PLAY_MODES.length])
     }
-
+    
     function nextIndexOf(index, order, size, randomOrder) {
       if (size <= 1) return 0
       if (order === 'random') {
@@ -1690,7 +2378,7 @@ window.__ModuleLoader__.load({
       }
       return (index + 1) % size
     }
-
+    
     function prevIndexOf(index, order, size, randomOrder) {
       if (size <= 1) return 0
       if (order === 'random') {
@@ -1699,11 +2387,11 @@ window.__ModuleLoader__.load({
       }
       return (index - 1 + size) % size
     }
-
+    
     // ── playback engine (module-level: survives panel unmount) ───────────
     // The <audio> element lives here rather than in the React tree, so
     // selecting another main panel keeps the current track playing.
-
+    
     function sameQueue(left, right) {
       if (left.length !== right.length) return false
       for (var i = 0; i < left.length; i += 1) {
@@ -1711,12 +2399,12 @@ window.__ModuleLoader__.load({
       }
       return true
     }
-
+    
     // One engine per page. Client modules can be re-executed by HMR or by a
     // module-table rebuild; a second engine would own a second <audio> and
     // play on top of the first. Every execution reuses the same instance.
     var PLAYER_KEY = '__dshMusicPlayer'
-
+    
     /**
      * Playback engine, one per page.
      *
@@ -1759,7 +2447,7 @@ window.__ModuleLoader__.load({
         duration: 0,
         buffered: 0,
       }
-
+    
       // ── resume + listening statistics ───────────────────────────────────
       // Counting follows the Last.fm / MusicBee rule (half the track or four
       // minutes, whichever comes first); resume follows the NetEase / Spotify
@@ -1772,7 +2460,7 @@ window.__ModuleLoader__.load({
       var pendingResumeSeconds = null
       /** Only the tab holding the player lock may produce sound / write stats. */
       var leader = true
-
+    
       function resetSession(item) {
         session = {
           path: item ? item.path : '',
@@ -1782,12 +2470,12 @@ window.__ModuleLoader__.load({
           counted: false,
         }
       }
-
+    
       function durationOf(item) {
         if (audio !== null && isFinite(audio.duration) && audio.duration > 0) return audio.duration
         return item && item.durationSec > 0 ? item.durationSec : 0
       }
-
+    
       function recordStatsPlay(item) {
         try {
           postJson(API + 'play', { path: item.path }).catch(function () {})
@@ -1795,7 +2483,7 @@ window.__ModuleLoader__.load({
           // Statistics never block playback.
         }
       }
-
+    
       /** Flush the seconds that have not been reported yet (>= 30s only). */
       function flushListening(force) {
         if (session.path === '' || session.pending <= 0) return
@@ -1811,7 +2499,7 @@ window.__ModuleLoader__.load({
           // Best effort.
         }
       }
-
+    
       function flushSessionPosition() {
         if (session.path === '' || readPrefs().rememberPerTrack !== true) return
         var item = currentItem()
@@ -1824,7 +2512,7 @@ window.__ModuleLoader__.load({
           // Best effort.
         }
       }
-
+    
       function savePlaybackState() {
         if (!leader) return
         var item = currentItem()
@@ -1854,13 +2542,13 @@ window.__ModuleLoader__.load({
           // Best effort.
         }
       }
-
+    
       function trackListening() {
         if (audio === null) return
         var item = currentItem()
         if (item === null) return
         if (session.path !== item.path) resetSession(item)
-
+    
         var current = audio.currentTime
         if (state.playing && !audio.paused) {
           var delta = current - session.lastTime
@@ -1872,23 +2560,23 @@ window.__ModuleLoader__.load({
           }
         }
         session.lastTime = current
-
+    
         var duration = durationOf(item)
         var threshold = playThresholdOf(duration)
         if (!session.counted && duration > 30 && session.seconds >= threshold) {
           session.counted = true
           recordStatsPlay(item)
         }
-
+    
         if (session.seconds >= 30 && session.pending >= 10) flushListening(false)
-
+    
         var now = Date.now()
         if (now - lastStateSave >= 5000) {
           lastStateSave = now
           savePlaybackState()
         }
       }
-
+    
       function restorePlayback(saved, tracks) {
         if (!saved || !Array.isArray(saved.queue) || saved.queue.length === 0) return false
         if (!Array.isArray(tracks) || tracks.length === 0) return false
@@ -1928,7 +2616,7 @@ window.__ModuleLoader__.load({
         load(index, readPrefs().autoResume === true)
         return true
       }
-
+    
       function tryRestore() {
         if (restoreAttempted) return
         restoreAttempted = true
@@ -1943,13 +2631,13 @@ window.__ModuleLoader__.load({
             // Resume is best effort.
           })
       }
-
+    
       function flushOnHide() {
         flushListening(true)
         flushSessionPosition()
         savePlaybackState()
       }
-
+    
       function emit() {
         listeners.forEach(function (fn) {
           fn()
@@ -1958,24 +2646,24 @@ window.__ModuleLoader__.load({
           fn()
         })
       }
-
+    
       function emitTime() {
         timeListeners.forEach(function (fn) {
           fn()
         })
       }
-
+    
       function patch(next) {
         state = Object.assign({}, state, next)
         emit()
       }
-
+    
       function currentItem() {
         return state.index >= 0 && state.queue[state.index] ? state.queue[state.index] : null
       }
-
+    
       // ── media session (system media keys, lock screen, OS media panel) ──
-
+    
       function syncMediaSession() {
         if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return
         var item = currentItem()
@@ -1999,7 +2687,7 @@ window.__ModuleLoader__.load({
           // Media Session is best effort.
         }
       }
-
+    
       function syncMediaHandlers() {
         if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return
         try {
@@ -2022,22 +2710,22 @@ window.__ModuleLoader__.load({
           // Older browsers expose a partial action list.
         }
       }
-
+    
       // ── audio element wiring ───────────────────────────────────────────
-
+    
       function onTime() {
         if (audio === null) return
         state = Object.assign({}, state, { currentTime: audio.currentTime })
         emitTime()
         trackListening()
       }
-
+    
       function onDuration() {
         if (audio === null) return
         state = Object.assign({}, state, { duration: isFinite(audio.duration) ? audio.duration : 0 })
         emitTime()
       }
-
+    
       function onProgress() {
         if (audio === null) return
         if (audio.buffered && audio.buffered.length > 0) {
@@ -2047,18 +2735,18 @@ window.__ModuleLoader__.load({
           emitTime()
         }
       }
-
+    
       function onPlaying() {
         errorStreak = 0
       }
-
+    
       function onPlay() {
         if (!state.playing) {
           patch({ playing: true })
           syncMediaSession()
         }
       }
-
+    
       function onPause() {
         flushListening(true)
         flushSessionPosition()
@@ -2068,7 +2756,7 @@ window.__ModuleLoader__.load({
           syncMediaSession()
         }
       }
-
+    
       function onEnded() {
         flushListening(true)
         flushSessionPosition()
@@ -2094,7 +2782,7 @@ window.__ModuleLoader__.load({
         }
         load(nextIndexOf(state.index, state.order, state.queue.length, randomOrder), true)
       }
-
+    
       function onError() {
         errorStreak += 1
         var failedTrack = state.queue[state.index] || null
@@ -2112,7 +2800,7 @@ window.__ModuleLoader__.load({
         }
         load(nextIndexOf(state.index, state.order, state.queue.length, randomOrder), true)
       }
-
+    
       function bind(el) {
         el.addEventListener('timeupdate', onTime)
         el.addEventListener('durationchange', onDuration)
@@ -2125,7 +2813,7 @@ window.__ModuleLoader__.load({
         el.addEventListener('ended', onEnded)
         el.addEventListener('error', onError)
       }
-
+    
       function unbind(el) {
         el.removeEventListener('timeupdate', onTime)
         el.removeEventListener('durationchange', onDuration)
@@ -2138,7 +2826,7 @@ window.__ModuleLoader__.load({
         el.removeEventListener('ended', onEnded)
         el.removeEventListener('error', onError)
       }
-
+    
       function releaseObjectUrl() {
         if (objectUrl === null) return
         try {
@@ -2148,7 +2836,7 @@ window.__ModuleLoader__.load({
         }
         objectUrl = null
       }
-
+    
       function cancelPendingFetch() {
         if (fetchAbort === null) return
         try {
@@ -2158,7 +2846,7 @@ window.__ModuleLoader__.load({
         }
         fetchAbort = null
       }
-
+    
       /**
        * Load one track through a local Blob URL.
        *
@@ -2183,7 +2871,7 @@ window.__ModuleLoader__.load({
         // only when the Last.fm / MusicBee threshold is reached.
         resetSession(item)
         if (audio === null) return
-
+    
         cancelPendingFetch()
         // Online providers stream through the Host. The Desktop media stack
         // silently drops `currentTime` writes on this HTTP stream (seeking
@@ -2198,6 +2886,17 @@ window.__ModuleLoader__.load({
           var onlineController =
             typeof AbortController !== 'undefined' ? new AbortController() : null
           fetchAbort = onlineController
+          if (item.onlineProvider && item.onlineId) {
+            void postJson(API + 'online/cache/meta', {
+              provider: item.onlineProvider,
+              id: item.onlineId,
+              title: item.title || '',
+              artist: item.artist || '',
+              album: item.album || '',
+              coverUrl: item.coverUrl || '',
+              durationSec: item.durationSec || 0,
+            }).catch(function () {})
+          }
           fetch(item.onlineUrl, onlineController === null ? {} : { signal: onlineController.signal })
             .then(function (response) {
               if (!response.ok) throw new Error('HTTP ' + response.status)
@@ -2243,7 +2942,7 @@ window.__ModuleLoader__.load({
         releaseObjectUrl()
         var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
         fetchAbort = controller
-
+    
         fetch(streamUrl(item.path), controller === null ? {} : { signal: controller.signal })
           .then(function (response) {
             if (!response.ok) throw new Error('HTTP ' + response.status)
@@ -2284,7 +2983,7 @@ window.__ModuleLoader__.load({
             onError()
           })
       }
-
+    
       var api = {
         subscribe: function (fn) {
           listeners.push(fn)
@@ -2375,8 +3074,8 @@ window.__ModuleLoader__.load({
           if (el === null) return
           bind(el)
           el.preload = 'metadata'
-          el.volume = 1
-          el.muted = false
+          el.volume = state.volume
+          el.muted = state.muted
           var item = currentItem()
           if (item !== null) {
             if (objectUrl !== null) {
@@ -2576,7 +3275,7 @@ window.__ModuleLoader__.load({
               : 0
           var target = clamp(seconds, 0, limit > 0 ? limit : seconds)
           if (!isFinite(target)) return
-
+    
           function apply() {
             try {
               el.currentTime = target
@@ -2586,7 +3285,7 @@ window.__ModuleLoader__.load({
             state = Object.assign({}, state, { currentTime: target })
             emitTime()
           }
-
+    
           if (el.readyState >= 1) {
             apply()
             return
@@ -2666,834 +3365,1956 @@ window.__ModuleLoader__.load({
           }
         },
       }
-
+    
       syncMediaHandlers()
       if (typeof window !== 'undefined') window[PLAYER_KEY] = api
       return api
     }
-
+    
     var player = createPlayer()
 
+    // ── src/60-library.js
     /**
-     * Resident audio host. It lives in `shell.overlay`, so the media element
-     * stays mounted (and playing) while the Music main panel is closed.
+     * library: scanned tracks, favorites, playlists, stats and config.
+     *
+     * Views read this store; actions are plain async functions so they can be
+     * called from event handlers without a hook layer.
      */
-    function AudioHost() {
-      var ref = useRef(null)
-      useEffect(function () {
-        player.attachAudio(ref.current)
-        player.tryRestore()
-        return function () {
-          player.attachAudio(null)
-        }
-      }, [])
-      return h('audio', {
-        ref: ref,
-        className: 'mu-audio-host',
-        preload: 'metadata',
-        'aria-hidden': 'true',
-      })
+    
+    var libraryStore = createStore({
+      phase: 'idle', // idle | loading | ready | error
+      tracks: [],
+      roots: [],
+      warnings: [],
+      error: '',
+      scannedAt: 0,
+      config: null,
+      favorites: [],
+      playlists: [],
+      stats: {},
+      statsRange: 'all',
+    })
+    
+    var libraryToken = 0
+    
+    async function loadLibrary(refresh) {
+      var token = (libraryToken += 1)
+      libraryStore.set({ phase: 'loading', error: '' })
+      try {
+        var body = await getJson(API + 'library' + (refresh === true ? '?refresh=1' : ''))
+        if (token !== libraryToken) return
+        libraryStore.set({
+          phase: 'ready',
+          tracks: Array.isArray(body.tracks) ? body.tracks : [],
+          roots: Array.isArray(body.roots) ? body.roots : [],
+          warnings: Array.isArray(body.warnings) ? body.warnings : [],
+          scannedAt: body.scannedAt || 0,
+          config: body.config || libraryStore.get().config,
+          error: '',
+        })
+      } catch (error) {
+        if (token !== libraryToken) return
+        libraryStore.set({ phase: 'error', error: errorText(error) })
+      }
+    }
+    
+    function tracksNow() {
+      return libraryStore.get().tracks
+    }
+    
+    function trackByPath(path) {
+      var list = tracksNow()
+      for (var i = 0; i < list.length; i += 1) {
+        if (list[i].path === path) return list[i]
+      }
+      return null
+    }
+    
+    function favoriteSet() {
+      var set = {}
+      var list = libraryStore.get().favorites
+      for (var i = 0; i < list.length; i += 1) set[list[i]] = true
+      return set
+    }
+    
+    async function loadFavorites() {
+      try {
+        var body = await getJson(API + 'favorites')
+        libraryStore.set({ favorites: Array.isArray(body.favorites) ? body.favorites : [] })
+      } catch (error) {
+        // Favorites are optional; the panel still works without them.
+      }
+    }
+    
+    async function toggleFavorite(path) {
+      if (!path) return
+      try {
+        var body = await postJson(API + 'favorites', { path: path })
+        libraryStore.set({ favorites: Array.isArray(body.favorites) ? body.favorites : [] })
+      } catch (error) {
+        showToast(errorText(error))
+      }
+    }
+    
+    async function loadPlaylists() {
+      try {
+        var body = await getJson(API + 'playlists')
+        libraryStore.set({ playlists: Array.isArray(body.playlists) ? body.playlists : [] })
+      } catch (error) {
+        libraryStore.set({ playlists: [] })
+      }
+    }
+    
+    async function createPlaylist(name) {
+      try {
+        var body = await postJson(API + 'playlists', { name: name })
+        await loadPlaylists()
+        return body.playlist
+      } catch (error) {
+        showToast(errorText(error))
+        return null
+      }
+    }
+    
+    async function patchPlaylist(id, patch) {
+      try {
+        await sendJson('PATCH', API + 'playlists/' + encodeURIComponent(id), patch)
+        await loadPlaylists()
+        return true
+      } catch (error) {
+        showToast(errorText(error))
+        return false
+      }
+    }
+    
+    async function removePlaylist(id) {
+      try {
+        await sendJson('DELETE', API + 'playlists/' + encodeURIComponent(id))
+        await loadPlaylists()
+        return true
+      } catch (error) {
+        showToast(errorText(error))
+        return false
+      }
+    }
+    
+    async function addToPlaylist(id, paths) {
+      var list = Array.isArray(paths) ? paths : [paths]
+      return patchPlaylist(id, { add: list })
+    }
+    
+    async function loadStats(range) {
+      var next = range === 'week' || range === 'month' ? range : 'all'
+      libraryStore.set({ statsRange: next })
+      try {
+        var body = await getJson(API + 'stats?range=' + encodeURIComponent(next))
+        libraryStore.set({ stats: body.tracks || {} })
+      } catch (error) {
+        libraryStore.set({ stats: {} })
+      }
+    }
+    
+    async function loadConfig() {
+      try {
+        var body = await getJson(API + 'config')
+        libraryStore.set({ config: body.config || null })
+        return body.config || null
+      } catch (error) {
+        return null
+      }
+    }
+    
+    async function saveConfig(patch) {
+      try {
+        var body = await postJson(API + 'config', patch)
+        libraryStore.set({ config: body.config || null })
+        await loadLibrary(true)
+        return true
+      } catch (error) {
+        showToast(errorText(error))
+        return false
+      }
+    }
+    
+    function playlistTracks(playlist) {
+      if (!playlist || !Array.isArray(playlist.trackPaths)) return []
+      var out = []
+      for (var i = 0; i < playlist.trackPaths.length; i += 1) {
+        var track = trackByPath(playlist.trackPaths[i])
+        if (track !== null) out.push(track)
+      }
+      return out
+    }
+    
+    function playlistById(id) {
+      var list = libraryStore.get().playlists
+      for (var i = 0; i < list.length; i += 1) {
+        if (list[i].id === id) return list[i]
+      }
+      return null
     }
 
-    // ── composer lyrics (above the chat input) ────────────────────────────
-    // Shows the line being sung. Fetches lyrics for the current track itself,
-    // so it works even when the player page is not open.
-
-    function ComposerLyrics(props) {
-      var slot = props && props.place === 'above' ? 'above' : 'inline'
-      var [prefs, setPrefs] = useState(function () {
-        return readPrefs()
+    // ── src/70-online.js
+    /**
+     * online: NetEase / QQ / KuGou state.
+     *
+     * Only the client half lives here: the Host performs every provider request.
+     */
+    
+    var ONLINE_HISTORY_KEY = 'mu.onlineHistory'
+    var ONLINE_HISTORY_MAX = 50
+    
+    function readOnlineHistory() {
+      var list = storageGet(ONLINE_HISTORY_KEY, [])
+      return Array.isArray(list) ? list : []
+    }
+    
+    function writeOnlineHistory(list) {
+      storageSet(ONLINE_HISTORY_KEY, list.slice(0, ONLINE_HISTORY_MAX))
+    }
+    
+    function onlineHistoryOfProvider(provider) {
+      return onlineStore.get().history.filter(function (item) {
+        return item.provider === provider
       })
-      var [lines, setLines] = useState([])
-      var [timed, setTimed] = useState(false)
-      var [text, setText] = useState('')
-      var [lyricOffset, setLyricOffset] = useState(0)
-      var [track, setTrack] = useState(null)
-      var pathRef = useRef('')
-
-      useEffect(function () {
-        function onChange() {
-          setPrefs(readPrefs())
-        }
-        window.addEventListener(PREFS_EVENT, onChange)
-        return function () {
-          window.removeEventListener(PREFS_EVENT, onChange)
-        }
-      }, [])
-
-      useEffect(function () {
-        function sync() {
-          var snap = player.getSnapshot()
-          var track = snap.index >= 0 ? snap.queue[snap.index] : null
-          var path = track ? track.path : ''
-          if (path === pathRef.current) return
-          pathRef.current = path
-          setTrack(track)
-          setLines([])
-          setTimed(false)
-          setText('')
-          if (path === '') return
-          var online = onlinePathOf(path)
-          if (online !== null) {
-            loadOnlineLyrics(online)
-              .then(function (next) {
-                if (pathRef.current !== path) return
-                setLines(next)
-                setTimed(next.length > 0)
-                setLyricOffset(0)
-              })
-              .catch(function () {})
-            return
-          }
-          var order = Array.isArray(readPrefs().lyricOrder) ? readPrefs().lyricOrder.join(',') : 'embedded,lrc'
-          getJson(API + 'lyrics?path=' + encodeURIComponent(path) + '&order=' + encodeURIComponent(order))
-            .then(function (body) {
-              if (pathRef.current !== path) return
-              setLines(Array.isArray(body.lines) ? body.lines : [])
-              setTimed(body.timed === true)
-              setLyricOffset(Number(body.offsetMs) || 0)
-            })
-            .catch(function () {})
-        }
-        sync()
-        return player.subscribe(sync)
-      }, [])
-
-      useEffect(
-        function () {
-          if (!timed || lines.length === 0) return undefined
-          return player.subscribeTime(function () {
-            var index = activeLineAt(lines, player.getTime().currentTime - lyricOffset / 1000)
-            var line = index >= 0 ? lines[index] : null
-            setText(line ? line.text : '')
-          })
-        },
-        [timed, lines, lyricOffset],
-      )
-
-      var place = prefs.composerLyricPlace === 'above' ? 'above' : 'input-left'
-      var above = place === 'above'
-      if (slot === 'above' ? !above : above) return null
-      if (prefs.composerLyrics !== true) return null
-      if (text === '' && track === null) return null
-
-      // Above the composer: a music bar — track info left, current lyric right.
-      // The shell (width/background/border/radius) mirrors `dsh-music-player`'s
-      // dock bar so it reads as one card aligned with the input box.
-      if (slot === 'above') {
-        var name = track ? track.title || '' : ''
-        return h(
-          'div',
-          { className: 'mu-composer-bar-wrap' },
-          h(
-            'div',
-            { className: 'mu-composer-bar' },
-            h(
-              'div',
-              { className: 'mu-composer-bar-left' },
-              h('span', { className: 'mu-composer-note' }, icon('note', 14)),
-              h('span', { className: 'mu-composer-track', title: name }, name),
-            ),
-            h(
-              'div',
-              { className: 'mu-composer-wave' },
-              h(BarWave, { width: 104, height: 18, bars: 28 }),
-            ),
-            h('div', { className: 'mu-composer-lyric-inline', title: text }, text),
-          ),
+    }
+    
+    var onlineStore = createStore({
+      provider: 'netease',
+      phase: 'idle', // idle | searching | ready | error
+      query: '',
+      results: [],
+      error: '',
+      playlistsPhase: 'idle',
+      playlistsProvider: '',
+      playlists: [],
+      playlistId: '',
+      playlistName: '',
+      playlistSongs: [],
+      playlistPhase: 'idle',
+      history: readOnlineHistory(),
+      liked: {},
+      cache: {},
+      progress: {},
+      providers: {},
+    })
+    
+    var onlineSearchToken = 0
+    
+    async function searchOnline(text) {
+      var query = String(text || '').trim()
+      if (query === '') return
+      var state = onlineStore.get()
+      var provider = state.provider
+      var token = (onlineSearchToken += 1)
+      onlineStore.set({ phase: 'searching', query: query, error: '', results: [] })
+      try {
+        var body = await getJson(
+          API +
+            'online/search?provider=' +
+            encodeURIComponent(provider) +
+            '&q=' +
+            encodeURIComponent(query),
         )
+        if (token !== onlineSearchToken) return
+        var results = Array.isArray(body.results) ? body.results : []
+        onlineStore.set({ phase: 'ready', results: results })
+        void refreshCacheStatus(provider, results.map(function (item) { return item.id }))
+      } catch (error) {
+        if (token !== onlineSearchToken) return
+        onlineStore.set({ phase: 'error', error: errorText(error) })
       }
-
-      // Inline: one line next to the model picker.
-      return h('div', { className: 'mu-composer-lyric', title: text }, text)
+    }
+    
+    async function refreshCacheStatus(provider, ids) {
+      var list = (ids || []).filter(Boolean).slice(0, 120)
+      if (list.length === 0) return
+      try {
+        var body = await getJson(
+          API +
+            'online/cache/status?provider=' +
+            encodeURIComponent(provider) +
+            '&ids=' +
+            encodeURIComponent(list.join(',')),
+        )
+        var state = onlineStore.get()
+        onlineStore.set({
+          cache: Object.assign({}, state.cache, body.cached || {}),
+          progress: Object.assign({}, state.progress, body.progress || {}),
+        })
+      } catch (error) {
+        // Cache badges are cosmetic.
+      }
+    }
+    
+    async function loadMyPlaylists(provider) {
+      var target = provider || onlineStore.get().provider
+      onlineStore.set({ playlistsPhase: 'loading', playlistsProvider: target, playlists: [] })
+      try {
+        var body = await getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(target))
+        onlineStore.set({
+          playlistsPhase: 'ready',
+          playlistsProvider: target,
+          playlists: Array.isArray(body.playlists) ? body.playlists : [],
+        })
+      } catch (error) {
+        onlineStore.set({ playlistsPhase: 'error', playlistsProvider: target, playlists: [], error: errorText(error) })
+      }
+    }
+    
+    async function openOnlinePlaylist(playlist) {
+      if (!playlist || !playlist.id) return
+      var provider = onlineStore.get().provider
+      onlineStore.set({
+        playlistId: playlist.id,
+        playlistName: playlist.name || '',
+        playlistPhase: 'loading',
+        playlistSongs: [],
+      })
+      try {
+        var body = await getJson(
+          API +
+            'online/playlist-songs?provider=' +
+            encodeURIComponent(provider) +
+            '&id=' +
+            encodeURIComponent(playlist.id),
+        )
+        var songs = Array.isArray(body.songs) ? body.songs : []
+        onlineStore.set({
+          playlistPhase: 'ready',
+          playlistName: body.name || playlist.name || '',
+          playlistSongs: songs,
+        })
+        void refreshCacheStatus(provider, songs.map(function (item) { return item.id }))
+      } catch (error) {
+        onlineStore.set({ playlistPhase: 'error', playlistSongs: [], error: errorText(error) })
+      }
+    }
+    
+    function closeOnlinePlaylist() {
+      onlineStore.set({ playlistId: '', playlistName: '', playlistSongs: [], playlistPhase: 'idle' })
+    }
+    
+    async function loadProviders() {
+      try {
+        var body = await getJson(API + 'online/providers')
+        onlineStore.set({ providers: body.providers || {} })
+      } catch (error) {
+        // Provider status only drives labels.
+      }
+    }
+    
+    function rememberOnline(track) {
+      var entry = {
+        provider: track.onlineProvider,
+        id: track.onlineId || '',
+        title: track.title || '',
+        artist: track.artist || '',
+        album: track.album || '',
+        durationSec: track.durationSec || 0,
+        coverUrl: track.coverUrl || '',
+        qualityHint: track.qualityHint || '',
+        playedAt: Date.now(),
+      }
+      if (!entry.provider || entry.id === '') return
+      var state = onlineStore.get()
+      var next = [entry].concat(
+        state.history.filter(function (item) {
+          return !(item.provider === entry.provider && item.id === entry.id)
+        }),
+      )
+      onlineStore.set({ history: next })
+      writeOnlineHistory(next)
+    }
+    
+    function removeHistory(entry) {
+      var state = onlineStore.get()
+      var next = state.history.filter(function (item) {
+        return !(item.provider === entry.provider && item.id === entry.id)
+      })
+      onlineStore.set({ history: next })
+      writeOnlineHistory(next)
+    }
+    
+    function playOnlineResults(results, index) {
+      var list = Array.isArray(results) ? results : []
+      var playable = list.filter(function (item) {
+        return item && item.id && item.qualityHint !== 'VIP'
+      })
+      if (playable.length === 0) {
+        showToast(t('online.vipOnly'))
+        return
+      }
+      var wanted = list[index]
+      var at = 0
+      if (wanted) {
+        for (var i = 0; i < playable.length; i += 1) {
+          if (playable[i].provider === wanted.provider && playable[i].id === wanted.id) {
+            at = i
+            break
+          }
+        }
+        if (wanted.qualityHint === 'VIP') {
+          showToast(t('online.vipOnly'))
+          return
+        }
+      }
+      var tracks = playable.map(onlineTrackOf)
+      player.playList(tracks, at)
+      rememberOnline(tracks[at])
+      if (tracks[at] && tracks[at].onlineProvider) {
+        void refreshCacheStatus(tracks[at].onlineProvider, [tracks[at].onlineId])
+      }
+    }
+    
+    function playHistoryEntry(entry) {
+      var track = onlineTrackOf(entry)
+      player.playList([track], 0)
+      rememberOnline(track)
+    }
+    
+    async function startProviderLogin(provider, mode) {
+      var body = await postJson(API + 'online/login/start', { provider: provider, mode: mode })
+      return body
+    }
+    
+    async function checkProviderLogin(provider, key, mode) {
+      var body = await getJson(
+        API +
+          'online/login/status?provider=' +
+          encodeURIComponent(provider) +
+          '&key=' +
+          encodeURIComponent(key) +
+          '&mode=' +
+          encodeURIComponent(mode || 'qq'),
+      )
+      return body.status
+    }
+    
+    async function logoutProvider(provider) {
+      try {
+        await postJson(API + 'online/logout', { provider: provider })
+        await loadProviders()
+        showToast(t('online.logoutDone'))
+      } catch (error) {
+        showToast(errorText(error))
+      }
     }
 
-    // ── mini player (draggable floating window) ────────────────────────────
-
-    // ── shared playback list (queue overlay) ──────────────────────────────
-    // Opened from the composer button and the player bar. The mini player is
-    // no longer a standalone floating window: it lives in this overlay header.
-
-    var queueOverlayOpen = false
-    var queueOverlayListeners = []
-    var queueOverlayAnchor = null
-
-    function queueOverlaySnapshot() {
-      return queueOverlayOpen
+    // ── src/80-overlay.js
+    /**
+     * overlay: the single layer stack plus toast.
+     *
+     * Every popover, dialog and sheet pushes onto this stack; Escape pops the top
+     * one. Nothing else in the UI is allowed to invent a z-index.
+     */
+    
+    var overlayStore = createStore({ layers: [] })
+    var toastStore = createStore({ text: '', seq: 0 })
+    var toastTimer = null
+    
+    function pushLayer(kind, props) {
+      var layers = overlayStore.get().layers.filter(function (layer) {
+        return layer.kind !== kind
+      })
+      layers.push({ kind: kind, props: props || {} })
+      overlayStore.set({ layers: layers })
     }
-
-    function toggleQueueOverlay(next, anchor) {
-      if (anchor !== undefined && anchor !== null) queueOverlayAnchor = anchor
-      queueOverlayOpen = next === undefined ? !queueOverlayOpen : next === true
-      if (!queueOverlayOpen) queueOverlayAnchor = null
-      queueOverlayListeners.slice().forEach(function (listener) {
-        listener()
+    
+    function popLayer() {
+      var layers = overlayStore.get().layers
+      if (layers.length === 0) return false
+      overlayStore.set({ layers: layers.slice(0, layers.length - 1) })
+      return true
+    }
+    
+    function removeLayer(kind) {
+      var layers = overlayStore.get().layers
+      var next = layers.filter(function (layer) {
+        return layer.kind !== kind
+      })
+      if (next.length !== layers.length) overlayStore.set({ layers: next })
+    }
+    
+    function topLayer() {
+      var layers = overlayStore.get().layers
+      return layers.length > 0 ? layers[layers.length - 1] : null
+    }
+    
+    function hasLayer(kind) {
+      return overlayStore.get().layers.some(function (layer) {
+        return layer.kind === kind
       })
     }
-
-    function subscribeQueueOverlay(listener) {
-      queueOverlayListeners = queueOverlayListeners.concat([listener])
-      return function () {
-        queueOverlayListeners = queueOverlayListeners.filter(function (item) {
-          return item !== listener
-        })
-      }
+    
+    function showToast(text) {
+      var message = String(text || '')
+      if (message === '') return
+      var seq = toastStore.get().seq + 1
+      toastStore.set({ text: message, seq: seq })
+      if (toastTimer !== null) clearTimeout(toastTimer)
+      toastTimer = setTimeout(function () {
+        toastTimer = null
+        if (toastStore.get().seq === seq) toastStore.set({ text: '', seq: seq })
+      }, 1800)
     }
 
-    /** [{ track, originalIndex }] in actual playback order. */
-    function buildQueueView(snap, playOrder) {
-      if (snap.order === 'random' && Array.isArray(playOrder) && playOrder.length === snap.queue.length) {
-        return playOrder.map(function (originalIndex) {
-          return { track: snap.queue[originalIndex], originalIndex: originalIndex }
-        })
-      }
-      return snap.queue.map(function (track, originalIndex) {
-        return { track: track, originalIndex: originalIndex }
+    // ── src/85-select.js
+    /**
+     * selection + bulk actions + duplicate detection.
+     */
+    
+    var selectionStore = createStore({ active: false, paths: [] })
+    
+    function selectedPaths() {
+      return selectionStore.get().paths.slice()
+    }
+    
+    function selectedPathSet() {
+      var set = {}
+      selectionStore.get().paths.forEach(function (path) {
+        set[path] = true
+      })
+      return set
+    }
+    
+    function setSelectionMode(active) {
+      var state = selectionStore.get()
+      selectionStore.set({ active: active === true, paths: active === true ? state.paths : [] })
+    }
+    
+    function toggleSelected(path) {
+      var state = selectionStore.get()
+      var list = state.paths.slice()
+      var at = list.indexOf(path)
+      if (at >= 0) list.splice(at, 1)
+      else list.push(path)
+      selectionStore.set({ active: list.length > 0 ? state.active : false, paths: list })
+    }
+    
+    function clearSelection() {
+      selectionStore.set({ active: false, paths: [] })
+    }
+    
+    function selectAllPaths(paths) {
+      selectionStore.set({ active: true, paths: (paths || []).slice() })
+    }
+    
+    var rangePick = { active: false, anchor: '' }
+    
+    /** Select the whole current list (enters selection mode). */
+    function selectAllIn(list) {
+      selectionStore.set({
+        active: true,
+        paths: (list || []).map(function (track) {
+          return track.path
+        }),
       })
     }
+    
+    /** Invert the selection within the current list. */
+    function invertSelectionIn(list) {
+      var selected = selectedPathSet()
+      selectionStore.set({
+        active: true,
+        paths: (list || [])
+          .map(function (track) {
+            return track.path
+          })
+          .filter(function (path) {
+            return selected[path] !== true
+          }),
+      })
+    }
+    
+    function beginRangePick() {
+      rangePick.active = true
+      rangePick.anchor = ''
+      selectionStore.set({ active: true })
+      showToast(t('v2.rangePickHint'))
+    }
+    
+    function cancelRangePick() {
+      rangePick.active = false
+      rangePick.anchor = ''
+    }
+    
+    /**
+     * Click handler for list rows/cards: replace (or toggle with Ctrl), or handle
+     * one range pick when the user chose 区域选择.
+     */
+    function selectTrackIn(list, track, additive) {
+      var paths = (list || []).map(function (item) {
+        return item.path
+      })
+      if (rangePick.active) {
+        if (rangePick.anchor === '') {
+          rangePick.anchor = track.path
+          selectionStore.set({ active: true, paths: [track.path] })
+          return
+        }
+        var start = paths.indexOf(rangePick.anchor)
+        var end = paths.indexOf(track.path)
+        if (start < 0 || end < 0) {
+          rangePick.anchor = track.path
+          selectionStore.set({ active: true, paths: [track.path] })
+          return
+        }
+        var from = Math.min(start, end)
+        var to = Math.max(start, end)
+        selectionStore.set({ active: true, paths: paths.slice(from, to + 1) })
+        rangePick.active = false
+        rangePick.anchor = ''
+        return
+      }
+      var state = selectionStore.get()
+      if (additive) {
+        if (!state.active) selectionStore.set({ active: true, paths: [track.path] })
+        else toggleSelected(track.path)
+        return
+      }
+      if (state.active && state.paths.length === 1 && state.paths[0] === track.path) {
+        clearSelection()
+        return
+      }
+      selectionStore.set({ active: true, paths: [track.path] })
+    }
+    
+    async function batchEditTags(paths, patch) {
+      var done = 0
+      var failed = 0
+      for (var i = 0; i < paths.length; i += 1) {
+        try {
+          var body = await getJson(API + 'tags?path=' + encodeURIComponent(paths[i]))
+          var tags = Object.assign({}, body.tags || {}, patch)
+          await sendJson('PUT', API + 'tags', { path: paths[i], tags: tags })
+          done += 1
+        } catch (error) {
+          failed += 1
+        }
+      }
+      return { done: done, failed: failed }
+    }
+    
+    async function removeTracks(paths) {
+      var body = await postJson(API + 'remove', { paths: paths })
+      await loadLibrary(true)
+      clearSelection()
+      return body
+    }
+    
+    /** Higher bitrate, then higher sample rate, then larger file wins. */
+    function compareQuality(left, right) {
+      var leftBitrate = Number(left.bitrate) || 0
+      var rightBitrate = Number(right.bitrate) || 0
+      if (leftBitrate !== rightBitrate) return rightBitrate - leftBitrate
+      var leftRate = Number(left.sampleRate) || 0
+      var rightRate = Number(right.sampleRate) || 0
+      if (leftRate !== rightRate) return rightRate - leftRate
+      return (Number(right.size) || 0) - (Number(left.size) || 0)
+    }
+    
+    /** Same title + artist + rounded duration, at least two entries. */
+    function duplicateGroupsOf(tracks) {
+      var map = {}
+      ;(tracks || []).forEach(function (track) {
+        var duration = Math.round(Number(track.durationSec) || 0)
+        var title = String(track.title || '').trim().toLowerCase()
+        var artist = String(track.artist || '').trim().toLowerCase()
+        if (title === '' || duration <= 0) return
+        var key = title + '\u0000' + artist + '\u0000' + duration
+        if (!map[key]) map[key] = []
+        map[key].push(track)
+      })
+      return Object.keys(map)
+        .map(function (key) {
+          return map[key]
+        })
+        .filter(function (group) {
+          return group.length > 1
+        })
+    }
 
-    function QueueNowPlaying() {
-      var [snap, setSnap] = useState(player.getSnapshot())
+    // ── src/90-theme.js
+    /**
+     * theme: one plugin-prefixed stylesheet.
+     *
+     * Every colour is a `--dsw-*` token with a neutral fallback, so the panel
+     * follows the host's light/dark theme without hardcoded surfaces.
+     */
+    
+    var THEME_CSS = [
+      // ── shell ───────────────────────────────────────────────────────────────
+      '.mp-root :focus-visible{outline:2px solid var(--dsw-focus-ring-color,#4176E6);outline-offset:2px}',
+      '.mp-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif);font-size:13px;line-height:20px;user-select:none;isolation:isolate}',
+      '.mp-root input,.mp-root textarea{user-select:text}',
+      '.mp-topbar{display:flex;align-items:center;gap:12px;flex:none;height:48px;padding:0 16px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,#15151a)}',
+      '.mp-brand{display:flex;align-items:center;gap:8px;font-weight:650;font-size:13.5px;white-space:nowrap}',
+      '.mp-brand-dot{width:22px;height:22px;border-radius:8px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--dsw-alias-state-business-primary,#7AAAFF),var(--dsw-alias-state-business-primary,#4176E6));box-shadow:0 2px 10px color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 40%, transparent)}',
+      '.mp-src-tabs{display:flex;gap:2px;padding:3px;border-radius:12px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-src-tab{height:26px;padding:0 11px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:13px;cursor:pointer;white-space:nowrap}',
+      '.mp-src-tab:hover{color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-src-tab.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
+      '.mp-search{position:relative;width:220px;margin-left:auto;flex:none}',
+      '.mp-search svg{position:absolute;left:10px;top:9px;color:var(--dsw-alias-label-tertiary,#8a8a93);pointer-events:none}',
+      '.mp-search-input{width:100%;height:32px;padding:0 10px 0 31px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:13px;outline:none}',
+      '.mp-search-input::placeholder{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-search-input:focus{border-color:var(--dsw-alias-state-business-primary,#4176E6);box-shadow:0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 16%, transparent)}',
+      '.mp-userchip{display:none;align-items:center;gap:6px;height:26px;padding:0 9px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);white-space:nowrap}',
+      '.mp-userchip.is-on{display:inline-flex}',
+      '.mp-userchip-dot{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-userchip-out{color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;margin-left:2px}',
+      '.mp-userchip-out:hover{color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-iconbtn{width:30px;height:30px;display:inline-grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;flex:none}',
+      '.mp-iconbtn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-iconbtn.is-on{color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-btn{height:30px;padding:0 12px;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:8px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.05));color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;cursor:pointer;white-space:nowrap}',
+      '.mp-btn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mp-btn.is-primary{background:var(--dsw-alias-button-primary-fill,#0f1115);border-color:transparent;color:var(--dsw-alias-label-primary-foreground,#fff)}',
+      '.mp-btn.is-primary:hover{background:var(--dsw-alias-button-primary-hover,#232324)}',
+      '.mp-btn.is-ghost{background:transparent;border-color:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-btn.is-ghost:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mp-btn:disabled{opacity:.5;cursor:default}',
+    
+      // ── workspace ───────────────────────────────────────────────────────────
+      '.mp-workspace{display:grid;grid-template-columns:188px minmax(0,1fr);flex:1;min-height:0}',
+      '.mp-workspace.is-queue{grid-template-columns:188px minmax(0,1fr) 304px}',
+      '.mp-root.is-top .mp-workspace,.mp-root.is-top .mp-workspace.is-queue{grid-template-columns:minmax(0,1fr)}',
+      '.mp-root.is-top .mp-workspace.is-queue{grid-template-columns:minmax(0,1fr) 304px}',
+      '.mp-root.is-top .mp-nav{display:none}',
+      '.mp-nav{display:flex;flex-direction:column;gap:16px;min-height:0;overflow-y:auto;padding:12px 8px;border-right:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-nav-group{display:flex;flex-direction:column;gap:1px}',
+      '.mp-nav-label{padding:0 10px 6px;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dsw-alias-label-tertiary,#8a8a93);font-weight:600}',
+      '.mp-nav-item{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:13px;cursor:pointer;text-align:left;min-width:0}',
+      '.mp-nav-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-nav-item.is-on{background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 13%, transparent);color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600;box-shadow:inset 2px 0 0 var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-nav-item span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-nav-count{margin-left:auto;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
+      '.mp-sectionbar{display:none;align-items:center;gap:2px;flex:none;height:40px;padding:0 18px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));overflow-x:auto;scrollbar-width:none}',
+      '.mp-sectionbar::-webkit-scrollbar{display:none}',
+      '.mp-root.is-top .mp-sectionbar{display:flex}',
+      '.mp-sec-item{height:26px;padding:0 9px;display:inline-flex;align-items:center;gap:6px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:13px;cursor:pointer;white-space:nowrap}',
+      '.mp-sec-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-sec-item.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
+      '.mp-sec-count{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
+      '.mp-sec-sep{flex:none;width:1px;height:14px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.14));margin:0 6px}',
+      '.mp-sec-spacer{margin-left:auto}',
+      '.mp-sec-actions{display:inline-flex;align-items:center;gap:4px;flex:none}',
+    
+      // ── content ─────────────────────────────────────────────────────────────
+      '.mp-content{display:flex;flex-direction:column;min-width:0;min-height:0}',
+      '.mp-content-head{display:flex;align-items:center;gap:12px;padding:10px 22px 6px;min-height:0;flex:none}',
+      '.mp-title{margin:0;font-size:20px;font-weight:650;letter-spacing:-.015em;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-count{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding-bottom:3px;font-variant-numeric:tabular-nums;white-space:nowrap}',
+      '.mp-sel-count{margin-left:2px;padding:2px 9px;border-radius:999px;font-size:12px;line-height:18px;color:var(--dsw-alias-state-business-primary,#7AAAFF);background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
+      '.mp-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px;flex:none}',
+      '.mp-toolbar{display:flex;align-items:center;gap:8px;padding:0 22px 10px;min-height:34px;flex-wrap:wrap;flex:none}',
+      '.mp-toolbar:empty{display:none}',
+      '.mp-chip{height:26px;padding:0 10px;display:inline-flex;align-items:center;gap:5px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;white-space:nowrap}',
+      '.mp-chip:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-chip.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5);border-color:var(--dsw-alias-border-l2,rgba(255,255,255,.14))}',
+      '.mp-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;padding:0 12px 18px;outline:none}',
+      '.mp-vlist-inner{position:relative;width:100%}',
+      '.mp-vlist-row{position:absolute;left:0;right:0}',
+      '.mp-vlist-row > .mp-row{width:100%;height:100%}',
+      '.mp-filterbar{display:flex;align-items:center;gap:8px;padding:0 22px 8px;flex:none;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+    
+      // ── rows ────────────────────────────────────────────────────────────────
+      '.mp-row{display:grid;grid-template-columns:40px minmax(0,1.6fr) minmax(0,1fr) 74px 48px 54px;align-items:center;gap:12px;height:56px;padding:0 10px;border-radius:8px;color:var(--dsw-alias-label-primary,#f4f4f5);position:relative;cursor:default}',
+      '.mp-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
+      '.mp-row.is-cur{background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
+      '.mp-row.is-selected{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
+      '.mp-row.is-cur.is-selected{background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 18%, transparent)}',
+      '.mp-row.is-cur::before{content:"";position:absolute;left:2px;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:2px;background:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-row-cover{position:relative;width:40px;height:40px;border-radius:8px;overflow:hidden;display:grid;place-items:center;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));box-shadow:inset 0 0 0 1px var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
+      '.mp-row-cover img{width:100%;height:100%;object-fit:cover;display:block}',
+      '.mp-row.is-round .mp-row-cover{border-radius:50%}',
+      '.mp-cover-play{position:absolute;inset:0;display:grid;place-items:center;border:0;padding:0;font:inherit;cursor:pointer;background:rgba(0,0,0,.5);opacity:0;transition:opacity .12s;color:#fff}',
+      '.mp-row:hover .mp-cover-play{opacity:1}',
+      '.mp-row-main{min-width:0}',
+      '.mp-row-title{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}',
+      '.mp-row.is-cur .mp-row-title{color:var(--dsw-alias-state-business-primary,#7AAAFF)}',
+      '.mp-row-sub{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-row-album{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-row-time{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:right;font-variant-numeric:tabular-nums}',
+      '.mp-row-acts{display:flex;align-items:center;justify-content:flex-end;gap:2px}',
+      '.mp-row-acts .mp-iconbtn{width:26px;height:26px;opacity:0}',
+      '.mp-row-acts .mp-fav{opacity:.55}',
+      '.mp-row:hover .mp-row-acts .mp-fav,.mp-row-acts .mp-fav.is-on{opacity:1}',
+      '.mp-row:hover .mp-row-acts .mp-iconbtn,.mp-row-acts .mp-iconbtn.is-on{opacity:1}',
+      '.mp-badge{display:inline-flex;align-items:center;height:15px;padding:0 5px;border-radius:4px;font-size:9.5px;font-weight:700;letter-spacing:.02em;line-height:1;flex:none}',
+      '.mp-badge.is-vip{color:#1a1405;background:linear-gradient(180deg,#ffd76e,#f2b62e)}',
+      '.mp-badge.is-cache{color:var(--dsw-alias-label-secondary,#a1a1aa);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));padding:0 4px}',
+      '.mp-eq{display:inline-flex;align-items:flex-end;gap:2px;height:11px;flex:none}',
+      '.mp-eq i{width:2px;background:var(--dsw-alias-state-business-primary,#4176E6);border-radius:1px;animation:mp-eq .9s ease-in-out infinite}',
+      '.mp-eq i:nth-child(2){animation-delay:.18s}',
+      '.mp-eq i:nth-child(3){animation-delay:.36s}',
+      '@keyframes mp-eq{0%,100%{height:3px}50%{height:11px}}',
+    
+      // ── grid / simple rows / stats ──────────────────────────────────────────
+      '.mp-srow{display:flex;align-items:center;gap:12px;height:56px;padding:0 10px;border-radius:8px;cursor:pointer;color:inherit;background:transparent;border:0;width:100%;text-align:left;font:inherit}',
+      '.mp-srow:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
+      '.mp-srow-cover{width:44px;height:44px;border-radius:8px;display:grid;place-items:center;color:var(--dsw-alias-label-tertiary,#8a8a93);flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));overflow:hidden}',
+      '.mp-srow-cover img{width:100%;height:100%;object-fit:cover}',
+      '.mp-srow-cover.is-round{border-radius:50%}',
+      '.mp-srow-main{min-width:0;flex:1}',
+      '.mp-srow-title{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-srow-sub{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-srow-meta{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums;flex:none}',
+      '.mp-stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;padding:6px 10px 16px}',
+      '.mp-stat-card{padding:14px 16px;border-radius:12px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04))}',
+      '.mp-stat-k{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-stat-v{font-size:22px;font-weight:650;margin-top:6px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}',
+      '.mp-rank{padding:0 10px}',
+      '.mp-rank-row{display:grid;grid-template-columns:26px 34px minmax(0,1fr) 90px 74px;gap:10px;align-items:center;height:48px;border-radius:8px;padding:0 6px;cursor:pointer}',
+      '.mp-rank-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
+      '.mp-rank-n{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:center;font-variant-numeric:tabular-nums}',
+      '.mp-rank-c{width:28px;height:28px;border-radius:8px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07))}',
+      '.mp-rank-m{min-width:0}',
+      '.mp-rank-bar{height:4px;border-radius:2px;background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));overflow:hidden}',
+      '.mp-rank-bar i{display:block;height:100%;background:var(--dsw-alias-state-business-primary,#4176E6);border-radius:2px}',
+      '.mp-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:64px 20px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:center}',
+      '.mp-empty strong{color:var(--dsw-alias-label-secondary,#a1a1aa);font-weight:600;font-size:13px}',
+      '.mp-empty span{font-size:12px;max-width:44ch}',
+      '.mp-spinner{width:18px;height:18px;border-radius:50%;border:2px solid var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12));border-top-color:var(--dsw-alias-state-business-primary,#4176E6);animation:mp-spin .8s linear infinite}',
+      '@keyframes mp-spin{to{transform:rotate(360deg)}}',
+    
+      // ── player bar ──────────────────────────────────────────────────────────
+      '.mp-playerbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);align-items:center;gap:16px;flex:none;height:68px;padding:0 14px;position:relative;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,#15151a);box-shadow:0 -10px 30px rgba(0,0,0,.08)}',
+      '.mp-pb-track{display:flex;align-items:center;gap:12px;min-width:0;padding-right:4px;overflow:hidden}',
+      '.mp-pb-cover{position:relative;width:40px;height:40px;border-radius:8px;display:grid;place-items:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));overflow:hidden;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 0 0 1px var(--dsw-alias-border-l1,rgba(255,255,255,.06));transition:transform .16s,box-shadow .16s}',
+      '.mp-pb-cover:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.26),inset 0 0 0 1px var(--dsw-alias-border-l2,rgba(255,255,255,.1))}',
+      '.mp-pb-cover img{width:100%;height:100%;object-fit:cover}',
+      '.mp-pb-eq{position:absolute;right:5px;bottom:5px;display:flex;align-items:flex-end;gap:2px;padding:3px 4px;border-radius:8px;background:rgba(0,0,0,.52);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);pointer-events:none}',
+      '.mp-pb-eq i{width:2px;height:4px;border-radius:2px;background:#fff;animation:mp-eq .9s ease-in-out infinite}',
+      '.mp-pb-eq i:nth-child(2){animation-delay:.15s}',
+      '.mp-pb-eq i:nth-child(3){animation-delay:.3s}',
+      '@keyframes mp-eq{0%,100%{height:4px}50%{height:10px}}',
+      '@media (prefers-reduced-motion:reduce){.mp-pb-eq i{animation:none;height:7px}}',
+      '.mp-pb-meta{min-width:0;flex:0 1 auto;display:flex;flex-direction:column;justify-content:center;gap:1px}',
+      '.mp-pb-title{font-size:13px;font-weight:600;line-height:18px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-pb-artist{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-pb-fav{opacity:.55;margin-left:2px;transition:opacity .12s}',
+      '.mp-fav.is-on,.mp-pb-fav.is-on{color:var(--dsw-alias-state-error-primary,#e5484d)}',
+      '.mp-fav.is-on{opacity:1}',
+      '.mp-pb-track:hover .mp-pb-fav,.mp-pb-fav.is-on,.mp-pb-fav:focus-visible{opacity:1}',
+      '.mp-pb-center{display:flex;flex-direction:column;gap:0;min-width:0;width:100%;max-width:580px;margin:0 auto}',
+      '.mp-pb-controls{display:flex;align-items:center;justify-content:center;gap:6px}',
+      '.mp-pb-controls .mp-iconbtn{width:30px;height:30px}',
+      '.mp-pb-play{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:0;background:var(--dsw-alias-label-primary,#f4f4f5);color:var(--dsw-alias-bg-base,#141417);cursor:pointer;margin:0 6px;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.22);transition:transform .14s,box-shadow .14s,background .14s}',
+      '.mp-pb-play:hover{transform:scale(1.06);box-shadow:0 8px 22px rgba(0,0,0,.28)}',
+      '.mp-pb-play:active{transform:scale(.96)}',
+      '.mp-pb-play:disabled{opacity:.4;transform:none;box-shadow:none}',
+      
+      '.mp-time{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums;width:38px;text-align:center;flex:none;transition:color .12s}',
+      '.mp-time.is-preview{color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-seek{position:relative;flex:1;height:16px;display:flex;align-items:center;min-width:0}',
+      '.mp-seek input{-webkit-appearance:none;appearance:none;width:100%;height:16px;margin:0;background:transparent;cursor:pointer}',
+      '.mp-seek input::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--dsw-alias-state-business-primary,#4176E6) var(--mp-p,0%),var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12)) var(--mp-p,0%));transition:height .12s}',
+      '.mp-seek:hover input::-webkit-slider-runnable-track{height:6px}',
+      '.mp-seek input::-moz-range-track{height:4px;border-radius:2px;background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12))}',
+      '.mp-seek input::-moz-range-progress{height:4px;border-radius:2px;background:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-seek input::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--dsw-alias-label-primary,#f4f4f5);margin-top:-4px;box-shadow:0 0 0 2px var(--dsw-alias-bg-layer-1,#15151a),0 1px 4px rgba(0,0,0,.3);opacity:0;transition:opacity .12s}',
+      '.mp-seek:hover input::-webkit-slider-thumb,.mp-seek input:focus-visible::-webkit-slider-thumb{opacity:1}',
+      '.mp-seek input::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:var(--dsw-alias-label-primary,#f4f4f5);box-shadow:0 0 0 2px var(--dsw-alias-bg-layer-1,#15151a);opacity:0}',
+      '.mp-seek:hover input::-moz-range-thumb,.mp-seek input:focus-visible::-moz-range-thumb{opacity:1}',
+      '.mp-pb-right{display:flex;align-items:center;justify-content:flex-end;gap:4px}',
+      '.mp-pb-right .mp-iconbtn{width:30px;height:30px}',
+      '.mp-pb-vol{display:flex;align-items:center;gap:6px;width:98px;margin:0 4px 0 2px;flex:none}',
+      '.mp-pb-vol input{width:64px;height:16px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}',
+      '.mp-pb-vol input::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:linear-gradient(90deg,var(--dsw-alias-label-secondary,#a1a1aa) var(--mp-v,60%),var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12)) var(--mp-v,60%))}',
+      '.mp-pb-vol input::-moz-range-track{height:3px;border-radius:2px;background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12))}',
+      '.mp-pb-vol input::-moz-range-progress{height:3px;border-radius:2px;background:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-pb-vol input::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:var(--dsw-alias-label-primary,#f4f4f5);margin-top:-3px;box-shadow:0 0 0 2px var(--dsw-alias-bg-layer-1,#15151a);opacity:0;transition:opacity .12s}',
+      '.mp-pb-vol:hover input::-webkit-slider-thumb,.mp-pb-vol input:focus-visible::-webkit-slider-thumb{opacity:1}',
+      '.mp-pb-vol input::-moz-range-thumb{width:10px;height:10px;border:0;border-radius:50%;background:var(--dsw-alias-label-primary,#f4f4f5);opacity:0}',
+      '.mp-pb-vol:hover input::-moz-range-thumb,.mp-pb-vol input:focus-visible::-moz-range-thumb{opacity:1}',
+      '.mp-playerbar.is-empty .mp-pb-cover{box-shadow:inset 0 0 0 1px var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
+      '.mp-playerbar.is-empty .mp-pb-play{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));color:var(--dsw-alias-label-tertiary,#8a8a93);box-shadow:none}',
+    
+      // ── queue (side panel and floating variant) ─────────────────────────────
+      '.mp-queue{display:none;flex-direction:column;min-height:0;border-left:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,#15151a)}',
+      '.mp-workspace.is-queue .mp-queue{display:flex}',
+      '.mp-q-head{display:flex;align-items:center;gap:8px;padding:14px 12px 8px;flex:none}',
+      '.mp-q-title{font-size:13px;font-weight:650}',
+      '.mp-q-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-q-list{flex:1;min-height:0;overflow-y:auto;padding:0 6px 14px}',
+      '.mp-q-row{display:flex;align-items:center;gap:10px;height:44px;padding:0 8px;border-radius:8px;cursor:pointer;font-size:12px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-q-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
+      '.mp-q-row.is-cur{background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
+      '.mp-q-row.is-cur .mp-q-name{color:var(--dsw-alias-state-business-primary,#7AAAFF)}',
+      '.mp-q-idx{width:16px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:center;font-variant-numeric:tabular-nums;flex:none}',
+      '.mp-q-cover{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));overflow:hidden}',
+      '.mp-q-cover img{width:100%;height:100%;object-fit:cover}',
+      '.mp-q-main{min-width:0;flex:1}',
+      '.mp-q-name{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-q-artist{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-queue-pop{position:fixed;right:24px;bottom:96px;z-index:70;width:340px;max-height:56vh;display:flex;flex-direction:column;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:0 16px 48px rgba(0,0,0,.5);overflow:hidden}',
+      '.mp-queue-pop .mp-q-list{max-height:40vh}',
+    
+      // ── now playing (0.11.1 look) ───────────────────────────────────────────
+      '.mp-np{position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none;will-change:transform}',
+      '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
+      '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
+      '.mp-np-bg img{width:100%;height:100%;object-fit:cover;filter:blur(72px) saturate(1.35) brightness(.42);transform:scale(1.15)}',
+      '.mp-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,10,12,.35),rgba(10,10,12,.72) 60%,rgba(10,10,12,.92));pointer-events:none}',
+      '.mp-np-head{position:relative;z-index:2;display:flex;align-items:center;gap:8px;padding:16px 24px 8px}',
+      '.mp-np-head-title{flex:1;min-width:0;text-align:center;font-size:14px;font-weight:600;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-np-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px}',
+      '.mp-trans-toggle{width:auto;padding:0 8px;font-size:12px;font-weight:600;line-height:1}',
+      '.mp-trans-toggle.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1))}',
+      '.mp-np-settings{position:absolute;top:52px;right:20px;z-index:6;width:320px;max-width:calc(100% - 40px);padding:14px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:12px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:0 12px 32px rgba(0,0,0,.45)}',
+      '.mp-np-setting{margin-bottom:14px}',
+      '.mp-np-setting-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-np-body{position:relative;z-index:2;flex:1;min-height:0;display:grid;grid-template-columns:minmax(200px,38%) minmax(0,1fr);align-items:center;gap:24px;padding:8px 40px}',
+      '.mp-np-left{display:flex;flex-direction:column;align-items:center;gap:18px;min-width:0}',
+      '.mp-np-disc-wrap{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:30px}',
+      '.mp-np-disc{position:relative;width:min(380px,29vw);height:min(380px,29vw);flex:none;aspect-ratio:1;display:flex;align-items:center;justify-content:center;animation:mp-disc-spin 24s linear infinite;animation-play-state:paused}',
+      '.mp-np-disc.is-playing{animation-play-state:running}',
+      '.mp-np-disc.is-square{animation:none}',
+      '.mp-np-vinyl{position:absolute;inset:-22px;aspect-ratio:1;border-radius:50%;clip-path:circle(50% at 50% 50%);background:repeating-radial-gradient(circle at 50% 50%,#141416 0 2px,#0b0b0d 2px 5px);box-shadow:inset 0 0 40px rgba(0,0,0,.85),0 18px 50px rgba(0,0,0,.5);z-index:0}',
+      '.mp-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(50% 42% at 28% 26%,color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 16%, transparent),transparent 72%),radial-gradient(40% 36% at 78% 74%,rgba(122,170,255,.08),transparent 70%);pointer-events:none}',
+      '.mp-np-art{position:relative;z-index:1;width:min(340px,26vw);height:min(340px,26vw);border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#141416;color:#71717a;box-shadow:0 34px 80px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.07)}',
+      '.mp-np-art::after{content:"";position:absolute;inset:0;border-radius:20px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 -48px 70px rgba(0,0,0,.28);pointer-events:none;z-index:2}',
+      '.mp-np-art img{width:100%;height:100%;object-fit:cover;display:block;border-radius:20px}',
+      '.mp-np-disc.is-circle .mp-np-art{border-radius:170px;clip-path:circle(50% at 50% 50%)}',
+      '.mp-np-disc.is-circle .mp-np-art img{border-radius:170px}',
+      '.mp-align-left .mp-np-line{text-align:left}',
+      '.mp-align-center .mp-np-line{text-align:center}',
+      '.mp-align-right .mp-np-line{text-align:right}',
+      '.mp-np-meta{text-align:center;min-width:0;max-width:420px}',
+      '.mp-np-title{font-size:20px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-np-artist{font-size:13px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-np-right{height:100%;min-height:0;display:flex;align-items:center;justify-content:center}',
+      '.mp-np-lyrics{position:relative;width:100%;max-width:560px;height:100%;max-height:420px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent)}',
+      '.mp-np-lyrics.is-static{overflow-y:auto;-webkit-mask-image:none;mask-image:none}',
+      '.mp-np-lyrics.is-static .mp-np-line{opacity:.7;cursor:default;transform:none}',
+      '.mp-np-lyrics-inner{transition:transform .55s cubic-bezier(.22,.61,.36,1);padding:0 8px}',
+      '.mp-np-lyrics-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:13px;text-align:center;padding:0 24px;line-height:1.7}',
+      '.mp-np-line{padding:8px 6px;border-radius:8px;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;transition:color .25s ease,opacity .3s ease,transform .5s cubic-bezier(.22,.61,.36,1);transition-delay:calc(var(--mp-line-stagger,0) * 22ms);text-align:center;opacity:.42;transform:translateY(4px)}',
+      '.mp-np-line:hover{color:var(--dsw-alias-label-secondary,#c4c4cc);opacity:.72}',
+      '.mp-np-line.is-past{opacity:.34;transform:translateY(-4px)}',
+      '.mp-np-line.is-active{color:var(--dsw-alias-label-primary,#f4f4f5);opacity:1;transform:translateY(0)}',
+      '.mp-np-line-text{font-size:var(--mp-lyric-size,18px);line-height:1.6;font-weight:var(--mp-lyric-weight,500);white-space:normal;word-break:break-word;overflow-wrap:anywhere;letter-spacing:.01em}',
+      '.mp-np-line.is-active .mp-np-line-text{font-weight:700;text-shadow:0 0 24px rgba(255,255,255,.12)}',
+      '.mp-np-line-trans{font-size:var(--mp-lyric-trans,13px);line-height:1.5;margin-top:4px;opacity:.66}',
+      '.mp-np-line.is-active .mp-np-line-trans{opacity:.85}',
+      '.mp-np.is-blur .mp-np-line:not(.is-active){opacity:.34;filter:blur(1.2px)}',
+      '.mp-np-bottom{position:relative;z-index:2;margin:0 40px 18px;padding:12px 18px 14px;border:.5px solid rgba(255,255,255,.08);border-radius:20px;background:rgba(16,16,20,.5);-webkit-backdrop-filter:blur(20px) saturate(1.3);backdrop-filter:blur(20px) saturate(1.3);box-shadow:0 18px 44px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06)}',
+      '.mp-np-progress{margin-bottom:6px}',
+      '.mp-np-bar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px}',
+      '.mp-np-time{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
+      '.mp-np-time-sep{opacity:.6}',
+      '.mp-np-controls{display:flex;align-items:center;gap:4px;justify-self:center}',
+      '.mp-np-vol{display:flex;align-items:center;gap:8px;justify-self:end}',
+      '.mp-quality{font-size:11px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.06)}',
+      '@keyframes mp-disc-spin{to{transform:rotate(360deg)}}',
+    
+      // ── overlays, sheet, dialogs, menu, toast ───────────────────────────────
+      '.mp-overlay{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;pointer-events:none}',
+      '.mp-overlay.is-on{pointer-events:auto}',
+      '.mp-scrim{position:absolute;inset:0;background:rgba(0,0,0,.45)}',
+      '.mp-sheet{position:relative;width:min(760px,calc(100vw - 48px));height:min(560px,calc(100vh - 96px));display:grid;grid-template-columns:180px minmax(0,1fr);background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;overflow:hidden;box-shadow:var(--dsw-elevation-panel,0 30px 80px rgba(0,0,0,.5))}',
+      '.mp-sheet-nav{display:flex;flex-direction:column;gap:2px;padding:16px 10px;background:var(--dsw-alias-bg-layer-1,#15151a);border-right:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-sheet-title{padding:0 10px 10px;font-size:13px;font-weight:650}',
+      '.mp-sheet-tab{height:32px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:13px;text-align:left;cursor:pointer}',
+      '.mp-sheet-tab:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-sheet-tab.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
+      '.mp-sheet-body{overflow-y:auto;padding:18px 22px 26px}',
+      '.mp-sheet-body h2{margin:0 0 14px;font-size:14px;font-weight:650}',
+      '.mp-set-row{display:flex;align-items:center;gap:16px;padding:11px 0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-set-text{min-width:0;flex:1}',
+      '.mp-set-label{font-size:13px}',
+      '.mp-set-desc{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px}',
+      '.mp-set-control{flex:none;display:flex;align-items:center;gap:8px}',
+      '.mp-set-control select{height:28px;padding:0 8px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12px}',
+      '.mp-range{width:120px;accent-color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-set-val{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);width:44px;text-align:right;font-variant-numeric:tabular-nums}',
+      '.mp-switch{position:relative;width:38px;height:22px;border-radius:999px;border:0;background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12));cursor:pointer;transition:background .15s;flex:none}',
+      '.mp-switch i{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s}',
+      '.mp-switch.is-on{background:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-switch.is-on i{transform:translateX(16px)}',
+      '.mp-dialog{position:relative;width:min(640px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;overflow:hidden;box-shadow:var(--dsw-elevation-panel,0 30px 80px rgba(0,0,0,.5))}',
+      '.mp-dialog.is-sm{width:min(380px,100%)}',
+      '.mp-d-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-d-title{font-size:13.5px;font-weight:650}',
+      '.mp-d-head .mp-spacer{margin-left:auto}',
+      '.mp-d-body{padding:16px 18px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:12px}',
+      '.mp-d-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-field{display:flex;flex-direction:column;gap:5px;min-width:0}',
+      '.mp-field label{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-d-body > *{flex-shrink:0}',
+      '.mp-field input,.mp-field textarea{width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:13px;outline:none}',
+      '.mp-field input:focus,.mp-field textarea:focus{border-color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-field textarea{resize:vertical;min-height:96px;font-size:12px;line-height:1.6}',
+      '.mp-d-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}',
+      '.mp-qr{width:190px;height:190px;margin:4px auto;border-radius:12px;background:#fff;display:grid;place-items:center;overflow:hidden}',
+      '.mp-qr img{width:100%;height:100%;object-fit:contain}',
+      '.mp-qr-hint{text-align:center;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-ctx{position:fixed;z-index:80;min-width:186px;padding:4px;border-radius:12px;background:var(--dsw-menu-surface-fill,rgba(26,26,30,.72));border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));-webkit-backdrop-filter:var(--dsw-menu-backdrop-filter,blur(20px) saturate(1.3));backdrop-filter:var(--dsw-menu-backdrop-filter,blur(20px) saturate(1.3));box-shadow:var(--dsw-elevation-panel,0 16px 44px rgba(0,0,0,.5));display:flex;flex-direction:column}',
+      '.mp-ctx button{display:flex;align-items:center;gap:9px;height:32px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;text-align:left;cursor:pointer}',
+      '.mp-ctx button:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mp-ctx hr{border:0;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));margin:4px 2px}',
+      '.mp-toast{position:absolute;left:50%;bottom:100px;transform:translateX(-50%) translateY(6px);z-index:90;padding:8px 14px;border-radius:12px;background:var(--dsw-alias-toast-bg,#2c2c2e);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));color:var(--dsw-alias-toast-label,#fff);font-size:12px;box-shadow:var(--dsw-elevation-panel,0 12px 32px rgba(0,0,0,.45));opacity:0;transition:.18s;pointer-events:none;max-width:70%}',
+      '.mp-toast.is-on{opacity:1;transform:translateX(-50%)}',
+    
+      // ── selection / batch / match / lyric search ───────────────────────────
+      '.mp-row-check{position:static;width:20px;height:20px;margin-right:6px;padding:0;font:inherit;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:transparent;display:grid;place-items:center;color:#fff;opacity:0;transition:opacity .12s}',
+      '.mp-row:hover .mp-row-check,.mp-row.is-selected .mp-row-check,.mp-row-check:focus-visible{opacity:1}',
+      '.mp-row-check.is-on{background:var(--dsw-alias-button-primary-fill,#f4f4f5);border-color:transparent;color:var(--dsw-alias-label-primary-foreground,#141417)}',
+      '.mp-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-tag-cover-row{display:flex;gap:12px;align-items:center}',
+      '.mp-tag-cover{width:76px;height:76px;border-radius:12px;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));display:grid;place-items:center;overflow:hidden;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-tag-cover img{width:100%;height:100%;object-fit:cover}',
+      '.mp-tag-cover-actions{display:flex;flex-direction:column;gap:8px;min-width:0;align-items:flex-start}',
+      '.mp-tag-lyrics-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
+      '.mp-match{border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;padding:10px;max-height:260px;overflow:auto}',
+      '.mp-match-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-bottom:6px}',
+      '.mp-match-item{display:flex;gap:10px;align-items:center;width:100%;padding:6px 4px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;cursor:pointer}',
+      '.mp-match-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mp-match-cover{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));overflow:hidden;flex:none}',
+      '.mp-match-cover img{width:100%;height:100%;object-fit:cover}',
+      '.mp-match-main{min-width:0;flex:1}',
+      '.mp-dupe-group{padding:8px 0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-dupe-row{display:flex;gap:8px;align-items:center;font-size:12px;padding:2px 0;min-width:0}',
+      '.mp-dupe-row.is-keep{color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-dupe-row.is-drop{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-dupe-meta{margin-left:auto;color:var(--dsw-alias-label-tertiary,#8a8a93);flex:none;font-variant-numeric:tabular-nums}',
+      '.mp-lyr-candidates{display:flex;flex-direction:column;gap:2px;max-height:320px;overflow:auto}',
+      '.mp-lyr-candidate{display:flex;gap:10px;align-items:center;padding:8px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;cursor:pointer;width:100%}',
+      '.mp-lyr-candidate:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mp-lyr-candidate-main{min-width:0;flex:1}',
+      '.mp-lyr-preview{max-height:320px;overflow:auto;display:flex;flex-direction:column;gap:4px;padding:4px 2px}',
+      '.mp-lyr-line{display:flex;gap:8px;font-size:12px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-lyr-tr{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-np-offset-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}',
+      '.mp-np-setting-hint{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:6px;line-height:1.5}',
+    
+      // ── composer / sidebar ──────────────────────────────────────────────────
+      '.mp-composer-lyrics{display:flex;align-items:center;gap:8px;height:22px;padding:0 10px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;white-space:nowrap}',
+      '.mp-composer-lyrics.is-empty{display:none}',
+      '.mp-composer-cluster{display:flex;align-items:center;gap:2px}',
+      '.mp-cbtn{height:28px;min-width:28px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;max-width:150px;overflow:hidden}',
+      '.mp-cbtn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-cbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-side-icon{position:relative;display:grid;place-items:center;width:16px;height:16px}',
+      '.mp-side-dot{position:absolute;right:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-business-primary,#4176E6);box-shadow:0 0 0 2px var(--dsw-alias-bg-base,#141417)}',
+      '.mp-audio-host{position:fixed;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);opacity:0;pointer-events:none}',
+    
+      // ── responsive ──────────────────────────────────────────────────────────
+      '.mp-trash-list{display:flex;flex-direction:column;max-height:340px;overflow:auto}',
+      '.mp-trash-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-trash-icon{color:var(--dsw-alias-label-tertiary,#8a8a93);flex:none;display:flex}',
+      '.mp-trash-main{min-width:0;flex:1;font-size:13px}',
+      '.mp-trash-path{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}',
+      '.mp-match-row{display:flex;flex-direction:column;gap:2px}',
+      '.mp-match-fields{display:flex;flex-wrap:wrap;gap:4px;padding:0 4px 6px 46px}',
+      '.mp-match-chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.1));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer}',
+      '.mp-match-chip:hover{border-color:var(--dsw-alias-state-business-primary,#4176E6);color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-sleep-chip{display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}',
+      '.mp-headmenu{position:relative;display:inline-flex}',
+      '.mp-headmenu-pop{position:absolute;right:0;top:34px;z-index:30;min-width:156px;padding:6px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:12px;background:var(--dsw-menu-surface-fill,rgba(26,26,30,.72));-webkit-backdrop-filter:var(--dsw-menu-backdrop-filter,blur(20px) saturate(1.3));backdrop-filter:var(--dsw-menu-backdrop-filter,blur(20px) saturate(1.3));box-shadow:var(--dsw-elevation-panel,0 12px 32px rgba(0,0,0,.45))}',
+      '.mp-headmenu-item{display:flex;align-items:center;gap:8px;width:100%;padding:7px 9px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:13px;text-align:left;cursor:pointer}',
+      '.mp-headmenu-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mp-headmenu-item.is-on{color:var(--dsw-alias-state-business-primary,#7AAAFF)}',
+      '.mp-headmenu-label{flex:1}',
+      '.mp-headmenu-hint{color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:11px}',
+      '.mp-headmenu-sep{margin:5px 6px;border:0;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-modes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
+      '.mp-pill{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:12px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}',
+      '.mp-pill:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mp-pill.is-on{color:var(--dsw-alias-label-primary,#f4f4f5);border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 14%,transparent)}',
+      '.mp-pill.is-primary{background:var(--dsw-alias-state-business-primary,#4176E6);border-color:transparent;color:#fff}',
+      '.mp-kit-modal{width:min(640px,calc(100vw - 48px))}',
+      '.mp-kit-modal.is-sm{width:min(420px,calc(100vw - 48px))}',
+      '.mp-kit-content{max-height:min(720px,calc(100vh - 80px))}',
+      '.mp-kit-body{display:flex;flex-direction:column;gap:12px;min-height:0}',
+      '.mp-kit-text{margin:0;font-size:13px;line-height:20px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+    
+      '.mp-kit-input{flex:1;height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:13px;outline:none}',
+      '.mp-kit-center{display:flex;flex-direction:column;align-items:center;gap:8px}',
+      '.mp-kit-modal.mp-kit-modal-headless{width:min(760px,calc(100vw - 48px));height:min(560px,calc(100vh - 96px));max-width:none;max-height:none;background:transparent;border:0;box-shadow:none;padding:0}',
+    
+      '.mp-nav-head{display:flex;align-items:center;justify-content:space-between;gap:4px;padding-right:6px}',
+      '.mp-nav-head .mp-nav-label{flex:1;min-width:0;padding:0 0 6px 10px}',
+      '.mp-nav-act{width:20px;height:20px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;flex:none}',
+      '.mp-nav-act:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-sec-label{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dsw-alias-label-tertiary,#8a8a93);font-weight:600;padding:0 2px 0 8px;flex:none}',
+      '.mp-sec-act{width:22px;height:22px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;flex:none}',
+      '.mp-sec-act:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+    
+      '.mp-folder-path{padding:2px 0 8px;font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93);word-break:break-all}',
+      '.mp-folder-list{display:flex;flex-direction:column;gap:2px;max-height:320px;overflow:auto}',
+      '.mp-folder-row{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:13px;text-align:left;cursor:pointer;min-width:0}',
+      '.mp-folder-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-folder-row-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-folder-state{padding:24px 8px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:13px}',
+    
+    
+      '.mp-pb-line{position:absolute;left:0;right:0;top:3px;height:5px;background:color-mix(in srgb,var(--dsw-alias-label-primary,#f4f4f5) 26%,transparent);pointer-events:none;z-index:1}',
+      '.mp-pb-line i{display:block;height:100%;background:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-pb-seek-full:hover .mp-pb-line{height:7px;top:2px}',
+      '.mp-pb-seek-full{position:absolute;left:0;right:0;top:0;height:12px;z-index:4}',
+      '.mp-pb-seek-full .mp-seek{height:12px;width:100%}',
+      '.mp-pb-seek-full .mp-seek input{height:12px}',
+    
+      '.mp-pb-seek-full .mp-seek::before{content:\'\';position:absolute;left:0;right:0;top:50%;height:4px;transform:translateY(-50%);background:color-mix(in srgb,var(--dsw-alias-label-primary,#f4f4f5) 16%,transparent);pointer-events:none}',
+      '.mp-pb-seek-full .mp-seek::after{content:\'\';position:absolute;left:0;top:50%;height:4px;width:var(--mp-p,0%);transform:translateY(-50%);background:var(--dsw-alias-state-business-primary,#4176E6);pointer-events:none}',
+      '.mp-pb-seek-full .mp-seek:hover::before,.mp-pb-seek-full .mp-seek:hover::after{height:6px}',
+      '.mp-pb-seek-full .mp-seek input::-webkit-slider-runnable-track{background:transparent}',
+      '.mp-pb-seek-full .mp-seek input::-moz-range-track{background:transparent}',
+      '.mp-pb-seek-full .mp-seek input::-moz-range-progress{background:transparent}',
+      '.mp-pb-seek-full .mp-seek input::-webkit-slider-runnable-track{height:4px;border-radius:0;background:linear-gradient(90deg,var(--dsw-alias-state-business-primary,#4176E6) var(--mp-p,0%),color-mix(in srgb,var(--dsw-alias-label-primary,#f4f4f5) 24%,transparent) var(--mp-p,0%))}',
+      '.mp-pb-seek-full .mp-seek:hover input::-webkit-slider-runnable-track{height:6px}',
+      '.mp-pb-seek-full .mp-seek input::-moz-range-track{height:4px;border-radius:0;background:color-mix(in srgb,var(--dsw-alias-label-primary,#f4f4f5) 24%,transparent)}',
+      '.mp-pb-seek-full .mp-seek input::-moz-range-progress{height:4px;border-radius:0;background:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-pb-seek-full .mp-seek input::-webkit-slider-thumb{width:12px;height:12px;margin-top:-4px;box-shadow:0 0 0 2px var(--dsw-alias-bg-layer-1,#15151a)}',
+      '.mp-pb-seek-full .mp-seek input::-moz-range-thumb{width:10px;height:10px}',
+      '.mp-pb-time{width:auto;min-width:0;margin-right:4px;white-space:nowrap}',
+      '.mp-pb-queue-wrap{position:relative;display:flex;align-items:center}',
+      '.mp-queue-pop.is-anchored{position:absolute;left:auto;right:0;bottom:calc(100% + 10px);width:340px;max-height:50vh;z-index:80}',
+      '.mp-queue-pop.is-anchored .mp-q-list{max-height:calc(50vh - 56px)}',
+      '@media (max-width:1240px){.mp-row{grid-template-columns:40px minmax(0,1.6fr) minmax(0,1fr) 66px 46px 50px}}',
+      '@media (max-width:1080px){.mp-row-album{display:none}.mp-row{grid-template-columns:40px minmax(0,1fr) 68px 46px 50px}.mp-workspace.is-queue{grid-template-columns:188px minmax(0,1fr)}.mp-root.is-top .mp-workspace.is-queue{grid-template-columns:minmax(0,1fr)}.mp-queue{display:none!important}}',
+      '@media (max-width:980px){.mp-np-body{grid-template-columns:1fr;gap:10px;padding:4px 20px}.mp-np-left{gap:10px}.mp-np-disc-wrap{margin-bottom:12px}.mp-np-right{width:100%;max-height:34vh}.mp-np-bottom{margin:0 16px 12px;padding:10px 12px 12px}.mp-np-head{padding:12px 16px 6px}.mp-np-title{font-size:16px}}',
+      '@media (max-width:900px){.mp-workspace,.mp-workspace.is-queue{grid-template-columns:56px minmax(0,1fr)}.mp-root.is-top .mp-workspace{grid-template-columns:minmax(0,1fr)}.mp-nav{padding:10px 6px;align-items:center}.mp-nav-label,.mp-nav-item span,.mp-nav-count{display:none}.mp-nav-item{width:40px;justify-content:center;padding:0}.mp-search{width:160px}.mp-pb-vol{display:none}}',
+      '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
+    ]
+    
+    var THEME_TEXT = THEME_CSS.join('')
+
+    // ── src/ui/01-primitives.js
+    /**
+     * primitives: the few shared UI atoms plus the player hooks.
+     */
+    
+    function usePlayerSnapshot() {
+      var pair = useState(player.getSnapshot())
       useEffect(function () {
         return player.subscribe(function () {
-          setSnap(player.getSnapshot())
+          pair[1](player.getSnapshot())
         })
       }, [])
-      var track = snap.index >= 0 && snap.queue[snap.index] ? snap.queue[snap.index] : null
-      if (track === null) {
-        return h('div', { className: 'mu-qoverlay-now is-empty' }, t('page.noTrack'))
-      }
-      return h(
-        'div',
-        { className: 'mu-qoverlay-now' },
-        h(Cover, { track: track, size: 44, radius: 8 }),
-        h(
-          'div',
-          { className: 'mu-qoverlay-now-main' },
-          h('div', { className: 'mu-qoverlay-now-title mu-ellipsis' }, track.title),
-          h('div', { className: 'mu-qoverlay-now-artist mu-ellipsis' }, track.artist || t('page.unknownArtist')),
-        ),
-        h(
-          'div',
-          { className: 'mu-qoverlay-now-controls' },
-          h(
-            'button',
-            { type: 'button', className: 'mu-icon-btn', title: t('page.prev'), onClick: function () { player.ensureAnalyser(); player.prev() } },
-            icon('prev', 16),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-icon-btn',
-              title: snap.playing ? t('page.pause') : t('page.play'),
-              onClick: function () { player.ensureAnalyser(); player.toggle() },
-            },
-            icon(snap.playing ? 'pause' : 'play', 18),
-          ),
-          h(
-            'button',
-            { type: 'button', className: 'mu-icon-btn', title: t('page.next'), onClick: function () { player.ensureAnalyser(); player.next() } },
-            icon('next', 16),
-          ),
-        ),
-      )
+      return pair[0]
     }
-
-    function QueueOverlay() {
-      var [open, setOpen] = useState(queueOverlaySnapshot())
-      var [snap, setSnap] = useState(player.getSnapshot())
-      // Re-run the position calculation when the window resizes; the actual
-      // anchor maths happens during render so the first paint already has it.
-      var [, setAnchorTick] = useState(0)
+    
+    function usePlayerTime() {
+      var pair = useState(player.getTime())
       useEffect(function () {
-        if (!open) return undefined
-        function onResize() {
-          setAnchorTick(function (value) {
-            return value + 1
-          })
-        }
-        window.addEventListener('resize', onResize)
-        return function () {
-          window.removeEventListener('resize', onResize)
-        }
-      }, [open])
-      // Drag state lives entirely in refs/DOM classes so React never
-      // re-renders the dragged row mid-drag (Chromium cancels that).
-      var dragFromRef = useRef(null)
-      var dragOverRef = useRef(null)
-      var suppressClickRef = useRef(0)
-      var ref = useRef(null)
-      var listRef = useRef(null)
-
-      useEffect(function () {
-        return subscribeQueueOverlay(function () {
-          setOpen(queueOverlaySnapshot())
+        return player.subscribeTime(function () {
+          pair[1](player.getTime())
         })
       }, [])
-      useEffect(function () {
-        return player.subscribe(function () {
-          setSnap(player.getSnapshot())
-        })
-      }, [])
-      // Keep the playing row visible when the track changes.
+      return pair[0]
+    }
+    
+    function usePrefs() {
+      return useStore(prefsStore)
+    }
+    
+    /** Milliseconds left until `deadline`, ticking once a second while it is set. */
+    function useCountdown(deadline) {
+      var pair = useState(Date.now())
+      var now = pair[0]
+      var setNow = pair[1]
       useEffect(
         function () {
-          if (!open) return
-          var list = listRef.current
-          if (list === null) return
-          var row = list.querySelector('.mu-queue-row.is-current')
-          if (row === null) return
-          var rowRect = row.getBoundingClientRect()
-          var listRect = list.getBoundingClientRect()
-          if (rowRect.top < listRect.top || rowRect.bottom > listRect.bottom) {
-            list.scrollTop +=
-              rowRect.top - listRect.top - (list.clientHeight - rowRect.height) / 2
+          if (!deadline || deadline <= Date.now()) return undefined
+          var timer = setInterval(function () {
+            setNow(Date.now())
+          }, 1000)
+          return function () {
+            clearInterval(timer)
           }
         },
-        [snap.index, snap.queue.length, open],
+        [deadline],
       )
-      useEffect(function () {
-        if (!open) return undefined
-        function onKey(event) {
-          if (event.key === 'Escape') toggleQueueOverlay(false)
-        }
-        function onPointerDown(event) {
-          if (ref.current !== null && ref.current.contains(event.target)) return
-          toggleQueueOverlay(false)
-        }
-        document.addEventListener('keydown', onKey)
-        document.addEventListener('mousedown', onPointerDown)
-        return function () {
-          document.removeEventListener('keydown', onKey)
-          document.removeEventListener('mousedown', onPointerDown)
-        }
-      }, [open])
-
-      if (!open) return null
-      var queueView = buildQueueView(snap, player.getPlayOrder())
-
-      function clearDragMarks() {
-        var list = listRef.current
-        if (list === null) return
-        var rowEls = list.querySelectorAll('.mu-queue-row')
-        for (var i = 0; i < rowEls.length; i += 1) {
-          rowEls[i].classList.remove('is-dragging', 'is-drop-target')
-        }
-      }
-
-      function moveRow(from, to) {
-        if (from === null || from === to || from < 0 || to < 0) return
-        if (from >= queueView.length || to >= queueView.length) return
-        var order = queueView.map(function (item) {
-          return item.originalIndex
-        })
-        var moved = order.splice(from, 1)[0]
-        order.splice(to, 0, moved)
-        player.reorderQueue(order)
-      }
-
-      // Pointer-driven reorder (SortableJS' approach). The harness hosts this
-      // overlay inside the composer area, where HTML5 dragstart is unreliable;
-      // DSH's sidebar rows use HTML5 DnD with a custom drag preview, so this
-      // keeps the same before/after marker semantics but with pointer events.
-      var dragMoved = false
-      function startDrag(event, position) {
-        if (event.button !== undefined && event.button !== 0) return
-        event.preventDefault()
-        event.stopPropagation()
-        var list = listRef.current
-        if (list === null) return
-        dragFromRef.current = position
-        dragOverRef.current = position
-        dragMoved = false
-        var sourceRow = event.currentTarget.closest('.mu-queue-row')
-        if (sourceRow !== null) sourceRow.classList.add('is-dragging')
-        document.body.style.userSelect = 'none'
-
-        function mark(target) {
-          dragOverRef.current = target
-          var rowEls = list.querySelectorAll('.mu-queue-row')
-          for (var i = 0; i < rowEls.length; i += 1) {
-            rowEls[i].classList.toggle('is-drop-target', i === target)
-          }
-        }
-
-        function onMove(moveEvent) {
-          dragMoved = true
-          var rowEls = list.querySelectorAll('.mu-queue-row')
-          if (rowEls.length === 0) return
-          var target = rowEls.length - 1
-          for (var i = 0; i < rowEls.length; i += 1) {
-            var rect = rowEls[i].getBoundingClientRect()
-            if (moveEvent.clientY < rect.top + rect.height / 2) {
-              target = i
-              break
-            }
-            target = i
-          }
-          mark(target)
-        }
-
-        function onUp() {
-          document.removeEventListener('pointermove', onMove)
-          document.removeEventListener('pointerup', onUp)
-          document.removeEventListener('pointercancel', onUp)
-          document.body.style.userSelect = ''
-          var from = dragFromRef.current
-          var to = dragOverRef.current
-          dragFromRef.current = null
-          dragOverRef.current = null
-          clearDragMarks()
-          if (dragMoved && from !== null && to !== null) {
-            suppressClickRef.current = Date.now() + 250
-            moveRow(from, to)
-          }
-        }
-
-        document.addEventListener('pointermove', onMove)
-        document.addEventListener('pointerup', onUp)
-        document.addEventListener('pointercancel', onUp)
-      }
-
-      var rows = queueView.map(function (entry, position) {
-        var track = entry.track
-        var originalIndex = entry.originalIndex
-        var visibleCurrent = originalIndex === snap.index
-        return h(
-          'div',
-          {
-            key: position + ':' + track.path,
-            className: 'mu-queue-row' + (visibleCurrent ? ' is-current' : ''),
-            onClick: function () {
-              if (Date.now() < suppressClickRef.current) return
-              player.ensureAnalyser()
-              player.select(snap.queue, originalIndex)
-            },
-          },
-          h(
-            'span',
-            {
-              className: 'mu-queue-grip',
-              title: t('page.dragSort'),
-              onPointerDown: function (event) {
-                startDrag(event, position)
-              },
-            },
-            '⋮⋮',
-          ),
-          h(
-            'span',
-            { className: 'mu-queue-index' },
-            visibleCurrent && snap.playing
-              ? h(BarWave, { width: 18, height: 10, bars: 5, className: 'mu-queue-wave' })
-              : String(position + 1),
-          ),
-          h('span', { className: 'mu-ellipsis' }, track.title),
-          h('span', { className: 'mu-queue-artist mu-ellipsis' }, track.artist || ''),
-          h(
-            'span',
-            { className: 'mu-queue-actions' },
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mu-queue-btn',
-                title: t('page.removeTrack'),
-                onClick: function (event) {
-                  event.stopPropagation()
-                  player.removeQueueAt(originalIndex)
-                },
-              },
-              '×',
-            ),
-          ),
-        )
-      })
-
-      // Compute the anchored position during render: the panel's first paint
-      // already sits next to the button instead of the default corner.
-      var anchorStyle
-      if (open) {
-        var anchor = queueOverlayAnchor
-        if (anchor !== null && typeof anchor.getBoundingClientRect === 'function') {
-          var rect = anchor.getBoundingClientRect()
-          var width = Math.min(360, window.innerWidth - 48)
-          var left = Math.min(
-            Math.max(8, rect.right - width),
-            Math.max(8, window.innerWidth - width - 8),
-          )
-          var bottom = Math.max(8, window.innerHeight - rect.top + 8)
-          anchorStyle = {
-            left: left + 'px',
-            bottom: bottom + 'px',
-            right: 'auto',
-            top: 'auto',
-          }
-        }
-      }
-
-      return h(
-        'div',
+      return Math.max(0, (Number(deadline) || 0) - now)
+    }
+    
+    function IconButton(props) {
+      var button = h(
+        'button',
         {
-          className: 'mu-qoverlay',
-          ref: ref,
-          style: anchorStyle,
+          type: 'button',
+          className: cx('mp-iconbtn', props.active === true && 'is-on', props.className),
+          title: props.title,
+          'aria-label': props.title || props.label || '',
+          disabled: props.disabled === true,
+          onClick: props.onClick,
+          onContextMenu: props.onContextMenu,
         },
-        h(QueueNowPlaying, null),
-        h(
-          'div',
-          { className: 'mu-qoverlay-head' },
-          h('span', null, t('page.queue')),
-          h('span', { className: 'mu-queue-mode' }, playModeLabel(playModeOf(snap))),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-icon-btn mu-icon-btn-sm',
-              title: t('page.locateCurrent'),
-              onClick: function () {
-                var list = listRef.current
-                if (list === null || list === undefined) return
-                var row = list.querySelector('.mu-queue-row.is-current')
-                if (row !== null && typeof row.scrollIntoView === 'function') {
-                  row.scrollIntoView({ block: 'center', behavior: 'smooth' })
-                }
-              },
-            },
-            icon('target', 14),
-          ),
-          h(
-            'button',
-            { type: 'button', className: 'mu-icon-btn mu-icon-btn-sm', onClick: function () { toggleQueueOverlay(false) } },
-            icon('x', 14),
-          ),
-        ),
-        h(
-          'div',
-          {
-            className: 'mu-qoverlay-list',
-            ref: listRef,
-          },
-          snap.queue.length === 0 ? h('div', { className: 'mu-state-sub' }, t('page.queueEmpty')) : rows,
-        ),
+        icon(props.icon, props.size || 16),
       )
+      var HostTooltip = hostComponent('Tooltip')
+      if (HostTooltip !== null && typeof props.title === 'string' && props.title !== '') {
+        return h(HostTooltip, { label: props.title, side: 'bottom', delayMs: 400 }, button)
+      }
+      return button
     }
-
-    function ComposerQueueButton() {
-      var [snap, setSnap] = useState(player.getSnapshot())
-      var [enabled, setEnabled] = useState(function () {
-        return readPrefs().composerQueueButton !== false
-      })
-      var [open, setOpen] = useState(queueOverlaySnapshot())
-      useEffect(function () {
-        return player.subscribe(function () {
-          setSnap(player.getSnapshot())
-        })
-      }, [])
-      useEffect(function () {
-        function onChange() {
-          setEnabled(readPrefs().composerQueueButton !== false)
-        }
-        window.addEventListener(PREFS_EVENT, onChange)
-        return function () {
-          window.removeEventListener(PREFS_EVENT, onChange)
-        }
-      }, [])
-      useEffect(function () {
-        return subscribeQueueOverlay(function () {
-          setOpen(queueOverlaySnapshot())
-        })
-      }, [])
-      if (!enabled) return null
+    
+    function Button(props) {
       return h(
         'button',
         {
           type: 'button',
-          className: 'mu-composer-queue-btn' + (open ? ' is-on' : '') + (snap.playing ? ' is-playing' : ''),
-          title: t('page.queue'),
-          onClick: function (event) {
-            toggleQueueOverlay(undefined, event.currentTarget)
-          },
+          className: cx(
+            'mp-btn',
+            props.variant === 'primary' && 'is-primary',
+            props.variant === 'ghost' && 'is-ghost',
+            props.className,
+          ),
+          disabled: props.disabled === true,
+          onClick: props.onClick,
+          title: props.title,
         },
-        icon('list', 16),
+        props.icon ? icon(props.icon, 14) : null,
+        props.children,
       )
     }
-
-    /** Composer cluster: current lyric + queue button, left of the send button. */
-    function ComposerCluster() {
+    
+    function Cover(props) {
+      var failedPair = useState(false)
+      var failed = failedPair[0]
+      var setFailed = failedPair[1]
+      useEffect(
+        function () {
+          setFailed(false)
+        },
+        [props.src],
+      )
+      var source = failed ? '' : props.src || ''
       return h(
         'div',
-        { className: 'mu-composer-cluster' },
-        h(ComposerLyrics, { place: 'inline' }),
-        h(ComposerQueueButton, null),
+        { className: props.className, style: props.style },
+        source === ''
+          ? icon(props.icon || 'note', props.iconSize || 15)
+          : h('img', {
+              src: source,
+              alt: '',
+              loading: 'lazy',
+              draggable: false,
+              onError: function () {
+                setFailed(true)
+              },
+            }),
       )
     }
-
-    function sourceLabel(source) {
-      if (source === 'netease') return t('page.sourceNetease')
-      if (source === 'qq') return t('page.sourceQq')
-      if (source === 'itunes') return t('page.sourceItunes')
-      if (source === 'musicbrainz') return t('page.sourceMusicbrainz')
-      return source || ''
+    
+    function Spinner() {
+      return h('span', { className: 'mp-spinner', 'aria-hidden': 'true' })
     }
-
-    /** One online-match candidate: cover, title/artist/album and source badges. */
-    function MatchItem(props) {
-      var [size, setSize] = useState('')
-      var item = props.item
+    
+    function Empty(props) {
       return h(
-        'button',
-        { type: 'button', className: 'mu-match-item', onClick: props.onPick },
-        h(
-          'span',
-          { className: 'mu-match-thumb' },
-          item.coverUrl
-            ? h('img', {
-                className: 'mu-match-cover',
-                src: item.coverUrl,
-                loading: 'lazy',
-                alt: '',
-                onLoad: function (event) {
-                  var el = event.target
-                  if (el && el.naturalWidth > 0) setSize(el.naturalWidth + '×' + el.naturalHeight)
-                },
-              })
-            : h('span', { className: 'mu-match-cover is-empty' }, icon('note', 18)),
-        ),
-        h(
-          'span',
-          { className: 'mu-match-info' },
-          h('span', { className: 'mu-match-title mu-ellipsis' }, item.title || ''),
-          h('span', { className: 'mu-match-artist mu-ellipsis' }, item.artist || ''),
-          h('span', { className: 'mu-match-album mu-ellipsis' }, item.album || ''),
-          h(
-            'span',
-            { className: 'mu-match-meta' },
-            item.year ? h('span', { className: 'mu-match-badge', key: 'year' }, item.year) : null,
-            size !== '' ? h('span', { className: 'mu-match-badge', key: 'size' }, size) : null,
-            item.track ? h('span', { className: 'mu-match-badge', key: 'track' }, 'Track ' + item.track) : null,
-            item.disc ? h('span', { className: 'mu-match-badge', key: 'disc' }, 'Disc ' + item.disc) : null,
-            item.genre ? h('span', { className: 'mu-match-badge', key: 'genre' }, item.genre) : null,
-            h('span', { className: 'mu-match-badge is-source', key: 'source' }, sourceLabel(item.source)),
-          ),
-        ),
+        'div',
+        { className: 'mp-empty' },
+        icon(props.icon || 'note', 26),
+        h('strong', null, props.title),
+        props.hint ? h('span', null, props.hint) : null,
       )
     }
-
-    function MiniPlayer() {
-      var [enabled, setEnabled] = useState(function () {
-        return readPrefs().miniPlayer === true
-      })
-      var [snap, setSnap] = useState(player.getSnapshot())
-      var [pos, setPos] = useState(function () {
-        var saved = readPrefs().miniPos
-        var valid =
-          saved !== null &&
-          typeof saved === 'object' &&
-          typeof saved.x === 'number' &&
-          typeof saved.y === 'number' &&
-          isFinite(saved.x) &&
-          isFinite(saved.y)
-        return valid ? { x: saved.x, y: saved.y } : null
-      })
-      var posRef = useRef(pos)
-      posRef.current = pos
-      var dragRef = useRef(null)
-
-      useEffect(function () {
-        function onChange() {
-          setEnabled(readPrefs().miniPlayer === true)
-        }
-        window.addEventListener(PREFS_EVENT, onChange)
-        return function () {
-          window.removeEventListener(PREFS_EVENT, onChange)
-        }
-      }, [])
-
-      useEffect(function () {
-        return player.subscribe(function () {
-          setSnap(player.getSnapshot())
-        })
-      }, [])
-
-      if (!enabled) return null
-
-      var track = snap.index >= 0 && snap.queue[snap.index] ? snap.queue[snap.index] : null
-      var style =
-        pos !== null
-          ? { left: Math.max(8, pos.x) + 'px', top: Math.max(8, pos.y) + 'px', right: 'auto', bottom: 'auto' }
-          : {}
-
-      function onPointerDown(event) {
-        if (event.button !== undefined && event.button !== 0) return
+    
+    function SeekBar(props) {
+      var time = usePlayerTime()
+      var pair = useState(null)
+      var seeking = pair[0]
+      var setSeeking = pair[1]
+      var duration = time.duration > 0 ? time.duration : props.fallbackDuration || 0
+      var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
+      var percent = duration > 0 ? clamp(position / duration, 0, 1) * 100 : 0
+    
+      function commit() {
+        if (seeking === null) return
+        if (duration > 0) player.seek(seeking)
+        setSeeking(null)
+      }
+    
+      function preview(event) {
+        if (duration <= 0 || typeof props.onPreview !== 'function') return
         var rect = event.currentTarget.getBoundingClientRect()
-        dragRef.current = {
-          startX: event.clientX,
-          startY: event.clientY,
-          originX: rect.left,
-          originY: rect.top,
-        }
-        try {
-          event.currentTarget.setPointerCapture(event.pointerId)
-        } catch (error) {
-          // Pointer capture is best effort.
-        }
+        var ratio = clamp((event.clientX - rect.left) / rect.width, 0, 1)
+        props.onPreview(ratio * duration)
       }
-
-      function onPointerMove(event) {
-        var drag = dragRef.current
-        if (drag === null) return
-        var width = 260
-        var height = 56
-        var x = Math.max(8, Math.min(window.innerWidth - width - 8, drag.originX + event.clientX - drag.startX))
-        var y = Math.max(8, Math.min(window.innerHeight - height - 8, drag.originY + event.clientY - drag.startY))
-        setPos({ x: x, y: y })
-      }
-
-      function onPointerUp() {
-        if (dragRef.current === null) return
-        dragRef.current = null
-        var current = posRef.current
-        if (current !== null) savePrefs({ miniPos: current })
-      }
-
+    
       return h(
         'div',
         {
-          className: 'mu-mini' + (pos === null ? ' is-corner' : ''),
-          style: style,
-          onPointerDown: onPointerDown,
-          onPointerMove: onPointerMove,
-          onPointerUp: onPointerUp,
-          onPointerCancel: onPointerUp,
+          className: 'mp-seek',
+          style: { '--mp-p': percent + '%' },
+          onPointerMove: preview,
+          onPointerLeave: function () {
+            if (typeof props.onPreview === 'function') props.onPreview(null)
+          },
         },
-        h(Cover, { track: track, size: 36, radius: 8 }),
-        h(
-          'div',
-          { className: 'mu-mini-info' },
-          h('div', { className: 'mu-mini-title' }, track ? track.title : t('page.noTrack')),
-          h('div', { className: 'mu-mini-artist' }, track ? track.artist || '' : ''),
-        ),
-        h(
-          'div',
-          { className: 'mu-mini-controls' },
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-icon-btn mu-icon-btn-sm',
-              title: t('page.prev'),
-              onPointerDown: function (event) {
-                event.stopPropagation()
-              },
-              onClick: function () {
-                player.prev()
-              },
-            },
-            icon('prev', 14),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-icon-btn mu-icon-btn-sm',
-              title: snap.playing ? t('page.pause') : t('page.play'),
-              onPointerDown: function (event) {
-                event.stopPropagation()
-              },
-              onClick: function () {
-                player.toggle()
-              },
-            },
-            icon(snap.playing ? 'pause' : 'play', 14),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-icon-btn mu-icon-btn-sm',
-              title: t('page.next'),
-              onPointerDown: function (event) {
-                event.stopPropagation()
-              },
-              onClick: function () {
-                player.next()
-              },
-            },
-            icon('next', 14),
-          ),
-        ),
-      )
-    }
-
-    // ── seek bar (own subscription: time updates do not re-render the list) ──
-
-    function SeekBar(props) {
-      var [, setTick] = useState(0)
-      var [seeking, setSeeking] = useState(null)
-
-      useEffect(
-        function () {
-          return props.player.subscribeTime(function () {
-            setTick(function (n) {
-              return n + 1
-            })
-          })
-        },
-        [props.player],
-      )
-
-      var time = props.player.getTime()
-      var trackDuration = props.track && props.track.durationSec > 0 ? props.track.durationSec : 0
-      var duration = time.duration > 0 ? time.duration : trackDuration
-      var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
-      var progress = duration > 0 ? (clamp(position, 0, duration) / duration) * 100 : 0
-      var buffered = duration > 0 ? (clamp(time.buffered, 0, duration) / duration) * 100 : 0
-
-      function commit() {
-        if (seeking === null) return
-        if (duration > 0) props.player.seek(seeking)
-        setSeeking(null)
-      }
-
-      return h(
-        'div',
-        { className: 'mu-seekwrap' + (props.className ? ' ' + props.className : '') },
-        h('div', { className: 'mu-bar-buffer', style: { width: buffered + '%' } }),
         h('input', {
           type: 'range',
-          className: 'mu-seek',
           min: 0,
           max: duration > 0 ? duration : 1,
-          step: 0.1,
+          step: 0.5,
           value: position,
           disabled: duration <= 0,
-          style: { '--mu-p': progress + '%' },
+          style: { '--mp-p': percent + '%' },
+          'aria-label': t('page.duration'),
           onChange: function (event) {
             setSeeking(Number(event.target.value))
           },
           onPointerUp: commit,
           onKeyUp: commit,
-          onClick: commit,
+          onBlur: commit,
         }),
       )
     }
+    
+    function Switch(props) {
+      var HostSwitch = hostComponent('Switch')
+      if (HostSwitch !== null) {
+        return h(HostSwitch, {
+          checked: props.value === true,
+          onChange: function (next) {
+            if (typeof props.onChange === 'function') props.onChange(next === true)
+          },
+          label: props.label || '',
+          title: props.title,
+          disabled: props.disabled === true,
+        })
+      }
+      return h(
+        'button',
+        {
+          type: 'button',
+          className: cx('mp-switch', props.value === true && 'is-on'),
+          role: 'switch',
+          'aria-checked': props.value === true,
+          'aria-label': props.label || '',
+          onClick: function () {
+            if (props.onChange) props.onChange(!props.value)
+          },
+        },
+        h('i'),
+      )
+    }
+    
+    function KitPill(props) {
+      var HostPill = hostComponent('Pill')
+      var content = [
+        props.icon ? icon(props.icon, 13) : null,
+        h('span', { key: 'label' }, props.children),
+      ]
+      if (HostPill !== null) {
+        return h(
+          HostPill,
+          {
+            active: props.active === true,
+            className: props.className,
+            title: props.title,
+            onClick: props.onClick,
+          },
+          content,
+        )
+      }
+      return h(
+        'button',
+        {
+          type: 'button',
+          className: cx('mp-pill', props.active === true && 'is-on', props.className),
+          title: props.title,
+          onClick: props.onClick,
+        },
+        content,
+      )
+    }
+    
+    /**
+     * Dialog shell: the host Modal when available (focus trap, Escape, portal,
+     * native chrome), otherwise the same overlay markup the plugin used before.
+     */
+    function KitModal(props) {
+      var HostModal = hostComponent('Modal')
+      if (HostModal !== null) {
+        if (props.headless === true) {
+          return h(HostModal, {
+            open: true,
+            onClose: props.onClose,
+            headless: true,
+            className: cx('mp-kit-modal', 'mp-kit-modal-headless', props.className),
+            children: props.children,
+          })
+        }
+        return h(
+          HostModal,
+          {
+            open: true,
+            onClose: props.onClose,
+            title: props.title || '',
+            closeLabel: t('v2.close'),
+            children: h('div', { className: 'mp-kit-body' }, props.children),
+            footer: props.footer,
+            className: cx('mp-kit-modal', props.small === true && 'is-sm', props.className),
+            contentClassName: 'mp-kit-content',
+          },
+        )
+      }
+      if (props.headless === true) {
+        return h(
+          'div',
+          { className: 'mp-overlay is-on' },
+          h('div', { className: 'mp-scrim', onClick: props.onClose }),
+          props.children,
+        )
+      }
+      return h(
+        'div',
+        { className: 'mp-overlay is-on' },
+        h('div', { className: 'mp-scrim', onClick: props.onClose }),
+        h(
+          'div',
+          {
+            className: cx('mp-dialog', props.small === true && 'is-sm', props.className),
+            role: 'dialog',
+            'aria-label': props.title || '',
+          },
+          h(
+            'div',
+            { className: 'mp-d-head' },
+            h('div', { className: 'mp-d-title' }, props.title || ''),
+            props.onClose
+              ? h(IconButton, { icon: 'x', size: 15, title: t('v2.close'), onClick: props.onClose })
+              : null,
+          ),
+          h('div', { className: 'mp-d-body' }, props.children),
+          props.footer ? h('div', { className: 'mp-d-foot' }, props.footer) : null,
+        ),
+      )
+    }
+    
+    function SetRow(props) {
+      return h(
+        'div',
+        { className: 'mp-set-row' },
+        h(
+          'div',
+          { className: 'mp-set-text' },
+          h('div', { className: 'mp-set-label' }, props.label),
+          props.desc ? h('div', { className: 'mp-set-desc' }, props.desc) : null,
+        ),
+        h('div', { className: 'mp-set-control' }, props.children),
+      )
+    }
 
-    // ── now playing page ─────────────────────────────────────────────────
-    // Full-screen player: spinning disc on the left, scrolling lyrics on the
-    // right. The disc is a CSS animation whose play state follows playback;
-    // the lyric list translates so the active line sits in the middle — the
-    // layout APlayer / Apple-Music-style players converge on.
+    // ── src/ui/02-track-row.js
+    /**
+     * track row / card: one renderer for local tracks, online results and queue
+     * rows (the queue uses a compact variant in 05-queue).
+     */
+    
+    function trackTitleOf(track) {
+      if (!track) return ''
+      return track.title || stemOf(track.path || '') || basename(track.path || '')
+    }
+    
+    function trackArtistOf(track) {
+      if (!track) return ''
+      return track.artist || t('page.unknownArtist')
+    }
+    
+    function TrackRow(props) {
+      var track = props.track
+      var current = props.currentPath !== '' && props.currentPath === track.path
+      var online = typeof track.onlineProvider === 'string' && track.onlineProvider !== ''
+      var vip = track.qualityHint === 'VIP'
+      var selecting = props.selectionMode === true
+      var selected = props.selected === true
+    
+      function play() {
+        if (props.onPlay) props.onPlay(track)
+      }
+    
+      // Single click selects, double click plays (the old 0.11 interaction).
+      // The checkbox / Ctrl-click is the additive path.
+      function handleClick(event) {
+        if (event && event.detail > 1) return
+        if (props.onSelect) {
+          props.onSelect(track, event ? event.ctrlKey || event.metaKey : false)
+          return
+        }
+        if (selecting) {
+          if (props.onToggleSelect) props.onToggleSelect(track.path)
+          return
+        }
+        play()
+      }
+    
+      return h(
+        'div',
+        {
+          className: cx('mp-row', current && 'is-cur', selected && 'is-selected'),
+          role: 'row',
+          tabIndex: 0,
+          'aria-selected': selected ? 'true' : 'false',
+          'aria-label': trackTitleOf(track) + ' · ' + trackArtistOf(track),
+          onClick: handleClick,
+          onDoubleClick: play,
+          onContextMenu: function (event) {
+            event.preventDefault()
+            if (props.onMenu) props.onMenu(track, event)
+          },
+          onKeyDown: function (event) {
+            if (event.key === 'Enter') play()
+          },
+        },
+        h(
+          'div',
+          { className: 'mp-row-cover' },
+          h(Cover, { src: trackCoverSrc(track), iconSize: 15 }),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mp-cover-play',
+              title: t('page.play'),
+              onClick: function (event) {
+                event.stopPropagation()
+                play()
+              },
+              onDoubleClick: function (event) {
+                event.stopPropagation()
+              },
+            },
+            icon('play', 15),
+          ),
+        ),
+        h(
+          'div',
+          { className: 'mp-row-main' },
+          h(
+            'div',
+            { className: 'mp-row-title' },
+            trackTitleOf(track),
+            vip ? h('span', { className: 'mp-badge is-vip' }, 'VIP') : null,
+            online && props.cached === true
+              ? h('span', { className: 'mp-badge is-cache', title: t('v2.cached') }, icon('download', 10))
+              : null,
+            current && props.playing === true
+              ? h('span', { className: 'mp-eq' }, [h('i', { key: 1 }), h('i', { key: 2 }), h('i', { key: 3 })])
+              : null,
+          ),
+          h('div', { className: 'mp-row-sub' }, trackArtistOf(track)),
+        ),
+        h('div', { className: 'mp-row-album' }, track.album || ''),
+        h('div', { className: 'mp-row-time' }, fmtTime(track.durationSec)),
+        h(
+          'div',
+          { className: 'mp-row-acts' },
+          h(IconButton, {
+                icon: props.favorite === true ? 'heartFill' : 'heart',
+                size: 15,
+                className: 'mp-fav',
+                active: props.favorite === true,
+                title: props.favorite === true ? t('page.unfavorite') : t('page.favorite'),
+                onClick: function (event) {
+                  event.stopPropagation()
+                  if (props.onToggleFavorite) props.onToggleFavorite(track)
+                },
+              }),
+        ),
+        h(
+          'div',
+          { className: 'mp-row-acts' },
+          selecting
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: cx('mp-row-check', selected && 'is-on'),
+                  title: t('page.select'),
+                  onClick: function (event) {
+                    event.stopPropagation()
+                    if (props.onToggleSelect) props.onToggleSelect(track.path)
+                  },
+                },
+                selected ? icon('check', 12) : null,
+              )
+            : h(IconButton, {
+                icon: 'more',
+                size: 15,
+                title: t('page.more'),
+                onClick: function (event) {
+                  event.stopPropagation()
+                  if (props.onMenu) props.onMenu(track, event)
+                },
+              }),
+        ),
+      )
+    }
+    
+    var SCROLL_MEMORY = {}
+    
+    function TrackListBody(props) {
+      var key = props.resetKey || 'tracks'
+      return h(VirtualList, {
+        className: 'mp-scroll',
+        items: props.items || [],
+        rowHeight: 56,
+        resetKey: key,
+        focusPath: props.focusPath || '',
+        initialScroll: SCROLL_MEMORY[key] || 0,
+        onScrollTop: function (top) {
+          SCROLL_MEMORY[key] = top
+        },
+        itemKey: function (track, index) {
+          return track.path + ':' + index
+        },
+        empty: props.empty,
+        renderRow: function (track) {
+          return h(TrackRow, {
+            track: track,
+            currentPath: props.currentPath || '',
+            playing: props.playing === true,
+            favorite: props.favoriteSet ? props.favoriteSet[track.path] === true : false,
+            cached: props.cachedOf ? props.cachedOf(track) === true : false,
+            selectionMode: props.selectionMode === true,
+            selected: props.selectedSet ? props.selectedSet[track.path] === true : false,
+            onToggleSelect: props.onToggleSelect,
+            onSelect: props.onSelect,
+            onPlay: props.onPlay,
+            onMenu: props.onMenu,
+            onToggleFavorite: props.onToggleFavorite,
+          })
+        },
+      })
+    }
+    
+    function ScrollBox(props) {
+      var key = props.resetKey || 'box'
+      var ref = useRef(null)
+      useEffect(
+        function () {
+          var element = ref.current
+          if (element === null) return undefined
+          element.scrollTop = SCROLL_MEMORY[key] || 0
+          function onScroll() {
+            SCROLL_MEMORY[key] = element.scrollTop
+          }
+          element.addEventListener('scroll', onScroll, { passive: true })
+          return function () {
+            element.removeEventListener('scroll', onScroll)
+          }
+        },
+        [key],
+      )
+      return h('div', { className: 'mp-scroll', ref: ref }, props.children)
+    }
 
-    function activeLineAt(lines, time) {
-      if (lines.length === 0 || lines[0].time < 0) return -1
+    // ── src/ui/03-player-bar.js
+    /**
+     * player bar: the persistent transport at the bottom of the panel.
+     */
+    
+    function playerLoopNext(loop) {
+      if (loop === 'none') return 'all'
+      if (loop === 'all') return 'one'
+      return 'none'
+    }
+    
+    function SleepChip(props) {
+      var remaining = useCountdown(props.deadline)
+      if (remaining <= 0) return null
+      return h(
+        'button',
+        {
+          type: 'button',
+          className: 'mp-chip mp-sleep-chip',
+          title: t('v2.sleepCancel'),
+          onClick: function () {
+            setPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 })
+          },
+        },
+        icon('clock', 12),
+        fmtClock(remaining / 1000),
+      )
+    }
+    
+    function PlayerBar(props) {
+      var snap = usePlayerSnapshot()
+      var prefs = usePrefs()
+      var time = usePlayerTime()
+      var previewPair = useState(null)
+      var preview = previewPair[0]
+      var setPreview = previewPair[1]
+      var current = snap.queue[snap.index] || null
+      var onlineLikedPair = useState(false)
+      var onlineLiked = onlineLikedPair[0]
+      var setOnlineLiked = onlineLikedPair[1]
+      var duration = time.duration > 0 ? time.duration : current ? current.durationSec || 0 : 0
+      var progressPercent =
+        duration > 0 ? clamp(((preview !== null ? preview : time.currentTime) / duration) * 100, 0, 100) : 0
+      var favorite = current !== null && props.favoriteSet[current.path] === true
+    
+      useEffect(
+        function () {
+          if (current === null || !current.onlineProvider) return undefined
+          var cancelled = false
+          getJson(
+            API +
+              'online/liked?provider=' +
+              encodeURIComponent(current.onlineProvider) +
+              '&id=' +
+              encodeURIComponent(current.onlineId || ''),
+          )
+            .then(function (body) {
+              if (!cancelled) setOnlineLiked(body.liked === true)
+            })
+            .catch(function () {
+              // Not signed in: keep the neutral state.
+            })
+          return function () {
+            cancelled = true
+          }
+        },
+        [current ? current.path : '', current ? current.onlineProvider : '', current ? current.onlineId : ''],
+      )
+    
+      if (current === null) {
+        return h(
+          'div',
+          { className: 'mp-playerbar is-empty' },
+          h(
+            'div',
+            { className: 'mp-pb-track' },
+            h('div', { className: 'mp-pb-cover' }, icon('note', 16)),
+            h(
+              'div',
+              { className: 'mp-pb-meta' },
+              h('div', { className: 'mp-pb-title' }, t('page.noTrack')),
+              h('div', { className: 'mp-pb-artist' }, t('v2.pickTrack')),
+            ),
+          ),
+          h(
+            'div',
+            { className: 'mp-pb-center' },
+            h(
+              'div',
+              { className: 'mp-pb-controls' },
+              h(IconButton, { icon: 'prev', title: t('page.prev'), disabled: true }),
+              h('button', { type: 'button', className: 'mp-pb-play', disabled: true }, icon('play', 15)),
+              h(IconButton, { icon: 'next', title: t('page.next'), disabled: true }),
+            ),
+          ),
+          h('div', { className: 'mp-pb-right' }, h(SleepChip, { deadline: prefs.sleepDeadline })),
+        )
+      }
+    
+      return h(
+        'div',
+        { className: 'mp-playerbar' },
+        h(
+          'div',
+          { className: 'mp-pb-seek-full' },
+          h('div', { className: 'mp-pb-line' }, h('i', { style: { width: progressPercent + '%' } })),
+          h(SeekBar, { fallbackDuration: current.durationSec || 0, onPreview: setPreview }),
+        ),
+        h(
+          'div',
+          { className: 'mp-pb-track' },
+          h(
+            'div',
+            {
+              className: 'mp-pb-cover',
+              role: 'button',
+              tabIndex: 0,
+              title: t('page.openPlayer'),
+              onClick: props.onOpenNowPlaying,
+              onKeyDown: function (event) {
+                if (event.key === 'Enter') props.onOpenNowPlaying()
+              },
+            },
+            h(Cover, { src: trackCoverSrc(current), iconSize: 16 }),
+            snap.playing
+              ? h('span', { className: 'mp-pb-eq', 'aria-hidden': 'true' }, h('i'), h('i'), h('i'))
+              : null,
+          ),
+          h(
+            'div',
+            { className: 'mp-pb-meta' },
+            h('div', { className: 'mp-pb-title', title: trackTitleOf(current) }, trackTitleOf(current)),
+            h('div', { className: 'mp-pb-artist', title: trackArtistOf(current) }, trackArtistOf(current)),
+          ),
+          current.onlineProvider
+            ? h(IconButton, {
+                icon: onlineLiked ? 'heartFill' : 'heart',
+                size: 16,
+                className: 'mp-pb-fav',
+                active: onlineLiked,
+                title: onlineLiked ? t('page.unfavorite') : t('page.favorite'),
+                onClick: function () {
+                  var next = !onlineLiked
+                  postJson(API + 'online/like', { provider: current.onlineProvider, song: current, on: next })
+                    .then(function () {
+                      setOnlineLiked(next)
+                      showToast(next ? t('page.favorite') : t('page.unfavorite'))
+                    })
+                    .catch(function (error) {
+                      showToast(errorText(error))
+                    })
+                },
+              })
+            : h(IconButton, {
+                icon: favorite ? 'heartFill' : 'heart',
+                size: 16,
+                className: 'mp-pb-fav',
+                active: favorite,
+                title: favorite ? t('page.unfavorite') : t('page.favorite'),
+                onClick: function () {
+                  if (props.onToggleFavorite) props.onToggleFavorite(current)
+                },
+              }),
+        ),
+        h(
+          'div',
+          { className: 'mp-pb-center' },
+          h(
+            'div',
+            { className: 'mp-pb-controls' },
+            h(IconButton, {
+              icon: 'shuffle',
+              size: 17,
+              active: snap.order === 'random',
+              title: t('page.shuffle'),
+              onClick: function () {
+                player.setOrder(snap.order === 'random' ? 'list' : 'random')
+              },
+            }),
+            h(IconButton, {
+              icon: 'prev',
+              size: 17,
+              title: t('page.prev'),
+              onClick: function () {
+                player.prev()
+              },
+            }),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-pb-play',
+                title: snap.playing ? t('page.pause') : t('page.play'),
+                'aria-label': snap.playing ? t('page.pause') : t('page.play'),
+                onClick: function () {
+                  player.toggle()
+                },
+              },
+              icon(snap.playing ? 'pause' : 'play', 15),
+            ),
+            h(IconButton, {
+              icon: 'next',
+              size: 17,
+              title: t('page.next'),
+              onClick: function () {
+                player.next()
+              },
+            }),
+            h(IconButton, {
+              icon: snap.loop === 'one' ? 'repeatOne' : 'repeat',
+              size: 17,
+              active: snap.loop !== 'none',
+              title:
+                snap.loop === 'one'
+                  ? t('page.loopOne')
+                  : snap.loop === 'all'
+                    ? t('page.loopAll')
+                    : t('page.loopNone'),
+              onClick: function () {
+                player.setLoop(playerLoopNext(snap.loop))
+              },
+            }),
+          ),
+        ),
+        h(
+          'div',
+          { className: 'mp-pb-right' },
+          h(
+            'span',
+            { className: cx('mp-time', 'mp-pb-time', preview !== null && 'is-preview') },
+            fmtClock(preview !== null ? preview : time.currentTime) + ' / ' + fmtClock(duration),
+          ),
+          h(SleepChip, { deadline: prefs.sleepDeadline }),
+          h(IconButton, {
+            icon: 'target',
+            size: 17,
+            title: t('page.locateCurrent'),
+            onClick: props.onLocate,
+          }),
+          h(
+            'div',
+            { className: 'mp-pb-vol' },
+            h(IconButton, {
+              icon: snap.muted || snap.volume === 0 ? 'mute' : snap.volume < 0.5 ? 'volumeLow' : 'volume',
+              size: 16,
+              title: t('page.mute'),
+              onClick: function () {
+                player.setMuted(!snap.muted)
+              },
+            }),
+            h('input', {
+              type: 'range',
+              min: 0,
+              max: 100,
+              value: Math.round((snap.muted ? 0 : snap.volume) * 100),
+              style: { '--mp-v': Math.round((snap.muted ? 0 : snap.volume) * 100) + '%' },
+              'aria-label': t('page.volume'),
+              onChange: function (event) {
+                var value = Number(event.target.value) / 100
+                if (snap.muted && value > 0) player.setMuted(false)
+                player.setVolume(value)
+              },
+            }),
+          ),
+          h(
+            'div',
+            { className: 'mp-pb-queue-wrap' },
+            h(IconButton, {
+              icon: 'list',
+              size: 16,
+              active: props.queueOpen,
+              title: t('page.queue'),
+              onClick: props.onToggleQueue,
+            }),
+            props.queueOpen
+              ? h(QueuePopover, {
+                  open: true,
+                  anchored: true,
+                  snap: snap,
+                  onClose: props.onToggleQueue,
+                })
+              : null,
+          ),
+          h(IconButton, {
+            icon: 'chevronDown',
+            size: 17,
+            className: 'mp-pb-expand',
+            title: t('page.openPlayer'),
+            onClick: props.onOpenNowPlaying,
+          }),
+        ),
+      )
+    }
+
+    // ── src/ui/04-now-playing.js
+    /**
+     * now playing: the 0.11.1 full-panel player (square/circular disc, blurred
+     * cover backdrop, floating transport panel) rebuilt on the v2 state layer.
+     */
+    
+    function lyricActiveIndex(lines, seconds) {
+      if (!Array.isArray(lines) || lines.length === 0) return -1
+      if (lines[0].time < 0) return -1
       var low = 0
       var high = lines.length - 1
       var found = -1
       while (low <= high) {
         var mid = (low + high) >> 1
-        if (lines[mid].time <= time + 0.05) {
+        if (lines[mid].time <= seconds + 0.05) {
           found = mid
           low = mid + 1
         } else {
@@ -3502,413 +5323,215 @@ window.__ModuleLoader__.load({
       }
       return found
     }
-
-    // ── online lyric dialog (shared by the player page and the tag editor) ──
-    // Search by "title artist", preview an LRC, then hand it to the caller:
-    // the player writes it into the file, the tag editor fills its lyrics field.
-    function OnlineLyricDialog(props) {
-      var t = props.t
-      var track = props.track || null
-      var trackPath = track ? track.path || '' : ''
-      var [query, setQuery] = useState(function () {
-        if (!track) return ''
-        var title = String(track.title || '').trim()
-        if (title === '' && track.path) title = stemOf(track.path)
-        return (title + ' ' + (track.artist || '')).trim()
-      })
-      var [results, setResults] = useState([])
-      var [searching, setSearching] = useState(false)
-      var [preview, setPreview] = useState('')
-      var [previewId, setPreviewId] = useState('')
-      var [error, setError] = useState('')
-
-      function search(text) {
-        var value = String(text || '').trim()
-        if (value === '') return
-        setSearching(true)
-        setResults([])
-        setPreview('')
-        setPreviewId('')
-        setError('')
-        getJson(API + 'lyrics/search?q=' + encodeURIComponent(value))
-          .then(function (body) {
-            setResults(Array.isArray(body.candidates) ? body.candidates : [])
-          })
-          .catch(function (err) {
-            setError(String((err && err.message) || err))
-            setResults([])
-          })
-          .then(function () {
-            setSearching(false)
-          })
-      }
-
-      useEffect(function () {
-        if (trackPath !== '') search(query)
-      }, [trackPath])
-
-      function pick(candidate) {
-        setPreviewId(candidate.id)
-        setPreview('')
-        setError('')
-        getJson(API + 'lyrics/fetch?id=' + encodeURIComponent(candidate.id))
-          .then(function (body) {
-            var lrc = typeof body.lrc === 'string' ? body.lrc : ''
-            var translation = typeof body.translation === 'string' ? body.translation : ''
-            setPreview(translation === '' ? lrc : lrc + '\n\n' + translation)
-          })
-          .catch(function (err) {
-            setError(String((err && err.message) || err))
-          })
-      }
-
-      return h(
-        'div',
-        { className: 'mu-lyr-layer' },
-        h('div', { className: 'mu-lyr-scrim', onClick: props.onClose }),
-        h(
-          'div',
-          { className: 'mu-lyr-dialog' },
-          h(
-            'div',
-            { className: 'mu-lyr-head' },
-            h('span', { className: 'mu-lyr-title' }, t('page.onlineLyrics')),
-            h(
-              'button',
-              { type: 'button', className: 'mu-icon-btn mu-icon-btn-sm', onClick: props.onClose },
-              icon('x', 14),
-            ),
-          ),
-          h(
-            'div',
-            { className: 'mu-lyr-search' },
-            h('input', {
-              type: 'text',
-              className: 'mu-input mu-input-sm',
-              value: query,
-              placeholder: t('page.lyricsSearchPlaceholder'),
-              onChange: function (event) {
-                setQuery(event.target.value)
-              },
-              onKeyDown: function (event) {
-                if (event.key !== 'Enter') return
-                search(query)
-              },
-            }),
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mu-btn mu-btn-sm',
-                disabled: searching,
-                onClick: function () {
-                  search(query)
-                },
-              },
-              searching ? '…' : t('page.lyricsSearch'),
-            ),
-          ),
-          error !== '' ? h('div', { className: 'mu-lyr-error' }, error) : null,
-          h(
-            'div',
-            { className: 'mu-lyr-results' },
-            results.map(function (candidate) {
-              return h(
-                'button',
-                {
-                  key: candidate.id,
-                  type: 'button',
-                  className: 'mu-lyr-candidate' + (previewId === candidate.id ? ' is-on' : ''),
-                  onClick: function () {
-                    pick(candidate)
-                  },
-                },
-                h('span', { className: 'mu-lyr-candidate-title mu-ellipsis' }, candidate.title),
-                h(
-                  'span',
-                  { className: 'mu-lyr-candidate-meta mu-ellipsis' },
-                  [candidate.artist, candidate.album, fmtTime(candidate.durationSec)]
-                    .filter(Boolean)
-                    .join(' · '),
-                ),
-              )
-            }),
-          ),
-          preview.trim() !== ''
-            ? h('pre', { className: 'mu-lyr-preview' }, preview)
-            : h(
-                'div',
-                { className: 'mu-lyr-empty' },
-                results.length === 0
-                  ? searching
-                    ? '…'
-                    : t('page.lyricsNoResults')
-                  : t('page.lyricsPreviewHint'),
-              ),
-          h(
-            'div',
-            { className: 'mu-lyr-actions' },
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mu-btn',
-                disabled: preview.trim() === '',
-                onClick: function () {
-                  if (preview.trim() !== '') props.onApply(preview)
-                },
-              },
-              t('page.lyricsApply'),
-            ),
-          ),
-        ),
-      )
-    }
-
+    
     function NowPlaying(props) {
-      var player = props.player
-      var snap = props.snapshot
-      var track = snap.index >= 0 && snap.queue[snap.index] ? snap.queue[snap.index] : null
-
-      /** Prefer the provider's cover URL for online tracks; local tracks use /cover. */
-      function trackCoverSrc(item) {
-        if (!item) return ''
-        if (typeof item.coverUrl === 'string' && item.coverUrl !== '') return item.coverUrl
-        return item.hasCover === true ? coverUrl(item.path) : ''
-      }
-
-      var [lyrics, setLyrics] = useState([])
-      var [lyricsTimed, setLyricsTimed] = useState(false)
-      var [active, setActive] = useState(-1)
+      var snap = usePlayerSnapshot()
+      var time = usePlayerTime()
+      var prefs = usePrefs()
+      var track = snap.queue[snap.index] || null
+      var trackPath = track ? track.path : ''
+      var pair = useState([])
+      var lyrics = pair[0]
+      var setLyrics = pair[1]
+      var errorPair = useState('')
+      var lyricError = errorPair[0]
+      var setLyricError = errorPair[1]
+      var settingsPair = useState(false)
+      var settingsOpen = settingsPair[0]
+      var setSettingsOpen = settingsPair[1]
+      var settingsRef = useRef(null)
+      var settingsBtnRef = useRef(null)
+      var offsetPair = useState(0)
+      var offsetMs = offsetPair[0]
+      var setOffsetMs = offsetPair[1]
+      var reloadPair = useState(0)
+      var lyricReload = reloadPair[0]
+      var setLyricReload = reloadPair[1]
       var boxRef = useRef(null)
       var innerRef = useRef(null)
       var rowRefs = useRef([])
-      var timeRef = useRef(null)
-      var closeRef = useRef(props.onClose)
-      closeRef.current = props.onClose
-      var trackPath = track ? track.path : ''
-      var [prefs, setPrefs] = useState(function () {
-        return readPrefs()
-      })
-      var [lyricSettingsOpen, setLyricSettingsOpen] = useState(false)
-      var [lyricOffset, setLyricOffset] = useState(0)
-      var [lyricError, setLyricError] = useState('')
-      var [lyricReload, setLyricReload] = useState(0)
-      var [lyricOnlineOpen, setLyricOnlineOpen] = useState(false)
-      var [lyricSaving, setLyricSaving] = useState(false)
-
-      function applyLyricOffset(delta) {
-        if (track === null) return
-        var next = Math.max(-60_000, Math.min(60_000, lyricOffset + delta))
-        setLyricOffset(next)
-        setLyricError('')
-        postJson(API + 'lyrics/calibrate', { path: track.path, offsetMs: next }).catch(function (error) {
-          setLyricError(String((error && error.message) || error))
-        })
-      }
-
-      function writeLyricsToFile() {
-        if (track === null) return
-        setLyricError('')
-        postJson(API + 'lyrics/calibrate', { path: track.path, offsetMs: lyricOffset, write: true })
-          .then(function () {
-            var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
-            return getJson(API + 'lyrics?path=' + encodeURIComponent(track.path) + '&order=' + encodeURIComponent(order))
-          })
-          .then(function (body) {
-            setLyrics(Array.isArray(body.lines) ? body.lines : [])
-            setLyricsTimed(body.timed === true)
-            setLyricOffset(Number(body.offsetMs) || 0)
-          })
-          .catch(function (error) {
-            setLyricError(String((error && error.message) || error))
-          })
-      }
-
-      function openOnlineLyrics() {
-        setLyricOnlineOpen(true)
-      }
-
-      function saveOnlineLyric(lrc) {
-        if (track === null || String(lrc).trim() === '') return
-        setLyricSaving(true)
-        setLyricError('')
-        postJson(API + 'lyrics/save', { path: track.path, lrc: lrc })
-          .then(function () {
-            setLyricSaving(false)
-            setLyricOnlineOpen(false)
-            setLyricReload(function (value) {
-              return value + 1
-            })
-            if (typeof window.alert === 'function') window.alert(t('page.lyricsSaved'))
-          })
-          .catch(function (error) {
-            setLyricSaving(false)
-            setLyricError(String((error && error.message) || error))
-          })
-      }
-
-      useEffect(function () {
-        function onChange() {
-          setPrefs(readPrefs())
-        }
-        window.addEventListener(PREFS_EVENT, onChange)
-        return function () {
-          window.removeEventListener(PREFS_EVENT, onChange)
-        }
-      }, [])
-
-      var showTranslation = prefs.showTranslation !== false
-      var lyricSize = clampPref(prefs.lyricSize, 14, 40, 18)
-      var lyricWeight = clampPref(prefs.lyricWeight, 300, 800, 500)
-      var lyricBlur = prefs.lyricBlur !== false
-      var translationScale = clampPref(prefs.translationScale, 50, 100, 80)
-      var circularCover = prefs.circularCover !== false
-      var vinylRing = prefs.vinylRing === true
-      var coverSpin = prefs.coverSpin !== false
-      var lyricAlign = prefs.lyricAlign === 'left' || prefs.lyricAlign === 'right' ? prefs.lyricAlign : 'center'
-      var lyricOrderKey = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
-
+    
       useEffect(
         function () {
-          setLyrics([])
-          setLyricsTimed(false)
-          setActive(-1)
-          if (trackPath === '') return undefined
+          if (!settingsOpen) return undefined
+          function onDown(event) {
+            var target = event.target
+            if (settingsRef.current && settingsRef.current.contains(target)) return
+            if (settingsBtnRef.current && settingsBtnRef.current.contains(target)) return
+            setSettingsOpen(false)
+          }
+          function onKey(event) {
+            if (event.key === 'Escape') setSettingsOpen(false)
+          }
+          document.addEventListener('pointerdown', onDown, true)
+          window.addEventListener('keydown', onKey)
+          return function () {
+            document.removeEventListener('pointerdown', onDown, true)
+            window.removeEventListener('keydown', onKey)
+          }
+        },
+        [settingsOpen],
+      )
+      var cover = track ? trackCoverSrc(track) : ''
+      var circular = prefs.circularCover === true
+      var spinning = circular && prefs.coverSpin === true && snap.playing
+      var vinyl = prefs.vinylRing === true && circular
+      var lyricSize = prefs.lyricSize || 18
+      var translationSize = Math.round((lyricSize * (prefs.translationScale || 80)) / 100)
+      var lyricsTimed = lyrics.length > 0 && lyrics[0].time >= 0
+    
+      useEffect(
+        function () {
+          if (props.open !== true || trackPath === '') return undefined
           var cancelled = false
-          var online = onlinePathOf(trackPath)
-          if (online !== null) {
-            loadOnlineLyrics(online)
-              .then(function (lines) {
-                if (cancelled) return
-                setLyrics(lines)
-                setLyricsTimed(lines.length > 0)
-                setLyricOffset(0)
-              })
-              .catch(function () {
-                if (!cancelled) setLyrics([])
-              })
-            return function () {
-              cancelled = true
+          setLyrics([])
+          setLyricError('')
+          var current = snap.queue[snap.index]
+          async function load() {
+            try {
+              if (current.onlineProvider) {
+                var body = await getJson(
+                  API +
+                    'online/lyric?provider=' +
+                    encodeURIComponent(current.onlineProvider) +
+                    '&id=' +
+                    encodeURIComponent(current.onlineId || ''),
+                )
+                var lines = parseLrcText(body.lrc || '')
+                if (body.translation) mergeLyricTranslation(lines, body.translation)
+                if (!cancelled) {
+                  setLyrics(lines)
+                  setOffsetMs(0)
+                }
+                return
+              }
+              var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
+              var local = await getJson(
+                API + 'lyrics?path=' + encodeURIComponent(current.path) + '&order=' + encodeURIComponent(order),
+              )
+              if (!cancelled) {
+                setLyrics(Array.isArray(local.lines) ? local.lines : [])
+                setOffsetMs(Number(local.offsetMs) || 0)
+              }
+            } catch (error) {
+              if (!cancelled) setLyricError(errorText(error))
             }
           }
-          var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
-          getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&order=' + encodeURIComponent(order))
-            .then(function (body) {
-              if (cancelled) return
-              setLyrics(Array.isArray(body.lines) ? body.lines : [])
-              setLyricsTimed(body.timed === true)
-              setLyricOffset(Number(body.offsetMs) || 0)
-            })
-            .catch(function () {
-              if (!cancelled) setLyrics([])
-            })
+          load()
           return function () {
             cancelled = true
           }
         },
-        [trackPath, lyricOrderKey, lyricReload],
+        [props.open, trackPath, lyricReload],
       )
-
+    
+      var active = lyricActiveIndex(lyrics, time.currentTime - offsetMs / 1000)
+      var duration = time.duration > 0 ? time.duration : track ? track.durationSec || 0 : 0
+      var favorite = track !== null && props.favoriteSet[track.path] === true
+    
+      // Keep the active line vertically centred, using real row heights.
       useEffect(
         function () {
-          return player.subscribeTime(function () {
-            var current = player.getTime().currentTime
-            if (timeRef.current) timeRef.current.textContent = fmtTime(current)
-            if (!lyricsTimed) return
-            // Positive offset delays the lyrics: look up an earlier timestamp.
-            var next = activeLineAt(lyrics, current - lyricOffset / 1000)
-            setActive(function (previous) {
-              return previous === next ? previous : next
-            })
-          })
-        },
-        [player, lyrics, lyricsTimed, lyricOffset],
-      )
-
-      useEffect(
-        function () {
-          var inner = innerRef.current
           var box = boxRef.current
-          if (!inner || !box) return
-          if (!lyricsTimed || lyrics.length === 0) {
-            inner.style.transform = 'translateY(0px)'
+          var inner = innerRef.current
+          if (box === null || inner === null) return
+          if (lyrics.length === 0 || !lyricsTimed) {
+            inner.style.transform = ''
             return
           }
-          // Before the first timestamp the opening line is already "current",
-          // and a negative offset is required to vertically center it.
           var index = active >= 0 ? active : 0
           var row = rowRefs.current[index]
           if (!row) return
           var offset = row.offsetTop - (box.clientHeight / 2 - row.offsetHeight / 2)
           inner.style.transform = 'translateY(' + -offset + 'px)'
         },
-        [active, lyrics, lyricsTimed],
+        [active, lyrics],
       )
-
-      useEffect(
-        function () {
-          function onKey(event) {
-            if (event.key === 'Escape') closeRef.current()
-          }
-          window.addEventListener('keydown', onKey)
-          return function () {
-            window.removeEventListener('keydown', onKey)
-          }
-        },
-        [],
-      )
-
-      function cycleLoop() {
-        cyclePlayMode(snap)
+    
+      function seekLine(line) {
+        if (!line || line.time < 0) return
+        player.seek(line.time + offsetMs / 1000)
       }
-
-      function loopLabel() {
-        return playModeLabel(playModeOf(snap))
+    
+      function applyOffset(delta) {
+        if (!track || track.onlineProvider) return
+        var next = Math.max(-60000, Math.min(60000, offsetMs + delta))
+        setOffsetMs(next)
+        postJson(API + 'lyrics/calibrate', { path: track.path, offsetMs: next }).catch(function (error) {
+          setLyricError(errorText(error))
+        })
       }
-
+    
+      function writeLyricsBack() {
+        if (!track || track.onlineProvider) return
+        postJson(API + 'lyrics/calibrate', { path: track.path, offsetMs: offsetMs, write: true })
+          .then(function () {
+            setLyricReload(function (value) {
+              return value + 1
+            })
+            showToast(t('page.lyricsSaved'))
+          })
+          .catch(function (error) {
+            setLyricError(errorText(error))
+          })
+      }
+    
+      function openOnlineLyric() {
+        if (!track || track.onlineProvider) return
+        pushLayer('onlineLyric', {
+          track: { path: track.path, title: trackTitleOf(track), artist: trackArtistOf(track) },
+          onApply: function (lrc) {
+            postJson(API + 'lyrics/save', { path: track.path, lrc: lrc })
+              .then(function () {
+                setLyricReload(function (value) {
+                  return value + 1
+                })
+                showToast(t('page.lyricsSaved'))
+              })
+              .catch(function (error) {
+                showToast(errorText(error))
+              })
+          },
+        })
+      }
+    
       return h(
         'div',
         {
-          className:
-            'mu-np' +
-            (props.visible ? ' is-open' : '') +
-            (lyricBlur ? ' is-blur' : '') +
-            ' mu-align-' +
-            lyricAlign,
+          className: cx(
+            'mp-np',
+            props.open === true && 'is-open',
+            prefs.lyricBlur === true && 'is-blur',
+            'mp-align-' + (prefs.lyricAlign || 'center'),
+          ),
           role: 'dialog',
           'aria-label': t('page.openPlayer'),
+          'aria-hidden': props.open === true ? 'false' : 'true',
           style: {
-            '--mu-lyric-size': lyricSize + 'px',
-            '--mu-lyric-weight': String(lyricWeight),
-            '--mu-lyric-trans': Math.round((lyricSize * translationScale) / 100) + 'px',
+            '--mp-lyric-size': lyricSize + 'px',
+            '--mp-lyric-weight': String(prefs.lyricWeight || 500),
+            '--mp-lyric-trans': translationSize + 'px',
           },
         },
-        trackCoverSrc(track) !== ''
-          ? h('div', { className: 'mu-np-bg' }, h('img', { src: trackCoverSrc(track), alt: '' }))
-          : null,
-        h('div', { className: 'mu-np-shade' }),
-
+        cover !== '' ? h('div', { className: 'mp-np-bg' }, h('img', { src: cover, alt: '' })) : null,
+        h('div', { className: 'mp-np-shade' }),
         h(
           'div',
-          { className: 'mu-np-head' },
-          h(
-            'button',
-            { type: 'button', className: 'mu-icon-btn', title: t('page.closePlayer'), onClick: props.onClose },
-            icon('chevronDown', 20),
-          ),
-          h('div', { className: 'mu-np-head-title mu-ellipsis' }, track ? track.title : t('page.noTrack')),
+          { className: 'mp-np-head' },
+          h(IconButton, { icon: 'chevronDown', size: 20, title: t('page.closePlayer'), onClick: props.onClose }),
+          h('div', { className: 'mp-np-head-title' }, track ? trackTitleOf(track) : t('page.noTrack')),
           h(
             'div',
-            { className: 'mu-np-head-actions' },
+            { className: 'mp-np-head-actions' },
             h(
               'button',
               {
                 type: 'button',
-                className: 'mu-icon-btn mu-trans-toggle' + (lyricSettingsOpen ? ' is-on' : ''),
-                title: t('page.lyricSettings'),
+                ref: settingsBtnRef,
+                className: cx('mp-iconbtn', 'mp-trans-toggle', settingsOpen && 'is-on'),
+                title: t('v2.lyricSettings'),
                 onClick: function () {
-                  setLyricSettingsOpen(!lyricSettingsOpen)
+                  setSettingsOpen(!settingsOpen)
                 },
               },
               'Aa',
@@ -3917,264 +5540,212 @@ window.__ModuleLoader__.load({
               'button',
               {
                 type: 'button',
-                className: 'mu-icon-btn mu-trans-toggle' + (showTranslation ? ' is-on' : ''),
+                className: cx('mp-iconbtn', 'mp-trans-toggle', prefs.showTranslation === true && 'is-on'),
                 title: t('page.translation'),
                 onClick: function () {
-                  savePrefs({ showTranslation: !showTranslation })
+                  setPrefs({ showTranslation: prefs.showTranslation !== true })
                 },
               },
               '译',
             ),
           ),
         ),
-
-        lyricSettingsOpen
+        settingsOpen
           ? h(
               'div',
-              { className: 'mu-np-settings' },
+              { className: 'mp-np-settings', ref: settingsRef },
               h(
                 'div',
-                { className: 'mu-np-setting mu-np-setting-inline' },
-                h('span', null, t('page.onlineLyrics')),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-btn mu-btn-sm',
-                    onClick: openOnlineLyrics,
-                  },
-                  t('page.onlineLyricsAction'),
-                ),
-              ),
-              h(
-                'div',
-                { className: 'mu-np-setting' },
+                { className: 'mp-np-setting' },
                 h(
                   'div',
-                  { className: 'mu-np-setting-head' },
-                  h('span', null, t('page.lyricOffset')),
-                  h('span', { className: 'mu-np-setting-value' }, (lyricOffset / 1000).toFixed(1) + ' s'),
-                ),
-                h(
-                  'div',
-                  { className: 'mu-np-offset-actions' },
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                      onClick: function () {
-                        applyLyricOffset(-500)
-                      },
-                    },
-                    '−0.5s',
-                  ),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                      onClick: function () {
-                        applyLyricOffset(500)
-                      },
-                    },
-                    '+0.5s',
-                  ),
-                  h(
-                    'button',
-                    { type: 'button', className: 'mu-btn mu-btn-sm', onClick: writeLyricsToFile },
-                    t('page.writeLyrics'),
-                  ),
-                ),
-                h('div', { className: 'mu-np-setting-hint' }, t('page.lyricOffsetHint')),
-                lyricError !== ''
-                  ? h('div', { className: 'mu-np-setting-error' }, lyricError)
-                  : null,
-              ),
-              h(
-                'div',
-                { className: 'mu-np-setting' },
-                h(
-                  'div',
-                  { className: 'mu-np-setting-head' },
+                  { className: 'mp-np-setting-head' },
                   h('span', null, t('page.lyricSize')),
-                  h('span', { className: 'mu-np-setting-value' }, lyricSize + ' px'),
+                  h('span', { className: 'mp-set-val' }, lyricSize + ' px'),
                 ),
                 h('input', {
                   type: 'range',
-                  className: 'mu-np-range',
+                  className: 'mp-range',
                   min: 14,
                   max: 40,
                   step: 1,
                   value: lyricSize,
                   onChange: function (event) {
-                    var next = Number(event.target.value)
-                    if (!isFinite(next)) return
-                    savePrefs({ lyricSize: next })
+                    setPrefs({ lyricSize: Number(event.target.value) })
                   },
                 }),
               ),
               h(
                 'div',
-                { className: 'mu-np-setting' },
+                { className: 'mp-np-setting' },
                 h(
                   'div',
-                  { className: 'mu-np-setting-head' },
+                  { className: 'mp-np-setting-head' },
                   h('span', null, t('page.lyricWeight')),
-                  h('span', { className: 'mu-np-setting-value' }, String(lyricWeight)),
+                  h('span', { className: 'mp-set-val' }, String(prefs.lyricWeight || 500)),
                 ),
                 h('input', {
                   type: 'range',
-                  className: 'mu-np-range',
+                  className: 'mp-range',
                   min: 300,
                   max: 800,
                   step: 100,
-                  value: lyricWeight,
+                  value: prefs.lyricWeight || 500,
                   onChange: function (event) {
-                    var next = Number(event.target.value)
-                    if (!isFinite(next)) return
-                    savePrefs({ lyricWeight: next })
+                    setPrefs({ lyricWeight: Number(event.target.value) })
                   },
                 }),
               ),
               h(
                 'div',
-                { className: 'mu-np-setting mu-np-setting-inline' },
-                h('span', null, t('page.lyricBlur')),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-np-toggle' + (lyricBlur ? ' is-on' : ''),
-                    onClick: function () {
-                      var next = !lyricBlur
-                      savePrefs({ lyricBlur: next })
-                    },
-                  },
-                  h('span', { className: 'mu-np-toggle-dot' }),
-                ),
+                { className: 'mp-np-setting-head' },
+                h('span', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary,#a1a1aa)' } }, t('page.translationScale')),
+                h('span', { className: 'mp-set-val' }, String(prefs.translationScale || 80) + '%'),
               ),
+              h('input', {
+                type: 'range',
+                className: 'mp-range',
+                min: 50,
+                max: 100,
+                step: 5,
+                value: prefs.translationScale || 80,
+                onChange: function (event) {
+                  setPrefs({ translationScale: Number(event.target.value) })
+                },
+              }),
               h(
-                'div',
-                { className: 'mu-np-setting' },
-                h(
-                  'div',
-                  { className: 'mu-np-setting-head' },
-                  h('span', null, t('page.translationScale')),
-                  h('span', { className: 'mu-np-setting-value' }, translationScale + '%'),
-                ),
-                h('input', {
-                  type: 'range',
-                  className: 'mu-np-range',
-                  min: 50,
-                  max: 100,
-                  step: 5,
-                  value: translationScale,
-                  onChange: function (event) {
-                    var next = Number(event.target.value)
-                    if (!isFinite(next)) return
-                    savePrefs({ translationScale: next })
+                SetRow,
+                { label: t('page.lyricBlur') },
+                h(Switch, {
+                  value: prefs.lyricBlur === true,
+                  onChange: function (value) {
+                    setPrefs({ lyricBlur: value })
                   },
                 }),
               ),
+              h(
+                SetRow,
+                { label: t('page.translation') },
+                h(Switch, {
+                  value: prefs.showTranslation === true,
+                  onChange: function (value) {
+                    setPrefs({ showTranslation: value })
+                  },
+                }),
+              ),
+              track && !track.onlineProvider
+                ? h(
+                    'div',
+                    { className: 'mp-np-setting' },
+                    h(
+                      'div',
+                      { className: 'mp-np-setting-head' },
+                      h('span', null, t('page.lyricOffset')),
+                      h('span', { className: 'mp-set-val' }, (offsetMs / 1000).toFixed(1) + ' s'),
+                    ),
+                    h(
+                      'div',
+                      { className: 'mp-np-offset-actions' },
+                      h(
+                        Button,
+                        {
+                          variant: 'ghost',
+                          onClick: function () {
+                            applyOffset(-500)
+                          },
+                        },
+                        '−0.5s',
+                      ),
+                      h(
+                        Button,
+                        {
+                          variant: 'ghost',
+                          onClick: function () {
+                            applyOffset(500)
+                          },
+                        },
+                        '+0.5s',
+                      ),
+                      h(Button, { onClick: writeLyricsBack }, t('page.writeLyrics')),
+                    ),
+                    h('div', { className: 'mp-np-setting-hint' }, t('page.lyricOffsetHint')),
+                  )
+                : null,
+              track && !track.onlineProvider
+                ? h(Button, { icon: 'search', onClick: openOnlineLyric }, t('page.onlineLyrics'))
+                : null,
             )
           : null,
-
-        lyricOnlineOpen
-          ? h(OnlineLyricDialog, {
-              t: t,
-              track: track,
-              onClose: function () {
-                setLyricOnlineOpen(false)
-              },
-              onApply: saveOnlineLyric,
-            })
-          : null,
-
         h(
           'div',
-          { className: 'mu-np-body' },
+          { className: 'mp-np-body' },
           h(
             'div',
-            { className: 'mu-np-left' },
+            { className: 'mp-np-left' },
             h(
               'div',
-              { className: 'mu-np-disc-wrap' },
+              { className: 'mp-np-disc-wrap' },
               h(
                 'div',
                 {
-                  className:
-                    'mu-np-disc' +
-                    (circularCover ? ' is-circle' : ' is-square') +
-                    (coverSpin && circularCover && snap.playing ? ' is-playing' : '') +
-                    (vinylRing && circularCover ? ' is-vinyl' : ''),
+                  className: cx(
+                    'mp-np-disc',
+                    circular ? 'is-circle' : 'is-square',
+                    spinning && 'is-playing',
+                    vinyl && 'is-vinyl',
+                  ),
                 },
-                vinylRing && circularCover ? h('div', { className: 'mu-np-vinyl' }) : null,
+                vinyl ? h('div', { className: 'mp-np-vinyl' }) : null,
                 h(
                   'div',
-                  { className: 'mu-np-art' },
-                  trackCoverSrc(track) !== ''
-                    ? h('img', {
-                        src: trackCoverSrc(track),
-                        alt: '',
-                        draggable: 'false',
-                        onError: function (event) {
-                          event.target.style.display = 'none'
-                        },
-                      })
-                    : icon('note', 96),
+                  { className: 'mp-np-art' },
+                  cover !== '' ? h('img', { src: cover, alt: '', draggable: false }) : icon('note', 96),
                 ),
               ),
             ),
             h(
               'div',
-              { className: 'mu-np-meta' },
-              h('div', { className: 'mu-np-title mu-ellipsis' }, track ? track.title : '—'),
-              h(
-                'div',
-                { className: 'mu-np-artist mu-ellipsis' },
-                track ? track.artist || t('page.unknownArtist') : '',
-              ),
+              { className: 'mp-np-meta' },
+              h('div', { className: 'mp-np-title' }, track ? trackTitleOf(track) : '—'),
+              h('div', { className: 'mp-np-artist' }, track ? trackArtistOf(track) : ''),
             ),
           ),
           h(
             'div',
-            { className: 'mu-np-right' },
+            { className: 'mp-np-right' },
             h(
               'div',
-              { className: 'mu-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: boxRef },
+              { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: boxRef },
               lyrics.length === 0
-                ? h('div', { className: 'mu-np-lyrics-empty' }, t('page.noLyrics'))
+                ? h('div', { className: 'mp-np-lyrics-empty' }, lyricError !== '' ? lyricError : t('page.noLyrics'))
                 : h(
                     'div',
-                    { className: 'mu-np-lyrics-inner', ref: innerRef },
+                    { className: 'mp-np-lyrics-inner', ref: innerRef },
                     lyrics.map(function (line, index) {
                       return h(
                         'div',
                         {
                           key: String(index),
-                          ref: function (el) {
-                            rowRefs.current[index] = el
+                          ref: function (element) {
+                            rowRefs.current[index] = element
                           },
                           className:
-                            'mu-np-line' +
+                            'mp-np-line' +
                             (index === active ? ' is-active' : '') +
                             (active >= 0 && index < active ? ' is-past' : ''),
                           style: {
-                            '--mu-line-stagger': String(
-                              active >= 0 ? Math.min(Math.abs(index - active), 8) : 0,
-                            ),
+                            '--mp-line-stagger': String(active >= 0 ? Math.min(Math.abs(index - active), 8) : 0),
                           },
                           onClick: function () {
-                            if (line.time >= 0) player.seek(line.time + lyricOffset / 1000)
+                            seekLine(line)
                           },
                         },
-                        h('div', { className: 'mu-np-line-text' }, line.text),
-                        showTranslation && line.translation !== ''
+                        h('div', { className: 'mp-np-line-text' }, line.text),
+                        prefs.showTranslation === true && line.translation
                           ? line.translation.split('\n').map(function (part, partIndex) {
                               return h(
                                 'div',
-                                { key: 'translation-' + partIndex, className: 'mu-np-line-trans' },
+                                { key: 'translation-' + partIndex, className: 'mp-np-line-trans' },
                                 part,
                               )
                             })
@@ -4185,118 +5756,80 @@ window.__ModuleLoader__.load({
             ),
           ),
         ),
-
         h(
           'div',
-          { className: 'mu-np-bottom' },
+          { className: 'mp-np-bottom' },
+          h('div', { className: 'mp-np-progress' }, h(SeekBar, { fallbackDuration: track ? track.durationSec || 0 : 0 })),
           h(
             'div',
-            { className: 'mu-np-progress' },
-            h(SeekBar, { player: player, track: track, className: 'mu-seek-np' }),
-          ),
-          h(
-            'div',
-            { className: 'mu-np-bar' },
+            { className: 'mp-np-bar' },
             h(
               'div',
-              { className: 'mu-np-time' },
-              h('span', { ref: timeRef }, fmtTime(player.getTime().currentTime)),
-              h('span', { className: 'mu-np-time-sep' }, ' / '),
-              h('span', null, fmtTime(track && track.durationSec > 0 ? track.durationSec : 0)),
+              { className: 'mp-np-time' },
+              h('span', null, fmtClock(time.currentTime)),
+              h('span', { className: 'mp-np-time-sep' }, ' / '),
+              h('span', null, fmtClock(duration)),
             ),
             h(
               'div',
-              { className: 'mu-np-controls' },
-              h(
-                'button',
-                { type: 'button', className: 'mu-icon-btn', title: loopLabel(), onClick: cycleLoop },
-                icon(playModeIcon(playModeOf(snap)), 17),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-icon-btn',
-                  title: t('page.prev'),
-                  onClick: function () {
-                    player.ensureAnalyser()
-                    player.prev()
-                  },
+              { className: 'mp-np-controls' },
+              h(IconButton, {
+                icon: playModeIcon(playModeOf(snap)),
+                size: 17,
+                title: t('page.loopAll'),
+                onClick: function () {
+                  cyclePlayMode(snap)
                 },
-                icon('prev', 18),
-              ),
+              }),
+              h(IconButton, {
+                icon: 'prev',
+                size: 18,
+                title: t('page.prev'),
+                onClick: function () {
+                  player.prev()
+                },
+              }),
               h(
                 'button',
                 {
                   type: 'button',
-                  className: 'mu-play-btn',
+                  className: 'mp-pb-play',
                   title: snap.playing ? t('page.pause') : t('page.play'),
                   onClick: function () {
-                    player.ensureAnalyser()
                     player.toggle()
                   },
                 },
-                icon(snap.playing ? 'pause' : 'play', 20),
+                icon(snap.playing ? 'pause' : 'play', 18),
               ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-icon-btn',
-                  title: t('page.next'),
-                  onClick: function () {
-                    player.ensureAnalyser()
-                    player.next()
-                  },
+              h(IconButton, {
+                icon: 'next',
+                size: 18,
+                title: t('page.next'),
+                onClick: function () {
+                  player.next()
                 },
-                icon('next', 18),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-icon-btn',
-                  title: t('page.queue'),
-                  onClick: function (event) {
-                    // Close the full-screen player first: the queue overlay is
-                    // rendered in its own host seat and must not fight the
-                    // player for stacking order.
-                    if (typeof props.onQueue === 'function') {
-                      props.onQueue()
-                      return
-                    }
-                    toggleQueueOverlay(undefined, event.currentTarget)
-                  },
-                },
-                icon('list', 18),
-              ),
+              }),
+              h(IconButton, {
+                icon: 'list',
+                size: 18,
+                title: t('page.queue'),
+                onClick: props.onQueue,
+              }),
             ),
             h(
               'div',
-              { className: 'mu-np-vol' },
-              track && track.sampleRate ? h('span', { className: 'mu-quality' }, fmtKhz(track.sampleRate)) : null,
-              track
-                ? h(
-                    'button',
-                    {
-                      type: 'button',
-                      className:
-                        'mu-icon-btn' +
-                        (props.favorites &&
-                        props.favorites.some(function (entry) {
-                          return entry && entry.path === track.path
-                        })
-                          ? ' is-on'
-                          : ''),
-                      title: t('page.favorite'),
-                      onClick: function () {
-                        if (typeof props.onToggleFavorite === 'function') {
-                          props.onToggleFavorite(track)
-                        }
-                      },
+              { className: 'mp-np-vol' },
+              track && track.sampleRate ? h('span', { className: 'mp-quality' }, fmtKhz(track.sampleRate)) : null,
+              track && !track.onlineProvider
+                ? h(IconButton, {
+                    icon: 'heart',
+                    size: 18,
+                    active: favorite,
+                    title: favorite ? t('page.unfavorite') : t('page.favorite'),
+                    onClick: function () {
+                      if (props.onToggleFavorite) props.onToggleFavorite(track)
                     },
-                    icon('heart', 18),
-                  )
+                  })
                 : null,
             ),
           ),
@@ -4304,3268 +5837,2853 @@ window.__ModuleLoader__.load({
       )
     }
 
-    // ── main panel ───────────────────────────────────────────────────────
-
-    // ── windowed list (fixed row height) ──────────────────────────────────
-    // Same approach as dscroll / react-window: render only the visible slice
-    // plus a small overscan, absolutely positioned inside a spacer. Keeps a
-    // 5000-track library from creating 5000 DOM rows.
-
-    function VirtualList(props) {
-      var rowHeight = props.rowHeight || 67
-      var overscan = props.overscan === undefined ? 6 : props.overscan
-      var [scrollTop, setScrollTop] = useState(0)
-      var [viewport, setViewport] = useState(600)
-      var ref = useRef(null)
-
-      useEffect(
-        function () {
-          var element = ref.current
-          if (element === null) return undefined
-          function measure() {
-            setViewport(element.clientHeight || 600)
-          }
-          measure()
-          window.addEventListener('resize', measure)
-          var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
-          if (observer !== null) observer.observe(element)
-          return function () {
-            window.removeEventListener('resize', measure)
-            if (observer !== null) observer.disconnect()
-          }
-        },
-        [],
-      )
-
-      var items = props.items
-      useEffect(
-        function () {
-          if (ref.current !== null) ref.current.scrollTop = 0
-          setScrollTop(0)
-        },
-        [items.length],
-      )
-      if (items.length === 0) {
+    // ── src/ui/05-queue.js
+    /**
+     * queue: side panel inside the workspace, plus the floating variant used from
+     * the chat composer. Both share QueueList so there is one row implementation.
+     */
+    
+    function QueueList(props) {
+      var snap = props.snap
+      if (!snap || !snap.queue || snap.queue.length === 0) {
         return h(
           'div',
-          {
-            className: props.className,
-            ref: ref,
-            onScroll: function (event) {
-              setScrollTop(event.currentTarget.scrollTop)
-            },
-          },
-          props.empty,
+          { className: 'mp-empty', style: { padding: '36px 16px' } },
+          icon('list', 24),
+          h('strong', null, t('page.queueEmpty')),
         )
       }
-
-      var total = items.length * rowHeight
-      var start = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan)
-      var end = Math.min(items.length, Math.ceil((scrollTop + viewport) / rowHeight) + overscan)
-      var slice = items.slice(start, end)
-
       return h(
         'div',
-        {
-          className: props.className,
-          ref: ref,
-          onScroll: function (event) {
-            setScrollTop(event.currentTarget.scrollTop)
-          },
-        },
-        h(
-          'div',
-          { className: 'mu-vlist-inner', style: { height: total + 'px' } },
-          slice.map(function (item, offset) {
-            var index = start + offset
-            return h(
-              'div',
-              {
-                key: props.itemKey ? props.itemKey(item, index) : index,
-                className: 'mu-vlist-row',
-                style: { height: rowHeight + 'px', top: index * rowHeight + 'px' },
-              },
-              props.renderRow(item),
-            )
-          }),
-        ),
-      )
-    }
-
-    /**
-     * Cover grid for the song list. Virtualised by row: the column count comes
-     * from the measured width, so the grid reflows without a fixed card size.
-     */
-    function TrackGrid(props) {
-      var items = Array.isArray(props.items) ? props.items : []
-      var gap = 14
-      var minCard = 148
-      var [width, setWidth] = useState(0)
-      var [scrollTop, setScrollTop] = useState(0)
-      var ref = useRef(null)
-
-      useEffect(function () {
-        var el = ref.current
-        if (el === null) return undefined
-        function measure() {
-          setWidth(el.clientWidth || 0)
-        }
-        measure()
-        window.addEventListener('resize', measure)
-        var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
-        if (observer !== null) observer.observe(el)
-        return function () {
-          window.removeEventListener('resize', measure)
-          if (observer !== null) observer.disconnect()
-        }
-      }, [])
-
-      useEffect(function () {
-        if (ref.current !== null) ref.current.scrollTop = 0
-        setScrollTop(0)
-      }, [items.length, props.resetKey])
-
-      if (items.length === 0) {
-        return h(
-          'div',
-          {
-            className: 'mu-grid',
-            ref: ref,
-            onScroll: function (event) {
-              setScrollTop(event.currentTarget.scrollTop)
-            },
-          },
-          props.empty,
-        )
-      }
-
-      var usable = Math.max(0, width - 32)
-      var cols = Math.max(2, Math.floor((usable + gap) / (minCard + gap)))
-      var cardWidth = Math.max(96, Math.floor((usable - gap * (cols - 1)) / cols))
-      var rowHeight = cardWidth + 64
-      var rows = Math.ceil(items.length / cols)
-      var viewport = ref.current !== null ? ref.current.clientHeight || 600 : 600
-      var start = Math.max(0, Math.floor(scrollTop / rowHeight) - 2)
-      var end = Math.min(rows, Math.ceil((scrollTop + viewport) / rowHeight) + 2)
-
-      var rowsOut = []
-      for (var r = start; r < end; r += 1) {
-        var slice = items.slice(r * cols, r * cols + cols)
-        rowsOut.push(
-          h(
+        { className: 'mp-q-list' },
+        snap.queue.map(function (track, index) {
+          var current = index === snap.index
+          return h(
             'div',
             {
-              key: 'row-' + r,
-              className: 'mu-grid-row',
-              style: {
-                top: r * rowHeight + 'px',
-                gridTemplateColumns: 'repeat(' + cols + ', minmax(0, 1fr))',
+              key: track.path + ':' + index,
+              className: cx('mp-q-row', current && 'is-cur'),
+              onClick: function () {
+                player.playList(snap.queue, index)
               },
+              title: trackTitleOf(track),
             },
-            slice.map(function (track) {
-              var isSelected = props.selected.indexOf(track.path) >= 0
-              var isFavorite = props.isFavorite(track)
-              var isCurrent = props.currentPath !== '' && props.currentPath === track.path
-              return h(
-                'div',
-                {
-                  key: track.path,
-                  className:
-                    'mu-card' +
-                    (isSelected ? ' is-selected' : '') +
-                    (isCurrent ? ' is-current' : ''),
-                  onClick: function () {
-                    props.onSelect(track)
-                  },
-                  onDoubleClick: function () {
-                    props.onActivate(track)
-                  },
-                  onContextMenu: function (event) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                    props.onContextMenu(track, event.clientX, event.clientY)
-                  },
-                },
-                h(
-                  'div',
-                  { className: 'mu-card-cover' },
-                  h(Cover, { track: track, size: cardWidth, radius: 10 }),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-card-play',
-                      title: t('page.play'),
-                      onClick: function (event) {
-                        event.stopPropagation()
-                        props.onActivate(track)
-                      },
-                    },
-                    icon(isCurrent && props.playing ? 'pause' : 'play', 22),
-                  ),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-card-fav' + (isFavorite ? ' is-on' : ''),
-                      title: t('page.favorite'),
-                      onClick: function (event) {
-                        event.stopPropagation()
-                        props.onToggleFavorite(track)
-                      },
-                    },
-                    icon('heart', 14),
-                  ),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-card-check' + (isSelected ? ' is-on' : ''),
-                      'aria-label': track.title,
-                      onClick: function (event) {
-                        event.stopPropagation()
-                        props.onToggleSelect(track)
-                      },
-                    },
-                    isSelected ? icon('check', 12) : null,
-                  ),
-                ),
-                h('div', { className: 'mu-card-title mu-ellipsis' }, track.title),
-                h('div', { className: 'mu-card-artist mu-ellipsis' }, track.artist || ''),
-              )
-            }),
+            h(
+              'div',
+              { className: 'mp-q-idx' },
+              current && snap.playing ? icon('play', 11) : String(index + 1),
+            ),
+            h('div', { className: 'mp-q-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+            h(
+              'div',
+              { className: 'mp-q-main' },
+              h('div', { className: 'mp-q-name' }, trackTitleOf(track)),
+              h('div', { className: 'mp-q-artist' }, trackArtistOf(track)),
+            ),
+            h('div', { className: 'mp-q-artist' }, fmtTime(track.durationSec)),
+          )
+        }),
+      )
+    }
+    
+    function QueuePanel(props) {
+      return h(
+        'aside',
+        { className: 'mp-queue', 'aria-label': t('page.queue') },
+        h(
+          'div',
+          { className: 'mp-q-head' },
+          h(
+            'div',
+            null,
+            h('div', { className: 'mp-q-title' }, t('page.queue')),
+            h(
+              'div',
+              { className: 'mp-q-sub' },
+              (props.snap.queue.length || 0) + ' · ' + (props.snap.order === 'random' ? t('page.shuffle') : t('page.modeSequence')),
+            ),
           ),
-        )
-      }
-
+          h('div', { className: 'mp-spacer', style: { marginLeft: 'auto' } }),
+          h(IconButton, {
+            icon: 'target',
+            size: 15,
+            title: t('page.locateCurrent'),
+            onClick: props.onLocate,
+          }),
+          h(IconButton, {
+            icon: 'x',
+            size: 15,
+            title: t('v2.close'),
+            onClick: props.onClose,
+          }),
+        ),
+        h(QueueList, { snap: props.snap }),
+      )
+    }
+    
+    function QueuePopover(props) {
+      if (props.open !== true) return null
       return h(
         'div',
         {
-          className: 'mu-grid',
-          ref: ref,
-          onScroll: function (event) {
-            setScrollTop(event.currentTarget.scrollTop)
-          },
+          className: cx('mp-queue-pop', props.anchored === true && 'is-anchored'),
+          role: 'dialog',
+          'aria-label': t('page.queue'),
         },
-        h('div', { className: 'mu-vlist-inner', style: { height: rows * rowHeight + 'px' } }, rowsOut),
+        h(
+          'div',
+          { className: 'mp-q-head' },
+          h('div', { className: 'mp-q-title' }, t('page.queue')),
+          h('div', { className: 'mp-spacer', style: { marginLeft: 'auto' } }),
+          h(IconButton, { icon: 'x', size: 14, title: t('v2.close'), onClick: props.onClose }),
+        ),
+        h(QueueList, { snap: props.snap }),
       )
     }
 
-    // ── listening statistics (NetEase-style listening ranking) ────────────
-
-    function basenameOf(path) {
-      var parts = String(path || '').split(/[\\/]/)
-      return parts.length > 0 ? parts[parts.length - 1] : String(path || '')
-    }
-
-    /** File name without its extension — the fallback "title" for untagged files. */
-    function stemOf(path) {
-      var name = basenameOf(path)
-      var dot = name.lastIndexOf('.')
-      return dot > 0 ? name.slice(0, dot) : name
-    }
-
-    /** Normalized folder (directory) part of a track path, no trailing slash. */
-    function folderOf(filePath) {
-      var normalized = String(filePath || '').replace(/\\/g, '/')
-      var index = normalized.lastIndexOf('/')
-      if (index <= 0) return ''
-      return normalized.slice(0, index)
-    }
-
-    /** Human label for a folder: path relative to its scan root when possible. */
-    function folderLabelOf(folder, roots) {
-      var normalized = String(folder || '').replace(/\\/g, '/')
-      for (var index = 0; index < roots.length; index += 1) {
-        var root = String(roots[index] || '')
-          .replace(/\\/g, '/')
-          .replace(/\/+$/, '')
-        if (root !== '' && (normalized === root || normalized.indexOf(root + '/') === 0)) {
-          var relative = normalized.slice(root.length).replace(/^\/+/, '')
-          return relative === '' ? root.split('/').pop() : relative
-        }
-      }
-      var parts = normalized.split('/')
-      return parts[parts.length - 1] || normalized
-    }
-
-    function fmtListenTime(seconds) {
-      var total = Math.round(Number(seconds) || 0)
-      if (total <= 0) return '—'
-      var hours = Math.floor(total / 3600)
-      var minutes = Math.floor((total % 3600) / 60)
-      if (hours > 0) return hours + ' 小时 ' + minutes + ' 分'
-      if (minutes > 0) return minutes + ' 分'
-      return total + ' 秒'
-    }
-
-    function fmtRecent(ts) {
-      var value = Number(ts)
-      if (!isFinite(value) || value <= 0) return '—'
-      var date = new Date(value)
-      var now = new Date()
-      var startOfDay = function (day) {
-        return new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime()
-      }
-      var days = Math.round((startOfDay(now) - startOfDay(date)) / 86_400_000)
-      if (days <= 0) return '今天'
-      if (days === 1) return '昨天'
-      if (days < 7) return days + ' 天前'
-      return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate())
-    }
-
+    // ── src/ui/06-settings.js
     /**
-     * Listening ranking: last week / month / all time, sorted by time, plays or
-     * recency. Mirrors the NetEase "listening ranking" page, limited to what
-     * the local library can know without a server.
+     * settings: one full-height sheet with six tabs.
+     *
+     * The layout switch lives here (Appearance → Layout) because the user asked for
+     * a single, discoverable place to change it.
      */
-    function StatsView(props) {
-      var t = props.t
-      var [range, setRange] = useState('week')
-      var [mode, setMode] = useState('ranking')
-      var [sortBy, setSortBy] = useState('seconds')
-      var [loading, setLoading] = useState(true)
-      var [error, setError] = useState(null)
-      var [rows, setRows] = useState([])
-      var [reload, setReload] = useState(0)
-
+    
+    var SETTINGS_TABS = [
+      { key: 'appearance', label: 'v2.appearance' },
+      { key: 'lyrics', label: 'v2.lyrics' },
+      { key: 'playback', label: 'v2.playback' },
+      { key: 'online', label: 'v2.online' },
+      { key: 'library', label: 'v2.library' },
+      { key: 'cache', label: 'v2.cacheTab' },
+    ]
+    
+    function SettingsSheet(props) {
+      var prefs = usePrefs()
+      var sleepRemaining = useCountdown(prefs.sleepDeadline)
+      var library = useStore(libraryStore)
+      var online = useStore(onlineStore)
+      var tabPair = useState('appearance')
+      var tab = tabPair[0]
+      var setTab = tabPair[1]
+      var cachePair = useState(null)
+      var cache = cachePair[0]
+      var setCache = cachePair[1]
+      var pathPair = useState('')
+      var rootDraft = pathPair[0]
+      var setRootDraft = pathPair[1]
+      var busyPair = useState(false)
+      var busy = busyPair[0]
+      var setBusy = busyPair[1]
+    
       useEffect(
         function () {
-          var alive = true
-          setLoading(true)
-          setError(null)
-          getJson(API + 'stats?range=' + encodeURIComponent(range))
+          if (tab !== 'cache' || props.open !== true) return undefined
+          var cancelled = false
+          getJson(API + 'online/cache')
             .then(function (body) {
-              if (!alive) return
-              var map = body.tracks !== null && typeof body.tracks === 'object' ? body.tracks : {}
-              var list = []
-              Object.keys(map).forEach(function (path) {
-                var stat = map[path]
-                var track = props.trackByPath[path] || null
-                var seconds = Number(stat.playSeconds) || 0
-                var plays = Number(stat.plays) || 0
-                if (seconds <= 0 && plays <= 0) return
-                list.push({
-                  path: path,
-                  track: track,
-                  title: track ? track.title : basenameOf(path),
-                  artist: track ? track.artist || '' : '',
-                  seconds: seconds,
-                  plays: plays,
-                  lastPlayedAt: Number(stat.lastPlayedAt) || 0,
-                  missing: track === null,
-                })
-              })
-              setRows(list)
-              setLoading(false)
+              if (!cancelled) setCache(body)
             })
-            .catch(function (cause) {
-              if (!alive) return
-              setError(cause && cause.message ? cause.message : String(cause))
-              setLoading(false)
+            .catch(function () {
+              if (!cancelled) setCache(null)
             })
           return function () {
-            alive = false
+            cancelled = true
           }
         },
-        [range, reload],
+        [tab, props.open],
       )
-
-      var sorted = useMemo(
-        function () {
-          var list = rows.slice()
-          list.sort(function (left, right) {
-            if (mode === 'recent') return right.lastPlayedAt - left.lastPlayedAt
-            if (sortBy === 'recent') return right.lastPlayedAt - left.lastPlayedAt
-            if (sortBy === 'plays') return right.plays - left.plays || right.seconds - left.seconds
-            return right.seconds - left.seconds || right.plays - left.plays
-          })
-          return list
-        },
-        [rows, sortBy, mode],
-      )
-
-      var totals = useMemo(
-        function () {
-          var seconds = 0
-          var plays = 0
-          rows.forEach(function (row) {
-            seconds += row.seconds
-            plays += row.plays
-          })
-          return { seconds: seconds, plays: plays, tracks: rows.length }
-        },
-        [rows],
-      )
-
-      var ranges = [
-        ['week', t('stats.rangeWeek')],
-        ['month', t('stats.rangeMonth')],
-        ['all', t('stats.rangeAll')],
-      ]
-      var sorts = [
-        ['seconds', t('stats.sortTime')],
-        ['plays', t('stats.sortPlays')],
-        ['recent', t('stats.sortRecent')],
-      ]
-      var modes = [
-        ['ranking', t('stats.modeRanking')],
-        ['recent', t('stats.modeRecent')],
-      ]
-
-      return h(
-        'div',
-        { className: 'mu-stats' },
-        h(
+    
+      if (props.open !== true) return null
+    
+      function patchPrefs(patch) {
+        setPrefs(patch)
+      }
+    
+      function layoutChoices() {
+        return h(
           'div',
-          { className: 'mu-stats-toolbar' },
+          { style: { display: 'flex', gap: '4px' } },
           h(
-            'div',
-            { className: 'mu-stats-group' },
-            modes.map(function (entry) {
-              return h(
-                'button',
-                {
-                  key: entry[0],
-                  type: 'button',
-                  className: 'mu-stats-chip' + (mode === entry[0] ? ' is-on' : ''),
-                  onClick: function () {
-                    setMode(entry[0])
-                    if (entry[0] === 'recent') setRange('all')
-                  },
-                },
-                entry[1],
-              )
+            'button',
+            {
+              type: 'button',
+              className: cx('mp-chip', prefs.layout === 'top' && 'is-on'),
+              onClick: function () {
+                patchPrefs({ layout: 'top' })
+              },
+            },
+            icon('list', 13),
+            t('v2.layoutTop'),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: cx('mp-chip', prefs.layout === 'rail' && 'is-on'),
+              onClick: function () {
+                patchPrefs({ layout: 'rail' })
+              },
+            },
+            icon('list', 13),
+            t('v2.layoutRail'),
+          ),
+        )
+      }
+    
+      function appearanceTab() {
+        return [
+          h('h2', { key: 'h' }, t('v2.appearance')),
+          h(
+            SetRow,
+            { key: 'layout', label: t('v2.layout'), desc: t('v2.layoutHint') },
+            layoutChoices(),
+          ),
+          h(
+            SetRow,
+            { key: 'spin', label: t('v2.spin'), desc: t('v2.spinDesc') },
+            h(Switch, {
+              value: prefs.coverSpin === true,
+              label: t('v2.spin'),
+              onChange: function (value) {
+                patchPrefs({ coverSpin: value })
+              },
             }),
           ),
           h(
-            'div',
-            { className: 'mu-stats-group' },
-            ranges.map(function (entry) {
-              return h(
-                'button',
-                {
-                  key: entry[0],
-                  type: 'button',
-                  className: 'mu-stats-chip' + (range === entry[0] ? ' is-on' : ''),
-                  onClick: function () {
-                    setRange(entry[0])
-                  },
-                },
-                entry[1],
-              )
+            SetRow,
+            { key: 'round', label: t('v2.roundCover'), desc: t('v2.roundCoverDesc') },
+            h(Switch, {
+              value: prefs.circularCover === true,
+              label: t('v2.roundCover'),
+              onChange: function (value) {
+                patchPrefs({ circularCover: value })
+              },
             }),
           ),
           h(
-            'div',
-            { className: 'mu-stats-group' },
-            sorts.map(function (entry) {
-              return h(
-                'button',
-                {
-                  key: entry[0],
-                  type: 'button',
-                  className: 'mu-stats-chip' + (sortBy === entry[0] ? ' is-on' : ''),
-                  onClick: function () {
-                    setSortBy(entry[0])
-                  },
-                },
-                entry[1],
-              )
+            SetRow,
+            { key: 'vinyl', label: t('v2.vinylRing'), desc: t('v2.vinylRingDesc') },
+            h(Switch, {
+              value: prefs.vinylRing === true,
+              label: t('v2.vinylRing'),
+              onChange: function (value) {
+                patchPrefs({ vinylRing: value })
+              },
             }),
           ),
-        ),
-        h(
-          'div',
-          { className: 'mu-stats-summary' },
           h(
-            'div',
-            { className: 'mu-stats-card' },
-            h('span', { className: 'mu-stats-card-icon' }, '⏱'),
+            SetRow,
+            { key: 'hostkit', label: t('v2.hostKit'), desc: t('v2.hostKitDesc') },
             h(
-              'div',
-              { className: 'mu-stats-card-body' },
-              h('div', { className: 'mu-stats-card-label' }, t('stats.totalTime')),
-              h('div', { className: 'mu-stats-card-value' }, fmtListenTime(totals.seconds)),
+              'span',
+              { className: 'mp-chip', style: { cursor: 'default' } },
+              hostUi ? t('v2.hostKitNative') : t('v2.hostKitFallback'),
+            ),
+          ),
+        ]
+      }
+    
+      function lyricsTab() {
+        return [
+          h('h2', { key: 'h' }, t('v2.lyrics')),
+          h(
+            SetRow,
+            { key: 'tr', label: t('page.translation') },
+            h(Switch, {
+              value: prefs.showTranslation === true,
+              onChange: function (value) {
+                patchPrefs({ showTranslation: value })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'size', label: t('page.lyricSize') },
+            h('input', {
+              type: 'range',
+              className: 'mp-range',
+              min: 14,
+              max: 26,
+              step: 1,
+              value: prefs.lyricSize,
+              onChange: function (event) {
+                patchPrefs({ lyricSize: Number(event.target.value) })
+              },
+            }),
+            h('span', { className: 'mp-set-val' }, String(prefs.lyricSize) + ' px'),
+          ),
+          h(
+            SetRow,
+            { key: 'scale', label: t('page.translationScale') },
+            h('input', {
+              type: 'range',
+              className: 'mp-range',
+              min: 60,
+              max: 100,
+              step: 5,
+              value: prefs.translationScale,
+              onChange: function (event) {
+                patchPrefs({ translationScale: Number(event.target.value) })
+              },
+            }),
+            h('span', { className: 'mp-set-val' }, String(prefs.translationScale) + '%'),
+          ),
+          h(
+            SetRow,
+            { key: 'order', label: t('settings.lyricOrder') },
+            h(
+              'select',
+              {
+                value: (prefs.lyricOrder || []).join(','),
+                onChange: function (event) {
+                  patchPrefs({ lyricOrder: event.target.value.split(',') })
+                },
+              },
+              h('option', { value: 'embedded,lrc' }, t('settings.lyricSourceEmbedded') + ' → LRC'),
+              h('option', { value: 'lrc,embedded' }, 'LRC → ' + t('settings.lyricSourceEmbedded')),
             ),
           ),
           h(
-            'div',
-            { className: 'mu-stats-card' },
-            h('span', { className: 'mu-stats-card-icon' }, '▶'),
+            SetRow,
+            { key: 'align', label: t('settings.lyricAlign') },
             h(
-              'div',
-              { className: 'mu-stats-card-body' },
-              h('div', { className: 'mu-stats-card-label' }, t('stats.totalPlays')),
-              h('div', { className: 'mu-stats-card-value' }, String(totals.plays)),
+              'select',
+              {
+                value: prefs.lyricAlign || 'center',
+                onChange: function (event) {
+                  patchPrefs({ lyricAlign: event.target.value })
+                },
+              },
+              h('option', { value: 'center' }, t('settings.alignCenter')),
+              h('option', { value: 'left' }, t('settings.alignLeft')),
+              h('option', { value: 'right' }, t('settings.alignRight')),
             ),
+          ),
+        ]
+      }
+    
+      function playbackTab() {
+        return [
+          h('h2', { key: 'h' }, t('v2.playback')),
+          h(
+            SetRow,
+            { key: 'resume', label: t('settings.resumeOnStart') },
+            h(Switch, {
+              value: prefs.resumeOnStart === true,
+              onChange: function (value) {
+                patchPrefs({ resumeOnStart: value })
+              },
+            }),
           ),
           h(
-            'div',
-            { className: 'mu-stats-card' },
-            h('span', { className: 'mu-stats-card-icon' }, '🎵'),
+            SetRow,
+            { key: 'auto', label: t('settings.autoResume') },
+            h(Switch, {
+              value: prefs.autoResume === true,
+              onChange: function (value) {
+                patchPrefs({ autoResume: value })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'per', label: t('settings.rememberPerTrack') },
+            h(Switch, {
+              value: prefs.rememberPerTrack === true,
+              onChange: function (value) {
+                patchPrefs({ rememberPerTrack: value })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'sleep', label: t('settings.sleepTimer') },
             h(
               'div',
-              { className: 'mu-stats-card-body' },
-              h('div', { className: 'mu-stats-card-label' }, t('stats.trackCount')),
-              h('div', { className: 'mu-stats-card-value' }, String(totals.tracks)),
-            ),
-          ),
-        ),
-        loading
-          ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-spinner' }), t('stats.loading'))
-          : error !== null
-            ? h(
-                'div',
-                { className: 'mu-state' },
-                h('div', { className: 'mu-state-title' }, t('stats.loadFailed')),
-                h('div', { className: 'mu-state-sub' }, error),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-btn',
-                    onClick: function () {
-                      setReload(reload + 1)
-                    },
+              { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
+              h(
+                'select',
+                {
+                  value: String(prefs.sleepTimerMinutes || 0),
+                  onChange: function (event) {
+                    var minutes = Number(event.target.value) || 0
+                    patchPrefs({
+                      sleepTimerMinutes: minutes,
+                      sleepDeadline: minutes > 0 ? Date.now() + minutes * 60000 : 0,
+                    })
                   },
-                  t('stats.retry'),
-                ),
-              )
-            : sorted.length === 0
-              ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-state-sub' }, t('stats.empty')))
-              : h(
-                  'div',
-                  { className: 'mu-stats-list' },
-                  sorted.map(function (row, index) {
-                    var isCurrent = props.currentPath !== undefined && props.currentPath === row.path
-                    return h(
-                      'div',
-                      {
-                        className: 'mu-row' + (isCurrent ? ' is-current' : ''),
-                        key: row.path,
-                        title: row.path,
-                        onDoubleClick: function () {
-                          if (row.track !== null && props.onActivate) props.onActivate(row.track)
-                        },
-                        onContextMenu: function (event) {
-                          event.preventDefault()
-                          event.stopPropagation()
-                          if (row.track !== null && props.onContextMenu) {
-                            props.onContextMenu(row.track, event.clientX, event.clientY)
-                          }
-                        },
+                },
+                [0, 15, 30, 60, 90].map(function (minutes) {
+                  return h(
+                    'option',
+                    { key: minutes, value: String(minutes) },
+                    minutes === 0 ? t('settings.sleepOff') : t('v2.minutes', { n: minutes }),
+                  )
+                }),
+              ),
+              sleepRemaining > 0
+                ? h('span', { className: 'mp-set-val' }, t('v2.sleepRemaining', { time: fmtClock(sleepRemaining / 1000) }))
+                : null,
+              sleepRemaining > 0
+                ? h(
+                    Button,
+                    {
+                      variant: 'ghost',
+                      onClick: function () {
+                        patchPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 })
                       },
-                      h(
-                        'button',
-                        {
-                          type: 'button',
-                          className: 'mu-row-play',
-                          title: t('page.play'),
-                          onClick: function (event) {
-                            event.stopPropagation()
-                            if (row.track !== null && props.onActivate) props.onActivate(row.track)
-                          },
-                          onDoubleClick: function (event) {
-                            event.stopPropagation()
-                          },
+                    },
+                    t('v2.sleepCancel'),
+                  )
+                : null,
+            ),
+          ),
+        ]
+      }
+    
+      function onlineTab() {
+        var providers = online.providers || {}
+        var rows = ['netease', 'qq', 'kugou'].map(function (provider) {
+          var info = providers[provider] || {}
+          var label =
+            provider === 'netease'
+              ? t('online.providerNetease')
+              : provider === 'qq'
+                ? t('online.providerQq')
+                : t('online.providerKugou')
+          return h(
+            SetRow,
+            { key: provider, label: label, desc: info.loggedIn ? info.nickname || t('online.loggedIn') : t('online.loggedOut') },
+            info.loggedIn
+              ? h(Button, {
+                  variant: 'ghost',
+                  icon: 'logout',
+                  onClick: function () {
+                    void logoutProvider(provider)
+                  },
+                  children: t('online.logout'),
+                })
+              : h(Button, {
+                  variant: 'primary',
+                  icon: 'qr',
+                  onClick: function () {
+                    pushLayer('login', { provider: provider, mode: 'qq' })
+                  },
+                  children: t('online.login'),
+                }),
+          )
+        })
+        rows.unshift(h('h2', { key: 'h' }, t('v2.online')))
+        rows.push(
+          h(
+            'p',
+            { key: 'hint', className: 'mp-set-desc' },
+            t('online.settingsHint'),
+          ),
+        )
+        return rows
+      }
+    
+      function libraryTab() {
+        var config = library.config || { roots: [], hiddenRoots: [], depth: 4 }
+        var roots = Array.isArray(config.roots) ? config.roots : []
+        var hiddenRoots = Array.isArray(config.hiddenRoots) ? config.hiddenRoots : []
+        function setRootVisible(root, visible) {
+          var next = hiddenRoots.slice()
+          var at = next.indexOf(root)
+          if (visible && at >= 0) next.splice(at, 1)
+          if (!visible && at < 0) next.push(root)
+          void saveConfig({ hiddenRoots: next })
+        }
+        return [
+          h('h2', { key: 'h' }, t('v2.library')),
+          roots.length === 0
+            ? h('p', { key: 'empty', className: 'mp-set-desc' }, t('v2.noTracksHint'))
+            : h(
+                'div',
+                { key: 'roots' },
+                roots.map(function (root) {
+                  return h(
+                    SetRow,
+                    {
+                      key: root,
+                      label: root,
+                      desc: hiddenRoots.indexOf(root) >= 0 ? t('v2.folderHidden') : t('v2.folderVisible'),
+                    },
+                    h(
+                      'div',
+                      { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
+                      h(Switch, {
+                        value: hiddenRoots.indexOf(root) < 0,
+                        label: hiddenRoots.indexOf(root) >= 0 ? t('v2.folderHidden') : t('v2.folderVisible'),
+                        onChange: function (visible) {
+                          setRootVisible(root, visible)
                         },
-                        h(Cover, { track: row.track, size: 60, radius: 8 }),
-                      ),
-                      h(
-                        'div',
-                        { className: 'mu-row-main' },
-                        h('div', { className: 'mu-row-title' }, row.title),
-                        h(
-                          'div',
-                          { className: 'mu-row-sub' },
-                          row.artist || (row.missing ? t('stats.unavailable') : ''),
-                        ),
-                      ),
-                      h(
-                        'div',
-                        { className: 'mu-row-album mu-ellipsis' },
-                        fmtListenTime(row.seconds),
-                      ),
-                      h('div', { className: 'mu-row-dur' }, t('stats.plays', { n: row.plays })),
-                      h('div', { className: 'mu-row-actions mu-stats-last' }, fmtRecent(row.lastPlayedAt)),
-                    )
-                  }),
-                ),
+                      }),
+                      h(Button, {
+                        variant: 'ghost',
+                        icon: 'trash',
+                        onClick: function () {
+                          var next = roots.filter(function (item) {
+                            return item !== root
+                          })
+                          void saveConfig({ roots: next })
+                        },
+                        children: t('page.delete'),
+                      }),
+                    ),
+                  )
+                }),
+              ),
+          h(
+            'div',
+            { key: 'add', style: { display: 'flex', gap: '8px', paddingTop: '12px' } },
+            h('input', {
+              type: 'text',
+              className: 'mp-kit-input',
+              value: rootDraft,
+              placeholder: 'D:\\Music',
+              onChange: function (event) {
+                setRootDraft(event.target.value)
+              },
+              onKeyDown: function (event) {
+                if (event.key === 'Enter') addRoot()
+              },
+            }),
+            h(Button, { variant: 'ghost', icon: 'folder', onClick: function () { pushLayer('folderPicker') } }, t('v2.folderBrowse')),
+            h(Button, {
+              variant: 'primary',
+              icon: 'plus',
+              disabled: busy || rootDraft.trim() === '',
+              onClick: addRoot,
+              children: t('page.create'),
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'depth', label: t('settings.depth'), desc: t('settings.depthHint') },
+            h(
+              'select',
+              {
+                value: String(config.depth || 4),
+                onChange: function (event) {
+                  void saveConfig({ depth: Number(event.target.value) })
+                },
+              },
+              [1, 2, 3, 4, 5, 6].map(function (n) {
+                return h('option', { key: n, value: String(n) }, String(n))
+              }),
+            ),
+          ),
+          h(
+            'div',
+            { key: 'scan', style: { display: 'flex', justifyContent: 'flex-end', paddingTop: '12px' } },
+            h(Button, {
+              icon: 'refresh',
+              disabled: busy,
+              onClick: function () {
+                void loadLibrary(true)
+                showToast(t('page.scanning'))
+              },
+              children: t('page.refresh'),
+            }),
+          ),
+          h(
+            'div',
+            { key: 'trash', style: { display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '10px' } },
+            h('span', { className: 'mp-set-desc', style: { flex: '1' } }, t('v2.trashHint')),
+            h(Button, { icon: 'trash', onClick: function () { pushLayer('trash', {}) } }, t('v2.trash')),
+          ),
+        ]
+      }
+    
+      function addRoot() {
+        var value = rootDraft.trim()
+        if (value === '' || busy) return
+        var config = library.config || { roots: [] }
+        var roots = Array.isArray(config.roots) ? config.roots.slice() : []
+        if (roots.indexOf(value) >= 0) return
+        roots.push(value)
+        setBusy(true)
+        saveConfig({ roots: roots }).then(function (ok) {
+          setBusy(false)
+          if (ok) {
+            setRootDraft('')
+            showToast(t('page.addedCount', { n: roots.length }))
+          }
+        })
+      }
+    
+      function cacheTab() {
+        var stats = cache || { files: 0, bytes: 0, maxBytes: 0 }
+        return [
+          h('h2', { key: 'h' }, t('v2.cacheTab')),
+          h(
+            SetRow,
+            { key: 'size', label: t('online.cacheSize', { files: stats.files || 0, n: fmtBytes(stats.bytes || 0) }), desc: t('online.cacheList') },
+            h(Button, {
+              variant: 'ghost',
+              icon: 'trash',
+              onClick: function () {
+                postJson(API + 'online/cache', {})
+                  .then(function () {
+                    setCache({ files: 0, bytes: 0, maxBytes: stats.maxBytes || 0 })
+                    showToast(t('online.cacheCleared'))
+                  })
+                  .catch(function (error) {
+                    showToast(errorText(error))
+                  })
+              },
+              children: t('online.clearCache'),
+            }),
+          ),
+          h(
+            'p',
+            { key: 'hint', className: 'mp-set-desc' },
+            'Cached audio is reused by the stream route; deleting it only costs a refetch.',
+          ),
+        ]
+      }
+    
+      var body =
+        tab === 'appearance'
+          ? appearanceTab()
+          : tab === 'lyrics'
+            ? lyricsTab()
+            : tab === 'playback'
+              ? playbackTab()
+              : tab === 'online'
+                ? onlineTab()
+                : tab === 'library'
+                  ? libraryTab()
+                  : cacheTab()
+    
+      return h(
+        KitModal,
+        { headless: true, onClose: props.onClose, className: 'mp-kit-sheet' },
+        h(
+          'div',
+          { className: 'mp-sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('page.settings') },
+          h(
+            'div',
+            { className: 'mp-sheet-nav' },
+            h('div', { className: 'mp-sheet-title' }, t('page.settings')),
+            SETTINGS_TABS.map(function (item) {
+              return h(
+                'button',
+                {
+                  key: item.key,
+                  type: 'button',
+                  className: cx('mp-sheet-tab', tab === item.key && 'is-on'),
+                  onClick: function () {
+                    setTab(item.key)
+                  },
+                },
+                t(item.label),
+              )
+            }),
+            h(
+              'div',
+              { style: { marginTop: 'auto' } },
+              h('button', { type: 'button', className: 'mp-sheet-tab', onClick: props.onClose }, t('v2.close')),
+            ),
+          ),
+          h('div', { className: 'mp-sheet-body' }, body),
+        ),
       )
     }
 
-    function MusicPanel() {
-      var prefs = useRef(readPrefs()).current
-      var [snap, setSnap] = useState(player.getSnapshot())
-      var leaderNow = player.isLeader()
-      var [config, setConfig] = useState(null)
-      var [tracks, setTracks] = useState([])
-      var [loading, setLoading] = useState(true)
-      var [error, setError] = useState(null)
-      var [warnings, setWarnings] = useState([])
-      var [query, setQuery] = useState('')
-      var [searchHistory, setSearchHistory] = useState(function () {
-        try {
-          var raw = window.localStorage.getItem('dsh-music.search-history')
-          var parsed = raw === null ? [] : JSON.parse(raw)
-          return Array.isArray(parsed)
-            ? parsed.filter(function (item) {
-                return typeof item === 'string' && item !== ''
-              }).slice(0, 8)
-            : []
-        } catch (error) {
-          return []
-        }
-      })
-
-      function pushSearchHistory(value) {
-        var text = String(value || '').trim()
-        if (text === '') return
-        setSearchHistory(function (previous) {
-          var next = [text]
-            .concat(
-              previous.filter(function (item) {
-                return item !== text
-              }),
-            )
-            .slice(0, 8)
-          try {
-            window.localStorage.setItem('dsh-music.search-history', JSON.stringify(next))
-          } catch (error) {
-            // Private mode: history stays in memory.
+    // ── src/ui/07-dialogs.js
+    /**
+     * dialogs: context menu, login, tag editor, add-to-playlist, confirm and toast.
+     */
+    
+    function ContextMenu(props) {
+      var layer = props.layer
+      var track = layer.props.track
+      var online = typeof track.onlineProvider === 'string' && track.onlineProvider !== ''
+      var favorite = libraryStore.get().favorites.indexOf(track.path) >= 0
+      var items = []
+      var likedPair = useState(false)
+      var liked = likedPair[0]
+      var setLiked = likedPair[1]
+    
+      useEffect(
+        function () {
+          if (!online) return undefined
+          var cancelled = false
+          getJson(
+            API +
+              'online/liked?provider=' +
+              encodeURIComponent(track.onlineProvider) +
+              '&id=' +
+              encodeURIComponent(track.onlineId || ''),
+          )
+            .then(function (body) {
+              if (!cancelled) setLiked(body.liked === true)
+            })
+            .catch(function () {
+              // Not signed in / unavailable: keep the neutral state.
+            })
+          return function () {
+            cancelled = true
           }
+        },
+        [online, track.onlineProvider, track.onlineId],
+      )
+    
+      useEffect(function () {
+        if (hostComponent('Menu') !== null) return undefined
+        function onDown(event) {
+          var node = event.target
+          if (node && typeof node.closest === 'function' && node.closest('.mp-ctx')) return
+          removeLayer('menu')
+        }
+        function onScroll() {
+          removeLayer('menu')
+        }
+        document.addEventListener('pointerdown', onDown, true)
+        window.addEventListener('scroll', onScroll, true)
+        window.addEventListener('resize', onScroll)
+        return function () {
+          document.removeEventListener('pointerdown', onDown, true)
+          window.removeEventListener('scroll', onScroll, true)
+          window.removeEventListener('resize', onScroll)
+        }
+      }, [])
+    
+      var selection = selectionStore.get()
+      var multi =
+        selection.active === true &&
+        selection.paths.length > 0 &&
+        selection.paths.indexOf(track.path) >= 0
+      if (multi) {
+        var selectedPaths = selection.paths.slice()
+        if (online) {
+          if (typeof layer.props.playSelected === 'function') {
+            items.push({
+              key: 'play',
+              icon: 'play',
+              label: t('page.playSelected'),
+              run: function () {
+                layer.props.playSelected()
+              },
+            })
+          }
+          items.push({
+            key: 'select-none',
+            icon: 'x',
+            label: t('page.selectNone'),
+            run: clearSelection,
+          })
+          items.push({
+            key: 'done',
+            icon: 'check',
+            label: t('page.done'),
+            run: function () {
+              setSelectionMode(false)
+            },
+          })
+          } else {
+        var library = libraryStore.get()
+        var favoriteSet = {}
+        ;(library.favorites || []).forEach(function (path) {
+          favoriteSet[path] = true
+        })
+        var allFavorite = selectedPaths.every(function (path) {
+          return favoriteSet[path] === true
+        })
+        var selectedTracks = (library.tracks || []).filter(function (item) {
+          return selectedPaths.indexOf(item.path) >= 0
+        })
+        if (Array.isArray(layer.props.visiblePaths) && layer.props.visiblePaths.length > 0) {
+          var visiblePaths = layer.props.visiblePaths
+          items.push({
+            key: 'select-all',
+            icon: 'checkCircle',
+            label: t('page.selectAll'),
+            run: function () {
+              selectAllPaths(visiblePaths)
+            },
+          })
+        }
+        items.push({
+          key: 'select-none',
+          icon: 'x',
+          label: t('page.selectNone'),
+          run: clearSelection,
+        })
+        items.push({
+          key: 'done',
+          icon: 'check',
+          label: t('page.done'),
+          run: function () {
+            setSelectionMode(false)
+          },
+        })
+        items.push({ key: 'sep-select', separator: true })
+        items.push({
+          key: 'play',
+          icon: 'play',
+          label: t('page.playSelected'),
+          run: function () {
+            if (selectedTracks.length > 0) player.playList(selectedTracks, 0)
+          },
+        })
+        items.push({
+          key: 'fav',
+          icon: 'heart',
+          label: allFavorite ? t('page.unfavorite') : t('page.favoriteSelected'),
+          run: function () {
+            var targets = allFavorite
+              ? selectedPaths.slice()
+              : selectedPaths.filter(function (path) {
+                  return favoriteSet[path] !== true
+                })
+            void (async function () {
+              try {
+                for (var index = 0; index < targets.length; index += 1) await toggleFavorite(targets[index])
+                showToast(allFavorite ? t('page.unfavorite') : t('page.favoriteSelected'))
+              } catch (error) {
+                showToast(errorText(error))
+              }
+            })()
+          },
+        })
+        items.push({
+          key: 'add',
+          icon: 'plus',
+          label: t('page.addToPlaylist'),
+          run: function () {
+            pushLayer('addTo', { paths: selectedPaths.slice() })
+          },
+        })
+        items.push({
+          key: 'batch',
+          icon: 'edit',
+          label: t('page.batchEdit'),
+          run: function () {
+            pushLayer('batchEdit', { paths: selectedPaths.slice() })
+          },
+        })
+        items.push({ key: 'sep-multi', separator: true })
+        items.push({
+          key: 'delete',
+          icon: 'trash',
+          label: t('page.delete'),
+          danger: true,
+          run: function () {
+            var paths = selectedPaths.slice()
+            pushLayer('confirm', {
+              title: t('page.delete'),
+              text: t('v2.removeSelectedConfirm', { n: paths.length }),
+              onConfirm: function () {
+                removeTracks(paths)
+                  .then(function (body) {
+                    showToast(t('v2.removed', { n: (body.moved || []).length }))
+                  })
+                  .catch(function (error) {
+                    showToast(errorText(error))
+                  })
+              },
+            })
+          },
+        })
+        }
+      } else {
+      items.push({
+        key: 'play',
+        icon: 'play',
+        label: t('page.play'),
+        run: function () {
+          if (layer.props.onPlay) layer.props.onPlay(track)
+          else player.playList([track], 0)
+        },
+      })
+      items.push({
+        key: 'next',
+        icon: 'list',
+        label: t('page.next'),
+        run: function () {
+          player.enqueue(track)
+          showToast(t('page.addedToPlaylist'))
+        },
+      })
+      if (online) {
+        items.push({
+          key: 'fav',
+          icon: liked ? 'heartFill' : 'heart',
+          label: liked ? t('page.unfavorite') : t('page.favorite'),
+          run: function () {
+            var next = !liked
+            postJson(API + 'online/like', { provider: track.onlineProvider, song: track, on: next })
+              .then(function () {
+                setLiked(next)
+                showToast(next ? t('page.favorite') : t('page.unfavorite'))
+              })
+              .catch(function (error) {
+                showToast(errorText(error))
+              })
+          },
+        })
+        items.push({
+          key: 'add-cloud',
+          icon: 'plus',
+          label: t('online.addToCloudPlaylist'),
+          run: function () {
+            pushLayer('onlineAddTo', { track: track })
+          },
+        })
+      } else {
+        items.push({
+          key: 'fav',
+          icon: favorite ? 'heartFill' : 'heart',
+          label: favorite ? t('page.unfavorite') : t('page.favorite'),
+          run: function () {
+            void toggleFavorite(track.path)
+          },
+        })
+        items.push({
+          key: 'add',
+          icon: 'plus',
+          label: t('page.addToPlaylist'),
+          run: function () {
+            pushLayer('addTo', { track: track })
+          },
+        })
+      }
+      if (layer.props.onRemove) {
+        items.push({
+          key: 'remove',
+          icon: 'trash',
+          label: online ? t('online.removeFromHistory') : t('page.removeTrack'),
+          run: layer.props.onRemove,
+        })
+      }
+      items.push({ key: 'sep1', separator: true })
+      if (!online) {
+        items.push({
+          key: 'tags',
+          icon: 'edit',
+          label: t('page.editMeta'),
+          run: function () {
+            pushLayer('tag', { path: track.path })
+          },
+        })
+        items.push({
+          key: 'reveal',
+          icon: 'folder',
+          label: t('page.reveal'),
+          run: function () {
+            postJson(API + 'reveal', { path: track.path })
+              .then(function () {
+                showToast(t('page.revealed'))
+              })
+              .catch(function (error) {
+                showToast(errorText(error))
+              })
+          },
+        })
+      }
+      if (!online) {
+        items.push({
+          key: 'copy',
+          icon: 'copy',
+          label: t('page.copyPath'),
+          run: function () {
+            var path = track.path
+            try {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                void navigator.clipboard.writeText(path)
+              }
+            } catch (error) {
+              // Clipboard can be blocked; the toast still confirms the intent.
+            }
+            showToast(t('page.copied'))
+          },
+        })
+      }
+    
+        }
+    var width = 190
+      var height = items.length * 32 + 8
+      var left = Math.min(layer.props.x || 0, Math.max(8, window.innerWidth - width - 12))
+      var top = Math.min(layer.props.y || 0, Math.max(8, window.innerHeight - height - 12))
+    
+      var HostMenu = hostComponent('Menu')
+      if (HostMenu !== null) {
+        var hostItems = items.map(function (item) {
+          if (item.separator) return { type: 'separator', id: item.key }
+          return { id: item.key, label: item.label, icon: icon(item.icon, 14) }
+        })
+        return h(HostMenu, {
+          open: true,
+          anchor: null,
+          items: hostItems,
+          contextual: true,
+          portal: true,
+          side: 'bottom',
+          align: 'start',
+          getAnchorRect: function () {
+            return { left: left, top: top, right: left, bottom: top, width: 0, height: 0, x: left, y: top }
+          },
+          onSelect: function (id) {
+            popLayer()
+            var chosen = null
+            items.forEach(function (item) {
+              if (chosen === null && item.key === id) chosen = item
+            })
+            if (chosen !== null && typeof chosen.run === 'function') chosen.run()
+          },
+          onClose: function () {
+            popLayer()
+          },
+        })
+      }
+    
+      return h(
+        'div',
+        { className: 'mp-ctx', style: { left: left + 'px', top: top + 'px' }, role: 'menu' },
+        items.map(function (item) {
+          if (item.separator) return h('hr', { key: item.key })
+          return h(
+            'button',
+            {
+              key: item.key,
+              type: 'button',
+              role: 'menuitem',
+              onClick: function () {
+                popLayer()
+                item.run()
+              },
+            },
+            icon(item.icon, 14),
+            item.label,
+          )
+        }),
+      )
+    }
+    
+    function AddToPlaylistDialog(props) {
+      var library = useStore(libraryStore)
+      var layerProps = props.layer.props || {}
+      var paths = Array.isArray(layerProps.paths)
+        ? layerProps.paths.slice()
+        : layerProps.track
+          ? [layerProps.track.path]
+          : []
+      var playlists = library.playlists
+      var pair = useState('')
+      var name = pair[0]
+      var setName = pair[1]
+      var busyPair = useState(false)
+      var busy = busyPair[0]
+      var setBusy = busyPair[1]
+    
+      function addTo(id) {
+        if (busy || paths.length === 0) return
+        setBusy(true)
+        addToPlaylist(id, paths).then(function (ok) {
+          setBusy(false)
+          if (ok) {
+            popLayer()
+            showToast(t('page.addedToPlaylist'))
+          }
+        })
+      }
+    
+      function createAndAdd() {
+        var value = name.trim()
+        if (value === '' || busy) return
+        setBusy(true)
+        createPlaylist(value).then(function (created) {
+          if (created && created.id) return addToPlaylist(created.id, paths)
+          return false
+        }).then(function (ok) {
+          setBusy(false)
+          if (ok !== false) {
+            popLayer()
+            showToast(t('page.addedToPlaylist'))
+          }
+        })
+      }
+    
+      return h(
+        KitModal,
+        {
+          title: t('page.addToPlaylist'),
+          small: true,
+          onClose: popLayer,
+        },
+        playlists.length === 0
+          ? h('p', { className: 'mp-set-desc' }, t('v2.noPlaylists'))
+          : playlists.map(function (playlist) {
+              return h(
+                'button',
+                {
+                  key: playlist.id,
+                  type: 'button',
+                  className: 'mp-srow',
+                  onClick: function () {
+                    addTo(playlist.id)
+                  },
+                },
+                h('div', { className: 'mp-srow-cover' }, icon('list', 16)),
+                h(
+                  'div',
+                  { className: 'mp-srow-main' },
+                  h('div', { className: 'mp-srow-title' }, playlist.name),
+                  h('div', { className: 'mp-srow-sub' }, (playlist.trackPaths || []).length + ''),
+                ),
+                icon('chevronRight', 14),
+              )
+            }),
+        h(
+          'div',
+          { style: { display: 'flex', gap: '8px', paddingTop: '6px' } },
+          h('input', {
+            type: 'text',
+            value: name,
+            placeholder: t('v2.newPlaylist'),
+            className: 'mp-kit-input',
+            onChange: function (event) {
+              setName(event.target.value)
+            },
+          }),
+          h(Button, { variant: 'primary', icon: 'plus', disabled: busy, onClick: createAndAdd }, t('page.create')),
+        ),
+      )
+    }
+    
+    function LoginDialog(props) {
+      var provider = props.layer.props.provider || 'netease'
+      var mode = props.layer.props.mode || 'qq'
+      var qrPair = useState(null)
+      var qr = qrPair[0]
+      var setQr = qrPair[1]
+      var statusPair = useState('waiting')
+      var status = statusPair[0]
+      var setStatus = statusPair[1]
+      var errorPair = useState('')
+      var error = errorPair[0]
+      var setError = errorPair[1]
+    
+      useEffect(
+        function () {
+          var cancelled = false
+          var timer = null
+          startProviderLogin(provider, mode)
+            .then(function (body) {
+              if (cancelled) return
+              setQr(body)
+              timer = setInterval(function () {
+                checkProviderLogin(provider, body.key, body.mode || mode)
+                  .then(function (next) {
+                    if (cancelled) return
+                    setStatus(next)
+                    if (next === 'success') {
+                      clearInterval(timer)
+                      timer = null
+                      void loadProviders()
+                      showToast(t('online.loginSuccess'))
+                      popLayer()
+                    }
+                    if (next === 'expired' || next === 'failed') {
+                      clearInterval(timer)
+                      timer = null
+                    }
+                  })
+                  .catch(function (pollError) {
+                    if (cancelled) return
+                    setError(errorText(pollError))
+                  })
+              }, 2000)
+            })
+            .catch(function (startError) {
+              if (cancelled) return
+              setError(errorText(startError))
+            })
+          return function () {
+            cancelled = true
+            if (timer !== null) clearInterval(timer)
+          }
+        },
+        [provider, mode],
+      )
+    
+      var providerLabel =
+        provider === 'netease'
+          ? t('online.providerNetease')
+          : provider === 'qq'
+            ? t('online.providerQq')
+            : t('online.providerKugou')
+    
+      return h(
+        KitModal,
+        {
+          title: t('online.loginTitle', { provider: providerLabel }),
+          small: true,
+          onClose: popLayer,
+        },
+        h(
+          'div',
+          { className: 'mp-kit-center' },
+          h(
+            'div',
+            { className: 'mp-qr' },
+            qr && qr.imageDataUrl
+              ? h('img', { src: qr.imageDataUrl, alt: '' })
+              : h('span', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-tertiary,#8a8a93)' } }, '…'),
+          ),
+          h('div', { className: 'mp-qr-hint' }, t('online.loginHint')),
+          h(
+            'div',
+            { className: 'mp-qr-hint' },
+            error !== ''
+              ? error
+              : status === 'scanned'
+                ? t('online.statusscanned')
+                : status === 'success'
+                  ? t('online.statussuccess')
+                  : status === 'expired'
+                    ? t('online.statusexpired')
+                    : t('online.statuswaiting'),
+          ),
+        ),
+      )
+    }
+    
+    var TAG_FIELDS = [
+      ['title', 'page.metaTitle'],
+      ['artist', 'page.artist'],
+      ['album', 'page.album'],
+      ['albumArtist', 'page.albumArtist'],
+      ['year', 'page.year'],
+      ['genre', 'page.genre'],
+      ['track', 'page.trackNo'],
+      ['disc', 'page.discNo'],
+      ['composer', 'page.composer'],
+      ['lyricist', 'page.lyricist'],
+      ['comment', 'page.comment'],
+    ]
+    
+    var TAG_MATCH_FIELDS = [
+      ['title', 'page.metaTitle'],
+      ['artist', 'page.artist'],
+      ['album', 'page.album'],
+      ['year', 'page.year'],
+      ['genre', 'page.genre'],
+      ['track', 'page.trackNo'],
+      ['disc', 'page.discNo'],
+    ]
+    
+    function tagSourceLabel(source) {
+      if (source === 'netease') return t('page.sourceNetease')
+      if (source === 'qq') return t('page.sourceQq')
+      if (source === 'itunes') return t('page.sourceItunes')
+      if (source === 'musicbrainz') return t('page.sourceMusicbrainz')
+      return String(source || '')
+    }
+    
+    function TagDialog(props) {
+      var path = props.layer.props.path
+      var tagsPair = useState(null)
+      var tags = tagsPair[0]
+      var setTags = tagsPair[1]
+      var errorPair = useState('')
+      var error = errorPair[0]
+      var setError = errorPair[1]
+      var busyPair = useState(false)
+      var busy = busyPair[0]
+      var setBusy = busyPair[1]
+      var formPair = useState({})
+      var form = formPair[0]
+      var setForm = formPair[1]
+      var coverPair = useState(null)
+      var coverPreview = coverPair[0]
+      var setCoverPreview = coverPair[1]
+      var matchPair = useState(false)
+      var matchOpen = matchPair[0]
+      var setMatchOpen = matchPair[1]
+      var matchPhasePair = useState('idle')
+      var matchPhase = matchPhasePair[0]
+      var setMatchPhase = matchPhasePair[1]
+      var matchListPair = useState([])
+      var matchResults = matchListPair[0]
+      var setMatchResults = matchListPair[1]
+    
+      useEffect(
+        function () {
+          var cancelled = false
+          getJson(API + 'tags?path=' + encodeURIComponent(path))
+            .then(function (body) {
+              if (cancelled) return
+              var loaded = body.tags || {}
+              setTags(loaded)
+              var next = {}
+              TAG_FIELDS.forEach(function (entry) {
+                var value = loaded[entry[0]]
+                next[entry[0]] = value === undefined || value === null ? '' : String(value)
+              })
+              next.lyrics = typeof loaded.lyrics === 'string' ? loaded.lyrics : ''
+              setForm(next)
+            })
+            .catch(function (loadError) {
+              if (!cancelled) setError(errorText(loadError))
+            })
+          return function () {
+            cancelled = true
+          }
+        },
+        [path],
+      )
+    
+      function setField(key, value) {
+        setForm(function (previous) {
+          var next = Object.assign({}, previous)
+          next[key] = value
           return next
         })
       }
-      var [searchOpen, setSearchOpen] = useState(true)
-      var [sortBy, setSortBy] = useState(prefs.sortBy || 'title')
-      var [sortDir, setSortDir] = useState(prefs.sortDir === 'desc' ? 'desc' : 'asc')
-      var [sortOpen, setSortOpen] = useState(false)
-      var [selected, setSelected] = useState([])
-      var [viewMode, setViewMode] = useState(function () {
-        return readPrefs().viewMode === 'grid' ? 'grid' : 'list'
-      })
-      var [queueOpen, setQueueOpen] = useState(queueOverlaySnapshot())
-      useEffect(function () {
-        return subscribeQueueOverlay(function () {
-          setQueueOpen(queueOverlaySnapshot())
+    
+      function field(key) {
+        return h(
+          'div',
+          { className: 'mp-field' },
+          h('label', null, t(TAG_FIELDS.find(function (entry) { return entry[0] === key })[1])),
+          h('input', {
+            type: 'text',
+            value: form[key] || '',
+            onChange: function (event) {
+              setField(key, event.target.value)
+            },
+          }),
+        )
+      }
+    
+      function runMatch() {
+        if (matchPhase === 'loading') return
+        setMatchOpen(true)
+        setMatchPhase('loading')
+        setMatchResults([])
+        setError('')
+        postJson(API + 'online-search', {
+          title: form.title || '',
+          artist: form.artist || '',
+          album: form.album || '',
         })
-      }, [])
+          .then(function (body) {
+            setMatchResults(Array.isArray(body.results) ? body.results : [])
+            setMatchPhase('ready')
+          })
+          .catch(function (matchError) {
+            setError(errorText(matchError))
+            setMatchPhase('error')
+          })
+      }
+    
+      function pickMatch(item) {
+        var next = Object.assign({}, form)
+        ;['title', 'artist', 'album', 'year', 'track', 'disc', 'genre'].forEach(function (key) {
+          if (item[key] !== undefined && item[key] !== null && String(item[key]) !== '') {
+            next[key] = String(item[key])
+          }
+        })
+        setForm(next)
+        if (item.coverUrl) setCoverPreview(item.coverUrl)
+        setMatchOpen(false)
+        setMatchPhase('idle')
+      }
+    
+      function applyMatchField(item, key) {
+        if (key === 'cover') {
+          if (item.coverUrl) setCoverPreview(item.coverUrl)
+          return
+        }
+        if (item[key] === undefined || item[key] === null || String(item[key]) === '') return
+        setField(key, String(item[key]))
+      }
+    
+      function openOnlineLyric() {
+        pushLayer('onlineLyric', {
+          track: { path: path, title: form.title || '', artist: form.artist || '' },
+          onApply: function (lrc) {
+            setField('lyrics', lrc)
+          },
+        })
+      }
+    
+      function save() {
+        if (busy) return
+        setBusy(true)
+        setError('')
+        var current = player.getSnapshot()
+        var playingThis =
+          current.index >= 0 && current.queue[current.index] && current.queue[current.index].path === path
+        if (playingThis) player.suspend()
+        function restorePlayback() {
+          if (playingThis && !player.getSnapshot().playing) player.toggle()
+        }
+        sendJson('PUT', API + 'tags', {
+          path: path,
+          tags: form,
+          coverUrl: coverPreview || '',
+        })
+          .then(function () {
+            setBusy(false)
+            restorePlayback()
+            popLayer()
+            showToast(t('page.metaSaved'))
+            void loadLibrary(true)
+          })
+          .catch(function (saveError) {
+            setBusy(false)
+            restorePlayback()
+            setError(errorText(saveError))
+          })
+      }
+    
+      var coverSrc =
+        coverPreview !== null && coverPreview !== undefined
+          ? API + 'online/cover?url=' + encodeURIComponent(coverPreview)
+          : API + 'cover?path=' + encodeURIComponent(path)
+    
+      return h(
+        KitModal,
+        {
+          title: t('page.editMeta'),
+          onClose: popLayer,
+          footer: [
+            h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
+            h(
+              Button,
+              {
+                key: 'save',
+                variant: 'primary',
+                disabled: busy,
+                onClick: save,
+              },
+              busy ? t('page.saving') : t('page.save'),
+            ),
+          ],
+        },
+    h(
+            'div',
+            { className: 'mp-kit-body' },
+            error !== '' ? h('div', { className: 'mp-qr-hint' }, error) : null,
+            h(
+              'div',
+              { className: 'mp-tag-cover-row' },
+              h(Cover, { src: coverSrc, className: 'mp-tag-cover', iconSize: 44 }),
+              h(
+                'div',
+                { className: 'mp-tag-cover-actions' },
+                h(Button, { icon: 'search', onClick: runMatch, disabled: matchPhase === 'loading' }, t('v2.match')),
+                coverPreview !== null
+                  ? h(Button, { variant: 'ghost', icon: 'refresh', onClick: function () { setCoverPreview(null) } }, t('page.resetCover'))
+                  : null,
+                h('div', { className: 'mp-set-desc' }, t('page.metaHint')),
+              ),
+            ),
+            matchOpen
+              ? h(
+                  'div',
+                  { className: 'mp-match' },
+                  h(
+                    'div',
+                    { className: 'mp-match-head' },
+                    h('span', null, t('page.onlineResults')),
+                    h('div', { className: 'mp-spacer', style: { marginLeft: 'auto' } }),
+                    h(IconButton, {
+                      icon: 'x',
+                      size: 14,
+                      title: t('v2.close'),
+                      onClick: function () {
+                        setMatchOpen(false)
+                      },
+                    }),
+                  ),
+                  matchPhase === 'loading'
+                    ? h('div', { className: 'mp-empty', style: { padding: '18px' } }, h(Spinner), t('page.onlineLoading'))
+                    : matchResults.length === 0
+                      ? h('div', { className: 'mp-empty', style: { padding: '18px' } }, t('page.onlineEmpty'))
+                      : matchResults.map(function (item, index) {
+                          var chipFields = TAG_MATCH_FIELDS.filter(function (entry) {
+                            return item[entry[0]] !== undefined && item[entry[0]] !== null && String(item[entry[0]]) !== ''
+                          })
+                          if (item.coverUrl) chipFields.push(['cover', 'v2.cover'])
+                          return h(
+                            'div',
+                            { key: String(index), className: 'mp-match-row' },
+                            h(
+                              'button',
+                              {
+                                type: 'button',
+                                className: 'mp-match-item',
+                                onClick: function () {
+                                  pickMatch(item)
+                                },
+                              },
+                              item.coverUrl
+                                ? h(Cover, {
+                                    src: API + 'online/cover?url=' + encodeURIComponent(item.coverUrl),
+                                    className: 'mp-match-cover',
+                                    iconSize: 16,
+                                  })
+                                : h('div', { className: 'mp-match-cover' }, icon('note', 16)),
+                              h(
+                                'div',
+                                { className: 'mp-match-main' },
+                                h('div', { className: 'mp-srow-title' }, item.title || ''),
+                                h(
+                                  'div',
+                                  { className: 'mp-srow-sub' },
+                                  [item.artist, item.album, item.year, tagSourceLabel(item.source)]
+                                    .filter(function (part) {
+                                      return part !== '' && part !== undefined && part !== null
+                                    })
+                                    .join(' · '),
+                                ),
+                              ),
+                            ),
+                            chipFields.length > 0
+                              ? h(
+                                  'div',
+                                  { className: 'mp-match-fields' },
+                                  chipFields.map(function (entry) {
+                                    return h(
+                                      'button',
+                                      {
+                                        key: entry[0],
+                                        type: 'button',
+                                        className: 'mp-match-chip',
+                                        onClick: function () {
+                                          applyMatchField(item, entry[0])
+                                        },
+                                      },
+                                      t(entry[1]),
+                                    )
+                                  }),
+                                )
+                              : null,
+                          )
+                        }),
+                  h('div', { className: 'mp-np-setting-hint' }, t('v2.matchHint')),
+                  h('div', { className: 'mp-np-setting-hint' }, t('page.onlineHint')),
+    
+                )
+              : null,
+            h(
+              'div',
+              { className: 'mp-d-grid' },
+              field('title'),
+              field('artist'),
+              field('album'),
+              field('albumArtist'),
+            ),
+            h(
+              'div',
+              { className: 'mp-d-grid' },
+              field('year'),
+              field('genre'),
+              field('track'),
+              field('disc'),
+            ),
+            h(
+              'div',
+              { className: 'mp-d-grid' },
+              field('composer'),
+              field('lyricist'),
+            ),
+            h(
+              'div',
+              { className: 'mp-field' },
+              h('label', null, t('page.comment')),
+              h('input', {
+                type: 'text',
+                value: form.comment || '',
+                onChange: function (event) {
+                  setField('comment', event.target.value)
+                },
+              }),
+            ),
+            h(
+              'div',
+              { className: 'mp-field' },
+              h(
+                'div',
+                { className: 'mp-tag-lyrics-head' },
+                h('label', null, t('page.lyrics')),
+                h(Button, { variant: 'ghost', icon: 'search', onClick: openOnlineLyric }, t('page.onlineLyrics')),
+              ),
+              h('textarea', {
+                rows: 6,
+                value: form.lyrics || '',
+                onChange: function (event) {
+                  setField('lyrics', event.target.value)
+                },
+              }),
+            ),
+            h('div', { className: 'mp-set-desc' }, (tags && tags.format) || ''),
+          ),
+          
+      )
+    }
+    
+    function ConfirmDialog(props) {
+      var layer = props.layer
+      return h(
+        KitModal,
+        {
+          title: layer.props.title || '',
+          small: true,
+          onClose: popLayer,
+          footer: [
+            h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
+            h(
+              Button,
+              {
+                key: 'ok',
+                variant: 'primary',
+                onClick: function () {
+                  var action = layer.props.onConfirm
+                  popLayer()
+                  if (typeof action === 'function') action()
+                },
+              },
+              t('page.done'),
+            ),
+          ],
+        },
+        h('p', { className: 'mp-kit-text' }, layer.props.text || ''),
+      )
+    }
+    
+    function Toast(props) {
+      var toast = useStore(toastStore)
+      var HostToast = hostComponent('Toast')
+      if (HostToast !== null && toast.text !== '') {
+        return h(HostToast, {
+          key: toast.seq,
+          text: toast.text,
+          holdMs: 1800,
+          onDone: function () {
+            if (toastStore.get().seq === toast.seq) toastStore.set({ text: '', seq: toast.seq })
+          },
+        })
+      }
+      return h(
+        'div',
+        { className: cx('mp-toast', toast.text !== '' && 'is-on'), role: 'status' },
+        toast.text,
+      )
+    }
+
+    // ── src/ui/08-local.js
+    /**
+     * local views: songs, albums, artists, folders, favorites, playlists, stats.
+     *
+     * One header + one toolbar + one scrolling body per view; the body is either
+     * the shared virtual list or a plain scroll box for grids/statistics.
+     */
+    
+    function filterLabelOf(ui) {
+      if (!ui.filter) return ''
+      if (ui.filter.kind === 'album') return t('v2.albumFilter', { name: ui.filter.value })
+      if (ui.filter.kind === 'artist') return t('v2.artistFilter', { name: ui.filter.value })
+      return t('v2.folderFilter', { name: ui.filter.value })
+    }
+    
+    function applyUiFilter(list, filter) {
+      if (!filter) return list
+      return list.filter(function (track) {
+        if (filter.kind === 'album') return (track.album || t('page.unknownAlbum')) === filter.value
+        if (filter.kind === 'artist') return (track.artist || t('page.unknownArtist')) === filter.value
+        if (filter.kind === 'folder') return trackDirOf(track) === filter.value || track.folder === filter.value
+        return true
+      })
+    }
+    
+    function groupTracks(list, keyOf) {
+      var map = {}
+      var order = []
+      list.forEach(function (track) {
+        var key = keyOf(track)
+        if (!map[key]) {
+          map[key] = { key: key, tracks: [] }
+          order.push(key)
+        }
+        map[key].tracks.push(track)
+      })
+      return order.map(function (key) {
+        return map[key]
+      })
+    }
+    
+    function playListFrom(list) {
+      if (!list || list.length === 0) return
+      player.playList(list, 0)
+    }
+    
+    function shuffleListFrom(list) {
+      if (!list || list.length === 0) return
+      player.setOrder('random')
+      player.playList(list, Math.floor(Math.random() * list.length))
+    }
+    
+    function sortSelect(prefs) {
+      return h(
+        'select',
+        {
+          className: 'mp-chip',
+          value: prefs.sortBy,
+          title: t('page.sort'),
+          'aria-label': t('page.sort'),
+          onChange: function (event) {
+            setPrefs({ sortBy: event.target.value })
+          },
+        },
+        h('option', { value: 'title' }, t('v2.sortTitle')),
+        h('option', { value: 'artist' }, t('v2.sortArtist')),
+        h('option', { value: 'duration' }, t('v2.sortDuration')),
+        h('option', { value: 'added' }, t('v2.sortAdded')),
+        h('option', { value: 'recent' }, t('v2.sortRecent')),
+      )
+    }
+    
+    function LocalContent(props) {
+      var ui = props.ui
+      var library = props.library
+      var prefs = props.prefs
+      var favorites = props.favoriteSet
+      var allTracks = library.tracks || []
+      var visible = []
+      var title = ''
+      var count = 0
+      var actions = null
+      var toolbarExtras = []
+      var body = null
+      var empty = null
+      var selectionList = []
+      var playAll = null
+      var selection = useStore(selectionStore)
+      var selecting = selection.active === true
+      var selectedSet = useMemo(
+        function () {
+          var set = {}
+          selection.paths.forEach(function (path) {
+            set[path] = true
+          })
+          return set
+        },
+        [selection.paths],
+      )
+      var duplicateGroups = useMemo(
+        function () {
+          if (ui.source !== 'local' || ui.nav !== 'songs' || ui.filter || ui.query !== '') return []
+          return duplicateGroupsOf(library.tracks || [])
+        },
+        [ui.source, ui.nav, ui.filter, ui.query, library.tracks],
+      )
+    
+      function selectTrack(track, additive) {
+        selectTrackIn(selectionList, track, additive)
+      }
+    
+      function listFor(view) {
+        var base = allTracks
+        if (view === 'favorites') {
+          base = allTracks.filter(function (track) {
+            return favorites[track.path] === true
+          })
+        } else if (view === 'playlist') {
+          base = playlistTracks(playlistById(ui.playlistId))
+        }
+        base = applyUiFilter(base, ui.filter)
+        return sortTracks(filterTracks(base, ui.query), prefs.sortBy, prefs.sortDir)
+      }
+    
+      function trackBody(list, resetKey) {
+        return h(TrackListBody, {
+          items: list,
+          resetKey: resetKey,
+          focusPath: props.locatePath || '',
+          currentPath: props.currentPath,
+          playing: props.playing,
+          favoriteSet: favorites,
+          selectionMode: selecting,
+          selectedSet: selectedSet,
+          onToggleSelect: function (path) {
+            toggleSelected(path)
+          },
+          onSelect: selectTrack,
+          onPlay: function (track) {
+            var index = list.indexOf(track)
+            player.playList(list, index < 0 ? 0 : index)
+          },
+          onMenu: function (track, event) {
+            props.onMenu(track, event, {
+              visiblePaths: list.map(function (item) {
+                return item.path
+              }),
+            })
+          },
+          onToggleFavorite: props.onToggleFavorite,
+          empty: empty,
+        })
+      }
+    
+      if (ui.nav === 'songs' || ui.nav === 'favorites' || ui.nav === 'playlist') {
+        visible = listFor(ui.nav)
+        selectionList = visible
+        playAll = visible.length
+          ? function () {
+              playListFrom(visible)
+            }
+          : null
+        title = ui.filter
+          ? ui.filter.value
+          : ui.nav === 'favorites'
+            ? t('v2.favorites')
+            : ui.nav === 'playlist'
+              ? (playlistById(ui.playlistId) || {}).name || t('v2.playlists')
+              : t('v2.allSongs')
+        count = visible.length
+        toolbarExtras = []
+        if (ui.filter) {
+          toolbarExtras.push(
+            h(
+              'button',
+              {
+                key: 'clear',
+                type: 'button',
+                className: 'mp-chip',
+                onClick: function () {
+                  setUi({ filter: null })
+                },
+              },
+              icon('x', 12),
+              t('v2.clearFilter'),
+            ),
+          )
+        }
+        if (ui.query !== '') {
+          toolbarExtras.push(
+            h(
+              'button',
+              {
+                key: 'clearq',
+                type: 'button',
+                className: 'mp-chip',
+                onClick: function () {
+                  setUi({ query: '' })
+                },
+              },
+              icon('x', 12),
+              t('page.clearFilter') || t('v2.clearFilter'),
+            ),
+          )
+        }
+        if (duplicateGroups.length > 0 && !selecting) {
+          toolbarExtras.push(
+            h(
+              'button',
+              {
+                key: 'dupes',
+                type: 'button',
+                className: 'mp-chip',
+                onClick: function () {
+                  pushLayer('duplicates', { groups: duplicateGroups })
+                },
+              },
+              icon('info', 13),
+              t('page.duplicates', { n: duplicateGroups.length }),
+            ),
+          )
+        }
+        empty =
+          ui.nav === 'favorites'
+            ? h(Empty, { title: t('v2.noFavorites'), hint: t('v2.noFavoritesHint'), icon: 'heart' })
+            : ui.nav === 'playlist'
+              ? h(Empty, { title: t('v2.noPlaylistTracks'), hint: t('page.playlistNoTracksHint'), icon: 'list' })
+              : ui.query !== '' || ui.filter
+                ? h(Empty, { title: t('page.noResults'), hint: '', icon: 'search' })
+                : h(Empty, { title: t('v2.noTracks'), hint: t('v2.noTracksHint'), icon: 'note' })
+        body = trackBody(visible, [ui.source, ui.nav, ui.playlistId, ui.filter ? ui.filter.kind + ':' + ui.filter.value : '', ui.query].join('|'))
+      } else if (ui.nav === 'albums') {
+        var albums = groupTracks(filterTracks(applyUiFilter(allTracks, ui.filter), ui.query), function (track) {
+          return track.album || t('page.unknownAlbum')
+        })
+        count = albums.length
+        title = t('v2.albums')
+        body = h(
+          ScrollBox,
+          { resetKey: 'albums:' + ui.query },
+          albums.map(function (group) {
+            var coverTrack = group.tracks.find(function (track) {
+              return track.hasCover === true
+            })
+            return h(
+              'button',
+              {
+                key: group.key,
+                type: 'button',
+                className: 'mp-srow',
+                onClick: function () {
+                  setUi({ nav: 'songs', filter: { kind: 'album', value: group.key } })
+                },
+              },
+              h(
+                'div',
+                { className: 'mp-srow-cover' },
+                h(Cover, { src: coverTrack ? trackCoverSrc(coverTrack) : '', iconSize: 18 }),
+              ),
+              h(
+                'div',
+                { className: 'mp-srow-main' },
+                h('div', { className: 'mp-srow-title' }, group.key),
+                h('div', { className: 'mp-srow-sub' }, (group.tracks[0].artist || '') + ' · ' + group.tracks.length),
+              ),
+              h('div', { className: 'mp-srow-meta' }, String(group.tracks.length)),
+              icon('chevronRight', 14),
+            )
+          }),
+        )
+        empty = h(Empty, { title: t('page.noResults'), icon: 'disc' })
+      } else if (ui.nav === 'artists' || ui.nav === 'folders') {
+        var isArtists = ui.nav === 'artists'
+        var groups = groupTracks(filterTracks(allTracks, ui.query), function (track) {
+          return isArtists ? track.artist || t('page.unknownArtist') : trackDirOf(track)
+        }).sort(function (left, right) {
+          return String(left.key).localeCompare(String(right.key), 'zh')
+        })
+        count = groups.length
+        title = isArtists ? t('v2.artists') : t('v2.folders')
+        if (!isArtists) {
+          toolbarExtras = [
+            h(
+              Button,
+              {
+                key: 'add-folder',
+                icon: 'plus',
+                onClick: function () {
+                  pushLayer('folderPicker')
+                },
+              },
+              t('v2.folderAdd'),
+            ),
+          ]
+        }
+        body = h(
+          ScrollBox,
+          { resetKey: ui.nav + ':' + ui.query },
+          groups.map(function (group) {
+            var coverTrack = group.tracks.find(function (track) {
+              return track.hasCover === true
+            })
+            return h(
+              'button',
+              {
+                key: group.key,
+                type: 'button',
+                className: 'mp-srow',
+                onClick: function () {
+                  setUi({
+                    nav: 'songs',
+                    filter: isArtists ? { kind: 'artist', value: group.key } : { kind: 'folder', value: group.key },
+                  })
+                },
+              },
+              isArtists
+                ? h(
+                    'div',
+                    { className: 'mp-srow-cover is-round' },
+                    h(Cover, { src: coverTrack ? trackCoverSrc(coverTrack) : '', iconSize: 18 }),
+                  )
+                : h('div', { className: 'mp-srow-cover' }, icon('folder', 18)),
+              h(
+                'div',
+                { className: 'mp-srow-main' },
+                h('div', { className: 'mp-srow-title' }, isArtists ? group.key : folderNameOf(group.key)),
+                isArtists
+                  ? h('div', { className: 'mp-srow-sub' }, group.tracks.length + ' · ' + t('v2.songs'))
+                  : h('div', { className: 'mp-srow-sub' }, group.key),
+              ),
+              h('div', { className: 'mp-srow-meta' }, String(group.tracks.length)),
+              icon('chevronRight', 14),
+            )
+          }),
+        )
+        empty = h(Empty, { title: t('page.noResults'), icon: isArtists ? 'user' : 'folder' })
+      } else if (ui.nav === 'playlists') {
+        var playlists = library.playlists || []
+        count = playlists.length
+        title = t('v2.playlists')
+        actions = [
+          h(
+            Button,
+            {
+              key: 'new',
+              variant: 'primary',
+              icon: 'plus',
+              onClick: function () {
+                pushLayer('newPlaylist')
+              },
+            },
+            t('v2.newPlaylist'),
+          ),
+        ]
+        body = h(
+          ScrollBox,
+          { resetKey: 'playlists' },
+          playlists.length === 0
+            ? h(Empty, { title: t('v2.noPlaylists'), hint: t('page.playlistEmptyHint'), icon: 'list' })
+            : playlists.map(function (playlist) {
+                var coverTrack = (playlistTracks(playlist)[0] || null)
+                return h(
+                  'div',
+                  {
+                    key: playlist.id,
+                    role: 'button',
+                    tabIndex: 0,
+                    className: 'mp-srow',
+                    onClick: function () {
+                      openLocalPlaylist(playlist.id)
+                    },
+                    onKeyDown: function (event) {
+                      if (event.key === 'Enter') openLocalPlaylist(playlist.id)
+                    },
+                  },
+                  h(
+                    'div',
+                    { className: 'mp-srow-cover' },
+                    coverTrack ? h(Cover, { src: trackCoverSrc(coverTrack), iconSize: 18 }) : icon('list', 18),
+                  ),
+                  h(
+                    'div',
+                    { className: 'mp-srow-main' },
+                    h('div', { className: 'mp-srow-title' }, playlist.name),
+                    h('div', { className: 'mp-srow-sub' }, (playlist.trackPaths || []).length + ' · ' + t('v2.songs')),
+                  ),
+                  h(
+                    'span',
+                    { className: 'mp-srow-meta' },
+                    h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mp-iconbtn',
+                        title: t('page.delete'),
+                        onClick: function (event) {
+                          event.stopPropagation()
+                          pushLayer('confirm', {
+                            title: t('page.delete'),
+                            text: t('page.deleteConfirm', { name: playlist.name }),
+                            onConfirm: function () {
+                              void removePlaylist(playlist.id)
+                            },
+                          })
+                        },
+                      },
+                      icon('trash', 14),
+                    ),
+                  ),
+                  icon('chevronRight', 14),
+                )
+              }),
+        )
+      } else if (ui.nav === 'stats') {
+        title = t('v2.stats')
+        count = 0
+        var stats = library.stats || {}
+        var entries = Object.keys(stats)
+          .map(function (path) {
+            var track = trackByPath(path)
+            if (!track) return null
+            var item = stats[path] || {}
+            return { track: track, plays: item.plays || 0, seconds: item.playSeconds || 0 }
+          })
+          .filter(Boolean)
+          .sort(function (left, right) {
+            return right.seconds - left.seconds
+          })
+        var totalSeconds = entries.reduce(function (sum, entry) {
+          return sum + entry.seconds
+        }, 0)
+        var totalPlays = entries.reduce(function (sum, entry) {
+          return sum + entry.plays
+        }, 0)
+        var topSeconds = entries.length > 0 ? entries[0].seconds : 1
+        toolbarExtras = [
+          ['all', 'v2.rangeAll'],
+          ['week', 'v2.rangeWeek'],
+          ['month', 'v2.rangeMonth'],
+        ].map(function (item) {
+          return h(
+            'button',
+            {
+              key: item[0],
+              type: 'button',
+              className: cx('mp-chip', library.statsRange === item[0] && 'is-on'),
+              onClick: function () {
+                void loadStats(item[0])
+              },
+            },
+            t(item[1]),
+          )
+        })
+        body = h(
+          ScrollBox,
+          { resetKey: 'stats:' + library.statsRange },
+          h(
+            'div',
+            { className: 'mp-stat-cards' },
+            h(
+              'div',
+              { className: 'mp-stat-card' },
+              h('div', { className: 'mp-stat-k' }, t('v2.listenTime')),
+              h('div', { className: 'mp-stat-v' }, Math.floor(totalSeconds / 3600) + ' h ' + Math.floor((totalSeconds % 3600) / 60) + ' m'),
+            ),
+            h(
+              'div',
+              { className: 'mp-stat-card' },
+              h('div', { className: 'mp-stat-k' }, t('v2.totalPlays')),
+              h('div', { className: 'mp-stat-v' }, String(totalPlays)),
+            ),
+            h(
+              'div',
+              { className: 'mp-stat-card' },
+              h('div', { className: 'mp-stat-k' }, t('v2.trackedTracks')),
+              h('div', { className: 'mp-stat-v' }, String(entries.length)),
+            ),
+          ),
+          h(
+            'div',
+            { className: 'mp-rank' },
+            entries.slice(0, 12).map(function (entry, index) {
+              return h(
+                'div',
+                {
+                  key: entry.track.path,
+                  className: 'mp-rank-row',
+                  onClick: function () {
+                    player.playList(
+                      entries.map(function (item) {
+                        return item.track
+                      }),
+                      index,
+                    )
+                  },
+                },
+                h('div', { className: 'mp-rank-n' }, String(index + 1)),
+                h('div', { className: 'mp-rank-c' }, h(Cover, { src: trackCoverSrc(entry.track), iconSize: 12 })),
+                h(
+                  'div',
+                  { className: 'mp-rank-m' },
+                  h('div', { className: 'mp-row-title' }, trackTitleOf(entry.track)),
+                  h('div', { className: 'mp-row-sub' }, trackArtistOf(entry.track)),
+                ),
+                h(
+                  'div',
+                  { className: 'mp-rank-bar' },
+                  h('i', { style: { width: Math.round((entry.seconds / (topSeconds || 1)) * 100) + '%' } }),
+                ),
+                h('div', { className: 'mp-row-time' }, entry.plays + ' · ' + Math.floor(entry.seconds / 60) + 'm'),
+              )
+            }),
+          ),
+        )
+      } else {
+        title = t('v2.allSongs')
+        body = h(Empty, { title: t('page.noResults'), icon: 'note' })
+      }
+    
+      return [
+        h(ContentHeader, {
+          key: 'head',
+          title: title,
+          count: count,
+          onAll: function () {
+            selectAllIn(selectionList)
+          },
+          onNone: function () {
+            setSelectionMode(false)
+          },
+          onRange: beginRangePick,
+          onInvert: function () {
+            invertSelectionIn(selectionList)
+          },
+          selecting: selecting,
+          selectedCount: selection.paths.length,
+        }),
+        h(
+          'div',
+          { className: 'mp-toolbar', key: 'toolbar' },
+          h(PlayModePills),
+          toolbarExtras,
+          playAll
+            ? h(
+                'button',
+                {
+                  key: 'playall',
+                  type: 'button',
+                  className: 'mp-chip',
+                  style: { marginLeft: 'auto' },
+                  onClick: playAll,
+                },
+                icon('play', 13),
+                t('page.playAll'),
+              )
+            : null,
+        ),
+        h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),
+      ]
+    }
+
+    // ── src/ui/09-online.js
+    /**
+     * online views: recent history, my playlists, one playlist, cache and search.
+     */
+    
+    function onlineEntriesForHistory(online, provider) {
+      return (online.history || []).filter(function (entry) {
+        return entry.provider === provider
+      })
+    }
+    
+    function OnlineContent(props) {
+      var ui = props.ui
+      var online = props.online
+      var provider = online.provider
+      var nav = ui.nav
+      var showingSearch = online.query !== '' && (online.phase === 'searching' || online.phase === 'ready' || online.phase === 'error')
+      var cachePair = useState(null)
+      var cacheList = cachePair[0]
+      var setCacheList = cachePair[1]
+      var cachePhasePair = useState('idle')
+      var cachePhase = cachePhasePair[0]
+      var setCachePhase = cachePhasePair[1]
+      var prefs = usePrefs()
+      var selection = useStore(selectionStore)
+      var selecting = selection.active === true
+      var selectedSet = useMemo(
+        function () {
+          var set = {}
+          selection.paths.forEach(function (path) {
+            set[path] = true
+          })
+          return set
+        },
+        [selection.paths],
+      )
+      var onlineSelectionList = []
+      var currentEntries = []
+      var likedSet = online.liked || {}
+    
+      function toggleOnlineFavorite(track) {
+        var path = track.path
+        var next = likedSet[path] !== true
+        postJson(API + 'online/like', { provider: track.onlineProvider, song: track, on: next })
+          .then(function () {
+            var map = Object.assign({}, onlineStore.get().liked)
+            if (next) map[path] = true
+            else delete map[path]
+            onlineStore.set({ liked: map })
+            showToast(next ? t('page.favorite') : t('page.unfavorite'))
+          })
+          .catch(function (error) {
+            showToast(errorText(error))
+          })
+      }
+    
       useEffect(
         function () {
-          if (ctxMenu === null) return undefined
+          var cancelled = false
+          getJson(API + 'online/liked-ids?provider=' + encodeURIComponent(provider))
+            .then(function (body) {
+              if (cancelled) return
+              var map = {}
+              ;(Array.isArray(body.ids) ? body.ids : []).forEach(function (path) {
+                map[path] = true
+              })
+              onlineStore.set({ liked: map })
+            })
+            .catch(function () {
+              // Not signed in: every heart stays neutral.
+            })
+          return function () {
+            cancelled = true
+          }
+        },
+        [provider, (online.providers[provider] || {}).loggedIn],
+      )
+      var playAll = null
+    
+      function sortOnlineTracks(entries) {
+        return sortTracks((entries || []).map(onlineTrackOf), prefs.sortBy, prefs.sortDir)
+      }
+    
+      function playSelectedOnline() {
+        var picked = {}
+        selection.paths.forEach(function (path) {
+          picked[path] = true
+        })
+        var chosen = (currentEntries || []).filter(function (entry) {
+          return picked['online:' + (entry.provider || provider) + ':' + entry.id] === true
+        })
+        if (chosen.length > 0) {
+          playOnlineResults(chosen, 0)
+          return
+        }
+        var tracks = onlineSelectionList.filter(function (track) {
+          return picked[track.path] === true
+        })
+        if (tracks.length > 0) player.playList(tracks, 0)
+      }
+    
+      function setPlayAll(entries) {
+        currentEntries = entries || []
+        playAll = currentEntries.length > 0
+          ? function () {
+              playOnlineResults(currentEntries, 0)
+            }
+          : null
+      }
+    
+      useEffect(
+        function () {
+          if (online.playlistsPhase === 'idle' || online.playlistsProvider !== provider) {
+            void loadMyPlaylists(provider)
+          }
+        },
+        [provider, online.playlistsPhase, online.playlistsProvider],
+      )
+    
+      useEffect(
+        function () {
+          if (nav !== 'cache') {
+            setCachePhase('idle')
+            return undefined
+          }
+          var cancelled = false
+          setCachePhase('loading')
+          getJson(API + 'online/cache/list')
+            .then(function (body) {
+              if (cancelled) return
+              setCacheList(Array.isArray(body.songs) ? body.songs : [])
+              setCachePhase('ready')
+            })
+            .catch(function () {
+              if (cancelled) return
+              setCacheList([])
+              setCachePhase('error')
+            })
+          return function () {
+            cancelled = true
+          }
+        },
+        [nav, provider],
+      )
+    
+      var title = t('v2.recent')
+      var count = 0
+      var actions = null
+      var body = null
+      var resetKey = ''
+      var empty = null
+    
+      if (showingSearch) {
+        title = t('online.searchResults')
+        var results = online.results || []
+        count = results.length
+        resetKey = 'search:' + provider + ':' + online.query
+    
+        if (online.phase === 'searching') {
+          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('online.searching')))
+        } else if (online.phase === 'error') {
+          body = h(Empty, { title: t('online.networkError'), hint: online.error, icon: 'info' })
+        } else if (results.length === 0) {
+          body = h(Empty, { title: t('online.emptyResults'), hint: '', icon: 'search' })
+        } else {
+          body = h(TrackListBody, {
+            items: (setPlayAll(results), (onlineSelectionList = sortOnlineTracks(results))),
+            resetKey: resetKey,
+            selectionMode: selecting,
+            selectedSet: selectedSet,
+            onToggleSelect: toggleSelected,
+            onSelect: function (track, additive) {
+              selectTrackIn(onlineSelectionList, track, additive)
+            },
+            focusPath: props.locatePath || '',
+            currentPath: props.currentPath,
+            playing: props.playing,
+            favoriteSet: likedSet,
+            cachedOf: function (track) {
+              return online.cache[track.onlineId] === true
+            },
+            onPlay: function (track) {
+              var index = results.findIndex(function (item) {
+                return 'online:' + item.provider + ':' + item.id === track.path
+              })
+              playOnlineResults(results, index < 0 ? 0 : index)
+            },
+            onMenu: function (track, event) {
+              props.onMenu(track, event, { playSelected: playSelectedOnline })
+            },
+            onToggleFavorite: toggleOnlineFavorite,
+            empty: empty,
+          })
+        }
+      } else if (nav === 'playlists') {
+        title = t('online.myPlaylists')
+        var playlists = online.playlists || []
+        count = playlists.length
+        resetKey = 'online-playlists'
+        var signedIn = (online.providers[provider] || {}).loggedIn === true
+        if (!signedIn && online.playlistsPhase !== 'loading') {
+          body = h(
+            Empty,
+            {
+              title: t('v2.loginNeeded'),
+              hint: t('online.playlistsHint'),
+              icon: 'user',
+            },
+          )
+          actions = [
+            h(
+              Button,
+              {
+                key: 'login',
+                variant: 'primary',
+                icon: 'qr',
+                onClick: function () {
+                  pushLayer('login', { provider: provider, mode: 'qq' })
+                },
+              },
+              t('online.login'),
+            ),
+          ]
+        } else if (online.playlistsPhase === 'loading') {
+          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+        } else if (playlists.length === 0) {
+          body = h(Empty, { title: t('v2.noPlaylists'), icon: 'list' })
+        } else {
+          body = h(
+            ScrollBox,
+            { resetKey: resetKey },
+            playlists.map(function (playlist) {
+              return h(
+                'button',
+                {
+                  key: playlist.id,
+                  type: 'button',
+                  className: 'mp-srow',
+                  onClick: function () {
+                    void openOnlinePlaylist(playlist)
+                  },
+                },
+                h(
+                  'div',
+                  { className: 'mp-srow-cover' },
+                  playlist.cover
+                    ? h(Cover, { src: onlineCoverSrc({ coverUrl: playlist.cover }), iconSize: 18 })
+                    : icon('list', 18),
+                ),
+                h(
+                  'div',
+                  { className: 'mp-srow-main' },
+                  h('div', { className: 'mp-srow-title' }, playlist.name || ''),
+                  h('div', { className: 'mp-srow-sub' }, (playlist.trackCount || 0) + ' · ' + t('v2.songs')),
+                ),
+                icon('chevronRight', 14),
+              )
+            }),
+          )
+        }
+      } else if (nav === 'playlist') {
+        title = online.playlistName || t('online.myPlaylists')
+        var songs = online.playlistSongs || []
+        count = songs.length
+        resetKey = 'online-playlist:' + online.playlistId
+        actions = [h(Button, { key: 'back', variant: 'ghost', icon: 'chevronLeft', onClick: function () {
+                    closeOnlinePlaylist()
+                    setNav('recent')
+                  } }, t('v2.back'))]
+        if (online.playlistPhase === 'loading') {
+          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+        } else if (songs.length === 0) {
+          body = h(Empty, { title: t('online.emptyResults'), icon: 'list' })
+        } else {
+          body = h(TrackListBody, {
+            items: (setPlayAll(songs), (onlineSelectionList = sortOnlineTracks(songs))),
+            resetKey: resetKey,
+            selectionMode: selecting,
+            selectedSet: selectedSet,
+            onToggleSelect: toggleSelected,
+            onSelect: function (track, additive) {
+              selectTrackIn(onlineSelectionList, track, additive)
+            },
+            focusPath: props.locatePath || '',
+            currentPath: props.currentPath,
+            playing: props.playing,
+            favoriteSet: likedSet,
+            cachedOf: function (track) {
+              return online.cache[track.onlineId] === true
+            },
+            onPlay: function (track) {
+              var index = songs.findIndex(function (item) {
+                return 'online:' + item.provider + ':' + item.id === track.path
+              })
+              playOnlineResults(songs, index < 0 ? 0 : index)
+            },
+            onMenu: function (track, event) {
+              props.onMenu(track, event, { playSelected: playSelectedOnline })
+            },
+            onToggleFavorite: toggleOnlineFavorite,
+          })
+        }
+      } else if (nav === 'cache') {
+        title = t('v2.cache')
+        var entries = cacheList || []
+        count = entries.length
+        resetKey = 'online-cache'
+        if (cachePhase === 'loading') {
+          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+        } else if (entries.length === 0) {
+          body = h(Empty, { title: t('online.cacheEmpty'), icon: 'download' })
+        } else {
+          body = h(TrackListBody, {
+            items: (setPlayAll(entries), (onlineSelectionList = sortOnlineTracks(entries))),
+            resetKey: resetKey,
+            selectionMode: selecting,
+            selectedSet: selectedSet,
+            onToggleSelect: toggleSelected,
+            onSelect: function (track, additive) {
+              selectTrackIn(onlineSelectionList, track, additive)
+            },
+            focusPath: props.locatePath || '',
+            currentPath: props.currentPath,
+            playing: props.playing,
+            favoriteSet: likedSet,
+            onToggleFavorite: toggleOnlineFavorite,
+            cachedOf: function () {
+              return true
+            },
+            onPlay: function (track) {
+              var index = entries.findIndex(function (item) {
+                return 'online:' + item.provider + ':' + item.id === track.path
+              })
+              playOnlineResults(entries, index < 0 ? 0 : index)
+            },
+          })
+        }
+      } else {
+        var history = onlineEntriesForHistory(online, provider)
+        title = t('v2.recent')
+        count = history.length
+        resetKey = 'online-recent:' + provider
+    
+        if (history.length === 0) {
+          body = h(Empty, { title: t('v2.noHistory'), hint: t('v2.noHistoryHint'), icon: 'clock' })
+        } else {
+          body = h(TrackListBody, {
+            items: (setPlayAll(history), (onlineSelectionList = sortOnlineTracks(history))),
+            resetKey: resetKey,
+            selectionMode: selecting,
+            selectedSet: selectedSet,
+            onToggleSelect: toggleSelected,
+            onSelect: function (track, additive) {
+              selectTrackIn(onlineSelectionList, track, additive)
+            },
+            focusPath: props.locatePath || '',
+            currentPath: props.currentPath,
+            playing: props.playing,
+            favoriteSet: likedSet,
+            onPlay: function (track) {
+              var index = history.findIndex(function (item) {
+                return 'online:' + item.provider + ':' + item.id === track.path
+              })
+              playOnlineResults(history, index < 0 ? 0 : index)
+            },
+            onMenu: function (track, event) {
+              props.onMenu(track, event, {
+                playSelected: playSelectedOnline,
+                onRemove: function () {
+                  var match = /^online:([^:]+):(.+)$/.exec(track.path)
+                  if (match === null) return
+                  removeHistory({ provider: match[1], id: match[2] })
+                  showToast(t('online.removedFromHistory'))
+                },
+              })
+            },
+            onToggleFavorite: toggleOnlineFavorite,
+          })
+        }
+      }
+    
+      return [
+        h(ContentHeader, {
+          key: 'head',
+          title: title,
+          count: count,
+          onAll: function () {
+            selectAllIn(onlineSelectionList)
+          },
+          onNone: function () {
+            setSelectionMode(false)
+          },
+          onRange: beginRangePick,
+          onInvert: function () {
+            invertSelectionIn(onlineSelectionList)
+          },
+          selecting: selecting,
+          selectedCount: selection.paths.length,
+        }),
+        h(
+          'div',
+          { className: 'mp-toolbar', key: 'toolbar' },
+          h(PlayModePills),
+          h(
+            'div',
+            { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
+            playAll
+              ? h(
+                  'button',
+                  { type: 'button', className: 'mp-chip', onClick: playAll },
+                  icon('play', 13),
+                  t('page.playAll'),
+                )
+              : null,
+            actions || [],
+          ),
+        ),
+        h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),
+      ]
+    }
+
+    // ── src/ui/10-navigation.js
+    /**
+     * navigation: one model, two shapes (top section bar or left rail).
+     *
+     * Both shapes render `navGroupsFor`, so switching the layout never changes
+     * what is reachable — only where it sits. Playlists are first-class items,
+     * not a "playlists" list page.
+     */
+    
+    function navItemContextMenu(item, active) {
+      if (!item.localPlaylistId) return undefined
+      return function (event) {
+        event.preventDefault()
+        var id = item.localPlaylistId
+        var name = item.label
+        pushLayer('confirm', {
+          title: t('page.delete'),
+          text: t('page.deleteConfirm', { name: name }),
+          onConfirm: function () {
+            if (active === item.key) setNav('songs')
+            void removePlaylist(id)
+          },
+        })
+      }
+    }
+    
+    function NavRail(props) {
+      var groups = navGroupsFor(props.source, props.favoritesCount)
+      var active = activeNavKey(props.nav)
+      return h(
+        'nav',
+        { className: 'mp-nav', 'aria-label': t('page.tabLocal') },
+        groups.map(function (group) {
+          return h(
+            'div',
+            { className: 'mp-nav-group', key: group.label },
+            h(
+              'div',
+              { className: 'mp-nav-head' },
+              h('div', { className: 'mp-nav-label' }, group.label),
+              group.action
+                ? h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mp-nav-act',
+                      title: group.action.title,
+                      'aria-label': group.action.title,
+                      onClick: group.action.run,
+                    },
+                    icon(group.action.icon, 12),
+                  )
+                : null,
+            ),
+            group.items.map(function (item) {
+              return h(
+                'button',
+                {
+                  key: item.key,
+                  type: 'button',
+                  className: cx('mp-nav-item', active === item.key && 'is-on'),
+                  'aria-current': active === item.key ? 'page' : undefined,
+                  title: item.label,
+                  onClick: function () {
+                    activateNavItem(item)
+                  },
+                  onContextMenu: navItemContextMenu(item, active),
+                },
+                icon(item.icon, 15),
+                h('span', null, item.label),
+                item.count !== null && item.count !== undefined
+                  ? h('em', { className: 'mp-nav-count' }, String(item.count))
+                  : null,
+              )
+            }),
+          )
+        }),
+      )
+    }
+    
+    function SectionBar(props) {
+      var groups = navGroupsFor(props.source, props.favoritesCount)
+      var active = activeNavKey(props.nav)
+      return h(
+        'div',
+        { className: 'mp-sectionbar', role: 'tablist', 'aria-label': t('page.tabLocal') },
+        groups.map(function (group, groupIndex) {
+          return h(
+            'span',
+            { key: group.label, style: { display: 'contents' } },
+            groupIndex > 0 ? h('span', { className: 'mp-sec-sep' }) : null,
+            group.showLabel ? h('span', { className: 'mp-sec-label' }, group.label) : null,
+            group.action
+              ? h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mp-sec-act',
+                    title: group.action.title,
+                    'aria-label': group.action.title,
+                    onClick: group.action.run,
+                  },
+                  icon(group.action.icon, 12),
+                )
+              : null,
+            group.items.map(function (item) {
+              return h(
+                'button',
+                {
+                  key: item.key,
+                  type: 'button',
+                  role: 'tab',
+                  title: item.label,
+                  'aria-selected': active === item.key,
+                  className: cx('mp-sec-item', active === item.key && 'is-on'),
+                  onClick: function () {
+                    activateNavItem(item)
+                  },
+                  onContextMenu: navItemContextMenu(item, active),
+                },
+                item.label,
+                item.count !== null && item.count !== undefined
+                  ? h('span', { className: 'mp-sec-count' }, String(item.count))
+                  : null,
+              )
+            }),
+          )
+        }),
+      )
+    }
+
+    // ── src/ui/11-panel.js
+    /**
+     * panel: the single composition point (top bar, workspace, player bar, layers).
+     */
+    
+    class MusicBoundary extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = { failed: false }
+      }
+    
+      static getDerivedStateFromError() {
+        return { failed: true }
+      }
+    
+      componentDidCatch() {
+        // A broken render must never take the host UI down with it.
+      }
+    
+      render() {
+        if (this.state.failed) return null
+        return this.props.children
+      }
+    }
+    
+    class SilentBoundary extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = { failed: false }
+      }
+    
+      static getDerivedStateFromError() {
+        return { failed: true }
+      }
+    
+      componentDidCatch() {}
+    
+      render() {
+        if (this.state.failed) return null
+        return this.props.children
+      }
+    }
+    
+    function TopBar(props) {
+      var ui = props.ui
+      var online = props.online
+      var inputRef = useRef(null)
+      var textPair = useState(ui.source === 'local' ? ui.query : '')
+      var text = textPair[0]
+      var setText = textPair[1]
+    
+      useEffect(
+        function () {
+          setText(ui.source === 'local' ? ui.query : '')
+        },
+        [ui.source],
+      )
+    
+      useEffect(
+        function () {
           function onKey(event) {
-            if (event.key === 'Escape') setCtxMenu(null)
+            var tag = event.target && event.target.tagName
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+            if (event.key === '/') {
+              event.preventDefault()
+              if (inputRef.current) inputRef.current.focus()
+            }
           }
           window.addEventListener('keydown', onKey)
           return function () {
             window.removeEventListener('keydown', onKey)
           }
         },
-        [ctxMenu],
-      )
-      var [ctxMenu, setCtxMenu] = useState(null)
-      var [addToOpen, setAddToOpen] = useState(false)
-      var [infoPath, setInfoPath] = useState(null)
-      var [dupOpen, setDupOpen] = useState(false)
-      var [newPlaylistOpen, setNewPlaylistOpen] = useState(false)
-      var [newPlaylistName, setNewPlaylistName] = useState('')
-      var [tagEditPath, setTagEditPath] = useState(null)
-      var [tagForm, setTagForm] = useState(null)
-      var autoMatchRef = useRef(false)
-      var [lyricSearchOpen, setLyricSearchOpen] = useState(false)
-      var [batchEditOpen, setBatchEditOpen] = useState(false)
-      var [batchForm, setBatchForm] = useState({
-        artist: '',
-        album: '',
-        genre: '',
-        albumArtist: '',
-      })
-      var [batchSaving, setBatchSaving] = useState(false)
-      var [onlineProviders, setOnlineProviders] = useState({
-        netease: { loggedIn: false, nickname: '' },
-        qq: { loggedIn: false, nickname: '' },
-        kugou: { loggedIn: false, nickname: '' },
-      })
-      var [onlineLoginDialog, setOnlineLoginDialog] = useState(null)
-      var onlineLoginTimer = useRef(null)
-      var [tagSaving, setTagSaving] = useState(false)
-      var [coverFailed, setCoverFailed] = useState(false)
-      var [tagCoverPreview, setTagCoverPreview] = useState(null)
-      var [matchField, setMatchField] = useState(null)
-      var [onlineOpen, setOnlineOpen] = useState(false)
-      var [onlineLoading, setOnlineLoading] = useState(false)
-      var [onlineResults, setOnlineResults] = useState([])
-      var [onlineSources, setOnlineSources] = useState([])
-      var TAG_BASIC_ROWS = [
-        ['title', 'page.metaTitle'],
-        ['artist', 'page.artist'],
-        ['album', 'page.album'],
-        ['albumArtist', 'page.albumArtist'],
-        ['year', 'page.year'],
-        ['genre', 'page.genre'],
-      ]
-      var TAG_DETAIL_ROWS = [
-        ['track', 'page.trackNo'],
-        ['disc', 'page.discNo'],
-        ['composer', 'page.composer'],
-        ['lyricist', 'page.lyricist'],
-        ['comment', 'page.comment'],
-      ]
-      var playlistTitleRef = useRef(null)
-      var [moreOpen, setMoreOpen] = useState(false)
-      var [toast, setToast] = useState('')
-      var toastTimerRef = useRef(null)
-      var [npOpen, setNpOpen] = useState(false)
-      var [npVisible, setNpVisible] = useState(false)
-      var npAnimRef = useRef(null)
-      var [view, setView] = useState(function () {
-        try {
-          var saved = window.localStorage.getItem('mu.view')
-          if (
-            ['songs', 'albums', 'artists', 'favorites', 'stats', 'playlists', 'online'].includes(
-              saved,
-            )
-          ) {
-            return saved
-          }
-        } catch (error) {
-          /* storage disabled */
-        }
-        return 'songs'
-      })
-      var [source, setSource] = useState(function () {
-        try {
-          var saved = window.localStorage.getItem('mu.source')
-          if (['local', 'netease', 'qq', 'kugou'].includes(saved)) return saved
-        } catch (error) {
-          /* storage disabled */
-        }
-        return 'local'
-      })
-
-      // Remember the active tab across panel unmounts (session switches).
-      useEffect(
-        function () {
-          try {
-            window.localStorage.setItem('mu.view', view)
-          } catch (error) {
-            /* storage disabled */
-          }
-        },
-        [view],
-      )
-      useEffect(
-        function () {
-          try {
-            window.localStorage.setItem('mu.source', source)
-          } catch (error) {
-            /* storage disabled */
-          }
-        },
-        [source],
-      )
-      var lastLocalView = useRef('songs')
-      var [viewFilter, setViewFilter] = useState(null)
-      var [onlineProvider, setOnlineProvider] = useState('netease')
-      var [onlineQuery, setOnlineQuery] = useState('')
-      var [onlineResults, setOnlineResults] = useState([])
-      var [onlineLoading, setOnlineLoading] = useState(false)
-      var [onlineError, setOnlineError] = useState('')
-      var [onlinePlaylists, setOnlinePlaylists] = useState([])
-      var [onlinePlaylistLoading, setOnlinePlaylistLoading] = useState(false)
-      var [onlinePlaylistError, setOnlinePlaylistError] = useState('')
-      var [onlineCurrentPlaylist, setOnlineCurrentPlaylist] = useState(null)
-      var [onlineHistory, setOnlineHistory] = useState(readOnlineHistory)
-      var [onlineCached, setOnlineCached] = useState({})
-      var [onlineCacheProgress, setOnlineCacheProgress] = useState(null)
-      var [clearingUnplayable, setClearingUnplayable] = useState(false)
-      var [onlineContext, setOnlineContext] = useState(null)
-      var onlineSeq = useRef(0)
-      var [playlists, setPlaylists] = useState([])
-      var [favorites, setFavorites] = useState([])
-      var [playlistId, setPlaylistId] = useState(null)
-      var [playlistDraft, setPlaylistDraft] = useState('')
-      var [prefsOpen, setPrefsOpen] = useState(false)
-      var [onboardingOpen, setOnboardingOpen] = useState(false)
-      var [onboardingStep, setOnboardingStep] = useState(0)
-      var [onboardingBrowseOpen, setOnboardingBrowseOpen] = useState(false)
-      var [prefsTab, setPrefsTab] = useState('appearance')
-      var [prefsUi, setPrefsUi] = useState(function () {
-        return readPrefs()
-      })
-
-      /** Persist one preference from the in-panel settings popover. */
-      function updatePref(key, value) {
-        var patch = {}
-        patch[key] = value
-        savePrefs(patch)
-        setPrefsUi(readPrefs())
-      }
-
-      // Music library folders live here now that the settings section is gone.
-      var [roots, setRoots] = useState([])
-      var [depth, setDepth] = useState(4)
-      var [onlineQuality, setOnlineQuality] = useState('high')
-      var [cacheStats, setCacheStats] = useState(null)
-      var [cacheDialogOpen, setCacheDialogOpen] = useState(false)
-      var [cacheSongs, setCacheSongs] = useState([])
-      var [cacheLoading, setCacheLoading] = useState(false)
-      var [configSaving, setConfigSaving] = useState(false)
-      var [configSaved, setConfigSaved] = useState(false)
-      var [configError, setConfigError] = useState(null)
-
-      useEffect(
-        function () {
-          getJson(API + 'config')
-            .then(function (body) {
-              var loadedRoots = Array.isArray(body.config.roots) ? body.config.roots.slice() : []
-              rootsRef.current = loadedRoots
-              depthRef.current = body.config.depth
-              setRoots(loadedRoots)
-              setDepth(body.config.depth)
-              setOnlineQuality(body.config.onlineQuality || 'high')
-            })
-            .catch(function () {})
-        },
         [],
       )
-
-      // Latest library values for the debounced save: React state is stale
-      // inside the timer callback, which used to submit an empty root list.
-      var rootsRef = useRef([])
-      var depthRef = useRef(4)
-
-      function setRootsNow(next) {
-        rootsRef.current = next
-        setRoots(next)
-      }
-
-      function setDepthNow(next) {
-        depthRef.current = next
-        setDepth(next)
-      }
-
-      function saveConfig() {
-        setConfigSaving(true)
-        setConfigError(null)
-        postJson(API + 'config', { roots: rootsRef.current, depth: depthRef.current })
-          .then(function (body) {
-            var savedRoots = body.config.roots.slice()
-            rootsRef.current = savedRoots
-            depthRef.current = body.config.depth
-            setRoots(savedRoots)
-            setDepth(body.config.depth)
-            setConfigSaving(false)
-            setConfigSaved(true)
-            try {
-              window.dispatchEvent(new CustomEvent(CONFIG_EVENT))
-            } catch (eventError) {
-              window.dispatchEvent(new Event(CONFIG_EVENT))
-            }
-          })
-          .catch(function (failure) {
-            setConfigSaving(false)
-            setConfigError(String((failure && failure.message) || failure))
-          })
-      }
-
-      // Library edits auto-save; the explicit save button is gone.
-      var saveTimer = useRef(null)
-      var [deleteRoot, setDeleteRoot] = useState(null)
-
-      function scheduleSave() {
-        if (saveTimer.current !== null) clearTimeout(saveTimer.current)
-        saveTimer.current = setTimeout(function () {
-          saveTimer.current = null
-          saveConfig()
-        }, 500)
-      }
-
-      useEffect(function () {
-        return function () {
-          if (saveTimer.current !== null) clearTimeout(saveTimer.current)
-        }
-      }, [])
-
-      function pickFolder() {
-        var input = pickerRef.current
-        if (input === null) return
-        input.value = ''
-        input.click()
-      }
-
-      // In-plugin folder browser: browser file APIs cannot hand us absolute
-      // paths in this Electron build, so the host lists directories instead.
-      var [browseOpen, setBrowseOpen] = useState(false)
-      var [browsePath, setBrowsePath] = useState('')
-      var [browseParent, setBrowseParent] = useState(null)
-      var [browseDirs, setBrowseDirs] = useState([])
-      var [browseLoading, setBrowseLoading] = useState(false)
-
-      function loadBrowse(target) {
-        setBrowseLoading(true)
-        getJson(API + 'browse?path=' + encodeURIComponent(target || ''))
-          .then(function (body) {
-            setBrowsePath(body.path)
-            setBrowseParent(body.parent)
-            setBrowseDirs(Array.isArray(body.dirs) ? body.dirs : [])
-            setBrowseLoading(false)
-          })
-          .catch(function (failure) {
-            setBrowseLoading(false)
-            setConfigError(String((failure && failure.message) || failure))
-          })
-      }
-
-      function openBrowse() {
-        setBrowseOpen(true)
-        loadBrowse(roots.length > 0 ? roots[0] : '')
-      }
-
-      function chooseBrowsePath() {
-        if (browsePath === '') return
-        if (rootsRef.current.indexOf(browsePath) < 0) {
-          setRootsNow(rootsRef.current.concat([browsePath]))
-        }
-        setBrowseOpen(false)
-        scheduleSave()
-      }
-
-      function removeRootAt(index) {
-        setRootsNow(
-          rootsRef.current.filter(function (_entry, position) {
-            return position !== index
-          }),
-        )
-        setDeleteRoot(null)
-        scheduleSave()
-      }
-      var [deleteConfirm, setDeleteConfirm] = useState(false)
-
-      useEffect(
-        function () {
-          if (readPrefs().onboardingDone === true) return undefined
-          var timer = window.setTimeout(function () {
-            setOnboardingOpen(true)
-          }, 600)
-          return function () {
-            window.clearTimeout(timer)
-          }
-        },
-        [],
-      )
-
-      function finishOnboarding() {
-        setOnboardingOpen(false)
-        setOnboardingStep(0)
-        setOnboardingBrowseOpen(false)
-        savePrefs({ onboardingDone: true })
-      }
-
-      function openOnboarding() {
-        setOnboardingStep(0)
-        setOnboardingBrowseOpen(false)
-        setOnboardingOpen(true)
-      }
-
-      function toggleOnboardingBrowse() {
-        var next = !onboardingBrowseOpen
-        setOnboardingBrowseOpen(next)
-        if (next) loadBrowse('')
-      }
-
-      function chooseOnboardingFolder() {
-        if (browsePath === '') return
-        if (rootsRef.current.indexOf(browsePath) < 0) {
-          setRootsNow(rootsRef.current.concat([browsePath]))
-        }
-        scheduleSave()
-        setOnboardingBrowseOpen(false)
-        setOnboardingStep(1)
-      }
-
-      useEffect(
-        function () {
-          reloadPlaylists()
-          reloadFavorites()
-        },
-        [],
-      )
-      var npTimerRef = useRef(null)
-
-      // Drain model-tool actions queued on the Host (music_control).
-      useEffect(
-        function () {
-          function applyAction(item) {
-            var action = String(item.action || '')
-            var query = String(item.query || '').trim().toLowerCase()
-            if (action === 'pause') {
-              player.pause()
-              return
-            }
-            if (action === 'next') {
-              player.next()
-              return
-            }
-            if (action === 'previous') {
-              player.prev()
-              return
-            }
-            if (action !== 'play') return
-            var source = String(item.source || '')
-            if (source === 'netease' || source === 'qq' || source === 'kugou') {
-              if (query === '') return
-              getJson(
-                API +
-                  'online/search?provider=' +
-                  encodeURIComponent(source) +
-                  '&q=' +
-                  encodeURIComponent(query),
-              )
-                .then(function (body) {
-                  var list = Array.isArray(body.results) ? body.results : []
-                  var playable = list.filter(function (item) {
-                    return item.qualityHint !== 'VIP' && String(item.id || '') !== ''
-                  })
-                  if (playable.length > 0) {
-                    player.playList(
-                      playable.map(function (item) {
-                        return onlineTrackOf(item)
-                      }),
-                      0,
-                    )
-                  }
-                })
-                .catch(function () {})
-              return
-            }
-            var list =
-              query === ''
-                ? tracks.slice(0, 100)
-                : tracks
-                    .filter(function (track) {
-                      return (
-                        String(track.title || '').toLowerCase().indexOf(query) >= 0 ||
-                        String(track.artist || '').toLowerCase().indexOf(query) >= 0
-                      )
-                    })
-                    .slice(0, 100)
-            if (list.length > 0) player.playList(list, 0)
-          }
-          function poll() {
-            getJson(API + 'control/pending')
-              .then(function (body) {
-                var actions = Array.isArray(body.actions) ? body.actions : []
-                actions.forEach(applyAction)
-              })
-              .catch(function () {})
-          }
-          var timer = window.setInterval(poll, 2000)
-          return function () {
-            window.clearInterval(timer)
-          }
-        },
-        [tracks],
-      )
-
-      var current = snap.index >= 0 && snap.queue[snap.index] ? snap.queue[snap.index] : null
-
-      function openNowPlaying() {
-        if (current === null) return
-        if (npTimerRef.current !== null) {
-          window.clearTimeout(npTimerRef.current)
-          npTimerRef.current = null
-        }
-        setNpOpen(true)
-        // Same two-frame handoff YesPlayMusic's .slide-up transition relies on:
-        // mount at translateY(100%), then toggle the open class next frame.
-        window.requestAnimationFrame(function () {
-          window.requestAnimationFrame(function () {
-            setNpVisible(true)
-          })
-        })
-      }
-
-      function closeNowPlaying() {
-        setNpVisible(false)
-        if (npTimerRef.current !== null) window.clearTimeout(npTimerRef.current)
-        npTimerRef.current = window.setTimeout(function () {
-          npTimerRef.current = null
-          setNpOpen(false)
-        }, 340)
-      }
-
-      useEffect(
-        function () {
-          return player.subscribe(function () {
-            setSnap(player.getSnapshot())
-          })
-        },
-        [],
-      )
-
-      useEffect(
-        function () {
-          savePrefs({ sortBy: sortBy, sortDir: sortDir })
-        },
-        [sortBy, sortDir],
-      )
-
-      function showToast(text) {
-        setToast(text)
-        if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current)
-        toastTimerRef.current = window.setTimeout(function () {
-          setToast('')
-          toastTimerRef.current = null
-        }, 1600)
-      }
-
-      useEffect(
-        function () {
-          var minutes = Number(prefsUi.sleepTimerMinutes) || 0
-          if (minutes <= 0) return undefined
-          var timer = window.setTimeout(function () {
-            player.pause()
-            updatePref('sleepTimerMinutes', 0)
-            showToast(t('settings.sleepTimerDone'))
-          }, minutes * 60 * 1000)
-          return function () {
-            window.clearTimeout(timer)
-          }
-        },
-        [prefsUi.sleepTimerMinutes],
-      )
-
-      var load = useCallback(function (refresh) {
-        setLoading(true)
-        setError(null)
-        return getJson(API + 'config')
-          .then(function (body) {
-            setConfig(body.config)
-            return getJson(API + 'library' + (refresh ? '?refresh=1' : ''))
-          })
-          .then(function (body) {
-            var list = Array.isArray(body.tracks) ? body.tracks : []
-            setTracks(list)
-            setWarnings(Array.isArray(body.warnings) ? body.warnings : [])
-            setLoading(false)
-            if (player.getSnapshot().queue.length === 0 && list.length > 0) {
-              player.setQueue(list)
-            }
-          })
-          .catch(function (failure) {
-            setError(String((failure && failure.message) || failure))
-            setLoading(false)
-          })
-      }, [])
-
-      useEffect(
-        function () {
-          load(false)
-        },
-        [load],
-      )
-
-      useEffect(
-        function () {
-          function onChanged() {
-            load(true)
-          }
-          window.addEventListener(CONFIG_EVENT, onChanged)
-          return function () {
-            window.removeEventListener(CONFIG_EVENT, onChanged)
-          }
-        },
-        [load],
-      )
-
-      function cycleLoop() {
-        cyclePlayMode(snap)
-      }
-
-      function loopLabel() {
-        return playModeLabel(playModeOf(snap))
-      }
-
-      // Hydrate green dots for the history rows (after a page refresh the
-      // cached flags start empty even though the files still exist).
-      useEffect(
-        function () {
-          if (onlineProvider === '') return
-          var rows = onlineHistoryForProvider(onlineProvider)
-          if (rows.length > 0) refreshCachedFlags(onlineProvider, rows)
-        },
-        [onlineProvider, onlineHistory],
-      )
-
-      // Keep the playlist strip populated whenever the online panel opens.
-      useEffect(
-        function () {
-          if (view !== 'online') return
-          if (onlinePlaylistLoading) return
-          if (onlinePlaylists.length > 0) return
-          loadOnlinePlaylistsOnly(onlineProvider)
-        },
-        [view, onlineProvider],
-      )
-
-      // Track cache progress while an online track is being downloaded.
-      useEffect(
-        function () {
-          setOnlineCacheProgress(null)
-          if (
-            current === null ||
-            typeof current.onlineProvider !== 'string' ||
-            current.onlineProvider === ''
-          ) {
-            return undefined
-          }
-          var online = onlinePathOf(current.path)
-          if (online === null) return undefined
-          var stale = false
-          var timer = window.setInterval(function () {
-            getJson(
-              API +
-                'online/cache/status?provider=' +
-                encodeURIComponent(online.provider) +
-                '&ids=' +
-                encodeURIComponent(online.id),
-            )
-              .then(function (body) {
-                if (stale) return
-                var live = body && body.progress ? body.progress[online.id] : null
-                if (live !== undefined && live !== null) {
-                  setOnlineCacheProgress(live)
-                  return
-                }
-                if (body && body.cached && body.cached[online.id] === true) {
-                  setOnlineCacheProgress(null)
-                  setOnlineCached(function (previous) {
-                    var next = Object.assign({}, previous)
-                    next[online.id] = true
-                    return next
-                  })
-                  window.clearInterval(timer)
-                }
-              })
-              .catch(function () {})
-          }, 1500)
-          return function () {
-            stale = true
-            window.clearInterval(timer)
-          }
-        },
-        [current === null ? '' : current.path],
-      )
-
-      // Surfacing playback errors for online tracks (the player auto-skips).
-      useEffect(
-        function () {
-          return player.subscribeError(function (info) {
-            var failed = info && info.track
-            if (
-              failed !== null &&
-              failed !== undefined &&
-              typeof failed.onlineProvider === 'string' &&
-              failed.onlineProvider !== ''
-            ) {
-              showToast(t('online.playFailed'))
-            }
-          })
-        },
-        [player],
-      )
-
-      // Remember online tracks that actually started playing (per provider).
-      useEffect(
-        function () {
-          if (current === null || typeof current.onlineProvider !== 'string' || current.onlineProvider === '') {
-            return
-          }
-          var online = onlinePathOf(current.path)
-          if (online === null) return
-          var entry = {
-            provider: current.onlineProvider,
-            id: online.id,
-            title: current.title || '',
-            artist: current.artist || '',
-            album: current.album || '',
-            durationSec: Number(current.durationSec) || 0,
-            coverUrl: current.coverUrl || '',
-            qualityHint: '',
-            at: Date.now(),
-          }
-          setOnlineHistory(function (previous) {
-            var next = [entry]
-              .concat(
-                previous.filter(function (item) {
-                  return !(item.provider === entry.provider && item.id === entry.id)
-                }),
-              )
-              .slice(0, 50)
-            writeOnlineHistory(next)
-            return next
-          })
-          // Keep a small metadata sidecar so the cache list can show names.
-          requestJson('POST', API + 'online/cache/meta', {
-            provider: entry.provider,
-            id: entry.id,
-            title: entry.title,
-            artist: entry.artist,
-            album: entry.album,
-            coverUrl: entry.coverUrl,
-          }).catch(function () {})
-        },
-        [current === null ? '' : current.path],
-      )
-
-      function favoriteSelected() {
-        selectedTracks.forEach(function (track) {
-          if (favoritePaths[track.path] !== true) toggleFavorite(track)
-        })
-      }
-
-      function saveOnlineQuality(value) {
-        setOnlineQuality(value)
-        requestJson('POST', API + 'config', { onlineQuality: value })
-          .then(function () {
-            showToast(t('online.qualitySaved'))
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function loadOnlineCache() {
-        getJson(API + 'online/cache')
-          .then(function (body) {
-            setCacheStats({ files: Number(body.files) || 0, bytes: Number(body.bytes) || 0 })
-          })
-          .catch(function () {})
-      }
-
-      function loadCacheList() {
-        setCacheLoading(true)
-        getJson(API + 'online/cache/list')
-          .then(function (body) {
-            setCacheSongs(Array.isArray(body.songs) ? body.songs : [])
-            setCacheLoading(false)
-          })
-          .catch(function () {
-            setCacheLoading(false)
-          })
-      }
-
-      function removeCacheSong(song) {
-        requestJson('POST', API + 'online/cache/remove', {
-          provider: song.provider,
-          id: song.id,
-        })
-          .then(function () {
-            setCacheSongs(function (list) {
-              return list.filter(function (item) {
-                return !(item.provider === song.provider && item.id === song.id)
-              })
-            })
-            // The dot is keyed by track id; drop it so the row reflects the delete.
-            setOnlineCached(function (previous) {
-              var next = Object.assign({}, previous)
-              delete next[song.id]
-              return next
-            })
-            showToast(t('online.cacheRemoved'))
-            loadOnlineCache()
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function clearOnlineCache() {
-        requestJson('POST', API + 'online/cache', {})
-          .then(function () {
-            showToast(t('online.cacheCleared'))
-            loadOnlineCache()
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function loadOnlineProviders() {
-        getJson(API + 'online/providers')          .then(function (body) {
-            var list = body.providers && typeof body.providers === 'object' ? body.providers : {}
-            setOnlineProviders({
-              netease: { loggedIn: list.netease ? list.netease.loggedIn === true : false, nickname: (list.netease && list.netease.nickname) || '' },
-              qq: { loggedIn: list.qq ? list.qq.loggedIn === true : false, nickname: (list.qq && list.qq.nickname) || '' },
-              kugou: { loggedIn: list.kugou ? list.kugou.loggedIn === true : false, nickname: (list.kugou && list.kugou.nickname) || '' },
-            })
-          })
-          .catch(function () {})
-      }
-
-      function stopOnlineLoginPolling() {
-        if (onlineLoginTimer.current !== null) {
-          window.clearInterval(onlineLoginTimer.current)
-          onlineLoginTimer.current = null
+    
+      function submit() {
+        if (isOnlineSource(ui.source)) {
+          void searchOnline(text)
         }
       }
-
-      function pollOnlineLogin(provider, key, mode) {
-        function check() {
-          getJson(
-            API +
-              'online/login/status?provider=' +
-              encodeURIComponent(provider) +
-              '&key=' +
-              encodeURIComponent(key) +
-              '&mode=' +
-              encodeURIComponent(mode || 'qq'),
-          )
-            .then(function (body) {
-              var status = String(body.status || '')
-              setOnlineLoginDialog(function (previous) {
-                return previous === null ? previous : Object.assign({}, previous, { status: status })
-              })
-              if (status === 'success') {
-                stopOnlineLoginPolling()
-                showToast(t('online.loginSuccess'))
-                loadOnlineProviders()
-                if (view === 'online') loadOnlinePlaylistsOnly(provider)
-                window.setTimeout(function () {
-                  setOnlineLoginDialog(null)
-                }, 800)
-              } else if (status === 'expired' || status === 'failed') {
-                stopOnlineLoginPolling()
-              }
-            })
-            .catch(function () {})
-        }
-        stopOnlineLoginPolling()
-        onlineLoginTimer.current = window.setInterval(check, 2000)
-      }
-
-      function startOnlineLogin(provider, mode) {
-        var loginMode = mode || 'qq'
-        setOnlineLoginDialog({
-          provider: provider,
-          mode: loginMode,
-          key: '',
-          imageDataUrl: '',
-          status: 'waiting',
-          error: '',
-        })
-        requestJson('POST', API + 'online/login/start', { provider: provider, mode: loginMode })
-          .then(function (body) {
-            setOnlineLoginDialog({
-              provider: provider,
-              mode: loginMode,
-              key: body.key || '',
-              imageDataUrl: body.imageDataUrl || '',
-              status: 'waiting',
-              error: '',
-            })
-            if (body.key) pollOnlineLogin(provider, body.key, loginMode)
-          })
-          .catch(function (error) {
-            var message = String((error && error.message) || error)
-            setOnlineLoginDialog(function (previous) {
-              return previous === null
-                ? previous
-                : Object.assign({}, previous, { status: 'failed', error: message })
-            })
-            showToast(message)
-          })
-      }
-
-      function closeOnlineLogin() {
-        stopOnlineLoginPolling()
-        setOnlineLoginDialog(null)
-      }
-
-      function logoutOnlineProvider(provider) {
-        requestJson('POST', API + 'online/logout', { provider: provider })
-          .then(function () {
-            showToast(t('online.loggedOut'))
-            loadOnlineProviders()
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function onlineTrackOf(result) {
-        var provider = result.provider
-        return {
-          path: 'online:' + provider + ':' + result.id,
-          title: result.title,
-          artist: result.artist,
-          album: result.album,
-          durationSec: result.durationSec,
-          hasCover: false,
-          coverUrl: result.coverUrl || '',
-          onlineUrl:
-            API +
-            'online/stream?provider=' +
-            encodeURIComponent(provider) +
-            '&id=' +
-            encodeURIComponent(result.id),
-          onlineProvider: provider,
-          sampleRate: 0,
-          size: 0,
-          mtime: 0,
-        }
-      }
-
-      function searchOnline() {
-        var query = onlineQuery.trim()
-        if (query === '') return
-        var seq = onlineSeq.current + 1
-        onlineSeq.current = seq
-        setOnlineLoading(true)
-        setOnlineError('')
-        setOnlineResults([])
-        getJson(
-          API +
-            'online/search?provider=' +
-            encodeURIComponent(onlineProvider) +
-            '&q=' +
-            encodeURIComponent(query),
-        )
-          .then(function (body) {
-            if (onlineSeq.current !== seq) return
-            var results = Array.isArray(body.results) ? body.results : []
-            setOnlineResults(results)
-            setOnlineLoading(false)
-            refreshCachedFlags(onlineProvider, results)
-          })
-          .catch(function (error) {
-            if (onlineSeq.current !== seq) return
-            setOnlineError(onlineErrorMessage(error))
-            setOnlineLoading(false)
-          })
-      }
-
-      /** Requests that raced a newer one are dropped; network errors get a plain message. */
-      /** Refresh the "already cached" flags for the visible online rows. */
-      function refreshCachedFlags(provider, results) {
-        var ids = (Array.isArray(results) ? results : [])
-          .map(function (item) {
-            return String(item.id || '')
-          })
-          .filter(function (id) {
-            return id !== ''
-          })
-          .slice(0, 200)
-        if (ids.length === 0) return
-        getJson(
-          API +
-            'online/cache/status?provider=' +
-            encodeURIComponent(provider) +
-            '&ids=' +
-            encodeURIComponent(ids.join(',')),
-        )
-          .then(function (body) {
-            if (body && body.cached && typeof body.cached === 'object') {
-              setOnlineCached(function (previous) {
-                var next = Object.assign({}, previous)
-                Object.keys(body.cached).forEach(function (key) {
-                  // A freshly finished download can race an older "not cached"
-                  // response; never let that clear an existing green dot.
-                  if (body.cached[key] === true) next[key] = true
-                  else if (next[key] !== true) next[key] = false
-                })
-                return next
-              })
-            }
-          })
-          .catch(function () {})
-      }
-
-      /** Drop history rows the provider refuses to resolve (VIP / removed). */
-      function clearUnplayableHistory() {
-        var rows = onlineHistoryForProvider(onlineProvider)
-        if (rows.length === 0) return
-        setClearingUnplayable(true)
-        requestJson('POST', API + 'online/check-playable', {
-          provider: onlineProvider,
-          ids: rows.map(function (item) {
-            return String(item.id)
-          }),
-        })
-          .then(function (body) {
-            var playable = (body && body.playable) || {}
-            var kept = rows.filter(function (item) {
-              return playable[item.id] !== false
-            })
-            var removed = rows.length - kept.length
-            if (removed > 0) {
-              setOnlineHistory(function (previous) {
-                var next = previous.filter(function (item) {
-                  if (item.provider !== onlineProvider) return true
-                  return kept.some(function (entry) {
-                    return String(entry.id) === String(item.id)
-                  })
-                })
-                writeOnlineHistory(next)
-                return next
-              })
-            }
-            setClearingUnplayable(false)
-            showToast(t('online.clearedUnplayable', { n: removed }))
-          })
-          .catch(function (error) {
-            setClearingUnplayable(false)
-            showToast(onlineErrorMessage(error))
-          })
-      }
-
-      /** Remove one row from the recent-played history (right-click action). */
-      function removeHistoryItem(item) {
-        if (item === null || item === undefined) return
-        setOnlineHistory(function (previous) {
-          var next = previous.filter(function (entry) {
-            return !(entry.provider === item.provider && String(entry.id) === String(item.id))
-          })
-          writeOnlineHistory(next)
-          return next
-        })
-        showToast(t('online.removedFromHistory'))
-      }
-
-      /** Scroll a list container to the playing row; false when not found. */
-      function scrollToPlayingRow(selector) {
-        var rows = document.querySelectorAll(selector)
-        if (rows.length === 0) return false
-        var row = rows[rows.length - 1]
-        if (typeof row.scrollIntoView === 'function') {
-          row.scrollIntoView({ block: 'center', behavior: 'smooth' })
-        }
-        return true
-      }
-
-      /**
-       * Locate the playing track: switch to the list it belongs to first
-       * (online provider / local songs) and then scroll to its row.
-       */
-      function locatePlayingRow() {
-        if (current === null) {
-          showToast(t('online.noPlaying'))
-          return
-        }
-        var playingProvider =
-          typeof current.onlineProvider === 'string' ? current.onlineProvider : ''
-        if (playingProvider !== '') {
-          if (view !== 'online' || source !== playingProvider) {
-            setView('online')
-            setSource(playingProvider)
-            setOnlineProvider(playingProvider)
-            setOnlineResults([])
-            window.setTimeout(function () {
-              scrollToPlayingRow('.mu-online .mu-row.is-current')
-            }, 150)
-            return
-          }
-          if (!scrollToPlayingRow('.mu-online .mu-row.is-current')) {
-            showToast(t('online.noPlaying'))
-          }
-          return
-        }
-        if (view === 'online') {
-          setView('songs')
-          window.setTimeout(function () {
-            scrollToPlayingRow('.mu-view .mu-row.is-current')
-          }, 150)
-          return
-        }
-        if (
-          !scrollToPlayingRow('.mu-view .mu-row.is-current') &&
-          !scrollToPlayingRow('.mu-view .mu-card.is-current')
-        ) {
-          showToast(t('online.noPlaying'))
-        }
-      }
-
-      function onlineErrorMessage(error) {
-        var message = String((error && error.message) || error)
-        if (/20017|20018|登录态|重新扫码|登录已过期|未登录|sign in/i.test(message)) {
-          return t('online.loginExpired')
-        }
-        if (/failed to fetch|network|econn|timeout|abort/i.test(message)) {
-          return t('online.networkError')
-        }
-        return message
-      }
-
-      /** Fetch playlists without switching the sub-tab (for the inline strip). */
-      function loadOnlinePlaylistsOnly(providerOverride) {
-        var provider =
-          typeof providerOverride === 'string' && providerOverride !== ''
-            ? providerOverride
-            : onlineProvider
-        if (provider === '') return
-        var seq = onlineSeq.current + 1
-        onlineSeq.current = seq
-        setOnlinePlaylistLoading(true)
-        getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(provider))
-          .then(function (body) {
-            if (onlineSeq.current !== seq) return
-            setOnlinePlaylists(Array.isArray(body.playlists) ? body.playlists : [])
-            setOnlinePlaylistLoading(false)
-          })
-          .catch(function () {
-            if (onlineSeq.current !== seq) return
-            setOnlinePlaylistLoading(false)
-          })
-      }
-
-      function openOnlinePlaylist(playlist) {
-        setOnlineResults([])
-        var seq = onlineSeq.current + 1
-        onlineSeq.current = seq
-        setOnlinePlaylistLoading(true)
-        setOnlinePlaylistError('')
-        getJson(
-          API +
-            'online/playlist-songs?provider=' +
-            encodeURIComponent(onlineProvider) +
-            '&id=' +
-            encodeURIComponent(playlist.id),
-        )
-          .then(function (body) {
-            if (onlineSeq.current !== seq) return
-            var songs = Array.isArray(body.songs) ? body.songs : []
-            setOnlineCurrentPlaylist({
-              id: playlist.id,
-              name: body.name || playlist.name,
-              cover: body.cover || playlist.cover,
-              songs: songs,
-            })
-            setOnlinePlaylistLoading(false)
-            refreshCachedFlags(onlineProvider, songs)
-          })
-          .catch(function (error) {
-            if (onlineSeq.current !== seq) return
-            setOnlinePlaylistError(onlineErrorMessage(error))
-            setOnlinePlaylistLoading(false)
-          })
-      }
-
-      function onlineHistoryForProvider(provider) {
-        return onlineHistory
-          .filter(function (item) {
-            return item.provider === provider
-          })
-          .slice(0, 30)
-      }
-
-      /**
-       * Play one online row together with its sibling list. VIP/paid rows are
-       * filtered out of the queue: only tracks that can actually stream are
-       * added, and tapping a VIP row just explains why it cannot play.
-       */
-      function playOnlineResult(result, siblings) {
-        var list = Array.isArray(siblings) && siblings.length > 0 ? siblings : [result]
-        var playable = list.filter(function (item) {
-          return item.qualityHint !== 'VIP' && String(item.id || '') !== ''
-        })
-        if (playable.length === 0) {
-          showToast(t('online.vipOnly'))
-          return
-        }
-        var at = -1
-        for (var i = 0; i < playable.length; i += 1) {
-          if (playable[i].provider === result.provider && playable[i].id === result.id) {
-            at = i
-            break
-          }
-        }
-        if (at < 0) {
-          showToast(t('online.vipOnly'))
-          return
-        }
-        player.playList(
-          playable.map(function (item) {
-            return onlineTrackOf(item)
-          }),
-          at,
-        )
-      }
-
-      function renderOnlineSong(result, siblings, onRemove) {
-        var track = onlineTrackOf(result)
-        var isCurrent = current !== null && current.path === track.path
-        var providerLabel =
-          result.provider === 'netease'
-            ? t('online.providerNetease')
-            : result.provider === 'qq'
-              ? t('online.providerQq')
-              : t('online.providerKugou')
-        var isVip = result.qualityHint === 'VIP'
-        return h(
-          'div',
-          {
-            className: 'mu-row' + (isCurrent ? ' is-current' : ''),
-            key: track.path,
-            title: result.artist ? result.title + ' - ' + result.artist : result.title,
-            onDoubleClick: function () {
-              playOnlineResult(result, siblings)
-            },
-            onContextMenu:
-              typeof onRemove === 'function'
-                ? function (event) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                    onRemove(result, event.clientX, event.clientY)
-                  }
-                : undefined,
-          },
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-row-play',
-              title: t('page.play'),
-              onClick: function (event) {
-                event.stopPropagation()
-                playOnlineResult(result, siblings)
-              },
-            },
-            h(Cover, { track: track, size: 60, radius: 8 }),
-          ),
-          h(
-            'div',
-            { className: 'mu-row-main' },
-            h(
-              'div',
-              { className: 'mu-row-title' },
-              result.title,
-              onlineCached[result.id] === true
-                ? h(
-                    'span',
-                    { className: 'mu-cached-icon', title: t('online.cached') },
-                    icon('download', 12),
-                  )
-                : null,
-            ),
-            h('div', { className: 'mu-row-sub' }, result.artist || ''),
-          ),
-          h('div', { className: 'mu-row-album mu-ellipsis' }, result.album || ''),
-          h('div', { className: 'mu-row-dur' }, fmtTime(result.durationSec)),
-          h(
-            'div',
-            { className: 'mu-row-actions' },
-            isVip
-              ? h('span', { className: 'mu-online-badge is-vip' }, t('online.vip'))
-              : result.qualityHint !== ''
-                ? h('span', { className: 'mu-online-badge' }, result.qualityHint)
-                : null,
-          ),
-        )
-      }
-
-      /** Persistent playlist strip (acts as the online tab bar). */
-      function renderPlaylistStrip() {
-        var currentId =
-          onlineCurrentPlaylist === null ? 'recent' : String(onlineCurrentPlaylist.id)
-        return h(
-          'div',
-          { className: 'mu-pl-strip' },
-          h(
-            'div',
-            { className: 'mu-pl-strip-head' },
-            h('span', { className: 'mu-pl-strip-title' }, t('online.myPlaylists')),
-            h('span', { className: 'mu-pl-strip-count' }, String(onlinePlaylists.length)),
-          ),
-          h(
-            'div',
-            { className: 'mu-pl-strip-cards' },
-            h(
-              'button',
-              {
-                type: 'button',
-                key: 'recent',
-                className: 'mu-pl-card' + (currentId === 'recent' ? ' is-on' : ''),
-                title: t('online.recent'),
-                onClick: function () {
-                  setOnlineCurrentPlaylist(null)
-                  setOnlineResults([])
-                },
-              },
-              h('span', { className: 'mu-pl-card-cover mu-pl-card-cover-recent' }, icon('clock', 18)),
-              h('span', { className: 'mu-pl-card-name' }, t('online.recent')),
-            ),
-            onlinePlaylists.map(function (playlist) {
-              return h(
-                'button',
-                {
-                  type: 'button',
-                  key: playlist.id,
-                  className: 'mu-pl-card' + (currentId === String(playlist.id) ? ' is-on' : ''),
-                  title: playlist.name,
-                  onClick: function () {
-                    openOnlinePlaylist(playlist)
-                  },
-                },
-                h(
-                  'span',
-                  { className: 'mu-pl-card-cover' },
-                  playlist.cover !== ''
-                    ? h('img', { src: playlist.cover, alt: '', loading: 'lazy' })
-                    : icon('list', 16),
-                ),
-                h('span', { className: 'mu-pl-card-name mu-ellipsis' }, playlist.name),
-              )
-            }),
-          ),
-        )
-      }
-
-      /** Online view: search row + persistent playlist strip + content pane. */
-      function renderOnlineView() {
-        var showingSearch = onlineResults.length > 0
-        var current = onlineCurrentPlaylist
-        var heading = showingSearch
-          ? t('online.searchResults')
-          : current === null
-            ? t('online.recent')
-            : current.name
-        var list = showingSearch
-          ? onlineResults
-          : current === null
-            ? onlineHistoryForProvider(onlineProvider)
-            : current.songs
-        var listLoading = !showingSearch && current !== null && onlinePlaylistLoading
-        return h(
-          'div',
-          { className: 'mu-online' },
-          h(
-            'div',
-            { className: 'mu-online-search-row' },
-            h('input', {
-              type: 'text',
-              className: 'mu-input mu-input-sm mu-online-search',
-              placeholder: t('online.searchPlaceholder'),
-              value: onlineQuery,
-              onChange: function (event) {
-                setOnlineQuery(event.target.value)
-              },
-              onKeyDown: function (event) {
-                if (event.key === 'Enter') searchOnline()
-              },
-            }),
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mu-btn mu-btn-sm',
-                disabled: onlineLoading,
-                onClick: searchOnline,
-              },
-              onlineLoading ? '…' : t('page.search'),
-            ),
-          ),
-          onlineError !== '' ? h('div', { className: 'mu-online-error' }, onlineError) : null,
-          onlinePlaylists.length > 0 || current !== null ? renderPlaylistStrip() : null,
-          h(
-            'div',
-            { className: 'mu-online-head' },
-            h('span', { className: 'mu-online-head-title mu-ellipsis' }, heading),
-            showingSearch
-              ? h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                    onClick: function () {
-                      setOnlineResults([])
-                    },
-                  },
-                  t('online.recent'),
-                )
-              : current === null
-                ? h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-icon-btn-sm',
-                      title: t('online.clearUnplayable'),
-                      disabled: clearingUnplayable,
-                      onClick: clearUnplayableHistory,
-                    },
-                    clearingUnplayable
-                      ? h('span', { className: 'mu-spinner mu-spinner-sm' })
-                      : icon('trash', 14),
-                  )
-                : null,
-          ),
-          listLoading
-            ? h(
-                'div',
-                { className: 'mu-state' },
-                h('div', { className: 'mu-spinner' }),
-                t('online.searching'),
-              )
-            : list.length === 0
-              ? h(
-                  'div',
-                  { className: 'mu-state' },
-                  h(
-                    'div',
-                    { className: 'mu-state-sub' },
-                    showingSearch ? t('online.emptyResults') : t('online.hint'),
-                  ),
-                )
-              : h(
-                  'div',
-                  { className: 'mu-list' },
-                  list.map(function (item) {
-                    return renderOnlineSong(
-                      item,
-                      list,
-                      showingSearch
-                        ? undefined
-                        : function (result, x, y) {
-                            setOnlineContext({ item: result, x: x, y: y })
-                          },
-                    )
-                  }),
-                ),
-        )
-      }
-
-      function saveBatchEdit() {
-        if (batchSaving || selectedTracks.length === 0) return
-        var patch = {}
-        ;['artist', 'album', 'genre', 'albumArtist'].forEach(function (field) {
-          var value = String(batchForm[field] || '').trim()
-          if (value !== '') patch[field] = value
-        })
-        if (Object.keys(patch).length === 0) {
-          showToast(t('page.batchEmpty'))
-          return
-        }
-        setBatchSaving(true)
-        var list = selectedTracks.slice()
-        var done = 0
-        function step(index) {
-          if (index >= list.length) {
-            setBatchSaving(false)
-            setBatchEditOpen(false)
-            showToast(t('page.batchSaved', { n: done }))
-            load(true)
-            return
-          }
-          var track = list[index]
-          getJson(API + 'tags?path=' + encodeURIComponent(track.path))
-            .then(function (body) {
-              var tags = Object.assign({}, body.tags || {}, patch)
-              return requestJson('PUT', API + 'tags', { path: track.path, tags: tags })
-            })
-            .then(function () {
-              done += 1
-              step(index + 1)
-            })
-            .catch(function () {
-              step(index + 1)
-            })
-        }
-        step(0)
-      }
-
-      function compareAudioQuality(left, right) {
-        var leftBitrate = Number(left.bitrate) || 0
-        var rightBitrate = Number(right.bitrate) || 0
-        if (leftBitrate !== rightBitrate) return rightBitrate - leftBitrate
-        var leftRate = Number(left.sampleRate) || 0
-        var rightRate = Number(right.sampleRate) || 0
-        if (leftRate !== rightRate) return rightRate - leftRate
-        return (Number(right.size) || 0) - (Number(left.size) || 0)
-      }
-
-      function removeDuplicates() {
-        var paths = []
-        duplicateGroups.forEach(function (group) {
-          var sorted = group.slice().sort(compareAudioQuality)
-          sorted.slice(1).forEach(function (track) {
-            paths.push(track.path)
-          })
-        })
-        if (paths.length === 0) return
-        var confirmed =
-          typeof window.confirm !== 'function' ||
-          window.confirm(t('page.deleteDuplicatesConfirm', { n: paths.length }))
-        if (!confirmed) return
-        requestJson('POST', API + 'remove', { paths: paths })
-          .then(function (body) {
-            showToast(t('page.duplicatesRemoved', { n: body.moved.length }))
-            setDupOpen(false)
-            load(true)
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function toggleSelect(track) {
-        setSelected(function (list) {
-          if (list.indexOf(track.path) >= 0) {
-            return list.filter(function (path) {
-              return path !== track.path
-            })
-          }
-          return list.concat([track.path])
-        })
-      }
-
-      function toggleViewMode() {
-        var next = viewMode === 'grid' ? 'list' : 'grid'
-        setViewMode(next)
-        savePrefs({ viewMode: next })
-      }
-
-      function activate(track) {
-        player.ensureAnalyser()
-        var at = sortedCollection.findIndex(function (item) {
-          return item.path === track.path
-        })
-        if (at < 0) return
-        // Queue the whole playlist (ignores the search filter), starting here.
-        player.playList(sortedCollection, at)
-      }
-
-      function clearList() {
-        player.clear()
-        setTracks([])
-        setSelected([])
-      }
-
-      function copyPath(track) {
-        var snapNow = player.getSnapshot()
-        var fallback = snapNow.index >= 0 ? snapNow.queue[snapNow.index] : null
-        var target = track && track.path ? track : fallback
-        if (!target) return
-        try {
-          navigator.clipboard.writeText(target.path).then(
-            function () {
-              showToast(t('page.copied'))
-            },
-            function () {
-              showToast(target.path)
-            },
-          )
-        } catch (error) {
-          showToast(target.path)
-        }
-      }
-
-      function revealTrack(track) {
-        if (!track) return
-        requestJson('POST', API + 'reveal', { path: track.path })
-          .then(function () {
-            showToast(t('page.revealed'))
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function createPlaylistWithSelection() {
-        var paths = selectedTracks.map(function (track) {
-          return track.path
-        })
-        if (paths.length === 0) return
-        requestJson('POST', API + 'playlists', { name: '' })
-          .then(function (body) {
-            return patchPlaylist(body.playlist.id, { add: paths })
-          })
-          .then(function () {
-            showToast(t('page.addedCount', { n: paths.length }))
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      /** A track needs metadata when its title or artist is blank. */
-      function needsMeta(track) {
-        if (track === null || track === undefined) return false
-        return (
-          String(track.title || '').trim() === '' || String(track.artist || '').trim() === ''
-        )
-      }
-
-      function openTagEditor(path, autoMatch) {
-        autoMatchRef.current = autoMatch === true
-        setTagEditPath(path)
-        setTagForm(null)
-        setCoverFailed(false)
-        setTagCoverPreview(null)
-        setMatchField(null)
-        setOnlineOpen(false)
-        setOnlineResults([])
-        setOnlineSources([])
-        getJson(API + 'tags?path=' + encodeURIComponent(path))
-          .then(function (body) {
-            setTagForm(Object.assign({}, body.tags))
-          })
-          .catch(function (error) {
-            autoMatchRef.current = false
-            setTagEditPath(null)
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      // Auto-run an online metadata search once the tag form has loaded.
-      useEffect(
-        function () {
-          if (tagForm === null) return
-          if (autoMatchRef.current !== true) return
-          autoMatchRef.current = false
-          setMatchField(null)
-          searchOnlineForTags()
-        },
-        [tagForm],
-      )
-
-      function closeTagEditor() {
-        if (tagSaving) return
-        setTagEditPath(null)
-        setTagForm(null)
-        setOnlineOpen(false)
-      }
-
-      function searchOnlineForTags() {
-        if (tagForm === null || onlineLoading) return
-        var title = String(tagForm.title || '').trim()
-        // Untagged downloads often carry the song name only in the file name.
-        if (title === '' && tagEditPath !== null) title = stemOf(tagEditPath)
-        setOnlineOpen(true)
-        setOnlineLoading(true)
-        setOnlineResults([])
-        setOnlineSources([])
-        requestJson('POST', API + 'online-search', {
-          title: title,
-          artist: tagForm.artist || '',
-          album: tagForm.album || '',
-        })
-          .then(function (body) {
-            setOnlineResults(Array.isArray(body.results) ? body.results : [])
-            setOnlineSources(Array.isArray(body.sources) ? body.sources : [])
-            setOnlineLoading(false)
-          })
-          .catch(function (error) {
-            setOnlineLoading(false)
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function tagFieldLabel(field) {
-        var rows = TAG_BASIC_ROWS.concat(TAG_DETAIL_ROWS)
-        for (var i = 0; i < rows.length; i += 1) {
-          if (rows[i][0] === field) return t(rows[i][1])
-        }
-        return field
-      }
-
-      function applyOnlineResult(item) {
-        if (matchField !== null) {
-          var field = matchField
-          if (item[field]) {
-            setTagForm(function (previous) {
-              if (previous === null) return previous
-              return Object.assign({}, previous, { [field]: item[field] })
-            })
-          }
-          setOnlineOpen(false)
-          setMatchField(null)
-          return
-        }
-        setTagForm(function (previous) {
-          if (previous === null) return previous
-          var next = Object.assign({}, previous)
-          if (item.title) next.title = item.title
-          if (item.artist) next.artist = item.artist
-          if (item.album) next.album = item.album
-          if (item.year) next.year = item.year
-          if (item.track) next.track = item.track
-          if (item.disc) next.disc = item.disc
-          if (item.genre) next.genre = item.genre
-          return next
-        })
-        if (item.coverUrl) {
-          setTagCoverPreview(item.coverUrl)
-          setCoverFailed(false)
-        }
-        setOnlineOpen(false)
-      }
-
-      function saveTagEditor() {
-        if (tagEditPath === null || tagForm === null || tagSaving) return
-        setTagSaving(true)
-        var snapNow = player.getSnapshot()
-        var playingThis =
-          snapNow.index >= 0 && snapNow.queue[snapNow.index] && snapNow.queue[snapNow.index].path === tagEditPath
-        if (playingThis) player.suspend()
-        requestJson('PUT', API + 'tags', {
-          path: tagEditPath,
-          tags: tagForm,
-          coverUrl: tagCoverPreview || '',
-        })
-          .then(function () {
-            showToast(t('page.metaSaved'))
-            setTagSaving(false)
-            setTagEditPath(null)
-            setTagForm(null)
-            return load(true)
-          })
-          .catch(function (error) {
-            setTagSaving(false)
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function renderTagField(key, labelKey) {
-        return h(
-          'label',
-          { className: 'mu-tag-field', key: key },
-          h(
-            'span',
-            { className: 'mu-tag-field-head' },
-            h('span', { className: 'mu-tag-label' }, t(labelKey)),
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mu-tag-field-search',
-                title: t('page.matchField'),
-                onClick: function (event) {
-                  event.preventDefault()
-                  event.stopPropagation()
-                  setMatchField(key)
-                  searchOnlineForTags()
-                },
-              },
-              icon('search', 11),
-            ),
-          ),
-          h('input', {
-            type: 'text',
-            className: 'mu-input',
-            value: tagForm[key] || '',
-            onChange: function (event) {
-              var value = event.target.value
-              setTagForm(function (previous) {
-                return Object.assign({}, previous, { [key]: value })
-              })
-            },
-          }),
-        )
-      }
-
-      var trackByPath = useMemo(function () {
-        var map = {}
-        tracks.forEach(function (track) {
-          map[track.path] = track
-        })
-        return map
-      }, [tracks])
-
-      var duplicateGroups = useMemo(function () {
-        var groups = {}
-        tracks.forEach(function (track) {
-          if (!track || !(track.durationSec > 0)) return
-          var key =
-            String(track.title || '').toLowerCase() +
-            '|' +
-            String(track.artist || '').toLowerCase() +
-            '|' +
-            String(Math.round(track.durationSec))
-          if (groups[key] === undefined) groups[key] = []
-          groups[key].push(track)
-        })
-        var result = []
-        Object.keys(groups).forEach(function (key) {
-          if (groups[key].length > 1) result.push(groups[key])
-        })
-        return result
-      }, [tracks])
-
-      var activePlaylist = useMemo(function () {
-        return playlists.find(function (item) {
-          return item.id === playlistId
-        })
-      }, [playlists, playlistId])
-
-      var favoritePaths = useMemo(
-        function () {
-          var set = {}
-          favorites.forEach(function (entry) {
-            set[entry.path] = true
-          })
-          return set
-        },
-        [favorites],
-      )
-
-      /** The collection the active tab shows: all songs, favourites, or one playlist. */
-      var collectionTracks = useMemo(function () {
-        if (viewFilter !== null) {
-          return tracks.filter(function (track) {
-            if (viewFilter.kind === 'album') {
-              return (
-                (track.album || '') === viewFilter.album && (track.artist || '') === viewFilter.artist
-              )
-            }
-            if (viewFilter.kind === 'folder') {
-              return folderOf(track.path) === viewFilter.folder
-            }
-            return (track.artist || '') === viewFilter.artist
-          })
-        }
-        if (view === 'favorites') {
-          return favorites
-            .map(function (entry) {
-              return trackByPath[entry.path]
-            })
-            .filter(Boolean)
-        }
-        if (view !== 'playlists' || activePlaylist === undefined) return tracks
-        return activePlaylist.trackPaths
-          .map(function (path) {
-            return trackByPath[path]
-          })
-          .filter(Boolean)
-      }, [view, activePlaylist, tracks, trackByPath, favorites, viewFilter])
-
-      var albumGroups = useMemo(function () {
-        var groups = {}
-        tracks.forEach(function (track) {
-          var album = (track.album || '').trim()
-          var artist = (track.artist || '').trim()
-          var key = album + '\u0000' + artist
-          if (groups[key] === undefined) {
-            groups[key] = { key: key, album: album, artist: artist, count: 0, coverPath: '' }
-          }
-          groups[key].count += 1
-          if (groups[key].coverPath === '' && track.hasCover === true) groups[key].coverPath = track.path
-        })
-        return Object.keys(groups)
-          .map(function (key) {
-            return groups[key]
-          })
-          .sort(function (left, right) {
-            return (
-              left.album.localeCompare(right.album) || left.artist.localeCompare(right.artist)
-            )
-          })
-      }, [tracks])
-
-      /** Folder groups: every directory that contains tracks, labelled relative to its root. */
-      var folderGroups = useMemo(
-        function () {
-          var roots = (config !== null && Array.isArray(config.roots) ? config.roots : []).map(
-            function (root) {
-              return String(root || '')
-            },
-          )
-          var groups = {}
-          tracks.forEach(function (track) {
-            var folder = folderOf(track.path)
-            if (folder === '') return
-            if (groups[folder] === undefined) {
-              groups[folder] = {
-                key: folder,
-                folder: folder,
-                name: folderLabelOf(folder, roots),
-                count: 0,
-                coverPath: '',
-              }
-            }
-            groups[folder].count += 1
-            if (groups[folder].coverPath === '' && track.hasCover === true) {
-              groups[folder].coverPath = track.path
-            }
-          })
-          return Object.keys(groups)
-            .map(function (key) {
-              return groups[key]
-            })
-            .sort(function (left, right) {
-              return left.name.localeCompare(right.name)
-            })
-        },
-        [tracks, config],
-      )
-
-      var artistGroups = useMemo(function () {
-        var groups = {}
-        tracks.forEach(function (track) {
-          var artist = (track.artist || '').trim()
-          if (groups[artist] === undefined) {
-            groups[artist] = { artist: artist, count: 0, coverPath: '' }
-          }
-          groups[artist].count += 1
-          if (groups[artist].coverPath === '' && track.hasCover === true) groups[artist].coverPath = track.path
-        })
-        return Object.keys(groups)
-          .map(function (key) {
-            return groups[key]
-          })
-          .sort(function (left, right) {
-            return right.count - left.count || left.artist.localeCompare(right.artist)
-          })
-      }, [tracks])
-
-      useEffect(
-        function () {
-          if (!sortOpen) return undefined
-          function onPointerDown(event) {
-            var target = event.target
-            if (target !== null && typeof target.closest === 'function') {
-              if (target.closest('.mu-menu-sort') !== null) return
-              if (target.closest('[data-sort-toggle]') !== null) return
-            }
-            setSortOpen(false)
-          }
-          document.addEventListener('mousedown', onPointerDown)
-          return function () {
-            document.removeEventListener('mousedown', onPointerDown)
-          }
-        },
-        [sortOpen],
-      )
-
-      useEffect(
-        function () {
-          if (!prefsOpen) return undefined
-          function onPointerDown(event) {
-            var target = event.target
-            if (target !== null && typeof target.closest === 'function') {
-              if (target.closest('.mu-prefs-panel, .mu-prefs') !== null) return
-              if (target.closest('[data-prefs-toggle]') !== null) return
-            }
-            setPrefsOpen(false)
-          }
-          document.addEventListener('mousedown', onPointerDown)
-          return function () {
-            document.removeEventListener('mousedown', onPointerDown)
-          }
-        },
-        [prefsOpen],
-      )
-
-      useEffect(
-        function () {
-          if (!deleteConfirm) return undefined
-          function onPointerDown(event) {
-            var target = event.target
-            if (target !== null && typeof target.closest === 'function') {
-              if (target.closest('.mu-confirm') !== null) return
-              if (target.closest('[data-delete-toggle]') !== null) return
-            }
-            setDeleteConfirm(false)
-          }
-          document.addEventListener('mousedown', onPointerDown)
-          return function () {
-            document.removeEventListener('mousedown', onPointerDown)
-          }
-        },
-        [deleteConfirm],
-      )
-
-      // Full collection in display order (search is a filter on top of it).
-      // Double-clicking a song queues this whole playlist, not just the
-      // filtered results, which is what desktop players do.
-      var sortedCollection = useMemo(
-        function () {
-          // "Liked" is ordered by when it was liked (newest first) unless the
-          // user picks another sort, matching NetEase/Spotify liked songs.
-          if (view === 'favorites' && sortBy === 'title' && sortDir === 'asc') {
-            return collectionTracks
-          }
-          var direction = sortDir === 'desc' ? -1 : 1
-          var keyed = collectionTracks.map(function (track, position) {
-            return { track: track, position: position }
-          })
-          keyed.sort(function (left, right) {
-            var a = left.track
-            var b = right.track
-            var aValue = sortValueOf(a, sortBy)
-            var bValue = sortValueOf(b, sortBy)
-            var compared =
-              typeof aValue === 'number' && typeof bValue === 'number'
-                ? aValue - bValue
-                : String(aValue).localeCompare(String(bValue), LANG)
-            if (compared === 0) compared = left.position - right.position
-            return compared * direction
-          })
-          return keyed.map(function (entry) {
-            return entry.track
-          })
-        },
-        [collectionTracks, sortBy, sortDir, view],
-      )
-
-      var visible = useMemo(
-        function () {
-          var needles = query
-            .trim()
-            .toLowerCase()
-            .split(/\s+/)
-            .filter(Boolean)
-          if (needles.length === 0) return sortedCollection
-          return sortedCollection.filter(function (track) {
-            // Search across metadata, folder/path and pinyin (full + initials),
-            // the way desktop players let you type "zhoujielun" / "zjl".
-            var haystack = [
-              track.title,
-              track.artist,
-              track.album,
-              track.name,
-              track.folder,
-              track.path,
-              track.py,
-              track.pyf,
-            ]
-              .map(function (part) {
-                return String(part || '').toLowerCase()
-              })
-              .join('\n')
-            return needles.every(function (needle) {
-              return haystack.indexOf(needle) >= 0
-            })
-          })
-        },
-        [sortedCollection, query],
-      )
-
-      var selectedSet = useMemo(function () {
-        var set = {}
-        selected.forEach(function (path) {
-          set[path] = true
-        })
-        return set
-      }, [selected])
-
-      var selectedTracks = useMemo(
-        function () {
-          return visible.filter(function (track) {
-            return selectedSet[track.path] === true
-          })
-        },
-        [visible, selectedSet],
-      )
-
-
-      var total = collectionTracks.length
-
-      var emptyState = [
-        loading && tracks.length === 0
-          ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-spinner' }), t('page.scanning'))
-          : null,
-        !loading && error !== null
-          ? h(
-              'div',
-              { className: 'mu-state' },
-              h('div', { className: 'mu-state-title' }, t('page.loadFailed')),
-              h('div', { className: 'mu-state-sub' }, error),
-              h(
-                'button',
-                { type: 'button', className: 'mu-btn', onClick: function () { load(true) } },
-                t('page.retry'),
-              ),
-            )
-          : null,
-        !loading && error === null && total === 0
-          ? h(
-              'div',
-              { className: 'mu-state' },
-              icon(view === 'favorites' ? 'heart' : 'folder', 34),
-              h(
-                'div',
-                { className: 'mu-state-title' },
-                view === 'favorites' ? t('page.favoritesEmpty') : t('page.emptyTitle'),
-              ),
-              h(
-                'div',
-                { className: 'mu-state-sub' },
-                view === 'favorites'
-                  ? t('page.favoritesHint')
-                  : config !== null && config.roots && config.roots.length > 0
-                    ? t('page.emptyFolder')
-                    : t('page.emptyHint'),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className:
-                    'mu-btn' +
-                    (view === 'favorites' ? '' : ' mu-chip-accent') +
-                    ' mu-state-action',
-                  onClick: function () {
-                    if (view === 'favorites' || (config !== null && config.roots && config.roots.length > 0)) {
-                      load(true)
-                      return
-                    }
-                    openBrowse()
-                  },
-                },
-                icon(view === 'favorites' ? 'refresh' : 'plus', 14),
-                h(
-                  'span',
-                  null,
-                  view === 'favorites'
-                    ? t('page.retry')
-                    : config !== null && config.roots && config.roots.length > 0
-                      ? t('page.retry')
-                      : t('settings.add'),
-                ),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-onb-link',
-                  onClick: openOnboarding,
-                },
-                t('onboarding.reopen'),
-              ),
-            )
-          : null,
-        !loading && error === null && total > 0 && visible.length === 0
-          ? h('div', { className: 'mu-state' }, h('div', { className: 'mu-state-sub' }, t('page.noResults')))
-          : null,
-        warnings.length > 0
-          ? h('div', { className: 'mu-warn' }, t('page.warnings') + '：' + warnings.slice(0, 3).join(' · '))
-          : null,
-      ]
-
-      function renderRow(track) {
-        var isCurrent = current !== null && current.path === track.path
-        var isSelected = selectedSet[track.path] === true
-        return h(
-          'div',
-          {
-            className: 'mu-row' + (isCurrent ? ' is-current' : '') + (isSelected ? ' is-selected' : ''),
-            key: track.path,
-            // Clicking the row selects just this track; the circle toggles
-            // additively. Double click plays.
-            onClick: function () {
-              setSelected(function (previous) {
-                if (previous.length === 1 && previous[0] === track.path) return []
-                return [track.path]
-              })
-            },
-            onDoubleClick: function () {
-              activate(track)
-            },
-            onContextMenu: function (event) {
-              event.preventDefault()
-              event.stopPropagation()
-              setMoreOpen(false)
-              setCtxMenu({ x: event.clientX, y: event.clientY, path: track.path, mode: 'main' })
-            },
-          },
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-row-play',
-              title: t('page.play'),
-              onClick: function (event) {
-                event.stopPropagation()
-                activate(track)
-              },
-              onDoubleClick: function (event) {
-                event.stopPropagation()
-              },
-            },
-            h(Cover, { track: track, size: 60, radius: 8 }),
-            h('span', { className: 'mu-row-playmask' }, icon(isCurrent && snap.playing ? 'pause' : 'play', 16)),
-          ),
-          h(
-            'div',
-            { className: 'mu-row-main' },
-            h(
-              'div',
-              { className: 'mu-row-title' },
-              isCurrent
-                ? h(
-                    'span',
-                    { className: 'mu-eq' + (snap.playing ? ' is-playing' : ''), 'aria-hidden': 'true' },
-                    h('i', null),
-                    h('i', null),
-                    h('i', null),
-                  )
-                : null,
-              track.title,
-            ),
-            h(
-              'div',
-              { className: 'mu-row-sub' },
-              track.artist ? h('span', { className: 'mu-cd' }, 'CD') : null,
-              h('span', { className: 'mu-ellipsis' }, track.artist || t('page.unknownArtist')),
-            ),
-          ),
-          h('div', { className: 'mu-row-album mu-ellipsis' }, track.album || ''),
-          h('div', { className: 'mu-row-dur' }, fmtTime(track.durationSec)),
-          h(
-            'div',
-            { className: 'mu-row-actions' },
-            needsMeta(track)
-              ? h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-icon-btn mu-icon-btn-sm mu-row-meta',
-                    title: t('page.onlineMatch'),
-                    onClick: function (event) {
-                      event.stopPropagation()
-                      openTagEditor(track.path, true)
-                    },
-                  },
-                  icon('search', 13),
-                )
-              : null,
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mu-icon-btn mu-icon-btn-sm mu-fav' + (favoritePaths[track.path] ? ' is-on' : ''),
-                title: favoritePaths[track.path] ? t('page.unfavorite') : t('page.favorite'),
-                onClick: function (event) {
-                  event.stopPropagation()
-                  toggleFavorite(track)
-                },
-              },
-              icon('heart', 14),
-            ),
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mu-check' + (isSelected ? ' is-on' : ''),
-                'aria-label': track.title,
-                onClick: function (event) {
-                  event.stopPropagation()
-                  toggleSelect(track)
-                },
-              },
-              isSelected ? icon('check', 14) : null,
-            ),
-          ),
-        )
-      }
-
-      var sortOptions = [
-        ['title', 'page.sortTitle'],
-        ['name', 'page.sortName'],
-        ['album', 'page.sortAlbum'],
-        ['artist', 'page.sortArtist'],
-        ['size', 'page.sortSize'],
-        ['year', 'page.sortYear'],
-        ['folder', 'page.sortFolder'],
-        ['plays', 'page.sortPlays'],
-        ['duration', 'page.sortDuration'],
-        ['mtime', 'page.sortMtime'],
-        ['addedAt', 'page.sortAdded'],
-      ]
-
-      /** Persist a playlist rename from the head title input. */
-      function commitPlaylistName() {
-        if (activePlaylist === undefined) return
-        var name = playlistDraft.trim()
-        if (name === '') {
-          setPlaylistDraft(activePlaylist.name)
-          return
-        }
-        if (name === activePlaylist.name) return
-        patchPlaylist(activePlaylist.id, { name: name })
-          .then(function () {
-            setPlaylistDraft(name)
-          })
-          .catch(function (error) {
-            setPlaylistDraft(activePlaylist.name)
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function reloadPlaylists() {
-        return getJson(API + 'playlists')
-          .then(function (body) {
-            setPlaylists(Array.isArray(body.playlists) ? body.playlists : [])
-          })
-          .catch(function () {
-            // A missing store is not an error: playlists simply stay empty.
-          })
-      }
-
-      function reloadFavorites() {
-        return getJson(API + 'favorites')
-          .then(function (body) {
-            setFavorites(Array.isArray(body.favorites) ? body.favorites : [])
-          })
-          .catch(function () {
-            // Favourites are optional; an old host simply returns none.
-          })
-      }
-
-      function toggleFavorite(track) {
-        if (!track) return
-        requestJson('POST', API + 'favorites', { path: track.path })
-          .then(function (body) {
-            setFavorites(Array.isArray(body.favorites) ? body.favorites : [])
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function requestJson(method, url, payload) {
-        return fetch(url, {
-          method: method,
-          credentials: 'same-origin',
-          headers: { 'content-type': 'application/json', accept: 'application/json' },
-          body: payload === undefined ? undefined : JSON.stringify(payload),
-        }).then(function (response) {
-          return response
-            .json()
-            .catch(function () {
-              return null
-            })
-            .then(function (body) {
-              if (!response.ok || body === null || body.ok !== true) {
-                throw new Error(
-                  body !== null && body.error && body.error.message
-                    ? body.error.message
-                    : 'HTTP ' + response.status,
-                )
-              }
-              return body
-            })
-        })
-      }
-
-      function autoPlaylistName() {
-        var base = t('page.newPlaylist')
-        var taken = {}
-        playlists.forEach(function (item) {
-          taken[item.name] = true
-        })
-        if (taken[base] !== true) return base
-        var index = 2
-        while (taken[base + ' ' + index] === true) index += 1
-        return base + ' ' + index
-      }
-
-      function createPlaylist(name) {
-        var finalName = String(name || '').trim() || autoPlaylistName()
-        requestJson('POST', API + 'playlists', { name: finalName })
-          .then(function (body) {
-            setPlaylists(function (list) {
-              return [body.playlist].concat(list)
-            })
-            setView('playlists')
-            setPlaylistId(body.playlist.id)
-            setPlaylistDraft(body.playlist.name)
-            setDeleteConfirm(false)
-            setNewPlaylistOpen(false)
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function openPlaylist(id) {
-        var target = playlists.find(function (item) {
-          return item.id === id
-        })
-        if (target === undefined) return
-        setPlaylistId(id)
-        setPlaylistDraft(target.name)
-        setView('playlists')
-        setDeleteConfirm(false)
-      }
-
-      function patchPlaylist(id, patch) {
-        return requestJson('PATCH', API + 'playlists/' + encodeURIComponent(id), patch).then(function (body) {
-          setPlaylists(function (list) {
-            return list.map(function (item) {
-              return item.id === id ? body.playlist : item
-            })
-          })
-          return body.playlist
-        })
-      }
-
-      function removePlaylist(id) {
-        requestJson('DELETE', API + 'playlists/' + encodeURIComponent(id))
-          .then(function () {
-            setPlaylists(function (list) {
-              return list.filter(function (item) {
-                return item.id !== id
-              })
-            })
-            if (playlistId === id) setPlaylistId(null)
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      function addSelectedTo(id) {
-        var paths = selectedTracks.map(function (track) {
-          return track.path
-        })
-        if (paths.length === 0) return
-        patchPlaylist(id, { add: paths })
-          .then(function () {
-            showToast(t('page.addedCount', { n: paths.length }))
-          })
-          .catch(function (error) {
-            showToast(String((error && error.message) || error))
-          })
-      }
-
-      var tagTrack = tagEditPath !== null ? trackByPath[tagEditPath] || null : null
-      var tagFormat = tagTrack ? (tagTrack.codec || tagTrack.ext || '').toUpperCase() : ''
-      var tagCoverUrl = tagEditPath !== null ? API + 'cover?path=' + encodeURIComponent(tagEditPath) : ''
-
+    
+      var providerInfo = isOnlineSource(ui.source) ? (online.providers[ui.source] || {}) : null
+    
       return h(
-        'div',
-        { className: 'mu-root' },
-        current !== null
-          ? h(
-              'button',
-              {
-                type: 'button',
-                className: 'mu-locate-fab',
-                title: t('online.locatePlaying'),
-                onClick: locatePlayingRow,
-              },
-              icon('target', 18),
-            )
-          : null,
-        moreOpen
-          ? h('div', {
-              className: 'mu-scrim',
-              onClick: function () {
-                setMoreOpen(false)
-              },
-            })
-          : null,
-        addToOpen
-          ? h('div', {
-              className: 'mu-addto-scrim',
-              onClick: function () {
-                setAddToOpen(false)
-              },
-            })
-          : null,
+        'header',
+        { className: 'mp-topbar' },
+        h('div', { className: 'mp-brand' }, h('span', { className: 'mp-brand-dot' }, icon('note', 13)), t('nav.label')),
         h(
           'div',
-          { className: 'mu-head' },
-          h(
-            'div',
-            { className: 'mu-head-title' },
-            view === 'playlists' && activePlaylist !== undefined
-              ? h('input', {
-                  type: 'text',
-                  ref: playlistTitleRef,
-                  className: 'mu-input mu-title-input',
-                  value: playlistDraft,
-                  placeholder: t('page.playlistName'),
-                  title: t('page.playlistName'),
-                  onChange: function (event) {
-                    setPlaylistDraft(event.target.value)
-                  },
-                  onFocus: function (event) {
-                    event.target.select()
-                  },
-                  onBlur: commitPlaylistName,
-                  onKeyDown: function (event) {
-                    if (event.key === 'Enter') event.target.blur()
-                  },
-                })
-              : h(
-                  'span',
-                  { className: 'mu-title' },
-                  source === 'local'
-                    ? t('page.tabSongs')
-                    : source === 'netease'
-                      ? t('online.providerNetease')
-                      : source === 'qq'
-                        ? t('online.providerQq')
-                        : t('online.providerKugou'),
-                ),
-            view === 'playlists' && activePlaylist !== undefined
-              ? h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-icon-btn mu-icon-btn-sm',
-                    title: t('page.playlistName'),
-                    onClick: function () {
-                      var input = playlistTitleRef.current
-                      if (input !== null) {
-                        input.focus()
-                        input.select()
-                      }
-                    },
-                  },
-                  icon('edit', 14),
-                )
-              : null,
-            h('span', { className: 'mu-count' }, loading ? '…' : String(visible.length)),
-          ),
-          h(
-            'div',
-            { className: 'mu-head-actions' },
-            view === 'playlists' && activePlaylist !== undefined
-              ? h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-icon-btn' + (deleteConfirm ? ' is-on' : ''),
-                    title: t('page.delete'),
-                    'data-delete-toggle': 'true',
-                    onClick: function () {
-                      setDeleteConfirm(!deleteConfirm)
-                      setPrefsOpen(false)
-                      setSortOpen(false)
-                    },
-                  },
-                  icon('trash', 18),
-                )
-              : null,
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mu-icon-btn',
-                title: t('page.refresh'),
-                onClick: function () {
-                  load(true)
-                },
-              },
-              icon('refresh', 18),
-            ),
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mu-icon-btn' + (sortOpen ? ' is-on' : ''),
-                title: t('page.sort'),
-                'data-sort-toggle': 'true',
-                onClick: function () {
-                  setSortOpen(!sortOpen)
-                  setMoreOpen(false)
-                  setPrefsOpen(false)
-                },
-              },
-              icon('sort', 18),
-            ),
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mu-icon-btn' + (prefsOpen ? ' is-on' : ''),
-                title: t('page.settings'),
-                'data-prefs-toggle': 'true',
-                onClick: function () {
-                  setPrefsOpen(!prefsOpen)
-                  setSortOpen(false)
-                  setMoreOpen(false)
-                },
-              },
-              icon('settings', 18),
-            ),
-            searchOpen
-              ? h(
-                  'div',
-                  { className: 'mu-search-inline' },
-                  icon('search', 14),
-                  h('input', {
-                    type: 'text',
-                    className: 'mu-search-input',
-                    value: query,
-                    autoFocus: true,
-                    placeholder: t('page.searchPlaceholder'),
-                    onChange: function (event) {
-                      setQuery(event.target.value)
-                    },
-                    onKeyDown: function (event) {
-                      if (event.key === 'Enter') {
-                        pushSearchHistory(query)
-                      }
-                      if (event.key === 'Escape') {
-                        setQuery('')
-                        setSearchOpen(false)
-                      }
-                    },
-                    onBlur: function () {
-                      if (query.trim() === '') setSearchOpen(false)
-                    },
-                  }),
-                  query !== ''
-                    ? h(
-                        'button',
-                        {
-                          type: 'button',
-                          className: 'mu-icon-btn mu-icon-btn-sm',
-                          title: t('page.done'),
-                          onClick: function () {
-                            setQuery('')
-                          },
-                        },
-                        icon('x', 12),
-                      )
-                    : null,
-                  query === '' && searchHistory.length > 0
-                    ? h(
-                        'div',
-                        { className: 'mu-search-history' },
-                        searchHistory.map(function (item) {
-                          return h(
-                            'button',
-                            {
-                              key: item,
-                              type: 'button',
-                              className: 'mu-chip mu-chip-sm',
-                              onMouseDown: function (event) {
-                                event.preventDefault()
-                                setQuery(item)
-                                pushSearchHistory(item)
-                              },
-                            },
-                            item,
-                          )
-                        }),
-                      )
-                    : null,
-                )
-              : h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-icon-btn' + (query !== '' ? ' is-on' : ''),
-                    title: t('page.search'),
-                    onClick: function () {
-                      setSearchOpen(true)
-                    },
-                  },
-                  icon('search', 18),
-                ),
-          ),
-        ),
-
-        h(
-          'div',
-          { className: 'mu-tabs' },
+          { className: 'mp-src-tabs', role: 'tablist' },
           [
             ['local', t('page.tabLocal')],
             ['netease', t('online.providerNetease')],
@@ -7577,3525 +8695,1720 @@ window.__ModuleLoader__.load({
               {
                 key: entry[0],
                 type: 'button',
-                className: 'mu-tab mu-tab-source' + (source === entry[0] ? ' is-on' : ''),
+                role: 'tab',
+                'aria-selected': ui.source === entry[0],
+                className: cx('mp-src-tab', ui.source === entry[0] && 'is-on'),
                 onClick: function () {
-                  setViewFilter(null)
-                  if (entry[0] === 'local') {
-                    setSource('local')
-                    if (view === 'online' || view === 'playlists') {
-                      setView(lastLocalView.current || 'songs')
-                    }
-                    return
-                  }
                   setSource(entry[0])
-                  setOnlineProvider(entry[0])
-                  // Invalidate in-flight searches so an old response cannot
-                  // repaint the panel (or the cached flags) with stale data.
-                  onlineSeq.current += 1
-                  setOnlineResults([])
-                  setOnlineError('')
-                  setOnlinePlaylists([])
-                  setOnlineCurrentPlaylist(null)
-                  setOnlinePlaylistError('')
-                  setView('online')
-                  // The playlist strip loads itself; never open a sub-page.
-                  loadOnlinePlaylistsOnly(entry[0])
-                  loadOnlineProviders()
                 },
               },
               entry[1],
             )
           }),
-          source === 'local' ? h('span', { className: 'mu-tabs-divider' }) : null,
-          source === 'local'
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-tab' + (view === 'songs' ? ' is-on' : ''),
-                  onClick: function () {
-                    setViewFilter(null)
-                    setView('songs')
-                    lastLocalView.current = 'songs'
-                  },
-                },
-                t('page.tabSongs'),
-              )
-            : null,
-          source === 'local'
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-tab' + (view === 'favorites' ? ' is-on' : ''),
-                  onClick: function () {
-                    setViewFilter(null)
-                    setView('favorites')
-                    lastLocalView.current = 'favorites'
-                  },
-                },
-                t('page.tabFavorites'),
-              )
-            : null,
-          source === 'local'
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-tab' + (view === 'stats' ? ' is-on' : ''),
-                  onClick: function () {
-                    setViewFilter(null)
-                    setView('stats')
-                    lastLocalView.current = 'stats'
-                  },
-                },
-                t('page.tabStats'),
-              )
-            : null,
-          source === 'local'
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-tab' + (view === 'albums' ? ' is-on' : ''),
-                  onClick: function () {
-                    setViewFilter(null)
-                    setView('albums')
-                    lastLocalView.current = 'albums'
-                  },
-                },
-                t('page.tabAlbums'),
-              )
-            : null,
-          source === 'local'
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-tab' + (view === 'artists' ? ' is-on' : ''),
-                  onClick: function () {
-                    setViewFilter(null)
-                    setView('artists')
-                    lastLocalView.current = 'artists'
-                  },
-                },
-                t('page.tabArtists'),
-              )
-            : null,
-          source === 'local'
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-tab' + (view === 'folders' ? ' is-on' : ''),
-                  onClick: function () {
-                    setViewFilter(null)
-                    setView('folders')
-                    lastLocalView.current = 'folders'
-                  },
-                },
-                t('page.tabFolders'),
-              )
-            : null,
-          source === 'local'
-            ? playlists.map(function (playlist) {
-                var isOn = view === 'playlists' && playlistId === playlist.id
-                return h(
-                  'button',
-                  {
-                    key: playlist.id,
-                    type: 'button',
-                    className: 'mu-tab mu-tab-pl' + (isOn ? ' is-on' : ''),
-                    title: playlist.name,
-                    onClick: function () {
-                      openPlaylist(playlist.id)
-                    },
-                  },
-                  playlist.name,
-                )
-              })
-            : null,
-          source === 'local'
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-tab mu-tab-add',
-                  title: t('page.newPlaylist'),
-                  onClick: function () {
-                    setNewPlaylistName(autoPlaylistName())
-                    setNewPlaylistOpen(true)
-                  },
-                },
-                icon('plus', 15),
-              )
-            : null,
         ),
-
-        sortOpen
-          ? h(
-              'div',
-              { className: 'mu-menu mu-menu-sort' },
-              sortOptions.map(function (option) {
-                return h(
-                  'button',
-                  {
-                    type: 'button',
-                    key: option[0],
-                    className: 'mu-menu-item' + (sortBy === option[0] ? ' is-on' : ''),
-                    onClick: function () {
-                      if (sortBy === option[0]) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
-                      else {
-                        setSortBy(option[0])
-                        setSortDir('asc')
-                      }
-                      setSortOpen(false)
-                    },
-                  },
-                  h('span', null, t(option[1])),
-                  sortBy === option[0] ? h('span', { className: 'mu-menu-hint' }, sortDir === 'asc' ? '↑' : '↓') : null,
-                )
-              }),
-            )
-          : null,
-
-        prefsOpen
-          ? h(
-              'div',
-              { className: 'mu-prefs-panel' },
-              h(
-                'div',
-                { className: 'mu-prefs-tabs' },
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-prefs-tab' + (prefsTab === 'appearance' ? ' is-on' : ''),
-                    onClick: function () {
-                      setPrefsTab('appearance')
-                    },
-                  },
-                  t('settings.tabAppearance'),
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-prefs-tab' + (prefsTab === 'lyrics' ? ' is-on' : ''),
-                    onClick: function () {
-                      setPrefsTab('lyrics')
-                    },
-                  },
-                  t('settings.tabLyrics'),
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-prefs-tab' + (prefsTab === 'library' ? ' is-on' : ''),
-                    onClick: function () {
-                      setPrefsTab('library')
-                    },
-                  },
-                  t('settings.tabLibrary'),
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-prefs-tab' + (prefsTab === 'playback' ? ' is-on' : ''),
-                    onClick: function () {
-                      setPrefsTab('playback')
-                    },
-                  },
-                  t('settings.tabPlayback'),
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-prefs-tab' + (prefsTab === 'online' ? ' is-on' : ''),
-                    onClick: function () {
-                      setPrefsTab('online')
-                      loadOnlineProviders()
-                      loadOnlineCache()
-                    },
-                  },
-                  t('settings.tabOnline'),
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-prefs-tab mu-prefs-guide',
-                    onClick: function () {
-                      setPrefsOpen(false)
-                      openOnboarding()
-                    },
-                  },
-                  '? ' + t('onboarding.reopen'),
-                ),
-              ),
-              prefsTab === 'appearance'
-                ? h(
-                    'div',
-                    { className: 'mu-prefs-body' },
-                    settingToggle(t('settings.composerQueueButton'), prefsUi.composerQueueButton, function (value) {
-                      updatePref('composerQueueButton', value)
-                    }),
-                    settingToggle(t('settings.circularCover'), prefsUi.circularCover, function (value) {
-                      updatePref('circularCover', value)
-                    }),
-                    settingToggle(t('settings.vinylRing'), prefsUi.vinylRing, function (value) {
-                      updatePref('vinylRing', value)
-                    }),
-                    settingToggle(t('settings.coverSpin'), prefsUi.coverSpin, function (value) {
-                      updatePref('coverSpin', value)
-                    }),
-                  )
-                : prefsTab === 'lyrics'
-                  ? h(
-                      'div',
-                      { className: 'mu-prefs-body' },
-                      settingOrder(
-                      t('settings.lyricOrder'),
-                      Array.isArray(prefsUi.lyricOrder) && prefsUi.lyricOrder.length > 0
-                        ? prefsUi.lyricOrder
-                        : ['embedded', 'lrc'],
-                      {
-                        embedded: t('settings.lyricSourceEmbedded'),
-                        lrc: t('settings.lyricSourceLrc'),
-                      },
-                      function (order) {
-                        updatePref('lyricOrder', order)
-                      },
-                    ),
-                    settingChoice(
-                      t('settings.lyricAlign'),
-                      prefsUi.lyricAlign,
-                      [
-                        { value: 'center', label: t('settings.alignCenter') },
-                        { value: 'left', label: t('settings.alignLeft') },
-                        { value: 'right', label: t('settings.alignRight') },
-                      ],
-                      function (value) {
-                        updatePref('lyricAlign', value)
-                      },
-                    ),
-                    settingRange(t('settings.lyricSize'), prefsUi.lyricSize, 14, 40, 1, 'px', function (value) {
-                      updatePref('lyricSize', value)
-                    }),
-                    settingRange(t('settings.lyricWeight'), prefsUi.lyricWeight, 300, 800, 100, '', function (value) {
-                      updatePref('lyricWeight', value)
-                    }),
-                    settingToggle(t('settings.lyricBlur'), prefsUi.lyricBlur, function (value) {
-                      updatePref('lyricBlur', value)
-                    }),
-                    settingToggle(t('settings.lyricTranslation'), prefsUi.showTranslation, function (value) {
-                      updatePref('showTranslation', value)
-                    }),
-                    settingRange(t('settings.translationScale'), prefsUi.translationScale, 50, 100, 5, '%', function (value) {
-                      updatePref('translationScale', value)
-                    }),
-                    settingToggle(t('settings.composerLyrics'), prefsUi.composerLyrics, function (value) {
-                      updatePref('composerLyrics', value)
-                    }),
-                    settingChoice(
-                      t('settings.composerLyricPlace'),
-                      prefsUi.composerLyricPlace,
-                      [
-                        { value: 'input-left', label: t('settings.placeInputLeft') },
-                        { value: 'above', label: t('settings.placeAbove') },
-                      ],
-                      function (value) {
-                        updatePref('composerLyricPlace', value)
-                      },
-                    ),
-                  )
-                  : prefsTab === 'playback'
-                    ? h(
-                        'div',
-                        { className: 'mu-prefs-body' },
-                        settingToggle(t('settings.resumeOnStart'), prefsUi.resumeOnStart, function (value) {
-                          updatePref('resumeOnStart', value)
-                        }),
-                        settingToggle(t('settings.autoResume'), prefsUi.autoResume, function (value) {
-                          updatePref('autoResume', value)
-                        }),
-                        settingToggle(t('settings.rememberPerTrack'), prefsUi.rememberPerTrack, function (value) {
-                          updatePref('rememberPerTrack', value)
-                        }),
-                        settingChoice(
-                          t('settings.sleepTimer'),
-                          String(prefsUi.sleepTimerMinutes || 0),
-                          [
-                            { value: '0', label: t('settings.sleepOff') },
-                            { value: '15', label: '15 min' },
-                            { value: '30', label: '30 min' },
-                            { value: '60', label: '60 min' },
-                            { value: '90', label: '90 min' },
-                          ],
-                          function (value) {
-                            updatePref('sleepTimerMinutes', Number(value) || 0)
-                          },
-                        ),
-                      )
-                  : prefsTab === 'online'
-                    ? h(
-                        'div',
-                        { className: 'mu-prefs-body' },
-                        h('p', { className: 'mu-prefs-hint' }, t('online.settingsHint')),
-                        h(
-                          'div',
-                          { className: 'mu-prefs-row' },
-                          h('span', { className: 'mu-prefs-label' }, t('online.cache')),
-                          h(
-                            'span',
-                            { className: 'mu-online-login-state' },
-                            cacheStats === null
-                              ? '…'
-                              : t('online.cacheSize', {
-                                  n: formatBytes(cacheStats.bytes),
-                                  files: cacheStats.files,
-                                }),
-                          ),
-                          h(
-                            'button',
-                            {
-                              type: 'button',
-                              className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                              onClick: function () {
-                                loadOnlineCache()
-                              },
-                            },
-                            t('online.refresh'),
-                          ),
-                          h(
-                            'button',
-                            {
-                              type: 'button',
-                              className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                              onClick: function () {
-                                setCacheDialogOpen(true)
-                                loadCacheList()
-                              },
-                            },
-                            t('online.cacheList'),
-                          ),
-                          h(
-                            'button',
-                            {
-                              type: 'button',
-                              className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                              onClick: clearOnlineCache,
-                            },
-                            t('online.clearCache'),
-                          ),
-                        ),
-                        [
-                          ['netease', t('online.providerNetease')],
-                          ['qq', t('online.providerQq')],
-                          ['kugou', t('online.providerKugou')],
-                        ].map(function (entry) {
-                          var provider = entry[0]
-                          var state = onlineProviders[provider] || { loggedIn: false, nickname: '' }
-                          return h(
-                            'div',
-                            { className: 'mu-online-login-row', key: provider },
-                            h('span', { className: 'mu-online-login-name' }, entry[1]),
-                            h(
-                              'span',
-                              { className: 'mu-online-login-state' },
-                              state.loggedIn
-                                ? t('online.loggedIn') + (state.nickname ? ' · ' + state.nickname : '')
-                                : t('online.loggedOut'),
-                            ),
-                            state.loggedIn
-                              ? h(
-                                  'button',
-                                  {
-                                    type: 'button',
-                                    className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                                    onClick: function () {
-                                      logoutOnlineProvider(provider)
-                                    },
-                                  },
-                                  t('online.logout'),
-                                )
-                              : provider === 'qq'
-                                ? [
-                                    h(
-                                      'button',
-                                      {
-                                        key: 'wx',
-                                        type: 'button',
-                                        className: 'mu-btn mu-btn-sm',
-                                        onClick: function () {
-                                          startOnlineLogin(provider, 'wx')
-                                        },
-                                      },
-                                      t('online.loginWechat'),
-                                    ),
-                                    h(
-                                      'button',
-                                      {
-                                        key: 'qq',
-                                        type: 'button',
-                                        className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                                        onClick: function () {
-                                          startOnlineLogin(provider, 'qq')
-                                        },
-                                      },
-                                      t('online.loginQq'),
-                                    ),
-                                  ]
-                                : h(
-                                    'button',
-                                    {
-                                      type: 'button',
-                                      className: 'mu-btn mu-btn-sm',
-                                      onClick: function () {
-                                        startOnlineLogin(provider)
-                                      },
-                                    },
-                                    t('online.login'),
-                                  ),
-                          )
-                        }),
-                        h('p', { className: 'mu-prefs-hint' }, t('online.loginHint')),
-                      )
-                    : prefsTab === 'library'
-                    ? h(
-                      'div',
-                      { className: 'mu-prefs-body' },
-                      h('p', { className: 'mu-prefs-hint' }, t('settings.libraryHint')),
-                      roots.length === 0
-                        ? h('div', { className: 'mu-prefs-empty' }, t('settings.empty'))
-                        : roots.map(function (root, position) {
-                            return h(
-                              'div',
-                              { className: 'mu-prefs-folder', key: String(position) },
-                              h('span', { className: 'mu-prefs-folder-path', title: root }, root),
-                              h(
-                                'button',
-                                {
-                                  type: 'button',
-                                  className: 'mu-icon-btn mu-icon-btn-sm',
-                                  title: t('settings.remove'),
-                                  onClick: function () {
-                                    setDeleteRoot(position)
-                                  },
-                                },
-                                '×',
-                              ),
-                            )
-                          }),
-                      h(
-                        'button',
-                        {
-                          type: 'button',
-                          className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                          onClick: openBrowse,
-                        },
-                        '+ ' + t('settings.add'),
-                      ),
-                      h(
-                        'div',
-                        { className: 'mu-prefs-field' },
-                        h('span', { className: 'mu-prefs-field-label' }, t('settings.depth')),
-                        h('input', {
-                          type: 'number',
-                          className: 'mu-input mu-input-sm mu-input-num',
-                          min: 0,
-                          max: 8,
-                          value: depth,
-                          onChange: function (event) {
-                            setDepthNow(clamp(Number(event.target.value) || 0, 0, 8))
-                            scheduleSave()
-                          },
-                        }),
-                      ),
-                      configError !== null ? h('div', { className: 'mu-prefs-error' }, configError) : null,
-                      h(
-                        'div',
-                        { className: 'mu-prefs-actions' },
-                        configSaving
-                          ? h('span', { className: 'mu-prefs-saved' }, t('settings.saving'))
-                          : configSaved
-                            ? h('span', { className: 'mu-prefs-saved' }, t('settings.saved'))
-                            : null,
-                      ),
-                      deleteRoot !== null
-                        ? h(
-                            'div',
-                            { className: 'mu-prefs-confirm' },
-                            h('span', null, t('settings.removeConfirm')),
-                            h(
-                              'div',
-                              { className: 'mu-prefs-confirm-actions' },
-                              h(
-                                'button',
-                                {
-                                  type: 'button',
-                                  className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                                  onClick: function () {
-                                    setDeleteRoot(null)
-                                  },
-                                },
-                                t('page.cancel'),
-                              ),
-                              h(
-                                'button',
-                                {
-                                  type: 'button',
-                                  className: 'mu-btn mu-btn-danger mu-btn-sm',
-                                  onClick: function () {
-                                    removeRootAt(deleteRoot)
-                                  },
-                                },
-                                t('settings.remove'),
-                              ),
-                            ),
-                          )
-                        : null,
-                    )
-                  : h(
-                      'div',
-                      { className: 'mu-prefs-body' },
-                      settingToggle(t('settings.resumeOnStart'), prefsUi.resumeOnStart, function (value) {
-                        updatePref('resumeOnStart', value)
-                      }),
-                      settingToggle(t('settings.autoResume'), prefsUi.autoResume, function (value) {
-                        updatePref('autoResume', value)
-                      }),
-                      settingToggle(t('settings.rememberPerTrack'), prefsUi.rememberPerTrack, function (value) {
-                        updatePref('rememberPerTrack', value)
-                      }),
-                      h('p', { className: 'mu-prefs-hint' }, t('settings.playbackHint')),
-                    ),
-            )
-          : null,
-
-        browseOpen
-          ? h(
-              'div',
-              { className: 'mu-info-layer' },
-              h('div', {
-                className: 'mu-info-scrim',
-                onClick: function () {
-                  setBrowseOpen(false)
-                },
-              }),
-              h(
-                'div',
-                { className: 'mu-info' },
-                h(
-                  'div',
-                  { className: 'mu-info-head' },
-                  h('span', { className: 'mu-info-title' }, t('settings.add')),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-icon-btn-sm',
-                      onClick: function () {
-                        setBrowseOpen(false)
-                      },
-                    },
-                    icon('x', 14),
-                  ),
-                ),
-                h(
-                  'div',
-                  { className: 'mu-browse' },
-                  h('input', {
-                    type: 'text',
-                    className: 'mu-input mu-input-sm mu-browse-path',
-                    key: browsePath,
-                    defaultValue: browsePath,
-                    spellCheck: 'false',
-                    onKeyDown: function (event) {
-                      if (event.key !== 'Enter') return
-                      var target = String(event.target.value || '').trim()
-                      if (target !== '') loadBrowse(target)
-                    },
-                  }),
-                  h(
-                    'div',
-                    { className: 'mu-browse-list' },
-                    browseLoading
-                      ? h('div', { className: 'mu-browse-empty' }, '…')
-                      : browseDirs.map(function (entry) {
-                          return h(
-                            'button',
-                            {
-                              type: 'button',
-                              key: entry.path,
-                              className: 'mu-browse-item',
-                              onClick: function () {
-                                loadBrowse(entry.path)
-                              },
-                            },
-                            icon('folder', 14),
-                            h('span', null, entry.name),
-                          )
-                        }),
-                  ),
-                  h(
-                    'div',
-                    { className: 'mu-browse-actions' },
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                        disabled: browseParent === null,
-                        onClick: function () {
-                          loadBrowse(browseParent)
-                        },
-                      },
-                      t('settings.up'),
-                    ),
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                        onClick: function () {
-                          setBrowseOpen(false)
-                        },
-                      },
-                      t('page.cancel'),
-                    ),
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mu-btn mu-btn-accent mu-btn-sm',
-                        onClick: chooseBrowsePath,
-                      },
-                      t('settings.chooseFolder'),
-                    ),
-                  ),
-                ),
-              ),
-            )
-          : null,
-
-        batchEditOpen
-          ? h(
-              'div',
-              { className: 'mu-info-layer' },
-              h('div', {
-                className: 'mu-info-scrim',
-                onClick: function () {
-                  if (!batchSaving) setBatchEditOpen(false)
-                },
-              }),
-              h(
-                'div',
-                { className: 'mu-info' },
-                h(
-                  'div',
-                  { className: 'mu-info-head' },
-                  h('span', { className: 'mu-info-title' }, t('page.batchEdit')),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-icon-btn-sm',
-                      onClick: function () {
-                        if (!batchSaving) setBatchEditOpen(false)
-                      },
-                    },
-                    icon('x', 14),
-                  ),
-                ),
-                h('p', { className: 'mu-prefs-hint' }, t('page.batchHint', { n: selectedTracks.length })),
-                h(
-                  'div',
-                  { className: 'mu-tag-grid' },
-                  ['artist', 'album', 'genre', 'albumArtist'].map(function (field) {
-                    return h(
-                      'label',
-                      { className: 'mu-tag-field', key: field },
-                      h('span', { className: 'mu-tag-field-label' }, tagFieldLabel(field)),
-                      h('input', {
-                        type: 'text',
-                        className: 'mu-input mu-input-sm',
-                        value: batchForm[field],
-                        placeholder: t('page.keepEmpty'),
-                        onChange: function (event) {
-                          var value = event.target.value
-                          setBatchForm(function (previous) {
-                            return Object.assign({}, previous, { [field]: value })
-                          })
-                        },
-                      }),
-                    )
-                  }),
-                ),
-                h(
-                  'div',
-                  { className: 'mu-tag-footer' },
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-btn',
-                      disabled: batchSaving,
-                      onClick: function () {
-                        setBatchEditOpen(false)
-                      },
-                    },
-                    t('page.cancel'),
-                  ),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-btn mu-chip-accent',
-                      disabled: batchSaving,
-                      onClick: saveBatchEdit,
-                    },
-                    batchSaving ? t('page.saving') : t('page.save'),
-                  ),
-                ),
-              ),
-            )
-          : null,
-
-        onlineLoginDialog !== null
-          ? h(
-              'div',
-              { className: 'mu-info-layer' },
-              h('div', { className: 'mu-info-scrim', onClick: closeOnlineLogin }),
-              h(
-                'div',
-                { className: 'mu-info mu-online-qr-dialog' },
-                h(
-                  'div',
-                  { className: 'mu-info-head' },
-                  h(
-                    'span',
-                    { className: 'mu-info-title' },
-                    t('online.loginTitle', {
-                      provider:
-                        onlineLoginDialog.provider === 'netease'
-                          ? t('online.providerNetease')
-                          : onlineLoginDialog.provider === 'qq'
-                            ? t('online.providerQq')
-                            : t('online.providerKugou'),
-                    }),
-                  ),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-icon-btn-sm',
-                      onClick: closeOnlineLogin,
-                    },
-                    icon('x', 14),
-                  ),
-                ),
-                onlineLoginDialog.imageDataUrl !== ''
-                  ? h('img', {
-                      className: 'mu-online-qr',
-                      src: onlineLoginDialog.imageDataUrl,
-                      alt: '',
-                    })
-                  : h('div', { className: 'mu-online-qr-empty' }, '…'),
-                h(
-                  'div',
-                  { className: 'mu-online-login-state' },
-                  t('online.status' + (onlineLoginDialog.status || 'waiting')),
-                ),
-                onlineLoginDialog.error ? h('div', { className: 'mu-online-error' }, onlineLoginDialog.error) : null,
-              ),
-            )
-          : null,
-
-        onlineContext !== null
-          ? h(
-              'div',
-              {
-                className: 'mu-context-layer',
-                onClick: function () {
-                  setOnlineContext(null)
-                },
-                onContextMenu: function (event) {
-                  event.preventDefault()
-                  setOnlineContext(null)
-                },
-              },
-              h(
-                'div',
-                {
-                  className: 'mu-context-menu',
-                  style: {
-                    left: Math.min(onlineContext.x, Math.max(8, window.innerWidth - 190)) + 'px',
-                    top: Math.min(onlineContext.y, Math.max(8, window.innerHeight - 80)) + 'px',
-                  },
-                },
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-context-item',
-                    onClick: function () {
-                      removeHistoryItem(onlineContext.item)
-                      setOnlineContext(null)
-                    },
-                  },
-                  t('online.removeFromHistory'),
-                ),
-              ),
-            )
-          : null,
-
-        cacheDialogOpen          ? h(
-              'div',
-              { className: 'mu-info-layer' },
-              h('div', {
-                className: 'mu-info-scrim',
-                onClick: function () {
-                  setCacheDialogOpen(false)
-                },
-              }),
-              h(
-                'div',
-                { className: 'mu-info' },
-                h(
-                  'div',
-                  { className: 'mu-info-head' },
-                  h(
-                    'span',
-                    { className: 'mu-info-title' },
-                    t('online.cacheList') + ' · ' + cacheSongs.length,
-                  ),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-icon-btn-sm',
-                      onClick: function () {
-                        setCacheDialogOpen(false)
-                      },
-                    },
-                    icon('x', 14),
-                  ),
-                ),
-                cacheLoading
-                  ? h(
-                      'div',
-                      { className: 'mu-state' },
-                      h('div', { className: 'mu-spinner' }),
-                      t('page.loading'),
-                    )
-                  : cacheSongs.length === 0
-                    ? h(
-                        'div',
-                        { className: 'mu-state' },
-                        h('div', { className: 'mu-state-sub' }, t('online.cacheEmpty')),
-                      )
-                    : h(
-                        'div',
-                        { className: 'mu-cache-list' },
-                        cacheSongs.map(function (song) {
-                          var providerLabel =
-                            song.provider === 'netease'
-                              ? t('online.providerNetease')
-                              : song.provider === 'qq'
-                                ? t('online.providerQq')
-                                : t('online.providerKugou')
-                          var parts = [song.artist, providerLabel]
-                          if (song.hasLyric) parts.push(t('online.hasLyric'))
-                          return h(
-                            'div',
-                            { className: 'mu-cache-row', key: song.provider + ':' + song.id },
-                            h(
-                              'div',
-                              { className: 'mu-cache-main' },
-                              h('div', { className: 'mu-cache-title' }, song.title),
-                              h(
-                                'div',
-                                { className: 'mu-cache-sub' },
-                                parts
-                                  .filter(function (part) {
-                                    return part !== ''
-                                  })
-                                  .join(' · '),
-                              ),
-                            ),
-                            h('span', { className: 'mu-cache-size' }, formatBytes(song.size)),
-                            h(
-                              'button',
-                              {
-                                type: 'button',
-                                className: 'mu-icon-btn mu-icon-btn-sm',
-                                title: t('online.removeCache'),
-                                onClick: function () {
-                                  removeCacheSong(song)
-                                },
-                              },
-                              icon('trash', 14),
-                            ),
-                          )
-                        }),
-                      ),
-              ),
-            )
-          : null,
-
-        onboardingOpen
-          ? h(
-              'div',
-              { className: 'mu-info-layer' },
-              h('div', { className: 'mu-info-scrim', onClick: finishOnboarding }),
-              h(
-                'div',
-                { className: 'mu-onb' },
-                h(
-                  'div',
-                  { className: 'mu-onb-head' },
-                  h('span', { className: 'mu-onb-title' }, t('onboarding.title')),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-icon-btn-sm',
-                      onClick: finishOnboarding,
-                    },
-                    icon('x', 14),
-                  ),
-                ),
-                h(
-                  'div',
-                  { className: 'mu-onb-body' },
-                  h(
-                    'div',
-                    { className: 'mu-onb-icon' },
-                    t('onboarding.step' + (onboardingStep + 1) + 'Icon'),
-                  ),
-                  h(
-                    'div',
-                    { className: 'mu-onb-step' },
-                    t('onboarding.step' + (onboardingStep + 1) + 'Title'),
-                  ),
-                  h(
-                    'p',
-                    { className: 'mu-onb-text' },
-                    t('onboarding.step' + (onboardingStep + 1) + 'Text'),
-                  ),
-                ),
-                onboardingBrowseOpen && onboardingStep === 0
-                  ? h(
-                      'div',
-                      { className: 'mu-onb-browse' },
-                      h('input', {
-                        type: 'text',
-                        className: 'mu-input mu-input-sm mu-browse-path',
-                        key: browsePath,
-                        defaultValue: browsePath,
-                        spellCheck: 'false',
-                        onKeyDown: function (event) {
-                          if (event.key !== 'Enter') return
-                          var target = String(event.target.value || '').trim()
-                          if (target !== '') loadBrowse(target)
-                        },
-                      }),
-                      h(
-                        'div',
-                        { className: 'mu-browse-list' },
-                        browseLoading
-                          ? h('div', { className: 'mu-browse-empty' }, '…')
-                          : browseDirs.map(function (entry) {
-                              return h(
-                                'button',
-                                {
-                                  type: 'button',
-                                  key: entry.path,
-                                  className: 'mu-browse-item',
-                                  onClick: function () {
-                                    loadBrowse(entry.path)
-                                  },
-                                },
-                                icon('folder', 14),
-                                h('span', null, entry.name),
-                              )
-                            }),
-                      ),
-                      h(
-                        'div',
-                        { className: 'mu-browse-actions' },
-                        h(
-                          'button',
-                          {
-                            type: 'button',
-                            className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                            disabled: browseParent === null,
-                            onClick: function () {
-                              loadBrowse(browseParent)
-                            },
-                          },
-                          t('settings.up'),
-                        ),
-                        h(
-                          'button',
-                          {
-                            type: 'button',
-                            className: 'mu-btn mu-btn-accent mu-btn-sm',
-                            onClick: chooseOnboardingFolder,
-                          },
-                          t('settings.chooseFolder'),
-                        ),
-                      ),
-                    )
-                  : null,
-                h(
-                  'div',
-                  { className: 'mu-onb-dots' },
-                  [0, 1, 2].map(function (position) {
-                    return h('span', {
-                      key: 'dot-' + position,
-                      className: 'mu-onb-dot' + (position === onboardingStep ? ' is-on' : ''),
-                    })
-                  }),
-                ),
-                h(
-                  'div',
-                  { className: 'mu-onb-actions' },
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                      onClick: finishOnboarding,
-                    },
-                    t('onboarding.skip'),
-                  ),
-                  h(
-                    'div',
-                    { className: 'mu-onb-nav' },
-                    onboardingStep > 0
-                      ? h(
-                          'button',
-                          {
-                            type: 'button',
-                            className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                            onClick: function () {
-                              setOnboardingStep(onboardingStep - 1)
-                            },
-                          },
-                          t('onboarding.back'),
-                        )
-                      : null,
-                    onboardingStep === 0
-                      ? h(
-                          'button',
-                          {
-                            type: 'button',
-                            className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                            onClick: toggleOnboardingBrowse,
-                          },
-                          t('onboarding.pickFolder'),
-                        )
-                      : null,
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mu-btn mu-chip-accent',
-                        onClick: function () {
-                          if (onboardingStep >= 2) {
-                            finishOnboarding()
-                            return
-                          }
-                          setOnboardingStep(onboardingStep + 1)
-                        },
-                      },
-                      onboardingStep >= 2 ? t('onboarding.start') : t('onboarding.next'),
-                    ),
-                  ),
-                ),
-              ),
-            )
-          : null,
-
-        deleteConfirm && activePlaylist !== undefined
-          ? h(
-              'div',
-              { className: 'mu-menu mu-confirm' },
-              h(
-                'div',
-                { className: 'mu-confirm-text' },
-                t('page.deleteConfirm', { name: activePlaylist.name }),
-              ),
-              h(
-                'div',
-                { className: 'mu-confirm-actions' },
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-btn',
-                    onClick: function () {
-                      setDeleteConfirm(false)
-                    },
-                  },
-                  t('page.cancel'),
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-btn mu-btn-danger',
-                    onClick: function () {
-                      var id = activePlaylist.id
-                      setDeleteConfirm(false)
-                      removePlaylist(id)
-                      setView('songs')
-                    },
-                  },
-                  t('page.delete'),
-                ),
-              ),
-            )
-          : null,
-
-        h(
-              'div',
-              { className: 'mu-view' },
-        view !== 'online'
-          ? h(
-              'div',
-              { className: 'mu-view-head' },
-              h(
-                'span',
-                { className: 'mu-view-title' },
-                view === 'albums'
-                  ? t('page.tabAlbums')
-                  : view === 'artists'
-                    ? t('page.tabArtists')
-                    : view === 'favorites'
-                      ? t('page.tabFavorites')
-                      : view === 'stats'
-                        ? t('page.tabStats')
-                        : view === 'playlists'
-                          ? activePlaylist === null
-                            ? t('page.tabPlaylists')
-                            : activePlaylist.name
-                          : t('page.tabSongs'),
-              ),
-              h(
-                'span',
-                { className: 'mu-view-meta' },
-                t('page.trackCountUnit', { n: sortedCollection.length }),
-              ),
-            )
-          : null,
-
         h(
           'div',
-          { className: 'mu-chips', style: source !== 'local' || view === 'stats' ? { display: 'none' } : undefined },
-          h(
-            'button',
-            { type: 'button', className: 'mu-chip', title: loopLabel(), onClick: cycleLoop },
-            icon(playModeIcon(playModeOf(snap)), 15),
-            h('span', null, loopLabel()),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-chip',
-              onClick: function () {
-                if (sortedCollection.length > 0) player.playList(sortedCollection, 0)
-              },
-            },
-            icon('play', 13),
-            h('span', null, t('page.playAll')),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mu-chip mu-chip-icon',
-              title: viewMode === 'grid' ? t('page.listView') : t('page.gridView'),
-              onClick: toggleViewMode,
-            },
-            icon(viewMode === 'grid' ? 'list' : 'grid', 14),
-          ),
-          duplicateGroups.length > 0
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-chip',
-                  title: t('page.duplicatesHint'),
-                  onClick: function () {
-                    setDupOpen(true)
-                  },
-                },
-                icon('list', 13),
-                h('span', null, t('page.duplicates', { n: duplicateGroups.length })),
-              )
-            : null,
-          selected.length > 0
-            ? h(
-                'span',
-                { className: 'mu-selected' },
-                t('page.selectedCount', { n: selected.length }),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-chip mu-chip-accent',
-                    onClick: function () {
-                      player.playList(selectedTracks, 0)
-                    },
-                  },
-                  icon('play', 13),
-                  h('span', null, t('page.playSelected')),
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-chip',
-                    onClick: favoriteSelected,
-                  },
-                  icon('heart', 13),
-                  h('span', null, t('page.favoriteSelected')),
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-chip',
-                    onClick: function () {
-                      setBatchForm({ artist: '', album: '', genre: '', albumArtist: '' })
-                      setBatchEditOpen(true)
-                    },
-                  },
-                  icon('edit', 13),
-                  h('span', null, t('page.batchEdit')),
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mu-chip',
-                    onClick: function () {
-                      if (selected.length === visible.length) setSelected([])
-                      else
-                        setSelected(
-                          visible.map(function (track) {
-                            return track.path
-                          }),
-                        )
-                    },
-                  },
-                  selected.length === visible.length ? t('page.selectNone') : t('page.selectAll'),
-                ),
-                h(
-                  'div',
-                  { className: 'mu-addto' },
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-chip' + (addToOpen ? ' is-on' : ''),
-                      onClick: function () {
-                        setAddToOpen(!addToOpen)
-                      },
-                    },
-                    icon('plus', 13),
-                    h('span', null, t('page.addTo')),
-                    icon('chevronDown', 12),
-                  ),
-                  addToOpen
-                    ? h(
-                        'div',
-                        { className: 'mu-addto-menu' },
-                        playlists.length === 0
-                          ? h('div', { className: 'mu-addto-empty' }, t('page.noPlaylists'))
-                          : playlists.map(function (playlist) {
-                              return h(
-                                'button',
-                                {
-                                  key: playlist.id,
-                                  type: 'button',
-                                  className: 'mu-addto-item',
-                                  onClick: function () {
-                                    addSelectedTo(playlist.id)
-                                    setAddToOpen(false)
-                                  },
-                                },
-                                icon('list', 12),
-                                h('span', { className: 'mu-ellipsis' }, playlist.name),
-                                h('span', { className: 'mu-addto-count' }, String(playlist.trackPaths.length)),
-                              )
-                            }),
-                        h('div', { className: 'mu-addto-sep' }),
-                        h(
-                          'button',
-                          {
-                            type: 'button',
-                            className: 'mu-addto-item',
-                            onClick: function () {
-                              createPlaylistWithSelection()
-                              setAddToOpen(false)
-                            },
-                          },
-                          icon('plus', 12),
-                          h('span', null, t('page.newPlaylistAdd')),
-                        ),
-                      )
-                    : null,
-                ),
-              )
-            : null,
-        ),
-
-        viewFilter !== null && view === 'songs'
-          ? h(
-              'div',
-              { className: 'mu-filter-bar' },
-              h(
-                'span',
-                null,
-                (viewFilter.kind === 'album'
-                  ? t('page.album')
-                  : viewFilter.kind === 'folder'
-                    ? t('page.folder')
-                    : t('page.artist')) +
-                  '：' +
-                  (viewFilter.kind === 'album'
-                    ? viewFilter.album || t('page.unknownAlbum')
-                    : viewFilter.kind === 'folder'
-                      ? viewFilter.folder
-                      : viewFilter.artist || t('page.unknownArtist')),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-filter-clear',
-                  onClick: function () {
-                    setViewFilter(null)
-                  },
-                },
-                icon('x', 12),
-                t('page.clearFilter'),
-              ),
-            )
-          : null,
-
-        view === 'online'
-          ? renderOnlineView()
-          : view === 'folders'
-          ? h(
-              'div',
-              { className: 'mu-folders' },
-              folderGroups.length === 0
-                ? h(
-                    'div',
-                    { className: 'mu-state' },
-                    h('div', { className: 'mu-state-sub' }, t('page.folderEmpty')),
-                  )
-                : folderGroups.map(function (group) {
-                    return h(
-                      'button',
-                      {
-                        type: 'button',
-                        key: group.key,
-                        className: 'mu-folder-row',
-                        title: group.folder,
-                        onClick: function () {
-                          setViewFilter({ kind: 'folder', folder: group.folder })
-                          setView('songs')
-                        },
-                      },
-                      h('span', { className: 'mu-folder-icon' }, icon('folder', 17)),
-                      h(
-                        'span',
-                        { className: 'mu-folder-main' },
-                        h('span', { className: 'mu-folder-name mu-ellipsis' }, group.name),
-                        h(
-                          'span',
-                          { className: 'mu-folder-meta' },
-                          t('page.trackCountUnit', { n: group.count }),
-                        ),
-                      ),
-                      h('span', { className: 'mu-folder-count' }, String(group.count)),
-                    )
-                  }),
-            )
-          : view === 'albums'
-          ? h(
-              'div',
-              { className: 'mu-albums' },
-              albumGroups.map(function (group) {
-                return h(
-                  'button',
-                  {
-                    type: 'button',
-                    key: group.key,
-                    className: 'mu-album-card',
-                    onClick: function () {
-                      setViewFilter({ kind: 'album', album: group.album, artist: group.artist })
-                      setView('songs')
-                    },
-                  },
-                  h(
-                    'div',
-                    { className: 'mu-album-cover' },
-                    group.coverPath !== ''
-                      ? h('img', {
-                          src: coverUrl(group.coverPath),
-                          alt: '',
-                          loading: 'lazy',
-                          onError: function (event) {
-                            event.target.style.display = 'none'
-                          },
-                        })
-                      : icon('note', 28),
-                  ),
-                  h(
-                    'div',
-                    { className: 'mu-album-name mu-ellipsis', title: group.album || t('page.unknownAlbum') },
-                    group.album || t('page.unknownAlbum'),
-                  ),
-                  h(
-                    'div',
-                    { className: 'mu-album-meta mu-ellipsis' },
-                    (group.artist || t('page.unknownArtist')) +
-                      ' · ' +
-                      t('page.trackCountUnit', { n: group.count }),
-                  ),
-                )
-              }),
-            )
-          : view === 'artists'
-            ? h(
-                'div',
-                { className: 'mu-artists' },
-                artistGroups.map(function (group) {
-                  return h(
-                    'button',
-                    {
-                      type: 'button',
-                      key: group.artist,
-                      className: 'mu-artist-row',
-                      onClick: function () {
-                        setViewFilter({ kind: 'artist', artist: group.artist })
-                        setView('songs')
-                      },
-                    },
-                    h(
-                      'span',
-                      { className: 'mu-artist-avatar' },
-                      group.coverPath !== ''
-                        ? h('img', {
-                            src: coverUrl(group.coverPath),
-                            alt: '',
-                            loading: 'lazy',
-                            onError: function (event) {
-                              event.target.style.display = 'none'
-                            },
-                          })
-                        : icon('note', 16),
-                    ),
-                    h(
-                      'span',
-                      { className: 'mu-artist-name mu-ellipsis' },
-                      group.artist || t('page.unknownArtist'),
-                    ),
-                    h(
-                      'span',
-                      { className: 'mu-artist-count' },
-                      t('page.trackCountUnit', { n: group.count }),
-                    ),
-                    h('span', { className: 'mu-artist-arrow' }, '›'),
-                  )
-                }),
-              )
-            : view === 'stats'
-              ? h(
-              'div',
-              { className: 'mu-list is-stats' },
-              h(StatsView, {
-                tracks: tracks,
-                trackByPath: trackByPath,
-                t: t,
-                currentPath: current !== null ? current.path : '',
-                onActivate: activate,
-                onContextMenu: function (track, x, y) {
-                  setMoreOpen(false)
-                  setCtxMenu({ x: x, y: y, path: track.path, mode: 'main' })
-                },
-              }),
-            )
-          : viewMode === 'grid'
-            ? h(TrackGrid, {
-                className: 'mu-grid',
-                items: visible,
-                resetKey: view + '|' + String(playlistId),
-                selected: selected,
-                isFavorite: function (track) {
-                  return favoritePaths[track.path] === true
-                },
-                currentPath: current !== null ? current.path : '',
-                playing: snap.playing,
-                onSelect: function (track) {
-                  setSelected(function (previous) {
-                    return previous.length === 1 && previous[0] === track.path ? [] : [track.path]
-                  })
-                },
-                onActivate: activate,
-                onToggleFavorite: toggleFavorite,
-                onToggleSelect: toggleSelect,
-                onContextMenu: function (track, x, y) {
-                  setMoreOpen(false)
-                  setCtxMenu({ x: x, y: y, path: track.path, mode: 'main' })
-                },
-                empty: emptyState,
-              })
-            : h(VirtualList, {
-              className: 'mu-list',
-              items: visible,
-              rowHeight: 72,
-              itemKey: function (track) {
-                return track.path
-              },
-              renderRow: renderRow,
-              empty: emptyState,
-            }),
-
-        h(
-          'div',
-          {
-            className: 'mu-bar mu-bar-openable' + (npOpen ? ' is-bar-hidden' : ''),
-            onClick: function (event) {
-              var target = event.target
-              // Buttons and the seek/volume inputs keep their own behaviour;
-              // the left info block handles its own click; everything else on
-              // the bar opens the player page.
-              if (
-                target &&
-                typeof target.closest === 'function' &&
-                target.closest('button, input, .mu-clickable') !== null
-              ) {
-                return
+          { className: 'mp-search' },
+          icon('search', 14),
+          h('input', {
+            ref: inputRef,
+            className: 'mp-search-input',
+            type: 'search',
+            value: text,
+            placeholder: isOnlineSource(ui.source) ? t('online.searchPlaceholder') : t('page.searchPlaceholder'),
+            onChange: function (event) {
+              var value = event.target.value
+              setText(value)
+              if (!isOnlineSource(ui.source)) {
+                setUi({ query: value })
+              } else if (value === '') {
+                onlineStore.set({ query: '', results: [], phase: 'idle', error: '' })
               }
-              openNowPlaying()
             },
+            onKeyDown: function (event) {
+              if (event.key === 'Enter') submit()
+            },
+          }),
+        ),
+        providerInfo !== null
+          ? h(
+              'div',
+              { className: 'mp-userchip is-on' },
+              h('span', { className: 'mp-userchip-dot' }),
+              h('span', null, providerInfo.loggedIn ? providerInfo.nickname || t('online.loggedIn') : t('online.loggedOut')),
+              providerInfo.loggedIn
+                ? h(
+                    'span',
+                    {
+                      className: 'mp-userchip-out',
+                      role: 'button',
+                      tabIndex: 0,
+                      onClick: function () {
+                        void logoutProvider(ui.source)
+                      },
+                    },
+                    t('online.logout'),
+                  )
+                : h(
+                    'span',
+                    {
+                      className: 'mp-userchip-out',
+                      role: 'button',
+                      tabIndex: 0,
+                      onClick: function () {
+                        pushLayer('login', { provider: ui.source, mode: 'qq' })
+                      },
+                    },
+                    t('online.login'),
+                  ),
+            )
+          : null,
+        h(IconButton, {
+          icon: 'refresh',
+          title: t('page.refresh'),
+          onClick: function () {
+            if (isOnlineSource(ui.source)) {
+              void loadProviders()
+              void loadMyPlaylists(ui.source)
+              showToast(t('online.refresh'))
+            } else {
+              void loadLibrary(true)
+              showToast(t('page.scanning'))
+            }
           },
-          h(BarWaveFull, null),
-          h(SeekBar, { player: player, track: current }),
-          h(
-            'div',
-            { className: 'mu-bar-main' },
-            h(
-              'div',
-              {
-                className: 'mu-bar-left',
-                role: 'button',
-                tabIndex: 0,
-                title: t('page.openPlayer'),
-                onClick: openNowPlaying,
-                onKeyDown: function (event) {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    openNowPlaying()
-                  }
-                },
-              },
-              h(Cover, { track: current, size: 40, radius: 8 }),
-              h(
-                'div',
-                { className: 'mu-bar-info' },
-                h(
-                  'div',
-                  { className: 'mu-bar-title mu-ellipsis' },
-                  current ? current.title : t('page.noTrack'),
-                  onlineCacheProgress !== null && onlineCacheProgress.total > 0
-                    ? h(
-                        'span',
-                        { className: 'mu-bar-src mu-bar-cache' },
-                        t('online.cacheProgress', {
-                          pct: Math.min(
-                            99,
-                            Math.round(
-                              (onlineCacheProgress.bytes / onlineCacheProgress.total) * 100,
-                            ),
-                          ),
-                        }),
-                      )
-                    : null,
-                ),
-                h(
-                  'div',
-                  { className: 'mu-bar-artist mu-ellipsis' },
-                  current ? current.artist || t('page.unknownArtist') : '—',
-                ),
-                leaderNow
-                  ? null
-                  : h('div', { className: 'mu-leader-hint' }, t('page.otherTabPlaying')),
-              ),
-            ),
-
-            h(
-              'div',
-              { className: 'mu-bar-controls' },
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-icon-btn',
-                  title: loopLabel(),
-                  onClick: cycleLoop,
-                },
-                icon(playModeIcon(playModeOf(snap)), 17),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-icon-btn',
-                  title: t('page.prev'),
-                  onClick: function () {
-                    player.ensureAnalyser()
-                    player.prev()
-                  },
-                },
-                icon('prev', 18),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-play-btn',
-                  title: snap.playing ? t('page.pause') : t('page.play'),
-                  onClick: function () {
-                    player.ensureAnalyser()
-                    player.toggle()
-                  },
-                },
-                icon(snap.playing ? 'pause' : 'play', 20),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-icon-btn',
-                  title: t('page.next'),
-                  onClick: function () {
-                    player.ensureAnalyser()
-                    player.next()
-                  },
-                },
-                icon('next', 18),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-icon-btn' + (queueOpen ? ' is-on' : ''),
-                  title: t('page.queue'),
-                  onClick: function (event) {
-                    toggleQueueOverlay(undefined, event.currentTarget)
-                    setMoreOpen(false)
-                  },
-                },
-                icon('list', 18),
-              ),
-            ),
-
-            h(
-              'div',
-              { className: 'mu-bar-right' },
-              current && current.sampleRate ? h('span', { className: 'mu-quality' }, fmtKhz(current.sampleRate)) : null,
-              current
-                ? h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-fav' + (favoritePaths[current.path] ? ' is-on' : ''),
-                      title: favoritePaths[current.path] ? t('page.unfavorite') : t('page.favorite'),
-                      onClick: function () {
-                        toggleFavorite(current)
-                      },
-                    },
-                    icon('heart', 17),
-                  )
-                : null,
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-icon-btn' + (moreOpen ? ' is-on' : ''),
-                  title: t('page.more'),
-                  onClick: function () {
-                    setMoreOpen(!moreOpen)
-                    toggleQueueOverlay(false)
-                  },
-                },
-                icon('more', 18),
-              ),
-            ),
-          ),
-        ),
-
-        moreOpen
-          ? h(
-              'div',
-              { className: 'mu-pop mu-more' },
-              current
-                ? h(
-                    'div',
-                    { className: 'mu-more-info' },
-                    [
-                      [t('page.format'), (current.codec || current.ext || '').toUpperCase()],
-                      [t('page.bitrate'), fmtKbps(current.bitrate) || t('page.none')],
-                      [t('page.sampleRate'), fmtKhz(current.sampleRate) || t('page.none')],
-                    ].map(function (row) {
-                      return h(
-                        'div',
-                        { className: 'mu-more-row', key: row[0] },
-                        h('span', { className: 'mu-more-key' }, row[0]),
-                        h('span', { className: 'mu-more-val mu-ellipsis' }, row[1]),
-                      )
-                    }),
-                  )
-                : h('div', { className: 'mu-state-sub' }, t('page.noTrack')),
-              h(
-                'button',
-                { type: 'button', className: 'mu-menu-item', disabled: !current, onClick: function () { copyPath() } },
-                h('span', null, t('page.copyPath')),
-              ),
-            )
-          : null,
-
-            ),
-
-        ctxMenu !== null
-          ? (function () {
-              var target = trackByPath[ctxMenu.path] || null
-              var winWidth = typeof window !== 'undefined' && window.innerWidth ? window.innerWidth : 1200
-              var winHeight = typeof window !== 'undefined' && window.innerHeight ? window.innerHeight : 800
-              var left = Math.max(8, Math.min(ctxMenu.x, winWidth - 220))
-              var top = Math.max(8, Math.min(ctxMenu.y, winHeight - (ctxMenu.mode === 'playlists' ? 320 : 280)))
-              function close() {
-                setCtxMenu(null)
-              }
-              var children = []
-              if (ctxMenu.mode === 'playlists') {
-                children.push(
-                  h('div', { className: 'mu-ctx-head', key: 'head' }, t('page.addTo')),
-                  playlists.length === 0
-                    ? h('div', { className: 'mu-addto-empty', key: 'empty' }, t('page.noPlaylists'))
-                    : playlists.map(function (playlist) {
-                        return h(
-                          'button',
-                          {
-                            key: playlist.id,
-                            type: 'button',
-                            className: 'mu-ctx-item',
-                            onClick: function () {
-                              if (target === null) return
-                              patchPlaylist(playlist.id, { add: [target.path] })
-                                .then(function () {
-                                  showToast(t('page.addedCount', { n: 1 }))
-                                })
-                                .catch(function (error) {
-                                  showToast(String((error && error.message) || error))
-                                })
-                              close()
-                            },
-                          },
-                          icon('list', 12),
-                          h('span', { className: 'mu-ellipsis' }, playlist.name),
-                          h('span', { className: 'mu-addto-count' }, String(playlist.trackPaths.length)),
-                        )
-                      }),
-                )
-              } else {
-                children.push(
-                  h(
-                    'button',
-                    {
-                      key: 'add-to-playlist',
-                      type: 'button',
-                      className: 'mu-ctx-item',
-                      onClick: function () {
-                        setCtxMenu({ x: ctxMenu.x, y: ctxMenu.y, path: ctxMenu.path, mode: 'playlists' })
-                      },
-                    },
-                    icon('list', 12),
-                    h('span', { className: 'mu-ellipsis' }, t('page.addTo')),
-                    h('span', { className: 'mu-ctx-arrow' }, '›'),
-                  ),
-                  h(
-                    'button',
-                    {
-                      key: 'enqueue',
-                      type: 'button',
-                      className: 'mu-ctx-item',
-                      onClick: function () {
-                        if (target !== null) {
-                          player.enqueue(target)
-                          showToast(t('page.addedToPlaylist'))
-                        }
-                        close()
-                      },
-                    },
-                    icon('plus', 12),
-                    h('span', null, t('page.addToPlaylist')),
-                  ),
-                  h('div', { className: 'mu-ctx-sep', key: 'sep1' }),
-                  h(
-                    'button',
-                    {
-                      key: 'copy',
-                      type: 'button',
-                      className: 'mu-ctx-item',
-                      onClick: function () {
-                        copyPath(target)
-                        close()
-                      },
-                    },
-                    icon('copy', 12),
-                    h('span', null, t('page.copyPath')),
-                  ),
-                  h(
-                    'button',
-                    {
-                      key: 'reveal',
-                      type: 'button',
-                      className: 'mu-ctx-item',
-                      onClick: function () {
-                        revealTrack(target)
-                        close()
-                      },
-                    },
-                    icon('folder', 12),
-                    h('span', null, t('page.reveal')),
-                  ),
-                  h(
-                    'button',
-                    {
-                      key: 'details',
-                      type: 'button',
-                      className: 'mu-ctx-item',
-                      onClick: function () {
-                        setInfoPath(ctxMenu.path)
-                        close()
-                      },
-                    },
-                    icon('info', 12),
-                    h('span', null, t('page.details')),
-                  ),
-                  h(
-                    'button',
-                    {
-                      key: 'edit-meta',
-                      type: 'button',
-                      className: 'mu-ctx-item',
-                      onClick: function () {
-                        openTagEditor(ctxMenu.path)
-                        close()
-                      },
-                    },
-                    icon('edit', 12),
-                    h('span', null, t('page.editMeta')),
-                  ),
-                  view === 'playlists' && activePlaylist !== undefined
-                    ? h(
-                        'button',
-                        {
-                          key: 'remove',
-                          type: 'button',
-                          className: 'mu-ctx-item is-danger',
-                          onClick: function () {
-                            if (target !== null) {
-                              patchPlaylist(activePlaylist.id, { remove: [target.path] }).catch(function (error) {
-                                showToast(String((error && error.message) || error))
-                              })
-                            }
-                            close()
-                          },
-                        },
-                        icon('x', 12),
-                        h('span', null, t('page.removeTrack')),
-                      )
-                    : null,
-                )
-              }
-              return h(
-                'div',
-                { key: 'ctx-layer' },
-                h('div', { className: 'mu-ctx-scrim', onClick: close }),
-                h('div', { className: 'mu-ctx', style: { left: left + 'px', top: top + 'px' } }, children),
-              )
-            })()
-          : null,
-
-        infoPath !== null
-          ? (function () {
-              var info = trackByPath[infoPath]
-              if (!info) return null
-              var rows = [
-                [t('page.title'), info.title],
-                [t('page.artist'), info.artist || t('page.unknownArtist')],
-                [t('page.album'), info.album || t('page.none')],
-                [t('page.duration'), fmtTime(info.durationSec)],
-                [t('page.format'), (info.codec || info.ext || '').toUpperCase()],
-                [t('page.bitrate'), fmtKbps(info.bitrate) || t('page.none')],
-                [t('page.sampleRate'), fmtKhz(info.sampleRate) || t('page.none')],
-                [t('page.size'), info.size > 0 ? (info.size / 1024 / 1024).toFixed(2) + ' MB' : t('page.none')],
-                [t('page.plays'), String(info.plays || 0)],
-                [t('page.path'), info.path],
-              ]
-              return h(
-                'div',
-                { className: 'mu-info-layer' },
-                h('div', { className: 'mu-info-scrim', onClick: function () { setInfoPath(null) } }),
-                h(
-                  'div',
-                  { className: 'mu-info' },
-                  h(
-                    'div',
-                    { className: 'mu-info-head' },
-                    h('span', { className: 'mu-info-title' }, t('page.details')),
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mu-icon-btn mu-icon-btn-sm',
-                        onClick: function () {
-                          setInfoPath(null)
-                        },
-                      },
-                      icon('x', 14),
-                    ),
-                  ),
-                  rows.map(function (row) {
-                    return h(
-                      'div',
-                      { className: 'mu-more-row', key: row[0] },
-                      h('span', { className: 'mu-more-key' }, row[0]),
-                      h('span', { className: 'mu-more-val mu-ellipsis', title: row[1] }, row[1]),
-                    )
-                  }),
-                ),
-              )
-            })()
-          : null,
-
-        dupOpen
-          ? h(
-              'div',
-              { className: 'mu-info-layer' },
-              h('div', {
-                className: 'mu-info-scrim',
-                onClick: function () {
-                  setDupOpen(false)
-                },
-              }),
-              h(
-                'div',
-                { className: 'mu-info' },
-                h(
-                  'div',
-                  { className: 'mu-info-head' },
-                  h('span', { className: 'mu-info-title' }, t('page.duplicatesTitle')),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-icon-btn-sm',
-                      onClick: function () {
-                        setDupOpen(false)
-                      },
-                    },
-                    icon('x', 14),
-                  ),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-btn mu-btn-sm mu-dup-action',
-                      onClick: removeDuplicates,
-                    },
-                    t('page.deleteDuplicates'),
-                  ),
-                ),
-                duplicateGroups.map(function (group, groupIndex) {
-                  return h(
-                    'div',
-                    { className: 'mu-dup-group', key: 'dup-' + groupIndex },
-                    h(
-                      'div',
-                      { className: 'mu-dup-head' },
-                      String(group[0].title || '') +
-                        ' — ' +
-                        (group[0].artist || t('page.unknownArtist')) +
-                        ' · ' +
-                        fmtTime(group[0].durationSec),
-                    ),
-                    group.map(function (item) {
-                      return h(
-                        'div',
-                        { className: 'mu-dup-row', key: item.path },
-                        h('span', { className: 'mu-ellipsis', title: item.path }, item.path),
-                        h(
-                          'span',
-                          { className: 'mu-dup-size' },
-                          [
-                            fmtKbps(item.bitrate) || '',
-                            fmtKhz(item.sampleRate) || '',
-                            item.size > 0 ? (item.size / 1024 / 1024).toFixed(2) + ' MB' : '',
-                          ]
-                            .filter(Boolean)
-                            .join(' · '),
-                        ),
-                      )
-                    }),
-                  )
-                }),
-              ),
-            )
-          : null,
-
-        newPlaylistOpen
-          ? h(
-              'div',
-              { className: 'mu-info-layer' },
-              h('div', { className: 'mu-info-scrim', onClick: function () { setNewPlaylistOpen(false) } }),
-              h(
-                'div',
-                { className: 'mu-info' },
-                h(
-                  'div',
-                  { className: 'mu-info-head' },
-                  h('span', { className: 'mu-info-title' }, t('page.newPlaylist')),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-icon-btn mu-icon-btn-sm',
-                      onClick: function () {
-                        setNewPlaylistOpen(false)
-                      },
-                    },
-                    icon('x', 14),
-                  ),
-                ),
-                h('input', {
-                  type: 'text',
-                  className: 'mu-input',
-                  value: newPlaylistName,
-                  autoFocus: true,
-                  placeholder: t('page.playlistName'),
-                  onChange: function (event) {
-                    setNewPlaylistName(event.target.value)
-                  },
-                  onKeyDown: function (event) {
-                    if (event.key === 'Enter') createPlaylist(newPlaylistName)
-                    if (event.key === 'Escape') setNewPlaylistOpen(false)
-                  },
-                }),
-                h(
-                  'div',
-                  { className: 'mu-info-actions' },
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-btn',
-                      onClick: function () {
-                        setNewPlaylistOpen(false)
-                      },
-                    },
-                    t('page.cancel'),
-                  ),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-btn mu-chip-accent',
-                      onClick: function () {
-                        createPlaylist(newPlaylistName)
-                      },
-                    },
-                    t('page.create'),
-                  ),
-                ),
-              ),
-            )
-          : null,
-
-        tagEditPath !== null
-          ? h(
-              'div',
-              { className: 'mu-info-layer' },
-              h('div', {
-                className: 'mu-info-scrim',
-                onClick: function () {
-                  if (!tagSaving) {
-                    setTagEditPath(null)
-                    setTagForm(null)
-                  }
-                },
-              }),
-              h(
-                'div',
-                { className: 'mu-info mu-tag-editor' },
-                h(
-                  'div',
-                  { className: 'mu-info-head' },
-                  h('span', { className: 'mu-info-title' }, t('page.editMeta')),
-                  h(
-                    'div',
-                    { className: 'mu-tag-head-actions' },
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mu-chip',
-                        disabled: tagForm === null || onlineLoading,
-                        onClick: function () {
-                          setMatchField(null)
-                          searchOnlineForTags()
-                        },
-                      },
-                      icon('search', 13),
-                      h('span', null, t('page.onlineMatch')),
-                    ),
-                    h(
-                      'button',
-                      { type: 'button', className: 'mu-icon-btn mu-icon-btn-sm', onClick: closeTagEditor },
-                      icon('x', 14),
-                    ),
-                  ),
-                ),
-                tagForm === null
-                  ? h('div', { className: 'mu-tag-body' }, h('div', { className: 'mu-state-sub' }, '…'))
-                  : [
-                      h(
-                        'div',
-                        { className: 'mu-tag-layout', key: 'layout' },
-                        h(
-                          'aside',
-                          { className: 'mu-tag-aside' },
-                          h(
-                            'div',
-                            { className: 'mu-tag-cover-box' },
-                            coverFailed
-                              ? h('div', { className: 'mu-tag-cover mu-tag-cover-empty' }, icon('note', 30))
-                              : h('img', {
-                                  className: 'mu-tag-cover',
-                                  src: tagCoverPreview !== null ? tagCoverPreview : tagCoverUrl,
-                                  alt: '',
-                                  onError: function () {
-                                    setCoverFailed(true)
-                                  },
-                                }),
-                            h(
-                              'div',
-                              { className: 'mu-tag-cover-actions' },
-                              h(
-                                'button',
-                                {
-                                  type: 'button',
-                                  className: 'mu-tag-cover-btn',
-                                  onClick: function () {
-                                    setMatchField(null)
-                                    searchOnlineForTags()
-                                  },
-                                },
-                                icon('search', 12),
-                                h('span', null, t('page.replaceCover')),
-                              ),
-                              tagCoverPreview !== null
-                                ? h(
-                                    'button',
-                                    {
-                                      type: 'button',
-                                      className: 'mu-tag-cover-btn is-ghost',
-                                      onClick: function () {
-                                        setTagCoverPreview(null)
-                                        setCoverFailed(false)
-                                      },
-                                    },
-                                    t('page.resetCover'),
-                                  )
-                                : null,
-                            ),
-                            tagCoverPreview !== null
-                              ? h('div', { className: 'mu-tag-cover-hint' }, t('page.coverPending'))
-                              : null,
-                          ),
-                          h(
-                            'div',
-                            { className: 'mu-tag-aside-meta' },
-                            h(
-                              'div',
-                              { className: 'mu-tag-aside-title mu-ellipsis' },
-                              tagForm.title || t('page.noTrack'),
-                            ),
-                            h(
-                              'div',
-                              { className: 'mu-tag-aside-artist mu-ellipsis' },
-                              tagForm.artist || '',
-                            ),
-                            h(
-                              'div',
-                              { className: 'mu-tag-badges' },
-                              [
-                                tagFormat !== ''
-                                  ? h('span', { className: 'mu-tag-badge', key: 'format' }, tagFormat)
-                                  : null,
-                                tagTrack && tagTrack.durationSec > 0
-                                  ? h(
-                                      'span',
-                                      { className: 'mu-tag-badge', key: 'duration' },
-                                      fmtTime(tagTrack.durationSec),
-                                    )
-                                  : null,
-                                tagTrack && fmtKhz(tagTrack.sampleRate) !== ''
-                                  ? h(
-                                      'span',
-                                      { className: 'mu-tag-badge', key: 'rate' },
-                                      fmtKhz(tagTrack.sampleRate),
-                                    )
-                                  : null,
-                                tagTrack && fmtKbps(tagTrack.bitrate) !== ''
-                                  ? h(
-                                      'span',
-                                      { className: 'mu-tag-badge', key: 'bitrate' },
-                                      fmtKbps(tagTrack.bitrate),
-                                    )
-                                  : null,
-                              ].filter(Boolean),
-                            ),
-                          ),
-                          h('div', { className: 'mu-tag-aside-hint' }, t('page.metaHint')),
-                        ),
-                        h(
-                          'div',
-                          { className: 'mu-tag-main' },
-                        h(
-                          'div',
-                          { className: 'mu-tag-section' },
-                          h('div', { className: 'mu-tag-section-title' }, t('page.metaBasic')),
-                          h(
-                            'div',
-                            { className: 'mu-tag-grid' },
-                            TAG_BASIC_ROWS.map(function (row) {
-                              return renderTagField(row[0], row[1])
-                            }),
-                          ),
-                        ),
-                        h(
-                          'div',
-                          { className: 'mu-tag-section' },
-                          h('div', { className: 'mu-tag-section-title' }, t('page.metaDetail')),
-                          h(
-                            'div',
-                            { className: 'mu-tag-grid' },
-                            TAG_DETAIL_ROWS.map(function (row) {
-                              return renderTagField(row[0], row[1])
-                            }),
-                          ),
-                        ),
-                        h(
-                          'div',
-                          { className: 'mu-tag-section' },
-                          h(
-                            'div',
-                            { className: 'mu-tag-section-title' },
-                            t('page.lyrics'),
-                            h(
-                              'button',
-                              {
-                                type: 'button',
-                                className: 'mu-btn mu-btn-ghost mu-btn-sm',
-                                onClick: function () {
-                                  setLyricSearchOpen(true)
-                                },
-                              },
-                              t('page.onlineLyrics'),
-                            ),
-                          ),
-                          h('textarea', {
-                            className: 'mu-input mu-tag-lyrics',
-                            rows: 9,
-                            value: tagForm.lyrics || '',
-                            onChange: function (event) {
-                              var value = event.target.value
-                              setTagForm(function (previous) {
-                                return Object.assign({}, previous, { lyrics: value })
-                              })
-                            },
-                          }),
-                        ),
-                            h('p', { className: 'mu-tag-hint' }, t('page.metaHint')),
-                        ),
-                      ),
-                      h(
-                        'div',
-                        { className: 'mu-tag-footer', key: 'footer' },
-                        h(
-                          'button',
-                          {
-                            type: 'button',
-                            className: 'mu-btn',
-                            disabled: tagSaving,
-                            onClick: closeTagEditor,
-                          },
-                          t('page.cancel'),
-                        ),
-                        h(
-                          'button',
-                          {
-                            type: 'button',
-                            className: 'mu-btn mu-chip-accent',
-                            disabled: tagSaving,
-                            onClick: saveTagEditor,
-                          },
-                          tagSaving ? t('page.saving') : t('page.save'),
-                        ),
-                      ),
-                    ],
-              ),
-            )
-          : null,
-
-        lyricSearchOpen
-          ? h(OnlineLyricDialog, {
-              t: t,
-              track: tagForm
-                ? { path: tagEditPath, title: tagForm.title, artist: tagForm.artist }
-                : null,
-              onClose: function () {
-                setLyricSearchOpen(false)
-              },
-              onApply: function (lrc) {
-                setTagForm(function (previous) {
-                  return previous ? Object.assign({}, previous, { lyrics: lrc }) : previous
-                })
-                setLyricSearchOpen(false)
-              },
-            })
-          : null,
-
-        onlineOpen
-          ? h(
-              'div',
-              { className: 'mu-info-layer mu-match-layer' },
-              h('div', { className: 'mu-info-scrim', onClick: function () { setOnlineOpen(false) } }),
-              h(
-                'div',
-                { className: 'mu-info mu-match-dialog' },
-                h(
-                  'div',
-                  { className: 'mu-info-head' },
-                  h(
-                    'span',
-                    { className: 'mu-info-title mu-ellipsis' },
-                    t('page.onlineMatch') +
-                      (matchField !== null ? ' · ' + tagFieldLabel(matchField) : '') +
-                      (tagForm && tagForm.title ? ' · ' + tagForm.title : ''),
-                  ),
-                  h(
-                    'div',
-                    { className: 'mu-tag-head-actions' },
-                    h(
-                      'span',
-                      { className: 'mu-match-count' },
-                      onlineLoading
-                        ? t('page.onlineLoading')
-                        : String(onlineResults.length) + ' ' + t('page.results'),
-                    ),
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mu-icon-btn mu-icon-btn-sm',
-                        onClick: function () {
-                          setOnlineOpen(false)
-                        },
-                      },
-                      icon('x', 14),
-                    ),
-                  ),
-                ),
-                h(
-                  'div',
-                  { className: 'mu-match-list' },
-                  onlineLoading
-                    ? h('div', { className: 'mu-match-empty' }, t('page.onlineLoading'))
-                    : onlineResults.length === 0
-                      ? h('div', { className: 'mu-match-empty' }, t('page.onlineEmpty'))
-                      : onlineResults.map(function (item, index) {
-                          return h(MatchItem, {
-                            key: (item.source || 'x') + ':' + (item.id || index),
-                            item: item,
-                            onPick: function () {
-                              applyOnlineResult(item)
-                            },
-                          })
-                        }),
-                ),
-                h(
-                  'div',
-                  { className: 'mu-match-foot' },
-                  h(
-                    'div',
-                    { className: 'mu-tag-online-sources' },
-                    onlineSources.length === 0
-                      ? h('span', null, t('page.onlineHint'))
-                      : onlineSources.map(function (source) {
-                          return h(
-                            'span',
-                            { key: source.source },
-                            sourceLabel(source.source) + (source.ok ? ' ✓' : ' ✕'),
-                          )
-                        }),
-                  ),
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mu-btn',
-                      onClick: function () {
-                        setOnlineOpen(false)
-                      },
-                    },
-                    t('page.cancel'),
-                  ),
-                ),
-              ),
-            )
-          : null,
-
-        toast !== '' ? h('div', { className: 'mu-toast' }, toast) : null,
-
-        npOpen
-          ? h(NowPlaying, {
-              player: player,
-              snapshot: snap,
-              visible: npVisible,
-              favorites: favorites,
-              onToggleFavorite: toggleFavorite,
-              onClose: closeNowPlaying,
-              onQueue: function () {
-                // The queue overlay is mounted in its own host seat, which
-                // stacks above the player page: open it without leaving the
-                // page so both stay reachable.
-                toggleQueueOverlay(true)
-              },
-            })
-          : null,
-      )
-    }
-
-    // ── settings page ─────────────────────────────────────────────────────
-
-    /** One labelled switch row. */
-    function settingToggle(label, value, onChange) {
-      return h(
-        'div',
-        { className: 'mu-set-item' },
-        h('span', { className: 'mu-set-label' }, label),
-        h(
-          'button',
-          {
-            type: 'button',
-            className: 'mu-switch' + (value ? ' is-on' : ''),
-            role: 'switch',
-            'aria-checked': value ? 'true' : 'false',
-            onClick: function () {
-              onChange(!value)
-            },
-          },
-          h('span', { className: 'mu-switch-dot' }),
-        ),
-      )
-    }
-
-    /** One labelled slider row. */
-    function settingRange(label, value, min, max, step, suffix, onChange) {
-      return h(
-        'div',
-        { className: 'mu-set-item mu-set-item-col' },
-        h(
-          'div',
-          { className: 'mu-set-item-head' },
-          h('span', { className: 'mu-set-label' }, label),
-          h('span', { className: 'mu-set-value' }, String(value) + (suffix || '')),
-        ),
-        h('input', {
-          type: 'range',
-          className: 'mu-range',
-          min: min,
-          max: max,
-          step: step,
-          value: value,
-          onChange: function (event) {
-            var next = Number(event.target.value)
-            if (isFinite(next)) onChange(next)
+        }),
+        h(IconButton, {
+          icon: 'settings',
+          title: t('page.settings'),
+          onClick: function () {
+            pushLayer('settings')
           },
         }),
       )
     }
-
-    /** One labelled segmented choice. */
-    function settingChoice(label, value, options, onChange) {
+    
+    function ContentArea(props) {
+      if (isOnlineSource(props.ui.source)) return h(OnlineContent, props)
+      return h(LocalContent, props)
+    }
+    
+    function AudioHost() {
+      var ref = useRef(null)
+      useEffect(function () {
+        player.attachAudio(ref.current)
+        player.tryRestore()
+        return function () {
+          player.attachAudio(null)
+        }
+      }, [])
+      return h('audio', { ref: ref, className: 'mp-audio-host', preload: 'metadata', 'aria-hidden': 'true' })
+    }
+    
+    function applyControlAction(action) {
+      if (!action || typeof action.action !== 'string') return
+      if (action.action === 'pause') {
+        player.pause()
+        return
+      }
+      if (action.action === 'next') {
+        player.next()
+        return
+      }
+      if (action.action === 'previous' || action.action === 'prev') {
+        player.prev()
+        return
+      }
+      if (action.action !== 'play') return
+      var query = String(action.query || '').trim()
+      if (query === '') return
+      var source =
+        action.source === 'netease' || action.source === 'qq' || action.source === 'kugou'
+          ? action.source
+          : 'local'
+      if (source === 'local') {
+        var tracks = libraryStore.get().tracks
+        var needle = query.toLowerCase()
+        var hit = null
+        for (var i = 0; i < tracks.length; i += 1) {
+          var hay = (String(tracks[i].title || '') + ' ' + String(tracks[i].artist || '')).toLowerCase()
+          if (hay.indexOf(needle) >= 0) {
+            hit = tracks[i]
+            break
+          }
+        }
+        if (hit !== null) player.playList([hit], 0)
+        return
+      }
+      getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&q=' + encodeURIComponent(query))
+        .then(function (body) {
+          var results = Array.isArray(body.results) ? body.results : []
+          if (results.length > 0) playOnlineResults(results, 0)
+        })
+        .catch(function () {
+          // The model action is best effort.
+        })
+    }
+    
+    function OverlayRoot() {
+      var overlay = useStore(overlayStore)
+      var layers = overlay.layers || []
+      return layers.map(function (layer) {
+        if (layer.kind === 'menu') return h(ContextMenu, { key: 'menu', layer: layer })
+        if (layer.kind === 'login') return h(LoginDialog, { key: 'login', layer: layer })
+        if (layer.kind === 'tag') return h(TagDialog, { key: 'tag', layer: layer })
+        if (layer.kind === 'addTo') return h(AddToPlaylistDialog, { key: 'addTo', layer: layer })
+        if (layer.kind === 'batchEdit') return h(BatchEditDialog, { key: 'batchEdit', layer: layer })
+        if (layer.kind === 'duplicates') return h(DuplicatesDialog, { key: 'duplicates', layer: layer })
+        if (layer.kind === 'onlineLyric') return h(OnlineLyricDialog, { key: 'onlineLyric', layer: layer })
+        if (layer.kind === 'trash') return h(TrashDialog, { key: 'trash', layer: layer })
+        if (layer.kind === 'confirm') return h(ConfirmDialog, { key: 'confirm', layer: layer })
+        if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
+        if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
+        if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
+        if (layer.kind === 'settings') {
+          return h(SettingsSheet, {
+            key: 'settings',
+            open: true,
+            onClose: function () {
+              removeLayer('settings')
+            },
+          })
+        }
+        return null
+      })
+    }
+    
+    function Panel() {
+      var ui = useStore(uiStore)
+      var library = useStore(libraryStore)
+      var online = useStore(onlineStore)
+      var prefs = usePrefs()
+      var snap = usePlayerSnapshot()
+      var locatePair = useState('')
+      var locatePath = locatePair[0]
+      var setLocatePath = locatePair[1]
+      var current = snap.queue[snap.index] || null
+      var favorites = useMemo(function () {
+        return favoriteSet()
+      }, [library.favorites])
+      var favoriteCount = library.favorites.length
+    
+      useEffect(
+        function () {
+          var deadline = Number(prefs.sleepDeadline) || 0
+          var minutes = Number(prefs.sleepTimerMinutes) || 0
+          if (deadline <= 0 && minutes > 0) {
+            // Older prefs only stored minutes; turn them into a deadline once.
+            setPrefs({ sleepDeadline: Date.now() + minutes * 60000 })
+            return undefined
+          }
+          if (deadline <= 0) return undefined
+          var delay = deadline - Date.now()
+          if (delay <= 0) {
+            player.pause()
+            setPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 })
+            showToast(t('settings.sleepTimerDone'))
+            return undefined
+          }
+          var timer = setTimeout(function () {
+            player.pause()
+            setPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 })
+            showToast(t('settings.sleepTimerDone'))
+          }, delay)
+          return function () {
+            clearTimeout(timer)
+          }
+        },
+        [prefs.sleepDeadline, prefs.sleepTimerMinutes],
+      )
+    
+      useEffect(function () {
+        void loadLibrary(false)
+        void loadFavorites()
+        void loadPlaylists()
+        void loadConfig()
+        void loadProviders()
+      }, [])
+    
+      useEffect(
+        function () {
+          if (isOnlineSource(ui.source)) {
+            onlineStore.set({ provider: ui.source })
+            void loadProviders()
+          }
+        },
+        [ui.source],
+      )
+    
+      useEffect(function () {
+        var timer = setInterval(function () {
+          getJson(API + 'control/pending')
+            .then(function (body) {
+              ;(body.actions || []).forEach(applyControlAction)
+            })
+            .catch(function () {
+              // The queue endpoint is optional.
+            })
+        }, 2000)
+        return function () {
+          clearInterval(timer)
+        }
+      }, [])
+    
+      useEffect(
+        function () {
+          if (current === null || !current.onlineProvider) return undefined
+          var provider = current.onlineProvider
+          var id = current.onlineId
+          var timer = setInterval(function () {
+            void refreshCacheStatus(provider, [id])
+          }, 3000)
+          return function () {
+            clearInterval(timer)
+          }
+        },
+        [current ? current.path : ''],
+      )
+    
+      useEffect(function () {
+        function onKey(event) {
+          var tag = event.target && event.target.tagName
+          if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+            if (event.key === 'Escape' && event.target.blur) event.target.blur()
+            return
+          }
+          if (event.key === 'Escape') {
+            if (typeof document !== 'undefined') {
+              var hostModal = document.querySelector('[role="dialog"][aria-modal="true"]')
+              if (hostModal !== null && hostModal.closest('.mp-root') === null) return
+            }
+            if (isRangePicking()) {
+              cancelRangePick()
+              return
+            }
+            if (popLayer()) return
+            if (selectionStore.get().active === true) {
+              setSelectionMode(false)
+              return
+            }
+            if (uiStore.get().queueOpen) {
+              uiStore.set({ queueOpen: false })
+              return
+            }
+            if (uiStore.get().npOpen) uiStore.set({ npOpen: false })
+            return
+          }
+          if (event.code === 'Space') {
+            event.preventDefault()
+            player.toggle()
+            return
+          }
+          if ((event.ctrlKey || event.metaKey) && event.key === 'ArrowRight') {
+            event.preventDefault()
+            player.next()
+            return
+          }
+          if ((event.ctrlKey || event.metaKey) && event.key === 'ArrowLeft') {
+            event.preventDefault()
+            player.prev()
+          }
+        }
+        window.addEventListener('keydown', onKey)
+        return function () {
+          window.removeEventListener('keydown', onKey)
+        }
+      }, [])
+    
+      function openTrackMenu(track, event, extra) {
+        pushLayer('menu', {
+          track: track,
+          x: event ? event.clientX : 20,
+          y: event ? event.clientY : 20,
+          visiblePaths: extra && Array.isArray(extra.visiblePaths) ? extra.visiblePaths : null,
+          playSelected: extra && typeof extra.playSelected === 'function' ? extra.playSelected : null,
+          onRemove: extra && typeof extra.onRemove === 'function' ? extra.onRemove : null,
+        })
+      }
+    
+      function locateCurrent() {
+        if (current === null) {
+          showToast(t('page.noTrack'))
+          return
+        }
+        if (current.onlineProvider) {
+          setSource(current.onlineProvider)
+          setUi({ nav: 'recent', filter: null, query: '' })
+        } else {
+          setSource('local')
+          setUi({ nav: 'songs', filter: null, query: '' })
+        }
+        setLocatePath(current.path)
+        setTimeout(function () {
+          setLocatePath('')
+        }, 1200)
+      }
+    
+      var contentProps = {
+        ui: ui,
+        library: library,
+        online: online,
+        prefs: prefs,
+        currentPath: current ? current.path : '',
+        playing: snap.playing,
+        favoriteSet: favorites,
+        locatePath: locatePath,
+        onMenu: openTrackMenu,
+        onToggleFavorite: function (track) {
+          void toggleFavorite(track.path)
+        },
+      }
+    
       return h(
         'div',
-        { className: 'mu-set-item mu-set-item-col' },
-        h('span', { className: 'mu-set-label' }, label),
+        { className: cx('mp-root', prefs.layout === 'top' && 'is-top') },
+        h(TopBar, { ui: ui, online: online, prefs: prefs }),
         h(
           'div',
-          { className: 'mu-set-choices' },
-          options.map(function (option) {
+          { className: 'mp-workspace' },
+          h(NavRail, { source: ui.source, nav: ui.nav, favoritesCount: favoriteCount }),
+          h(
+            'div',
+            { className: 'mp-content' },
+            h(SectionBar, { source: ui.source, nav: ui.nav, favoritesCount: favoriteCount }),
+            h(ContentArea, contentProps),
+          ),
+        ),
+        h(PlayerBar, {
+          favoriteSet: favorites,
+          queueOpen: ui.queueOpen,
+          onToggleQueue: function () {
+            setUi({ queueOpen: !ui.queueOpen })
+          },
+          onOpenNowPlaying: function () {
+            setUi({ npOpen: true })
+          },
+          onLocate: locateCurrent,
+          onToggleFavorite: function (track) {
+            void toggleFavorite(track.path)
+          },
+        }),
+        h(NowPlaying, {
+          open: ui.npOpen === true,
+          favoriteSet: favorites,
+          onClose: function () {
+            setUi({ npOpen: false })
+          },
+          onQueue: function () {
+            setUi({ npOpen: false, queueOpen: true })
+          },
+          onToggleFavorite: function (track) {
+            void toggleFavorite(track.path)
+          },
+        }),
+        h(OverlayRoot),
+        h(Toast),
+      )
+    }
+
+    // ── src/ui/12-composer.js
+    /**
+     * composer seats: the inline lyric line and the compact transport next to the
+     * chat input. Both are optional and disappear when nothing is playing.
+     */
+    
+    var globalQueueStore = createStore({ open: false })
+    
+    function ComposerLyrics() {
+      var prefs = usePrefs()
+      var snap = usePlayerSnapshot()
+      var time = usePlayerTime()
+      var track = snap.queue[snap.index] || null
+      var trackPath = track ? track.path : ''
+      var pair = useState([])
+      var lines = pair[0]
+      var setLines = pair[1]
+    
+      useEffect(
+        function () {
+          if (prefs.composerLyrics !== true || trackPath === '') {
+            setLines([])
+            return undefined
+          }
+          var cancelled = false
+          var active = snap.queue[snap.index]
+          if (!active) return undefined
+          async function load() {
+            try {
+              if (active.onlineProvider) {
+                var body = await getJson(
+                  API +
+                    'online/lyric?provider=' +
+                    encodeURIComponent(active.onlineProvider) +
+                    '&id=' +
+                    encodeURIComponent(active.onlineId || ''),
+                )
+                if (!cancelled) setLines(parseLrcText(body.lrc || ''))
+                return
+              }
+              var local = await getJson(
+                API + 'lyrics?path=' + encodeURIComponent(active.path) + '&order=embedded,lrc',
+              )
+              if (!cancelled) setLines(Array.isArray(local.lines) ? local.lines : [])
+            } catch (error) {
+              if (!cancelled) setLines([])
+            }
+          }
+          load()
+          return function () {
+            cancelled = true
+          }
+        },
+        [prefs.composerLyrics, trackPath],
+      )
+    
+      if (prefs.composerLyrics !== true || track === null) return null
+      var index = lyricActiveIndex(lines, time.currentTime)
+      var line = index >= 0 ? lines[index] : null
+      return h(
+        'div',
+        { className: 'mp-composer-lyrics' },
+        icon('note', 12),
+        h('span', null, line ? line.text : trackTitleOf(track)),
+        prefs.showTranslation === true && line && line.translation
+          ? h('span', { style: { opacity: 0.65 } }, '· ' + line.translation)
+          : null,
+      )
+    }
+    
+    function ComposerCluster() {
+      var snap = usePlayerSnapshot()
+      var queueState = useStore(globalQueueStore)
+      var track = snap.queue[snap.index] || null
+      if (track === null) return null
+      return h(
+        'div',
+        { className: 'mp-composer-cluster' },
+        h(
+          'button',
+          {
+            type: 'button',
+            className: 'mp-cbtn',
+            title: snap.playing ? t('page.pause') : t('page.play'),
+            onClick: function () {
+              player.toggle()
+            },
+          },
+          icon(snap.playing ? 'pause' : 'play', 14),
+        ),
+        h(
+          'button',
+          {
+            type: 'button',
+            className: 'mp-cbtn',
+            title: t('page.queue'),
+            onClick: function () {
+              globalQueueStore.set({ open: !queueState.open })
+            },
+          },
+          icon('list', 14),
+          h('span', null, trackTitleOf(track)),
+        ),
+      )
+    }
+    
+    function GlobalQueueHost() {
+      var state = useStore(globalQueueStore)
+      var snap = usePlayerSnapshot()
+      useEffect(
+        function () {
+          function onKey(event) {
+            if (event.key === 'Escape' && globalQueueStore.get().open) {
+              globalQueueStore.set({ open: false })
+            }
+          }
+          window.addEventListener('keydown', onKey)
+          return function () {
+            window.removeEventListener('keydown', onKey)
+          }
+        },
+        [],
+      )
+      return h(QueuePopover, {
+        open: state.open === true,
+        snap: snap,
+        onClose: function () {
+          globalQueueStore.set({ open: false })
+        },
+      })
+    }
+
+    // ── src/ui/13-batch.js
+    /**
+     * batch edit and duplicate cleanup dialogs.
+     */
+    
+    function BatchEditDialog(props) {
+      var paths = props.layer.props.paths || []
+      var pair = useState({ artist: '', album: '', genre: '', albumArtist: '' })
+      var form = pair[0]
+      var setForm = pair[1]
+      var busyPair = useState(false)
+      var busy = busyPair[0]
+      var setBusy = busyPair[1]
+    
+      function field(key, label) {
+        return h(
+          'div',
+          { className: 'mp-field' },
+          h('label', null, label),
+          h('input', {
+            type: 'text',
+            value: form[key] || '',
+            placeholder: t('page.keepEmpty'),
+            onChange: function (event) {
+              var value = event.target.value
+              setForm(function (previous) {
+                var next = Object.assign({}, previous)
+                next[key] = value
+                return next
+              })
+            },
+          }),
+        )
+      }
+    
+      function save() {
+        if (busy) return
+        var patch = {}
+        ;['artist', 'album', 'genre', 'albumArtist'].forEach(function (key) {
+          var value = String(form[key] || '').trim()
+          if (value !== '') patch[key] = value
+        })
+        if (Object.keys(patch).length === 0) {
+          showToast(t('page.batchEmpty'))
+          return
+        }
+        setBusy(true)
+        batchEditTags(paths, patch).then(function (result) {
+          setBusy(false)
+          popLayer()
+          showToast(t('page.batchSaved', { n: result.done }))
+          void loadLibrary(true)
+        })
+      }
+    
+      return h(
+        KitModal,
+        {
+          title: t('page.batchEdit'),
+          onClose: popLayer,
+          footer: [
+            h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
+            h(
+              Button,
+              {
+                key: 'save',
+                variant: 'primary',
+                disabled: busy,
+                onClick: save,
+              },
+              busy ? t('page.saving') : t('page.save'),
+            ),
+          ],
+        },
+    h(
+            'div',
+            { className: 'mp-kit-body' },
+            h('div', { className: 'mp-set-desc' }, t('page.batchHint', { n: paths.length })),
+            h(
+              'div',
+              { className: 'mp-d-grid' },
+              field('artist', t('page.artist')),
+              field('album', t('page.album')),
+              field('genre', t('page.genre')),
+              field('albumArtist', t('page.albumArtist')),
+            ),
+          ),
+          
+      )
+    }
+    
+    function DuplicatesDialog(props) {
+      var groups = props.layer.props.groups || []
+      var removals = []
+      var rows = groups.map(function (group) {
+        var sorted = group.slice().sort(compareQuality)
+        sorted.slice(1).forEach(function (track) {
+          removals.push(track.path)
+        })
+        return { keep: sorted[0], drop: sorted.slice(1) }
+      })
+    
+      function clean() {
+        if (removals.length === 0) return
+        pushLayer('confirm', {
+          title: t('page.duplicatesTitle'),
+          text: t('page.deleteDuplicatesConfirm', { n: removals.length }),
+          onConfirm: function () {
+            removeTracks(removals)
+              .then(function (body) {
+                showToast(t('page.duplicatesRemoved', { n: (body.moved || []).length }))
+                removeLayer('duplicates')
+              })
+              .catch(function (error) {
+                showToast(errorText(error))
+              })
+          },
+        })
+      }
+    
+      return h(
+        KitModal,
+        {
+          title: t('page.duplicatesTitle') + ' · ' + groups.length,
+          onClose: popLayer,
+          footer: [
+            h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { removeLayer('duplicates') } }, t('page.cancel')),
+            h(
+              Button,
+              {
+                key: 'clean',
+                variant: 'primary',
+                disabled: removals.length === 0,
+                onClick: clean,
+              },
+              t('page.deleteDuplicates'),
+            ),
+          ],
+        },
+    h(
+            'div',
+            { className: 'mp-kit-body' },
+            h('div', { className: 'mp-set-desc' }, t('page.duplicatesHint')),
+            rows.map(function (row, index) {
+              return h(
+                'div',
+                { key: String(index), className: 'mp-dupe-group' },
+                h(
+                  'div',
+                  { className: 'mp-dupe-row is-keep' },
+                  icon('check', 13),
+                  h('span', { className: 'mp-ellipsis' }, trackTitleOf(row.keep) + ' · ' + trackArtistOf(row.keep)),
+                  h('span', { className: 'mp-dupe-meta' }, fmtKbps(row.keep.bitrate) || fmtKhz(row.keep.sampleRate) || ''),
+                ),
+                row.drop.map(function (track) {
+                  return h(
+                    'div',
+                    { key: track.path, className: 'mp-dupe-row is-drop' },
+                    icon('trash', 12),
+                    h('span', { className: 'mp-ellipsis' }, track.path),
+                    h('span', { className: 'mp-dupe-meta' }, fmtKbps(track.bitrate) || fmtKhz(track.sampleRate) || ''),
+                  )
+                }),
+              )
+            }),
+          ),
+          
+      )
+    }
+
+    // ── src/ui/14-online-lyric.js
+    /**
+     * online lyric search: pick a candidate, preview the LRC, hand it back.
+     *
+     * Used from the tag editor (fills the lyrics box) and from the player (writes
+     * the lyrics straight into the file).
+     */
+    
+    function OnlineLyricDialog(props) {
+      var track = props.layer.props.track || {}
+      var onApply = props.layer.props.onApply
+      var queryPair = useState(((track.title || '') + ' ' + (track.artist || '')).trim())
+      var query = queryPair[0]
+      var setQuery = queryPair[1]
+      var phasePair = useState('idle')
+      var phase = phasePair[0]
+      var setPhase = phasePair[1]
+      var listPair = useState([])
+      var candidates = listPair[0]
+      var setCandidates = listPair[1]
+      var previewPair = useState(null)
+      var preview = previewPair[0]
+      var setPreview = previewPair[1]
+      var errorPair = useState('')
+      var error = errorPair[0]
+      var setError = errorPair[1]
+    
+      function search() {
+        var text = String(query || '').trim()
+        if (text === '' || phase === 'loading') return
+        setPhase('loading')
+        setError('')
+        setCandidates([])
+        setPreview(null)
+        getJson(API + 'lyrics/search?q=' + encodeURIComponent(text))
+          .then(function (body) {
+            setCandidates(Array.isArray(body.candidates) ? body.candidates : [])
+            setPhase('ready')
+          })
+          .catch(function (searchError) {
+            setError(errorText(searchError))
+            setPhase('error')
+          })
+      }
+    
+      function choose(candidate) {
+        if (!candidate || !candidate.id) return
+        setError('')
+        setPhase('loading')
+        getJson(API + 'lyrics/fetch?id=' + encodeURIComponent(candidate.id))
+          .then(function (body) {
+            var lines = parseLrcText(body.lrc || '')
+            if (body.translation) mergeLyricTranslation(lines, body.translation)
+            setPreview({ lrc: body.lrc || '', lines: lines, title: candidate.title, artist: candidate.artist })
+            setPhase('ready')
+          })
+          .catch(function (fetchError) {
+            setError(errorText(fetchError))
+            setPhase('error')
+          })
+      }
+    
+      function apply() {
+        if (!preview || preview.lrc.trim() === '') return
+        popLayer()
+        if (typeof onApply === 'function') onApply(preview.lrc)
+      }
+    
+      return h(
+        KitModal,
+        {
+          title: t('page.onlineLyrics'),
+          onClose: popLayer,
+          footer: [
+            h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
+            h(Button, { key: 'apply', variant: 'primary', disabled: preview === null, onClick: apply }, t('page.lyricsApply')),
+          ],
+        },
+    h(
+            'div',
+            { className: 'mp-kit-body' },
+            h(
+              'div',
+              { style: { display: 'flex', gap: '8px' } },
+              h('input', {
+                type: 'search',
+                value: query,
+                placeholder: t('page.lyricsSearchPlaceholder'),
+                style: {
+                  flex: '1',
+                  height: '32px',
+                  padding: '0 10px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))',
+                  background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04))',
+                  color: 'inherit',
+                  font: 'inherit',
+                  outline: 'none',
+                },
+                onChange: function (event) {
+                  setQuery(event.target.value)
+                },
+                onKeyDown: function (event) {
+                  if (event.key === 'Enter') search()
+                },
+              }),
+              h(Button, { variant: 'primary', disabled: phase === 'loading', onClick: search }, t('page.lyricsSearch')),
+            ),
+            error !== '' ? h('div', { className: 'mp-set-desc', style: { color: 'var(--dsw-alias-state-error-primary,#f87171)' } }, error) : null,
+            phase === 'loading' ? h('div', { className: 'mp-empty', style: { padding: '20px' } }, h(Spinner)) : null,
+            preview === null
+              ? phase === 'ready' && candidates.length === 0
+                ? h('div', { className: 'mp-empty', style: { padding: '24px' } }, h('span', null, t('page.lyricsNoResults')))
+                : h(
+                    'div',
+                    { className: 'mp-lyr-candidates' },
+                    candidates.map(function (candidate) {
+                      return h(
+                        'button',
+                        {
+                          key: String(candidate.id),
+                          type: 'button',
+                          className: 'mp-lyr-candidate',
+                          onClick: function () {
+                            choose(candidate)
+                          },
+                        },
+                        h(
+                          'div',
+                          { className: 'mp-lyr-candidate-main' },
+                          h('div', { className: 'mp-srow-title' }, candidate.title || ''),
+                          h('div', { className: 'mp-srow-sub' }, candidate.artist || ''),
+                        ),
+                        h('div', { className: 'mp-srow-meta' }, fmtTime(candidate.durationSec)),
+                      )
+                    }),
+                  )
+              : h(
+                  'div',
+                  { className: 'mp-lyr-preview' },
+                  h(
+                    'div',
+                    { className: 'mp-set-desc' },
+                    (preview.title || '') + ' · ' + (preview.artist || ''),
+                  ),
+                  preview.lines.length === 0
+                    ? h('div', { className: 'mp-set-desc' }, t('page.lyricsNoResults'))
+                    : preview.lines.map(function (line, index) {
+                        return h(
+                          'div',
+                          { key: String(index), className: 'mp-lyr-line' },
+                          h('span', null, line.text || '♪'),
+                          line.translation ? h('span', { className: 'mp-lyr-tr' }, line.translation) : null,
+                        )
+                      }),
+                ),
+          ),
+          
+      )
+    }
+
+    // ── src/ui/15-trash.js
+    /**
+     * trash: restore tracks that were moved out of the library.
+     */
+    
+    function TrashDialog(props) {
+      var statePair = useState({ phase: 'loading', entries: [] })
+      var state = statePair[0]
+      var setState = statePair[1]
+      var busyPair = useState('')
+      var busy = busyPair[0]
+      var setBusy = busyPair[1]
+    
+      useEffect(function () {
+        var cancelled = false
+        getJson(API + 'trash')
+          .then(function (body) {
+            if (cancelled) return
+            setState({ phase: 'ready', entries: Array.isArray(body.entries) ? body.entries : [] })
+          })
+          .catch(function (error) {
+            if (cancelled) return
+            setState({ phase: 'error', entries: [], error: errorText(error) })
+          })
+        return function () {
+          cancelled = true
+        }
+      }, [])
+    
+      function restore(entry) {
+        if (busy !== '') return
+        setBusy(entry.id)
+        postJson(API + 'trash/restore', { id: entry.id })
+          .then(function () {
+            setBusy('')
+            setState(function (previous) {
+              return {
+                phase: previous.phase,
+                entries: previous.entries.filter(function (item) {
+                  return item.id !== entry.id
+                }),
+              }
+            })
+            showToast(t('v2.restored', { name: entry.name }))
+            void loadLibrary(true)
+          })
+          .catch(function (error) {
+            setBusy('')
+            showToast(errorText(error))
+          })
+      }
+    
+      var count = state.phase === 'ready' ? state.entries.length : 0
+      var body = h('div', { className: 'mp-set-desc' }, t('v2.trashHint'))
+      if (state.phase === 'loading') {
+        body = h('div', { className: 'mp-empty', style: { padding: '24px' } }, h(Spinner))
+      } else if (state.phase === 'error') {
+        body = h('div', { className: 'mp-empty', style: { padding: '24px' } }, state.error || '')
+      } else if (state.entries.length === 0) {
+        body = h('div', { className: 'mp-empty', style: { padding: '24px' } }, t('v2.trashEmpty'))
+      } else {
+        body = h(
+          'div',
+          { className: 'mp-trash-list' },
+          state.entries.map(function (entry) {
+            return h(
+              'div',
+              { key: entry.id, className: 'mp-trash-row' },
+              h('span', { className: 'mp-trash-icon' }, icon('trash', 14)),
+              h(
+                'div',
+                { className: 'mp-trash-main' },
+                h('div', { className: 'mp-ellipsis' }, entry.name),
+                h(
+                  'div',
+                  { className: 'mp-trash-path' },
+                  (entry.originalPath || t('v2.trashNoPath')) +
+                    ' · ' +
+                    fmtBytes(entry.size) +
+                    ' · ' +
+                    new Date(entry.mtime).toLocaleString(),
+                ),
+              ),
+              h(
+                Button,
+                {
+                  variant: 'primary',
+                  disabled: busy !== '',
+                  onClick: function () {
+                    restore(entry)
+                  },
+                },
+                busy === entry.id ? t('page.saving') : t('v2.restore'),
+              ),
+            )
+          }),
+        )
+      }
+    
+      return h(
+        KitModal,
+        {
+          title: t('v2.trash') + (state.phase === 'ready' ? ' · ' + count : ''),
+          onClose: popLayer,
+          footer: h(Button, { variant: 'ghost', onClick: function () { popLayer() } }, t('v2.close')),
+        },
+        h('div', { className: 'mp-set-desc' }, t('v2.trashHint')),
+        body,
+      )
+    }
+
+    // ── src/ui/16-header.js
+    /**
+     * shared content header: title + count, select / sort / search actions, and the
+     * play-mode pills row used by both the local and online libraries.
+     */
+    
+    function focusGlobalSearch() {
+      try {
+        var input = document.querySelector('.mp-search-input')
+        if (input) {
+          input.focus()
+          if (typeof input.select === 'function') input.select()
+        }
+      } catch (error) {
+        // Search focus is best-effort only.
+      }
+    }
+    
+    function HeadMenu(props) {
+      var openPair = useState(false)
+      var open = openPair[0]
+      var setOpen = openPair[1]
+      var ref = useRef(null)
+    
+      useEffect(
+        function () {
+          if (!open) return undefined
+          if (hostComponent('Menu') !== null) return undefined
+          function onDown(event) {
+            if (ref.current && ref.current.contains(event.target)) return
+            setOpen(false)
+          }
+          function onKey(event) {
+            if (event.key === 'Escape') setOpen(false)
+          }
+          document.addEventListener('pointerdown', onDown, true)
+          window.addEventListener('keydown', onKey)
+          return function () {
+            document.removeEventListener('pointerdown', onDown, true)
+            window.removeEventListener('keydown', onKey)
+          }
+        },
+        [open],
+      )
+    
+      var trigger = h(IconButton, {
+        icon: props.icon,
+        size: 17,
+        title: props.title,
+        active: open,
+        onClick: function () {
+          setOpen(!open)
+        },
+      })
+      var HostMenu = hostComponent('Menu')
+      if (HostMenu !== null) {
+        var hostItems = props.items.map(function (item) {
+          if (item.separator) return { type: 'separator', id: item.key }
+          return {
+            id: item.key,
+            label: item.label,
+            icon: item.icon ? icon(item.icon, 13) : undefined,
+            disabled: item.disabled === true,
+            danger: item.danger === true,
+          }
+        })
+        var selectedId
+        props.items.forEach(function (item) {
+          if (item.active === true && selectedId === undefined) selectedId = item.key
+        })
+        return h(HostMenu, {
+          open: open,
+          anchor: trigger,
+          items: hostItems,
+          selectedId: selectedId,
+          onSelect: function (id) {
+            setOpen(false)
+            var chosen = null
+            props.items.forEach(function (item) {
+              if (chosen === null && item.key === id) chosen = item
+            })
+            if (chosen !== null && typeof chosen.run === 'function') chosen.run()
+          },
+          onClose: function () {
+            setOpen(false)
+          },
+          side: 'bottom',
+          align: 'end',
+          portal: true,
+          compact: true,
+          className: 'mp-headmenu-host',
+        })
+      }
+    
+      return h(
+        'div',
+        { className: 'mp-headmenu', ref: ref },
+        trigger,
+        open
+          ? h(
+              'div',
+              { className: 'mp-headmenu-pop', role: 'menu' },
+              props.items.map(function (item) {
+                if (item.separator) return h('hr', { key: item.key, className: 'mp-headmenu-sep' })
+                return h(
+                  'button',
+                  {
+                    key: item.key,
+                    type: 'button',
+                    role: 'menuitem',
+                    className: cx('mp-headmenu-item', item.active === true && 'is-on'),
+                    onClick: function () {
+                      setOpen(false)
+                      if (typeof item.run === 'function') item.run()
+                    },
+                  },
+                  item.icon ? icon(item.icon, 13) : null,
+                  h('span', { className: 'mp-headmenu-label' }, item.label),
+                  item.hint ? h('span', { className: 'mp-headmenu-hint' }, item.hint) : null,
+                )
+              }),
+            )
+          : null,
+      )
+    }
+    
+    function SelectMenu(props) {
+      return h(HeadMenu, {
+        icon: 'checkCircle',
+        title: t('page.select'),
+        items: [
+          { key: 'all', icon: 'check', label: t('v2.selAll'), run: props.onAll },
+          { key: 'none', icon: 'x', label: t('v2.selNone'), run: props.onNone },
+          { key: 'range', icon: 'target', label: t('v2.selRange'), run: props.onRange },
+          { key: 'invert', icon: 'refresh', label: t('v2.selInvert'), run: props.onInvert },
+        ],
+      })
+    }
+    
+    function SortMenu() {
+      var prefs = usePrefs()
+      var fields = [
+        ['title', t('v2.sortTitle')],
+        ['artist', t('v2.sortArtist')],
+        ['duration', t('v2.sortDuration')],
+        ['added', t('v2.sortAdded')],
+        ['recent', t('v2.sortRecent')],
+      ]
+      var items = fields.map(function (entry) {
+        return {
+          key: entry[0],
+          label: entry[1],
+          active: prefs.sortBy === entry[0],
+          run: function () {
+            setPrefs({ sortBy: entry[0] })
+          },
+        }
+      })
+      items.push({ key: 'sep', separator: true })
+      items.push({
+        key: 'asc',
+        label: t('page.sortAsc'),
+        hint: '↑',
+        active: prefs.sortDir === 'asc',
+        run: function () {
+          setPrefs({ sortDir: 'asc' })
+        },
+      })
+      items.push({
+        key: 'desc',
+        label: t('page.sortDesc'),
+        hint: '↓',
+        active: prefs.sortDir === 'desc',
+        run: function () {
+          setPrefs({ sortDir: 'desc' })
+        },
+      })
+      return h(HeadMenu, { icon: 'sort', title: t('page.sort'), items: items })
+    }
+    
+    function PlayModePills(props) {
+      var snap = usePlayerSnapshot()
+      var active =
+        snap.order === 'random' ? 'random' : snap.loop === 'one' ? 'one' : snap.loop === 'none' ? 'order' : 'loop'
+      var modes = [
+        ['loop', 'repeat', t('page.loopAll')],
+        ['order', 'next', t('page.modeSequence')],
+        ['random', 'shuffle', t('page.shuffle')],
+      ]
+    
+      function apply(mode) {
+        if (mode === 'random') {
+          player.setOrder('random')
+          player.setLoop('all')
+        } else if (mode === 'order') {
+          player.setOrder('list')
+          player.setLoop('none')
+        } else {
+          player.setOrder('list')
+          player.setLoop('all')
+        }
+      }
+    
+      return h(
+        'div',
+        { className: 'mp-modes' },
+        modes.map(function (mode) {
+          return h(
+            KitPill,
+            {
+              key: mode[0],
+              active: active === mode[0],
+              icon: mode[1],
+              title: mode[2],
+              onClick: function () {
+                apply(mode[0])
+              },
+            },
+            mode[2],
+          )
+        }),
+      )
+    }
+    
+    function ContentHeader(props) {
+      return h(
+        'header',
+        { className: 'mp-content-head' },
+        h('h1', { className: 'mp-title', title: props.title }, props.title),
+        h('span', { className: 'mp-count' }, props.count > 0 ? t('page.trackCountUnit', { n: props.count }) : ''),
+        props.selecting === true && (props.selectedCount || 0) > 0
+          ? h('span', { className: 'mp-sel-count' }, t('page.selectedCount', { n: props.selectedCount }))
+          : null,
+        h(
+          'div',
+          { className: 'mp-head-actions' },
+          h(SelectMenu, {
+            onAll: props.onAll,
+            onNone: props.onNone,
+            onRange: props.onRange,
+            onInvert: props.onInvert,
+          }),
+          h(SortMenu),
+          h(IconButton, { icon: 'search', size: 17, title: t('v2.searchFocus'), onClick: focusGlobalSearch }),
+        ),
+      )
+    }
+
+    // ── src/ui/17-folder-picker.js
+    /**
+     * folder picker: read-only directory browser backed by GET /browse.
+     *
+     * Used from Settings → 音乐库 and from the folder view quick-add button.
+     */
+    
+    function FolderPickerDialog(props) {
+      var statePair = useState({ phase: 'loading', path: '', parent: null, dirs: [], error: '' })
+      var state = statePair[0]
+      var setState = statePair[1]
+    
+      function load(target) {
+        setState(function (previous) {
+          return Object.assign({}, previous, { phase: 'loading', error: '' })
+        })
+        getJson(API + 'browse?path=' + encodeURIComponent(target))
+          .then(function (body) {
+            setState({
+              phase: 'ready',
+              path: body.path || '',
+              parent: body.parent === undefined ? null : body.parent,
+              dirs: Array.isArray(body.dirs) ? body.dirs : [],
+              error: '',
+            })
+          })
+          .catch(function (error) {
+            setState(function (previous) {
+              return Object.assign({}, previous, { phase: 'error', error: errorText(error) })
+            })
+          })
+      }
+    
+      useEffect(function () {
+        load('')
+      }, [])
+    
+      function useHere() {
+        if (state.path === '') return
+        var config = libraryStore.get().config || {}
+        var roots = Array.isArray(config.roots) ? config.roots.slice() : []
+        if (roots.indexOf(state.path) < 0) roots.push(state.path)
+        var after = function (ok) {
+          if (!ok) return
+          showToast(t('v2.folderAdded'))
+          popLayer()
+        }
+        saveConfig({ roots: roots }).then(after)
+      }
+    
+      var list = null
+      if (state.phase === 'loading') {
+        list = h('div', { className: 'mp-folder-state' }, h(Spinner), h('span', null, t('v2.loading')))
+      } else if (state.phase === 'error') {
+        list = h('div', { className: 'mp-folder-state' }, state.error || t('page.loadFailed'))
+      } else if (state.dirs.length === 0) {
+        list = h('div', { className: 'mp-folder-state' }, t('v2.folderEmpty'))
+      } else {
+        list = h(
+          'div',
+          { className: 'mp-folder-list' },
+          state.parent !== null && state.parent !== undefined
+            ? h(
+                'button',
+                { type: 'button', className: 'mp-folder-row', onClick: function () { load(state.parent) } },
+                icon('chevronLeft', 14),
+                h('span', null, t('v2.folderUp')),
+              )
+            : null,
+          state.dirs.map(function (dir) {
             return h(
               'button',
               {
+                key: dir.path,
                 type: 'button',
-                key: option.value,
-                className: 'mu-choice' + (value === option.value ? ' is-on' : ''),
+                className: 'mp-folder-row',
                 onClick: function () {
-                  onChange(option.value)
+                  load(dir.path)
                 },
               },
-              option.label,
+              icon('folder', 16),
+              h('span', { className: 'mp-folder-row-name', title: dir.name }, dir.name),
             )
           }),
-        ),
-      )
-    }
-
-    /** Ordered list with up/down controls. */
-    function settingOrder(label, order, labels, onChange) {
-      function move(index, delta) {
-        var target = index + delta
-        if (target < 0 || target >= order.length) return
-        var next = order.slice()
-        var tmp = next[index]
-        next[index] = next[target]
-        next[target] = tmp
-        onChange(next)
+        )
       }
+    
       return h(
-        'div',
-        { className: 'mu-set-item mu-set-item-col' },
-        h('span', { className: 'mu-set-label' }, label),
+        KitModal,
+        {
+          title: t('v2.folderPick'),
+          onClose: popLayer,
+          footer: [
+            h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
+            h(
+              Button,
+              {
+                key: 'here',
+                variant: 'primary',
+                icon: 'check',
+                disabled: state.path === '' || state.phase !== 'ready',
+                onClick: useHere,
+              },
+              t('v2.folderHere'),
+            ),
+          ],
+        },
         h(
           'div',
-          { className: 'mu-set-order' },
-          order.map(function (key, index) {
-            return h(
-              'div',
-              { className: 'mu-order-row', key: key },
-              h('span', { className: 'mu-order-text' }, index + 1 + '. ' + (labels[key] || key)),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-icon-btn mu-icon-btn-sm',
-                  disabled: index === 0,
-                  title: '↑',
-                  onClick: function () {
-                    move(index, -1)
-                  },
-                },
-                '↑',
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mu-icon-btn mu-icon-btn-sm',
-                  disabled: index === order.length - 1,
-                  title: '↓',
-                  onClick: function () {
-                    move(index, 1)
-                  },
-                },
-                '↓',
-              ),
-            )
-          }),
+          { className: 'mp-folder-path', title: state.path },
+          state.path === '' ? t('v2.folderPick') : state.path,
         ),
+        list,
       )
     }
 
-    // ── styles ────────────────────────────────────────────────────────────
-
-    var STYLE = [
-      // Surface + text follow the host palette; every color has a neutral fallback.
-      '.mu-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;line-height:1.5;user-select:none}',
-      '.mu-root input,.mu-root textarea,.mu-set input,.mu-np input{user-select:text}',
-      '.mu-head{display:flex;align-items:center;gap:10px;padding:16px 24px 8px;min-height:52px;box-sizing:border-box}',
-      '.mu-head-title{display:flex;align-items:baseline;gap:10px;min-width:0}',
-      '.mu-title{display:inline-flex;align-items:center;height:28px;font-size:20px;font-weight:600;line-height:28px}',
-      '.mu-count{font-size:13px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
-      '.mu-head-actions{margin-left:auto;display:flex;align-items:center;gap:2px}',
-      '.mu-icon-btn{display:inline-flex;flex:none;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border:none;border-radius:var(--dsw-radius-sm,6px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);line-height:1;cursor:pointer}',
-      '.mu-icon-btn:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
-      '.mu-icon-btn:active{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12))}',
-      '.mu-icon-btn.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
-      '.mu-icon-btn-sm{width:24px;height:24px}',
-      '.mu-chips{display:flex;align-items:center;gap:8px;padding:2px 24px 10px;flex-wrap:wrap}',
-      '.mu-chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.14));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#e4e4e7);font-size:13px;cursor:pointer;white-space:nowrap}',
-      '.mu-chip:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
-      '.mu-chip.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5);border-color:var(--dsw-alias-border-l2,rgba(255,255,255,.2))}',
-      '.mu-chip-round{width:32px;padding:0;justify-content:center}',
-      '.mu-tabs{display:flex;align-items:center;gap:4px;padding:0 24px 6px;overflow-x:auto;scrollbar-width:none}',
-      '.mu-filter-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 24px 6px;padding:6px 10px;border-radius:8px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-filter-clear{display:inline-flex;align-items:center;gap:4px;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);font:inherit;font-size:11px;cursor:pointer}',
-      '.mu-filter-clear:hover{color:var(--dsw-alias-label-primary,#e6e6e6)}',
-      '.mu-albums{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;align-content:start;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;padding:4px 24px 24px}',
-      '.mu-artists{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;display:flex;flex-direction:column;gap:2px;padding:4px 24px 24px}',
-      '.mu-online{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:4px 24px 24px;position:relative}',
-      '.mu-locate-fab{position:absolute;right:26px;bottom:84px;z-index:6;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:50%;background:var(--dsw-alias-bg-layer-2,#232328);color:var(--dsw-alias-label-primary,#f4f4f5);box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:transform .12s ease,background .12s ease}',
-      '.mu-locate-fab:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.12));transform:translateY(-1px)}',
-      '.mu-locate-fab:active{transform:translateY(0) scale(.96)}',
-      '.mu-online-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
-      '.mu-online-providers{display:flex;gap:4px}',
-      '.mu-online-search{flex:1 1 200px;min-width:0}',
-      '.mu-online-error{font-size:12px;color:var(--dsw-alias-state-error-primary,#f87171)}',
-      '.mu-online .mu-list{flex:1;min-height:0;overflow-y:auto;padding:0}',
-      '.mu-online-badge{font-size:10px;padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-online-badge.is-vip{color:#f5c518;background:linear-gradient(180deg,rgba(245,197,24,.18),rgba(245,197,24,.10));border:1px solid rgba(245,197,24,.45);font-weight:600;letter-spacing:.3px}',
-      '.mu-online-login-cta{justify-content:center;gap:10px;text-align:center}',
-      '.mu-online-login-cta-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}',
-      '.mu-tabs-divider{flex:none;width:1px;height:14px;margin:0 2px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.12))}',
-      '.mu-tab-source{font-weight:600}',
-      '.mu-online-search-row{display:flex;align-items:center;gap:8px}',
-      '.mu-online-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 2px 4px}',
-      '.mu-online-head-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-pl-strip{display:flex;flex-direction:column;gap:6px;margin:2px 0 4px}',
-      '.mu-pl-strip-head{display:flex;align-items:center;justify-content:space-between}',
-      '.mu-pl-strip-title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-pl-strip-count{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-pl-strip-cards{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none}',
-      '.mu-pl-strip-cards::-webkit-scrollbar{display:none}',
-      '.mu-pl-card{flex:none;width:72px;display:flex;flex-direction:column;gap:6px;padding:0;border:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer;text-align:left}',
-      '.mu-pl-card-cover{position:relative;display:flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:9px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-tertiary,#8a8a93);transition:transform .15s ease,box-shadow .15s ease}',
-      '.mu-pl-card-cover img{width:100%;height:100%;object-fit:cover}',
-      '.mu-pl-card-cover-recent{background:linear-gradient(145deg,#2c3a55,#171d2a)}',
-      '.mu-pl-card:hover .mu-pl-card-cover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.45)}',
-      '.mu-pl-card-name{font-size:11px;line-height:1.3;color:var(--dsw-alias-label-secondary,#a1a1aa);padding:0 1px}',
-      '.mu-pl-card.is-on .mu-pl-card-cover{box-shadow:inset 0 0 0 2px var(--dsw-static-deepseek-450,#5686fe),0 8px 20px rgba(86,134,254,.28)}',
-      '.mu-pl-card.is-on:hover .mu-pl-card-cover{box-shadow:inset 0 0 0 2px var(--dsw-static-deepseek-450,#5686fe),0 10px 24px rgba(86,134,254,.34)}',
-      '.mu-pl-card.is-on .mu-pl-card-name{color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
-      '.mu-context-layer{position:fixed;inset:0;z-index:200}',
-      '.mu-context-menu{position:fixed;min-width:170px;padding:4px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:10px;background:var(--dsw-alias-bg-layer-2,#232328);box-shadow:0 10px 32px rgba(0,0,0,.5);display:flex;flex-direction:column}',
-      '.mu-context-item{display:flex;align-items:center;width:100%;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12.5px;text-align:left;cursor:pointer}',
-      '.mu-context-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08))}',
-      '.mu-online-playlists{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;align-content:start;padding-bottom:8px}',
-      '.mu-online-playlist{display:flex;align-items:center;gap:10px;min-width:0;padding:8px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));border-radius:10px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03));cursor:pointer;text-align:left;color:inherit;font:inherit}',
-      '.mu-online-playlist:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
-      '.mu-online-playlist-cover{flex:none;width:40px;height:40px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-online-playlist-cover img{width:100%;height:100%;object-fit:cover;display:block}',
-      '.mu-online-playlist-main{display:flex;flex-direction:column;gap:1px;min-width:0}',
-      '.mu-online-playlist-name{font-size:12px;color:var(--dsw-alias-label-primary,#e6e6e6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-online-playlist-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-online-login-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
-      '.mu-online-login-name{flex:none;width:80px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-online-login-state{flex:1;min-width:0;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-online-qr-dialog{align-items:center;text-align:center}',
-      '.mu-online-qr{width:200px;height:200px;margin:6px auto;padding:6px;border-radius:8px;background:#fff;object-fit:contain;image-rendering:pixelated}',
-      '.mu-online-qr-empty{width:200px;height:200px;margin:6px auto;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-album-card{display:flex;flex-direction:column;gap:8px;padding:0;border:0;background:transparent;text-align:left;cursor:pointer;color:inherit;font:inherit;min-width:0}',
-      '.mu-album-cover{position:relative;aspect-ratio:1;border-radius:var(--dsw-radius-lg,12px);overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-album-cover img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s ease}',
-      '.mu-album-card:hover .mu-album-cover img{transform:scale(1.03)}',
-      '.mu-album-name{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#e6e6e6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-album-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-artist-row{display:flex;align-items:center;gap:12px;padding:8px 10px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-width:0}',
-      '.mu-artist-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
-      '.mu-artist-avatar{width:40px;height:40px;border-radius:999px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-artist-avatar img{width:100%;height:100%;object-fit:cover;display:block}',
-      '.mu-artist-name{flex:1;min-width:0;font-size:13px;color:var(--dsw-alias-label-primary,#e6e6e6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-artist-count{flex:none;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-artist-arrow{flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-tabs::-webkit-scrollbar{display:none}',
-      '.mu-tab{flex:none;max-width:168px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;height:30px;padding:0 12px;border:0;border-radius:var(--dsw-radius-md,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:13px;cursor:pointer}',
-      '.mu-tab-pl{text-align:left}',
-      '.mu-tab:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06));color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mu-tab.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
-      '.mu-tab-add{width:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:.5px solid var(--dsw-alias-border-l3,rgba(255,255,255,.12))}',
-      '.mu-tab-add:hover{border-color:var(--dsw-alias-border-l4,rgba(255,255,255,.2))}',
-      '.mu-list.is-stats{padding-top:4px}',
-      '.mu-stats{display:flex;flex-direction:column;gap:12px;padding:2px 0 10px}',
-      '.mu-stats{display:flex;flex-direction:column;gap:12px;padding:2px 0 16px}',
-      '.mu-stats-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
-      '.mu-stats-group{display:flex;align-items:center;gap:2px;padding:3px;border-radius:10px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04))}',
-      '.mu-stats-chip{height:26px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:12px;cursor:pointer;transition:background .15s ease,color .15s ease}',
-      '.mu-stats-chip:hover{color:var(--dsw-alias-label-primary,#e6e6e6)}',
-      '.mu-stats-chip.is-on{background:var(--dsw-static-deepseek-450,#5686fe);color:#fff}',
-      '.mu-stats-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}',
-      '.mu-stats-card{display:flex;align-items:center;gap:10px;min-width:0;padding:12px 14px;border-radius:12px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));background:linear-gradient(160deg,var(--dsw-alias-bg-layer-2,rgba(255,255,255,.045)),var(--dsw-alias-bg-layer-1,#1a1a1e));transition:border-color .15s ease}',
-      '.mu-stats-card:hover{border-color:var(--dsw-alias-border-l2,rgba(255,255,255,.14))}',
-      '.mu-stats-card-icon{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));font-size:14px}',
-      '.mu-stats-card-body{min-width:0}',
-      '.mu-stats-card-label{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
-      '.mu-stats-card-value{margin-top:2px;font-size:20px;font-weight:650;line-height:1.15;color:var(--dsw-alias-label-primary,#f4f4f5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}',
-      '.mu-stats-list{display:flex;flex-direction:column;gap:1px;padding:4px;border-radius:12px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));background:var(--dsw-alias-bg-layer-1,#17171a)}',
-      '.mu-stats-last{justify-content:flex-end;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-view{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}',
-      '.mu-folders{display:flex;flex-direction:column;gap:2px;padding:2px 24px 16px}',
-      '.mu-folder-row{display:flex;align-items:center;gap:10px;height:52px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer;text-align:left;width:100%}',
-      '.mu-folder-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
-      '.mu-folder-icon{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;border-radius:8px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-folder-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}',
-      '.mu-folder-name{font-size:13px}',
-      '.mu-folder-meta{font-size:11.5px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-folder-count{flex:none;font-size:11.5px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
-      '.mu-view-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:6px 24px 2px;flex:none}',
-      '.mu-view-title{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-view-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);flex:none}',
-      '.mu-pl-new{display:flex;gap:8px;padding:4px 24px 12px}',
-      '.mu-pl-new .mu-input{flex:1}',
-      '.mu-pl-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--dsw-radius-md,8px);cursor:pointer}',
-      '.mu-pl-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
-      '.mu-pl-icon{display:inline-flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-pl-main{min-width:0}',
-      '.mu-pl-name{font-size:13px;font-weight:600}',
-      '.mu-pl-count{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
-      '.mu-pl-head{display:flex;align-items:center;gap:8px;padding:4px 24px 12px}',
-      '.mu-pl-title{flex:1;max-width:320px}',
-      '.mu-select{height:32px;padding:0 8px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.14));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#e4e4e7);font-size:12px;cursor:pointer}',
-      '.mu-chip-accent{background:var(--dsw-alias-button-primary-fill,#f4f4f5);border-color:transparent;color:var(--dsw-alias-label-primary-foreground,#141417)}',
-      '.mu-chip-accent:hover{background:var(--dsw-alias-button-primary-hover,#e4e4e7)}',
-      '.mu-selected{display:inline-flex;align-items:center;gap:8px;margin-left:auto;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px}',
-      '.mu-search-inline{position:relative;box-sizing:border-box;display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;border:.5px solid var(--dsw-alias-border-l3,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-search-input{width:150px;border:0;outline:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12px;font-family:inherit}',
-      '.mu-search{display:flex;align-items:center;gap:8px;height:34px;margin:0 24px 10px;padding:0 12px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.14));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;font-family:inherit}',
-      '.mu-list{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;padding:0 16px 12px}',
-      '.mu-chip-icon{padding:0 9px}',
-      '.mu-grid{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;padding:8px 16px 24px;position:relative}',
-      '.mu-grid-row{position:absolute;left:0;right:0;display:grid;gap:14px}',
-      '.mu-card{display:flex;flex-direction:column;gap:6px;min-width:0;padding:6px;border-radius:10px;cursor:pointer;transition:background .15s}',
-      '.mu-card:hover{background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03))}',
-      '.mu-card.is-selected{background:color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 10%,transparent)}',
-      '.mu-card-cover{position:relative;width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06))}',
-      '.mu-card-cover .mu-cover{width:100%!important;height:100%!important;border-radius:10px}',
-      '.mu-card-cover .mu-cover img{width:100%;height:100%;object-fit:cover;border-radius:10px}',
-      '.mu-card-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;opacity:0;transition:opacity .15s;cursor:pointer}',
-      '.mu-card:hover .mu-card-play,.mu-card.is-current .mu-card-play{opacity:1}',
-      '.mu-card-fav{position:absolute;right:8px;bottom:8px;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;cursor:pointer;opacity:0;transition:opacity .15s}',
-      '.mu-card:hover .mu-card-fav,.mu-card-fav.is-on{opacity:1}',
-      '.mu-card-fav.is-on{color:var(--dsw-alias-state-error-primary,#e5484d)}',
-      '.mu-card-fav.is-on svg{fill:currentColor}',
-      '.mu-card-check{position:absolute;left:8px;top:8px;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border:.5px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;opacity:0;transition:opacity .15s}',
-      '.mu-card:hover .mu-card-check,.mu-card-check.is-on{opacity:1}',
-      '.mu-card-check.is-on{background:var(--dsw-static-deepseek-450,#5686fe);border-color:transparent}',
-      '.mu-card-title{font-size:13px;font-weight:600;line-height:1.35}',
-      '.mu-card-artist{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-card.is-current .mu-card-cover{box-shadow:0 0 0 2px var(--dsw-static-deepseek-450,#5686fe)}',
-      '.mu-card.is-current .mu-card-title{color:var(--dsw-static-deepseek-450,#5686fe)}',
-      '.mu-vlist-inner{position:relative}',
-      '.mu-vlist-row{position:absolute;left:0;right:0}',
-      '.mu-row{display:grid;grid-template-columns:calc(var(--mu-row-size,60px) + 4px) minmax(0,1.15fr) minmax(0,.85fr) 56px auto;align-items:center;gap:12px;padding:6px 10px;border-radius:var(--dsw-radius-md,8px);height:72px;box-sizing:border-box;position:relative}',
-      '.mu-prefs{min-width:240px;padding:12px}',
-      '.mu-prefs-panel{position:absolute;top:56px;right:24px;z-index:50;width:360px;max-width:calc(100% - 48px);max-height:70vh;overflow-y:auto;padding:14px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-panel,0 16px 40px rgba(0,0,0,.5))}',
-      '.mu-prefs-tabs{display:flex;gap:2px;padding:3px;margin-bottom:12px;border-radius:9px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06))}',
-      '.mu-prefs-guide{margin-left:auto;color:var(--dsw-alias-label-tertiary,#8a8f98)}',
-      '.mu-prefs-tab{flex:1;height:28px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer}',
-      '.mu-prefs-tab.is-on{background:var(--dsw-alias-bg-layer-2,#2a2a2e);color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.35)}',
-      '.mu-prefs-body{display:flex;flex-direction:column}',
-      '.mu-prefs-body .mu-set-item:last-child{border-bottom:0;padding-bottom:0}',
-      '.mu-prefs-hint{margin:0 0 8px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-prefs-empty{padding:10px 0;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-prefs-folder{display:flex;align-items:center;gap:6px;margin-bottom:6px}',
-      '.mu-prefs-folder-path{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-prefs-confirm{margin-top:10px;padding:10px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.05));font-size:12px}',
-      '.mu-prefs-confirm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}',
-      '.mu-browse{margin-top:8px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));overflow:hidden}',
-      '.mu-browse-head{padding:8px 10px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-browse-path{width:100%;margin:8px 10px 0;width:calc(100% - 20px);height:28px;font-size:12px}',
-      '.mu-browse-list{max-height:220px;overflow-y:auto}',
-      '.mu-browse-item{display:flex;align-items:center;gap:8px;width:100%;padding:6px 10px;border:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;text-align:left;cursor:pointer}',
-      '.mu-browse-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08))}',
-      '.mu-browse-empty{padding:12px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-browse-actions{display:flex;justify-content:flex-end;gap:8px;padding:8px 10px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
-      '.mu-prefs-field{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0 4px}',
-      '.mu-prefs-field-label{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-prefs-error{margin-top:6px;font-size:12px;color:var(--dsw-alias-label-warning,#f0a35e)}',
-      '.mu-prefs-actions{display:flex;align-items:center;gap:8px;margin-top:10px}',
-      '.mu-prefs-saved{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-input-sm{height:28px;font-size:12px}',
-      '.mu-btn-sm{height:28px;padding:0 10px;font-size:12px}',
-      '.mu-prefs-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;margin-bottom:10px}',
-      '.mu-prefs-label{flex:none;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-prefs-value{color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
-      '.mu-prefs-hint{margin-top:10px;font-size:12px;line-height:1.6;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-confirm{padding:12px;min-width:220px;max-width:280px}',
-      '.mu-confirm-text{font-size:13px;line-height:1.6;margin-bottom:12px;word-break:break-word}',
-      '.mu-confirm-actions{display:flex;justify-content:flex-end;gap:8px}',
-      '.mu-btn-danger{background:var(--dsw-alias-state-error-primary,#c0392b);color:var(--dsw-alias-label-primary-foreground,#fff);border-color:transparent}',
-      '.mu-btn-danger:hover{opacity:.9}',
-      '.mu-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
-      '.mu-row.is-current{background:color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 8%,transparent);border-radius:10px;position:relative}',
-      '.mu-row.is-current::before{content:"";position:absolute;left:3px;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:2px;background:var(--dsw-static-deepseek-450,#5686fe)}',
-      '.mu-row.is-current:hover{background:color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 12%,transparent)}',
-      '.mu-row.is-current .mu-row-title{color:var(--dsw-static-deepseek-450,#5686fe);font-weight:600}',
-      '.mu-row.is-current .mu-row-sub,.mu-row.is-current .mu-row-album,.mu-row.is-current .mu-row-dur{color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-row-play{position:relative;width:var(--mu-row-size,60px);height:var(--mu-row-size,60px);border:0;padding:0;background:transparent;cursor:pointer;border-radius:var(--dsw-radius-sm,6px);display:flex;align-items:center;justify-content:center}',
-      '.mu-row-playmask{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:var(--dsw-radius-sm,6px);background:rgba(0,0,0,.45);color:#fff;opacity:0;transition:opacity .12s ease}',
-      '.mu-row-play:hover .mu-row-playmask,.mu-row.is-current .mu-row-playmask{opacity:1}',
-      '.mu-row.is-current .mu-row-playmask{background:rgba(0,0,0,.35)}',
-      '.mu-row.is-selected{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
-      '.mu-row.is-current.is-selected{background:color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 8%,transparent)}',
-      '.mu-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px}',
-      '.mu-row-meta{color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.65}',
-      '.mu-row-meta:hover{opacity:1;color:var(--dsw-static-deepseek-450,#5686fe)}',
-      '.mu-check{width:20px;height:20px;margin:0;padding:0;border:1.5px solid var(--dsw-alias-border-l3,rgba(255,255,255,.24));border-radius:50%;background:transparent;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;opacity:0;transition:opacity .12s ease}',
-      '.mu-row:hover .mu-check,.mu-row.is-selected .mu-check,.mu-check:focus-visible{opacity:1}',
-      '.mu-check:hover{border-color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-check.is-on{background:var(--dsw-alias-button-primary-fill,#f4f4f5);border-color:transparent;color:var(--dsw-alias-label-primary-foreground,#141417)}',
-      '.mu-cover{flex:none;overflow:hidden;background:var(--dsw-alias-bg-layer-2,#26262b);display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-tertiary,#71717a)}',
-      '.mu-cover img{width:100%;height:100%;object-fit:cover;display:block}',
-      '.mu-row-main{min-width:0}',
-      '.mu-row-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-      '.mu-eq{display:inline-flex;align-items:flex-end;gap:2px;height:12px;margin-right:8px;flex:none}',
-      '.mu-eq i{display:block;width:2px;height:4px;border-radius:1px;background:var(--dsw-static-deepseek-450,#5686fe);opacity:.95}',
-      '.mu-eq.is-playing i{animation:mu-eq-bounce .9s ease-in-out infinite}',
-      '.mu-eq.is-playing i:nth-child(2){animation-delay:.15s}',
-      '.mu-eq.is-playing i:nth-child(3){animation-delay:.3s}',
-      '@keyframes mu-eq-bounce{0%,100%{height:4px}50%{height:12px}}',
-      '.mu-row-sub{display:flex;align-items:center;gap:6px;margin-top:1px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);min-width:0}',
-      '.mu-cd{flex:none;padding:0 4px;border-radius:var(--dsw-radius-xs,4px);border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.2));color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:9px;font-weight:600;line-height:13px;letter-spacing:.4px}',
-      '.mu-ellipsis{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-      '.mu-row-album{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-row-dur{text-align:right;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
-      '.mu-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:56px 16px;color:var(--dsw-alias-label-tertiary,#a1a1aa);text-align:center}',
-      '.mu-state-action{margin-top:6px}',
-      '.mu-onb-link{margin-top:2px;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8f98);font-size:11px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}',
-      '.mu-onb{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:130;pointer-events:auto;display:flex;flex-direction:column;gap:12px;width:min(420px,calc(100% - 32px));max-height:calc(100vh - 40px);overflow-y:auto;padding:18px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5))}',
-      '.mu-onb-browse{display:flex;flex-direction:column;gap:8px;padding-top:8px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
-      '.mu-onb-browse .mu-browse-list{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}',
-      '.mu-onb-browse .mu-browse-actions{display:flex;justify-content:flex-end;gap:8px}',
-      '.mu-onb-head{display:flex;align-items:center;justify-content:space-between;gap:12px}',
-      '.mu-onb-title{font-size:14px;font-weight:600;color:var(--dsw-alias-label-primary,#e6e6e6)}',
-      '.mu-onb-body{display:flex;flex-direction:column;gap:6px}',
-      '.mu-onb-icon{font-size:30px;line-height:1}',
-      '.mu-onb-step{font-size:14px;font-weight:600}',
-      '.mu-onb-text{margin:0;font-size:12.5px;line-height:1.7;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-onb-dots{display:flex;gap:6px}',
-      '.mu-onb-dot{width:6px;height:6px;border-radius:999px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.18))}',
-      '.mu-onb-dot.is-on{background:var(--dsw-static-deepseek-450,#5686fe)}',
-      '.mu-onb-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}',
-      '.mu-onb-nav{display:flex;align-items:center;gap:8px}',
-      '.mu-state-title{font-size:14px;font-weight:600;color:var(--dsw-alias-label-primary,#e4e4e7)}',
-      '.mu-state-sub{font-size:12px;max-width:420px;line-height:1.6;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-spinner{width:20px;height:20px;border-radius:50%;border:2px solid var(--dsw-alias-border-l2,rgba(255,255,255,.18));border-top-color:var(--dsw-alias-brand-primary,#f4f4f5);animation:mu-spin .8s linear infinite}',
-      '.mu-spinner-sm{width:12px;height:12px;border-width:2px}',
-      '@keyframes mu-spin{to{transform:rotate(360deg)}}',
-      '.mu-warn{padding:4px 24px 8px;font-size:12px;color:var(--dsw-alias-state-warn-label,#e0a030)}',
-      '.mu-menu{position:absolute;top:56px;right:24px;z-index:50;min-width:160px;max-height:70vh;overflow-y:auto;padding:4px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.4))}',
-      '.mu-menu-item{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:4px 7px;border:0;border-radius:var(--dsw-radius-md,8px);background:transparent;color:var(--dsw-alias-label-primary,#e4e4e7);font-size:12px;text-align:left;cursor:pointer}',
-      '.mu-menu-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
-      '.mu-menu-item.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
-      '.mu-menu-hint{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-bar{position:relative;flex:none;margin:0 10px 10px;padding:8px 12px 9px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:14px;background:rgba(24,24,28,.52);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#1a1a1e) 55%,transparent);-webkit-backdrop-filter:blur(24px) saturate(1.4);backdrop-filter:blur(24px) saturate(1.4);box-shadow:0 12px 32px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.07);overflow:hidden;transition:background .2s ease,box-shadow .2s ease,opacity .2s ease,transform .2s ease}',
-      '.mu-bar:hover{background:rgba(30,30,34,.62);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#1a1a1e) 60%,transparent);box-shadow:0 14px 36px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.09)}',
-      '.mu-bar.is-bar-hidden{opacity:0;transform:translateY(10px);pointer-events:none}',
-      '.mu-bar::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);pointer-events:none;z-index:1}',
-      '.mu-bar-openable{cursor:pointer}',
-      // The whole bar opens the player, so the hover highlight must cover the
-      // whole bar too (it used to come from `.mu-bar-left.mu-clickable`, which
-      // only lit the left half). A gradient overlay keeps the bar's own
-      // bg-layer fill underneath the translucent hover token.
-      '.mu-bar-openable:hover{background-image:linear-gradient(var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05)),var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05)))}',
-      '.mu-bar-left:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px;border-radius:8px}',
-      '.mu-bar-openable button,.mu-bar-openable input{cursor:pointer}',
-      '.mu-bar-openable .mu-clickable{cursor:pointer}',
-      '.mu-seekwrap{position:absolute;left:0;right:0;top:0;height:5px;z-index:2}',
-      '.mu-bar-buffer{position:absolute;left:0;top:1px;height:3px;background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12));pointer-events:none}',
-      '.mu-seek{position:absolute;left:0;top:0;width:100%;height:5px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;margin:0;padding:0}',
-      '.mu-seek::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(to right,rgba(255,255,255,.95) var(--mu-p,0%),rgba(255,255,255,.16) var(--mu-p,0%))}',
-      '.mu-seek::-webkit-slider-thumb{-webkit-appearance:none;width:8px;height:8px;margin-top:-3px;border-radius:50%;background:var(--dsw-alias-label-primary,#f4f4f5);opacity:0;transition:opacity .12s ease}',
-      '.mu-seek:hover::-webkit-slider-thumb{opacity:1}',
-      '.mu-seek:disabled{opacity:.4;cursor:default}',
-      '.mu-bar-main{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;padding-top:6px}',
-      '.mu-bar-left{display:flex;align-items:center;gap:10px;min-width:0}',
-      '.mu-bar-info{min-width:0;max-width:260px}',
-      '.mu-bar-title{font-size:12.5px;font-weight:600}',
-      '.mu-bar-src{display:inline-block;margin-left:6px;padding:0 5px;font-size:10px;font-weight:500;line-height:15px;border-radius:999px;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));vertical-align:1px}',
-      '.mu-bar-cache{color:var(--dsw-alias-state-success-primary,#4ade80);background:rgba(74,222,128,.12)}',
-      '.mu-cached-badge{margin-left:6px;padding:0 5px;font-size:10px;font-weight:500;line-height:15px;border-radius:999px;color:var(--dsw-alias-state-success-primary,#4ade80);background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3)}',
-      '.mu-cached-dot{display:inline-block;flex:none;width:6px;height:6px;margin-left:6px;border-radius:50%;background:var(--dsw-alias-state-success-primary,#4ade80);box-shadow:0 0 6px rgba(74,222,128,.55)}',
-      '.mu-cached-icon{display:inline-flex;align-items:center;margin-left:5px;vertical-align:-2px;color:var(--dsw-alias-state-success-primary,#4ade80)}',
-      '.mu-cache-list{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow-y:auto;margin-top:4px}',
-      '.mu-cache-row{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px}',
-      '.mu-cache-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
-      '.mu-cache-main{flex:1;min-width:0}',
-      '.mu-cache-title{font-size:13px;color:var(--dsw-alias-label-primary,#e6e6e6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-cache-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:1px}',
-      '.mu-cache-size{flex:none;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
-      '.mu-bar-artist{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
-      '.mu-bar-controls{display:flex;align-items:center;gap:4px;justify-self:center}',
-      '.mu-bar-wave{display:block;pointer-events:none;opacity:.95}',
-      '.mu-side-wave-float{position:fixed;transform:translateY(-50%);pointer-events:none;z-index:1;opacity:.9}',
-      '.mu-bar-wave-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.25;-webkit-mask-image:linear-gradient(180deg,transparent,#000 55%);mask-image:linear-gradient(180deg,transparent,#000 55%)}',
-      '.mu-bar > *:not(.mu-bar-wave-bg){position:relative;z-index:1}',
-      '.mu-play-btn{width:36px;height:36px;border-radius:999px;border:0;display:inline-flex;align-items:center;justify-content:center;background:var(--dsw-alias-button-primary-fill,#f4f4f5);color:var(--dsw-alias-label-primary-foreground,#141417);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}',
-      '.mu-play-btn:hover{transform:scale(1.06);box-shadow:0 6px 18px rgba(255,255,255,.22)}',
-      '.mu-bar .mu-cover{box-shadow:0 4px 12px rgba(0,0,0,.35)}',
-      '.mu-bar .mu-icon-btn:hover{background:rgba(255,255,255,.08)}',
-      '.mu-bar .mu-icon-btn.is-on{color:var(--dsw-static-deepseek-450,#5686fe);background:rgba(86,134,254,.14)}',
-      '.mu-play-btn:hover{background:var(--dsw-alias-button-primary-hover,#e4e4e7)}',
-      '.mu-bar-right{display:flex;align-items:center;gap:4px;justify-self:end}',
-      '.mu-quality{font-size:10.5px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.06)}',
-      '.mu-pop{position:absolute;right:16px;bottom:84px;z-index:40;width:330px;max-height:58%;display:flex;flex-direction:column;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5));overflow:hidden}',
-      '.mu-qoverlay{position:fixed;right:24px;bottom:96px;z-index:70;width:360px;max-width:calc(100vw - 48px);max-height:62vh;display:flex;flex-direction:column;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 16px 48px rgba(0,0,0,.5));overflow:hidden;user-select:none}',
-      '.mu-qoverlay.is-dragging-panel{cursor:grabbing}',
-      '.mu-qoverlay-now,.mu-qoverlay-head{cursor:grab}',
-      '.mu-qoverlay-now:active,.mu-qoverlay-head:active{cursor:grabbing}',
-      '.mu-qoverlay-now{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
-      '.mu-qoverlay-now.is-empty{padding:14px 12px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:12px}',
-      '.mu-qoverlay-now-main{flex:1;min-width:0}',
-      '.mu-qoverlay-now-title{font-size:13px;font-weight:600}',
-      '.mu-qoverlay-now-artist{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:1px}',
-      '.mu-qoverlay-now-controls{display:flex;align-items:center;gap:2px}',
-      '.mu-qoverlay-head{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));font-size:12px;font-weight:600}',
-      '.mu-qoverlay-head .mu-icon-btn{margin-left:auto}',
-      '.mu-qoverlay-list{flex:1;min-height:0;overflow-y:auto;padding:6px}',
-      '.mu-composer-queue-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;flex:none}',
-      '.mu-composer-queue-btn:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
-      '.mu-composer-queue-btn.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
-      '.mu-composer-queue-btn.is-playing::after{content:"";position:absolute;top:4px;right:4px;width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-brand-primary,#f4f4f5)}',
-      '.mu-pop-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 6px;font-size:12px;font-weight:600}',
-      '.mu-pop-body{overflow-y:auto;padding:0 6px 8px}',
-      '.mu-queue-row{display:grid;grid-template-columns:14px 26px minmax(0,1fr) minmax(0,70px) auto;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--dsw-radius-sm,6px);font-size:12px;cursor:pointer}',
-      '.mu-queue-grip{cursor:grab;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:12px;line-height:1;letter-spacing:-2px;text-align:center;user-select:none}',
-      '.mu-queue-row.is-dragging{opacity:.4}',
-      '.mu-queue-row.is-drop-target{box-shadow:inset 0 2px 0 var(--dsw-alias-brand-primary,#f4f4f5)}',
-      '.mu-queue-mode{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));white-space:nowrap}',
-      '.mu-queue-actions{display:inline-flex;align-items:center;gap:2px;justify-self:end}',
-      '.mu-queue-btn{width:20px;height:20px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:12px;line-height:20px;cursor:pointer}',
-      '.mu-queue-btn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06));color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mu-queue-btn:disabled{opacity:.35;cursor:default}',
-      '.mu-fav.is-on{color:var(--dsw-alias-state-error-primary,#e5484d)}',
-      '.mu-fav.is-on svg{fill:currentColor}',
-      '.mu-addto{position:relative}',
-      '.mu-addto-menu{position:absolute;right:0;top:calc(100% + 4px);z-index:53;min-width:210px;max-height:280px;overflow-y:auto;padding:4px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:10px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.45))}',
-      '.mu-addto-item{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12px;text-align:left;cursor:pointer}',
-      '.mu-addto-item:hover{background:var(--dsw-alias-bg-layer-2,#2a2a2e)}',
-      '.mu-addto-count{margin-left:auto;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:11px;font-variant-numeric:tabular-nums}',
-      '.mu-addto-sep{height:1px;margin:4px 6px;background:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
-      '.mu-addto-empty{padding:10px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-addto-scrim{position:fixed;inset:0;z-index:52}',
-      '.mu-ctx-scrim{position:fixed;inset:0;z-index:89}',
-      '.mu-ctx{position:fixed;z-index:90;min-width:200px;max-height:320px;overflow-y:auto;padding:4px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:10px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 16px 40px rgba(0,0,0,.5))}',
-      '.mu-ctx-head{padding:6px 10px 4px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-ctx-item{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12px;text-align:left;cursor:pointer}',
-      '.mu-ctx-item:hover{background:var(--dsw-alias-bg-layer-2,#2a2a2e)}',
-      '.mu-ctx-item.is-danger:hover{background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 16%,transparent);color:var(--dsw-alias-state-error-primary,#e5484d)}',
-      '.mu-ctx-arrow{margin-left:auto;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:14px;line-height:1}',
-      '.mu-ctx-sep{height:1px;margin:4px 6px;background:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
-      '.mu-info-layer{position:fixed;inset:0;z-index:94;pointer-events:none}',
-      '.mu-info-scrim{position:absolute;inset:0;background:rgba(0,0,0,.35);pointer-events:auto}',
-      '.mu-info{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:440px;max-width:calc(100vw - 48px);max-height:70vh;overflow-y:auto;padding:16px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 20px 60px rgba(0,0,0,.55));pointer-events:auto}',
-      '.mu-info-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}',
-      '.mu-info-title{font-size:14px;font-weight:600}',
-      '.mu-info-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}',
-      '.mu-tag-editor{width:860px;max-width:calc(100vw - 64px);height:min(720px,86vh);max-height:none;padding:0;display:flex;flex-direction:column;overflow:hidden}',
-      '.mu-tag-editor .mu-info-head{flex:none;padding:16px 22px 14px;margin:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      '.mu-tag-layout{flex:1;min-height:0;display:grid;grid-template-columns:232px 1fr;overflow:hidden}',
-      '.mu-tag-aside{display:flex;flex-direction:column;gap:14px;padding:20px 18px;border-right:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:linear-gradient(180deg,color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 6%,transparent),transparent 42%)}',
-      '.mu-tag-cover{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));box-shadow:0 12px 32px rgba(0,0,0,.35)}',
-      '.mu-tag-cover-empty{display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-tag-aside-meta{display:flex;flex-direction:column;gap:4px;min-width:0}',
-      '.mu-tag-aside-title{font-size:14px;font-weight:600}',
-      '.mu-tag-aside-artist{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-tag-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}',
-      '.mu-tag-badge{font-size:10px;line-height:1;padding:5px 7px;border-radius:6px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-tag-aside-hint{margin-top:auto;font-size:10px;line-height:1.6;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-tag-main{overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:18px}',
-      '.mu-tag-section{display:flex;flex-direction:column;gap:10px}',
-      '.mu-tag-section-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-tag-section-title::before{content:"";width:3px;height:12px;border-radius:2px;background:var(--dsw-static-deepseek-450,#5686fe)}',
-      '.mu-tag-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}',
-      '.mu-tag-field{display:flex;flex-direction:column;gap:5px;min-width:0}',
-      '.mu-tag-label{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-tag-field .mu-input{width:100%;box-sizing:border-box}',
-      '.mu-tag-lyrics{min-height:150px;resize:vertical;padding:10px 12px;line-height:1.6;height:auto;font-family:inherit}',
-      '.mu-tag-hint{margin:0;font-size:11px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-tag-head-actions{display:flex;align-items:center;gap:8px}',
-      '.mu-tag-head-actions .mu-chip{height:26px;padding:0 10px;font-size:11px}',
-      '.mu-tag-online{display:flex;flex-direction:column;gap:6px;padding:10px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:10px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03));max-height:240px;overflow-y:auto}',
-      '.mu-tag-online-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;font-weight:600;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-tag-online-empty{padding:10px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-online-item{display:flex;align-items:center;gap:10px;width:100%;padding:6px;border:0;border-radius:8px;background:transparent;cursor:pointer;text-align:left;color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mu-online-item:hover{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.05))}',
-      '.mu-online-cover{width:36px;height:36px;flex:none;border-radius:6px;object-fit:cover;display:flex;align-items:center;justify-content:center;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:11px}',
-      '.mu-online-text{display:flex;flex-direction:column;gap:2px;min-width:0}',
-      '.mu-online-title{font-size:12px}',
-      '.mu-online-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-tag-online-hint{font-size:10px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-tag-online-sources{display:flex;gap:8px;font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-tag-footer{flex:none;display:flex;justify-content:flex-end;gap:8px;padding:12px 22px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      '.mu-tag-cover-box{position:relative;display:flex;flex-direction:column;gap:8px}',
-      '.mu-tag-cover-actions{display:flex;flex-wrap:wrap;gap:8px}',
-      '.mu-tag-cover-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:28px;padding:0 10px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:7px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#f4f4f5);font-size:11px;cursor:pointer;white-space:nowrap}',
-      '.mu-tag-cover-btn:hover{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));border-color:var(--dsw-static-deepseek-450,#5686fe)}',
-      '.mu-tag-cover-btn.is-ghost{background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '@media (max-width:760px){.mu-tag-layout{grid-template-columns:1fr}.mu-tag-aside{border-right:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));flex-direction:row;align-items:flex-start}.mu-tag-cover-box{width:120px;flex:none}.mu-tag-aside-meta{flex:1}.mu-tag-aside-hint{display:none}}',
-      '@media (max-width:980px){.mu-np-body{grid-template-columns:1fr;gap:10px;padding:4px 20px}.mu-np-left{gap:10px}.mu-np-disc-wrap{margin-bottom:12px}.mu-np-right{width:100%;max-height:34vh}.mu-np-bottom{margin:0 16px 12px;padding:10px 12px 12px}.mu-np-head{padding:12px 16px 6px}.mu-np-title{font-size:16px}}',
-      '.mu-tag-cover-hint{font-size:10px;line-height:1.4;color:var(--dsw-static-deepseek-450,#5686fe)}',
-      '.mu-tag-field-head{display:flex;align-items:center;justify-content:space-between;gap:6px}',
-      '.mu-tag-field-search{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border:0;border-radius:5px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;opacity:0;transition:opacity .12s}',
-      '.mu-tag-field:hover .mu-tag-field-search,.mu-tag-field-search:focus{opacity:1}',
-      '.mu-tag-field-search:hover{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-static-deepseek-450,#5686fe)}',
-      '.mu-match-layer{z-index:96}',
-      '.mu-match-dialog{width:860px;max-width:calc(100vw - 64px);height:min(740px,86vh);max-height:none;padding:0;display:flex;flex-direction:column;overflow:hidden}',
-      '.mu-match-dialog .mu-info-head{flex:none;padding:12px 18px;margin:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      '.mu-match-count{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-match-list{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:6px}',
-      '.mu-match-empty{padding:36px 0;text-align:center;font-size:13px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-match-item{display:grid;grid-template-columns:72px 1fr;gap:10px;padding:8px 10px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:8px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03));cursor:pointer;text-align:left;color:var(--dsw-alias-label-primary,#f4f4f5);transition:border-color .12s,background .12s}',
-      '.mu-match-item:hover{border-color:color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 45%,transparent);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.05))}',
-      '.mu-match-thumb{display:block;width:72px;height:72px}',
-      '.mu-match-cover{width:72px;height:72px;border-radius:8px;object-fit:cover;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-match-info{display:flex;flex-direction:column;gap:2px;min-width:0;padding:0}',
-      '.mu-match-title{font-size:13.5px;font-weight:600;line-height:1.35}',
-      '.mu-match-artist{font-size:12px;line-height:1.3;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-match-album{font-size:11px;line-height:1.3;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-match-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}',
-      '.mu-match-badge{font-size:9.5px;line-height:1;padding:3px 6px;border-radius:5px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-match-badge.is-source{color:var(--dsw-static-deepseek-450,#5686fe);background:color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 14%,transparent)}',
-      '.mu-match-foot{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 18px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      '.mu-tag-editor .mu-input:focus{outline:none;border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.18));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.05));box-shadow:none}',
-      '.mu-tag-editor .mu-input:focus-visible{outline:none}',
-      '.mu-chip-sm{height:24px;padding:0 8px;font-size:11px}',
-      '.mu-search-history{position:absolute;top:34px;right:0;z-index:20;display:flex;flex-wrap:wrap;gap:4px;max-width:320px;padding:6px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:8px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.35))}',
-      '.mu-queue-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
-      '.mu-queue-row.is-current{color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.08))}',
-      '.mu-queue-index{font-size:12px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;justify-content:center;min-width:18px}',
-      '.mu-queue-wave{opacity:.95}',
-      '.mu-queue-artist{color:var(--dsw-alias-label-secondary,#a1a1aa);text-align:right;font-size:12px}',
-      '.mu-more{width:280px;padding:10px 12px}',
-      '.mu-more-info{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}',
-      '.mu-more-row{display:flex;justify-content:space-between;gap:12px;font-size:12px}',
-      '.mu-dup-group{padding:8px 0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
-      '.mu-dup-group:last-child{border-bottom:0}',
-      '.mu-dup-head{font-size:12px;font-weight:600;margin-bottom:4px}',
-      '.mu-dup-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-dup-size{flex:none;font-variant-numeric:tabular-nums}',
-      '.mu-dup-action{margin-left:auto}',
-      '.mu-lyr-layer{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:16px}',
-      '.mu-lyr-scrim{position:absolute;inset:0;background:rgba(0,0,0,.5)}',
-      '.mu-lyr-dialog{position:relative;display:flex;flex-direction:column;gap:8px;width:min(560px,calc(100% - 16px));max-height:82%;padding:14px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:12px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.45))}',
-      '.mu-lyr-head{display:flex;align-items:center;justify-content:space-between;gap:12px}',
-      '.mu-lyr-title{font-size:13px;font-weight:600}',
-      '.mu-lyr-search{display:flex;gap:8px}',
-      '.mu-lyr-search .mu-input{flex:1 1 auto}',
-      '.mu-lyr-error{font-size:12px;color:var(--dsw-alias-state-error-primary,#f87171)}',
-      '.mu-lyr-results{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto}',
-      '.mu-lyr-candidate{display:flex;flex-direction:column;gap:1px;padding:6px 8px;text-align:left;border:0;border-radius:6px;background:transparent;color:inherit;cursor:pointer;font:inherit}',
-      '.mu-lyr-candidate:hover,.mu-lyr-candidate.is-on{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06))}',
-      '.mu-lyr-candidate-title{font-size:12px;color:var(--dsw-alias-label-primary,#e6e6e6)}',
-      '.mu-lyr-candidate-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8f98)}',
-      '.mu-lyr-preview{flex:1 1 auto;min-height:80px;max-height:220px;margin:0;padding:8px;overflow:auto;white-space:pre-wrap;border-radius:6px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03));font-size:11px;line-height:1.6;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-lyr-empty{padding:12px 0;font-size:12px;text-align:center;color:var(--dsw-alias-label-tertiary,#8a8f98)}',
-      '.mu-lyr-actions{display:flex;justify-content:flex-end}',
-      '.mu-more-key{color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-more-val{color:var(--dsw-alias-label-primary,#e4e4e7);text-align:right}',
-      '.mu-toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:50;padding:7px 12px;border-radius:var(--dsw-radius-md,8px);background:var(--dsw-alias-toast-bg,#2a2a2e);color:var(--dsw-alias-toast-label,#f4f4f5);font-size:12px;box-shadow:var(--dsw-elevation-prominent,0 8px 24px rgba(0,0,0,.4));pointer-events:none}',
-      '.mu-side-icon{position:relative;display:inline-flex;align-items:center;justify-content:center}',
-      '.mu-side-controls{position:fixed;display:flex;align-items:center;gap:2px;background:transparent;box-shadow:none;padding:0;transform:translateY(-50%);z-index:1000}',
-      '.mu-side-btn{width:20px;height:20px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none}',
-      '.mu-side-btn:hover{color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mu-side-icon.is-active{color:var(--dsw-alias-brand-primary,#f4f4f5)}',
-      '.mu-btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 14px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#e4e4e7);font-size:13px;cursor:pointer}',
-      '.mu-btn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
-      '.mu-btn:disabled{opacity:.5;cursor:default}',
-      '.mu-btn-accent{background:var(--dsw-alias-button-primary-fill,#f4f4f5);border-color:transparent;color:var(--dsw-alias-label-primary-foreground,#141417)}',
-      '.mu-btn-accent:hover{background:var(--dsw-alias-button-primary-hover,#e4e4e7)}',
-      '.mu-btn-ghost{background:transparent;border-color:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-btn-ghost:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mu-btn-wide{width:100%;justify-content:flex-start;height:36px}',
-      '.mu-set{display:flex;flex-direction:column;gap:10px;padding:4px 2px 18px;max-width:720px}',
-      '.mu-set-title{font-size:20px;font-weight:600;line-height:28px;margin:0}',
-      '.mu-set-sep{height:1px;margin:16px 0 12px;background:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
-      '.mu-set-tabs{display:flex;gap:4px;margin-bottom:10px}',
-      '.mu-set-tab{height:30px;padding:0 12px;border:0;border-radius:var(--dsw-radius-md,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:13px;cursor:pointer}',
-      '.mu-set-tab:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06));color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mu-set-tab.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
-      '.mu-set-panel{display:flex;flex-direction:column}',
-      '.mu-set-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
-      '.mu-set-item-col{flex-direction:column;align-items:stretch;gap:8px}',
-      '.mu-set-item-head{display:flex;align-items:center;justify-content:space-between;gap:12px}',
-      '.mu-set-value{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
-      '.mu-switch{position:relative;width:44px;height:24px;padding:0;border:0;border-radius:12px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.12));cursor:pointer;flex:none}',
-      '.mu-switch-dot{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--dsw-alias-label-secondary,#a1a1aa);transition:transform .15s ease,background .15s ease}',
-      '.mu-switch.is-on{background:var(--dsw-alias-button-primary-fill,#f4f4f5)}',
-      '.mu-switch.is-on .mu-switch-dot{transform:translateX(20px);background:var(--dsw-alias-bg-base,#141417)}',
-      '.mu-range{width:100%;height:18px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}',
-      '.mu-range::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.14))}',
-      '.mu-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:var(--dsw-alias-label-primary,#f4f4f5);box-shadow:0 1px 3px rgba(0,0,0,.4)}',
-      '.mu-set-choices{display:flex;gap:6px;flex-wrap:wrap}',
-      '.mu-choice{height:28px;padding:0 12px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer}',
-      '.mu-choice:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
-      '.mu-choice.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12));color:var(--dsw-alias-label-primary,#f4f4f5);border-color:transparent}',
-      '.mu-set-order{display:flex;flex-direction:column;gap:4px}',
-      '.mu-order-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:6px}',
-      '.mu-order-text{flex:1;font-size:12px}',
-      '.mu-set-hint{margin:0;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);line-height:1.6}',
-      '.mu-set-hint-sm{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mu-set-row{display:flex;align-items:center;gap:8px}',
-      '.mu-set-label{font-size:12px;min-width:96px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-input{flex:1;min-width:0;height:34px;padding:0 12px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.14));border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04));font-family:inherit;font-size:13px;color:var(--dsw-alias-label-primary,#f4f4f5);outline:none}',
-      '.mu-title-input{flex:none;box-sizing:border-box;height:28px;padding:0 6px;min-width:6em;max-width:320px;border-color:transparent;background:transparent;font-size:20px;font-weight:700}',
-      '.mu-title-input:hover{border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.12))}',
-      '.mu-title-input:focus{border-color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.04))}',
-      '.mu-input:focus{border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.18))}',
-      '.mu-input-num{max-width:96px;flex:none}',
-      '.mu-set-empty{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-set-error{font-size:12px;color:var(--dsw-alias-label-error,#ff6b6b);white-space:pre-wrap}',
-      '.mu-set-actions{display:flex;align-items:center;gap:10px;margin-top:4px}',
-      '.mu-set-saved{font-size:12px;color:var(--dsw-alias-state-success-primary,#4ade80)}',
-      '.mu-set-note{font-size:12px;color:var(--dsw-alias-label-tertiary,#73737d);margin:6px 0 0}',
-      '.mu-scrim{position:absolute;inset:0 0 80px 0;z-index:35}',
-      '.mu-set{display:flex;flex-direction:column;gap:10px;max-width:640px;user-select:none}',
-      '.mu-mini{position:fixed;right:20px;bottom:84px;z-index:60;display:flex;align-items:center;gap:10px;width:260px;padding:8px 10px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:12px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.45));cursor:grab;touch-action:none;user-select:none}',
-      '.mu-mini.is-corner{right:20px;bottom:84px}',
-      '.mu-mini-info{flex:1;min-width:0}',
-      '.mu-mini-title{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-mini-artist{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-mini-controls{display:flex;align-items:center;gap:2px;flex:none}',
-      '.mu-composer-lyric{max-width:280px;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;line-height:20px;color:var(--dsw-alias-label-secondary,#a1a1aa);pointer-events:none;user-select:none}',
-      '.mu-composer-cluster{display:inline-flex;align-items:center;gap:2px;min-width:0;max-width:360px}',
-      // No shell at all: transparent row, aligned with the composer card and
-      // sitting right above it (the negative margin only cancels the composer
-      // stack gap, it does not tuck under the card).
-      '.mu-composer-bar-wrap{box-sizing:border-box;width:100%;padding:0 var(--dsh-composer-side-clearance,16px);margin-bottom:calc(0px - var(--dsh-composer-stack-gap,6px))}',
-      '.mu-composer-bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;max-width:var(--dsh-composer-card-max-width,780px);margin:0 auto;padding:4px 14px;font-size:12px;line-height:20px;color:var(--dsw-alias-label-secondary,#8a8f98);background:transparent;pointer-events:none;user-select:none}',
-      '.mu-composer-bar-left{display:flex;align-items:center;gap:6px;min-width:0;flex:0 1 auto;max-width:45%}',
-      '.mu-composer-wave{flex:0 0 auto;display:flex;align-items:center;justify-content:center;opacity:.85}',
-      '.mu-composer-lyric-inline{flex:1 1 auto;min-width:0;overflow:hidden;text-align:right;color:var(--dsw-alias-label-primary,#e6e6e6);font-size:14px;line-height:20px;white-space:nowrap;text-overflow:ellipsis}',
-      '@media (max-width:760px){.mu-composer-wave{display:none}}',
-      '.mu-composer-note{display:inline-flex;flex:none;margin-right:4px;color:var(--dsw-alias-brand-primary,#2f9e6e)}',
-      '.mu-composer-track{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;vertical-align:middle;font-size:14px;line-height:20px;color:var(--dsw-alias-label-primary,#e6e6e6)}',
-      '.mu-audio-host{position:fixed;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);opacity:0;pointer-events:none}',
-      '.mu-clickable{cursor:pointer;border-radius:8px;padding:4px 6px;margin:-4px -6px;min-width:0}',
-      '.mu-clickable:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
-      '.mu-clickable:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
-      '.mu-np{position:absolute;inset:0;z-index:80;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);transition:transform .32s ease;pointer-events:none;user-select:none;will-change:transform}',
-      '.mu-np.is-open{transform:translateY(0);pointer-events:auto}',
-      '.mu-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
-      '.mu-np-bg img{width:100%;height:100%;object-fit:cover;filter:blur(72px) saturate(1.35) brightness(.42);transform:scale(1.15)}',
-      '.mu-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,10,12,.35),rgba(10,10,12,.72) 60%,rgba(10,10,12,.92));pointer-events:none}',
-      '.mu-np-head{position:relative;z-index:2;display:flex;align-items:center;gap:8px;padding:16px 24px 8px}',
-      '.mu-np-head-title{flex:1;min-width:0;text-align:center;font-size:14px;font-weight:600;opacity:.9}',
-      '.mu-np-body{position:relative;z-index:2;flex:1;min-height:0;display:grid;grid-template-columns:minmax(200px,38%) minmax(0,1fr);align-items:center;gap:24px;padding:8px 40px}',
-      '.mu-np-left{display:flex;flex-direction:column;align-items:center;gap:18px;min-width:0}',
-      '.mu-np-disc-wrap{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:30px}',
-      '.mu-np-art{position:relative;z-index:1;width:min(340px,26vw);height:min(340px,26vw);border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#141416;color:#71717a;box-shadow:0 34px 80px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.07)}',
-      '.mu-np-disc{position:relative;width:min(380px,29vw);height:min(380px,29vw);flex:none;aspect-ratio:1;display:flex;align-items:center;justify-content:center;animation:mu-disc-spin 24s linear infinite;animation-play-state:paused}',
-      '.mu-np-disc.is-playing{animation-play-state:running}',
-      '.mu-np-disc.is-square{animation:none}',
-      '.mu-np-vinyl{position:absolute;inset:-22px;aspect-ratio:1;border-radius:50%;clip-path:circle(50% at 50% 50%);background:repeating-radial-gradient(circle at 50% 50%,#141416 0 2px,#0b0b0d 2px 5px);box-shadow:inset 0 0 40px rgba(0,0,0,.85),0 18px 50px rgba(0,0,0,.5);z-index:0}',
-      '.mu-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(50% 42% at 28% 26%,rgba(86,134,254,.16),transparent 72%),radial-gradient(40% 36% at 78% 74%,rgba(122,170,255,.08),transparent 70%);pointer-events:none}',
-      '.mu-np-art::after{content:"";position:absolute;inset:0;border-radius:20px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 -48px 70px rgba(0,0,0,.28);pointer-events:none;z-index:2}',
-      '.mu-np-disc.is-circle .mu-np-art{border-radius:170px;clip-path:circle(50% at 50% 50%)}',
-      '.mu-np-art img{width:100%;height:100%;object-fit:cover;display:block;border-radius:20px}',
-      '.mu-np-disc.is-circle .mu-np-art img{border-radius:170px}',
-      '.mu-np.mu-align-left .mu-np-line{text-align:left}',
-      '.mu-np.mu-align-center .mu-np-line{text-align:center}',
-      '.mu-np.mu-align-right .mu-np-line{text-align:right}',
-      '@keyframes mu-disc-spin{to{transform:rotate(360deg)}}',
-      '.mu-np-meta{text-align:center;min-width:0;max-width:420px}',
-      '.mu-np-title{font-size:20px;font-weight:650}',
-      '.mu-np-artist{font-size:13px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:4px}',
-      '.mu-np-right{height:100%;min-height:0;display:flex;align-items:center;justify-content:center}',
-      '.mu-np-lyrics{position:relative;width:100%;max-width:560px;height:100%;max-height:420px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent)}',
-      '.mu-np-lyrics.is-static{overflow-y:auto;-webkit-mask-image:none;mask-image:none}',
-      '.mu-np-lyrics.is-static .mu-np-line{opacity:.7;cursor:default;transform:none}',
-      '.mu-np-lyrics-inner{transition:transform .55s cubic-bezier(.22,.61,.36,1);padding:0 8px}',
-      '.mu-np-lyrics-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:13px;text-align:center;padding:0 24px;line-height:1.7}',
-      '.mu-np-line{padding:8px 6px;border-radius:8px;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;transition:color .25s ease,opacity .3s ease,transform .5s cubic-bezier(.22,.61,.36,1);transition-delay:calc(var(--mu-line-stagger,0) * 22ms);text-align:center;opacity:.42;transform:translateY(4px)}',
-      '.mu-np-line:hover{color:var(--dsw-alias-label-secondary,#c4c4cc);opacity:.72}',
-      '.mu-np-line.is-past{opacity:.34;transform:translateY(-4px)}',
-      '.mu-np-line.is-active{color:var(--dsw-alias-label-primary,#f4f4f5);opacity:1;transform:translateY(0)}',
-      '.mu-np-line-text{font-size:var(--mu-lyric-size,18px);line-height:1.6;font-weight:var(--mu-lyric-weight,500);white-space:normal;word-break:break-word;overflow-wrap:anywhere;letter-spacing:.01em}',
-      '.mu-np-line.is-active .mu-np-line-text{font-weight:700;text-shadow:0 0 24px rgba(255,255,255,.12)}',
-      '.mu-np-line-trans{font-size:var(--mu-lyric-trans,13px);line-height:1.5;margin-top:4px;opacity:.66}',
-      '.mu-np-line.is-active .mu-np-line-trans{opacity:.85}',
-      '.mu-np.is-blur .mu-np-line:not(.is-active){opacity:.34;filter:blur(1.2px)}',
-      '.mu-np-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px}',
-      '.mu-trans-toggle{width:auto;padding:0 8px;font-size:12px;font-weight:600;line-height:1}',
-      '.mu-np-settings{position:absolute;top:52px;right:20px;z-index:6;width:320px;max-width:calc(100% - 40px);padding:14px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:10px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 12px 32px rgba(0,0,0,.45))}',
-      '.mu-np-offset-actions{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}',
-      '.mu-np-setting-hint{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:6px;line-height:1.5}',
-      '.mu-np-setting-error{font-size:11px;color:var(--dsw-alias-state-error,#e5484d);margin-top:4px;word-break:break-word}',
-      '.mu-leader-hint{font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mu-np-setting{margin-bottom:14px}',
-      '.mu-np-setting:last-child{margin-bottom:0}',
-      '.mu-np-setting-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-np-setting-inline{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mu-np-range{width:100%;accent-color:var(--dsw-alias-brand-primary,#f4f4f5);cursor:pointer}',
-      '.mu-np-toggle{position:relative;width:44px;height:24px;padding:0;border:0;border-radius:12px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.12));cursor:pointer;flex:none}',
-      '.mu-np-toggle-dot{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--dsw-alias-label-secondary,#a1a1aa);transition:transform .15s ease,background .15s ease}',
-      '.mu-np-toggle.is-on{background:var(--dsw-alias-brand-primary,#f4f4f5)}',
-      '.mu-np-toggle.is-on .mu-np-toggle-dot{transform:translateX(20px);background:var(--dsw-alias-bg-base,#141417)}',
-      '.mu-trans-toggle.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1))}',
-      '.mu-np-bottom{position:relative;z-index:2;margin:0 40px 18px;padding:12px 18px 14px;border:.5px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(16,16,20,.5);-webkit-backdrop-filter:blur(20px) saturate(1.3);backdrop-filter:blur(20px) saturate(1.3);box-shadow:0 18px 44px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06)}',
-      '.mu-np-progress{margin-bottom:6px}',
-      '.mu-seek-np{position:relative;left:auto;top:auto;width:100%;height:16px;margin:0}',
-      '.mu-seek-np .mu-bar-buffer{top:6px}',
-      '.mu-seek-np .mu-seek{top:4px;height:8px}',
-      '.mu-np-bar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px}',
-      '.mu-np-time{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
-      '.mu-np-time-sep{opacity:.6}',
-      '.mu-np-controls{display:flex;align-items:center;gap:4px;justify-self:center}',
-      '.mu-np .mu-icon-btn.is-on{color:var(--dsw-alias-state-error-primary,#e5484d)}',
-      '.mu-np-vol{display:flex;align-items:center;gap:8px;justify-self:end}',
-      '.mu-play-btn-lg{width:48px;height:48px}',
-      '.mu-np-vol{display:flex;align-items:center;gap:8px;justify-self:end}',
-      '.mu-icon-btn:focus-visible,.mu-btn:focus-visible,.mu-chip:focus-visible,.mu-play-btn:focus-visible,.mu-row-play:focus-visible,.mu-check:focus-visible,.mu-menu-item:focus-visible,.mu-search input:focus-visible,.mu-seek:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#f4f4f5);outline-offset:2px}',
-    ].join('\n')
-
-    // ── error boundary ───────────────────────────────────────────────────
-    // A render error used to blank the whole panel; show the message instead.
-
-    class MusicBoundary extends React.Component {
-      constructor(props) {
-        super(props)
-        this.state = { error: null }
+    // ── src/ui/18-online-add.js
+    /**
+     * add one online song to one of the signed-in account's cloud playlists.
+     */
+    
+    function OnlineAddToDialog(props) {
+      var layerProps = props.layer.props || {}
+      var track = layerProps.track || null
+      var provider = track && track.onlineProvider ? track.onlineProvider : ''
+      var statePair = useState({ phase: 'loading', playlists: [], error: '' })
+      var state = statePair[0]
+      var setState = statePair[1]
+      var busyPair = useState('')
+      var busy = busyPair[0]
+      var setBusy = busyPair[1]
+    
+      useEffect(
+        function () {
+          if (provider === '') return undefined
+          var cancelled = false
+          getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(provider))
+            .then(function (body) {
+              if (cancelled) return
+              setState({
+                phase: 'ready',
+                playlists: Array.isArray(body.playlists) ? body.playlists : [],
+                error: '',
+              })
+            })
+            .catch(function (error) {
+              if (cancelled) return
+              setState({ phase: 'error', playlists: [], error: errorText(error) })
+            })
+          return function () {
+            cancelled = true
+          }
+        },
+        [provider],
+      )
+    
+      function addTo(playlist) {
+        if (busy !== '' || track === null) return
+        setBusy(playlist.id)
+        postJson(API + 'online/playlist-add', {
+          provider: provider,
+          playlistId: playlist.id,
+          song: track,
+        })
+          .then(function () {
+            setBusy('')
+            showToast(t('online.addedToCloudPlaylist'))
+            popLayer()
+          })
+          .catch(function (error) {
+            setBusy('')
+            showToast(errorText(error))
+          })
       }
-
-      static getDerivedStateFromError(error) {
-        return { error: error }
-      }
-
-      componentDidCatch(error, info) {
-        if (window.console !== undefined && typeof window.console.error === 'function') {
-          window.console.error('[dsh-music-panel]', error, info)
-        }
-      }
-
-      render() {
-        if (this.state.error !== null) {
-          return h(
-            'div',
-            { className: 'mu-root' },
-            h(
-              'div',
-              { className: 'mu-state' },
-              h('div', { className: 'mu-state-title' }, '音乐面板渲染出错'),
+    
+      var body = null
+      if (state.phase === 'loading') {
+        body = h('div', { className: 'mp-folder-state' }, h(Spinner), h('span', null, t('v2.loading')))
+      } else if (state.phase === 'error') {
+        body = h('div', { className: 'mp-folder-state' }, state.error || t('page.loadFailed'))
+      } else if (state.playlists.length === 0) {
+        body = h('div', { className: 'mp-folder-state' }, t('online.noCloudPlaylists'))
+      } else {
+        body = h(
+          'div',
+          { className: 'mp-folder-list' },
+          state.playlists.map(function (playlist) {
+            return h(
+              'button',
+              {
+                key: playlist.id,
+                type: 'button',
+                className: 'mp-srow',
+                disabled: busy !== '',
+                onClick: function () {
+                  addTo(playlist)
+                },
+              },
               h(
                 'div',
-                { className: 'mu-state-sub' },
-                String((this.state.error && this.state.error.message) || this.state.error),
+                { className: 'mp-srow-cover' },
+                playlist.cover
+                  ? h(Cover, { src: onlineCoverSrc({ coverUrl: playlist.cover }), iconSize: 18 })
+                  : icon('list', 18),
               ),
-            ),
-          )
-        }
-        return this.props.children
+              h(
+                'div',
+                { className: 'mp-srow-main' },
+                h('div', { className: 'mp-srow-title' }, playlist.name || ''),
+                h('div', { className: 'mp-srow-sub' }, (playlist.trackCount || 0) + ' · ' + t('v2.songs')),
+              ),
+              busy === playlist.id ? h(Spinner) : icon('plus', 14),
+            )
+          }),
+        )
       }
+    
+      return h(
+        KitModal,
+        {
+          title: t('online.addToCloudPlaylist'),
+          onClose: popLayer,
+          footer: h(Button, { variant: 'ghost', onClick: function () { popLayer() } }, t('v2.close')),
+        },
+        h('div', { className: 'mp-set-desc' }, track ? track.title || '' : ''),
+        body,
+      )
     }
 
-    // Composer seats live inside the host conversation tree; a throw there used
-    // to take the whole conversation plugin down, so this boundary stays silent.
-    class SilentBoundary extends React.Component {
-      constructor(props) {
-        super(props)
-        this.state = { failed: false }
+    // ── src/99-plugin.js
+    /**
+     * plugin: seat registration and lifecycle.
+     */
+    
+    function MusicSideIcon() {
+      var snap = usePlayerSnapshot()
+      return h(
+        'span',
+        { className: 'mp-side-icon' },
+        icon('note', 16),
+        snap.queue.length > 0 ? h('span', { className: 'mp-side-dot' }) : null,
+      )
+    }
+    
+    function NewPlaylistDialog(props) {
+      var pair = useState('')
+      var name = pair[0]
+      var setName = pair[1]
+      var busyPair = useState(false)
+      var busy = busyPair[0]
+      var setBusy = busyPair[1]
+    
+      function create() {
+        var value = name.trim()
+        if (value === '' || busy) return
+        setBusy(true)
+        createPlaylist(value).then(function (created) {
+          setBusy(false)
+          if (created) {
+            popLayer()
+            openLocalPlaylist(created.id)
+          }
+        })
       }
-
-      static getDerivedStateFromError() {
-        return { failed: true }
+    
+      return h(
+        'div',
+        { className: 'mp-overlay is-on' },
+        h('div', { className: 'mp-scrim', onClick: function () { popLayer() } }),
+        h(
+          'div',
+          { className: 'mp-dialog is-sm', role: 'dialog', 'aria-label': t('v2.newPlaylist') },
+          h(
+            'div',
+            { className: 'mp-d-head' },
+            h('div', { className: 'mp-d-title' }, t('v2.newPlaylist')),
+            h('div', { className: 'mp-spacer' }),
+            h(IconButton, { icon: 'x', title: t('v2.close'), onClick: function () { popLayer() } }),
+          ),
+          h(
+            'div',
+            { className: 'mp-d-body' },
+            h('input', {
+              type: 'text',
+              value: name,
+              placeholder: t('v2.playlistName'),
+              autoFocus: true,
+              style: {
+                height: '32px',
+                padding: '0 10px',
+                borderRadius: '8px',
+                border: '1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))',
+                background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04))',
+                color: 'inherit',
+                font: 'inherit',
+                outline: 'none',
+              },
+              onChange: function (event) {
+                setName(event.target.value)
+              },
+              onKeyDown: function (event) {
+                if (event.key === 'Enter') create()
+              },
+            }),
+          ),
+          h(
+            'div',
+            { className: 'mp-d-foot' },
+            h(Button, { variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
+            h(Button, { variant: 'primary', disabled: busy, onClick: create }, t('page.create')),
+          ),
+        ),
+      )
+    }
+    
+    function apply(ctx) {
+      try {
+        if (typeof console !== 'undefined' && console.info) {
+          console.info('[dsh-music-panel] host UI kit:', hostUi ? 'native' : 'fallback')
+        }
+      } catch (error) {
+        // Logging is best-effort.
       }
-
-      componentDidCatch(error) {
+      try {
+        var htmlLang = document.documentElement.getAttribute('lang') || ''
+        if (htmlLang !== '') LANG = String(htmlLang).toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en'
+      } catch (error) {
+        // Keep the initial guess.
+      }
+    
+      var locale = ctx.locale
+      if (
+        locale !== null &&
+        locale !== undefined &&
+        typeof locale.register === 'function' &&
+        typeof locale.bind === 'function'
+      ) {
+        ctx.effect(function () {
+          var dispose = locale.register('dsh-music-panel', DICTS)
+          return function () {
+            if (typeof dispose === 'function') dispose()
+          }
+        })
         try {
-          window.console.error('[dsh-music-panel:lyrics]', error)
-        } catch (ignored) {
-          // Console unavailable: nothing to report.
+          var bound = locale.bind('dsh-music-panel')
+          if (typeof bound === 'function') localeTranslate = bound
+        } catch (error) {
+          localeTranslate = null
         }
       }
-
-      render() {
-        if (this.state.failed) return null
-        return this.props.children
+    
+      ctx.effect(function () {
+        var style = document.createElement('style')
+        style.dataset.plugin = 'dsh-music-panel'
+        style.textContent = THEME_TEXT
+        document.head.appendChild(style)
+        return function () {
+          style.remove()
+        }
+      })
+    
+      ctx.effect(function () {
+        return function () {
+          player.suspend()
+        }
+      })
+    
+      ctx.effect(function () {
+        function onVisibility() {
+          if (document.visibilityState === 'hidden') player.flushOnHide()
+        }
+        function onUnload() {
+          player.flushOnHide()
+        }
+        document.addEventListener('visibilitychange', onVisibility)
+        window.addEventListener('beforeunload', onUnload)
+        return function () {
+          document.removeEventListener('visibilitychange', onVisibility)
+          window.removeEventListener('beforeunload', onUnload)
+        }
+      })
+    
+      ctx.effect(function () {
+        try {
+          if (
+            typeof navigator === 'undefined' ||
+            navigator.locks === undefined ||
+            typeof navigator.locks.request !== 'function'
+          ) {
+            return
+          }
+          if (window.__dshMusicLeaderBound === true) return
+          window.__dshMusicLeaderBound = true
+          var LOCK = 'dsh-music-panel.player'
+          function hold() {
+            return new Promise(function () {})
+          }
+          function becomeLeader() {
+            player.setLeader(true)
+            return hold()
+          }
+          navigator.locks
+            .request(LOCK, { mode: 'exclusive', ifAvailable: true }, function (lock) {
+              if (lock !== null && lock !== undefined) return becomeLeader()
+              player.setLeader(false)
+              return navigator.locks.request(LOCK, becomeLeader)
+            })
+            .catch(function () {
+              player.setLeader(true)
+            })
+        } catch (error) {
+          player.setLeader(true)
+        }
+      })
+    
+      function mount(name, registration, component) {
+        ctx.effect(function () {
+          var dispose = ctx.slots.inject(name, function () {
+            return ctx.slots.register(registration, component)
+          })
+          return function () {
+            if (typeof dispose === 'function') dispose()
+          }
+        })
       }
+    
+      mount('shell.overlay', { name: 'shell.overlay', id: 'music-player', order: 15 }, AudioHost)
+      mount('shell.overlay', { name: 'shell.overlay', id: 'music-queue', order: 16 }, GlobalQueueHost)
+      mount(
+        'sidebar.panellist',
+        {
+          name: 'sidebar.panellist',
+          id: PANEL_ID,
+          order: 20,
+          label: function () {
+            return t('nav.label')
+          },
+        },
+        MusicSideIcon,
+      )
+      mount('main', { name: 'main', key: PANEL_ID }, function () {
+        return h(MusicBoundary, null, h(Panel))
+      })
+      mount('conversation.input.dock', { name: 'conversation.input.dock', id: 'music-lyrics-above' }, function () {
+        return h(SilentBoundary, null, h(ComposerLyrics))
+      })
+      mount(
+        'conversation.input.right',
+        { name: 'conversation.input.right', id: 'music-composer-cluster', order: 10 },
+        function () {
+          return h(SilentBoundary, null, h(ComposerCluster))
+        },
+      )
     }
 
-    // ── plugin ────────────────────────────────────────────────────────────
-
-    return {
+    var plugin = {
       name: 'dsh-music-panel',
       inject: ['slots', 'locale'],
-      apply: function (ctx) {
-        // The document language is only trustworthy once the host rendered.
-        try {
-          var htmlLang = document.documentElement.getAttribute('lang') || ''
-          if (htmlLang !== '') LANG = String(htmlLang).toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en'
-        } catch (error) {
-          // keep the initial guess
-        }
-
-        // Follow the host UI language through its locale service.
-        var locale = ctx.locale
-        if (
-          locale !== null &&
-          locale !== undefined &&
-          typeof locale.register === 'function' &&
-          typeof locale.bind === 'function'
-        ) {
-          ctx.effect(function () {
-            var dispose = locale.register('dsh-music-panel', DICTS)
-            return function () {
-              if (typeof dispose === 'function') dispose()
-            }
-          })
-          try {
-            var bound = locale.bind('dsh-music-panel')
-            if (typeof bound === 'function') localeTranslate = bound
-          } catch (error) {
-            localeTranslate = null
-          }
-        }
-
-        ctx.effect(function () {
-          var style = document.createElement('style')
-          style.dataset.plugin = 'dsh-music-panel'
-          style.textContent = STYLE
-          document.head.appendChild(style)
-          return function () {
-            style.remove()
-          }
-        })
-
-        // The engine outlives the panel on purpose. On unload (including an
-        // HMR re-execution) pause instead of destroying: the next execution
-        // reuses this same singleton, so its queue and position survive.
-        ctx.effect(function () {
-          return function () {
-            player.suspend()
-          }
-        })
-
-        // Flush resume state / listening seconds when the page goes away.
-        ctx.effect(function () {
-          function onVisibility() {
-            if (document.visibilityState === 'hidden') player.flushOnHide()
-          }
-          function onUnload() {
-            player.flushOnHide()
-          }
-          document.addEventListener('visibilitychange', onVisibility)
-          window.addEventListener('beforeunload', onUnload)
-          return function () {
-            document.removeEventListener('visibilitychange', onVisibility)
-            window.removeEventListener('beforeunload', onUnload)
-          }
-        })
-
-        // Only one tab may play. Web Locks gives an origin-wide singleton:
-        // the first tab holds the lock, later tabs queue for it and take over
-        // when the leader closes (the same pattern web-player PWAs use).
-        ctx.effect(function () {
-          try {
-            if (
-              typeof navigator === 'undefined' ||
-              navigator.locks === undefined ||
-              typeof navigator.locks.request !== 'function'
-            ) {
-              return
-            }
-            if (window.__dshMusicLeaderBound === true) return
-            window.__dshMusicLeaderBound = true
-            var LOCK = 'dsh-music-panel.player'
-            function hold() {
-              // The lock is released when the page unloads.
-              return new Promise(function () {})
-            }
-            function becomeLeader() {
-              player.setLeader(true)
-              return hold()
-            }
-            navigator.locks
-              .request(LOCK, { mode: 'exclusive', ifAvailable: true }, function (lock) {
-                if (lock !== null && lock !== undefined) return becomeLeader()
-                // Another tab is playing: wait in the queue, then take over.
-                player.setLeader(false)
-                return navigator.locks.request(LOCK, becomeLeader)
-              })
-              .catch(function () {
-                player.setLeader(true)
-              })
-          } catch (error) {
-            // Cross-tab coordination must never break the plugin's UI.
-            player.setLeader(true)
-          }
-        })
-
-        function mount(name, registration, component) {
-          ctx.effect(function () {
-            var dispose = ctx.slots.inject(name, function () {
-              return ctx.slots.register(registration, component)
-            })
-            return function () {
-              if (typeof dispose === 'function') dispose()
-            }
-          })
-        }
-
-        // Resident audio host: stays mounted across main-panel switches.
-        mount('shell.overlay', { name: 'shell.overlay', id: 'music-player', order: 15 }, AudioHost)
-
-        mount(
-          'sidebar.panellist',
-          {
-            name: 'sidebar.panellist',
-            id: PANEL_ID,
-            order: 20,
-            label: function () {
-              return t('nav.label')
-            },
-          },
-          function (owner) {
-            return h(MusicSideIcon, owner || {})
-          },
-        )
-
-        mount('main', { name: 'main', key: PANEL_ID }, function () {
-          return h(MusicBoundary, null, h(MusicPanel))
-        })
-
-        // Composer music cluster: the inline lyric and the playlist button are
-        // one component, rendered before the submit action. The "above" lyric
-        // stays in its own dock seat and is chosen by the position preference.
-        mount(
-          'conversation.input.dock',
-          { name: 'conversation.input.dock', id: 'music-lyrics-above' },
-          function () {
-            return h(SilentBoundary, null, h(ComposerLyrics, { place: 'above' }))
-          },
-        )
-
-        // Shared playback list overlay (the mini player lives in its header).
-        mount('shell.overlay', { name: 'shell.overlay', id: 'music-queue', order: 16 }, QueueOverlay)
-        mount(
-          'conversation.input.right',
-          { name: 'conversation.input.right', id: 'music-composer-cluster', order: 10 },
-          ComposerCluster,
-        )
-
-      },
+      apply: apply,
     }
+    // Non-enumerable handles for tests and debugging; the host never sees them.
+    try {
+      Object.defineProperty(plugin, '__internals', {
+        value: {
+          uiStore: uiStore,
+          libraryStore: libraryStore,
+          onlineStore: onlineStore,
+          prefsStore: prefsStore,
+          overlayStore: overlayStore,
+          selectionStore: selectionStore,
+          player: player,
+        },
+        enumerable: false,
+      })
+    } catch (error) {
+      // Older engines without defineProperty simply skip the hook.
+    }
+    return plugin
   },
 })

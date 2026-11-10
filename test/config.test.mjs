@@ -8,6 +8,10 @@ assert.deepEqual(normalizeConfig('nope'), DEFAULTS)
 
 // Roots: trimmed, empty entries dropped, non-strings dropped.
 assert.deepEqual(normalizeConfig({ roots: ['  D:/Music  ', '', 42, 'D:/More'] }).roots, ['D:/Music', 'D:/More'])
+assert.deepEqual(
+  normalizeConfig({ roots: ['D:/A', 'D:/B'], hiddenRoots: ['D:/B', 'D:/X'] }).hiddenRoots,
+  ['D:/B'],
+)
 
 // Depth clamps into 0..8.
 assert.equal(normalizeConfig({ depth: -3 }).depth, 0)
