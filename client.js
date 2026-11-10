@@ -236,6 +236,9 @@ window.__ModuleLoader__.load({
         'page.tabStats': '统计',
         'page.tabAlbums': '专辑',
         'page.tabArtists': '艺术家',
+        'page.tabFolders': '文件夹',
+        'page.folder': '文件夹',
+        'page.folderEmpty': '没有找到文件夹',
         'page.unknownAlbum': '未知专辑',
         'page.clearFilter': '清除',
         'page.trackCountUnit': '{n} 首',
@@ -565,6 +568,9 @@ window.__ModuleLoader__.load({
         'page.tabStats': 'Stats',
         'page.tabAlbums': 'Albums',
         'page.tabArtists': 'Artists',
+        'page.tabFolders': 'Folders',
+        'page.folder': 'Folder',
+        'page.folderEmpty': 'No folders found',
         'page.unknownAlbum': 'Unknown album',
         'page.clearFilter': 'Clear',
         'page.trackCountUnit': '{n} songs',
@@ -4559,6 +4565,30 @@ window.__ModuleLoader__.load({
       return dot > 0 ? name.slice(0, dot) : name
     }
 
+    /** Normalized folder (directory) part of a track path, no trailing slash. */
+    function folderOf(filePath) {
+      var normalized = String(filePath || '').replace(/\\/g, '/')
+      var index = normalized.lastIndexOf('/')
+      if (index <= 0) return ''
+      return normalized.slice(0, index)
+    }
+
+    /** Human label for a folder: path relative to its scan root when possible. */
+    function folderLabelOf(folder, roots) {
+      var normalized = String(folder || '').replace(/\\/g, '/')
+      for (var index = 0; index < roots.length; index += 1) {
+        var root = String(roots[index] || '')
+          .replace(/\\/g, '/')
+          .replace(/\/+$/, '')
+        if (root !== '' && (normalized === root || normalized.indexOf(root + '/') === 0)) {
+          var relative = normalized.slice(root.length).replace(/^\/+/, '')
+          return relative === '' ? root.split('/').pop() : relative
+        }
+      }
+      var parts = normalized.split('/')
+      return parts[parts.length - 1] || normalized
+    }
+
     function fmtListenTime(seconds) {
       var total = Math.round(Number(seconds) || 0)
       if (total <= 0) return '—'
@@ -6666,6 +6696,9 @@ window.__ModuleLoader__.load({
                 (track.album || '') === viewFilter.album && (track.artist || '') === viewFilter.artist
               )
             }
+            if (viewFilter.kind === 'folder') {
+              return folderOf(track.path) === viewFilter.folder
+            }
             return (track.artist || '') === viewFilter.artist
           })
         }
@@ -6706,6 +6739,43 @@ window.__ModuleLoader__.load({
             )
           })
       }, [tracks])
+
+      /** Folder groups: every directory that contains tracks, labelled relative to its root. */
+      var folderGroups = useMemo(
+        function () {
+          var roots = (config !== null && Array.isArray(config.roots) ? config.roots : []).map(
+            function (root) {
+              return String(root || '')
+            },
+          )
+          var groups = {}
+          tracks.forEach(function (track) {
+            var folder = folderOf(track.path)
+            if (folder === '') return
+            if (groups[folder] === undefined) {
+              groups[folder] = {
+                key: folder,
+                folder: folder,
+                name: folderLabelOf(folder, roots),
+                count: 0,
+                coverPath: '',
+              }
+            }
+            groups[folder].count += 1
+            if (groups[folder].coverPath === '' && track.hasCover === true) {
+              groups[folder].coverPath = track.path
+            }
+          })
+          return Object.keys(groups)
+            .map(function (key) {
+              return groups[key]
+            })
+            .sort(function (left, right) {
+              return left.name.localeCompare(right.name)
+            })
+        },
+        [tracks, config],
+      )
 
       var artistGroups = useMemo(function () {
         var groups = {}
@@ -7572,6 +7642,21 @@ window.__ModuleLoader__.load({
                   },
                 },
                 t('page.tabArtists'),
+              )
+            : null,
+          source === 'local'
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mu-tab' + (view === 'folders' ? ' is-on' : ''),
+                  onClick: function () {
+                    setViewFilter(null)
+                    setView('folders')
+                    lastLocalView.current = 'folders'
+                  },
+                },
+                t('page.tabFolders'),
               )
             : null,
           source === 'local'
@@ -8842,11 +8927,17 @@ window.__ModuleLoader__.load({
               h(
                 'span',
                 null,
-                (viewFilter.kind === 'album' ? t('page.album') : t('page.artist')) +
+                (viewFilter.kind === 'album'
+                  ? t('page.album')
+                  : viewFilter.kind === 'folder'
+                    ? t('page.folder')
+                    : t('page.artist')) +
                   '：' +
                   (viewFilter.kind === 'album'
                     ? viewFilter.album || t('page.unknownAlbum')
-                    : viewFilter.artist || t('page.unknownArtist')),
+                    : viewFilter.kind === 'folder'
+                      ? viewFilter.folder
+                      : viewFilter.artist || t('page.unknownArtist')),
               ),
               h(
                 'button',
@@ -8865,6 +8956,44 @@ window.__ModuleLoader__.load({
 
         view === 'online'
           ? renderOnlineView()
+          : view === 'folders'
+          ? h(
+              'div',
+              { className: 'mu-folders' },
+              folderGroups.length === 0
+                ? h(
+                    'div',
+                    { className: 'mu-state' },
+                    h('div', { className: 'mu-state-sub' }, t('page.folderEmpty')),
+                  )
+                : folderGroups.map(function (group) {
+                    return h(
+                      'button',
+                      {
+                        type: 'button',
+                        key: group.key,
+                        className: 'mu-folder-row',
+                        title: group.folder,
+                        onClick: function () {
+                          setViewFilter({ kind: 'folder', folder: group.folder })
+                          setView('songs')
+                        },
+                      },
+                      h('span', { className: 'mu-folder-icon' }, icon('folder', 17)),
+                      h(
+                        'span',
+                        { className: 'mu-folder-main' },
+                        h('span', { className: 'mu-folder-name mu-ellipsis' }, group.name),
+                        h(
+                          'span',
+                          { className: 'mu-folder-meta' },
+                          t('page.trackCountUnit', { n: group.count }),
+                        ),
+                      ),
+                      h('span', { className: 'mu-folder-count' }, String(group.count)),
+                    )
+                  }),
+            )
           : view === 'albums'
           ? h(
               'div',
@@ -10184,6 +10313,14 @@ window.__ModuleLoader__.load({
       '.mu-stats-list{display:flex;flex-direction:column;gap:1px;padding:4px;border-radius:12px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06));background:var(--dsw-alias-bg-layer-1,#17171a)}',
       '.mu-stats-last{justify-content:flex-end;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mu-view{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}',
+      '.mu-folders{display:flex;flex-direction:column;gap:2px;padding:2px 24px 16px}',
+      '.mu-folder-row{display:flex;align-items:center;gap:10px;height:52px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer;text-align:left;width:100%}',
+      '.mu-folder-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
+      '.mu-folder-icon{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;border-radius:8px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mu-folder-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}',
+      '.mu-folder-name{font-size:13px}',
+      '.mu-folder-meta{font-size:11.5px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mu-folder-count{flex:none;font-size:11.5px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
       '.mu-view-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:6px 24px 2px;flex:none}',
       '.mu-view-title{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mu-view-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);flex:none}',
