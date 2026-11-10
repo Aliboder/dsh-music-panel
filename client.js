@@ -4973,6 +4973,7 @@ window.__ModuleLoader__.load({
       var [newPlaylistName, setNewPlaylistName] = useState('')
       var [tagEditPath, setTagEditPath] = useState(null)
       var [tagForm, setTagForm] = useState(null)
+      var autoMatchRef = useRef(false)
       var [lyricSearchOpen, setLyricSearchOpen] = useState(false)
       var [batchEditOpen, setBatchEditOpen] = useState(false)
       var [batchForm, setBatchForm] = useState({
@@ -6488,7 +6489,16 @@ window.__ModuleLoader__.load({
           })
       }
 
-      function openTagEditor(path) {
+      /** A track needs metadata when its title or artist is blank. */
+      function needsMeta(track) {
+        if (track === null || track === undefined) return false
+        return (
+          String(track.title || '').trim() === '' || String(track.artist || '').trim() === ''
+        )
+      }
+
+      function openTagEditor(path, autoMatch) {
+        autoMatchRef.current = autoMatch === true
         setTagEditPath(path)
         setTagForm(null)
         setCoverFailed(false)
@@ -6502,10 +6512,23 @@ window.__ModuleLoader__.load({
             setTagForm(Object.assign({}, body.tags))
           })
           .catch(function (error) {
+            autoMatchRef.current = false
             setTagEditPath(null)
             showToast(String((error && error.message) || error))
           })
       }
+
+      // Auto-run an online metadata search once the tag form has loaded.
+      useEffect(
+        function () {
+          if (tagForm === null) return
+          if (autoMatchRef.current !== true) return
+          autoMatchRef.current = false
+          setMatchField(null)
+          searchOnlineForTags()
+        },
+        [tagForm],
+      )
 
       function closeTagEditor() {
         if (tagSaving) return
@@ -7093,6 +7116,21 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'mu-row-actions' },
+            needsMeta(track)
+              ? h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mu-icon-btn mu-icon-btn-sm mu-row-meta',
+                    title: t('page.onlineMatch'),
+                    onClick: function (event) {
+                      event.stopPropagation()
+                      openTagEditor(track.path, true)
+                    },
+                  },
+                  icon('search', 13),
+                )
+              : null,
             h(
               'button',
               {
@@ -10419,6 +10457,8 @@ window.__ModuleLoader__.load({
       '.mu-row.is-selected{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.05))}',
       '.mu-row.is-current.is-selected{background:color-mix(in srgb,var(--dsw-static-deepseek-450,#5686fe) 8%,transparent)}',
       '.mu-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px}',
+      '.mu-row-meta{color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.65}',
+      '.mu-row-meta:hover{opacity:1;color:var(--dsw-static-deepseek-450,#5686fe)}',
       '.mu-check{width:20px;height:20px;margin:0;padding:0;border:1.5px solid var(--dsw-alias-border-l3,rgba(255,255,255,.24));border-radius:50%;background:transparent;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;opacity:0;transition:opacity .12s ease}',
       '.mu-row:hover .mu-check,.mu-row.is-selected .mu-check,.mu-check:focus-visible{opacity:1}',
       '.mu-check:hover{border-color:var(--dsw-alias-label-secondary,#a1a1aa)}',
