@@ -1,0 +1,102 @@
+/**
+ * queue: side panel inside the workspace, plus the floating variant used from
+ * the chat composer. Both share QueueList so there is one row implementation.
+ */
+
+function QueueList(props) {
+  var snap = props.snap
+  if (!snap || !snap.queue || snap.queue.length === 0) {
+    return h(
+      'div',
+      { className: 'mp-empty', style: { padding: '36px 16px' } },
+      icon('list', 24),
+      h('strong', null, t('page.queueEmpty')),
+    )
+  }
+  return h(
+    'div',
+    { className: 'mp-q-list' },
+    snap.queue.map(function (track, index) {
+      var current = index === snap.index
+      return h(
+        'div',
+        {
+          key: track.path + ':' + index,
+          className: cx('mp-q-row', current && 'is-cur'),
+          onClick: function () {
+            player.playList(snap.queue, index)
+          },
+          title: trackTitleOf(track),
+        },
+        h(
+          'div',
+          { className: 'mp-q-idx' },
+          current && snap.playing ? icon('play', 11) : String(index + 1),
+        ),
+        h('div', { className: 'mp-q-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+        h(
+          'div',
+          { className: 'mp-q-main' },
+          h('div', { className: 'mp-q-name' }, trackTitleOf(track)),
+          h('div', { className: 'mp-q-artist' }, trackArtistOf(track)),
+        ),
+        h('div', { className: 'mp-q-artist' }, fmtTime(track.durationSec)),
+      )
+    }),
+  )
+}
+
+function QueuePanel(props) {
+  return h(
+    'aside',
+    { className: 'mp-queue', 'aria-label': t('page.queue') },
+    h(
+      'div',
+      { className: 'mp-q-head' },
+      h(
+        'div',
+        null,
+        h('div', { className: 'mp-q-title' }, t('page.queue')),
+        h(
+          'div',
+          { className: 'mp-q-sub' },
+          (props.snap.queue.length || 0) + ' · ' + (props.snap.order === 'random' ? t('page.shuffle') : t('page.modeSequence')),
+        ),
+      ),
+      h('div', { className: 'mp-spacer', style: { marginLeft: 'auto' } }),
+      h(IconButton, {
+        icon: 'target',
+        size: 15,
+        title: t('page.locateCurrent'),
+        onClick: props.onLocate,
+      }),
+      h(IconButton, {
+        icon: 'x',
+        size: 15,
+        title: t('v2.close'),
+        onClick: props.onClose,
+      }),
+    ),
+    h(QueueList, { snap: props.snap }),
+  )
+}
+
+function QueuePopover(props) {
+  if (props.open !== true) return null
+  return h(
+    'div',
+    {
+      className: cx('mp-queue-pop', props.anchored === true && 'is-anchored'),
+      role: 'dialog',
+      'aria-label': t('page.queue'),
+    },
+    h(
+      'div',
+      { className: 'mp-q-head' },
+      h('div', { className: 'mp-q-title' }, t('page.queue')),
+      h('div', { className: 'mp-spacer', style: { marginLeft: 'auto' } }),
+      h(IconButton, { icon: 'x', size: 14, title: t('v2.close'), onClick: props.onClose }),
+    ),
+    h(QueueList, { snap: props.snap }),
+  )
+}
