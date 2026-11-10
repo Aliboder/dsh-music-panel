@@ -133,7 +133,7 @@ pnpm add dsh-music-panel
 - 宿主端 `index.js` + `lib/**` 提供本地 HTTP API（`/music/*`）：曲库扫描、封面、歌词、标签读写、在线匹配、在线歌词、在线播放代理、缓存、统计、回收站
 - Web 端 `client.js` 零构建，通过 `window.__ModuleLoader__` 加载，CJS 包装，只依赖宿主注入的 `react`
 - 在线播放链路：`/music/online/search|playlist-songs|stream|lyric|login/*`；流代理转发 `Range` 并回 `206`，支持拖动进度条
-- 全部逻辑可测试：14 个测试文件覆盖扫描、配置、歌词、标签、在线匹配、缓存、统计、路由等
+- 全部逻辑可测试：15 个测试文件覆盖扫描、配置、歌词、标签、在线匹配、缓存、统计、路由等
 
 ```bash
 npm test          # 单元测试
