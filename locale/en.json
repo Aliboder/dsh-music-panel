@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Music",
-    "description": "Local music library: scan a folder, read covers and tags, and open a full player from the left sidebar."
+    "description": "Local + online music player: multi-root library, NetEase / QQ / KuGou, synced playlists and likes, lyrics, cache, built-in volume leveling, tag and cover editing."
   }
 }

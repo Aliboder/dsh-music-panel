@@ -71,11 +71,47 @@ function isLocalNav(nav) {
 }
 
 /** Section groups for the current source (rail or top bar). */
+/** Online playlist ordering is local-only; the platform order is kept as "source". */
+function onlinePlaylistSortMode() {
+  var mode = prefsStore.get().onlinePlaylistSort
+  return mode === 'name' || mode === 'count' ? mode : 'source'
+}
+
+function onlinePlaylistSortLabel(mode) {
+  if (mode === 'name') return t('v2.sortName')
+  if (mode === 'count') return t('v2.sortCount')
+  return t('v2.sortSource')
+}
+
+function sortOnlinePlaylists(list) {
+  var mode = onlinePlaylistSortMode()
+  var copy = (list || []).slice()
+  if (mode === 'name') {
+    copy.sort(function (left, right) {
+      return String(left.name || '').localeCompare(String(right.name || ''), 'zh')
+    })
+  } else if (mode === 'count') {
+    copy.sort(function (left, right) {
+      var delta = (Number(right.trackCount) || 0) - (Number(left.trackCount) || 0)
+      return delta !== 0
+        ? delta
+        : String(left.name || '').localeCompare(String(right.name || ''), 'zh')
+    })
+  }
+  return copy
+}
+
+function cycleOnlinePlaylistSort() {
+  var mode = onlinePlaylistSortMode()
+  var next = mode === 'source' ? 'name' : mode === 'name' ? 'count' : 'source'
+  setPrefs({ onlinePlaylistSort: next })
+}
+
 function navGroupsFor(source, favoritesCount) {
   var library = libraryStore.get()
   if (isOnlineSource(source)) {
     var online = onlineStore.get()
-    var playlists = online.playlists || []
+    var playlists = sortOnlinePlaylists(online.playlists || [])
     var signedIn = (online.providers[source] || {}).loggedIn === true
     var groups = [
       {
@@ -90,6 +126,11 @@ function navGroupsFor(source, favoritesCount) {
       groups.push({
         label: t('v2.playlists'),
         showLabel: true,
+        action: {
+          icon: 'sort',
+          title: t('v2.playlistSort') + ': ' + onlinePlaylistSortLabel(onlinePlaylistSortMode()),
+          run: cycleOnlinePlaylistSort,
+        },
         items: playlists.map(function (playlist) {
           return {
             key: 'online-playlist:' + playlist.id,

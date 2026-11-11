@@ -64,6 +64,16 @@ function NavRail(props) {
                 activateNavItem(item)
               },
               onContextMenu: navItemContextMenu(item, active),
+              onMouseEnter: item.onlinePlaylist
+                ? function () {
+                    prefetchOnlinePlaylist(item.onlinePlaylist)
+                  }
+                : undefined,
+              onFocus: item.onlinePlaylist
+                ? function () {
+                    prefetchOnlinePlaylist(item.onlinePlaylist)
+                  }
+                : undefined,
             },
             icon(item.icon, 15),
             h('span', null, item.label),
@@ -116,6 +126,16 @@ function SectionBar(props) {
                 activateNavItem(item)
               },
               onContextMenu: navItemContextMenu(item, active),
+              onMouseEnter: item.onlinePlaylist
+                ? function () {
+                    prefetchOnlinePlaylist(item.onlinePlaylist)
+                  }
+                : undefined,
+              onFocus: item.onlinePlaylist
+                ? function () {
+                    prefetchOnlinePlaylist(item.onlinePlaylist)
+                  }
+                : undefined,
             },
             item.label,
             item.count !== null && item.count !== undefined
