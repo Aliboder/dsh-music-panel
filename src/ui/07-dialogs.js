@@ -523,37 +523,81 @@ function LoginDialog(props) {
         ? t('online.providerQq')
         : t('online.providerKugou')
 
+  var failed = error !== '' || status === 'expired' || status === 'failed'
+  var statusLabel =
+    error !== ''
+      ? error
+      : status === 'scanned'
+        ? t('online.statusscanned')
+        : status === 'success'
+          ? t('online.statussuccess')
+          : status === 'expired'
+            ? t('online.statusexpired')
+            : status === 'failed'
+              ? t('online.statusfailed')
+              : t('online.statuswaiting')
   return h(
     KitModal,
     {
-      title: t('online.loginTitle', { provider: providerLabel }),
+      title: '',
       small: true,
       onClose: popLayer,
     },
     h(
       'div',
-      { className: 'mp-kit-center' },
+      { className: 'mp-login-card' },
       h(
         'div',
-        { className: 'mp-qr' },
-        qr && qr.imageDataUrl
-          ? h('img', { src: qr.imageDataUrl, alt: '' })
-          : h('span', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-tertiary,#8a8a93)' } }, '…'),
+        { className: 'mp-login-head' },
+        h('span', { className: 'mp-login-logo' }, providerLogo(provider, 34)),
+        h(
+          'div',
+          { className: 'mp-login-headtext' },
+          h('div', { className: 'mp-login-title' }, t('online.loginTitle', { provider: providerLabel })),
+          h('div', { className: 'mp-login-sub' }, t('online.qrDesc', { provider: providerLabel })),
+        ),
       ),
-      h('div', { className: 'mp-qr-hint' }, t('online.loginHint')),
       h(
         'div',
-        { className: 'mp-qr-hint' },
-        error !== ''
-          ? error
-          : status === 'scanned'
-            ? t('online.statusscanned')
-            : status === 'success'
-              ? t('online.statussuccess')
-              : status === 'expired'
-                ? t('online.statusexpired')
-                : t('online.statuswaiting'),
+        { className: 'mp-login-qr-shell' },
+        h(
+          'div',
+          { className: cx('mp-login-qr-frame', status === 'scanned' && 'is-scanned') },
+          qr && qr.imageDataUrl
+            ? h('img', { className: 'mp-login-qr-img', src: qr.imageDataUrl, alt: '' })
+            : h(
+                'div',
+                { className: 'mp-login-qr-loading' },
+                h('span', { className: 'mp-login-spinner' }),
+                h('span', null, t('online.qrLoading')),
+              ),
+          h('i', { className: 'mp-login-corner tl' }),
+          h('i', { className: 'mp-login-corner tr' }),
+          h('i', { className: 'mp-login-corner bl' }),
+          h('i', { className: 'mp-login-corner br' }),
+        ),
       ),
+      h(
+        'div',
+        { className: cx('mp-login-status', failed && 'is-error', status === 'scanned' && 'is-scanned', status === 'success' && 'is-success') },
+        h('span', { className: 'mp-login-dot' }),
+        h('span', null, statusLabel),
+      ),
+      h(
+        'div',
+        { className: 'mp-login-steps' },
+        h('div', { className: 'mp-login-step' }, h('b', null, '1'), h('span', null, t('online.qrStep1'))),
+        h('div', { className: 'mp-login-step' }, h('b', null, '2'), h('span', null, t('online.qrStep2'))),
+      ),
+      h('div', { className: 'mp-login-secure' }, icon('checkCircle', 12), h('span', null, t('online.qrSecure'))),
+      failed
+        ? h(
+            'div',
+            { className: 'mp-login-actions' },
+            h(Button, { variant: 'primary', icon: 'refresh', onClick: retry, children: t('online.qrRefresh') }),
+            h(Button, { variant: 'ghost', onClick: popLayer, children: t('v2.close') }),
+          )
+        : null,
     ),
   )
 }
