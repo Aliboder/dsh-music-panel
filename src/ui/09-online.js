@@ -410,15 +410,17 @@ function OnlineContent(props) {
       selecting: selecting,
       selectedCount: selection.paths.length,
     }),
-    h(
-      'div',
-      { className: 'mp-toolbar', key: 'toolbar' },
-      h(
-        'div',
-        { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
-        actions || [],
-      ),
-    ),
+    actions && actions.length > 0
+      ? h(
+          'div',
+          { className: 'mp-toolbar', key: 'toolbar' },
+          h(
+            'div',
+            { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
+            actions,
+          ),
+        )
+      : null,
     h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),
   ]
 }

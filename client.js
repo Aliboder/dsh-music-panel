@@ -8,7 +8,7 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
-    var APP_VERSION = "0.27.1"
+    var APP_VERSION = "0.27.2"
 
     // ── src/00-runtime.js
     /**
@@ -9246,11 +9246,13 @@ window.__ModuleLoader__.load({
           selecting: selecting,
           selectedCount: selection.paths.length,
         }),
-        h(
-          'div',
-          { className: 'mp-toolbar', key: 'toolbar' },
-          toolbarExtras,
-        ),
+        toolbarExtras.length > 0
+          ? h(
+              'div',
+              { className: 'mp-toolbar', key: 'toolbar' },
+              toolbarExtras,
+            )
+          : null,
         h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),
       ]
     }
@@ -9668,15 +9670,17 @@ window.__ModuleLoader__.load({
           selecting: selecting,
           selectedCount: selection.paths.length,
         }),
-        h(
-          'div',
-          { className: 'mp-toolbar', key: 'toolbar' },
-          h(
-            'div',
-            { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
-            actions || [],
-          ),
-        ),
+        actions && actions.length > 0
+          ? h(
+              'div',
+              { className: 'mp-toolbar', key: 'toolbar' },
+              h(
+                'div',
+                { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
+                actions,
+              ),
+            )
+          : null,
         h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),
       ]
     }

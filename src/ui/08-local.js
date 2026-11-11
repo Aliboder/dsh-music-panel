@@ -534,11 +534,13 @@ function LocalContent(props) {
       selecting: selecting,
       selectedCount: selection.paths.length,
     }),
-    h(
-      'div',
-      { className: 'mp-toolbar', key: 'toolbar' },
-      toolbarExtras,
-    ),
+    toolbarExtras.length > 0
+      ? h(
+          'div',
+          { className: 'mp-toolbar', key: 'toolbar' },
+          toolbarExtras,
+        )
+      : null,
     h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),
   ]
 }
