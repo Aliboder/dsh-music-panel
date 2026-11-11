@@ -119,7 +119,6 @@ window.__ModuleLoader__.load({
         'page.done': '完成',
         'page.clear': '清空列表',
         'page.loopAll': '列表循环',
-        'page.modeOnce': '列表单次',
         'page.modeSequence': '顺序播放',
         'page.modeRandom': '随机播放',
         'page.modeOne': '单曲循环',
@@ -468,7 +467,6 @@ window.__ModuleLoader__.load({
         'page.done': 'Done',
         'page.clear': 'Clear list',
         'page.loopAll': 'Repeat all',
-        'page.modeOnce': 'Play list once',
         'page.modeSequence': 'Play in order',
         'page.modeRandom': 'Shuffle',
         'page.modeOne': 'Repeat one',
@@ -5174,7 +5172,6 @@ window.__ModuleLoader__.load({
       '.mp-headmenu-label{flex:1}',
       '.mp-headmenu-hint{color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:11px}',
       '.mp-headmenu-sep{margin:5px 6px;border:0;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      '.mp-modes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
       '.mp-pill{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:12px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}',
       '.mp-pill:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
       '.mp-pill.is-on{color:var(--dsw-alias-label-primary,#f4f4f5);border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 14%,transparent)}',
@@ -9146,7 +9143,6 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'mp-toolbar', key: 'toolbar' },
-          h(PlayModePills, { onPlay: playAll }),
           toolbarExtras,
           playAll
             ? h(
@@ -9583,7 +9579,6 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'mp-toolbar', key: 'toolbar' },
-          h(PlayModePills, { onPlay: playAll }),
           h(
             'div',
             { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
@@ -11199,50 +11194,6 @@ window.__ModuleLoader__.load({
         },
       })
       return h(HeadMenu, { icon: 'sort', title: t('page.sort'), items: items, hostMenu: false })
-    }
-    
-    function PlayModePills(props) {
-      var snap = usePlayerSnapshot()
-      var active = snap.order === 'random' ? 'random' : snap.loop === 'none' ? 'once' : 'order'
-      var modes = [
-        ['order', 'list', t('page.modeSequence')],
-        ['random', 'shuffle', t('page.shuffle')],
-        ['once', 'play', t('page.modeOnce')],
-      ]
-    
-      function apply(mode) {
-        if (mode === 'random') {
-          player.setOrder('random')
-          player.setLoop('all')
-        } else if (mode === 'once') {
-          player.setOrder('list')
-          player.setLoop('none')
-        } else {
-          player.setOrder('list')
-          player.setLoop('all')
-        }
-        if (typeof props.onPlay === 'function') props.onPlay()
-      }
-    
-      return h(
-        'div',
-        { className: 'mp-modes' },
-        modes.map(function (mode) {
-          return h(
-            KitPill,
-            {
-              key: mode[0],
-              active: active === mode[0],
-              icon: mode[1],
-              title: mode[2],
-              onClick: function () {
-                apply(mode[0])
-              },
-            },
-            mode[2],
-          )
-        }),
-      )
     }
     
     function ContentHeader(props) {

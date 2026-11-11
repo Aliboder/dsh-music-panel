@@ -537,7 +537,6 @@ function LocalContent(props) {
     h(
       'div',
       { className: 'mp-toolbar', key: 'toolbar' },
-      h(PlayModePills, { onPlay: playAll }),
       toolbarExtras,
       playAll
         ? h(

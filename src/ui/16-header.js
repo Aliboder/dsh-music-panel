@@ -177,50 +177,6 @@ function SortMenu() {
   return h(HeadMenu, { icon: 'sort', title: t('page.sort'), items: items, hostMenu: false })
 }
 
-function PlayModePills(props) {
-  var snap = usePlayerSnapshot()
-  var active = snap.order === 'random' ? 'random' : snap.loop === 'none' ? 'once' : 'order'
-  var modes = [
-    ['order', 'list', t('page.modeSequence')],
-    ['random', 'shuffle', t('page.shuffle')],
-    ['once', 'play', t('page.modeOnce')],
-  ]
-
-  function apply(mode) {
-    if (mode === 'random') {
-      player.setOrder('random')
-      player.setLoop('all')
-    } else if (mode === 'once') {
-      player.setOrder('list')
-      player.setLoop('none')
-    } else {
-      player.setOrder('list')
-      player.setLoop('all')
-    }
-    if (typeof props.onPlay === 'function') props.onPlay()
-  }
-
-  return h(
-    'div',
-    { className: 'mp-modes' },
-    modes.map(function (mode) {
-      return h(
-        KitPill,
-        {
-          key: mode[0],
-          active: active === mode[0],
-          icon: mode[1],
-          title: mode[2],
-          onClick: function () {
-            apply(mode[0])
-          },
-        },
-        mode[2],
-      )
-    }),
-  )
-}
-
 function ContentHeader(props) {
   return h(
     'header',

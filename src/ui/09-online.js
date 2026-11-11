@@ -413,7 +413,6 @@ function OnlineContent(props) {
     h(
       'div',
       { className: 'mp-toolbar', key: 'toolbar' },
-      h(PlayModePills, { onPlay: playAll }),
       h(
         'div',
         { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
