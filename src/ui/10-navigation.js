@@ -87,6 +87,127 @@ function NavRail(props) {
   )
 }
 
+var MAX_PLAYLIST_TABS = 3
+
+function SectionPlaylistOverflow(props) {
+  var openPair = useState(false)
+  var open = openPair[0]
+  var setOpen = openPair[1]
+  var buttonRef = useRef(null)
+  var posPair = useState(null)
+  var pos = posPair[0]
+  var setPos = posPair[1]
+  var active = activeNavKey(uiStore.get().nav)
+
+  useEffect(
+    function () {
+      if (!open) return undefined
+      function place() {
+        var button = buttonRef.current
+        if (!button) return
+        var rect = button.getBoundingClientRect()
+        var width = Math.min(720, window.innerWidth - 24)
+        var left = Math.max(12, Math.min(window.innerWidth - width - 12, rect.right - width))
+        setPos({ left: left + 'px', top: rect.bottom + 8 + 'px', width: width + 'px' })
+      }
+      function close(event) {
+        if (buttonRef.current && buttonRef.current.contains(event.target)) return
+        var pop = document.querySelector('.mp-playlist-pop')
+        if (pop && pop.contains(event.target)) return
+        setOpen(false)
+      }
+      function onKey(event) {
+        if (event.key === 'Escape') setOpen(false)
+      }
+      place()
+      window.addEventListener('resize', place)
+      window.addEventListener('scroll', place, true)
+      document.addEventListener('pointerdown', close, true)
+      window.addEventListener('keydown', onKey)
+      return function () {
+        window.removeEventListener('resize', place)
+        window.removeEventListener('scroll', place, true)
+        document.removeEventListener('pointerdown', close, true)
+        window.removeEventListener('keydown', onKey)
+      }
+    },
+    [open],
+  )
+
+  function pick(item) {
+    setOpen(false)
+    activateNavItem(item)
+  }
+
+  return h(
+    'span',
+    { className: 'mp-sec-overflow' },
+    h(
+      'button',
+      {
+        type: 'button',
+        ref: buttonRef,
+        className: cx('mp-sec-expand', open && 'is-on'),
+        title: t('v2.expandPlaylists'),
+        'aria-expanded': open === true,
+        onClick: function () {
+          setOpen(!open)
+        },
+      },
+      t('v2.expandPlaylists'),
+      icon('chevronDown', 12),
+    ),
+    open
+      ? h(
+          'div',
+          {
+            className: 'mp-playlist-pop',
+            role: 'dialog',
+            'aria-label': t('v2.playlists'),
+            style: pos || { visibility: 'hidden' },
+          },
+          h(
+            'div',
+            { className: 'mp-playlist-pop-head' },
+            h('strong', null, t('v2.playlists')),
+            h('span', { className: 'mp-playlist-pop-count' }, String(props.items.length)),
+          ),
+          h(
+            'div',
+            { className: 'mp-playlist-grid' },
+            props.items.map(function (item) {
+              return h(
+                'button',
+                {
+                  key: item.key,
+                  type: 'button',
+                  className: cx('mp-playlist-card', active === item.key && 'is-on'),
+                  onClick: function () {
+                    pick(item)
+                  },
+                  onContextMenu: navItemContextMenu(item, active),
+                },
+                h('span', { className: 'mp-playlist-card-icon' }, icon(item.icon || 'list', 16)),
+                h(
+                  'span',
+                  { className: 'mp-playlist-card-main' },
+                  h('strong', null, item.label),
+                  h(
+                    'span',
+                    null,
+                    item.count !== null && item.count !== undefined
+                      ? t('page.trackCountUnit', { n: item.count })
+                      : '',
+                  ),
+                ),
+              )
+            }),
+          ),
+        )
+      : null,
+  )
+}
+
 function SectionBar(props) {
   var groups = navGroupsFor(props.source, props.favoritesCount)
   var active = activeNavKey(props.nav)
@@ -112,7 +233,10 @@ function SectionBar(props) {
               icon(group.action.icon, 12),
             )
           : null,
-        group.items.map(function (item) {
+        (group.label === t('v2.playlists') && group.items.length > MAX_PLAYLIST_TABS
+          ? group.items.slice(0, MAX_PLAYLIST_TABS)
+          : group.items
+        ).map(function (item) {
           return h(
             'button',
             {
@@ -143,6 +267,9 @@ function SectionBar(props) {
               : null,
           )
         }),
+        group.label === t('v2.playlists') && group.items.length > MAX_PLAYLIST_TABS
+          ? h(SectionPlaylistOverflow, { items: group.items })
+          : null,
       )
     }),
   )

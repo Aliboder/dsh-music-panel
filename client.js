@@ -846,6 +846,7 @@ window.__ModuleLoader__.load({
         'v2.folders': '文件夹',
         'v2.favorites': '喜欢',
         'v2.playlists': '歌单',
+        'v2.expandPlaylists': '展开',
         'v2.stats': '统计',
         'v2.recent': '最近播放',
         'v2.cache': '缓存',
@@ -986,6 +987,7 @@ window.__ModuleLoader__.load({
         'v2.folders': 'Folders',
         'v2.favorites': 'Favorites',
         'v2.playlists': 'Playlists',
+        'v2.expandPlaylists': 'Show all',
         'v2.stats': 'Stats',
         'v2.recent': 'Recent',
         'v2.cache': 'Cache',
@@ -4675,6 +4677,23 @@ window.__ModuleLoader__.load({
     
       // ── content ─────────────────────────────────────────────────────────────
       '.mp-content{display:flex;flex-direction:column;min-width:0;min-height:0}',
+    
+      '.mp-sec-overflow{position:relative;display:inline-flex;flex:none;margin-left:auto}',
+      '.mp-sec-expand{height:26px;padding:0 9px;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:8px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;white-space:nowrap}',
+      '.mp-sec-expand:hover,.mp-sec-expand.is-on{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-playlist-pop{position:fixed;z-index:60;padding:12px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-panel,0 20px 56px rgba(0,0,0,.5));max-height:70vh;overflow:auto}',
+      '.mp-playlist-pop-head{display:flex;align-items:baseline;gap:8px;padding:2px 2px 10px;font-size:13px}',
+      '.mp-playlist-pop-count{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-playlist-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}',
+      '.mp-playlist-card{display:flex;align-items:center;gap:9px;min-width:0;min-height:58px;padding:9px 10px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.035));color:var(--dsw-alias-label-primary,#f4f4f5);text-align:left;cursor:pointer}',
+      '.mp-playlist-card:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));border-color:var(--dsw-alias-border-l2,rgba(255,255,255,.14))}',
+      '.mp-playlist-card.is-on{border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 12%,transparent)}',
+      '.mp-playlist-card-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-playlist-card-main{display:flex;flex-direction:column;min-width:0;gap:2px}',
+      '.mp-playlist-card-main strong{font-size:12px;font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-playlist-card-main span{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '@media (max-width:900px){.mp-playlist-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}',
+      '@media (max-width:620px){.mp-playlist-grid{grid-template-columns:1fr}}',
       '.mp-content-head{display:flex;align-items:center;gap:12px;padding:10px 22px 6px;min-height:0;flex:none}',
       '.mp-title{margin:0;font-size:20px;font-weight:650;letter-spacing:-.015em;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-count{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding-bottom:3px;font-variant-numeric:tabular-nums;white-space:nowrap}',
@@ -9623,6 +9642,127 @@ window.__ModuleLoader__.load({
       )
     }
     
+    var MAX_PLAYLIST_TABS = 3
+    
+    function SectionPlaylistOverflow(props) {
+      var openPair = useState(false)
+      var open = openPair[0]
+      var setOpen = openPair[1]
+      var buttonRef = useRef(null)
+      var posPair = useState(null)
+      var pos = posPair[0]
+      var setPos = posPair[1]
+      var active = activeNavKey(uiStore.get().nav)
+    
+      useEffect(
+        function () {
+          if (!open) return undefined
+          function place() {
+            var button = buttonRef.current
+            if (!button) return
+            var rect = button.getBoundingClientRect()
+            var width = Math.min(720, window.innerWidth - 24)
+            var left = Math.max(12, Math.min(window.innerWidth - width - 12, rect.right - width))
+            setPos({ left: left + 'px', top: rect.bottom + 8 + 'px', width: width + 'px' })
+          }
+          function close(event) {
+            if (buttonRef.current && buttonRef.current.contains(event.target)) return
+            var pop = document.querySelector('.mp-playlist-pop')
+            if (pop && pop.contains(event.target)) return
+            setOpen(false)
+          }
+          function onKey(event) {
+            if (event.key === 'Escape') setOpen(false)
+          }
+          place()
+          window.addEventListener('resize', place)
+          window.addEventListener('scroll', place, true)
+          document.addEventListener('pointerdown', close, true)
+          window.addEventListener('keydown', onKey)
+          return function () {
+            window.removeEventListener('resize', place)
+            window.removeEventListener('scroll', place, true)
+            document.removeEventListener('pointerdown', close, true)
+            window.removeEventListener('keydown', onKey)
+          }
+        },
+        [open],
+      )
+    
+      function pick(item) {
+        setOpen(false)
+        activateNavItem(item)
+      }
+    
+      return h(
+        'span',
+        { className: 'mp-sec-overflow' },
+        h(
+          'button',
+          {
+            type: 'button',
+            ref: buttonRef,
+            className: cx('mp-sec-expand', open && 'is-on'),
+            title: t('v2.expandPlaylists'),
+            'aria-expanded': open === true,
+            onClick: function () {
+              setOpen(!open)
+            },
+          },
+          t('v2.expandPlaylists'),
+          icon('chevronDown', 12),
+        ),
+        open
+          ? h(
+              'div',
+              {
+                className: 'mp-playlist-pop',
+                role: 'dialog',
+                'aria-label': t('v2.playlists'),
+                style: pos || { visibility: 'hidden' },
+              },
+              h(
+                'div',
+                { className: 'mp-playlist-pop-head' },
+                h('strong', null, t('v2.playlists')),
+                h('span', { className: 'mp-playlist-pop-count' }, String(props.items.length)),
+              ),
+              h(
+                'div',
+                { className: 'mp-playlist-grid' },
+                props.items.map(function (item) {
+                  return h(
+                    'button',
+                    {
+                      key: item.key,
+                      type: 'button',
+                      className: cx('mp-playlist-card', active === item.key && 'is-on'),
+                      onClick: function () {
+                        pick(item)
+                      },
+                      onContextMenu: navItemContextMenu(item, active),
+                    },
+                    h('span', { className: 'mp-playlist-card-icon' }, icon(item.icon || 'list', 16)),
+                    h(
+                      'span',
+                      { className: 'mp-playlist-card-main' },
+                      h('strong', null, item.label),
+                      h(
+                        'span',
+                        null,
+                        item.count !== null && item.count !== undefined
+                          ? t('page.trackCountUnit', { n: item.count })
+                          : '',
+                      ),
+                    ),
+                  )
+                }),
+              ),
+            )
+          : null,
+      )
+    }
+    
     function SectionBar(props) {
       var groups = navGroupsFor(props.source, props.favoritesCount)
       var active = activeNavKey(props.nav)
@@ -9648,7 +9788,10 @@ window.__ModuleLoader__.load({
                   icon(group.action.icon, 12),
                 )
               : null,
-            group.items.map(function (item) {
+            (group.label === t('v2.playlists') && group.items.length > MAX_PLAYLIST_TABS
+              ? group.items.slice(0, MAX_PLAYLIST_TABS)
+              : group.items
+            ).map(function (item) {
               return h(
                 'button',
                 {
@@ -9679,6 +9822,9 @@ window.__ModuleLoader__.load({
                   : null,
               )
             }),
+            group.label === t('v2.playlists') && group.items.length > MAX_PLAYLIST_TABS
+              ? h(SectionPlaylistOverflow, { items: group.items })
+              : null,
           )
         }),
       )
