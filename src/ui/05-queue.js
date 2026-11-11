@@ -5,6 +5,18 @@
 
 function QueueList(props) {
   var snap = props.snap
+  var listRef = useRef(null)
+  useEffect(
+    function () {
+      var box = listRef.current
+      if (!box) return
+      var row = box.querySelector('.mp-q-row.is-cur')
+      if (!row) return
+      var top = row.offsetTop - box.clientHeight / 2 + row.offsetHeight / 2
+      box.scrollTop = Math.max(0, top)
+    },
+    [snap && snap.queue, snap && snap.index, snap && snap.order, snap && snap.playing],
+  )
   if (!snap || !snap.queue || snap.queue.length === 0) {
     return h(
       'div',
@@ -13,27 +25,33 @@ function QueueList(props) {
       h('strong', null, t('page.queueEmpty')),
     )
   }
+  var order = snap.order === 'random' ? player.getPlayOrder() : snap.queue.map(function (_, index) { return index })
+  if (!Array.isArray(order) || order.length !== snap.queue.length) {
+    order = snap.queue.map(function (_, index) { return index })
+  }
   return h(
     'div',
-    { className: 'mp-q-list' },
-    snap.queue.map(function (track, index) {
-      var current = index === snap.index
+    { className: 'mp-q-list', ref: listRef },
+    order.map(function (queueIndex, position) {
+      var track = snap.queue[queueIndex]
+      if (!track) return null
+      var current = queueIndex === snap.index
       return h(
         'div',
         {
-          key: track.path + ':' + index,
+          key: track.path + ':' + queueIndex,
           className: cx('mp-q-row', current && 'is-cur'),
           onClick: function () {
-            player.playList(snap.queue, index)
+            player.select(snap.queue, queueIndex)
           },
           title: trackTitleOf(track),
         },
         h(
           'div',
           { className: 'mp-q-idx' },
-          current && snap.playing ? icon('play', 11) : String(index + 1),
+          current && snap.playing ? icon('play', 12) : String(position + 1),
         ),
-        h('div', { className: 'mp-q-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+        h('div', { className: 'mp-q-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 14 })),
         h(
           'div',
           { className: 'mp-q-main' },

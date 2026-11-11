@@ -2648,7 +2648,7 @@ window.__ModuleLoader__.load({
      * Extracted from client.js at the 0.11.1 baseline (3931c14).
      */
     
-    function randomOrderOf(size) {
+    function randomOrderOf(size, start) {
       var order = []
       for (var i = 0; i < size; i += 1) order.push(i)
       for (var j = order.length - 1; j > 0; j -= 1) {
@@ -2656,6 +2656,15 @@ window.__ModuleLoader__.load({
         var tmp = order[j]
         order[j] = order[k]
         order[k] = tmp
+      }
+      // Random mode starts with the current track, so the displayed shuffled
+      // list and the actual top-to-bottom playback order line up.
+      if (Number.isInteger(start) && start >= 0 && start < order.length && order.length > 1) {
+        var at = order.indexOf(start)
+        if (at > 0) {
+          order.splice(at, 1)
+          order.unshift(start)
+        }
       }
       return order
     }
@@ -2944,7 +2953,7 @@ window.__ModuleLoader__.load({
           duration: saved.durationSec > 0 ? saved.durationSec : 0,
           playing: false,
         })
-        randomOrder = randomOrderOf(queue.length)
+        randomOrder = randomOrderOf(queue.length, index)
         emit()
         syncMediaSession()
         resetSession(queue[index])
@@ -3494,7 +3503,7 @@ window.__ModuleLoader__.load({
         playList: function (list, at) {
           if (!list || list.length === 0) return
           state = Object.assign({}, state, { queue: list.slice(), index: at })
-          randomOrder = randomOrderOf(list.length)
+          randomOrder = randomOrderOf(list.length, at)
           load(at, true)
         },
         /** Insert one track immediately after the current one, without interrupting playback. */
@@ -3536,7 +3545,7 @@ window.__ModuleLoader__.load({
           }
           if (!sameQueue(list, state.queue)) {
             state = Object.assign({}, state, { queue: list.slice(), index: at })
-            randomOrder = randomOrderOf(list.length)
+            randomOrder = randomOrderOf(list.length, at)
             load(at, true)
             return
           }
@@ -3749,7 +3758,7 @@ window.__ModuleLoader__.load({
           if (next === 'random' && state.queue.length > 1) {
             // Fresh shuffle whenever random is selected, so the queue panel's
             // displayed order is the actual playback order.
-            randomOrder = randomOrderOf(state.queue.length)
+            randomOrder = randomOrderOf(state.queue.length, state.index)
           }
           state = Object.assign({}, state, { order: next })
           savePrefs({ order: next })
@@ -4833,16 +4842,16 @@ window.__ModuleLoader__.load({
       '.mp-q-title{font-size:13px;font-weight:650}',
       '.mp-q-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-q-list{flex:1;min-height:0;overflow-y:auto;padding:0 6px 14px}',
-      '.mp-q-row{display:flex;align-items:center;gap:10px;height:44px;padding:0 8px;border-radius:8px;cursor:pointer;font-size:12px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-q-row{display:flex;align-items:center;gap:10px;height:52px;padding:0 9px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-q-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
       '.mp-q-row.is-cur{background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
       '.mp-q-row.is-cur .mp-q-name{color:var(--dsw-alias-state-business-primary,#7AAAFF)}',
-      '.mp-q-idx{width:16px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:center;font-variant-numeric:tabular-nums;flex:none}',
-      '.mp-q-cover{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));overflow:hidden}',
+      '.mp-q-idx{width:18px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:center;font-variant-numeric:tabular-nums;flex:none}',
+      '.mp-q-cover{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));overflow:hidden}',
       '.mp-q-cover img{width:100%;height:100%;object-fit:cover}',
       '.mp-q-main{min-width:0;flex:1}',
-      '.mp-q-name{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-q-artist{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-q-name{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-q-artist{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-queue-pop{position:fixed;right:24px;bottom:96px;z-index:70;width:340px;max-height:56vh;display:flex;flex-direction:column;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:0 16px 48px rgba(0,0,0,.5);overflow:hidden}',
       '.mp-queue-pop .mp-q-list{max-height:40vh}',
     
@@ -6596,6 +6605,18 @@ window.__ModuleLoader__.load({
     
     function QueueList(props) {
       var snap = props.snap
+      var listRef = useRef(null)
+      useEffect(
+        function () {
+          var box = listRef.current
+          if (!box) return
+          var row = box.querySelector('.mp-q-row.is-cur')
+          if (!row) return
+          var top = row.offsetTop - box.clientHeight / 2 + row.offsetHeight / 2
+          box.scrollTop = Math.max(0, top)
+        },
+        [snap && snap.queue, snap && snap.index, snap && snap.order, snap && snap.playing],
+      )
       if (!snap || !snap.queue || snap.queue.length === 0) {
         return h(
           'div',
@@ -6604,27 +6625,33 @@ window.__ModuleLoader__.load({
           h('strong', null, t('page.queueEmpty')),
         )
       }
+      var order = snap.order === 'random' ? player.getPlayOrder() : snap.queue.map(function (_, index) { return index })
+      if (!Array.isArray(order) || order.length !== snap.queue.length) {
+        order = snap.queue.map(function (_, index) { return index })
+      }
       return h(
         'div',
-        { className: 'mp-q-list' },
-        snap.queue.map(function (track, index) {
-          var current = index === snap.index
+        { className: 'mp-q-list', ref: listRef },
+        order.map(function (queueIndex, position) {
+          var track = snap.queue[queueIndex]
+          if (!track) return null
+          var current = queueIndex === snap.index
           return h(
             'div',
             {
-              key: track.path + ':' + index,
+              key: track.path + ':' + queueIndex,
               className: cx('mp-q-row', current && 'is-cur'),
               onClick: function () {
-                player.playList(snap.queue, index)
+                player.select(snap.queue, queueIndex)
               },
               title: trackTitleOf(track),
             },
             h(
               'div',
               { className: 'mp-q-idx' },
-              current && snap.playing ? icon('play', 11) : String(index + 1),
+              current && snap.playing ? icon('play', 12) : String(position + 1),
             ),
-            h('div', { className: 'mp-q-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+            h('div', { className: 'mp-q-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 14 })),
             h(
               'div',
               { className: 'mp-q-main' },

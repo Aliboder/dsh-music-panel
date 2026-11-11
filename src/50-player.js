@@ -4,7 +4,7 @@
  * Extracted from client.js at the 0.11.1 baseline (3931c14).
  */
 
-function randomOrderOf(size) {
+function randomOrderOf(size, start) {
   var order = []
   for (var i = 0; i < size; i += 1) order.push(i)
   for (var j = order.length - 1; j > 0; j -= 1) {
@@ -12,6 +12,15 @@ function randomOrderOf(size) {
     var tmp = order[j]
     order[j] = order[k]
     order[k] = tmp
+  }
+  // Random mode starts with the current track, so the displayed shuffled
+  // list and the actual top-to-bottom playback order line up.
+  if (Number.isInteger(start) && start >= 0 && start < order.length && order.length > 1) {
+    var at = order.indexOf(start)
+    if (at > 0) {
+      order.splice(at, 1)
+      order.unshift(start)
+    }
   }
   return order
 }
@@ -300,7 +309,7 @@ function createPlayer() {
       duration: saved.durationSec > 0 ? saved.durationSec : 0,
       playing: false,
     })
-    randomOrder = randomOrderOf(queue.length)
+    randomOrder = randomOrderOf(queue.length, index)
     emit()
     syncMediaSession()
     resetSession(queue[index])
@@ -850,7 +859,7 @@ function createPlayer() {
     playList: function (list, at) {
       if (!list || list.length === 0) return
       state = Object.assign({}, state, { queue: list.slice(), index: at })
-      randomOrder = randomOrderOf(list.length)
+      randomOrder = randomOrderOf(list.length, at)
       load(at, true)
     },
     /** Insert one track immediately after the current one, without interrupting playback. */
@@ -892,7 +901,7 @@ function createPlayer() {
       }
       if (!sameQueue(list, state.queue)) {
         state = Object.assign({}, state, { queue: list.slice(), index: at })
-        randomOrder = randomOrderOf(list.length)
+        randomOrder = randomOrderOf(list.length, at)
         load(at, true)
         return
       }
@@ -1105,7 +1114,7 @@ function createPlayer() {
       if (next === 'random' && state.queue.length > 1) {
         // Fresh shuffle whenever random is selected, so the queue panel's
         // displayed order is the actual playback order.
-        randomOrder = randomOrderOf(state.queue.length)
+        randomOrder = randomOrderOf(state.queue.length, state.index)
       }
       state = Object.assign({}, state, { order: next })
       savePrefs({ order: next })
