@@ -155,6 +155,7 @@ window.__ModuleLoader__.load({
         'page.desc': '降序',
         'page.unknownArtist': '未知歌手',
         'page.warnings': '部分文件夹无法读取',
+        'page.truncated': '曲库超过 5000 首，当前只显示前 5000 首',
         'page.queueEmpty': '队列是空的',
         'page.noTrack': '未在播放',
         'page.format': '格式',
@@ -503,6 +504,7 @@ window.__ModuleLoader__.load({
         'page.desc': 'Descending',
         'page.unknownArtist': 'Unknown artist',
         'page.warnings': 'Some folders could not be read',
+        'page.truncated': 'Library has more than 5000 tracks; showing the first 5000',
         'page.queueEmpty': 'The queue is empty',
         'page.noTrack': 'Nothing playing',
         'page.format': 'Format',
@@ -2406,6 +2408,7 @@ window.__ModuleLoader__.load({
           filter: null,
           query: '',
           queueOpen: false,
+          queueSource: '',
           npOpen: false,
         },
         readUiState(),
@@ -2793,6 +2796,9 @@ window.__ModuleLoader__.load({
       var pendingResumeSeconds = null
       /** Only the tab holding the player lock may produce sound / write stats. */
       var leader = true
+      var leaderTimer = null
+      var tabId = 'music-' + Math.random().toString(36).slice(2) + '-' + Date.now().toString(36)
+      var LEADER_KEY = 'dsh-music-panel.player.leader'
     
       function resetSession(item) {
         session = {
@@ -3807,6 +3813,7 @@ window.__ModuleLoader__.load({
           if (audio) audio.pause()
         },
         destroy: function () {
+          stopLeaderElection()
           loadToken += 1
           cancelPendingFetch()
           releaseObjectUrl()
@@ -3817,6 +3824,76 @@ window.__ModuleLoader__.load({
             audio = null
           }
         },
+      }
+    
+      // ── cross-window leader (one audible player per browser profile) ─────
+      function readLease() {
+        try {
+          var raw = window.localStorage.getItem(LEADER_KEY)
+          var value = raw === null ? null : JSON.parse(raw)
+          return value !== null && typeof value === 'object' ? value : null
+        } catch {
+          return null
+        }
+      }
+    
+      function claimLeader() {
+        if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') return true
+        try {
+          var now = Date.now()
+          var lease = readLease()
+          if (lease !== null && lease.id !== tabId && now - Number(lease.at || 0) < 7000) {
+            if (leader) {
+              leader = false
+              if (audio !== null) audio.pause()
+              if (state.playing) patch({ playing: false })
+              emit()
+            }
+            return false
+          }
+          window.localStorage.setItem(LEADER_KEY, JSON.stringify({ id: tabId, at: now }))
+          if (!leader) {
+            leader = true
+            emit()
+          }
+          return true
+        } catch {
+          return true
+        }
+      }
+    
+      function releaseLeader() {
+        try {
+          var lease = readLease()
+          if (lease !== null && lease.id === tabId) window.localStorage.removeItem(LEADER_KEY)
+        } catch {
+          // Best effort.
+        }
+      }
+    
+      function startLeaderElection() {
+        if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') return
+        claimLeader()
+        leaderTimer = setInterval(claimLeader, 2000)
+        if (leaderTimer && typeof leaderTimer.unref === 'function') leaderTimer.unref()
+        window.addEventListener('beforeunload', releaseLeader)
+        window.addEventListener('pagehide', releaseLeader)
+      }
+    
+      function stopLeaderElection() {
+        if (leaderTimer !== null) clearInterval(leaderTimer)
+        leaderTimer = null
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('beforeunload', releaseLeader)
+          window.removeEventListener('pagehide', releaseLeader)
+        }
+        releaseLeader()
+      }
+    
+      try {
+        startLeaderElection()
+      } catch {
+        // localStorage can be unavailable in private/browser test modes.
       }
     
       syncMediaHandlers()
@@ -3861,6 +3938,7 @@ window.__ModuleLoader__.load({
           tracks: Array.isArray(body.tracks) ? body.tracks : [],
           roots: Array.isArray(body.roots) ? body.roots : [],
           warnings: Array.isArray(body.warnings) ? body.warnings : [],
+          truncated: body.truncated === true,
           scannedAt: body.scannedAt || 0,
           config: body.config || libraryStore.get().config,
           error: '',
@@ -4860,7 +4938,7 @@ window.__ModuleLoader__.load({
       '.mp-q-title{font-size:13px;font-weight:650}',
       '.mp-q-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-q-list{flex:1;min-height:0;overflow-y:auto;padding:0 6px 14px}',
-      '.mp-q-row{display:flex;align-items:center;gap:10px;height:52px;padding:0 9px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-q-row{display:flex;align-items:center;gap:10px;height:52px;padding:0 9px;border-radius:8px;cursor:grab;font-size:13px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-q-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
       '.mp-q-row.is-cur{background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
       '.mp-q-row.is-cur .mp-q-name{color:var(--dsw-alias-state-business-primary,#7AAAFF)}',
@@ -6623,6 +6701,7 @@ window.__ModuleLoader__.load({
     function QueueList(props) {
       var snap = props.snap
       var listRef = useRef(null)
+      var dragFromRef = useRef(null)
       useEffect(
         function () {
           var box = listRef.current
@@ -6658,8 +6737,34 @@ window.__ModuleLoader__.load({
             {
               key: track.path + ':' + queueIndex,
               className: cx('mp-q-row', current && 'is-cur'),
+              draggable: true,
+              onDragStart: function (event) {
+                dragFromRef.current = position
+                if (event.dataTransfer) {
+                  event.dataTransfer.effectAllowed = 'move'
+                  event.dataTransfer.setData('text/plain', String(position))
+                }
+              },
+              onDragOver: function (event) {
+                if (dragFromRef.current === null) return
+                event.preventDefault()
+                if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+              },
+              onDrop: function (event) {
+                event.preventDefault()
+                var from = dragFromRef.current
+                dragFromRef.current = null
+                if (from === null || from === position) return
+                var indices = order.slice()
+                var moved = indices.splice(from, 1)[0]
+                indices.splice(position, 0, moved)
+                player.reorderQueue(indices)
+              },
+              onDragEnd: function () {
+                dragFromRef.current = null
+              },
               onClick: function () {
-                player.select(snap.queue, queueIndex)
+                if (dragFromRef.current === null) player.select(snap.queue, queueIndex)
               },
               title: trackTitleOf(track),
             },
@@ -7294,6 +7399,7 @@ window.__ModuleLoader__.load({
               (library.warnings || []).length > 0
                 ? ' · ' + t('settings.scanWarnings', { n: library.warnings.length })
                 : '',
+              library.truncated === true ? ' · ' + t('page.truncated') : '',
             ),
           ),
           h(
@@ -10372,12 +10478,12 @@ window.__ModuleLoader__.load({
         ),
         h(PlayerBar, {
           favoriteSet: favorites,
-          queueOpen: ui.queueOpen && ui.npOpen !== true,
+          queueOpen: ui.queueOpen && ui.queueSource === 'bar' && ui.npOpen !== true,
           onToggleQueue: function () {
-            setUi({ queueOpen: !ui.queueOpen })
+            setUi({ queueOpen: !ui.queueOpen, queueSource: 'bar' })
           },
           onOpenNowPlaying: function () {
-            setUi({ npOpen: true })
+            setUi({ npOpen: true, queueOpen: false })
           },
           onLocate: locateCurrent,
           onToggleFavorite: function (track) {
@@ -10388,11 +10494,11 @@ window.__ModuleLoader__.load({
           open: ui.npOpen === true,
           favoriteSet: favorites,
           onClose: function () {
-            setUi({ npOpen: false })
+            setUi({ npOpen: false, queueOpen: false })
           },
-          queueOpen: ui.queueOpen === true,
+          queueOpen: ui.queueOpen && ui.queueSource === 'np',
           onToggleQueue: function () {
-            setUi({ queueOpen: !ui.queueOpen })
+            setUi({ queueOpen: !ui.queueOpen, queueSource: 'np' })
           },
           onToggleFavorite: function (track) {
             void toggleFavorite(track.path)
@@ -10409,7 +10515,6 @@ window.__ModuleLoader__.load({
      * chat input. Both are optional and disappear when nothing is playing.
      */
     
-    var globalQueueStore = createStore({ open: false })
     var useComposerLayoutEffect =
       typeof React !== 'undefined' && typeof React.useLayoutEffect === 'function' ? React.useLayoutEffect : useEffect
     
@@ -10477,8 +10582,9 @@ window.__ModuleLoader__.load({
     
     function ComposerCluster() {
       var snap = usePlayerSnapshot()
-      var queueState = useStore(globalQueueStore)
+      var ui = useStore(uiStore)
       var track = snap.queue[snap.index] || null
+      var queueOpen = ui.queueOpen === true && ui.queueSource === 'composer'
       if (track === null) return null
       return h(
         'div',
@@ -10499,11 +10605,11 @@ window.__ModuleLoader__.load({
           'button',
           {
             type: 'button',
-            className: cx('mp-cbtn', queueState.open && 'is-on'),
+            className: cx('mp-cbtn', queueOpen && 'is-on'),
             'data-queue-toggle': 'true',
             title: t('page.queue'),
             onClick: function () {
-              globalQueueStore.set({ open: !queueState.open })
+              setUi({ queueOpen: !queueOpen, queueSource: 'composer' })
             },
           },
           icon('playlist', 14),
@@ -10513,7 +10619,8 @@ window.__ModuleLoader__.load({
     }
     
     function GlobalQueueHost() {
-      var state = useStore(globalQueueStore)
+      var state = useStore(uiStore)
+      var open = state.queueOpen === true && state.queueSource === 'composer'
       var snap = usePlayerSnapshot()
       var posPair = useState(null)
       var pos = posPair[0]
@@ -10521,8 +10628,8 @@ window.__ModuleLoader__.load({
       useEffect(
         function () {
           function onKey(event) {
-            if (event.key === 'Escape' && globalQueueStore.get().open) {
-              globalQueueStore.set({ open: false })
+            if (event.key === 'Escape' && uiStore.get().queueOpen) {
+              setUi({ queueOpen: false })
             }
           }
           window.addEventListener('keydown', onKey)
@@ -10534,7 +10641,7 @@ window.__ModuleLoader__.load({
       )
       useComposerLayoutEffect(
         function () {
-          if (state.open !== true) {
+          if (open !== true) {
             setPos(null)
             return undefined
           }
@@ -10562,14 +10669,14 @@ window.__ModuleLoader__.load({
             window.removeEventListener('scroll', place, true)
           }
         },
-        [state.open],
+        [open],
       )
       return h(QueuePopover, {
-        open: state.open === true,
+        open: open,
         snap: snap,
         style: pos || { visibility: 'hidden' },
         onClose: function () {
-          globalQueueStore.set({ open: false })
+          setUi({ queueOpen: false })
         },
       })
     }

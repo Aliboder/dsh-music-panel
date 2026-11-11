@@ -490,12 +490,12 @@ function Panel() {
     ),
     h(PlayerBar, {
       favoriteSet: favorites,
-      queueOpen: ui.queueOpen && ui.npOpen !== true,
+      queueOpen: ui.queueOpen && ui.queueSource === 'bar' && ui.npOpen !== true,
       onToggleQueue: function () {
-        setUi({ queueOpen: !ui.queueOpen })
+        setUi({ queueOpen: !ui.queueOpen, queueSource: 'bar' })
       },
       onOpenNowPlaying: function () {
-        setUi({ npOpen: true })
+        setUi({ npOpen: true, queueOpen: false })
       },
       onLocate: locateCurrent,
       onToggleFavorite: function (track) {
@@ -506,11 +506,11 @@ function Panel() {
       open: ui.npOpen === true,
       favoriteSet: favorites,
       onClose: function () {
-        setUi({ npOpen: false })
+        setUi({ npOpen: false, queueOpen: false })
       },
-      queueOpen: ui.queueOpen === true,
+      queueOpen: ui.queueOpen && ui.queueSource === 'np',
       onToggleQueue: function () {
-        setUi({ queueOpen: !ui.queueOpen })
+        setUi({ queueOpen: !ui.queueOpen, queueSource: 'np' })
       },
       onToggleFavorite: function (track) {
         void toggleFavorite(track.path)

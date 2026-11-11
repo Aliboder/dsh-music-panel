@@ -6,6 +6,7 @@
 function QueueList(props) {
   var snap = props.snap
   var listRef = useRef(null)
+  var dragFromRef = useRef(null)
   useEffect(
     function () {
       var box = listRef.current
@@ -41,8 +42,34 @@ function QueueList(props) {
         {
           key: track.path + ':' + queueIndex,
           className: cx('mp-q-row', current && 'is-cur'),
+          draggable: true,
+          onDragStart: function (event) {
+            dragFromRef.current = position
+            if (event.dataTransfer) {
+              event.dataTransfer.effectAllowed = 'move'
+              event.dataTransfer.setData('text/plain', String(position))
+            }
+          },
+          onDragOver: function (event) {
+            if (dragFromRef.current === null) return
+            event.preventDefault()
+            if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+          },
+          onDrop: function (event) {
+            event.preventDefault()
+            var from = dragFromRef.current
+            dragFromRef.current = null
+            if (from === null || from === position) return
+            var indices = order.slice()
+            var moved = indices.splice(from, 1)[0]
+            indices.splice(position, 0, moved)
+            player.reorderQueue(indices)
+          },
+          onDragEnd: function () {
+            dragFromRef.current = null
+          },
           onClick: function () {
-            player.select(snap.queue, queueIndex)
+            if (dragFromRef.current === null) player.select(snap.queue, queueIndex)
           },
           title: trackTitleOf(track),
         },

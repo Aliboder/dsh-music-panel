@@ -57,6 +57,7 @@ var uiStore = createStore(
       filter: null,
       query: '',
       queueOpen: false,
+      queueSource: '',
       npOpen: false,
     },
     readUiState(),

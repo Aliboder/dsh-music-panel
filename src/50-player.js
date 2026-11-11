@@ -151,6 +151,9 @@ function createPlayer() {
   var pendingResumeSeconds = null
   /** Only the tab holding the player lock may produce sound / write stats. */
   var leader = true
+  var leaderTimer = null
+  var tabId = 'music-' + Math.random().toString(36).slice(2) + '-' + Date.now().toString(36)
+  var LEADER_KEY = 'dsh-music-panel.player.leader'
 
   function resetSession(item) {
     session = {
@@ -1165,6 +1168,7 @@ function createPlayer() {
       if (audio) audio.pause()
     },
     destroy: function () {
+      stopLeaderElection()
       loadToken += 1
       cancelPendingFetch()
       releaseObjectUrl()
@@ -1175,6 +1179,76 @@ function createPlayer() {
         audio = null
       }
     },
+  }
+
+  // ── cross-window leader (one audible player per browser profile) ─────
+  function readLease() {
+    try {
+      var raw = window.localStorage.getItem(LEADER_KEY)
+      var value = raw === null ? null : JSON.parse(raw)
+      return value !== null && typeof value === 'object' ? value : null
+    } catch {
+      return null
+    }
+  }
+
+  function claimLeader() {
+    if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') return true
+    try {
+      var now = Date.now()
+      var lease = readLease()
+      if (lease !== null && lease.id !== tabId && now - Number(lease.at || 0) < 7000) {
+        if (leader) {
+          leader = false
+          if (audio !== null) audio.pause()
+          if (state.playing) patch({ playing: false })
+          emit()
+        }
+        return false
+      }
+      window.localStorage.setItem(LEADER_KEY, JSON.stringify({ id: tabId, at: now }))
+      if (!leader) {
+        leader = true
+        emit()
+      }
+      return true
+    } catch {
+      return true
+    }
+  }
+
+  function releaseLeader() {
+    try {
+      var lease = readLease()
+      if (lease !== null && lease.id === tabId) window.localStorage.removeItem(LEADER_KEY)
+    } catch {
+      // Best effort.
+    }
+  }
+
+  function startLeaderElection() {
+    if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') return
+    claimLeader()
+    leaderTimer = setInterval(claimLeader, 2000)
+    if (leaderTimer && typeof leaderTimer.unref === 'function') leaderTimer.unref()
+    window.addEventListener('beforeunload', releaseLeader)
+    window.addEventListener('pagehide', releaseLeader)
+  }
+
+  function stopLeaderElection() {
+    if (leaderTimer !== null) clearInterval(leaderTimer)
+    leaderTimer = null
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('beforeunload', releaseLeader)
+      window.removeEventListener('pagehide', releaseLeader)
+    }
+    releaseLeader()
+  }
+
+  try {
+    startLeaderElection()
+  } catch {
+    // localStorage can be unavailable in private/browser test modes.
   }
 
   syncMediaHandlers()

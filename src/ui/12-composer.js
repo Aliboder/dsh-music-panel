@@ -3,7 +3,6 @@
  * chat input. Both are optional and disappear when nothing is playing.
  */
 
-var globalQueueStore = createStore({ open: false })
 var useComposerLayoutEffect =
   typeof React !== 'undefined' && typeof React.useLayoutEffect === 'function' ? React.useLayoutEffect : useEffect
 
@@ -71,8 +70,9 @@ function ComposerLyrics() {
 
 function ComposerCluster() {
   var snap = usePlayerSnapshot()
-  var queueState = useStore(globalQueueStore)
+  var ui = useStore(uiStore)
   var track = snap.queue[snap.index] || null
+  var queueOpen = ui.queueOpen === true && ui.queueSource === 'composer'
   if (track === null) return null
   return h(
     'div',
@@ -93,11 +93,11 @@ function ComposerCluster() {
       'button',
       {
         type: 'button',
-        className: cx('mp-cbtn', queueState.open && 'is-on'),
+        className: cx('mp-cbtn', queueOpen && 'is-on'),
         'data-queue-toggle': 'true',
         title: t('page.queue'),
         onClick: function () {
-          globalQueueStore.set({ open: !queueState.open })
+          setUi({ queueOpen: !queueOpen, queueSource: 'composer' })
         },
       },
       icon('playlist', 14),
@@ -107,7 +107,8 @@ function ComposerCluster() {
 }
 
 function GlobalQueueHost() {
-  var state = useStore(globalQueueStore)
+  var state = useStore(uiStore)
+  var open = state.queueOpen === true && state.queueSource === 'composer'
   var snap = usePlayerSnapshot()
   var posPair = useState(null)
   var pos = posPair[0]
@@ -115,8 +116,8 @@ function GlobalQueueHost() {
   useEffect(
     function () {
       function onKey(event) {
-        if (event.key === 'Escape' && globalQueueStore.get().open) {
-          globalQueueStore.set({ open: false })
+        if (event.key === 'Escape' && uiStore.get().queueOpen) {
+          setUi({ queueOpen: false })
         }
       }
       window.addEventListener('keydown', onKey)
@@ -128,7 +129,7 @@ function GlobalQueueHost() {
   )
   useComposerLayoutEffect(
     function () {
-      if (state.open !== true) {
+      if (open !== true) {
         setPos(null)
         return undefined
       }
@@ -156,14 +157,14 @@ function GlobalQueueHost() {
         window.removeEventListener('scroll', place, true)
       }
     },
-    [state.open],
+    [open],
   )
   return h(QueuePopover, {
-    open: state.open === true,
+    open: open,
     snap: snap,
     style: pos || { visibility: 'hidden' },
     onClose: function () {
-      globalQueueStore.set({ open: false })
+      setUi({ queueOpen: false })
     },
   })
 }

@@ -535,6 +535,7 @@ function SettingsSheet(props) {
           (library.warnings || []).length > 0
             ? ' · ' + t('settings.scanWarnings', { n: library.warnings.length })
             : '',
+          library.truncated === true ? ' · ' + t('page.truncated') : '',
         ),
       ),
       h(

@@ -157,7 +157,7 @@ pnpm add dsh-music-panel
 ### 开发
 
 ```bash
-npm test            # 17 test files
+npm test            # 19 test files
 npm run check       # syntax + manifest checks
 npm run pack:check  # package self-check
 ```
@@ -290,6 +290,7 @@ See [theme guidelines](docs/theme-guidelines.md) and [UI review](docs/ui-review-
 ### License
 
 [MIT](LICENSE) © Aliboder
+
 
 
 

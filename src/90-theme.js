@@ -224,7 +224,7 @@ var THEME_CSS = [
   '.mp-q-title{font-size:13px;font-weight:650}',
   '.mp-q-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
   '.mp-q-list{flex:1;min-height:0;overflow-y:auto;padding:0 6px 14px}',
-  '.mp-q-row{display:flex;align-items:center;gap:10px;height:52px;padding:0 9px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+  '.mp-q-row{display:flex;align-items:center;gap:10px;height:52px;padding:0 9px;border-radius:8px;cursor:grab;font-size:13px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
   '.mp-q-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
   '.mp-q-row.is-cur{background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
   '.mp-q-row.is-cur .mp-q-name{color:var(--dsw-alias-state-business-primary,#7AAAFF)}',

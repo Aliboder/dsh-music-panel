@@ -32,6 +32,7 @@ async function loadLibrary(refresh) {
       tracks: Array.isArray(body.tracks) ? body.tracks : [],
       roots: Array.isArray(body.roots) ? body.roots : [],
       warnings: Array.isArray(body.warnings) ? body.warnings : [],
+      truncated: body.truncated === true,
       scannedAt: body.scannedAt || 0,
       config: body.config || libraryStore.get().config,
       error: '',
