@@ -4847,13 +4847,15 @@ window.__ModuleLoader__.load({
       '.mp-np-line-trans{font-size:var(--mp-lyric-trans,13px);line-height:1.5;margin-top:4px;opacity:.66}',
       '.mp-np-line.is-active .mp-np-line-trans{opacity:.85}',
       '.mp-np.is-blur .mp-np-line:not(.is-active){opacity:.34;filter:blur(1.2px)}',
-      '.mp-np-bottom{position:relative;z-index:2;margin:0 40px 18px;padding:12px 18px 14px;border:.5px solid rgba(255,255,255,.08);border-radius:20px;background:rgba(16,16,20,.5);-webkit-backdrop-filter:blur(20px) saturate(1.3);backdrop-filter:blur(20px) saturate(1.3);box-shadow:0 18px 44px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06)}',
-      '.mp-np-progress{margin-bottom:6px}',
-      '.mp-np-bar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px}',
+      '.mp-np-bottom{position:relative;z-index:2;flex:none;height:68px;margin:0;padding:0 14px;border:0;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:0;background:var(--dsw-alias-bg-layer-1,#15151a);display:flex;align-items:center}',
+      '.mp-np-progress{position:absolute;left:0;right:0;top:-2px;margin:0;padding:0 2px}',
+      '.mp-np-bar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;width:100%;height:100%}',
       '.mp-np-time{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
       '.mp-np-time-sep{opacity:.6}',
       '.mp-np-controls{display:flex;align-items:center;gap:4px;justify-self:center}',
       '.mp-np-vol{display:flex;align-items:center;gap:8px;justify-self:end}',
+      '.mp-np-queue-host{position:relative;z-index:80}',
+      '.mp-np-queue-host .mp-queue-pop{z-index:80}',
       '.mp-quality{font-size:11px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.06)}',
       '@keyframes mp-disc-spin{to{transform:rotate(360deg)}}',
     
@@ -5154,7 +5156,7 @@ window.__ModuleLoader__.load({
       '.mp-queue-pop.is-anchored .mp-q-list{max-height:calc(50vh - 56px)}',
       '@media (max-width:1240px){.mp-row{grid-template-columns:40px minmax(0,1.6fr) minmax(0,1fr) 66px 46px 50px}}',
       '@media (max-width:1080px){.mp-row-album{display:none}.mp-row{grid-template-columns:40px minmax(0,1fr) 68px 46px 50px}.mp-workspace.is-queue{grid-template-columns:188px minmax(0,1fr)}.mp-root.is-top .mp-workspace.is-queue{grid-template-columns:minmax(0,1fr)}.mp-queue{display:none!important}}',
-      '@media (max-width:980px){.mp-np-body{grid-template-columns:1fr;gap:10px;padding:4px 20px}.mp-np-left{gap:10px}.mp-np-disc-wrap{margin-bottom:12px}.mp-np-right{width:100%;max-height:34vh}.mp-np-bottom{margin:0 16px 12px;padding:10px 12px 12px}.mp-np-head{padding:12px 16px 6px}.mp-np-title{font-size:16px}}',
+      '@media (max-width:980px){.mp-np-body{grid-template-columns:1fr;gap:10px;padding:4px 20px}.mp-np-left{gap:10px}.mp-np-disc-wrap{margin-bottom:12px}.mp-np-right{width:100%;max-height:34vh}.mp-np-bottom{margin:0;padding:0 12px;height:64px}.mp-np-head{padding:12px 16px 6px}.mp-np-title{font-size:16px}}',
       '@media (max-width:900px){.mp-workspace,.mp-workspace.is-queue{grid-template-columns:56px minmax(0,1fr)}.mp-root.is-top .mp-workspace{grid-template-columns:minmax(0,1fr)}.mp-nav{padding:10px 6px;align-items:center}.mp-nav-label,.mp-nav-item span,.mp-nav-count{display:none}.mp-nav-item{width:40px;justify-content:center;padding:0}.mp-search{width:160px}.mp-pb-vol{display:none}}',
     
       '@media (max-width:900px){.mp-sheet{width:calc(100vw - 24px);height:min(560px,calc(100dvh - 24px));grid-template-columns:152px minmax(0,1fr)}.mp-sheet-nav{padding:12px 8px}.mp-sheet-body{padding:14px 16px 20px}}',
@@ -6504,7 +6506,7 @@ window.__ModuleLoader__.load({
                 icon: 'list',
                 size: 18,
                 title: t('page.queue'),
-                onClick: props.onQueue,
+                onClick: props.onToggleQueue,
               }),
             ),
             h(
@@ -10105,7 +10107,7 @@ window.__ModuleLoader__.load({
         ),
         h(PlayerBar, {
           favoriteSet: favorites,
-          queueOpen: ui.queueOpen,
+          queueOpen: ui.queueOpen && ui.npOpen !== true,
           onToggleQueue: function () {
             setUi({ queueOpen: !ui.queueOpen })
           },
@@ -10123,13 +10125,27 @@ window.__ModuleLoader__.load({
           onClose: function () {
             setUi({ npOpen: false })
           },
-          onQueue: function () {
-            setUi({ npOpen: false, queueOpen: true })
+          queueOpen: ui.queueOpen === true,
+          onToggleQueue: function () {
+            setUi({ queueOpen: !ui.queueOpen })
           },
           onToggleFavorite: function (track) {
             void toggleFavorite(track.path)
           },
         }),
+        ui.npOpen === true && ui.queueOpen === true
+          ? h(
+              'div',
+              { className: 'mp-np-queue-host' },
+              h(QueuePopover, {
+                open: true,
+                snap: snap,
+                onClose: function () {
+                  setUi({ queueOpen: false })
+                },
+              }),
+            )
+          : null,
         h(OverlayRoot),
         h(Toast),
       )

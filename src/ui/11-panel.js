@@ -490,7 +490,7 @@ function Panel() {
     ),
     h(PlayerBar, {
       favoriteSet: favorites,
-      queueOpen: ui.queueOpen,
+      queueOpen: ui.queueOpen && ui.npOpen !== true,
       onToggleQueue: function () {
         setUi({ queueOpen: !ui.queueOpen })
       },
@@ -508,13 +508,27 @@ function Panel() {
       onClose: function () {
         setUi({ npOpen: false })
       },
-      onQueue: function () {
-        setUi({ npOpen: false, queueOpen: true })
+      queueOpen: ui.queueOpen === true,
+      onToggleQueue: function () {
+        setUi({ queueOpen: !ui.queueOpen })
       },
       onToggleFavorite: function (track) {
         void toggleFavorite(track.path)
       },
     }),
+    ui.npOpen === true && ui.queueOpen === true
+      ? h(
+          'div',
+          { className: 'mp-np-queue-host' },
+          h(QueuePopover, {
+            open: true,
+            snap: snap,
+            onClose: function () {
+              setUi({ queueOpen: false })
+            },
+          }),
+        )
+      : null,
     h(OverlayRoot),
     h(Toast),
   )

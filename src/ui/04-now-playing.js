@@ -510,7 +510,7 @@ function NowPlaying(props) {
             icon: 'list',
             size: 18,
             title: t('page.queue'),
-            onClick: props.onQueue,
+            onClick: props.onToggleQueue,
           }),
         ),
         h(
