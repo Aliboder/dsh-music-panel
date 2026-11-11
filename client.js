@@ -10198,6 +10198,8 @@ window.__ModuleLoader__.load({
      */
     
     var globalQueueStore = createStore({ open: false })
+    var useComposerLayoutEffect =
+      typeof React !== 'undefined' && typeof React.useLayoutEffect === 'function' ? React.useLayoutEffect : useEffect
     
     function ComposerLyrics() {
       var prefs = usePrefs()
@@ -10318,7 +10320,7 @@ window.__ModuleLoader__.load({
         },
         [],
       )
-      useEffect(
+      useComposerLayoutEffect(
         function () {
           if (state.open !== true) {
             setPos(null)
@@ -10327,7 +10329,7 @@ window.__ModuleLoader__.load({
           function place() {
             var button = document.querySelector('.mp-composer-cluster [data-queue-toggle]')
             if (!button) {
-              setPos(null)
+              setPos({ left: 'auto', right: '24px', bottom: '96px', width: 'min(340px, calc(100vw - 16px))' })
               return
             }
             var rect = button.getBoundingClientRect()
@@ -10353,7 +10355,7 @@ window.__ModuleLoader__.load({
       return h(QueuePopover, {
         open: state.open === true,
         snap: snap,
-        style: pos || undefined,
+        style: pos || { visibility: 'hidden' },
         onClose: function () {
           globalQueueStore.set({ open: false })
         },
