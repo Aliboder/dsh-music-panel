@@ -70,6 +70,23 @@ var THEME_CSS = [
 
   // ── content ─────────────────────────────────────────────────────────────
   '.mp-content{display:flex;flex-direction:column;min-width:0;min-height:0}',
+
+  '.mp-sec-overflow{position:relative;display:inline-flex;flex:none;margin-left:auto}',
+  '.mp-sec-expand{height:26px;padding:0 9px;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:8px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;white-space:nowrap}',
+  '.mp-sec-expand:hover,.mp-sec-expand.is-on{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+  '.mp-playlist-pop{position:fixed;z-index:60;padding:12px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-panel,0 20px 56px rgba(0,0,0,.5));max-height:70vh;overflow:auto}',
+  '.mp-playlist-pop-head{display:flex;align-items:baseline;gap:8px;padding:2px 2px 10px;font-size:13px}',
+  '.mp-playlist-pop-count{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+  '.mp-playlist-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}',
+  '.mp-playlist-card{display:flex;align-items:center;gap:9px;min-width:0;min-height:58px;padding:9px 10px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.035));color:var(--dsw-alias-label-primary,#f4f4f5);text-align:left;cursor:pointer}',
+  '.mp-playlist-card:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));border-color:var(--dsw-alias-border-l2,rgba(255,255,255,.14))}',
+  '.mp-playlist-card.is-on{border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 12%,transparent)}',
+  '.mp-playlist-card-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+  '.mp-playlist-card-main{display:flex;flex-direction:column;min-width:0;gap:2px}',
+  '.mp-playlist-card-main strong{font-size:12px;font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+  '.mp-playlist-card-main span{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+  '@media (max-width:900px){.mp-playlist-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}',
+  '@media (max-width:620px){.mp-playlist-grid{grid-template-columns:1fr}}',
   '.mp-content-head{display:flex;align-items:center;gap:12px;padding:10px 22px 6px;min-height:0;flex:none}',
   '.mp-title{margin:0;font-size:20px;font-weight:650;letter-spacing:-.015em;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
   '.mp-count{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding-bottom:3px;font-variant-numeric:tabular-nums;white-space:nowrap}',
