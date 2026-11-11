@@ -83,7 +83,7 @@ function SettingsSheet(props) {
   function layoutChoices() {
     return h(
       'div',
-      { style: { display: 'flex', gap: '4px' } },
+      { className: 'mp-set-choice-row' },
       h(
         'button',
         {
