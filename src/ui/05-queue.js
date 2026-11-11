@@ -82,6 +82,25 @@ function QueuePanel(props) {
 }
 
 function QueuePopover(props) {
+  useEffect(
+    function () {
+      if (props.open !== true) return undefined
+      function onDown(event) {
+        var target = event.target
+        if (target && target.closest) {
+          if (target.closest('.mp-queue-pop')) return
+          if (target.closest('.mp-pb-queue-wrap')) return
+          if (target.closest('.mp-composer-cluster')) return
+        }
+        props.onClose()
+      }
+      document.addEventListener('pointerdown', onDown, true)
+      return function () {
+        document.removeEventListener('pointerdown', onDown, true)
+      }
+    },
+    [props.open, props.onClose],
+  )
   if (props.open !== true) return null
   return h(
     'div',
@@ -89,6 +108,7 @@ function QueuePopover(props) {
       className: cx('mp-queue-pop', props.anchored === true && 'is-anchored'),
       role: 'dialog',
       'aria-label': t('page.queue'),
+      style: props.style,
     },
     h(
       'div',

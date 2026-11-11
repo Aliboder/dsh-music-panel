@@ -6647,6 +6647,25 @@ window.__ModuleLoader__.load({
     }
     
     function QueuePopover(props) {
+      useEffect(
+        function () {
+          if (props.open !== true) return undefined
+          function onDown(event) {
+            var target = event.target
+            if (target && target.closest) {
+              if (target.closest('.mp-queue-pop')) return
+              if (target.closest('.mp-pb-queue-wrap')) return
+              if (target.closest('.mp-composer-cluster')) return
+            }
+            props.onClose()
+          }
+          document.addEventListener('pointerdown', onDown, true)
+          return function () {
+            document.removeEventListener('pointerdown', onDown, true)
+          }
+        },
+        [props.open, props.onClose],
+      )
       if (props.open !== true) return null
       return h(
         'div',
@@ -6654,6 +6673,7 @@ window.__ModuleLoader__.load({
           className: cx('mp-queue-pop', props.anchored === true && 'is-anchored'),
           role: 'dialog',
           'aria-label': t('page.queue'),
+          style: props.style,
         },
         h(
           'div',
@@ -7521,7 +7541,6 @@ window.__ModuleLoader__.load({
       )
     
       useEffect(function () {
-        if (hostComponent('Menu') !== null) return undefined
         function onDown(event) {
           var node = event.target
           if (node && typeof node.closest === 'function' && node.closest('.mp-ctx')) return
@@ -10267,6 +10286,7 @@ window.__ModuleLoader__.load({
           {
             type: 'button',
             className: cx('mp-cbtn', queueState.open && 'is-on'),
+            'data-queue-toggle': 'true',
             title: t('page.queue'),
             onClick: function () {
               globalQueueStore.set({ open: !queueState.open })
@@ -10281,6 +10301,9 @@ window.__ModuleLoader__.load({
     function GlobalQueueHost() {
       var state = useStore(globalQueueStore)
       var snap = usePlayerSnapshot()
+      var posPair = useState(null)
+      var pos = posPair[0]
+      var setPos = posPair[1]
       useEffect(
         function () {
           function onKey(event) {
@@ -10288,17 +10311,41 @@ window.__ModuleLoader__.load({
               globalQueueStore.set({ open: false })
             }
           }
-          function onDown(event) {
-            var target = event.target
-            if (target && target.closest && target.closest('.mp-queue-pop')) return
-            if (target && target.closest && target.closest('.mp-composer-cluster')) return
-            globalQueueStore.set({ open: false })
-          }
           window.addEventListener('keydown', onKey)
-          document.addEventListener('pointerdown', onDown, true)
           return function () {
             window.removeEventListener('keydown', onKey)
-            document.removeEventListener('pointerdown', onDown, true)
+          }
+        },
+        [],
+      )
+      useEffect(
+        function () {
+          if (state.open !== true) {
+            setPos(null)
+            return undefined
+          }
+          function place() {
+            var button = document.querySelector('.mp-composer-cluster [data-queue-toggle]')
+            if (!button) {
+              setPos(null)
+              return
+            }
+            var rect = button.getBoundingClientRect()
+            var width = Math.min(340, window.innerWidth - 16)
+            var left = Math.max(8, Math.min(window.innerWidth - width - 8, rect.right - width))
+            var below = rect.top < window.innerHeight * 0.5
+            setPos(
+              below
+                ? { left: left + 'px', right: 'auto', top: rect.bottom + 10 + 'px', bottom: 'auto', width: width + 'px' }
+                : { left: left + 'px', right: 'auto', top: 'auto', bottom: window.innerHeight - rect.top + 10 + 'px', width: width + 'px' },
+            )
+          }
+          place()
+          window.addEventListener('resize', place)
+          window.addEventListener('scroll', place, true)
+          return function () {
+            window.removeEventListener('resize', place)
+            window.removeEventListener('scroll', place, true)
           }
         },
         [state.open],
@@ -10306,6 +10353,7 @@ window.__ModuleLoader__.load({
       return h(QueuePopover, {
         open: state.open === true,
         snap: snap,
+        style: pos || undefined,
         onClose: function () {
           globalQueueStore.set({ open: false })
         },

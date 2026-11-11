@@ -37,7 +37,6 @@ function ContextMenu(props) {
   )
 
   useEffect(function () {
-    if (hostComponent('Menu') !== null) return undefined
     function onDown(event) {
       var node = event.target
       if (node && typeof node.closest === 'function' && node.closest('.mp-ctx')) return
