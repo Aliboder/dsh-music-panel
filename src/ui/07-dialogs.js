@@ -209,8 +209,8 @@ function ContextMenu(props) {
     icon: 'list',
     label: t('page.next'),
     run: function () {
-      player.enqueue(track)
-      showToast(t('page.addedToPlaylist'))
+      player.enqueueNext(track)
+      showToast(t('page.addedNext'))
     },
   })
   if (online) {
@@ -312,10 +312,12 @@ function ContextMenu(props) {
     }
 var width = 190
   var height = items.length * 32 + 8
-  var left = Math.min(layer.props.x || 0, Math.max(8, window.innerWidth - width - 12))
-  var top = Math.min(layer.props.y || 0, Math.max(8, window.innerHeight - height - 12))
+  var left = Math.max(8, Math.min(layer.props.x || 0, Math.max(8, window.innerWidth - width - 12)))
+  var top = Math.max(8, Math.min(layer.props.y || 0, Math.max(8, window.innerHeight - height - 12)))
 
-  var HostMenu = hostComponent('Menu')
+  // Host menus anchor to a trigger and fall back to a corner; context menus
+  // must follow the pointer, so always use the custom fixed menu here.
+  var HostMenu = null
   if (HostMenu !== null) {
     var hostItems = items.map(function (item) {
       if (item.separator) return { type: 'separator', id: item.key }

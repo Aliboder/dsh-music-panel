@@ -91,13 +91,13 @@ function ComposerCluster() {
       'button',
       {
         type: 'button',
-        className: 'mp-cbtn',
+        className: cx('mp-cbtn', queueState.open && 'is-on'),
         title: t('page.queue'),
         onClick: function () {
           globalQueueStore.set({ open: !queueState.open })
         },
       },
-      icon('list', 14),
+      icon('playlist', 14),
       h('span', null, trackTitleOf(track)),
     ),
   )
@@ -113,12 +113,20 @@ function GlobalQueueHost() {
           globalQueueStore.set({ open: false })
         }
       }
+      function onDown(event) {
+        var target = event.target
+        if (target && target.closest && target.closest('.mp-queue-pop')) return
+        if (target && target.closest && target.closest('.mp-composer-cluster')) return
+        globalQueueStore.set({ open: false })
+      }
       window.addEventListener('keydown', onKey)
+      document.addEventListener('pointerdown', onDown, true)
       return function () {
         window.removeEventListener('keydown', onKey)
+        document.removeEventListener('pointerdown', onDown, true)
       }
     },
-    [],
+    [state.open],
   )
   return h(QueuePopover, {
     open: state.open === true,

@@ -853,6 +853,21 @@ function createPlayer() {
       randomOrder = randomOrderOf(list.length)
       load(at, true)
     },
+    /** Insert one track immediately after the current one, without interrupting playback. */
+    enqueueNext: function (track) {
+      if (track === null || track === undefined || typeof track.path !== 'string' || track.path === '') return
+      if (state.queue.length === 0 || state.index < 0) {
+        api.playList([track], 0)
+        return
+      }
+      var at = Math.min(state.index + 1, state.queue.length)
+      var queue = state.queue.slice()
+      queue.splice(at, 0, track)
+      state = Object.assign({}, state, { queue: queue })
+      randomOrder = randomOrderOf(state.queue.length)
+      emit()
+      savePlaybackState()
+    },
     /** Append one track to the queue without interrupting playback. */
     enqueue: function (track) {
       if (track === null || track === undefined || typeof track.path !== 'string' || track.path === '') return

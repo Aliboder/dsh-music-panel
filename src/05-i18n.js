@@ -209,6 +209,7 @@ var DICTS = {
     'page.addTo': '添加到歌单',
     'page.addToPlaylist': '添加到播放列表',
     'page.addedToPlaylist': '已添加到播放列表',
+    'page.addedNext': '已插入下一首',
     'page.reveal': '在文件夹中显示',
     'page.revealed': '已在文件夹中打开',
     'page.favoriteSelected': '喜欢选中',

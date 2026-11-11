@@ -298,6 +298,7 @@ window.__ModuleLoader__.load({
         'page.addTo': '添加到歌单',
         'page.addToPlaylist': '添加到播放列表',
         'page.addedToPlaylist': '已添加到播放列表',
+        'page.addedNext': '已插入下一首',
         'page.reveal': '在文件夹中显示',
         'page.revealed': '已在文件夹中打开',
         'page.favoriteSelected': '喜欢选中',
@@ -3487,6 +3488,21 @@ window.__ModuleLoader__.load({
           state = Object.assign({}, state, { queue: list.slice(), index: at })
           randomOrder = randomOrderOf(list.length)
           load(at, true)
+        },
+        /** Insert one track immediately after the current one, without interrupting playback. */
+        enqueueNext: function (track) {
+          if (track === null || track === undefined || typeof track.path !== 'string' || track.path === '') return
+          if (state.queue.length === 0 || state.index < 0) {
+            api.playList([track], 0)
+            return
+          }
+          var at = Math.min(state.index + 1, state.queue.length)
+          var queue = state.queue.slice()
+          queue.splice(at, 0, track)
+          state = Object.assign({}, state, { queue: queue })
+          randomOrder = randomOrderOf(state.queue.length)
+          emit()
+          savePlaybackState()
         },
         /** Append one track to the queue without interrupting playback. */
         enqueue: function (track) {
@@ -7677,8 +7693,8 @@ window.__ModuleLoader__.load({
         icon: 'list',
         label: t('page.next'),
         run: function () {
-          player.enqueue(track)
-          showToast(t('page.addedToPlaylist'))
+          player.enqueueNext(track)
+          showToast(t('page.addedNext'))
         },
       })
       if (online) {
@@ -7780,10 +7796,12 @@ window.__ModuleLoader__.load({
         }
     var width = 190
       var height = items.length * 32 + 8
-      var left = Math.min(layer.props.x || 0, Math.max(8, window.innerWidth - width - 12))
-      var top = Math.min(layer.props.y || 0, Math.max(8, window.innerHeight - height - 12))
+      var left = Math.max(8, Math.min(layer.props.x || 0, Math.max(8, window.innerWidth - width - 12)))
+      var top = Math.max(8, Math.min(layer.props.y || 0, Math.max(8, window.innerHeight - height - 12)))
     
-      var HostMenu = hostComponent('Menu')
+      // Host menus anchor to a trigger and fall back to a corner; context menus
+      // must follow the pointer, so always use the custom fixed menu here.
+      var HostMenu = null
       if (HostMenu !== null) {
         var hostItems = items.map(function (item) {
           if (item.separator) return { type: 'separator', id: item.key }
@@ -10248,13 +10266,13 @@ window.__ModuleLoader__.load({
           'button',
           {
             type: 'button',
-            className: 'mp-cbtn',
+            className: cx('mp-cbtn', queueState.open && 'is-on'),
             title: t('page.queue'),
             onClick: function () {
               globalQueueStore.set({ open: !queueState.open })
             },
           },
-          icon('list', 14),
+          icon('playlist', 14),
           h('span', null, trackTitleOf(track)),
         ),
       )
@@ -10270,12 +10288,20 @@ window.__ModuleLoader__.load({
               globalQueueStore.set({ open: false })
             }
           }
+          function onDown(event) {
+            var target = event.target
+            if (target && target.closest && target.closest('.mp-queue-pop')) return
+            if (target && target.closest && target.closest('.mp-composer-cluster')) return
+            globalQueueStore.set({ open: false })
+          }
           window.addEventListener('keydown', onKey)
+          document.addEventListener('pointerdown', onDown, true)
           return function () {
             window.removeEventListener('keydown', onKey)
+            document.removeEventListener('pointerdown', onDown, true)
           }
         },
-        [],
+        [state.open],
       )
       return h(QueuePopover, {
         open: state.open === true,
