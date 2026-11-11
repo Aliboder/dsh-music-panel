@@ -40,19 +40,6 @@ class SilentBoundary extends React.Component {
   }
 }
 
-function vipExpiryLabel(value) {
-  if (!value) return t('online.vipExpiryUnknown')
-  const date = new Date(String(value).replace(' ', 'T'))
-  if (!Number.isFinite(date.getTime())) return String(value)
-  const text =
-    String(date.getFullYear()) +
-    '-' +
-    String(date.getMonth() + 1).padStart(2, '0') +
-    '-' +
-    String(date.getDate()).padStart(2, '0')
-  return t('online.vipUntil', { date: text })
-}
-
 function TopBar(props) {
   var ui = props.ui
   var online = props.online
@@ -154,29 +141,8 @@ function TopBar(props) {
           { className: 'mp-userchip is-on' },
           h('span', { className: 'mp-userchip-dot' }),
           h('span', { className: 'mp-userchip-name' }, providerInfo.loggedIn ? providerInfo.nickname || t('online.loggedIn') : t('online.loggedOut')),
-          providerInfo.loggedIn
-            ? h(
-                'span',
-                {
-                  className: cx(
-                    'mp-userchip-vip',
-                    providerInfo.vip === true ? 'is-on' : providerInfo.vip === false ? 'is-off' : 'is-checking',
-                  ),
-                  title: providerInfo.vip === true ? vipExpiryLabel(providerInfo.vipExpiresAt) : '',
-                },
-                providerInfo.vip === true
-                  ? 'VIP'
-                  : providerInfo.vip === false
-                    ? t('online.nonVip')
-                    : t('online.vipSyncing'),
-              )
-            : null,
           providerInfo.loggedIn && providerInfo.vip === true
-            ? h(
-                'span',
-                { className: 'mp-userchip-exp', title: vipExpiryLabel(providerInfo.vipExpiresAt) },
-                vipExpiryLabel(providerInfo.vipExpiresAt),
-              )
+            ? h('span', { className: 'mp-userchip-vip is-on', title: 'VIP' }, 'VIP')
             : null,
           providerInfo.loggedIn
             ? h(

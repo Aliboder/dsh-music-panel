@@ -229,10 +229,6 @@ window.__ModuleLoader__.load({
         'online.statusexpired': '二维码已过期，请重新登录',
         'online.statusfailed': '登录失败',
         'online.loginSuccess': '登录成功',
-        'online.nonVip': '非 VIP',
-        'online.vipSyncing': '会员状态同步中',
-        'online.vipUntil': 'VIP 至 {date}',
-        'online.vipExpiryUnknown': '到期时间未知',
         'online.logoutDone': '已退出登录',
         'online.providerNetease': '网易云',
         'online.providerQq': 'QQ 音乐',
@@ -578,10 +574,6 @@ window.__ModuleLoader__.load({
         'online.statusexpired': 'QR expired — try again',
         'online.statusfailed': 'Sign-in failed',
         'online.loginSuccess': 'Signed in',
-        'online.nonVip': 'No VIP',
-        'online.vipSyncing': 'Checking membership',
-        'online.vipUntil': 'VIP until {date}',
-        'online.vipExpiryUnknown': 'expiry unknown',
         'online.logoutDone': 'Signed out',
         'online.providerNetease': 'NetEase',
         'online.providerQq': 'QQ Music',
@@ -4614,9 +4606,6 @@ window.__ModuleLoader__.load({
       '.mp-userchip-name{max-width:150px;overflow:hidden;text-overflow:ellipsis}',
       '.mp-userchip-vip{font-size:9px;font-weight:700;line-height:1;padding:2px 5px;border-radius:8px;letter-spacing:.02em}',
       '.mp-userchip-vip.is-on{color:#8a5a00;background:#ffd76a}',
-      '.mp-userchip-vip.is-off{color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1))}',
-      '.mp-userchip-vip.is-checking{color:var(--dsw-alias-label-tertiary,#8a8a93);background:transparent;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.1));font-weight:500}',
-      '.mp-userchip-exp{font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}',
       '.mp-userchip-out{color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;margin-left:2px}',
       '.mp-userchip-out:hover{color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-iconbtn{width:30px;height:30px;display:inline-grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;flex:none}',
@@ -9594,19 +9583,6 @@ window.__ModuleLoader__.load({
       }
     }
     
-    function vipExpiryLabel(value) {
-      if (!value) return t('online.vipExpiryUnknown')
-      const date = new Date(String(value).replace(' ', 'T'))
-      if (!Number.isFinite(date.getTime())) return String(value)
-      const text =
-        String(date.getFullYear()) +
-        '-' +
-        String(date.getMonth() + 1).padStart(2, '0') +
-        '-' +
-        String(date.getDate()).padStart(2, '0')
-      return t('online.vipUntil', { date: text })
-    }
-    
     function TopBar(props) {
       var ui = props.ui
       var online = props.online
@@ -9708,29 +9684,8 @@ window.__ModuleLoader__.load({
               { className: 'mp-userchip is-on' },
               h('span', { className: 'mp-userchip-dot' }),
               h('span', { className: 'mp-userchip-name' }, providerInfo.loggedIn ? providerInfo.nickname || t('online.loggedIn') : t('online.loggedOut')),
-              providerInfo.loggedIn
-                ? h(
-                    'span',
-                    {
-                      className: cx(
-                        'mp-userchip-vip',
-                        providerInfo.vip === true ? 'is-on' : providerInfo.vip === false ? 'is-off' : 'is-checking',
-                      ),
-                      title: providerInfo.vip === true ? vipExpiryLabel(providerInfo.vipExpiresAt) : '',
-                    },
-                    providerInfo.vip === true
-                      ? 'VIP'
-                      : providerInfo.vip === false
-                        ? t('online.nonVip')
-                        : t('online.vipSyncing'),
-                  )
-                : null,
               providerInfo.loggedIn && providerInfo.vip === true
-                ? h(
-                    'span',
-                    { className: 'mp-userchip-exp', title: vipExpiryLabel(providerInfo.vipExpiresAt) },
-                    vipExpiryLabel(providerInfo.vipExpiresAt),
-                  )
+                ? h('span', { className: 'mp-userchip-vip is-on', title: 'VIP' }, 'VIP')
                 : null,
               providerInfo.loggedIn
                 ? h(
