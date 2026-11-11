@@ -9594,6 +9594,19 @@ window.__ModuleLoader__.load({
       }
     }
     
+    function vipExpiryLabel(value) {
+      if (!value) return t('online.vipExpiryUnknown')
+      const date = new Date(String(value).replace(' ', 'T'))
+      if (!Number.isFinite(date.getTime())) return String(value)
+      const text =
+        String(date.getFullYear()) +
+        '-' +
+        String(date.getMonth() + 1).padStart(2, '0') +
+        '-' +
+        String(date.getDate()).padStart(2, '0')
+      return t('online.vipUntil', { date: text })
+    }
+    
     function TopBar(props) {
       var ui = props.ui
       var online = props.online
