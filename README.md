@@ -1,248 +1,291 @@
 <div align="center">
 
-# 🎵 dsh-music-panel
+# dsh-music-panel
 
+**A local + online music player, natively embedded in DeepSeek Harness.**  
 **在 DeepSeek Harness 里，把本地曲库和三个在线音乐平台装进同一台播放器。**
 
-本地扫描 · 歌词翻译 · 元数据编辑 · 在线播放（网易云 / QQ 音乐 / 酷狗）· 音频缓存 · 纯本地运行
+Local library · NetEase Cloud Music · QQ Music · KuGou · Lyrics · Cache · EBU R128  
+本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · 歌词 · 缓存 · 音量均衡
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
+[![release](https://img.shields.io/badge/release-0.26.0-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
 [![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
-[![DSH](https://img.shields.io/badge/DeepSeek%20Harness-plugin-5686fe)](https://github.com/Aliboder/dsh-music-panel)
 
-<img src="docs/screenshots/v2-library-grid.png" alt="本地曲库 · 专辑网格" width="100%" />
+[中文](#中文) · [English](#english)
+
+<img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-library-grid.png" alt="Local library · 本地曲库" width="100%" />
 
 </div>
 
 ---
 
-> **0.26.0**：内置 EBU R128 音量均衡（不依赖 ffmpeg）、在线歌单缓存与排序、平台账号资料与缓存歌曲列表、音乐库设置卡片化、关于页与品牌头像。
+## Screenshots · 截图
 
-## ✨ 为什么是它
-
-- **本地 + 在线，一个面板。** 自己的歌在硬盘里直接播；想听平台曲库时切到网易云 / QQ 音乐 / 酷狗，不用另开客户端。
-- **像个正经播放器。** 列表视图、播放页黑胶、逐行歌词（含翻译）、队列拖拽、播放统计、右下角定位，一样不少。
-- **窗口里就能整理曲库。** 在线补全元数据、替换封面、改标签、校准歌词、清理重复——不用离开 DSH。
-- **在线播放不将就。** 扫码登录、云端歌单、喜欢、最近播放、VIP 识别、歌词翻译、音频缓存都做了，且只在你自己的机器上运行。
-- **为 DSH 而生。** 左侧栏音符入口、输入框上方歌词条、会话内直接控制播放，和 Harness 融为一体。
-
-## 📸 截图
-
-| 在线歌单 · 最近播放 | 设置 · 平台账号 |
+| Online playlists · 在线歌单 | Platform accounts · 平台账号 |
 | :---: | :---: |
-| <img src="docs/screenshots/v2-online-recent.png" alt="在线歌单与最近播放" /> | <img src="docs/screenshots/v2-online-accounts.png" alt="在线平台账号与官方图标" /> |
+| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-online-recent.png" alt="Online playlists and recent plays" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-online-accounts.png" alt="Provider accounts and official icons" /> |
 
-| 播放页 · 黑胶 + 歌词 | 播放队列浮窗 |
+| Now playing · 播放页 | Queue · 播放队列 |
 | :---: | :---: |
-| <img src="docs/screenshots/v2-now-playing-lyrics.png" alt="播放页 · 黑胶与歌词翻译" /> | <img src="docs/screenshots/v2-queue-compact.png" alt="播放队列浮窗" /> |
+| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-now-playing-lyrics.png" alt="Now playing with translated lyrics" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-queue-compact.png" alt="Queue popover" /> |
 
 <details>
-<summary>更多截图</summary>
+<summary>More screenshots · 更多截图</summary>
 
-| 播放统计 | 纯音乐播放页 |
+| Statistics · 播放统计 | Instrumental · 纯音乐播放页 |
 | :---: | :---: |
-| <img src="docs/screenshots/v2-stats.png" alt="播放统计" /> | <img src="docs/screenshots/v2-now-playing-instrumental.png" alt="纯音乐播放页" /> |
+| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-stats.png" alt="Listening statistics" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-now-playing-instrumental.png" alt="Instrumental now playing" /> |
 
-| 设置 · 布局切换 | 右键菜单 |
+| Settings · 设置 | Context menu · 右键菜单 |
 | :---: | :---: |
-| <img src="docs/screenshots/v2-settings.png" alt="设置" /> | <img src="docs/screenshots/v2-menu.png" alt="右键菜单" /> |
+| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-settings.png" alt="Settings" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-menu.png" alt="Context menu" /> |
 
-| 多选与批量 | 标签在线匹配 |
+| Batch actions · 批量操作 | Metadata matching · 在线匹配 |
 | :---: | :---: |
-| <img src="docs/screenshots/v2-selection.png" alt="多选" /> | <img src="docs/screenshots/v2-tag-match.png" alt="在线匹配" /> |
+| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-selection.png" alt="Batch selection" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-tag-match.png" alt="Metadata matching" /> |
 
-| 列表多选 | 回收站 |
+| Light theme · 浅色 | Dark theme · 深色 |
 | :---: | :---: |
-| <img src="docs/screenshots/v2-selection.png" alt="列表多选" /> | <img src="docs/screenshots/v2-trash.png" alt="回收站" /> |
-
-| 新顶栏 | 选择菜单 |
-| :---: | :---: |
-| <img src="docs/screenshots/v2-header.png" alt="顶栏" /> | <img src="docs/screenshots/v2-header-menu.png" alt="选择菜单" /> |
-
-| 浅色主题 | 深色主题 |
-| :---: | :---: |
-| <img src="docs/screenshots/v2-light.png" alt="浅色" /> | <img src="docs/screenshots/v2-dark.png" alt="深色" /> |
+| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-light.png" alt="Light theme" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-dark.png" alt="Dark theme" /> |
 
 </details>
 
-## 🎧 功能一览
+---
 
-### 曲库与播放（本地）
+## 中文
 
-- **两种导航布局**：默认「顶栏分区」不会再和 DSH 自带左侧栏重复；想要常驻导航可在 **设置 → 外观 → 布局** 切成「左侧导航」
-- **单击选中、双击播放**：封面上的播放按钮单击即播；勾选圈或 Ctrl / Cmd + 单击可多选
-- 扫描你指定的音乐文件夹（可配置子文件夹深度），支持多个根目录；「文件夹」视图可直接添加，也可以按目录单独隐藏歌曲；支持 MP3 / FLAC / M4A / AAC / OGG / OPUS / WAV / AIFF / WMA / APE
-- 歌曲列表视图，按播放时长、次数、最近播放排序
-- **按文件夹分组**：「文件夹」视图按真实目录聚合，标题显示目录名、下方显示完整路径，点文件夹即可只看该目录的歌曲
-- 播放控制：列表循环 / 单曲循环 / 不循环、随机、上一首 / 下一首、进度拖动、音量与静音
-- 队列浮窗：点底栏按钮在按钮上方弹出，拖拽排序、移除、点击跳播
-- 快捷键：空格播放 / 暂停、Ctrl/⌘ + ←/→ 上一首 / 下一首、`/` 聚焦搜索
-- 记忆上次播放曲目与进度、每首歌断点续播
+### 为什么是 dsh-music-panel
 
-### 在线音乐（网易云 / QQ 音乐 / 酷狗）
+大多数音乐插件只做“能播”。`dsh-music-panel` 想做的是一台**真正属于 DSH 的播放器**：本地曲库、在线平台、歌词、缓存、元数据和播放统计共享同一套界面与队列，不需要在应用之间来回切换。
 
-- **一个面板三个来源**：顶栏「本地音乐 / 网易云 / QQ 音乐 / 酷狗」随时切换，播放队列跨来源保留
-- **歌单直接作为导航项**：本地/在线都一样，每个歌单单独一条，不再先进入「歌单」列表页；本地歌单区带「+ 新建」，右键歌单可删除
-- **云端喜欢 / 加入歌单**：在线歌曲行内红心和右键菜单都写回账号云端；右键「添加到歌单」可直接选账号里的云端歌单
-- **账号资料**：设置 → 在线显示三平台图标、当前昵称与头像（头像走本机代理，不向外部直连）
-- **歌单歌曲缓存**：每个歌单的歌曲缓存 60 秒；指针移到歌单上会预取，切走再切回不重新请求，过期后先显示缓存再后台校准
-- **歌单增量刷新**：后台重新拉取时保留现有列表，按 id 合并增删改，不再清空后重建
-- **歌单排序**：在线歌单支持「平台顺序 / 名称 / 歌曲数」，偏好本地保存
-- **最近播放**：记录你在该平台的收听历史，支持右键单曲移除、一键「清除无法播放」（批量检测并移除 VIP / 已下架曲目）
-- **扫码登录**：设置 → 在线，三平台扫码登录；登录态只保存在本机（`~/.dsh/music/providers.json`，权限 0600）
-- **音质**：统一标准档（各平台 128k 级别），不提供额外选项；实际取链失败会给出提示
-- **歌词与翻译**：自动加载平台歌词；网易云直接取 `trans`，QQ 解析 `GetPlayLyricInfo` 的加密翻译流，酷狗解析 KRC 内嵌译文——开关翻译即可看到双语
-- **VIP / 付费标识**：在线曲目行显示金色 VIP 徽标；点 VIP 曲目会提示不可播，播放队列只收录能听的歌
-- **音量均衡**：按曲目 EBU R128 响度自动调整增益，避免切歌时音量忽大忽小；浏览器内置 EBU R128 分析并缓存，不依赖 ffmpeg；首次分析需要几秒，设置 → 播放会显示内置分析是否可用，也可在那里关闭
-- **缓存列表**：设置 → 缓存列出所有平台的缓存歌曲（标题/歌手/专辑/时长/大小/LRC），可滚动查看并清空
-- **音频缓存**：边播边写临时文件，播完重命名落盘（不占整首内存）；默认上限 **10 GB**，LRU 淘汰；已缓存歌曲显示下载图标，可在 **设置 → 缓存** 查看全部缓存歌曲
-- **播放体验**：Host 取链 + 同源代理，转发 Range 并返回 206；客户端先取整首到 `blob` 再播放，拖动进度条与本地文件一致
-- **快速定位**：右下角浮动按钮，点击切到正在播放歌曲所属的平台/歌单并滚动到该行
+| | 能力 |
+| :--- | :--- |
+| **本地 + 在线** | 硬盘里的歌直接播；网易云 / QQ 音乐 / 酷狗的云端歌单与喜欢也能直接浏览和播放。 |
+| **像播放器，而不是列表** | 专辑网格、黑胶播放页、逐行歌词与翻译、可拖拽队列、播放统计、快速定位。 |
+| **把在线歌单当本地歌单** | 歌单缓存 + 预取 + 后台校准，切走再切回不重新加载；支持按平台顺序 / 名称 / 歌曲数排序。 |
+| **曲库维护留在窗口里** | 在线补全标签、替换封面、校准歌词、检测重复、回收站恢复，不用打开第三方工具。 |
+| **为 DSH 原生设计** | 左侧栏入口、输入框上方歌词条、会话内播放控制，跟随宿主深浅色主题与组件规范。 |
+| **只在你的机器上运行** | Cookie、缓存、播放记录全部保存在本机；客户端不直连外部域名。 |
 
-### 歌词
+### 功能
 
-- 内嵌歌词（MP3 ID3 USLT / FLAC Vorbis LYRICS）与 `.lrc` 文件，来源顺序可调
-- 播放页逐行高亮、翻译显示、字号 / 粗细 / 模糊 / 对齐可调、±0.5s 偏移校准
-- 在线歌词搜索：按歌名 / 艺术家搜索候选，预览后写入内嵌歌词（写前自动备份）
-- 输入框上方歌词条：歌名 · 实时频谱 · 当前唱词
+#### 本地曲库
 
-### 元数据与封面
+- 多根目录扫描，可配置子文件夹深度；支持 MP3 / FLAC / M4A / AAC / OGG / OPUS / WAV / AIFF / WMA / APE。
+- 歌曲 / 专辑 / 歌手 / 文件夹 / 喜欢 / 统计多种视图；按目录聚合并可单独隐藏。
+- 列表循环、单曲循环、顺序播放、随机、上一首 / 下一首、进度拖动、音量与静音。
+- 记忆上次播放曲目与进度，支持每首歌断点续播。
+- 空格播放 / 暂停，`Ctrl` / `⌘` + `←` / `→` 切歌，`/` 聚焦搜索。
 
-- 在线匹配元数据（网易云 / QQ 音乐 / iTunes / MusicBrainz），支持整曲匹配与单字段匹配
-- 编辑标题、艺术家、专辑、年份、音轨号、碟号、风格、专辑艺术家、作曲、作词、注释、歌词
-- 替换封面（在线匹配结果），写回时临时文件 + 回读校验 + 原子替换，失败不破坏原文件
-- 重复歌曲检测：按音质（码率 → 采样率 → 文件大小）保留最好的一首，其余移入插件回收站；**设置 → 音乐库 → 回收站** 可按原路径恢复`n- 多选与批量操作：右键选中项即可批量收藏 / 加入歌单 / 编辑元数据 / 删除到回收站，标题旁显示已选数量
+#### 在线音乐
 
-### 其他
+- 顶栏一键切换本地音乐、网易云、QQ 音乐、酷狗；播放队列跨来源保留。
+- 扫码登录后读取云端歌单、喜欢、最近播放；未登录也可播放平台免费曲目。
+- **歌单歌曲缓存**：按 `provider + playlistId` 缓存 60 秒，导航项 hover / focus 预取；切回时先显示缓存，过期后后台校准。
+- **在线歌单排序**：平台顺序 / 名称 / 歌曲数，偏好保存在本机。
+- **账号资料**：设置 → 在线显示官方平台图标、当前昵称与头像；头像通过本机代理加载。
+- **VIP 识别**：根据当前登录账号判断可播放性，VIP 曲目显示金色徽标。
+- **音频缓存**：边播边写、播完落盘，默认上限 10 GB、LRU 淘汰；设置 → 缓存可查看全部缓存歌曲并清空。
+- **音量均衡**：浏览器内置 EBU R128（BS.1770）分析，按曲目自动调整增益，不依赖 ffmpeg；首次分析后缓存结果。
+- 在线歌词与翻译：网易云 `trans`、QQ 加密翻译流、酷狗 KRC 内嵌译文。
 
-- 喜欢（红心）、歌单（新建 / 增删歌曲 / 右键删除）、播放统计（累计时长、次数、收听排行）
-- 睡眠定时（显示剩余时间，设置里或播放条上一键取消）、播放设置页（启动恢复 / 自动播放 / 断点续播）
-- 跟随 DSH 深浅色主题；深色模式完整适配
+#### 歌词、元数据与整理
 
-## 🚀 安装
+- 内嵌歌词与 `.lrc`，播放页逐行高亮、翻译、字号 / 粗细 / 模糊 / 对齐可调、±0.5s 偏移。
+- 在线歌词搜索并写回内嵌歌词，写前自动备份。
+- 在线匹配网易云 / QQ 音乐 / iTunes / MusicBrainz 元数据，支持整曲或单字段匹配。
+- 编辑标题、艺术家、专辑、年份、音轨号、碟号、风格、专辑艺术家、作曲、作词、注释、歌词。
+- 替换封面、检测重复、批量收藏 / 加入歌单 / 编辑 / 删除到回收站。
+- 删除操作进入插件回收站，可按原路径恢复，不是永久删除。
 
-### 方式一：DSH 插件市场（推荐）
+### 安装
 
-在 DSH 的 **插件市场** 中搜索 `dsh-music-panel` 安装，或让 Agent 执行：
+**要求：DSH Web / Desktop。** 插件需要浏览器载体播放音频，并使用宿主已配置的网络与存储。
 
-```
+#### 方式一：插件市场（推荐）
+
+在 DSH 的 **插件市场** 搜索 `dsh-music-panel`，或让 Agent 执行：
+
+```text
 plugin_manager install_bundle dsh-music-panel
 ```
 
-安装后重启 DSH（Host 代码需要重启加载），左侧栏出现音符图标。
+安装后**完整重启 DSH**，左侧栏出现音乐图标。
 
-### 方式二：npm 安装
+#### 方式二：npm
+
+在 DSH profile 目录下：
 
 ```bash
-# 在 DSH profile 目录下
 pnpm add dsh-music-panel
 ```
 
-## ⚡ 快速开始
+然后重启 DSH。npm 包：<https://www.npmjs.com/package/dsh-music-panel>
 
-### 本地音乐
+### 快速开始
 
-1. 点击左侧栏 **音乐** 图标，打开音乐面板
-2. 右上角 **齿轮 → 音乐库**，点「+ 添加文件夹」，在目录选择器里浏览并选择你的音乐目录
-3. 回到主面板，曲库自动扫描完成
-4. 双击任意歌曲播放，或点「播放全部」
+**本地音乐**
 
-### 在线音乐
+1. 点击左侧栏音乐图标打开面板。
+2. 右上角齿轮 → **音乐库**，添加一个或多个音乐文件夹。
+3. 扫描完成后双击歌曲，或点「播放全部」。
 
-1. 顶栏切到 **网易云 / QQ 音乐 / 酷狗**
-2. 首次使用：**齿轮 → 在线**，点对应平台的「登录」，用手机 App 扫码确认（QQ 可选微信扫码）
-3. 未登录也能播平台免费曲目；登录后可听更高码率（仍统一标准档位）并访问「我的歌单」
-4. 本地/在线的每个歌单都直接作为导航项，点一下切换内容区；本地歌单可右键删除
-5. 播放过的在线歌曲会自动缓存，下次秒开；缓存可在 **设置 → 缓存** 管理
+**在线音乐**
 
-## ⌨️ 快捷键
+1. 顶栏切到网易云 / QQ 音乐 / 酷狗。
+2. 首次使用：齿轮 → **在线**，点对应平台「登录」，用手机 App 扫码确认。
+3. 直接点导航里的云端歌单开始播放；播放过的歌曲会自动进入音频缓存。
+4. 需要清理时到 **设置 → 缓存** 查看或清空。
 
-| 按键 | 功能 |
-| :--- | :--- |
-| `空格` | 播放 / 暂停 |
-| `Ctrl` / `⌘` + `←` | 上一首 |
-| `Ctrl` / `⌘` + `→` | 下一首 |
-| `/` | 聚焦搜索框 |
-| `Esc` | 关闭播放页 / 队列 / 弹窗 |
+### 隐私
 
-## 🎨 主题与组件规范
+- 全部逻辑在本机运行；登录 Cookie / token 只写入 `~/.dsh/music/providers.json`（权限 0600）。
+- 缓存与播放记录位于 `~/.dsh/music/`，可随时清理。
+- 客户端不向外部域名发请求：在线搜索、取链、歌词、封面均由 Host 发起并同源代理。
 
-新增或修改界面前先读 [`docs/theme-guidelines.md`](docs/theme-guidelines.md)：
+### 兼容与限制
 
-- 颜色 / 圆角 / 字号 / 焦点环 / 菜单材质一律取 `--dsw-*` token，浅色与深色都必须成立
-- 对话框用 `KitModal`、开关用 `Switch`、胶囊用 `KitPill`、菜单用 `HeadMenu`，不要手写第二套
-- 宿主组件可用时优先宿主实现，缺失时自动回退；状态在 **设置 → 外观 → 宿主组件** 查看
-- 新图标优先加入 `HOST_ICON_MAP`；音乐专用图标（上一首/下一首/随机/循环/音量/音符）保留本地 SVG
-- 交互审计与已知问题：[docs/ui-review-2026-11.md](docs/ui-review-2026-11.md)
+- 仅支持 DSH Web / Desktop 宿主。
+- 在线平台使用公开的非官方接口，可能失效、限流或改版；失败时会在界面提示，不影响本地播放。
+- VIP / 付费曲目是否可播取决于当前登录账号，界面会显示金色徽标。
+- 平台图标使用各平台 App Store 官方应用图标，仅用于平台识别，商标归各平台所有。
 
-## 🛠️ 给开发者
-
-- 宿主端 `index.js` + `lib/**` 提供本地 HTTP API（`/music/*`）：曲库扫描、封面、歌词、标签读写、在线匹配、在线歌词、在线播放代理、缓存、统计、回收站
-- Web 端 `client.js` 由 `src/` 分片构建生成（零运行时依赖，仍是 `window.__ModuleLoader__` 单文件、CJS 包装、只依赖宿主注入的 `react`）：
-  ```bash
-  node scripts/build-client.mjs          # 重新生成 client.js
-  node scripts/build-client.mjs --check  # CI：产物是否与 src 一致
-  ```
-  构建脚本会检测跨分片重复的顶层声明，避免 0.11 里出现过的重复 `useState` / 重复函数。
-- 在线播放链路：`/music/online/search|playlist-songs|stream|lyric|login/*`；流代理转发 `Range` 并回 `206`，支持拖动进度条
-- 全部逻辑可测试：17 个测试文件覆盖扫描、配置、歌词、标签、在线匹配、缓存、统计、路由、客户端模块形态、**面板渲染冒烟**
+### 开发
 
 ```bash
-npm test          # 单元测试
-npm run check     # 语法 / 清单检查
-npm run pack:check # 打包自检
+npm test            # 17 test files
+npm run check       # syntax + manifest checks
+npm run pack:check  # package self-check
 ```
 
-### 发布授权（硬规则）
+- Host：`index.js` + `lib/**`，提供 `/music/*` HTTP API。
+- Web：`client.js` 由 `src/**` 分片构建，单文件、零运行时依赖，只依赖宿主注入的 `react`。
 
-**未经用户在当前对话中明确确认，不得发布新版本。**
+```bash
+node scripts/build-client.mjs          # rebuild client.js
+node scripts/build-client.mjs --check  # verify src and client.js agree
+```
 
-- 无论新功能、修复、文档还是图标，只要用户没有明确说「发版 / 发布 / 推 GitHub / 上 npm / 打 tag / 出 Release」，就不得 bump 版本、打 tag、push、发布 npm 或创建 GitHub Release。
-- 未获确认时只允许在用户本机修改源码、构建 `client.js`，并复制到本机 profile 做安装测试。
-- 「改一下」「看看怎么回事」「本地测试」都不等于发版授权；需要发版时先给出**版本号、变更摘要、影响面、风险**，等用户明确确认后再执行。
-- 确认发版后仍按仓库 `AGENTS.md` 第 9 节流程执行，并重新跑测试与构建检查。
+更多规范见 [主题与组件规范](docs/theme-guidelines.md) 与 [UI review](docs/ui-review-2026-11.md)。
 
-### 在线接口说明
-
-在线播放使用各平台公开的**非官方接口**（与开源播放器相同的取链方式），不保证长期可用：
-
-| 平台 | 取链 | 歌单 | 翻译 |
-| :--- | :--- | :--- | :--- |
-| 网易云 | weapi / linuxapi / eapi | ✅ 我创建的 + 收藏 | ✅ 接口自带 `trans` |
-| QQ 音乐 | musicu.fcg + vkey | ✅ 我喜欢 + 收藏 | ✅ `GetPlayLyricInfo` 的加密 `data.trans` |
-| 酷狗 | gateway.kugou.com + 设备注册 | ✅ 云歌单 + 收藏 | ✅ KRC 内嵌 `translations` |
-
-缓存目录：`~/.dsh/music/cache/online/<平台>/<id>.audio`；同目录还有 `<id>.info.json`（标题/歌手/专辑/封面/时长）与 `<id>.lyric.json`，封面在 `cache/online/assets/`。清空或单删不会影响播放记录。
-
-## 🔒 隐私与数据
-
-- **全部在本机运行**：登录 Cookie / token 只写入 `~/.dsh/music/providers.json`（0600），不会上传到任何服务器
-- 缓存与播放记录同样在 `~/.dsh/music/`，随时可清空
-- 插件不在客户端向外部域名发请求：在线请求全部由 Host 发起并同源代理
-
-## ⚠️ 兼容与限制
-
-- 仅支持 DSH Web / Desktop 宿主（需要浏览器载体才能播放）
-- 在线平台接口为非官方接口，可能失效、限流或改版；失效时会在界面提示，不影响本地播放
-- VIP / 付费曲目默认不加入队列（显示金色徽标），未登录只能播放免费曲目
-- 删除重复走「插件回收站」`<DSH_HOME>/music/trash/`，不是永久删除
-
-
-> 平台图标使用各平台 App Store 官方应用图标（iTunes Search API 获取 512px artwork，缩为 256px WebP），仅用于平台识别；图标商标归各平台所有。
-
-## 📄 License
+### License
 
 [MIT](LICENSE) © Aliboder
 
+---
 
+## English
 
+### Why dsh-music-panel
 
+Most music plugins stop at “it plays”. `dsh-music-panel` is built as a **real music player for DSH**: local files, online providers, lyrics, caching, metadata, and listening stats share one interface and one queue — no app switching.
 
+| | What you get |
+| :--- | :--- |
+| **Local + online** | Play files from disk, then browse and stream playlists from NetEase Cloud Music, QQ Music, and KuGou without leaving the panel. |
+| **A player, not just a list** | Album grid, vinyl now-playing view, synced lyrics with translations, draggable queue, listening stats, and “jump to current track”. |
+| **Online playlists that feel local** | Per-playlist cache, hover prefetch, stale-while-revalidate refresh, and sorting by platform order / name / track count. |
+| **Library maintenance in place** | Match metadata, replace covers, edit tags, calibrate lyrics, deduplicate tracks, and restore from trash. |
+| **Native to DSH** | Sidebar entry, lyric line above the composer, in-conversation playback, host theme tokens, and light/dark support. |
+| **Local by design** | Cookies, cache, and history stay on your machine; the browser side never calls external domains directly. |
 
+### Features
 
+#### Local library
 
+- Multi-root scanning with configurable folder depth; MP3 / FLAC / M4A / AAC / OGG / OPUS / WAV / AIFF / WMA / APE.
+- Songs, albums, artists, folders, favorites, and statistics views; folder grouping with per-folder hiding.
+- Repeat modes, shuffle, previous / next, seek, volume, and mute.
+- Restores the last track and position; optional per-track resume.
+- `Space` play/pause, `Ctrl` / `⌘` + `←` / `→` previous/next, `/` focus search.
 
+#### Online music
 
+- Switch between local, NetEase, QQ Music, and KuGou from the top bar; the queue is shared across sources.
+- QR sign-in for cloud playlists, favorites, and recent plays; free tracks work without signing in.
+- **Playlist cache**: 60-second per-playlist cache with hover/focus prefetch. Reopening shows cached tracks immediately, then revalidates in the background.
+- **Playlist sorting**: platform order / name / track count, persisted locally.
+- **Account profiles**: official provider icons, nickname, and avatar in Settings → Online; avatars are proxied by the Host.
+- **VIP awareness**: playability follows the signed-in account; VIP tracks are marked.
+- **Audio cache**: write-while-playing, default 10 GB with LRU eviction; Settings → Cache lists every cached track across providers.
+- **Volume leveling**: built-in EBU R128 / BS.1770 analysis with per-track gain, no ffmpeg required; results are cached.
+- Online lyrics and translations for all three providers.
 
+#### Lyrics, metadata, and cleanup
+
+- Embedded lyrics and `.lrc`; line highlighting, translation, typography controls, alignment, and ±0.5s offset.
+- Online lyric search with backup before writing.
+- Metadata matching via NetEase / QQ Music / iTunes / MusicBrainz, whole-track or per-field.
+- Edit title, artist, album, year, track/disc number, genre, album artist, composer, lyricist, comment, and lyrics.
+- Cover replacement, duplicate detection, batch favorite / add-to-playlist / edit / trash.
+- Deletions go to the plugin trash and can be restored by original path.
+
+### Install
+
+**Requires DSH Web / Desktop.** A browser runtime is needed for playback.
+
+**Plugin marketplace (recommended)**
+
+Search for `dsh-music-panel` in DSH, or run:
+
+```text
+plugin_manager install_bundle dsh-music-panel
+```
+
+Then **restart DSH completely**. A music icon appears in the sidebar.
+
+**npm**
+
+From the DSH profile directory:
+
+```bash
+pnpm add dsh-music-panel
+```
+
+Then restart DSH. Package: <https://www.npmjs.com/package/dsh-music-panel>
+
+### Quick start
+
+1. Open the music panel from the sidebar.
+2. Settings → **Library**, add one or more music folders.
+3. Double-click a track, or press “Play all”.
+4. For online music, switch to a provider and sign in via QR in Settings → **Online**.
+5. Open a cloud playlist from the navigation; played tracks are cached automatically.
+
+### Privacy
+
+- Everything runs locally. Cookies and tokens are stored only in `~/.dsh/music/providers.json` (mode 0600).
+- Cache and history live under `~/.dsh/music/` and can be cleared at any time.
+- The browser side never calls external domains: search, stream resolution, lyrics, and covers are proxied by the Host.
+
+### Limitations
+
+- DSH Web / Desktop only.
+- Online providers use public, unofficial APIs; they may change, throttle, or break. Failures are surfaced in the UI and do not affect local playback.
+- VIP / paid track availability depends on the signed-in account and is marked in the UI.
+- Provider icons come from the official App Store artwork and are used only for identification; trademarks belong to their owners.
+
+### Development
+
+```bash
+npm test
+npm run check
+npm run pack:check
+```
+
+- Host: `index.js` + `lib/**`, exposing `/music/*` HTTP routes.
+- Web: `client.js` is built from `src/**` as a single CJS module with no runtime dependencies beyond the host-provided `react`.
+
+```bash
+node scripts/build-client.mjs
+node scripts/build-client.mjs --check
+```
+
+See [theme guidelines](docs/theme-guidelines.md) and [UI review](docs/ui-review-2026-11.md) for conventions.
+
+### License
+
+[MIT](LICENSE) © Aliboder
 
