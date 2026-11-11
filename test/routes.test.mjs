@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { dirname } from 'node:path'
-import { createRoutes, parseRange, resolveTrack } from '../lib/routes.js'
+import { createRoutes, onlineSongId, parseRange, resolveTrack } from '../lib/routes.js'
 import { fakeReq, fakeRes, tempWav } from './helpers.mjs'
 
 const file = await tempWav('song.wav', 1)
@@ -48,6 +48,11 @@ assert.equal(res.json().error.code, 'NOT_FOUND')
 res = fakeRes()
 await handle(fakeReq('/music/cover?path=' + encodeURIComponent(file)), res)
 assert.equal(res.status, 404)
+
+// online like accepts the client's onlineId as the song id
+assert.equal(onlineSongId({ onlineId: '42' }), '42')
+assert.equal(onlineSongId({ id: '7' }), '7')
+assert.equal(onlineSongId(null), '')
 
 // unknown route
 res = fakeRes()
