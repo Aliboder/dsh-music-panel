@@ -506,12 +506,25 @@ function NowPlaying(props) {
               player.next()
             },
           }),
-          h(IconButton, {
-            icon: 'list',
-            size: 18,
-            title: t('page.queue'),
-            onClick: props.onToggleQueue,
-          }),
+          h(
+            'div',
+            { className: 'mp-pb-queue-wrap' },
+            h(IconButton, {
+              icon: 'playlist',
+              size: 17,
+              active: props.queueOpen,
+              title: t('page.queue'),
+              onClick: props.onToggleQueue,
+            }),
+            props.queueOpen
+              ? h(QueuePopover, {
+                  open: true,
+                  anchored: true,
+                  snap: snap,
+                  onClose: props.onToggleQueue,
+                })
+              : null,
+          ),
         ),
         h(
           'div',

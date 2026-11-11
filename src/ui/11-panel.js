@@ -516,19 +516,6 @@ function Panel() {
         void toggleFavorite(track.path)
       },
     }),
-    ui.npOpen === true && ui.queueOpen === true
-      ? h(
-          'div',
-          { className: 'mp-np-queue-host' },
-          h(QueuePopover, {
-            open: true,
-            snap: snap,
-            onClose: function () {
-              setUi({ queueOpen: false })
-            },
-          }),
-        )
-      : null,
     h(OverlayRoot),
     h(Toast),
   )

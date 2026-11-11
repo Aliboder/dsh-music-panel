@@ -32,13 +32,18 @@ function parseLrcText(text) {
 }
 
 function mergeLyricTranslation(lines, translationText) {
-  var map = {}
-  parseLrcText(translationText).forEach(function (item) {
-    map[item.time.toFixed(2)] = item.text
-  })
+  var translated = parseLrcText(translationText)
   lines.forEach(function (line) {
-    var hit = map[line.time.toFixed(2)]
-    if (hit !== undefined) line.translation = hit
+    var best = null
+    var bestDiff = Infinity
+    for (var i = 0; i < translated.length; i += 1) {
+      var diff = Math.abs(translated[i].time - line.time)
+      if (diff <= 0.35 && diff < bestDiff) {
+        best = translated[i]
+        bestDiff = diff
+      }
+    }
+    if (best !== null) line.translation = best.text
   })
   return lines
 }
