@@ -373,59 +373,89 @@ function SettingsSheet(props) {
 
   function onlineTab() {
     var providers = online.providers || {}
-    var rows = ['netease', 'qq', 'kugou', 'kugouLite'].map(function (provider) {
+    var ids = ['netease', 'qq', 'kugou', 'kugouLite']
+    var logged = ids.filter(function (provider) {
+      return providers[provider] && providers[provider].loggedIn === true
+    }).length
+    function providerLabel(provider) {
+      return provider === 'netease'
+        ? t('online.providerNetease')
+        : provider === 'qq'
+          ? t('online.providerQq')
+          : provider === 'kugou'
+            ? t('online.providerKugou')
+            : t('online.providerKugouLite')
+    }
+    function card(provider) {
       var info = providers[provider] || {}
-      var label =
-        provider === 'netease'
-          ? t('online.providerNetease')
-          : provider === 'qq'
-            ? t('online.providerQq')
-            : provider === 'kugou'
-              ? t('online.providerKugou')
-              : t('online.providerKugouLite')
       return h(
-        SetRow,
-        {
-          key: provider,
-          label: h(
-            'span',
-            { className: 'mp-provider-name' },
-            h('span', { className: 'mp-provider-icon' }, providerLogo(provider, 20)),
-            h('span', null, label),
+        'div',
+        { key: provider, className: cx('mp-online-card', 'is-' + provider, info.loggedIn === true && 'is-logged') },
+        h(
+          'div',
+          { className: 'mp-online-card-head' },
+          h('span', { className: 'mp-online-logo' }, providerLogo(provider, 38)),
+          h(
+            'div',
+            { className: 'mp-online-title' },
+            h('div', { className: 'mp-online-name' }, providerLabel(provider)),
+            h(
+              'div',
+              { className: 'mp-online-state' },
+              info.loggedIn === true ? t('online.loggedIn') : t('online.loggedOut'),
+            ),
           ),
-          desc: info.loggedIn
-            ? info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn'))
-            : t('online.loggedOut'),
-        },
+        ),
         info.loggedIn
           ? h(
               'div',
-              { className: 'mp-account' },
+              { className: 'mp-online-body' },
               accountAvatar(info),
-              h(Button, {
-                variant: 'ghost',
+              h(
+                'div',
+                { className: 'mp-online-meta' },
+                h('strong', { className: 'mp-online-nick' }, info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn'))),
+                info.vip === true ? h('span', { className: 'mp-online-vip' }, 'VIP') : null,
+              ),
+              h(IconButton, {
                 icon: 'logout',
+                size: 15,
+                title: t('online.logout'),
                 onClick: function () {
                   void logoutProvider(provider)
                 },
-                children: t('online.logout'),
               }),
             )
-          : h(Button, {
-              variant: 'primary',
-              icon: 'qr',
-              onClick: function () {
-                pushLayer('login', { provider: provider })
-              },
-              children: t('online.login'),
-            }),
+          : h(
+              'div',
+              { className: 'mp-online-body is-out' },
+              h('span', { className: 'mp-online-hint-text' }, t('online.accountHint')),
+              h(Button, {
+                variant: 'primary',
+                icon: 'qr',
+                onClick: function () {
+                  pushLayer('login', { provider: provider })
+                },
+                children: t('online.login'),
+              }),
+            ),
       )
-    })
-    rows.unshift(h('h2', { key: 'h' }, t('v2.online')))
-    rows.push(
-      h('p', { key: 'hint', className: 'mp-set-desc' }, t('online.settingsHint')),
-    )
-    return rows
+    }
+    return [
+      h(
+        'div',
+        { key: 'head', className: 'mp-online-head' },
+        h('h2', null, t('v2.online')),
+        h('span', { className: 'mp-online-count' }, t('online.loggedCount', { n: logged, total: ids.length })),
+      ),
+      h('div', { key: 'grid', className: 'mp-online-grid' }, ids.map(card)),
+      h(
+        'div',
+        { key: 'hint', className: 'mp-online-foot' },
+        icon('info', 13),
+        h('span', null, t('online.settingsHint')),
+      ),
+    ]
   }
 
   function libraryTab() {

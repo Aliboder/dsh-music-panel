@@ -208,6 +208,8 @@ window.__ModuleLoader__.load({
         'page.favoritesHint': '点歌曲右侧的爱心加入喜欢。',
         'settings.tabOnline': '在线',
         'online.settingsHint': '登录后可播放高音质与更多曲目；未登录只能播放免费曲目。Cookie 只保存在本机。',
+        'online.loggedCount': '已登录 {n} / {total}',
+        'online.accountHint': '登录后可播放高音质与更多曲目',
         'online.loggedIn': '已登录',
         'online.loggedOut': '未登录',
         'online.login': '登录',
@@ -553,6 +555,8 @@ window.__ModuleLoader__.load({
         'page.favoritesHint': 'Tap the heart next to a song to add it here.',
         'settings.tabOnline': 'Online',
         'online.settingsHint': 'Sign in for higher quality and more tracks; free tracks play without an account. Cookies stay on this machine.',
+        'online.loggedCount': '{n} of {total} signed in',
+        'online.accountHint': 'Sign in for higher quality and more tracks',
         'online.loggedIn': 'Signed in',
         'online.loggedOut': 'Signed out',
         'online.login': 'Sign in',
@@ -4868,6 +4872,34 @@ window.__ModuleLoader__.load({
       '.mp-set-status.is-off{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-set-status-hint{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
     
+    
+      '.mp-online-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}',
+      '.mp-online-head h2{margin:0}',
+      '.mp-online-count{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));padding:3px 8px;border-radius:999px;font-variant-numeric:tabular-nums}',
+      '.mp-online-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}',
+      '.mp-online-card{--mp-brand:#4176E6;position:relative;overflow:hidden;padding:13px;border-radius:16px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));background:var(--dsw-alias-bg-layer-2,#1e1e22);min-width:0}',
+      '.mp-online-card:before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;border-radius:0 8px 8px 0;background:var(--mp-brand)}',
+      '.mp-online-card.is-netease{--mp-brand:#e60026}',
+      '.mp-online-card.is-qq{--mp-brand:#31c27c}',
+      '.mp-online-card.is-kugou{--mp-brand:#2b7cff}',
+      '.mp-online-card.is-kugouLite{--mp-brand:#6aa8ff}',
+      '.mp-online-card.is-logged{background:linear-gradient(135deg,color-mix(in srgb,var(--mp-brand) 7%,var(--dsw-alias-bg-layer-2,#1e1e22)),var(--dsw-alias-bg-layer-2,#1e1e22) 72%)}',
+      '.mp-online-card-head{display:flex;align-items:center;gap:10px;min-width:0}',
+      '.mp-online-logo{width:38px;height:38px;border-radius:12px;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.16)}',
+      '.mp-online-logo img{width:100%;height:100%;object-fit:cover;display:block}',
+      '.mp-online-title{min-width:0;flex:1}',
+      '.mp-online-name{font-size:13.5px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-online-state{font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px}',
+      '.mp-online-card.is-logged .mp-online-state{color:var(--mp-brand)}',
+      '.mp-online-body{display:flex;align-items:center;gap:9px;margin-top:12px;padding-top:10px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));min-width:0}',
+      '.mp-online-card .mp-account-avatar{width:34px;height:34px}',
+      '.mp-online-meta{min-width:0;flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap}',
+      '.mp-online-nick{font-size:11px;font-weight:550;color:var(--dsw-alias-label-secondary,#b4b4bd);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}',
+      '.mp-online-vip{font-size:9px;font-weight:700;line-height:1;padding:2px 5px;border-radius:8px;color:#8a5a00;background:#ffd76a;flex:none}',
+      '.mp-online-body.is-out{justify-content:space-between;gap:8px;border-top:0;padding-top:0;margin-top:10px}',
+      '.mp-online-hint-text{font-size:10px;line-height:1.35;color:var(--dsw-alias-label-tertiary,#8a8a93);min-width:0}',
+      '.mp-online-foot{display:flex;align-items:flex-start;gap:7px;margin-top:14px;padding:10px 12px;border-radius:12px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03));border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));font-size:11px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-online-foot svg{flex:none;margin-top:1px}',
       '.mp-provider-name{display:flex;align-items:center;gap:8px}',
       '.mp-provider-icon{display:inline-flex;width:20px;height:20px;flex:none}',
       '.mp-provider-logo{width:100%;height:100%;object-fit:contain;border-radius:8px;display:block}',
@@ -5124,6 +5156,7 @@ window.__ModuleLoader__.load({
     
       '@media (max-width:900px){.mp-sheet{width:calc(100vw - 24px);height:min(560px,calc(100dvh - 24px));grid-template-columns:152px minmax(0,1fr)}.mp-sheet-nav{padding:12px 8px}.mp-sheet-body{padding:14px 16px 20px}}',
       '@media (max-width:720px){.mp-sheet{width:calc(100vw - 16px);height:calc(100dvh - 16px);grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.mp-sheet-nav{flex-direction:row;align-items:center;gap:4px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));padding:8px}.mp-sheet-title{display:none}.mp-sheet-tab{flex:none;white-space:nowrap;height:30px}.mp-sheet-nav>div:last-child{margin-top:0!important;margin-left:auto}.mp-sheet-body{padding:12px 14px 18px}}',
+      '@media (max-width:620px){.mp-online-grid{grid-template-columns:1fr}.mp-online-name{font-size:13px}}',
       '@media (max-width:620px){.mp-set-row{flex-direction:column;align-items:stretch;gap:6px}.mp-set-text{flex:0 0 auto}.mp-set-control{justify-content:flex-start;margin-left:0}.mp-set-control select,.mp-range{max-width:100%}}',
       '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
     ]
@@ -6972,59 +7005,89 @@ window.__ModuleLoader__.load({
     
       function onlineTab() {
         var providers = online.providers || {}
-        var rows = ['netease', 'qq', 'kugou', 'kugouLite'].map(function (provider) {
+        var ids = ['netease', 'qq', 'kugou', 'kugouLite']
+        var logged = ids.filter(function (provider) {
+          return providers[provider] && providers[provider].loggedIn === true
+        }).length
+        function providerLabel(provider) {
+          return provider === 'netease'
+            ? t('online.providerNetease')
+            : provider === 'qq'
+              ? t('online.providerQq')
+              : provider === 'kugou'
+                ? t('online.providerKugou')
+                : t('online.providerKugouLite')
+        }
+        function card(provider) {
           var info = providers[provider] || {}
-          var label =
-            provider === 'netease'
-              ? t('online.providerNetease')
-              : provider === 'qq'
-                ? t('online.providerQq')
-                : provider === 'kugou'
-                  ? t('online.providerKugou')
-                  : t('online.providerKugouLite')
           return h(
-            SetRow,
-            {
-              key: provider,
-              label: h(
-                'span',
-                { className: 'mp-provider-name' },
-                h('span', { className: 'mp-provider-icon' }, providerLogo(provider, 20)),
-                h('span', null, label),
+            'div',
+            { key: provider, className: cx('mp-online-card', 'is-' + provider, info.loggedIn === true && 'is-logged') },
+            h(
+              'div',
+              { className: 'mp-online-card-head' },
+              h('span', { className: 'mp-online-logo' }, providerLogo(provider, 38)),
+              h(
+                'div',
+                { className: 'mp-online-title' },
+                h('div', { className: 'mp-online-name' }, providerLabel(provider)),
+                h(
+                  'div',
+                  { className: 'mp-online-state' },
+                  info.loggedIn === true ? t('online.loggedIn') : t('online.loggedOut'),
+                ),
               ),
-              desc: info.loggedIn
-                ? info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn'))
-                : t('online.loggedOut'),
-            },
+            ),
             info.loggedIn
               ? h(
                   'div',
-                  { className: 'mp-account' },
+                  { className: 'mp-online-body' },
                   accountAvatar(info),
-                  h(Button, {
-                    variant: 'ghost',
+                  h(
+                    'div',
+                    { className: 'mp-online-meta' },
+                    h('strong', { className: 'mp-online-nick' }, info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn'))),
+                    info.vip === true ? h('span', { className: 'mp-online-vip' }, 'VIP') : null,
+                  ),
+                  h(IconButton, {
                     icon: 'logout',
+                    size: 15,
+                    title: t('online.logout'),
                     onClick: function () {
                       void logoutProvider(provider)
                     },
-                    children: t('online.logout'),
                   }),
                 )
-              : h(Button, {
-                  variant: 'primary',
-                  icon: 'qr',
-                  onClick: function () {
-                    pushLayer('login', { provider: provider })
-                  },
-                  children: t('online.login'),
-                }),
+              : h(
+                  'div',
+                  { className: 'mp-online-body is-out' },
+                  h('span', { className: 'mp-online-hint-text' }, t('online.accountHint')),
+                  h(Button, {
+                    variant: 'primary',
+                    icon: 'qr',
+                    onClick: function () {
+                      pushLayer('login', { provider: provider })
+                    },
+                    children: t('online.login'),
+                  }),
+                ),
           )
-        })
-        rows.unshift(h('h2', { key: 'h' }, t('v2.online')))
-        rows.push(
-          h('p', { key: 'hint', className: 'mp-set-desc' }, t('online.settingsHint')),
-        )
-        return rows
+        }
+        return [
+          h(
+            'div',
+            { key: 'head', className: 'mp-online-head' },
+            h('h2', null, t('v2.online')),
+            h('span', { className: 'mp-online-count' }, t('online.loggedCount', { n: logged, total: ids.length })),
+          ),
+          h('div', { key: 'grid', className: 'mp-online-grid' }, ids.map(card)),
+          h(
+            'div',
+            { key: 'hint', className: 'mp-online-foot' },
+            icon('info', 13),
+            h('span', null, t('online.settingsHint')),
+          ),
+        ]
       }
     
       function libraryTab() {
