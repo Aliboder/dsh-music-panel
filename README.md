@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/13a45daa3afb33bf2d043685a5b1d4a5b79ba534/icon.svg" alt="dsh-music-panel icon" width="96" height="96" />
+<img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/38a9f74d9c1ad7685b01385ac6759ad7c055dae5/icon.svg" alt="dsh-music-panel icon" width="96" height="96" />
 
 # dsh-music-panel
 
@@ -290,6 +290,7 @@ See [theme guidelines](docs/theme-guidelines.md) and [UI review](docs/ui-review-
 ### License
 
 [MIT](LICENSE) © Aliboder
+
 
 
 
