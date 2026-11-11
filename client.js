@@ -2489,6 +2489,7 @@ window.__ModuleLoader__.load({
                 label: playlist.name || '',
                 icon: 'list',
                 count: playlist.trackCount || 0,
+                coverSrc: playlist.cover ? onlineCoverSrc({ coverUrl: playlist.cover }) : '',
                 onlinePlaylist: playlist,
               }
             }),
@@ -2529,6 +2530,7 @@ window.__ModuleLoader__.load({
               label: playlist.name || '',
               icon: 'list',
               count: (playlist.trackPaths || []).length,
+              coverSrc: trackCoverSrc(playlistTracks(playlist)[0] || null),
               localPlaylistId: playlist.id,
               playlist: playlist,
             }
@@ -4688,7 +4690,8 @@ window.__ModuleLoader__.load({
       '.mp-playlist-card{display:flex;align-items:center;gap:9px;min-width:0;min-height:58px;padding:9px 10px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.035));color:var(--dsw-alias-label-primary,#f4f4f5);text-align:left;cursor:pointer}',
       '.mp-playlist-card:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));border-color:var(--dsw-alias-border-l2,rgba(255,255,255,.14))}',
       '.mp-playlist-card.is-on{border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 12%,transparent)}',
-      '.mp-playlist-card-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-playlist-card-icon{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;flex:none;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-playlist-card-icon img{width:100%;height:100%;object-fit:cover;display:block}',
       '.mp-playlist-card-main{display:flex;flex-direction:column;min-width:0;gap:2px}',
       '.mp-playlist-card-main strong{font-size:12px;font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-playlist-card-main span{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
@@ -9742,7 +9745,11 @@ window.__ModuleLoader__.load({
                       },
                       onContextMenu: navItemContextMenu(item, active),
                     },
-                    h('span', { className: 'mp-playlist-card-icon' }, icon(item.icon || 'list', 16)),
+                    h(
+                      'span',
+                      { className: 'mp-playlist-card-icon' },
+                      item.coverSrc ? h(Cover, { src: item.coverSrc, iconSize: 16 }) : icon(item.icon || 'list', 16),
+                    ),
                     h(
                       'span',
                       { className: 'mp-playlist-card-main' },

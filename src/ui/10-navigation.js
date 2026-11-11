@@ -187,7 +187,11 @@ function SectionPlaylistOverflow(props) {
                   },
                   onContextMenu: navItemContextMenu(item, active),
                 },
-                h('span', { className: 'mp-playlist-card-icon' }, icon(item.icon || 'list', 16)),
+                h(
+                  'span',
+                  { className: 'mp-playlist-card-icon' },
+                  item.coverSrc ? h(Cover, { src: item.coverSrc, iconSize: 16 }) : icon(item.icon || 'list', 16),
+                ),
                 h(
                   'span',
                   { className: 'mp-playlist-card-main' },
