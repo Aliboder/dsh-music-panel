@@ -119,6 +119,7 @@ window.__ModuleLoader__.load({
         'page.done': '完成',
         'page.clear': '清空列表',
         'page.loopAll': '列表循环',
+        'page.modeOnce': '列表单次',
         'page.modeSequence': '顺序播放',
         'page.modeRandom': '随机播放',
         'page.modeOne': '单曲循环',
@@ -467,6 +468,7 @@ window.__ModuleLoader__.load({
         'page.done': 'Done',
         'page.clear': 'Clear list',
         'page.loopAll': 'Repeat all',
+        'page.modeOnce': 'Play list once',
         'page.modeSequence': 'Play in order',
         'page.modeRandom': 'Shuffle',
         'page.modeOne': 'Repeat one',
@@ -1981,6 +1983,8 @@ window.__ModuleLoader__.load({
         onlineProvider: provider,
         onlineId: result.id,
         qualityHint: result.qualityHint || '',
+        addedAt: Number(result.addedAt || result.createdAt || 0) || 0,
+        lastPlayedAt: Number(result.playedAt || result.lastPlayedAt || result.updatedAt || 0) || 0,
         sampleRate: 0,
         size: 0,
         mtime: 0,
@@ -9073,7 +9077,7 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'mp-toolbar', key: 'toolbar' },
-          h(PlayModePills),
+          h(PlayModePills, { onPlay: playAll }),
           toolbarExtras,
           playAll
             ? h(
@@ -9196,8 +9200,21 @@ window.__ModuleLoader__.load({
         if (tracks.length > 0) player.playList(tracks, 0)
       }
     
+      function sortOnlineEntries(entries) {
+        var list = entries || []
+        var byPath = {}
+        list.forEach(function (entry) {
+          byPath['online:' + (entry.provider || provider) + ':' + entry.id] = entry
+        })
+        return sortOnlineTracks(list)
+          .map(function (track) {
+            return byPath[track.path]
+          })
+          .filter(Boolean)
+      }
+    
       function setPlayAll(entries) {
-        currentEntries = entries || []
+        currentEntries = sortOnlineEntries(entries)
         playAll = currentEntries.length > 0
           ? function () {
               playOnlineResults(currentEntries, 0)
@@ -9497,7 +9514,7 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'mp-toolbar', key: 'toolbar' },
-          h(PlayModePills),
+          h(PlayModePills, { onPlay: playAll }),
           h(
             'div',
             { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
@@ -10831,7 +10848,7 @@ window.__ModuleLoader__.load({
       useEffect(
         function () {
           if (!open) return undefined
-          if (hostComponent('Menu') !== null) return undefined
+          if (props.hostMenu !== false && hostComponent('Menu') !== null) return undefined
           function onDown(event) {
             if (ref.current && ref.current.contains(event.target)) return
             setOpen(false)
@@ -10858,7 +10875,7 @@ window.__ModuleLoader__.load({
           setOpen(!open)
         },
       })
-      var HostMenu = hostComponent('Menu')
+      var HostMenu = props.hostMenu === false ? null : hostComponent('Menu')
       if (HostMenu !== null) {
         var hostItems = props.items.map(function (item) {
           if (item.separator) return { type: 'separator', id: item.key }
@@ -10981,30 +10998,30 @@ window.__ModuleLoader__.load({
           setPrefs({ sortDir: 'desc' })
         },
       })
-      return h(HeadMenu, { icon: 'sort', title: t('page.sort'), items: items })
+      return h(HeadMenu, { icon: 'sort', title: t('page.sort'), items: items, hostMenu: false })
     }
     
     function PlayModePills(props) {
       var snap = usePlayerSnapshot()
-      var active =
-        snap.order === 'random' ? 'random' : snap.loop === 'one' ? 'one' : snap.loop === 'none' ? 'order' : 'loop'
+      var active = snap.order === 'random' ? 'random' : snap.loop === 'none' ? 'once' : 'order'
       var modes = [
-        ['loop', 'repeat', t('page.loopAll')],
-        ['order', 'next', t('page.modeSequence')],
+        ['order', 'list', t('page.modeSequence')],
         ['random', 'shuffle', t('page.shuffle')],
+        ['once', 'play', t('page.modeOnce')],
       ]
     
       function apply(mode) {
         if (mode === 'random') {
           player.setOrder('random')
           player.setLoop('all')
-        } else if (mode === 'order') {
+        } else if (mode === 'once') {
           player.setOrder('list')
           player.setLoop('none')
         } else {
           player.setOrder('list')
           player.setLoop('all')
         }
+        if (typeof props.onPlay === 'function') props.onPlay()
       }
     
       return h(

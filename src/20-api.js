@@ -120,6 +120,8 @@ function onlineTrackOf(result) {
     onlineProvider: provider,
     onlineId: result.id,
     qualityHint: result.qualityHint || '',
+    addedAt: Number(result.addedAt || result.createdAt || 0) || 0,
+    lastPlayedAt: Number(result.playedAt || result.lastPlayedAt || result.updatedAt || 0) || 0,
     sampleRate: 0,
     size: 0,
     mtime: 0,

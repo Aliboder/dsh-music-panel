@@ -24,7 +24,7 @@ function HeadMenu(props) {
   useEffect(
     function () {
       if (!open) return undefined
-      if (hostComponent('Menu') !== null) return undefined
+      if (props.hostMenu !== false && hostComponent('Menu') !== null) return undefined
       function onDown(event) {
         if (ref.current && ref.current.contains(event.target)) return
         setOpen(false)
@@ -51,7 +51,7 @@ function HeadMenu(props) {
       setOpen(!open)
     },
   })
-  var HostMenu = hostComponent('Menu')
+  var HostMenu = props.hostMenu === false ? null : hostComponent('Menu')
   if (HostMenu !== null) {
     var hostItems = props.items.map(function (item) {
       if (item.separator) return { type: 'separator', id: item.key }
@@ -174,30 +174,30 @@ function SortMenu() {
       setPrefs({ sortDir: 'desc' })
     },
   })
-  return h(HeadMenu, { icon: 'sort', title: t('page.sort'), items: items })
+  return h(HeadMenu, { icon: 'sort', title: t('page.sort'), items: items, hostMenu: false })
 }
 
 function PlayModePills(props) {
   var snap = usePlayerSnapshot()
-  var active =
-    snap.order === 'random' ? 'random' : snap.loop === 'one' ? 'one' : snap.loop === 'none' ? 'order' : 'loop'
+  var active = snap.order === 'random' ? 'random' : snap.loop === 'none' ? 'once' : 'order'
   var modes = [
-    ['loop', 'repeat', t('page.loopAll')],
-    ['order', 'next', t('page.modeSequence')],
+    ['order', 'list', t('page.modeSequence')],
     ['random', 'shuffle', t('page.shuffle')],
+    ['once', 'play', t('page.modeOnce')],
   ]
 
   function apply(mode) {
     if (mode === 'random') {
       player.setOrder('random')
       player.setLoop('all')
-    } else if (mode === 'order') {
+    } else if (mode === 'once') {
       player.setOrder('list')
       player.setLoop('none')
     } else {
       player.setOrder('list')
       player.setLoop('all')
     }
+    if (typeof props.onPlay === 'function') props.onPlay()
   }
 
   return h(

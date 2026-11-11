@@ -99,8 +99,21 @@ function OnlineContent(props) {
     if (tracks.length > 0) player.playList(tracks, 0)
   }
 
+  function sortOnlineEntries(entries) {
+    var list = entries || []
+    var byPath = {}
+    list.forEach(function (entry) {
+      byPath['online:' + (entry.provider || provider) + ':' + entry.id] = entry
+    })
+    return sortOnlineTracks(list)
+      .map(function (track) {
+        return byPath[track.path]
+      })
+      .filter(Boolean)
+  }
+
   function setPlayAll(entries) {
-    currentEntries = entries || []
+    currentEntries = sortOnlineEntries(entries)
     playAll = currentEntries.length > 0
       ? function () {
           playOnlineResults(currentEntries, 0)
@@ -400,7 +413,7 @@ function OnlineContent(props) {
     h(
       'div',
       { className: 'mp-toolbar', key: 'toolbar' },
-      h(PlayModePills),
+      h(PlayModePills, { onPlay: playAll }),
       h(
         'div',
         { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
