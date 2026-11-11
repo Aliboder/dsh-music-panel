@@ -3248,6 +3248,7 @@ window.__ModuleLoader__.load({
               album: item.album || '',
               coverUrl: item.coverUrl || '',
               durationSec: item.durationSec || 0,
+              vip: item.qualityHint === 'VIP',
             }).catch(function () {})
           }
           fetch(item.onlineUrl, onlineController === null ? {} : { signal: onlineController.signal })
