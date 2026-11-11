@@ -795,11 +795,17 @@ function SettingsSheet(props) {
             t(item.label),
           )
         }),
-        h(
-          'div',
-          { style: { marginTop: 'auto' } },
-          h('button', { type: 'button', className: 'mp-sheet-tab', onClick: props.onClose }, t('v2.close')),
-        ),
+      ),
+      h(
+        'button',
+        {
+          type: 'button',
+          className: 'mp-sheet-close',
+          title: t('v2.close'),
+          'aria-label': t('v2.close'),
+          onClick: props.onClose,
+        },
+        icon('x', 16),
       ),
       h('div', { className: 'mp-sheet-body' }, body),
     ),
