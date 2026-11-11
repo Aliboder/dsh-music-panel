@@ -2648,25 +2648,22 @@ window.__ModuleLoader__.load({
      * Extracted from client.js at the 0.11.1 baseline (3931c14).
      */
     
-    function randomOrderOf(size, start) {
-      var order = []
-      for (var i = 0; i < size; i += 1) order.push(i)
-      for (var j = order.length - 1; j > 0; j -= 1) {
+    function shuffleTracks(list, currentTrack) {
+      var queue = list.slice()
+      for (var j = queue.length - 1; j > 0; j -= 1) {
         var k = Math.floor(Math.random() * (j + 1))
-        var tmp = order[j]
-        order[j] = order[k]
-        order[k] = tmp
+        var tmp = queue[j]
+        queue[j] = queue[k]
+        queue[k] = tmp
       }
-      // Random mode starts with the current track, so the displayed shuffled
-      // list and the actual top-to-bottom playback order line up.
-      if (Number.isInteger(start) && start >= 0 && start < order.length && order.length > 1) {
-        var at = order.indexOf(start)
+      if (currentTrack) {
+        var at = queue.indexOf(currentTrack)
         if (at > 0) {
-          order.splice(at, 1)
-          order.unshift(start)
+          queue.splice(at, 1)
+          queue.unshift(currentTrack)
         }
       }
-      return order
+      return queue
     }
     
     // Three playback modes, mapped onto the engine's loop/order pair:
@@ -2713,21 +2710,13 @@ window.__ModuleLoader__.load({
       applyPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(current) + 1) % PLAY_MODES.length])
     }
     
-    function nextIndexOf(index, order, size, randomOrder) {
+    function nextIndexOf(index, size) {
       if (size <= 1) return 0
-      if (order === 'random') {
-        var pos = randomOrder.indexOf(index)
-        return randomOrder[(pos + 1) % randomOrder.length]
-      }
       return (index + 1) % size
     }
     
-    function prevIndexOf(index, order, size, randomOrder) {
+    function prevIndexOf(index, size) {
       if (size <= 1) return 0
-      if (order === 'random') {
-        var pos = randomOrder.indexOf(index)
-        return randomOrder[(pos - 1 + randomOrder.length) % randomOrder.length]
-      }
       return (index - 1 + size) % size
     }
     
@@ -2776,7 +2765,6 @@ window.__ModuleLoader__.load({
       /** Bumped per load so a stale download cannot overwrite a newer track. */
       var loadToken = 0
       var pendingAutoplay = false
-      var randomOrder = []
       var listeners = []
       var timeListeners = []
       var errorListeners = []
@@ -2860,6 +2848,21 @@ window.__ModuleLoader__.load({
         }
       }
     
+      function playbackTrackSnapshot(track) {
+        return {
+          path: track.path,
+          title: trackTitleOf(track),
+          artist: trackArtistOf(track),
+          album: track.album || '',
+          durationSec: Number(track.durationSec) || 0,
+          coverUrl: track.coverUrl || '',
+          hasCover: track.hasCover === true,
+          onlineProvider: track.onlineProvider || '',
+          onlineId: track.onlineId || '',
+          qualityHint: track.qualityHint || '',
+        }
+      }
+    
       function savePlaybackState() {
         if (!leader) return
         var item = currentItem()
@@ -2867,18 +2870,16 @@ window.__ModuleLoader__.load({
         var duration = state.duration > 0 ? state.duration : item.durationSec || 0
         // Keep the saved queue bounded (playback.json caps at 500): store a
         // window around the current track so restore never picks the wrong one.
-        var queuePaths = state.queue.map(function (track) {
-          return track.path
-        })
+        var queueItems = state.queue.map(playbackTrackSnapshot)
         var index = state.index
-        if (queuePaths.length > 500) {
-          var start = Math.max(0, Math.min(index - 250, queuePaths.length - 500))
-          queuePaths = queuePaths.slice(start, start + 500)
+        if (queueItems.length > 500) {
+          var start = Math.max(0, Math.min(index - 250, queueItems.length - 500))
+          queueItems = queueItems.slice(start, start + 500)
           index -= start
         }
         try {
           postJson(API + 'state', {
-            queue: queuePaths,
+            queue: queueItems,
             index: index,
             positionSec: state.currentTime,
             durationSec: duration,
@@ -2924,22 +2925,47 @@ window.__ModuleLoader__.load({
         }
       }
     
+      function trackFromSaved(entry, byPath) {
+        if (typeof entry === 'string') return byPath[entry] || null
+        if (entry === null || typeof entry !== 'object') return null
+        if (entry.onlineProvider && entry.onlineId) {
+          return {
+            path: entry.path || 'online:' + entry.onlineProvider + ':' + entry.onlineId,
+            title: entry.title || '',
+            artist: entry.artist || '',
+            album: entry.album || '',
+            durationSec: Number(entry.durationSec) || 0,
+            hasCover: entry.hasCover === true,
+            coverUrl: entry.coverUrl || '',
+            onlineUrl: onlineStreamUrl(entry.onlineProvider, entry.onlineId),
+            onlineProvider: entry.onlineProvider,
+            onlineId: entry.onlineId,
+            qualityHint: entry.qualityHint || '',
+            sampleRate: 0,
+            size: 0,
+            mtime: 0,
+          }
+        }
+        return byPath[entry.path] || null
+      }
+    
       function restorePlayback(saved, tracks) {
         if (!saved || !Array.isArray(saved.queue) || saved.queue.length === 0) return false
-        if (!Array.isArray(tracks) || tracks.length === 0) return false
         var byPath = {}
-        tracks.forEach(function (track) {
+        ;(Array.isArray(tracks) ? tracks : []).forEach(function (track) {
           byPath[track.path] = track
         })
         var queue = []
-        saved.queue.forEach(function (path) {
-          if (byPath[path] !== undefined) queue.push(byPath[path])
+        saved.queue.forEach(function (entry) {
+          var track = trackFromSaved(entry, byPath)
+          if (track !== null && typeof track.path === 'string' && track.path !== '') queue.push(track)
         })
         if (queue.length === 0) return false
-        var wantedPath = saved.queue[saved.index]
+        var wanted = saved.queue[saved.index]
+        var wantedPath = typeof wanted === 'string' ? wanted : wanted && wanted.path ? wanted.path : ''
         var index = 0
         for (var i = 0; i < queue.length; i += 1) {
-          if (typeof wantedPath === 'string' && queue[i].path === wantedPath) {
+          if (wantedPath !== '' && queue[i].path === wantedPath) {
             index = i
             break
           }
@@ -2953,7 +2979,6 @@ window.__ModuleLoader__.load({
           duration: saved.durationSec > 0 ? saved.durationSec : 0,
           playing: false,
         })
-        randomOrder = randomOrderOf(queue.length, index)
         emit()
         syncMediaSession()
         resetSession(queue[index])
@@ -3116,18 +3141,11 @@ window.__ModuleLoader__.load({
           }
           return
         }
-        if (state.loop === 'none') {
-          if (state.order === 'random') {
-            if (randomOrder.length === 0 || randomOrder[randomOrder.length - 1] === state.index) {
-              patch({ playing: false })
-              return
-            }
-          } else if (state.index >= state.queue.length - 1) {
-            patch({ playing: false })
-            return
-          }
+        if (state.loop === 'none' && state.index >= state.queue.length - 1) {
+          patch({ playing: false })
+          return
         }
-        load(nextIndexOf(state.index, state.order, state.queue.length, randomOrder), true)
+        load(nextIndexOf(state.index, state.queue.length), true)
       }
     
       function onError() {
@@ -3145,7 +3163,7 @@ window.__ModuleLoader__.load({
           patch({ playing: false })
           return
         }
-        load(nextIndexOf(state.index, state.order, state.queue.length, randomOrder), true)
+        load(nextIndexOf(state.index, state.queue.length), true)
       }
     
       function bind(el) {
@@ -3414,7 +3432,9 @@ window.__ModuleLoader__.load({
         },
         /** Queue indices in the current playback order (random mode). */
         getPlayOrder: function () {
-          return randomOrder.slice()
+          return state.queue.map(function (_, index) {
+            return index
+          })
         },
         /** Restore the last queue/position once (called by the resident host). */
         tryRestore: tryRestore,
@@ -3496,15 +3516,20 @@ window.__ModuleLoader__.load({
         setQueue: function (list) {
           // Never replace a queue that is already playing or paused mid-track.
           if (state.index >= 0) return
-          state = Object.assign({}, state, { queue: list.slice(), index: -1 })
-          randomOrder = randomOrderOf(list.length)
+          var queue = state.order === 'random' ? shuffleTracks(list, null) : list.slice()
+          state = Object.assign({}, state, { queue: queue, index: -1 })
           emit()
         },
         playList: function (list, at) {
           if (!list || list.length === 0) return
-          state = Object.assign({}, state, { queue: list.slice(), index: at })
-          randomOrder = randomOrderOf(list.length, at)
-          load(at, true)
+          var queue = list.slice()
+          var index = at
+          if (state.order === 'random') {
+            queue = shuffleTracks(queue, queue[at])
+            index = 0
+          }
+          state = Object.assign({}, state, { queue: queue, index: index })
+          load(index, true)
         },
         /** Insert one track immediately after the current one, without interrupting playback. */
         enqueueNext: function (track) {
@@ -3517,7 +3542,6 @@ window.__ModuleLoader__.load({
           var queue = state.queue.slice()
           queue.splice(at, 0, track)
           state = Object.assign({}, state, { queue: queue })
-          randomOrder = randomOrderOf(state.queue.length)
           emit()
           savePlaybackState()
         },
@@ -3532,7 +3556,6 @@ window.__ModuleLoader__.load({
             queue: state.queue.concat([track]),
             index: state.index < 0 ? 0 : state.index,
           })
-          randomOrder = randomOrderOf(state.queue.length)
           emit()
           savePlaybackState()
         },
@@ -3544,9 +3567,14 @@ window.__ModuleLoader__.load({
             return
           }
           if (!sameQueue(list, state.queue)) {
-            state = Object.assign({}, state, { queue: list.slice(), index: at })
-            randomOrder = randomOrderOf(list.length, at)
-            load(at, true)
+            var queue = list.slice()
+            var index = at
+            if (state.order === 'random') {
+              queue = shuffleTracks(queue, queue[at])
+              index = 0
+            }
+            state = Object.assign({}, state, { queue: queue, index: index })
+            load(index, true)
             return
           }
           load(at, true)
@@ -3560,7 +3588,6 @@ window.__ModuleLoader__.load({
             currentTime: 0,
             duration: 0,
           })
-          randomOrder = []
           emit()
           savePlaybackState()
         },
@@ -3578,7 +3605,6 @@ window.__ModuleLoader__.load({
             if (to <= index) index += 1
           }
           state = Object.assign({}, state, { queue: list, index: index })
-          randomOrder = randomOrderOf(length)
           emit()
           savePlaybackState()
         },
@@ -3601,12 +3627,6 @@ window.__ModuleLoader__.load({
           })
           var current = state.index >= 0 ? indices.indexOf(state.index) : -1
           state = Object.assign({}, state, { queue: list, index: current })
-          randomOrder =
-            state.order === 'random'
-              ? list.map(function (_, position) {
-                  return position
-                })
-              : randomOrderOf(length)
           emit()
           savePlaybackState()
         },
@@ -3623,13 +3643,11 @@ window.__ModuleLoader__.load({
             var nextIndex = Math.min(at, list.length - 1)
             var shouldPlay = state.playing === true
             state = Object.assign({}, state, { queue: list })
-            randomOrder = randomOrderOf(list.length)
             load(nextIndex, shouldPlay)
             return
           }
           var index = at < state.index ? state.index - 1 : state.index
           state = Object.assign({}, state, { queue: list, index: index })
-          randomOrder = randomOrderOf(list.length)
           emit()
           savePlaybackState()
         },
@@ -3682,11 +3700,11 @@ window.__ModuleLoader__.load({
         },
         next: function () {
           if (state.queue.length === 0) return
-          load(nextIndexOf(state.index, state.order, state.queue.length, randomOrder), true)
+          load(nextIndexOf(state.index, state.queue.length), true)
         },
         prev: function () {
           if (state.queue.length === 0) return
-          load(prevIndexOf(state.index, state.order, state.queue.length, randomOrder), true)
+          load(prevIndexOf(state.index, state.queue.length), true)
         },
         seek: function (seconds) {
           if (audio === null) return
@@ -3756,13 +3774,16 @@ window.__ModuleLoader__.load({
         setOrder: function (value) {
           var next = value === 'random' ? 'random' : 'list'
           if (next === 'random' && state.queue.length > 1) {
-            // Fresh shuffle whenever random is selected, so the queue panel's
-            // displayed order is the actual playback order.
-            randomOrder = randomOrderOf(state.queue.length, state.index)
+            // Shuffle the canonical queue once; the panel order is the play order.
+            var current = currentItem()
+            var queue = shuffleTracks(state.queue, current)
+            state = Object.assign({}, state, { queue: queue, index: current ? 0 : state.index, order: next })
+          } else {
+            state = Object.assign({}, state, { order: next })
           }
-          state = Object.assign({}, state, { order: next })
           savePrefs({ order: next })
           emit()
+          savePlaybackState()
         },
         clear: function () {
           loadToken += 1
@@ -3781,7 +3802,6 @@ window.__ModuleLoader__.load({
             duration: 0,
             buffered: 0,
           })
-          randomOrder = []
           emit()
           syncMediaSession()
         },

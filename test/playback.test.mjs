@@ -41,4 +41,25 @@ assert.equal(sanitizePlayback('nope'), null)
 const many = Array.from({ length: 600 }, (_, index) => `p${index}`)
 assert.equal(sanitizePlayback({ queue: many }).queue.length, 500)
 
+// Queue entries with online metadata survive a write/read cycle.
+const objectState = sanitizePlayback({
+  queue: [
+    { path: 'D:/a.flac', title: 'A', artist: 'Artist', durationSec: 180 },
+    {
+      path: 'online:kugou:abc',
+      title: 'Online',
+      artist: 'Provider',
+      durationSec: 200,
+      onlineProvider: 'kugou',
+      onlineId: 'abc',
+      qualityHint: 'VIP',
+    },
+  ],
+  index: 1,
+})
+assert.equal(objectState.queue.length, 2)
+assert.equal(objectState.queue[1].onlineProvider, 'kugou')
+assert.equal(objectState.queue[1].onlineId, 'abc')
+assert.equal(objectState.queue[1].qualityHint, 'VIP')
+
 console.log('playback.test.mjs ok')
