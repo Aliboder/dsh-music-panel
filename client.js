@@ -8,7 +8,7 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
-    var APP_VERSION = "0.26.0"
+    var APP_VERSION = "0.27.0"
 
     // ── src/00-runtime.js
     /**
@@ -9250,20 +9250,6 @@ window.__ModuleLoader__.load({
           'div',
           { className: 'mp-toolbar', key: 'toolbar' },
           toolbarExtras,
-          playAll
-            ? h(
-                'button',
-                {
-                  key: 'playall',
-                  type: 'button',
-                  className: 'mp-chip',
-                  style: { marginLeft: 'auto' },
-                  onClick: playAll,
-                },
-                icon('play', 13),
-                t('page.playAll'),
-              )
-            : null,
         ),
         h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),
       ]
@@ -9688,14 +9674,6 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
-            playAll
-              ? h(
-                  'button',
-                  { type: 'button', className: 'mp-chip', onClick: playAll },
-                  icon('play', 13),
-                  t('page.playAll'),
-                )
-              : null,
             actions || [],
           ),
         ),

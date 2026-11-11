@@ -538,20 +538,6 @@ function LocalContent(props) {
       'div',
       { className: 'mp-toolbar', key: 'toolbar' },
       toolbarExtras,
-      playAll
-        ? h(
-            'button',
-            {
-              key: 'playall',
-              type: 'button',
-              className: 'mp-chip',
-              style: { marginLeft: 'auto' },
-              onClick: playAll,
-            },
-            icon('play', 13),
-            t('page.playAll'),
-          )
-        : null,
     ),
     h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),
   ]

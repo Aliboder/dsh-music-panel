@@ -416,14 +416,6 @@ function OnlineContent(props) {
       h(
         'div',
         { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
-        playAll
-          ? h(
-              'button',
-              { type: 'button', className: 'mp-chip', onClick: playAll },
-              icon('play', 13),
-              t('page.playAll'),
-            )
-          : null,
         actions || [],
       ),
     ),
