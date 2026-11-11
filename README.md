@@ -11,7 +11,7 @@
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
 [![DSH](https://img.shields.io/badge/DeepSeek%20Harness-plugin-5686fe)](https://github.com/Aliboder/dsh-music-panel)
 
-<img src="docs/screenshots/v2-library-list.png" alt="本地曲库 · 全部歌曲" width="100%" />
+<img src="docs/screenshots/v2-library-grid.png" alt="本地曲库 · 专辑网格" width="100%" />
 
 </div>
 
@@ -35,10 +35,14 @@
 
 | 播放页 · 黑胶 + 歌词 | 播放队列浮窗 |
 | :---: | :---: |
-| <img src="docs/screenshots/v2-now-playing.png" alt="播放页" /> | <img src="docs/screenshots/v2-queue.png" alt="队列" /> |
+| <img src="docs/screenshots/v2-now-playing-lyrics.png" alt="播放页 · 黑胶与歌词翻译" /> | <img src="docs/screenshots/v2-queue-compact.png" alt="播放队列浮窗" /> |
 
 <details>
 <summary>更多截图</summary>
+
+| 播放统计 | 纯音乐播放页 |
+| :---: | :---: |
+| <img src="docs/screenshots/v2-stats.png" alt="播放统计" /> | <img src="docs/screenshots/v2-now-playing-instrumental.png" alt="纯音乐播放页" /> |
 
 | 设置 · 布局切换 | 右键菜单 |
 | :---: | :---: |
