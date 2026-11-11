@@ -223,6 +223,7 @@ function ContextMenu(props) {
         postJson(API + 'online/like', { provider: track.onlineProvider, song: track, on: next })
           .then(function () {
             setLiked(next)
+            refreshLikedPlaylist()
             showToast(next ? t('page.favorite') : t('page.unfavorite'))
           })
           .catch(function (error) {

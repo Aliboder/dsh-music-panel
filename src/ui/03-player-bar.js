@@ -98,7 +98,14 @@ function PlayerBar(props) {
 
   return h(
     'div',
-    { className: 'mp-playerbar' },
+    {
+      className: 'mp-playerbar',
+      onClick: function (event) {
+        var target = event.target
+        if (target && target.closest && target.closest('button,input,a,[role="slider"],.mp-pb-queue-wrap')) return
+        if (props.onOpenNowPlaying) props.onOpenNowPlaying()
+      },
+    },
     h(
       'div',
       { className: 'mp-pb-seek-full' },
@@ -143,6 +150,7 @@ function PlayerBar(props) {
               postJson(API + 'online/like', { provider: current.onlineProvider, song: current, on: next })
                 .then(function () {
                   setOnlineLiked(next)
+                  refreshLikedPlaylist()
                   showToast(next ? t('page.favorite') : t('page.unfavorite'))
                 })
                 .catch(function (error) {
@@ -219,6 +227,25 @@ function PlayerBar(props) {
             player.setLoop(playerLoopNext(snap.loop))
           },
         }),
+        h(
+          'div',
+          { className: 'mp-pb-queue-wrap' },
+          h(IconButton, {
+            icon: 'playlist',
+            size: 17,
+            active: props.queueOpen,
+            title: t('page.queue'),
+            onClick: props.onToggleQueue,
+          }),
+          props.queueOpen
+            ? h(QueuePopover, {
+                open: true,
+                anchored: true,
+                snap: snap,
+                onClose: props.onToggleQueue,
+              })
+            : null,
+        ),
       ),
     ),
     h(
@@ -260,25 +287,6 @@ function PlayerBar(props) {
             player.setVolume(value)
           },
         }),
-      ),
-      h(
-        'div',
-        { className: 'mp-pb-queue-wrap' },
-        h(IconButton, {
-          icon: 'list',
-          size: 16,
-          active: props.queueOpen,
-          title: t('page.queue'),
-          onClick: props.onToggleQueue,
-        }),
-        props.queueOpen
-          ? h(QueuePopover, {
-              open: true,
-              anchored: true,
-              snap: snap,
-              onClose: props.onToggleQueue,
-            })
-          : null,
       ),
       h(IconButton, {
         icon: 'chevronDown',

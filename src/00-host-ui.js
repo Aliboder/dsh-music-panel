@@ -50,8 +50,6 @@ var HOST_ICON_MAP = {
   chevronRight: 'IconChevronRightOutlineRegular',
   chevronUp: 'IconChevronUpOutlineRegular',
   sort: 'IconChevronsUpDownOutlineRegular',
-  heart: 'IconLikeOutlineRegular',
-  heartFill: 'IconLikeFillRegular',
   list: 'IconQueueOutlineRegular',
 }
 

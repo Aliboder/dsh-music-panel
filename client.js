@@ -82,8 +82,6 @@ window.__ModuleLoader__.load({
       chevronRight: 'IconChevronRightOutlineRegular',
       chevronUp: 'IconChevronUpOutlineRegular',
       sort: 'IconChevronsUpDownOutlineRegular',
-      heart: 'IconLikeOutlineRegular',
-      heartFill: 'IconLikeFillRegular',
       list: 'IconQueueOutlineRegular',
     }
 
@@ -1764,6 +1762,16 @@ window.__ModuleLoader__.load({
       ],
     }
     ICONS.chevronRight = { parts: [['path', { d: 'M9 6l6 6-6 6' }]] }
+    
+    ICONS.playlist = {
+      parts: [
+        ['path', { d: 'M4 6h11' }],
+        ['path', { d: 'M4 12h8' }],
+        ['path', { d: 'M4 18h6' }],
+        ['path', { d: 'M17 5v10.5' }],
+        ['circle', { cx: 15.5, cy: 17.5, r: 2.5 }],
+      ],
+    }
 
     // ── src/20-api.js
     /**
@@ -3662,6 +3670,19 @@ window.__ModuleLoader__.load({
       }
     }
     
+    /** Re-read the likes playlist after a cloud like/unlike from any surface. */
+    function refreshLikedPlaylist() {
+      var state = onlineStore.get()
+      var current = (state.playlists || []).find(function (item) {
+        return String(item.id) === String(state.playlistId)
+      })
+      var likedPlaylist =
+        current &&
+        (current.isLike === true || current.kind === 'default' || current.isDefault === true)
+      if (likedPlaylist) void openOnlinePlaylist(current)
+      void loadMyPlaylists(state.provider)
+    }
+    
     async function openOnlinePlaylist(playlist) {
       if (!playlist || !playlist.id) return
       var provider = onlineStore.get().provider
@@ -5105,7 +5126,14 @@ window.__ModuleLoader__.load({
     
       return h(
         'div',
-        { className: 'mp-playerbar' },
+        {
+          className: 'mp-playerbar',
+          onClick: function (event) {
+            var target = event.target
+            if (target && target.closest && target.closest('button,input,a,[role="slider"],.mp-pb-queue-wrap')) return
+            if (props.onOpenNowPlaying) props.onOpenNowPlaying()
+          },
+        },
         h(
           'div',
           { className: 'mp-pb-seek-full' },
@@ -5150,6 +5178,7 @@ window.__ModuleLoader__.load({
                   postJson(API + 'online/like', { provider: current.onlineProvider, song: current, on: next })
                     .then(function () {
                       setOnlineLiked(next)
+                      refreshLikedPlaylist()
                       showToast(next ? t('page.favorite') : t('page.unfavorite'))
                     })
                     .catch(function (error) {
@@ -5226,6 +5255,25 @@ window.__ModuleLoader__.load({
                 player.setLoop(playerLoopNext(snap.loop))
               },
             }),
+            h(
+              'div',
+              { className: 'mp-pb-queue-wrap' },
+              h(IconButton, {
+                icon: 'playlist',
+                size: 17,
+                active: props.queueOpen,
+                title: t('page.queue'),
+                onClick: props.onToggleQueue,
+              }),
+              props.queueOpen
+                ? h(QueuePopover, {
+                    open: true,
+                    anchored: true,
+                    snap: snap,
+                    onClose: props.onToggleQueue,
+                  })
+                : null,
+            ),
           ),
         ),
         h(
@@ -5267,25 +5315,6 @@ window.__ModuleLoader__.load({
                 player.setVolume(value)
               },
             }),
-          ),
-          h(
-            'div',
-            { className: 'mp-pb-queue-wrap' },
-            h(IconButton, {
-              icon: 'list',
-              size: 16,
-              active: props.queueOpen,
-              title: t('page.queue'),
-              onClick: props.onToggleQueue,
-            }),
-            props.queueOpen
-              ? h(QueuePopover, {
-                  open: true,
-                  anchored: true,
-                  snap: snap,
-                  onClose: props.onToggleQueue,
-                })
-              : null,
           ),
           h(IconButton, {
             icon: 'chevronDown',
@@ -6718,6 +6747,7 @@ window.__ModuleLoader__.load({
             postJson(API + 'online/like', { provider: track.onlineProvider, song: track, on: next })
               .then(function () {
                 setLiked(next)
+                refreshLikedPlaylist()
                 showToast(next ? t('page.favorite') : t('page.unfavorite'))
               })
               .catch(function (error) {
@@ -8088,6 +8118,7 @@ window.__ModuleLoader__.load({
             if (next) map[path] = true
             else delete map[path]
             onlineStore.set({ liked: map })
+            refreshLikedPlaylist()
             showToast(next ? t('page.favorite') : t('page.unfavorite'))
           })
           .catch(function (error) {
