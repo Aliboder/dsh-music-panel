@@ -37,3 +37,4 @@ ICONS.playlist = {
     ['circle', { cx: 15.5, cy: 17.5, r: 2.5 }],
   ],
 }
+

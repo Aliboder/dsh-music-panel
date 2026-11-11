@@ -12,6 +12,7 @@ var SETTINGS_TABS = [
   { key: 'online', label: 'v2.online' },
   { key: 'library', label: 'v2.library' },
   { key: 'cache', label: 'v2.cacheTab' },
+  { key: 'about', label: 'v2.about' },
 ]
 
 function SettingsSheet(props) {
@@ -23,6 +24,13 @@ function SettingsSheet(props) {
   var tab = tabPair[0]
   var setTab = tabPair[1]
   var cachePair = useState(null)
+  var cacheSongsPair = useState(null)
+  var cacheSongs = cacheSongsPair[0]
+  var setCacheSongs = cacheSongsPair[1]
+  var builtinLoudness =
+    typeof window !== 'undefined' &&
+    (typeof window.OfflineAudioContext !== 'undefined' ||
+      typeof window.webkitOfflineAudioContext !== 'undefined')
   var cache = cachePair[0]
   var setCache = cachePair[1]
   var pathPair = useState('')
@@ -34,6 +42,15 @@ function SettingsSheet(props) {
 
   useEffect(
     function () {
+      if (tab !== 'online' || props.open !== true) return undefined
+      void loadProviders()
+      return undefined
+    },
+    [tab, props.open],
+  )
+
+  useEffect(
+    function () {
       if (tab !== 'cache' || props.open !== true) return undefined
       var cancelled = false
       getJson(API + 'online/cache')
@@ -42,6 +59,13 @@ function SettingsSheet(props) {
         })
         .catch(function () {
           if (!cancelled) setCache(null)
+        })
+      getJson(API + 'online/cache/list')
+        .then(function (body) {
+          if (!cancelled) setCacheSongs(Array.isArray(body.songs) ? body.songs : [])
+        })
+        .catch(function () {
+          if (!cancelled) setCacheSongs([])
         })
       return function () {
         cancelled = true
@@ -254,6 +278,44 @@ function SettingsSheet(props) {
       ),
       h(
         SetRow,
+        {
+          key: 'normalize',
+          label: t('settings.volumeNormalize'),
+          desc: t('settings.volumeNormalizeHint'),
+        },
+        h(Switch, {
+          value: prefs.normalizeVolume !== false,
+          onChange: function (value) {
+            patchPrefs({ normalizeVolume: value })
+            if (player.setNormalize) player.setNormalize(value)
+          },
+        }),
+      ),
+      h(
+        'div',
+        {
+          key: 'normalize-status',
+          className: cx(
+            'mp-set-status',
+            prefs.normalizeVolume === false ? 'is-off' : builtinLoudness ? 'is-on' : 'is-bad',
+          ),
+        },
+        h('i'),
+        h(
+          'span',
+          null,
+          prefs.normalizeVolume === false
+            ? t('settings.volumeNormalizeOff')
+            : builtinLoudness
+              ? t('settings.volumeNormalizeReady')
+              : t('settings.volumeNormalizeMissing'),
+        ),
+        prefs.normalizeVolume !== false && !builtinLoudness
+          ? h('span', { className: 'mp-set-status-hint' }, t('settings.volumeNormalizeMissingHint'))
+          : null,
+      ),
+      h(
+        SetRow,
         { key: 'sleep', label: t('settings.sleepTimer') },
         h(
           'div',
@@ -298,6 +360,17 @@ function SettingsSheet(props) {
     ]
   }
 
+  function accountAvatar(info) {
+    if (info.avatarUrl) {
+      return h('img', {
+        className: 'mp-account-avatar',
+        src: API + 'online/cover?url=' + encodeURIComponent(info.avatarUrl),
+        alt: '',
+      })
+    }
+    return h('span', { className: 'mp-account-avatar is-fallback' }, (info.nickname || '?').slice(0, 1))
+  }
+
   function onlineTab() {
     var providers = online.providers || {}
     var rows = ['netease', 'qq', 'kugou'].map(function (provider) {
@@ -310,16 +383,32 @@ function SettingsSheet(props) {
             : t('online.providerKugou')
       return h(
         SetRow,
-        { key: provider, label: label, desc: info.loggedIn ? info.nickname || t('online.loggedIn') : t('online.loggedOut') },
+        {
+          key: provider,
+          label: h(
+            'span',
+            { className: 'mp-provider-name' },
+            h('span', { className: 'mp-provider-icon' }, providerLogo(provider, 20)),
+            h('span', null, label),
+          ),
+          desc: info.loggedIn
+            ? info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn'))
+            : t('online.loggedOut'),
+        },
         info.loggedIn
-          ? h(Button, {
-              variant: 'ghost',
-              icon: 'logout',
-              onClick: function () {
-                void logoutProvider(provider)
-              },
-              children: t('online.logout'),
-            })
+          ? h(
+              'div',
+              { className: 'mp-account' },
+              accountAvatar(info),
+              h(Button, {
+                variant: 'ghost',
+                icon: 'logout',
+                onClick: function () {
+                  void logoutProvider(provider)
+                },
+                children: t('online.logout'),
+              }),
+            )
           : h(Button, {
               variant: 'primary',
               icon: 'qr',
@@ -345,6 +434,7 @@ function SettingsSheet(props) {
     var config = library.config || { roots: [], hiddenRoots: [], depth: 4 }
     var roots = Array.isArray(config.roots) ? config.roots : []
     var hiddenRoots = Array.isArray(config.hiddenRoots) ? config.hiddenRoots : []
+    var scanning = library.phase === 'loading'
     function setRootVisible(root, visible) {
       var next = hiddenRoots.slice()
       var at = next.indexOf(root)
@@ -352,104 +442,158 @@ function SettingsSheet(props) {
       if (!visible && at < 0) next.push(root)
       void saveConfig({ hiddenRoots: next })
     }
-    return [
-      h('h2', { key: 'h' }, t('v2.library')),
+    function removeRoot(root) {
+      pushLayer('confirm', {
+        title: t('page.delete'),
+        text: t('settings.removeConfirm'),
+        onConfirm: function () {
+          var next = roots.filter(function (item) {
+            return item !== root
+          })
+          void saveConfig({ roots: next })
+        },
+      })
+    }
+    function rescan() {
+      if (scanning) return
+      void loadLibrary(true)
+      showToast(t('page.scanning'))
+    }
+    var folderRows =
       roots.length === 0
-        ? h('p', { key: 'empty', className: 'mp-set-desc' }, t('v2.noTracksHint'))
-        : h(
-            'div',
-            { key: 'roots' },
-            roots.map(function (root) {
-              return h(
-                SetRow,
-                {
-                  key: root,
-                  label: root,
-                  desc: hiddenRoots.indexOf(root) >= 0 ? t('v2.folderHidden') : t('v2.folderVisible'),
-                },
-                h(
-                  'div',
-                  { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
-                  h(Switch, {
-                    value: hiddenRoots.indexOf(root) < 0,
-                    label: hiddenRoots.indexOf(root) >= 0 ? t('v2.folderHidden') : t('v2.folderVisible'),
-                    onChange: function (visible) {
-                      setRootVisible(root, visible)
-                    },
-                  }),
-                  h(Button, {
-                    variant: 'ghost',
-                    icon: 'trash',
-                    onClick: function () {
-                      var next = roots.filter(function (item) {
-                        return item !== root
-                      })
-                      void saveConfig({ roots: next })
-                    },
-                    children: t('page.delete'),
-                  }),
-                ),
-              )
-            }),
-          ),
+        ? [h('div', { key: 'empty', className: 'mp-set-empty-card' }, t('v2.noTracksHint'))]
+        : roots.map(function (root) {
+            var hidden = hiddenRoots.indexOf(root) >= 0
+            return h(
+              'div',
+              { key: root, className: cx('mp-root-row', hidden && 'is-hidden') },
+              h('span', { className: 'mp-root-icon' }, icon('folder', 16)),
+              h(
+                'div',
+                { className: 'mp-root-main' },
+                h('div', { className: 'mp-root-path', title: root }, root),
+                h('div', { className: 'mp-root-state' }, hidden ? t('v2.folderHidden') : t('v2.folderVisible')),
+              ),
+              h(
+                'div',
+                { className: 'mp-root-actions' },
+                h(Switch, {
+                  value: !hidden,
+                  label: hidden ? t('v2.folderHidden') : t('v2.folderVisible'),
+                  onChange: function (visible) {
+                    setRootVisible(root, visible)
+                  },
+                }),
+                h(IconButton, {
+                  icon: 'trash',
+                  size: 15,
+                  title: t('page.delete'),
+                  onClick: function () {
+                    removeRoot(root)
+                  },
+                }),
+              ),
+            )
+          })
+    return [
       h(
         'div',
-        { key: 'add', style: { display: 'flex', gap: '8px', paddingTop: '12px' } },
-        h('input', {
-          type: 'text',
-          className: 'mp-kit-input',
-          value: rootDraft,
-          placeholder: 'D:\\Music',
-          onChange: function (event) {
-            setRootDraft(event.target.value)
-          },
-          onKeyDown: function (event) {
-            if (event.key === 'Enter') addRoot()
-          },
-        }),
-        h(Button, { variant: 'ghost', icon: 'folder', onClick: function () { pushLayer('folderPicker') } }, t('v2.folderBrowse')),
-        h(Button, {
-          variant: 'primary',
-          icon: 'plus',
-          disabled: busy || rootDraft.trim() === '',
-          onClick: addRoot,
-          children: t('page.create'),
-        }),
+        { key: 'head', className: 'mp-set-page-head' },
+        h('h2', null, t('v2.library')),
+        h(
+          'span',
+          { className: 'mp-set-page-meta' },
+          t('settings.scannedTracks', { n: (library.tracks || []).length }),
+          (library.warnings || []).length > 0
+            ? ' · ' + t('settings.scanWarnings', { n: library.warnings.length })
+            : '',
+        ),
       ),
       h(
-        SetRow,
-        { key: 'depth', label: t('settings.depth'), desc: t('settings.depthHint') },
+        'section',
+        { key: 'folders', className: 'mp-set-card' },
         h(
-          'select',
-          {
-            value: String(config.depth || 4),
+          'div',
+          { className: 'mp-set-card-head' },
+          h('div', { className: 'mp-set-card-title' }, icon('folder', 13), t('settings.foldersTitle')),
+          h(Button, {
+            variant: 'ghost',
+            icon: 'refresh',
+            disabled: scanning,
+            onClick: rescan,
+            children: scanning ? t('page.scanning') : t('page.refresh'),
+          }),
+        ),
+        h('div', { className: 'mp-set-card-body' }, folderRows),
+        h(
+          'div',
+          { className: 'mp-root-add' },
+          h('input', {
+            type: 'text',
+            className: 'mp-kit-input',
+            value: rootDraft,
+            placeholder: 'D:\\Music',
             onChange: function (event) {
-              void saveConfig({ depth: Number(event.target.value) })
+              setRootDraft(event.target.value)
             },
-          },
-          [1, 2, 3, 4, 5, 6].map(function (n) {
-            return h('option', { key: n, value: String(n) }, String(n))
+            onKeyDown: function (event) {
+              if (event.key === 'Enter') addRoot()
+            },
+          }),
+          h(
+            Button,
+            { variant: 'ghost', icon: 'folder', onClick: function () { pushLayer('folderPicker') } },
+            t('v2.folderBrowse'),
+          ),
+          h(Button, {
+            variant: 'primary',
+            icon: 'plus',
+            disabled: busy || rootDraft.trim() === '',
+            onClick: addRoot,
+            children: t('page.create'),
           }),
         ),
       ),
       h(
-        'div',
-        { key: 'scan', style: { display: 'flex', justifyContent: 'flex-end', paddingTop: '12px' } },
-        h(Button, {
-          icon: 'refresh',
-          disabled: busy,
-          onClick: function () {
-            void loadLibrary(true)
-            showToast(t('page.scanning'))
-          },
-          children: t('page.refresh'),
-        }),
+        'section',
+        { key: 'scan', className: 'mp-set-card' },
+        h(
+          'div',
+          { className: 'mp-set-card-head' },
+          h('div', { className: 'mp-set-card-title' }, icon('settings', 13), t('settings.scanSettings')),
+        ),
+        h(
+          'div',
+          { className: 'mp-set-card-body' },
+          h(
+            SetRow,
+            { key: 'depth', label: t('settings.depth'), desc: t('settings.depthHint') },
+            h(
+              'select',
+              {
+                value: String(config.depth === undefined ? 4 : config.depth),
+                onChange: function (event) {
+                  void saveConfig({ depth: Number(event.target.value) })
+                },
+              },
+              [0, 1, 2, 3, 4, 5, 6].map(function (n) {
+                return h('option', { key: n, value: String(n) }, String(n))
+              }),
+            ),
+          ),
+          h('div', { className: 'mp-set-hint-line' }, t('settings.formatsHint')),
+        ),
       ),
       h(
-        'div',
-        { key: 'trash', style: { display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '10px' } },
-        h('span', { className: 'mp-set-desc', style: { flex: '1' } }, t('v2.trashHint')),
-        h(Button, { icon: 'trash', onClick: function () { pushLayer('trash', {}) } }, t('v2.trash')),
+        'section',
+        { key: 'trash', className: 'mp-set-card' },
+        h(
+          'div',
+          { className: 'mp-set-card-head' },
+          h('div', { className: 'mp-set-card-title' }, icon('trash', 13), t('v2.trash')),
+          h(Button, { variant: 'ghost', icon: 'trash', onClick: function () { pushLayer('trash', {}) } }, t('settings.openTrash')),
+        ),
+        h('div', { className: 'mp-set-card-body' }, h('p', { className: 'mp-set-desc' }, t('v2.trashHint'))),
       ),
     ]
   }
@@ -485,6 +629,7 @@ function SettingsSheet(props) {
             postJson(API + 'online/cache', {})
               .then(function () {
                 setCache({ files: 0, bytes: 0, maxBytes: stats.maxBytes || 0 })
+                setCacheSongs([])
                 showToast(t('online.cacheCleared'))
               })
               .catch(function (error) {
@@ -499,6 +644,87 @@ function SettingsSheet(props) {
         { key: 'hint', className: 'mp-set-desc' },
         'Cached audio is reused by the stream route; deleting it only costs a refetch.',
       ),
+      h(
+        'div',
+        { key: 'songs', className: 'mp-cache-block' },
+        h('div', { className: 'mp-cache-heading' }, t('online.cacheSongs'), h('span', null, String((cacheSongs || []).length))),
+        (cacheSongs || []).length === 0
+          ? h('div', { className: 'mp-cache-empty' }, t('online.cacheNoSongs'))
+          : h(
+              'div',
+              { className: 'mp-cache-list' },
+              cacheSongs.map(function (song) {
+                return h(
+                  'div',
+                  { key: song.provider + ':' + song.id, className: 'mp-cache-row' },
+                  h('span', { className: 'mp-cache-provider' }, providerLogo(song.provider, 18)),
+                  h(
+                    'div',
+                    { className: 'mp-cache-main' },
+                    h('div', { className: 'mp-cache-title' }, song.title || song.id),
+                    h(
+                      'div',
+                      { className: 'mp-cache-sub' },
+                      [song.artist, song.album].filter(Boolean).join(' · ') || t('page.unknownArtist'),
+                    ),
+                  ),
+                  h('span', { className: 'mp-cache-time' }, fmtTime(song.durationSec)),
+                  h('span', { className: 'mp-cache-size' }, fmtBytes(song.size || 0)),
+                  song.hasLyric ? h('span', { className: 'mp-cache-tag' }, 'LRC') : null,
+                )
+              }),
+            ),
+      ),
+    ]
+  }
+
+  function aboutTab() {
+    return [
+      h('h2', { key: 'h' }, t('v2.about')),
+      h(
+        'div',
+        { key: 'card', className: 'mp-about-card' },
+        h('img', { className: 'mp-about-logo', src: BRAND_LOGO, alt: '' }),
+        h(
+          'div',
+          { className: 'mp-about-main' },
+          h('div', { className: 'mp-about-name' }, 'dsh-music-panel'),
+          h('div', { className: 'mp-about-version' }, t('about.version') + ' ' + APP_VERSION),
+          h('div', { className: 'mp-about-tagline' }, t('about.tagline')),
+        ),
+      ),
+      h(
+        'div',
+        { key: 'meta', className: 'mp-about-rows' },
+        h('div', { className: 'mp-about-row' }, h('span', null, t('about.project')), h('strong', null, 'DeepSeek Harness Music Panel')),
+        h('div', { className: 'mp-about-row' }, h('span', null, t('about.license')), h('strong', null, 'MIT')),
+        h('div', { className: 'mp-about-row' }, h('span', null, t('about.author')), h('strong', null, 'Aliboder')),
+        h(
+          'div',
+          { className: 'mp-about-row' },
+          h('span', null, t('about.feedback')),
+          h(
+            'a',
+            { href: 'https://github.com/Aliboder/dsh-music-panel/issues', target: '_blank', rel: 'noreferrer' },
+            'GitHub Issues',
+          ),
+        ),
+      ),
+      h(
+        'div',
+        { key: 'links', className: 'mp-about-links' },
+        h(
+          'a',
+          { href: 'https://github.com/Aliboder/dsh-music-panel', target: '_blank', rel: 'noreferrer' },
+          t('about.source'),
+        ),
+        h(
+          'a',
+          { href: 'https://www.npmjs.com/package/dsh-music-panel', target: '_blank', rel: 'noreferrer' },
+          t('about.npm'),
+        ),
+      ),
+      h('p', { key: 'desc', className: 'mp-set-desc' }, t('about.description')),
     ]
   }
 
@@ -513,7 +739,9 @@ function SettingsSheet(props) {
             ? onlineTab()
             : tab === 'library'
               ? libraryTab()
-              : cacheTab()
+              : tab === 'cache'
+                ? cacheTab()
+                : aboutTab()
 
   return h(
     KitModal,
@@ -549,3 +777,4 @@ function SettingsSheet(props) {
     ),
   )
 }
+

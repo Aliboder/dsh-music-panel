@@ -111,9 +111,13 @@ function createPlayer() {
   /** Web Audio graph used by the bar visualizer (lazy, user-gesture bound). */
   var audioContext = null
   var analyser = null
+  var gainNode = null
   var waveData = null
+  var normalizeGain = 1
+  var loudnessToken = 0
   /** Active `blob:` URL for the loaded track (local media seeks reliably). */
   var objectUrl = null
+  var currentLoudnessBlob = null
   /** In-flight track download. */
   var fetchAbort = null
   /** Bumped per load so a stale download cannot overwrite a newer track. */
@@ -546,6 +550,50 @@ function createPlayer() {
    * the track. A Blob is local media and seeks reliably. The download is a
    * loopback request, so it costs one disk read, not a network hop.
    */
+  /** Element volume when normalization is applied without a Web Audio graph. */
+  function effectiveVolume() {
+    var trim = gainNode === null ? Math.min(1, normalizeGain) : 1
+    return clamp(state.volume * trim, 0, 1)
+  }
+
+  function applyOutputVolume() {
+    if (audio) audio.volume = effectiveVolume()
+  }
+
+  function applyNormalizeGain(linear) {
+    normalizeGain = Number.isFinite(linear) && linear > 0 ? linear : 1
+    if (gainNode !== null && audioContext !== null) {
+      try {
+        var now = audioContext.currentTime
+        gainNode.gain.cancelScheduledValues(now)
+        gainNode.gain.setTargetAtTime(normalizeGain, now, 0.12)
+      } catch {
+        gainNode.gain.value = normalizeGain
+      }
+    } else {
+      applyOutputVolume()
+    }
+  }
+
+  /** Analyse the downloaded blob in-browser and apply the per-track gain. */
+  function scheduleLoudness(item, blob) {
+    var token = (loudnessToken += 1)
+    currentLoudnessBlob = blob || null
+    applyNormalizeGain(1)
+    if (readPrefs().normalizeVolume === false || !item || !blob) return
+    analyzeLoudnessBlob(
+      item,
+      blob,
+      function () {
+        return token === loudnessToken
+      },
+      function (gainDb) {
+        if (token !== loudnessToken) return
+        applyNormalizeGain(Math.pow(10, clamp(gainDb, -15, 6) / 20))
+      },
+    )
+  }
+
   function load(at, autoplay) {
     var item = state.queue[at]
     if (!item) return
@@ -560,6 +608,9 @@ function createPlayer() {
     // A new session starts here. The play count is recorded later, and
     // only when the Last.fm / MusicBee threshold is reached.
     resetSession(item)
+    currentLoudnessBlob = null
+    loudnessToken += 1
+    applyNormalizeGain(1)
     if (audio === null) return
 
     cancelPendingFetch()
@@ -600,6 +651,7 @@ function createPlayer() {
           objectUrl = URL.createObjectURL(blob)
           audio.src = objectUrl
           audio.load()
+          scheduleLoudness(item, blob)
           if (pendingAutoplay) {
             pendingAutoplay = false
             audio.play().catch(function () {
@@ -646,6 +698,7 @@ function createPlayer() {
         objectUrl = URL.createObjectURL(blob)
         audio.src = objectUrl
         audio.load()
+        scheduleLoudness(item, blob)
         if (pendingResumeSeconds !== null) {
           var resumeAt = pendingResumeSeconds
           pendingResumeSeconds = null
@@ -726,11 +779,15 @@ function createPlayer() {
         if (!Ctx) return null
         if (audioContext === null) audioContext = new Ctx()
         var source = audioContext.createMediaElementSource(audio)
+        gainNode = audioContext.createGain()
         analyser = audioContext.createAnalyser()
         analyser.fftSize = 256
         analyser.smoothingTimeConstant = 0.82
-        source.connect(analyser)
+        source.connect(gainNode)
+        gainNode.connect(analyser)
         analyser.connect(audioContext.destination)
+        if (audio) audio.volume = state.volume
+        applyNormalizeGain(normalizeGain)
         waveData = new Uint8Array(analyser.frequencyBinCount)
         if (audioContext.state === 'suspended') audioContext.resume().catch(function () {})
       } catch (error) {
@@ -759,12 +816,13 @@ function createPlayer() {
       }
       audioContext = null
       analyser = null
+      gainNode = null
       waveData = null
       audio = el
       if (el === null) return
       bind(el)
       el.preload = 'metadata'
-      el.volume = state.volume
+      el.volume = effectiveVolume()
       el.muted = state.muted
       var item = currentItem()
       if (item !== null) {
@@ -921,6 +979,15 @@ function createPlayer() {
         return
       }
       if (audio === null) return
+      var item = currentItem()
+      if (readPrefs().normalizeVolume !== false && item && !item.onlineProvider) {
+        var context = api.ensureAnalyser()
+        if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
+          audioContext.resume().catch(function () {
+            // If the context cannot start, leave the media element untouched.
+          })
+        }
+      }
       audio.play().catch(function () {})
     },
     /** Called by the cross-tab coordinator; never plays in a follower tab. */
@@ -991,10 +1058,19 @@ function createPlayer() {
         // The listener above retries once metadata is ready.
       }
     },
+    setNormalize: function (value) {
+      savePrefs({ normalizeVolume: value !== false })
+      if (value === false) {
+        loudnessToken += 1
+        applyNormalizeGain(1)
+      } else if (currentItem()) {
+        scheduleLoudness(currentItem(), currentLoudnessBlob)
+      }
+    },
     setVolume: function (value) {
       var next = clamp(value, 0, 1)
       state = Object.assign({}, state, { volume: next, muted: next > 0 ? state.muted : false })
-      if (audio) audio.volume = next
+      applyOutputVolume()
       savePrefs({ volume: next })
       emit()
     },

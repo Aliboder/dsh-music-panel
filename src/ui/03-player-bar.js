@@ -150,7 +150,7 @@ function PlayerBar(props) {
               postJson(API + 'online/like', { provider: current.onlineProvider, song: current, on: next })
                 .then(function () {
                   setOnlineLiked(next)
-                  refreshLikedPlaylist()
+                  refreshLikedPlaylist(next ? 1 : -1)
                   showToast(next ? t('page.favorite') : t('page.unfavorite'))
                 })
                 .catch(function (error) {

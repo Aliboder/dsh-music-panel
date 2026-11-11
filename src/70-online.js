@@ -30,11 +30,13 @@ var onlineStore = createStore({
   error: '',
   playlistsPhase: 'idle',
   playlistsProvider: '',
+  playlistsRefreshing: false,
   playlists: [],
   playlistId: '',
   playlistName: '',
   playlistSongs: [],
   playlistPhase: 'idle',
+  playlistRefreshing: false,
   history: readOnlineHistory(),
   liked: {},
   cache: {},
@@ -43,6 +45,10 @@ var onlineStore = createStore({
 })
 
 var onlineSearchToken = 0
+var playlistLoadToken = 0
+var playlistCache = new Map()
+var playlistInflight = new Map()
+var PLAYLIST_CACHE_TTL = 60 * 1000
 
 async function searchOnline(text) {
   var query = String(text || '').trim()
@@ -90,60 +96,178 @@ async function refreshCacheStatus(provider, ids) {
   }
 }
 
+function mergePlaylists(previous, incoming) {
+  var next = new Map()
+  ;(incoming || []).forEach(function (item) {
+    if (item && item.id !== undefined) next.set(String(item.id), item)
+  })
+  var merged = []
+  ;(previous || []).forEach(function (item) {
+    var fresh = next.get(String(item.id))
+    if (fresh) {
+      merged.push(Object.assign({}, item, fresh))
+      next.delete(String(item.id))
+    }
+  })
+  next.forEach(function (item) {
+    merged.push(item)
+  })
+  return merged
+}
+
 async function loadMyPlaylists(provider) {
   var target = provider || onlineStore.get().provider
-  onlineStore.set({ playlistsPhase: 'loading', playlistsProvider: target, playlists: [] })
+  var token = (playlistLoadToken += 1)
+  var snapshot = onlineStore.get()
+  var keep = snapshot.playlistsProvider === target && (snapshot.playlists || []).length > 0
+  onlineStore.set(
+    keep
+      ? { playlistsPhase: 'ready', playlistsRefreshing: true, playlistsProvider: target, error: '' }
+      : { playlistsPhase: 'loading', playlistsRefreshing: false, playlistsProvider: target, playlists: [] },
+  )
   try {
     var body = await getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(target))
+    if (token !== playlistLoadToken) return
+    var incoming = Array.isArray(body.playlists) ? body.playlists : []
+    var current = onlineStore.get()
     onlineStore.set({
       playlistsPhase: 'ready',
+      playlistsRefreshing: false,
       playlistsProvider: target,
-      playlists: Array.isArray(body.playlists) ? body.playlists : [],
+      playlists: keep ? mergePlaylists(current.playlists, incoming) : incoming,
+      error: '',
     })
   } catch (error) {
-    onlineStore.set({ playlistsPhase: 'error', playlistsProvider: target, playlists: [], error: errorText(error) })
+    if (token !== playlistLoadToken) return
+    var state = onlineStore.get()
+    if (state.playlistsProvider === target && (state.playlists || []).length > 0) {
+      // Stale-while-revalidate: keep the last good list visible.
+      onlineStore.set({ playlistsPhase: 'ready', playlistsRefreshing: false, error: errorText(error) })
+    } else {
+      onlineStore.set({
+        playlistsPhase: 'error',
+        playlistsRefreshing: false,
+        playlistsProvider: target,
+        playlists: [],
+        error: errorText(error),
+      })
+    }
   }
 }
 
 /** Re-read the likes playlist after a cloud like/unlike from any surface. */
-function refreshLikedPlaylist() {
+function refreshLikedPlaylist(delta) {
   var state = onlineStore.get()
-  var current = (state.playlists || []).find(function (item) {
-    return String(item.id) === String(state.playlistId)
+  var liked = (state.playlists || []).find(function (item) {
+    return item.isLike === true
+  }) || (state.playlists || []).find(function (item) {
+    return item.kind === 'default' || item.isDefault === true
   })
-  var likedPlaylist =
-    current &&
-    (current.isLike === true || current.kind === 'default' || current.isDefault === true)
-  if (likedPlaylist) void openOnlinePlaylist(current)
+  if (liked) {
+    var count = Math.max(0, (Number(liked.trackCount) || 0) + (Number(delta) || 0))
+    var playlists = (state.playlists || []).map(function (item) {
+      return String(item.id) === String(liked.id) ? Object.assign({}, item, { trackCount: count }) : item
+    })
+    onlineStore.set({ playlists: playlists, playlistsRefreshing: true })
+    if (String(state.playlistId) === String(liked.id)) void openOnlinePlaylist(Object.assign({}, liked, { trackCount: count }), true)
+  }
   void loadMyPlaylists(state.provider)
 }
 
-async function openOnlinePlaylist(playlist) {
+function playlistCacheKey(provider, id) {
+  return String(provider || '') + ':' + String(id || '')
+}
+
+function trimPlaylistCache() {
+  if (playlistCache.size <= 24) return
+  var old = []
+  playlistCache.forEach(function (value, key) {
+    old.push({ key: key, at: value.at || 0 })
+  })
+  old
+    .sort(function (left, right) {
+      return left.at - right.at
+    })
+    .slice(0, playlistCache.size - 24)
+    .forEach(function (row) {
+      playlistCache.delete(row.key)
+    })
+}
+
+function fetchPlaylistSongs(provider, id, force) {
+  var key = playlistCacheKey(provider, id)
+  if (!force && playlistInflight.has(key)) return playlistInflight.get(key)
+  var request = getJson(
+    API +
+      'online/playlist-songs?provider=' +
+      encodeURIComponent(provider) +
+      '&id=' +
+      encodeURIComponent(id),
+  )
+    .then(function (body) {
+      var songs = Array.isArray(body.songs) ? body.songs : []
+      playlistCache.set(key, {
+        songs: songs,
+        name: body.name || '',
+        at: Date.now(),
+      })
+      trimPlaylistCache()
+      return { songs: songs, name: body.name || '' }
+    })
+    .finally(function () {
+      if (playlistInflight.get(key) === request) playlistInflight.delete(key)
+    })
+  playlistInflight.set(key, request)
+  return request
+}
+
+/** Warm the cache when the pointer/focus reaches a playlist nav item. */
+function prefetchOnlinePlaylist(playlist) {
   if (!playlist || !playlist.id) return
   var provider = onlineStore.get().provider
+  var key = playlistCacheKey(provider, playlist.id)
+  var hit = playlistCache.get(key)
+  if (hit && Date.now() - (hit.at || 0) < PLAYLIST_CACHE_TTL) return
+  void fetchPlaylistSongs(provider, playlist.id, false).catch(function () {
+    // Prefetch is best effort.
+  })
+}
+
+async function openOnlinePlaylist(playlist, force) {
+  if (!playlist || !playlist.id) return
+  var provider = onlineStore.get().provider
+  var key = playlistCacheKey(provider, playlist.id)
+  var hit = playlistCache.get(key)
+  var fresh = hit && Date.now() - (hit.at || 0) < PLAYLIST_CACHE_TTL
   onlineStore.set({
     playlistId: playlist.id,
-    playlistName: playlist.name || '',
-    playlistPhase: 'loading',
-    playlistSongs: [],
+    playlistName: playlist.name || (hit && hit.name) || '',
+    playlistPhase: hit ? 'ready' : 'loading',
+    playlistSongs: hit ? hit.songs : [],
+    playlistRefreshing: false,
   })
+  if (fresh && force !== true) return
+  if (hit) onlineStore.set({ playlistRefreshing: true })
   try {
-    var body = await getJson(
-      API +
-        'online/playlist-songs?provider=' +
-        encodeURIComponent(provider) +
-        '&id=' +
-        encodeURIComponent(playlist.id),
-    )
-    var songs = Array.isArray(body.songs) ? body.songs : []
+    var body = await fetchPlaylistSongs(provider, playlist.id, force === true)
+    var state = onlineStore.get()
+    if (String(state.playlistId) !== String(playlist.id) || state.provider !== provider) return
     onlineStore.set({
       playlistPhase: 'ready',
-      playlistName: playlist.name || body.name || '',
-      playlistSongs: songs,
+      playlistRefreshing: false,
+      playlistName: body.name || playlist.name || '',
+      playlistSongs: body.songs,
+      error: '',
     })
-    void refreshCacheStatus(provider, songs.map(function (item) { return item.id }))
+    void refreshCacheStatus(provider, body.songs.map(function (item) { return item.id }))
   } catch (error) {
-    onlineStore.set({ playlistPhase: 'error', playlistSongs: [], error: errorText(error) })
+    var current = onlineStore.get()
+    if (String(current.playlistId) !== String(playlist.id) || current.provider !== provider) return
+    if (hit) {
+      onlineStore.set({ playlistPhase: 'ready', playlistRefreshing: false, error: errorText(error) })
+    } else {
+      onlineStore.set({ playlistPhase: 'error', playlistRefreshing: false, playlistSongs: [], error: errorText(error) })
+    }
   }
 }
 

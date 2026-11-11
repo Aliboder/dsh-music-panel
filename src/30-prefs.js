@@ -34,6 +34,8 @@ var PREF_DEFAULTS = {
   sleepDeadline: 0,
   autoResume: false,
   rememberPerTrack: false,
+  normalizeVolume: true,
+  onlinePlaylistSort: 'source',
   onboardingDone: true,
 }
 

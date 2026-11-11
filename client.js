@@ -8,6 +8,7 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
+    var APP_VERSION = "0.26.0"
 
     // ── src/00-runtime.js
     /**
@@ -397,6 +398,12 @@ window.__ModuleLoader__.load({
         'settings.rememberPerTrack': '每首歌记住播放位置',
         'settings.playbackHint': '播放次数按 Last.fm 规则记录：曲目超过 30 秒，且播放到一半或 4 分钟（先到为准）才算一次；播放时长只累计真正在播放的时间。',
         'settings.libraryHint': '音乐文件夹（自动保存）',
+        'settings.foldersTitle': '音乐文件夹',
+        'settings.scannedTracks': '已扫描 {n} 首',
+        'settings.scanSettings': '扫描设置',
+        'settings.openTrash': '打开',
+        'settings.formatsHint': '支持 MP3 / FLAC / M4A / AAC / OGG / OPUS / WAV / AIFF / WMA / APE',
+        'settings.scanWarnings': '{n} 条扫描警告',
         'settings.removeConfirm': '确定移除这个音乐文件夹？不会删除文件。',
         'settings.up': '↑ 上级',
         'settings.chooseFolder': '选择此文件夹',
@@ -728,6 +735,12 @@ window.__ModuleLoader__.load({
         'settings.rememberPerTrack': 'Remember each track position',
         'settings.playbackHint': 'Play counts follow the Last.fm rule: a track longer than 30 seconds counts once after half its duration or 4 minutes, whichever comes first. Listening time only counts time actually played.',
         'settings.libraryHint': 'Music folders (auto-saved)',
+        'settings.foldersTitle': 'Music folders',
+        'settings.scannedTracks': '{n} tracks scanned',
+        'settings.scanSettings': 'Scan settings',
+        'settings.openTrash': 'Open',
+        'settings.formatsHint': 'MP3 / FLAC / M4A / AAC / OGG / OPUS / WAV / AIFF / WMA / APE',
+        'settings.scanWarnings': '{n} scan warnings',
         'settings.removeConfirm': 'Remove this music folder? Files are not deleted.',
         'settings.up': '↑ Up',
         'settings.chooseFolder': 'Choose this folder',
@@ -866,6 +879,33 @@ window.__ModuleLoader__.load({
     
         'v2.online': '在线',
         'v2.cacheTab': '缓存',
+        'v2.about': '关于',
+        'online.cacheSongs': '缓存歌曲',
+        'online.qqAccount': 'QQ 音乐用户',
+        'online.cacheNoSongs': '还没有缓存的歌曲',
+        'v2.playlistSort': '歌单排序',
+        'v2.sortSource': '平台顺序',
+        'v2.sortName': '名称',
+        'v2.sortCount': '歌曲数',
+        'about.tagline': '本地与在线音乐，一个面板。',
+        'about.version': '版本',
+        'about.project': '项目',
+        'about.license': '许可证',
+        'about.author': '作者',
+        'about.feedback': '问题反馈',
+        'about.description': '多目录曲库、网易云 / QQ / 酷狗在线播放、歌词翻译、标签与封面编辑、音频缓存、统计与回收站。',
+        'about.source': 'GitHub 源码',
+        'about.npm': 'npm 包',
+        'settings.volumeNormalize': '音量均衡',
+        'settings.volumeNormalizeOff': '已关闭',
+        'settings.volumeNormalizeReady': '已生效 · 内置 EBU R128 分析',
+        'settings.volumeNormalizeMissing': '未生效 · 浏览器不支持 Web Audio',
+        'settings.volumeNormalizeMissingHint': '请使用支持 Web Audio 的 DSH Web / Desktop。',
+        'settings.volumeNormalizeOff': 'Disabled',
+        'settings.volumeNormalizeReady': 'Active · built-in EBU R128 analysis',
+        'settings.volumeNormalizeMissing': 'Not active · Web Audio unsupported',
+        'settings.volumeNormalizeMissingHint': 'Use a DSH Web / Desktop build with Web Audio support.',
+        'settings.volumeNormalizeHint': '浏览器内置 EBU R128 分析，按曲目响度自动调整增益；首次分析需要几秒。',
         'v2.listenTime': '累计播放时长',
         'v2.totalPlays': '总播放次数',
         'v2.trackedTracks': '有记录曲目',
@@ -979,6 +1019,25 @@ window.__ModuleLoader__.load({
     
         'v2.online': 'Online',
         'v2.cacheTab': 'Cache',
+        'v2.about': 'About',
+        'online.cacheSongs': 'Cached songs',
+        'online.qqAccount': 'QQ Music user',
+        'online.cacheNoSongs': 'No cached songs yet',
+        'v2.playlistSort': 'Playlist order',
+        'v2.sortSource': 'Platform order',
+        'v2.sortName': 'Name',
+        'v2.sortCount': 'Song count',
+        'about.tagline': 'Local and online music, one panel.',
+        'about.version': 'Version',
+        'about.project': 'Project',
+        'about.license': 'License',
+        'about.author': 'Author',
+        'about.feedback': 'Issues',
+        'about.description': 'Multi-folder library, NetEase / QQ / KuGou playback, lyric translation, tag and cover editing, audio cache, stats and trash.',
+        'about.source': 'GitHub source',
+        'about.npm': 'npm package',
+        'settings.volumeNormalize': 'Volume leveling',
+        'settings.volumeNormalizeHint': 'Built-in EBU R128 analysis adjusts each track to avoid jumps between songs; the first analysis takes a few seconds.',
         'v2.listenTime': 'Listening time',
         'v2.totalPlays': 'Total plays',
         'v2.trackedTracks': 'Tracks tracked',
@@ -1944,6 +2003,8 @@ window.__ModuleLoader__.load({
       sleepDeadline: 0,
       autoResume: false,
       rememberPerTrack: false,
+      normalizeVolume: true,
+      onlinePlaylistSort: 'source',
       onboardingDone: true,
     }
     
@@ -2012,6 +2073,195 @@ window.__ModuleLoader__.load({
     
     function setPrefs(patch) {
       return savePrefs(patch)
+    }
+
+    // ── src/35-loudness.js
+    /**
+     * Self-contained EBU R128 integrated-loudness analysis.
+     *
+     * The browser's own decoder + OfflineAudioContext provide the K-weighting
+     * filters, so no ffmpeg or npm runtime is required. Results are cached by
+     * track path + file size and applied through the player's GainNode.
+     */
+    
+    var LOUDNESS_CACHE_KEY = 'music.loudness.v1'
+    var LOUDNESS_TARGET = -16
+    var loudnessDecoder = null
+    var loudnessCache = readLoudnessCache()
+    
+    function readLoudnessCache() {
+      try {
+        var raw = window.localStorage.getItem(LOUDNESS_CACHE_KEY)
+        var parsed = raw === null ? null : JSON.parse(raw)
+        return parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
+      } catch (error) {
+        return {}
+      }
+    }
+    
+    function writeLoudnessCache(cache) {
+      try {
+        window.localStorage.setItem(LOUDNESS_CACHE_KEY, JSON.stringify(cache))
+      } catch (error) {
+        // Quota/private mode: in-memory cache still works.
+      }
+    }
+    
+    function loudnessCacheKey(item, blob) {
+      return String(item.path || '') + '|' + String(blob.size || 0)
+    }
+    
+    function lookupLoudnessGain(key) {
+      var row = loudnessCache[key]
+      var gain = row && Number(row.gainDb)
+      return Number.isFinite(gain) ? gain : null
+    }
+    
+    function storeLoudnessGain(key, gainDb) {
+      loudnessCache[key] = { gainDb: gainDb, at: Date.now() }
+      var keys = Object.keys(loudnessCache)
+      if (keys.length > 1200) {
+        keys
+          .sort(function (left, right) {
+            return (loudnessCache[left].at || 0) - (loudnessCache[right].at || 0)
+          })
+          .slice(0, keys.length - 1200)
+          .forEach(function (old) {
+            delete loudnessCache[old]
+          })
+      }
+      writeLoudnessCache(loudnessCache)
+    }
+    
+    function loudnessContext() {
+      if (loudnessDecoder !== null) return loudnessDecoder
+      var Ctor = window.AudioContext || window.webkitAudioContext
+      if (!Ctor) return null
+      try {
+        loudnessDecoder = new Ctor()
+      } catch (error) {
+        loudnessDecoder = null
+      }
+      return loudnessDecoder
+    }
+    
+    /** Integrated loudness in LUFS, following ITU-R BS.1770-4 / EBU R128. */
+    function lufsFromAudioBuffer(buffer) {
+      var Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext
+      if (!Offline) return Promise.reject(new Error('OfflineAudioContext unavailable'))
+      return new Promise(function (resolve, reject) {
+        var offline
+        try {
+          offline = new Offline(buffer.numberOfChannels, buffer.length, buffer.sampleRate)
+          var source = offline.createBufferSource()
+          source.buffer = buffer
+          var shelf = offline.createBiquadFilter()
+          shelf.type = 'highshelf'
+          shelf.frequency.value = 1681.974450955533
+          shelf.gain.value = 3.999843853973347
+          shelf.Q.value = 0.7071752369554196
+          var highpass = offline.createBiquadFilter()
+          highpass.type = 'highpass'
+          highpass.frequency.value = 38.13547087602444
+          highpass.Q.value = 0.5003270373238773
+          source.connect(shelf)
+          shelf.connect(highpass)
+          highpass.connect(offline.destination)
+          source.start()
+        } catch (error) {
+          reject(error)
+          return
+        }
+        offline
+          .startRendering()
+          .then(function (rendered) {
+            var lufs = integratedLoudnessOf(rendered)
+            if (lufs === null) reject(new Error('no gated loudness blocks'))
+            else resolve(lufs)
+          })
+          .catch(reject)
+      })
+    }
+    
+    /** Mean square per gated 400 ms block, with surround channel weights. */
+    function integratedLoudnessOf(buffer) {
+      var sampleRate = buffer.sampleRate
+      var blockSize = Math.round(0.4 * sampleRate)
+      var step = Math.round(0.1 * sampleRate)
+      if (blockSize <= 0 || buffer.length < blockSize) return null
+      var channels = []
+      for (var channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+        channels.push(buffer.getChannelData(channel))
+      }
+      var weights = channels.map(function (_, index) {
+        return index === 3 || index === 4 ? 1.41 : 1
+      })
+      var blocks = []
+      for (var start = 0; start + blockSize <= buffer.length; start += step) {
+        var energy = 0
+        for (var ch = 0; ch < channels.length; ch += 1) {
+          var data = channels[ch]
+          var sum = 0
+          for (var i = start; i < start + blockSize; i += 1) sum += data[i] * data[i]
+          energy += weights[ch] * (sum / blockSize)
+        }
+        var loudness = -0.691 + 10 * Math.log10(energy)
+        if (loudness > -70) blocks.push({ loudness: loudness, energy: energy })
+      }
+      if (blocks.length === 0) return null
+      var absoluteEnergy =
+        blocks.reduce(function (sum, block) {
+          return sum + block.energy
+        }, 0) / blocks.length
+      var relativeGate = -0.691 + 10 * Math.log10(absoluteEnergy) - 10
+      var gated = blocks.filter(function (block) {
+        return block.loudness > relativeGate
+      })
+      if (gated.length === 0) return null
+      var finalEnergy =
+        gated.reduce(function (sum, block) {
+          return sum + block.energy
+        }, 0) / gated.length
+      return -0.691 + 10 * Math.log10(finalEnergy)
+    }
+    
+    function analyzeLoudnessBlob(item, blob, isCurrent, onGain) {
+      if (!item || !blob || typeof isCurrent !== 'function' || typeof onGain !== 'function') return
+      var key = loudnessCacheKey(item, blob)
+      var cached = lookupLoudnessGain(key)
+      if (cached !== null) {
+        if (isCurrent()) onGain(cached)
+        return
+      }
+      var decoder = loudnessContext()
+      if (decoder === null) return
+      blob
+        .arrayBuffer()
+        .then(function (bytes) {
+          return decoder.decodeAudioData(bytes)
+        })
+        .then(function (buffer) {
+          if (!isCurrent()) return null
+          return lufsFromAudioBuffer(buffer)
+        })
+        .then(function (lufs) {
+          if (lufs === null || !isCurrent()) return
+          var gainDb = clamp(LOUDNESS_TARGET - lufs, -15, 6)
+          storeLoudnessGain(key, gainDb)
+          onGain(gainDb)
+        })
+        .catch(function () {
+          // Corrupt/unsupported file: keep the user volume.
+        })
+    }
+
+    // ── src/35-provider-logos.js
+    /** Official provider app icons (resized to 256px WebP for inline use). */
+    var PROVIDER_LOGOS = {"netease":"data:image/webp;base64,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","qq":"data:image/webp;base64,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","kugou":"data:image/webp;base64,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"}
+    
+    function providerLogo(provider, size) {
+      var src = PROVIDER_LOGOS[provider] || PROVIDER_LOGOS.netease
+      return h('img', { className: 'mp-provider-logo', src: src, width: size || 20, height: size || 20, alt: '' })
     }
 
     // ── src/40-store.js
@@ -2140,11 +2390,47 @@ window.__ModuleLoader__.load({
     }
     
     /** Section groups for the current source (rail or top bar). */
+    /** Online playlist ordering is local-only; the platform order is kept as "source". */
+    function onlinePlaylistSortMode() {
+      var mode = prefsStore.get().onlinePlaylistSort
+      return mode === 'name' || mode === 'count' ? mode : 'source'
+    }
+    
+    function onlinePlaylistSortLabel(mode) {
+      if (mode === 'name') return t('v2.sortName')
+      if (mode === 'count') return t('v2.sortCount')
+      return t('v2.sortSource')
+    }
+    
+    function sortOnlinePlaylists(list) {
+      var mode = onlinePlaylistSortMode()
+      var copy = (list || []).slice()
+      if (mode === 'name') {
+        copy.sort(function (left, right) {
+          return String(left.name || '').localeCompare(String(right.name || ''), 'zh')
+        })
+      } else if (mode === 'count') {
+        copy.sort(function (left, right) {
+          var delta = (Number(right.trackCount) || 0) - (Number(left.trackCount) || 0)
+          return delta !== 0
+            ? delta
+            : String(left.name || '').localeCompare(String(right.name || ''), 'zh')
+        })
+      }
+      return copy
+    }
+    
+    function cycleOnlinePlaylistSort() {
+      var mode = onlinePlaylistSortMode()
+      var next = mode === 'source' ? 'name' : mode === 'name' ? 'count' : 'source'
+      setPrefs({ onlinePlaylistSort: next })
+    }
+    
     function navGroupsFor(source, favoritesCount) {
       var library = libraryStore.get()
       if (isOnlineSource(source)) {
         var online = onlineStore.get()
-        var playlists = online.playlists || []
+        var playlists = sortOnlinePlaylists(online.playlists || [])
         var signedIn = (online.providers[source] || {}).loggedIn === true
         var groups = [
           {
@@ -2159,6 +2445,11 @@ window.__ModuleLoader__.load({
           groups.push({
             label: t('v2.playlists'),
             showLabel: true,
+            action: {
+              icon: 'sort',
+              title: t('v2.playlistSort') + ': ' + onlinePlaylistSortLabel(onlinePlaylistSortMode()),
+              run: cycleOnlinePlaylistSort,
+            },
             items: playlists.map(function (playlist) {
               return {
                 key: 'online-playlist:' + playlist.id,
@@ -2429,9 +2720,13 @@ window.__ModuleLoader__.load({
       /** Web Audio graph used by the bar visualizer (lazy, user-gesture bound). */
       var audioContext = null
       var analyser = null
+      var gainNode = null
       var waveData = null
+      var normalizeGain = 1
+      var loudnessToken = 0
       /** Active `blob:` URL for the loaded track (local media seeks reliably). */
       var objectUrl = null
+      var currentLoudnessBlob = null
       /** In-flight track download. */
       var fetchAbort = null
       /** Bumped per load so a stale download cannot overwrite a newer track. */
@@ -2864,6 +3159,50 @@ window.__ModuleLoader__.load({
        * the track. A Blob is local media and seeks reliably. The download is a
        * loopback request, so it costs one disk read, not a network hop.
        */
+      /** Element volume when normalization is applied without a Web Audio graph. */
+      function effectiveVolume() {
+        var trim = gainNode === null ? Math.min(1, normalizeGain) : 1
+        return clamp(state.volume * trim, 0, 1)
+      }
+    
+      function applyOutputVolume() {
+        if (audio) audio.volume = effectiveVolume()
+      }
+    
+      function applyNormalizeGain(linear) {
+        normalizeGain = Number.isFinite(linear) && linear > 0 ? linear : 1
+        if (gainNode !== null && audioContext !== null) {
+          try {
+            var now = audioContext.currentTime
+            gainNode.gain.cancelScheduledValues(now)
+            gainNode.gain.setTargetAtTime(normalizeGain, now, 0.12)
+          } catch {
+            gainNode.gain.value = normalizeGain
+          }
+        } else {
+          applyOutputVolume()
+        }
+      }
+    
+      /** Analyse the downloaded blob in-browser and apply the per-track gain. */
+      function scheduleLoudness(item, blob) {
+        var token = (loudnessToken += 1)
+        currentLoudnessBlob = blob || null
+        applyNormalizeGain(1)
+        if (readPrefs().normalizeVolume === false || !item || !blob) return
+        analyzeLoudnessBlob(
+          item,
+          blob,
+          function () {
+            return token === loudnessToken
+          },
+          function (gainDb) {
+            if (token !== loudnessToken) return
+            applyNormalizeGain(Math.pow(10, clamp(gainDb, -15, 6) / 20))
+          },
+        )
+      }
+    
       function load(at, autoplay) {
         var item = state.queue[at]
         if (!item) return
@@ -2878,6 +3217,9 @@ window.__ModuleLoader__.load({
         // A new session starts here. The play count is recorded later, and
         // only when the Last.fm / MusicBee threshold is reached.
         resetSession(item)
+        currentLoudnessBlob = null
+        loudnessToken += 1
+        applyNormalizeGain(1)
         if (audio === null) return
     
         cancelPendingFetch()
@@ -2918,6 +3260,7 @@ window.__ModuleLoader__.load({
               objectUrl = URL.createObjectURL(blob)
               audio.src = objectUrl
               audio.load()
+              scheduleLoudness(item, blob)
               if (pendingAutoplay) {
                 pendingAutoplay = false
                 audio.play().catch(function () {
@@ -2964,6 +3307,7 @@ window.__ModuleLoader__.load({
             objectUrl = URL.createObjectURL(blob)
             audio.src = objectUrl
             audio.load()
+            scheduleLoudness(item, blob)
             if (pendingResumeSeconds !== null) {
               var resumeAt = pendingResumeSeconds
               pendingResumeSeconds = null
@@ -3044,11 +3388,15 @@ window.__ModuleLoader__.load({
             if (!Ctx) return null
             if (audioContext === null) audioContext = new Ctx()
             var source = audioContext.createMediaElementSource(audio)
+            gainNode = audioContext.createGain()
             analyser = audioContext.createAnalyser()
             analyser.fftSize = 256
             analyser.smoothingTimeConstant = 0.82
-            source.connect(analyser)
+            source.connect(gainNode)
+            gainNode.connect(analyser)
             analyser.connect(audioContext.destination)
+            if (audio) audio.volume = state.volume
+            applyNormalizeGain(normalizeGain)
             waveData = new Uint8Array(analyser.frequencyBinCount)
             if (audioContext.state === 'suspended') audioContext.resume().catch(function () {})
           } catch (error) {
@@ -3077,12 +3425,13 @@ window.__ModuleLoader__.load({
           }
           audioContext = null
           analyser = null
+          gainNode = null
           waveData = null
           audio = el
           if (el === null) return
           bind(el)
           el.preload = 'metadata'
-          el.volume = state.volume
+          el.volume = effectiveVolume()
           el.muted = state.muted
           var item = currentItem()
           if (item !== null) {
@@ -3239,6 +3588,15 @@ window.__ModuleLoader__.load({
             return
           }
           if (audio === null) return
+          var item = currentItem()
+          if (readPrefs().normalizeVolume !== false && item && !item.onlineProvider) {
+            var context = api.ensureAnalyser()
+            if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
+              audioContext.resume().catch(function () {
+                // If the context cannot start, leave the media element untouched.
+              })
+            }
+          }
           audio.play().catch(function () {})
         },
         /** Called by the cross-tab coordinator; never plays in a follower tab. */
@@ -3309,10 +3667,19 @@ window.__ModuleLoader__.load({
             // The listener above retries once metadata is ready.
           }
         },
+        setNormalize: function (value) {
+          savePrefs({ normalizeVolume: value !== false })
+          if (value === false) {
+            loudnessToken += 1
+            applyNormalizeGain(1)
+          } else if (currentItem()) {
+            scheduleLoudness(currentItem(), currentLoudnessBlob)
+          }
+        },
         setVolume: function (value) {
           var next = clamp(value, 0, 1)
           state = Object.assign({}, state, { volume: next, muted: next > 0 ? state.muted : false })
-          if (audio) audio.volume = next
+          applyOutputVolume()
           savePrefs({ volume: next })
           emit()
         },
@@ -3595,11 +3962,13 @@ window.__ModuleLoader__.load({
       error: '',
       playlistsPhase: 'idle',
       playlistsProvider: '',
+      playlistsRefreshing: false,
       playlists: [],
       playlistId: '',
       playlistName: '',
       playlistSongs: [],
       playlistPhase: 'idle',
+      playlistRefreshing: false,
       history: readOnlineHistory(),
       liked: {},
       cache: {},
@@ -3608,6 +3977,10 @@ window.__ModuleLoader__.load({
     })
     
     var onlineSearchToken = 0
+    var playlistLoadToken = 0
+    var playlistCache = new Map()
+    var playlistInflight = new Map()
+    var PLAYLIST_CACHE_TTL = 60 * 1000
     
     async function searchOnline(text) {
       var query = String(text || '').trim()
@@ -3655,60 +4028,178 @@ window.__ModuleLoader__.load({
       }
     }
     
+    function mergePlaylists(previous, incoming) {
+      var next = new Map()
+      ;(incoming || []).forEach(function (item) {
+        if (item && item.id !== undefined) next.set(String(item.id), item)
+      })
+      var merged = []
+      ;(previous || []).forEach(function (item) {
+        var fresh = next.get(String(item.id))
+        if (fresh) {
+          merged.push(Object.assign({}, item, fresh))
+          next.delete(String(item.id))
+        }
+      })
+      next.forEach(function (item) {
+        merged.push(item)
+      })
+      return merged
+    }
+    
     async function loadMyPlaylists(provider) {
       var target = provider || onlineStore.get().provider
-      onlineStore.set({ playlistsPhase: 'loading', playlistsProvider: target, playlists: [] })
+      var token = (playlistLoadToken += 1)
+      var snapshot = onlineStore.get()
+      var keep = snapshot.playlistsProvider === target && (snapshot.playlists || []).length > 0
+      onlineStore.set(
+        keep
+          ? { playlistsPhase: 'ready', playlistsRefreshing: true, playlistsProvider: target, error: '' }
+          : { playlistsPhase: 'loading', playlistsRefreshing: false, playlistsProvider: target, playlists: [] },
+      )
       try {
         var body = await getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(target))
+        if (token !== playlistLoadToken) return
+        var incoming = Array.isArray(body.playlists) ? body.playlists : []
+        var current = onlineStore.get()
         onlineStore.set({
           playlistsPhase: 'ready',
+          playlistsRefreshing: false,
           playlistsProvider: target,
-          playlists: Array.isArray(body.playlists) ? body.playlists : [],
+          playlists: keep ? mergePlaylists(current.playlists, incoming) : incoming,
+          error: '',
         })
       } catch (error) {
-        onlineStore.set({ playlistsPhase: 'error', playlistsProvider: target, playlists: [], error: errorText(error) })
+        if (token !== playlistLoadToken) return
+        var state = onlineStore.get()
+        if (state.playlistsProvider === target && (state.playlists || []).length > 0) {
+          // Stale-while-revalidate: keep the last good list visible.
+          onlineStore.set({ playlistsPhase: 'ready', playlistsRefreshing: false, error: errorText(error) })
+        } else {
+          onlineStore.set({
+            playlistsPhase: 'error',
+            playlistsRefreshing: false,
+            playlistsProvider: target,
+            playlists: [],
+            error: errorText(error),
+          })
+        }
       }
     }
     
     /** Re-read the likes playlist after a cloud like/unlike from any surface. */
-    function refreshLikedPlaylist() {
+    function refreshLikedPlaylist(delta) {
       var state = onlineStore.get()
-      var current = (state.playlists || []).find(function (item) {
-        return String(item.id) === String(state.playlistId)
+      var liked = (state.playlists || []).find(function (item) {
+        return item.isLike === true
+      }) || (state.playlists || []).find(function (item) {
+        return item.kind === 'default' || item.isDefault === true
       })
-      var likedPlaylist =
-        current &&
-        (current.isLike === true || current.kind === 'default' || current.isDefault === true)
-      if (likedPlaylist) void openOnlinePlaylist(current)
+      if (liked) {
+        var count = Math.max(0, (Number(liked.trackCount) || 0) + (Number(delta) || 0))
+        var playlists = (state.playlists || []).map(function (item) {
+          return String(item.id) === String(liked.id) ? Object.assign({}, item, { trackCount: count }) : item
+        })
+        onlineStore.set({ playlists: playlists, playlistsRefreshing: true })
+        if (String(state.playlistId) === String(liked.id)) void openOnlinePlaylist(Object.assign({}, liked, { trackCount: count }), true)
+      }
       void loadMyPlaylists(state.provider)
     }
     
-    async function openOnlinePlaylist(playlist) {
+    function playlistCacheKey(provider, id) {
+      return String(provider || '') + ':' + String(id || '')
+    }
+    
+    function trimPlaylistCache() {
+      if (playlistCache.size <= 24) return
+      var old = []
+      playlistCache.forEach(function (value, key) {
+        old.push({ key: key, at: value.at || 0 })
+      })
+      old
+        .sort(function (left, right) {
+          return left.at - right.at
+        })
+        .slice(0, playlistCache.size - 24)
+        .forEach(function (row) {
+          playlistCache.delete(row.key)
+        })
+    }
+    
+    function fetchPlaylistSongs(provider, id, force) {
+      var key = playlistCacheKey(provider, id)
+      if (!force && playlistInflight.has(key)) return playlistInflight.get(key)
+      var request = getJson(
+        API +
+          'online/playlist-songs?provider=' +
+          encodeURIComponent(provider) +
+          '&id=' +
+          encodeURIComponent(id),
+      )
+        .then(function (body) {
+          var songs = Array.isArray(body.songs) ? body.songs : []
+          playlistCache.set(key, {
+            songs: songs,
+            name: body.name || '',
+            at: Date.now(),
+          })
+          trimPlaylistCache()
+          return { songs: songs, name: body.name || '' }
+        })
+        .finally(function () {
+          if (playlistInflight.get(key) === request) playlistInflight.delete(key)
+        })
+      playlistInflight.set(key, request)
+      return request
+    }
+    
+    /** Warm the cache when the pointer/focus reaches a playlist nav item. */
+    function prefetchOnlinePlaylist(playlist) {
       if (!playlist || !playlist.id) return
       var provider = onlineStore.get().provider
+      var key = playlistCacheKey(provider, playlist.id)
+      var hit = playlistCache.get(key)
+      if (hit && Date.now() - (hit.at || 0) < PLAYLIST_CACHE_TTL) return
+      void fetchPlaylistSongs(provider, playlist.id, false).catch(function () {
+        // Prefetch is best effort.
+      })
+    }
+    
+    async function openOnlinePlaylist(playlist, force) {
+      if (!playlist || !playlist.id) return
+      var provider = onlineStore.get().provider
+      var key = playlistCacheKey(provider, playlist.id)
+      var hit = playlistCache.get(key)
+      var fresh = hit && Date.now() - (hit.at || 0) < PLAYLIST_CACHE_TTL
       onlineStore.set({
         playlistId: playlist.id,
-        playlistName: playlist.name || '',
-        playlistPhase: 'loading',
-        playlistSongs: [],
+        playlistName: playlist.name || (hit && hit.name) || '',
+        playlistPhase: hit ? 'ready' : 'loading',
+        playlistSongs: hit ? hit.songs : [],
+        playlistRefreshing: false,
       })
+      if (fresh && force !== true) return
+      if (hit) onlineStore.set({ playlistRefreshing: true })
       try {
-        var body = await getJson(
-          API +
-            'online/playlist-songs?provider=' +
-            encodeURIComponent(provider) +
-            '&id=' +
-            encodeURIComponent(playlist.id),
-        )
-        var songs = Array.isArray(body.songs) ? body.songs : []
+        var body = await fetchPlaylistSongs(provider, playlist.id, force === true)
+        var state = onlineStore.get()
+        if (String(state.playlistId) !== String(playlist.id) || state.provider !== provider) return
         onlineStore.set({
           playlistPhase: 'ready',
-          playlistName: playlist.name || body.name || '',
-          playlistSongs: songs,
+          playlistRefreshing: false,
+          playlistName: body.name || playlist.name || '',
+          playlistSongs: body.songs,
+          error: '',
         })
-        void refreshCacheStatus(provider, songs.map(function (item) { return item.id }))
+        void refreshCacheStatus(provider, body.songs.map(function (item) { return item.id }))
       } catch (error) {
-        onlineStore.set({ playlistPhase: 'error', playlistSongs: [], error: errorText(error) })
+        var current = onlineStore.get()
+        if (String(current.playlistId) !== String(playlist.id) || current.provider !== provider) return
+        if (hit) {
+          onlineStore.set({ playlistPhase: 'ready', playlistRefreshing: false, error: errorText(error) })
+        } else {
+          onlineStore.set({ playlistPhase: 'error', playlistRefreshing: false, playlistSongs: [], error: errorText(error) })
+        }
       }
     }
     
@@ -4348,6 +4839,70 @@ window.__ModuleLoader__.load({
       '.mp-overlay{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;pointer-events:none}',
       '.mp-overlay.is-on{pointer-events:auto}',
       '.mp-scrim{position:absolute;inset:0;background:rgba(0,0,0,.45)}',
+    
+    
+      '.mp-set-status{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:-4px 0 8px 12px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-set-status i{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-label-tertiary,#8a8a93);flex:none}',
+      '.mp-set-status.is-on{color:var(--dsw-alias-state-success-primary,#2f9e44)}',
+      '.mp-set-status.is-on i{background:var(--dsw-alias-state-success-primary,#2f9e44)}',
+      '.mp-set-status.is-bad{color:var(--dsw-alias-state-error-primary,#e5484d)}',
+      '.mp-set-status.is-bad i{background:var(--dsw-alias-state-error-primary,#e5484d)}',
+      '.mp-set-status.is-off{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-set-status-hint{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+    
+      '.mp-provider-name{display:flex;align-items:center;gap:8px}',
+      '.mp-provider-icon{display:inline-flex;width:20px;height:20px;flex:none}',
+      '.mp-provider-logo{width:100%;height:100%;object-fit:contain;border-radius:8px;display:block}',
+      '.mp-account{display:flex;align-items:center;gap:8px}',
+      '.mp-account-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));flex:none}',
+      '.mp-account-avatar.is-fallback{display:grid;place-items:center;font-size:12px;font-weight:650;color:var(--dsw-alias-label-secondary,#b4b4bd)}',
+      '.mp-cache-block{margin-top:16px;display:flex;flex-direction:column;gap:8px}',
+      '.mp-cache-heading{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--dsw-alias-label-secondary,#b4b4bd)}',
+      '.mp-cache-heading span{font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-cache-list{max-height:340px;overflow-y:auto;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:12px;background:var(--dsw-alias-bg-layer-2,#1e1e22)}',
+      '.mp-cache-row{display:flex;align-items:center;gap:10px;padding:8px 10px;min-width:0}',
+      '.mp-cache-row + .mp-cache-row{border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mp-cache-provider{display:inline-flex;width:18px;height:18px;flex:none}',
+      '.mp-cache-main{min-width:0;flex:1}',
+      '.mp-cache-title{font-size:12px;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-cache-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}',
+      '.mp-cache-time,.mp-cache-size{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums;flex:none}',
+      '.mp-cache-size{min-width:52px;text-align:right}',
+      '.mp-cache-tag{font-size:9px;padding:1px 4px;border-radius:4px;background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-tertiary,#8a8a93);flex:none}',
+      '.mp-cache-empty{padding:18px 12px;text-align:center;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);border:1px dashed var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:12px}',
+    
+      '.mp-set-page-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px}',
+      '.mp-set-page-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
+      '.mp-set-card{border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:16px;background:var(--dsw-alias-bg-layer-2,#1e1e22);margin-top:12px;overflow:hidden}',
+      '.mp-set-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mp-set-card-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-set-card-body{padding:2px 12px}',
+      '.mp-set-card-body .mp-set-row:last-child{border-bottom:0}',
+      '.mp-root-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mp-set-card-body > .mp-root-row:first-child{border-top:0}',
+      '.mp-root-row.is-hidden .mp-root-path{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-root-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;color:var(--dsw-alias-state-business-primary,#7AAAFF);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mp-root-main{min-width:0;flex:1}',
+      '.mp-root-path{font-size:12px;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-root-state{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px}',
+      '.mp-root-actions{display:flex;align-items:center;gap:6px;flex:none}',
+      '.mp-root-add{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));background:var(--dsw-alias-bg-layer-1,#15151a)}',
+      '.mp-root-add .mp-kit-input{flex:1;min-width:0}',
+      '.mp-set-empty-card{padding:18px 0;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-set-hint-line{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding:0 0 10px}',
+      '.mp-about-card{display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));background:var(--dsw-alias-bg-layer-2,#1e1e22)}',
+      '.mp-about-logo{width:64px;height:64px;flex:none;border-radius:50%;object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,.28)}',
+      '.mp-about-main{min-width:0}',
+      '.mp-about-name{font-size:15px;font-weight:700;letter-spacing:.01em}',
+      '.mp-about-version{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px;font-variant-numeric:tabular-nums}',
+      '.mp-about-tagline{font-size:12px;color:var(--dsw-alias-label-secondary,#b4b4bd);margin-top:6px}',
+      '.mp-about-rows{display:flex;flex-direction:column;gap:0;margin-top:14px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:12px;overflow:hidden}',
+      '.mp-about-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;font-size:12px;color:var(--dsw-alias-label-secondary,#b4b4bd)}',
+      '.mp-about-row + .mp-about-row{border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mp-about-row strong{font-weight:550;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-about-row a,.mp-about-links a{color:var(--dsw-alias-state-business-primary,#7AAAFF);text-decoration:none}',
+      '.mp-about-row a:hover,.mp-about-links a:hover{text-decoration:underline}',
+      '.mp-about-links{display:flex;gap:16px;margin-top:14px;font-size:12px}',
       '.mp-sheet{position:relative;width:min(760px,calc(100vw - 48px));height:min(560px,calc(100vh - 96px));display:grid;grid-template-columns:180px minmax(0,1fr);background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;overflow:hidden;box-shadow:var(--dsw-elevation-panel,0 30px 80px rgba(0,0,0,.5))}',
       '.mp-sheet-nav{display:flex;flex-direction:column;gap:2px;padding:16px 10px;background:var(--dsw-alias-bg-layer-1,#15151a);border-right:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
       '.mp-sheet-title{padding:0 10px 10px;font-size:13px;font-weight:650}',
@@ -4425,7 +4980,7 @@ window.__ModuleLoader__.load({
       '.mp-np-setting-hint{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:6px;line-height:1.5}',
     
       // ── composer / sidebar ──────────────────────────────────────────────────
-      '.mp-composer-lyrics{display:flex;align-items:center;gap:8px;height:22px;padding:0 10px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;white-space:nowrap}',
+      '.mp-composer-lyrics{display:flex;align-items:center;gap:8px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto;height:22px;padding:0 10px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;white-space:nowrap}',
       '.mp-composer-lyrics.is-empty{display:none}',
       '.mp-composer-cluster{display:flex;align-items:center;gap:2px}',
       '.mp-cbtn{height:28px;min-width:28px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;max-width:150px;overflow:hidden}',
@@ -5193,7 +5748,7 @@ window.__ModuleLoader__.load({
                   postJson(API + 'online/like', { provider: current.onlineProvider, song: current, on: next })
                     .then(function () {
                       setOnlineLiked(next)
-                      refreshLikedPlaylist()
+                      refreshLikedPlaylist(next ? 1 : -1)
                       showToast(next ? t('page.favorite') : t('page.unfavorite'))
                     })
                     .catch(function (error) {
@@ -5998,6 +6553,7 @@ window.__ModuleLoader__.load({
       { key: 'online', label: 'v2.online' },
       { key: 'library', label: 'v2.library' },
       { key: 'cache', label: 'v2.cacheTab' },
+      { key: 'about', label: 'v2.about' },
     ]
     
     function SettingsSheet(props) {
@@ -6009,6 +6565,13 @@ window.__ModuleLoader__.load({
       var tab = tabPair[0]
       var setTab = tabPair[1]
       var cachePair = useState(null)
+      var cacheSongsPair = useState(null)
+      var cacheSongs = cacheSongsPair[0]
+      var setCacheSongs = cacheSongsPair[1]
+      var builtinLoudness =
+        typeof window !== 'undefined' &&
+        (typeof window.OfflineAudioContext !== 'undefined' ||
+          typeof window.webkitOfflineAudioContext !== 'undefined')
       var cache = cachePair[0]
       var setCache = cachePair[1]
       var pathPair = useState('')
@@ -6020,6 +6583,15 @@ window.__ModuleLoader__.load({
     
       useEffect(
         function () {
+          if (tab !== 'online' || props.open !== true) return undefined
+          void loadProviders()
+          return undefined
+        },
+        [tab, props.open],
+      )
+    
+      useEffect(
+        function () {
           if (tab !== 'cache' || props.open !== true) return undefined
           var cancelled = false
           getJson(API + 'online/cache')
@@ -6028,6 +6600,13 @@ window.__ModuleLoader__.load({
             })
             .catch(function () {
               if (!cancelled) setCache(null)
+            })
+          getJson(API + 'online/cache/list')
+            .then(function (body) {
+              if (!cancelled) setCacheSongs(Array.isArray(body.songs) ? body.songs : [])
+            })
+            .catch(function () {
+              if (!cancelled) setCacheSongs([])
             })
           return function () {
             cancelled = true
@@ -6240,6 +6819,44 @@ window.__ModuleLoader__.load({
           ),
           h(
             SetRow,
+            {
+              key: 'normalize',
+              label: t('settings.volumeNormalize'),
+              desc: t('settings.volumeNormalizeHint'),
+            },
+            h(Switch, {
+              value: prefs.normalizeVolume !== false,
+              onChange: function (value) {
+                patchPrefs({ normalizeVolume: value })
+                if (player.setNormalize) player.setNormalize(value)
+              },
+            }),
+          ),
+          h(
+            'div',
+            {
+              key: 'normalize-status',
+              className: cx(
+                'mp-set-status',
+                prefs.normalizeVolume === false ? 'is-off' : builtinLoudness ? 'is-on' : 'is-bad',
+              ),
+            },
+            h('i'),
+            h(
+              'span',
+              null,
+              prefs.normalizeVolume === false
+                ? t('settings.volumeNormalizeOff')
+                : builtinLoudness
+                  ? t('settings.volumeNormalizeReady')
+                  : t('settings.volumeNormalizeMissing'),
+            ),
+            prefs.normalizeVolume !== false && !builtinLoudness
+              ? h('span', { className: 'mp-set-status-hint' }, t('settings.volumeNormalizeMissingHint'))
+              : null,
+          ),
+          h(
+            SetRow,
             { key: 'sleep', label: t('settings.sleepTimer') },
             h(
               'div',
@@ -6284,6 +6901,17 @@ window.__ModuleLoader__.load({
         ]
       }
     
+      function accountAvatar(info) {
+        if (info.avatarUrl) {
+          return h('img', {
+            className: 'mp-account-avatar',
+            src: API + 'online/cover?url=' + encodeURIComponent(info.avatarUrl),
+            alt: '',
+          })
+        }
+        return h('span', { className: 'mp-account-avatar is-fallback' }, (info.nickname || '?').slice(0, 1))
+      }
+    
       function onlineTab() {
         var providers = online.providers || {}
         var rows = ['netease', 'qq', 'kugou'].map(function (provider) {
@@ -6296,16 +6924,32 @@ window.__ModuleLoader__.load({
                 : t('online.providerKugou')
           return h(
             SetRow,
-            { key: provider, label: label, desc: info.loggedIn ? info.nickname || t('online.loggedIn') : t('online.loggedOut') },
+            {
+              key: provider,
+              label: h(
+                'span',
+                { className: 'mp-provider-name' },
+                h('span', { className: 'mp-provider-icon' }, providerLogo(provider, 20)),
+                h('span', null, label),
+              ),
+              desc: info.loggedIn
+                ? info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn'))
+                : t('online.loggedOut'),
+            },
             info.loggedIn
-              ? h(Button, {
-                  variant: 'ghost',
-                  icon: 'logout',
-                  onClick: function () {
-                    void logoutProvider(provider)
-                  },
-                  children: t('online.logout'),
-                })
+              ? h(
+                  'div',
+                  { className: 'mp-account' },
+                  accountAvatar(info),
+                  h(Button, {
+                    variant: 'ghost',
+                    icon: 'logout',
+                    onClick: function () {
+                      void logoutProvider(provider)
+                    },
+                    children: t('online.logout'),
+                  }),
+                )
               : h(Button, {
                   variant: 'primary',
                   icon: 'qr',
@@ -6331,6 +6975,7 @@ window.__ModuleLoader__.load({
         var config = library.config || { roots: [], hiddenRoots: [], depth: 4 }
         var roots = Array.isArray(config.roots) ? config.roots : []
         var hiddenRoots = Array.isArray(config.hiddenRoots) ? config.hiddenRoots : []
+        var scanning = library.phase === 'loading'
         function setRootVisible(root, visible) {
           var next = hiddenRoots.slice()
           var at = next.indexOf(root)
@@ -6338,104 +6983,158 @@ window.__ModuleLoader__.load({
           if (!visible && at < 0) next.push(root)
           void saveConfig({ hiddenRoots: next })
         }
-        return [
-          h('h2', { key: 'h' }, t('v2.library')),
+        function removeRoot(root) {
+          pushLayer('confirm', {
+            title: t('page.delete'),
+            text: t('settings.removeConfirm'),
+            onConfirm: function () {
+              var next = roots.filter(function (item) {
+                return item !== root
+              })
+              void saveConfig({ roots: next })
+            },
+          })
+        }
+        function rescan() {
+          if (scanning) return
+          void loadLibrary(true)
+          showToast(t('page.scanning'))
+        }
+        var folderRows =
           roots.length === 0
-            ? h('p', { key: 'empty', className: 'mp-set-desc' }, t('v2.noTracksHint'))
-            : h(
-                'div',
-                { key: 'roots' },
-                roots.map(function (root) {
-                  return h(
-                    SetRow,
-                    {
-                      key: root,
-                      label: root,
-                      desc: hiddenRoots.indexOf(root) >= 0 ? t('v2.folderHidden') : t('v2.folderVisible'),
-                    },
-                    h(
-                      'div',
-                      { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
-                      h(Switch, {
-                        value: hiddenRoots.indexOf(root) < 0,
-                        label: hiddenRoots.indexOf(root) >= 0 ? t('v2.folderHidden') : t('v2.folderVisible'),
-                        onChange: function (visible) {
-                          setRootVisible(root, visible)
-                        },
-                      }),
-                      h(Button, {
-                        variant: 'ghost',
-                        icon: 'trash',
-                        onClick: function () {
-                          var next = roots.filter(function (item) {
-                            return item !== root
-                          })
-                          void saveConfig({ roots: next })
-                        },
-                        children: t('page.delete'),
-                      }),
-                    ),
-                  )
-                }),
-              ),
+            ? [h('div', { key: 'empty', className: 'mp-set-empty-card' }, t('v2.noTracksHint'))]
+            : roots.map(function (root) {
+                var hidden = hiddenRoots.indexOf(root) >= 0
+                return h(
+                  'div',
+                  { key: root, className: cx('mp-root-row', hidden && 'is-hidden') },
+                  h('span', { className: 'mp-root-icon' }, icon('folder', 16)),
+                  h(
+                    'div',
+                    { className: 'mp-root-main' },
+                    h('div', { className: 'mp-root-path', title: root }, root),
+                    h('div', { className: 'mp-root-state' }, hidden ? t('v2.folderHidden') : t('v2.folderVisible')),
+                  ),
+                  h(
+                    'div',
+                    { className: 'mp-root-actions' },
+                    h(Switch, {
+                      value: !hidden,
+                      label: hidden ? t('v2.folderHidden') : t('v2.folderVisible'),
+                      onChange: function (visible) {
+                        setRootVisible(root, visible)
+                      },
+                    }),
+                    h(IconButton, {
+                      icon: 'trash',
+                      size: 15,
+                      title: t('page.delete'),
+                      onClick: function () {
+                        removeRoot(root)
+                      },
+                    }),
+                  ),
+                )
+              })
+        return [
           h(
             'div',
-            { key: 'add', style: { display: 'flex', gap: '8px', paddingTop: '12px' } },
-            h('input', {
-              type: 'text',
-              className: 'mp-kit-input',
-              value: rootDraft,
-              placeholder: 'D:\\Music',
-              onChange: function (event) {
-                setRootDraft(event.target.value)
-              },
-              onKeyDown: function (event) {
-                if (event.key === 'Enter') addRoot()
-              },
-            }),
-            h(Button, { variant: 'ghost', icon: 'folder', onClick: function () { pushLayer('folderPicker') } }, t('v2.folderBrowse')),
-            h(Button, {
-              variant: 'primary',
-              icon: 'plus',
-              disabled: busy || rootDraft.trim() === '',
-              onClick: addRoot,
-              children: t('page.create'),
-            }),
+            { key: 'head', className: 'mp-set-page-head' },
+            h('h2', null, t('v2.library')),
+            h(
+              'span',
+              { className: 'mp-set-page-meta' },
+              t('settings.scannedTracks', { n: (library.tracks || []).length }),
+              (library.warnings || []).length > 0
+                ? ' · ' + t('settings.scanWarnings', { n: library.warnings.length })
+                : '',
+            ),
           ),
           h(
-            SetRow,
-            { key: 'depth', label: t('settings.depth'), desc: t('settings.depthHint') },
+            'section',
+            { key: 'folders', className: 'mp-set-card' },
             h(
-              'select',
-              {
-                value: String(config.depth || 4),
+              'div',
+              { className: 'mp-set-card-head' },
+              h('div', { className: 'mp-set-card-title' }, icon('folder', 13), t('settings.foldersTitle')),
+              h(Button, {
+                variant: 'ghost',
+                icon: 'refresh',
+                disabled: scanning,
+                onClick: rescan,
+                children: scanning ? t('page.scanning') : t('page.refresh'),
+              }),
+            ),
+            h('div', { className: 'mp-set-card-body' }, folderRows),
+            h(
+              'div',
+              { className: 'mp-root-add' },
+              h('input', {
+                type: 'text',
+                className: 'mp-kit-input',
+                value: rootDraft,
+                placeholder: 'D:\\Music',
                 onChange: function (event) {
-                  void saveConfig({ depth: Number(event.target.value) })
+                  setRootDraft(event.target.value)
                 },
-              },
-              [1, 2, 3, 4, 5, 6].map(function (n) {
-                return h('option', { key: n, value: String(n) }, String(n))
+                onKeyDown: function (event) {
+                  if (event.key === 'Enter') addRoot()
+                },
+              }),
+              h(
+                Button,
+                { variant: 'ghost', icon: 'folder', onClick: function () { pushLayer('folderPicker') } },
+                t('v2.folderBrowse'),
+              ),
+              h(Button, {
+                variant: 'primary',
+                icon: 'plus',
+                disabled: busy || rootDraft.trim() === '',
+                onClick: addRoot,
+                children: t('page.create'),
               }),
             ),
           ),
           h(
-            'div',
-            { key: 'scan', style: { display: 'flex', justifyContent: 'flex-end', paddingTop: '12px' } },
-            h(Button, {
-              icon: 'refresh',
-              disabled: busy,
-              onClick: function () {
-                void loadLibrary(true)
-                showToast(t('page.scanning'))
-              },
-              children: t('page.refresh'),
-            }),
+            'section',
+            { key: 'scan', className: 'mp-set-card' },
+            h(
+              'div',
+              { className: 'mp-set-card-head' },
+              h('div', { className: 'mp-set-card-title' }, icon('settings', 13), t('settings.scanSettings')),
+            ),
+            h(
+              'div',
+              { className: 'mp-set-card-body' },
+              h(
+                SetRow,
+                { key: 'depth', label: t('settings.depth'), desc: t('settings.depthHint') },
+                h(
+                  'select',
+                  {
+                    value: String(config.depth === undefined ? 4 : config.depth),
+                    onChange: function (event) {
+                      void saveConfig({ depth: Number(event.target.value) })
+                    },
+                  },
+                  [0, 1, 2, 3, 4, 5, 6].map(function (n) {
+                    return h('option', { key: n, value: String(n) }, String(n))
+                  }),
+                ),
+              ),
+              h('div', { className: 'mp-set-hint-line' }, t('settings.formatsHint')),
+            ),
           ),
           h(
-            'div',
-            { key: 'trash', style: { display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '10px' } },
-            h('span', { className: 'mp-set-desc', style: { flex: '1' } }, t('v2.trashHint')),
-            h(Button, { icon: 'trash', onClick: function () { pushLayer('trash', {}) } }, t('v2.trash')),
+            'section',
+            { key: 'trash', className: 'mp-set-card' },
+            h(
+              'div',
+              { className: 'mp-set-card-head' },
+              h('div', { className: 'mp-set-card-title' }, icon('trash', 13), t('v2.trash')),
+              h(Button, { variant: 'ghost', icon: 'trash', onClick: function () { pushLayer('trash', {}) } }, t('settings.openTrash')),
+            ),
+            h('div', { className: 'mp-set-card-body' }, h('p', { className: 'mp-set-desc' }, t('v2.trashHint'))),
           ),
         ]
       }
@@ -6471,6 +7170,7 @@ window.__ModuleLoader__.load({
                 postJson(API + 'online/cache', {})
                   .then(function () {
                     setCache({ files: 0, bytes: 0, maxBytes: stats.maxBytes || 0 })
+                    setCacheSongs([])
                     showToast(t('online.cacheCleared'))
                   })
                   .catch(function (error) {
@@ -6485,6 +7185,87 @@ window.__ModuleLoader__.load({
             { key: 'hint', className: 'mp-set-desc' },
             'Cached audio is reused by the stream route; deleting it only costs a refetch.',
           ),
+          h(
+            'div',
+            { key: 'songs', className: 'mp-cache-block' },
+            h('div', { className: 'mp-cache-heading' }, t('online.cacheSongs'), h('span', null, String((cacheSongs || []).length))),
+            (cacheSongs || []).length === 0
+              ? h('div', { className: 'mp-cache-empty' }, t('online.cacheNoSongs'))
+              : h(
+                  'div',
+                  { className: 'mp-cache-list' },
+                  cacheSongs.map(function (song) {
+                    return h(
+                      'div',
+                      { key: song.provider + ':' + song.id, className: 'mp-cache-row' },
+                      h('span', { className: 'mp-cache-provider' }, providerLogo(song.provider, 18)),
+                      h(
+                        'div',
+                        { className: 'mp-cache-main' },
+                        h('div', { className: 'mp-cache-title' }, song.title || song.id),
+                        h(
+                          'div',
+                          { className: 'mp-cache-sub' },
+                          [song.artist, song.album].filter(Boolean).join(' · ') || t('page.unknownArtist'),
+                        ),
+                      ),
+                      h('span', { className: 'mp-cache-time' }, fmtTime(song.durationSec)),
+                      h('span', { className: 'mp-cache-size' }, fmtBytes(song.size || 0)),
+                      song.hasLyric ? h('span', { className: 'mp-cache-tag' }, 'LRC') : null,
+                    )
+                  }),
+                ),
+          ),
+        ]
+      }
+    
+      function aboutTab() {
+        return [
+          h('h2', { key: 'h' }, t('v2.about')),
+          h(
+            'div',
+            { key: 'card', className: 'mp-about-card' },
+            h('img', { className: 'mp-about-logo', src: BRAND_LOGO, alt: '' }),
+            h(
+              'div',
+              { className: 'mp-about-main' },
+              h('div', { className: 'mp-about-name' }, 'dsh-music-panel'),
+              h('div', { className: 'mp-about-version' }, t('about.version') + ' ' + APP_VERSION),
+              h('div', { className: 'mp-about-tagline' }, t('about.tagline')),
+            ),
+          ),
+          h(
+            'div',
+            { key: 'meta', className: 'mp-about-rows' },
+            h('div', { className: 'mp-about-row' }, h('span', null, t('about.project')), h('strong', null, 'DeepSeek Harness Music Panel')),
+            h('div', { className: 'mp-about-row' }, h('span', null, t('about.license')), h('strong', null, 'MIT')),
+            h('div', { className: 'mp-about-row' }, h('span', null, t('about.author')), h('strong', null, 'Aliboder')),
+            h(
+              'div',
+              { className: 'mp-about-row' },
+              h('span', null, t('about.feedback')),
+              h(
+                'a',
+                { href: 'https://github.com/Aliboder/dsh-music-panel/issues', target: '_blank', rel: 'noreferrer' },
+                'GitHub Issues',
+              ),
+            ),
+          ),
+          h(
+            'div',
+            { key: 'links', className: 'mp-about-links' },
+            h(
+              'a',
+              { href: 'https://github.com/Aliboder/dsh-music-panel', target: '_blank', rel: 'noreferrer' },
+              t('about.source'),
+            ),
+            h(
+              'a',
+              { href: 'https://www.npmjs.com/package/dsh-music-panel', target: '_blank', rel: 'noreferrer' },
+              t('about.npm'),
+            ),
+          ),
+          h('p', { key: 'desc', className: 'mp-set-desc' }, t('about.description')),
         ]
       }
     
@@ -6499,7 +7280,9 @@ window.__ModuleLoader__.load({
                 ? onlineTab()
                 : tab === 'library'
                   ? libraryTab()
-                  : cacheTab()
+                  : tab === 'cache'
+                    ? cacheTab()
+                    : aboutTab()
     
       return h(
         KitModal,
@@ -6762,7 +7545,7 @@ window.__ModuleLoader__.load({
             postJson(API + 'online/like', { provider: track.onlineProvider, song: track, on: next })
               .then(function () {
                 setLiked(next)
-                refreshLikedPlaylist()
+                refreshLikedPlaylist(next ? 1 : -1)
                 showToast(next ? t('page.favorite') : t('page.unfavorite'))
               })
               .catch(function (error) {
@@ -8133,7 +8916,7 @@ window.__ModuleLoader__.load({
             if (next) map[path] = true
             else delete map[path]
             onlineStore.set({ liked: map })
-            refreshLikedPlaylist()
+            refreshLikedPlaylist(next ? 1 : -1)
             showToast(next ? t('page.favorite') : t('page.unfavorite'))
           })
           .catch(function (error) {
@@ -8573,6 +9356,16 @@ window.__ModuleLoader__.load({
                     activateNavItem(item)
                   },
                   onContextMenu: navItemContextMenu(item, active),
+                  onMouseEnter: item.onlinePlaylist
+                    ? function () {
+                        prefetchOnlinePlaylist(item.onlinePlaylist)
+                      }
+                    : undefined,
+                  onFocus: item.onlinePlaylist
+                    ? function () {
+                        prefetchOnlinePlaylist(item.onlinePlaylist)
+                      }
+                    : undefined,
                 },
                 icon(item.icon, 15),
                 h('span', null, item.label),
@@ -8625,6 +9418,16 @@ window.__ModuleLoader__.load({
                     activateNavItem(item)
                   },
                   onContextMenu: navItemContextMenu(item, active),
+                  onMouseEnter: item.onlinePlaylist
+                    ? function () {
+                        prefetchOnlinePlaylist(item.onlinePlaylist)
+                      }
+                    : undefined,
+                  onFocus: item.onlinePlaylist
+                    ? function () {
+                        prefetchOnlinePlaylist(item.onlinePlaylist)
+                      }
+                    : undefined,
                 },
                 item.label,
                 item.count !== null && item.count !== undefined
@@ -10449,6 +11252,8 @@ window.__ModuleLoader__.load({
           overlayStore: overlayStore,
           selectionStore: selectionStore,
           player: player,
+          lufsFromAudioBuffer: lufsFromAudioBuffer,
+          analyzeLoudnessBlob: analyzeLoudnessBlob,
         },
         enumerable: false,
       })

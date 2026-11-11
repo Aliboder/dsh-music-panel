@@ -15,6 +15,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
+const PKG = JSON.parse(readFileSync(join(HERE, '..', 'package.json'), 'utf8'))
 const ROOT = resolve(HERE, '..')
 const OUT = join(ROOT, 'client.js')
 const MODULE_ID = 'dsh-music-panel'
@@ -33,6 +34,8 @@ const FILES = [
   'src/19-extra-icons.js',
   'src/20-api.js',
   'src/30-prefs.js',
+  'src/35-loudness.js',
+'src/35-provider-logos.js',
   'src/40-store.js',
   'src/45-ui.js',
   'src/50-player.js',
@@ -122,6 +125,7 @@ function build() {
   id: '${MODULE_ID}',
   factory: function (require) {
     'use strict'
+    var APP_VERSION = ${JSON.stringify(PKG.version)}
 
 ${body}
 
@@ -141,6 +145,8 @@ ${body}
           overlayStore: overlayStore,
           selectionStore: selectionStore,
           player: player,
+          lufsFromAudioBuffer: lufsFromAudioBuffer,
+          analyzeLoudnessBlob: analyzeLoudnessBlob,
         },
         enumerable: false,
       })

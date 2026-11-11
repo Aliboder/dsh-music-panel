@@ -1,8 +1,8 @@
 {
   "name": "dsh-music-panel",
-  "version": "0.25.6",
+  "version": "0.26.0",
   "type": "module",
-  "description": "Local music library for DeepSeek Harness: scan a folder, browse tracks with cover art and tags, and play through a sidebar-panel player with loop, shuffle and volume. · DSH 本地音乐插件：扫描音乐目录、读取封面与标签、侧栏入口 + 全屏播放器。",
+  "description": "Local + online music player for DeepSeek Harness: multi-root library, NetEase / QQ / KuGou, synced playlists and likes, lyrics, cache, built-in EBU R128 volume leveling, tag/cover editing. · DSH 本地与在线音乐插件：多目录曲库、网易云 / QQ / 酷狗、云端歌单与喜欢、歌词翻译、音频缓存、内置音量均衡、标签/封面编辑。",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -69,6 +69,8 @@
     "pinyin-pro": "^3.29.5"
   }
 }
+
+
 
 
 
