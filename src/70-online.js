@@ -323,14 +323,10 @@ function playOnlineResults(results, index) {
   // depends on the signed-in account, and the Host resolves that with cookies.
   var provider = (wanted && wanted.provider) || (list[0] && list[0].provider) || ''
   var account = onlineStore.get().providers[provider] || {}
-  var accountKnown = account.loggedIn === true || account.loggedIn === false
-  // Allow an attempt while login/VIP state is still loading; once the account
-  // summary is known, only members may request VIP tracks.
-  var allowVip = !accountKnown
-    ? true
-    : account.loggedIn === true
-      ? account.vip !== false
-      : false
+  // Strict gate: a VIP track is only allowed when the provider summary
+  // explicitly says this account is logged in with VIP. Unknown/stale state
+  // must not be treated as permission.
+  var allowVip = account.loggedIn === true && account.vip === true
   var playable = list.filter(function (item) {
     return item && item.id && (item.qualityHint !== 'VIP' || allowVip)
   })
