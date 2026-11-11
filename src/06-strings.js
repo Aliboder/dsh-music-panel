@@ -223,7 +223,7 @@ var EXTRA_STRINGS = {
     'about.license': 'License',
     'about.author': 'Author',
     'about.feedback': 'Issues',
-    'about.description': 'Multi-folder library, NetEase / QQ / KuGou playback, lyric translation, tag and cover editing, audio cache, stats and trash.',
+    'about.description': 'Multi-folder library, NetEase / QQ / KuGou / KuGou Concept playback, lyric translation, tag and cover editing, audio cache, stats and trash.',
     'about.source': 'GitHub source',
     'about.npm': 'npm package',
     'settings.volumeNormalize': 'Volume leveling',

@@ -77,7 +77,7 @@ export function apply(ctx, rawConfig) {
               },
               source: {
                 type: 'string',
-                enum: ['local', 'netease', 'qq', 'kugou'],
+                enum: ['local', 'netease', 'qq', 'kugou', 'kugouLite'],
                 description:
                   'Where to play from: local library (default), or the online providers NetEase / QQ Music / KuGou (free tracks work without signing in; sign in from the panel for higher quality).',
               },
@@ -116,7 +116,7 @@ export function apply(ctx, rawConfig) {
       systemPrompt.section({
         name: 'tool:music-online',
         order: 117,
-        text: '在线音乐：music_control 的 source 可设为 netease / qq / kugou，按歌名或歌手在线搜索并播放（未登录只播免费曲；用户可在「设置 → 在线」扫码登录以提升音质）。',
+        text: '在线音乐：music_control 的 source 可设为 netease / qq / kugou / kugouLite（酷狗概念版），按歌名或歌手在线搜索并播放（未登录只播免费曲；用户可在「设置 → 在线」扫码登录以提升音质）。',
       })
       return () => {}
     }, 'music-online-prompt')

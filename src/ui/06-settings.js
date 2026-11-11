@@ -373,14 +373,16 @@ function SettingsSheet(props) {
 
   function onlineTab() {
     var providers = online.providers || {}
-    var rows = ['netease', 'qq', 'kugou'].map(function (provider) {
+    var rows = ['netease', 'qq', 'kugou', 'kugouLite'].map(function (provider) {
       var info = providers[provider] || {}
       var label =
         provider === 'netease'
           ? t('online.providerNetease')
           : provider === 'qq'
             ? t('online.providerQq')
-            : t('online.providerKugou')
+            : provider === 'kugou'
+              ? t('online.providerKugou')
+              : t('online.providerKugouLite')
       return h(
         SetRow,
         {
@@ -413,7 +415,7 @@ function SettingsSheet(props) {
               variant: 'primary',
               icon: 'qr',
               onClick: function () {
-                pushLayer('login', { provider: provider, mode: 'qq' })
+                pushLayer('login', { provider: provider })
               },
               children: t('online.login'),
             }),
@@ -421,11 +423,7 @@ function SettingsSheet(props) {
     })
     rows.unshift(h('h2', { key: 'h' }, t('v2.online')))
     rows.push(
-      h(
-        'p',
-        { key: 'hint', className: 'mp-set-desc' },
-        t('online.settingsHint'),
-      ),
+      h('p', { key: 'hint', className: 'mp-set-desc' }, t('online.settingsHint')),
     )
     return rows
   }

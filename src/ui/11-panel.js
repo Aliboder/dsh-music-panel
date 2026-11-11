@@ -93,6 +93,7 @@ function TopBar(props) {
         ['netease', t('online.providerNetease')],
         ['qq', t('online.providerQq')],
         ['kugou', t('online.providerKugou')],
+        ['kugouLite', t('online.providerKugouLite')],
       ].map(function (entry) {
         return h(
           'button',
@@ -226,7 +227,7 @@ function applyControlAction(action) {
   var query = String(action.query || '').trim()
   if (query === '') return
   var source =
-    action.source === 'netease' || action.source === 'qq' || action.source === 'kugou'
+    action.source === 'netease' || action.source === 'qq' || action.source === 'kugou' || action.source === 'kugouLite'
       ? action.source
       : 'local'
   if (source === 'local') {

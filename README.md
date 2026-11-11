@@ -5,10 +5,10 @@
 # dsh-music-panel
 
 **A local + online music player, natively embedded in DeepSeek Harness.**  
-**在 DeepSeek Harness 里，把本地曲库和三个在线音乐平台装进同一台播放器。**
+**在 DeepSeek Harness 里，把本地曲库和四个在线音乐平台（网易云 / QQ 音乐 / 酷狗 / 酷狗概念版）装进同一台播放器。**
 
-Local library · NetEase Cloud Music · QQ Music · KuGou · Lyrics · Cache · EBU R128  
-本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · 歌词 · 缓存 · 音量均衡
+Local library · NetEase Cloud Music · QQ Music · KuGou · KuGou Concept · Lyrics · Cache · EBU R128  
+本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · 酷狗概念版 · 歌词 · 缓存 · 音量均衡
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
 [![release](https://img.shields.io/badge/release-0.26.0-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
@@ -64,7 +64,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Lyrics · Cache · 
 
 | | 能力 |
 | :--- | :--- |
-| **本地 + 在线** | 硬盘里的歌直接播；网易云 / QQ 音乐 / 酷狗的云端歌单与喜欢也能直接浏览和播放。 |
+| **本地 + 在线** | 硬盘里的歌直接播；网易云 / QQ 音乐 / 酷狗 / 酷狗概念版的云端歌单与喜欢也能直接浏览和播放。 |
 | **像播放器，而不是列表** | 专辑网格、黑胶播放页、逐行歌词与翻译、可拖拽队列、播放统计、快速定位。 |
 | **把在线歌单当本地歌单** | 歌单缓存 + 预取 + 后台校准，切走再切回不重新加载；支持按平台顺序 / 名称 / 歌曲数排序。 |
 | **曲库维护留在窗口里** | 在线补全标签、替换封面、校准歌词、检测重复、回收站恢复，不用打开第三方工具。 |
@@ -136,7 +136,7 @@ pnpm add dsh-music-panel
 
 **在线音乐**
 
-1. 顶栏切到网易云 / QQ 音乐 / 酷狗。
+1. 顶栏切到网易云 / QQ 音乐 / 酷狗 / 酷狗概念版。
 2. 首次使用：齿轮 → **在线**，点对应平台「登录」，用手机 App 扫码确认。
 3. 直接点导航里的云端歌单开始播放；播放过的歌曲会自动进入音频缓存。
 4. 需要清理时到 **设置 → 缓存** 查看或清空。
@@ -213,7 +213,7 @@ Most music plugins stop at “it plays”. `dsh-music-panel` is built as a **rea
 - **VIP awareness**: playability follows the signed-in account; VIP tracks are marked.
 - **Audio cache**: write-while-playing, default 10 GB with LRU eviction; Settings → Cache lists every cached track across providers.
 - **Volume leveling**: built-in EBU R128 / BS.1770 analysis with per-track gain, no ffmpeg required; results are cached.
-- Online lyrics and translations for all three providers.
+- Online lyrics and translations for all four providers.
 
 #### Lyrics, metadata, and cleanup
 
@@ -290,6 +290,8 @@ See [theme guidelines](docs/theme-guidelines.md) and [UI review](docs/ui-review-
 ### License
 
 [MIT](LICENSE) © Aliboder
+
+
 
 
 

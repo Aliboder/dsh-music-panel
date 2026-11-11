@@ -9,13 +9,14 @@ var UI_KEY = 'music.ui.v2'
 var LEGACY_UI_KEYS = ['mu.source', 'mu.view']
 
 function isOnlineSource(source) {
-  return source === 'netease' || source === 'qq' || source === 'kugou'
+  return source === 'netease' || source === 'qq' || source === 'kugou' || source === 'kugouLite'
 }
 
 function sourceLabelOf(source) {
   if (source === 'netease') return t('online.providerNetease')
   if (source === 'qq') return t('online.providerQq')
   if (source === 'kugou') return t('online.providerKugou')
+  if (source === 'kugouLite') return t('online.providerKugouLite')
   return t('page.tabLocal')
 }
 
@@ -34,7 +35,7 @@ function readUiState() {
     // Migrate the 0.11 keys once so the panel opens where it was left.
     var legacySource = rawStorageGet(LEGACY_UI_KEYS[0], '')
     var legacyView = rawStorageGet(LEGACY_UI_KEYS[1], '')
-    var source = ['local', 'netease', 'qq', 'kugou'].indexOf(legacySource) >= 0 ? legacySource : 'local'
+    var source = ['local', 'netease', 'qq', 'kugou', 'kugouLite'].indexOf(legacySource) >= 0 ? legacySource : 'local'
     var nav = 'songs'
     if (source !== 'local') nav = 'recent'
     else if (['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'stats'].indexOf(legacyView) >= 0) {
@@ -42,7 +43,7 @@ function readUiState() {
     }
     return { source: source, nav: nav, playlistId: '' }
   }
-  var source = ['local', 'netease', 'qq', 'kugou'].indexOf(saved.source) >= 0 ? saved.source : 'local'
+  var source = ['local', 'netease', 'qq', 'kugou', 'kugouLite'].indexOf(saved.source) >= 0 ? saved.source : 'local'
   var nav = typeof saved.nav === 'string' && saved.nav !== '' ? saved.nav : 'songs'
   var playlistId = typeof saved.playlistId === 'string' ? saved.playlistId : ''
   if (nav === 'playlists') nav = source === 'local' ? 'songs' : 'recent'
