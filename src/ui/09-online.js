@@ -46,6 +46,7 @@ function OnlineContent(props) {
         if (next) map[path] = true
         else delete map[path]
         onlineStore.set({ liked: map })
+        refreshLikedPlaylist()
         showToast(next ? t('page.favorite') : t('page.unfavorite'))
       })
       .catch(function (error) {

@@ -105,6 +105,19 @@ async function loadMyPlaylists(provider) {
   }
 }
 
+/** Re-read the likes playlist after a cloud like/unlike from any surface. */
+function refreshLikedPlaylist() {
+  var state = onlineStore.get()
+  var current = (state.playlists || []).find(function (item) {
+    return String(item.id) === String(state.playlistId)
+  })
+  var likedPlaylist =
+    current &&
+    (current.isLike === true || current.kind === 'default' || current.isDefault === true)
+  if (likedPlaylist) void openOnlinePlaylist(current)
+  void loadMyPlaylists(state.provider)
+}
+
 async function openOnlinePlaylist(playlist) {
   if (!playlist || !playlist.id) return
   var provider = onlineStore.get().provider
