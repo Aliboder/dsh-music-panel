@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/icon.svg" alt="dsh-music-panel icon" width="96" height="96" />
+
 # dsh-music-panel
 
 **A local + online music player, natively embedded in DeepSeek Harness.**  
