@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.25.5
+
+- 插件图标替换为用户提供的头像（icon.svg，内嵌 256px PNG）
+- VIP 判定改为按账号：/online/providers 返回各平台 vip（网易云账号 vipType、QQ detectVip、酷狗登录 token），有 VIP 才允许请求 VIP 曲目，无 VIP 直接提示，不再全放行/全拦截
+- 在线缓存列表按当前平台过滤（磁盘本来已分平台存放）
+- 酷狗喜欢优先使用 is_def=2 的「我喜欢」，没有时才回退默认收藏
+
 ## 0.25.4
 
 - 喜欢图标改用本地 SVG 爱心，不再使用宿主的点赞（Like）图标
