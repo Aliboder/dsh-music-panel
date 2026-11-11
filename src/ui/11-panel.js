@@ -140,7 +140,31 @@ function TopBar(props) {
           'div',
           { className: 'mp-userchip is-on' },
           h('span', { className: 'mp-userchip-dot' }),
-          h('span', null, providerInfo.loggedIn ? providerInfo.nickname || t('online.loggedIn') : t('online.loggedOut')),
+          h('span', { className: 'mp-userchip-name' }, providerInfo.loggedIn ? providerInfo.nickname || t('online.loggedIn') : t('online.loggedOut')),
+          providerInfo.loggedIn
+            ? h(
+                'span',
+                {
+                  className: cx(
+                    'mp-userchip-vip',
+                    providerInfo.vip === true ? 'is-on' : providerInfo.vip === false ? 'is-off' : 'is-checking',
+                  ),
+                  title: providerInfo.vip === true ? vipExpiryLabel(providerInfo.vipExpiresAt) : '',
+                },
+                providerInfo.vip === true
+                  ? 'VIP'
+                  : providerInfo.vip === false
+                    ? t('online.nonVip')
+                    : t('online.vipSyncing'),
+              )
+            : null,
+          providerInfo.loggedIn && providerInfo.vip === true
+            ? h(
+                'span',
+                { className: 'mp-userchip-exp', title: vipExpiryLabel(providerInfo.vipExpiresAt) },
+                vipExpiryLabel(providerInfo.vipExpiresAt),
+              )
+            : null,
           providerInfo.loggedIn
             ? h(
                 'span',
