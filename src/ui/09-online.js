@@ -125,7 +125,7 @@ function OnlineContent(props) {
       }
       var cancelled = false
       setCachePhase('loading')
-      getJson(API + 'online/cache/list')
+      getJson(API + 'online/cache/list?provider=' + encodeURIComponent(provider))
         .then(function (body) {
           if (cancelled) return
           setCacheList(Array.isArray(body.songs) ? body.songs : [])

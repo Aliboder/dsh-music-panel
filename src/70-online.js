@@ -138,7 +138,7 @@ async function openOnlinePlaylist(playlist) {
     var songs = Array.isArray(body.songs) ? body.songs : []
     onlineStore.set({
       playlistPhase: 'ready',
-      playlistName: body.name || playlist.name || '',
+      playlistName: playlist.name || body.name || '',
       playlistSongs: songs,
     })
     void refreshCacheStatus(provider, songs.map(function (item) { return item.id }))
@@ -197,8 +197,18 @@ function playOnlineResults(results, index) {
   var wanted = list[index]
   // Never pre-block VIP tracks on the client: whether a track is playable
   // depends on the signed-in account, and the Host resolves that with cookies.
+  var provider = (wanted && wanted.provider) || (list[0] && list[0].provider) || ''
+  var account = onlineStore.get().providers[provider] || {}
+  var accountKnown = account.loggedIn === true || account.loggedIn === false
+  // Allow an attempt while login/VIP state is still loading; once the account
+  // summary is known, only members may request VIP tracks.
+  var allowVip = !accountKnown
+    ? true
+    : account.loggedIn === true
+      ? account.vip !== false
+      : false
   var playable = list.filter(function (item) {
-    return item && item.id
+    return item && item.id && (item.qualityHint !== 'VIP' || allowVip)
   })
   if (playable.length === 0) {
     showToast(t('online.vipOnly'))
@@ -211,6 +221,10 @@ function playOnlineResults(results, index) {
         at = i
         break
       }
+    }
+    if (wanted.qualityHint === 'VIP' && !allowVip) {
+      showToast(t('online.vipOnly'))
+      return
     }
   }
   var tracks = playable.map(onlineTrackOf)
