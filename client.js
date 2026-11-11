@@ -3739,12 +3739,10 @@ window.__ModuleLoader__.load({
     function playOnlineResults(results, index) {
       var list = Array.isArray(results) ? results : []
       var wanted = list[index]
-      var provider = (wanted && wanted.provider) || (list[0] && list[0].provider) || ''
-      var signedIn = (onlineStore.get().providers[provider] || {}).loggedIn === true
-      // Signed-in members can resolve VIP tracks through their account; only the
-      // signed-out path is filtered here. The Host remains authoritative.
+      // Never pre-block VIP tracks on the client: whether a track is playable
+      // depends on the signed-in account, and the Host resolves that with cookies.
       var playable = list.filter(function (item) {
-        return item && item.id && (item.qualityHint !== 'VIP' || signedIn)
+        return item && item.id
       })
       if (playable.length === 0) {
         showToast(t('online.vipOnly'))
@@ -3757,10 +3755,6 @@ window.__ModuleLoader__.load({
             at = i
             break
           }
-        }
-        if (wanted.qualityHint === 'VIP' && !signedIn) {
-          showToast(t('online.vipOnly'))
-          return
         }
       }
       var tracks = playable.map(onlineTrackOf)
