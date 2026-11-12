@@ -8,7 +8,7 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
-    var APP_VERSION = "0.29.0"
+    var APP_VERSION = "0.29.1"
 
     // ── src/00-runtime.js
     /**
@@ -5646,6 +5646,7 @@ window.__ModuleLoader__.load({
       '.mp-cbtn{height:28px;min-width:28px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;max-width:150px;overflow:hidden}',
       '.mp-cbtn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-cbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-side-row{position:relative}',
       '.mp-side-icon{position:static;display:grid;place-items:center;width:16px;height:16px}',
       '.mp-side-extras{position:absolute;right:42px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:1px;padding:0;background:transparent;border:0;box-shadow:none;z-index:1}',
       '.mp-side-wave{display:inline-flex;align-items:flex-end;justify-content:center;gap:2px;width:42px;height:22px;margin:0 3px;flex:none;transform-origin:50% 100%;transition:opacity .3s ease,transform .3s ease}.mp-side-wave.is-fading{opacity:0;transform:scaleY(.15)}',
@@ -13735,7 +13736,12 @@ window.__ModuleLoader__.load({
         function () {
           var node = ref.current
           if (node === null) return undefined
-          var row = node.closest('button')
+          // The controls are absolutely positioned so they can sit at the right
+          // edge of the host row. Some DSH sidebar rows are not positioned, which
+          // made them escape to the nearest positioned ancestor (often the whole
+          // sidebar). Mark the host row here instead of relying on its CSS.
+          var row = node.closest('button') || node.closest('[role="button"]') || node.closest('a')
+          if (row !== null) row.classList.add('mp-side-row')
           function measure() {
             setWide(row !== null && row.getBoundingClientRect().width >= 230)
           }
@@ -13746,6 +13752,7 @@ window.__ModuleLoader__.load({
           return function () {
             window.removeEventListener('resize', measure)
             if (observer !== null) observer.disconnect()
+            if (row !== null) row.classList.remove('mp-side-row')
           }
         },
         [],

@@ -24,7 +24,12 @@ function MusicSideIcon() {
     function () {
       var node = ref.current
       if (node === null) return undefined
-      var row = node.closest('button')
+      // The controls are absolutely positioned so they can sit at the right
+      // edge of the host row. Some DSH sidebar rows are not positioned, which
+      // made them escape to the nearest positioned ancestor (often the whole
+      // sidebar). Mark the host row here instead of relying on its CSS.
+      var row = node.closest('button') || node.closest('[role="button"]') || node.closest('a')
+      if (row !== null) row.classList.add('mp-side-row')
       function measure() {
         setWide(row !== null && row.getBoundingClientRect().width >= 230)
       }
@@ -35,6 +40,7 @@ function MusicSideIcon() {
       return function () {
         window.removeEventListener('resize', measure)
         if (observer !== null) observer.disconnect()
+        if (row !== null) row.classList.remove('mp-side-row')
       }
     },
     [],
