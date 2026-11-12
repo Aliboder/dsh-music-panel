@@ -149,6 +149,9 @@ ${body}
           player: player,
           lufsFromAudioBuffer: lufsFromAudioBuffer,
           analyzeLoudnessBlob: analyzeLoudnessBlob,
+          // Pure pager math; the render mock cannot reach the paged branch.
+          pageWindow: pageWindow,
+          SONG_PAGE_SIZE: SONG_PAGE_SIZE,
         },
         enumerable: false,
       })

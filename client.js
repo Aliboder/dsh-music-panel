@@ -257,9 +257,7 @@ window.__ModuleLoader__.load({
         'online.albumCount': '{n} 张专辑',
         'online.navidromeKeep': '保存密码，启用完整曲库',
         'online.navidromeKeepWarn': '密码将以明文保存在本机 providers.json（权限 0600）。原生接口是 Navidrome 的内部接口，可能随版本变化。',
-        'online.loadMore': '加载更多',
-        'online.loadedOf': '已加载 {n} / {total} 首',
-        'online.loadedAll': '已加载全部',
+        'online.pageOf': '第 {page} / {pages} 页 · 共 {total} 首',
         'online.randomSample': '当前为随机采样（{n} 首），不是完整曲库',
         'online.enableFullLibrary': '启用完整曲库',
         'online.searchPlaceholder': '搜索在线音乐…',
@@ -631,9 +629,7 @@ window.__ModuleLoader__.load({
         'online.albumCount': '{n} albums',
         'online.navidromeKeep': 'Save the password to enable the full library',
         'online.navidromeKeepWarn': 'The password is stored as plain text in the local providers.json (mode 0600). The native API is Navidrome-internal and may change between releases.',
-        'online.loadMore': 'Load more',
-        'online.loadedOf': 'Loaded {n} of {total}',
-        'online.loadedAll': 'All loaded',
+        'online.pageOf': 'Page {page} of {pages} · {total} tracks',
         'online.randomSample': 'Showing a random sample of {n} tracks, not the whole library',
         'online.enableFullLibrary': 'Enable full library',
         'online.searchPlaceholder': 'Search online music…',
@@ -5215,6 +5211,11 @@ window.__ModuleLoader__.load({
       '.mp-pager{display:flex;align-items:center;justify-content:center;gap:10px;flex:0 0 auto;padding:8px 12px 14px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
       '.mp-pager.is-hint{justify-content:space-between;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03))}',
       '.mp-loaded-end{font-size:12px;color:var(--dsw-alias-state-success-text,#4ade80)}',
+      '.mp-page-num{min-width:28px;height:26px;padding:0 7px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;font-variant-numeric:tabular-nums}',
+      '.mp-page-num:hover:not(:disabled){color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
+      '.mp-page-num.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12));color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600;border-color:transparent}',
+      '.mp-page-num:disabled{opacity:.45;cursor:default}',
+      '.mp-page-gap{padding:0 2px;font-size:12px;color:var(--dsw-alias-label-tertiary,#71717a)}',
       '.mp-online-card.is-logged{background:linear-gradient(135deg,color-mix(in srgb,var(--mp-brand) 7%,var(--dsw-alias-bg-layer-2,#1e1e22)),var(--dsw-alias-bg-layer-2,#1e1e22) 72%)}',
       '.mp-online-card-head{display:flex;align-items:center;gap:10px;min-width:0}',
       '.mp-online-logo{width:38px;height:38px;border-radius:12px;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.16)}',
@@ -9548,10 +9549,33 @@ window.__ModuleLoader__.load({
      * online views: recent history, my playlists, one playlist, cache and search.
      */
     
+    /** Rows per page in the paged library view. */
+    var SONG_PAGE_SIZE = 100
+    
     function onlineEntriesForHistory(online, provider) {
       return (online.history || []).filter(function (entry) {
         return entry.provider === provider
       })
+    }
+    
+    /**
+     * Page numbers to draw: the first, the last, and a window around the current
+     * page, with `null` marking a gap that the caller renders as an ellipsis.
+     */
+    function pageWindow(current, total) {
+      if (total <= 7) {
+        var all = []
+        for (var i = 1; i <= total; i += 1) all.push(i)
+        return all
+      }
+      var out = [1]
+      var from = Math.max(2, current - 1)
+      var to = Math.min(total - 1, current + 1)
+      if (from > 2) out.push(null)
+      for (var p = from; p <= to; p += 1) out.push(p)
+      if (to < total - 1) out.push(null)
+      out.push(total)
+      return out
     }
     
     function OnlineContent(props) {
@@ -9581,6 +9605,10 @@ window.__ModuleLoader__.load({
       var songsNativePair = useState(false)
       var songsNative = songsNativePair[0]
       var setSongsNative = songsNativePair[1]
+      // Native mode is page-numbered, one page in memory at a time.
+      var songsPagePair = useState(1)
+      var songsPage = songsPagePair[0]
+      var setSongsPage = songsPagePair[1]
       // Artists / albums browse (Navidrome only). One phase drives all four views;
       // the lists and the two detail payloads are separate so each render branch
       // reads only what it needs.
@@ -9750,15 +9778,20 @@ window.__ModuleLoader__.load({
           }
           var cancelled = false
           setSongsPhase('loading')
-          // Native mode orders on the server, so the sort preference travels with
-          // the request; that keeps page boundaries stable as the list grows.
+          // Native mode orders on the server and returns one page at a time, so a
+          // page is addressed purely by its offset and never appended to.
           var sort = String(prefs.sortBy || 'title')
           var order = prefs.sortDir === 'desc' ? 'desc' : 'asc'
+          var offset = (songsPage - 1) * SONG_PAGE_SIZE
           getJson(
             API +
               'online/songs?provider=' +
               encodeURIComponent(provider) +
-              '&size=200&offset=0&sort=' +
+              '&size=' +
+              String(SONG_PAGE_SIZE) +
+              '&offset=' +
+              String(offset) +
+              '&sort=' +
               encodeURIComponent(sort) +
               '&order=' +
               encodeURIComponent(order),
@@ -9781,36 +9814,21 @@ window.__ModuleLoader__.load({
             cancelled = true
           }
         },
-        [nav, provider, prefs.sortBy, prefs.sortDir],
+        [nav, provider, prefs.sortBy, prefs.sortDir, songsPage],
       )
     
-      /** Append the next native page. No-op while a page is in flight. */
-      function loadMoreSongs() {
-        if (songsPhase === 'loading' || songsNative !== true) return
-        if (songsTotal > 0 && songsList.length >= songsTotal) return
-        setSongsPhase('loading')
-        var sort = String(prefs.sortBy || 'title')
-        var order = prefs.sortDir === 'desc' ? 'desc' : 'asc'
-        getJson(
-          API +
-            'online/songs?provider=' +
-            encodeURIComponent(provider) +
-            '&size=200&offset=' +
-            String(songsList.length) +
-            '&sort=' +
-            encodeURIComponent(sort) +
-            '&order=' +
-            encodeURIComponent(order),
-        )
-          .then(function (body) {
-            var page = Array.isArray(body.songs) ? body.songs : []
-            setSongsList(songsList.concat(page))
-            setSongsTotal(Number(body.total) || songsTotal)
-            setSongsPhase('ready')
-          })
-          .catch(function () {
-            setSongsPhase('error')
-          })
+      // Any change of provider or ordering invalidates the page number.
+      useEffect(
+        function () {
+          setSongsPage(1)
+        },
+        [provider, prefs.sortBy, prefs.sortDir],
+      )
+    
+      function goToSongsPage(page) {
+        var next = Math.max(1, Math.floor(Number(page) || 1))
+        if (next === songsPage) return
+        setSongsPage(next)
       }
     
       useEffect(
@@ -10084,24 +10102,59 @@ window.__ModuleLoader__.load({
           // it stays visible without scrolling to the end of 3000 rows.
           var footer = null
           if (songsNative === true) {
-            var more = songsTotal === 0 || allSongs.length < songsTotal
+            var pageCount = Math.max(1, Math.ceil(songsTotal / SONG_PAGE_SIZE))
+            var numbers = pageWindow(songsPage, pageCount)
+            var busy2 = songsPhase === 'loading'
             footer = h(
               'div',
               { className: 'mp-pager', key: 'pager' },
-              h('span', { className: 'mp-loaded-of' }, t('online.loadedOf', { n: allSongs.length, total: songsTotal })),
-              more
-                ? h(
-                    Button,
-                    {
-                      icon: 'plus',
-                      disabled: songsPhase === 'loading',
-                      onClick: function () {
-                        loadMoreSongs()
-                      },
+              h(
+                Button,
+                {
+                  key: 'prev',
+                  icon: 'chevronLeft',
+                  disabled: busy2 || songsPage <= 1,
+                  onClick: function () {
+                    goToSongsPage(songsPage - 1)
+                  },
+                },
+                '',
+              ),
+              numbers.map(function (number, index) {
+                if (number === null) {
+                  return h('span', { key: 'gap' + index, className: 'mp-page-gap' }, '…')
+                }
+                return h(
+                  'button',
+                  {
+                    key: 'p' + number,
+                    type: 'button',
+                    className: 'mp-page-num' + (number === songsPage ? ' is-on' : ''),
+                    disabled: busy2,
+                    onClick: function () {
+                      goToSongsPage(number)
                     },
-                    t('online.loadMore'),
-                  )
-                : h('span', { className: 'mp-loaded-end' }, t('online.loadedAll')),
+                  },
+                  String(number),
+                )
+              }),
+              h(
+                Button,
+                {
+                  key: 'next',
+                  icon: 'chevronRight',
+                  disabled: busy2 || songsPage >= pageCount,
+                  onClick: function () {
+                    goToSongsPage(songsPage + 1)
+                  },
+                },
+                '',
+              ),
+              h(
+                'span',
+                { className: 'mp-loaded-of' },
+                t('online.pageOf', { page: songsPage, pages: pageCount, total: songsTotal }),
+              ),
             )
           } else if (provider === 'navidrome') {
             // Explain why there is no pager instead of leaving a silent cap.
@@ -12696,6 +12749,9 @@ window.__ModuleLoader__.load({
           player: player,
           lufsFromAudioBuffer: lufsFromAudioBuffer,
           analyzeLoudnessBlob: analyzeLoudnessBlob,
+          // Pure pager math; the render mock cannot reach the paged branch.
+          pageWindow: pageWindow,
+          SONG_PAGE_SIZE: SONG_PAGE_SIZE,
         },
         enumerable: false,
       })

@@ -426,6 +426,28 @@ internals.overlayStore.set({ layers: [{ kind: 'trash', props: {} }] })
 assert.ok(textOf(panel()).includes('回收站'), 'the trash dialog renders')
 internals.overlayStore.set({ layers: [] })
 
+// 8. pager math. The render mock cannot reach the paged branch (useState never
+//    changes), so the window helper is exposed through __internals and tested
+//    directly — this is the part that decides which page buttons appear.
+const pageWindow = internals.pageWindow
+assert.equal(typeof pageWindow, 'function', 'pageWindow is exposed for tests')
+assert.equal(internals.SONG_PAGE_SIZE, 100, 'pages hold 100 rows')
+
+assert.deepEqual(pageWindow(1, 1), [1], 'a single page shows one button')
+assert.deepEqual(pageWindow(3, 5), [1, 2, 3, 4, 5], 'up to 7 pages are listed in full')
+assert.deepEqual(
+  pageWindow(1, 31),
+  [1, 2, null, 31],
+  'first page keeps a window on both sides plus the last page',
+)
+assert.deepEqual(pageWindow(15, 31), [1, null, 14, 15, 16, null, 31], 'a middle page shows neighbours')
+assert.deepEqual(
+  pageWindow(31, 31),
+  [1, null, 30, 31],
+  'the last page mirrors the first',
+)
+assert.equal(pageWindow(1, 31).filter((n) => n !== null).length, 3, 'no index is drawn twice')
+
 console.log('panel.render.test.mjs ok')
 
 

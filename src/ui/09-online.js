@@ -2,10 +2,33 @@
  * online views: recent history, my playlists, one playlist, cache and search.
  */
 
+/** Rows per page in the paged library view. */
+var SONG_PAGE_SIZE = 100
+
 function onlineEntriesForHistory(online, provider) {
   return (online.history || []).filter(function (entry) {
     return entry.provider === provider
   })
+}
+
+/**
+ * Page numbers to draw: the first, the last, and a window around the current
+ * page, with `null` marking a gap that the caller renders as an ellipsis.
+ */
+function pageWindow(current, total) {
+  if (total <= 7) {
+    var all = []
+    for (var i = 1; i <= total; i += 1) all.push(i)
+    return all
+  }
+  var out = [1]
+  var from = Math.max(2, current - 1)
+  var to = Math.min(total - 1, current + 1)
+  if (from > 2) out.push(null)
+  for (var p = from; p <= to; p += 1) out.push(p)
+  if (to < total - 1) out.push(null)
+  out.push(total)
+  return out
 }
 
 function OnlineContent(props) {
@@ -35,6 +58,10 @@ function OnlineContent(props) {
   var songsNativePair = useState(false)
   var songsNative = songsNativePair[0]
   var setSongsNative = songsNativePair[1]
+  // Native mode is page-numbered, one page in memory at a time.
+  var songsPagePair = useState(1)
+  var songsPage = songsPagePair[0]
+  var setSongsPage = songsPagePair[1]
   // Artists / albums browse (Navidrome only). One phase drives all four views;
   // the lists and the two detail payloads are separate so each render branch
   // reads only what it needs.
@@ -210,15 +237,20 @@ function OnlineContent(props) {
       }
       var cancelled = false
       setSongsPhase('loading')
-      // Native mode orders on the server, so the sort preference travels with
-      // the request; that keeps page boundaries stable as the list grows.
+      // Native mode orders on the server and returns one page at a time, so a
+      // page is addressed purely by its offset and never appended to.
       var sort = String(prefs.sortBy || 'title')
       var order = prefs.sortDir === 'desc' ? 'desc' : 'asc'
+      var offset = (songsPage - 1) * SONG_PAGE_SIZE
       getJson(
         API +
           'online/songs?provider=' +
           encodeURIComponent(provider) +
-          '&size=200&offset=0&sort=' +
+          '&size=' +
+          String(SONG_PAGE_SIZE) +
+          '&offset=' +
+          String(offset) +
+          '&sort=' +
           encodeURIComponent(sort) +
           '&order=' +
           encodeURIComponent(order),
@@ -241,36 +273,21 @@ function OnlineContent(props) {
         cancelled = true
       }
     },
-    [nav, provider, prefs.sortBy, prefs.sortDir],
+    [nav, provider, prefs.sortBy, prefs.sortDir, songsPage],
   )
 
-  /** Append the next native page. No-op while a page is in flight. */
-  function loadMoreSongs() {
-    if (songsPhase === 'loading' || songsNative !== true) return
-    if (songsTotal > 0 && songsList.length >= songsTotal) return
-    setSongsPhase('loading')
-    var sort = String(prefs.sortBy || 'title')
-    var order = prefs.sortDir === 'desc' ? 'desc' : 'asc'
-    getJson(
-      API +
-        'online/songs?provider=' +
-        encodeURIComponent(provider) +
-        '&size=200&offset=' +
-        String(songsList.length) +
-        '&sort=' +
-        encodeURIComponent(sort) +
-        '&order=' +
-        encodeURIComponent(order),
-    )
-      .then(function (body) {
-        var page = Array.isArray(body.songs) ? body.songs : []
-        setSongsList(songsList.concat(page))
-        setSongsTotal(Number(body.total) || songsTotal)
-        setSongsPhase('ready')
-      })
-      .catch(function () {
-        setSongsPhase('error')
-      })
+  // Any change of provider or ordering invalidates the page number.
+  useEffect(
+    function () {
+      setSongsPage(1)
+    },
+    [provider, prefs.sortBy, prefs.sortDir],
+  )
+
+  function goToSongsPage(page) {
+    var next = Math.max(1, Math.floor(Number(page) || 1))
+    if (next === songsPage) return
+    setSongsPage(next)
   }
 
   useEffect(
@@ -623,24 +640,59 @@ function OnlineContent(props) {
       // it stays visible without scrolling to the end of 3000 rows.
       var footer = null
       if (songsNative === true) {
-        var more = songsTotal === 0 || allSongs.length < songsTotal
+        var pageCount = Math.max(1, Math.ceil(songsTotal / SONG_PAGE_SIZE))
+        var numbers = pageWindow(songsPage, pageCount)
+        var busy2 = songsPhase === 'loading'
         footer = h(
           'div',
           { className: 'mp-pager', key: 'pager' },
-          h('span', { className: 'mp-loaded-of' }, t('online.loadedOf', { n: allSongs.length, total: songsTotal })),
-          more
-            ? h(
-                Button,
-                {
-                  icon: 'plus',
-                  disabled: songsPhase === 'loading',
-                  onClick: function () {
-                    loadMoreSongs()
-                  },
+          h(
+            Button,
+            {
+              key: 'prev',
+              icon: 'chevronLeft',
+              disabled: busy2 || songsPage <= 1,
+              onClick: function () {
+                goToSongsPage(songsPage - 1)
+              },
+            },
+            '',
+          ),
+          numbers.map(function (number, index) {
+            if (number === null) {
+              return h('span', { key: 'gap' + index, className: 'mp-page-gap' }, '…')
+            }
+            return h(
+              'button',
+              {
+                key: 'p' + number,
+                type: 'button',
+                className: 'mp-page-num' + (number === songsPage ? ' is-on' : ''),
+                disabled: busy2,
+                onClick: function () {
+                  goToSongsPage(number)
                 },
-                t('online.loadMore'),
-              )
-            : h('span', { className: 'mp-loaded-end' }, t('online.loadedAll')),
+              },
+              String(number),
+            )
+          }),
+          h(
+            Button,
+            {
+              key: 'next',
+              icon: 'chevronRight',
+              disabled: busy2 || songsPage >= pageCount,
+              onClick: function () {
+                goToSongsPage(songsPage + 1)
+              },
+            },
+            '',
+          ),
+          h(
+            'span',
+            { className: 'mp-loaded-of' },
+            t('online.pageOf', { page: songsPage, pages: pageCount, total: songsTotal }),
+          ),
         )
       } else if (provider === 'navidrome') {
         // Explain why there is no pager instead of leaving a silent cap.
