@@ -16,6 +16,11 @@ function NavidromeDialog() {
   var busyPair = useState(false)
   var errorPair = useState('')
   var noticePair = useState('')
+  // Opt-in: keeping the password is the only way to page the whole library,
+  // because the native API mints a JWT from it.
+  var keepPair = useState(false)
+  var keepPassword = keepPair[0]
+  var setKeepPassword = keepPair[1]
 
   var server = serverPair[0]
   var setServer = serverPair[1]
@@ -56,6 +61,7 @@ function NavidromeDialog() {
       server: trimmedServer,
       username: trimmedUser,
       password: secret,
+      storePassword: keepPassword === true,
     })
       .then(function (result) {
         setBusy(false)
@@ -134,7 +140,21 @@ function NavidromeDialog() {
           setPassword(event.target.value)
         },
       }),
+      h(
+        'label',
+        { className: 'mp-navidrome-check' },
+        h('input', {
+          type: 'checkbox',
+          checked: keepPassword === true,
+          disabled: busy,
+          onChange: function (event) {
+            setKeepPassword(event.target.checked === true)
+          },
+        }),
+        h('span', null, t('online.navidromeKeep')),
+      ),
       h('p', { className: 'mp-navidrome-hint' }, t('online.navidromeHint')),
+      keepPassword === true ? h('p', { className: 'mp-navidrome-warn' }, t('online.navidromeKeepWarn')) : null,
       error !== '' ? h('p', { className: 'mp-online-error' }, error) : null,
       notice !== '' ? h('p', { className: 'mp-online-ok' }, notice) : null,
     ),

@@ -255,6 +255,10 @@ window.__ModuleLoader__.load({
         'online.allSongsEmpty': '曲库为空',
         'online.allSongsEmptyHint': '服务器上没有可播放的歌曲',
         'online.albumCount': '{n} 张专辑',
+        'online.navidromeKeep': '保存密码，启用完整曲库',
+        'online.navidromeKeepWarn': '密码将以明文保存在本机 providers.json（权限 0600）。原生接口是 Navidrome 的内部接口，可能随版本变化。',
+        'online.loadMore': '加载更多',
+        'online.loadedOf': '已加载 {n} / {total} 首',
         'online.searchPlaceholder': '搜索在线音乐…',
         'online.searching': '搜索中…',
         'online.hint': '选择平台并搜索。未登录可播放免费曲目；登录后可用高音质（设置 → 在线音乐）。',
@@ -622,6 +626,10 @@ window.__ModuleLoader__.load({
         'online.allSongsEmpty': 'Library is empty',
         'online.allSongsEmptyHint': 'The server has no playable songs',
         'online.albumCount': '{n} albums',
+        'online.navidromeKeep': 'Save the password to enable the full library',
+        'online.navidromeKeepWarn': 'The password is stored as plain text in the local providers.json (mode 0600). The native API is Navidrome-internal and may change between releases.',
+        'online.loadMore': 'Load more',
+        'online.loadedOf': 'Loaded {n} of {total}',
         'online.searchPlaceholder': 'Search online music…',
         'online.searching': 'Searching…',
         'online.hint': 'Pick a provider and search. Free tracks play without signing in; sign in (Settings → Online) for higher quality.',
@@ -5193,6 +5201,10 @@ window.__ModuleLoader__.load({
       '.mp-navidrome-form .mp-kit-input{flex:0 0 auto;width:100%;height:32px}',
       '.mp-navidrome-label{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:4px}',
       '.mp-navidrome-hint{margin:4px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#71717a)}',
+      '.mp-navidrome-check{display:flex;align-items:flex-start;gap:7px;margin-top:6px;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer}',
+      '.mp-navidrome-check input{margin:2px 0 0;flex:0 0 auto}',
+      '.mp-navidrome-warn{margin:2px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-state-warning-text,#fbbf24)}',
+      '.mp-loaded-of{font-size:12px;color:var(--dsw-alias-label-tertiary,#71717a)}',
       '.mp-online-card.is-logged{background:linear-gradient(135deg,color-mix(in srgb,var(--mp-brand) 7%,var(--dsw-alias-bg-layer-2,#1e1e22)),var(--dsw-alias-bg-layer-2,#1e1e22) 72%)}',
       '.mp-online-card-head{display:flex;align-items:center;gap:10px;min-width:0}',
       '.mp-online-logo{width:38px;height:38px;border-radius:12px;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.16)}',
@@ -9551,6 +9563,14 @@ window.__ModuleLoader__.load({
       var songsPhasePair = useState('idle')
       var songsPhase = songsPhasePair[0]
       var setSongsPhase = songsPhasePair[1]
+      // Native (opt-in) mode pages the whole library, so the view tracks how many
+      // rows the server has in total and whether another page exists.
+      var songsTotalPair = useState(0)
+      var songsTotal = songsTotalPair[0]
+      var setSongsTotal = songsTotalPair[1]
+      var songsNativePair = useState(false)
+      var songsNative = songsNativePair[0]
+      var setSongsNative = songsNativePair[1]
       // Artists / albums browse (Navidrome only). One phase drives all four views;
       // the lists and the two detail payloads are separate so each render branch
       // reads only what it needs.
@@ -9720,23 +9740,68 @@ window.__ModuleLoader__.load({
           }
           var cancelled = false
           setSongsPhase('loading')
-          getJson(API + 'online/songs?provider=' + encodeURIComponent(provider) + '&size=200')
+          // Native mode orders on the server, so the sort preference travels with
+          // the request; that keeps page boundaries stable as the list grows.
+          var sort = String(prefs.sortBy || 'title')
+          var order = prefs.sortDir === 'desc' ? 'desc' : 'asc'
+          getJson(
+            API +
+              'online/songs?provider=' +
+              encodeURIComponent(provider) +
+              '&size=200&offset=0&sort=' +
+              encodeURIComponent(sort) +
+              '&order=' +
+              encodeURIComponent(order),
+          )
             .then(function (body) {
               if (cancelled) return
               setSongsList(Array.isArray(body.songs) ? body.songs : [])
+              setSongsNative(body.native === true)
+              setSongsTotal(Number(body.total) || 0)
               setSongsPhase('ready')
             })
             .catch(function () {
               if (cancelled) return
               setSongsList([])
+              setSongsNative(false)
+              setSongsTotal(0)
               setSongsPhase('error')
             })
           return function () {
             cancelled = true
           }
         },
-        [nav, provider],
+        [nav, provider, prefs.sortBy, prefs.sortDir],
       )
+    
+      /** Append the next native page. No-op while a page is in flight. */
+      function loadMoreSongs() {
+        if (songsPhase === 'loading' || songsNative !== true) return
+        if (songsTotal > 0 && songsList.length >= songsTotal) return
+        setSongsPhase('loading')
+        var sort = String(prefs.sortBy || 'title')
+        var order = prefs.sortDir === 'desc' ? 'desc' : 'asc'
+        getJson(
+          API +
+            'online/songs?provider=' +
+            encodeURIComponent(provider) +
+            '&size=200&offset=' +
+            String(songsList.length) +
+            '&sort=' +
+            encodeURIComponent(sort) +
+            '&order=' +
+            encodeURIComponent(order),
+        )
+          .then(function (body) {
+            var page = Array.isArray(body.songs) ? body.songs : []
+            setSongsList(songsList.concat(page))
+            setSongsTotal(Number(body.total) || songsTotal)
+            setSongsPhase('ready')
+          })
+          .catch(function () {
+            setSongsPhase('error')
+          })
+      }
     
       useEffect(
         function () {
@@ -9963,15 +10028,43 @@ window.__ModuleLoader__.load({
         var allSongs = songsList || []
         count = allSongs.length
         resetKey = 'online-songs:' + provider
-        if (songsPhase === 'loading' || songsPhase === 'idle') {
+        // Only blank the pane for the first page; "load more" keeps the rows on
+        // screen while the next page is in flight.
+        var firstPage = songsPhase === 'idle' || (songsPhase === 'loading' && allSongs.length === 0)
+        if (firstPage) {
           body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-        } else if (songsPhase === 'error') {
+        } else if (songsPhase === 'error' && allSongs.length === 0) {
           body = h(Empty, { title: t('online.networkError'), icon: 'info' })
         } else if (allSongs.length === 0) {
           body = h(Empty, { title: t('online.allSongsEmpty'), hint: t('online.allSongsEmptyHint'), icon: 'note' })
         } else {
+          // Native pages arrive already ordered by the server, so re-sorting them
+          // client-side would break the page boundaries; the random sample has no
+          // such constraint and keeps honouring the sort preference.
+          var songOrder = songsNative === true ? allSongs.map(onlineTrackOf) : sortOnlineTracks(allSongs)
+          if (songsNative === true && songsTotal > allSongs.length) {
+            actions = [
+              h(
+                'span',
+                { key: 'loaded', className: 'mp-loaded-of' },
+                t('online.loadedOf', { n: allSongs.length, total: songsTotal }),
+              ),
+              h(
+                Button,
+                {
+                  key: 'more',
+                  icon: 'plus',
+                  disabled: songsPhase === 'loading',
+                  onClick: function () {
+                    loadMoreSongs()
+                  },
+                },
+                t('online.loadMore'),
+              ),
+            ]
+          }
           body = h(TrackListBody, {
-            items: (setPlayAll(allSongs), (onlineSelectionList = sortOnlineTracks(allSongs))),
+            items: (setPlayAll(allSongs), (onlineSelectionList = songOrder)),
             resetKey: resetKey,
             selectionMode: selecting,
             selectedSet: selectedSet,
@@ -12157,6 +12250,11 @@ window.__ModuleLoader__.load({
       var busyPair = useState(false)
       var errorPair = useState('')
       var noticePair = useState('')
+      // Opt-in: keeping the password is the only way to page the whole library,
+      // because the native API mints a JWT from it.
+      var keepPair = useState(false)
+      var keepPassword = keepPair[0]
+      var setKeepPassword = keepPair[1]
     
       var server = serverPair[0]
       var setServer = serverPair[1]
@@ -12197,6 +12295,7 @@ window.__ModuleLoader__.load({
           server: trimmedServer,
           username: trimmedUser,
           password: secret,
+          storePassword: keepPassword === true,
         })
           .then(function (result) {
             setBusy(false)
@@ -12275,7 +12374,21 @@ window.__ModuleLoader__.load({
               setPassword(event.target.value)
             },
           }),
+          h(
+            'label',
+            { className: 'mp-navidrome-check' },
+            h('input', {
+              type: 'checkbox',
+              checked: keepPassword === true,
+              disabled: busy,
+              onChange: function (event) {
+                setKeepPassword(event.target.checked === true)
+              },
+            }),
+            h('span', null, t('online.navidromeKeep')),
+          ),
           h('p', { className: 'mp-navidrome-hint' }, t('online.navidromeHint')),
+          keepPassword === true ? h('p', { className: 'mp-navidrome-warn' }, t('online.navidromeKeepWarn')) : null,
           error !== '' ? h('p', { className: 'mp-online-error' }, error) : null,
           notice !== '' ? h('p', { className: 'mp-online-ok' }, notice) : null,
         ),

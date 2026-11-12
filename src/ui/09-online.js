@@ -27,6 +27,14 @@ function OnlineContent(props) {
   var songsPhasePair = useState('idle')
   var songsPhase = songsPhasePair[0]
   var setSongsPhase = songsPhasePair[1]
+  // Native (opt-in) mode pages the whole library, so the view tracks how many
+  // rows the server has in total and whether another page exists.
+  var songsTotalPair = useState(0)
+  var songsTotal = songsTotalPair[0]
+  var setSongsTotal = songsTotalPair[1]
+  var songsNativePair = useState(false)
+  var songsNative = songsNativePair[0]
+  var setSongsNative = songsNativePair[1]
   // Artists / albums browse (Navidrome only). One phase drives all four views;
   // the lists and the two detail payloads are separate so each render branch
   // reads only what it needs.
@@ -202,23 +210,68 @@ function OnlineContent(props) {
       }
       var cancelled = false
       setSongsPhase('loading')
-      getJson(API + 'online/songs?provider=' + encodeURIComponent(provider) + '&size=200')
+      // Native mode orders on the server, so the sort preference travels with
+      // the request; that keeps page boundaries stable as the list grows.
+      var sort = String(prefs.sortBy || 'title')
+      var order = prefs.sortDir === 'desc' ? 'desc' : 'asc'
+      getJson(
+        API +
+          'online/songs?provider=' +
+          encodeURIComponent(provider) +
+          '&size=200&offset=0&sort=' +
+          encodeURIComponent(sort) +
+          '&order=' +
+          encodeURIComponent(order),
+      )
         .then(function (body) {
           if (cancelled) return
           setSongsList(Array.isArray(body.songs) ? body.songs : [])
+          setSongsNative(body.native === true)
+          setSongsTotal(Number(body.total) || 0)
           setSongsPhase('ready')
         })
         .catch(function () {
           if (cancelled) return
           setSongsList([])
+          setSongsNative(false)
+          setSongsTotal(0)
           setSongsPhase('error')
         })
       return function () {
         cancelled = true
       }
     },
-    [nav, provider],
+    [nav, provider, prefs.sortBy, prefs.sortDir],
   )
+
+  /** Append the next native page. No-op while a page is in flight. */
+  function loadMoreSongs() {
+    if (songsPhase === 'loading' || songsNative !== true) return
+    if (songsTotal > 0 && songsList.length >= songsTotal) return
+    setSongsPhase('loading')
+    var sort = String(prefs.sortBy || 'title')
+    var order = prefs.sortDir === 'desc' ? 'desc' : 'asc'
+    getJson(
+      API +
+        'online/songs?provider=' +
+        encodeURIComponent(provider) +
+        '&size=200&offset=' +
+        String(songsList.length) +
+        '&sort=' +
+        encodeURIComponent(sort) +
+        '&order=' +
+        encodeURIComponent(order),
+    )
+      .then(function (body) {
+        var page = Array.isArray(body.songs) ? body.songs : []
+        setSongsList(songsList.concat(page))
+        setSongsTotal(Number(body.total) || songsTotal)
+        setSongsPhase('ready')
+      })
+      .catch(function () {
+        setSongsPhase('error')
+      })
+  }
 
   useEffect(
     function () {
@@ -524,15 +577,43 @@ function OnlineContent(props) {
     var allSongs = songsList || []
     count = allSongs.length
     resetKey = 'online-songs:' + provider
-    if (songsPhase === 'loading' || songsPhase === 'idle') {
+    // Only blank the pane for the first page; "load more" keeps the rows on
+    // screen while the next page is in flight.
+    var firstPage = songsPhase === 'idle' || (songsPhase === 'loading' && allSongs.length === 0)
+    if (firstPage) {
       body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-    } else if (songsPhase === 'error') {
+    } else if (songsPhase === 'error' && allSongs.length === 0) {
       body = h(Empty, { title: t('online.networkError'), icon: 'info' })
     } else if (allSongs.length === 0) {
       body = h(Empty, { title: t('online.allSongsEmpty'), hint: t('online.allSongsEmptyHint'), icon: 'note' })
     } else {
+      // Native pages arrive already ordered by the server, so re-sorting them
+      // client-side would break the page boundaries; the random sample has no
+      // such constraint and keeps honouring the sort preference.
+      var songOrder = songsNative === true ? allSongs.map(onlineTrackOf) : sortOnlineTracks(allSongs)
+      if (songsNative === true && songsTotal > allSongs.length) {
+        actions = [
+          h(
+            'span',
+            { key: 'loaded', className: 'mp-loaded-of' },
+            t('online.loadedOf', { n: allSongs.length, total: songsTotal }),
+          ),
+          h(
+            Button,
+            {
+              key: 'more',
+              icon: 'plus',
+              disabled: songsPhase === 'loading',
+              onClick: function () {
+                loadMoreSongs()
+              },
+            },
+            t('online.loadMore'),
+          ),
+        ]
+      }
       body = h(TrackListBody, {
-        items: (setPlayAll(allSongs), (onlineSelectionList = sortOnlineTracks(allSongs))),
+        items: (setPlayAll(allSongs), (onlineSelectionList = songOrder)),
         resetKey: resetKey,
         selectionMode: selecting,
         selectedSet: selectedSet,

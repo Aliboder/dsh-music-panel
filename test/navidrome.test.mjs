@@ -483,6 +483,128 @@ test('artistAlbums returns the artist and their albums', async () => {
   )
 })
 
+// ── native API (opt-in complete library) ─────────────────────────────────
+
+/** A config with a password, on a host unique to one test so the JWT cache
+ *  cannot leak between cases. */
+function nativeCfg(host) {
+  return { server: `https://${host}.example.com`, username: 'alice', password: 'secret' }
+}
+
+test('nativeSongs logs in, pages with _start/_end and reads the total header', async () => {
+  const calls = []
+  const cfg = nativeCfg('native-page')
+  await withFetch(
+    async (url, init) => {
+      calls.push({ url: String(url), body: init?.body, headers: init?.headers })
+      if (String(url).includes('/auth/login')) {
+        return {
+          ok: true,
+          status: 200,
+          headers: { get: () => null },
+          json: async () => ({ token: 'jwt-1' }),
+        }
+      }
+      return {
+        ok: true,
+        status: 200,
+        headers: { get: (name) => (name === 'x-total-count' ? '3067' : null) },
+        json: async () => [
+          { id: 's1', title: 'A', artist: 'X', album: 'Al', duration: 213.63, hasCoverArt: true },
+          { id: 's2', title: 'B', duration: 10, hasCoverArt: false, albumId: 'al1' },
+          { title: 'no id' },
+        ],
+      }
+    },
+    async () => {
+      const page = await ND.nativeSongs(cfg, { offset: 200, limit: 100, sort: 'artist', order: 'desc' })
+      assert.equal(page.total, 3067)
+      assert.equal(page.offset, 200)
+      assert.equal(page.songs.length, 2, 'rows without an id are dropped')
+      assert.equal(page.songs[0].id, 's1')
+      assert.equal(page.songs[0].durationSec, 214, 'duration is rounded to seconds')
+      assert.equal(page.songs[0].coverArtId, 'mf-s1', 'song cover id matches the Subsonic form')
+      assert.equal(page.songs[1].coverArtId, 'al-al1', 'falls back to the album cover')
+    },
+  )
+  const login = calls.find((c) => c.url.includes('/auth/login'))
+  assert.ok(login, 'a JWT login is performed')
+  assert.equal(JSON.parse(login.body).password, 'secret')
+  const page = calls.find((c) => c.url.includes('/api/song'))
+  assert.match(page.url, /_start=200/)
+  assert.match(page.url, /_end=300/)
+  assert.match(page.url, /_sort=artist/)
+  assert.match(page.url, /_order=DESC/)
+  assert.equal(page.headers['x-nd-authorization'], 'Bearer jwt-1')
+})
+
+test('nativeSongs reuses the cached JWT for a second page', async () => {
+  const cfg = nativeCfg('native-cache')
+  let logins = 0
+  await withFetch(
+    async (url) => {
+      if (String(url).includes('/auth/login')) {
+        logins += 1
+        return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ token: 'jwt-2' }) }
+      }
+      return { ok: true, status: 200, headers: { get: () => '0' }, json: async () => [] }
+    },
+    async () => {
+      await ND.nativeSongs(cfg, { offset: 0 })
+      await ND.nativeSongs(cfg, { offset: 200 })
+    },
+  )
+  assert.equal(logins, 1, 'the JWT is cached between pages')
+})
+
+test('nativeSongs logs in again after a 401', async () => {
+  const cfg = nativeCfg('native-401')
+  let logins = 0
+  let songCalls = 0
+  await withFetch(
+    async (url) => {
+      if (String(url).includes('/auth/login')) {
+        logins += 1
+        return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ token: 't' + logins }) }
+      }
+      songCalls += 1
+      if (songCalls === 1) return { ok: false, status: 401, headers: { get: () => null }, json: async () => ({}) }
+      return { ok: true, status: 200, headers: { get: () => '1' }, json: async () => [{ id: 's1', title: 'A' }] }
+    },
+    async () => {
+      const page = await ND.nativeSongs(cfg, { offset: 0 })
+      assert.equal(page.songs.length, 1, 'the retry succeeds after re-login')
+    },
+  )
+  assert.equal(logins, 2, 'an expired JWT triggers one more login')
+})
+
+test('nativeSongs refuses without a stored password', async () => {
+  await assert.rejects(
+    () => ND.nativeSongs({ server: 'https://x.example.com', username: 'a', password: '' }, {}),
+    /密码/,
+  )
+})
+
+test('nativeSongs caps the page size', async () => {
+  const seen = []
+  const cfg = nativeCfg('native-cap')
+  await withFetch(
+    async (url) => {
+      seen.push(String(url))
+      if (String(url).includes('/auth/login')) {
+        return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ token: 'j' }) }
+      }
+      return { ok: true, status: 200, headers: { get: () => '0' }, json: async () => [] }
+    },
+    async () => {
+      await ND.nativeSongs(cfg, { offset: 0, limit: 9999 })
+    },
+  )
+  const page = seen.find((u) => u.includes('/api/song'))
+  assert.match(page, /_end=500/, 'a page never exceeds 500 rows')
+})
+
 // ── runner ───────────────────────────────────────────────────────────────
 
 let failed = 0
