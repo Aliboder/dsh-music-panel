@@ -27,6 +27,31 @@ function OnlineContent(props) {
   var songsPhasePair = useState('idle')
   var songsPhase = songsPhasePair[0]
   var setSongsPhase = songsPhasePair[1]
+  // Artists / albums browse (Navidrome only). One phase drives all four views;
+  // the lists and the two detail payloads are separate so each render branch
+  // reads only what it needs.
+  var browsePhasePair = useState('idle')
+  var browsePhase = browsePhasePair[0]
+  var setBrowsePhase = browsePhasePair[1]
+  var artistsPair = useState([])
+  var artistsList = artistsPair[0]
+  var setArtistsList = artistsPair[1]
+  var albumsPair = useState([])
+  var albumsList = albumsPair[0]
+  var setAlbumsList = albumsPair[1]
+  var albumPair = useState(null)
+  var albumDetail = albumPair[0]
+  var setAlbumDetail = albumPair[1]
+  var albumSongsPair = useState([])
+  var albumSongsList = albumSongsPair[0]
+  var setAlbumSongsList = albumSongsPair[1]
+  var artistPair = useState(null)
+  var artistDetail = artistPair[0]
+  var setArtistDetail = artistPair[1]
+  var artistAlbumsPair = useState([])
+  var artistAlbumsList = artistAlbumsPair[0]
+  var setArtistAlbumsList = artistAlbumsPair[1]
+  var browseId = online.browseId || ''
   var prefs = usePrefs()
   var selection = useStore(selectionStore)
   var selecting = selection.active === true
@@ -194,6 +219,67 @@ function OnlineContent(props) {
     },
     [nav, provider],
   )
+
+  useEffect(
+    function () {
+      if (nav !== 'artists' && nav !== 'albums' && nav !== 'album' && nav !== 'artist') {
+        setBrowsePhase('idle')
+        return undefined
+      }
+      var cancelled = false
+      setBrowsePhase('loading')
+
+      var url = ''
+      if (nav === 'artists') url = API + 'online/artists?provider=' + encodeURIComponent(provider)
+      else if (nav === 'albums') url = API + 'online/albums?provider=' + encodeURIComponent(provider) + '&size=200'
+      else if (nav === 'album') url = API + 'online/album?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(browseId)
+      else url = API + 'online/artist?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(browseId)
+
+      getJson(url)
+        .then(function (body) {
+          if (cancelled) return
+          if (nav === 'artists') setArtistsList(Array.isArray(body.artists) ? body.artists : [])
+          if (nav === 'albums') setAlbumsList(Array.isArray(body.albums) ? body.albums : [])
+          if (nav === 'album') {
+            setAlbumDetail(body.album || null)
+            setAlbumSongsList(Array.isArray(body.songs) ? body.songs : [])
+          }
+          if (nav === 'artist') {
+            setArtistDetail(body.artist || null)
+            setArtistAlbumsList(Array.isArray(body.albums) ? body.albums : [])
+          }
+          setBrowsePhase('ready')
+        })
+        .catch(function () {
+          if (cancelled) return
+          if (nav === 'artists') setArtistsList([])
+          if (nav === 'albums') setAlbumsList([])
+          if (nav === 'album') {
+            setAlbumDetail(null)
+            setAlbumSongsList([])
+          }
+          if (nav === 'artist') {
+            setArtistDetail(null)
+            setArtistAlbumsList([])
+          }
+          setBrowsePhase('error')
+        })
+      return function () {
+        cancelled = true
+      }
+    },
+    [nav, provider, browseId],
+  )
+
+  function openOnlineAlbum(album) {
+    onlineStore.set({ browseId: String((album && album.id) || '') })
+    uiStore.set({ nav: 'album', filter: null, query: '' })
+  }
+
+  function openOnlineArtist(artist) {
+    onlineStore.set({ browseId: String((artist && artist.id) || '') })
+    uiStore.set({ nav: 'artist', filter: null, query: '' })
+  }
 
   var title = t('v2.recent')
   var count = 0
@@ -434,7 +520,7 @@ function OnlineContent(props) {
   } else if (nav === 'songs') {
     // Library-wide browse. Subsonic has no stable "all songs" index, so the
     // host returns getRandomSongs: a sample of the library, not a fixed list.
-    title = t('online.allSongs')
+    title = t('v2.songs')
     var allSongs = songsList || []
     count = allSongs.length
     resetKey = 'online-songs:' + provider
@@ -443,7 +529,7 @@ function OnlineContent(props) {
     } else if (songsPhase === 'error') {
       body = h(Empty, { title: t('online.networkError'), icon: 'info' })
     } else if (allSongs.length === 0) {
-      body = h(Empty, { title: t('online.allSongsEmpty'), hint: t('online.allSongsEmptyHint'), icon: 'music' })
+      body = h(Empty, { title: t('online.allSongsEmpty'), hint: t('online.allSongsEmptyHint'), icon: 'note' })
     } else {
       body = h(TrackListBody, {
         items: (setPlayAll(allSongs), (onlineSelectionList = sortOnlineTracks(allSongs))),
@@ -466,6 +552,167 @@ function OnlineContent(props) {
             return 'online:' + item.provider + ':' + item.id === track.path
           })
           playOnlineResults(allSongs, index < 0 ? 0 : index)
+        },
+        onMenu: function (track, event) {
+          props.onMenu(track, event, { playSelected: playSelectedOnline })
+        },
+        onToggleFavorite: toggleOnlineFavorite,
+        empty: empty,
+      })
+    }
+  } else if (nav === 'artists') {
+    title = t('v2.artists')
+    count = artistsList.length
+    resetKey = 'online-artists:' + provider
+    if (browsePhase === 'loading' || browsePhase === 'idle') {
+      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+    } else if (browsePhase === 'error') {
+      body = h(Empty, { title: t('online.networkError'), icon: 'info' })
+    } else if (artistsList.length === 0) {
+      body = h(Empty, { title: t('page.noResults'), icon: 'user' })
+    } else {
+      body = h(
+        ScrollBox,
+        { resetKey: resetKey },
+        artistsList.map(function (artist) {
+          var cover = subsonicCoverUrl(artist.coverArtId)
+          return h(
+            'button',
+            {
+              key: artist.id,
+              type: 'button',
+              className: 'mp-srow',
+              onClick: function () {
+                openOnlineArtist(artist)
+              },
+            },
+            h(
+              'div',
+              { className: 'mp-srow-cover is-round' },
+              cover === '' ? icon('user', 18) : h(Cover, { src: cover, iconSize: 18 }),
+            ),
+            h(
+              'div',
+              { className: 'mp-srow-main' },
+              h('div', { className: 'mp-srow-title' }, artist.name || t('page.unknownArtist')),
+              h('div', { className: 'mp-srow-sub' }, t('online.albumCount', { n: artist.albumCount })),
+            ),
+            h('div', { className: 'mp-srow-meta' }, String(artist.albumCount)),
+            icon('chevronRight', 14),
+          )
+        }),
+      )
+    }
+  } else if (nav === 'albums') {
+    title = t('v2.albums')
+    count = albumsList.length
+    resetKey = 'online-albums:' + provider
+    if (browsePhase === 'loading' || browsePhase === 'idle') {
+      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+    } else if (browsePhase === 'error') {
+      body = h(Empty, { title: t('online.networkError'), icon: 'info' })
+    } else if (albumsList.length === 0) {
+      body = h(Empty, { title: t('page.noResults'), icon: 'disc' })
+    } else {
+      body = h(
+        ScrollBox,
+        { resetKey: resetKey },
+        albumsList.map(function (album) {
+          var cover = subsonicCoverUrl(album.coverArtId)
+          return h(
+            'button',
+            {
+              key: album.id,
+              type: 'button',
+              className: 'mp-srow',
+              onClick: function () {
+                openOnlineAlbum(album)
+              },
+            },
+            h('div', { className: 'mp-srow-cover' }, cover === '' ? icon('disc', 18) : h(Cover, { src: cover, iconSize: 18 })),
+            h(
+              'div',
+              { className: 'mp-srow-main' },
+              h('div', { className: 'mp-srow-title' }, album.name || t('page.unknownAlbum')),
+              h('div', { className: 'mp-srow-sub' }, (album.artist || '') + ' · ' + t('page.trackCountUnit', { n: album.songCount })),
+            ),
+            h('div', { className: 'mp-srow-meta' }, String(album.songCount)),
+            icon('chevronRight', 14),
+          )
+        }),
+      )
+    }
+  } else if (nav === 'artist') {
+    title = (artistDetail && artistDetail.name) || t('v2.artists')
+    count = artistAlbumsList.length
+    resetKey = 'online-artist:' + provider + ':' + browseId
+    if (browsePhase === 'loading' || browsePhase === 'idle') {
+      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+    } else if (browsePhase === 'error') {
+      body = h(Empty, { title: t('online.networkError'), icon: 'info' })
+    } else if (artistAlbumsList.length === 0) {
+      body = h(Empty, { title: t('page.noResults'), icon: 'disc' })
+    } else {
+      body = h(
+        ScrollBox,
+        { resetKey: resetKey },
+        artistAlbumsList.map(function (album) {
+          var cover = subsonicCoverUrl(album.coverArtId)
+          return h(
+            'button',
+            {
+              key: album.id,
+              type: 'button',
+              className: 'mp-srow',
+              onClick: function () {
+                openOnlineAlbum(album)
+              },
+            },
+            h('div', { className: 'mp-srow-cover' }, cover === '' ? icon('disc', 18) : h(Cover, { src: cover, iconSize: 18 })),
+            h(
+              'div',
+              { className: 'mp-srow-main' },
+              h('div', { className: 'mp-srow-title' }, album.name || t('page.unknownAlbum')),
+              h('div', { className: 'mp-srow-sub' }, t('page.trackCountUnit', { n: album.songCount })),
+            ),
+            h('div', { className: 'mp-srow-meta' }, album.year > 0 ? String(album.year) : ''),
+            icon('chevronRight', 14),
+          )
+        }),
+      )
+    }
+  } else if (nav === 'album') {
+    title = (albumDetail && albumDetail.name) || t('v2.albums')
+    count = albumSongsList.length
+    resetKey = 'online-album:' + provider + ':' + browseId
+    if (browsePhase === 'loading' || browsePhase === 'idle') {
+      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+    } else if (browsePhase === 'error') {
+      body = h(Empty, { title: t('online.networkError'), icon: 'info' })
+    } else if (albumSongsList.length === 0) {
+      body = h(Empty, { title: t('page.noResults'), icon: 'note' })
+    } else {
+      body = h(TrackListBody, {
+        items: (setPlayAll(albumSongsList), (onlineSelectionList = sortOnlineTracks(albumSongsList))),
+        resetKey: resetKey,
+        selectionMode: selecting,
+        selectedSet: selectedSet,
+        onToggleSelect: toggleSelected,
+        onSelect: function (track, additive) {
+          selectTrackIn(onlineSelectionList, track, additive)
+        },
+        focusPath: props.locatePath || '',
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: likedSet,
+        cachedOf: function (track) {
+          return online.cache[track.onlineId] === true
+        },
+        onPlay: function (track) {
+          var index = albumSongsList.findIndex(function (item) {
+            return 'online:' + item.provider + ':' + item.id === track.path
+          })
+          playOnlineResults(albumSongsList, index < 0 ? 0 : index)
         },
         onMenu: function (track, event) {
           props.onMenu(track, event, { playSelected: playSelectedOnline })

@@ -19,6 +19,18 @@ function onlineStreamUrl(provider, id) {
   return API + 'online/stream?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(id)
 }
 
+/**
+ * Cover art for a self-hosted Navidrome/Subsonic server.
+ *
+ * The generic /online/cover route only allows the public provider CDNs, and a
+ * Subsonic cover needs the stored salted token, so the Host proxies it from
+ * the coverArt id alone.
+ */
+function subsonicCoverUrl(coverArtId) {
+  if (typeof coverArtId !== 'string' || coverArtId === '') return ''
+  return API + 'online/subsonic-cover?provider=navidrome&id=' + encodeURIComponent(coverArtId)
+}
+
 async function getJson(url) {
   var response = await fetch(url, {
     credentials: 'same-origin',

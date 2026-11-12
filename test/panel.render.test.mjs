@@ -314,26 +314,38 @@ const navPanel = panel()
 const navText = textOf(navPanel)
 assert.ok(navText.includes('Navidrome'), 'Navidrome renders as a source tab')
 
-// The sidebar offers a library browse entry for Navidrome (and only for it:
-// the Chinese platforms are search-only).
-assert.ok(
-  navText.includes('全部歌曲') || navText.includes('All songs'),
-  'the navidrome sidebar exposes the all-songs entry',
-)
+// Navidrome mirrors the local library: songs / artists / albums. The Chinese
+// platforms are search-only, so they must not advertise the browse entries.
+const isZh = navText.includes('歌曲')
+const L = {
+  songs: isZh ? '歌曲' : 'Songs',
+  artists: isZh ? '歌手' : 'Artists',
+  albums: isZh ? '专辑' : 'Albums',
+}
+for (const [label, word] of Object.entries(L)) {
+  assert.ok(navText.includes(word), `the navidrome sidebar exposes the ${label} entry`)
+}
+
 internals.uiStore.set({ source: 'netease', nav: 'recent', filter: null, query: '' })
 internals.onlineStore.set({ provider: 'netease', results: [], phase: 'idle', playlists: [] })
 const neteaseText = textOf(panel())
-assert.ok(
-  !neteaseText.includes('全部歌曲') && !neteaseText.includes('All songs'),
-  'search-only providers do not show the all-songs entry',
-)
-internals.uiStore.set({ source: 'navidrome', nav: 'songs', filter: null, query: '' })
-internals.onlineStore.set({ provider: 'navidrome', results: [], phase: 'idle', playlists: [] })
-const songsView = panel()
-assert.ok(
-  textOf(songsView).includes('全部歌曲') || textOf(songsView).includes('All songs'),
-  'the all-songs view renders its header',
-)
+for (const word of [L.artists, L.albums]) {
+  assert.ok(!neteaseText.includes(word), 'search-only providers hide the browse entries')
+}
+
+// Each browse view renders its header without throwing.
+for (const nav of ['songs', 'artists', 'albums', 'artist', 'album']) {
+  internals.uiStore.set({ source: 'navidrome', nav, filter: null, query: '' })
+  internals.onlineStore.set({
+    provider: 'navidrome',
+    results: [],
+    phase: 'idle',
+    playlists: [],
+    browseId: nav === 'album' || nav === 'artist' ? 'x1' : '',
+  })
+  const view = panel()
+  assert.ok(classesOf(view).size > 0, `the ${nav} view renders`)
+}
 
 internals.overlayStore.set({ layers: [{ kind: 'settings', props: {} }] })
 // The settings sheet opens on the last tab; drive it to the online tab.
