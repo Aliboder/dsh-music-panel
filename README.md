@@ -126,6 +126,24 @@ pnpm add dsh-music-panel
 
 然后重启 DSH。npm 包：<https://www.npmjs.com/package/dsh-music-panel>
 
+#### 安装/升级后侧栏没有音乐图标？
+
+先确认版本是 **0.27.3 或更高**。0.27.2 及更早版本缺少 `package.json` 的 `./package.json` 导出，DSH 会静默把插件判定为非客户端包：服务端工具可用，但浏览器端不会加载。
+
+升级到 0.27.3+ 后：
+
+1. **完整退出并重启 DSH**，不是只刷新页面。
+2. 如果仍然没有图标，在插件市场把音乐插件关闭再开启一次。
+3. 仍无效时，检查 profile 的 `cordis.patch.yml` 是否残留了禁用覆盖：
+
+   ```yaml
+   - id: music
+     disabled: true
+   ```
+
+   删除这一段后重启。不要删除上面的 `- insert:` 音乐插件配置。
+4. 插件管理器显示“已启用”但市场显示“已停用”，通常就是这条覆盖造成的；两层状态不一致时以 profile 最终应用的配置为准。
+
 ### 快速开始
 
 **本地音乐**
@@ -247,6 +265,24 @@ pnpm add dsh-music-panel
 ```
 
 Then restart DSH. Package: <https://www.npmjs.com/package/dsh-music-panel>
+
+#### No music icon after install/upgrade?
+
+First check the version: **0.27.3 or newer**. Versions up to 0.27.2 lacked the `./package.json` export, so DSH silently treated the package as a non-client package: the Host tool worked, but the browser bundle never loaded.
+
+For 0.27.3+:
+
+1. **Quit and restart DSH completely** — a page refresh is not enough.
+2. If the icon is still missing, disable and re-enable the music plugin from the plugin marketplace.
+3. If that does not help, check the profile's `cordis.patch.yml` for a stale disable override:
+
+   ```yaml
+   - id: music
+     disabled: true
+   ```
+
+   Remove that block and restart. Do not remove the `- insert:` music entry above it.
+4. “Enabled” in the plugin manager and “Disabled” in the marketplace usually means this override is present; the final profile composition wins.
 
 ### Quick start
 
