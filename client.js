@@ -8,7 +8,7 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
-    var APP_VERSION = "0.28.0"
+    var APP_VERSION = "0.28.1"
 
     // ── src/00-runtime.js
     /**
@@ -3291,6 +3291,14 @@ window.__ModuleLoader__.load({
         loudnessToken += 1
         applyNormalizeGain(1)
         if (audio === null) return
+        if (autoplay === true) {
+          var visualizerContext = api.ensureAnalyser()
+          if (visualizerContext !== null && audioContext !== null && audioContext.state === 'suspended') {
+            audioContext.resume().catch(function () {
+              // The visualizer simply stays flat if the context cannot start.
+            })
+          }
+        }
     
         cancelPendingFetch()
         // Online providers stream through the Host. The Desktop media stack
@@ -3674,14 +3682,11 @@ window.__ModuleLoader__.load({
             return
           }
           if (audio === null) return
-          var item = currentItem()
-          if (readPrefs().normalizeVolume !== false && item && !item.onlineProvider) {
-            var context = api.ensureAnalyser()
-            if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
-              audioContext.resume().catch(function () {
-                // If the context cannot start, leave the media element untouched.
-              })
-            }
+          var context = api.ensureAnalyser()
+          if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
+            audioContext.resume().catch(function () {
+              // If the context cannot start, leave the media element untouched.
+            })
           }
           audio.play().catch(function () {})
         },
@@ -5273,8 +5278,14 @@ window.__ModuleLoader__.load({
       '.mp-cbtn{height:28px;min-width:28px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;max-width:150px;overflow:hidden}',
       '.mp-cbtn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-cbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-side-icon{position:relative;display:grid;place-items:center;width:16px;height:16px}',
-      '.mp-side-dot{position:absolute;right:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-business-primary,#4176E6);box-shadow:0 0 0 2px var(--dsw-alias-bg-base,#141417)}',
+      '.mp-side-icon{position:static;display:grid;place-items:center;width:16px;height:16px}',
+      '.mp-side-extras{position:absolute;right:42px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:1px;padding:0;background:transparent;border:0;box-shadow:none;z-index:1}',
+      '.mp-side-wave{display:inline-flex;align-items:flex-end;justify-content:center;gap:2px;width:42px;height:18px;margin:0 3px;flex:none}',
+      '.mp-side-wave i{width:3px;min-height:3px;border-radius:1px;background:var(--dsw-alias-state-business-primary,#4176E6);opacity:.9;transition:height .08s linear}',
+      '.mp-side-btn{width:20px;height:20px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;padding:0;flex:none}',
+      '.mp-side-btn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-side-btn:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#4176E6);outline-offset:1px}',
+      '.mp-side-btn svg{display:block}',
       '.mp-audio-host{position:fixed;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);opacity:0;pointer-events:none}',
     
       // ── responsive ──────────────────────────────────────────────────────────
@@ -11588,13 +11599,141 @@ window.__ModuleLoader__.load({
      * plugin: seat registration and lifecycle.
      */
     
+    var SIDE_BANDS = [0, 2, 4, 8, 14, 24, 40, 64, 96]
+    
     function MusicSideIcon() {
       var snap = usePlayerSnapshot()
+      var ref = useRef(null)
+      var widePair = useState(false)
+      var wide = widePair[0]
+      var setWide = widePair[1]
+      var levelPair = useState([0, 0, 0, 0, 0, 0, 0, 0])
+      var levels = levelPair[0]
+      var setLevels = levelPair[1]
+      var hasWave =
+        snap.playing === true &&
+        levels.some(function (level) {
+          return level > 0.015
+        })
+    
+      useEffect(
+        function () {
+          var node = ref.current
+          if (node === null) return undefined
+          var row = node.closest('button')
+          function measure() {
+            setWide(row !== null && row.getBoundingClientRect().width >= 230)
+          }
+          measure()
+          var observer = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
+          if (observer !== null && row !== null) observer.observe(row)
+          window.addEventListener('resize', measure)
+          return function () {
+            window.removeEventListener('resize', measure)
+            if (observer !== null) observer.disconnect()
+          }
+        },
+        [],
+      )
+    
+      useEffect(
+        function () {
+          if (snap.playing !== true || snap.queue.length === 0) {
+            setLevels([0, 0, 0, 0, 0, 0, 0, 0])
+            return undefined
+          }
+          var frame = 0
+          var last = 0
+          function tick(now) {
+            if (now - last >= 80) {
+              last = now
+              var data = player.getWave()
+              if (data !== null) {
+                var next = []
+                for (var band = 0; band < SIDE_BANDS.length - 1; band += 1) {
+                  var start = SIDE_BANDS[band]
+                  var end = Math.min(SIDE_BANDS[band + 1], data.length)
+                  var sum = 0
+                  for (var i = start; i < end; i += 1) sum += data[i]
+                  var avg = end > start ? sum / (end - start) : 0
+                  var normalized = Math.max(0, (avg - 2) / 255)
+                  next.push(Math.min(0.96, Math.pow(normalized, 1.55)))
+                }
+                setLevels(next)
+              }
+            }
+            frame = requestAnimationFrame(tick)
+          }
+          frame = requestAnimationFrame(tick)
+          return function () {
+            cancelAnimationFrame(frame)
+          }
+        },
+        [snap.playing, snap.queue.length],
+      )
+    
+      function control(key, name, title, run) {
+        return h(
+          'span',
+          {
+            key: key,
+            className: 'mp-side-btn',
+            role: 'button',
+            tabIndex: 0,
+            title: title,
+            'aria-label': title,
+            onClick: function (event) {
+              event.preventDefault()
+              event.stopPropagation()
+              run()
+            },
+            onKeyDown: function (event) {
+              if (event.key !== 'Enter' && event.key !== ' ') return
+              event.preventDefault()
+              event.stopPropagation()
+              run()
+            },
+          },
+          icon(name, 13),
+        )
+      }
+    
       return h(
         'span',
-        { className: 'mp-side-icon' },
+        { className: 'mp-side-icon', ref: ref },
         icon('note', 16),
-        snap.queue.length > 0 ? h('span', { className: 'mp-side-dot' }) : null,
+        wide && snap.queue.length > 0
+          ? h(
+              'span',
+              { className: 'mp-side-extras' },
+              hasWave
+                ? h(
+                    'span',
+                    { className: 'mp-side-wave', 'aria-hidden': 'true' },
+                    levels.map(function (level, index) {
+                      return h('i', {
+                        key: index,
+                        style: { height: Math.round(3 + level * 15) + 'px' },
+                      })
+                    }),
+                  )
+                : null,
+              control('prev', 'prev', t('page.prev'), function () {
+                player.prev()
+              }),
+              control(
+                'toggle',
+                snap.playing ? 'pause' : 'play',
+                snap.playing ? t('page.pause') : t('page.play'),
+                function () {
+                  player.toggle()
+                },
+              ),
+              control('next', 'next', t('page.next'), function () {
+                player.next()
+              }),
+            )
+          : null,
       )
     }
     

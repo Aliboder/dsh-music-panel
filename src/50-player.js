@@ -642,6 +642,14 @@ function createPlayer() {
     loudnessToken += 1
     applyNormalizeGain(1)
     if (audio === null) return
+    if (autoplay === true) {
+      var visualizerContext = api.ensureAnalyser()
+      if (visualizerContext !== null && audioContext !== null && audioContext.state === 'suspended') {
+        audioContext.resume().catch(function () {
+          // The visualizer simply stays flat if the context cannot start.
+        })
+      }
+    }
 
     cancelPendingFetch()
     // Online providers stream through the Host. The Desktop media stack
@@ -1025,14 +1033,11 @@ function createPlayer() {
         return
       }
       if (audio === null) return
-      var item = currentItem()
-      if (readPrefs().normalizeVolume !== false && item && !item.onlineProvider) {
-        var context = api.ensureAnalyser()
-        if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
-          audioContext.resume().catch(function () {
-            // If the context cannot start, leave the media element untouched.
-          })
-        }
+      var context = api.ensureAnalyser()
+      if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
+        audioContext.resume().catch(function () {
+          // If the context cannot start, leave the media element untouched.
+        })
       }
       audio.play().catch(function () {})
     },

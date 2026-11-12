@@ -518,8 +518,14 @@ var THEME_CSS = [
   '.mp-cbtn{height:28px;min-width:28px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;max-width:150px;overflow:hidden}',
   '.mp-cbtn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
   '.mp-cbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-  '.mp-side-icon{position:relative;display:grid;place-items:center;width:16px;height:16px}',
-  '.mp-side-dot{position:absolute;right:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-business-primary,#4176E6);box-shadow:0 0 0 2px var(--dsw-alias-bg-base,#141417)}',
+  '.mp-side-icon{position:static;display:grid;place-items:center;width:16px;height:16px}',
+  '.mp-side-extras{position:absolute;right:42px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:1px;padding:0;background:transparent;border:0;box-shadow:none;z-index:1}',
+  '.mp-side-wave{display:inline-flex;align-items:flex-end;justify-content:center;gap:2px;width:42px;height:18px;margin:0 3px;flex:none}',
+  '.mp-side-wave i{width:3px;min-height:3px;border-radius:1px;background:var(--dsw-alias-state-business-primary,#4176E6);opacity:.9;transition:height .08s linear}',
+  '.mp-side-btn{width:20px;height:20px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;padding:0;flex:none}',
+  '.mp-side-btn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+  '.mp-side-btn:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#4176E6);outline-offset:1px}',
+  '.mp-side-btn svg{display:block}',
   '.mp-audio-host{position:fixed;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);opacity:0;pointer-events:none}',
 
   // ── responsive ──────────────────────────────────────────────────────────
