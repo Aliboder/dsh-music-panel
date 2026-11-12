@@ -259,6 +259,9 @@ window.__ModuleLoader__.load({
         'online.navidromeKeepWarn': '密码将以明文保存在本机 providers.json（权限 0600）。原生接口是 Navidrome 的内部接口，可能随版本变化。',
         'online.loadMore': '加载更多',
         'online.loadedOf': '已加载 {n} / {total} 首',
+        'online.loadedAll': '已加载全部',
+        'online.randomSample': '当前为随机采样（{n} 首），不是完整曲库',
+        'online.enableFullLibrary': '启用完整曲库',
         'online.searchPlaceholder': '搜索在线音乐…',
         'online.searching': '搜索中…',
         'online.hint': '选择平台并搜索。未登录可播放免费曲目；登录后可用高音质（设置 → 在线音乐）。',
@@ -630,6 +633,9 @@ window.__ModuleLoader__.load({
         'online.navidromeKeepWarn': 'The password is stored as plain text in the local providers.json (mode 0600). The native API is Navidrome-internal and may change between releases.',
         'online.loadMore': 'Load more',
         'online.loadedOf': 'Loaded {n} of {total}',
+        'online.loadedAll': 'All loaded',
+        'online.randomSample': 'Showing a random sample of {n} tracks, not the whole library',
+        'online.enableFullLibrary': 'Enable full library',
         'online.searchPlaceholder': 'Search online music…',
         'online.searching': 'Searching…',
         'online.hint': 'Pick a provider and search. Free tracks play without signing in; sign in (Settings → Online) for higher quality.',
@@ -5205,6 +5211,10 @@ window.__ModuleLoader__.load({
       '.mp-navidrome-check input{margin:2px 0 0;flex:0 0 auto}',
       '.mp-navidrome-warn{margin:2px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-state-warning-text,#fbbf24)}',
       '.mp-loaded-of{font-size:12px;color:var(--dsw-alias-label-tertiary,#71717a)}',
+      '.mp-songs-pane{flex:1;min-height:0;display:flex;flex-direction:column}',
+      '.mp-pager{display:flex;align-items:center;justify-content:center;gap:10px;flex:0 0 auto;padding:8px 12px 14px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
+      '.mp-pager.is-hint{justify-content:space-between;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03))}',
+      '.mp-loaded-end{font-size:12px;color:var(--dsw-alias-state-success-text,#4ade80)}',
       '.mp-online-card.is-logged{background:linear-gradient(135deg,color-mix(in srgb,var(--mp-brand) 7%,var(--dsw-alias-bg-layer-2,#1e1e22)),var(--dsw-alias-bg-layer-2,#1e1e22) 72%)}',
       '.mp-online-card-head{display:flex;align-items:center;gap:10px;min-width:0}',
       '.mp-online-logo{width:38px;height:38px;border-radius:12px;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.16)}',
@@ -10042,27 +10052,6 @@ window.__ModuleLoader__.load({
           // client-side would break the page boundaries; the random sample has no
           // such constraint and keeps honouring the sort preference.
           var songOrder = songsNative === true ? allSongs.map(onlineTrackOf) : sortOnlineTracks(allSongs)
-          if (songsNative === true && songsTotal > allSongs.length) {
-            actions = [
-              h(
-                'span',
-                { key: 'loaded', className: 'mp-loaded-of' },
-                t('online.loadedOf', { n: allSongs.length, total: songsTotal }),
-              ),
-              h(
-                Button,
-                {
-                  key: 'more',
-                  icon: 'plus',
-                  disabled: songsPhase === 'loading',
-                  onClick: function () {
-                    loadMoreSongs()
-                  },
-                },
-                t('online.loadMore'),
-              ),
-            ]
-          }
           body = h(TrackListBody, {
             items: (setPlayAll(allSongs), (onlineSelectionList = songOrder)),
             resetKey: resetKey,
@@ -10091,6 +10080,50 @@ window.__ModuleLoader__.load({
             onToggleFavorite: toggleOnlineFavorite,
             empty: empty,
           })
+          // A real footer: the list keeps flex:1 and the pager sits below it, so
+          // it stays visible without scrolling to the end of 3000 rows.
+          var footer = null
+          if (songsNative === true) {
+            var more = songsTotal === 0 || allSongs.length < songsTotal
+            footer = h(
+              'div',
+              { className: 'mp-pager', key: 'pager' },
+              h('span', { className: 'mp-loaded-of' }, t('online.loadedOf', { n: allSongs.length, total: songsTotal })),
+              more
+                ? h(
+                    Button,
+                    {
+                      icon: 'plus',
+                      disabled: songsPhase === 'loading',
+                      onClick: function () {
+                        loadMoreSongs()
+                      },
+                    },
+                    t('online.loadMore'),
+                  )
+                : h('span', { className: 'mp-loaded-end' }, t('online.loadedAll')),
+            )
+          } else if (provider === 'navidrome') {
+            // Explain why there is no pager instead of leaving a silent cap.
+            footer = h(
+              'div',
+              { className: 'mp-pager is-hint', key: 'pager' },
+              h('span', { className: 'mp-loaded-of' }, t('online.randomSample', { n: allSongs.length })),
+              h(
+                Button,
+                {
+                  icon: 'settings',
+                  onClick: function () {
+                    pushLayer('navidrome')
+                  },
+                },
+                t('online.enableFullLibrary'),
+              ),
+            )
+          }
+          if (footer !== null) {
+            body = h('div', { className: 'mp-songs-pane', key: 'songs-pane' }, body, footer)
+          }
         }
       } else if (nav === 'artists') {
         title = t('v2.artists')
@@ -10699,13 +10732,26 @@ window.__ModuleLoader__.load({
       var ui = props.ui
       var online = props.online
       var inputRef = useRef(null)
+      // Online search is a server round-trip, so typing is debounced instead of
+      // firing per keystroke; local search filters in memory and stays immediate.
+      var searchTimer = useRef(null)
       var textPair = useState(ui.source === 'local' ? ui.query : '')
       var text = textPair[0]
       var setText = textPair[1]
     
       useEffect(
         function () {
+          if (searchTimer.current !== null) {
+            clearTimeout(searchTimer.current)
+            searchTimer.current = null
+          }
           setText(ui.source === 'local' ? ui.query : '')
+          return function () {
+            if (searchTimer.current !== null) {
+              clearTimeout(searchTimer.current)
+              searchTimer.current = null
+            }
+          }
         },
         [ui.source],
       )
@@ -10782,9 +10828,20 @@ window.__ModuleLoader__.load({
               setText(value)
               if (!isOnlineSource(ui.source)) {
                 setUi({ query: value })
-              } else if (value === '') {
-                onlineStore.set({ query: '', results: [], phase: 'idle', error: '' })
+                return
               }
+              if (searchTimer.current !== null) {
+                clearTimeout(searchTimer.current)
+                searchTimer.current = null
+              }
+              if (value === '') {
+                onlineStore.set({ query: '', results: [], phase: 'idle', error: '' })
+                return
+              }
+              searchTimer.current = setTimeout(function () {
+                searchTimer.current = null
+                void searchOnline(value)
+              }, 350)
             },
             onKeyDown: function (event) {
               if (event.key === 'Enter') submit()

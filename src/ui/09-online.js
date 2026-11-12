@@ -591,27 +591,6 @@ function OnlineContent(props) {
       // client-side would break the page boundaries; the random sample has no
       // such constraint and keeps honouring the sort preference.
       var songOrder = songsNative === true ? allSongs.map(onlineTrackOf) : sortOnlineTracks(allSongs)
-      if (songsNative === true && songsTotal > allSongs.length) {
-        actions = [
-          h(
-            'span',
-            { key: 'loaded', className: 'mp-loaded-of' },
-            t('online.loadedOf', { n: allSongs.length, total: songsTotal }),
-          ),
-          h(
-            Button,
-            {
-              key: 'more',
-              icon: 'plus',
-              disabled: songsPhase === 'loading',
-              onClick: function () {
-                loadMoreSongs()
-              },
-            },
-            t('online.loadMore'),
-          ),
-        ]
-      }
       body = h(TrackListBody, {
         items: (setPlayAll(allSongs), (onlineSelectionList = songOrder)),
         resetKey: resetKey,
@@ -640,6 +619,50 @@ function OnlineContent(props) {
         onToggleFavorite: toggleOnlineFavorite,
         empty: empty,
       })
+      // A real footer: the list keeps flex:1 and the pager sits below it, so
+      // it stays visible without scrolling to the end of 3000 rows.
+      var footer = null
+      if (songsNative === true) {
+        var more = songsTotal === 0 || allSongs.length < songsTotal
+        footer = h(
+          'div',
+          { className: 'mp-pager', key: 'pager' },
+          h('span', { className: 'mp-loaded-of' }, t('online.loadedOf', { n: allSongs.length, total: songsTotal })),
+          more
+            ? h(
+                Button,
+                {
+                  icon: 'plus',
+                  disabled: songsPhase === 'loading',
+                  onClick: function () {
+                    loadMoreSongs()
+                  },
+                },
+                t('online.loadMore'),
+              )
+            : h('span', { className: 'mp-loaded-end' }, t('online.loadedAll')),
+        )
+      } else if (provider === 'navidrome') {
+        // Explain why there is no pager instead of leaving a silent cap.
+        footer = h(
+          'div',
+          { className: 'mp-pager is-hint', key: 'pager' },
+          h('span', { className: 'mp-loaded-of' }, t('online.randomSample', { n: allSongs.length })),
+          h(
+            Button,
+            {
+              icon: 'settings',
+              onClick: function () {
+                pushLayer('navidrome')
+              },
+            },
+            t('online.enableFullLibrary'),
+          ),
+        )
+      }
+      if (footer !== null) {
+        body = h('div', { className: 'mp-songs-pane', key: 'songs-pane' }, body, footer)
+      }
     }
   } else if (nav === 'artists') {
     title = t('v2.artists')

@@ -44,13 +44,26 @@ function TopBar(props) {
   var ui = props.ui
   var online = props.online
   var inputRef = useRef(null)
+  // Online search is a server round-trip, so typing is debounced instead of
+  // firing per keystroke; local search filters in memory and stays immediate.
+  var searchTimer = useRef(null)
   var textPair = useState(ui.source === 'local' ? ui.query : '')
   var text = textPair[0]
   var setText = textPair[1]
 
   useEffect(
     function () {
+      if (searchTimer.current !== null) {
+        clearTimeout(searchTimer.current)
+        searchTimer.current = null
+      }
       setText(ui.source === 'local' ? ui.query : '')
+      return function () {
+        if (searchTimer.current !== null) {
+          clearTimeout(searchTimer.current)
+          searchTimer.current = null
+        }
+      }
     },
     [ui.source],
   )
@@ -143,9 +156,20 @@ function TopBar(props) {
           setText(value)
           if (!isOnlineSource(ui.source)) {
             setUi({ query: value })
-          } else if (value === '') {
-            onlineStore.set({ query: '', results: [], phase: 'idle', error: '' })
+            return
           }
+          if (searchTimer.current !== null) {
+            clearTimeout(searchTimer.current)
+            searchTimer.current = null
+          }
+          if (value === '') {
+            onlineStore.set({ query: '', results: [], phase: 'idle', error: '' })
+            return
+          }
+          searchTimer.current = setTimeout(function () {
+            searchTimer.current = null
+            void searchOnline(value)
+          }, 350)
         },
         onKeyDown: function (event) {
           if (event.key === 'Enter') submit()
