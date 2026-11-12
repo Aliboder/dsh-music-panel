@@ -277,6 +277,16 @@ window.__ModuleLoader__.load({
         'online.providerQq': 'QQ 音乐',
         'online.providerKugou': '酷狗',
         'online.providerKugouLite': '酷狗概念版',
+        'online.providerNavidrome': 'Navidrome',
+        'online.navidromeServer': '服务器地址',
+        'online.navidromeServerPlaceholder': 'https://music.example.com:4533',
+        'online.navidromeUser': '用户名',
+        'online.navidromePassword': '密码',
+        'online.navidromeConnect': '连接',
+        'online.navidromeConnecting': '连接中…',
+        'online.navidromeHint': '填写自建 Navidrome / Subsonic 服务器的地址与账号。密码仅用于换取访问令牌，不会保存在本机。',
+        'online.navidromeBadServer': '请填写有效的 http(s) 服务器地址',
+        'online.navidromeOk': '已连接：{version}',
         'online.searchPlaceholder': '搜索在线音乐…',
         'online.searching': '搜索中…',
         'online.hint': '选择平台并搜索。未登录可播放免费曲目；登录后可用高音质（设置 → 在线音乐）。',
@@ -686,6 +696,16 @@ window.__ModuleLoader__.load({
         'online.providerQq': 'QQ Music',
         'online.providerKugou': 'KuGou',
         'online.providerKugouLite': 'KuGou Concept',
+        'online.providerNavidrome': 'Navidrome',
+        'online.navidromeServer': 'Server URL',
+        'online.navidromeServerPlaceholder': 'https://music.example.com:4533',
+        'online.navidromeUser': 'Username',
+        'online.navidromePassword': 'Password',
+        'online.navidromeConnect': 'Connect',
+        'online.navidromeConnecting': 'Connecting…',
+        'online.navidromeHint': 'Enter the URL and account of your self-hosted Navidrome / Subsonic server. The password is only used to derive an access token and is never stored.',
+        'online.navidromeBadServer': 'Enter a valid http(s) server URL',
+        'online.navidromeOk': 'Connected: {version}',
         'online.searchPlaceholder': 'Search online music…',
         'online.searching': 'Searching…',
         'online.hint': 'Pick a provider and search. Free tracks play without signing in; sign in (Settings → Online) for higher quality.',
@@ -2524,8 +2544,11 @@ window.__ModuleLoader__.load({
     var UI_KEY = 'music.ui.v2'
     var LEGACY_UI_KEYS = ['mu.source', 'mu.view']
     
+    /** Every selectable playback source, in tab order. */
+    var UI_SOURCES = ['local', 'netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
+    
     function isOnlineSource(source) {
-      return source === 'netease' || source === 'qq' || source === 'kugou' || source === 'kugouLite'
+      return source === 'netease' || source === 'qq' || source === 'kugou' || source === 'kugouLite' || source === 'navidrome'
     }
     
     function sourceLabelOf(source) {
@@ -2533,6 +2556,7 @@ window.__ModuleLoader__.load({
       if (source === 'qq') return t('online.providerQq')
       if (source === 'kugou') return t('online.providerKugou')
       if (source === 'kugouLite') return t('online.providerKugouLite')
+      if (source === 'navidrome') return t('online.providerNavidrome')
       return t('page.tabLocal')
     }
     
@@ -2551,7 +2575,7 @@ window.__ModuleLoader__.load({
         // Migrate the 0.11 keys once so the panel opens where it was left.
         var legacySource = rawStorageGet(LEGACY_UI_KEYS[0], '')
         var legacyView = rawStorageGet(LEGACY_UI_KEYS[1], '')
-        var source = ['local', 'netease', 'qq', 'kugou', 'kugouLite'].indexOf(legacySource) >= 0 ? legacySource : 'local'
+        var source = UI_SOURCES.indexOf(legacySource) >= 0 ? legacySource : 'local'
         var nav = 'songs'
         if (source !== 'local') nav = 'recent'
         else if (['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'stats'].indexOf(legacyView) >= 0) {
@@ -2559,7 +2583,7 @@ window.__ModuleLoader__.load({
         }
         return { source: source, nav: nav, playlistId: '' }
       }
-      var source = ['local', 'netease', 'qq', 'kugou', 'kugouLite'].indexOf(saved.source) >= 0 ? saved.source : 'local'
+      var source = UI_SOURCES.indexOf(saved.source) >= 0 ? saved.source : 'local'
       var nav = typeof saved.nav === 'string' && saved.nav !== '' ? saved.nav : 'songs'
       var playlistId = typeof saved.playlistId === 'string' ? saved.playlistId : ''
       if (nav === 'playlists') nav = source === 'local' ? 'songs' : 'recent'
@@ -4792,6 +4816,83 @@ window.__ModuleLoader__.load({
         showToast(errorText(error))
       }
     }
+    
+    /**
+     * Navidrome credentials form state.
+     *
+     * The password never leaves this component except in the one POST that trades
+     * it for a salted token; the Host stores only salt + token.
+     */
+    function useNavidromeForm() {
+      var serverPair = useState('')
+      var userPair = useState('')
+      var passPair = useState('')
+      var phasePair = useState('idle') // idle | loading
+      var errorPair = useState('')
+      var noticePair = useState('')
+    
+      var setServer = serverPair[1]
+      var setUsername = userPair[1]
+      var setPassword = passPair[1]
+      var setPhase = phasePair[1]
+      var setError = errorPair[1]
+      var setNotice = noticePair[1]
+    
+      function reset() {
+        setServer('')
+        setUsername('')
+        setPassword('')
+        setPhase('idle')
+        setError('')
+        setNotice('')
+      }
+    
+      async function connect() {
+        var server = String(serverPair[0] || '').trim()
+        var username = String(userPair[0] || '').trim()
+        var password = String(passPair[0] || '')
+        setError('')
+        setNotice('')
+        if (!/^https?:\/\//i.test(server)) {
+          setError(t('online.navidromeBadServer'))
+          return
+        }
+        if (username === '' || password === '') {
+          setError(t('online.accountHint'))
+          return
+        }
+        setPhase('loading')
+        try {
+          var result = await postJson(API + 'online/navidrome/login', {
+            server: server,
+            username: username,
+            password: password,
+          })
+          setPassword('')
+          setPhase('idle')
+          setNotice(t('online.navidromeOk', { version: (result && result.serverVersion) || 'ok' }))
+          await loadProviders()
+          showToast(t('online.loginSuccess'))
+        } catch (error) {
+          setPhase('idle')
+          setError(errorText(error))
+        }
+      }
+    
+      return {
+        server: serverPair[0],
+        username: userPair[0],
+        password: passPair[0],
+        phase: phasePair[0],
+        error: errorPair[0],
+        notice: noticePair[0],
+        setServer: setServer,
+        setUsername: setUsername,
+        setPassword: setPassword,
+        connect: connect,
+        reset: reset,
+      }
+    }
 
     // ── src/80-overlay.js
     /**
@@ -5560,6 +5661,11 @@ window.__ModuleLoader__.load({
       '.mp-online-card.is-qq{--mp-brand:#31c27c}',
       '.mp-online-card.is-kugou{--mp-brand:#2b7cff}',
       '.mp-online-card.is-kugouLite{--mp-brand:#6aa8ff}',
+      '.mp-online-card.is-navidrome{--mp-brand:#00b3a4}',
+      '.mp-navidrome-body{display:flex;flex-direction:column;gap:8px}',
+      '.mp-navidrome-body .mp-kit-input{flex:0 0 auto;width:100%}',
+      '.mp-online-error{color:var(--dsw-alias-state-error-text,#f87171);font-size:12px;line-height:1.4}',
+      '.mp-online-ok{color:var(--dsw-alias-state-success-text,#4ade80);font-size:12px;line-height:1.4}',
       '.mp-online-card.is-logged{background:linear-gradient(135deg,color-mix(in srgb,var(--mp-brand) 7%,var(--dsw-alias-bg-layer-2,#1e1e22)),var(--dsw-alias-bg-layer-2,#1e1e22) 72%)}',
       '.mp-online-card-head{display:flex;align-items:center;gap:10px;min-width:0}',
       '.mp-online-logo{width:38px;height:38px;border-radius:12px;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.16)}',
@@ -9318,11 +9424,12 @@ window.__ModuleLoader__.load({
     
       function onlineTab() {
         var providers = online.providers || {}
-        var ids = ['netease', 'qq', 'kugou', 'kugouLite']
+        var ids = ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
         var logged = ids.filter(function (provider) {
           return providers[provider] && providers[provider].loggedIn === true
         }).length
         function providerLabel(provider) {
+          if (provider === 'navidrome') return t('online.providerNavidrome')
           return provider === 'netease'
             ? t('online.providerNetease')
             : provider === 'qq'
@@ -9331,8 +9438,108 @@ window.__ModuleLoader__.load({
                 ? t('online.providerKugou')
                 : t('online.providerKugouLite')
         }
+        /**
+         * Navidrome / Subsonic: a URL + credential form instead of a QR flow.
+         * The password only travels once, to be traded for a salted token.
+         */
+        function navidromeCard(info) {
+          var form = useNavidromeForm()
+          var busy = form.phase === 'loading'
+          return h(
+            'div',
+            { key: 'navidrome', className: cx('mp-online-card', 'is-navidrome', info.loggedIn === true && 'is-logged') },
+            h(
+              'div',
+              { className: 'mp-online-card-head' },
+              h('span', { className: 'mp-online-logo', title: 'Navidrome' }, icon('music', 20)),
+              h(
+                'div',
+                { className: 'mp-online-title' },
+                h('div', { className: 'mp-online-name' }, t('online.providerNavidrome')),
+                h(
+                  'div',
+                  { className: 'mp-online-state' },
+                  info.loggedIn === true ? t('online.loggedIn') : t('online.loggedOut'),
+                ),
+              ),
+            ),
+            info.loggedIn === true
+              ? h(
+                  'div',
+                  { className: 'mp-online-body' },
+                  h(
+                    'div',
+                    { className: 'mp-online-meta' },
+                    h('strong', { className: 'mp-online-nick' }, info.nickname || info.username || t('online.loggedIn')),
+                    info.server ? h('span', { className: 'mp-online-hint-text' }, info.server) : null,
+                  ),
+                  h(IconButton, {
+                    icon: 'logout',
+                    size: 15,
+                    title: t('online.logout'),
+                    onClick: function () {
+                      form.reset()
+                      void logoutProvider('navidrome')
+                    },
+                  }),
+                )
+              : h(
+                  'div',
+                  { className: 'mp-online-body is-out mp-navidrome-body' },
+                  h('span', { className: 'mp-online-hint-text' }, t('online.navidromeHint')),
+                  h('input', {
+                    className: 'mp-kit-input',
+                    type: 'url',
+                    placeholder: t('online.navidromeServerPlaceholder'),
+                    value: form.server,
+                    disabled: busy,
+                    onChange: function (event) {
+                      form.setServer(event.target.value)
+                    },
+                  }),
+                  h('input', {
+                    className: 'mp-kit-input',
+                    type: 'text',
+                    placeholder: t('online.navidromeUser'),
+                    value: form.username,
+                    disabled: busy,
+                    onChange: function (event) {
+                      form.setUsername(event.target.value)
+                    },
+                  }),
+                  h('input', {
+                    className: 'mp-kit-input',
+                    type: 'password',
+                    placeholder: t('online.navidromePassword'),
+                    value: form.password,
+                    disabled: busy,
+                    onChange: function (event) {
+                      form.setPassword(event.target.value)
+                    },
+                  }),
+                  form.error !== ''
+                    ? h('span', { className: 'mp-online-error' }, form.error)
+                    : form.notice !== ''
+                      ? h('span', { className: 'mp-online-ok' }, form.notice)
+                      : null,
+                  h(Button, {
+                    variant: 'primary',
+                    icon: 'checkCircle',
+                    disabled: busy,
+                    onClick: function () {
+                      void form.connect()
+                    },
+                    children: busy ? t('online.navidromeConnecting') : t('online.navidromeConnect'),
+                  }),
+                ),
+          )
+        }
+    
         function card(provider) {
           var info = providers[provider] || {}
+          // Navidrome signs in with credentials, not a QR code, so it gets its own
+          // body instead of the shared "scan to sign in" branch below.
+          if (provider === 'navidrome') return navidromeCard(info)
           return h(
             'div',
             { key: provider, className: cx('mp-online-card', 'is-' + provider, info.loggedIn === true && 'is-logged') },
@@ -12306,6 +12513,7 @@ window.__ModuleLoader__.load({
             ['qq', t('online.providerQq')],
             ['kugou', t('online.providerKugou')],
             ['kugouLite', t('online.providerKugouLite')],
+            ['navidrome', t('online.providerNavidrome')],
           ].map(function (entry) {
             return h(
               'button',

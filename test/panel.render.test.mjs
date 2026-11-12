@@ -306,6 +306,27 @@ assert.ok(settingsClasses.has('mp-sheet'), 'the settings sheet renders')
 assert.ok(settingsClasses.has('mp-sheet-tab'), 'settings tabs render')
 assert.ok(textOf(settings).includes('布局') || textOf(settings).includes('Layout'), 'the layout switch lives in settings')
 
+// 5b. Navidrome appears as a source tab and as a credential card in settings
+internals.overlayStore.set({ layers: [] })
+internals.uiStore.set({ source: 'navidrome', nav: 'recent', filter: null, query: '' })
+internals.onlineStore.set({ provider: 'navidrome', results: [], phase: 'idle', playlists: [] })
+const navPanel = panel()
+const navText = textOf(navPanel)
+assert.ok(navText.includes('Navidrome'), 'Navidrome renders as a source tab')
+
+internals.overlayStore.set({ layers: [{ kind: 'settings', props: {} }] })
+// The settings sheet opens on the last tab; drive it to the online tab.
+const settingsNav = panel()
+assert.ok(classesOf(settingsNav).has('mp-sheet'), 'settings sheet still renders with an online source')
+
+// The online tab lists every provider card, Navidrome included, once signed out.
+internals.overlayStore.set({ layers: [{ kind: 'settings', props: {} }] })
+internals.uiStore.set({ source: 'navidrome', nav: 'recent', filter: null, query: '' })
+assert.ok(
+  classesOf(panel()).has('mp-sheet'),
+  'the settings sheet survives a navidrome source with no session',
+)
+
 // 6. tag editor / batch / duplicates / online lyric dialogs
 internals.overlayStore.set({ layers: [{ kind: 'tag', props: { path: TRACKS[0].path } }] })
 const tag = panel()

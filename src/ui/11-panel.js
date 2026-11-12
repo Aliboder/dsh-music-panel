@@ -110,6 +110,7 @@ function TopBar(props) {
         ['qq', t('online.providerQq')],
         ['kugou', t('online.providerKugou')],
         ['kugouLite', t('online.providerKugouLite')],
+        ['navidrome', t('online.providerNavidrome')],
       ].map(function (entry) {
         return h(
           'button',

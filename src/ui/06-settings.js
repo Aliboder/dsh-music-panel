@@ -396,11 +396,12 @@ function SettingsSheet(props) {
 
   function onlineTab() {
     var providers = online.providers || {}
-    var ids = ['netease', 'qq', 'kugou', 'kugouLite']
+    var ids = ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
     var logged = ids.filter(function (provider) {
       return providers[provider] && providers[provider].loggedIn === true
     }).length
     function providerLabel(provider) {
+      if (provider === 'navidrome') return t('online.providerNavidrome')
       return provider === 'netease'
         ? t('online.providerNetease')
         : provider === 'qq'
@@ -409,8 +410,108 @@ function SettingsSheet(props) {
             ? t('online.providerKugou')
             : t('online.providerKugouLite')
     }
+    /**
+     * Navidrome / Subsonic: a URL + credential form instead of a QR flow.
+     * The password only travels once, to be traded for a salted token.
+     */
+    function navidromeCard(info) {
+      var form = useNavidromeForm()
+      var busy = form.phase === 'loading'
+      return h(
+        'div',
+        { key: 'navidrome', className: cx('mp-online-card', 'is-navidrome', info.loggedIn === true && 'is-logged') },
+        h(
+          'div',
+          { className: 'mp-online-card-head' },
+          h('span', { className: 'mp-online-logo', title: 'Navidrome' }, icon('music', 20)),
+          h(
+            'div',
+            { className: 'mp-online-title' },
+            h('div', { className: 'mp-online-name' }, t('online.providerNavidrome')),
+            h(
+              'div',
+              { className: 'mp-online-state' },
+              info.loggedIn === true ? t('online.loggedIn') : t('online.loggedOut'),
+            ),
+          ),
+        ),
+        info.loggedIn === true
+          ? h(
+              'div',
+              { className: 'mp-online-body' },
+              h(
+                'div',
+                { className: 'mp-online-meta' },
+                h('strong', { className: 'mp-online-nick' }, info.nickname || info.username || t('online.loggedIn')),
+                info.server ? h('span', { className: 'mp-online-hint-text' }, info.server) : null,
+              ),
+              h(IconButton, {
+                icon: 'logout',
+                size: 15,
+                title: t('online.logout'),
+                onClick: function () {
+                  form.reset()
+                  void logoutProvider('navidrome')
+                },
+              }),
+            )
+          : h(
+              'div',
+              { className: 'mp-online-body is-out mp-navidrome-body' },
+              h('span', { className: 'mp-online-hint-text' }, t('online.navidromeHint')),
+              h('input', {
+                className: 'mp-kit-input',
+                type: 'url',
+                placeholder: t('online.navidromeServerPlaceholder'),
+                value: form.server,
+                disabled: busy,
+                onChange: function (event) {
+                  form.setServer(event.target.value)
+                },
+              }),
+              h('input', {
+                className: 'mp-kit-input',
+                type: 'text',
+                placeholder: t('online.navidromeUser'),
+                value: form.username,
+                disabled: busy,
+                onChange: function (event) {
+                  form.setUsername(event.target.value)
+                },
+              }),
+              h('input', {
+                className: 'mp-kit-input',
+                type: 'password',
+                placeholder: t('online.navidromePassword'),
+                value: form.password,
+                disabled: busy,
+                onChange: function (event) {
+                  form.setPassword(event.target.value)
+                },
+              }),
+              form.error !== ''
+                ? h('span', { className: 'mp-online-error' }, form.error)
+                : form.notice !== ''
+                  ? h('span', { className: 'mp-online-ok' }, form.notice)
+                  : null,
+              h(Button, {
+                variant: 'primary',
+                icon: 'checkCircle',
+                disabled: busy,
+                onClick: function () {
+                  void form.connect()
+                },
+                children: busy ? t('online.navidromeConnecting') : t('online.navidromeConnect'),
+              }),
+            ),
+      )
+    }
+
     function card(provider) {
       var info = providers[provider] || {}
+      // Navidrome signs in with credentials, not a QR code, so it gets its own
+      // body instead of the shared "scan to sign in" branch below.
+      if (provider === 'navidrome') return navidromeCard(info)
       return h(
         'div',
         { key: provider, className: cx('mp-online-card', 'is-' + provider, info.loggedIn === true && 'is-logged') },
