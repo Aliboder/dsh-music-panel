@@ -314,6 +314,27 @@ const navPanel = panel()
 const navText = textOf(navPanel)
 assert.ok(navText.includes('Navidrome'), 'Navidrome renders as a source tab')
 
+// The sidebar offers a library browse entry for Navidrome (and only for it:
+// the Chinese platforms are search-only).
+assert.ok(
+  navText.includes('全部歌曲') || navText.includes('All songs'),
+  'the navidrome sidebar exposes the all-songs entry',
+)
+internals.uiStore.set({ source: 'netease', nav: 'recent', filter: null, query: '' })
+internals.onlineStore.set({ provider: 'netease', results: [], phase: 'idle', playlists: [] })
+const neteaseText = textOf(panel())
+assert.ok(
+  !neteaseText.includes('全部歌曲') && !neteaseText.includes('All songs'),
+  'search-only providers do not show the all-songs entry',
+)
+internals.uiStore.set({ source: 'navidrome', nav: 'songs', filter: null, query: '' })
+internals.onlineStore.set({ provider: 'navidrome', results: [], phase: 'idle', playlists: [] })
+const songsView = panel()
+assert.ok(
+  textOf(songsView).includes('全部歌曲') || textOf(songsView).includes('All songs'),
+  'the all-songs view renders its header',
+)
+
 internals.overlayStore.set({ layers: [{ kind: 'settings', props: {} }] })
 // The settings sheet opens on the last tab; drive it to the online tab.
 const settingsNav = panel()

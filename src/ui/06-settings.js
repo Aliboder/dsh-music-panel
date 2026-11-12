@@ -428,7 +428,7 @@ function SettingsSheet(props) {
         h(
           'div',
           { className: 'mp-online-card-head' },
-          h('span', { className: 'mp-online-logo', title: 'Navidrome' }, icon('music', 20)),
+          h('span', { className: 'mp-online-logo', title: 'Navidrome' }, icon('list', 20)),
           h(
             'div',
             { className: 'mp-online-title' },

@@ -123,9 +123,14 @@ function navGroupsFor(source, favoritesCount) {
       {
         label: t('v2.sectionOnline'),
         items: [
+          // Navidrome can enumerate the library; the Chinese platforms are
+          // search-only, so they get no browse entry.
+          source === 'navidrome'
+            ? { key: 'songs', label: t('online.allSongs'), icon: 'list', count: null }
+            : null,
           { key: 'recent', label: t('v2.recent'), icon: 'clock', count: null },
           { key: 'cache', label: t('v2.cache'), icon: 'download', count: null },
-        ],
+        ].filter(Boolean),
       },
     ]
     if (signedIn) {
@@ -251,7 +256,9 @@ function setSource(source) {
   selectionStore.set({ active: false, paths: [] })
   uiStore.set({
     source: source,
-    nav: isOnlineSource(source) ? 'recent' : 'songs',
+    // Navidrome opens on the library list; the Chinese platforms are
+    // search-driven and have nothing to show until the user types.
+    nav: !isOnlineSource(source) ? 'songs' : source === 'navidrome' ? 'songs' : 'recent',
     filter: null,
     query: '',
     playlistId: '',

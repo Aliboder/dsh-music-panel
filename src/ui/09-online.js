@@ -20,6 +20,13 @@ function OnlineContent(props) {
   var cachePhasePair = useState('idle')
   var cachePhase = cachePhasePair[0]
   var setCachePhase = cachePhasePair[1]
+  // Library-wide song list (Navidrome only; other providers return none).
+  var songsPair = useState(null)
+  var songsList = songsPair[0]
+  var setSongsList = songsPair[1]
+  var songsPhasePair = useState('idle')
+  var songsPhase = songsPhasePair[0]
+  var setSongsPhase = songsPhasePair[1]
   var prefs = usePrefs()
   var selection = useStore(selectionStore)
   var selecting = selection.active === true
@@ -154,6 +161,32 @@ function OnlineContent(props) {
           if (cancelled) return
           setCacheList([])
           setCachePhase('error')
+        })
+      return function () {
+        cancelled = true
+      }
+    },
+    [nav, provider],
+  )
+
+  useEffect(
+    function () {
+      if (nav !== 'songs') {
+        setSongsPhase('idle')
+        return undefined
+      }
+      var cancelled = false
+      setSongsPhase('loading')
+      getJson(API + 'online/songs?provider=' + encodeURIComponent(provider) + '&size=200')
+        .then(function (body) {
+          if (cancelled) return
+          setSongsList(Array.isArray(body.songs) ? body.songs : [])
+          setSongsPhase('ready')
+        })
+        .catch(function () {
+          if (cancelled) return
+          setSongsList([])
+          setSongsPhase('error')
         })
       return function () {
         cancelled = true
@@ -396,6 +429,49 @@ function OnlineContent(props) {
         onAlbum: function (track) {
           void openOnlineAlbum(track)
         },
+      })
+    }
+  } else if (nav === 'songs') {
+    // Library-wide browse. Subsonic has no stable "all songs" index, so the
+    // host returns getRandomSongs: a sample of the library, not a fixed list.
+    title = t('online.allSongs')
+    var allSongs = songsList || []
+    count = allSongs.length
+    resetKey = 'online-songs:' + provider
+    if (songsPhase === 'loading' || songsPhase === 'idle') {
+      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+    } else if (songsPhase === 'error') {
+      body = h(Empty, { title: t('online.networkError'), icon: 'info' })
+    } else if (allSongs.length === 0) {
+      body = h(Empty, { title: t('online.allSongsEmpty'), hint: t('online.allSongsEmptyHint'), icon: 'music' })
+    } else {
+      body = h(TrackListBody, {
+        items: (setPlayAll(allSongs), (onlineSelectionList = sortOnlineTracks(allSongs))),
+        resetKey: resetKey,
+        selectionMode: selecting,
+        selectedSet: selectedSet,
+        onToggleSelect: toggleSelected,
+        onSelect: function (track, additive) {
+          selectTrackIn(onlineSelectionList, track, additive)
+        },
+        focusPath: props.locatePath || '',
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: likedSet,
+        cachedOf: function (track) {
+          return online.cache[track.onlineId] === true
+        },
+        onPlay: function (track) {
+          var index = allSongs.findIndex(function (item) {
+            return 'online:' + item.provider + ':' + item.id === track.path
+          })
+          playOnlineResults(allSongs, index < 0 ? 0 : index)
+        },
+        onMenu: function (track, event) {
+          props.onMenu(track, event, { playSelected: playSelectedOnline })
+        },
+        onToggleFavorite: toggleOnlineFavorite,
+        empty: empty,
       })
     }
   } else if (nav === 'cache') {

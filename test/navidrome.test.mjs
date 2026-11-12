@@ -319,6 +319,64 @@ test('lyric degrades to empty when the server has no lyrics', async () => {
   )
 })
 
+// ── library-wide song list ───────────────────────────────────────────────
+
+test('songs uses getRandomSongs and normalises the rows', async () => {
+  const seen = []
+  await withFetch(
+    async (url) => {
+      seen.push(String(url))
+      return jsonResponse(
+        okBody({
+          randomSongs: {
+            song: [
+              { id: 'a1', title: 'Alpha', artist: 'A', album: 'Al', duration: 100 },
+              { title: 'no id' },
+              { id: 'a2', title: 'Beta', duration: 200 },
+            ],
+          },
+        }),
+      )
+    },
+    async () => {
+      const list = await ND.songs(cfg)
+      assert.equal(list.length, 2, 'rows without an id are dropped')
+      assert.equal(list[0].id, 'a1')
+      assert.equal(list[0].provider, 'navidrome')
+      assert.equal(list[0].durationSec, 100)
+      assert.equal(list[1].id, 'a2')
+    },
+  )
+  assert.match(seen[0], /\/rest\/getRandomSongs\.view\?/, 'uses the random-songs view')
+  assert.match(seen[0], /size=200/, 'defaults to 200 rows')
+})
+
+test('songs clamps the requested size and returns [] when the server has none', async () => {
+  const seen = []
+  await withFetch(
+    async (url) => {
+      seen.push(String(url))
+      return jsonResponse(okBody({ randomSongs: {} }))
+    },
+    async () => {
+      assert.deepEqual(await ND.songs(cfg, 9999), [])
+      assert.deepEqual(await ND.songs(cfg, 0), [])
+    },
+  )
+  assert.match(seen[0], /size=500/, 'size is capped at 500')
+  assert.match(seen[1], /size=200/, 'a falsy size falls back to the 200 default')
+})
+
+test('songs surfaces a subsonic failure', async () => {
+  await withFetch(
+    async () =>
+      jsonResponse({ 'subsonic-response': { status: 'failed', error: { code: 40, message: 'denied' } } }),
+    async () => {
+      await assert.rejects(() => ND.songs(cfg), /40.*denied/)
+    },
+  )
+})
+
 // ── runner ───────────────────────────────────────────────────────────────
 
 let failed = 0
