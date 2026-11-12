@@ -113,6 +113,7 @@ function onlineTrackOf(result) {
     title: result.title,
     artist: result.artist,
     album: result.album,
+    albumId: result.albumId || '',
     durationSec: result.durationSec,
     hasCover: false,
     coverUrl: result.coverUrl || '',

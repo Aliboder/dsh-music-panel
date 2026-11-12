@@ -147,6 +147,10 @@ function LocalContent(props) {
         })
       },
       onToggleFavorite: props.onToggleFavorite,
+      onAlbum: function (track) {
+        if (!track || !track.album) return
+        setUi({ nav: 'songs', filter: { kind: 'album', value: track.album }, query: '' })
+      },
       empty: empty,
     })
   }

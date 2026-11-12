@@ -232,6 +232,8 @@ function sectionTitleOf(ui) {
       return t('v2.stats')
     case 'recent':
       return t('v2.recent')
+    case 'album':
+      return onlineStore.get().albumName || t('online.album')
     case 'cache':
       return t('v2.cache')
     default:

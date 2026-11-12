@@ -8,7 +8,7 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
-    var APP_VERSION = "0.28.1"
+    var APP_VERSION = "0.28.2"
 
     // ── src/00-runtime.js
     /**
@@ -254,6 +254,8 @@ window.__ModuleLoader__.load({
         'online.removedFromHistory': '已从最近播放中移除',
         'online.vipOnly': 'VIP / 付费曲目无法播放（需要会员）',
         'online.vipSkipped': '已跳过 {n} 首 VIP 曲目（当前账号无会员）',
+        'online.album': '专辑',
+        'online.albumFailed': '专辑曲目获取失败',
         'online.quality': '音质',
         'online.qualityStandard': '标准',
         'online.qualityHigh': '高音质',
@@ -605,6 +607,8 @@ window.__ModuleLoader__.load({
         'online.removedFromHistory': 'Removed from recently played',
         'online.vipOnly': 'VIP / paid tracks cannot play without a membership',
         'online.vipSkipped': 'Skipped {n} VIP track(s) — this account has no membership',
+        'online.album': 'Album',
+        'online.albumFailed': 'Could not load album tracks',
         'online.quality': 'Quality',
         'online.qualityStandard': 'Standard',
         'online.qualityHigh': 'High',
@@ -1982,6 +1986,7 @@ window.__ModuleLoader__.load({
         title: result.title,
         artist: result.artist,
         album: result.album,
+        albumId: result.albumId || '',
         durationSec: result.durationSec,
         hasCover: false,
         coverUrl: result.coverUrl || '',
@@ -2587,6 +2592,8 @@ window.__ModuleLoader__.load({
           return t('v2.stats')
         case 'recent':
           return t('v2.recent')
+        case 'album':
+          return onlineStore.get().albumName || t('online.album')
         case 'cache':
           return t('v2.cache')
         default:
@@ -4144,6 +4151,14 @@ window.__ModuleLoader__.load({
       playlistSongs: [],
       playlistPhase: 'idle',
       playlistRefreshing: false,
+      albumId: '',
+      albumName: '',
+      albumArtist: '',
+      albumCover: '',
+      albumProvider: '',
+      albumSongs: [],
+      albumPhase: 'idle',
+      albumError: '',
       history: readOnlineHistory(),
       liked: {},
       cache: {},
@@ -4296,6 +4311,14 @@ window.__ModuleLoader__.load({
         playlistSongs: [],
         playlistPhase: 'idle',
         playlistRefreshing: false,
+        albumId: '',
+        albumName: '',
+        albumArtist: '',
+        albumCover: '',
+        albumProvider: '',
+        albumSongs: [],
+        albumPhase: 'idle',
+        albumError: '',
         liked: {},
         error: '',
       })
@@ -4303,6 +4326,67 @@ window.__ModuleLoader__.load({
     
     function playlistCacheKey(provider, id) {
       return String(provider || '') + ':' + String(id || '')
+    }
+    
+    var albumLoadToken = 0
+    
+    async function openOnlineAlbum(track) {
+      if (!track || !track.album) return
+      var provider = track.onlineProvider || onlineStore.get().provider
+      var token = (albumLoadToken += 1)
+      onlineStore.set({
+        albumId: String(track.albumId || ''),
+        albumName: String(track.album || ''),
+        albumArtist: String(track.artist || ''),
+        albumCover: String(track.coverUrl || ''),
+        albumProvider: provider,
+        albumSongs: [],
+        albumPhase: 'loading',
+        albumError: '',
+      })
+      setNav('album')
+      try {
+        var body = await getJson(
+          API +
+            'online/album?provider=' +
+            encodeURIComponent(provider) +
+            '&id=' +
+            encodeURIComponent(track.albumId || '') +
+            '&album=' +
+            encodeURIComponent(track.album || '') +
+            '&artist=' +
+            encodeURIComponent(track.artist || ''),
+        )
+        if (token !== albumLoadToken) return
+        onlineStore.set({
+          albumName: body.name || track.album || '',
+          albumArtist: body.artist || track.artist || '',
+          albumCover: body.cover || track.coverUrl || '',
+          albumSongs: Array.isArray(body.songs) ? body.songs : [],
+          albumPhase: 'ready',
+        })
+      } catch (error) {
+        if (token !== albumLoadToken) return
+        onlineStore.set({
+          albumSongs: [],
+          albumPhase: 'error',
+          albumError: errorText(error),
+        })
+      }
+    }
+    
+    function closeOnlineAlbum() {
+      albumLoadToken += 1
+      onlineStore.set({
+        albumId: '',
+        albumName: '',
+        albumArtist: '',
+        albumCover: '',
+        albumProvider: '',
+        albumSongs: [],
+        albumPhase: 'idle',
+        albumError: '',
+      })
     }
     
     function trimPlaylistCache() {
@@ -4418,6 +4502,7 @@ window.__ModuleLoader__.load({
         title: track.title || '',
         artist: track.artist || '',
         album: track.album || '',
+        albumId: track.albumId || '',
         durationSec: track.durationSec || 0,
         coverUrl: track.coverUrl || '',
         qualityHint: track.qualityHint || '',
@@ -4881,6 +4966,10 @@ window.__ModuleLoader__.load({
       '.mp-row.is-cur .mp-row-title{color:var(--dsw-alias-state-business-primary,#7AAAFF)}',
       '.mp-row-sub{font-size:13px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-row-album{font-size:13px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-album-link{max-width:100%;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-album-link:hover{color:var(--dsw-alias-state-business-primary,#4176E6);text-decoration:underline}',
+      '.mp-row-sub-album{display:none}',
+      '@media (max-width:1080px){.mp-row-sub-album{display:inline}}',
       '.mp-row-time{font-size:13px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:right;font-variant-numeric:tabular-nums}',
       '.mp-row-acts{display:flex;align-items:center;justify-content:flex-end;gap:2px}',
       '.mp-row-acts .mp-iconbtn{width:30px;height:30px;opacity:0}',
@@ -5778,9 +5867,57 @@ window.__ModuleLoader__.load({
               ? h('span', { className: 'mp-eq' }, [h('i', { key: 1 }), h('i', { key: 2 }), h('i', { key: 3 })])
               : null,
           ),
-          h('div', { className: 'mp-row-sub' }, trackArtistOf(track)),
+          h(
+            'div',
+            { className: 'mp-row-sub' },
+            trackArtistOf(track),
+            props.onAlbum && track.album
+              ? h(
+                  'span',
+                  { className: 'mp-row-sub-album' },
+                  ' · ',
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mp-album-link',
+                      title: track.album,
+                      onClick: function (event) {
+                        event.stopPropagation()
+                        props.onAlbum(track)
+                      },
+                      onDoubleClick: function (event) {
+                        event.stopPropagation()
+                      },
+                    },
+                    track.album,
+                  ),
+                )
+              : null,
+          ),
         ),
-        h('div', { className: 'mp-row-album' }, track.album || ''),
+        h(
+          'div',
+          { className: 'mp-row-album' },
+          props.onAlbum && track.album
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mp-album-link',
+                  title: track.album,
+                  onClick: function (event) {
+                    event.stopPropagation()
+                    props.onAlbum(track)
+                  },
+                  onDoubleClick: function (event) {
+                    event.stopPropagation()
+                  },
+                },
+                track.album,
+              )
+            : track.album || '',
+        ),
         h('div', { className: 'mp-row-time' }, fmtTime(track.durationSec)),
         h(
           'div',
@@ -5859,6 +5996,7 @@ window.__ModuleLoader__.load({
             onPlay: props.onPlay,
             onMenu: props.onMenu,
             onToggleFavorite: props.onToggleFavorite,
+            onAlbum: props.onAlbum,
           })
         },
       })
@@ -8906,6 +9044,10 @@ window.__ModuleLoader__.load({
             })
           },
           onToggleFavorite: props.onToggleFavorite,
+          onAlbum: function (track) {
+            if (!track || !track.album) return
+            setUi({ nav: 'songs', filter: { kind: 'album', value: track.album }, query: '' })
+          },
           empty: empty,
         })
       }
@@ -9509,7 +9651,77 @@ window.__ModuleLoader__.load({
               props.onMenu(track, event, { playSelected: playSelectedOnline })
             },
             onToggleFavorite: toggleOnlineFavorite,
+            onAlbum: function (track) {
+              void openOnlineAlbum(track)
+            },
             empty: empty,
+          })
+        }
+      } else if (nav === 'album') {
+        title = online.albumName || t('online.album')
+        var albumSongs = Array.isArray(online.albumSongs) ? online.albumSongs : []
+        count = albumSongs.length
+        resetKey = 'online-album:' + online.albumProvider + ':' + online.albumId + ':' + online.albumName
+        actions = [
+          h(
+            Button,
+            {
+              key: 'play',
+              variant: 'primary',
+              icon: 'play',
+              onClick: function () {
+                playOnlineResults(albumSongs, 0)
+              },
+            },
+            t('page.playAll'),
+          ),
+          h(
+            Button,
+            {
+              key: 'back',
+              variant: 'ghost',
+              icon: 'chevronLeft',
+              onClick: function () {
+                closeOnlineAlbum()
+                setNav('recent')
+              },
+            },
+            t('v2.back'),
+          ),
+        ]
+        if (online.albumPhase === 'loading') {
+          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+        } else if (online.albumPhase === 'error') {
+          body = h(Empty, { title: t('online.albumFailed'), hint: online.albumError, icon: 'disc' })
+        } else if (albumSongs.length === 0) {
+          body = h(Empty, { title: t('online.emptyResults'), icon: 'disc' })
+        } else {
+          body = h(TrackListBody, {
+            items: (setPlayAll(albumSongs), (onlineSelectionList = sortOnlineTracks(albumSongs))),
+            resetKey: resetKey,
+            selectionMode: selecting,
+            selectedSet: selectedSet,
+            onToggleSelect: toggleSelected,
+            onSelect: function (track, additive) {
+              selectTrackIn(onlineSelectionList, track, additive)
+            },
+            focusPath: props.locatePath || '',
+            currentPath: props.currentPath,
+            playing: props.playing,
+            favoriteSet: likedSet,
+            cachedOf: function (track) {
+              return online.cache[track.onlineId] === true
+            },
+            onPlay: function (track) {
+              var index = albumSongs.findIndex(function (item) {
+                return 'online:' + item.provider + ':' + item.id === track.path
+              })
+              playOnlineResults(albumSongs, index < 0 ? 0 : index)
+            },
+            onMenu: function (track, event) {
+              props.onMenu(track, event, { playSelected: playSelectedOnline })
+            },
+            onToggleFavorite: toggleOnlineFavorite,
           })
         }
       } else if (nav === 'playlists') {
@@ -9618,6 +9830,9 @@ window.__ModuleLoader__.load({
               props.onMenu(track, event, { playSelected: playSelectedOnline })
             },
             onToggleFavorite: toggleOnlineFavorite,
+            onAlbum: function (track) {
+              void openOnlineAlbum(track)
+            },
           })
         }
       } else if (nav === 'cache') {
@@ -9644,6 +9859,9 @@ window.__ModuleLoader__.load({
             playing: props.playing,
             favoriteSet: likedSet,
             onToggleFavorite: toggleOnlineFavorite,
+            onAlbum: function (track) {
+              void openOnlineAlbum(track)
+            },
             cachedOf: function () {
               return true
             },
@@ -9695,6 +9913,9 @@ window.__ModuleLoader__.load({
               })
             },
             onToggleFavorite: toggleOnlineFavorite,
+            onAlbum: function (track) {
+              void openOnlineAlbum(track)
+            },
           })
         }
       }

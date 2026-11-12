@@ -202,7 +202,77 @@ function OnlineContent(props) {
           props.onMenu(track, event, { playSelected: playSelectedOnline })
         },
         onToggleFavorite: toggleOnlineFavorite,
+        onAlbum: function (track) {
+          void openOnlineAlbum(track)
+        },
         empty: empty,
+      })
+    }
+  } else if (nav === 'album') {
+    title = online.albumName || t('online.album')
+    var albumSongs = Array.isArray(online.albumSongs) ? online.albumSongs : []
+    count = albumSongs.length
+    resetKey = 'online-album:' + online.albumProvider + ':' + online.albumId + ':' + online.albumName
+    actions = [
+      h(
+        Button,
+        {
+          key: 'play',
+          variant: 'primary',
+          icon: 'play',
+          onClick: function () {
+            playOnlineResults(albumSongs, 0)
+          },
+        },
+        t('page.playAll'),
+      ),
+      h(
+        Button,
+        {
+          key: 'back',
+          variant: 'ghost',
+          icon: 'chevronLeft',
+          onClick: function () {
+            closeOnlineAlbum()
+            setNav('recent')
+          },
+        },
+        t('v2.back'),
+      ),
+    ]
+    if (online.albumPhase === 'loading') {
+      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+    } else if (online.albumPhase === 'error') {
+      body = h(Empty, { title: t('online.albumFailed'), hint: online.albumError, icon: 'disc' })
+    } else if (albumSongs.length === 0) {
+      body = h(Empty, { title: t('online.emptyResults'), icon: 'disc' })
+    } else {
+      body = h(TrackListBody, {
+        items: (setPlayAll(albumSongs), (onlineSelectionList = sortOnlineTracks(albumSongs))),
+        resetKey: resetKey,
+        selectionMode: selecting,
+        selectedSet: selectedSet,
+        onToggleSelect: toggleSelected,
+        onSelect: function (track, additive) {
+          selectTrackIn(onlineSelectionList, track, additive)
+        },
+        focusPath: props.locatePath || '',
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: likedSet,
+        cachedOf: function (track) {
+          return online.cache[track.onlineId] === true
+        },
+        onPlay: function (track) {
+          var index = albumSongs.findIndex(function (item) {
+            return 'online:' + item.provider + ':' + item.id === track.path
+          })
+          playOnlineResults(albumSongs, index < 0 ? 0 : index)
+        },
+        onMenu: function (track, event) {
+          props.onMenu(track, event, { playSelected: playSelectedOnline })
+        },
+        onToggleFavorite: toggleOnlineFavorite,
       })
     }
   } else if (nav === 'playlists') {
@@ -311,6 +381,9 @@ function OnlineContent(props) {
           props.onMenu(track, event, { playSelected: playSelectedOnline })
         },
         onToggleFavorite: toggleOnlineFavorite,
+        onAlbum: function (track) {
+          void openOnlineAlbum(track)
+        },
       })
     }
   } else if (nav === 'cache') {
@@ -337,6 +410,9 @@ function OnlineContent(props) {
         playing: props.playing,
         favoriteSet: likedSet,
         onToggleFavorite: toggleOnlineFavorite,
+        onAlbum: function (track) {
+          void openOnlineAlbum(track)
+        },
         cachedOf: function () {
           return true
         },
@@ -388,6 +464,9 @@ function OnlineContent(props) {
           })
         },
         onToggleFavorite: toggleOnlineFavorite,
+        onAlbum: function (track) {
+          void openOnlineAlbum(track)
+        },
       })
     }
   }

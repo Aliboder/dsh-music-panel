@@ -37,6 +37,14 @@ var onlineStore = createStore({
   playlistSongs: [],
   playlistPhase: 'idle',
   playlistRefreshing: false,
+  albumId: '',
+  albumName: '',
+  albumArtist: '',
+  albumCover: '',
+  albumProvider: '',
+  albumSongs: [],
+  albumPhase: 'idle',
+  albumError: '',
   history: readOnlineHistory(),
   liked: {},
   cache: {},
@@ -189,6 +197,14 @@ function resetOnlineAccountData() {
     playlistSongs: [],
     playlistPhase: 'idle',
     playlistRefreshing: false,
+    albumId: '',
+    albumName: '',
+    albumArtist: '',
+    albumCover: '',
+    albumProvider: '',
+    albumSongs: [],
+    albumPhase: 'idle',
+    albumError: '',
     liked: {},
     error: '',
   })
@@ -196,6 +212,67 @@ function resetOnlineAccountData() {
 
 function playlistCacheKey(provider, id) {
   return String(provider || '') + ':' + String(id || '')
+}
+
+var albumLoadToken = 0
+
+async function openOnlineAlbum(track) {
+  if (!track || !track.album) return
+  var provider = track.onlineProvider || onlineStore.get().provider
+  var token = (albumLoadToken += 1)
+  onlineStore.set({
+    albumId: String(track.albumId || ''),
+    albumName: String(track.album || ''),
+    albumArtist: String(track.artist || ''),
+    albumCover: String(track.coverUrl || ''),
+    albumProvider: provider,
+    albumSongs: [],
+    albumPhase: 'loading',
+    albumError: '',
+  })
+  setNav('album')
+  try {
+    var body = await getJson(
+      API +
+        'online/album?provider=' +
+        encodeURIComponent(provider) +
+        '&id=' +
+        encodeURIComponent(track.albumId || '') +
+        '&album=' +
+        encodeURIComponent(track.album || '') +
+        '&artist=' +
+        encodeURIComponent(track.artist || ''),
+    )
+    if (token !== albumLoadToken) return
+    onlineStore.set({
+      albumName: body.name || track.album || '',
+      albumArtist: body.artist || track.artist || '',
+      albumCover: body.cover || track.coverUrl || '',
+      albumSongs: Array.isArray(body.songs) ? body.songs : [],
+      albumPhase: 'ready',
+    })
+  } catch (error) {
+    if (token !== albumLoadToken) return
+    onlineStore.set({
+      albumSongs: [],
+      albumPhase: 'error',
+      albumError: errorText(error),
+    })
+  }
+}
+
+function closeOnlineAlbum() {
+  albumLoadToken += 1
+  onlineStore.set({
+    albumId: '',
+    albumName: '',
+    albumArtist: '',
+    albumCover: '',
+    albumProvider: '',
+    albumSongs: [],
+    albumPhase: 'idle',
+    albumError: '',
+  })
 }
 
 function trimPlaylistCache() {
@@ -311,6 +388,7 @@ function rememberOnline(track) {
     title: track.title || '',
     artist: track.artist || '',
     album: track.album || '',
+    albumId: track.albumId || '',
     durationSec: track.durationSec || 0,
     coverUrl: track.coverUrl || '',
     qualityHint: track.qualityHint || '',

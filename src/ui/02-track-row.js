@@ -94,9 +94,57 @@ function TrackRow(props) {
           ? h('span', { className: 'mp-eq' }, [h('i', { key: 1 }), h('i', { key: 2 }), h('i', { key: 3 })])
           : null,
       ),
-      h('div', { className: 'mp-row-sub' }, trackArtistOf(track)),
+      h(
+        'div',
+        { className: 'mp-row-sub' },
+        trackArtistOf(track),
+        props.onAlbum && track.album
+          ? h(
+              'span',
+              { className: 'mp-row-sub-album' },
+              ' · ',
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mp-album-link',
+                  title: track.album,
+                  onClick: function (event) {
+                    event.stopPropagation()
+                    props.onAlbum(track)
+                  },
+                  onDoubleClick: function (event) {
+                    event.stopPropagation()
+                  },
+                },
+                track.album,
+              ),
+            )
+          : null,
+      ),
     ),
-    h('div', { className: 'mp-row-album' }, track.album || ''),
+    h(
+      'div',
+      { className: 'mp-row-album' },
+      props.onAlbum && track.album
+        ? h(
+            'button',
+            {
+              type: 'button',
+              className: 'mp-album-link',
+              title: track.album,
+              onClick: function (event) {
+                event.stopPropagation()
+                props.onAlbum(track)
+              },
+              onDoubleClick: function (event) {
+                event.stopPropagation()
+              },
+            },
+            track.album,
+          )
+        : track.album || '',
+    ),
     h('div', { className: 'mp-row-time' }, fmtTime(track.durationSec)),
     h(
       'div',
@@ -175,6 +223,7 @@ function TrackListBody(props) {
         onPlay: props.onPlay,
         onMenu: props.onMenu,
         onToggleFavorite: props.onToggleFavorite,
+        onAlbum: props.onAlbum,
       })
     },
   })
