@@ -63,6 +63,7 @@ const FILES = [
   'src/ui/16-header.js',
   'src/ui/17-folder-picker.js',
   'src/ui/18-online-add.js',
+  'src/ui/19-navidrome-dialog.js',
   'src/99-plugin.js',
 ]
 

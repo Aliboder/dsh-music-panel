@@ -289,16 +289,6 @@ function openOnlineSection(nav) {
   uiStore.set({ nav: nav, filter: null })
 }
 
-/**
- * Open the settings sheet on its online tab.
- *
- * Navidrome signs in with a URL and credentials rather than a QR code, so the
- * top-bar chip routes here instead of opening the (empty) login layer.
- */
-function openNavidromeSettings() {
-  pushLayer('settings', { tab: 'online' })
-}
-
 uiStore.subscribe(function (state) {
   storageSet(UI_KEY, {
     source: state.source,

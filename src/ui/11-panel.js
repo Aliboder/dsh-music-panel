@@ -181,16 +181,16 @@ function TopBar(props) {
                   role: 'button',
                   tabIndex: 0,
                   onClick: function () {
-                    // Navidrome has no QR flow: send the user to the credential
-                    // form in settings instead of opening an empty sheet.
+                    // Navidrome has no QR flow: open the credential dialog
+                    // directly instead of the shared sign-in sheet.
                     if (ui.source === 'navidrome') {
-                      openNavidromeSettings()
+                      pushLayer('navidrome')
                       return
                     }
                     pushLayer('login', { provider: ui.source, mode: 'qq' })
                   },
                 },
-                ui.source === 'navidrome' ? t('online.navidromeSetup') : t('online.login'),
+                ui.source === 'navidrome' ? t('online.navidromeConnect') : t('online.login'),
               ),
         )
       : null,
@@ -305,6 +305,7 @@ function OverlayRoot() {
     if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
     if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
     if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
+    if (layer.kind === 'navidrome') return h(NavidromeDialog, { key: 'navidrome', layer: layer })
     if (layer.kind === 'settings') {
       return h(SettingsSheet, {
         key: 'settings',

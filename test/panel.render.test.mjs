@@ -327,6 +327,19 @@ assert.ok(
   'the settings sheet survives a navidrome source with no session',
 )
 
+// 5c. the Navidrome connection dialog renders its three fields
+internals.overlayStore.set({ layers: [{ kind: 'navidrome', props: {} }] })
+const navDialog = panel()
+const navDialogText = textOf(navDialog)
+assert.ok(classesOf(navDialog).has('mp-dialog'), 'the navidrome connection dialog renders')
+assert.ok(navDialogText.includes('服务器地址') || navDialogText.includes('Server URL'), 'the server field renders')
+assert.ok(navDialogText.includes('用户名') || navDialogText.includes('Username'), 'the username field renders')
+assert.ok(navDialogText.includes('密码') || navDialogText.includes('Password'), 'the password field renders')
+assert.ok(
+  navDialogText.includes('保存并连接') || navDialogText.includes('Save and connect'),
+  'the save button renders',
+)
+
 // 6. tag editor / batch / duplicates / online lyric dialogs
 internals.overlayStore.set({ layers: [{ kind: 'tag', props: { path: TRACKS[0].path } }] })
 const tag = panel()
