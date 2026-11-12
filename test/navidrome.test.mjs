@@ -292,19 +292,24 @@ test('playlistSongs maps entries', async () => {
 
 // ── lyrics ───────────────────────────────────────────────────────────────
 
-test('lyric formats structured lyrics into LRC', async () => {
+test('lyric formats structured lyrics into LRC, treating start as milliseconds', async () => {
   await withFetch(
     async () =>
       jsonResponse(
         okBody({
+          // OpenSubsonic sends an integer millisecond offset; 12500 ms is
+          // 0:12.50 and 252720 ms is 4:12.72. Reading them as seconds used to
+          // produce [208:20.00] instead.
           lyricsList: {
-            structuredLyrics: [{ line: [{ start: 12.5, value: 'hello' }] }],
+            structuredLyrics: [
+              { line: [{ start: 12500, value: 'hello' }, { start: 252720, value: 'bye' }] },
+            ],
           },
         }),
       ),
     async () => {
       const out = await ND.lyric(cfg, 's1')
-      assert.equal(out.lrc, '[00:12.50]hello')
+      assert.equal(out.lrc, '[00:12.50]hello\n[04:12.72]bye')
       assert.equal(out.translation, '')
     },
   )
