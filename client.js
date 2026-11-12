@@ -9067,6 +9067,9 @@ window.__ModuleLoader__.load({
       var busyPair = useState(false)
       var busy = busyPair[0]
       var setBusy = busyPair[1]
+      // Navidrome credential form. Every hook in this component must run on each
+      // render, so it lives here rather than inside the tab/card render helpers.
+      var navForm = useNavidromeForm()
     
       useEffect(
         function () {
@@ -9442,8 +9445,7 @@ window.__ModuleLoader__.load({
          * Navidrome / Subsonic: a URL + credential form instead of a QR flow.
          * The password only travels once, to be traded for a salted token.
          */
-        function navidromeCard(info) {
-          var form = useNavidromeForm()
+        function navidromeCard(info, form) {
           var busy = form.phase === 'loading'
           return h(
             'div',
@@ -9539,7 +9541,7 @@ window.__ModuleLoader__.load({
           var info = providers[provider] || {}
           // Navidrome signs in with credentials, not a QR code, so it gets its own
           // body instead of the shared "scan to sign in" branch below.
-          if (provider === 'navidrome') return navidromeCard(info)
+          if (provider === 'navidrome') return navidromeCard(info, navForm)
           return h(
             'div',
             { key: provider, className: cx('mp-online-card', 'is-' + provider, info.loggedIn === true && 'is-logged') },
