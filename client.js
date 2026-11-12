@@ -2020,6 +2020,10 @@ window.__ModuleLoader__.load({
     function trackCoverSrc(track) {
       if (!track) return ''
       if (track.onlineProvider) {
+        // A self-hosted server's artwork needs its stored token, so it is proxied
+        // by coverArt id rather than by URL; the generic route only allows the
+        // public provider CDNs.
+        if (track.onlineProvider === 'navidrome') return subsonicCoverUrl(track.coverArtId)
         return typeof track.coverUrl === 'string' && track.coverUrl !== ''
           ? API + 'online/cover?url=' + encodeURIComponent(track.coverUrl)
           : ''
@@ -2039,6 +2043,9 @@ window.__ModuleLoader__.load({
         durationSec: result.durationSec,
         hasCover: false,
         coverUrl: result.coverUrl || '',
+        // Navidrome identifies artwork by id (`mf-…` song art, `al-…` album art),
+        // which trackCoverSrc resolves through the host proxy.
+        coverArtId: result.coverArtId || '',
         onlineUrl: onlineStreamUrl(provider, result.id),
         onlineProvider: provider,
         onlineId: result.id,
@@ -2052,7 +2059,9 @@ window.__ModuleLoader__.load({
     }
     
     function onlineCoverSrc(result) {
-      if (!result || typeof result.coverUrl !== 'string' || result.coverUrl === '') return ''
+      if (!result) return ''
+      if (typeof result.coverArtId === 'string' && result.coverArtId !== '') return subsonicCoverUrl(result.coverArtId)
+      if (typeof result.coverUrl !== 'string' || result.coverUrl === '') return ''
       return API + 'online/cover?url=' + encodeURIComponent(result.coverUrl)
     }
 
@@ -2941,6 +2950,9 @@ window.__ModuleLoader__.load({
           durationSec: Number(track.durationSec) || 0,
           coverUrl: track.coverUrl || '',
           hasCover: track.hasCover === true,
+          // Self-hosted artwork is addressed by id; persisting it keeps the
+          // restored queue's covers intact.
+          coverArtId: track.coverArtId || '',
           onlineProvider: track.onlineProvider || '',
           onlineId: track.onlineId || '',
           qualityHint: track.qualityHint || '',
@@ -3021,6 +3033,7 @@ window.__ModuleLoader__.load({
             durationSec: Number(entry.durationSec) || 0,
             hasCover: entry.hasCover === true,
             coverUrl: entry.coverUrl || '',
+            coverArtId: entry.coverArtId || '',
             onlineUrl: onlineStreamUrl(entry.onlineProvider, entry.onlineId),
             onlineProvider: entry.onlineProvider,
             onlineId: entry.onlineId,
@@ -4463,6 +4476,9 @@ window.__ModuleLoader__.load({
         album: track.album || '',
         durationSec: track.durationSec || 0,
         coverUrl: track.coverUrl || '',
+        // Without this the recent list loses artwork for self-hosted tracks once
+        // the entry round-trips through storage.
+        coverArtId: track.coverArtId || '',
         qualityHint: track.qualityHint || '',
         playedAt: Date.now(),
       }

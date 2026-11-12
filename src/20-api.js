@@ -109,6 +109,10 @@ function sendJson(method, url, payload) {
 function trackCoverSrc(track) {
   if (!track) return ''
   if (track.onlineProvider) {
+    // A self-hosted server's artwork needs its stored token, so it is proxied
+    // by coverArt id rather than by URL; the generic route only allows the
+    // public provider CDNs.
+    if (track.onlineProvider === 'navidrome') return subsonicCoverUrl(track.coverArtId)
     return typeof track.coverUrl === 'string' && track.coverUrl !== ''
       ? API + 'online/cover?url=' + encodeURIComponent(track.coverUrl)
       : ''
@@ -129,6 +133,9 @@ function onlineTrackOf(result) {
     durationSec: result.durationSec,
     hasCover: false,
     coverUrl: result.coverUrl || '',
+    // Navidrome identifies artwork by id (`mf-…` song art, `al-…` album art),
+    // which trackCoverSrc resolves through the host proxy.
+    coverArtId: result.coverArtId || '',
     onlineUrl: onlineStreamUrl(provider, result.id),
     onlineProvider: provider,
     onlineId: result.id,
@@ -142,6 +149,8 @@ function onlineTrackOf(result) {
 }
 
 function onlineCoverSrc(result) {
-  if (!result || typeof result.coverUrl !== 'string' || result.coverUrl === '') return ''
+  if (!result) return ''
+  if (typeof result.coverArtId === 'string' && result.coverArtId !== '') return subsonicCoverUrl(result.coverArtId)
+  if (typeof result.coverUrl !== 'string' || result.coverUrl === '') return ''
   return API + 'online/cover?url=' + encodeURIComponent(result.coverUrl)
 }

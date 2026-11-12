@@ -410,6 +410,9 @@ function rememberOnline(track) {
     albumId: track.albumId || '',
     durationSec: track.durationSec || 0,
     coverUrl: track.coverUrl || '',
+    // Without this the recent list loses artwork for self-hosted tracks once
+    // the entry round-trips through storage.
+    coverArtId: track.coverArtId || '',
     qualityHint: track.qualityHint || '',
     playedAt: Date.now(),
   }
