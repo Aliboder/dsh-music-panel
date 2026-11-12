@@ -692,8 +692,13 @@ function OnlineContent(props) {
     } else if (albumSongsList.length === 0) {
       body = h(Empty, { title: t('page.noResults'), icon: 'note' })
     } else {
+      // Keep the album's own running order. Navidrome returns tracks in
+      // disc/track sequence, so re-applying the user's sort preference (title,
+      // duration…) would scramble the album. Playback below uses the same
+      // array, so the queue matches what is on screen.
+      var albumOrder = albumSongsList.map(onlineTrackOf)
       body = h(TrackListBody, {
-        items: (setPlayAll(albumSongsList), (onlineSelectionList = sortOnlineTracks(albumSongsList))),
+        items: (setPlayAll(albumSongsList), (onlineSelectionList = albumOrder)),
         resetKey: resetKey,
         selectionMode: selecting,
         selectedSet: selectedSet,
