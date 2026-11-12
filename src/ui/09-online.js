@@ -34,6 +34,12 @@ function OnlineContent(props) {
     [selection.paths],
   )
   var onlineSelectionList = []
+
+  function reloginExpired() {
+    void logoutProvider(provider).then(function () {
+      pushLayer('login', { provider: provider, mode: 'qq' })
+    })
+  }
   var currentEntries = []
   var likedSet = online.liked || {}
 
@@ -306,6 +312,12 @@ function OnlineContent(props) {
       ]
     } else if (online.playlistsPhase === 'loading') {
       body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+    } else if (online.playlistsPhase === 'error') {
+      body = h(Empty, {
+        title: t('online.playlistsError'),
+        hint: online.error || t('online.authExpiredHint'),
+        icon: 'info',
+      })
     } else if (playlists.length === 0) {
       body = h(Empty, { title: t('v2.noPlaylists'), icon: 'list' })
     } else {
@@ -489,6 +501,43 @@ function OnlineContent(props) {
       selecting: selecting,
       selectedCount: selection.paths.length,
     }),
+    online.authExpired === provider
+      ? h(
+          'div',
+          { className: 'mp-online-auth', key: 'auth', role: 'status' },
+          h('span', { className: 'mp-online-auth-icon' }, icon('info', 16)),
+          h(
+            'div',
+            { className: 'mp-online-auth-text' },
+            h('div', { className: 'mp-online-auth-title' }, t('online.authExpired')),
+            h('div', { className: 'mp-online-auth-hint' }, t('online.authExpiredHint')),
+          ),
+          h(
+            'div',
+            { className: 'mp-online-auth-actions' },
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-online-auth-btn',
+                onClick: function () {
+                  void loadMyPlaylists(provider)
+                },
+              },
+              t('online.retry'),
+            ),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-online-auth-btn is-primary',
+                onClick: reloginExpired,
+              },
+              t('online.relogin'),
+            ),
+          ),
+        )
+      : null,
     actions && actions.length > 0
       ? h(
           'div',

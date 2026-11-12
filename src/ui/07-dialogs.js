@@ -473,6 +473,16 @@ function LoginDialog(props) {
   var errorPair = useState('')
   var error = errorPair[0]
   var setError = errorPair[1]
+  var attemptPair = useState(0)
+  var attempt = attemptPair[0]
+  var setAttempt = attemptPair[1]
+
+  function retry() {
+    setError('')
+    setStatus('waiting')
+    setQr(null)
+    setAttempt(attempt + 1)
+  }
 
   useEffect(
     function () {
@@ -516,7 +526,7 @@ function LoginDialog(props) {
         if (timer !== null) clearInterval(timer)
       }
     },
-    [provider, mode],
+    [provider, mode, attempt],
   )
 
   var providerLabel =

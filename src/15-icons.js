@@ -148,6 +148,15 @@ var ICONS = {
       ['path', { d: 'M15.5 8.5a5 5 0 010 7' }],
     ],
   },
+  equalizer: {
+    parts: [
+      ['path', { d: 'M4 10v4' }],
+      ['path', { d: 'M8 7v10' }],
+      ['path', { d: 'M12 4v16' }],
+      ['path', { d: 'M16 8v8' }],
+      ['path', { d: 'M20 11v2' }],
+    ],
+  },
   mute: {
     parts: [
       ['path', { d: 'M11 5L6 9H2v6h4l5 4V5z' }],

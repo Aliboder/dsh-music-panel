@@ -8,7 +8,7 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
-    var APP_VERSION = "0.28.2"
+    var APP_VERSION = "0.29.0"
 
     // ── src/00-runtime.js
     /**
@@ -136,6 +136,18 @@ window.__ModuleLoader__.load({
         'page.moveDown': '下移',
         'page.dragSort': '拖动排序',
         'page.more': '更多',
+        'editor.title': '编辑播放页',
+        'editor.subtitle': '改动即时生效',
+        'editor.cover': '封面样式',
+        'editor.type': '歌词排版',
+        'editor.display': '显示选项',
+        'editor.wave': '进度条波图',
+        'editor.reset': '恢复默认',
+        'editor.resetConfirm': '恢复默认设置？',
+        'editor.resetHint': '封面样式、歌词排版和显示选项都会恢复。',
+        'editor.cancel': '取消',
+        'editor.done': '完成',
+        'editor.close': '关闭',
         'page.copyPath': '复制文件路径',
         'page.copied': '已复制',
         'page.volume': '音量',
@@ -173,6 +185,9 @@ window.__ModuleLoader__.load({
         'page.audioError': '音频加载失败',
         'page.openPlayer': '打开播放页',
         'page.closePlayer': '收起播放页',
+        'page.fullscreen': '全屏',
+        'page.exitFullscreen': '退出全屏',
+        'page.fullscreenFailed': '当前环境无法进入全屏',
         'page.noLyrics': '暂无歌词。把同名 .lrc 文件放到歌曲旁边即可显示。',
         'page.translation': '显示 / 隐藏翻译',
         'page.lyricOffset': '歌词偏移',
@@ -180,7 +195,7 @@ window.__ModuleLoader__.load({
         'page.otherTabPlaying': '另一个标签页正在播放',
         'page.lyricOffsetHint': '仅 MP3 / FLAC 支持写回内嵌歌词；其他格式只保存偏移。',
         'page.lyricSize': '字体大小',
-        'page.lyricWeight': '字体粗细',
+        'page.lyricGap': '歌词间距',
         'page.lyricBlur': '模糊非当前歌词',
         'page.translationScale': '翻译字体缩放',
         'stats.rangeWeek': '最近一周',
@@ -276,6 +291,11 @@ window.__ModuleLoader__.load({
         'online.hasLyric': '含歌词',
         'online.networkError': '网络请求失败，请检查网络后重试',
         'online.loginExpired': '登录已过期，请重新登录（设置 → 在线）',
+        'online.authExpired': '登录已失效',
+        'online.authExpiredHint': '当前平台的登录态已失效，请重新登录后查看歌单。',
+        'online.relogin': '重新登录',
+        'online.retry': '重试',
+        'online.playlistsError': '歌单加载失败',
         'online.playFailed': '在线播放失败，已自动跳过',
         'online.online': '在线',
         'online.modeSearch': '搜索',
@@ -330,6 +350,14 @@ window.__ModuleLoader__.load({
         'settings.sleepTimer': '睡眠定时',
         'settings.sleepOff': '关闭',
         'settings.sleepTimerDone': '睡眠定时已到，已暂停播放',
+        'sleep.remaining': '剩余 {time}',
+        'sleep.hint': '到点后自动暂停播放',
+        'sleep.presets': '常用时长',
+        'sleep.custom': '自定义',
+        'sleep.minutes': '分钟',
+        'sleep.set': '设置',
+        'sleep.placeholder': '输入分钟数',
+        'sleep.invalid': '请输入 1–720 分钟',
         'onboarding.title': '欢迎使用音乐插件',
         'onboarding.skip': '跳过',
         'onboarding.back': '上一步',
@@ -428,6 +456,10 @@ window.__ModuleLoader__.load({
         'settings.miniPlayer': '迷你浮窗',
         'settings.composerQueueButton': '输入框播放列表按钮',
         'settings.circularCover': '播放页圆形封面',
+        'v2.coverStyle': '播放页封面样式',
+        'v2.coverStyleDesc': '方形适合查看完整封面，黑胶适合模拟唱片',
+        'v2.coverSquare': '方形封面',
+        'v2.coverVinyl': '黑胶封面',
         'settings.vinylRing': '圆形封面黑胶底盘',
         'settings.coverSpin': '圆形封面旋转',
         'settings.lyricOrder': '歌词获取顺序',
@@ -438,7 +470,6 @@ window.__ModuleLoader__.load({
         'settings.alignLeft': '左对齐',
         'settings.alignRight': '右对齐',
         'settings.lyricSize': '歌词字体大小',
-        'settings.lyricWeight': '歌词字体粗细',
         'settings.lyricBlur': '模糊非当前歌词',
         'settings.lyricTranslation': '歌词翻译',
         'settings.translationScale': '翻译字体缩放',
@@ -489,6 +520,18 @@ window.__ModuleLoader__.load({
         'page.moveDown': 'Move down',
         'page.dragSort': 'Drag to reorder',
         'page.more': 'More',
+        'editor.title': 'Edit Now Playing',
+        'editor.subtitle': 'Changes apply instantly',
+        'editor.cover': 'Cover style',
+        'editor.type': 'Lyric typography',
+        'editor.display': 'Display',
+        'editor.wave': 'Waveform on progress',
+        'editor.reset': 'Restore defaults',
+        'editor.resetConfirm': 'Restore default settings?',
+        'editor.resetHint': 'Cover style, lyric typography and display options will be reset.',
+        'editor.cancel': 'Cancel',
+        'editor.done': 'Done',
+        'editor.close': 'Close',
         'page.copyPath': 'Copy file path',
         'page.copied': 'Copied',
         'page.volume': 'Volume',
@@ -526,6 +569,9 @@ window.__ModuleLoader__.load({
         'page.audioError': 'Audio failed to load',
         'page.openPlayer': 'Open player',
         'page.closePlayer': 'Close player',
+        'page.fullscreen': 'Fullscreen',
+        'page.exitFullscreen': 'Exit fullscreen',
+        'page.fullscreenFailed': 'Fullscreen is not available here',
         'page.noLyrics': 'No lyrics yet. Drop a matching .lrc file next to the track.',
         'page.translation': 'Show / hide translation',
         'page.lyricOffset': 'Lyric offset',
@@ -533,7 +579,7 @@ window.__ModuleLoader__.load({
         'page.otherTabPlaying': 'Playing in another tab',
         'page.lyricOffsetHint': 'Writing back works for MP3 / FLAC only; other formats keep the offset in settings.',
         'page.lyricSize': 'Font size',
-        'page.lyricWeight': 'Font weight',
+        'page.lyricGap': 'Line spacing',
         'page.lyricBlur': 'Blur inactive lines',
         'page.translationScale': 'Translation scale',
         'stats.rangeWeek': 'Last week',
@@ -629,6 +675,11 @@ window.__ModuleLoader__.load({
         'online.hasLyric': 'lyrics',
         'online.networkError': 'Network request failed, please retry',
         'online.loginExpired': 'Sign-in expired, please sign in again (Settings → Online)',
+        'online.authExpired': 'Session expired',
+        'online.authExpiredHint': 'Your sign-in for this provider is no longer valid. Sign in again to load your playlists.',
+        'online.relogin': 'Sign in again',
+        'online.retry': 'Retry',
+        'online.playlistsError': "Couldn't load playlists",
         'online.playFailed': 'Online playback failed — skipped',
         'online.online': 'Online',
         'online.modeSearch': 'Search',
@@ -682,6 +733,14 @@ window.__ModuleLoader__.load({
         'settings.sleepTimer': 'Sleep timer',
         'settings.sleepOff': 'Off',
         'settings.sleepTimerDone': 'Sleep timer finished — playback paused',
+        'sleep.remaining': '{time} left',
+        'sleep.hint': 'Playback pauses when the timer ends',
+        'sleep.presets': 'Quick presets',
+        'sleep.custom': 'Custom',
+        'sleep.minutes': 'min',
+        'sleep.set': 'Set',
+        'sleep.placeholder': 'Minutes',
+        'sleep.invalid': 'Enter 1–720 minutes',
         'onboarding.title': 'Welcome to dsh-music-panel',
         'onboarding.skip': 'Skip',
         'onboarding.back': 'Back',
@@ -780,6 +839,10 @@ window.__ModuleLoader__.load({
         'settings.miniPlayer': 'Mini player window',
         'settings.composerQueueButton': 'Playlist button in composer',
         'settings.circularCover': 'Circular cover on player page',
+        'v2.coverStyle': 'Now-playing cover style',
+        'v2.coverStyleDesc': 'Square shows the full artwork; vinyl simulates a record',
+        'v2.coverSquare': 'Square',
+        'v2.coverVinyl': 'Vinyl',
         'settings.vinylRing': 'Vinyl ring behind the cover',
         'settings.coverSpin': 'Rotate the cover',
         'settings.lyricOrder': 'Lyric source order',
@@ -790,7 +853,6 @@ window.__ModuleLoader__.load({
         'settings.alignLeft': 'Left',
         'settings.alignRight': 'Right',
         'settings.lyricSize': 'Lyric font size',
-        'settings.lyricWeight': 'Lyric font weight',
         'settings.lyricBlur': 'Blur inactive lines',
         'settings.lyricTranslation': 'Lyric translation',
         'settings.translationScale': 'Translation scale',
@@ -1484,6 +1546,15 @@ window.__ModuleLoader__.load({
           ['path', { d: 'M15.5 8.5a5 5 0 010 7' }],
         ],
       },
+      equalizer: {
+        parts: [
+          ['path', { d: 'M4 10v4' }],
+          ['path', { d: 'M8 7v10' }],
+          ['path', { d: 'M12 4v16' }],
+          ['path', { d: 'M16 8v8' }],
+          ['path', { d: 'M20 11v2' }],
+        ],
+      },
       mute: {
         parts: [
           ['path', { d: 'M11 5L6 9H2v6h4l5 4V5z' }],
@@ -1869,6 +1940,18 @@ window.__ModuleLoader__.load({
         ['circle', { cx: 15.5, cy: 17.5, r: 2.5 }],
       ],
     }
+    
+    
+    ICONS.maximize = {
+      parts: [
+        ['path', { d: 'M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3' }],
+      ],
+    }
+    ICONS.minimize = {
+      parts: [
+        ['path', { d: 'M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M16 21v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3' }],
+      ],
+    }
 
     // ── src/20-api.js
     /**
@@ -2023,17 +2106,20 @@ window.__ModuleLoader__.load({
       layout: 'top',
       sortBy: 'title',
       sortDir: 'asc',
-      circularCover: true,
+      circularCover: false,
+      coverStyle: 'square',
       vinylRing: false,
       npLookMigrated: true,
       coverSpin: true,
       lyricOrder: ['embedded', 'lrc'],
-      lyricAlign: 'center',
-      lyricSize: 18,
-      lyricWeight: 500,
+      lyricAlign: 'left',
+      lyricSize: 35,
+      lyricGap: 15,
       lyricBlur: true,
+      waveEnabled: true,
       showTranslation: true,
-      translationScale: 80,
+      translationScale: 90,
+      npLayoutV2: false,
       composerLyrics: false,
       composerLyricPlace: 'input-left',
       volume: 1,
@@ -2085,6 +2171,21 @@ window.__ModuleLoader__.load({
       if (merged.npLookMigrated !== true) {
         merged.circularCover = PREF_DEFAULTS.circularCover
         merged.npLookMigrated = true
+        try {
+          window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
+        } catch (error) {
+          // Best effort only.
+        }
+      }
+      // One-time move to the reference now-playing layout (square cover, left lyrics,
+      // denser lyric typography). Later user edits still win.
+      if (merged.npLayoutV2 !== true) {
+        merged.coverStyle = PREF_DEFAULTS.coverStyle
+        merged.lyricAlign = PREF_DEFAULTS.lyricAlign
+        merged.lyricSize = PREF_DEFAULTS.lyricSize
+        merged.lyricBlur = PREF_DEFAULTS.lyricBlur
+        merged.translationScale = PREF_DEFAULTS.translationScale
+        merged.npLayoutV2 = true
         try {
           window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
         } catch (error) {
@@ -2699,7 +2800,7 @@ window.__ModuleLoader__.load({
     }
     
     function playModeIcon(mode) {
-      return mode === 'one' ? 'repeatOne' : mode === 'random' ? 'shuffle' : 'list'
+      return mode === 'one' ? 'repeatOne' : mode === 'random' ? 'shuffle' : 'repeat'
     }
     
     function applyPlayMode(mode) {
@@ -3450,6 +3551,19 @@ window.__ModuleLoader__.load({
         getSnapshot: function () {
           return state
         },
+        /** Merge probed audio facts (codec/sampleRate/bitrate) into a queued track. */
+        updateTrack: function (path, info) {
+          if (!path || !info || typeof info !== 'object') return
+          var found = false
+          var queue = state.queue.map(function (item) {
+            if (!item || item.path !== path) return item
+            found = true
+            return Object.assign({}, item, info)
+          })
+          if (!found) return
+          state = Object.assign({}, state, { queue: queue })
+          emit()
+        },
         getTime: function () {
           return { currentTime: state.currentTime, duration: state.duration, buffered: state.buffered }
         },
@@ -4146,6 +4260,7 @@ window.__ModuleLoader__.load({
       playlistsProvider: '',
       playlistsRefreshing: false,
       playlists: [],
+      authExpired: '',
       playlistId: '',
       playlistName: '',
       playlistSongs: [],
@@ -4218,6 +4333,12 @@ window.__ModuleLoader__.load({
       }
     }
     
+    function isAuthError(message) {
+      return /20017|登录态|重新扫码|未登录|登录.*(失效|过期)|session|cookie|token|鉴权|401|403/i.test(
+        String(message || ''),
+      )
+    }
+    
     function mergePlaylists(previous, incoming) {
       var next = new Map()
       ;(incoming || []).forEach(function (item) {
@@ -4258,13 +4379,20 @@ window.__ModuleLoader__.load({
           playlistsProvider: target,
           playlists: keep ? mergePlaylists(current.playlists, incoming) : incoming,
           error: '',
+          authExpired: '',
         })
       } catch (error) {
         if (token !== playlistLoadToken) return
         var state = onlineStore.get()
         if (state.playlistsProvider === target && (state.playlists || []).length > 0) {
           // Stale-while-revalidate: keep the last good list visible.
-          onlineStore.set({ playlistsPhase: 'ready', playlistsRefreshing: false, error: errorText(error) })
+          var message = errorText(error)
+          onlineStore.set({
+            playlistsPhase: 'ready',
+            playlistsRefreshing: false,
+            error: message,
+            authExpired: isAuthError(message) ? target : '',
+          })
         } else {
           onlineStore.set({
             playlistsPhase: 'error',
@@ -4272,6 +4400,7 @@ window.__ModuleLoader__.load({
             playlistsProvider: target,
             playlists: [],
             error: errorText(error),
+            authExpired: isAuthError(errorText(error)) ? target : '',
           })
         }
       }
@@ -4321,6 +4450,7 @@ window.__ModuleLoader__.load({
         albumError: '',
         liked: {},
         error: '',
+        authExpired: '',
       })
     }
     
@@ -4939,6 +5069,17 @@ window.__ModuleLoader__.load({
       '.mp-sel-count{margin-left:2px;padding:2px 9px;border-radius:999px;font-size:12px;line-height:18px;color:var(--dsw-alias-state-business-primary,#7AAAFF);background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
       '.mp-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px;flex:none}',
       '.mp-toolbar{display:flex;align-items:center;gap:8px;padding:0 22px 10px;min-height:34px;flex-wrap:wrap;flex:none}',
+      '.mp-online-auth{display:flex;align-items:flex-start;gap:10px;margin:0 22px 10px;padding:10px 12px;border:1px solid rgba(240,179,91,.35);border-radius:8px;background:rgba(240,179,91,.08);flex:none}',
+      '.mp-online-auth-icon{display:flex;flex:none;color:#f0b35b;margin-top:1px}',
+      '.mp-online-auth-text{flex:1;min-width:0}',
+      '.mp-online-auth-title{font-size:12px;font-weight:650;color:rgba(255,224,180,.95)}',
+      '.mp-online-auth-hint{margin-top:2px;font-size:11px;line-height:1.45;color:rgba(255,255,255,.6)}',
+      '.mp-online-auth-actions{display:flex;align-items:center;gap:6px;flex:none;margin-top:1px}',
+      '.mp-online-auth-btn{height:26px;padding:0 9px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.8);font:inherit;font-size:11px;cursor:pointer}',
+      '.mp-online-auth-btn:hover{background:rgba(255,255,255,.12)}',
+      '.mp-online-auth-btn.is-primary{background:#e6a85a;border-color:#e6a85a;color:#241708}',
+      '.mp-online-auth-btn.is-primary:hover{background:#f0b86a;border-color:#f0b86a}',
+      '@media (max-width:700px){.mp-online-auth{flex-wrap:wrap}.mp-online-auth-actions{width:100%;justify-content:flex-end}}',
       '.mp-toolbar:empty{display:none}',
       '.mp-chip{height:26px;padding:0 10px;display:inline-flex;align-items:center;gap:5px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;white-space:nowrap}',
       '.mp-chip:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
@@ -5090,66 +5231,193 @@ window.__ModuleLoader__.load({
       '.mp-queue-pop{position:fixed;right:24px;bottom:96px;z-index:70;width:340px;max-height:56vh;display:flex;flex-direction:column;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:0 16px 48px rgba(0,0,0,.5);overflow:hidden}',
       '.mp-queue-pop .mp-q-list{max-height:40vh}',
     
-      // ── now playing (0.11.1 look) ───────────────────────────────────────────
-      '.mp-np{position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none;will-change:transform}',
+      // ── now playing (reference layout) ──────────────────────────────────────────
+      '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
       '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
       '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
-      '.mp-np-bg img{width:100%;height:100%;object-fit:cover;filter:blur(72px) saturate(1.35) brightness(.42);transform:scale(1.15)}',
-      '.mp-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,10,12,.35),rgba(10,10,12,.72) 60%,rgba(10,10,12,.92));pointer-events:none}',
-      '.mp-np-head{position:relative;z-index:2;display:flex;align-items:center;gap:8px;padding:16px 24px 8px}',
-      '.mp-np-head-title{flex:1;min-width:0;text-align:center;font-size:14px;font-weight:600;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-np-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px}',
+      '.mp-np-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto}.mp-np-bg .is-prev{opacity:1}.mp-np-bg .is-cur{animation:mp-bg-in .85s ease both}@keyframes mp-bg-in{from{opacity:0}to{opacity:1}}',
+      '.mp-np-shade{position:absolute;inset:0;z-index:1;background:radial-gradient(85% 70% at 16% 6%,rgba(30,4,4,.22),transparent 62%),linear-gradient(180deg,rgba(14,2,2,.26),rgba(14,2,2,.06) 44%,rgba(14,2,2,.22) 80%,rgba(10,2,2,.44));pointer-events:none}',
+      '.mp-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(52% 44% at 26% 22%,rgba(255,255,255,.05),transparent 70%),radial-gradient(44% 40% at 80% 82%,rgba(0,0,0,.28),transparent 74%);pointer-events:none}',
+      '.mp-np-head{position:absolute;top:22px;left:22px;z-index:5;display:flex;align-items:center;gap:8px;padding:0}',
+      '.mp-np-head .mp-iconbtn{width:36px;height:36px;border-radius:8px;color:rgba(255,255,255,.78)}',
+      '.mp-np-head .mp-iconbtn:hover{background:rgba(255,255,255,.1);color:#fff}',
+      '.mp-np-fs{position:absolute;top:22px;right:22px;z-index:6}',
+      '.mp-np-fs .mp-iconbtn{width:36px;height:36px;border-radius:8px;color:rgba(255,255,255,.78)}',
+      '.mp-np-fs .mp-iconbtn:hover{background:rgba(255,255,255,.1);color:#fff}',
+      '.mp-np:fullscreen{width:100vw;height:100vh;transform:none;visibility:visible;background:var(--dsw-alias-bg-base,#141417)}',
+      '.mp-np-head-title{display:none}',
+      '.mp-np-head-actions{display:none}',
       '.mp-trans-toggle{width:auto;padding:0 8px;font-size:12px;font-weight:600;line-height:1}',
       '.mp-trans-toggle.is-on{color:var(--dsw-alias-brand-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1))}',
-      '.mp-np-settings{position:absolute;top:52px;right:20px;z-index:6;width:320px;max-width:calc(100% - 40px);padding:14px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:12px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:0 12px 32px rgba(0,0,0,.45)}',
+      '.mp-np-settings{position:absolute;bottom:84px;right:5vw;z-index:8;width:320px;max-width:calc(100% - 40px);max-height:calc(100% - 32px);overflow-y:auto;padding:14px;border:.5px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(24,24,28,.97);box-shadow:0 18px 48px rgba(0,0,0,.5)}',
       '.mp-np-setting{margin-bottom:14px}',
-      '.mp-np-setting-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mp-np-body{position:relative;z-index:2;flex:1;min-height:0;display:grid;grid-template-columns:minmax(200px,38%) minmax(0,1fr);align-items:center;gap:24px;padding:8px 40px}',
-      '.mp-np-left{display:flex;flex-direction:column;align-items:center;gap:18px;min-width:0}',
-      '.mp-np-disc-wrap{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:30px}',
-      '.mp-np-disc{position:relative;width:min(380px,29vw);height:min(380px,29vw);flex:none;aspect-ratio:1;display:flex;align-items:center;justify-content:center;animation:mp-disc-spin 24s linear infinite;animation-play-state:paused}',
+      '.mp-np-setting-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px;color:rgba(255,255,255,.62)}.mp-np-setting select{width:100%;height:30px;padding:0 8px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none;cursor:pointer}.mp-np-align-row{display:flex;gap:6px}.mp-np-align-row .mp-chip{flex:1;justify-content:center;min-width:0;height:28px;padding:0 4px}',
+      '.mp-np-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;align-items:stretch;padding:86px 2.5vw 0 6.5vw}',
+      '.mp-np-left{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;flex:none;min-width:0;width:var(--mp-cover);padding-bottom:77px}',
+      '.mp-np-meta{min-width:0;margin:0 0 14px}',
+      '.mp-np-meta-row{display:none}',
+      '.mp-np-title{min-width:0;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-np-artist-row{display:flex;align-items:center;gap:10px;min-width:0;margin-top:10px}.mp-np-artist{flex:0 1 auto;min-width:0;font-size:15px;font-weight:400;color:rgba(255,255,255,.66);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-np-meta-audio{flex:none;color:rgba(255,255,255,.55);position:static}',
+      '.mp-np-meta-audio:hover{color:#fff}',
+      '.mp-np-cover-stage{position:relative;width:var(--mp-cover);margin:0 0 18px}',
+      '.mp-np-disc-wrap{position:relative;display:flex;align-items:center;justify-content:center;box-sizing:border-box}',
+      '.mp-np-disc-wrap.is-vinyl{width:calc(var(--mp-cover) * .9);margin-left:auto;margin-right:auto;padding:calc(var(--mp-cover) * .06);top:30px}',
+      '.mp-np-reflect-wave{position:absolute;left:0;top:50%;transform:translateY(-50%);transform-origin:50% 50%;transition:opacity .3s ease,transform .3s ease;width:100%;height:36px;pointer-events:none;z-index:0;mix-blend-mode:screen;opacity:.86;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%)}.mp-np-reflect-wave.is-fading{opacity:0;transform:translateY(-50%) scaleY(.12)}',
+      '.mp-np-cover-stage.is-vinyl .mp-np-reflect-wave{left:5%;width:90%}',
+      '.mp-np-disc{position:relative;width:var(--mp-cover);height:var(--mp-cover);flex:none;aspect-ratio:1;display:flex;align-items:center;justify-content:center;animation:mp-disc-spin 24s linear infinite;animation-play-state:paused}',
       '.mp-np-disc.is-playing{animation-play-state:running}',
       '.mp-np-disc.is-square{animation:none}',
-      '.mp-np-vinyl{position:absolute;inset:-22px;aspect-ratio:1;border-radius:50%;clip-path:circle(50% at 50% 50%);background:repeating-radial-gradient(circle at 50% 50%,#141416 0 2px,#0b0b0d 2px 5px);box-shadow:inset 0 0 40px rgba(0,0,0,.85),0 18px 50px rgba(0,0,0,.5);z-index:0}',
-      '.mp-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(50% 42% at 28% 26%,color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 16%, transparent),transparent 72%),radial-gradient(40% 36% at 78% 74%,rgba(122,170,255,.08),transparent 70%);pointer-events:none}',
-      '.mp-np-art{position:relative;z-index:1;width:min(340px,26vw);height:min(340px,26vw);border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#141416;color:#71717a;box-shadow:0 34px 80px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.07)}',
-      '.mp-np-art::after{content:"";position:absolute;inset:0;border-radius:20px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 -48px 70px rgba(0,0,0,.28);pointer-events:none;z-index:2}',
-      '.mp-np-art img{width:100%;height:100%;object-fit:cover;display:block;border-radius:20px}',
-      '.mp-np-disc.is-circle .mp-np-art{border-radius:170px;clip-path:circle(50% at 50% 50%)}',
-      '.mp-np-disc.is-circle .mp-np-art img{border-radius:170px}',
+      '.mp-np-vinyl{position:absolute;inset:calc(var(--mp-cover) * -.06);aspect-ratio:1;border-radius:50%;clip-path:circle(50% at 50% 50%);background:repeating-radial-gradient(circle at 50% 50%,#141416 0 2px,#0b0b0d 2px 5px);box-shadow:inset 0 0 40px rgba(0,0,0,.85),0 18px 50px rgba(0,0,0,.5);z-index:0}',
+      '.mp-np-art{position:relative;z-index:1;width:100%;height:100%;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#141416;color:#71717a;box-shadow:0 26px 64px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06)}',
+      '.mp-np-art::after{content:"";position:absolute;inset:0;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset 0 -40px 60px rgba(0,0,0,.16);pointer-events:none;z-index:2}',
+      '.mp-np-art img{width:100%;height:100%;object-fit:cover;display:block;border-radius:8px}',
+      '.mp-np-disc.is-circle .mp-np-art{border-radius:50%;clip-path:circle(50% at 50% 50%)}',
+      '.mp-np-disc.is-circle .mp-np-art img{border-radius:50%}.mp-np-disc.is-vinyl{width:calc(var(--mp-cover) * .78);height:calc(var(--mp-cover) * .78)}',
+      '.mp-np-quality{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 16px;min-height:20px;margin:auto 0 12px;font-size:13px;font-weight:500;color:rgba(255,255,255,.8);letter-spacing:.01em}',
+      '.mp-np-quality-name{color:rgba(255,255,255,.95)}',
+      '.mp-np-progress{position:relative;width:100%;margin:12px 0 0;padding:0;order:3}',
+      '.mp-np-times{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:12px;order:4;font-size:13px;font-weight:500;color:rgba(255,255,255,.86);font-variant-numeric:tabular-nums}',
+      '.mp-np-transport{display:flex;align-items:center;justify-content:center;gap:84px;margin:0;order:2}',
+      '.mp-np-transport .mp-iconbtn{width:46px;height:46px;border-radius:50%;color:#fff}.mp-np-transport svg{stroke-width:2}.mp-np-secondary svg{stroke-width:1.9}',
+      '.mp-np-transport .mp-iconbtn:hover{background:rgba(255,255,255,.08);color:#fff}',
+      '.mp-np-transport .mp-pb-play{width:48px;height:48px;margin:0;border-radius:0;background:transparent;color:#fff;box-shadow:none}',
+      '.mp-np-transport .mp-pb-play:hover{background:transparent;transform:none;box-shadow:none}',
+      '.mp-np-transport .mp-pb-play:disabled{background:transparent;box-shadow:none}',
+      '.mp-np-secondary{display:flex;align-items:center;justify-content:space-between;gap:0;width:100%;margin:12px 0 0;padding:0 2px;box-sizing:border-box;order:5}',
+      '.mp-np-secondary .mp-iconbtn{width:40px;height:40px;border-radius:8px;color:rgba(255,255,255,.9)}',
+      '.mp-np-secondary .mp-iconbtn:hover{background:rgba(255,255,255,.1);color:#fff}',
+      '.mp-np-extra-item{position:relative;display:flex}',
+      '.mp-np-extra-pop{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);z-index:10;width:210px;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(24,24,28,.96);box-shadow:0 16px 40px rgba(0,0,0,.5)}',
+      '.mp-np-extra-title{font-size:12px;font-weight:650;margin-bottom:8px}',
+      '.mp-np-extra-option{display:block;width:100%;padding:7px 8px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;font:inherit;font-size:12px;cursor:pointer}',
+      '.mp-np-extra-option:hover,.mp-np-extra-option.is-on{background:rgba(255,255,255,.08)}',
+      '.mp-np-extra-option.is-on{color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-np-extra-pop.is-sleep{left:0;transform:none;width:280px;max-width:calc(100vw - 32px);padding:14px;border-radius:12px}',
+      '.mp-np-sleep-head{display:flex;align-items:flex-start;gap:8px}',
+      '.mp-np-sleep-head-icon{display:flex;flex:none;color:#f0b35b;margin-top:2px}',
+      '.mp-np-sleep-title-wrap{flex:1;min-width:0}',
+      '.mp-np-sleep-title{font-size:13px;font-weight:650;color:#f4f4f5}',
+      '.mp-np-sleep-hint{margin-top:3px;font-size:11px;line-height:1.4;color:rgba(255,255,255,.55)}',
+      '.mp-np-sleep-close{width:24px;height:24px;flex:none;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.5);cursor:pointer}',
+      '.mp-np-sleep-close:hover{background:rgba(255,255,255,.08);color:#fff}',
+      '.mp-np-sleep-label{margin-top:12px;font-size:11px;font-weight:600;letter-spacing:.04em;color:rgba(255,255,255,.5)}',
+      '.mp-np-sleep-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}',
+      '.mp-np-sleep-chip{height:30px;display:inline-flex;align-items:center;justify-content:center;gap:2px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.78);font:inherit;font-size:12px;cursor:pointer;transition:background .14s,border-color .14s,color .14s}',
+      '.mp-np-sleep-chip span{font-size:10px;color:rgba(255,255,255,.45)}',
+      '.mp-np-sleep-chip:hover{background:rgba(255,255,255,.08);color:#fff}',
+      '.mp-np-sleep-chip.is-on{background:rgba(90,130,255,.18);border-color:rgba(120,160,255,.6);color:#fff}',
+      '.mp-np-sleep-chip.is-on span{color:rgba(255,255,255,.7)}',
+      '.mp-np-sleep-custom{display:flex;align-items:center;gap:6px;margin-top:6px}',
+      '.mp-np-sleep-input{flex:1;min-width:0;height:30px;padding:0 8px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.04);color:#f4f4f5;font:inherit;font-size:12px;text-align:center;outline:none}',
+      '.mp-np-sleep-input::placeholder{color:rgba(255,255,255,.35)}',
+      '.mp-np-sleep-input:focus{border-color:rgba(120,160,255,.6)}',
+      '.mp-np-sleep-unit{font-size:11px;color:rgba(255,255,255,.45)}',
+      '.mp-np-sleep-set{height:30px;padding:0 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.08);color:#f4f4f5;font:inherit;font-size:12px;cursor:pointer}',
+      '.mp-np-sleep-set:hover:not(:disabled){background:rgba(255,255,255,.14)}',
+      '.mp-np-sleep-set:disabled{opacity:.4;cursor:not-allowed}',
+      '.mp-np-sleep-error{margin-top:5px;font-size:10px;color:#ff9a9a}',
+      '.mp-np-sleep-off{width:100%;height:30px;margin-top:12px;border:1px solid rgba(255,100,100,.22);border-radius:8px;background:rgba(255,80,80,.07);color:#ff9a9a;font:inherit;font-size:12px;cursor:pointer}',
+      '.mp-np-sleep-off:hover{background:rgba(255,80,80,.14)}',
+      '.mp-np-extra-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px}',
+      '.mp-np-extra-hint{margin-top:10px;font-size:11px;color:rgba(255,255,255,.55)}',
+      '.mp-np .mp-seek{height:16px}',
+      '.mp-np .mp-seek::before{height:2px;background:rgba(255,255,255,.24)}',
+      '.mp-np .mp-seek-buffer{height:2px;background:rgba(255,255,255,.34)}',
+      '.mp-np .mp-seek::after{height:2px;background:#fff}',
+      '.mp-np .mp-seek:hover::before,.mp-np .mp-seek:hover::after,.mp-np .mp-seek:hover .mp-seek-buffer{height:3px}',
+      '.mp-np .mp-seek input{height:16px}',
+      '.mp-np .mp-seek input::-webkit-slider-runnable-track{height:16px}',
+      '.mp-np .mp-seek input::-webkit-slider-thumb{width:10px;height:10px;margin-top:3px;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.16);opacity:1}',
+      '.mp-np .mp-seek:hover input::-webkit-slider-thumb{width:12px;height:12px;margin-top:2px}',
+      '.mp-np .mp-seek input::-moz-range-track{height:16px}',
+      '.mp-np .mp-seek input::-moz-range-thumb{width:10px;height:10px;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.16);opacity:1}',
       '.mp-align-left .mp-np-line{text-align:left}',
       '.mp-align-center .mp-np-line{text-align:center}',
       '.mp-align-right .mp-np-line{text-align:right}',
-      '.mp-np-meta{text-align:center;min-width:0;max-width:420px}',
-      '.mp-np-title{font-size:20px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-np-artist{font-size:13px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-np-right{height:100%;min-height:0;display:flex;align-items:center;justify-content:center}',
-      '.mp-np-lyrics{position:relative;width:100%;max-width:560px;height:100%;max-height:420px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent)}',
+      '.mp-np-right{flex:1 1 auto;width:auto;min-width:0;min-height:0;margin-left:var(--mp-pane-gap,5vw);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding-bottom:77px}',
+      '.mp-np-lyrics{position:relative;flex:1;width:100%;min-height:0;height:auto;max-width:none;max-height:none;padding-top:78px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 10%,#000 88%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 10%,#000 88%,transparent 100%)}',
       '.mp-np-lyrics.is-static{overflow-y:auto;-webkit-mask-image:none;mask-image:none}',
-      '.mp-np-lyrics.is-static .mp-np-line{opacity:.7;cursor:default;transform:none}',
-      '.mp-np-lyrics-inner{transition:transform .55s cubic-bezier(.22,.61,.36,1);padding:0 8px}',
-      '.mp-np-lyrics-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:13px;text-align:center;padding:0 24px;line-height:1.7}',
-      '.mp-np-line{padding:8px 6px;border-radius:8px;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;transition:color .25s ease,opacity .3s ease,transform .5s cubic-bezier(.22,.61,.36,1);transition-delay:calc(var(--mp-line-stagger,0) * 22ms);text-align:center;opacity:.42;transform:translateY(4px)}',
-      '.mp-np-line:hover{color:var(--dsw-alias-label-secondary,#c4c4cc);opacity:.72}',
-      '.mp-np-line.is-past{opacity:.34;transform:translateY(-4px)}',
-      '.mp-np-line.is-active{color:var(--dsw-alias-label-primary,#f4f4f5);opacity:1;transform:translateY(0)}',
-      '.mp-np-line-text{font-size:var(--mp-lyric-size,18px);line-height:1.6;font-weight:var(--mp-lyric-weight,500);white-space:normal;word-break:break-word;overflow-wrap:anywhere;letter-spacing:.01em}',
-      '.mp-np-line.is-active .mp-np-line-text{font-weight:700;text-shadow:0 0 24px rgba(255,255,255,.12)}',
-      '.mp-np-line-trans{font-size:var(--mp-lyric-trans,13px);line-height:1.5;margin-top:4px;opacity:.66}',
-      '.mp-np-line.is-active .mp-np-line-trans{opacity:.85}',
-      '.mp-np.is-blur .mp-np-line:not(.is-active){opacity:.34;filter:blur(1.2px)}',
-      '.mp-np-bottom{position:relative;z-index:2;flex:none;height:68px;margin:0;padding:0 14px;border:0;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:0;background:var(--dsw-alias-bg-layer-1,#15151a);display:flex;align-items:center}',
-      '.mp-np-progress{position:absolute;left:0;right:0;top:-2px;margin:0;padding:0 2px}',
-      '.mp-np-bar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;width:100%;height:100%}',
-      '.mp-np-time{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);font-variant-numeric:tabular-nums}',
-      '.mp-np-time-sep{opacity:.6}',
-      '.mp-np-controls{display:flex;align-items:center;gap:4px;justify-self:center}',
-      '.mp-np-vol{display:flex;align-items:center;gap:8px;justify-self:end}',
+      '.mp-np-lyrics.is-static .mp-np-line{opacity:.75;cursor:default}',
+      '.mp-np-lyrics-inner{padding:0;will-change:transform;backface-visibility:hidden}',
+      '.mp-np-lyrics-empty{display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.5);font-size:13px;text-align:center;padding:0 24px;line-height:1.7}',
+      '.mp-np-line{padding:var(--mp-line-gap,6px) 0;border-radius:0;color:rgba(255,255,255,.6);cursor:pointer;transition:color .25s ease,opacity .3s ease,filter .25s ease;text-align:left;opacity:1;transform:none}',
+      '.mp-np-line:hover{color:rgba(255,255,255,.86)}',
+      '.mp-np-line.is-past{opacity:.46}',
+      '.mp-np-line.is-active{color:#fff;opacity:1}',
+      '.mp-np-line-text{font-size:var(--mp-lyric-size,26px);line-height:1.2;font-weight:600;white-space:normal;word-break:break-word;overflow-wrap:anywhere;letter-spacing:.005em}',
+      '.mp-np-line.is-active .mp-np-line-text{text-shadow:0 2px 22px rgba(0,0,0,.35)}',
+      '.mp-np-line-trans{display:grid;grid-template-rows:0fr;margin-top:0;opacity:0;font-size:var(--mp-lyric-trans,16px);line-height:1.2;font-weight:400;color:rgba(255,255,255,.58);transition:grid-template-rows .26s cubic-bezier(.22,.61,.36,1) .14s,opacity .14s ease 0s,margin-top .26s cubic-bezier(.22,.61,.36,1) .14s}.mp-np-line-trans-inner{display:block;min-height:0;overflow:hidden}.mp-np.is-trans .mp-np-line-trans-inner{min-height:calc(var(--mp-trans,1) * var(--mp-lyric-trans,16px) * 1.2)}.mp-np-line-trans-text{display:block}.mp-np.is-trans .mp-np-line-trans{grid-template-rows:1fr;margin-top:calc(var(--mp-trans,1) * 2px);opacity:1;transition:grid-template-rows .26s cubic-bezier(.22,.61,.36,1) 0s,opacity .2s ease .1s,margin-top .26s cubic-bezier(.22,.61,.36,1) 0s}',
+      '.mp-np-line.is-active .mp-np-line-trans{color:rgba(255,255,255,.82)}',
+      '.mp-np.is-blur .mp-np-line:not(.is-active){opacity:.44;filter:blur(calc(0.2px + var(--mp-line-stagger,0) * 0.22px))}',
+      '.mp-np-lyric-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;flex:none;margin-top:14px;min-height:30px}',
+      '.mp-np-lyric-tag{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.7)}',
+      '.mp-np-lyric-tag-badge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 4px;border:1px solid rgba(255,255,255,.42);border-radius:5px;background:transparent;font:inherit;font-size:12px;font-weight:500;line-height:1;color:rgba(255,255,255,.92);cursor:pointer}.mp-np-lyric-tag-badge:hover,.mp-np-lyric-tag-badge.is-on{border-color:rgba(255,255,255,.72);background:rgba(255,255,255,.1);color:#fff}',
+      '.mp-np-lyric-source{font-size:12px;letter-spacing:.06em;color:rgba(255,255,255,.8)}',
+      '.mp-np-foot-right{display:flex;align-items:center;gap:10px;margin-left:auto}',
+      '.mp-np-foot-btn{display:inline-flex;align-items:center;justify-content:center;height:30px;min-width:30px;padding:0 7px;border:1px solid transparent;border-radius:8px;background:transparent;color:rgba(255,255,255,.78);font:inherit;font-size:13px;font-weight:600;cursor:pointer}',
+      '.mp-np-foot-btn.is-boxed{border-color:rgba(255,255,255,.45)}',
+      '.mp-npe{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.62);animation:mp-npe-fade .18s ease}',
+      '.mp-npe-panel{position:relative;width:min(440px,calc(100vw - 32px));height:auto;max-height:min(760px,calc(100vh - 48px));display:flex;flex-direction:column;background:#151519;border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.6);animation:mp-npe-pop .22s cubic-bezier(.22,.61,.36,1)}',
+      '.mp-npe-head{display:flex;align-items:flex-start;gap:12px;padding:22px 22px 16px;border-bottom:1px solid rgba(255,255,255,.08)}',
+      '.mp-npe-head-text{flex:1;min-width:0}',
+      '.mp-npe-title{font-size:18px;font-weight:700;line-height:1.25}',
+      '.mp-npe-sub{margin-top:3px;font-size:12px;color:rgba(255,255,255,.55)}',
+      '.mp-npe-close{width:32px;height:32px;flex:none;display:grid;place-items:center;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.72);cursor:pointer;transition:background .14s,color .14s}',
+      '.mp-npe-close:hover{background:rgba(255,255,255,.12);color:#fff}',
+      '.mp-npe-head-actions{display:flex;align-items:center;gap:6px;flex:none}',
+      '.mp-npe-head-btn{width:32px;height:32px;flex:none;display:grid;place-items:center;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.72);cursor:pointer;transition:background .14s,color .14s}',
+      '.mp-npe-head-btn:hover{background:rgba(255,255,255,.12);color:#fff}',
+      '.mp-npe-confirm{display:flex;align-items:center;gap:10px;padding:10px 22px;background:rgba(240,179,91,.08);border-bottom:1px solid rgba(240,179,91,.22)}',
+      '.mp-npe-confirm-text{flex:1;min-width:0}',
+      '.mp-npe-confirm-title{font-size:12px;font-weight:600;color:#ffd9a0}',
+      '.mp-npe-confirm-hint{margin-top:2px;font-size:10px;line-height:1.4;color:rgba(255,255,255,.5)}',
+      '.mp-npe-confirm-btn{height:26px;padding:0 9px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.8);font:inherit;font-size:11px;cursor:pointer}',
+      '.mp-npe-confirm-btn:hover{background:rgba(255,255,255,.12)}',
+      '.mp-npe-confirm-btn.is-primary{background:#e6a85a;border-color:#e6a85a;color:#241708}',
+      '.mp-npe-confirm-btn.is-primary:hover{background:#f0b86a;border-color:#f0b86a}',
+      '.mp-npe-body{flex:1;min-height:0;overflow-y:auto;padding:18px 22px 22px}',
+      '.mp-npe-section{margin-bottom:24px}',
+      '.mp-npe-sec-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}',
+      '.mp-npe-sec-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);white-space:nowrap}',
+      '.mp-npe-sec-line{flex:1;height:1px;background:rgba(255,255,255,.08)}',
+      '.mp-npe-cover-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
+      '.mp-npe-cover-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 10px 10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.035);color:rgba(255,255,255,.72);cursor:pointer;transition:border-color .16s,background .16s,box-shadow .16s,color .16s}',
+      '.mp-npe-cover-card:hover{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.06)}',
+      '.mp-npe-cover-card.is-on{border-color:rgba(120,160,255,.75);background:rgba(90,130,255,.14);box-shadow:0 0 0 1px rgba(120,160,255,.35),0 8px 24px rgba(40,80,200,.18);color:#fff}',
+      '.mp-npe-cover-preview{width:78px;height:78px;display:flex;align-items:center;justify-content:center;overflow:hidden;color:rgba(255,255,255,.35)}',
+      '.mp-npe-cover-preview img{width:100%;height:100%;object-fit:cover;display:block}',
+      '.mp-npe-cover-square{border-radius:8px;background:#0c0c0e;box-shadow:0 6px 18px rgba(0,0,0,.35)}',
+      '.mp-npe-cover-vinyl{border-radius:50%;background:repeating-radial-gradient(circle at 50% 50%,#141416 0 2px,#0b0b0d 2px 5px);box-shadow:0 8px 20px rgba(0,0,0,.4)}',
+      '.mp-npe-cover-vinyl img{width:74%;height:74%;border-radius:50%}',
+      '.mp-npe-cover-label{font-size:12px;font-weight:500}',
+      '.mp-npe-cover-check{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;background:#5b8cff;color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.3)}',
+      '.mp-npe-row{margin-top:14px}',
+      '.mp-npe-range-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px;color:rgba(255,255,255,.72)}',
+      '.mp-npe-val{color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}',
+      '.mp-npe-seg{display:flex;gap:6px}',
+      '.mp-npe-seg-btn{flex:1;height:30px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);font:inherit;font-size:12px;cursor:pointer;transition:background .14s,border-color .14s,color .14s}',
+      '.mp-npe-seg-btn:hover{background:rgba(255,255,255,.08);color:#fff}',
+      '.mp-npe-seg-btn.is-on{background:rgba(90,130,255,.18);border-color:rgba(120,160,255,.6);color:#fff}',
+      '.mp-npe-switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;color:rgba(255,255,255,.82)}',
+      '.mp-npe-body select{width:100%;height:32px;margin-top:4px;padding:0 9px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none;cursor:pointer}',
+      '.mp-npe-foot{display:flex;gap:10px;padding:14px 22px;border-top:1px solid rgba(255,255,255,.08);background:rgba(18,18,22,.72)}',
+      '.mp-npe-btn{flex:1;height:36px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .14s,border-color .14s}',
+      '.mp-npe-btn:hover{background:rgba(255,255,255,.1)}',
+      '.mp-npe-btn.is-primary{background:#5b8cff;border-color:#5b8cff;color:#fff}',
+      '.mp-npe-btn.is-primary:hover{background:#6f9aff;border-color:#6f9aff}',
+      '@keyframes mp-npe-fade{from{opacity:0}to{opacity:1}}',
+      '@keyframes mp-npe-pop{from{transform:translateY(12px) scale(.985);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}',
+      '@media (min-width:981px){.mp-np-disc-wrap{-webkit-box-reflect:below 4px linear-gradient(to top,rgba(0,0,0,.45),rgba(0,0,0,0) 96px)}}',
+      '@media (min-width:981px) and (max-height:860px){.mp-np-disc-wrap{-webkit-box-reflect:below 2px linear-gradient(to top,rgba(0,0,0,.38),rgba(0,0,0,0) 26px)}}',
+      '@media (max-width:620px){.mp-npe{padding:8px}.mp-npe-panel{width:100%;max-height:calc(100dvh - 16px)}.mp-npe-head{padding:18px 18px 14px}.mp-npe-body{padding:14px 18px 18px}.mp-npe-foot{padding:12px 18px}}',
+      '@media (prefers-reduced-motion:reduce){.mp-npe,.mp-npe-panel{animation:none}}',
+      '.mp-np-foot-btn:hover,.mp-np-foot-btn.is-on{background:rgba(255,255,255,.1);color:#fff}',
       '.mp-quality{font-size:11px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.06)}',
       '@keyframes mp-disc-spin{to{transform:rotate(360deg)}}',
     
       // ── overlays, sheet, dialogs, menu, toast ───────────────────────────────
-      '.mp-overlay{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;pointer-events:none}',
+      '.mp-overlay{position:absolute;inset:0;z-index:85;display:flex;align-items:center;justify-content:center;pointer-events:none}',
       '.mp-overlay.is-on{pointer-events:auto}',
       '.mp-scrim{position:absolute;inset:0;background:rgba(0,0,0,.45)}',
     
@@ -5285,13 +5553,13 @@ window.__ModuleLoader__.load({
       '.mp-field textarea{resize:vertical;min-height:96px;font-size:12px;line-height:1.6}',
       '.mp-d-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}',
     
-      '.mp-login-card{width:300px;max-width:100%;display:flex;flex-direction:column;align-items:center;gap:10px;padding:2px 0 4px}',
-      '.mp-login-head{display:flex;align-items:center;gap:10px;width:100%}',
+      '.mp-login-card{width:100%;max-width:320px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:10px;padding:2px 0 4px}',
+      '.mp-login-head{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;text-align:center}',
       '.mp-login-logo{width:38px;height:38px;border-radius:8px;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.18)}',
       '.mp-login-logo img{width:100%;height:100%;object-fit:cover;display:block}',
-      '.mp-login-headtext{min-width:0;flex:1}',
-      '.mp-login-title{font-size:14px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mp-login-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-login-headtext{min-width:0;max-width:100%;text-align:center}',
+      '.mp-login-title{font-size:16px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-login-sub{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.mp-login-qr-shell{position:relative;padding:9px;border-radius:16px;background:linear-gradient(145deg,var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08)),var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03)));border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));box-shadow:0 12px 34px rgba(0,0,0,.18)}',
       '.mp-login-qr-frame{position:relative;width:190px;height:190px;padding:7px;border-radius:12px;background:#fff;display:grid;place-items:center;overflow:hidden}',
       '.mp-login-qr-img{width:100%;height:100%;object-fit:contain;border-radius:8px;display:block}',
@@ -5303,17 +5571,17 @@ window.__ModuleLoader__.load({
       '.mp-login-corner.bl{left:2px;bottom:2px;border-width:0 0 2px 2px;border-radius:0 0 0 8px}',
       '.mp-login-corner.br{right:2px;bottom:2px;border-width:0 2px 2px 0;border-radius:0 0 8px 0}',
       '.mp-login-qr-frame.is-scanned{box-shadow:inset 0 0 0 2px var(--dsw-alias-state-business-primary,#4176E6)}',
-      '.mp-login-status{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:26px;padding:5px 10px;border-radius:999px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;text-align:center}',
+      '.mp-login-status{display:flex;align-items:center;justify-content:center;gap:7px;width:auto;max-width:100%;min-height:26px;margin:0 auto;padding:6px 14px;border-radius:999px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;text-align:center}',
       '.mp-login-dot{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-business-primary,#4176E6);flex:none;animation:mp-login-pulse 1.6s ease-in-out infinite}',
       '.mp-login-status.is-scanned{color:var(--dsw-alias-state-business-primary,#4176E6);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
       '.mp-login-status.is-success{color:var(--dsw-alias-state-success-primary,#2f9e44)}',
       '.mp-login-status.is-success .mp-login-dot{background:var(--dsw-alias-state-success-primary,#2f9e44);animation:none}',
       '.mp-login-status.is-error{color:var(--dsw-alias-state-error-primary,#e5484d);background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 10%,transparent)}',
       '.mp-login-status.is-error .mp-login-dot{background:var(--dsw-alias-state-error-primary,#e5484d);animation:none}',
-      '.mp-login-steps{display:flex;flex-direction:column;gap:5px;width:100%;padding:0 2px}',
+      '.mp-login-steps{display:flex;flex-direction:column;gap:5px;width:100%;max-width:240px;margin:0 auto;padding:0}',
       '.mp-login-step{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mp-login-step b{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-secondary,#b4b4bd);font-size:10px;font-weight:650;flex:none}',
-      '.mp-login-secure{display:flex;align-items:center;justify-content:center;gap:5px;font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.9}',
+      '.mp-login-step b{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-secondary,#b4b4bd);font-size:11px;font-weight:650;flex:none}',
+      '.mp-login-secure{display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.9}',
       '.mp-login-actions{display:flex;align-items:center;gap:8px;width:100%;justify-content:center;padding-top:2px}',
       '@keyframes mp-login-pulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}',
       '@keyframes mp-login-spin{to{transform:rotate(360deg)}}',
@@ -5361,7 +5629,18 @@ window.__ModuleLoader__.load({
       '.mp-np-setting-hint{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:6px;line-height:1.5}',
     
       // ── composer / sidebar ──────────────────────────────────────────────────
-      '.mp-composer-lyrics{display:flex;align-items:center;gap:8px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto;height:22px;padding:0 10px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;white-space:nowrap}',
+      '.mp-composer-lyrics{display:flex;align-items:center;gap:6px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto 6px;height:24px;padding:0 2px;color:var(--dsw-alias-label-secondary,#cfd3d6);font-family:var(--dsw-font-family,inherit);font-size:12px;line-height:20px;overflow:hidden;white-space:nowrap}',
+      '.mp-composer-lyric-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.9}',
+      '.mp-composer-lyric-viewport{position:relative;display:inline-flex;align-items:center;flex:0 1 auto;min-width:0;max-width:100%;height:20px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%)}',
+      '.mp-composer-lyric-layer{display:inline-flex;align-items:center;gap:6px;max-width:100%;white-space:nowrap}',
+      '.mp-composer-lyric-layer.is-entering{animation:mp-composer-lyric-enter .32s cubic-bezier(.22,.8,.24,1) both}',
+      '.mp-composer-lyric-layer.is-leaving{position:absolute;left:0;top:0;animation:mp-composer-lyric-leave .32s cubic-bezier(.22,.8,.24,1) both;pointer-events:none;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-composer-lyric-main{min-width:0;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-composer-lyric-trans{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-composer-lyric-trans::before{content:"·";margin-right:5px;opacity:.6}',
+      '@keyframes mp-composer-lyric-enter{from{opacity:.25;transform:translate3d(0,100%,0)}to{opacity:1;transform:translate3d(0,0,0)}}',
+      '@keyframes mp-composer-lyric-leave{from{opacity:1;transform:translate3d(0,0,0)}to{opacity:.18;transform:translate3d(0,-100%,0)}}',
+      '@media (prefers-reduced-motion:reduce){.mp-composer-lyric-layer.is-entering{animation:none}.mp-composer-lyric-layer.is-leaving{display:none;animation:none}}',
       '.mp-composer-lyrics.is-empty{display:none}',
       '.mp-composer-cluster{display:flex;align-items:center;gap:2px}',
       '.mp-cbtn{height:28px;min-width:28px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;max-width:150px;overflow:hidden}',
@@ -5369,8 +5648,8 @@ window.__ModuleLoader__.load({
       '.mp-cbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-side-icon{position:static;display:grid;place-items:center;width:16px;height:16px}',
       '.mp-side-extras{position:absolute;right:42px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:1px;padding:0;background:transparent;border:0;box-shadow:none;z-index:1}',
-      '.mp-side-wave{display:inline-flex;align-items:flex-end;justify-content:center;gap:2px;width:42px;height:18px;margin:0 3px;flex:none}',
-      '.mp-side-wave i{width:3px;min-height:3px;border-radius:1px;background:var(--dsw-alias-state-business-primary,#4176E6);opacity:.9;transition:height .08s linear}',
+      '.mp-side-wave{display:inline-flex;align-items:flex-end;justify-content:center;gap:2px;width:42px;height:22px;margin:0 3px;flex:none;transform-origin:50% 100%;transition:opacity .3s ease,transform .3s ease}.mp-side-wave.is-fading{opacity:0;transform:scaleY(.15)}',
+      '.mp-side-wave i{width:3px;min-height:4px;border-radius:2px;background:linear-gradient(180deg,#9cbcff,#4d7dff);box-shadow:0 0 5px rgba(80,130,255,.35);opacity:1;transition:height .07s linear}',
       '.mp-side-btn{width:20px;height:20px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;padding:0;flex:none}',
       '.mp-side-btn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-side-btn:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#4176E6);outline-offset:1px}',
@@ -5436,7 +5715,9 @@ window.__ModuleLoader__.load({
       '.mp-queue-pop.is-anchored .mp-q-list{max-height:calc(50vh - 56px)}',
       '@media (max-width:1240px){.mp-row{grid-template-columns:48px minmax(0,1.6fr) minmax(0,1fr) 72px 50px 54px}}',
       '@media (max-width:1080px){.mp-row-album{display:none}.mp-row{grid-template-columns:48px minmax(0,1fr) 74px 50px 54px}.mp-workspace.is-queue{grid-template-columns:188px minmax(0,1fr)}.mp-root.is-top .mp-workspace.is-queue{grid-template-columns:minmax(0,1fr)}.mp-queue{display:none!important}}',
-      '@media (max-width:980px){.mp-np-body{grid-template-columns:1fr;gap:10px;padding:4px 20px}.mp-np-left{gap:10px}.mp-np-disc-wrap{margin-bottom:12px}.mp-np-right{width:100%;max-height:34vh}.mp-np-bottom{margin:0;padding:0 14px;height:68px}.mp-np-head{padding:12px 16px 6px}.mp-np-title{font-size:16px}}',
+      '@media (max-height:860px){.mp-np-reflect-wave{height:30px}.mp-np{--mp-cover:min(31vw,40vh,440px)}.mp-np-body{padding-top:64px}.mp-np-meta{margin-bottom:20px}.mp-np-title{font-size:24px}.mp-np-artist{font-size:13px;margin-top:4px}.mp-np-cover-stage{margin-bottom:12px}.mp-np-quality{margin-bottom:12px;font-size:12px}.mp-np-transport{margin-top:16px;gap:40px}.mp-np-left{padding-bottom:46px}.mp-np-right{padding-bottom:46px}.mp-np-lyrics{padding-top:28px}}',
+      '@media (max-width:1100px){.mp-np-body{padding:64px 2.5vw 0 6.5vw}.mp-np-title{font-size:24px}}',
+      '@media (max-width:980px){.mp-np{--mp-cover:min(76vw,52vh,680px)}.mp-np-fs{top:14px;right:14px}.mp-np-body{flex-direction:column;gap:0;padding:48px 20px 0;overflow:hidden}.mp-np-meta{margin:0 0 12px}.mp-np-title{font-size:26px}.mp-np-artist{font-size:13px}.mp-np-artist-row{margin-top:4px}.mp-np-meta-audio{top:0}.mp-np-cover-stage{margin-bottom:10px}.mp-np-quality{margin:0 0 12px;font-size:12px}.mp-np-transport{order:2;margin:0;gap:64px}.mp-np-progress{order:3;margin:12px 0 0}.mp-np-times{order:4;margin-top:12px}.mp-np-secondary{order:5;margin:12px 0 0;padding:0 8px}.mp-np-left{width:100%;padding-bottom:8px}.mp-np-right{flex:1;width:100%;max-width:none;margin-left:0;padding-left:0;padding-bottom:16px;min-height:0}.mp-np-lyrics{padding-top:16px}.mp-np-lyric-foot{margin-top:8px}.mp-np-head{top:14px;left:14px}}',
       '@media (max-width:900px){.mp-workspace,.mp-workspace.is-queue{grid-template-columns:56px minmax(0,1fr)}.mp-root.is-top .mp-workspace{grid-template-columns:minmax(0,1fr)}.mp-nav{padding:10px 6px;align-items:center}.mp-nav-label,.mp-nav-item span,.mp-nav-count{display:none}.mp-nav-item{width:40px;justify-content:center;padding:0}.mp-search{width:160px}.mp-pb-vol{display:none}}',
     
       '@media (max-width:900px){.mp-sheet{width:calc(100vw - 24px);height:min(560px,calc(100dvh - 24px));grid-template-columns:152px minmax(0,1fr)}.mp-sheet-nav{padding:12px 8px}.mp-sheet-body{padding:14px 44px 20px 16px}}',
@@ -5444,6 +5725,7 @@ window.__ModuleLoader__.load({
       '@media (max-width:620px){.mp-online-grid{grid-template-columns:1fr}.mp-online-name{font-size:13px}}',
       '@media (max-width:620px){.mp-set-row{flex-direction:column;align-items:stretch;gap:6px}.mp-set-text{flex:0 0 auto}.mp-set-control{justify-content:flex-start;margin-left:0}.mp-set-control select,.mp-range{max-width:100%}}',
       '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
+      '@media (prefers-reduced-motion:reduce){.mp-np-line-trans{transition:none}.mp-np.is-trans .mp-np-line-trans{transition:none}}',
     ]
     
     var THEME_TEXT = THEME_CSS.join('')
@@ -6348,6 +6630,958 @@ window.__ModuleLoader__.load({
       return found
     }
     
+    function useLyricAutoScroll(
+      boxRef,
+      innerRef,
+      coverRef,
+      rowRefs,
+      active,
+      lyrics,
+      timed,
+      open,
+      showTranslation,
+      lyricSize,
+      lyricGap,
+      translationScale,
+      lyricAlign,
+    ) {
+      var stateRef = useRef(null)
+      if (stateRef.current === null) {
+        stateRef.current = {
+          y: 0,
+          target: 0,
+          velocity: 0,
+          frame: 0,
+          last: 0,
+          boxH: 0,
+          contentH: 0,
+          activeTop: 0,
+          activeHeight: 0,
+          settleUntil: 0,
+          active: 0,
+          focusShift: 0,
+        }
+      }
+      var s = stateRef.current
+      var activeRef = useRef(active)
+      activeRef.current = active
+      var timedRef = useRef(timed)
+      timedRef.current = timed
+      var lastRef = useRef({ initialized: false, lyrics: null, open: false, trans: false })
+    
+      function clock() {
+        return typeof performance !== 'undefined' && typeof performance.now === 'function' ? performance.now() : Date.now()
+      }
+      function raf(callback) {
+        return typeof requestAnimationFrame === 'function'
+          ? requestAnimationFrame(callback)
+          : setTimeout(function () {
+              callback(clock())
+            }, 16)
+      }
+      function caf(id) {
+        if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(id)
+        else clearTimeout(id)
+      }
+      function reduced() {
+        return (
+          typeof window !== 'undefined' &&
+          typeof window.matchMedia === 'function' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        )
+      }
+      function measure() {
+        var box = boxRef.current
+        var inner = innerRef.current
+        if (box === null || inner === null) return false
+        s.boxH = box.clientHeight
+        s.contentH = inner.offsetHeight
+        var row = rowRefs.current[s.active]
+        if (!row || row.isConnected === false) {
+          s.activeTop = 0
+          s.activeHeight = 0
+          return true
+        }
+        // Measure against the box while cancelling the current translate: offsetTop
+        // excludes the lyrics box padding, which made the target drift by ~78px.
+        var rowRect = row.getBoundingClientRect()
+        var boxRect = box.getBoundingClientRect()
+        s.activeTop = rowRect.top - boxRect.top + s.y
+        s.activeHeight = rowRect.height
+        // On the two-column layout, centre the active line on the cover's centre
+        // instead of the lyrics viewport's centre. On stacked/narrow layouts the
+        // cover sits above the lyrics, so the shift stays 0.
+        s.focusShift = 0
+        var cover = coverRef.current
+        if (cover !== null) {
+          var coverRect = cover.getBoundingClientRect()
+          if (coverRect.bottom > boxRect.top && coverRect.top < boxRect.bottom) {
+            var shift = coverRect.top + coverRect.height / 2 - (boxRect.top + s.boxH / 2)
+            var limit = Math.max(0, s.boxH / 2 - s.activeHeight / 2 - 8)
+            s.focusShift = Math.max(-limit, Math.min(limit, shift))
+          }
+        }
+        return true
+      }
+      function targetFor() {
+        // Always centre the active line, including the first and last one. On the
+        // two-column layout the centre is the cover's centre, not the box centre.
+        return s.activeTop - (s.boxH / 2 - s.activeHeight / 2) - s.focusShift
+      }
+      function write() {
+        var inner = innerRef.current
+        if (inner !== null) inner.style.transform = 'translate3d(0,' + -s.y + 'px,0)'
+      }
+      function stop() {
+        if (s.frame !== 0) {
+          caf(s.frame)
+          s.frame = 0
+        }
+      }
+      function frame(nowMs) {
+        s.frame = 0
+        var dt = s.last > 0 ? Math.min((nowMs - s.last) / 1000, 0.032) : 0.016
+        s.last = nowMs
+        if (nowMs < s.settleUntil) {
+          // While the translation rows animate, pin the active line to the moving
+          // target instead of letting the spring lag behind the reflow.
+          if (measure()) s.target = targetFor()
+          s.y = s.target
+          s.velocity = 0
+          write()
+          s.frame = raf(frame)
+          return
+        }
+        var stiffness = 240
+        var damping = 34
+        var force = -stiffness * (s.y - s.target) - damping * s.velocity
+        s.velocity += force * dt
+        s.y += s.velocity * dt
+        var done = Math.abs(s.y - s.target) < 0.2 && Math.abs(s.velocity) < 0.2
+        if (done) {
+          s.y = s.target
+          s.velocity = 0
+        }
+        write()
+        if (done && nowMs >= s.settleUntil) {
+          s.last = 0
+          return
+        }
+        s.frame = raf(frame)
+      }
+      function kick() {
+        if (reduced()) {
+          stop()
+          s.y = s.target
+          s.velocity = 0
+          write()
+          return
+        }
+        if (s.frame === 0) {
+          s.last = 0
+          s.frame = raf(frame)
+        }
+      }
+      function onResize() {
+        var inner = innerRef.current
+        if (inner === null) return
+        if (timedRef.current !== true) {
+          stop()
+          inner.style.transform = ''
+          return
+        }
+        s.active = activeRef.current >= 0 ? activeRef.current : 0
+        if (!measure()) return
+        s.target = targetFor()
+        kick()
+      }
+    
+      useEffect(
+        function () {
+          var inner = innerRef.current
+          var observer =
+            typeof ResizeObserver === 'function' && inner !== null ? new ResizeObserver(onResize) : null
+          if (observer !== null) {
+            observer.observe(inner)
+            var cover = coverRef.current
+            if (cover !== null) observer.observe(cover)
+          }
+          window.addEventListener('resize', onResize)
+          return function () {
+            stop()
+            if (observer !== null) observer.disconnect()
+            window.removeEventListener('resize', onResize)
+          }
+        },
+        [lyrics.length],
+      )
+    
+      useLayoutEffect(
+        function () {
+          var inner = innerRef.current
+          if (inner === null) return
+          if (timed !== true || lyrics.length === 0) {
+            stop()
+            s.y = 0
+            s.target = 0
+            s.velocity = 0
+            inner.style.transform = ''
+            return
+          }
+          var prev = lastRef.current
+          var reset = prev.initialized !== true || prev.lyrics !== lyrics || (prev.open !== true && open === true)
+          var settle = prev.initialized === true && prev.trans !== showTranslation
+          lastRef.current = { initialized: true, lyrics: lyrics, open: open, trans: showTranslation }
+          s.active = active >= 0 ? active : 0
+          if (!measure()) return
+          s.target = targetFor()
+          if (reset || Math.abs(s.target - s.y) > s.boxH * 3) {
+            stop()
+            s.y = s.target
+            s.velocity = 0
+            write()
+            return
+          }
+          if (settle) s.settleUntil = clock() + 480
+          kick()
+        },
+        [active, lyrics, open, showTranslation, lyricSize, lyricGap, translationScale, lyricAlign, timed],
+      )
+    }
+    
+    function NpEditor(props) {
+      var prefs = usePrefs()
+      var cover = typeof props.cover === 'string' ? props.cover : ''
+      var resetPair = useState(false)
+      var resetConfirm = resetPair[0]
+      var setResetConfirm = resetPair[1]
+    
+      useEffect(
+        function () {
+          if (props.open !== true) return undefined
+          function onKey(event) {
+            if (event.key === 'Escape') props.onClose()
+          }
+          window.addEventListener('keydown', onKey)
+          return function () {
+            window.removeEventListener('keydown', onKey)
+          }
+        },
+        [props.open],
+      )
+    
+      useEffect(
+        function () {
+          if (props.open !== true) setResetConfirm(false)
+        },
+        [props.open],
+      )
+    
+      if (props.open !== true) return null
+    
+      function chooseCover(style) {
+        setPrefs({
+          coverStyle: style,
+          circularCover: style === 'vinyl',
+          vinylRing: style === 'vinyl',
+          coverSpin: style === 'vinyl',
+        })
+      }
+    
+      function resetDefaults() {
+        setPrefs({
+          coverStyle: 'square',
+          circularCover: false,
+          vinylRing: false,
+          coverSpin: false,
+          lyricSize: 35,
+          lyricGap: 15,
+          translationScale: 90,
+          lyricAlign: 'left',
+          lyricBlur: true,
+          waveEnabled: true,
+          showTranslation: true,
+          lyricOrder: ['embedded', 'lrc'],
+        })
+      }
+    
+      function sectionHead(label) {
+        return h(
+          'div',
+          { className: 'mp-npe-sec-head' },
+          h('span', { className: 'mp-npe-sec-title' }, label),
+          h('span', { className: 'mp-npe-sec-line' }),
+        )
+      }
+    
+      function coverPreview(style) {
+        if (cover === '') return icon('note', 22)
+        if (style === 'vinyl') return h('img', { src: cover, alt: '' })
+        return h('img', { src: cover, alt: '' })
+      }
+    
+      function coverCard(style, label) {
+        var selected = style === 'vinyl' ? prefs.coverStyle === 'vinyl' : prefs.coverStyle !== 'vinyl'
+        return h(
+          'button',
+          {
+            type: 'button',
+            className: cx('mp-npe-cover-card', selected && 'is-on'),
+            'aria-pressed': selected ? 'true' : 'false',
+            onClick: function () {
+              chooseCover(style)
+            },
+          },
+          h(
+            'span',
+            {
+              className: cx(
+                'mp-npe-cover-preview',
+                style === 'vinyl' ? 'mp-npe-cover-vinyl' : 'mp-npe-cover-square',
+              ),
+            },
+            coverPreview(style),
+          ),
+          h('span', { className: 'mp-npe-cover-label' }, label),
+          selected ? h('span', { className: 'mp-npe-cover-check' }, icon('check', 12)) : null,
+        )
+      }
+    
+      function rangeRow(label, value, min, max, step, unit, apply) {
+        return h(
+          'div',
+          { className: 'mp-npe-row' },
+          h(
+            'div',
+            { className: 'mp-npe-range-head' },
+            h('span', null, label),
+            h('span', { className: 'mp-npe-val' }, value + unit),
+          ),
+          h('input', {
+            type: 'range',
+            className: 'mp-range',
+            min: min,
+            max: max,
+            step: step,
+            value: value,
+            onChange: function (event) {
+              apply(Number(event.target.value))
+            },
+          }),
+        )
+      }
+    
+      function switchRow(label, value, apply) {
+        return h(
+          'div',
+          { className: 'mp-npe-switch-row' },
+          h('span', null, label),
+          h(Switch, { value: value, onChange: apply }),
+        )
+      }
+    
+      return h(
+        'div',
+        {
+          className: 'mp-npe',
+          onClick: function (event) {
+            if (event.target === event.currentTarget) props.onClose()
+          },
+        },
+        h(
+          'div',
+          {
+            className: 'mp-npe-panel',
+            role: 'dialog',
+            'aria-modal': 'true',
+            'aria-label': t('editor.title'),
+          },
+          h(
+            'div',
+            { className: 'mp-npe-head' },
+            h(
+              'div',
+              { className: 'mp-npe-head-text' },
+              h('div', { className: 'mp-npe-title' }, t('editor.title')),
+              h('div', { className: 'mp-npe-sub' }, t('editor.subtitle')),
+            ),
+            h(
+              'div',
+              { className: 'mp-npe-head-actions' },
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mp-npe-head-btn',
+                  title: t('editor.reset'),
+                  'aria-label': t('editor.reset'),
+                  onClick: function () {
+                    setResetConfirm(true)
+                  },
+                },
+                icon('refresh', 16),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mp-npe-close',
+                  title: t('editor.close'),
+                  'aria-label': t('editor.close'),
+                  onClick: props.onClose,
+                },
+                icon('x', 18),
+              ),
+            ),
+          ),
+          resetConfirm
+            ? h(
+                'div',
+                { className: 'mp-npe-confirm' },
+                h(
+                  'div',
+                  { className: 'mp-npe-confirm-text' },
+                  h('div', { className: 'mp-npe-confirm-title' }, t('editor.resetConfirm')),
+                  h('div', { className: 'mp-npe-confirm-hint' }, t('editor.resetHint')),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mp-npe-confirm-btn',
+                    onClick: function () {
+                      setResetConfirm(false)
+                    },
+                  },
+                  t('editor.cancel'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mp-npe-confirm-btn is-primary',
+                    onClick: function () {
+                      resetDefaults()
+                      setResetConfirm(false)
+                    },
+                  },
+                  t('editor.reset'),
+                ),
+              )
+            : null,
+          h(
+            'div',
+            { className: 'mp-npe-body' },
+            h(
+              'div',
+              { className: 'mp-npe-section' },
+              sectionHead(t('editor.cover')),
+              h(
+                'div',
+                { className: 'mp-npe-cover-grid' },
+                coverCard('square', t('v2.coverSquare')),
+                coverCard('vinyl', t('v2.coverVinyl')),
+              ),
+            ),
+            h(
+              'div',
+              { className: 'mp-npe-section' },
+              sectionHead(t('editor.type')),
+              rangeRow(t('page.lyricSize'), prefs.lyricSize || 25, 14, 40, 1, ' px', function (value) {
+                setPrefs({ lyricSize: value })
+              }),
+              rangeRow(t('page.lyricGap'), Number(prefs.lyricGap) || 10, 2, 16, 1, ' px', function (value) {
+                setPrefs({ lyricGap: value })
+              }),
+              rangeRow(
+                t('page.translationScale'),
+                prefs.translationScale || 100,
+                50,
+                100,
+                5,
+                '%',
+                function (value) {
+                  setPrefs({ translationScale: value })
+                },
+              ),
+              h(
+                'div',
+                { className: 'mp-npe-row' },
+                h('div', { className: 'mp-npe-range-head' }, h('span', null, t('settings.lyricAlign'))),
+                h(
+                  'div',
+                  { className: 'mp-npe-seg' },
+                  [
+                    ['left', 'settings.alignLeft'],
+                    ['center', 'settings.alignCenter'],
+                    ['right', 'settings.alignRight'],
+                  ].map(function (item) {
+                    return h(
+                      'button',
+                      {
+                        key: item[0],
+                        type: 'button',
+                        className: cx('mp-npe-seg-btn', (prefs.lyricAlign || 'left') === item[0] && 'is-on'),
+                        onClick: function () {
+                          setPrefs({ lyricAlign: item[0] })
+                        },
+                      },
+                      t(item[1]),
+                    )
+                  }),
+                ),
+              ),
+            ),
+            h(
+              'div',
+              { className: 'mp-npe-section' },
+              sectionHead(t('editor.display')),
+              switchRow(t('page.translation'), prefs.showTranslation === true, function (value) {
+                setPrefs({ showTranslation: value })
+              }),
+              switchRow(t('page.lyricBlur'), prefs.lyricBlur === true, function (value) {
+                setPrefs({ lyricBlur: value })
+              }),
+              switchRow(t('editor.wave'), prefs.waveEnabled !== false, function (value) {
+                setPrefs({ waveEnabled: value })
+              }),
+              h(
+                'div',
+                { className: 'mp-npe-row' },
+                h(
+                  'div',
+                  { className: 'mp-npe-range-head' },
+                  h('span', null, t('settings.lyricOrder')),
+                ),
+                h(
+                  'select',
+                  {
+                    value: (prefs.lyricOrder || ['embedded', 'lrc']).join(','),
+                    onChange: function (event) {
+                      setPrefs({ lyricOrder: event.target.value.split(',') })
+                    },
+                  },
+                  h('option', { value: 'embedded,lrc' }, t('settings.lyricSourceEmbedded') + ' → LRC'),
+                  h('option', { value: 'lrc,embedded' }, 'LRC → ' + t('settings.lyricSourceEmbedded')),
+                ),
+              ),
+            ),
+          ),
+          h(
+            'div',
+            { className: 'mp-npe-foot' },
+            h(
+              'button',
+              { type: 'button', className: 'mp-npe-btn is-primary', onClick: props.onClose },
+              t('editor.done'),
+            ),
+          ),
+        ),
+      )
+    }
+    
+    function fallbackCoverAccent() {
+      var h = 40
+      var sat = 12
+      var light = 70
+      return {
+        h: h,
+        s: sat,
+        l: light,
+        palette: [
+          { h: 28, s: 10, l: 62 },
+          { h: h, s: sat, l: light },
+          { h: 52, s: 14, l: 78 },
+        ],
+      }
+    }
+    
+    function rgbToHslColor(red, green, blue) {
+      var r = red / 255
+      var g = green / 255
+      var b = blue / 255
+      var max = Math.max(r, g, b)
+      var min = Math.min(r, g, b)
+      var d = max - min
+      var l = (max + min) / 2
+      var s = 0
+      var h = 0
+      if (d !== 0) {
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+        if (max === r) h = ((g - b) / d) % 6
+        else if (max === g) h = (b - r) / d + 2
+        else h = (r - g) / d + 4
+        h *= 60
+        if (h < 0) h += 360
+      }
+      return { h: h, s: s, l: l }
+    }
+    
+    function coverAccentFromUrl(url, image) {
+      return new Promise(function (resolve) {
+        if (!url) {
+          resolve(fallbackCoverAccent())
+          return
+        }
+        var img = image || new Image()
+        img.onload = function () {
+          try {
+            var canvas = document.createElement('canvas')
+            canvas.width = 24
+            canvas.height = 24
+            var ctx = canvas.getContext('2d', { willReadFrequently: true })
+            ctx.drawImage(img, 0, 0, 24, 24)
+            var data = ctx.getImageData(0, 0, 24, 24).data
+            var buckets = new Map()
+            for (var i = 0; i < data.length; i += 4) {
+              if (data[i + 3] < 128) continue
+              var red = data[i]
+              var green = data[i + 1]
+              var blue = data[i + 2]
+              var key = (red >> 4) + ',' + (green >> 4) + ',' + (blue >> 4)
+              var entry = buckets.get(key)
+              if (entry === undefined) {
+                entry = { count: 0, r: 0, g: 0, b: 0 }
+                buckets.set(key, entry)
+              }
+              entry.count += 1
+              entry.r += red
+              entry.g += green
+              entry.b += blue
+            }
+            var colors = []
+            buckets.forEach(function (entry) {
+              var color = rgbToHslColor(entry.r / entry.count, entry.g / entry.count, entry.b / entry.count)
+              colors.push({ h: color.h, s: color.s, l: color.l, count: entry.count })
+            })
+            colors.sort(function (a, b) {
+              return b.count - a.count
+            })
+            var picked = []
+            for (var c = 0; c < colors.length && picked.length < 3; c += 1) {
+              var candidate = colors[c]
+              var distinct = true
+              for (var p = 0; p < picked.length; p += 1) {
+                var other = picked[p]
+                var hueGap = Math.min(
+                  Math.abs(candidate.h - other.h),
+                  360 - Math.abs(candidate.h - other.h),
+                ) / 360
+                var distance = Math.hypot(hueGap, candidate.s - other.s, candidate.l - other.l)
+                if (distance < 0.16) {
+                  distinct = false
+                  break
+                }
+              }
+              if (distinct) picked.push(candidate)
+            }
+            if (picked.length === 0) {
+              resolve(fallbackCoverAccent())
+              return
+            }
+            while (picked.length < 3) {
+              var base = picked[0]
+              picked.push({
+                h: (base.h + (picked.length === 1 ? 32 : 328)) % 360,
+                s: base.s,
+                l: Math.min(0.8, Math.max(0.38, base.l + (picked.length === 1 ? 0.08 : -0.06))),
+                count: 0,
+              })
+            }
+            if (colors.length === 0) {
+              resolve(fallbackCoverAccent())
+              return
+            }
+            // Signature colour: among reasonably saturated clusters, prefer area
+            // times saturation. This ignores both a large cream background and a
+            // tiny saturated JPEG fringe (which used to win and turn the wave blue).
+            var maxCount = colors.reduce(function (max, color) {
+              return Math.max(max, color.count || 1)
+            }, 1)
+            var minCount = Math.max(3, Math.floor(maxCount * 0.02))
+            var saturated = colors.filter(function (color) {
+              return (
+                color.s > 0.3 &&
+                color.l > 0.06 &&
+                color.l < 0.92 &&
+                Math.max(1, color.count || 1) >= minCount
+              )
+            })
+            var pool = saturated.length > 0 ? saturated : colors
+            var base = pool.reduce(function (best, color) {
+              return color.s > best.s ? color : best
+            }, pool[0])
+            var feature = []
+            function addFeature(source) {
+              var candidate = {
+                h: Math.round(source.h),
+                s: Math.round(Math.min(1, Math.max(0.16, source.s)) * 100),
+                l: Math.round(Math.min(0.82, Math.max(0.38, source.l)) * 100),
+              }
+              for (var f = 0; f < feature.length; f += 1) {
+                var other = feature[f]
+                var hueGap = Math.min(
+                  Math.abs(candidate.h - other.h),
+                  360 - Math.abs(candidate.h - other.h),
+                ) / 360
+                if (Math.hypot(hueGap, (candidate.s - other.s) / 100, (candidate.l - other.l) / 100) < 0.16) {
+                  return
+                }
+              }
+              feature.push(candidate)
+            }
+            addFeature(base)
+            for (var f = 0; f < picked.length; f += 1) addFeature(picked[f])
+            // Hard bound the fallback loop. addFeature() may reject a generated
+            // neighbour as too similar, so looping on it can spin forever on
+            // low-colour artwork and freeze the panel while extracting the cover.
+            var featureGuard = 0
+            while (feature.length < 3 && featureGuard < 12) {
+              var anchor = feature[0] || { h: 40, s: 16, l: 70 }
+              var angle = (featureGuard + 1) * 30
+              feature.push({
+                h: (anchor.h + angle) % 360,
+                s: Math.max(16, anchor.s),
+                l: Math.min(82, Math.max(38, anchor.l + (featureGuard % 2 === 0 ? 8 : -6))),
+              })
+              featureGuard += 1
+            }
+            feature = feature.slice(0, 4).sort(function (a, b) {
+              return a.h - b.h
+            })
+            resolve({
+              h: Math.round(base.h),
+              s: Math.round(Math.min(1, Math.max(0.16, base.s)) * 100),
+              l: Math.round(Math.min(0.82, Math.max(0.38, base.l)) * 100),
+              palette: feature,
+            })
+          } catch (error) {
+            resolve(fallbackCoverAccent())
+          }
+        }
+        img.onerror = function () {
+          resolve(fallbackCoverAccent())
+        }
+        if (image) {
+          if (img.complete) {
+            if (img.naturalWidth > 0) img.onload()
+            else img.onerror()
+          }
+        } else {
+          img.src = url
+        }
+      })
+    }
+    
+    function useCoverAccent(url, imageRef) {
+      var pair = useState(fallbackCoverAccent())
+      var accent = pair[0]
+      var setAccent = pair[1]
+      useEffect(
+        function () {
+          var cancelled = false
+          var timer = null
+          var tries = 0
+          function attempt() {
+            if (cancelled) return
+            var image = imageRef && imageRef.current ? imageRef.current : null
+            if (image === null) {
+              if (tries < 20) {
+                tries += 1
+                timer = setTimeout(attempt, 50)
+                return
+              }
+              setAccent(fallbackCoverAccent())
+              return
+            }
+            // Sample only the <img> already rendered by the player. Online covers
+            // are served from the Host's local cache; this never makes a second
+            // request.
+            coverAccentFromUrl(url, image).then(function (next) {
+              if (!cancelled) setAccent(next)
+            })
+          }
+          attempt()
+          return function () {
+            cancelled = true
+            if (timer !== null) clearTimeout(timer)
+          }
+        },
+        [url, imageRef],
+      )
+      return accent
+    }
+    
+    function createBlurredBackdrop(url) {
+      return new Promise(function (resolve) {
+        if (!url) {
+          resolve('')
+          return
+        }
+        var img = new Image()
+        img.onload = function () {
+          try {
+            var size = 64
+            var canvas = document.createElement('canvas')
+            canvas.width = size
+            canvas.height = size
+            var ctx = canvas.getContext('2d')
+            if (ctx === null) {
+              resolve('')
+              return
+            }
+            // Blur once at 64x64 instead of applying a 110px blur to a full-screen
+            // image on every raster. Upscaling this texture is visually close and
+            // orders of magnitude cheaper.
+            if (typeof ctx.filter === 'string') {
+              ctx.filter = 'blur(4px) saturate(1.6) brightness(.68)'
+            }
+            ctx.drawImage(img, 0, 0, size, size)
+            if (typeof ctx.filter === 'string') ctx.filter = 'none'
+            resolve(canvas.toDataURL('image/jpeg', 0.82))
+          } catch (error) {
+            resolve('')
+          }
+        }
+        img.onerror = function () {
+          resolve('')
+        }
+        img.src = url
+      })
+    }
+    
+    function CoverReflectWave(props) {
+      var accent = useCoverAccent(props.cover || '', props.imageRef)
+      var playing = props.playing === true
+      var active = props.active !== false
+      var ref = useRef(null)
+      useEffect(
+        function () {
+          var canvas = ref.current
+          if (canvas === null) return undefined
+          var ctx = canvas.getContext('2d')
+          if (ctx === null) return undefined
+          if (playing !== true || active !== true) {
+            // Keep the last painted frame while CSS scales/fades the canvas out.
+            var clearTimer = setTimeout(function () {
+              var node = ref.current
+              if (node === null) return
+              var clearCtx = node.getContext('2d')
+              if (clearCtx !== null) clearCtx.clearRect(0, 0, node.width, node.height)
+            }, 420)
+            return function () {
+              clearTimeout(clearTimer)
+            }
+          }
+          var dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1)
+          var frame = 0
+          var last = 0
+          var levels = []
+          var bands = 32
+          var spectrumBands = 16
+          function resize() {
+            // clientWidth/Height use the layout box, not the CSS fade transform.
+            // Measuring getBoundingClientRect() while is-fading scales the canvas
+            // to 12% and makes the backing store permanently too small on resume.
+            canvas.width = Math.max(1, Math.round(canvas.clientWidth * dpr))
+            canvas.height = Math.max(1, Math.round(canvas.clientHeight * dpr))
+          }
+          resize()
+          var observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : null
+          if (observer !== null) observer.observe(canvas)
+          window.addEventListener('resize', resize)
+          function colorOf(c, alpha) {
+            return 'hsla(' + c.h + ',' + c.s + '%,' + c.l + '%,' + alpha + ')'
+          }
+          var palette =
+            Array.isArray(accent.palette) && accent.palette.length > 1 ? accent.palette : [accent]
+          function draw(now) {
+            frame = 0
+            if (now - last < 33) {
+              frame = requestAnimationFrame(draw)
+              return
+            }
+            last = now
+            var w = canvas.width / dpr
+            var h = canvas.height / dpr
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+            ctx.clearRect(0, 0, w, h)
+            var data = playing ? player.getWave() : null
+            var raw = []
+            if (data !== null && data.length > 0) {
+              for (var band = 0; band < spectrumBands; band += 1) {
+                var start = Math.floor(Math.pow(band / spectrumBands, 1.6) * data.length)
+                var end = Math.max(start + 1, Math.floor(Math.pow((band + 1) / spectrumBands, 1.6) * data.length))
+                end = Math.min(end, data.length)
+                var sum = 0
+                for (var i = start; i < end; i += 1) sum += data[i]
+                raw.push((sum / Math.max(1, end - start)) / 255)
+              }
+            } else {
+              for (var z = 0; z < spectrumBands; z += 1) raw.push(0)
+            }
+            var peak = 0.4
+            for (var p = 0; p < raw.length; p += 1) peak = Math.max(peak, raw[p])
+            var barW = Math.max(1, (w / bands) * 0.58)
+            var gap = w / bands
+            function mixFeature(list, t) {
+              if (!list.length) return accent
+              if (list.length === 1) return list[0]
+              var scaled = (((t % 1) + 1) % 1) * list.length
+              var from = Math.floor(scaled) % list.length
+              var to = (from + 1) % list.length
+              var frac = scaled - Math.floor(scaled)
+              var a = list[from]
+              var b = list[to]
+              var hueDelta = ((b.h - a.h + 540) % 360) - 180
+              return {
+                h: (a.h + hueDelta * frac + 360) % 360,
+                s: a.s + (b.s - a.s) * frac,
+                l: a.l + (b.l - a.l) * frac,
+              }
+            }
+            var phase = (now / 16000) % 1
+            ctx.globalAlpha = 0.92
+            var mid = (bands - 1) / 2
+            for (var k = 0; k < bands; k += 1) {
+              var dist = Math.abs(k - mid) / mid
+              var bandIndex = Math.min(spectrumBands - 1, Math.round(dist * (spectrumBands - 1)))
+              var level = Math.pow(Math.max(0, raw[bandIndex]) / peak, 1.5)
+              level = 0.02 + Math.min(1, level) * 0.98
+              var prev = levels[k] || 0
+              levels[k] = level > prev ? level : prev * 0.45 + level * 0.55
+              var half = (levels[k] * h) / 2
+              if (half < 1) continue
+              ctx.fillStyle = colorOf(mixFeature(palette, phase + dist * 0.72), 0.95)
+              var x = k * gap + (gap - barW) / 2
+              var radius = Math.min(barW / 2, 4, half)
+              if (typeof ctx.roundRect === 'function') {
+                ctx.beginPath()
+                ctx.roundRect(x, h / 2 - half, barW, half * 2, [radius, radius, radius, radius])
+                ctx.fill()
+              } else {
+                ctx.fillRect(x, h / 2 - half, barW, half * 2)
+              }
+            }
+            ctx.globalAlpha = 1
+            if (playing) frame = requestAnimationFrame(draw)
+          }
+          frame = requestAnimationFrame(draw)
+          return function () {
+            if (frame !== 0) cancelAnimationFrame(frame)
+            if (observer !== null) observer.disconnect()
+            window.removeEventListener('resize', resize)
+          }
+        },
+        [accent, playing, active],
+      )
+      return h('canvas', {
+        ref: ref,
+        className: cx('mp-np-reflect-wave', (playing !== true || active !== true) && 'is-fading'),
+        'aria-hidden': 'true',
+      })
+    }
+    
     function NowPlaying(props) {
       var snap = usePlayerSnapshot()
       var time = usePlayerTime()
@@ -6361,10 +7595,33 @@ window.__ModuleLoader__.load({
       var lyricError = errorPair[0]
       var setLyricError = errorPair[1]
       var settingsPair = useState(false)
+      var editorPair = useState(false)
+      var editorOpen = editorPair[0]
+      var setEditorOpen = editorPair[1]
+      var fsPair = useState(false)
+      var isFullscreen = fsPair[0]
+      var setIsFullscreen = fsPair[1]
       var settingsOpen = settingsPair[0]
       var setSettingsOpen = settingsPair[1]
       var settingsRef = useRef(null)
       var settingsBtnRef = useRef(null)
+      var npRef = useRef(null)
+      var coverImgRef = useRef(null)
+      var settingsPosPair = useState(null)
+      var settingsPos = settingsPosPair[0]
+      var setSettingsPos = settingsPosPair[1]
+      var extraPair = useState('')
+      var extraPanel = extraPair[0]
+      var setExtraPanel = extraPair[1]
+      var sleepCustomPair = useState('')
+      var sleepCustom = sleepCustomPair[0]
+      var setSleepCustom = sleepCustomPair[1]
+      var sleepRemaining = useCountdown(extraPanel === 'sleep' ? prefs.sleepDeadline : 0)
+      var sleepRef = useRef(null)
+      var audioRef = useRef(null)
+      var sourcePair = useState('')
+      var lyricSource = sourcePair[0]
+      var setLyricSource = sourcePair[1]
       var offsetPair = useState(0)
       var offsetMs = offsetPair[0]
       var setOffsetMs = offsetPair[1]
@@ -6373,6 +7630,7 @@ window.__ModuleLoader__.load({
       var setLyricReload = reloadPair[1]
       var boxRef = useRef(null)
       var innerRef = useRef(null)
+      var discWrapRef = useRef(null)
       var rowRefs = useRef([])
     
       useEffect(
@@ -6396,19 +7654,140 @@ window.__ModuleLoader__.load({
         },
         [settingsOpen],
       )
+      useEffect(
+        function () {
+          if (extraPanel === '') return undefined
+          function onDown(event) {
+            if (sleepRef.current && sleepRef.current.contains(event.target)) return
+            if (audioRef.current && audioRef.current.contains(event.target)) return
+            setExtraPanel('')
+          }
+          function onKey(event) {
+            if (event.key === 'Escape') setExtraPanel('')
+          }
+          document.addEventListener('pointerdown', onDown, true)
+          window.addEventListener('keydown', onKey)
+          return function () {
+            document.removeEventListener('pointerdown', onDown, true)
+            window.removeEventListener('keydown', onKey)
+          }
+        },
+        [extraPanel],
+      )
       var cover = track ? trackCoverSrc(track) : ''
-      var circular = prefs.circularCover === true
-      var spinning = circular && prefs.coverSpin === true && snap.playing
-      var vinyl = prefs.vinylRing === true && circular
+      var bgPair = useState({ current: '', previous: '' })
+      var bg = bgPair[0]
+      var setBg = bgPair[1]
+    
+      useEffect(
+        function () {
+          var cancelled = false
+          if (cover === '') {
+            setBg({ current: '', previous: '' })
+            return undefined
+          }
+          createBlurredBackdrop(cover).then(function (texture) {
+            if (cancelled || texture === '') return
+            setBg(function (prev) {
+              if (prev.current === texture) return prev
+              return { current: texture, previous: prev.current }
+            })
+          })
+          return function () {
+            cancelled = true
+          }
+        },
+        [cover],
+      )
+    
+      // Cached online streams carry real codec/sample-rate/bitrate facts; probe the
+      // cache after playback starts and merge them into the current queue track.
+      useEffect(
+        function () {
+          if (!track || !track.onlineProvider || !track.onlineId) return undefined
+          var provider = track.onlineProvider
+          var id = track.onlineId
+          var path = track.path
+          var cancelled = false
+          var attempts = 0
+          var timer = null
+          function ask() {
+            if (cancelled) return
+            getJson(
+              API +
+                'online/info?provider=' +
+                encodeURIComponent(provider) +
+                '&id=' +
+                encodeURIComponent(id),
+            )
+              .then(function (body) {
+                if (cancelled) return
+                var info = body && body.cached ? body.info : null
+                if (info && (info.codec || info.sampleRate || info.bitrate)) {
+                  player.updateTrack(path, {
+                    codec: info.codec || '',
+                    sampleRate: Number(info.sampleRate) || 0,
+                    bitrate: Number(info.bitrate) || 0,
+                    size: Number(info.size) || 0,
+                  })
+                  return
+                }
+                if (attempts < 30) {
+                  attempts += 1
+                  timer = setTimeout(ask, 600)
+                }
+              })
+              .catch(function () {
+                if (cancelled) return
+                if (attempts < 15) {
+                  attempts += 1
+                  timer = setTimeout(ask, 900)
+                }
+              })
+          }
+          ask()
+          return function () {
+            cancelled = true
+            if (timer !== null) clearTimeout(timer)
+          }
+        },
+        [trackPath, track && track.onlineProvider, track && track.onlineId],
+      )
+      var circular = prefs.coverStyle === 'vinyl'
+      var stagedPair = useState(false)
+      var staged = stagedPair[0]
+      var setStaged = stagedPair[1]
+      useEffect(
+        function () {
+          if (props.open !== true) {
+            setStaged(false)
+            return undefined
+          }
+          // Let the 320ms slide-in finish before starting the vinyl spin and the
+          // wave rAF. Starting both on the same frame competes with the entrance
+          // paint and makes the page feel heavier than it is.
+          var timer = setTimeout(function () {
+            setStaged(true)
+          }, 360)
+          return function () {
+            clearTimeout(timer)
+          }
+        },
+        [props.open],
+      )
+      var spinning = circular && snap.playing && staged
+      var vinyl = circular
       var lyricSize = prefs.lyricSize || 18
       var translationSize = Math.round((lyricSize * (prefs.translationScale || 80)) / 100)
       var lyricsTimed = lyrics.length > 0 && lyrics[0].time >= 0
+      var lyricOrderKey = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
     
       useEffect(
         function () {
           if (props.open !== true || trackPath === '') return undefined
           var cancelled = false
           setLyrics([])
+          setLyricSource('')
           setLyricError('')
           var current = snap.queue[snap.index]
           async function load() {
@@ -6425,6 +7804,7 @@ window.__ModuleLoader__.load({
                 if (body.translation) mergeLyricTranslation(lines, body.translation)
                 if (!cancelled) {
                   setLyrics(lines)
+                  setLyricSource('ONLINE')
                   setOffsetMs(0)
                 }
                 return
@@ -6435,6 +7815,7 @@ window.__ModuleLoader__.load({
               )
               if (!cancelled) {
                 setLyrics(Array.isArray(local.lines) ? local.lines : [])
+                setLyricSource(String(local.source || ''))
                 setOffsetMs(Number(local.offsetMs) || 0)
               }
             } catch (error) {
@@ -6446,30 +7827,27 @@ window.__ModuleLoader__.load({
             cancelled = true
           }
         },
-        [props.open, trackPath, lyricReload],
+        [props.open, trackPath, lyricReload, lyricOrderKey],
       )
     
       var active = lyricActiveIndex(lyrics, time.currentTime - offsetMs / 1000)
       var duration = time.duration > 0 ? time.duration : track ? track.durationSec || 0 : 0
       var favorite = track !== null && props.favoriteSet[track.path] === true
     
-      // Keep the active line vertically centred, using real row heights.
-      useEffect(
-        function () {
-          var box = boxRef.current
-          var inner = innerRef.current
-          if (box === null || inner === null) return
-          if (lyrics.length === 0 || !lyricsTimed) {
-            inner.style.transform = ''
-            return
-          }
-          var index = active >= 0 ? active : 0
-          var row = rowRefs.current[index]
-          if (!row) return
-          var offset = row.offsetTop - (box.clientHeight / 2 - row.offsetHeight / 2)
-          inner.style.transform = 'translateY(' + -offset + 'px)'
-        },
-        [active, lyrics],
+      useLyricAutoScroll(
+        boxRef,
+        innerRef,
+        discWrapRef,
+        rowRefs,
+        active,
+        lyrics,
+        lyricsTimed,
+        props.open === true,
+        prefs.showTranslation === true,
+        lyricSize,
+        Number(prefs.lyricGap) || 6,
+        prefs.translationScale || 80,
+        prefs.lyricAlign || 'center',
       )
     
       function seekLine(line) {
@@ -6484,6 +7862,44 @@ window.__ModuleLoader__.load({
         postJson(API + 'lyrics/calibrate', { path: track.path, offsetMs: next }).catch(function (error) {
           setLyricError(errorText(error))
         })
+      }
+    
+      function setSleep(minutes) {
+        var value = Number(minutes) || 0
+        setPrefs({
+          sleepTimerMinutes: value,
+          sleepDeadline: value > 0 ? Date.now() + value * 60000 : 0,
+        })
+        setExtraPanel('')
+      }
+    
+      function toggleFullscreen() {
+        var node = npRef.current
+        if (node === null) return
+        if (document.fullscreenElement === node) {
+          void document.exitFullscreen()
+          return
+        }
+        if (typeof node.requestFullscreen !== 'function') {
+          showToast(t('page.fullscreenFailed'))
+          return
+        }
+        try {
+          var result = node.requestFullscreen()
+          if (result && typeof result.catch === 'function') {
+            result.catch(function () {
+              showToast(t('page.fullscreenFailed'))
+            })
+          }
+        } catch (error) {
+          showToast(t('page.fullscreenFailed'))
+        }
+      }
+    
+      function applySleepCustom() {
+        var value = Math.round(Number(sleepCustom))
+        if (!Number.isFinite(value) || value < 1 || value > 720) return
+        setSleep(value)
       }
     
       function writeLyricsBack() {
@@ -6519,6 +7935,55 @@ window.__ModuleLoader__.load({
         })
       }
     
+      useEffect(
+        function () {
+          if (props.open !== true) setEditorOpen(false)
+        },
+        [props.open],
+      )
+    
+      useEffect(
+        function () {
+          function onChange() {
+            setIsFullscreen(typeof document !== 'undefined' && document.fullscreenElement === npRef.current)
+          }
+          onChange()
+          document.addEventListener('fullscreenchange', onChange)
+          return function () {
+            document.removeEventListener('fullscreenchange', onChange)
+            if (document.fullscreenElement === npRef.current) void document.exitFullscreen()
+          }
+        },
+        [],
+      )
+    
+      useEffect(
+        function () {
+          if (props.open !== true && document.fullscreenElement === npRef.current) {
+            void document.exitFullscreen()
+          }
+        },
+        [props.open],
+      )
+    
+      function toggleLyricSettings() {
+        if (settingsOpen) {
+          setSettingsOpen(false)
+          return
+        }
+        var np = npRef.current
+        var btn = settingsBtnRef.current
+        if (np !== null && btn !== null) {
+          var nr = np.getBoundingClientRect()
+          var br = btn.getBoundingClientRect()
+          var width = Math.min(320, Math.max(240, nr.width - 24))
+          var left = Math.max(12, Math.min(br.left - nr.left, nr.width - width - 12))
+          var bottom = Math.max(12, nr.bottom - br.top + 10)
+          setSettingsPos({ left: left, bottom: bottom, width: width })
+        }
+        setSettingsOpen(true)
+      }
+    
       return h(
         'div',
         {
@@ -6526,58 +7991,57 @@ window.__ModuleLoader__.load({
             'mp-np',
             props.open === true && 'is-open',
             prefs.lyricBlur === true && 'is-blur',
+            prefs.showTranslation === true && 'is-trans',
             'mp-align-' + (prefs.lyricAlign || 'center'),
           ),
+          ref: npRef,
           role: 'dialog',
           'aria-label': t('page.openPlayer'),
           'aria-hidden': props.open === true ? 'false' : 'true',
           style: {
             '--mp-lyric-size': lyricSize + 'px',
-            '--mp-lyric-weight': String(prefs.lyricWeight || 500),
             '--mp-lyric-trans': translationSize + 'px',
+            '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
           },
         },
-        cover !== '' ? h('div', { className: 'mp-np-bg' }, h('img', { src: cover, alt: '' })) : null,
+        bg.current !== '' || bg.previous !== ''
+          ? h(
+              'div',
+              { className: 'mp-np-bg' },
+              bg.previous !== ''
+                ? h('img', { key: 'prev:' + bg.previous, src: bg.previous, alt: '', className: 'is-prev' })
+                : null,
+              bg.current !== ''
+                ? h('img', { key: 'cur:' + bg.current, src: bg.current, alt: '', className: 'is-cur' })
+                : null,
+            )
+          : null,
         h('div', { className: 'mp-np-shade' }),
         h(
           'div',
           { className: 'mp-np-head' },
           h(IconButton, { icon: 'chevronDown', size: 20, title: t('page.closePlayer'), onClick: props.onClose }),
-          h('div', { className: 'mp-np-head-title' }, track ? trackTitleOf(track) : t('page.noTrack')),
-          h(
-            'div',
-            { className: 'mp-np-head-actions' },
-            h(
-              'button',
-              {
-                type: 'button',
-                ref: settingsBtnRef,
-                className: cx('mp-iconbtn', 'mp-trans-toggle', settingsOpen && 'is-on'),
-                title: t('v2.lyricSettings'),
-                onClick: function () {
-                  setSettingsOpen(!settingsOpen)
-                },
-              },
-              'Aa',
-            ),
-            h(
-              'button',
-              {
-                type: 'button',
-                className: cx('mp-iconbtn', 'mp-trans-toggle', prefs.showTranslation === true && 'is-on'),
-                title: t('page.translation'),
-                onClick: function () {
-                  setPrefs({ showTranslation: prefs.showTranslation !== true })
-                },
-              },
-              '译',
-            ),
-          ),
+        ),
+        h(
+          'div',
+          { className: 'mp-np-fs' },
+          h(IconButton, {
+            icon: isFullscreen ? 'minimize' : 'maximize',
+            size: 18,
+            title: isFullscreen ? t('page.exitFullscreen') : t('page.fullscreen'),
+            onClick: toggleFullscreen,
+          }),
         ),
         settingsOpen
           ? h(
               'div',
-              { className: 'mp-np-settings', ref: settingsRef },
+              {
+                className: 'mp-np-settings',
+                ref: settingsRef,
+                style: settingsPos
+                  ? { left: settingsPos.left + 'px', bottom: settingsPos.bottom + 'px', width: settingsPos.width + 'px', right: 'auto', top: 'auto' }
+                  : undefined,
+              },
               h(
                 'div',
                 { className: 'mp-np-setting' },
@@ -6605,18 +8069,18 @@ window.__ModuleLoader__.load({
                 h(
                   'div',
                   { className: 'mp-np-setting-head' },
-                  h('span', null, t('page.lyricWeight')),
-                  h('span', { className: 'mp-set-val' }, String(prefs.lyricWeight || 500)),
+                  h('span', null, t('page.lyricGap')),
+                  h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 6) + ' px'),
                 ),
                 h('input', {
                   type: 'range',
                   className: 'mp-range',
-                  min: 300,
-                  max: 800,
-                  step: 100,
-                  value: prefs.lyricWeight || 500,
+                  min: 2,
+                  max: 16,
+                  step: 1,
+                  value: Number(prefs.lyricGap) || 6,
                   onChange: function (event) {
-                    setPrefs({ lyricWeight: Number(event.target.value) })
+                    setPrefs({ lyricGap: Number(event.target.value) })
                   },
                 }),
               ),
@@ -6637,6 +8101,52 @@ window.__ModuleLoader__.load({
                   setPrefs({ translationScale: Number(event.target.value) })
                 },
               }),
+              h(
+                'div',
+                { className: 'mp-np-setting' },
+                h('div', { className: 'mp-np-setting-head' }, h('span', null, t('settings.lyricAlign'))),
+                h(
+                  'div',
+                  { className: 'mp-np-align-row' },
+                  [
+                    ['left', 'settings.alignLeft'],
+                    ['center', 'settings.alignCenter'],
+                    ['right', 'settings.alignRight'],
+                  ].map(function (item) {
+                    return h(
+                      'button',
+                      {
+                        key: item[0],
+                        type: 'button',
+                        className: cx(
+                          'mp-chip',
+                          (prefs.lyricAlign || 'left') === item[0] && 'is-on',
+                        ),
+                        onClick: function () {
+                          setPrefs({ lyricAlign: item[0] })
+                        },
+                      },
+                      t(item[1]),
+                    )
+                  }),
+                ),
+              ),
+              h(
+                'div',
+                { className: 'mp-np-setting' },
+                h('div', { className: 'mp-np-setting-head' }, h('span', null, t('settings.lyricOrder'))),
+                h(
+                  'select',
+                  {
+                    value: (prefs.lyricOrder || ['embedded', 'lrc']).join(','),
+                    onChange: function (event) {
+                      setPrefs({ lyricOrder: event.target.value.split(',') })
+                    },
+                  },
+                  h('option', { value: 'embedded,lrc' }, t('settings.lyricSourceEmbedded') + ' → LRC'),
+                  h('option', { value: 'lrc,embedded' }, 'LRC → ' + t('settings.lyricSourceEmbedded')),
+                ),
+              ),
               h(
                 SetRow,
                 { label: t('page.lyricBlur') },
@@ -6708,7 +8218,30 @@ window.__ModuleLoader__.load({
             { className: 'mp-np-left' },
             h(
               'div',
-              { className: 'mp-np-disc-wrap' },
+              { className: 'mp-np-meta' },
+              h('div', { className: 'mp-np-title' }, track ? trackTitleOf(track) : '—'),
+              h(
+                'div',
+                { className: 'mp-np-artist-row' },
+                h('div', { className: 'mp-np-artist' }, track ? trackArtistOf(track) : ''),
+                h(IconButton, {
+                  className: 'mp-np-meta-audio',
+                  icon: snap.muted ? 'mute' : 'volume',
+                  size: 20,
+                  active: snap.muted === true,
+                  title: t('page.volume'),
+                  onClick: function () {
+                    player.setMuted(!snap.muted)
+                  },
+                }),
+              ),
+            ),
+            h(
+              'div',
+              { className: cx('mp-np-cover-stage', vinyl && 'is-vinyl') },
+              h(
+                'div',
+                { className: cx('mp-np-disc-wrap', vinyl && 'is-vinyl'), ref: discWrapRef },
               h(
                 'div',
                 {
@@ -6723,15 +8256,270 @@ window.__ModuleLoader__.load({
                 h(
                   'div',
                   { className: 'mp-np-art' },
-                  cover !== '' ? h('img', { src: cover, alt: '', draggable: false }) : icon('note', 96),
+                  cover !== ''
+                    ? h('img', { src: cover, alt: '', draggable: false, ref: coverImgRef })
+                    : icon('note', 96),
                 ),
               ),
             ),
+            ),
             h(
               'div',
-              { className: 'mp-np-meta' },
-              h('div', { className: 'mp-np-title' }, track ? trackTitleOf(track) : '—'),
-              h('div', { className: 'mp-np-artist' }, track ? trackArtistOf(track) : ''),
+              { className: 'mp-np-quality' },
+              h('span', { className: 'mp-np-quality-name' }, 'AudioTrack'),
+              track && track.codec ? h('span', null, track.codec) : null,
+              track && track.sampleRate ? h('span', null, fmtKhz(track.sampleRate)) : null,
+              track && track.bitrate ? h('span', null, fmtKbps(track.bitrate)) : null,
+              track && track.qualityHint ? h('span', null, track.qualityHint) : null,
+            ),
+            h(
+              'div',
+              { className: 'mp-np-progress' },
+              prefs.waveEnabled !== false
+                ? h(CoverReflectWave, { cover: cover, playing: snap.playing, imageRef: coverImgRef, active: staged })
+                : null,
+              h(SeekBar, { fallbackDuration: track ? track.durationSec || 0 : 0 }),
+            ),
+            h(
+              'div',
+              { className: 'mp-np-times' },
+              h('span', null, fmtClock(time.currentTime)),
+              h('span', null, fmtClock(duration)),
+            ),
+            h(
+              'div',
+              { className: 'mp-np-transport' },
+              h(IconButton, {
+                icon: 'prev',
+                size: 28,
+                title: t('page.prev'),
+                onClick: function () {
+                  player.prev()
+                },
+              }),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mp-pb-play',
+                  title: snap.playing ? t('page.pause') : t('page.play'),
+                  onClick: function () {
+                    player.toggle()
+                  },
+                },
+                icon(snap.playing ? 'pause' : 'play', 38),
+              ),
+              h(IconButton, {
+                icon: 'next',
+                size: 28,
+                title: t('page.next'),
+                onClick: function () {
+                  player.next()
+                },
+              }),
+            ),
+            h(
+              'div',
+              { className: 'mp-np-secondary' },
+              h(
+                'div',
+                { className: 'mp-np-extra-item', ref: sleepRef },
+                h(IconButton, {
+                  icon: 'clock',
+                  size: 22,
+                  active: extraPanel === 'sleep',
+                  title: t('settings.sleepTimer'),
+                  onClick: function () {
+                    setExtraPanel(extraPanel === 'sleep' ? '' : 'sleep')
+                  },
+                }),
+                extraPanel === 'sleep'
+                  ? h(
+                      'div',
+                      { className: 'mp-np-extra-pop is-sleep' },
+                      h(
+                        'div',
+                        { className: 'mp-np-sleep-head' },
+                        h('span', { className: 'mp-np-sleep-head-icon' }, icon('clock', 14)),
+                        h(
+                          'div',
+                          { className: 'mp-np-sleep-title-wrap' },
+                          h('div', { className: 'mp-np-sleep-title' }, t('settings.sleepTimer')),
+                          h(
+                            'div',
+                            { className: 'mp-np-sleep-hint' },
+                            sleepRemaining > 0
+                              ? t('sleep.remaining', { time: fmtClock(sleepRemaining / 1000) })
+                              : t('sleep.hint'),
+                          ),
+                        ),
+                        h(
+                          'button',
+                          {
+                            type: 'button',
+                            className: 'mp-np-sleep-close',
+                            title: t('editor.close'),
+                            onClick: function () {
+                              setExtraPanel('')
+                            },
+                          },
+                          icon('x', 14),
+                        ),
+                      ),
+                      h('div', { className: 'mp-np-sleep-label' }, t('sleep.presets')),
+                      h(
+                        'div',
+                        { className: 'mp-np-sleep-grid' },
+                        [15, 30, 45, 60, 90].map(function (minutes) {
+                          var on = sleepRemaining > 0 && prefs.sleepTimerMinutes === minutes
+                          return h(
+                            'button',
+                            {
+                              key: minutes,
+                              type: 'button',
+                              className: cx('mp-np-sleep-chip', on && 'is-on'),
+                              onClick: function () {
+                                setSleep(minutes)
+                              },
+                            },
+                            minutes,
+                            h('span', null, t('sleep.minutes')),
+                          )
+                        }),
+                      ),
+                      h('div', { className: 'mp-np-sleep-label' }, t('sleep.custom')),
+                      h(
+                        'div',
+                        { className: 'mp-np-sleep-custom' },
+                        h('input', {
+                          type: 'text',
+                          inputMode: 'numeric',
+                          maxLength: 3,
+                          className: 'mp-np-sleep-input',
+                          placeholder: t('sleep.placeholder'),
+                          'aria-label': t('sleep.placeholder'),
+                          value: sleepCustom,
+                          onChange: function (event) {
+                            setSleepCustom(event.target.value.replace(/[^0-9]/g, '').slice(0, 3))
+                          },
+                          onKeyDown: function (event) {
+                            if (event.key === 'Enter') applySleepCustom()
+                          },
+                        }),
+                        h('span', { className: 'mp-np-sleep-unit' }, t('sleep.minutes')),
+                        h(
+                          'button',
+                          {
+                            type: 'button',
+                            className: 'mp-np-sleep-set',
+                            disabled: !(Number(sleepCustom) >= 1 && Number(sleepCustom) <= 720),
+                            onClick: applySleepCustom,
+                          },
+                          t('sleep.set'),
+                        ),
+                      ),
+                      sleepCustom !== '' && !(Number(sleepCustom) >= 1 && Number(sleepCustom) <= 720)
+                        ? h('div', { className: 'mp-np-sleep-error' }, t('sleep.invalid'))
+                        : null,
+                      sleepRemaining > 0
+                        ? h(
+                            'button',
+                            {
+                              type: 'button',
+                              className: 'mp-np-sleep-off',
+                              onClick: function () {
+                                setSleep(0)
+                              },
+                            },
+                            t('settings.sleepOff'),
+                          )
+                        : null,
+                    )
+                  : null,
+              ),
+              h(IconButton, {
+                icon: playModeIcon(playModeOf(snap)),
+                size: 22,
+                title: t('page.loopAll'),
+                onClick: function () {
+                  cyclePlayMode(snap)
+                },
+              }),
+              h(
+                'div',
+                { className: 'mp-np-extra-item', ref: audioRef },
+                h(IconButton, {
+                  icon: 'equalizer',
+                  size: 22,
+                  active: extraPanel === 'audio',
+                  title: t('page.volume'),
+                  onClick: function () {
+                    setExtraPanel(extraPanel === 'audio' ? '' : 'audio')
+                  },
+                }),
+                extraPanel === 'audio'
+                  ? h(
+                      'div',
+                      { className: 'mp-np-extra-pop' },
+                      h('div', { className: 'mp-np-extra-title' }, t('page.volume')),
+                      h('input', {
+                        type: 'range',
+                        className: 'mp-range',
+                        min: 0,
+                        max: 1,
+                        step: 0.01,
+                        value: snap.volume,
+                        onChange: function (event) {
+                          player.setVolume(Number(event.target.value))
+                        },
+                      }),
+                      h(
+                        'div',
+                        { className: 'mp-np-extra-row' },
+                        h('span', null, t('settings.volumeNormalize')),
+                        h(Switch, {
+                          value: prefs.normalizeVolume !== false,
+                          onChange: function (value) {
+                            setPrefs({ normalizeVolume: value })
+                          },
+                        }),
+                      ),
+                      h(
+                        'div',
+                        { className: 'mp-np-extra-hint' },
+                        track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
+                      ),
+                    )
+                  : null,
+              ),
+              h(
+                'div',
+                { className: 'mp-pb-queue-wrap' },
+                h(IconButton, {
+                  icon: 'playlist',
+                  size: 22,
+                  active: props.queueOpen,
+                  title: t('page.queue'),
+                  onClick: props.onToggleQueue,
+                }),
+                props.queueOpen
+                  ? h(QueuePopover, {
+                      open: true,
+                      anchored: true,
+                      snap: snap,
+                      onClose: props.onToggleQueue,
+                    })
+                  : null,
+              ),
+              h(IconButton, {
+                icon: 'more',
+                size: 22,
+                title: t('editor.title'),
+                onClick: function () {
+                  setSettingsOpen(false)
+                  setEditorOpen(true)
+                },
+              }),
             ),
           ),
           h(
@@ -6759,118 +8547,87 @@ window.__ModuleLoader__.load({
                             (active >= 0 && index < active ? ' is-past' : ''),
                           style: {
                             '--mp-line-stagger': String(active >= 0 ? Math.min(Math.abs(index - active), 8) : 0),
+                            '--mp-trans': line.translation ? '1' : '0',
                           },
                           onClick: function () {
                             seekLine(line)
                           },
                         },
                         h('div', { className: 'mp-np-line-text' }, line.text),
-                        prefs.showTranslation === true && line.translation
-                          ? line.translation.split('\n').map(function (part, partIndex) {
-                              return h(
-                                'div',
-                                { key: 'translation-' + partIndex, className: 'mp-np-line-trans' },
-                                part,
-                              )
-                            })
-                          : null,
+                        h(
+                          'div',
+                          {
+                            className: 'mp-np-line-trans',
+                            'aria-hidden':
+                              prefs.showTranslation === true && line.translation ? 'false' : 'true',
+                          },
+                          h(
+                            'span',
+                            { className: 'mp-np-line-trans-inner' },
+                            line.translation
+                              ? line.translation.split('\n').map(function (part, partIndex) {
+                                  return h(
+                                    'span',
+                                    { key: 'translation-' + partIndex, className: 'mp-np-line-trans-text' },
+                                    part,
+                                  )
+                                })
+                              : null,
+                          ),
+                        ),
                       )
                     }),
                   ),
             ),
-          ),
-        ),
-        h(
-          'div',
-          { className: 'mp-np-bottom' },
-          h('div', { className: 'mp-np-progress' }, h(SeekBar, { fallbackDuration: track ? track.durationSec || 0 : 0 })),
-          h(
-            'div',
-            { className: 'mp-np-bar' },
             h(
               'div',
-              { className: 'mp-np-time' },
-              h('span', null, fmtClock(time.currentTime)),
-              h('span', { className: 'mp-np-time-sep' }, ' / '),
-              h('span', null, fmtClock(duration)),
-            ),
-            h(
-              'div',
-              { className: 'mp-np-controls' },
-              h(IconButton, {
-                icon: playModeIcon(playModeOf(snap)),
-                size: 17,
-                title: t('page.loopAll'),
-                onClick: function () {
-                  cyclePlayMode(snap)
-                },
-              }),
-              h(IconButton, {
-                icon: 'prev',
-                size: 18,
-                title: t('page.prev'),
-                onClick: function () {
-                  player.prev()
-                },
-              }),
+              { className: 'mp-np-lyric-foot' },
               h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mp-pb-play',
-                  title: snap.playing ? t('page.pause') : t('page.play'),
-                  onClick: function () {
-                    player.toggle()
+                'span',
+                { className: 'mp-np-lyric-tag' },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    ref: settingsBtnRef,
+                    className: cx('mp-np-lyric-tag-badge', 'is-btn', settingsOpen && 'is-on'),
+                    title: t('v2.lyricSettings'),
+                    'aria-label': t('v2.lyricSettings'),
+                    onClick: toggleLyricSettings,
                   },
-                },
-                icon(snap.playing ? 'pause' : 'play', 18),
+                  '词',
+                ),
+                lyricSource !== '' ? h('span', { className: 'mp-np-lyric-source' }, lyricSource.toUpperCase()) : null,
               ),
-              h(IconButton, {
-                icon: 'next',
-                size: 18,
-                title: t('page.next'),
-                onClick: function () {
-                  player.next()
-                },
-              }),
               h(
                 'div',
-                { className: 'mp-pb-queue-wrap' },
-                h(IconButton, {
-                  icon: 'playlist',
-                  size: 17,
-                  active: props.queueOpen,
-                  title: t('page.queue'),
-                  onClick: props.onToggleQueue,
-                }),
-                props.queueOpen
-                  ? h(QueuePopover, {
-                      open: true,
-                      anchored: true,
-                      snap: snap,
-                      onClose: props.onToggleQueue,
-                    })
-                  : null,
-              ),
-            ),
-            h(
-              'div',
-              { className: 'mp-np-vol' },
-              track && track.sampleRate ? h('span', { className: 'mp-quality' }, fmtKhz(track.sampleRate)) : null,
-              track && !track.onlineProvider
-                ? h(IconButton, {
-                    icon: 'heart',
-                    size: 18,
-                    active: favorite,
-                    title: favorite ? t('page.unfavorite') : t('page.favorite'),
+                { className: 'mp-np-foot-right' },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: cx('mp-np-foot-btn', 'is-boxed', prefs.showTranslation === true && 'is-on'),
+                    title: t('page.translation'),
                     onClick: function () {
-                      if (props.onToggleFavorite) props.onToggleFavorite(track)
+                      setPrefs({ showTranslation: prefs.showTranslation !== true })
                     },
-                  })
-                : null,
+                  },
+                  '译',
+                ),
+              ),
             ),
           ),
         ),
+        editorOpen
+          ? h(NpEditor, {
+              open: true,
+              cover: cover,
+              onClose: function () {
+                setEditorOpen(false)
+              },
+            })
+          : null,
+    
       )
     }
 
@@ -7167,36 +8924,33 @@ window.__ModuleLoader__.load({
           ),
           h(
             SetRow,
-            { key: 'spin', label: t('v2.spin'), desc: t('v2.spinDesc') },
-            h(Switch, {
-              value: prefs.coverSpin === true,
-              label: t('v2.spin'),
-              onChange: function (value) {
-                patchPrefs({ coverSpin: value })
-              },
-            }),
-          ),
-          h(
-            SetRow,
-            { key: 'round', label: t('v2.roundCover'), desc: t('v2.roundCoverDesc') },
-            h(Switch, {
-              value: prefs.circularCover === true,
-              label: t('v2.roundCover'),
-              onChange: function (value) {
-                patchPrefs({ circularCover: value })
-              },
-            }),
-          ),
-          h(
-            SetRow,
-            { key: 'vinyl', label: t('v2.vinylRing'), desc: t('v2.vinylRingDesc') },
-            h(Switch, {
-              value: prefs.vinylRing === true,
-              label: t('v2.vinylRing'),
-              onChange: function (value) {
-                patchPrefs({ vinylRing: value })
-              },
-            }),
+            { key: 'coverStyle', label: t('v2.coverStyle'), desc: t('v2.coverStyleDesc') },
+            h(
+              'div',
+              { className: 'mp-set-choice-row' },
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: cx('mp-chip', prefs.coverStyle !== 'vinyl' && 'is-on'),
+                  onClick: function () {
+                    patchPrefs({ coverStyle: 'square', circularCover: false, vinylRing: false, coverSpin: false })
+                  },
+                },
+                t('v2.coverSquare'),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: cx('mp-chip', prefs.coverStyle === 'vinyl' && 'is-on'),
+                  onClick: function () {
+                    patchPrefs({ coverStyle: 'vinyl', circularCover: true, vinylRing: true, coverSpin: true })
+                  },
+                },
+                t('v2.coverVinyl'),
+              ),
+            ),
           ),
           h(
             SetRow,
@@ -7230,7 +8984,7 @@ window.__ModuleLoader__.load({
               type: 'range',
               className: 'mp-range',
               min: 14,
-              max: 26,
+              max: 40,
               step: 1,
               value: prefs.lyricSize,
               onChange: function (event) {
@@ -7238,6 +8992,22 @@ window.__ModuleLoader__.load({
               },
             }),
             h('span', { className: 'mp-set-val' }, String(prefs.lyricSize) + ' px'),
+          ),
+          h(
+            SetRow,
+            { key: 'gap', label: t('page.lyricGap') },
+            h('input', {
+              type: 'range',
+              className: 'mp-range',
+              min: 2,
+              max: 16,
+              step: 1,
+              value: Number(prefs.lyricGap) || 6,
+              onChange: function (event) {
+                patchPrefs({ lyricGap: Number(event.target.value) })
+              },
+            }),
+            h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 6) + ' px'),
           ),
           h(
             SetRow,
@@ -7269,6 +9039,16 @@ window.__ModuleLoader__.load({
               h('option', { value: 'embedded,lrc' }, t('settings.lyricSourceEmbedded') + ' → LRC'),
               h('option', { value: 'lrc,embedded' }, 'LRC → ' + t('settings.lyricSourceEmbedded')),
             ),
+          ),
+          h(
+            SetRow,
+            { key: 'blur', label: t('page.lyricBlur') },
+            h(Switch, {
+              value: prefs.lyricBlur === true,
+              onChange: function (value) {
+                patchPrefs({ lyricBlur: value })
+              },
+            }),
           ),
           h(
             SetRow,
@@ -8336,6 +10116,16 @@ window.__ModuleLoader__.load({
       var errorPair = useState('')
       var error = errorPair[0]
       var setError = errorPair[1]
+      var attemptPair = useState(0)
+      var attempt = attemptPair[0]
+      var setAttempt = attemptPair[1]
+    
+      function retry() {
+        setError('')
+        setStatus('waiting')
+        setQr(null)
+        setAttempt(attempt + 1)
+      }
     
       useEffect(
         function () {
@@ -8379,7 +10169,7 @@ window.__ModuleLoader__.load({
             if (timer !== null) clearInterval(timer)
           }
         },
-        [provider, mode],
+        [provider, mode, attempt],
       )
     
       var providerLabel =
@@ -9483,6 +11273,12 @@ window.__ModuleLoader__.load({
         [selection.paths],
       )
       var onlineSelectionList = []
+    
+      function reloginExpired() {
+        void logoutProvider(provider).then(function () {
+          pushLayer('login', { provider: provider, mode: 'qq' })
+        })
+      }
       var currentEntries = []
       var likedSet = online.liked || {}
     
@@ -9755,6 +11551,12 @@ window.__ModuleLoader__.load({
           ]
         } else if (online.playlistsPhase === 'loading') {
           body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+        } else if (online.playlistsPhase === 'error') {
+          body = h(Empty, {
+            title: t('online.playlistsError'),
+            hint: online.error || t('online.authExpiredHint'),
+            icon: 'info',
+          })
         } else if (playlists.length === 0) {
           body = h(Empty, { title: t('v2.noPlaylists'), icon: 'list' })
         } else {
@@ -9938,6 +11740,43 @@ window.__ModuleLoader__.load({
           selecting: selecting,
           selectedCount: selection.paths.length,
         }),
+        online.authExpired === provider
+          ? h(
+              'div',
+              { className: 'mp-online-auth', key: 'auth', role: 'status' },
+              h('span', { className: 'mp-online-auth-icon' }, icon('info', 16)),
+              h(
+                'div',
+                { className: 'mp-online-auth-text' },
+                h('div', { className: 'mp-online-auth-title' }, t('online.authExpired')),
+                h('div', { className: 'mp-online-auth-hint' }, t('online.authExpiredHint')),
+              ),
+              h(
+                'div',
+                { className: 'mp-online-auth-actions' },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mp-online-auth-btn',
+                    onClick: function () {
+                      void loadMyPlaylists(provider)
+                    },
+                  },
+                  t('online.retry'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mp-online-auth-btn is-primary',
+                    onClick: reloginExpired,
+                  },
+                  t('online.relogin'),
+                ),
+              ),
+            )
+          : null,
         actions && actions.length > 0
           ? h(
               'div',
@@ -10777,6 +12616,58 @@ window.__ModuleLoader__.load({
     var useComposerLayoutEffect =
       typeof React !== 'undefined' && typeof React.useLayoutEffect === 'function' ? React.useLayoutEffect : useEffect
     
+    function composerLyricContent(entry) {
+      return [
+        h('span', { key: 'main', className: 'mp-composer-lyric-main' }, entry.text),
+        entry.translation
+          ? h('span', { key: 'trans', className: 'mp-composer-lyric-trans' }, entry.translation)
+          : null,
+      ]
+    }
+    
+    function ComposerLyricText(props) {
+      var line = props.line
+      var showTranslation = props.showTranslation === true
+      var text = line ? line.text : props.fallback
+      var translation = showTranslation && line && line.translation ? line.translation : ''
+      var key = (props.index >= 0 ? props.index : 'fallback') + '|' + text + '|' + translation
+      var pair = useState(function () {
+        return { current: { key: key, text: text, translation: translation }, previous: null }
+      })
+      var view = pair[0]
+      var setView = pair[1]
+      useEffect(
+        function () {
+          setView(function (previous) {
+            if (previous.current && previous.current.key === key) return previous
+            return {
+              current: { key: key, text: text, translation: translation },
+              previous: previous.current,
+            }
+          })
+        },
+        [key, text, translation],
+      )
+      var current = view.current
+      var leaving = view.previous
+      return h(
+        'span',
+        { className: 'mp-composer-lyric-viewport' },
+        leaving
+          ? h(
+              'span',
+              { key: 'out-' + leaving.key, className: 'mp-composer-lyric-layer is-leaving', 'aria-hidden': 'true' },
+              composerLyricContent(leaving),
+            )
+          : null,
+        h(
+          'span',
+          { key: 'in-' + current.key, className: 'mp-composer-lyric-layer is-entering' },
+          composerLyricContent(current),
+        ),
+      )
+    }
+    
     function ComposerLyrics() {
       var prefs = usePrefs()
       var snap = usePlayerSnapshot()
@@ -10831,11 +12722,13 @@ window.__ModuleLoader__.load({
       return h(
         'div',
         { className: 'mp-composer-lyrics' },
-        icon('note', 12),
-        h('span', null, line ? line.text : trackTitleOf(track)),
-        prefs.showTranslation === true && line && line.translation
-          ? h('span', { style: { opacity: 0.65 } }, '· ' + line.translation)
-          : null,
+        h('span', { className: 'mp-composer-lyric-icon' }, icon('note', 12)),
+        h(ComposerLyricText, {
+          line: line,
+          index: index,
+          fallback: trackTitleOf(track),
+          showTranslation: prefs.showTranslation === true,
+        }),
       )
     }
     
@@ -11831,11 +13724,12 @@ window.__ModuleLoader__.load({
       var levelPair = useState([0, 0, 0, 0, 0, 0, 0, 0])
       var levels = levelPair[0]
       var setLevels = levelPair[1]
-      var hasWave =
-        snap.playing === true &&
-        levels.some(function (level) {
-          return level > 0.015
-        })
+      var waveVisiblePair = useState(false)
+      var waveVisible = waveVisiblePair[0]
+      var setWaveVisible = waveVisiblePair[1]
+      var waveFadingPair = useState(false)
+      var waveFading = waveFadingPair[0]
+      var setWaveFading = waveFadingPair[1]
     
       useEffect(
         function () {
@@ -11860,13 +13754,29 @@ window.__ModuleLoader__.load({
       useEffect(
         function () {
           if (snap.playing !== true || snap.queue.length === 0) {
+            if (levels.some(function (level) { return level > 0.01 })) {
+              setWaveVisible(true)
+              setWaveFading(true)
+              var fadeTimer = setTimeout(function () {
+                setWaveVisible(false)
+                setWaveFading(false)
+                setLevels([0, 0, 0, 0, 0, 0, 0, 0])
+              }, 380)
+              return function () {
+                clearTimeout(fadeTimer)
+              }
+            }
+            setWaveVisible(false)
+            setWaveFading(false)
             setLevels([0, 0, 0, 0, 0, 0, 0, 0])
             return undefined
           }
+          setWaveVisible(true)
+          setWaveFading(false)
           var frame = 0
           var last = 0
           function tick(now) {
-            if (now - last >= 80) {
+            if (now - last >= 60) {
               last = now
               var data = player.getWave()
               if (data !== null) {
@@ -11877,8 +13787,8 @@ window.__ModuleLoader__.load({
                   var sum = 0
                   for (var i = start; i < end; i += 1) sum += data[i]
                   var avg = end > start ? sum / (end - start) : 0
-                  var normalized = Math.max(0, (avg - 2) / 255)
-                  next.push(Math.min(0.96, Math.pow(normalized, 1.55)))
+                  var normalized = Math.max(0, Math.min(1, (avg - 4) / 240))
+                  next.push(0.03 + Math.pow(normalized, 1.35) * 0.93)
                 }
                 setLevels(next)
               }
@@ -11927,14 +13837,14 @@ window.__ModuleLoader__.load({
           ? h(
               'span',
               { className: 'mp-side-extras' },
-              hasWave
+              waveVisible
                 ? h(
                     'span',
-                    { className: 'mp-side-wave', 'aria-hidden': 'true' },
+                    { className: cx('mp-side-wave', waveFading && 'is-fading'), 'aria-hidden': 'true' },
                     levels.map(function (level, index) {
                       return h('i', {
                         key: index,
-                        style: { height: Math.round(3 + level * 15) + 'px' },
+                        style: { height: Math.round(4 + level * 18) + 'px' },
                       })
                     }),
                   )

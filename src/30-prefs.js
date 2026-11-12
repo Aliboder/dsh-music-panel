@@ -13,17 +13,20 @@ var PREF_DEFAULTS = {
   layout: 'top',
   sortBy: 'title',
   sortDir: 'asc',
-  circularCover: true,
+  circularCover: false,
+  coverStyle: 'square',
   vinylRing: false,
   npLookMigrated: true,
   coverSpin: true,
   lyricOrder: ['embedded', 'lrc'],
-  lyricAlign: 'center',
-  lyricSize: 18,
-  lyricWeight: 500,
+  lyricAlign: 'left',
+  lyricSize: 35,
+  lyricGap: 15,
   lyricBlur: true,
+  waveEnabled: true,
   showTranslation: true,
-  translationScale: 80,
+  translationScale: 90,
+  npLayoutV2: false,
   composerLyrics: false,
   composerLyricPlace: 'input-left',
   volume: 1,
@@ -75,6 +78,21 @@ function readPrefs() {
   if (merged.npLookMigrated !== true) {
     merged.circularCover = PREF_DEFAULTS.circularCover
     merged.npLookMigrated = true
+    try {
+      window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
+    } catch (error) {
+      // Best effort only.
+    }
+  }
+  // One-time move to the reference now-playing layout (square cover, left lyrics,
+  // denser lyric typography). Later user edits still win.
+  if (merged.npLayoutV2 !== true) {
+    merged.coverStyle = PREF_DEFAULTS.coverStyle
+    merged.lyricAlign = PREF_DEFAULTS.lyricAlign
+    merged.lyricSize = PREF_DEFAULTS.lyricSize
+    merged.lyricBlur = PREF_DEFAULTS.lyricBlur
+    merged.translationScale = PREF_DEFAULTS.translationScale
+    merged.npLayoutV2 = true
     try {
       window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
     } catch (error) {

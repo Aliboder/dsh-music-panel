@@ -43,7 +43,7 @@ function playModeLabel(mode) {
 }
 
 function playModeIcon(mode) {
-  return mode === 'one' ? 'repeatOne' : mode === 'random' ? 'shuffle' : 'list'
+  return mode === 'one' ? 'repeatOne' : mode === 'random' ? 'shuffle' : 'repeat'
 }
 
 function applyPlayMode(mode) {
@@ -793,6 +793,19 @@ function createPlayer() {
     },
     getSnapshot: function () {
       return state
+    },
+    /** Merge probed audio facts (codec/sampleRate/bitrate) into a queued track. */
+    updateTrack: function (path, info) {
+      if (!path || !info || typeof info !== 'object') return
+      var found = false
+      var queue = state.queue.map(function (item) {
+        if (!item || item.path !== path) return item
+        found = true
+        return Object.assign({}, item, info)
+      })
+      if (!found) return
+      state = Object.assign({}, state, { queue: queue })
+      emit()
     },
     getTime: function () {
       return { currentTime: state.currentTime, duration: state.duration, buffered: state.buffered }

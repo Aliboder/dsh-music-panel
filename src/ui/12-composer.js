@@ -6,6 +6,58 @@
 var useComposerLayoutEffect =
   typeof React !== 'undefined' && typeof React.useLayoutEffect === 'function' ? React.useLayoutEffect : useEffect
 
+function composerLyricContent(entry) {
+  return [
+    h('span', { key: 'main', className: 'mp-composer-lyric-main' }, entry.text),
+    entry.translation
+      ? h('span', { key: 'trans', className: 'mp-composer-lyric-trans' }, entry.translation)
+      : null,
+  ]
+}
+
+function ComposerLyricText(props) {
+  var line = props.line
+  var showTranslation = props.showTranslation === true
+  var text = line ? line.text : props.fallback
+  var translation = showTranslation && line && line.translation ? line.translation : ''
+  var key = (props.index >= 0 ? props.index : 'fallback') + '|' + text + '|' + translation
+  var pair = useState(function () {
+    return { current: { key: key, text: text, translation: translation }, previous: null }
+  })
+  var view = pair[0]
+  var setView = pair[1]
+  useEffect(
+    function () {
+      setView(function (previous) {
+        if (previous.current && previous.current.key === key) return previous
+        return {
+          current: { key: key, text: text, translation: translation },
+          previous: previous.current,
+        }
+      })
+    },
+    [key, text, translation],
+  )
+  var current = view.current
+  var leaving = view.previous
+  return h(
+    'span',
+    { className: 'mp-composer-lyric-viewport' },
+    leaving
+      ? h(
+          'span',
+          { key: 'out-' + leaving.key, className: 'mp-composer-lyric-layer is-leaving', 'aria-hidden': 'true' },
+          composerLyricContent(leaving),
+        )
+      : null,
+    h(
+      'span',
+      { key: 'in-' + current.key, className: 'mp-composer-lyric-layer is-entering' },
+      composerLyricContent(current),
+    ),
+  )
+}
+
 function ComposerLyrics() {
   var prefs = usePrefs()
   var snap = usePlayerSnapshot()
@@ -60,11 +112,13 @@ function ComposerLyrics() {
   return h(
     'div',
     { className: 'mp-composer-lyrics' },
-    icon('note', 12),
-    h('span', null, line ? line.text : trackTitleOf(track)),
-    prefs.showTranslation === true && line && line.translation
-      ? h('span', { style: { opacity: 0.65 } }, '· ' + line.translation)
-      : null,
+    h('span', { className: 'mp-composer-lyric-icon' }, icon('note', 12)),
+    h(ComposerLyricText, {
+      line: line,
+      index: index,
+      fallback: trackTitleOf(track),
+      showTranslation: prefs.showTranslation === true,
+    }),
   )
 }
 

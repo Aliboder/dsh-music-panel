@@ -32,6 +32,7 @@ var onlineStore = createStore({
   playlistsProvider: '',
   playlistsRefreshing: false,
   playlists: [],
+  authExpired: '',
   playlistId: '',
   playlistName: '',
   playlistSongs: [],
@@ -104,6 +105,12 @@ async function refreshCacheStatus(provider, ids) {
   }
 }
 
+function isAuthError(message) {
+  return /20017|登录态|重新扫码|未登录|登录.*(失效|过期)|session|cookie|token|鉴权|401|403/i.test(
+    String(message || ''),
+  )
+}
+
 function mergePlaylists(previous, incoming) {
   var next = new Map()
   ;(incoming || []).forEach(function (item) {
@@ -144,13 +151,20 @@ async function loadMyPlaylists(provider) {
       playlistsProvider: target,
       playlists: keep ? mergePlaylists(current.playlists, incoming) : incoming,
       error: '',
+      authExpired: '',
     })
   } catch (error) {
     if (token !== playlistLoadToken) return
     var state = onlineStore.get()
     if (state.playlistsProvider === target && (state.playlists || []).length > 0) {
       // Stale-while-revalidate: keep the last good list visible.
-      onlineStore.set({ playlistsPhase: 'ready', playlistsRefreshing: false, error: errorText(error) })
+      var message = errorText(error)
+      onlineStore.set({
+        playlistsPhase: 'ready',
+        playlistsRefreshing: false,
+        error: message,
+        authExpired: isAuthError(message) ? target : '',
+      })
     } else {
       onlineStore.set({
         playlistsPhase: 'error',
@@ -158,6 +172,7 @@ async function loadMyPlaylists(provider) {
         playlistsProvider: target,
         playlists: [],
         error: errorText(error),
+        authExpired: isAuthError(errorText(error)) ? target : '',
       })
     }
   }
@@ -207,6 +222,7 @@ function resetOnlineAccountData() {
     albumError: '',
     liked: {},
     error: '',
+    authExpired: '',
   })
 }
 

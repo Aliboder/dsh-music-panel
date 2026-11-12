@@ -13,11 +13,12 @@ function MusicSideIcon() {
   var levelPair = useState([0, 0, 0, 0, 0, 0, 0, 0])
   var levels = levelPair[0]
   var setLevels = levelPair[1]
-  var hasWave =
-    snap.playing === true &&
-    levels.some(function (level) {
-      return level > 0.015
-    })
+  var waveVisiblePair = useState(false)
+  var waveVisible = waveVisiblePair[0]
+  var setWaveVisible = waveVisiblePair[1]
+  var waveFadingPair = useState(false)
+  var waveFading = waveFadingPair[0]
+  var setWaveFading = waveFadingPair[1]
 
   useEffect(
     function () {
@@ -42,13 +43,29 @@ function MusicSideIcon() {
   useEffect(
     function () {
       if (snap.playing !== true || snap.queue.length === 0) {
+        if (levels.some(function (level) { return level > 0.01 })) {
+          setWaveVisible(true)
+          setWaveFading(true)
+          var fadeTimer = setTimeout(function () {
+            setWaveVisible(false)
+            setWaveFading(false)
+            setLevels([0, 0, 0, 0, 0, 0, 0, 0])
+          }, 380)
+          return function () {
+            clearTimeout(fadeTimer)
+          }
+        }
+        setWaveVisible(false)
+        setWaveFading(false)
         setLevels([0, 0, 0, 0, 0, 0, 0, 0])
         return undefined
       }
+      setWaveVisible(true)
+      setWaveFading(false)
       var frame = 0
       var last = 0
       function tick(now) {
-        if (now - last >= 80) {
+        if (now - last >= 60) {
           last = now
           var data = player.getWave()
           if (data !== null) {
@@ -59,8 +76,8 @@ function MusicSideIcon() {
               var sum = 0
               for (var i = start; i < end; i += 1) sum += data[i]
               var avg = end > start ? sum / (end - start) : 0
-              var normalized = Math.max(0, (avg - 2) / 255)
-              next.push(Math.min(0.96, Math.pow(normalized, 1.55)))
+              var normalized = Math.max(0, Math.min(1, (avg - 4) / 240))
+              next.push(0.03 + Math.pow(normalized, 1.35) * 0.93)
             }
             setLevels(next)
           }
@@ -109,14 +126,14 @@ function MusicSideIcon() {
       ? h(
           'span',
           { className: 'mp-side-extras' },
-          hasWave
+          waveVisible
             ? h(
                 'span',
-                { className: 'mp-side-wave', 'aria-hidden': 'true' },
+                { className: cx('mp-side-wave', waveFading && 'is-fading'), 'aria-hidden': 'true' },
                 levels.map(function (level, index) {
                   return h('i', {
                     key: index,
-                    style: { height: Math.round(3 + level * 15) + 'px' },
+                    style: { height: Math.round(4 + level * 18) + 'px' },
                   })
                 }),
               )

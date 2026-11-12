@@ -121,36 +121,33 @@ function SettingsSheet(props) {
       ),
       h(
         SetRow,
-        { key: 'spin', label: t('v2.spin'), desc: t('v2.spinDesc') },
-        h(Switch, {
-          value: prefs.coverSpin === true,
-          label: t('v2.spin'),
-          onChange: function (value) {
-            patchPrefs({ coverSpin: value })
-          },
-        }),
-      ),
-      h(
-        SetRow,
-        { key: 'round', label: t('v2.roundCover'), desc: t('v2.roundCoverDesc') },
-        h(Switch, {
-          value: prefs.circularCover === true,
-          label: t('v2.roundCover'),
-          onChange: function (value) {
-            patchPrefs({ circularCover: value })
-          },
-        }),
-      ),
-      h(
-        SetRow,
-        { key: 'vinyl', label: t('v2.vinylRing'), desc: t('v2.vinylRingDesc') },
-        h(Switch, {
-          value: prefs.vinylRing === true,
-          label: t('v2.vinylRing'),
-          onChange: function (value) {
-            patchPrefs({ vinylRing: value })
-          },
-        }),
+        { key: 'coverStyle', label: t('v2.coverStyle'), desc: t('v2.coverStyleDesc') },
+        h(
+          'div',
+          { className: 'mp-set-choice-row' },
+          h(
+            'button',
+            {
+              type: 'button',
+              className: cx('mp-chip', prefs.coverStyle !== 'vinyl' && 'is-on'),
+              onClick: function () {
+                patchPrefs({ coverStyle: 'square', circularCover: false, vinylRing: false, coverSpin: false })
+              },
+            },
+            t('v2.coverSquare'),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: cx('mp-chip', prefs.coverStyle === 'vinyl' && 'is-on'),
+              onClick: function () {
+                patchPrefs({ coverStyle: 'vinyl', circularCover: true, vinylRing: true, coverSpin: true })
+              },
+            },
+            t('v2.coverVinyl'),
+          ),
+        ),
       ),
       h(
         SetRow,
@@ -184,7 +181,7 @@ function SettingsSheet(props) {
           type: 'range',
           className: 'mp-range',
           min: 14,
-          max: 26,
+          max: 40,
           step: 1,
           value: prefs.lyricSize,
           onChange: function (event) {
@@ -192,6 +189,22 @@ function SettingsSheet(props) {
           },
         }),
         h('span', { className: 'mp-set-val' }, String(prefs.lyricSize) + ' px'),
+      ),
+      h(
+        SetRow,
+        { key: 'gap', label: t('page.lyricGap') },
+        h('input', {
+          type: 'range',
+          className: 'mp-range',
+          min: 2,
+          max: 16,
+          step: 1,
+          value: Number(prefs.lyricGap) || 6,
+          onChange: function (event) {
+            patchPrefs({ lyricGap: Number(event.target.value) })
+          },
+        }),
+        h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 6) + ' px'),
       ),
       h(
         SetRow,
@@ -223,6 +236,16 @@ function SettingsSheet(props) {
           h('option', { value: 'embedded,lrc' }, t('settings.lyricSourceEmbedded') + ' → LRC'),
           h('option', { value: 'lrc,embedded' }, 'LRC → ' + t('settings.lyricSourceEmbedded')),
         ),
+      ),
+      h(
+        SetRow,
+        { key: 'blur', label: t('page.lyricBlur') },
+        h(Switch, {
+          value: prefs.lyricBlur === true,
+          onChange: function (value) {
+            patchPrefs({ lyricBlur: value })
+          },
+        }),
       ),
       h(
         SetRow,
