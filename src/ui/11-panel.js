@@ -181,10 +181,16 @@ function TopBar(props) {
                   role: 'button',
                   tabIndex: 0,
                   onClick: function () {
+                    // Navidrome has no QR flow: send the user to the credential
+                    // form in settings instead of opening an empty sheet.
+                    if (ui.source === 'navidrome') {
+                      openNavidromeSettings()
+                      return
+                    }
                     pushLayer('login', { provider: ui.source, mode: 'qq' })
                   },
                 },
-                t('online.login'),
+                ui.source === 'navidrome' ? t('online.navidromeSetup') : t('online.login'),
               ),
         )
       : null,

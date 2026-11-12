@@ -283,6 +283,7 @@ window.__ModuleLoader__.load({
         'online.navidromeUser': '用户名',
         'online.navidromePassword': '密码',
         'online.navidromeConnect': '连接',
+        'online.navidromeSetup': '设置',
         'online.navidromeConnecting': '连接中…',
         'online.navidromeHint': '填写自建 Navidrome / Subsonic 服务器的地址与账号。密码仅用于换取访问令牌，不会保存在本机。',
         'online.navidromeBadServer': '请填写有效的 http(s) 服务器地址',
@@ -702,6 +703,7 @@ window.__ModuleLoader__.load({
         'online.navidromeUser': 'Username',
         'online.navidromePassword': 'Password',
         'online.navidromeConnect': 'Connect',
+        'online.navidromeSetup': 'Set up',
         'online.navidromeConnecting': 'Connecting…',
         'online.navidromeHint': 'Enter the URL and account of your self-hosted Navidrome / Subsonic server. The password is only used to derive an access token and is never stored.',
         'online.navidromeBadServer': 'Enter a valid http(s) server URL',
@@ -2823,6 +2825,16 @@ window.__ModuleLoader__.load({
     function openOnlineSection(nav) {
       closeOnlinePlaylist()
       uiStore.set({ nav: nav, filter: null })
+    }
+    
+    /**
+     * Open the settings sheet on its online tab.
+     *
+     * Navidrome signs in with a URL and credentials rather than a QR code, so the
+     * top-bar chip routes here instead of opening the (empty) login layer.
+     */
+    function openNavidromeSettings() {
+      pushLayer('settings', { tab: 'online' })
     }
     
     uiStore.subscribe(function (state) {
@@ -9048,7 +9060,10 @@ window.__ModuleLoader__.load({
       var sleepRemaining = useCountdown(prefs.sleepDeadline)
       var library = useStore(libraryStore)
       var online = useStore(onlineStore)
-      var tabPair = useState('appearance')
+      // `props.tab` lets a caller open straight on one tab (the Navidrome chip
+      // jumps to the credential form instead of the QR sheet).
+      var initialTab = props !== null && typeof props === 'object' && typeof props.tab === 'string' ? props.tab : 'appearance'
+      var tabPair = useState(initialTab)
       var tab = tabPair[0]
       var setTab = tabPair[1]
       var cachePair = useState(null)
@@ -12586,10 +12601,16 @@ window.__ModuleLoader__.load({
                       role: 'button',
                       tabIndex: 0,
                       onClick: function () {
+                        // Navidrome has no QR flow: send the user to the credential
+                        // form in settings instead of opening an empty sheet.
+                        if (ui.source === 'navidrome') {
+                          openNavidromeSettings()
+                          return
+                        }
                         pushLayer('login', { provider: ui.source, mode: 'qq' })
                       },
                     },
-                    t('online.login'),
+                    ui.source === 'navidrome' ? t('online.navidromeSetup') : t('online.login'),
                   ),
             )
           : null,

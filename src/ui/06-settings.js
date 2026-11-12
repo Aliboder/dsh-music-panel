@@ -20,7 +20,10 @@ function SettingsSheet(props) {
   var sleepRemaining = useCountdown(prefs.sleepDeadline)
   var library = useStore(libraryStore)
   var online = useStore(onlineStore)
-  var tabPair = useState('appearance')
+  // `props.tab` lets a caller open straight on one tab (the Navidrome chip
+  // jumps to the credential form instead of the QR sheet).
+  var initialTab = props !== null && typeof props === 'object' && typeof props.tab === 'string' ? props.tab : 'appearance'
+  var tabPair = useState(initialTab)
   var tab = tabPair[0]
   var setTab = tabPair[1]
   var cachePair = useState(null)
