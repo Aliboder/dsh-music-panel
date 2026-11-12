@@ -490,7 +490,9 @@ function LoginDialog(props) {
                 if (next === 'success') {
                   clearInterval(timer)
                   timer = null
+                  resetOnlineAccountData()
                   void loadProviders()
+                  void loadMyPlaylists(provider)
                   showToast(t('online.loginSuccess'))
                   popLayer()
                 }
@@ -976,7 +978,7 @@ h(
         ),
         h('div', { className: 'mp-set-desc' }, (tags && tags.format) || ''),
       ),
-      
+
   )
 }
 

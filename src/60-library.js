@@ -55,9 +55,19 @@ function trackByPath(path) {
   return null
 }
 
+function favoritePaths(list) {
+  var out = []
+  if (!Array.isArray(list)) return out
+  list.forEach(function (item) {
+    var path = typeof item === 'string' ? item : item && typeof item.path === 'string' ? item.path : ''
+    if (path) out.push(path)
+  })
+  return out
+}
+
 function favoriteSet() {
   var set = {}
-  var list = libraryStore.get().favorites
+  var list = favoritePaths(libraryStore.get().favorites)
   for (var i = 0; i < list.length; i += 1) set[list[i]] = true
   return set
 }
@@ -65,7 +75,7 @@ function favoriteSet() {
 async function loadFavorites() {
   try {
     var body = await getJson(API + 'favorites')
-    libraryStore.set({ favorites: Array.isArray(body.favorites) ? body.favorites : [] })
+    libraryStore.set({ favorites: favoritePaths(body.favorites) })
   } catch (error) {
     // Favorites are optional; the panel still works without them.
   }
@@ -75,7 +85,7 @@ async function toggleFavorite(path) {
   if (!path) return
   try {
     var body = await postJson(API + 'favorites', { path: path })
-    libraryStore.set({ favorites: Array.isArray(body.favorites) ? body.favorites : [] })
+    libraryStore.set({ favorites: favoritePaths(body.favorites) })
   } catch (error) {
     showToast(errorText(error))
   }

@@ -415,6 +415,7 @@ function SettingsSheet(props) {
                 'div',
                 { className: 'mp-online-meta' },
                 h('strong', { className: 'mp-online-nick' }, info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn'))),
+                info.accountId ? h('span', { className: 'mp-online-id' }, 'ID ' + info.accountId) : null,
                 info.vip === true ? h('span', { className: 'mp-online-vip' }, 'VIP') : null,
               ),
               h(IconButton, {
@@ -671,7 +672,7 @@ function SettingsSheet(props) {
       h(
         'p',
         { key: 'hint', className: 'mp-set-desc' },
-        'Cached audio is reused by the stream route; deleting it only costs a refetch.',
+        t('online.cacheListHint'),
       ),
       h(
         'div',

@@ -11,7 +11,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Lyrics · Cache · 
 本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · 歌词 · 缓存 · 音量均衡
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
-[![release](https://img.shields.io/badge/release-0.27.4-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
+[![release](https://img.shields.io/badge/release-0.28.0-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
 [![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
 
@@ -175,7 +175,7 @@ pnpm add dsh-music-panel
 ### 开发
 
 ```bash
-npm test            # 19 test files
+npm test            # 20 test files
 npm run check       # syntax + manifest checks
 npm run pack:check  # package self-check
 ```

@@ -196,7 +196,16 @@ function TopBar(props) {
 }
 
 function ContentArea(props) {
-  if (isOnlineSource(props.ui.source)) return h(OnlineContent, props)
+  var ui = props.ui
+  useEffect(
+    function () {
+      if (ui.source === 'local' && ui.nav === 'stats') {
+        void loadStats((props.library && props.library.statsRange) || 'all')
+      }
+    },
+    [ui.source, ui.nav],
+  )
+  if (isOnlineSource(ui.source)) return h(OnlineContent, props)
   return h(LocalContent, props)
 }
 

@@ -174,6 +174,26 @@ function refreshLikedPlaylist(delta) {
   void loadMyPlaylists(state.provider)
 }
 
+function resetOnlineAccountData() {
+  playlistLoadToken += 1
+  onlineSearchToken += 1
+  playlistCache.clear()
+  playlistInflight.clear()
+  onlineStore.set({
+    playlistsPhase: 'idle',
+    playlistsRefreshing: false,
+    playlistsProvider: '',
+    playlists: [],
+    playlistId: '',
+    playlistName: '',
+    playlistSongs: [],
+    playlistPhase: 'idle',
+    playlistRefreshing: false,
+    liked: {},
+    error: '',
+  })
+}
+
 function playlistCacheKey(provider, id) {
   return String(provider || '') + ':' + String(id || '')
 }
@@ -334,6 +354,12 @@ function playOnlineResults(results, index) {
     showToast(t('online.vipOnly'))
     return
   }
+  var skippedVip = list.filter(function (item) {
+    return item && item.id && item.qualityHint === 'VIP' && !allowVip
+  }).length
+  if (skippedVip > 0 && !(wanted && wanted.qualityHint === 'VIP')) {
+    showToast(t('online.vipSkipped', { n: skippedVip }))
+  }
   var at = 0
   if (wanted) {
     for (var i = 0; i < playable.length; i += 1) {
@@ -382,6 +408,7 @@ async function checkProviderLogin(provider, key, mode) {
 async function logoutProvider(provider) {
   try {
     await postJson(API + 'online/logout', { provider: provider })
+    resetOnlineAccountData()
     await loadProviders()
     showToast(t('online.logoutDone'))
   } catch (error) {

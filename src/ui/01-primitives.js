@@ -137,6 +137,8 @@ function SeekBar(props) {
   var duration = time.duration > 0 ? time.duration : props.fallbackDuration || 0
   var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
   var percent = duration > 0 ? clamp(position / duration, 0, 1) * 100 : 0
+  var buffered = Math.min(duration, Math.max(0, Number(time.buffered) || 0))
+  var bufferedPercent = duration > 0 ? clamp(buffered / duration, 0, 1) * 100 : 0
 
   function commit() {
     if (seeking === null) return
@@ -155,12 +157,13 @@ function SeekBar(props) {
     'div',
     {
       className: 'mp-seek',
-      style: { '--mp-p': percent + '%' },
+      style: { '--mp-p': percent + '%', '--mp-b': bufferedPercent + '%' },
       onPointerMove: preview,
       onPointerLeave: function () {
         if (typeof props.onPreview === 'function') props.onPreview(null)
       },
     },
+    h('span', { className: 'mp-seek-buffer', style: { width: bufferedPercent + '%' } }),
     h('input', {
       type: 'range',
       min: 0,
@@ -168,7 +171,7 @@ function SeekBar(props) {
       step: 0.5,
       value: position,
       disabled: duration <= 0,
-      style: { '--mp-p': percent + '%' },
+      style: { '--mp-p': percent + '%', '--mp-b': bufferedPercent + '%' },
       'aria-label': t('page.duration'),
       onChange: function (event) {
         setSeeking(Number(event.target.value))

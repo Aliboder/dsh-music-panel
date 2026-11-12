@@ -109,7 +109,6 @@ function PlayerBar(props) {
     h(
       'div',
       { className: 'mp-pb-seek-full' },
-      h('div', { className: 'mp-pb-line' }, h('i', { style: { width: progressPercent + '%' } })),
       h(SeekBar, { fallbackDuration: current.durationSec || 0, onPreview: setPreview }),
     ),
     h(
