@@ -30,6 +30,18 @@ function MusicSideIcon() {
       // sidebar). Mark the host row here instead of relying on its CSS.
       var row = node.closest('button') || node.closest('[role="button"]') || node.closest('a')
       if (row !== null) row.classList.add('mp-side-row')
+      // Host rows are React-managed. When playback starts the host re-renders
+      // and can overwrite className, dropping our positioning hook and making
+      // the controls anchor to the sidebar instead. Put it back if that happens.
+      var rowObserver =
+        typeof MutationObserver === 'function' && row !== null
+          ? new MutationObserver(function () {
+              if (!row.classList.contains('mp-side-row')) row.classList.add('mp-side-row')
+            })
+          : null
+      if (rowObserver !== null) {
+        rowObserver.observe(row, { attributes: true, attributeFilter: ['class'] })
+      }
       function measure() {
         setWide(row !== null && row.getBoundingClientRect().width >= 230)
       }
@@ -40,6 +52,7 @@ function MusicSideIcon() {
       return function () {
         window.removeEventListener('resize', measure)
         if (observer !== null) observer.disconnect()
+        if (rowObserver !== null) rowObserver.disconnect()
         if (row !== null) row.classList.remove('mp-side-row')
       }
     },
