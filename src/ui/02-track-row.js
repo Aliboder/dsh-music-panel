@@ -97,7 +97,24 @@ function TrackRow(props) {
       h(
         'div',
         { className: 'mp-row-sub' },
-        trackArtistOf(track),
+        props.onArtist && String(track.artist || '').trim() !== ''
+          ? h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-artist-link',
+                title: track.artist,
+                onClick: function (event) {
+                  event.stopPropagation()
+                  props.onArtist(track)
+                },
+                onDoubleClick: function (event) {
+                  event.stopPropagation()
+                },
+              },
+              track.artist,
+            )
+          : trackArtistOf(track),
         props.onAlbum && track.album
           ? h(
               'span',
@@ -224,6 +241,7 @@ function TrackListBody(props) {
         onMenu: props.onMenu,
         onToggleFavorite: props.onToggleFavorite,
         onAlbum: props.onAlbum,
+        onArtist: props.onArtist,
       })
     },
   })

@@ -151,6 +151,10 @@ function LocalContent(props) {
         if (!track || !track.album) return
         setUi({ nav: 'songs', filter: { kind: 'album', value: track.album }, query: '' })
       },
+      onArtist: function (track) {
+        if (!track || !String(track.artist || '').trim()) return
+        setUi({ nav: 'songs', filter: { kind: 'artist', value: track.artist }, query: '' })
+      },
       empty: empty,
     })
   }

@@ -61,6 +61,7 @@ function readUiState() {
   // id. Fall back to the artist list it was opened from. The album view is left
   // to upstream's handling — reloading there behaves as it did before.
   if (nav === 'artist') nav = source === 'local' ? 'songs' : 'artists'
+  if (nav === 'artistSongs') nav = source === 'local' ? 'songs' : 'recent'
   return { source: source, nav: nav, playlistId: playlistId }
 }
 
@@ -270,6 +271,7 @@ function setSource(source) {
   var ui = uiStore.get()
   if (ui.source === source) return
   selectionStore.set({ active: false, paths: [] })
+  artistLoadToken = (artistLoadToken || 0) + 1
   uiStore.set({
     source: source,
     // Navidrome opens on the library list; the Chinese platforms are
@@ -289,6 +291,12 @@ function setSource(source) {
     playlistName: '',
     playlistSongs: [],
     playlistPhase: 'idle',
+    artistName: '',
+    artistProvider: '',
+    artistFrom: '',
+    artistSongs: [],
+    artistPhase: 'idle',
+    artistError: '',
     query: '',
     results: [],
     phase: 'idle',

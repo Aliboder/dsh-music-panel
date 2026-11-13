@@ -348,6 +348,10 @@ function OnlineContent(props) {
     uiStore.set({ nav: 'artist', filter: null, query: '' })
   }
 
+  function openArtist(track) {
+    void openOnlineArtist(track)
+  }
+
   var title = t('v2.recent')
   var count = 0
   var actions = null
@@ -397,6 +401,7 @@ function OnlineContent(props) {
         onAlbum: function (track) {
           void openOnlineAlbum(track)
         },
+        onArtist: openArtist,
         empty: empty,
       })
     }
@@ -474,6 +479,7 @@ function OnlineContent(props) {
           props.onMenu(track, event, { playSelected: playSelectedOnline })
         },
         onToggleFavorite: toggleOnlineFavorite,
+        onArtist: openArtist,
       })
     }
   } else if (nav === 'playlists') {
@@ -591,6 +597,67 @@ function OnlineContent(props) {
         onAlbum: function (track) {
           void openOnlineAlbum(track)
         },
+        onArtist: openArtist,
+      })
+    }
+  } else if (nav === 'artistSongs') {
+    var artistTracks = Array.isArray(online.artistSongs) ? online.artistSongs : []
+    title = online.artistName || t('v2.artists')
+    count = artistTracks.length
+    resetKey = 'online-artist-songs:' + online.artistProvider + ':' + online.artistName
+    actions = [
+      h(
+        Button,
+        {
+          key: 'back',
+          variant: 'ghost',
+          icon: 'chevronLeft',
+          onClick: function () {
+            var from = online.artistFrom || 'recent'
+            closeOnlineArtist()
+            setNav(from)
+          },
+        },
+        t('v2.back'),
+      ),
+    ]
+    if (online.artistPhase === 'loading') {
+      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+    } else if (online.artistPhase === 'error') {
+      body = h(Empty, { title: t('online.networkError'), hint: online.artistError, icon: 'user' })
+    } else if (artistTracks.length === 0) {
+      body = h(Empty, { title: t('online.emptyResults'), icon: 'user' })
+    } else {
+      body = h(TrackListBody, {
+        items: (setPlayAll(artistTracks), (onlineSelectionList = sortOnlineTracks(artistTracks))),
+        resetKey: resetKey,
+        selectionMode: selecting,
+        selectedSet: selectedSet,
+        onToggleSelect: toggleSelected,
+        onSelect: function (track, additive) {
+          selectTrackIn(onlineSelectionList, track, additive)
+        },
+        focusPath: props.locatePath || '',
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: likedSet,
+        cachedOf: function (track) {
+          return online.cache[track.onlineId] === true
+        },
+        onPlay: function (track) {
+          var index = artistTracks.findIndex(function (item) {
+            return 'online:' + item.provider + ':' + item.id === track.path
+          })
+          playOnlineResults(artistTracks, index < 0 ? 0 : index)
+        },
+        onMenu: function (track, event) {
+          props.onMenu(track, event, { playSelected: playSelectedOnline })
+        },
+        onToggleFavorite: toggleOnlineFavorite,
+        onAlbum: function (track) {
+          void openOnlineAlbum(track)
+        },
+        onArtist: openArtist,
       })
     }
   } else if (nav === 'songs') {
@@ -640,6 +707,7 @@ function OnlineContent(props) {
           props.onMenu(track, event, { playSelected: playSelectedOnline })
         },
         onToggleFavorite: toggleOnlineFavorite,
+        onArtist: openArtist,
         empty: empty,
       })
       // A real footer: the list keeps flex:1 and the pager sits below it, so
@@ -814,6 +882,7 @@ function OnlineContent(props) {
         onAlbum: function (track) {
           void openOnlineAlbum(track)
         },
+        onArtist: openArtist,
         cachedOf: function () {
           return true
         },
@@ -868,6 +937,7 @@ function OnlineContent(props) {
         onAlbum: function (track) {
           void openOnlineAlbum(track)
         },
+        onArtist: openArtist,
       })
     }
   }

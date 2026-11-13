@@ -46,6 +46,12 @@ var onlineStore = createStore({
   albumSongs: [],
   albumPhase: 'idle',
   albumError: '',
+  artistName: '',
+  artistProvider: '',
+  artistFrom: '',
+  artistSongs: [],
+  artistPhase: 'idle',
+  artistError: '',
   history: readOnlineHistory(),
   liked: {},
   cache: {},
@@ -200,6 +206,7 @@ function refreshLikedPlaylist(delta) {
 function resetOnlineAccountData() {
   playlistLoadToken += 1
   onlineSearchToken += 1
+  artistLoadToken += 1
   playlistCache.clear()
   playlistInflight.clear()
   onlineStore.set({
@@ -220,6 +227,12 @@ function resetOnlineAccountData() {
     albumSongs: [],
     albumPhase: 'idle',
     albumError: '',
+    artistName: '',
+    artistProvider: '',
+    artistFrom: '',
+    artistSongs: [],
+    artistPhase: 'idle',
+    artistError: '',
     liked: {},
     error: '',
     authExpired: '',
@@ -231,6 +244,7 @@ function playlistCacheKey(provider, id) {
 }
 
 var albumLoadToken = 0
+var artistLoadToken = 0
 
 async function openOnlineAlbum(track) {
   if (!track || !track.album) return
@@ -288,6 +302,74 @@ function closeOnlineAlbum() {
     albumSongs: [],
     albumPhase: 'idle',
     albumError: '',
+  })
+}
+
+/**
+ * Artist song list, built from the provider's search endpoint and filtered to
+ * the clicked artist. Chinese providers have no artist catalogue endpoint, so
+ * this keeps one shared list shape instead of a provider-specific page.
+ */
+async function openOnlineArtist(track) {
+  var artist = String((track && track.artist) || '').trim()
+  if (artist === '') return
+  var provider = (track && track.onlineProvider) || onlineStore.get().provider
+  var from = uiStore.get().nav
+  var token = (artistLoadToken += 1)
+  onlineStore.set({
+    artistName: artist,
+    artistProvider: provider,
+    artistFrom: from,
+    artistSongs: [],
+    artistPhase: 'loading',
+    artistError: '',
+    query: '',
+    phase: 'idle',
+    error: '',
+  })
+  setNav('artistSongs')
+  try {
+    var body = await getJson(
+      API +
+        'online/search?provider=' +
+        encodeURIComponent(provider) +
+        '&q=' +
+        encodeURIComponent(artist),
+    )
+    if (token !== artistLoadToken) return
+    var results = Array.isArray(body.results) ? body.results : []
+    var wanted = artist.toLowerCase()
+    var matched = results.filter(function (item) {
+      var actual = String((item && item.artist) || '').toLowerCase()
+      if (actual === wanted || actual.indexOf(wanted) >= 0) return true
+      var actualParts = actual.split(/\s*[\/,&、]\s*/)
+      var wantedParts = wanted.split(/\s*[\/,&、]\s*/)
+      return wantedParts.some(function (part) {
+        return part !== '' && actualParts.indexOf(part) >= 0
+      })
+    })
+    onlineStore.set({ artistSongs: matched, artistPhase: 'ready' })
+    void refreshCacheStatus(
+      provider,
+      matched.map(function (item) {
+        return item.id
+      }),
+    )
+  } catch (error) {
+    if (token !== artistLoadToken) return
+    onlineStore.set({ artistSongs: [], artistPhase: 'error', artistError: errorText(error) })
+  }
+}
+
+function closeOnlineArtist() {
+  artistLoadToken += 1
+  onlineStore.set({
+    artistName: '',
+    artistProvider: '',
+    artistFrom: '',
+    artistSongs: [],
+    artistPhase: 'idle',
+    artistError: '',
   })
 }
 

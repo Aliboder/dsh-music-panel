@@ -3664,6 +3664,7 @@ window.__ModuleLoader__.load({
       // id. Fall back to the artist list it was opened from. The album view is left
       // to upstream's handling — reloading there behaves as it did before.
       if (nav === 'artist') nav = source === 'local' ? 'songs' : 'artists'
+      if (nav === 'artistSongs') nav = source === 'local' ? 'songs' : 'recent'
       return { source: source, nav: nav, playlistId: playlistId }
     }
 
@@ -3873,6 +3874,7 @@ window.__ModuleLoader__.load({
       var ui = uiStore.get()
       if (ui.source === source) return
       selectionStore.set({ active: false, paths: [] })
+      artistLoadToken = (artistLoadToken || 0) + 1
       uiStore.set({
         source: source,
         // Navidrome opens on the library list; the Chinese platforms are
@@ -3892,6 +3894,12 @@ window.__ModuleLoader__.load({
         playlistName: '',
         playlistSongs: [],
         playlistPhase: 'idle',
+        artistName: '',
+        artistProvider: '',
+        artistFrom: '',
+        artistSongs: [],
+        artistPhase: 'idle',
+        artistError: '',
         query: '',
         results: [],
         phase: 'idle',
@@ -5519,6 +5527,12 @@ window.__ModuleLoader__.load({
       albumSongs: [],
       albumPhase: 'idle',
       albumError: '',
+      artistName: '',
+      artistProvider: '',
+      artistFrom: '',
+      artistSongs: [],
+      artistPhase: 'idle',
+      artistError: '',
       history: readOnlineHistory(),
       liked: {},
       cache: {},
@@ -5673,6 +5687,7 @@ window.__ModuleLoader__.load({
     function resetOnlineAccountData() {
       playlistLoadToken += 1
       onlineSearchToken += 1
+      artistLoadToken += 1
       playlistCache.clear()
       playlistInflight.clear()
       onlineStore.set({
@@ -5693,6 +5708,12 @@ window.__ModuleLoader__.load({
         albumSongs: [],
         albumPhase: 'idle',
         albumError: '',
+        artistName: '',
+        artistProvider: '',
+        artistFrom: '',
+        artistSongs: [],
+        artistPhase: 'idle',
+        artistError: '',
         liked: {},
         error: '',
         authExpired: '',
@@ -5704,6 +5725,7 @@ window.__ModuleLoader__.load({
     }
 
     var albumLoadToken = 0
+    var artistLoadToken = 0
 
     async function openOnlineAlbum(track) {
       if (!track || !track.album) return
@@ -5761,6 +5783,74 @@ window.__ModuleLoader__.load({
         albumSongs: [],
         albumPhase: 'idle',
         albumError: '',
+      })
+    }
+
+    /**
+     * Artist song list, built from the provider's search endpoint and filtered to
+     * the clicked artist. Chinese providers have no artist catalogue endpoint, so
+     * this keeps one shared list shape instead of a provider-specific page.
+     */
+    async function openOnlineArtist(track) {
+      var artist = String((track && track.artist) || '').trim()
+      if (artist === '') return
+      var provider = (track && track.onlineProvider) || onlineStore.get().provider
+      var from = uiStore.get().nav
+      var token = (artistLoadToken += 1)
+      onlineStore.set({
+        artistName: artist,
+        artistProvider: provider,
+        artistFrom: from,
+        artistSongs: [],
+        artistPhase: 'loading',
+        artistError: '',
+        query: '',
+        phase: 'idle',
+        error: '',
+      })
+      setNav('artistSongs')
+      try {
+        var body = await getJson(
+          API +
+            'online/search?provider=' +
+            encodeURIComponent(provider) +
+            '&q=' +
+            encodeURIComponent(artist),
+        )
+        if (token !== artistLoadToken) return
+        var results = Array.isArray(body.results) ? body.results : []
+        var wanted = artist.toLowerCase()
+        var matched = results.filter(function (item) {
+          var actual = String((item && item.artist) || '').toLowerCase()
+          if (actual === wanted || actual.indexOf(wanted) >= 0) return true
+          var actualParts = actual.split(/\s*[\/,&、]\s*/)
+          var wantedParts = wanted.split(/\s*[\/,&、]\s*/)
+          return wantedParts.some(function (part) {
+            return part !== '' && actualParts.indexOf(part) >= 0
+          })
+        })
+        onlineStore.set({ artistSongs: matched, artistPhase: 'ready' })
+        void refreshCacheStatus(
+          provider,
+          matched.map(function (item) {
+            return item.id
+          }),
+        )
+      } catch (error) {
+        if (token !== artistLoadToken) return
+        onlineStore.set({ artistSongs: [], artistPhase: 'error', artistError: errorText(error) })
+      }
+    }
+
+    function closeOnlineArtist() {
+      artistLoadToken += 1
+      onlineStore.set({
+        artistName: '',
+        artistProvider: '',
+        artistFrom: '',
+        artistSongs: [],
+        artistPhase: 'idle',
+        artistError: '',
       })
     }
 
@@ -6497,6 +6587,8 @@ window.__ModuleLoader__.load({
       '.mp-row-album{font-size:13px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-album-link{max-width:100%;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-album-link:hover{color:var(--dsw-alias-state-business-primary,#4176E6);text-decoration:underline}',
+      '.mp-artist-link{max-width:100%;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-artist-link:hover{color:var(--dsw-alias-state-business-primary,#4176E6);text-decoration:underline}',
       '.mp-row-sub-album{display:none}',
       '@media (max-width:1080px){.mp-row-sub-album{display:inline}}',
       '.mp-row-time{font-size:13px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:right;font-variant-numeric:tabular-nums}',
@@ -7624,7 +7716,24 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'mp-row-sub' },
-            trackArtistOf(track),
+            props.onArtist && String(track.artist || '').trim() !== ''
+              ? h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mp-artist-link',
+                    title: track.artist,
+                    onClick: function (event) {
+                      event.stopPropagation()
+                      props.onArtist(track)
+                    },
+                    onDoubleClick: function (event) {
+                      event.stopPropagation()
+                    },
+                  },
+                  track.artist,
+                )
+              : trackArtistOf(track),
             props.onAlbum && track.album
               ? h(
                   'span',
@@ -7751,6 +7860,7 @@ window.__ModuleLoader__.load({
             onMenu: props.onMenu,
             onToggleFavorite: props.onToggleFavorite,
             onAlbum: props.onAlbum,
+            onArtist: props.onArtist,
           })
         },
       })
@@ -12639,6 +12749,10 @@ window.__ModuleLoader__.load({
             if (!track || !track.album) return
             setUi({ nav: 'songs', filter: { kind: 'album', value: track.album }, query: '' })
           },
+          onArtist: function (track) {
+            if (!track || !String(track.artist || '').trim()) return
+            setUi({ nav: 'songs', filter: { kind: 'artist', value: track.artist }, query: '' })
+          },
           empty: empty,
         })
       }
@@ -13388,6 +13502,10 @@ window.__ModuleLoader__.load({
         uiStore.set({ nav: 'artist', filter: null, query: '' })
       }
 
+      function openArtist(track) {
+        void openOnlineArtist(track)
+      }
+
       var title = t('v2.recent')
       var count = 0
       var actions = null
@@ -13437,6 +13555,7 @@ window.__ModuleLoader__.load({
             onAlbum: function (track) {
               void openOnlineAlbum(track)
             },
+            onArtist: openArtist,
             empty: empty,
           })
         }
@@ -13514,6 +13633,7 @@ window.__ModuleLoader__.load({
               props.onMenu(track, event, { playSelected: playSelectedOnline })
             },
             onToggleFavorite: toggleOnlineFavorite,
+            onArtist: openArtist,
           })
         }
       } else if (nav === 'playlists') {
@@ -13631,6 +13751,67 @@ window.__ModuleLoader__.load({
             onAlbum: function (track) {
               void openOnlineAlbum(track)
             },
+            onArtist: openArtist,
+          })
+        }
+      } else if (nav === 'artistSongs') {
+        var artistTracks = Array.isArray(online.artistSongs) ? online.artistSongs : []
+        title = online.artistName || t('v2.artists')
+        count = artistTracks.length
+        resetKey = 'online-artist-songs:' + online.artistProvider + ':' + online.artistName
+        actions = [
+          h(
+            Button,
+            {
+              key: 'back',
+              variant: 'ghost',
+              icon: 'chevronLeft',
+              onClick: function () {
+                var from = online.artistFrom || 'recent'
+                closeOnlineArtist()
+                setNav(from)
+              },
+            },
+            t('v2.back'),
+          ),
+        ]
+        if (online.artistPhase === 'loading') {
+          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+        } else if (online.artistPhase === 'error') {
+          body = h(Empty, { title: t('online.networkError'), hint: online.artistError, icon: 'user' })
+        } else if (artistTracks.length === 0) {
+          body = h(Empty, { title: t('online.emptyResults'), icon: 'user' })
+        } else {
+          body = h(TrackListBody, {
+            items: (setPlayAll(artistTracks), (onlineSelectionList = sortOnlineTracks(artistTracks))),
+            resetKey: resetKey,
+            selectionMode: selecting,
+            selectedSet: selectedSet,
+            onToggleSelect: toggleSelected,
+            onSelect: function (track, additive) {
+              selectTrackIn(onlineSelectionList, track, additive)
+            },
+            focusPath: props.locatePath || '',
+            currentPath: props.currentPath,
+            playing: props.playing,
+            favoriteSet: likedSet,
+            cachedOf: function (track) {
+              return online.cache[track.onlineId] === true
+            },
+            onPlay: function (track) {
+              var index = artistTracks.findIndex(function (item) {
+                return 'online:' + item.provider + ':' + item.id === track.path
+              })
+              playOnlineResults(artistTracks, index < 0 ? 0 : index)
+            },
+            onMenu: function (track, event) {
+              props.onMenu(track, event, { playSelected: playSelectedOnline })
+            },
+            onToggleFavorite: toggleOnlineFavorite,
+            onAlbum: function (track) {
+              void openOnlineAlbum(track)
+            },
+            onArtist: openArtist,
           })
         }
       } else if (nav === 'songs') {
@@ -13680,6 +13861,7 @@ window.__ModuleLoader__.load({
               props.onMenu(track, event, { playSelected: playSelectedOnline })
             },
             onToggleFavorite: toggleOnlineFavorite,
+            onArtist: openArtist,
             empty: empty,
           })
           // A real footer: the list keeps flex:1 and the pager sits below it, so
@@ -13854,6 +14036,7 @@ window.__ModuleLoader__.load({
             onAlbum: function (track) {
               void openOnlineAlbum(track)
             },
+            onArtist: openArtist,
             cachedOf: function () {
               return true
             },
@@ -13908,6 +14091,7 @@ window.__ModuleLoader__.load({
             onAlbum: function (track) {
               void openOnlineAlbum(track)
             },
+            onArtist: openArtist,
           })
         }
       }
