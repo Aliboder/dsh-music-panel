@@ -1,24 +1,24 @@
 /**
  * crossfade: decisions only (the two-deck machinery lives in 50-player).
  *
- * Phase one of the "smart transition" idea: no beat grid, no segment model —
- * the overlap happens near the end of a track and the length comes from the
- * user's setting. The cut points are still chosen by loudness: preparation
- * starts early, and the fade is clamped to what is actually left, so a track
- * never fades out over its own quiet tail.
+ * The goal is one switch, like a "smart transition": the engine analyses how
+ * the current track ends and how the next one begins, then picks both the cut
+ * point and the overlap length itself. Loudness is the signal we can measure
+ * cheaply and reliably — no beat grid, no segment model.
  */
 
-var CROSSFADE_MAX_SECONDS = 12
-/** How far a new fade can be scheduled ahead (values the settings offer). */
-var CROSSFADE_OPTIONS = [0, 3, 4, 5, 6, 8, 10, 12]
-/** Start preparing this long before the fade would begin. */
-var CROSSFADE_LEAD_SECONDS = 3
+var CROSSFADE_MAX_SECONDS = 10
+var CROSSFADE_MIN_SECONDS = 2.5
+/** Start analysing this early; analysis is fast but the fetch is not. */
+var CROSSFADE_PREPARE_SECONDS = 14
+/** A track's intro must be at least this quiet-and-long before we skip into it. */
+var CROSSFADE_INTRO_SKIP_SECONDS = 3
 
-/** 0 means off. Anything out of range is clamped, never trusted. */
+/** 0 means off. The stored value is the upper bound of the automatic overlap. */
 function crossfadeFadeSeconds(prefs) {
   var value = Number(prefs !== null && typeof prefs === 'object' ? prefs.crossfadeSeconds : 0)
   if (!isFinite(value) || value <= 0) return 0
-  return Math.min(CROSSFADE_MAX_SECONDS, Math.max(1, value))
+  return Math.min(CROSSFADE_MAX_SECONDS, Math.max(CROSSFADE_MIN_SECONDS, value))
 }
 
 /** Same album (and same album artist when both sides have one). */
@@ -46,13 +46,41 @@ function crossfadeNextAllowed(prefs, current, next) {
 }
 
 /**
- * Pure gate used by the player on every timeupdate. `state` is a plain snapshot
- * so the rules can be tested without an audio element.
+ * Decide the blend from the two measured envelopes.
+ *
+ * `current.outroQuietSec` is how long the outgoing track has been quiet at its
+ * end (0 when it ends loud), `next.introQuietSec` the same at the start of the
+ * incoming one. We fade through the quiet tail; if there is none we still
+ * overlap a minimum amount instead of hard-cutting. A long silent intro is
+ * skipped so the new track is already audible when the old one stops.
+ */
+function crossfadePlan(current, next, options) {
+  var settings = options !== null && typeof options === 'object' ? options : {}
+  var limit = crossfadeFadeSeconds(settings.prefs)
+  if (limit <= 0) return null
+  var remaining = Number(settings.remaining)
+  if (!isFinite(remaining) || remaining <= 0) return null
+  var max = Math.min(limit, Math.max(CROSSFADE_MIN_SECONDS, remaining))
+  var tail = Number(current && current.outroQuietSec)
+  var head = Number(next && next.introQuietSec)
+  if (!isFinite(tail) || tail < 0) tail = 0
+  if (!isFinite(head) || head < 0) head = 0
+  var overlap = tail > 0.4 ? tail : CROSSFADE_MIN_SECONDS
+  overlap = Math.max(CROSSFADE_MIN_SECONDS, Math.min(overlap, max))
+  var startInNext = head >= CROSSFADE_INTRO_SKIP_SECONDS ? Math.max(0, head - 1) : 0
+  return {
+    overlap: Math.round(overlap * 10) / 10,
+    startInNext: Math.round(startInNext * 10) / 10,
+  }
+}
+
+/**
+ * Pure gate used by the player on every timeupdate: are we close enough to the
+ * end to start analysing?
  */
 function crossfadeShouldStart(input) {
   var s = input !== null && typeof input === 'object' ? input : {}
-  var seconds = crossfadeFadeSeconds(s.prefs)
-  if (seconds <= 0) return false
+  if (crossfadeFadeSeconds(s.prefs) <= 0) return false
   if (s.playing !== true) return false
   if (s.hasGraph !== true) return false
   if (s.loop === 'one') return false
@@ -64,9 +92,9 @@ function crossfadeShouldStart(input) {
   var time = Number(s.currentTime)
   if (!(duration > 0) || !(time >= 0)) return false
   var remaining = duration - time
-  if (remaining > seconds + CROSSFADE_LEAD_SECONDS) return false
-  // Too close to the end to build a fade that finishes inside the track.
-  if (remaining <= 0.6) return false
+  if (remaining > CROSSFADE_PREPARE_SECONDS) return false
+  // Too close to the end to build anything that finishes inside the track.
+  if (remaining <= 0.5) return false
   return true
 }
 

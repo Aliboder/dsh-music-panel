@@ -127,7 +127,10 @@ function createPlayer() {
   var xfadePending = false
   var xfadeTimer = null
   var xfadeNext = -1
-  var xfadeBlob = null
+  /** Blob of the track on the active deck, kept for the tail analysis. */
+  var currentBlob = null
+  /** Measured plan + fetched audio for the incoming side. */
+  var xfadePrepared = null
   /** Web Audio graph used by the bar visualizer (lazy, user-gesture bound). */
   var audioContext = null
   var analyser = null
@@ -832,6 +835,7 @@ function createPlayer() {
     var item = state.queue[at]
     if (!item) return
     abortCrossfade()
+    currentBlob = null
     // Close the previous listening session before switching tracks.
     flushListening(true)
     flushSessionPosition()
@@ -903,6 +907,7 @@ function createPlayer() {
           }
           releaseObjectUrl()
           objectUrl = URL.createObjectURL(blob)
+          currentBlob = blob
           audio.src = objectUrl
           audio.load()
           scheduleLoudness(item, blob, loudness.resolve)
@@ -961,6 +966,7 @@ function createPlayer() {
         }
         releaseObjectUrl()
         objectUrl = URL.createObjectURL(blob)
+        currentBlob = blob
         audio.src = objectUrl
         audio.load()
         scheduleLoudness(item, blob, loudness.resolve)
@@ -1064,31 +1070,101 @@ function createPlayer() {
     })
   }
 
-  /** Per-track loudness trim for the incoming deck (1 when normalization is off). */
-  function incomingTrim(item, blob) {
-    if (readPrefs().normalizeVolume === false) return Promise.resolve(1)
-    return analyzeLoudnessBlob(
-      item,
-      blob,
-      function () {
-        return true
-      },
-      function () {},
-    )
-      .then(function (gainDb) {
-        if (gainDb === null || gainDb === undefined) return 1
-        return Math.pow(10, clamp(gainDb, -15, 6) / 20)
-      })
-      .catch(function () {
-        return 1
-      })
+  function decodeBlob(blob) {
+    var decoder = loudnessContext()
+    if (decoder === null) return Promise.reject(new Error('no audio decoder'))
+    return blob.arrayBuffer().then(function (bytes) {
+      return decoder.decodeAudioData(bytes)
+    })
+  }
+
+  /**
+   * Decode once and return what the transition needs: the level envelope and,
+   * for the incoming deck, its loudness trim.
+   */
+  function analyzeTransitionBlob(blob, wantTrim) {
+    return decodeBlob(blob).then(function (buffer) {
+      var envelope = analyzeTransitionBuffer(buffer)
+      if (!wantTrim) return { envelope: envelope, trim: 1 }
+      return lufsFromAudioBuffer(buffer)
+        .then(function (lufs) {
+          var gainDb = clamp(LOUDNESS_TARGET - lufs, -15, 6)
+          return { envelope: envelope, trim: Math.pow(10, gainDb / 20) }
+        })
+        .catch(function () {
+          return { envelope: envelope, trim: 1 }
+        })
+    })
+  }
+
+  /** Phase one: measure both sides while there is still time to fetch B. */
+  function prepareCrossfade(nextAt) {
+    var item = state.queue[nextAt]
+    if (!item || audio === null || analyser === null) return
+    var token = (xfadeToken += 1)
+    xfadePending = true
+    xfadeNext = nextAt
+    var outgoingBlob = currentBlob
+    var wantTrim = readPrefs().normalizeVolume !== false
+    var nextBlob = null
+    Promise.all([
+      outgoingBlob
+        ? analyzeTransitionBlob(outgoingBlob, false)
+            .then(function (result) {
+              return result.envelope
+            })
+            .catch(function () {
+              return null
+            })
+        : Promise.resolve(null),
+      fetchTrackBlob(item)
+        .then(function (blob) {
+          nextBlob = blob
+          return analyzeTransitionBlob(blob, wantTrim)
+        })
+        .catch(function () {
+          return null
+        }),
+    ]).then(function (results) {
+      if (token !== xfadeToken || audio === null) return
+      var incoming = results[1]
+      if (nextBlob === null || incoming === null) {
+        abortCrossfade()
+        return
+      }
+      var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
+      var plan = crossfadePlan(
+        { outroQuietSec: results[0] ? results[0].outroQuietSec : 0 },
+        { introQuietSec: incoming.envelope ? incoming.envelope.introQuietSec : 0 },
+        { prefs: readPrefs(), remaining: duration - audio.currentTime },
+      )
+      if (plan === null) {
+        abortCrossfade()
+        return
+      }
+      xfadePrepared = { nextAt: nextAt, plan: plan, blob: nextBlob, trim: incoming.trim }
+      xfadePending = false
+      maybeCrossfade()
+    })
   }
 
   function maybeCrossfade() {
-    if (xfadeActive || xfadePending) return
-    if (analyser === null || audio === null || audioContext === null) return
+    if (xfadeActive || audio === null || analyser === null || audioContext === null) return
     var settings = readPrefs()
-    if (crossfadeFadeSeconds(settings) <= 0) return
+    if (crossfadeFadeSeconds(settings) <= 0) {
+      abortCrossfade()
+      return
+    }
+    var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
+    var remaining = duration - audio.currentTime
+    if (xfadePrepared !== null) {
+      if (remaining <= xfadePrepared.plan.overlap + 0.25) {
+        if (remaining > 0.35) beginCrossfadePlayback(xfadePrepared)
+        else abortCrossfade()
+      }
+      return
+    }
+    if (xfadePending) return
     if (state.index < 0 || state.queue.length < 2) return
     var next = nextIndexOf(state.index, state.queue.length)
     if (next < 0 || next === state.index) return
@@ -1100,55 +1176,37 @@ function createPlayer() {
       loop: state.loop,
       index: state.index,
       queueLength: state.queue.length,
-      duration: state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0,
+      duration: duration,
       currentTime: audio.currentTime,
     })
     if (!should) return
-    startCrossfade(next, crossfadeFadeSeconds(settings))
+    prepareCrossfade(next)
   }
 
-  function startCrossfade(nextAt, seconds) {
-    var item = state.queue[nextAt]
-    if (!item || audio === null || analyser === null) return
-    var token = (xfadeToken += 1)
-    xfadePending = true
-    xfadeNext = nextAt
-    fetchTrackBlob(item)
-      .then(function (blob) {
-        if (token !== xfadeToken) return null
-        return incomingTrim(item, blob).then(function (trim) {
-          return { blob: blob, trim: trim }
-        })
-      })
-      .then(function (ready) {
-        if (ready === null || token !== xfadeToken || audio === null) return
-        var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
-        var remaining = duration - audio.currentTime
-        // Preparation can finish late; never schedule a fade longer than the
-        // audio that is actually left.
-        if (!(remaining > 0.8)) return abortCrossfade()
-        beginCrossfadePlayback(ready.blob, ready.trim, Math.min(seconds, remaining - 0.1), token)
-      })
-      .catch(function () {
-        if (token === xfadeToken) abortCrossfade()
-      })
-  }
-
-  function beginCrossfadePlayback(blob, trim, fade, token) {
+  function beginCrossfadePlayback(prepared) {
+    if (prepared === null || prepared === undefined) return abortCrossfade()
     ensureSecondary()
     if (audioB === null || audioContext === null || fadeNode === null) return abortCrossfade()
     wireSecondary()
     if (!secondaryWired || fadeNodeB === null || trimNodeB === null) return abortCrossfade()
+    var remaining = (state.duration > 0 ? state.duration : audio.duration || 0) - audio.currentTime
+    var fade = Math.min(prepared.plan.overlap, remaining - 0.05)
+    if (!(fade >= 1)) return abortCrossfade()
+    var token = xfadeToken
     releaseObjectUrlB()
-    objectUrlB = URL.createObjectURL(blob)
-    xfadeBlob = blob
-    normalizeGainB = trim
+    objectUrlB = URL.createObjectURL(prepared.blob)
+    normalizeGainB = prepared.trim
     audioB.volume = effectiveVolume()
     audioB.muted = state.muted
     audioB.src = objectUrlB
     audioB.load()
+    try {
+      audioB.currentTime = prepared.plan.startInNext
+    } catch (error) {
+      // Older engines refuse a seek before metadata; start from zero then.
+    }
     var now = audioContext.currentTime
-    trimNodeB.gain.setValueAtTime(trim, now)
+    trimNodeB.gain.setValueAtTime(prepared.trim, now)
     fadeNodeB.gain.cancelScheduledValues(now)
     fadeNodeB.gain.setValueAtTime(0, now)
     fadeNode.gain.cancelScheduledValues(now)
@@ -1161,7 +1219,7 @@ function createPlayer() {
     }
     Promise.resolve(started)
       .then(function () {
-        if (token !== xfadeToken || audioContext === null) return
+        if (token !== xfadeToken || audioContext === null || audio === null) return
         var at = audioContext.currentTime
         var curves = crossfadeEqualPowerCurves(32)
         fadeNode.gain.cancelScheduledValues(at)
@@ -1170,7 +1228,6 @@ function createPlayer() {
         fadeNodeB.gain.cancelScheduledValues(at)
         fadeNodeB.gain.setValueAtTime(0, at)
         fadeNodeB.gain.setValueCurveAtTime(curves.incoming, at, fade)
-        xfadePending = false
         xfadeActive = true
         if (xfadeTimer !== null) clearTimeout(xfadeTimer)
         xfadeTimer = setTimeout(function () {
@@ -1207,11 +1264,13 @@ function createPlayer() {
   function promoteCrossfade(token) {
     if (token !== xfadeToken) return
     if (!xfadeActive) return
+    var prepared = xfadePrepared
     xfadeActive = false
     xfadePending = false
+    xfadePrepared = null
     var nextAt = xfadeNext
     xfadeNext = -1
-    if (nextAt < 0 || !state.queue[nextAt] || audio === null) return abortCrossfade()
+    if (nextAt < 0 || !state.queue[nextAt] || audio === null || prepared === null) return abortCrossfade()
     flushListening(true)
     flushSessionPosition()
     swapDecks()
@@ -1223,8 +1282,8 @@ function createPlayer() {
       buffered: 0,
       playing: true,
     })
-    currentLoudnessBlob = xfadeBlob
-    xfadeBlob = null
+    currentBlob = prepared.blob
+    currentLoudnessBlob = prepared.blob
     resetSession(item)
     session.lastTime = audio.currentTime || 0
     syncMediaSession()
@@ -1265,12 +1324,12 @@ function createPlayer() {
   }
 
   function abortCrossfade() {
-    if (!xfadePending && !xfadeActive && xfadeTimer === null) return
+    if (!xfadePending && !xfadeActive && xfadeTimer === null && xfadePrepared === null) return
     xfadeToken += 1
     xfadePending = false
     xfadeActive = false
     xfadeNext = -1
-    xfadeBlob = null
+    xfadePrepared = null
     if (xfadeTimer !== null) {
       clearTimeout(xfadeTimer)
       xfadeTimer = null
@@ -1832,6 +1891,7 @@ function createPlayer() {
       loadToken += 1
       cancelPendingFetch()
       abortCrossfade()
+      currentBlob = null
       releaseObjectUrl()
       if (audio) {
         audio.pause()

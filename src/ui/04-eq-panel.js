@@ -144,18 +144,14 @@ var AUDIO_FX_VIEWS = [
 ]
 
 /** Crossfade controls: the same prefs the settings sheet edits. */
-function CrossfadePanel(props) {
+function CrossfadePanel() {
   var prefs = usePrefs()
-  var seconds = crossfadeFadeSeconds(prefs)
-  var enabled = seconds > 0
-  // The duration is a taste choice, not the feature itself: keep the switch as
-  // the primary control and hide the length behind "advanced".
-  var advancedPair = useState(props.advanced === true)
-  var advanced = advancedPair[0]
-  var setAdvanced = advancedPair[1]
+  var enabled = crossfadeFadeSeconds(prefs) > 0
 
-  function setSeconds(value) {
-    setPrefs({ crossfadeSeconds: value })
+  function setEnabled(value) {
+    // Any positive value means "on"; the engine computes the real overlap and
+    // only uses this as the upper bound.
+    setPrefs({ crossfadeSeconds: value ? CROSSFADE_MAX_SECONDS : 0 })
   }
 
   return h(
@@ -168,10 +164,7 @@ function CrossfadePanel(props) {
       h(Switch, {
         value: enabled,
         label: t('settings.crossfade'),
-        onChange: function (value) {
-          // A sensible default so the switch alone is enough to use it.
-          setSeconds(value ? seconds || 5 : 0)
-        },
+        onChange: setEnabled,
       }),
     ),
     h('p', { className: 'mp-xf-desc' }, t('settings.crossfadeHint')),
@@ -185,43 +178,6 @@ function CrossfadePanel(props) {
             onChange: function (value) {
               setPrefs({ crossfadeAlbums: value })
             },
-          }),
-        )
-      : null,
-    enabled
-      ? h(
-          'button',
-          {
-            type: 'button',
-            className: 'mp-xf-advanced',
-            'aria-expanded': advanced,
-            onClick: function () {
-              setAdvanced(!advanced)
-            },
-          },
-          t('fx.advanced'),
-          h('span', null, advanced ? '▾' : '▸'),
-        )
-      : null,
-    enabled && advanced
-      ? h(
-          'div',
-          { className: 'mp-xf-chips' },
-          CROSSFADE_OPTIONS.filter(function (option) {
-            return option > 0
-          }).map(function (option) {
-            return h(
-              'button',
-              {
-                key: option,
-                type: 'button',
-                className: cx('mp-xf-chip', seconds === option && 'is-on'),
-                onClick: function () {
-                  setSeconds(option)
-                },
-              },
-              t('settings.crossfadeSeconds', { seconds: option }),
-            )
           }),
         )
       : null,

@@ -2040,14 +2040,11 @@ window.__ModuleLoader__.load({
         'settings.volumeNormalizeMissingHint': '请使用支持 Web Audio 的 DSH Web / Desktop。',
         'settings.volumeNormalizeHint': '浏览器内置 EBU R128 分析，按曲目响度自动调整增益；首次分析需要几秒。',
         'settings.crossfade': '智能过渡',
-        'settings.crossfadeHint': '曲末按等响点交叉淡化到下一首；同专辑连续曲目默认保持原样。',
-        'settings.crossfadeOff': '关闭',
-        'settings.crossfadeSeconds': '{seconds} 秒',
+        'settings.crossfadeHint': '分析前后两首歌首尾的响度，自动选择切入点和重叠长度；同专辑连续曲目默认保持原样。',
+        'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
         'settings.crossfadeAlbum': '同专辑也过渡',
         'settings.crossfadeAlbumHint': '关闭时，同一专辑的连续曲目保持原始的硬切衔接。',
-        'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
         'fx.transition': '过渡',
-        'fx.advanced': '高级',
         'v2.listenTime': '累计播放时长',
         'v2.totalPlays': '总播放次数',
         'v2.trackedTracks': '有记录曲目',
@@ -2216,14 +2213,11 @@ window.__ModuleLoader__.load({
         'settings.volumeNormalizeMissingHint': 'Use a DSH Web / Desktop build with Web Audio support.',
         'settings.volumeNormalizeHint': 'Built-in EBU R128 analysis adjusts each track to avoid jumps between songs; the first analysis takes a few seconds.',
         'settings.crossfade': 'Smart transition',
-        'settings.crossfadeHint': 'Blends the end of a track into the next one at equal loudness; consecutive album tracks keep their original join.',
-        'settings.crossfadeOff': 'Off',
-        'settings.crossfadeSeconds': '{seconds} s',
+        'settings.crossfadeHint': 'Measures how both tracks start and end, then picks the cut point and overlap length itself; consecutive album tracks keep their original join.',
+        'settings.crossfadeRuntimeHint': 'Needs Web Audio; skipped when the browser or the source cannot route through it.',
         'settings.crossfadeAlbum': 'Blend within albums too',
         'settings.crossfadeAlbumHint': 'When off, consecutive tracks of one album keep the hard cut they were authored with.',
-        'settings.crossfadeRuntimeHint': 'Needs Web Audio; skipped when the browser or the source cannot route through it.',
         'fx.transition': 'Transition',
-        'fx.advanced': 'Advanced',
         'v2.listenTime': 'Listening time',
         'v2.totalPlays': 'Total plays',
         'v2.trackedTracks': 'Tracks tracked',
@@ -4149,24 +4143,24 @@ window.__ModuleLoader__.load({
     /**
      * crossfade: decisions only (the two-deck machinery lives in 50-player).
      *
-     * Phase one of the "smart transition" idea: no beat grid, no segment model —
-     * the overlap happens near the end of a track and the length comes from the
-     * user's setting. The cut points are still chosen by loudness: preparation
-     * starts early, and the fade is clamped to what is actually left, so a track
-     * never fades out over its own quiet tail.
+     * The goal is one switch, like a "smart transition": the engine analyses how
+     * the current track ends and how the next one begins, then picks both the cut
+     * point and the overlap length itself. Loudness is the signal we can measure
+     * cheaply and reliably — no beat grid, no segment model.
      */
 
-    var CROSSFADE_MAX_SECONDS = 12
-    /** How far a new fade can be scheduled ahead (values the settings offer). */
-    var CROSSFADE_OPTIONS = [0, 3, 4, 5, 6, 8, 10, 12]
-    /** Start preparing this long before the fade would begin. */
-    var CROSSFADE_LEAD_SECONDS = 3
+    var CROSSFADE_MAX_SECONDS = 10
+    var CROSSFADE_MIN_SECONDS = 2.5
+    /** Start analysing this early; analysis is fast but the fetch is not. */
+    var CROSSFADE_PREPARE_SECONDS = 14
+    /** A track's intro must be at least this quiet-and-long before we skip into it. */
+    var CROSSFADE_INTRO_SKIP_SECONDS = 3
 
-    /** 0 means off. Anything out of range is clamped, never trusted. */
+    /** 0 means off. The stored value is the upper bound of the automatic overlap. */
     function crossfadeFadeSeconds(prefs) {
       var value = Number(prefs !== null && typeof prefs === 'object' ? prefs.crossfadeSeconds : 0)
       if (!isFinite(value) || value <= 0) return 0
-      return Math.min(CROSSFADE_MAX_SECONDS, Math.max(1, value))
+      return Math.min(CROSSFADE_MAX_SECONDS, Math.max(CROSSFADE_MIN_SECONDS, value))
     }
 
     /** Same album (and same album artist when both sides have one). */
@@ -4194,13 +4188,41 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * Pure gate used by the player on every timeupdate. `state` is a plain snapshot
-     * so the rules can be tested without an audio element.
+     * Decide the blend from the two measured envelopes.
+     *
+     * `current.outroQuietSec` is how long the outgoing track has been quiet at its
+     * end (0 when it ends loud), `next.introQuietSec` the same at the start of the
+     * incoming one. We fade through the quiet tail; if there is none we still
+     * overlap a minimum amount instead of hard-cutting. A long silent intro is
+     * skipped so the new track is already audible when the old one stops.
+     */
+    function crossfadePlan(current, next, options) {
+      var settings = options !== null && typeof options === 'object' ? options : {}
+      var limit = crossfadeFadeSeconds(settings.prefs)
+      if (limit <= 0) return null
+      var remaining = Number(settings.remaining)
+      if (!isFinite(remaining) || remaining <= 0) return null
+      var max = Math.min(limit, Math.max(CROSSFADE_MIN_SECONDS, remaining))
+      var tail = Number(current && current.outroQuietSec)
+      var head = Number(next && next.introQuietSec)
+      if (!isFinite(tail) || tail < 0) tail = 0
+      if (!isFinite(head) || head < 0) head = 0
+      var overlap = tail > 0.4 ? tail : CROSSFADE_MIN_SECONDS
+      overlap = Math.max(CROSSFADE_MIN_SECONDS, Math.min(overlap, max))
+      var startInNext = head >= CROSSFADE_INTRO_SKIP_SECONDS ? Math.max(0, head - 1) : 0
+      return {
+        overlap: Math.round(overlap * 10) / 10,
+        startInNext: Math.round(startInNext * 10) / 10,
+      }
+    }
+
+    /**
+     * Pure gate used by the player on every timeupdate: are we close enough to the
+     * end to start analysing?
      */
     function crossfadeShouldStart(input) {
       var s = input !== null && typeof input === 'object' ? input : {}
-      var seconds = crossfadeFadeSeconds(s.prefs)
-      if (seconds <= 0) return false
+      if (crossfadeFadeSeconds(s.prefs) <= 0) return false
       if (s.playing !== true) return false
       if (s.hasGraph !== true) return false
       if (s.loop === 'one') return false
@@ -4212,9 +4234,9 @@ window.__ModuleLoader__.load({
       var time = Number(s.currentTime)
       if (!(duration > 0) || !(time >= 0)) return false
       var remaining = duration - time
-      if (remaining > seconds + CROSSFADE_LEAD_SECONDS) return false
-      // Too close to the end to build a fade that finishes inside the track.
-      if (remaining <= 0.6) return false
+      if (remaining > CROSSFADE_PREPARE_SECONDS) return false
+      // Too close to the end to build anything that finishes inside the track.
+      if (remaining <= 0.5) return false
       return true
     }
 
@@ -4229,6 +4251,129 @@ window.__ModuleLoader__.load({
         incoming[index] = Math.sin((ratio * Math.PI) / 2)
       }
       return { out: out, incoming: incoming }
+    }
+
+    // ── src/46-transition.js
+    /**
+     * transition analysis: how a track starts and ends, measured from its samples.
+     *
+     * Deliberately narrow: we only need to know how many seconds at the beginning
+     * and at the end sit well below the track's own average level. That is enough
+     * to choose a crossfade point and length without pretending to understand the
+     * music (no beat grid, no segment model).
+     */
+
+    /** Window/hop for the level envelope (seconds). */
+    var TRANSITION_WINDOW = 0.1
+    var TRANSITION_HOP = 0.05
+    /** Only the first/last stretches can contain the transition. */
+    var TRANSITION_HEAD = 20
+    var TRANSITION_TAIL = 30
+    /** "Quiet" means this far below the track's own average level. */
+    var TRANSITION_QUIET_DB = -10
+
+    function transitionRmsDb(channels, start, length, weight) {
+      var sum = 0
+      var samples = 0
+      for (var channel = 0; channel < channels.length; channel += 1) {
+        var data = channels[channel]
+        var end = Math.min(start + length, data.length)
+        var energy = 0
+        for (var index = start; index < end; index += 1) energy += data[index] * data[index]
+        sum += (weight && weight[channel] ? weight[channel] : 1) * energy
+        samples += Math.max(0, end - start)
+      }
+      if (samples <= 0) return -Infinity
+      var mean = sum / samples
+      if (!(mean > 0)) return -Infinity
+      return 10 * Math.log10(mean)
+    }
+
+    /**
+     * @param {Float32Array[]} channels
+     * @param {number} sampleRate
+     * @returns {{ duration: number, loudnessDb: number, introQuietSec: number, outroQuietSec: number } | null}
+     */
+    function analyzeTransitionEnvelope(channels, sampleRate) {
+      if (!Array.isArray(channels) || channels.length === 0) return null
+      var rate = Number(sampleRate)
+      if (!(rate > 0)) return null
+      var length = channels[0].length
+      if (!(length > 0)) return null
+      var duration = length / rate
+      var windowSize = Math.max(1, Math.round(TRANSITION_WINDOW * rate))
+      var hop = Math.max(1, Math.round(TRANSITION_HOP * rate))
+
+      // Average level over the whole file, sampled sparsely: enough to anchor the
+      // quiet threshold without walking every sample.
+      var overallSum = 0
+      var overallCount = 0
+      for (var channel = 0; channel < channels.length; channel += 1) {
+        var data = channels[channel]
+        for (var index = 0; index < data.length; index += 16) {
+          overallSum += data[index] * data[index]
+          overallCount += 1
+        }
+      }
+      var loudnessDb = overallCount > 0 && overallSum > 0 ? 10 * Math.log10(overallSum / overallCount) : -Infinity
+      var quietThreshold = loudnessDb + TRANSITION_QUIET_DB
+
+      function windowDb(start) {
+        return transitionRmsDb(channels, start, windowSize, null)
+      }
+
+      var headLimit = Math.min(length, Math.round(TRANSITION_HEAD * rate))
+      var tailStart = Math.max(0, length - Math.round(TRANSITION_TAIL * rate))
+
+      function round(value) {
+        return Math.round(Math.max(0, value) * 10) / 10
+      }
+
+      // A file with no measurable level at all (silence, or a decode that produced
+      // zeros): every edge counts as quiet, so let the caller clamp it.
+      if (!isFinite(loudnessDb)) {
+        return {
+          duration: round(duration),
+          loudnessDb: -70,
+          introQuietSec: round(headLimit / rate),
+          outroQuietSec: round((length - tailStart) / rate),
+        }
+      }
+
+      // Intro: walk forward from 0 until a window is no longer quiet.
+      var introQuietSec = headLimit / rate
+      for (var start = 0; start + windowSize <= headLimit; start += hop) {
+        if (windowDb(start) >= quietThreshold) {
+          introQuietSec = start / rate
+          break
+        }
+      }
+
+      // Outro: walk backwards from the end until a window is loud again.
+      var outroQuietSec = (length - tailStart) / rate
+      for (var back = length - windowSize; back >= tailStart; back -= hop) {
+        if (windowDb(back) >= quietThreshold) {
+          outroQuietSec = (length - (back + windowSize)) / rate
+          break
+        }
+      }
+
+      return {
+        duration: round(duration),
+        loudnessDb: Math.round(loudnessDb * 10) / 10,
+        introQuietSec: round(introQuietSec),
+        outroQuietSec: round(outroQuietSec),
+      }
+    }
+
+    /** Same analysis straight from a decoded AudioBuffer. */
+    function analyzeTransitionBuffer(buffer) {
+      if (!buffer || typeof buffer.getChannelData !== 'function') return null
+      var channels = []
+      for (var index = 0; index < buffer.numberOfChannels; index += 1) {
+        channels.push(buffer.getChannelData(index))
+      }
+      return analyzeTransitionEnvelope(channels, buffer.sampleRate)
     }
 
     // ── src/45-ui.js
@@ -4695,7 +4840,10 @@ window.__ModuleLoader__.load({
       var xfadePending = false
       var xfadeTimer = null
       var xfadeNext = -1
-      var xfadeBlob = null
+      /** Blob of the track on the active deck, kept for the tail analysis. */
+      var currentBlob = null
+      /** Measured plan + fetched audio for the incoming side. */
+      var xfadePrepared = null
       /** Web Audio graph used by the bar visualizer (lazy, user-gesture bound). */
       var audioContext = null
       var analyser = null
@@ -5400,6 +5548,7 @@ window.__ModuleLoader__.load({
         var item = state.queue[at]
         if (!item) return
         abortCrossfade()
+        currentBlob = null
         // Close the previous listening session before switching tracks.
         flushListening(true)
         flushSessionPosition()
@@ -5471,6 +5620,7 @@ window.__ModuleLoader__.load({
               }
               releaseObjectUrl()
               objectUrl = URL.createObjectURL(blob)
+              currentBlob = blob
               audio.src = objectUrl
               audio.load()
               scheduleLoudness(item, blob, loudness.resolve)
@@ -5529,6 +5679,7 @@ window.__ModuleLoader__.load({
             }
             releaseObjectUrl()
             objectUrl = URL.createObjectURL(blob)
+            currentBlob = blob
             audio.src = objectUrl
             audio.load()
             scheduleLoudness(item, blob, loudness.resolve)
@@ -5632,31 +5783,101 @@ window.__ModuleLoader__.load({
         })
       }
 
-      /** Per-track loudness trim for the incoming deck (1 when normalization is off). */
-      function incomingTrim(item, blob) {
-        if (readPrefs().normalizeVolume === false) return Promise.resolve(1)
-        return analyzeLoudnessBlob(
-          item,
-          blob,
-          function () {
-            return true
-          },
-          function () {},
-        )
-          .then(function (gainDb) {
-            if (gainDb === null || gainDb === undefined) return 1
-            return Math.pow(10, clamp(gainDb, -15, 6) / 20)
-          })
-          .catch(function () {
-            return 1
-          })
+      function decodeBlob(blob) {
+        var decoder = loudnessContext()
+        if (decoder === null) return Promise.reject(new Error('no audio decoder'))
+        return blob.arrayBuffer().then(function (bytes) {
+          return decoder.decodeAudioData(bytes)
+        })
+      }
+
+      /**
+       * Decode once and return what the transition needs: the level envelope and,
+       * for the incoming deck, its loudness trim.
+       */
+      function analyzeTransitionBlob(blob, wantTrim) {
+        return decodeBlob(blob).then(function (buffer) {
+          var envelope = analyzeTransitionBuffer(buffer)
+          if (!wantTrim) return { envelope: envelope, trim: 1 }
+          return lufsFromAudioBuffer(buffer)
+            .then(function (lufs) {
+              var gainDb = clamp(LOUDNESS_TARGET - lufs, -15, 6)
+              return { envelope: envelope, trim: Math.pow(10, gainDb / 20) }
+            })
+            .catch(function () {
+              return { envelope: envelope, trim: 1 }
+            })
+        })
+      }
+
+      /** Phase one: measure both sides while there is still time to fetch B. */
+      function prepareCrossfade(nextAt) {
+        var item = state.queue[nextAt]
+        if (!item || audio === null || analyser === null) return
+        var token = (xfadeToken += 1)
+        xfadePending = true
+        xfadeNext = nextAt
+        var outgoingBlob = currentBlob
+        var wantTrim = readPrefs().normalizeVolume !== false
+        var nextBlob = null
+        Promise.all([
+          outgoingBlob
+            ? analyzeTransitionBlob(outgoingBlob, false)
+                .then(function (result) {
+                  return result.envelope
+                })
+                .catch(function () {
+                  return null
+                })
+            : Promise.resolve(null),
+          fetchTrackBlob(item)
+            .then(function (blob) {
+              nextBlob = blob
+              return analyzeTransitionBlob(blob, wantTrim)
+            })
+            .catch(function () {
+              return null
+            }),
+        ]).then(function (results) {
+          if (token !== xfadeToken || audio === null) return
+          var incoming = results[1]
+          if (nextBlob === null || incoming === null) {
+            abortCrossfade()
+            return
+          }
+          var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
+          var plan = crossfadePlan(
+            { outroQuietSec: results[0] ? results[0].outroQuietSec : 0 },
+            { introQuietSec: incoming.envelope ? incoming.envelope.introQuietSec : 0 },
+            { prefs: readPrefs(), remaining: duration - audio.currentTime },
+          )
+          if (plan === null) {
+            abortCrossfade()
+            return
+          }
+          xfadePrepared = { nextAt: nextAt, plan: plan, blob: nextBlob, trim: incoming.trim }
+          xfadePending = false
+          maybeCrossfade()
+        })
       }
 
       function maybeCrossfade() {
-        if (xfadeActive || xfadePending) return
-        if (analyser === null || audio === null || audioContext === null) return
+        if (xfadeActive || audio === null || analyser === null || audioContext === null) return
         var settings = readPrefs()
-        if (crossfadeFadeSeconds(settings) <= 0) return
+        if (crossfadeFadeSeconds(settings) <= 0) {
+          abortCrossfade()
+          return
+        }
+        var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
+        var remaining = duration - audio.currentTime
+        if (xfadePrepared !== null) {
+          if (remaining <= xfadePrepared.plan.overlap + 0.25) {
+            if (remaining > 0.35) beginCrossfadePlayback(xfadePrepared)
+            else abortCrossfade()
+          }
+          return
+        }
+        if (xfadePending) return
         if (state.index < 0 || state.queue.length < 2) return
         var next = nextIndexOf(state.index, state.queue.length)
         if (next < 0 || next === state.index) return
@@ -5668,55 +5889,37 @@ window.__ModuleLoader__.load({
           loop: state.loop,
           index: state.index,
           queueLength: state.queue.length,
-          duration: state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0,
+          duration: duration,
           currentTime: audio.currentTime,
         })
         if (!should) return
-        startCrossfade(next, crossfadeFadeSeconds(settings))
+        prepareCrossfade(next)
       }
 
-      function startCrossfade(nextAt, seconds) {
-        var item = state.queue[nextAt]
-        if (!item || audio === null || analyser === null) return
-        var token = (xfadeToken += 1)
-        xfadePending = true
-        xfadeNext = nextAt
-        fetchTrackBlob(item)
-          .then(function (blob) {
-            if (token !== xfadeToken) return null
-            return incomingTrim(item, blob).then(function (trim) {
-              return { blob: blob, trim: trim }
-            })
-          })
-          .then(function (ready) {
-            if (ready === null || token !== xfadeToken || audio === null) return
-            var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
-            var remaining = duration - audio.currentTime
-            // Preparation can finish late; never schedule a fade longer than the
-            // audio that is actually left.
-            if (!(remaining > 0.8)) return abortCrossfade()
-            beginCrossfadePlayback(ready.blob, ready.trim, Math.min(seconds, remaining - 0.1), token)
-          })
-          .catch(function () {
-            if (token === xfadeToken) abortCrossfade()
-          })
-      }
-
-      function beginCrossfadePlayback(blob, trim, fade, token) {
+      function beginCrossfadePlayback(prepared) {
+        if (prepared === null || prepared === undefined) return abortCrossfade()
         ensureSecondary()
         if (audioB === null || audioContext === null || fadeNode === null) return abortCrossfade()
         wireSecondary()
         if (!secondaryWired || fadeNodeB === null || trimNodeB === null) return abortCrossfade()
+        var remaining = (state.duration > 0 ? state.duration : audio.duration || 0) - audio.currentTime
+        var fade = Math.min(prepared.plan.overlap, remaining - 0.05)
+        if (!(fade >= 1)) return abortCrossfade()
+        var token = xfadeToken
         releaseObjectUrlB()
-        objectUrlB = URL.createObjectURL(blob)
-        xfadeBlob = blob
-        normalizeGainB = trim
+        objectUrlB = URL.createObjectURL(prepared.blob)
+        normalizeGainB = prepared.trim
         audioB.volume = effectiveVolume()
         audioB.muted = state.muted
         audioB.src = objectUrlB
         audioB.load()
+        try {
+          audioB.currentTime = prepared.plan.startInNext
+        } catch (error) {
+          // Older engines refuse a seek before metadata; start from zero then.
+        }
         var now = audioContext.currentTime
-        trimNodeB.gain.setValueAtTime(trim, now)
+        trimNodeB.gain.setValueAtTime(prepared.trim, now)
         fadeNodeB.gain.cancelScheduledValues(now)
         fadeNodeB.gain.setValueAtTime(0, now)
         fadeNode.gain.cancelScheduledValues(now)
@@ -5729,7 +5932,7 @@ window.__ModuleLoader__.load({
         }
         Promise.resolve(started)
           .then(function () {
-            if (token !== xfadeToken || audioContext === null) return
+            if (token !== xfadeToken || audioContext === null || audio === null) return
             var at = audioContext.currentTime
             var curves = crossfadeEqualPowerCurves(32)
             fadeNode.gain.cancelScheduledValues(at)
@@ -5738,7 +5941,6 @@ window.__ModuleLoader__.load({
             fadeNodeB.gain.cancelScheduledValues(at)
             fadeNodeB.gain.setValueAtTime(0, at)
             fadeNodeB.gain.setValueCurveAtTime(curves.incoming, at, fade)
-            xfadePending = false
             xfadeActive = true
             if (xfadeTimer !== null) clearTimeout(xfadeTimer)
             xfadeTimer = setTimeout(function () {
@@ -5775,11 +5977,13 @@ window.__ModuleLoader__.load({
       function promoteCrossfade(token) {
         if (token !== xfadeToken) return
         if (!xfadeActive) return
+        var prepared = xfadePrepared
         xfadeActive = false
         xfadePending = false
+        xfadePrepared = null
         var nextAt = xfadeNext
         xfadeNext = -1
-        if (nextAt < 0 || !state.queue[nextAt] || audio === null) return abortCrossfade()
+        if (nextAt < 0 || !state.queue[nextAt] || audio === null || prepared === null) return abortCrossfade()
         flushListening(true)
         flushSessionPosition()
         swapDecks()
@@ -5791,8 +5995,8 @@ window.__ModuleLoader__.load({
           buffered: 0,
           playing: true,
         })
-        currentLoudnessBlob = xfadeBlob
-        xfadeBlob = null
+        currentBlob = prepared.blob
+        currentLoudnessBlob = prepared.blob
         resetSession(item)
         session.lastTime = audio.currentTime || 0
         syncMediaSession()
@@ -5833,12 +6037,12 @@ window.__ModuleLoader__.load({
       }
 
       function abortCrossfade() {
-        if (!xfadePending && !xfadeActive && xfadeTimer === null) return
+        if (!xfadePending && !xfadeActive && xfadeTimer === null && xfadePrepared === null) return
         xfadeToken += 1
         xfadePending = false
         xfadeActive = false
         xfadeNext = -1
-        xfadeBlob = null
+        xfadePrepared = null
         if (xfadeTimer !== null) {
           clearTimeout(xfadeTimer)
           xfadeTimer = null
@@ -6400,6 +6604,7 @@ window.__ModuleLoader__.load({
           loadToken += 1
           cancelPendingFetch()
           abortCrossfade()
+          currentBlob = null
           releaseObjectUrl()
           if (audio) {
             audio.pause()
@@ -8076,14 +8281,7 @@ window.__ModuleLoader__.load({
       '.mp-xf-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
       '.mp-xf-title{font-size:13px;font-weight:650;color:#f4f4f5}',
       '.mp-xf-desc{margin:8px 0 0;font-size:11px;line-height:16px;color:rgba(255,255,255,.5)}',
-      '.mp-xf-chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}',
-      '.mp-xf-chip{padding:6px 10px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:transparent;color:rgba(255,255,255,.75);font:inherit;font-size:12px;cursor:pointer}',
-      '.mp-xf-chip:hover{background:rgba(255,255,255,.08);color:#fff}',
-      '.mp-xf-chip.is-on{border-color:rgba(120,160,255,.65);background:rgba(90,130,255,.18);color:#fff}',
       '.mp-xf-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;font-size:12px;color:rgba(255,255,255,.75)}',
-      '.mp-xf-advanced{align-self:flex-start;margin-top:12px;padding:0;border:0;background:transparent;color:rgba(255,255,255,.45);font:inherit;font-size:11px;cursor:pointer}',
-      '.mp-xf-advanced:hover{color:rgba(255,255,255,.75)}',
-      '.mp-xf-advanced span{margin-left:3px}',
       '.mp-xf-hint{margin-top:auto;padding-top:12px;font-size:11px;line-height:16px;color:rgba(255,255,255,.4)}',
       '.mp-fx-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:rgba(255,255,255,.75)}',
       '.mp-fx-value{font-size:11px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}',
@@ -9699,18 +9897,14 @@ window.__ModuleLoader__.load({
     ]
 
     /** Crossfade controls: the same prefs the settings sheet edits. */
-    function CrossfadePanel(props) {
+    function CrossfadePanel() {
       var prefs = usePrefs()
-      var seconds = crossfadeFadeSeconds(prefs)
-      var enabled = seconds > 0
-      // The duration is a taste choice, not the feature itself: keep the switch as
-      // the primary control and hide the length behind "advanced".
-      var advancedPair = useState(props.advanced === true)
-      var advanced = advancedPair[0]
-      var setAdvanced = advancedPair[1]
+      var enabled = crossfadeFadeSeconds(prefs) > 0
 
-      function setSeconds(value) {
-        setPrefs({ crossfadeSeconds: value })
+      function setEnabled(value) {
+        // Any positive value means "on"; the engine computes the real overlap and
+        // only uses this as the upper bound.
+        setPrefs({ crossfadeSeconds: value ? CROSSFADE_MAX_SECONDS : 0 })
       }
 
       return h(
@@ -9723,10 +9917,7 @@ window.__ModuleLoader__.load({
           h(Switch, {
             value: enabled,
             label: t('settings.crossfade'),
-            onChange: function (value) {
-              // A sensible default so the switch alone is enough to use it.
-              setSeconds(value ? seconds || 5 : 0)
-            },
+            onChange: setEnabled,
           }),
         ),
         h('p', { className: 'mp-xf-desc' }, t('settings.crossfadeHint')),
@@ -9740,43 +9931,6 @@ window.__ModuleLoader__.load({
                 onChange: function (value) {
                   setPrefs({ crossfadeAlbums: value })
                 },
-              }),
-            )
-          : null,
-        enabled
-          ? h(
-              'button',
-              {
-                type: 'button',
-                className: 'mp-xf-advanced',
-                'aria-expanded': advanced,
-                onClick: function () {
-                  setAdvanced(!advanced)
-                },
-              },
-              t('fx.advanced'),
-              h('span', null, advanced ? '▾' : '▸'),
-            )
-          : null,
-        enabled && advanced
-          ? h(
-              'div',
-              { className: 'mp-xf-chips' },
-              CROSSFADE_OPTIONS.filter(function (option) {
-                return option > 0
-              }).map(function (option) {
-                return h(
-                  'button',
-                  {
-                    key: option,
-                    type: 'button',
-                    className: cx('mp-xf-chip', seconds === option && 'is-on'),
-                    onClick: function () {
-                      setSeconds(option)
-                    },
-                  },
-                  t('settings.crossfadeSeconds', { seconds: option }),
-                )
               }),
             )
           : null,
@@ -13091,26 +13245,14 @@ window.__ModuleLoader__.load({
               label: t('settings.crossfade'),
               desc: t('settings.crossfadeHint'),
             },
-            h(
-              'select',
-              {
-                value: String(prefs.crossfadeSeconds || 0),
-                onChange: function (event) {
-                  patchPrefs({ crossfadeSeconds: Number(event.target.value) || 0 })
-                },
+            h(Switch, {
+              value: crossfadeFadeSeconds(prefs) > 0,
+              onChange: function (value) {
+                patchPrefs({ crossfadeSeconds: value ? CROSSFADE_MAX_SECONDS : 0 })
               },
-              CROSSFADE_OPTIONS.map(function (seconds) {
-                return h(
-                  'option',
-                  { key: seconds, value: String(seconds) },
-                  seconds === 0
-                    ? t('settings.crossfadeOff')
-                    : t('settings.crossfadeSeconds', { seconds: seconds }),
-                )
-              }),
-            ),
+            }),
           ),
-          prefs.crossfadeSeconds > 0
+          crossfadeFadeSeconds(prefs) > 0
             ? h(
                 SetRow,
                 {
