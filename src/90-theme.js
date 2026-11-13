@@ -316,6 +316,8 @@ var THEME_CSS = [
   '.mp-q-row.is-cur{background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
   '.mp-q-row.is-cur .mp-q-name{color:var(--dsw-alias-state-business-primary,#7AAAFF)}',
   '.mp-q-idx{width:18px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:center;font-variant-numeric:tabular-nums;flex:none}',
+  '.mp-q-wave{display:inline-flex;align-items:flex-end;justify-content:center;gap:1px;width:14px;height:14px;vertical-align:middle}',
+  '.mp-q-wave i{width:2px;min-height:2px;border-radius:1px;background:linear-gradient(180deg,#9cbcff,#4d7dff);transition:height .07s linear}',
   '.mp-q-cover{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));overflow:hidden}',
   '.mp-q-cover img{width:100%;height:100%;object-fit:cover}',
   '.mp-q-main{min-width:0;flex:1}',

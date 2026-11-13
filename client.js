@@ -6781,6 +6781,8 @@ window.__ModuleLoader__.load({
       '.mp-q-row.is-cur{background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
       '.mp-q-row.is-cur .mp-q-name{color:var(--dsw-alias-state-business-primary,#7AAAFF)}',
       '.mp-q-idx{width:18px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:center;font-variant-numeric:tabular-nums;flex:none}',
+      '.mp-q-wave{display:inline-flex;align-items:flex-end;justify-content:center;gap:1px;width:14px;height:14px;vertical-align:middle}',
+      '.mp-q-wave i{width:2px;min-height:2px;border-radius:1px;background:linear-gradient(180deg,#9cbcff,#4d7dff);transition:height .07s linear}',
       '.mp-q-cover{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));overflow:hidden}',
       '.mp-q-cover img{width:100%;height:100%;object-fit:cover}',
       '.mp-q-main{min-width:0;flex:1}',
@@ -10483,6 +10485,54 @@ window.__ModuleLoader__.load({
      * the chat composer. Both share QueueList so there is one row implementation.
      */
 
+    var QUEUE_BANDS = [0, 3, 8, 20, 48]
+
+    function QueueWave(props) {
+      var pair = useState([0.16, 0.28, 0.2, 0.12])
+      var levels = pair[0]
+      var setLevels = pair[1]
+      useEffect(
+        function () {
+          if (props.playing !== true) return undefined
+          var frame = 0
+          var last = 0
+          function tick(now) {
+            frame = requestAnimationFrame(tick)
+            if (now - last < 70) return
+            last = now
+            var data = player.getWave()
+            if (data === null || data.length === 0) return
+            var next = []
+            for (var band = 0; band < QUEUE_BANDS.length - 1; band += 1) {
+              var start = QUEUE_BANDS[band]
+              var end = Math.min(QUEUE_BANDS[band + 1], data.length)
+              var sum = 0
+              for (var i = start; i < end; i += 1) sum += data[i]
+              var avg = end > start ? sum / (end - start) : 0
+              var normalized = Math.max(0, Math.min(1, (avg - 4) / 240))
+              next.push(0.08 + Math.pow(normalized, 1.3) * 0.92)
+            }
+            setLevels(next)
+          }
+          frame = requestAnimationFrame(tick)
+          return function () {
+            cancelAnimationFrame(frame)
+          }
+        },
+        [props.playing],
+      )
+      return h(
+        'span',
+        { className: 'mp-q-wave', 'aria-hidden': 'true' },
+        levels.map(function (level, index) {
+          return h('i', {
+            key: index,
+            style: { height: Math.round(3 + level * 11) + 'px' },
+          })
+        }),
+      )
+    }
+
     function QueueList(props) {
       var snap = props.snap
       var listRef = useRef(null)
@@ -10490,13 +10540,21 @@ window.__ModuleLoader__.load({
       useEffect(
         function () {
           var box = listRef.current
-          if (!box) return
+          if (!box || box.clientHeight === 0) return
           var row = box.querySelector('.mp-q-row.is-cur')
           if (!row) return
-          var top = row.offsetTop - box.clientHeight / 2 + row.offsetHeight / 2
-          box.scrollTop = Math.max(0, top)
+          // Only move the list when the active row is outside the viewport. The
+          // queue used to centre it on every play/pause, which made clicking a
+          // visible row jump the entire list.
+          var rowRect = row.getBoundingClientRect()
+          var boxRect = box.getBoundingClientRect()
+          if (rowRect.top < boxRect.top + 4) {
+            box.scrollTop -= boxRect.top - rowRect.top + 8
+          } else if (rowRect.bottom > boxRect.bottom - 4) {
+            box.scrollTop += rowRect.bottom - boxRect.bottom + 8
+          }
         },
-        [snap && snap.queue, snap && snap.index, snap && snap.order, snap && snap.playing],
+        [snap && snap.queue, snap && snap.index, snap && snap.order],
       )
       if (!snap || !snap.queue || snap.queue.length === 0) {
         return h(
@@ -10556,7 +10614,11 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { className: 'mp-q-idx' },
-              current && snap.playing ? icon('play', 12) : String(position + 1),
+              current
+                ? snap.playing
+                  ? h(QueueWave, { playing: true })
+                  : icon('play', 12)
+                : String(position + 1),
             ),
             h('div', { className: 'mp-q-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 14 })),
             h(
