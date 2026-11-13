@@ -46,8 +46,29 @@ function makeStore() {
   }
 }
 
+/** In-memory stand-in for the on-disk online cache. */
+function makeCache() {
+  const meta = new Map()
+  return {
+    meta,
+    async readMeta(provider, id, kind) {
+      return meta.get(`${provider}:${id}:${kind}`) ?? null
+    },
+    async writeMeta(provider, id, kind, value) {
+      meta.set(`${provider}:${id}:${kind}`, value)
+    },
+    async lookup() {
+      return null
+    },
+  }
+}
+
 const store = makeStore()
-const handle = createRoutes({ settings, library, providerStore: store })
+const cache = makeCache()
+// The lyric route needs a cache to exercise its version check, so routes are
+// built per test group rather than once.
+const handleWithCache = createRoutes({ settings, library, providerStore: store, onlineCache: cache })
+const handle = handleWithCache
 
 /** Build a Subsonic JSON envelope. */
 function subsonic(payload) {
@@ -144,6 +165,43 @@ test('info accepts navidrome as a provider', async () => {
   const { status, body } = await get('/music/online/info?provider=navidrome&id=s1')
   assert.equal(status, 200)
   assert.equal(body.ok, true)
+})
+
+// ── /online/lyric: the cache version bump is navidrome-only ─────────────
+
+test('a cached v2 lyric is still served for the Chinese platforms', async () => {
+  // Their lyrics were always correct, so an upgrade must not invalidate them —
+  // otherwise every existing install refetches its whole lyric cache.
+  await cache.writeMeta('netease', 'n1', 'lyric', { lrc: '[00:01.00]kept', translation: '', v: 2 })
+  const { status, body } = await get('/music/online/lyric?provider=netease&id=n1')
+  assert.equal(status, 200)
+  assert.equal(body.cached, true, 'a v2 entry must still hit for netease')
+  assert.equal(body.lrc, '[00:01.00]kept')
+})
+
+test('a cached v2 navidrome lyric is refetched and rewritten as v3', async () => {
+  // A pre-fix build formatted OpenSubsonic's millisecond offsets as seconds, so
+  // those entries are wrong and must not be served.
+  await cache.writeMeta('navidrome', 's1', 'lyric', { lrc: '[358:50.00]wrong', translation: '', v: 2 })
+  await withFetch(
+    async () =>
+      new Response(
+        JSON.stringify(
+          subsonic({
+            lyricsList: { structuredLyrics: [{ line: [{ start: 12500, value: 'right' }] }] },
+          }),
+        ),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      ),
+    async () => {
+      const { status, body } = await get('/music/online/lyric?provider=navidrome&id=s1')
+      assert.equal(status, 200)
+      assert.equal(body.cached, undefined, 'a stale v2 entry must not be served for navidrome')
+      assert.equal(body.lrc, '[00:12.50]right', 'the millisecond offset is formatted as seconds')
+    },
+  )
+  const rewritten = await cache.readMeta('navidrome', 's1', 'lyric')
+  assert.equal(rewritten.v, 3, 'the refetched lyric is stored under the new version')
 })
 
 // ── /online/logout: clears the stored session ────────────────────────────
