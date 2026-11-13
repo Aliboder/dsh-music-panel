@@ -62,6 +62,26 @@ function OnlineContent(props) {
   var songsPagePair = useState(1)
   var songsPage = songsPagePair[0]
   var setSongsPage = songsPagePair[1]
+  // Artist / album cards. These are lists only — a row opens the shared album
+  // view upstream already provides, so no detail state is kept here.
+  var browsePhasePair = useState('idle')
+  var browsePhase = browsePhasePair[0]
+  var setBrowsePhase = browsePhasePair[1]
+  var artistsPair = useState([])
+  var artistsList = artistsPair[0]
+  var setArtistsList = artistsPair[1]
+  var albumsPair = useState([])
+  var albumsList = albumsPair[0]
+  var setAlbumsList = albumsPair[1]
+  var artistDetailPair = useState(null)
+  var artistDetail = artistDetailPair[0]
+  var setArtistDetail = artistDetailPair[1]
+  var artistAlbumsPair = useState([])
+  var artistAlbumsList = artistAlbumsPair[0]
+  var setArtistAlbumsList = artistAlbumsPair[1]
+  var browseIdPair = useState('')
+  var browseId = browseIdPair[0]
+  var setBrowseId = browseIdPair[1]
   var prefs = usePrefs()
   var selection = useStore(selectionStore)
   var selecting = selection.active === true
@@ -265,6 +285,64 @@ function OnlineContent(props) {
     setSongsPage(next)
   }
 
+  // Artist / album cards load their list once per view; the rows are static
+  // until the user re-enters.
+  useEffect(
+    function () {
+      if (nav !== 'artists' && nav !== 'albums' && nav !== 'artist') {
+        setBrowsePhase('idle')
+        return undefined
+      }
+      var cancelled = false
+      setBrowsePhase('loading')
+      var url = ''
+      if (nav === 'artists') url = API + 'online/artists?provider=' + encodeURIComponent(provider)
+      else if (nav === 'albums') url = API + 'online/albums?provider=' + encodeURIComponent(provider) + '&size=200'
+      else url = API + 'online/artist?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(browseId)
+      getJson(url)
+        .then(function (body) {
+          if (cancelled) return
+          if (nav === 'artists') setArtistsList(Array.isArray(body.artists) ? body.artists : [])
+          else if (nav === 'albums') setAlbumsList(Array.isArray(body.albums) ? body.albums : [])
+          else {
+            setArtistDetail(body.artist || null)
+            setArtistAlbumsList(Array.isArray(body.albums) ? body.albums : [])
+          }
+          setBrowsePhase('ready')
+        })
+        .catch(function () {
+          if (cancelled) return
+          if (nav === 'artists') setArtistsList([])
+          else if (nav === 'albums') setAlbumsList([])
+          else {
+            setArtistDetail(null)
+            setArtistAlbumsList([])
+          }
+          setBrowsePhase('error')
+        })
+      return function () {
+        cancelled = true
+      }
+    },
+    [nav, provider, browseId],
+  )
+
+  /** Open one album through the shared album view (upstream's own entry). */
+  function openAlbumCard(album) {
+    void openOnlineAlbum({
+      album: album.name || '',
+      albumId: album.id || '',
+      artist: album.artist || '',
+      onlineProvider: provider,
+      coverUrl: '',
+      coverArtId: album.coverArtId || '',
+    })
+  }
+
+  function openArtistCard(artist) {
+    setBrowseId(String(artist.id || ''))
+    uiStore.set({ nav: 'artist', filter: null, query: '' })
+  }
 
   var title = t('v2.recent')
   var count = 0
@@ -634,6 +712,71 @@ function OnlineContent(props) {
       if (footer !== null) {
         body = h('div', { className: 'mp-songs-pane', key: 'songs-pane' }, body, footer)
       }
+    }
+  } else if (nav === 'artists' || nav === 'albums' || nav === 'artist') {
+    // Card grids. Every row opens the shared album view, so these are purely
+    // navigation surfaces over the provider's own catalogue.
+    var isArtistList = nav === 'artists'
+    var isAlbumList = nav === 'albums'
+    var cards = isArtistList ? artistsList : isAlbumList ? albumsList : artistAlbumsList
+    title = isArtistList
+      ? t('v2.artists')
+      : isAlbumList
+        ? t('v2.albums')
+        : (artistDetail && artistDetail.name) || t('v2.artists')
+    count = cards.length
+    resetKey = 'online-' + nav + ':' + provider + (nav === 'artist' ? ':' + browseId : '')
+    if (browsePhase === 'loading' || browsePhase === 'idle') {
+      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+    } else if (browsePhase === 'error') {
+      body = h(Empty, { title: t('online.networkError'), icon: 'info' })
+    } else if (cards.length === 0) {
+      body = h(Empty, { title: t('page.noResults'), icon: isArtistList ? 'user' : 'disc' })
+    } else {
+      var openCard = isArtistList
+        ? openArtistCard
+        : function (card) {
+            openAlbumCard(card)
+          }
+      body = h(
+        ScrollBox,
+        { resetKey: resetKey },
+        h(
+          'div',
+          { className: 'mp-card-grid' },
+          cards.map(function (card) {
+            var cover = subsonicCoverUrl(card.coverArtId)
+            return h(
+              'button',
+              {
+                key: card.id,
+                type: 'button',
+                className: 'mp-card' + (isArtistList ? ' is-round' : ''),
+                onClick: function () {
+                  openCard(card)
+                },
+              },
+              h(
+                'div',
+                { className: 'mp-card-art' },
+                cover === ''
+                  ? h('span', { className: 'mp-card-art-fallback' }, icon(isArtistList ? 'user' : 'disc', 22))
+                  : h(Cover, { src: cover, iconSize: 22 }),
+              ),
+              h('div', { className: 'mp-card-title', title: card.name }, card.name || t('page.unknownAlbum')),
+              h(
+                'div',
+                { className: 'mp-card-sub' },
+                isArtistList
+                  ? t('online.albumCount', { n: card.albumCount })
+                  : isAlbumList
+                    ? (card.artist || '') + (card.songCount > 0 ? ' · ' + t('page.trackCountUnit', { n: card.songCount }) : '')
+                    : t('page.trackCountUnit', { n: card.songCount }),
+              ),
+            )
+          }),
+        ),
+      )
     }
   } else if (nav === 'cache') {
     title = t('v2.cache')

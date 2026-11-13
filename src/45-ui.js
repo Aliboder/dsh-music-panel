@@ -126,12 +126,18 @@ function navGroupsFor(source, favoritesCount) {
     var online = onlineStore.get()
     var playlists = sortOnlinePlaylists(online.playlists || [])
     var signedIn = (online.providers[source] || {}).loggedIn === true
-    // Navidrome can enumerate a whole library, so it gets a song list the
-    // search-only platforms cannot offer. Albums and artists are not listed
-    // here: a track's album name opens the shared album view instead, the same
-    // path the Chinese platforms use.
+    // Navidrome can enumerate a whole library, so it gets the same browse shape
+    // as the local library — songs, artists, albums. Artist and album rows open
+    // the shared album view, so these are navigation surfaces only. The Chinese
+    // platforms are search-only and get none of them.
     var browse =
-      source === 'navidrome' ? [{ key: 'songs', label: t('v2.songs'), icon: 'note', count: null }] : []
+      source === 'navidrome'
+        ? [
+            { key: 'songs', label: t('v2.songs'), icon: 'note', count: null },
+            { key: 'artists', label: t('v2.artists'), icon: 'user', count: null },
+            { key: 'albums', label: t('v2.albums'), icon: 'disc', count: null },
+          ]
+        : []
     var groups = [
       {
         label: t('v2.sectionOnline'),

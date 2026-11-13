@@ -314,10 +314,9 @@ const navPanel = panel()
 const navText = textOf(navPanel)
 assert.ok(navText.includes('Navidrome'), 'Navidrome renders as a source tab')
 
-// Navidrome gets a song list, which the search-only platforms cannot offer.
-// Albums and artists are deliberately not sidebar entries any more: a track's
-// album name opens the shared album view, the same path the Chinese platforms
-// use, so the sidebar must not advertise them.
+// Navidrome mirrors the local library's browse shape — songs, artists, albums —
+// because Subsonic can enumerate all three. Artist and album rows open the
+// shared album view, so they are navigation surfaces, not separate viewers.
 const isZh = navText.includes('歌曲')
 const L = {
   songs: isZh ? '歌曲' : 'Songs',
@@ -328,19 +327,22 @@ assert.ok(navText.includes(L.songs), 'the navidrome sidebar exposes the songs en
 
 // Check the sidebar entry list directly instead of the rendered text: other
 // copy on the page (empty states, hints) can contain the same word.
-const navKeys = internals.navGroupsFor('navidrome', 0)
-const navItems = navKeys.flatMap((group) => group.items.map((item) => item.key))
-assert.ok(navItems.includes('songs'), 'navidrome lists a songs entry')
-assert.ok(!navItems.includes('artists'), 'navidrome no longer lists an artists entry')
-assert.ok(!navItems.includes('albums'), 'navidrome no longer lists an albums entry')
+const navItems = internals
+  .navGroupsFor('navidrome', 0)
+  .flatMap((group) => group.items.map((item) => item.key))
+for (const key of ['songs', 'artists', 'albums']) {
+  assert.ok(navItems.includes(key), `navidrome lists a ${key} entry`)
+}
 
-const neteaseItems = internals.navGroupsFor('netease', 0).flatMap((group) =>
-  group.items.map((item) => item.key),
-)
-assert.ok(!neteaseItems.includes('songs'), 'search-only providers have no songs entry')
+const neteaseItems = internals
+  .navGroupsFor('netease', 0)
+  .flatMap((group) => group.items.map((item) => item.key))
+for (const key of ['songs', 'artists', 'albums']) {
+  assert.ok(!neteaseItems.includes(key), `search-only providers have no ${key} entry`)
+}
 
-// The views that still exist must render without throwing.
-for (const nav of ['songs', 'album']) {
+// Every browse view renders without throwing.
+for (const nav of ['songs', 'album', 'artists', 'albums', 'artist']) {
   internals.uiStore.set({ source: 'navidrome', nav, filter: null, query: '' })
   internals.onlineStore.set({
     provider: 'navidrome',

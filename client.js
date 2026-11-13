@@ -2707,12 +2707,18 @@ window.__ModuleLoader__.load({
         var online = onlineStore.get()
         var playlists = sortOnlinePlaylists(online.playlists || [])
         var signedIn = (online.providers[source] || {}).loggedIn === true
-        // Navidrome can enumerate a whole library, so it gets a song list the
-        // search-only platforms cannot offer. Albums and artists are not listed
-        // here: a track's album name opens the shared album view instead, the same
-        // path the Chinese platforms use.
+        // Navidrome can enumerate a whole library, so it gets the same browse shape
+        // as the local library — songs, artists, albums. Artist and album rows open
+        // the shared album view, so these are navigation surfaces only. The Chinese
+        // platforms are search-only and get none of them.
         var browse =
-          source === 'navidrome' ? [{ key: 'songs', label: t('v2.songs'), icon: 'note', count: null }] : []
+          source === 'navidrome'
+            ? [
+                { key: 'songs', label: t('v2.songs'), icon: 'note', count: null },
+                { key: 'artists', label: t('v2.artists'), icon: 'user', count: null },
+                { key: 'albums', label: t('v2.albums'), icon: 'disc', count: null },
+              ]
+            : []
         var groups = [
           {
             label: t('v2.sectionOnline'),
@@ -5742,6 +5748,14 @@ window.__ModuleLoader__.load({
       '.mp-navidrome-warn{margin:2px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-state-warning-text,#fbbf24)}',
       '.mp-loaded-of{font-size:12px;color:var(--dsw-alias-label-tertiary,#71717a)}',
       '.mp-songs-pane{flex:1;min-height:0;display:flex;flex-direction:column}',
+      '.mp-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px;padding:4px 0 12px}',
+      '.mp-card{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid transparent;border-radius:12px;background:transparent;text-align:left;cursor:pointer;min-width:0}',
+      '.mp-card:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06));border-color:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mp-card-art{position:relative;width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.05));display:flex;align-items:center;justify-content:center}',
+      '.mp-card.is-round .mp-card-art{border-radius:50%}',
+      '.mp-card-art-fallback{color:var(--dsw-alias-label-tertiary,#71717a)}',
+      '.mp-card-title{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-card-sub{font-size:12px;color:var(--dsw-alias-label-tertiary,#71717a);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-pager{display:flex;align-items:center;justify-content:center;gap:10px;flex:0 0 auto;padding:8px 12px 14px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
       '.mp-pager.is-hint{justify-content:space-between;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03))}',
       '.mp-loaded-end{font-size:12px;color:var(--dsw-alias-state-success-text,#4ade80)}',
@@ -11713,6 +11727,26 @@ window.__ModuleLoader__.load({
       var songsPagePair = useState(1)
       var songsPage = songsPagePair[0]
       var setSongsPage = songsPagePair[1]
+      // Artist / album cards. These are lists only — a row opens the shared album
+      // view upstream already provides, so no detail state is kept here.
+      var browsePhasePair = useState('idle')
+      var browsePhase = browsePhasePair[0]
+      var setBrowsePhase = browsePhasePair[1]
+      var artistsPair = useState([])
+      var artistsList = artistsPair[0]
+      var setArtistsList = artistsPair[1]
+      var albumsPair = useState([])
+      var albumsList = albumsPair[0]
+      var setAlbumsList = albumsPair[1]
+      var artistDetailPair = useState(null)
+      var artistDetail = artistDetailPair[0]
+      var setArtistDetail = artistDetailPair[1]
+      var artistAlbumsPair = useState([])
+      var artistAlbumsList = artistAlbumsPair[0]
+      var setArtistAlbumsList = artistAlbumsPair[1]
+      var browseIdPair = useState('')
+      var browseId = browseIdPair[0]
+      var setBrowseId = browseIdPair[1]
       var prefs = usePrefs()
       var selection = useStore(selectionStore)
       var selecting = selection.active === true
@@ -11916,6 +11950,64 @@ window.__ModuleLoader__.load({
         setSongsPage(next)
       }
     
+      // Artist / album cards load their list once per view; the rows are static
+      // until the user re-enters.
+      useEffect(
+        function () {
+          if (nav !== 'artists' && nav !== 'albums' && nav !== 'artist') {
+            setBrowsePhase('idle')
+            return undefined
+          }
+          var cancelled = false
+          setBrowsePhase('loading')
+          var url = ''
+          if (nav === 'artists') url = API + 'online/artists?provider=' + encodeURIComponent(provider)
+          else if (nav === 'albums') url = API + 'online/albums?provider=' + encodeURIComponent(provider) + '&size=200'
+          else url = API + 'online/artist?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(browseId)
+          getJson(url)
+            .then(function (body) {
+              if (cancelled) return
+              if (nav === 'artists') setArtistsList(Array.isArray(body.artists) ? body.artists : [])
+              else if (nav === 'albums') setAlbumsList(Array.isArray(body.albums) ? body.albums : [])
+              else {
+                setArtistDetail(body.artist || null)
+                setArtistAlbumsList(Array.isArray(body.albums) ? body.albums : [])
+              }
+              setBrowsePhase('ready')
+            })
+            .catch(function () {
+              if (cancelled) return
+              if (nav === 'artists') setArtistsList([])
+              else if (nav === 'albums') setAlbumsList([])
+              else {
+                setArtistDetail(null)
+                setArtistAlbumsList([])
+              }
+              setBrowsePhase('error')
+            })
+          return function () {
+            cancelled = true
+          }
+        },
+        [nav, provider, browseId],
+      )
+    
+      /** Open one album through the shared album view (upstream's own entry). */
+      function openAlbumCard(album) {
+        void openOnlineAlbum({
+          album: album.name || '',
+          albumId: album.id || '',
+          artist: album.artist || '',
+          onlineProvider: provider,
+          coverUrl: '',
+          coverArtId: album.coverArtId || '',
+        })
+      }
+    
+      function openArtistCard(artist) {
+        setBrowseId(String(artist.id || ''))
+        uiStore.set({ nav: 'artist', filter: null, query: '' })
+      }
     
       var title = t('v2.recent')
       var count = 0
@@ -12285,6 +12377,71 @@ window.__ModuleLoader__.load({
           if (footer !== null) {
             body = h('div', { className: 'mp-songs-pane', key: 'songs-pane' }, body, footer)
           }
+        }
+      } else if (nav === 'artists' || nav === 'albums' || nav === 'artist') {
+        // Card grids. Every row opens the shared album view, so these are purely
+        // navigation surfaces over the provider's own catalogue.
+        var isArtistList = nav === 'artists'
+        var isAlbumList = nav === 'albums'
+        var cards = isArtistList ? artistsList : isAlbumList ? albumsList : artistAlbumsList
+        title = isArtistList
+          ? t('v2.artists')
+          : isAlbumList
+            ? t('v2.albums')
+            : (artistDetail && artistDetail.name) || t('v2.artists')
+        count = cards.length
+        resetKey = 'online-' + nav + ':' + provider + (nav === 'artist' ? ':' + browseId : '')
+        if (browsePhase === 'loading' || browsePhase === 'idle') {
+          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+        } else if (browsePhase === 'error') {
+          body = h(Empty, { title: t('online.networkError'), icon: 'info' })
+        } else if (cards.length === 0) {
+          body = h(Empty, { title: t('page.noResults'), icon: isArtistList ? 'user' : 'disc' })
+        } else {
+          var openCard = isArtistList
+            ? openArtistCard
+            : function (card) {
+                openAlbumCard(card)
+              }
+          body = h(
+            ScrollBox,
+            { resetKey: resetKey },
+            h(
+              'div',
+              { className: 'mp-card-grid' },
+              cards.map(function (card) {
+                var cover = subsonicCoverUrl(card.coverArtId)
+                return h(
+                  'button',
+                  {
+                    key: card.id,
+                    type: 'button',
+                    className: 'mp-card' + (isArtistList ? ' is-round' : ''),
+                    onClick: function () {
+                      openCard(card)
+                    },
+                  },
+                  h(
+                    'div',
+                    { className: 'mp-card-art' },
+                    cover === ''
+                      ? h('span', { className: 'mp-card-art-fallback' }, icon(isArtistList ? 'user' : 'disc', 22))
+                      : h(Cover, { src: cover, iconSize: 22 }),
+                  ),
+                  h('div', { className: 'mp-card-title', title: card.name }, card.name || t('page.unknownAlbum')),
+                  h(
+                    'div',
+                    { className: 'mp-card-sub' },
+                    isArtistList
+                      ? t('online.albumCount', { n: card.albumCount })
+                      : isAlbumList
+                        ? (card.artist || '') + (card.songCount > 0 ? ' · ' + t('page.trackCountUnit', { n: card.songCount }) : '')
+                        : t('page.trackCountUnit', { n: card.songCount }),
+                  ),
+                )
+              }),
+            ),
+          )
         }
       } else if (nav === 'cache') {
         title = t('v2.cache')

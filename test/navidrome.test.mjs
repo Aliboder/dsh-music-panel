@@ -382,6 +382,89 @@ test('songs surfaces a subsonic failure', async () => {
   )
 })
 
+// ── artist / album cards ─────────────────────────────────────────────────
+
+test('artists flattens the alphabetical index groups', async () => {
+  await withFetch(
+    async () =>
+      jsonResponse(
+        okBody({
+          artists: {
+            index: [
+              { name: '#', artist: [{ id: 'ar1', name: '丁世光', albumCount: 3 }] },
+              { name: 'A', artist: [{ id: 'ar2', name: 'Adele', albumCount: 2 }, {}] },
+            ],
+          },
+        }),
+      ),
+    async () => {
+      const list = await ND.artists(cfg)
+      assert.equal(list.length, 2, 'rows without an id are dropped')
+      assert.equal(list[0].name, '丁世光')
+      assert.equal(list[0].albumCount, 3)
+      assert.equal(list[0].provider, 'navidrome')
+      assert.equal(list[1].id, 'ar2')
+    },
+  )
+})
+
+test('albums reads getAlbumList2 alphabetically and clamps the size', async () => {
+  const seen = []
+  await withFetch(
+    async (url) => {
+      seen.push(String(url))
+      return jsonResponse(
+        okBody({
+          albumList2: {
+            album: [
+              { id: 'al1', name: 'Album One', artist: 'A', songCount: 10, year: 2020, coverArt: 'al-al1' },
+              { name: 'no id' },
+            ],
+          },
+        }),
+      )
+    },
+    async () => {
+      const list = await ND.albums(cfg)
+      assert.equal(list.length, 1)
+      assert.equal(list[0].id, 'al1')
+      assert.equal(list[0].songCount, 10)
+      assert.equal(list[0].coverArtId, 'al-al1')
+      await ND.albums(cfg, 9999)
+    },
+  )
+  assert.match(seen[0], /alphabeticalByName/, 'sorts by name')
+  assert.match(seen[1], /size=500/, 'caps at 500')
+})
+
+test('artistAlbums lists one artist albums', async () => {
+  await withFetch(
+    async () =>
+      jsonResponse(okBody({ artist: { id: 'ar1', name: '丁世光', album: [{ id: 'al1', name: 'A1', songCount: 3 }] } })),
+    async () => {
+      const result = await ND.artistAlbums(cfg, 'ar1')
+      assert.equal(result.artist.name, '丁世光')
+      assert.equal(result.albums.length, 1)
+      assert.equal(result.albums[0].id, 'al1')
+    },
+  )
+})
+
+test('songs carry albumId so a row can open the shared album view', async () => {
+  await withFetch(
+    async () =>
+      jsonResponse(
+        okBody({
+          searchResult3: { song: [{ id: 's1', title: 'T', album: 'Al', albumId: 'al1', artist: 'A' }] },
+        }),
+      ),
+    async () => {
+      const songs = await ND.search(cfg, 'x')
+      assert.equal(songs[0].albumId, 'al1', 'albumId is what routes the row into the album view')
+    },
+  )
+})
+
 // ── album ────────────────────────────────────────────────────────────────
 
 test('albumSongs returns the album and its tracks', async () => {
