@@ -2047,6 +2047,7 @@ window.__ModuleLoader__.load({
         'settings.crossfadeAlbumHint': '关闭时，同一专辑的连续曲目保持原始的硬切衔接。',
         'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
         'fx.transition': '过渡',
+        'fx.advanced': '高级',
         'v2.listenTime': '累计播放时长',
         'v2.totalPlays': '总播放次数',
         'v2.trackedTracks': '有记录曲目',
@@ -2222,6 +2223,7 @@ window.__ModuleLoader__.load({
         'settings.crossfadeAlbumHint': 'When off, consecutive tracks of one album keep the hard cut they were authored with.',
         'settings.crossfadeRuntimeHint': 'Needs Web Audio; skipped when the browser or the source cannot route through it.',
         'fx.transition': 'Transition',
+        'fx.advanced': 'Advanced',
         'v2.listenTime': 'Listening time',
         'v2.totalPlays': 'Total plays',
         'v2.trackedTracks': 'Tracks tracked',
@@ -8079,6 +8081,9 @@ window.__ModuleLoader__.load({
       '.mp-xf-chip:hover{background:rgba(255,255,255,.08);color:#fff}',
       '.mp-xf-chip.is-on{border-color:rgba(120,160,255,.65);background:rgba(90,130,255,.18);color:#fff}',
       '.mp-xf-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;font-size:12px;color:rgba(255,255,255,.75)}',
+      '.mp-xf-advanced{align-self:flex-start;margin-top:12px;padding:0;border:0;background:transparent;color:rgba(255,255,255,.45);font:inherit;font-size:11px;cursor:pointer}',
+      '.mp-xf-advanced:hover{color:rgba(255,255,255,.75)}',
+      '.mp-xf-advanced span{margin-left:3px}',
       '.mp-xf-hint{margin-top:auto;padding-top:12px;font-size:11px;line-height:16px;color:rgba(255,255,255,.4)}',
       '.mp-fx-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:rgba(255,255,255,.75)}',
       '.mp-fx-value{font-size:11px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}',
@@ -9694,10 +9699,15 @@ window.__ModuleLoader__.load({
     ]
 
     /** Crossfade controls: the same prefs the settings sheet edits. */
-    function CrossfadePanel() {
+    function CrossfadePanel(props) {
       var prefs = usePrefs()
       var seconds = crossfadeFadeSeconds(prefs)
       var enabled = seconds > 0
+      // The duration is a taste choice, not the feature itself: keep the switch as
+      // the primary control and hide the length behind "advanced".
+      var advancedPair = useState(props.advanced === true)
+      var advanced = advancedPair[0]
+      var setAdvanced = advancedPair[1]
 
       function setSeconds(value) {
         setPrefs({ crossfadeSeconds: value })
@@ -9714,12 +9724,41 @@ window.__ModuleLoader__.load({
             value: enabled,
             label: t('settings.crossfade'),
             onChange: function (value) {
-              setSeconds(value ? 5 : 0)
+              // A sensible default so the switch alone is enough to use it.
+              setSeconds(value ? seconds || 5 : 0)
             },
           }),
         ),
         h('p', { className: 'mp-xf-desc' }, t('settings.crossfadeHint')),
         enabled
+          ? h(
+              'div',
+              { className: 'mp-xf-row' },
+              h('span', null, t('settings.crossfadeAlbum')),
+              h(Switch, {
+                value: prefs.crossfadeAlbums === true,
+                onChange: function (value) {
+                  setPrefs({ crossfadeAlbums: value })
+                },
+              }),
+            )
+          : null,
+        enabled
+          ? h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-xf-advanced',
+                'aria-expanded': advanced,
+                onClick: function () {
+                  setAdvanced(!advanced)
+                },
+              },
+              t('fx.advanced'),
+              h('span', null, advanced ? '▾' : '▸'),
+            )
+          : null,
+        enabled && advanced
           ? h(
               'div',
               { className: 'mp-xf-chips' },
@@ -9738,19 +9777,6 @@ window.__ModuleLoader__.load({
                   },
                   t('settings.crossfadeSeconds', { seconds: option }),
                 )
-              }),
-            )
-          : null,
-        enabled
-          ? h(
-              'div',
-              { className: 'mp-xf-row' },
-              h('span', null, t('settings.crossfadeAlbum')),
-              h(Switch, {
-                value: prefs.crossfadeAlbums === true,
-                onChange: function (value) {
-                  setPrefs({ crossfadeAlbums: value })
-                },
               }),
             )
           : null,
@@ -19298,6 +19324,7 @@ window.__ModuleLoader__.load({
           // Equalizer: the panel renders in tests, and the curve maths is pure.
           AudioEffectsPanel: AudioEffectsPanel,
           EqPanel: EqPanel,
+          CrossfadePanel: CrossfadePanel,
           normalizeEqPrefs: normalizeEqPrefs,
           eqCurveSamples: eqCurveSamples,
           EQ_PRESETS: EQ_PRESETS,

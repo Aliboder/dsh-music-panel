@@ -144,10 +144,15 @@ var AUDIO_FX_VIEWS = [
 ]
 
 /** Crossfade controls: the same prefs the settings sheet edits. */
-function CrossfadePanel() {
+function CrossfadePanel(props) {
   var prefs = usePrefs()
   var seconds = crossfadeFadeSeconds(prefs)
   var enabled = seconds > 0
+  // The duration is a taste choice, not the feature itself: keep the switch as
+  // the primary control and hide the length behind "advanced".
+  var advancedPair = useState(props.advanced === true)
+  var advanced = advancedPair[0]
+  var setAdvanced = advancedPair[1]
 
   function setSeconds(value) {
     setPrefs({ crossfadeSeconds: value })
@@ -164,12 +169,41 @@ function CrossfadePanel() {
         value: enabled,
         label: t('settings.crossfade'),
         onChange: function (value) {
-          setSeconds(value ? 5 : 0)
+          // A sensible default so the switch alone is enough to use it.
+          setSeconds(value ? seconds || 5 : 0)
         },
       }),
     ),
     h('p', { className: 'mp-xf-desc' }, t('settings.crossfadeHint')),
     enabled
+      ? h(
+          'div',
+          { className: 'mp-xf-row' },
+          h('span', null, t('settings.crossfadeAlbum')),
+          h(Switch, {
+            value: prefs.crossfadeAlbums === true,
+            onChange: function (value) {
+              setPrefs({ crossfadeAlbums: value })
+            },
+          }),
+        )
+      : null,
+    enabled
+      ? h(
+          'button',
+          {
+            type: 'button',
+            className: 'mp-xf-advanced',
+            'aria-expanded': advanced,
+            onClick: function () {
+              setAdvanced(!advanced)
+            },
+          },
+          t('fx.advanced'),
+          h('span', null, advanced ? '▾' : '▸'),
+        )
+      : null,
+    enabled && advanced
       ? h(
           'div',
           { className: 'mp-xf-chips' },
@@ -188,19 +222,6 @@ function CrossfadePanel() {
               },
               t('settings.crossfadeSeconds', { seconds: option }),
             )
-          }),
-        )
-      : null,
-    enabled
-      ? h(
-          'div',
-          { className: 'mp-xf-row' },
-          h('span', null, t('settings.crossfadeAlbum')),
-          h(Switch, {
-            value: prefs.crossfadeAlbums === true,
-            onChange: function (value) {
-              setPrefs({ crossfadeAlbums: value })
-            },
           }),
         )
       : null,

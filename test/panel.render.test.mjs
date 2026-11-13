@@ -638,6 +638,7 @@ assert.ok(classesOf(transitionOff).has('mp-np-extra-pop'), 'the transition view 
 assert.ok(classesOf(transitionOff).has('mp-xf'), 'the crossfade controls render')
 assert.ok(textOf(transitionOff).includes('智能过渡'), 'the crossfade switch is labelled')
 assert.ok(textOf(transitionOff).includes('过渡'), 'the third segment label renders')
+assert.ok(!classesOf(transitionOff).has('mp-xf-chip'), 'duration chips stay hidden while off')
 
 const savedTransition = internals.prefsStore.get()
 internals.prefsStore.set(Object.assign({}, savedTransition, { crossfadeSeconds: 6, crossfadeAlbums: false }))
@@ -650,9 +651,14 @@ const transitionOn = expand(
     onView() {},
   }),
 )
-assert.ok(classesOf(transitionOn).has('mp-xf-chip'), 'duration chips render when enabled')
-assert.ok(textOf(transitionOn).includes('6 秒'), 'the active duration is listed')
 assert.ok(textOf(transitionOn).includes('同专辑也过渡'), 'the album switch renders when enabled')
+assert.ok(classesOf(transitionOn).has('mp-xf-advanced'), 'the duration sits behind an advanced toggle')
+assert.ok(!classesOf(transitionOn).has('mp-xf-chip'), 'the switch alone is the default surface')
+
+// Opening "advanced" reveals the duration chips for people who care.
+const advancedView = expand(React.createElement(internals.CrossfadePanel, { advanced: true }))
+assert.ok(classesOf(advancedView).has('mp-xf-chip'), 'duration chips render when expanded')
+assert.ok(textOf(advancedView).includes('6 秒'), 'the active duration is listed')
 internals.prefsStore.set(savedTransition)
 
 console.log('panel.render.test.mjs ok')
