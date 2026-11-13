@@ -48,3 +48,20 @@ function useStore(store) {
   )
   return state
 }
+
+/** In-view search: the query typed into the content header, filters that view. */
+var contentFilterStore = createStore({ query: '' })
+
+function useContentFilter() {
+  return useStore(contentFilterStore)
+}
+
+function setContentFilter(query) {
+  var value = typeof query === 'string' ? query : ''
+  if (contentFilterStore.get().query === value) return
+  contentFilterStore.set({ query: value })
+}
+
+function clearContentFilter() {
+  setContentFilter('')
+}

@@ -40,6 +40,7 @@ const FILES = [
   'src/36-guide-shots.js',
   'src/40-eq.js',
   'src/40-store.js',
+  'src/44-filter.js',
   'src/45-crossfade.js',
   'src/46-transition.js',
   'src/45-ui.js',

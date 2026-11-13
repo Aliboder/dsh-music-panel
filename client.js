@@ -2092,6 +2092,11 @@ window.__ModuleLoader__.load({
         'v2.relogin': '重新登录',
         'v2.logout': '退出登录',
         'page.audioEffects': '音频效果',
+        'page.searchInView': '搜索当前列表',
+        'page.searchClear': '清空',
+        'page.searchClose': '取消',
+        'page.filterEmpty': '没有匹配的歌曲',
+        'page.filterEmptyHint': '换个关键词试试，搜索只作用于当前列表',
         'eq.title': '均衡器',
         'eq.enable': '启用均衡器',
         'eq.tabPresets': '预设',
@@ -2262,6 +2267,11 @@ window.__ModuleLoader__.load({
         'v2.relogin': 'Sign in again',
         'v2.logout': 'Sign out',
         'page.audioEffects': 'Audio effects',
+        'page.searchInView': 'Search this list',
+        'page.searchClear': 'Clear',
+        'page.searchClose': 'Cancel',
+        'page.filterEmpty': 'No matching songs',
+        'page.filterEmptyHint': 'Try another keyword; search only applies to this list',
         'eq.title': 'Equalizer',
         'eq.enable': 'Enable equalizer',
         'eq.tabPresets': 'Presets',
@@ -4129,6 +4139,59 @@ window.__ModuleLoader__.load({
         [store],
       )
       return state
+    }
+
+    /** In-view search: the query typed into the content header, filters that view. */
+    var contentFilterStore = createStore({ query: '' })
+
+    function useContentFilter() {
+      return useStore(contentFilterStore)
+    }
+
+    function setContentFilter(query) {
+      var value = typeof query === 'string' ? query : ''
+      if (contentFilterStore.get().query === value) return
+      contentFilterStore.set({ query: value })
+    }
+
+    function clearContentFilter() {
+      setContentFilter('')
+    }
+
+    // ── src/44-filter.js
+    /**
+     * in-view search: match a track against what the user typed in the header.
+     *
+     * Kept pure and separate from the store so the matching rules (case, spacing,
+     * which fields) are testable without a browser.
+     */
+
+    function contentFilterText(value) {
+      return String(value === null || value === undefined ? '' : value)
+        .trim()
+        .toLowerCase()
+    }
+
+    /** Case-insensitive substring over title, artist and album. */
+    function matchesContentFilter(track, query) {
+      if (!track) return false
+      var needle = contentFilterText(query)
+      if (needle === '') return true
+      var haystack = [track.title, track.artist, track.album]
+        .map(function (value) {
+          return contentFilterText(value)
+        })
+        .join('\n')
+      return haystack.indexOf(needle) >= 0
+    }
+
+    /** Returns the original array when there is no query, so identity is stable. */
+    function filterTracksByQuery(tracks, query) {
+      if (!Array.isArray(tracks)) return []
+      if (contentFilterText(query) === '') return tracks
+      return tracks.filter(function (track) {
+        return matchesContentFilter(track, query)
+      })
     }
 
     // ── src/45-crossfade.js
@@ -8154,6 +8217,15 @@ window.__ModuleLoader__.load({
       '.mp-count{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding-bottom:3px;font-variant-numeric:tabular-nums;white-space:nowrap}',
       '.mp-sel-count{margin-left:2px;padding:2px 9px;border-radius:999px;font-size:12px;line-height:18px;color:var(--dsw-alias-state-business-primary,#7AAAFF);background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
       '.mp-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px;flex:none}',
+      '.mp-head-search{display:flex;align-items:center;gap:6px;height:30px;padding:0 6px 0 9px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.14));border-radius:8px;background:var(--dsw-alias-bg-layer-1,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-head-search-input{width:150px;min-width:0;border:0;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:12px;outline:none}',
+      '.mp-head-search-input::placeholder{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-head-search-input::-webkit-search-cancel-button{display:none}',
+      '.mp-head-search-clear,.mp-head-search-done{display:grid;place-items:center;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;padding:0;font:inherit}',
+      '.mp-head-search-clear{width:20px;height:20px;border-radius:8px}',
+      '.mp-head-search-clear:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-head-search-done{height:22px;padding:0 6px;border-radius:8px;font-size:11px}',
+      '.mp-head-search-done:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-toolbar{display:flex;align-items:center;gap:8px;padding:0 22px 10px;min-height:34px;flex-wrap:wrap;flex:none}',
       '.mp-toolbar-left{display:flex;align-items:center;gap:8px;margin-right:auto}',
       '.mp-toolbar-right{display:flex;align-items:center;gap:8px}',
@@ -9535,10 +9607,17 @@ window.__ModuleLoader__.load({
     var SCROLL_MEMORY = {}
 
     function TrackListBody(props) {
-      var key = props.resetKey || 'tracks'
+      var filterState = useContentFilter()
+      var query = filterState.query
+      var items = filterTracksByQuery(props.items || [], query)
+      var key = (props.resetKey || 'tracks') + (query !== '' ? '|filter:' + query : '')
+      var empty =
+        query !== '' && items.length === 0
+          ? h(Empty, { title: t('page.filterEmpty'), hint: t('page.filterEmptyHint'), icon: 'search' })
+          : props.empty
       return h(VirtualList, {
         className: 'mp-scroll',
-        items: props.items || [],
+        items: items,
         rowHeight: 72,
         resetKey: key,
         focusPath: props.focusPath || '',
@@ -9549,7 +9628,7 @@ window.__ModuleLoader__.load({
         itemKey: function (track, index) {
           return track.path + ':' + index
         },
-        empty: props.empty,
+        empty: empty,
         renderRow: function (track) {
           return h(TrackRow, {
             track: track,
@@ -18551,18 +18630,6 @@ window.__ModuleLoader__.load({
      * play-mode pills row used by both the local and online libraries.
      */
 
-    function focusGlobalSearch() {
-      try {
-        var input = document.querySelector('.mp-search-input')
-        if (input) {
-          input.focus()
-          if (typeof input.select === 'function') input.select()
-        }
-      } catch (error) {
-        // Search focus is best-effort only.
-      }
-    }
-
     function HeadMenu(props) {
       var openPair = useState(false)
       var open = openPair[0]
@@ -18726,6 +18793,44 @@ window.__ModuleLoader__.load({
     }
 
     function ContentHeader(props) {
+      var filter = useContentFilter()
+      var openPair = useState(false)
+      var open = openPair[0]
+      var setOpen = openPair[1]
+      var inputRef = useRef(null)
+
+      // A different list is a different search scope; never carry the query over.
+      useEffect(
+        function () {
+          clearContentFilter()
+          setOpen(false)
+        },
+        [props.title],
+      )
+
+      useEffect(
+        function () {
+          if (!open) return
+          var input = inputRef.current
+          if (input === null) return
+          input.focus()
+          if (typeof input.select === 'function') input.select()
+        },
+        [open],
+      )
+
+      function closeSearch() {
+        setOpen(false)
+        clearContentFilter()
+      }
+
+      function onSearchKey(event) {
+        if (event.key === 'Escape') {
+          event.preventDefault()
+          closeSearch()
+        }
+      }
+
       return h(
         'header',
         { className: 'mp-content-head' },
@@ -18737,14 +18842,68 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'mp-head-actions' },
-          h(SelectMenu, {
-            onAll: props.onAll,
-            onNone: props.onNone,
-            onRange: props.onRange,
-            onInvert: props.onInvert,
-          }),
-          h(SortMenu),
-          h(IconButton, { icon: 'search', size: 17, title: t('v2.searchFocus'), onClick: focusGlobalSearch }),
+          open
+            ? h(
+                'div',
+                { className: 'mp-head-search' },
+                icon('search', 14),
+                h('input', {
+                  ref: inputRef,
+                  type: 'search',
+                  className: 'mp-head-search-input',
+                  value: filter.query,
+                  placeholder: t('page.searchInView'),
+                  'aria-label': t('page.searchInView'),
+                  onChange: function (event) {
+                    setContentFilter(event.target.value)
+                  },
+                  onKeyDown: onSearchKey,
+                }),
+                filter.query !== ''
+                  ? h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mp-head-search-clear',
+                        title: t('page.searchClear'),
+                        'aria-label': t('page.searchClear'),
+                        onClick: function () {
+                          setContentFilter('')
+                          if (inputRef.current !== null) inputRef.current.focus()
+                        },
+                      },
+                      icon('x', 12),
+                    )
+                  : null,
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mp-head-search-done',
+                    title: t('page.searchClose'),
+                    'aria-label': t('page.searchClose'),
+                    onClick: closeSearch,
+                  },
+                  t('page.searchClose'),
+                ),
+              )
+            : h(SelectMenu, {
+                onAll: props.onAll,
+                onNone: props.onNone,
+                onRange: props.onRange,
+                onInvert: props.onInvert,
+              }),
+          open ? null : h(SortMenu),
+          open
+            ? null
+            : h(IconButton, {
+                icon: 'search',
+                size: 17,
+                title: t('page.searchInView'),
+                onClick: function () {
+                  setOpen(true)
+                },
+              }),
         ),
       )
     }

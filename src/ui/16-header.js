@@ -3,18 +3,6 @@
  * play-mode pills row used by both the local and online libraries.
  */
 
-function focusGlobalSearch() {
-  try {
-    var input = document.querySelector('.mp-search-input')
-    if (input) {
-      input.focus()
-      if (typeof input.select === 'function') input.select()
-    }
-  } catch (error) {
-    // Search focus is best-effort only.
-  }
-}
-
 function HeadMenu(props) {
   var openPair = useState(false)
   var open = openPair[0]
@@ -178,6 +166,44 @@ function SortMenu() {
 }
 
 function ContentHeader(props) {
+  var filter = useContentFilter()
+  var openPair = useState(false)
+  var open = openPair[0]
+  var setOpen = openPair[1]
+  var inputRef = useRef(null)
+
+  // A different list is a different search scope; never carry the query over.
+  useEffect(
+    function () {
+      clearContentFilter()
+      setOpen(false)
+    },
+    [props.title],
+  )
+
+  useEffect(
+    function () {
+      if (!open) return
+      var input = inputRef.current
+      if (input === null) return
+      input.focus()
+      if (typeof input.select === 'function') input.select()
+    },
+    [open],
+  )
+
+  function closeSearch() {
+    setOpen(false)
+    clearContentFilter()
+  }
+
+  function onSearchKey(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeSearch()
+    }
+  }
+
   return h(
     'header',
     { className: 'mp-content-head' },
@@ -189,14 +215,68 @@ function ContentHeader(props) {
     h(
       'div',
       { className: 'mp-head-actions' },
-      h(SelectMenu, {
-        onAll: props.onAll,
-        onNone: props.onNone,
-        onRange: props.onRange,
-        onInvert: props.onInvert,
-      }),
-      h(SortMenu),
-      h(IconButton, { icon: 'search', size: 17, title: t('v2.searchFocus'), onClick: focusGlobalSearch }),
+      open
+        ? h(
+            'div',
+            { className: 'mp-head-search' },
+            icon('search', 14),
+            h('input', {
+              ref: inputRef,
+              type: 'search',
+              className: 'mp-head-search-input',
+              value: filter.query,
+              placeholder: t('page.searchInView'),
+              'aria-label': t('page.searchInView'),
+              onChange: function (event) {
+                setContentFilter(event.target.value)
+              },
+              onKeyDown: onSearchKey,
+            }),
+            filter.query !== ''
+              ? h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mp-head-search-clear',
+                    title: t('page.searchClear'),
+                    'aria-label': t('page.searchClear'),
+                    onClick: function () {
+                      setContentFilter('')
+                      if (inputRef.current !== null) inputRef.current.focus()
+                    },
+                  },
+                  icon('x', 12),
+                )
+              : null,
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-head-search-done',
+                title: t('page.searchClose'),
+                'aria-label': t('page.searchClose'),
+                onClick: closeSearch,
+              },
+              t('page.searchClose'),
+            ),
+          )
+        : h(SelectMenu, {
+            onAll: props.onAll,
+            onNone: props.onNone,
+            onRange: props.onRange,
+            onInvert: props.onInvert,
+          }),
+      open ? null : h(SortMenu),
+      open
+        ? null
+        : h(IconButton, {
+            icon: 'search',
+            size: 17,
+            title: t('page.searchInView'),
+            onClick: function () {
+              setOpen(true)
+            },
+          }),
     ),
   )
 }

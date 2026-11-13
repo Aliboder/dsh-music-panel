@@ -222,10 +222,17 @@ function TrackRow(props) {
 var SCROLL_MEMORY = {}
 
 function TrackListBody(props) {
-  var key = props.resetKey || 'tracks'
+  var filterState = useContentFilter()
+  var query = filterState.query
+  var items = filterTracksByQuery(props.items || [], query)
+  var key = (props.resetKey || 'tracks') + (query !== '' ? '|filter:' + query : '')
+  var empty =
+    query !== '' && items.length === 0
+      ? h(Empty, { title: t('page.filterEmpty'), hint: t('page.filterEmptyHint'), icon: 'search' })
+      : props.empty
   return h(VirtualList, {
     className: 'mp-scroll',
-    items: props.items || [],
+    items: items,
     rowHeight: 72,
     resetKey: key,
     focusPath: props.focusPath || '',
@@ -236,7 +243,7 @@ function TrackListBody(props) {
     itemKey: function (track, index) {
       return track.path + ':' + index
     },
-    empty: props.empty,
+    empty: empty,
     renderRow: function (track) {
       return h(TrackRow, {
         track: track,
