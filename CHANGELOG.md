@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.31.0
 
 ### 在线音乐
 - 新增 Navidrome / Subsonic 在线源：服务器地址 + 用户名 / 密码登录，复用现有搜索、播放、歌词、封面、收藏与歌单链路
