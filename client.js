@@ -251,7 +251,6 @@ window.__ModuleLoader__.load({
         'online.navidromeHint': '填写自建 Navidrome / Subsonic 服务器的地址与账号。密码仅用于换取访问令牌，不会保存在本机。',
         'online.navidromeBadServer': '请填写有效的 http(s) 服务器地址',
         'online.navidromeOk': '已连接：{version}',
-        'online.allSongs': '全部歌曲',
         'online.allSongsEmpty': '曲库为空',
         'online.allSongsEmptyHint': '服务器上没有可播放的歌曲',
         'online.albumCount': '{n} 张专辑',
@@ -623,7 +622,6 @@ window.__ModuleLoader__.load({
         'online.navidromeHint': 'Enter the URL and account of your self-hosted Navidrome / Subsonic server. The password is only used to derive an access token and is never stored.',
         'online.navidromeBadServer': 'Enter a valid http(s) server URL',
         'online.navidromeOk': 'Connected: {version}',
-        'online.allSongs': 'All songs',
         'online.allSongsEmpty': 'Library is empty',
         'online.allSongsEmptyHint': 'The server has no playable songs',
         'online.albumCount': '{n} albums',
@@ -7081,10 +7079,7 @@ window.__ModuleLoader__.load({
       var sleepRemaining = useCountdown(prefs.sleepDeadline)
       var library = useStore(libraryStore)
       var online = useStore(onlineStore)
-      // `props.tab` lets a caller open straight on one tab (the Navidrome chip
-      // jumps to the credential form instead of the QR sheet).
-      var initialTab = props !== null && typeof props === 'object' && typeof props.tab === 'string' ? props.tab : 'appearance'
-      var tabPair = useState(initialTab)
+      var tabPair = useState('appearance')
       var tab = tabPair[0]
       var setTab = tabPair[1]
       var cachePair = useState(null)
