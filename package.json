@@ -1,6 +1,6 @@
 {
   "name": "dsh-music-panel",
-  "version": "0.32.0",
+  "version": "0.33.0",
   "type": "module",
   "description": "Local + online music player for DeepSeek Harness: multi-root library, NetEase / QQ / KuGou / KuGou Concept, synced playlists and likes, lyrics, cache, built-in EBU R128 volume leveling, tag/cover editing. · DSH 本地与在线音乐插件：多目录曲库、网易云 / QQ / 酷狗 / 酷狗概念版、云端歌单与喜欢、歌词翻译、音频缓存、内置音量均衡、标签/封面编辑。",
   "license": "MIT",
