@@ -52,6 +52,17 @@ for (const selector of ['.mp-card-art', '.mp-srow-cover', '.mp-row-cover', '.mp-
 assert.doesNotMatch(joined, /#5686fe/i, 'use --dsw-alias-state-business-primary instead of #5686fe')
 assert.doesNotMatch(joined, /static-deepseek-450/, 'use --dsw-alias-state-business-primary instead of the old token')
 
+// The audio-effects panel must keep one fixed footprint. Without a height the
+// 音量 view and the three equalizer tabs each render at their natural size and
+// the popover visibly jumps every time the user switches.
+const effectsRule = theme.match(/'\.mp-np-extra-pop\.is-effects\{([^}]*)\}'/)
+assert.ok(effectsRule, 'the audio-effects panel rule exists')
+assert.match(effectsRule[1], /(?<!max-)height:min\(72vh,400px\)/, 'the panel height is fixed')
+assert.match(effectsRule[1], /overflow:hidden/, 'the panel clips; each view scrolls its own body')
+for (const rule of ['\\.mp-fx-body\\{[^}]*overflow-y:auto', '\\.mp-eq-body\\{[^}]*overflow-y:auto']) {
+  assert.match(theme, new RegExp(rule), 'view bodies scroll inside the fixed panel')
+}
+
 // Required tokens/recipes must stay present.
 for (const token of [
   '--dsw-focus-ring-color',

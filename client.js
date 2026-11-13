@@ -7458,24 +7458,27 @@ window.__ModuleLoader__.load({
       // The now-playing surface is always dark (cover backdrop), so these follow
       // the neighbouring popover rules and use white alphas instead of --dsw-* text
       // tokens, which would resolve to dark ink in the light theme.
-      '.mp-np-extra-pop.is-effects{width:340px;max-width:calc(100vw - 24px);max-height:min(72vh,480px);overflow-y:auto;overscroll-behavior:contain;padding:12px;border-radius:12px}',
-      '.mp-fx-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}',
+      // Fixed footprint: switching 音量 / 均衡器 or the equalizer tabs must not
+      // resize the panel. Header stays put; each view scrolls inside its own body.
+      '.mp-np-extra-pop.is-effects{display:flex;flex-direction:column;width:340px;max-width:calc(100vw - 24px);height:min(72vh,400px);max-height:min(72vh,400px);padding:12px;border-radius:12px;overflow:hidden}',
+      '.mp-fx-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex:none}',
       '.mp-fx-title{font-size:12px;font-weight:650;color:#f4f4f5}',
       '.mp-fx-seg{display:flex;gap:2px;padding:2px;border-radius:8px;background:rgba(255,255,255,.06)}',
       '.mp-fx-seg-btn{padding:4px 10px;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.6);font:inherit;font-size:12px;cursor:pointer}',
       '.mp-fx-seg-btn:hover{color:#f4f4f5}',
       '.mp-fx-seg-btn.is-on{background:rgba(255,255,255,.14);color:#f4f4f5}',
-      '.mp-fx-body{display:flex;flex-direction:column}',
+      '.mp-fx-body{display:flex;flex:1;flex-direction:column;min-height:0;overflow-y:auto;overscroll-behavior:contain}',
+      '.mp-fx-hint{margin-top:auto;padding-top:12px;font-size:11px;line-height:16px;color:rgba(255,255,255,.4)}',
       '.mp-fx-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:rgba(255,255,255,.75)}',
       '.mp-fx-value{font-size:11px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}',
       '.mp-fx-range{width:100%;margin-top:8px}',
-      '.mp-eqp{display:flex;flex-direction:column;gap:8px}',
-      '.mp-eq-tabs-row{display:flex;align-items:center;gap:8px}',
+      '.mp-eqp{display:flex;flex:1;flex-direction:column;min-height:0;gap:8px}',
+      '.mp-eq-tabs-row{display:flex;align-items:center;gap:8px;flex:none}',
       '.mp-eq-tabs{display:flex;flex:1;min-width:0;gap:2px;padding:2px;border-radius:8px;background:rgba(255,255,255,.06)}',
       '.mp-eq-tab{flex:1;padding:5px 0;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.6);font:inherit;font-size:12px;cursor:pointer}',
       '.mp-eq-tab:hover{color:#f4f4f5}',
       '.mp-eq-tab.is-on{background:rgba(255,255,255,.13);color:#f4f4f5}',
-      '.mp-eq-body{min-height:0}',
+      '.mp-eq-body{display:flex;flex:1;flex-direction:column;min-height:0;overflow-y:auto;overscroll-behavior:contain}',
       '.mp-eq-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}',
       '.mp-eq-preset{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:7px 8px;border:1px solid transparent;border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.85);font:inherit;text-align:left;cursor:pointer}',
       '.mp-eq-preset:hover{background:rgba(255,255,255,.1)}',
@@ -9096,9 +9099,11 @@ window.__ModuleLoader__.load({
                   },
                 }),
               ),
+              // Pinned to the bottom of the fixed-height card so the panel reads as
+              // a filled card instead of controls floating in empty space.
               h(
                 'div',
-                { className: 'mp-np-extra-hint' },
+                { className: 'mp-fx-hint' },
                 track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
               ),
             )

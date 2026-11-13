@@ -172,9 +172,11 @@ function AudioEffectsPanel(props) {
               },
             }),
           ),
+          // Pinned to the bottom of the fixed-height card so the panel reads as
+          // a filled card instead of controls floating in empty space.
           h(
             'div',
-            { className: 'mp-np-extra-hint' },
+            { className: 'mp-fx-hint' },
             track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
           ),
         )
