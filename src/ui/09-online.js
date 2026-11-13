@@ -2,10 +2,33 @@
  * online views: recent history, my playlists, one playlist, cache and search.
  */
 
+/** Rows per page in the paged library view. */
+var SONG_PAGE_SIZE = 100
+
 function onlineEntriesForHistory(online, provider) {
   return (online.history || []).filter(function (entry) {
     return entry.provider === provider
   })
+}
+
+/**
+ * Page numbers to draw: the first, the last, and a window around the current
+ * page, with `null` marking a gap that the caller renders as an ellipsis.
+ */
+function pageWindow(current, total) {
+  if (total <= 7) {
+    var all = []
+    for (var i = 1; i <= total; i += 1) all.push(i)
+    return all
+  }
+  var out = [1]
+  var from = Math.max(2, current - 1)
+  var to = Math.min(total - 1, current + 1)
+  if (from > 2) out.push(null)
+  for (var p = from; p <= to; p += 1) out.push(p)
+  if (to < total - 1) out.push(null)
+  out.push(total)
+  return out
 }
 
 function OnlineContent(props) {
@@ -20,6 +43,45 @@ function OnlineContent(props) {
   var cachePhasePair = useState('idle')
   var cachePhase = cachePhasePair[0]
   var setCachePhase = cachePhasePair[1]
+  // Library-wide song list (Navidrome only; other providers return none).
+  var songsPair = useState(null)
+  var songsList = songsPair[0]
+  var setSongsList = songsPair[1]
+  var songsPhasePair = useState('idle')
+  var songsPhase = songsPhasePair[0]
+  var setSongsPhase = songsPhasePair[1]
+  // Native (opt-in) mode pages the whole library, so the view tracks how many
+  // rows the server has in total and whether another page exists.
+  var songsTotalPair = useState(0)
+  var songsTotal = songsTotalPair[0]
+  var setSongsTotal = songsTotalPair[1]
+  var songsNativePair = useState(false)
+  var songsNative = songsNativePair[0]
+  var setSongsNative = songsNativePair[1]
+  // Native mode is page-numbered, one page in memory at a time.
+  var songsPagePair = useState(1)
+  var songsPage = songsPagePair[0]
+  var setSongsPage = songsPagePair[1]
+  // Artist / album cards. These are lists only — a row opens the shared album
+  // view upstream already provides, so no detail state is kept here.
+  var browsePhasePair = useState('idle')
+  var browsePhase = browsePhasePair[0]
+  var setBrowsePhase = browsePhasePair[1]
+  var artistsPair = useState([])
+  var artistsList = artistsPair[0]
+  var setArtistsList = artistsPair[1]
+  var albumsPair = useState([])
+  var albumsList = albumsPair[0]
+  var setAlbumsList = albumsPair[1]
+  var artistDetailPair = useState(null)
+  var artistDetail = artistDetailPair[0]
+  var setArtistDetail = artistDetailPair[1]
+  var artistAlbumsPair = useState([])
+  var artistAlbumsList = artistAlbumsPair[0]
+  var setArtistAlbumsList = artistAlbumsPair[1]
+  var browseIdPair = useState('')
+  var browseId = browseIdPair[0]
+  var setBrowseId = browseIdPair[1]
   var prefs = usePrefs()
   var selection = useStore(selectionStore)
   var selecting = selection.active === true
@@ -37,7 +99,11 @@ function OnlineContent(props) {
 
   function reloginExpired() {
     void logoutProvider(provider).then(function () {
-      pushLayer('login', { provider: provider, mode: 'qq' })
+      // Navidrome signs in with a URL + credentials, not a QR code, so it must
+      // reopen the credential dialog; the QR sheet would show an empty code the
+      // user cannot scan and leave them stuck.
+      var layer = provider === 'navidrome' ? 'navidrome' : 'login'
+      pushLayer(layer, layer === 'navidrome' ? {} : { provider: provider, mode: 'qq' })
     })
   }
   var currentEntries = []
@@ -162,6 +228,126 @@ function OnlineContent(props) {
     [nav, provider],
   )
 
+  useEffect(
+    function () {
+      if (nav !== 'songs') {
+        setSongsPhase('idle')
+        return undefined
+      }
+      var cancelled = false
+      setSongsPhase('loading')
+      // Native mode orders on the server and returns one page at a time, so a
+      // page is addressed purely by its offset and never appended to.
+      var sort = String(prefs.sortBy || 'title')
+      var order = prefs.sortDir === 'desc' ? 'desc' : 'asc'
+      var offset = (songsPage - 1) * SONG_PAGE_SIZE
+      getJson(
+        API +
+          'online/songs?provider=' +
+          encodeURIComponent(provider) +
+          '&size=' +
+          String(SONG_PAGE_SIZE) +
+          '&offset=' +
+          String(offset) +
+          '&sort=' +
+          encodeURIComponent(sort) +
+          '&order=' +
+          encodeURIComponent(order),
+      )
+        .then(function (body) {
+          if (cancelled) return
+          setSongsList(Array.isArray(body.songs) ? body.songs : [])
+          setSongsNative(body.native === true)
+          setSongsTotal(Number(body.total) || 0)
+          setSongsPhase('ready')
+        })
+        .catch(function () {
+          if (cancelled) return
+          setSongsList([])
+          setSongsNative(false)
+          setSongsTotal(0)
+          setSongsPhase('error')
+        })
+      return function () {
+        cancelled = true
+      }
+    },
+    [nav, provider, prefs.sortBy, prefs.sortDir, songsPage],
+  )
+
+  // Any change of provider or ordering invalidates the page number.
+  useEffect(
+    function () {
+      setSongsPage(1)
+    },
+    [provider, prefs.sortBy, prefs.sortDir],
+  )
+
+  function goToSongsPage(page) {
+    var next = Math.max(1, Math.floor(Number(page) || 1))
+    if (next === songsPage) return
+    setSongsPage(next)
+  }
+
+  // Artist / album cards load their list once per view; the rows are static
+  // until the user re-enters.
+  useEffect(
+    function () {
+      if (nav !== 'artists' && nav !== 'albums' && nav !== 'artist') {
+        setBrowsePhase('idle')
+        return undefined
+      }
+      var cancelled = false
+      setBrowsePhase('loading')
+      var url = ''
+      if (nav === 'artists') url = API + 'online/artists?provider=' + encodeURIComponent(provider)
+      else if (nav === 'albums') url = API + 'online/albums?provider=' + encodeURIComponent(provider) + '&size=200'
+      else url = API + 'online/artist?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(browseId)
+      getJson(url)
+        .then(function (body) {
+          if (cancelled) return
+          if (nav === 'artists') setArtistsList(Array.isArray(body.artists) ? body.artists : [])
+          else if (nav === 'albums') setAlbumsList(Array.isArray(body.albums) ? body.albums : [])
+          else {
+            setArtistDetail(body.artist || null)
+            setArtistAlbumsList(Array.isArray(body.albums) ? body.albums : [])
+          }
+          setBrowsePhase('ready')
+        })
+        .catch(function () {
+          if (cancelled) return
+          if (nav === 'artists') setArtistsList([])
+          else if (nav === 'albums') setAlbumsList([])
+          else {
+            setArtistDetail(null)
+            setArtistAlbumsList([])
+          }
+          setBrowsePhase('error')
+        })
+      return function () {
+        cancelled = true
+      }
+    },
+    [nav, provider, browseId],
+  )
+
+  /** Open one album through the shared album view (upstream's own entry). */
+  function openAlbumCard(album) {
+    void openOnlineAlbum({
+      album: album.name || '',
+      albumId: album.id || '',
+      artist: album.artist || '',
+      onlineProvider: provider,
+      coverUrl: '',
+      coverArtId: album.coverArtId || '',
+    })
+  }
+
+  function openArtistCard(artist) {
+    setBrowseId(String(artist.id || ''))
+    uiStore.set({ nav: 'artist', filter: null, query: '' })
+  }
+
   var title = t('v2.recent')
   var count = 0
   var actions = null
@@ -253,8 +439,17 @@ function OnlineContent(props) {
     } else if (albumSongs.length === 0) {
       body = h(Empty, { title: t('online.emptyResults'), icon: 'disc' })
     } else {
+      // A self-hosted server is the one provider whose album endpoint reports a
+      // meaningful disc/track sequence (and never reorders on relevance), so its
+      // album keeps the server order. The four Chinese platforms behave exactly
+      // as before — they still apply the user's sort preference — because
+      // changing their output is not this branch's call to make.
+      var albumOrder =
+        online.albumProvider === 'navidrome'
+          ? albumSongs.map(onlineTrackOf)
+          : sortOnlineTracks(albumSongs)
       body = h(TrackListBody, {
-        items: (setPlayAll(albumSongs), (onlineSelectionList = sortOnlineTracks(albumSongs))),
+        items: (setPlayAll(albumSongs), (onlineSelectionList = albumOrder)),
         resetKey: resetKey,
         selectionMode: selecting,
         selectedSet: selectedSet,
@@ -397,6 +592,200 @@ function OnlineContent(props) {
           void openOnlineAlbum(track)
         },
       })
+    }
+  } else if (nav === 'songs') {
+    // Library-wide browse. Subsonic has no stable "all songs" index, so the
+    // host returns getRandomSongs: a sample of the library, not a fixed list.
+    title = t('v2.songs')
+    var allSongs = songsList || []
+    count = allSongs.length
+    resetKey = 'online-songs:' + provider
+    // Only blank the pane for the first page; "load more" keeps the rows on
+    // screen while the next page is in flight.
+    var firstPage = songsPhase === 'idle' || (songsPhase === 'loading' && allSongs.length === 0)
+    if (firstPage) {
+      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+    } else if (songsPhase === 'error' && allSongs.length === 0) {
+      body = h(Empty, { title: t('online.networkError'), icon: 'info' })
+    } else if (allSongs.length === 0) {
+      body = h(Empty, { title: t('online.allSongsEmpty'), hint: t('online.allSongsEmptyHint'), icon: 'note' })
+    } else {
+      // Native pages arrive already ordered by the server, so re-sorting them
+      // client-side would break the page boundaries; the random sample has no
+      // such constraint and keeps honouring the sort preference.
+      var songOrder = songsNative === true ? allSongs.map(onlineTrackOf) : sortOnlineTracks(allSongs)
+      body = h(TrackListBody, {
+        items: (setPlayAll(allSongs), (onlineSelectionList = songOrder)),
+        resetKey: resetKey,
+        selectionMode: selecting,
+        selectedSet: selectedSet,
+        onToggleSelect: toggleSelected,
+        onSelect: function (track, additive) {
+          selectTrackIn(onlineSelectionList, track, additive)
+        },
+        focusPath: props.locatePath || '',
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: likedSet,
+        cachedOf: function (track) {
+          return online.cache[track.onlineId] === true
+        },
+        onPlay: function (track) {
+          var index = allSongs.findIndex(function (item) {
+            return 'online:' + item.provider + ':' + item.id === track.path
+          })
+          playOnlineResults(allSongs, index < 0 ? 0 : index)
+        },
+        onMenu: function (track, event) {
+          props.onMenu(track, event, { playSelected: playSelectedOnline })
+        },
+        onToggleFavorite: toggleOnlineFavorite,
+        empty: empty,
+      })
+      // A real footer: the list keeps flex:1 and the pager sits below it, so
+      // it stays visible without scrolling to the end of 3000 rows.
+      var footer = null
+      if (songsNative === true) {
+        var pageCount = Math.max(1, Math.ceil(songsTotal / SONG_PAGE_SIZE))
+        var numbers = pageWindow(songsPage, pageCount)
+        var busy2 = songsPhase === 'loading'
+        footer = h(
+          'div',
+          { className: 'mp-pager', key: 'pager' },
+          h(
+            Button,
+            {
+              key: 'prev',
+              icon: 'chevronLeft',
+              disabled: busy2 || songsPage <= 1,
+              onClick: function () {
+                goToSongsPage(songsPage - 1)
+              },
+            },
+            '',
+          ),
+          numbers.map(function (number, index) {
+            if (number === null) {
+              return h('span', { key: 'gap' + index, className: 'mp-page-gap' }, '…')
+            }
+            return h(
+              'button',
+              {
+                key: 'p' + number,
+                type: 'button',
+                className: 'mp-page-num' + (number === songsPage ? ' is-on' : ''),
+                disabled: busy2,
+                onClick: function () {
+                  goToSongsPage(number)
+                },
+              },
+              String(number),
+            )
+          }),
+          h(
+            Button,
+            {
+              key: 'next',
+              icon: 'chevronRight',
+              disabled: busy2 || songsPage >= pageCount,
+              onClick: function () {
+                goToSongsPage(songsPage + 1)
+              },
+            },
+            '',
+          ),
+          h(
+            'span',
+            { className: 'mp-loaded-of' },
+            t('online.pageOf', { page: songsPage, pages: pageCount, total: songsTotal }),
+          ),
+        )
+      } else if (provider === 'navidrome') {
+        // Explain why there is no pager instead of leaving a silent cap.
+        footer = h(
+          'div',
+          { className: 'mp-pager is-hint', key: 'pager' },
+          h('span', { className: 'mp-loaded-of' }, t('online.randomSample', { n: allSongs.length })),
+          h(
+            Button,
+            {
+              icon: 'settings',
+              onClick: function () {
+                pushLayer('navidrome')
+              },
+            },
+            t('online.enableFullLibrary'),
+          ),
+        )
+      }
+      if (footer !== null) {
+        body = h('div', { className: 'mp-songs-pane', key: 'songs-pane' }, body, footer)
+      }
+    }
+  } else if (nav === 'artists' || nav === 'albums' || nav === 'artist') {
+    // Card grids. Every row opens the shared album view, so these are purely
+    // navigation surfaces over the provider's own catalogue.
+    var isArtistList = nav === 'artists'
+    var isAlbumList = nav === 'albums'
+    var cards = isArtistList ? artistsList : isAlbumList ? albumsList : artistAlbumsList
+    title = isArtistList
+      ? t('v2.artists')
+      : isAlbumList
+        ? t('v2.albums')
+        : (artistDetail && artistDetail.name) || t('v2.artists')
+    count = cards.length
+    resetKey = 'online-' + nav + ':' + provider + (nav === 'artist' ? ':' + browseId : '')
+    if (browsePhase === 'loading' || browsePhase === 'idle') {
+      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
+    } else if (browsePhase === 'error') {
+      body = h(Empty, { title: t('online.networkError'), icon: 'info' })
+    } else if (cards.length === 0) {
+      body = h(Empty, { title: t('page.noResults'), icon: isArtistList ? 'user' : 'disc' })
+    } else {
+      var openCard = isArtistList
+        ? openArtistCard
+        : function (card) {
+            openAlbumCard(card)
+          }
+      body = h(
+        ScrollBox,
+        { resetKey: resetKey },
+        h(
+          'div',
+          { className: 'mp-card-grid' },
+          cards.map(function (card) {
+            var cover = subsonicCoverUrl(card.coverArtId)
+            return h(
+              'button',
+              {
+                key: card.id,
+                type: 'button',
+                className: 'mp-card' + (isArtistList ? ' is-round' : ''),
+                onClick: function () {
+                  openCard(card)
+                },
+              },
+              h(
+                'div',
+                { className: 'mp-card-art' },
+                cover === ''
+                  ? h('span', { className: 'mp-card-art-fallback' }, icon(isArtistList ? 'user' : 'disc', 22))
+                  : h(Cover, { src: cover, iconSize: 22 }),
+              ),
+              h('div', { className: 'mp-card-title', title: card.name }, card.name || t('page.unknownAlbum')),
+              h(
+                'div',
+                { className: 'mp-card-sub' },
+                isArtistList
+                  ? t('online.albumCount', { n: card.albumCount })
+                  : isAlbumList
+                    ? (card.artist || '') + (card.songCount > 0 ? ' · ' + t('page.trackCountUnit', { n: card.songCount }) : '')
+                    : t('page.trackCountUnit', { n: card.songCount }),
+              ),
+            )
+          }),
+        ),
+      )
     }
   } else if (nav === 'cache') {
     title = t('v2.cache')

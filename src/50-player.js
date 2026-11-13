@@ -218,6 +218,9 @@ function createPlayer() {
       durationSec: Number(track.durationSec) || 0,
       coverUrl: track.coverUrl || '',
       hasCover: track.hasCover === true,
+      // Self-hosted artwork is addressed by id; persisting it keeps the
+      // restored queue's covers intact.
+      coverArtId: track.coverArtId || '',
       onlineProvider: track.onlineProvider || '',
       onlineId: track.onlineId || '',
       qualityHint: track.qualityHint || '',
@@ -298,6 +301,7 @@ function createPlayer() {
         durationSec: Number(entry.durationSec) || 0,
         hasCover: entry.hasCover === true,
         coverUrl: entry.coverUrl || '',
+        coverArtId: entry.coverArtId || '',
         onlineUrl: onlineStreamUrl(entry.onlineProvider, entry.onlineId),
         onlineProvider: entry.onlineProvider,
         onlineId: entry.onlineId,

@@ -110,6 +110,7 @@ function TopBar(props) {
         ['qq', t('online.providerQq')],
         ['kugou', t('online.providerKugou')],
         ['kugouLite', t('online.providerKugouLite')],
+        ['navidrome', t('online.providerNavidrome')],
       ].map(function (entry) {
         return h(
           'button',
@@ -180,10 +181,16 @@ function TopBar(props) {
                   role: 'button',
                   tabIndex: 0,
                   onClick: function () {
+                    // Navidrome has no QR flow: open the credential dialog
+                    // directly instead of the shared sign-in sheet.
+                    if (ui.source === 'navidrome') {
+                      pushLayer('navidrome')
+                      return
+                    }
                     pushLayer('login', { provider: ui.source, mode: 'qq' })
                   },
                 },
-                t('online.login'),
+                ui.source === 'navidrome' ? t('online.navidromeConnect') : t('online.login'),
               ),
         )
       : null,
@@ -254,10 +261,9 @@ function applyControlAction(action) {
   if (action.action !== 'play') return
   var query = String(action.query || '').trim()
   if (query === '') return
-  var source =
-    action.source === 'netease' || action.source === 'qq' || action.source === 'kugou' || action.source === 'kugouLite'
-      ? action.source
-      : 'local'
+  // Must list every provider the tool advertises, or a request for that source
+  // silently degrades to a local library search (wrong track, or none at all).
+  var source = isOnlineSource(action.source) ? action.source : 'local'
   if (source === 'local') {
     var tracks = libraryStore.get().tracks
     var needle = query.toLowerCase()
@@ -298,6 +304,7 @@ function OverlayRoot() {
     if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
     if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
     if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
+    if (layer.kind === 'navidrome') return h(NavidromeDialog, { key: 'navidrome', layer: layer })
     if (layer.kind === 'settings') {
       return h(SettingsSheet, {
         key: 'settings',

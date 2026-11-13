@@ -8,8 +8,15 @@
 var UI_KEY = 'music.ui.v2'
 var LEGACY_UI_KEYS = ['mu.source', 'mu.view']
 
+/** Every selectable playback source, in tab order. */
+var UI_SOURCES = ['local', 'netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
+
+// Derived from UI_SOURCES so the list only exists once: a second hardcoded copy
+// is exactly how `music_control`'s source whitelist drifted and started
+// treating navidrome as a local search.
 function isOnlineSource(source) {
-  return source === 'netease' || source === 'qq' || source === 'kugou' || source === 'kugouLite'
+  if (source === 'local') return false
+  return UI_SOURCES.indexOf(String(source || '')) >= 0
 }
 
 function sourceLabelOf(source) {
@@ -17,6 +24,7 @@ function sourceLabelOf(source) {
   if (source === 'qq') return t('online.providerQq')
   if (source === 'kugou') return t('online.providerKugou')
   if (source === 'kugouLite') return t('online.providerKugouLite')
+  if (source === 'navidrome') return t('online.providerNavidrome')
   return t('page.tabLocal')
 }
 
@@ -35,7 +43,7 @@ function readUiState() {
     // Migrate the 0.11 keys once so the panel opens where it was left.
     var legacySource = rawStorageGet(LEGACY_UI_KEYS[0], '')
     var legacyView = rawStorageGet(LEGACY_UI_KEYS[1], '')
-    var source = ['local', 'netease', 'qq', 'kugou', 'kugouLite'].indexOf(legacySource) >= 0 ? legacySource : 'local'
+    var source = UI_SOURCES.indexOf(legacySource) >= 0 ? legacySource : 'local'
     var nav = 'songs'
     if (source !== 'local') nav = 'recent'
     else if (['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'stats'].indexOf(legacyView) >= 0) {
@@ -43,11 +51,16 @@ function readUiState() {
     }
     return { source: source, nav: nav, playlistId: '' }
   }
-  var source = ['local', 'netease', 'qq', 'kugou', 'kugouLite'].indexOf(saved.source) >= 0 ? saved.source : 'local'
+  var source = UI_SOURCES.indexOf(saved.source) >= 0 ? saved.source : 'local'
   var nav = typeof saved.nav === 'string' && saved.nav !== '' ? saved.nav : 'songs'
   var playlistId = typeof saved.playlistId === 'string' ? saved.playlistId : ''
   if (nav === 'playlists') nav = source === 'local' ? 'songs' : 'recent'
   if (nav === 'playlist' && (source !== 'local' || playlistId === '')) nav = source === 'local' ? 'songs' : 'recent'
+  // `artist` is this branch's own view: it needs a provider artist id that only
+  // lives in memory, so a reload cannot restore it and would query with an empty
+  // id. Fall back to the artist list it was opened from. The album view is left
+  // to upstream's handling — reloading there behaves as it did before.
+  if (nav === 'artist') nav = source === 'local' ? 'songs' : 'artists'
   return { source: source, nav: nav, playlistId: playlistId }
 }
 
@@ -115,13 +128,25 @@ function navGroupsFor(source, favoritesCount) {
     var online = onlineStore.get()
     var playlists = sortOnlinePlaylists(online.playlists || [])
     var signedIn = (online.providers[source] || {}).loggedIn === true
+    // Navidrome can enumerate a whole library, so it gets the same browse shape
+    // as the local library — songs, artists, albums. Artist and album rows open
+    // the shared album view, so these are navigation surfaces only. The Chinese
+    // platforms are search-only and get none of them.
+    var browse =
+      source === 'navidrome'
+        ? [
+            { key: 'songs', label: t('v2.songs'), icon: 'note', count: null },
+            { key: 'artists', label: t('v2.artists'), icon: 'user', count: null },
+            { key: 'albums', label: t('v2.albums'), icon: 'disc', count: null },
+          ]
+        : []
     var groups = [
       {
         label: t('v2.sectionOnline'),
-        items: [
+        items: browse.concat([
           { key: 'recent', label: t('v2.recent'), icon: 'clock', count: null },
           { key: 'cache', label: t('v2.cache'), icon: 'download', count: null },
-        ],
+        ]),
       },
     ]
     if (signedIn) {
@@ -247,7 +272,9 @@ function setSource(source) {
   selectionStore.set({ active: false, paths: [] })
   uiStore.set({
     source: source,
-    nav: isOnlineSource(source) ? 'recent' : 'songs',
+    // Navidrome opens on the library list; the Chinese platforms are
+    // search-driven and have nothing to show until the user types.
+    nav: !isOnlineSource(source) ? 'songs' : source === 'navidrome' ? 'songs' : 'recent',
     filter: null,
     query: '',
     playlistId: '',

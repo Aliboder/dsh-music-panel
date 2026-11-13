@@ -407,6 +407,9 @@ function rememberOnline(track) {
     albumId: track.albumId || '',
     durationSec: track.durationSec || 0,
     coverUrl: track.coverUrl || '',
+    // Without this the recent list loses artwork for self-hosted tracks once
+    // the entry round-trips through storage.
+    coverArtId: track.coverArtId || '',
     qualityHint: track.qualityHint || '',
     playedAt: Date.now(),
   }
@@ -507,5 +510,82 @@ async function logoutProvider(provider) {
     showToast(t('online.logoutDone'))
   } catch (error) {
     showToast(errorText(error))
+  }
+}
+
+/**
+ * Navidrome credentials form state.
+ *
+ * The password never leaves this component except in the one POST that trades
+ * it for a salted token; the Host stores only salt + token.
+ */
+function useNavidromeForm() {
+  var serverPair = useState('')
+  var userPair = useState('')
+  var passPair = useState('')
+  var phasePair = useState('idle') // idle | loading
+  var errorPair = useState('')
+  var noticePair = useState('')
+
+  var setServer = serverPair[1]
+  var setUsername = userPair[1]
+  var setPassword = passPair[1]
+  var setPhase = phasePair[1]
+  var setError = errorPair[1]
+  var setNotice = noticePair[1]
+
+  function reset() {
+    setServer('')
+    setUsername('')
+    setPassword('')
+    setPhase('idle')
+    setError('')
+    setNotice('')
+  }
+
+  async function connect() {
+    var server = String(serverPair[0] || '').trim()
+    var username = String(userPair[0] || '').trim()
+    var password = String(passPair[0] || '')
+    setError('')
+    setNotice('')
+    if (!/^https?:\/\//i.test(server)) {
+      setError(t('online.navidromeBadServer'))
+      return
+    }
+    if (username === '' || password === '') {
+      setError(t('online.accountHint'))
+      return
+    }
+    setPhase('loading')
+    try {
+      var result = await postJson(API + 'online/navidrome/login', {
+        server: server,
+        username: username,
+        password: password,
+      })
+      setPassword('')
+      setPhase('idle')
+      setNotice(t('online.navidromeOk', { version: (result && result.serverVersion) || 'ok' }))
+      await loadProviders()
+      showToast(t('online.loginSuccess'))
+    } catch (error) {
+      setPhase('idle')
+      setError(errorText(error))
+    }
+  }
+
+  return {
+    server: serverPair[0],
+    username: userPair[0],
+    password: passPair[0],
+    phase: phasePair[0],
+    error: errorPair[0],
+    notice: noticePair[0],
+    setServer: setServer,
+    setUsername: setUsername,
+    setPassword: setPassword,
+    connect: connect,
+    reset: reset,
   }
 }

@@ -95,9 +95,9 @@ export function apply(ctx, rawConfig) {
               },
               source: {
                 type: 'string',
-                enum: ['local', 'netease', 'qq', 'kugou', 'kugouLite'],
+                enum: ['local', 'netease', 'qq', 'kugou', 'kugouLite', 'navidrome'],
                 description:
-                  'Where to play from: local library (default), or the online providers NetEase / QQ Music / KuGou (free tracks work without signing in; sign in from the panel for higher quality).',
+                  'Where to play from: local library (default), the online providers NetEase / QQ Music / KuGou / KuGou Concept (free tracks work without signing in), or navidrome for a self-hosted Navidrome/Subsonic library (configure it in Settings → Online first).',
               },
             },
             required: ['action'],
@@ -134,7 +134,7 @@ export function apply(ctx, rawConfig) {
       systemPrompt.section({
         name: 'tool:music-online',
         order: 117,
-        text: '在线音乐：music_control 的 source 可设为 netease / qq / kugou / kugouLite（酷狗概念版），按歌名或歌手在线搜索并播放（未登录只播免费曲；用户可在「设置 → 在线」扫码登录以提升音质）。',
+        text: '在线音乐：music_control 的 source 可设为 netease / qq / kugou / kugouLite（酷狗概念版）/ navidrome（自建 Navidrome 或 Subsonic 服务器），按歌名或歌手在线搜索并播放（未登录只播免费曲；用户可在「设置 → 在线」扫码登录以提升音质，Navidrome 则在此填写服务器地址与账号）。',
       })
       return () => {}
     }, 'music-online-prompt')
