@@ -93,14 +93,16 @@ function NavidromeDialog() {
       title: t('online.navidromeTitle'),
       small: true,
       onClose: popLayer,
-      footer: [
+      footer: h(
+        'div',
+        { className: 'mp-navidrome-footer' },
         h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
         h(
           Button,
           { key: 'save', variant: 'primary', disabled: busy, onClick: save },
           busy ? t('online.navidromeConnecting') : t('online.navidromeSave'),
         ),
-      ],
+      ),
     },
     h(
       'div',
@@ -112,7 +114,7 @@ function NavidromeDialog() {
         placeholder: t('online.navidromeServerPlaceholder'),
         value: server,
         disabled: busy,
-        autofocus: true,
+        autoFocus: true,
         onKeyDown: onKeyDown,
         onChange: function (event) {
           setServer(event.target.value)

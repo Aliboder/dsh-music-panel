@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### 在线音乐
+- 新增 Navidrome / Subsonic 在线源：服务器地址 + 用户名 / 密码登录，复用现有搜索、播放、歌词、封面、收藏与歌单链路
+- 新增歌手 / 专辑卡片导航，专辑页复用现有共享专辑视图
+- Navidrome 可选完整曲库分页（需主动保存密码并启用原生 API）；未启用时回退随机采样
+- 封面代理只接收 id，由 Host 根据会话拼装服务器 URL
+- 酷狗扫码登录路由不再接受 Navidrome，Navidrome 使用独立凭证登录
+- 补充响应体大小上限与旧版 Subsonic `search3` 404 回退
+- README 补充 Navidrome 隐私、完整曲库和 Subsonic 兼容说明
+
 ## 0.30.0
 
 ### 修复

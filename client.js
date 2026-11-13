@@ -5902,6 +5902,8 @@ window.__ModuleLoader__.load({
       '.mp-online-error{color:var(--dsw-alias-state-error-text,#f87171);font-size:12px;line-height:1.4}',
       '.mp-online-ok{color:var(--dsw-alias-state-success-text,#4ade80);font-size:12px;line-height:1.4}',
       '.mp-navidrome-form{display:flex;flex-direction:column;gap:6px;min-width:min(380px,70vw)}',
+      '.mp-navidrome-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;width:100%;min-width:0}',
+      '.mp-navidrome-footer .mp-btn{flex:none;min-width:76px;justify-content:center}',
       '.mp-navidrome-form .mp-kit-input{flex:0 0 auto;width:100%;height:32px}',
       '.mp-navidrome-label{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:4px}',
       '.mp-navidrome-hint{margin:4px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#71717a)}',
@@ -15367,14 +15369,16 @@ window.__ModuleLoader__.load({
           title: t('online.navidromeTitle'),
           small: true,
           onClose: popLayer,
-          footer: [
+          footer: h(
+            'div',
+            { className: 'mp-navidrome-footer' },
             h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
             h(
               Button,
               { key: 'save', variant: 'primary', disabled: busy, onClick: save },
               busy ? t('online.navidromeConnecting') : t('online.navidromeSave'),
             ),
-          ],
+          ),
         },
         h(
           'div',
@@ -15386,7 +15390,7 @@ window.__ModuleLoader__.load({
             placeholder: t('online.navidromeServerPlaceholder'),
             value: server,
             disabled: busy,
-            autofocus: true,
+            autoFocus: true,
             onKeyDown: onKeyDown,
             onChange: function (event) {
               setServer(event.target.value)
