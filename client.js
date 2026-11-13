@@ -213,7 +213,7 @@ window.__ModuleLoader__.load({
         'page.fullscreen': '全屏',
         'page.exitFullscreen': '退出全屏',
         'page.fullscreenFailed': '当前环境无法进入全屏',
-        'page.noLyrics': '暂无歌词。把同名 .lrc 文件放到歌曲旁边即可显示。',
+        'page.noLyrics': '暂无歌词',
         'page.translation': '显示 / 隐藏翻译',
         'page.lyricOffset': '歌词偏移',
         'page.writeLyrics': '写回文件',
@@ -647,7 +647,7 @@ window.__ModuleLoader__.load({
         'page.fullscreen': 'Fullscreen',
         'page.exitFullscreen': 'Exit fullscreen',
         'page.fullscreenFailed': 'Fullscreen is not available here',
-        'page.noLyrics': 'No lyrics yet. Drop a matching .lrc file next to the track.',
+        'page.noLyrics': 'No lyrics',
         'page.translation': 'Show / hide translation',
         'page.lyricOffset': 'Lyric offset',
         'page.writeLyrics': 'Write to file',
@@ -2107,6 +2107,12 @@ window.__ModuleLoader__.load({
       ],
     }
     ICONS.chevronRight = { parts: [['path', { d: 'M9 6l6 6-6 6' }]] }
+    ICONS.lyrics = {
+      parts: [
+        ['path', { d: 'M4 5h16v12H9l-5 4V5z' }],
+        ['path', { d: 'M8 9h8M8 13h5' }],
+      ],
+    }
 
     ICONS.playlist = {
       parts: [
@@ -5791,7 +5797,10 @@ window.__ModuleLoader__.load({
       '.mp-np-lyrics.is-static{overflow-y:auto;-webkit-mask-image:none;mask-image:none}',
       '.mp-np-lyrics.is-static .mp-np-line{opacity:.75;cursor:default}',
       '.mp-np-lyrics-inner{padding:0;will-change:transform;backface-visibility:hidden}',
-      '.mp-np-lyrics-empty{display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.5);font-size:13px;text-align:center;padding:0 24px;line-height:1.7}',
+      '.mp-np-lyrics-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;color:rgba(255,255,255,.9);text-align:center}',
+      '.mp-np-lyrics-empty-icon{width:72px;height:72px;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:rgba(255,255,255,.88);box-shadow:0 8px 24px rgba(0,0,0,.14)}',
+      '.mp-np-lyrics-empty-icon svg{width:34px;height:34px}',
+      '.mp-np-lyrics-empty-text{font-size:14px;font-weight:500;line-height:1.6;color:rgba(255,255,255,.88);text-shadow:0 1px 8px rgba(0,0,0,.3)}',
       '.mp-np-line{padding:var(--mp-line-gap,6px) 0;border-radius:0;color:rgba(255,255,255,.6);cursor:pointer;transition:color .25s ease,opacity .3s ease,filter .25s ease;text-align:left;opacity:1;transform:none}',
       '.mp-np-line:hover{color:rgba(255,255,255,.86)}',
       '.mp-np-line.is-past{opacity:.46}',
@@ -9178,7 +9187,16 @@ window.__ModuleLoader__.load({
               'div',
               { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: boxRef },
               lyrics.length === 0
-                ? h('div', { className: 'mp-np-lyrics-empty' }, lyricError !== '' ? lyricError : t('page.noLyrics'))
+                ? h(
+                    'div',
+                    { className: 'mp-np-lyrics-empty' },
+                    h('div', { className: 'mp-np-lyrics-empty-icon' }, icon('lyrics', 34)),
+                    h(
+                      'div',
+                      { className: 'mp-np-lyrics-empty-text' },
+                      lyricError !== '' ? lyricError : t('page.noLyrics'),
+                    ),
+                  )
                 : h(
                     'div',
                     { className: 'mp-np-lyrics-inner', ref: innerRef },

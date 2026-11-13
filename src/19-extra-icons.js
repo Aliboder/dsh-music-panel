@@ -27,6 +27,12 @@ ICONS.logout = {
   ],
 }
 ICONS.chevronRight = { parts: [['path', { d: 'M9 6l6 6-6 6' }]] }
+ICONS.lyrics = {
+  parts: [
+    ['path', { d: 'M4 5h16v12H9l-5 4V5z' }],
+    ['path', { d: 'M8 9h8M8 13h5' }],
+  ],
+}
 
 ICONS.playlist = {
   parts: [

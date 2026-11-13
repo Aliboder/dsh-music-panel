@@ -2037,7 +2037,16 @@ function NowPlaying(props) {
           'div',
           { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: boxRef },
           lyrics.length === 0
-            ? h('div', { className: 'mp-np-lyrics-empty' }, lyricError !== '' ? lyricError : t('page.noLyrics'))
+            ? h(
+                'div',
+                { className: 'mp-np-lyrics-empty' },
+                h('div', { className: 'mp-np-lyrics-empty-icon' }, icon('lyrics', 34)),
+                h(
+                  'div',
+                  { className: 'mp-np-lyrics-empty-text' },
+                  lyricError !== '' ? lyricError : t('page.noLyrics'),
+                ),
+              )
             : h(
                 'div',
                 { className: 'mp-np-lyrics-inner', ref: innerRef },
