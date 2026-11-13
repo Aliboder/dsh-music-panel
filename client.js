@@ -30,937 +30,6 @@ window.__ModuleLoader__.load({
     var PANEL_ID = 'music'
     var PREFS_EVENT = 'dsh-music:prefs-changed'
 
-    // ── src/02-autoanimate.js
-    /**
-     * AutoAnimate 0.10.2 (MIT) — vendored for the zero-build client.
-     * https://github.com/formkit/auto-animate
-     * Copyright 2022 FormKit Inc. See THIRD_PARTY_NOTICES.md.
-     *
-     * The upstream React adapter is included below as `useAutoAnimate`; only the
-     * dependency-free FLIP engine and the official hook logic are kept.
-     */
-    var autoAnimate = (function () {
-        /**
-         * A set of all the parents currently being observe. This is the only non weak
-         * registry.
-         */
-        const parents = new Set();
-        /**
-         * Element coordinates that is constantly kept up to date.
-         */
-        const coords = new WeakMap();
-        /**
-         * Siblings of elements that have been removed from the dom.
-         */
-        const siblings = new WeakMap();
-        /**
-         * Animations that are currently running.
-         */
-        const animations = new WeakMap();
-        /**
-         * A map of existing intersection observers used to track element movements.
-         */
-        const intersections = new WeakMap();
-        /**
-         * A map of existing mutation observers used to track element movements.
-         */
-        const mutationObservers = new WeakMap();
-        /**
-         * Intervals for automatically checking the position of elements occasionally.
-         */
-        const intervals = new WeakMap();
-        /**
-         * The configuration options for each group of elements.
-         */
-        const options = new WeakMap();
-        /**
-         * Debounce counters by id, used to debounce calls to update positions.
-         */
-        const debounces = new WeakMap();
-        /**
-         * All parents that are currently enabled are tracked here.
-         */
-        const enabled = new WeakSet();
-        /**
-         * The document used to calculate transitions.
-         */
-        let root;
-        /**
-         * The root’s XY scroll positions.
-         */
-        let scrollX = 0;
-        let scrollY = 0;
-        /**
-         * Used to sign an element as the target.
-         */
-        const TGT = "__aa_tgt";
-        /**
-         * Used to sign an element as being part of a removal.
-         */
-        const DEL = "__aa_del";
-        /**
-         * Used to sign an element as being "new". When an element is removed from the
-         * dom, but may cycle back in we can sign it with new to ensure the next time
-         * it is recognized we consider it new.
-         */
-        const NEW = "__aa_new";
-        /**
-         * Callback for handling all mutations.
-         * @param mutations - A mutation list
-         */
-        const handleMutations = (mutations) => {
-            const elements = getElements(mutations);
-            // If elements is "false" that means this mutation that should be ignored.
-            if (elements) {
-                elements.forEach((el) => animate(el));
-            }
-        };
-        /**
-         *
-         * @param entries - Elements that have been resized.
-         */
-        const handleResizes = (entries) => {
-            entries.forEach((entry) => {
-                if (entry.target === root)
-                    updateAllPos();
-                if (coords.has(entry.target))
-                    updatePos(entry.target);
-            });
-        };
-        /**
-         * Determine if an element is fully outside of the current viewport.
-         * @param el - Element to test
-         */
-        function isOffscreen(el) {
-            const rect = el.getBoundingClientRect();
-            const vw = (root === null || root === void 0 ? void 0 : root.clientWidth) || 0;
-            const vh = (root === null || root === void 0 ? void 0 : root.clientHeight) || 0;
-            return rect.bottom < 0 || rect.top > vh || rect.right < 0 || rect.left > vw;
-        }
-        /**
-         * Observe this elements position.
-         * @param el - The element to observe the position of.
-         */
-        function observePosition(el) {
-            const oldObserver = intersections.get(el);
-            oldObserver === null || oldObserver === void 0 ? void 0 : oldObserver.disconnect();
-            if (!el.isConnected) {
-                intersections.delete(el);
-                return;
-            }
-            let rect = coords.get(el);
-            let invocations = 0;
-            const buffer = 5;
-            if (!rect) {
-                rect = getCoords(el);
-                coords.set(el, rect);
-            }
-            const { offsetWidth, offsetHeight } = root;
-            const rootMargins = [
-                rect.top - buffer,
-                offsetWidth - (rect.left + buffer + rect.width),
-                offsetHeight - (rect.top + buffer + rect.height),
-                rect.left - buffer,
-            ];
-            const rootMargin = rootMargins
-                .map((px) => `${ -1 * Math.floor(px)}px`)
-                .join(" ");
-            const observer = new IntersectionObserver(() => {
-                ++invocations > 1 && updatePos(el);
-            }, {
-                root,
-                threshold: 1,
-                rootMargin,
-            });
-            observer.observe(el);
-            intersections.set(el, observer);
-        }
-        /**
-         * Update the exact position of a given element.
-         * @param el - An element to update the position of.
-         * @param debounce - Whether or not to debounce the update. After an animation is finished, it should update as soon as possible to prevent flickering on quick toggles.
-         */
-        function updatePos(el, debounce = true) {
-            clearTimeout(debounces.get(el));
-            const optionsOrPlugin = getOptions(el);
-            const delay = debounce
-                ? isPlugin(optionsOrPlugin)
-                    ? 500
-                    : optionsOrPlugin.duration
-                : 0;
-            debounces.set(el, setTimeout(async () => {
-                const currentAnimation = animations.get(el);
-                try {
-                    await (currentAnimation === null || currentAnimation === void 0 ? void 0 : currentAnimation.finished);
-                    coords.set(el, getCoords(el));
-                    observePosition(el);
-                }
-                catch {
-                    // ignore errors as the `.finished` promise is rejected when animations were cancelled
-                }
-            }, delay));
-        }
-        /**
-         * Updates all positions that are currently being tracked.
-         */
-        function updateAllPos() {
-            clearTimeout(debounces.get(root));
-            debounces.set(root, setTimeout(() => {
-                parents.forEach((parent) => forEach(parent, (el) => lowPriority(() => updatePos(el))));
-            }, 100));
-        }
-        /**
-         * Its possible for a quick scroll or other fast events to get past the
-         * intersection observer, so occasionally we need want "cold-poll" for the
-         * latests and greatest position. We try to do this in the most non-disruptive
-         * fashion possible. First we only do this ever couple seconds, staggard by a
-         * random offset.
-         * @param el - Element
-         */
-        function poll(el) {
-            setTimeout(() => {
-                intervals.set(el, setInterval(() => lowPriority(updatePos.bind(null, el)), 2000));
-            }, Math.round(2000 * Math.random()));
-        }
-        /**
-         * Perform some operation that is non critical at some point.
-         * @param callback
-         */
-        function lowPriority(callback) {
-            if (typeof requestIdleCallback === "function") {
-                requestIdleCallback(() => callback());
-            }
-            else {
-                requestAnimationFrame(() => callback());
-            }
-        }
-        /**
-         * A resize observer, responsible for recalculating elements on resize.
-         */
-        let resize;
-        /**
-         * Ensure the browser is supported.
-         */
-        const supportedBrowser = typeof window !== "undefined" && "ResizeObserver" in window;
-        /**
-         * If this is in a browser, initialize our Web APIs
-         */
-        if (supportedBrowser) {
-            root = document.documentElement;
-            new MutationObserver(handleMutations);
-            resize = new ResizeObserver(handleResizes);
-            window.addEventListener("scroll", () => {
-                scrollY = window.scrollY;
-                scrollX = window.scrollX;
-            });
-            resize.observe(root);
-            // A CSS transition/animation on an animated parent (or an ancestor) can move
-            // its children without any reflow or resize — e.g. a menu sliding in with
-            // `transform`. Re-measure once it ends, so the next change doesn't animate
-            // children from where they used to be (formkit/auto-animate#227). These
-            // events only fire for CSS transitions/animations, never for our own WAAPI
-            // animations.
-            document.addEventListener("transitionend", remeasureAfterMove, true);
-            document.addEventListener("animationend", remeasureAfterMove, true);
-        }
-        /**
-         * Transitions of these properties only repaint, so they can't move anything.
-         */
-        const paintOnly = /^(color|background|opacity|box-shadow|text-shadow|outline|filter|backdrop-filter|fill|stroke|border-color|caret-color|text-decoration|visibility)/;
-        /**
-         * Animated parents waiting to be re-measured after a CSS transition/animation.
-         */
-        const pendingRemeasure = new Set();
-        /**
-         * Queue a re-measure of every animated parent that is (or is inside) the
-         * element whose CSS transition or animation just ended. Re-measuring is
-         * coalesced into one pass per frame, so event storms (e.g. a dark-mode toggle
-         * with `* { transition: ... }`) stay cheap.
-         * @param e - The transitionend/animationend event.
-         */
-        function remeasureAfterMove(e) {
-            var _a, _b;
-            if (e.type === "transitionend" &&
-                paintOnly.test(e.propertyName))
-                return;
-            // composedPath() sees through shadow roots (e.target is retargeted).
-            const target = ((_b = (_a = e.composedPath) === null || _a === void 0 ? void 0 : _a.call(e)[0]) !== null && _b !== void 0 ? _b : e.target);
-            if (!(target instanceof Element))
-                return;
-            const wasEmpty = !pendingRemeasure.size;
-            parents.forEach((parent) => {
-                if (target === parent || target.contains(parent))
-                    pendingRemeasure.add(parent);
-            });
-            if (wasEmpty && pendingRemeasure.size) {
-                requestAnimationFrame(() => {
-                    const queued = [...pendingRemeasure];
-                    pendingRemeasure.clear();
-                    queued.forEach((parent) => {
-                        if (!parents.has(parent))
-                            return;
-                        forEach(parent, (el) => {
-                            if (coords.has(el))
-                                updatePos(el, false);
-                        });
-                    });
-                });
-            }
-        }
-        /**
-         * Retrieves all the elements that may have been affected by the last mutation
-         * including ones that have been removed and are no longer in the DOM.
-         * @param mutations - A mutation list.
-         * @returns
-         */
-        function getElements(mutations) {
-            const observedNodes = mutations.reduce((nodes, mutation) => {
-                return [
-                    ...nodes,
-                    ...Array.from(mutation.addedNodes),
-                    ...Array.from(mutation.removedNodes),
-                ];
-            }, []);
-            // Short circuit if _only_ comment nodes are observed
-            const onlyCommentNodesObserved = observedNodes.every((node) => node.nodeName === "#comment");
-            if (onlyCommentNodesObserved)
-                return false;
-            return mutations.reduce((elements, mutation) => {
-                // Short circuit if we find a purposefully deleted node.
-                if (elements === false)
-                    return false;
-                if (mutation.target instanceof Element) {
-                    target(mutation.target);
-                    if (!elements.has(mutation.target)) {
-                        elements.add(mutation.target);
-                        for (let i = 0; i < mutation.target.children.length; i++) {
-                            const child = mutation.target.children.item(i);
-                            if (!child)
-                                continue;
-                            if (DEL in child) {
-                                return false;
-                            }
-                            target(mutation.target, child);
-                            elements.add(child);
-                        }
-                    }
-                    if (mutation.removedNodes.length) {
-                        for (let i = 0; i < mutation.removedNodes.length; i++) {
-                            const child = mutation.removedNodes[i];
-                            if (DEL in child) {
-                                return false;
-                            }
-                            if (child instanceof Element) {
-                                elements.add(child);
-                                target(mutation.target, child);
-                                siblings.set(child, [
-                                    mutation.previousSibling,
-                                    mutation.nextSibling,
-                                ]);
-                            }
-                        }
-                    }
-                }
-                return elements;
-            }, new Set());
-        }
-        /**
-         * Assign the target to an element.
-         * @param el - The root element
-         * @param child
-         */
-        function target(el, child) {
-            if (!child && !(TGT in el))
-                Object.defineProperty(el, TGT, { value: el });
-            else if (child && !(TGT in child))
-                Object.defineProperty(child, TGT, { value: el });
-        }
-        /**
-         * Determines what kind of change took place on the given element and then
-         * performs the proper animation based on that.
-         * @param el - The specific element to animate.
-         */
-        function animate(el) {
-            var _a, _b;
-            const isMounted = el.isConnected;
-            const preExisting = coords.has(el);
-            if (isMounted && siblings.has(el))
-                siblings.delete(el);
-            if (((_a = animations.get(el)) === null || _a === void 0 ? void 0 : _a.playState) !== "finished") {
-                (_b = animations.get(el)) === null || _b === void 0 ? void 0 : _b.cancel();
-            }
-            if (NEW in el) {
-                add(el);
-            }
-            else if (preExisting && isMounted) {
-                remain(el);
-            }
-            else if (preExisting && !isMounted) {
-                remove(el);
-            }
-            else {
-                add(el);
-            }
-        }
-        /**
-         * Removes all non-digits from a string and casts to a number.
-         * @param str - A string containing a pixel value.
-         * @returns
-         */
-        function raw(str) {
-            return Number(str.replace(/[^0-9.\-]/g, ""));
-        }
-        /**
-         * Get the scroll offset of elements
-         * @param el - Element
-         * @returns
-         */
-        function getScrollOffset(el) {
-            let p = el.parentElement;
-            while (p) {
-                if (p.scrollLeft || p.scrollTop) {
-                    return { x: p.scrollLeft, y: p.scrollTop };
-                }
-                p = p.parentElement;
-            }
-            return { x: 0, y: 0 };
-        }
-        /**
-         * Get the coordinates of elements adjusted for scroll position.
-         * @param el - Element
-         * @returns
-         */
-        function getCoords(el) {
-            const rect = el.getBoundingClientRect();
-            const { x, y } = getScrollOffset(el);
-            return {
-                top: rect.top + y,
-                left: rect.left + x,
-                width: rect.width,
-                height: rect.height,
-            };
-        }
-        /**
-         * Returns the width/height that the element should be transitioned between.
-         * This takes into account box-sizing.
-         * @param el - Element being animated
-         * @param oldCoords - Old set of Coordinates coordinates
-         * @param newCoords - New set of Coordinates coordinates
-         * @returns
-         */
-        function getTransitionSizes(el, oldCoords, newCoords) {
-            let widthFrom = oldCoords.width;
-            let heightFrom = oldCoords.height;
-            let widthTo = newCoords.width;
-            let heightTo = newCoords.height;
-            const styles = getComputedStyle(el);
-            const sizing = styles.getPropertyValue("box-sizing");
-            if (sizing === "content-box") {
-                const paddingY = raw(styles.paddingTop) +
-                    raw(styles.paddingBottom) +
-                    raw(styles.borderTopWidth) +
-                    raw(styles.borderBottomWidth);
-                const paddingX = raw(styles.paddingLeft) +
-                    raw(styles.paddingRight) +
-                    raw(styles.borderRightWidth) +
-                    raw(styles.borderLeftWidth);
-                widthFrom -= paddingX;
-                widthTo -= paddingX;
-                heightFrom -= paddingY;
-                heightTo -= paddingY;
-            }
-            return [widthFrom, widthTo, heightFrom, heightTo].map(Math.round);
-        }
-        /**
-         * Retrieves animation options for the current element.
-         * @param el - Element to retrieve options for.
-         * @returns
-         */
-        function getOptions(el) {
-            return TGT in el && options.has(el[TGT])
-                ? options.get(el[TGT])
-                : { duration: 250, easing: "ease-in-out" };
-        }
-        /**
-         * Returns the target of a given animation (generally the parent).
-         * @param el - An element to check for a target
-         * @returns
-         */
-        function getTarget(el) {
-            if (TGT in el)
-                return el[TGT];
-            return undefined;
-        }
-        /**
-         * Checks if animations are enabled or disabled for a given element.
-         * @param el - Any element
-         * @returns
-         */
-        function isEnabled(el) {
-            const target = getTarget(el);
-            return target ? enabled.has(target) : false;
-        }
-        /**
-         * Iterate over the children of a given parent.
-         * @param parent - A parent element
-         * @param callback - A callback
-         */
-        function forEach(parent, ...callbacks) {
-            callbacks.forEach((callback) => callback(parent, options.has(parent)));
-            for (let i = 0; i < parent.children.length; i++) {
-                const child = parent.children.item(i);
-                if (child) {
-                    callbacks.forEach((callback) => callback(child, options.has(child)));
-                }
-            }
-        }
-        /**
-         * Always return tuple to provide consistent interface
-         */
-        function getPluginTuple(pluginReturn) {
-            if (Array.isArray(pluginReturn))
-                return pluginReturn;
-            return [pluginReturn];
-        }
-        /**
-         * Determine if config is plugin
-         */
-        function isPlugin(config) {
-            return typeof config === "function";
-        }
-        /**
-         * The element in question is remaining in the DOM.
-         * @param el - Element to flip
-         * @returns
-         */
-        function remain(el) {
-            const oldCoords = coords.get(el);
-            const newCoords = getCoords(el);
-            if (!isEnabled(el))
-                return coords.set(el, newCoords);
-            if (isOffscreen(el)) {
-                // When element is offscreen, skip FLIP to avoid broken transforms
-                coords.set(el, newCoords);
-                observePosition(el);
-                return;
-            }
-            let animation;
-            if (!oldCoords)
-                return;
-            const pluginOrOptions = getOptions(el);
-            if (typeof pluginOrOptions !== "function") {
-                let deltaLeft = oldCoords.left - newCoords.left;
-                let deltaTop = oldCoords.top - newCoords.top;
-                const deltaRight = oldCoords.left + oldCoords.width - (newCoords.left + newCoords.width);
-                const deltaBottom = oldCoords.top + oldCoords.height - (newCoords.top + newCoords.height);
-                // element is probably anchored and doesn't need to be offset
-                if (deltaBottom == 0)
-                    deltaTop = 0;
-                if (deltaRight == 0)
-                    deltaLeft = 0;
-                const [widthFrom, widthTo, heightFrom, heightTo] = getTransitionSizes(el, oldCoords, newCoords);
-                const start = {
-                    transform: `translate(${deltaLeft}px, ${deltaTop}px)`,
-                };
-                const end = {
-                    transform: `translate(0, 0)`,
-                };
-                if (widthFrom !== widthTo) {
-                    start.width = `${widthFrom}px`;
-                    end.width = `${widthTo}px`;
-                }
-                if (heightFrom !== heightTo) {
-                    start.height = `${heightFrom}px`;
-                    end.height = `${heightTo}px`;
-                }
-                animation = el.animate([start, end], {
-                    duration: pluginOrOptions.duration,
-                    easing: pluginOrOptions.easing,
-                });
-            }
-            else {
-                const [keyframes] = getPluginTuple(pluginOrOptions(el, "remain", oldCoords, newCoords));
-                animation = new Animation(keyframes);
-                animation.play();
-            }
-            animations.set(el, animation);
-            coords.set(el, newCoords);
-            animation.addEventListener("finish", updatePos.bind(null, el, false), {
-                once: true,
-            });
-        }
-        /**
-         * Adds the element with a transition.
-         * @param el - Animates the element being added.
-         */
-        function add(el) {
-            if (NEW in el)
-                delete el[NEW];
-            const newCoords = getCoords(el);
-            coords.set(el, newCoords);
-            const pluginOrOptions = getOptions(el);
-            if (!isEnabled(el))
-                return;
-            if (isOffscreen(el)) {
-                // Skip entry animation if element is not visible in viewport
-                observePosition(el);
-                return;
-            }
-            let animation;
-            if (typeof pluginOrOptions !== "function") {
-                animation = el.animate([
-                    { transform: "scale(.98)", opacity: 0 },
-                    { transform: "scale(0.98)", opacity: 0, offset: 0.5 },
-                    { transform: "scale(1)", opacity: 1 },
-                ], {
-                    duration: pluginOrOptions.duration * 1.5,
-                    easing: "ease-in",
-                });
-            }
-            else {
-                const [keyframes] = getPluginTuple(pluginOrOptions(el, "add", newCoords));
-                animation = new Animation(keyframes);
-                animation.play();
-            }
-            animations.set(el, animation);
-            animation.addEventListener("finish", updatePos.bind(null, el, false), {
-                once: true,
-            });
-        }
-        /**
-         * Clean up after removing an element from the dom.
-         * @param el - Element being removed
-         * @param styles - Optional styles that should be removed from the element.
-         */
-        function cleanUp(el, styles) {
-            var _a;
-            el.remove();
-            coords.delete(el);
-            siblings.delete(el);
-            animations.delete(el);
-            (_a = intersections.get(el)) === null || _a === void 0 ? void 0 : _a.disconnect();
-            setTimeout(() => {
-                if (DEL in el)
-                    delete el[DEL];
-                Object.defineProperty(el, NEW, { value: true, configurable: true });
-                if (styles && (el instanceof HTMLElement || el instanceof SVGElement)) {
-                    for (const style in styles) {
-                        el.style[style] = "";
-                    }
-                }
-            }, 0);
-        }
-        /**
-         * Animates the removal of an element.
-         * @param el - Element to remove
-         */
-        function remove(el) {
-            var _a;
-            if (!siblings.has(el) || !coords.has(el))
-                return;
-            const [prev, next] = siblings.get(el);
-            Object.defineProperty(el, DEL, { value: true, configurable: true });
-            const finalX = window.scrollX;
-            const finalY = window.scrollY;
-            if (next &&
-                next.parentNode &&
-                next.parentNode instanceof Element) {
-                next.parentNode.insertBefore(el, next);
-            }
-            else if (prev && prev.parentNode) {
-                prev.parentNode.appendChild(el);
-            }
-            else {
-                (_a = getTarget(el)) === null || _a === void 0 ? void 0 : _a.appendChild(el);
-            }
-            if (!isEnabled(el))
-                return cleanUp(el);
-            const [top, left, width, height] = deletePosition(el);
-            const optionsOrPlugin = getOptions(el);
-            const oldCoords = coords.get(el);
-            if (finalX !== scrollX || finalY !== scrollY) {
-                adjustScroll(el, finalX, finalY, optionsOrPlugin);
-            }
-            let animation;
-            let styleReset = {
-                position: "absolute",
-                top: `${top}px`,
-                left: `${left}px`,
-                width: `${width}px`,
-                height: `${height}px`,
-                margin: "0",
-                pointerEvents: "none",
-                transformOrigin: "center",
-                zIndex: "100",
-            };
-            if (!isPlugin(optionsOrPlugin)) {
-                Object.assign(el.style, styleReset);
-                animation = el.animate([
-                    {
-                        transform: "scale(1)",
-                        opacity: 1,
-                    },
-                    {
-                        transform: "scale(.98)",
-                        opacity: 0,
-                    },
-                ], {
-                    duration: optionsOrPlugin.duration,
-                    easing: "ease-out",
-                });
-            }
-            else {
-                const [keyframes, options] = getPluginTuple(optionsOrPlugin(el, "remove", oldCoords));
-                if ((options === null || options === void 0 ? void 0 : options.styleReset) !== false) {
-                    styleReset =
-                        (options === null || options === void 0 ? void 0 : options.styleReset) ||
-                            styleReset;
-                    Object.assign(el.style, styleReset);
-                }
-                animation = new Animation(keyframes);
-                animation.play();
-            }
-            animations.set(el, animation);
-            animation.addEventListener("finish", () => cleanUp(el, styleReset), {
-                once: true,
-            });
-        }
-        /**
-         * If the element being removed is at the very bottom of the page, and the
-         * the page was scrolled into a space being "made available" by the element
-         * that was removed, the page scroll will have jumped up some amount. We need
-         * to offset the jump by the amount that the page was "automatically" scrolled
-         * up. We can do this by comparing the scroll position before and after the
-         * element was removed, and then offsetting by that amount.
-         *
-         * @param el - The element being deleted
-         * @param finalX - The final X scroll position
-         * @param finalY - The final Y scroll position
-         * @param optionsOrPlugin - The options or plugin
-         * @returns
-         */
-        function adjustScroll(el, finalX, finalY, optionsOrPlugin) {
-            const scrollDeltaX = scrollX - finalX;
-            const scrollDeltaY = scrollY - finalY;
-            const scrollBefore = document.documentElement.style.scrollBehavior;
-            const scrollBehavior = getComputedStyle(root).scrollBehavior;
-            if (scrollBehavior === "smooth") {
-                document.documentElement.style.scrollBehavior = "auto";
-            }
-            window.scrollTo(window.scrollX + scrollDeltaX, window.scrollY + scrollDeltaY);
-            if (!el.parentElement)
-                return;
-            const parent = el.parentElement;
-            let lastHeight = parent.clientHeight;
-            let lastWidth = parent.clientWidth;
-            const startScroll = performance.now();
-            // Here we use a manual scroll animation to keep the element using the same
-            // easing and timing as the parent’s scroll animation.
-            function smoothScroll() {
-                requestAnimationFrame(() => {
-                    if (!isPlugin(optionsOrPlugin)) {
-                        const deltaY = lastHeight - parent.clientHeight;
-                        const deltaX = lastWidth - parent.clientWidth;
-                        if (startScroll + optionsOrPlugin.duration >
-                            performance.now()) {
-                            window.scrollTo({
-                                left: window.scrollX - deltaX,
-                                top: window.scrollY - deltaY,
-                            });
-                            lastHeight = parent.clientHeight;
-                            lastWidth = parent.clientWidth;
-                            smoothScroll();
-                        }
-                        else {
-                            document.documentElement.style.scrollBehavior = scrollBefore;
-                        }
-                    }
-                });
-            }
-            smoothScroll();
-        }
-        /**
-         * Determines the position of the element being removed.
-         * @param el - The element being deleted
-         * @returns
-         */
-        function deletePosition(el) {
-            var _a, _b;
-            const oldCoords = coords.get(el);
-            const [width, , height] = getTransitionSizes(el, oldCoords, getCoords(el));
-            let offsetParent = el.parentElement;
-            while (offsetParent &&
-                (getComputedStyle(offsetParent).position === "static" ||
-                    offsetParent instanceof HTMLBodyElement)) {
-                offsetParent = offsetParent.parentElement;
-            }
-            if (!offsetParent)
-                offsetParent = document.body;
-            const parentStyles = getComputedStyle(offsetParent);
-            const parentCoords = !animations.has(el) || ((_a = animations.get(el)) === null || _a === void 0 ? void 0 : _a.playState) === "finished"
-                ? getCoords(offsetParent)
-                : (_b = coords.get(offsetParent)) !== null && _b !== void 0 ? _b : getCoords(offsetParent);
-            const top = Math.round(oldCoords.top - parentCoords.top) -
-                raw(parentStyles.borderTopWidth);
-            const left = Math.round(oldCoords.left - parentCoords.left) -
-                raw(parentStyles.borderLeftWidth);
-            return [top, left, width, height];
-        }
-        /**
-         * A function that automatically adds animation effects to itself and its
-         * immediate children. Specifically it adds effects for adding, moving, and
-         * removing DOM elements.
-         * @param el - An HTML or SVG parent element to add animations to.
-         * @param options - An optional object of options.
-         */
-        function autoAnimate(el, config = {}) {
-            if (supportedBrowser && resize) {
-                const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-                const isDisabledDueToReduceMotion = mediaQuery.matches &&
-                    !isPlugin(config) &&
-                    !config.disrespectUserMotionPreference;
-                if (!isDisabledDueToReduceMotion) {
-                    enabled.add(el);
-                    if (getComputedStyle(el).position === "static") {
-                        Object.assign(el.style, { position: "relative" });
-                    }
-                    forEach(el, updatePos, poll, (element) => resize === null || resize === void 0 ? void 0 : resize.observe(element));
-                    if (isPlugin(config)) {
-                        options.set(el, config);
-                    }
-                    else {
-                        options.set(el, {
-                            duration: 250,
-                            easing: "ease-in-out",
-                            ...config,
-                        });
-                    }
-                    if (!mutationObservers.has(el)) {
-                        const mo = new MutationObserver(handleMutations);
-                        mo.observe(el, { childList: true });
-                        mutationObservers.set(el, mo);
-                    }
-                    parents.add(el);
-                }
-            }
-            const controller = Object.freeze({
-                parent: el,
-                enable: () => {
-                    enabled.add(el);
-                },
-                disable: () => {
-                    enabled.delete(el);
-                    // Cancel any in-flight animations and pending timers for immediate effect
-                    forEach(el, (node) => {
-                        const a = animations.get(node);
-                        try {
-                            if (DEL in node)
-                                a === null || a === void 0 ? void 0 : a.finish();
-                            else
-                                a === null || a === void 0 ? void 0 : a.cancel();
-                        }
-                        catch { }
-                        animations.delete(node);
-                        const d = debounces.get(node);
-                        if (d)
-                            clearTimeout(d);
-                        debounces.delete(node);
-                        const i = intervals.get(node);
-                        if (i)
-                            clearInterval(i);
-                        intervals.delete(node);
-                    });
-                },
-                isEnabled: () => enabled.has(el),
-                destroy: () => {
-                    enabled.delete(el);
-                    parents.delete(el);
-                    options.delete(el);
-                    const mo = mutationObservers.get(el);
-                    mo === null || mo === void 0 ? void 0 : mo.disconnect();
-                    mutationObservers.delete(el);
-                    forEach(el, (node) => {
-                        // unobserve resize
-                        resize === null || resize === void 0 ? void 0 : resize.unobserve(node);
-                        // cancel animations
-                        const a = animations.get(node);
-                        try {
-                            a === null || a === void 0 ? void 0 : a.cancel();
-                        }
-                        catch { }
-                        animations.delete(node);
-                        // disconnect observers
-                        const io = intersections.get(node);
-                        io === null || io === void 0 ? void 0 : io.disconnect();
-                        intersections.delete(node);
-                        // clear intervals and debounces
-                        const i = intervals.get(node);
-                        if (i)
-                            clearInterval(i);
-                        intervals.delete(node);
-                        const d = debounces.get(node);
-                        if (d)
-                            clearTimeout(d);
-                        debounces.delete(node);
-                        // clear state
-                        coords.delete(node);
-                        siblings.delete(node);
-                    });
-                },
-            });
-            return controller;
-        }
-        /**
-         * The vue directive.
-         */
-        const vAutoAnimate = {
-            mounted: (el, binding) => {
-                const ctl = autoAnimate(el, binding.value || {});
-                Object.defineProperty(el, "__aa_ctl", { value: ctl, configurable: true });
-            },
-            unmounted: (el) => {
-                var _a;
-                const ctl = el["__aa_ctl"];
-                (_a = ctl === null || ctl === void 0 ? void 0 : ctl.destroy) === null || _a === void 0 ? void 0 : _a.call(ctl);
-                try {
-                    delete el["__aa_ctl"];
-                }
-                catch { }
-            },
-            getSSRProps: () => ({}),
-        };
-
-
-    return autoAnimate
-    })()
-
-    /** Official React adapter, inlined so client.js stays dependency-free. */
-    function useAutoAnimate(options) {
-      var state = useState(undefined)
-      var controller = state[0]
-      var setController = state[1]
-      var memoizedOptions = useMemo(function () { return options || {} }, [])
-      var element = useCallback(function (node) {
-        if (node instanceof HTMLElement || node instanceof SVGElement) {
-          setController(autoAnimate(node, memoizedOptions))
-        } else {
-          setController(undefined)
-        }
-      }, [memoizedOptions])
-      var setEnabled = useCallback(function (enabled) {
-        if (controller) {
-          if (enabled) controller.enable()
-          else controller.disable()
-        }
-      }, [controller])
-      useEffect(function () {
-        return function () {
-          if (controller && typeof controller.destroy === 'function') controller.destroy()
-        }
-      }, [controller])
-      return [element, setEnabled]
-    }
-
     // ── src/00-host-ui.js
     /**
      * Optional host UI kit.
@@ -4002,6 +3071,55 @@ window.__ModuleLoader__.load({
       return (index - 1 + size) % size
     }
 
+    // View Transitions snapshot the old and new player frames, so a page-level
+    // slide can never tear the cover, title or lyrics apart. Chrome/Electron
+    // provides this API; unsupported browsers simply switch without animation.
+    var trackTransitionBusy = false
+    function withTrackTransition(direction, update) {
+      if (typeof document === 'undefined' || typeof document.startViewTransition !== 'function') {
+        update()
+        return
+      }
+      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        update()
+        return
+      }
+      if (trackTransitionBusy || typeof document.querySelector !== 'function' || document.querySelector('.mp-np.is-open') === null) {
+        update()
+        return
+      }
+      var root = document.documentElement
+      root.setAttribute('data-mp-slide', direction === 'prev' ? 'prev' : 'next')
+      trackTransitionBusy = true
+      var updated = false
+      function commit() {
+        updated = true
+        update()
+        return new Promise(function (resolve) {
+          setTimeout(resolve, 50)
+        })
+      }
+      var transition
+      try {
+        transition = document.startViewTransition(commit)
+      } catch (error) {
+        trackTransitionBusy = false
+        root.removeAttribute('data-mp-slide')
+        if (!updated) update()
+        return
+      }
+      if (transition && transition.finished && typeof transition.finished.finally === 'function') {
+        transition.finished.finally(function () {
+          trackTransitionBusy = false
+          root.removeAttribute('data-mp-slide')
+        })
+      } else {
+        trackTransitionBusy = false
+        root.removeAttribute('data-mp-slide')
+      }
+    }
+
     // ── playback engine (module-level: survives panel unmount) ───────────
     // The <audio> element lives here rather than in the React tree, so
     // selecting another main panel keeps the current track playing.
@@ -4436,7 +3554,11 @@ window.__ModuleLoader__.load({
           patch({ playing: false })
           return
         }
-        load(nextIndexOf(state.index, state.queue.length), true)
+        var target = nextIndexOf(state.index, state.queue.length)
+        if (target === state.index) return
+        withTrackTransition('next', function () {
+          load(target, true)
+        })
       }
 
       function onError() {
@@ -4454,7 +3576,11 @@ window.__ModuleLoader__.load({
           patch({ playing: false })
           return
         }
-        load(nextIndexOf(state.index, state.queue.length), true)
+        var target = nextIndexOf(state.index, state.queue.length)
+        if (target === state.index) return
+        withTrackTransition('next', function () {
+          load(target, true)
+        })
       }
 
       function bind(el) {
@@ -5079,11 +4205,19 @@ window.__ModuleLoader__.load({
         },
         next: function () {
           if (state.queue.length === 0) return
-          load(nextIndexOf(state.index, state.queue.length), true)
+          var target = nextIndexOf(state.index, state.queue.length)
+          if (target === state.index) return
+          withTrackTransition('next', function () {
+            load(target, true)
+          })
         },
         prev: function () {
           if (state.queue.length === 0) return
-          load(prevIndexOf(state.index, state.queue.length), true)
+          var target = prevIndexOf(state.index, state.queue.length)
+          if (target === state.index) return
+          withTrackTransition('prev', function () {
+            load(target, true)
+          })
         },
         seek: function (seconds) {
           if (audio === null) return
@@ -6620,7 +5754,7 @@ window.__ModuleLoader__.load({
       '.mp-queue-pop .mp-q-list{max-height:40vh}',
 
       // ── now playing (reference layout) ──────────────────────────────────────────
-      '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
+      '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none;view-transition-name:mp-now-playing}',
       '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
       '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
       '.mp-np-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto}.mp-np-bg .is-prev{opacity:1}.mp-np-bg .is-cur{animation:mp-bg-in .85s ease both}@keyframes mp-bg-in{from{opacity:0}to{opacity:1}}',
@@ -6642,7 +5776,7 @@ window.__ModuleLoader__.load({
       '.mp-np-setting-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px;color:rgba(255,255,255,.62)}.mp-np-setting select{width:100%;height:30px;padding:0 8px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none;cursor:pointer}.mp-np-align-row{display:flex;gap:6px}.mp-np-align-row .mp-chip{flex:1;justify-content:center;min-width:0;height:28px;padding:0 4px}',
       '.mp-np-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;align-items:stretch;padding:86px 2.5vw 0 6.5vw}',
       '.mp-np-left{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;flex:none;min-width:0;width:var(--mp-cover);padding-bottom:77px}',
-      '.mp-np-meta{position:relative;min-width:0;margin:0 0 14px;overflow:hidden}',
+      '.mp-np-meta{min-width:0;margin:0 0 14px}',
       '.mp-np-meta-row{display:none}',
       '.mp-np-title{min-width:0;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-np-artist-row{display:flex;align-items:center;gap:10px;min-width:0;margin-top:10px}.mp-np-artist{flex:0 1 auto;min-width:0;font-size:15px;font-weight:400;color:rgba(255,255,255,.66);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
@@ -7196,6 +6330,18 @@ window.__ModuleLoader__.load({
       '@media (max-width:620px){.mp-online-grid{grid-template-columns:1fr}.mp-online-name{font-size:13px}}',
       '@media (max-width:620px){.mp-set-row{flex-direction:column;align-items:stretch;gap:6px}.mp-set-text{flex:0 0 auto}.mp-set-control{justify-content:flex-start;margin-left:0}.mp-set-control select,.mp-range{max-width:100%}}',
       '@media (max-width:620px){.mp-tag-grid{grid-template-columns:1fr}.mp-tag-layout{grid-template-columns:1fr}.mp-tag-aside{position:static;display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;column-gap:10px;row-gap:3px}.mp-tag-aside .mp-tag-cover{width:72px;height:72px;grid-row:1/4}.mp-tag-aside-title{grid-column:2;grid-row:1}.mp-tag-aside-artist{grid-column:2;grid-row:2}.mp-tag-aside-meta{grid-column:2;grid-row:3}.mp-tag-aside-actions{grid-column:1/-1;flex-direction:row;flex-wrap:wrap}.mp-tag-hint{grid-column:1/-1}.mp-tag-body{max-height:min(68vh,620px)}.mp-tag-footer{flex-wrap:wrap}.mp-tag-footer .mp-btn{flex:1}}',
+      '::view-transition-group(mp-now-playing){animation:none;overflow:hidden}',
+      '::view-transition-group(root){animation:none}',
+      '::view-transition-old(root),::view-transition-new(root){animation:none;opacity:0}',
+      '::view-transition-old(mp-now-playing),::view-transition-new(mp-now-playing){animation-duration:560ms;animation-timing-function:cubic-bezier(.76,0,.24,1);animation-fill-mode:both}',
+      'html[data-mp-slide="next"]::view-transition-old(mp-now-playing){animation-name:mp-vt-out-left}',
+      'html[data-mp-slide="next"]::view-transition-new(mp-now-playing){animation-name:mp-vt-in-right}',
+      'html[data-mp-slide="prev"]::view-transition-old(mp-now-playing){animation-name:mp-vt-out-right}',
+      'html[data-mp-slide="prev"]::view-transition-new(mp-now-playing){animation-name:mp-vt-in-left}',
+      '@keyframes mp-vt-out-left{from{transform:translateX(0)}to{transform:translateX(-100%)}}',
+      '@keyframes mp-vt-in-right{from{transform:translateX(100%)}to{transform:translateX(0)}}',
+      '@keyframes mp-vt-out-right{from{transform:translateX(0)}to{transform:translateX(100%)}}',
+      '@keyframes mp-vt-in-left{from{transform:translateX(-100%)}to{transform:translateX(0)}}',
       '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
       '@media (prefers-reduced-motion:reduce){.mp-np-line-trans{transition:none}.mp-np.is-trans .mp-np-line-trans{transition:none}}',
     ]
@@ -9171,46 +8317,6 @@ window.__ModuleLoader__.load({
       var prefs = usePrefs()
       var track = snap.queue[snap.index] || null
       var trackPath = track ? track.path : ''
-      // AutoAnimate (vendored FormKit FLIP engine) handles track-change transitions.
-      // A custom plugin gives the new track a horizontal slide instead of the default
-      // fade/scale; direction is derived from the queue index so "previous" reverses.
-      var lastIndexRef = useRef(snap.index)
-      var slideDirectionRef = useRef(-1)
-      if (lastIndexRef.current !== snap.index) {
-        if (lastIndexRef.current >= 0 && snap.index >= 0) {
-          var forward = snap.index > lastIndexRef.current
-          // Wrap-around from the last queue item to the first is still "next".
-          if (lastIndexRef.current === snap.queue.length - 1 && snap.index === 0) forward = true
-          else if (lastIndexRef.current === 0 && snap.index === snap.queue.length - 1) forward = false
-          slideDirectionRef.current = forward ? -1 : 1
-        }
-        lastIndexRef.current = snap.index
-      }
-      function slidePlugin(el, action) {
-        if (action === 'remain') return new KeyframeEffect(el, [], { duration: 0 })
-        if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          return new KeyframeEffect(el, [], { duration: 0 })
-        }
-        var direction = slideDirectionRef.current === 1 ? 1 : -1
-        var parent = el.parentElement
-        var travel = parent ? parent.clientWidth : el.offsetWidth || 0
-        var start = action === 'add' ? (direction === -1 ? travel : -travel) : 0
-        var end = action === 'add' ? 0 : direction === -1 ? -travel : travel
-        return new KeyframeEffect(
-          el,
-          [
-            { transform: 'translate3d(' + start + 'px,0,0)', opacity: 1 },
-            { transform: 'translate3d(' + end + 'px,0,0)', opacity: 1 },
-          ],
-          { duration: 460, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
-        )
-      }
-      var coverMotion = useAutoAnimate(slidePlugin)
-      var metaMotion = useAutoAnimate(slidePlugin)
-      var lyricsMotion = useAutoAnimate(slidePlugin)
-      var coverMotionRef = coverMotion[0]
-      var metaMotionRef = metaMotion[0]
-      var lyricsMotionRef = lyricsMotion[0]
       var pair = useState([])
       var lyrics = pair[0]
       var setLyrics = pair[1]
@@ -9255,10 +8361,6 @@ window.__ModuleLoader__.load({
       var innerRef = useRef(null)
       var discWrapRef = useRef(null)
       var rowRefs = useRef([])
-      var setLyricsBox = useCallback(function (node) {
-        boxRef.current = node
-        lyricsMotionRef(node)
-      }, [lyricsMotionRef])
 
       useEffect(
         function () {
@@ -9851,15 +8953,11 @@ window.__ModuleLoader__.load({
             { className: 'mp-np-left' },
             h(
               'div',
-              { className: 'mp-np-meta', ref: metaMotionRef },
+              { className: 'mp-np-meta' },
+              h('div', { className: 'mp-np-title' }, track ? trackTitleOf(track) : '—'),
               h(
                 'div',
-                { key: 'title:' + trackPath, className: 'mp-np-title' },
-                track ? trackTitleOf(track) : '—',
-              ),
-              h(
-                'div',
-                { key: 'artist:' + trackPath, className: 'mp-np-artist-row' },
+                { className: 'mp-np-artist-row' },
                 h('div', { className: 'mp-np-artist' }, track ? trackArtistOf(track) : ''),
                 h(IconButton, {
                   className: 'mp-np-meta-audio',
@@ -9875,10 +8973,10 @@ window.__ModuleLoader__.load({
             ),
             h(
               'div',
-              { className: cx('mp-np-cover-stage', vinyl && 'is-vinyl'), ref: coverMotionRef },
+              { className: cx('mp-np-cover-stage', vinyl && 'is-vinyl') },
               h(
                 'div',
-                { key: 'cover:' + trackPath, className: cx('mp-np-disc-wrap', vinyl && 'is-vinyl'), ref: discWrapRef },
+                { className: cx('mp-np-disc-wrap', vinyl && 'is-vinyl'), ref: discWrapRef },
               h(
                 'div',
                 {
@@ -10164,12 +9262,12 @@ window.__ModuleLoader__.load({
             { className: 'mp-np-right' },
             h(
               'div',
-              { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: setLyricsBox },
+              { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: boxRef },
               lyrics.length === 0
                 ? null
                 : h(
                     'div',
-                    { key: 'lyrics:' + trackPath, className: 'mp-np-lyrics-inner', ref: innerRef },
+                    { className: 'mp-np-lyrics-inner', ref: innerRef },
                     lyrics.map(function (line, index) {
                       return h(
                         'div',

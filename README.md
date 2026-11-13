@@ -337,10 +337,6 @@ node scripts/build-client.mjs --check
 
 See [theme guidelines](docs/theme-guidelines.md) and [UI review](docs/ui-review-2026-11.md) for conventions.
 
-### Credits
-
-- [AutoAnimate](https://github.com/formkit/auto-animate) (MIT) powers the now-playing track transitions.
-
 ### License
 
 [MIT](LICENSE) © Aliboder

@@ -76,6 +76,55 @@ function prevIndexOf(index, size) {
   return (index - 1 + size) % size
 }
 
+// View Transitions snapshot the old and new player frames, so a page-level
+// slide can never tear the cover, title or lyrics apart. Chrome/Electron
+// provides this API; unsupported browsers simply switch without animation.
+var trackTransitionBusy = false
+function withTrackTransition(direction, update) {
+  if (typeof document === 'undefined' || typeof document.startViewTransition !== 'function') {
+    update()
+    return
+  }
+  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    update()
+    return
+  }
+  if (trackTransitionBusy || typeof document.querySelector !== 'function' || document.querySelector('.mp-np.is-open') === null) {
+    update()
+    return
+  }
+  var root = document.documentElement
+  root.setAttribute('data-mp-slide', direction === 'prev' ? 'prev' : 'next')
+  trackTransitionBusy = true
+  var updated = false
+  function commit() {
+    updated = true
+    update()
+    return new Promise(function (resolve) {
+      setTimeout(resolve, 50)
+    })
+  }
+  var transition
+  try {
+    transition = document.startViewTransition(commit)
+  } catch (error) {
+    trackTransitionBusy = false
+    root.removeAttribute('data-mp-slide')
+    if (!updated) update()
+    return
+  }
+  if (transition && transition.finished && typeof transition.finished.finally === 'function') {
+    transition.finished.finally(function () {
+      trackTransitionBusy = false
+      root.removeAttribute('data-mp-slide')
+    })
+  } else {
+    trackTransitionBusy = false
+    root.removeAttribute('data-mp-slide')
+  }
+}
+
 // ── playback engine (module-level: survives panel unmount) ───────────
 // The <audio> element lives here rather than in the React tree, so
 // selecting another main panel keeps the current track playing.
@@ -510,7 +559,11 @@ function createPlayer() {
       patch({ playing: false })
       return
     }
-    load(nextIndexOf(state.index, state.queue.length), true)
+    var target = nextIndexOf(state.index, state.queue.length)
+    if (target === state.index) return
+    withTrackTransition('next', function () {
+      load(target, true)
+    })
   }
 
   function onError() {
@@ -528,7 +581,11 @@ function createPlayer() {
       patch({ playing: false })
       return
     }
-    load(nextIndexOf(state.index, state.queue.length), true)
+    var target = nextIndexOf(state.index, state.queue.length)
+    if (target === state.index) return
+    withTrackTransition('next', function () {
+      load(target, true)
+    })
   }
 
   function bind(el) {
@@ -1153,11 +1210,19 @@ function createPlayer() {
     },
     next: function () {
       if (state.queue.length === 0) return
-      load(nextIndexOf(state.index, state.queue.length), true)
+      var target = nextIndexOf(state.index, state.queue.length)
+      if (target === state.index) return
+      withTrackTransition('next', function () {
+        load(target, true)
+      })
     },
     prev: function () {
       if (state.queue.length === 0) return
-      load(prevIndexOf(state.index, state.queue.length), true)
+      var target = prevIndexOf(state.index, state.queue.length)
+      if (target === state.index) return
+      withTrackTransition('prev', function () {
+        load(target, true)
+      })
     },
     seek: function (seconds) {
       if (audio === null) return

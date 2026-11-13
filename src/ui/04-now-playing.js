@@ -1090,46 +1090,6 @@ function NowPlaying(props) {
   var prefs = usePrefs()
   var track = snap.queue[snap.index] || null
   var trackPath = track ? track.path : ''
-  // AutoAnimate (vendored FormKit FLIP engine) handles track-change transitions.
-  // A custom plugin gives the new track a horizontal slide instead of the default
-  // fade/scale; direction is derived from the queue index so "previous" reverses.
-  var lastIndexRef = useRef(snap.index)
-  var slideDirectionRef = useRef(-1)
-  if (lastIndexRef.current !== snap.index) {
-    if (lastIndexRef.current >= 0 && snap.index >= 0) {
-      var forward = snap.index > lastIndexRef.current
-      // Wrap-around from the last queue item to the first is still "next".
-      if (lastIndexRef.current === snap.queue.length - 1 && snap.index === 0) forward = true
-      else if (lastIndexRef.current === 0 && snap.index === snap.queue.length - 1) forward = false
-      slideDirectionRef.current = forward ? -1 : 1
-    }
-    lastIndexRef.current = snap.index
-  }
-  function slidePlugin(el, action) {
-    if (action === 'remain') return new KeyframeEffect(el, [], { duration: 0 })
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return new KeyframeEffect(el, [], { duration: 0 })
-    }
-    var direction = slideDirectionRef.current === 1 ? 1 : -1
-    var parent = el.parentElement
-    var travel = parent ? parent.clientWidth : el.offsetWidth || 0
-    var start = action === 'add' ? (direction === -1 ? travel : -travel) : 0
-    var end = action === 'add' ? 0 : direction === -1 ? -travel : travel
-    return new KeyframeEffect(
-      el,
-      [
-        { transform: 'translate3d(' + start + 'px,0,0)', opacity: 1 },
-        { transform: 'translate3d(' + end + 'px,0,0)', opacity: 1 },
-      ],
-      { duration: 460, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' },
-    )
-  }
-  var coverMotion = useAutoAnimate(slidePlugin)
-  var metaMotion = useAutoAnimate(slidePlugin)
-  var lyricsMotion = useAutoAnimate(slidePlugin)
-  var coverMotionRef = coverMotion[0]
-  var metaMotionRef = metaMotion[0]
-  var lyricsMotionRef = lyricsMotion[0]
   var pair = useState([])
   var lyrics = pair[0]
   var setLyrics = pair[1]
@@ -1174,10 +1134,6 @@ function NowPlaying(props) {
   var innerRef = useRef(null)
   var discWrapRef = useRef(null)
   var rowRefs = useRef([])
-  var setLyricsBox = useCallback(function (node) {
-    boxRef.current = node
-    lyricsMotionRef(node)
-  }, [lyricsMotionRef])
 
   useEffect(
     function () {
@@ -1770,15 +1726,11 @@ function NowPlaying(props) {
         { className: 'mp-np-left' },
         h(
           'div',
-          { className: 'mp-np-meta', ref: metaMotionRef },
+          { className: 'mp-np-meta' },
+          h('div', { className: 'mp-np-title' }, track ? trackTitleOf(track) : '—'),
           h(
             'div',
-            { key: 'title:' + trackPath, className: 'mp-np-title' },
-            track ? trackTitleOf(track) : '—',
-          ),
-          h(
-            'div',
-            { key: 'artist:' + trackPath, className: 'mp-np-artist-row' },
+            { className: 'mp-np-artist-row' },
             h('div', { className: 'mp-np-artist' }, track ? trackArtistOf(track) : ''),
             h(IconButton, {
               className: 'mp-np-meta-audio',
@@ -1794,10 +1746,10 @@ function NowPlaying(props) {
         ),
         h(
           'div',
-          { className: cx('mp-np-cover-stage', vinyl && 'is-vinyl'), ref: coverMotionRef },
+          { className: cx('mp-np-cover-stage', vinyl && 'is-vinyl') },
           h(
             'div',
-            { key: 'cover:' + trackPath, className: cx('mp-np-disc-wrap', vinyl && 'is-vinyl'), ref: discWrapRef },
+            { className: cx('mp-np-disc-wrap', vinyl && 'is-vinyl'), ref: discWrapRef },
           h(
             'div',
             {
@@ -2083,12 +2035,12 @@ function NowPlaying(props) {
         { className: 'mp-np-right' },
         h(
           'div',
-          { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: setLyricsBox },
+          { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: boxRef },
           lyrics.length === 0
             ? null
             : h(
                 'div',
-                { key: 'lyrics:' + trackPath, className: 'mp-np-lyrics-inner', ref: innerRef },
+                { className: 'mp-np-lyrics-inner', ref: innerRef },
                 lyrics.map(function (line, index) {
                   return h(
                     'div',
