@@ -2633,11 +2633,13 @@ window.__ModuleLoader__.load({
       var playlistId = typeof saved.playlistId === 'string' ? saved.playlistId : ''
       if (nav === 'playlists') nav = source === 'local' ? 'songs' : 'recent'
       if (nav === 'playlist' && (source !== 'local' || playlistId === '')) nav = source === 'local' ? 'songs' : 'recent'
-      // Album/artist detail needs the selected id, which lives only in memory, so a
-      // reload falls back to the list it was opened from instead of an empty page.
-      if (nav === 'album') nav = 'albums'
-      if (nav === 'artist') nav = 'artists'
-      if (source !== 'navidrome' && (nav === 'artists' || nav === 'albums')) nav = 'recent'
+      // The album view is keyed by a provider album id that only lives in memory,
+      // so a reload cannot restore it; fall back to the search/recent list rather
+      // than reopening an empty album page.
+      if (nav === 'album') nav = source === 'local' ? 'songs' : 'recent'
+      if (nav === 'artist') nav = source === 'local' ? 'songs' : 'recent'
+      // `artists` / `albums` are local-library views; an online source has neither.
+      if (source !== 'local' && (nav === 'artists' || nav === 'albums')) nav = 'recent'
       return { source: source, nav: nav, playlistId: playlistId }
     }
     
@@ -2705,17 +2707,12 @@ window.__ModuleLoader__.load({
         var online = onlineStore.get()
         var playlists = sortOnlinePlaylists(online.playlists || [])
         var signedIn = (online.providers[source] || {}).loggedIn === true
-        // Navidrome exposes the same browse shape as the local library — songs,
-        // artists, albums — because Subsonic can enumerate all three. The Chinese
-        // platforms are search-only, so they keep just recent + cache.
+        // Navidrome can enumerate a whole library, so it gets a song list the
+        // search-only platforms cannot offer. Albums and artists are not listed
+        // here: a track's album name opens the shared album view instead, the same
+        // path the Chinese platforms use.
         var browse =
-          source === 'navidrome'
-            ? [
-                { key: 'songs', label: t('v2.songs'), icon: 'note', count: null },
-                { key: 'artists', label: t('v2.artists'), icon: 'user', count: null },
-                { key: 'albums', label: t('v2.albums'), icon: 'disc', count: null },
-              ]
-            : []
+          source === 'navidrome' ? [{ key: 'songs', label: t('v2.songs'), icon: 'note', count: null }] : []
         var groups = [
           {
             label: t('v2.sectionOnline'),
@@ -4420,9 +4417,6 @@ window.__ModuleLoader__.load({
       albumSongs: [],
       albumPhase: 'idle',
       albumError: '',
-      // Selected album / artist id for the Navidrome browse views. Upstream's
-      // album* state above is URL/name driven; Navidrome addresses albums by id.
-      browseId: '',
       history: readOnlineHistory(),
       liked: {},
       cache: {},
@@ -11719,31 +11713,6 @@ window.__ModuleLoader__.load({
       var songsPagePair = useState(1)
       var songsPage = songsPagePair[0]
       var setSongsPage = songsPagePair[1]
-      // Artists / albums browse (Navidrome only). One phase drives all four views;
-      // the lists and the two detail payloads are separate so each render branch
-      // reads only what it needs.
-      var browsePhasePair = useState('idle')
-      var browsePhase = browsePhasePair[0]
-      var setBrowsePhase = browsePhasePair[1]
-      var artistsPair = useState([])
-      var artistsList = artistsPair[0]
-      var setArtistsList = artistsPair[1]
-      var albumsPair = useState([])
-      var albumsList = albumsPair[0]
-      var setAlbumsList = albumsPair[1]
-      var albumPair = useState(null)
-      var albumDetail = albumPair[0]
-      var setAlbumDetail = albumPair[1]
-      var albumSongsPair = useState([])
-      var albumSongsList = albumSongsPair[0]
-      var setAlbumSongsList = albumSongsPair[1]
-      var artistPair = useState(null)
-      var artistDetail = artistPair[0]
-      var setArtistDetail = artistPair[1]
-      var artistAlbumsPair = useState([])
-      var artistAlbumsList = artistAlbumsPair[0]
-      var setArtistAlbumsList = artistAlbumsPair[1]
-      var browseId = online.browseId || ''
       var prefs = usePrefs()
       var selection = useStore(selectionStore)
       var selecting = selection.active === true
@@ -11947,66 +11916,6 @@ window.__ModuleLoader__.load({
         setSongsPage(next)
       }
     
-      useEffect(
-        function () {
-          if (nav !== 'artists' && nav !== 'albums' && nav !== 'album' && nav !== 'artist') {
-            setBrowsePhase('idle')
-            return undefined
-          }
-          var cancelled = false
-          setBrowsePhase('loading')
-    
-          var url = ''
-          if (nav === 'artists') url = API + 'online/artists?provider=' + encodeURIComponent(provider)
-          else if (nav === 'albums') url = API + 'online/albums?provider=' + encodeURIComponent(provider) + '&size=200'
-          else if (nav === 'album') url = API + 'online/album?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(browseId)
-          else url = API + 'online/artist?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(browseId)
-    
-          getJson(url)
-            .then(function (body) {
-              if (cancelled) return
-              if (nav === 'artists') setArtistsList(Array.isArray(body.artists) ? body.artists : [])
-              if (nav === 'albums') setAlbumsList(Array.isArray(body.albums) ? body.albums : [])
-              if (nav === 'album') {
-                setAlbumDetail(body.album || null)
-                setAlbumSongsList(Array.isArray(body.songs) ? body.songs : [])
-              }
-              if (nav === 'artist') {
-                setArtistDetail(body.artist || null)
-                setArtistAlbumsList(Array.isArray(body.albums) ? body.albums : [])
-              }
-              setBrowsePhase('ready')
-            })
-            .catch(function () {
-              if (cancelled) return
-              if (nav === 'artists') setArtistsList([])
-              if (nav === 'albums') setAlbumsList([])
-              if (nav === 'album') {
-                setAlbumDetail(null)
-                setAlbumSongsList([])
-              }
-              if (nav === 'artist') {
-                setArtistDetail(null)
-                setArtistAlbumsList([])
-              }
-              setBrowsePhase('error')
-            })
-          return function () {
-            cancelled = true
-          }
-        },
-        [nav, provider, browseId],
-      )
-    
-      function openOnlineAlbum(album) {
-        onlineStore.set({ browseId: String((album && album.id) || '') })
-        uiStore.set({ nav: 'album', filter: null, query: '' })
-      }
-    
-      function openOnlineArtist(artist) {
-        onlineStore.set({ browseId: String((artist && artist.id) || '') })
-        uiStore.set({ nav: 'artist', filter: null, query: '' })
-      }
     
       var title = t('v2.recent')
       var count = 0
@@ -12376,127 +12285,6 @@ window.__ModuleLoader__.load({
           if (footer !== null) {
             body = h('div', { className: 'mp-songs-pane', key: 'songs-pane' }, body, footer)
           }
-        }
-      } else if (nav === 'artists') {
-        title = t('v2.artists')
-        count = artistsList.length
-        resetKey = 'online-artists:' + provider
-        if (browsePhase === 'loading' || browsePhase === 'idle') {
-          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-        } else if (browsePhase === 'error') {
-          body = h(Empty, { title: t('online.networkError'), icon: 'info' })
-        } else if (artistsList.length === 0) {
-          body = h(Empty, { title: t('page.noResults'), icon: 'user' })
-        } else {
-          body = h(
-            ScrollBox,
-            { resetKey: resetKey },
-            artistsList.map(function (artist) {
-              var cover = subsonicCoverUrl(artist.coverArtId)
-              return h(
-                'button',
-                {
-                  key: artist.id,
-                  type: 'button',
-                  className: 'mp-srow',
-                  onClick: function () {
-                    openOnlineArtist(artist)
-                  },
-                },
-                h(
-                  'div',
-                  { className: 'mp-srow-cover is-round' },
-                  cover === '' ? icon('user', 18) : h(Cover, { src: cover, iconSize: 18 }),
-                ),
-                h(
-                  'div',
-                  { className: 'mp-srow-main' },
-                  h('div', { className: 'mp-srow-title' }, artist.name || t('page.unknownArtist')),
-                  h('div', { className: 'mp-srow-sub' }, t('online.albumCount', { n: artist.albumCount })),
-                ),
-                h('div', { className: 'mp-srow-meta' }, String(artist.albumCount)),
-                icon('chevronRight', 14),
-              )
-            }),
-          )
-        }
-      } else if (nav === 'albums') {
-        title = t('v2.albums')
-        count = albumsList.length
-        resetKey = 'online-albums:' + provider
-        if (browsePhase === 'loading' || browsePhase === 'idle') {
-          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-        } else if (browsePhase === 'error') {
-          body = h(Empty, { title: t('online.networkError'), icon: 'info' })
-        } else if (albumsList.length === 0) {
-          body = h(Empty, { title: t('page.noResults'), icon: 'disc' })
-        } else {
-          body = h(
-            ScrollBox,
-            { resetKey: resetKey },
-            albumsList.map(function (album) {
-              var cover = subsonicCoverUrl(album.coverArtId)
-              return h(
-                'button',
-                {
-                  key: album.id,
-                  type: 'button',
-                  className: 'mp-srow',
-                  onClick: function () {
-                    openOnlineAlbum(album)
-                  },
-                },
-                h('div', { className: 'mp-srow-cover' }, cover === '' ? icon('disc', 18) : h(Cover, { src: cover, iconSize: 18 })),
-                h(
-                  'div',
-                  { className: 'mp-srow-main' },
-                  h('div', { className: 'mp-srow-title' }, album.name || t('page.unknownAlbum')),
-                  h('div', { className: 'mp-srow-sub' }, (album.artist || '') + ' · ' + t('page.trackCountUnit', { n: album.songCount })),
-                ),
-                h('div', { className: 'mp-srow-meta' }, String(album.songCount)),
-                icon('chevronRight', 14),
-              )
-            }),
-          )
-        }
-      } else if (nav === 'artist') {
-        title = (artistDetail && artistDetail.name) || t('v2.artists')
-        count = artistAlbumsList.length
-        resetKey = 'online-artist:' + provider + ':' + browseId
-        if (browsePhase === 'loading' || browsePhase === 'idle') {
-          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-        } else if (browsePhase === 'error') {
-          body = h(Empty, { title: t('online.networkError'), icon: 'info' })
-        } else if (artistAlbumsList.length === 0) {
-          body = h(Empty, { title: t('page.noResults'), icon: 'disc' })
-        } else {
-          body = h(
-            ScrollBox,
-            { resetKey: resetKey },
-            artistAlbumsList.map(function (album) {
-              var cover = subsonicCoverUrl(album.coverArtId)
-              return h(
-                'button',
-                {
-                  key: album.id,
-                  type: 'button',
-                  className: 'mp-srow',
-                  onClick: function () {
-                    openOnlineAlbum(album)
-                  },
-                },
-                h('div', { className: 'mp-srow-cover' }, cover === '' ? icon('disc', 18) : h(Cover, { src: cover, iconSize: 18 })),
-                h(
-                  'div',
-                  { className: 'mp-srow-main' },
-                  h('div', { className: 'mp-srow-title' }, album.name || t('page.unknownAlbum')),
-                  h('div', { className: 'mp-srow-sub' }, t('page.trackCountUnit', { n: album.songCount })),
-                ),
-                h('div', { className: 'mp-srow-meta' }, album.year > 0 ? String(album.year) : ''),
-                icon('chevronRight', 14),
-              )
-            }),
-          )
         }
       } else if (nav === 'cache') {
         title = t('v2.cache')
@@ -15492,6 +15280,9 @@ window.__ModuleLoader__.load({
           // Pure pager math; the render mock cannot reach the paged branch.
           pageWindow: pageWindow,
           SONG_PAGE_SIZE: SONG_PAGE_SIZE,
+          // Pure sidebar model, so tests can assert entries without matching
+          // rendered copy (which shares words with empty-state text).
+          navGroupsFor: navGroupsFor,
         },
         enumerable: false,
       })

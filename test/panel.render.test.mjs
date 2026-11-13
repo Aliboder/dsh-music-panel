@@ -314,34 +314,41 @@ const navPanel = panel()
 const navText = textOf(navPanel)
 assert.ok(navText.includes('Navidrome'), 'Navidrome renders as a source tab')
 
-// Navidrome mirrors the local library: songs / artists / albums. The Chinese
-// platforms are search-only, so they must not advertise the browse entries.
+// Navidrome gets a song list, which the search-only platforms cannot offer.
+// Albums and artists are deliberately not sidebar entries any more: a track's
+// album name opens the shared album view, the same path the Chinese platforms
+// use, so the sidebar must not advertise them.
 const isZh = navText.includes('歌曲')
 const L = {
   songs: isZh ? '歌曲' : 'Songs',
   artists: isZh ? '歌手' : 'Artists',
   albums: isZh ? '专辑' : 'Albums',
 }
-for (const [label, word] of Object.entries(L)) {
-  assert.ok(navText.includes(word), `the navidrome sidebar exposes the ${label} entry`)
-}
+assert.ok(navText.includes(L.songs), 'the navidrome sidebar exposes the songs entry')
 
-internals.uiStore.set({ source: 'netease', nav: 'recent', filter: null, query: '' })
-internals.onlineStore.set({ provider: 'netease', results: [], phase: 'idle', playlists: [] })
-const neteaseText = textOf(panel())
-for (const word of [L.artists, L.albums]) {
-  assert.ok(!neteaseText.includes(word), 'search-only providers hide the browse entries')
-}
+// Check the sidebar entry list directly instead of the rendered text: other
+// copy on the page (empty states, hints) can contain the same word.
+const navKeys = internals.navGroupsFor('navidrome', 0)
+const navItems = navKeys.flatMap((group) => group.items.map((item) => item.key))
+assert.ok(navItems.includes('songs'), 'navidrome lists a songs entry')
+assert.ok(!navItems.includes('artists'), 'navidrome no longer lists an artists entry')
+assert.ok(!navItems.includes('albums'), 'navidrome no longer lists an albums entry')
 
-// Each browse view renders its header without throwing.
-for (const nav of ['songs', 'artists', 'albums', 'artist', 'album']) {
+const neteaseItems = internals.navGroupsFor('netease', 0).flatMap((group) =>
+  group.items.map((item) => item.key),
+)
+assert.ok(!neteaseItems.includes('songs'), 'search-only providers have no songs entry')
+
+// The views that still exist must render without throwing.
+for (const nav of ['songs', 'album']) {
   internals.uiStore.set({ source: 'navidrome', nav, filter: null, query: '' })
   internals.onlineStore.set({
     provider: 'navidrome',
     results: [],
     phase: 'idle',
     playlists: [],
-    browseId: nav === 'album' || nav === 'artist' ? 'x1' : '',
+    albumId: nav === 'album' ? 'x1' : '',
+    albumName: nav === 'album' ? 'Test Album' : '',
   })
   const view = panel()
   assert.ok(classesOf(view).size > 0, `the ${nav} view renders`)

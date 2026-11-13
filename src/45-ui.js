@@ -52,11 +52,13 @@ function readUiState() {
   var playlistId = typeof saved.playlistId === 'string' ? saved.playlistId : ''
   if (nav === 'playlists') nav = source === 'local' ? 'songs' : 'recent'
   if (nav === 'playlist' && (source !== 'local' || playlistId === '')) nav = source === 'local' ? 'songs' : 'recent'
-  // Album/artist detail needs the selected id, which lives only in memory, so a
-  // reload falls back to the list it was opened from instead of an empty page.
-  if (nav === 'album') nav = 'albums'
-  if (nav === 'artist') nav = 'artists'
-  if (source !== 'navidrome' && (nav === 'artists' || nav === 'albums')) nav = 'recent'
+  // The album view is keyed by a provider album id that only lives in memory,
+  // so a reload cannot restore it; fall back to the search/recent list rather
+  // than reopening an empty album page.
+  if (nav === 'album') nav = source === 'local' ? 'songs' : 'recent'
+  if (nav === 'artist') nav = source === 'local' ? 'songs' : 'recent'
+  // `artists` / `albums` are local-library views; an online source has neither.
+  if (source !== 'local' && (nav === 'artists' || nav === 'albums')) nav = 'recent'
   return { source: source, nav: nav, playlistId: playlistId }
 }
 
@@ -124,17 +126,12 @@ function navGroupsFor(source, favoritesCount) {
     var online = onlineStore.get()
     var playlists = sortOnlinePlaylists(online.playlists || [])
     var signedIn = (online.providers[source] || {}).loggedIn === true
-    // Navidrome exposes the same browse shape as the local library — songs,
-    // artists, albums — because Subsonic can enumerate all three. The Chinese
-    // platforms are search-only, so they keep just recent + cache.
+    // Navidrome can enumerate a whole library, so it gets a song list the
+    // search-only platforms cannot offer. Albums and artists are not listed
+    // here: a track's album name opens the shared album view instead, the same
+    // path the Chinese platforms use.
     var browse =
-      source === 'navidrome'
-        ? [
-            { key: 'songs', label: t('v2.songs'), icon: 'note', count: null },
-            { key: 'artists', label: t('v2.artists'), icon: 'user', count: null },
-            { key: 'albums', label: t('v2.albums'), icon: 'disc', count: null },
-          ]
-        : []
+      source === 'navidrome' ? [{ key: 'songs', label: t('v2.songs'), icon: 'note', count: null }] : []
     var groups = [
       {
         label: t('v2.sectionOnline'),

@@ -35,9 +35,15 @@ function branchOf(name) {
 
 // Each view must exist exactly once: a duplicated `else if (nav === 'album')`
 // compiles fine and silently makes the second one dead.
-for (const name of ['album', 'artist', 'albums', 'artists', 'songs']) {
+for (const name of ['album', 'songs']) {
   const count = (source.match(new RegExp(`\\} else if \\(nav === '${name}'\\) \\{`, 'g')) || []).length
   assert.equal(count, 1, `nav === '${name}' must have exactly one branch, found ${count}`)
+}
+// The Navidrome-only artist/album browsers are gone: a track's album name opens
+// the shared album view, so a second album-ish branch would be dead code.
+for (const name of ['artist', 'artists', 'albums']) {
+  const count = (source.match(new RegExp(`\\} else if \\(nav === '${name}'\\) \\{`, 'g')) || []).length
+  assert.equal(count, 0, `nav === '${name}' must not exist, found ${count} branch(es)`)
 }
 
 const album = branchOf('album')

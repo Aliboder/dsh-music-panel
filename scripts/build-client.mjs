@@ -152,6 +152,9 @@ ${body}
           // Pure pager math; the render mock cannot reach the paged branch.
           pageWindow: pageWindow,
           SONG_PAGE_SIZE: SONG_PAGE_SIZE,
+          // Pure sidebar model, so tests can assert entries without matching
+          // rendered copy (which shares words with empty-state text).
+          navGroupsFor: navGroupsFor,
         },
         enumerable: false,
       })

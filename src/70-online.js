@@ -46,9 +46,6 @@ var onlineStore = createStore({
   albumSongs: [],
   albumPhase: 'idle',
   albumError: '',
-  // Selected album / artist id for the Navidrome browse views. Upstream's
-  // album* state above is URL/name driven; Navidrome addresses albums by id.
-  browseId: '',
   history: readOnlineHistory(),
   liked: {},
   cache: {},
