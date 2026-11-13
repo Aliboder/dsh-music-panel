@@ -129,6 +129,8 @@ const player = readFileSync(join(root, 'src/50-player.js'), 'utf8')
 assert.match(player, /createMediaElementSource\(audioB\)/, 'the spare deck gets its own source node')
 assert.match(player, /setValueCurveAtTime/, 'the fade is scheduled as a curve, not a setInterval ramp')
 assert.match(player, /function swapDecks\(\)/, 'promotion swaps deck roles instead of reloading the track')
+assert.match(player, /adoptIncoming\(token\)/, 'the UI switches to the next track when the fade starts')
+assert.match(player, /function finishCrossfade\(token\)/, 'the ghost deck is released when the curve lands')
 assert.match(player, /analyzeTransitionBuffer/, 'the engine measures the envelopes before deciding')
 assert.match(player, /crossfadePlan\(/, 'the overlap comes from the measurement, not a fixed number')
 

@@ -125,6 +125,7 @@ function createPlayer() {
   var xfadeToken = 0
   var xfadeActive = false
   var xfadePending = false
+  var xfadeAdopted = false
   var xfadeTimer = null
   var xfadeNext = -1
   /** Blob of the track on the active deck, kept for the tail analysis. */
@@ -544,8 +545,6 @@ function createPlayer() {
 
   function onEnded(event) {
     if (!isActiveEvent(event)) return
-    // The fade timer owns the hand-over; a late `ended` must not load twice.
-    if (xfadeActive) return
     flushListening(true)
     flushSessionPosition()
     if (state.queue.length === 0) return
@@ -1142,7 +1141,13 @@ function createPlayer() {
         abortCrossfade()
         return
       }
-      xfadePrepared = { nextAt: nextAt, plan: plan, blob: nextBlob, trim: incoming.trim }
+      xfadePrepared = {
+        nextAt: nextAt,
+        plan: plan,
+        blob: nextBlob,
+        trim: incoming.trim,
+        duration: incoming.envelope ? incoming.envelope.duration : 0,
+      }
       xfadePending = false
       maybeCrossfade()
     })
@@ -1229,10 +1234,13 @@ function createPlayer() {
         fadeNodeB.gain.setValueAtTime(0, at)
         fadeNodeB.gain.setValueCurveAtTime(curves.incoming, at, fade)
         xfadeActive = true
+        // The UI follows the incoming track from the moment it starts singing;
+        // the outgoing deck keeps fading as a ghost until the curve lands.
+        adoptIncoming(token)
         if (xfadeTimer !== null) clearTimeout(xfadeTimer)
         xfadeTimer = setTimeout(function () {
           xfadeTimer = null
-          promoteCrossfade(token)
+          finishCrossfade(token)
         }, Math.max(200, fade * 1000 - 40))
       })
       .catch(function () {
@@ -1261,35 +1269,48 @@ function createPlayer() {
     normalizeGainB = loudness
   }
 
-  function promoteCrossfade(token) {
-    if (token !== xfadeToken) return
-    if (!xfadeActive) return
+  /**
+   * The fade has started, so the incoming deck is already audible: switch the
+   * UI and every track-bound piece of state to it at once. The outgoing
+   * element keeps playing (and fading) as a ghost until the curve lands.
+   */
+  function adoptIncoming(token) {
+    if (token !== xfadeToken || xfadeAdopted) return
     var prepared = xfadePrepared
-    xfadeActive = false
-    xfadePending = false
-    xfadePrepared = null
-    var nextAt = xfadeNext
-    xfadeNext = -1
-    if (nextAt < 0 || !state.queue[nextAt] || audio === null || prepared === null) return abortCrossfade()
+    if (prepared === null || audio === null || audioB === null) return abortCrossfade()
+    var nextAt = prepared.nextAt
+    if (nextAt < 0 || !state.queue[nextAt]) return abortCrossfade()
     flushListening(true)
     flushSessionPosition()
     swapDecks()
     var item = state.queue[nextAt]
+    var duration = prepared.duration > 0 ? prepared.duration : item.durationSec > 0 ? item.durationSec : 0
     state = Object.assign({}, state, {
       index: nextAt,
       currentTime: audio.currentTime || 0,
-      duration: isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0,
+      duration: duration,
       buffered: 0,
       playing: true,
     })
     currentBlob = prepared.blob
     currentLoudnessBlob = prepared.blob
+    xfadePrepared = null
+    xfadeAdopted = true
+    xfadeNext = -1
     resetSession(item)
     session.lastTime = audio.currentTime || 0
     syncMediaSession()
     applyOutputVolume()
     emit()
     savePlaybackState()
+  }
+
+  /** The overlap is over: silence and release the outgoing element. */
+  function finishCrossfade(token) {
+    if (token !== xfadeToken) return
+    xfadeActive = false
+    xfadePending = false
+    xfadeAdopted = false
     if (audioContext !== null) {
       var now = audioContext.currentTime
       if (fadeNode !== null) {
@@ -1309,7 +1330,6 @@ function createPlayer() {
         }
       }
     }
-    // Silence and release the outgoing element; the next fade reuses it.
     if (audioB !== null) {
       try {
         audioB.pause()
@@ -1328,6 +1348,7 @@ function createPlayer() {
     xfadeToken += 1
     xfadePending = false
     xfadeActive = false
+    xfadeAdopted = false
     xfadeNext = -1
     xfadePrepared = null
     if (xfadeTimer !== null) {
@@ -1723,6 +1744,7 @@ function createPlayer() {
       return {
         active: xfadeActive,
         pending: xfadePending,
+        adopted: xfadeAdopted,
         secondary: audioB !== null,
         wired: secondaryWired,
         next: xfadeNext,
