@@ -23,6 +23,7 @@ const MODULE_ID = 'dsh-music-panel'
 /** Explicit order: runtime → generated blocks → core → states → UI → plugin. */
 const FILES = [
   'src/00-runtime.js',
+  'src/02-autoanimate.js',
   'src/00-host-ui.js',
   'src/05-i18n.js',
   'src/06-strings.js',
