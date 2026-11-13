@@ -141,10 +141,11 @@ assert.match(player, /function finishCrossfade\(token\)/, 'the ghost deck is rel
 assert.match(player, /analyzeTransitionBuffer/, 'the engine measures the envelopes before deciding')
 assert.match(player, /crossfadePlan\(/, 'the overlap comes from the measurement, not a fixed number')
 
-// The control is reachable from the audio-effects panel, not only settings.
+// The control sits inside the volume view of the audio-effects panel.
 const panel = readFileSync(join(root, 'src/ui/04-eq-panel.js'), 'utf8')
-assert.match(panel, /function CrossfadePanel/, 'the crossfade view exists in the effects panel')
-assert.match(panel, /id: 'transition'/, 'the panel exposes a transition segment')
-assert.doesNotMatch(panel, /mp-xf-chip/, 'no duration chips: the switch is the whole control')
+assert.match(panel, /settings\.crossfade/, 'the switch is rendered in the effects panel')
+assert.match(panel, /crossfadeSeconds/, 'it writes the same preference as settings')
+assert.doesNotMatch(panel, /id: 'transition'/, 'no separate transition view')
+assert.doesNotMatch(panel, /mp-xf-chip/, 'no duration chips: the engine decides')
 
 console.log('crossfade.test.mjs ok')

@@ -1992,15 +1992,15 @@ function NowPlaying(props) {
             h(IconButton, {
               icon: 'equalizer',
               size: 22,
-              active: extraPanel === 'audio' || extraPanel === 'eq' || extraPanel === 'transition',
+              active: extraPanel === 'audio' || extraPanel === 'eq',
               title: t('page.audioEffects'),
               onClick: function () {
                 var effectsOpen =
-                  extraPanel === 'audio' || extraPanel === 'eq' || extraPanel === 'transition'
+                  extraPanel === 'audio' || extraPanel === 'eq'
                 setExtraPanel(effectsOpen ? '' : 'audio')
               },
             }),
-            extraPanel === 'audio' || extraPanel === 'eq' || extraPanel === 'transition'
+            extraPanel === 'audio' || extraPanel === 'eq'
               ? h(AudioEffectsPanel, {
                   view: extraPanel,
                   onView: setExtraPanel,

@@ -606,6 +606,9 @@ assert.ok(volumeClasses.has('mp-fx-seg-btn'), 'the view switch renders inside th
 assert.ok(textOf(volumeView).includes('音频效果'), 'the panel title renders')
 assert.ok(textOf(volumeView).includes('42%'), 'the volume readout renders')
 assert.ok(textOf(volumeView).includes('FLAC 48 kHz'), 'the quality hint renders')
+assert.ok(textOf(volumeView).includes('智能过渡'), 'the crossfade switch lives in the volume view')
+assert.ok(volumeClasses.has('mp-np-extra-row'), 'the switch rows share the volume layout')
+assert.doesNotMatch(npSource, /transition/, 'there is no separate transition view anymore')
 
 const eqView = expand(
   React.createElement(AudioEffectsPanel, {
@@ -623,37 +626,21 @@ assert.ok(eqViewClasses.has('mp-eqp'), 'the equalizer content renders inside it'
 assert.ok(eqViewClasses.has('mp-fx-seg-btn'), 'the view switch stays visible in the equalizer view')
 assert.ok(textOf(eqView).includes('摇滚'), 'presets are available from the shared panel')
 
-// The transition view is part of the same audio-effects panel, so the switch
-// the user looks for lives next to 音量 and 均衡器 instead of only in settings.
-const transitionOff = expand(
-  React.createElement(AudioEffectsPanel, {
-    view: 'transition',
-    snap: { volume: 0.42 },
-    prefs: {},
-    track: null,
-    onView() {},
-  }),
-)
-assert.ok(classesOf(transitionOff).has('mp-np-extra-pop'), 'the transition view shares the panel')
-assert.ok(classesOf(transitionOff).has('mp-xf'), 'the crossfade controls render')
-assert.ok(textOf(transitionOff).includes('智能过渡'), 'the crossfade switch is labelled')
-assert.ok(textOf(transitionOff).includes('过渡'), 'the third segment label renders')
-assert.ok(!classesOf(transitionOff).has('mp-xf-chip'), 'duration chips stay hidden while off')
-
+// Turning the crossfade on is the same pref the settings sheet writes.
 const savedTransition = internals.prefsStore.get()
-internals.prefsStore.set(Object.assign({}, savedTransition, { crossfadeSeconds: 6, crossfadeAlbums: false }))
-const transitionOn = expand(
+internals.prefsStore.set(Object.assign({}, savedTransition, { crossfadeSeconds: 6 }))
+const volumeOn = expand(
   React.createElement(AudioEffectsPanel, {
-    view: 'transition',
+    view: 'audio',
     snap: { volume: 0.42 },
     prefs: {},
     track: null,
     onView() {},
   }),
 )
-assert.ok(!classesOf(transitionOn).has('mp-xf-chip'), 'there is no duration picker: the engine decides')
-assert.ok(!classesOf(transitionOn).has('mp-xf-advanced'), 'no advanced toggle either')
-assert.ok(!textOf(transitionOn).includes('同专辑也过渡'), 'the album rule is fixed, not a switch')
+assert.ok(textOf(volumeOn).includes('智能过渡'), 'the switch stays in place when enabled')
+assert.ok(!textOf(volumeOn).includes('同专辑也过渡'), 'the album rule is fixed, not a switch')
+assert.ok(!classesOf(volumeOn).has('mp-xf-chip'), 'no duration picker: the engine decides')
 internals.prefsStore.set(savedTransition)
 
 console.log('panel.render.test.mjs ok')

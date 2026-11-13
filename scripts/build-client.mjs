@@ -173,7 +173,6 @@ ${body}
           // Equalizer: the panel renders in tests, and the curve maths is pure.
           AudioEffectsPanel: AudioEffectsPanel,
           EqPanel: EqPanel,
-          CrossfadePanel: CrossfadePanel,
           normalizeEqPrefs: normalizeEqPrefs,
           eqCurveSamples: eqCurveSamples,
           EQ_PRESETS: EQ_PRESETS,

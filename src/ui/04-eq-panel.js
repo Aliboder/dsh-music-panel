@@ -140,49 +140,26 @@ function EqPresetTile(props) {
 var AUDIO_FX_VIEWS = [
   { id: 'audio', labelKey: 'page.volume' },
   { id: 'eq', labelKey: 'eq.title' },
-  { id: 'transition', labelKey: 'fx.transition' },
 ]
-
-/** Crossfade controls: the same prefs the settings sheet edits. */
-function CrossfadePanel() {
-  var prefs = usePrefs()
-  var enabled = crossfadeFadeSeconds(prefs) > 0
-
-  function setEnabled(value) {
-    // Any positive value means "on"; the engine computes the real overlap and
-    // only uses this as the upper bound.
-    setPrefs({ crossfadeSeconds: value ? CROSSFADE_MAX_SECONDS : 0 })
-  }
-
-  return h(
-    'div',
-    { className: 'mp-fx-body mp-xf' },
-    h(
-      'div',
-      { className: 'mp-xf-head' },
-      h('span', { className: 'mp-xf-title' }, t('settings.crossfade')),
-      h(Switch, {
-        value: enabled,
-        label: t('settings.crossfade'),
-        onChange: setEnabled,
-      }),
-    ),
-    h('p', { className: 'mp-xf-desc' }, t('settings.crossfadeHint')),
-    h('div', { className: 'mp-xf-hint' }, t('settings.crossfadeRuntimeHint')),
-  )
-}
 
 function AudioEffectsPanel(props) {
   var snap = props.snap || {}
   var prefs = props.prefs || {}
   var track = props.track || null
-  var view = props.view === 'eq' ? 'eq' : props.view === 'transition' ? 'transition' : 'audio'
+  var view = props.view === 'eq' ? 'eq' : 'audio'
   var volume = clamp(Number(snap.volume), 0, 1)
   if (!isFinite(volume)) volume = 1
   var muted = snap.muted === true
+  var crossfadeOn = crossfadeFadeSeconds(prefs) > 0
 
   function show(next) {
     if (typeof props.onView === 'function') props.onView(next)
+  }
+
+  function toggleCrossfade(value) {
+    // A positive value enables the feature; the engine decides the real
+    // overlap, this is only its upper bound.
+    setPrefs({ crossfadeSeconds: value ? CROSSFADE_MAX_SECONDS : 0 })
   }
 
   var body =
@@ -219,6 +196,16 @@ function AudioEffectsPanel(props) {
               },
             }),
           ),
+          h(
+            'div',
+            { className: 'mp-np-extra-row', title: t('settings.crossfadeHint') },
+            h('span', null, t('settings.crossfade')),
+            h(Switch, {
+              value: crossfadeOn,
+              label: t('settings.crossfade'),
+              onChange: toggleCrossfade,
+            }),
+          ),
           // Pinned to the bottom of the fixed-height card so the panel reads as
           // a filled card instead of controls floating in empty space.
           h(
@@ -227,9 +214,7 @@ function AudioEffectsPanel(props) {
             track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
           ),
         )
-      : view === 'transition'
-        ? h(CrossfadePanel, { prefs: prefs })
-        : h(EqPanel, {})
+      : h(EqPanel, {})
 
   return h(
     'div',

@@ -2042,7 +2042,6 @@ window.__ModuleLoader__.load({
         'settings.crossfade': '智能过渡',
         'settings.crossfadeHint': '分析前后两首歌首尾的响度，自动选择切入点和重叠长度；同专辑连续曲目保持原始的硬切衔接。',
         'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
-        'fx.transition': '过渡',
         'v2.listenTime': '累计播放时长',
         'v2.totalPlays': '总播放次数',
         'v2.trackedTracks': '有记录曲目',
@@ -2213,7 +2212,6 @@ window.__ModuleLoader__.load({
         'settings.crossfade': 'Smart transition',
         'settings.crossfadeHint': 'Measures how both tracks start and end, then picks the cut point and overlap length itself; consecutive tracks of one album keep their original hard join.',
         'settings.crossfadeRuntimeHint': 'Needs Web Audio; skipped when the browser or the source cannot route through it.',
-        'fx.transition': 'Transition',
         'v2.listenTime': 'Listening time',
         'v2.totalPlays': 'Total plays',
         'v2.trackedTracks': 'Tracks tracked',
@@ -8358,11 +8356,6 @@ window.__ModuleLoader__.load({
       '.mp-fx-seg-btn.is-on{background:rgba(255,255,255,.14);color:#f4f4f5}',
       '.mp-fx-body{display:flex;flex:1;flex-direction:column;min-height:0;overflow-y:auto;overscroll-behavior:contain}',
       '.mp-fx-hint{margin-top:auto;padding-top:12px;font-size:11px;line-height:16px;color:rgba(255,255,255,.4)}',
-      '.mp-xf-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
-      '.mp-xf-title{font-size:13px;font-weight:650;color:#f4f4f5}',
-      '.mp-xf-desc{margin:8px 0 0;font-size:11px;line-height:16px;color:rgba(255,255,255,.5)}',
-      '.mp-xf-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;font-size:12px;color:rgba(255,255,255,.75)}',
-      '.mp-xf-hint{margin-top:auto;padding-top:12px;font-size:11px;line-height:16px;color:rgba(255,255,255,.4)}',
       '.mp-fx-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:rgba(255,255,255,.75)}',
       '.mp-fx-value{font-size:11px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}',
       '.mp-fx-range{width:100%;margin-top:8px}',
@@ -9973,49 +9966,26 @@ window.__ModuleLoader__.load({
     var AUDIO_FX_VIEWS = [
       { id: 'audio', labelKey: 'page.volume' },
       { id: 'eq', labelKey: 'eq.title' },
-      { id: 'transition', labelKey: 'fx.transition' },
     ]
-
-    /** Crossfade controls: the same prefs the settings sheet edits. */
-    function CrossfadePanel() {
-      var prefs = usePrefs()
-      var enabled = crossfadeFadeSeconds(prefs) > 0
-
-      function setEnabled(value) {
-        // Any positive value means "on"; the engine computes the real overlap and
-        // only uses this as the upper bound.
-        setPrefs({ crossfadeSeconds: value ? CROSSFADE_MAX_SECONDS : 0 })
-      }
-
-      return h(
-        'div',
-        { className: 'mp-fx-body mp-xf' },
-        h(
-          'div',
-          { className: 'mp-xf-head' },
-          h('span', { className: 'mp-xf-title' }, t('settings.crossfade')),
-          h(Switch, {
-            value: enabled,
-            label: t('settings.crossfade'),
-            onChange: setEnabled,
-          }),
-        ),
-        h('p', { className: 'mp-xf-desc' }, t('settings.crossfadeHint')),
-        h('div', { className: 'mp-xf-hint' }, t('settings.crossfadeRuntimeHint')),
-      )
-    }
 
     function AudioEffectsPanel(props) {
       var snap = props.snap || {}
       var prefs = props.prefs || {}
       var track = props.track || null
-      var view = props.view === 'eq' ? 'eq' : props.view === 'transition' ? 'transition' : 'audio'
+      var view = props.view === 'eq' ? 'eq' : 'audio'
       var volume = clamp(Number(snap.volume), 0, 1)
       if (!isFinite(volume)) volume = 1
       var muted = snap.muted === true
+      var crossfadeOn = crossfadeFadeSeconds(prefs) > 0
 
       function show(next) {
         if (typeof props.onView === 'function') props.onView(next)
+      }
+
+      function toggleCrossfade(value) {
+        // A positive value enables the feature; the engine decides the real
+        // overlap, this is only its upper bound.
+        setPrefs({ crossfadeSeconds: value ? CROSSFADE_MAX_SECONDS : 0 })
       }
 
       var body =
@@ -10052,6 +10022,16 @@ window.__ModuleLoader__.load({
                   },
                 }),
               ),
+              h(
+                'div',
+                { className: 'mp-np-extra-row', title: t('settings.crossfadeHint') },
+                h('span', null, t('settings.crossfade')),
+                h(Switch, {
+                  value: crossfadeOn,
+                  label: t('settings.crossfade'),
+                  onChange: toggleCrossfade,
+                }),
+              ),
               // Pinned to the bottom of the fixed-height card so the panel reads as
               // a filled card instead of controls floating in empty space.
               h(
@@ -10060,9 +10040,7 @@ window.__ModuleLoader__.load({
                 track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
               ),
             )
-          : view === 'transition'
-            ? h(CrossfadePanel, { prefs: prefs })
-            : h(EqPanel, {})
+          : h(EqPanel, {})
 
       return h(
         'div',
@@ -12530,15 +12508,15 @@ window.__ModuleLoader__.load({
                 h(IconButton, {
                   icon: 'equalizer',
                   size: 22,
-                  active: extraPanel === 'audio' || extraPanel === 'eq' || extraPanel === 'transition',
+                  active: extraPanel === 'audio' || extraPanel === 'eq',
                   title: t('page.audioEffects'),
                   onClick: function () {
                     var effectsOpen =
-                      extraPanel === 'audio' || extraPanel === 'eq' || extraPanel === 'transition'
+                      extraPanel === 'audio' || extraPanel === 'eq'
                     setExtraPanel(effectsOpen ? '' : 'audio')
                   },
                 }),
-                extraPanel === 'audio' || extraPanel === 'eq' || extraPanel === 'transition'
+                extraPanel === 'audio' || extraPanel === 'eq'
                   ? h(AudioEffectsPanel, {
                       view: extraPanel,
                       onView: setExtraPanel,
@@ -19517,7 +19495,6 @@ window.__ModuleLoader__.load({
           // Equalizer: the panel renders in tests, and the curve maths is pure.
           AudioEffectsPanel: AudioEffectsPanel,
           EqPanel: EqPanel,
-          CrossfadePanel: CrossfadePanel,
           normalizeEqPrefs: normalizeEqPrefs,
           eqCurveSamples: eqCurveSamples,
           EQ_PRESETS: EQ_PRESETS,
