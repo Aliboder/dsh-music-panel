@@ -97,22 +97,33 @@ function TrackRow(props) {
       h(
         'div',
         { className: 'mp-row-sub' },
-        props.onArtist && String(track.artist || '').trim() !== ''
+        props.onArtist && trackArtistNames(track).length > 0
           ? h(
-              'button',
-              {
-                type: 'button',
-                className: 'mp-artist-link',
-                title: track.artist,
-                onClick: function (event) {
-                  event.stopPropagation()
-                  props.onArtist(track)
-                },
-                onDoubleClick: function (event) {
-                  event.stopPropagation()
-                },
-              },
-              track.artist,
+              'span',
+              { className: 'mp-artist-links' },
+              trackArtistNames(track).map(function (name, index) {
+                return h(
+                  'span',
+                  { key: name, className: 'mp-artist-piece' },
+                  index > 0 ? h('span', { className: 'mp-artist-sep' }, ' / ') : null,
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mp-artist-link',
+                      title: name,
+                      onClick: function (event) {
+                        event.stopPropagation()
+                        props.onArtist(track, name)
+                      },
+                      onDoubleClick: function (event) {
+                        event.stopPropagation()
+                      },
+                    },
+                    name,
+                  ),
+                )
+              }),
             )
           : trackArtistOf(track),
         props.onAlbum && track.album

@@ -310,8 +310,9 @@ function closeOnlineAlbum() {
  * the clicked artist. Chinese providers have no artist catalogue endpoint, so
  * this keeps one shared list shape instead of a provider-specific page.
  */
-async function openOnlineArtist(track) {
-  var artist = String((track && track.artist) || '').trim()
+async function openOnlineArtist(track, artistOverride) {
+  var names = trackArtistNames(track)
+  var artist = String(artistOverride || (names.length > 0 ? names[0] : (track && track.artist)) || '').trim()
   if (artist === '') return
   var provider = (track && track.onlineProvider) || onlineStore.get().provider
   var from = uiStore.get().nav

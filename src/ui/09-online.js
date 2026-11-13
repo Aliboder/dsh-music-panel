@@ -348,8 +348,8 @@ function OnlineContent(props) {
     uiStore.set({ nav: 'artist', filter: null, query: '' })
   }
 
-  function openArtist(track) {
-    void openOnlineArtist(track)
+  function openArtist(track, artist) {
+    void openOnlineArtist(track, artist)
   }
 
   var title = t('v2.recent')

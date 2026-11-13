@@ -2236,6 +2236,28 @@ window.__ModuleLoader__.load({
       return Math.min(Math.max(value, min), max)
     }
 
+    /** Split a display artist string into distinct clickable artists. */
+    function trackArtistNames(track) {
+      var raw = String((track && track.artist) || '').trim()
+      if (raw === '') return []
+      var names = []
+      function push(text) {
+        var value = String(text || '').trim()
+        if (value !== '' && names.indexOf(value) < 0) names.push(value)
+      }
+      raw.split(/\s+\/\s+|\s*[、&,，;；]\s*|\s+(?:feat\.?|ft\.?)\s+/i).forEach(function (part) {
+        var text = String(part || '').trim()
+        if (text === '') return
+        // Split a bare slash only for CJK names ("许嵩/莫诗旎"), so AC/DC stays whole.
+        if (/[\u3400-\u9fff]/.test(text) && text.indexOf('/') >= 0) {
+          text.split('/').forEach(push)
+        } else {
+          push(text)
+        }
+      })
+      return names
+    }
+
     function pad2(value) {
       return value < 10 ? '0' + value : String(value)
     }
@@ -5791,8 +5813,9 @@ window.__ModuleLoader__.load({
      * the clicked artist. Chinese providers have no artist catalogue endpoint, so
      * this keeps one shared list shape instead of a provider-specific page.
      */
-    async function openOnlineArtist(track) {
-      var artist = String((track && track.artist) || '').trim()
+    async function openOnlineArtist(track, artistOverride) {
+      var names = trackArtistNames(track)
+      var artist = String(artistOverride || (names.length > 0 ? names[0] : (track && track.artist)) || '').trim()
       if (artist === '') return
       var provider = (track && track.onlineProvider) || onlineStore.get().provider
       var from = uiStore.get().nav
@@ -6579,6 +6602,7 @@ window.__ModuleLoader__.load({
       '.mp-album-link:hover{color:var(--dsw-alias-state-business-primary,#4176E6);text-decoration:underline}',
       '.mp-artist-link{max-width:100%;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-artist-link:hover{color:var(--dsw-alias-state-business-primary,#4176E6);text-decoration:underline}',
+      '.mp-artist-piece{display:inline}',
       '.mp-row-sub-album{display:none}',
       '@media (max-width:1080px){.mp-row-sub-album{display:inline}}',
       '.mp-row-time{font-size:13px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:right;font-variant-numeric:tabular-nums}',
@@ -7706,22 +7730,33 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'mp-row-sub' },
-            props.onArtist && String(track.artist || '').trim() !== ''
+            props.onArtist && trackArtistNames(track).length > 0
               ? h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mp-artist-link',
-                    title: track.artist,
-                    onClick: function (event) {
-                      event.stopPropagation()
-                      props.onArtist(track)
-                    },
-                    onDoubleClick: function (event) {
-                      event.stopPropagation()
-                    },
-                  },
-                  track.artist,
+                  'span',
+                  { className: 'mp-artist-links' },
+                  trackArtistNames(track).map(function (name, index) {
+                    return h(
+                      'span',
+                      { key: name, className: 'mp-artist-piece' },
+                      index > 0 ? h('span', { className: 'mp-artist-sep' }, ' / ') : null,
+                      h(
+                        'button',
+                        {
+                          type: 'button',
+                          className: 'mp-artist-link',
+                          title: name,
+                          onClick: function (event) {
+                            event.stopPropagation()
+                            props.onArtist(track, name)
+                          },
+                          onDoubleClick: function (event) {
+                            event.stopPropagation()
+                          },
+                        },
+                        name,
+                      ),
+                    )
+                  }),
                 )
               : trackArtistOf(track),
             props.onAlbum && track.album
@@ -12604,7 +12639,11 @@ window.__ModuleLoader__.load({
       if (!filter) return list
       return list.filter(function (track) {
         if (filter.kind === 'album') return (track.album || t('page.unknownAlbum')) === filter.value
-        if (filter.kind === 'artist') return (track.artist || t('page.unknownArtist')) === filter.value
+        if (filter.kind === 'artist') {
+          var artistNames = trackArtistNames(track)
+          if (artistNames.length === 0) artistNames = [t('page.unknownArtist')]
+          return artistNames.indexOf(filter.value) >= 0
+        }
         if (filter.kind === 'folder') return trackDirOf(track) === filter.value || track.folder === filter.value
         return true
       })
@@ -12739,9 +12778,9 @@ window.__ModuleLoader__.load({
             if (!track || !track.album) return
             setUi({ nav: 'songs', filter: { kind: 'album', value: track.album }, query: '' })
           },
-          onArtist: function (track) {
-            if (!track || !String(track.artist || '').trim()) return
-            setUi({ nav: 'songs', filter: { kind: 'artist', value: track.artist }, query: '' })
+          onArtist: function (track, artist) {
+            if (!track || !String(artist || '').trim()) return
+            setUi({ nav: 'songs', filter: { kind: 'artist', value: artist }, query: '' })
           },
           empty: empty,
         })
@@ -12866,9 +12905,25 @@ window.__ModuleLoader__.load({
         empty = h(Empty, { title: t('page.noResults'), icon: 'disc' })
       } else if (ui.nav === 'artists' || ui.nav === 'folders') {
         var isArtists = ui.nav === 'artists'
-        var groups = groupTracks(filterTracks(allTracks, ui.query), function (track) {
-          return isArtists ? track.artist || t('page.unknownArtist') : trackDirOf(track)
-        }).sort(function (left, right) {
+        var groupedTracks = filterTracks(allTracks, ui.query)
+        var groups
+        if (isArtists) {
+          var artistGroups = {}
+          groupedTracks.forEach(function (track) {
+            var names = trackArtistNames(track)
+            if (names.length === 0) names = [t('page.unknownArtist')]
+            names.forEach(function (name) {
+              if (!artistGroups[name]) artistGroups[name] = []
+              artistGroups[name].push(track)
+            })
+          })
+          groups = Object.keys(artistGroups).map(function (key) {
+            return { key: key, tracks: artistGroups[key] }
+          })
+        } else {
+          groups = groupTracks(groupedTracks, trackDirOf)
+        }
+        groups.sort(function (left, right) {
           return String(left.key).localeCompare(String(right.key), 'zh')
         })
         count = groups.length
@@ -13492,8 +13547,8 @@ window.__ModuleLoader__.load({
         uiStore.set({ nav: 'artist', filter: null, query: '' })
       }
 
-      function openArtist(track) {
-        void openOnlineArtist(track)
+      function openArtist(track, artist) {
+        void openOnlineArtist(track, artist)
       }
 
       var title = t('v2.recent')

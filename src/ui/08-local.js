@@ -16,7 +16,11 @@ function applyUiFilter(list, filter) {
   if (!filter) return list
   return list.filter(function (track) {
     if (filter.kind === 'album') return (track.album || t('page.unknownAlbum')) === filter.value
-    if (filter.kind === 'artist') return (track.artist || t('page.unknownArtist')) === filter.value
+    if (filter.kind === 'artist') {
+      var artistNames = trackArtistNames(track)
+      if (artistNames.length === 0) artistNames = [t('page.unknownArtist')]
+      return artistNames.indexOf(filter.value) >= 0
+    }
     if (filter.kind === 'folder') return trackDirOf(track) === filter.value || track.folder === filter.value
     return true
   })
@@ -151,9 +155,9 @@ function LocalContent(props) {
         if (!track || !track.album) return
         setUi({ nav: 'songs', filter: { kind: 'album', value: track.album }, query: '' })
       },
-      onArtist: function (track) {
-        if (!track || !String(track.artist || '').trim()) return
-        setUi({ nav: 'songs', filter: { kind: 'artist', value: track.artist }, query: '' })
+      onArtist: function (track, artist) {
+        if (!track || !String(artist || '').trim()) return
+        setUi({ nav: 'songs', filter: { kind: 'artist', value: artist }, query: '' })
       },
       empty: empty,
     })
@@ -278,9 +282,25 @@ function LocalContent(props) {
     empty = h(Empty, { title: t('page.noResults'), icon: 'disc' })
   } else if (ui.nav === 'artists' || ui.nav === 'folders') {
     var isArtists = ui.nav === 'artists'
-    var groups = groupTracks(filterTracks(allTracks, ui.query), function (track) {
-      return isArtists ? track.artist || t('page.unknownArtist') : trackDirOf(track)
-    }).sort(function (left, right) {
+    var groupedTracks = filterTracks(allTracks, ui.query)
+    var groups
+    if (isArtists) {
+      var artistGroups = {}
+      groupedTracks.forEach(function (track) {
+        var names = trackArtistNames(track)
+        if (names.length === 0) names = [t('page.unknownArtist')]
+        names.forEach(function (name) {
+          if (!artistGroups[name]) artistGroups[name] = []
+          artistGroups[name].push(track)
+        })
+      })
+      groups = Object.keys(artistGroups).map(function (key) {
+        return { key: key, tracks: artistGroups[key] }
+      })
+    } else {
+      groups = groupTracks(groupedTracks, trackDirOf)
+    }
+    groups.sort(function (left, right) {
       return String(left.key).localeCompare(String(right.key), 'zh')
     })
     count = groups.length

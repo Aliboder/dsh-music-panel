@@ -10,6 +10,28 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
 }
 
+/** Split a display artist string into distinct clickable artists. */
+function trackArtistNames(track) {
+  var raw = String((track && track.artist) || '').trim()
+  if (raw === '') return []
+  var names = []
+  function push(text) {
+    var value = String(text || '').trim()
+    if (value !== '' && names.indexOf(value) < 0) names.push(value)
+  }
+  raw.split(/\s+\/\s+|\s*[、&,，;；]\s*|\s+(?:feat\.?|ft\.?)\s+/i).forEach(function (part) {
+    var text = String(part || '').trim()
+    if (text === '') return
+    // Split a bare slash only for CJK names ("许嵩/莫诗旎"), so AC/DC stays whole.
+    if (/[\u3400-\u9fff]/.test(text) && text.indexOf('/') >= 0) {
+      text.split('/').forEach(push)
+    } else {
+      push(text)
+    }
+  })
+  return names
+}
+
 function pad2(value) {
   return value < 10 ? '0' + value : String(value)
 }

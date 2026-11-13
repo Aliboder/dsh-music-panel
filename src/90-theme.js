@@ -199,6 +199,7 @@ var THEME_CSS = [
   '.mp-album-link:hover{color:var(--dsw-alias-state-business-primary,#4176E6);text-decoration:underline}',
   '.mp-artist-link{max-width:100%;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
   '.mp-artist-link:hover{color:var(--dsw-alias-state-business-primary,#4176E6);text-decoration:underline}',
+  '.mp-artist-piece{display:inline}',
   '.mp-row-sub-album{display:none}',
   '@media (max-width:1080px){.mp-row-sub-album{display:inline}}',
   '.mp-row-time{font-size:13px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:right;font-variant-numeric:tabular-nums}',
