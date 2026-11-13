@@ -37,31 +37,42 @@ function useComposerWave(ref, playing, active) {
       var raf = 0
       var last = 0
       var smooth = 0
+      var previousLow = 0
       function tick(now) {
         raf = requestAnimationFrame(tick)
         if (now - last < 50) return
         last = now
         var data = player.getWave()
-        var level = 0
+        var target = 0
         if (data !== null && data.length > 0) {
           var bass = 0
+          var bassPeak = 0
           var bassCount = 0
           var mid = 0
           var midCount = 0
-          for (var i = 1; i < Math.min(8, data.length); i += 1) {
-            bass += data[i]
+          for (var i = 1; i < Math.min(10, data.length); i += 1) {
+            var sample = data[i]
+            bass += sample
+            if (sample > bassPeak) bassPeak = sample
             bassCount += 1
           }
-          for (var j = 8; j < Math.min(30, data.length); j += 1) {
+          for (var j = 10; j < Math.min(36, data.length); j += 1) {
             mid += data[j]
             midCount += 1
           }
-          var low = bassCount > 0 ? bass / bassCount / 255 : 0
+          var low = bassCount > 0 ? (bass / bassCount / 255) * 0.45 + (bassPeak / 255) * 0.55 : 0
           var middle = midCount > 0 ? mid / midCount / 255 : 0
-          level = clamp(low * 1.25 + middle * 0.45, 0, 1)
-          level = Math.pow(level, 1.3)
+          // A beat is a positive jump in low-frequency energy; the onset term
+          // makes the rings open visibly even when the average bass is steady.
+          var onset = Math.max(0, low - previousLow)
+          previousLow = low
+          target = clamp(low * 1.55 + onset * 7 + middle * 0.28, 0, 1)
+          target = Math.pow(target, 0.72)
+        } else {
+          previousLow = 0
         }
-        smooth += (level - smooth) * 0.38
+        var attack = target > smooth ? 0.68 : 0.16
+        smooth += (target - smooth) * attack
         node.style.setProperty('--mp-wave-level', smooth.toFixed(3))
       }
       raf = requestAnimationFrame(tick)

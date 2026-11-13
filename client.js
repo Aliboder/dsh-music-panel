@@ -7269,14 +7269,14 @@ window.__ModuleLoader__.load({
       '.mp-np-setting-hint{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:6px;line-height:1.5}',
 
       // ── composer / sidebar ──────────────────────────────────────────────────
-      '.mp-composer-lyrics{display:flex;align-items:center;gap:6px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto 6px;height:calc(24px + var(--dsh-content-font-delta,0px));padding:0 2px;color:var(--dsw-alias-label-secondary,#cfd3d6);font-family:var(--dsw-font-family,inherit);font-size:calc(12px + var(--dsh-content-font-delta,0px));line-height:calc(20px + var(--dsh-content-font-delta,0px));overflow:visible;white-space:nowrap}',
+      '.mp-composer-lyrics{display:flex;align-items:center;gap:6px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto 6px;height:calc(24px + var(--dsh-content-font-delta,0px));padding:0 2px 0 10px;color:var(--dsw-alias-label-secondary,#cfd3d6);font-family:var(--dsw-font-family,inherit);font-size:calc(12px + var(--dsh-content-font-delta,0px));line-height:calc(20px + var(--dsh-content-font-delta,0px));overflow:visible;white-space:nowrap}',
       '.mp-composer-lyric-icon{position:relative;width:calc(16px + var(--dsh-content-font-delta,0px));height:calc(16px + var(--dsh-content-font-delta,0px));display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.9}',
-      '.mp-composer-lyric-icon svg{position:relative;z-index:1;width:calc(12px + var(--dsh-content-font-delta,0px));height:calc(12px + var(--dsh-content-font-delta,0px));transform:scale(calc(1 + var(--mp-wave-level,0) * .08));transition:transform 80ms linear}',
-      '.mp-composer-wave{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}',
-      '.mp-composer-wave i{position:absolute;width:calc(12px + var(--dsh-content-font-delta,0px));height:calc(12px + var(--dsh-content-font-delta,0px));border:1px solid currentColor;border-radius:50%;opacity:0;transform:scale(.82);will-change:transform,opacity;transition:transform 80ms linear,opacity 120ms linear}',
-      '.mp-composer-wave i:nth-child(1){opacity:calc(var(--mp-wave-level,0) * .4);transform:scale(calc(.82 + var(--mp-wave-level,0) * .55))}',
-      '.mp-composer-wave i:nth-child(2){opacity:calc(var(--mp-wave-level,0) * .24);transform:scale(calc(1.05 + var(--mp-wave-level,0) * .65))}',
-      '.mp-composer-wave i:nth-child(3){opacity:calc(var(--mp-wave-level,0) * .12);transform:scale(calc(1.28 + var(--mp-wave-level,0) * .55))}',
+      '.mp-composer-lyric-icon svg{position:relative;z-index:1;width:calc(12px + var(--dsh-content-font-delta,0px));height:calc(12px + var(--dsh-content-font-delta,0px));transform:scale(calc(1 + var(--mp-wave-level,0) * .16));transition:transform 60ms linear}',
+      '.mp-composer-wave{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:var(--dsw-alias-state-business-primary,#4D6BFE)}',
+      '.mp-composer-wave i{position:absolute;width:calc(12px + var(--dsh-content-font-delta,0px));height:calc(12px + var(--dsh-content-font-delta,0px));border:1.5px solid currentColor;border-radius:50%;opacity:0;transform:scale(.9);will-change:transform,opacity;transition:transform 60ms linear,opacity 90ms linear;box-shadow:0 0 7px color-mix(in srgb,currentColor 45%,transparent)}',
+      '.mp-composer-wave i:nth-child(1){opacity:calc(var(--mp-wave-level,0) * .82);transform:scale(calc(.9 + var(--mp-wave-level,0) * 1.1))}',
+      '.mp-composer-wave i:nth-child(2){opacity:calc(var(--mp-wave-level,0) * .5);transform:scale(calc(1.15 + var(--mp-wave-level,0) * 1.45))}',
+      '.mp-composer-wave i:nth-child(3){opacity:calc(var(--mp-wave-level,0) * .28);transform:scale(calc(1.4 + var(--mp-wave-level,0) * 1.8))}',
       '@media (prefers-reduced-motion:reduce){.mp-composer-wave{display:none}.mp-composer-lyric-icon svg{transform:none;transition:none}}',
       '.mp-composer-lyric-viewport{position:relative;display:inline-flex;align-items:center;flex:0 1 auto;min-width:0;max-width:100%;height:calc(20px + var(--dsh-content-font-delta,0px));overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%)}',
       '.mp-composer-lyric-layer{display:inline-flex;align-items:center;gap:6px;max-width:100%;white-space:nowrap}',
@@ -15515,31 +15515,42 @@ window.__ModuleLoader__.load({
           var raf = 0
           var last = 0
           var smooth = 0
+          var previousLow = 0
           function tick(now) {
             raf = requestAnimationFrame(tick)
             if (now - last < 50) return
             last = now
             var data = player.getWave()
-            var level = 0
+            var target = 0
             if (data !== null && data.length > 0) {
               var bass = 0
+              var bassPeak = 0
               var bassCount = 0
               var mid = 0
               var midCount = 0
-              for (var i = 1; i < Math.min(8, data.length); i += 1) {
-                bass += data[i]
+              for (var i = 1; i < Math.min(10, data.length); i += 1) {
+                var sample = data[i]
+                bass += sample
+                if (sample > bassPeak) bassPeak = sample
                 bassCount += 1
               }
-              for (var j = 8; j < Math.min(30, data.length); j += 1) {
+              for (var j = 10; j < Math.min(36, data.length); j += 1) {
                 mid += data[j]
                 midCount += 1
               }
-              var low = bassCount > 0 ? bass / bassCount / 255 : 0
+              var low = bassCount > 0 ? (bass / bassCount / 255) * 0.45 + (bassPeak / 255) * 0.55 : 0
               var middle = midCount > 0 ? mid / midCount / 255 : 0
-              level = clamp(low * 1.25 + middle * 0.45, 0, 1)
-              level = Math.pow(level, 1.3)
+              // A beat is a positive jump in low-frequency energy; the onset term
+              // makes the rings open visibly even when the average bass is steady.
+              var onset = Math.max(0, low - previousLow)
+              previousLow = low
+              target = clamp(low * 1.55 + onset * 7 + middle * 0.28, 0, 1)
+              target = Math.pow(target, 0.72)
+            } else {
+              previousLow = 0
             }
-            smooth += (level - smooth) * 0.38
+            var attack = target > smooth ? 0.68 : 0.16
+            smooth += (target - smooth) * attack
             node.style.setProperty('--mp-wave-level', smooth.toFixed(3))
           }
           raf = requestAnimationFrame(tick)
