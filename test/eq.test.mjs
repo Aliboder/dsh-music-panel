@@ -52,13 +52,17 @@ assert.equal(eq.eqFaderToDb(64), 12)
 assert.equal(eq.eqFaderToDb(99), 12)
 assert.equal(eq.eqFaderToDb('x'), 0)
 
-// Flat is a real bypass, and the presets keep the original proportions.
+// Flat is a real bypass; the Winamp presets are re-derived on the new grid.
 assert.deepEqual(eq.eqBandsForPreset('flat'), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 const rock = eq.eqBandsForPreset('rock')
-assert.equal(rock[0], 5, 'rock bass fader 45 maps to +5 dB on the integer grid')
+assert.ok(rock[0] > 0, 'rock still lifts the bass on the ISO grid')
 assert.ok(rock[3] < rock[2], 'rock scoops the low mids')
 const bass = eq.eqBandsForPreset('fullBass')
-assert.ok(bass[0] > 5 && bass[9] < -6, 'full bass lifts lows and cuts highs')
+// Winamp's lowest fader is 70 Hz, so on the 31 Hz grid only the filter tail
+// survives — the character stays, the sub-bass number is naturally small.
+assert.ok(bass[0] > 0 && bass[9] < -3, 'full bass lifts lows and cuts highs')
+const treble = eq.eqBandsForPreset('fullTreble')
+assert.ok(treble[8] > 5 && treble[0] < 0, 'full treble keeps its shape')
 
 // ── persisted prefs ───────────────────────────────────────────────────────
 const empty = eq.normalizeEqPrefs({})
@@ -66,16 +70,43 @@ assert.equal(empty.enabled, false, 'an upgrade must not switch the EQ on')
 assert.equal(empty.preset, 'flat')
 assert.deepEqual(empty.bands, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
-const junk = eq.normalizeEqPrefs({ eqBands: [3, 'x', 99, null], eqPreamp: 99, eqEnabled: 'yes' })
+const junk = eq.normalizeEqPrefs({
+  eqBands: [3, 'x', 99, null],
+  eqPreamp: 99,
+  eqEnabled: 'yes',
+  eqLayout: 'iso10',
+})
 assert.deepEqual(junk.bands, [3, 0, 12, 0, 0, 0, 0, 0, 0, 0], 'junk bands are clamped/padded')
 assert.equal(junk.preamp, 12, 'preamp is clamped')
 assert.equal(junk.enabled, false, 'only a real boolean enables the EQ')
 
-const saved = eq.normalizeEqPrefs({ eqEnabled: true, eqPreset: 'rock', eqBands: rock })
+const saved = eq.normalizeEqPrefs({
+  eqEnabled: true,
+  eqPreset: 'rock',
+  eqBands: rock,
+  eqLayout: 'iso10',
+})
 assert.equal(saved.preset, 'rock')
 assert.deepEqual(saved.bands, rock)
 
-const badPreset = eq.normalizeEqPrefs({ eqPreset: 'nope', eqBands: rock })
+// Bands written by a build with a different grid must not be misread.
+const staleGrid = eq.normalizeEqPrefs({ eqEnabled: true, eqPreset: 'rock', eqBands: [5, 3, -4, -5, -3, 2, 5, 7, 7, 7] })
+assert.deepEqual(staleGrid.bands, eq.eqBandsForPreset('rock'), 'old grid bands are re-derived from the preset')
+assert.notDeepEqual(staleGrid.bands, [5, 3, -4, -5, -3, 2, 5, 7, 7, 7])
+
+// Device presets carry their own id and are not validated against the factory list.
+const device = eq.normalizeEqPrefs({
+  eqEnabled: true,
+  eqPreset: 'device',
+  eqDevice: 'oratory1990::over-ear::Sennheiser HD 600',
+  eqBands: [6.9, 3.3, -1.1, -1.6, 0.6, -0.8, 0.1, -1, 3.9, -6.5],
+  eqLayout: 'iso10',
+})
+assert.equal(device.preset, 'device')
+assert.equal(device.device, 'oratory1990::over-ear::Sennheiser HD 600')
+assert.deepEqual(device.bands, [6.9, 3.3, -1.1, -1.6, 0.6, -0.8, 0.1, -1, 3.9, -6.5], 'tenths survive')
+
+const badPreset = eq.normalizeEqPrefs({ eqPreset: 'nope', eqBands: rock, eqLayout: 'iso10' })
 assert.equal(badPreset.preset, 'flat', 'unknown presets fall back to flat')
 
 // ── headroom ──────────────────────────────────────────────────────────────
@@ -111,7 +142,7 @@ const flatCurve = eq.eqCurveSamples([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0, 32, 44100
 assert.equal(flatCurve.length, 32)
 for (const point of flatCurve) assert.ok(Math.abs(point.db) < 0.01, 'flat is 0 dB everywhere')
 
-const boosted = [0, 0, 0, 0, 6, 0, 0, 0, 0, 0]
+const boosted = [0, 0, 0, 0, 0, 6, 0, 0, 0, 0]
 const boostedCurve = eq.eqCurveSamples(boosted, 0, 64, 44100)
 const at1k = boostedCurve.reduce((best, point) =>
   Math.abs(point.freq - 1000) < Math.abs(best.freq - 1000) ? point : best,

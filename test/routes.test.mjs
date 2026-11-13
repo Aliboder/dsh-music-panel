@@ -54,6 +54,18 @@ assert.equal(onlineSongId({ onlineId: '42' }), '42')
 assert.equal(onlineSongId({ id: '7' }), '7')
 assert.equal(onlineSongId(null), '')
 
+// AutoEQ device preset library: search is served from the bundled dataset.
+res = fakeRes()
+await handle(fakeReq('/music/eq/presets?q=airpods&limit=5'), res)
+assert.equal(res.status, 200)
+const eqBody = res.json()
+assert.equal(eqBody.ok, true)
+assert.ok(eqBody.total > 5000, 'the whole library is advertised')
+assert.ok(eqBody.results.length > 0 && eqBody.results.length <= 5, 'the limit is respected')
+assert.equal(eqBody.results[0].bands.length, 10, 'each result carries ten bands')
+assert.ok(eqBody.results.every((row) => /airpods/i.test(row.name)), 'results match the query')
+assert.ok(Array.isArray(eqBody.sources) && eqBody.sources.length > 3, 'sources are listed')
+
 // unknown route
 res = fakeRes()
 await handle(fakeReq('/music/nope'), res)

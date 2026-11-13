@@ -9,14 +9,27 @@
 
 var EQ_TABS = [
   { id: 'presets', labelKey: 'eq.tabPresets' },
+  { id: 'device', labelKey: 'eq.tabDevices' },
   { id: 'mine', labelKey: 'eq.tabMine' },
   { id: 'edit', labelKey: 'eq.tabEdit' },
 ]
 
+/** AutoEQ stores the measurement rig family; show it in the user's language. */
+function eqFormLabel(form) {
+  var value = String(form || '')
+  if (value.indexOf('in-ear') !== -1) return t('eq.formInEar')
+  if (value.indexOf('over-ear') !== -1) return t('eq.formOverEar')
+  if (value.indexOf('earbud') !== -1) return t('eq.formEarbud')
+  return value
+}
+
 function eqFormatDb(value) {
   var db = Number(value) || 0
   if (Math.abs(db) < 0.05) return '0'
-  return (db > 0 ? '+' : '') + String(Math.round(db))
+  var rounded = Math.round(db)
+  // AutoEQ gains land on tenths; show them instead of pretending to be whole.
+  var text = Math.abs(db - rounded) < 0.05 ? String(Math.abs(rounded)) : Math.abs(db).toFixed(1)
+  return (db > 0 ? '+' : '-') + text
 }
 
 function eqFrequencyLabel(freq) {
@@ -83,7 +96,7 @@ function EqFader(props) {
       type: 'range',
       min: -EQ_MAX_DB,
       max: EQ_MAX_DB,
-      step: 1,
+      step: 0.5,
       value: Number(props.value) || 0,
       'aria-label': props.label + ' Hz',
       title: props.label + ' Hz',
@@ -217,8 +230,9 @@ function AudioEffectsPanel(props) {
 function EqPanel(props) {
   var prefs = usePrefs()
   var eq = normalizeEqPrefs(prefs)
+  var initialTab = props.initialTab
   var tabPair = useState(
-    props.initialTab === 'mine' || props.initialTab === 'edit' ? props.initialTab : 'presets',
+    initialTab === 'device' || initialTab === 'mine' || initialTab === 'edit' ? initialTab : 'presets',
   )
   var tab = tabPair[0]
   var setTab = tabPair[1]
@@ -230,7 +244,73 @@ function EqPanel(props) {
   var setDraft = draftPair[1]
   var custom = Array.isArray(prefs.eqCustom) ? prefs.eqCustom : []
   var available = player.getEq().available
-  var activePreset = eqPresetForBands(eq.bands)
+  var activePreset = eq.preset === 'device' ? 'device' : eqPresetForBands(eq.bands)
+
+  // ── AutoEQ device search (debounced, cancelled by sequence) ──────────
+  var searchPair = useState('')
+  var search = searchPair[0]
+  var setSearch = searchPair[1]
+  var foundPair = useState([])
+  var found = foundPair[0]
+  var setFound = foundPair[1]
+  var loadingPair = useState(false)
+  var loading = loadingPair[0]
+  var setLoading = loadingPair[1]
+  var errorPair = useState('')
+  var searchError = errorPair[0]
+  var setSearchError = errorPair[1]
+  var totalPair = useState(0)
+  var total = totalPair[0]
+  var setTotal = totalPair[1]
+  var searchSeq = useRef(0)
+
+  useEffect(
+    function () {
+      if (tab !== 'device') return undefined
+      var text = String(search || '').trim()
+      if (text === '') {
+        setFound([])
+        setTotal(0)
+        setSearchError('')
+        setLoading(false)
+        return undefined
+      }
+      var seq = searchSeq.current + 1
+      searchSeq.current = seq
+      setLoading(true)
+      var timer = setTimeout(function () {
+        getJson(API + 'eq/presets?q=' + encodeURIComponent(text) + '&limit=40')
+          .then(function (body) {
+            if (searchSeq.current !== seq) return
+            setFound(Array.isArray(body.results) ? body.results : [])
+            setTotal(Number(body.total) || 0)
+            setSearchError('')
+          })
+          .catch(function (error) {
+            if (searchSeq.current !== seq) return
+            setFound([])
+            setSearchError(error && error.message ? error.message : t('eq.searchFailed'))
+          })
+          .then(function () {
+            if (searchSeq.current === seq) setLoading(false)
+          })
+      }, 220)
+      return function () {
+        clearTimeout(timer)
+      }
+    },
+    [tab, search],
+  )
+
+  function applyDevice(entry) {
+    if (!entry || !Array.isArray(entry.bands)) return
+    player.setEq({
+      bands: entry.bands,
+      preset: 'device',
+      device: entry.id,
+      enabled: true,
+    })
+  }
 
   function usePreset(preset) {
     player.setEq({ preset: preset.id, bands: eqBandsForPreset(preset.id), enabled: true })
@@ -300,6 +380,81 @@ function EqPanel(props) {
           },
         })
       }),
+    )
+  } else if (tab === 'device') {
+    var deviceRows = found.map(function (entry) {
+      var selected = eq.preset === 'device' && eq.device === entry.id
+      return h(
+        'button',
+        {
+          key: entry.id,
+          type: 'button',
+          className: cx('mp-eq-device-row', selected && 'is-on'),
+          title: entry.name,
+          onClick: function () {
+            applyDevice(entry)
+          },
+        },
+        h(
+          'span',
+          { className: 'mp-eq-device-text' },
+          h('span', { className: 'mp-eq-device-name' }, entry.name),
+          h(
+            'span',
+            { className: 'mp-eq-device-meta' },
+            entry.source + (entry.form ? ' · ' + eqFormLabel(entry.form) : ''),
+          ),
+        ),
+        h(EqMiniBars, { bands: entry.bands }),
+      )
+    })
+    var searchText = String(search || '').trim()
+    var selectedName = ''
+    if (eq.preset === 'device' && eq.device !== '') {
+      var parts = String(eq.device).split('::')
+      selectedName = parts.length > 2 ? parts.slice(2).join('::') : eq.device
+    }
+    body = h(
+      'div',
+      { className: 'mp-eq-device' },
+      h('input', {
+        type: 'text',
+        className: 'mp-eq-search',
+        value: search,
+        placeholder: t('eq.searchDevice'),
+        'aria-label': t('eq.searchDevice'),
+        onChange: function (event) {
+          setSearch(event.target.value)
+        },
+      }),
+      selectedName !== ''
+        ? h('div', { className: 'mp-eq-device-current' }, t('eq.deviceCurrent', { name: selectedName }))
+        : null,
+      searchText === ''
+        ? h(
+            'div',
+            { className: 'mp-eq-empty' },
+            h('span', { className: 'mp-eq-empty-title' }, t('eq.deviceTitle')),
+            h('span', { className: 'mp-eq-empty-hint' }, t('eq.deviceHint')),
+          )
+        : h(
+            'div',
+            { className: 'mp-eq-device-list' },
+            deviceRows.length > 0
+              ? deviceRows
+              : h(
+                  'div',
+                  { className: 'mp-eq-empty' },
+                  h(
+                    'span',
+                    { className: 'mp-eq-empty-title' },
+                    loading ? t('eq.searching') : searchError !== '' ? searchError : t('eq.searchEmpty'),
+                  ),
+                ),
+          ),
+      searchText !== '' && total > 0
+        ? h('div', { className: 'mp-eq-device-count' }, t('eq.deviceCount', { shown: found.length, total: total }))
+        : null,
     )
   } else if (tab === 'mine') {
     body = h(

@@ -539,7 +539,7 @@ function renderEq(props) {
 const presetTab = renderEq()
 assert.ok(classesOf(presetTab).has('mp-eqp'), 'the equalizer panel renders')
 assert.ok(classesOf(presetTab).has('mp-eq-tab'), 'the tab bar renders')
-for (const label of ['预设', '我的', '编辑']) {
+for (const label of ['预设', '设备', '我的', '编辑']) {
   assert.ok(textOf(presetTab).includes(label), `the ${label} tab label renders`)
 }
 assert.ok(textOf(presetTab).includes('摇滚'), 'factory presets are listed by name')
@@ -549,6 +549,10 @@ assert.ok(classesOf(presetTab).has('mp-eq-bars'), 'each preset shows its curve t
 const mineTab = renderEq({ initialTab: 'mine' })
 assert.ok(textOf(mineTab).includes('还没有自定义预设'), 'the empty saved-presets state renders')
 assert.ok(classesOf(mineTab).has('mp-eq-add'), 'the save entry renders')
+
+const deviceTab = renderEq({ initialTab: 'device' })
+assert.ok(classesOf(deviceTab).has('mp-eq-search'), 'the device search field renders')
+assert.ok(textOf(deviceTab).includes('按耳机型号补偿'), 'the device hint renders before a search')
 
 const editTab = renderEq({ initialTab: 'edit' })
 assert.ok(classesOf(editTab).has('mp-eq-curve'), 'the response curve renders')

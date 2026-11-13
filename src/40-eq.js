@@ -10,14 +10,24 @@
  * re-deriving every preset and losing the original curve.
  */
 
-var EQ_FREQS = [70, 180, 320, 600, 1000, 3000, 6000, 12000, 14000, 16000]
+/**
+ * Bands and Q follow AutoEQ's fixed-band profile exactly
+ * (31/62/125/250/500/1k/2k/4k/8k/16k Hz, Q=1.41). The device library ships
+ * thousands of presets in that layout, so importing them is a straight copy —
+ * no curve fitting, and 31 Hz stays available for in-ear bass correction.
+ */
+var EQ_FREQS = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
+var EQ_Q = [1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41]
 
 /**
- * Q per band. The first seven are roughly one octave wide; 12k/14k/16k sit
- * within a third of an octave of each other, so they need a narrower Q or a
- * treble boost stacks into a +30 dB shelf.
+ * Layout tag saved with the preferences. Bumped whenever EQ_FREQS changes so
+ * bands stored by an older build are re-derived instead of misread.
  */
-var EQ_Q = [1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 2, 3, 3]
+var EQ_LAYOUT = 'iso10'
+
+/** Winamp's own ten bands, kept only as the source of the factory presets. */
+var WINAMP_FREQS = [70, 180, 320, 600, 1000, 3000, 6000, 12000, 14000, 16000]
+var WINAMP_Q = [1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 2, 3, 3]
 
 var EQ_MAX_DB = 12
 var EQ_PREAMP_MAX = 12
@@ -175,13 +185,29 @@ function eqFaderToDb(value) {
   return clamp(db, -EQ_MAX_DB, EQ_MAX_DB)
 }
 
+/**
+ * Re-derive a Winamp factory preset on the plugin's bands.
+ *
+ * The original faders sit at Winamp's frequencies, so the stored curve is built
+ * from those filters and then sampled at the equalizer's own band centres. The
+ * character survives; the numbers move because the grid moved.
+ */
 function eqBandsForPreset(id) {
   var preset = eqPresetById(id)
   if (preset === null) return zeroEqBands()
-  // Whole decibels: the editor faders step by 1 dB, so a preset must land on
-  // the same grid or picking it and nudging one band would read as "custom".
-  return preset.values.map(function (value) {
-    return Math.round(eqFaderToDb(value))
+  var sections = []
+  for (var band = 0; band < WINAMP_FREQS.length; band += 1) {
+    var db = eqFaderToDb(preset.values[band])
+    if (Math.abs(db) < 0.01) continue
+    sections.push(eqPeakingCoefficients(WINAMP_FREQS[band], WINAMP_Q[band], db, 44100))
+  }
+  if (sections.length === 0) return zeroEqBands()
+  return EQ_FREQS.map(function (freq) {
+    var sum = 0
+    for (var index = 0; index < sections.length; index += 1) {
+      sum += eqSectionDb(sections[index], freq, 44100)
+    }
+    return roundDecimals(clamp(sum, -EQ_MAX_DB, EQ_MAX_DB), 1)
   })
 }
 
@@ -202,30 +228,45 @@ function normalizeEqBands(list) {
   return EQ_FREQS.map(function (_, index) {
     var value = Number(list[index])
     if (!isFinite(value)) return 0
-    return Math.round(clamp(value, -EQ_MAX_DB, EQ_MAX_DB))
+    // Tenths of a decibel: AutoEQ presets are published to one decimal place,
+    // so integer rounding would move every imported curve by up to 0.5 dB.
+    return roundDecimals(clamp(value, -EQ_MAX_DB, EQ_MAX_DB), 1)
   })
 }
 
 /**
- * Resolve the persisted preferences into a complete EQ state. Missing fields
- * keep the EQ off, so upgrades never change how a playlist sounds.
+ * Resolve the persisted preferences into a complete EQ state.
+ *
+ * `eqLayout` guards the band grid: bands saved by a build with different
+ * frequencies would describe a different curve, so those are dropped and the
+ * stored preset is re-derived instead of being misread. Missing fields keep the
+ * EQ off, so upgrades never change how a playlist sounds.
  */
 function normalizeEqPrefs(prefs) {
   var source = prefs !== null && typeof prefs === 'object' ? prefs : {}
   var presetId = String(source.eqPreset || 'flat')
   var preset = eqPresetById(presetId)
+  var isDevice = presetId === 'device'
+  var sameLayout = source.eqLayout === EQ_LAYOUT
   var bands
-  if (Array.isArray(source.eqBands)) {
+  if (sameLayout && Array.isArray(source.eqBands)) {
     bands = normalizeEqBands(source.eqBands)
   } else {
     bands = preset === null ? zeroEqBands() : eqBandsForPreset(preset.id)
   }
-  var savedPreset = presetId === 'custom' ? 'custom' : preset === null ? 'flat' : preset.id
+  var savedPreset = isDevice
+    ? 'device'
+    : presetId === 'custom'
+      ? 'custom'
+      : preset === null
+        ? 'flat'
+        : preset.id
   return {
     enabled: source.eqEnabled === true,
     preset: savedPreset,
     bands: bands,
     preamp: Math.round(clamp(Number(source.eqPreamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)),
+    device: isDevice ? String(source.eqDevice || '') : '',
   }
 }
 
@@ -234,7 +275,7 @@ function eqBandsMatchPreset(bands, presetId) {
   var target = eqBandsForPreset(presetId)
   var list = normalizeEqBands(bands)
   for (var index = 0; index < target.length; index += 1) {
-    if (Math.abs(target[index] - list[index]) > 0.05) return false
+    if (Math.abs(target[index] - list[index]) > 0.15) return false
   }
   return true
 }

@@ -43,6 +43,9 @@ var PREF_DEFAULTS = {
   eqPreset: 'flat',
   eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   eqPreamp: 0,
+  /** Written on the first EQ change; an empty value means "old band grid". */
+  eqLayout: '',
+  eqDevice: '',
   eqCustom: [],
   onlinePlaylistSort: 'source',
   onboardingDone: true,

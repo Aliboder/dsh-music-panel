@@ -93,7 +93,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsoni
 - **VIP 识别**：根据当前登录账号判断可播放性，VIP 曲目显示金色徽标。
 - **音频缓存**：边播边写、播完落盘，默认上限 10 GB、LRU 淘汰；设置 → 缓存可查看全部缓存歌曲并清空。
 - **音量均衡**：浏览器内置 EBU R128（BS.1770）分析，按曲目自动调整增益，不依赖 ffmpeg；首次分析后缓存结果。
-- **均衡器**：播放页音量按钮里的「音频效果 → 均衡器」，10 段（70 / 180 / 320 / 600 / 1k / 3k / 6k / 12k / 14k / 16k Hz，±12 dB）。预设沿用 Winamp 原版 18 组曲线，可保存自己的曲线；“编辑”页有实时频响曲线、前置增益、自动 headroom 与输出限幅（多段提升不破音）。预设数值来源：[schollz/Winamp-Original-Presets](https://github.com/schollz/Winamp-Original-Presets)。
+- **均衡器**：播放页音量按钮里的「音频效果 → 均衡器」，10 段（31 / 62 / 125 / 250 / 500 / 1k / 2k / 4k / 8k / 16k Hz，Q=1.41，±12 dB）。「设备」页签内置约 8800 条 AutoEQ 耳机补偿曲线，可按型号搜索并套用（数据来源与许可见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)）；出厂预设沿用 Winamp 原版 18 组曲线，可保存自己的曲线；“编辑”页有实时频响曲线、前置增益、自动 headroom 与输出限幅（多段提升不破音）。
 - 在线歌词与翻译：网易云 `trans`、QQ 加密翻译流、酷狗 KRC 内嵌译文；Navidrome / Subsonic 使用 OpenSubsonic 结构化歌词（如服务器支持）。
 
 #### 歌词、元数据与整理

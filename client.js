@@ -2096,8 +2096,20 @@ window.__ModuleLoader__.load({
         'eq.title': '均衡器',
         'eq.enable': '启用均衡器',
         'eq.tabPresets': '预设',
+        'eq.tabDevices': '设备',
         'eq.tabMine': '我的',
         'eq.tabEdit': '编辑',
+        'eq.searchDevice': '搜索耳机型号',
+        'eq.deviceTitle': '按耳机型号补偿',
+        'eq.deviceHint': '搜索你的耳机型号，套用 AutoEQ 的测量补偿曲线；数据来自 oratory1990 / Crinacle / Rtings 等公开测量。',
+        'eq.searching': '搜索中…',
+        'eq.searchEmpty': '没有匹配的型号',
+        'eq.searchFailed': '预设加载失败',
+        'eq.deviceCount': '已显示 {shown} / 共 {total} 条',
+        'eq.deviceCurrent': '当前设备：{name}',
+        'eq.formInEar': '入耳',
+        'eq.formOverEar': '头戴',
+        'eq.formEarbud': '半入耳',
         'eq.preamp': '前置增益',
         'eq.preampHint': '多段提升时自动衰减防削波，可在这里补回。',
         'eq.reset': '重置',
@@ -2248,8 +2260,20 @@ window.__ModuleLoader__.load({
         'eq.title': 'Equalizer',
         'eq.enable': 'Enable equalizer',
         'eq.tabPresets': 'Presets',
+        'eq.tabDevices': 'Devices',
         'eq.tabMine': 'Mine',
         'eq.tabEdit': 'Edit',
+        'eq.searchDevice': 'Search headphones',
+        'eq.deviceTitle': 'Match your headphones',
+        'eq.deviceHint': 'Search a model to apply its AutoEQ correction; measurements come from oratory1990, Crinacle, Rtings and others.',
+        'eq.searching': 'Searching…',
+        'eq.searchEmpty': 'No matching model',
+        'eq.searchFailed': 'Could not load presets',
+        'eq.deviceCount': '{shown} of {total}',
+        'eq.deviceCurrent': 'Current: {name}',
+        'eq.formInEar': 'in-ear',
+        'eq.formOverEar': 'over-ear',
+        'eq.formEarbud': 'earbud',
         'eq.preamp': 'Preamp',
         'eq.preampHint': 'Boosting several bands trims the level to avoid clipping; add it back here.',
         'eq.reset': 'Reset',
@@ -3343,6 +3367,9 @@ window.__ModuleLoader__.load({
       eqPreset: 'flat',
       eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       eqPreamp: 0,
+      /** Written on the first EQ change; an empty value means "old band grid". */
+      eqLayout: '',
+      eqDevice: '',
       eqCustom: [],
       onlinePlaylistSort: 'source',
       onboardingDone: true,
@@ -3639,14 +3666,24 @@ window.__ModuleLoader__.load({
      * re-deriving every preset and losing the original curve.
      */
 
-    var EQ_FREQS = [70, 180, 320, 600, 1000, 3000, 6000, 12000, 14000, 16000]
+    /**
+     * Bands and Q follow AutoEQ's fixed-band profile exactly
+     * (31/62/125/250/500/1k/2k/4k/8k/16k Hz, Q=1.41). The device library ships
+     * thousands of presets in that layout, so importing them is a straight copy —
+     * no curve fitting, and 31 Hz stays available for in-ear bass correction.
+     */
+    var EQ_FREQS = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
+    var EQ_Q = [1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41]
 
     /**
-     * Q per band. The first seven are roughly one octave wide; 12k/14k/16k sit
-     * within a third of an octave of each other, so they need a narrower Q or a
-     * treble boost stacks into a +30 dB shelf.
+     * Layout tag saved with the preferences. Bumped whenever EQ_FREQS changes so
+     * bands stored by an older build are re-derived instead of misread.
      */
-    var EQ_Q = [1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 2, 3, 3]
+    var EQ_LAYOUT = 'iso10'
+
+    /** Winamp's own ten bands, kept only as the source of the factory presets. */
+    var WINAMP_FREQS = [70, 180, 320, 600, 1000, 3000, 6000, 12000, 14000, 16000]
+    var WINAMP_Q = [1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 2, 3, 3]
 
     var EQ_MAX_DB = 12
     var EQ_PREAMP_MAX = 12
@@ -3804,13 +3841,29 @@ window.__ModuleLoader__.load({
       return clamp(db, -EQ_MAX_DB, EQ_MAX_DB)
     }
 
+    /**
+     * Re-derive a Winamp factory preset on the plugin's bands.
+     *
+     * The original faders sit at Winamp's frequencies, so the stored curve is built
+     * from those filters and then sampled at the equalizer's own band centres. The
+     * character survives; the numbers move because the grid moved.
+     */
     function eqBandsForPreset(id) {
       var preset = eqPresetById(id)
       if (preset === null) return zeroEqBands()
-      // Whole decibels: the editor faders step by 1 dB, so a preset must land on
-      // the same grid or picking it and nudging one band would read as "custom".
-      return preset.values.map(function (value) {
-        return Math.round(eqFaderToDb(value))
+      var sections = []
+      for (var band = 0; band < WINAMP_FREQS.length; band += 1) {
+        var db = eqFaderToDb(preset.values[band])
+        if (Math.abs(db) < 0.01) continue
+        sections.push(eqPeakingCoefficients(WINAMP_FREQS[band], WINAMP_Q[band], db, 44100))
+      }
+      if (sections.length === 0) return zeroEqBands()
+      return EQ_FREQS.map(function (freq) {
+        var sum = 0
+        for (var index = 0; index < sections.length; index += 1) {
+          sum += eqSectionDb(sections[index], freq, 44100)
+        }
+        return roundDecimals(clamp(sum, -EQ_MAX_DB, EQ_MAX_DB), 1)
       })
     }
 
@@ -3831,30 +3884,45 @@ window.__ModuleLoader__.load({
       return EQ_FREQS.map(function (_, index) {
         var value = Number(list[index])
         if (!isFinite(value)) return 0
-        return Math.round(clamp(value, -EQ_MAX_DB, EQ_MAX_DB))
+        // Tenths of a decibel: AutoEQ presets are published to one decimal place,
+        // so integer rounding would move every imported curve by up to 0.5 dB.
+        return roundDecimals(clamp(value, -EQ_MAX_DB, EQ_MAX_DB), 1)
       })
     }
 
     /**
-     * Resolve the persisted preferences into a complete EQ state. Missing fields
-     * keep the EQ off, so upgrades never change how a playlist sounds.
+     * Resolve the persisted preferences into a complete EQ state.
+     *
+     * `eqLayout` guards the band grid: bands saved by a build with different
+     * frequencies would describe a different curve, so those are dropped and the
+     * stored preset is re-derived instead of being misread. Missing fields keep the
+     * EQ off, so upgrades never change how a playlist sounds.
      */
     function normalizeEqPrefs(prefs) {
       var source = prefs !== null && typeof prefs === 'object' ? prefs : {}
       var presetId = String(source.eqPreset || 'flat')
       var preset = eqPresetById(presetId)
+      var isDevice = presetId === 'device'
+      var sameLayout = source.eqLayout === EQ_LAYOUT
       var bands
-      if (Array.isArray(source.eqBands)) {
+      if (sameLayout && Array.isArray(source.eqBands)) {
         bands = normalizeEqBands(source.eqBands)
       } else {
         bands = preset === null ? zeroEqBands() : eqBandsForPreset(preset.id)
       }
-      var savedPreset = presetId === 'custom' ? 'custom' : preset === null ? 'flat' : preset.id
+      var savedPreset = isDevice
+        ? 'device'
+        : presetId === 'custom'
+          ? 'custom'
+          : preset === null
+            ? 'flat'
+            : preset.id
       return {
         enabled: source.eqEnabled === true,
         preset: savedPreset,
         bands: bands,
         preamp: Math.round(clamp(Number(source.eqPreamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)),
+        device: isDevice ? String(source.eqDevice || '') : '',
       }
     }
 
@@ -3863,7 +3931,7 @@ window.__ModuleLoader__.load({
       var target = eqBandsForPreset(presetId)
       var list = normalizeEqBands(bands)
       for (var index = 0; index < target.length; index += 1) {
-        if (Math.abs(target[index] - list[index]) > 0.05) return false
+        if (Math.abs(target[index] - list[index]) > 0.15) return false
       }
       return true
     }
@@ -5730,6 +5798,8 @@ window.__ModuleLoader__.load({
             preset = source.bands === undefined ? eq.preset : eqPresetForBands(bands)
           } else if (source.preset === 'custom') {
             preset = 'custom'
+          } else if (source.preset === 'device') {
+            preset = 'device'
           } else {
             preset = eqPresetById(source.preset) === null ? 'flat' : String(source.preset)
           }
@@ -5741,6 +5811,12 @@ window.__ModuleLoader__.load({
               source.preamp === undefined
                 ? eq.preamp
                 : Math.round(clamp(Number(source.preamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)),
+            device:
+              source.device === undefined
+                ? preset === 'device'
+                  ? eq.device
+                  : ''
+                : String(source.device || ''),
           }
           eq = next
           savePrefs({
@@ -5748,6 +5824,10 @@ window.__ModuleLoader__.load({
             eqPreset: next.preset,
             eqBands: next.bands,
             eqPreamp: next.preamp,
+            // Any EQ change also re-writes the layout tag, so a library upgrade can
+            // tell which band grid the stored bands belong to.
+            eqLayout: EQ_LAYOUT,
+            eqDevice: next.device,
           })
           if (next.enabled && analyser === null) api.ensureAnalyser()
           applyEq(next.enabled !== true)
@@ -5758,6 +5838,7 @@ window.__ModuleLoader__.load({
             preset: eq.preset,
             bands: eq.bands.slice(),
             preamp: eq.preamp,
+            device: eq.device,
             /** False when the browser cannot host the graph (EQ is inert then). */
             available: eqSupported() && (analyser !== null || audio === null || canRouteThroughWebAudio(audio)),
           }
@@ -7488,6 +7569,20 @@ window.__ModuleLoader__.load({
       '.mp-eq-bars i{display:block;width:3px;min-height:2px;border-radius:1px;background:rgba(255,255,255,.42)}',
       '.mp-eq-preset.is-on .mp-eq-bars i,.mp-eq-saved-main:hover .mp-eq-bars i{background:rgba(150,180,255,.95)}',
       '.mp-eq-mine{display:flex;flex-direction:column;gap:8px}',
+      // AutoEQ device browser: search stays fixed, only the result list scrolls.
+      '.mp-eq-device{display:flex;flex:1;flex-direction:column;min-height:0;gap:8px}',
+      '.mp-eq-search{flex:none;height:30px;padding:0 9px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none}',
+      '.mp-eq-search::placeholder{color:rgba(255,255,255,.35)}',
+      '.mp-eq-search:focus{border-color:rgba(120,160,255,.6)}',
+      '.mp-eq-device-list{display:flex;flex:1;flex-direction:column;gap:2px;min-height:0;overflow-y:auto;overscroll-behavior:contain}',
+      '.mp-eq-device-row{display:flex;flex:none;align-items:center;gap:8px;width:100%;padding:6px 8px;border:1px solid transparent;border-radius:8px;background:transparent;color:rgba(255,255,255,.85);font:inherit;text-align:left;cursor:pointer}',
+      '.mp-eq-device-row:hover{background:rgba(255,255,255,.07)}',
+      '.mp-eq-device-row.is-on{border-color:rgba(120,160,255,.6);background:rgba(90,130,255,.16);color:#fff}',
+      '.mp-eq-device-text{display:flex;flex:1;flex-direction:column;min-width:0;gap:1px}',
+      '.mp-eq-device-name{font-size:12px;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-eq-device-meta{font-size:11px;line-height:14px;color:rgba(255,255,255,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-eq-device-count{flex:none;font-size:11px;line-height:14px;color:rgba(255,255,255,.4);text-align:center}',
+      '.mp-eq-device-current{flex:none;font-size:11px;line-height:14px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.mp-eq-empty{display:flex;flex-direction:column;gap:4px;padding:20px 6px;text-align:center}',
       '.mp-eq-empty-title{font-size:12px;color:rgba(255,255,255,.8)}',
       '.mp-eq-empty-hint{font-size:11px;line-height:1.5;color:rgba(255,255,255,.45)}',
@@ -8936,14 +9031,27 @@ window.__ModuleLoader__.load({
 
     var EQ_TABS = [
       { id: 'presets', labelKey: 'eq.tabPresets' },
+      { id: 'device', labelKey: 'eq.tabDevices' },
       { id: 'mine', labelKey: 'eq.tabMine' },
       { id: 'edit', labelKey: 'eq.tabEdit' },
     ]
 
+    /** AutoEQ stores the measurement rig family; show it in the user's language. */
+    function eqFormLabel(form) {
+      var value = String(form || '')
+      if (value.indexOf('in-ear') !== -1) return t('eq.formInEar')
+      if (value.indexOf('over-ear') !== -1) return t('eq.formOverEar')
+      if (value.indexOf('earbud') !== -1) return t('eq.formEarbud')
+      return value
+    }
+
     function eqFormatDb(value) {
       var db = Number(value) || 0
       if (Math.abs(db) < 0.05) return '0'
-      return (db > 0 ? '+' : '') + String(Math.round(db))
+      var rounded = Math.round(db)
+      // AutoEQ gains land on tenths; show them instead of pretending to be whole.
+      var text = Math.abs(db - rounded) < 0.05 ? String(Math.abs(rounded)) : Math.abs(db).toFixed(1)
+      return (db > 0 ? '+' : '-') + text
     }
 
     function eqFrequencyLabel(freq) {
@@ -9010,7 +9118,7 @@ window.__ModuleLoader__.load({
           type: 'range',
           min: -EQ_MAX_DB,
           max: EQ_MAX_DB,
-          step: 1,
+          step: 0.5,
           value: Number(props.value) || 0,
           'aria-label': props.label + ' Hz',
           title: props.label + ' Hz',
@@ -9144,8 +9252,9 @@ window.__ModuleLoader__.load({
     function EqPanel(props) {
       var prefs = usePrefs()
       var eq = normalizeEqPrefs(prefs)
+      var initialTab = props.initialTab
       var tabPair = useState(
-        props.initialTab === 'mine' || props.initialTab === 'edit' ? props.initialTab : 'presets',
+        initialTab === 'device' || initialTab === 'mine' || initialTab === 'edit' ? initialTab : 'presets',
       )
       var tab = tabPair[0]
       var setTab = tabPair[1]
@@ -9157,7 +9266,73 @@ window.__ModuleLoader__.load({
       var setDraft = draftPair[1]
       var custom = Array.isArray(prefs.eqCustom) ? prefs.eqCustom : []
       var available = player.getEq().available
-      var activePreset = eqPresetForBands(eq.bands)
+      var activePreset = eq.preset === 'device' ? 'device' : eqPresetForBands(eq.bands)
+
+      // ── AutoEQ device search (debounced, cancelled by sequence) ──────────
+      var searchPair = useState('')
+      var search = searchPair[0]
+      var setSearch = searchPair[1]
+      var foundPair = useState([])
+      var found = foundPair[0]
+      var setFound = foundPair[1]
+      var loadingPair = useState(false)
+      var loading = loadingPair[0]
+      var setLoading = loadingPair[1]
+      var errorPair = useState('')
+      var searchError = errorPair[0]
+      var setSearchError = errorPair[1]
+      var totalPair = useState(0)
+      var total = totalPair[0]
+      var setTotal = totalPair[1]
+      var searchSeq = useRef(0)
+
+      useEffect(
+        function () {
+          if (tab !== 'device') return undefined
+          var text = String(search || '').trim()
+          if (text === '') {
+            setFound([])
+            setTotal(0)
+            setSearchError('')
+            setLoading(false)
+            return undefined
+          }
+          var seq = searchSeq.current + 1
+          searchSeq.current = seq
+          setLoading(true)
+          var timer = setTimeout(function () {
+            getJson(API + 'eq/presets?q=' + encodeURIComponent(text) + '&limit=40')
+              .then(function (body) {
+                if (searchSeq.current !== seq) return
+                setFound(Array.isArray(body.results) ? body.results : [])
+                setTotal(Number(body.total) || 0)
+                setSearchError('')
+              })
+              .catch(function (error) {
+                if (searchSeq.current !== seq) return
+                setFound([])
+                setSearchError(error && error.message ? error.message : t('eq.searchFailed'))
+              })
+              .then(function () {
+                if (searchSeq.current === seq) setLoading(false)
+              })
+          }, 220)
+          return function () {
+            clearTimeout(timer)
+          }
+        },
+        [tab, search],
+      )
+
+      function applyDevice(entry) {
+        if (!entry || !Array.isArray(entry.bands)) return
+        player.setEq({
+          bands: entry.bands,
+          preset: 'device',
+          device: entry.id,
+          enabled: true,
+        })
+      }
 
       function usePreset(preset) {
         player.setEq({ preset: preset.id, bands: eqBandsForPreset(preset.id), enabled: true })
@@ -9227,6 +9402,81 @@ window.__ModuleLoader__.load({
               },
             })
           }),
+        )
+      } else if (tab === 'device') {
+        var deviceRows = found.map(function (entry) {
+          var selected = eq.preset === 'device' && eq.device === entry.id
+          return h(
+            'button',
+            {
+              key: entry.id,
+              type: 'button',
+              className: cx('mp-eq-device-row', selected && 'is-on'),
+              title: entry.name,
+              onClick: function () {
+                applyDevice(entry)
+              },
+            },
+            h(
+              'span',
+              { className: 'mp-eq-device-text' },
+              h('span', { className: 'mp-eq-device-name' }, entry.name),
+              h(
+                'span',
+                { className: 'mp-eq-device-meta' },
+                entry.source + (entry.form ? ' · ' + eqFormLabel(entry.form) : ''),
+              ),
+            ),
+            h(EqMiniBars, { bands: entry.bands }),
+          )
+        })
+        var searchText = String(search || '').trim()
+        var selectedName = ''
+        if (eq.preset === 'device' && eq.device !== '') {
+          var parts = String(eq.device).split('::')
+          selectedName = parts.length > 2 ? parts.slice(2).join('::') : eq.device
+        }
+        body = h(
+          'div',
+          { className: 'mp-eq-device' },
+          h('input', {
+            type: 'text',
+            className: 'mp-eq-search',
+            value: search,
+            placeholder: t('eq.searchDevice'),
+            'aria-label': t('eq.searchDevice'),
+            onChange: function (event) {
+              setSearch(event.target.value)
+            },
+          }),
+          selectedName !== ''
+            ? h('div', { className: 'mp-eq-device-current' }, t('eq.deviceCurrent', { name: selectedName }))
+            : null,
+          searchText === ''
+            ? h(
+                'div',
+                { className: 'mp-eq-empty' },
+                h('span', { className: 'mp-eq-empty-title' }, t('eq.deviceTitle')),
+                h('span', { className: 'mp-eq-empty-hint' }, t('eq.deviceHint')),
+              )
+            : h(
+                'div',
+                { className: 'mp-eq-device-list' },
+                deviceRows.length > 0
+                  ? deviceRows
+                  : h(
+                      'div',
+                      { className: 'mp-eq-empty' },
+                      h(
+                        'span',
+                        { className: 'mp-eq-empty-title' },
+                        loading ? t('eq.searching') : searchError !== '' ? searchError : t('eq.searchEmpty'),
+                      ),
+                    ),
+              ),
+          searchText !== '' && total > 0
+            ? h('div', { className: 'mp-eq-device-count' }, t('eq.deviceCount', { shown: found.length, total: total }))
+            : null,
         )
       } else if (tab === 'mine') {
         body = h(

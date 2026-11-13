@@ -1336,6 +1336,8 @@ function createPlayer() {
         preset = source.bands === undefined ? eq.preset : eqPresetForBands(bands)
       } else if (source.preset === 'custom') {
         preset = 'custom'
+      } else if (source.preset === 'device') {
+        preset = 'device'
       } else {
         preset = eqPresetById(source.preset) === null ? 'flat' : String(source.preset)
       }
@@ -1347,6 +1349,12 @@ function createPlayer() {
           source.preamp === undefined
             ? eq.preamp
             : Math.round(clamp(Number(source.preamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)),
+        device:
+          source.device === undefined
+            ? preset === 'device'
+              ? eq.device
+              : ''
+            : String(source.device || ''),
       }
       eq = next
       savePrefs({
@@ -1354,6 +1362,10 @@ function createPlayer() {
         eqPreset: next.preset,
         eqBands: next.bands,
         eqPreamp: next.preamp,
+        // Any EQ change also re-writes the layout tag, so a library upgrade can
+        // tell which band grid the stored bands belong to.
+        eqLayout: EQ_LAYOUT,
+        eqDevice: next.device,
       })
       if (next.enabled && analyser === null) api.ensureAnalyser()
       applyEq(next.enabled !== true)
@@ -1364,6 +1376,7 @@ function createPlayer() {
         preset: eq.preset,
         bands: eq.bands.slice(),
         preamp: eq.preamp,
+        device: eq.device,
         /** False when the browser cannot host the graph (EQ is inert then). */
         available: eqSupported() && (analyser !== null || audio === null || canRouteThroughWebAudio(audio)),
       }
