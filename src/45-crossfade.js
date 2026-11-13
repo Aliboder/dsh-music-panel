@@ -7,12 +7,13 @@
  * cheaply and reliably — no beat grid, no segment model.
  */
 
-var CROSSFADE_MAX_SECONDS = 10
+var CROSSFADE_MAX_SECONDS = 6
 var CROSSFADE_MIN_SECONDS = 2.5
 /** Start analysing this early; analysis is fast but the fetch is not. */
 var CROSSFADE_PREPARE_SECONDS = 14
-/** A track's intro must be at least this quiet-and-long before we skip into it. */
-var CROSSFADE_INTRO_SKIP_SECONDS = 3
+/** Only a genuinely silent intro is skipped, and never more than this. */
+var CROSSFADE_INTRO_SKIP_SECONDS = 2
+var CROSSFADE_SKIP_LIMIT_SECONDS = 10
 
 /** 0 means off. The stored value is the upper bound of the automatic overlap. */
 function crossfadeFadeSeconds(prefs) {
@@ -62,12 +63,17 @@ function crossfadePlan(current, next, options) {
   if (!isFinite(remaining) || remaining <= 0) return null
   var max = Math.min(limit, Math.max(CROSSFADE_MIN_SECONDS, remaining))
   var tail = Number(current && current.outroQuietSec)
-  var head = Number(next && next.introQuietSec)
+  var silentIntro = Number(next && next.introSilentSec)
   if (!isFinite(tail) || tail < 0) tail = 0
-  if (!isFinite(head) || head < 0) head = 0
+  if (!isFinite(silentIntro) || silentIntro < 0) silentIntro = 0
   var overlap = tail > 0.4 ? tail : CROSSFADE_MIN_SECONDS
   overlap = Math.max(CROSSFADE_MIN_SECONDS, Math.min(overlap, max))
-  var startInNext = head >= CROSSFADE_INTRO_SKIP_SECONDS ? Math.max(0, head - 1) : 0
+  // Skipping is reserved for actual silence: a soft musical intro is content,
+  // and cutting into it makes the next track start mid-phrase.
+  var startInNext =
+    silentIntro >= CROSSFADE_INTRO_SKIP_SECONDS
+      ? Math.max(0, Math.min(silentIntro - 0.5, CROSSFADE_SKIP_LIMIT_SECONDS))
+      : 0
   return {
     overlap: Math.round(overlap * 10) / 10,
     startInNext: Math.round(startInNext * 10) / 10,

@@ -15,6 +15,12 @@ var TRANSITION_HEAD = 20
 var TRANSITION_TAIL = 30
 /** "Quiet" means this far below the track's own average level. */
 var TRANSITION_QUIET_DB = -10
+/**
+ * "Silent" is absolute: only a genuinely empty intro may be skipped. A soft
+ * musical intro is often 10 dB below the average, and skipping that would cut
+ * real music off the front of the next track.
+ */
+var TRANSITION_SILENT_DB = -45
 
 function transitionRmsDb(channels, start, length, weight) {
   var sum = 0
@@ -80,17 +86,28 @@ function analyzeTransitionEnvelope(channels, sampleRate) {
       duration: round(duration),
       loudnessDb: -70,
       introQuietSec: round(headLimit / rate),
+      introSilentSec: round(headLimit / rate),
       outroQuietSec: round((length - tailStart) / rate),
     }
   }
 
-  // Intro: walk forward from 0 until a window is no longer quiet.
+  // Intro: walk forward from 0 until a window is no longer quiet. The silent
+  // measurement is stricter and is the only one allowed to skip audio.
   var introQuietSec = headLimit / rate
+  var introSilentSec = headLimit / rate
+  var quietEnded = false
+  var silentEnded = false
   for (var start = 0; start + windowSize <= headLimit; start += hop) {
-    if (windowDb(start) >= quietThreshold) {
+    var level = windowDb(start)
+    if (!quietEnded && level >= quietThreshold) {
       introQuietSec = start / rate
-      break
+      quietEnded = true
     }
+    if (!silentEnded && level >= TRANSITION_SILENT_DB) {
+      introSilentSec = start / rate
+      silentEnded = true
+    }
+    if (quietEnded && silentEnded) break
   }
 
   // Outro: walk backwards from the end until a window is loud again.
@@ -106,6 +123,7 @@ function analyzeTransitionEnvelope(channels, sampleRate) {
     duration: round(duration),
     loudnessDb: Math.round(loudnessDb * 10) / 10,
     introQuietSec: round(introQuietSec),
+    introSilentSec: round(introSilentSec),
     outroQuietSec: round(outroQuietSec),
   }
 }

@@ -39,6 +39,10 @@ function build(blocks, rate = RATE) {
 const mixed = transition.analyzeTransitionEnvelope([build([[2, 0], [4, 0.3], [4, 0]])], RATE)
 assert.ok(mixed, 'analysis returns a result')
 assert.ok(Math.abs(mixed.introQuietSec - 2) <= 0.15, `intro quiet should be ~2 s, got ${mixed.introQuietSec}`)
+assert.ok(
+  Math.abs(mixed.introSilentSec - 2) <= 0.15,
+  `intro silent should be ~2 s, got ${mixed.introSilentSec}`,
+)
 assert.ok(Math.abs(mixed.outroQuietSec - 4) <= 0.15, `outro quiet should be ~4 s, got ${mixed.outroQuietSec}`)
 assert.ok(mixed.loudnessDb < 0 && mixed.loudnessDb > -40, 'loudness is a plausible dB value')
 assert.ok(Math.abs(mixed.duration - 10) <= 0.05, 'duration is reported')
@@ -47,6 +51,12 @@ assert.ok(Math.abs(mixed.duration - 10) <= 0.05, 'duration is reported')
 const loud = transition.analyzeTransitionEnvelope([build([[5, 0.4]])], RATE)
 assert.equal(loud.introQuietSec, 0)
 assert.equal(loud.outroQuietSec, 0)
+
+// A soft musical intro is quiet relative to the track but is NOT silence, so
+// it must never be skipped — this is what made the next track start mid-vocal.
+const softIntro = transition.analyzeTransitionEnvelope([build([[3, 0.03], [4, 0.4]])], RATE)
+assert.ok(softIntro.introQuietSec >= 2.5, `soft intro counts as quiet, got ${softIntro.introQuietSec}`)
+assert.equal(softIntro.introSilentSec, 0, 'a soft intro is not silent')
 
 // Completely silent track: both edges count as quiet, bounded by the windows.
 const silent = transition.analyzeTransitionEnvelope([build([[5, 0]])], RATE)

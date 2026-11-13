@@ -4149,12 +4149,13 @@ window.__ModuleLoader__.load({
      * cheaply and reliably — no beat grid, no segment model.
      */
 
-    var CROSSFADE_MAX_SECONDS = 10
+    var CROSSFADE_MAX_SECONDS = 6
     var CROSSFADE_MIN_SECONDS = 2.5
     /** Start analysing this early; analysis is fast but the fetch is not. */
     var CROSSFADE_PREPARE_SECONDS = 14
-    /** A track's intro must be at least this quiet-and-long before we skip into it. */
-    var CROSSFADE_INTRO_SKIP_SECONDS = 3
+    /** Only a genuinely silent intro is skipped, and never more than this. */
+    var CROSSFADE_INTRO_SKIP_SECONDS = 2
+    var CROSSFADE_SKIP_LIMIT_SECONDS = 10
 
     /** 0 means off. The stored value is the upper bound of the automatic overlap. */
     function crossfadeFadeSeconds(prefs) {
@@ -4204,12 +4205,17 @@ window.__ModuleLoader__.load({
       if (!isFinite(remaining) || remaining <= 0) return null
       var max = Math.min(limit, Math.max(CROSSFADE_MIN_SECONDS, remaining))
       var tail = Number(current && current.outroQuietSec)
-      var head = Number(next && next.introQuietSec)
+      var silentIntro = Number(next && next.introSilentSec)
       if (!isFinite(tail) || tail < 0) tail = 0
-      if (!isFinite(head) || head < 0) head = 0
+      if (!isFinite(silentIntro) || silentIntro < 0) silentIntro = 0
       var overlap = tail > 0.4 ? tail : CROSSFADE_MIN_SECONDS
       overlap = Math.max(CROSSFADE_MIN_SECONDS, Math.min(overlap, max))
-      var startInNext = head >= CROSSFADE_INTRO_SKIP_SECONDS ? Math.max(0, head - 1) : 0
+      // Skipping is reserved for actual silence: a soft musical intro is content,
+      // and cutting into it makes the next track start mid-phrase.
+      var startInNext =
+        silentIntro >= CROSSFADE_INTRO_SKIP_SECONDS
+          ? Math.max(0, Math.min(silentIntro - 0.5, CROSSFADE_SKIP_LIMIT_SECONDS))
+          : 0
       return {
         overlap: Math.round(overlap * 10) / 10,
         startInNext: Math.round(startInNext * 10) / 10,
@@ -4271,6 +4277,12 @@ window.__ModuleLoader__.load({
     var TRANSITION_TAIL = 30
     /** "Quiet" means this far below the track's own average level. */
     var TRANSITION_QUIET_DB = -10
+    /**
+     * "Silent" is absolute: only a genuinely empty intro may be skipped. A soft
+     * musical intro is often 10 dB below the average, and skipping that would cut
+     * real music off the front of the next track.
+     */
+    var TRANSITION_SILENT_DB = -45
 
     function transitionRmsDb(channels, start, length, weight) {
       var sum = 0
@@ -4336,17 +4348,28 @@ window.__ModuleLoader__.load({
           duration: round(duration),
           loudnessDb: -70,
           introQuietSec: round(headLimit / rate),
+          introSilentSec: round(headLimit / rate),
           outroQuietSec: round((length - tailStart) / rate),
         }
       }
 
-      // Intro: walk forward from 0 until a window is no longer quiet.
+      // Intro: walk forward from 0 until a window is no longer quiet. The silent
+      // measurement is stricter and is the only one allowed to skip audio.
       var introQuietSec = headLimit / rate
+      var introSilentSec = headLimit / rate
+      var quietEnded = false
+      var silentEnded = false
       for (var start = 0; start + windowSize <= headLimit; start += hop) {
-        if (windowDb(start) >= quietThreshold) {
+        var level = windowDb(start)
+        if (!quietEnded && level >= quietThreshold) {
           introQuietSec = start / rate
-          break
+          quietEnded = true
         }
+        if (!silentEnded && level >= TRANSITION_SILENT_DB) {
+          introSilentSec = start / rate
+          silentEnded = true
+        }
+        if (quietEnded && silentEnded) break
       }
 
       // Outro: walk backwards from the end until a window is loud again.
@@ -4362,6 +4385,7 @@ window.__ModuleLoader__.load({
         duration: round(duration),
         loudnessDb: Math.round(loudnessDb * 10) / 10,
         introQuietSec: round(introQuietSec),
+        introSilentSec: round(introSilentSec),
         outroQuietSec: round(outroQuietSec),
       }
     }

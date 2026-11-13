@@ -62,9 +62,12 @@ assert.deepEqual(plan({ outroQuietSec: 0 }, { introQuietSec: 0 }, 30), {
 assert.equal(plan({ outroQuietSec: 25 }, {}, 60).overlap, fx.CROSSFADE_MAX_SECONDS)
 // Never exceed what is left of the track.
 assert.equal(plan({ outroQuietSec: 12 }, {}, 5).overlap, 5)
-// A long silent intro is skipped so the new track starts where it is audible.
-assert.equal(plan({ outroQuietSec: 4 }, { introQuietSec: 8 }, 30).startInNext, 7)
-assert.equal(plan({ outroQuietSec: 4 }, { introQuietSec: 2 }, 30).startInNext, 0)
+// Only a genuinely silent intro is skipped; a soft musical intro is content.
+assert.equal(plan({ outroQuietSec: 4 }, { introSilentSec: 8 }, 30).startInNext, 7.5)
+assert.equal(plan({ outroQuietSec: 4 }, { introSilentSec: 0.8 }, 30).startInNext, 0)
+assert.equal(plan({ outroQuietSec: 4 }, {}, 30).startInNext, 0)
+// Skipping is bounded so a mostly-silent track cannot jump far ahead.
+assert.equal(plan({ outroQuietSec: 4 }, { introSilentSec: 40 }, 30).startInNext, 10)
 // Disabled or no remaining time means no plan at all.
 assert.equal(fx.crossfadePlan({}, {}, { prefs: { crossfadeSeconds: 0 }, remaining: 30 }), null)
 assert.equal(fx.crossfadePlan({}, {}, { prefs, remaining: 0 }), null)
