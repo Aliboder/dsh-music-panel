@@ -9175,10 +9175,8 @@ window.__ModuleLoader__.load({
       // Keyed wrappers below let it see a child swap; no custom keyframes.
       var coverMotion = useAutoAnimate({ duration: 420, easing: 'cubic-bezier(.22,.61,.36,1)' })
       var metaMotion = useAutoAnimate({ duration: 320, easing: 'ease-out' })
-      var lyricsMotion = useAutoAnimate({ duration: 380, easing: 'ease-out' })
       var coverMotionRef = coverMotion[0]
       var metaMotionRef = metaMotion[0]
-      var lyricsMotionRef = lyricsMotion[0]
       var pair = useState([])
       var lyrics = pair[0]
       var setLyrics = pair[1]
@@ -9223,10 +9221,6 @@ window.__ModuleLoader__.load({
       var innerRef = useRef(null)
       var discWrapRef = useRef(null)
       var rowRefs = useRef([])
-      var setLyricsBox = useCallback(function (node) {
-        boxRef.current = node
-        lyricsMotionRef(node)
-      }, [lyricsMotionRef])
 
       useEffect(
         function () {
@@ -10132,12 +10126,12 @@ window.__ModuleLoader__.load({
             { className: 'mp-np-right' },
             h(
               'div',
-              { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: setLyricsBox },
+              { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: boxRef },
               lyrics.length === 0
                 ? null
                 : h(
                     'div',
-                    { key: 'lyrics:' + trackPath, className: 'mp-np-lyrics-inner', ref: innerRef },
+                    { className: 'mp-np-lyrics-inner', ref: innerRef },
                     lyrics.map(function (line, index) {
                       return h(
                         'div',
