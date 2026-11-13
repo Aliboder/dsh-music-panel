@@ -6560,6 +6560,8 @@ window.__ModuleLoader__.load({
       '.mp-sel-count{margin-left:2px;padding:2px 9px;border-radius:999px;font-size:12px;line-height:18px;color:var(--dsw-alias-state-business-primary,#7AAAFF);background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
       '.mp-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px;flex:none}',
       '.mp-toolbar{display:flex;align-items:center;gap:8px;padding:0 22px 10px;min-height:34px;flex-wrap:wrap;flex:none}',
+      '.mp-toolbar-left{display:flex;align-items:center;gap:8px;margin-right:auto}',
+      '.mp-toolbar-right{display:flex;align-items:center;gap:8px}',
       '.mp-online-auth{display:flex;align-items:flex-start;gap:10px;margin:0 22px 10px;padding:10px 12px;border:1px solid rgba(240,179,91,.35);border-radius:8px;background:rgba(240,179,91,.08);flex:none}',
       '.mp-online-auth-icon{display:flex;flex:none;color:#f0b35b;margin-top:1px}',
       '.mp-online-auth-text{flex:1;min-width:0}',
@@ -13554,6 +13556,7 @@ window.__ModuleLoader__.load({
       var title = t('v2.recent')
       var count = 0
       var actions = null
+      var backActions = []
       var body = null
       var resetKey = ''
       var empty = null
@@ -13622,6 +13625,8 @@ window.__ModuleLoader__.load({
             },
             t('page.playAll'),
           ),
+        ]
+        backActions = [
           h(
             Button,
             {
@@ -13758,7 +13763,7 @@ window.__ModuleLoader__.load({
         var songs = online.playlistSongs || []
         count = songs.length
         resetKey = 'online-playlist:' + online.playlistId
-        actions = [h(Button, { key: 'back', variant: 'ghost', icon: 'chevronLeft', onClick: function () {
+        backActions = [h(Button, { key: 'back', variant: 'ghost', icon: 'chevronLeft', onClick: function () {
                     closeOnlinePlaylist()
                     setNav('recent')
                   } }, t('v2.back'))]
@@ -13804,7 +13809,7 @@ window.__ModuleLoader__.load({
         title = online.artistName || t('v2.artists')
         count = artistTracks.length
         resetKey = 'online-artist-songs:' + online.artistProvider + ':' + online.artistName
-        actions = [
+        backActions = [
           h(
             Button,
             {
@@ -14196,15 +14201,14 @@ window.__ModuleLoader__.load({
               ),
             )
           : null,
-        actions && actions.length > 0
+        backActions.length > 0 || (actions && actions.length > 0)
           ? h(
               'div',
               { className: 'mp-toolbar', key: 'toolbar' },
-              h(
-                'div',
-                { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
-                actions,
-              ),
+              h('div', { className: 'mp-toolbar-left' }, backActions),
+              actions && actions.length > 0
+                ? h('div', { className: 'mp-toolbar-right' }, actions)
+                : null,
             )
           : null,
         h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),

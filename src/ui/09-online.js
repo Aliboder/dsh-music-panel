@@ -355,6 +355,7 @@ function OnlineContent(props) {
   var title = t('v2.recent')
   var count = 0
   var actions = null
+  var backActions = []
   var body = null
   var resetKey = ''
   var empty = null
@@ -423,6 +424,8 @@ function OnlineContent(props) {
         },
         t('page.playAll'),
       ),
+    ]
+    backActions = [
       h(
         Button,
         {
@@ -559,7 +562,7 @@ function OnlineContent(props) {
     var songs = online.playlistSongs || []
     count = songs.length
     resetKey = 'online-playlist:' + online.playlistId
-    actions = [h(Button, { key: 'back', variant: 'ghost', icon: 'chevronLeft', onClick: function () {
+    backActions = [h(Button, { key: 'back', variant: 'ghost', icon: 'chevronLeft', onClick: function () {
                 closeOnlinePlaylist()
                 setNav('recent')
               } }, t('v2.back'))]
@@ -605,7 +608,7 @@ function OnlineContent(props) {
     title = online.artistName || t('v2.artists')
     count = artistTracks.length
     resetKey = 'online-artist-songs:' + online.artistProvider + ':' + online.artistName
-    actions = [
+    backActions = [
       h(
         Button,
         {
@@ -997,15 +1000,14 @@ function OnlineContent(props) {
           ),
         )
       : null,
-    actions && actions.length > 0
+    backActions.length > 0 || (actions && actions.length > 0)
       ? h(
           'div',
           { className: 'mp-toolbar', key: 'toolbar' },
-          h(
-            'div',
-            { style: { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' } },
-            actions,
-          ),
+          h('div', { className: 'mp-toolbar-left' }, backActions),
+          actions && actions.length > 0
+            ? h('div', { className: 'mp-toolbar-right' }, actions)
+            : null,
         )
       : null,
     h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),

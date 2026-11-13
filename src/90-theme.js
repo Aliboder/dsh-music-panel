@@ -157,6 +157,8 @@ var THEME_CSS = [
   '.mp-sel-count{margin-left:2px;padding:2px 9px;border-radius:999px;font-size:12px;line-height:18px;color:var(--dsw-alias-state-business-primary,#7AAAFF);background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
   '.mp-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px;flex:none}',
   '.mp-toolbar{display:flex;align-items:center;gap:8px;padding:0 22px 10px;min-height:34px;flex-wrap:wrap;flex:none}',
+  '.mp-toolbar-left{display:flex;align-items:center;gap:8px;margin-right:auto}',
+  '.mp-toolbar-right{display:flex;align-items:center;gap:8px}',
   '.mp-online-auth{display:flex;align-items:flex-start;gap:10px;margin:0 22px 10px;padding:10px 12px;border:1px solid rgba(240,179,91,.35);border-radius:8px;background:rgba(240,179,91,.08);flex:none}',
   '.mp-online-auth-icon{display:flex;flex:none;color:#f0b35b;margin-top:1px}',
   '.mp-online-auth-text{flex:1;min-width:0}',
