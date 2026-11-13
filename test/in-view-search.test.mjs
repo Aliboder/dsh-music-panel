@@ -64,6 +64,13 @@ assert.match(list, /page\.filterEmpty/, 'a filtered-out list explains itself')
 const store = readFileSync(join(root, 'src/40-store.js'), 'utf8')
 assert.match(store, /contentFilterStore/, 'the filter lives in its own tiny store')
 
+const theme = readFileSync(join(root, 'src/90-theme.js'), 'utf8')
+assert.match(
+  theme,
+  /\.mp-head-search\{[^']*box-sizing:border-box[^']*height:30px/,
+  'the search box must not change the header height (border-box, same 30px)',
+)
+
 const build = readFileSync(join(root, 'scripts/build-client.mjs'), 'utf8')
 assert.match(build, /src\/44-filter\.js/, 'the filter fragment is part of the bundle')
 
