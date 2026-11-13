@@ -5812,27 +5812,17 @@ window.__ModuleLoader__.load({
       try {
         var body = await getJson(
           API +
-            'online/search?provider=' +
+            'online/artist-songs?provider=' +
             encodeURIComponent(provider) +
-            '&q=' +
+            '&artist=' +
             encodeURIComponent(artist),
         )
         if (token !== artistLoadToken) return
-        var results = Array.isArray(body.results) ? body.results : []
-        var wanted = artist.toLowerCase()
-        var matched = results.filter(function (item) {
-          var actual = String((item && item.artist) || '').toLowerCase()
-          if (actual === wanted || actual.indexOf(wanted) >= 0) return true
-          var actualParts = actual.split(/\s*[\/,&、]\s*/)
-          var wantedParts = wanted.split(/\s*[\/,&、]\s*/)
-          return wantedParts.some(function (part) {
-            return part !== '' && actualParts.indexOf(part) >= 0
-          })
-        })
-        onlineStore.set({ artistSongs: matched, artistPhase: 'ready' })
+        var songs = Array.isArray(body.songs) ? body.songs : []
+        onlineStore.set({ artistSongs: songs, artistPhase: 'ready' })
         void refreshCacheStatus(
           provider,
-          matched.map(function (item) {
+          songs.map(function (item) {
             return item.id
           }),
         )
