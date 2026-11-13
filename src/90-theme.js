@@ -804,14 +804,15 @@ var THEME_CSS = [
   '.mp-np-setting-hint{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:6px;line-height:1.5}',
 
   // ── composer / sidebar ──────────────────────────────────────────────────
-  '.mp-composer-lyrics{display:flex;align-items:center;gap:6px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto 6px;height:24px;padding:0 2px;color:var(--dsw-alias-label-secondary,#cfd3d6);font-family:var(--dsw-font-family,inherit);font-size:12px;line-height:20px;overflow:hidden;white-space:nowrap}',
+  '.mp-composer-lyrics{display:flex;align-items:center;gap:6px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto 6px;height:calc(24px + var(--dsh-content-font-delta,0px));padding:0 2px;color:var(--dsw-alias-label-secondary,#cfd3d6);font-family:var(--dsw-font-family,inherit);font-size:calc(12px + var(--dsh-content-font-delta,0px));line-height:calc(20px + var(--dsh-content-font-delta,0px));overflow:hidden;white-space:nowrap}',
   '.mp-composer-lyric-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.9}',
-  '.mp-composer-lyric-viewport{position:relative;display:inline-flex;align-items:center;flex:0 1 auto;min-width:0;max-width:100%;height:20px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%)}',
+  '.mp-composer-lyric-icon svg{width:calc(12px + var(--dsh-content-font-delta,0px));height:calc(12px + var(--dsh-content-font-delta,0px))}',
+  '.mp-composer-lyric-viewport{position:relative;display:inline-flex;align-items:center;flex:0 1 auto;min-width:0;max-width:100%;height:calc(20px + var(--dsh-content-font-delta,0px));overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%)}',
   '.mp-composer-lyric-layer{display:inline-flex;align-items:center;gap:6px;max-width:100%;white-space:nowrap}',
   '.mp-composer-lyric-layer.is-entering{animation:mp-composer-lyric-enter .32s cubic-bezier(.22,.8,.24,1) both}',
   '.mp-composer-lyric-layer.is-leaving{position:absolute;left:0;top:0;animation:mp-composer-lyric-leave .32s cubic-bezier(.22,.8,.24,1) both;pointer-events:none;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
   '.mp-composer-lyric-main{min-width:0;overflow:hidden;text-overflow:ellipsis}',
-  '.mp-composer-lyric-trans{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+  '.mp-composer-lyric-trans{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:calc(11px + var(--dsh-content-font-delta-secondary,0px));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
   '.mp-composer-lyric-trans::before{content:"·";margin-right:5px;opacity:.6}',
   '@keyframes mp-composer-lyric-enter{from{opacity:.25;transform:translate3d(0,100%,0)}to{opacity:1;transform:translate3d(0,0,0)}}',
   '@keyframes mp-composer-lyric-leave{from{opacity:1;transform:translate3d(0,0,0)}to{opacity:.18;transform:translate3d(0,-100%,0)}}',
