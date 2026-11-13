@@ -38,6 +38,15 @@ assert.doesNotMatch(theme, /border-radius:(?:6|7|9|10|11|14|18)px/, 'radius must
 assert.doesNotMatch(joined, /font-size:(?:10\.5|11\.5|12\.5)px/, 'font sizes must use the official scale')
 assert.doesNotMatch(joined, /fontSize:\s*'(?:10\.5|11\.5|12\.5)px'/, 'inline font sizes must use the official scale')
 
+// `Cover` renders a bare <img> with no intrinsic sizing, so every fixed-size
+// container that shows one must clamp it; otherwise the artwork paints at its
+// natural size and blows the layout open. The artist/album cards shipped
+// exactly that bug, so the containers are listed explicitly.
+for (const selector of ['.mp-card-art', '.mp-srow-cover', '.mp-row-cover', '.mp-q-cover', '.mp-pb-cover']) {
+  const rule = new RegExp(`\\${selector} img\\{[^}]*width:100%;height:100%;object-fit:cover`)
+  assert.match(theme, rule, `${selector} must clamp its Cover image to the container`)
+}
+
 // Accent must come from the business token, not the old hard-coded blue.
 assert.doesNotMatch(joined, /#5686fe/i, 'use --dsw-alias-state-business-primary instead of #5686fe')
 assert.doesNotMatch(joined, /static-deepseek-450/, 'use --dsw-alias-state-business-primary instead of the old token')

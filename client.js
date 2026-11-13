@@ -5753,6 +5753,10 @@ window.__ModuleLoader__.load({
       '.mp-card:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06));border-color:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
       '.mp-card-art{position:relative;width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.05));display:flex;align-items:center;justify-content:center}',
       '.mp-card.is-round .mp-card-art{border-radius:50%}',
+      // Cover renders a bare <img> with no intrinsic sizing, so every container has
+      // to clamp it the way `.mp-srow-cover img` does; without this the artwork
+      // paints at its natural size and blows the card open.
+      '.mp-card-art img{width:100%;height:100%;object-fit:cover;display:block}',
       '.mp-card-art-fallback{color:var(--dsw-alias-label-tertiary,#71717a)}',
       '.mp-card-title{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-card-sub{font-size:12px;color:var(--dsw-alias-label-tertiary,#71717a);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
