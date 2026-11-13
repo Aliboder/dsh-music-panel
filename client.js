@@ -2094,10 +2094,7 @@ window.__ModuleLoader__.load({
         'v2.logout': '退出登录',
         'page.audioEffects': '音频效果',
         'eq.title': '均衡器',
-        'eq.back': '返回',
         'eq.enable': '启用均衡器',
-        'eq.off': '未启用',
-        'eq.custom': '自定义',
         'eq.tabPresets': '预设',
         'eq.tabMine': '我的',
         'eq.tabEdit': '编辑',
@@ -2249,10 +2246,7 @@ window.__ModuleLoader__.load({
         'v2.logout': 'Sign out',
         'page.audioEffects': 'Audio effects',
         'eq.title': 'Equalizer',
-        'eq.back': 'Back',
         'eq.enable': 'Enable equalizer',
-        'eq.off': 'Off',
-        'eq.custom': 'Custom',
         'eq.tabPresets': 'Presets',
         'eq.tabMine': 'Mine',
         'eq.tabEdit': 'Edit',
@@ -7429,7 +7423,6 @@ window.__ModuleLoader__.load({
       '.mp-np-secondary .mp-iconbtn:hover{background:rgba(255,255,255,.1);color:#fff}',
       '.mp-np-extra-item{position:relative;display:flex}',
       '.mp-np-extra-pop{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);z-index:10;width:210px;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(24,24,28,.96);box-shadow:0 16px 40px rgba(0,0,0,.5)}',
-      '.mp-np-extra-title{font-size:12px;font-weight:650;margin-bottom:8px}',
       '.mp-np-extra-option{display:block;width:100%;padding:7px 8px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;font:inherit;font-size:12px;cursor:pointer}',
       '.mp-np-extra-option:hover,.mp-np-extra-option.is-on{background:rgba(255,255,255,.08)}',
       '.mp-np-extra-option.is-on{color:var(--dsw-alias-state-business-primary,#4176E6)}',
@@ -7461,22 +7454,24 @@ window.__ModuleLoader__.load({
       '.mp-np-sleep-off:hover{background:rgba(255,80,80,.14)}',
       '.mp-np-extra-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px}',
       '.mp-np-extra-hint{margin-top:10px;font-size:11px;color:rgba(255,255,255,.55)}',
-      // ── audio effects: equalizer panel ────────────────────────────────────
+      // ── audio effects: one panel, two views (volume / equalizer) ──────────
       // The now-playing surface is always dark (cover backdrop), so these follow
       // the neighbouring popover rules and use white alphas instead of --dsw-* text
       // tokens, which would resolve to dark ink in the light theme.
-      '.mp-np-extra-link{display:flex;align-items:center;gap:6px;width:100%;margin-top:10px;padding:7px 8px;border:0;border-radius:8px;background:rgba(255,255,255,.06);color:inherit;font:inherit;font-size:12px;text-align:left;cursor:pointer}',
-      '.mp-np-extra-link:hover{background:rgba(255,255,255,.12)}',
-      '.mp-np-extra-link-label{flex:1;min-width:0}',
-      '.mp-np-extra-link-value{font-size:11px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:96px}',
-      '.mp-np-extra-link-arrow{display:inline-flex;flex:none;transform:rotate(180deg);color:rgba(255,255,255,.45)}',
-      '.mp-np-extra-pop.is-eq{left:0;transform:none;width:340px;max-width:calc(100vw - 24px);max-height:min(72vh,480px);overflow-y:auto;overscroll-behavior:contain;padding:12px;border-radius:12px}',
+      '.mp-np-extra-pop.is-effects{width:340px;max-width:calc(100vw - 24px);max-height:min(72vh,480px);overflow-y:auto;overscroll-behavior:contain;padding:12px;border-radius:12px}',
+      '.mp-fx-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}',
+      '.mp-fx-title{font-size:12px;font-weight:650;color:#f4f4f5}',
+      '.mp-fx-seg{display:flex;gap:2px;padding:2px;border-radius:8px;background:rgba(255,255,255,.06)}',
+      '.mp-fx-seg-btn{padding:4px 10px;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.6);font:inherit;font-size:12px;cursor:pointer}',
+      '.mp-fx-seg-btn:hover{color:#f4f4f5}',
+      '.mp-fx-seg-btn.is-on{background:rgba(255,255,255,.14);color:#f4f4f5}',
+      '.mp-fx-body{display:flex;flex-direction:column}',
+      '.mp-fx-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:rgba(255,255,255,.75)}',
+      '.mp-fx-value{font-size:11px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}',
+      '.mp-fx-range{width:100%;margin-top:8px}',
       '.mp-eqp{display:flex;flex-direction:column;gap:8px}',
-      '.mp-eq-head{display:flex;align-items:center;gap:8px}',
-      '.mp-eq-back{display:inline-flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;padding:0;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.75);cursor:pointer}',
-      '.mp-eq-back:hover{background:rgba(255,255,255,.1);color:#fff}',
-      '.mp-eq-title{flex:1;min-width:0;font-size:13px;font-weight:650;color:#f4f4f5}',
-      '.mp-eq-tabs{display:flex;gap:2px;padding:2px;border-radius:8px;background:rgba(255,255,255,.06)}',
+      '.mp-eq-tabs-row{display:flex;align-items:center;gap:8px}',
+      '.mp-eq-tabs{display:flex;flex:1;min-width:0;gap:2px;padding:2px;border-radius:8px;background:rgba(255,255,255,.06)}',
       '.mp-eq-tab{flex:1;padding:5px 0;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.6);font:inherit;font-size:12px;cursor:pointer}',
       '.mp-eq-tab:hover{color:#f4f4f5}',
       '.mp-eq-tab.is-on{background:rgba(255,255,255,.13);color:#f4f4f5}',
@@ -9041,13 +9036,104 @@ window.__ModuleLoader__.load({
       )
     }
 
-    /** One-line summary shown next to the equalizer entry in the volume pane. */
-    function eqSummaryLabel(prefs) {
-      var eq = normalizeEqPrefs(prefs)
-      if (!eq.enabled) return t('eq.off')
-      if (eq.preset === 'custom') return t('eq.custom')
-      var preset = eqPresetById(eq.preset)
-      return preset === null ? t('eq.custom') : eqPresetName(preset)
+    /**
+     * audio-effects: one popover with two views.
+     *
+     * The volume controls and the equalizer are content of the same panel, not two
+     * popovers that swap under the button, so the panel keeps its position and
+     * chrome while the view changes.
+     */
+
+    var AUDIO_FX_VIEWS = [
+      { id: 'audio', labelKey: 'page.volume' },
+      { id: 'eq', labelKey: 'eq.title' },
+    ]
+
+    function AudioEffectsPanel(props) {
+      var snap = props.snap || {}
+      var prefs = props.prefs || {}
+      var track = props.track || null
+      var view = props.view === 'eq' ? 'eq' : 'audio'
+      var volume = clamp(Number(snap.volume), 0, 1)
+      if (!isFinite(volume)) volume = 1
+      var muted = snap.muted === true
+
+      function show(next) {
+        if (typeof props.onView === 'function') props.onView(next)
+      }
+
+      var body =
+        view === 'audio'
+          ? h(
+              'div',
+              { className: 'mp-fx-body' },
+              h(
+                'div',
+                { className: 'mp-fx-row' },
+                h('span', { className: 'mp-fx-label' }, t('page.volume')),
+                h('span', { className: 'mp-fx-value' }, Math.round((muted ? 0 : volume) * 100) + '%'),
+              ),
+              h('input', {
+                type: 'range',
+                className: 'mp-range mp-fx-range',
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: volume,
+                'aria-label': t('page.volume'),
+                onChange: function (event) {
+                  player.setVolume(Number(event.target.value))
+                },
+              }),
+              h(
+                'div',
+                { className: 'mp-np-extra-row' },
+                h('span', null, t('settings.volumeNormalize')),
+                h(Switch, {
+                  value: prefs.normalizeVolume !== false,
+                  onChange: function (value) {
+                    setPrefs({ normalizeVolume: value })
+                  },
+                }),
+              ),
+              h(
+                'div',
+                { className: 'mp-np-extra-hint' },
+                track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
+              ),
+            )
+          : h(EqPanel, {})
+
+      return h(
+        'div',
+        { className: 'mp-np-extra-pop is-effects' },
+        h(
+          'div',
+          { className: 'mp-fx-head' },
+          h('span', { className: 'mp-fx-title' }, t('page.audioEffects')),
+          h(
+            'div',
+            { className: 'mp-fx-seg', role: 'tablist' },
+            AUDIO_FX_VIEWS.map(function (item) {
+              return h(
+                'button',
+                {
+                  key: item.id,
+                  type: 'button',
+                  role: 'tab',
+                  'aria-selected': view === item.id,
+                  className: cx('mp-fx-seg-btn', view === item.id && 'is-on'),
+                  onClick: function () {
+                    show(item.id)
+                  },
+                },
+                t(item.labelKey),
+              )
+            }),
+          ),
+        ),
+        body,
+      )
     }
 
     function EqPanel(props) {
@@ -9289,9 +9375,6 @@ window.__ModuleLoader__.load({
               t('eq.saveCurrent'),
             ),
           ),
-          eq.enabled && !available
-            ? h('div', { className: 'mp-eq-warn' }, t('eq.unavailable'))
-            : null,
         )
       }
 
@@ -9300,18 +9383,27 @@ window.__ModuleLoader__.load({
         { className: 'mp-eqp' },
         h(
           'div',
-          { className: 'mp-eq-head' },
+          { className: 'mp-eq-tabs-row' },
           h(
-            'button',
-            {
-              type: 'button',
-              className: 'mp-eq-back',
-              title: t('eq.back'),
-              onClick: props.onBack,
-            },
-            icon('chevronLeft', 14),
+            'div',
+            { className: 'mp-eq-tabs', role: 'tablist' },
+            EQ_TABS.map(function (item) {
+              return h(
+                'button',
+                {
+                  key: item.id,
+                  type: 'button',
+                  role: 'tab',
+                  'aria-selected': tab === item.id,
+                  className: cx('mp-eq-tab', tab === item.id && 'is-on'),
+                  onClick: function () {
+                    setTab(item.id)
+                  },
+                },
+                t(item.labelKey),
+              )
+            }),
           ),
-          h('span', { className: 'mp-eq-title' }, t('eq.title')),
           h(Switch, {
             value: eq.enabled,
             label: t('eq.enable'),
@@ -9321,26 +9413,7 @@ window.__ModuleLoader__.load({
             },
           }),
         ),
-        h(
-          'div',
-          { className: 'mp-eq-tabs', role: 'tablist' },
-          EQ_TABS.map(function (item) {
-            return h(
-              'button',
-              {
-                key: item.id,
-                type: 'button',
-                role: 'tab',
-                'aria-selected': tab === item.id,
-                className: cx('mp-eq-tab', tab === item.id && 'is-on'),
-                onClick: function () {
-                  setTab(item.id)
-                },
-              },
-              t(item.labelKey),
-            )
-          }),
-        ),
+        eq.enabled && !available ? h('div', { className: 'mp-eq-warn' }, t('eq.unavailable')) : null,
         h('div', { className: 'mp-eq-body' }, body),
       )
     }
@@ -11346,64 +11419,14 @@ window.__ModuleLoader__.load({
                     setExtraPanel(extraPanel === 'audio' || extraPanel === 'eq' ? '' : 'audio')
                   },
                 }),
-                extraPanel === 'audio'
-                  ? h(
-                      'div',
-                      { className: 'mp-np-extra-pop' },
-                      h('div', { className: 'mp-np-extra-title' }, t('page.volume')),
-                      h('input', {
-                        type: 'range',
-                        className: 'mp-range',
-                        min: 0,
-                        max: 1,
-                        step: 0.01,
-                        value: snap.volume,
-                        onChange: function (event) {
-                          player.setVolume(Number(event.target.value))
-                        },
-                      }),
-                      h(
-                        'div',
-                        { className: 'mp-np-extra-row' },
-                        h('span', null, t('settings.volumeNormalize')),
-                        h(Switch, {
-                          value: prefs.normalizeVolume !== false,
-                          onChange: function (value) {
-                            setPrefs({ normalizeVolume: value })
-                          },
-                        }),
-                      ),
-                      h(
-                        'div',
-                        { className: 'mp-np-extra-hint' },
-                        track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
-                      ),
-                      h(
-                        'button',
-                        {
-                          type: 'button',
-                          className: 'mp-np-extra-link',
-                          onClick: function () {
-                            setExtraPanel('eq')
-                          },
-                        },
-                        icon('equalizer', 13),
-                        h('span', { className: 'mp-np-extra-link-label' }, t('eq.title')),
-                        h('span', { className: 'mp-np-extra-link-value' }, eqSummaryLabel(prefs)),
-                        h('span', { className: 'mp-np-extra-link-arrow' }, icon('chevronLeft', 12)),
-                      ),
-                    )
-                  : null,
-                extraPanel === 'eq'
-                  ? h(
-                      'div',
-                      { className: 'mp-np-extra-pop is-eq' },
-                      h(EqPanel, {
-                        onBack: function () {
-                          setExtraPanel('audio')
-                        },
-                      }),
-                    )
+                extraPanel === 'audio' || extraPanel === 'eq'
+                  ? h(AudioEffectsPanel, {
+                      view: extraPanel,
+                      onView: setExtraPanel,
+                      snap: snap,
+                      prefs: prefs,
+                      track: track,
+                    })
                   : null,
               ),
               h(
@@ -18359,6 +18382,7 @@ window.__ModuleLoader__.load({
           isOnlineSource: isOnlineSource,
           UI_SOURCES: UI_SOURCES,
           // Equalizer: the panel renders in tests, and the curve maths is pure.
+          AudioEffectsPanel: AudioEffectsPanel,
           EqPanel: EqPanel,
           normalizeEqPrefs: normalizeEqPrefs,
           eqCurveSamples: eqCurveSamples,

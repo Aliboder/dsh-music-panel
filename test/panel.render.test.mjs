@@ -576,6 +576,49 @@ assert.ok(classesOf(savedTab).has('mp-eq-saved-row'), 'saved rows render')
 
 internals.prefsStore.set(eqPrefs)
 
+// 11. audio effects is ONE panel with two views: the volume controls and the
+//     equalizer must not be two separate popovers that swap under the button.
+const npSource = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'ui', '04-now-playing.js'), 'utf8')
+assert.match(npSource, /h\(AudioEffectsPanel, \{/, 'the now-playing bar mounts the shared panel')
+assert.doesNotMatch(npSource, /is-eq'/, 'the old separate equalizer popover is gone')
+assert.doesNotMatch(npSource, /mp-np-extra-link/, 'the old entry row is gone')
+
+const AudioEffectsPanel = internals.AudioEffectsPanel
+assert.equal(typeof AudioEffectsPanel, 'function', 'AudioEffectsPanel is exposed for tests')
+
+const volumeView = expand(
+  React.createElement(AudioEffectsPanel, {
+    view: 'audio',
+    snap: { volume: 0.42, muted: false },
+    prefs: { normalizeVolume: true },
+    track: { qualityHint: 'FLAC 48 kHz' },
+    onView() {},
+  }),
+)
+const volumeClasses = classesOf(volumeView)
+assert.ok(volumeClasses.has('mp-np-extra-pop'), 'the panel renders one popover')
+assert.ok(volumeClasses.has('is-effects'), 'the panel carries the audio-effects class')
+assert.ok(volumeClasses.has('mp-fx-seg-btn'), 'the view switch renders inside the panel')
+assert.ok(textOf(volumeView).includes('音频效果'), 'the panel title renders')
+assert.ok(textOf(volumeView).includes('42%'), 'the volume readout renders')
+assert.ok(textOf(volumeView).includes('FLAC 48 kHz'), 'the quality hint renders')
+
+const eqView = expand(
+  React.createElement(AudioEffectsPanel, {
+    view: 'eq',
+    snap: { volume: 0.42 },
+    prefs: {},
+    track: null,
+    onView() {},
+  }),
+)
+const eqViewClasses = classesOf(eqView)
+assert.ok(eqViewClasses.has('mp-np-extra-pop'), 'the equalizer shares the same popover')
+assert.ok(eqViewClasses.has('is-effects'), 'switching views does not replace the panel')
+assert.ok(eqViewClasses.has('mp-eqp'), 'the equalizer content renders inside it')
+assert.ok(eqViewClasses.has('mp-fx-seg-btn'), 'the view switch stays visible in the equalizer view')
+assert.ok(textOf(eqView).includes('摇滚'), 'presets are available from the shared panel')
+
 console.log('panel.render.test.mjs ok')
 
 

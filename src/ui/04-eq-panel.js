@@ -112,13 +112,104 @@ function EqPresetTile(props) {
   )
 }
 
-/** One-line summary shown next to the equalizer entry in the volume pane. */
-function eqSummaryLabel(prefs) {
-  var eq = normalizeEqPrefs(prefs)
-  if (!eq.enabled) return t('eq.off')
-  if (eq.preset === 'custom') return t('eq.custom')
-  var preset = eqPresetById(eq.preset)
-  return preset === null ? t('eq.custom') : eqPresetName(preset)
+/**
+ * audio-effects: one popover with two views.
+ *
+ * The volume controls and the equalizer are content of the same panel, not two
+ * popovers that swap under the button, so the panel keeps its position and
+ * chrome while the view changes.
+ */
+
+var AUDIO_FX_VIEWS = [
+  { id: 'audio', labelKey: 'page.volume' },
+  { id: 'eq', labelKey: 'eq.title' },
+]
+
+function AudioEffectsPanel(props) {
+  var snap = props.snap || {}
+  var prefs = props.prefs || {}
+  var track = props.track || null
+  var view = props.view === 'eq' ? 'eq' : 'audio'
+  var volume = clamp(Number(snap.volume), 0, 1)
+  if (!isFinite(volume)) volume = 1
+  var muted = snap.muted === true
+
+  function show(next) {
+    if (typeof props.onView === 'function') props.onView(next)
+  }
+
+  var body =
+    view === 'audio'
+      ? h(
+          'div',
+          { className: 'mp-fx-body' },
+          h(
+            'div',
+            { className: 'mp-fx-row' },
+            h('span', { className: 'mp-fx-label' }, t('page.volume')),
+            h('span', { className: 'mp-fx-value' }, Math.round((muted ? 0 : volume) * 100) + '%'),
+          ),
+          h('input', {
+            type: 'range',
+            className: 'mp-range mp-fx-range',
+            min: 0,
+            max: 1,
+            step: 0.01,
+            value: volume,
+            'aria-label': t('page.volume'),
+            onChange: function (event) {
+              player.setVolume(Number(event.target.value))
+            },
+          }),
+          h(
+            'div',
+            { className: 'mp-np-extra-row' },
+            h('span', null, t('settings.volumeNormalize')),
+            h(Switch, {
+              value: prefs.normalizeVolume !== false,
+              onChange: function (value) {
+                setPrefs({ normalizeVolume: value })
+              },
+            }),
+          ),
+          h(
+            'div',
+            { className: 'mp-np-extra-hint' },
+            track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
+          ),
+        )
+      : h(EqPanel, {})
+
+  return h(
+    'div',
+    { className: 'mp-np-extra-pop is-effects' },
+    h(
+      'div',
+      { className: 'mp-fx-head' },
+      h('span', { className: 'mp-fx-title' }, t('page.audioEffects')),
+      h(
+        'div',
+        { className: 'mp-fx-seg', role: 'tablist' },
+        AUDIO_FX_VIEWS.map(function (item) {
+          return h(
+            'button',
+            {
+              key: item.id,
+              type: 'button',
+              role: 'tab',
+              'aria-selected': view === item.id,
+              className: cx('mp-fx-seg-btn', view === item.id && 'is-on'),
+              onClick: function () {
+                show(item.id)
+              },
+            },
+            t(item.labelKey),
+          )
+        }),
+      ),
+    ),
+    body,
+  )
 }
 
 function EqPanel(props) {
@@ -360,9 +451,6 @@ function EqPanel(props) {
           t('eq.saveCurrent'),
         ),
       ),
-      eq.enabled && !available
-        ? h('div', { className: 'mp-eq-warn' }, t('eq.unavailable'))
-        : null,
     )
   }
 
@@ -371,18 +459,27 @@ function EqPanel(props) {
     { className: 'mp-eqp' },
     h(
       'div',
-      { className: 'mp-eq-head' },
+      { className: 'mp-eq-tabs-row' },
       h(
-        'button',
-        {
-          type: 'button',
-          className: 'mp-eq-back',
-          title: t('eq.back'),
-          onClick: props.onBack,
-        },
-        icon('chevronLeft', 14),
+        'div',
+        { className: 'mp-eq-tabs', role: 'tablist' },
+        EQ_TABS.map(function (item) {
+          return h(
+            'button',
+            {
+              key: item.id,
+              type: 'button',
+              role: 'tab',
+              'aria-selected': tab === item.id,
+              className: cx('mp-eq-tab', tab === item.id && 'is-on'),
+              onClick: function () {
+                setTab(item.id)
+              },
+            },
+            t(item.labelKey),
+          )
+        }),
       ),
-      h('span', { className: 'mp-eq-title' }, t('eq.title')),
       h(Switch, {
         value: eq.enabled,
         label: t('eq.enable'),
@@ -392,26 +489,7 @@ function EqPanel(props) {
         },
       }),
     ),
-    h(
-      'div',
-      { className: 'mp-eq-tabs', role: 'tablist' },
-      EQ_TABS.map(function (item) {
-        return h(
-          'button',
-          {
-            key: item.id,
-            type: 'button',
-            role: 'tab',
-            'aria-selected': tab === item.id,
-            className: cx('mp-eq-tab', tab === item.id && 'is-on'),
-            onClick: function () {
-              setTab(item.id)
-            },
-          },
-          t(item.labelKey),
-        )
-      }),
-    ),
+    eq.enabled && !available ? h('div', { className: 'mp-eq-warn' }, t('eq.unavailable')) : null,
     h('div', { className: 'mp-eq-body' }, body),
   )
 }

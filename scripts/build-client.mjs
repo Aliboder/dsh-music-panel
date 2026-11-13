@@ -169,6 +169,7 @@ ${body}
           isOnlineSource: isOnlineSource,
           UI_SOURCES: UI_SOURCES,
           // Equalizer: the panel renders in tests, and the curve maths is pure.
+          AudioEffectsPanel: AudioEffectsPanel,
           EqPanel: EqPanel,
           normalizeEqPrefs: normalizeEqPrefs,
           eqCurveSamples: eqCurveSamples,
