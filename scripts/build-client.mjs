@@ -113,8 +113,12 @@ function assertNoDuplicates(fragments) {
 function build() {
   const fragments = readFragments()
   const declared = assertNoDuplicates(fragments)
+  // Indent only lines that have content: `^` also matches blank lines, which
+  // turned every separator into four trailing spaces and made the generated
+  // artifact fail `git diff --check`.
+  const indent = (text) => text.replace(/^(?=.)/gm, '    ')
   const body = fragments
-    .map((fragment) => `    // ── ${fragment.file}\n${fragment.text.replace(/^/gm, '    ')}`)
+    .map((fragment) => `    // ── ${fragment.file}\n${indent(fragment.text)}`)
     .join('\n\n')
   const banner = `/**
  * dsh-music-panel — Web Client half.
@@ -155,6 +159,10 @@ ${body}
           // Pure sidebar model, so tests can assert entries without matching
           // rendered copy (which shares words with empty-state text).
           navGroupsFor: navGroupsFor,
+          // Derived from UI_SOURCES; asserted so the music_control tool cannot
+          // drift away from the provider list again.
+          isOnlineSource: isOnlineSource,
+          UI_SOURCES: UI_SOURCES,
         },
         enumerable: false,
       })

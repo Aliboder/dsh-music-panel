@@ -99,7 +99,11 @@ function OnlineContent(props) {
 
   function reloginExpired() {
     void logoutProvider(provider).then(function () {
-      pushLayer('login', { provider: provider, mode: 'qq' })
+      // Navidrome signs in with a URL + credentials, not a QR code, so it must
+      // reopen the credential dialog; the QR sheet would show an empty code the
+      // user cannot scan and leave them stuck.
+      var layer = provider === 'navidrome' ? 'navidrome' : 'login'
+      pushLayer(layer, layer === 'navidrome' ? {} : { provider: provider, mode: 'qq' })
     })
   }
   var currentEntries = []

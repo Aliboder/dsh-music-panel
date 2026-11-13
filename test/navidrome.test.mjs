@@ -200,16 +200,17 @@ test('search skips rows without an id', async () => {
   )
 })
 
-test('search falls back to the legacy view when search3 is rejected', async () => {
+test('search walks search3 -> search2 -> search for older servers', async () => {
+  // Subsonic renamed the endpoint twice (search 1.0, search2 1.4, search3 1.8),
+  // so a pre-1.8 server must be reachable through the chain.
   const seen = []
+  const fail = () =>
+    jsonResponse({ 'subsonic-response': { status: 'failed', error: { code: 70, message: 'not found' } } })
   await withFetch(
     async (url) => {
       seen.push(String(url))
-      if (String(url).includes('search3.view')) {
-        return jsonResponse({
-          'subsonic-response': { status: 'failed', error: { code: 70, message: 'not found' } },
-        })
-      }
+      if (String(url).includes('search3.view')) return fail()
+      if (String(url).includes('search2.view')) return fail()
       return jsonResponse(okBody({ searchResult: { song: [{ id: 'legacy', title: 'L' }] } }))
     },
     async () => {
@@ -218,8 +219,29 @@ test('search falls back to the legacy view when search3 is rejected', async () =
       assert.equal(songs[0].id, 'legacy')
     },
   )
-  assert.equal(seen.length, 2)
-  assert.match(seen[1], /search\.view/)
+  assert.equal(seen.length, 3, 'every rung of the chain is tried once')
+  assert.match(seen[0], /search3\.view/)
+  assert.match(seen[1], /search2\.view/)
+  assert.match(seen[2], /search\.view/)
+})
+
+test('search stops at search2 when that rung answers', async () => {
+  const seen = []
+  await withFetch(
+    async (url) => {
+      seen.push(String(url))
+      if (String(url).includes('search3.view')) {
+        return jsonResponse({ 'subsonic-response': { status: 'failed', error: { code: 70, message: 'not found' } } })
+      }
+      return jsonResponse(okBody({ searchResult2: { song: [{ id: 'mid', title: 'M' }] } }))
+    },
+    async () => {
+      const songs = await ND.search(cfg, 'x')
+      assert.equal(songs[0].id, 'mid')
+    },
+  )
+  assert.equal(seen.length, 2, 'no need to reach the oldest view')
+  assert.match(seen[1], /search2\.view/)
 })
 
 // ── stream ───────────────────────────────────────────────────────────────
@@ -623,6 +645,54 @@ test('nativeSongs caps the page size', async () => {
   )
   const page = seen.find((u) => u.includes('/api/song'))
   assert.match(page, /_end=500/, 'a page never exceeds 500 rows')
+})
+
+// ── favorites / playlist writes (standard Subsonic) ──────────────────────
+
+test('setStarred calls star / unstar with the song id', async () => {
+  const seen = []
+  await withFetch(
+    async (url) => {
+      seen.push(String(url))
+      return jsonResponse(okBody({}))
+    },
+    async () => {
+      await ND.setStarred(cfg, 's1', true)
+      await ND.setStarred(cfg, 's1', false)
+    },
+  )
+  assert.match(seen[0], /star\.view/, 'liking stars the song')
+  assert.match(seen[0], /id=s1/)
+  assert.match(seen[1], /unstar\.view/, 'unliking unstars it')
+  assert.equal(seen[0].includes('unstar'), false, 'star and unstar are distinct endpoints')
+})
+
+test('starredIds returns every starred song id', async () => {
+  await withFetch(
+    async () =>
+      jsonResponse(okBody({ starred2: { song: [{ id: 'a' }, { id: 'b' }, { title: 'no id' }] } })),
+    async () => {
+      assert.deepEqual(await ND.starredIds(cfg), ['a', 'b'], 'rows without an id are dropped')
+    },
+  )
+})
+
+test('addSongToPlaylist appends through updatePlaylist', async () => {
+  const seen = []
+  await withFetch(
+    async (url) => {
+      seen.push(String(url))
+      return jsonResponse(okBody({}))
+    },
+    async () => {
+      assert.equal(await ND.addSongToPlaylist(cfg, 'pl1', 's1'), true)
+      assert.equal(await ND.addSongToPlaylist(cfg, '', 's1'), false, 'a blank playlist id is a no-op')
+    },
+  )
+  assert.equal(seen.length, 1, 'only the valid call hits the network')
+  assert.match(seen[0], /updatePlaylist\.view/)
+  assert.match(seen[0], /playlistId=pl1/)
+  assert.match(seen[0], /songIdToAdd=s1/)
 })
 
 // ── runner ───────────────────────────────────────────────────────────────

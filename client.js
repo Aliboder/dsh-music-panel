@@ -17,7 +17,7 @@ window.__ModuleLoader__.load({
      * Every other fragment runs in the same factory scope, so these names are
      * shared by all of them; the build script fails on duplicate declarations.
      */
-    
+
     var React = require('react')
     var h = React.createElement
     var useState = React.useState
@@ -26,7 +26,7 @@ window.__ModuleLoader__.load({
     var useMemo = React.useMemo
     var useCallback = React.useCallback
     var useLayoutEffect = React.useLayoutEffect || React.useEffect
-    
+
     var PANEL_ID = 'music'
     var PREFS_EVENT = 'dsh-music:prefs-changed'
 
@@ -41,14 +41,14 @@ window.__ModuleLoader__.load({
      *
      * Rules: docs/theme-guidelines.md.
      */
-    
+
     var hostUi = null
     try {
       hostUi = require('@deepseek-ai/dsh-client-ui-primitives')
     } catch (error) {
       hostUi = null
     }
-    
+
     function hostComponent(name) {
       if (!hostUi) return null
       var value = hostUi[name]
@@ -56,7 +56,7 @@ window.__ModuleLoader__.load({
       if (value && typeof value === 'object' && value.$$typeof) return value
       return null
     }
-    
+
     /** Local icon name -> host icon component. Unmapped names keep the local SVG. */
     var HOST_ICON_MAP = {
       search: 'IconSearchOutlineRegular',
@@ -92,7 +92,7 @@ window.__ModuleLoader__.load({
      *
      * Extracted from client.js at the 0.11.1 baseline (3931c14).
      */
-    
+
     var DICTS = {
       zh: {
         'nav.label': '音乐',
@@ -956,7 +956,7 @@ window.__ModuleLoader__.load({
         'settings.placeAbove': 'Above input',
       },
     }
-    
+
     var LANG = (function () {
       var lang = ''
       try {
@@ -966,13 +966,13 @@ window.__ModuleLoader__.load({
       }
       return String(lang).toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en'
     })()
-    
+
     /**
      * Bound to the host locale service when the plugin applies; null keeps the
      * built-in dictionary plus the document-language guess.
      */
     var localeTranslate = null
-    
+
     function t(key, vars) {
       var text = null
       if (localeTranslate !== null) {
@@ -1001,7 +1001,7 @@ window.__ModuleLoader__.load({
      * The large zh/en dictionaries from 0.11.1 stay in 05-i18n; this file only adds
      * the labels the new shell needs, so both languages keep working.
      */
-    
+
     var EXTRA_STRINGS = {
       zh: {
         'v2.songs': '歌曲',
@@ -1064,7 +1064,7 @@ window.__ModuleLoader__.load({
         'online.addedToCloudPlaylist': '已加入歌单',
         'online.noCloudPlaylists': '还没有云端歌单',
         'online.addToCloudPlaylist': '添加到歌单',
-    
+
         'v2.online': '在线',
         'v2.cacheTab': '缓存',
         'v2.about': '关于',
@@ -1205,7 +1205,7 @@ window.__ModuleLoader__.load({
         'online.addedToCloudPlaylist': 'Added to playlist',
         'online.noCloudPlaylists': 'No cloud playlists yet',
         'online.addToCloudPlaylist': 'Add to playlist',
-    
+
         'v2.online': 'Online',
         'v2.cacheTab': 'Cache',
         'v2.about': 'About',
@@ -1278,7 +1278,7 @@ window.__ModuleLoader__.load({
         'v2.logout': 'Sign out',
       },
     }
-    
+
     Object.keys(EXTRA_STRINGS).forEach(function (lang) {
       if (!DICTS[lang]) return
       Object.keys(EXTRA_STRINGS[lang]).forEach(function (key) {
@@ -1294,15 +1294,15 @@ window.__ModuleLoader__.load({
      * rest of the UI leans on the formatters, so these names are part of the
      * internal contract.
      */
-    
+
     function clamp(value, min, max) {
       return Math.min(Math.max(value, min), max)
     }
-    
+
     function pad2(value) {
       return value < 10 ? '0' + value : String(value)
     }
-    
+
     /** Duration for track lists: unknown durations read as `--:--`. */
     function fmtTime(seconds) {
       if (typeof seconds !== 'number' || !isFinite(seconds) || seconds <= 0) return '--:--'
@@ -1312,7 +1312,7 @@ window.__ModuleLoader__.load({
       var hours = Math.floor(total / 3600)
       return hours > 0 ? hours + ':' + pad2(m) + ':' + pad2(s) : m + ':' + pad2(s)
     }
-    
+
     /** Player clock: always a number, zero reads as `0:00`. */
     function fmtClock(seconds) {
       var total = Math.floor(isFinite(seconds) && seconds > 0 ? seconds : 0)
@@ -1321,18 +1321,18 @@ window.__ModuleLoader__.load({
       var hours = Math.floor(total / 3600)
       return hours > 0 ? hours + ':' + pad2(m) + ':' + pad2(s) : m + ':' + pad2(s)
     }
-    
+
     function fmtKhz(sampleRate) {
       if (typeof sampleRate !== 'number' || !isFinite(sampleRate) || sampleRate <= 0) return ''
       var khz = Math.round(sampleRate / 100) / 10
       return String(khz).replace(/\.0$/, '') + ' kHz'
     }
-    
+
     function fmtKbps(bitrate) {
       if (typeof bitrate !== 'number' || !isFinite(bitrate) || bitrate <= 0) return ''
       return Math.round(bitrate / 1000) + ' kbps'
     }
-    
+
     function fmtBytes(bytes) {
       var n = Number(bytes)
       if (!isFinite(n) || n <= 0) return '0 B'
@@ -1344,7 +1344,7 @@ window.__ModuleLoader__.load({
       }
       return (i === 0 ? String(Math.round(n)) : n.toFixed(1)) + ' ' + units[i]
     }
-    
+
     /** Last.fm / MusicBee play threshold: half the track or four minutes. */
     function playThresholdOf(durationSec) {
       var duration = Number(durationSec)
@@ -1352,13 +1352,13 @@ window.__ModuleLoader__.load({
       if (duration <= 30) return duration + 0.5
       return Math.min(duration / 2, 240)
     }
-    
+
     function clampPref(value, min, max, fallback) {
       var number = Number(value)
       if (!isFinite(number)) return fallback
       return Math.min(max, Math.max(min, Math.round(number)))
     }
-    
+
     /** Class name joiner: falsy values are dropped. */
     function cx() {
       var out = []
@@ -1368,7 +1368,7 @@ window.__ModuleLoader__.load({
       }
       return out.join(' ')
     }
-    
+
     function storageGet(key, fallback) {
       try {
         var raw = window.localStorage.getItem(key)
@@ -1378,7 +1378,7 @@ window.__ModuleLoader__.load({
         return fallback
       }
     }
-    
+
     function storageSet(key, value) {
       try {
         window.localStorage.setItem(key, JSON.stringify(value))
@@ -1386,21 +1386,21 @@ window.__ModuleLoader__.load({
         // Private mode / quota: best effort only.
       }
     }
-    
+
     function errorText(error) {
       if (error === null || error === undefined) return ''
       if (typeof error === 'string') return error
       if (typeof error.message === 'string' && error.message !== '') return error.message
       return String(error)
     }
-    
+
     /** Absolute directory of a track (backslashes kept for display). */
     function trackDirOf(track) {
       var path = String((track && track.path) || '')
       var at = Math.max(path.lastIndexOf('\\'), path.lastIndexOf('/'))
       return at > 0 ? path.slice(0, at) : path
     }
-    
+
     /** Last path segment of a directory; drive roots fall back to "D:". */
     function folderNameOf(dir) {
       var text = String(dir || '').replace(/[\\/]+$/, '')
@@ -1408,7 +1408,7 @@ window.__ModuleLoader__.load({
       var name = at >= 0 ? text.slice(at + 1) : text
       return name || text || '/'
     }
-    
+
     /** Stable, case-insensitive search across metadata, path and pinyin. */
     function trackHaystack(track) {
       return [
@@ -1426,7 +1426,7 @@ window.__ModuleLoader__.load({
         })
         .join('\n')
     }
-    
+
     function filterTracks(list, query) {
       var text = String(query || '').trim().toLowerCase()
       if (text === '') return list
@@ -1440,7 +1440,7 @@ window.__ModuleLoader__.load({
         return true
       })
     }
-    
+
     function sortTracks(list, key, dir) {
       var out = list.slice()
       var desc = dir === 'desc'
@@ -1482,7 +1482,7 @@ window.__ModuleLoader__.load({
       })
       return out
     }
-    
+
     function basename(path) {
       var text = String(path || '')
       var slash = Math.max(text.lastIndexOf('/'), text.lastIndexOf('\\'))
@@ -1495,9 +1495,9 @@ window.__ModuleLoader__.load({
      *
      * Extracted from client.js at the 0.11.1 baseline (3931c14).
      */
-    
+
     // ── icons (Feather/Lucide paths, MIT) ─────────────────────────────────
-    
+
     var ICONS = {
       check: { parts: [['path', { d: 'M20 6L9 17l-5-5' }]] },
       clock: {
@@ -1716,7 +1716,7 @@ window.__ModuleLoader__.load({
         ],
       },
     }
-    
+
     function merge(base, extra) {
       var out = {}
       Object.keys(base).forEach(function (key) {
@@ -1729,7 +1729,7 @@ window.__ModuleLoader__.load({
       }
       return out
     }
-    
+
     function icon(name, size, extra) {
       var hostName = HOST_ICON_MAP && HOST_ICON_MAP[name]
       var HostIcon = hostName ? hostComponent(hostName) : null
@@ -1761,7 +1761,7 @@ window.__ModuleLoader__.load({
      *
      * Extracted from client.js at the 0.11.1 baseline (3931c14).
      */
-    
+
     // ── online lyric helpers ──────────────────────────────────────────────
     // The Host returns raw LRC for online tracks (local tracks get parsed lines
     // from /lyrics), so the client needs a small parser of its own.
@@ -1788,7 +1788,7 @@ window.__ModuleLoader__.load({
       })
       return lines
     }
-    
+
     function mergeLyricTranslation(lines, translationText) {
       var translated = parseLrcText(translationText)
       lines.forEach(function (line) {
@@ -1805,7 +1805,7 @@ window.__ModuleLoader__.load({
       })
       return lines
     }
-    
+
     /** Split `online:<provider>:<id>` (null when the path is a local one). */
     function onlinePathOf(path) {
       var match = /^online:([^:]+):(.+)$/.exec(String(path || ''))
@@ -1821,7 +1821,7 @@ window.__ModuleLoader__.load({
      * scroll position should go back to the top (view / filter / query change), so
      * a scan that adds or removes a track no longer jumps the list.
      */
-    
+
     function VirtualList(props) {
       var rowHeight = props.rowHeight || 56
       var overscan = props.overscan === undefined ? 6 : props.overscan
@@ -1832,7 +1832,7 @@ window.__ModuleLoader__.load({
       var viewport = viewPair[0]
       var setViewport = viewPair[1]
       var ref = useRef(null)
-    
+
       useEffect(function () {
         var element = ref.current
         if (element === null) return undefined
@@ -1848,7 +1848,7 @@ window.__ModuleLoader__.load({
           if (observer !== null) observer.disconnect()
         }
       }, [])
-    
+
       useEffect(
         function () {
           var element = ref.current
@@ -1858,9 +1858,9 @@ window.__ModuleLoader__.load({
         },
         [props.resetKey],
       )
-    
+
       var items = props.items || []
-    
+
       useEffect(
         function () {
           if (!props.focusPath) return
@@ -1878,13 +1878,13 @@ window.__ModuleLoader__.load({
         },
         [props.focusPath],
       )
-    
+
       function onScroll(event) {
         var top = event.currentTarget.scrollTop
         setScrollTop(top)
         if (typeof props.onScrollTop === 'function') props.onScrollTop(top)
       }
-    
+
       if (items.length === 0) {
         return h(
           'div',
@@ -1892,12 +1892,12 @@ window.__ModuleLoader__.load({
           props.empty || null,
         )
       }
-    
+
       var total = items.length * rowHeight
       var start = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan)
       var end = Math.min(items.length, Math.ceil((scrollTop + viewport) / rowHeight) + overscan)
       var slice = items.slice(start, end)
-    
+
       return h(
         'div',
         { className: props.className, ref: ref, onScroll: onScroll },
@@ -1926,19 +1926,19 @@ window.__ModuleLoader__.load({
      *
      * Extracted from client.js at the 0.11.1 baseline (3931c14).
      */
-    
+
     function basenameOf(path) {
       var parts = String(path || '').split(/[\\/]/)
       return parts.length > 0 ? parts[parts.length - 1] : String(path || '')
     }
-    
+
     /** File name without its extension — the fallback "title" for untagged files. */
     function stemOf(path) {
       var name = basenameOf(path)
       var dot = name.lastIndexOf('.')
       return dot > 0 ? name.slice(0, dot) : name
     }
-    
+
     /** Normalized folder (directory) part of a track path, no trailing slash. */
     function folderOf(filePath) {
       var normalized = String(filePath || '').replace(/\\/g, '/')
@@ -1946,7 +1946,7 @@ window.__ModuleLoader__.load({
       if (index <= 0) return ''
       return normalized.slice(0, index)
     }
-    
+
     /** Human label for a folder: path relative to its scan root when possible. */
     function folderLabelOf(folder, roots) {
       var normalized = String(folder || '').replace(/\\/g, '/')
@@ -1962,7 +1962,7 @@ window.__ModuleLoader__.load({
       var parts = normalized.split('/')
       return parts[parts.length - 1] || normalized
     }
-    
+
     function fmtListenTime(seconds) {
       var total = Math.round(Number(seconds) || 0)
       if (total <= 0) return '—'
@@ -1972,7 +1972,7 @@ window.__ModuleLoader__.load({
       if (minutes > 0) return minutes + ' 分'
       return total + ' 秒'
     }
-    
+
     function fmtRecent(ts) {
       var value = Number(ts)
       if (!isFinite(value) || value <= 0) return '—'
@@ -1987,7 +1987,7 @@ window.__ModuleLoader__.load({
       if (days < 7) return days + ' 天前'
       return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate())
     }
-    
+
     /**
      * Listening ranking: last week / month / all time, sorted by time, plays or
      * recency. Mirrors the NetEase "listening ranking" page, limited to what
@@ -1998,7 +1998,7 @@ window.__ModuleLoader__.load({
     /**
      * extra icons used by the v2 shell (the 0.11.1 set stays in 15-icons).
      */
-    
+
     ICONS.user = { parts: [['circle', { cx: 12, cy: 8, r: 3.6 }], ['path', { d: 'M5 20a7 7 0 0 1 14 0' }]] }
     ICONS.chart = { parts: [['path', { d: 'M4 20V10M10 20V4M16 20v-7M21 20H2' }]] }
     ICONS.disc = { parts: [['circle', { cx: 12, cy: 12, r: 9 }], ['circle', { cx: 12, cy: 12, r: 2.2 }]] }
@@ -2024,7 +2024,7 @@ window.__ModuleLoader__.load({
       ],
     }
     ICONS.chevronRight = { parts: [['path', { d: 'M9 6l6 6-6 6' }]] }
-    
+
     ICONS.playlist = {
       parts: [
         ['path', { d: 'M4 6h11' }],
@@ -2034,8 +2034,8 @@ window.__ModuleLoader__.load({
         ['circle', { cx: 15.5, cy: 17.5, r: 2.5 }],
       ],
     }
-    
-    
+
+
     ICONS.maximize = {
       parts: [
         ['path', { d: 'M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3' }],
@@ -2054,21 +2054,21 @@ window.__ModuleLoader__.load({
      * The playback engine expects `API`, `getJson`, `postJson`, `streamUrl` and
      * `coverUrl` under these exact names.
      */
-    
+
     var API = 'music/'
-    
+
     function streamUrl(path) {
       return API + 'stream?path=' + encodeURIComponent(path)
     }
-    
+
     function coverUrl(path) {
       return API + 'cover?path=' + encodeURIComponent(path)
     }
-    
+
     function onlineStreamUrl(provider, id) {
       return API + 'online/stream?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(id)
     }
-    
+
     /**
      * Cover art for a self-hosted Navidrome/Subsonic server.
      *
@@ -2080,7 +2080,7 @@ window.__ModuleLoader__.load({
       if (typeof coverArtId !== 'string' || coverArtId === '') return ''
       return API + 'online/subsonic-cover?provider=navidrome&id=' + encodeURIComponent(coverArtId)
     }
-    
+
     async function getJson(url) {
       var response = await fetch(url, {
         credentials: 'same-origin',
@@ -2099,7 +2099,7 @@ window.__ModuleLoader__.load({
       }
       return body
     }
-    
+
     function postJson(url, payload) {
       return fetch(url, {
         method: 'POST',
@@ -2126,7 +2126,7 @@ window.__ModuleLoader__.load({
           })
       })
     }
-    
+
     /** PATCH / DELETE with the same envelope as postJson. */
     function sendJson(method, url, payload) {
       return fetch(url, {
@@ -2154,7 +2154,7 @@ window.__ModuleLoader__.load({
           })
       })
     }
-    
+
     /** Cover URL for a library or online track ('' when it has no art). */
     function trackCoverSrc(track) {
       if (!track) return ''
@@ -2170,7 +2170,7 @@ window.__ModuleLoader__.load({
       if (track.hasCover === true && track.path) return coverUrl(track.path)
       return ''
     }
-    
+
     /** Map one online search / playlist result into the queue's track shape. */
     function onlineTrackOf(result) {
       var provider = result.provider
@@ -2197,7 +2197,7 @@ window.__ModuleLoader__.load({
         mtime: 0,
       }
     }
-    
+
     function onlineCoverSrc(result) {
       if (!result) return ''
       if (typeof result.coverArtId === 'string' && result.coverArtId !== '') return subsonicCoverUrl(result.coverArtId)
@@ -2213,10 +2213,10 @@ window.__ModuleLoader__.load({
      * shape below must stay compatible with 0.11.1 (loop / order / volume /
      * resumeOnStart / rememberPerTrack / sleepTimerMinutes).
      */
-    
+
     var PREFS_KEY = 'music.prefs.v2'
     var LEGACY_PREFS_KEY = 'dsh-music.prefs'
-    
+
     var PREF_DEFAULTS = {
       layout: 'top',
       sortBy: 'title',
@@ -2249,7 +2249,7 @@ window.__ModuleLoader__.load({
       onlinePlaylistSort: 'source',
       onboardingDone: true,
     }
-    
+
     function readPrefs() {
       var merged = {}
       Object.keys(PREF_DEFAULTS).forEach(function (key) {
@@ -2309,7 +2309,7 @@ window.__ModuleLoader__.load({
       }
       return merged
     }
-    
+
     function savePrefs(patch) {
       var next = readPrefs()
       if (patch !== null && typeof patch === 'object') {
@@ -2325,9 +2325,9 @@ window.__ModuleLoader__.load({
       if (prefsStore !== undefined) prefsStore.set(next)
       return next
     }
-    
+
     var prefsStore = createStore(readPrefs())
-    
+
     function setPrefs(patch) {
       return savePrefs(patch)
     }
@@ -2340,12 +2340,12 @@ window.__ModuleLoader__.load({
      * filters, so no ffmpeg or npm runtime is required. Results are cached by
      * track path + file size and applied through the player's GainNode.
      */
-    
+
     var LOUDNESS_CACHE_KEY = 'music.loudness.v1'
     var LOUDNESS_TARGET = -16
     var loudnessDecoder = null
     var loudnessCache = readLoudnessCache()
-    
+
     function readLoudnessCache() {
       try {
         var raw = window.localStorage.getItem(LOUDNESS_CACHE_KEY)
@@ -2355,7 +2355,7 @@ window.__ModuleLoader__.load({
         return {}
       }
     }
-    
+
     function writeLoudnessCache(cache) {
       try {
         window.localStorage.setItem(LOUDNESS_CACHE_KEY, JSON.stringify(cache))
@@ -2363,17 +2363,17 @@ window.__ModuleLoader__.load({
         // Quota/private mode: in-memory cache still works.
       }
     }
-    
+
     function loudnessCacheKey(item, blob) {
       return String(item.path || '') + '|' + String(blob.size || 0)
     }
-    
+
     function lookupLoudnessGain(key) {
       var row = loudnessCache[key]
       var gain = row && Number(row.gainDb)
       return Number.isFinite(gain) ? gain : null
     }
-    
+
     function storeLoudnessGain(key, gainDb) {
       loudnessCache[key] = { gainDb: gainDb, at: Date.now() }
       var keys = Object.keys(loudnessCache)
@@ -2389,7 +2389,7 @@ window.__ModuleLoader__.load({
       }
       writeLoudnessCache(loudnessCache)
     }
-    
+
     function loudnessContext() {
       if (loudnessDecoder !== null) return loudnessDecoder
       var Ctor = window.AudioContext || window.webkitAudioContext
@@ -2401,7 +2401,7 @@ window.__ModuleLoader__.load({
       }
       return loudnessDecoder
     }
-    
+
     /** Integrated loudness in LUFS, following ITU-R BS.1770-4 / EBU R128. */
     function lufsFromAudioBuffer(buffer) {
       var Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext
@@ -2439,7 +2439,7 @@ window.__ModuleLoader__.load({
           .catch(reject)
       })
     }
-    
+
     /** Mean square per gated 400 ms block, with surround channel weights. */
     function integratedLoudnessOf(buffer) {
       var sampleRate = buffer.sampleRate
@@ -2481,7 +2481,7 @@ window.__ModuleLoader__.load({
         }, 0) / gated.length
       return -0.691 + 10 * Math.log10(finalEnergy)
     }
-    
+
     function analyzeLoudnessBlob(item, blob, isCurrent, onGain) {
       if (!item || !blob || typeof isCurrent !== 'function' || typeof onGain !== 'function') return
       var key = loudnessCacheKey(item, blob)
@@ -2515,7 +2515,7 @@ window.__ModuleLoader__.load({
     // ── src/35-provider-logos.js
     /** Official provider app icons (resized to 256px WebP for inline use). */
     var PROVIDER_LOGOS = {"navidrome":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBpZD0iTGF5ZXJfMSIgeD0iMCIgeT0iMCIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNTEyIDUxMiI+PHBhdGggc3R5bGU9ImZpbGw6IzAwODRmZiIgZD0iTTI1NiwxMC40NDlDMTIwLjI3NSwxMC40NDksMTAuNDQ5LDEyMC4yNzYsMTAuNDQ5LDI1NmMwLDEzNS43MjUsMTA5LjgyNiwyNDUuNTUxLDI0NS41NTEsMjQ1LjU1MQlTNTAxLjU1MSwzOTEuNzI1LDUwMS41NTEsMjU2QzUwMS41NTEsMTIwLjI3NiwzOTEuNzI1LDEwLjQ0OSwyNTYsMTAuNDQ5eiIvPjxwYXRoIHN0eWxlPSJmaWxsOiNmZmYiIGQ9Ik0yNTYsMTY4LjIyOWMtNDguNTE1LDAtODcuNzcxLDM5LjI1Ny04Ny43NzEsODcuNzcxczM5LjI1Nyw4Ny43NzEsODcuNzcxLDg3Ljc3MQlzODcuNzcxLTM5LjI1Nyw4Ny43NzEtODcuNzcxUzMwNC41MTUsMTY4LjIyOSwyNTYsMTY4LjIyOXoiLz48cGF0aCBkPSJNNDM3LjA2MSw3NC45NEMzODguNzM1LDI2LjYxNSwzMjQuNDM0LDAsMjU2LDBTMTIzLjI2NSwyNi42MTUsNzQuOTM5LDc0Ljk0UzAsMTg3LjU2NiwwLDI1NnMyNi42MTQsMTMyLjczNSw3NC45MzksMTgxLjA2MQlTMTg3LjU2Niw1MTIsMjU2LDUxMnMxMzIuNzM1LTI2LjYxNCwxODEuMDYxLTc0LjkzOVM1MTIsMzI0LjQzNCw1MTIsMjU2UzQ4NS4zODYsMTIzLjI2Niw0MzcuMDYxLDc0Ljk0eiBNMjU2LDQ5MS4xMDIJQzEyNi4zNjUsNDkxLjEwMiwyMC44OTgsMzg1LjYzNSwyMC44OTgsMjU2UzEyNi4zNjUsMjAuODk4LDI1NiwyMC44OThTNDkxLjEwMiwxMjYuMzY1LDQ5MS4xMDIsMjU2UzM4NS42MzUsNDkxLjEwMiwyNTYsNDkxLjEwMnoiLz48cGF0aCBkPSJNMzU0LjIyLDI1NmMwLTU0LjE1OC00NC4wNjEtOTguMjItOTguMjItOTguMjJzLTk4LjIyLDQ0LjA2Mi05OC4yMiw5OC4yMnM0NC4wNjIsOTguMjIsOTguMjIsOTguMjIJUzM1NC4yMiwzMTAuMTU5LDM1NC4yMiwyNTZ6IE0xNzguNjc4LDI1NmMwLTQyLjYzNiwzNC42ODYtNzcuMzIyLDc3LjMyMi03Ny4zMjJzNzcuMzIyLDM0LjY4Niw3Ny4zMjIsNzcuMzIyCVMyOTguNjM2LDMzMy4zMjIsMjU2LDMzMy4zMjJTMTc4LjY3OCwyOTguNjM2LDE3OC42NzgsMjU2eiIvPjxwYXRoIGQ9Ik0yODUuMjU3LDI1NmMwLTE2LjEzMi0xMy4xMjQtMjkuMjU3LTI5LjI1Ny0yOS4yNTdTMjI2Ljc0MywyMzkuODY4LDIyNi43NDMsMjU2czEzLjEyNSwyOS4yNTcsMjkuMjU3LDI5LjI1NwlTMjg1LjI1NywyNzIuMTMzLDI4NS4yNTcsMjU2eiBNMjQ3LjY0MSwyNTZjMC00LjYwOSwzLjc1LTguMzU5LDguMzU5LTguMzU5YzQuNjA5LDAsOC4zNTksMy43NSw4LjM1OSw4LjM1OQljMCw0LjYwOS0zLjc1LDguMzU5LTguMzU5LDguMzU5QzI1MS4zOTEsMjY0LjM1OSwyNDcuNjQxLDI2MC42MDksMjQ3LjY0MSwyNTZ6Ii8+PHBhdGggZD0iTTI1NiwzOTEuODM3Yy01Ljc3MSwwLTEwLjQ0OSw0LjY3OC0xMC40NDksMTAuNDQ5YzAsNS43NzEsNC42NzgsMTAuNDQ5LDEwLjQ0OSwxMC40NDkJYzQxLjg5NywwLDgxLjI2NS0xNi4yOTQsMTEwLjg1My00NS44ODNjMjkuNTg3LTI5LjU4Nyw0NS44ODEtNjguOTU1LDQ1Ljg4MS0xMTAuODUyYzAtNS43NzEtNC42NzgtMTAuNDQ5LTEwLjQ0OS0xMC40NDkJYy01Ljc3MSwwLTEwLjQ0OSw0LjY3OC0xMC40NDksMTAuNDQ5QzM5MS44MzcsMzMwLjksMzMwLjksMzkxLjgzNywyNTYsMzkxLjgzN3oiLz48cGF0aCBkPSJNNDQ5LjMwNiwyNDUuNTUxYy01Ljc3MSwwLTEwLjQ0OSw0LjY3OC0xMC40NDksMTAuNDQ5YzAsMS40ODEtMC4wMTgsMi45NTgtMC4wNTIsNC40MwljLTAuMTM2LDUuNzY5LDQuNDMsMTAuNTU3LDEwLjE5OSwxMC42OTJjMC4wODUsMC4wMDIsMC4xNjgsMC4wMDMsMC4yNTIsMC4wMDNjNS42NTYsMCwxMC4zMDctNC41MTcsMTAuNDQyLTEwLjIwMgljMC4wMzktMS42MzcsMC4wNTktMy4yNzksMC4wNTktNC45MjVDNDU5Ljc1NSwyNTAuMjI5LDQ1NS4wNzcsMjQ1LjU1MSw0NDkuMzA2LDI0NS41NTF6Ii8+PHBhdGggZD0iTTQ0Ny41NSwyODQuMjM5Yy01LjY1Ni0xLjE0NS0xMS4xNjgsMi41Mi0xMi4zMDgsOC4xNzhDNDE4LjEzNSwzNzcuMjcxLDM0Mi43NTMsNDM4Ljg1NywyNTYsNDM4Ljg1NwljLTUuNzcxLDAtMTAuNDQ5LDQuNjc4LTEwLjQ0OSwxMC40NDljMCw1Ljc3MSw0LjY3OCwxMC40NDksMTAuNDQ5LDEwLjQ0OWM0Ny4zNTMsMCw5My40NjctMTYuNTczLDEyOS44NDctNDYuNjY4CWMzNS45LTI5LjY5Nyw2MC43MTctNzEuMDg0LDY5Ljg4MS0xMTYuNTRDNDU2Ljg2OCwyOTAuODkxLDQ1My4yMDcsMjg1LjM4LDQ0Ny41NSwyODQuMjM5eiIvPjxwYXRoIGQ9Ik0yNTYsMTIwLjE2M2M1Ljc3MSwwLDEwLjQ0OS00LjY3OCwxMC40NDktMTAuNDQ5UzI2MS43NzEsOTkuMjY1LDI1Niw5OS4yNjVjLTQxLjg5NywwLTgxLjI2NSwxNi4yOTQtMTEwLjg1Myw0NS44ODMJQzExNS41NTksMTc0LjczNSw5OS4yNjUsMjE0LjEwMyw5OS4yNjUsMjU2YzAsNS43NzEsNC42NzgsMTAuNDQ5LDEwLjQ0OSwxMC40NDlzMTAuNDQ5LTQuNjc4LDEwLjQ0OS0xMC40NDkJQzEyMC4xNjMsMTgxLjEsMTgxLjEsMTIwLjE2MywyNTYsMTIwLjE2M3oiLz48cGF0aCBkPSJNNjIuOTk2LDI0MC44NzZjLTUuNzU5LTAuMTQtMTAuNTU3LDQuNDMtMTAuNjkyLDEwLjE5OWMtMC4wMzksMS42MzctMC4wNTksMy4yNzktMC4wNTksNC45MjUJYzAsNS43NzEsNC42NzgsMTAuNDQ5LDEwLjQ0OSwxMC40NDlTNzMuMTQzLDI2MS43NzEsNzMuMTQzLDI1NmMwLTEuNDgxLDAuMDE4LTIuOTU4LDAuMDUyLTQuNDMJQzczLjMzMSwyNDUuOCw2OC43NjUsMjQxLjAxMyw2Mi45OTYsMjQwLjg3NnoiLz48cGF0aCBkPSJNMjU2LDczLjE0M2M1Ljc3MSwwLDEwLjQ0OS00LjY3OCwxMC40NDktMTAuNDQ5UzI2MS43NzEsNTIuMjQ1LDI1Niw1Mi4yNDVjLTQ3LjM1MywwLTkzLjQ2NywxNi41NzMtMTI5Ljg0Nyw0Ni42NjgJYy0zNS45LDI5LjY5Ny02MC43MTcsNzEuMDg0LTY5Ljg4MSwxMTYuNTRjLTEuMTQsNS42NTcsMi41MjEsMTEuMTY4LDguMTc4LDEyLjMwOGMwLjY5NywwLjE0MSwxLjM5MiwwLjIwOCwyLjA3NiwwLjIwOAljNC44NzIsMCw5LjIzMi0zLjQyNiwxMC4yMzItOC4zODZDOTMuODY0LDEzNC43MjksMTY5LjI0Nyw3My4xNDMsMjU2LDczLjE0M3oiLz48L3N2Zz4=","netease":"data:image/webp;base64,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","qq":"data:image/webp;base64,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","kugou":"data:image/webp;base64,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","kugouLite":"data:image/webp;base64,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"}
-    
+
     function providerLogo(provider, size) {
       var src = PROVIDER_LOGOS[provider] || PROVIDER_LOGOS.netease
       return h('img', { className: 'mp-provider-logo', src: src, width: size || 20, height: size || 20, alt: '' })
@@ -2533,7 +2533,7 @@ window.__ModuleLoader__.load({
      * No React context: views read a module-level store through `useStore`, which
      * keeps the panel a single tree and avoids provider plumbing.
      */
-    
+
     function createStore(initial) {
       var state = initial
       var listeners = []
@@ -2563,7 +2563,7 @@ window.__ModuleLoader__.load({
         },
       }
     }
-    
+
     function useStore(store) {
       var pair = useState(store.get())
       var state = pair[0]
@@ -2585,17 +2585,21 @@ window.__ModuleLoader__.load({
      * Persisted subset: source / nav / playlistId (localStorage `music.ui.v2`),
      * migrated once from the 0.11 keys `mu.source` and `mu.view`.
      */
-    
+
     var UI_KEY = 'music.ui.v2'
     var LEGACY_UI_KEYS = ['mu.source', 'mu.view']
-    
+
     /** Every selectable playback source, in tab order. */
     var UI_SOURCES = ['local', 'netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
-    
+
+    // Derived from UI_SOURCES so the list only exists once: a second hardcoded copy
+    // is exactly how `music_control`'s source whitelist drifted and started
+    // treating navidrome as a local search.
     function isOnlineSource(source) {
-      return source === 'netease' || source === 'qq' || source === 'kugou' || source === 'kugouLite' || source === 'navidrome'
+      if (source === 'local') return false
+      return UI_SOURCES.indexOf(String(source || '')) >= 0
     }
-    
+
     function sourceLabelOf(source) {
       if (source === 'netease') return t('online.providerNetease')
       if (source === 'qq') return t('online.providerQq')
@@ -2604,7 +2608,7 @@ window.__ModuleLoader__.load({
       if (source === 'navidrome') return t('online.providerNavidrome')
       return t('page.tabLocal')
     }
-    
+
     function rawStorageGet(key, fallback) {
       try {
         var value = window.localStorage.getItem(key)
@@ -2613,7 +2617,7 @@ window.__ModuleLoader__.load({
         return fallback
       }
     }
-    
+
     function readUiState() {
       var saved = storageGet(UI_KEY, null)
       if (saved === null || typeof saved !== 'object') {
@@ -2642,7 +2646,7 @@ window.__ModuleLoader__.load({
       if (source !== 'local' && (nav === 'artists' || nav === 'albums')) nav = 'recent'
       return { source: source, nav: nav, playlistId: playlistId }
     }
-    
+
     var uiStore = createStore(
       Object.assign(
         {
@@ -2655,28 +2659,28 @@ window.__ModuleLoader__.load({
         readUiState(),
       ),
     )
-    
+
     function setUi(patch) {
       return uiStore.set(patch)
     }
-    
+
     function isLocalNav(nav) {
       return ['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'playlist', 'stats'].indexOf(nav) >= 0
     }
-    
+
     /** Section groups for the current source (rail or top bar). */
     /** Online playlist ordering is local-only; the platform order is kept as "source". */
     function onlinePlaylistSortMode() {
       var mode = prefsStore.get().onlinePlaylistSort
       return mode === 'name' || mode === 'count' ? mode : 'source'
     }
-    
+
     function onlinePlaylistSortLabel(mode) {
       if (mode === 'name') return t('v2.sortName')
       if (mode === 'count') return t('v2.sortCount')
       return t('v2.sortSource')
     }
-    
+
     function sortOnlinePlaylists(list) {
       var mode = onlinePlaylistSortMode()
       var copy = (list || []).slice()
@@ -2694,13 +2698,13 @@ window.__ModuleLoader__.load({
       }
       return copy
     }
-    
+
     function cycleOnlinePlaylistSort() {
       var mode = onlinePlaylistSortMode()
       var next = mode === 'source' ? 'name' : mode === 'name' ? 'count' : 'source'
       setPrefs({ onlinePlaylistSort: next })
     }
-    
+
     function navGroupsFor(source, favoritesCount) {
       var library = libraryStore.get()
       if (isOnlineSource(source)) {
@@ -2792,7 +2796,7 @@ window.__ModuleLoader__.load({
         },
       ]
     }
-    
+
     /** One click path for every nav shape: plain sections, local/online playlists. */
     function activateNavItem(item) {
       if (item.localPlaylistId) {
@@ -2806,7 +2810,7 @@ window.__ModuleLoader__.load({
       }
       setNav(item.key)
     }
-    
+
     function activeNavKey(nav) {
       var ui = uiStore.get()
       if (nav === 'playlist') {
@@ -2815,7 +2819,7 @@ window.__ModuleLoader__.load({
       }
       return nav
     }
-    
+
     function sectionTitleOf(ui) {
       switch (ui.nav) {
         case 'songs':
@@ -2844,7 +2848,7 @@ window.__ModuleLoader__.load({
           return t('v2.songs')
       }
     }
-    
+
     function setSource(source) {
       var ui = uiStore.get()
       if (ui.source === source) return
@@ -2875,22 +2879,22 @@ window.__ModuleLoader__.load({
       })
       if (isOnlineSource(source)) void loadProviders()
     }
-    
+
     function setNav(nav) {
       selectionStore.set({ active: false, paths: [] })
       uiStore.set({ nav: nav, filter: null, playlistId: nav === 'playlist' ? uiStore.get().playlistId : '' })
     }
-    
+
     function openLocalPlaylist(id) {
       selectionStore.set({ active: false, paths: [] })
       uiStore.set({ nav: 'playlist', playlistId: id, filter: null, query: '' })
     }
-    
+
     function openOnlineSection(nav) {
       closeOnlinePlaylist()
       uiStore.set({ nav: nav, filter: null })
     }
-    
+
     uiStore.subscribe(function (state) {
       storageSet(UI_KEY, {
         source: state.source,
@@ -2905,7 +2909,7 @@ window.__ModuleLoader__.load({
      *
      * Extracted from client.js at the 0.11.1 baseline (3931c14).
      */
-    
+
     function shuffleTracks(list, currentTrack) {
       var queue = list.slice()
       for (var j = queue.length - 1; j > 0; j -= 1) {
@@ -2923,19 +2927,19 @@ window.__ModuleLoader__.load({
       }
       return queue
     }
-    
+
     // Three playback modes, mapped onto the engine's loop/order pair:
     //   sequence → in order, stop at the end
     //   random   → shuffled, looping
     //   one      → repeat the current track
     var PLAY_MODES = ['sequence', 'random', 'one']
-    
+
     function playModeOf(snap) {
       if (snap.loop === 'one') return 'one'
       if (snap.order === 'random') return 'random'
       return 'sequence'
     }
-    
+
     function playModeLabel(mode) {
       return mode === 'one'
         ? t('page.modeOne')
@@ -2943,11 +2947,11 @@ window.__ModuleLoader__.load({
           ? t('page.modeRandom')
           : t('page.modeSequence')
     }
-    
+
     function playModeIcon(mode) {
       return mode === 'one' ? 'repeatOne' : mode === 'random' ? 'shuffle' : 'repeat'
     }
-    
+
     function applyPlayMode(mode) {
       if (mode === 'one') {
         player.setLoop('one')
@@ -2962,26 +2966,26 @@ window.__ModuleLoader__.load({
       player.setLoop('none')
       player.setOrder('list')
     }
-    
+
     function cyclePlayMode(snap) {
       var current = playModeOf(snap)
       applyPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(current) + 1) % PLAY_MODES.length])
     }
-    
+
     function nextIndexOf(index, size) {
       if (size <= 1) return 0
       return (index + 1) % size
     }
-    
+
     function prevIndexOf(index, size) {
       if (size <= 1) return 0
       return (index - 1 + size) % size
     }
-    
+
     // ── playback engine (module-level: survives panel unmount) ───────────
     // The <audio> element lives here rather than in the React tree, so
     // selecting another main panel keeps the current track playing.
-    
+
     function sameQueue(left, right) {
       if (left.length !== right.length) return false
       for (var i = 0; i < left.length; i += 1) {
@@ -2989,12 +2993,12 @@ window.__ModuleLoader__.load({
       }
       return true
     }
-    
+
     // One engine per page. Client modules can be re-executed by HMR or by a
     // module-table rebuild; a second engine would own a second <audio> and
     // play on top of the first. Every execution reuses the same instance.
     var PLAYER_KEY = '__dshMusicPlayer'
-    
+
     /**
      * Playback engine, one per page.
      *
@@ -3040,7 +3044,7 @@ window.__ModuleLoader__.load({
         duration: 0,
         buffered: 0,
       }
-    
+
       // ── resume + listening statistics ───────────────────────────────────
       // Counting follows the Last.fm / MusicBee rule (half the track or four
       // minutes, whichever comes first); resume follows the NetEase / Spotify
@@ -3056,7 +3060,7 @@ window.__ModuleLoader__.load({
       var leaderTimer = null
       var tabId = 'music-' + Math.random().toString(36).slice(2) + '-' + Date.now().toString(36)
       var LEADER_KEY = 'dsh-music-panel.player.leader'
-    
+
       function resetSession(item) {
         session = {
           path: item ? item.path : '',
@@ -3066,12 +3070,12 @@ window.__ModuleLoader__.load({
           counted: false,
         }
       }
-    
+
       function durationOf(item) {
         if (audio !== null && isFinite(audio.duration) && audio.duration > 0) return audio.duration
         return item && item.durationSec > 0 ? item.durationSec : 0
       }
-    
+
       function recordStatsPlay(item) {
         try {
           postJson(API + 'play', { path: item.path }).catch(function () {})
@@ -3079,7 +3083,7 @@ window.__ModuleLoader__.load({
           // Statistics never block playback.
         }
       }
-    
+
       /** Flush the seconds that have not been reported yet (>= 30s only). */
       function flushListening(force) {
         if (session.path === '' || session.pending <= 0) return
@@ -3095,7 +3099,7 @@ window.__ModuleLoader__.load({
           // Best effort.
         }
       }
-    
+
       function flushSessionPosition() {
         if (session.path === '' || readPrefs().rememberPerTrack !== true) return
         var item = currentItem()
@@ -3108,7 +3112,7 @@ window.__ModuleLoader__.load({
           // Best effort.
         }
       }
-    
+
       function playbackTrackSnapshot(track) {
         return {
           path: track.path,
@@ -3126,7 +3130,7 @@ window.__ModuleLoader__.load({
           qualityHint: track.qualityHint || '',
         }
       }
-    
+
       function savePlaybackState() {
         if (!leader) return
         var item = currentItem()
@@ -3154,13 +3158,13 @@ window.__ModuleLoader__.load({
           // Best effort.
         }
       }
-    
+
       function trackListening() {
         if (audio === null) return
         var item = currentItem()
         if (item === null) return
         if (session.path !== item.path) resetSession(item)
-    
+
         var current = audio.currentTime
         if (state.playing && !audio.paused) {
           var delta = current - session.lastTime
@@ -3172,23 +3176,23 @@ window.__ModuleLoader__.load({
           }
         }
         session.lastTime = current
-    
+
         var duration = durationOf(item)
         var threshold = playThresholdOf(duration)
         if (!session.counted && duration > 30 && session.seconds >= threshold) {
           session.counted = true
           recordStatsPlay(item)
         }
-    
+
         if (session.seconds >= 30 && session.pending >= 10) flushListening(false)
-    
+
         var now = Date.now()
         if (now - lastStateSave >= 5000) {
           lastStateSave = now
           savePlaybackState()
         }
       }
-    
+
       function trackFromSaved(entry, byPath) {
         if (typeof entry === 'string') return byPath[entry] || null
         if (entry === null || typeof entry !== 'object') return null
@@ -3213,7 +3217,7 @@ window.__ModuleLoader__.load({
         }
         return byPath[entry.path] || null
       }
-    
+
       function restorePlayback(saved, tracks) {
         if (!saved || !Array.isArray(saved.queue) || saved.queue.length === 0) return false
         var byPath = {}
@@ -3253,7 +3257,7 @@ window.__ModuleLoader__.load({
         load(index, readPrefs().autoResume === true)
         return true
       }
-    
+
       function tryRestore() {
         if (restoreAttempted) return
         restoreAttempted = true
@@ -3268,13 +3272,13 @@ window.__ModuleLoader__.load({
             // Resume is best effort.
           })
       }
-    
+
       function flushOnHide() {
         flushListening(true)
         flushSessionPosition()
         savePlaybackState()
       }
-    
+
       function emit() {
         listeners.forEach(function (fn) {
           fn()
@@ -3283,24 +3287,24 @@ window.__ModuleLoader__.load({
           fn()
         })
       }
-    
+
       function emitTime() {
         timeListeners.forEach(function (fn) {
           fn()
         })
       }
-    
+
       function patch(next) {
         state = Object.assign({}, state, next)
         emit()
       }
-    
+
       function currentItem() {
         return state.index >= 0 && state.queue[state.index] ? state.queue[state.index] : null
       }
-    
+
       // ── media session (system media keys, lock screen, OS media panel) ──
-    
+
       function syncMediaSession() {
         if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return
         var item = currentItem()
@@ -3324,7 +3328,7 @@ window.__ModuleLoader__.load({
           // Media Session is best effort.
         }
       }
-    
+
       function syncMediaHandlers() {
         if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return
         try {
@@ -3347,22 +3351,22 @@ window.__ModuleLoader__.load({
           // Older browsers expose a partial action list.
         }
       }
-    
+
       // ── audio element wiring ───────────────────────────────────────────
-    
+
       function onTime() {
         if (audio === null) return
         state = Object.assign({}, state, { currentTime: audio.currentTime })
         emitTime()
         trackListening()
       }
-    
+
       function onDuration() {
         if (audio === null) return
         state = Object.assign({}, state, { duration: isFinite(audio.duration) ? audio.duration : 0 })
         emitTime()
       }
-    
+
       function onProgress() {
         if (audio === null) return
         if (audio.buffered && audio.buffered.length > 0) {
@@ -3372,18 +3376,18 @@ window.__ModuleLoader__.load({
           emitTime()
         }
       }
-    
+
       function onPlaying() {
         errorStreak = 0
       }
-    
+
       function onPlay() {
         if (!state.playing) {
           patch({ playing: true })
           syncMediaSession()
         }
       }
-    
+
       function onPause() {
         flushListening(true)
         flushSessionPosition()
@@ -3393,7 +3397,7 @@ window.__ModuleLoader__.load({
           syncMediaSession()
         }
       }
-    
+
       function onEnded() {
         flushListening(true)
         flushSessionPosition()
@@ -3412,7 +3416,7 @@ window.__ModuleLoader__.load({
         }
         load(nextIndexOf(state.index, state.queue.length), true)
       }
-    
+
       function onError() {
         errorStreak += 1
         var failedTrack = state.queue[state.index] || null
@@ -3430,7 +3434,7 @@ window.__ModuleLoader__.load({
         }
         load(nextIndexOf(state.index, state.queue.length), true)
       }
-    
+
       function bind(el) {
         el.addEventListener('timeupdate', onTime)
         el.addEventListener('durationchange', onDuration)
@@ -3443,7 +3447,7 @@ window.__ModuleLoader__.load({
         el.addEventListener('ended', onEnded)
         el.addEventListener('error', onError)
       }
-    
+
       function unbind(el) {
         el.removeEventListener('timeupdate', onTime)
         el.removeEventListener('durationchange', onDuration)
@@ -3456,7 +3460,7 @@ window.__ModuleLoader__.load({
         el.removeEventListener('ended', onEnded)
         el.removeEventListener('error', onError)
       }
-    
+
       function releaseObjectUrl() {
         if (objectUrl === null) return
         try {
@@ -3466,7 +3470,7 @@ window.__ModuleLoader__.load({
         }
         objectUrl = null
       }
-    
+
       function cancelPendingFetch() {
         if (fetchAbort === null) return
         try {
@@ -3476,7 +3480,7 @@ window.__ModuleLoader__.load({
         }
         fetchAbort = null
       }
-    
+
       /**
        * Load one track through a local Blob URL.
        *
@@ -3491,11 +3495,11 @@ window.__ModuleLoader__.load({
         var trim = gainNode === null ? Math.min(1, normalizeGain) : 1
         return clamp(state.volume * trim, 0, 1)
       }
-    
+
       function applyOutputVolume() {
         if (audio) audio.volume = effectiveVolume()
       }
-    
+
       function applyNormalizeGain(linear) {
         normalizeGain = Number.isFinite(linear) && linear > 0 ? linear : 1
         if (gainNode !== null && audioContext !== null) {
@@ -3510,7 +3514,7 @@ window.__ModuleLoader__.load({
           applyOutputVolume()
         }
       }
-    
+
       /** Analyse the downloaded blob in-browser and apply the per-track gain. */
       function scheduleLoudness(item, blob) {
         var token = (loudnessToken += 1)
@@ -3529,7 +3533,7 @@ window.__ModuleLoader__.load({
           },
         )
       }
-    
+
       function load(at, autoplay) {
         var item = state.queue[at]
         if (!item) return
@@ -3556,7 +3560,7 @@ window.__ModuleLoader__.load({
             })
           }
         }
-    
+
         cancelPendingFetch()
         // Online providers stream through the Host. The Desktop media stack
         // silently drops `currentTime` writes on this HTTP stream (seeking
@@ -3629,7 +3633,7 @@ window.__ModuleLoader__.load({
         releaseObjectUrl()
         var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
         fetchAbort = controller
-    
+
         fetch(streamUrl(item.path), controller === null ? {} : { signal: controller.signal })
           .then(function (response) {
             if (!response.ok) throw new Error('HTTP ' + response.status)
@@ -3671,7 +3675,7 @@ window.__ModuleLoader__.load({
             onError()
           })
       }
-    
+
       var api = {
         subscribe: function (fn) {
           listeners.push(fn)
@@ -4002,7 +4006,7 @@ window.__ModuleLoader__.load({
               : 0
           var target = clamp(seconds, 0, limit > 0 ? limit : seconds)
           if (!isFinite(target)) return
-    
+
           function apply() {
             try {
               el.currentTime = target
@@ -4012,7 +4016,7 @@ window.__ModuleLoader__.load({
             state = Object.assign({}, state, { currentTime: target })
             emitTime()
           }
-    
+
           if (el.readyState >= 1) {
             apply()
             return
@@ -4104,7 +4108,7 @@ window.__ModuleLoader__.load({
           }
         },
       }
-    
+
       // ── cross-window leader (one audible player per browser profile) ─────
       function readLease() {
         try {
@@ -4115,7 +4119,7 @@ window.__ModuleLoader__.load({
           return null
         }
       }
-    
+
       function claimLeader() {
         if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') return true
         try {
@@ -4140,7 +4144,7 @@ window.__ModuleLoader__.load({
           return true
         }
       }
-    
+
       function releaseLeader() {
         try {
           var lease = readLease()
@@ -4149,7 +4153,7 @@ window.__ModuleLoader__.load({
           // Best effort.
         }
       }
-    
+
       function startLeaderElection() {
         if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') return
         claimLeader()
@@ -4158,7 +4162,7 @@ window.__ModuleLoader__.load({
         window.addEventListener('beforeunload', releaseLeader)
         window.addEventListener('pagehide', releaseLeader)
       }
-    
+
       function stopLeaderElection() {
         if (leaderTimer !== null) clearInterval(leaderTimer)
         leaderTimer = null
@@ -4168,18 +4172,18 @@ window.__ModuleLoader__.load({
         }
         releaseLeader()
       }
-    
+
       try {
         startLeaderElection()
       } catch {
         // localStorage can be unavailable in private/browser test modes.
       }
-    
+
       syncMediaHandlers()
       if (typeof window !== 'undefined') window[PLAYER_KEY] = api
       return api
     }
-    
+
     var player = createPlayer()
 
     // ── src/60-library.js
@@ -4189,7 +4193,7 @@ window.__ModuleLoader__.load({
      * Views read this store; actions are plain async functions so they can be
      * called from event handlers without a hook layer.
      */
-    
+
     var libraryStore = createStore({
       phase: 'idle', // idle | loading | ready | error
       tracks: [],
@@ -4203,9 +4207,9 @@ window.__ModuleLoader__.load({
       stats: {},
       statsRange: 'all',
     })
-    
+
     var libraryToken = 0
-    
+
     async function loadLibrary(refresh) {
       var token = (libraryToken += 1)
       libraryStore.set({ phase: 'loading', error: '' })
@@ -4227,11 +4231,11 @@ window.__ModuleLoader__.load({
         libraryStore.set({ phase: 'error', error: errorText(error) })
       }
     }
-    
+
     function tracksNow() {
       return libraryStore.get().tracks
     }
-    
+
     function trackByPath(path) {
       var list = tracksNow()
       for (var i = 0; i < list.length; i += 1) {
@@ -4239,7 +4243,7 @@ window.__ModuleLoader__.load({
       }
       return null
     }
-    
+
     function favoritePaths(list) {
       var out = []
       if (!Array.isArray(list)) return out
@@ -4249,14 +4253,14 @@ window.__ModuleLoader__.load({
       })
       return out
     }
-    
+
     function favoriteSet() {
       var set = {}
       var list = favoritePaths(libraryStore.get().favorites)
       for (var i = 0; i < list.length; i += 1) set[list[i]] = true
       return set
     }
-    
+
     async function loadFavorites() {
       try {
         var body = await getJson(API + 'favorites')
@@ -4265,7 +4269,7 @@ window.__ModuleLoader__.load({
         // Favorites are optional; the panel still works without them.
       }
     }
-    
+
     async function toggleFavorite(path) {
       if (!path) return
       try {
@@ -4275,7 +4279,7 @@ window.__ModuleLoader__.load({
         showToast(errorText(error))
       }
     }
-    
+
     async function loadPlaylists() {
       try {
         var body = await getJson(API + 'playlists')
@@ -4284,7 +4288,7 @@ window.__ModuleLoader__.load({
         libraryStore.set({ playlists: [] })
       }
     }
-    
+
     async function createPlaylist(name) {
       try {
         var body = await postJson(API + 'playlists', { name: name })
@@ -4295,7 +4299,7 @@ window.__ModuleLoader__.load({
         return null
       }
     }
-    
+
     async function patchPlaylist(id, patch) {
       try {
         await sendJson('PATCH', API + 'playlists/' + encodeURIComponent(id), patch)
@@ -4306,7 +4310,7 @@ window.__ModuleLoader__.load({
         return false
       }
     }
-    
+
     async function removePlaylist(id) {
       try {
         await sendJson('DELETE', API + 'playlists/' + encodeURIComponent(id))
@@ -4317,12 +4321,12 @@ window.__ModuleLoader__.load({
         return false
       }
     }
-    
+
     async function addToPlaylist(id, paths) {
       var list = Array.isArray(paths) ? paths : [paths]
       return patchPlaylist(id, { add: list })
     }
-    
+
     async function loadStats(range) {
       var next = range === 'week' || range === 'month' ? range : 'all'
       libraryStore.set({ statsRange: next })
@@ -4333,7 +4337,7 @@ window.__ModuleLoader__.load({
         libraryStore.set({ stats: {} })
       }
     }
-    
+
     async function loadConfig() {
       try {
         var body = await getJson(API + 'config')
@@ -4343,7 +4347,7 @@ window.__ModuleLoader__.load({
         return null
       }
     }
-    
+
     async function saveConfig(patch) {
       try {
         var body = await postJson(API + 'config', patch)
@@ -4355,7 +4359,7 @@ window.__ModuleLoader__.load({
         return false
       }
     }
-    
+
     function playlistTracks(playlist) {
       if (!playlist || !Array.isArray(playlist.trackPaths)) return []
       var out = []
@@ -4365,7 +4369,7 @@ window.__ModuleLoader__.load({
       }
       return out
     }
-    
+
     function playlistById(id) {
       var list = libraryStore.get().playlists
       for (var i = 0; i < list.length; i += 1) {
@@ -4380,25 +4384,25 @@ window.__ModuleLoader__.load({
      *
      * Only the client half lives here: the Host performs every provider request.
      */
-    
+
     var ONLINE_HISTORY_KEY = 'mu.onlineHistory'
     var ONLINE_HISTORY_MAX = 50
-    
+
     function readOnlineHistory() {
       var list = storageGet(ONLINE_HISTORY_KEY, [])
       return Array.isArray(list) ? list : []
     }
-    
+
     function writeOnlineHistory(list) {
       storageSet(ONLINE_HISTORY_KEY, list.slice(0, ONLINE_HISTORY_MAX))
     }
-    
+
     function onlineHistoryOfProvider(provider) {
       return onlineStore.get().history.filter(function (item) {
         return item.provider === provider
       })
     }
-    
+
     var onlineStore = createStore({
       provider: 'netease',
       phase: 'idle', // idle | searching | ready | error
@@ -4429,13 +4433,13 @@ window.__ModuleLoader__.load({
       progress: {},
       providers: {},
     })
-    
+
     var onlineSearchToken = 0
     var playlistLoadToken = 0
     var playlistCache = new Map()
     var playlistInflight = new Map()
     var PLAYLIST_CACHE_TTL = 60 * 1000
-    
+
     async function searchOnline(text) {
       var query = String(text || '').trim()
       if (query === '') return
@@ -4460,7 +4464,7 @@ window.__ModuleLoader__.load({
         onlineStore.set({ phase: 'error', error: errorText(error) })
       }
     }
-    
+
     async function refreshCacheStatus(provider, ids) {
       var list = (ids || []).filter(Boolean).slice(0, 120)
       if (list.length === 0) return
@@ -4481,13 +4485,13 @@ window.__ModuleLoader__.load({
         // Cache badges are cosmetic.
       }
     }
-    
+
     function isAuthError(message) {
       return /20017|登录态|重新扫码|未登录|登录.*(失效|过期)|session|cookie|token|鉴权|401|403/i.test(
         String(message || ''),
       )
     }
-    
+
     function mergePlaylists(previous, incoming) {
       var next = new Map()
       ;(incoming || []).forEach(function (item) {
@@ -4506,7 +4510,7 @@ window.__ModuleLoader__.load({
       })
       return merged
     }
-    
+
     async function loadMyPlaylists(provider) {
       var target = provider || onlineStore.get().provider
       var token = (playlistLoadToken += 1)
@@ -4554,7 +4558,7 @@ window.__ModuleLoader__.load({
         }
       }
     }
-    
+
     /** Re-read the likes playlist after a cloud like/unlike from any surface. */
     function refreshLikedPlaylist(delta) {
       var state = onlineStore.get()
@@ -4573,7 +4577,7 @@ window.__ModuleLoader__.load({
       }
       void loadMyPlaylists(state.provider)
     }
-    
+
     function resetOnlineAccountData() {
       playlistLoadToken += 1
       onlineSearchToken += 1
@@ -4602,13 +4606,13 @@ window.__ModuleLoader__.load({
         authExpired: '',
       })
     }
-    
+
     function playlistCacheKey(provider, id) {
       return String(provider || '') + ':' + String(id || '')
     }
-    
+
     var albumLoadToken = 0
-    
+
     async function openOnlineAlbum(track) {
       if (!track || !track.album) return
       var provider = track.onlineProvider || onlineStore.get().provider
@@ -4653,7 +4657,7 @@ window.__ModuleLoader__.load({
         })
       }
     }
-    
+
     function closeOnlineAlbum() {
       albumLoadToken += 1
       onlineStore.set({
@@ -4667,7 +4671,7 @@ window.__ModuleLoader__.load({
         albumError: '',
       })
     }
-    
+
     function trimPlaylistCache() {
       if (playlistCache.size <= 24) return
       var old = []
@@ -4683,7 +4687,7 @@ window.__ModuleLoader__.load({
           playlistCache.delete(row.key)
         })
     }
-    
+
     function fetchPlaylistSongs(provider, id, force) {
       var key = playlistCacheKey(provider, id)
       if (!force && playlistInflight.has(key)) return playlistInflight.get(key)
@@ -4710,7 +4714,7 @@ window.__ModuleLoader__.load({
       playlistInflight.set(key, request)
       return request
     }
-    
+
     /** Warm the cache when the pointer/focus reaches a playlist nav item. */
     function prefetchOnlinePlaylist(playlist) {
       if (!playlist || !playlist.id) return
@@ -4722,7 +4726,7 @@ window.__ModuleLoader__.load({
         // Prefetch is best effort.
       })
     }
-    
+
     async function openOnlinePlaylist(playlist, force) {
       if (!playlist || !playlist.id) return
       var provider = onlineStore.get().provider
@@ -4760,11 +4764,11 @@ window.__ModuleLoader__.load({
         }
       }
     }
-    
+
     function closeOnlinePlaylist() {
       onlineStore.set({ playlistId: '', playlistName: '', playlistSongs: [], playlistPhase: 'idle' })
     }
-    
+
     async function loadProviders() {
       try {
         var body = await getJson(API + 'online/providers')
@@ -4773,7 +4777,7 @@ window.__ModuleLoader__.load({
         // Provider status only drives labels.
       }
     }
-    
+
     function rememberOnline(track) {
       var entry = {
         provider: track.onlineProvider,
@@ -4800,7 +4804,7 @@ window.__ModuleLoader__.load({
       onlineStore.set({ history: next })
       writeOnlineHistory(next)
     }
-    
+
     function removeHistory(entry) {
       var state = onlineStore.get()
       var next = state.history.filter(function (item) {
@@ -4809,7 +4813,7 @@ window.__ModuleLoader__.load({
       onlineStore.set({ history: next })
       writeOnlineHistory(next)
     }
-    
+
     function playOnlineResults(results, index) {
       var list = Array.isArray(results) ? results : []
       var wanted = list[index]
@@ -4854,18 +4858,18 @@ window.__ModuleLoader__.load({
         void refreshCacheStatus(tracks[at].onlineProvider, [tracks[at].onlineId])
       }
     }
-    
+
     function playHistoryEntry(entry) {
       var track = onlineTrackOf(entry)
       player.playList([track], 0)
       rememberOnline(track)
     }
-    
+
     async function startProviderLogin(provider, mode) {
       var body = await postJson(API + 'online/login/start', { provider: provider, mode: mode })
       return body
     }
-    
+
     async function checkProviderLogin(provider, key, mode) {
       var body = await getJson(
         API +
@@ -4878,7 +4882,7 @@ window.__ModuleLoader__.load({
       )
       return body.status
     }
-    
+
     async function logoutProvider(provider) {
       try {
         await postJson(API + 'online/logout', { provider: provider })
@@ -4889,7 +4893,7 @@ window.__ModuleLoader__.load({
         showToast(errorText(error))
       }
     }
-    
+
     /**
      * Navidrome credentials form state.
      *
@@ -4903,14 +4907,14 @@ window.__ModuleLoader__.load({
       var phasePair = useState('idle') // idle | loading
       var errorPair = useState('')
       var noticePair = useState('')
-    
+
       var setServer = serverPair[1]
       var setUsername = userPair[1]
       var setPassword = passPair[1]
       var setPhase = phasePair[1]
       var setError = errorPair[1]
       var setNotice = noticePair[1]
-    
+
       function reset() {
         setServer('')
         setUsername('')
@@ -4919,7 +4923,7 @@ window.__ModuleLoader__.load({
         setError('')
         setNotice('')
       }
-    
+
       async function connect() {
         var server = String(serverPair[0] || '').trim()
         var username = String(userPair[0] || '').trim()
@@ -4951,7 +4955,7 @@ window.__ModuleLoader__.load({
           setError(errorText(error))
         }
       }
-    
+
       return {
         server: serverPair[0],
         username: userPair[0],
@@ -4974,11 +4978,11 @@ window.__ModuleLoader__.load({
      * Every popover, dialog and sheet pushes onto this stack; Escape pops the top
      * one. Nothing else in the UI is allowed to invent a z-index.
      */
-    
+
     var overlayStore = createStore({ layers: [] })
     var toastStore = createStore({ text: '', seq: 0 })
     var toastTimer = null
-    
+
     function pushLayer(kind, props) {
       var layers = overlayStore.get().layers.filter(function (layer) {
         return layer.kind !== kind
@@ -4986,14 +4990,14 @@ window.__ModuleLoader__.load({
       layers.push({ kind: kind, props: props || {} })
       overlayStore.set({ layers: layers })
     }
-    
+
     function popLayer() {
       var layers = overlayStore.get().layers
       if (layers.length === 0) return false
       overlayStore.set({ layers: layers.slice(0, layers.length - 1) })
       return true
     }
-    
+
     function removeLayer(kind) {
       var layers = overlayStore.get().layers
       var next = layers.filter(function (layer) {
@@ -5001,18 +5005,18 @@ window.__ModuleLoader__.load({
       })
       if (next.length !== layers.length) overlayStore.set({ layers: next })
     }
-    
+
     function topLayer() {
       var layers = overlayStore.get().layers
       return layers.length > 0 ? layers[layers.length - 1] : null
     }
-    
+
     function hasLayer(kind) {
       return overlayStore.get().layers.some(function (layer) {
         return layer.kind === kind
       })
     }
-    
+
     function showToast(text) {
       var message = String(text || '')
       if (message === '') return
@@ -5029,13 +5033,13 @@ window.__ModuleLoader__.load({
     /**
      * selection + bulk actions + duplicate detection.
      */
-    
+
     var selectionStore = createStore({ active: false, paths: [] })
-    
+
     function selectedPaths() {
       return selectionStore.get().paths.slice()
     }
-    
+
     function selectedPathSet() {
       var set = {}
       selectionStore.get().paths.forEach(function (path) {
@@ -5043,12 +5047,12 @@ window.__ModuleLoader__.load({
       })
       return set
     }
-    
+
     function setSelectionMode(active) {
       var state = selectionStore.get()
       selectionStore.set({ active: active === true, paths: active === true ? state.paths : [] })
     }
-    
+
     function toggleSelected(path) {
       var state = selectionStore.get()
       var list = state.paths.slice()
@@ -5057,17 +5061,17 @@ window.__ModuleLoader__.load({
       else list.push(path)
       selectionStore.set({ active: list.length > 0 ? state.active : false, paths: list })
     }
-    
+
     function clearSelection() {
       selectionStore.set({ active: false, paths: [] })
     }
-    
+
     function selectAllPaths(paths) {
       selectionStore.set({ active: true, paths: (paths || []).slice() })
     }
-    
+
     var rangePick = { active: false, anchor: '' }
-    
+
     /** Select the whole current list (enters selection mode). */
     function selectAllIn(list) {
       selectionStore.set({
@@ -5077,7 +5081,7 @@ window.__ModuleLoader__.load({
         }),
       })
     }
-    
+
     /** Invert the selection within the current list. */
     function invertSelectionIn(list) {
       var selected = selectedPathSet()
@@ -5092,19 +5096,19 @@ window.__ModuleLoader__.load({
           }),
       })
     }
-    
+
     function beginRangePick() {
       rangePick.active = true
       rangePick.anchor = ''
       selectionStore.set({ active: true })
       showToast(t('v2.rangePickHint'))
     }
-    
+
     function cancelRangePick() {
       rangePick.active = false
       rangePick.anchor = ''
     }
-    
+
     /**
      * Click handler for list rows/cards: replace (or toggle with Ctrl), or handle
      * one range pick when the user chose 区域选择.
@@ -5145,7 +5149,7 @@ window.__ModuleLoader__.load({
       }
       selectionStore.set({ active: true, paths: [track.path] })
     }
-    
+
     async function batchEditTags(paths, patch) {
       var done = 0
       var failed = 0
@@ -5161,14 +5165,14 @@ window.__ModuleLoader__.load({
       }
       return { done: done, failed: failed }
     }
-    
+
     async function removeTracks(paths) {
       var body = await postJson(API + 'remove', { paths: paths })
       await loadLibrary(true)
       clearSelection()
       return body
     }
-    
+
     /** Higher bitrate, then higher sample rate, then larger file wins. */
     function compareQuality(left, right) {
       var leftBitrate = Number(left.bitrate) || 0
@@ -5179,7 +5183,7 @@ window.__ModuleLoader__.load({
       if (leftRate !== rightRate) return rightRate - leftRate
       return (Number(right.size) || 0) - (Number(left.size) || 0)
     }
-    
+
     /** Same title + artist + rounded duration, at least two entries. */
     function duplicateGroupsOf(tracks) {
       var map = {}
@@ -5208,7 +5212,7 @@ window.__ModuleLoader__.load({
      * Every colour is a `--dsw-*` token with a neutral fallback, so the panel
      * follows the host's light/dark theme without hardcoded surfaces.
      */
-    
+
     var THEME_CSS = [
       // ── shell ───────────────────────────────────────────────────────────────
       '.mp-root :focus-visible{outline:2px solid var(--dsw-focus-ring-color,#4176E6);outline-offset:2px}',
@@ -5293,7 +5297,7 @@ window.__ModuleLoader__.load({
       '.mp-userchip{display:none;align-items:center;gap:6px;height:26px;padding:0 9px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);white-space:nowrap}',
       '.mp-userchip.is-on{display:inline-flex}',
       '.mp-userchip-dot{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-business-primary,#4176E6)}',
-    
+
       '.mp-userchip-name{max-width:150px;overflow:hidden;text-overflow:ellipsis}',
       '.mp-userchip-vip{font-size:9px;font-weight:700;line-height:1;padding:2px 5px;border-radius:8px;letter-spacing:.02em}',
       '.mp-userchip-vip.is-on{color:#8a5a00;background:#ffd76a}',
@@ -5309,7 +5313,7 @@ window.__ModuleLoader__.load({
       '.mp-btn.is-ghost{background:transparent;border-color:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mp-btn.is-ghost:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
       '.mp-btn:disabled{opacity:.5;cursor:default}',
-    
+
       // ── workspace ───────────────────────────────────────────────────────────
       '.mp-workspace{display:grid;grid-template-columns:188px minmax(0,1fr);flex:1;min-height:0}',
       '.mp-workspace.is-queue{grid-template-columns:188px minmax(0,1fr) 304px}',
@@ -5334,10 +5338,10 @@ window.__ModuleLoader__.load({
       '.mp-sec-sep{flex:none;width:1px;height:14px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.14));margin:0 6px}',
       '.mp-sec-spacer{margin-left:auto}',
       '.mp-sec-actions{display:inline-flex;align-items:center;gap:4px;flex:none}',
-    
+
       // ── content ─────────────────────────────────────────────────────────────
       '.mp-content{display:flex;flex-direction:column;min-width:0;min-height:0}',
-    
+
       '.mp-sec-overflow{position:relative;display:inline-flex;flex:none;margin-left:auto}',
       '.mp-sec-expand{height:26px;padding:0 9px;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:8px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;white-space:nowrap}',
       '.mp-sec-expand:hover,.mp-sec-expand.is-on{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
@@ -5381,7 +5385,7 @@ window.__ModuleLoader__.load({
       '.mp-vlist-row{position:absolute;left:0;right:0}',
       '.mp-vlist-row > .mp-row{width:100%;height:100%}',
       '.mp-filterbar{display:flex;align-items:center;gap:8px;padding:0 22px 8px;flex:none;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-    
+
       // ── rows ────────────────────────────────────────────────────────────────
       '.mp-row{display:grid;box-sizing:border-box;grid-template-columns:48px minmax(0,1.6fr) minmax(0,1fr) 80px 52px 58px;align-items:center;gap:12px;height:72px;padding:0 12px;border-radius:8px;color:var(--dsw-alias-label-primary,#f4f4f5);position:relative;cursor:default}',
       '.mp-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
@@ -5417,7 +5421,7 @@ window.__ModuleLoader__.load({
       '.mp-eq i:nth-child(2){animation-delay:.18s}',
       '.mp-eq i:nth-child(3){animation-delay:.36s}',
       '@keyframes mp-eq{0%,100%{height:3px}50%{height:11px}}',
-    
+
       // ── grid / simple rows / stats ──────────────────────────────────────────
       '.mp-srow{display:flex;align-items:center;box-sizing:border-box;gap:12px;height:64px;padding:0 12px;border-radius:8px;cursor:pointer;color:inherit;background:transparent;border:0;width:100%;text-align:left;font:inherit}',
       '.mp-srow:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
@@ -5446,7 +5450,7 @@ window.__ModuleLoader__.load({
       '.mp-empty span{font-size:12px;max-width:44ch}',
       '.mp-spinner{width:18px;height:18px;border-radius:50%;border:2px solid var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12));border-top-color:var(--dsw-alias-state-business-primary,#4176E6);animation:mp-spin .8s linear infinite}',
       '@keyframes mp-spin{to{transform:rotate(360deg)}}',
-    
+
       // ── player bar ──────────────────────────────────────────────────────────
       '.mp-playerbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);align-items:center;gap:16px;flex:none;height:68px;padding:0 14px;position:relative;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,#15151a);box-shadow:0 -10px 30px rgba(0,0,0,.08)}',
       '.mp-pb-track{display:flex;align-items:center;gap:12px;min-width:0;padding-right:4px;overflow:hidden}',
@@ -5473,7 +5477,7 @@ window.__ModuleLoader__.load({
       '.mp-pb-play:hover{transform:scale(1.06);box-shadow:0 8px 22px rgba(0,0,0,.28)}',
       '.mp-pb-play:active{transform:scale(.96)}',
       '.mp-pb-play:disabled{opacity:.4;transform:none;box-shadow:none}',
-    
+
       '.mp-time{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums;width:38px;text-align:center;flex:none;transition:color .12s}',
       '.mp-time.is-preview{color:var(--dsw-alias-state-business-primary,#4176E6)}',
       '.mp-seek{position:relative;flex:1;height:18px;display:flex;align-items:center;min-width:0;cursor:pointer}',
@@ -5502,7 +5506,7 @@ window.__ModuleLoader__.load({
       '.mp-pb-vol:hover input::-moz-range-thumb,.mp-pb-vol input:focus-visible::-moz-range-thumb{opacity:1}',
       '.mp-playerbar.is-empty .mp-pb-cover{box-shadow:inset 0 0 0 1px var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
       '.mp-playerbar.is-empty .mp-pb-play{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));color:var(--dsw-alias-label-tertiary,#8a8a93);box-shadow:none}',
-    
+
       // ── queue (side panel and floating variant) ─────────────────────────────
       '.mp-queue{display:none;flex-direction:column;min-height:0;border-left:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,#15151a)}',
       '.mp-workspace.is-queue .mp-queue{display:flex}',
@@ -5522,7 +5526,7 @@ window.__ModuleLoader__.load({
       '.mp-q-artist{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-queue-pop{position:fixed;right:24px;bottom:96px;z-index:70;width:340px;max-height:56vh;display:flex;flex-direction:column;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:0 16px 48px rgba(0,0,0,.5);overflow:hidden}',
       '.mp-queue-pop .mp-q-list{max-height:40vh}',
-    
+
       // ── now playing (reference layout) ──────────────────────────────────────────
       '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
       '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
@@ -5707,13 +5711,13 @@ window.__ModuleLoader__.load({
       '.mp-np-foot-btn:hover,.mp-np-foot-btn.is-on{background:rgba(255,255,255,.1);color:#fff}',
       '.mp-quality{font-size:11px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.06)}',
       '@keyframes mp-disc-spin{to{transform:rotate(360deg)}}',
-    
+
       // ── overlays, sheet, dialogs, menu, toast ───────────────────────────────
       '.mp-overlay{position:absolute;inset:0;z-index:85;display:flex;align-items:center;justify-content:center;pointer-events:none}',
       '.mp-overlay.is-on{pointer-events:auto}',
       '.mp-scrim{position:absolute;inset:0;background:rgba(0,0,0,.45)}',
-    
-    
+
+
       '.mp-set-status{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:-4px 0 8px 12px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-set-status i{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-label-tertiary,#8a8a93);flex:none}',
       '.mp-set-status.is-on{color:var(--dsw-alias-state-success-primary,#2f9e44)}',
@@ -5722,8 +5726,8 @@ window.__ModuleLoader__.load({
       '.mp-set-status.is-bad i{background:var(--dsw-alias-state-error-primary,#e5484d)}',
       '.mp-set-status.is-off{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-set-status-hint{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-    
-    
+
+
       '.mp-online-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}',
       '.mp-online-head h2{margin:0}',
       '.mp-online-count{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));padding:3px 8px;border-radius:999px;font-variant-numeric:tabular-nums}',
@@ -5807,7 +5811,7 @@ window.__ModuleLoader__.load({
       '.mp-cache-size{min-width:52px;text-align:right}',
       '.mp-cache-tag{font-size:9px;padding:1px 4px;border-radius:4px;background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-tertiary,#8a8a93);flex:none}',
       '.mp-cache-empty{padding:18px 12px;text-align:center;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);border:1px dashed var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:12px}',
-    
+
       '.mp-set-page-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px}',
       '.mp-set-page-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
       '.mp-set-card{border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:16px;background:var(--dsw-alias-bg-layer-2,#1e1e22);margin-top:12px;overflow:hidden}',
@@ -5840,7 +5844,7 @@ window.__ModuleLoader__.load({
       '.mp-about-row a,.mp-about-links a{color:var(--dsw-alias-state-business-primary,#7AAAFF);text-decoration:none}',
       '.mp-about-row a:hover,.mp-about-links a:hover{text-decoration:underline}',
       '.mp-about-links{display:flex;gap:16px;margin-top:14px;font-size:12px}',
-    
+
       '.mp-sheet-close{position:absolute;top:10px;right:10px;z-index:3;width:28px;height:28px;display:grid;place-items:center;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;transition:background .14s,color .14s}',
       '.mp-sheet-close:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5);border-color:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
       '.mp-sheet{position:relative;width:min(760px,calc(100vw - 48px));height:min(560px,calc(100vh - 96px));display:grid;grid-template-columns:180px minmax(0,1fr);background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;overflow:hidden;box-shadow:var(--dsw-elevation-panel,0 30px 80px rgba(0,0,0,.5))}',
@@ -5878,7 +5882,7 @@ window.__ModuleLoader__.load({
       '.mp-field input:focus,.mp-field textarea:focus{border-color:var(--dsw-alias-state-business-primary,#4176E6)}',
       '.mp-field textarea{resize:vertical;min-height:96px;font-size:12px;line-height:1.6}',
       '.mp-d-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}',
-    
+
       '.mp-login-card{width:100%;max-width:320px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:10px;padding:2px 0 4px}',
       '.mp-login-head{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;text-align:center}',
       '.mp-login-logo{width:38px;height:38px;border-radius:8px;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.18)}',
@@ -5921,7 +5925,7 @@ window.__ModuleLoader__.load({
       '.mp-ctx hr{border:0;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));margin:4px 2px}',
       '.mp-toast{position:absolute;left:50%;bottom:100px;transform:translateX(-50%) translateY(6px);z-index:90;padding:8px 14px;border-radius:12px;background:var(--dsw-alias-toast-bg,#2c2c2e);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));color:var(--dsw-alias-toast-label,#fff);font-size:12px;box-shadow:var(--dsw-elevation-panel,0 12px 32px rgba(0,0,0,.45));opacity:0;transition:.18s;pointer-events:none;max-width:70%}',
       '.mp-toast.is-on{opacity:1;transform:translateX(-50%)}',
-    
+
       // ── selection / batch / match / lyric search ───────────────────────────
       '.mp-row-check{position:static;width:20px;height:20px;margin-right:6px;padding:0;font:inherit;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:transparent;display:grid;place-items:center;color:#fff;opacity:0;transition:opacity .12s}',
       '.mp-row:hover .mp-row-check,.mp-row.is-selected .mp-row-check,.mp-row-check:focus-visible{opacity:1}',
@@ -5953,7 +5957,7 @@ window.__ModuleLoader__.load({
       '.mp-lyr-tr{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-np-offset-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}',
       '.mp-np-setting-hint{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:6px;line-height:1.5}',
-    
+
       // ── composer / sidebar ──────────────────────────────────────────────────
       '.mp-composer-lyrics{display:flex;align-items:center;gap:6px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto 6px;height:24px;padding:0 2px;color:var(--dsw-alias-label-secondary,#cfd3d6);font-family:var(--dsw-font-family,inherit);font-size:12px;line-height:20px;overflow:hidden;white-space:nowrap}',
       '.mp-composer-lyric-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.9}',
@@ -5982,7 +5986,7 @@ window.__ModuleLoader__.load({
       '.mp-side-btn:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#4176E6);outline-offset:1px}',
       '.mp-side-btn svg{display:block}',
       '.mp-audio-host{position:fixed;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);opacity:0;pointer-events:none}',
-    
+
       // ── responsive ──────────────────────────────────────────────────────────
       '.mp-trash-list{display:flex;flex-direction:column;max-height:340px;overflow:auto}',
       '.mp-trash-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
@@ -6011,11 +6015,11 @@ window.__ModuleLoader__.load({
       '.mp-kit-content{max-height:min(720px,calc(100vh - 80px))}',
       '.mp-kit-body{display:flex;flex-direction:column;gap:12px;min-height:0}',
       '.mp-kit-text{margin:0;font-size:13px;line-height:20px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-    
+
       '.mp-kit-input{flex:1;height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:13px;outline:none}',
       '.mp-kit-center{display:flex;flex-direction:column;align-items:center;gap:8px}',
       '.mp-kit-modal.mp-kit-modal-headless{width:min(760px,calc(100vw - 48px));height:min(560px,calc(100vh - 96px));max-width:none;max-height:none;background:transparent;border:0;box-shadow:none;padding:0}',
-    
+
       '.mp-nav-head{display:flex;align-items:center;justify-content:space-between;gap:4px;padding-right:6px}',
       '.mp-nav-head .mp-nav-label{flex:1;min-width:0;padding:0 0 6px 10px}',
       '.mp-nav-act{width:20px;height:20px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;flex:none}',
@@ -6023,15 +6027,15 @@ window.__ModuleLoader__.load({
       '.mp-sec-label{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dsw-alias-label-tertiary,#8a8a93);font-weight:600;padding:0 2px 0 8px;flex:none}',
       '.mp-sec-act{width:22px;height:22px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;flex:none}',
       '.mp-sec-act:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
-    
+
       '.mp-folder-path{padding:2px 0 8px;font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93);word-break:break-all}',
       '.mp-folder-list{display:flex;flex-direction:column;gap:2px;max-height:320px;overflow:auto}',
       '.mp-folder-row{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:13px;text-align:left;cursor:pointer;min-width:0}',
       '.mp-folder-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-folder-row-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-folder-state{padding:24px 8px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:13px}',
-    
-    
+
+
       '.mp-pb-seek-full{position:absolute;left:0;right:0;top:0;height:18px;z-index:4}',
       '.mp-pb-seek-full .mp-seek{height:18px;width:100%}',
       '.mp-pb-seek-full .mp-seek input{height:18px}',
@@ -6046,7 +6050,7 @@ window.__ModuleLoader__.load({
       '@media (max-width:1100px){.mp-np-body{padding:64px 2.5vw 0 6.5vw}.mp-np-title{font-size:24px}}',
       '@media (max-width:980px){.mp-np{--mp-cover:min(76vw,52vh,680px)}.mp-np-fs{top:14px;right:14px}.mp-np-body{flex-direction:column;gap:0;padding:48px 20px 0;overflow:hidden}.mp-np-meta{margin:0 0 12px}.mp-np-title{font-size:26px}.mp-np-artist{font-size:13px}.mp-np-artist-row{margin-top:4px}.mp-np-meta-audio{top:0}.mp-np-cover-stage{margin-bottom:10px}.mp-np-quality{margin:0 0 12px;font-size:12px}.mp-np-transport{order:2;margin:0;gap:64px}.mp-np-progress{order:3;margin:12px 0 0}.mp-np-times{order:4;margin-top:12px}.mp-np-secondary{order:5;margin:12px 0 0;padding:0 8px}.mp-np-left{width:100%;padding-bottom:8px}.mp-np-right{flex:1;width:100%;max-width:none;margin-left:0;padding-left:0;padding-bottom:16px;min-height:0}.mp-np-lyrics{padding-top:16px}.mp-np-lyric-foot{margin-top:8px}.mp-np-head{top:14px;left:14px}}',
       '@media (max-width:900px){.mp-workspace,.mp-workspace.is-queue{grid-template-columns:56px minmax(0,1fr)}.mp-root.is-top .mp-workspace{grid-template-columns:minmax(0,1fr)}.mp-nav{padding:10px 6px;align-items:center}.mp-nav-label,.mp-nav-item span,.mp-nav-count{display:none}.mp-nav-item{width:40px;justify-content:center;padding:0}.mp-search{width:160px}.mp-pb-vol{display:none}}',
-    
+
       '@media (max-width:900px){.mp-sheet{width:calc(100vw - 24px);height:min(560px,calc(100dvh - 24px));grid-template-columns:152px minmax(0,1fr)}.mp-sheet-nav{padding:12px 8px}.mp-sheet-body{padding:14px 44px 20px 16px}}',
       '@media (max-width:720px){.mp-sheet-nav{padding-right:48px}.mp-sheet-close{top:8px;right:8px}.mp-sheet{width:calc(100vw - 16px);height:calc(100dvh - 16px);grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.mp-sheet-nav{flex-direction:row;align-items:center;gap:4px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));padding:8px}.mp-sheet-title{display:none}.mp-sheet-tab{flex:none;white-space:nowrap;height:30px}.mp-sheet-nav>div:last-child{margin-top:0!important;margin-left:auto}.mp-sheet-body{padding:12px 14px 18px}}',
       '@media (max-width:620px){.mp-online-grid{grid-template-columns:1fr}.mp-online-name{font-size:13px}}',
@@ -6054,14 +6058,14 @@ window.__ModuleLoader__.load({
       '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
       '@media (prefers-reduced-motion:reduce){.mp-np-line-trans{transition:none}.mp-np.is-trans .mp-np-line-trans{transition:none}}',
     ]
-    
+
     var THEME_TEXT = THEME_CSS.join('')
 
     // ── src/ui/01-primitives.js
     /**
      * primitives: the few shared UI atoms plus the player hooks.
      */
-    
+
     function usePlayerSnapshot() {
       var pair = useState(player.getSnapshot())
       useEffect(function () {
@@ -6071,7 +6075,7 @@ window.__ModuleLoader__.load({
       }, [])
       return pair[0]
     }
-    
+
     function usePlayerTime() {
       var pair = useState(player.getTime())
       useEffect(function () {
@@ -6081,11 +6085,11 @@ window.__ModuleLoader__.load({
       }, [])
       return pair[0]
     }
-    
+
     function usePrefs() {
       return useStore(prefsStore)
     }
-    
+
     /** Milliseconds left until `deadline`, ticking once a second while it is set. */
     function useCountdown(deadline) {
       var pair = useState(Date.now())
@@ -6105,7 +6109,7 @@ window.__ModuleLoader__.load({
       )
       return Math.max(0, (Number(deadline) || 0) - now)
     }
-    
+
     function IconButton(props) {
       var button = h(
         'button',
@@ -6126,7 +6130,7 @@ window.__ModuleLoader__.load({
       }
       return button
     }
-    
+
     function Button(props) {
       return h(
         'button',
@@ -6146,7 +6150,7 @@ window.__ModuleLoader__.load({
         props.children,
       )
     }
-    
+
     function Cover(props) {
       var failedPair = useState(false)
       var failed = failedPair[0]
@@ -6174,11 +6178,11 @@ window.__ModuleLoader__.load({
             }),
       )
     }
-    
+
     function Spinner() {
       return h('span', { className: 'mp-spinner', 'aria-hidden': 'true' })
     }
-    
+
     function Empty(props) {
       return h(
         'div',
@@ -6188,7 +6192,7 @@ window.__ModuleLoader__.load({
         props.hint ? h('span', null, props.hint) : null,
       )
     }
-    
+
     function SeekBar(props) {
       var time = usePlayerTime()
       var pair = useState(null)
@@ -6199,20 +6203,20 @@ window.__ModuleLoader__.load({
       var percent = duration > 0 ? clamp(position / duration, 0, 1) * 100 : 0
       var buffered = Math.min(duration, Math.max(0, Number(time.buffered) || 0))
       var bufferedPercent = duration > 0 ? clamp(buffered / duration, 0, 1) * 100 : 0
-    
+
       function commit() {
         if (seeking === null) return
         if (duration > 0) player.seek(seeking)
         setSeeking(null)
       }
-    
+
       function preview(event) {
         if (duration <= 0 || typeof props.onPreview !== 'function') return
         var rect = event.currentTarget.getBoundingClientRect()
         var ratio = clamp((event.clientX - rect.left) / rect.width, 0, 1)
         props.onPreview(ratio * duration)
       }
-    
+
       return h(
         'div',
         {
@@ -6242,7 +6246,7 @@ window.__ModuleLoader__.load({
         }),
       )
     }
-    
+
     function Switch(props) {
       var HostSwitch = hostComponent('Switch')
       if (HostSwitch !== null) {
@@ -6271,7 +6275,7 @@ window.__ModuleLoader__.load({
         h('i'),
       )
     }
-    
+
     function KitPill(props) {
       var HostPill = hostComponent('Pill')
       var content = [
@@ -6301,7 +6305,7 @@ window.__ModuleLoader__.load({
         content,
       )
     }
-    
+
     /**
      * Dialog shell: the host Modal when available (focus trap, Escape, portal,
      * native chrome), otherwise the same overlay markup the plugin used before.
@@ -6364,7 +6368,7 @@ window.__ModuleLoader__.load({
         ),
       )
     }
-    
+
     function SetRow(props) {
       return h(
         'div',
@@ -6384,17 +6388,17 @@ window.__ModuleLoader__.load({
      * track row / card: one renderer for local tracks, online results and queue
      * rows (the queue uses a compact variant in 05-queue).
      */
-    
+
     function trackTitleOf(track) {
       if (!track) return ''
       return track.title || stemOf(track.path || '') || basename(track.path || '')
     }
-    
+
     function trackArtistOf(track) {
       if (!track) return ''
       return track.artist || t('page.unknownArtist')
     }
-    
+
     function TrackRow(props) {
       var track = props.track
       var current = props.currentPath !== '' && props.currentPath === track.path
@@ -6402,11 +6406,11 @@ window.__ModuleLoader__.load({
       var vip = track.qualityHint === 'VIP'
       var selecting = props.selectionMode === true
       var selected = props.selected === true
-    
+
       function play() {
         if (props.onPlay) props.onPlay(track)
       }
-    
+
       // Single click selects, double click plays (the old 0.11 interaction).
       // The checkbox / Ctrl-click is the additive path.
       function handleClick(event) {
@@ -6421,7 +6425,7 @@ window.__ModuleLoader__.load({
         }
         play()
       }
-    
+
       return h(
         'div',
         {
@@ -6572,9 +6576,9 @@ window.__ModuleLoader__.load({
         ),
       )
     }
-    
+
     var SCROLL_MEMORY = {}
-    
+
     function TrackListBody(props) {
       var key = props.resetKey || 'tracks'
       return h(VirtualList, {
@@ -6610,7 +6614,7 @@ window.__ModuleLoader__.load({
         },
       })
     }
-    
+
     function ScrollBox(props) {
       var key = props.resetKey || 'box'
       var ref = useRef(null)
@@ -6636,13 +6640,13 @@ window.__ModuleLoader__.load({
     /**
      * player bar: the persistent transport at the bottom of the panel.
      */
-    
+
     function playerLoopNext(loop) {
       if (loop === 'none') return 'all'
       if (loop === 'all') return 'one'
       return 'none'
     }
-    
+
     function SleepChip(props) {
       var remaining = useCountdown(props.deadline)
       if (remaining <= 0) return null
@@ -6660,7 +6664,7 @@ window.__ModuleLoader__.load({
         fmtClock(remaining / 1000),
       )
     }
-    
+
     function PlayerBar(props) {
       var snap = usePlayerSnapshot()
       var prefs = usePrefs()
@@ -6676,7 +6680,7 @@ window.__ModuleLoader__.load({
       var progressPercent =
         duration > 0 ? clamp(((preview !== null ? preview : time.currentTime) / duration) * 100, 0, 100) : 0
       var favorite = current !== null && props.favoriteSet[current.path] === true
-    
+
       useEffect(
         function () {
           if (current === null || !current.onlineProvider) return undefined
@@ -6700,7 +6704,7 @@ window.__ModuleLoader__.load({
         },
         [current ? current.path : '', current ? current.onlineProvider : '', current ? current.onlineId : ''],
       )
-    
+
       if (current === null) {
         return h(
           'div',
@@ -6730,7 +6734,7 @@ window.__ModuleLoader__.load({
           h('div', { className: 'mp-pb-right' }, h(SleepChip, { deadline: prefs.sleepDeadline })),
         )
       }
-    
+
       return h(
         'div',
         {
@@ -6938,7 +6942,7 @@ window.__ModuleLoader__.load({
      * now playing: the 0.11.1 full-panel player (square/circular disc, blurred
      * cover backdrop, floating transport panel) rebuilt on the v2 state layer.
      */
-    
+
     function lyricActiveIndex(lines, seconds) {
       if (!Array.isArray(lines) || lines.length === 0) return -1
       if (lines[0].time < 0) return -1
@@ -6956,7 +6960,7 @@ window.__ModuleLoader__.load({
       }
       return found
     }
-    
+
     function useLyricAutoScroll(
       boxRef,
       innerRef,
@@ -6995,7 +6999,7 @@ window.__ModuleLoader__.load({
       var timedRef = useRef(timed)
       timedRef.current = timed
       var lastRef = useRef({ initialized: false, lyrics: null, open: false, trans: false })
-    
+
       function clock() {
         return typeof performance !== 'undefined' && typeof performance.now === 'function' ? performance.now() : Date.now()
       }
@@ -7122,7 +7126,7 @@ window.__ModuleLoader__.load({
         s.target = targetFor()
         kick()
       }
-    
+
       useEffect(
         function () {
           var inner = innerRef.current
@@ -7142,7 +7146,7 @@ window.__ModuleLoader__.load({
         },
         [lyrics.length],
       )
-    
+
       useLayoutEffect(
         function () {
           var inner = innerRef.current
@@ -7175,14 +7179,14 @@ window.__ModuleLoader__.load({
         [active, lyrics, open, showTranslation, lyricSize, lyricGap, translationScale, lyricAlign, timed],
       )
     }
-    
+
     function NpEditor(props) {
       var prefs = usePrefs()
       var cover = typeof props.cover === 'string' ? props.cover : ''
       var resetPair = useState(false)
       var resetConfirm = resetPair[0]
       var setResetConfirm = resetPair[1]
-    
+
       useEffect(
         function () {
           if (props.open !== true) return undefined
@@ -7196,16 +7200,16 @@ window.__ModuleLoader__.load({
         },
         [props.open],
       )
-    
+
       useEffect(
         function () {
           if (props.open !== true) setResetConfirm(false)
         },
         [props.open],
       )
-    
+
       if (props.open !== true) return null
-    
+
       function chooseCover(style) {
         setPrefs({
           coverStyle: style,
@@ -7214,7 +7218,7 @@ window.__ModuleLoader__.load({
           coverSpin: style === 'vinyl',
         })
       }
-    
+
       function resetDefaults() {
         setPrefs({
           coverStyle: 'square',
@@ -7231,7 +7235,7 @@ window.__ModuleLoader__.load({
           lyricOrder: ['embedded', 'lrc'],
         })
       }
-    
+
       function sectionHead(label) {
         return h(
           'div',
@@ -7240,13 +7244,13 @@ window.__ModuleLoader__.load({
           h('span', { className: 'mp-npe-sec-line' }),
         )
       }
-    
+
       function coverPreview(style) {
         if (cover === '') return icon('note', 22)
         if (style === 'vinyl') return h('img', { src: cover, alt: '' })
         return h('img', { src: cover, alt: '' })
       }
-    
+
       function coverCard(style, label) {
         var selected = style === 'vinyl' ? prefs.coverStyle === 'vinyl' : prefs.coverStyle !== 'vinyl'
         return h(
@@ -7273,7 +7277,7 @@ window.__ModuleLoader__.load({
           selected ? h('span', { className: 'mp-npe-cover-check' }, icon('check', 12)) : null,
         )
       }
-    
+
       function rangeRow(label, value, min, max, step, unit, apply) {
         return h(
           'div',
@@ -7297,7 +7301,7 @@ window.__ModuleLoader__.load({
           }),
         )
       }
-    
+
       function switchRow(label, value, apply) {
         return h(
           'div',
@@ -7306,7 +7310,7 @@ window.__ModuleLoader__.load({
           h(Switch, { value: value, onChange: apply }),
         )
       }
-    
+
       return h(
         'div',
         {
@@ -7506,7 +7510,7 @@ window.__ModuleLoader__.load({
         ),
       )
     }
-    
+
     function fallbackCoverAccent() {
       var h = 40
       var sat = 12
@@ -7522,7 +7526,7 @@ window.__ModuleLoader__.load({
         ],
       }
     }
-    
+
     function rgbToHslColor(red, green, blue) {
       var r = red / 255
       var g = green / 255
@@ -7543,7 +7547,7 @@ window.__ModuleLoader__.load({
       }
       return { h: h, s: s, l: l }
     }
-    
+
     function coverAccentFromUrl(url, image) {
       return new Promise(function (resolve) {
         if (!url) {
@@ -7699,7 +7703,7 @@ window.__ModuleLoader__.load({
         }
       })
     }
-    
+
     function useCoverAccent(url, imageRef) {
       var pair = useState(fallbackCoverAccent())
       var accent = pair[0]
@@ -7738,7 +7742,7 @@ window.__ModuleLoader__.load({
       )
       return accent
     }
-    
+
     function createBlurredBackdrop(url) {
       return new Promise(function (resolve) {
         if (!url) {
@@ -7776,7 +7780,7 @@ window.__ModuleLoader__.load({
         img.src = url
       })
     }
-    
+
     function CoverReflectWave(props) {
       var accent = useCoverAccent(props.cover || '', props.imageRef)
       var playing = props.playing === true
@@ -7908,7 +7912,7 @@ window.__ModuleLoader__.load({
         'aria-hidden': 'true',
       })
     }
-    
+
     function NowPlaying(props) {
       var snap = usePlayerSnapshot()
       var time = usePlayerTime()
@@ -7959,7 +7963,7 @@ window.__ModuleLoader__.load({
       var innerRef = useRef(null)
       var discWrapRef = useRef(null)
       var rowRefs = useRef([])
-    
+
       useEffect(
         function () {
           if (!settingsOpen) return undefined
@@ -8005,7 +8009,7 @@ window.__ModuleLoader__.load({
       var bgPair = useState({ current: '', previous: '' })
       var bg = bgPair[0]
       var setBg = bgPair[1]
-    
+
       useEffect(
         function () {
           var cancelled = false
@@ -8026,7 +8030,7 @@ window.__ModuleLoader__.load({
         },
         [cover],
       )
-    
+
       // Cached online streams carry real codec/sample-rate/bitrate facts; probe the
       // cache after playback starts and merge them into the current queue track.
       useEffect(
@@ -8108,7 +8112,7 @@ window.__ModuleLoader__.load({
       var translationSize = Math.round((lyricSize * (prefs.translationScale || 80)) / 100)
       var lyricsTimed = lyrics.length > 0 && lyrics[0].time >= 0
       var lyricOrderKey = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
-    
+
       useEffect(
         function () {
           if (props.open !== true || trackPath === '') return undefined
@@ -8156,11 +8160,11 @@ window.__ModuleLoader__.load({
         },
         [props.open, trackPath, lyricReload, lyricOrderKey],
       )
-    
+
       var active = lyricActiveIndex(lyrics, time.currentTime - offsetMs / 1000)
       var duration = time.duration > 0 ? time.duration : track ? track.durationSec || 0 : 0
       var favorite = track !== null && props.favoriteSet[track.path] === true
-    
+
       useLyricAutoScroll(
         boxRef,
         innerRef,
@@ -8176,12 +8180,12 @@ window.__ModuleLoader__.load({
         prefs.translationScale || 80,
         prefs.lyricAlign || 'center',
       )
-    
+
       function seekLine(line) {
         if (!line || line.time < 0) return
         player.seek(line.time + offsetMs / 1000)
       }
-    
+
       function applyOffset(delta) {
         if (!track || track.onlineProvider) return
         var next = Math.max(-60000, Math.min(60000, offsetMs + delta))
@@ -8190,7 +8194,7 @@ window.__ModuleLoader__.load({
           setLyricError(errorText(error))
         })
       }
-    
+
       function setSleep(minutes) {
         var value = Number(minutes) || 0
         setPrefs({
@@ -8199,7 +8203,7 @@ window.__ModuleLoader__.load({
         })
         setExtraPanel('')
       }
-    
+
       function toggleFullscreen() {
         var node = npRef.current
         if (node === null) return
@@ -8222,13 +8226,13 @@ window.__ModuleLoader__.load({
           showToast(t('page.fullscreenFailed'))
         }
       }
-    
+
       function applySleepCustom() {
         var value = Math.round(Number(sleepCustom))
         if (!Number.isFinite(value) || value < 1 || value > 720) return
         setSleep(value)
       }
-    
+
       function writeLyricsBack() {
         if (!track || track.onlineProvider) return
         postJson(API + 'lyrics/calibrate', { path: track.path, offsetMs: offsetMs, write: true })
@@ -8242,7 +8246,7 @@ window.__ModuleLoader__.load({
             setLyricError(errorText(error))
           })
       }
-    
+
       function openOnlineLyric() {
         if (!track || track.onlineProvider) return
         pushLayer('onlineLyric', {
@@ -8261,14 +8265,14 @@ window.__ModuleLoader__.load({
           },
         })
       }
-    
+
       useEffect(
         function () {
           if (props.open !== true) setEditorOpen(false)
         },
         [props.open],
       )
-    
+
       useEffect(
         function () {
           function onChange() {
@@ -8283,7 +8287,7 @@ window.__ModuleLoader__.load({
         },
         [],
       )
-    
+
       useEffect(
         function () {
           if (props.open !== true && document.fullscreenElement === npRef.current) {
@@ -8292,7 +8296,7 @@ window.__ModuleLoader__.load({
         },
         [props.open],
       )
-    
+
       function toggleLyricSettings() {
         if (settingsOpen) {
           setSettingsOpen(false)
@@ -8310,7 +8314,7 @@ window.__ModuleLoader__.load({
         }
         setSettingsOpen(true)
       }
-    
+
       return h(
         'div',
         {
@@ -8954,7 +8958,7 @@ window.__ModuleLoader__.load({
               },
             })
           : null,
-    
+
       )
     }
 
@@ -8963,7 +8967,7 @@ window.__ModuleLoader__.load({
      * queue: side panel inside the workspace, plus the floating variant used from
      * the chat composer. Both share QueueList so there is one row implementation.
      */
-    
+
     function QueueList(props) {
       var snap = props.snap
       var listRef = useRef(null)
@@ -9051,7 +9055,7 @@ window.__ModuleLoader__.load({
         }),
       )
     }
-    
+
     function QueuePanel(props) {
       return h(
         'aside',
@@ -9086,7 +9090,7 @@ window.__ModuleLoader__.load({
         h(QueueList, { snap: props.snap }),
       )
     }
-    
+
     function QueuePopover(props) {
       useEffect(
         function () {
@@ -9134,7 +9138,7 @@ window.__ModuleLoader__.load({
      * The layout switch lives here (Appearance → Layout) because the user asked for
      * a single, discoverable place to change it.
      */
-    
+
     var SETTINGS_TABS = [
       { key: 'appearance', label: 'v2.appearance' },
       { key: 'lyrics', label: 'v2.lyrics' },
@@ -9144,7 +9148,7 @@ window.__ModuleLoader__.load({
       { key: 'cache', label: 'v2.cacheTab' },
       { key: 'about', label: 'v2.about' },
     ]
-    
+
     function SettingsSheet(props) {
       var prefs = usePrefs()
       var sleepRemaining = useCountdown(prefs.sleepDeadline)
@@ -9172,7 +9176,7 @@ window.__ModuleLoader__.load({
       // Navidrome credential form. Every hook in this component must run on each
       // render, so it lives here rather than inside the tab/card render helpers.
       var navForm = useNavidromeForm()
-    
+
       useEffect(
         function () {
           if (tab !== 'online' || props.open !== true) return undefined
@@ -9181,7 +9185,7 @@ window.__ModuleLoader__.load({
         },
         [tab, props.open],
       )
-    
+
       useEffect(
         function () {
           if (tab !== 'cache' || props.open !== true) return undefined
@@ -9206,13 +9210,13 @@ window.__ModuleLoader__.load({
         },
         [tab, props.open],
       )
-    
+
       if (props.open !== true) return null
-    
+
       function patchPrefs(patch) {
         setPrefs(patch)
       }
-    
+
       function layoutChoices() {
         return h(
           'div',
@@ -9243,7 +9247,7 @@ window.__ModuleLoader__.load({
           ),
         )
       }
-    
+
       function appearanceTab() {
         return [
           h('h2', { key: 'h' }, t('v2.appearance')),
@@ -9293,7 +9297,7 @@ window.__ModuleLoader__.load({
           ),
         ]
       }
-    
+
       function lyricsTab() {
         return [
           h('h2', { key: 'h' }, t('v2.lyrics')),
@@ -9398,7 +9402,7 @@ window.__ModuleLoader__.load({
           ),
         ]
       }
-    
+
       function playbackTab() {
         return [
           h('h2', { key: 'h' }, t('v2.playback')),
@@ -9515,7 +9519,7 @@ window.__ModuleLoader__.load({
           ),
         ]
       }
-    
+
       function accountAvatar(info) {
         if (info.avatarUrl) {
           return h('img', {
@@ -9526,7 +9530,7 @@ window.__ModuleLoader__.load({
         }
         return h('span', { className: 'mp-account-avatar is-fallback' }, (info.nickname || '?').slice(0, 1))
       }
-    
+
       function onlineTab() {
         var providers = online.providers || {}
         var ids = ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
@@ -9641,7 +9645,7 @@ window.__ModuleLoader__.load({
                 ),
           )
         }
-    
+
         function card(provider) {
           var info = providers[provider] || {}
           // Navidrome signs in with credentials, not a QR code, so it gets its own
@@ -9717,7 +9721,7 @@ window.__ModuleLoader__.load({
           ),
         ]
       }
-    
+
       function libraryTab() {
         var config = library.config || { roots: [], hiddenRoots: [], depth: 4 }
         var roots = Array.isArray(config.roots) ? config.roots : []
@@ -9886,7 +9890,7 @@ window.__ModuleLoader__.load({
           ),
         ]
       }
-    
+
       function addRoot() {
         var value = rootDraft.trim()
         if (value === '' || busy) return
@@ -9903,7 +9907,7 @@ window.__ModuleLoader__.load({
           }
         })
       }
-    
+
       function cacheTab() {
         var stats = cache || { files: 0, bytes: 0, maxBytes: 0 }
         return [
@@ -9966,7 +9970,7 @@ window.__ModuleLoader__.load({
           ),
         ]
       }
-    
+
       function aboutTab() {
         return [
           h('h2', { key: 'h' }, t('v2.about')),
@@ -10016,7 +10020,7 @@ window.__ModuleLoader__.load({
           h('p', { key: 'desc', className: 'mp-set-desc' }, t('about.description')),
         ]
       }
-    
+
       var body =
         tab === 'appearance'
           ? appearanceTab()
@@ -10031,7 +10035,7 @@ window.__ModuleLoader__.load({
                   : tab === 'cache'
                     ? cacheTab()
                     : aboutTab()
-    
+
       return h(
         KitModal,
         { headless: true, onClose: props.onClose, className: 'mp-kit-sheet' },
@@ -10077,7 +10081,7 @@ window.__ModuleLoader__.load({
     /**
      * dialogs: context menu, login, tag editor, add-to-playlist, confirm and toast.
      */
-    
+
     function ContextMenu(props) {
       var layer = props.layer
       var track = layer.props.track
@@ -10087,7 +10091,7 @@ window.__ModuleLoader__.load({
       var likedPair = useState(false)
       var liked = likedPair[0]
       var setLiked = likedPair[1]
-    
+
       useEffect(
         function () {
           if (!online) return undefined
@@ -10111,7 +10115,7 @@ window.__ModuleLoader__.load({
         },
         [online, track.onlineProvider, track.onlineId],
       )
-    
+
       useEffect(function () {
         function onDown(event) {
           var node = event.target
@@ -10130,7 +10134,7 @@ window.__ModuleLoader__.load({
           window.removeEventListener('resize', onScroll)
         }
       }, [])
-    
+
       var selection = selectionStore.get()
       var multi =
         selection.active === true &&
@@ -10383,13 +10387,13 @@ window.__ModuleLoader__.load({
           },
         })
       }
-    
+
         }
     var width = 190
       var height = items.length * 32 + 8
       var left = Math.max(8, Math.min(layer.props.x || 0, Math.max(8, window.innerWidth - width - 12)))
       var top = Math.max(8, Math.min(layer.props.y || 0, Math.max(8, window.innerHeight - height - 12)))
-    
+
       // Host menus anchor to a trigger and fall back to a corner; context menus
       // must follow the pointer, so always use the custom fixed menu here.
       var HostMenu = null
@@ -10422,7 +10426,7 @@ window.__ModuleLoader__.load({
           },
         })
       }
-    
+
       return h(
         'div',
         { className: 'mp-ctx', style: { left: left + 'px', top: top + 'px' }, role: 'menu' },
@@ -10445,7 +10449,7 @@ window.__ModuleLoader__.load({
         }),
       )
     }
-    
+
     function AddToPlaylistDialog(props) {
       var library = useStore(libraryStore)
       var layerProps = props.layer.props || {}
@@ -10461,7 +10465,7 @@ window.__ModuleLoader__.load({
       var busyPair = useState(false)
       var busy = busyPair[0]
       var setBusy = busyPair[1]
-    
+
       function addTo(id) {
         if (busy || paths.length === 0) return
         setBusy(true)
@@ -10473,7 +10477,7 @@ window.__ModuleLoader__.load({
           }
         })
       }
-    
+
       function createAndAdd() {
         var value = name.trim()
         if (value === '' || busy) return
@@ -10489,7 +10493,7 @@ window.__ModuleLoader__.load({
           }
         })
       }
-    
+
       return h(
         KitModal,
         {
@@ -10536,7 +10540,7 @@ window.__ModuleLoader__.load({
         ),
       )
     }
-    
+
     function LoginDialog(props) {
       var provider = props.layer.props.provider || 'netease'
       var mode = props.layer.props.mode || 'qq'
@@ -10552,14 +10556,14 @@ window.__ModuleLoader__.load({
       var attemptPair = useState(0)
       var attempt = attemptPair[0]
       var setAttempt = attemptPair[1]
-    
+
       function retry() {
         setError('')
         setStatus('waiting')
         setQr(null)
         setAttempt(attempt + 1)
       }
-    
+
       useEffect(
         function () {
           var cancelled = false
@@ -10604,14 +10608,14 @@ window.__ModuleLoader__.load({
         },
         [provider, mode, attempt],
       )
-    
+
       var providerLabel =
         provider === 'netease'
           ? t('online.providerNetease')
           : provider === 'qq'
             ? t('online.providerQq')
             : t('online.providerKugou')
-    
+
       var failed = error !== '' || status === 'expired' || status === 'failed'
       var statusLabel =
         error !== ''
@@ -10690,7 +10694,7 @@ window.__ModuleLoader__.load({
         ),
       )
     }
-    
+
     var TAG_FIELDS = [
       ['title', 'page.metaTitle'],
       ['artist', 'page.artist'],
@@ -10704,7 +10708,7 @@ window.__ModuleLoader__.load({
       ['lyricist', 'page.lyricist'],
       ['comment', 'page.comment'],
     ]
-    
+
     var TAG_MATCH_FIELDS = [
       ['title', 'page.metaTitle'],
       ['artist', 'page.artist'],
@@ -10714,7 +10718,7 @@ window.__ModuleLoader__.load({
       ['track', 'page.trackNo'],
       ['disc', 'page.discNo'],
     ]
-    
+
     function tagSourceLabel(source) {
       if (source === 'netease') return t('page.sourceNetease')
       if (source === 'qq') return t('page.sourceQq')
@@ -10722,7 +10726,7 @@ window.__ModuleLoader__.load({
       if (source === 'musicbrainz') return t('page.sourceMusicbrainz')
       return String(source || '')
     }
-    
+
     function TagDialog(props) {
       var path = props.layer.props.path
       var tagsPair = useState(null)
@@ -10749,7 +10753,7 @@ window.__ModuleLoader__.load({
       var matchListPair = useState([])
       var matchResults = matchListPair[0]
       var setMatchResults = matchListPair[1]
-    
+
       useEffect(
         function () {
           var cancelled = false
@@ -10775,7 +10779,7 @@ window.__ModuleLoader__.load({
         },
         [path],
       )
-    
+
       function setField(key, value) {
         setForm(function (previous) {
           var next = Object.assign({}, previous)
@@ -10783,7 +10787,7 @@ window.__ModuleLoader__.load({
           return next
         })
       }
-    
+
       function field(key) {
         return h(
           'div',
@@ -10798,7 +10802,7 @@ window.__ModuleLoader__.load({
           }),
         )
       }
-    
+
       function runMatch() {
         if (matchPhase === 'loading') return
         setMatchOpen(true)
@@ -10819,7 +10823,7 @@ window.__ModuleLoader__.load({
             setMatchPhase('error')
           })
       }
-    
+
       function pickMatch(item) {
         var next = Object.assign({}, form)
         ;['title', 'artist', 'album', 'year', 'track', 'disc', 'genre'].forEach(function (key) {
@@ -10832,7 +10836,7 @@ window.__ModuleLoader__.load({
         setMatchOpen(false)
         setMatchPhase('idle')
       }
-    
+
       function applyMatchField(item, key) {
         if (key === 'cover') {
           if (item.coverUrl) setCoverPreview(item.coverUrl)
@@ -10841,7 +10845,7 @@ window.__ModuleLoader__.load({
         if (item[key] === undefined || item[key] === null || String(item[key]) === '') return
         setField(key, String(item[key]))
       }
-    
+
       function openOnlineLyric() {
         pushLayer('onlineLyric', {
           track: { path: path, title: form.title || '', artist: form.artist || '' },
@@ -10850,7 +10854,7 @@ window.__ModuleLoader__.load({
           },
         })
       }
-    
+
       function save() {
         if (busy) return
         setBusy(true)
@@ -10880,12 +10884,12 @@ window.__ModuleLoader__.load({
             setError(errorText(saveError))
           })
       }
-    
+
       var coverSrc =
         coverPreview !== null && coverPreview !== undefined
           ? API + 'online/cover?url=' + encodeURIComponent(coverPreview)
           : API + 'cover?path=' + encodeURIComponent(path)
-    
+
       return h(
         KitModal,
         {
@@ -11008,7 +11012,7 @@ window.__ModuleLoader__.load({
                         }),
                   h('div', { className: 'mp-np-setting-hint' }, t('v2.matchHint')),
                   h('div', { className: 'mp-np-setting-hint' }, t('page.onlineHint')),
-    
+
                 )
               : null,
             h(
@@ -11064,10 +11068,10 @@ window.__ModuleLoader__.load({
             ),
             h('div', { className: 'mp-set-desc' }, (tags && tags.format) || ''),
           ),
-    
+
       )
     }
-    
+
     function ConfirmDialog(props) {
       var layer = props.layer
       return h(
@@ -11096,7 +11100,7 @@ window.__ModuleLoader__.load({
         h('p', { className: 'mp-kit-text' }, layer.props.text || ''),
       )
     }
-    
+
     function Toast(props) {
       var toast = useStore(toastStore)
       var HostToast = hostComponent('Toast')
@@ -11124,14 +11128,14 @@ window.__ModuleLoader__.load({
      * One header + one toolbar + one scrolling body per view; the body is either
      * the shared virtual list or a plain scroll box for grids/statistics.
      */
-    
+
     function filterLabelOf(ui) {
       if (!ui.filter) return ''
       if (ui.filter.kind === 'album') return t('v2.albumFilter', { name: ui.filter.value })
       if (ui.filter.kind === 'artist') return t('v2.artistFilter', { name: ui.filter.value })
       return t('v2.folderFilter', { name: ui.filter.value })
     }
-    
+
     function applyUiFilter(list, filter) {
       if (!filter) return list
       return list.filter(function (track) {
@@ -11141,7 +11145,7 @@ window.__ModuleLoader__.load({
         return true
       })
     }
-    
+
     function groupTracks(list, keyOf) {
       var map = {}
       var order = []
@@ -11157,18 +11161,18 @@ window.__ModuleLoader__.load({
         return map[key]
       })
     }
-    
+
     function playListFrom(list) {
       if (!list || list.length === 0) return
       player.playList(list, 0)
     }
-    
+
     function shuffleListFrom(list) {
       if (!list || list.length === 0) return
       player.setOrder('random')
       player.playList(list, Math.floor(Math.random() * list.length))
     }
-    
+
     function sortSelect(prefs) {
       return h(
         'select',
@@ -11188,7 +11192,7 @@ window.__ModuleLoader__.load({
         h('option', { value: 'recent' }, t('v2.sortRecent')),
       )
     }
-    
+
     function LocalContent(props) {
       var ui = props.ui
       var library = props.library
@@ -11223,11 +11227,11 @@ window.__ModuleLoader__.load({
         },
         [ui.source, ui.nav, ui.filter, ui.query, library.tracks],
       )
-    
+
       function selectTrack(track, additive) {
         selectTrackIn(selectionList, track, additive)
       }
-    
+
       function listFor(view) {
         var base = allTracks
         if (view === 'favorites') {
@@ -11240,7 +11244,7 @@ window.__ModuleLoader__.load({
         base = applyUiFilter(base, ui.filter)
         return sortTracks(filterTracks(base, ui.query), prefs.sortBy, prefs.sortDir)
       }
-    
+
       function trackBody(list, resetKey) {
         return h(TrackListBody, {
           items: list,
@@ -11274,7 +11278,7 @@ window.__ModuleLoader__.load({
           empty: empty,
         })
       }
-    
+
       if (ui.nav === 'songs' || ui.nav === 'favorites' || ui.nav === 'playlist') {
         visible = listFor(ui.nav)
         selectionList = visible
@@ -11639,7 +11643,7 @@ window.__ModuleLoader__.load({
         title = t('v2.allSongs')
         body = h(Empty, { title: t('page.noResults'), icon: 'note' })
       }
-    
+
       return [
         h(ContentHeader, {
           key: 'head',
@@ -11673,16 +11677,16 @@ window.__ModuleLoader__.load({
     /**
      * online views: recent history, my playlists, one playlist, cache and search.
      */
-    
+
     /** Rows per page in the paged library view. */
     var SONG_PAGE_SIZE = 100
-    
+
     function onlineEntriesForHistory(online, provider) {
       return (online.history || []).filter(function (entry) {
         return entry.provider === provider
       })
     }
-    
+
     /**
      * Page numbers to draw: the first, the last, and a window around the current
      * page, with `null` marking a gap that the caller renders as an ellipsis.
@@ -11702,7 +11706,7 @@ window.__ModuleLoader__.load({
       out.push(total)
       return out
     }
-    
+
     function OnlineContent(props) {
       var ui = props.ui
       var online = props.online
@@ -11768,15 +11772,19 @@ window.__ModuleLoader__.load({
         [selection.paths],
       )
       var onlineSelectionList = []
-    
+
       function reloginExpired() {
         void logoutProvider(provider).then(function () {
-          pushLayer('login', { provider: provider, mode: 'qq' })
+          // Navidrome signs in with a URL + credentials, not a QR code, so it must
+          // reopen the credential dialog; the QR sheet would show an empty code the
+          // user cannot scan and leave them stuck.
+          var layer = provider === 'navidrome' ? 'navidrome' : 'login'
+          pushLayer(layer, layer === 'navidrome' ? {} : { provider: provider, mode: 'qq' })
         })
       }
       var currentEntries = []
       var likedSet = online.liked || {}
-    
+
       function toggleOnlineFavorite(track) {
         var path = track.path
         var next = likedSet[path] !== true
@@ -11793,7 +11801,7 @@ window.__ModuleLoader__.load({
             showToast(errorText(error))
           })
       }
-    
+
       useEffect(
         function () {
           var cancelled = false
@@ -11816,11 +11824,11 @@ window.__ModuleLoader__.load({
         [provider, (online.providers[provider] || {}).loggedIn],
       )
       var playAll = null
-    
+
       function sortOnlineTracks(entries) {
         return sortTracks((entries || []).map(onlineTrackOf), prefs.sortBy, prefs.sortDir)
       }
-    
+
       function playSelectedOnline() {
         var picked = {}
         selection.paths.forEach(function (path) {
@@ -11838,7 +11846,7 @@ window.__ModuleLoader__.load({
         })
         if (tracks.length > 0) player.playList(tracks, 0)
       }
-    
+
       function sortOnlineEntries(entries) {
         var list = entries || []
         var byPath = {}
@@ -11851,7 +11859,7 @@ window.__ModuleLoader__.load({
           })
           .filter(Boolean)
       }
-    
+
       function setPlayAll(entries) {
         currentEntries = sortOnlineEntries(entries)
         playAll = currentEntries.length > 0
@@ -11860,7 +11868,7 @@ window.__ModuleLoader__.load({
             }
           : null
       }
-    
+
       useEffect(
         function () {
           if (online.playlistsPhase === 'idle' || online.playlistsProvider !== provider) {
@@ -11869,7 +11877,7 @@ window.__ModuleLoader__.load({
         },
         [provider, online.playlistsPhase, online.playlistsProvider],
       )
-    
+
       useEffect(
         function () {
           if (nav !== 'cache') {
@@ -11895,7 +11903,7 @@ window.__ModuleLoader__.load({
         },
         [nav, provider],
       )
-    
+
       useEffect(
         function () {
           if (nav !== 'songs') {
@@ -11942,7 +11950,7 @@ window.__ModuleLoader__.load({
         },
         [nav, provider, prefs.sortBy, prefs.sortDir, songsPage],
       )
-    
+
       // Any change of provider or ordering invalidates the page number.
       useEffect(
         function () {
@@ -11950,13 +11958,13 @@ window.__ModuleLoader__.load({
         },
         [provider, prefs.sortBy, prefs.sortDir],
       )
-    
+
       function goToSongsPage(page) {
         var next = Math.max(1, Math.floor(Number(page) || 1))
         if (next === songsPage) return
         setSongsPage(next)
       }
-    
+
       // Artist / album cards load their list once per view; the rows are static
       // until the user re-enters.
       useEffect(
@@ -11998,7 +12006,7 @@ window.__ModuleLoader__.load({
         },
         [nav, provider, browseId],
       )
-    
+
       /** Open one album through the shared album view (upstream's own entry). */
       function openAlbumCard(album) {
         void openOnlineAlbum({
@@ -12010,25 +12018,25 @@ window.__ModuleLoader__.load({
           coverArtId: album.coverArtId || '',
         })
       }
-    
+
       function openArtistCard(artist) {
         setBrowseId(String(artist.id || ''))
         uiStore.set({ nav: 'artist', filter: null, query: '' })
       }
-    
+
       var title = t('v2.recent')
       var count = 0
       var actions = null
       var body = null
       var resetKey = ''
       var empty = null
-    
+
       if (showingSearch) {
         title = t('online.searchResults')
         var results = online.results || []
         count = results.length
         resetKey = 'search:' + provider + ':' + online.query
-    
+
         if (online.phase === 'searching') {
           body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('online.searching')))
         } else if (online.phase === 'error') {
@@ -12498,7 +12506,7 @@ window.__ModuleLoader__.load({
         title = t('v2.recent')
         count = history.length
         resetKey = 'online-recent:' + provider
-    
+
         if (history.length === 0) {
           body = h(Empty, { title: t('v2.noHistory'), hint: t('v2.noHistoryHint'), icon: 'clock' })
         } else {
@@ -12539,7 +12547,7 @@ window.__ModuleLoader__.load({
           })
         }
       }
-    
+
       return [
         h(ContentHeader, {
           key: 'head',
@@ -12618,7 +12626,7 @@ window.__ModuleLoader__.load({
      * what is reachable — only where it sits. Playlists are first-class items,
      * not a "playlists" list page.
      */
-    
+
     function navItemContextMenu(item, active) {
       if (!item.localPlaylistId) return undefined
       return function (event) {
@@ -12635,7 +12643,7 @@ window.__ModuleLoader__.load({
         })
       }
     }
-    
+
     function NavRail(props) {
       var groups = navGroupsFor(props.source, props.favoritesCount)
       var active = activeNavKey(props.nav)
@@ -12699,9 +12707,9 @@ window.__ModuleLoader__.load({
         }),
       )
     }
-    
+
     var MAX_PLAYLIST_TABS = 3
-    
+
     function SectionPlaylistOverflow(props) {
       var openPair = useState(false)
       var open = openPair[0]
@@ -12711,7 +12719,7 @@ window.__ModuleLoader__.load({
       var pos = posPair[0]
       var setPos = posPair[1]
       var active = activeNavKey(uiStore.get().nav)
-    
+
       useEffect(
         function () {
           if (!open) return undefined
@@ -12746,12 +12754,12 @@ window.__ModuleLoader__.load({
         },
         [open],
       )
-    
+
       function pick(item) {
         setOpen(false)
         activateNavItem(item)
       }
-    
+
       return h(
         'span',
         { className: 'mp-sec-overflow' },
@@ -12824,7 +12832,7 @@ window.__ModuleLoader__.load({
           : null,
       )
     }
-    
+
     function SectionBar(props) {
       var groups = navGroupsFor(props.source, props.favoritesCount)
       var active = activeNavKey(props.nav)
@@ -12896,45 +12904,45 @@ window.__ModuleLoader__.load({
     /**
      * panel: the single composition point (top bar, workspace, player bar, layers).
      */
-    
+
     class MusicBoundary extends React.Component {
       constructor(props) {
         super(props)
         this.state = { failed: false }
       }
-    
+
       static getDerivedStateFromError() {
         return { failed: true }
       }
-    
+
       componentDidCatch() {
         // A broken render must never take the host UI down with it.
       }
-    
+
       render() {
         if (this.state.failed) return null
         return this.props.children
       }
     }
-    
+
     class SilentBoundary extends React.Component {
       constructor(props) {
         super(props)
         this.state = { failed: false }
       }
-    
+
       static getDerivedStateFromError() {
         return { failed: true }
       }
-    
+
       componentDidCatch() {}
-    
+
       render() {
         if (this.state.failed) return null
         return this.props.children
       }
     }
-    
+
     function TopBar(props) {
       var ui = props.ui
       var online = props.online
@@ -12945,7 +12953,7 @@ window.__ModuleLoader__.load({
       var textPair = useState(ui.source === 'local' ? ui.query : '')
       var text = textPair[0]
       var setText = textPair[1]
-    
+
       useEffect(
         function () {
           if (searchTimer.current !== null) {
@@ -12962,7 +12970,7 @@ window.__ModuleLoader__.load({
         },
         [ui.source],
       )
-    
+
       useEffect(
         function () {
           function onKey(event) {
@@ -12980,15 +12988,15 @@ window.__ModuleLoader__.load({
         },
         [],
       )
-    
+
       function submit() {
         if (isOnlineSource(ui.source)) {
           void searchOnline(text)
         }
       }
-    
+
       var providerInfo = isOnlineSource(ui.source) ? (online.providers[ui.source] || {}) : null
-    
+
       return h(
         'header',
         { className: 'mp-topbar' },
@@ -13136,7 +13144,7 @@ window.__ModuleLoader__.load({
         }),
       )
     }
-    
+
     function ContentArea(props) {
       var ui = props.ui
       useEffect(
@@ -13150,7 +13158,7 @@ window.__ModuleLoader__.load({
       if (isOnlineSource(ui.source)) return h(OnlineContent, props)
       return h(LocalContent, props)
     }
-    
+
     function AudioHost() {
       var ref = useRef(null)
       useEffect(function () {
@@ -13162,7 +13170,7 @@ window.__ModuleLoader__.load({
       }, [])
       return h('audio', { ref: ref, className: 'mp-audio-host', preload: 'metadata', 'aria-hidden': 'true' })
     }
-    
+
     function applyControlAction(action) {
       if (!action || typeof action.action !== 'string') return
       if (action.action === 'pause') {
@@ -13180,10 +13188,9 @@ window.__ModuleLoader__.load({
       if (action.action !== 'play') return
       var query = String(action.query || '').trim()
       if (query === '') return
-      var source =
-        action.source === 'netease' || action.source === 'qq' || action.source === 'kugou' || action.source === 'kugouLite'
-          ? action.source
-          : 'local'
+      // Must list every provider the tool advertises, or a request for that source
+      // silently degrades to a local library search (wrong track, or none at all).
+      var source = isOnlineSource(action.source) ? action.source : 'local'
       if (source === 'local') {
         var tracks = libraryStore.get().tracks
         var needle = query.toLowerCase()
@@ -13207,7 +13214,7 @@ window.__ModuleLoader__.load({
           // The model action is best effort.
         })
     }
-    
+
     function OverlayRoot() {
       var overlay = useStore(overlayStore)
       var layers = overlay.layers || []
@@ -13237,12 +13244,12 @@ window.__ModuleLoader__.load({
         return null
       })
     }
-    
+
     var BRAND_LOGO = 'data:image/webp;base64,UklGRkplAABXRUJQVlA4ID5lAADw8wCdASoAAQABPikOhkIhhgqlwAYAoSzAGEDD6t/L38H+Rf5bfKLWP7n/bv0v/f/3F+UXYR1X5hHOn/H/yv5X/Nj/T/9P/N+5/9K/9f/Hfv/9Af6qf8P/AflR8aX7Je7T91PUT/Xv8b/5v9H7w3/H/bb3Wf3L/g/9f/QfAN/Z/8p/2ews/dD//+4J/Sv93/8PXb/c//wfKT/Z/+Z+3PwJ/sR/9vYA/9vtifwD/y6s7xJ+//kZ/af+P6s/jXz39z/vP7O/3r9vfjH/tvCx6r/E/8T/Feon8f+1X4b+4f4//c/3b9xfl//f/ld+Xftj+afwv+y/Nn/BfIL+Nfy//B/2j/Ff63++ftd9eXxv/K/0fgz2q/7X+j9gj28+rf5j+/f5f/ff3/92Pas/vP81+6fvD+n/43/e/mZ/oPsB/mn9P/y3+B/cb/M////n/gn+n8NH0D2A/6N/cf+D/jv9P+2n0tf0f/X/zP+r/9v+m///wY/PP8T/0f8r/oP2a+wr+V/1f/Wf37/Tf9j/G////tfet/9/en+7H//93j9xP/gqd0rB8+9x6iaRaPG3a/cgm8dvnHte/VfELj88alIhPUEd/tZLG7ZNAni4LJOMVaUTIB84I5VleTSwGVH5qJxyf8M3ganxisTGcJoE/kj5W1+7nugnDrTWutM0RbpduBHNZlR+TfAmTxXAAG/P+DgOu1W+Gr6TFpnz8qVOuJBVvERmSIGa3Sow5+tYJjFdrAUzKEZiNuUd/8fkeIRaLtcFS+2DCPuenYfS9G8WvizWrei6u0BW43guoaENuLHd4dwnNKA3RSKcDiGnVW58Yf8PQVUE0/K5PwbGXDkhhQLHblCNN8XOYeudcas5g3Q2HwNKwUuATkeJXXlr96c9G7mcQCH7OgRdDkXfP/8zKGCGEyoIQ/5YVBJ92TuKsQE0cwsuzeTwLn1B6I6P8Leu+u+nwIbdEllPskc3k/4SLnm/UE764w3RJKPr3nmLf0TDzltJdL7Ct2YJOomKbGa70MtAZ6AkZO97CTJxM501pW9RQURJOw11L/lsAtuMEq1dnHewOVYTIXoU6Jnu62lXCLpAH/TxcZQn0LyBRYqvmzwDDxonOyAdTzoKuUFh3sPtvKC5p+YWfGnsEwzNmQJycNQwNRoDC5hEIK7E4GuMEyE9wr2dLo1cS/cBJUwFaQ7E5XpqghgWDXVS/VdvH6zF9/73sod1BQdwzcTNs06pgu27XN7ScSAs8Yf5l/yGxXVKfov3XwAdajFtTOndf9r/QGv0YzxbL78tQMYUDkBdrCo0bVfwRkR7KbFnglZnyQ9EgHcsLQHclf1tMeuhzXlWQuH2qVfw+CcOOcdpmetr/XSUCnAeEP6FtQRZqd8eqYbQg1ynOSJeYVgzaqqf0Vic5yuKBrb/UUI7WreZ4fmkFpxluaRqXT4/5p2E1I7rSrBd0CEGbggs3Q/S9kqzu1+GbsfjztShYx7HwE7WnpaoEsHiLOsNuZ0b7oBXsZHXvGmKV9GNJIAZowl38dLrgGTGhGo5MraR6Md9m923cNdKxSe+WKq8om2XbLxeoejDiDMgXxjawuF85IqRQ7mdZ4+TKf1JOzSGmssxMzv4mOPjN5qaACEojI3FB3JseqeSmwdGfjVnWNcj6jffK2qcaLWYfcCrDbqFtGY5bqz1zAAErlIP7E/dPtdSloRDteBk2ppybE5TRsNOQVm0V02CTD4Z59iylxOa4Fycz5moUvt+vX/IyODh4NfNJg8hKbsjZ1Whv7K5VroJuuedTGk8e0s7X4DbrYTiJXn8ti4iIXxvlu1bp/vq1wNUJ2Q4Pacii46CtkMJE00zZ1MEXTQy0vYLx9khF4hmxiPjX7NQqbXfl99l9W5fmrdCAiq/3X/XIlqPmeAWpyVXZcHMei5NqCnGjBRxZ7/xMFNVpt0uc0sWblby1T0b5fM/devmin5vu/8QJMA2jZrYjTawVKOBSPtIhrbj8H9jt3l3EBFgqFK6tokGPKqHqFn2uY4hfq/Zq5P9RqEExYig1AioBfSiDpqnBTlB3QDH9osigOIgW1senYbJ4TQSl5bKUJFbJLq2VjFFkGgcUoFGpat71Qvng/lapkycWmz8i7J+t9Y0FDHOTqDvVOp0Spb8N1lNBK/eIj+LlI8pTnmwYkrDexAXbNwM3RsCxhBcUqAzG1z1FSOrfn1jS7aEcL+sKXI0znGqDTZp4wtfye/JRM/+vJTZr4tAo2ae40BPAusEqDzCmHkjEH8jRHKaHuiLnwiz0qhYIhlSahKtmsPb9tJySEXG6EL5UfUKvPbqbklpaEy0x9ifvBWC4BUI2ChCMvbkhTC3pPoVFVvI+D6uQ8xKauR0klG/dRqVS+/oSKZbzElLdlJe9twhPCf+RK8iGreqe+ePsrVN68SJvehz5SUKPbDXI1sISuAhGuUA+gHsd+qbOX9WfHmmNDzhjln0Ci7ktR4OQjKPxX8n/e5KmvrVsy5+eS9TortDTWLO2tBD8y6rl7rQviI4jkssoE9CP9i5vjI0OrSwD8cAiBy78et59EGqP8teXvugpQtXewJCyJFVbkhKe37ZmoeBz0/mHAV32gddyYZc9wtN7+4lq9+8+O8AAP7/wpXBVbAOjfmx//3yg75eBXcf/x63LUWFRFzGCEMpEfCZCKZ5guiZJTK5HyHGCVxwOP29QCYue0bnP+P6dj2igXZLJNj8/Wvwh18yBJovZIvHMfQrxwcfuX3R2BJEVqcTeQCRVo1bM9Pl9tAnGmxPybCd8pMZxHKHCaf8YrTFC1xfetemG2z2pqAjC90d3OyuR1KSUZAkWiDQx95NzzF2GhKNCq6jewRTgDzyOlp9RJtM/l1k6Hn+BIfTJVVJu+0l+iDsHo09slRrL59383TxBLWKCk6LcKVyXfGfIjAOgYsuX5KI5ZAIsgJjSaFNS+8V57flwEK/8WmXzhfPfXR76jhIZH3E81NulYbi+PxfQpU32w6UVcD6xNkLByo4aAQ/fWMQ6oUcZ+0uTR1iFpqW8FDRLjAj83ghrqTvseSlTsRVEXR+BeWn4ZkmyHd17c7kAWjq77HW0M25xV8jmIAJwWk6gJDQbWbUzgybZj0PaHhLSYIIjw3ahVyqpwPB4AKEB+yFMXoQlgMty0mb2vhKJUQ8o+/DM35cezu53E+q8J8RaOMles5FXTwyZ05OpVMUIQwVUp+85jIvtZu5fw5B5oCQnOs3HAeIgv47qa55GfJZM+1F+YfrS66yZm/I8ST8pi8aBe5ZurBjgYCC/rcnYeoIjSifQfMi7+Lslen88oWj2mL8CmZWpc9BZQF/3JT8XbKf2HwgIaEJ4pXYruxUn8jNMkqGcw+FhIPif7R8R/ZB/Ummo86eMaPMepFAkZL46bfijSho7Q99+xhSAr1iUOmhvRtoY9+zWzeo6i4BX/XlsaX0RyGEmFL+ewyk4FE5fvo534icZhpMeFKx/TnAJtQPCEOHfmu/KgTRCBS5s3u6MpiRRUVSRod7ytv7tk8kEpzLWVIMzv7pP9BFf9DXUXDpBhc/vkROTRlDszhTCIYBmaGtp7bwWbQ8coTi8lydfua8wCFtTHl42TzzeZPT/Azvgb1fu1bmjFIqZlI/kfXnDYZPIs0n5+DaJOmomVzrkafZv8k7OMjt1gWULYeCHINbNnQ1hqJTepXNlfNGLy65eeEgz8BARCHC8irl06tupQir5c2T4ORypDvyoZEkMKEcuBTLU7+25oBfImwW4i7enwiNrQDOeGrwQTGD9eWue3dObQY3sKx8CBqHdKScexlbKChtreK9nLaNh6Z1EGu6pv0hDp/hXvAwll/WnkW0JNIzBX5S3D2P9w4k1FMams48ZhBGtE6JFupsPklV1Ic4pQLEXrUjCux5q/o11xoFhlTEeHDdNYqaQhmgW56/Oi0Y2OoGVEN60z017pTmqIeoQTlnricCFicwh1/Ac1KG3Wk0UhGr1hfDku3izTStIonkw7pHCsNpQZBk0b4hXuqOEP21GmEyRwTxQ1WAT14FXBnFgPnk6fXAtyocnJVPrKzAkZ34BBC5rBXl3q2tLCJTzdBFxSrCe04lWXqJs3JKTNLqIji3S+CO1/zBqBLPYaJVSmAW//XwotcPUzn1y5cPnfhOepk7yX/CA6OvU+xjLm7i3kuY88tky0bARPEb9aHgW/WIMf5TJv4iJBalFv5PSLE3gJaT3LNHhhsdx9xaoXEJ2+tWQeh456CIv5E3CCEocTy97VhOQpQ1xvcgd55vBqjYbf5KDtrUQm2nskXxz+HfZ/3DCobrix5GuC5ZS0XeHeCS5MM0YVVBbi+Q87oShOJCB7KUvj2Rzro8jpHyus0kgSWZUOWLiHYeEqFDj1pEJY6TZVXywOVioleEKGYlUgQrTmVWsDiaQHDcjWe32/J2cGxQuKAyrP5c+cwVfE1xicTfGZNSERPpJSJTi/jjAzVzN6aMZaB75gW11bnumK6FBsGG8Me8ZpkKlE28cezVkak5j5jK2zka+JmD2MH+JgVC4whRyMcyRVcqgFzYQhmcWAL6Q4J8M9Qs4K1EFpWLkXSE/+B2hxeaOGAGG5Lq8tAMeEnMhEkbwjethm7BaMnwtGKJsDWd5kWZAeeozueWUMx91oyaC9soDP8OFStEttD7cvnSVBDy/JtLwNTqUqsRwu9yarpW758qxBzqPHZFIS2E6OH4RGADcJaz03vWNZHoI3EQPNf89n9bVz1YUWkUJNIoAJsHnYvQ+WZeMRSPK2RVNzgi0GjCfurT8PQNnb4wu38R3tkN3haQmR1T/D6xf//Dcw65lPAyaHl3M+Cc7fpodXCi1nYVDDF5XqsnLzV1wTeFPevVC9LXTrFCUA8U1jI8nZyLfTzQ9s2tOHqoCbR2LYEnVEUow1SiWFWOGmUBOOTRi9OuQ51yYtlDzmd3g3trMr9wWqDadsSMaAsL9FOFOFoSPmS0QDFthn10VwCFBwGLfU6/KNEOzgwjEUAfvt4yKw46nhNj3+nH8VSJAHvck/7icg4OWhKeKE7B7+xwCcs248nZmXuvlO1h4hhTwefQ4S5RuA8vH+03CZN5POr6t8wTLnD+dsOfqB7gmcOhlkqN2/q1JsAx3R8fcjUBDr1/wo1jxf/ZlBb1vvquGTSDbNjm52ogabekt8xTG15B8O0XoHdfzuH4GlzLSNbxPoe7nStR9HpB8QkabIFb3HY3XLMuRDoV25hiWbDl3Miq/qfZs16Xig5N4IRhBPEeePT/lEyElRJkJhbqlNEPihGIWLb+C61v+mQve5WICBqhcFuQmFBWCkmvYpjzlJqVIgg3Sg4BGBodILIfchYyxl1yr0JdKFYdvBGpqWyPKAqU6zf9rLmr8bGSrAS9Zz5dGrlzInb0VipuyViEwdovtrl2FN97ngBlMWY3vuVx1uLPW+2ncfRlvPOO/vy5+tnMdv16s32y8sGl+NiV8LVVHlv9W7pgHOWXyqMPWj2JM2gyMMojXTJwrcTNj5xLdplJGTHKW/EdfscW/+WOQRPLo0Dfm8cDj8uNXFIp4Fw3kZ3Zw4FqqkchRKc6t/QiSlhc3pGDfHCFOUD1YoGGvV+nm5deRJWgMG0n3jA7qzjoR2IhS+55p5XNz/ydYQWc3122rdX3yoPXvNrmCq8SjRyeqk3pCvvUWSwom9zld3afHd+X41MIaqJKcb6lTTOdzQsPimD4UdFDJDvzd9OAtyVTWOLru9L9ZoUd1Txkb9s9VuXdnWAFdqYK2OaOLqECqjhAw1kZQ76K/SnmxmLex/+fvgRjHvaYRCsie50wFJErUwsRNIkfCoRRVXuUoEyLw0dieJsyCs1FxjBDSzGHB4owbuXF3laszQ+QN4dh+5XOw71l54y/Fy35i+2g1ixT0vJC3IPPYmn/p7SzSEsQWxrR+Hm/fcYTQ8ANC4sCk9BQuhJsz7JVC5RGD7yjO3GRBRkXoFMSZSjWQWasMj+IMB9FUzzi1h3CerPXFi3z+lHXq3jCV3zvmZ6Fs814aMUXsgMgnn1EtSWL65BYc2eCq6t7oummCz1UkdSx2RKE5PbwBEtCtPuUftK6mT/e4jl61du9802T+Tj2zAEroukm2X7mfPOo6VjMV77Y1xTSWuS7m+SZwYHuCzn6qaf00w1fvQc9bTryp5X1dj7UbZVShGVTFUOAt381nY6eVUe1T7o3cJho2uoBrCJPPRF0YFDY1z0F7wZf7htWoXChzU3eQvK9W0NImduE+vNh+ER8fhgRzCUQV7pic/bjaIxNsy/MXaFwR2YjPOcZt0EvBRKz1XBjHu3NMZqco/5L2nU7wYFv4zbTM9gmxfMdM0G2foqZhQHWshau5/q6UrT9fQXjJVT9tAeT4Tx4qsG3yED9x/42ZVPAcv/L4A1hqVXcnWey3zkTG2mAjZce7nBSUCifwHEKFwEroyhqLI+mw6Xw6ZS0qlNMTt3dv2wv/LgsjRMOMmZK+eljz9Ypr84RMzi5eEbXPZ2wopBfZ3nRZbrgOjNcgCG3PdQ53njq3iK1g+RSRfGDDfK2NdA9kP+KbsvBfZ1Os5FMe+GnOSSgJ+ioQi0NCEpK53hnYwySqnzi7duaR4s4dqd7uL0B/LSKUeb8QwvnHDpy8Q5tjUr9TU7yjGJFqrId4tMqCAAxHwAk1aUAuNAEk924G0qtREFpVDfZWRi2q3mQeViTV4CCpExQgGFK70/wKKDOrVfjbmEC+XtkW5fv0FSYLLTeJjuc+Bhf7sioSeIwDezMlqupA3vtA5Eiv5iDFG//5f6HpfL08BJeJj1Bxn4FEfZBY+0kUcglCxQ9eRv4SH/9WrrjOIQr7jaf/Xqd2TDvCbmHpKcAP9tikEFRJDSHnaIrR4g0Sg1tiCG6fFC96jm9/G0Me4vM/uT8ZHJWVPm7M46jCvqYOIvQSHWnz3hPkAl6NYUMq0Vz+LmSbObp55Po72V6HLhM3PA6lqPh43VzSzMgeBeef+c5t8y3Kt/Z1Y6tDfLNT1iZGYiU0bICXobtrPLdlaOMxUjrg/OA6hLVSGs01WgGnzYBcdJR3qg8npJR1OXiKQUOHQ9ZI1wy9TxW4nrP4cetoO6Grd8idsaV20nAbRhCcPDfcrxLAvKaQlNvab353a/xI36cKgQLQ9I9IotCdkDrtQ/SO9bqcep/C8MRzmCmXRzwsLI7S9mDSlCfruzJgWZlSKfQUCFeSSld6N9DaIT7Oy6Kn6xQnEX92jPmVbKxs/UuWfAvupfnMBuS0JFx24XxsSlmau3y+ZzrVUDkx6k/DPBDdZmTWBLrG6vZt5czw6KdOXXmfpQrfrqre/nAzxVAWJYLzMqJTFPXD9O7mkyv4w79PCHKD0V7e08l9e9JqKltR73w2e6a/Anaxkc7j1Xa2hq8TOZHYNG1aKIS3/Fss71HItDbaD6yWs9cvcoCIEtsoDXSg1r+ZIQBwzeq/YjstnHH60n3hmVI1PGlYQuZ/bllq+tCugcJmCDpmCKlYxdLPAdaDCmWUSYKpX30wIib7aPKQGSr4aoQUAYvgrP5+yRTTyt4uVOsfTC7j5BoQoCcVfWFLMTTJILLrWdI4LivemvyASQ/ev56ay4PHf2zy8zLns1hXG8G918rI085LKCIu52wHbUMJfyTWfWD0FcsJbKDmI6jyR3V8tcAYwQCIX00O2P3CanFSiuLgdofgjNR2LDAb/wlYw8gIBa0a6+ChkVRfgMStMz1WEJ0M5ElInPbCzZyu680I3/cq3AjCDfX6yDQaRkldcQ7cx5IQ22rHusPGBr3s4xgCZWjkXsiKPQgPjFiiCJNBQ0tAdIb7S+jNSuFOQ2rIzLC88lXEOQx4dRSQWKRa4Qdtf5oSpKpgYN+10A6jRA0/jxoTuKKQzNB6Xa5cPYk3N6f5gjag65sgJxzY7/3VC6612XGwRQvxZiNiaHsa8gZHzl66W7MXhcR5WZmsh8bk+QEPdzUJW7/+rj789ql0lP/vAjBHaRJ89YAvg6ZB6RpM9hT0DWkOBpzsOIE56y+iVj2Z2VKH3G5lMoG1AmqrJGz549UmztdbfPqi4ld27TZhJekhYUueczoC18RFQYbnmwn94ifa9H1Aoh5bgxzIrrt+LhVa1Hp+5cMQpfZb+u9Lb42KItOovm2AWTyh26UjJIY7vHH7rWZciaPYY6y3lcPzm1uyk4OLh2G2jshaORdPIc/3K+GF0IC8dimuge35abVDL1PCm8fUwnApzUfuFy0F6sE8SJUJ1ieX0SCxDYa2xdwNwq6HvSVzy91vwARXmWsez/KlPTGxKrunH9vxep7sRfZxP1MFnokEJW3U2DwyrnFWsmNehmO9WRgjnB/vnWlX4qE3bsD0chbd2MWDyjp80l6U8dmSM+O9ft26teTpEMIMKbP1y5fu2a/ZoRENkOAgj0cfW4ul9BYuz5HxIYz2sX38KfKYTUznztlmGFVmFpG3NVEZ0oI3twhAZApHI4d0DNOw9Uzi1seo7EjZhN2DGSRPm9nr3A6RRBVgrx5dMiCIC55o43nRjEWI0lp/CMruA1ONbdvokqafBhdfnsi5DMx5N/EcETRjxWIoUbEUlv8SLQsw+6tBn4UGWUzRvwyCX48UuywxMZIepUK68gkqGyinEDywLZKn5y+1kFK+RdKLi6zOnweQhlEmp9FfrO+GhnSWKgbKb3kwmKKPR3AKIRhqF8Utr9pv8SqfcFisaL6kn6hpP8NiLuoSnUHNqRKKAof7ebtxZHII1VYWIp0GsNuBDdXppj2bxJ0oLYZuTnyHk4HhfBXmwgCj+5F6S3iJPIQOxlaWCaFQUFBf2wwr2w8PYNcphPBRaDPYhyuecfCvvldfdouE0Ri9rzr3MCUobZzh8RQ6szvlBcWXPk8VB0dkbLXfBEjKtnJi1FRYXH81SgpBRWFIOEZAhi8JvmnwQ6gw2SdLck8dMpV2UnwNarj3kZOpMPyl256rRek9m2EdH5nNr0c4iCpV2Xc9uDRxqvUX/s127PpUgjAaMIChNSjAvgF1Dx3nqcyFTmKz8GvPhWpdNHtANCJwA6EhCPuNDwuuybq+LBoiR9eGRz7tSPHobsyR2l1bUnXwNRll+uYZr3talUALLi3vZSjCcWhBt09BJBs4dBDeaQaf5QX1nE/dMajJzqLkIiNrKDVieeulLMlJMe/fEvjjfmeUBw4atQUma/kDOXEfpI3f+YDMdgfy/HvaiAdambcKSaggDU3AHfQvf3nZm5swCzNjibDSL8H2WCjrCyNexEQipr7A2ZGcjVIjf7/MLGdtyZ9fYQXJ96IdV0aoDTRas17HWg6Zahasv8vc20RR5WA2PES/1LI2+nV46dSkagriFxj/fr6qw1DqES65TL1wU2DjV3BBoz9Sidaclf7MY6Ki3s6XMnwifM7QXHeH74Os6+hbnqDjCKPWl2gxdmpYd+AIlwl9OQ6LyrHT6uVat8IKJqRKq6n6vZZ1BIJgZR4bWI3ZdXvzxFpo1Aw49hjJIeqUaF82CpJd8IBN+T3HBM16zdKcKxfxL/hy8hWEjZJVrZ7F3HA21Dah7V+MWChoIhtA7LBqU+RQJv5UcYFGjjuWoI+ll9GvPru/f+L81z0AGEAVu3en8MhL2U+riMMXLO/7nfYa1m92vE8Bpa3anjVFO3aSX+rkL3ejB8TBPFQv0qCC/IJQ3JACwHFDaPP8KorJoszc3KeAnR+5JJ/g4ZwLEVMjrs1jCi3tBu08wYqZAhYCruheBeYbJyQO79m4Dm0Q8EfuAEtPDZc8gOJyY8raEfvDS1v7N1NLzEhIrMrF+/JlubUlPqc6wKAz0xmknyMo1KXiQR+RW3bbOvSn+7/uB5N49eGCNq3Fr9WTM0Lngzgekipdk4ENu/3kROLj20uDo8TVMpS7L1M/FpelTLCjxeLl2pOZojckGicTkaBjtS7B04YH3rg97xWKCAe0jkoJ98svJCXK5/s80aCCNRGF7IBybRQozCOCLrkUC/mLorfZe8MTW2se3/yekFMePiAcdQSZ1X1J+wHRgVqzuq2C3lnIPKz5L9g5ncRU2sxBBr0mNOFlKvjdYX1xfOQdkbj3IYFq2ki/3jiDpJN6sQS/yS8gl70vs5czZnokzITt0/7pTgSKkjPcbvxRBzkSGR6EmC+2Gr7gH0eqFQic1g5GN2G3556Xou63Mgf81gbwKzEPbvrgtYS/tzqBhGTnBiNZaiiWMb+0i2623xRrdcKw7+SzyTboW3Uu+XumovtzIgsGiiTROEVA5ScoRgeYw9/5T0thO+Q++89FqrXbhPzX3dLga0cM8+tskavasBc5ynCl5w42r79IIepUXLTykOGIUVf8pXK/B/7FgxdZ4sHqzLbbwfoXUi2o2PsY83vRyQ0F9u0DadJloZThlnaEAzTYuxcODR233ugNQinEjWMWsKswzoCA/J62WW+IbpsDdtcni2+AymksnvNJKQfcCdHI9bKcOsxPbVqMUiYdrBrw1h+plAcLJsu0IPZ+GRAplt4061/JfkmTMs3Z6/P/vG9614/pG/eKmcs07g/O+ncTcK1yy8Ee7XrijSMGUw3tM5WM6J8geQ6FsF+Wylt0t6JyirMhg5J8Vts2AHzuqEuWrJZ10y/1gPgnaop9wLnh3gab5dyykQZEe59gsBGBq6G/SifUayKuHYjiS4Hm8sm/07V0EB8L5MwVTGEXRDCzVOeuJsI4bVpe4FYzUwRGMq0zylxXkoyd1UX9iwA/bhAD7cPd/3E2iTIi5eKFVT6dGrFz1lVT4xb9EfBg9juvnadbkVcQF6DfEHRQT45AtzunwuFcQoAxkJ3iMRCcdZfOH1zyOMu/2a7dXMT9MTc+E8lKb9543SwLwBllaxfxZAB20ckgmPxAh6wyIKDs55WZZY/fvjmU32nw3hQeDxidjP+SKZT4F91B42cd0KJ4GHJgkkG7Jm880UNkm2Fejt/kyx/k2gVNbiwRoCAHQ3Ca+8FsTcUAeGD+Bx+pn4gspVvMlqhH4JJMFuvVuclFmVJGMqBbzZ2/MFirN5Vc1dCcwGGCeZ1IAGSrmskArWhMzm4N+BpevQmmrKxH7fBu+2SfOopDFVFfadH4agxjGlxr7OsiFyuY/nOo4HUFblWG3kxPbUK+CU04zz+OrBZGpNtQcRRy8+j2gWldOCx71yctblfP4ERkIkH8tvZ/JTCI0t3JymOBKxPvPRaXVCP1MaJTpaCY4o8qEXQy8bwWk38G8SqgKNPYRDEl3+wHkuMo2saxKKq7FP8qAgez8BNHNEnymBRM5/3x4JuDWGAsUTxMjRKAJ6goWphuE/+ZJH2Hp+n4+Zf3tKfNQIeS2pe378ZisbRthHguWYOHm2kO6WnGMLqi2CE8rsu1wQMKUVad53PWssTZ3Z8ydF/HDtmaIUpVIoyJkSbWr2lKdgY1FTOUfRT1oScA0n1rtxY2zbakFGAfHY/SH+5dpwDjEPhogi9AX1CvdtinQSVmNUNKaj1lIrjfBZ68oznc7HanGfIl46Vszy5sTkm2I/2YXhg4zkn/uRc+UQeBkO0qhH47ZLA9ppqwJ5Qv/6hbFOktr5TCzpNi4e4/P0ckNPZAjdIpJhuJSJ8vA2VS14N/vtxA0v+TAJEzCqMN/ODLCX5Jd0QFZd6H+FTzmnvitIH3MczTSq7Ig3X5QRXxJXrwxZIz482ucyhhgbrPHcLYfnnapiM9GgRn66kz9O0zRLP61wZ1NklUjlr0zL8HptUPP2gd+fUtkZwMRJiDcRo+KWryE3PHK7cQmHIoOBO9WMIiv0chN68EHtRWvzL3i7+eb3Rqle9Vw+dtXnRUTTuqm77Uq448YY7WJL/2YQRPX0Rxe4cAJIqmL8VyM4ajnxJkyfBD0v71s7aac/Jb54rwKbDc8aEFHo2K90J5nVuLZ1mbPPJIL3ZXLQi25Qaz5caSbcR+/P1npRfDClGAatk+Um4OTwPo+XWFZohNQ7B0cEc9DuhCq1K/FDNOzw9mH23NYrEJL57ae/iv4QeihHR47W2ITm30oxFFaS4fxGidhyVzU9Fa+kjzGr4BmG+KTy5o5D7hYWBGpxn2zvCjCNx0ljOk0xAvbn/PyHgRop9A+CSwW+P4JA+NKcrT92JDQ0xMP8m9xbbCu5EZsppgT8u3xEI3iWOZvP9QuetgG4f+hgByxIHMxpGAlh+RUSWJDWPL70y37Sp0CT1oJXAr1C75G12IlTaTAu1uVQFwF9AtY36TkazHD/svMP9Tj15NLYvQMn3Ni8jyklZpYNRy+8dy95TUDk2vNa0QFcSwL0jYSZM3v3JUlluBzosig9mEMe3ZB0ZqGxxOGaz3rh/lzkIbA4jcgdXMg0a9bjr/I1pItCtylvKlScTCzI6Zgl1AcYKGB53nKpoRIBE5fGdvx8c8a/Qh3tGZV4HcWJxrQHqW5upHTfz5+bxmE6Dl9cWUBNZvCGaCxmA6X7O0726C5lbv/uh7rgTSB5VI6TeUyp4IjLDusn0JGCbc+W+MRq8qFPXBqL2mQkrY0f3vHgGy10jgApkriUDra18SCzGFJZF0/9Fm89++L12oA15jjo1/559ZhiLL9t74YFKrOeYNrZA15qpKiH+IgMITInMFL+oiGhNO2NFWF4NCR1IfZyLGuvfXPdTlhTfZywJacur+s86F2loaulygZ/KCPmTnoITtJedshmGdpsVr9kWWxS5zpxWaxrJUszVWm8PfDzi0DDgpkBbQAsiliglgSNqvP9o6eIeZiT+KAPj95kXHfKNQ9jSm2zhNke+1K6EGtkz+QAlFFvBS3a0AJhb/EHr69I6J80ZxZDekk+QpLbNBszg5+0ubfM97CQYmM3ffBqJ75CiT4RMJtiterkzgWhV5bhy2BPJkH7Hrtss/PxopXAqSeQtZ051mZLANFCqAGBVhDzX3TB5Mxh2pJzW2eSaoXSjGhMIbp9Wc9yGRgLU3oC36i4Nz06yo5ECZjfddjb6e8/oRpb/6RQP+RIrW/ZUQnutYYEPd9mgvS1DI5jDhLPiXYnBqPqQEMmQM9fuUowqjzcJwfw8B2SfUoZbxvcwmiSo8vO+UF9VAV1hU4OlKJsrD0Nmeg6nugyd/59KUc2LXKg2HJSt3b7727chhkjTOmlu7XDBWwscjunDFe6Bw6gqbMJMpLyi7EarngroiFdRe9fbgJM2cO0bC5HTCuezyfR9n7HZ2i6r36W1QE63imNBUGNFmhkH8cxrrusZ/25jEAm9tObTE+YaqAJ3nc8eUzaLq3uz+IlgIPYhECM2xipCrbArW8f9x8UtMtOmkHSosEe0l1F9A0QQmuA9WuAnO2nX4yhtL/yxZH0AUt8R7KXD00+nlqie9wS1P7tMkQkIDg1BPKiF3heZ+298VOcrRe1lEqpFkcGfZ8J2O+f79p9mlwef7dHFUB5xlHNqHkyUWaJ6pEYsCGHUpassrSIHNRteRtN82pHJvdX98Vhi0rH46apKKG2wL4JjpqnCdYpftc1LdkgC/KpFYxVuXcT+VFAX1oBRrEk5zCK6onr9Mo4KlkH4m+XH59gMVklW9XMwXBMNBjHz65/v/Zn/sBIBS8CIE3oRjPKq8bpa+JUChROCDLmFuc0aJABz3QpJT1gN0eVhWddPASxhv7H2hQKuapzMrKYYQP19orbR5g4XmPZUpK37w+Hhkj5gSm4p22h0BB7lCezqQFX692aPxA3I1Ubb2F3ezLan/ZpcsYeoq19ihV1zj3K9bGZctJ5HNl+NuS7KoxAwj6hEAGDdrbIa844lS3BKiyhQXnVysbK5Ehd6q7hGwadOV3vDBXyJscpj9M6GOiJemoj1ebuemiyFG33xWiUFQTiwPTmDA0UvAQZjES4w74S25vFMA4PrZkrVeEaleG3ehzq3c7Mn8PA4Ce2hO+1D823dvRTo1WlDQGHiEITNyiXbWmluEEQjki3pFY0R55sGiflSkhPBdx44vWAmYwjcckfA4Wb3IxSMjY5cZ9/kxG4RhFMaFdYXz1abviqwbJ6Nh/6D2u3BgwmQ/UpH1AEZovQm1jarLOUL8SfJws3FAPO/ASTlGYprzpytxFTo2bmvacCc8vQvlbhWKKgGnDaPWrlvusHmERLaXqUZTwEllsLamhKwoN763S5n86EPsJjCooEyA3YMD8ps6uv03/3zLXs88iTuJBHxZ9WGkPZ4oHNDXyWJD465pSfOJR/hKu/W2ch1GnOxMyd1xgAvHFvn80JrLyMrrP5UOD73kNnhCGx+JA3n47KSB4mXEACe+PYGk9WDmgWXBMIyPM7ShiY535pgEMAAuRB1xKAOC/mZVX7hWzOrclwjwbXIg2t8vg1IDL9WGsrXoFfNigh3/mASRWYIbO99QG9jXnA3XZBO0hBGvTvTIJnL6ETgtYC7O+0WQTAnMFF8GRwQbinleddmCEOyvsUSLKuQaVP4zuf0a5oYa+q8H9Ls/cS/8RJHSeg1awej3wF7hi/efeSL/AKfWu01ZH5zCaN6eJ0SAnnL1YzDxLhoi8Qva0fCXD1rVGVQgIzurLswKiijJg1XK+/WVjvoqmQ2QmWGSuQLuLYXDlcis8mnCGyQXjvRE3eAT552nS3fI9QtzJaRU7bUhA062wewgQZaoMWYAgCTC0PA5z8wxzaFFZaoWA8OD6cKGItg+/UIOFBe2rKTSPtDFUX1ZwBZfG47I4HEiNs9R2XrU6YdDP89SoU3SVkDST5pWhYZso0KvLCQWMyzuei2UaQdt0i6xdSlVS+fGRwv2AQiuco+YNZki4WqS3Lkh66fSYBrxqDmz16u14upv/5oerMELYS01Dou34vCUABklCObfdV49blYYKB9+iXoaGtgr3NHPPXuoNb3qgusEnOe8p9RAmrxtThnoXy4WxQ2FIkbiaNMtLYGok8kDbshwT3yrbjy9R4/bH5zPvEhTUhyOlNbHmyRiOEGNPNYVnhBJW+ZdX6FSzNfJBk2EAsRi1Pz2KOOk3KKF7qjHK1v2hCu4RFbciVHCfWfAlOHNzOPQTCSzdChIUujf2CYVns3h6fIDxWjOR6ARvUYqqXHJsje4SeedvBB2c9TyGpT7I3aJM/AJ/5jj5qz7g15D4qlZMbc2Tkwdv7PauAdFNFPf7JQvNHECwO+SDwiA76NlomsNKlOxJgv72gKtx3xNpl4EnzC2izsal5t9ozvIk0onO2kLrLXBeOKvK7lBFQyzng9yxtLmnDfQk49NdamuQSEoLgW+xetCIb0hCNYoeYUrFbd5R/0RxSHgBBM+UAx+grzQd7ZW+f5n3giLvrOmUb2ipi2QHBaCl9pnAyH7ezECYp4brqPdlDq4UyveZMPDPFJSLv0mxbmkye4gbymiifdoKL6DmkL3+9hQX1FTwID7R+NiTFt53UrmeueI6Z4x25XbxzuCdj/cPQHWB6jSj+/dpdQuBxyPPSD53fLPpX3mamt5QV7DZyYV4PkjAyouvV/NnUv40Zjuq65wtRNnDWCCyBkkez9sLQI8svK7cVKYEC9ZA3SF2eb6Ydws4Z6zLQvOyynXR6hBHqmmZRB31o7pRkg8bkA/0PzzIHMXVEx9rJSkKE2KtUXnYpQ9J2Fogl0wzItjVx62YdcY59Epk1U9D/ywT0eT7drg9nRq9raD37amKGJeZ8F/XM/uHstwhQAjqgeLhWVzRR43DHvp2QRAsn9McJoednao7BSI9Ehg0XrCWaFTLSi6e6UDlF0CejPReZ4umVBoO117HS1a7Y7XW1tlVjetcFXf0KSlOpswyMrz2cTJUZXNUNVTW2GgWp0MX2Na418VJOo67mqhVSm8QAU6nPzBF76bKjrztbQqPJXY+ILQbvwc+NS+HOAcZmGRzZGCI7ztwsrtRqJMUFjdRRcXzfewydnaGWy6XxwfY21ZRSc30fVN/30scKEiHPmhz/XeNvsDL+LaL6yBPzKUsbW2KbAygJ256BuRMGVlYVkmTOhcFq0W8Eyxj6bTljI0CaZ06EBdIlfsJNYfVZhE0Nnyc4/T8OHrTp7+gGUtTMdTCqQRZDjmqp9QhrjfEjZcdKlKwv1lOeHHt8FqIeFUEpx9pntdUOKumlOTIq7OGgv2Vwraw2wFWasGyj/ZvVhIOGGLBvwxKnWVGFd/tG06oTTHyP1VMX9S3pCXSl1aPMH1NAbdOqIxueW1zMC+u4iP7q9taL+YkblireQq98RHhY+MivwhR1GBdp7XB6iFF8JAf/pZNSM3ljYHziHg6nAyQ2w5vWnHk3lsqAp5V5XhmzqvWkyysutKWFxt5YPFA9iJ/szMe+T4PdnKWM7uu/0ajPJBpQ51Na3qS7P6eHNuys9Jqiy9sLRNgD1lnk8NvMGk/0ZW0xKCl/Iytz3g9WDcsCn8Fl0xmROEDn4j3xCTQPZ2YqvyvLpEw/OzKlgxeRLTTuGZNa2nh/QN8pYuIUNMCzYAqZxuPjzWqAhpoVsrefesLcgJNAEa+3q8DTTZxY345wOhaVRVKAUuboYRBvbZhRiOeZ2xdKOKeLG7ao8ixwSljIZlhNCYINrN/UB5kSp1tyk+z7y2S5coWAeeolZSOZLHWzUo1HKU5uR9SvBG16GGwPKcgi1t2UApXqEia9zH7DXD6FCwfXdwIaUj/83guDYMAXvkmvIH35/6+Iqi+5EsRJYp1bS5A8F61RDZjknFWtEa7wa6zLdrZHf6XXvy0JhWFB3rx17rvZyCBbst4qj0u0awqHtNskq7o03r+fpF1GvqFOSsyIh/b5Mj8ICPWs9cpvkfG9t+az0V2W+bGOgcG4H6lDmMV8VKMNuEJS4Cgfs9DLN6DRapWJAqSaDKLH3uP2ci+Ccn/O0rVh4zxihOnF3cRfOBvPONmZluHpzZs+mhvTVVOgnJlfrNYVBKKnvOnYOAsJLXsG547HZyjsG5oND1OAKWXTQe0na9S394s0bSovysngjtiUDvJSqUYBrL+XuH++kbKR9j4jY2N8CffKW9tewpfRk5R6XicGnx7wWg+AqfFs7y6MvhBeNopKSx5DJOhHtcORA0wvRWYlnlNSnELz4o+/OD2ijY990x1fMC3RP+ktqONqv3A60x+bkjXVwK15sMmolBbl4+7OXcp1dIeTlGDoMcGEB/DYarK234Raq6BGYNJaLrC8mL1xehNb1GXaECWL0a4br5AtjXJQu1VIaYGIFBQ8MtyIcd9hwqwdk5rQqOp/4CTUgeN5lkntCQaH/UuvzH7niZ2j7ADIaacreCeiSKlpegFJy2qazwJu/97wJ6mSuicoeH6+PXI97Wq2aF8UYY0BOkCJL22eHkQ44lgrSZUNz7acD3byYl4bwTAfLve5TcfEhxSGq91TcKvySILoj2UvGbx06TMOz6WpJu4Wv4Q8OKG4lgrDtv05gS0nJlMRLHLVRskb236++2XwHoCYHfgCuKUZyR0hqkXZggYOAr+0TiRK/5kZZ4lFrTErAh6SzJxqQAnJRFPkInQSc4RVvyTZ79lRgmBtAKBrb2txVvTNDav5oJkevQZUqwMI3WLvLZ8IRfEk11pe9ekviNHxagNQFIXhOrUKaJ4RIefPCRJyWO7dqE8tWcxFPZloFKFgWHjud72tl6V3PURNKw57YUdfJi8g2gA4t39wvhyl7vxusV1Rz+MT/J+PpQVk253lM0/ZTNrYbcpLNAv0nmH9G0hD2j2rcexno+Vd2m7E2S+MAm0JLPy7ZkZ89fqMxGxaHCdvOE1rRQFRUIyFI81xbt78q9ib+32LKkDl4ohw75Fc55cKSA6ZgfanPuT8Ybk//JNxffKYY6Qq+mws+gowJyS9CkU5jY7lZWcc9/YNhFLSv3ZyQWPG8OLO1pT0Gx9vTExE8uq3Voy4CbT2sMvWXRP9bYx7VlFOPCjtTnydbPkAociymy8xGKEa/TD/9BTFlWPDxbSkfUrxAOeWKCxVMUm0Z/FfH4kaVeSGLcvbDrupqwomcT5/iAucmJ9eTtlzhy8mVIz+3u6yT3slYz/tqUqlh8ML6VyMaoEavZQSA2NvrzVYMRTnIUumd4E7BVdtSh07S9fYP24otd/Qsbkzua+eEUC4gK3P+I69/iXuvnyLmcHsffQfs1E2dZMsEBTVrqGE5ohzDXn1epo9BeJZYWBnnZYyC1vkpHlze/NegoMCtuz9Aw5ebx3InQRjy3adMlbXFHb5yq47ROa2BPB0Iz57nvJxFOmKnaho2AHHOe7Sgs+A9xaU0EeGPcSC2mURpPIS4bjDon0Nd99xiTr+xv6fZDB1aLU2/Ki4iVRVbah9+a7/LZDai+HqJK04slqevwQIXdZDyaGgX7QO1l2D9OrARODzXYBR2lcXNNzTrM5WhSgDdLRfW8uzOmJrn+2vkjpxmPlzELCd1tB4gqdkr9Gd+cVLT7Vd3/onwIMtZDgCXpdvO8ha5phAmL7R6csIFCqMLVbrwuwixZ4Op9jSqJNBvHJrRkB9IRNC5wqBDxvG/QBR5RT/jRN07Xq23A1SY4Flp7UBXNI9HYF3QvliIiYUrL48cRVSzFwzAkm9ctUvUmoHs07lFmppdAHcfbJN+SnM0cNTo86LjgNUi8TOZYTsFSFps9fsKDZlpYtUNVZzfNn5zP7/K+Om3Xfqj2E0XDY61BAB4UOVi3fT5NLn0HXiYIiImXZxSLwOVijSA8cKtT1YYpE924CaQI9DCwevnEVQ0Zhsiyay9Q42LLnsJjqtzw91WXonyGNH2yu1djy1Oy4XvVyvKIXhgprhSO7hwZwMLDj3JgfLa2bhdB+Nb4lc2l/BDGaZyv3uHvz8aS/g/lh4EW5s40mz68Gd7NK9OjPS099NUpVtRtB0PCJ6KOusTD93qzEsmOykfh7tGzITnEpHNyUITlYJ3JIuDDLU4F9EJmy7ViWjQZj8idnjpmYDZN6n2jocQjSLqdBzlYGL1jZ2viS0KgxplgYAGkgoKAG6SapSV3PZyaDGC/Jzutkgxjwfy0zjNgLm4Xz7J1cBJUtKqZxtx1iBVGwXt3iXYl1p4J5+IJnzjTmFJXkqBXhgcpa19bjvWhsKFmPvWsACpgiYcA1/nIv1zEKHhYeFlYyxtSV54FHpp4FqzA12fs/PrXjNOmAO6zkT9rQktAgsDPjA7K6leJQ79atuKj1nQUGJzUtWVE3WgvgEDkNUHFqK2DfAbIzu76aCL0QdijFRVShqxpgpmMmlp+VI/CqYLGP3iQSs453sAg9ERr08YIHs+7eBqZfsGy0vQ9qOT5MIi8/+/cxa843CbOdO5oXlhTmv0zPVM4YNkgOuoVEhXey3NgumpsQj5b642Ops5ccDlz/rOy+k68OnQWqv8VSqXRMqjpK8JhA0253q2hdpnV3g14Bmvh2zhzjHTfcr+sDu/ZYYKMbD4A0/KvKWM0+G/XR0QJqpeZwdcJycQsMNLlo3ybBplAx5ee/Du/5UoR+25EFv4NyEeBA30bO2yJY5OWIaRmiIo9vQpwc16MasssY3jFJc8U4aSLG5ds+6IwlnDwAzDCUwQ3EqqrQ0Klr02s9zi05xzt9xP41XuiU+DAwRX05j0Y7KtKj4wsMVs3lGdOwctUK9Wk6E/zqJEfedGb58wwGQkzaTixOd5oxg9Uc6dM3zf5op1m5JCGQNSHJ0nd0gxkCB9S29MzSfHHBeZArzYJZnowvM/Fo813EEJglrcaPwMsrNTO2imNzdGkRH2oAew9vdZQs0wS4Hx+1HLGfNDHI0uipXR0ubnUz29LOz3rdSk2ZlC0KnN+vjFCA2dLECq1EcI0GG++sEuyIUIUvHfFXH+4uCVeOlRqgXi5SrNBMhZGGn+Z3e3gi0KASgO2uRlzPLyup+jg6hpsWTO0Z2zHRWUZGHEZYisWcp3hjg4SMc0PjQHBHl+V0gE6JjyU07H9RVIu1agpxUaHKz36apcFtFzCfPsHCWWZeV9AXgFk3m4vnM81TNXh4Tkue/R+7LpuCeUWA824i4XeAvFd3gXPU+VAif4xSIt/Yj29GIQ063WhOsa8HZyH4SWIRV1Rad0lFdfSGPp6Jp+kjQA4Re8EK1CIkamKx+fATDhvRtpAJ1RwlHHEzKhAucuYMCcTu25DCMZSO0DeBmHyEos+wHtOUcOxKlH5cADr9PEqc5TVc5zDm7KVNiR1VBUCXngnzq8u7C/7yc1bOurwfXTSNpXnJtLkEFBOp3ah/WMmJODErZyzORu2HVYJ9XWmf3qufCMwLdDkS0jPC+ZpzYlGzrgVWIOlQ4y0x9vbKAUL52bHEoMmAf5daqnsy/pQ/XzV9fC88RC5ILppAySNUoKJ7t+dZgBOpkqrBt/yDEZUnkjfMFXFSRtKy1kbgD/eXqtw5rg1dv84+YshSAPlHqllz74XjeezNDZqiTXKFlvkjK7PSsnc3fDTPvBRE1CFEkD0u5T66bovpCYFAFBFQ/x7OLLJF7anLoN5OifRKjyqC0L5vAqRL2U3vAZznNMOVBUjLMmTKNInCf6Yo01TTX9XuDveg4EJ0kvIdfluK4OE2j/Zwenak8NyiTa0EkzlwHfMhQbOHUtoyeh+Bm4onsYD6UuYYWwu1Y7e32bnsD72o0mAy8umnRDtQAVHwdsaGAEXnCT+Z2Fr1yqFoA3fr4WNlLqFcXXa6LtxC1gN6viymwhr7FbFXdUsSS3t3yFc+wWCYcfj1SiVYJ6fzhPmk3yougFhwJVgvti9PvLN9P4ph3PDfpRc4retCiOGF2HGwi2TEwIgIHP/lTYvHl8p0zzMh7vGf05lAIyNbD/w9iaqVw0M3qPaOIopFHHK4XaGKdj/tgnq6oKMj7CugqGmZlsFnMu4hGQEnQ+X3X75a3DjcIhX6ecjwFJv7gPfiXAK99NtrOzY/qHGw+Ez/K8BQ+4/ASPCylDtSHhv6dVpeUlipCENfLFNDkXgpLOSCUuR0KvjhRdld3EpPJc2J+RPDQKDW24wiSpNleGAFvAOhVMRfFt9FslEJh3/gQNvua2H5ZaAUZummJcbJQ7jPF/LqDEj2sZZhib9hV5KiSrHm3dzgrXYj9Ft33Najnxj+vgJQvXoaDxOLJ8gKFfyNRlBD2oSIz4/12zn0Hkepb6bx1QoFDeOxJYi3w8g5QMGNJYR6R/CRFrRXPU+BEaN6bZFy9mqkqA8GvsFsq7kON34iTsLktwRVBrTg5yZW8vzv4yy82hUwVM6tgAB1+us+lxjFPVAgzHMyk4k6vg+wqTRHmyCz5gMOuWth1Q4QYRv+I3EP67HNde9hiv9q82AfRBjXkzlGqWT7sZToCM3bvTKJ86k34x7fUlzIo5TeZeYoqP8zJPobED63vgb6TPSH/Mn/3cv4V1qe8TRVmHHmSSBRoa9rzTK4PKa8KoscyV5yiVe2vh/5BvzZ+odM5IizHaRe09MYOK80dHSsZzkGar6ZVH5wbOZ4DWi4uAR3R3dx/+5c0jdTr1zPVydKSZRXrMunVWEzMlIx1mobgbDymH/yY2s2RQxlYM082l3dWFUwyo5ktxkHwnKWuYPDU6op6igtmb35jSfHoQdmRXhsaQYe+YwQnr1fKMIxyOlxnCpYDUxPSVawbpLY7lZKSWeDuMbjkW8+yvoq5UlyHFkFoa0tQ4H8P3plXzmXZ5q71ZpL9g6Ham5y4nc9KZkjntVymGLPKDI2uPa2b8/XUOQXk9XGAM+f6wpSdcmwf5qYK87vHj7gxODQiZEhz0Zj2QYK5ZIhk8p1hYwwhp/UF0yxbEMm5e25iuD4mHDX6SW0dEoGQ54gcvJkkKVTo2vkiMTN3e+Sz5RZ2DqQ/QqnaamSpbbbR/+4o+lZxcE7znDOupt+QQhrmyIhqP8BM7umid5i5621qGsKd5T7yatH4Myj+iyuTFpdhFURL8yWjJqXklWO6s3/nvjOpZoWXdYh/DDHicH4EsRPvPpR+M1UPQB30VeF7LL4VBenFE2VWpWdeMHzVxDbW0RPwaAl7zybH+xIokRCdYYIeybFd2JzonOH+cx9WV6gRFkHavAIbTqf1LvoVm9OcOSJgNrHz7z//bKS+ze5jQYjSto5bSuUUXhKurOkkkYLaq0BavO2cUwc+MJPYEJf1wIMpJapstBnQHo7ewJiq6Us1GL/oKqKpg7hoLrnvMUU7vG1PszBFPaOB+iEN0I/dWp5kHkKRks8LZf+H9dURwF2TKc5sp/0zPsVXg5PKWNfhznXqo32VvLuL3sJ6Z34E+IEU7a+ytOlKJh/QBmcjCKL+NS/e5LijqP0SBYAlvSLcnkWM5Sc3aeE2JNTkH6qszTkFRHNEYTHc4H1d72TpnHrHw4lFMSqIDBxR30ElVIccKKYxWQ2HgZSFdCZvVAkFdxtoSA9hIDy+3y4emUl7JQ+KQ+xZmmQZ/KTxL7t7Qb2GMbs1ILquOjbFgrTolfo3YJuxBH8CBUyAflYtHOfojznV/FP4ZLtwXJahKCGkXb4P30i8nZUESnRQePnUf0G1szRgqnQwJXL+mUMO3T51IoDrU132c1DeMYeKp6TdNwaPyJNK3IeFLwrxAWIzyoosZbIoQRBuP5VGC4sqYhzv9cVfhp+XiFsfm+SzwWzjlXUUU+OP5+ZDinZlKeG6lxdQcK6AeCoGDon53kXyeccPFlya5Fqzgnl7/n4Lm1aEo8Y/qfabykirqkm68Ld3SyVei9icuOqRVuH5aj9Vj65B7TgL87SUOKxO0rGyglRm2Ak46qzHxU+E+fPUTAOhaISSR3vx9AlYzn6NUimpZUNETuIEJ3chLp4+m5nfbZVYNgx+MkHViUvr7IfqYaulR4F5a7qOhTpyxuYxNGM3KdhxV+SqOAYK7WnfFNSmfHLw8+XzvlVLc9BucV86EC0NH35paoBkvZepn6cFGYiIihvTzNDN56yG+4x0nZGGCQ1+XqZWehy0GUiXl+utCVj8JNONloB93qc2pCbZ0pJ2tS2KIskmYkGahok/XoB77X+HMFqcZIcIThx9DBr/N6ML1T2q0jMDL+y1o5ZO/XQkudcUkVU9LrMa/CUXGO1+py8E3YBV3UmJmT33andOS7Muv28epum53qSqST31WON8dR7r0n4K3TERLIVVS7/Gbb7hLPvHOOWTfsxhKHO024fwHXFTO6YmpAawjSqFz7lTziGcq4ue1foie+101G6662t6zk0uaRvepsmVFgoKWr/0WPkroFIkd+4RDHpMQPwHiusT9ws7eYp2Ant6pOP0riH2Bt9Js7d1athrsf58jbAkhqoufrhdaQpHRjaUgi0EO7eSiEIa2bEIlsJLK4LKT9gf4mM7fGgwWbkf4FSNVDeHpQHhLtFiwnV7gDHWU9N6OHVuPjTIX6zJlJt0J+74PsWt2CoCrcd4iFI4cDgp1AtbBroTk98WfPeK60Zs5BPw1QSD0xPiZou0DZiwqVdBmxEzU9PoKxvGEvDSo2iFjnphJyqGxwd/ElBgNiaHPq2cAOFV8zhhUJ+9DA3eK1Pchcx9a5P4Vb+GHd8lvREr8Ye7yPUrQHH6tbJtP81UFdiKZpnfJt/iJQutycAi3jZV2KCr3WqiCJuJF5gdus2RJVgBl6GFkhCBNG2ZJYWf0t3ETXJtLfgURlsGPUs2PGSsKgBUe0tobvoqZZaUXhpMbtMWJmO4+GwVQSNxutb94Acj+hh7DXcqH+K8s883e8EimlUdI1SL4gwSiav2gGD0LWmlkvB9hTxaAh7g30UQL6WU+SXP1rGW2iN7B89TA0sZKyuKR7wqIog3gHf3CDiVTmQJzcsGdFMW8GcalzVxDPZQ5nfmuLwqhoMjriwVHmAhKIxXlDBwKjIq1lR6M1HTkbn/qPduR7s1JkyhjxshdN0GkJX4eX4UaojE/NALPqMz9RHn3TZOZaSIB9Q4k/LgOmL5VkHYvnnhj/0I5vUA5R0vrpM39L1r7hrtzZ9mewEXL6ylSToNK0jVb2vNCAiKL9k+Qbl7XqVG7Ceu0FyE0Cm59PyJNCFHtkNps1yUB5Nmuv8uc4UffAKA3UIZ5qr15DwF4mQDWCFJo8fWkiBYiDnuUPvY3S5i03JyQU7Z3yx9XpMAqTjk5HxL9bE7VUJU/uA4SBNMYqRWKH8i9PL9uxLyvRzVkCL0owb3+KzyVlLcKhRJD/wvSMeNse5DNoeOwvS1krcQ8v5bDzF0k+iNZGObajMpuK1Z80JvNg2hrloTVAlFIkcDK3YEPqTRIIUj48Fg4i8kG/XL4CW8rAVqnbojMDZmrDt3xa46UTZXaQyoBERwDCILRQD3192f0kOgWb6KHLiTjosLYNrlHMIx45XfAcFyWFZKPwI8s97c8V+i5S2zjf9O0bqrrilRW107zAeKqQeQWoa7jdv8k+Hib7TFFSLFVN7nQjR0nblUagmmO3AnuAkpjWUkDEXboQaDVAcs2zbi6Z7AbDFzsShRreVRKI1x37n3CLtB1xFhxBdf7D/dP1djdpQhUjcFopx/y3rMkMQi5Jv15xrrrbY65hGE+E1UGzxIdaECbAsu+vz/8GaJx7ESnSFGvCWwu3zoOWCkPHVegla9IY8r8FL+TnZzgXRxpf962lqsz1Kw7v1e6iP5ZSJuHZ8Z/1obkZ76yLkda5l3p2frMGKmqqmgM54MkMVh3EjLIg8KES/X4SyYN/k0P4zOzAENzw/O16eWmOCdYHtJ/6dzKM/vI/R7xR4pHU4m8iWUDoELcPeN7KaH7rXEYbKtQEJtzm4Rt4iwMMR4lY/NMgqsfE9ij+himqDQH8PoIvnFk3gN0q1/yUDWXJ0OTz7BZD+RiTUDXgIL4QdXMqNkycK/B14IXGZdRZcJxasnR/dB7s8FKMZ5R/ehUv482yi2dDbBcdwkagR3RTNhMjNmabltkybCkZ1YnT+4wODOJf5JdwxW1+e9KpAF8I4fEf5iIktmPvHY43ANESPaH+2zIupAxF3+m+T4UIPwEE3zoN1d1649HnfXeNrubB8GD+o2zUneMfe5692eI5edzJPvxywgMR9LLShH+cpVlfQcE6yajMdRRgb1uS0BNjTvXhpW0T5iKjS3KakY8ZmFKUo4po9lAbsq3WdG5+TBbdzkmb8W6Qnv/Frk0ion5zQEYlFDDxi3ORs5uiOSTFhWO1Idq3OFMgNcE/9mrewwvXMEcP6isNnKdUjYcgTb/qxiARmEcQTECjQdN152mZ6varADbNjsTGk80TSiWX6cbX7TNPPkp3uITkTzti7EXQGVAGvgNlp3bs/lp2mJZdpRReF/gc9KRPKl4d1/u6P3O97ldSlN6IzrlsTjrWCfuYFgDX0nGGRfqUN6k8sQNj/6NC51IUpEVEZHkdpCcaCEUezNKAHEUL3xGzKG7NTZ5vyY4xLGGeoSI4bI1kTaNqSCaNQB845TMG1z7JYcQtrDAY5m83NWh2JpHvAaRp43VKbxd9i7A0XKBnLEdq98w6IdGF6Ooi+c8PmB7ZFlky7xwg4WiTHkUyg76K1FQ3J9ZvDFqxmc9kJw+1Zeq8jEVVAoiNCZfBfR/KbhvUzQ5PRJUmZ9sPhMaJe2Sd4/2VzmdEH8xTrQQW8G8Td+rq2ZucsDOP9eLEHne0LSVtGTfQK7zL68o2H4s7wjGC3eX5XaFLpPoST8qFw8kiEx54xBCoPyeHAq/xVhUW28prp0R4OX0ekYQmOQhuPHbqK+RXPUDrP7ok4X3y7FMnoQ3OutoixYQsP8m6WyxDegPncqM6S/fpge2IsGGdOPcurnxwvt58IVlLKMZfc5mmp7LtjdlFk8iM+AzsqtZWA4jzM4mlROehPFyJn81tTOqfF7MfELe4+X6GLvMiEdHvna3eIC09J0bbvQwuI9JLxARl3DekiGnNSr46wL+CKAowTsPlnY17GmWcmJdO7DaiboQE5sVDFcAFHn7Z25HK6cPs/lCgFcr6qWSWcf4EwhTPyf9C0rW97ImS2psOQWSbfX3AhNzEEHyTXs3WP4OQZSAnYZ7cXv3ZK2ULt1OwFQk4CVVb1uuy0URO34NkQSo5vlspxXhiGWCiXDhrO84zvW6R5y5+KILBRqDpd64nIkSdsfN3VwGpj/6Ll67zmm76NqHEl7/dA/jdVUqa4PPQTIZmzrNfJRxgj93agDsM8Nuo33ybTs3QyZg4qmilo+Jzp860MPVb1WTkPmpgxmqUNKMyl4guZhRuCAHkHdY1HjRJBZx8PkP7vLFMWQ7/bxaZcZ400Q4ikIqn4g3iaGv0IWfJxttqPNPEh1ipTaN69T9/kaWKVTmyBYPVcfpo0o9/tjhDJuFT5C1eYq+fh12KmSgLKedxOTfcFl8LG6k/ciZz06vj+1fNzXtdM0kX4+tgjU/MnlHMLRyZ1E7cinQBid/1GEXbdRoRwYrm326ar/IBQbW78LjtvWM5BaNkwwc9/C64n0zHzsg7KXT/Dhh6P26vejK9hRxacLBDg7QDUF+VDJbof/pJ5imerTgU3VMeXsedKnM1AvjPugmPHvIbTvxx9JwOnrCzgJ8YoGTuAgj0pTykJ4v4tgC4ZjF4LqC2+M3i5UYyzkQCmpymR7fHoh2mE+Kz0HUDhi8pxpCxEtZo4Z8+K3XXeL9Px/+QAB02TSZ3JPzjEVfZFX3QG3bZTMrKESZ5dBR6/jKimeHlGbb7M5942EtzRerr9yAgnGL/nRmoafqghB9QfejECdOJNKk0/6lA9JO77oopZcMJ0TWoQfWTKYPig2rpqaZNcbLMezUlhySRGfPlkjkbKiuvkWq06ciF3G+kM6MH5CLjPvlNKUE+GPP3Y8Ro9tiYdrtPHjUe3q7vhDYuNDLG9HNpEAzb4AKaDsK/ql1BXgVTujXmNrI3IQMstv6G+OKj5G007asA7/4xHP4NAR+nF+llY2fdqGiLdtC+FAFG0K4Px+EEyTnYz3Y6ghdg2EK23SviVTZ8bngk7D9yi0iNK0GRQ39S83KDJiJvqZUNwa3Rf2krbA5+jNoLCBVAFja+XLAnSIKZ5X/h9pMnWXY7DF8IYF/+NkO3omPK0dWAI38tFEsigwxURDf+uuXCm6eBsnqctWJvk07ioUsu7FIEyykW0ihuK5eDAst9qP9UOCAPIgpZUvn9X23KvW2tye1qhi/7c5hE4JM/Kj8Qmbpm7ZZYFR0MK6J79w//2A8yfdeH+YoYSR7PbT73FCh/Kf1Nv2gJjrbkPNpMZo5pHNgJcHshZ65W5a5SIdrtdJm/J5CPsXAtGRSSp5FHTOQTBEg5GE7cmYtkjbdEFq8xISKm/pi7FEWK0RoRU2cp9IdYLbvHknwtYkeH7kG+FSMQmw3NoHIcQEApP8igiMrQ9/dq0lNY3EY1ESimm39P9Q7DeZY7hJdRM7rDuPyQTRG6dzFbkyyCSKa9zW1P8EtmWTmczp64jLC+nuk6586zsQBOglkInZrHBelv6kosmahc7wriUyPf/BRVIBBgm0oXfjm0kq4EUv9g68kQghtfrObcf8a6qZzCHWqwRniLNqCQmhHrJQlcCIj/HPH5aY+QGvF07UcTFvblYz7zOrJ6JQf4P8foYZEJA/UBqV6PUWNeIk6CiZL76G75c+jL0q2O7rQVxPp9rvMC65iLBvvVzFW0LA31fND/QqAhfcF74I8F64ffq/38fwTCqx5j1uYlCShz+0RKjDbFlR3qkMA43AkmaRm+h2JfDPWFB7f0vAdG+E/+Wc9LVmQmRt+Jip2y6sNoudpqdugrqHCnCf8xpIh7uErU9cL/mNXKghEkhE439PBRgeMlAvGJpo7PwsqlSasUF+a9wVkyei63YbW25xoXSlLgg3JhO5Ri3HuuwvffVeF7iibKM/nfTbpphsBuaapg+9F7jORudCih0E3r/wwmOA8d1Nzl9SOn/T/QI/oddPUKr+rPqLxZHvpzmuchRO9UOzht2E1+HjWFWaCBi7YdC6iPgBg4f32X0XiZ6P1MO5684mLKvjXARdo1631AAY2verthed4rqIrrsBP6yFogh9hZ3EzALuVcxCmyWMOCWBnLI3TYd3MYvDQxfQHgVZ5txS5oHkCLamT4XL++gWL1yZlZ7+K0Gz3+j0AJtJKWEhbpK/UUiXR46k1Dyt6Yfqxr19iALVyr5r4fNLkK4NArghv7v7MCRBtT1pEL27+eeRXmNkL9Tzz75EpioAtO7wSorCOy1HkP0JWFg2SPn6dSurztXCrTx5vZuPx4bLQWQM6orAlMgv8pEeY7y/+N4n+pata+GPuKnNeV01u+1yi8wVyQWYoNMgmZ52WCJfM47WkpILhtQNNCYlCRqfEZ2Gof8JnmERX2BJEHaoAWHp4tRQKPCmiidv5j4XfdJNQZbHeHrG8tHNiHom0/0iuO7CEVHsOypmRoAuoYDu1ypnk4xuMuwIGpBFNmlEd5FA+c1pTb+4mRb82Fzb2yKUT0tMB3bZyLQDGHROAXrty+t64EJuPvrRN+PaPE3Hn5ms6CNURw6YH8vA7iYyi2jPJoT0VVqNPgEovZRCCbW8IWZW/e3KnKT/Gvib0dz9Zfwacoeelm3k10frFwSvUNSiF5WtNOTHTjdmEGwl1Aom5V1wk8roDfna8j4esr+byEbcPvq5uCfz8hm/5qwk7lHppMM+hBA1vI4MeMuwTYJ9YE+CSNL+wTRaxU5V1BFi6n/FxwPOiaz3IK0+nJ5czf1LPe3+EBmdmrjk/G9z8jNR5h59HpoRYDUnTrfv/x7O/5z/+AHqex3OjTk6EpKbzj9EK8YYMSrtnSJlbKL1uq57Ry/r7QQqkYwbG+tXWE8Fbs/a2dI8JBQwQ8ISAW37LzbxaX26cn2qfNW0POyPyDjvGx0Kmng/yvm2vZNW04YXdEqU+/TrTBKtuClnaTBidvpxjL2UjZzaTk3e+ppYUAJb9cSJXUzayjYLiIILeFPC6yPXFGoYoScwx+xf5MfJVV/NV+MBFzPzkPrnhQfTozlQrScrtc3DqtJQ56F9f4pLK9ihFU3ouz9Up/6jyswCyn7dbzcg743B1AHcxcAVxItxDnuWB2lWkXauiUjOJMZmJL3+t8buV8DUO+Uad7DuOTUlSkSft4lREGlqOmZRBx6ZKpl4foKsVmgGXUlo6Asjqu5hwXFwwh3HUV+gEwFBHouBtGsplBB7H8k/AtjF3WxNTFunFxEnAswQOyqiFE7ecfEz6CPsPe3650TFcXuhofZImlbb0lKs79RplIABKQ153IL4rByAhBWOTk1Vm8n/BL1+c9HwMAXiTLrVxBFj591oBC9jycBx4RyQVhoyN++LOXtGiSqZgbE2WYDO/SUTfRR1x0lc1cgBzsoJ96zwea58vOl/oDE908TIf93B69XTaCoPPK1WRtsnnA7Fn5yIUBLaviUxSGuHU98mtBL6nQeMPgC+yfDU6tLTsUBYHyljJ01+2RcA/q8Fp7VH1s+/e0Q17DHZccsjvxKt2biA/Y0h5Yc8HN8H731SWM+LlwPjFX58QOgORi6Ss6s1rY/ZJgA2Q9V1JCDLde7WFaId5i7d3vd9oYOJfL7iLAoykqkevZ/g1AWVeDuCWYaz+6NOQSD4K78k2bwy3K3Vgkyf86VwXnc8oURZL4emcVRBuBmPF+mmrdrU/Fy5cAU7b3EOjKrLFpJMxc1Gs8orRTc7EmkuXz+RAh0P3PkZ8AOb79jHWhf3NRKCBEslgpwiLEjniCBDYA9j6ZOriWVjXK8Kal7vY4diGcMfdCkdXf75heF/5uG/dozAhladQZ7yeqIuBMWLQXCHdxnLmT45kT4uBk8UA/zXkxdvaFjSTiODVsjvpHH7KIdntdmtyYdBxPPIsOKXsDs+VUgTJtAyUfMwwPD3huhCxBSHfEgFneEyPUTGbl1Nv8M29koIkEA4OAcn+VK0Z+qVjEBI21Fr1HC0OW/2d04C5GcFZH+CsK5fZPGeb59OVo06wPRPIM70gJ8O24kd3RreVoV7nPM6jTo2HnJq2QhHElQuqbDBxvZdMFNTf1k29vA1MXjNOO4NIcBkjx8btD9fWss6e62tvWth8pGah27cZeobRBuxauisdSYa7HM8prz95ThiFeXN5Gn84nLBGQIkdGv6XmqMqStX0wjWLGvUgkwa83t0SXsmPrry/ClET75UoH7unA2pBYhVPn008/LVNZYrzC6LZKI1wlBcZAZTWxEs3KHC0aE+zXLYAvTPMtPKS1VnqQ20mFrJ5QLDgGdCcZkiTZ5E3TktuKoIFsm56uEczOA30/8W9YDqvRoa1Mzctxnedeq8o+r3rPeALW5JDr9M3gEv6tt0pY5LndpP4QJ5y53mgpsnzcJQUQ09J1uDTVo4tMXxe80DS4WjADxKMcwWHnFYZhqP+3Dh0K+48N+/DprpEe3qfhL5QlHYj4TReNCf+ArldnbF1+5L9RQoJGOGXetuuMt5zhqwpl1aGaetvrGIBld7DM+Siv128ykUCvwlmQUWFkCQ+aJ81o3y7sC2dVVeiIZPy4VDfFc2qWz399W0EL28Z0Gbv/gQ3CGy7maw+aHx8y/4LTvF9Y33OQfdZgz2RIpoYWQpqC67lM0Fq6J4EOWdSQOi0CkiF80GjtJi3+nPlPrmOy4q12tesCyiIxjB7yqj1ZGQJGue8gGD9hpEy+2ctLpKSC+5VX3Uy3n6ZPsKnFLhMGxUp5ZWoFIljgIS+icp/uMW1Jlsvzo+81ua39XkJnVa2s+cqD/ntk/uUg9/xeNuGZ/b4xt7m+r9q2wriV2yOwLhpsWZD1GuOxD/IXDFbwe3a4tKSHqTdPePYqLwLxxfmmNqYQzXC5EYyaL/VRmeS2qUG6twrfZPre9SN9oip952jLAnJPQIbYMISNIBLRmwF5FG76ZA7QA7pTb5eW0/8BYg0mxPlDCOz2/cy5kYZszKK+mivFo+ZXco8GL1rUVepuKqpIKj5Sx4aPWB8ponQHPKangV8cvZdyx8VxvjrsWVQ9AYwFdSBCDCupXUWy/vlm1DQwsD6upL5jvwYmmQ/lrwgfWqFMdwRlASkCLSn3wZBIn0qxOl98Jf1Z4XQzZNTU8JW2bPpYwQYMZ7B8IcZ+GVYeG1t+dvlTFmcYkSvEZaxogbI52qkcih7nIcpijpwhVUcxAndhtd5mZ7AGFPSJDdv2HO36837hZOlYG89wpf/x4KXDPFBkTwsnTo+Pt7CfRNDQkqXsg1QMBBERTagwDfLENnrDgNRi03Sx0GO2fLX4zthOu3GoJ5E/nImDx29v7n+Pd5gvd3Jk3gF+G7S1xSxoQ3CHM+posD5cCOKJ8joV6I9JomNsTSJBAD0Z52bwc1L1L/6rGL1AzBqECUfQR18t6T5eepr/bLhsrZBNylZMFCfuWmSm9VA1ArLTrEN1aMtO4bD+gkI9aF+tNyM9uaSAfriV1G44Y7u2ZmB8PWQJ9bE4+DwdaWRUwfKbhYKb+rV5lm+oOs/0LJd7EoAWrYGQGm7Er0hGDogAztjnJT1Db4awGsh55oMVlweoam9M6OeUsU5d6d/3iJ1rIyUjzQMkqpgQV9cJUYSNh9PJuyWyc3c//Daf5VidHJFI7A5kFsWoPPU+3w44U+7N1cGUyF/W2J90PH1TzBPr3BLAekoEd3gDh+PKO/ZhRlqEV12KbbvEerNCFLhgZGXTOJA05A0Aj9aE/aeRqsc4QUV4IK3se0ccl2p56DNZEFGEn6pAnl/VM49ROrg4KNUYnSVBzoa3fpWx9TslFgOErPxPAn6Hwfw1A8JBFBKb1ukUGZrWqxW25N2UjKG3dlIfJ/scXjeeSA+7HnBmLXHUbkAILC8HDXTqq+4o7I7w2xhT4EegURXkN1tC4KT/pL48rcAOMGBInXp7gwL4kGJ2fJEJdqBObJ5pYjL5z+vcajtvw6GG18nFc6PPu9D0LQe6FEEXCJpPhbqb1uzWGuwc4OciKIkzSaWkn/p0mQaV08wychNvpQmoPFoIk1icU+nG9G0EDPRbfZZaz4YCtTLXk+EaVrhvaWYTbi34B7iU4Kxn8FD6He4oFrPYV3DHVFLlJS9EGrcW4FMURR61V20KSOaU3GcokESGfHpxbNFNjOm9ZNwm0a/P/RGSfvvIfzabCD/6BZumhapMAdD2AGCtIVlBRrF91nb+6gDU1t6/oW1BxaUficaQCkRezsiuvunkciQiinH22ce6WnPegFwMOw2KLgA1Le/NCzWfd86k3LAck4jwseSGzF/jg5OSTrNizvzcagIsRDDlPYyLWj91UN8fd4DxnrCQ6Ax3snTu/DxFE7tDBenoe4YIaCf7li/tAuV+WpRSw7WkGvKOahiCTxTm9KRCf/o8arIGqvj0ZFdX1EWn1WVJ8ImTmpUb3rjlPAIhZkhzFWhFq5U7QEHxnWDFdAN4MkdAK3xOHWNLLpcPUW6uPb7pdjbXUfwsbDR9bBZn6AkSzykpPMdmtBJnFu4IB52KovZqUOgHi2uK5Wdhm1ef5hVHy8Bq4rnKwo+K6mx2JGIbHvjuq0qrpul/OPU//xwkVLy1bQumYERK7sfa6VwUAa/O/EHiLrzCHnxybHkU3ZLc046reTTOTEzrg/Lz/69comUePNxatTc5E1xv5pH8+683BUKnprB1pqBeqskX4+z9F/wYKEul122q7Hg0CWNrQAuJDjhTWfXsAlSbRVoP4kjsMdJVDgyHL2kn7UCPCyQAphwTgrDgQuQWkHIvvfMzMit37thJhQaa3a5FGBgMt28BJO8d4YukYrv+58R6VyIcmIZjiCn9FS+jzQVo6fbhgB5h62FzlOzC4T1mgGRX6YjMvEyUFQE/NFz90NVoIoB/U1qZFOingCtytqnUixOrRjl0t54TjkvmOZSXonBYj8BWVfwPJQWYwi6dTcW4dEGiQ/4FHAANU53nJRcOAzoXsqLQcawpiDlg3Zk0GwAp58abbwVMIX8oan1lPjh09QaaMtJeBK74jBKAeMgx1KviLQGeOM8oEN/J+rdK76syEgXk/vo/UPzhVYMrybVM6a+EpHlUNAdJxGz6+XqSUNHCzkddMhZNz6hNKMWQ34x+GInHHM4lDQlMWomn0dB80wwQJ/1JJ6+BUn7bF6qy5hR/Q+/z5R1LGa3VJbQrWVkAQ+IiSOLvV1yHufrXj3EvTQFgWwrbK8on2bdQTHx8eNwTq7pT1jGzCedCP1JHKuKz9gp+QnPJlESdMZX3CHYK6PhaAgnufCyqWho0iakBy+boTfwVMeHE0gATqGq7bK0Y3cGheCDh/7gBKf0AKTF44kRlChrIWypKmcwxCrmjaL/mDJUPulqLzwF4ak8SfropYYKkvH4T3DXUAbcnfmkjqSCVCzZeDaai7kFRKWvcwwjCtAfHywVIXzz4CjkLLPXALmJnP3KyZdPiNZAS9do13u1Bt3IneICgpw8hO7LxDPimAg3XTltVARgL6LlySIh9yLtvf91r6BOu2iGbwkW8N5bTGMPN7RXQKClAqvNQMv1sPoWTkgO/mYrVmeluRDOcOw480INSBRX0qvntQ44Ai2hAsY402bSXE2OyUC2efQUml0LttLTGBziviZJe9/muy8Fef/3Xsllj8dC4w6qDotiQ2hr7L7Ddz02ceH7O8re5QG+vM404SspPp7oemZIsmiT5KKjhsx4OF2JmX9D+HoOjmZhZeAj8Mjw8i5OgGmEzLykDFW1UlZPpWYG8pNwoQHgfQE+f+4mtPCbj+C7gvaAHOvsyKCwNZmrW6IZJA2vXYRd/+7R0OMN1NaHNZtarcLFJTDobk9riHfMJjeKxEzwQTP/vdHcPOvBFNUBi0hODAy9DQEjR1u33xeyh0nwCa2rs+f8hxYXhKsBYCbOX7TfR3/0EIEEwhJkhd+4UzK744SCeeJk/l4dbP2j2KCo93TxGv1z237Dpq6U8KqUf68QjMscW3+5axCqmYIQKUawl8Z8Mx3KhjmnzlcxAbz0nB2USMQLOS/HG3mFFflGin745yQHiT5AkVeu5ufBcLVhvzBzns+qwmvym3AwuEvPRbfQFNic/3VOd+gQ3KmYZwm7YjVGDINylXVvJHElM9dxh0uOdFzUcw9JnW448s9hTDEmCPsjMqjQ6RsgfhtOwRo0c7b4P0iCnbVa8u6XUOKz0ohDONH8jAXemaqHZieN1SVIQqwuP3kYT7rkcZYG4mj5P/CNs7Id9BWfWMuqsBo7xU3vNDtwQ6DypsnXF4PgjVQco66TmrYKpEW4Pg9Jh07PVzllqI5aKZHRI2yMaOA0YOltZfbdEvNr8ZovQVViTc/kylHdifl5gpUS7q5WICSNa1Npc807RMP/SqsMCe+wbrJPzr10/ptraz7bx+IhwYiBNR5rE2vbaqZnyJiuiqvBzs+LamqElrwNg3FXOH29qvpVGBJDUOGw4FcxbUtsWw3LCW/jkIn/YBjCkqMwd9j/DultL2Jg/M5IWKfROOVQkoTgzheROtHrNIXMiSkXJf+0skP9pRRG7qsLA9xSEj16EEef1+FTLPNple1h1csaJcelLjS8vMMXEUs9konqVK082VhFFRPHDdSa1q055Y/sXewssshXJWtVGS3qmpNeBvrzG4mz4i7qRGHZcfxQs7qJfF3ZaDp8nIeORbM5Rkvbsd75RTfJUGczUMVuVyeD2IEH82o6zquwtBPjc/yzUu217RZRNf6XdpLv4bi+5RXgYIL9mX3VRbf6vx+OWULJKtmD69tzjUHjvLwPj7/2hKI4VzIViDdV6UlZ7Em61knmiU3EfCR11pOed7mALo3EHqOqXUHMO4oG+zIRWAAA'
-    
+
     var STARTUP_GUIDE_KEY = 'music.startupGuide.intro.v1'
     var startupGuideShownThisSession = false
-    
+
     function startupGuideDisabled() {
       try {
         return window.localStorage.getItem(STARTUP_GUIDE_KEY) === '1'
@@ -13250,14 +13257,14 @@ window.__ModuleLoader__.load({
         return false
       }
     }
-    
+
     function startupGuideOpen() {
       if (startupGuideShownThisSession) return false
       if (startupGuideDisabled()) return false
       startupGuideShownThisSession = true
       return true
     }
-    
+
     function dismissStartupGuide(disable) {
       startupGuideShownThisSession = true
       try {
@@ -13267,7 +13274,7 @@ window.__ModuleLoader__.load({
         // Best effort only; if storage is unavailable the guide may show again.
       }
     }
-    
+
     function StartupGuide(props) {
       var countPair = useState(3)
       var countdown = countPair[0]
@@ -13278,12 +13285,12 @@ window.__ModuleLoader__.load({
       var dontShowRef = useRef(false)
       var prefs = usePrefs()
       var coverStyle = prefs.coverStyle === 'vinyl' ? 'vinyl' : 'square'
-    
+
       function changeDontShow(next) {
         dontShowRef.current = next
         setDontShow(next)
       }
-    
+
       useEffect(
         function () {
           if (props.open !== true) return undefined
@@ -13300,7 +13307,7 @@ window.__ModuleLoader__.load({
         },
         [props.open],
       )
-    
+
       useEffect(
         function () {
           if (props.open !== true || countdown <= 0) return undefined
@@ -13316,14 +13323,14 @@ window.__ModuleLoader__.load({
         },
         [props.open, countdown],
       )
-    
+
       if (props.open !== true) return null
-    
+
       function finish() {
         if (countdown > 0) return
         props.onClose(dontShowRef.current)
       }
-    
+
       function chooseCoverStyle(style) {
         setPrefs({
           coverStyle: style,
@@ -13332,7 +13339,7 @@ window.__ModuleLoader__.load({
           coverSpin: style === 'vinyl',
         })
       }
-    
+
       var features = [
         {
           key: 'online',
@@ -13364,7 +13371,7 @@ window.__ModuleLoader__.load({
         },
       ]
       var progress = Math.round(((3 - countdown) / 3) * 100)
-    
+
       function styleOption(style, label) {
         var on = coverStyle === style
         return h(
@@ -13386,7 +13393,7 @@ window.__ModuleLoader__.load({
           on ? h('span', { className: 'mp-guide-style-check' }, icon('check', 12)) : null,
         )
       }
-    
+
       return h(
         KitModal,
         { headless: true, onClose: countdown > 0 ? undefined : finish, className: 'mp-guide-modal' },
@@ -13530,7 +13537,7 @@ window.__ModuleLoader__.load({
         ),
       )
     }
-    
+
     function Panel() {
       var ui = useStore(uiStore)
       var library = useStore(libraryStore)
@@ -13548,7 +13555,7 @@ window.__ModuleLoader__.load({
         return favoriteSet()
       }, [library.favorites])
       var favoriteCount = library.favorites.length
-    
+
       useEffect(
         function () {
           var deadline = Number(prefs.sleepDeadline) || 0
@@ -13577,7 +13584,7 @@ window.__ModuleLoader__.load({
         },
         [prefs.sleepDeadline, prefs.sleepTimerMinutes],
       )
-    
+
       useEffect(function () {
         void loadLibrary(false)
         void loadFavorites()
@@ -13585,7 +13592,7 @@ window.__ModuleLoader__.load({
         void loadConfig()
         void loadProviders()
       }, [])
-    
+
       useEffect(
         function () {
           if (isOnlineSource(ui.source)) {
@@ -13595,7 +13602,7 @@ window.__ModuleLoader__.load({
         },
         [ui.source],
       )
-    
+
       useEffect(function () {
         var timer = setInterval(function () {
           getJson(API + 'control/pending')
@@ -13610,7 +13617,7 @@ window.__ModuleLoader__.load({
           clearInterval(timer)
         }
       }, [])
-    
+
       useEffect(
         function () {
           if (current === null || !current.onlineProvider) return undefined
@@ -13625,7 +13632,7 @@ window.__ModuleLoader__.load({
         },
         [current ? current.path : ''],
       )
-    
+
       useEffect(function () {
         function onKey(event) {
           var tag = event.target && event.target.tagName
@@ -13674,7 +13681,7 @@ window.__ModuleLoader__.load({
           window.removeEventListener('keydown', onKey)
         }
       }, [])
-    
+
       function openTrackMenu(track, event, extra) {
         pushLayer('menu', {
           track: track,
@@ -13685,7 +13692,7 @@ window.__ModuleLoader__.load({
           onRemove: extra && typeof extra.onRemove === 'function' ? extra.onRemove : null,
         })
       }
-    
+
       function locateCurrent() {
         if (current === null) {
           showToast(t('page.noTrack'))
@@ -13703,7 +13710,7 @@ window.__ModuleLoader__.load({
           setLocatePath('')
         }, 1200)
       }
-    
+
       var contentProps = {
         ui: ui,
         library: library,
@@ -13718,12 +13725,12 @@ window.__ModuleLoader__.load({
           void toggleFavorite(track.path)
         },
       }
-    
+
       function closeGuide(disable) {
         dismissStartupGuide(disable === true)
         setGuideOpen(false)
       }
-    
+
       return h(
         'div',
         { className: cx('mp-root', prefs.layout === 'top' && 'is-top') },
@@ -13778,10 +13785,10 @@ window.__ModuleLoader__.load({
      * composer seats: the inline lyric line and the compact transport next to the
      * chat input. Both are optional and disappear when nothing is playing.
      */
-    
+
     var useComposerLayoutEffect =
       typeof React !== 'undefined' && typeof React.useLayoutEffect === 'function' ? React.useLayoutEffect : useEffect
-    
+
     function composerLyricContent(entry) {
       return [
         h('span', { key: 'main', className: 'mp-composer-lyric-main' }, entry.text),
@@ -13790,7 +13797,7 @@ window.__ModuleLoader__.load({
           : null,
       ]
     }
-    
+
     function ComposerLyricText(props) {
       var line = props.line
       var showTranslation = props.showTranslation === true
@@ -13833,7 +13840,7 @@ window.__ModuleLoader__.load({
         ),
       )
     }
-    
+
     function ComposerLyrics() {
       var prefs = usePrefs()
       var snap = usePlayerSnapshot()
@@ -13843,7 +13850,7 @@ window.__ModuleLoader__.load({
       var pair = useState([])
       var lines = pair[0]
       var setLines = pair[1]
-    
+
       useEffect(
         function () {
           if (prefs.composerLyrics !== true || trackPath === '') {
@@ -13881,7 +13888,7 @@ window.__ModuleLoader__.load({
         },
         [prefs.composerLyrics, trackPath],
       )
-    
+
       if (prefs.composerLyrics !== true || track === null) return null
       var index = lyricActiveIndex(lines, time.currentTime)
       var line = index >= 0 ? lines[index] : null
@@ -13897,7 +13904,7 @@ window.__ModuleLoader__.load({
         }),
       )
     }
-    
+
     function ComposerCluster() {
       var snap = usePlayerSnapshot()
       var ui = useStore(uiStore)
@@ -13935,7 +13942,7 @@ window.__ModuleLoader__.load({
         ),
       )
     }
-    
+
     function GlobalQueueHost() {
       var state = useStore(uiStore)
       var open = state.queueOpen === true && state.queueSource === 'composer'
@@ -14003,7 +14010,7 @@ window.__ModuleLoader__.load({
     /**
      * batch edit and duplicate cleanup dialogs.
      */
-    
+
     function BatchEditDialog(props) {
       var paths = props.layer.props.paths || []
       var pair = useState({ artist: '', album: '', genre: '', albumArtist: '' })
@@ -14012,7 +14019,7 @@ window.__ModuleLoader__.load({
       var busyPair = useState(false)
       var busy = busyPair[0]
       var setBusy = busyPair[1]
-    
+
       function field(key, label) {
         return h(
           'div',
@@ -14033,7 +14040,7 @@ window.__ModuleLoader__.load({
           }),
         )
       }
-    
+
       function save() {
         if (busy) return
         var patch = {}
@@ -14053,7 +14060,7 @@ window.__ModuleLoader__.load({
           void loadLibrary(true)
         })
       }
-    
+
       return h(
         KitModal,
         {
@@ -14086,10 +14093,10 @@ window.__ModuleLoader__.load({
               field('albumArtist', t('page.albumArtist')),
             ),
           ),
-    
+
       )
     }
-    
+
     function DuplicatesDialog(props) {
       var groups = props.layer.props.groups || []
       var removals = []
@@ -14100,7 +14107,7 @@ window.__ModuleLoader__.load({
         })
         return { keep: sorted[0], drop: sorted.slice(1) }
       })
-    
+
       function clean() {
         if (removals.length === 0) return
         pushLayer('confirm', {
@@ -14118,7 +14125,7 @@ window.__ModuleLoader__.load({
           },
         })
       }
-    
+
       return h(
         KitModal,
         {
@@ -14165,7 +14172,7 @@ window.__ModuleLoader__.load({
               )
             }),
           ),
-    
+
       )
     }
 
@@ -14176,7 +14183,7 @@ window.__ModuleLoader__.load({
      * Used from the tag editor (fills the lyrics box) and from the player (writes
      * the lyrics straight into the file).
      */
-    
+
     function OnlineLyricDialog(props) {
       var track = props.layer.props.track || {}
       var onApply = props.layer.props.onApply
@@ -14195,7 +14202,7 @@ window.__ModuleLoader__.load({
       var errorPair = useState('')
       var error = errorPair[0]
       var setError = errorPair[1]
-    
+
       function search() {
         var text = String(query || '').trim()
         if (text === '' || phase === 'loading') return
@@ -14213,7 +14220,7 @@ window.__ModuleLoader__.load({
             setPhase('error')
           })
       }
-    
+
       function choose(candidate) {
         if (!candidate || !candidate.id) return
         setError('')
@@ -14230,13 +14237,13 @@ window.__ModuleLoader__.load({
             setPhase('error')
           })
       }
-    
+
       function apply() {
         if (!preview || preview.lrc.trim() === '') return
         popLayer()
         if (typeof onApply === 'function') onApply(preview.lrc)
       }
-    
+
       return h(
         KitModal,
         {
@@ -14326,7 +14333,7 @@ window.__ModuleLoader__.load({
                       }),
                 ),
           ),
-    
+
       )
     }
 
@@ -14334,7 +14341,7 @@ window.__ModuleLoader__.load({
     /**
      * trash: restore tracks that were moved out of the library.
      */
-    
+
     function TrashDialog(props) {
       var statePair = useState({ phase: 'loading', entries: [] })
       var state = statePair[0]
@@ -14342,7 +14349,7 @@ window.__ModuleLoader__.load({
       var busyPair = useState('')
       var busy = busyPair[0]
       var setBusy = busyPair[1]
-    
+
       useEffect(function () {
         var cancelled = false
         getJson(API + 'trash')
@@ -14358,7 +14365,7 @@ window.__ModuleLoader__.load({
           cancelled = true
         }
       }, [])
-    
+
       function restore(entry) {
         if (busy !== '') return
         setBusy(entry.id)
@@ -14381,7 +14388,7 @@ window.__ModuleLoader__.load({
             showToast(errorText(error))
           })
       }
-    
+
       var count = state.phase === 'ready' ? state.entries.length : 0
       var body = h('div', { className: 'mp-set-desc' }, t('v2.trashHint'))
       if (state.phase === 'loading') {
@@ -14428,7 +14435,7 @@ window.__ModuleLoader__.load({
           }),
         )
       }
-    
+
       return h(
         KitModal,
         {
@@ -14446,7 +14453,7 @@ window.__ModuleLoader__.load({
      * shared content header: title + count, select / sort / search actions, and the
      * play-mode pills row used by both the local and online libraries.
      */
-    
+
     function focusGlobalSearch() {
       try {
         var input = document.querySelector('.mp-search-input')
@@ -14458,13 +14465,13 @@ window.__ModuleLoader__.load({
         // Search focus is best-effort only.
       }
     }
-    
+
     function HeadMenu(props) {
       var openPair = useState(false)
       var open = openPair[0]
       var setOpen = openPair[1]
       var ref = useRef(null)
-    
+
       useEffect(
         function () {
           if (!open) return undefined
@@ -14485,7 +14492,7 @@ window.__ModuleLoader__.load({
         },
         [open],
       )
-    
+
       var trigger = h(IconButton, {
         icon: props.icon,
         size: 17,
@@ -14534,7 +14541,7 @@ window.__ModuleLoader__.load({
           className: 'mp-headmenu-host',
         })
       }
-    
+
       return h(
         'div',
         { className: 'mp-headmenu', ref: ref },
@@ -14566,7 +14573,7 @@ window.__ModuleLoader__.load({
           : null,
       )
     }
-    
+
     function SelectMenu(props) {
       return h(HeadMenu, {
         icon: 'checkCircle',
@@ -14579,7 +14586,7 @@ window.__ModuleLoader__.load({
         ],
       })
     }
-    
+
     function SortMenu() {
       var prefs = usePrefs()
       var fields = [
@@ -14620,7 +14627,7 @@ window.__ModuleLoader__.load({
       })
       return h(HeadMenu, { icon: 'sort', title: t('page.sort'), items: items, hostMenu: false })
     }
-    
+
     function ContentHeader(props) {
       return h(
         'header',
@@ -14651,12 +14658,12 @@ window.__ModuleLoader__.load({
      *
      * Used from Settings → 音乐库 and from the folder view quick-add button.
      */
-    
+
     function FolderPickerDialog(props) {
       var statePair = useState({ phase: 'loading', path: '', parent: null, dirs: [], error: '' })
       var state = statePair[0]
       var setState = statePair[1]
-    
+
       function load(target) {
         setState(function (previous) {
           return Object.assign({}, previous, { phase: 'loading', error: '' })
@@ -14677,11 +14684,11 @@ window.__ModuleLoader__.load({
             })
           })
       }
-    
+
       useEffect(function () {
         load('')
       }, [])
-    
+
       function useHere() {
         if (state.path === '') return
         var config = libraryStore.get().config || {}
@@ -14694,7 +14701,7 @@ window.__ModuleLoader__.load({
         }
         saveConfig({ roots: roots }).then(after)
       }
-    
+
       var list = null
       if (state.phase === 'loading') {
         list = h('div', { className: 'mp-folder-state' }, h(Spinner), h('span', null, t('v2.loading')))
@@ -14731,7 +14738,7 @@ window.__ModuleLoader__.load({
           }),
         )
       }
-    
+
       return h(
         KitModal,
         {
@@ -14765,7 +14772,7 @@ window.__ModuleLoader__.load({
     /**
      * add one online song to one of the signed-in account's cloud playlists.
      */
-    
+
     function OnlineAddToDialog(props) {
       var layerProps = props.layer.props || {}
       var track = layerProps.track || null
@@ -14776,7 +14783,7 @@ window.__ModuleLoader__.load({
       var busyPair = useState('')
       var busy = busyPair[0]
       var setBusy = busyPair[1]
-    
+
       useEffect(
         function () {
           if (provider === '') return undefined
@@ -14800,7 +14807,7 @@ window.__ModuleLoader__.load({
         },
         [provider],
       )
-    
+
       function addTo(playlist) {
         if (busy !== '' || track === null) return
         setBusy(playlist.id)
@@ -14819,7 +14826,7 @@ window.__ModuleLoader__.load({
             showToast(errorText(error))
           })
       }
-    
+
       var body = null
       if (state.phase === 'loading') {
         body = h('div', { className: 'mp-folder-state' }, h(Spinner), h('span', null, t('v2.loading')))
@@ -14861,7 +14868,7 @@ window.__ModuleLoader__.load({
           }),
         )
       }
-    
+
       return h(
         KitModal,
         {
@@ -14885,7 +14892,7 @@ window.__ModuleLoader__.load({
      * trades it for a salted token (md5(paste + salt)) and persists only that. It
      * is cleared from component state the moment the request settles.
      */
-    
+
     function NavidromeDialog() {
       var serverPair = useState('')
       var userPair = useState('')
@@ -14898,7 +14905,7 @@ window.__ModuleLoader__.load({
       var keepPair = useState(false)
       var keepPassword = keepPair[0]
       var setKeepPassword = keepPair[1]
-    
+
       var server = serverPair[0]
       var setServer = serverPair[1]
       var username = userPair[0]
@@ -14911,7 +14918,7 @@ window.__ModuleLoader__.load({
       var setError = errorPair[1]
       var notice = noticePair[0]
       var setNotice = noticePair[1]
-    
+
       function save() {
         if (busy) return
         var trimmedServer = String(server || '').trim()
@@ -14919,7 +14926,7 @@ window.__ModuleLoader__.load({
         var secret = String(password || '')
         setError('')
         setNotice('')
-    
+
         if (!/^https?:\/\//i.test(trimmedServer)) {
           setError(t('online.navidromeBadServer'))
           return
@@ -14932,7 +14939,7 @@ window.__ModuleLoader__.load({
           setError(t('online.navidromeNeedPassword'))
           return
         }
-    
+
         setBusy(true)
         postJson(API + 'online/navidrome/login', {
           server: trimmedServer,
@@ -14958,12 +14965,12 @@ window.__ModuleLoader__.load({
             setError(errorText(err))
           })
       }
-    
+
       function onKeyDown(event) {
         if (event.key === 'Enter') save()
         if (event.key === 'Escape') popLayer()
       }
-    
+
       return h(
         KitModal,
         {
@@ -15042,9 +15049,9 @@ window.__ModuleLoader__.load({
     /**
      * plugin: seat registration and lifecycle.
      */
-    
+
     var SIDE_BANDS = [0, 2, 4, 8, 14, 24, 40, 64, 96]
-    
+
     function MusicSideIcon() {
       var snap = usePlayerSnapshot()
       var ref = useRef(null)
@@ -15060,7 +15067,7 @@ window.__ModuleLoader__.load({
       var waveFadingPair = useState(false)
       var waveFading = waveFadingPair[0]
       var setWaveFading = waveFadingPair[1]
-    
+
       useEffect(
         function () {
           var node = ref.current
@@ -15099,7 +15106,7 @@ window.__ModuleLoader__.load({
         },
         [],
       )
-    
+
       useEffect(
         function () {
           if (snap.playing !== true || snap.queue.length === 0) {
@@ -15151,7 +15158,7 @@ window.__ModuleLoader__.load({
         },
         [snap.playing, snap.queue.length],
       )
-    
+
       function control(key, name, title, run) {
         return h(
           'span',
@@ -15177,7 +15184,7 @@ window.__ModuleLoader__.load({
           icon(name, 13),
         )
       }
-    
+
       return h(
         'span',
         { className: 'mp-side-icon', ref: ref },
@@ -15216,7 +15223,7 @@ window.__ModuleLoader__.load({
           : null,
       )
     }
-    
+
     function NewPlaylistDialog(props) {
       var pair = useState('')
       var name = pair[0]
@@ -15224,7 +15231,7 @@ window.__ModuleLoader__.load({
       var busyPair = useState(false)
       var busy = busyPair[0]
       var setBusy = busyPair[1]
-    
+
       function create() {
         var value = name.trim()
         if (value === '' || busy) return
@@ -15237,7 +15244,7 @@ window.__ModuleLoader__.load({
           }
         })
       }
-    
+
       return h(
         'div',
         { className: 'mp-overlay is-on' },
@@ -15287,7 +15294,7 @@ window.__ModuleLoader__.load({
         ),
       )
     }
-    
+
     function apply(ctx) {
       try {
         if (typeof console !== 'undefined' && console.info) {
@@ -15302,7 +15309,7 @@ window.__ModuleLoader__.load({
       } catch (error) {
         // Keep the initial guess.
       }
-    
+
       var locale = ctx.locale
       if (
         locale !== null &&
@@ -15323,7 +15330,7 @@ window.__ModuleLoader__.load({
           localeTranslate = null
         }
       }
-    
+
       ctx.effect(function () {
         var style = document.createElement('style')
         style.dataset.plugin = 'dsh-music-panel'
@@ -15333,13 +15340,13 @@ window.__ModuleLoader__.load({
           style.remove()
         }
       })
-    
+
       ctx.effect(function () {
         return function () {
           player.suspend()
         }
       })
-    
+
       ctx.effect(function () {
         function onVisibility() {
           if (document.visibilityState === 'hidden') player.flushOnHide()
@@ -15354,7 +15361,7 @@ window.__ModuleLoader__.load({
           window.removeEventListener('beforeunload', onUnload)
         }
       })
-    
+
       ctx.effect(function () {
         try {
           if (
@@ -15387,7 +15394,7 @@ window.__ModuleLoader__.load({
           player.setLeader(true)
         }
       })
-    
+
       function mount(name, registration, component) {
         ctx.effect(function () {
           var dispose = ctx.slots.inject(name, function () {
@@ -15398,7 +15405,7 @@ window.__ModuleLoader__.load({
           }
         })
       }
-    
+
       mount('shell.overlay', { name: 'shell.overlay', id: 'music-player', order: 15 }, AudioHost)
       mount('shell.overlay', { name: 'shell.overlay', id: 'music-queue', order: 16 }, GlobalQueueHost)
       mount(
@@ -15452,6 +15459,10 @@ window.__ModuleLoader__.load({
           // Pure sidebar model, so tests can assert entries without matching
           // rendered copy (which shares words with empty-state text).
           navGroupsFor: navGroupsFor,
+          // Derived from UI_SOURCES; asserted so the music_control tool cannot
+          // drift away from the provider list again.
+          isOnlineSource: isOnlineSource,
+          UI_SOURCES: UI_SOURCES,
         },
         enumerable: false,
       })

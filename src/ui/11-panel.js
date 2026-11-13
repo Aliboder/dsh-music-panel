@@ -285,10 +285,9 @@ function applyControlAction(action) {
   if (action.action !== 'play') return
   var query = String(action.query || '').trim()
   if (query === '') return
-  var source =
-    action.source === 'netease' || action.source === 'qq' || action.source === 'kugou' || action.source === 'kugouLite'
-      ? action.source
-      : 'local'
+  // Must list every provider the tool advertises, or a request for that source
+  // silently degrades to a local library search (wrong track, or none at all).
+  var source = isOnlineSource(action.source) ? action.source : 'local'
   if (source === 'local') {
     var tracks = libraryStore.get().tracks
     var needle = query.toLowerCase()

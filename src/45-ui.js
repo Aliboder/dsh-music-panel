@@ -11,8 +11,12 @@ var LEGACY_UI_KEYS = ['mu.source', 'mu.view']
 /** Every selectable playback source, in tab order. */
 var UI_SOURCES = ['local', 'netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
 
+// Derived from UI_SOURCES so the list only exists once: a second hardcoded copy
+// is exactly how `music_control`'s source whitelist drifted and started
+// treating navidrome as a local search.
 function isOnlineSource(source) {
-  return source === 'netease' || source === 'qq' || source === 'kugou' || source === 'kugouLite' || source === 'navidrome'
+  if (source === 'local') return false
+  return UI_SOURCES.indexOf(String(source || '')) >= 0
 }
 
 function sourceLabelOf(source) {

@@ -8,6 +8,9 @@
  */
 
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const registrations = []
 const components = new Map()
@@ -456,6 +459,37 @@ assert.deepEqual(
   'the last page mirrors the first',
 )
 assert.equal(pageWindow(1, 31).filter((n) => n !== null).length, 3, 'no index is drawn twice')
+
+// 9. `music_control`'s source must resolve through the shared provider list.
+//    It used to hardcode the four Chinese platforms, so a request for
+//    `source: "navidrome"` fell back to a local library search — wrong track or
+//    silence, for a feature the tool description advertises.
+const isOnlineSource = internals.isOnlineSource
+assert.equal(typeof isOnlineSource, 'function', 'isOnlineSource is exposed for tests')
+assert.equal(isOnlineSource('navidrome'), true, 'navidrome counts as an online source')
+for (const provider of ['netease', 'qq', 'kugou', 'kugouLite']) {
+  assert.equal(isOnlineSource(provider), true, `${provider} stays an online source`)
+}
+assert.equal(isOnlineSource('local'), false, 'local is not an online source')
+assert.equal(isOnlineSource('nope'), false, 'an unknown source is not an online source')
+assert.deepEqual(
+  internals.UI_SOURCES,
+  ['local', 'netease', 'qq', 'kugou', 'kugouLite', 'navidrome'],
+  'the provider list has one definition',
+)
+
+// …and applyControlAction must call it instead of listing providers again.
+const panelSource = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'ui', '11-panel.js'), 'utf8')
+const controlBody = panelSource.slice(
+  panelSource.indexOf('function applyControlAction'),
+  panelSource.indexOf('function applyControlAction') + 1600,
+)
+assert.match(controlBody, /isOnlineSource\(action\.source\)/, 'the control action must use the shared helper')
+assert.doesNotMatch(
+  controlBody,
+  /action\.source === 'netease'/,
+  'the control action must not hardcode the provider list again',
+)
 
 console.log('panel.render.test.mjs ok')
 
