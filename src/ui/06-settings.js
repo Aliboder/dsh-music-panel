@@ -366,6 +366,48 @@ function SettingsSheet(props) {
       ),
       h(
         SetRow,
+        {
+          key: 'crossfade',
+          label: t('settings.crossfade'),
+          desc: t('settings.crossfadeHint'),
+        },
+        h(
+          'select',
+          {
+            value: String(prefs.crossfadeSeconds || 0),
+            onChange: function (event) {
+              patchPrefs({ crossfadeSeconds: Number(event.target.value) || 0 })
+            },
+          },
+          CROSSFADE_OPTIONS.map(function (seconds) {
+            return h(
+              'option',
+              { key: seconds, value: String(seconds) },
+              seconds === 0
+                ? t('settings.crossfadeOff')
+                : t('settings.crossfadeSeconds', { seconds: seconds }),
+            )
+          }),
+        ),
+      ),
+      prefs.crossfadeSeconds > 0
+        ? h(
+            SetRow,
+            {
+              key: 'crossfade-album',
+              label: t('settings.crossfadeAlbum'),
+              desc: t('settings.crossfadeAlbumHint'),
+            },
+            h(Switch, {
+              value: prefs.crossfadeAlbums === true,
+              onChange: function (value) {
+                patchPrefs({ crossfadeAlbums: value })
+              },
+            }),
+          )
+        : null,
+      h(
+        SetRow,
         { key: 'sleep', label: t('settings.sleepTimer') },
         h(
           'div',

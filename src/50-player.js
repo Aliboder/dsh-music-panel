@@ -106,6 +106,28 @@ function createPlayer() {
   if (typeof window !== 'undefined' && window[PLAYER_KEY]) return window[PLAYER_KEY]
   var prefs = readPrefs()
   var audio = null
+  /**
+   * Second element used only for the incoming side of a crossfade. The active
+   * deck is always the one in `audio`; the two swap roles when a fade lands, so
+   * everything below keeps talking about "the current element".
+   */
+  var audioB = null
+  var deckSource = null
+  var deckSourceB = null
+  var fadeNode = null
+  var fadeNodeB = null
+  var trimNode = null
+  var trimNodeB = null
+  var secondaryWired = false
+  var objectUrlB = null
+  var normalizeGainB = 1
+  /** Crossfade controller: token cancels stale fetches, timer lands the swap. */
+  var xfadeToken = 0
+  var xfadeActive = false
+  var xfadePending = false
+  var xfadeTimer = null
+  var xfadeNext = -1
+  var xfadeBlob = null
   /** Web Audio graph used by the bar visualizer (lazy, user-gesture bound). */
   var audioContext = null
   var analyser = null
@@ -458,20 +480,32 @@ function createPlayer() {
 
   // ── audio element wiring ───────────────────────────────────────────
 
-  function onTime() {
+  /**
+   * Events from the spare deck must not touch state. Handlers receive the
+   * Event when registered and a plain reason string when called internally.
+   */
+  function isActiveEvent(event) {
+    return event === null || event === undefined || !event.target || event.target === audio
+  }
+
+  function onTime(event) {
+    if (!isActiveEvent(event)) return
     if (audio === null) return
     state = Object.assign({}, state, { currentTime: audio.currentTime })
     emitTime()
     trackListening()
+    maybeCrossfade()
   }
 
-  function onDuration() {
+  function onDuration(event) {
+    if (!isActiveEvent(event)) return
     if (audio === null) return
     state = Object.assign({}, state, { duration: isFinite(audio.duration) ? audio.duration : 0 })
     emitTime()
   }
 
-  function onProgress() {
+  function onProgress(event) {
+    if (!isActiveEvent(event)) return
     if (audio === null) return
     if (audio.buffered && audio.buffered.length > 0) {
       state = Object.assign({}, state, {
@@ -481,18 +515,21 @@ function createPlayer() {
     }
   }
 
-  function onPlaying() {
+  function onPlaying(event) {
+    if (!isActiveEvent(event)) return
     errorStreak = 0
   }
 
-  function onPlay() {
+  function onPlay(event) {
+    if (!isActiveEvent(event)) return
     if (!state.playing) {
       patch({ playing: true })
       syncMediaSession()
     }
   }
 
-  function onPause() {
+  function onPause(event) {
+    if (!isActiveEvent(event)) return
     flushListening(true)
     flushSessionPosition()
     savePlaybackState()
@@ -502,7 +539,10 @@ function createPlayer() {
     }
   }
 
-  function onEnded() {
+  function onEnded(event) {
+    if (!isActiveEvent(event)) return
+    // The fade timer owns the hand-over; a late `ended` must not load twice.
+    if (xfadeActive) return
     flushListening(true)
     flushSessionPosition()
     if (state.queue.length === 0) return
@@ -521,7 +561,21 @@ function createPlayer() {
     load(nextIndexOf(state.index, state.queue.length), true)
   }
 
-  function onError(reason) {
+  function onError(eventOrReason) {
+    if (
+      eventOrReason !== null &&
+      typeof eventOrReason === 'object' &&
+      eventOrReason.target &&
+      eventOrReason.target !== audio
+    ) {
+      return
+    }
+    var reason =
+      typeof eventOrReason === 'string'
+        ? eventOrReason
+        : eventOrReason && typeof eventOrReason.message === 'string'
+          ? eventOrReason.message
+          : ''
     errorStreak += 1
     var failedTrack = state.queue[state.index] || null
     errorListeners.forEach(function (fn) {
@@ -602,25 +656,29 @@ function createPlayer() {
 
   function applyOutputVolume() {
     if (audio) audio.volume = effectiveVolume()
+    if (audioB) audioB.volume = effectiveVolume()
+  }
+
+  /** Push a linear gain into one deck's trim node (short ramp while playing). */
+  function applyTrimGain(node, linear, paused) {
+    if (node === null || audioContext === null) return
+    try {
+      var now = audioContext.currentTime
+      node.gain.cancelScheduledValues(now)
+      if (paused) node.gain.setValueAtTime(linear, now)
+      else node.gain.setTargetAtTime(linear, now, 0.12)
+    } catch (error) {
+      node.gain.value = linear
+    }
   }
 
   function applyNormalizeGain(linear) {
     normalizeGain = Number.isFinite(linear) && linear > 0 ? linear : 1
-    if (gainNode !== null && audioContext !== null) {
-      try {
-        var now = audioContext.currentTime
-        gainNode.gain.cancelScheduledValues(now)
-        // Before playback starts the gain must already be at its target;
-        // otherwise the first seconds ramp down audibly. While a track is
-        // playing, keep the short ramp so toggling normalization is smooth.
-        if (audio === null || audio.paused === true) {
-          gainNode.gain.setValueAtTime(normalizeGain, now)
-        } else {
-          gainNode.gain.setTargetAtTime(normalizeGain, now, 0.12)
-        }
-      } catch {
-        gainNode.gain.value = normalizeGain
-      }
+    if (trimNode !== null && audioContext !== null) {
+      // Before playback starts the gain must already be at its target;
+      // otherwise the first seconds ramp down audibly. While a track is
+      // playing, keep the short ramp so toggling normalization is smooth.
+      applyTrimGain(trimNode, normalizeGain, audio === null || audio.paused === true)
     } else {
       applyOutputVolume()
     }
@@ -773,6 +831,7 @@ function createPlayer() {
   function load(at, autoplay) {
     var item = state.queue[at]
     if (!item) return
+    abortCrossfade()
     // Close the previous listening session before switching tracks.
     flushListening(true)
     flushSessionPosition()
@@ -932,6 +991,326 @@ function createPlayer() {
       })
   }
 
+  // ── crossfade: two decks, equal-power overlap ───────────────────────
+  //
+  // The outgoing track keeps playing on the active element while the incoming
+  // track starts on the spare one. When the fade lands, the two decks swap
+  // roles, so every other part of the engine keeps working with `audio` and
+  // `normalizeGain`.
+
+  function ensureSecondary() {
+    if (audio === null || audioB !== null) return
+    var doc = audio.ownerDocument || (typeof document !== 'undefined' ? document : null)
+    if (doc === null || typeof doc.createElement !== 'function') return
+    audioB = doc.createElement('audio')
+    audioB.preload = 'metadata'
+    audioB.setAttribute('aria-hidden', 'true')
+    audioB.className = 'mp-audio-host'
+    if (audio.parentNode) audio.parentNode.insertBefore(audioB, audio.nextSibling)
+    bind(audioB)
+    audioB.volume = effectiveVolume()
+    audioB.muted = state.muted
+  }
+
+  /** Build the spare deck's source/fade/trim nodes once the graph exists. */
+  function wireSecondary() {
+    if (secondaryWired) return
+    if (audioB === null || audioContext === null || preampNode === null) return
+    try {
+      deckSourceB = audioContext.createMediaElementSource(audioB)
+      fadeNodeB = audioContext.createGain()
+      fadeNodeB.gain.value = 0
+      trimNodeB = audioContext.createGain()
+      trimNodeB.gain.value = normalizeGainB
+      deckSourceB.connect(fadeNodeB)
+      fadeNodeB.connect(trimNodeB)
+      trimNodeB.connect(preampNode)
+      secondaryWired = true
+    } catch (error) {
+      // A media element can only be bound once; leave crossfade disabled.
+      secondaryWired = false
+    }
+  }
+
+  function releaseObjectUrlB() {
+    if (objectUrlB === null) return
+    try {
+      URL.revokeObjectURL(objectUrlB)
+    } catch (error) {
+      // Revoking twice is harmless.
+    }
+    objectUrlB = null
+  }
+
+  /** Fetch one track the same way `load()` does, without touching the decks. */
+  function fetchTrackBlob(item) {
+    if (typeof item.onlineUrl === 'string' && item.onlineUrl !== '') {
+      return fetch(item.onlineUrl).then(function (response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status)
+        return response.blob()
+      })
+    }
+    return fetch(streamUrl(item.path)).then(function (response) {
+      if (response.ok) return response.blob()
+      return response
+        .json()
+        .catch(function () {
+          return null
+        })
+        .then(function (body) {
+          var reason = body && body.error && typeof body.error.message === 'string' ? body.error.message : ''
+          throw new Error(reason || 'HTTP ' + response.status)
+        })
+    })
+  }
+
+  /** Per-track loudness trim for the incoming deck (1 when normalization is off). */
+  function incomingTrim(item, blob) {
+    if (readPrefs().normalizeVolume === false) return Promise.resolve(1)
+    return analyzeLoudnessBlob(
+      item,
+      blob,
+      function () {
+        return true
+      },
+      function () {},
+    )
+      .then(function (gainDb) {
+        if (gainDb === null || gainDb === undefined) return 1
+        return Math.pow(10, clamp(gainDb, -15, 6) / 20)
+      })
+      .catch(function () {
+        return 1
+      })
+  }
+
+  function maybeCrossfade() {
+    if (xfadeActive || xfadePending) return
+    if (analyser === null || audio === null || audioContext === null) return
+    var settings = readPrefs()
+    if (crossfadeFadeSeconds(settings) <= 0) return
+    if (state.index < 0 || state.queue.length < 2) return
+    var next = nextIndexOf(state.index, state.queue.length)
+    if (next < 0 || next === state.index) return
+    if (!crossfadeNextAllowed(settings, currentItem(), state.queue[next])) return
+    var should = crossfadeShouldStart({
+      prefs: settings,
+      playing: state.playing,
+      hasGraph: true,
+      loop: state.loop,
+      index: state.index,
+      queueLength: state.queue.length,
+      duration: state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0,
+      currentTime: audio.currentTime,
+    })
+    if (!should) return
+    startCrossfade(next, crossfadeFadeSeconds(settings))
+  }
+
+  function startCrossfade(nextAt, seconds) {
+    var item = state.queue[nextAt]
+    if (!item || audio === null || analyser === null) return
+    var token = (xfadeToken += 1)
+    xfadePending = true
+    xfadeNext = nextAt
+    fetchTrackBlob(item)
+      .then(function (blob) {
+        if (token !== xfadeToken) return null
+        return incomingTrim(item, blob).then(function (trim) {
+          return { blob: blob, trim: trim }
+        })
+      })
+      .then(function (ready) {
+        if (ready === null || token !== xfadeToken || audio === null) return
+        var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
+        var remaining = duration - audio.currentTime
+        // Preparation can finish late; never schedule a fade longer than the
+        // audio that is actually left.
+        if (!(remaining > 0.8)) return abortCrossfade()
+        beginCrossfadePlayback(ready.blob, ready.trim, Math.min(seconds, remaining - 0.1), token)
+      })
+      .catch(function () {
+        if (token === xfadeToken) abortCrossfade()
+      })
+  }
+
+  function beginCrossfadePlayback(blob, trim, fade, token) {
+    ensureSecondary()
+    if (audioB === null || audioContext === null || fadeNode === null) return abortCrossfade()
+    wireSecondary()
+    if (!secondaryWired || fadeNodeB === null || trimNodeB === null) return abortCrossfade()
+    releaseObjectUrlB()
+    objectUrlB = URL.createObjectURL(blob)
+    xfadeBlob = blob
+    normalizeGainB = trim
+    audioB.volume = effectiveVolume()
+    audioB.muted = state.muted
+    audioB.src = objectUrlB
+    audioB.load()
+    var now = audioContext.currentTime
+    trimNodeB.gain.setValueAtTime(trim, now)
+    fadeNodeB.gain.cancelScheduledValues(now)
+    fadeNodeB.gain.setValueAtTime(0, now)
+    fadeNode.gain.cancelScheduledValues(now)
+    fadeNode.gain.setValueAtTime(1, now)
+    var started
+    try {
+      started = audioB.play()
+    } catch (error) {
+      return abortCrossfade()
+    }
+    Promise.resolve(started)
+      .then(function () {
+        if (token !== xfadeToken || audioContext === null) return
+        var at = audioContext.currentTime
+        var curves = crossfadeEqualPowerCurves(32)
+        fadeNode.gain.cancelScheduledValues(at)
+        fadeNode.gain.setValueAtTime(1, at)
+        fadeNode.gain.setValueCurveAtTime(curves.out, at, fade)
+        fadeNodeB.gain.cancelScheduledValues(at)
+        fadeNodeB.gain.setValueAtTime(0, at)
+        fadeNodeB.gain.setValueCurveAtTime(curves.incoming, at, fade)
+        xfadePending = false
+        xfadeActive = true
+        if (xfadeTimer !== null) clearTimeout(xfadeTimer)
+        xfadeTimer = setTimeout(function () {
+          xfadeTimer = null
+          promoteCrossfade(token)
+        }, Math.max(200, fade * 1000 - 40))
+      })
+      .catch(function () {
+        if (token === xfadeToken) abortCrossfade()
+      })
+  }
+
+  function swapDecks() {
+    var element = audio
+    audio = audioB
+    audioB = element
+    var source = deckSource
+    deckSource = deckSourceB
+    deckSourceB = source
+    var fade = fadeNode
+    fadeNode = fadeNodeB
+    fadeNodeB = fade
+    var trim = trimNode
+    trimNode = trimNodeB
+    trimNodeB = trim
+    var url = objectUrl
+    objectUrl = objectUrlB
+    objectUrlB = url
+    var loudness = normalizeGain
+    normalizeGain = normalizeGainB
+    normalizeGainB = loudness
+  }
+
+  function promoteCrossfade(token) {
+    if (token !== xfadeToken) return
+    if (!xfadeActive) return
+    xfadeActive = false
+    xfadePending = false
+    var nextAt = xfadeNext
+    xfadeNext = -1
+    if (nextAt < 0 || !state.queue[nextAt] || audio === null) return abortCrossfade()
+    flushListening(true)
+    flushSessionPosition()
+    swapDecks()
+    var item = state.queue[nextAt]
+    state = Object.assign({}, state, {
+      index: nextAt,
+      currentTime: audio.currentTime || 0,
+      duration: isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0,
+      buffered: 0,
+      playing: true,
+    })
+    currentLoudnessBlob = xfadeBlob
+    xfadeBlob = null
+    resetSession(item)
+    session.lastTime = audio.currentTime || 0
+    syncMediaSession()
+    applyOutputVolume()
+    emit()
+    savePlaybackState()
+    if (audioContext !== null) {
+      var now = audioContext.currentTime
+      if (fadeNode !== null) {
+        try {
+          fadeNode.gain.cancelScheduledValues(now)
+          fadeNode.gain.setValueAtTime(1, now)
+        } catch (error) {
+          // Already at unity.
+        }
+      }
+      if (fadeNodeB !== null) {
+        try {
+          fadeNodeB.gain.cancelScheduledValues(now)
+          fadeNodeB.gain.setValueAtTime(0, now)
+        } catch (error) {
+          // Already silenced.
+        }
+      }
+    }
+    // Silence and release the outgoing element; the next fade reuses it.
+    if (audioB !== null) {
+      try {
+        audioB.pause()
+        audioB.removeAttribute('src')
+        audioB.load()
+      } catch (error) {
+        // Detached element: nothing to stop.
+      }
+    }
+    releaseObjectUrlB()
+    normalizeGainB = 1
+  }
+
+  function abortCrossfade() {
+    if (!xfadePending && !xfadeActive && xfadeTimer === null) return
+    xfadeToken += 1
+    xfadePending = false
+    xfadeActive = false
+    xfadeNext = -1
+    xfadeBlob = null
+    if (xfadeTimer !== null) {
+      clearTimeout(xfadeTimer)
+      xfadeTimer = null
+    }
+    if (audioB !== null) {
+      try {
+        audioB.pause()
+        audioB.removeAttribute('src')
+        audioB.load()
+      } catch (error) {
+        // Detached element: nothing to stop.
+      }
+    }
+    releaseObjectUrlB()
+    normalizeGainB = 1
+    if (audioContext !== null) {
+      var now = audioContext.currentTime
+      if (fadeNode !== null) {
+        try {
+          fadeNode.gain.cancelScheduledValues(now)
+          fadeNode.gain.setValueAtTime(1, now)
+        } catch (error) {
+          // Already at unity.
+        }
+      }
+      if (fadeNodeB !== null) {
+        try {
+          fadeNodeB.gain.cancelScheduledValues(now)
+          fadeNodeB.gain.setValueAtTime(0, now)
+        } catch (error) {
+          // Already silenced.
+        }
+      }
+    }
+  }
+
+  function crossfadeActive() {
+    return xfadeActive === true
+  }
+
   var api = {
     subscribe: function (fn) {
       listeners.push(fn)
@@ -999,7 +1378,7 @@ function createPlayer() {
         var Ctx = window.AudioContext || window.webkitAudioContext
         if (!Ctx) return null
         if (audioContext === null) audioContext = new Ctx()
-        var source = audioContext.createMediaElementSource(audio)
+        deckSource = audioContext.createMediaElementSource(audio)
         preampNode = audioContext.createGain()
         eqNodes = buildEqNodes(audioContext)
         limiterNode = audioContext.createDynamicsCompressor()
@@ -1012,10 +1391,14 @@ function createPlayer() {
         analyser = audioContext.createAnalyser()
         analyser.fftSize = 256
         analyser.smoothingTimeConstant = 0.82
-        // source → preamp → 10 peaking bands → limiter → loudness gain → analyser
-        var tail = source
-        tail.connect(preampNode)
-        tail = preampNode
+        // Each deck owns a fade gain and a loudness trim; both sum into the
+        // shared preamp so the EQ, limiter and analyser stay single-instance.
+        fadeNode = audioContext.createGain()
+        trimNode = audioContext.createGain()
+        deckSource.connect(fadeNode)
+        fadeNode.connect(trimNode)
+        trimNode.connect(preampNode)
+        var tail = preampNode
         for (var index = 0; index < eqNodes.length; index += 1) {
           tail.connect(eqNodes[index].node)
           tail = eqNodes[index].node
@@ -1026,6 +1409,7 @@ function createPlayer() {
         gainNode.connect(analyser)
         analyser.connect(audioContext.destination)
         if (audio) audio.volume = state.volume
+        wireSecondary()
         applyNormalizeGain(normalizeGain)
         applyEq(true)
         waveData = new Uint8Array(analyser.frequencyBinCount)
@@ -1045,7 +1429,14 @@ function createPlayer() {
     /** Hand the resident <audio> element to the engine (null detaches). */
     attachAudio: function (el) {
       if (audio === el) return
+      abortCrossfade()
       if (audio !== null) unbind(audio)
+      if (audioB !== null) {
+        unbind(audioB)
+        if (audioB.parentNode) audioB.parentNode.removeChild(audioB)
+        audioB = null
+      }
+      releaseObjectUrlB()
       // A new media element needs a fresh source node; close the old graph.
       if (audioContext !== null) {
         try {
@@ -1059,6 +1450,13 @@ function createPlayer() {
       gainNode = null
       preampNode = null
       limiterNode = null
+      deckSource = null
+      deckSourceB = null
+      fadeNode = null
+      fadeNodeB = null
+      trimNode = null
+      trimNodeB = null
+      secondaryWired = false
       eqNodes = []
       waveData = null
       audio = el
@@ -1067,6 +1465,7 @@ function createPlayer() {
       el.preload = 'metadata'
       el.volume = effectiveVolume()
       el.muted = state.muted
+      ensureSecondary()
       var item = currentItem()
       if (item !== null) {
         if (objectUrl !== null) {
@@ -1250,7 +1649,9 @@ function createPlayer() {
       leader = next
       if (!leader) {
         pendingAutoplay = false
+        abortCrossfade()
         if (audio !== null) audio.pause()
+        if (audioB !== null) audioB.pause()
         if (state.playing) patch({ playing: false })
       }
       emit()
@@ -1258,8 +1659,19 @@ function createPlayer() {
     isLeader: function () {
       return leader
     },
+    /** Test/diagnostic view of the two-deck hand-over (no controls). */
+    getCrossfadeState: function () {
+      return {
+        active: xfadeActive,
+        pending: xfadePending,
+        secondary: audioB !== null,
+        wired: secondaryWired,
+        next: xfadeNext,
+      }
+    },
     pause: function () {
       pendingAutoplay = false
+      abortCrossfade()
       if (audio) audio.pause()
     },
     toggle: function () {
@@ -1276,6 +1688,8 @@ function createPlayer() {
     },
     seek: function (seconds) {
       if (audio === null) return
+      // A seek during a fade would desync the two decks; drop the fade first.
+      abortCrossfade()
       var el = audio
       var item = currentItem()
       // Media duration is unavailable until metadata lands; the scanned
@@ -1391,9 +1805,11 @@ function createPlayer() {
     setMuted: function (value) {
       state = Object.assign({}, state, { muted: value })
       if (audio) audio.muted = value
+      if (audioB) audioB.muted = value
       emit()
     },
     setLoop: function (value) {
+      if (value === 'one') abortCrossfade()
       state = Object.assign({}, state, { loop: value })
       savePrefs({ loop: value })
       emit()
@@ -1415,6 +1831,7 @@ function createPlayer() {
     clear: function () {
       loadToken += 1
       cancelPendingFetch()
+      abortCrossfade()
       releaseObjectUrl()
       if (audio) {
         audio.pause()
