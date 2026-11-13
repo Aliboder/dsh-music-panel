@@ -623,6 +623,38 @@ assert.ok(eqViewClasses.has('mp-eqp'), 'the equalizer content renders inside it'
 assert.ok(eqViewClasses.has('mp-fx-seg-btn'), 'the view switch stays visible in the equalizer view')
 assert.ok(textOf(eqView).includes('摇滚'), 'presets are available from the shared panel')
 
+// The transition view is part of the same audio-effects panel, so the switch
+// the user looks for lives next to 音量 and 均衡器 instead of only in settings.
+const transitionOff = expand(
+  React.createElement(AudioEffectsPanel, {
+    view: 'transition',
+    snap: { volume: 0.42 },
+    prefs: {},
+    track: null,
+    onView() {},
+  }),
+)
+assert.ok(classesOf(transitionOff).has('mp-np-extra-pop'), 'the transition view shares the panel')
+assert.ok(classesOf(transitionOff).has('mp-xf'), 'the crossfade controls render')
+assert.ok(textOf(transitionOff).includes('智能过渡'), 'the crossfade switch is labelled')
+assert.ok(textOf(transitionOff).includes('过渡'), 'the third segment label renders')
+
+const savedTransition = internals.prefsStore.get()
+internals.prefsStore.set(Object.assign({}, savedTransition, { crossfadeSeconds: 6, crossfadeAlbums: false }))
+const transitionOn = expand(
+  React.createElement(AudioEffectsPanel, {
+    view: 'transition',
+    snap: { volume: 0.42 },
+    prefs: {},
+    track: null,
+    onView() {},
+  }),
+)
+assert.ok(classesOf(transitionOn).has('mp-xf-chip'), 'duration chips render when enabled')
+assert.ok(textOf(transitionOn).includes('6 秒'), 'the active duration is listed')
+assert.ok(textOf(transitionOn).includes('同专辑也过渡'), 'the album switch renders when enabled')
+internals.prefsStore.set(savedTransition)
+
 console.log('panel.render.test.mjs ok')
 
 

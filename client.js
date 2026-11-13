@@ -2045,6 +2045,8 @@ window.__ModuleLoader__.load({
         'settings.crossfadeSeconds': '{seconds} 秒',
         'settings.crossfadeAlbum': '同专辑也过渡',
         'settings.crossfadeAlbumHint': '关闭时，同一专辑的连续曲目保持原始的硬切衔接。',
+        'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
+        'fx.transition': '过渡',
         'v2.listenTime': '累计播放时长',
         'v2.totalPlays': '总播放次数',
         'v2.trackedTracks': '有记录曲目',
@@ -2218,6 +2220,8 @@ window.__ModuleLoader__.load({
         'settings.crossfadeSeconds': '{seconds} s',
         'settings.crossfadeAlbum': 'Blend within albums too',
         'settings.crossfadeAlbumHint': 'When off, consecutive tracks of one album keep the hard cut they were authored with.',
+        'settings.crossfadeRuntimeHint': 'Needs Web Audio; skipped when the browser or the source cannot route through it.',
+        'fx.transition': 'Transition',
         'v2.listenTime': 'Listening time',
         'v2.totalPlays': 'Total plays',
         'v2.trackedTracks': 'Tracks tracked',
@@ -8067,6 +8071,15 @@ window.__ModuleLoader__.load({
       '.mp-fx-seg-btn.is-on{background:rgba(255,255,255,.14);color:#f4f4f5}',
       '.mp-fx-body{display:flex;flex:1;flex-direction:column;min-height:0;overflow-y:auto;overscroll-behavior:contain}',
       '.mp-fx-hint{margin-top:auto;padding-top:12px;font-size:11px;line-height:16px;color:rgba(255,255,255,.4)}',
+      '.mp-xf-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
+      '.mp-xf-title{font-size:13px;font-weight:650;color:#f4f4f5}',
+      '.mp-xf-desc{margin:8px 0 0;font-size:11px;line-height:16px;color:rgba(255,255,255,.5)}',
+      '.mp-xf-chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}',
+      '.mp-xf-chip{padding:6px 10px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:transparent;color:rgba(255,255,255,.75);font:inherit;font-size:12px;cursor:pointer}',
+      '.mp-xf-chip:hover{background:rgba(255,255,255,.08);color:#fff}',
+      '.mp-xf-chip.is-on{border-color:rgba(120,160,255,.65);background:rgba(90,130,255,.18);color:#fff}',
+      '.mp-xf-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;font-size:12px;color:rgba(255,255,255,.75)}',
+      '.mp-xf-hint{margin-top:auto;padding-top:12px;font-size:11px;line-height:16px;color:rgba(255,255,255,.4)}',
       '.mp-fx-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:rgba(255,255,255,.75)}',
       '.mp-fx-value{font-size:11px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}',
       '.mp-fx-range{width:100%;margin-top:8px}',
@@ -9677,13 +9690,79 @@ window.__ModuleLoader__.load({
     var AUDIO_FX_VIEWS = [
       { id: 'audio', labelKey: 'page.volume' },
       { id: 'eq', labelKey: 'eq.title' },
+      { id: 'transition', labelKey: 'fx.transition' },
     ]
+
+    /** Crossfade controls: the same prefs the settings sheet edits. */
+    function CrossfadePanel() {
+      var prefs = usePrefs()
+      var seconds = crossfadeFadeSeconds(prefs)
+      var enabled = seconds > 0
+
+      function setSeconds(value) {
+        setPrefs({ crossfadeSeconds: value })
+      }
+
+      return h(
+        'div',
+        { className: 'mp-fx-body mp-xf' },
+        h(
+          'div',
+          { className: 'mp-xf-head' },
+          h('span', { className: 'mp-xf-title' }, t('settings.crossfade')),
+          h(Switch, {
+            value: enabled,
+            label: t('settings.crossfade'),
+            onChange: function (value) {
+              setSeconds(value ? 5 : 0)
+            },
+          }),
+        ),
+        h('p', { className: 'mp-xf-desc' }, t('settings.crossfadeHint')),
+        enabled
+          ? h(
+              'div',
+              { className: 'mp-xf-chips' },
+              CROSSFADE_OPTIONS.filter(function (option) {
+                return option > 0
+              }).map(function (option) {
+                return h(
+                  'button',
+                  {
+                    key: option,
+                    type: 'button',
+                    className: cx('mp-xf-chip', seconds === option && 'is-on'),
+                    onClick: function () {
+                      setSeconds(option)
+                    },
+                  },
+                  t('settings.crossfadeSeconds', { seconds: option }),
+                )
+              }),
+            )
+          : null,
+        enabled
+          ? h(
+              'div',
+              { className: 'mp-xf-row' },
+              h('span', null, t('settings.crossfadeAlbum')),
+              h(Switch, {
+                value: prefs.crossfadeAlbums === true,
+                onChange: function (value) {
+                  setPrefs({ crossfadeAlbums: value })
+                },
+              }),
+            )
+          : null,
+        h('div', { className: 'mp-xf-hint' }, t('settings.crossfadeRuntimeHint')),
+      )
+    }
 
     function AudioEffectsPanel(props) {
       var snap = props.snap || {}
       var prefs = props.prefs || {}
       var track = props.track || null
-      var view = props.view === 'eq' ? 'eq' : 'audio'
+      var view = props.view === 'eq' ? 'eq' : props.view === 'transition' ? 'transition' : 'audio'
       var volume = clamp(Number(snap.volume), 0, 1)
       if (!isFinite(volume)) volume = 1
       var muted = snap.muted === true
@@ -9734,7 +9813,9 @@ window.__ModuleLoader__.load({
                 track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
               ),
             )
-          : h(EqPanel, {})
+          : view === 'transition'
+            ? h(CrossfadePanel, { prefs: prefs })
+            : h(EqPanel, {})
 
       return h(
         'div',
@@ -12202,13 +12283,15 @@ window.__ModuleLoader__.load({
                 h(IconButton, {
                   icon: 'equalizer',
                   size: 22,
-                  active: extraPanel === 'audio' || extraPanel === 'eq',
+                  active: extraPanel === 'audio' || extraPanel === 'eq' || extraPanel === 'transition',
                   title: t('page.audioEffects'),
                   onClick: function () {
-                    setExtraPanel(extraPanel === 'audio' || extraPanel === 'eq' ? '' : 'audio')
+                    var effectsOpen =
+                      extraPanel === 'audio' || extraPanel === 'eq' || extraPanel === 'transition'
+                    setExtraPanel(effectsOpen ? '' : 'audio')
                   },
                 }),
-                extraPanel === 'audio' || extraPanel === 'eq'
+                extraPanel === 'audio' || extraPanel === 'eq' || extraPanel === 'transition'
                   ? h(AudioEffectsPanel, {
                       view: extraPanel,
                       onView: setExtraPanel,

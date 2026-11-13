@@ -102,4 +102,10 @@ assert.match(player, /setValueCurveAtTime/, 'the fade is scheduled as a curve, n
 assert.match(player, /function swapDecks\(\)/, 'promotion swaps deck roles instead of reloading the track')
 assert.match(player, /abortCrossfade\(\)/, 'cancellation is wired into the player')
 
+// The control is reachable from the audio-effects panel, not only settings.
+const panel = readFileSync(join(root, 'src/ui/04-eq-panel.js'), 'utf8')
+assert.match(panel, /function CrossfadePanel/, 'the crossfade view exists in the effects panel')
+assert.match(panel, /id: 'transition'/, 'the panel exposes a transition segment')
+assert.match(panel, /CROSSFADE_OPTIONS/, 'the panel lists the same durations as settings')
+
 console.log('crossfade.test.mjs ok')

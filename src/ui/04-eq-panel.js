@@ -140,13 +140,79 @@ function EqPresetTile(props) {
 var AUDIO_FX_VIEWS = [
   { id: 'audio', labelKey: 'page.volume' },
   { id: 'eq', labelKey: 'eq.title' },
+  { id: 'transition', labelKey: 'fx.transition' },
 ]
+
+/** Crossfade controls: the same prefs the settings sheet edits. */
+function CrossfadePanel() {
+  var prefs = usePrefs()
+  var seconds = crossfadeFadeSeconds(prefs)
+  var enabled = seconds > 0
+
+  function setSeconds(value) {
+    setPrefs({ crossfadeSeconds: value })
+  }
+
+  return h(
+    'div',
+    { className: 'mp-fx-body mp-xf' },
+    h(
+      'div',
+      { className: 'mp-xf-head' },
+      h('span', { className: 'mp-xf-title' }, t('settings.crossfade')),
+      h(Switch, {
+        value: enabled,
+        label: t('settings.crossfade'),
+        onChange: function (value) {
+          setSeconds(value ? 5 : 0)
+        },
+      }),
+    ),
+    h('p', { className: 'mp-xf-desc' }, t('settings.crossfadeHint')),
+    enabled
+      ? h(
+          'div',
+          { className: 'mp-xf-chips' },
+          CROSSFADE_OPTIONS.filter(function (option) {
+            return option > 0
+          }).map(function (option) {
+            return h(
+              'button',
+              {
+                key: option,
+                type: 'button',
+                className: cx('mp-xf-chip', seconds === option && 'is-on'),
+                onClick: function () {
+                  setSeconds(option)
+                },
+              },
+              t('settings.crossfadeSeconds', { seconds: option }),
+            )
+          }),
+        )
+      : null,
+    enabled
+      ? h(
+          'div',
+          { className: 'mp-xf-row' },
+          h('span', null, t('settings.crossfadeAlbum')),
+          h(Switch, {
+            value: prefs.crossfadeAlbums === true,
+            onChange: function (value) {
+              setPrefs({ crossfadeAlbums: value })
+            },
+          }),
+        )
+      : null,
+    h('div', { className: 'mp-xf-hint' }, t('settings.crossfadeRuntimeHint')),
+  )
+}
 
 function AudioEffectsPanel(props) {
   var snap = props.snap || {}
   var prefs = props.prefs || {}
   var track = props.track || null
-  var view = props.view === 'eq' ? 'eq' : 'audio'
+  var view = props.view === 'eq' ? 'eq' : props.view === 'transition' ? 'transition' : 'audio'
   var volume = clamp(Number(snap.volume), 0, 1)
   if (!isFinite(volume)) volume = 1
   var muted = snap.muted === true
@@ -197,7 +263,9 @@ function AudioEffectsPanel(props) {
             track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
           ),
         )
-      : h(EqPanel, {})
+      : view === 'transition'
+        ? h(CrossfadePanel, { prefs: prefs })
+        : h(EqPanel, {})
 
   return h(
     'div',
