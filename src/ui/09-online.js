@@ -442,8 +442,12 @@ function OnlineContent(props) {
     } else if (albumSongs.length === 0) {
       body = h(Empty, { title: t('online.emptyResults'), icon: 'disc' })
     } else {
+      // Keep the album's own running order. The server returns tracks in
+      // disc/track sequence, so the shared sort (title, duration…) would
+      // scramble the album; playback uses the same array as the list.
+      var albumOrder = albumSongs.map(onlineTrackOf)
       body = h(TrackListBody, {
-        items: (setPlayAll(albumSongs), (onlineSelectionList = sortOnlineTracks(albumSongs))),
+        items: (setPlayAll(albumSongs), (onlineSelectionList = albumOrder)),
         resetKey: resetKey,
         selectionMode: selecting,
         selectedSet: selectedSet,
@@ -836,51 +840,6 @@ function OnlineContent(props) {
           )
         }),
       )
-    }
-  } else if (nav === 'album') {
-    title = (albumDetail && albumDetail.name) || t('v2.albums')
-    count = albumSongsList.length
-    resetKey = 'online-album:' + provider + ':' + browseId
-    if (browsePhase === 'loading' || browsePhase === 'idle') {
-      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-    } else if (browsePhase === 'error') {
-      body = h(Empty, { title: t('online.networkError'), icon: 'info' })
-    } else if (albumSongsList.length === 0) {
-      body = h(Empty, { title: t('page.noResults'), icon: 'note' })
-    } else {
-      // Keep the album's own running order. Navidrome returns tracks in
-      // disc/track sequence, so re-applying the user's sort preference (title,
-      // duration…) would scramble the album. Playback below uses the same
-      // array, so the queue matches what is on screen.
-      var albumOrder = albumSongsList.map(onlineTrackOf)
-      body = h(TrackListBody, {
-        items: (setPlayAll(albumSongsList), (onlineSelectionList = albumOrder)),
-        resetKey: resetKey,
-        selectionMode: selecting,
-        selectedSet: selectedSet,
-        onToggleSelect: toggleSelected,
-        onSelect: function (track, additive) {
-          selectTrackIn(onlineSelectionList, track, additive)
-        },
-        focusPath: props.locatePath || '',
-        currentPath: props.currentPath,
-        playing: props.playing,
-        favoriteSet: likedSet,
-        cachedOf: function (track) {
-          return online.cache[track.onlineId] === true
-        },
-        onPlay: function (track) {
-          var index = albumSongsList.findIndex(function (item) {
-            return 'online:' + item.provider + ':' + item.id === track.path
-          })
-          playOnlineResults(albumSongsList, index < 0 ? 0 : index)
-        },
-        onMenu: function (track, event) {
-          props.onMenu(track, event, { playSelected: playSelectedOnline })
-        },
-        onToggleFavorite: toggleOnlineFavorite,
-        empty: empty,
-      })
     }
   } else if (nav === 'cache') {
     title = t('v2.cache')
