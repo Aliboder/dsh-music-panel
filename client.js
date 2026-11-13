@@ -7266,7 +7266,7 @@ window.__ModuleLoader__.load({
         icon(props.icon, props.size || 16),
       )
       var HostTooltip = hostComponent('Tooltip')
-      if (HostTooltip !== null && typeof props.title === 'string' && props.title !== '') {
+      if (props.tooltip !== false && HostTooltip !== null && typeof props.title === 'string' && props.title !== '') {
         return h(HostTooltip, { label: props.title, side: 'bottom', delayMs: 400 }, button)
       }
       return button
@@ -7967,6 +7967,7 @@ window.__ModuleLoader__.load({
               icon: 'prev',
               size: 17,
               title: t('page.prev'),
+              tooltip: false,
               onClick: function () {
                 player.prev()
               },
@@ -7988,6 +7989,7 @@ window.__ModuleLoader__.load({
               icon: 'next',
               size: 17,
               title: t('page.next'),
+              tooltip: false,
               onClick: function () {
                 player.next()
               },
@@ -9913,6 +9915,7 @@ window.__ModuleLoader__.load({
                 icon: 'prev',
                 size: 28,
                 title: t('page.prev'),
+                tooltip: false,
                 onClick: function () {
                   player.prev()
                 },
@@ -9933,6 +9936,7 @@ window.__ModuleLoader__.load({
                 icon: 'next',
                 size: 28,
                 title: t('page.next'),
+                tooltip: false,
                 onClick: function () {
                   player.next()
                 },

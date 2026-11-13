@@ -1832,6 +1832,7 @@ function NowPlaying(props) {
             icon: 'prev',
             size: 28,
             title: t('page.prev'),
+            tooltip: false,
             onClick: function () {
               player.prev()
             },
@@ -1852,6 +1853,7 @@ function NowPlaying(props) {
             icon: 'next',
             size: 28,
             title: t('page.next'),
+            tooltip: false,
             onClick: function () {
               player.next()
             },

@@ -61,7 +61,7 @@ function IconButton(props) {
     icon(props.icon, props.size || 16),
   )
   var HostTooltip = hostComponent('Tooltip')
-  if (HostTooltip !== null && typeof props.title === 'string' && props.title !== '') {
+  if (props.tooltip !== false && HostTooltip !== null && typeof props.title === 'string' && props.title !== '') {
     return h(HostTooltip, { label: props.title, side: 'bottom', delayMs: 400 }, button)
   }
   return button

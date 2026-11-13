@@ -187,6 +187,7 @@ function PlayerBar(props) {
           icon: 'prev',
           size: 17,
           title: t('page.prev'),
+          tooltip: false,
           onClick: function () {
             player.prev()
           },
@@ -208,6 +209,7 @@ function PlayerBar(props) {
           icon: 'next',
           size: 17,
           title: t('page.next'),
+          tooltip: false,
           onClick: function () {
             player.next()
           },
