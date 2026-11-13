@@ -179,6 +179,30 @@ function SettingsSheet(props) {
       ),
       h(
         SetRow,
+        { key: 'composer-lyrics', label: t('settings.composerLyrics') },
+        h(Switch, {
+          value: prefs.composerLyrics === true,
+          onChange: function (value) {
+            patchPrefs({ composerLyrics: value })
+          },
+        }),
+      ),
+      h(
+        SetRow,
+        {
+          key: 'composer-translation',
+          label: t('settings.composerTranslation'),
+          desc: t('settings.composerTranslationDesc'),
+        },
+        h(Switch, {
+          value: prefs.composerTranslation !== false,
+          onChange: function (value) {
+            patchPrefs({ composerTranslation: value })
+          },
+        }),
+      ),
+      h(
+        SetRow,
         { key: 'size', label: t('page.lyricSize') },
         h('input', {
           type: 'range',

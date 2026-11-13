@@ -6,11 +6,21 @@
 var useComposerLayoutEffect =
   typeof React !== 'undefined' && typeof React.useLayoutEffect === 'function' ? React.useLayoutEffect : useEffect
 
+function firstComposerTranslation(value) {
+  var parts = String(value || '').split(/\r?\n/)
+  for (var i = 0; i < parts.length; i += 1) {
+    var text = parts[i].trim()
+    if (text !== '') return text
+  }
+  return ''
+}
+
 function composerLyricContent(entry) {
+  var translation = firstComposerTranslation(entry.translation)
   return [
     h('span', { key: 'main', className: 'mp-composer-lyric-main' }, entry.text),
-    entry.translation
-      ? h('span', { key: 'trans', className: 'mp-composer-lyric-trans' }, entry.translation)
+    translation
+      ? h('span', { key: 'trans', className: 'mp-composer-lyric-trans' }, translation)
       : null,
   ]
 }
@@ -19,7 +29,7 @@ function ComposerLyricText(props) {
   var line = props.line
   var showTranslation = props.showTranslation === true
   var text = line ? line.text : props.fallback
-  var translation = showTranslation && line && line.translation ? line.translation : ''
+  var translation = showTranslation && line ? firstComposerTranslation(line.translation) : ''
   var key = (props.index >= 0 ? props.index : 'fallback') + '|' + text + '|' + translation
   var pair = useState(function () {
     return { current: { key: key, text: text, translation: translation }, previous: null }
@@ -87,7 +97,9 @@ function ComposerLyrics() {
                 '&id=' +
                 encodeURIComponent(active.onlineId || ''),
             )
-            if (!cancelled) setLines(parseLrcText(body.lrc || ''))
+            var lines = parseLrcText(body.lrc || '')
+            if (body.translation) mergeLyricTranslation(lines, body.translation)
+            if (!cancelled) setLines(lines)
             return
           }
           var local = await getJson(
@@ -117,7 +129,8 @@ function ComposerLyrics() {
       line: line,
       index: index,
       fallback: trackTitleOf(track),
-      showTranslation: prefs.showTranslation === true,
+      showTranslation:
+        prefs.composerTranslation !== false && prefs.showTranslation === true,
     }),
   )
 }

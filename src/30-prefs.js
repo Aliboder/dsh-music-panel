@@ -28,6 +28,7 @@ var PREF_DEFAULTS = {
   translationScale: 90,
   npLayoutV2: false,
   composerLyrics: false,
+  composerTranslation: true,
   composerLyricPlace: 'input-left',
   volume: 1,
   loop: 'none',

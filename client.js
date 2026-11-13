@@ -1459,6 +1459,8 @@ window.__ModuleLoader__.load({
         'settings.lyricTranslation': '歌词翻译',
         'settings.translationScale': '翻译字体缩放',
         'settings.composerLyrics': '输入框歌词',
+        'settings.composerTranslation': '输入框歌词翻译',
+        'settings.composerTranslationDesc': '关闭后输入框上方只显示原文',
         'settings.composerLyricPlace': '输入框歌词位置',
         'settings.placeInputLeft': '输入框内（播放列表按钮左侧）',
         'settings.placeAbove': '输入框上方',
@@ -1896,6 +1898,8 @@ window.__ModuleLoader__.load({
         'settings.lyricTranslation': 'Lyric translation',
         'settings.translationScale': 'Translation scale',
         'settings.composerLyrics': 'Composer lyrics',
+        'settings.composerTranslation': 'Composer lyric translation',
+        'settings.composerTranslationDesc': 'Turn off to show only the original line above the input',
         'settings.composerLyricPlace': 'Composer lyric position',
         'settings.placeInputLeft': 'Left of the queue button',
         'settings.placeAbove': 'Above input',
@@ -3286,6 +3290,7 @@ window.__ModuleLoader__.load({
       translationScale: 90,
       npLayoutV2: false,
       composerLyrics: false,
+      composerTranslation: true,
       composerLyricPlace: 'input-left',
       volume: 1,
       loop: 'none',
@@ -10823,6 +10828,30 @@ window.__ModuleLoader__.load({
           ),
           h(
             SetRow,
+            { key: 'composer-lyrics', label: t('settings.composerLyrics') },
+            h(Switch, {
+              value: prefs.composerLyrics === true,
+              onChange: function (value) {
+                patchPrefs({ composerLyrics: value })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            {
+              key: 'composer-translation',
+              label: t('settings.composerTranslation'),
+              desc: t('settings.composerTranslationDesc'),
+            },
+            h(Switch, {
+              value: prefs.composerTranslation !== false,
+              onChange: function (value) {
+                patchPrefs({ composerTranslation: value })
+              },
+            }),
+          ),
+          h(
+            SetRow,
             { key: 'size', label: t('page.lyricSize') },
             h('input', {
               type: 'range',
@@ -15449,11 +15478,21 @@ window.__ModuleLoader__.load({
     var useComposerLayoutEffect =
       typeof React !== 'undefined' && typeof React.useLayoutEffect === 'function' ? React.useLayoutEffect : useEffect
 
+    function firstComposerTranslation(value) {
+      var parts = String(value || '').split(/\r?\n/)
+      for (var i = 0; i < parts.length; i += 1) {
+        var text = parts[i].trim()
+        if (text !== '') return text
+      }
+      return ''
+    }
+
     function composerLyricContent(entry) {
+      var translation = firstComposerTranslation(entry.translation)
       return [
         h('span', { key: 'main', className: 'mp-composer-lyric-main' }, entry.text),
-        entry.translation
-          ? h('span', { key: 'trans', className: 'mp-composer-lyric-trans' }, entry.translation)
+        translation
+          ? h('span', { key: 'trans', className: 'mp-composer-lyric-trans' }, translation)
           : null,
       ]
     }
@@ -15462,7 +15501,7 @@ window.__ModuleLoader__.load({
       var line = props.line
       var showTranslation = props.showTranslation === true
       var text = line ? line.text : props.fallback
-      var translation = showTranslation && line && line.translation ? line.translation : ''
+      var translation = showTranslation && line ? firstComposerTranslation(line.translation) : ''
       var key = (props.index >= 0 ? props.index : 'fallback') + '|' + text + '|' + translation
       var pair = useState(function () {
         return { current: { key: key, text: text, translation: translation }, previous: null }
@@ -15530,7 +15569,9 @@ window.__ModuleLoader__.load({
                     '&id=' +
                     encodeURIComponent(active.onlineId || ''),
                 )
-                if (!cancelled) setLines(parseLrcText(body.lrc || ''))
+                var lines = parseLrcText(body.lrc || '')
+                if (body.translation) mergeLyricTranslation(lines, body.translation)
+                if (!cancelled) setLines(lines)
                 return
               }
               var local = await getJson(
@@ -15560,7 +15601,8 @@ window.__ModuleLoader__.load({
           line: line,
           index: index,
           fallback: trackTitleOf(track),
-          showTranslation: prefs.showTranslation === true,
+          showTranslation:
+            prefs.composerTranslation !== false && prefs.showTranslation === true,
         }),
       )
     }
