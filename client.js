@@ -2100,11 +2100,10 @@ window.__ModuleLoader__.load({
         'eq.tabMine': '我的',
         'eq.tabEdit': '编辑',
         'eq.searchDevice': '搜索耳机型号',
-        'eq.deviceTitle': '按耳机型号补偿',
-        'eq.deviceHint': '搜索你的耳机型号，套用 AutoEQ 的测量补偿曲线；数据来自 oratory1990 / Crinacle / Rtings 等公开测量。',
         'eq.searching': '搜索中…',
         'eq.searchEmpty': '没有匹配的型号',
         'eq.searchFailed': '预设加载失败',
+        'eq.loadMore': '加载更多',
         'eq.deviceCount': '已显示 {shown} / 共 {total} 条',
         'eq.deviceCurrent': '当前设备：{name}',
         'eq.formInEar': '入耳',
@@ -2264,11 +2263,10 @@ window.__ModuleLoader__.load({
         'eq.tabMine': 'Mine',
         'eq.tabEdit': 'Edit',
         'eq.searchDevice': 'Search headphones',
-        'eq.deviceTitle': 'Match your headphones',
-        'eq.deviceHint': 'Search a model to apply its AutoEQ correction; measurements come from oratory1990, Crinacle, Rtings and others.',
         'eq.searching': 'Searching…',
         'eq.searchEmpty': 'No matching model',
         'eq.searchFailed': 'Could not load presets',
+        'eq.loadMore': 'Load more',
         'eq.deviceCount': '{shown} of {total}',
         'eq.deviceCurrent': 'Current: {name}',
         'eq.formInEar': 'in-ear',
@@ -7560,11 +7558,11 @@ window.__ModuleLoader__.load({
       '.mp-eq-tab:hover{color:#f4f4f5}',
       '.mp-eq-tab.is-on{background:rgba(255,255,255,.13);color:#f4f4f5}',
       '.mp-eq-body{display:flex;flex:1;flex-direction:column;min-height:0;overflow-y:auto;overscroll-behavior:contain}',
-      '.mp-eq-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}',
-      '.mp-eq-preset{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:7px 8px;border:1px solid transparent;border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.85);font:inherit;text-align:left;cursor:pointer}',
+      '.mp-eq-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:0}',
+      '.mp-eq-preset{display:flex;flex-direction:column;align-items:stretch;gap:4px;min-width:0;padding:7px 8px;border:1px solid transparent;border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.85);font:inherit;text-align:left;cursor:pointer}',
       '.mp-eq-preset:hover{background:rgba(255,255,255,.1)}',
       '.mp-eq-preset.is-on{border-color:rgba(120,160,255,.65);background:rgba(90,130,255,.18);color:#fff}',
-      '.mp-eq-preset-name{font-size:12px;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-eq-preset-name{min-width:0;font-size:12px;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.mp-eq-bars{display:flex;align-items:center;gap:2px;height:16px}',
       '.mp-eq-bars i{display:block;width:3px;min-height:2px;border-radius:1px;background:rgba(255,255,255,.42)}',
       '.mp-eq-preset.is-on .mp-eq-bars i,.mp-eq-saved-main:hover .mp-eq-bars i{background:rgba(150,180,255,.95)}',
@@ -7574,13 +7572,11 @@ window.__ModuleLoader__.load({
       '.mp-eq-search{flex:none;height:30px;padding:0 9px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none}',
       '.mp-eq-search::placeholder{color:rgba(255,255,255,.35)}',
       '.mp-eq-search:focus{border-color:rgba(120,160,255,.6)}',
-      '.mp-eq-device-list{display:flex;flex:1;flex-direction:column;gap:2px;min-height:0;overflow-y:auto;overscroll-behavior:contain}',
-      '.mp-eq-device-row{display:flex;flex:none;align-items:center;gap:8px;width:100%;padding:6px 8px;border:1px solid transparent;border-radius:8px;background:transparent;color:rgba(255,255,255,.85);font:inherit;text-align:left;cursor:pointer}',
-      '.mp-eq-device-row:hover{background:rgba(255,255,255,.07)}',
-      '.mp-eq-device-row.is-on{border-color:rgba(120,160,255,.6);background:rgba(90,130,255,.16);color:#fff}',
-      '.mp-eq-device-text{display:flex;flex:1;flex-direction:column;min-width:0;gap:1px}',
-      '.mp-eq-device-name{font-size:12px;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-      '.mp-eq-device-meta{font-size:11px;line-height:14px;color:rgba(255,255,255,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-eq-device-scroll{display:flex;flex:1;flex-direction:column;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}',
+      '.mp-eq-preset-caption{font-size:11px;line-height:14px;color:rgba(255,255,255,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-eq-preset.is-on .mp-eq-preset-caption{color:rgba(255,255,255,.7)}',
+      '.mp-eq-more{flex:none;margin-top:6px;width:100%;padding:7px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.75);font:inherit;font-size:12px;cursor:pointer}',
+      '.mp-eq-more:hover{background:rgba(255,255,255,.09);color:#fff}',
       '.mp-eq-device-count{flex:none;font-size:11px;line-height:14px;color:rgba(255,255,255,.4);text-align:center}',
       '.mp-eq-device-current{flex:none;font-size:11px;line-height:14px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.mp-eq-empty{display:flex;flex-direction:column;gap:4px;padding:20px 6px;text-align:center}',
@@ -9036,6 +9032,9 @@ window.__ModuleLoader__.load({
       { id: 'edit', labelKey: 'eq.tabEdit' },
     ]
 
+    /** One page of the AutoEQ library; "load more" appends the next batch. */
+    var EQ_DEVICE_PAGE = 40
+
     /** AutoEQ stores the measurement rig family; show it in the user's language. */
     function eqFormLabel(form) {
       var value = String(form || '')
@@ -9140,9 +9139,10 @@ window.__ModuleLoader__.load({
           type: 'button',
           className: cx('mp-eq-preset', props.active === true && 'is-on'),
           onClick: props.onClick,
-          title: props.name,
+          title: props.title || props.name,
         },
         h('span', { className: 'mp-eq-preset-name' }, props.name),
+        props.caption ? h('span', { className: 'mp-eq-preset-caption' }, props.caption) : null,
         h(EqMiniBars, { bands: props.bands }),
       )
     }
@@ -9284,39 +9284,62 @@ window.__ModuleLoader__.load({
       var totalPair = useState(0)
       var total = totalPair[0]
       var setTotal = totalPair[1]
+      var morePair = useState(false)
+      var loadingMore = morePair[0]
+      var setLoadingMore = morePair[1]
       var searchSeq = useRef(0)
+
+      /**
+       * One page of the device library. `offset` doubles as the append position:
+       * the panel only ever grows the list downward.
+       */
+      function fetchDevices(text, offset, append) {
+        var seq = searchSeq.current + 1
+        searchSeq.current = seq
+        if (append) setLoadingMore(true)
+        else setLoading(true)
+        getJson(
+          API +
+            'eq/presets?q=' +
+            encodeURIComponent(text) +
+            '&limit=' +
+            EQ_DEVICE_PAGE +
+            '&offset=' +
+            offset,
+        )
+          .then(function (body) {
+            if (searchSeq.current !== seq) return
+            var rows = Array.isArray(body.results) ? body.results : []
+            setFound(function (previous) {
+              return append ? previous.concat(rows) : rows
+            })
+            setTotal(Number(body.total) || 0)
+            setSearchError('')
+          })
+          .catch(function (error) {
+            if (searchSeq.current !== seq) return
+            if (!append) setFound([])
+            setSearchError(error && error.message ? error.message : t('eq.searchFailed'))
+          })
+          .then(function () {
+            if (searchSeq.current !== seq) return
+            setLoading(false)
+            setLoadingMore(false)
+          })
+      }
 
       useEffect(
         function () {
           if (tab !== 'device') return undefined
           var text = String(search || '').trim()
-          if (text === '') {
-            setFound([])
-            setTotal(0)
-            setSearchError('')
-            setLoading(false)
-            return undefined
-          }
-          var seq = searchSeq.current + 1
-          searchSeq.current = seq
-          setLoading(true)
-          var timer = setTimeout(function () {
-            getJson(API + 'eq/presets?q=' + encodeURIComponent(text) + '&limit=40')
-              .then(function (body) {
-                if (searchSeq.current !== seq) return
-                setFound(Array.isArray(body.results) ? body.results : [])
-                setTotal(Number(body.total) || 0)
-                setSearchError('')
-              })
-              .catch(function (error) {
-                if (searchSeq.current !== seq) return
-                setFound([])
-                setSearchError(error && error.message ? error.message : t('eq.searchFailed'))
-              })
-              .then(function () {
-                if (searchSeq.current === seq) setLoading(false)
-              })
-          }, 220)
+          // Typing waits for a pause; opening the tab loads the head of the library
+          // immediately so the tab always shows profiles, like the preset grid.
+          var timer = setTimeout(
+            function () {
+              fetchDevices(text, 0, false)
+            },
+            text === '' ? 0 : 220,
+          )
           return function () {
             clearTimeout(timer)
           }
@@ -9332,6 +9355,11 @@ window.__ModuleLoader__.load({
           device: entry.id,
           enabled: true,
         })
+      }
+
+      function loadMoreDevices() {
+        if (loading || loadingMore) return
+        fetchDevices(String(search || '').trim(), found.length, true)
       }
 
       function usePreset(preset) {
@@ -9404,33 +9432,19 @@ window.__ModuleLoader__.load({
           }),
         )
       } else if (tab === 'device') {
-        var deviceRows = found.map(function (entry) {
-          var selected = eq.preset === 'device' && eq.device === entry.id
-          return h(
-            'button',
-            {
-              key: entry.id,
-              type: 'button',
-              className: cx('mp-eq-device-row', selected && 'is-on'),
-              title: entry.name,
-              onClick: function () {
-                applyDevice(entry)
-              },
+        // Same tile grid as the factory presets, so the two libraries read alike.
+        var deviceTiles = found.map(function (entry) {
+          return h(EqPresetTile, {
+            key: entry.id,
+            name: entry.name,
+            caption: entry.source + (entry.form ? ' · ' + eqFormLabel(entry.form) : ''),
+            bands: entry.bands,
+            active: eq.preset === 'device' && eq.device === entry.id,
+            onClick: function () {
+              applyDevice(entry)
             },
-            h(
-              'span',
-              { className: 'mp-eq-device-text' },
-              h('span', { className: 'mp-eq-device-name' }, entry.name),
-              h(
-                'span',
-                { className: 'mp-eq-device-meta' },
-                entry.source + (entry.form ? ' · ' + eqFormLabel(entry.form) : ''),
-              ),
-            ),
-            h(EqMiniBars, { bands: entry.bands }),
-          )
+          })
         })
-        var searchText = String(search || '').trim()
         var selectedName = ''
         if (eq.preset === 'device' && eq.device !== '') {
           var parts = String(eq.device).split('::')
@@ -9452,29 +9466,30 @@ window.__ModuleLoader__.load({
           selectedName !== ''
             ? h('div', { className: 'mp-eq-device-current' }, t('eq.deviceCurrent', { name: selectedName }))
             : null,
-          searchText === ''
+          h(
+            'div',
+            { className: 'mp-eq-device-scroll' },
+            deviceTiles.length > 0
+              ? h('div', { className: 'mp-eq-grid' }, deviceTiles)
+              : h(
+                  'div',
+                  { className: 'mp-eq-empty' },
+                  h(
+                    'span',
+                    { className: 'mp-eq-empty-title' },
+                    loading ? t('eq.searching') : searchError !== '' ? searchError : t('eq.searchEmpty'),
+                  ),
+                ),
+          ),
+          // Outside the scroll area so it stays reachable however long the list is.
+          found.length > 0 && found.length < total
             ? h(
-                'div',
-                { className: 'mp-eq-empty' },
-                h('span', { className: 'mp-eq-empty-title' }, t('eq.deviceTitle')),
-                h('span', { className: 'mp-eq-empty-hint' }, t('eq.deviceHint')),
+                'button',
+                { type: 'button', className: 'mp-eq-more', onClick: loadMoreDevices },
+                loadingMore ? t('eq.searching') : t('eq.loadMore'),
               )
-            : h(
-                'div',
-                { className: 'mp-eq-device-list' },
-                deviceRows.length > 0
-                  ? deviceRows
-                  : h(
-                      'div',
-                      { className: 'mp-eq-empty' },
-                      h(
-                        'span',
-                        { className: 'mp-eq-empty-title' },
-                        loading ? t('eq.searching') : searchError !== '' ? searchError : t('eq.searchEmpty'),
-                      ),
-                    ),
-              ),
-          searchText !== '' && total > 0
+            : null,
+          total > 0
             ? h('div', { className: 'mp-eq-device-count' }, t('eq.deviceCount', { shown: found.length, total: total }))
             : null,
         )

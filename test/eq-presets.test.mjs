@@ -71,6 +71,15 @@ assert.equal(none.length, 0, 'no matches means no rows')
 const empty = searchEqPresets(payload, '', { limit: 3 })
 assert.equal(empty.length, 3, 'an empty query returns the head of the list')
 
+// Pagination: offsets walk the same sorted list without overlap.
+const page1 = searchEqPresets(payload, '', { limit: 5, offset: 0 })
+const page2 = searchEqPresets(payload, '', { limit: 5, offset: 5 })
+assert.equal(page1.length, 5)
+assert.equal(page2.length, 5)
+assert.notEqual(page1[0].n + page1[0].s, page2[0].n + page2[0].s, 'pages do not repeat entries')
+const tail = searchEqPresets(payload, '', { limit: 5, offset: payload.presets.length })
+assert.equal(tail.length, 0, 'an offset past the end returns nothing')
+
 const bySource = searchEqPresets(payload, '', { limit: 200, source: payload.sources[0].id })
 assert.ok(bySource.length > 0)
 assert.ok(

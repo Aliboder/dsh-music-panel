@@ -552,7 +552,7 @@ assert.ok(classesOf(mineTab).has('mp-eq-add'), 'the save entry renders')
 
 const deviceTab = renderEq({ initialTab: 'device' })
 assert.ok(classesOf(deviceTab).has('mp-eq-search'), 'the device search field renders')
-assert.ok(textOf(deviceTab).includes('按耳机型号补偿'), 'the device hint renders before a search')
+assert.ok(classesOf(deviceTab).has('mp-eq-device-scroll'), 'the device list scrolls inside the panel')
 
 const editTab = renderEq({ initialTab: 'edit' })
 assert.ok(classesOf(editTab).has('mp-eq-curve'), 'the response curve renders')

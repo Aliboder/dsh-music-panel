@@ -14,6 +14,9 @@ var EQ_TABS = [
   { id: 'edit', labelKey: 'eq.tabEdit' },
 ]
 
+/** One page of the AutoEQ library; "load more" appends the next batch. */
+var EQ_DEVICE_PAGE = 40
+
 /** AutoEQ stores the measurement rig family; show it in the user's language. */
 function eqFormLabel(form) {
   var value = String(form || '')
@@ -118,9 +121,10 @@ function EqPresetTile(props) {
       type: 'button',
       className: cx('mp-eq-preset', props.active === true && 'is-on'),
       onClick: props.onClick,
-      title: props.name,
+      title: props.title || props.name,
     },
     h('span', { className: 'mp-eq-preset-name' }, props.name),
+    props.caption ? h('span', { className: 'mp-eq-preset-caption' }, props.caption) : null,
     h(EqMiniBars, { bands: props.bands }),
   )
 }
@@ -262,39 +266,62 @@ function EqPanel(props) {
   var totalPair = useState(0)
   var total = totalPair[0]
   var setTotal = totalPair[1]
+  var morePair = useState(false)
+  var loadingMore = morePair[0]
+  var setLoadingMore = morePair[1]
   var searchSeq = useRef(0)
+
+  /**
+   * One page of the device library. `offset` doubles as the append position:
+   * the panel only ever grows the list downward.
+   */
+  function fetchDevices(text, offset, append) {
+    var seq = searchSeq.current + 1
+    searchSeq.current = seq
+    if (append) setLoadingMore(true)
+    else setLoading(true)
+    getJson(
+      API +
+        'eq/presets?q=' +
+        encodeURIComponent(text) +
+        '&limit=' +
+        EQ_DEVICE_PAGE +
+        '&offset=' +
+        offset,
+    )
+      .then(function (body) {
+        if (searchSeq.current !== seq) return
+        var rows = Array.isArray(body.results) ? body.results : []
+        setFound(function (previous) {
+          return append ? previous.concat(rows) : rows
+        })
+        setTotal(Number(body.total) || 0)
+        setSearchError('')
+      })
+      .catch(function (error) {
+        if (searchSeq.current !== seq) return
+        if (!append) setFound([])
+        setSearchError(error && error.message ? error.message : t('eq.searchFailed'))
+      })
+      .then(function () {
+        if (searchSeq.current !== seq) return
+        setLoading(false)
+        setLoadingMore(false)
+      })
+  }
 
   useEffect(
     function () {
       if (tab !== 'device') return undefined
       var text = String(search || '').trim()
-      if (text === '') {
-        setFound([])
-        setTotal(0)
-        setSearchError('')
-        setLoading(false)
-        return undefined
-      }
-      var seq = searchSeq.current + 1
-      searchSeq.current = seq
-      setLoading(true)
-      var timer = setTimeout(function () {
-        getJson(API + 'eq/presets?q=' + encodeURIComponent(text) + '&limit=40')
-          .then(function (body) {
-            if (searchSeq.current !== seq) return
-            setFound(Array.isArray(body.results) ? body.results : [])
-            setTotal(Number(body.total) || 0)
-            setSearchError('')
-          })
-          .catch(function (error) {
-            if (searchSeq.current !== seq) return
-            setFound([])
-            setSearchError(error && error.message ? error.message : t('eq.searchFailed'))
-          })
-          .then(function () {
-            if (searchSeq.current === seq) setLoading(false)
-          })
-      }, 220)
+      // Typing waits for a pause; opening the tab loads the head of the library
+      // immediately so the tab always shows profiles, like the preset grid.
+      var timer = setTimeout(
+        function () {
+          fetchDevices(text, 0, false)
+        },
+        text === '' ? 0 : 220,
+      )
       return function () {
         clearTimeout(timer)
       }
@@ -310,6 +337,11 @@ function EqPanel(props) {
       device: entry.id,
       enabled: true,
     })
+  }
+
+  function loadMoreDevices() {
+    if (loading || loadingMore) return
+    fetchDevices(String(search || '').trim(), found.length, true)
   }
 
   function usePreset(preset) {
@@ -382,33 +414,19 @@ function EqPanel(props) {
       }),
     )
   } else if (tab === 'device') {
-    var deviceRows = found.map(function (entry) {
-      var selected = eq.preset === 'device' && eq.device === entry.id
-      return h(
-        'button',
-        {
-          key: entry.id,
-          type: 'button',
-          className: cx('mp-eq-device-row', selected && 'is-on'),
-          title: entry.name,
-          onClick: function () {
-            applyDevice(entry)
-          },
+    // Same tile grid as the factory presets, so the two libraries read alike.
+    var deviceTiles = found.map(function (entry) {
+      return h(EqPresetTile, {
+        key: entry.id,
+        name: entry.name,
+        caption: entry.source + (entry.form ? ' · ' + eqFormLabel(entry.form) : ''),
+        bands: entry.bands,
+        active: eq.preset === 'device' && eq.device === entry.id,
+        onClick: function () {
+          applyDevice(entry)
         },
-        h(
-          'span',
-          { className: 'mp-eq-device-text' },
-          h('span', { className: 'mp-eq-device-name' }, entry.name),
-          h(
-            'span',
-            { className: 'mp-eq-device-meta' },
-            entry.source + (entry.form ? ' · ' + eqFormLabel(entry.form) : ''),
-          ),
-        ),
-        h(EqMiniBars, { bands: entry.bands }),
-      )
+      })
     })
-    var searchText = String(search || '').trim()
     var selectedName = ''
     if (eq.preset === 'device' && eq.device !== '') {
       var parts = String(eq.device).split('::')
@@ -430,29 +448,30 @@ function EqPanel(props) {
       selectedName !== ''
         ? h('div', { className: 'mp-eq-device-current' }, t('eq.deviceCurrent', { name: selectedName }))
         : null,
-      searchText === ''
+      h(
+        'div',
+        { className: 'mp-eq-device-scroll' },
+        deviceTiles.length > 0
+          ? h('div', { className: 'mp-eq-grid' }, deviceTiles)
+          : h(
+              'div',
+              { className: 'mp-eq-empty' },
+              h(
+                'span',
+                { className: 'mp-eq-empty-title' },
+                loading ? t('eq.searching') : searchError !== '' ? searchError : t('eq.searchEmpty'),
+              ),
+            ),
+      ),
+      // Outside the scroll area so it stays reachable however long the list is.
+      found.length > 0 && found.length < total
         ? h(
-            'div',
-            { className: 'mp-eq-empty' },
-            h('span', { className: 'mp-eq-empty-title' }, t('eq.deviceTitle')),
-            h('span', { className: 'mp-eq-empty-hint' }, t('eq.deviceHint')),
+            'button',
+            { type: 'button', className: 'mp-eq-more', onClick: loadMoreDevices },
+            loadingMore ? t('eq.searching') : t('eq.loadMore'),
           )
-        : h(
-            'div',
-            { className: 'mp-eq-device-list' },
-            deviceRows.length > 0
-              ? deviceRows
-              : h(
-                  'div',
-                  { className: 'mp-eq-empty' },
-                  h(
-                    'span',
-                    { className: 'mp-eq-empty-title' },
-                    loading ? t('eq.searching') : searchError !== '' ? searchError : t('eq.searchEmpty'),
-                  ),
-                ),
-          ),
-      searchText !== '' && total > 0
+        : null,
+      total > 0
         ? h('div', { className: 'mp-eq-device-count' }, t('eq.deviceCount', { shown: found.length, total: total }))
         : null,
     )
