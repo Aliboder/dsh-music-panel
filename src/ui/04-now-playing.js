@@ -1192,7 +1192,7 @@ function NowPlaying(props) {
         if (cancelled || texture === '') return
         setBg(function (prev) {
           if (prev.current === texture) return prev
-          return { current: texture, previous: '' }
+          return { current: texture, previous: prev.current }
         })
       })
       return function () {
@@ -1726,12 +1726,6 @@ function NowPlaying(props) {
         { className: 'mp-np-left' },
         h(
           'div',
-          { className: 'mp-np-left-hero' },
-          h(
-            'div',
-            { className: 'mp-np-left-layer' },
-        h(
-          'div',
           { className: 'mp-np-meta' },
           h('div', { className: 'mp-np-title' }, track ? trackTitleOf(track) : '—'),
           h(
@@ -1776,8 +1770,6 @@ function NowPlaying(props) {
             ),
           ),
         ),
-        ),
-          ),
         ),
         h(
           'div',

@@ -76,54 +76,6 @@ function prevIndexOf(index, size) {
   return (index - 1 + size) % size
 }
 
-// Only the left hero (cover + title + artist) is captured by the View
-// Transition. The right lyrics, background and controls update immediately.
-var heroTransitionBusy = false
-function withHeroTransition(direction, update) {
-  if (typeof document === 'undefined' || typeof document.startViewTransition !== 'function') {
-    update()
-    return
-  }
-  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    update()
-    return
-  }
-  if (heroTransitionBusy || document.querySelector('.mp-np-left-hero') === null || document.querySelector('.mp-np.is-open') === null) {
-    update()
-    return
-  }
-  var root = document.documentElement
-  root.setAttribute('data-mp-slide', direction === 'prev' ? 'prev' : 'next')
-  heroTransitionBusy = true
-  var updated = false
-  function commit() {
-    updated = true
-    update()
-    return new Promise(function (resolve) {
-      setTimeout(resolve, 50)
-    })
-  }
-  var transition
-  try {
-    transition = document.startViewTransition(commit)
-  } catch (error) {
-    heroTransitionBusy = false
-    root.removeAttribute('data-mp-slide')
-    if (!updated) update()
-    return
-  }
-  if (transition && transition.finished && typeof transition.finished.finally === 'function') {
-    transition.finished.finally(function () {
-      heroTransitionBusy = false
-      root.removeAttribute('data-mp-slide')
-    })
-  } else {
-    heroTransitionBusy = false
-    root.removeAttribute('data-mp-slide')
-  }
-}
-
 // ── playback engine (module-level: survives panel unmount) ───────────
 // The <audio> element lives here rather than in the React tree, so
 // selecting another main panel keeps the current track playing.
@@ -558,11 +510,7 @@ function createPlayer() {
       patch({ playing: false })
       return
     }
-    var target = nextIndexOf(state.index, state.queue.length)
-    if (target === state.index) return
-    withHeroTransition('next', function () {
-      load(target, true)
-    })
+    load(nextIndexOf(state.index, state.queue.length), true)
   }
 
   function onError() {
@@ -580,11 +528,7 @@ function createPlayer() {
       patch({ playing: false })
       return
     }
-    var target = nextIndexOf(state.index, state.queue.length)
-    if (target === state.index) return
-    withHeroTransition('next', function () {
-      load(target, true)
-    })
+    load(nextIndexOf(state.index, state.queue.length), true)
   }
 
   function bind(el) {
@@ -1209,19 +1153,11 @@ function createPlayer() {
     },
     next: function () {
       if (state.queue.length === 0) return
-      var target = nextIndexOf(state.index, state.queue.length)
-      if (target === state.index) return
-      withHeroTransition('next', function () {
-        load(target, true)
-      })
+      load(nextIndexOf(state.index, state.queue.length), true)
     },
     prev: function () {
       if (state.queue.length === 0) return
-      var target = prevIndexOf(state.index, state.queue.length)
-      if (target === state.index) return
-      withHeroTransition('prev', function () {
-        load(target, true)
-      })
+      load(prevIndexOf(state.index, state.queue.length), true)
     },
     seek: function (seconds) {
       if (audio === null) return
