@@ -127,6 +127,7 @@ function createPlayer() {
   var xfadePending = false
   var xfadeAdopted = false
   var xfadeTimer = null
+  var xfadeAdoptTimer = null
   var xfadeNext = -1
   /** Blob of the track on the active deck, kept for the tail analysis. */
   var currentBlob = null
@@ -1227,16 +1228,31 @@ function createPlayer() {
         if (token !== xfadeToken || audioContext === null || audio === null) return
         var at = audioContext.currentTime
         var curves = crossfadeEqualPowerCurves(32)
+        // The outgoing track fades across the whole overlap, but the incoming
+        // one only rises during its last few seconds: the next song must not be
+        // singing a long time before the hand-over.
+        var blend = crossfadeIncomingWindow(fade)
         fadeNode.gain.cancelScheduledValues(at)
         fadeNode.gain.setValueAtTime(1, at)
         fadeNode.gain.setValueCurveAtTime(curves.out, at, fade)
         fadeNodeB.gain.cancelScheduledValues(at)
         fadeNodeB.gain.setValueAtTime(0, at)
-        fadeNodeB.gain.setValueCurveAtTime(curves.incoming, at, fade)
+        if (blend.delay > 0.02) fadeNodeB.gain.setValueAtTime(0, at + blend.delay)
+        fadeNodeB.gain.setValueCurveAtTime(curves.incoming, at + blend.delay, blend.window)
         xfadeActive = true
-        // The UI follows the incoming track from the moment it starts singing;
-        // the outgoing deck keeps fading as a ghost until the curve lands.
-        adoptIncoming(token)
+        xfadePending = false
+        // The UI switches when the incoming track becomes audible, not when the
+        // (possibly silent) overlap starts.
+        if (xfadeAdoptTimer !== null) clearTimeout(xfadeAdoptTimer)
+        if (blend.delay > 0.05) {
+          xfadeAdoptTimer = setTimeout(function () {
+            xfadeAdoptTimer = null
+            adoptIncoming(token)
+          }, blend.delay * 1000)
+        } else {
+          xfadeAdoptTimer = null
+          adoptIncoming(token)
+        }
         if (xfadeTimer !== null) clearTimeout(xfadeTimer)
         xfadeTimer = setTimeout(function () {
           xfadeTimer = null
@@ -1308,6 +1324,12 @@ function createPlayer() {
   /** The overlap is over: silence and release the outgoing element. */
   function finishCrossfade(token) {
     if (token !== xfadeToken) return
+    if (xfadeAdoptTimer !== null) {
+      clearTimeout(xfadeAdoptTimer)
+      xfadeAdoptTimer = null
+    }
+    // Timers can race under throttling; never leave the UI on the ghost.
+    if (!xfadeAdopted && xfadePrepared !== null) adoptIncoming(token)
     xfadeActive = false
     xfadePending = false
     xfadeAdopted = false
@@ -1354,6 +1376,10 @@ function createPlayer() {
     if (xfadeTimer !== null) {
       clearTimeout(xfadeTimer)
       xfadeTimer = null
+    }
+    if (xfadeAdoptTimer !== null) {
+      clearTimeout(xfadeAdoptTimer)
+      xfadeAdoptTimer = null
     }
     if (audioB !== null) {
       try {

@@ -16,7 +16,7 @@ const factory = new Function(
     CROSSFADE_MAX_SECONDS, CROSSFADE_MIN_SECONDS, CROSSFADE_PREPARE_SECONDS,
     CROSSFADE_INTRO_SKIP_SECONDS, crossfadeFadeSeconds, crossfadeSameAlbum,
     crossfadeNextAllowed, crossfadePlan, crossfadeShouldStart,
-    crossfadeEqualPowerCurves,
+    crossfadeEqualPowerCurves, crossfadeIncomingWindow,
   }`,
 )
 const fx = factory()
@@ -104,6 +104,13 @@ assert.equal(fx.crossfadeShouldStart(null), false)
 const lead = fx.CROSSFADE_PREPARE_SECONDS
 assert.equal(fx.crossfadeShouldStart({ ...base, currentTime: 180 - lead - 0.2 }), false)
 assert.equal(fx.crossfadeShouldStart({ ...base, currentTime: 180 - lead + 0.2 }), true)
+
+// The incoming track must not be audible for the whole overlap: it only rises
+// during the last few seconds, so it is not "already singing" at hand-over.
+assert.deepEqual(fx.crossfadeIncomingWindow(6), { window: 2.5, delay: 3.5 })
+assert.deepEqual(fx.crossfadeIncomingWindow(2.5), { window: 2.5, delay: 0 })
+assert.deepEqual(fx.crossfadeIncomingWindow(1), { window: 1, delay: 0 })
+assert.deepEqual(fx.crossfadeIncomingWindow(0), { window: 0, delay: 0 })
 
 // ── equal-power curves ────────────────────────────────────────────────────
 const curves = fx.crossfadeEqualPowerCurves(32)

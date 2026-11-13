@@ -4150,6 +4150,13 @@ window.__ModuleLoader__.load({
     /** Only a genuinely silent intro is skipped, and never more than this. */
     var CROSSFADE_INTRO_SKIP_SECONDS = 2
     var CROSSFADE_SKIP_LIMIT_SECONDS = 10
+    /**
+     * How long the incoming track is actually audible. The overlap may be longer
+     * when the outgoing track has a quiet tail — the outgoing fade uses that whole
+     * tail, but the next track only rises during the last few seconds, so it never
+     * "starts singing" long before the hand-over.
+     */
+    var CROSSFADE_INCOMING_SECONDS = 2.5
 
     /** 0 means off. The stored value is the upper bound of the automatic overlap. */
     function crossfadeFadeSeconds(prefs) {
@@ -4238,6 +4245,13 @@ window.__ModuleLoader__.load({
       // Too close to the end to build anything that finishes inside the track.
       if (remaining <= 0.5) return false
       return true
+    }
+
+    /** Split an overlap into "outgoing only" + "both audible" segments. */
+    function crossfadeIncomingWindow(overlap) {
+      var total = Math.max(0, Number(overlap) || 0)
+      var window = Math.min(total, CROSSFADE_INCOMING_SECONDS)
+      return { window: Math.round(window * 10) / 10, delay: Math.round((total - window) * 10) / 10 }
     }
 
     /** Equal-power pair for N+1 curve points (cos falls, sin rises). */
@@ -4858,6 +4872,7 @@ window.__ModuleLoader__.load({
       var xfadePending = false
       var xfadeAdopted = false
       var xfadeTimer = null
+      var xfadeAdoptTimer = null
       var xfadeNext = -1
       /** Blob of the track on the active deck, kept for the tail analysis. */
       var currentBlob = null
@@ -5958,16 +5973,31 @@ window.__ModuleLoader__.load({
             if (token !== xfadeToken || audioContext === null || audio === null) return
             var at = audioContext.currentTime
             var curves = crossfadeEqualPowerCurves(32)
+            // The outgoing track fades across the whole overlap, but the incoming
+            // one only rises during its last few seconds: the next song must not be
+            // singing a long time before the hand-over.
+            var blend = crossfadeIncomingWindow(fade)
             fadeNode.gain.cancelScheduledValues(at)
             fadeNode.gain.setValueAtTime(1, at)
             fadeNode.gain.setValueCurveAtTime(curves.out, at, fade)
             fadeNodeB.gain.cancelScheduledValues(at)
             fadeNodeB.gain.setValueAtTime(0, at)
-            fadeNodeB.gain.setValueCurveAtTime(curves.incoming, at, fade)
+            if (blend.delay > 0.02) fadeNodeB.gain.setValueAtTime(0, at + blend.delay)
+            fadeNodeB.gain.setValueCurveAtTime(curves.incoming, at + blend.delay, blend.window)
             xfadeActive = true
-            // The UI follows the incoming track from the moment it starts singing;
-            // the outgoing deck keeps fading as a ghost until the curve lands.
-            adoptIncoming(token)
+            xfadePending = false
+            // The UI switches when the incoming track becomes audible, not when the
+            // (possibly silent) overlap starts.
+            if (xfadeAdoptTimer !== null) clearTimeout(xfadeAdoptTimer)
+            if (blend.delay > 0.05) {
+              xfadeAdoptTimer = setTimeout(function () {
+                xfadeAdoptTimer = null
+                adoptIncoming(token)
+              }, blend.delay * 1000)
+            } else {
+              xfadeAdoptTimer = null
+              adoptIncoming(token)
+            }
             if (xfadeTimer !== null) clearTimeout(xfadeTimer)
             xfadeTimer = setTimeout(function () {
               xfadeTimer = null
@@ -6039,6 +6069,12 @@ window.__ModuleLoader__.load({
       /** The overlap is over: silence and release the outgoing element. */
       function finishCrossfade(token) {
         if (token !== xfadeToken) return
+        if (xfadeAdoptTimer !== null) {
+          clearTimeout(xfadeAdoptTimer)
+          xfadeAdoptTimer = null
+        }
+        // Timers can race under throttling; never leave the UI on the ghost.
+        if (!xfadeAdopted && xfadePrepared !== null) adoptIncoming(token)
         xfadeActive = false
         xfadePending = false
         xfadeAdopted = false
@@ -6085,6 +6121,10 @@ window.__ModuleLoader__.load({
         if (xfadeTimer !== null) {
           clearTimeout(xfadeTimer)
           xfadeTimer = null
+        }
+        if (xfadeAdoptTimer !== null) {
+          clearTimeout(xfadeAdoptTimer)
+          xfadeAdoptTimer = null
         }
         if (audioB !== null) {
           try {

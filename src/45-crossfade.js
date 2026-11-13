@@ -14,6 +14,13 @@ var CROSSFADE_PREPARE_SECONDS = 14
 /** Only a genuinely silent intro is skipped, and never more than this. */
 var CROSSFADE_INTRO_SKIP_SECONDS = 2
 var CROSSFADE_SKIP_LIMIT_SECONDS = 10
+/**
+ * How long the incoming track is actually audible. The overlap may be longer
+ * when the outgoing track has a quiet tail — the outgoing fade uses that whole
+ * tail, but the next track only rises during the last few seconds, so it never
+ * "starts singing" long before the hand-over.
+ */
+var CROSSFADE_INCOMING_SECONDS = 2.5
 
 /** 0 means off. The stored value is the upper bound of the automatic overlap. */
 function crossfadeFadeSeconds(prefs) {
@@ -102,6 +109,13 @@ function crossfadeShouldStart(input) {
   // Too close to the end to build anything that finishes inside the track.
   if (remaining <= 0.5) return false
   return true
+}
+
+/** Split an overlap into "outgoing only" + "both audible" segments. */
+function crossfadeIncomingWindow(overlap) {
+  var total = Math.max(0, Number(overlap) || 0)
+  var window = Math.min(total, CROSSFADE_INCOMING_SECONDS)
+  return { window: Math.round(window * 10) / 10, delay: Math.round((total - window) * 10) / 10 }
 }
 
 /** Equal-power pair for N+1 curve points (cos falls, sin rises). */
