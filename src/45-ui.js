@@ -299,6 +299,9 @@ function setSource(source) {
     artistError: '',
     query: '',
     results: [],
+    searchPage: 1,
+    searchTotal: 0,
+    searchLoadingMore: false,
     phase: 'idle',
     error: '',
   })

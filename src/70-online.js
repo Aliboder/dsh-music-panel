@@ -27,6 +27,9 @@ var onlineStore = createStore({
   phase: 'idle', // idle | searching | ready | error
   query: '',
   results: [],
+  searchPage: 1,
+  searchTotal: 0,
+  searchLoadingMore: false,
   error: '',
   playlistsPhase: 'idle',
   playlistsProvider: '',
@@ -65,28 +68,62 @@ var playlistCache = new Map()
 var playlistInflight = new Map()
 var PLAYLIST_CACHE_TTL = 60 * 1000
 
-async function searchOnline(text) {
+async function searchOnline(text, page, append) {
   var query = String(text || '').trim()
   if (query === '') return
+  var targetPage = Math.max(1, Number(page) || 1)
+  var more = append === true && targetPage > 1
   var state = onlineStore.get()
   var provider = state.provider
   var token = (onlineSearchToken += 1)
-  onlineStore.set({ phase: 'searching', query: query, error: '', results: [] })
+  if (more) {
+    onlineStore.set({ searchLoadingMore: true })
+  } else {
+    onlineStore.set({
+      phase: 'searching',
+      query: query,
+      error: '',
+      results: [],
+      searchPage: 1,
+      searchTotal: 0,
+      searchLoadingMore: false,
+    })
+  }
   try {
     var body = await getJson(
       API +
         'online/search?provider=' +
         encodeURIComponent(provider) +
         '&q=' +
-        encodeURIComponent(query),
+        encodeURIComponent(query) +
+        '&page=' +
+        String(targetPage),
     )
     if (token !== onlineSearchToken) return
-    var results = Array.isArray(body.results) ? body.results : []
-    onlineStore.set({ phase: 'ready', results: results })
-    void refreshCacheStatus(provider, results.map(function (item) { return item.id }))
+    var incoming = Array.isArray(body.results) ? body.results : []
+    var results = more ? (onlineStore.get().results || []).slice() : []
+    incoming.forEach(function (item) {
+      var path = 'online:' + provider + ':' + item.id
+      if (!results.some(function (existing) { return 'online:' + provider + ':' + existing.id === path })) {
+        results.push(item)
+      }
+    })
+    onlineStore.set({
+      phase: 'ready',
+      results: results,
+      searchPage: Number(body.page) || targetPage,
+      searchTotal: Number(body.total) || results.length,
+      searchLoadingMore: false,
+    })
+    void refreshCacheStatus(provider, incoming.map(function (item) { return item.id }))
   } catch (error) {
     if (token !== onlineSearchToken) return
-    onlineStore.set({ phase: 'error', error: errorText(error) })
+    if (more) {
+      onlineStore.set({ searchLoadingMore: false })
+      showToast(errorText(error))
+    } else {
+      onlineStore.set({ phase: 'error', error: errorText(error) })
+    }
   }
 }
 

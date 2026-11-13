@@ -405,6 +405,28 @@ function OnlineContent(props) {
         onArtist: openArtist,
         empty: empty,
       })
+      if ((online.searchTotal || 0) > results.length) {
+        body = h(
+          'div',
+          { className: 'mp-songs-pane', key: 'search-pane' },
+          body,
+          h(
+            'div',
+            { className: 'mp-pager', key: 'pager' },
+            h(
+              Button,
+              {
+                icon: 'plus',
+                disabled: online.searchLoadingMore === true,
+                onClick: function () {
+                  void searchOnline(online.query, (online.searchPage || 1) + 1, true)
+                },
+              },
+              online.searchLoadingMore === true ? t('online.loadingMore') : t('online.loadMore'),
+            ),
+          ),
+        )
+      }
     }
   } else if (nav === 'album') {
     title = online.albumName || t('online.album')

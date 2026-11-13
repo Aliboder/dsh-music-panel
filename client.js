@@ -1238,6 +1238,8 @@ window.__ModuleLoader__.load({
         'online.myPlaylists': '我的歌单',
         'online.viewAll': '查看全部',
         'online.searchResults': '搜索结果',
+        'online.loadMore': '加载更多',
+        'online.loadingMore': '加载中…',
         'online.emptyResults': '没有找到歌曲',
         'online.locatePlaying': '定位到正在播放',
         'online.noPlaying': '当前没有正在播放的歌曲',
@@ -1672,6 +1674,8 @@ window.__ModuleLoader__.load({
         'online.myPlaylists': 'My playlists',
         'online.viewAll': 'View all',
         'online.searchResults': 'Results',
+        'online.loadMore': 'Load more',
+        'online.loadingMore': 'Loading…',
         'online.emptyResults': 'No tracks found',
         'online.locatePlaying': 'Locate playing track',
         'online.noPlaying': 'Nothing is playing right now',
@@ -3924,6 +3928,9 @@ window.__ModuleLoader__.load({
         artistError: '',
         query: '',
         results: [],
+        searchPage: 1,
+        searchTotal: 0,
+        searchLoadingMore: false,
         phase: 'idle',
         error: '',
       })
@@ -5530,6 +5537,9 @@ window.__ModuleLoader__.load({
       phase: 'idle', // idle | searching | ready | error
       query: '',
       results: [],
+      searchPage: 1,
+      searchTotal: 0,
+      searchLoadingMore: false,
       error: '',
       playlistsPhase: 'idle',
       playlistsProvider: '',
@@ -5568,28 +5578,62 @@ window.__ModuleLoader__.load({
     var playlistInflight = new Map()
     var PLAYLIST_CACHE_TTL = 60 * 1000
 
-    async function searchOnline(text) {
+    async function searchOnline(text, page, append) {
       var query = String(text || '').trim()
       if (query === '') return
+      var targetPage = Math.max(1, Number(page) || 1)
+      var more = append === true && targetPage > 1
       var state = onlineStore.get()
       var provider = state.provider
       var token = (onlineSearchToken += 1)
-      onlineStore.set({ phase: 'searching', query: query, error: '', results: [] })
+      if (more) {
+        onlineStore.set({ searchLoadingMore: true })
+      } else {
+        onlineStore.set({
+          phase: 'searching',
+          query: query,
+          error: '',
+          results: [],
+          searchPage: 1,
+          searchTotal: 0,
+          searchLoadingMore: false,
+        })
+      }
       try {
         var body = await getJson(
           API +
             'online/search?provider=' +
             encodeURIComponent(provider) +
             '&q=' +
-            encodeURIComponent(query),
+            encodeURIComponent(query) +
+            '&page=' +
+            String(targetPage),
         )
         if (token !== onlineSearchToken) return
-        var results = Array.isArray(body.results) ? body.results : []
-        onlineStore.set({ phase: 'ready', results: results })
-        void refreshCacheStatus(provider, results.map(function (item) { return item.id }))
+        var incoming = Array.isArray(body.results) ? body.results : []
+        var results = more ? (onlineStore.get().results || []).slice() : []
+        incoming.forEach(function (item) {
+          var path = 'online:' + provider + ':' + item.id
+          if (!results.some(function (existing) { return 'online:' + provider + ':' + existing.id === path })) {
+            results.push(item)
+          }
+        })
+        onlineStore.set({
+          phase: 'ready',
+          results: results,
+          searchPage: Number(body.page) || targetPage,
+          searchTotal: Number(body.total) || results.length,
+          searchLoadingMore: false,
+        })
+        void refreshCacheStatus(provider, incoming.map(function (item) { return item.id }))
       } catch (error) {
         if (token !== onlineSearchToken) return
-        onlineStore.set({ phase: 'error', error: errorText(error) })
+        if (more) {
+          onlineStore.set({ searchLoadingMore: false })
+          showToast(errorText(error))
+        } else {
+          onlineStore.set({ phase: 'error', error: errorText(error) })
+        }
       }
     }
 
@@ -13606,6 +13650,28 @@ window.__ModuleLoader__.load({
             onArtist: openArtist,
             empty: empty,
           })
+          if ((online.searchTotal || 0) > results.length) {
+            body = h(
+              'div',
+              { className: 'mp-songs-pane', key: 'search-pane' },
+              body,
+              h(
+                'div',
+                { className: 'mp-pager', key: 'pager' },
+                h(
+                  Button,
+                  {
+                    icon: 'plus',
+                    disabled: online.searchLoadingMore === true,
+                    onClick: function () {
+                      void searchOnline(online.query, (online.searchPage || 1) + 1, true)
+                    },
+                  },
+                  online.searchLoadingMore === true ? t('online.loadingMore') : t('online.loadMore'),
+                ),
+              ),
+            )
+          }
         }
       } else if (nav === 'album') {
         title = online.albumName || t('online.album')
