@@ -7,8 +7,8 @@
 **A local + online music player, natively embedded in DeepSeek Harness.**  
 **在 DeepSeek Harness 里，把本地曲库、在线音乐平台和自建音乐服务器装进同一台播放器。**
 
-Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsonic · Lyrics · Cache · EBU R128  
-本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · Navidrome / Subsonic · 歌词 · 缓存 · 音量均衡
+Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsonic · Lyrics · Cache · EBU R128 · 10-band EQ  
+本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · Navidrome / Subsonic · 歌词 · 缓存 · 音量均衡 · 均衡器
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
 [![release](https://img.shields.io/badge/release-0.32.0-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
@@ -93,6 +93,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsoni
 - **VIP 识别**：根据当前登录账号判断可播放性，VIP 曲目显示金色徽标。
 - **音频缓存**：边播边写、播完落盘，默认上限 10 GB、LRU 淘汰；设置 → 缓存可查看全部缓存歌曲并清空。
 - **音量均衡**：浏览器内置 EBU R128（BS.1770）分析，按曲目自动调整增益，不依赖 ffmpeg；首次分析后缓存结果。
+- **均衡器**：播放页音量按钮里的「音频效果 → 均衡器」，10 段（70 / 180 / 320 / 600 / 1k / 3k / 6k / 12k / 14k / 16k Hz，±12 dB）。预设沿用 Winamp 原版 18 组曲线，可保存自己的曲线；“编辑”页有实时频响曲线、前置增益、自动 headroom 与输出限幅（多段提升不破音）。预设数值来源：[schollz/Winamp-Original-Presets](https://github.com/schollz/Winamp-Original-Presets)。
 - 在线歌词与翻译：网易云 `trans`、QQ 加密翻译流、酷狗 KRC 内嵌译文；Navidrome / Subsonic 使用 OpenSubsonic 结构化歌词（如服务器支持）。
 
 #### 歌词、元数据与整理

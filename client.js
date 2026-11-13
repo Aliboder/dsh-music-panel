@@ -2092,6 +2092,28 @@ window.__ModuleLoader__.load({
         'v2.loginNeeded': '登录后可查看歌单',
         'v2.relogin': '重新登录',
         'v2.logout': '退出登录',
+        'page.audioEffects': '音频效果',
+        'eq.title': '均衡器',
+        'eq.back': '返回',
+        'eq.enable': '启用均衡器',
+        'eq.off': '未启用',
+        'eq.custom': '自定义',
+        'eq.tabPresets': '预设',
+        'eq.tabMine': '我的',
+        'eq.tabEdit': '编辑',
+        'eq.preamp': '前置增益',
+        'eq.preampHint': '多段提升时自动衰减防削波，可在这里补回。',
+        'eq.reset': '重置',
+        'eq.saveCurrent': '保存当前设置',
+        'eq.save': '保存',
+        'eq.cancel': '取消',
+        'eq.savePlaceholder': '预设名称',
+        'eq.saved': '已保存',
+        'eq.needName': '先输入预设名称',
+        'eq.delete': '删除',
+        'eq.empty': '还没有自定义预设',
+        'eq.emptyHint': '在「编辑」里调好后点保存。',
+        'eq.unavailable': '当前环境无法启用均衡器：浏览器不支持 Web Audio，或该音源跨域。',
       },
       en: {
         'v2.songs': 'Songs',
@@ -2225,6 +2247,28 @@ window.__ModuleLoader__.load({
         'v2.loginNeeded': 'Sign in to see playlists',
         'v2.relogin': 'Sign in again',
         'v2.logout': 'Sign out',
+        'page.audioEffects': 'Audio effects',
+        'eq.title': 'Equalizer',
+        'eq.back': 'Back',
+        'eq.enable': 'Enable equalizer',
+        'eq.off': 'Off',
+        'eq.custom': 'Custom',
+        'eq.tabPresets': 'Presets',
+        'eq.tabMine': 'Mine',
+        'eq.tabEdit': 'Edit',
+        'eq.preamp': 'Preamp',
+        'eq.preampHint': 'Boosting several bands trims the level to avoid clipping; add it back here.',
+        'eq.reset': 'Reset',
+        'eq.saveCurrent': 'Save current',
+        'eq.save': 'Save',
+        'eq.cancel': 'Cancel',
+        'eq.savePlaceholder': 'Preset name',
+        'eq.saved': 'Saved',
+        'eq.needName': 'Enter a preset name first',
+        'eq.delete': 'Delete',
+        'eq.empty': 'No saved presets yet',
+        'eq.emptyHint': 'Tune the editor, then save it here.',
+        'eq.unavailable': 'The equalizer cannot run here: Web Audio is unavailable, or this source is cross-origin.',
       },
     }
 
@@ -3301,6 +3345,11 @@ window.__ModuleLoader__.load({
       autoResume: false,
       rememberPerTrack: false,
       normalizeVolume: true,
+      eqEnabled: false,
+      eqPreset: 'flat',
+      eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      eqPreamp: 0,
+      eqCustom: [],
       onlinePlaylistSort: 'source',
       onboardingDone: true,
     }
@@ -3582,6 +3631,385 @@ window.__ModuleLoader__.load({
     // Real now-playing page screenshots used by the startup guide.
     var GUIDE_SHOT_SQUARE = 'data:image/webp;base64,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'
     var GUIDE_SHOT_VINYL = 'data:image/webp;base64,UklGRjY7AABXRUJQVlA4ICo7AABwgwGdASoIAvwDPmEslEgkIiInoZEpMPAMCWlu+vPre2E+E//1QQn2oNewnl3dBMuzXuCaOds58hmQBpQr5Pxwo6Iz6u3G8wHnAei3/G76x6AHTCZE753/vfgd/bv8p/cepg9Ne2XsJZ++0XUy+P/cj9x/e/SX/heFf5Z/Hf9r1Avxz+af5r82PfPgydf6Af0X+s/87+7/5PylP7z0W+wX/e9wH9Zf+l5Zngw/iv+77AX88/wX/s/1P5EfTD/U//D/V/mp7d/zz/Q/+r/V/AX/OP7t/3/8l7bX//90/7mf//3cP2T//4iDBf4udf9fOEMeKVbLXYKKlX/etnb8DFphMShdHIjezY5NiHrYyDumVRsNKrMg64HyB7YdIcgmL6whFhtuQr775fVh/nLqnvdYuGQcwYfcGFcIuYAdYAV4GuavRX2cbeMpKFwwaAlyR5RXqv0YE2AqG90zCgQ1pAikEuwZ4hjdocKECivSWPuU/IELBTrkWYM/0+/vVWxHpZnsKqA06oy4bet9fAO+MgvdYswQO9lMRo6GCYhadTBmpGKk9/L7i/AR1b+o0NbUgpC60ybRqIp/7R4QLLdXuKkw0aqP50bN9uIXf39ZjM9drmm02P5St3QWrGdjOxwiqgCZwpoCX5tDxKky4fIv7RjcqmljEAR5nC6K+41b4+53+Umst1vIwZnJb7b+uvvSpDQQlVUYNIlyvD6SpyFfGFrIwJOuIKpq4yTiMiSYFgDyHaSyzG9jTWUgffshxLoQXajjTsFk8v1toem81jkDYSk/kHpTfwghE/P2ZUIcimdM2nCXaDv9alc1PDIdmUHX/vKa/r3fS+IQhql87iq8JF3ZIR7bWxlrKbkreNaNtMh+OS/TjTV6SvUWYX/i+b4ECZ71Gz85klkNdWwf0Q3S1JLNemNAI8mjFbiUD0CzRmkE4fKIYEnClo3yf0bbACBYCU1ZdPHQFj6NeSVLoGTwzsQv/i8ru+9cuyZTq8oOD//YwwNU78+ymLLCaANehI9tRK1ooaytWuJo1LlyDHQ0ezk98Mh1c0t4YMZlYWrXU4Dc/CqlOzYO9iThuhhu1prl3Iamqf47Pe1ALP6v0UXR94m00F44t35fo1ELGl8LrDY1AHmSpffhGU1rv3F18Ji6Uyyln5zMRFwQmeLjsaz+FushZUsGpNZ+d7iTn2xMwb6ietn2Jkwilonu1oQnX0B+eYhXgUUwVQ1VJiaJJ1nrwZbia0hiXNNqqzcTcbg8/H0bnRxQ1CvBf2AjRZ5Ab4jr3LuQ4wDysyKxCI3Voj9vBjSIsjSeDpLAS50h5UvPvbQP46B0aN6lUIDdSMSRne4s79AymTvDRT8IQPz6Liyyn+spKammGDU8UualQvpg8YvYwYkTxLuz7C8D35fXqFrOFX3+8ZrJEdwacA5Bh+owr6eUPliYf8RkfEBorAsz7pzxr856PA9m8l/PB8uk16KDIU4llv2BUwoueMSDnKiaUUVNTqmshMtlYU8mOyTAJ4rL79sh5519i9iQ2+A7/+Tvy2+rjjlvJbUuQ0i9qh/MCmn9X60zHu+eXReS2g5T/Al5lqG+b4YvFbkvG0tpil6sW+U6aHt5cN9n+fMGsD2aAMPDPr0jYBw4bWAys4yCwfbiL8y3kPJCM8nCI+I2zzJsBG5Eee+9xsLE1o5idZxWhu8VWrFBXVsclqhfY7SKRD5mFpB90Q7ab1umZr8bS2hZk8+P1mEjf3s32W/erhfBZjzZRFPTMGljEcOFw2JElD82VanKQn42rUQDC0wHMFwOPpz3rTx3P2eyT9Tb204Vs7prSVX93asH4YM6vkj+F8U6KJ5dQVPfyOcXUpQeaR34sOzeTAU3io6GsbYkUDUti75u7sHncWkLbZ5ls/v8a7+p888bRkAXQxhkfsjYbAV4kStAKwDunSsmULpAFoxqxgavMrA+7LYwDzApubhHf67SwymPhn3T97A4Q7+ZYV/N3YnpOv/WG0JOCnoQHLuomBf0eIRoy1ZqwOQyH/9YjXcO0yP5y3QuKEPmp6ZkcS1Ktwwx1RlWYs78+2gDDlXA7a2215IyQFnS/c8X2I3u1RA0F3dLsIiOrjdY7/dL9JUc1qcJsEHUVEuivw+uD6SVBro0x9pQfBkg1wV6rsrbmbzkA5FRt/1bmLdcA0J25U0stJNXyIk5urUT3nHfWBdF5Ffh9cIsE/xIq/R/NXZ5ozGaj8CRPB9NfyKZWogQQg1IHbrZBv6yiT6WCxtbdpPA7LEvRCS+AgAJteEi18rxacFAha41blno8UkQDy6ljhKCH46KVw/QMqUrJeuf8hmsZB5H6WgCuXTDpWncxQRtgQFMT2lAjoXOjarHbjJFmfBTsTo9hHTR6vzAYZd1HEkVSfjzrUE9u7RtMHmWMTsGAkdJKp1qKr8cmEbuceLnwx5C1vIU8SMiQl1nst8yBEzt8+jwSfSZM+nr81pkfvVMgkvZzZMqyZyay46G0WwWFx+Hf09XVcxx9TK80fwPL/ZwQc+15yUSmXniDUB3dXxiHgNzd8BWwupsKsAFFlyXu3wACb9zGDexxsm31TT2KRAPPOahJDeJbYIpO/7EvCLwPTnmb12h4oOQN1igk2taj+yh3S7N+xsoGdRCiCJ4ag8fShwKdZFsBoGAbvuzc3p0z/+2fEjxXGqKp8UOkZbq1sZ1pi2SwQXJ0yVALc/AllXU3Hc/nNulK7pDj8nujfHEn1SV/4fccEd9UTBIBB42pFexMpwzIf/+J7gReQEt02Uz04FnpVxaQmeUuEF8fOZUkvcmpjCjiOc8AFo7ZFh/fWgCjAwIzDjRkr/iV//xT/AWRcjzxY0GzTSOA++4OEE/JZPzuGDXidtlJGRZTsijPsBjVFVrLf0RbzWK5pQ+Bkk9vcwNBZ08+TovL+7Rk81cG3Q7lPDZpjJELnVSenTYdL3hT5DbstX4r+2WUV95QKRuU5gWjvn+ABEfnxYTUNdR2k9l66UPYuzfLV/b3mRc1iqKvxh35dCdMeRmz9KaGQN2m7+dbUVOmsV/4OQN/K8mmCg3V/1tOhsOPXJ/CEbXXoThvhcpeBVnOsBRhkwKapjpS/70kxOZwG9hTO0MNgIRD5v7EmHJ0+erDxkOnHQNxgDGLyPLhp05gapjgfLTF9eOvgeHbWmPltivv5c7uAIXnV0Hwx0+z7+blOcSCuqjSBycvLogSnmePUqyzbyQebrtNQvt+y0LboJN5oUuQ2h8Wnf6Fdr1ot9EAjbnff9+1kJiafxbFoo2rmvTyW+fXYsrwHngqAfqmCwCTP+QtLIS/zCPJin4qn7uFcFPxLGS0sj4hKFk2JRrJSMPtKEbrkGTSpCqM0oiJ7NMi7CCNS9Fyw4qoiU5E8JoGNe7PA8FPbp2+MaIYgcJeQ7TcBA74LYLQ1zNiKfAk46NNHcPNU3ozh8NNgnMUTO1aMBxGn/mAexsAeHepdjiZqBzhs9jHfGGWslIdJ2dL3CXqaNmTNnW/dFJdWnzQ6fO0VnswUNXeAegwI5c9L5c2Fds3sNipA5jq0SWMsp+f8LG/e+HKjUABM3ON+XzKwFzcgYmuTPBTPE7ZV0LZFIk3laGFXlhBzpIMASS4p5h0xQAGA2R4CrxLjKZ3xURoZB2nbuF7ickHFZ1oAPUZ2y17LFkkvaaUtrRKjif1dIp8z6w0/1wZk8qFt3tiHpu9oz7D/7RX5LMhBDzJSEY34ObiqWr/k5JNZeKTQfwCdZ+E3n4YhiBHOfLKkWBJyQbc8Uz4bnwBkPaVgqvDY/isOO/CcDZjbAFWn/UWPftQxvBEq8fiEV6woOa/CXdng219Luc15lv9hjatdeGT4DlAZAxKTwEDk3y6MPEPgYBt8sQHFYaS+ubOIRG7AaEcBx96QfNQOn/TNqEFzPGT/xb1JFAdTHV5d/IhTbfC5lrxDZ+j5Q844LwuY6yI4f1Dol3mQSMLB3qG97EJPBNW4ahZzS9K1jRH1TEYHZqF1LJklrt59zXcUtDABpOK0+EtOVw0IWpzWkYUinuivw+HXh8ii7eFVDANIStHRSLbq/Xm18E39TdFzgw9DUytG+GGVo3r15JVqWfW5RfC2dgZPGpD03hV53WzyRHRhdyJ5F29D0AJy2dvigyG3Ejr/ey+13CrkAA/u6z3wb3tTqtTo29WsJwAweJOLlgWkDYUoy1WQtIgRjE9oI76+ZhXyoZkWzB3YwK71ERQNbzS73b7iUAUmQyX1ZgdPIfSsXkeAAATe6mS2YmoguxuUOf1zPz/URmTWntbh4+mwbbHV92+c26/n4cj/+QEjaucmKabR7duRL6rPRynmUj2sChrqcUI98UifVvwaynQXk0MXBY7Yq5AS2/T4dU7NgY4XP92ABEo2+2PF/GOv6+6oD9RKMR+8cncYVKlvRHjToDmhkXS6IOOYAlGTvW7tYGF4aYAAPFHuRcvOGFha6RQYWjhpjdEPcYbPI6Mwzo/Yfpe+nugIz02piAc0OOVMAJb5DtITvDe6THxnwtrY/rO+JZXprKJZtNM0HLX2QP3Ba6JAMYVcsh5Fa4Bp5E4SuWUGlyDRg3aBGHtCTnQV0uAfMBwpDjUBUhkr6ncF2ABbT39uK2+r7SyEsDchuuL1zGUzBH+OCrjtQ2k+FSGaIdG3XlzGFrBbe5UJp/PMjGCXWBKT1bpxpsSiswJJu/4SPpRWSLVvjODibRYlmsyw/yfmWeXQQey7Tq6m92zH+9BqxR4C/O80nV4xAkuH6V+AKsxqpECGTcgpxn+sCXJa2kVCNm2nnUH73YO/qfsI2MSWp+fe68bCPj6pX5dP33dTpQHjKyM5lDZ8e0IXeBBxZ/FHryUOokiFm+dkAHPr2slEfGAAw5laOkRDDvOadMn8xIR4ZgV8bjGFo9ihihuYDwzA/JHFkZqjcsXM4rEcsGv0H3927n/07SBvRjNnJVofmQJ0TH0lhJQbyjgGeb3q541Ml7NYadd41ffhmr5y0Jvk17wQPJBlaSww42fc/DV1bMySQv372ZdPNxaLNPP78bA6VkSZ8xam2ZCFLjMVFWUG8YjGAieepjhj/ioTz45oeisk6aQpAp6YyIEwbETWK0cyMevNJ3bZMdYu3I584GqdUComqA8mIVezVOL15SJT4pQb1QMXDauhidS0vhi+tHBrsuTifM4UEbpFzw2UlWrViN2oVWI0VRMkl2hhnDY0vKkUshqINu0FkxIe2RZ5tG1VzPCKYFkqk3FZGH1wg2b0KDl0CLHxdiYkQbVszZ0sENoasVVJnCV83F0LkoP75Eg1v9z1eqr7wI0QSozXy11aELQM+IynKlRmwbIvmK6ugov9uJXCgb9nVo44512foDIxpMGMg0Fl3PxO92NQnvXNsWCOHQ4+NSDtrqX2WvWCP7M9boWaG+nsphmo1ccK7d26x19uXPV2TDxRLvTuFTqQgVDaHNVBHV8vl+EOnbFKiFWCPyRk9u3RV47ddEjrn1wD3GQzqxXckaBU5vMuk02Gk2GByzkQx450kshFMNDmtXpH8nsYiKg1L/ZO9CHGYYS+jHp0yHKZ76/beA2gw0kxmV7EEx7L0IxImANYZ1ajFrmhz6jigdk7nVeppSHiOi5j/J85z9LUHIDkBfIy+YIKjmy7V0G3p38NqTjm3+6cxLd7KzLAOE69lhu9v4MNzSeUwIcmdDblRslR3eFIfTd0W+a03ifEFFi0OgT53Dd/sD4+aUrYIvPGOod19KyADkvN1Bidhypk9sJrnCBhMjb2YQTyrt844PHm3rTMhL+9lQTvTAj04lBr2Gje6T5sBN3fvN/HJ4G0zLiasm9IMnnmda7lCQ8cG7vv9B32YMIUuRfZI8X9D8jVduKbuE1Yz+bAcmMAsXgAL8Bm6cd80tgYZGGsSmW/tUmMCZZmsC4wyOhhkcm6C7+zFG/nhgbWoq7/Mlrcuky8Nh4MiWFNgGDgU/Bnv1+D66A+7tkwKGoo3wU0EbPvx9iNhhuP4hVomWPpMxr6mKIZvo1IR35YCuHTTVOiKILhQtk9j/6z/L18dQYQJ74Dr3MiHY8lFtQ4yXEXlm+0ZeLbThNejaE6uxxJQJv6ZscPVRhKNBV/776UmsQOMU5QVk+trRfJZIyjbuGb+Odar9E+LcDl6Zs0Sq4pm7/4DF3eH7C+s8pRbWM6fNxVKqhDsjOKoEUmAYb3AXQ1TezMY/vnzHXS0lm3JaLn3eJ7g0Ux2wSrVqBcw0X8OOeoZlEvT0JUMyUzBRZWXLPF/IaR1Zmc3nk0XbSH8Gjp6eXPkWsENVe9b4PWkdT1WoXqOEp97XwKhk30oeyVtSA1g4U689bN0ODPYvXvp6mdQBuincq83MQpqN/EIRL5ENPn5omnTgFGZyBfZemSel649oTsBq6fV+TLvxw5bfvvPnbHew1dETP3VsEeWxQWkzhP2XPdj2qmmzbdDRV4xkNmglwMWEn1+58P4SngSGzlXNC7b4sT+/61XqDPLRIutsXnrsMa0ixtiCYbE7aMt0A1aRyH/BtVguvHdObCBDnwnZ+krUcPIsIHwb+ZBQ9AmYY8kL55TR5nb0NFNBw3ONFYnhpn8AMfBgxyNCeei7oe3fejS1NoO2k4afCTSG7v9CSBChuwrAZ9SeyTQcdmzGso/XsrZ0SUVKNRLAF7JeNj2aiaKkP3SaQMqbdXII8BPQ7X01IsbpzQUklR3fe7lCjoPEn16eZBoi/Hspeaozs5g5kASerA2b3qU574rv5oo6xIAlL9ZkNlCJxKjUyJaAv4fZfohBihumdYdEfcCHMf1suZJ+4Gf6twCCnX437izArn/YHb2bmmAW2DXhp+FjdaZunIokiKX40dmAPR7akqk/XVlUzqDWIbVnIe9Na6eyhwR2El2uQdm5doN2LPWXiHlZNdsLRJPTma3+uifs8RFbTbTovmz8lRytWLj53D8/YyKR73WMGuliw+ysq4uV2bB3mO7KDP80IUh6RUfU7G8ramWGGuiLO0EcyghOwHiP3FmXOIsUE4pMx2VxLIqXBNJqUCkJGXy73xKppu40J4DjIWi6Chyok1LKtpfDfKZ29sYMNd/ENdRlO7vtRXwZlSHuSqzyiuG2BbI9mvWYzk9+C5fygsA7qXhVaNnfkHvAxoeJyVNwKIu1Nrn+94DWXo4idAd7BlkHE1JbKvk6VJed0RdcC7hYmeZAp373hn12b0uaOpghkTy4Qwg7xqANHBhniKSZmMRRUI6JeH6shkpeJ84zlpSSlfFoDv3q21zPbTh4i7FyrJdqxiVA58Bd2dM3WxYmt7V1CsGxzr/2eY01cgLmPZvAbxNNH4n31aZY2yx5lGr2klatps13DF4ezOtJhI4Arn2hQy9migeGFV0U/urWj+b04Alvxk263qyVvY2HyKdOAhTeX8IVeM2uMkU7UEbjBb+f311pQlza8a8zY+Avmux5nckef+r3g0YrZopw75nOer2PVUiO3ajEG5AqaNNIqk53+OOQsI0Hp653XkS/WTdWwIpE5q0cfocWRlno647IdiL/mpg2JVds/Zw5B8vSQpSmcmPORITH+W9lASsukL0YioK6NR/0GmYpR8811LxA5MtQGmbSANZaBPtzE9/Kza5XdIwTYWncFIHTXYi7z5az2e43qm4Iujji/A33Edv6MtRgedDrOb5dnjspXFvuVKd9ONVweAflMoJsZdb0L3rO6fnT+HlZYViF8UUej+EV/E2V3+s5g+jnazAYt4QYMclAhsDrkAxccniERgADKgUHDTVW3EOJBZoBiJpJlNaJzZ/YtiMyIUs8FDW0EarguySSNOB0TlrSwTBW8bMOcCoPnKH7J8L7fdrpV0I0RSCMs5lS/k7CPelAeigkm4AqOsa/A3W1a6Lc2je0bitXcRz1b0DNk3M1WCNHo9dMllpeh1CYau5w4/1EuIIORTz4Tv3Og2U24wWPa3NIIMiErQCwZfSbusMA5bU4XWGw1WoXbYYoxUKwKvA/r8Zrg9inxaVFbGf94N6BDf1AcezWLA/k+T6MOHtf3eqGYIUuoGm2zW3ROoUmqBY7FmuzcXya0heZ0naVPKuYwZckN9MxABkFCizsdUqL0grbrACw0FZfDJM/OceuHUE3L7v69UrNwiKlckItHz+Cl2xJSe9NoSUJOiLV70JKijHFt3m9CVhoR0NI6Qhvm4QyxdNf3paUgTHd1BHX3VkR/mqXrW9XGx6almJsAJ8nYW0e47R3UuWw+wOsqxYS6w0ubFJ3IiQ/0D8Y9o74EeomZfm3hS5OH5oTA3GCXPaf2SDFTz6pRiLUcBeRYleHl4qZGTsDheD3qWfCO1OnFkAJaZ0Q02HVET4TZvpBXMVLs+FSmfpwkg5lWjkiWGWGWGWGWGWGWGVvysvD4dNd7bGxqqwsTSmVsh8Lvlki+WlL2jcOfXHwUUz8/ywqQas91y7qVONzUZsbQwAo64N0VruDfNG3r++JSTCpKDg/N+IVmhOWoz2F4Kq3ZbkDXAnm5jDidvZvpPi2SXkbXr0BMEU5/5IIOqtTw4T8jAAVcVN7ymEkr/62DyWgcDg5rPL+Jw/lL1X5+4+sxPhst+n5ueYQMqwPVBw9NSKiDrRDG3kjGMN6Yrq7Omca2cmtQIUgBNgk+MRz/Cv4Qg76w6YwdXKsGGHSJ3Wi//SW/1j1Ys8bnV2EmbP7bzU2fipieBoVsP15izbNTyvfIGEJgVgFnMds6wgEGNB46XQZEJbGGQq8tr+ZMqf2RgT/aE6NQy7Y2ZCjEVlbSqG0mSvhKtVBqG/tH2WsDUoAaVQq+qKfjHMnTsB2gE+oiURh//GvEknx2fMcZf0f9lgEwk2JLAatyO5Y0AxWwHOU9vXp9onJhG4Z4TZn7CkrwCH6wAABUgQFvIXcf7B5RXvw0brIw0jZUWcFIfR7XXorZGjhFRAah69aUzGM6UyjnIKwEWbFAxlnO0uon93PCsbaBcEk8hWF+hYxL3pHjA/Do1CRJVlIgAZiXhoDVzWOF/Hov3+2UXDlZqNc/kyNqgoldQgnbtsqrkNjnkALvEKkXbH5qKyiSDjLAMCJSdrEOqgAa8C4w1XJX+hHBTaaAuwB5+0CilKsMzTp3nXymNk0EZ+sjBn/s2g0GVY8jj1V3ibDSwq9XLqPKXkfkLTqsPzgrMQAVTZ6R7lDjCQHBzSXCOjVcSq7RuE5rTBhbuLWvrEVghlbFNdRCb/67mXb0uGrAsMTA2behWXt4G6zo4hSn/t+qc9e6eZSguwhji5j8zG3WOwPs1HTt2T0bw8C8UkI/6hXap6t3A3Bq9giHud4v/oaG5ZBe6ovFfJUVh5rroFfDFJz7q2WJkkrQy6xKXPeNpy8GL47phZZvdz8O7sHO1NxWTr9ZnLpmf+SKgdBzGAklvn+QBf9/uSRwzU31xnHzh0GN0NDiJnmeINKP8E0XVf1FW0R1R5t61NrHKbGiGWiJy2GFZHAzbWGvt5Mv0GV03umbdOLUmYV7gKq1/NEaF3I6/A17+HinXBPaczXwKYZ7Ctn8bzL4COrjoIJHGDNSty+e4tAS8iy+1cELIRPMJ2b0S8ee9CQKwRTLClIvGY1oeKobVBqz8skDvel2ASSYlgBw9SXW2OEYWaWLZCOjTX91LtGGhbSKm7pXqFH2o4OWKHZZEx8R1fyNmCnXWncSnKeqPGE0j2T1F9786DFDSgaF/9cEVzfi/i9lsIjsfJjUVkPwqRo3Nt7idit0Q2WdBv+U2DNHc0OEt2TUz+ECEqGxebpb1ALTNzWzyfrSEk0KyX3RwjckiMDjEl//A4DUlgEMy0Kvu24if3ovPHsXscAwWflj3f8VPL0JeMw7MK3h8bzUnrTwETEH0OtH1fSkJgC2LYK0H8y7KPP2mrkxDegnG43kcwTTgSmpNjtNWerAWbUMyN13KHV6zI6iPdXZWQ8EkpDI5ox4AJzOig/BiLbC4vTnwVKZ/5KAyD17MRK9QFN01x1cp+hEzk3PfitlUtvdtb8w2f0OygT3NdTL7weQCjkBTc04bzxBGnjL3qDkA7LX3PuHTndHpLqwjeQCGyKGnk1Auu9alZ8uwGojFw/HHe+I7Y2bs8g8RkfyQKSuaJTAPuVQiPllomR2NYcKwGl7XizBYqQTeRL7agZgIXvl1GhqCmp3b40k95DDEvPc6km7m1x5mi6EG6OozozjRkHDAVXNxFrEExF7f8zV1jkHlmREvcEWBTbomdjHUL08nLwvWrCbqoTWnGmvAP3HvHcwjcwqxdeeiTCHc0Ty2ZWEL3UibJe7pmam4uo/mTMLwjXRehlvNuI+yKn3VA++1bvtpH41HZuzSFZeSi/+jIdMI7M/GqMGE+FjMB5oOHvg+JrdKukZNVctI24NykSx/uE6j9YT2dcefVutTYJZT/fC+cEHQCW47C8uRnoBhOR2fl3esRmla/oV5PGQ149FIWWtoyyLwV3BFFoKqciBVSUfIm1LS8lY1FIsC8R9NunYTXJbuQCgd9E/Y3CGtf/MNAIj1NB1neMd7nz5kji51IfM7OfYcXPMiOLp1e0acH3lLPdY1RB1S+GAQu8aaqeO/Mu02gTEGWPuCSOXQJJio+ljHhWS3eIn+ud6c1pyNgL8pJia1/KNCf0dp+t47/JAZ1/6SmBuWp/hM1WaPg8GzpK3nl9B1qoAXlcXedFdaAJcqYDqiKMNXFRQYxjBgxMEgv0n5wn8UgHI2IGkptEb3rgX3rsbGSqjocNU4GpNZViXmn9jCKdKbISO57VOviOThsGdeB7AHLqH7uSrMBlQEFLnbqsBZ6sR8qvnvIXcsOKYdHCF/cQ0dKZrd29KvNV/xjG+GLPnNL6XCXRq1Dxz2/KIiAAR6Awx3CODWuxMPSCFuIYwmNcadjRDxQZ0v0xDPhiJuM55OkM6eMPSDZfXB/l9myK8a8eIWGovtPiBjnXNO/mnYsqpN7Wn/fB9H14WBw/S7u7gw+t5cB88s/vq97TOlidoLvNEYXJR7af9OC4wY5cH54jOADtq+UUP+qY4AF/ld5Nx/qTQqIYOW+OGK520OJpcNUBoaoC6vDnafAOV31hm56Lj58Njq1TohufmN9zRNT2T8zzgQuX+xBt78iGMWPj/0UFbeWYnoxuDCkCRhpdfTBpR1FAzTu52qy7DklStSeI0R/eiiaqtSUYt9c7og4hRcTLMXx6yncqvlFRhJcfF3pzBhXGQI6hTrtNaKChtVwXDEJeFINFXfoACYa8elUNiAoh7VV2V0WsTEKVAE6PZmBGlto8EjOuxiYF5tE58gwfgOP3nWZsh3Vle2rTTdooHFGSoUFMblH/XNg9gRpIT70YCjh8Yd/+meptxfL+rMKCZN37EdSLigTyrlS4ihMoTB46qF5q7jYvaBN3FqdDMajwCkJjvE55sMTRygAOmb725/rCoqldTaJp2f/9infr38XOKBOVoABlRaQn46nbsltzio1grBBD8Fwtr376ZVJ8mrww3tpbIkBGJP/smFm40rXUIricw/jS1+Wxg8KBm5NBxkz/P+VNvXojLBfa4+ir4Q28oHn1ChwDdjZcKw3z4/bvNNYdGABrTw2Uj/Q4gKaMWvyh8ySyXdnWXYIyt5V7EnUIxsepGoiFRTm6s/5hs8bv+X0O1xN052/Q9a5LHdsNANiY39BvhEUtaPayKN/O25sbyIoGLeKc3/+WPRN4QfWQ5yXokyV9Qo1OMNzDd3NjQzjWPSoMEwlEomw2/d94RIGLEAG8VAGkW8JaOo5j2DX8DnpvKT7Cy3cn7TylQBr64fFThqyIhDW+G6Tlrzy9NLGdWOm2AekE9K4wKbLDEuLGC2DvYErKsE271lwK+o1zVKVZd5YDaTLEYhgd89x/JTTgCZZXAAM7HoGerRB8qtET9ZpaD2zttUZlxELvtZ+92UiLNpHeBFmSbqIF3PsFYg9s8YIF2/fJCfd/ts8GlDw3h9dtDCFA5ZJISRH53zCSvWv/k2j/4pwTEsIhprTmW5QIuQAf2JU3dZ9ejWVjcKglxpTrp5QHc6fuvVO5TlVuplcIsKsydhLUJTpT3Pz/nP65KfIJQK1RC0iR5V+vDKuvvW6Td1lJzjbqKcLVSQcXU1RwxvEUDEi3zuTkq5wVLMedKhURBjFfeugSjEd+FgjXjaURezop5VKLfiTawQyJdChTCrrOUxXA0MJN203gzxvSIysdUVC81iPKoeVAOg5mGYfyrs8ttZm+dO66RY8RhIMSdCqPqHhg6Mb1cDmVNOZtWHyAQrAACLtTUs/Tkzl0Ib+hbQVFC+tSAVFOtm++of6bkJC1jPqd/O82MCoLbVqZFHry8QzLF2R8s+ysxolK1LOuGb3RGxKV90EjKqNthx4HpHUJ6q8XYi1iD/zOdbBZdJbA+zk93fn9WnR++5+9l9EINMU+Y/9drjfZQDzu9o4XASzmuEx3553pu/vu8BegV3/5P7h5ACNuDFijs2wMoSCwZEjUJgYe9u7wWfNT2P1fitV+3PV7cx7sjRXTrPrtIJje0fRj2WQjBJbKXTOdd8EOLxMxGePAJtM6pcDo3lQiR53ykR9rP3zAEMoPn3B3J+N95dFvFpol5DEkVyoOtYjpkvMwWrADrrgVV03D2ILg9QLuNpJgNSDAtypK3HfW6HKmj8wwkYEL+W9ewAjbynyoMq25Cmop4aHp/x0E22UEghPmahIweIXam+x5meWvKf3x1TP5lYu1A2C3iNhiJSDPOq+MATgqdHTIVofJMLkG14jhPQuuZjt875nkdRQ3z3dUhlvzhctQ4Pwdu6Q4GtJCBLlGnIsx3N9sRncRphMMgF5PJ4QuTVciV6ZNmh5LEAWRryBxn0nKVotK6VNWm35+EYPn70P1WOWLFpJi7EQx/E749fwFTw5R53+xAASjc1AujMaUwfsG6byOMN1jzXnh/RcV3aTEVliwrD2pYE43rSdRAifcLyi0jQhHm/lbg4JmWmyPd9H9+GTBbSx9G4fSTe9tSDyP16q1UTyjtnV1bFwIfHN9ZZCnMUY5sRCtfi8JESKZQYz2qG2xSorieZjKALE1ba2CSSQw0TPZ1wEZMOSY1aLti5iDs6qJMbMucyZn+tVD0Aqpiv4s5YFXZ5x+yVm0K9gQLu5rVSbV3kQwFQAJFk9iwLJZlSk1enffPaswfjDPzQKQST0dQFxJann0G/1wk5i2FnvcoMe4FvbgDznsCgwy4uamVUDUUm+bbAlwj3ZOwUgZRCvEkEsr6U2kgDx+u9xK6LDXMeAkeBG0rGDhNhiP0ACpTVBBgptp0l6uF+zNp8XNa8ibpoJ5zztY2odGdjAWYbYw3CD6Bf8FS2ZwNjug2VbqXSfWnWwpndEBFzQmKo//Hnz87Vt1Iz4ZEa+/R8asyJtrRBF/5jGiTRId05Nhik2Zc/RXDzkX+6T+F2+8zkhBY/oihWwXEzS6/dhTZeYb3S1xgqOnAIO1gURm+4vKo3HsfYb5QwupT8cGdQ/Z6JmhWpfUT+x8gmXQ/+qsCKxmR8+uvaH9Va8Kg0J8xr9irDKMGoIfuuEFdBBwZZPJ2cv11jTyvrfcQF5o6/gOcAXjU6SutzL7jpMUUAPDdnCXa6YVfz2OPFaEmomq/v5/uwjAR2OtmWWUB4hShhWEKP3wPW5GBOOjYMQDjVQDj/xa+qd57heFnWg20cTLSs1HTpoRTxJoaPCGxCrRaare1+GTY4bxDYmdOpHppIOznaKqlG8fgQZxE/nqArIUjkzkrv4C3WGkXr7rsRHwk1+N0ncNt6BXcbmU2DEy5TzyMlCbGHWyKLSVgXJhZ5K9Bs4AaSjdKBfkSIYKLAWZ+51Ew1fJA7gZttDxq8cROKZ2a9kMtWBCI8FDezVwA1TMcT07F1+LQyaieRxZDJicKSkrR0VSSf2tistQsBNjphpd47J3YTRBx6E9FQ5bmPvRbP8wxd7v8bkG/45B6WSld3WH9mffJ//LheeO1IMoU7iJxmpCPVIICPX+JNHcYm1bHkelFtZzSMd/h7lPf1GPnKTS5GB/krFYZfHQkBaIsy5/VhkqTRgcroOfpz2zKZprMf8OUuzLZjkILjmylXwqU1SNlxPhRDWIg5Jtwuvs/q37yRtllwxpnfv+b/zdHpOTS9/OQWXyfgfG5su++fdY1rBEjySIy5ohx57mtlKEEemQp2dzxkeKbSs7zAo8k0Ak5zFTvs2sE8la3Ng3/vLMsqeaC/WOfHwX36IWxowNRBimbL+nOG0juFdir2wdzjHFkoCs+WCVhtSkEPYf8Cv5dm6NGhzUMOor2zhjdQu3kev4FeV/voZTdd93YCQz1Z9gzN6slVz2KI5Eh88bSXVde7MNEhhigFr6ZWaOdX2QI3J0pgsMHi5IR/uZcZUjtGYt4jFCFotREyUaqh+AmGCgQXfGrfM9xkwT4b1Q7DLkxMatvPTQcQhg+QM1ufi3dOULEeliwVu1owLPxqzlDfqTE9TJyLE73OUZaMswZ3HX1pxNVTLES3LsarxzUqagNpWVyNLTS+id9sGzfLIFR5Fjbadlqi/M9Birgo7i6hEnp4uPT3fNaoBLeX4tx5V8U9WwJmK0y+F2Lcr7DDDlpKINoQnbf+h+o5K6DwgDQKeYjUDsI1rJWGpFqJ1/bCNKt43u/7++60osotDIIIj3hsK1a9H+kWg3/aLZR0/i6XPB/5OdLNiVmWIjfaEZk3TlqBBPp81SeFWxsFrB6hb2tiPLVjJ7lrmfBgHbJAufAxpBuvtDm6siwS+rcTv+ZAxRtXOxJB8ljFfteLOKlDi1VtDqXmegZ24QwhE0SvNaAcCgPF6vCcYxqv7ecDcet1VZ03G1K1VGshiPkOb0/sGh4LqkSXgv0DmK8/1Q9wLoUIJz+f0JZY+aTA4CcWbpgCBJSC5wFjxRj9ypMW6bK8LYSoP7AwB8lscZJcJcu2YX/NYvZ3uTQmDQbcKLopbtHO5VN9fhQgavzqKnHorGKF9KAZZXr3mqOxNrQb5NGz0EjK1BuEytcXJC3w0fpHPSGy1Qltb+aiJR7SFPGxRVjn7GCeyMnqTz5MhWjNI/WowyfL1qFMVz1TadhPKAYiMqYaBmkCvnsDjlQFaTzSPgCtrEvD/bUwy8H5zfsoj4Wtk4sPxF4yqKBWydTtApXYV8RJeh5rdlZJHsYRFE3hU3o/bxlIdnGfbU+NAMzTOtv42lzOpcFPvICACwwHXZ3vKO4L5Z311x+ZfO6O116QhW1MXjfKm7aRnbTAV9ek4DMGPDXjiA7YppCg+L1Xx0Mzx2vBlh8//ijrzRRuZsx+hWpEEi+D1hTCvNcEmU3payjYeuLWxMHAqMp+gV0GVSZInRZD7KeJZci/adgEpkxKaFpfH65kXtzXesXC8icQbbTv9AHH6ZsU95LmkP2fAubu1EHseEVXiINomI0nL9p/hras5ZsyA5staDleJBRRN0t0ZyCvf5aD+nIt80iqC5TRoRRyuOMuFkpVnA2CaFwaoRaGDAfQJyH1epG1FXWwdMnc3bleLn0HyFamCzPhrFno36Pl/w5a1+FLaol2oELQIm9pRUB0MxaLeMOrV/29eeWffuV502i7FtPFudATmCyY6vO4hLx2wv+8Xr7yjkBgNpkaHF694qqleZ4SYBjIAkCWCeMXYCn+IcasvptDzp+5uj7jtuCZnNivJO4OjHcroIeWKQXcfMc+tX2oyQtg7UI4aoTFCqP27eV0iYcOWg6GvrwN0lE9MHoDuAH4k3vImkfcRAnvoW06t9JCS23gMTR89nNvGp35ghyoTwmJX9Gxrzh8K3+NsZX3SEh9Q9dG55CvMlXWS3+ao2frL5rDgjq232XbQ1QtkssiLmjF1eGXqI0XsQUXGnnR8O8cICNXTqe6NJCKoeSO4jIHIC1dNrNiu9x/atM3dngtveD2pbE6NmgeB3PHCb3Grr0W6AqeIBmLHkW3RhrJaGZlqJ4LQ0uVwoSH1kjJ83SIhZoYY4b4/KM4qXtsHKwaTS4PFkHxr3bb95rYdIwGz2YlfAaNIUuwCYinUs/wzKGLcKZhRXLH7i93yEC/gkuK1On/hjM/r9n7nN3huD8iAKT9aF/w8RYlAqHOD7CvfFtFyY2uhrupx98ln2DUd90qOAQX0lTrmEqh45wReK0A0NHJAQtlbAhZEI3Nrz+0tGSCdkq+TjZlrLGEsXWb38yKzrUB/yyJKyTC0eSIA/7ZxNeamGphk8tqwb5Ox+wf4eqMnu7SbBNac3mfbgMZ5ddvebCbzcJyVt7WgTexMIT6c3LY1MCAPkbEcfmB8LXmF8bDO0BhMcv3xIyjefDUiKZPu+tN8dFxn2oEoOngApMcfCOdrt6bNI1K35jFkxkTCFEsVQ5LmkRN/rRc76ZQfKDgve9/yoirDz1WCNGyKCDmMeLeEAhQ3jqm3xxWmRi3mdTVk+uYkNf+06c5CUYU09rrmZLnC8pe6j6WYVAx3NYruOouYcMimcyOd2ceRrLYMH/MkhOEJRXKQN5bVhtQkdhhkfEePrQOxMeYzegtWejlJnQ9OcJUKYaWDze6Y0qD1woiEAdO8q2dVIssAvxT/hCaWS7q7uV7eWU/oCI53G6h8D+Pi8R6WPThS9xXAEIGDZCSE+uV7US+U1mjyNkl7lB3AcyD9kgjsWrYuqI8na3ZTMhmIDjHDZKL3gH62gr4hJqe7hS6ZHlgxc1IUI454QOZ6M84StruEF1soerFWUNwfElpk7FiGpMefVqycMJKaPqUmoZsLQwKs8MFxTRZ7xYGCJKHPalWQd3jHldvbCk0YuFiYAs+GIKeAIkj3+qye+z7U3GzsZdeI+3ul0rnbSdOPCF2Wmeq60A8MuuCTkAzwmda/UAkcj2rQxurreAOL8QqJs7vR91GAVok/HJtVnxbMcBktK9MFWPz08HdKAFWJwcJ7EPUQVRqyxTSRGZ4ZweHxQ3oAn3RvGY4+r0w3sCbuKDuBqr4eQKZgnEcp1BlxiozsoBs9KNzi8k/Ka6Yf/D0k3iYfseb1O5HQI6wifBZHvi7jXw7EuWMtrSxbQrTqNGYQV89jfFsH7faJbPFhk+WSUQZT3lJJ5sgM7welKRZe+rlPuOITfNBxzi5ZVOb+af3syupUKkrzghTexH93GMn25uHns1jt0Qz8DzDtkZRqo1vTGdrcqUrhq80qNkkd0yFMegXGrlv4Hi+W5ahvu0jirV/58goNmgEuVPNb8SxpaCNQJcHfrsn6HvvDJISbJ/vs17pvryhiZkchO+Qss/SDqB1GRO6I6uOMZWJP3wzdEld+DYZkqWDSqx/RWZwcjmQtFYHRu56kgzkt3z/ITkROIMKaL3qwfZmCrYEW7hYBP3DNV7L0Mx9aBUepoN+FoXtnJ0Ufqq9h8S5uYwwEjpaKjhO77lWWXK/gbMYAUE5m1UECRtcBmW7WR5Ea9LDZOV9S0+YLcTmZNR+GI50/wLIlZORIW4OanylZdZNvHWuUXgtqM6d/TfKhT/C3luOSZR6PL3QbBfD/AWN8NWqme/PGcY6uD5H1K88Xx62Hff2SnCXJ9FWhcffVt35UY/ta2P0mOg/poOD5hh0cij6dzuq26VnMHUR7bplAPktCU6Zzygdoza58xnZokpCY7JjWIhmg6nCZw/aQbZNg9PsaiAnQDjVo7jYZVapjO5OGI34WZGSEj0dQjo71ftUUbKc999Tuc1991c7Sk3YXxeHlPJN2Gx7aEHfz9dohJ/LatrsmKEYwAtmk+In818JCklnQTWr+40onD2bSmrxDkBnRM7Z9gAbif/ctL28tKcRvaHqmE9xQYrkKah4AHERbaMW+HwiD2FQTfhSuEdinbLqnaXAIDh+r4CySuD5V2gsoK8026Cv7pF4Z6TFw9zyJeE5dfoa6YN+jBHSOpIFH1zq/tDPhs5Q2flhehOTFngr90mfthZsZZ4ehqCBPJWIPpqeGWUKtpIVKYxlroIQKDWcGC2ABTRbpkuJV/gN1HYOEvI2hlO/p2YAMe2VC45o74HuFly3qdQAE7pj7hWia9HJ4FDipqlYtIj57oYsyOpoISXPIoLU2OcuYgkriLIDu7ZJ7FKuVaVLuIBMnCum+A+PHbulF6TbJbPPajBX7A/Y/ZJzAba+VJpm/fyEjbxLFdrrOvRuK6rcF+EqaKmAk19F1Y+KE4jRyWeNnNhI7/DUg6WdgCySj+QMXO8s7Z3SE2ceUAqstqS3fifZuyCa5akUApkQbu+s6IQ7hGyPM/EgoLmpy2gzLP8HmDAFOKTam5Uty3S6I/YdhlYFxud8nAYdJejHpG/TZgax9xta88vlUCI9oQDroa5yg32fWSM0dR9r3WQpIV9QXKRNhjXFgwiyFsEt39Yb5DepOpUCGw7cmqpOZhPn+LBx7mkLjUOiMEMNdyprEO2BbKhfxZ2tEjEtU5nW791EdZ81HyBYMF766Zp8JzDVo65pJRplJ0hIuRs7aFoGtZPRlNFhsiS9HsEHFPvz3fqGUoA1LzCtjk6RV1MnvnuK1a02L7v9FC52WOgplJcGaHatQzol7GHaw/R7ksK4I1D7ft1LiupD6hT94+K7HJWDXW87fHrZ6FPDuQU37Q7rfOxsJjRy92eo1o8XO/kbUxLSCwlYzU+6kPaNfmc/HFyO58xPKcWbTplJ1owMtnFo2ye+70gm6hyyMZOXjEND7/HKpSspVXiNfuNn8aCDDfzehRvxY9nNTRy0/8kRNQe2xNRBX40AOJHkVWFcSM33D8MUfjEFXwEZxG54rNnSFYUW/y/6GK/DmCQR2Q2mP/aOjK4JBaZ6FDMbaB9mcPkRAHVGmMYGIkdWkOb0Hk+hYNC6gVw0AvrFT7Qj8sULlnNhUGUeLtdExfwIl8L910dQsj5NFMH0bQ9EvukJXyCp8DlJqYHkAvln4tL+22kEJB3aM9GMU7eJtt2ciTFUQv8lb0RoHPqqipn9bG0Xz909rUgUyppTLSK9uuM14KiFOhqSSp9smtFhkhCCOQdcCu4JXdOs2y/yqrcEDxDKUTfm88+llm9SrQpBbG86aDDhuy5PhCng/RoH2LwhHkmdKJznF8Y6Gh+5tIvYAL8Z9t3QDPcijXa8wi3CI/Sa+jFJ3yU9XOcDXKDaPLQSc9bKKlf2ejomz+wyYms27UPWm2okV5YTTew9RHmBJcSNNijl12k26J8TaVM613zqkvxyC6r+gjqfRmwqqH5jvjH/yXDD83dFO0xsd6GqSh5Wpk4tC6Yrl3SbDrd38qd6t3u6fqvGbVh0CGE22lJHj5Fl8gSNnN5VMF+i0YfajR1ftKtPLchMPzgTy3WQaoxNXiFakzbO3Mh9BM8FNbCjFMEqkx5oxqmPuzeLRF66VT8xr0hi/pP0K44e9HduoRpX3M0+Tr0u90xDXLyAtexDDgYh9wXD2qtU1gNqxmycwoZNrD2Mmtylm0PxM85iESo8dMvWR/XABPV/moJqnEaE1xed8E2qrAyxI42W9TT2OnY7g55uQDYbShYqSYeyrUXmHDvOHl+Ls3rpgs9/uQOB62MLaEpn7E2nnbMV+KFz+tkLX3+c5F07AotnxUa6lzxgvUEV8GCucY9haVrtdPZVSeM1+be/ljLD8zDNysnBCXIaRJty7cK5dXPkyi0b9bHarZ9idX+KXeqQrNQWWuscMBXcrzMwcmyaMydap/V4NUgzE2/7f64/lL33SWrxxJFyh4gRuSsSZf4kNk//K/noYq/Dara757nyzfSHLiknkHGlnVwT5L7BvOV3KF8cgfd8+7usVirTAnt4Oo2ii4fdoMSSfzek7OLAO9ABnFy3+0SQPCx1ZANxS0Sp4daj5N4gzES9yyY6TAAXBKds1thMjB3I+nD11TWQv+i3TkQaMEhsQyNu0VEVpMN3ll317mY48A7K0o6eev0fpe4glDIwChQsubzlADNABZF/kcsaF03s9WbJ0bwzP93SEVzCLGpFqbpKK1XfzmEDkzHz5jqdOT/x55dnC0NufmZReXQ67PNFq68yJWepExmAFp6xYnJb6SNXlY1ToiJob6h2VatxSmT1VmBTFxWHQECfqy+sy4ODTxY++bXMfpp3zYHRRXVk7i8P0n9rlXzin46Q1+qp6ZQCHRI/64hnET0WgjNQ9KWblQUeUB54bVLj/taBLlvKhF1VVEbWgokiY/epT/O2flJUR+4xexmCwoTgRl+n68cvR+7P9pHW8WQIL4ASQYaaaX8ifMEjbv9JUiYgARPdjfMcxSkuBCEaPIHNkJLWvTSEfDMiuvlE2UxQ4oZG0sxgAAAA=='
+
+    // ── src/40-eq.js
+    /**
+     * eq: ten-band graphic equalizer (data + pure math only).
+     *
+     * The audio graph lives in 50-player; this fragment owns the preset table, the
+     * pref normalisation and the frequency-response math used by the editor curve.
+     * Everything here is pure so `test/eq.test.mjs` can check it without Web Audio.
+     *
+     * Bands follow Winamp's ten-band layout because the factory presets below are
+     * recorded at exactly these frequencies; switching to ISO spacing would mean
+     * re-deriving every preset and losing the original curve.
+     */
+
+    var EQ_FREQS = [70, 180, 320, 600, 1000, 3000, 6000, 12000, 14000, 16000]
+
+    /**
+     * Q per band. The first seven are roughly one octave wide; 12k/14k/16k sit
+     * within a third of an octave of each other, so they need a narrower Q or a
+     * treble boost stacks into a +30 dB shelf.
+     */
+    var EQ_Q = [1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 2, 3, 3]
+
+    var EQ_MAX_DB = 12
+    var EQ_PREAMP_MAX = 12
+    /**
+     * Cap on the automatic trim. Compensating the full boosted peak would make a
+     * preset like Rock ~10 dB quieter than flat, which reads as a bug to users;
+     * the output limiter in the player catches whatever the cap leaves over.
+     */
+    var EQ_HEADROOM_MAX = 6
+    var EQ_CUSTOM_LIMIT = 20
+    var EQ_CURVE_POINTS = 64
+    var EQ_MIN_HZ = 20
+    var EQ_MAX_HZ = 20000
+
+    /**
+     * Winamp's original factory presets: ten raw fader values (0..64, 33 = 0 dB)
+     * plus a preamp fader. Values transcribed from
+     * https://github.com/schollz/Winamp-Original-Presets (resources/Winamp.q1.json).
+     */
+    var EQ_PRESETS = [
+      {
+        id: 'flat',
+        zh: '平直',
+        en: 'Flat',
+        values: [33, 33, 33, 33, 33, 33, 33, 33, 33, 33],
+      },
+      {
+        id: 'pop',
+        zh: '流行',
+        en: 'Pop',
+        values: [29, 40, 44, 45, 41, 30, 28, 28, 29, 29],
+      },
+      {
+        id: 'rock',
+        zh: '摇滚',
+        en: 'Rock',
+        values: [45, 40, 23, 19, 26, 39, 47, 50, 50, 50],
+      },
+      {
+        id: 'softRock',
+        zh: '轻摇滚',
+        en: 'Soft rock',
+        values: [39, 39, 36, 31, 25, 23, 26, 31, 37, 47],
+      },
+      {
+        id: 'classical',
+        zh: '古典',
+        en: 'Classical',
+        values: [33, 33, 33, 33, 33, 33, 20, 20, 20, 16],
+      },
+      {
+        id: 'dance',
+        zh: '舞曲',
+        en: 'Dance',
+        values: [48, 44, 36, 32, 32, 22, 20, 20, 32, 32],
+      },
+      {
+        id: 'club',
+        zh: '俱乐部',
+        en: 'Club',
+        values: [33, 33, 38, 42, 42, 42, 38, 33, 33, 33],
+      },
+      {
+        id: 'party',
+        zh: '派对',
+        en: 'Party',
+        values: [44, 44, 33, 33, 33, 33, 33, 33, 44, 44],
+      },
+      {
+        id: 'live',
+        zh: '现场',
+        en: 'Live',
+        values: [24, 33, 39, 41, 42, 42, 39, 37, 37, 36],
+      },
+      {
+        id: 'largeHall',
+        zh: '大厅',
+        en: 'Large hall',
+        values: [49, 49, 42, 42, 33, 24, 24, 24, 33, 33],
+      },
+      {
+        id: 'reggae',
+        zh: '雷鬼',
+        en: 'Reggae',
+        values: [33, 33, 31, 22, 33, 43, 43, 33, 33, 33],
+      },
+      {
+        id: 'ska',
+        zh: '斯卡',
+        en: 'Ska',
+        values: [28, 24, 25, 31, 39, 42, 47, 48, 50, 48],
+      },
+      {
+        id: 'techno',
+        zh: '电子',
+        en: 'Techno',
+        values: [45, 42, 33, 23, 24, 33, 45, 48, 48, 47],
+      },
+      {
+        id: 'soft',
+        zh: '柔和',
+        en: 'Soft',
+        values: [40, 35, 30, 28, 30, 39, 46, 48, 50, 52],
+      },
+      {
+        id: 'fullBass',
+        zh: '重低音',
+        en: 'Full bass',
+        values: [48, 48, 48, 42, 35, 25, 18, 15, 14, 14],
+      },
+      {
+        id: 'fullTreble',
+        zh: '高音增强',
+        en: 'Full treble',
+        values: [16, 16, 16, 25, 37, 50, 58, 58, 58, 60],
+      },
+      {
+        id: 'fullBassTreble',
+        zh: '高低音增强',
+        en: 'Full bass + treble',
+        values: [44, 42, 33, 20, 24, 35, 46, 50, 52, 52],
+      },
+      {
+        id: 'laptop',
+        zh: '笔记本 / 耳机',
+        en: 'Laptop / headphones',
+        values: [40, 50, 41, 26, 28, 35, 40, 48, 53, 56],
+      },
+    ]
+
+    /** Display name for the current UI language. */
+    function eqPresetName(preset) {
+      if (!preset) return ''
+      return LANG === 'zh' ? preset.zh || preset.en : preset.en || preset.zh
+    }
+
+    function eqPresetById(id) {
+      var key = String(id || '')
+      for (var index = 0; index < EQ_PRESETS.length; index += 1) {
+        if (EQ_PRESETS[index].id === key) return EQ_PRESETS[index]
+      }
+      return null
+    }
+
+    /**
+     * Winamp fader (0..64, 33 = 0 dB) to decibels. The scale is asymmetric around
+     * the centre — 33 steps down, 31 steps up — so map each half separately to keep
+     * both extremes at exactly ±12 dB.
+     */
+    function eqFaderToDb(value) {
+      var raw = Number(value)
+      if (!isFinite(raw)) return 0
+      var fader = clamp(raw, 0, 64)
+      var db = fader >= 33 ? ((fader - 33) / 31) * EQ_MAX_DB : ((fader - 33) / 33) * EQ_MAX_DB
+      return clamp(db, -EQ_MAX_DB, EQ_MAX_DB)
+    }
+
+    function eqBandsForPreset(id) {
+      var preset = eqPresetById(id)
+      if (preset === null) return zeroEqBands()
+      // Whole decibels: the editor faders step by 1 dB, so a preset must land on
+      // the same grid or picking it and nudging one band would read as "custom".
+      return preset.values.map(function (value) {
+        return Math.round(eqFaderToDb(value))
+      })
+    }
+
+    function zeroEqBands() {
+      return EQ_FREQS.map(function () {
+        return 0
+      })
+    }
+
+    function roundDecimals(value, digits) {
+      var factor = Math.pow(10, digits)
+      return Math.round(value * factor) / factor
+    }
+
+    /** Coerce whatever localStorage held into ten finite decibel values. */
+    function normalizeEqBands(list) {
+      if (!Array.isArray(list)) return zeroEqBands()
+      return EQ_FREQS.map(function (_, index) {
+        var value = Number(list[index])
+        if (!isFinite(value)) return 0
+        return Math.round(clamp(value, -EQ_MAX_DB, EQ_MAX_DB))
+      })
+    }
+
+    /**
+     * Resolve the persisted preferences into a complete EQ state. Missing fields
+     * keep the EQ off, so upgrades never change how a playlist sounds.
+     */
+    function normalizeEqPrefs(prefs) {
+      var source = prefs !== null && typeof prefs === 'object' ? prefs : {}
+      var presetId = String(source.eqPreset || 'flat')
+      var preset = eqPresetById(presetId)
+      var bands
+      if (Array.isArray(source.eqBands)) {
+        bands = normalizeEqBands(source.eqBands)
+      } else {
+        bands = preset === null ? zeroEqBands() : eqBandsForPreset(preset.id)
+      }
+      var savedPreset = presetId === 'custom' ? 'custom' : preset === null ? 'flat' : preset.id
+      return {
+        enabled: source.eqEnabled === true,
+        preset: savedPreset,
+        bands: bands,
+        preamp: Math.round(clamp(Number(source.eqPreamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)),
+      }
+    }
+
+    /** True when the band layout matches a factory preset exactly. */
+    function eqBandsMatchPreset(bands, presetId) {
+      var target = eqBandsForPreset(presetId)
+      var list = normalizeEqBands(bands)
+      for (var index = 0; index < target.length; index += 1) {
+        if (Math.abs(target[index] - list[index]) > 0.05) return false
+      }
+      return true
+    }
+
+    /** Which factory preset the given bands represent, or 'custom'. */
+    function eqPresetForBands(bands) {
+      for (var index = 0; index < EQ_PRESETS.length; index += 1) {
+        if (eqBandsMatchPreset(bands, EQ_PRESETS[index].id)) return EQ_PRESETS[index].id
+      }
+      return 'custom'
+    }
+
+    /**
+     * Peaking sections for the current bands, skipping anything a 0 dB band or the
+     * Nyquist limit makes pointless.
+     */
+    function eqSections(bands, sampleRate) {
+      var list = normalizeEqBands(bands)
+      var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
+      var sections = []
+      for (var band = 0; band < EQ_FREQS.length; band += 1) {
+        if (EQ_FREQS[band] >= rate / 2) continue
+        if (Math.abs(list[band]) < 0.01) continue
+        sections.push(eqPeakingCoefficients(EQ_FREQS[band], EQ_Q[band], list[band], rate))
+      }
+      return sections
+    }
+
+    /**
+     * Loudest point of the boosted response. Adjacent bands overlap in phase, so
+     * the true peak is above the largest single band; sampling the response keeps
+     * the headroom honest instead of guessing from the fader values.
+     */
+    function eqPeakBoostDb(bands, sampleRate) {
+      var sections = eqSections(bands, sampleRate)
+      if (sections.length === 0) return 0
+      var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
+      var lowLog = Math.log(EQ_MIN_HZ)
+      var highLog = Math.log(Math.min(EQ_MAX_HZ, rate / 2))
+      var peak = 0
+      for (var index = 0; index <= 48; index += 1) {
+        var freq = Math.exp(lowLog + ((highLog - lowLog) * index) / 48)
+        var db = 0
+        for (var section = 0; section < sections.length; section += 1) {
+          db += eqSectionDb(sections[section], freq, rate)
+        }
+        if (db > peak) peak = db
+      }
+      return peak
+    }
+
+    /**
+     * Automatic headroom: trim by the boosted peak, capped at EQ_HEADROOM_MAX so a
+     * heavy preset stays roughly as loud as flat. Never boosts, so switching the EQ
+     * off and on cannot make the track louder.
+     */
+    function eqHeadroomDb(bands) {
+      var peak = eqPeakBoostDb(bands, 44100)
+      if (!(peak > 0)) return 0
+      return -Math.min(roundDecimals(peak, 1), EQ_HEADROOM_MAX)
+    }
+
+    /** Total gain the preamp node should apply, including the headroom trim. */
+    function eqTotalPreampDb(preamp, bands) {
+      var value = clamp(Number(preamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)
+      return roundDecimals(value + eqHeadroomDb(bands), 2)
+    }
+
+    function eqDbToLinear(db) {
+      return Math.pow(10, (Number(db) || 0) / 20)
+    }
+
+    /**
+     * Peaking-filter coefficients, matching the Web Audio `BiquadFilterNode`
+     * definition (RBJ audio EQ cookbook). Returned as [b0, b1, b2, a0, a1, a2].
+     */
+    function eqPeakingCoefficients(freq, q, gainDb, sampleRate) {
+      var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
+      var f0 = clamp(freq, 10, rate / 2 - 1)
+      var amplitude = Math.pow(10, (Number(gainDb) || 0) / 40)
+      var omega = (2 * Math.PI * f0) / rate
+      var alpha = Math.sin(omega) / (2 * Math.max(0.0001, Number(q) || 1))
+      var cos = Math.cos(omega)
+      return [
+        1 + alpha * amplitude,
+        -2 * cos,
+        1 - alpha * amplitude,
+        1 + alpha / amplitude,
+        -2 * cos,
+        1 - alpha / amplitude,
+      ]
+    }
+
+    /** |H(e^{jw})| for one biquad section, in decibels. */
+    function eqSectionDb(coefficients, freq, sampleRate) {
+      var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
+      var omega = (2 * Math.PI * clamp(freq, 1, rate / 2)) / rate
+      var cos1 = Math.cos(-omega)
+      var sin1 = Math.sin(-omega)
+      var cos2 = Math.cos(-2 * omega)
+      var sin2 = Math.sin(-2 * omega)
+      var numReal = coefficients[0] + coefficients[1] * cos1 + coefficients[2] * cos2
+      var numImag = coefficients[1] * sin1 + coefficients[2] * sin2
+      var denReal = coefficients[3] + coefficients[4] * cos1 + coefficients[5] * cos2
+      var denImag = coefficients[4] * sin1 + coefficients[5] * sin2
+      var numerator = Math.sqrt(numReal * numReal + numImag * numImag)
+      var denominator = Math.sqrt(denReal * denReal + denImag * denImag)
+      if (!(denominator > 0)) return 0
+      return 20 * Math.log10(numerator / denominator)
+    }
+
+    /**
+     * Sampled magnitude response of the whole chain (bands + preamp + headroom),
+     * log-spaced across the audible range. Used to draw the editor curve.
+     */
+    function eqCurveSamples(bands, preampDb, count, sampleRate) {
+      var list = normalizeEqBands(bands)
+      var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
+      var points = Math.max(2, Math.floor(Number(count) || EQ_CURVE_POINTS))
+      var sections = eqSections(list, rate)
+      var total = eqTotalPreampDb(preampDb, list)
+      var output = []
+      var lowLog = Math.log(EQ_MIN_HZ)
+      var highLog = Math.log(Math.min(EQ_MAX_HZ, rate / 2))
+      for (var index = 0; index < points; index += 1) {
+        var ratio = points === 1 ? 0 : index / (points - 1)
+        var freq = Math.exp(lowLog + (highLog - lowLog) * ratio)
+        var db = total
+        for (var section = 0; section < sections.length; section += 1) {
+          db += eqSectionDb(sections[section], freq, rate)
+        }
+        output.push({ freq: freq, db: db })
+      }
+      return output
+    }
+
+    /** Frequency marks drawn under the curve. */
+    function eqCurveTicks() {
+      return [70, 180, 320, 600, 1000, 3000, 6000, 12000, 16000]
+    }
 
     // ── src/40-store.js
     /**
@@ -4082,6 +4510,14 @@ window.__ModuleLoader__.load({
       var audioContext = null
       var analyser = null
       var gainNode = null
+      /** Preamp stage in front of the EQ chain (0 dB when the EQ is off). */
+      var preampNode = null
+      /** Safety limiter after the EQ: heavy boosts must not clip the DAC. */
+      var limiterNode = null
+      /** `[{ band, node }]` — bands above Nyquist are skipped, so keep the mapping. */
+      var eqNodes = []
+      /** Resolved EQ settings; persisted through prefs on every change. */
+      var eq = normalizeEqPrefs(prefs)
       var waveData = null
       var normalizeGain = 1
       var loudnessToken = 0
@@ -4590,6 +5026,81 @@ window.__ModuleLoader__.load({
         }
       }
 
+      /**
+       * Routing a cross-origin media element through Web Audio silences it: the
+       * browser has no CORS grant, so the graph only outputs zeros. The plugin
+       * normally plays blobs (same-origin), but the stream fallback assigns a
+       * remote URL, and one media element can only enter Web Audio once.
+       */
+      function canRouteThroughWebAudio(el) {
+        var source = ''
+        try {
+          source = String(el.currentSrc || el.src || '')
+        } catch (error) {
+          source = ''
+        }
+        if (source === '') return true
+        if (source.indexOf('blob:') === 0 || source.indexOf('data:') === 0) return true
+        try {
+          return new URL(source, window.location.href).origin === window.location.origin
+        } catch (error) {
+          return false
+        }
+      }
+
+      function buildEqNodes(context) {
+        var nodes = []
+        for (var band = 0; band < EQ_FREQS.length; band += 1) {
+          // A band at or above Nyquist cannot be realised; skip it and keep going.
+          if (EQ_FREQS[band] >= context.sampleRate / 2) continue
+          var filter = context.createBiquadFilter()
+          filter.type = 'peaking'
+          filter.frequency.value = EQ_FREQS[band]
+          filter.Q.value = EQ_Q[band]
+          filter.gain.value = 0
+          nodes.push({ band: band, node: filter })
+        }
+        return nodes
+      }
+
+      /**
+       * Push the current EQ settings into the live graph. Disabled means every
+       * band at 0 dB and no preamp, i.e. an actual bypass rather than "flat preset".
+       */
+      function applyEq(immediate) {
+        var bands = eq.enabled ? eq.bands : zeroEqBands()
+        var preampDb = eq.enabled ? eqTotalPreampDb(eq.preamp, bands) : 0
+        var linear = eqDbToLinear(preampDb)
+        var paused = audio === null || audio.paused === true || immediate === true
+        if (preampNode !== null && audioContext !== null) {
+          try {
+            var now = audioContext.currentTime
+            preampNode.gain.cancelScheduledValues(now)
+            if (paused) preampNode.gain.setValueAtTime(linear, now)
+            else preampNode.gain.setTargetAtTime(linear, now, 0.02)
+          } catch (error) {
+            preampNode.gain.value = linear
+          }
+        }
+        for (var index = 0; index < eqNodes.length; index += 1) {
+          var entry = eqNodes[index]
+          var target = bands[entry.band]
+          try {
+            var time = audioContext === null ? 0 : audioContext.currentTime
+            entry.node.gain.cancelScheduledValues(time)
+            if (paused) entry.node.gain.setValueAtTime(target, time)
+            else entry.node.gain.setTargetAtTime(target, time, 0.02)
+          } catch (error) {
+            entry.node.gain.value = target
+          }
+        }
+      }
+
+      /** Web Audio is the whole mechanism; without it the panel must say so. */
+      function eqSupported() {
+        return typeof window !== 'undefined' && !!(window.AudioContext || window.webkitAudioContext)
+      }
+
       function createLoudnessGate() {
         var resolveGate = null
         var promise = new Promise(function (resolve) {
@@ -4883,20 +5394,40 @@ window.__ModuleLoader__.load({
         ensureAnalyser: function () {
           if (audio === null) return null
           if (analyser !== null) return analyser
+          if (!canRouteThroughWebAudio(audio)) return null
           try {
             var Ctx = window.AudioContext || window.webkitAudioContext
             if (!Ctx) return null
             if (audioContext === null) audioContext = new Ctx()
             var source = audioContext.createMediaElementSource(audio)
+            preampNode = audioContext.createGain()
+            eqNodes = buildEqNodes(audioContext)
+            limiterNode = audioContext.createDynamicsCompressor()
+            limiterNode.threshold.value = -1.5
+            limiterNode.knee.value = 0
+            limiterNode.ratio.value = 20
+            limiterNode.attack.value = 0.003
+            limiterNode.release.value = 0.15
             gainNode = audioContext.createGain()
             analyser = audioContext.createAnalyser()
             analyser.fftSize = 256
             analyser.smoothingTimeConstant = 0.82
-            source.connect(gainNode)
+            // source → preamp → 10 peaking bands → limiter → loudness gain → analyser
+            var tail = source
+            tail.connect(preampNode)
+            tail = preampNode
+            for (var index = 0; index < eqNodes.length; index += 1) {
+              tail.connect(eqNodes[index].node)
+              tail = eqNodes[index].node
+            }
+            tail.connect(limiterNode)
+            tail = limiterNode
+            tail.connect(gainNode)
             gainNode.connect(analyser)
             analyser.connect(audioContext.destination)
             if (audio) audio.volume = state.volume
             applyNormalizeGain(normalizeGain)
+            applyEq(true)
             waveData = new Uint8Array(analyser.frequencyBinCount)
             if (audioContext.state === 'suspended') audioContext.resume().catch(function () {})
           } catch (error) {
@@ -4926,6 +5457,9 @@ window.__ModuleLoader__.load({
           audioContext = null
           analyser = null
           gainNode = null
+          preampNode = null
+          limiterNode = null
+          eqNodes = []
           waveData = null
           audio = el
           if (el === null) return
@@ -5186,6 +5720,52 @@ window.__ModuleLoader__.load({
             applyNormalizeGain(1)
           } else if (currentItem()) {
             scheduleLoudness(currentItem(), currentLoudnessBlob)
+          }
+        },
+        /**
+         * Update the equalizer. Every call persists, so the panel can drive this
+         * directly without a second write path. Enabling builds the graph on the
+         * spot: the click that flips the switch is the user gesture Web Audio needs.
+         */
+        setEq: function (patch) {
+          var source = patch !== null && typeof patch === 'object' ? patch : {}
+          var bands = source.bands === undefined ? eq.bands.slice() : normalizeEqBands(source.bands)
+          var preset
+          if (source.preset === undefined) {
+            // A band edit without an explicit preset still has to name its curve.
+            preset = source.bands === undefined ? eq.preset : eqPresetForBands(bands)
+          } else if (source.preset === 'custom') {
+            preset = 'custom'
+          } else {
+            preset = eqPresetById(source.preset) === null ? 'flat' : String(source.preset)
+          }
+          var next = {
+            enabled: source.enabled === undefined ? eq.enabled : source.enabled === true,
+            preset: preset,
+            bands: bands,
+            preamp:
+              source.preamp === undefined
+                ? eq.preamp
+                : Math.round(clamp(Number(source.preamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)),
+          }
+          eq = next
+          savePrefs({
+            eqEnabled: next.enabled,
+            eqPreset: next.preset,
+            eqBands: next.bands,
+            eqPreamp: next.preamp,
+          })
+          if (next.enabled && analyser === null) api.ensureAnalyser()
+          applyEq(next.enabled !== true)
+        },
+        getEq: function () {
+          return {
+            enabled: eq.enabled,
+            preset: eq.preset,
+            bands: eq.bands.slice(),
+            preamp: eq.preamp,
+            /** False when the browser cannot host the graph (EQ is inert then). */
+            available: eqSupported() && (analyser !== null || audio === null || canRouteThroughWebAudio(audio)),
           }
         },
         setVolume: function (value) {
@@ -6881,6 +7461,70 @@ window.__ModuleLoader__.load({
       '.mp-np-sleep-off:hover{background:rgba(255,80,80,.14)}',
       '.mp-np-extra-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px}',
       '.mp-np-extra-hint{margin-top:10px;font-size:11px;color:rgba(255,255,255,.55)}',
+      // ── audio effects: equalizer panel ────────────────────────────────────
+      // The now-playing surface is always dark (cover backdrop), so these follow
+      // the neighbouring popover rules and use white alphas instead of --dsw-* text
+      // tokens, which would resolve to dark ink in the light theme.
+      '.mp-np-extra-link{display:flex;align-items:center;gap:6px;width:100%;margin-top:10px;padding:7px 8px;border:0;border-radius:8px;background:rgba(255,255,255,.06);color:inherit;font:inherit;font-size:12px;text-align:left;cursor:pointer}',
+      '.mp-np-extra-link:hover{background:rgba(255,255,255,.12)}',
+      '.mp-np-extra-link-label{flex:1;min-width:0}',
+      '.mp-np-extra-link-value{font-size:11px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:96px}',
+      '.mp-np-extra-link-arrow{display:inline-flex;flex:none;transform:rotate(180deg);color:rgba(255,255,255,.45)}',
+      '.mp-np-extra-pop.is-eq{left:0;transform:none;width:340px;max-width:calc(100vw - 24px);max-height:min(72vh,480px);overflow-y:auto;overscroll-behavior:contain;padding:12px;border-radius:12px}',
+      '.mp-eqp{display:flex;flex-direction:column;gap:8px}',
+      '.mp-eq-head{display:flex;align-items:center;gap:8px}',
+      '.mp-eq-back{display:inline-flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;padding:0;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.75);cursor:pointer}',
+      '.mp-eq-back:hover{background:rgba(255,255,255,.1);color:#fff}',
+      '.mp-eq-title{flex:1;min-width:0;font-size:13px;font-weight:650;color:#f4f4f5}',
+      '.mp-eq-tabs{display:flex;gap:2px;padding:2px;border-radius:8px;background:rgba(255,255,255,.06)}',
+      '.mp-eq-tab{flex:1;padding:5px 0;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.6);font:inherit;font-size:12px;cursor:pointer}',
+      '.mp-eq-tab:hover{color:#f4f4f5}',
+      '.mp-eq-tab.is-on{background:rgba(255,255,255,.13);color:#f4f4f5}',
+      '.mp-eq-body{min-height:0}',
+      '.mp-eq-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}',
+      '.mp-eq-preset{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:7px 8px;border:1px solid transparent;border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.85);font:inherit;text-align:left;cursor:pointer}',
+      '.mp-eq-preset:hover{background:rgba(255,255,255,.1)}',
+      '.mp-eq-preset.is-on{border-color:rgba(120,160,255,.65);background:rgba(90,130,255,.18);color:#fff}',
+      '.mp-eq-preset-name{font-size:12px;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-eq-bars{display:flex;align-items:center;gap:2px;height:16px}',
+      '.mp-eq-bars i{display:block;width:3px;min-height:2px;border-radius:1px;background:rgba(255,255,255,.42)}',
+      '.mp-eq-preset.is-on .mp-eq-bars i,.mp-eq-saved-main:hover .mp-eq-bars i{background:rgba(150,180,255,.95)}',
+      '.mp-eq-mine{display:flex;flex-direction:column;gap:8px}',
+      '.mp-eq-empty{display:flex;flex-direction:column;gap:4px;padding:20px 6px;text-align:center}',
+      '.mp-eq-empty-title{font-size:12px;color:rgba(255,255,255,.8)}',
+      '.mp-eq-empty-hint{font-size:11px;line-height:1.5;color:rgba(255,255,255,.45)}',
+      '.mp-eq-saved{display:flex;flex-direction:column;gap:4px;max-height:214px;overflow-y:auto}',
+      '.mp-eq-saved-row{display:flex;align-items:center;gap:2px}',
+      '.mp-eq-saved-main{display:flex;flex:1;align-items:center;gap:8px;min-width:0;padding:6px 8px;border:0;border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.85);font:inherit;text-align:left;cursor:pointer}',
+      '.mp-eq-saved-main:hover{background:rgba(255,255,255,.1);color:#fff}',
+      '.mp-eq-saved-name{flex:1;min-width:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-eq-add{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:8px;border:1px dashed rgba(255,255,255,.18);border-radius:8px;background:transparent;color:rgba(255,255,255,.6);font:inherit;font-size:12px;cursor:pointer}',
+      '.mp-eq-add:hover{border-color:rgba(255,255,255,.32);color:#fff}',
+      '.mp-eq-save-form{display:flex;align-items:center;gap:6px}',
+      '.mp-eq-save-input{flex:1;min-width:0;height:30px;padding:0 8px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none}',
+      '.mp-eq-save-input:focus{border-color:rgba(120,160,255,.6)}',
+      '.mp-eq-save-ok{flex:none;height:30px}',
+      '.mp-eq-save-cancel{flex:none;padding:6px 8px;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.55);font:inherit;font-size:12px;cursor:pointer}',
+      '.mp-eq-save-cancel:hover{color:#fff;background:rgba(255,255,255,.08)}',
+      '.mp-eq-edit{display:flex;flex-direction:column;gap:8px}',
+      '.mp-eq-curve{display:block;width:100%;height:64px;border-radius:8px;background:rgba(255,255,255,.04)}',
+      '.mp-eq-curve-zero{stroke:rgba(255,255,255,.18);stroke-width:1;stroke-dasharray:3 3}',
+      '.mp-eq-curve-line{fill:none;stroke:rgba(150,180,255,.95);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}',
+      '.mp-eq-faders{display:flex;align-items:flex-start;justify-content:space-between;gap:1px;padding-top:2px}',
+      '.mp-eq-fader{position:relative;display:flex;flex-direction:column;align-items:center;width:28px;height:118px}',
+      '.mp-eq-fader-value{position:absolute;top:0;font-size:11px;line-height:14px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}',
+      '.mp-eq-fader.is-active .mp-eq-fader-value{color:#fff}',
+      '.mp-eq-fader input{position:absolute;top:54px;left:50%;width:88px;height:16px;margin:0;transform:translateX(-50%) rotate(-90deg);accent-color:rgba(150,180,255,.95)}',
+      '.mp-eq-fader-label{position:absolute;bottom:0;font-size:11px;line-height:14px;color:rgba(255,255,255,.45)}',
+      '.mp-eq-preamp{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.55)}',
+      '.mp-eq-preamp input{flex:1;min-width:0;width:auto}',
+      '.mp-eq-preamp-value{flex:0 0 46px;text-align:right;font-variant-numeric:tabular-nums}',
+      '.mp-eq-hint{font-size:11px;line-height:1.5;color:rgba(255,255,255,.4)}',
+      '.mp-eq-actions{display:flex;gap:6px}',
+      '.mp-eq-action{flex:1;padding:7px 8px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:transparent;color:rgba(255,255,255,.85);font:inherit;font-size:12px;cursor:pointer}',
+      '.mp-eq-action:hover{background:rgba(255,255,255,.08);color:#fff}',
+      '.mp-eq-warn{font-size:11px;line-height:1.5;color:#e6b061}',
+      '.mp-eqp :focus-visible{outline:2px solid var(--dsw-focus-ring-color,#7AAAFF);outline-offset:2px}',
       '.mp-np .mp-seek{height:16px}',
       '.mp-np .mp-seek::before{height:2px;background:rgba(255,255,255,.24)}',
       '.mp-np .mp-seek-buffer{height:2px;background:rgba(255,255,255,.34)}',
@@ -8279,6 +8923,425 @@ window.__ModuleLoader__.load({
             onClick: props.onOpenNowPlaying,
           }),
         ),
+      )
+    }
+
+    // ── src/ui/04-eq-panel.js
+    /**
+     * eq-panel: the equalizer surface inside the audio-effects popover.
+     *
+     * Three tabs, mirroring how desktop players organise this: factory presets,
+     * the user's saved curves, and the editor (response curve + faders + preamp).
+     * All state lives in prefs through `player.setEq`, so the panel stays a pure
+     * view of a single source of truth.
+     */
+
+    var EQ_TABS = [
+      { id: 'presets', labelKey: 'eq.tabPresets' },
+      { id: 'mine', labelKey: 'eq.tabMine' },
+      { id: 'edit', labelKey: 'eq.tabEdit' },
+    ]
+
+    function eqFormatDb(value) {
+      var db = Number(value) || 0
+      if (Math.abs(db) < 0.05) return '0'
+      return (db > 0 ? '+' : '') + String(Math.round(db))
+    }
+
+    function eqFrequencyLabel(freq) {
+      return freq >= 1000 ? String(freq / 1000) + 'k' : String(freq)
+    }
+
+    /** Tiny ten-bar thumbnail of a curve, used in the preset and saved lists. */
+    function EqMiniBars(props) {
+      var bands = props.bands || []
+      return h(
+        'span',
+        { className: 'mp-eq-bars', 'aria-hidden': 'true' },
+        EQ_FREQS.map(function (_, index) {
+          var db = clamp(Number(bands[index]) || 0, -EQ_MAX_DB, EQ_MAX_DB)
+          return h('i', { key: index, style: { height: Math.round(50 + (db / EQ_MAX_DB) * 50) + '%' } })
+        }),
+      )
+    }
+
+    /** Real magnitude response of the current chain, drawn as a line. */
+    function EqCurve(props) {
+      var bands = props.bands || []
+      var samples = eqCurveSamples(bands, props.preamp, 72, 44100)
+      var width = 300
+      var height = 64
+      var span = EQ_MAX_DB + 6
+      var lowLog = Math.log(EQ_MIN_HZ)
+      var highLog = Math.log(EQ_MAX_HZ)
+      var points = samples.map(function (sample) {
+        var x = ((Math.log(sample.freq) - lowLog) / (highLog - lowLog)) * width
+        var y = height / 2 - (sample.db / span) * (height / 2)
+        return x.toFixed(1) + ',' + clamp(y, 0, height).toFixed(1)
+      })
+      return h(
+        'svg',
+        {
+          className: 'mp-eq-curve',
+          viewBox: '0 0 ' + width + ' ' + height,
+          preserveAspectRatio: 'none',
+          'aria-hidden': 'true',
+        },
+        h('line', {
+          x1: 0,
+          y1: height / 2,
+          x2: width,
+          y2: height / 2,
+          className: 'mp-eq-curve-zero',
+          vectorEffect: 'non-scaling-stroke',
+        }),
+        h('polyline', {
+          points: points.join(' '),
+          className: 'mp-eq-curve-line',
+          vectorEffect: 'non-scaling-stroke',
+        }),
+      )
+    }
+
+    function EqFader(props) {
+      return h(
+        'div',
+        { className: cx('mp-eq-fader', (Number(props.value) || 0) !== 0 && 'is-active') },
+        h('span', { className: 'mp-eq-fader-value' }, eqFormatDb(props.value)),
+        h('input', {
+          type: 'range',
+          min: -EQ_MAX_DB,
+          max: EQ_MAX_DB,
+          step: 1,
+          value: Number(props.value) || 0,
+          'aria-label': props.label + ' Hz',
+          title: props.label + ' Hz',
+          onChange: function (event) {
+            props.onChange(Number(event.target.value))
+          },
+          onDoubleClick: function () {
+            props.onChange(0)
+          },
+        }),
+        h('span', { className: 'mp-eq-fader-label' }, props.label),
+      )
+    }
+
+    function EqPresetTile(props) {
+      return h(
+        'button',
+        {
+          type: 'button',
+          className: cx('mp-eq-preset', props.active === true && 'is-on'),
+          onClick: props.onClick,
+          title: props.name,
+        },
+        h('span', { className: 'mp-eq-preset-name' }, props.name),
+        h(EqMiniBars, { bands: props.bands }),
+      )
+    }
+
+    /** One-line summary shown next to the equalizer entry in the volume pane. */
+    function eqSummaryLabel(prefs) {
+      var eq = normalizeEqPrefs(prefs)
+      if (!eq.enabled) return t('eq.off')
+      if (eq.preset === 'custom') return t('eq.custom')
+      var preset = eqPresetById(eq.preset)
+      return preset === null ? t('eq.custom') : eqPresetName(preset)
+    }
+
+    function EqPanel(props) {
+      var prefs = usePrefs()
+      var eq = normalizeEqPrefs(prefs)
+      var tabPair = useState(
+        props.initialTab === 'mine' || props.initialTab === 'edit' ? props.initialTab : 'presets',
+      )
+      var tab = tabPair[0]
+      var setTab = tabPair[1]
+      var namingPair = useState(false)
+      var naming = namingPair[0]
+      var setNaming = namingPair[1]
+      var draftPair = useState('')
+      var draft = draftPair[0]
+      var setDraft = draftPair[1]
+      var custom = Array.isArray(prefs.eqCustom) ? prefs.eqCustom : []
+      var available = player.getEq().available
+      var activePreset = eqPresetForBands(eq.bands)
+
+      function usePreset(preset) {
+        player.setEq({ preset: preset.id, bands: eqBandsForPreset(preset.id), enabled: true })
+      }
+
+      function changeBand(index, value) {
+        var bands = eq.bands.slice()
+        bands[index] = clamp(Number(value) || 0, -EQ_MAX_DB, EQ_MAX_DB)
+        player.setEq({ bands: bands, preset: eqPresetForBands(bands), enabled: true })
+      }
+
+      function useSaved(entry) {
+        if (entry === null || typeof entry !== 'object') return
+        if (!Array.isArray(entry.bands)) return
+        player.setEq({
+          bands: entry.bands,
+          preamp: entry.preamp,
+          preset: eqPresetForBands(entry.bands),
+          enabled: true,
+        })
+      }
+
+      function saveCurrent() {
+        var name = String(draft || '').trim()
+        if (name === '') {
+          showToast(t('eq.needName'))
+          return
+        }
+        var entry = {
+          id: 'u' + Date.now().toString(36),
+          name: name.slice(0, 24),
+          bands: eq.bands.slice(),
+          preamp: eq.preamp,
+          at: Date.now(),
+        }
+        var list = custom.filter(function (item) {
+          return item && item.name !== entry.name
+        })
+        list.unshift(entry)
+        setPrefs({ eqCustom: list.slice(0, EQ_CUSTOM_LIMIT) })
+        setNaming(false)
+        setDraft('')
+        showToast(t('eq.saved'))
+      }
+
+      function removeSaved(id) {
+        setPrefs({
+          eqCustom: custom.filter(function (item) {
+            return item && item.id !== id
+          }),
+        })
+      }
+
+      var body = null
+      if (tab === 'presets') {
+        body = h(
+          'div',
+          { className: 'mp-eq-grid' },
+          EQ_PRESETS.map(function (preset) {
+            return h(EqPresetTile, {
+              key: preset.id,
+              name: eqPresetName(preset),
+              bands: eqBandsForPreset(preset.id),
+              active: activePreset === preset.id && eq.enabled,
+              onClick: function () {
+                usePreset(preset)
+              },
+            })
+          }),
+        )
+      } else if (tab === 'mine') {
+        body = h(
+          'div',
+          { className: 'mp-eq-mine' },
+          custom.length === 0
+            ? h(
+                'div',
+                { className: 'mp-eq-empty' },
+                h('span', { className: 'mp-eq-empty-title' }, t('eq.empty')),
+                h('span', { className: 'mp-eq-empty-hint' }, t('eq.emptyHint')),
+              )
+            : h(
+                'div',
+                { className: 'mp-eq-saved' },
+                custom.map(function (entry) {
+                  return h(
+                    'div',
+                    { key: entry.id, className: 'mp-eq-saved-row' },
+                    h(
+                      'button',
+                      {
+                        type: 'button',
+                        className: 'mp-eq-saved-main',
+                        onClick: function () {
+                          useSaved(entry)
+                        },
+                      },
+                      h('span', { className: 'mp-eq-saved-name' }, entry.name),
+                      h(EqMiniBars, { bands: entry.bands }),
+                    ),
+                    h(IconButton, {
+                      icon: 'trash',
+                      size: 13,
+                      title: t('eq.delete'),
+                      onClick: function () {
+                        removeSaved(entry.id)
+                      },
+                    }),
+                  )
+                }),
+              ),
+          naming
+            ? h(
+                'div',
+                { className: 'mp-eq-save-form' },
+                h('input', {
+                  type: 'text',
+                  className: 'mp-kit-input mp-eq-save-input',
+                  value: draft,
+                  maxLength: 24,
+                  autoFocus: true,
+                  placeholder: t('eq.savePlaceholder'),
+                  onChange: function (event) {
+                    setDraft(event.target.value)
+                  },
+                  onKeyDown: function (event) {
+                    if (event.key === 'Enter') saveCurrent()
+                    if (event.key === 'Escape') setNaming(false)
+                  },
+                }),
+                h(Button, { onClick: saveCurrent, className: 'mp-eq-save-ok' }, t('eq.save')),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mp-eq-save-cancel',
+                    onClick: function () {
+                      setNaming(false)
+                    },
+                  },
+                  t('eq.cancel'),
+                ),
+              )
+            : h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mp-eq-add',
+                  onClick: function () {
+                    setNaming(true)
+                  },
+                },
+                icon('plus', 13),
+                h('span', null, t('eq.saveCurrent')),
+              ),
+        )
+      } else {
+        body = h(
+          'div',
+          { className: 'mp-eq-edit' },
+          h(EqCurve, { bands: eq.bands, preamp: eq.preamp }),
+          h(
+            'div',
+            { className: 'mp-eq-faders' },
+            EQ_FREQS.map(function (freq, index) {
+              return h(EqFader, {
+                key: freq,
+                label: eqFrequencyLabel(freq),
+                value: eq.bands[index],
+                offset: eq.bands[index],
+                onChange: function (value) {
+                  changeBand(index, value)
+                },
+              })
+            }),
+          ),
+          h(
+            'div',
+            { className: 'mp-eq-preamp' },
+            h('span', { className: 'mp-eq-preamp-label' }, t('eq.preamp')),
+            h('input', {
+              type: 'range',
+              min: -EQ_PREAMP_MAX,
+              max: EQ_PREAMP_MAX,
+              step: 1,
+              className: 'mp-range',
+              value: eq.preamp,
+              'aria-label': t('eq.preamp'),
+              onChange: function (event) {
+                player.setEq({ preamp: Number(event.target.value), enabled: true })
+              },
+            }),
+            h('span', { className: 'mp-eq-preamp-value' }, eqFormatDb(eq.preamp) + ' dB'),
+          ),
+          h('div', { className: 'mp-eq-hint' }, t('eq.preampHint')),
+          h(
+            'div',
+            { className: 'mp-eq-actions' },
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-eq-action',
+                onClick: function () {
+                  player.setEq({ preset: 'flat', bands: zeroEqBands(), preamp: 0 })
+                },
+              },
+              t('eq.reset'),
+            ),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-eq-action',
+                onClick: function () {
+                  setTab('mine')
+                  setNaming(true)
+                },
+              },
+              t('eq.saveCurrent'),
+            ),
+          ),
+          eq.enabled && !available
+            ? h('div', { className: 'mp-eq-warn' }, t('eq.unavailable'))
+            : null,
+        )
+      }
+
+      return h(
+        'div',
+        { className: 'mp-eqp' },
+        h(
+          'div',
+          { className: 'mp-eq-head' },
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mp-eq-back',
+              title: t('eq.back'),
+              onClick: props.onBack,
+            },
+            icon('chevronLeft', 14),
+          ),
+          h('span', { className: 'mp-eq-title' }, t('eq.title')),
+          h(Switch, {
+            value: eq.enabled,
+            label: t('eq.enable'),
+            title: t('eq.enable'),
+            onChange: function (value) {
+              player.setEq({ enabled: value })
+            },
+          }),
+        ),
+        h(
+          'div',
+          { className: 'mp-eq-tabs', role: 'tablist' },
+          EQ_TABS.map(function (item) {
+            return h(
+              'button',
+              {
+                key: item.id,
+                type: 'button',
+                role: 'tab',
+                'aria-selected': tab === item.id,
+                className: cx('mp-eq-tab', tab === item.id && 'is-on'),
+                onClick: function () {
+                  setTab(item.id)
+                },
+              },
+              t(item.labelKey),
+            )
+          }),
+        ),
+        h('div', { className: 'mp-eq-body' }, body),
       )
     }
 
@@ -10277,10 +11340,10 @@ window.__ModuleLoader__.load({
                 h(IconButton, {
                   icon: 'equalizer',
                   size: 22,
-                  active: extraPanel === 'audio',
-                  title: t('page.volume'),
+                  active: extraPanel === 'audio' || extraPanel === 'eq',
+                  title: t('page.audioEffects'),
                   onClick: function () {
-                    setExtraPanel(extraPanel === 'audio' ? '' : 'audio')
+                    setExtraPanel(extraPanel === 'audio' || extraPanel === 'eq' ? '' : 'audio')
                   },
                 }),
                 extraPanel === 'audio'
@@ -10315,6 +11378,31 @@ window.__ModuleLoader__.load({
                         { className: 'mp-np-extra-hint' },
                         track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
                       ),
+                      h(
+                        'button',
+                        {
+                          type: 'button',
+                          className: 'mp-np-extra-link',
+                          onClick: function () {
+                            setExtraPanel('eq')
+                          },
+                        },
+                        icon('equalizer', 13),
+                        h('span', { className: 'mp-np-extra-link-label' }, t('eq.title')),
+                        h('span', { className: 'mp-np-extra-link-value' }, eqSummaryLabel(prefs)),
+                        h('span', { className: 'mp-np-extra-link-arrow' }, icon('chevronLeft', 12)),
+                      ),
+                    )
+                  : null,
+                extraPanel === 'eq'
+                  ? h(
+                      'div',
+                      { className: 'mp-np-extra-pop is-eq' },
+                      h(EqPanel, {
+                        onBack: function () {
+                          setExtraPanel('audio')
+                        },
+                      }),
                     )
                   : null,
               ),
@@ -17266,11 +18354,15 @@ window.__ModuleLoader__.load({
           SONG_PAGE_SIZE: SONG_PAGE_SIZE,
           // Pure sidebar model, so tests can assert entries without matching
           // rendered copy (which shares words with empty-state text).
-          navGroupsFor: navGroupsFor,
-          // Derived from UI_SOURCES; asserted so the music_control tool cannot
+          navGroupsFor: navGroupsFor,          // Derived from UI_SOURCES; asserted so the music_control tool cannot
           // drift away from the provider list again.
           isOnlineSource: isOnlineSource,
           UI_SOURCES: UI_SOURCES,
+          // Equalizer: the panel renders in tests, and the curve maths is pure.
+          EqPanel: EqPanel,
+          normalizeEqPrefs: normalizeEqPrefs,
+          eqCurveSamples: eqCurveSamples,
+          EQ_PRESETS: EQ_PRESETS,
         },
         enumerable: false,
       })

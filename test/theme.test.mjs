@@ -14,6 +14,7 @@ const uiFiles = [
   '01-primitives.js',
   '02-track-row.js',
   '03-player-bar.js',
+  '04-eq-panel.js',
   '04-now-playing.js',
   '05-queue.js',
   '06-settings.js',

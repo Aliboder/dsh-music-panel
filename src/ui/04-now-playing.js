@@ -1992,10 +1992,10 @@ function NowPlaying(props) {
             h(IconButton, {
               icon: 'equalizer',
               size: 22,
-              active: extraPanel === 'audio',
-              title: t('page.volume'),
+              active: extraPanel === 'audio' || extraPanel === 'eq',
+              title: t('page.audioEffects'),
               onClick: function () {
-                setExtraPanel(extraPanel === 'audio' ? '' : 'audio')
+                setExtraPanel(extraPanel === 'audio' || extraPanel === 'eq' ? '' : 'audio')
               },
             }),
             extraPanel === 'audio'
@@ -2030,6 +2030,31 @@ function NowPlaying(props) {
                     { className: 'mp-np-extra-hint' },
                     track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
                   ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'mp-np-extra-link',
+                      onClick: function () {
+                        setExtraPanel('eq')
+                      },
+                    },
+                    icon('equalizer', 13),
+                    h('span', { className: 'mp-np-extra-link-label' }, t('eq.title')),
+                    h('span', { className: 'mp-np-extra-link-value' }, eqSummaryLabel(prefs)),
+                    h('span', { className: 'mp-np-extra-link-arrow' }, icon('chevronLeft', 12)),
+                  ),
+                )
+              : null,
+            extraPanel === 'eq'
+              ? h(
+                  'div',
+                  { className: 'mp-np-extra-pop is-eq' },
+                  h(EqPanel, {
+                    onBack: function () {
+                      setExtraPanel('audio')
+                    },
+                  }),
                 )
               : null,
           ),

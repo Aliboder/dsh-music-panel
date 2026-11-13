@@ -516,6 +516,66 @@ assert.doesNotMatch(
   'the control action must not hardcode the provider list again',
 )
 
+// 10. equalizer panel: every tab renders, and the presets come from the table.
+const EqPanel = internals.EqPanel
+assert.equal(typeof EqPanel, 'function', 'EqPanel is exposed for tests')
+assert.ok(Array.isArray(internals.EQ_PRESETS) && internals.EQ_PRESETS.length >= 18, 'presets are shipped')
+
+const eqPrefs = internals.prefsStore.get()
+internals.prefsStore.set(
+  Object.assign({}, eqPrefs, {
+    eqEnabled: true,
+    eqPreset: 'rock',
+    eqBands: [5, 3, -4, -5, -3, 2, 5, 7, 7, 7],
+    eqPreamp: 0,
+    eqCustom: [],
+  }),
+)
+
+function renderEq(props) {
+  return expand(React.createElement(EqPanel, props || { onBack() {} }))
+}
+
+const presetTab = renderEq()
+assert.ok(classesOf(presetTab).has('mp-eqp'), 'the equalizer panel renders')
+assert.ok(classesOf(presetTab).has('mp-eq-tab'), 'the tab bar renders')
+for (const label of ['预设', '我的', '编辑']) {
+  assert.ok(textOf(presetTab).includes(label), `the ${label} tab label renders`)
+}
+assert.ok(textOf(presetTab).includes('摇滚'), 'factory presets are listed by name')
+assert.ok(classesOf(presetTab).has('mp-eq-preset'), 'preset tiles render')
+assert.ok(classesOf(presetTab).has('mp-eq-bars'), 'each preset shows its curve thumbnail')
+
+const mineTab = renderEq({ initialTab: 'mine' })
+assert.ok(textOf(mineTab).includes('还没有自定义预设'), 'the empty saved-presets state renders')
+assert.ok(classesOf(mineTab).has('mp-eq-add'), 'the save entry renders')
+
+const editTab = renderEq({ initialTab: 'edit' })
+assert.ok(classesOf(editTab).has('mp-eq-curve'), 'the response curve renders')
+assert.ok(classesOf(editTab).has('mp-eq-fader'), 'the band faders render')
+assert.ok(textOf(editTab).includes('前置增益'), 'the preamp row renders')
+assert.ok(textOf(editTab).includes('重置'), 'the reset action renders')
+
+// The curve must follow the stored bands rather than a static image.
+const curveAt = (bands) => internals.eqCurveSamples(bands, 0, 8, 44100).map((point) => point.db.toFixed(2))
+assert.notDeepEqual(
+  curveAt([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+  curveAt([12, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+  'the curve reflects the band gains',
+)
+
+// A saved preset shows up in the list and can be re-applied.
+internals.prefsStore.set(
+  Object.assign({}, internals.prefsStore.get(), {
+    eqCustom: [{ id: 'u1', name: '我的耳机', bands: [3, 2, 1, 0, 0, 0, 0, 1, 2, 3], preamp: 0, at: 1 }],
+  }),
+)
+const savedTab = renderEq({ initialTab: 'mine' })
+assert.ok(textOf(savedTab).includes('我的耳机'), 'saved presets render')
+assert.ok(classesOf(savedTab).has('mp-eq-saved-row'), 'saved rows render')
+
+internals.prefsStore.set(eqPrefs)
+
 console.log('panel.render.test.mjs ok')
 
 

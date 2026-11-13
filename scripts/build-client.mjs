@@ -38,6 +38,7 @@ const FILES = [
   'src/35-loudness.js',
   'src/35-provider-logos.js',
   'src/36-guide-shots.js',
+  'src/40-eq.js',
   'src/40-store.js',
   'src/45-ui.js',
   'src/50-player.js',
@@ -49,6 +50,7 @@ const FILES = [
   'src/ui/01-primitives.js',
   'src/ui/02-track-row.js',
   'src/ui/03-player-bar.js',
+  'src/ui/04-eq-panel.js',
   'src/ui/04-now-playing.js',
   'src/ui/05-queue.js',
   'src/ui/06-settings.js',
@@ -162,11 +164,15 @@ ${body}
           SONG_PAGE_SIZE: SONG_PAGE_SIZE,
           // Pure sidebar model, so tests can assert entries without matching
           // rendered copy (which shares words with empty-state text).
-          navGroupsFor: navGroupsFor,
-          // Derived from UI_SOURCES; asserted so the music_control tool cannot
+          navGroupsFor: navGroupsFor,          // Derived from UI_SOURCES; asserted so the music_control tool cannot
           // drift away from the provider list again.
           isOnlineSource: isOnlineSource,
           UI_SOURCES: UI_SOURCES,
+          // Equalizer: the panel renders in tests, and the curve maths is pure.
+          EqPanel: EqPanel,
+          normalizeEqPrefs: normalizeEqPrefs,
+          eqCurveSamples: eqCurveSamples,
+          EQ_PRESETS: EQ_PRESETS,
         },
         enumerable: false,
       })

@@ -110,6 +110,14 @@ function createPlayer() {
   var audioContext = null
   var analyser = null
   var gainNode = null
+  /** Preamp stage in front of the EQ chain (0 dB when the EQ is off). */
+  var preampNode = null
+  /** Safety limiter after the EQ: heavy boosts must not clip the DAC. */
+  var limiterNode = null
+  /** `[{ band, node }]` — bands above Nyquist are skipped, so keep the mapping. */
+  var eqNodes = []
+  /** Resolved EQ settings; persisted through prefs on every change. */
+  var eq = normalizeEqPrefs(prefs)
   var waveData = null
   var normalizeGain = 1
   var loudnessToken = 0
@@ -618,6 +626,81 @@ function createPlayer() {
     }
   }
 
+  /**
+   * Routing a cross-origin media element through Web Audio silences it: the
+   * browser has no CORS grant, so the graph only outputs zeros. The plugin
+   * normally plays blobs (same-origin), but the stream fallback assigns a
+   * remote URL, and one media element can only enter Web Audio once.
+   */
+  function canRouteThroughWebAudio(el) {
+    var source = ''
+    try {
+      source = String(el.currentSrc || el.src || '')
+    } catch (error) {
+      source = ''
+    }
+    if (source === '') return true
+    if (source.indexOf('blob:') === 0 || source.indexOf('data:') === 0) return true
+    try {
+      return new URL(source, window.location.href).origin === window.location.origin
+    } catch (error) {
+      return false
+    }
+  }
+
+  function buildEqNodes(context) {
+    var nodes = []
+    for (var band = 0; band < EQ_FREQS.length; band += 1) {
+      // A band at or above Nyquist cannot be realised; skip it and keep going.
+      if (EQ_FREQS[band] >= context.sampleRate / 2) continue
+      var filter = context.createBiquadFilter()
+      filter.type = 'peaking'
+      filter.frequency.value = EQ_FREQS[band]
+      filter.Q.value = EQ_Q[band]
+      filter.gain.value = 0
+      nodes.push({ band: band, node: filter })
+    }
+    return nodes
+  }
+
+  /**
+   * Push the current EQ settings into the live graph. Disabled means every
+   * band at 0 dB and no preamp, i.e. an actual bypass rather than "flat preset".
+   */
+  function applyEq(immediate) {
+    var bands = eq.enabled ? eq.bands : zeroEqBands()
+    var preampDb = eq.enabled ? eqTotalPreampDb(eq.preamp, bands) : 0
+    var linear = eqDbToLinear(preampDb)
+    var paused = audio === null || audio.paused === true || immediate === true
+    if (preampNode !== null && audioContext !== null) {
+      try {
+        var now = audioContext.currentTime
+        preampNode.gain.cancelScheduledValues(now)
+        if (paused) preampNode.gain.setValueAtTime(linear, now)
+        else preampNode.gain.setTargetAtTime(linear, now, 0.02)
+      } catch (error) {
+        preampNode.gain.value = linear
+      }
+    }
+    for (var index = 0; index < eqNodes.length; index += 1) {
+      var entry = eqNodes[index]
+      var target = bands[entry.band]
+      try {
+        var time = audioContext === null ? 0 : audioContext.currentTime
+        entry.node.gain.cancelScheduledValues(time)
+        if (paused) entry.node.gain.setValueAtTime(target, time)
+        else entry.node.gain.setTargetAtTime(target, time, 0.02)
+      } catch (error) {
+        entry.node.gain.value = target
+      }
+    }
+  }
+
+  /** Web Audio is the whole mechanism; without it the panel must say so. */
+  function eqSupported() {
+    return typeof window !== 'undefined' && !!(window.AudioContext || window.webkitAudioContext)
+  }
+
   function createLoudnessGate() {
     var resolveGate = null
     var promise = new Promise(function (resolve) {
@@ -911,20 +994,40 @@ function createPlayer() {
     ensureAnalyser: function () {
       if (audio === null) return null
       if (analyser !== null) return analyser
+      if (!canRouteThroughWebAudio(audio)) return null
       try {
         var Ctx = window.AudioContext || window.webkitAudioContext
         if (!Ctx) return null
         if (audioContext === null) audioContext = new Ctx()
         var source = audioContext.createMediaElementSource(audio)
+        preampNode = audioContext.createGain()
+        eqNodes = buildEqNodes(audioContext)
+        limiterNode = audioContext.createDynamicsCompressor()
+        limiterNode.threshold.value = -1.5
+        limiterNode.knee.value = 0
+        limiterNode.ratio.value = 20
+        limiterNode.attack.value = 0.003
+        limiterNode.release.value = 0.15
         gainNode = audioContext.createGain()
         analyser = audioContext.createAnalyser()
         analyser.fftSize = 256
         analyser.smoothingTimeConstant = 0.82
-        source.connect(gainNode)
+        // source → preamp → 10 peaking bands → limiter → loudness gain → analyser
+        var tail = source
+        tail.connect(preampNode)
+        tail = preampNode
+        for (var index = 0; index < eqNodes.length; index += 1) {
+          tail.connect(eqNodes[index].node)
+          tail = eqNodes[index].node
+        }
+        tail.connect(limiterNode)
+        tail = limiterNode
+        tail.connect(gainNode)
         gainNode.connect(analyser)
         analyser.connect(audioContext.destination)
         if (audio) audio.volume = state.volume
         applyNormalizeGain(normalizeGain)
+        applyEq(true)
         waveData = new Uint8Array(analyser.frequencyBinCount)
         if (audioContext.state === 'suspended') audioContext.resume().catch(function () {})
       } catch (error) {
@@ -954,6 +1057,9 @@ function createPlayer() {
       audioContext = null
       analyser = null
       gainNode = null
+      preampNode = null
+      limiterNode = null
+      eqNodes = []
       waveData = null
       audio = el
       if (el === null) return
@@ -1214,6 +1320,52 @@ function createPlayer() {
         applyNormalizeGain(1)
       } else if (currentItem()) {
         scheduleLoudness(currentItem(), currentLoudnessBlob)
+      }
+    },
+    /**
+     * Update the equalizer. Every call persists, so the panel can drive this
+     * directly without a second write path. Enabling builds the graph on the
+     * spot: the click that flips the switch is the user gesture Web Audio needs.
+     */
+    setEq: function (patch) {
+      var source = patch !== null && typeof patch === 'object' ? patch : {}
+      var bands = source.bands === undefined ? eq.bands.slice() : normalizeEqBands(source.bands)
+      var preset
+      if (source.preset === undefined) {
+        // A band edit without an explicit preset still has to name its curve.
+        preset = source.bands === undefined ? eq.preset : eqPresetForBands(bands)
+      } else if (source.preset === 'custom') {
+        preset = 'custom'
+      } else {
+        preset = eqPresetById(source.preset) === null ? 'flat' : String(source.preset)
+      }
+      var next = {
+        enabled: source.enabled === undefined ? eq.enabled : source.enabled === true,
+        preset: preset,
+        bands: bands,
+        preamp:
+          source.preamp === undefined
+            ? eq.preamp
+            : Math.round(clamp(Number(source.preamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)),
+      }
+      eq = next
+      savePrefs({
+        eqEnabled: next.enabled,
+        eqPreset: next.preset,
+        eqBands: next.bands,
+        eqPreamp: next.preamp,
+      })
+      if (next.enabled && analyser === null) api.ensureAnalyser()
+      applyEq(next.enabled !== true)
+    },
+    getEq: function () {
+      return {
+        enabled: eq.enabled,
+        preset: eq.preset,
+        bands: eq.bands.slice(),
+        preamp: eq.preamp,
+        /** False when the browser cannot host the graph (EQ is inert then). */
+        available: eqSupported() && (analyser !== null || audio === null || canRouteThroughWebAudio(audio)),
       }
     },
     setVolume: function (value) {

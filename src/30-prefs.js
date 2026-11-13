@@ -39,6 +39,11 @@ var PREF_DEFAULTS = {
   autoResume: false,
   rememberPerTrack: false,
   normalizeVolume: true,
+  eqEnabled: false,
+  eqPreset: 'flat',
+  eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  eqPreamp: 0,
+  eqCustom: [],
   onlinePlaylistSort: 'source',
   onboardingDone: true,
 }
