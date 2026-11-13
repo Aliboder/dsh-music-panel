@@ -168,19 +168,6 @@ function CrossfadePanel() {
       }),
     ),
     h('p', { className: 'mp-xf-desc' }, t('settings.crossfadeHint')),
-    enabled
-      ? h(
-          'div',
-          { className: 'mp-xf-row' },
-          h('span', null, t('settings.crossfadeAlbum')),
-          h(Switch, {
-            value: prefs.crossfadeAlbums === true,
-            onChange: function (value) {
-              setPrefs({ crossfadeAlbums: value })
-            },
-          }),
-        )
-      : null,
     h('div', { className: 'mp-xf-hint' }, t('settings.crossfadeRuntimeHint')),
   )
 }

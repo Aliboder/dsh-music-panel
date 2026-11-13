@@ -651,9 +651,9 @@ const transitionOn = expand(
     onView() {},
   }),
 )
-assert.ok(textOf(transitionOn).includes('同专辑也过渡'), 'the album switch renders when enabled')
 assert.ok(!classesOf(transitionOn).has('mp-xf-chip'), 'there is no duration picker: the engine decides')
 assert.ok(!classesOf(transitionOn).has('mp-xf-advanced'), 'no advanced toggle either')
+assert.ok(!textOf(transitionOn).includes('同专辑也过渡'), 'the album rule is fixed, not a switch')
 internals.prefsStore.set(savedTransition)
 
 console.log('panel.render.test.mjs ok')

@@ -41,10 +41,14 @@ assert.equal(fx.crossfadeSameAlbum(albumA, albumB), false)
 assert.equal(fx.crossfadeSameAlbum(albumA, liveA), false, 'different album artist breaks continuity')
 assert.equal(fx.crossfadeSameAlbum({ path: 'x', album: '' }, { path: 'y', album: '' }), false)
 
-assert.equal(fx.crossfadeNextAllowed({}, albumA, albumB), true, 'different albums blend by default')
-assert.equal(fx.crossfadeNextAllowed({}, albumA, albumA2), false, 'album tracks stay joined by default')
-assert.equal(fx.crossfadeNextAllowed({ crossfadeAlbums: true }, albumA, albumA2), true, 'opt-in blends albums')
-assert.equal(fx.crossfadeNextAllowed({ crossfadeAlbums: true }, albumA, { ...albumA }), false, 'never blend a track with itself')
+assert.equal(fx.crossfadeNextAllowed({}, albumA, albumB), true, 'different albums blend')
+assert.equal(fx.crossfadeNextAllowed({}, albumA, albumA2), false, 'album tracks always stay joined')
+assert.equal(
+  fx.crossfadeNextAllowed({ crossfadeAlbums: true }, albumA, albumA2),
+  false,
+  'there is no opt-in: the album rule is fixed',
+)
+assert.equal(fx.crossfadeNextAllowed({}, albumA, { ...albumA }), false, 'never blend a track with itself')
 assert.equal(fx.crossfadeNextAllowed({}, null, albumB), false)
 
 // ── the automatic plan ────────────────────────────────────────────────────
@@ -118,6 +122,7 @@ for (let index = 0; index <= 32; index += 1) {
 const settings = readFileSync(join(root, 'src/ui/06-settings.js'), 'utf8')
 assert.match(settings, /crossfadeSeconds/, 'the settings sheet writes the preference')
 assert.doesNotMatch(settings, /crossfadeOff/, 'there is no duration dropdown to translate any more')
+assert.doesNotMatch(settings, /crossfadeAlbums/, 'the album rule is not a setting')
 assert.match(settings, /CROSSFADE_MAX_SECONDS/, 'turning it on stores the automatic cap')
 
 const player = readFileSync(join(root, 'src/50-player.js'), 'utf8')

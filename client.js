@@ -2040,10 +2040,8 @@ window.__ModuleLoader__.load({
         'settings.volumeNormalizeMissingHint': '请使用支持 Web Audio 的 DSH Web / Desktop。',
         'settings.volumeNormalizeHint': '浏览器内置 EBU R128 分析，按曲目响度自动调整增益；首次分析需要几秒。',
         'settings.crossfade': '智能过渡',
-        'settings.crossfadeHint': '分析前后两首歌首尾的响度，自动选择切入点和重叠长度；同专辑连续曲目默认保持原样。',
+        'settings.crossfadeHint': '分析前后两首歌首尾的响度，自动选择切入点和重叠长度；同专辑连续曲目保持原始的硬切衔接。',
         'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
-        'settings.crossfadeAlbum': '同专辑也过渡',
-        'settings.crossfadeAlbumHint': '关闭时，同一专辑的连续曲目保持原始的硬切衔接。',
         'fx.transition': '过渡',
         'v2.listenTime': '累计播放时长',
         'v2.totalPlays': '总播放次数',
@@ -2213,10 +2211,8 @@ window.__ModuleLoader__.load({
         'settings.volumeNormalizeMissingHint': 'Use a DSH Web / Desktop build with Web Audio support.',
         'settings.volumeNormalizeHint': 'Built-in EBU R128 analysis adjusts each track to avoid jumps between songs; the first analysis takes a few seconds.',
         'settings.crossfade': 'Smart transition',
-        'settings.crossfadeHint': 'Measures how both tracks start and end, then picks the cut point and overlap length itself; consecutive album tracks keep their original join.',
+        'settings.crossfadeHint': 'Measures how both tracks start and end, then picks the cut point and overlap length itself; consecutive tracks of one album keep their original hard join.',
         'settings.crossfadeRuntimeHint': 'Needs Web Audio; skipped when the browser or the source cannot route through it.',
-        'settings.crossfadeAlbum': 'Blend within albums too',
-        'settings.crossfadeAlbumHint': 'When off, consecutive tracks of one album keep the hard cut they were authored with.',
         'fx.transition': 'Transition',
         'v2.listenTime': 'Listening time',
         'v2.totalPlays': 'Total plays',
@@ -3381,10 +3377,8 @@ window.__ModuleLoader__.load({
       eqLayout: '',
       eqDevice: '',
       eqCustom: [],
-      /** 0 keeps the old hard cut; 1..12 blends the tail into the next track. */
+      /** 0 keeps the old hard cut; a positive value enables the automatic blend. */
       crossfadeSeconds: 0,
-      /** Off keeps album tracks joined exactly as authored. */
-      crossfadeAlbums: false,
       onlinePlaylistSort: 'source',
       onboardingDone: true,
     }
@@ -4177,14 +4171,14 @@ window.__ModuleLoader__.load({
 
     /**
      * Whether the pair may be blended at all. Consecutive tracks from one album
-     * keep their original join unless the user asks for album crossfades too —
-     * a live album or a DJ mix must not be smeared.
+     * keep their original join: albums are authored as continuous works (live
+     * records, DJ mixes, concept albums) and blending them smears the artist's
+     * transition. This is fixed behaviour, not a setting.
      */
     function crossfadeNextAllowed(prefs, current, next) {
       if (!current || !next) return false
       if (String(current.path) === String(next.path)) return false
-      var blendAlbums = prefs !== null && typeof prefs === 'object' && prefs.crossfadeAlbums === true
-      if (!blendAlbums && crossfadeSameAlbum(current, next)) return false
+      if (crossfadeSameAlbum(current, next)) return false
       return true
     }
 
@@ -9945,19 +9939,6 @@ window.__ModuleLoader__.load({
           }),
         ),
         h('p', { className: 'mp-xf-desc' }, t('settings.crossfadeHint')),
-        enabled
-          ? h(
-              'div',
-              { className: 'mp-xf-row' },
-              h('span', null, t('settings.crossfadeAlbum')),
-              h(Switch, {
-                value: prefs.crossfadeAlbums === true,
-                onChange: function (value) {
-                  setPrefs({ crossfadeAlbums: value })
-                },
-              }),
-            )
-          : null,
         h('div', { className: 'mp-xf-hint' }, t('settings.crossfadeRuntimeHint')),
       )
     }
@@ -13276,22 +13257,6 @@ window.__ModuleLoader__.load({
               },
             }),
           ),
-          crossfadeFadeSeconds(prefs) > 0
-            ? h(
-                SetRow,
-                {
-                  key: 'crossfade-album',
-                  label: t('settings.crossfadeAlbum'),
-                  desc: t('settings.crossfadeAlbumHint'),
-                },
-                h(Switch, {
-                  value: prefs.crossfadeAlbums === true,
-                  onChange: function (value) {
-                    patchPrefs({ crossfadeAlbums: value })
-                  },
-                }),
-              )
-            : null,
           h(
             SetRow,
             { key: 'sleep', label: t('settings.sleepTimer') },

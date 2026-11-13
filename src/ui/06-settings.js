@@ -378,22 +378,6 @@ function SettingsSheet(props) {
           },
         }),
       ),
-      crossfadeFadeSeconds(prefs) > 0
-        ? h(
-            SetRow,
-            {
-              key: 'crossfade-album',
-              label: t('settings.crossfadeAlbum'),
-              desc: t('settings.crossfadeAlbumHint'),
-            },
-            h(Switch, {
-              value: prefs.crossfadeAlbums === true,
-              onChange: function (value) {
-                patchPrefs({ crossfadeAlbums: value })
-              },
-            }),
-          )
-        : null,
       h(
         SetRow,
         { key: 'sleep', label: t('settings.sleepTimer') },

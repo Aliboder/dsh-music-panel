@@ -35,14 +35,14 @@ function crossfadeSameAlbum(current, next) {
 
 /**
  * Whether the pair may be blended at all. Consecutive tracks from one album
- * keep their original join unless the user asks for album crossfades too —
- * a live album or a DJ mix must not be smeared.
+ * keep their original join: albums are authored as continuous works (live
+ * records, DJ mixes, concept albums) and blending them smears the artist's
+ * transition. This is fixed behaviour, not a setting.
  */
 function crossfadeNextAllowed(prefs, current, next) {
   if (!current || !next) return false
   if (String(current.path) === String(next.path)) return false
-  var blendAlbums = prefs !== null && typeof prefs === 'object' && prefs.crossfadeAlbums === true
-  if (!blendAlbums && crossfadeSameAlbum(current, next)) return false
+  if (crossfadeSameAlbum(current, next)) return false
   return true
 }
 

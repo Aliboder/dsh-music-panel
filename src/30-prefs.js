@@ -47,10 +47,8 @@ var PREF_DEFAULTS = {
   eqLayout: '',
   eqDevice: '',
   eqCustom: [],
-  /** 0 keeps the old hard cut; 1..12 blends the tail into the next track. */
+  /** 0 keeps the old hard cut; a positive value enables the automatic blend. */
   crossfadeSeconds: 0,
-  /** Off keeps album tracks joined exactly as authored. */
-  crossfadeAlbums: false,
   onlinePlaylistSort: 'source',
   onboardingDone: true,
 }
