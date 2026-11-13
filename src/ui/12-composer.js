@@ -15,6 +15,65 @@ function firstComposerTranslation(value) {
   return ''
 }
 
+/**
+ * Feed the note icon's concentric rings from the live analyser. Updating CSS
+ * variables from one RAF avoids React re-rendering the whole composer line on
+ * every audio frame.
+ */
+function useComposerWave(ref, playing, active) {
+  useEffect(
+    function () {
+      var node = ref.current
+      if (node === null) return undefined
+      var reduced =
+        typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+      function reset() {
+        node.style.setProperty('--mp-wave-level', '0')
+      }
+      if (active !== true || playing !== true || reduced) {
+        reset()
+        return undefined
+      }
+      var raf = 0
+      var last = 0
+      var smooth = 0
+      function tick(now) {
+        raf = requestAnimationFrame(tick)
+        if (now - last < 50) return
+        last = now
+        var data = player.getWave()
+        var level = 0
+        if (data !== null && data.length > 0) {
+          var bass = 0
+          var bassCount = 0
+          var mid = 0
+          var midCount = 0
+          for (var i = 1; i < Math.min(8, data.length); i += 1) {
+            bass += data[i]
+            bassCount += 1
+          }
+          for (var j = 8; j < Math.min(30, data.length); j += 1) {
+            mid += data[j]
+            midCount += 1
+          }
+          var low = bassCount > 0 ? bass / bassCount / 255 : 0
+          var middle = midCount > 0 ? mid / midCount / 255 : 0
+          level = clamp(low * 1.25 + middle * 0.45, 0, 1)
+          level = Math.pow(level, 1.3)
+        }
+        smooth += (level - smooth) * 0.38
+        node.style.setProperty('--mp-wave-level', smooth.toFixed(3))
+      }
+      raf = requestAnimationFrame(tick)
+      return function () {
+        cancelAnimationFrame(raf)
+        reset()
+      }
+    },
+    [ref, playing, active],
+  )
+}
+
 function composerLyricContent(entry) {
   var translation = firstComposerTranslation(entry.translation)
   return [
@@ -77,6 +136,7 @@ function ComposerLyrics() {
   var pair = useState([])
   var lines = pair[0]
   var setLines = pair[1]
+  var waveRef = useRef(null)
 
   useEffect(
     function () {
@@ -118,13 +178,26 @@ function ComposerLyrics() {
     [prefs.composerLyrics, trackPath],
   )
 
+  useComposerWave(waveRef, snap.playing, prefs.composerLyrics === true)
+
   if (prefs.composerLyrics !== true || track === null) return null
   var index = lyricActiveIndex(lines, time.currentTime)
   var line = index >= 0 ? lines[index] : null
   return h(
     'div',
-    { className: 'mp-composer-lyrics' },
-    h('span', { className: 'mp-composer-lyric-icon' }, icon('note', 12)),
+    { className: 'mp-composer-lyrics', ref: waveRef },
+    h(
+      'span',
+      { className: 'mp-composer-lyric-icon' },
+      h(
+        'span',
+        { className: 'mp-composer-wave', 'aria-hidden': 'true' },
+        h('i', { key: '1' }),
+        h('i', { key: '2' }),
+        h('i', { key: '3' }),
+      ),
+      icon('note', 12),
+    ),
     h(ComposerLyricText, {
       line: line,
       index: index,

@@ -7269,9 +7269,15 @@ window.__ModuleLoader__.load({
       '.mp-np-setting-hint{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:6px;line-height:1.5}',
 
       // ── composer / sidebar ──────────────────────────────────────────────────
-      '.mp-composer-lyrics{display:flex;align-items:center;gap:6px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto 6px;height:calc(24px + var(--dsh-content-font-delta,0px));padding:0 2px;color:var(--dsw-alias-label-secondary,#cfd3d6);font-family:var(--dsw-font-family,inherit);font-size:calc(12px + var(--dsh-content-font-delta,0px));line-height:calc(20px + var(--dsh-content-font-delta,0px));overflow:hidden;white-space:nowrap}',
-      '.mp-composer-lyric-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.9}',
-      '.mp-composer-lyric-icon svg{width:calc(12px + var(--dsh-content-font-delta,0px));height:calc(12px + var(--dsh-content-font-delta,0px))}',
+      '.mp-composer-lyrics{display:flex;align-items:center;gap:6px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto 6px;height:calc(24px + var(--dsh-content-font-delta,0px));padding:0 2px;color:var(--dsw-alias-label-secondary,#cfd3d6);font-family:var(--dsw-font-family,inherit);font-size:calc(12px + var(--dsh-content-font-delta,0px));line-height:calc(20px + var(--dsh-content-font-delta,0px));overflow:visible;white-space:nowrap}',
+      '.mp-composer-lyric-icon{position:relative;width:calc(16px + var(--dsh-content-font-delta,0px));height:calc(16px + var(--dsh-content-font-delta,0px));display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.9}',
+      '.mp-composer-lyric-icon svg{position:relative;z-index:1;width:calc(12px + var(--dsh-content-font-delta,0px));height:calc(12px + var(--dsh-content-font-delta,0px));transform:scale(calc(1 + var(--mp-wave-level,0) * .08));transition:transform 80ms linear}',
+      '.mp-composer-wave{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}',
+      '.mp-composer-wave i{position:absolute;width:calc(12px + var(--dsh-content-font-delta,0px));height:calc(12px + var(--dsh-content-font-delta,0px));border:1px solid currentColor;border-radius:50%;opacity:0;transform:scale(.82);will-change:transform,opacity;transition:transform 80ms linear,opacity 120ms linear}',
+      '.mp-composer-wave i:nth-child(1){opacity:calc(var(--mp-wave-level,0) * .4);transform:scale(calc(.82 + var(--mp-wave-level,0) * .55))}',
+      '.mp-composer-wave i:nth-child(2){opacity:calc(var(--mp-wave-level,0) * .24);transform:scale(calc(1.05 + var(--mp-wave-level,0) * .65))}',
+      '.mp-composer-wave i:nth-child(3){opacity:calc(var(--mp-wave-level,0) * .12);transform:scale(calc(1.28 + var(--mp-wave-level,0) * .55))}',
+      '@media (prefers-reduced-motion:reduce){.mp-composer-wave{display:none}.mp-composer-lyric-icon svg{transform:none;transition:none}}',
       '.mp-composer-lyric-viewport{position:relative;display:inline-flex;align-items:center;flex:0 1 auto;min-width:0;max-width:100%;height:calc(20px + var(--dsh-content-font-delta,0px));overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%)}',
       '.mp-composer-lyric-layer{display:inline-flex;align-items:center;gap:6px;max-width:100%;white-space:nowrap}',
       '.mp-composer-lyric-layer.is-entering{animation:mp-composer-lyric-enter .32s cubic-bezier(.22,.8,.24,1) both}',
@@ -15487,6 +15493,65 @@ window.__ModuleLoader__.load({
       return ''
     }
 
+    /**
+     * Feed the note icon's concentric rings from the live analyser. Updating CSS
+     * variables from one RAF avoids React re-rendering the whole composer line on
+     * every audio frame.
+     */
+    function useComposerWave(ref, playing, active) {
+      useEffect(
+        function () {
+          var node = ref.current
+          if (node === null) return undefined
+          var reduced =
+            typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+          function reset() {
+            node.style.setProperty('--mp-wave-level', '0')
+          }
+          if (active !== true || playing !== true || reduced) {
+            reset()
+            return undefined
+          }
+          var raf = 0
+          var last = 0
+          var smooth = 0
+          function tick(now) {
+            raf = requestAnimationFrame(tick)
+            if (now - last < 50) return
+            last = now
+            var data = player.getWave()
+            var level = 0
+            if (data !== null && data.length > 0) {
+              var bass = 0
+              var bassCount = 0
+              var mid = 0
+              var midCount = 0
+              for (var i = 1; i < Math.min(8, data.length); i += 1) {
+                bass += data[i]
+                bassCount += 1
+              }
+              for (var j = 8; j < Math.min(30, data.length); j += 1) {
+                mid += data[j]
+                midCount += 1
+              }
+              var low = bassCount > 0 ? bass / bassCount / 255 : 0
+              var middle = midCount > 0 ? mid / midCount / 255 : 0
+              level = clamp(low * 1.25 + middle * 0.45, 0, 1)
+              level = Math.pow(level, 1.3)
+            }
+            smooth += (level - smooth) * 0.38
+            node.style.setProperty('--mp-wave-level', smooth.toFixed(3))
+          }
+          raf = requestAnimationFrame(tick)
+          return function () {
+            cancelAnimationFrame(raf)
+            reset()
+          }
+        },
+        [ref, playing, active],
+      )
+    }
+
     function composerLyricContent(entry) {
       var translation = firstComposerTranslation(entry.translation)
       return [
@@ -15549,6 +15614,7 @@ window.__ModuleLoader__.load({
       var pair = useState([])
       var lines = pair[0]
       var setLines = pair[1]
+      var waveRef = useRef(null)
 
       useEffect(
         function () {
@@ -15590,13 +15656,26 @@ window.__ModuleLoader__.load({
         [prefs.composerLyrics, trackPath],
       )
 
+      useComposerWave(waveRef, snap.playing, prefs.composerLyrics === true)
+
       if (prefs.composerLyrics !== true || track === null) return null
       var index = lyricActiveIndex(lines, time.currentTime)
       var line = index >= 0 ? lines[index] : null
       return h(
         'div',
-        { className: 'mp-composer-lyrics' },
-        h('span', { className: 'mp-composer-lyric-icon' }, icon('note', 12)),
+        { className: 'mp-composer-lyrics', ref: waveRef },
+        h(
+          'span',
+          { className: 'mp-composer-lyric-icon' },
+          h(
+            'span',
+            { className: 'mp-composer-wave', 'aria-hidden': 'true' },
+            h('i', { key: '1' }),
+            h('i', { key: '2' }),
+            h('i', { key: '3' }),
+          ),
+          icon('note', 12),
+        ),
         h(ComposerLyricText, {
           line: line,
           index: index,
