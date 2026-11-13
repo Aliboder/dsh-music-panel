@@ -11,7 +11,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsoni
 本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · Navidrome / Subsonic · 歌词 · 缓存 · 音量均衡 · 均衡器
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
-[![release](https://img.shields.io/badge/release-0.32.0-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
+[![release](https://img.shields.io/badge/release-0.33.1-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
 [![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
 
@@ -96,6 +96,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsoni
 - **智能过渡**：播放页「音频效果 → 音量」或设置 → 播放，只有一个开关。播放到曲末前 14 秒时自动分析当前曲尾与下一首开头的响度，从安静点切入、按安静段长度决定重叠（2.5–6 秒），但**下一首只在重叠的最后 2.5 秒才淡入**（不会提前一大段就开始唱）；下一首一旦出声，界面（标题 / 封面 / 歌词 / 进度 / 队列）就切换到它；开启过渡时会在当前曲播放期间于后台预取下一首在线曲目，未缓存的在线歌曲不必等曲末 14 秒窗口才开始下载；只有真正静音的前奏（低于 -45 dBFS）才会被跳过，轻声前奏属于音乐内容会完整保留；**同专辑连续曲目固定保持原始衔接**；暂停、切歌、拖动进度会立即取消过渡。
 - **音量均衡**：浏览器内置 EBU R128（BS.1770）分析，按曲目自动调整增益，不依赖 ffmpeg；首次分析后缓存结果。
 - **均衡器**：播放页音量按钮里的「音频效果 → 均衡器」，10 段（31 / 62 / 125 / 250 / 500 / 1k / 2k / 4k / 8k / 16k Hz，Q=1.41，±12 dB）。「设备」页签内置约 8800 条 AutoEQ 耳机补偿曲线，可按型号搜索并套用（数据来源与许可见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)）；出厂预设沿用 Winamp 原版 18 组曲线，可保存自己的曲线；“编辑”页有实时频响曲线、前置增益、自动 headroom 与输出限幅（多段提升不破音）。
+- **列表内搜索**：歌单 / 专辑 / 本地库右上角的放大镜会展开成当前列表的搜索框，按歌名 / 歌手 / 专辑实时过滤；顶部全局搜索只负责在线搜索，两者互不干扰。
 - 在线歌词与翻译：网易云 `trans`、QQ 加密翻译流、酷狗 KRC 内嵌译文；Navidrome / Subsonic 使用 OpenSubsonic 结构化歌词（如服务器支持）。
 
 #### 歌词、元数据与整理
@@ -185,7 +186,7 @@ Navidrome 的「全部歌曲」默认是随机采样。需要按页浏览完整�
 ### 开发
 
 ```bash
-npm test            # 20 test files
+npm test            # 32 test files
 npm run check       # syntax + manifest checks
 npm run pack:check  # package self-check
 ```
@@ -243,6 +244,9 @@ Most music plugins stop at “it plays”. `dsh-music-panel` is built as a **rea
 - **VIP awareness**: playability follows the signed-in account; VIP tracks are marked.
 - **Audio cache**: write-while-playing, default 10 GB with LRU eviction; Settings → Cache lists every cached track across providers.
 - **Volume leveling**: built-in EBU R128 / BS.1770 analysis with per-track gain, no ffmpeg required; results are cached.
+- **10-band equalizer**: Audio effects → Equalizer in the player bar (31 / 62 / 125 / 250 / 500 / 1k / 2k / 4k / 8k / 16k Hz, Q=1.41, ±12 dB). The Devices tab ships ~8,800 AutoEQ headphone correction curves with model search; factory presets reuse Winamp’s 18 curves; the Edit tab has a live response curve, preamp, and automatic headroom + limiter.
+- **Smart transition**: one switch in Audio effects → Volume (or Settings → Playback). It analyses the end of the current track and the start of the next, then blends with an equal-power curve for 2.5–6 s; the next track only fades in during the last 2.5 s, and the UI switches the moment it becomes audible. Album tracks keep their original join; pause, seek, or next cancels the blend.
+- **In-list search**: the magnifier in a playlist, album, or library header expands into a search field for the list you are looking at (title / artist / album); the top-bar search stays dedicated to online search.
 - Online lyrics and translations for the Chinese providers; Navidrome / Subsonic uses OpenSubsonic structured lyrics when the server provides them.
 
 #### Lyrics, metadata, and cleanup

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.33.1
+
+### 插件市场
+- `package.json` 声明 `icon: icon.svg`，插件列表与市场卡片可以显示插件图标
+- 更新 `description`，覆盖 0.33 的新能力（均衡器与 AutoEQ、智能过渡、列表内搜索、Navidrome）
+- 新增 `docs/screenshots/icon-256.png`（由 icon.svg 内嵌位图导出），用于市场条目图标
+- README 功能列表补充均衡器 / 智能过渡 / 列表内搜索，更新版本徽章与测试数量
+
 ## 0.33.0
 
 ### 播放

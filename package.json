@@ -1,8 +1,8 @@
 {
   "name": "dsh-music-panel",
-  "version": "0.33.0",
+  "version": "0.33.1",
   "type": "module",
-  "description": "Local + online music player for DeepSeek Harness: multi-root library, NetEase / QQ / KuGou / KuGou Concept, synced playlists and likes, lyrics, cache, built-in EBU R128 volume leveling, tag/cover editing. · DSH 本地与在线音乐插件：多目录曲库、网易云 / QQ / 酷狗 / 酷狗概念版、云端歌单与喜欢、歌词翻译、音频缓存、内置音量均衡、标签/封面编辑。",
+  "description": "Local + online music player for DSH: NetEase/QQ/KuGou/Navidrome, lyrics, cache, EBU R128, 10-band EQ + AutoEQ, smart crossfade, in-list search. · DSH 本地与在线音乐插件：四大在线平台、歌词、缓存、音量均衡、10 段均衡器与 AutoEQ、智能过渡、列表内搜索。",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -22,7 +22,11 @@
     "cordis",
     "music",
     "player",
-    "audio"
+    "audio",
+    "equalizer",
+    "autoeq",
+    "navidrome",
+    "crossfade"
   ],
   "scripts": {
     "build": "node scripts/build-client.mjs",
@@ -71,5 +75,6 @@
     "music-metadata": "^12.3.4",
     "node-id3": "^0.2.9",
     "pinyin-pro": "^3.29.5"
-  }
+  },
+  "icon": "icon.svg"
 }
