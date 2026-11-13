@@ -342,7 +342,7 @@ var THEME_CSS = [
   '.mp-np-setting-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px;color:rgba(255,255,255,.62)}.mp-np-setting select{width:100%;height:30px;padding:0 8px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none;cursor:pointer}.mp-np-align-row{display:flex;gap:6px}.mp-np-align-row .mp-chip{flex:1;justify-content:center;min-width:0;height:28px;padding:0 4px}',
   '.mp-np-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;align-items:stretch;padding:86px 2.5vw 0 6.5vw}',
   '.mp-np-left{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;flex:none;min-width:0;width:var(--mp-cover);padding-bottom:77px}',
-  '.mp-np-meta{min-width:0;margin:0 0 14px}',
+  '.mp-np-meta{position:relative;min-width:0;margin:0 0 14px}',
   '.mp-np-meta-row{display:none}',
   '.mp-np-title{min-width:0;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
   '.mp-np-artist-row{display:flex;align-items:center;gap:10px;min-width:0;margin-top:10px}.mp-np-artist{flex:0 1 auto;min-width:0;font-size:15px;font-weight:400;color:rgba(255,255,255,.66);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',

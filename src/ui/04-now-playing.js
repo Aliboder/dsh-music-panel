@@ -1090,6 +1090,14 @@ function NowPlaying(props) {
   var prefs = usePrefs()
   var track = snap.queue[snap.index] || null
   var trackPath = track ? track.path : ''
+  // AutoAnimate (vendored FormKit FLIP engine) handles track-change transitions.
+  // Keyed wrappers below let it see a child swap; no custom keyframes.
+  var coverMotion = useAutoAnimate({ duration: 420, easing: 'cubic-bezier(.22,.61,.36,1)' })
+  var metaMotion = useAutoAnimate({ duration: 320, easing: 'ease-out' })
+  var lyricsMotion = useAutoAnimate({ duration: 380, easing: 'ease-out' })
+  var coverMotionRef = coverMotion[0]
+  var metaMotionRef = metaMotion[0]
+  var lyricsMotionRef = lyricsMotion[0]
   var pair = useState([])
   var lyrics = pair[0]
   var setLyrics = pair[1]
@@ -1134,6 +1142,10 @@ function NowPlaying(props) {
   var innerRef = useRef(null)
   var discWrapRef = useRef(null)
   var rowRefs = useRef([])
+  var setLyricsBox = useCallback(function (node) {
+    boxRef.current = node
+    lyricsMotionRef(node)
+  }, [lyricsMotionRef])
 
   useEffect(
     function () {
@@ -1726,11 +1738,15 @@ function NowPlaying(props) {
         { className: 'mp-np-left' },
         h(
           'div',
-          { className: 'mp-np-meta' },
-          h('div', { className: 'mp-np-title' }, track ? trackTitleOf(track) : '—'),
+          { className: 'mp-np-meta', ref: metaMotionRef },
           h(
             'div',
-            { className: 'mp-np-artist-row' },
+            { key: 'title:' + trackPath, className: 'mp-np-title' },
+            track ? trackTitleOf(track) : '—',
+          ),
+          h(
+            'div',
+            { key: 'artist:' + trackPath, className: 'mp-np-artist-row' },
             h('div', { className: 'mp-np-artist' }, track ? trackArtistOf(track) : ''),
             h(IconButton, {
               className: 'mp-np-meta-audio',
@@ -1746,10 +1762,10 @@ function NowPlaying(props) {
         ),
         h(
           'div',
-          { className: cx('mp-np-cover-stage', vinyl && 'is-vinyl') },
+          { className: cx('mp-np-cover-stage', vinyl && 'is-vinyl'), ref: coverMotionRef },
           h(
             'div',
-            { className: cx('mp-np-disc-wrap', vinyl && 'is-vinyl'), ref: discWrapRef },
+            { key: 'cover:' + trackPath, className: cx('mp-np-disc-wrap', vinyl && 'is-vinyl'), ref: discWrapRef },
           h(
             'div',
             {
@@ -2035,12 +2051,12 @@ function NowPlaying(props) {
         { className: 'mp-np-right' },
         h(
           'div',
-          { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: boxRef },
+          { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: setLyricsBox },
           lyrics.length === 0
             ? null
             : h(
                 'div',
-                { className: 'mp-np-lyrics-inner', ref: innerRef },
+                { key: 'lyrics:' + trackPath, className: 'mp-np-lyrics-inner', ref: innerRef },
                 lyrics.map(function (line, index) {
                   return h(
                     'div',
