@@ -425,7 +425,10 @@ function SettingsSheet(props) {
         h(
           'div',
           { className: 'mp-online-card-head' },
-          h('span', { className: 'mp-online-logo', title: 'Navidrome' }, icon('list', 20)),
+          // Official logo, verbatim and unmodified (navidrome.org/brand allows
+          // it for a server-connection screen). Sized to match the other
+          // provider logos rather than above them, as the guidelines require.
+          h('span', { className: 'mp-online-logo', title: 'Navidrome' }, providerLogo('navidrome', 38)),
           h(
             'div',
             { className: 'mp-online-title' },
