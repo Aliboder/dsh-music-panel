@@ -9171,15 +9171,33 @@ window.__ModuleLoader__.load({
       var prefs = usePrefs()
       var track = snap.queue[snap.index] || null
       var trackPath = track ? track.path : ''
-      // AutoAnimate (vendored FormKit FLIP engine) handles track-change transitions.
-      // Keyed wrappers below let it see a child swap; no custom keyframes.
-      var coverMotion = useAutoAnimate({ duration: 420, easing: 'cubic-bezier(.22,.61,.36,1)' })
-      var metaMotion = useAutoAnimate({ duration: 320, easing: 'ease-out' })
+      // Fade the incoming cover/title/artist only. Removing the outgoing node with
+      // a zero-length animation keeps rapid next/previous clicks responsive; the
+      // old implementation kept it on screen for the whole fade and felt blocked.
+      function incomingFade(el, action) {
+        if (action !== 'add') return new KeyframeEffect(el, [], { duration: 0 })
+        if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          return new KeyframeEffect(el, [], { duration: 0 })
+        }
+        return new KeyframeEffect(
+          el,
+          [
+            { opacity: 0.25, transform: 'scale(.985)' },
+            { opacity: 1, transform: 'scale(1)' },
+          ],
+          { duration: 170, easing: 'ease-out', fill: 'both' },
+        )
+      }
+      var coverMotion = useAutoAnimate(incomingFade)
+      var metaMotion = useAutoAnimate(incomingFade)
       var coverMotionRef = coverMotion[0]
       var metaMotionRef = metaMotion[0]
       var pair = useState([])
       var lyrics = pair[0]
       var setLyrics = pair[1]
+      var loadingPair = useState(false)
+      var lyricsLoading = loadingPair[0]
+      var setLyricsLoading = loadingPair[1]
       var errorPair = useState('')
       var lyricError = errorPair[0]
       var setLyricError = errorPair[1]
@@ -9378,6 +9396,7 @@ window.__ModuleLoader__.load({
           setLyrics([])
           setLyricSource('')
           setLyricError('')
+          setLyricsLoading(true)
           var current = snap.queue[snap.index]
           async function load() {
             try {
@@ -9409,6 +9428,8 @@ window.__ModuleLoader__.load({
               }
             } catch (error) {
               if (!cancelled) setLyricError(errorText(error))
+            } finally {
+              if (!cancelled) setLyricsLoading(false)
             }
           }
           load()
@@ -10188,7 +10209,7 @@ window.__ModuleLoader__.load({
                     }),
                   ),
             ),
-            lyrics.length === 0
+            lyrics.length === 0 && lyricsLoading !== true
               ? h(
                   'div',
                   { className: 'mp-np-lyrics-empty', 'aria-live': 'polite' },
