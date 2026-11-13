@@ -55,26 +55,34 @@ assert.equal(
 const album = branchOf('album')
 const songs = branchOf('songs')
 
-// ── album: server order, and playback from the same array ────────────────
+// ── album: navidrome keeps server order, everyone else is untouched ──────
+// The album view is shared with the four Chinese platforms, whose behaviour
+// must not change. Only a self-hosted server reports a real disc/track
+// sequence, so the order fix is scoped to `albumProvider === 'navidrome'`.
 assert.match(
   album,
-  /\.map\(onlineTrackOf\)/,
-  'the album branch must build its tracks by mapping the server order',
+  /online\.albumProvider === 'navidrome'/,
+  'the album order fix must be scoped to navidrome',
 )
-assert.equal(
-  /sortOnlineTracks/.test(album),
-  false,
-  'the album branch must not call sortOnlineTracks — that applies the user sort preference and scrambles the album',
+assert.match(
+  album,
+  /albumSongs\.map\(onlineTrackOf\)/,
+  'navidrome albums must keep the server order',
+)
+assert.match(
+  album,
+  /: sortOnlineTracks\(albumSongs\)/,
+  'other providers must keep the previous behaviour (user sort preference)',
 )
 assert.match(
   album,
   /onlineSelectionList = albumOrder/,
-  'the album track list must use the album order',
+  'the album track list must use the chosen order',
 )
 assert.match(
   album,
   /playOnlineResults\(albumSongs,/,
-  'album playback must use the same order as the rendered list',
+  'album playback must use the same array as the rendered list',
 )
 
 // ── the songs view keeps honouring the user's preference ────────────────
@@ -85,7 +93,8 @@ assert.match(
 )
 
 console.log('  ok  every online branch appears exactly once')
-console.log('  ok  the album branch preserves the server (disc/track) order')
+console.log('  ok  navidrome albums keep the server (disc/track) order')
+console.log('  ok  other providers keep their previous sort behaviour')
 console.log('  ok  album playback uses the same array as the rendered list')
 console.log('  ok  the songs view still honours the user sort preference')
 console.log('\npanel.album-order.test.mjs ok')

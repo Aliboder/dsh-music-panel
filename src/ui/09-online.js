@@ -435,10 +435,15 @@ function OnlineContent(props) {
     } else if (albumSongs.length === 0) {
       body = h(Empty, { title: t('online.emptyResults'), icon: 'disc' })
     } else {
-      // Keep the album's own running order. The server returns tracks in
-      // disc/track sequence, so the shared sort (title, duration…) would
-      // scramble the album; playback uses the same array as the list.
-      var albumOrder = albumSongs.map(onlineTrackOf)
+      // A self-hosted server is the one provider whose album endpoint reports a
+      // meaningful disc/track sequence (and never reorders on relevance), so its
+      // album keeps the server order. The four Chinese platforms behave exactly
+      // as before — they still apply the user's sort preference — because
+      // changing their output is not this branch's call to make.
+      var albumOrder =
+        online.albumProvider === 'navidrome'
+          ? albumSongs.map(onlineTrackOf)
+          : sortOnlineTracks(albumSongs)
       body = h(TrackListBody, {
         items: (setPlayAll(albumSongs), (onlineSelectionList = albumOrder)),
         resetKey: resetKey,
