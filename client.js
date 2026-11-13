@@ -1300,6 +1300,8 @@ window.__ModuleLoader__.load({
         'page.deleteConfirm': '删除「{name}」？此操作不可撤销。',
         'page.back': '返回',
         'page.playAll': '播放全部',
+        'page.playbackFailed': '无法播放：{reason}',
+        'page.playbackFailedNoReason': '无法播放，已跳到下一首',
         'page.addTo': '添加到歌单',
         'page.addToPlaylist': '添加到播放列表',
         'page.addedToPlaylist': '已添加到播放列表',
@@ -1736,6 +1738,8 @@ window.__ModuleLoader__.load({
         'page.deleteConfirm': 'Delete “{name}”? This cannot be undone.',
         'page.back': 'Back',
         'page.playAll': 'Play all',
+        'page.playbackFailed': 'Cannot play: {reason}',
+        'page.playbackFailedNoReason': 'Cannot play; skipped to the next track',
         'page.addTo': 'Add to playlist',
         'page.addToPlaylist': 'Add to play queue',
         'page.addedToPlaylist': 'Added to play queue',
@@ -4476,12 +4480,12 @@ window.__ModuleLoader__.load({
         load(nextIndexOf(state.index, state.queue.length), true)
       }
 
-      function onError() {
+      function onError(reason) {
         errorStreak += 1
         var failedTrack = state.queue[state.index] || null
         errorListeners.forEach(function (fn) {
           try {
-            fn({ track: failedTrack, streak: errorStreak })
+            fn({ track: failedTrack, streak: errorStreak, reason: reason || '' })
           } catch {
             /* a listener must never break playback */
           }
@@ -4758,8 +4762,17 @@ window.__ModuleLoader__.load({
 
         fetch(streamUrl(item.path), controller === null ? {} : { signal: controller.signal })
           .then(function (response) {
-            if (!response.ok) throw new Error('HTTP ' + response.status)
-            return response.blob()
+            if (response.ok) return response.blob()
+            return response
+              .json()
+              .catch(function () {
+                return null
+              })
+              .then(function (body) {
+                var reason =
+                  body && body.error && typeof body.error.message === 'string' ? body.error.message : ''
+                throw new Error(reason || 'HTTP ' + response.status)
+              })
           })
           .then(function (blob) {
             if (token !== loadToken) {
@@ -4799,7 +4812,7 @@ window.__ModuleLoader__.load({
             fetchAbort = null
             loudness.resolve()
             if (error && error.name === 'AbortError') return
-            onError()
+            onError(error && typeof error.message === 'string' ? error.message : '')
           })
       }
 
@@ -15231,6 +15244,13 @@ window.__ModuleLoader__.load({
         void loadPlaylists()
         void loadConfig()
         void loadProviders()
+      }, [])
+
+      useEffect(function () {
+        return player.subscribeError(function (info) {
+          var reason = info && typeof info.reason === 'string' ? info.reason.trim() : ''
+          showToast(reason ? t('page.playbackFailed', { reason: reason }) : t('page.playbackFailedNoReason'))
+        })
       }, [])
 
       useEffect(

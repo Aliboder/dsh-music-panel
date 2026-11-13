@@ -513,12 +513,12 @@ function createPlayer() {
     load(nextIndexOf(state.index, state.queue.length), true)
   }
 
-  function onError() {
+  function onError(reason) {
     errorStreak += 1
     var failedTrack = state.queue[state.index] || null
     errorListeners.forEach(function (fn) {
       try {
-        fn({ track: failedTrack, streak: errorStreak })
+        fn({ track: failedTrack, streak: errorStreak, reason: reason || '' })
       } catch {
         /* a listener must never break playback */
       }
@@ -795,8 +795,17 @@ function createPlayer() {
 
     fetch(streamUrl(item.path), controller === null ? {} : { signal: controller.signal })
       .then(function (response) {
-        if (!response.ok) throw new Error('HTTP ' + response.status)
-        return response.blob()
+        if (response.ok) return response.blob()
+        return response
+          .json()
+          .catch(function () {
+            return null
+          })
+          .then(function (body) {
+            var reason =
+              body && body.error && typeof body.error.message === 'string' ? body.error.message : ''
+            throw new Error(reason || 'HTTP ' + response.status)
+          })
       })
       .then(function (blob) {
         if (token !== loadToken) {
@@ -836,7 +845,7 @@ function createPlayer() {
         fetchAbort = null
         loudness.resolve()
         if (error && error.name === 'AbortError') return
-        onError()
+        onError(error && typeof error.message === 'string' ? error.message : '')
       })
   }
 

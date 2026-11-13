@@ -666,6 +666,13 @@ function Panel() {
     void loadProviders()
   }, [])
 
+  useEffect(function () {
+    return player.subscribeError(function (info) {
+      var reason = info && typeof info.reason === 'string' ? info.reason.trim() : ''
+      showToast(reason ? t('page.playbackFailed', { reason: reason }) : t('page.playbackFailedNoReason'))
+    })
+  }, [])
+
   useEffect(
     function () {
       if (isOnlineSource(ui.source)) {
