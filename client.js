@@ -3071,11 +3071,10 @@ window.__ModuleLoader__.load({
       return (index - 1 + size) % size
     }
 
-    // View Transitions snapshot the old and new player frames, so a page-level
-    // slide can never tear the cover, title or lyrics apart. Chrome/Electron
-    // provides this API; unsupported browsers simply switch without animation.
-    var trackTransitionBusy = false
-    function withTrackTransition(direction, update) {
+    // Only the left hero (cover + title + artist) is captured by the View
+    // Transition. The right lyrics, background and controls update immediately.
+    var heroTransitionBusy = false
+    function withHeroTransition(direction, update) {
       if (typeof document === 'undefined' || typeof document.startViewTransition !== 'function') {
         update()
         return
@@ -3085,13 +3084,13 @@ window.__ModuleLoader__.load({
         update()
         return
       }
-      if (trackTransitionBusy || typeof document.querySelector !== 'function' || document.querySelector('.mp-np.is-open') === null) {
+      if (heroTransitionBusy || document.querySelector('.mp-np-left-hero') === null || document.querySelector('.mp-np.is-open') === null) {
         update()
         return
       }
       var root = document.documentElement
       root.setAttribute('data-mp-slide', direction === 'prev' ? 'prev' : 'next')
-      trackTransitionBusy = true
+      heroTransitionBusy = true
       var updated = false
       function commit() {
         updated = true
@@ -3104,18 +3103,18 @@ window.__ModuleLoader__.load({
       try {
         transition = document.startViewTransition(commit)
       } catch (error) {
-        trackTransitionBusy = false
+        heroTransitionBusy = false
         root.removeAttribute('data-mp-slide')
         if (!updated) update()
         return
       }
       if (transition && transition.finished && typeof transition.finished.finally === 'function') {
         transition.finished.finally(function () {
-          trackTransitionBusy = false
+          heroTransitionBusy = false
           root.removeAttribute('data-mp-slide')
         })
       } else {
-        trackTransitionBusy = false
+        heroTransitionBusy = false
         root.removeAttribute('data-mp-slide')
       }
     }
@@ -3556,7 +3555,7 @@ window.__ModuleLoader__.load({
         }
         var target = nextIndexOf(state.index, state.queue.length)
         if (target === state.index) return
-        withTrackTransition('next', function () {
+        withHeroTransition('next', function () {
           load(target, true)
         })
       }
@@ -3578,7 +3577,7 @@ window.__ModuleLoader__.load({
         }
         var target = nextIndexOf(state.index, state.queue.length)
         if (target === state.index) return
-        withTrackTransition('next', function () {
+        withHeroTransition('next', function () {
           load(target, true)
         })
       }
@@ -4207,7 +4206,7 @@ window.__ModuleLoader__.load({
           if (state.queue.length === 0) return
           var target = nextIndexOf(state.index, state.queue.length)
           if (target === state.index) return
-          withTrackTransition('next', function () {
+          withHeroTransition('next', function () {
             load(target, true)
           })
         },
@@ -4215,7 +4214,7 @@ window.__ModuleLoader__.load({
           if (state.queue.length === 0) return
           var target = prevIndexOf(state.index, state.queue.length)
           if (target === state.index) return
-          withTrackTransition('prev', function () {
+          withHeroTransition('prev', function () {
             load(target, true)
           })
         },
@@ -5754,7 +5753,7 @@ window.__ModuleLoader__.load({
       '.mp-queue-pop .mp-q-list{max-height:40vh}',
 
       // ── now playing (reference layout) ──────────────────────────────────────────
-      '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none;view-transition-name:mp-now-playing}',
+      '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
       '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
       '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
       '.mp-np-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto}.mp-np-bg .is-prev{opacity:1}.mp-np-bg .is-cur{animation:mp-bg-in .85s ease both}@keyframes mp-bg-in{from{opacity:0}to{opacity:1}}',
@@ -5776,6 +5775,8 @@ window.__ModuleLoader__.load({
       '.mp-np-setting-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px;color:rgba(255,255,255,.62)}.mp-np-setting select{width:100%;height:30px;padding:0 8px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none;cursor:pointer}.mp-np-align-row{display:flex;gap:6px}.mp-np-align-row .mp-chip{flex:1;justify-content:center;min-width:0;height:28px;padding:0 4px}',
       '.mp-np-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;align-items:stretch;padding:86px 2.5vw 0 6.5vw}',
       '.mp-np-left{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;flex:none;min-width:0;width:var(--mp-cover);padding-bottom:77px}',
+      '.mp-np-left-hero{position:relative;min-width:0;view-transition-name:mp-left-hero}',
+      '.mp-np-left-layer{min-width:0}',
       '.mp-np-meta{min-width:0;margin:0 0 14px}',
       '.mp-np-meta-row{display:none}',
       '.mp-np-title{min-width:0;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
@@ -6330,18 +6331,19 @@ window.__ModuleLoader__.load({
       '@media (max-width:620px){.mp-online-grid{grid-template-columns:1fr}.mp-online-name{font-size:13px}}',
       '@media (max-width:620px){.mp-set-row{flex-direction:column;align-items:stretch;gap:6px}.mp-set-text{flex:0 0 auto}.mp-set-control{justify-content:flex-start;margin-left:0}.mp-set-control select,.mp-range{max-width:100%}}',
       '@media (max-width:620px){.mp-tag-grid{grid-template-columns:1fr}.mp-tag-layout{grid-template-columns:1fr}.mp-tag-aside{position:static;display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;column-gap:10px;row-gap:3px}.mp-tag-aside .mp-tag-cover{width:72px;height:72px;grid-row:1/4}.mp-tag-aside-title{grid-column:2;grid-row:1}.mp-tag-aside-artist{grid-column:2;grid-row:2}.mp-tag-aside-meta{grid-column:2;grid-row:3}.mp-tag-aside-actions{grid-column:1/-1;flex-direction:row;flex-wrap:wrap}.mp-tag-hint{grid-column:1/-1}.mp-tag-body{max-height:min(68vh,620px)}.mp-tag-footer{flex-wrap:wrap}.mp-tag-footer .mp-btn{flex:1}}',
-      '::view-transition-group(mp-now-playing){animation:none;overflow:hidden}',
+      '::view-transition-group(mp-left-hero){animation:none;overflow:hidden}',
       '::view-transition-group(root){animation:none}',
-      '::view-transition-old(root),::view-transition-new(root){animation:none;opacity:0}',
-      '::view-transition-old(mp-now-playing),::view-transition-new(mp-now-playing){animation-duration:560ms;animation-timing-function:cubic-bezier(.76,0,.24,1);animation-fill-mode:both}',
-      'html[data-mp-slide="next"]::view-transition-old(mp-now-playing){animation-name:mp-vt-out-left}',
-      'html[data-mp-slide="next"]::view-transition-new(mp-now-playing){animation-name:mp-vt-in-right}',
-      'html[data-mp-slide="prev"]::view-transition-old(mp-now-playing){animation-name:mp-vt-out-right}',
-      'html[data-mp-slide="prev"]::view-transition-new(mp-now-playing){animation-name:mp-vt-in-left}',
-      '@keyframes mp-vt-out-left{from{transform:translateX(0)}to{transform:translateX(-100%)}}',
-      '@keyframes mp-vt-in-right{from{transform:translateX(100%)}to{transform:translateX(0)}}',
-      '@keyframes mp-vt-out-right{from{transform:translateX(0)}to{transform:translateX(100%)}}',
-      '@keyframes mp-vt-in-left{from{transform:translateX(-100%)}to{transform:translateX(0)}}',
+      '::view-transition-old(root){animation:none;opacity:0;visibility:hidden}',
+      '::view-transition-new(root){animation:none;opacity:1;visibility:visible}',
+      '::view-transition-old(mp-left-hero),::view-transition-new(mp-left-hero){animation-duration:480ms;animation-timing-function:cubic-bezier(.22,.61,.36,1);animation-fill-mode:both}',
+      'html[data-mp-slide="next"]::view-transition-old(mp-left-hero){animation-name:mp-hero-out-left}',
+      'html[data-mp-slide="next"]::view-transition-new(mp-left-hero){animation-name:mp-hero-in-right}',
+      'html[data-mp-slide="prev"]::view-transition-old(mp-left-hero){animation-name:mp-hero-out-right}',
+      'html[data-mp-slide="prev"]::view-transition-new(mp-left-hero){animation-name:mp-hero-in-left}',
+      '@keyframes mp-hero-out-left{from{transform:translateX(0)}to{transform:translateX(-100%)}}',
+      '@keyframes mp-hero-in-right{from{transform:translateX(100%)}to{transform:translateX(0)}}',
+      '@keyframes mp-hero-out-right{from{transform:translateX(0)}to{transform:translateX(100%)}}',
+      '@keyframes mp-hero-in-left{from{transform:translateX(-100%)}to{transform:translateX(0)}}',
       '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
       '@media (prefers-reduced-motion:reduce){.mp-np-line-trans{transition:none}.mp-np.is-trans .mp-np-line-trans{transition:none}}',
     ]
@@ -8419,7 +8421,7 @@ window.__ModuleLoader__.load({
             if (cancelled || texture === '') return
             setBg(function (prev) {
               if (prev.current === texture) return prev
-              return { current: texture, previous: prev.current }
+              return { current: texture, previous: '' }
             })
           })
           return function () {
@@ -8953,6 +8955,12 @@ window.__ModuleLoader__.load({
             { className: 'mp-np-left' },
             h(
               'div',
+              { className: 'mp-np-left-hero' },
+              h(
+                'div',
+                { className: 'mp-np-left-layer' },
+            h(
+              'div',
               { className: 'mp-np-meta' },
               h('div', { className: 'mp-np-title' }, track ? trackTitleOf(track) : '—'),
               h(
@@ -8997,6 +9005,8 @@ window.__ModuleLoader__.load({
                 ),
               ),
             ),
+            ),
+              ),
             ),
             h(
               'div',

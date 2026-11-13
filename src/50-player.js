@@ -76,11 +76,10 @@ function prevIndexOf(index, size) {
   return (index - 1 + size) % size
 }
 
-// View Transitions snapshot the old and new player frames, so a page-level
-// slide can never tear the cover, title or lyrics apart. Chrome/Electron
-// provides this API; unsupported browsers simply switch without animation.
-var trackTransitionBusy = false
-function withTrackTransition(direction, update) {
+// Only the left hero (cover + title + artist) is captured by the View
+// Transition. The right lyrics, background and controls update immediately.
+var heroTransitionBusy = false
+function withHeroTransition(direction, update) {
   if (typeof document === 'undefined' || typeof document.startViewTransition !== 'function') {
     update()
     return
@@ -90,13 +89,13 @@ function withTrackTransition(direction, update) {
     update()
     return
   }
-  if (trackTransitionBusy || typeof document.querySelector !== 'function' || document.querySelector('.mp-np.is-open') === null) {
+  if (heroTransitionBusy || document.querySelector('.mp-np-left-hero') === null || document.querySelector('.mp-np.is-open') === null) {
     update()
     return
   }
   var root = document.documentElement
   root.setAttribute('data-mp-slide', direction === 'prev' ? 'prev' : 'next')
-  trackTransitionBusy = true
+  heroTransitionBusy = true
   var updated = false
   function commit() {
     updated = true
@@ -109,18 +108,18 @@ function withTrackTransition(direction, update) {
   try {
     transition = document.startViewTransition(commit)
   } catch (error) {
-    trackTransitionBusy = false
+    heroTransitionBusy = false
     root.removeAttribute('data-mp-slide')
     if (!updated) update()
     return
   }
   if (transition && transition.finished && typeof transition.finished.finally === 'function') {
     transition.finished.finally(function () {
-      trackTransitionBusy = false
+      heroTransitionBusy = false
       root.removeAttribute('data-mp-slide')
     })
   } else {
-    trackTransitionBusy = false
+    heroTransitionBusy = false
     root.removeAttribute('data-mp-slide')
   }
 }
@@ -561,7 +560,7 @@ function createPlayer() {
     }
     var target = nextIndexOf(state.index, state.queue.length)
     if (target === state.index) return
-    withTrackTransition('next', function () {
+    withHeroTransition('next', function () {
       load(target, true)
     })
   }
@@ -583,7 +582,7 @@ function createPlayer() {
     }
     var target = nextIndexOf(state.index, state.queue.length)
     if (target === state.index) return
-    withTrackTransition('next', function () {
+    withHeroTransition('next', function () {
       load(target, true)
     })
   }
@@ -1212,7 +1211,7 @@ function createPlayer() {
       if (state.queue.length === 0) return
       var target = nextIndexOf(state.index, state.queue.length)
       if (target === state.index) return
-      withTrackTransition('next', function () {
+      withHeroTransition('next', function () {
         load(target, true)
       })
     },
@@ -1220,7 +1219,7 @@ function createPlayer() {
       if (state.queue.length === 0) return
       var target = prevIndexOf(state.index, state.queue.length)
       if (target === state.index) return
-      withTrackTransition('prev', function () {
+      withHeroTransition('prev', function () {
         load(target, true)
       })
     },
