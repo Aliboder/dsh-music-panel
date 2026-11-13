@@ -51,6 +51,20 @@ const ranked = searchEqPresets(payload, 'sennheiser hd 600', { limit: 5 })
 assert.ok(ranked.length > 0)
 assert.match(ranked[0].n.toLowerCase(), /^sennheiser hd 600/i, 'an exact prefix ranks first')
 
+// Naming differences between apps must not hide a profile.
+const plus = searchEqPresets(payload, 'galaxy buds+', { limit: 10 })
+assert.ok(
+  plus.some((entry) => /galaxy buds plus/i.test(entry.n)),
+  'a "+" query matches AutoEQ\'s "Plus" spelling',
+)
+const pixel = searchEqPresets(payload, 'pixel buds 2', { limit: 10 })
+assert.ok(
+  pixel.some((entry) => /pixel buds \(2020\)/i.test(entry.n)),
+  'a model year in parentheses does not block the match',
+)
+const akg = searchEqPresets(payload, 'eo-ig955', { limit: 10 })
+assert.ok(akg.some((entry) => /eo-ig955/i.test(entry.n)), 'AKG-branded Samsung buds are found')
+
 const none = searchEqPresets(payload, 'zzzz-not-a-headphone', { limit: 5 })
 assert.equal(none.length, 0, 'no matches means no rows')
 
