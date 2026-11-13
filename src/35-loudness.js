@@ -148,16 +148,16 @@ function integratedLoudnessOf(buffer) {
 }
 
 function analyzeLoudnessBlob(item, blob, isCurrent, onGain) {
-  if (!item || !blob || typeof isCurrent !== 'function' || typeof onGain !== 'function') return
+  if (!item || !blob || typeof isCurrent !== 'function') return Promise.resolve(null)
   var key = loudnessCacheKey(item, blob)
   var cached = lookupLoudnessGain(key)
   if (cached !== null) {
-    if (isCurrent()) onGain(cached)
-    return
+    if (isCurrent() && typeof onGain === 'function') onGain(cached)
+    return Promise.resolve(cached)
   }
   var decoder = loudnessContext()
-  if (decoder === null) return
-  blob
+  if (decoder === null) return Promise.resolve(null)
+  return blob
     .arrayBuffer()
     .then(function (bytes) {
       return decoder.decodeAudioData(bytes)
@@ -167,12 +167,14 @@ function analyzeLoudnessBlob(item, blob, isCurrent, onGain) {
       return lufsFromAudioBuffer(buffer)
     })
     .then(function (lufs) {
-      if (lufs === null || !isCurrent()) return
+      if (lufs === null || !isCurrent()) return null
       var gainDb = clamp(LOUDNESS_TARGET - lufs, -15, 6)
       storeLoudnessGain(key, gainDb)
-      onGain(gainDb)
+      if (typeof onGain === 'function') onGain(gainDb)
+      return gainDb
     })
     .catch(function () {
       // Corrupt/unsupported file: keep the user volume.
+      return null
     })
 }

@@ -172,6 +172,31 @@ function textOf(tree) {
 const internals = api.__internals
 assert.ok(internals, 'internals are exposed for tests')
 
+const lyricLines = [
+  { time: 0, text: '作词 : 宮本浩次', translation: '' },
+  { time: 0.142, text: '作曲 : 宮本浩次', translation: '' },
+  { time: 0.284, text: '编曲 : 小林武史/宮本浩次', translation: '' },
+  { time: 0.427, text: 'いずれ花と散る わたしの生命', translation: '' },
+]
+internals.mergeLyricTranslation(lyricLines, '[00:00.427]我的生命如同散落之花')
+assert.equal(lyricLines[0].translation, '', 'credits must not inherit the first verse translation')
+assert.equal(lyricLines[1].translation, '', 'credits must not inherit the first verse translation')
+assert.equal(lyricLines[2].translation, '', 'credits must not inherit the first verse translation')
+assert.equal(lyricLines[3].translation, '我的生命如同散落之花')
+
+const bilingual = internals.buildTranslatedLrc(
+  [
+    { time: 5.12, text: '原词', translation: '翻译词' },
+    { time: 10, text: 'next', translation: '' },
+  ],
+  '[ti:Demo]\n[00:05.12]原词\n[00:05.12]翻译词\n[00:10.00]next',
+)
+assert.equal(
+  bilingual,
+  '[ti:Demo]\n[00:05.12]原词\n[00:05.12]翻译词\n[00:10.00]next',
+)
+assert.equal(internals.formatLrcTime(65.5), '[01:05.50]')
+
 const TRACKS = [
   {
     path: 'D:/Music/a.mp3',

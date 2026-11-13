@@ -26,6 +26,17 @@ assert.equal(paired[0].text, '原文です')
 assert.equal(paired[0].translation, '这是翻译')
 assert.equal(paired[1].translation, '')
 
+// Timed credits stay separate and never masquerade as a translation.
+const credited = parseLrc(
+  '[00:00.00]作词 : 宮本浩次\n[00:00.14]作曲 : 宮本浩次\n[00:00.28]编曲 : 小林武史/宮本浩次\n[00:01.00]原文\n[00:01.05]这是翻译\n',
+)
+assert.equal(credited.length, 4)
+assert.equal(credited[0].text, '作词 : 宮本浩次')
+assert.equal(credited[0].translation, '')
+assert.equal(credited[1].translation, '')
+assert.equal(credited[2].translation, '')
+assert.equal(credited[3].translation, '这是翻译')
+
 // Three languages on one stamp stay together, one translation per line.
 const trilingual = parseLrc('[00:10.00]原文\n[00:10.00]translation\n[00:10.00]romaji\n')
 assert.equal(trilingual.length, 1)

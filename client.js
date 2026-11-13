@@ -8,7 +8,7 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
-    var APP_VERSION = "0.29.3"
+    var APP_VERSION = "0.30.0"
 
     // ── src/00-runtime.js
     /**
@@ -366,8 +366,10 @@ window.__ModuleLoader__.load({
         'page.onlineLyrics': '在线歌词',
         'page.onlineLyricsAction': '搜索',
         'page.lyricsSearch': '搜索',
-        'page.lyricsSearchPlaceholder': '歌名 艺术家',
+        'page.lyricsSearchPlaceholder': '歌名',
         'page.lyricsNoResults': '没有找到歌词',
+        'page.lyricsLineCount': '{n} 行',
+        'page.lyricsBack': '返回结果',
         'page.lyricsPreviewHint': '选择一首歌查看歌词',
         'page.lyricsSave': '保存为 .lrc',
         'page.lyricsApply': '应用',
@@ -413,6 +415,7 @@ window.__ModuleLoader__.load({
         'page.lyricist': '作词',
         'page.comment': '注释',
         'page.lyrics': '歌词',
+        'page.lyricsPlaceholder': '支持 LRC 时间戳，可直接粘贴或在线搜索',
         'page.save': '保存',
         'page.saving': '保存中…',
         'page.metaSaved': '元数据已保存',
@@ -774,8 +777,10 @@ window.__ModuleLoader__.load({
         'page.onlineLyrics': 'Online lyrics',
         'page.onlineLyricsAction': 'Search',
         'page.lyricsSearch': 'Search',
-        'page.lyricsSearchPlaceholder': 'title artist',
+        'page.lyricsSearchPlaceholder': 'Song title',
         'page.lyricsNoResults': 'No lyrics found',
+        'page.lyricsLineCount': '{n} lines',
+        'page.lyricsBack': 'Back to results',
         'page.lyricsPreviewHint': 'Pick a result to preview',
         'page.lyricsSave': 'Save as .lrc',
         'page.lyricsApply': 'Apply',
@@ -821,6 +826,7 @@ window.__ModuleLoader__.load({
         'page.lyricist': 'Lyricist',
         'page.comment': 'Comment',
         'page.lyrics': 'Lyrics',
+        'page.lyricsPlaceholder': 'LRC timestamps supported; paste text or search online',
         'page.save': 'Save',
         'page.saving': 'Saving…',
         'page.metaSaved': 'Metadata saved',
@@ -1745,21 +1751,98 @@ window.__ModuleLoader__.load({
       return lines
     }
     
+    function isLyricMetadata(text) {
+      var value = String(text || '').trim()
+      if (value === '') return true
+      if (/^(作词|作曲|编曲|制作|监制|出品|发行|录音|混音|母带|和声|吉他|贝斯|鼓|键盘|弦乐|词|曲)\s*[:：]/i.test(value)) {
+        return true
+      }
+      return /^(lyrics?|composed|composer|arranged|arranger|producer|produced|mixed|mastered|written|music|words)\b[^:：]{0,24}[:：]/i.test(value)
+    }
+    
     function mergeLyricTranslation(lines, translationText) {
       var translated = parseLrcText(translationText)
-      lines.forEach(function (line) {
-        var best = null
-        var bestDiff = Infinity
-        for (var i = 0; i < translated.length; i += 1) {
-          var diff = Math.abs(translated[i].time - line.time)
-          if (diff <= 0.35 && diff < bestDiff) {
-            best = translated[i]
-            bestDiff = diff
-          }
+      if (translated.length === 0) return lines
+    
+      // Match one translation line to one lyric line, globally nearest-first.
+      // The old per-line nearest lookup reused the first translation on every
+      // credit/meta line within 350ms (e.g. 作词/作曲/编曲 before the first verse).
+      var candidates = []
+      for (var i = 0; i < lines.length; i += 1) {
+        var line = lines[i]
+        if (isLyricMetadata(line.text)) continue
+        for (var j = 0; j < translated.length; j += 1) {
+          if (isLyricMetadata(translated[j].text)) continue
+          var diff = Math.abs(translated[j].time - line.time)
+          if (diff <= 0.35) candidates.push({ line: i, trans: j, diff: diff })
         }
-        if (best !== null) line.translation = best.text
+      }
+      candidates.sort(function (left, right) {
+        if (left.diff !== right.diff) return left.diff - right.diff
+        return left.line - right.line
+      })
+      var usedLines = {}
+      var usedTrans = {}
+      candidates.forEach(function (pair) {
+        if (usedLines[pair.line] === true || usedTrans[pair.trans] === true) return
+        var line = lines[pair.line]
+        var text = translated[pair.trans].text
+        if (isLyricMetadata(text)) return
+        line.translation = text
+        usedLines[pair.line] = true
+        usedTrans[pair.trans] = true
       })
       return lines
+    }
+    
+    /** Canonical `[mm:ss.xx]` used when writing translated lyrics back to a file. */
+    function formatLrcTime(seconds) {
+      var total = Math.max(0, Number(seconds) || 0)
+      var minutes = Math.floor(total / 60)
+      var rest = total - minutes * 60
+      var whole = Math.floor(rest)
+      var centis = Math.round((rest - whole) * 100)
+      if (centis >= 100) {
+        centis = 0
+        whole += 1
+      }
+      if (whole >= 60) {
+        whole -= 60
+        minutes += 1
+      }
+      return '[' + pad2(minutes) + ':' + pad2(whole) + '.' + pad2(centis) + ']'
+    }
+    
+    /**
+     * Serialize parsed lines with translations back to the common bilingual LRC
+     * shape: each translation repeats the original line's timestamp.
+     *
+     *   [00:05.12]原词
+     *   [00:05.12]翻译词
+     *
+     * Metadata tags ([ti:], [ar:], [offset:], ...) are carried over unchanged.
+     */
+    function buildTranslatedLrc(lines, sourceText) {
+      var prefix = String(sourceText || '')
+        .split(/\r?\n/)
+        .filter(function (line) {
+          return /^\s*\[[A-Za-z#]+:[^\]]*\]/.test(line)
+        })
+      var body = []
+      ;(Array.isArray(lines) ? lines : []).forEach(function (line) {
+        if (!line || !isFinite(line.time) || line.time < 0) return
+        var stamp = formatLrcTime(line.time)
+        var text = String(line.text || '')
+        var translation = String(line.translation || '')
+        if (text === '' && translation === '') return
+        if (text !== '') body.push(stamp + text)
+        if (translation !== '') {
+          translation.split(/\r?\n/).forEach(function (part) {
+            if (part !== '') body.push(stamp + part)
+          })
+        }
+      })
+      return prefix.concat(body).join('\n')
     }
     
     /** Split `online:<provider>:<id>` (null when the path is a local one). */
@@ -2418,16 +2501,16 @@ window.__ModuleLoader__.load({
     }
     
     function analyzeLoudnessBlob(item, blob, isCurrent, onGain) {
-      if (!item || !blob || typeof isCurrent !== 'function' || typeof onGain !== 'function') return
+      if (!item || !blob || typeof isCurrent !== 'function') return Promise.resolve(null)
       var key = loudnessCacheKey(item, blob)
       var cached = lookupLoudnessGain(key)
       if (cached !== null) {
-        if (isCurrent()) onGain(cached)
-        return
+        if (isCurrent() && typeof onGain === 'function') onGain(cached)
+        return Promise.resolve(cached)
       }
       var decoder = loudnessContext()
-      if (decoder === null) return
-      blob
+      if (decoder === null) return Promise.resolve(null)
+      return blob
         .arrayBuffer()
         .then(function (bytes) {
           return decoder.decodeAudioData(bytes)
@@ -2437,13 +2520,15 @@ window.__ModuleLoader__.load({
           return lufsFromAudioBuffer(buffer)
         })
         .then(function (lufs) {
-          if (lufs === null || !isCurrent()) return
+          if (lufs === null || !isCurrent()) return null
           var gainDb = clamp(LOUDNESS_TARGET - lufs, -15, 6)
           storeLoudnessGain(key, gainDb)
-          onGain(gainDb)
+          if (typeof onGain === 'function') onGain(gainDb)
+          return gainDb
         })
         .catch(function () {
           // Corrupt/unsupported file: keep the user volume.
+          return null
         })
     }
 
@@ -2925,6 +3010,8 @@ window.__ModuleLoader__.load({
       var waveData = null
       var normalizeGain = 1
       var loudnessToken = 0
+      /** Resolves when the current track's gain is ready (or analysis gave up). */
+      var loudnessGate = null
       /** Active `blob:` URL for the loaded track (local media seeks reliably). */
       var objectUrl = null
       var currentLoudnessBlob = null
@@ -3408,7 +3495,14 @@ window.__ModuleLoader__.load({
           try {
             var now = audioContext.currentTime
             gainNode.gain.cancelScheduledValues(now)
-            gainNode.gain.setTargetAtTime(normalizeGain, now, 0.12)
+            // Before playback starts the gain must already be at its target;
+            // otherwise the first seconds ramp down audibly. While a track is
+            // playing, keep the short ramp so toggling normalization is smooth.
+            if (audio === null || audio.paused === true) {
+              gainNode.gain.setValueAtTime(normalizeGain, now)
+            } else {
+              gainNode.gain.setTargetAtTime(normalizeGain, now, 0.12)
+            }
           } catch {
             gainNode.gain.value = normalizeGain
           }
@@ -3417,12 +3511,51 @@ window.__ModuleLoader__.load({
         }
       }
     
+      function createLoudnessGate() {
+        var resolveGate = null
+        var promise = new Promise(function (resolve) {
+          resolveGate = resolve
+        })
+        loudnessGate = promise
+        return {
+          promise: promise,
+          resolve: function () {
+            if (resolveGate !== null) {
+              var finish = resolveGate
+              resolveGate = null
+              finish()
+            }
+          },
+        }
+      }
+    
+      function playAfterLoudness(token) {
+        var gate = loudnessGate === null ? Promise.resolve() : loudnessGate
+        gate.then(function () {
+          if (token !== loadToken || pendingAutoplay !== true || audio === null) return
+          pendingAutoplay = false
+          var context = api.ensureAnalyser()
+          if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
+            audioContext.resume().catch(function () {
+              // If the context cannot start, leave the media element untouched.
+            })
+          }
+          audio.play().catch(function () {
+            // Autoplay may still be blocked; the play event will update the UI.
+          })
+        })
+      }
+    
       /** Analyse the downloaded blob in-browser and apply the per-track gain. */
-      function scheduleLoudness(item, blob) {
+      function scheduleLoudness(item, blob, done) {
         var token = (loudnessToken += 1)
         currentLoudnessBlob = blob || null
         applyNormalizeGain(1)
-        if (readPrefs().normalizeVolume === false || !item || !blob) return
+        var finish = typeof done === 'function' ? done : function () {}
+        if (readPrefs().normalizeVolume === false || !item || !blob) {
+          finish()
+          return
+        }
         analyzeLoudnessBlob(
           item,
           blob,
@@ -3434,6 +3567,17 @@ window.__ModuleLoader__.load({
             applyNormalizeGain(Math.pow(10, clamp(gainDb, -15, 6) / 20))
           },
         )
+          .then(function (gainDb) {
+            if (token === loudnessToken && (gainDb === null || gainDb === undefined)) {
+              applyNormalizeGain(1)
+            }
+          })
+          .catch(function () {
+            if (token === loudnessToken) applyNormalizeGain(1)
+          })
+          .then(function () {
+            finish()
+          })
       }
     
       function load(at, autoplay) {
@@ -3453,7 +3597,11 @@ window.__ModuleLoader__.load({
         currentLoudnessBlob = null
         loudnessToken += 1
         applyNormalizeGain(1)
-        if (audio === null) return
+        var loudness = createLoudnessGate()
+        if (audio === null) {
+          loudness.resolve()
+          return
+        }
         if (autoplay === true) {
           var visualizerContext = api.ensureAnalyser()
           if (visualizerContext !== null && audioContext !== null && audioContext.state === 'suspended') {
@@ -3495,35 +3643,37 @@ window.__ModuleLoader__.load({
               return response.blob()
             })
             .then(function (blob) {
-              if (onlineToken !== loadToken) return
+              if (onlineToken !== loadToken) {
+                loudness.resolve()
+                return
+              }
               fetchAbort = null
-              if (audio === null) return
+              if (audio === null) {
+                loudness.resolve()
+                return
+              }
               releaseObjectUrl()
               objectUrl = URL.createObjectURL(blob)
               audio.src = objectUrl
               audio.load()
-              scheduleLoudness(item, blob)
-              if (pendingAutoplay) {
-                pendingAutoplay = false
-                audio.play().catch(function () {
-                  if (state.playing) patch({ playing: false })
-                })
-              }
+              scheduleLoudness(item, blob, loudness.resolve)
+              if (pendingAutoplay) playAfterLoudness(token)
             })
             .catch(function () {
-              if (onlineToken !== loadToken) return
+              if (onlineToken !== loadToken) {
+                loudness.resolve()
+                return
+              }
               fetchAbort = null
+              // The gate must open even when analysis is impossible: this path
+              // streams without a blob and therefore has no gain to apply.
+              loudness.resolve()
               if (audio === null) return
               // Streaming fallback: playback still starts even if the prefetch
               // failed (seeking may be less reliable in this rare path).
               audio.src = item.onlineUrl
               audio.load()
-              if (pendingAutoplay) {
-                pendingAutoplay = false
-                audio.play().catch(function () {
-                  if (state.playing) patch({ playing: false })
-                })
-              }
+              if (pendingAutoplay) playAfterLoudness(token)
             })
           return
         }
@@ -3542,14 +3692,20 @@ window.__ModuleLoader__.load({
             return response.blob()
           })
           .then(function (blob) {
-            if (token !== loadToken) return
+            if (token !== loadToken) {
+              loudness.resolve()
+              return
+            }
             fetchAbort = null
-            if (audio === null) return
+            if (audio === null) {
+              loudness.resolve()
+              return
+            }
             releaseObjectUrl()
             objectUrl = URL.createObjectURL(blob)
             audio.src = objectUrl
             audio.load()
-            scheduleLoudness(item, blob)
+            scheduleLoudness(item, blob, loudness.resolve)
             if (pendingResumeSeconds !== null) {
               var resumeAt = pendingResumeSeconds
               pendingResumeSeconds = null
@@ -3563,16 +3719,15 @@ window.__ModuleLoader__.load({
                 })
                 .catch(function () {})
             }
-            if (pendingAutoplay) {
-              pendingAutoplay = false
-              audio.play().catch(function () {
-                if (state.playing) patch({ playing: false })
-              })
-            }
+            if (pendingAutoplay) playAfterLoudness(token)
           })
           .catch(function (error) {
-            if (token !== loadToken) return
+            if (token !== loadToken) {
+              loudness.resolve()
+              return
+            }
             fetchAbort = null
+            loudness.resolve()
             if (error && error.name === 'AbortError') return
             onError()
           })
@@ -3695,10 +3850,7 @@ window.__ModuleLoader__.load({
             if (objectUrl !== null) {
               el.src = objectUrl
               el.load()
-              if (pendingAutoplay) {
-                pendingAutoplay = false
-                el.play().catch(function () {})
-              }
+              if (pendingAutoplay) playAfterLoudness(loadToken)
             } else {
               load(state.index, pendingAutoplay || state.playing)
             }
@@ -3864,7 +4016,10 @@ window.__ModuleLoader__.load({
               // If the context cannot start, leave the media element untouched.
             })
           }
-          audio.play().catch(function () {})
+          pendingAutoplay = true
+          // Wait for the current track's loudness result so the first audible
+          // sample already has its final gain instead of ducking mid-play.
+          playAfterLoudness(loadToken)
         },
         /** Called by the cross-tab coordinator; never plays in a follower tab. */
         setLeader: function (value) {
@@ -3872,6 +4027,7 @@ window.__ModuleLoader__.load({
           if (leader === next) return
           leader = next
           if (!leader) {
+            pendingAutoplay = false
             if (audio !== null) audio.pause()
             if (state.playing) patch({ playing: false })
           }
@@ -3881,6 +4037,7 @@ window.__ModuleLoader__.load({
           return leader
         },
         pause: function () {
+          pendingAutoplay = false
           if (audio) audio.pause()
         },
         toggle: function () {
@@ -5463,11 +5620,14 @@ window.__ModuleLoader__.load({
       '.mp-np-line:hover{color:rgba(255,255,255,.86)}',
       '.mp-np-line.is-past{opacity:.46}',
       '.mp-np-line.is-active{color:#fff;opacity:1}',
+      '.mp-np-line.is-focus{opacity:1;filter:none}',
+      '.mp-np-line.is-focus:not(.is-active){color:rgba(255,255,255,.88)}',
       '.mp-np-line-text{font-size:var(--mp-lyric-size,26px);line-height:1.2;font-weight:600;white-space:normal;word-break:break-word;overflow-wrap:anywhere;letter-spacing:.005em}',
+      '.mp-np-line-time{display:inline-block;margin-left:8px;font-size:11px;line-height:1;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.42);vertical-align:middle;white-space:nowrap;font-variant-numeric:tabular-nums}',
       '.mp-np-line.is-active .mp-np-line-text{text-shadow:0 2px 22px rgba(0,0,0,.35)}',
       '.mp-np-line-trans{display:grid;grid-template-rows:0fr;margin-top:0;opacity:0;font-size:var(--mp-lyric-trans,16px);line-height:1.2;font-weight:400;color:rgba(255,255,255,.58);transition:grid-template-rows .26s cubic-bezier(.22,.61,.36,1) .14s,opacity .14s ease 0s,margin-top .26s cubic-bezier(.22,.61,.36,1) .14s}.mp-np-line-trans-inner{display:block;min-height:0;overflow:hidden}.mp-np.is-trans .mp-np-line-trans-inner{min-height:calc(var(--mp-trans,1) * var(--mp-lyric-trans,16px) * 1.2)}.mp-np-line-trans-text{display:block}.mp-np.is-trans .mp-np-line-trans{grid-template-rows:1fr;margin-top:calc(var(--mp-trans,1) * 2px);opacity:1;transition:grid-template-rows .26s cubic-bezier(.22,.61,.36,1) 0s,opacity .2s ease .1s,margin-top .26s cubic-bezier(.22,.61,.36,1) 0s}',
       '.mp-np-line.is-active .mp-np-line-trans{color:rgba(255,255,255,.82)}',
-      '.mp-np.is-blur .mp-np-line:not(.is-active){opacity:.44;filter:blur(calc(0.2px + var(--mp-line-stagger,0) * 0.22px))}',
+      '.mp-np.is-blur .mp-np-line:not(.is-focus){opacity:.44;filter:blur(calc(0.2px + var(--mp-line-stagger,0) * 0.22px))}',
       '.mp-np-lyric-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;flex:none;margin-top:14px;min-height:30px}',
       '.mp-np-lyric-tag{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.7)}',
       '.mp-np-lyric-tag-badge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 4px;border:1px solid rgba(255,255,255,.42);border-radius:5px;background:transparent;font:inherit;font-size:12px;font-weight:500;line-height:1;color:rgba(255,255,255,.92);cursor:pointer}.mp-np-lyric-tag-badge:hover,.mp-np-lyric-tag-badge.is-on{border-color:rgba(255,255,255,.72);background:rgba(255,255,255,.1);color:#fff}',
@@ -5475,9 +5635,9 @@ window.__ModuleLoader__.load({
       '.mp-np-foot-right{display:flex;align-items:center;gap:10px;margin-left:auto}',
       '.mp-np-foot-btn{display:inline-flex;align-items:center;justify-content:center;height:30px;min-width:30px;padding:0 7px;border:1px solid transparent;border-radius:8px;background:transparent;color:rgba(255,255,255,.78);font:inherit;font-size:13px;font-weight:600;cursor:pointer}',
       '.mp-np-foot-btn.is-boxed{border-color:rgba(255,255,255,.45)}',
-      '.mp-npe{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.62);animation:mp-npe-fade .18s ease}',
-      '.mp-npe-panel{position:relative;width:min(440px,calc(100vw - 32px));height:auto;max-height:min(760px,calc(100vh - 48px));display:flex;flex-direction:column;background:#151519;border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.6);animation:mp-npe-pop .22s cubic-bezier(.22,.61,.36,1)}',
-      '.mp-npe-head{display:flex;align-items:flex-start;gap:12px;padding:22px 22px 16px;border-bottom:1px solid rgba(255,255,255,.08)}',
+      '.mp-npe{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:24px;overflow:hidden;background:rgba(0,0,0,.62);animation:mp-npe-fade .18s ease}',
+      '.mp-npe-panel{position:relative;width:min(440px,100%);min-width:0;box-sizing:border-box;height:auto;max-height:min(760px,100%);display:flex;flex-direction:column;background:#151519;border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.6);animation:mp-npe-pop .22s cubic-bezier(.22,.61,.36,1)}',
+      '.mp-npe-head{display:flex;align-items:flex-start;gap:12px;padding:22px 22px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex:none}',
       '.mp-npe-head-text{flex:1;min-width:0}',
       '.mp-npe-title{font-size:18px;font-weight:700;line-height:1.25}',
       '.mp-npe-sub{margin-top:3px;font-size:12px;color:rgba(255,255,255,.55)}',
@@ -5494,12 +5654,12 @@ window.__ModuleLoader__.load({
       '.mp-npe-confirm-btn:hover{background:rgba(255,255,255,.12)}',
       '.mp-npe-confirm-btn.is-primary{background:#e6a85a;border-color:#e6a85a;color:#241708}',
       '.mp-npe-confirm-btn.is-primary:hover{background:#f0b86a;border-color:#f0b86a}',
-      '.mp-npe-body{flex:1;min-height:0;overflow-y:auto;padding:18px 22px 22px}',
+      '.mp-npe-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:18px 22px 22px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}',
       '.mp-npe-section{margin-bottom:24px}',
       '.mp-npe-sec-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}',
       '.mp-npe-sec-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);white-space:nowrap}',
       '.mp-npe-sec-line{flex:1;height:1px;background:rgba(255,255,255,.08)}',
-      '.mp-npe-cover-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
+      '.mp-npe-cover-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;min-width:0}',
       '.mp-npe-cover-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 10px 10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.035);color:rgba(255,255,255,.72);cursor:pointer;transition:border-color .16s,background .16s,box-shadow .16s,color .16s}',
       '.mp-npe-cover-card:hover{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.06)}',
       '.mp-npe-cover-card.is-on{border-color:rgba(120,160,255,.75);background:rgba(90,130,255,.14);box-shadow:0 0 0 1px rgba(120,160,255,.35),0 8px 24px rgba(40,80,200,.18);color:#fff}',
@@ -5517,9 +5677,9 @@ window.__ModuleLoader__.load({
       '.mp-npe-seg-btn{flex:1;height:30px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);font:inherit;font-size:12px;cursor:pointer;transition:background .14s,border-color .14s,color .14s}',
       '.mp-npe-seg-btn:hover{background:rgba(255,255,255,.08);color:#fff}',
       '.mp-npe-seg-btn.is-on{background:rgba(90,130,255,.18);border-color:rgba(120,160,255,.6);color:#fff}',
-      '.mp-npe-switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;color:rgba(255,255,255,.82)}',
+      '.mp-npe-switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;color:rgba(255,255,255,.82)}.mp-npe-switch-row>span{min-width:0;overflow-wrap:anywhere}',
       '.mp-npe-body select{width:100%;height:32px;margin-top:4px;padding:0 9px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none;cursor:pointer}',
-      '.mp-npe-foot{display:flex;gap:10px;padding:14px 22px;border-top:1px solid rgba(255,255,255,.08);background:rgba(18,18,22,.72)}',
+      '.mp-npe-foot{display:flex;gap:10px;padding:14px 22px;border-top:1px solid rgba(255,255,255,.08);background:rgba(18,18,22,.72);flex:none}',
       '.mp-npe-btn{flex:1;height:36px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .14s,border-color .14s}',
       '.mp-npe-btn:hover{background:rgba(255,255,255,.1)}',
       '.mp-npe-btn.is-primary{background:#5b8cff;border-color:#5b8cff;color:#fff}',
@@ -5528,7 +5688,7 @@ window.__ModuleLoader__.load({
       '@keyframes mp-npe-pop{from{transform:translateY(12px) scale(.985);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}',
       '@media (min-width:981px){.mp-np-disc-wrap{-webkit-box-reflect:below 4px linear-gradient(to top,rgba(0,0,0,.45),rgba(0,0,0,0) 96px)}}',
       '@media (min-width:981px) and (max-height:860px){.mp-np-disc-wrap{-webkit-box-reflect:below 2px linear-gradient(to top,rgba(0,0,0,.38),rgba(0,0,0,0) 26px)}}',
-      '@media (max-width:620px){.mp-npe{padding:8px}.mp-npe-panel{width:100%;max-height:calc(100dvh - 16px)}.mp-npe-head{padding:18px 18px 14px}.mp-npe-body{padding:14px 18px 18px}.mp-npe-foot{padding:12px 18px}}',
+      '@media (max-width:620px){.mp-npe{padding:8px}.mp-npe-panel{width:100%;max-height:100%}.mp-npe-head{padding:18px 18px 14px}.mp-npe-body{padding:14px 18px 18px}.mp-npe-foot{padding:12px 18px}}',
       '@media (prefers-reduced-motion:reduce){.mp-npe,.mp-npe-panel{animation:none}}',
       '.mp-np-foot-btn:hover,.mp-np-foot-btn.is-on{background:rgba(255,255,255,.1);color:#fff}',
       '.mp-quality{font-size:11px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.06)}',
@@ -5719,9 +5879,37 @@ window.__ModuleLoader__.load({
       '.mp-row:hover .mp-row-check,.mp-row.is-selected .mp-row-check,.mp-row-check:focus-visible{opacity:1}',
       '.mp-row-check.is-on{background:var(--dsw-alias-button-primary-fill,#f4f4f5);border-color:transparent;color:var(--dsw-alias-label-primary-foreground,#141417)}',
       '.mp-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-tag-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;width:100%;min-width:0}',
+      '.mp-tag-footer .mp-btn{flex:none;min-width:76px;justify-content:center}',
+      '.mp-tag-body{gap:14px;max-height:min(66vh,720px);overflow-y:auto;padding-right:6px;scrollbar-width:thin;overscroll-behavior:contain;flex:1 1 auto;min-height:0}',
+      '.mp-tag-body>*{flex:none}',
+      '.mp-tag-layout{display:grid;grid-template-columns:172px minmax(0,1fr);gap:16px;align-items:start;min-width:0}',
+      '.mp-tag-aside{position:sticky;top:0;display:flex;flex-direction:column;gap:10px;min-width:0;padding:12px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.035))}',
+      '.mp-tag-aside .mp-tag-cover{width:112px;height:112px}',
+      '.mp-tag-aside-title{font-size:16px;line-height:22px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-tag-aside-artist{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-tag-aside-meta{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-tag-aside-actions{display:flex;flex-direction:column;gap:6px}',
+      '.mp-tag-aside-actions .mp-btn{width:100%;justify-content:center}',
+      '.mp-tag-form{display:flex;flex-direction:column;gap:12px;min-width:0}',
+      '.mp-tag-hero{display:flex;gap:14px;align-items:center;min-width:0;padding:12px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.035));flex:none}',
       '.mp-tag-cover-row{display:flex;gap:12px;align-items:center}',
-      '.mp-tag-cover{width:76px;height:76px;border-radius:12px;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));display:grid;place-items:center;overflow:hidden;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-tag-cover{width:88px;height:88px;border-radius:12px;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));display:grid;place-items:center;overflow:hidden;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-tag-cover img{width:100%;height:100%;object-fit:cover}',
+      '.mp-tag-hero-main{min-width:0;flex:1}',
+      '.mp-tag-hero-title{font-size:16px;line-height:22px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-tag-hero-meta{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-tag-hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:9px}',
+      '.mp-tag-hint{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:8px}',
+      '.mp-tag-section{border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;overflow:hidden;background:var(--dsw-alias-bg-layer-1,rgba(255,255,255,.02));flex:none}',
+      '.mp-tag-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.035))}',
+      '.mp-tag-section-title{margin:0;font-size:11px;line-height:16px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-tag-section-extra{display:flex;align-items:center;gap:8px;min-width:0}',
+      '.mp-tag-section-meta{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
+      '.mp-tag-section-body{display:flex;flex-direction:column;gap:10px;padding:12px}',
+      '.mp-tag-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 12px;min-width:0}',
+      '.mp-tag-lyrics textarea{min-height:180px;resize:vertical;font-size:12px;line-height:1.65}',
+      '.mp-tag-lyrics-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}',
       '.mp-tag-cover-actions{display:flex;flex-direction:column;gap:8px;min-width:0;align-items:flex-start}',
       '.mp-tag-lyrics-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
       '.mp-match{border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;padding:10px;max-height:260px;overflow:auto}',
@@ -5736,13 +5924,25 @@ window.__ModuleLoader__.load({
       '.mp-dupe-row.is-keep{color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-dupe-row.is-drop{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-dupe-meta{margin-left:auto;color:var(--dsw-alias-label-tertiary,#8a8a93);flex:none;font-variant-numeric:tabular-nums}',
-      '.mp-lyr-candidates{display:flex;flex-direction:column;gap:2px;max-height:320px;overflow:auto}',
-      '.mp-lyr-candidate{display:flex;gap:10px;align-items:center;padding:8px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;cursor:pointer;width:100%}',
-      '.mp-lyr-candidate:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mp-lyr-candidates{display:flex;flex-direction:column;gap:4px;max-height:360px;overflow:auto;padding:2px}',
+      '.mp-lyr-candidate{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.035));color:inherit;text-align:left;cursor:pointer;width:100%;box-sizing:border-box}',
+      '.mp-lyr-candidate:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));border-color:var(--dsw-alias-border-l2,rgba(255,255,255,.14))}',
       '.mp-lyr-candidate-main{min-width:0;flex:1}',
-      '.mp-lyr-preview{max-height:320px;overflow:auto;display:flex;flex-direction:column;gap:4px;padding:4px 2px}',
-      '.mp-lyr-line{display:flex;gap:8px;font-size:12px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mp-lyr-tr{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-lyr-preview-wrap{display:flex;flex-direction:column;gap:8px;min-width:0}',
+      '.mp-lyr-preview-head{display:flex;align-items:center;gap:10px;min-width:0;padding:10px 12px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.035))}',
+      '.mp-lyr-preview-meta{min-width:0;flex:1}',
+      '.mp-lyr-preview-title{font-size:13px;line-height:18px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-lyr-preview-artist{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}',
+      '.mp-lyr-preview-count{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap;flex:none}',
+      '.mp-lyr-preview{max-height:360px;overflow:auto;display:flex;flex-direction:column;gap:2px;padding:2px 4px;scrollbar-width:thin}',
+      '.mp-lyr-line{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:start;padding:7px 8px;border-radius:8px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-lyr-line:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
+      '.mp-lyr-line.is-meta{padding-top:4px;padding-bottom:4px;opacity:.62}',
+      '.mp-lyr-time{font-size:11px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}',
+      '.mp-lyr-copy{min-width:0}',
+      '.mp-lyr-orig{font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary,#f4f4f5);overflow-wrap:anywhere}',
+      '.mp-lyr-tr{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px;overflow-wrap:anywhere}',
+      '.mp-lyr-line.is-meta .mp-lyr-orig{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-weight:500}',
       '.mp-np-offset-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}',
       '.mp-np-setting-hint{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:6px;line-height:1.5}',
     
@@ -5843,6 +6043,7 @@ window.__ModuleLoader__.load({
       '@media (max-width:720px){.mp-sheet-nav{padding-right:48px}.mp-sheet-close{top:8px;right:8px}.mp-sheet{width:calc(100vw - 16px);height:calc(100dvh - 16px);grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.mp-sheet-nav{flex-direction:row;align-items:center;gap:4px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));padding:8px}.mp-sheet-title{display:none}.mp-sheet-tab{flex:none;white-space:nowrap;height:30px}.mp-sheet-nav>div:last-child{margin-top:0!important;margin-left:auto}.mp-sheet-body{padding:12px 14px 18px}}',
       '@media (max-width:620px){.mp-online-grid{grid-template-columns:1fr}.mp-online-name{font-size:13px}}',
       '@media (max-width:620px){.mp-set-row{flex-direction:column;align-items:stretch;gap:6px}.mp-set-text{flex:0 0 auto}.mp-set-control{justify-content:flex-start;margin-left:0}.mp-set-control select,.mp-range{max-width:100%}}',
+      '@media (max-width:620px){.mp-tag-grid{grid-template-columns:1fr}.mp-tag-layout{grid-template-columns:1fr}.mp-tag-aside{position:static;display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;column-gap:10px;row-gap:3px}.mp-tag-aside .mp-tag-cover{width:72px;height:72px;grid-row:1/4}.mp-tag-aside-title{grid-column:2;grid-row:1}.mp-tag-aside-artist{grid-column:2;grid-row:2}.mp-tag-aside-meta{grid-column:2;grid-row:3}.mp-tag-aside-actions{grid-column:1/-1;flex-direction:row;flex-wrap:wrap}.mp-tag-hint{grid-column:1/-1}.mp-tag-body{max-height:min(68vh,620px)}.mp-tag-footer{flex-wrap:wrap}.mp-tag-footer .mp-btn{flex:1}}',
       '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
       '@media (prefers-reduced-motion:reduce){.mp-np-line-trans{transition:none}.mp-np.is-trans .mp-np-line-trans{transition:none}}',
     ]
@@ -6764,6 +6965,7 @@ window.__ModuleLoader__.load({
       translationScale,
       lyricAlign,
     ) {
+      var MANUAL_RETURN_MS = 1500
       var stateRef = useRef(null)
       if (stateRef.current === null) {
         stateRef.current = {
@@ -6786,6 +6988,13 @@ window.__ModuleLoader__.load({
       activeRef.current = active
       var timedRef = useRef(timed)
       timedRef.current = timed
+      // Wheel scrolling pauses the follow animation; clicking a lyric line resumes
+      // it at the clicked line. The player itself never changes on wheel.
+      var manualRef = useRef(false)
+      var manualPair = useState(-1)
+      var manualIndex = manualPair[0]
+      var setManualIndex = manualPair[1]
+      var idleTimerRef = useRef(0)
       var lastRef = useRef({ initialized: false, lyrics: null, open: false, trans: false })
     
       function clock() {
@@ -6857,6 +7066,53 @@ window.__ModuleLoader__.load({
           s.frame = 0
         }
       }
+      function clearReturnTimer() {
+        if (idleTimerRef.current !== 0) {
+          clearTimeout(idleTimerRef.current)
+          idleTimerRef.current = 0
+        }
+      }
+      function nearestRowIndex() {
+        var box = boxRef.current
+        var rows = rowRefs.current
+        if (box === null || !Array.isArray(rows) || rows.length === 0) return -1
+        var boxRect = box.getBoundingClientRect()
+        var centerY = boxRect.top + boxRect.height / 2 + s.focusShift
+        var best = -1
+        var bestDiff = Infinity
+        for (var i = 0; i < rows.length; i += 1) {
+          var row = rows[i]
+          if (!row || row.isConnected === false) continue
+          var rowRect = row.getBoundingClientRect()
+          var diff = Math.abs(rowRect.top + rowRect.height / 2 - centerY)
+          if (diff < bestDiff) {
+            best = i
+            bestDiff = diff
+          }
+        }
+        return best
+      }
+      function resumeFollow(index) {
+        clearReturnTimer()
+        manualRef.current = false
+        setManualIndex(-1)
+        if (timedRef.current !== true) return
+        s.active = Number.isInteger(index) && index >= 0
+          ? index
+          : activeRef.current >= 0 ? activeRef.current : 0
+        s.velocity = 0
+        s.settleUntil = 0
+        if (!measure()) return
+        s.target = targetFor()
+        kick()
+      }
+      function armReturnTimer() {
+        clearReturnTimer()
+        idleTimerRef.current = setTimeout(function () {
+          idleTimerRef.current = 0
+          if (manualRef.current) resumeFollow()
+        }, MANUAL_RETURN_MS)
+      }
       function frame(nowMs) {
         s.frame = 0
         var dt = s.last > 0 ? Math.min((nowMs - s.last) / 1000, 0.032) : 0.016
@@ -6909,6 +7165,10 @@ window.__ModuleLoader__.load({
           inner.style.transform = ''
           return
         }
+        if (manualRef.current) {
+          measure()
+          return
+        }
         s.active = activeRef.current >= 0 ? activeRef.current : 0
         if (!measure()) return
         s.target = targetFor()
@@ -6935,11 +7195,49 @@ window.__ModuleLoader__.load({
         [lyrics.length],
       )
     
+      useEffect(
+        function () {
+          var box = boxRef.current
+          var inner = innerRef.current
+          if (box === null || inner === null) return undefined
+          function onWheel(event) {
+            if (timedRef.current !== true) return
+            if (event.ctrlKey) return // leave browser zoom alone
+            event.preventDefault()
+            manualRef.current = true
+            stop()
+            s.velocity = 0
+            s.boxH = box.clientHeight
+            s.contentH = inner.offsetHeight
+            measure()
+            var delta = Number(event.deltaY) || 0
+            if (event.deltaMode === 1) delta *= 16
+            else if (event.deltaMode === 2) delta *= s.boxH
+            var minY = -Math.max(40, s.boxH * 0.75)
+            var maxY = Math.max(minY, s.contentH - s.boxH * 0.5)
+            s.y = Math.max(minY, Math.min(maxY, s.y + delta))
+            write()
+            var focus = nearestRowIndex()
+            if (focus >= 0) setManualIndex(focus)
+            armReturnTimer()
+          }
+          box.addEventListener('wheel', onWheel, { passive: false })
+          return function () {
+            clearReturnTimer()
+            box.removeEventListener('wheel', onWheel, { passive: false })
+          }
+        },
+        [lyrics.length, open],
+      )
+    
       useLayoutEffect(
         function () {
           var inner = innerRef.current
           if (inner === null) return
           if (timed !== true || lyrics.length === 0) {
+            manualRef.current = false
+            clearReturnTimer()
+            setManualIndex(-1)
             stop()
             s.y = 0
             s.target = 0
@@ -6951,8 +7249,14 @@ window.__ModuleLoader__.load({
           var reset = prev.initialized !== true || prev.lyrics !== lyrics || (prev.open !== true && open === true)
           var settle = prev.initialized === true && prev.trans !== showTranslation
           lastRef.current = { initialized: true, lyrics: lyrics, open: open, trans: showTranslation }
+          if (reset) {
+            manualRef.current = false
+            clearReturnTimer()
+            setManualIndex(-1)
+          }
           s.active = active >= 0 ? active : 0
           if (!measure()) return
+          if (manualRef.current) return
           s.target = targetFor()
           if (reset || Math.abs(s.target - s.y) > s.boxH * 3) {
             stop()
@@ -6966,6 +7270,14 @@ window.__ModuleLoader__.load({
         },
         [active, lyrics, open, showTranslation, lyricSize, lyricGap, translationScale, lyricAlign, timed],
       )
+    
+      return {
+        manualIndex: manualIndex,
+        isManual: function () {
+          return manualRef.current
+        },
+        resume: resumeFollow,
+      }
     }
     
     function NpEditor(props) {
@@ -7953,7 +8265,7 @@ window.__ModuleLoader__.load({
       var duration = time.duration > 0 ? time.duration : track ? track.durationSec || 0 : 0
       var favorite = track !== null && props.favoriteSet[track.path] === true
     
-      useLyricAutoScroll(
+      var lyricScroll = useLyricAutoScroll(
         boxRef,
         innerRef,
         discWrapRef,
@@ -7968,9 +8280,15 @@ window.__ModuleLoader__.load({
         prefs.translationScale || 80,
         prefs.lyricAlign || 'center',
       )
+      // While the user browses with the wheel, sharpness follows the line at the
+      // cover centre, not the (possibly off-screen) playing line.
+      var lyricFocus = lyricScroll.manualIndex >= 0 ? lyricScroll.manualIndex : active
     
-      function seekLine(line) {
+      function seekLine(line, index) {
         if (!line || line.time < 0) return
+        // Clicking is the explicit "follow this line" gesture; wheel browsing alone
+        // must not resume the auto-scroll spring.
+        lyricScroll.resume(index)
         player.seek(line.time + offsetMs / 1000)
       }
     
@@ -8663,16 +8981,26 @@ window.__ModuleLoader__.load({
                           className:
                             'mp-np-line' +
                             (index === active ? ' is-active' : '') +
+                            (index === lyricFocus ? ' is-focus' : '') +
                             (active >= 0 && index < active ? ' is-past' : ''),
                           style: {
-                            '--mp-line-stagger': String(active >= 0 ? Math.min(Math.abs(index - active), 8) : 0),
+                            '--mp-line-stagger': String(
+                              lyricFocus >= 0 ? Math.min(Math.abs(index - lyricFocus), 8) : 0,
+                            ),
                             '--mp-trans': line.translation ? '1' : '0',
                           },
                           onClick: function () {
-                            seekLine(line)
+                            seekLine(line, index)
                           },
                         },
-                        h('div', { className: 'mp-np-line-text' }, line.text),
+                        h(
+                          'div',
+                          { className: 'mp-np-line-text' },
+                          line.text,
+                          lyricScroll.manualIndex === index && index === active && line.time >= 0
+                            ? h('span', { className: 'mp-np-line-time' }, fmtClock(line.time))
+                            : null,
+                        ),
                         h(
                           'div',
                           {
@@ -9818,9 +10146,11 @@ window.__ModuleLoader__.load({
       }, [])
     
       var selection = selectionStore.get()
+      // A single selected row keeps its normal track menu. Batch actions only make
+      // sense once more than one track is actually selected.
       var multi =
         selection.active === true &&
-        selection.paths.length > 0 &&
+        selection.paths.length > 1 &&
         selection.paths.indexOf(track.path) >= 0
       if (multi) {
         var selectedPaths = selection.paths.slice()
@@ -10571,13 +10901,35 @@ window.__ModuleLoader__.load({
         coverPreview !== null && coverPreview !== undefined
           ? API + 'online/cover?url=' + encodeURIComponent(coverPreview)
           : API + 'cover?path=' + encodeURIComponent(path)
+      var fileName = String(path || '').split(/[\\/]/).pop() || ''
+      var lyricLineCount = String(form.lyrics || '')
+        .split(/\r?\n/)
+        .filter(function (line) {
+          return line.trim() !== ''
+        }).length
+    
+      function section(title, body, extra) {
+        return h(
+          'section',
+          { className: 'mp-tag-section' },
+          h(
+            'div',
+            { className: 'mp-tag-section-head' },
+            h('h3', { className: 'mp-tag-section-title' }, title),
+            extra ? h('div', { className: 'mp-tag-section-extra' }, extra) : null,
+          ),
+          h('div', { className: 'mp-tag-section-body' }, body),
+        )
+      }
     
       return h(
         KitModal,
         {
           title: t('page.editMeta'),
           onClose: popLayer,
-          footer: [
+          footer: h(
+            'div',
+            { className: 'mp-tag-footer' },
             h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
             h(
               Button,
@@ -10589,26 +10941,39 @@ window.__ModuleLoader__.load({
               },
               busy ? t('page.saving') : t('page.save'),
             ),
-          ],
+          ),
         },
     h(
             'div',
-            { className: 'mp-kit-body' },
+            { className: 'mp-kit-body mp-tag-body' },
             error !== '' ? h('div', { className: 'mp-qr-hint' }, error) : null,
             h(
               'div',
-              { className: 'mp-tag-cover-row' },
-              h(Cover, { src: coverSrc, className: 'mp-tag-cover', iconSize: 44 }),
+              { className: 'mp-tag-layout' },
+              h(
+                'aside',
+                { className: 'mp-tag-aside' },
+                h(Cover, { src: coverSrc, className: 'mp-tag-cover', iconSize: 52 }),
+                h('div', { className: 'mp-tag-aside-title' }, form.title || fileName || t('page.editMeta')),
+                h('div', { className: 'mp-tag-aside-artist' }, form.artist || t('page.unknownArtist')),
+                h(
+                  'div',
+                  { className: 'mp-tag-aside-meta' },
+                  [tags && tags.format, fileName].filter(Boolean).join(' · '),
+                ),
+                h(
+                  'div',
+                  { className: 'mp-tag-aside-actions' },
+                  h(Button, { icon: 'search', onClick: runMatch, disabled: matchPhase === 'loading' }, t('v2.match')),
+                  coverPreview !== null
+                    ? h(Button, { variant: 'ghost', icon: 'refresh', onClick: function () { setCoverPreview(null) } }, t('page.resetCover'))
+                    : null,
+                ),
+                h('div', { className: 'mp-tag-hint' }, t('page.metaHint')),
+              ),
               h(
                 'div',
-                { className: 'mp-tag-cover-actions' },
-                h(Button, { icon: 'search', onClick: runMatch, disabled: matchPhase === 'loading' }, t('v2.match')),
-                coverPreview !== null
-                  ? h(Button, { variant: 'ghost', icon: 'refresh', onClick: function () { setCoverPreview(null) } }, t('page.resetCover'))
-                  : null,
-                h('div', { className: 'mp-set-desc' }, t('page.metaHint')),
-              ),
-            ),
+                { className: 'mp-tag-form' },
             matchOpen
               ? h(
                   'div',
@@ -10694,61 +11059,73 @@ window.__ModuleLoader__.load({
                         }),
                   h('div', { className: 'mp-np-setting-hint' }, t('v2.matchHint')),
                   h('div', { className: 'mp-np-setting-hint' }, t('page.onlineHint')),
-    
                 )
               : null,
-            h(
-              'div',
-              { className: 'mp-d-grid' },
-              field('title'),
-              field('artist'),
-              field('album'),
-              field('albumArtist'),
-            ),
-            h(
-              'div',
-              { className: 'mp-d-grid' },
-              field('year'),
-              field('genre'),
-              field('track'),
-              field('disc'),
-            ),
-            h(
-              'div',
-              { className: 'mp-d-grid' },
-              field('composer'),
-              field('lyricist'),
-            ),
-            h(
-              'div',
-              { className: 'mp-field' },
-              h('label', null, t('page.comment')),
-              h('input', {
-                type: 'text',
-                value: form.comment || '',
-                onChange: function (event) {
-                  setField('comment', event.target.value)
-                },
-              }),
-            ),
-            h(
-              'div',
-              { className: 'mp-field' },
+            section(
+              t('page.metaBasic'),
               h(
                 'div',
-                { className: 'mp-tag-lyrics-head' },
-                h('label', null, t('page.lyrics')),
+                { className: 'mp-tag-grid' },
+                field('title'),
+                field('artist'),
+                field('album'),
+                field('albumArtist'),
+              ),
+            ),
+            section(
+              t('page.metaDetail'),
+              [
+                h(
+                  'div',
+                  { key: 'release', className: 'mp-tag-grid' },
+                  field('year'),
+                  field('genre'),
+                  field('track'),
+                  field('disc'),
+                ),
+                h(
+                  'div',
+                  { key: 'credits', className: 'mp-tag-grid' },
+                  field('composer'),
+                  field('lyricist'),
+                ),
+                h(
+                  'div',
+                  { key: 'comment', className: 'mp-field' },
+                  h('label', null, t('page.comment')),
+                  h('input', {
+                    type: 'text',
+                    value: form.comment || '',
+                    onChange: function (event) {
+                      setField('comment', event.target.value)
+                    },
+                  }),
+                ),
+              ],
+            ),
+            section(
+              t('page.lyrics'),
+              h(
+                'div',
+                { className: 'mp-field mp-tag-lyrics' },
+                h('textarea', {
+                  rows: 8,
+                  value: form.lyrics || '',
+                  placeholder: t('page.lyricsPlaceholder'),
+                  onChange: function (event) {
+                    setField('lyrics', event.target.value)
+                  },
+                }),
+              ),
+              h(
+                'div',
+                { className: 'mp-tag-lyrics-actions' },
+                h('span', { className: 'mp-tag-section-meta' }, t('page.lyricsLineCount', { n: lyricLineCount })),
                 h(Button, { variant: 'ghost', icon: 'search', onClick: openOnlineLyric }, t('page.onlineLyrics')),
               ),
-              h('textarea', {
-                rows: 6,
-                value: form.lyrics || '',
-                onChange: function (event) {
-                  setField('lyrics', event.target.value)
-                },
-              }),
             ),
-            h('div', { className: 'mp-set-desc' }, (tags && tags.format) || ''),
+              ),
+            ),
           ),
     
       )
@@ -13449,7 +13826,7 @@ window.__ModuleLoader__.load({
     function OnlineLyricDialog(props) {
       var track = props.layer.props.track || {}
       var onApply = props.layer.props.onApply
-      var queryPair = useState(((track.title || '') + ' ' + (track.artist || '')).trim())
+      var queryPair = useState((track.title || '').trim())
       var query = queryPair[0]
       var setQuery = queryPair[1]
       var phasePair = useState('idle')
@@ -13503,8 +13880,20 @@ window.__ModuleLoader__.load({
       function apply() {
         if (!preview || preview.lrc.trim() === '') return
         popLayer()
-        if (typeof onApply === 'function') onApply(preview.lrc)
+        if (typeof onApply === 'function') {
+          var hasTranslation = preview.lines.some(function (line) {
+            return line.translation !== ''
+          })
+          onApply(hasTranslation ? buildTranslatedLrc(preview.lines, preview.lrc) : preview.lrc)
+        }
       }
+    
+      var previewLines =
+        preview === null
+          ? []
+          : preview.lines.filter(function (line) {
+              return String(line.text || '').trim() !== '' || String(line.translation || '').trim() !== ''
+            })
     
       return h(
         KitModal,
@@ -13577,22 +13966,49 @@ window.__ModuleLoader__.load({
                   )
               : h(
                   'div',
-                  { className: 'mp-lyr-preview' },
+                  { className: 'mp-lyr-preview-wrap' },
                   h(
                     'div',
-                    { className: 'mp-set-desc' },
-                    (preview.title || '') + ' · ' + (preview.artist || ''),
+                    { className: 'mp-lyr-preview-head' },
+                    h(
+                      'div',
+                      { className: 'mp-lyr-preview-meta' },
+                      h('div', { className: 'mp-lyr-preview-title' }, preview.title || ''),
+                      h('div', { className: 'mp-lyr-preview-artist' }, preview.artist || ''),
+                    ),
+                    h('span', { className: 'mp-lyr-preview-count' }, t('page.lyricsLineCount', { n: previewLines.length })),
+                    h(
+                      Button,
+                      {
+                        variant: 'ghost',
+                        onClick: function () {
+                          setPreview(null)
+                        },
+                      },
+                      t('page.lyricsBack'),
+                    ),
                   ),
-                  preview.lines.length === 0
+                  previewLines.length === 0
                     ? h('div', { className: 'mp-set-desc' }, t('page.lyricsNoResults'))
-                    : preview.lines.map(function (line, index) {
-                        return h(
-                          'div',
-                          { key: String(index), className: 'mp-lyr-line' },
-                          h('span', null, line.text || '♪'),
-                          line.translation ? h('span', { className: 'mp-lyr-tr' }, line.translation) : null,
-                        )
-                      }),
+                    : h(
+                        'div',
+                        { className: 'mp-lyr-preview' },
+                        previewLines.map(function (line, index) {
+                          var meta = isLyricMetadata(line.text)
+                          var stamp = formatLrcTime(line.time).slice(1, -1)
+                          return h(
+                            'div',
+                            { key: String(index), className: cx('mp-lyr-line', meta && 'is-meta') },
+                            h('span', { className: 'mp-lyr-time' }, stamp),
+                            h(
+                              'div',
+                              { className: 'mp-lyr-copy' },
+                              line.text ? h('div', { className: 'mp-lyr-orig' }, line.text) : null,
+                              line.translation ? h('div', { className: 'mp-lyr-tr' }, line.translation) : null,
+                            ),
+                          )
+                        }),
+                      ),
                 ),
           ),
     
@@ -14551,6 +14967,9 @@ window.__ModuleLoader__.load({
           player: player,
           lufsFromAudioBuffer: lufsFromAudioBuffer,
           analyzeLoudnessBlob: analyzeLoudnessBlob,
+          mergeLyricTranslation: mergeLyricTranslation,
+          buildTranslatedLrc: buildTranslatedLrc,
+          formatLrcTime: formatLrcTime,
         },
         enumerable: false,
       })

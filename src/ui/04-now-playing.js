@@ -36,6 +36,7 @@ function useLyricAutoScroll(
   translationScale,
   lyricAlign,
 ) {
+  var MANUAL_RETURN_MS = 1500
   var stateRef = useRef(null)
   if (stateRef.current === null) {
     stateRef.current = {
@@ -58,6 +59,13 @@ function useLyricAutoScroll(
   activeRef.current = active
   var timedRef = useRef(timed)
   timedRef.current = timed
+  // Wheel scrolling pauses the follow animation; clicking a lyric line resumes
+  // it at the clicked line. The player itself never changes on wheel.
+  var manualRef = useRef(false)
+  var manualPair = useState(-1)
+  var manualIndex = manualPair[0]
+  var setManualIndex = manualPair[1]
+  var idleTimerRef = useRef(0)
   var lastRef = useRef({ initialized: false, lyrics: null, open: false, trans: false })
 
   function clock() {
@@ -129,6 +137,53 @@ function useLyricAutoScroll(
       s.frame = 0
     }
   }
+  function clearReturnTimer() {
+    if (idleTimerRef.current !== 0) {
+      clearTimeout(idleTimerRef.current)
+      idleTimerRef.current = 0
+    }
+  }
+  function nearestRowIndex() {
+    var box = boxRef.current
+    var rows = rowRefs.current
+    if (box === null || !Array.isArray(rows) || rows.length === 0) return -1
+    var boxRect = box.getBoundingClientRect()
+    var centerY = boxRect.top + boxRect.height / 2 + s.focusShift
+    var best = -1
+    var bestDiff = Infinity
+    for (var i = 0; i < rows.length; i += 1) {
+      var row = rows[i]
+      if (!row || row.isConnected === false) continue
+      var rowRect = row.getBoundingClientRect()
+      var diff = Math.abs(rowRect.top + rowRect.height / 2 - centerY)
+      if (diff < bestDiff) {
+        best = i
+        bestDiff = diff
+      }
+    }
+    return best
+  }
+  function resumeFollow(index) {
+    clearReturnTimer()
+    manualRef.current = false
+    setManualIndex(-1)
+    if (timedRef.current !== true) return
+    s.active = Number.isInteger(index) && index >= 0
+      ? index
+      : activeRef.current >= 0 ? activeRef.current : 0
+    s.velocity = 0
+    s.settleUntil = 0
+    if (!measure()) return
+    s.target = targetFor()
+    kick()
+  }
+  function armReturnTimer() {
+    clearReturnTimer()
+    idleTimerRef.current = setTimeout(function () {
+      idleTimerRef.current = 0
+      if (manualRef.current) resumeFollow()
+    }, MANUAL_RETURN_MS)
+  }
   function frame(nowMs) {
     s.frame = 0
     var dt = s.last > 0 ? Math.min((nowMs - s.last) / 1000, 0.032) : 0.016
@@ -181,6 +236,10 @@ function useLyricAutoScroll(
       inner.style.transform = ''
       return
     }
+    if (manualRef.current) {
+      measure()
+      return
+    }
     s.active = activeRef.current >= 0 ? activeRef.current : 0
     if (!measure()) return
     s.target = targetFor()
@@ -207,11 +266,49 @@ function useLyricAutoScroll(
     [lyrics.length],
   )
 
+  useEffect(
+    function () {
+      var box = boxRef.current
+      var inner = innerRef.current
+      if (box === null || inner === null) return undefined
+      function onWheel(event) {
+        if (timedRef.current !== true) return
+        if (event.ctrlKey) return // leave browser zoom alone
+        event.preventDefault()
+        manualRef.current = true
+        stop()
+        s.velocity = 0
+        s.boxH = box.clientHeight
+        s.contentH = inner.offsetHeight
+        measure()
+        var delta = Number(event.deltaY) || 0
+        if (event.deltaMode === 1) delta *= 16
+        else if (event.deltaMode === 2) delta *= s.boxH
+        var minY = -Math.max(40, s.boxH * 0.75)
+        var maxY = Math.max(minY, s.contentH - s.boxH * 0.5)
+        s.y = Math.max(minY, Math.min(maxY, s.y + delta))
+        write()
+        var focus = nearestRowIndex()
+        if (focus >= 0) setManualIndex(focus)
+        armReturnTimer()
+      }
+      box.addEventListener('wheel', onWheel, { passive: false })
+      return function () {
+        clearReturnTimer()
+        box.removeEventListener('wheel', onWheel, { passive: false })
+      }
+    },
+    [lyrics.length, open],
+  )
+
   useLayoutEffect(
     function () {
       var inner = innerRef.current
       if (inner === null) return
       if (timed !== true || lyrics.length === 0) {
+        manualRef.current = false
+        clearReturnTimer()
+        setManualIndex(-1)
         stop()
         s.y = 0
         s.target = 0
@@ -223,8 +320,14 @@ function useLyricAutoScroll(
       var reset = prev.initialized !== true || prev.lyrics !== lyrics || (prev.open !== true && open === true)
       var settle = prev.initialized === true && prev.trans !== showTranslation
       lastRef.current = { initialized: true, lyrics: lyrics, open: open, trans: showTranslation }
+      if (reset) {
+        manualRef.current = false
+        clearReturnTimer()
+        setManualIndex(-1)
+      }
       s.active = active >= 0 ? active : 0
       if (!measure()) return
+      if (manualRef.current) return
       s.target = targetFor()
       if (reset || Math.abs(s.target - s.y) > s.boxH * 3) {
         stop()
@@ -238,6 +341,14 @@ function useLyricAutoScroll(
     },
     [active, lyrics, open, showTranslation, lyricSize, lyricGap, translationScale, lyricAlign, timed],
   )
+
+  return {
+    manualIndex: manualIndex,
+    isManual: function () {
+      return manualRef.current
+    },
+    resume: resumeFollow,
+  }
 }
 
 function NpEditor(props) {
@@ -1225,7 +1336,7 @@ function NowPlaying(props) {
   var duration = time.duration > 0 ? time.duration : track ? track.durationSec || 0 : 0
   var favorite = track !== null && props.favoriteSet[track.path] === true
 
-  useLyricAutoScroll(
+  var lyricScroll = useLyricAutoScroll(
     boxRef,
     innerRef,
     discWrapRef,
@@ -1240,9 +1351,15 @@ function NowPlaying(props) {
     prefs.translationScale || 80,
     prefs.lyricAlign || 'center',
   )
+  // While the user browses with the wheel, sharpness follows the line at the
+  // cover centre, not the (possibly off-screen) playing line.
+  var lyricFocus = lyricScroll.manualIndex >= 0 ? lyricScroll.manualIndex : active
 
-  function seekLine(line) {
+  function seekLine(line, index) {
     if (!line || line.time < 0) return
+    // Clicking is the explicit "follow this line" gesture; wheel browsing alone
+    // must not resume the auto-scroll spring.
+    lyricScroll.resume(index)
     player.seek(line.time + offsetMs / 1000)
   }
 
@@ -1935,16 +2052,26 @@ function NowPlaying(props) {
                       className:
                         'mp-np-line' +
                         (index === active ? ' is-active' : '') +
+                        (index === lyricFocus ? ' is-focus' : '') +
                         (active >= 0 && index < active ? ' is-past' : ''),
                       style: {
-                        '--mp-line-stagger': String(active >= 0 ? Math.min(Math.abs(index - active), 8) : 0),
+                        '--mp-line-stagger': String(
+                          lyricFocus >= 0 ? Math.min(Math.abs(index - lyricFocus), 8) : 0,
+                        ),
                         '--mp-trans': line.translation ? '1' : '0',
                       },
                       onClick: function () {
-                        seekLine(line)
+                        seekLine(line, index)
                       },
                     },
-                    h('div', { className: 'mp-np-line-text' }, line.text),
+                    h(
+                      'div',
+                      { className: 'mp-np-line-text' },
+                      line.text,
+                      lyricScroll.manualIndex === index && index === active && line.time >= 0
+                        ? h('span', { className: 'mp-np-line-time' }, fmtClock(line.time))
+                        : null,
+                    ),
                     h(
                       'div',
                       {

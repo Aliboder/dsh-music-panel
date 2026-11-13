@@ -56,9 +56,11 @@ function ContextMenu(props) {
   }, [])
 
   var selection = selectionStore.get()
+  // A single selected row keeps its normal track menu. Batch actions only make
+  // sense once more than one track is actually selected.
   var multi =
     selection.active === true &&
-    selection.paths.length > 0 &&
+    selection.paths.length > 1 &&
     selection.paths.indexOf(track.path) >= 0
   if (multi) {
     var selectedPaths = selection.paths.slice()
@@ -809,13 +811,35 @@ function TagDialog(props) {
     coverPreview !== null && coverPreview !== undefined
       ? API + 'online/cover?url=' + encodeURIComponent(coverPreview)
       : API + 'cover?path=' + encodeURIComponent(path)
+  var fileName = String(path || '').split(/[\\/]/).pop() || ''
+  var lyricLineCount = String(form.lyrics || '')
+    .split(/\r?\n/)
+    .filter(function (line) {
+      return line.trim() !== ''
+    }).length
+
+  function section(title, body, extra) {
+    return h(
+      'section',
+      { className: 'mp-tag-section' },
+      h(
+        'div',
+        { className: 'mp-tag-section-head' },
+        h('h3', { className: 'mp-tag-section-title' }, title),
+        extra ? h('div', { className: 'mp-tag-section-extra' }, extra) : null,
+      ),
+      h('div', { className: 'mp-tag-section-body' }, body),
+    )
+  }
 
   return h(
     KitModal,
     {
       title: t('page.editMeta'),
       onClose: popLayer,
-      footer: [
+      footer: h(
+        'div',
+        { className: 'mp-tag-footer' },
         h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
         h(
           Button,
@@ -827,26 +851,39 @@ function TagDialog(props) {
           },
           busy ? t('page.saving') : t('page.save'),
         ),
-      ],
+      ),
     },
 h(
         'div',
-        { className: 'mp-kit-body' },
+        { className: 'mp-kit-body mp-tag-body' },
         error !== '' ? h('div', { className: 'mp-qr-hint' }, error) : null,
         h(
           'div',
-          { className: 'mp-tag-cover-row' },
-          h(Cover, { src: coverSrc, className: 'mp-tag-cover', iconSize: 44 }),
+          { className: 'mp-tag-layout' },
+          h(
+            'aside',
+            { className: 'mp-tag-aside' },
+            h(Cover, { src: coverSrc, className: 'mp-tag-cover', iconSize: 52 }),
+            h('div', { className: 'mp-tag-aside-title' }, form.title || fileName || t('page.editMeta')),
+            h('div', { className: 'mp-tag-aside-artist' }, form.artist || t('page.unknownArtist')),
+            h(
+              'div',
+              { className: 'mp-tag-aside-meta' },
+              [tags && tags.format, fileName].filter(Boolean).join(' · '),
+            ),
+            h(
+              'div',
+              { className: 'mp-tag-aside-actions' },
+              h(Button, { icon: 'search', onClick: runMatch, disabled: matchPhase === 'loading' }, t('v2.match')),
+              coverPreview !== null
+                ? h(Button, { variant: 'ghost', icon: 'refresh', onClick: function () { setCoverPreview(null) } }, t('page.resetCover'))
+                : null,
+            ),
+            h('div', { className: 'mp-tag-hint' }, t('page.metaHint')),
+          ),
           h(
             'div',
-            { className: 'mp-tag-cover-actions' },
-            h(Button, { icon: 'search', onClick: runMatch, disabled: matchPhase === 'loading' }, t('v2.match')),
-            coverPreview !== null
-              ? h(Button, { variant: 'ghost', icon: 'refresh', onClick: function () { setCoverPreview(null) } }, t('page.resetCover'))
-              : null,
-            h('div', { className: 'mp-set-desc' }, t('page.metaHint')),
-          ),
-        ),
+            { className: 'mp-tag-form' },
         matchOpen
           ? h(
               'div',
@@ -932,61 +969,73 @@ h(
                     }),
               h('div', { className: 'mp-np-setting-hint' }, t('v2.matchHint')),
               h('div', { className: 'mp-np-setting-hint' }, t('page.onlineHint')),
-
             )
           : null,
-        h(
-          'div',
-          { className: 'mp-d-grid' },
-          field('title'),
-          field('artist'),
-          field('album'),
-          field('albumArtist'),
-        ),
-        h(
-          'div',
-          { className: 'mp-d-grid' },
-          field('year'),
-          field('genre'),
-          field('track'),
-          field('disc'),
-        ),
-        h(
-          'div',
-          { className: 'mp-d-grid' },
-          field('composer'),
-          field('lyricist'),
-        ),
-        h(
-          'div',
-          { className: 'mp-field' },
-          h('label', null, t('page.comment')),
-          h('input', {
-            type: 'text',
-            value: form.comment || '',
-            onChange: function (event) {
-              setField('comment', event.target.value)
-            },
-          }),
-        ),
-        h(
-          'div',
-          { className: 'mp-field' },
+        section(
+          t('page.metaBasic'),
           h(
             'div',
-            { className: 'mp-tag-lyrics-head' },
-            h('label', null, t('page.lyrics')),
+            { className: 'mp-tag-grid' },
+            field('title'),
+            field('artist'),
+            field('album'),
+            field('albumArtist'),
+          ),
+        ),
+        section(
+          t('page.metaDetail'),
+          [
+            h(
+              'div',
+              { key: 'release', className: 'mp-tag-grid' },
+              field('year'),
+              field('genre'),
+              field('track'),
+              field('disc'),
+            ),
+            h(
+              'div',
+              { key: 'credits', className: 'mp-tag-grid' },
+              field('composer'),
+              field('lyricist'),
+            ),
+            h(
+              'div',
+              { key: 'comment', className: 'mp-field' },
+              h('label', null, t('page.comment')),
+              h('input', {
+                type: 'text',
+                value: form.comment || '',
+                onChange: function (event) {
+                  setField('comment', event.target.value)
+                },
+              }),
+            ),
+          ],
+        ),
+        section(
+          t('page.lyrics'),
+          h(
+            'div',
+            { className: 'mp-field mp-tag-lyrics' },
+            h('textarea', {
+              rows: 8,
+              value: form.lyrics || '',
+              placeholder: t('page.lyricsPlaceholder'),
+              onChange: function (event) {
+                setField('lyrics', event.target.value)
+              },
+            }),
+          ),
+          h(
+            'div',
+            { className: 'mp-tag-lyrics-actions' },
+            h('span', { className: 'mp-tag-section-meta' }, t('page.lyricsLineCount', { n: lyricLineCount })),
             h(Button, { variant: 'ghost', icon: 'search', onClick: openOnlineLyric }, t('page.onlineLyrics')),
           ),
-          h('textarea', {
-            rows: 6,
-            value: form.lyrics || '',
-            onChange: function (event) {
-              setField('lyrics', event.target.value)
-            },
-          }),
         ),
-        h('div', { className: 'mp-set-desc' }, (tags && tags.format) || ''),
+          ),
+        ),
       ),
 
   )

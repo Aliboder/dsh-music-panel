@@ -148,6 +148,9 @@ ${body}
           player: player,
           lufsFromAudioBuffer: lufsFromAudioBuffer,
           analyzeLoudnessBlob: analyzeLoudnessBlob,
+          mergeLyricTranslation: mergeLyricTranslation,
+          buildTranslatedLrc: buildTranslatedLrc,
+          formatLrcTime: formatLrcTime,
         },
         enumerable: false,
       })

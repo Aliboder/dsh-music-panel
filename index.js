@@ -14,6 +14,7 @@ import { createPlayback } from './lib/playback.js'
 import { createPlaylists } from './lib/playlists.js'
 import { createOnlineCache } from './lib/online-cache.js'
 import { createProviderStore } from './lib/provider-store.js'
+import { createKugouSessionManager } from './lib/kugou-session.js'
 import { createRoutes } from './lib/routes.js'
 import { createSettings } from './lib/settings.js'
 import { createStats } from './lib/stats.js'
@@ -39,7 +40,24 @@ export function apply(ctx, rawConfig) {
   const playlists = createPlaylists({ dir: settings.dir })
   const providerStore = createProviderStore({ dir: settings.dir })
   const onlineCache = createOnlineCache({ dir: settings.dir })
-  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, onlineCache })
+  const kugouSessions = createKugouSessionManager({ providerStore })
+  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, onlineCache, kugouSessions })
+
+  // KuGou standard tokens last under a day. Refresh while the app stays open;
+  // the settings route also refreshes on demand and validates Lite.
+  ctx.effect(() => {
+    let disposed = false
+    const tick = () => {
+      if (disposed) return
+      void kugouSessions.refreshIfDue('kugou').catch(() => {})
+    }
+    tick()
+    const timer = setInterval(tick, kugouSessions.intervalMs)
+    return () => {
+      disposed = true
+      clearInterval(timer)
+    }
+  }, 'music: kugou session refresh')
 
   ctx.effect(() => {
     const dispose = ctx.webServer.register({

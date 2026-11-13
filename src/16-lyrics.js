@@ -31,21 +31,98 @@ function parseLrcText(text) {
   return lines
 }
 
+function isLyricMetadata(text) {
+  var value = String(text || '').trim()
+  if (value === '') return true
+  if (/^(作词|作曲|编曲|制作|监制|出品|发行|录音|混音|母带|和声|吉他|贝斯|鼓|键盘|弦乐|词|曲)\s*[:：]/i.test(value)) {
+    return true
+  }
+  return /^(lyrics?|composed|composer|arranged|arranger|producer|produced|mixed|mastered|written|music|words)\b[^:：]{0,24}[:：]/i.test(value)
+}
+
 function mergeLyricTranslation(lines, translationText) {
   var translated = parseLrcText(translationText)
-  lines.forEach(function (line) {
-    var best = null
-    var bestDiff = Infinity
-    for (var i = 0; i < translated.length; i += 1) {
-      var diff = Math.abs(translated[i].time - line.time)
-      if (diff <= 0.35 && diff < bestDiff) {
-        best = translated[i]
-        bestDiff = diff
-      }
+  if (translated.length === 0) return lines
+
+  // Match one translation line to one lyric line, globally nearest-first.
+  // The old per-line nearest lookup reused the first translation on every
+  // credit/meta line within 350ms (e.g. 作词/作曲/编曲 before the first verse).
+  var candidates = []
+  for (var i = 0; i < lines.length; i += 1) {
+    var line = lines[i]
+    if (isLyricMetadata(line.text)) continue
+    for (var j = 0; j < translated.length; j += 1) {
+      if (isLyricMetadata(translated[j].text)) continue
+      var diff = Math.abs(translated[j].time - line.time)
+      if (diff <= 0.35) candidates.push({ line: i, trans: j, diff: diff })
     }
-    if (best !== null) line.translation = best.text
+  }
+  candidates.sort(function (left, right) {
+    if (left.diff !== right.diff) return left.diff - right.diff
+    return left.line - right.line
+  })
+  var usedLines = {}
+  var usedTrans = {}
+  candidates.forEach(function (pair) {
+    if (usedLines[pair.line] === true || usedTrans[pair.trans] === true) return
+    var line = lines[pair.line]
+    var text = translated[pair.trans].text
+    if (isLyricMetadata(text)) return
+    line.translation = text
+    usedLines[pair.line] = true
+    usedTrans[pair.trans] = true
   })
   return lines
+}
+
+/** Canonical `[mm:ss.xx]` used when writing translated lyrics back to a file. */
+function formatLrcTime(seconds) {
+  var total = Math.max(0, Number(seconds) || 0)
+  var minutes = Math.floor(total / 60)
+  var rest = total - minutes * 60
+  var whole = Math.floor(rest)
+  var centis = Math.round((rest - whole) * 100)
+  if (centis >= 100) {
+    centis = 0
+    whole += 1
+  }
+  if (whole >= 60) {
+    whole -= 60
+    minutes += 1
+  }
+  return '[' + pad2(minutes) + ':' + pad2(whole) + '.' + pad2(centis) + ']'
+}
+
+/**
+ * Serialize parsed lines with translations back to the common bilingual LRC
+ * shape: each translation repeats the original line's timestamp.
+ *
+ *   [00:05.12]原词
+ *   [00:05.12]翻译词
+ *
+ * Metadata tags ([ti:], [ar:], [offset:], ...) are carried over unchanged.
+ */
+function buildTranslatedLrc(lines, sourceText) {
+  var prefix = String(sourceText || '')
+    .split(/\r?\n/)
+    .filter(function (line) {
+      return /^\s*\[[A-Za-z#]+:[^\]]*\]/.test(line)
+    })
+  var body = []
+  ;(Array.isArray(lines) ? lines : []).forEach(function (line) {
+    if (!line || !isFinite(line.time) || line.time < 0) return
+    var stamp = formatLrcTime(line.time)
+    var text = String(line.text || '')
+    var translation = String(line.translation || '')
+    if (text === '' && translation === '') return
+    if (text !== '') body.push(stamp + text)
+    if (translation !== '') {
+      translation.split(/\r?\n/).forEach(function (part) {
+        if (part !== '') body.push(stamp + part)
+      })
+    }
+  })
+  return prefix.concat(body).join('\n')
 }
 
 /** Split `online:<provider>:<id>` (null when the path is a local one). */

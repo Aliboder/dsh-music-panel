@@ -8,7 +8,7 @@
 function OnlineLyricDialog(props) {
   var track = props.layer.props.track || {}
   var onApply = props.layer.props.onApply
-  var queryPair = useState(((track.title || '') + ' ' + (track.artist || '')).trim())
+  var queryPair = useState((track.title || '').trim())
   var query = queryPair[0]
   var setQuery = queryPair[1]
   var phasePair = useState('idle')
@@ -62,8 +62,20 @@ function OnlineLyricDialog(props) {
   function apply() {
     if (!preview || preview.lrc.trim() === '') return
     popLayer()
-    if (typeof onApply === 'function') onApply(preview.lrc)
+    if (typeof onApply === 'function') {
+      var hasTranslation = preview.lines.some(function (line) {
+        return line.translation !== ''
+      })
+      onApply(hasTranslation ? buildTranslatedLrc(preview.lines, preview.lrc) : preview.lrc)
+    }
   }
+
+  var previewLines =
+    preview === null
+      ? []
+      : preview.lines.filter(function (line) {
+          return String(line.text || '').trim() !== '' || String(line.translation || '').trim() !== ''
+        })
 
   return h(
     KitModal,
@@ -136,22 +148,49 @@ h(
               )
           : h(
               'div',
-              { className: 'mp-lyr-preview' },
+              { className: 'mp-lyr-preview-wrap' },
               h(
                 'div',
-                { className: 'mp-set-desc' },
-                (preview.title || '') + ' · ' + (preview.artist || ''),
+                { className: 'mp-lyr-preview-head' },
+                h(
+                  'div',
+                  { className: 'mp-lyr-preview-meta' },
+                  h('div', { className: 'mp-lyr-preview-title' }, preview.title || ''),
+                  h('div', { className: 'mp-lyr-preview-artist' }, preview.artist || ''),
+                ),
+                h('span', { className: 'mp-lyr-preview-count' }, t('page.lyricsLineCount', { n: previewLines.length })),
+                h(
+                  Button,
+                  {
+                    variant: 'ghost',
+                    onClick: function () {
+                      setPreview(null)
+                    },
+                  },
+                  t('page.lyricsBack'),
+                ),
               ),
-              preview.lines.length === 0
+              previewLines.length === 0
                 ? h('div', { className: 'mp-set-desc' }, t('page.lyricsNoResults'))
-                : preview.lines.map(function (line, index) {
-                    return h(
-                      'div',
-                      { key: String(index), className: 'mp-lyr-line' },
-                      h('span', null, line.text || '♪'),
-                      line.translation ? h('span', { className: 'mp-lyr-tr' }, line.translation) : null,
-                    )
-                  }),
+                : h(
+                    'div',
+                    { className: 'mp-lyr-preview' },
+                    previewLines.map(function (line, index) {
+                      var meta = isLyricMetadata(line.text)
+                      var stamp = formatLrcTime(line.time).slice(1, -1)
+                      return h(
+                        'div',
+                        { key: String(index), className: cx('mp-lyr-line', meta && 'is-meta') },
+                        h('span', { className: 'mp-lyr-time' }, stamp),
+                        h(
+                          'div',
+                          { className: 'mp-lyr-copy' },
+                          line.text ? h('div', { className: 'mp-lyr-orig' }, line.text) : null,
+                          line.translation ? h('div', { className: 'mp-lyr-tr' }, line.translation) : null,
+                        ),
+                      )
+                    }),
+                  ),
             ),
       ),
 

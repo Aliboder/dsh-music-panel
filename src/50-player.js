@@ -113,6 +113,8 @@ function createPlayer() {
   var waveData = null
   var normalizeGain = 1
   var loudnessToken = 0
+  /** Resolves when the current track's gain is ready (or analysis gave up). */
+  var loudnessGate = null
   /** Active `blob:` URL for the loaded track (local media seeks reliably). */
   var objectUrl = null
   var currentLoudnessBlob = null
@@ -596,7 +598,14 @@ function createPlayer() {
       try {
         var now = audioContext.currentTime
         gainNode.gain.cancelScheduledValues(now)
-        gainNode.gain.setTargetAtTime(normalizeGain, now, 0.12)
+        // Before playback starts the gain must already be at its target;
+        // otherwise the first seconds ramp down audibly. While a track is
+        // playing, keep the short ramp so toggling normalization is smooth.
+        if (audio === null || audio.paused === true) {
+          gainNode.gain.setValueAtTime(normalizeGain, now)
+        } else {
+          gainNode.gain.setTargetAtTime(normalizeGain, now, 0.12)
+        }
       } catch {
         gainNode.gain.value = normalizeGain
       }
@@ -605,12 +614,51 @@ function createPlayer() {
     }
   }
 
+  function createLoudnessGate() {
+    var resolveGate = null
+    var promise = new Promise(function (resolve) {
+      resolveGate = resolve
+    })
+    loudnessGate = promise
+    return {
+      promise: promise,
+      resolve: function () {
+        if (resolveGate !== null) {
+          var finish = resolveGate
+          resolveGate = null
+          finish()
+        }
+      },
+    }
+  }
+
+  function playAfterLoudness(token) {
+    var gate = loudnessGate === null ? Promise.resolve() : loudnessGate
+    gate.then(function () {
+      if (token !== loadToken || pendingAutoplay !== true || audio === null) return
+      pendingAutoplay = false
+      var context = api.ensureAnalyser()
+      if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
+        audioContext.resume().catch(function () {
+          // If the context cannot start, leave the media element untouched.
+        })
+      }
+      audio.play().catch(function () {
+        // Autoplay may still be blocked; the play event will update the UI.
+      })
+    })
+  }
+
   /** Analyse the downloaded blob in-browser and apply the per-track gain. */
-  function scheduleLoudness(item, blob) {
+  function scheduleLoudness(item, blob, done) {
     var token = (loudnessToken += 1)
     currentLoudnessBlob = blob || null
     applyNormalizeGain(1)
-    if (readPrefs().normalizeVolume === false || !item || !blob) return
+    var finish = typeof done === 'function' ? done : function () {}
+    if (readPrefs().normalizeVolume === false || !item || !blob) {
+      finish()
+      return
+    }
     analyzeLoudnessBlob(
       item,
       blob,
@@ -622,6 +670,17 @@ function createPlayer() {
         applyNormalizeGain(Math.pow(10, clamp(gainDb, -15, 6) / 20))
       },
     )
+      .then(function (gainDb) {
+        if (token === loudnessToken && (gainDb === null || gainDb === undefined)) {
+          applyNormalizeGain(1)
+        }
+      })
+      .catch(function () {
+        if (token === loudnessToken) applyNormalizeGain(1)
+      })
+      .then(function () {
+        finish()
+      })
   }
 
   function load(at, autoplay) {
@@ -641,7 +700,11 @@ function createPlayer() {
     currentLoudnessBlob = null
     loudnessToken += 1
     applyNormalizeGain(1)
-    if (audio === null) return
+    var loudness = createLoudnessGate()
+    if (audio === null) {
+      loudness.resolve()
+      return
+    }
     if (autoplay === true) {
       var visualizerContext = api.ensureAnalyser()
       if (visualizerContext !== null && audioContext !== null && audioContext.state === 'suspended') {
@@ -683,35 +746,37 @@ function createPlayer() {
           return response.blob()
         })
         .then(function (blob) {
-          if (onlineToken !== loadToken) return
+          if (onlineToken !== loadToken) {
+            loudness.resolve()
+            return
+          }
           fetchAbort = null
-          if (audio === null) return
+          if (audio === null) {
+            loudness.resolve()
+            return
+          }
           releaseObjectUrl()
           objectUrl = URL.createObjectURL(blob)
           audio.src = objectUrl
           audio.load()
-          scheduleLoudness(item, blob)
-          if (pendingAutoplay) {
-            pendingAutoplay = false
-            audio.play().catch(function () {
-              if (state.playing) patch({ playing: false })
-            })
-          }
+          scheduleLoudness(item, blob, loudness.resolve)
+          if (pendingAutoplay) playAfterLoudness(token)
         })
         .catch(function () {
-          if (onlineToken !== loadToken) return
+          if (onlineToken !== loadToken) {
+            loudness.resolve()
+            return
+          }
           fetchAbort = null
+          // The gate must open even when analysis is impossible: this path
+          // streams without a blob and therefore has no gain to apply.
+          loudness.resolve()
           if (audio === null) return
           // Streaming fallback: playback still starts even if the prefetch
           // failed (seeking may be less reliable in this rare path).
           audio.src = item.onlineUrl
           audio.load()
-          if (pendingAutoplay) {
-            pendingAutoplay = false
-            audio.play().catch(function () {
-              if (state.playing) patch({ playing: false })
-            })
-          }
+          if (pendingAutoplay) playAfterLoudness(token)
         })
       return
     }
@@ -730,14 +795,20 @@ function createPlayer() {
         return response.blob()
       })
       .then(function (blob) {
-        if (token !== loadToken) return
+        if (token !== loadToken) {
+          loudness.resolve()
+          return
+        }
         fetchAbort = null
-        if (audio === null) return
+        if (audio === null) {
+          loudness.resolve()
+          return
+        }
         releaseObjectUrl()
         objectUrl = URL.createObjectURL(blob)
         audio.src = objectUrl
         audio.load()
-        scheduleLoudness(item, blob)
+        scheduleLoudness(item, blob, loudness.resolve)
         if (pendingResumeSeconds !== null) {
           var resumeAt = pendingResumeSeconds
           pendingResumeSeconds = null
@@ -751,16 +822,15 @@ function createPlayer() {
             })
             .catch(function () {})
         }
-        if (pendingAutoplay) {
-          pendingAutoplay = false
-          audio.play().catch(function () {
-            if (state.playing) patch({ playing: false })
-          })
-        }
+        if (pendingAutoplay) playAfterLoudness(token)
       })
       .catch(function (error) {
-        if (token !== loadToken) return
+        if (token !== loadToken) {
+          loudness.resolve()
+          return
+        }
         fetchAbort = null
+        loudness.resolve()
         if (error && error.name === 'AbortError') return
         onError()
       })
@@ -883,10 +953,7 @@ function createPlayer() {
         if (objectUrl !== null) {
           el.src = objectUrl
           el.load()
-          if (pendingAutoplay) {
-            pendingAutoplay = false
-            el.play().catch(function () {})
-          }
+          if (pendingAutoplay) playAfterLoudness(loadToken)
         } else {
           load(state.index, pendingAutoplay || state.playing)
         }
@@ -1052,7 +1119,10 @@ function createPlayer() {
           // If the context cannot start, leave the media element untouched.
         })
       }
-      audio.play().catch(function () {})
+      pendingAutoplay = true
+      // Wait for the current track's loudness result so the first audible
+      // sample already has its final gain instead of ducking mid-play.
+      playAfterLoudness(loadToken)
     },
     /** Called by the cross-tab coordinator; never plays in a follower tab. */
     setLeader: function (value) {
@@ -1060,6 +1130,7 @@ function createPlayer() {
       if (leader === next) return
       leader = next
       if (!leader) {
+        pendingAutoplay = false
         if (audio !== null) audio.pause()
         if (state.playing) patch({ playing: false })
       }
@@ -1069,6 +1140,7 @@ function createPlayer() {
       return leader
     },
     pause: function () {
+      pendingAutoplay = false
       if (audio) audio.pause()
     },
     toggle: function () {
