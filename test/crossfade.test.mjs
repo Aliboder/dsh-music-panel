@@ -138,6 +138,8 @@ assert.match(player, /setValueCurveAtTime/, 'the fade is scheduled as a curve, n
 assert.match(player, /function swapDecks\(\)/, 'promotion swaps deck roles instead of reloading the track')
 assert.match(player, /adoptIncoming\(token\)/, 'the UI switches to the next track when the fade starts')
 assert.match(player, /function finishCrossfade\(token\)/, 'the ghost deck is released when the curve lands')
+assert.match(player, /maybePrefetchNext\(\)/, 'the next track is warmed while the current one plays')
+assert.match(player, /prefetchedNext\.path === item\.path/, 'the prepare step reuses the prefetched bytes')
 assert.match(player, /analyzeTransitionBuffer/, 'the engine measures the envelopes before deciding')
 assert.match(player, /crossfadePlan\(/, 'the overlap comes from the measurement, not a fixed number')
 

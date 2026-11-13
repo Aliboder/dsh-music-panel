@@ -133,6 +133,10 @@ function createPlayer() {
   var currentBlob = null
   /** Measured plan + fetched audio for the incoming side. */
   var xfadePrepared = null
+  /** Background download of the next track, so an uncached online song is ready. */
+  var prefetchedNext = null
+  var prefetchAbort = null
+  var prefetchToken = 0
   /** Web Audio graph used by the bar visualizer (lazy, user-gesture bound). */
   var audioContext = null
   var analyser = null
@@ -531,6 +535,8 @@ function createPlayer() {
       patch({ playing: true })
       syncMediaSession()
     }
+    // Warm the next online track while this one plays (crossfade only).
+    maybePrefetchNext()
   }
 
   function onPause(event) {
@@ -835,6 +841,7 @@ function createPlayer() {
     var item = state.queue[at]
     if (!item) return
     abortCrossfade()
+    cancelPrefetch()
     currentBlob = null
     // Close the previous listening session before switching tracks.
     flushListening(true)
@@ -1048,15 +1055,67 @@ function createPlayer() {
     objectUrlB = null
   }
 
+  function releasePrefetched() {
+    prefetchedNext = null
+  }
+
+  function cancelPrefetch() {
+    prefetchToken += 1
+    prefetchedNext = null
+    if (prefetchAbort !== null) {
+      try {
+        prefetchAbort.abort()
+      } catch (error) {
+        // Already settled.
+      }
+      prefetchAbort = null
+    }
+  }
+
+  /**
+   * Warm the next online track while the current one plays. The 14 s prepare
+   * window is not enough for a first-time download of a large file, so start
+   * early instead of at the end; cached tracks make this a no-op.
+   */
+  function maybePrefetchNext() {
+    if (xfadeActive || xfadePending || xfadePrepared !== null) return
+    var settings = readPrefs()
+    if (crossfadeFadeSeconds(settings) <= 0) return
+    if (state.index < 0 || state.queue.length < 2) return
+    var next = nextIndexOf(state.index, state.queue.length)
+    if (next === state.index) return
+    var item = state.queue[next]
+    if (!item || typeof item.onlineUrl !== 'string' || item.onlineUrl === '') return
+    if (!crossfadeNextAllowed(settings, currentItem(), item)) return
+    if (prefetchedNext !== null && prefetchedNext.path === item.path) return
+    if (prefetchAbort !== null) return
+    var token = prefetchToken
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+    prefetchAbort = controller
+    var itemPath = item.path
+    fetchTrackBlob(item, controller === null ? null : controller.signal)
+      .then(function (blob) {
+        if (token !== prefetchToken) return
+        prefetchAbort = null
+        // One track of memory at most; bigger files rely on the Host cache.
+        prefetchedNext =
+          blob.size > 80 * 1024 * 1024 ? null : { path: itemPath, blob: blob }
+      })
+      .catch(function () {
+        if (token === prefetchToken) prefetchAbort = null
+      })
+  }
+
   /** Fetch one track the same way `load()` does, without touching the decks. */
-  function fetchTrackBlob(item) {
+  function fetchTrackBlob(item, signal) {
+    var options = signal === undefined || signal === null ? {} : { signal: signal }
     if (typeof item.onlineUrl === 'string' && item.onlineUrl !== '') {
-      return fetch(item.onlineUrl).then(function (response) {
+      return fetch(item.onlineUrl, options).then(function (response) {
         if (!response.ok) throw new Error('HTTP ' + response.status)
         return response.blob()
       })
     }
-    return fetch(streamUrl(item.path)).then(function (response) {
+    return fetch(streamUrl(item.path), options).then(function (response) {
       if (response.ok) return response.blob()
       return response
         .json()
@@ -1107,6 +1166,7 @@ function createPlayer() {
     var outgoingBlob = currentBlob
     var wantTrim = readPrefs().normalizeVolume !== false
     var nextBlob = null
+    var cachedBlob = prefetchedNext !== null && prefetchedNext.path === item.path ? prefetchedNext.blob : null
     Promise.all([
       outgoingBlob
         ? analyzeTransitionBlob(outgoingBlob, false)
@@ -1117,7 +1177,10 @@ function createPlayer() {
               return null
             })
         : Promise.resolve(null),
-      fetchTrackBlob(item)
+      (cachedBlob !== null
+        ? Promise.resolve(cachedBlob)
+        : fetchTrackBlob(item)
+      )
         .then(function (blob) {
           nextBlob = blob
           return analyzeTransitionBlob(blob, wantTrim)
@@ -1132,6 +1195,8 @@ function createPlayer() {
         abortCrossfade()
         return
       }
+      // The prefetched blob now lives in the prepared plan.
+      releasePrefetched()
       var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
       var plan = crossfadePlan(
         { outroQuietSec: results[0] ? results[0].outroQuietSec : 0 },
@@ -1319,6 +1384,7 @@ function createPlayer() {
     applyOutputVolume()
     emit()
     savePlaybackState()
+    maybePrefetchNext()
   }
 
   /** The overlap is over: silence and release the outgoing element. */
@@ -1363,6 +1429,7 @@ function createPlayer() {
     }
     releaseObjectUrlB()
     normalizeGainB = 1
+    maybePrefetchNext()
   }
 
   function abortCrossfade() {
@@ -1536,6 +1603,7 @@ function createPlayer() {
     attachAudio: function (el) {
       if (audio === el) return
       abortCrossfade()
+      cancelPrefetch()
       if (audio !== null) unbind(audio)
       if (audioB !== null) {
         unbind(audioB)
@@ -1934,11 +2002,15 @@ function createPlayer() {
       savePrefs({ order: next })
       emit()
       savePlaybackState()
+      // The neighbour changed; drop the old prefetch and warm the new one.
+      cancelPrefetch()
+      maybePrefetchNext()
     },
     clear: function () {
       loadToken += 1
       cancelPendingFetch()
       abortCrossfade()
+      cancelPrefetch()
       currentBlob = null
       releaseObjectUrl()
       if (audio) {
