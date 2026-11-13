@@ -56,13 +56,11 @@ function readUiState() {
   var playlistId = typeof saved.playlistId === 'string' ? saved.playlistId : ''
   if (nav === 'playlists') nav = source === 'local' ? 'songs' : 'recent'
   if (nav === 'playlist' && (source !== 'local' || playlistId === '')) nav = source === 'local' ? 'songs' : 'recent'
-  // The album view is keyed by a provider album id that only lives in memory,
-  // so a reload cannot restore it; fall back to the search/recent list rather
-  // than reopening an empty album page.
-  if (nav === 'album') nav = source === 'local' ? 'songs' : 'recent'
-  if (nav === 'artist') nav = source === 'local' ? 'songs' : 'recent'
-  // `artists` / `albums` are local-library views; an online source has neither.
-  if (source !== 'local' && (nav === 'artists' || nav === 'albums')) nav = 'recent'
+  // `artist` is this branch's own view: it needs a provider artist id that only
+  // lives in memory, so a reload cannot restore it and would query with an empty
+  // id. Fall back to the artist list it was opened from. The album view is left
+  // to upstream's handling — reloading there behaves as it did before.
+  if (nav === 'artist') nav = source === 'local' ? 'songs' : 'artists'
   return { source: source, nav: nav, playlistId: playlistId }
 }
 

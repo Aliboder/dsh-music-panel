@@ -2637,13 +2637,11 @@ window.__ModuleLoader__.load({
       var playlistId = typeof saved.playlistId === 'string' ? saved.playlistId : ''
       if (nav === 'playlists') nav = source === 'local' ? 'songs' : 'recent'
       if (nav === 'playlist' && (source !== 'local' || playlistId === '')) nav = source === 'local' ? 'songs' : 'recent'
-      // The album view is keyed by a provider album id that only lives in memory,
-      // so a reload cannot restore it; fall back to the search/recent list rather
-      // than reopening an empty album page.
-      if (nav === 'album') nav = source === 'local' ? 'songs' : 'recent'
-      if (nav === 'artist') nav = source === 'local' ? 'songs' : 'recent'
-      // `artists` / `albums` are local-library views; an online source has neither.
-      if (source !== 'local' && (nav === 'artists' || nav === 'albums')) nav = 'recent'
+      // `artist` is this branch's own view: it needs a provider artist id that only
+      // lives in memory, so a reload cannot restore it and would query with an empty
+      // id. Fall back to the artist list it was opened from. The album view is left
+      // to upstream's handling — reloading there behaves as it did before.
+      if (nav === 'artist') nav = source === 'local' ? 'songs' : 'artists'
       return { source: source, nav: nav, playlistId: playlistId }
     }
 
@@ -12947,26 +12945,13 @@ window.__ModuleLoader__.load({
       var ui = props.ui
       var online = props.online
       var inputRef = useRef(null)
-      // Online search is a server round-trip, so typing is debounced instead of
-      // firing per keystroke; local search filters in memory and stays immediate.
-      var searchTimer = useRef(null)
       var textPair = useState(ui.source === 'local' ? ui.query : '')
       var text = textPair[0]
       var setText = textPair[1]
 
       useEffect(
         function () {
-          if (searchTimer.current !== null) {
-            clearTimeout(searchTimer.current)
-            searchTimer.current = null
-          }
           setText(ui.source === 'local' ? ui.query : '')
-          return function () {
-            if (searchTimer.current !== null) {
-              clearTimeout(searchTimer.current)
-              searchTimer.current = null
-            }
-          }
         },
         [ui.source],
       )
@@ -13059,20 +13044,9 @@ window.__ModuleLoader__.load({
               setText(value)
               if (!isOnlineSource(ui.source)) {
                 setUi({ query: value })
-                return
-              }
-              if (searchTimer.current !== null) {
-                clearTimeout(searchTimer.current)
-                searchTimer.current = null
-              }
-              if (value === '') {
+              } else if (value === '') {
                 onlineStore.set({ query: '', results: [], phase: 'idle', error: '' })
-                return
               }
-              searchTimer.current = setTimeout(function () {
-                searchTimer.current = null
-                void searchOnline(value)
-              }, 350)
             },
             onKeyDown: function (event) {
               if (event.key === 'Enter') submit()
