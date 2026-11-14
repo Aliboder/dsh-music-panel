@@ -1102,6 +1102,15 @@ window.__ModuleLoader__.load({
         'editor.display': '显示选项',
         'editor.wave': '进度条波图',
         'editor.flow': '动态流光背景',
+        'editor.preview': '实时预览',
+        'editor.sampleTitle': '示例歌曲',
+        'editor.samplePrev': '等到秋叶被红透',
+        'editor.sampleLyric': '流光穿过夜色',
+        'editor.sampleNext': '让那指针慢慢走',
+        'editor.sampleTranslation': 'Light flows through the night',
+        'editor.paneGapHint': '封面栏与歌词栏之间的距离',
+        'editor.flowHint': '切歌时颜色平滑过渡；关闭可省电',
+
         'editor.reset': '恢复默认',
         'editor.resetConfirm': '恢复默认设置？',
         'editor.resetHint': '封面样式、歌词排版和显示选项都会恢复。',
@@ -1544,6 +1553,7 @@ window.__ModuleLoader__.load({
         'editor.display': 'Display',
         'editor.wave': 'Waveform on progress',
         'editor.flow': 'Flowing light background',
+
         'editor.reset': 'Restore defaults',
         'editor.resetConfirm': 'Restore default settings?',
         'editor.resetHint': 'Cover style, lyric typography and display options will be reset.',
@@ -8705,6 +8715,27 @@ window.__ModuleLoader__.load({
       '.mp-npe-confirm-btn.is-primary{background:#e6a85a;border-color:#e6a85a;color:#241708}',
       '.mp-npe-confirm-btn.is-primary:hover{background:#f0b86a;border-color:#f0b86a}',
       '.mp-npe-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:18px 22px 22px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}',
+      '.mp-npe-preview{position:relative;margin-bottom:20px;border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden;background:rgba(255,255,255,.03)}',
+      '.mp-npe-preview-stage{position:relative;padding:20px 16px 16px;overflow:hidden}',
+      '.mp-npe-preview-label{position:absolute;top:8px;left:14px;font-size:10px;line-height:1;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5)}',
+      '.mp-npe-preview-bg{position:absolute;inset:-30%;width:160%;height:160%;object-fit:cover;filter:blur(26px) saturate(1.15);opacity:.42;pointer-events:none}',
+      '.mp-npe-preview-body{position:relative;display:flex;align-items:center;gap:16px;min-height:96px}',
+      '.mp-npe-preview-cover{width:96px;height:96px;flex:none;border-radius:12px;overflow:hidden;display:grid;place-items:center;background:rgba(0,0,0,.35);box-shadow:0 14px 32px rgba(0,0,0,.45)}',
+      '.mp-npe-preview-cover img{width:100%;height:100%;object-fit:cover;display:block}',
+      '.mp-npe-preview-cover.is-vinyl{border-radius:50%;box-shadow:0 0 0 5px #101012,0 0 0 7px rgba(255,255,255,.16),0 14px 32px rgba(0,0,0,.5)}',
+      '.mp-npe-preview-text{flex:1;min-width:0;color:#fff}',
+      '.mp-npe-preview-title{font-size:14px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-npe-preview-artist{font-size:11px;color:rgba(255,255,255,.62);margin-top:2px}',
+      '.mp-npe-preview-line{margin-top:7px;line-height:1.35;color:rgba(255,255,255,.48);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-npe-preview-line.is-active{color:#fff;font-weight:650}',
+      '.mp-npe-preview-trans{color:rgba(255,255,255,.82);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-npe-preview.is-blur .mp-npe-preview-line:not(.is-active){filter:blur(1px);opacity:.6}',
+      '.mp-npe-hint{display:block;margin-top:4px;font-size:11px;line-height:1.45;color:rgba(255,255,255,.42)}',
+      '.mp-npe-switch-row.has-hint{align-items:flex-start}',
+      '.mp-npe-switch-text{display:flex;flex-direction:column;gap:2px;min-width:0}',
+      '.mp-npe-switch-text .mp-npe-hint{margin-top:0}',
+      '.mp-npe-btn.is-ghost{flex:0 0 auto;padding:0 16px;background:transparent;border-color:rgba(255,255,255,.16);color:rgba(255,255,255,.72)}',
+      '.mp-npe-btn.is-ghost:hover{background:rgba(255,255,255,.08)}',
       '.mp-npe-section{margin-bottom:24px}',
       '.mp-npe-sec-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}',
       '.mp-npe-sec-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);white-space:nowrap}',
@@ -11111,6 +11142,8 @@ window.__ModuleLoader__.load({
     function NpEditor(props) {
       var prefs = usePrefs()
       var cover = typeof props.cover === 'string' ? props.cover : ''
+      var title = typeof props.title === 'string' ? props.title : ''
+      var artist = typeof props.artist === 'string' ? props.artist : ''
       var resetPair = useState(false)
       var resetConfirm = resetPair[0]
       var setResetConfirm = resetPair[1]
@@ -11209,7 +11242,7 @@ window.__ModuleLoader__.load({
         )
       }
 
-      function rangeRow(label, value, min, max, step, unit, apply) {
+      function rangeRow(label, value, min, max, step, unit, apply, hint) {
         return h(
           'div',
           { className: 'mp-npe-row' },
@@ -11226,19 +11259,85 @@ window.__ModuleLoader__.load({
             max: max,
             step: step,
             value: value,
+            'aria-label': label,
             onChange: function (event) {
               apply(Number(event.target.value))
             },
           }),
+          hint ? h('div', { className: 'mp-npe-hint' }, hint) : null,
         )
       }
 
-      function switchRow(label, value, apply) {
+      function switchRow(label, value, apply, hint) {
         return h(
           'div',
-          { className: 'mp-npe-switch-row' },
-          h('span', null, label),
+          { className: 'mp-npe-switch-row' + (hint ? ' has-hint' : '') },
+          h(
+            'span',
+            { className: 'mp-npe-switch-text' },
+            h('span', null, label),
+            hint ? h('span', { className: 'mp-npe-hint' }, hint) : null,
+          ),
           h(Switch, { value: value, onChange: apply }),
+        )
+      }
+
+      function previewCard() {
+        var align = prefs.lyricAlign || 'left'
+        var size = Number(prefs.lyricSize) || 35
+        var scale = Math.max(0.5, Math.min(1, (Number(prefs.translationScale) || 100) / 100))
+        var activeSize = Math.max(13, Math.round(size * 0.5))
+        var sideSize = Math.max(12, Math.round(size * 0.42))
+        var transSize = Math.max(11, Math.round(size * 0.42 * scale))
+        return h(
+          'div',
+          { className: 'mp-npe-preview' + (prefs.lyricBlur === true ? ' is-blur' : '') },
+          h(
+            'div',
+            { className: 'mp-npe-preview-stage' },
+            cover !== '' ? h('img', { className: 'mp-npe-preview-bg', src: cover, alt: '' }) : null,
+            h('span', { className: 'mp-npe-preview-label' }, t('editor.preview')),
+            h(
+              'div',
+              { className: 'mp-npe-preview-body' },
+              h(
+                'div',
+                {
+                  className:
+                    'mp-npe-preview-cover' + (prefs.coverStyle === 'vinyl' ? ' is-vinyl' : ''),
+                },
+                cover !== '' ? h('img', { src: cover, alt: '' }) : icon('note', 26),
+              ),
+              h(
+                'div',
+                { className: 'mp-npe-preview-text', style: { textAlign: align } },
+                h('div', { className: 'mp-npe-preview-title' }, title || t('editor.sampleTitle')),
+                artist !== '' ? h('div', { className: 'mp-npe-preview-artist' }, artist) : null,
+                h(
+                  'div',
+                  { className: 'mp-npe-preview-line', style: { fontSize: sideSize + 'px' } },
+                  t('editor.samplePrev'),
+                ),
+                h(
+                  'div',
+                  { className: 'mp-npe-preview-line is-active', style: { fontSize: activeSize + 'px' } },
+                  t('editor.sampleLyric'),
+                ),
+                prefs.showTranslation === true
+                  ? h(
+                      'div',
+                      { className: 'mp-npe-preview-trans', style: { fontSize: transSize + 'px' } },
+                      t('editor.sampleTranslation'),
+                    )
+                  : null,
+                h(
+                  'div',
+                  { className: 'mp-npe-preview-line', style: { fontSize: sideSize + 'px' } },
+                  t('editor.sampleNext'),
+                ),
+              ),
+            ),
+          ),
         )
       }
 
@@ -11270,19 +11369,6 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { className: 'mp-npe-head-actions' },
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mp-npe-head-btn',
-                  title: t('editor.reset'),
-                  'aria-label': t('editor.reset'),
-                  onClick: function () {
-                    setResetConfirm(true)
-                  },
-                },
-                icon('refresh', 16),
-              ),
               h(
                 'button',
                 {
@@ -11334,6 +11420,7 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'mp-npe-body' },
+            previewCard(),
             h(
               'div',
               { className: 'mp-npe-section' },
@@ -11357,7 +11444,7 @@ window.__ModuleLoader__.load({
               }),
               rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 60, 12, 96, 4, ' px', function (value) {
                 setPrefs({ npPaneGap: value })
-              }),
+              }, t('editor.paneGapHint')),
               rangeRow(
                 t('page.translationScale'),
                 prefs.translationScale || 100,
@@ -11412,7 +11499,7 @@ window.__ModuleLoader__.load({
               }),
               switchRow(t('editor.flow'), prefs.npFlowBg !== false, function (value) {
                 setPrefs({ npFlowBg: value })
-              }),
+              }, t('editor.flowHint')),
               h(
                 'div',
                 { className: 'mp-npe-row' },
@@ -11438,6 +11525,17 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'mp-npe-foot' },
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-npe-btn is-ghost',
+                onClick: function () {
+                  setResetConfirm(true)
+                },
+              },
+              t('editor.reset'),
+            ),
             h(
               'button',
               { type: 'button', className: 'mp-npe-btn is-primary', onClick: props.onClose },
@@ -13093,6 +13191,8 @@ window.__ModuleLoader__.load({
           ? h(NpEditor, {
               open: true,
               cover: cover,
+              title: track ? trackTitleOf(track) : '',
+              artist: track ? trackArtistOf(track) : '',
               onClose: function () {
                 setEditorOpen(false)
               },

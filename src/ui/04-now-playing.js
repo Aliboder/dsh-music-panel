@@ -354,6 +354,8 @@ function useLyricAutoScroll(
 function NpEditor(props) {
   var prefs = usePrefs()
   var cover = typeof props.cover === 'string' ? props.cover : ''
+  var title = typeof props.title === 'string' ? props.title : ''
+  var artist = typeof props.artist === 'string' ? props.artist : ''
   var resetPair = useState(false)
   var resetConfirm = resetPair[0]
   var setResetConfirm = resetPair[1]
@@ -452,7 +454,7 @@ function NpEditor(props) {
     )
   }
 
-  function rangeRow(label, value, min, max, step, unit, apply) {
+  function rangeRow(label, value, min, max, step, unit, apply, hint) {
     return h(
       'div',
       { className: 'mp-npe-row' },
@@ -469,19 +471,85 @@ function NpEditor(props) {
         max: max,
         step: step,
         value: value,
+        'aria-label': label,
         onChange: function (event) {
           apply(Number(event.target.value))
         },
       }),
+      hint ? h('div', { className: 'mp-npe-hint' }, hint) : null,
     )
   }
 
-  function switchRow(label, value, apply) {
+  function switchRow(label, value, apply, hint) {
     return h(
       'div',
-      { className: 'mp-npe-switch-row' },
-      h('span', null, label),
+      { className: 'mp-npe-switch-row' + (hint ? ' has-hint' : '') },
+      h(
+        'span',
+        { className: 'mp-npe-switch-text' },
+        h('span', null, label),
+        hint ? h('span', { className: 'mp-npe-hint' }, hint) : null,
+      ),
       h(Switch, { value: value, onChange: apply }),
+    )
+  }
+
+  function previewCard() {
+    var align = prefs.lyricAlign || 'left'
+    var size = Number(prefs.lyricSize) || 35
+    var scale = Math.max(0.5, Math.min(1, (Number(prefs.translationScale) || 100) / 100))
+    var activeSize = Math.max(13, Math.round(size * 0.5))
+    var sideSize = Math.max(12, Math.round(size * 0.42))
+    var transSize = Math.max(11, Math.round(size * 0.42 * scale))
+    return h(
+      'div',
+      { className: 'mp-npe-preview' + (prefs.lyricBlur === true ? ' is-blur' : '') },
+      h(
+        'div',
+        { className: 'mp-npe-preview-stage' },
+        cover !== '' ? h('img', { className: 'mp-npe-preview-bg', src: cover, alt: '' }) : null,
+        h('span', { className: 'mp-npe-preview-label' }, t('editor.preview')),
+        h(
+          'div',
+          { className: 'mp-npe-preview-body' },
+          h(
+            'div',
+            {
+              className:
+                'mp-npe-preview-cover' + (prefs.coverStyle === 'vinyl' ? ' is-vinyl' : ''),
+            },
+            cover !== '' ? h('img', { src: cover, alt: '' }) : icon('note', 26),
+          ),
+          h(
+            'div',
+            { className: 'mp-npe-preview-text', style: { textAlign: align } },
+            h('div', { className: 'mp-npe-preview-title' }, title || t('editor.sampleTitle')),
+            artist !== '' ? h('div', { className: 'mp-npe-preview-artist' }, artist) : null,
+            h(
+              'div',
+              { className: 'mp-npe-preview-line', style: { fontSize: sideSize + 'px' } },
+              t('editor.samplePrev'),
+            ),
+            h(
+              'div',
+              { className: 'mp-npe-preview-line is-active', style: { fontSize: activeSize + 'px' } },
+              t('editor.sampleLyric'),
+            ),
+            prefs.showTranslation === true
+              ? h(
+                  'div',
+                  { className: 'mp-npe-preview-trans', style: { fontSize: transSize + 'px' } },
+                  t('editor.sampleTranslation'),
+                )
+              : null,
+            h(
+              'div',
+              { className: 'mp-npe-preview-line', style: { fontSize: sideSize + 'px' } },
+              t('editor.sampleNext'),
+            ),
+          ),
+        ),
+      ),
     )
   }
 
@@ -513,19 +581,6 @@ function NpEditor(props) {
         h(
           'div',
           { className: 'mp-npe-head-actions' },
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mp-npe-head-btn',
-              title: t('editor.reset'),
-              'aria-label': t('editor.reset'),
-              onClick: function () {
-                setResetConfirm(true)
-              },
-            },
-            icon('refresh', 16),
-          ),
           h(
             'button',
             {
@@ -577,6 +632,7 @@ function NpEditor(props) {
       h(
         'div',
         { className: 'mp-npe-body' },
+        previewCard(),
         h(
           'div',
           { className: 'mp-npe-section' },
@@ -600,7 +656,7 @@ function NpEditor(props) {
           }),
           rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 60, 12, 96, 4, ' px', function (value) {
             setPrefs({ npPaneGap: value })
-          }),
+          }, t('editor.paneGapHint')),
           rangeRow(
             t('page.translationScale'),
             prefs.translationScale || 100,
@@ -655,7 +711,7 @@ function NpEditor(props) {
           }),
           switchRow(t('editor.flow'), prefs.npFlowBg !== false, function (value) {
             setPrefs({ npFlowBg: value })
-          }),
+          }, t('editor.flowHint')),
           h(
             'div',
             { className: 'mp-npe-row' },
@@ -681,6 +737,17 @@ function NpEditor(props) {
       h(
         'div',
         { className: 'mp-npe-foot' },
+        h(
+          'button',
+          {
+            type: 'button',
+            className: 'mp-npe-btn is-ghost',
+            onClick: function () {
+              setResetConfirm(true)
+            },
+          },
+          t('editor.reset'),
+        ),
         h(
           'button',
           { type: 'button', className: 'mp-npe-btn is-primary', onClick: props.onClose },
@@ -2336,6 +2403,8 @@ function NowPlaying(props) {
       ? h(NpEditor, {
           open: true,
           cover: cover,
+          title: track ? trackTitleOf(track) : '',
+          artist: track ? trackArtistOf(track) : '',
           onClose: function () {
             setEditorOpen(false)
           },

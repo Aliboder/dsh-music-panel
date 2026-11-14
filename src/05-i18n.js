@@ -80,6 +80,15 @@ var DICTS = {
     'editor.display': '显示选项',
     'editor.wave': '进度条波图',
     'editor.flow': '动态流光背景',
+    'editor.preview': '实时预览',
+    'editor.sampleTitle': '示例歌曲',
+    'editor.samplePrev': '等到秋叶被红透',
+    'editor.sampleLyric': '流光穿过夜色',
+    'editor.sampleNext': '让那指针慢慢走',
+    'editor.sampleTranslation': 'Light flows through the night',
+    'editor.paneGapHint': '封面栏与歌词栏之间的距离',
+    'editor.flowHint': '切歌时颜色平滑过渡；关闭可省电',
+
     'editor.reset': '恢复默认',
     'editor.resetConfirm': '恢复默认设置？',
     'editor.resetHint': '封面样式、歌词排版和显示选项都会恢复。',
@@ -522,6 +531,7 @@ var DICTS = {
     'editor.display': 'Display',
     'editor.wave': 'Waveform on progress',
     'editor.flow': 'Flowing light background',
+
     'editor.reset': 'Restore defaults',
     'editor.resetConfirm': 'Restore default settings?',
     'editor.resetHint': 'Cover style, lyric typography and display options will be reset.',
