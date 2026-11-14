@@ -102,7 +102,7 @@ assert.match(
 )
 assert.match(
   theme,
-  /\.mp-np-left\{[^']*margin-left:calc\(\(100% - 1\.5\*var\(--mp-cover/,
+  /\.mp-np-left\{[^']*margin-left:calc\(\(100% - 1\.6\*var\(--mp-cover/,
   'the left margin follows the column-centre rule',
 )
 assert.match(theme, /\.mp-np-right\{[^']*width:var\(--mp-lyric-fit\)/, 'the lyrics column uses the fitted width')
