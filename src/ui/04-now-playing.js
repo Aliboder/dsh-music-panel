@@ -1150,13 +1150,13 @@ function NowPlaying(props) {
   var sleepRef = useRef(null)
   var audioRef = useRef(null)
   // Lyrics column width, dragged by the splitter on the right of the lyrics.
-  var lyricWidthPair = useState(clamp(Number(prefs.npLyricWidth) || 560, 360, 900))
+  var lyricWidthPair = useState(clamp(Number(prefs.npLyricWidth) || 560, 360, 1400))
   var lyricWidth = lyricWidthPair[0]
   var setLyricWidth = lyricWidthPair[1]
   var paneGap = clamp(Number(prefs.npPaneGap) || 24, 12, 96)
 
   function applyLyricWidth(value, persist) {
-    var next = clamp(Math.round(Number(value) || 560), 360, 900)
+    var next = clamp(Math.round(Number(value) || 560), 360, 1400)
     setLyricWidth(next)
     if (persist === true) setPrefs({ npLyricWidth: next })
   }
@@ -1174,7 +1174,7 @@ function NowPlaying(props) {
     var latest = Math.round(startWidth)
     // Never persist a width the current interface cannot fit; the CSS formula
     // caps it the same way.
-    var fitMax = 900
+    var fitMax = 1400
     var body = document.querySelector('.mp-np-body')
     var cover = document.querySelector('.mp-np-left')
     if (body !== null && cover !== null) {
@@ -1187,16 +1187,15 @@ function NowPlaying(props) {
       var rightSplit = document.querySelector('.mp-np-split[data-side="right"]')
       var gapWidth = leftSplit === null ? 24 : leftSplit.getBoundingClientRect().width
       var splitWidth = rightSplit === null ? 24 : rightSplit.getBoundingClientRect().width
-      fitMax = Math.min(900, (contentWidth - 0.5 * cover.getBoundingClientRect().width - gapWidth - 2 * splitWidth) / 1.5)
+      // Equal 12 px margins at the limit.
+      fitMax = Math.max(360, contentWidth - cover.getBoundingClientRect().width - gapWidth - splitWidth - 24)
     }
     document.body.style.userSelect = 'none'
     function move(moveEvent) {
-      // The layout pins the midpoint of the two column centre lines to the
-      // interface centre: the left boundary moves -1/4 and the right boundary
-      // +3/4 of a width change, so each handle needs its own ratio to track the
-      // pointer exactly.
+      // Equal outer margins: widening by d moves each boundary by d/2, so both
+      // handles track the pointer with a 2x ratio.
       var dx = moveEvent.clientX - startX
-      latest = clamp(side === 'left' ? startWidth - 4 * dx : startWidth + (4 * dx) / 3, 360, fitMax)
+      latest = clamp(side === 'left' ? startWidth - 2 * dx : startWidth + 2 * dx, 360, fitMax)
       setLyricWidth(latest)
     }
     function finish() {
@@ -2129,7 +2128,7 @@ function NowPlaying(props) {
         'aria-orientation': 'vertical',
         'aria-label': t('page.lyricWidth'),
         'aria-valuemin': 360,
-        'aria-valuemax': 900,
+        'aria-valuemax': 1400,
         'aria-valuenow': lyricWidth,
         title: t('page.lyricWidth'),
         tabIndex: 0,
@@ -2265,7 +2264,7 @@ function NowPlaying(props) {
         'aria-orientation': 'vertical',
         'aria-label': t('page.lyricWidth'),
         'aria-valuemin': 360,
-        'aria-valuemax': 900,
+        'aria-valuemax': 1400,
         'aria-valuenow': lyricWidth,
         title: t('page.lyricWidth'),
         tabIndex: 0,
