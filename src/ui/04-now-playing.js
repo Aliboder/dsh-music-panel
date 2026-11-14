@@ -404,7 +404,7 @@ function NpEditor(props) {
       waveEnabled: true,
       showTranslation: true,
       lyricOrder: ['embedded', 'lrc'],
-      npPaneGap: 24,
+      npPaneGap: 60,
       npLyricWidth: 560,
     })
   }
@@ -597,7 +597,7 @@ function NpEditor(props) {
           rangeRow(t('page.lyricGap'), Number(prefs.lyricGap) || 10, 2, 16, 1, ' px', function (value) {
             setPrefs({ lyricGap: value })
           }),
-          rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 24, 12, 96, 4, ' px', function (value) {
+          rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 60, 12, 96, 4, ' px', function (value) {
             setPrefs({ npPaneGap: value })
           }),
           rangeRow(
@@ -1154,7 +1154,7 @@ function NowPlaying(props) {
   var lyricWidthPair = useState(clamp(Number(prefs.npLyricWidth) || 560, 360, 900))
   var lyricWidth = lyricWidthPair[0]
   var setLyricWidth = lyricWidthPair[1]
-  var paneGap = clamp(Number(prefs.npPaneGap) || 24, 12, 96)
+  var paneGap = clamp(Number(prefs.npPaneGap) || 60, 12, 96)
 
   function applyLyricWidth(value, persist) {
     var next = clamp(Math.round(Number(value) || 560), 360, 900)

@@ -3374,7 +3374,7 @@ window.__ModuleLoader__.load({
       /** Lyrics column width in the player page (px), dragged by the splitter. */
       npLyricWidth: 560,
       /** Gap between the album column and the lyrics column (px), editable in the player editor. */
-      npPaneGap: 24,
+      npPaneGap: 60,
       composerLyrics: false,
       composerTranslation: true,
       composerLyricPlace: 'input-left',
@@ -9102,7 +9102,7 @@ window.__ModuleLoader__.load({
       '@media (max-width:1080px){.mp-row-album{display:none}.mp-row{grid-template-columns:48px minmax(0,1fr) 74px 50px 54px}.mp-workspace.is-queue{grid-template-columns:188px minmax(0,1fr)}.mp-root.is-top .mp-workspace.is-queue{grid-template-columns:minmax(0,1fr)}.mp-queue{display:none!important}}',
       '@media (max-height:860px){.mp-np-reflect-wave{height:30px}.mp-np{--mp-cover:min(31vw,40vh,440px)}.mp-np-body{padding-top:64px}.mp-np-meta{margin-bottom:20px}.mp-np-title{font-size:24px}.mp-np-artist{font-size:13px;margin-top:4px}.mp-np-cover-stage{margin-bottom:12px}.mp-np-quality{margin-bottom:12px;font-size:12px}.mp-np-transport{margin-top:16px;gap:40px}.mp-np-left{padding-bottom:46px}.mp-np-right{padding-bottom:46px}.mp-np-lyrics{padding-top:28px}}',
       '@media (max-width:1100px){.mp-np-body{padding:64px 2.5vw 0 6.5vw}.mp-np-title{font-size:24px}}',
-      '@media (min-width:981px){.mp-np-body{justify-content:flex-start;padding-left:0;padding-right:0;--mp-split-w:24px;--mp-gap-w:var(--mp-pane-gap-w,24px);--mp-lyric-fit:min(var(--mp-lyric-w,560px),calc((100% - 0.5*var(--mp-cover,480px) - var(--mp-gap-w) - 2*var(--mp-split-w))/1.5))}.mp-np-split{display:flex;flex:0 0 var(--mp-split-w)}.mp-np-split[data-side="left"]{flex:0 0 var(--mp-gap-w)}.mp-np-left{flex:none;margin-left:calc((100% - 1.5*var(--mp-cover,480px) - var(--mp-gap-w) - 0.5*var(--mp-lyric-fit))/2)}.mp-np-right{flex:none;width:var(--mp-lyric-fit);max-width:none;min-width:0;margin-left:0}}',
+      '@media (min-width:981px){.mp-np-body{justify-content:flex-start;padding-left:0;padding-right:0;--mp-split-w:24px;--mp-gap-w:var(--mp-pane-gap-w,60px);--mp-lyric-fit:min(var(--mp-lyric-w,560px),calc((100% - 0.5*var(--mp-cover,480px) - var(--mp-gap-w) - 2*var(--mp-split-w))/1.5))}.mp-np-split{display:flex;flex:0 0 var(--mp-split-w)}.mp-np-split[data-side="left"]{flex:0 0 var(--mp-gap-w)}.mp-np-left{flex:none;margin-left:calc((100% - 1.5*var(--mp-cover,480px) - var(--mp-gap-w) - 0.5*var(--mp-lyric-fit))/2)}.mp-np-right{flex:none;width:var(--mp-lyric-fit);max-width:none;min-width:0;margin-left:0}}',
       '@media (max-width:980px){.mp-np{--mp-cover:min(76vw,52vh,680px)}.mp-np-fs{top:14px;right:14px}.mp-np-body{flex-direction:column;gap:0;padding:48px 20px 0;overflow:hidden}.mp-np-meta{margin:0 0 12px}.mp-np-title{font-size:26px}.mp-np-artist{font-size:13px}.mp-np-artist-row{margin-top:4px}.mp-np-meta-audio{top:0}.mp-np-cover-stage{margin-bottom:10px}.mp-np-quality{margin:0 0 12px;font-size:12px}.mp-np-transport{order:2;margin:0;gap:64px}.mp-np-progress{order:3;margin:12px 0 0}.mp-np-times{order:4;margin-top:12px}.mp-np-secondary{order:5;margin:12px 0 0;padding:0 8px}.mp-np-left{width:100%;padding-bottom:8px}.mp-np-right{flex:1;width:100%;max-width:none;margin-left:0;padding-left:0;padding-bottom:16px;min-height:0}.mp-np-lyrics{padding-top:16px}.mp-np-lyric-foot{margin-top:8px}.mp-np-head{top:14px;left:14px}}',
       '@media (max-width:900px){.mp-workspace,.mp-workspace.is-queue{grid-template-columns:56px minmax(0,1fr)}.mp-root.is-top .mp-workspace{grid-template-columns:minmax(0,1fr)}.mp-nav{padding:10px 6px;align-items:center}.mp-nav-label,.mp-nav-item span,.mp-nav-count{display:none}.mp-nav-item{width:40px;justify-content:center;padding:0}.mp-search{width:160px}.mp-pb-vol{display:none}}',
 
@@ -11141,7 +11141,7 @@ window.__ModuleLoader__.load({
           waveEnabled: true,
           showTranslation: true,
           lyricOrder: ['embedded', 'lrc'],
-          npPaneGap: 24,
+          npPaneGap: 60,
           npLyricWidth: 560,
         })
       }
@@ -11334,7 +11334,7 @@ window.__ModuleLoader__.load({
               rangeRow(t('page.lyricGap'), Number(prefs.lyricGap) || 10, 2, 16, 1, ' px', function (value) {
                 setPrefs({ lyricGap: value })
               }),
-              rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 24, 12, 96, 4, ' px', function (value) {
+              rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 60, 12, 96, 4, ' px', function (value) {
                 setPrefs({ npPaneGap: value })
               }),
               rangeRow(
@@ -11891,7 +11891,7 @@ window.__ModuleLoader__.load({
       var lyricWidthPair = useState(clamp(Number(prefs.npLyricWidth) || 560, 360, 900))
       var lyricWidth = lyricWidthPair[0]
       var setLyricWidth = lyricWidthPair[1]
-      var paneGap = clamp(Number(prefs.npPaneGap) || 24, 12, 96)
+      var paneGap = clamp(Number(prefs.npPaneGap) || 60, 12, 96)
 
       function applyLyricWidth(value, persist) {
         var next = clamp(Math.round(Number(value) || 560), 360, 900)
