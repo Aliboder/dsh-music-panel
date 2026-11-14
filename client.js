@@ -8592,12 +8592,13 @@ window.__ModuleLoader__.load({
       // ── now playing (reference layout) ──────────────────────────────────────────
       '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:#141417;color:#f4f4f5;transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
       '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
-      '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden;--mp-speed:36s;--mp-beat-scale:1}',
+      '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden;--mp-speed:12s;--mp-beat-scale:1}',
       '.mp-np-bg-drift{position:absolute;inset:-6%;will-change:transform}',
       '.mp-np-bg.is-ambient .mp-np-bg-drift{animation:mp-ambient-drift var(--mp-speed) ease-in-out infinite alternate}',
       '@keyframes mp-ambient-drift{0%{transform:translate3d(var(--mp-drift-nx),var(--mp-drift-ny),0) scale(var(--mp-drift-s0)) rotate(var(--mp-drift-nr))}100%{transform:translate3d(var(--mp-drift-x),var(--mp-drift-y),0) scale(var(--mp-drift-s1)) rotate(var(--mp-drift-r))}}',
       '.mp-np-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto;transform:scale(var(--mp-beat-scale));transition:transform .22s ease-out}.mp-np-bg .is-prev{opacity:1}.mp-np-bg .is-cur{animation:mp-bg-in .85s ease both}@keyframes mp-bg-in{from{opacity:0}to{opacity:1}}',
-      '@media (prefers-reduced-motion:reduce){.mp-np-bg.is-ambient .mp-np-bg-drift{animation:none}.mp-np-bg img{transform:none}}',
+      '.mp-np-bg img.is-echo{inset:-8%;width:116%;height:116%;opacity:.55;mix-blend-mode:soft-light;transform:none;animation:mp-ambient-echo var(--mp-speed) ease-in-out infinite alternate;will-change:transform}',
+      '@keyframes mp-ambient-echo{0%{transform:translate3d(-7%,5%,0) scale(1.22) rotate(-2.4deg)}100%{transform:translate3d(7%,-5%,0) scale(1.3) rotate(2.4deg)}}',
       '.mp-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.32),rgba(0,0,0,.04) 46%,rgba(0,0,0,.28) 82%,rgba(0,0,0,.42));pointer-events:none}',
       '.mp-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(85% 75% at 50% 45%,transparent 55%,rgba(0,0,0,.3));pointer-events:none}',
       '.mp-np-head{position:absolute;top:22px;left:22px;z-index:5;display:flex;align-items:center;gap:8px;padding:0}',
@@ -11620,9 +11621,6 @@ window.__ModuleLoader__.load({
               switchRow(t('editor.wave'), prefs.waveEnabled !== false, function (value) {
                 setPrefs({ waveEnabled: value })
               }),
-              switchRow(t('editor.flow'), prefs.npFlowBg !== false, function (value) {
-                setPrefs({ npFlowBg: value })
-              }, t('editor.flowHint')),
             ),
             h(
               'div',
@@ -11995,7 +11993,7 @@ window.__ModuleLoader__.load({
               ? player.getWave()
               : null
           var beat = tracker.update(wave, true, state.sensitivity) * state.amount
-          node.style.setProperty('--mp-beat-scale', (1 + beat * 0.045).toFixed(4))
+          node.style.setProperty('--mp-beat-scale', (1 + beat * 0.24).toFixed(4))
         }
         raf = requestAnimationFrame(frame)
         return function () {
@@ -12381,7 +12379,7 @@ window.__ModuleLoader__.load({
       var setBg = bgPair[1]
       useAmbientBeat(
         ambientRef,
-        prefs.npFlowBg !== false,
+        true,
         snap.playing === true,
         clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 1),
         clamp((Number(prefs.npBeatAmount) || 60) / 100, 0, 1),
@@ -12731,20 +12729,20 @@ window.__ModuleLoader__.load({
               'div',
               {
                 ref: ambientRef,
-                className: cx('mp-np-bg', prefs.npFlowBg !== false && 'is-ambient'),
+                className: 'mp-np-bg is-ambient',
                 style: (function () {
                   var drift = clamp((Number(prefs.npAmbientDrift) || 0) / 100, 0, 1)
                   return {
-                    '--mp-drift-x': (drift * 1.4).toFixed(2) + '%',
-                    '--mp-drift-nx': (drift * -1.4).toFixed(2) + '%',
-                    '--mp-drift-y': (drift * 1).toFixed(2) + '%',
-                    '--mp-drift-ny': (drift * -0.9).toFixed(2) + '%',
-                    '--mp-drift-s0': (1.03 + drift * 0.02).toFixed(3),
-                    '--mp-drift-s1': (1.05 + drift * 0.025).toFixed(3),
-                    '--mp-drift-r': (drift * 0.3).toFixed(2) + 'deg',
-                    '--mp-drift-nr': (drift * -0.3).toFixed(2) + 'deg',
+                    '--mp-drift-x': (drift * 18).toFixed(2) + '%',
+                    '--mp-drift-nx': (drift * -18).toFixed(2) + '%',
+                    '--mp-drift-y': (drift * 10).toFixed(2) + '%',
+                    '--mp-drift-ny': (drift * -8).toFixed(2) + '%',
+                    '--mp-drift-s0': (1.12 + drift * 0.08).toFixed(3),
+                    '--mp-drift-s1': (1.18 + drift * 0.12).toFixed(3),
+                    '--mp-drift-r': (drift * 6).toFixed(2) + 'deg',
+                    '--mp-drift-nr': (drift * -6).toFixed(2) + 'deg',
                     '--mp-speed':
-                      (36 / Math.max(0.4, (Number(prefs.npAmbientSpeed) || 100) / 100)).toFixed(1) + 's',
+                      (10 / Math.max(0.4, (Number(prefs.npAmbientSpeed) || 100) / 100)).toFixed(1) + 's',
                     '--mp-beat-scale': '1',
                   }
                 })(),
@@ -12759,6 +12757,9 @@ window.__ModuleLoader__.load({
                   ? h('img', { key: 'cur:' + bg.current, src: bg.current, alt: '', className: 'is-cur' })
                   : null,
               ),
+              bg.current !== ''
+                ? h('img', { key: 'echo:' + bg.current, src: bg.current, alt: '', className: 'is-echo', 'aria-hidden': 'true' })
+                : null,
             )
           : null,
         h('div', { className: 'mp-np-shade' }),

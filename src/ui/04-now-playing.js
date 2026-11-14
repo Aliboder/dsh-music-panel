@@ -717,9 +717,6 @@ function NpEditor(props) {
           switchRow(t('editor.wave'), prefs.waveEnabled !== false, function (value) {
             setPrefs({ waveEnabled: value })
           }),
-          switchRow(t('editor.flow'), prefs.npFlowBg !== false, function (value) {
-            setPrefs({ npFlowBg: value })
-          }, t('editor.flowHint')),
         ),
         h(
           'div',
@@ -1092,7 +1089,7 @@ function useAmbientBeat(ref, enabled, playing, sensitivity, amount, ready) {
           ? player.getWave()
           : null
       var beat = tracker.update(wave, true, state.sensitivity) * state.amount
-      node.style.setProperty('--mp-beat-scale', (1 + beat * 0.045).toFixed(4))
+      node.style.setProperty('--mp-beat-scale', (1 + beat * 0.24).toFixed(4))
     }
     raf = requestAnimationFrame(frame)
     return function () {
@@ -1478,7 +1475,7 @@ function NowPlaying(props) {
   var setBg = bgPair[1]
   useAmbientBeat(
     ambientRef,
-    prefs.npFlowBg !== false,
+    true,
     snap.playing === true,
     clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 1),
     clamp((Number(prefs.npBeatAmount) || 60) / 100, 0, 1),
@@ -1828,20 +1825,20 @@ function NowPlaying(props) {
           'div',
           {
             ref: ambientRef,
-            className: cx('mp-np-bg', prefs.npFlowBg !== false && 'is-ambient'),
+            className: 'mp-np-bg is-ambient',
             style: (function () {
               var drift = clamp((Number(prefs.npAmbientDrift) || 0) / 100, 0, 1)
               return {
-                '--mp-drift-x': (drift * 1.4).toFixed(2) + '%',
-                '--mp-drift-nx': (drift * -1.4).toFixed(2) + '%',
-                '--mp-drift-y': (drift * 1).toFixed(2) + '%',
-                '--mp-drift-ny': (drift * -0.9).toFixed(2) + '%',
-                '--mp-drift-s0': (1.03 + drift * 0.02).toFixed(3),
-                '--mp-drift-s1': (1.05 + drift * 0.025).toFixed(3),
-                '--mp-drift-r': (drift * 0.3).toFixed(2) + 'deg',
-                '--mp-drift-nr': (drift * -0.3).toFixed(2) + 'deg',
+                '--mp-drift-x': (drift * 18).toFixed(2) + '%',
+                '--mp-drift-nx': (drift * -18).toFixed(2) + '%',
+                '--mp-drift-y': (drift * 10).toFixed(2) + '%',
+                '--mp-drift-ny': (drift * -8).toFixed(2) + '%',
+                '--mp-drift-s0': (1.12 + drift * 0.08).toFixed(3),
+                '--mp-drift-s1': (1.18 + drift * 0.12).toFixed(3),
+                '--mp-drift-r': (drift * 6).toFixed(2) + 'deg',
+                '--mp-drift-nr': (drift * -6).toFixed(2) + 'deg',
                 '--mp-speed':
-                  (36 / Math.max(0.4, (Number(prefs.npAmbientSpeed) || 100) / 100)).toFixed(1) + 's',
+                  (10 / Math.max(0.4, (Number(prefs.npAmbientSpeed) || 100) / 100)).toFixed(1) + 's',
                 '--mp-beat-scale': '1',
               }
             })(),
@@ -1856,6 +1853,9 @@ function NowPlaying(props) {
               ? h('img', { key: 'cur:' + bg.current, src: bg.current, alt: '', className: 'is-cur' })
               : null,
           ),
+          bg.current !== ''
+            ? h('img', { key: 'echo:' + bg.current, src: bg.current, alt: '', className: 'is-echo', 'aria-hidden': 'true' })
+            : null,
         )
       : null,
     h('div', { className: 'mp-np-shade' }),

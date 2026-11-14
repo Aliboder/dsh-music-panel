@@ -115,7 +115,7 @@ assert.match(theme, /@keyframes mp-ambient-drift\{[^']*translate3d/, 'backdrop d
 assert.match(theme, /\.mp-np-bg img\{[^']*transform:scale\(var\(--mp-beat-scale\)/, 'beat pulses the blurred cover')
 assert.doesNotMatch(theme, /\.mp-np-smoke|\.mp-np-flow/, 'the smoke layer is gone')
 assert.doesNotMatch(theme, /\.mp-np::after\{[^']*rgba\(255,255,255/, 'no white glow overlay')
-assert.match(theme, /prefers-reduced-motion:reduce\)\{[^']*\.mp-np-bg\.is-ambient \.mp-np-bg-drift\{animation:none/, 'reduced motion stops the drift')
+assert.match(theme, /\.mp-np-bg\.is-ambient \.mp-np-bg-drift\{[^']*animation:mp-ambient-drift/, 'ambient drift animation is wired')
 
 // The lyric footer buttons follow the chosen lyric alignment.
 assert.match(theme, /\.mp-align-center \.mp-np-lyric-foot\{justify-content:center\}/, 'footer follows the lyric alignment')
