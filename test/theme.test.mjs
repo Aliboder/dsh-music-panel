@@ -131,4 +131,6 @@ assert.match(theme, /\.mp-npe-preview-cover\.is-vinyl::after\{[^']*background:va
 assert.match(theme, /@media \(max-width:980px\)\{[^']*\.mp-np-cover-stage\.is-vinyl \.mp-np-disc-wrap\{top:0\}/, 'narrow vinyl layout has no vertical offset')
 assert.match(theme, /\.mp-np\.is-vinyl\{--mp-cover:min\(66vw/, 'narrow vinyl cover is sized to leave room for controls')
 
+assert.match(theme, /@media \(max-width:980px\)\{[^']*\.mp-np-cover-stage\{margin-left:auto;margin-right:auto\}/, 'narrow cover is centred')
+
 console.log('theme.test.mjs ok')
