@@ -339,7 +339,7 @@ var THEME_CSS = [
   '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:#141417;color:#f4f4f5;transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
   '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
   '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden;--mp-speed:12s;--mp-beat-scale:1}',
-  '.mp-np-bg-drift{position:absolute;inset:-6%;will-change:transform}',
+  '.mp-np-bg-drift{position:absolute;inset:-15%;will-change:transform}',
   '.mp-np-bg.is-ambient .mp-np-bg-drift{animation:mp-ambient-drift var(--mp-speed) ease-in-out infinite alternate}',
   '@keyframes mp-ambient-drift{0%{transform:translate3d(var(--mp-drift-nx),var(--mp-drift-ny),0) scale(var(--mp-drift-s0)) rotate(var(--mp-drift-nr))}100%{transform:translate3d(var(--mp-drift-x),var(--mp-drift-y),0) scale(var(--mp-drift-s1)) rotate(var(--mp-drift-r))}}',
   '.mp-np-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto;transform:scale(var(--mp-beat-scale));transition:transform .22s ease-out}.mp-np-bg .is-prev{opacity:1}.mp-np-bg .is-cur{animation:mp-bg-in .85s ease both}@keyframes mp-bg-in{from{opacity:0}to{opacity:1}}',

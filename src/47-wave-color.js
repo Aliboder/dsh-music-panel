@@ -48,7 +48,7 @@ function createBeatTracker() {
     update: function (wave, playing, sensitivity) {
       var feel = Number(sensitivity)
       if (!isFinite(feel)) feel = 0.6
-      feel = Math.max(0, Math.min(1, feel))
+      feel = Math.max(0, Math.min(2, feel))
       if (playing !== true || wave === null || wave === undefined || wave.length === 0) {
         level *= 0.82
         previous = null
@@ -66,7 +66,7 @@ function createBeatTracker() {
       if (previous === null || previous.length !== bands) previous = new Array(bands)
       for (var j = 0; j < bands; j += 1) previous[j] = wave[j]
       average = average * 0.9 + flux * 0.1
-      var threshold = Math.max(0.005, average * 1.25 * (1.9 - 1.5 * feel))
+      var threshold = Math.max(0.003, average * 1.25 * (1.9 - 1.5 * feel))
       var hit = flux > threshold ? Math.min(1, (flux - threshold) * (5 + 5 * feel) + 0.3) : 0
       hit *= feel
       level = Math.max(hit, level * 0.82)

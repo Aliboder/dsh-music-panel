@@ -725,16 +725,16 @@ function NpEditor(props) {
           h(
             'div',
             { className: 'mp-npe-smoke-grid' },
-            rangeRow(t('editor.ambientDrift'), Number(prefs.npAmbientDrift) || 0, 0, 100, 5, '%', function (value) {
+            rangeRow(t('editor.ambientDrift'), Number(prefs.npAmbientDrift) || 0, 0, 300, 5, '%', function (value) {
               setPrefs({ npAmbientDrift: value })
             }),
-            rangeRow(t('editor.ambientSpeed'), Number(prefs.npAmbientSpeed) || 100, 50, 200, 5, '%', function (value) {
+            rangeRow(t('editor.ambientSpeed'), Number(prefs.npAmbientSpeed) || 100, 50, 400, 5, '%', function (value) {
               setPrefs({ npAmbientSpeed: value })
             }),
-            rangeRow(t('editor.beatSensitivity'), Number(prefs.npBeatSensitivity) || 60, 0, 100, 5, '%', function (value) {
+            rangeRow(t('editor.beatSensitivity'), Number(prefs.npBeatSensitivity) || 60, 0, 200, 5, '%', function (value) {
               setPrefs({ npBeatSensitivity: value })
             }),
-            rangeRow(t('editor.beatAmount'), Number(prefs.npBeatAmount) || 60, 0, 100, 5, '%', function (value) {
+            rangeRow(t('editor.beatAmount'), Number(prefs.npBeatAmount) || 60, 0, 300, 5, '%', function (value) {
               setPrefs({ npBeatAmount: value })
             }),
           ),
@@ -1477,8 +1477,8 @@ function NowPlaying(props) {
     ambientRef,
     true,
     snap.playing === true,
-    clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 1),
-    clamp((Number(prefs.npBeatAmount) || 60) / 100, 0, 1),
+    clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 2),
+    clamp((Number(prefs.npBeatAmount) || 60) / 100, 0, 3),
     bg.current !== '' || bg.previous !== '',
   )
 
@@ -1827,18 +1827,18 @@ function NowPlaying(props) {
             ref: ambientRef,
             className: 'mp-np-bg is-ambient',
             style: (function () {
-              var drift = clamp((Number(prefs.npAmbientDrift) || 0) / 100, 0, 1)
+              var drift = clamp((Number(prefs.npAmbientDrift) || 0) / 100, 0, 3)
               return {
-                '--mp-drift-x': (drift * 18).toFixed(2) + '%',
-                '--mp-drift-nx': (drift * -18).toFixed(2) + '%',
-                '--mp-drift-y': (drift * 10).toFixed(2) + '%',
-                '--mp-drift-ny': (drift * -8).toFixed(2) + '%',
-                '--mp-drift-s0': (1.12 + drift * 0.08).toFixed(3),
-                '--mp-drift-s1': (1.18 + drift * 0.12).toFixed(3),
-                '--mp-drift-r': (drift * 6).toFixed(2) + 'deg',
-                '--mp-drift-nr': (drift * -6).toFixed(2) + 'deg',
+                '--mp-drift-x': (drift * 12).toFixed(2) + '%',
+                '--mp-drift-nx': (drift * -12).toFixed(2) + '%',
+                '--mp-drift-y': (drift * 7).toFixed(2) + '%',
+                '--mp-drift-ny': (drift * -6).toFixed(2) + '%',
+                '--mp-drift-s0': (1.06 + drift * 0.18).toFixed(3),
+                '--mp-drift-s1': (1.12 + drift * 0.22).toFixed(3),
+                '--mp-drift-r': (drift * 3.5).toFixed(2) + 'deg',
+                '--mp-drift-nr': (drift * -3.5).toFixed(2) + 'deg',
                 '--mp-speed':
-                  (10 / Math.max(0.4, (Number(prefs.npAmbientSpeed) || 100) / 100)).toFixed(1) + 's',
+                  (8 / Math.max(0.5, (Number(prefs.npAmbientSpeed) || 100) / 100)).toFixed(1) + 's',
                 '--mp-beat-scale': '1',
               }
             })(),
@@ -2111,8 +2111,8 @@ function NowPlaying(props) {
             playing: snap.playing,
             imageRef: coverImgRef,
             active: staged,
-            beat: clamp((Number(prefs.npBeatAmount) || 0) / 100, 0, 1),
-            beatSensitivity: clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 1),
+            beat: clamp((Number(prefs.npBeatAmount) || 0) / 100, 0, 3),
+            beatSensitivity: clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 2),
           })
             : null,
           h(SeekBar, { fallbackDuration: track ? track.durationSec || 0 : 0 }),

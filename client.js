@@ -4960,7 +4960,7 @@ window.__ModuleLoader__.load({
         update: function (wave, playing, sensitivity) {
           var feel = Number(sensitivity)
           if (!isFinite(feel)) feel = 0.6
-          feel = Math.max(0, Math.min(1, feel))
+          feel = Math.max(0, Math.min(2, feel))
           if (playing !== true || wave === null || wave === undefined || wave.length === 0) {
             level *= 0.82
             previous = null
@@ -4978,7 +4978,7 @@ window.__ModuleLoader__.load({
           if (previous === null || previous.length !== bands) previous = new Array(bands)
           for (var j = 0; j < bands; j += 1) previous[j] = wave[j]
           average = average * 0.9 + flux * 0.1
-          var threshold = Math.max(0.005, average * 1.25 * (1.9 - 1.5 * feel))
+          var threshold = Math.max(0.003, average * 1.25 * (1.9 - 1.5 * feel))
           var hit = flux > threshold ? Math.min(1, (flux - threshold) * (5 + 5 * feel) + 0.3) : 0
           hit *= feel
           level = Math.max(hit, level * 0.82)
@@ -8593,7 +8593,7 @@ window.__ModuleLoader__.load({
       '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:#141417;color:#f4f4f5;transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
       '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
       '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden;--mp-speed:12s;--mp-beat-scale:1}',
-      '.mp-np-bg-drift{position:absolute;inset:-6%;will-change:transform}',
+      '.mp-np-bg-drift{position:absolute;inset:-15%;will-change:transform}',
       '.mp-np-bg.is-ambient .mp-np-bg-drift{animation:mp-ambient-drift var(--mp-speed) ease-in-out infinite alternate}',
       '@keyframes mp-ambient-drift{0%{transform:translate3d(var(--mp-drift-nx),var(--mp-drift-ny),0) scale(var(--mp-drift-s0)) rotate(var(--mp-drift-nr))}100%{transform:translate3d(var(--mp-drift-x),var(--mp-drift-y),0) scale(var(--mp-drift-s1)) rotate(var(--mp-drift-r))}}',
       '.mp-np-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto;transform:scale(var(--mp-beat-scale));transition:transform .22s ease-out}.mp-np-bg .is-prev{opacity:1}.mp-np-bg .is-cur{animation:mp-bg-in .85s ease both}@keyframes mp-bg-in{from{opacity:0}to{opacity:1}}',
@@ -11629,16 +11629,16 @@ window.__ModuleLoader__.load({
               h(
                 'div',
                 { className: 'mp-npe-smoke-grid' },
-                rangeRow(t('editor.ambientDrift'), Number(prefs.npAmbientDrift) || 0, 0, 100, 5, '%', function (value) {
+                rangeRow(t('editor.ambientDrift'), Number(prefs.npAmbientDrift) || 0, 0, 300, 5, '%', function (value) {
                   setPrefs({ npAmbientDrift: value })
                 }),
-                rangeRow(t('editor.ambientSpeed'), Number(prefs.npAmbientSpeed) || 100, 50, 200, 5, '%', function (value) {
+                rangeRow(t('editor.ambientSpeed'), Number(prefs.npAmbientSpeed) || 100, 50, 400, 5, '%', function (value) {
                   setPrefs({ npAmbientSpeed: value })
                 }),
-                rangeRow(t('editor.beatSensitivity'), Number(prefs.npBeatSensitivity) || 60, 0, 100, 5, '%', function (value) {
+                rangeRow(t('editor.beatSensitivity'), Number(prefs.npBeatSensitivity) || 60, 0, 200, 5, '%', function (value) {
                   setPrefs({ npBeatSensitivity: value })
                 }),
-                rangeRow(t('editor.beatAmount'), Number(prefs.npBeatAmount) || 60, 0, 100, 5, '%', function (value) {
+                rangeRow(t('editor.beatAmount'), Number(prefs.npBeatAmount) || 60, 0, 300, 5, '%', function (value) {
                   setPrefs({ npBeatAmount: value })
                 }),
               ),
@@ -12381,8 +12381,8 @@ window.__ModuleLoader__.load({
         ambientRef,
         true,
         snap.playing === true,
-        clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 1),
-        clamp((Number(prefs.npBeatAmount) || 60) / 100, 0, 1),
+        clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 2),
+        clamp((Number(prefs.npBeatAmount) || 60) / 100, 0, 3),
         bg.current !== '' || bg.previous !== '',
       )
 
@@ -12731,18 +12731,18 @@ window.__ModuleLoader__.load({
                 ref: ambientRef,
                 className: 'mp-np-bg is-ambient',
                 style: (function () {
-                  var drift = clamp((Number(prefs.npAmbientDrift) || 0) / 100, 0, 1)
+                  var drift = clamp((Number(prefs.npAmbientDrift) || 0) / 100, 0, 3)
                   return {
-                    '--mp-drift-x': (drift * 18).toFixed(2) + '%',
-                    '--mp-drift-nx': (drift * -18).toFixed(2) + '%',
-                    '--mp-drift-y': (drift * 10).toFixed(2) + '%',
-                    '--mp-drift-ny': (drift * -8).toFixed(2) + '%',
-                    '--mp-drift-s0': (1.12 + drift * 0.08).toFixed(3),
-                    '--mp-drift-s1': (1.18 + drift * 0.12).toFixed(3),
-                    '--mp-drift-r': (drift * 6).toFixed(2) + 'deg',
-                    '--mp-drift-nr': (drift * -6).toFixed(2) + 'deg',
+                    '--mp-drift-x': (drift * 12).toFixed(2) + '%',
+                    '--mp-drift-nx': (drift * -12).toFixed(2) + '%',
+                    '--mp-drift-y': (drift * 7).toFixed(2) + '%',
+                    '--mp-drift-ny': (drift * -6).toFixed(2) + '%',
+                    '--mp-drift-s0': (1.06 + drift * 0.18).toFixed(3),
+                    '--mp-drift-s1': (1.12 + drift * 0.22).toFixed(3),
+                    '--mp-drift-r': (drift * 3.5).toFixed(2) + 'deg',
+                    '--mp-drift-nr': (drift * -3.5).toFixed(2) + 'deg',
                     '--mp-speed':
-                      (10 / Math.max(0.4, (Number(prefs.npAmbientSpeed) || 100) / 100)).toFixed(1) + 's',
+                      (8 / Math.max(0.5, (Number(prefs.npAmbientSpeed) || 100) / 100)).toFixed(1) + 's',
                     '--mp-beat-scale': '1',
                   }
                 })(),
@@ -13015,8 +13015,8 @@ window.__ModuleLoader__.load({
                 playing: snap.playing,
                 imageRef: coverImgRef,
                 active: staged,
-                beat: clamp((Number(prefs.npBeatAmount) || 0) / 100, 0, 1),
-                beatSensitivity: clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 1),
+                beat: clamp((Number(prefs.npBeatAmount) || 0) / 100, 0, 3),
+                beatSensitivity: clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 2),
               })
                 : null,
               h(SeekBar, { fallbackDuration: track ? track.durationSec || 0 : 0 }),
