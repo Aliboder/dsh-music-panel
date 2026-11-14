@@ -8576,35 +8576,10 @@ window.__ModuleLoader__.load({
       '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
       '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
       '.mp-np-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto}.mp-np-bg .is-prev{opacity:1}.mp-np-bg .is-cur{animation:mp-bg-in .85s ease both}@keyframes mp-bg-in{from{opacity:0}to{opacity:1}}',
-      "@property --mp-flow-a{syntax:'<color>';inherits:true;initial-value:transparent}",
-      "@property --mp-flow-b{syntax:'<color>';inherits:true;initial-value:transparent}",
-      "@property --mp-flow-c{syntax:'<color>';inherits:true;initial-value:transparent}",
-      "@property --mp-flow-d{syntax:'<color>';inherits:true;initial-value:transparent}",
-      "@property --mp-flow-e{syntax:'<color>';inherits:true;initial-value:transparent}",
-      "@property --mp-flow-f{syntax:'<color>';inherits:true;initial-value:transparent}",
-      '.mp-np{--mp-flow-a:transparent;--mp-flow-b:transparent;--mp-flow-c:transparent;--mp-flow-d:transparent;--mp-flow-e:transparent;--mp-flow-f:transparent;transition:transform .32s ease,visibility .32s,--mp-flow-a 1.1s ease,--mp-flow-b 1.1s ease,--mp-flow-c 1.1s ease,--mp-flow-d 1.1s ease,--mp-flow-e 1.1s ease,--mp-flow-f 1.1s ease}',
       '.mp-np-flow{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;contain:strict}',
       '.mp-np-smoke{position:absolute;inset:0;display:block;width:100%;height:100%;opacity:.95;pointer-events:none}',
-      '.mp-np-flow.has-smoke .mp-np-blob,.mp-np-flow.has-smoke::before{display:none}',
-      '.mp-np-flow::before{content:"";position:absolute;left:50%;top:50%;width:150vmax;height:150vmax;margin:-75vmax;background:conic-gradient(from 0deg,transparent 0 10%,var(--mp-flow-a) 22%,transparent 36%,var(--mp-flow-c) 50%,transparent 64%,var(--mp-flow-b) 78%,transparent 92%);opacity:.28;animation:mp-flow-spin 16s linear infinite;will-change:transform;-webkit-mask-image:radial-gradient(circle at 50% 50%,transparent 0 16%,#000 44%,transparent 72%);mask-image:radial-gradient(circle at 50% 50%,transparent 0 16%,#000 44%,transparent 72%)}',
-      '.mp-np-blob{position:absolute;border-radius:50%;opacity:.95;will-change:transform;transform:translate3d(0,0,0);background:radial-gradient(circle at 50% 50%,var(--mp-flow-color) 0%,transparent 64%);animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}',
-      '.mp-np-blob.is-a{--mp-flow-color:var(--mp-flow-a);width:66vw;height:66vw;left:-14%;top:-20%;animation-name:mp-flow-a;animation-duration:9s;animation-delay:-2s}',
-      '.mp-np-blob.is-b{--mp-flow-color:var(--mp-flow-b);width:58vw;height:58vw;right:-16%;top:2%;animation-name:mp-flow-b;animation-duration:10s;animation-delay:-4s}',
-      '.mp-np-blob.is-c{--mp-flow-color:var(--mp-flow-c);width:64vw;height:64vw;left:8%;bottom:-28%;animation-name:mp-flow-c;animation-duration:11s;animation-delay:-6s}',
-      '.mp-np-blob.is-d{--mp-flow-color:var(--mp-flow-d);width:50vw;height:50vw;right:4%;bottom:-16%;animation-name:mp-flow-d;animation-duration:9s;animation-delay:-3s}',
-      '.mp-np-blob.is-e{--mp-flow-color:var(--mp-flow-e);width:42vw;height:42vw;left:34%;top:6%;animation-name:mp-flow-e;animation-duration:8s;animation-delay:-5s}',
-      '.mp-np-blob.is-f{--mp-flow-color:var(--mp-flow-f);width:46vw;height:46vw;right:28%;bottom:8%;animation-name:mp-flow-f;animation-duration:10s;animation-delay:-7s}',
-      '@keyframes mp-flow-a{0%{transform:translate3d(-16%,-10%,0) scale(.9)}100%{transform:translate3d(28%,34%,0) scale(1.4)}}',
-      '@keyframes mp-flow-b{0%{transform:translate3d(14%,-14%,0) scale(1.2)}100%{transform:translate3d(-32%,24%,0) scale(.8)}}',
-      '@keyframes mp-flow-c{0%{transform:translate3d(-20%,14%,0) scale(.82)}100%{transform:translate3d(26%,-26%,0) scale(1.36)}}',
-      '@keyframes mp-flow-d{0%{transform:translate3d(20%,8%,0) scale(.92)}100%{transform:translate3d(-28%,-22%,0) scale(1.42)}}',
-      '@keyframes mp-flow-e{0%{transform:translate3d(-24%,10%,0) scale(.86)}100%{transform:translate3d(22%,-18%,0) scale(1.34)}}',
-      '@keyframes mp-flow-f{0%{transform:translate3d(18%,-8%,0) scale(1.1)}100%{transform:translate3d(-30%,22%,0) scale(.78)}}',
-      '@keyframes mp-flow-spin{to{transform:rotate(360deg)}}',
-      '.mp-np-flow.is-paused .mp-np-blob,.mp-np-flow.is-paused::before{animation-play-state:paused}',
-      '@media (prefers-reduced-motion:reduce){.mp-np-blob,.mp-np-flow::before{animation:none}}',
-      '.mp-np-shade{position:absolute;inset:0;z-index:1;background:radial-gradient(85% 70% at 16% 6%,rgba(30,4,4,.22),transparent 62%),linear-gradient(180deg,rgba(14,2,2,.26),rgba(14,2,2,.06) 44%,rgba(14,2,2,.22) 80%,rgba(10,2,2,.44));pointer-events:none}',
-      '.mp-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(52% 44% at 26% 22%,rgba(255,255,255,.05),transparent 70%),radial-gradient(44% 40% at 80% 82%,rgba(0,0,0,.28),transparent 74%);pointer-events:none}',
+      '.mp-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.32),rgba(0,0,0,.04) 46%,rgba(0,0,0,.28) 82%,rgba(0,0,0,.42));pointer-events:none}',
+      '.mp-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(85% 75% at 50% 45%,transparent 55%,rgba(0,0,0,.3));pointer-events:none}',
       '.mp-np-head{position:absolute;top:22px;left:22px;z-index:5;display:flex;align-items:center;gap:8px;padding:0}',
       '.mp-np-head .mp-iconbtn{width:36px;height:36px;border-radius:8px;color:rgba(255,255,255,.78)}',
       '.mp-np-head .mp-iconbtn:hover{background:rgba(255,255,255,.1);color:#fff}',
@@ -11716,35 +11691,6 @@ window.__ModuleLoader__.load({
       }
     }
 
-    function flowPalette(accent) {
-      var base = accent !== null && typeof accent === 'object' ? accent : {}
-      var hue = Number(base.h)
-      if (!isFinite(hue)) hue = 40
-      var sat = Number(base.s)
-      if (!isFinite(sat) || sat < 0) sat = 30
-      if (sat > 0 && sat <= 1) sat *= 100
-      sat = Math.min(96, Math.max(60, sat))
-      var light = Number(base.l)
-      if (!isFinite(light) || light < 0) light = 55
-      if (light > 0 && light <= 1) light *= 100
-      light = Math.min(80, Math.max(50, light))
-      function tone(hueShift, satScale, lightShift, alpha) {
-        return 'hsl(' +
-          Math.round((hue + hueShift + 360) % 360) + ' ' +
-          Math.round(Math.min(96, Math.max(60, sat * satScale))) + '% ' +
-          Math.round(Math.min(82, Math.max(48, light + lightShift))) + '% / ' +
-          alpha + ')'
-      }
-      return {
-        a: tone(-38, 1.18, 8, 0.78),
-        b: tone(-8, 1.12, 4, 0.72),
-        c: tone(22, 1.15, 0, 0.72),
-        d: tone(48, 1.05, -6, 0.66),
-        e: tone(-64, 0.98, -8, 0.6),
-        f: tone(70, 0.92, -10, 0.56),
-      }
-    }
-
     function rgbToHslColor(red, green, blue) {
       var r = red / 255
       var g = green / 255
@@ -12023,6 +11969,9 @@ window.__ModuleLoader__.load({
       'uniform float uIntensity;',
       'uniform float uScale;',
       'uniform float uBeat;',
+      'uniform float uBass;',
+      'uniform float uMid;',
+      'uniform float uTreble;',
       'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
       'float noise(vec2 p){',
       '  vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);',
@@ -12038,17 +11987,20 @@ window.__ModuleLoader__.load({
       'void main(){',
       '  vec2 uv=gl_FragCoord.xy/uRes;',
       '  float aspect=uRes.x/uRes.y;',
-      '  vec2 p=(uv-0.5)*vec2(aspect,1.0)*3.1*uScale;',
+      '  vec2 p=(uv-0.5)*vec2(aspect,1.0)*2.6*uScale;',
+      '  p+=vec2(uBass*0.42,-uBass*0.26);',
       '  float t=uTime*0.13*uSpeed;',
       '  vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t*0.7));',
-      '  float warp=1.0+uBeat*1.2;',
-      '  vec2 r=vec2(fbm(p+4.0*q*warp+vec2(1.7,9.2)+t*0.55),fbm(p+4.0*q*warp+vec2(8.3,2.8)-t*0.45));',
-      '  float f=fbm(p+3.6*r);',
-      '  float smoke=smoothstep(0.46,0.96,f);',
+      '  float warp=1.0+uBeat*0.5+uMid*0.35;',
+      '  vec2 r=vec2(fbm(p+3.2*q*warp+vec2(1.7,9.2)+t*0.55),fbm(p+3.2*q*warp+vec2(8.3,2.8)-t*0.45));',
+      '  float f1=fbm(p+2.4*r);',
+      '  float f2=fbm(p*1.6+vec2(4.3,7.1)+t*0.35);',
+      '  float f=0.55*f1+0.45*f2;',
+      '  float smoke=smoothstep(0.3,0.86,f);',
       '  vec3 col=mix(uA,uB,smoothstep(0.2,0.8,r.x));',
       '  col=mix(col,uC,smoothstep(0.4,0.95,q.y));',
-      '  col*=0.74+0.46*f;',
-      '  float alpha=smoke*0.5*uIntensity;',
+      '  col*=0.8+0.3*f+uTreble*0.12;',
+      '  float alpha=(0.16+0.5*smoke)*uIntensity;',
       '  gl_FragColor=vec4(col,alpha);',
       '}',
     ].join('\n')
@@ -12181,7 +12133,33 @@ window.__ModuleLoader__.load({
           var uIntensity = gl.getUniformLocation(program, 'uIntensity')
           var uScale = gl.getUniformLocation(program, 'uScale')
           var uBeat = gl.getUniformLocation(program, 'uBeat')
+          var uBass = gl.getUniformLocation(program, 'uBass')
+          var uMid = gl.getUniformLocation(program, 'uMid')
+          var uTreble = gl.getUniformLocation(program, 'uTreble')
           var beatTracker = createBeatTracker()
+          var bands = { bass: 0, mid: 0, treble: 0 }
+          function updateBands(wave) {
+            if (wave === null || wave === undefined || wave.length === 0) {
+              bands.bass *= 0.9
+              bands.mid *= 0.9
+              bands.treble *= 0.9
+              return
+            }
+            var size = wave.length
+            function average(from, to) {
+              var start = Math.floor(size * from)
+              var end = Math.max(start + 1, Math.floor(size * to))
+              var sum = 0
+              for (var i = start; i < end && i < size; i += 1) sum += wave[i]
+              return sum / (end - start) / 255
+            }
+            function ease(current, target) {
+              return current + (target - current) * (target > current ? 0.55 : 0.14)
+            }
+            bands.bass = ease(bands.bass, average(0, 0.08))
+            bands.mid = ease(bands.mid, average(0.08, 0.35))
+            bands.treble = ease(bands.treble, average(0.35, 0.75))
+          }
           var current = (targetRef.current || [[1, 1, 1]]).map(function (color) {
             return color.slice()
           })
@@ -12215,16 +12193,19 @@ window.__ModuleLoader__.load({
             gl.uniform3f(uB, current[1][0], current[1][1], current[1][2])
             gl.uniform3f(uC, current[2][0], current[2][1], current[2][2])
             gl.uniform1f(uTime, ((now || 0) - start) / 1000)
-            var beat = beatTracker.update(
+            var wave =
               typeof player !== 'undefined' && player !== null && typeof player.getWave === 'function'
                 ? player.getWave()
-                : null,
-              playingRef.current,
-            ) * beatRef.current
+                : null
+            updateBands(wave)
+            var beat = beatTracker.update(wave, playingRef.current) * beatRef.current
             gl.uniform1f(uSpeed, speedRef.current * (1 + beat * gainSpeedRef.current))
             gl.uniform1f(uIntensity, intensityRef.current * (1 + beat * gainIntensityRef.current))
             gl.uniform1f(uScale, scaleRef.current * (1 - beat * gainScaleRef.current))
             gl.uniform1f(uBeat, beat * gainWarpRef.current)
+            gl.uniform1f(uBass, bands.bass)
+            gl.uniform1f(uMid, bands.mid)
+            gl.uniform1f(uTreble, bands.treble)
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
           }
           function frame(now) {
@@ -12243,8 +12224,6 @@ window.__ModuleLoader__.load({
             if (raf !== 0) cancelAnimationFrame(raf)
             raf = 0
           }
-          var parent = canvas.parentNode
-          if (parent !== null) parent.classList.add('has-smoke')
           resize()
           start = performance.now()
           if (reduced === true || pausedRef.current === true || document.visibilityState === 'hidden') {
@@ -12269,7 +12248,6 @@ window.__ModuleLoader__.load({
             document.removeEventListener('visibilitychange', sync)
             if (observer !== null) observer.disconnect()
             controlRef.current = null
-            if (parent !== null) parent.classList.remove('has-smoke')
             gl.deleteProgram(program)
             gl.deleteBuffer(buffer)
             var lose = gl.getExtension('WEBGL_lose_context')
@@ -12649,7 +12627,6 @@ window.__ModuleLoader__.load({
           document.removeEventListener('visibilitychange', sync)
         }
       }, [])
-      var flow = flowPalette(flowAccent)
       var smokeColors = smokePalette(flowAccent)
       var bgPair = useState({ current: '', previous: '' })
       var bg = bgPair[0]
@@ -12991,15 +12968,9 @@ window.__ModuleLoader__.load({
             '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
             '--mp-lyric-w': lyricWidth + 'px',
             '--mp-pane-gap-w': paneGap + 'px',
-            '--mp-flow-a': flow.a,
-            '--mp-flow-b': flow.b,
-            '--mp-flow-c': flow.c,
-            '--mp-flow-d': flow.d,
-            '--mp-flow-e': flow.e,
-            '--mp-flow-f': flow.f,
           },
         },
-        bg.current !== '' || bg.previous !== ''
+        prefs.npFlowBg === false && (bg.current !== '' || bg.previous !== '')
           ? h(
               'div',
               { className: 'mp-np-bg' },
@@ -13032,12 +13003,6 @@ window.__ModuleLoader__.load({
                 intensity: clamp((Number(prefs.npSmokeIntensity) || 100) / 100, 0.3, 1.8),
                 scale: clamp((Number(prefs.npSmokeScale) || 100) / 100, 0.5, 2),
               }),
-              h('i', { className: 'mp-np-blob is-a' }),
-              h('i', { className: 'mp-np-blob is-b' }),
-              h('i', { className: 'mp-np-blob is-c' }),
-              h('i', { className: 'mp-np-blob is-d' }),
-              h('i', { className: 'mp-np-blob is-e' }),
-              h('i', { className: 'mp-np-blob is-f' }),
             )
           : null,
         h('div', { className: 'mp-np-shade' }),

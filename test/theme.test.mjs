@@ -109,13 +109,13 @@ assert.match(theme, /\.mp-np-right\{[^']*width:var\(--mp-lyric-fit\)/, 'the lyri
 assert.match(theme, /\.mp-np-split\{[^']*cursor:col-resize/, 'the splitter is draggable')
 assert.match(theme, /\.mp-np-split\{[^']*display:none/, 'the splitter is hidden on the stacked layout')
 
-// Flowing-light background: colours must be registered so track changes can
-// interpolate, and the animation must stay on the compositor (transform only).
-assert.match(theme, /@property --mp-flow-a\{syntax:'<color>'/, 'flow colours register for smooth track changes')
-assert.match(theme, /\.mp-np-blob\{[^']*radial-gradient/, 'flow blobs are gradients, not blur filters')
-assert.match(theme, /@keyframes mp-flow-a\{[^']*transform:translate3d/, 'flow animates transform only')
-assert.doesNotMatch(theme, /\.mp-np-blob\{[^']*background-position/, 'flow must not animate background-position')
-assert.match(theme, /prefers-reduced-motion:reduce\)\{[^']*\.mp-np-blob[^']*animation:none/, 'reduced motion disables the flow')
+// The background is a single WebGL smoke layer: no blobs, beam or white glow.
+assert.match(theme, /\.mp-np-smoke\{/, 'webgl smoke canvas exists')
+assert.match(theme, /\.mp-np-flow\{[^']*overflow:hidden/, 'flow layer clips the smoke canvas')
+assert.doesNotMatch(theme, /\.mp-np-blob/, 'the blob fallback is gone')
+assert.doesNotMatch(theme, /mp-flow-spin|mp-flow-a\{/, 'the rotating beam is gone')
+assert.doesNotMatch(theme, /\.mp-np::after\{[^']*rgba\(255,255,255/, 'no white glow overlay')
+assert.match(theme, /\.mp-np-shade\{[^']*rgba\(0,0,0/, 'shade is neutral')
 
 // The lyric footer buttons follow the chosen lyric alignment.
 assert.match(theme, /\.mp-align-center \.mp-np-lyric-foot\{justify-content:center\}/, 'footer follows the lyric alignment')
@@ -147,12 +147,6 @@ assert.match(theme, /\.mp-row-title\{[^']*font-size:16px/, 'song titles are larg
 assert.match(theme, /\.mp-entry-row\{[^']*height:84px/, 'entry rows are song-row height')
 assert.match(theme, /\.mp-entry-art\{[^']*width:56px;height:56px/, 'entry rows use song-row cover size')
 assert.match(theme, /\.mp-entry-title\{[^']*font-size:16px/, 'entry titles use song-row title size')
-
-assert.match(theme, /\.mp-np-blob\.is-e\{/, 'flow has six blobs')
-assert.match(theme, /\.mp-np-flow::before\{[^']*mask-image:radial-gradient/, 'flow beam is masked into a ring')
-
-assert.match(theme, /\.mp-np-smoke\{/, 'webgl smoke canvas exists')
-assert.match(theme, /\.mp-np-flow\.has-smoke \.mp-np-blob[^']*display:none/, 'smoke replaces the blob fallback')
 
 assert.match(theme, /\.mp-npe-section\.is-smoke\{grid-column:1\/4;grid-row:3\}/, 'smoke tuning section spans the editor')
 assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/, 'smoke tuning has four columns')

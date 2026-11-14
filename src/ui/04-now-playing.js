@@ -808,35 +808,6 @@ function fallbackCoverAccent() {
   }
 }
 
-function flowPalette(accent) {
-  var base = accent !== null && typeof accent === 'object' ? accent : {}
-  var hue = Number(base.h)
-  if (!isFinite(hue)) hue = 40
-  var sat = Number(base.s)
-  if (!isFinite(sat) || sat < 0) sat = 30
-  if (sat > 0 && sat <= 1) sat *= 100
-  sat = Math.min(96, Math.max(60, sat))
-  var light = Number(base.l)
-  if (!isFinite(light) || light < 0) light = 55
-  if (light > 0 && light <= 1) light *= 100
-  light = Math.min(80, Math.max(50, light))
-  function tone(hueShift, satScale, lightShift, alpha) {
-    return 'hsl(' +
-      Math.round((hue + hueShift + 360) % 360) + ' ' +
-      Math.round(Math.min(96, Math.max(60, sat * satScale))) + '% ' +
-      Math.round(Math.min(82, Math.max(48, light + lightShift))) + '% / ' +
-      alpha + ')'
-  }
-  return {
-    a: tone(-38, 1.18, 8, 0.78),
-    b: tone(-8, 1.12, 4, 0.72),
-    c: tone(22, 1.15, 0, 0.72),
-    d: tone(48, 1.05, -6, 0.66),
-    e: tone(-64, 0.98, -8, 0.6),
-    f: tone(70, 0.92, -10, 0.56),
-  }
-}
-
 function rgbToHslColor(red, green, blue) {
   var r = red / 255
   var g = green / 255
@@ -1115,6 +1086,9 @@ var SMOKE_FRAGMENT = [
   'uniform float uIntensity;',
   'uniform float uScale;',
   'uniform float uBeat;',
+  'uniform float uBass;',
+  'uniform float uMid;',
+  'uniform float uTreble;',
   'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
   'float noise(vec2 p){',
   '  vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);',
@@ -1130,17 +1104,20 @@ var SMOKE_FRAGMENT = [
   'void main(){',
   '  vec2 uv=gl_FragCoord.xy/uRes;',
   '  float aspect=uRes.x/uRes.y;',
-  '  vec2 p=(uv-0.5)*vec2(aspect,1.0)*3.1*uScale;',
+  '  vec2 p=(uv-0.5)*vec2(aspect,1.0)*2.6*uScale;',
+  '  p+=vec2(uBass*0.42,-uBass*0.26);',
   '  float t=uTime*0.13*uSpeed;',
   '  vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t*0.7));',
-  '  float warp=1.0+uBeat*1.2;',
-  '  vec2 r=vec2(fbm(p+4.0*q*warp+vec2(1.7,9.2)+t*0.55),fbm(p+4.0*q*warp+vec2(8.3,2.8)-t*0.45));',
-  '  float f=fbm(p+3.6*r);',
-  '  float smoke=smoothstep(0.46,0.96,f);',
+  '  float warp=1.0+uBeat*0.5+uMid*0.35;',
+  '  vec2 r=vec2(fbm(p+3.2*q*warp+vec2(1.7,9.2)+t*0.55),fbm(p+3.2*q*warp+vec2(8.3,2.8)-t*0.45));',
+  '  float f1=fbm(p+2.4*r);',
+  '  float f2=fbm(p*1.6+vec2(4.3,7.1)+t*0.35);',
+  '  float f=0.55*f1+0.45*f2;',
+  '  float smoke=smoothstep(0.3,0.86,f);',
   '  vec3 col=mix(uA,uB,smoothstep(0.2,0.8,r.x));',
   '  col=mix(col,uC,smoothstep(0.4,0.95,q.y));',
-  '  col*=0.74+0.46*f;',
-  '  float alpha=smoke*0.5*uIntensity;',
+  '  col*=0.8+0.3*f+uTreble*0.12;',
+  '  float alpha=(0.16+0.5*smoke)*uIntensity;',
   '  gl_FragColor=vec4(col,alpha);',
   '}',
 ].join('\n')
@@ -1273,7 +1250,33 @@ function SmokeFlow(props) {
       var uIntensity = gl.getUniformLocation(program, 'uIntensity')
       var uScale = gl.getUniformLocation(program, 'uScale')
       var uBeat = gl.getUniformLocation(program, 'uBeat')
+      var uBass = gl.getUniformLocation(program, 'uBass')
+      var uMid = gl.getUniformLocation(program, 'uMid')
+      var uTreble = gl.getUniformLocation(program, 'uTreble')
       var beatTracker = createBeatTracker()
+      var bands = { bass: 0, mid: 0, treble: 0 }
+      function updateBands(wave) {
+        if (wave === null || wave === undefined || wave.length === 0) {
+          bands.bass *= 0.9
+          bands.mid *= 0.9
+          bands.treble *= 0.9
+          return
+        }
+        var size = wave.length
+        function average(from, to) {
+          var start = Math.floor(size * from)
+          var end = Math.max(start + 1, Math.floor(size * to))
+          var sum = 0
+          for (var i = start; i < end && i < size; i += 1) sum += wave[i]
+          return sum / (end - start) / 255
+        }
+        function ease(current, target) {
+          return current + (target - current) * (target > current ? 0.55 : 0.14)
+        }
+        bands.bass = ease(bands.bass, average(0, 0.08))
+        bands.mid = ease(bands.mid, average(0.08, 0.35))
+        bands.treble = ease(bands.treble, average(0.35, 0.75))
+      }
       var current = (targetRef.current || [[1, 1, 1]]).map(function (color) {
         return color.slice()
       })
@@ -1307,16 +1310,19 @@ function SmokeFlow(props) {
         gl.uniform3f(uB, current[1][0], current[1][1], current[1][2])
         gl.uniform3f(uC, current[2][0], current[2][1], current[2][2])
         gl.uniform1f(uTime, ((now || 0) - start) / 1000)
-        var beat = beatTracker.update(
+        var wave =
           typeof player !== 'undefined' && player !== null && typeof player.getWave === 'function'
             ? player.getWave()
-            : null,
-          playingRef.current,
-        ) * beatRef.current
+            : null
+        updateBands(wave)
+        var beat = beatTracker.update(wave, playingRef.current) * beatRef.current
         gl.uniform1f(uSpeed, speedRef.current * (1 + beat * gainSpeedRef.current))
         gl.uniform1f(uIntensity, intensityRef.current * (1 + beat * gainIntensityRef.current))
         gl.uniform1f(uScale, scaleRef.current * (1 - beat * gainScaleRef.current))
         gl.uniform1f(uBeat, beat * gainWarpRef.current)
+        gl.uniform1f(uBass, bands.bass)
+        gl.uniform1f(uMid, bands.mid)
+        gl.uniform1f(uTreble, bands.treble)
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
       }
       function frame(now) {
@@ -1335,8 +1341,6 @@ function SmokeFlow(props) {
         if (raf !== 0) cancelAnimationFrame(raf)
         raf = 0
       }
-      var parent = canvas.parentNode
-      if (parent !== null) parent.classList.add('has-smoke')
       resize()
       start = performance.now()
       if (reduced === true || pausedRef.current === true || document.visibilityState === 'hidden') {
@@ -1361,7 +1365,6 @@ function SmokeFlow(props) {
         document.removeEventListener('visibilitychange', sync)
         if (observer !== null) observer.disconnect()
         controlRef.current = null
-        if (parent !== null) parent.classList.remove('has-smoke')
         gl.deleteProgram(program)
         gl.deleteBuffer(buffer)
         var lose = gl.getExtension('WEBGL_lose_context')
@@ -1741,7 +1744,6 @@ function NowPlaying(props) {
       document.removeEventListener('visibilitychange', sync)
     }
   }, [])
-  var flow = flowPalette(flowAccent)
   var smokeColors = smokePalette(flowAccent)
   var bgPair = useState({ current: '', previous: '' })
   var bg = bgPair[0]
@@ -2083,15 +2085,9 @@ function NowPlaying(props) {
         '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
         '--mp-lyric-w': lyricWidth + 'px',
         '--mp-pane-gap-w': paneGap + 'px',
-        '--mp-flow-a': flow.a,
-        '--mp-flow-b': flow.b,
-        '--mp-flow-c': flow.c,
-        '--mp-flow-d': flow.d,
-        '--mp-flow-e': flow.e,
-        '--mp-flow-f': flow.f,
       },
     },
-    bg.current !== '' || bg.previous !== ''
+    prefs.npFlowBg === false && (bg.current !== '' || bg.previous !== '')
       ? h(
           'div',
           { className: 'mp-np-bg' },
@@ -2124,12 +2120,6 @@ function NowPlaying(props) {
             intensity: clamp((Number(prefs.npSmokeIntensity) || 100) / 100, 0.3, 1.8),
             scale: clamp((Number(prefs.npSmokeScale) || 100) / 100, 0.5, 2),
           }),
-          h('i', { className: 'mp-np-blob is-a' }),
-          h('i', { className: 'mp-np-blob is-b' }),
-          h('i', { className: 'mp-np-blob is-c' }),
-          h('i', { className: 'mp-np-blob is-d' }),
-          h('i', { className: 'mp-np-blob is-e' }),
-          h('i', { className: 'mp-np-blob is-f' }),
         )
       : null,
     h('div', { className: 'mp-np-shade' }),
