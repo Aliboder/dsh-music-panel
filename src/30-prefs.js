@@ -33,22 +33,11 @@ var PREF_DEFAULTS = {
   npPaneGap: 60,
   /** Animated flowing-light background on the player page. */
   npFlowBg: true,
-  /** WebGL smoke tuning: percentage of the base value. */
-  npSmokeIntensity: 100,
-  npSmokeSpeed: 100,
-  npSmokeScale: 100,
-  /** 0-100: how strongly the smoke reacts to the music energy. */
-  npSmokeBeat: 60,
-  /** Beat modulation gains in percent: 100 = 1x, 220 = 2.2x. */
-  npBeatSpeed: 220,
-  npBeatIntensity: 100,
-  npBeatScale: 18,
-  npBeatWarp: 120,
-  /** Image quality of the smoke layer. */
-  npSmokeHaze: 60,
-  npSmokeBrightness: 100,
-  npSmokeContrast: 100,
-  npSmokeHue: 0,
+  /** Ambient backdrop motion (blurred cover). */
+  npAmbientDrift: 60,
+  npAmbientSpeed: 100,
+  npBeatSensitivity: 60,
+  npBeatAmount: 60,
   composerLyrics: false,
   composerTranslation: true,
   composerLyricPlace: 'input-left',

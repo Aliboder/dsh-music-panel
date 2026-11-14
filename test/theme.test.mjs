@@ -109,13 +109,13 @@ assert.match(theme, /\.mp-np-right\{[^']*width:var\(--mp-lyric-fit\)/, 'the lyri
 assert.match(theme, /\.mp-np-split\{[^']*cursor:col-resize/, 'the splitter is draggable')
 assert.match(theme, /\.mp-np-split\{[^']*display:none/, 'the splitter is hidden on the stacked layout')
 
-// The background is a single WebGL smoke layer: no blobs, beam or white glow.
-assert.match(theme, /\.mp-np-smoke\{/, 'webgl smoke canvas exists')
-assert.match(theme, /\.mp-np-flow\{[^']*overflow:hidden/, 'flow layer clips the smoke canvas')
-assert.doesNotMatch(theme, /\.mp-np-blob/, 'the blob fallback is gone')
-assert.doesNotMatch(theme, /mp-flow-spin|mp-flow-a\{/, 'the rotating beam is gone')
+// Ambient backdrop: CSS drift on the blurred cover, no smoke canvas.
+assert.match(theme, /\.mp-np-bg-drift\{[^']*will-change:transform/, 'backdrop drift layer exists')
+assert.match(theme, /@keyframes mp-ambient-drift\{[^']*translate3d/, 'backdrop drift is transform-based')
+assert.match(theme, /\.mp-np-bg img\{[^']*transform:scale\(var\(--mp-beat-scale\)/, 'beat pulses the blurred cover')
+assert.doesNotMatch(theme, /\.mp-np-smoke|\.mp-np-flow/, 'the smoke layer is gone')
 assert.doesNotMatch(theme, /\.mp-np::after\{[^']*rgba\(255,255,255/, 'no white glow overlay')
-assert.match(theme, /\.mp-np-shade\{[^']*rgba\(0,0,0/, 'shade is neutral')
+assert.match(theme, /prefers-reduced-motion:reduce\)\{[^']*\.mp-np-bg\.is-ambient \.mp-np-bg-drift\{animation:none/, 'reduced motion stops the drift')
 
 // The lyric footer buttons follow the chosen lyric alignment.
 assert.match(theme, /\.mp-align-center \.mp-np-lyric-foot\{justify-content:center\}/, 'footer follows the lyric alignment')
@@ -148,7 +148,7 @@ assert.match(theme, /\.mp-entry-row\{[^']*height:84px/, 'entry rows are song-row
 assert.match(theme, /\.mp-entry-art\{[^']*width:56px;height:56px/, 'entry rows use song-row cover size')
 assert.match(theme, /\.mp-entry-title\{[^']*font-size:16px/, 'entry titles use song-row title size')
 
-assert.match(theme, /\.mp-npe-section\.is-smoke\{grid-column:1\/4;grid-row:3\}/, 'smoke tuning section spans the editor')
-assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/, 'smoke tuning has four columns')
+assert.match(theme, /\.mp-npe-section\.is-ambient\{grid-column:1\/4;grid-row:3\}/, 'ambient section spans the editor')
+assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/, 'ambient section has four columns')
 
 console.log('theme.test.mjs ok')

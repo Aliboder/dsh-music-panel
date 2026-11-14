@@ -409,18 +409,10 @@ function NpEditor(props) {
       npPaneGap: 60,
       npLyricWidth: 560,
       npFlowBg: true,
-      npSmokeIntensity: 100,
-      npSmokeSpeed: 100,
-      npSmokeScale: 100,
-      npSmokeBeat: 60,
-      npBeatSpeed: 220,
-      npBeatIntensity: 100,
-      npBeatScale: 18,
-      npBeatWarp: 120,
-      npSmokeHaze: 60,
-      npSmokeBrightness: 100,
-      npSmokeContrast: 100,
-      npSmokeHue: 0,
+      npAmbientDrift: 60,
+      npAmbientSpeed: 100,
+      npBeatSensitivity: 60,
+      npBeatAmount: 60,
     })
   }
 
@@ -731,64 +723,22 @@ function NpEditor(props) {
         ),
         h(
           'div',
-          { className: 'mp-npe-section is-smoke' },
-          sectionHead(t('editor.smoke')),
+          { className: 'mp-npe-section is-ambient' },
+          sectionHead(t('editor.ambient')),
           h(
             'div',
             { className: 'mp-npe-smoke-grid' },
-            rangeRow(t('editor.smokeIntensity'), Number(prefs.npSmokeIntensity) || 100, 30, 180, 5, '%', function (value) {
-              setPrefs({ npSmokeIntensity: value })
+            rangeRow(t('editor.ambientDrift'), Number(prefs.npAmbientDrift) || 0, 0, 100, 5, '%', function (value) {
+              setPrefs({ npAmbientDrift: value })
             }),
-            rangeRow(t('editor.smokeSpeed'), Number(prefs.npSmokeSpeed) || 100, 30, 250, 5, '%', function (value) {
-              setPrefs({ npSmokeSpeed: value })
+            rangeRow(t('editor.ambientSpeed'), Number(prefs.npAmbientSpeed) || 100, 50, 200, 5, '%', function (value) {
+              setPrefs({ npAmbientSpeed: value })
             }),
-            rangeRow(t('editor.smokeScale'), Number(prefs.npSmokeScale) || 100, 50, 200, 5, '%', function (value) {
-              setPrefs({ npSmokeScale: value })
+            rangeRow(t('editor.beatSensitivity'), Number(prefs.npBeatSensitivity) || 60, 0, 100, 5, '%', function (value) {
+              setPrefs({ npBeatSensitivity: value })
             }),
-            rangeRow(t('editor.smokeBeat'), Number(prefs.npSmokeBeat) || 0, 0, 100, 5, '%', function (value) {
-              setPrefs({ npSmokeBeat: value })
-            }, t('editor.smokeBeatHint')),
-          ),
-        ),
-        h(
-          'div',
-          { className: 'mp-npe-section is-beat' },
-          sectionHead(t('editor.beat')),
-          h(
-            'div',
-            { className: 'mp-npe-smoke-grid' },
-            rangeRow(t('editor.beatSpeed'), Number(prefs.npBeatSpeed) || 220, 0, 300, 10, '%', function (value) {
-              setPrefs({ npBeatSpeed: value })
-            }),
-            rangeRow(t('editor.beatIntensity'), Number(prefs.npBeatIntensity) || 100, 0, 300, 10, '%', function (value) {
-              setPrefs({ npBeatIntensity: value })
-            }),
-            rangeRow(t('editor.beatScale'), Number(prefs.npBeatScale) || 18, 0, 50, 2, '%', function (value) {
-              setPrefs({ npBeatScale: value })
-            }),
-            rangeRow(t('editor.beatWarp'), Number(prefs.npBeatWarp) || 120, 0, 300, 10, '%', function (value) {
-              setPrefs({ npBeatWarp: value })
-            }),
-          ),
-        ),
-        h(
-          'div',
-          { className: 'mp-npe-section is-quality' },
-          sectionHead(t('editor.quality')),
-          h(
-            'div',
-            { className: 'mp-npe-smoke-grid' },
-            rangeRow(t('editor.haze'), Number(prefs.npSmokeHaze) || 0, 0, 200, 5, '%', function (value) {
-              setPrefs({ npSmokeHaze: value })
-            }),
-            rangeRow(t('editor.brightness'), Number(prefs.npSmokeBrightness) || 100, 50, 150, 5, '%', function (value) {
-              setPrefs({ npSmokeBrightness: value })
-            }),
-            rangeRow(t('editor.contrast'), Number(prefs.npSmokeContrast) || 100, 50, 150, 5, '%', function (value) {
-              setPrefs({ npSmokeContrast: value })
-            }),
-            rangeRow(t('editor.hue'), Number(prefs.npSmokeHue) || 0, -60, 60, 5, '°', function (value) {
-              setPrefs({ npSmokeHue: value })
+            rangeRow(t('editor.beatAmount'), Number(prefs.npBeatAmount) || 60, 0, 100, 5, '%', function (value) {
+              setPrefs({ npBeatAmount: value })
             }),
           ),
         ),
@@ -1099,360 +1049,81 @@ function createBlurredBackdrop(url) {
 }
 
 
-var SMOKE_VERTEX = 'attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.0,1.0);}'
-var SMOKE_FRAGMENT = [
-  'precision mediump float;',
-  'uniform vec2 uRes;',
-  'uniform float uTime;',
-  'uniform vec3 uA;',
-  'uniform vec3 uB;',
-  'uniform vec3 uC;',
-  'uniform float uSpeed;',
-  'uniform float uIntensity;',
-  'uniform float uScale;',
-  'uniform float uBeat;',
-  'uniform float uBass;',
-  'uniform float uMid;',
-  'uniform float uTreble;',
-  'uniform float uHaze;',
-  'uniform float uBright;',
-  'uniform float uContrast;',
-  'uniform float uHue;',
-  'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
-  'float noise(vec2 p){',
-  '  vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);',
-  '  float a=hash(i);float b=hash(i+vec2(1.0,0.0));float c=hash(i+vec2(0.0,1.0));float d=hash(i+vec2(1.0,1.0));',
-  '  return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);',
-  '}',
-  'mat2 rot(float a){float c=cos(a);float s=sin(a);return mat2(c,-s,s,c);}',
-  'vec3 hueShift(vec3 color,float angle){',
-  '  float c=cos(angle);float s=sin(angle);',
-  '  mat3 m=mat3(0.299+0.701*c+0.168*s,0.587-0.587*c+0.330*s,0.114-0.114*c-0.497*s,',
-  '            0.299-0.299*c-0.328*s,0.587+0.413*c+0.035*s,0.114-0.114*c+0.292*s,',
-  '            0.299-0.299*c+1.250*s,0.587-0.587*c-1.050*s,0.114+0.886*c-0.203*s);',
-  '  return clamp(m*color,0.0,1.0);',
-  '}',
-  'float fbm(vec2 p){',
-  '  float v=0.0;float amp=0.5;',
-  '  for(int i=0;i<4;i++){v+=amp*noise(p);p=rot(0.5)*p*2.03+vec2(1.7,9.2);amp*=0.5;}',
-  '  return v;',
-  '}',
-  'void main(){',
-  '  vec2 uv=gl_FragCoord.xy/uRes;',
-  '  float aspect=uRes.x/uRes.y;',
-  '  vec2 p=(uv-0.5)*vec2(aspect,1.0)*2.6*uScale;',
-  '  p+=vec2(uBass*0.42,-uBass*0.26);',
-  '  float t=uTime*0.13*uSpeed;',
-  '  vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t*0.7));',
-  '  float warp=1.0+uBeat*0.5+uMid*0.35;',
-  '  vec2 r=vec2(fbm(p+3.2*q*warp+vec2(1.7,9.2)+t*0.55),fbm(p+3.2*q*warp+vec2(8.3,2.8)-t*0.45));',
-  '  float f1=fbm(p+2.4*r);',
-  '  float f2=fbm(p*1.6+vec2(4.3,7.1)+t*0.35);',
-  '  float soft=fbm(p*0.62+vec2(2.0,5.0)+t*0.22);',
-  '  float detail=mix(f2,soft,clamp(uHaze,0.0,1.0)*0.4);',
-  '  float f=0.6*f1+0.4*detail;',
-  '  float smoke=smoothstep(0.34-0.1*uHaze,0.9,f);',
-  '  vec3 col=mix(uA,uB,smoothstep(0.2,0.8,r.x));',
-  '  col=mix(col,uC,smoothstep(0.4,0.95,q.y));',
-  '  col*=0.8+0.3*f+uTreble*0.12;',
-  '  col=hueShift(col,uHue);',
-  '  col=(col-0.5)*uContrast+0.5;',
-  '  col*=uBright;',
-  '  float alpha=clamp((0.14+0.14*uHaze+0.4*smoke)*uIntensity,0.0,0.92);',
-  '  gl_FragColor=vec4(col,alpha);',
-  '}',
-].join('\n')
-
-function hslToRgb01(h, s, l) {
-  h = ((h % 360) + 360) % 360 / 360
-  s = Math.min(1, Math.max(0, s / 100))
-  l = Math.min(1, Math.max(0, l / 100))
-  function hue(p, q, t) {
-    if (t < 0) t += 1
-    if (t > 1) t -= 1
-    if (t < 1 / 6) return p + (q - p) * 6 * t
-    if (t < 1 / 2) return q
-    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
-    return p
-  }
-  if (s === 0) return [l, l, l]
-  var q = l < 0.5 ? l * (1 + s) : l + s - l * s
-  var p = 2 * l - q
-  return [hue(p, q, h + 1 / 3), hue(p, q, h), hue(p, q, h - 1 / 3)]
-}
-
-function smokePalette(accent) {
-  var base = accent !== null && typeof accent === 'object' ? accent : {}
-  var hue = Number(base.h)
-  if (!isFinite(hue)) hue = 40
-  var sat = Number(base.s)
-  if (!isFinite(sat) || sat < 0) sat = 30
-  if (sat > 0 && sat <= 1) sat *= 100
-  sat = Math.min(94, Math.max(58, sat))
-  var light = Number(base.l)
-  if (!isFinite(light) || light < 0) light = 55
-  if (light > 0 && light <= 1) light *= 100
-  light = Math.min(82, Math.max(52, light))
-  function tone(shift, satScale, lightShift) {
-    return hslToRgb01(hue + shift, Math.min(96, Math.max(58, sat * satScale)), light + lightShift)
-  }
-  return [tone(-34, 1.15, 4), tone(8, 1.05, -2), tone(44, 0.95, -8)]
-}
-
-function SmokeFlow(props) {
-  var canvasRef = useRef(null)
-  var targetRef = useRef(props.colors)
-  var pausedRef = useRef(props.paused === true)
-  var controlRef = useRef(null)
-  var speedRef = useRef(Number(props.speed) || 1)
-  var intensityRef = useRef(Number(props.intensity) || 1)
-  var scaleRef = useRef(Number(props.scale) || 1)
-  var playingRef = useRef(props.playing === true)
-  var beatRef = useRef(Number(props.beat) || 0)
-  var gainSpeedRef = useRef(Number(props.beatSpeed) || 2.2)
-  var gainIntensityRef = useRef(Number(props.beatIntensity) || 1)
-  var gainScaleRef = useRef(Number(props.beatScale) || 0.18)
-  var gainWarpRef = useRef(Number(props.beatWarp) || 1.2)
-  var hazeRef = useRef(Number(props.haze) || 0.6)
-  var brightRef = useRef(Number(props.brightness) || 1)
-  var contrastRef = useRef(Number(props.contrast) || 1)
-  var hueRef = useRef(Number(props.hue) || 0)
+/**
+ * Ambient backdrop motion: CSS handles the slow drift, and this cheap loop
+ * only raises a CSS variable with the beat so the blurred cover can pulse.
+ */
+function useAmbientBeat(ref, enabled, playing, sensitivity, amount, ready) {
+  var stateRef = useRef({
+    enabled: enabled === true,
+    playing: playing === true,
+    sensitivity: Number(sensitivity) || 0.6,
+    amount: Number(amount) || 0.6,
+  })
   useEffect(
     function () {
-      targetRef.current = props.colors
-    },
-    [props.colors],
-  )
-  useEffect(
-    function () {
-      speedRef.current = Number(props.speed) || 1
-      intensityRef.current = Number(props.intensity) || 1
-      scaleRef.current = Number(props.scale) || 1
-      playingRef.current = props.playing === true
-      beatRef.current = Number(props.beat) || 0
-      gainSpeedRef.current = Number(props.beatSpeed) || 2.2
-      gainIntensityRef.current = Number(props.beatIntensity) || 1
-      gainScaleRef.current = Number(props.beatScale) || 0.18
-      gainWarpRef.current = Number(props.beatWarp) || 1.2
-      hazeRef.current = Number(props.haze) || 0.6
-      brightRef.current = Number(props.brightness) || 1
-      contrastRef.current = Number(props.contrast) || 1
-      hueRef.current = Number(props.hue) || 0
-    },
-    [props.speed, props.intensity, props.scale, props.playing, props.beat, props.beatSpeed, props.beatIntensity, props.beatScale, props.beatWarp, props.haze, props.brightness, props.contrast, props.hue],
-  )
-  useEffect(
-    function () {
-      pausedRef.current = props.paused === true
-      var control = controlRef.current
-      if (control !== null) control.sync()
-    },
-    [props.paused],
-  )
-  useEffect(
-    function () {
-      var canvas = canvasRef.current
-      if (canvas === null) return undefined
-      var gl = canvas.getContext('webgl', {
-        alpha: true,
-        antialias: false,
-        premultipliedAlpha: false,
-        powerPreference: 'low-power',
-      })
-      if (gl === null) return undefined
-      function compile(type, source) {
-        var shader = gl.createShader(type)
-        gl.shaderSource(shader, source)
-        gl.compileShader(shader)
-        if (gl.getShaderParameter(shader, gl.COMPILE_STATUS) !== true) {
-          gl.deleteShader(shader)
-          return null
-        }
-        return shader
-      }
-      var vs = compile(gl.VERTEX_SHADER, SMOKE_VERTEX)
-      var fs = compile(gl.FRAGMENT_SHADER, SMOKE_FRAGMENT)
-      if (vs === null || fs === null) return undefined
-      var program = gl.createProgram()
-      gl.attachShader(program, vs)
-      gl.attachShader(program, fs)
-      gl.linkProgram(program)
-      gl.deleteShader(vs)
-      gl.deleteShader(fs)
-      if (gl.getProgramParameter(program, gl.LINK_STATUS) !== true) {
-        gl.deleteProgram(program)
-        return undefined
-      }
-      gl.useProgram(program)
-      var buffer = gl.createBuffer()
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW)
-      var aPos = gl.getAttribLocation(program, 'aPos')
-      gl.enableVertexAttribArray(aPos)
-      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0)
-      var uRes = gl.getUniformLocation(program, 'uRes')
-      var uTime = gl.getUniformLocation(program, 'uTime')
-      var uA = gl.getUniformLocation(program, 'uA')
-      var uB = gl.getUniformLocation(program, 'uB')
-      var uC = gl.getUniformLocation(program, 'uC')
-      var uSpeed = gl.getUniformLocation(program, 'uSpeed')
-      var uIntensity = gl.getUniformLocation(program, 'uIntensity')
-      var uScale = gl.getUniformLocation(program, 'uScale')
-      var uBeat = gl.getUniformLocation(program, 'uBeat')
-      var uBass = gl.getUniformLocation(program, 'uBass')
-      var uMid = gl.getUniformLocation(program, 'uMid')
-      var uTreble = gl.getUniformLocation(program, 'uTreble')
-      var uHaze = gl.getUniformLocation(program, 'uHaze')
-      var uBright = gl.getUniformLocation(program, 'uBright')
-      var uContrast = gl.getUniformLocation(program, 'uContrast')
-      var uHue = gl.getUniformLocation(program, 'uHue')
-      var beatTracker = createBeatTracker()
-      var bands = { bass: 0, mid: 0, treble: 0 }
-      function updateBands(wave) {
-        if (wave === null || wave === undefined || wave.length === 0) {
-          bands.bass *= 0.9
-          bands.mid *= 0.9
-          bands.treble *= 0.9
-          return
-        }
-        var size = wave.length
-        function average(from, to) {
-          var start = Math.floor(size * from)
-          var end = Math.max(start + 1, Math.floor(size * to))
-          var sum = 0
-          for (var i = start; i < end && i < size; i += 1) sum += wave[i]
-          return sum / (end - start) / 255
-        }
-        function ease(current, target) {
-          return current + (target - current) * (target > current ? 0.55 : 0.14)
-        }
-        bands.bass = ease(bands.bass, average(0, 0.08))
-        bands.mid = ease(bands.mid, average(0.08, 0.35))
-        bands.treble = ease(bands.treble, average(0.35, 0.75))
-      }
-      var current = (targetRef.current || [[1, 1, 1]]).map(function (color) {
-        return color.slice()
-      })
-      function lerpTo(target) {
-        for (var i = 0; i < current.length && i < target.length; i += 1) {
-          for (var j = 0; j < 3; j += 1) {
-            current[i][j] += (target[i][j] - current[i][j]) * 0.08
-          }
-        }
-      }
-      var reduced =
-        typeof window.matchMedia === 'function' &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      var raf = 0
-      var last = 0
-      var start = 0
-      function resize() {
-        var width = Math.max(320, Math.min(960, Math.round(canvas.clientWidth * 0.55)))
-        var height = Math.max(180, Math.round(width * (canvas.clientHeight || canvas.clientWidth) / (canvas.clientWidth || 1)))
-        if (canvas.width !== width || canvas.height !== height) {
-          canvas.width = width
-          canvas.height = height
-          gl.viewport(0, 0, width, height)
-          gl.uniform2f(uRes, width, height)
-        }
-      }
-      function paint(now) {
-        resize()
-        lerpTo(targetRef.current || current)
-        gl.uniform3f(uA, current[0][0], current[0][1], current[0][2])
-        gl.uniform3f(uB, current[1][0], current[1][1], current[1][2])
-        gl.uniform3f(uC, current[2][0], current[2][1], current[2][2])
-        gl.uniform1f(uTime, ((now || 0) - start) / 1000)
-        var wave =
-          typeof player !== 'undefined' && player !== null && typeof player.getWave === 'function'
-            ? player.getWave()
-            : null
-        updateBands(wave)
-        var beat = beatTracker.update(wave, playingRef.current, beatRef.current) * beatRef.current
-        gl.uniform1f(uSpeed, speedRef.current * (1 + beat * gainSpeedRef.current))
-        gl.uniform1f(uIntensity, intensityRef.current * (1 + beat * gainIntensityRef.current))
-        gl.uniform1f(uScale, scaleRef.current * (1 - beat * gainScaleRef.current))
-        gl.uniform1f(uBeat, beat * gainWarpRef.current)
-        gl.uniform1f(uBass, bands.bass)
-        gl.uniform1f(uMid, bands.mid)
-        gl.uniform1f(uTreble, bands.treble)
-        gl.uniform1f(uHaze, hazeRef.current)
-        gl.uniform1f(uBright, brightRef.current)
-        gl.uniform1f(uContrast, contrastRef.current)
-        gl.uniform1f(uHue, hueRef.current)
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
-      }
-      function frame(now) {
-        raf = requestAnimationFrame(frame)
-        if (pausedRef.current === true || document.visibilityState === 'hidden') return
-        if (now - last < 33) return
-        last = now
-        paint(now)
-      }
-      function startLoop() {
-        if (raf !== 0) return
-        start = performance.now() - last
-        raf = requestAnimationFrame(frame)
-      }
-      function stopLoop() {
-        if (raf !== 0) cancelAnimationFrame(raf)
-        raf = 0
-      }
-      resize()
-      start = performance.now()
-      if (reduced === true || pausedRef.current === true || document.visibilityState === 'hidden') {
-        paint(start)
-      } else {
-        startLoop()
-      }
-      function sync() {
-        if (reduced === true) {
-          paint(performance.now())
-          return
-        }
-        if (pausedRef.current === true || document.visibilityState === 'hidden') stopLoop()
-        else startLoop()
-      }
-      controlRef.current = { sync: sync }
-      document.addEventListener('visibilitychange', sync)
-      var observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : null
-      if (observer !== null) observer.observe(canvas)
-      return function () {
-        stopLoop()
-        document.removeEventListener('visibilitychange', sync)
-        if (observer !== null) observer.disconnect()
-        controlRef.current = null
-        gl.deleteProgram(program)
-        gl.deleteBuffer(buffer)
-        var lose = gl.getExtension('WEBGL_lose_context')
-        if (lose !== null) lose.loseContext()
+      stateRef.current = {
+        enabled: enabled === true,
+        playing: playing === true,
+        sensitivity: Number(sensitivity) || 0.6,
+        amount: Number(amount) || 0.6,
       }
     },
-    [],
+    [enabled, playing, sensitivity, amount],
   )
-  return h('canvas', { ref: canvasRef, className: 'mp-np-smoke', 'aria-hidden': 'true' })
+  useEffect(function () {
+    if (ready !== true) return undefined
+    var node = ref.current
+    if (node === null) return undefined
+    var tracker = createBeatTracker()
+    var raf = 0
+    var last = 0
+    function frame(now) {
+      raf = requestAnimationFrame(frame)
+      var state = stateRef.current
+      if (state.enabled !== true || state.playing !== true || document.visibilityState === 'hidden') {
+        node.style.setProperty('--mp-beat-scale', '1')
+        return
+      }
+      if (now - last < 50) return
+      last = now
+      var wave =
+        typeof player !== 'undefined' && player !== null && typeof player.getWave === 'function'
+          ? player.getWave()
+          : null
+      var beat = tracker.update(wave, true, state.sensitivity) * state.amount
+      node.style.setProperty('--mp-beat-scale', (1 + beat * 0.045).toFixed(4))
+    }
+    raf = requestAnimationFrame(frame)
+    return function () {
+      cancelAnimationFrame(raf)
+      if (node.style) node.style.removeProperty('--mp-beat-scale')
+    }
+  }, [ready])
 }
 
 function CoverReflectWave(props) {
   var accent = useCoverAccent(props.cover || '', props.imageRef)
   var gainsRef = useRef({
     beat: Number(props.beat) || 0,
-    speed: Number(props.beatSpeed) || 2.2,
-    intensity: Number(props.beatIntensity) || 1,
-    scale: Number(props.beatScale) || 0.18,
-    warp: Number(props.beatWarp) || 1.2,
+    sensitivity: Number(props.beatSensitivity) || 0.6,
+    speed: 2.2,
+    intensity: 1,
+    scale: 0.18,
+    warp: 1.2,
   })
   useEffect(
     function () {
       gainsRef.current = {
         beat: Number(props.beat) || 0,
-        speed: Number(props.beatSpeed) || 2.2,
-        intensity: Number(props.beatIntensity) || 1,
-        scale: Number(props.beatScale) || 0.18,
-        warp: Number(props.beatWarp) || 1.2,
+        sensitivity: Number(props.beatSensitivity) || 0.6,
+        speed: 2.2,
+        intensity: 1,
+        scale: 0.18,
+        warp: 1.2,
       }
     },
-    [props.beat, props.beatSpeed, props.beatIntensity, props.beatScale, props.beatWarp],
+    [props.beat, props.beatSensitivity],
   )
   var playing = props.playing === true
   var active = props.active !== false
@@ -1512,7 +1183,7 @@ function CoverReflectWave(props) {
         ctx.clearRect(0, 0, w, h)
         var data = playing ? player.getWave() : null
         var gains = gainsRef.current
-        var beat = beatTracker.update(data, playing, gains.beat) * gains.beat
+        var beat = beatTracker.update(data, playing, gains.sensitivity) * gains.beat
         var beatSpeedGain = gains.speed
         var beatIntensityGain = gains.intensity
         var beatScaleGain = gains.scale
@@ -1801,10 +1472,18 @@ function NowPlaying(props) {
       document.removeEventListener('visibilitychange', sync)
     }
   }, [])
-  var smokeColors = smokePalette(flowAccent)
+  var ambientRef = useRef(null)
   var bgPair = useState({ current: '', previous: '' })
   var bg = bgPair[0]
   var setBg = bgPair[1]
+  useAmbientBeat(
+    ambientRef,
+    prefs.npFlowBg !== false,
+    snap.playing === true,
+    clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 1),
+    clamp((Number(prefs.npBeatAmount) || 60) / 100, 0, 1),
+    bg.current !== '' || bg.previous !== '',
+  )
 
   useEffect(
     function () {
@@ -2144,43 +1823,39 @@ function NowPlaying(props) {
         '--mp-pane-gap-w': paneGap + 'px',
       },
     },
-    prefs.npFlowBg === false && (bg.current !== '' || bg.previous !== '')
-      ? h(
-          'div',
-          { className: 'mp-np-bg' },
-          bg.previous !== ''
-            ? h('img', { key: 'prev:' + bg.previous, src: bg.previous, alt: '', className: 'is-prev' })
-            : null,
-          bg.current !== ''
-            ? h('img', { key: 'cur:' + bg.current, src: bg.current, alt: '', className: 'is-cur' })
-            : null,
-        )
-      : null,
-
-    prefs.npFlowBg !== false
+    bg.current !== '' || bg.previous !== ''
       ? h(
           'div',
           {
-            className: cx('mp-np-flow', (pageHidden || props.open === false) && 'is-paused'),
-            'aria-hidden': 'true',
+            ref: ambientRef,
+            className: cx('mp-np-bg', prefs.npFlowBg !== false && 'is-ambient'),
+            style: (function () {
+              var drift = clamp((Number(prefs.npAmbientDrift) || 0) / 100, 0, 1)
+              return {
+                '--mp-drift-x': (drift * 1.4).toFixed(2) + '%',
+                '--mp-drift-nx': (drift * -1.4).toFixed(2) + '%',
+                '--mp-drift-y': (drift * 1).toFixed(2) + '%',
+                '--mp-drift-ny': (drift * -0.9).toFixed(2) + '%',
+                '--mp-drift-s0': (1.03 + drift * 0.02).toFixed(3),
+                '--mp-drift-s1': (1.05 + drift * 0.025).toFixed(3),
+                '--mp-drift-r': (drift * 0.3).toFixed(2) + 'deg',
+                '--mp-drift-nr': (drift * -0.3).toFixed(2) + 'deg',
+                '--mp-speed':
+                  (36 / Math.max(0.4, (Number(prefs.npAmbientSpeed) || 100) / 100)).toFixed(1) + 's',
+                '--mp-beat-scale': '1',
+              }
+            })(),
           },
-          h(SmokeFlow, {
-            colors: smokeColors,
-            paused: pageHidden || props.open === false,
-            playing: snap.playing === true,
-            beat: clamp((Number(prefs.npSmokeBeat) || 0) / 100, 0, 1),
-            beatSpeed: clamp((Number(prefs.npBeatSpeed) || 220) / 100, 0, 3),
-            beatIntensity: clamp((Number(prefs.npBeatIntensity) || 100) / 100, 0, 3),
-            beatScale: clamp((Number(prefs.npBeatScale) || 18) / 100, 0, 0.5),
-            beatWarp: clamp((Number(prefs.npBeatWarp) || 120) / 100, 0, 3),
-            speed: clamp((Number(prefs.npSmokeSpeed) || 100) / 100, 0.3, 2.5),
-            intensity: clamp((Number(prefs.npSmokeIntensity) || 100) / 100, 0.3, 1.8),
-            scale: clamp((Number(prefs.npSmokeScale) || 100) / 100, 0.5, 2),
-            haze: clamp((Number(prefs.npSmokeHaze) || 0) / 100, 0, 2),
-            brightness: clamp((Number(prefs.npSmokeBrightness) || 100) / 100, 0.5, 1.5),
-            contrast: clamp((Number(prefs.npSmokeContrast) || 100) / 100, 0.5, 1.5),
-            hue: clamp(Number(prefs.npSmokeHue) || 0, -60, 60) * (Math.PI / 180),
-          }),
+          h(
+            'div',
+            { className: 'mp-np-bg-drift' },
+            bg.previous !== ''
+              ? h('img', { key: 'prev:' + bg.previous, src: bg.previous, alt: '', className: 'is-prev' })
+              : null,
+            bg.current !== ''
+              ? h('img', { key: 'cur:' + bg.current, src: bg.current, alt: '', className: 'is-cur' })
+              : null,
+          ),
         )
       : null,
     h('div', { className: 'mp-np-shade' }),
@@ -2436,11 +2111,8 @@ function NowPlaying(props) {
             playing: snap.playing,
             imageRef: coverImgRef,
             active: staged,
-            beat: clamp((Number(prefs.npSmokeBeat) || 0) / 100, 0, 1),
-            beatSpeed: clamp((Number(prefs.npBeatSpeed) || 220) / 100, 0, 3),
-            beatIntensity: clamp((Number(prefs.npBeatIntensity) || 100) / 100, 0, 3),
-            beatScale: clamp((Number(prefs.npBeatScale) || 18) / 100, 0, 0.5),
-            beatWarp: clamp((Number(prefs.npBeatWarp) || 120) / 100, 0, 3),
+            beat: clamp((Number(prefs.npBeatAmount) || 0) / 100, 0, 1),
+            beatSensitivity: clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 1),
           })
             : null,
           h(SeekBar, { fallbackDuration: track ? track.durationSec || 0 : 0 }),
