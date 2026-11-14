@@ -143,4 +143,8 @@ assert.match(theme, /\.mp-row\{[^']*height:84px/, 'song rows are taller')
 assert.match(theme, /\.mp-row-cover\{[^']*width:56px;height:56px/, 'song row covers are larger')
 assert.match(theme, /\.mp-row-title\{[^']*font-size:16px/, 'song titles are larger')
 
+// Artist and album cards share the grid card component, separate from rows.
+assert.match(theme, /\.mp-card-grid\{[^']*minmax\(156px,1fr\)/, 'card grid is larger')
+assert.match(theme, /\.mp-card-title\{[^']*font-size:15px/, 'card titles are larger')
+
 console.log('theme.test.mjs ok')
