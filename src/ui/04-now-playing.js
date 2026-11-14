@@ -1162,15 +1162,33 @@ function NowPlaying(props) {
     var handle = event.currentTarget
     if (handle && handle.classList) handle.classList.add('is-dragging')
     var startX = event.clientX
-    var startWidth = lyricWidth
-    var latest = startWidth
+    // The rendered column may be narrower than the stored preference when the
+    // window is small, so drag from what is actually on screen.
+    var pane = document.querySelector('.mp-np-right')
+    var startWidth = pane === null ? lyricWidth : pane.getBoundingClientRect().width
+    var latest = Math.round(startWidth)
+    // Never persist a width the current interface cannot fit; the CSS formula
+    // caps it the same way.
+    var fitMax = 900
+    var body = document.querySelector('.mp-np-body')
+    var cover = document.querySelector('.mp-np-left')
+    if (body !== null && cover !== null) {
+      var styles = window.getComputedStyle(body)
+      var contentWidth =
+        body.getBoundingClientRect().width -
+        (parseFloat(styles.paddingLeft) || 0) -
+        (parseFloat(styles.paddingRight) || 0)
+      var splitWidth = 24
+      fitMax = Math.min(900, (contentWidth - 0.5 * cover.getBoundingClientRect().width - splitWidth * 3) / 1.5)
+    }
     document.body.style.userSelect = 'none'
     function move(moveEvent) {
-      // The pair is centred, so the width delta is twice the pointer delta.
-      // Dragging the left edge left widens the column; the right edge widens it
-      // when dragged right.
-      var delta = side === 'left' ? startX - moveEvent.clientX : moveEvent.clientX - startX
-      latest = clamp(startWidth + 2 * delta, 360, 900)
+      // The layout pins the midpoint of the two column centre lines to the
+      // interface centre: the left boundary moves -1/4 and the right boundary
+      // +3/4 of a width change, so each handle needs its own ratio to track the
+      // pointer exactly.
+      var dx = moveEvent.clientX - startX
+      latest = clamp(side === 'left' ? startWidth - 4 * dx : startWidth + (4 * dx) / 3, 360, fitMax)
       setLyricWidth(latest)
     }
     function finish() {
@@ -1179,7 +1197,7 @@ function NowPlaying(props) {
       window.removeEventListener('pointercancel', finish)
       if (handle && handle.classList) handle.classList.remove('is-dragging')
       document.body.style.userSelect = ''
-      setPrefs({ npLyricWidth: latest })
+      setPrefs({ npLyricWidth: Math.round(latest) })
     }
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', finish)

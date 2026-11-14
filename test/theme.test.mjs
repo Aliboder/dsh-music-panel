@@ -92,18 +92,20 @@ const rawDialogs = uiFiles
   .map(([name]) => name)
 assert.deepEqual(rawDialogs, [], 'dialogs must use KitModal (raw mp-overlay found in ' + rawDialogs.join(', ') + ')')
 
-// Player page: the cover + lyrics pair stays centred, and the lyrics column
-// width comes from the preference so the splitter can change it.
+// Player page: the midpoint of the two column centre lines is pinned to the
+// interface centre, and the lyrics width is fitted so the right margin never
+// goes negative.
 assert.match(
   theme,
-  /@media \(min-width:981px\)\{[^']*\.mp-np-body\{[^']*justify-content:center/,
-  'wide layout centres the cover + lyrics pair',
+  /@media \(min-width:981px\)\{[^']*--mp-lyric-fit:min\(/,
+  'the lyrics width is clamped to what the interface can hold',
 )
 assert.match(
   theme,
-  /@media \(min-width:981px\)\{[^']*\.mp-np-right\{[^']*var\(--mp-lyric-w,560px\)/,
-  'the lyrics column reads its width from the preference',
+  /\.mp-np-left\{[^']*margin-left:calc\(\(100% - 1\.5\*var\(--mp-cover/,
+  'the left margin follows the column-centre rule',
 )
+assert.match(theme, /\.mp-np-right\{[^']*width:var\(--mp-lyric-fit\)/, 'the lyrics column uses the fitted width')
 assert.match(theme, /\.mp-np-split\{[^']*cursor:col-resize/, 'the splitter is draggable')
 assert.match(theme, /\.mp-np-split\{[^']*display:none/, 'the splitter is hidden on the stacked layout')
 
