@@ -214,7 +214,7 @@ function AudioEffectsPanel(props) {
             track && track.qualityHint ? track.qualityHint : t('online.qualityStandard'),
           ),
         )
-      : h(EqPanel, {})
+      : h(EqPanel, { prefs: prefs })
 
   return h(
     'div',
@@ -249,7 +249,13 @@ function AudioEffectsPanel(props) {
 }
 
 function EqPanel(props) {
-  var prefs = usePrefs()
+  var subscribedPrefs = usePrefs()
+  // The now-playing bar already keeps a live prefs snapshot (the volume view
+  // reads it). Prefer that snapshot when the parent provides one: this pane is
+  // the only one with its own subscription, and a dropped subscription made it
+  // show stale EQ state while the sound and every other view were current.
+  var prefs =
+    props && props.prefs && props.prefs.eqBands !== undefined ? props.prefs : subscribedPrefs
   var eq = normalizeEqPrefs(prefs)
   var initialTab = props.initialTab
   var tabPair = useState(

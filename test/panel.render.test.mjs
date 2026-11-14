@@ -154,6 +154,15 @@ function classesOf(tree) {
   return classes
 }
 
+function nodesWithClass(tree, name) {
+  const out = []
+  walk(expand(tree), (node) => {
+    const className = node.props && node.props.className
+    if (typeof className === 'string' && className.split(/\s+/).filter(Boolean).includes(name)) out.push(node)
+  })
+  return out
+}
+
 function textOf(tree) {
   const parts = []
   function collect(value) {
@@ -592,6 +601,23 @@ const savedActiveTab = renderEq({ initialTab: 'mine' })
 const savedActiveClasses = classesOf(savedActiveTab)
 assert.ok(savedActiveClasses.has('mp-eq-saved-row'), 'the saved row renders')
 assert.ok(savedActiveClasses.has('is-on'), 'the applied saved preset is marked')
+
+// The parent snapshot drives the pane when provided (the now-playing bar keeps
+// it live even if this subtree's own store subscription were dropped).
+const propDriven = renderEq({
+  initialTab: 'presets',
+  prefs: {
+    eqEnabled: true,
+    eqPreset: 'rock',
+    eqBands: [1, 4.5, 2.5, -1.7, -6.3, -4.6, 0.6, 4.2, 4.9, 8.9],
+    eqLayout: 'iso10',
+    eqCustom: [],
+  },
+})
+const activeTiles = nodesWithClass(propDriven, 'mp-eq-preset').filter((node) =>
+  String(node.props.className).includes('is-on'),
+)
+assert.equal(activeTiles.length, 1, 'exactly one preset is marked from the parent snapshot')
 
 internals.prefsStore.set(eqPrefs)
 
