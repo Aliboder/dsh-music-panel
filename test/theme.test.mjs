@@ -43,7 +43,7 @@ assert.doesNotMatch(joined, /fontSize:\s*'(?:10\.5|11\.5|12\.5)px'/, 'inline fon
 // container that shows one must clamp it; otherwise the artwork paints at its
 // natural size and blows the layout open. The artist/album cards shipped
 // exactly that bug, so the containers are listed explicitly.
-for (const selector of ['.mp-card-art', '.mp-srow-cover', '.mp-row-cover', '.mp-q-cover', '.mp-pb-cover']) {
+for (const selector of ['.mp-entry-art', '.mp-srow-cover', '.mp-row-cover', '.mp-q-cover', '.mp-pb-cover']) {
   const rule = new RegExp(`\\${selector} img\\{[^}]*width:100%;height:100%;object-fit:cover`)
   assert.match(theme, rule, `${selector} must clamp its Cover image to the container`)
 }
@@ -143,8 +143,9 @@ assert.match(theme, /\.mp-row\{[^']*height:84px/, 'song rows are taller')
 assert.match(theme, /\.mp-row-cover\{[^']*width:56px;height:56px/, 'song row covers are larger')
 assert.match(theme, /\.mp-row-title\{[^']*font-size:16px/, 'song titles are larger')
 
-// Artist and album cards share the grid card component, separate from rows.
-assert.match(theme, /\.mp-card-grid\{[^']*minmax\(156px,1fr\)/, 'card grid is larger')
-assert.match(theme, /\.mp-card-title\{[^']*font-size:15px/, 'card titles are larger')
+// Artist and album lists use the same row metrics as the song list.
+assert.match(theme, /\.mp-entry-row\{[^']*height:84px/, 'entry rows are song-row height')
+assert.match(theme, /\.mp-entry-art\{[^']*width:56px;height:56px/, 'entry rows use song-row cover size')
+assert.match(theme, /\.mp-entry-title\{[^']*font-size:16px/, 'entry titles use song-row title size')
 
 console.log('theme.test.mjs ok')

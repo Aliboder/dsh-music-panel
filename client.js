@@ -8857,18 +8857,15 @@ window.__ModuleLoader__.load({
       '.mp-navidrome-warn{margin:2px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-state-warning-text,#fbbf24)}',
       '.mp-loaded-of{font-size:12px;color:var(--dsw-alias-label-tertiary,#71717a)}',
       '.mp-songs-pane{flex:1;min-height:0;display:flex;flex-direction:column}',
-      '.mp-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(156px,1fr));gap:14px;padding:4px 0 14px}',
-      '.mp-card{display:flex;flex-direction:column;gap:7px;padding:10px;border:1px solid transparent;border-radius:12px;background:transparent;text-align:left;cursor:pointer;min-width:0}',
-      '.mp-card:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06));border-color:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
-      '.mp-card-art{position:relative;width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.05));display:flex;align-items:center;justify-content:center}',
-      '.mp-card.is-round .mp-card-art{border-radius:50%}',
-      // Cover renders a bare <img> with no intrinsic sizing, so every container has
-      // to clamp it the way `.mp-srow-cover img` does; without this the artwork
-      // paints at its natural size and blows the card open.
-      '.mp-card-art img{width:100%;height:100%;object-fit:cover;display:block}',
-      '.mp-card-art-fallback{color:var(--dsw-alias-label-tertiary,#71717a)}',
-      '.mp-card-title{font-size:15px;font-weight:600;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-card-sub{font-size:13px;color:var(--dsw-alias-label-tertiary,#71717a);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-entry-list{display:flex;flex-direction:column;gap:2px;padding:4px 0 12px}',
+      '.mp-entry-row{display:flex;align-items:center;gap:14px;width:100%;box-sizing:border-box;height:84px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);text-align:left;cursor:pointer}',
+      '.mp-entry-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
+      '.mp-entry-art{width:56px;height:56px;flex:none;border-radius:8px;overflow:hidden;display:grid;place-items:center;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-entry-art.is-round{border-radius:50%}',
+      '.mp-entry-art img{width:100%;height:100%;object-fit:cover;display:block}',
+      '.mp-entry-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}',
+      '.mp-entry-title{font-size:16px;font-weight:550;line-height:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-entry-sub{font-size:14px;line-height:19px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-pager{display:flex;align-items:center;justify-content:center;gap:10px;flex:0 0 auto;padding:8px 12px 14px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
       '.mp-pager.is-hint{justify-content:space-between;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03))}',
       '.mp-loaded-end{font-size:12px;color:var(--dsw-alias-state-success-text,#4ade80)}',
@@ -16952,7 +16949,7 @@ window.__ModuleLoader__.load({
             { resetKey: resetKey },
             h(
               'div',
-              { className: 'mp-card-grid' },
+              { className: 'mp-entry-list' },
               cards.map(function (card) {
                 var cover = subsonicCoverUrl(card.coverArtId)
                 return h(
@@ -16960,27 +16957,31 @@ window.__ModuleLoader__.load({
                   {
                     key: card.id,
                     type: 'button',
-                    className: 'mp-card' + (isArtistList ? ' is-round' : ''),
+                    className: 'mp-entry-row',
                     onClick: function () {
                       openCard(card)
                     },
                   },
                   h(
-                    'div',
-                    { className: 'mp-card-art' },
+                    'span',
+                    { className: 'mp-entry-art' + (isArtistList ? ' is-round' : '') },
                     cover === ''
-                      ? h('span', { className: 'mp-card-art-fallback' }, icon(isArtistList ? 'user' : 'disc', 22))
+                      ? h('span', { className: 'mp-entry-fallback' }, icon(isArtistList ? 'user' : 'disc', 22))
                       : h(Cover, { src: cover, iconSize: 22 }),
                   ),
-                  h('div', { className: 'mp-card-title', title: card.name }, card.name || t('page.unknownAlbum')),
                   h(
-                    'div',
-                    { className: 'mp-card-sub' },
-                    isArtistList
-                      ? t('online.albumCount', { n: card.albumCount })
-                      : isAlbumList
-                        ? (card.artist || '') + (card.songCount > 0 ? ' · ' + t('page.trackCountUnit', { n: card.songCount }) : '')
-                        : t('page.trackCountUnit', { n: card.songCount }),
+                    'span',
+                    { className: 'mp-entry-main' },
+                    h('span', { className: 'mp-entry-title' }, card.name || t('page.unknownAlbum')),
+                    h(
+                      'span',
+                      { className: 'mp-entry-sub' },
+                      isArtistList
+                        ? t('online.albumCount', { n: card.albumCount })
+                        : isAlbumList
+                          ? (card.artist || '') + (card.songCount > 0 ? ' · ' + t('page.trackCountUnit', { n: card.songCount }) : '')
+                          : t('page.trackCountUnit', { n: card.songCount }),
+                    ),
                   ),
                 )
               }),

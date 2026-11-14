@@ -845,7 +845,7 @@ function OnlineContent(props) {
         { resetKey: resetKey },
         h(
           'div',
-          { className: 'mp-card-grid' },
+          { className: 'mp-entry-list' },
           cards.map(function (card) {
             var cover = subsonicCoverUrl(card.coverArtId)
             return h(
@@ -853,27 +853,31 @@ function OnlineContent(props) {
               {
                 key: card.id,
                 type: 'button',
-                className: 'mp-card' + (isArtistList ? ' is-round' : ''),
+                className: 'mp-entry-row',
                 onClick: function () {
                   openCard(card)
                 },
               },
               h(
-                'div',
-                { className: 'mp-card-art' },
+                'span',
+                { className: 'mp-entry-art' + (isArtistList ? ' is-round' : '') },
                 cover === ''
-                  ? h('span', { className: 'mp-card-art-fallback' }, icon(isArtistList ? 'user' : 'disc', 22))
+                  ? h('span', { className: 'mp-entry-fallback' }, icon(isArtistList ? 'user' : 'disc', 22))
                   : h(Cover, { src: cover, iconSize: 22 }),
               ),
-              h('div', { className: 'mp-card-title', title: card.name }, card.name || t('page.unknownAlbum')),
               h(
-                'div',
-                { className: 'mp-card-sub' },
-                isArtistList
-                  ? t('online.albumCount', { n: card.albumCount })
-                  : isAlbumList
-                    ? (card.artist || '') + (card.songCount > 0 ? ' · ' + t('page.trackCountUnit', { n: card.songCount }) : '')
-                    : t('page.trackCountUnit', { n: card.songCount }),
+                'span',
+                { className: 'mp-entry-main' },
+                h('span', { className: 'mp-entry-title' }, card.name || t('page.unknownAlbum')),
+                h(
+                  'span',
+                  { className: 'mp-entry-sub' },
+                  isArtistList
+                    ? t('online.albumCount', { n: card.albumCount })
+                    : isAlbumList
+                      ? (card.artist || '') + (card.songCount > 0 ? ' · ' + t('page.trackCountUnit', { n: card.songCount }) : '')
+                      : t('page.trackCountUnit', { n: card.songCount }),
+                ),
               ),
             )
           }),
