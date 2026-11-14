@@ -417,6 +417,10 @@ function NpEditor(props) {
       npBeatIntensity: 100,
       npBeatScale: 18,
       npBeatWarp: 120,
+      npSmokeHaze: 60,
+      npSmokeBrightness: 100,
+      npSmokeContrast: 100,
+      npSmokeHue: 0,
     })
   }
 
@@ -767,6 +771,27 @@ function NpEditor(props) {
             }),
           ),
         ),
+        h(
+          'div',
+          { className: 'mp-npe-section is-quality' },
+          sectionHead(t('editor.quality')),
+          h(
+            'div',
+            { className: 'mp-npe-smoke-grid' },
+            rangeRow(t('editor.haze'), Number(prefs.npSmokeHaze) || 0, 0, 200, 5, '%', function (value) {
+              setPrefs({ npSmokeHaze: value })
+            }),
+            rangeRow(t('editor.brightness'), Number(prefs.npSmokeBrightness) || 100, 50, 150, 5, '%', function (value) {
+              setPrefs({ npSmokeBrightness: value })
+            }),
+            rangeRow(t('editor.contrast'), Number(prefs.npSmokeContrast) || 100, 50, 150, 5, '%', function (value) {
+              setPrefs({ npSmokeContrast: value })
+            }),
+            rangeRow(t('editor.hue'), Number(prefs.npSmokeHue) || 0, -60, 60, 5, '°', function (value) {
+              setPrefs({ npSmokeHue: value })
+            }),
+          ),
+        ),
       ),
       h(
         'div',
@@ -1089,6 +1114,10 @@ var SMOKE_FRAGMENT = [
   'uniform float uBass;',
   'uniform float uMid;',
   'uniform float uTreble;',
+  'uniform float uHaze;',
+  'uniform float uBright;',
+  'uniform float uContrast;',
+  'uniform float uHue;',
   'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
   'float noise(vec2 p){',
   '  vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);',
@@ -1096,6 +1125,13 @@ var SMOKE_FRAGMENT = [
   '  return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);',
   '}',
   'mat2 rot(float a){float c=cos(a);float s=sin(a);return mat2(c,-s,s,c);}',
+  'vec3 hueShift(vec3 color,float angle){',
+  '  float c=cos(angle);float s=sin(angle);',
+  '  mat3 m=mat3(0.299+0.701*c+0.168*s,0.587-0.587*c+0.330*s,0.114-0.114*c-0.497*s,',
+  '            0.299-0.299*c-0.328*s,0.587+0.413*c+0.035*s,0.114-0.114*c+0.292*s,',
+  '            0.299-0.299*c+1.250*s,0.587-0.587*c-1.050*s,0.114+0.886*c-0.203*s);',
+  '  return clamp(m*color,0.0,1.0);',
+  '}',
   'float fbm(vec2 p){',
   '  float v=0.0;float amp=0.5;',
   '  for(int i=0;i<4;i++){v+=amp*noise(p);p=rot(0.5)*p*2.03+vec2(1.7,9.2);amp*=0.5;}',
@@ -1112,12 +1148,17 @@ var SMOKE_FRAGMENT = [
   '  vec2 r=vec2(fbm(p+3.2*q*warp+vec2(1.7,9.2)+t*0.55),fbm(p+3.2*q*warp+vec2(8.3,2.8)-t*0.45));',
   '  float f1=fbm(p+2.4*r);',
   '  float f2=fbm(p*1.6+vec2(4.3,7.1)+t*0.35);',
-  '  float f=0.55*f1+0.45*f2;',
-  '  float smoke=smoothstep(0.3,0.86,f);',
+  '  float soft=fbm(p*0.62+vec2(2.0,5.0)+t*0.22);',
+  '  float detail=mix(f2,soft,clamp(uHaze,0.0,1.0)*0.4);',
+  '  float f=0.6*f1+0.4*detail;',
+  '  float smoke=smoothstep(0.34-0.1*uHaze,0.9,f);',
   '  vec3 col=mix(uA,uB,smoothstep(0.2,0.8,r.x));',
   '  col=mix(col,uC,smoothstep(0.4,0.95,q.y));',
   '  col*=0.8+0.3*f+uTreble*0.12;',
-  '  float alpha=(0.16+0.5*smoke)*uIntensity;',
+  '  col=hueShift(col,uHue);',
+  '  col=(col-0.5)*uContrast+0.5;',
+  '  col*=uBright;',
+  '  float alpha=clamp((0.14+0.14*uHaze+0.4*smoke)*uIntensity,0.0,0.92);',
   '  gl_FragColor=vec4(col,alpha);',
   '}',
 ].join('\n')
@@ -1172,6 +1213,10 @@ function SmokeFlow(props) {
   var gainIntensityRef = useRef(Number(props.beatIntensity) || 1)
   var gainScaleRef = useRef(Number(props.beatScale) || 0.18)
   var gainWarpRef = useRef(Number(props.beatWarp) || 1.2)
+  var hazeRef = useRef(Number(props.haze) || 0.6)
+  var brightRef = useRef(Number(props.brightness) || 1)
+  var contrastRef = useRef(Number(props.contrast) || 1)
+  var hueRef = useRef(Number(props.hue) || 0)
   useEffect(
     function () {
       targetRef.current = props.colors
@@ -1189,8 +1234,12 @@ function SmokeFlow(props) {
       gainIntensityRef.current = Number(props.beatIntensity) || 1
       gainScaleRef.current = Number(props.beatScale) || 0.18
       gainWarpRef.current = Number(props.beatWarp) || 1.2
+      hazeRef.current = Number(props.haze) || 0.6
+      brightRef.current = Number(props.brightness) || 1
+      contrastRef.current = Number(props.contrast) || 1
+      hueRef.current = Number(props.hue) || 0
     },
-    [props.speed, props.intensity, props.scale, props.playing, props.beat, props.beatSpeed, props.beatIntensity, props.beatScale, props.beatWarp],
+    [props.speed, props.intensity, props.scale, props.playing, props.beat, props.beatSpeed, props.beatIntensity, props.beatScale, props.beatWarp, props.haze, props.brightness, props.contrast, props.hue],
   )
   useEffect(
     function () {
@@ -1253,6 +1302,10 @@ function SmokeFlow(props) {
       var uBass = gl.getUniformLocation(program, 'uBass')
       var uMid = gl.getUniformLocation(program, 'uMid')
       var uTreble = gl.getUniformLocation(program, 'uTreble')
+      var uHaze = gl.getUniformLocation(program, 'uHaze')
+      var uBright = gl.getUniformLocation(program, 'uBright')
+      var uContrast = gl.getUniformLocation(program, 'uContrast')
+      var uHue = gl.getUniformLocation(program, 'uHue')
       var beatTracker = createBeatTracker()
       var bands = { bass: 0, mid: 0, treble: 0 }
       function updateBands(wave) {
@@ -1315,7 +1368,7 @@ function SmokeFlow(props) {
             ? player.getWave()
             : null
         updateBands(wave)
-        var beat = beatTracker.update(wave, playingRef.current) * beatRef.current
+        var beat = beatTracker.update(wave, playingRef.current, beatRef.current) * beatRef.current
         gl.uniform1f(uSpeed, speedRef.current * (1 + beat * gainSpeedRef.current))
         gl.uniform1f(uIntensity, intensityRef.current * (1 + beat * gainIntensityRef.current))
         gl.uniform1f(uScale, scaleRef.current * (1 - beat * gainScaleRef.current))
@@ -1323,6 +1376,10 @@ function SmokeFlow(props) {
         gl.uniform1f(uBass, bands.bass)
         gl.uniform1f(uMid, bands.mid)
         gl.uniform1f(uTreble, bands.treble)
+        gl.uniform1f(uHaze, hazeRef.current)
+        gl.uniform1f(uBright, brightRef.current)
+        gl.uniform1f(uContrast, contrastRef.current)
+        gl.uniform1f(uHue, hueRef.current)
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
       }
       function frame(now) {
@@ -1455,7 +1512,7 @@ function CoverReflectWave(props) {
         ctx.clearRect(0, 0, w, h)
         var data = playing ? player.getWave() : null
         var gains = gainsRef.current
-        var beat = beatTracker.update(data, playing) * gains.beat
+        var beat = beatTracker.update(data, playing, gains.beat) * gains.beat
         var beatSpeedGain = gains.speed
         var beatIntensityGain = gains.intensity
         var beatScaleGain = gains.scale
@@ -2119,6 +2176,10 @@ function NowPlaying(props) {
             speed: clamp((Number(prefs.npSmokeSpeed) || 100) / 100, 0.3, 2.5),
             intensity: clamp((Number(prefs.npSmokeIntensity) || 100) / 100, 0.3, 1.8),
             scale: clamp((Number(prefs.npSmokeScale) || 100) / 100, 0.5, 2),
+            haze: clamp((Number(prefs.npSmokeHaze) || 0) / 100, 0, 2),
+            brightness: clamp((Number(prefs.npSmokeBrightness) || 100) / 100, 0.5, 1.5),
+            contrast: clamp((Number(prefs.npSmokeContrast) || 100) / 100, 0.5, 1.5),
+            hue: clamp(Number(prefs.npSmokeHue) || 0, -60, 60) * (Math.PI / 180),
           }),
         )
       : null,

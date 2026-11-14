@@ -44,6 +44,11 @@ var PREF_DEFAULTS = {
   npBeatIntensity: 100,
   npBeatScale: 18,
   npBeatWarp: 120,
+  /** Image quality of the smoke layer. */
+  npSmokeHaze: 60,
+  npSmokeBrightness: 100,
+  npSmokeContrast: 100,
+  npSmokeHue: 0,
   composerLyrics: false,
   composerTranslation: true,
   composerLyricPlace: 'input-left',
