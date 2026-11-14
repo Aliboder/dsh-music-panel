@@ -635,7 +635,7 @@ function NpEditor(props) {
         previewCard(),
         h(
           'div',
-          { className: 'mp-npe-section' },
+          { className: 'mp-npe-section is-cover' },
           sectionHead(t('editor.cover')),
           h(
             'div',
@@ -646,7 +646,7 @@ function NpEditor(props) {
         ),
         h(
           'div',
-          { className: 'mp-npe-section' },
+          { className: 'mp-npe-section is-type' },
           sectionHead(t('editor.type')),
           rangeRow(t('page.lyricSize'), prefs.lyricSize || 25, 14, 40, 1, ' px', function (value) {
             setPrefs({ lyricSize: value })
@@ -698,7 +698,7 @@ function NpEditor(props) {
         ),
         h(
           'div',
-          { className: 'mp-npe-section' },
+          { className: 'mp-npe-section is-display' },
           sectionHead(t('editor.display')),
           switchRow(t('page.translation'), prefs.showTranslation === true, function (value) {
             setPrefs({ showTranslation: value })

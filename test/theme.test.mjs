@@ -121,4 +121,9 @@ assert.match(theme, /prefers-reduced-motion:reduce\)\{\.mp-np-blob\{animation:no
 assert.match(theme, /\.mp-align-center \.mp-np-lyric-foot\{justify-content:center\}/, 'footer follows the lyric alignment')
 assert.match(theme, /\.mp-align-right \.mp-np-lyric-foot\{justify-content:flex-end\}/, 'right alignment ends the footer')
 
+// The editor becomes a three-column tablet layout on wide screens.
+assert.match(theme, /@media \(min-width:1000px\)\{[^']*\.mp-npe-body\{[^']*display:grid/, 'tablet editor grid')
+assert.match(theme, /\.mp-npe-section\.is-type\{grid-column:2/, 'settings columns are placed by area')
+assert.match(theme, /\.mp-npe-preview-cover\.is-vinyl\{[^']*clip-path:circle\(50%/, 'vinyl preview is circle-clipped')
+
 console.log('theme.test.mjs ok')
