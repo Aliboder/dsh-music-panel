@@ -29,6 +29,8 @@ var PREF_DEFAULTS = {
   npLayoutV2: false,
   /** Lyrics column width in the player page (px), dragged by the splitter. */
   npLyricWidth: 560,
+  /** Gap between the album column and the lyrics column (px), editable in the player editor. */
+  npPaneGap: 24,
   composerLyrics: false,
   composerTranslation: true,
   composerLyricPlace: 'input-left',

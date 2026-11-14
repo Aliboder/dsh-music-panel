@@ -404,6 +404,7 @@ function NpEditor(props) {
       waveEnabled: true,
       showTranslation: true,
       lyricOrder: ['embedded', 'lrc'],
+      npPaneGap: 24,
     })
   }
 
@@ -594,6 +595,9 @@ function NpEditor(props) {
           }),
           rangeRow(t('page.lyricGap'), Number(prefs.lyricGap) || 10, 2, 16, 1, ' px', function (value) {
             setPrefs({ lyricGap: value })
+          }),
+          rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 24, 12, 96, 4, ' px', function (value) {
+            setPrefs({ npPaneGap: value })
           }),
           rangeRow(
             t('page.translationScale'),
@@ -1149,6 +1153,7 @@ function NowPlaying(props) {
   var lyricWidthPair = useState(clamp(Number(prefs.npLyricWidth) || 560, 360, 900))
   var lyricWidth = lyricWidthPair[0]
   var setLyricWidth = lyricWidthPair[1]
+  var paneGap = clamp(Number(prefs.npPaneGap) || 24, 12, 96)
 
   function applyLyricWidth(value, persist) {
     var next = clamp(Math.round(Number(value) || 560), 360, 900)
@@ -1178,8 +1183,11 @@ function NowPlaying(props) {
         body.getBoundingClientRect().width -
         (parseFloat(styles.paddingLeft) || 0) -
         (parseFloat(styles.paddingRight) || 0)
-      var splitWidth = 24
-      fitMax = Math.min(900, (contentWidth - 0.5 * cover.getBoundingClientRect().width - splitWidth * 3) / 1.5)
+      var leftSplit = document.querySelector('.mp-np-split[data-side="left"]')
+      var rightSplit = document.querySelector('.mp-np-split[data-side="right"]')
+      var gapWidth = leftSplit === null ? 24 : leftSplit.getBoundingClientRect().width
+      var splitWidth = rightSplit === null ? 24 : rightSplit.getBoundingClientRect().width
+      fitMax = Math.min(900, (contentWidth - 0.5 * cover.getBoundingClientRect().width - gapWidth - 2 * splitWidth) / 1.5)
     }
     document.body.style.userSelect = 'none'
     function move(moveEvent) {
@@ -1610,6 +1618,7 @@ function NowPlaying(props) {
         '--mp-lyric-trans': translationSize + 'px',
         '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
         '--mp-lyric-w': lyricWidth + 'px',
+        '--mp-pane-gap-w': paneGap + 'px',
       },
     },
     bg.current !== '' || bg.previous !== ''
