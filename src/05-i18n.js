@@ -84,6 +84,7 @@ var DICTS = {
     'editor.smokeIntensity': '烟雾强度',
     'editor.smokeSpeed': '流动速度',
     'editor.smokeScale': '烟雾尺度',
+    'editor.smokeBeat': '节奏响应',
     'editor.preview': '实时预览',
     'editor.sampleTitle': '示例歌曲',
     'editor.samplePrev': '等到秋叶被红透',
@@ -539,6 +540,7 @@ var DICTS = {
     'editor.smokeIntensity': 'Smoke intensity',
     'editor.smokeSpeed': 'Flow speed',
     'editor.smokeScale': 'Smoke scale',
+    'editor.smokeBeat': 'Beat response',
 
     'editor.reset': 'Restore defaults',
     'editor.resetConfirm': 'Restore default settings?',

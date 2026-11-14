@@ -412,6 +412,7 @@ function NpEditor(props) {
       npSmokeIntensity: 100,
       npSmokeSpeed: 100,
       npSmokeScale: 100,
+      npSmokeBeat: 60,
     })
   }
 
@@ -735,6 +736,9 @@ function NpEditor(props) {
             }),
             rangeRow(t('editor.smokeScale'), Number(prefs.npSmokeScale) || 100, 50, 200, 5, '%', function (value) {
               setPrefs({ npSmokeScale: value })
+            }),
+            rangeRow(t('editor.smokeBeat'), Number(prefs.npSmokeBeat) || 0, 0, 100, 5, '%', function (value) {
+              setPrefs({ npSmokeBeat: value })
             }),
           ),
         ),
@@ -1158,6 +1162,8 @@ function SmokeFlow(props) {
   var speedRef = useRef(Number(props.speed) || 1)
   var intensityRef = useRef(Number(props.intensity) || 1)
   var scaleRef = useRef(Number(props.scale) || 1)
+  var playingRef = useRef(props.playing === true)
+  var beatRef = useRef(Number(props.beat) || 0)
   useEffect(
     function () {
       targetRef.current = props.colors
@@ -1169,8 +1175,10 @@ function SmokeFlow(props) {
       speedRef.current = Number(props.speed) || 1
       intensityRef.current = Number(props.intensity) || 1
       scaleRef.current = Number(props.scale) || 1
+      playingRef.current = props.playing === true
+      beatRef.current = Number(props.beat) || 0
     },
-    [props.speed, props.intensity, props.scale],
+    [props.speed, props.intensity, props.scale, props.playing, props.beat],
   )
   useEffect(
     function () {
@@ -1229,6 +1237,26 @@ function SmokeFlow(props) {
       var uSpeed = gl.getUniformLocation(program, 'uSpeed')
       var uIntensity = gl.getUniformLocation(program, 'uIntensity')
       var uScale = gl.getUniformLocation(program, 'uScale')
+      var beatLevel = 0
+      function computeBeat() {
+        if (playingRef.current !== true) {
+          beatLevel *= 0.86
+          return beatLevel
+        }
+        var wave =
+          typeof player !== 'undefined' && player !== null && typeof player.getWave === 'function'
+            ? player.getWave()
+            : null
+        var target = 0
+        if (wave !== null && wave.length > 0) {
+          var bands = Math.max(1, Math.floor(wave.length * 0.32))
+          var sum = 0
+          for (var i = 0; i < bands; i += 1) sum += wave[i]
+          target = Math.min(1, (sum / bands / 255) * 1.8)
+        }
+        beatLevel = target > beatLevel ? beatLevel + (target - beatLevel) * 0.45 : beatLevel + (target - beatLevel) * 0.12
+        return beatLevel
+      }
       var current = (targetRef.current || [[1, 1, 1]]).map(function (color) {
         return color.slice()
       })
@@ -1262,9 +1290,10 @@ function SmokeFlow(props) {
         gl.uniform3f(uB, current[1][0], current[1][1], current[1][2])
         gl.uniform3f(uC, current[2][0], current[2][1], current[2][2])
         gl.uniform1f(uTime, ((now || 0) - start) / 1000)
-        gl.uniform1f(uSpeed, speedRef.current)
-        gl.uniform1f(uIntensity, intensityRef.current)
-        gl.uniform1f(uScale, scaleRef.current)
+        var beat = computeBeat() * beatRef.current
+        gl.uniform1f(uSpeed, speedRef.current * (1 + beat * 0.9))
+        gl.uniform1f(uIntensity, intensityRef.current * (1 + beat * 0.45))
+        gl.uniform1f(uScale, scaleRef.current * (1 - beat * 0.1))
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
       }
       function frame(now) {
@@ -2031,6 +2060,8 @@ function NowPlaying(props) {
           h(SmokeFlow, {
             colors: smokeColors,
             paused: pageHidden || props.open === false,
+            playing: snap.playing === true,
+            beat: clamp((Number(prefs.npSmokeBeat) || 0) / 100, 0, 1),
             speed: clamp((Number(prefs.npSmokeSpeed) || 100) / 100, 0.3, 2.5),
             intensity: clamp((Number(prefs.npSmokeIntensity) || 100) / 100, 0.3, 1.8),
             scale: clamp((Number(prefs.npSmokeScale) || 100) / 100, 0.5, 2),

@@ -155,6 +155,6 @@ assert.match(theme, /\.mp-np-smoke\{/, 'webgl smoke canvas exists')
 assert.match(theme, /\.mp-np-flow\.has-smoke \.mp-np-blob[^']*display:none/, 'smoke replaces the blob fallback')
 
 assert.match(theme, /\.mp-npe-section\.is-smoke\{grid-column:1\/4;grid-row:3\}/, 'smoke tuning section spans the editor')
-assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(3/, 'smoke tuning has three columns')
+assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/, 'smoke tuning has four columns')
 
 console.log('theme.test.mjs ok')

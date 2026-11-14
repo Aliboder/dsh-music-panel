@@ -1106,6 +1106,7 @@ window.__ModuleLoader__.load({
         'editor.smokeIntensity': '烟雾强度',
         'editor.smokeSpeed': '流动速度',
         'editor.smokeScale': '烟雾尺度',
+        'editor.smokeBeat': '节奏响应',
         'editor.preview': '实时预览',
         'editor.sampleTitle': '示例歌曲',
         'editor.samplePrev': '等到秋叶被红透',
@@ -1561,6 +1562,7 @@ window.__ModuleLoader__.load({
         'editor.smokeIntensity': 'Smoke intensity',
         'editor.smokeSpeed': 'Flow speed',
         'editor.smokeScale': 'Smoke scale',
+        'editor.smokeBeat': 'Beat response',
 
         'editor.reset': 'Restore defaults',
         'editor.resetConfirm': 'Restore default settings?',
@@ -3401,6 +3403,8 @@ window.__ModuleLoader__.load({
       npSmokeIntensity: 100,
       npSmokeSpeed: 100,
       npSmokeScale: 100,
+      /** 0-100: how strongly the smoke reacts to the music energy. */
+      npSmokeBeat: 60,
       composerLyrics: false,
       composerTranslation: true,
       composerLyricPlace: 'input-left',
@@ -8832,7 +8836,7 @@ window.__ModuleLoader__.load({
       '@keyframes mp-npe-pop{from{transform:translateY(12px) scale(.985);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}',
       '@media (min-width:981px){.mp-np-disc-wrap{-webkit-box-reflect:below 4px linear-gradient(to top,rgba(0,0,0,.45),rgba(0,0,0,0) 96px)}}',
       '@media (min-width:981px) and (max-height:860px){.mp-np-disc-wrap{-webkit-box-reflect:below 2px linear-gradient(to top,rgba(0,0,0,.38),rgba(0,0,0,0) 26px)}}',
-      '@media (min-width:1000px){.mp-npe{padding:20px}.mp-npe-panel{width:min(1080px,94vw);height:auto;max-height:min(820px,92vh)}.mp-npe-head{padding:18px 22px 14px}.mp-npe-body{display:grid;grid-template-columns:minmax(260px,1.05fr) minmax(250px,1fr) minmax(230px,.92fr);grid-template-rows:auto auto auto;gap:20px 22px;align-items:start;overflow-y:auto;padding:18px 22px 16px}.mp-npe-preview{grid-column:1;grid-row:1;margin-bottom:0}.mp-npe-preview-cover{width:120px;height:120px}.mp-npe-section{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px 16px 10px;margin-bottom:0}.mp-npe-section.is-cover{grid-column:1;grid-row:2}.mp-npe-section.is-type{grid-column:2;grid-row:1/3}.mp-npe-section.is-display{grid-column:3;grid-row:1/3}.mp-npe-section.is-smoke{grid-column:1/4;grid-row:3}.mp-npe-smoke-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.mp-npe-sec-head{margin-bottom:10px}.mp-npe-row{margin-top:12px}.mp-npe-foot{padding:12px 22px}}',
+      '@media (min-width:1000px){.mp-npe{padding:20px}.mp-npe-panel{width:min(1080px,94vw);height:auto;max-height:min(820px,92vh)}.mp-npe-head{padding:18px 22px 14px}.mp-npe-body{display:grid;grid-template-columns:minmax(260px,1.05fr) minmax(250px,1fr) minmax(230px,.92fr);grid-template-rows:auto auto auto;gap:20px 22px;align-items:start;overflow-y:auto;padding:18px 22px 16px}.mp-npe-preview{grid-column:1;grid-row:1;margin-bottom:0}.mp-npe-preview-cover{width:120px;height:120px}.mp-npe-section{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px 16px 10px;margin-bottom:0}.mp-npe-section.is-cover{grid-column:1;grid-row:2}.mp-npe-section.is-type{grid-column:2;grid-row:1/3}.mp-npe-section.is-display{grid-column:3;grid-row:1/3}.mp-npe-section.is-smoke{grid-column:1/4;grid-row:3}.mp-npe-smoke-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.mp-npe-sec-head{margin-bottom:10px}.mp-npe-row{margin-top:12px}.mp-npe-foot{padding:12px 22px}}',
       '@media (max-width:620px){.mp-npe{padding:8px}.mp-npe-panel{width:100%;max-height:100%}.mp-npe-head{padding:18px 18px 14px}.mp-npe-body{padding:14px 18px 18px}.mp-npe-foot{padding:12px 18px}}',
       '@media (prefers-reduced-motion:reduce){.mp-npe,.mp-npe-panel{animation:none}}',
       '.mp-quality{font-size:11px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.06)}',
@@ -11261,6 +11265,7 @@ window.__ModuleLoader__.load({
           npSmokeIntensity: 100,
           npSmokeSpeed: 100,
           npSmokeScale: 100,
+          npSmokeBeat: 60,
         })
       }
 
@@ -11584,6 +11589,9 @@ window.__ModuleLoader__.load({
                 }),
                 rangeRow(t('editor.smokeScale'), Number(prefs.npSmokeScale) || 100, 50, 200, 5, '%', function (value) {
                   setPrefs({ npSmokeScale: value })
+                }),
+                rangeRow(t('editor.smokeBeat'), Number(prefs.npSmokeBeat) || 0, 0, 100, 5, '%', function (value) {
+                  setPrefs({ npSmokeBeat: value })
                 }),
               ),
             ),
@@ -12007,6 +12015,8 @@ window.__ModuleLoader__.load({
       var speedRef = useRef(Number(props.speed) || 1)
       var intensityRef = useRef(Number(props.intensity) || 1)
       var scaleRef = useRef(Number(props.scale) || 1)
+      var playingRef = useRef(props.playing === true)
+      var beatRef = useRef(Number(props.beat) || 0)
       useEffect(
         function () {
           targetRef.current = props.colors
@@ -12018,8 +12028,10 @@ window.__ModuleLoader__.load({
           speedRef.current = Number(props.speed) || 1
           intensityRef.current = Number(props.intensity) || 1
           scaleRef.current = Number(props.scale) || 1
+          playingRef.current = props.playing === true
+          beatRef.current = Number(props.beat) || 0
         },
-        [props.speed, props.intensity, props.scale],
+        [props.speed, props.intensity, props.scale, props.playing, props.beat],
       )
       useEffect(
         function () {
@@ -12078,6 +12090,26 @@ window.__ModuleLoader__.load({
           var uSpeed = gl.getUniformLocation(program, 'uSpeed')
           var uIntensity = gl.getUniformLocation(program, 'uIntensity')
           var uScale = gl.getUniformLocation(program, 'uScale')
+          var beatLevel = 0
+          function computeBeat() {
+            if (playingRef.current !== true) {
+              beatLevel *= 0.86
+              return beatLevel
+            }
+            var wave =
+              typeof player !== 'undefined' && player !== null && typeof player.getWave === 'function'
+                ? player.getWave()
+                : null
+            var target = 0
+            if (wave !== null && wave.length > 0) {
+              var bands = Math.max(1, Math.floor(wave.length * 0.32))
+              var sum = 0
+              for (var i = 0; i < bands; i += 1) sum += wave[i]
+              target = Math.min(1, (sum / bands / 255) * 1.8)
+            }
+            beatLevel = target > beatLevel ? beatLevel + (target - beatLevel) * 0.45 : beatLevel + (target - beatLevel) * 0.12
+            return beatLevel
+          }
           var current = (targetRef.current || [[1, 1, 1]]).map(function (color) {
             return color.slice()
           })
@@ -12111,9 +12143,10 @@ window.__ModuleLoader__.load({
             gl.uniform3f(uB, current[1][0], current[1][1], current[1][2])
             gl.uniform3f(uC, current[2][0], current[2][1], current[2][2])
             gl.uniform1f(uTime, ((now || 0) - start) / 1000)
-            gl.uniform1f(uSpeed, speedRef.current)
-            gl.uniform1f(uIntensity, intensityRef.current)
-            gl.uniform1f(uScale, scaleRef.current)
+            var beat = computeBeat() * beatRef.current
+            gl.uniform1f(uSpeed, speedRef.current * (1 + beat * 0.9))
+            gl.uniform1f(uIntensity, intensityRef.current * (1 + beat * 0.45))
+            gl.uniform1f(uScale, scaleRef.current * (1 - beat * 0.1))
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
           }
           function frame(now) {
@@ -12880,6 +12913,8 @@ window.__ModuleLoader__.load({
               h(SmokeFlow, {
                 colors: smokeColors,
                 paused: pageHidden || props.open === false,
+                playing: snap.playing === true,
+                beat: clamp((Number(prefs.npSmokeBeat) || 0) / 100, 0, 1),
                 speed: clamp((Number(prefs.npSmokeSpeed) || 100) / 100, 0.3, 2.5),
                 intensity: clamp((Number(prefs.npSmokeIntensity) || 100) / 100, 0.3, 1.8),
                 scale: clamp((Number(prefs.npSmokeScale) || 100) / 100, 0.5, 2),

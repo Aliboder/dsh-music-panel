@@ -37,6 +37,8 @@ var PREF_DEFAULTS = {
   npSmokeIntensity: 100,
   npSmokeSpeed: 100,
   npSmokeScale: 100,
+  /** 0-100: how strongly the smoke reacts to the music energy. */
+  npSmokeBeat: 60,
   composerLyrics: false,
   composerTranslation: true,
   composerLyricPlace: 'input-left',
