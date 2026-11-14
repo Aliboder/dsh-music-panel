@@ -34,10 +34,11 @@ var PREF_DEFAULTS = {
   /** Animated flowing-light background on the player page. */
   npFlowBg: true,
   /** Ambient backdrop motion (blurred cover). */
-  npAmbientDrift: 60,
-  npAmbientSpeed: 100,
-  npBeatSensitivity: 60,
-  npBeatAmount: 60,
+  npAmbientOn: true,
+  npAmbientDrift: 300,
+  npAmbientSpeed: 400,
+  npBeatSensitivity: 200,
+  npBeatAmount: 300,
   composerLyrics: false,
   composerTranslation: true,
   composerLyricPlace: 'input-left',

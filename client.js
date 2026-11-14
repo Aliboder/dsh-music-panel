@@ -1114,6 +1114,7 @@ window.__ModuleLoader__.load({
         'editor.beatScale': '鼓点收紧',
         'editor.beatWarp': '鼓点扭曲',
         'editor.ambient': '动态背景',
+        'editor.ambientHint': '关闭后背景完全静止',
         'editor.ambientDrift': '漂浮强度',
         'editor.ambientSpeed': '漂浮速度',
         'editor.beatSensitivity': '响应灵敏度',
@@ -1586,6 +1587,7 @@ window.__ModuleLoader__.load({
         'editor.beatScale': 'Beat tighten',
         'editor.beatWarp': 'Beat warp',
         'editor.ambient': 'Dynamic background',
+        'editor.ambientHint': 'Off keeps the backdrop completely still',
         'editor.ambientDrift': 'Drift strength',
         'editor.ambientSpeed': 'Drift speed',
         'editor.beatSensitivity': 'Response sensitivity',
@@ -3432,10 +3434,11 @@ window.__ModuleLoader__.load({
       /** Animated flowing-light background on the player page. */
       npFlowBg: true,
       /** Ambient backdrop motion (blurred cover). */
-      npAmbientDrift: 60,
-      npAmbientSpeed: 100,
-      npBeatSensitivity: 60,
-      npBeatAmount: 60,
+      npAmbientOn: true,
+      npAmbientDrift: 300,
+      npAmbientSpeed: 400,
+      npBeatSensitivity: 200,
+      npBeatAmount: 300,
       composerLyrics: false,
       composerTranslation: true,
       composerLyricPlace: 'input-left',
@@ -8887,7 +8890,7 @@ window.__ModuleLoader__.load({
       '@keyframes mp-npe-pop{from{transform:translateY(12px) scale(.985);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}',
       '@media (min-width:981px){.mp-np-disc-wrap{-webkit-box-reflect:below 4px linear-gradient(to top,rgba(0,0,0,.45),rgba(0,0,0,0) 96px)}}',
       '@media (min-width:981px) and (max-height:860px){.mp-np-disc-wrap{-webkit-box-reflect:below 2px linear-gradient(to top,rgba(0,0,0,.38),rgba(0,0,0,0) 26px)}}',
-      '@media (min-width:1000px){.mp-npe{padding:20px}.mp-npe-panel{width:min(1080px,94vw);height:min(900px,96vh);max-height:none}.mp-npe-head{padding:18px 22px 14px}.mp-npe-body{display:grid;grid-template-columns:minmax(260px,1.05fr) minmax(250px,1fr) minmax(230px,.92fr);grid-template-rows:auto auto auto;gap:20px 22px;align-items:start;overflow-y:auto;padding:18px 22px 16px}.mp-npe-preview{grid-column:1;grid-row:1;margin-bottom:0}.mp-npe-preview-cover{width:120px;height:120px}.mp-npe-section{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px 16px 10px;margin-bottom:0}.mp-npe-section.is-cover{grid-column:1;grid-row:2}.mp-npe-section.is-type{grid-column:2;grid-row:1/3}.mp-npe-section.is-display{grid-column:3;grid-row:1/3}.mp-npe-section.is-ambient{grid-column:1/4;grid-row:3}.mp-npe-section.is-ambient{padding:12px 16px 8px}.mp-npe-section.is-ambient .mp-npe-row{margin-top:8px}.mp-npe-smoke-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.mp-npe-sec-head{margin-bottom:10px}.mp-npe-row{margin-top:12px}.mp-npe-foot{padding:12px 22px}}',
+      '@media (min-width:1000px){.mp-npe{padding:20px}.mp-npe-panel{width:min(1080px,94vw);height:auto;max-height:min(900px,96vh)}.mp-npe-head{padding:18px 22px 14px}.mp-npe-body{display:grid;grid-template-columns:minmax(260px,1.05fr) minmax(250px,1fr) minmax(230px,.92fr);grid-template-rows:auto auto auto;gap:20px 22px;align-items:start;align-content:start;overflow-y:auto;padding:18px 22px 16px}.mp-npe-preview{grid-column:1;grid-row:1;margin-bottom:0}.mp-npe-preview-cover{width:120px;height:120px}.mp-npe-section{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px 16px 10px;margin-bottom:0}.mp-npe-section.is-cover{grid-column:1;grid-row:2}.mp-npe-section.is-type{grid-column:2;grid-row:1/3}.mp-npe-section.is-display{grid-column:3;grid-row:1/3}.mp-npe-section.is-ambient{grid-column:1/4;grid-row:3}.mp-npe-section.is-ambient{padding:12px 16px 8px}.mp-npe-section.is-ambient .mp-npe-row{margin-top:8px}.mp-npe-smoke-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.mp-npe-sec-head{margin-bottom:10px}.mp-npe-row{margin-top:12px}.mp-npe-foot{padding:12px 22px}}',
       '@media (max-width:620px){.mp-npe{padding:8px}.mp-npe-panel{width:100%;max-height:100%}.mp-npe-head{padding:18px 18px 14px}.mp-npe-body{padding:14px 18px 18px}.mp-npe-foot{padding:12px 18px}}',
       '@media (prefers-reduced-motion:reduce){.mp-npe,.mp-npe-panel{animation:none}}',
       '.mp-quality{font-size:11px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.06)}',
@@ -11313,10 +11316,11 @@ window.__ModuleLoader__.load({
           npPaneGap: 60,
           npLyricWidth: 560,
           npFlowBg: true,
-          npAmbientDrift: 60,
-          npAmbientSpeed: 100,
-          npBeatSensitivity: 60,
-          npBeatAmount: 60,
+          npAmbientOn: true,
+          npAmbientDrift: 300,
+          npAmbientSpeed: 400,
+          npBeatSensitivity: 200,
+          npBeatAmount: 300,
         })
       }
 
@@ -11625,23 +11629,27 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { className: 'mp-npe-section is-ambient' },
-              sectionHead(t('editor.ambient')),
-              h(
-                'div',
-                { className: 'mp-npe-smoke-grid' },
-                rangeRow(t('editor.ambientDrift'), Number(prefs.npAmbientDrift) || 0, 0, 300, 5, '%', function (value) {
-                  setPrefs({ npAmbientDrift: value })
-                }),
-                rangeRow(t('editor.ambientSpeed'), Number(prefs.npAmbientSpeed) || 100, 50, 400, 5, '%', function (value) {
-                  setPrefs({ npAmbientSpeed: value })
-                }),
-                rangeRow(t('editor.beatSensitivity'), Number(prefs.npBeatSensitivity) || 60, 0, 200, 5, '%', function (value) {
-                  setPrefs({ npBeatSensitivity: value })
-                }),
-                rangeRow(t('editor.beatAmount'), Number(prefs.npBeatAmount) || 60, 0, 300, 5, '%', function (value) {
-                  setPrefs({ npBeatAmount: value })
-                }),
-              ),
+              switchRow(t('editor.ambient'), prefs.npAmbientOn !== false, function (value) {
+                setPrefs({ npAmbientOn: value })
+              }, t('editor.ambientHint')),
+              prefs.npAmbientOn !== false
+                ? h(
+                    'div',
+                    { className: 'mp-npe-smoke-grid' },
+                    rangeRow(t('editor.ambientDrift'), Number(prefs.npAmbientDrift) || 300, 0, 300, 5, '%', function (value) {
+                      setPrefs({ npAmbientDrift: value })
+                    }),
+                    rangeRow(t('editor.ambientSpeed'), Number(prefs.npAmbientSpeed) || 400, 50, 400, 5, '%', function (value) {
+                      setPrefs({ npAmbientSpeed: value })
+                    }),
+                    rangeRow(t('editor.beatSensitivity'), Number(prefs.npBeatSensitivity) || 200, 0, 200, 5, '%', function (value) {
+                      setPrefs({ npBeatSensitivity: value })
+                    }),
+                    rangeRow(t('editor.beatAmount'), Number(prefs.npBeatAmount) || 300, 0, 300, 5, '%', function (value) {
+                      setPrefs({ npBeatAmount: value })
+                    }),
+                  )
+                : null,
             ),
           ),
           h(
@@ -12379,7 +12387,7 @@ window.__ModuleLoader__.load({
       var setBg = bgPair[1]
       useAmbientBeat(
         ambientRef,
-        true,
+        prefs.npAmbientOn !== false,
         snap.playing === true,
         clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 2),
         clamp((Number(prefs.npBeatAmount) || 60) / 100, 0, 3),
@@ -12729,7 +12737,7 @@ window.__ModuleLoader__.load({
               'div',
               {
                 ref: ambientRef,
-                className: 'mp-np-bg is-ambient',
+                className: cx('mp-np-bg', prefs.npAmbientOn !== false && 'is-ambient'),
                 style: (function () {
                   var drift = clamp((Number(prefs.npAmbientDrift) || 0) / 100, 0, 3)
                   return {

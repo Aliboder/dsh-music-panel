@@ -409,10 +409,11 @@ function NpEditor(props) {
       npPaneGap: 60,
       npLyricWidth: 560,
       npFlowBg: true,
-      npAmbientDrift: 60,
-      npAmbientSpeed: 100,
-      npBeatSensitivity: 60,
-      npBeatAmount: 60,
+      npAmbientOn: true,
+      npAmbientDrift: 300,
+      npAmbientSpeed: 400,
+      npBeatSensitivity: 200,
+      npBeatAmount: 300,
     })
   }
 
@@ -721,23 +722,27 @@ function NpEditor(props) {
         h(
           'div',
           { className: 'mp-npe-section is-ambient' },
-          sectionHead(t('editor.ambient')),
-          h(
-            'div',
-            { className: 'mp-npe-smoke-grid' },
-            rangeRow(t('editor.ambientDrift'), Number(prefs.npAmbientDrift) || 0, 0, 300, 5, '%', function (value) {
-              setPrefs({ npAmbientDrift: value })
-            }),
-            rangeRow(t('editor.ambientSpeed'), Number(prefs.npAmbientSpeed) || 100, 50, 400, 5, '%', function (value) {
-              setPrefs({ npAmbientSpeed: value })
-            }),
-            rangeRow(t('editor.beatSensitivity'), Number(prefs.npBeatSensitivity) || 60, 0, 200, 5, '%', function (value) {
-              setPrefs({ npBeatSensitivity: value })
-            }),
-            rangeRow(t('editor.beatAmount'), Number(prefs.npBeatAmount) || 60, 0, 300, 5, '%', function (value) {
-              setPrefs({ npBeatAmount: value })
-            }),
-          ),
+          switchRow(t('editor.ambient'), prefs.npAmbientOn !== false, function (value) {
+            setPrefs({ npAmbientOn: value })
+          }, t('editor.ambientHint')),
+          prefs.npAmbientOn !== false
+            ? h(
+                'div',
+                { className: 'mp-npe-smoke-grid' },
+                rangeRow(t('editor.ambientDrift'), Number(prefs.npAmbientDrift) || 300, 0, 300, 5, '%', function (value) {
+                  setPrefs({ npAmbientDrift: value })
+                }),
+                rangeRow(t('editor.ambientSpeed'), Number(prefs.npAmbientSpeed) || 400, 50, 400, 5, '%', function (value) {
+                  setPrefs({ npAmbientSpeed: value })
+                }),
+                rangeRow(t('editor.beatSensitivity'), Number(prefs.npBeatSensitivity) || 200, 0, 200, 5, '%', function (value) {
+                  setPrefs({ npBeatSensitivity: value })
+                }),
+                rangeRow(t('editor.beatAmount'), Number(prefs.npBeatAmount) || 300, 0, 300, 5, '%', function (value) {
+                  setPrefs({ npBeatAmount: value })
+                }),
+              )
+            : null,
         ),
       ),
       h(
@@ -1475,7 +1480,7 @@ function NowPlaying(props) {
   var setBg = bgPair[1]
   useAmbientBeat(
     ambientRef,
-    true,
+    prefs.npAmbientOn !== false,
     snap.playing === true,
     clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 2),
     clamp((Number(prefs.npBeatAmount) || 60) / 100, 0, 3),
@@ -1825,7 +1830,7 @@ function NowPlaying(props) {
           'div',
           {
             ref: ambientRef,
-            className: 'mp-np-bg is-ambient',
+            className: cx('mp-np-bg', prefs.npAmbientOn !== false && 'is-ambient'),
             style: (function () {
               var drift = clamp((Number(prefs.npAmbientDrift) || 0) / 100, 0, 3)
               return {
