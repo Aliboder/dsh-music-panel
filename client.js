@@ -8643,6 +8643,10 @@ window.__ModuleLoader__.load({
       '.mp-np-quality{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 16px;min-height:20px;margin:auto 0 12px;font-size:13px;font-weight:500;color:rgba(255,255,255,.8);letter-spacing:.01em}',
       '.mp-np-quality-name{color:rgba(255,255,255,.95)}',
       '.mp-np-progress{position:relative;width:100%;margin:12px 0 0;padding:0;order:3}',
+      '.mp-wave-seek{position:relative;width:100%;height:36px;display:flex;align-items:center;border-radius:8px}',
+      '.mp-wave-seek:focus-within{outline:2px solid var(--dsw-focus-ring-color,#4176E6);outline-offset:4px}',
+      '.mp-wave-seek-input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}',
+      '.mp-wave-seek-input:disabled{cursor:default}',
       '.mp-np-times{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:12px;order:4;font-size:13px;font-weight:500;color:rgba(255,255,255,.86);font-variant-numeric:tabular-nums}',
       '.mp-np-transport{display:flex;align-items:center;justify-content:center;gap:84px;margin:0;order:2}',
       '.mp-np-transport .mp-iconbtn{width:46px;height:46px;border-radius:50%;color:#fff}.mp-np-transport svg{stroke-width:2}.mp-np-secondary svg{stroke-width:1.9}',
@@ -12011,8 +12015,32 @@ window.__ModuleLoader__.load({
       }, [ready])
     }
 
-    function CoverReflectWave(props) {
+    function WaveSeekBar(props) {
       var accent = useCoverAccent(props.cover || '', props.imageRef)
+      var time = usePlayerTime()
+      var seekPair = useState(null)
+      var seeking = seekPair[0]
+      var setSeeking = seekPair[1]
+      var seekingRef = useRef(null)
+      var hoverRef = useRef(null)
+      var duration = time.duration > 0 ? time.duration : props.fallbackDuration || 0
+      var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
+      var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
+      var progressRef = useRef(progress)
+      var durationRef = useRef(duration)
+      progressRef.current = progress
+      durationRef.current = duration
+      function choose(value) {
+        seekingRef.current = value
+        setSeeking(value)
+      }
+      function commit() {
+        var value = seekingRef.current
+        if (value === null) return
+        if (duration > 0) player.seek(value)
+        seekingRef.current = null
+        setSeeking(null)
+      }
       var gainsRef = useRef({
         beat: Number(props.beat) || 0,
         sensitivity: Number(props.beatSensitivity) || 0.6,
@@ -12036,6 +12064,8 @@ window.__ModuleLoader__.load({
       )
       var playing = props.playing === true
       var active = props.active !== false
+      var playingRef = useRef(playing)
+      playingRef.current = playing
       var ref = useRef(null)
       useEffect(
         function () {
@@ -12043,7 +12073,7 @@ window.__ModuleLoader__.load({
           if (canvas === null) return undefined
           var ctx = canvas.getContext('2d')
           if (ctx === null) return undefined
-          if (playing !== true || active !== true) {
+          if (active !== true) {
             // Keep the last painted frame while CSS scales/fades the canvas out.
             var clearTimer = setTimeout(function () {
               var node = ref.current
@@ -12090,9 +12120,10 @@ window.__ModuleLoader__.load({
             var h = canvas.height / dpr
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
             ctx.clearRect(0, 0, w, h)
-            var data = playing ? player.getWave() : null
+            var playingNow = playingRef.current
+            var data = playingNow && props.wave !== false ? player.getWave() : null
             var gains = gainsRef.current
-            var beat = beatTracker.update(data, playing, gains.sensitivity) * gains.beat
+            var beat = beatTracker.update(data, playingNow, gains.sensitivity) * gains.beat
             var beatSpeedGain = gains.speed
             var beatIntensityGain = gains.intensity
             var beatScaleGain = gains.scale
@@ -12145,7 +12176,10 @@ window.__ModuleLoader__.load({
               var half = ((levels[k] * h) / 2) * (1 + beat * beatIntensityGain)
               if (half > h * 0.5) half = h * 0.5
               if (half < 1) continue
-              ctx.fillStyle = colorOf(mixFeature(palette, phase + dist * 0.72 * (1 + beat * beatWarpGain)), 0.95)
+              var centerRatio = (k + 0.5) / bands
+              var played = centerRatio <= progressRef.current
+              var feature = mixFeature(palette, phase + dist * 0.72 * (1 + beat * beatWarpGain))
+              ctx.fillStyle = colorOf(feature, played ? 0.96 : 0.32)
               var x = k * gap + (gap - barW) / 2
               var radius = Math.min(barW / 2, 4, half)
               if (typeof ctx.roundRect === 'function') {
@@ -12157,7 +12191,19 @@ window.__ModuleLoader__.load({
               }
             }
             ctx.globalAlpha = 1
-            if (playing) frame = requestAnimationFrame(draw)
+            if (durationRef.current > 0) {
+              var headX = progressRef.current * w
+              ctx.fillStyle = 'rgba(255,255,255,.9)'
+              ctx.fillRect(Math.max(0, Math.min(w - 1.5, headX - 0.75)), 2, 1.5, h - 4)
+              ctx.beginPath()
+              ctx.arc(Math.max(3, Math.min(w - 3, headX)), h / 2, 3, 0, Math.PI * 2)
+              ctx.fill()
+            }
+            if (hoverRef.current !== null && durationRef.current > 0) {
+              ctx.fillStyle = 'rgba(255,255,255,.28)'
+              ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
+            }
+            frame = requestAnimationFrame(draw)
           }
           frame = requestAnimationFrame(draw)
           return function () {
@@ -12166,13 +12212,40 @@ window.__ModuleLoader__.load({
             window.removeEventListener('resize', resize)
           }
         },
-        [accent, playing, active],
+        [accent, active, props.wave],
       )
-      return h('canvas', {
-        ref: ref,
-        className: cx('mp-np-reflect-wave', (playing !== true || active !== true) && 'is-fading'),
-        'aria-hidden': 'true',
-      })
+      return h(
+        'div',
+        { className: 'mp-wave-seek' },
+        h('canvas', {
+          ref: ref,
+          className: cx('mp-np-reflect-wave', active !== true && 'is-fading'),
+          'aria-hidden': 'true',
+        }),
+        h('input', {
+          type: 'range',
+          className: 'mp-wave-seek-input',
+          min: 0,
+          max: duration > 0 ? duration : 1,
+          step: 0.5,
+          value: position,
+          disabled: duration <= 0,
+          'aria-label': t('page.duration'),
+          onChange: function (event) {
+            choose(Number(event.target.value))
+          },
+          onPointerUp: commit,
+          onKeyUp: commit,
+          onBlur: commit,
+          onPointerMove: function (event) {
+            var rect = event.currentTarget.getBoundingClientRect()
+            hoverRef.current = clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1)
+          },
+          onPointerLeave: function () {
+            hoverRef.current = null
+          },
+        }),
+      )
     }
 
     function NowPlaying(props) {
@@ -13017,17 +13090,16 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { className: 'mp-np-progress' },
-              prefs.waveEnabled !== false
-                ? h(CoverReflectWave, {
+              h(WaveSeekBar, {
                 cover: cover,
                 playing: snap.playing,
                 imageRef: coverImgRef,
                 active: staged,
+                wave: prefs.waveEnabled !== false,
                 beat: clamp((Number(prefs.npBeatAmount) || 0) / 100, 0, 3),
                 beatSensitivity: clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 2),
-              })
-                : null,
-              h(SeekBar, { fallbackDuration: track ? track.durationSec || 0 : 0 }),
+                fallbackDuration: track ? track.durationSec || 0 : 0,
+              }),
             ),
             h(
               'div',
