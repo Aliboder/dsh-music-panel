@@ -31,6 +31,8 @@ var PREF_DEFAULTS = {
   npLyricWidth: 560,
   /** Gap between the album column and the lyrics column (px), editable in the player editor. */
   npPaneGap: 60,
+  /** Animated flowing-light background on the player page. */
+  npFlowBg: true,
   composerLyrics: false,
   composerTranslation: true,
   composerLyricPlace: 'input-left',

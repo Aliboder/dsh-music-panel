@@ -1101,6 +1101,7 @@ window.__ModuleLoader__.load({
         'editor.paneGap': '两栏间距',
         'editor.display': '显示选项',
         'editor.wave': '进度条波图',
+        'editor.flow': '动态流光背景',
         'editor.reset': '恢复默认',
         'editor.resetConfirm': '恢复默认设置？',
         'editor.resetHint': '封面样式、歌词排版和显示选项都会恢复。',
@@ -1542,6 +1543,7 @@ window.__ModuleLoader__.load({
         'editor.paneGap': 'Column gap',
         'editor.display': 'Display',
         'editor.wave': 'Waveform on progress',
+        'editor.flow': 'Flowing light background',
         'editor.reset': 'Restore defaults',
         'editor.resetConfirm': 'Restore default settings?',
         'editor.resetHint': 'Cover style, lyric typography and display options will be reset.',
@@ -3375,6 +3377,8 @@ window.__ModuleLoader__.load({
       npLyricWidth: 560,
       /** Gap between the album column and the lyrics column (px), editable in the player editor. */
       npPaneGap: 60,
+      /** Animated flowing-light background on the player page. */
+      npFlowBg: true,
       composerLyrics: false,
       composerTranslation: true,
       composerLyricPlace: 'input-left',
@@ -8453,6 +8457,23 @@ window.__ModuleLoader__.load({
       '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
       '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
       '.mp-np-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto}.mp-np-bg .is-prev{opacity:1}.mp-np-bg .is-cur{animation:mp-bg-in .85s ease both}@keyframes mp-bg-in{from{opacity:0}to{opacity:1}}',
+      "@property --mp-flow-a{syntax:'<color>';inherits:true;initial-value:transparent}",
+      "@property --mp-flow-b{syntax:'<color>';inherits:true;initial-value:transparent}",
+      "@property --mp-flow-c{syntax:'<color>';inherits:true;initial-value:transparent}",
+      "@property --mp-flow-d{syntax:'<color>';inherits:true;initial-value:transparent}",
+      '.mp-np{--mp-flow-a:transparent;--mp-flow-b:transparent;--mp-flow-c:transparent;--mp-flow-d:transparent;transition:transform .32s ease,visibility .32s,--mp-flow-a 1.1s ease,--mp-flow-b 1.1s ease,--mp-flow-c 1.1s ease,--mp-flow-d 1.1s ease}',
+      '.mp-np-flow{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;contain:strict}',
+      '.mp-np-blob{position:absolute;border-radius:50%;opacity:.7;will-change:transform;transform:translate3d(0,0,0);background:radial-gradient(circle at 50% 50%,var(--mp-flow-color) 0%,transparent 66%);animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}',
+      '.mp-np-blob.is-a{--mp-flow-color:var(--mp-flow-a);width:78vw;height:78vw;left:-16%;top:-24%;animation-name:mp-flow-a;animation-duration:24s}',
+      '.mp-np-blob.is-b{--mp-flow-color:var(--mp-flow-b);width:68vw;height:68vw;right:-18%;top:2%;animation-name:mp-flow-b;animation-duration:28s;animation-delay:-6s}',
+      '.mp-np-blob.is-c{--mp-flow-color:var(--mp-flow-c);width:74vw;height:74vw;left:8%;bottom:-34%;animation-name:mp-flow-c;animation-duration:32s;animation-delay:-12s}',
+      '.mp-np-blob.is-d{--mp-flow-color:var(--mp-flow-d);width:56vw;height:56vw;right:6%;bottom:-18%;animation-name:mp-flow-d;animation-duration:26s;animation-delay:-16s}',
+      '@keyframes mp-flow-a{0%{transform:translate3d(-4%,-2%,0) scale(1)}100%{transform:translate3d(9%,11%,0) scale(1.14)}}',
+      '@keyframes mp-flow-b{0%{transform:translate3d(4%,-4%,0) scale(1.06)}100%{transform:translate3d(-10%,8%,0) scale(.94)}}',
+      '@keyframes mp-flow-c{0%{transform:translate3d(-6%,4%,0) scale(.96)}100%{transform:translate3d(8%,-8%,0) scale(1.12)}}',
+      '@keyframes mp-flow-d{0%{transform:translate3d(6%,2%,0) scale(1)}100%{transform:translate3d(-8%,-6%,0) scale(1.16)}}',
+      '.mp-np-flow.is-paused .mp-np-blob{animation-play-state:paused}',
+      '@media (prefers-reduced-motion:reduce){.mp-np-blob{animation:none}}',
       '.mp-np-shade{position:absolute;inset:0;z-index:1;background:radial-gradient(85% 70% at 16% 6%,rgba(30,4,4,.22),transparent 62%),linear-gradient(180deg,rgba(14,2,2,.26),rgba(14,2,2,.06) 44%,rgba(14,2,2,.22) 80%,rgba(10,2,2,.44));pointer-events:none}',
       '.mp-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(52% 44% at 26% 22%,rgba(255,255,255,.05),transparent 70%),radial-gradient(44% 40% at 80% 82%,rgba(0,0,0,.28),transparent 74%);pointer-events:none}',
       '.mp-np-head{position:absolute;top:22px;left:22px;z-index:5;display:flex;align-items:center;gap:8px;padding:0}',
@@ -11139,6 +11160,7 @@ window.__ModuleLoader__.load({
           lyricOrder: ['embedded', 'lrc'],
           npPaneGap: 60,
           npLyricWidth: 560,
+          npFlowBg: true,
         })
       }
 
@@ -11385,6 +11407,9 @@ window.__ModuleLoader__.load({
               switchRow(t('editor.wave'), prefs.waveEnabled !== false, function (value) {
                 setPrefs({ waveEnabled: value })
               }),
+              switchRow(t('editor.flow'), prefs.npFlowBg !== false, function (value) {
+                setPrefs({ npFlowBg: value })
+              }),
               h(
                 'div',
                 { className: 'mp-npe-row' },
@@ -11433,6 +11458,26 @@ window.__ModuleLoader__.load({
           { h: h, s: sat, l: light },
           { h: 52, s: 14, l: 78 },
         ],
+      }
+    }
+
+    function flowPalette(accent) {
+      var palette =
+        Array.isArray(accent && accent.palette) && accent.palette.length > 0
+          ? accent.palette
+          : [accent || { h: 40, s: 30, l: 55 }]
+      function color(index, hueShift, lightShift, satScale, alpha) {
+        var base = palette[index % palette.length] || palette[0]
+        var hue = ((Number(base.h) || 0) + hueShift + 360) % 360
+        var sat = Math.min(90, Math.max(46, (Number(base.s) || 30) * satScale))
+        var light = Math.min(76, Math.max(40, (Number(base.l) || 55) + lightShift))
+        return 'hsl(' + Math.round(hue) + ' ' + Math.round(sat) + '% ' + Math.round(light) + '% / ' + alpha + ')'
+      }
+      return {
+        a: color(0, 0, 4, 1.05, 0.55),
+        b: color(1, 28, 0, 0.95, 0.5),
+        c: color(2, -30, -2, 1, 0.5),
+        d: color(0, 64, -6, 0.85, 0.42),
       }
     }
 
@@ -12014,6 +12059,21 @@ window.__ModuleLoader__.load({
         [extraPanel],
       )
       var cover = track ? trackCoverSrc(track) : ''
+      var flowAccent = useCoverAccent(cover, coverImgRef)
+      var pageHiddenPair = useState(false)
+      var pageHidden = pageHiddenPair[0]
+      var setPageHidden = pageHiddenPair[1]
+      useEffect(function () {
+        function sync() {
+          setPageHidden(document.visibilityState === 'hidden')
+        }
+        sync()
+        document.addEventListener('visibilitychange', sync)
+        return function () {
+          document.removeEventListener('visibilitychange', sync)
+        }
+      }, [])
+      var flow = flowPalette(flowAccent)
       var bgPair = useState({ current: '', previous: '' })
       var bg = bgPair[0]
       var setBg = bgPair[1]
@@ -12353,6 +12413,10 @@ window.__ModuleLoader__.load({
             '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
             '--mp-lyric-w': lyricWidth + 'px',
             '--mp-pane-gap-w': paneGap + 'px',
+            '--mp-flow-a': flow.a,
+            '--mp-flow-b': flow.b,
+            '--mp-flow-c': flow.c,
+            '--mp-flow-d': flow.d,
           },
         },
         bg.current !== '' || bg.previous !== ''
@@ -12365,6 +12429,20 @@ window.__ModuleLoader__.load({
               bg.current !== ''
                 ? h('img', { key: 'cur:' + bg.current, src: bg.current, alt: '', className: 'is-cur' })
                 : null,
+            )
+          : null,
+
+        prefs.npFlowBg !== false
+          ? h(
+              'div',
+              {
+                className: cx('mp-np-flow', (pageHidden || props.open === false) && 'is-paused'),
+                'aria-hidden': 'true',
+              },
+              h('i', { className: 'mp-np-blob is-a' }),
+              h('i', { className: 'mp-np-blob is-b' }),
+              h('i', { className: 'mp-np-blob is-c' }),
+              h('i', { className: 'mp-np-blob is-d' }),
             )
           : null,
         h('div', { className: 'mp-np-shade' }),

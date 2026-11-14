@@ -406,6 +406,7 @@ function NpEditor(props) {
       lyricOrder: ['embedded', 'lrc'],
       npPaneGap: 60,
       npLyricWidth: 560,
+      npFlowBg: true,
     })
   }
 
@@ -652,6 +653,9 @@ function NpEditor(props) {
           switchRow(t('editor.wave'), prefs.waveEnabled !== false, function (value) {
             setPrefs({ waveEnabled: value })
           }),
+          switchRow(t('editor.flow'), prefs.npFlowBg !== false, function (value) {
+            setPrefs({ npFlowBg: value })
+          }),
           h(
             'div',
             { className: 'mp-npe-row' },
@@ -700,6 +704,26 @@ function fallbackCoverAccent() {
       { h: h, s: sat, l: light },
       { h: 52, s: 14, l: 78 },
     ],
+  }
+}
+
+function flowPalette(accent) {
+  var palette =
+    Array.isArray(accent && accent.palette) && accent.palette.length > 0
+      ? accent.palette
+      : [accent || { h: 40, s: 30, l: 55 }]
+  function color(index, hueShift, lightShift, satScale, alpha) {
+    var base = palette[index % palette.length] || palette[0]
+    var hue = ((Number(base.h) || 0) + hueShift + 360) % 360
+    var sat = Math.min(90, Math.max(46, (Number(base.s) || 30) * satScale))
+    var light = Math.min(76, Math.max(40, (Number(base.l) || 55) + lightShift))
+    return 'hsl(' + Math.round(hue) + ' ' + Math.round(sat) + '% ' + Math.round(light) + '% / ' + alpha + ')'
+  }
+  return {
+    a: color(0, 0, 4, 1.05, 0.55),
+    b: color(1, 28, 0, 0.95, 0.5),
+    c: color(2, -30, -2, 1, 0.5),
+    d: color(0, 64, -6, 0.85, 0.42),
   }
 }
 
@@ -1281,6 +1305,21 @@ function NowPlaying(props) {
     [extraPanel],
   )
   var cover = track ? trackCoverSrc(track) : ''
+  var flowAccent = useCoverAccent(cover, coverImgRef)
+  var pageHiddenPair = useState(false)
+  var pageHidden = pageHiddenPair[0]
+  var setPageHidden = pageHiddenPair[1]
+  useEffect(function () {
+    function sync() {
+      setPageHidden(document.visibilityState === 'hidden')
+    }
+    sync()
+    document.addEventListener('visibilitychange', sync)
+    return function () {
+      document.removeEventListener('visibilitychange', sync)
+    }
+  }, [])
+  var flow = flowPalette(flowAccent)
   var bgPair = useState({ current: '', previous: '' })
   var bg = bgPair[0]
   var setBg = bgPair[1]
@@ -1620,6 +1659,10 @@ function NowPlaying(props) {
         '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
         '--mp-lyric-w': lyricWidth + 'px',
         '--mp-pane-gap-w': paneGap + 'px',
+        '--mp-flow-a': flow.a,
+        '--mp-flow-b': flow.b,
+        '--mp-flow-c': flow.c,
+        '--mp-flow-d': flow.d,
       },
     },
     bg.current !== '' || bg.previous !== ''
@@ -1632,6 +1675,20 @@ function NowPlaying(props) {
           bg.current !== ''
             ? h('img', { key: 'cur:' + bg.current, src: bg.current, alt: '', className: 'is-cur' })
             : null,
+        )
+      : null,
+
+    prefs.npFlowBg !== false
+      ? h(
+          'div',
+          {
+            className: cx('mp-np-flow', (pageHidden || props.open === false) && 'is-paused'),
+            'aria-hidden': 'true',
+          },
+          h('i', { className: 'mp-np-blob is-a' }),
+          h('i', { className: 'mp-np-blob is-b' }),
+          h('i', { className: 'mp-np-blob is-c' }),
+          h('i', { className: 'mp-np-blob is-d' }),
         )
       : null,
     h('div', { className: 'mp-np-shade' }),

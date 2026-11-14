@@ -109,4 +109,12 @@ assert.match(theme, /\.mp-np-right\{[^']*width:var\(--mp-lyric-fit\)/, 'the lyri
 assert.match(theme, /\.mp-np-split\{[^']*cursor:col-resize/, 'the splitter is draggable')
 assert.match(theme, /\.mp-np-split\{[^']*display:none/, 'the splitter is hidden on the stacked layout')
 
+// Flowing-light background: colours must be registered so track changes can
+// interpolate, and the animation must stay on the compositor (transform only).
+assert.match(theme, /@property --mp-flow-a\{syntax:'<color>'/, 'flow colours register for smooth track changes')
+assert.match(theme, /\.mp-np-blob\{[^']*radial-gradient/, 'flow blobs are gradients, not blur filters')
+assert.match(theme, /@keyframes mp-flow-a\{[^']*transform:translate3d/, 'flow animates transform only')
+assert.doesNotMatch(theme, /\.mp-np-blob\{[^']*background-position/, 'flow must not animate background-position')
+assert.match(theme, /prefers-reduced-motion:reduce\)\{\.mp-np-blob\{animation:none/, 'reduced motion disables the flow')
+
 console.log('theme.test.mjs ok')
