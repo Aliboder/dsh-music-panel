@@ -117,4 +117,8 @@ assert.match(theme, /@keyframes mp-flow-a\{[^']*transform:translate3d/, 'flow an
 assert.doesNotMatch(theme, /\.mp-np-blob\{[^']*background-position/, 'flow must not animate background-position')
 assert.match(theme, /prefers-reduced-motion:reduce\)\{\.mp-np-blob\{animation:none/, 'reduced motion disables the flow')
 
+// The lyric footer buttons follow the chosen lyric alignment.
+assert.match(theme, /\.mp-align-center \.mp-np-lyric-foot\{justify-content:center\}/, 'footer follows the lyric alignment')
+assert.match(theme, /\.mp-align-right \.mp-np-lyric-foot\{justify-content:flex-end\}/, 'right alignment ends the footer')
+
 console.log('theme.test.mjs ok')
