@@ -8501,7 +8501,7 @@ window.__ModuleLoader__.load({
       '.mp-queue-pop .mp-q-list{max-height:40vh}',
 
       // ── now playing (reference layout) ──────────────────────────────────────────
-      '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:var(--dsw-alias-bg-base,#141417);color:var(--dsw-alias-label-primary,#f4f4f5);transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
+      '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;background:#141417;color:#f4f4f5;transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
       '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
       '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden}',
       '.mp-np-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto}.mp-np-bg .is-prev{opacity:1}.mp-np-bg .is-cur{animation:mp-bg-in .85s ease both}@keyframes mp-bg-in{from{opacity:0}to{opacity:1}}',
@@ -8542,7 +8542,7 @@ window.__ModuleLoader__.load({
       '.mp-np-left{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;flex:none;min-width:0;width:var(--mp-cover);padding-bottom:77px}',
       '.mp-np-meta{position:relative;min-width:0;margin:0 0 14px}',
       '.mp-np-meta-row{display:none}',
-      '.mp-np-title{min-width:0;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-np-title{min-width:0;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f7f7f8}',
       '.mp-np-artist-row{display:flex;align-items:center;gap:10px;min-width:0;margin-top:10px}.mp-np-artist{flex:0 1 auto;min-width:0;font-size:15px;font-weight:400;color:rgba(255,255,255,.66);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-np-meta-audio{flex:none;color:rgba(255,255,255,.55);position:static}',
       '.mp-np-meta-audio:hover{color:#fff}',

@@ -133,4 +133,9 @@ assert.match(theme, /\.mp-np\.is-vinyl\{--mp-cover:min\(66vw/, 'narrow vinyl cov
 
 assert.match(theme, /@media \(max-width:980px\)\{[^']*\.mp-np-cover-stage\{margin-left:auto;margin-right:auto\}/, 'narrow cover is centred')
 
+// The player is a dark surface even in light themes; the title must not
+// inherit a dark label colour.
+assert.match(theme, /\.mp-np\{[^']*background:#141417;color:#f4f4f5/, 'player surface stays dark')
+assert.match(theme, /\.mp-np-title\{[^']*color:#f7f7f8/, 'player title stays light')
+
 console.log('theme.test.mjs ok')
