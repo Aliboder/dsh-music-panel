@@ -233,7 +233,7 @@ function TrackListBody(props) {
   return h(VirtualList, {
     className: 'mp-scroll',
     items: items,
-    rowHeight: 72,
+    rowHeight: 84,
     resetKey: key,
     focusPath: props.focusPath || '',
     initialScroll: SCROLL_MEMORY[key] || 0,

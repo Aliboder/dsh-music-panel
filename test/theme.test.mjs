@@ -138,4 +138,9 @@ assert.match(theme, /@media \(max-width:980px\)\{[^']*\.mp-np-cover-stage\{margi
 assert.match(theme, /\.mp-np\{[^']*background:#141417;color:#f4f4f5/, 'player surface stays dark')
 assert.match(theme, /\.mp-np-title\{[^']*color:#f7f7f8/, 'player title stays light')
 
+// Song rows are larger for readability.
+assert.match(theme, /\.mp-row\{[^']*height:84px/, 'song rows are taller')
+assert.match(theme, /\.mp-row-cover\{[^']*width:56px;height:56px/, 'song row covers are larger')
+assert.match(theme, /\.mp-row-title\{[^']*font-size:16px/, 'song titles are larger')
+
 console.log('theme.test.mjs ok')
