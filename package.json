@@ -1,6 +1,6 @@
 {
   "name": "dsh-music-panel",
-  "version": "0.33.2",
+  "version": "0.34.0",
   "type": "module",
   "description": "Local + online music player for DSH: NetEase/QQ/KuGou/Navidrome, lyrics, cache, EBU R128, 10-band EQ + AutoEQ, smart crossfade, in-list search. · DSH 本地与在线音乐插件：四大在线平台、歌词、缓存、音量均衡、10 段均衡器与 AutoEQ、智能过渡、列表内搜索。",
   "license": "MIT",
