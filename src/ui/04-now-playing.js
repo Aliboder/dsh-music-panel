@@ -406,7 +406,6 @@ function NpEditor(props) {
       lyricOrder: ['embedded', 'lrc'],
       npPaneGap: 24,
       npLyricWidth: 560,
-      npLeftAnchor: 60,
     })
   }
 
@@ -600,9 +599,6 @@ function NpEditor(props) {
           }),
           rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 24, 12, 96, 4, ' px', function (value) {
             setPrefs({ npPaneGap: value })
-          }),
-          rangeRow(t('editor.leftAnchor'), Number(prefs.npLeftAnchor) || 60, 40, 80, 1, ' %', function (value) {
-            setPrefs({ npLeftAnchor: value })
           }),
           rangeRow(
             t('page.translationScale'),
@@ -1159,7 +1155,6 @@ function NowPlaying(props) {
   var lyricWidth = lyricWidthPair[0]
   var setLyricWidth = lyricWidthPair[1]
   var paneGap = clamp(Number(prefs.npPaneGap) || 24, 12, 96)
-  var leftAnchor = clamp(Number(prefs.npLeftAnchor) || 60, 40, 80) / 100
 
   function applyLyricWidth(value, persist) {
     var next = clamp(Math.round(Number(value) || 560), 360, 900)
@@ -1193,7 +1188,7 @@ function NowPlaying(props) {
       var rightSplit = document.querySelector('.mp-np-split[data-side="right"]')
       var gapWidth = leftSplit === null ? 24 : leftSplit.getBoundingClientRect().width
       var splitWidth = rightSplit === null ? 24 : rightSplit.getBoundingClientRect().width
-      fitMax = Math.min(900, (contentWidth + (leftAnchor - 1) * cover.getBoundingClientRect().width - gapWidth - 2 * splitWidth) / 1.5)
+      fitMax = Math.min(900, (contentWidth - 0.4 * cover.getBoundingClientRect().width - gapWidth - 2 * splitWidth) / 1.5)
     }
     document.body.style.userSelect = 'none'
     function move(moveEvent) {
@@ -1624,7 +1619,6 @@ function NowPlaying(props) {
         '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
         '--mp-lyric-w': lyricWidth + 'px',
         '--mp-pane-gap-w': paneGap + 'px',
-        '--mp-anchor': String(leftAnchor),
       },
     },
     bg.current !== '' || bg.previous !== ''
