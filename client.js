@@ -8631,8 +8631,8 @@ window.__ModuleLoader__.load({
       '.mp-align-right .mp-np-line{text-align:right}',
       '.mp-np-right{position:relative;flex:1 1 auto;width:auto;min-width:0;min-height:0;margin-left:var(--mp-pane-gap,5vw);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding-bottom:77px}',
       '.mp-np-split{display:none;flex:0 0 22px;align-self:stretch;position:relative;z-index:4;align-items:center;justify-content:center;cursor:col-resize;touch-action:none;outline:none}',
-      '.mp-np-split::before{content:"";width:4px;height:64px;border-radius:999px;background:rgba(255,255,255,.16);transition:background .15s ease,height .15s ease}',
-      '.mp-np-split:hover::before,.mp-np-split:focus-visible::before{background:rgba(255,255,255,.5);height:120px}',
+      '.mp-np-split::before{content:"";width:4px;height:64px;border-radius:999px;background:rgba(255,255,255,.16);opacity:0;transition:opacity .16s ease,background .15s ease,height .15s ease}',
+      '.mp-np-split:hover::before,.mp-np-split:focus-visible::before,.mp-np-split.is-dragging::before{opacity:1;background:rgba(255,255,255,.5);height:120px}',
       '.mp-np-lyrics{position:relative;flex:1;width:100%;min-height:0;height:auto;max-width:none;max-height:none;padding-top:78px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 10%,#000 88%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 10%,#000 88%,transparent 100%)}',
       '.mp-np-lyrics.is-static{overflow-y:auto;-webkit-mask-image:none;mask-image:none}',
       '.mp-np-lyrics.is-static .mp-np-line{opacity:.75;cursor:default}',
@@ -11892,6 +11892,8 @@ window.__ModuleLoader__.load({
       function beginLyricResize(event) {
         if (event.button !== undefined && event.button !== 0) return
         event.preventDefault()
+        var handle = event.currentTarget
+        if (handle && handle.classList) handle.classList.add('is-dragging')
         var startX = event.clientX
         var startWidth = lyricWidth
         var latest = startWidth
@@ -11904,6 +11906,7 @@ window.__ModuleLoader__.load({
           window.removeEventListener('pointermove', move)
           window.removeEventListener('pointerup', finish)
           window.removeEventListener('pointercancel', finish)
+          if (handle && handle.classList) handle.classList.remove('is-dragging')
           document.body.style.userSelect = ''
           setPrefs({ npLyricWidth: latest })
         }

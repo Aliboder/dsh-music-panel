@@ -1159,6 +1159,8 @@ function NowPlaying(props) {
   function beginLyricResize(event) {
     if (event.button !== undefined && event.button !== 0) return
     event.preventDefault()
+    var handle = event.currentTarget
+    if (handle && handle.classList) handle.classList.add('is-dragging')
     var startX = event.clientX
     var startWidth = lyricWidth
     var latest = startWidth
@@ -1171,6 +1173,7 @@ function NowPlaying(props) {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', finish)
       window.removeEventListener('pointercancel', finish)
+      if (handle && handle.classList) handle.classList.remove('is-dragging')
       document.body.style.userSelect = ''
       setPrefs({ npLyricWidth: latest })
     }
