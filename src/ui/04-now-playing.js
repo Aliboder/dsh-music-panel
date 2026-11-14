@@ -1188,13 +1188,14 @@ function NowPlaying(props) {
       var rightSplit = document.querySelector('.mp-np-split[data-side="right"]')
       var gapWidth = leftSplit === null ? 24 : leftSplit.getBoundingClientRect().width
       var splitWidth = rightSplit === null ? 24 : rightSplit.getBoundingClientRect().width
-      fitMax = Math.min(900, (contentWidth - 0.4 * cover.getBoundingClientRect().width - gapWidth - 2 * splitWidth) / 1.5)
+      fitMax = Math.min(900, (contentWidth - 0.5 * cover.getBoundingClientRect().width - gapWidth - 2 * splitWidth) / 1.5)
     }
     document.body.style.userSelect = 'none'
     function move(moveEvent) {
-      // The left column anchors at its 60% line and the lyrics at its centre;
-      // the left boundary still moves -1/4 and the right +3/4 of a width
-      // change, so each handle needs its own ratio to track the pointer.
+      // The layout pins the midpoint of the two column centre lines to the
+      // interface centre: the left boundary moves -1/4 and the right boundary
+      // +3/4 of a width change, so each handle needs its own ratio to track the
+      // pointer exactly.
       var dx = moveEvent.clientX - startX
       latest = clamp(side === 'left' ? startWidth - 4 * dx : startWidth + (4 * dx) / 3, 360, fitMax)
       setLyricWidth(latest)
