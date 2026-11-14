@@ -8509,19 +8509,27 @@ window.__ModuleLoader__.load({
       "@property --mp-flow-b{syntax:'<color>';inherits:true;initial-value:transparent}",
       "@property --mp-flow-c{syntax:'<color>';inherits:true;initial-value:transparent}",
       "@property --mp-flow-d{syntax:'<color>';inherits:true;initial-value:transparent}",
-      '.mp-np{--mp-flow-a:transparent;--mp-flow-b:transparent;--mp-flow-c:transparent;--mp-flow-d:transparent;transition:transform .32s ease,visibility .32s,--mp-flow-a 1.1s ease,--mp-flow-b 1.1s ease,--mp-flow-c 1.1s ease,--mp-flow-d 1.1s ease}',
-      '.mp-np-flow{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;contain:strict}',
-      '.mp-np-blob{position:absolute;border-radius:50%;opacity:.85;will-change:transform;transform:translate3d(0,0,0);background:radial-gradient(circle at 50% 50%,var(--mp-flow-color) 0%,transparent 66%);animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}',
-      '.mp-np-blob.is-a{--mp-flow-color:var(--mp-flow-a);width:64vw;height:64vw;left:-12%;top:-18%;animation-name:mp-flow-a;animation-duration:12s}',
-      '.mp-np-blob.is-b{--mp-flow-color:var(--mp-flow-b);width:58vw;height:58vw;right:-14%;top:4%;animation-name:mp-flow-b;animation-duration:14s;animation-delay:-3s}',
-      '.mp-np-blob.is-c{--mp-flow-color:var(--mp-flow-c);width:62vw;height:62vw;left:10%;bottom:-26%;animation-name:mp-flow-c;animation-duration:16s;animation-delay:-6s}',
-      '.mp-np-blob.is-d{--mp-flow-color:var(--mp-flow-d);width:48vw;height:48vw;right:8%;bottom:-14%;animation-name:mp-flow-d;animation-duration:13s;animation-delay:-9s}',
-      '@keyframes mp-flow-a{0%{transform:translate3d(-10%,-6%,0) scale(1)}100%{transform:translate3d(18%,22%,0) scale(1.28)}}',
-      '@keyframes mp-flow-b{0%{transform:translate3d(8%,-8%,0) scale(1.12)}100%{transform:translate3d(-20%,16%,0) scale(.86)}}',
-      '@keyframes mp-flow-c{0%{transform:translate3d(-12%,8%,0) scale(.9)}100%{transform:translate3d(16%,-16%,0) scale(1.24)}}',
-      '@keyframes mp-flow-d{0%{transform:translate3d(12%,4%,0) scale(1)}100%{transform:translate3d(-16%,-12%,0) scale(1.3)}}',
-      '.mp-np-flow.is-paused .mp-np-blob{animation-play-state:paused}',
-      '@media (prefers-reduced-motion:reduce){.mp-np-blob{animation:none}}',
+      "@property --mp-flow-e{syntax:'<color>';inherits:true;initial-value:transparent}",
+      "@property --mp-flow-f{syntax:'<color>';inherits:true;initial-value:transparent}",
+      '.mp-np{--mp-flow-a:transparent;--mp-flow-b:transparent;--mp-flow-c:transparent;--mp-flow-d:transparent;--mp-flow-e:transparent;--mp-flow-f:transparent;transition:transform .32s ease,visibility .32s,--mp-flow-a 1.1s ease,--mp-flow-b 1.1s ease,--mp-flow-c 1.1s ease,--mp-flow-d 1.1s ease,--mp-flow-e 1.1s ease,--mp-flow-f 1.1s ease}',
+      '.mp-np-flow{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;contain:strict}',
+      '.mp-np-flow::before{content:"";position:absolute;left:50%;top:50%;width:150vmax;height:150vmax;margin:-75vmax;background:conic-gradient(from 0deg,transparent 0 10%,var(--mp-flow-a) 22%,transparent 36%,var(--mp-flow-c) 50%,transparent 64%,var(--mp-flow-b) 78%,transparent 92%);opacity:.28;animation:mp-flow-spin 16s linear infinite;will-change:transform;-webkit-mask-image:radial-gradient(circle at 50% 50%,transparent 0 16%,#000 44%,transparent 72%);mask-image:radial-gradient(circle at 50% 50%,transparent 0 16%,#000 44%,transparent 72%)}',
+      '.mp-np-blob{position:absolute;border-radius:50%;opacity:.95;will-change:transform;transform:translate3d(0,0,0);background:radial-gradient(circle at 50% 50%,var(--mp-flow-color) 0%,transparent 64%);animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}',
+      '.mp-np-blob.is-a{--mp-flow-color:var(--mp-flow-a);width:66vw;height:66vw;left:-14%;top:-20%;animation-name:mp-flow-a;animation-duration:9s;animation-delay:-2s}',
+      '.mp-np-blob.is-b{--mp-flow-color:var(--mp-flow-b);width:58vw;height:58vw;right:-16%;top:2%;animation-name:mp-flow-b;animation-duration:10s;animation-delay:-4s}',
+      '.mp-np-blob.is-c{--mp-flow-color:var(--mp-flow-c);width:64vw;height:64vw;left:8%;bottom:-28%;animation-name:mp-flow-c;animation-duration:11s;animation-delay:-6s}',
+      '.mp-np-blob.is-d{--mp-flow-color:var(--mp-flow-d);width:50vw;height:50vw;right:4%;bottom:-16%;animation-name:mp-flow-d;animation-duration:9s;animation-delay:-3s}',
+      '.mp-np-blob.is-e{--mp-flow-color:var(--mp-flow-e);width:42vw;height:42vw;left:34%;top:6%;animation-name:mp-flow-e;animation-duration:8s;animation-delay:-5s}',
+      '.mp-np-blob.is-f{--mp-flow-color:var(--mp-flow-f);width:46vw;height:46vw;right:28%;bottom:8%;animation-name:mp-flow-f;animation-duration:10s;animation-delay:-7s}',
+      '@keyframes mp-flow-a{0%{transform:translate3d(-16%,-10%,0) scale(.9)}100%{transform:translate3d(28%,34%,0) scale(1.4)}}',
+      '@keyframes mp-flow-b{0%{transform:translate3d(14%,-14%,0) scale(1.2)}100%{transform:translate3d(-32%,24%,0) scale(.8)}}',
+      '@keyframes mp-flow-c{0%{transform:translate3d(-20%,14%,0) scale(.82)}100%{transform:translate3d(26%,-26%,0) scale(1.36)}}',
+      '@keyframes mp-flow-d{0%{transform:translate3d(20%,8%,0) scale(.92)}100%{transform:translate3d(-28%,-22%,0) scale(1.42)}}',
+      '@keyframes mp-flow-e{0%{transform:translate3d(-24%,10%,0) scale(.86)}100%{transform:translate3d(22%,-18%,0) scale(1.34)}}',
+      '@keyframes mp-flow-f{0%{transform:translate3d(18%,-8%,0) scale(1.1)}100%{transform:translate3d(-30%,22%,0) scale(.78)}}',
+      '@keyframes mp-flow-spin{to{transform:rotate(360deg)}}',
+      '.mp-np-flow.is-paused .mp-np-blob,.mp-np-flow.is-paused::before{animation-play-state:paused}',
+      '@media (prefers-reduced-motion:reduce){.mp-np-blob,.mp-np-flow::before{animation:none}}',
       '.mp-np-shade{position:absolute;inset:0;z-index:1;background:radial-gradient(85% 70% at 16% 6%,rgba(30,4,4,.22),transparent 62%),linear-gradient(180deg,rgba(14,2,2,.26),rgba(14,2,2,.06) 44%,rgba(14,2,2,.22) 80%,rgba(10,2,2,.44));pointer-events:none}',
       '.mp-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(52% 44% at 26% 22%,rgba(255,255,255,.05),transparent 70%),radial-gradient(44% 40% at 80% 82%,rgba(0,0,0,.28),transparent 74%);pointer-events:none}',
       '.mp-np-head{position:absolute;top:22px;left:22px;z-index:5;display:flex;align-items:center;gap:8px;padding:0}',
@@ -11585,22 +11593,31 @@ window.__ModuleLoader__.load({
     }
 
     function flowPalette(accent) {
-      var palette =
-        Array.isArray(accent && accent.palette) && accent.palette.length > 0
-          ? accent.palette
-          : [accent || { h: 40, s: 30, l: 55 }]
-      function color(index, hueShift, lightShift, satScale, alpha) {
-        var base = palette[index % palette.length] || palette[0]
-        var hue = ((Number(base.h) || 0) + hueShift + 360) % 360
-        var sat = Math.min(96, Math.max(58, (Number(base.s) || 30) * satScale))
-        var light = Math.min(82, Math.max(48, (Number(base.l) || 55) + lightShift))
-        return 'hsl(' + Math.round(hue) + ' ' + Math.round(sat) + '% ' + Math.round(light) + '% / ' + alpha + ')'
+      var base = accent !== null && typeof accent === 'object' ? accent : {}
+      var hue = Number(base.h)
+      if (!isFinite(hue)) hue = 40
+      var sat = Number(base.s)
+      if (!isFinite(sat) || sat < 0) sat = 30
+      if (sat > 0 && sat <= 1) sat *= 100
+      sat = Math.min(96, Math.max(60, sat))
+      var light = Number(base.l)
+      if (!isFinite(light) || light < 0) light = 55
+      if (light > 0 && light <= 1) light *= 100
+      light = Math.min(80, Math.max(50, light))
+      function tone(hueShift, satScale, lightShift, alpha) {
+        return 'hsl(' +
+          Math.round((hue + hueShift + 360) % 360) + ' ' +
+          Math.round(Math.min(96, Math.max(60, sat * satScale))) + '% ' +
+          Math.round(Math.min(82, Math.max(48, light + lightShift))) + '% / ' +
+          alpha + ')'
       }
       return {
-        a: color(0, 0, 10, 1.2, 0.68),
-        b: color(1, 28, 6, 1.1, 0.62),
-        c: color(2, -30, 4, 1.12, 0.62),
-        d: color(0, 64, 2, 1, 0.55),
+        a: tone(-38, 1.18, 8, 0.78),
+        b: tone(-8, 1.12, 4, 0.72),
+        c: tone(22, 1.15, 0, 0.72),
+        d: tone(48, 1.05, -6, 0.66),
+        e: tone(-64, 0.98, -8, 0.6),
+        f: tone(70, 0.92, -10, 0.56),
       }
     }
 
@@ -12551,6 +12568,8 @@ window.__ModuleLoader__.load({
             '--mp-flow-b': flow.b,
             '--mp-flow-c': flow.c,
             '--mp-flow-d': flow.d,
+            '--mp-flow-e': flow.e,
+            '--mp-flow-f': flow.f,
           },
         },
         bg.current !== '' || bg.previous !== ''
@@ -12577,6 +12596,8 @@ window.__ModuleLoader__.load({
               h('i', { className: 'mp-np-blob is-b' }),
               h('i', { className: 'mp-np-blob is-c' }),
               h('i', { className: 'mp-np-blob is-d' }),
+              h('i', { className: 'mp-np-blob is-e' }),
+              h('i', { className: 'mp-np-blob is-f' }),
             )
           : null,
         h('div', { className: 'mp-np-shade' }),

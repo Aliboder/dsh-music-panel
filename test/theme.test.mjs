@@ -115,7 +115,7 @@ assert.match(theme, /@property --mp-flow-a\{syntax:'<color>'/, 'flow colours reg
 assert.match(theme, /\.mp-np-blob\{[^']*radial-gradient/, 'flow blobs are gradients, not blur filters')
 assert.match(theme, /@keyframes mp-flow-a\{[^']*transform:translate3d/, 'flow animates transform only')
 assert.doesNotMatch(theme, /\.mp-np-blob\{[^']*background-position/, 'flow must not animate background-position')
-assert.match(theme, /prefers-reduced-motion:reduce\)\{\.mp-np-blob\{animation:none/, 'reduced motion disables the flow')
+assert.match(theme, /prefers-reduced-motion:reduce\)\{[^']*\.mp-np-blob[^']*animation:none/, 'reduced motion disables the flow')
 
 // The lyric footer buttons follow the chosen lyric alignment.
 assert.match(theme, /\.mp-align-center \.mp-np-lyric-foot\{justify-content:center\}/, 'footer follows the lyric alignment')
@@ -147,5 +147,8 @@ assert.match(theme, /\.mp-row-title\{[^']*font-size:16px/, 'song titles are larg
 assert.match(theme, /\.mp-entry-row\{[^']*height:84px/, 'entry rows are song-row height')
 assert.match(theme, /\.mp-entry-art\{[^']*width:56px;height:56px/, 'entry rows use song-row cover size')
 assert.match(theme, /\.mp-entry-title\{[^']*font-size:16px/, 'entry titles use song-row title size')
+
+assert.match(theme, /\.mp-np-blob\.is-e\{/, 'flow has six blobs')
+assert.match(theme, /\.mp-np-flow::before\{[^']*mask-image:radial-gradient/, 'flow beam is masked into a ring')
 
 console.log('theme.test.mjs ok')

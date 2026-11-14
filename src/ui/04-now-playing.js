@@ -759,22 +759,31 @@ function fallbackCoverAccent() {
 }
 
 function flowPalette(accent) {
-  var palette =
-    Array.isArray(accent && accent.palette) && accent.palette.length > 0
-      ? accent.palette
-      : [accent || { h: 40, s: 30, l: 55 }]
-  function color(index, hueShift, lightShift, satScale, alpha) {
-    var base = palette[index % palette.length] || palette[0]
-    var hue = ((Number(base.h) || 0) + hueShift + 360) % 360
-    var sat = Math.min(96, Math.max(58, (Number(base.s) || 30) * satScale))
-    var light = Math.min(82, Math.max(48, (Number(base.l) || 55) + lightShift))
-    return 'hsl(' + Math.round(hue) + ' ' + Math.round(sat) + '% ' + Math.round(light) + '% / ' + alpha + ')'
+  var base = accent !== null && typeof accent === 'object' ? accent : {}
+  var hue = Number(base.h)
+  if (!isFinite(hue)) hue = 40
+  var sat = Number(base.s)
+  if (!isFinite(sat) || sat < 0) sat = 30
+  if (sat > 0 && sat <= 1) sat *= 100
+  sat = Math.min(96, Math.max(60, sat))
+  var light = Number(base.l)
+  if (!isFinite(light) || light < 0) light = 55
+  if (light > 0 && light <= 1) light *= 100
+  light = Math.min(80, Math.max(50, light))
+  function tone(hueShift, satScale, lightShift, alpha) {
+    return 'hsl(' +
+      Math.round((hue + hueShift + 360) % 360) + ' ' +
+      Math.round(Math.min(96, Math.max(60, sat * satScale))) + '% ' +
+      Math.round(Math.min(82, Math.max(48, light + lightShift))) + '% / ' +
+      alpha + ')'
   }
   return {
-    a: color(0, 0, 10, 1.2, 0.68),
-    b: color(1, 28, 6, 1.1, 0.62),
-    c: color(2, -30, 4, 1.12, 0.62),
-    d: color(0, 64, 2, 1, 0.55),
+    a: tone(-38, 1.18, 8, 0.78),
+    b: tone(-8, 1.12, 4, 0.72),
+    c: tone(22, 1.15, 0, 0.72),
+    d: tone(48, 1.05, -6, 0.66),
+    e: tone(-64, 0.98, -8, 0.6),
+    f: tone(70, 0.92, -10, 0.56),
   }
 }
 
@@ -1725,6 +1734,8 @@ function NowPlaying(props) {
         '--mp-flow-b': flow.b,
         '--mp-flow-c': flow.c,
         '--mp-flow-d': flow.d,
+        '--mp-flow-e': flow.e,
+        '--mp-flow-f': flow.f,
       },
     },
     bg.current !== '' || bg.previous !== ''
@@ -1751,6 +1762,8 @@ function NowPlaying(props) {
           h('i', { className: 'mp-np-blob is-b' }),
           h('i', { className: 'mp-np-blob is-c' }),
           h('i', { className: 'mp-np-blob is-d' }),
+          h('i', { className: 'mp-np-blob is-e' }),
+          h('i', { className: 'mp-np-blob is-f' }),
         )
       : null,
     h('div', { className: 'mp-np-shade' }),
