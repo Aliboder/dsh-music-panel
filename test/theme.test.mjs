@@ -92,8 +92,9 @@ const rawDialogs = uiFiles
   .map(([name]) => name)
 assert.deepEqual(rawDialogs, [], 'dialogs must use KitModal (raw mp-overlay found in ' + rawDialogs.join(', ') + ')')
 
-// Player page: equal outer margins that shrink to 12 px so the pair can use
-// the whole interface width, with the lyrics width fitted to the same formula.
+// Player page: the midpoint of the two column centre lines is pinned to the
+// interface centre, and the lyrics width is fitted so the right margin never
+// goes negative.
 assert.match(
   theme,
   /@media \(min-width:981px\)\{[^']*--mp-lyric-fit:min\(/,
@@ -101,8 +102,8 @@ assert.match(
 )
 assert.match(
   theme,
-  /\.mp-np-left\{[^']*margin-left:max\(12px,calc\(\(100% - var\(--mp-cover/,
-  'the outer margin is equal and shrinks to 12 px',
+  /\.mp-np-left\{[^']*margin-left:calc\(\(100% - 1\.5\*var\(--mp-cover/,
+  'the left margin follows the column-centre rule',
 )
 assert.match(theme, /\.mp-np-right\{[^']*width:var\(--mp-lyric-fit\)/, 'the lyrics column uses the fitted width')
 assert.match(theme, /\.mp-np-split\{[^']*cursor:col-resize/, 'the splitter is draggable')
