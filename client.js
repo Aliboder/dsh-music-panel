@@ -1107,6 +1107,7 @@ window.__ModuleLoader__.load({
         'editor.smokeSpeed': '流动速度',
         'editor.smokeScale': '烟雾尺度',
         'editor.smokeBeat': '节奏响应',
+        'editor.smokeBeatHint': '跟随低频鼓点，数值越高起伏越明显',
         'editor.preview': '实时预览',
         'editor.sampleTitle': '示例歌曲',
         'editor.samplePrev': '等到秋叶被红透',
@@ -1563,6 +1564,7 @@ window.__ModuleLoader__.load({
         'editor.smokeSpeed': 'Flow speed',
         'editor.smokeScale': 'Smoke scale',
         'editor.smokeBeat': 'Beat response',
+        'editor.smokeBeatHint': 'Follows the low-end beat; higher means stronger swings',
 
         'editor.reset': 'Restore defaults',
         'editor.resetConfirm': 'Restore default settings?',
@@ -11592,7 +11594,7 @@ window.__ModuleLoader__.load({
                 }),
                 rangeRow(t('editor.smokeBeat'), Number(prefs.npSmokeBeat) || 0, 0, 100, 5, '%', function (value) {
                   setPrefs({ npSmokeBeat: value })
-                }),
+                }, t('editor.smokeBeatHint')),
               ),
             ),
           ),
@@ -11942,6 +11944,7 @@ window.__ModuleLoader__.load({
       'uniform float uSpeed;',
       'uniform float uIntensity;',
       'uniform float uScale;',
+      'uniform float uBeat;',
       'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
       'float noise(vec2 p){',
       '  vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);',
@@ -11960,7 +11963,8 @@ window.__ModuleLoader__.load({
       '  vec2 p=(uv-0.5)*vec2(aspect,1.0)*3.1*uScale;',
       '  float t=uTime*0.13*uSpeed;',
       '  vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t*0.7));',
-      '  vec2 r=vec2(fbm(p+4.0*q+vec2(1.7,9.2)+t*0.55),fbm(p+4.0*q+vec2(8.3,2.8)-t*0.45));',
+      '  float warp=1.0+uBeat*1.2;',
+      '  vec2 r=vec2(fbm(p+4.0*q*warp+vec2(1.7,9.2)+t*0.55),fbm(p+4.0*q*warp+vec2(8.3,2.8)-t*0.45));',
       '  float f=fbm(p+3.6*r);',
       '  float smoke=smoothstep(0.46,0.96,f);',
       '  vec3 col=mix(uA,uB,smoothstep(0.2,0.8,r.x));',
@@ -12090,24 +12094,43 @@ window.__ModuleLoader__.load({
           var uSpeed = gl.getUniformLocation(program, 'uSpeed')
           var uIntensity = gl.getUniformLocation(program, 'uIntensity')
           var uScale = gl.getUniformLocation(program, 'uScale')
+          var uBeat = gl.getUniformLocation(program, 'uBeat')
           var beatLevel = 0
+          var fluxAverage = 0
+          var previousBass = null
           function computeBeat() {
             if (playingRef.current !== true) {
-              beatLevel *= 0.86
+              beatLevel *= 0.82
+              previousBass = null
               return beatLevel
             }
             var wave =
               typeof player !== 'undefined' && player !== null && typeof player.getWave === 'function'
                 ? player.getWave()
                 : null
-            var target = 0
-            if (wave !== null && wave.length > 0) {
-              var bands = Math.max(1, Math.floor(wave.length * 0.32))
-              var sum = 0
-              for (var i = 0; i < bands; i += 1) sum += wave[i]
-              target = Math.min(1, (sum / bands / 255) * 1.8)
+            if (wave === null || wave.length === 0) {
+              beatLevel *= 0.82
+              return beatLevel
             }
-            beatLevel = target > beatLevel ? beatLevel + (target - beatLevel) * 0.45 : beatLevel + (target - beatLevel) * 0.12
+            // Half-wave rectified spectral flux over the sub-bass bins: only rising
+            // energy counts, which is what makes a kick or bass line feel like a hit.
+            var bands = Math.max(3, Math.min(10, Math.floor(wave.length * 0.08)))
+            var flux = 0
+            if (previousBass !== null && previousBass.length === bands) {
+              for (var i = 0; i < bands; i += 1) {
+                var delta = wave[i] - previousBass[i]
+                if (delta > 0) flux += delta
+              }
+              flux = flux / (bands * 255)
+            }
+            if (previousBass === null || previousBass.length !== bands) {
+              previousBass = new Array(bands)
+            }
+            for (var j = 0; j < bands; j += 1) previousBass[j] = wave[j]
+            fluxAverage = fluxAverage * 0.9 + flux * 0.1
+            var threshold = Math.max(0.015, fluxAverage * 1.25)
+            var hit = flux > threshold ? Math.min(1, (flux - threshold) * 7 + 0.4) : 0
+            beatLevel = Math.max(hit, beatLevel * 0.82)
             return beatLevel
           }
           var current = (targetRef.current || [[1, 1, 1]]).map(function (color) {
@@ -12144,9 +12167,10 @@ window.__ModuleLoader__.load({
             gl.uniform3f(uC, current[2][0], current[2][1], current[2][2])
             gl.uniform1f(uTime, ((now || 0) - start) / 1000)
             var beat = computeBeat() * beatRef.current
-            gl.uniform1f(uSpeed, speedRef.current * (1 + beat * 0.9))
-            gl.uniform1f(uIntensity, intensityRef.current * (1 + beat * 0.45))
-            gl.uniform1f(uScale, scaleRef.current * (1 - beat * 0.1))
+            gl.uniform1f(uSpeed, speedRef.current * (1 + beat * 2.2))
+            gl.uniform1f(uIntensity, intensityRef.current * (1 + beat * 1.0))
+            gl.uniform1f(uScale, scaleRef.current * (1 - beat * 0.18))
+            gl.uniform1f(uBeat, beat)
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
           }
           function frame(now) {
