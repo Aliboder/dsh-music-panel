@@ -405,6 +405,7 @@ function NpEditor(props) {
       showTranslation: true,
       lyricOrder: ['embedded', 'lrc'],
       npPaneGap: 24,
+      npLyricWidth: 560,
     })
   }
 

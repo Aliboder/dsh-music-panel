@@ -1098,6 +1098,7 @@ window.__ModuleLoader__.load({
         'editor.subtitle': '改动即时生效',
         'editor.cover': '封面样式',
         'editor.type': '歌词排版',
+        'editor.paneGap': '两栏间距',
         'editor.display': '显示选项',
         'editor.wave': '进度条波图',
         'editor.reset': '恢复默认',
@@ -1538,6 +1539,7 @@ window.__ModuleLoader__.load({
         'editor.subtitle': 'Changes apply instantly',
         'editor.cover': 'Cover style',
         'editor.type': 'Lyric typography',
+        'editor.paneGap': 'Column gap',
         'editor.display': 'Display',
         'editor.wave': 'Waveform on progress',
         'editor.reset': 'Restore defaults',
@@ -11140,6 +11142,7 @@ window.__ModuleLoader__.load({
           showTranslation: true,
           lyricOrder: ['embedded', 'lrc'],
           npPaneGap: 24,
+          npLyricWidth: 560,
         })
       }
 
