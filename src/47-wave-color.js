@@ -32,3 +32,41 @@ function wavePalette(accent) {
   }
   return [tone(-14, 0.92, -6), tone(0, 1.04, 4), tone(16, 0.88, -1)]
 }
+
+/**
+ * Shared beat envelope for the smoke shader and the progress waveform.
+ *
+ * Uses half-wave rectified spectral flux over the sub-bass bins with an
+ * adaptive threshold and a fast-attack / slow-release envelope, so kicks and
+ * bass notes produce a short pulse instead of a slow loudness drift.
+ */
+function createBeatTracker() {
+  var previous = null
+  var average = 0
+  var level = 0
+  return {
+    update: function (wave, playing) {
+      if (playing !== true || wave === null || wave === undefined || wave.length === 0) {
+        level *= 0.82
+        previous = null
+        return level
+      }
+      var bands = Math.max(3, Math.min(10, Math.floor(wave.length * 0.08)))
+      var flux = 0
+      if (previous !== null && previous.length === bands) {
+        for (var i = 0; i < bands; i += 1) {
+          var delta = wave[i] - previous[i]
+          if (delta > 0) flux += delta
+        }
+        flux = flux / (bands * 255)
+      }
+      if (previous === null || previous.length !== bands) previous = new Array(bands)
+      for (var j = 0; j < bands; j += 1) previous[j] = wave[j]
+      average = average * 0.9 + flux * 0.1
+      var threshold = Math.max(0.015, average * 1.25)
+      var hit = flux > threshold ? Math.min(1, (flux - threshold) * 7 + 0.4) : 0
+      level = Math.max(hit, level * 0.82)
+      return level
+    },
+  }
+}

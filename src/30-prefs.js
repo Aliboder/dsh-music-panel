@@ -39,6 +39,11 @@ var PREF_DEFAULTS = {
   npSmokeScale: 100,
   /** 0-100: how strongly the smoke reacts to the music energy. */
   npSmokeBeat: 60,
+  /** Beat modulation gains in percent: 100 = 1x, 220 = 2.2x. */
+  npBeatSpeed: 220,
+  npBeatIntensity: 100,
+  npBeatScale: 18,
+  npBeatWarp: 120,
   composerLyrics: false,
   composerTranslation: true,
   composerLyricPlace: 'input-left',

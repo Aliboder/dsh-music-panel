@@ -413,6 +413,10 @@ function NpEditor(props) {
       npSmokeSpeed: 100,
       npSmokeScale: 100,
       npSmokeBeat: 60,
+      npBeatSpeed: 220,
+      npBeatIntensity: 100,
+      npBeatScale: 18,
+      npBeatWarp: 120,
     })
   }
 
@@ -740,6 +744,27 @@ function NpEditor(props) {
             rangeRow(t('editor.smokeBeat'), Number(prefs.npSmokeBeat) || 0, 0, 100, 5, '%', function (value) {
               setPrefs({ npSmokeBeat: value })
             }, t('editor.smokeBeatHint')),
+          ),
+        ),
+        h(
+          'div',
+          { className: 'mp-npe-section is-beat' },
+          sectionHead(t('editor.beat')),
+          h(
+            'div',
+            { className: 'mp-npe-smoke-grid' },
+            rangeRow(t('editor.beatSpeed'), Number(prefs.npBeatSpeed) || 220, 0, 300, 10, '%', function (value) {
+              setPrefs({ npBeatSpeed: value })
+            }),
+            rangeRow(t('editor.beatIntensity'), Number(prefs.npBeatIntensity) || 100, 0, 300, 10, '%', function (value) {
+              setPrefs({ npBeatIntensity: value })
+            }),
+            rangeRow(t('editor.beatScale'), Number(prefs.npBeatScale) || 18, 0, 50, 2, '%', function (value) {
+              setPrefs({ npBeatScale: value })
+            }),
+            rangeRow(t('editor.beatWarp'), Number(prefs.npBeatWarp) || 120, 0, 300, 10, '%', function (value) {
+              setPrefs({ npBeatWarp: value })
+            }),
           ),
         ),
       ),
@@ -1166,6 +1191,10 @@ function SmokeFlow(props) {
   var scaleRef = useRef(Number(props.scale) || 1)
   var playingRef = useRef(props.playing === true)
   var beatRef = useRef(Number(props.beat) || 0)
+  var gainSpeedRef = useRef(Number(props.beatSpeed) || 2.2)
+  var gainIntensityRef = useRef(Number(props.beatIntensity) || 1)
+  var gainScaleRef = useRef(Number(props.beatScale) || 0.18)
+  var gainWarpRef = useRef(Number(props.beatWarp) || 1.2)
   useEffect(
     function () {
       targetRef.current = props.colors
@@ -1179,8 +1208,12 @@ function SmokeFlow(props) {
       scaleRef.current = Number(props.scale) || 1
       playingRef.current = props.playing === true
       beatRef.current = Number(props.beat) || 0
+      gainSpeedRef.current = Number(props.beatSpeed) || 2.2
+      gainIntensityRef.current = Number(props.beatIntensity) || 1
+      gainScaleRef.current = Number(props.beatScale) || 0.18
+      gainWarpRef.current = Number(props.beatWarp) || 1.2
     },
-    [props.speed, props.intensity, props.scale, props.playing, props.beat],
+    [props.speed, props.intensity, props.scale, props.playing, props.beat, props.beatSpeed, props.beatIntensity, props.beatScale, props.beatWarp],
   )
   useEffect(
     function () {
@@ -1240,44 +1273,7 @@ function SmokeFlow(props) {
       var uIntensity = gl.getUniformLocation(program, 'uIntensity')
       var uScale = gl.getUniformLocation(program, 'uScale')
       var uBeat = gl.getUniformLocation(program, 'uBeat')
-      var beatLevel = 0
-      var fluxAverage = 0
-      var previousBass = null
-      function computeBeat() {
-        if (playingRef.current !== true) {
-          beatLevel *= 0.82
-          previousBass = null
-          return beatLevel
-        }
-        var wave =
-          typeof player !== 'undefined' && player !== null && typeof player.getWave === 'function'
-            ? player.getWave()
-            : null
-        if (wave === null || wave.length === 0) {
-          beatLevel *= 0.82
-          return beatLevel
-        }
-        // Half-wave rectified spectral flux over the sub-bass bins: only rising
-        // energy counts, which is what makes a kick or bass line feel like a hit.
-        var bands = Math.max(3, Math.min(10, Math.floor(wave.length * 0.08)))
-        var flux = 0
-        if (previousBass !== null && previousBass.length === bands) {
-          for (var i = 0; i < bands; i += 1) {
-            var delta = wave[i] - previousBass[i]
-            if (delta > 0) flux += delta
-          }
-          flux = flux / (bands * 255)
-        }
-        if (previousBass === null || previousBass.length !== bands) {
-          previousBass = new Array(bands)
-        }
-        for (var j = 0; j < bands; j += 1) previousBass[j] = wave[j]
-        fluxAverage = fluxAverage * 0.9 + flux * 0.1
-        var threshold = Math.max(0.015, fluxAverage * 1.25)
-        var hit = flux > threshold ? Math.min(1, (flux - threshold) * 7 + 0.4) : 0
-        beatLevel = Math.max(hit, beatLevel * 0.82)
-        return beatLevel
-      }
+      var beatTracker = createBeatTracker()
       var current = (targetRef.current || [[1, 1, 1]]).map(function (color) {
         return color.slice()
       })
@@ -1311,11 +1307,16 @@ function SmokeFlow(props) {
         gl.uniform3f(uB, current[1][0], current[1][1], current[1][2])
         gl.uniform3f(uC, current[2][0], current[2][1], current[2][2])
         gl.uniform1f(uTime, ((now || 0) - start) / 1000)
-        var beat = computeBeat() * beatRef.current
-        gl.uniform1f(uSpeed, speedRef.current * (1 + beat * 2.2))
-        gl.uniform1f(uIntensity, intensityRef.current * (1 + beat * 1.0))
-        gl.uniform1f(uScale, scaleRef.current * (1 - beat * 0.18))
-        gl.uniform1f(uBeat, beat)
+        var beat = beatTracker.update(
+          typeof player !== 'undefined' && player !== null && typeof player.getWave === 'function'
+            ? player.getWave()
+            : null,
+          playingRef.current,
+        ) * beatRef.current
+        gl.uniform1f(uSpeed, speedRef.current * (1 + beat * gainSpeedRef.current))
+        gl.uniform1f(uIntensity, intensityRef.current * (1 + beat * gainIntensityRef.current))
+        gl.uniform1f(uScale, scaleRef.current * (1 - beat * gainScaleRef.current))
+        gl.uniform1f(uBeat, beat * gainWarpRef.current)
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
       }
       function frame(now) {
@@ -1374,6 +1375,25 @@ function SmokeFlow(props) {
 
 function CoverReflectWave(props) {
   var accent = useCoverAccent(props.cover || '', props.imageRef)
+  var gainsRef = useRef({
+    beat: Number(props.beat) || 0,
+    speed: Number(props.beatSpeed) || 2.2,
+    intensity: Number(props.beatIntensity) || 1,
+    scale: Number(props.beatScale) || 0.18,
+    warp: Number(props.beatWarp) || 1.2,
+  })
+  useEffect(
+    function () {
+      gainsRef.current = {
+        beat: Number(props.beat) || 0,
+        speed: Number(props.beatSpeed) || 2.2,
+        intensity: Number(props.beatIntensity) || 1,
+        scale: Number(props.beatScale) || 0.18,
+        warp: Number(props.beatWarp) || 1.2,
+      }
+    },
+    [props.beat, props.beatSpeed, props.beatIntensity, props.beatScale, props.beatWarp],
+  )
   var playing = props.playing === true
   var active = props.active !== false
   var ref = useRef(null)
@@ -1396,6 +1416,9 @@ function CoverReflectWave(props) {
         }
       }
       var dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1)
+      var beatTracker = createBeatTracker()
+      var phase = 0
+      var lastPhaseAt = 0
       var frame = 0
       var last = 0
       var levels = []
@@ -1428,6 +1451,12 @@ function CoverReflectWave(props) {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
         ctx.clearRect(0, 0, w, h)
         var data = playing ? player.getWave() : null
+        var gains = gainsRef.current
+        var beat = beatTracker.update(data, playing) * gains.beat
+        var beatSpeedGain = gains.speed
+        var beatIntensityGain = gains.intensity
+        var beatScaleGain = gains.scale
+        var beatWarpGain = gains.warp
         var raw = []
         if (data !== null && data.length > 0) {
           for (var band = 0; band < spectrumBands; band += 1) {
@@ -1443,7 +1472,7 @@ function CoverReflectWave(props) {
         }
         var peak = 0.4
         for (var p = 0; p < raw.length; p += 1) peak = Math.max(peak, raw[p])
-        var barW = Math.max(1, (w / bands) * 0.58)
+        var barW = Math.max(1, (w / bands) * 0.58 * (1 - beat * Math.min(0.35, beatScaleGain * 0.5)))
         var gap = w / bands
         function mixFeature(list, t) {
           if (!list.length) return accent
@@ -1461,8 +1490,10 @@ function CoverReflectWave(props) {
             l: a.l + (b.l - a.l) * frac,
           }
         }
-        var phase = (now / 16000) % 1
-        ctx.globalAlpha = 0.92
+        var phaseDelta = Math.min(0.1, (now - lastPhaseAt) / 1000)
+        lastPhaseAt = now
+        phase = (phase + phaseDelta * 0.0625 * (1 + beat * beatSpeedGain)) % 1
+        ctx.globalAlpha = 0.92 + beat * 0.08
         var mid = (bands - 1) / 2
         for (var k = 0; k < bands; k += 1) {
           var dist = Math.abs(k - mid) / mid
@@ -1471,9 +1502,10 @@ function CoverReflectWave(props) {
           level = 0.02 + Math.min(1, level) * 0.98
           var prev = levels[k] || 0
           levels[k] = level > prev ? level : prev * 0.45 + level * 0.55
-          var half = (levels[k] * h) / 2
+          var half = ((levels[k] * h) / 2) * (1 + beat * beatIntensityGain)
+          if (half > h * 0.5) half = h * 0.5
           if (half < 1) continue
-          ctx.fillStyle = colorOf(mixFeature(palette, phase + dist * 0.72), 0.95)
+          ctx.fillStyle = colorOf(mixFeature(palette, phase + dist * 0.72 * (1 + beat * beatWarpGain)), 0.95)
           var x = k * gap + (gap - barW) / 2
           var radius = Math.min(barW / 2, 4, half)
           if (typeof ctx.roundRect === 'function') {
@@ -2084,6 +2116,10 @@ function NowPlaying(props) {
             paused: pageHidden || props.open === false,
             playing: snap.playing === true,
             beat: clamp((Number(prefs.npSmokeBeat) || 0) / 100, 0, 1),
+            beatSpeed: clamp((Number(prefs.npBeatSpeed) || 220) / 100, 0, 3),
+            beatIntensity: clamp((Number(prefs.npBeatIntensity) || 100) / 100, 0, 3),
+            beatScale: clamp((Number(prefs.npBeatScale) || 18) / 100, 0, 0.5),
+            beatWarp: clamp((Number(prefs.npBeatWarp) || 120) / 100, 0, 3),
             speed: clamp((Number(prefs.npSmokeSpeed) || 100) / 100, 0.3, 2.5),
             intensity: clamp((Number(prefs.npSmokeIntensity) || 100) / 100, 0.3, 1.8),
             scale: clamp((Number(prefs.npSmokeScale) || 100) / 100, 0.5, 2),
@@ -2344,7 +2380,17 @@ function NowPlaying(props) {
           'div',
           { className: 'mp-np-progress' },
           prefs.waveEnabled !== false
-            ? h(CoverReflectWave, { cover: cover, playing: snap.playing, imageRef: coverImgRef, active: staged })
+            ? h(CoverReflectWave, {
+            cover: cover,
+            playing: snap.playing,
+            imageRef: coverImgRef,
+            active: staged,
+            beat: clamp((Number(prefs.npSmokeBeat) || 0) / 100, 0, 1),
+            beatSpeed: clamp((Number(prefs.npBeatSpeed) || 220) / 100, 0, 3),
+            beatIntensity: clamp((Number(prefs.npBeatIntensity) || 100) / 100, 0, 3),
+            beatScale: clamp((Number(prefs.npBeatScale) || 18) / 100, 0, 0.5),
+            beatWarp: clamp((Number(prefs.npBeatWarp) || 120) / 100, 0, 3),
+          })
             : null,
           h(SeekBar, { fallbackDuration: track ? track.durationSec || 0 : 0 }),
         ),
