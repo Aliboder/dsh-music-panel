@@ -8659,11 +8659,11 @@ window.__ModuleLoader__.load({
       '.mp-np.is-blur .mp-np-line:not(.is-focus){opacity:.44;filter:blur(calc(0.2px + var(--mp-line-stagger,0) * 0.22px))}',
       '.mp-np-lyric-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;flex:none;margin-top:14px;min-height:30px}',
       '.mp-np-lyric-tag{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.7)}',
-      '.mp-np-lyric-tag-badge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 4px;border:1px solid rgba(255,255,255,.42);border-radius:5px;background:transparent;font:inherit;font-size:12px;font-weight:500;line-height:1;color:rgba(255,255,255,.92);cursor:pointer}.mp-np-lyric-tag-badge:hover,.mp-np-lyric-tag-badge.is-on{border-color:rgba(255,255,255,.72);background:rgba(255,255,255,.1);color:#fff}',
+      '.mp-np-lyric-tag-badge{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 5px;border:1px solid rgba(255,255,255,.42);border-radius:8px;background:transparent;font:inherit;font-size:14px;font-weight:600;line-height:1;color:rgba(255,255,255,.92);cursor:pointer}.mp-np-lyric-tag-badge:hover,.mp-np-lyric-tag-badge.is-on{border-color:rgba(255,255,255,.72);background:rgba(255,255,255,.1);color:#fff}',
       '.mp-np-lyric-source{font-size:12px;letter-spacing:.06em;color:rgba(255,255,255,.8)}',
-      '.mp-np-foot-right{display:flex;align-items:center;gap:10px;margin-left:auto}',
-      '.mp-np-foot-btn{display:inline-flex;align-items:center;justify-content:center;height:30px;min-width:30px;padding:0 7px;border:1px solid transparent;border-radius:8px;background:transparent;color:rgba(255,255,255,.78);font:inherit;font-size:13px;font-weight:600;cursor:pointer}',
+        '.mp-np-foot-btn{display:inline-flex;align-items:center;justify-content:center;height:30px;min-width:30px;padding:0 7px;border:1px solid transparent;border-radius:8px;background:transparent;color:rgba(255,255,255,.78);font:inherit;font-size:13px;font-weight:600;cursor:pointer}',
       '.mp-np-foot-btn.is-boxed{border-color:rgba(255,255,255,.45)}',
+      '.mp-np-foot-btn.is-compact{height:20px;min-width:20px;padding:0 4px;border-radius:5px;font-size:11px;font-weight:500;line-height:1}',
       '.mp-npe{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:24px;overflow:hidden;background:rgba(0,0,0,.62);animation:mp-npe-fade .18s ease}',
       '.mp-npe-panel{position:relative;width:min(440px,100%);min-width:0;box-sizing:border-box;height:auto;max-height:min(760px,100%);display:flex;flex-direction:column;background:#151519;border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.6);animation:mp-npe-pop .22s cubic-bezier(.22,.61,.36,1)}',
       '.mp-npe-head{display:flex;align-items:flex-start;gap:12px;padding:22px 22px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex:none}',
@@ -12968,6 +12968,23 @@ window.__ModuleLoader__.load({
                   'button',
                   {
                     type: 'button',
+                    className: cx(
+                      'mp-np-foot-btn',
+                      'is-boxed',
+                      'is-compact',
+                      prefs.showTranslation === true && 'is-on',
+                    ),
+                    title: t('page.translation'),
+                    onClick: function () {
+                      setPrefs({ showTranslation: prefs.showTranslation !== true })
+                    },
+                  },
+                  '译',
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
                     ref: settingsBtnRef,
                     className: cx('mp-np-lyric-tag-badge', 'is-btn', settingsOpen && 'is-on'),
                     title: t('v2.lyricSettings'),
@@ -12977,22 +12994,6 @@ window.__ModuleLoader__.load({
                   '词',
                 ),
                 lyricSource !== '' ? h('span', { className: 'mp-np-lyric-source' }, lyricSource.toUpperCase()) : null,
-              ),
-              h(
-                'div',
-                { className: 'mp-np-foot-right' },
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: cx('mp-np-foot-btn', 'is-boxed', prefs.showTranslation === true && 'is-on'),
-                    title: t('page.translation'),
-                    onClick: function () {
-                      setPrefs({ showTranslation: prefs.showTranslation !== true })
-                    },
-                  },
-                  '译',
-                ),
               ),
             ),
           ),

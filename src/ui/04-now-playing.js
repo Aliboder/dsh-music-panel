@@ -2231,6 +2231,23 @@ function NowPlaying(props) {
               'button',
               {
                 type: 'button',
+                className: cx(
+                  'mp-np-foot-btn',
+                  'is-boxed',
+                  'is-compact',
+                  prefs.showTranslation === true && 'is-on',
+                ),
+                title: t('page.translation'),
+                onClick: function () {
+                  setPrefs({ showTranslation: prefs.showTranslation !== true })
+                },
+              },
+              '译',
+            ),
+            h(
+              'button',
+              {
+                type: 'button',
                 ref: settingsBtnRef,
                 className: cx('mp-np-lyric-tag-badge', 'is-btn', settingsOpen && 'is-on'),
                 title: t('v2.lyricSettings'),
@@ -2240,22 +2257,6 @@ function NowPlaying(props) {
               '词',
             ),
             lyricSource !== '' ? h('span', { className: 'mp-np-lyric-source' }, lyricSource.toUpperCase()) : null,
-          ),
-          h(
-            'div',
-            { className: 'mp-np-foot-right' },
-            h(
-              'button',
-              {
-                type: 'button',
-                className: cx('mp-np-foot-btn', 'is-boxed', prefs.showTranslation === true && 'is-on'),
-                title: t('page.translation'),
-                onClick: function () {
-                  setPrefs({ showTranslation: prefs.showTranslation !== true })
-                },
-              },
-              '译',
-            ),
           ),
         ),
       ),
