@@ -1156,7 +1156,7 @@ function NowPlaying(props) {
     if (persist === true) setPrefs({ npLyricWidth: next })
   }
 
-  function beginLyricResize(event) {
+  function beginLyricResize(event, side) {
     if (event.button !== undefined && event.button !== 0) return
     event.preventDefault()
     var handle = event.currentTarget
@@ -1166,7 +1166,11 @@ function NowPlaying(props) {
     var latest = startWidth
     document.body.style.userSelect = 'none'
     function move(moveEvent) {
-      latest = clamp(startWidth + 2 * (moveEvent.clientX - startX), 360, 900)
+      // The pair is centred, so the width delta is twice the pointer delta.
+      // Dragging the left edge left widens the column; the right edge widens it
+      // when dragged right.
+      var delta = side === 'left' ? startX - moveEvent.clientX : moveEvent.clientX - startX
+      latest = clamp(startWidth + 2 * delta, 360, 900)
       setLyricWidth(latest)
     }
     function finish() {
@@ -2091,6 +2095,25 @@ function NowPlaying(props) {
           }),
         ),
       ),
+      h('div', {
+        className: 'mp-np-split',
+        'data-side': 'left',
+        role: 'separator',
+        'aria-orientation': 'vertical',
+        'aria-label': t('page.lyricWidth'),
+        'aria-valuemin': 360,
+        'aria-valuemax': 900,
+        'aria-valuenow': lyricWidth,
+        title: t('page.lyricWidth'),
+        tabIndex: 0,
+        onPointerDown: function (event) {
+          beginLyricResize(event, 'left')
+        },
+        onKeyDown: onLyricSplitKey,
+        onDoubleClick: function () {
+          applyLyricWidth(560, true)
+        },
+      }),
       h(
         'div',
         { className: 'mp-np-right' },
@@ -2210,6 +2233,7 @@ function NowPlaying(props) {
       ),
       h('div', {
         className: 'mp-np-split',
+        'data-side': 'right',
         role: 'separator',
         'aria-orientation': 'vertical',
         'aria-label': t('page.lyricWidth'),
@@ -2218,7 +2242,9 @@ function NowPlaying(props) {
         'aria-valuenow': lyricWidth,
         title: t('page.lyricWidth'),
         tabIndex: 0,
-        onPointerDown: beginLyricResize,
+        onPointerDown: function (event) {
+          beginLyricResize(event, 'right')
+        },
         onKeyDown: onLyricSplitKey,
         onDoubleClick: function () {
           applyLyricWidth(560, true)
