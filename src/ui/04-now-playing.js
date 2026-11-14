@@ -715,15 +715,15 @@ function flowPalette(accent) {
   function color(index, hueShift, lightShift, satScale, alpha) {
     var base = palette[index % palette.length] || palette[0]
     var hue = ((Number(base.h) || 0) + hueShift + 360) % 360
-    var sat = Math.min(90, Math.max(46, (Number(base.s) || 30) * satScale))
-    var light = Math.min(76, Math.max(40, (Number(base.l) || 55) + lightShift))
+    var sat = Math.min(96, Math.max(58, (Number(base.s) || 30) * satScale))
+    var light = Math.min(82, Math.max(48, (Number(base.l) || 55) + lightShift))
     return 'hsl(' + Math.round(hue) + ' ' + Math.round(sat) + '% ' + Math.round(light) + '% / ' + alpha + ')'
   }
   return {
-    a: color(0, 0, 4, 1.05, 0.55),
-    b: color(1, 28, 0, 0.95, 0.5),
-    c: color(2, -30, -2, 1, 0.5),
-    d: color(0, 64, -6, 0.85, 0.42),
+    a: color(0, 0, 10, 1.2, 0.68),
+    b: color(1, 28, 6, 1.1, 0.62),
+    c: color(2, -30, 4, 1.12, 0.62),
+    d: color(0, 64, 2, 1, 0.55),
   }
 }
 
