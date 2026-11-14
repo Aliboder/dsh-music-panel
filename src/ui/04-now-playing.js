@@ -1525,6 +1525,7 @@ function NowPlaying(props) {
       className: cx(
         'mp-np',
         props.open === true && 'is-open',
+        isFullscreen && 'is-fs',
         prefs.lyricBlur === true && 'is-blur',
         prefs.showTranslation === true && 'is-trans',
         'mp-align-' + (prefs.lyricAlign || 'center'),

@@ -92,4 +92,10 @@ const rawDialogs = uiFiles
   .map(([name]) => name)
 assert.deepEqual(rawDialogs, [], 'dialogs must use KitModal (raw mp-overlay found in ' + rawDialogs.join(', ') + ')')
 
+// Fullscreen now-playing: the cover + lyrics pair must stay centred, and the
+// lyrics column gets its own max width instead of stretching to the far right.
+assert.match(theme, /\.mp-np\.is-fs \.mp-np-body\{[^']*justify-content:center/, 'fullscreen body is centred')
+assert.match(theme, /@media \(min-width:981px\)\{[^']*\.mp-np\.is-fs/, 'fullscreen centring must not break the stacked layout')
+assert.match(theme, /\.mp-np\.is-fs \.mp-np-lyrics\{[^']*max-width:560px/, 'fullscreen lyrics keep a readable column')
+
 console.log('theme.test.mjs ok')
