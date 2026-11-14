@@ -1102,6 +1102,10 @@ window.__ModuleLoader__.load({
         'editor.display': '显示选项',
         'editor.wave': '进度条波图',
         'editor.flow': '动态流光背景',
+        'editor.smoke': '烟雾效果',
+        'editor.smokeIntensity': '烟雾强度',
+        'editor.smokeSpeed': '流动速度',
+        'editor.smokeScale': '烟雾尺度',
         'editor.preview': '实时预览',
         'editor.sampleTitle': '示例歌曲',
         'editor.samplePrev': '等到秋叶被红透',
@@ -1553,6 +1557,10 @@ window.__ModuleLoader__.load({
         'editor.display': 'Display',
         'editor.wave': 'Waveform on progress',
         'editor.flow': 'Flowing light background',
+        'editor.smoke': 'Smoke effect',
+        'editor.smokeIntensity': 'Smoke intensity',
+        'editor.smokeSpeed': 'Flow speed',
+        'editor.smokeScale': 'Smoke scale',
 
         'editor.reset': 'Restore defaults',
         'editor.resetConfirm': 'Restore default settings?',
@@ -3389,6 +3397,10 @@ window.__ModuleLoader__.load({
       npPaneGap: 60,
       /** Animated flowing-light background on the player page. */
       npFlowBg: true,
+      /** WebGL smoke tuning: percentage of the base value. */
+      npSmokeIntensity: 100,
+      npSmokeSpeed: 100,
+      npSmokeScale: 100,
       composerLyrics: false,
       composerTranslation: true,
       composerLyricPlace: 'input-left',
@@ -8802,6 +8814,7 @@ window.__ModuleLoader__.load({
       '.mp-npe-cover-label{font-size:12px;font-weight:500}',
       '.mp-npe-cover-check{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;background:#5b8cff;color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.3)}',
       '.mp-npe-row{margin-top:14px}',
+      '.mp-npe-smoke-grid{display:grid;grid-template-columns:1fr;gap:0 18px}',
       '.mp-npe-range-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px;color:rgba(255,255,255,.72)}',
       '.mp-npe-val{color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}',
       '.mp-npe-seg{display:flex;gap:6px}',
@@ -8819,7 +8832,7 @@ window.__ModuleLoader__.load({
       '@keyframes mp-npe-pop{from{transform:translateY(12px) scale(.985);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}',
       '@media (min-width:981px){.mp-np-disc-wrap{-webkit-box-reflect:below 4px linear-gradient(to top,rgba(0,0,0,.45),rgba(0,0,0,0) 96px)}}',
       '@media (min-width:981px) and (max-height:860px){.mp-np-disc-wrap{-webkit-box-reflect:below 2px linear-gradient(to top,rgba(0,0,0,.38),rgba(0,0,0,0) 26px)}}',
-      '@media (min-width:1000px){.mp-npe{padding:20px}.mp-npe-panel{width:min(1080px,94vw);height:auto;max-height:min(820px,92vh)}.mp-npe-head{padding:18px 22px 14px}.mp-npe-body{display:grid;grid-template-columns:minmax(260px,1.05fr) minmax(250px,1fr) minmax(230px,.92fr);grid-template-rows:auto auto;gap:20px 22px;align-items:start;overflow-y:auto;padding:18px 22px 16px}.mp-npe-preview{grid-column:1;grid-row:1;margin-bottom:0}.mp-npe-preview-cover{width:120px;height:120px}.mp-npe-section{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px 16px 10px;margin-bottom:0}.mp-npe-section.is-cover{grid-column:1;grid-row:2}.mp-npe-section.is-type{grid-column:2;grid-row:1/3}.mp-npe-section.is-display{grid-column:3;grid-row:1/3}.mp-npe-sec-head{margin-bottom:10px}.mp-npe-row{margin-top:12px}.mp-npe-foot{padding:12px 22px}}',
+      '@media (min-width:1000px){.mp-npe{padding:20px}.mp-npe-panel{width:min(1080px,94vw);height:auto;max-height:min(820px,92vh)}.mp-npe-head{padding:18px 22px 14px}.mp-npe-body{display:grid;grid-template-columns:minmax(260px,1.05fr) minmax(250px,1fr) minmax(230px,.92fr);grid-template-rows:auto auto auto;gap:20px 22px;align-items:start;overflow-y:auto;padding:18px 22px 16px}.mp-npe-preview{grid-column:1;grid-row:1;margin-bottom:0}.mp-npe-preview-cover{width:120px;height:120px}.mp-npe-section{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px 16px 10px;margin-bottom:0}.mp-npe-section.is-cover{grid-column:1;grid-row:2}.mp-npe-section.is-type{grid-column:2;grid-row:1/3}.mp-npe-section.is-display{grid-column:3;grid-row:1/3}.mp-npe-section.is-smoke{grid-column:1/4;grid-row:3}.mp-npe-smoke-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.mp-npe-sec-head{margin-bottom:10px}.mp-npe-row{margin-top:12px}.mp-npe-foot{padding:12px 22px}}',
       '@media (max-width:620px){.mp-npe{padding:8px}.mp-npe-panel{width:100%;max-height:100%}.mp-npe-head{padding:18px 18px 14px}.mp-npe-body{padding:14px 18px 18px}.mp-npe-foot{padding:12px 18px}}',
       '@media (prefers-reduced-motion:reduce){.mp-npe,.mp-npe-panel{animation:none}}',
       '.mp-quality{font-size:11px;color:var(--dsw-alias-label-tertiary,#a1a1aa);font-variant-numeric:tabular-nums;white-space:nowrap;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.06)}',
@@ -11245,6 +11258,9 @@ window.__ModuleLoader__.load({
           npPaneGap: 60,
           npLyricWidth: 560,
           npFlowBg: true,
+          npSmokeIntensity: 100,
+          npSmokeSpeed: 100,
+          npSmokeScale: 100,
         })
       }
 
@@ -11552,6 +11568,24 @@ window.__ModuleLoader__.load({
               switchRow(t('editor.flow'), prefs.npFlowBg !== false, function (value) {
                 setPrefs({ npFlowBg: value })
               }, t('editor.flowHint')),
+            ),
+            h(
+              'div',
+              { className: 'mp-npe-section is-smoke' },
+              sectionHead(t('editor.smoke')),
+              h(
+                'div',
+                { className: 'mp-npe-smoke-grid' },
+                rangeRow(t('editor.smokeIntensity'), Number(prefs.npSmokeIntensity) || 100, 30, 180, 5, '%', function (value) {
+                  setPrefs({ npSmokeIntensity: value })
+                }),
+                rangeRow(t('editor.smokeSpeed'), Number(prefs.npSmokeSpeed) || 100, 30, 250, 5, '%', function (value) {
+                  setPrefs({ npSmokeSpeed: value })
+                }),
+                rangeRow(t('editor.smokeScale'), Number(prefs.npSmokeScale) || 100, 50, 200, 5, '%', function (value) {
+                  setPrefs({ npSmokeScale: value })
+                }),
+              ),
             ),
           ),
           h(
@@ -11897,6 +11931,9 @@ window.__ModuleLoader__.load({
       'uniform vec3 uA;',
       'uniform vec3 uB;',
       'uniform vec3 uC;',
+      'uniform float uSpeed;',
+      'uniform float uIntensity;',
+      'uniform float uScale;',
       'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
       'float noise(vec2 p){',
       '  vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);',
@@ -11912,8 +11949,8 @@ window.__ModuleLoader__.load({
       'void main(){',
       '  vec2 uv=gl_FragCoord.xy/uRes;',
       '  float aspect=uRes.x/uRes.y;',
-      '  vec2 p=(uv-0.5)*vec2(aspect,1.0)*3.1;',
-      '  float t=uTime*0.13;',
+      '  vec2 p=(uv-0.5)*vec2(aspect,1.0)*3.1*uScale;',
+      '  float t=uTime*0.13*uSpeed;',
       '  vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t*0.7));',
       '  vec2 r=vec2(fbm(p+4.0*q+vec2(1.7,9.2)+t*0.55),fbm(p+4.0*q+vec2(8.3,2.8)-t*0.45));',
       '  float f=fbm(p+3.6*r);',
@@ -11921,7 +11958,7 @@ window.__ModuleLoader__.load({
       '  vec3 col=mix(uA,uB,smoothstep(0.2,0.8,r.x));',
       '  col=mix(col,uC,smoothstep(0.4,0.95,q.y));',
       '  col*=0.74+0.46*f;',
-      '  float alpha=smoke*0.5;',
+      '  float alpha=smoke*0.5*uIntensity;',
       '  gl_FragColor=vec4(col,alpha);',
       '}',
     ].join('\n')
@@ -11967,11 +12004,22 @@ window.__ModuleLoader__.load({
       var targetRef = useRef(props.colors)
       var pausedRef = useRef(props.paused === true)
       var controlRef = useRef(null)
+      var speedRef = useRef(Number(props.speed) || 1)
+      var intensityRef = useRef(Number(props.intensity) || 1)
+      var scaleRef = useRef(Number(props.scale) || 1)
       useEffect(
         function () {
           targetRef.current = props.colors
         },
         [props.colors],
+      )
+      useEffect(
+        function () {
+          speedRef.current = Number(props.speed) || 1
+          intensityRef.current = Number(props.intensity) || 1
+          scaleRef.current = Number(props.scale) || 1
+        },
+        [props.speed, props.intensity, props.scale],
       )
       useEffect(
         function () {
@@ -12027,6 +12075,9 @@ window.__ModuleLoader__.load({
           var uA = gl.getUniformLocation(program, 'uA')
           var uB = gl.getUniformLocation(program, 'uB')
           var uC = gl.getUniformLocation(program, 'uC')
+          var uSpeed = gl.getUniformLocation(program, 'uSpeed')
+          var uIntensity = gl.getUniformLocation(program, 'uIntensity')
+          var uScale = gl.getUniformLocation(program, 'uScale')
           var current = (targetRef.current || [[1, 1, 1]]).map(function (color) {
             return color.slice()
           })
@@ -12060,6 +12111,9 @@ window.__ModuleLoader__.load({
             gl.uniform3f(uB, current[1][0], current[1][1], current[1][2])
             gl.uniform3f(uC, current[2][0], current[2][1], current[2][2])
             gl.uniform1f(uTime, ((now || 0) - start) / 1000)
+            gl.uniform1f(uSpeed, speedRef.current)
+            gl.uniform1f(uIntensity, intensityRef.current)
+            gl.uniform1f(uScale, scaleRef.current)
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
           }
           function frame(now) {
@@ -12823,7 +12877,13 @@ window.__ModuleLoader__.load({
                 className: cx('mp-np-flow', (pageHidden || props.open === false) && 'is-paused'),
                 'aria-hidden': 'true',
               },
-              h(SmokeFlow, { colors: smokeColors, paused: pageHidden || props.open === false }),
+              h(SmokeFlow, {
+                colors: smokeColors,
+                paused: pageHidden || props.open === false,
+                speed: clamp((Number(prefs.npSmokeSpeed) || 100) / 100, 0.3, 2.5),
+                intensity: clamp((Number(prefs.npSmokeIntensity) || 100) / 100, 0.3, 1.8),
+                scale: clamp((Number(prefs.npSmokeScale) || 100) / 100, 0.5, 2),
+              }),
               h('i', { className: 'mp-np-blob is-a' }),
               h('i', { className: 'mp-np-blob is-b' }),
               h('i', { className: 'mp-np-blob is-c' }),

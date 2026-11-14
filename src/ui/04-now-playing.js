@@ -409,6 +409,9 @@ function NpEditor(props) {
       npPaneGap: 60,
       npLyricWidth: 560,
       npFlowBg: true,
+      npSmokeIntensity: 100,
+      npSmokeSpeed: 100,
+      npSmokeScale: 100,
     })
   }
 
@@ -716,6 +719,24 @@ function NpEditor(props) {
           switchRow(t('editor.flow'), prefs.npFlowBg !== false, function (value) {
             setPrefs({ npFlowBg: value })
           }, t('editor.flowHint')),
+        ),
+        h(
+          'div',
+          { className: 'mp-npe-section is-smoke' },
+          sectionHead(t('editor.smoke')),
+          h(
+            'div',
+            { className: 'mp-npe-smoke-grid' },
+            rangeRow(t('editor.smokeIntensity'), Number(prefs.npSmokeIntensity) || 100, 30, 180, 5, '%', function (value) {
+              setPrefs({ npSmokeIntensity: value })
+            }),
+            rangeRow(t('editor.smokeSpeed'), Number(prefs.npSmokeSpeed) || 100, 30, 250, 5, '%', function (value) {
+              setPrefs({ npSmokeSpeed: value })
+            }),
+            rangeRow(t('editor.smokeScale'), Number(prefs.npSmokeScale) || 100, 50, 200, 5, '%', function (value) {
+              setPrefs({ npSmokeScale: value })
+            }),
+          ),
         ),
       ),
       h(
@@ -1061,6 +1082,9 @@ var SMOKE_FRAGMENT = [
   'uniform vec3 uA;',
   'uniform vec3 uB;',
   'uniform vec3 uC;',
+  'uniform float uSpeed;',
+  'uniform float uIntensity;',
+  'uniform float uScale;',
   'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
   'float noise(vec2 p){',
   '  vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);',
@@ -1076,8 +1100,8 @@ var SMOKE_FRAGMENT = [
   'void main(){',
   '  vec2 uv=gl_FragCoord.xy/uRes;',
   '  float aspect=uRes.x/uRes.y;',
-  '  vec2 p=(uv-0.5)*vec2(aspect,1.0)*3.1;',
-  '  float t=uTime*0.13;',
+  '  vec2 p=(uv-0.5)*vec2(aspect,1.0)*3.1*uScale;',
+  '  float t=uTime*0.13*uSpeed;',
   '  vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t*0.7));',
   '  vec2 r=vec2(fbm(p+4.0*q+vec2(1.7,9.2)+t*0.55),fbm(p+4.0*q+vec2(8.3,2.8)-t*0.45));',
   '  float f=fbm(p+3.6*r);',
@@ -1085,7 +1109,7 @@ var SMOKE_FRAGMENT = [
   '  vec3 col=mix(uA,uB,smoothstep(0.2,0.8,r.x));',
   '  col=mix(col,uC,smoothstep(0.4,0.95,q.y));',
   '  col*=0.74+0.46*f;',
-  '  float alpha=smoke*0.5;',
+  '  float alpha=smoke*0.5*uIntensity;',
   '  gl_FragColor=vec4(col,alpha);',
   '}',
 ].join('\n')
@@ -1131,11 +1155,22 @@ function SmokeFlow(props) {
   var targetRef = useRef(props.colors)
   var pausedRef = useRef(props.paused === true)
   var controlRef = useRef(null)
+  var speedRef = useRef(Number(props.speed) || 1)
+  var intensityRef = useRef(Number(props.intensity) || 1)
+  var scaleRef = useRef(Number(props.scale) || 1)
   useEffect(
     function () {
       targetRef.current = props.colors
     },
     [props.colors],
+  )
+  useEffect(
+    function () {
+      speedRef.current = Number(props.speed) || 1
+      intensityRef.current = Number(props.intensity) || 1
+      scaleRef.current = Number(props.scale) || 1
+    },
+    [props.speed, props.intensity, props.scale],
   )
   useEffect(
     function () {
@@ -1191,6 +1226,9 @@ function SmokeFlow(props) {
       var uA = gl.getUniformLocation(program, 'uA')
       var uB = gl.getUniformLocation(program, 'uB')
       var uC = gl.getUniformLocation(program, 'uC')
+      var uSpeed = gl.getUniformLocation(program, 'uSpeed')
+      var uIntensity = gl.getUniformLocation(program, 'uIntensity')
+      var uScale = gl.getUniformLocation(program, 'uScale')
       var current = (targetRef.current || [[1, 1, 1]]).map(function (color) {
         return color.slice()
       })
@@ -1224,6 +1262,9 @@ function SmokeFlow(props) {
         gl.uniform3f(uB, current[1][0], current[1][1], current[1][2])
         gl.uniform3f(uC, current[2][0], current[2][1], current[2][2])
         gl.uniform1f(uTime, ((now || 0) - start) / 1000)
+        gl.uniform1f(uSpeed, speedRef.current)
+        gl.uniform1f(uIntensity, intensityRef.current)
+        gl.uniform1f(uScale, scaleRef.current)
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
       }
       function frame(now) {
@@ -1987,7 +2028,13 @@ function NowPlaying(props) {
             className: cx('mp-np-flow', (pageHidden || props.open === false) && 'is-paused'),
             'aria-hidden': 'true',
           },
-          h(SmokeFlow, { colors: smokeColors, paused: pageHidden || props.open === false }),
+          h(SmokeFlow, {
+            colors: smokeColors,
+            paused: pageHidden || props.open === false,
+            speed: clamp((Number(prefs.npSmokeSpeed) || 100) / 100, 0.3, 2.5),
+            intensity: clamp((Number(prefs.npSmokeIntensity) || 100) / 100, 0.3, 1.8),
+            scale: clamp((Number(prefs.npSmokeScale) || 100) / 100, 0.5, 2),
+          }),
           h('i', { className: 'mp-np-blob is-a' }),
           h('i', { className: 'mp-np-blob is-b' }),
           h('i', { className: 'mp-np-blob is-c' }),

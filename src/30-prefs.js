@@ -33,6 +33,10 @@ var PREF_DEFAULTS = {
   npPaneGap: 60,
   /** Animated flowing-light background on the player page. */
   npFlowBg: true,
+  /** WebGL smoke tuning: percentage of the base value. */
+  npSmokeIntensity: 100,
+  npSmokeSpeed: 100,
+  npSmokeScale: 100,
   composerLyrics: false,
   composerTranslation: true,
   composerLyricPlace: 'input-left',
