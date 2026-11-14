@@ -11797,9 +11797,18 @@ window.__ModuleLoader__.load({
           var tries = 0
           function attempt() {
             if (cancelled) return
+            if (url === '') {
+              setAccent(fallbackCoverAccent())
+              return
+            }
             var image = imageRef && imageRef.current ? imageRef.current : null
-            if (image === null) {
-              if (tries < 20) {
+            // The <img> element is reused across tracks. Wait until it actually
+            // shows the requested cover and has decoded, otherwise we would sample
+            // the previous artwork and keep the old accent after switching songs.
+            var shown = image === null ? '' : image.getAttribute('src') || ''
+            var ready = image !== null && shown === url && image.complete && image.naturalWidth > 0
+            if (!ready) {
+              if (tries < 40) {
                 tries += 1
                 timer = setTimeout(attempt, 50)
                 return
