@@ -1698,6 +1698,7 @@ function NowPlaying(props) {
         isFullscreen && 'is-fs',
         prefs.lyricBlur === true && 'is-blur',
         prefs.showTranslation === true && 'is-trans',
+        prefs.coverStyle === 'vinyl' && 'is-vinyl',
         'mp-align-' + (prefs.lyricAlign || 'center'),
       ),
       ref: npRef,

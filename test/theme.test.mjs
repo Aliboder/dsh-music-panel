@@ -127,4 +127,8 @@ assert.match(theme, /\.mp-npe-section\.is-type\{grid-column:2/, 'settings column
 assert.match(theme, /\.mp-npe-preview-cover\.is-vinyl\{[^']*repeating-radial-gradient/, 'vinyl preview keeps its disc edge')
 assert.match(theme, /\.mp-npe-preview-cover\.is-vinyl::after\{[^']*background:var\(--mp-preview-cover/, 'vinyl preview artwork is clipped by its own circle')
 
+// Narrow single-column vinyl layout keeps the disc inside its stage.
+assert.match(theme, /@media \(max-width:980px\)\{[^']*\.mp-np-cover-stage\.is-vinyl \.mp-np-disc-wrap\{top:0\}/, 'narrow vinyl layout has no vertical offset')
+assert.match(theme, /\.mp-np\.is-vinyl\{--mp-cover:min\(66vw/, 'narrow vinyl cover is sized to leave room for controls')
+
 console.log('theme.test.mjs ok')
