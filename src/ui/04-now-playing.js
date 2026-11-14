@@ -1164,7 +1164,7 @@ function NowPlaying(props) {
     var latest = startWidth
     document.body.style.userSelect = 'none'
     function move(moveEvent) {
-      latest = clamp(startWidth + (moveEvent.clientX - startX), 360, 900)
+      latest = clamp(startWidth + 2 * (moveEvent.clientX - startX), 360, 900)
       setLyricWidth(latest)
     }
     function finish() {
