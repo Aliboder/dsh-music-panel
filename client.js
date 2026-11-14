@@ -7420,6 +7420,15 @@ window.__ModuleLoader__.load({
         albumSongs: [],
         albumPhase: 'loading',
         albumError: '',
+        // A search is sticky: the online views render the result list while a
+        // query is active, and that check runs before every section branch. So a
+        // row clicked under a search result would leave the panel on the search
+        // list — the album view never gets a chance to render. Ending the search
+        // here is what makes the click land, and it matches what opening an artist
+        // already does.
+        query: '',
+        phase: 'idle',
+        error: '',
       })
       setNav('album')
       try {
@@ -19723,6 +19732,9 @@ window.__ModuleLoader__.load({
           // drift away from the provider list again.
           isOnlineSource: isOnlineSource,
           UI_SOURCES: UI_SOURCES,
+          // The album entry point decides which view the user lands in; the
+          // render mock cannot click a row, so the test drives it directly.
+          openOnlineAlbum: openOnlineAlbum,
           // Equalizer: the panel renders in tests, and the curve maths is pure.
           AudioEffectsPanel: AudioEffectsPanel,
           EqPanel: EqPanel,
