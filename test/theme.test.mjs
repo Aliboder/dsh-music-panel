@@ -151,4 +151,7 @@ assert.match(theme, /\.mp-entry-title\{[^']*font-size:16px/, 'entry titles use s
 assert.match(theme, /\.mp-np-blob\.is-e\{/, 'flow has six blobs')
 assert.match(theme, /\.mp-np-flow::before\{[^']*mask-image:radial-gradient/, 'flow beam is masked into a ring')
 
+assert.match(theme, /\.mp-np-smoke\{/, 'webgl smoke canvas exists')
+assert.match(theme, /\.mp-np-flow\.has-smoke \.mp-np-blob[^']*display:none/, 'smoke replaces the blob fallback')
+
 console.log('theme.test.mjs ok')

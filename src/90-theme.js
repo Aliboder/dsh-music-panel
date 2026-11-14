@@ -348,6 +348,8 @@ var THEME_CSS = [
   "@property --mp-flow-f{syntax:'<color>';inherits:true;initial-value:transparent}",
   '.mp-np{--mp-flow-a:transparent;--mp-flow-b:transparent;--mp-flow-c:transparent;--mp-flow-d:transparent;--mp-flow-e:transparent;--mp-flow-f:transparent;transition:transform .32s ease,visibility .32s,--mp-flow-a 1.1s ease,--mp-flow-b 1.1s ease,--mp-flow-c 1.1s ease,--mp-flow-d 1.1s ease,--mp-flow-e 1.1s ease,--mp-flow-f 1.1s ease}',
   '.mp-np-flow{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;contain:strict}',
+  '.mp-np-smoke{position:absolute;inset:0;display:block;width:100%;height:100%;opacity:.95;pointer-events:none}',
+  '.mp-np-flow.has-smoke .mp-np-blob,.mp-np-flow.has-smoke::before{display:none}',
   '.mp-np-flow::before{content:"";position:absolute;left:50%;top:50%;width:150vmax;height:150vmax;margin:-75vmax;background:conic-gradient(from 0deg,transparent 0 10%,var(--mp-flow-a) 22%,transparent 36%,var(--mp-flow-c) 50%,transparent 64%,var(--mp-flow-b) 78%,transparent 92%);opacity:.28;animation:mp-flow-spin 16s linear infinite;will-change:transform;-webkit-mask-image:radial-gradient(circle at 50% 50%,transparent 0 16%,#000 44%,transparent 72%);mask-image:radial-gradient(circle at 50% 50%,transparent 0 16%,#000 44%,transparent 72%)}',
   '.mp-np-blob{position:absolute;border-radius:50%;opacity:.95;will-change:transform;transform:translate3d(0,0,0);background:radial-gradient(circle at 50% 50%,var(--mp-flow-color) 0%,transparent 64%);animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}',
   '.mp-np-blob.is-a{--mp-flow-color:var(--mp-flow-a);width:66vw;height:66vw;left:-14%;top:-20%;animation-name:mp-flow-a;animation-duration:9s;animation-delay:-2s}',

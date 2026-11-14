@@ -8513,6 +8513,8 @@ window.__ModuleLoader__.load({
       "@property --mp-flow-f{syntax:'<color>';inherits:true;initial-value:transparent}",
       '.mp-np{--mp-flow-a:transparent;--mp-flow-b:transparent;--mp-flow-c:transparent;--mp-flow-d:transparent;--mp-flow-e:transparent;--mp-flow-f:transparent;transition:transform .32s ease,visibility .32s,--mp-flow-a 1.1s ease,--mp-flow-b 1.1s ease,--mp-flow-c 1.1s ease,--mp-flow-d 1.1s ease,--mp-flow-e 1.1s ease,--mp-flow-f 1.1s ease}',
       '.mp-np-flow{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;contain:strict}',
+      '.mp-np-smoke{position:absolute;inset:0;display:block;width:100%;height:100%;opacity:.95;pointer-events:none}',
+      '.mp-np-flow.has-smoke .mp-np-blob,.mp-np-flow.has-smoke::before{display:none}',
       '.mp-np-flow::before{content:"";position:absolute;left:50%;top:50%;width:150vmax;height:150vmax;margin:-75vmax;background:conic-gradient(from 0deg,transparent 0 10%,var(--mp-flow-a) 22%,transparent 36%,var(--mp-flow-c) 50%,transparent 64%,var(--mp-flow-b) 78%,transparent 92%);opacity:.28;animation:mp-flow-spin 16s linear infinite;will-change:transform;-webkit-mask-image:radial-gradient(circle at 50% 50%,transparent 0 16%,#000 44%,transparent 72%);mask-image:radial-gradient(circle at 50% 50%,transparent 0 16%,#000 44%,transparent 72%)}',
       '.mp-np-blob{position:absolute;border-radius:50%;opacity:.95;will-change:transform;transform:translate3d(0,0,0);background:radial-gradient(circle at 50% 50%,var(--mp-flow-color) 0%,transparent 64%);animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}',
       '.mp-np-blob.is-a{--mp-flow-color:var(--mp-flow-a);width:66vw;height:66vw;left:-14%;top:-20%;animation-name:mp-flow-a;animation-duration:9s;animation-delay:-2s}',
@@ -11886,6 +11888,234 @@ window.__ModuleLoader__.load({
       })
     }
 
+
+    var SMOKE_VERTEX = 'attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.0,1.0);}'
+    var SMOKE_FRAGMENT = [
+      'precision mediump float;',
+      'uniform vec2 uRes;',
+      'uniform float uTime;',
+      'uniform vec3 uA;',
+      'uniform vec3 uB;',
+      'uniform vec3 uC;',
+      'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
+      'float noise(vec2 p){',
+      '  vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);',
+      '  float a=hash(i);float b=hash(i+vec2(1.0,0.0));float c=hash(i+vec2(0.0,1.0));float d=hash(i+vec2(1.0,1.0));',
+      '  return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);',
+      '}',
+      'mat2 rot(float a){float c=cos(a);float s=sin(a);return mat2(c,-s,s,c);}',
+      'float fbm(vec2 p){',
+      '  float v=0.0;float amp=0.5;',
+      '  for(int i=0;i<4;i++){v+=amp*noise(p);p=rot(0.5)*p*2.03+vec2(1.7,9.2);amp*=0.5;}',
+      '  return v;',
+      '}',
+      'void main(){',
+      '  vec2 uv=gl_FragCoord.xy/uRes;',
+      '  float aspect=uRes.x/uRes.y;',
+      '  vec2 p=(uv-0.5)*vec2(aspect,1.0)*3.1;',
+      '  float t=uTime*0.13;',
+      '  vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t*0.7));',
+      '  vec2 r=vec2(fbm(p+4.0*q+vec2(1.7,9.2)+t*0.55),fbm(p+4.0*q+vec2(8.3,2.8)-t*0.45));',
+      '  float f=fbm(p+3.6*r);',
+      '  float smoke=smoothstep(0.46,0.96,f);',
+      '  vec3 col=mix(uA,uB,smoothstep(0.2,0.8,r.x));',
+      '  col=mix(col,uC,smoothstep(0.4,0.95,q.y));',
+      '  col*=0.74+0.46*f;',
+      '  float alpha=smoke*0.5;',
+      '  gl_FragColor=vec4(col,alpha);',
+      '}',
+    ].join('\n')
+
+    function hslToRgb01(h, s, l) {
+      h = ((h % 360) + 360) % 360 / 360
+      s = Math.min(1, Math.max(0, s / 100))
+      l = Math.min(1, Math.max(0, l / 100))
+      function hue(p, q, t) {
+        if (t < 0) t += 1
+        if (t > 1) t -= 1
+        if (t < 1 / 6) return p + (q - p) * 6 * t
+        if (t < 1 / 2) return q
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+        return p
+      }
+      if (s === 0) return [l, l, l]
+      var q = l < 0.5 ? l * (1 + s) : l + s - l * s
+      var p = 2 * l - q
+      return [hue(p, q, h + 1 / 3), hue(p, q, h), hue(p, q, h - 1 / 3)]
+    }
+
+    function smokePalette(accent) {
+      var base = accent !== null && typeof accent === 'object' ? accent : {}
+      var hue = Number(base.h)
+      if (!isFinite(hue)) hue = 40
+      var sat = Number(base.s)
+      if (!isFinite(sat) || sat < 0) sat = 30
+      if (sat > 0 && sat <= 1) sat *= 100
+      sat = Math.min(94, Math.max(58, sat))
+      var light = Number(base.l)
+      if (!isFinite(light) || light < 0) light = 55
+      if (light > 0 && light <= 1) light *= 100
+      light = Math.min(82, Math.max(52, light))
+      function tone(shift, satScale, lightShift) {
+        return hslToRgb01(hue + shift, Math.min(96, Math.max(58, sat * satScale)), light + lightShift)
+      }
+      return [tone(-34, 1.15, 4), tone(8, 1.05, -2), tone(44, 0.95, -8)]
+    }
+
+    function SmokeFlow(props) {
+      var canvasRef = useRef(null)
+      var targetRef = useRef(props.colors)
+      var pausedRef = useRef(props.paused === true)
+      var controlRef = useRef(null)
+      useEffect(
+        function () {
+          targetRef.current = props.colors
+        },
+        [props.colors],
+      )
+      useEffect(
+        function () {
+          pausedRef.current = props.paused === true
+          var control = controlRef.current
+          if (control !== null) control.sync()
+        },
+        [props.paused],
+      )
+      useEffect(
+        function () {
+          var canvas = canvasRef.current
+          if (canvas === null) return undefined
+          var gl = canvas.getContext('webgl', {
+            alpha: true,
+            antialias: false,
+            premultipliedAlpha: false,
+            powerPreference: 'low-power',
+          })
+          if (gl === null) return undefined
+          function compile(type, source) {
+            var shader = gl.createShader(type)
+            gl.shaderSource(shader, source)
+            gl.compileShader(shader)
+            if (gl.getShaderParameter(shader, gl.COMPILE_STATUS) !== true) {
+              gl.deleteShader(shader)
+              return null
+            }
+            return shader
+          }
+          var vs = compile(gl.VERTEX_SHADER, SMOKE_VERTEX)
+          var fs = compile(gl.FRAGMENT_SHADER, SMOKE_FRAGMENT)
+          if (vs === null || fs === null) return undefined
+          var program = gl.createProgram()
+          gl.attachShader(program, vs)
+          gl.attachShader(program, fs)
+          gl.linkProgram(program)
+          gl.deleteShader(vs)
+          gl.deleteShader(fs)
+          if (gl.getProgramParameter(program, gl.LINK_STATUS) !== true) {
+            gl.deleteProgram(program)
+            return undefined
+          }
+          gl.useProgram(program)
+          var buffer = gl.createBuffer()
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW)
+          var aPos = gl.getAttribLocation(program, 'aPos')
+          gl.enableVertexAttribArray(aPos)
+          gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0)
+          var uRes = gl.getUniformLocation(program, 'uRes')
+          var uTime = gl.getUniformLocation(program, 'uTime')
+          var uA = gl.getUniformLocation(program, 'uA')
+          var uB = gl.getUniformLocation(program, 'uB')
+          var uC = gl.getUniformLocation(program, 'uC')
+          var current = (targetRef.current || [[1, 1, 1]]).map(function (color) {
+            return color.slice()
+          })
+          function lerpTo(target) {
+            for (var i = 0; i < current.length && i < target.length; i += 1) {
+              for (var j = 0; j < 3; j += 1) {
+                current[i][j] += (target[i][j] - current[i][j]) * 0.08
+              }
+            }
+          }
+          var reduced =
+            typeof window.matchMedia === 'function' &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          var raf = 0
+          var last = 0
+          var start = 0
+          function resize() {
+            var width = Math.max(320, Math.min(960, Math.round(canvas.clientWidth * 0.55)))
+            var height = Math.max(180, Math.round(width * (canvas.clientHeight || canvas.clientWidth) / (canvas.clientWidth || 1)))
+            if (canvas.width !== width || canvas.height !== height) {
+              canvas.width = width
+              canvas.height = height
+              gl.viewport(0, 0, width, height)
+              gl.uniform2f(uRes, width, height)
+            }
+          }
+          function paint(now) {
+            resize()
+            lerpTo(targetRef.current || current)
+            gl.uniform3f(uA, current[0][0], current[0][1], current[0][2])
+            gl.uniform3f(uB, current[1][0], current[1][1], current[1][2])
+            gl.uniform3f(uC, current[2][0], current[2][1], current[2][2])
+            gl.uniform1f(uTime, ((now || 0) - start) / 1000)
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+          }
+          function frame(now) {
+            raf = requestAnimationFrame(frame)
+            if (pausedRef.current === true || document.visibilityState === 'hidden') return
+            if (now - last < 33) return
+            last = now
+            paint(now)
+          }
+          function startLoop() {
+            if (raf !== 0) return
+            start = performance.now() - last
+            raf = requestAnimationFrame(frame)
+          }
+          function stopLoop() {
+            if (raf !== 0) cancelAnimationFrame(raf)
+            raf = 0
+          }
+          var parent = canvas.parentNode
+          if (parent !== null) parent.classList.add('has-smoke')
+          resize()
+          start = performance.now()
+          if (reduced === true || pausedRef.current === true || document.visibilityState === 'hidden') {
+            paint(start)
+          } else {
+            startLoop()
+          }
+          function sync() {
+            if (reduced === true) {
+              paint(performance.now())
+              return
+            }
+            if (pausedRef.current === true || document.visibilityState === 'hidden') stopLoop()
+            else startLoop()
+          }
+          controlRef.current = { sync: sync }
+          document.addEventListener('visibilitychange', sync)
+          var observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : null
+          if (observer !== null) observer.observe(canvas)
+          return function () {
+            stopLoop()
+            document.removeEventListener('visibilitychange', sync)
+            if (observer !== null) observer.disconnect()
+            controlRef.current = null
+            if (parent !== null) parent.classList.remove('has-smoke')
+            gl.deleteProgram(program)
+            gl.deleteBuffer(buffer)
+            var lose = gl.getExtension('WEBGL_lose_context')
+            if (lose !== null) lose.loseContext()
+          }
+        },
+        [],
+      )
+      return h('canvas', { ref: canvasRef, className: 'mp-np-smoke', 'aria-hidden': 'true' })
+    }
+
     function CoverReflectWave(props) {
       var accent = useCoverAccent(props.cover || '', props.imageRef)
       var playing = props.playing === true
@@ -12224,6 +12454,7 @@ window.__ModuleLoader__.load({
         }
       }, [])
       var flow = flowPalette(flowAccent)
+      var smokeColors = smokePalette(flowAccent)
       var bgPair = useState({ current: '', previous: '' })
       var bg = bgPair[0]
       var setBg = bgPair[1]
@@ -12592,6 +12823,7 @@ window.__ModuleLoader__.load({
                 className: cx('mp-np-flow', (pageHidden || props.open === false) && 'is-paused'),
                 'aria-hidden': 'true',
               },
+              h(SmokeFlow, { colors: smokeColors, paused: pageHidden || props.open === false }),
               h('i', { className: 'mp-np-blob is-a' }),
               h('i', { className: 'mp-np-blob is-b' }),
               h('i', { className: 'mp-np-blob is-c' }),
