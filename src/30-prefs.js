@@ -91,6 +91,8 @@ function readPrefs() {
   }
   merged.composerLyricPlace =
     String(merged.composerLyricPlace || '').indexOf('above') === 0 ? 'above' : 'input-left'
+  // The order selector was removed; always prefer embedded lyrics over LRC.
+  merged.lyricOrder = ['embedded', 'lrc']
   // 0.12.0 briefly defaulted to square covers; restore the 0.11 player look once.
   if (merged.npLookMigrated !== true) {
     merged.circularCover = PREF_DEFAULTS.circularCover

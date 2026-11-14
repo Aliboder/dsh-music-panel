@@ -3447,6 +3447,8 @@ window.__ModuleLoader__.load({
       }
       merged.composerLyricPlace =
         String(merged.composerLyricPlace || '').indexOf('above') === 0 ? 'above' : 'input-left'
+      // The order selector was removed; always prefer embedded lyrics over LRC.
+      merged.lyricOrder = ['embedded', 'lrc']
       // 0.12.0 briefly defaulted to square covers; restore the 0.11 player look once.
       if (merged.npLookMigrated !== true) {
         merged.circularCover = PREF_DEFAULTS.circularCover
@@ -11507,26 +11509,6 @@ window.__ModuleLoader__.load({
               switchRow(t('editor.flow'), prefs.npFlowBg !== false, function (value) {
                 setPrefs({ npFlowBg: value })
               }, t('editor.flowHint')),
-              h(
-                'div',
-                { className: 'mp-npe-row' },
-                h(
-                  'div',
-                  { className: 'mp-npe-range-head' },
-                  h('span', null, t('settings.lyricOrder')),
-                ),
-                h(
-                  'select',
-                  {
-                    value: (prefs.lyricOrder || ['embedded', 'lrc']).join(','),
-                    onChange: function (event) {
-                      setPrefs({ lyricOrder: event.target.value.split(',') })
-                    },
-                  },
-                  h('option', { value: 'embedded,lrc' }, t('settings.lyricSourceEmbedded') + ' → LRC'),
-                  h('option', { value: 'lrc,embedded' }, 'LRC → ' + t('settings.lyricSourceEmbedded')),
-                ),
-              ),
             ),
           ),
           h(
@@ -12666,22 +12648,6 @@ window.__ModuleLoader__.load({
                       t(item[1]),
                     )
                   }),
-                ),
-              ),
-              h(
-                'div',
-                { className: 'mp-np-setting' },
-                h('div', { className: 'mp-np-setting-head' }, h('span', null, t('settings.lyricOrder'))),
-                h(
-                  'select',
-                  {
-                    value: (prefs.lyricOrder || ['embedded', 'lrc']).join(','),
-                    onChange: function (event) {
-                      setPrefs({ lyricOrder: event.target.value.split(',') })
-                    },
-                  },
-                  h('option', { value: 'embedded,lrc' }, t('settings.lyricSourceEmbedded') + ' → LRC'),
-                  h('option', { value: 'lrc,embedded' }, 'LRC → ' + t('settings.lyricSourceEmbedded')),
                 ),
               ),
               h(

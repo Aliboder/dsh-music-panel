@@ -716,26 +716,6 @@ function NpEditor(props) {
           switchRow(t('editor.flow'), prefs.npFlowBg !== false, function (value) {
             setPrefs({ npFlowBg: value })
           }, t('editor.flowHint')),
-          h(
-            'div',
-            { className: 'mp-npe-row' },
-            h(
-              'div',
-              { className: 'mp-npe-range-head' },
-              h('span', null, t('settings.lyricOrder')),
-            ),
-            h(
-              'select',
-              {
-                value: (prefs.lyricOrder || ['embedded', 'lrc']).join(','),
-                onChange: function (event) {
-                  setPrefs({ lyricOrder: event.target.value.split(',') })
-                },
-              },
-              h('option', { value: 'embedded,lrc' }, t('settings.lyricSourceEmbedded') + ' → LRC'),
-              h('option', { value: 'lrc,embedded' }, 'LRC → ' + t('settings.lyricSourceEmbedded')),
-            ),
-          ),
         ),
       ),
       h(
@@ -1875,22 +1855,6 @@ function NowPlaying(props) {
                   t(item[1]),
                 )
               }),
-            ),
-          ),
-          h(
-            'div',
-            { className: 'mp-np-setting' },
-            h('div', { className: 'mp-np-setting-head' }, h('span', null, t('settings.lyricOrder'))),
-            h(
-              'select',
-              {
-                value: (prefs.lyricOrder || ['embedded', 'lrc']).join(','),
-                onChange: function (event) {
-                  setPrefs({ lyricOrder: event.target.value.split(',') })
-                },
-              },
-              h('option', { value: 'embedded,lrc' }, t('settings.lyricSourceEmbedded') + ' → LRC'),
-              h('option', { value: 'lrc,embedded' }, 'LRC → ' + t('settings.lyricSourceEmbedded')),
             ),
           ),
           h(
