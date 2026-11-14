@@ -125,6 +125,6 @@ assert.match(theme, /\.mp-align-right \.mp-np-lyric-foot\{justify-content:flex-e
 assert.match(theme, /@media \(min-width:1000px\)\{[^']*\.mp-npe-body\{[^']*display:grid/, 'tablet editor grid')
 assert.match(theme, /\.mp-npe-section\.is-type\{grid-column:2/, 'settings columns are placed by area')
 assert.match(theme, /\.mp-npe-preview-cover\.is-vinyl\{[^']*repeating-radial-gradient/, 'vinyl preview keeps its disc edge')
-assert.match(theme, /\.mp-npe-preview-cover\.is-vinyl img\{[^']*width:78%/, 'vinyl preview artwork sits inside the disc')
+assert.match(theme, /\.mp-npe-preview-cover\.is-vinyl::after\{[^']*background:var\(--mp-preview-cover/, 'vinyl preview artwork is clipped by its own circle')
 
 console.log('theme.test.mjs ok')

@@ -517,6 +517,10 @@ function NpEditor(props) {
             {
               className:
                 'mp-npe-preview-cover' + (prefs.coverStyle === 'vinyl' ? ' is-vinyl' : ''),
+              style:
+                cover !== ''
+                  ? { '--mp-preview-cover': 'url("' + cover.replace(/"/g, '%22') + '")' }
+                  : undefined,
             },
             cover !== '' ? h('img', { src: cover, alt: '' }) : icon('note', 26),
           ),
