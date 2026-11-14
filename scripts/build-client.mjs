@@ -171,6 +171,9 @@ ${body}
           // drift away from the provider list again.
           isOnlineSource: isOnlineSource,
           UI_SOURCES: UI_SOURCES,
+          // The album entry point decides which view the user lands in; the
+          // render mock cannot click a row, so the test drives it directly.
+          openOnlineAlbum: openOnlineAlbum,
           // Equalizer: the panel renders in tests, and the curve maths is pure.
           AudioEffectsPanel: AudioEffectsPanel,
           EqPanel: EqPanel,
