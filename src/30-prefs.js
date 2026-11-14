@@ -27,6 +27,8 @@ var PREF_DEFAULTS = {
   showTranslation: true,
   translationScale: 90,
   npLayoutV2: false,
+  /** Lyrics column width in the player page (px), dragged by the splitter. */
+  npLyricWidth: 560,
   composerLyrics: false,
   composerTranslation: true,
   composerLyricPlace: 'input-left',

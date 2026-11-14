@@ -1145,6 +1145,52 @@ function NowPlaying(props) {
   var sleepRemaining = useCountdown(extraPanel === 'sleep' ? prefs.sleepDeadline : 0)
   var sleepRef = useRef(null)
   var audioRef = useRef(null)
+  // Lyrics column width, dragged by the splitter on the right of the lyrics.
+  var lyricWidthPair = useState(clamp(Number(prefs.npLyricWidth) || 560, 360, 900))
+  var lyricWidth = lyricWidthPair[0]
+  var setLyricWidth = lyricWidthPair[1]
+
+  function applyLyricWidth(value, persist) {
+    var next = clamp(Math.round(Number(value) || 560), 360, 900)
+    setLyricWidth(next)
+    if (persist === true) setPrefs({ npLyricWidth: next })
+  }
+
+  function beginLyricResize(event) {
+    if (event.button !== undefined && event.button !== 0) return
+    event.preventDefault()
+    var startX = event.clientX
+    var startWidth = lyricWidth
+    var latest = startWidth
+    document.body.style.userSelect = 'none'
+    function move(moveEvent) {
+      latest = clamp(startWidth + (moveEvent.clientX - startX), 360, 900)
+      setLyricWidth(latest)
+    }
+    function finish() {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', finish)
+      window.removeEventListener('pointercancel', finish)
+      document.body.style.userSelect = ''
+      setPrefs({ npLyricWidth: latest })
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', finish)
+    window.addEventListener('pointercancel', finish)
+  }
+
+  function onLyricSplitKey(event) {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault()
+      applyLyricWidth(lyricWidth - 24, true)
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      applyLyricWidth(lyricWidth + 24, true)
+    } else if (event.key === 'Home') {
+      event.preventDefault()
+      applyLyricWidth(560, true)
+    }
+  }
   var sourcePair = useState('')
   var lyricSource = sourcePair[0]
   var setLyricSource = sourcePair[1]
@@ -1538,6 +1584,7 @@ function NowPlaying(props) {
         '--mp-lyric-size': lyricSize + 'px',
         '--mp-lyric-trans': translationSize + 'px',
         '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
+        '--mp-lyric-w': lyricWidth + 'px',
       },
     },
     bg.current !== '' || bg.previous !== ''
@@ -2158,6 +2205,22 @@ function NowPlaying(props) {
           ),
         ),
       ),
+      h('div', {
+        className: 'mp-np-split',
+        role: 'separator',
+        'aria-orientation': 'vertical',
+        'aria-label': t('page.lyricWidth'),
+        'aria-valuemin': 360,
+        'aria-valuemax': 900,
+        'aria-valuenow': lyricWidth,
+        title: t('page.lyricWidth'),
+        tabIndex: 0,
+        onPointerDown: beginLyricResize,
+        onKeyDown: onLyricSplitKey,
+        onDoubleClick: function () {
+          applyLyricWidth(560, true)
+        },
+      }),
     ),
     editorOpen
       ? h(NpEditor, {

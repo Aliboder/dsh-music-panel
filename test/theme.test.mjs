@@ -92,10 +92,19 @@ const rawDialogs = uiFiles
   .map(([name]) => name)
 assert.deepEqual(rawDialogs, [], 'dialogs must use KitModal (raw mp-overlay found in ' + rawDialogs.join(', ') + ')')
 
-// Fullscreen now-playing: the cover + lyrics pair must stay centred, and the
-// lyrics column gets its own max width instead of stretching to the far right.
-assert.match(theme, /\.mp-np\.is-fs \.mp-np-body\{[^']*justify-content:center/, 'fullscreen body is centred')
-assert.match(theme, /@media \(min-width:981px\)\{[^']*\.mp-np\.is-fs/, 'fullscreen centring must not break the stacked layout')
-assert.match(theme, /\.mp-np\.is-fs \.mp-np-lyrics\{[^']*max-width:560px/, 'fullscreen lyrics keep a readable column')
+// Player page: the cover + lyrics pair stays centred, and the lyrics column
+// width comes from the preference so the splitter can change it.
+assert.match(
+  theme,
+  /@media \(min-width:981px\)\{[^']*\.mp-np-body\{[^']*justify-content:center/,
+  'wide layout centres the cover + lyrics pair',
+)
+assert.match(
+  theme,
+  /@media \(min-width:981px\)\{[^']*\.mp-np-right\{[^']*var\(--mp-lyric-w,560px\)/,
+  'the lyrics column reads its width from the preference',
+)
+assert.match(theme, /\.mp-np-split\{[^']*cursor:col-resize/, 'the splitter is draggable')
+assert.match(theme, /\.mp-np-split\{[^']*display:none/, 'the splitter is hidden on the stacked layout')
 
 console.log('theme.test.mjs ok')

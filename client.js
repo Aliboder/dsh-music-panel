@@ -2094,6 +2094,7 @@ window.__ModuleLoader__.load({
         'v2.relogin': '重新登录',
         'v2.logout': '退出登录',
         'page.audioEffects': '音频效果',
+        'page.lyricWidth': '拖动调整歌词宽度',
         'page.searchInView': '搜索当前列表',
         'page.searchClear': '清空',
         'page.searchClose': '取消',
@@ -2269,6 +2270,7 @@ window.__ModuleLoader__.load({
         'v2.relogin': 'Sign in again',
         'v2.logout': 'Sign out',
         'page.audioEffects': 'Audio effects',
+        'page.lyricWidth': 'Drag to resize lyrics',
         'page.searchInView': 'Search this list',
         'page.searchClear': 'Clear',
         'page.searchClose': 'Cancel',
@@ -3367,6 +3369,8 @@ window.__ModuleLoader__.load({
       showTranslation: true,
       translationScale: 90,
       npLayoutV2: false,
+      /** Lyrics column width in the player page (px), dragged by the splitter. */
+      npLyricWidth: 560,
       composerLyrics: false,
       composerTranslation: true,
       composerLyricPlace: 'input-left',
@@ -8626,6 +8630,9 @@ window.__ModuleLoader__.load({
       '.mp-align-center .mp-np-line{text-align:center}',
       '.mp-align-right .mp-np-line{text-align:right}',
       '.mp-np-right{position:relative;flex:1 1 auto;width:auto;min-width:0;min-height:0;margin-left:var(--mp-pane-gap,5vw);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding-bottom:77px}',
+      '.mp-np-split{display:none;flex:0 0 22px;align-self:stretch;position:relative;z-index:4;align-items:center;justify-content:center;cursor:col-resize;touch-action:none;outline:none}',
+      '.mp-np-split::before{content:"";width:4px;height:64px;border-radius:999px;background:rgba(255,255,255,.16);transition:background .15s ease,height .15s ease}',
+      '.mp-np-split:hover::before,.mp-np-split:focus-visible::before{background:rgba(255,255,255,.5);height:120px}',
       '.mp-np-lyrics{position:relative;flex:1;width:100%;min-height:0;height:auto;max-width:none;max-height:none;padding-top:78px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 10%,#000 88%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 10%,#000 88%,transparent 100%)}',
       '.mp-np-lyrics.is-static{overflow-y:auto;-webkit-mask-image:none;mask-image:none}',
       '.mp-np-lyrics.is-static .mp-np-line{opacity:.75;cursor:default}',
@@ -9091,7 +9098,7 @@ window.__ModuleLoader__.load({
       '@media (max-width:1080px){.mp-row-album{display:none}.mp-row{grid-template-columns:48px minmax(0,1fr) 74px 50px 54px}.mp-workspace.is-queue{grid-template-columns:188px minmax(0,1fr)}.mp-root.is-top .mp-workspace.is-queue{grid-template-columns:minmax(0,1fr)}.mp-queue{display:none!important}}',
       '@media (max-height:860px){.mp-np-reflect-wave{height:30px}.mp-np{--mp-cover:min(31vw,40vh,440px)}.mp-np-body{padding-top:64px}.mp-np-meta{margin-bottom:20px}.mp-np-title{font-size:24px}.mp-np-artist{font-size:13px;margin-top:4px}.mp-np-cover-stage{margin-bottom:12px}.mp-np-quality{margin-bottom:12px;font-size:12px}.mp-np-transport{margin-top:16px;gap:40px}.mp-np-left{padding-bottom:46px}.mp-np-right{padding-bottom:46px}.mp-np-lyrics{padding-top:28px}}',
       '@media (max-width:1100px){.mp-np-body{padding:64px 2.5vw 0 6.5vw}.mp-np-title{font-size:24px}}',
-      '@media (min-width:981px){.mp-np.is-fs .mp-np-body{justify-content:center;padding-left:clamp(24px,3vw,64px);padding-right:clamp(24px,3vw,64px)}.mp-np.is-fs .mp-np-right{flex:0 1 min(44vw,680px);max-width:min(44vw,680px);margin-left:clamp(32px,4vw,88px)}.mp-np.is-fs .mp-np-lyrics{width:100%;max-width:560px;margin-left:auto;margin-right:auto}}',
+      '@media (min-width:981px){.mp-np-body{justify-content:center;padding-left:clamp(24px,3vw,64px);padding-right:clamp(24px,3vw,64px)}.mp-np-right{flex:0 0 var(--mp-lyric-w,560px);width:var(--mp-lyric-w,560px);max-width:min(56vw,960px);min-width:300px;margin-left:clamp(24px,3vw,72px)}.mp-np-split{display:flex}}',
       '@media (max-width:980px){.mp-np{--mp-cover:min(76vw,52vh,680px)}.mp-np-fs{top:14px;right:14px}.mp-np-body{flex-direction:column;gap:0;padding:48px 20px 0;overflow:hidden}.mp-np-meta{margin:0 0 12px}.mp-np-title{font-size:26px}.mp-np-artist{font-size:13px}.mp-np-artist-row{margin-top:4px}.mp-np-meta-audio{top:0}.mp-np-cover-stage{margin-bottom:10px}.mp-np-quality{margin:0 0 12px;font-size:12px}.mp-np-transport{order:2;margin:0;gap:64px}.mp-np-progress{order:3;margin:12px 0 0}.mp-np-times{order:4;margin-top:12px}.mp-np-secondary{order:5;margin:12px 0 0;padding:0 8px}.mp-np-left{width:100%;padding-bottom:8px}.mp-np-right{flex:1;width:100%;max-width:none;margin-left:0;padding-left:0;padding-bottom:16px;min-height:0}.mp-np-lyrics{padding-top:16px}.mp-np-lyric-foot{margin-top:8px}.mp-np-head{top:14px;left:14px}}',
       '@media (max-width:900px){.mp-workspace,.mp-workspace.is-queue{grid-template-columns:56px minmax(0,1fr)}.mp-root.is-top .mp-workspace{grid-template-columns:minmax(0,1fr)}.mp-nav{padding:10px 6px;align-items:center}.mp-nav-label,.mp-nav-item span,.mp-nav-count{display:none}.mp-nav-item{width:40px;justify-content:center;padding:0}.mp-search{width:160px}.mp-pb-vol{display:none}}',
 
@@ -11871,6 +11878,52 @@ window.__ModuleLoader__.load({
       var sleepRemaining = useCountdown(extraPanel === 'sleep' ? prefs.sleepDeadline : 0)
       var sleepRef = useRef(null)
       var audioRef = useRef(null)
+      // Lyrics column width, dragged by the splitter on the right of the lyrics.
+      var lyricWidthPair = useState(clamp(Number(prefs.npLyricWidth) || 560, 360, 900))
+      var lyricWidth = lyricWidthPair[0]
+      var setLyricWidth = lyricWidthPair[1]
+
+      function applyLyricWidth(value, persist) {
+        var next = clamp(Math.round(Number(value) || 560), 360, 900)
+        setLyricWidth(next)
+        if (persist === true) setPrefs({ npLyricWidth: next })
+      }
+
+      function beginLyricResize(event) {
+        if (event.button !== undefined && event.button !== 0) return
+        event.preventDefault()
+        var startX = event.clientX
+        var startWidth = lyricWidth
+        var latest = startWidth
+        document.body.style.userSelect = 'none'
+        function move(moveEvent) {
+          latest = clamp(startWidth + (moveEvent.clientX - startX), 360, 900)
+          setLyricWidth(latest)
+        }
+        function finish() {
+          window.removeEventListener('pointermove', move)
+          window.removeEventListener('pointerup', finish)
+          window.removeEventListener('pointercancel', finish)
+          document.body.style.userSelect = ''
+          setPrefs({ npLyricWidth: latest })
+        }
+        window.addEventListener('pointermove', move)
+        window.addEventListener('pointerup', finish)
+        window.addEventListener('pointercancel', finish)
+      }
+
+      function onLyricSplitKey(event) {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault()
+          applyLyricWidth(lyricWidth - 24, true)
+        } else if (event.key === 'ArrowRight') {
+          event.preventDefault()
+          applyLyricWidth(lyricWidth + 24, true)
+        } else if (event.key === 'Home') {
+          event.preventDefault()
+          applyLyricWidth(560, true)
+        }
+      }
       var sourcePair = useState('')
       var lyricSource = sourcePair[0]
       var setLyricSource = sourcePair[1]
@@ -12264,6 +12317,7 @@ window.__ModuleLoader__.load({
             '--mp-lyric-size': lyricSize + 'px',
             '--mp-lyric-trans': translationSize + 'px',
             '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
+            '--mp-lyric-w': lyricWidth + 'px',
           },
         },
         bg.current !== '' || bg.previous !== ''
@@ -12884,6 +12938,22 @@ window.__ModuleLoader__.load({
               ),
             ),
           ),
+          h('div', {
+            className: 'mp-np-split',
+            role: 'separator',
+            'aria-orientation': 'vertical',
+            'aria-label': t('page.lyricWidth'),
+            'aria-valuemin': 360,
+            'aria-valuemax': 900,
+            'aria-valuenow': lyricWidth,
+            title: t('page.lyricWidth'),
+            tabIndex: 0,
+            onPointerDown: beginLyricResize,
+            onKeyDown: onLyricSplitKey,
+            onDoubleClick: function () {
+              applyLyricWidth(560, true)
+            },
+          }),
         ),
         editorOpen
           ? h(NpEditor, {
