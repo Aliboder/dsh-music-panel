@@ -280,6 +280,29 @@ function eqBandsMatchPreset(bands, presetId) {
   return true
 }
 
+/** True when two band arrays agree within the stored 0.1 dB precision. */
+function eqBandsEqual(a, b) {
+  var left = normalizeEqBands(a)
+  var right = normalizeEqBands(b)
+  if (left.length !== right.length) return false
+  for (var index = 0; index < left.length; index += 1) {
+    if (Math.abs(left[index] - right[index]) > 0.15) return false
+  }
+  return true
+}
+
+/** Id of the saved preset that matches the current custom curve, or ''. */
+function eqSavedPresetId(custom, preset, bands) {
+  if (preset !== 'custom' || !Array.isArray(custom)) return ''
+  for (var index = 0; index < custom.length; index += 1) {
+    var entry = custom[index]
+    if (entry && Array.isArray(entry.bands) && eqBandsEqual(entry.bands, bands)) {
+      return String(entry.id)
+    }
+  }
+  return ''
+}
+
 /** Which factory preset the given bands represent, or 'custom'. */
 function eqPresetForBands(bands) {
   for (var index = 0; index < EQ_PRESETS.length; index += 1) {

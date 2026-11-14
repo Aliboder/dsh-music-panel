@@ -578,6 +578,21 @@ const savedTab = renderEq({ initialTab: 'mine' })
 assert.ok(textOf(savedTab).includes('我的耳机'), 'saved presets render')
 assert.ok(classesOf(savedTab).has('mp-eq-saved-row'), 'saved rows render')
 
+// A saved preset must show which row is applied; before this it changed the
+// sound but left the list looking untouched.
+internals.prefsStore.set(
+  Object.assign({}, eqPrefs, {
+    eqEnabled: true,
+    eqPreset: 'custom',
+    eqBands: [5, 3, 1, 0, -1, 0, 2, 4, 6, 7],
+    eqCustom: [{ id: 'u1', name: '我的耳机', bands: [5, 3, 1, 0, -1, 0, 2, 4, 6, 7], preamp: 0, at: 1 }],
+  }),
+)
+const savedActiveTab = renderEq({ initialTab: 'mine' })
+const savedActiveClasses = classesOf(savedActiveTab)
+assert.ok(savedActiveClasses.has('mp-eq-saved-row'), 'the saved row renders')
+assert.ok(savedActiveClasses.has('is-on'), 'the applied saved preset is marked')
+
 internals.prefsStore.set(eqPrefs)
 
 // 11. audio effects is ONE panel with two views: the volume controls and the

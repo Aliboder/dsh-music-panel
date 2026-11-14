@@ -35,19 +35,29 @@ function createStore(initial) {
   }
 }
 
-function useStore(store) {
-  var pair = useState(store.get())
-  var state = pair[0]
-  var setState = pair[1]
-  useEffect(
-    function () {
-      setState(store.get())
-      return store.subscribe(setState)
-    },
-    [store],
-  )
-  return state
-}
+// Prefer React's external-store hook: it reads the snapshot during render and
+// re-checks it after commit, so an update that lands between the render and the
+// effect can no longer be missed (the panel used to show stale EQ state until
+// something else re-rendered it). The hook set is fixed at load time, so the
+// hook order stays stable across renders either way.
+var useStore =
+  typeof useSyncExternalStore === 'function'
+    ? function (store) {
+        return useSyncExternalStore(store.subscribe, store.get, store.get)
+      }
+    : function (store) {
+        var pair = useState(store.get())
+        var state = pair[0]
+        var setState = pair[1]
+        useEffect(
+          function () {
+            setState(store.get())
+            return store.subscribe(setState)
+          },
+          [store],
+        )
+        return state
+      }
 
 /** In-view search: the query typed into the content header, filters that view. */
 var contentFilterStore = createStore({ query: '' })

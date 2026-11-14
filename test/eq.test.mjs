@@ -25,7 +25,7 @@ const factory = new Function(
     EQ_FREQS, EQ_PRESETS, EQ_MAX_DB, EQ_CUSTOM_LIMIT,
     eqFaderToDb, eqBandsForPreset, zeroEqBands, normalizeEqBands,
     normalizeEqPrefs, eqPresetById, eqPresetName, eqPresetForBands,
-    eqBandsMatchPreset, eqHeadroomDb, eqTotalPreampDb, eqDbToLinear,
+    eqBandsMatchPreset, eqBandsEqual, eqSavedPresetId, eqHeadroomDb, eqTotalPreampDb, eqDbToLinear,
     eqPeakingCoefficients, eqSectionDb, eqCurveSamples,
   }`,
 )
@@ -166,5 +166,23 @@ assert.equal(eq.eqBandsMatchPreset([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'flat'), true
 assert.equal(eq.eqPresetById('nope'), null)
 assert.equal(eq.eqPresetName(eq.eqPresetById('fullBass')), '重低音', 'zh label')
 assert.equal(factory(clamp, 'en').eqPresetName(eq.eqPresetById('fullBass')), 'Full bass', 'en label')
+
+// ── saved presets: equality + which row is active ────────────────────────
+const customList = [
+  { id: 'u1', name: '我的耳机', bands: [5, 3, 1, 0, -1, 0, 2, 4, 6, 7] },
+  { id: 'u2', name: '音箱', bands: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2] },
+]
+assert.equal(eq.eqBandsEqual(customList[0].bands, [5, 3, 1, 0, -1, 0, 2, 4, 6, 7]), true)
+assert.equal(eq.eqBandsEqual(customList[0].bands, [5, 3, 1, 0, -1, 0, 2, 4, 6, 8]), false)
+assert.equal(eq.eqBandsEqual([0, 0], [0, 0, 0]), true, 'bands are normalized (padded) before comparing')
+assert.equal(eq.eqBandsEqual([1], [0, 0, 0]), false, 'a padded band still differs')
+assert.equal(
+  eq.eqSavedPresetId(customList, 'custom', [5, 3, 1, 0, -1, 0, 2, 4, 6, 7]),
+  'u1',
+  'the applied saved preset is found',
+)
+assert.equal(eq.eqSavedPresetId(customList, 'custom', [1, 8, 0, 0, 0, 0, 0, 0, 0, 0]), '', 'unknown curve has no row')
+assert.equal(eq.eqSavedPresetId(customList, 'rock', customList[0].bands), '', 'factory presets never mark a saved row')
+assert.equal(eq.eqSavedPresetId(null, 'custom', customList[0].bands), '')
 
 console.log('eq.test.mjs ok')

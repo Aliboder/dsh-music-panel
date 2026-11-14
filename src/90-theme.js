@@ -477,6 +477,7 @@ var THEME_CSS = [
   '.mp-eq-saved-row{display:flex;align-items:center;gap:2px}',
   '.mp-eq-saved-main{display:flex;flex:1;align-items:center;gap:8px;min-width:0;padding:6px 8px;border:0;border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.85);font:inherit;text-align:left;cursor:pointer}',
   '.mp-eq-saved-main:hover{background:rgba(255,255,255,.1);color:#fff}',
+  '.mp-eq-saved-row.is-on .mp-eq-saved-main{background:rgba(90,130,255,.18);box-shadow:inset 0 0 0 1px rgba(120,160,255,.55);color:#fff}',
   '.mp-eq-saved-name{flex:1;min-width:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
   '.mp-eq-add{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:8px;border:1px dashed rgba(255,255,255,.18);border-radius:8px;background:transparent;color:rgba(255,255,255,.6);font:inherit;font-size:12px;cursor:pointer}',
   '.mp-eq-add:hover{border-color:rgba(255,255,255,.32);color:#fff}',

@@ -266,6 +266,9 @@ function EqPanel(props) {
   var custom = Array.isArray(prefs.eqCustom) ? prefs.eqCustom : []
   var available = player.getEq().available
   var activePreset = eq.preset === 'device' ? 'device' : eqPresetForBands(eq.bands)
+  // Saved presets live outside the factory list, so they need their own marker:
+  // without it, applying one changed the sound but left every row unchanged.
+  var savedActiveId = eq.enabled === true ? eqSavedPresetId(custom, eq.preset, eq.bands) : ''
 
   // ── AutoEQ device search (debounced, cancelled by sequence) ──────────
   var searchPair = useState('')
@@ -509,12 +512,16 @@ function EqPanel(props) {
             custom.map(function (entry) {
               return h(
                 'div',
-                { key: entry.id, className: 'mp-eq-saved-row' },
+                {
+                  key: entry.id,
+                  className: cx('mp-eq-saved-row', entry.id === savedActiveId && 'is-on'),
+                },
                 h(
                   'button',
                   {
                     type: 'button',
                     className: 'mp-eq-saved-main',
+                    'aria-pressed': entry.id === savedActiveId,
                     onClick: function () {
                       useSaved(entry)
                     },
