@@ -891,7 +891,9 @@ function coverAccentFromUrl(url, image) {
         })
         var pool = saturated.length > 0 ? saturated : colors
         var base = pool.reduce(function (best, color) {
-          return color.s > best.s ? color : best
+          var score = Math.max(1, color.count || 1) * (0.35 + color.s)
+          var bestScore = Math.max(1, best.count || 1) * (0.35 + best.s)
+          return score > bestScore ? color : best
         }, pool[0])
         var feature = []
         function addFeature(source) {
@@ -1075,8 +1077,7 @@ function CoverReflectWave(props) {
       function colorOf(c, alpha) {
         return 'hsla(' + c.h + ',' + c.s + '%,' + c.l + '%,' + alpha + ')'
       }
-      var palette =
-        Array.isArray(accent.palette) && accent.palette.length > 1 ? accent.palette : [accent]
+      var palette = wavePalette(accent)
       function draw(now) {
         frame = 0
         if (now - last < 33) {

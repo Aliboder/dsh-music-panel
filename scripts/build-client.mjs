@@ -44,6 +44,7 @@ const FILES = [
   'src/45-crossfade.js',
   'src/46-transition.js',
   'src/45-ui.js',
+  'src/47-wave-color.js',
   'src/50-player.js',
   'src/60-library.js',
   'src/70-online.js',
