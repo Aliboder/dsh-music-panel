@@ -22,6 +22,9 @@
   `blockIndex` / `alternateTexts` / `backgroundVocal(s)` / `agentId` 一并交给视觉器样式
   （以前只传 words/translation/romanization，样式里的逐词/转场渲染参数一直是默认值）。
   `panel.render` 增加断言：renderHints 从文档一路活到样式行。
+- 纯音乐判定接上 Folia 的规则：整行就是「纯音乐，请欣赏」这类提示语时按无歌词处理
+  （视觉器走纯音乐路径），只是正文里出现「纯音乐」三个字不算；`isPureMusicLyricText` /
+  `isPureMusicLyricLines` 从 bundle 导出并在解析后跑一次。
 
 ### 歌词处理逻辑改用 Folia 的流水线
 

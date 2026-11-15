@@ -6522,6 +6522,8 @@ var MPFoliaLyrics = (() => {
     applyLyricStaffPolicy: () => applyLyricStaffPolicy,
     detectNonTtmlTimedLyricFormat: () => detectNonTtmlTimedLyricFormat,
     ensureLyricDataRenderHints: () => ensureLyricDataRenderHints,
+    isPureMusicLyricLines: () => isPureMusicLyricLines,
+    isPureMusicLyricText: () => isPureMusicLyricText,
     parse: () => parse,
     prepare: () => prepare,
     resolveLyricProcessingOptions: () => resolveLyricProcessingOptions
@@ -8967,6 +8969,7 @@ var MPFoliaLyrics = (() => {
     }
     return hasNotice;
   };
+  var isPureMusicLyricLines = (lines) => Boolean(lines?.length) && isPureMusicLyricText(lines.map((line) => line.fullText).join("\n"));
 
   // src/utils/lyrics/neteaseProcessing.ts
   var extractNeteaseLyricPayload = (source) => {

@@ -99,4 +99,17 @@ assert.ok(typeof lyrics.LyricParserFactory?.parse === 'function', 'and the parse
   assert.ok(prepared.lines.some((line) => line.isChorus === true), 'a repeated line is marked as chorus')
 }
 
+// ── pure music ─────────────────────────────────────────────────────────────
+// Folia's rule: only a line that *is* the notice counts; the word appearing inside
+// a sung line does not.
+{
+  assert.equal(lyrics.isPureMusicLyricText('纯音乐，请欣赏'), true)
+  assert.equal(lyrics.isPureMusicLyricText('此歌曲为没有填词的纯音乐，请您欣赏'), true)
+  assert.equal(lyrics.isPureMusicLyricText('这首纯音乐很好听'), false)
+  const notice = await parseDocument({ type: 'local', lrcContent: '[00:00.00]纯音乐，请欣赏' })
+  assert.equal(lyrics.isPureMusicLyricLines(notice.lines), true)
+  const sung = await parseDocument({ type: 'local', lrcContent: '[00:01.00]第一句' })
+  assert.equal(lyrics.isPureMusicLyricLines(sung.lines), false)
+}
+
 console.log('lyrics-folia.test.mjs ok')

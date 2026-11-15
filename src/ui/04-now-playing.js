@@ -2010,6 +2010,7 @@ function NowPlaying(props) {
             // Folia's pipeline when the Host sent the raw source (cache v6+): it parses
             // LRC / enhanced LRC / YRC / QRC / KRC / TTML itself, with word timing and
             // credits policy. The old ad-hoc parse stays as the fallback.
+            var pureMusicNotice = false
             var lines = null
             if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
               try {
@@ -2020,6 +2021,13 @@ function NowPlaying(props) {
                 if (document && typeof MPFoliaLyrics.prepare === 'function') {
                   document = MPFoliaLyrics.prepare(document, { policy: 'smart' })
                 }
+                // A lyric that is only "纯音乐，请欣赏" is no lyric at all (Folia's setter
+                // treats it that way, so the visualizer takes its pure-music path).
+                if (document && typeof MPFoliaLyrics.isPureMusicLyricLines === 'function'
+                  && MPFoliaLyrics.isPureMusicLyricLines(document.lines)) {
+                  document = null
+                  pureMusicNotice = true
+                }
                 if (document && Array.isArray(document.lines) && document.lines.length > 0) {
                   lines = linesFromFoliaDocument(document)
                 }
@@ -2027,7 +2035,9 @@ function NowPlaying(props) {
                 lines = null
               }
             }
-            if (lines === null) {
+            if (pureMusicNotice) {
+              lines = []
+            } else if (lines === null) {
               lines = parseLrcText(body.lrc || '')
               if (body.translation) mergeLyricTranslation(lines, body.translation)
               // Word-level timeline (only present when the platform has one).

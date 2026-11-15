@@ -16,6 +16,7 @@ export { ensureLyricDataRenderHints } from '../../utils/lyrics/renderHints';
 export { resolveLyricProcessingOptions } from '../../utils/lyrics/filtering';
 export { applyLyricStaffPolicy } from '../../utils/lyrics/staffCreditsPolicy';
 export { applyChorusRangesByTime, applyDetectedChorusEffects } from '../../utils/lyrics/chorusEffects';
+export { isPureMusicLyricLines, isPureMusicLyricText } from '../../utils/lyrics/pureMusic';
 import { applyLyricStaffPolicy } from '../../utils/lyrics/staffCreditsPolicy';
 import { applyChorusRangesByTime, applyDetectedChorusEffects } from '../../utils/lyrics/chorusEffects';
 import type { ChorusRange } from '../../utils/lyrics/chorusEffects';
