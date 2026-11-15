@@ -9,7 +9,6 @@ import assert from 'node:assert/strict'
 import * as KG from '../lib/providers/kugou.js'
 import { kugouCookies, kugouSessionPatch } from '../lib/providers/kugou-cookie.js'
 import {
-  callKugou,
   resetUpstreamOverride,
   setUpstreamOverride,
   stopAllKugouServices,
@@ -100,6 +99,50 @@ import {
   }
 }
 
+// ── search mapping ──────────────────────────────────────────────────────────
+
+{
+  setUpstreamOverride(async (operation, params) => {
+    assert.equal(operation, 'search')
+    assert.equal(params.keywords, '晴天')
+    assert.equal(params.cookie.KUGOU_API_PLATFORM, 'lite')
+    return {
+      status: 200,
+      body: {
+        status: 1,
+        data: {
+          total: 1,
+          lists: [{
+            FileHash: 'ABC',
+            FileName: '周杰伦 - 晴天',
+            OriSongName: '晴天',
+            SingerName: '周杰伦',
+            AlbumName: '叶惠美',
+            Duration: 269,
+            HQ: { Hash: 'HQ1' },
+            SQ: { Hash: 'SQ1' },
+            AlbumImage: 'https://img.example/1.jpg',
+          }],
+        },
+      },
+      cookie: [],
+    }
+  })
+  try {
+    const found = await KG.search('晴天', '', 1, 'lite')
+    assert.equal(found.total, 1)
+    const song = found.results[0]
+    assert.equal(song.title, '晴天')
+    assert.deepEqual(song.artists, ['周杰伦'])
+    assert.equal(song.album, '叶惠美')
+    assert.equal(song.interval, 269)
+    assert.equal(song.hqHash, 'hq1', 'the Android shape\'s HQ.Hash becomes the hq rung')
+    assert.equal(song.sqHash, 'sq1')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
 // ── live (opt-in) ───────────────────────────────────────────────────────────
 
 if (process.env.DSH_MUSIC_UPSTREAM === '1') {
@@ -109,8 +152,9 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
     assert.ok(qr.imageDataUrl === '' || qr.imageDataUrl.startsWith('data:image'), 'the QR picture is a data URL')
     const polled = await KG.checkQRLogin(qr.key, qr.extra.device, platform)
     assert.equal(polled.status, 'waiting', 'an unscanned code polls as waiting (' + platform + ')')
-    const search = await callKugou(platform, 'search', { keywords: '晴天', page: 1, pagesize: 2 })
-    assert.ok(Number(search.body?.data?.total) > 0, 'anonymous search works through the bridge')
+    const search = await KG.search('晴天', '', 1, platform)
+    assert.ok(search.total > 0, 'anonymous search works through the bridge')
+    assert.ok(search.results[0].title !== '', 'the Android result shape is mapped to the plugin\'s song')
   }
   await stopAllKugouServices()
   console.log('kugou-upstream.test.mjs ok (live)')

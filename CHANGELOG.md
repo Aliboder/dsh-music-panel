@@ -16,7 +16,10 @@
 - 扫码登录与设备注册改走包：`createQRLogin` → `login_qr_key`（缺图再 `login_qr_create`）、
   `checkQRLogin` → `login_qr_check`、`registerDevice` → `register_dev`；标准版与概念版
   都走这条，概念版也先注册设备。`kugouRegistered` 缓存按平台分开，插件卸载时停掉两个 worker。
-- 搜索/取流/歌词/云歌单暂时仍是自写协议（下一步迁）；登录后的 `dfid` 已经是包签发的那个。
+- 搜索也改走包（`complexsearch` 的 Android 接口）：上游的 `OriSongName` / `HQ.Hash` /
+  `SQ.Hash` 在调用处折成 `normalizeSong` 认识的键，两个平台各用自己 worker 的签名；
+  实测 480 条结果，标题/歌手/专辑/320/无损 hash 都对。
+- 取流/歌词/云歌单暂时仍是自写协议（下一步迁）；登录后的 `dfid` 已经是包签发的那个。
 - 新增 `test/kugou-upstream.test.mjs`：cookie 词表、应答合并、登录映射的纯断言；
   `DSH_MUSIC_UPSTREAM=1` 时两个平台各真出一次码、轮询 waiting，并做一次匿名搜索。
 
