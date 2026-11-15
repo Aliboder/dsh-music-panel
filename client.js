@@ -4936,12 +4936,15 @@ window.__ModuleLoader__.load({
       // The extractor reports 0-100, but tolerate 0-1 inputs from older callers.
       if (sat > 0 && sat <= 1) sat *= 100
       if (light > 0 && light <= 1) light *= 100
-      sat = Math.min(92, Math.max(38, sat))
+      // Neutral artwork (black & white, monochrome) must stay neutral: forcing a
+      // minimum saturation turns an arbitrary hue into a false red/green tint.
+      var neutral = sat < 20
+      sat = neutral ? Math.min(8, sat) : Math.min(92, Math.max(38, sat))
       light = Math.min(78, Math.max(52, light))
       function tone(hueShift, satScale, lightShift) {
         return {
           h: (hue + hueShift + 360) % 360,
-          s: Math.min(92, Math.max(38, sat * satScale)),
+          s: neutral ? Math.min(8, sat * satScale) : Math.min(92, Math.max(38, sat * satScale)),
           l: Math.min(80, Math.max(48, light + lightShift)),
         }
       }

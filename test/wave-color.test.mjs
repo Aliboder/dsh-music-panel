@@ -36,10 +36,11 @@ for (const tone of conflicting) {
   assert.ok(hueGap(tone.h, 12) <= 20, 'green foliage cluster is ignored')
 }
 
-// Neutral artwork gets a subtle tint instead of grey or wild hues.
-const neutral = wavePalette({ h: 200, s: 4, l: 82 })
-assert.ok(neutral.every((tone) => tone.s >= 38 && tone.s <= 92))
-assert.ok(neutral.every((tone) => tone.l <= 80))
+// Neutral artwork must stay grey; a forced minimum saturation turns the
+// arbitrary hue of a greyscale cover into a false red/green tint.
+const neutral = wavePalette({ h: 0, s: 16, l: 60 })
+assert.ok(neutral.every((tone) => tone.s <= 8), 'greyscale covers stay neutral')
+assert.ok(neutral.every((tone) => tone.l >= 48 && tone.l <= 80))
 
 // Degenerate input never throws.
 const fallback = wavePalette(null)
