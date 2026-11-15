@@ -11,6 +11,7 @@ node scripts/build-client.mjs             # 改 src/** 后重建 client.js
 node scripts/build-client.mjs --check     # 只检查 client.js 是否最新
 
 
+node scripts/build-lyrics.mjs             # 改 src/utils/lyrics/** 或 src/render/lyrics/entry.ts 后
 node scripts/build-pendolo.mjs            # 改 Folia 歌词样式 bundle 后
 node scripts/build-backgrounds.mjs
 node scripts/build-styles.mjs
