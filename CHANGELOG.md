@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### 向 Folia 对齐：登录失败改名成有名字的情况
+
+- 新增 `lib/core/login-failure.js`：照 Folia 的 `loginFailureCase.ts`，把登录失败的
+  事实（步骤、HTTP 状态、retry-after、是否网络层失败）归成有名字的情况
+  （`code-expired` / `expired-after-scan` / `unreachable` / `refused` /
+  `retry-later` / `device-limit` / `wrong-scan-app` / `local-service-unavailable` /
+  `account-not-read` / `unknown` …），每种带 Folia 的 kind / action / details。
+- `/online/login/start`、`/online/login/status` 失败时把情况放进回答
+  （`error.failure` + `error.facts`），`error.message` 换成这一种情况的中文说明。
+  客户端本来就把 `error.message` 显示在登录窗里，所以现在看到的是
+  「连不上平台，请检查网络或代理」「本地登录服务不可用」这类话，而不是上游原文。
+- `fail()` 支持附加字段；`login.test` 补了分类表、事实和回答形状的断言。
+
 ### 向 Folia 对齐：网易云扫码的两条上游策略
 
 - 扫码两步（要码 / 轮询）遇到网络层失败时重发一次：上游把连接被重置答成

@@ -8,6 +8,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { accountSessionOf, createLoginState, LOGIN_STATUS } from '../lib/login/state.js'
 import { createLoginStore, SESSION_VERSION } from '../lib/login/store.js'
+import { caseIdOf, loginFailureOf } from '../lib/core/login-failure.js'
+import { fail } from '../lib/http.js'
+import { fakeRes } from './helpers.mjs'
 
 // ── state machine ───────────────────────────────────────────────────────────
 
@@ -315,6 +318,51 @@ console.log('login.test.mjs ok')
   assert.equal(failed.failure.facts.message, 'offline')
 
   assert.equal(accountSessionOf({ sourceId: 'qq', status: LOGIN_STATUS.UNKNOWN }), null)
+}
+
+
+// ── failure cases（Folia 的 case 词表） ─────────────────────────────────────
+
+{
+  const of = (step, error) => loginFailureOf(step, error)
+
+  assert.equal(of('start', { code: 'not-configured' }).case.id, 'local-service-unavailable')
+  assert.equal(of('start', { code: 'network' }).case.id, 'unreachable')
+  assert.equal(of('start', { message: 'boom' }).case.id, 'unknown')
+  assert.equal(of('check', { code: 'network' }).case.id, 'unreachable')
+  assert.equal(of('check', { status: 502 }).case.id, 'unreachable')
+  assert.equal(of('check', { status: 403 }).case.id, 'refused')
+  assert.equal(of('check', { code: 'auth-required' }).case.id, 'refused')
+  assert.equal(of('check', { code: 'rate-limited' }).case.id, 'retry-later')
+  assert.equal(of('check', { status: 429 }).case.id, 'retry-later')
+  assert.equal(of('check', { status: 502, retryAfterMs: 30000 }).case.id, 'retry-later')
+  assert.equal(of('wait', { scanned: true }).case.id, 'expired-after-scan')
+  assert.equal(of('wait', {}).case.id, 'code-expired')
+  assert.equal(of('account', {}).case.id, 'account-not-read')
+  // A provider that already knows says so; the table supplies kind/action.
+  const named = of('check', { case: 'device-limit' })
+  assert.equal(named.case.id, 'device-limit')
+  assert.equal(named.case.kind, 'C')
+  assert.equal(named.case.action, 'retry')
+  assert.equal(named.message.includes('设备'), true)
+  // Facts are carried through so the window can show the detail.
+  const facts = of('check', { status: 502, message: 'socket hang up' })
+  assert.equal(facts.facts.httpStatus, 502)
+  assert.equal(facts.facts.messageText, 'socket hang up')
+  assert.equal(caseIdOf(facts.facts), 'unreachable')
+}
+
+{
+  // fail() hands the case to the client beside the message the window shows.
+  const failure = loginFailureOf('start', { code: 'network' })
+  const res = fakeRes()
+  fail(res, 502, 'LOGIN_START_FAILED', failure.message, { failure: failure.case, facts: failure.facts })
+  const body = res.json()
+  assert.equal(body.ok, false)
+  assert.equal(body.error.code, 'LOGIN_START_FAILED')
+  assert.equal(body.error.message, failure.message)
+  assert.equal(body.error.failure.id, 'unreachable')
+  assert.equal(body.error.facts.step, 'start')
 }
 
 console.log('login-session.test ok')
