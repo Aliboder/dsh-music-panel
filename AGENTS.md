@@ -29,6 +29,7 @@ node scripts/build-vendor-pixi.mjs        # 仅升级 pixi 时
 - Folia 音频用 0–255 频谱；暂停时停止更新 bands。
 - 修改 Folia 源码前，先确认是边界问题还是上游问题，并在 `CHANGELOG.md` 说明。
 - 使用真实状态和真实数据；未实现的功能要明确标注。
+- 每做完一步修改就打一个 git 存档点（`git commit`），message 写清这一步做了什么、为什么，回退时能直接找到；没验证过的改动不要攒进存档点。
 
 ⚠️ **先确认**
 
