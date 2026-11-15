@@ -8600,7 +8600,7 @@ window.__ModuleLoader__.load({
       '.mp-np-bg.is-ambient .mp-np-bg-drift{animation:mp-ambient-drift var(--mp-speed) ease-in-out infinite alternate}',
       '@keyframes mp-ambient-drift{0%{transform:translate3d(var(--mp-drift-nx),var(--mp-drift-ny),0) scale(var(--mp-drift-s0)) rotate(var(--mp-drift-nr))}100%{transform:translate3d(var(--mp-drift-x),var(--mp-drift-y),0) scale(var(--mp-drift-s1)) rotate(var(--mp-drift-r))}}',
       '.mp-np-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto;transform:scale(var(--mp-beat-scale));transition:transform .22s ease-out}.mp-np-bg .is-prev{opacity:1}.mp-np-bg .is-cur{animation:mp-bg-in .85s ease both}@keyframes mp-bg-in{from{opacity:0}to{opacity:1}}',
-      '.mp-np-bg img.is-echo{inset:-8%;width:116%;height:116%;opacity:.55;mix-blend-mode:soft-light;transform:none;animation:mp-ambient-echo var(--mp-speed) ease-in-out infinite alternate;will-change:transform}',
+      '.mp-np-bg img.is-echo{inset:-8%;width:116%;height:116%;opacity:.55;mix-blend-mode:soft-light;transform:none;will-change:auto}.mp-np-bg.is-ambient img.is-echo{animation:mp-ambient-echo var(--mp-speed) ease-in-out infinite alternate;will-change:transform}',
       '@keyframes mp-ambient-echo{0%{transform:translate3d(-7%,5%,0) scale(1.22) rotate(-2.4deg)}100%{transform:translate3d(7%,-5%,0) scale(1.3) rotate(2.4deg)}}',
       '.mp-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.32),rgba(0,0,0,.04) 46%,rgba(0,0,0,.28) 82%,rgba(0,0,0,.42));pointer-events:none}',
       '.mp-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(85% 75% at 50% 45%,transparent 55%,rgba(0,0,0,.3));pointer-events:none}',
@@ -12028,8 +12028,11 @@ window.__ModuleLoader__.load({
       var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
       var progressRef = useRef(progress)
       var durationRef = useRef(duration)
+      var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0
+      var bufferedRef = useRef(buffered)
       progressRef.current = progress
       durationRef.current = duration
+      bufferedRef.current = buffered
       function choose(value) {
         seekingRef.current = value
         setSeeking(value)
@@ -12067,6 +12070,7 @@ window.__ModuleLoader__.load({
       var playingRef = useRef(playing)
       playingRef.current = playing
       var ref = useRef(null)
+      var drawRef = useRef(null)
       useEffect(
         function () {
           var canvas = ref.current
@@ -12120,6 +12124,37 @@ window.__ModuleLoader__.load({
             var h = canvas.height / dpr
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
             ctx.clearRect(0, 0, w, h)
+            if (props.wave === false) {
+              var trackY = h / 2
+              var trackH = 4
+              function pill(ctx2, x, width, color) {
+                if (width <= 0) return
+                ctx2.fillStyle = color
+                if (typeof ctx2.roundRect === 'function') {
+                  ctx2.beginPath()
+                  ctx2.roundRect(x, trackY - trackH / 2, width, trackH, trackH / 2)
+                  ctx2.fill()
+                } else {
+                  ctx2.fillRect(x, trackY - trackH / 2, width, trackH)
+                }
+              }
+              ctx.globalAlpha = 1
+              pill(ctx, 0, w, 'rgba(255,255,255,.16)')
+              if (durationRef.current > 0 && bufferedRef.current > 0) {
+                pill(ctx, 0, Math.min(1, bufferedRef.current / durationRef.current) * w, 'rgba(255,255,255,.28)')
+              }
+              var playedW = progressRef.current * w
+              pill(ctx, 0, playedW, colorOf(palette[0] || accent, 0.96))
+              ctx.fillStyle = '#f7f7f8'
+              ctx.beginPath()
+              ctx.arc(Math.max(5, Math.min(w - 5, playedW)), trackY, 5, 0, Math.PI * 2)
+              ctx.fill()
+              if (hoverRef.current !== null) {
+                ctx.fillStyle = 'rgba(255,255,255,.3)'
+                ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
+              }
+              return
+            }
             var playingNow = playingRef.current
             var data = playingNow && props.wave !== false ? player.getWave() : null
             var gains = gainsRef.current
@@ -12205,14 +12240,22 @@ window.__ModuleLoader__.load({
             }
             frame = requestAnimationFrame(draw)
           }
+          drawRef.current = draw
           frame = requestAnimationFrame(draw)
           return function () {
             if (frame !== 0) cancelAnimationFrame(frame)
             if (observer !== null) observer.disconnect()
             window.removeEventListener('resize', resize)
+            drawRef.current = null
           }
         },
         [accent, active, props.wave],
+      )
+      useEffect(
+        function () {
+          if (drawRef.current !== null) drawRef.current(performance.now())
+        },
+        [progress, duration, props.wave, seeking],
       )
       return h(
         'div',
@@ -12240,9 +12283,11 @@ window.__ModuleLoader__.load({
           onPointerMove: function (event) {
             var rect = event.currentTarget.getBoundingClientRect()
             hoverRef.current = clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1)
+            if (drawRef.current !== null) drawRef.current(performance.now())
           },
           onPointerLeave: function () {
             hoverRef.current = null
+            if (drawRef.current !== null) drawRef.current(performance.now())
           },
         }),
       )

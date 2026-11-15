@@ -1117,8 +1117,11 @@ function WaveSeekBar(props) {
   var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
   var progressRef = useRef(progress)
   var durationRef = useRef(duration)
+  var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0
+  var bufferedRef = useRef(buffered)
   progressRef.current = progress
   durationRef.current = duration
+  bufferedRef.current = buffered
   function choose(value) {
     seekingRef.current = value
     setSeeking(value)
@@ -1156,6 +1159,7 @@ function WaveSeekBar(props) {
   var playingRef = useRef(playing)
   playingRef.current = playing
   var ref = useRef(null)
+  var drawRef = useRef(null)
   useEffect(
     function () {
       var canvas = ref.current
@@ -1209,6 +1213,37 @@ function WaveSeekBar(props) {
         var h = canvas.height / dpr
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
         ctx.clearRect(0, 0, w, h)
+        if (props.wave === false) {
+          var trackY = h / 2
+          var trackH = 4
+          function pill(ctx2, x, width, color) {
+            if (width <= 0) return
+            ctx2.fillStyle = color
+            if (typeof ctx2.roundRect === 'function') {
+              ctx2.beginPath()
+              ctx2.roundRect(x, trackY - trackH / 2, width, trackH, trackH / 2)
+              ctx2.fill()
+            } else {
+              ctx2.fillRect(x, trackY - trackH / 2, width, trackH)
+            }
+          }
+          ctx.globalAlpha = 1
+          pill(ctx, 0, w, 'rgba(255,255,255,.16)')
+          if (durationRef.current > 0 && bufferedRef.current > 0) {
+            pill(ctx, 0, Math.min(1, bufferedRef.current / durationRef.current) * w, 'rgba(255,255,255,.28)')
+          }
+          var playedW = progressRef.current * w
+          pill(ctx, 0, playedW, colorOf(palette[0] || accent, 0.96))
+          ctx.fillStyle = '#f7f7f8'
+          ctx.beginPath()
+          ctx.arc(Math.max(5, Math.min(w - 5, playedW)), trackY, 5, 0, Math.PI * 2)
+          ctx.fill()
+          if (hoverRef.current !== null) {
+            ctx.fillStyle = 'rgba(255,255,255,.3)'
+            ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
+          }
+          return
+        }
         var playingNow = playingRef.current
         var data = playingNow && props.wave !== false ? player.getWave() : null
         var gains = gainsRef.current
@@ -1294,14 +1329,22 @@ function WaveSeekBar(props) {
         }
         frame = requestAnimationFrame(draw)
       }
+      drawRef.current = draw
       frame = requestAnimationFrame(draw)
       return function () {
         if (frame !== 0) cancelAnimationFrame(frame)
         if (observer !== null) observer.disconnect()
         window.removeEventListener('resize', resize)
+        drawRef.current = null
       }
     },
     [accent, active, props.wave],
+  )
+  useEffect(
+    function () {
+      if (drawRef.current !== null) drawRef.current(performance.now())
+    },
+    [progress, duration, props.wave, seeking],
   )
   return h(
     'div',
@@ -1329,9 +1372,11 @@ function WaveSeekBar(props) {
       onPointerMove: function (event) {
         var rect = event.currentTarget.getBoundingClientRect()
         hoverRef.current = clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1)
+        if (drawRef.current !== null) drawRef.current(performance.now())
       },
       onPointerLeave: function () {
         hoverRef.current = null
+        if (drawRef.current !== null) drawRef.current(performance.now())
       },
     }),
   )

@@ -343,7 +343,7 @@ var THEME_CSS = [
   '.mp-np-bg.is-ambient .mp-np-bg-drift{animation:mp-ambient-drift var(--mp-speed) ease-in-out infinite alternate}',
   '@keyframes mp-ambient-drift{0%{transform:translate3d(var(--mp-drift-nx),var(--mp-drift-ny),0) scale(var(--mp-drift-s0)) rotate(var(--mp-drift-nr))}100%{transform:translate3d(var(--mp-drift-x),var(--mp-drift-y),0) scale(var(--mp-drift-s1)) rotate(var(--mp-drift-r))}}',
   '.mp-np-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto;transform:scale(var(--mp-beat-scale));transition:transform .22s ease-out}.mp-np-bg .is-prev{opacity:1}.mp-np-bg .is-cur{animation:mp-bg-in .85s ease both}@keyframes mp-bg-in{from{opacity:0}to{opacity:1}}',
-  '.mp-np-bg img.is-echo{inset:-8%;width:116%;height:116%;opacity:.55;mix-blend-mode:soft-light;transform:none;animation:mp-ambient-echo var(--mp-speed) ease-in-out infinite alternate;will-change:transform}',
+  '.mp-np-bg img.is-echo{inset:-8%;width:116%;height:116%;opacity:.55;mix-blend-mode:soft-light;transform:none;will-change:auto}.mp-np-bg.is-ambient img.is-echo{animation:mp-ambient-echo var(--mp-speed) ease-in-out infinite alternate;will-change:transform}',
   '@keyframes mp-ambient-echo{0%{transform:translate3d(-7%,5%,0) scale(1.22) rotate(-2.4deg)}100%{transform:translate3d(7%,-5%,0) scale(1.3) rotate(2.4deg)}}',
   '.mp-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.32),rgba(0,0,0,.04) 46%,rgba(0,0,0,.28) 82%,rgba(0,0,0,.42));pointer-events:none}',
   '.mp-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(85% 75% at 50% 45%,transparent 55%,rgba(0,0,0,.3));pointer-events:none}',

@@ -116,6 +116,8 @@ assert.match(theme, /\.mp-np-bg img\{[^']*transform:scale\(var\(--mp-beat-scale\
 assert.doesNotMatch(theme, /\.mp-np-smoke|\.mp-np-flow/, 'the smoke layer is gone')
 assert.doesNotMatch(theme, /\.mp-np::after\{[^']*rgba\(255,255,255/, 'no white glow overlay')
 assert.match(theme, /\.mp-np-bg\.is-ambient \.mp-np-bg-drift\{[^']*animation:mp-ambient-drift/, 'ambient drift animation is wired')
+assert.match(theme, /\.mp-np-bg\.is-ambient img\.is-echo\{[^']*animation:mp-ambient-echo/, 'echo animation is gated on is-ambient')
+assert.doesNotMatch(theme, /\.mp-np-bg img\.is-echo\{[^}]*animation:/, 'echo does not animate while the backdrop is off')
 
 // The lyric footer buttons follow the chosen lyric alignment.
 assert.match(theme, /\.mp-align-center \.mp-np-lyric-foot\{justify-content:center\}/, 'footer follows the lyric alignment')
