@@ -12071,6 +12071,7 @@ window.__ModuleLoader__.load({
       useEffect(
         function () {
           targetMorphRef.current = props.wave === false ? 0 : 1
+          if (drawRef.current !== null) drawRef.current(performance.now())
         },
         [props.wave],
       )
@@ -12184,6 +12185,7 @@ window.__ModuleLoader__.load({
             phase = (phase + phaseDelta * 0.0625 * (1 + beat * beatSpeedGain)) % 1
             ctx.globalAlpha = 1
             if (morph < 0.02 && targetMorphRef.current === 0) {
+              ctx.globalAlpha = 1
               var trackY = h / 2
               var trackH = 4
               function railBar(x, width, color) {
@@ -12197,12 +12199,12 @@ window.__ModuleLoader__.load({
                   ctx.fillRect(x, trackY - trackH / 2, width, trackH)
                 }
               }
-              railBar(0, w, 'rgba(255,255,255,.16)')
+              railBar(0, w, '#26262c')
               if (durationRef.current > 0 && bufferedRef.current > 0) {
-                railBar(0, Math.min(1, bufferedRef.current / durationRef.current) * w, 'rgba(255,255,255,.28)')
+                railBar(0, Math.min(1, bufferedRef.current / durationRef.current) * w, '#3a3a43')
               }
               var railPlayed = progressRef.current * w
-              railBar(0, railPlayed, colorOf(palette[0] || accent, 0.96))
+              railBar(0, railPlayed, colorOf(palette[0] || accent, 1))
               ctx.fillStyle = '#f7f7f8'
               ctx.beginPath()
               ctx.arc(Math.max(5, Math.min(w - 5, railPlayed)), trackY, 5, 0, Math.PI * 2)
@@ -12211,7 +12213,7 @@ window.__ModuleLoader__.load({
                 ctx.fillStyle = 'rgba(255,255,255,.3)'
                 ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
               }
-              frame = requestAnimationFrame(draw)
+              frame = 0
               return
             }
             var mid = (bands - 1) / 2
