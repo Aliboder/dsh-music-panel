@@ -2084,6 +2084,30 @@ function NowPlaying(props) {
                 usedFolia ? '(folia)' : '(legacy)',
               )
             }
+            if (typeof postJson === 'function' && typeof API === 'string') {
+              void postJson(API + 'debug/report', {
+                kind: 'lyric',
+                provider: String(current.onlineProvider || ''),
+                id: String(current.onlineId || ''),
+                style: String((typeof prefs !== 'undefined' && prefs && prefs.lyricStyle) || ''),
+                usedFolia: usedFolia,
+                hasFolia: typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null,
+                hasRaw: Boolean(body.raw),
+                appVersion: typeof APP_VERSION === 'string' ? APP_VERSION : '',
+                lines: lines.length,
+                wordLevel: lines.filter(function (line) {
+                  return line && Array.isArray(line.words) && line.words.length > 1
+                }).length,
+                first: lines[0]
+                  ? {
+                      start: mpLineStart(lines[0]),
+                      end: mpLineEnd(lines[0]),
+                      words: Array.isArray(lines[0].words) ? lines[0].words.length : 0,
+                      text: String((lines[0].fullText !== undefined ? lines[0].fullText : lines[0].text) || '').slice(0, 40),
+                    }
+                  : null,
+              }).catch(function () {})
+            }
             if (!cancelled) {
               setLyrics(lines)
               setLyricSource('ONLINE')

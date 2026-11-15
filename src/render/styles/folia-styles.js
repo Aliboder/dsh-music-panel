@@ -175,6 +175,7 @@ function FoliaStyleStage(props) {
   // word sweep (raw audio time) disagree whenever the song has an offset.
   var offsetRef = useRef(0)
   offsetRef.current = (Number(props.offsetMs) || 0) / 1000
+  var probeRef = useRef({ lines: [], active: -1, mode: '' })
   var power = useMotionValue(0)
   var bass = useMotionValue(0)
   var lowMid = useMotionValue(0)
@@ -206,10 +207,26 @@ function FoliaStyleStage(props) {
       var time = player.getTime()
       return Number(time && time.currentTime) || 0
     }
+    var probeFrame = 0
     function tick() {
       if (stopped) return
       try {
         clock.set(readTime() - offsetRef.current)
+        probeFrame += 1
+        if (probeFrame % 120 === 0 && typeof postJson === 'function') {
+          var probe = probeRef.current
+          var activeLine = probe.active >= 0 ? probe.lines[probe.active] : null
+          void postJson(API + 'debug/report', {
+            kind: 'tick',
+            mode: probe.mode,
+            now: Math.round(clock.get() * 100) / 100,
+            active: probe.active,
+            activeWords: activeLine && Array.isArray(activeLine.words) ? activeLine.words.length : 0,
+            activeText: activeLine ? String(activeLine.fullText || '').slice(0, 40) : '',
+            activeStart: activeLine ? activeLine.startTime : null,
+            activeEnd: activeLine ? activeLine.endTime : null,
+          }).catch(function () {})
+        }
         // Paused frames are not written (the last bands stand still); see folia-audio.js.
         var bands = foliaAudioBands(foliaAudioIsPlaying())
         if (bands !== null) {
@@ -234,6 +251,32 @@ function FoliaStyleStage(props) {
   var lines = useMemo(function () {
     return foliaStyleLines(props.lines, props.title, props.artist)
   }, [props.lines, props.title, props.artist])
+  useEffect(function () {
+    try {
+      if (typeof postJson !== 'function' || typeof API !== 'string') return
+      var wordLines = lines.filter(function (line) {
+        return line && Array.isArray(line.words) && line.words.length > 0
+      }).length
+      void postJson(API + 'debug/report', {
+        kind: 'stage',
+        mode: String(props.mode || ''),
+        lines: lines.length,
+        wordLevel: wordLines,
+        hasAudio: typeof document !== 'undefined' && document.querySelector('audio.mp-audio-host') !== null,
+        first: lines[0]
+          ? {
+              start: lines[0].startTime,
+              end: lines[0].endTime,
+              words: (lines[0].words || []).length,
+              hints: Boolean(lines[0].renderHints),
+              text: String(lines[0].fullText || '').slice(0, 40),
+            }
+          : null,
+      }).catch(function () {})
+    } catch (error) {}
+  }, [props.mode, lines])
+  probeRef.current.lines = lines
+  probeRef.current.mode = String(props.mode || '')
   var theme = useFoliaCoverTheme(props.coverUrl, props.seed, props.accent)
   var prefs = props.prefs || {}
   var intensity = prefs.lyricIntensity === 'calm' || prefs.lyricIntensity === 'chaotic'
@@ -255,6 +298,7 @@ function FoliaStyleStage(props) {
     }
     currentLineIndex = lines.length === 0 ? -1 : mapped
   }
+  probeRef.current.active = currentLineIndex
 
   var seed = typeof props.seed === 'string' && props.seed !== '' ? props.seed : 'folia'
   var entry = foliaStyleEntry(props.mode)
