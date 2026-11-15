@@ -66,6 +66,17 @@ assert.equal(eqBody.results[0].bands.length, 10, 'each result carries ten bands'
 assert.ok(eqBody.results.every((row) => /airpods/i.test(row.name)), 'results match the query')
 assert.ok(Array.isArray(eqBody.sources) && eqBody.sources.length > 3, 'sources are listed')
 
+// icu-folia data: gzipped assets shipped with the plugin, served with Content-Encoding.
+res = fakeRes()
+await handle(fakeReq('/music/assets/icu-folia/dict.json.gz'), res)
+assert.equal(res.status, 200)
+assert.equal(res.headers['content-encoding'], 'gzip', 'the browser decodes it transparently')
+assert.ok(Number(res.headers['content-length']) > 1_000_000, 'the real dictionary, not a stub')
+
+res = fakeRes()
+await handle(fakeReq('/music/assets/icu-folia/nope.json.gz'), res)
+assert.equal(res.status, 404, 'only the two known payloads are served')
+
 // unknown route
 res = fakeRes()
 await handle(fakeReq('/music/nope'), res)

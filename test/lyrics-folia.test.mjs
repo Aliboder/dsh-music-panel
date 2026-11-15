@@ -11,6 +11,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import vm from 'node:vm'
+import { gunzipSync } from 'node:zlib'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const bundle = readFileSync(join(here, '..', 'src', 'render', 'lyrics', 'lyrics.bundle.js'), 'utf8')
@@ -21,7 +22,7 @@ const localStorage = {
   setItem: (key, value) => { stored.set(key, String(value)) },
   removeItem: (key) => { stored.delete(key) },
 }
-const sandbox = { console, Intl, TextDecoder, TextEncoder, URL, setTimeout, clearTimeout, localStorage }
+const sandbox = { console, Intl, TextDecoder, TextEncoder, URL, setTimeout, clearTimeout, localStorage, atob }
 sandbox.globalThis = sandbox
 sandbox.window = sandbox
 vm.createContext(sandbox)
@@ -145,6 +146,21 @@ assert.ok(typeof lyrics.LyricParserFactory?.parse === 'function', 'and the parse
 
   const untouched = JSON.parse(JSON.stringify(lyrics.prepare(parsed, { policy: 'keep', rules: [] })))
   assert.equal(untouched.lines.length, parsed.lines.length, 'no rules, no filtering')
+}
+
+// ── icu-folia engines (the Host's data) ────────────────────────────────────
+{
+  const dict = JSON.parse(gunzipSync(readFileSync(join(here, '..', 'lib', 'assets', 'icu-folia', 'dict.json.gz'))).toString('utf8'))
+  const hmm = JSON.parse(gunzipSync(readFileSync(join(here, '..', 'lib', 'assets', 'icu-folia', 'hmm.json.gz'))).toString('utf8'))
+  assert.ok(dict.words.split('\n').length > 300_000, 'the dictionary is jieba\'s own')
+  const ready = await lyrics.loadIcuFoliaFromData({ dict, hmm })
+  assert.equal(ready, true, 'the engines build from the served data')
+  assert.equal(lyrics.isIcuFoliaReady(), true)
+  const doc = await parseDocument({ type: 'local', lrcContent: '[00:01.00]我们一起去听歌吧' })
+  const segmented = JSON.parse(JSON.stringify(lyrics.applyAutoWordSegmentation(doc)))
+  const segments = segmented.lines[0].autoWordSegments
+  assert.ok(Array.isArray(segments) && segments.length > 1, 'Chinese is cut into words')
+  assert.equal(segments.join(''), segmented.lines[0].fullText, 'the segments join back to the line')
 }
 
 console.log('lyrics-folia.test.mjs ok')

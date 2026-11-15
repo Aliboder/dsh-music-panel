@@ -271,3 +271,26 @@ function lyricFilterRules() {
     })
   return rules
 }
+
+/**
+ * icu-folia's engines, from the Host's data (lib/assets/icu-folia, served gzipped).
+ * Folia loads them as lazy Vite chunks; the plugin has one client script, so they are
+ * fetched once on demand and the result is memoised. Resolves false when unavailable.
+ */
+var icuFoliaPromise = null
+function ensureIcuFoliaData() {
+  if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return Promise.resolve(false)
+  if (typeof MPFoliaLyrics.loadIcuFoliaFromData !== 'function') return Promise.resolve(false)
+  if (icuFoliaPromise !== null) return icuFoliaPromise
+  icuFoliaPromise = Promise.all([
+    fetch(API + 'assets/icu-folia/dict.json.gz').then(function (response) { return response.json() }),
+    fetch(API + 'assets/icu-folia/hmm.json.gz').then(function (response) { return response.json() }),
+  ])
+    .then(function (data) {
+      return MPFoliaLyrics.loadIcuFoliaFromData({ dict: data[0], hmm: data[1] })
+    })
+    .catch(function () {
+      return false
+    })
+  return icuFoliaPromise
+}

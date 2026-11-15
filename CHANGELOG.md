@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### icu-folia 自动分词（Folia 的默认分词）
+
+- 新增 `scripts/build-icu-folia.mjs`：从 Folia 的 `dev/icuFolia/jieba/*` 生成同一份数据
+  （词典排序后的一串字 + base64 varint 频率、HMM 表、繁→简字符对），写成
+  `lib/assets/icu-folia/{dict,hmm}.json.gz`（1.60MB + 0.26MB），随插件发布。
+- Host 新增 `GET /music/assets/icu-folia/<dict|hmm>.json.gz`，带
+  `Content-Encoding: gzip` 由浏览器透明解压；只认这两个名字，一年缓存。
+- 歌词 bundle 增加 `loadIcuFoliaFromData(data)`：按 Folia `engines.ts` 的同一套步骤
+  （jieba + 繁简映射 + BudouX）构造引擎；Vite 的两个虚拟模块在构建时换成空桩，
+  默认加载器永远不会被走到。`applyAutoWordSegmentation` / `isIcuFoliaReady` 一并导出。
+- 客户端在第一次取在线歌词时按需拉这两份数据；引擎就绪后把当前歌词重新烘焙一次
+  （`setLyricReload`），与 Folia 的 `useIcuFoliaSegmentation` 行为一致。
+- 测试：路由断言（gzip 头、真实大小、未知名字 404）；歌词 bundle 测试用真实数据构造
+  引擎并断言中文行被切成词且拼回原文。
+
 ### 歌词过滤与时间轴偏移记忆（Folia 的 lyricLineRules / lyricOffsetMemory）
 
 - 歌词行过滤接上 Folia 的规则引擎：设置 → 歌词 里多了「过滤版权声明行」「过滤歌词来源行」

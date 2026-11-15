@@ -2012,6 +2012,18 @@ function NowPlaying(props) {
             // credits policy. The old ad-hoc parse stays as the fallback.
             var pureMusicNotice = false
             var lines = null
+            var appliedAutoSegmentation = false
+            // Folia loads icu-folia's engines lazily and re-bakes the shown lyrics when they
+            // land. Fire the load with the first online lyric; the promise below re-runs this
+            // effect once if the engines were not ready for this pass.
+            var icuLoad = ensureIcuFoliaData()
+            icuLoad.then(function (ready) {
+              if (!ready || cancelled) return
+              if (appliedAutoSegmentation) return
+              setLyricReload(function (value) {
+                return value + 1
+              })
+            })
             if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
               try {
                 var document = await MPFoliaLyrics.parse(body.raw, {
@@ -2027,6 +2039,12 @@ function NowPlaying(props) {
                   && MPFoliaLyrics.isPureMusicLyricLines(document.lines)) {
                   document = null
                   pureMusicNotice = true
+                }
+                // Folia bakes icu-folia's word boundaries after the display-time pass.
+                if (document && typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
+                  && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
+                  document = MPFoliaLyrics.applyAutoWordSegmentation(document)
+                  appliedAutoSegmentation = true
                 }
                 if (document && Array.isArray(document.lines) && document.lines.length > 0) {
                   lines = linesFromFoliaDocument(document)

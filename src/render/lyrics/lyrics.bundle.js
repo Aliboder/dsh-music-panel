@@ -5,6 +5,14 @@ var MPFoliaLyrics = (() => {
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getProtoOf = Object.getPrototypeOf;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __esm = (fn, res, err) => function __init() {
+    if (err) throw err[0];
+    try {
+      return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+    } catch (e) {
+      throw err = [e], e;
+    }
+  };
   var __commonJS = (cb, mod) => function __require() {
     try {
       return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
@@ -466,7 +474,7 @@ var MPFoliaLyrics = (() => {
       var InvalidChar = new RegExp("[^" + chars(Char) + "]", UNICODE_SUPPORT ? "u" : "");
       var _SChar = /[\x20\x09\x0D\x0A]/;
       var SChar_s = chars(_SChar);
-      var S = reg(_SChar, "+");
+      var S2 = reg(_SChar, "+");
       var S_OPT = reg(_SChar, "*");
       var NameStartChar = /[:_a-zA-Z\xC0-\xD6\xD8-\xF6\xF8-\u02FF\u0370-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/;
       if (UNICODE_SUPPORT) {
@@ -495,7 +503,7 @@ var MPFoliaLyrics = (() => {
       var QName_exact = reg("^", QName, "$");
       var QName_group = reg("(", QName, ")");
       var SystemLiteral = regg(/"[^"]*"|'[^']*'/);
-      var PI = reg(/^<\?/, "(", Name, ")", regg(S, "(?!", _SChar, ")(", Char, "*?)"), "?", /\?>/);
+      var PI = reg(/^<\?/, "(", Name, ")", regg(S2, "(?!", _SChar, ")(", Char, "*?)"), "?", /\?>/);
       var PubidChar = /[\x20\x0D\x0Aa-zA-Z0-9-'()+,./:=?;!*#@$_%]/;
       var PubidLiteral = regg('"', PubidChar, '*"', "|", "'", chars_without(PubidChar, "'"), "*'");
       var COMMENT_START = "<!--";
@@ -515,45 +523,45 @@ var MPFoliaLyrics = (() => {
       );
       var contentspec = regg("EMPTY", "|", "ANY", "|", Mixed, "|", children);
       var ELEMENTDECL_START = "<!ELEMENT";
-      var elementdecl = reg(ELEMENTDECL_START, S, regg(QName, "|", PEReference), S, regg(contentspec, "|", PEReference), S_OPT, ">");
-      var NotationType = reg("NOTATION", S, /\(/, S_OPT, Name, regg(S_OPT, /\|/, S_OPT, Name), "*", S_OPT, /\)/);
+      var elementdecl = reg(ELEMENTDECL_START, S2, regg(QName, "|", PEReference), S2, regg(contentspec, "|", PEReference), S_OPT, ">");
+      var NotationType = reg("NOTATION", S2, /\(/, S_OPT, Name, regg(S_OPT, /\|/, S_OPT, Name), "*", S_OPT, /\)/);
       var Enumeration = reg(/\(/, S_OPT, Nmtoken, regg(S_OPT, /\|/, S_OPT, Nmtoken), "*", S_OPT, /\)/);
       var EnumeratedType = regg(NotationType, "|", Enumeration);
       var AttType = regg(/CDATA|ID|IDREF|IDREFS|ENTITY|ENTITIES|NMTOKEN|NMTOKENS/, "|", EnumeratedType);
-      var DefaultDecl = regg(/#REQUIRED|#IMPLIED/, "|", regg(regg("#FIXED", S), "?", AttValue));
-      var AttDef = regg(S, Name, S, AttType, S, DefaultDecl);
+      var DefaultDecl = regg(/#REQUIRED|#IMPLIED/, "|", regg(regg("#FIXED", S2), "?", AttValue));
+      var AttDef = regg(S2, Name, S2, AttType, S2, DefaultDecl);
       var ATTLIST_DECL_START = "<!ATTLIST";
-      var AttlistDecl = reg(ATTLIST_DECL_START, S, Name, AttDef, "*", S_OPT, ">");
+      var AttlistDecl = reg(ATTLIST_DECL_START, S2, Name, AttDef, "*", S_OPT, ">");
       var ABOUT_LEGACY_COMPAT = "about:legacy-compat";
       var ABOUT_LEGACY_COMPAT_SystemLiteral = regg('"' + ABOUT_LEGACY_COMPAT + '"', "|", "'" + ABOUT_LEGACY_COMPAT + "'");
       var SYSTEM = "SYSTEM";
       var PUBLIC = "PUBLIC";
-      var ExternalID = regg(regg(SYSTEM, S, SystemLiteral), "|", regg(PUBLIC, S, PubidLiteral, S, SystemLiteral));
+      var ExternalID = regg(regg(SYSTEM, S2, SystemLiteral), "|", regg(PUBLIC, S2, PubidLiteral, S2, SystemLiteral));
       var ExternalID_match = reg(
         "^",
         regg(
-          regg(SYSTEM, S, "(?<SystemLiteralOnly>", SystemLiteral, ")"),
+          regg(SYSTEM, S2, "(?<SystemLiteralOnly>", SystemLiteral, ")"),
           "|",
-          regg(PUBLIC, S, "(?<PubidLiteral>", PubidLiteral, ")", S, "(?<SystemLiteral>", SystemLiteral, ")")
+          regg(PUBLIC, S2, "(?<PubidLiteral>", PubidLiteral, ")", S2, "(?<SystemLiteral>", SystemLiteral, ")")
         )
       );
       var PubidLiteral_match = reg("^", PubidLiteral, "$");
       var SystemLiteral_match = reg("^", SystemLiteral, "$");
-      var NDataDecl = regg(S, "NDATA", S, Name);
+      var NDataDecl = regg(S2, "NDATA", S2, Name);
       var EntityDef = regg(EntityValue, "|", regg(ExternalID, NDataDecl, "?"));
       var ENTITY_DECL_START = "<!ENTITY";
-      var GEDecl = reg(ENTITY_DECL_START, S, Name, S, EntityDef, S_OPT, ">");
+      var GEDecl = reg(ENTITY_DECL_START, S2, Name, S2, EntityDef, S_OPT, ">");
       var PEDef = regg(EntityValue, "|", ExternalID);
-      var PEDecl = reg(ENTITY_DECL_START, S, "%", S, Name, S, PEDef, S_OPT, ">");
+      var PEDecl = reg(ENTITY_DECL_START, S2, "%", S2, Name, S2, PEDef, S_OPT, ">");
       var EntityDecl = regg(GEDecl, "|", PEDecl);
-      var PublicID = reg(PUBLIC, S, PubidLiteral);
-      var NotationDecl = reg("<!NOTATION", S, Name, S, regg(ExternalID, "|", PublicID), S_OPT, ">");
+      var PublicID = reg(PUBLIC, S2, PubidLiteral);
+      var NotationDecl = reg("<!NOTATION", S2, Name, S2, regg(ExternalID, "|", PublicID), S_OPT, ">");
       var Eq = reg(S_OPT, "=", S_OPT);
       var VersionNum = /1[.]\d+/;
-      var VersionInfo = reg(S, "version", Eq, regg("'", VersionNum, "'", "|", '"', VersionNum, '"'));
+      var VersionInfo = reg(S2, "version", Eq, regg("'", VersionNum, "'", "|", '"', VersionNum, '"'));
       var EncName = /[A-Za-z][-A-Za-z0-9._]*/;
-      var EncodingDecl = regg(S, "encoding", Eq, regg('"', EncName, '"', "|", "'", EncName, "'"));
-      var SDDecl = regg(S, "standalone", Eq, regg("'", regg("yes", "|", "no"), "'", "|", '"', regg("yes", "|", "no"), '"'));
+      var EncodingDecl = regg(S2, "encoding", Eq, regg('"', EncName, '"', "|", "'", EncName, "'"));
+      var SDDecl = regg(S2, "standalone", Eq, regg("'", regg("yes", "|", "no"), "'", "|", '"', regg("yes", "|", "no"), '"'));
       var XMLDecl = reg(/^<\?xml/, VersionInfo, EncodingDecl, "?", SDDecl, "?", S_OPT, /\?>/);
       var DOCTYPE_DECL_START = "<!DOCTYPE";
       var CDATA_START = "<![CDATA[";
@@ -596,7 +604,7 @@ var MPFoliaLyrics = (() => {
       exports.QName = QName;
       exports.QName_exact = QName_exact;
       exports.QName_group = QName_group;
-      exports.S = S;
+      exports.S = S2;
       exports.SChar_s = SChar_s;
       exports.S_OPT = S_OPT;
       exports.SYSTEM = SYSTEM;
@@ -6513,11 +6521,641 @@ var MPFoliaLyrics = (() => {
     }
   });
 
+  // src/utils/lyrics/icuFolia/jieba.ts
+  var STATES, B, E, M, S, PREV_STATES, MIN_FLOAT, RE_HAN_DEFAULT, RE_SKIP_DEFAULT, RE_HAN_HMM, RE_SKIP_HMM, LATIN_CHAR, decodeBase64, decodeVarints, splitKeep, createJieba;
+  var init_jieba = __esm({
+    "src/utils/lyrics/icuFolia/jieba.ts"() {
+      STATES = ["B", "E", "M", "S"];
+      B = 0;
+      E = 1;
+      M = 2;
+      S = 3;
+      PREV_STATES = [[E, S], [B, M], [M, B], [S, E]];
+      MIN_FLOAT = -314e98;
+      RE_HAN_DEFAULT = /([㐀-䶿一-鿿豈-﫿\u{20000}-\u{2A6DF}\u{2A700}-\u{2B73F}\u{2B740}-\u{2B81F}\u{2B820}-\u{2CEAF}\u{2CEB0}-\u{2EBEF}\u{2F800}-\u{2FA1F}a-zA-Z0-9+#&._%-]+)/u;
+      RE_SKIP_DEFAULT = /(\r\n|\s)/u;
+      RE_HAN_HMM = /([一-鿕]+)/u;
+      RE_SKIP_HMM = /([a-zA-Z0-9]+(?:\.\d+)?%?)/u;
+      LATIN_CHAR = /^[a-zA-Z0-9]$/;
+      decodeBase64 = (base64) => {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+        return bytes;
+      };
+      decodeVarints = (base64, count) => {
+        const bytes = decodeBase64(base64);
+        const values = new Uint32Array(count);
+        let cursor = 0;
+        for (let index = 0; index < count; index += 1) {
+          let value = 0;
+          let scale = 1;
+          for (; ; ) {
+            const byte = bytes[cursor++];
+            value += (byte & 127) * scale;
+            if (byte < 128) break;
+            scale *= 128;
+          }
+          values[index] = value;
+        }
+        return values;
+      };
+      splitKeep = (text, pattern) => text.split(pattern).map((piece, index) => ({ text: piece, matched: index % 2 === 1 })).filter((piece) => piece.text.length > 0);
+      createJieba = (data, options = {}) => {
+        const maxHmmWordLength = options.maxHmmWordLength ?? Number.POSITIVE_INFINITY;
+        const { words } = data;
+        let count = words.length > 0 ? 1 : 0;
+        for (let index = 0; index < words.length; index += 1) if (words.charCodeAt(index) === 10) count += 1;
+        const starts = new Int32Array(count + 1);
+        for (let index = 0, word = 1; index < words.length; index += 1) {
+          if (words.charCodeAt(index) === 10) starts[word++] = index + 1;
+        }
+        starts[count] = words.length + 1;
+        const freqs = decodeVarints(data.freqs, count);
+        const compareAt = (index, text, from, to) => {
+          const wordStart = starts[index];
+          const wordLength = starts[index + 1] - 1 - wordStart;
+          const keyLength = to - from;
+          const shared = Math.min(wordLength, keyLength);
+          for (let offset = 0; offset < shared; offset += 1) {
+            const diff = words.charCodeAt(wordStart + offset) - text.charCodeAt(from + offset);
+            if (diff !== 0) return diff;
+          }
+          return wordLength - keyLength;
+        };
+        const lowerBound = (text, from, to) => {
+          let low = 0;
+          let high = count;
+          while (low < high) {
+            const mid = low + high >>> 1;
+            if (compareAt(mid, text, from, to) < 0) low = mid + 1;
+            else high = mid;
+          }
+          return low;
+        };
+        const added = /* @__PURE__ */ new Map();
+        const addedPrefixes = /* @__PURE__ */ new Set();
+        const addedFirstCodes = /* @__PURE__ */ new Set();
+        let total = data.total;
+        let logTotal = Math.log(total);
+        const freqAt = (text, from, to) => {
+          if (addedFirstCodes.has(text.charCodeAt(from))) {
+            const extra = added.get(text.slice(from, to));
+            if (extra !== void 0) return extra;
+          }
+          const index = lowerBound(text, from, to);
+          return index < count && compareAt(index, text, from, to) === 0 ? freqs[index] : 0;
+        };
+        const isPrefixAt = (text, from, to) => {
+          if (addedFirstCodes.has(text.charCodeAt(from)) && addedPrefixes.has(text.slice(from, to))) return true;
+          const index = lowerBound(text, from, to);
+          if (index >= count) return false;
+          const wordStart = starts[index];
+          if (starts[index + 1] - 1 - wordStart < to - from) return false;
+          for (let offset = 0; offset < to - from; offset += 1) {
+            if (words.charCodeAt(wordStart + offset) !== text.charCodeAt(from + offset)) return false;
+          }
+          return true;
+        };
+        const freqOf = (word) => freqAt(word, 0, word.length);
+        const start = STATES.map((state) => data.hmm.start[state]);
+        const trans = STATES.map((from) => STATES.map((to) => data.hmm.trans[from][to] ?? MIN_FLOAT));
+        const emit = STATES.map((state) => {
+          const [chars, logsBase64] = data.hmm.emit[state];
+          const bytes = decodeBase64(logsBase64);
+          const logs = new Float64Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 8);
+          const table = /* @__PURE__ */ new Map();
+          Array.from(chars).forEach((char, index) => table.set(char, logs[index]));
+          return table;
+        });
+        const viterbi = (chars) => {
+          const n = chars.length;
+          const probs = new Float64Array(n * 4);
+          const back = new Int8Array(n * 4);
+          STATES.forEach((_, state2) => {
+            probs[state2] = start[state2] + (emit[state2].get(chars[0]) ?? MIN_FLOAT);
+          });
+          for (let t = 1; t < n; t += 1) {
+            for (let state2 = 0; state2 < 4; state2 += 1) {
+              const emitProb = emit[state2].get(chars[t]) ?? MIN_FLOAT;
+              let best = Number.NEGATIVE_INFINITY;
+              let bestPrev = -1;
+              for (const prev of PREV_STATES[state2]) {
+                const prob = probs[(t - 1) * 4 + prev] + trans[prev][state2] + emitProb;
+                if (prob > best || prob === best && prev > bestPrev) {
+                  best = prob;
+                  bestPrev = prev;
+                }
+              }
+              probs[t * 4 + state2] = best;
+              back[t * 4 + state2] = bestPrev;
+            }
+          }
+          const lastE = probs[(n - 1) * 4 + E];
+          const lastS = probs[(n - 1) * 4 + S];
+          let state = lastS >= lastE ? S : E;
+          const labels = new Array(n);
+          for (let t = n - 1; t >= 0; t -= 1) {
+            labels[t] = state;
+            state = back[t * 4 + state];
+          }
+          return labels;
+        };
+        const cutHmm = (text, out) => {
+          for (const block of splitKeep(text, RE_HAN_HMM)) {
+            if (!block.matched) {
+              splitKeep(block.text, RE_SKIP_HMM).forEach((piece) => out.push(piece.text));
+              continue;
+            }
+            const chars = Array.from(block.text);
+            const labels = viterbi(chars);
+            const words2 = [];
+            let begin = 0;
+            let next = 0;
+            labels.forEach((label, index) => {
+              if (label === B) {
+                begin = index;
+              } else if (label === E) {
+                words2.push(chars.slice(begin, index + 1).join(""));
+                next = index + 1;
+              } else if (label === S) {
+                words2.push(chars[index]);
+                next = index + 1;
+              }
+            });
+            if (next < chars.length) words2.push(chars.slice(next).join(""));
+            words2.forEach((word) => {
+              if (Array.from(word).length > maxHmmWordLength) out.push(...Array.from(word));
+              else out.push(word);
+            });
+          }
+        };
+        const route = (text, bounds) => {
+          const n = bounds.length - 1;
+          const best = new Float64Array(n + 1);
+          const nextIndex = new Int32Array(n + 1);
+          for (let index = n - 1; index >= 0; index -= 1) {
+            let bestProb = Number.NEGATIVE_INFINITY;
+            let bestEnd = index;
+            let end = index;
+            let found = false;
+            while (end < n && isPrefixAt(text, bounds[index], bounds[end + 1])) {
+              const freq = freqAt(text, bounds[index], bounds[end + 1]);
+              if (freq) {
+                found = true;
+                const prob = Math.log(freq) - logTotal + best[end + 1];
+                if (prob >= bestProb) {
+                  bestProb = prob;
+                  bestEnd = end;
+                }
+              }
+              end += 1;
+            }
+            if (!found) {
+              bestProb = Math.log(1) - logTotal + best[index + 1];
+              bestEnd = index;
+            }
+            best[index] = bestProb;
+            nextIndex[index] = bestEnd + 1;
+          }
+          return nextIndex;
+        };
+        const cutBlock = (text, hmm, out) => {
+          const bounds = new Int32Array(Array.from(text).length + 1);
+          for (let index = 0, offset = 0; offset < text.length; index += 1) {
+            offset += text.codePointAt(offset) > 65535 ? 2 : 1;
+            bounds[index + 1] = offset;
+          }
+          const n = bounds.length - 1;
+          const nextIndex = route(text, bounds);
+          let buffer = [];
+          const flush = () => {
+            if (buffer.length === 1) {
+              out.push(buffer[0]);
+            } else if (buffer.length > 1) {
+              const run = buffer.join("");
+              if (!freqOf(run)) cutHmm(run, out);
+              else out.push(...buffer);
+            }
+            buffer = [];
+          };
+          let latin = "";
+          for (let index = 0; index < n; ) {
+            const end = nextIndex[index];
+            const word = text.slice(bounds[index], bounds[end]);
+            if (!hmm) {
+              if (end - index === 1 && LATIN_CHAR.test(word)) {
+                latin += word;
+              } else {
+                if (latin) out.push(latin);
+                latin = "";
+                out.push(word);
+              }
+            } else if (end - index === 1) {
+              buffer.push(word);
+            } else {
+              flush();
+              out.push(word);
+            }
+            index = end;
+          }
+          if (hmm) flush();
+          else if (latin) out.push(latin);
+        };
+        const cut = (text, hmm = true) => {
+          const out = [];
+          for (const block of splitKeep(text, RE_HAN_DEFAULT)) {
+            if (block.matched) {
+              cutBlock(block.text, hmm, out);
+              continue;
+            }
+            for (const piece of splitKeep(block.text, RE_SKIP_DEFAULT)) {
+              if (piece.matched) out.push(piece.text);
+              else out.push(...Array.from(piece.text));
+            }
+          }
+          return out;
+        };
+        const suggestFreq = (word) => {
+          const logFreq = cut(word, false).reduce((sum, piece) => sum + Math.log(freqOf(piece) || 1) - logTotal, 0);
+          return Math.max(Math.floor(Math.exp(logFreq + logTotal)) + 1, freqOf(word) || 1);
+        };
+        const addWord = (word, freq) => {
+          const weight = freq ?? suggestFreq(word);
+          total += weight - freqOf(word);
+          logTotal = Math.log(total);
+          added.set(word, weight);
+          addedFirstCodes.add(word.charCodeAt(0));
+          const chars = Array.from(word);
+          for (let length = 1; length <= chars.length; length += 1) addedPrefixes.add(chars.slice(0, length).join(""));
+          return weight;
+        };
+        return { cut, addWord };
+      };
+    }
+  });
+
+  // src/utils/lyrics/icuFolia/jiebaLexicon.ts
+  var CHINESE_EXTRA_WORDS, CHINESE_DEMOTED_WORDS;
+  var init_jiebaLexicon = __esm({
+    "src/utils/lyrics/icuFolia/jiebaLexicon.ts"() {
+      CHINESE_EXTRA_WORDS = [
+        "\u6211\u54CB",
+        "\u4F60\u54CB",
+        "\u4F62\u54CB",
+        "\u4F62",
+        "\u5187",
+        "\u5187\u4EBA",
+        "\u5514\u597D",
+        "\u5514\u4F7F",
+        "\u5514\u7CFB",
+        "\u5514\u8BE5",
+        "\u5514\u77E5",
+        "\u5514\u4F1A",
+        "\u5514\u8BC6",
+        "\u7CFB\u54AA",
+        "\u55BA\u5EA6",
+        "\u8FD4\u569F",
+        "\u8FC7\u569F",
+        "\u569F",
+        "\u70B9\u89E3",
+        "\u4E5C\u5622",
+        "\u54A9\u5622",
+        "\u5481\u6837",
+        "\u949F\u610F",
+        "\u800C\u5BB6",
+        "\u4F9D\u5BB6",
+        "\u542C\u65E5",
+        "\u7434\u65E5",
+        "\u8FB9\u5EA6",
+        "\u8FB9\u4E2A",
+        "\u51E0\u65F6",
+        "\u55F0\u5EA6",
+        "\u55F0\u4E2A",
+        "\u5462\u5EA6",
+        "\u5462\u4E2A",
+        "\u5622",
+        "\u5FC3\u4E8B",
+        "\u63FE",
+        "\u7747",
+        "\u6530"
+      ];
+      CHINESE_DEMOTED_WORDS = ["\u7684\u8BDD"];
+    }
+  });
+
+  // node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/data/models/ja.js
+  var model;
+  var init_ja = __esm({
+    "node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/data/models/ja.js"() {
+      model = { "UW3": { "\u3002": 2927, "\u306E": 1892, "\u3001": 2285, "\u3092": 2562, "\u306B": 1846, "\u304C": 1948, "\u306F": 1984, "\u3068": 1588, "\u3057": 270, "\u308B": 1470, "\u3082": 1602, "\u306A": 1344, "\u3067": 1587, "\u305F": 1188, "\u3044": 987, "\u304F": 1291, "\u3066": 1233, "\u3046": 1105, "\u3078": 1292, "\u3089": 785, "\u3084": 1175, "\uFF1F": 1825, "?": 1906, "\u3063": -327, "\u3053": 34, "\u3050": 1295, "\u30FC": -115, "\u3093": 563, "\uFF0C": 1899, "\u3070": 1101, "\uFF3D": 1183, "\u308A": 561, "\u304B": 1026, "]": 1525, "\uFF01": 1800, "\u304A": -585, "\u305E": 1145, "\u307E": 10, "\u30C3": -548, "\uFF0E": 1157, "\u3064": 650, "\u7A7A": 721, "\u30B9": -380, "\u3069": 803, "\u2026": 1481, "\u30A4": -308, "\u30F3": -194, "\u30FB": 500, "\u3060": 608, "\u65B9": 472, "\u300C": -624, "\uFF09": 1444, "\u90E8": 321, "\u30D7": -345, "\u3054": -381, "\u3042": 570, "\u30D5": -463, "\u266A": 1332, "\u300D": 832, "\u30E9": -86, "\u2606": 1295, "\u305A": 902, "\u96FB": -402, "\u4EAC": -315, "\u5927": -271, "\u308D": 669, "\u30A2": -307, "\u65E5": 338, "\u624B": -71, "\u306C": 880, "\uFF10": -343, "\u3059": 643, "\u3005": 968, "\u4EE5": -305, "\u7B11": 1486, "\u9593": 426, "\uFF11": -438, "\u89B3": -178, "\u5EA6": 590, "\u300E": -335, "\u65B0": -236, "[": -316, "\u30AB": -102, "\u7684": 295, "\u304D": 223, "\u30ED": -226, "\u5206": 475, "\u308C": 233, "\u3080": 812, "\u3058": 416, "\u3041": 695, "\u30B8": -61, "\u54C1": 40, "\u305B": 290, "\u4ECA": 372, "\u3083": 606, "\u90FD": -77, "\u5F8C": 594, "\u4E2D": 373, "\u3076": 735, "\u3048": 464, "\u3011": 476, "\u30B7": -201, "\u30C9": -176, "\u5909": 324, "\u301C": 332, "\u756A": 216, "\u4E0D": -190, "\u7136": 621, "\u2605": 1043, "\u5B50": -141, "\u3088": 188, "\u3061": 259, "\uFF3B": -237, "\u30BF": -21, "\u8AAC": 81, "\u767A": -151, "\u6700": -147, "\u7D20": -149, "\u6642": 91, "\u5E74": 179, "\u6BB5": 248, "\u4EE3": -109, "\u610F": -96, "\u3073": 17, "\u5B66": -74, "\u3000": 207, "\u5473": 281, "\u6599": -81, "\u884C": -131, "\u30CB": -63, "\u5149": -39, "\u7528": -107, "\uFF4F": -95, "\u4F53": 358, "\u591C": 536, "\u4F5C": -85, "\u7686": 417, "\u30C8": -7, "\u4EBA": 76, "\u65A4": 434, "\u6708": 112, "\u9078": -75, "\uFF12": -58, "\u201D": 363, "\u805E": -62, "\uFF1A": 130, "\u524D": 150, "\u5916": 73, "\u6614": 699, "\u30EC": -24, "\u8D85": 450, "\u9031": 93, "\uFF15": -34, "\u6C34": 58, "\u81EA": -22, "\uFF13": -29, "\u8272": 219, "\u300F": 227, "\u51FA": -24, "\u80FD": -12, "\u30D3": -19, "\u307F": 7, "\u958B": -14, "\u30C6": -12, "\u30E2": -19, "\u30D0": -9, "\u6A5F": -7, "\u306D": 90, "\u7A0B": 51, "\u984C": 18 }, "UW4": { "\u3002": -2921, "\u306E": -1829, "\u306B": -1799, "\u304C": -1557, "\u306F": -1614, "\u3001": -2878, "\u308B": -2280, "\u3067": -1295, "\u3068": -1399, "\u3066": -1522, "\u3092": -1805, "\u3063": -2e3, "\u304B": -1271, "\u308A": -1899, "\u3046": -1061, "\u307E": -821, "\u3057": -919, "\u305F": -814, "\u3044": -676, "\u304A": 416, "\u306A": -906, "\u3089": -2069, "\u3060": -1191, "\u3061": -984, "\u3059": -719, "\u308C": -1661, "\u3093": -1845, "\u304D": -877, "\u305D": 223, "\u30FC": -1265, "\u3084": -634, "\u300D": -2633, "\u3042": 79, "\u3051": -1607, "\u3082": -1204, "\u305E": -1147, "\u304F": -1282, "\u3054": 115, "\u3055": -874, "\u898B": 364, "\uFF1F": -2257, "\u3081": -1016, "\u307F": -637, "\u3088": -627, "\u4EBA": 194, "\u300C": 1150, "\u79C1": 801, "\u30C3": -646, "\u3050": -765, "\u30F3": -591, "[": 1560, "\u4E00": 273, "\u601D": 304, "\u308F": -782, "?": -1830, "\u5408": -827, "\u3058": -1102, "\uFF01": -2092, "\uFF0C": -1995, "\u8A00": 113, "\u4F55": 399, "\u305B": -824, "\u5834": 130, "\u300E": 381, "\u884C": 159, "\u3048": -920, "\u4ECA": 498, "\u300F": -2279, "\u6642": 150, "\u5E83": 186, "\u98DF": 116, "\u4EAC": 115, "\u30FB": -730, "\u308D": -1232, "\u65E5": 91, "\uFF0E": -1414, "\u7A7A": 439, "\u3078": -655, "\u3070": -1174, "\u3064": -611, "\u2026": -1457, "\u3079": -1265, "]": -965, "\uFF11": 526, "\u52B9": 164, "\u5927": 150, "\u30EB": -258, "\u30B5": 80, "\u30EA": -277, "\u30A8": 110, "\u3073": -775, "\u7279": 504, "\u4F7F": 548, "\u5F53": 94, "\u306D": -1133, "\uFF08": 1298, "\u7159": 1199, "\u7DBA": 1247, "\u3086": -457, "\u65B9": -171, "\u6C17": 101, "\u305A": -945, "\u3069": -492, "\u3076": -832, "\u81EA": 280, "\uFF12": 318, "\uFF3B": 922, "\u3041": -814, "\u643A": 121, "\u3083": -1080, "\u6700": 277, "\uFF3D": -414, "\u5E2F": -257, "\u6765": 55, "\u3087": -821, "\u30D5": -180, "\u9593": -295, "\u7B11": -1460, "\u30B9": -53, "\uFF09": -1557, "\u3053": -226, "\u6709": 268, "\u65B0": 128, "\u826F": 25, "\u30BF": -78, "\u304E": -913, "\u7528": -291, "\u305C": -825, "\u3080": -488, "\u2606": -807, "\u5236": 350, "\u7D9A": -264, "\u30AB": 101, "\u266A": -1026, "\u80FD": -219, "\u3056": -429, "\u30E1": 37, "\u8868": 151, "\uFF13": 242, "\u591A": 355, "\u30A4": -59, "\u624B": 66, "\u301C": -834, "\u30E5": -195, "\u516C": 161, "\u64CD": 52, "\u7121": 211, "\u307B": -134, "\u66F8": 273, "\uFF10": -120, "\u7684": -273, "\u30C7": 120, "\u6B21": 53, "\u53D6": -302, "\u3052": -451, "\u4E0D": 301, "\u30ED": -78, "(": 402, "\u53CB": 75, "\u50D5": 299, "\u3065": -539, "\u3010": 368, "\u3000": -695, "\u5C0F": 244, "\u5207": -192, "\u63DB": -239, "\u56DE": -380, "\u4E8C": 438, "\u8FBC": -346, "\u30D0": 93, "\u306C": -173, "\u697D": 174, "\uFF4F": -168, "\u672C": -26, "\u6C34": 123, "\u307C": -349, "\u8857": 232, "\u201D": -927, "\u5C11": 102, "\u6A5F": -41, "\u54C1": -112, "\u30C8": -61, "\u52D5": -14, "\u30AF": -35, "\u5165": 54, "\u4EE3": -128, "\u30EC": -39, "\u30B3": 41, "\u6D77": 163, "\u2605": -456, "\u590F": 213, "\uFF33": -50, "\u6771": 409, "\u5E74": -101, "\u30CB": -66, "\u7F8E": 118, "\u5238": -250, "\u901A": -77, "\u8A71": 104, "\u524D": -43, "\u796D": 329, "\u53C2": 227, "\u8FD4": -112, "\u805E": 85, "\u3075": -118, "\u771F": -116, "\u30D3": -58, "\u4F4F": 70, "\u56DB": 194, "\u5B9F": 44, "\u5168": 48, "\u3071": -125, "\uFF3E": -197, "\u3043": -126, "\u30B0": -20, "\u9AD8": 32, "\u5F7C": 41, "\u59FF": 23, "\u8AB0": 136, "\u30C9": -33, "\u7ACB": -82, "\u60C5": -14, "\u5E97": 22, "\u81ED": 347, "\u5F0F": -76, "\u614B": -24, "\u5B89": 52, "\u4F8B": 74, "\u3072": 49, "\u4F5C": -19, "\u808C": 6, "\u5FC3": 6, "\u65C5": 9, "\u79FB": -17, "\u8DB3": 17, "\u9053": 3, "\u7269": -12, "\u7518": 9, "\u4E09": 4, "\u5EA6": -4 }, "UW5": { "\u3002": -674, "\u3001": -346, "\u306A": -317, "\u306F": -336, "\u306B": -271, "\u3046": 172, "\u3063": 529, "\u305D": -621, "\u3068": -276, "\u3067": -289, "\u304D": 367, "\u3092": -232, "\u308B": 172, "\u307E": -19, "\u3059": -275, "\u3048": 248, "\u3044": 160, "\u306E": -247, "\u3079": 877, "\u30E9": 186, "\u3058": 322, "\u3053": 49, "\u52D5": 712, "\u308C": 204, "\u3082": -128, "\u305F": 4, "\u30FB": -282, "\u3057": -123, "\u304F": 141, "\u3081": 184, "\u3055": -135, "\u300D": -340, "\u4F9B": 203, "\u30EB": -252, "\u3042": -212, "\u304B": 71, "\u5E2F": 89, "\u529B": 137, "\u3064": 443, "\u80FD": 5, "\u30C8": -132, "\u30F3": -77, "\u3078": -320, "\u4E0A": -300, "\u5668": -87, "\u65E5": 203, "\u601D": -109, "\u304C": -175, "\u307C": 484, "\u308A": 93, "\u3056": 178, "\u3093": 407, "\u3076": 43, "\u3060": -93, "\u3088": -151, "\u3051": -56, "\uFF3D": -113, "\u308F": 267, "\u305A": 293, "\u3061": 226, "\u56DE": 300, "\u5E74": 380, "[": -131, "\uFF01": -143, "\uFF0E": -205, "\u30B9": -67, "\u5F53": 217, "\u3066": 84, "\u90FD": 26, "\u5229": 346, "\u30A4": 77, "\u5E83": -175, "\u308D": -71, "\u7684": -90, "\u3073": 270, "\u30E5": -87, "\u4E08": 293, "\u8449": 122, "\u5927": -66, "\u3089": 71, "\u96FB": -47, "\u666F": 147, "\u6240": 10, "\uFF11": -88, "\u8A00": -116, "\u958B": 103, "\u3069": -41, "\u5BFA": -104, "\u672C": 121, "\u4F53": -383, "\u9769": -244, "\u304E": 139, "\u4F5C": 104, "\u5238": -65, "\u2026": -59, "\u6709": -41, "\u3080": 174, "\u306D": -52, "\u7248": -41, "\u5148": -251, "\u8981": 29, "\u30B0": -23, "\u5408": 23, "\u4E00": -30, "\u6539": -52, "\u3005": 51, "\u30D0": -33, "\uFF1F": -29, "\u4F7F": -82, "\uFF12": -49, "\u8EFD": 27, "\u884C": -32, "\u671F": 32, "\u9762": 21, "\u30ED": 9, "\u660E": 20, "\u30E3": 3, "\u6CD5": -15, "\u30C6": -3 }, "UW2": { "\u3002": -529, "\u306E": -308, "\u3092": -850, "\u3001": -535, "\u3057": 117, "\u306B": -356, "\u304B": 23, "\u3082": -359, "\u304C": -287, "\u3068": -398, "\u3063": 90, "\u3067": -342, "\u308C": 34, "\u305D": -238, "\u3088": -28, "\u304A": -470, "\u305E": -457, "\u3066": -289, "\u4EE5": 1111, "\u3059": 188, "\u307E": 163, "\u4EBA": 184, "\u3055": 308, "\u300D": 102, "\u3064": -181, "\u3060": 161, "\u3042": -128, "\u3081": 65, "\u3046": -203, "\u898B": -171, "\u624B": 458, "\u304F": -253, "\u5C11": 316, "\u306F": -346, "\u5168": 550, "\u4E00": 524, "\u306A": -223, "\u89E3": 349, "\u304D": -22, "\u3051": 99, "\u3044": -42, "\u7279": 270, "\u6CD5": 546, "\u3069": -153, "\u826F": 150, "\u7D50": 1020, "\u98DF": 125, "\u3086": 379, "\u30E9": -135, "\u6BCE": 769, "\u968F": 939, "\u3072": -1043, "\u307B": 257, "\u30A4": -68, "\u5883": -201, "\u308A": -80, "\u308B": -135, "\u540C": 397, "\u8A00": -95, "\u3093": 82, "\u3071": 113, "\u305F": -83, "\u5834": 96, "\u53D6": -186, "\u4F5C": -110, "\u5B50": -5, "\u308F": 82, "\u3084": -179, "\u591A": 240, "\u5927": 130, "\u80FD": 138, "\u305C": 424, "\uFF1F": -207, "\u77E5": -113, "\u8A71": 2, "\u76EE": -168, "\u984C": 125, "\u30C7": -143, "\u300C": -92, "\u30B5": -136, "\u3050": -135, "\uFF3D": -170, "\u3070": -93, "\u3054": -82, "\u306D": 197, "\u95A2": 739, "\u30FC": 94, "\u30B0": -101, "\u65B0": -39, "\uFF30": -393, "\uFF10": 95, "\uFF11": 82, "]": -132, "\u843D": -328, "\uFF3E": 278, "\u672C": 215, "?": -122, "\uFF12": -106, "\uFF0C": -125, "\u5148": 225, "\uFF3B": -21, "\u30B8": -65, "\u307F": -30, "\u5473": 113, "\u548C": 169, "\u751F": 117, "\u305B": 16, "\u4E57": -145, "\u7D20": -202, "\u5BB6": 47, "\u7ACB": -216, "\u30B7": -84, "\u4E16": -71, "\u6C34": 123, "[": -1, "\u300E": -101, "\u524D": 49, "\u3076": 3, "\u30B1": -94, "\u96FB": 94, "\u6211": -206, "\u6B8B": 150, "\u5238": -97, "\u4ECA": 12, "\u767E": -105, "\u8ECA": 71, "\u5897": -88, "\u632F": -81, "\u6848": 107, "\u7528": -31, "\u30D7": -26, "\u76F4": 159, "\u4E09": 80, "\u308D": -31, "\u30D0": 73, "\u7740": -14, "\u51B7": -22, "\u7A7A": -11, "\u65E9": 94, "\u5B9F": 50, "\uFF15": -43, "\u3052": 40, "\u4E26": 28, "\u8FFD": -47, "\u9AD8": 9, "\u662F": 7, "\u5909": -3, "\u30D5": -1 }, "UW1": { "\u3044": -85, "\u306B": -141, "\u3067": -122, "\u306A": -109, "\u3064": 209, "\u3002": -24, "\u306F": -65, "\u308A": -105, "\u3068": 36, "\u304C": -106, "\u3053": 43, "\u305D": 47, "\u3069": 124, "\u3046": 21, "\u3057": -27, "\u898B": 88, "\u3060": -97, "\u5927": 155, "\u3066": 68, "\u306E": 5, "\u4E0A": -86, "\u3093": 94, "\u304A": 15, "\u5341": -92, "\u305F": -30, "\u304B": -72, "\u6C34": 48, "\u77E5": 38, "\u3078": -23, "\u59CB": 130, "\u30C3": 196, "\u30D7": -268, "\u3063": 87, "\u4F5C": 25, "\u304F": 44, "\uFF3B": -168, "\u30BF": 26, "\u5C0F": 265, "\u308D": 134, "\u65B0": 119, "\u3082": 10, "\u300C": -110, "\uFF0E": -184, "\u300E": -146, "\u7A4D": -240, "\u3084": -89, "\u30A4": -99, "\u884C": -39, "\u4EAC": -118, "\u30E1": 168, "\u30B9": -53, "\u3061": 81, "\u30D0": 110, "\uFF10": 43, "\u9593": 106, "\u64AE": -96, "\u3048": -51, "\u308C": 36, "\u4F55": 93, "\u58CA": -117, "\u81EA": 113, "\u3056": 281, "\u3070": -43, "\u3001": -17, "\u4EBA": -30, "\u5C11": -45, "\u3089": 10, "\u8C4A": 69, "\u6642": -41, "\u57FA": -99, "\u30FC": 5, "\u8A8D": -96, "\u53D6": 47, "\u4F7F": -36, "\u30B1": -28, "\u300D": -29, "\u6A5F": 17, "\u66F8": -13, "\u8272": 13, "\u751F": -21, "\u30AA": 37, "\u3059": 6, "]": -17, "\u8A71": -6, "\u9762": -14 }, "UW6": { "\u3002": -91, "\u306E": 61, "\u304C": 121, "\u306A": 119, "\u3055": 361, "\u3092": 40, "\u3057": 187, "\u3067": 51, "\u306F": 96, "\u3046": 53, "\u3001": -15, "\u3066": -14, "\u3084": 268, "\u306B": 102, "\u308A": 217, "\u305B": -165, "\u307F": 265, "\u3042": -70, "\u308B": 97, "\u3044": 114, "\u3069": 175, "\u300D": -94, "\u3064": 238, "\u30FC": -64, "\u3068": 25, "\u3071": 445, "\u3063": 192, "\u304A": -114, "\u3082": 38, "\u30B0": 138, "\u6027": 11, "\u30D3": 249, "\u30B3": 63, "\u304B": 132, "\u307E": 175, "\u3081": 251, "\u5834": -184, "\u4ED8": 42, "\u3051": -30, "\u304F": 87, "\u4F9B": -335, "\u4EBA": -33, "\u753B": 232, "\u30AF": -138, "\u30F3": -62, "\u7684": 122, "\u30E5": 117, "\u3050": 23, "\u308F": 138, "\u3093": 138, "\u30BF": 93, "\uFF10": 305, "\u30FB": -81, "\u308C": 66, "\u904A": -229, "\u3070": 120, "\u7A7A": 301, "\u901A": -49, "\u308D": 102, "\u65E5": 97, "\u305D": 63, "\u5BFA": 185, "\u30B9": 15, "\u898B": -40, "\u5B66": -155, "\u96FB": 135, "\u6700": -121, "\u6C17": 164, "\u5730": 163, "\u3058": 164, "\u30EC": 61, "\u51FA": 160, "\u30A2": -31, "\u8A00": -139, "\u305A": -134, "\u3087": -75, "\u30B7": -42, "\u3080": 72, "\u3053": 11, "\u30AB": 40, "\u30EB": 40, "\u3059": 3, "\u30D1": -70, "\u5E83": -46, "\u8FBC": 57, "\u8FD4": 79, "\u516C": -16, "\u30D4": 124, "\u3089": 8, "\uFF0C": 19, "\u3088": 8, "\uFF1A": 131, "\u3083": -20, "\u6C34": 69, "\u3060": -6, "\uFF33": -3, "\u5408": 12, "\u6765": -6, "\u3061": 1 }, "BW2": { "\u3068\u3053": -713, "\u306A\u3044": -1317, "\u3068\u3044": 121, "\u305B\u304F": 2467, "\u3068\u304A": -1189, "\u3067\u3059": -1081, "\u3066\u3044": -619, "\u3078\u3088": 1283, "\u306E\u3067": -545, "\u3067\u3042": -1440, "\u3044\u3088": -1010, "\u305F\u3068": 360, "\u306E\u307F": -1007, "\u3046\u3054": 673, "\u305F\u3044": -934, "\u306A\u3069": -902, "\u3066\u304A": -1002, "\u306B\u3082": -636, "\u3067\u3082": -693, "\u305F\u307E": -658, "\u308B\u3088": -359, "\u3044\u305F": -617, "\u304F\u306A": -746, "\u3066\u304F": -533, "\u3001\u3068": -465, "\u3067\u304D": -834, "\u306F\u3058": -952, "\u306B\u306F": -393, "\u5FB4\u30A8": 984, "\u3068\u3081": -228, "\u672C\u30A4": 1172, "\u3067\u3057": -729, "\u3046\u3069": -808, "\u5E2F\u96FB": -285, "\u3082\u3064": -208, "\u306E\u304C": -425, "\u3084\u3059": -667, "\u3044\u307E": -362, "\u306A\u304F": -293, "\u3044\u5408": -354, "\u304F\u3060": -593, "\u3089\u3086": -547, "\u3044\u3068": -336, "\u3053\u305D": -489, "\u306A\u304B": -197, "\u3044\u3044": -390, "\u3073\u4E0A": 1037, "\u3046\u3084": -350, "\u3046\u6620": 519, "\u3068\u3082": -304, "\u3044\u3082": 368, "\u305F\u3061": -345, "\u306E\u3082": -451, "\u3066\u304D": -732, "\u3089\u306A": -116, "\u3066\u307F": -737, "\u306E\u306F": -394, "\u308B\u3067": -52, "\u306E\u524D": -649, "\u3066\u3042": -944, "\u304C\u3057": 174, "\u304F\u3057": -256, "\u3069\u3053": -494, "\u3044\u65E5": 234, "\u3082\u3042": -179, "\u3046\u3053": -31, "\u3082\u3057": -273, "\u306E\u3044": 108, "\u308B\u3068": -176, "\u3066\u3082": -269, "\u306E\u304B": -203, "\u3059\u3054": -658, "\u306E\u3060": -210, "\u3069\u3082": -364, "\u304B\u306A": -243, "\u3082\u3046": -265, "\u304F\u6765": 17, "\u3068\u304B": -408, "\u306A\u3041": -331, "\u3044\u3064": -112, "\u3068\u304D": -288, "\u304B\u3057": -200, "\u3044\u306A": -242, "\u3066\u884C": -1104, "\u3067\u306A": -513, "\u305F\u3060": -398, "\u306F\u3044": -246, "\u305F\u3088": -194, "\u306A\u5834": 151, "\u308B\u306A": -278, "\u305D\u3053": -714, "\u305F\u3082": 140, "\u306A\u3042": -877, "\u306F\u305A": -387, "\u3044\u3057": -363, "\u3057\u3044": -183, "\u304C\u3063": -239, "\u3057\u305F": -143, "\u3078\u3068": -134, "\u3066\u305F": -150, "\u306F\u3042": -235, "\u3067\u306F": -198, "\u3066\u3053": -73, "\u306B\u3057": -105, "\u3070\u306A": -90, "\u308A\u3057": 73, "\u308B\u3057": -197, "\u3068\u306F": -148, "\u305F\u306A": -153, "\u3089\u3044": -134, "\u305F\u3057": -200, "\u4FC2\u306A": 503, "\u3066\u6B32": -457, "\u3002\u3068": 91, "\u308B\u304B": -98, "\u3064\u3076": -56, "\u3066\u3084": -153, "\u590F\u4F11": -51, "\u308A\u306A": 202, "\u3046\u3044": -97, "\u308A\u3082": -73, "\u3044\u3067": -88, "\u306E\u65B9": 54, "\u65E5\u672C": -151, "\u3076\u3064": -72, "\u306A\u304A": -213, "\u306E\u3054": -494, "\u305F\u3055": -48, "\u4EBA\u3044": 702, "\u3044\u72B6": 46, "\u65E5\u548C": -113, "\u306A\u3057": -92, "\u30FB\u30FB": -82, "\u8B58\u3053": 44, "\u306E\u3088": -19, "\u3044\u308F": -50, "\u300D\u3067": 280, "\u3068\u3046": -13, "\u3064\u3044": -47, "\u308C\u305F": -25, "\u3068\u3068": -48, "\u3001\u306A": -59, "\uFF0E\uFF15": -244, "\u306B\u304E": -77, "\uFF0E\uFF19": -210, "\u3066\u6765": -192, "\u3093\u3069": -4, "\u3067\u3044": -17, "\u3002\u7B11": -155, "\u304C\u306E": 31, "\uFF0E\u307E": 28 }, "BW1": { "\u3057\u3044": 548, "\u304B\u3089": 720, "\u306A\u3044": 579, "\u3093\u306B": -499, "\u3044\u3046": 261, "\u3088\u3046": -378, "\u3082\u306F": -1402, "\u306F\u3084": 93, "\u308C\u305F": 431, "\u3053\u305D": 1262, "\u307E\u307E": 1052, "\u3053\u3068": -614, "\u3057\u3066": -81, "\u3064\u306A": -733, "\u300D\u3068": 95, "\u305D\u306E": -393, "\u306E\u307F": 1389, "\u305F\u3044": 336, "\u767D\u3044": 696, "\u308B\u306E": -448, "\u3066\u3082": 250, "\u5C11\u3057": 730, "\u307E\u3082": -1330, "\u306E\u306F": 359, "\u3084\u304F": 435, "\u304B\u3082": -670, "\u3068\u304B": 674, "\u305F\u3089": 546, "\u305F\u3068": -552, "\u306A\u305E": -999, "\u3067\u3082": 241, "\u3063\u305F": 70, "\u3053\u306E": -461, "\u5168\u90E8": 387, "\u307E\u3068": -835, "\u3093\u3060": 342, "\u306B\u306F": 136, "\u3067\u306F": -151, "\u3046\u306A": 175, "\u3093\u306A": 153, "\u3061\u304C": -363, "\u3068\u304C": -597, "\u6676\u306E": 1358, "\u305F\u306E": -465, "\u4EE5\u4E0A": 320, "\u304C\u3068": -435, "\u306A\u3089": 638, "\u6700\u8FD1": 1077, "\u308B\u3068": 4, "\u3093\u3067": -224, "\u3060\u3093": 114, "\u3088\u308A": 820, "\u3082\u3046": 664, "\u3082\u306E": -266, "\u3002\u30FB": 1202, "\u3044\u3068": -155, "\u304F\u308C": 673, "\u601D\u3044": -809, "\u3046\u306B": -43, "\u304A\u3067": -1153, "\u3088\u304F": 374, "\u304B\u3057": 521, "\u306B\u3082": 299, "\u77E5\u3089": -163, "\u9752\u3044": 237, "\u308C\u3066": -176, "\u3081\u3066": 78, "\u624B\u9806": 450, "\u305E\u306A": -78, "\u540C\u3058": 339, "\u3060\u3051": 489, "\u3059\u306E": -259, "\u3044\u306E": -158, "\u304D\u305F": 227, "\u3059\u3044": 44, "\u307E\u3060": 263, "\u3044\u3044": -134, "\u4F7F\u3044": -565, "\u307E\u308A": 243, "\u3051\u3069": 434, "\u6575\u306A": 298, "\u305F\u3060": 418, "\u306A\u3050": 404, "\u3057\u305F": 129, "\u3068\u3046": 58, "\u306A\u304F": 234, "\u304C\u3001": 407, "\u308A\u3068": 396, "\u3044\u306A": -82, "\u304F\u3066": 332, "\u306A\u305C": 1022, "\u4EBA\u304C": 104, "\u3068\u306B": -164, "\u8A00\u3044": -428, "\u554F\u3044": -316, "\u8CB7\u3044": -597, "\u308C\u304C": -308, "\u306E\u9593": 715, "\u3068\u304D": 826, "\u3044\u3067": -477, "\u821E\u3046": 443, "\u3059\u304C": -135, "\u306A\u3069": 487, "\u306E\u304C": 262, "\u3093\u3066": 220, "\u3084\u3089": 461, "\u305F\uFF0E": 409, "\u306E\u3067": 96, "\u3048\u3070": 231, "\u5229\u306A": 187, "\u3066\u306F": -175, "\u7684\u306A": 140, "\u306F\u3001": 203, "\u3071\u308A": 322, "\u3046\u305E": 82, "\u3082\u3057": 637, "\u3068\u3067": 195, "\u3057\u305A": -351, "\u53D6\u308A": -196, "\u3046\u3084": -118, "\u3053\u3046": -155, "\u73FE\u5728": 495, "\u5927\u5909": 106, "\u307B\u307C": 387, "\u3068\u3082": -55, "\u3044\u305F": 105, "\u5F85\u3061": -312, "\u3068\u306E": 95, "\u306E\u5F8C": 495, "\u3053\u3053": 401, "\u3046\u304B": 175, "\u7A7A\u304D": -161, "\u5B89\u306B": -535, "\u3001\u3068": 77, "\u3066\u3044": -110, "\u4E00\u756A": 65, "\u4F7F\u3046": 173, "\u3068\u306F": -100, "\u3042\u30FC": 941, "\u666E\u6BB5": 308, "\u3044\u3082": -343, "\u308B\u306B": -83, "\u3046\u3068": -101, "\u304D\u306A": 64, "\uFF28\uFF0E": -249, "\u6A4B\u306B": 52, "\u3001\u4ECA": 324, "\u3079\u304D": 568, "\u307E\u3042": 213, "\u3068\u3044": -36, "\u4E0A\u306B": 28, "\u3067\u3001": 71, "\u3044\u300D": 165, "\u304B\u3001": -115, "\u3044\u3001": -24, "\u3064\u3076": -134, "\u3066\u308B": 87, "\u3061\u3089": -147, "\u3089\u306A": -208, "\u3057\u304B": 22, "\uFF3E\uFF3E": 102, "\u305F\u308A": 71, "\u305F\u3081": 380, "\u3076\u3093": 328, "\u306E\u3082": 48, "\uFF01\uFF01": 38, "\u4F55\u304B": 46, "\u306A\u304B": 72, "\u3081\u308B": -23, "\u6301\u3066": -232, "\u662F\u975E": 356, "\u3053\u308D": 190, "\u4E16\u306E": -522, "\u3068\u3001": 21, "\u6CD5\u7684": 79, "\u4F5C\u308A": -39, "\u3055\u308A": 103, "\u308F\u3051": 395, "\u6C17\u304C": 35, "\u3066\u305F": 68, "\u3044\u3057": 43, "\uFF10\u5186": 48, "\u306D\u30FC": 248, "\u308A\u306F": -122, "\u3059\u3089": 58, "\u3083\u3042": 173, "\u3048\u3066": -22, "\u305B\u3093": 35, "\u305C\u3072": 57, "\u843D\u3068": -52, "\u3093\u304B": 24, "\u3058\u308B": -28, "\u6301\u3064": 46, "\u304B\u304C": -28, "\u795E\u793E": 71, "\u306F\u3082": -6, "\u4E09\u56DE": 37, "\u3060\u3057": 52, "\u307E\u308B": -15, "\u308A\u306B": 4, "\u60AA\u3044": 12 }, "TW1": { "\u3088\u3044\u3088": 1543, "\u3082\u306F\u3084": 795, "\u3042\u308A\u304C": -1015, "\u3092\u3082\u3064": 778, "\u307E\u305F\u307E": 1597, "\u3053\u3093\u306B": -344, "\u3067\u898B\u308B": -1323, "\u3068\u3044\u3046": 106, "\u3093\u3069\u3093": 728, "\u3067\u304D\u308B": 167, "\u304A\u3063\u3066": 1406, "\u304C\u826F\u3044": 318, "\u307E\u3057\u305F": -542, "\u3075\u3060\u3093": 945, "\u7518\u3048\u304C": -639, "\u3060\u3093\u3069": -806, "\u5341\u5206\u306B": -359, "\u3066\u3044\u304F": 417, "\u3059\u304D\u3068": -1293, "\u3088\u3046\u306A": 446, "\u30FB\u30FB\u30FB": 596, "\u304B\u306A\u308A": 1e3, "\u3002\u5915\u65B9": 538, "\u3084\u306F\u308A": 917, "\u3053\u3068\u3082": -211, "\u3057\u304B\u3057": 450, "\u306A\u304C\u3089": 576, "\u304B\u306A\u304B": 402, "\u305F\u3061\u306E": 64, "\u3082\u306A\u304F": 116, "\u56F0\u3063\u305F": 554, "\u3087\u3063\u3068": -146, "\u3067\u304B\u3051": -196, "\u3068\u3093\u3069": 606, "\u3084\u3059\u3044": 83, "\u306A\u3093\u3068": -464, "\u6301\u3063\u3066": -346, "\u3087\u3046\u3069": 484, "\u5165\u308C\u308B": 240, "\u3063\u304B\u308A": 414, "\u3068\u601D\u3046": 153, "\u3066\u3044\u3066": 218, "\u3051\u308C\u3070": -48, "\u306B\u4EBA\u304C": 230, "\u304B\u3063\u305F": -24, "\u4EE5\u4E0A\u306B": 84, "\u305D\u3057\u3066": 193, "\u300E\u3044\u3044": -232, "\u3068\u3057\u3066": 95, "\u306A\u3063\u3066": -69, "\u305F\u307E\u305F": -144, "\u304F\u3089\u3044": 79, "\u3046\u3044\u3046": 273, "\u306E\u304A\u3082": -180, "\u304A\u3051\u3070": 121, "\u3059\u3054\u304F": 213, "\u305D\u306E\u6642": 610, "\u3001\u305D\u308C": 408, "\u59CB\u307E\u308B": 32, "\u308D\u3044\u308D": 128, "\u3057\u305F\uFF0E": 155, "\u306A\u3044\u3001": -234, "\u304F\u3066\u306F": -92, "\u3061\u308D\u3093": 170, "\u3060\u3063\u3066": 138, "\u307E\u307E\u306B": 78, "\u30E1\u30FC\u30EB": 8, "\u3088\u3046\u306B": -50, "\u3089\u3057\u304D": 117, "\u306B\u3057\u3066": -22, "\u304F\u3055\u3093": 54, "\u3072\u3068\u3064": 77, "\u308D\u305D\u308D": 62, "\u3042\u307E\u308A": 27, "\u307E\u308B\u3067": 23, "\u8272\u304B\u3089": 11, "\u611F\u3058\u308B": -9, "\u3002\u305D\u3046": 3, "\u7528\u3059\u308B": 4 }, "TW2": { "\u3044\u3068\u3053": -1279, "\u3057\u3066\u304A": -715, "\u3061\u304C\u3046": -834, "\u3067\u306F\u306A": -797, "\u5206\u306B\u3042": -1149, "\u305D\u306E\u307E": -610, "\u3046\u306B\u306A": -487, "\u3069\u3093\u3069": -356, "\u6C17\u306B\u5165": -1868, "\u304B\u3082\u3057": -123, "\u3093\u3067\u3044": -798, "\u304B\u3089\u3057": 361, "\u307E\u308B\u3067": -346, "\u3068\u304C\u3042": -598, "\u304B\u3089\u306A": -431, "\u305D\u3082\u305D": -985, "\u3067\u306F\u3042": -865, "\u3068\u3082\u3042": -408, "\u305D\u306E\u5F8C": -608, "\u308C\u308B\u3053": 251, "\u3092\u3082\u3064": -126, "\u3067\u3082\u3042": -714, "\u304D\u3068\u304A": -5, "\u3068\u306B\u306A": -244, "\u76EE\u306E\u524D": -321, "\u3067\u3082\u306A": -443, "\u3088\u3046\u3084": -146, "\u3042\u308B\u3053": 287, "\u3057\u304B\u306A": 345, "\u3068\u304C\u3067": -255, "\u3066\u3082\u3044": -495, "\u3089\u3068\u8A00": -763, "\u3082\u306E\u3059": -726, "\u3063\u3066\u3053": -146, "\u308B\u306B\u3064": -372, "\u3044\u3066\u3042": -122, "\u3044\u3044\u611F": -342, "\u5973\u306E\u5B50": -759, "\u5168\u304F\u306A": 230, "\u3057\u3066\u3044": -26, "\u3046\u3068\u3057": -40, "\u3068\u3044\u3046": -19, "\u3088\u3046\u306A": -14, "\u307E\u3067\u306B": -20, "\u306A\u308B\u307B": -77, "\u3057\u305F\u3053": -14, "\u306B\u306F\u306A": 14 }, "BW3": { "\u3053\u3068": 458, "\u3061\u306F": -232, "\u3044\u3044": 375, "\u3082\u306E": 1419, "\u3044\u3046": 254, "\u305D\u306E": 814, "\u3057\u3066": 200, "\u306F\u3058": 1177, "\u3067\u304D": 476, "\u304A\u3067": 246, "\u3042\u308B": -151, "\u306A\u308B": 249, "\u3068\u304D": 1060, "\u3053\u308C": 1032, "\u307E\u3068": 955, "\u306A\u3063": -195, "\u307E\u307E": -87, "\u3053\u306E": 990, "\u3046\u307E": 1422, "\u305D\u3046": -889, "\u53D7\u3051": 369, "\u3068\u3044": -384, "\u5206\u304B": 601, "\u4E0A\u304C": 320, "\u5F53\u65E5": 1142, "\u3061\u3087": 865, "\u304A\u308A": -485, "\u5B50\u4F9B": 153, "\u305D\u3053": 245, "\u3086\u308B": -80, "\u6A5F\u5668": -974, "\u3055\u3093": -833, "\u3082\u3089": 1253, "\u305E\u3046": 541, "\u3053\u308D": -229, "\u304B\u3063": -405, "\u306A\u3093": 99, "\u643A\u5E2F": 30, "\u305F\u307E": 488, "\u3053\u305D": -412, "\u3068\u3066": 1132, "\u304B\u306A": 193, "\u3064\u306A": 694, "\u3064\u3076": 242, "\u3088\u308A": -512, "\u305E\u306A": -146, "\u30FB\u30FB": -715, "\u305F\u3081": 593, "\u3068\u3063": 501, "\u306A\u3089": -190, "\u3082\u3046": 1008, "\u77E5\u308B": 17, "\u3067\u3082": 556, "\u30E1\u30FC": 174, "\u3057\u3044": -366, "\u3055\u3044": -294, "\u3068\u601D": -255, "\u3059\u3050": 706, "\u3055\u3042": 496, "\u3088\u304F": 476, "\u304B\u304B": 649, "\u307E\u3082": 368, "\u304B\u3089": -297, "\u3067\u3059": -221, "\u3088\u3046": -126, "\u307E\u3057": -213, "\u3044\u308D": 155, "\u304B\u3051": 749, "\u3053\u307C": 251, "\u3064\u3044": 269, "\u3059\u304B": -218, "\u3044\u3066": -132, "\u96FB\u8A71": -68, "\u307E\u3060": 320, "\u3068\u308A": 664, "\u307F\u305F": -369, "\u305D\u308C": 148, "\u307E\u3041": 609, "\u304B\u3082": -203, "\u3057\u305F": 347, "\u3044\u304B": 335, "\u3059\u3054": 747, "\u59CB\u307E": 48, "\u306A\u304B": 77, "\u3069\u3053": 385, "\u96E3\u3057": 147, "\u3068\u3064": -226, "\u65E5\u304C": 210, "\u308F\u304B": 330, "\u306F\u307E": 424, "\u3042\u3068": 558, "\u304C\u3093": 588, "\u3060\u3051": -176, "\u3082\u3093": 186, "\u305F\u3060": 234, "\u51FA\u6765": -367, "\u3059\u304D": 193, "\u30A2\u30D7": 48, "\u3051\u308C": -163, "\u3046\u3061": 122, "\u5165\u308C": 110, "\u6700\u8FD1": 237, "\u3060\u308D": -314, "\u3082\u3068": 409, "\u304D\u308B": -225, "\u3060\u3044": 249, "\u7269\u8A9E": 88, "\u554F\u984C": 172, "\u306A\u306B": 251, "\u307F\u3093": 214, "\u5927\u4F1A": -128, "\u307E\u3059": -100, "\u3082\u3063": 272, "\u5909\u3048": 385, "\u53CB\u4EBA": 89, "\u59CB\u3081": -141, "\u3067\u3001": 199, "\u3057\u3083": 156, "\u307E\u3067": -187, "\u304D\u307E": -107, "\u9803\u3067": -321, "\u5165\u5834": 125, "\u66F8\u3044": 196, "\u3079\u304D": -93, "\u9762\u767D": 78, "\u3060\u3057": 136, "\u307E\u305B": -89, "\u306F\u308B": 338, "\u305A\u3063": 182, "\u304B\u308F": 85, "\u3068\u3053": 88, "\u624B\u306B": 50, "\u3054\u3068": -247, "\u3064\u3051": 109, "\u306A\u3044": 45, "\u4EE5\u4E0A": -58, "\u3044\u305F": -42, "\u6B69\u304F": 73, "\u4F55\u3067": 71, "\u3044\u307E": 70, "\u305D\u304F": -366, "\u3046\u308C": 108, "\u8003\u3048": 52, "\u3088\u3057": 93, "\u3053\u3060": 48, "\u3069\u3044": -30, "\u3057\u304F": -76, "\u306A\u304F": 30, "\u3048\u3048": 163, "\u306A\u3069": -51, "\u6301\u3063": 63, "\u3044\u3064": 12, "\u306E\u3063": 39, "\u4F7F\u3063": 22, "\u3042\u3075": 177, "\u30EB\u30FC": 27, "\u3061\u308D": -56, "\u306B\u304E": 190, "\u307F\u308D": 181, "\u3082\u3064": 60, "\u901A\u308A": -39, "\u3042\u3066": 47, "\u3053\u3053": 22, "\u307B\u3069": -3, "\u796D\u308A": 26, "\u305D\u3057": 34, "\u6E21\u308B": -6, "\u307E\u3055": 1 }, "TW4": { "\u3042\u308A\u304C": 1289, "\u306A\u305E\u306A": 1250, "\u3088\u3046\u306A": -880, "\u3082\u306F\u3084": 1258, "\u3068\u3053\u308D": 1583, "\u3061\u304C\u3046": 1001, "\u3088\u3046\u306B": -641, "\u3044\u3088\u3044": 589, "\u3042\u308B\u3002": -133, "\u3069\u306E\u3088": 2006, "\u53EF\u80FD\u6027": 1316, "\u3068\u304A\u308A": 901, "\u3088\u3046\u3084": 650, "\u3053\u3068\u304C": -639, "\u30D7\u30ED\u30B0": 741, "\u3044\u3063\u3071": 958, "\u304F\u3089\u3044": 862, "\u3067\u304D\u305F": 906, "\u304B\u306A\u308A": 941, "\u3053\u3068\u306B": -679, "\u3042\u308A\u307E": -429, "\u3053\u3068\u3067": 161, "\u3057\u3066\u4EBA": -717, "\u304A\u308A\u306B": -190, "\u3057\u304B\u3057": 967, "\u308F\u3051\u3067": -292, "\u3053\u3068\u3082": -579, "\u305D\u306E\u307E": 347, "\u3046\u3069\u3093": 792, "\u3044\u3051\u306A": -320, "\u305D\u3046\u3067": -374, "\u30B5\u30FC\u30D3": 54, "\u3057\u305F\u3002": -398, "\u3088\u3046\u3067": -380, "\u3057\u3066\u304A": 277, "\u304A\u308A\u307E": 758, "\u304B\u3063\u305F": -235, "\u3044\u308D\u3044": 677, "\u307E\u3082\u306A": 2, "\u3053\u3068\u3002": 203, "\u3044\u3063\u3066": -270, "\u306A\u3044\u3068": 194, "\u3057\u305F\u304A": -228, "\u306A\u3093\u3068": 529, "\u3053\u3068\u3092": 122, "\u3060\u3063\u305F": -479, "\u3069\u3093\u3069": 313, "\u3053\u3068\u306F": -206, "\u306A\u3093\u3066": -410, "\u306F\u3058\u307E": 29, "\u3053\u308C\u306F": 282, "\u306A\u304B\u306A": 210, "\u5236\u5EA6\u306B": 188, "\u3042\u308B\u3044": -1252, "\u3044\u304F\u3055": -193, "\u3044\u3048\u3070": 263, "\u3072\u3068\u3064": 445, "\u306A\u3044\u3002": 58, "\u3084\u3063\u3066": 87, "\u30E1\u30FC\u30EB": 27, "\u3059\u304D\u3068": 123, "\u306A\u3093\u304B": 132, "\u3057\u3083\u3079": 718, "\u4EAC\u90FD\u306B": 156, "\u306A\u304F\u306A": 66, "\u3044\u304B\u306A": 64, "\u307E\u3063\u3066": -124, "\u306F\u307E\u3063": 106, "\u307F\u3093\u306A": 1, "\u3044\u307E\u3057": -114, "\u3057\u306A\u3044": 80, "\u3088\u308A\u306F": -74, "\u3068\u3053\u304C": 258, "\u3068\u3066\u3082": 1, "\u304D\u308C\u3044": 27, "\u3055\u3089\u306B": 86, "\u3060\u3063\u3066": 79, "\u304A\u3044\u3057": 28, "\u304B\u308F\u3044": 44, "\u624B\u306B\u5165": 15, "\u307F\u305F\u3044": -25, "\u306A\u3093\u3067": -7, "\u3067\u304D\u308B": -1 }, "TW3": { "\u306E\u3088\u3046": -656, "\u3068\u3044\u3046": 381, "\u3066\u3044\u308B": -712, "\u306E\u307E\u307E": -59, "\u306E\u672C\u306F": -859, "\u3078\u3088\u3046": 10, "\u3068\u3057\u305F": -519, "\u306B\u306A\u3063": -248, "\u3066\u3057\u307E": -665, "\u3089\u306A\u3044": -472, "\u308B\u3053\u3068": -167, "\u306E\u3088\u3044": 289, "\u308B\u65B9\u306F": -598, "\u3068\u3053\u308D": -217, "\u5E2F\u96FB\u8A71": -6, "\u304F\u3057\u3066": -456, "\u3068\u3057\u3066": 112, "\u3070\u3044\u3044": -594, "\u3059\u3053\u3068": 284, "\u3066\u307B\u3057": -665, "\u3067\u3042\u3063": -559, "\u3066\u3044\u3046": 428, "\u3001\u305D\u3057": -1770, "\u3046\u3044\u3046": -266, "\u3066\u3044\u304F": -118, "\u3067\u3042\u308B": -324, "\u3068\u8A00\u3063": -594, "\u306F\u307E\u3063": -542, "\u3068\u540C\u6642": -712, "\u3001\u307E\u305F": -382, "\u304C\u3042\u3063": 359, "\u306F\u306A\u3044": -123, "\u3066\u306A\u3044": -177, "\u306B\u3057\u304B": -181, "\u304F\u306A\u3063": -61, "\u3001\u3042\u308B": -182, "\u3066\u304A\u304D": -278, "\u3070\u306A\u3089": -31, "\u306F\u3044\u3048": -116, "\u3082\u3042\u308B": -71, "\u305F\u3053\u3068": -34, "\u306B\u3067\u3082": -166, "\u3068\u3044\u3044": -214, "\u306B\u306A\u3089": 61, "\u3068\u306A\u3063": 22, "\u305F\u305D\u3046": -65, "\u3082\u3057\u304B": -234, "\u3082\u307E\u305F": -45, "\u308B\u305D\u3046": -26, "\u304B\u3069\u3046": -22, "\u306B\u3057\u3066": -7, "\u308A\u3057\u305F": 6, "\u3082\u3044\u3044": -15, "\u306E\u5148\u306B": -21 } };
+    }
+  });
+
+  // node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/data/models/ja_word.js
+  var init_ja_word = __esm({
+    "node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/data/models/ja_word.js"() {
+    }
+  });
+
+  // node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/data/models/th.js
+  var init_th = __esm({
+    "node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/data/models/th.js"() {
+    }
+  });
+
+  // node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/data/models/zh-hans.js
+  var init_zh_hans = __esm({
+    "node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/data/models/zh-hans.js"() {
+    }
+  });
+
+  // node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/data/models/zh-hant.js
+  var init_zh_hant = __esm({
+    "node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/data/models/zh-hant.js"() {
+    }
+  });
+
+  // node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/dom-browser.js
+  var init_dom_browser = __esm({
+    "node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/dom-browser.js"() {
+    }
+  });
+
+  // node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/parser.js
+  var Parser;
+  var init_parser = __esm({
+    "node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/parser.js"() {
+      Parser = class {
+        /**
+         * Constructs a BudouX parser.
+         * @param model A model data.
+         */
+        constructor(model6) {
+          this.model = new Map(Object.entries(model6).map(([k, v]) => [
+            k,
+            new Map(Object.entries(v))
+          ]));
+          this.baseScore = -0.5 * [...this.model.values()].flatMap((group) => [...group.values()]).reduce((prev, curr) => prev + curr, 0);
+        }
+        /**
+         * Parses the input sentence and returns a list of semantic chunks.
+         *
+         * @param sentence An input sentence.
+         * @return The retrieved chunks.
+         */
+        parse(sentence) {
+          if (sentence === "")
+            return [];
+          const boundaries = this.parseBoundaries(sentence);
+          const result = [];
+          let start = 0;
+          for (const boundary of boundaries) {
+            result.push(sentence.slice(start, boundary));
+            start = boundary;
+          }
+          result.push(sentence.slice(start));
+          return result;
+        }
+        /**
+         * Parses the input sentence and returns a list of boundaries.
+         *
+         * @param sentence An input sentence.
+         * @return The list of boundaries.
+         */
+        parseBoundaries(sentence) {
+          var _a;
+          const result = [];
+          const uw1 = this.model.get("UW1");
+          const uw2 = this.model.get("UW2");
+          const uw3 = this.model.get("UW3");
+          const uw4 = this.model.get("UW4");
+          const uw5 = this.model.get("UW5");
+          const uw6 = this.model.get("UW6");
+          const bw1 = this.model.get("BW1");
+          const bw2 = this.model.get("BW2");
+          const bw3 = this.model.get("BW3");
+          const tw1 = this.model.get("TW1");
+          const tw2 = this.model.get("TW2");
+          const tw3 = this.model.get("TW3");
+          const tw4 = this.model.get("TW4");
+          for (let i = 1; i < sentence.length; i++) {
+            if (((_a = sentence.codePointAt(i - 1)) !== null && _a !== void 0 ? _a : 0) > 65535)
+              continue;
+            let score = this.baseScore;
+            score += (uw1 === null || uw1 === void 0 ? void 0 : uw1.get(sentence.substring(i - 3, i - 2))) || 0;
+            score += (uw2 === null || uw2 === void 0 ? void 0 : uw2.get(sentence.substring(i - 2, i - 1))) || 0;
+            score += (uw3 === null || uw3 === void 0 ? void 0 : uw3.get(sentence.substring(i - 1, i))) || 0;
+            score += (uw4 === null || uw4 === void 0 ? void 0 : uw4.get(sentence.substring(i, i + 1))) || 0;
+            score += (uw5 === null || uw5 === void 0 ? void 0 : uw5.get(sentence.substring(i + 1, i + 2))) || 0;
+            score += (uw6 === null || uw6 === void 0 ? void 0 : uw6.get(sentence.substring(i + 2, i + 3))) || 0;
+            score += (bw1 === null || bw1 === void 0 ? void 0 : bw1.get(sentence.substring(i - 2, i))) || 0;
+            score += (bw2 === null || bw2 === void 0 ? void 0 : bw2.get(sentence.substring(i - 1, i + 1))) || 0;
+            score += (bw3 === null || bw3 === void 0 ? void 0 : bw3.get(sentence.substring(i, i + 2))) || 0;
+            score += (tw1 === null || tw1 === void 0 ? void 0 : tw1.get(sentence.substring(i - 3, i))) || 0;
+            score += (tw2 === null || tw2 === void 0 ? void 0 : tw2.get(sentence.substring(i - 2, i + 1))) || 0;
+            score += (tw3 === null || tw3 === void 0 ? void 0 : tw3.get(sentence.substring(i - 1, i + 2))) || 0;
+            score += (tw4 === null || tw4 === void 0 ? void 0 : tw4.get(sentence.substring(i, i + 3))) || 0;
+            if (score > 0)
+              result.push(i);
+          }
+          return result;
+        }
+      };
+    }
+  });
+
+  // node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/html_processor.js
+  var ZWSP_CODEPOINT, ZWSP, DomAction, domActions, WORD_BREAK, OVERFLOW_WRAP, PARENT_CSS_STYLE;
+  var init_html_processor = __esm({
+    "node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/html_processor.js"() {
+      init_dom_browser();
+      init_parser();
+      ZWSP_CODEPOINT = 8203;
+      ZWSP = String.fromCharCode(ZWSP_CODEPOINT);
+      DomAction = {
+        Inline: 0,
+        // An inline content, becomes a part of a paragraph.
+        Block: 1,
+        // A nested paragraph.
+        Skip: 2,
+        // Skip the content. The content before and after are connected.
+        Break: 3,
+        // A forced break. The content before and after become paragraphs.
+        NoBreak: 4,
+        // The content provides context, but it's not breakable.
+        BreakOpportunity: 5
+        // Force a break opportunity.
+      };
+      domActions = {
+        // Hidden elements
+        // https://html.spec.whatwg.org/multipage/rendering.html#hidden-elements
+        AREA: DomAction.Skip,
+        BASE: DomAction.Skip,
+        BASEFONT: DomAction.Skip,
+        DATALIST: DomAction.Skip,
+        HEAD: DomAction.Skip,
+        LINK: DomAction.Skip,
+        META: DomAction.Skip,
+        NOEMBED: DomAction.Skip,
+        NOFRAMES: DomAction.Skip,
+        PARAM: DomAction.Skip,
+        RP: DomAction.Skip,
+        SCRIPT: DomAction.Skip,
+        STYLE: DomAction.Skip,
+        TEMPLATE: DomAction.Skip,
+        TITLE: DomAction.Skip,
+        NOSCRIPT: DomAction.Skip,
+        // Flow content
+        // https://html.spec.whatwg.org/multipage/rendering.html#flow-content-3
+        HR: DomAction.Break,
+        // Disable if `white-space: pre`.
+        LISTING: DomAction.Skip,
+        PLAINTEXT: DomAction.Skip,
+        PRE: DomAction.Skip,
+        XMP: DomAction.Skip,
+        // Phrasing content
+        // https://html.spec.whatwg.org/multipage/rendering.html#phrasing-content-3
+        BR: DomAction.Break,
+        RT: DomAction.Skip,
+        WBR: DomAction.BreakOpportunity,
+        // Form controls
+        // https://html.spec.whatwg.org/multipage/rendering.html#form-controls
+        INPUT: DomAction.Skip,
+        SELECT: DomAction.Skip,
+        BUTTON: DomAction.Skip,
+        TEXTAREA: DomAction.Skip,
+        // Other elements where the phrase-based line breaking should be disabled.
+        // https://github.com/google/budoux/blob/main/budoux/skip_nodes.json
+        ABBR: DomAction.Skip,
+        CODE: DomAction.Skip,
+        IFRAME: DomAction.Skip,
+        TIME: DomAction.Skip,
+        VAR: DomAction.Skip,
+        // Deprecated, but supported in all browsers.
+        // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/nobr
+        NOBR: DomAction.NoBreak
+      };
+      WORD_BREAK = "keep-all";
+      OVERFLOW_WRAP = "anywhere";
+      PARENT_CSS_STYLE = `word-break: ${WORD_BREAK}; overflow-wrap: ${OVERFLOW_WRAP};`;
+    }
+  });
+
+  // node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/index.js
+  var init_module = __esm({
+    "node_modules/.pnpm/budoux@0.10.3/node_modules/budoux/module/index.js"() {
+      init_ja();
+      init_ja_word();
+      init_th();
+      init_zh_hans();
+      init_zh_hant();
+      init_html_processor();
+      init_html_processor();
+      init_parser();
+    }
+  });
+
+  // src/utils/lyrics/icuFolia/budouxJapanese.ts
+  var budouxJapanese_exports = {};
+  __export(budouxJapanese_exports, {
+    createJapaneseParser: () => createJapaneseParser
+  });
+  var createJapaneseParser;
+  var init_budouxJapanese = __esm({
+    "src/utils/lyrics/icuFolia/budouxJapanese.ts"() {
+      init_module();
+      createJapaneseParser = () => new Parser(model);
+    }
+  });
+
+  // icu-folia-stub:virtual:icu-folia-dict
+  var virtual_icu_folia_dict_exports = {};
+  __export(virtual_icu_folia_dict_exports, {
+    DICT_FREQS: () => DICT_FREQS,
+    DICT_TOTAL: () => DICT_TOTAL,
+    DICT_WORDS: () => DICT_WORDS
+  });
+  var DICT_WORDS, DICT_FREQS, DICT_TOTAL;
+  var init_virtual_icu_folia_dict = __esm({
+    "icu-folia-stub:virtual:icu-folia-dict"() {
+      DICT_WORDS = "";
+      DICT_FREQS = "";
+      DICT_TOTAL = 0;
+    }
+  });
+
+  // icu-folia-stub:virtual:icu-folia-hmm
+  var virtual_icu_folia_hmm_exports = {};
+  __export(virtual_icu_folia_hmm_exports, {
+    HMM_EMIT: () => HMM_EMIT,
+    HMM_START: () => HMM_START,
+    HMM_TRANS: () => HMM_TRANS,
+    T2S_PAIRS: () => T2S_PAIRS
+  });
+  var HMM_START, HMM_TRANS, HMM_EMIT, T2S_PAIRS;
+  var init_virtual_icu_folia_hmm = __esm({
+    "icu-folia-stub:virtual:icu-folia-hmm"() {
+      HMM_START = {};
+      HMM_TRANS = {};
+      HMM_EMIT = {};
+      T2S_PAIRS = "";
+    }
+  });
+
+  // src/utils/lyrics/icuFolia/engines.ts
+  var engines_exports = {};
+  __export(engines_exports, {
+    loadIcuFoliaEngines: () => loadIcuFoliaEngines
+  });
+  var MAX_HMM_WORD_LENGTH, createSimplifier, loadIcuFoliaEngines;
+  var init_engines = __esm({
+    "src/utils/lyrics/icuFolia/engines.ts"() {
+      init_jieba();
+      init_jiebaLexicon();
+      MAX_HMM_WORD_LENGTH = 2;
+      createSimplifier = (pairs) => {
+        const map = /* @__PURE__ */ new Map();
+        for (let index = 0; index + 1 < pairs.length; index += 2) map.set(pairs[index], pairs[index + 1]);
+        return (text) => Array.from(text, (char) => map.get(char) ?? char).join("");
+      };
+      loadIcuFoliaEngines = async () => {
+        const [dict, hmm, { createJapaneseParser: createJapaneseParser2 }] = await Promise.all([
+          Promise.resolve().then(() => (init_virtual_icu_folia_dict(), virtual_icu_folia_dict_exports)),
+          Promise.resolve().then(() => (init_virtual_icu_folia_hmm(), virtual_icu_folia_hmm_exports)),
+          Promise.resolve().then(() => (init_budouxJapanese(), budouxJapanese_exports))
+        ]);
+        const jieba = createJieba({
+          words: dict.DICT_WORDS,
+          freqs: dict.DICT_FREQS,
+          total: dict.DICT_TOTAL,
+          hmm: { start: hmm.HMM_START, trans: hmm.HMM_TRANS, emit: hmm.HMM_EMIT }
+        }, { maxHmmWordLength: MAX_HMM_WORD_LENGTH });
+        CHINESE_EXTRA_WORDS.forEach((word) => jieba.addWord(word));
+        CHINESE_DEMOTED_WORDS.forEach((word) => jieba.addWord(word, 1));
+        const simplify = createSimplifier(hmm.T2S_PAIRS);
+        const japanese = createJapaneseParser2();
+        return {
+          cutChinese(text) {
+            let cursor = 0;
+            return jieba.cut(simplify(text)).map((word) => {
+              const original = text.slice(cursor, cursor + word.length);
+              cursor += word.length;
+              return original;
+            });
+          },
+          parseJapanese: (text) => japanese.parse(text)
+        };
+      };
+    }
+  });
+
   // src/render/lyrics/entry.ts
   var entry_exports = {};
   __export(entry_exports, {
     LYRIC_LINE_PRESETS: () => LYRIC_LINE_PRESETS,
     LyricParserFactory: () => LyricParserFactory,
+    applyAutoWordSegmentation: () => applyAutoWordSegmentation,
     applyChorusRangesByTime: () => applyChorusRangesByTime,
     applyDetectedChorusEffects: () => applyDetectedChorusEffects,
     applyLyricLineRules: () => applyLyricLineRules,
@@ -6525,8 +7163,10 @@ var MPFoliaLyrics = (() => {
     compileLyricLineRules: () => compileLyricLineRules,
     detectNonTtmlTimedLyricFormat: () => detectNonTtmlTimedLyricFormat,
     ensureLyricDataRenderHints: () => ensureLyricDataRenderHints,
+    isIcuFoliaReady: () => isIcuFoliaReady,
     isPureMusicLyricLines: () => isPureMusicLyricLines,
     isPureMusicLyricText: () => isPureMusicLyricText,
+    loadIcuFoliaFromData: () => loadIcuFoliaFromData,
     parse: () => parse,
     prepare: () => prepare,
     readLyricOffset: () => readLyricOffset,
@@ -9860,6 +10500,211 @@ var MPFoliaLyrics = (() => {
   };
 
   // src/render/lyrics/entry.ts
+  init_jieba();
+  init_jiebaLexicon();
+  init_budouxJapanese();
+
+  // src/utils/lyrics/icuFolia/lexicon.ts
+  var CHINESE_TRAILING_PARTICLES = /* @__PURE__ */ new Set([
+    "\u7684",
+    "\u5730",
+    "\u5F97",
+    "\u4E86",
+    "\u7740",
+    "\u8457",
+    "\u8FC7",
+    "\u904E",
+    "\u4EEC",
+    "\u5011",
+    "\u5417",
+    "\u55CE",
+    "\u5462",
+    "\u5427",
+    "\u554A",
+    "\u5440",
+    "\u5566",
+    "\u561B",
+    "\u54E6",
+    "\u5594",
+    "\u4E48",
+    "\u9EBC",
+    "\u54C7",
+    "\u5450",
+    "\u54AF",
+    // Cantonese
+    "\u5605",
+    "\u5497",
+    "\u5587",
+    "\u56C9",
+    "\u54A9",
+    "\u35CE",
+    "\u5643",
+    "\u558E",
+    "\u556B",
+    "\u5416",
+    "\u561E"
+  ]);
+  var CHINESE_NON_HOSTS = /* @__PURE__ */ new Set([
+    "\u548C",
+    "\u4E0E",
+    "\u8207",
+    "\u8DDF",
+    "\u540C",
+    "\u53CA",
+    "\u6216",
+    "\u800C",
+    "\u5728",
+    "\u4ECE",
+    "\u5F9E",
+    "\u5411",
+    "\u5BF9",
+    "\u5C0D",
+    "\u628A",
+    "\u88AB",
+    "\u7ED9",
+    "\u7D66",
+    "\u8BA9",
+    "\u8B93",
+    "\u4E3A",
+    "\u70BA",
+    "\u4E5F",
+    "\u90FD",
+    "\u5C31",
+    "\u53C8",
+    "\u518D",
+    "\u8FD8",
+    "\u9084",
+    "\u624D",
+    "\u5F88",
+    "\u592A",
+    "\u6700",
+    "\u66F4",
+    "\u4E0D",
+    "\u6CA1",
+    "\u6C92",
+    "\u522B",
+    "\u5225",
+    "\u672A",
+    "\u662F",
+    "\u4FC2",
+    "\u5514",
+    "\u5187",
+    "\u5572"
+  ]);
+
+  // src/utils/lyrics/icuFolia/segmenter.ts
+  var CJ_PIECE = /^[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ー々〆〇]+$/u;
+  var KANA = /[\p{Script=Hiragana}\p{Script=Katakana}ー]/u;
+  var ALPHABETIC_WORD = /^[\p{L}\p{M}\p{N}]+$/u;
+  var NOT_ALPHABETIC = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
+  var HYPHEN = /^[-‐‑]$/;
+  var HYPHEN_SPLIT = /[-‐‑]/;
+  var isAlphabeticWord = (piece) => ALPHABETIC_WORD.test(piece) && !NOT_ALPHABETIC.test(piece);
+  var icuSegmenter = null;
+  var icuWordPieces = (text) => {
+    icuSegmenter ??= new Intl.Segmenter(void 0, { granularity: "word" });
+    return Array.from(icuSegmenter.segment(text), (part) => part.segment);
+  };
+  var rebuilds = (pieces, text) => pieces.length > 0 && pieces.join("") === text;
+  var attachTrailingParticles = (words) => {
+    const out = [];
+    for (const word of words) {
+      const host = out[out.length - 1];
+      if (host !== void 0 && CHINESE_TRAILING_PARTICLES.has(word) && !CHINESE_NON_HOSTS.has(host)) {
+        out[out.length - 1] = host + word;
+      } else {
+        out.push(word);
+      }
+    }
+    return out;
+  };
+  var cutCjRun = (run, icuPieces, engines2) => {
+    if (!engines2) {
+      return icuPieces;
+    }
+    if (KANA.test(run)) {
+      const bunsetsu = engines2.parseJapanese(run);
+      return rebuilds(bunsetsu, run) ? bunsetsu : icuPieces;
+    }
+    const words = engines2.cutChinese(run);
+    return rebuilds(words, run) ? attachTrailingParticles(words) : icuPieces;
+  };
+  var joinHyphenatedWords = (pieces) => {
+    const out = [];
+    for (let index = 0; index < pieces.length; index += 1) {
+      const piece = pieces[index];
+      const previous = out[out.length - 1];
+      const next = pieces[index + 1];
+      if (HYPHEN.test(piece) && previous !== void 0 && next !== void 0 && isAlphabeticWord(previous.split(HYPHEN_SPLIT).pop() ?? "") && isAlphabeticWord(next)) {
+        out[out.length - 1] = previous + piece + next;
+        index += 1;
+      } else {
+        out.push(piece);
+      }
+    }
+    return out;
+  };
+  var segmentWithIcuFolia = (text, engines2) => {
+    if (!text) {
+      return [];
+    }
+    const pieces = icuWordPieces(text);
+    const out = [];
+    let index = 0;
+    while (index < pieces.length) {
+      if (!CJ_PIECE.test(pieces[index])) {
+        out.push(pieces[index]);
+        index += 1;
+        continue;
+      }
+      const runPieces = [];
+      while (index < pieces.length && CJ_PIECE.test(pieces[index])) {
+        runPieces.push(pieces[index]);
+        index += 1;
+      }
+      out.push(...cutCjRun(runPieces.join(""), runPieces, engines2));
+    }
+    return joinHyphenatedWords(out);
+  };
+
+  // src/utils/lyrics/icuFolia/index.ts
+  var engines = null;
+  var loading = null;
+  var loadIcuFolia = (loader = async () => (await Promise.resolve().then(() => (init_engines(), engines_exports))).loadIcuFoliaEngines()) => {
+    loading ??= loader().then(
+      (loaded) => {
+        engines = loaded;
+        return true;
+      },
+      (error) => {
+        console.warn("[icu-folia] engines failed to load, lyrics keep the ICU split", error);
+        return false;
+      }
+    );
+    return loading;
+  };
+  var isIcuFoliaReady = () => engines !== null;
+  var sameBoundaries = (a, b) => a !== void 0 && a.length === b.length && a.every((segment, index) => segment === b[index]);
+  var applyAutoWordSegmentation = (lyrics) => {
+    if (!lyrics || !engines) {
+      return lyrics;
+    }
+    let changed = false;
+    const lines = lyrics.lines.map((line) => {
+      if (!line.fullText) {
+        return line;
+      }
+      const boundaries = segmentWithIcuFolia(line.fullText, engines);
+      if (sameBoundaries(line.autoWordSegments, boundaries)) {
+        return line;
+      }
+      changed = true;
+      return { ...line, autoWordSegments: boundaries };
+    });
+    return changed ? { ...lyrics, lines } : lyrics;
+  };
+
+  // src/render/lyrics/entry.ts
   function parse(source, options = {}) {
     return LyricParserFactory.parse(source, options);
   }
@@ -9874,6 +10719,35 @@ var MPFoliaLyrics = (() => {
     if (ranges.length > 0) return applyChorusRangesByTime(next, ranges);
     const rebuilt = next.lines.map((line) => `[00:00.00]${line.fullText}`).join("\n");
     return applyDetectedChorusEffects(next, rebuilt);
+  }
+  function loadIcuFoliaFromData(data) {
+    return loadIcuFolia(async () => {
+      const { dict, hmm } = data;
+      const jieba = createJieba({
+        words: dict.words,
+        freqs: dict.freqs,
+        total: dict.total,
+        hmm: { start: hmm.start, trans: hmm.trans, emit: hmm.emit }
+      }, { maxHmmWordLength: 2 });
+      CHINESE_EXTRA_WORDS.forEach((word) => jieba.addWord(word));
+      CHINESE_DEMOTED_WORDS.forEach((word) => jieba.addWord(word, 1));
+      const map = /* @__PURE__ */ new Map();
+      for (let index = 0; index + 1 < hmm.t2s.length; index += 2) map.set(hmm.t2s[index], hmm.t2s[index + 1]);
+      const simplify = (text) => Array.from(text, (char) => map.get(char) ?? char).join("");
+      const japanese = createJapaneseParser();
+      const engines2 = {
+        cutChinese(text) {
+          let cursor = 0;
+          return jieba.cut(simplify(text)).map((word) => {
+            const original = text.slice(cursor, cursor + word.length);
+            cursor += word.length;
+            return original;
+          });
+        },
+        parseJapanese: (text) => japanese.parse(text)
+      };
+      return engines2;
+    });
   }
   return __toCommonJS(entry_exports);
 })();
