@@ -72,6 +72,7 @@ docs/                        移植/架构说明
 - Folia 资源 URL 需相对 `document.baseURI` 解析为绝对地址；Vite 的 `import.meta.glob` 不存在。
 - Folia 的 paper-shaders 包装靠 React 19 的 ref-as-prop；宿主固定 React 18.3.1，必须用 vendored 的 `forwardRef` 包装（否则背景无鼓动、暂停不停）。详见 [docs/pitfalls.md](docs/pitfalls.md)。
 - 改背景/样式源码或 `src/render/folia/vendor/**` 后，先重建对应 bundle（`build-backgrounds` / `build-pendolo` / `build-styles`），再 `build-client`；`client.js --check` 不会发现 bundle 过期。
+- 歌词处理走 Folia 的流水线：`src/utils/lyrics/**` 是上游逐字副本（`src/types.ts` 只是 `src/render/folia/types.ts` 的同一模块），`src/render/lyrics/entry.ts` 编成 `lyrics.bundle.js` 并由 client 注入；改它们之后先 `build-lyrics` 再 `build-client`，`client.js --check` 不会发现 bundle 过期。
 - `VisualizerShell` 必须 `forwardRef` 转发容器 ref，否则心象的 ResizeObserver 拿不到尺寸。
 - 已移除功能对应的偏好要迁移到 `monet`；新增迁移保持同样行为。
 
