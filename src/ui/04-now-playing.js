@@ -1117,6 +1117,8 @@ function WaveSeekBar(props) {
   var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
   var progressRef = useRef(progress)
   var durationRef = useRef(duration)
+  var morphRef = useRef(props.wave === false ? 0 : 1)
+  var targetMorphRef = useRef(props.wave === false ? 0 : 1)
   var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0
   var bufferedRef = useRef(buffered)
   progressRef.current = progress
@@ -1153,6 +1155,12 @@ function WaveSeekBar(props) {
       }
     },
     [props.beat, props.beatSensitivity],
+  )
+  useEffect(
+    function () {
+      targetMorphRef.current = props.wave === false ? 0 : 1
+    },
+    [props.wave],
   )
   var playing = props.playing === true
   var active = props.active !== false
@@ -1213,39 +1221,14 @@ function WaveSeekBar(props) {
         var h = canvas.height / dpr
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
         ctx.clearRect(0, 0, w, h)
-        if (props.wave === false) {
-          var trackY = h / 2
-          var trackH = 4
-          function pill(ctx2, x, width, color) {
-            if (width <= 0) return
-            ctx2.fillStyle = color
-            if (typeof ctx2.roundRect === 'function') {
-              ctx2.beginPath()
-              ctx2.roundRect(x, trackY - trackH / 2, width, trackH, trackH / 2)
-              ctx2.fill()
-            } else {
-              ctx2.fillRect(x, trackY - trackH / 2, width, trackH)
-            }
-          }
-          ctx.globalAlpha = 1
-          pill(ctx, 0, w, 'rgba(255,255,255,.16)')
-          if (durationRef.current > 0 && bufferedRef.current > 0) {
-            pill(ctx, 0, Math.min(1, bufferedRef.current / durationRef.current) * w, 'rgba(255,255,255,.28)')
-          }
-          var playedW = progressRef.current * w
-          pill(ctx, 0, playedW, colorOf(palette[0] || accent, 0.96))
-          ctx.fillStyle = '#f7f7f8'
-          ctx.beginPath()
-          ctx.arc(Math.max(5, Math.min(w - 5, playedW)), trackY, 5, 0, Math.PI * 2)
-          ctx.fill()
-          if (hoverRef.current !== null) {
-            ctx.fillStyle = 'rgba(255,255,255,.3)'
-            ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
-          }
-          return
-        }
         var playingNow = playingRef.current
-        var data = playingNow && props.wave !== false ? player.getWave() : null
+        var morph = morphRef.current
+        var morphTarget = targetMorphRef.current
+        morph += (morphTarget - morph) * 0.16
+        if (Math.abs(morph - morphTarget) < 0.004) morph = morphTarget
+        morphRef.current = morph
+        var waveOn = morphTarget > 0 || morph > 0.01
+        var data = playingNow && waveOn ? player.getWave() : null
         var gains = gainsRef.current
         var beat = beatTracker.update(data, playingNow, gains.sensitivity) * gains.beat
         var beatSpeedGain = gains.speed
@@ -1267,7 +1250,6 @@ function WaveSeekBar(props) {
         }
         var peak = 0.4
         for (var p = 0; p < raw.length; p += 1) peak = Math.max(peak, raw[p])
-        var barW = Math.max(1, (w / bands) * 0.58 * (1 - beat * Math.min(0.35, beatScaleGain * 0.5)))
         var gap = w / bands
         function mixFeature(list, t) {
           if (!list.length) return accent
@@ -1288,8 +1270,11 @@ function WaveSeekBar(props) {
         var phaseDelta = Math.min(0.1, (now - lastPhaseAt) / 1000)
         lastPhaseAt = now
         phase = (phase + phaseDelta * 0.0625 * (1 + beat * beatSpeedGain)) % 1
-        ctx.globalAlpha = 0.92 + beat * 0.08
+        ctx.globalAlpha = 1
         var mid = (bands - 1) / 2
+        var railHalf = 2
+        var bufferedRatio =
+          durationRef.current > 0 ? Math.min(1, bufferedRef.current / durationRef.current) : 0
         for (var k = 0; k < bands; k += 1) {
           var dist = Math.abs(k - mid) / mid
           var bandIndex = Math.min(spectrumBands - 1, Math.round(dist * (spectrumBands - 1)))
@@ -1297,16 +1282,30 @@ function WaveSeekBar(props) {
           level = 0.02 + Math.min(1, level) * 0.98
           var prev = levels[k] || 0
           levels[k] = level > prev ? level : prev * 0.45 + level * 0.55
-          var half = ((levels[k] * h) / 2) * (1 + beat * beatIntensityGain)
-          if (half > h * 0.5) half = h * 0.5
-          if (half < 1) continue
+          var targetHalf = ((levels[k] * h) / 2) * (1 + beat * beatIntensityGain)
+          if (targetHalf > h * 0.5) targetHalf = h * 0.5
+          if (targetHalf < railHalf) targetHalf = railHalf
+          var half = railHalf + (targetHalf - railHalf) * morph
+          var barW = gap * (1 - 0.42 * morph)
+          var x = k * gap + (gap - barW) / 2
           var centerRatio = (k + 0.5) / bands
           var played = centerRatio <= progressRef.current
-          var feature = mixFeature(palette, phase + dist * 0.72 * (1 + beat * beatWarpGain))
-          ctx.fillStyle = colorOf(feature, played ? 0.96 : 0.32)
-          var x = k * gap + (gap - barW) / 2
-          var radius = Math.min(barW / 2, 4, half)
-          if (typeof ctx.roundRect === 'function') {
+          var buffered = centerRatio <= bufferedRatio
+          if (played) {
+            ctx.fillStyle = colorOf(
+              mixFeature(palette, phase + dist * 0.72 * (1 + beat * beatWarpGain)),
+              0.96,
+            )
+          } else if (buffered) {
+            ctx.fillStyle = 'rgba(255,255,255,.28)'
+          } else {
+            ctx.fillStyle = 'rgba(255,255,255,' + (0.16 + 0.16 * morph).toFixed(3) + ')'
+          }
+          var radius = Math.min(barW / 2, 4, half) * Math.min(1, morph * 2)
+          if (morph < 0.05 && (k === 0 || k === bands - 1)) radius = Math.min(2, half)
+          if (morph < 0.02) {
+            ctx.fillRect(k * gap, h / 2 - half, gap + 0.5, half * 2)
+          } else if (typeof ctx.roundRect === 'function') {
             ctx.beginPath()
             ctx.roundRect(x, h / 2 - half, barW, half * 2, [radius, radius, radius, radius])
             ctx.fill()
@@ -1314,13 +1313,15 @@ function WaveSeekBar(props) {
             ctx.fillRect(x, h / 2 - half, barW, half * 2)
           }
         }
-        ctx.globalAlpha = 1
         if (durationRef.current > 0) {
           var headX = progressRef.current * w
-          ctx.fillStyle = 'rgba(255,255,255,.9)'
-          ctx.fillRect(Math.max(0, Math.min(w - 1.5, headX - 0.75)), 2, 1.5, h - 4)
+          if (morph > 0.08) {
+            ctx.fillStyle = 'rgba(255,255,255,' + (0.22 + 0.68 * morph).toFixed(3) + ')'
+            ctx.fillRect(Math.max(0, Math.min(w - 1.5, headX - 0.75)), 2, 1.5, h - 4)
+          }
+          ctx.fillStyle = '#f7f7f8'
           ctx.beginPath()
-          ctx.arc(Math.max(3, Math.min(w - 3, headX)), h / 2, 3, 0, Math.PI * 2)
+          ctx.arc(Math.max(5, Math.min(w - 5, headX)), h / 2, 5 - 2 * morph, 0, Math.PI * 2)
           ctx.fill()
         }
         if (hoverRef.current !== null && durationRef.current > 0) {
@@ -1338,7 +1339,7 @@ function WaveSeekBar(props) {
         drawRef.current = null
       }
     },
-    [accent, active, props.wave],
+    [accent, active],
   )
   useEffect(
     function () {
