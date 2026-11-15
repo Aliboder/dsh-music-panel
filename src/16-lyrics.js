@@ -278,6 +278,8 @@ function lyricFilterRules() {
  * fetched once on demand and the result is memoised. Resolves false when unavailable.
  */
 var icuFoliaPromise = null
+// The lyrics shown when the engines finish loading are re-baked exactly once.
+var icuFoliaRebaked = false
 function ensureIcuFoliaData() {
   if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return Promise.resolve(false)
   if (typeof MPFoliaLyrics.loadIcuFoliaFromData !== 'function') return Promise.resolve(false)

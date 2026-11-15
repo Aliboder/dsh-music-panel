@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### 修复：歌词样式闪烁 / 抖动 / 空白的无限重载
+
+- 回归来自 icu-folia 的「引擎就绪后重烘焙」：`icuLoad.then` 用一个本次 effect
+  内的 `appliedAutoSegmentation` 判断要不要 `setLyricReload`。但引擎加载 promise
+  在解析歌词的 `await` 之前就 resolve，回调先跑，标志还是 false，于是每一轮都重载，
+  形成「取歌词 → 解析 → setLyrics → 再重载」的死循环；`lines` 数组每轮都是新引用，
+  视觉器反复重建布局——莫奈闪烁、时计抖动、浮名（lumiere）还没画完就被重置成空白。
+  上一轮词典资源 404 时引擎加载返回 false，所以问题在 DSH 重启后才暴露。
+- 修法：重烘焙改成模块级一次性开关（`icuFoliaRebaked`），只在引擎首次就绪时重跑
+  一次歌词加载；删掉每个 effect 内的标志。
+- 验证：引擎就绪时只重载一次（逻辑推演 + 构建检查 + 全量测试）；用真实网易云响应
+  验证 lumiere 的 `buildStructureLines` 拿到全部 49 行（不是数据被滤掉）。
+
 ### 网易云逐词排查
 
 - 用运行中的 Host 实测：用户最近播放的网易云歌里 27649067 / 16818144 / 17753288

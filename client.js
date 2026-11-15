@@ -9525,6 +9525,8 @@ window.__ModuleLoader__.load({
      * fetched once on demand and the result is memoised. Resolves false when unavailable.
      */
     var icuFoliaPromise = null
+    // The lyrics shown when the engines finish loading are re-baked exactly once.
+    var icuFoliaRebaked = false
     function ensureIcuFoliaData() {
       if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return Promise.resolve(false)
       if (typeof MPFoliaLyrics.loadIcuFoliaFromData !== 'function') return Promise.resolve(false)
@@ -158728,15 +158730,19 @@ window.__ModuleLoader__.load({
                 // credits policy. The old ad-hoc parse stays as the fallback.
                 var pureMusicNotice = false
                 var lines = null
-                var appliedAutoSegmentation = false
                 var usedFolia = false
                 // Folia loads icu-folia's engines lazily and re-bakes the shown lyrics when they
-                // land. Fire the load with the first online lyric; the promise below re-runs this
-                // effect once if the engines were not ready for this pass.
+                // land. Fire the load with the first online lyric; if the engines were not ready
+                // for this pass, re-run the effect ONCE to bake them.
+                //
+                // The reload must be a module-level one-shot: a per-run flag would be false at the
+                // time an already-resolved loader promise fires (the parse above is still awaiting),
+                // so every run would reload again — an endless fetch/parse/setLyrics loop that
+                // restarts the visualizers (style flash, jitter, empty layouts).
                 var icuLoad = ensureIcuFoliaData()
                 icuLoad.then(function (ready) {
-                  if (!ready || cancelled) return
-                  if (appliedAutoSegmentation) return
+                  if (!ready || icuFoliaRebaked) return
+                  icuFoliaRebaked = true
                   setLyricReload(function (value) {
                     return value + 1
                   })
@@ -158761,7 +158767,6 @@ window.__ModuleLoader__.load({
                     if (document && typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
                       && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
                       document = MPFoliaLyrics.applyAutoWordSegmentation(document)
-                      appliedAutoSegmentation = true
                     }
                     if (document && Array.isArray(document.lines) && document.lines.length > 0) {
                       lines = linesFromFoliaDocument(document)
