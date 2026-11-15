@@ -56,28 +56,11 @@ function foliaStyleLines(raw, title, artist) {
       if (data !== null && data !== undefined && Array.isArray(data.lines)) lines = data.lines
     } catch (error) {}
   }
-  return lines
-    .filter(function (line) {
-      return line && typeof line.fullText === 'string' && line.fullText.trim() !== ''
-    })
-    .map(function (line, index) {
-    var text = line && typeof line.fullText === 'string' ? line.fullText : ''
-    var start = Number(line && line.startTime) || 0
-    var end = Number(line && line.endTime) || start + 4
-    var words = line && Array.isArray(line.words)
-      ? line.words.filter(function (word) { return word && typeof word.text === 'string' })
-      : []
-    if (words.length === 0 && typeof FOLIA_PENDOLO !== 'undefined' && FOLIA_PENDOLO !== null
-      && typeof FOLIA_PENDOLO.buildTimedWords === 'function') {
-      words = FOLIA_PENDOLO.buildTimedWords(text, start, end)
-    }
-    return Object.assign({}, line, {
-      id: line && line.id ? line.id : 'folia-line-' + index,
-      fullText: text,
-      startTime: start,
-      endTime: end,
-      words: words,
-    })
+  // The lines are already Folia's own (or converted by foliaPendoloLines above):
+  // pass them on untouched, as Folia's app does. Rebuilding `words` here used to
+  // re-derive timings a second time and drift from the parser.
+  return lines.filter(function (line) {
+    return line && typeof line.fullText === 'string' && line.fullText.trim() !== ''
   })
 }
 
@@ -328,7 +311,7 @@ function foliaPlainFallback(props) {
         return h(
           'div',
           { key: String(index), className: 'mp-np-line' + (index === Number(props && props.active) ? ' is-active' : '') },
-          h('div', { className: 'mp-np-line-text' }, line && typeof line.text === 'string' ? line.text : ''),
+          h('div', { className: 'mp-np-line-text' }, line && typeof line.fullText === 'string' ? line.fullText : line && typeof line.text === 'string' ? line.text : ''),
         )
       }),
     ),

@@ -237,7 +237,9 @@ ${body}
           foliaAudioBandsFromWave: typeof foliaAudioBandsFromWave === 'function' ? foliaAudioBandsFromWave : null,
           // Lyric pipeline: the Folia document → renderer lines bridge, and the Folia Line
           // conversion the styles use; tests assert fields survive the two hops.
-          linesFromFoliaDocument: typeof linesFromFoliaDocument === 'function' ? linesFromFoliaDocument : null,
+          foliaLyricLines: typeof foliaLyricLines === 'function' ? foliaLyricLines : null,
+          legacyLinesToFolia: typeof legacyLinesToFolia === 'function' ? legacyLinesToFolia : null,
+          mpLineStart: typeof mpLineStart === 'function' ? mpLineStart : null,
           lyricFilterRules: typeof lyricFilterRules === 'function' ? lyricFilterRules : null,
           readSavedLyricOffset: typeof readSavedLyricOffset === 'function' ? readSavedLyricOffset : null,
           rememberLyricOffset: typeof rememberLyricOffset === 'function' ? rememberLyricOffset : null,

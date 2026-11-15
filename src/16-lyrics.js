@@ -187,42 +187,71 @@ function wordSpans(line, atSeconds) {
   var now = Number(atSeconds)
   if (!isFinite(now)) return null
   return line.words.map(function (word) {
-    return { text: word.text, sung: now >= word.t - 0.02 }
+    var at = isFinite(Number(word.startTime)) ? Number(word.startTime) : Number(word.t)
+    return { text: word.text, sung: now >= at - 0.02 }
   })
 }
 /**
- * Folia's `LyricData` → the renderer's line shape.
+ * Folia's `Line` is the player's lyric line, exactly as the parser produced it.
  *
- * Folia's parser owns word timing, translations, romanization and the staff-credit
- * policy; the player and the visualizer read `{time, end, text, translation, words}`.
- * Keeping this the only bridge means the two pipelines cannot drift.
+ * Folia's own app keeps `LyricData.lines` in the store and hands those very objects
+ * to the visualizers; there is no second shape. The plugin does the same: the player
+ * stores these lines, the stage converts nothing, and `startTime`/`endTime`/`fullText`/
+ * `words[].startTime` are read with Folia's names everywhere. Only legacy producers
+ * (the Host's `/lyrics` route, the LRC fallback, the match dialogs) still emit
+ * `{time, end, text, words:[{t,end,text}]}`, and they go through `legacyLinesToFolia`.
  */
-function linesFromFoliaDocument(document) {
+function foliaLyricLines(document) {
   var source = document && Array.isArray(document.lines) ? document.lines : []
-  return source
+  return source.filter(function (line) {
+    return line && isFinite(Number(line.startTime))
+  })
+}
+
+/** Legacy `{time,end,text,translation,words:[{t,end,text}]}` → Folia's `Line`. */
+function legacyLinesToFolia(lines) {
+  return (Array.isArray(lines) ? lines : [])
     .map(function (line) {
-      if (!line || !isFinite(Number(line.startTime))) return null
+      if (!line || !isFinite(Number(line.time))) return null
+      var start = Number(line.time) || 0
+      var end = Number(line.end)
+      if (!isFinite(end) || end <= start) end = start + 4
       return {
-        time: Number(line.startTime) || 0,
-        end: Number(line.endTime) || 0,
-        text: String(line.fullText || ''),
-        translation: typeof line.translation === 'string' ? line.translation : '',
+        fullText: String(line.text || ''),
+        startTime: start,
+        endTime: end,
         words: (Array.isArray(line.words) ? line.words : [])
           .filter(function (word) {
             return word && String(word.text || '') !== ''
           })
           .map(function (word) {
-            return { t: Number(word.startTime) || 0, end: Number(word.endTime) || 0, text: String(word.text || '') }
+            var wordStart = Number(word.t)
+            var wordEnd = Number(word.end)
+            return {
+              text: String(word.text || ''),
+              startTime: isFinite(wordStart) ? wordStart : start,
+              endTime: isFinite(wordEnd) && wordEnd > wordStart ? wordEnd : start,
+            }
           }),
-        isChorus: line.isChorus === true,
-        // The original Folia Line, untouched: visualizer styles read fields the
-        // renderer does not use (renderHints, wordSegments, chorusEffect, …).
-        folia: line,
+        translation: typeof line.translation === 'string' ? line.translation : '',
+        ...(line.isChorus === true ? { isChorus: true } : {}),
       }
     })
     .filter(function (line) {
-      return line !== null && line.text !== ''
+      return line !== null
     })
+}
+
+/** Folia's line start in seconds (Folia's `startTime`, legacy `time` for old producers). */
+function mpLineStart(line) {
+  if (!line) return NaN
+  return isFinite(Number(line.startTime)) ? Number(line.startTime) : Number(line.time)
+}
+
+/** Folia's line end in seconds (Folia's `endTime`, legacy `end` for old producers). */
+function mpLineEnd(line) {
+  if (!line) return NaN
+  return isFinite(Number(line.endTime)) ? Number(line.endTime) : Number(line.end)
 }
 
 /**

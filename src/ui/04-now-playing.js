@@ -5,13 +5,13 @@
 
 function lyricActiveIndex(lines, seconds) {
   if (!Array.isArray(lines) || lines.length === 0) return -1
-  if (lines[0].time < 0) return -1
+  if (mpLineStart(lines[0]) < 0) return -1
   var low = 0
   var high = lines.length - 1
   var found = -1
   while (low <= high) {
     var mid = (low + high) >> 1
-    if (lines[mid].time <= seconds + 0.05) {
+    if (mpLineStart(lines[mid]) <= seconds + 0.05) {
       found = mid
       low = mid + 1
     } else {
@@ -1759,7 +1759,8 @@ function NowPlaying(props) {
     if (props.open !== true || prefs.themeSource !== 'cover') return undefined
     if (trackPath === '' || typeof mpEnsureLocalTheme !== 'function') return undefined
     var text = lyrics.map(function (line) {
-      return line && typeof line.text === 'string' ? line.text : ''
+      if (!line) return ''
+      return typeof line.fullText === 'string' ? line.fullText : typeof line.text === 'string' ? line.text : ''
     }).join('\n')
     mpEnsureLocalTheme({
       key: trackPath,
@@ -1864,7 +1865,7 @@ function NowPlaying(props) {
   var vinyl = circular
   var lyricSize = prefs.lyricSize || 18
   var translationSize = Math.round((lyricSize * (prefs.translationScale || 80)) / 100)
-  var lyricsTimed = lyrics.length > 0 && lyrics[0].time >= 0
+  var lyricsTimed = lyrics.length > 0 && mpLineStart(lyrics[0]) >= 0
   // ReplayGain values from the file's tags, and which lyric sources it has.
   var gainPair = useState(null)
   // The song's tag gain goes to the player, which uses it when the balance has no reading.
@@ -1966,12 +1967,12 @@ function NowPlaying(props) {
           : ''
   var lyricsText = lyrics
     .map(function (line) {
-      var total = Number(line.time) || 0
+      var total = mpLineStart(line) || 0
       var minutes = Math.floor(total / 60)
       var seconds = total % 60
       var stamp =
         '[' + (minutes < 10 ? '0' : '') + String(minutes) + ':' + (seconds < 10 ? '0' : '') + seconds.toFixed(2) + ']'
-      var text = stamp + String(line.text || '')
+      var text = stamp + String(line.fullText !== undefined ? line.fullText : line.text || '')
       if (line.translation) text += '\n' + stamp + String(line.translation)
       return text
     })
@@ -2051,7 +2052,8 @@ function NowPlaying(props) {
                   document = MPFoliaLyrics.applyAutoWordSegmentation(document)
                 }
                 if (document && Array.isArray(document.lines) && document.lines.length > 0) {
-                  lines = linesFromFoliaDocument(document)
+                  // Folia's own lines, verbatim: no renderer shape in between.
+                  lines = foliaLyricLines(document)
                   usedFolia = true
                 }
               } catch (error) {
@@ -2065,6 +2067,7 @@ function NowPlaying(props) {
               if (body.translation) mergeLyricTranslation(lines, body.translation)
               // Word-level timeline (only present when the platform has one).
               attachWordTimeline(lines, body.lines)
+              lines = legacyLinesToFolia(lines)
             }
             // One line of diagnostics per lyric load: if a word-by-word effect is missing,
             // this says whether the client ever received word timings at all.
@@ -2159,11 +2162,11 @@ function NowPlaying(props) {
   var lyricFocus = lyricScroll.manualIndex >= 0 ? lyricScroll.manualIndex : active
 
   function seekLine(line, index) {
-    if (!line || line.time < 0) return
+    if (!line || mpLineStart(line) < 0) return
     // Clicking is the explicit "follow this line" gesture; wheel browsing alone
     // must not resume the auto-scroll spring.
     lyricScroll.resume(index)
-    player.seek(line.time + offsetMs / 1000)
+    player.seek(mpLineStart(line) + offsetMs / 1000)
   }
 
   function applyOffset(delta) {

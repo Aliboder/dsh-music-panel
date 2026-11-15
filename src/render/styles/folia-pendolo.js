@@ -110,7 +110,7 @@ function foliaPendoloLines(lines) {
 
   function nextStart(index) {
     for (var i = index + 1; i < source.length; i += 1) {
-      var value = Number(source[i] && source[i].time)
+      var value = mpLineStart(source[i])
       if (isFinite(value) && value >= 0) return value
     }
     return undefined
@@ -118,6 +118,12 @@ function foliaPendoloLines(lines) {
 
   for (var index = 0; index < source.length; index += 1) {
     var line = source[index] || {}
+    // Folia's own Line (the parser's output, passed through the player untouched):
+    // hand it to the styles as it is. Only its wrapper index is added.
+    if (typeof line.fullText === 'string' && isFinite(Number(line.startTime))) {
+      out.push(Object.assign({}, line, { sourceIndex: index }))
+      continue
+    }
     var start = Number(line.time)
     if (!isFinite(start) || start < 0) continue
     var text = typeof line.text === 'string' ? line.text : ''

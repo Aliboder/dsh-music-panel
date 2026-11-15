@@ -9434,42 +9434,71 @@ window.__ModuleLoader__.load({
       var now = Number(atSeconds)
       if (!isFinite(now)) return null
       return line.words.map(function (word) {
-        return { text: word.text, sung: now >= word.t - 0.02 }
+        var at = isFinite(Number(word.startTime)) ? Number(word.startTime) : Number(word.t)
+        return { text: word.text, sung: now >= at - 0.02 }
       })
     }
     /**
-     * Folia's `LyricData` → the renderer's line shape.
+     * Folia's `Line` is the player's lyric line, exactly as the parser produced it.
      *
-     * Folia's parser owns word timing, translations, romanization and the staff-credit
-     * policy; the player and the visualizer read `{time, end, text, translation, words}`.
-     * Keeping this the only bridge means the two pipelines cannot drift.
+     * Folia's own app keeps `LyricData.lines` in the store and hands those very objects
+     * to the visualizers; there is no second shape. The plugin does the same: the player
+     * stores these lines, the stage converts nothing, and `startTime`/`endTime`/`fullText`/
+     * `words[].startTime` are read with Folia's names everywhere. Only legacy producers
+     * (the Host's `/lyrics` route, the LRC fallback, the match dialogs) still emit
+     * `{time, end, text, words:[{t,end,text}]}`, and they go through `legacyLinesToFolia`.
      */
-    function linesFromFoliaDocument(document) {
+    function foliaLyricLines(document) {
       var source = document && Array.isArray(document.lines) ? document.lines : []
-      return source
+      return source.filter(function (line) {
+        return line && isFinite(Number(line.startTime))
+      })
+    }
+
+    /** Legacy `{time,end,text,translation,words:[{t,end,text}]}` → Folia's `Line`. */
+    function legacyLinesToFolia(lines) {
+      return (Array.isArray(lines) ? lines : [])
         .map(function (line) {
-          if (!line || !isFinite(Number(line.startTime))) return null
+          if (!line || !isFinite(Number(line.time))) return null
+          var start = Number(line.time) || 0
+          var end = Number(line.end)
+          if (!isFinite(end) || end <= start) end = start + 4
           return {
-            time: Number(line.startTime) || 0,
-            end: Number(line.endTime) || 0,
-            text: String(line.fullText || ''),
-            translation: typeof line.translation === 'string' ? line.translation : '',
+            fullText: String(line.text || ''),
+            startTime: start,
+            endTime: end,
             words: (Array.isArray(line.words) ? line.words : [])
               .filter(function (word) {
                 return word && String(word.text || '') !== ''
               })
               .map(function (word) {
-                return { t: Number(word.startTime) || 0, end: Number(word.endTime) || 0, text: String(word.text || '') }
+                var wordStart = Number(word.t)
+                var wordEnd = Number(word.end)
+                return {
+                  text: String(word.text || ''),
+                  startTime: isFinite(wordStart) ? wordStart : start,
+                  endTime: isFinite(wordEnd) && wordEnd > wordStart ? wordEnd : start,
+                }
               }),
-            isChorus: line.isChorus === true,
-            // The original Folia Line, untouched: visualizer styles read fields the
-            // renderer does not use (renderHints, wordSegments, chorusEffect, …).
-            folia: line,
+            translation: typeof line.translation === 'string' ? line.translation : '',
+            ...(line.isChorus === true ? { isChorus: true } : {}),
           }
         })
         .filter(function (line) {
-          return line !== null && line.text !== ''
+          return line !== null
         })
+    }
+
+    /** Folia's line start in seconds (Folia's `startTime`, legacy `time` for old producers). */
+    function mpLineStart(line) {
+      if (!line) return NaN
+      return isFinite(Number(line.startTime)) ? Number(line.startTime) : Number(line.time)
+    }
+
+    /** Folia's line end in seconds (Folia's `endTime`, legacy `end` for old producers). */
+    function mpLineEnd(line) {
+      if (!line) return NaN
+      return isFinite(Number(line.endTime)) ? Number(line.endTime) : Number(line.end)
     }
 
     /**
@@ -30276,7 +30305,7 @@ window.__ModuleLoader__.load({
 
       function nextStart(index) {
         for (var i = index + 1; i < source.length; i += 1) {
-          var value = Number(source[i] && source[i].time)
+          var value = mpLineStart(source[i])
           if (isFinite(value) && value >= 0) return value
         }
         return undefined
@@ -30284,6 +30313,12 @@ window.__ModuleLoader__.load({
 
       for (var index = 0; index < source.length; index += 1) {
         var line = source[index] || {}
+        // Folia's own Line (the parser's output, passed through the player untouched):
+        // hand it to the styles as it is. Only its wrapper index is added.
+        if (typeof line.fullText === 'string' && isFinite(Number(line.startTime))) {
+          out.push(Object.assign({}, line, { sourceIndex: index }))
+          continue
+        }
         var start = Number(line.time)
         if (!isFinite(start) || start < 0) continue
         var text = typeof line.text === 'string' ? line.text : ''
@@ -137466,28 +137501,11 @@ window.__ModuleLoader__.load({
           if (data !== null && data !== undefined && Array.isArray(data.lines)) lines = data.lines
         } catch (error) {}
       }
-      return lines
-        .filter(function (line) {
-          return line && typeof line.fullText === 'string' && line.fullText.trim() !== ''
-        })
-        .map(function (line, index) {
-        var text = line && typeof line.fullText === 'string' ? line.fullText : ''
-        var start = Number(line && line.startTime) || 0
-        var end = Number(line && line.endTime) || start + 4
-        var words = line && Array.isArray(line.words)
-          ? line.words.filter(function (word) { return word && typeof word.text === 'string' })
-          : []
-        if (words.length === 0 && typeof FOLIA_PENDOLO !== 'undefined' && FOLIA_PENDOLO !== null
-          && typeof FOLIA_PENDOLO.buildTimedWords === 'function') {
-          words = FOLIA_PENDOLO.buildTimedWords(text, start, end)
-        }
-        return Object.assign({}, line, {
-          id: line && line.id ? line.id : 'folia-line-' + index,
-          fullText: text,
-          startTime: start,
-          endTime: end,
-          words: words,
-        })
+      // The lines are already Folia's own (or converted by foliaPendoloLines above):
+      // pass them on untouched, as Folia's app does. Rebuilding `words` here used to
+      // re-derive timings a second time and drift from the parser.
+      return lines.filter(function (line) {
+        return line && typeof line.fullText === 'string' && line.fullText.trim() !== ''
       })
     }
 
@@ -137738,7 +137756,7 @@ window.__ModuleLoader__.load({
             return h(
               'div',
               { key: String(index), className: 'mp-np-line' + (index === Number(props && props.active) ? ' is-active' : '') },
-              h('div', { className: 'mp-np-line-text' }, line && typeof line.text === 'string' ? line.text : ''),
+              h('div', { className: 'mp-np-line-text' }, line && typeof line.fullText === 'string' ? line.fullText : line && typeof line.text === 'string' ? line.text : ''),
             )
           }),
         ),
@@ -156565,7 +156583,7 @@ window.__ModuleLoader__.load({
           getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&order=' + encodeURIComponent(order))
             .then(function (body) {
               if (cancelled) return
-              var lines = Array.isArray(body.lines) ? body.lines : []
+              var lines = legacyLinesToFolia(Array.isArray(body.lines) ? body.lines : [])
               setLyrics(lines)
               setOffsetMs(Number(body.offsetMs) || 0)
             })
@@ -156582,7 +156600,7 @@ window.__ModuleLoader__.load({
       var now = (Number(time.currentTime) || 0) - offsetMs / 1000
       var active = -1
       for (var index = 0; index < lyrics.length; index += 1) {
-        if (lyrics[index].time <= now) active = index
+        if (mpLineStart(lyrics[index]) <= now) active = index
         else break
       }
 
@@ -156603,12 +156621,13 @@ window.__ModuleLoader__.load({
         active: active,
         focus: active,
         now: now,
-        timed: lyrics.length > 0 && lyrics[0].time >= 0,
+        timed: lyrics.length > 0 && mpLineStart(lyrics[0]) >= 0,
         prefs: prefs,
         rowRefs: [],
         wordSpans: wordSpans,
         onSeekLine: function (line) {
-          if (line && typeof line.time === 'number') player.seek(line.time + offsetMs / 1000)
+          var start = mpLineStart(line)
+          if (line && isFinite(start) && start >= 0) player.seek(start + offsetMs / 1000)
         },
         manualIndex: -1,
         formatClock: fmtClock,
@@ -156723,13 +156742,13 @@ window.__ModuleLoader__.load({
 
     function lyricActiveIndex(lines, seconds) {
       if (!Array.isArray(lines) || lines.length === 0) return -1
-      if (lines[0].time < 0) return -1
+      if (mpLineStart(lines[0]) < 0) return -1
       var low = 0
       var high = lines.length - 1
       var found = -1
       while (low <= high) {
         var mid = (low + high) >> 1
-        if (lines[mid].time <= seconds + 0.05) {
+        if (mpLineStart(lines[mid]) <= seconds + 0.05) {
           found = mid
           low = mid + 1
         } else {
@@ -158477,7 +158496,8 @@ window.__ModuleLoader__.load({
         if (props.open !== true || prefs.themeSource !== 'cover') return undefined
         if (trackPath === '' || typeof mpEnsureLocalTheme !== 'function') return undefined
         var text = lyrics.map(function (line) {
-          return line && typeof line.text === 'string' ? line.text : ''
+          if (!line) return ''
+          return typeof line.fullText === 'string' ? line.fullText : typeof line.text === 'string' ? line.text : ''
         }).join('\n')
         mpEnsureLocalTheme({
           key: trackPath,
@@ -158582,7 +158602,7 @@ window.__ModuleLoader__.load({
       var vinyl = circular
       var lyricSize = prefs.lyricSize || 18
       var translationSize = Math.round((lyricSize * (prefs.translationScale || 80)) / 100)
-      var lyricsTimed = lyrics.length > 0 && lyrics[0].time >= 0
+      var lyricsTimed = lyrics.length > 0 && mpLineStart(lyrics[0]) >= 0
       // ReplayGain values from the file's tags, and which lyric sources it has.
       var gainPair = useState(null)
       // The song's tag gain goes to the player, which uses it when the balance has no reading.
@@ -158684,12 +158704,12 @@ window.__ModuleLoader__.load({
               : ''
       var lyricsText = lyrics
         .map(function (line) {
-          var total = Number(line.time) || 0
+          var total = mpLineStart(line) || 0
           var minutes = Math.floor(total / 60)
           var seconds = total % 60
           var stamp =
             '[' + (minutes < 10 ? '0' : '') + String(minutes) + ':' + (seconds < 10 ? '0' : '') + seconds.toFixed(2) + ']'
-          var text = stamp + String(line.text || '')
+          var text = stamp + String(line.fullText !== undefined ? line.fullText : line.text || '')
           if (line.translation) text += '\n' + stamp + String(line.translation)
           return text
         })
@@ -158769,7 +158789,8 @@ window.__ModuleLoader__.load({
                       document = MPFoliaLyrics.applyAutoWordSegmentation(document)
                     }
                     if (document && Array.isArray(document.lines) && document.lines.length > 0) {
-                      lines = linesFromFoliaDocument(document)
+                      // Folia's own lines, verbatim: no renderer shape in between.
+                      lines = foliaLyricLines(document)
                       usedFolia = true
                     }
                   } catch (error) {
@@ -158783,6 +158804,7 @@ window.__ModuleLoader__.load({
                   if (body.translation) mergeLyricTranslation(lines, body.translation)
                   // Word-level timeline (only present when the platform has one).
                   attachWordTimeline(lines, body.lines)
+                  lines = legacyLinesToFolia(lines)
                 }
                 // One line of diagnostics per lyric load: if a word-by-word effect is missing,
                 // this says whether the client ever received word timings at all.
@@ -158877,11 +158899,11 @@ window.__ModuleLoader__.load({
       var lyricFocus = lyricScroll.manualIndex >= 0 ? lyricScroll.manualIndex : active
 
       function seekLine(line, index) {
-        if (!line || line.time < 0) return
+        if (!line || mpLineStart(line) < 0) return
         // Clicking is the explicit "follow this line" gesture; wheel browsing alone
         // must not resume the auto-scroll spring.
         lyricScroll.resume(index)
-        player.seek(line.time + offsetMs / 1000)
+        player.seek(mpLineStart(line) + offsetMs / 1000)
       }
 
       function applyOffset(delta) {
@@ -169952,7 +169974,9 @@ window.__ModuleLoader__.load({
           foliaAudioBandsFromWave: typeof foliaAudioBandsFromWave === 'function' ? foliaAudioBandsFromWave : null,
           // Lyric pipeline: the Folia document → renderer lines bridge, and the Folia Line
           // conversion the styles use; tests assert fields survive the two hops.
-          linesFromFoliaDocument: typeof linesFromFoliaDocument === 'function' ? linesFromFoliaDocument : null,
+          foliaLyricLines: typeof foliaLyricLines === 'function' ? foliaLyricLines : null,
+          legacyLinesToFolia: typeof legacyLinesToFolia === 'function' ? legacyLinesToFolia : null,
+          mpLineStart: typeof mpLineStart === 'function' ? mpLineStart : null,
           lyricFilterRules: typeof lyricFilterRules === 'function' ? lyricFilterRules : null,
           readSavedLyricOffset: typeof readSavedLyricOffset === 'function' ? readSavedLyricOffset : null,
           rememberLyricOffset: typeof rememberLyricOffset === 'function' ? rememberLyricOffset : null,

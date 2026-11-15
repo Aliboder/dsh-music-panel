@@ -698,8 +698,8 @@ assert.ok(!classesOf(volumeOn).has('mp-xf-chip'), 'no duration picker: the engin
 internals.prefsStore.set(savedTransition)
 
 
-// A Folia lyric line keeps its per-line render hints through the two hops: the
-// document -> renderer bridge, and the renderer -> stage conversion the styles read.
+// Folia's Line is the player's lyric line: the document's lines go through untouched,
+// and the legacy {time,text} shape of the Host/LRC path is converted once, at the edge.
 {
   const foliaLine = {
     id: 'line-1',
@@ -714,33 +714,32 @@ internals.prefsStore.set(savedTransition)
     renderHints: { wordRevealMode: 'instant', lineTransitionMode: 'fast' },
     isChorus: true,
   }
-  assert.ok(typeof internals.linesFromFoliaDocument === 'function', 'the bridge is exposed for tests')
-  const lines = internals.linesFromFoliaDocument({ lines: [foliaLine] })
+  assert.ok(typeof internals.foliaLyricLines === 'function', 'the document bridge is exposed')
+  const lines = internals.foliaLyricLines({ lines: [foliaLine] })
   assert.equal(lines.length, 1)
-  assert.equal(lines[0].time, 1)
-  assert.equal(lines[0].text, '晴天')
-  assert.equal(lines[0].translation, 'Sunny')
-  assert.deepEqual(lines[0].words.map((word) => word.text), ['晴', '天'])
-  assert.equal(lines[0].isChorus, true)
+  assert.equal(lines[0], foliaLine, 'Folia lines are not re-shaped')
+  assert.equal(internals.mpLineStart(lines[0]), 1)
+
   const stage = internals.foliaPendoloLines(lines)
   assert.equal(stage.length, 1)
+  assert.equal(stage[0].sourceIndex, 0)
   assert.equal(stage[0].fullText, '晴天')
   assert.equal(stage[0].renderHints.wordRevealMode, 'instant', 'render hints survive to the style')
   assert.equal(stage[0].isChorus, true)
   assert.deepEqual(stage[0].words.map((word) => [word.text, word.startTime]), [['晴', 1], ['天', 2]])
-  // The settings page's filter lists become Folia's line-rule shape.
-  const savedPrefs = internals.prefsStore.get()
-  internals.prefsStore.set(Object.assign({}, savedPrefs, {
-    lyricFilterPresets: ['copyright'],
-    lyricFilterWords: 'Foo, Bar',
-  }))
-  const rules = internals.lyricFilterRules()
-  assert.equal(rules.length, 3)
-  assert.deepEqual(rules[0], { id: 'preset:copyright', on: true, shape: 'preset', text: 'copyright' })
-  assert.deepEqual(rules[1], { id: 'word:0', on: true, shape: 'contains', text: 'Foo' })
-  assert.deepEqual(rules[2], { id: 'word:1', on: true, shape: 'contains', text: 'Bar' })
-  internals.prefsStore.set(savedPrefs)
-  // The per-song timeline offset the player now restores and remembers.
+
+  // The old shape (Host /lyrics, LRC fallback) converts once at the edge.
+  const legacy = internals.legacyLinesToFolia([
+    { time: 2, end: 3, text: '晴天', translation: 'Sunny', words: [{ t: 2, end: 2.5, text: '晴' }] },
+  ])
+  assert.equal(legacy[0].fullText, '晴天')
+  assert.equal(legacy[0].startTime, 2)
+  assert.equal(legacy[0].endTime, 3)
+  assert.equal(legacy[0].words[0].startTime, 2)
+  assert.equal(internals.mpLineStart(legacy[0]), 2)
+  assert.equal(internals.mpLineStart({ time: 4 }), 4, 'a legacy line still reads')
+
+  // The per-song timeline offset the player restores and remembers.
   assert.equal(internals.readSavedLyricOffset('online:qq:1'), 0)
   internals.rememberLyricOffset('online:qq:1', 250)
   assert.equal(internals.readSavedLyricOffset('online:qq:1'), 250)

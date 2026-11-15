@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### 歌词行与 Folia 原样对齐（去掉二次加工）
+
+- 播放器的歌词行改成 Folia 的 `Line`（`startTime` / `endTime` / `fullText` /
+  `words[].startTime`）。`LyricData.lines` 按引用进状态，视觉器拿到的是同一批对象，
+  插件只额外加 `sourceIndex`（舞台用它把播放器的行号映射到过滤后的数组）。
+- 旧的 `{time, end, text, words:[{t,end,text}]}` 只在边缘转换一次
+  （`legacyLinesToFolia`）：Host `/lyrics`（本地）、LRC 回退、歌词匹配对话框。
+- `foliaStyleLines` 不再重建 `words`。之前它按 `{t,end}` 读 Folia 的词，拿到
+  `undefined` 后时间全是 0，等于把解析结果又打乱一次；现在只做 staff 策略与空行过滤，
+  与 Folia 的「解析完直接交给视觉器」一致。
+- `foliaPendoloLines` 遇到 Folia 行直接透传（含 `renderHints` / `wordSegments` /
+  `autoWordSegments` / `isChorus` / `backgroundVocals` 等全部字段）。
+- 行的开始/结束统一走 `mpLineStart` / `mpLineEnd`（兼容旧形状），播放器、播放页、
+  作曲器、导出 LRC 都用它。
+- 顺带修：`foliaPlainFallback` 读 `line.fullText`（原来只读 `line.text`，Folia 行会空白）。
+- 验证：真实网易云响应 49 行按引用透传（`lines[0] === doc.lines[0]`，`words` /
+  `renderHints` 同一引用）；legacy 形状转换一次；全量测试与 check 全过。
+
 ### 修复：歌词样式闪烁 / 抖动 / 空白的无限重载
 
 - 回归来自 icu-folia 的「引擎就绪后重烘焙」：`icuLoad.then` 用一个本次 effect

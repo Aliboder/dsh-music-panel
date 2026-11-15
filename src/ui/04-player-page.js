@@ -38,7 +38,7 @@ function PlayerPage(props) {
       getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&order=' + encodeURIComponent(order))
         .then(function (body) {
           if (cancelled) return
-          var lines = Array.isArray(body.lines) ? body.lines : []
+          var lines = legacyLinesToFolia(Array.isArray(body.lines) ? body.lines : [])
           setLyrics(lines)
           setOffsetMs(Number(body.offsetMs) || 0)
         })
@@ -55,7 +55,7 @@ function PlayerPage(props) {
   var now = (Number(time.currentTime) || 0) - offsetMs / 1000
   var active = -1
   for (var index = 0; index < lyrics.length; index += 1) {
-    if (lyrics[index].time <= now) active = index
+    if (mpLineStart(lyrics[index]) <= now) active = index
     else break
   }
 
@@ -76,12 +76,13 @@ function PlayerPage(props) {
     active: active,
     focus: active,
     now: now,
-    timed: lyrics.length > 0 && lyrics[0].time >= 0,
+    timed: lyrics.length > 0 && mpLineStart(lyrics[0]) >= 0,
     prefs: prefs,
     rowRefs: [],
     wordSpans: wordSpans,
     onSeekLine: function (line) {
-      if (line && typeof line.time === 'number') player.seek(line.time + offsetMs / 1000)
+      var start = mpLineStart(line)
+      if (line && isFinite(start) && start >= 0) player.seek(start + offsetMs / 1000)
     },
     manualIndex: -1,
     formatClock: fmtClock,
