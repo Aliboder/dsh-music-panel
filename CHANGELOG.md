@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### 视觉器时钟对齐 Folia（含歌词偏移）
+
+- Folia 的播放引擎只暴露**一个**应用了歌词偏移的共享时钟，所有视觉器都用它；插件此前把
+  **原始 audio.currentTime** 交给视觉器，而播放器的当前行用的是 `currentTime - offsetMs`。
+  只要这首歌有偏移（手调过、或从记忆里恢复），当前行和逐词扫描就会错开。
+- 现在两个舞台（Folia 样式与 pendolo）的时钟都减去 `offsetMs/1000`，播放器与播放页把
+  `offsetMs` 传进 `LyricStage`。
+- 说明：这不会改变 `line.words` 的数据（解析层已与 Folia 一致），改的是「用哪个时间轴去
+  读它」。
+
 ### 网易云歌手页：按 Folia 的两段式加载
 
 - 与 Folia 的 `ArtistResource` 对齐：首屏只取 **10 首热门**（`ARTIST_TOP_SONG_LIMIT`），

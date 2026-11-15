@@ -2333,6 +2333,7 @@ function NowPlaying(props) {
   })
   var lyricStage = h(LyricStage, {
     lines: lyrics,
+    offsetMs: offsetMs,
     active: active,
     focus: lyricFocus,
     now: lyricNow,

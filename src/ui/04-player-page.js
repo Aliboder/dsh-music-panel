@@ -73,6 +73,7 @@ function PlayerPage(props) {
       ? null
       : h(LyricStage, {
     lines: lyrics,
+    offsetMs: offsetMs,
     active: active,
     focus: active,
     now: now,

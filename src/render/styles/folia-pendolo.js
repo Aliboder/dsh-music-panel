@@ -196,6 +196,9 @@ var FoliaPendoloRenderer = FOLIA_PENDOLO !== null && FOLIA_PENDOLO.VisualizerPen
 function FoliaPendoloStage(props) {
   var snapshot = usePlayerSnapshot()
   var clock = useMotionValue(0)
+  // Folia's lyric clock is offset-applied; the player's active line already is.
+  var offsetRef = useRef(0)
+  offsetRef.current = (Number(props.offsetMs) || 0) / 1000
   var power = useMotionValue(0)
   var bass = useMotionValue(0)
   var lowMid = useMotionValue(0)
@@ -236,7 +239,7 @@ function FoliaPendoloStage(props) {
     function tick() {
       if (stopped) return
       try {
-        clock.set(readTime())
+        clock.set(readTime() - offsetRef.current)
         // Paused frames are not written (the last bands stand still), as the player
         // page requires; the analyser waits for the play gesture.
         var bands = foliaAudioBands(foliaAudioIsPlaying())

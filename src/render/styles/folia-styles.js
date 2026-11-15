@@ -170,6 +170,11 @@ function useFoliaCoverTheme(coverUrl, seed, accent) {
 function FoliaStyleStage(props) {
   var snapshot = usePlayerSnapshot()
   var clock = useMotionValue(0)
+  // The player's per-song lyric offset. Folia's playback engine exposes ONE shared,
+  // offset-applied lyric clock; without it the active line (offset-applied) and the
+  // word sweep (raw audio time) disagree whenever the song has an offset.
+  var offsetRef = useRef(0)
+  offsetRef.current = (Number(props.offsetMs) || 0) / 1000
   var power = useMotionValue(0)
   var bass = useMotionValue(0)
   var lowMid = useMotionValue(0)
@@ -204,7 +209,7 @@ function FoliaStyleStage(props) {
     function tick() {
       if (stopped) return
       try {
-        clock.set(readTime())
+        clock.set(readTime() - offsetRef.current)
         // Paused frames are not written (the last bands stand still); see folia-audio.js.
         var bands = foliaAudioBands(foliaAudioIsPlaying())
         if (bands !== null) {
