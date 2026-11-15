@@ -728,6 +728,23 @@ internals.prefsStore.set(savedTransition)
   assert.equal(stage[0].renderHints.wordRevealMode, 'instant', 'render hints survive to the style')
   assert.equal(stage[0].isChorus, true)
   assert.deepEqual(stage[0].words.map((word) => [word.text, word.startTime]), [['晴', 1], ['天', 2]])
+  // The settings page's filter lists become Folia's line-rule shape.
+  const savedPrefs = internals.prefsStore.get()
+  internals.prefsStore.set(Object.assign({}, savedPrefs, {
+    lyricFilterPresets: ['copyright'],
+    lyricFilterWords: 'Foo, Bar',
+  }))
+  const rules = internals.lyricFilterRules()
+  assert.equal(rules.length, 3)
+  assert.deepEqual(rules[0], { id: 'preset:copyright', on: true, shape: 'preset', text: 'copyright' })
+  assert.deepEqual(rules[1], { id: 'word:0', on: true, shape: 'contains', text: 'Foo' })
+  assert.deepEqual(rules[2], { id: 'word:1', on: true, shape: 'contains', text: 'Bar' })
+  internals.prefsStore.set(savedPrefs)
+  // The per-song timeline offset the player now restores and remembers.
+  assert.equal(internals.readSavedLyricOffset('online:qq:1'), 0)
+  internals.rememberLyricOffset('online:qq:1', 250)
+  assert.equal(internals.readSavedLyricOffset('online:qq:1'), 250)
+  internals.rememberLyricOffset('online:qq:1', 0)
 }
 
 console.log('panel.render.test.mjs ok')

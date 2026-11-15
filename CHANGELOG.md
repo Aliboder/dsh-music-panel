@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### 歌词过滤与时间轴偏移记忆（Folia 的 lyricLineRules / lyricOffsetMemory）
+
+- 歌词行过滤接上 Folia 的规则引擎：设置 → 歌词 里多了「过滤版权声明行」「过滤歌词来源行」
+  两个开关（Folia 的两个内置词表），加一个「自定义过滤词」（逗号或换行分隔，包含即隐藏）。
+  两个列表在 `prefs`（`lyricFilterPresets` / `lyricFilterWords`），客户端折成 Folia 的
+  `LyricLineRule`（`preset` / `contains`）传给 `prepare()`，顺序与 Folia 一致：先过滤行，
+  再跑 staff credits 策略、合唱。
+- 时间轴偏移改用 Folia 的 `lyricOffsetMemory`：每首歌记住手调的偏移
+  （localStorage `lyric_timeline_offsets`，最多 1000 首），切歌时恢复而不是清零。
+  线上歌以前根本没有偏移控制（`applyOffset` 直接 return），现在有：调整即记住；
+  本地歌仍以 Host 的文件级偏移为主，并继续写入 `lyrics/calibrate`。
+- 测试：`lyrics-folia.test` 覆盖预设/自定义词过滤、无规则不过滤、偏移读写与持久化键；
+  `panel.render` 覆盖 `prefs` → 规则的折算和偏移的读/记。
+
 ### 歌词显示流水线对齐 Folia（staff credits / 合唱）
 
 - 歌词 bundle 新增 `prepare()`，对应 Folia 的 `createLyricsSetter` 显示前那一段：

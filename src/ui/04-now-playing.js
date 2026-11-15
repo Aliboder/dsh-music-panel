@@ -2019,7 +2019,7 @@ function NowPlaying(props) {
                 })
                 // Folia's display-time pass: staff-credit policy, then chorus decoration.
                 if (document && typeof MPFoliaLyrics.prepare === 'function') {
-                  document = MPFoliaLyrics.prepare(document, { policy: 'smart' })
+                  document = MPFoliaLyrics.prepare(document, { policy: 'smart', rules: lyricFilterRules() })
                 }
                 // A lyric that is only "纯音乐，请欣赏" is no lyric at all (Folia's setter
                 // treats it that way, so the visualizer takes its pure-music path).
@@ -2046,7 +2046,8 @@ function NowPlaying(props) {
             if (!cancelled) {
               setLyrics(lines)
               setLyricSource('ONLINE')
-              setOffsetMs(0)
+              // Folia restores the song's last manual offset instead of resetting it.
+              setOffsetMs(readSavedLyricOffset(trackPath))
             }
             // The chorus window powers the "jump to hook" control; absent when the
             // platform or the track has none.
@@ -2077,7 +2078,9 @@ function NowPlaying(props) {
           if (!cancelled) {
             setLyrics(Array.isArray(local.lines) ? local.lines : [])
             setLyricSource(String(local.source || ''))
-            setOffsetMs(Number(local.offsetMs) || 0)
+            // The host's file-level offset is the primary for local tracks; the
+            // remembered one covers tracks whose offset never reached the file.
+            setOffsetMs(Number(local.offsetMs) || readSavedLyricOffset(trackPath))
           }
         } catch (error) {
           if (!cancelled) setLyricError(errorText(error))
@@ -2126,9 +2129,13 @@ function NowPlaying(props) {
   }
 
   function applyOffset(delta) {
-    if (!track || track.onlineProvider) return
+    if (!track) return
     var next = Math.max(-60000, Math.min(60000, offsetMs + delta))
     setOffsetMs(next)
+    // Remembered per song, exactly as Folia's lyricOffsetMemory does for every track.
+    rememberLyricOffset(trackPath, next)
+    // Local tracks also keep the host-side offset (and can write it into the file).
+    if (track.onlineProvider) return
     postJson(API + 'lyrics/calibrate', { path: track.path, offsetMs: next }).catch(function (error) {
       setLyricError(errorText(error))
     })

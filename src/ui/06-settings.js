@@ -83,6 +83,20 @@ function SettingsSheet(props) {
     setPrefs(patch)
   }
 
+  // Lyric line filters (Folia's lyricLineRules): the two ready-made presets plus
+  // free words; the player turns them into rules for the parse-time document.
+  function lyricFilterPresets() {
+    return Array.isArray(prefs.lyricFilterPresets) ? prefs.lyricFilterPresets.slice() : []
+  }
+
+  function toggleLyricFilterPreset(id, on) {
+    var next = lyricFilterPresets().filter(function (item) {
+      return item !== id
+    })
+    if (on) next.push(id)
+    patchPrefs({ lyricFilterPresets: next })
+  }
+
   function layoutChoices() {
     return h(
       'div',
@@ -289,6 +303,39 @@ function SettingsSheet(props) {
           h('option', { value: 'left' }, t('settings.alignLeft')),
           h('option', { value: 'right' }, t('settings.alignRight')),
         ),
+      ),
+      h(
+        SetRow,
+        { key: 'filter-copyright', label: t('settings.lyricFilterCopyright'), desc: t('settings.lyricFilterCopyrightDesc') },
+        h(Switch, {
+          value: lyricFilterPresets().indexOf('copyright') >= 0,
+          onChange: function (value) {
+            toggleLyricFilterPreset('copyright', value)
+          },
+        }),
+      ),
+      h(
+        SetRow,
+        { key: 'filter-source', label: t('settings.lyricFilterSource') },
+        h(Switch, {
+          value: lyricFilterPresets().indexOf('lyricSource') >= 0,
+          onChange: function (value) {
+            toggleLyricFilterPreset('lyricSource', value)
+          },
+        }),
+      ),
+      h(
+        SetRow,
+        { key: 'filter-words', label: t('settings.lyricFilterWords'), desc: t('settings.lyricFilterWordsDesc') },
+        h('input', {
+          type: 'text',
+          className: 'mp-kit-input',
+          value: String(prefs.lyricFilterWords || ''),
+          placeholder: t('settings.lyricFilterWordsPlaceholder'),
+          onChange: function (event) {
+            patchPrefs({ lyricFilterWords: event.target.value })
+          },
+        }),
       ),
     ]
   }

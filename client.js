@@ -6910,6 +6910,12 @@ window.__ModuleLoader__.load({
         'page.writeLyrics': '写回文件',
         'page.otherTabPlaying': '另一个标签页正在播放',
         'page.lyricOffsetHint': '仅 MP3 / FLAC 支持写回内嵌歌词；其他格式只保存偏移。',
+        'settings.lyricFilterCopyright': '过滤版权声明行',
+        'settings.lyricFilterCopyrightDesc': '如「版权所有」「未经许可，不得翻唱」这类整行',
+        'settings.lyricFilterSource': '过滤歌词来源行',
+        'settings.lyricFilterWords': '自定义过滤词',
+        'settings.lyricFilterWordsDesc': '逗号或换行分隔；歌词行包含其中任一词就不显示',
+        'settings.lyricFilterWordsPlaceholder': '例如：歌词贡献者，LRC',
         'page.lyricSize': '字体大小',
         'page.lyricGap': '歌词间距',
         'page.lyricBlur': '模糊非当前歌词',
@@ -7492,6 +7498,12 @@ window.__ModuleLoader__.load({
         'page.writeLyrics': 'Write to file',
         'page.otherTabPlaying': 'Playing in another tab',
         'page.lyricOffsetHint': 'Writing back works for MP3 / FLAC only; other formats keep the offset in settings.',
+        'settings.lyricFilterCopyright': 'Hide copyright lines',
+        'settings.lyricFilterCopyrightDesc': 'Lines that are only a copyright notice',
+        'settings.lyricFilterSource': 'Hide lyric-source lines',
+        'settings.lyricFilterWords': 'Custom filter words',
+        'settings.lyricFilterWordsDesc': 'Separated by commas or newlines; a line containing any of them is hidden',
+        'settings.lyricFilterWordsPlaceholder': 'e.g. lyrics by, LRC',
         'page.lyricSize': 'Font size',
         'page.lyricGap': 'Line spacing',
         'page.lyricBlur': 'Blur inactive lines',
@@ -9458,6 +9470,53 @@ window.__ModuleLoader__.load({
         .filter(function (line) {
           return line !== null && line.text !== ''
         })
+    }
+
+    /**
+     * Folia's per-song manual timeline offset (lyricOffsetMemory): a number remembered
+     * per song, restored when that song plays again. Online tracks had no offset control
+     * at all before this; local tracks keep the host's file-level offset as the primary.
+     */
+    function readSavedLyricOffset(path) {
+      if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return 0
+      if (typeof MPFoliaLyrics.readLyricOffset !== 'function') return 0
+      var value = Number(MPFoliaLyrics.readLyricOffset(path))
+      return isFinite(value) ? value : 0
+    }
+
+    /** Remember (0 forgets) this song's offset. */
+    function rememberLyricOffset(path, offsetMs) {
+      if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return
+      if (typeof MPFoliaLyrics.writeLyricOffset !== 'function') return
+      MPFoliaLyrics.writeLyricOffset(path, Number(offsetMs) || 0)
+    }
+
+    /**
+     * The listener's lyric line filters, built from the settings page's two lists:
+     * ready-made presets (Folia's own ids) and free words (a line containing one goes).
+     * Folia's engine (applyLyricLineRules) expects rules with ids and switches.
+     */
+    function lyricFilterRules() {
+      var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
+      var rules = []
+      var presets = Array.isArray(state.lyricFilterPresets) ? state.lyricFilterPresets : []
+      presets.forEach(function (id) {
+        if (typeof id !== 'string' || id === '') return
+        rules.push({ id: 'preset:' + id, on: true, shape: 'preset', text: id })
+      })
+      var words = String(state.lyricFilterWords || '')
+      words
+        .split(/[\n,，]/)
+        .map(function (word) {
+          return word.trim()
+        })
+        .filter(function (word) {
+          return word !== ''
+        })
+        .forEach(function (word, index) {
+          rules.push({ id: 'word:' + String(index), on: true, shape: 'contains', text: word })
+        })
+      return rules
     }
 
     // ── src/render/lyrics/lyrics.bundle.js
@@ -15979,17 +16038,22 @@ window.__ModuleLoader__.load({
       // src/render/lyrics/entry.ts
       var entry_exports = {};
       __export(entry_exports, {
+        LYRIC_LINE_PRESETS: () => LYRIC_LINE_PRESETS,
         LyricParserFactory: () => LyricParserFactory,
         applyChorusRangesByTime: () => applyChorusRangesByTime,
         applyDetectedChorusEffects: () => applyDetectedChorusEffects,
+        applyLyricLineRules: () => applyLyricLineRules,
         applyLyricStaffPolicy: () => applyLyricStaffPolicy,
+        compileLyricLineRules: () => compileLyricLineRules,
         detectNonTtmlTimedLyricFormat: () => detectNonTtmlTimedLyricFormat,
         ensureLyricDataRenderHints: () => ensureLyricDataRenderHints,
         isPureMusicLyricLines: () => isPureMusicLyricLines,
         isPureMusicLyricText: () => isPureMusicLyricText,
         parse: () => parse,
         prepare: () => prepare,
-        resolveLyricProcessingOptions: () => resolveLyricProcessingOptions
+        readLyricOffset: () => readLyricOffset,
+        resolveLyricProcessingOptions: () => resolveLyricProcessingOptions,
+        writeLyricOffset: () => writeLyricOffset
       });
 
       // src/utils/lyrics/renderHints.ts
@@ -17898,6 +17962,18 @@ window.__ModuleLoader__.load({
       };
 
       // src/utils/lyrics/filtering.ts
+      var normalizeFilterPattern = (pattern) => pattern?.trim() || "";
+      var compileLyricFilterPattern = (pattern) => {
+        const normalized = normalizeFilterPattern(pattern);
+        if (!normalized) {
+          return null;
+        }
+        try {
+          return new RegExp(normalized);
+        } catch {
+          return null;
+        }
+      };
       var resolveLyricProcessingOptions = (options = {}) => ({
         ...options,
         includeInterludes: options.includeInterludes ?? true
@@ -19178,13 +19254,142 @@ window.__ModuleLoader__.load({
         };
       };
 
+      // src/utils/lyrics/lyricOffsetMemory.ts
+      var STORAGE_KEY = "lyric_timeline_offsets";
+      var MAX_ENTRIES = 1e3;
+      var cache = null;
+      var normalizeKey = (songKey) => {
+        if (songKey === null || songKey === void 0 || songKey === "") {
+          return null;
+        }
+        return String(songKey);
+      };
+      var hydrate = () => {
+        if (cache) {
+          return cache;
+        }
+        cache = /* @__PURE__ */ new Map();
+        if (typeof window === "undefined") {
+          return cache;
+        }
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            for (const [key, value] of Object.entries(parsed)) {
+              if (typeof value === "number" && Number.isFinite(value) && value !== 0) {
+                cache.set(key, value);
+              }
+            }
+          }
+        } catch {
+        }
+        return cache;
+      };
+      var persist = (map) => {
+        if (typeof window === "undefined") {
+          return;
+        }
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(map)));
+        } catch {
+        }
+      };
+      var readLyricOffset = (songKey) => {
+        const key = normalizeKey(songKey);
+        if (!key) {
+          return 0;
+        }
+        return hydrate().get(key) ?? 0;
+      };
+      var writeLyricOffset = (songKey, offsetMs) => {
+        const key = normalizeKey(songKey);
+        if (!key) {
+          return;
+        }
+        const map = hydrate();
+        map.delete(key);
+        if (Number.isFinite(offsetMs) && offsetMs !== 0) {
+          map.set(key, offsetMs);
+        }
+        while (map.size > MAX_ENTRIES) {
+          const oldest = map.keys().next().value;
+          if (oldest === void 0) {
+            break;
+          }
+          map.delete(oldest);
+        }
+        persist(map);
+      };
+
+      // src/utils/lyrics/lyricLineRules.ts
+      var LYRIC_LINE_PRESETS = [
+        { id: "copyright", words: ["\u7248\u6743\u6240\u6709", "\u672A\u7ECF\u8BB8\u53EF", "\u672A\u7ECF\u6388\u6743", "\u4E0D\u5F97\u7FFB\u5531", "\u7981\u6B62\u7FFB\u5531", "\u4FB5\u6743\u5FC5\u7A76", "all rights reserved", "copyright", "\xA9", "\u2117"] },
+        { id: "lyricSource", words: ["\u6B4C\u8BCD\u8D21\u732E\u8005", "\u7FFB\u8BD1\u8D21\u732E\u8005", "\u6B4C\u8BCD\u6765\u6E90", "\u6B4C\u8BCD\u6765\u81EA", "\u6B4C\u8BCD\u63D0\u4F9B", "\u6B4C\u8BCD\u5236\u4F5C", "\u6B4C\u8BCD\u6821\u5BF9", "lrc by"] }
+      ];
+      var escapeRegExp2 = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      var getLyricLinePresetWords = (id) => LYRIC_LINE_PRESETS.find((preset) => preset.id === id)?.words ?? null;
+      var foldWidth = (text) => text.replace(/[\uFF01-\uFF5E]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 65248));
+      var lyricLineAsRuleSees = (rule, text) => rule.shape === "written" ? text : foldWidth(text);
+      var lyricLineRuleWords = (text) => [...new Set(text.split("\n").map((word) => word.trim()).filter(Boolean))];
+      var compileLyricLineRule = (rule) => {
+        if (rule.shape === "written") {
+          return compileLyricFilterPattern(rule.text);
+        }
+        if (rule.shape === "preset") {
+          const words2 = getLyricLinePresetWords(rule.text);
+          return words2 ? new RegExp(words2.map((word) => escapeRegExp2(foldWidth(word))).join("|"), "i") : null;
+        }
+        const words = lyricLineRuleWords(foldWidth(rule.text));
+        if (words.length === 0) {
+          return null;
+        }
+        const body = `(?:${words.sort((one, other) => other.length - one.length).map(escapeRegExp2).join("|")})`;
+        switch (rule.shape) {
+          case "starts":
+            return new RegExp(`^\\s*${body}${rule.colon ? "\\s*[:\uFF1A]" : ""}`, "i");
+          case "whole":
+            return new RegExp(`^\\s*${body}\\s*$`, "i");
+          case "ends":
+            return new RegExp(`${body}\\s*$`, "i");
+          default:
+            return new RegExp(body, "i");
+        }
+      };
+      var compileLyricLineRules = (rules) => rules.flatMap((rule) => {
+        if (!rule.on) {
+          return [];
+        }
+        const regex = compileLyricLineRule(rule);
+        return regex ? [{ rule, regex }] : [];
+      });
+      var isMidSongLine = (index, total) => index >= Math.ceil(total / 4) && index < total - Math.ceil(total / 10);
+      var lyricLineRuleHits = (compiled, text, index, total) => !(compiled.rule.edgesOnly && isMidSongLine(index, total)) && compiled.regex.test(lyricLineAsRuleSees(compiled.rule, text));
+      var matchLyricLines = (lines, compiled) => lines.map((line, index) => compiled.find((entry) => lyricLineRuleHits(entry, line.fullText, index, lines.length)) ?? null);
+      var applyLyricLineRules = (lyrics, compiled) => {
+        if (!lyrics) {
+          return null;
+        }
+        if (compiled.length === 0) {
+          return ensureLyricDataRenderHints(lyrics);
+        }
+        const lines = lyrics.lines.filter((line) => !isInterludeLine(line));
+        const hits = matchLyricLines(lines, compiled);
+        return {
+          ...lyrics,
+          lines: finalizeParsedLyricLines(lines.filter((_, index) => !hits[index]), { includeInterludes: true })
+        };
+      };
+
       // src/render/lyrics/entry.ts
       function parse(source, options = {}) {
         return LyricParserFactory.parse(source, options);
       }
       function prepare(lyrics, options = {}) {
         if (!lyrics) return null;
-        let next = applyLyricStaffPolicy(lyrics, { policy: options.policy ?? "smart" });
+        const rules = Array.isArray(options.rules) ? options.rules : [];
+        const filtered = rules.length > 0 ? applyLyricLineRules(lyrics, compileLyricLineRules(rules)) : lyrics;
+        let next = applyLyricStaffPolicy(filtered, { policy: options.policy ?? "smart" });
         if (!next) return null;
         if (next.lines.some((line) => line.isChorus)) return next;
         const ranges = Array.isArray(options.chorusRanges) ? options.chorusRanges : [];
@@ -157633,7 +157838,7 @@ window.__ModuleLoader__.load({
                     })
                     // Folia's display-time pass: staff-credit policy, then chorus decoration.
                     if (document && typeof MPFoliaLyrics.prepare === 'function') {
-                      document = MPFoliaLyrics.prepare(document, { policy: 'smart' })
+                      document = MPFoliaLyrics.prepare(document, { policy: 'smart', rules: lyricFilterRules() })
                     }
                     // A lyric that is only "纯音乐，请欣赏" is no lyric at all (Folia's setter
                     // treats it that way, so the visualizer takes its pure-music path).
@@ -157660,7 +157865,8 @@ window.__ModuleLoader__.load({
                 if (!cancelled) {
                   setLyrics(lines)
                   setLyricSource('ONLINE')
-                  setOffsetMs(0)
+                  // Folia restores the song's last manual offset instead of resetting it.
+                  setOffsetMs(readSavedLyricOffset(trackPath))
                 }
                 // The chorus window powers the "jump to hook" control; absent when the
                 // platform or the track has none.
@@ -157691,7 +157897,9 @@ window.__ModuleLoader__.load({
               if (!cancelled) {
                 setLyrics(Array.isArray(local.lines) ? local.lines : [])
                 setLyricSource(String(local.source || ''))
-                setOffsetMs(Number(local.offsetMs) || 0)
+                // The host's file-level offset is the primary for local tracks; the
+                // remembered one covers tracks whose offset never reached the file.
+                setOffsetMs(Number(local.offsetMs) || readSavedLyricOffset(trackPath))
               }
             } catch (error) {
               if (!cancelled) setLyricError(errorText(error))
@@ -157740,9 +157948,13 @@ window.__ModuleLoader__.load({
       }
 
       function applyOffset(delta) {
-        if (!track || track.onlineProvider) return
+        if (!track) return
         var next = Math.max(-60000, Math.min(60000, offsetMs + delta))
         setOffsetMs(next)
+        // Remembered per song, exactly as Folia's lyricOffsetMemory does for every track.
+        rememberLyricOffset(trackPath, next)
+        // Local tracks also keep the host-side offset (and can write it into the file).
+        if (track.onlineProvider) return
         postJson(API + 'lyrics/calibrate', { path: track.path, offsetMs: next }).catch(function (error) {
           setLyricError(errorText(error))
         })
@@ -158982,6 +159194,20 @@ window.__ModuleLoader__.load({
         setPrefs(patch)
       }
 
+      // Lyric line filters (Folia's lyricLineRules): the two ready-made presets plus
+      // free words; the player turns them into rules for the parse-time document.
+      function lyricFilterPresets() {
+        return Array.isArray(prefs.lyricFilterPresets) ? prefs.lyricFilterPresets.slice() : []
+      }
+
+      function toggleLyricFilterPreset(id, on) {
+        var next = lyricFilterPresets().filter(function (item) {
+          return item !== id
+        })
+        if (on) next.push(id)
+        patchPrefs({ lyricFilterPresets: next })
+      }
+
       function layoutChoices() {
         return h(
           'div',
@@ -159188,6 +159414,39 @@ window.__ModuleLoader__.load({
               h('option', { value: 'left' }, t('settings.alignLeft')),
               h('option', { value: 'right' }, t('settings.alignRight')),
             ),
+          ),
+          h(
+            SetRow,
+            { key: 'filter-copyright', label: t('settings.lyricFilterCopyright'), desc: t('settings.lyricFilterCopyrightDesc') },
+            h(Switch, {
+              value: lyricFilterPresets().indexOf('copyright') >= 0,
+              onChange: function (value) {
+                toggleLyricFilterPreset('copyright', value)
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'filter-source', label: t('settings.lyricFilterSource') },
+            h(Switch, {
+              value: lyricFilterPresets().indexOf('lyricSource') >= 0,
+              onChange: function (value) {
+                toggleLyricFilterPreset('lyricSource', value)
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'filter-words', label: t('settings.lyricFilterWords'), desc: t('settings.lyricFilterWordsDesc') },
+            h('input', {
+              type: 'text',
+              className: 'mp-kit-input',
+              value: String(prefs.lyricFilterWords || ''),
+              placeholder: t('settings.lyricFilterWordsPlaceholder'),
+              onChange: function (event) {
+                patchPrefs({ lyricFilterWords: event.target.value })
+              },
+            }),
           ),
         ]
       }
@@ -168757,6 +169016,9 @@ window.__ModuleLoader__.load({
           // Lyric pipeline: the Folia document → renderer lines bridge, and the Folia Line
           // conversion the styles use; tests assert fields survive the two hops.
           linesFromFoliaDocument: typeof linesFromFoliaDocument === 'function' ? linesFromFoliaDocument : null,
+          lyricFilterRules: typeof lyricFilterRules === 'function' ? lyricFilterRules : null,
+          readSavedLyricOffset: typeof readSavedLyricOffset === 'function' ? readSavedLyricOffset : null,
+          rememberLyricOffset: typeof rememberLyricOffset === 'function' ? rememberLyricOffset : null,
           foliaPendoloLines: typeof foliaPendoloLines === 'function' ? foliaPendoloLines : null,
           foliaAudioBands: typeof foliaAudioBands === 'function' ? foliaAudioBands : null,
           // Local theme generation (folia-local-theme.js): pure build + store.

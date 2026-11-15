@@ -6516,17 +6516,22 @@ var MPFoliaLyrics = (() => {
   // src/render/lyrics/entry.ts
   var entry_exports = {};
   __export(entry_exports, {
+    LYRIC_LINE_PRESETS: () => LYRIC_LINE_PRESETS,
     LyricParserFactory: () => LyricParserFactory,
     applyChorusRangesByTime: () => applyChorusRangesByTime,
     applyDetectedChorusEffects: () => applyDetectedChorusEffects,
+    applyLyricLineRules: () => applyLyricLineRules,
     applyLyricStaffPolicy: () => applyLyricStaffPolicy,
+    compileLyricLineRules: () => compileLyricLineRules,
     detectNonTtmlTimedLyricFormat: () => detectNonTtmlTimedLyricFormat,
     ensureLyricDataRenderHints: () => ensureLyricDataRenderHints,
     isPureMusicLyricLines: () => isPureMusicLyricLines,
     isPureMusicLyricText: () => isPureMusicLyricText,
     parse: () => parse,
     prepare: () => prepare,
-    resolveLyricProcessingOptions: () => resolveLyricProcessingOptions
+    readLyricOffset: () => readLyricOffset,
+    resolveLyricProcessingOptions: () => resolveLyricProcessingOptions,
+    writeLyricOffset: () => writeLyricOffset
   });
 
   // src/utils/lyrics/renderHints.ts
@@ -8435,6 +8440,18 @@ var MPFoliaLyrics = (() => {
   };
 
   // src/utils/lyrics/filtering.ts
+  var normalizeFilterPattern = (pattern) => pattern?.trim() || "";
+  var compileLyricFilterPattern = (pattern) => {
+    const normalized = normalizeFilterPattern(pattern);
+    if (!normalized) {
+      return null;
+    }
+    try {
+      return new RegExp(normalized);
+    } catch {
+      return null;
+    }
+  };
   var resolveLyricProcessingOptions = (options = {}) => ({
     ...options,
     includeInterludes: options.includeInterludes ?? true
@@ -9715,13 +9732,142 @@ var MPFoliaLyrics = (() => {
     };
   };
 
+  // src/utils/lyrics/lyricOffsetMemory.ts
+  var STORAGE_KEY = "lyric_timeline_offsets";
+  var MAX_ENTRIES = 1e3;
+  var cache = null;
+  var normalizeKey = (songKey) => {
+    if (songKey === null || songKey === void 0 || songKey === "") {
+      return null;
+    }
+    return String(songKey);
+  };
+  var hydrate = () => {
+    if (cache) {
+      return cache;
+    }
+    cache = /* @__PURE__ */ new Map();
+    if (typeof window === "undefined") {
+      return cache;
+    }
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        for (const [key, value] of Object.entries(parsed)) {
+          if (typeof value === "number" && Number.isFinite(value) && value !== 0) {
+            cache.set(key, value);
+          }
+        }
+      }
+    } catch {
+    }
+    return cache;
+  };
+  var persist = (map) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(map)));
+    } catch {
+    }
+  };
+  var readLyricOffset = (songKey) => {
+    const key = normalizeKey(songKey);
+    if (!key) {
+      return 0;
+    }
+    return hydrate().get(key) ?? 0;
+  };
+  var writeLyricOffset = (songKey, offsetMs) => {
+    const key = normalizeKey(songKey);
+    if (!key) {
+      return;
+    }
+    const map = hydrate();
+    map.delete(key);
+    if (Number.isFinite(offsetMs) && offsetMs !== 0) {
+      map.set(key, offsetMs);
+    }
+    while (map.size > MAX_ENTRIES) {
+      const oldest = map.keys().next().value;
+      if (oldest === void 0) {
+        break;
+      }
+      map.delete(oldest);
+    }
+    persist(map);
+  };
+
+  // src/utils/lyrics/lyricLineRules.ts
+  var LYRIC_LINE_PRESETS = [
+    { id: "copyright", words: ["\u7248\u6743\u6240\u6709", "\u672A\u7ECF\u8BB8\u53EF", "\u672A\u7ECF\u6388\u6743", "\u4E0D\u5F97\u7FFB\u5531", "\u7981\u6B62\u7FFB\u5531", "\u4FB5\u6743\u5FC5\u7A76", "all rights reserved", "copyright", "\xA9", "\u2117"] },
+    { id: "lyricSource", words: ["\u6B4C\u8BCD\u8D21\u732E\u8005", "\u7FFB\u8BD1\u8D21\u732E\u8005", "\u6B4C\u8BCD\u6765\u6E90", "\u6B4C\u8BCD\u6765\u81EA", "\u6B4C\u8BCD\u63D0\u4F9B", "\u6B4C\u8BCD\u5236\u4F5C", "\u6B4C\u8BCD\u6821\u5BF9", "lrc by"] }
+  ];
+  var escapeRegExp2 = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  var getLyricLinePresetWords = (id) => LYRIC_LINE_PRESETS.find((preset) => preset.id === id)?.words ?? null;
+  var foldWidth = (text) => text.replace(/[\uFF01-\uFF5E]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 65248));
+  var lyricLineAsRuleSees = (rule, text) => rule.shape === "written" ? text : foldWidth(text);
+  var lyricLineRuleWords = (text) => [...new Set(text.split("\n").map((word) => word.trim()).filter(Boolean))];
+  var compileLyricLineRule = (rule) => {
+    if (rule.shape === "written") {
+      return compileLyricFilterPattern(rule.text);
+    }
+    if (rule.shape === "preset") {
+      const words2 = getLyricLinePresetWords(rule.text);
+      return words2 ? new RegExp(words2.map((word) => escapeRegExp2(foldWidth(word))).join("|"), "i") : null;
+    }
+    const words = lyricLineRuleWords(foldWidth(rule.text));
+    if (words.length === 0) {
+      return null;
+    }
+    const body = `(?:${words.sort((one, other) => other.length - one.length).map(escapeRegExp2).join("|")})`;
+    switch (rule.shape) {
+      case "starts":
+        return new RegExp(`^\\s*${body}${rule.colon ? "\\s*[:\uFF1A]" : ""}`, "i");
+      case "whole":
+        return new RegExp(`^\\s*${body}\\s*$`, "i");
+      case "ends":
+        return new RegExp(`${body}\\s*$`, "i");
+      default:
+        return new RegExp(body, "i");
+    }
+  };
+  var compileLyricLineRules = (rules) => rules.flatMap((rule) => {
+    if (!rule.on) {
+      return [];
+    }
+    const regex = compileLyricLineRule(rule);
+    return regex ? [{ rule, regex }] : [];
+  });
+  var isMidSongLine = (index, total) => index >= Math.ceil(total / 4) && index < total - Math.ceil(total / 10);
+  var lyricLineRuleHits = (compiled, text, index, total) => !(compiled.rule.edgesOnly && isMidSongLine(index, total)) && compiled.regex.test(lyricLineAsRuleSees(compiled.rule, text));
+  var matchLyricLines = (lines, compiled) => lines.map((line, index) => compiled.find((entry) => lyricLineRuleHits(entry, line.fullText, index, lines.length)) ?? null);
+  var applyLyricLineRules = (lyrics, compiled) => {
+    if (!lyrics) {
+      return null;
+    }
+    if (compiled.length === 0) {
+      return ensureLyricDataRenderHints(lyrics);
+    }
+    const lines = lyrics.lines.filter((line) => !isInterludeLine(line));
+    const hits = matchLyricLines(lines, compiled);
+    return {
+      ...lyrics,
+      lines: finalizeParsedLyricLines(lines.filter((_, index) => !hits[index]), { includeInterludes: true })
+    };
+  };
+
   // src/render/lyrics/entry.ts
   function parse(source, options = {}) {
     return LyricParserFactory.parse(source, options);
   }
   function prepare(lyrics, options = {}) {
     if (!lyrics) return null;
-    let next = applyLyricStaffPolicy(lyrics, { policy: options.policy ?? "smart" });
+    const rules = Array.isArray(options.rules) ? options.rules : [];
+    const filtered = rules.length > 0 ? applyLyricLineRules(lyrics, compileLyricLineRules(rules)) : lyrics;
+    let next = applyLyricStaffPolicy(filtered, { policy: options.policy ?? "smart" });
     if (!next) return null;
     if (next.lines.some((line) => line.isChorus)) return next;
     const ranges = Array.isArray(options.chorusRanges) ? options.chorusRanges : [];

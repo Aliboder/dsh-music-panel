@@ -15,7 +15,13 @@ import vm from 'node:vm'
 const here = dirname(fileURLToPath(import.meta.url))
 const bundle = readFileSync(join(here, '..', 'src', 'render', 'lyrics', 'lyrics.bundle.js'), 'utf8')
 
-const sandbox = { console, Intl, TextDecoder, TextEncoder, URL, setTimeout, clearTimeout }
+const stored = new Map()
+const localStorage = {
+  getItem: (key) => (stored.has(key) ? stored.get(key) : null),
+  setItem: (key, value) => { stored.set(key, String(value)) },
+  removeItem: (key) => { stored.delete(key) },
+}
+const sandbox = { console, Intl, TextDecoder, TextEncoder, URL, setTimeout, clearTimeout, localStorage }
 sandbox.globalThis = sandbox
 sandbox.window = sandbox
 vm.createContext(sandbox)
@@ -110,6 +116,35 @@ assert.ok(typeof lyrics.LyricParserFactory?.parse === 'function', 'and the parse
   assert.equal(lyrics.isPureMusicLyricLines(notice.lines), true)
   const sung = await parseDocument({ type: 'local', lrcContent: '[00:01.00]第一句' })
   assert.equal(lyrics.isPureMusicLyricLines(sung.lines), false)
+}
+
+// ── per-song timeline offset (lyricOffsetMemory) ───────────────────────────
+{
+  assert.equal(lyrics.readLyricOffset('online:qq:1'), 0, 'nothing remembered is 0, the old reset default')
+  lyrics.writeLyricOffset('online:qq:1', 250)
+  assert.equal(lyrics.readLyricOffset('online:qq:1'), 250)
+  assert.equal(lyrics.readLyricOffset('online:qq:2'), 0, 'the offset is per song')
+  assert.ok(stored.get('lyric_timeline_offsets').includes('online:qq:1'), 'it is persisted under the ported key')
+  lyrics.writeLyricOffset('online:qq:1', 0)
+  assert.equal(lyrics.readLyricOffset('online:qq:1'), 0, '0 forgets it')
+}
+
+// ── line rules (Folia's lyricLineRules) ────────────────────────────────────
+{
+  const lrc = '[00:00.00]版权所有，未经许可不得翻唱\n[00:05.00]第一句\n[00:09.00]歌词贡献者：某人\n[00:13.00]第二句'
+  const parsed = await parseDocument({ type: 'local', lrcContent: lrc })
+  const presetRules = [{ id: 'preset:copyright', on: true, shape: 'preset', text: 'copyright' }]
+  const filtered = JSON.parse(JSON.stringify(lyrics.prepare(parsed, { policy: 'keep', rules: presetRules })))
+  assert.equal(filtered.lines.some((line) => line.fullText.includes('版权所有')), false, 'the copyright line goes')
+  assert.ok(filtered.lines.some((line) => line.fullText === '第一句'), 'sung lines stay')
+
+  const wordRules = [{ id: 'word:0', on: true, shape: 'contains', text: '歌词贡献者' }]
+  const wordFiltered = JSON.parse(JSON.stringify(lyrics.prepare(parsed, { policy: 'keep', rules: wordRules })))
+  assert.equal(wordFiltered.lines.some((line) => line.fullText.includes('歌词贡献者')), false, 'a free word hides its line')
+  assert.equal(wordFiltered.lines.length, filtered.lines.length, 'the two rule kinds agree here')
+
+  const untouched = JSON.parse(JSON.stringify(lyrics.prepare(parsed, { policy: 'keep', rules: [] })))
+  assert.equal(untouched.lines.length, parsed.lines.length, 'no rules, no filtering')
 }
 
 console.log('lyrics-folia.test.mjs ok')

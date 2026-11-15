@@ -238,6 +238,9 @@ ${body}
           // Lyric pipeline: the Folia document → renderer lines bridge, and the Folia Line
           // conversion the styles use; tests assert fields survive the two hops.
           linesFromFoliaDocument: typeof linesFromFoliaDocument === 'function' ? linesFromFoliaDocument : null,
+          lyricFilterRules: typeof lyricFilterRules === 'function' ? lyricFilterRules : null,
+          readSavedLyricOffset: typeof readSavedLyricOffset === 'function' ? readSavedLyricOffset : null,
+          rememberLyricOffset: typeof rememberLyricOffset === 'function' ? rememberLyricOffset : null,
           foliaPendoloLines: typeof foliaPendoloLines === 'function' ? foliaPendoloLines : null,
           foliaAudioBands: typeof foliaAudioBands === 'function' ? foliaAudioBands : null,
           // Local theme generation (folia-local-theme.js): pure build + store.

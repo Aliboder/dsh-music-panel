@@ -17,6 +17,9 @@ export { resolveLyricProcessingOptions } from '../../utils/lyrics/filtering';
 export { applyLyricStaffPolicy } from '../../utils/lyrics/staffCreditsPolicy';
 export { applyChorusRangesByTime, applyDetectedChorusEffects } from '../../utils/lyrics/chorusEffects';
 export { isPureMusicLyricLines, isPureMusicLyricText } from '../../utils/lyrics/pureMusic';
+export { readLyricOffset, writeLyricOffset } from '../../utils/lyrics/lyricOffsetMemory';
+export { applyLyricLineRules, compileLyricLineRules, LYRIC_LINE_PRESETS } from '../../utils/lyrics/lyricLineRules';
+import { applyLyricLineRules, compileLyricLineRules } from '../../utils/lyrics/lyricLineRules';
 import { applyLyricStaffPolicy } from '../../utils/lyrics/staffCreditsPolicy';
 import { applyChorusRangesByTime, applyDetectedChorusEffects } from '../../utils/lyrics/chorusEffects';
 import type { ChorusRange } from '../../utils/lyrics/chorusEffects';
@@ -45,9 +48,15 @@ export function parse(source: RawLyricSource, options: Record<string, unknown> =
 export function prepare(lyrics: LyricData | null, options: {
   policy?: 'keep' | 'smart' | 'hide';
   chorusRanges?: ChorusRange[];
+  rules?: Array<Record<string, unknown>>;
 } = {}): LyricData | null {
   if (!lyrics) return null;
-  let next = applyLyricStaffPolicy(lyrics, { policy: options.policy ?? 'smart' });
+  // Folia's order: the listener's line rules first, then the staff-credit policy.
+  const rules = Array.isArray(options.rules) ? options.rules : [];
+  const filtered = rules.length > 0
+    ? applyLyricLineRules(lyrics, compileLyricLineRules(rules as never))
+    : lyrics;
+  let next = applyLyricStaffPolicy(filtered, { policy: options.policy ?? 'smart' });
   if (!next) return null;
   if (next.lines.some((line) => line.isChorus)) return next;
   const ranges = Array.isArray(options.chorusRanges) ? options.chorusRanges : [];

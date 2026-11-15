@@ -224,3 +224,50 @@ function linesFromFoliaDocument(document) {
       return line !== null && line.text !== ''
     })
 }
+
+/**
+ * Folia's per-song manual timeline offset (lyricOffsetMemory): a number remembered
+ * per song, restored when that song plays again. Online tracks had no offset control
+ * at all before this; local tracks keep the host's file-level offset as the primary.
+ */
+function readSavedLyricOffset(path) {
+  if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return 0
+  if (typeof MPFoliaLyrics.readLyricOffset !== 'function') return 0
+  var value = Number(MPFoliaLyrics.readLyricOffset(path))
+  return isFinite(value) ? value : 0
+}
+
+/** Remember (0 forgets) this song's offset. */
+function rememberLyricOffset(path, offsetMs) {
+  if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return
+  if (typeof MPFoliaLyrics.writeLyricOffset !== 'function') return
+  MPFoliaLyrics.writeLyricOffset(path, Number(offsetMs) || 0)
+}
+
+/**
+ * The listener's lyric line filters, built from the settings page's two lists:
+ * ready-made presets (Folia's own ids) and free words (a line containing one goes).
+ * Folia's engine (applyLyricLineRules) expects rules with ids and switches.
+ */
+function lyricFilterRules() {
+  var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
+  var rules = []
+  var presets = Array.isArray(state.lyricFilterPresets) ? state.lyricFilterPresets : []
+  presets.forEach(function (id) {
+    if (typeof id !== 'string' || id === '') return
+    rules.push({ id: 'preset:' + id, on: true, shape: 'preset', text: id })
+  })
+  var words = String(state.lyricFilterWords || '')
+  words
+    .split(/[\n,，]/)
+    .map(function (word) {
+      return word.trim()
+    })
+    .filter(function (word) {
+      return word !== ''
+    })
+    .forEach(function (word, index) {
+      rules.push({ id: 'word:' + String(index), on: true, shape: 'contains', text: word })
+    })
+  return rules
+}
