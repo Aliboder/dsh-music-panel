@@ -9450,6 +9450,9 @@ window.__ModuleLoader__.load({
                 return { t: Number(word.startTime) || 0, end: Number(word.endTime) || 0, text: String(word.text || '') }
               }),
             isChorus: line.isChorus === true,
+            // The original Folia Line, untouched: visualizer styles read fields the
+            // renderer does not use (renderHints, wordSegments, chorusEffect, …).
+            folia: line,
           }
         })
         .filter(function (line) {
@@ -29201,6 +29204,10 @@ window.__ModuleLoader__.load({
             : []
         }
 
+        // A line that came through Folia's pipeline keeps every field the styles read
+        // (render hints, saved segmentation, chorus marks); a legacy line gets the
+        // estimate above.
+        var original = line.folia !== null && typeof line.folia === 'object' ? line.folia : null
         out.push({
           id: 'folia-pendolo-line-' + index,
           // Kept so the wrapper can map the plugin's line index (which counts untimed
@@ -29212,7 +29219,21 @@ window.__ModuleLoader__.load({
           words: words,
           translation: typeof line.translation === 'string' ? line.translation : '',
           romanization: typeof line.romanization === 'string' ? line.romanization : '',
-          isChorus: line.isChorus === true,
+          isChorus: original !== null ? original.isChorus === true : line.isChorus === true,
+          ...(original !== null
+            ? {
+                renderHints: original.renderHints,
+                wordSegments: original.wordSegments,
+                autoWordSegments: original.autoWordSegments,
+                chorusEffect: original.chorusEffect,
+                songPart: original.songPart,
+                blockIndex: original.blockIndex,
+                alternateTexts: original.alternateTexts,
+                backgroundVocal: original.backgroundVocal,
+                backgroundVocals: original.backgroundVocals,
+                agentId: original.agentId,
+              }
+            : {}),
         })
       }
       return out
@@ -168720,6 +168741,10 @@ window.__ModuleLoader__.load({
           foliaBackgroundConfig: typeof foliaBackgroundConfig === 'function' ? foliaBackgroundConfig : null,
           // Folia's band maths (folia-audio.js): pure, so a test can feed it a wave.
           foliaAudioBandsFromWave: typeof foliaAudioBandsFromWave === 'function' ? foliaAudioBandsFromWave : null,
+          // Lyric pipeline: the Folia document → renderer lines bridge, and the Folia Line
+          // conversion the styles use; tests assert fields survive the two hops.
+          linesFromFoliaDocument: typeof linesFromFoliaDocument === 'function' ? linesFromFoliaDocument : null,
+          foliaPendoloLines: typeof foliaPendoloLines === 'function' ? foliaPendoloLines : null,
           foliaAudioBands: typeof foliaAudioBands === 'function' ? foliaAudioBands : null,
           // Local theme generation (folia-local-theme.js): pure build + store.
           mpBuildLocalTheme: typeof mpBuildLocalTheme === 'function' ? mpBuildLocalTheme : null,

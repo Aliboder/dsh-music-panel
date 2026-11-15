@@ -235,6 +235,10 @@ ${body}
           foliaBackgroundConfig: typeof foliaBackgroundConfig === 'function' ? foliaBackgroundConfig : null,
           // Folia's band maths (folia-audio.js): pure, so a test can feed it a wave.
           foliaAudioBandsFromWave: typeof foliaAudioBandsFromWave === 'function' ? foliaAudioBandsFromWave : null,
+          // Lyric pipeline: the Folia document → renderer lines bridge, and the Folia Line
+          // conversion the styles use; tests assert fields survive the two hops.
+          linesFromFoliaDocument: typeof linesFromFoliaDocument === 'function' ? linesFromFoliaDocument : null,
+          foliaPendoloLines: typeof foliaPendoloLines === 'function' ? foliaPendoloLines : null,
           foliaAudioBands: typeof foliaAudioBands === 'function' ? foliaAudioBands : null,
           // Local theme generation (folia-local-theme.js): pure build + store.
           mpBuildLocalTheme: typeof mpBuildLocalTheme === 'function' ? mpBuildLocalTheme : null,

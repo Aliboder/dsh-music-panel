@@ -215,6 +215,9 @@ function linesFromFoliaDocument(document) {
             return { t: Number(word.startTime) || 0, end: Number(word.endTime) || 0, text: String(word.text || '') }
           }),
         isChorus: line.isChorus === true,
+        // The original Folia Line, untouched: visualizer styles read fields the
+        // renderer does not use (renderHints, wordSegments, chorusEffect, …).
+        folia: line,
       }
     })
     .filter(function (line) {

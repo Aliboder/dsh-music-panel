@@ -697,4 +697,37 @@ assert.ok(!textOf(volumeOn).includes('同专辑也过渡'), 'the album rule is f
 assert.ok(!classesOf(volumeOn).has('mp-xf-chip'), 'no duration picker: the engine decides')
 internals.prefsStore.set(savedTransition)
 
+
+// A Folia lyric line keeps its per-line render hints through the two hops: the
+// document -> renderer bridge, and the renderer -> stage conversion the styles read.
+{
+  const foliaLine = {
+    id: 'line-1',
+    fullText: '晴天',
+    startTime: 1,
+    endTime: 3,
+    words: [
+      { text: '晴', startTime: 1, endTime: 2 },
+      { text: '天', startTime: 2, endTime: 3 },
+    ],
+    translation: 'Sunny',
+    renderHints: { wordRevealMode: 'instant', lineTransitionMode: 'fast' },
+    isChorus: true,
+  }
+  assert.ok(typeof internals.linesFromFoliaDocument === 'function', 'the bridge is exposed for tests')
+  const lines = internals.linesFromFoliaDocument({ lines: [foliaLine] })
+  assert.equal(lines.length, 1)
+  assert.equal(lines[0].time, 1)
+  assert.equal(lines[0].text, '晴天')
+  assert.equal(lines[0].translation, 'Sunny')
+  assert.deepEqual(lines[0].words.map((word) => word.text), ['晴', '天'])
+  assert.equal(lines[0].isChorus, true)
+  const stage = internals.foliaPendoloLines(lines)
+  assert.equal(stage.length, 1)
+  assert.equal(stage[0].fullText, '晴天')
+  assert.equal(stage[0].renderHints.wordRevealMode, 'instant', 'render hints survive to the style')
+  assert.equal(stage[0].isChorus, true)
+  assert.deepEqual(stage[0].words.map((word) => [word.text, word.startTime]), [['晴', 1], ['天', 2]])
+}
+
 console.log('panel.render.test.mjs ok')

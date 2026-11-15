@@ -145,6 +145,10 @@ function foliaPendoloLines(lines) {
         : []
     }
 
+    // A line that came through Folia's pipeline keeps every field the styles read
+    // (render hints, saved segmentation, chorus marks); a legacy line gets the
+    // estimate above.
+    var original = line.folia !== null && typeof line.folia === 'object' ? line.folia : null
     out.push({
       id: 'folia-pendolo-line-' + index,
       // Kept so the wrapper can map the plugin's line index (which counts untimed
@@ -156,7 +160,21 @@ function foliaPendoloLines(lines) {
       words: words,
       translation: typeof line.translation === 'string' ? line.translation : '',
       romanization: typeof line.romanization === 'string' ? line.romanization : '',
-      isChorus: line.isChorus === true,
+      isChorus: original !== null ? original.isChorus === true : line.isChorus === true,
+      ...(original !== null
+        ? {
+            renderHints: original.renderHints,
+            wordSegments: original.wordSegments,
+            autoWordSegments: original.autoWordSegments,
+            chorusEffect: original.chorusEffect,
+            songPart: original.songPart,
+            blockIndex: original.blockIndex,
+            alternateTexts: original.alternateTexts,
+            backgroundVocal: original.backgroundVocal,
+            backgroundVocals: original.backgroundVocals,
+            agentId: original.agentId,
+          }
+        : {}),
     })
   }
   return out

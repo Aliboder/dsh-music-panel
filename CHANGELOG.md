@@ -17,6 +17,11 @@
   字典，插件 bundle 里没有；在 Folia 里也是引擎就绪前不起作用）。
 - 测试：staff 的 hide / keep 两条路径、文本重复检测标出合唱；staff 样本里 Folia 会插入
   `......` 间奏行，隐藏只针对署名块，间奏保留。
+- 解析后的原始 Folia Line 挂在渲染行上（`line.folia`），`foliaPendoloLines` 把它携带的
+  `renderHints` / `wordSegments` / `autoWordSegments` / `chorusEffect` / `songPart` /
+  `blockIndex` / `alternateTexts` / `backgroundVocal(s)` / `agentId` 一并交给视觉器样式
+  （以前只传 words/translation/romanization，样式里的逐词/转场渲染参数一直是默认值）。
+  `panel.render` 增加断言：renderHints 从文档一路活到样式行。
 
 ### 歌词处理逻辑改用 Folia 的流水线
 
