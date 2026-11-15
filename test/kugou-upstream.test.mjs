@@ -180,6 +180,8 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
     assert.ok(search.results[0].title !== '', 'the Android result shape is mapped to the plugin\'s song')
     const lrc = await KG.getLyric({ hash: search.results[0].id, title: '晴天' }, platform)
     assert.ok(lrc.lyric.length > 0, 'lyrics are found and downloaded through the bridge')
+    const word = await KG.getWordLines({ hash: search.results[0].id, title: '晴天' }, platform)
+    assert.ok(word !== null && word.lines.some((line) => line.words.length > 0), 'the KRC word timeline is delivered')
   }
   await stopAllKugouServices()
   console.log('kugou-upstream.test.mjs ok (live)')

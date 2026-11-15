@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### 逐词歌词：QQ 与酷狗补上下发
+
+- 渲染端本来就支持逐词：客户端把 Host 回的 `lines[].words` 按行时间合到 LRC 行上
+  （`attachWordTimeline`），Folia 舞台按 `line.words` 精确驱动（没有词级时才用
+  `buildTimedWords` 按字数均分的兜底）。真正丢词的是 Host：
+  - QQ：`getQrcLyric` 解析出了 `words` 却标着「当前不下发」，provider 的 QQ 分支只回
+    `{lrc, translation}`，QRC 只在需要翻译时才请求。
+  - 酷狗：`getWordLines` 把 `words` 从每行删掉再返回，provider 只回 LRC。
+- 现在 QQ 的 QRC 行带 `words`（秒时基），provider 优先用 QRC 行、并用同一批行拼 LRC
+  （时间轴严格对齐，客户端的按时间配对才能命中）；酷狗的 KRC 行保留 `words`，provider
+  在有词级时用 KRC 行拼 LRC。没有词级数据时照旧回退 LRC / 翻译路径。
+- 歌词缓存版本 v4 → v5：旧缓存没有词，会重新取一次。
+- 实测（匿名）：网易云 67 行、57 行带词；QQ 与酷狗（标准版与概念版）63 行全部带词。
+- 测试：`parseQrc` 的词解析断言；`kugou-upstream` live 段断言 KRC 词级下发。
+
 ### 向 Folia 对齐：酷狗走上游包（第一步：登录与设备）
 
 - 新增 `lib/services/kugou-api.js` + `kugou-worker.js`：`kugoumusicapi` 放进 worker 跑，

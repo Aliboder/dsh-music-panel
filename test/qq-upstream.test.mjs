@@ -8,6 +8,7 @@ import assert from 'node:assert/strict'
 import { toLegacyResult } from '../lib/providers/qq.js'
 import { assertOk, ensureQqService, resetUpstreamOverride, setUpstreamOverride, stopQqService } from '../lib/services/qq-api.js'
 import * as QQ from '../lib/providers/qq.js'
+import { parseQrc } from '../lib/providers/qrc.js'
 import { loginStatus } from '../lib/providers/index.js'
 
 const item = toLegacyResult({
@@ -32,6 +33,19 @@ assert.equal(toLegacyResult({ name: 'no mid' }), null)
 assert.equal(toLegacyResult(null), null)
 assert.equal(toLegacyResult({ mid: '', name: 'x' }), null)
 
+
+// ── word-level QRC ──────────────────────────────────────────────────────────
+//
+// The provider hands the client a word timeline only if the parser keeps one.
+// QRC plaintext: [startMs,durMs]晴(0,800)天(800,900)
+
+{
+  const parsed = parseQrc('[0,5000]晴(0,800)天(800,900)\n[5000,4000]故(0,500)事(500,700)')
+  assert.equal(parsed.length, 2)
+  assert.equal(parsed[0].text, '晴天')
+  assert.deepEqual(parsed[0].words.map((word) => [word.text, word.startMs, word.durMs]), [['晴', 0, 800], ['天', 800, 900]])
+  assert.equal(parsed[1].words.length, 2, 'a second line keeps its own timeline')
+}
 
 // ── login hints ─────────────────────────────────────────────────────────────
 //
