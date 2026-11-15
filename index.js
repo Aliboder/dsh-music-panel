@@ -24,6 +24,7 @@ import { registerBodianSource, registerLocalSource, registerOnlineSources, reset
 import { createLoginStore } from './lib/login/store.js'
 import { stopNeteaseService } from './lib/services/netease-api.js'
 import { stopQqService } from './lib/services/qq-api.js'
+import { stopAllKugouServices } from './lib/services/kugou-api.js'
 
 /** Cordis plugin name. */
 export const name = 'music'
@@ -64,9 +65,10 @@ export function apply(ctx, rawConfig) {
     }
     return () => {
       resetSources()
-      // Upstream services hold listening sockets; they must not outlive the plugin.
+      // Upstream services hold listening sockets and workers; they must not outlive the plugin.
       void stopNeteaseService()
       void stopQqService()
+      void stopAllKugouServices()
     }
   }, 'music: sources')
 

@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### 向 Folia 对齐：酷狗走上游包（第一步：登录与设备）
+
+- 新增 `lib/services/kugou-api.js` + `kugou-worker.js`：`kugoumusicapi` 放进 worker 跑，
+  调用形状与 Folia 的 `kugouApiBridge.cjs` 一致（`callKugou(platform, operation, params)`
+  → `{ status, body, cookie }`）。包在 require 时读 `process.env.platform`（appid、
+  clientver、Android 盐），所以按平台各起一个 worker：`standard` 与 `lite`（概念版），
+  每个 worker 有自己的一份 env。
+- 新增 `lib/providers/kugou-cookie.js`：把插件存的设备身份与登录态翻成包认识的 cookie
+  词汇（`KUGOU_API_GUID/MID/DEV/MAC/WEBGL`、`dfid`、`userid`、`token`）；老会话没有
+  指纹字段时按 guid 派生稳定的值。应答里的 `dfid`，以及「确认登录（status 4）时才成对取
+  token/userid」按 Folia 的规则合并，半对不取。
+- 扫码登录与设备注册改走包：`createQRLogin` → `login_qr_key`（缺图再 `login_qr_create`）、
+  `checkQRLogin` → `login_qr_check`、`registerDevice` → `register_dev`；标准版与概念版
+  都走这条，概念版也先注册设备。`kugouRegistered` 缓存按平台分开，插件卸载时停掉两个 worker。
+- 搜索/取流/歌词/云歌单暂时仍是自写协议（下一步迁）；登录后的 `dfid` 已经是包签发的那个。
+- 新增 `test/kugou-upstream.test.mjs`：cookie 词表、应答合并、登录映射的纯断言；
+  `DSH_MUSIC_UPSTREAM=1` 时两个平台各真出一次码、轮询 waiting，并做一次匿名搜索。
+
 ### 向 Folia 对齐：QQ 扫码失败时说出具体原因
 
 - QQ 上游包在扫码失败时会给一条 `failureHint`（设备上限 / 请求过频 / 扫错 App /
