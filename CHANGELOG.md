@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 网易云歌手页：改走 Folia 的 `/artist/songs` 单次请求
+
+- 之前慢的原因：`artistSongs('netease', 名字)` 根本不是歌手接口，而是**按歌手名做歌曲
+  搜索**，最多 10 页、每页 30 条**串行**请求，再按歌手过滤——每点一次歌手 2–4 秒。
+- 现在与 Folia 一致：歌曲本身就带 `artistsDetail[].id`，客户端把对应 id 传给
+  `/online/artist-songs?artistId=…`，Host 直接 `/artist/songs?id=&limit=200&order=hot`
+  一次拿回。没有 id 时用一次歌手搜索（`/search?type=100`）解析并缓存（400 条 LRU），
+  仍然失败才回退到按名搜索——回退路径的分页也改成并行。
+- 实测（匿名、worker 已热）：`findArtistId` 176ms、`getArtistSongs(200)` 333ms；
+  provider 名字路径约 355ms；带 id 路径一次请求。旧路径最多 10 次串行搜索。
+- 测试：live 段断言名字→id、缓存命中、`/artist/songs` 返回完整歌曲、provider 用 id 直接回答。
+
 ### 歌词行与 Folia 原样对齐（去掉二次加工）
 
 - 播放器的歌词行改成 Folia 的 `Line`（`startTime` / `endTime` / `fullText` /

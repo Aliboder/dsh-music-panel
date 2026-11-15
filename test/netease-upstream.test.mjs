@@ -189,7 +189,8 @@ assert.equal(assertOk({ code: 803, cookie: 'MUSIC_U=x' }, '/login/qr/check', { s
 // ── live (opt-in) ───────────────────────────────────────────────────────────
 
 if (process.env.DSH_MUSIC_UPSTREAM === '1') {
-  const { search, getLyric, getDownloadURL, getChorus, createQRLogin, checkQRLogin } = await import('../lib/providers/netease.js')
+  const { search, getLyric, getDownloadURL, getChorus, createQRLogin, checkQRLogin, findArtistId, getArtistSongs } = await import('../lib/providers/netease.js')
+  const providers = await import('../lib/providers/index.js')
 
   const service = await ensureNeteaseService()
   assert.ok(service.port > 0, 'the local service must report a bound port')
@@ -225,6 +226,19 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
   const audio = await getDownloadURL(first.id, '', 'high')
   assert.ok(typeof audio.url === 'string')
   assert.equal(audio.id, first.id)
+
+  // Artist songs: Folia's path. The id is resolved (or comes from the song) and the
+  // artist's songs are one request, not up to ten pages of a name search.
+  const artistId = await findArtistId('周杰伦', '')
+  assert.match(artistId, /^[0-9]+$/, 'the artist name resolves to an id')
+  assert.equal(await findArtistId('周杰伦', ''), artistId, 'the resolution is cached')
+  const artistPage = await getArtistSongs(artistId, '', { limit: 50 })
+  assert.ok(artistPage.songs.length > 0, 'the artist has songs')
+  assert.ok(artistPage.total >= artistPage.songs.length)
+  assert.ok(artistPage.songs[0].title !== '' && artistPage.songs[0].id !== '')
+  const viaId = await providers.artistSongs('netease', '周杰伦', '', {}, artistId)
+  assert.ok(viaId.length > 0, 'the provider answers with the id the song carries')
+  assert.ok(viaId.every((song) => song.id && song.title !== ''), 'every row is a full song')
 
   // The first poll after the code appears must be a scan state, not an error.
   const qr = await createQRLogin()

@@ -361,6 +361,18 @@ async function openOnlineArtist(track, artistOverride) {
   var artist = String(artistOverride || (names.length > 0 ? names[0] : (track && track.artist)) || '').trim()
   if (artist === '') return
   var provider = (track && track.onlineProvider) || onlineStore.get().provider
+  // Folia opens the artist page with the id the song already carries; a name-only
+  // visit falls back to the Host resolving one.
+  var artistId = ''
+  var detail = Array.isArray(track && track.artistsDetail) ? track.artistsDetail : []
+  for (var detailIndex = 0; detailIndex < detail.length; detailIndex += 1) {
+    var entry = detail[detailIndex] || {}
+    if (String(entry.name || '').trim() === artist && entry.id) {
+      artistId = String(entry.id)
+      break
+    }
+  }
+  if (artistId === '' && detail.length === 1 && detail[0] && detail[0].id) artistId = String(detail[0].id)
   var from = uiStore.get().nav
   var token = (artistLoadToken += 1)
   onlineStore.set({
@@ -381,7 +393,8 @@ async function openOnlineArtist(track, artistOverride) {
         'online/artist-songs?provider=' +
         encodeURIComponent(provider) +
         '&artist=' +
-        encodeURIComponent(artist),
+        encodeURIComponent(artist) +
+        (artistId !== '' ? '&artistId=' + encodeURIComponent(artistId) : ''),
     )
     if (token !== artistLoadToken) return
     var songs = Array.isArray(body.songs) ? body.songs : []
