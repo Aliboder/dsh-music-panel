@@ -621,6 +621,11 @@ async function checkProviderLogin(provider, key, mode) {
   return body.status
 }
 
+
+async function getLoginSession(provider) {
+  return getJson(API + 'online/login/session?provider=' + encodeURIComponent(provider))
+}
+
 async function logoutProvider(provider) {
   try {
     await postJson(API + 'online/logout', { provider: provider })
@@ -704,6 +709,8 @@ function useNavidromeForm() {
     setServer: setServer,
     setUsername: setUsername,
     setPassword: setPassword,
+    setError: setError,
+    setNotice: setNotice,
     connect: connect,
     reset: reset,
   }

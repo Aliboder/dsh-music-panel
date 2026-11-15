@@ -94,7 +94,8 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsoni
 - **音频缓存**：边播边写、播完落盘，默认上限 10 GB、LRU 淘汰；设置 → 缓存可查看全部缓存歌曲并清空。
 - **可调歌词宽度**：播放页歌词栏两侧都可拖动调整宽度（双击复位），宽度按本机偏好保存。
 - **两栏间距可调**：界面编辑里可调封面栏与歌词栏的间距（12–96px，默认 60px）。
-- **动态流光背景**：播放页在封面色调上叠加缓慢流动的光晕，切歌时颜色平滑过渡，可在「界面编辑」关闭。
+- **Folia 歌词样式**：14 种 Folia 样式按上游源码移植（静止 / 云阶 / 浮名 / 莫奈 / 倾诉 / 回环 / 心象 / 绘光 / 商籁 / 凝彩 / 花火 / 雾笺 / 镜台 / 时计），共用 Folia 的时钟、逐字时间线、封面取色主题与音频带。原“经典”布局已移除，默认样式为“莫奈”。
+- **Folia 背景**：播放页使用 Folia 的六种 shell 背景（通用 / 莫奈 / 漫游 / 隐现 / 星空 / 嵌入，另可选“空”），支持封面取色流体、Paper Shaders 抖动与印刷效果、星空与网页嵌入；可在外观设置里切换，默认「隐现」。
 - **列表内搜索**：歌单 / 专辑 / 本地库右上角的放大镜点开后是当前列表的搜索框，按歌名、歌手、专辑实时过滤；顶部的全局搜索只负责在线搜索，两者互不干扰。
 - **智能过渡**：播放页「音频效果 → 音量」或设置 → 播放，只有一个开关。播放到曲末前 14 秒时自动分析当前曲尾与下一首开头的响度，从安静点切入、按安静段长度决定重叠（2.5–6 秒），但**下一首只在重叠的最后 2.5 秒才淡入**（不会提前一大段就开始唱）；下一首一旦出声，界面（标题 / 封面 / 歌词 / 进度 / 队列）就切换到它；开启过渡时会在当前曲播放期间于后台预取下一首在线曲目，未缓存的在线歌曲不必等曲末 14 秒窗口才开始下载；只有真正静音的前奏（低于 -45 dBFS）才会被跳过，轻声前奏属于音乐内容会完整保留；**同专辑连续曲目固定保持原始衔接**；暂停、切歌、拖动进度会立即取消过渡。
 - **音量均衡**：浏览器内置 EBU R128（BS.1770）分析，按曲目自动调整增益，不依赖 ffmpeg；首次分析后缓存结果。
@@ -185,6 +186,8 @@ Navidrome 的「全部歌曲」默认是随机采样。需要按页浏览完整�
 - Navidrome 的「完整曲库」使用其内部 `/api/song` 接口，可能随版本变化；失效时会退回随机采样，不影响搜索、播放和收藏。
 - VIP / 付费曲目是否可播取决于当前登录账号，界面会显示金色徽标。
 - 平台图标使用各平台 App Store 官方应用图标，仅用于平台识别，商标归各平台所有。
+- **在线层实现来源**：网易云与 QQ 走各自的上游 API 包（本机 `127.0.0.1` 服务，由插件自分配端口）；酷狗保留插件自有的签名实现——实测上游在匿名态下取链返回 `20028 需要验证`、歌词返回 `20010 Bad Request`；波点走 `bodian-music-api`；汽水已接入依赖但当前网络环境无法连通其服务端，因此不会出现在平台列表；飞牛（fnOS）需要用户自建服务器才能验证，尚未启用。
+- **登录态**：0.36 起改为新的 `sessions.json` 结构（0600），旧的 `providers.json` 不再读取，升级后需重新登录一次。
 
 ### 开发
 
@@ -200,13 +203,14 @@ npm run pack:check  # package self-check
 ```bash
 node scripts/build-client.mjs          # rebuild client.js
 node scripts/build-client.mjs --check  # verify src and client.js agree
+node scripts/build-vendor.mjs          # rebuild the bundled framer-motion fragment
 ```
 
 更多规范见 [主题与组件规范](docs/theme-guidelines.md) 与 [UI review](docs/ui-review-2026-11.md)。
 
 ### License
 
-[MIT](LICENSE) © Aliboder
+[AGPL-3.0-only](LICENSE) © Aliboder
 
 ---
 
@@ -328,6 +332,8 @@ Navidrome’s “All songs” view is a random sample by default. To page the co
 - Navidrome’s complete-library view uses its internal `/api/song` endpoint, which may change between versions; if it fails, the panel falls back to random sampling without affecting search, playback, or favorites.
 - VIP / paid track availability depends on the signed-in account and is marked in the UI.
 - Provider icons come from the official App Store artwork and are used only for identification; trademarks belong to their owners.
+- **Online transports**: NetEase and QQ run their upstream API packages as local `127.0.0.1` services on ports the plugin allocates itself. KuGou keeps the plugin's own signing implementation — upstream answers `20028 (verification required)` for stream lookups and `20010 Bad Request` for lyrics when anonymous. Bodian uses `bodian-music-api`. Qishui is wired but its service host is unreachable from this network, so it is not listed; fnOS needs a user-hosted server and is not enabled yet.
+- **Sign-in state**: 0.36 stores credentials in the new `sessions.json` (0600). The old `providers.json` is no longer read, so upgrading asks for one fresh sign-in.
 
 ### Development
 
@@ -353,7 +359,9 @@ See [theme guidelines](docs/theme-guidelines.md) and [UI review](docs/ui-review-
 
 ### License
 
-[MIT](LICENSE) © Aliboder
+[AGPL-3.0-only](LICENSE) © Aliboder
+
+
 
 
 

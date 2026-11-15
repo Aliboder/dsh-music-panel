@@ -14,9 +14,45 @@ var UI_SOURCES = ['local', 'netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
 // Derived from UI_SOURCES so the list only exists once: a second hardcoded copy
 // is exactly how `music_control`'s source whitelist drifted and started
 // treating navidrome as a local search.
+/** Provider metadata comes from /online/providers: displayName + capabilities. */
+function providerInfoOf(source) {
+  var providers = onlineStore.get().providers || {}
+  return providers[source] || {}
+}
+
+/**
+ * Every source the panel can show: `local` plus whatever the host registered.
+ * UI_SOURCES keeps the built-in order; platforms registered outside the legacy
+ * factory (Bodian today) are appended from the server response, so adding a
+ * platform no longer needs a client change.
+ */
+function availableSources() {
+  var list = ['local']
+  for (var i = 0; i < UI_SOURCES.length; i++) {
+    if (UI_SOURCES[i] !== 'local') list.push(UI_SOURCES[i])
+  }
+  var registered = Object.keys(onlineStore.get().providers || {}).sort()
+  for (var j = 0; j < registered.length; j++) {
+    if (list.indexOf(registered[j]) < 0) list.push(registered[j])
+  }
+  return list
+}
+
 function isOnlineSource(source) {
   if (source === 'local') return false
-  return UI_SOURCES.indexOf(String(source || '')) >= 0
+  return availableSources().indexOf(String(source || '')) >= 0
+}
+
+/** Capability check: ask "can this source do X", never "is it navidrome". */
+function supports(source, capability) {
+  var caps = providerInfoOf(source).capabilities
+  if (caps !== undefined && caps !== null && Object.keys(caps).length > 0) {
+    return caps[capability] === true
+  }
+  if (source === 'local') {
+    return capability === 'search' || capability === 'playback' || capability === 'lyrics'
+  }
+  return false
 }
 
 function sourceLabelOf(source) {
@@ -25,6 +61,10 @@ function sourceLabelOf(source) {
   if (source === 'kugou') return t('online.providerKugou')
   if (source === 'kugouLite') return t('online.providerKugouLite')
   if (source === 'navidrome') return t('online.providerNavidrome')
+  if (source !== 'local') {
+    var info = providerInfoOf(source)
+    if (info.displayName) return String(info.displayName)
+  }
   return t('page.tabLocal')
 }
 

@@ -147,16 +147,31 @@ function integratedLoudnessOf(buffer) {
   return -0.691 + 10 * Math.log10(finalEnergy)
 }
 
+/** Loudest sample of the decoded file, linear, for the balance's peak ceiling. */
+function peakOfAudioBuffer(buffer) {
+  var peak = 0
+  for (var channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+    var data = buffer.getChannelData(channel)
+    for (var index = 0; index < data.length; index += 1) {
+      var value = data[index] < 0 ? -data[index] : data[index]
+      if (value > peak) peak = value
+    }
+  }
+  return peak
+}
+
 function analyzeLoudnessBlob(item, blob, isCurrent, onGain) {
   if (!item || !blob || typeof isCurrent !== 'function') return Promise.resolve(null)
   var key = loudnessCacheKey(item, blob)
   var cached = lookupLoudnessGain(key)
   if (cached !== null) {
+    setBalanceChoice({ reading: 'file', effectiveGainDb: cached, estimated: false })
     if (isCurrent() && typeof onGain === 'function') onGain(cached)
     return Promise.resolve(cached)
   }
   var decoder = loudnessContext()
   if (decoder === null) return Promise.resolve(null)
+  var measuredBuffer = null
   return blob
     .arrayBuffer()
     .then(function (bytes) {
@@ -164,11 +179,14 @@ function analyzeLoudnessBlob(item, blob, isCurrent, onGain) {
     })
     .then(function (buffer) {
       if (!isCurrent()) return null
+      measuredBuffer = buffer
       return lufsFromAudioBuffer(buffer)
     })
     .then(function (lufs) {
       if (lufs === null || !isCurrent()) return null
-      var gainDb = clamp(LOUDNESS_TARGET - lufs, -15, 6)
+      var choice = chooseBalance({ file: { loudness: lufs, peak: peakOfAudioBuffer(measuredBuffer) } })
+      setBalanceChoice(choice)
+      var gainDb = clamp(choice.effectiveGainDb, -15, VOLUME_BALANCE_MAX_BOOST_DB)
       storeLoudnessGain(key, gainDb)
       if (typeof onGain === 'function') onGain(gainDb)
       return gainDb

@@ -34,37 +34,13 @@ function PlayerBar(props) {
   var preview = previewPair[0]
   var setPreview = previewPair[1]
   var current = snap.queue[snap.index] || null
-  var onlineLikedPair = useState(false)
-  var onlineLiked = onlineLikedPair[0]
-  var setOnlineLiked = onlineLikedPair[1]
   var duration = time.duration > 0 ? time.duration : current ? current.durationSec || 0 : 0
   var progressPercent =
     duration > 0 ? clamp(((preview !== null ? preview : time.currentTime) / duration) * 100, 0, 100) : 0
-  var favorite = current !== null && props.favoriteSet[current.path] === true
+  // The bar, the lists and the card all read this same SongLike.
+  var like = current === null ? { isLiked: false, disabled: true, reason: '', onLike: function () {} } : likeStateOf(current, props.favoriteSet)
 
-  useEffect(
-    function () {
-      if (current === null || !current.onlineProvider) return undefined
-      var cancelled = false
-      getJson(
-        API +
-          'online/liked?provider=' +
-          encodeURIComponent(current.onlineProvider) +
-          '&id=' +
-          encodeURIComponent(current.onlineId || ''),
-      )
-        .then(function (body) {
-          if (!cancelled) setOnlineLiked(body.liked === true)
-        })
-        .catch(function () {
-          // Not signed in: keep the neutral state.
-        })
-      return function () {
-        cancelled = true
-      }
-    },
-    [current ? current.path : '', current ? current.onlineProvider : '', current ? current.onlineId : ''],
-  )
+
 
   if (current === null) {
     return h(
@@ -137,36 +113,16 @@ function PlayerBar(props) {
         h('div', { className: 'mp-pb-title', title: trackTitleOf(current) }, trackTitleOf(current)),
         h('div', { className: 'mp-pb-artist', title: trackArtistOf(current) }, trackArtistOf(current)),
       ),
-      current.onlineProvider
-        ? h(IconButton, {
-            icon: onlineLiked ? 'heartFill' : 'heart',
-            size: 16,
-            className: 'mp-pb-fav',
-            active: onlineLiked,
-            title: onlineLiked ? t('page.unfavorite') : t('page.favorite'),
-            onClick: function () {
-              var next = !onlineLiked
-              postJson(API + 'online/like', { provider: current.onlineProvider, song: current, on: next })
-                .then(function () {
-                  setOnlineLiked(next)
-                  refreshLikedPlaylist(next ? 1 : -1)
-                  showToast(next ? t('page.favorite') : t('page.unfavorite'))
-                })
-                .catch(function (error) {
-                  showToast(errorText(error))
-                })
-            },
-          })
-        : h(IconButton, {
-            icon: favorite ? 'heartFill' : 'heart',
-            size: 16,
-            className: 'mp-pb-fav',
-            active: favorite,
-            title: favorite ? t('page.unfavorite') : t('page.favorite'),
-            onClick: function () {
-              if (props.onToggleFavorite) props.onToggleFavorite(current)
-            },
-          }),
+      h(IconButton, {
+        key: 'like',
+        icon: like.isLiked ? 'heartFill' : 'heart',
+        size: 16,
+        className: 'mp-pb-fav',
+        active: like.isLiked,
+        disabled: like.disabled === true,
+        title: like.disabled === true ? like.reason : like.isLiked ? t('page.unfavorite') : t('page.favorite'),
+        onClick: like.onLike,
+      }),
     ),
     h(
       'div',

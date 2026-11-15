@@ -150,12 +150,31 @@ function createPlayer() {
   /** Resolved EQ settings; persisted through prefs on every change. */
   var eq = normalizeEqPrefs(prefs)
   var waveData = null
+  var captureAnalyser = null
+  var captureData = null
+  var captureElement = null
+  var captureContext = null
   var normalizeGain = 1
+  // The loudness trim and the tag gain multiply: `normalizeBase` is the measured
+  // trim, `replayGainFactor` the ReplayGain tag multiplier (1 when off).
+  var normalizeBase = 1
+  var replayGainFactor = 1
   var loudnessToken = 0
   /** Resolves when the current track's gain is ready (or analysis gave up). */
   var loudnessGate = null
   /** Active `blob:` URL for the loaded track (local media seeks reliably). */
   var objectUrl = null
+  /** Live meter tapped ahead of the balance gain (see 49-balance-meter.js). */
+  var balanceMeter = null
+  var balanceSplitter = null
+  var balanceTaps = []
+  var balanceSilent = null
+  /** What the balance asked for this play, and whether it already moved once. */
+  var balanceMoved = false
+  var balanceAppliedDb = 0
+  var balanceAppliedReading = ''
+  /** The song's own gain tags (local file or Navidrome), for the balance's fallbacks. */
+  var tagGainDb = null
   var currentLoudnessBlob = null
   /** In-flight track download. */
   var fetchAbort = null
@@ -498,6 +517,27 @@ function createPlayer() {
   }
 
   function onTime(event) {
+    if (balanceMeter !== null) {
+      balanceMeter.tick()
+      // Until the file itself was read, a better live reading may move the gain:
+      // within the first 10 s it eases in, later only a clear turn-down.
+      if (readPrefs().normalizeVolume !== false && balanceAppliedReading !== 'file') {
+        var liveLoudness = balanceMeter.liveLoudness()
+        if (liveLoudness !== null) {
+          var liveNextDb = chooseBalance({ live: liveLoudness }).effectiveGainDb
+          var plan = planBalanceMove({
+            playSec: audio === null ? 0 : audio.currentTime,
+            moved: balanceMoved,
+            currentDb: balanceAppliedDb,
+            nextDb: liveNextDb,
+          })
+          if (plan !== null && plan !== 'set') {
+            balanceMoved = true
+            applyBalanceChoice({ reading: 'live', effectiveGainDb: liveNextDb, estimated: true })
+          }
+        }
+      }
+    }
     if (!isActiveEvent(event)) return
     if (audio === null) return
     state = Object.assign({}, state, { currentTime: audio.currentTime })
@@ -551,6 +591,8 @@ function createPlayer() {
   }
 
   function onEnded(event) {
+    // The song was heard whole: keep its reading for the next play.
+    commitBalanceReading(currentItem(), audio === null ? 0 : audio.duration)
     if (!isActiveEvent(event)) return
     flushListening(true)
     flushSessionPosition()
@@ -682,7 +724,8 @@ function createPlayer() {
   }
 
   function applyNormalizeGain(linear) {
-    normalizeGain = Number.isFinite(linear) && linear > 0 ? linear : 1
+    normalizeBase = Number.isFinite(linear) && linear > 0 ? linear : 1
+    normalizeGain = normalizeBase * replayGainFactor
     if (trimNode !== null && audioContext !== null) {
       // Before playback starts the gain must already be at its target;
       // otherwise the first seconds ramp down audibly. While a track is
@@ -804,6 +847,25 @@ function createPlayer() {
   }
 
   /** Analyse the downloaded blob in-browser and apply the per-track gain. */
+  /** Apply the balance's decision through the loudness trim. */
+  function applyBalanceChoice(choice) {
+    if (!choice) return
+    setBalanceChoice(choice)
+    balanceAppliedDb = Number(choice.effectiveGainDb) || 0
+    balanceAppliedReading = String(choice.reading || '')
+    applyNormalizeGain(Math.pow(10, clamp(balanceAppliedDb, -15, VOLUME_BALANCE_MAX_BOOST_DB) / 20))
+  }
+
+  /** A whole play becomes a reading for this song, and joins the typical gains. */
+  function commitBalanceReading(item, durationSec) {
+    if (balanceMeter === null) return
+    var play = balanceMeter.play()
+    balanceMeter.reset()
+    if (!item || item.onlineProvider) return
+    if (!balanceWholePlay(play, durationSec)) return
+    noteBalanceReading(item.path, play, VOLUME_BALANCE_TARGET_DB - play.loudness)
+  }
+
   function scheduleLoudness(item, blob, done) {
     var token = (loudnessToken += 1)
     currentLoudnessBlob = blob || null
@@ -857,6 +919,13 @@ function createPlayer() {
     currentLoudnessBlob = null
     loudnessToken += 1
     applyNormalizeGain(1)
+    if (balanceMeter !== null) balanceMeter.reset()
+    balanceMoved = false
+    if (readPrefs().normalizeVolume !== false) {
+      // What is known before the file is read: a whole play of it, else the typical gain.
+      var seededRecord = balanceRecordFor(item && item.path)
+      applyBalanceChoice(chooseBalance({ played: seededRecord, tag: tagGainDb, typicalDb: typicalGainDb(balanceTypicalGains()) }))
+    }
     var loudness = createLoudnessGate()
     if (audio === null) {
       loudness.resolve()
@@ -1562,8 +1631,11 @@ function createPlayer() {
         limiterNode.release.value = 0.15
         gainNode = audioContext.createGain()
         analyser = audioContext.createAnalyser()
-        analyser.fftSize = 256
-        analyser.smoothingTimeConstant = 0.82
+        analyser.fftSize = 2048
+        // Folia's own analyser runs at 0.6 (usePlaybackAudioBridge); the Folia port's
+        // bands must be read from the same response curve or the visualizers lag the
+        // music. The bar and page spectrum derive their own smoothing from this data.
+        analyser.smoothingTimeConstant = 0.6
         // Each deck owns a fade gain and a loudness trim; both sum into the
         // shared preamp so the EQ, limiter and analyser stay single-instance.
         fadeNode = audioContext.createGain()
@@ -1571,6 +1643,21 @@ function createPlayer() {
         deckSource.connect(fadeNode)
         fadeNode.connect(trimNode)
         trimNode.connect(preampNode)
+        // Meter taps hang off the fade node: they hear the song before its balance
+        // gain, like Folia's per-deck meter.
+        balanceSplitter = audioContext.createChannelSplitter(2)
+        balanceTaps = [audioContext.createAnalyser(), audioContext.createAnalyser()]
+        balanceSilent = audioContext.createGain()
+        balanceSilent.gain.value = 0
+        fadeNode.connect(balanceSplitter)
+        balanceTaps.forEach(function (tap, channel) {
+          tap.fftSize = 4096
+          tap.smoothingTimeConstant = 0
+          balanceSplitter.connect(tap, channel)
+          tap.connect(balanceSilent)
+        })
+        balanceSilent.connect(audioContext.destination)
+        balanceMeter = createBalanceMeter(balanceTaps[0], balanceTaps[1], audio)
         var tail = preampNode
         for (var index = 0; index < eqNodes.length; index += 1) {
           tail.connect(eqNodes[index].node)
@@ -1902,6 +1989,24 @@ function createPlayer() {
         // The listener above retries once metadata is ready.
       }
     },
+    // ReplayGain tag value in dB; folds into the same trim node as the loudness gain.
+    // The song's ReplayGain tags; the balance uses them when it has no reading of its own.
+    setTagGain: function (gain) {
+      tagGainDb = gain && typeof gain.trackGain === 'number' ? gain : null
+      if (readPrefs().normalizeVolume !== false && balanceAppliedReading !== 'file') {
+        var record = currentItem() === null ? null : balanceRecordFor(currentItem().path)
+        applyBalanceChoice(chooseBalance({ played: record, tag: tagGainDb, typicalDb: typicalGainDb(balanceTypicalGains()) }))
+      }
+    },
+    setReplayGain: function (db) {
+      var value = Number(db)
+      replayGainFactor = Number.isFinite(value) && value !== 0 ? Math.pow(10, value / 20) : 1
+      if (trimNode !== null && audioContext !== null) {
+        applyTrimGain(trimNode, normalizeBase * replayGainFactor, audio === null || audio.paused === true)
+      } else {
+        applyOutputVolume()
+      }
+    },
     setNormalize: function (value) {
       savePrefs({ normalizeVolume: value !== false })
       if (value === false) {
@@ -2122,3 +2227,4 @@ function createPlayer() {
 }
 
 var player = createPlayer()
+

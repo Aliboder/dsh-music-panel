@@ -1,5 +1,264 @@
 # Changelog
 
+## Unreleased
+
+### 登录窗换成 Folia 原版
+
+- 登录窗不再是手写的 `.mp-login-*` 版面：`src/render/login/folia-src/**` 是 Folia
+  `src/components/login/**` 的逐字副本，加上它依赖的 `Sheet` 与 settings kit，按 Folia
+  的 `src/` 目录镜像摆放，上游的相对导入一行不改。窗口 772×420、212 宽的平台列、
+  200 的画块、标题前飞入的平台记号、等待时的圆环、扫码/已扫/失败的各一幅、登录成功的
+  flood 动画都是 Folia 自己的代码在画。
+- `scripts/build-login-folia.mjs` 用 esbuild 把 `entry.tsx` 编成
+  `folia-login.bundle.js`；只替换 Host 边界：React（`MP_HOST_REACT`）、
+  react-dom 的 portal、react-i18next（走插件自己的 `t`，`MP_LOGIN_T`）、
+  framer-motion（`MPFramer`）；lucide-react 在构建时打进包里。
+- `scripts/build-login-css.mjs` 用 Tailwind v4 只为这棵子树编译 CSS，再把每个选择器
+  加上 `.mp-login-layer` 作用域（面板和 Host 共用一个文档，工具类名会撞）；
+  `login.css` / `kit.css` 一并注入，旧的 `.mp-login-*` 版面与手写的登录成功动画不再使用。
+- 补充了 Folia 登录窗用到的 90 个 i18n 键（`login.*` / `home.*` / `status.*` /
+  `ui.close`），从 Folia 的 zh-CN / en 复制，`{{name}}` 改成插件的 `{name}`。
+- `src/render/login/login-dialog.js` 是唯一接缝：把 Host 的登录会话映射成
+  `LoginScreen` 的 props，Host 仍然拥有 QR 状态机。
+- 登录窗的渲染进 `panel.render.test`（`.mp-login-layer` + Folia 的 `st-window` 与标题）。
+
+### 扫码登录
+
+- 修好网易云 / QQ 扫码登录：二维码刚出来就被判成「平台拒绝了这次登录」。
+  根因在上游传输层的成功码闸门：`/login/qr/check` 的 `code` 是扫码状态
+  （800 过期 / 801 等待 / 802 已扫 / 803 成功），而 `assertOk`（网易云）和
+  `callUpstream` 的 code 判断（QQ）只认 200，于是每一轮“等待扫码”都被当异常抛出，
+  登录状态机直接进 `error`，窗口把上游的 `等待扫码` / `Waiting for QR scan`
+  当成失败原因显示。现在 `callUpstream` 支持 `skipCodeCheck`，只有扫码轮询用它，
+  其余接口的成功码规则不变。
+- `netease-upstream` / `qq-upstream` 补了成功码闸门的纯断言；`DSH_MUSIC_UPSTREAM=1`
+  的 live 段补了「出码后第一轮轮询必须是 waiting」。之前 live 段只测出码、不测轮询，
+  所以这条路径一直没被覆盖。
+
+### Folia 式登录页
+
+- 新增 `src/45-login-controller.js`：Folia 形状的账户 controller 快照
+  `{ login, lastLoginCompletion, setup }`，方法包括 `startLogin / closeLogin / retryLogin /
+  selectLoginMethod / submitFormLogin / requestSwitch / logout / openLoginPage /
+  restartLocalService / buildLoginDiagnosticReport`。
+- 登录窗不再自己维护 QR/状态/轮询，改为只读 controller；扫码、scanned、成功、过期、失败、
+  重试都走同一份会话状态。这是 B（替换登录状态机）的第一步。
+- 仍未替换：Navidrome 表单仍走 `useNavidromeForm`，`submitFormLogin` 已备好但未接 UI；
+  setup 清单、失败分类/自检、完成动画、平台切换的完整语义还在后续步骤。
+- Navidrome 表单现在提交给 `loginController.submitFormLogin`（校验留在窗口里），不再自己
+  `postJson`；账号页在选中的平台不是当前源时多一个“切换至该平台”，走 `requestSwitch`。
+- 登录失败按 controller 的 `failure` 显示标题、原因、“详情”（平台/case/时间）和“复制诊断信息”
+  （走 `buildLoginDiagnosticReport`）。
+- 登录成功加了一层 Folia 风格的完成画面：平台色铺满窗口、头像、白色对勾和“登录成功”，
+  只在真正的登录成功跳变时出现；这不是 Folia 的逐帧 `LoginDone` 动画，后续再换。
+- Host 新增 `/online/login/session`：返回 Folia 形状的
+  `{ login: { providerId, phase, codeImage, failure, ... }, lastLoginCompletion, setup }`；
+  客户端 controller 不再拿着 key 轮询，Host 持有 QR 状态机。
+- 删除旧的 `/online/login/status` 路由和客户端 `checkProviderLogin`，登录状态只走 session 快照。
+- `login.test` 补了 `accountSessionOf` 的 phase/failure 映射断言。
+- 失败标题按 case 区分（二维码过期 / 网络不可达 / 平台拒绝 / 表单失败）；详情里带
+  case、类别、环节。
+- 完成画面补了平台水印和 `平台 · ID` 第二行，更接近 Folia 的 flood 层。
+- 直接移植了 Folia `loginDoneFrame` 的时间轴（front 110 / shown 740 / leave 1260 / end 1800），
+  用 rAF 按帧写头像、两行字、水印和对勾的 opacity/transform；`login-done-frame.test.mjs`
+  校验关键时刻的数值。
+- 完成画面补了 Folia 的 flood 层：深色底上按 `frame.front` 从 200 方块中心（334,210）以
+  `clip-path: circle()` 扩到整窗，而不是一上来整块变色。
+- **整包 vendor 第一步**：Folia `src/components/login/**` 原文件已放入
+  `src/render/login/folia-src`；用 esbuild 把原 `LoginWindow.tsx` 编成
+  `folia-login-window.bundle.js`（React 走宿主、Sheet/PlatformMark/motion 用 shim）。
+- `LoginDialog` 现在优先渲染这个原 `LoginWindow`（标题行、titleLead、aside、body 用 Folia 的
+  Sheet 结构），旧手写窗口只作 bundle 缺失时的回退；`panel.render` 增加登录层渲染断言。
+- 仍待 vendor：`PlatformColumn / LoginTile / LoginMessage / FormLogin` 原组件。
+- 扫码确认后 200 方块里出现手机和 `login-arc` 转圈；完成画面补了头像外圈的 ping。
+- 删掉 bridge 里没人用的 `submit` 分支，密码登录只走 controller。`SetupChecklist` 仍等平台（M3）。
+
+- 登录窗口按 Folia 的 LoginWindow 版面重做：772 宽 / 至少 420 高的窗口，左侧 212 宽的
+  平台列，右侧标题栏 + 200×200 的登录块 + 说明/操作区；窄屏时平台列横到上面。
+- 左侧平台行：平台 logo、名称、登录状态和已登录头像，当前行有蓝色指示条。
+- 账号状态：200 方块里是 88 头像，右侧昵称、平台与账号 ID、“同步数据”“退出登录”；
+  同步会真实重读平台账号/歌单，不是假按钮。
+- 扫码状态：200 白底方块里是 176 二维码，右侧标题、状态、步骤和失败后的刷新。
+- 表单登录（Navidrome）与“仅外部播放”的平台各有对应画面。
+- 登录成功不自动关窗，就地切成账号画面。
+- 播放设置 → 音质页的头像/名称或右上角图标可直接打开登录窗口。
+- 扫码页按 Folia 再对齐：使用「使用{平台}APP扫码 / 打开{平台}APP > 发现 > 扫一扫」文案、
+  200×200 白底二维码块、右下角「扫码 → 手机 → 账号」步骤图标，以及平台色的窗口渐变/圆环。
+- 登录方式补了能力位回退：旧 Host 的 provider 摘要没有 `loginMethods` 时，按
+  `loginQr` / `loginPassword` 能力判断，网易云等平台不会再误显示“只能在外部播放器登录”。
+
+### 平台支持架构（对齐 Folia）
+
+- 能力位扩展到 Folia 的集合（`auth`、`userLibrary`、`recommendations`、`wordByWordLyrics`、
+  `userAlbums`、`mutations`、`playlistTrackMutations`、`playlistSubscription`、`externalPlayback`、
+  `explore`、`personalFmModes`、`playbackReports`、`userCloud`、`listeningRank`、
+  `historyRecommendations`、`dailyStyleRecommendations`、`recommendationPreferences`）。
+- 每个平台独立声明能力：网易云 / QQ / 酷狗 / 酷狗概念版 / Navidrome 不再共用一组“中国平台能力”。
+- 新增每平台音质档位 `qualityLevels`（酷狗系无 hires、Navidrome 为 original），`omni.qualityLevels()`
+  读取；播放设置里的音质选项按平台过滤。
+- 新增 `loginMethods`（qr / password / external），由能力位推导，登录页/设置页不再按平台名分支。
+- 新增 `providerApi(source)`：把扁平方法分组为 `search / playback / lyrics / library / catalog /
+  mutations` 的 namespace 视图，供后续登录页和新平台使用；现有路由继续走扁平方法。
+- 本地音乐与在线平台使用同一 source 形状（本地：`kind: local`、`original` 音质、无登录方式）。
+- 架构说明见 [docs/provider-architecture.md](docs/provider-architecture.md)。
+
+### Folia 歌词样式（16 种全量接入）
+
+- 新增 14 个按 Folia 源码编译的歌词样式：**静止 / 云阶 / 浮名 / 莫奈 / 群唱 / 倾诉 / 回环 /
+  心象 / 绘光 / 商籁 / 凝彩 / 花火 / 雾笺 / 镜台**；加上原有的**时计**和已编好的**町景**
+  引擎，共 16 个。渲染器、Pixi/WebGL/Three 程序、分镜与排版代码均来自上游，未重写。
+- **移除经典样式**，默认样式改为**莫奈**；旧 `standard/glow/outline/karaoke/mirror` 偏好自动
+  迁移到莫奈，未知样式也回退莫奈（样式不可用时回退普通文本列表）。
+- 统一由 `FoliaStyleHost` 驱动：Folia `MotionValue` 时钟、五条音频带、`Line[]`（含逐字
+  `words`）与 `Theme`；样式只创建一次，换句不重建画布/上下文。
+- Pixi 8.21 与 `@react-three/fiber@9.8.2` 已 vendor；framer-motion 复用插件内联实例；设置面板/
+  QuickControls 走边界 no-op；缺素材的群唱/凝彩/雾笺走上游 fallback。
+- 样式错误边界：单个样式运行时失败会回退普通文本列表，不白屏。
+- 镜台：宿主 React 为 18.3.1，因此使用 `@react-three/fiber@8.18.0`（R3F 9 需要 React 19，
+  之前会触发样式错误边界并回退普通文本）；已在 React 18 隔离页验证 3D 场景正常出画。
+- 修复 DOM 类 Folia 样式（静止/莫奈/浮名/群唱/云阶/倾诉/町景）布局错乱：这些样式依赖
+  Tailwind utility，之前只注入了手写子集；现在用 Tailwind 4 从样式源码生成完整 utility
+  （`src/render/folia/folia-tailwind.js`，作用域 `.mp-np`）随播放页注入。
+- 心象空白：`VisualizerShell` 的边界 shim 没有 `forwardRef`，心象把 `ref` 挂在 shell 上拿到 null，
+  `ResizeObserver` 从不启动，viewport 永远是 0 → 不排版/不绘制。现在 shell 转发 ref。
+- 町景空白：之前直接 `new MachiRuntime(...)`，绕过了 `MachiRuntime.create()` 的异步场景加载和
+  `start()`；同时 three examples 的后处理是空 stub、`scene:auto` 可能选中未打包的场景。现在改用
+  `create()`、vendored 真实 EffectComposer/UnrealBloomPass/FXAA/SMAA，并把场景固定为已移植的
+  `konbini`；商店街、雪、LED 歌词屏正常出画。
+- 浮名画布只显示右半边：Tailwind 的 `-translate-x-1/2` 依赖 `@property` 注册的自定义属性，
+  之前 `@property` 被错误地嵌套进 `.mp-np` 而失效；现在 `@property` 保持在顶层，画布正确居中。
+- 云阶：framer variants 在 `custom` 缺失时会读 `config.x` 抛错，已加防御；样式错误边界
+  现在按样式 id 重新挂载，切到云阶出错后切回其他样式不会再一直停在回退界面。
+- 播放页的歌词宽度分隔条只属于经典双栏布局：Folia 样式是全屏舞台，没有“歌词栏宽度”，
+  现在在可视化样式下隐藏这两个分隔条，避免出现拖不动的控制；Folia 舞台恢复接收指针事件，
+  逐行点击/拖动跳转等样式内交互可以正常工作。
+- 主题改为 Folia 的 **封面取色生成器**（`builtinTheme` + `themeColorMath`）：每首歌提取一次
+  封面色，生成 light/dark 主题，样式与背景共用缓存。
+- 群唱的内置头像/表情使用 Folia 原素材，由宿主 `/music/assets` 路由提供；不再内联进 bundle。
+- 移植规则、边界与验收标准见 [docs/folia-porting.md](docs/folia-porting.md)。
+
+### Folia 音频输入与上游对齐
+
+- 播放页背景 / 歌词样式的音频带改由 `src/render/styles/folia-audio.js` 生成，逐行对齐上游
+  `usePlaybackVisualizerBridge`：`fftSize 2048`、21.5 Hz 分段、同样的 power 曲线、0–255 量纲，
+  空闲帧同样是上游的慢呼吸而不是 0。
+- 补上 Folia 的原始频谱 `audioBands.spectrum`（1024 bins，按帧拷贝）；莫奈底部频谱条现在与上游
+  一样按原始 FFT 绘制，不再回退到五段插值。
+- 分析器 `smoothingTimeConstant` 0.82 → 0.6，与上游 `usePlaybackAudioBridge` 一致；背景对鼓点
+  的响应不再被额外平滑（侧栏 / 播放页的频谱本来就会自己做峰值归一化，观感只会更跟手）。
+- 暂停时不写新的 bands（保持最后一帧），交叉淡入期间按交叉淡入状态继续读取分析器，背景不会在
+  过渡中途掉回呼吸值。
+- 仍未接入 beat_this 智能节拍：背景的“起音”来自频段能量差分，与 Folia 关闭智能动感时的行为一致。
+- **修复背景的音频扭曲与暂停减速完全失效**：Folia 跑 React 19，函数组件把 `ref` 当普通 prop
+  透传；宿主是 React 18.3.1，`memo(function …)` 不转发 ref，`latent` 的 `paperShaderMount` 一直
+  是 null，逐帧的 `setSpeed` / `u_distortion` / `u_swirl` 与 `nomand` 的首帧检测全部不执行。
+  现在把 vendored `paper-shaders-react` 的 7 个包装改为 `memo(forwardRef(...))` 并把 `ref`
+  交给 `ShaderMount`，重建 `backgrounds.bundle.js`。效果：隐现（流体/混合）随鼓点扭曲、加速，
+  暂停时降到 12% 速度（近乎停住），与 Folia 一致。
+
+### 播放页底栏
+
+- 补上 Folia 式浮动播放条（居中、玻璃胶囊）：上一首 / 播放暂停 / 下一首、曲名、可拖动进度与
+  两侧时间、循环模式、队列；队列浮层锚在胶囊的队列按钮上。
+- 右下角控制改为 Folia 的玻璃样式：48px 半透明圆钮 + 悬停展开的 96px 玻璃轨道，替换原来的
+  白色圆形按钮；点击仍打开播放设置面板。
+- 胶囊与右下角手柄 3 秒无操作后淡出（下移 10px），鼠标移动 / 点击立即回来；打开设置、队列、
+  歌词编辑等面板时保持可见。
+- 修复播放设置面板的「播放列表」页：标签不再被截断，内容改为卡片里的队列列表（之前误用了
+  只给侧栏用的 `.mp-queue`，在卡片里是 `display:none`，所以列表完全不显示）。
+- 播放列表卡片内容最高 420px，超出后在卡片内滚动，不再一直长到窗口顶部。
+
+### 本地主题生成
+
+- 主题来源里的「AI 主题」改为真实的**本地主题**：不再只取封面强调色，而是用封面色板 + 歌词
+  情绪词典在本地生成一份 Folia 形状的深色主题（名字、描述、强调色、歌词关键词配色），不联网、
+  不接模型、不需要 key。
+- 歌曲切到本地主题时自动生成并缓存（按播放路径），歌词变化会重新生成；「生成本地主题」按钮
+  强制生成一个新变体。生成失败时继续用原来的封面主题，不影响页面。
+- 生成器在 `src/render/styles/folia-local-theme.js`；`useFoliaCoverTheme` 订阅它，歌词样式、
+  时计和背景一起换主题。
+
+### 音质面板
+
+- 播放设置 → 音质页按 Folia 的账户页重做：当前在线账号（头像、昵称、VIP、平台账号 ID、
+  登出）、默认音质、信号链路，以及本地曲目的实际编码 / 采样率 / 码率。
+- 修复「默认音质」从未传到 Host：在线流 URL 现在带 `quality`，Host 按请求选择音质，并按音质
+  区分缓存（旧的、没有质量标记的缓存继续可用）。
+- 本地音乐不转码，始终按原文件播放；页面会明确写出这一点，音质选项只影响在线曲目。
+
+### 播放页空歌词
+
+- 没有歌词时不再在页面中央显示「暂无歌词」图标与文字，播放页只留背景与样式舞台（设置按钮照常可用）。
+
+### 播放页控制按钮
+
+- 播放页右下角新增 Folia 风格的圆形设置按钮（滑杆图标），点击打开原来的播放控制面板
+  （封面 / 本地 / 控制 / 播放列表 / 音质）；歌词栏里的「词」「译」徽标已移除，
+  歌词翻译改为「本地」页里的开关（与 `showTranslation` 同一偏好）。
+  面板从按钮上方展开，位置随按钮计算；按钮在经典布局与全屏可视化布局下都常驻。
+
+### Folia 背景（六种全部接入）
+
+- 播放页背景改为 **Folia 的 shell 背景系统**，原样移植 `backgrounds/` 下的六个模式：
+  `common`（封面流体 + 几何图形）、`monet`（画布海报处理）、`nomand`（Paper Shaders 抖动/
+  条纹玻璃/半调/镜头畸变/纸纹）、`latent`（隐现：Paper Shaders 网格 + 像素点阵）、`sora`
+  （twgl 星空）、`url`（嵌入式网页）。背景渲染器、调色与动画代码均来自上游，未做重写。
+- 旧的“环境流光 / 模糊封面 / 场景叠加”背景已从播放页移除；外观 → 背景选择器改为上述六种
+  加“空”，默认 `latent`，旧的 flow/cover/aurora/stars/off 值自动迁移。`url` 模式可填地址。
+- 背景挂在插件播放页内部（`FoliaBackgroundHost`），不是全局层；MONET 的海报在
+  `OffscreenCanvas` 上由上游 `paintMonetBackground` 同步绘制（本项目没有独立 worker 文件，
+  这是构建边界，不改画面算法）。
+
+### 时计（Folia 原版）与歌词舞台
+
+- 时计样式改为 **Folia `pendolo` 渲染器的原样移植**：齿轮机芯（WebGL2，Canvas2D 回退）、
+  弧形歌词轨道、表盘投影、封面与主题、逐字扫光与字色全部使用上游代码；此前仓库里的时计只是
+  一百行左右的示意实现，已删除。移植代码在 `src/render/folia/`，由
+  `scripts/build-pendolo.mjs` 编译为 `pendolo.bundle.js`。
+- 补齐 Folia 的输入边界：插件歌词行 → Folia `Line`（含 `fullText`、秒级起止、逐字时间线；
+  LRC 行用上游 `buildTimedWords` / `estimateLrcLineEndTime` 估算）、`Theme`（封面强调色转成
+  Folia 能解析的 hex，统一字体栈）、五条音频带与 `audioPower`（来自播放器 analyser）。
+- 修复所有歌词舞台的生命周期：画布 / Pixi / Three 渲染器现在**只在样式变化时创建一次**，
+  帧循环从 ref 读取最新 props；换句不再销毁重建（此前每句重建 Pixi Application / WebGL
+  上下文、粒子与镜头归零），句内时间不再被 effect 闭包冻结，`state.now` 每帧都是最新值。
+
+### 客户端动效（与 Folia 同一引擎）
+
+- `client.js` 现在内联 **framer-motion 14**（`src/vendor/framer.bundle.js`，由
+  `node scripts/build-vendor.mjs` 用 esbuild 生成并提交），播放页卡片改用与 Folia
+  相同的 `motion.div` / `AnimatePresence` / `layoutId` 共享元素：
+  入场 `{opacity:0, scale:.92} → 1`（.3s，`cubic-bezier(.22,1,.36,1)`，origin 右下）、
+  退场 .22s、tab 指示条位置与宽度一起 morph、tab 内容以 `.st-page-in`
+  （opacity 0 + translateY 6px，.22s）重挂。
+- 宿主 React 无法承载 framer 时（精简运行时/测试环境）自动回退到 CSS 卡片，
+  并在卡片上标记 `data-card-motion="css"`（正常为 `framer`）。
+- 新增 devDependency `esbuild`；`framer-motion` 为运行时依赖但被打进产物。
+
+### 在线层重构（数据层与登录）
+
+- 新增统一的 source 契约与注册表：`lib/core`（能力位、错误码、端口分配）、`lib/sources`（registry → adapter → omni 门面），
+  路由只调用 `omni`，不再按平台名分支；在线路由从 `lib/routes.js` 拆到 `lib/routes/online.js`（`routes.js` 1976 → 815 行）。
+- **网易云**、**QQ** 的 transport 换为上游 API 包，各自在 `worker_threads` 中运行、由插件分配 `127.0.0.1` 端口；
+  对外函数签名与返回形状保持不变，上层零改动。
+- **波点音乐**作为新平台接入（`bodian-music-api`，AGPL）：搜索 / 播放 / 歌词 / 扫码登录；会话写入统一的 `sessions.json`（0600），重启后自动恢复。
+- **汽水音乐**已接入依赖与适配代码，但当前网络无法连通其服务端，未注册为可用平台。
+- **飞牛（fnOS）**尚未启用：需要用户自建服务器才能验证，未凭空实现接口。
+- **酷狗**保留插件自有签名实现：实测上游匿名取链返回 `20028`、歌词返回 `20010`，不可用。
+- 数据路由的平台白名单（22 处）改为**注册表校验**，扫码登录改为**能力位校验**：新平台接入后
+  无需再修改任何路由即可被寻址；`omni.searchPage` 对只实现 `search` 的源自动做分页回退。
+- 登录重构：新增状态机（`lib/login/state.js`）、新的 `sessions.json` 凭据结构（0600，`lib/login/store.js`）
+  与桥接层（`lib/login/bridge.js`）；扫码登录与登出已改走状态机。旧的 `providers.json` 不再读取，升级后需重新登录一次。
+- 设置页的平台列表改为注册表驱动，并且只为**声明了登录能力**的平台显示登录卡。
+- 本地曲库并入同一数据层：`local` source 支持搜索（含拼音键）、分页、歌词（内嵌/侧挂）与受保护的播放 URL。
+- 对齐 Folia 的在线处理方式：歌词改用 `/lyric/new`（富 JSON-lines + 逐字 YRC）、
+  未登录时注册并复用匿名 cookie（`/register/anonimous`）、取链带 `randomCNIP/https`、
+  新增副歌窗口 `/song/chorus`（含 `/music/online/chorus` 路由与可选能力语义）。
+- 歌曲实体字段四平台统一：`artistsDetail` / `albumDetail` / `aliases` / `translatedNames` /
+  `publishTime` / `popularity` / `mvId` / `isVideo` / `resourceState` / `privilegeDetail` /
+  `availableQualities`（波点另含 `audios` 音质档位与 `preOnline`）。
+- `parseYrc` 支持混合流：`/lyric/new` 把富 JSON 文档混进经典 YRC 时不再丢弃 credit 行。
+- 许可证改为 **AGPL-3.0-only**（含上游包与 Folia 架构参考的第三方声明）。
+
 ## 0.35.0
 
 ### 播放页
@@ -1595,6 +1854,7 @@ ode scripts/build-client.mjs），构建脚本检测重复顶层声明
 ### 说明
 
 - npm 包名：`dsh-music-panel`；DSH patch id：`music`；本地 HTTP 前缀：`/music`
+
 
 
 

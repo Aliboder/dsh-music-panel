@@ -19,6 +19,8 @@ var PREF_DEFAULTS = {
   npLookMigrated: true,
   coverSpin: true,
   lyricOrder: ['embedded', 'lrc'],
+  /** Preferred online audio level: standard | high | lossless | hires. */
+  onlineQuality: 'high',
   lyricAlign: 'left',
   lyricSize: 35,
   lyricGap: 15,
@@ -33,6 +35,25 @@ var PREF_DEFAULTS = {
   npPaneGap: 60,
   /** Animated flowing-light background on the player page. */
   npFlowBg: true,
+  /** Hide the ambient art behind the player page (the card's 透明背景 switch). */
+  npTransparentBg: false,
+  /** 外观: lyric style, Folia shell background and where the accent comes from (28-look.js). */
+  lyricStyle: 'monet',
+  /** Folia's calm/normal/chaotic chip (used by the styles' animation tuning). */
+  lyricIntensity: 'normal',
+  /** Global lyric font multiplier (the ≋ quick control). */
+  lyricsFontScale: 1,
+  bgMode: 'latent',
+  /** Folia background blend chip (mix / cover / layers); kept for the controls panel. */
+  bgBlend: 'mix',
+  bgCoverOnly: false,
+  /** Latent background layers: pixel dithering, fluid mesh, or both. */
+  latentDisplayMode: 'both',
+  latentColorSource: 'cover-theme',
+  /** URL for the Folia "url" (embedded) background. */
+  bgUrl: '',
+  themeSource: 'default',
+  themeAccent: '',
   /** Ambient backdrop motion (blurred cover). */
   npAmbientOn: true,
   npAmbientDrift: 300,
@@ -95,8 +116,14 @@ function readPrefs() {
   } catch (error) {
     // Corrupt value: defaults stand.
   }
+  // The classic renderer is removed; legacy variant ids now select the default Monet style.
+  if (['standard', 'glow', 'outline', 'karaoke', 'mirror', 'classic', 'cappella'].indexOf(merged.lyricStyle) >= 0) merged.lyricStyle = 'monet'
   merged.composerLyricPlace =
     String(merged.composerLyricPlace || '').indexOf('above') === 0 ? 'above' : 'input-left'
+  // The player page switched from the old ambient/flow backdrop to Folia's six shell
+  // backgrounds; a stored old id falls back to Folia's default (latent).
+  var foliaBackgrounds = ['common', 'monet', 'nomand', 'latent', 'sora', 'url', 'none']
+  if (foliaBackgrounds.indexOf(merged.bgMode) < 0) merged.bgMode = 'latent'
   // The order selector was removed; always prefer embedded lyrics over LRC.
   merged.lyricOrder = ['embedded', 'lrc']
   // 0.12.0 briefly defaulted to square covers; restore the 0.11 player look once.
@@ -148,3 +175,8 @@ var prefsStore = createStore(readPrefs())
 function setPrefs(patch) {
   return savePrefs(patch)
 }
+
+
+
+
+

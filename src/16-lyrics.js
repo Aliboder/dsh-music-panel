@@ -130,3 +130,63 @@ function onlinePathOf(path) {
   var match = /^online:([^:]+):(.+)$/.exec(String(path || ''))
   return match === null ? null : { provider: match[1], id: match[2] }
 }
+
+// ── word-level (karaoke) timeline ──────────────────────────────────────
+// The Host returns `lines` from `/lyric/new` (word timing in seconds) next to
+// the LRC text. Attach it to the parsed lines by timestamp so the player can
+// colour each word as it is sung; tracks without it keep line-level colouring.
+
+/**
+ * Merge word timelines into parsed LRC lines, nearest-first and one-to-one.
+ * @param {Array<{time:number,text:string,translation:string}>} lines
+ * @param {Array<{t:number,end:number,words?:Array<{t:number,end:number,text:string}>}>} wordLines
+ */
+function attachWordTimeline(lines, wordLines) {
+  if (!Array.isArray(lines) || lines.length === 0) return lines
+  if (!Array.isArray(wordLines) || wordLines.length === 0) return lines
+  var pool = wordLines.filter(function (row) {
+    return row && Array.isArray(row.words) && row.words.length > 0 && isFinite(Number(row.t))
+  })
+  if (pool.length === 0) return lines
+
+  var used = {}
+  lines.forEach(function (line) {
+    if (!line || !isFinite(line.time) || line.time < 0) return
+    var best = -1
+    var bestDiff = Infinity
+    for (var i = 0; i < pool.length; i += 1) {
+      if (used[i] === true) continue
+      var diff = Math.abs(Number(pool[i].t) - line.time)
+      if (diff < bestDiff) {
+        bestDiff = diff
+        best = i
+      }
+    }
+    // Credits and translations sit on their own timestamps; 0.6s is enough to
+    // match a sung line without stealing a neighbour's timeline.
+    if (best < 0 || bestDiff > 0.6) return
+    used[best] = true
+    line.words = pool[best].words.map(function (word) {
+      return {
+        t: Number(word.t) || 0,
+        end: Number(word.end) || 0,
+        text: String(word.text || ''),
+      }
+    })
+    if (isFinite(Number(pool[best].end))) line.end = Number(pool[best].end)
+  })
+  return lines
+}
+
+/**
+ * Per-word render state for the active line (null when it has no timeline).
+ * @returns {Array<{text:string,sung:boolean}>|null}
+ */
+function wordSpans(line, atSeconds) {
+  if (!line || !Array.isArray(line.words) || line.words.length === 0) return null
+  var now = Number(atSeconds)
+  if (!isFinite(now)) return null
+  return line.words.map(function (word) {
+    return { text: word.text, sung: now >= word.t - 0.02 }
+  })
+}

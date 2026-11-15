@@ -3,3 +3,9 @@ node_modules/
 .pack-check/
 .autoeq-cache/
 .DS_Store
+
+# QQ upstream package writes its session here on first run
+.auth-state/
+
+# Folia upstream checkout used as the reference for the ported visualizer/lyrics/analysis code
+folia-major-main/

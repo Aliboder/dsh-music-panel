@@ -286,7 +286,14 @@ function apply(ctx) {
   ctx.effect(function () {
     var style = document.createElement('style')
     style.dataset.plugin = 'dsh-music-panel'
-    style.textContent = THEME_TEXT
+    style.textContent =
+      THEME_TEXT +
+      '\n' +
+      (typeof FOLIA_CSS === 'string' ? FOLIA_CSS : '') +
+      '\n' +
+      (typeof FOLIA_TAILWIND === 'string' ? FOLIA_TAILWIND : '') +
+      '\n' +
+      (typeof FOLIA_LOGIN_CSS === 'string' ? FOLIA_LOGIN_CSS : '')
     document.head.appendChild(style)
     return function () {
       style.remove()
@@ -348,6 +355,15 @@ function apply(ctx) {
   })
 
   function mount(name, registration, component) {
+    // Folia's motion tree expects a MotionConfig provider (framer 13). The host mounts
+    // each slot as its own root, so wrap every slot entry; without it useMotionValue
+    // destructures a null context and the whole stage errors.
+    if (typeof MotionConfig === 'function') {
+      var Inner = component
+      component = function MotionConfigRoot(props) {
+        return h(MotionConfig, null, h(Inner, props))
+      }
+    }
     ctx.effect(function () {
       var dispose = ctx.slots.inject(name, function () {
         return ctx.slots.register(registration, component)

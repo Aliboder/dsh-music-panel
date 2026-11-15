@@ -102,7 +102,7 @@ function OnlineContent(props) {
       // Navidrome signs in with a URL + credentials, not a QR code, so it must
       // reopen the credential dialog; the QR sheet would show an empty code the
       // user cannot scan and leave them stuck.
-      var layer = provider === 'navidrome' ? 'navidrome' : 'login'
+      var layer = supports(provider, 'loginQr') ? 'login' : 'navidrome'
       pushLayer(layer, layer === 'navidrome' ? {} : { provider: provider, mode: 'qq' })
     })
   }
@@ -110,39 +110,18 @@ function OnlineContent(props) {
   var likedSet = online.liked || {}
 
   function toggleOnlineFavorite(track) {
-    var path = track.path
-    var next = likedSet[path] !== true
-    postJson(API + 'online/like', { provider: track.onlineProvider, song: track, on: next })
-      .then(function () {
-        var map = Object.assign({}, onlineStore.get().liked)
-        if (next) map[path] = true
-        else delete map[path]
-        onlineStore.set({ liked: map })
-        refreshLikedPlaylist(next ? 1 : -1)
-        showToast(next ? t('page.favorite') : t('page.unfavorite'))
-      })
-      .catch(function (error) {
-        showToast(errorText(error))
-      })
+    // Optimistic write with rollback, shared with the bar and the card.
+    toggleLikeTrack(track)
   }
 
   useEffect(
     function () {
-      var cancelled = false
-      getJson(API + 'online/liked-ids?provider=' + encodeURIComponent(provider))
-        .then(function (body) {
-          if (cancelled) return
-          var map = {}
-          ;(Array.isArray(body.ids) ? body.ids : []).forEach(function (path) {
-            map[path] = true
-          })
-          onlineStore.set({ liked: map })
-        })
-        .catch(function () {
-          // Not signed in: every heart stays neutral.
-        })
+      // The liked map is shared with the bar and the card (src/47-likes.js).
+      loadLikedIds(provider).catch(function () {
+        // Not signed in: every heart stays neutral.
+      })
       return function () {
-        cancelled = true
+        // the store keeps the map, nothing to cancel
       }
     },
     [provider, (online.providers[provider] || {}).loggedIn],

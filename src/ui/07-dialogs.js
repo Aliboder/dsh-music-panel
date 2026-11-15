@@ -380,7 +380,7 @@ function AddToPlaylistDialog(props) {
     : layerProps.track
       ? [layerProps.track.path]
       : []
-  var playlists = library.playlists
+  var playlists = Array.isArray(library.playlists) ? library.playlists : []
   var pair = useState('')
   var name = pair[0]
   var setName = pair[1]
@@ -452,16 +452,28 @@ function AddToPlaylistDialog(props) {
       h('input', {
         type: 'text',
         value: name,
+        autoFocus: true,
         placeholder: t('v2.newPlaylist'),
         className: 'mp-kit-input',
         onChange: function (event) {
           setName(event.target.value)
         },
+        onKeyDown: function (event) {
+          if (event.key === 'Enter') createAndAdd()
+        },
       }),
-      h(Button, { variant: 'primary', icon: 'plus', disabled: busy, onClick: createAndAdd }, t('page.create')),
+      h(
+        Button,
+        { variant: 'primary', icon: 'plus', disabled: busy || name.trim() === '', onClick: createAndAdd },
+        t('page.create'),
+      ),
     ),
   )
 }
+
+// The login window lives in src/render/login/login-dialog.js: Folia's own
+// components (bundled from folia-src) draw it, so this file only hosts the other
+// dialogs.
 
 function LoginDialog(props) {
   var provider = props.layer.props.provider || 'netease'
@@ -649,6 +661,9 @@ function tagSourceLabel(source) {
   return String(source || '')
 }
 
+// Fields the editor keeps while the match window is open over the panel.
+var tagEditorDraft = null
+
 function TagDialog(props) {
   var path = props.layer.props.path
   var tagsPair = useState(null)
@@ -690,6 +705,15 @@ function TagDialog(props) {
             next[entry[0]] = value === undefined || value === null ? '' : String(value)
           })
           next.lyrics = typeof loaded.lyrics === 'string' ? loaded.lyrics : ''
+          // Coming back from the match window: its lyrics (and whatever was typed
+          // before) win over what is on disk.
+          if (tagEditorDraft !== null && tagEditorDraft.path === path) {
+            var draft = tagEditorDraft
+            tagEditorDraft = null
+            Object.keys(draft.form).forEach(function (key) {
+              next[key] = draft.form[key]
+            })
+          }
           setForm(next)
         })
         .catch(function (loadError) {
@@ -769,10 +793,25 @@ function TagDialog(props) {
   }
 
   function openOnlineLyric() {
-    pushLayer('onlineLyric', {
-      track: { path: path, title: form.title || '', artist: form.artist || '' },
+    // 匹配歌词 is an independent window inside the plugin panel; the editor is a host
+    // modal, so it steps aside and returns with the chosen lyrics.
+    tagEditorDraft = { path: path, form: form }
+    var wantedPath = path
+    var wantedForm = form
+    popLayer()
+    pushLayer('lyricMatch', {
+      track: {
+        path: wantedPath,
+        title: wantedForm.title || '',
+        artist: wantedForm.artist || '',
+        album: wantedForm.album || '',
+      },
       onApply: function (lrc) {
-        setField('lyrics', lrc)
+        tagEditorDraft = {
+          path: wantedPath,
+          form: Object.assign({}, wantedForm, { lyrics: lrc }),
+        }
+        pushLayer('tag', { path: wantedPath })
       },
     })
   }
@@ -874,7 +913,7 @@ h(
             h(
               'div',
               { className: 'mp-tag-aside-actions' },
-              h(Button, { icon: 'search', onClick: runMatch, disabled: matchPhase === 'loading' }, t('v2.match')),
+              h(Button, { icon: 'search', onClick: openOnlineLyric, disabled: matchPhase === 'loading' }, t('v2.match')),
               coverPreview !== null
                 ? h(Button, { variant: 'ghost', icon: 'refresh', onClick: function () { setCoverPreview(null) } }, t('page.resetCover'))
                 : null,
@@ -884,93 +923,6 @@ h(
           h(
             'div',
             { className: 'mp-tag-form' },
-        matchOpen
-          ? h(
-              'div',
-              { className: 'mp-match' },
-              h(
-                'div',
-                { className: 'mp-match-head' },
-                h('span', null, t('page.onlineResults')),
-                h('div', { className: 'mp-spacer', style: { marginLeft: 'auto' } }),
-                h(IconButton, {
-                  icon: 'x',
-                  size: 14,
-                  title: t('v2.close'),
-                  onClick: function () {
-                    setMatchOpen(false)
-                  },
-                }),
-              ),
-              matchPhase === 'loading'
-                ? h('div', { className: 'mp-empty', style: { padding: '18px' } }, h(Spinner), t('page.onlineLoading'))
-                : matchResults.length === 0
-                  ? h('div', { className: 'mp-empty', style: { padding: '18px' } }, t('page.onlineEmpty'))
-                  : matchResults.map(function (item, index) {
-                      var chipFields = TAG_MATCH_FIELDS.filter(function (entry) {
-                        return item[entry[0]] !== undefined && item[entry[0]] !== null && String(item[entry[0]]) !== ''
-                      })
-                      if (item.coverUrl) chipFields.push(['cover', 'v2.cover'])
-                      return h(
-                        'div',
-                        { key: String(index), className: 'mp-match-row' },
-                        h(
-                          'button',
-                          {
-                            type: 'button',
-                            className: 'mp-match-item',
-                            onClick: function () {
-                              pickMatch(item)
-                            },
-                          },
-                          item.coverUrl
-                            ? h(Cover, {
-                                src: API + 'online/cover?url=' + encodeURIComponent(item.coverUrl),
-                                className: 'mp-match-cover',
-                                iconSize: 16,
-                              })
-                            : h('div', { className: 'mp-match-cover' }, icon('note', 16)),
-                          h(
-                            'div',
-                            { className: 'mp-match-main' },
-                            h('div', { className: 'mp-srow-title' }, item.title || ''),
-                            h(
-                              'div',
-                              { className: 'mp-srow-sub' },
-                              [item.artist, item.album, item.year, tagSourceLabel(item.source)]
-                                .filter(function (part) {
-                                  return part !== '' && part !== undefined && part !== null
-                                })
-                                .join(' · '),
-                            ),
-                          ),
-                        ),
-                        chipFields.length > 0
-                          ? h(
-                              'div',
-                              { className: 'mp-match-fields' },
-                              chipFields.map(function (entry) {
-                                return h(
-                                  'button',
-                                  {
-                                    key: entry[0],
-                                    type: 'button',
-                                    className: 'mp-match-chip',
-                                    onClick: function () {
-                                      applyMatchField(item, entry[0])
-                                    },
-                                  },
-                                  t(entry[1]),
-                                )
-                              }),
-                            )
-                          : null,
-                      )
-                    }),
-              h('div', { className: 'mp-np-setting-hint' }, t('v2.matchHint')),
-              h('div', { className: 'mp-np-setting-hint' }, t('page.onlineHint')),
-            )
-          : null,
         section(
           t('page.metaBasic'),
           h(

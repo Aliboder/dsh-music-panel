@@ -329,17 +329,48 @@ function SettingsSheet(props) {
       h(
         SetRow,
         {
-          key: 'normalize',
-          label: t('settings.volumeNormalize'),
-          desc: t('settings.volumeNormalizeHint'),
+          key: 'replayGain',
+          label: t('settings.replayGain'),
+          desc: t('settings.replayGainHint'),
         },
-        h(Switch, {
-          value: prefs.normalizeVolume !== false,
-          onChange: function (value) {
-            patchPrefs({ normalizeVolume: value })
-            if (player.setNormalize) player.setNormalize(value)
-          },
-        }),
+        h(
+          'div',
+          { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
+          h(
+            'select',
+            {
+              value: prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album'
+                      ? prefs.replayGainMode
+                      : prefs.normalizeVolume === false
+                        ? 'off'
+                        : 'auto',
+              onChange: function (event) {
+                var next = String(event.target.value)
+                // 'off' also switches the loudness analysis off; the tag modes leave it
+                // off too, since they read the file's own gain.
+                patchPrefs({
+                  replayGainMode: next,
+                  normalizeVolume: next === 'off' ? false : true,
+                })
+                if (player.setNormalize) player.setNormalize(next === 'auto')
+                if (player.setReplayGain) player.setReplayGain(0)
+              },
+            },
+            [
+              { value: 'off', label: t('settings.replayGainOff') },
+              { value: 'auto', label: t('settings.replayGainAuto') },
+              { value: 'track', label: t('settings.replayGainTrack') },
+              { value: 'album', label: t('settings.replayGainAlbum') },
+            ].map(function (option) {
+              return h('option', { key: option.value, value: option.value }, option.label)
+            }),
+          ),
+        ),
+      ),
+      h(
+        'div',
+        { className: 'mp-set-hint', style: { padding: '0 18px 10px', fontSize: '12px', opacity: '.55' } },
+        t('settings.replayGainStatus'),
       ),
       h(
         'div',
@@ -437,19 +468,16 @@ function SettingsSheet(props) {
 
   function onlineTab() {
     var providers = online.providers || {}
-    var ids = ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
+    // Only platforms that declare a sign-in flow get a card here; the list comes
+    // from whatever the host registered, so a new platform needs no client edit.
+    var ids = availableSources().filter(function (provider) {
+      return provider !== 'local' && (supports(provider, 'loginQr') || supports(provider, 'loginPassword'))
+    })
     var logged = ids.filter(function (provider) {
       return providers[provider] && providers[provider].loggedIn === true
     }).length
     function providerLabel(provider) {
-      if (provider === 'navidrome') return t('online.providerNavidrome')
-      return provider === 'netease'
-        ? t('online.providerNetease')
-        : provider === 'qq'
-          ? t('online.providerQq')
-          : provider === 'kugou'
-            ? t('online.providerKugou')
-            : t('online.providerKugouLite')
+      return sourceLabelOf(provider)
     }
     /**
      * Navidrome / Subsonic: a URL + credential form instead of a QR flow.

@@ -719,31 +719,6 @@ function NpEditor(props) {
             setPrefs({ waveEnabled: value })
           }),
         ),
-        h(
-          'div',
-          { className: 'mp-npe-section is-ambient' },
-          switchRow(t('editor.ambient'), prefs.npAmbientOn !== false, function (value) {
-            setPrefs({ npAmbientOn: value })
-          }, t('editor.ambientHint')),
-          prefs.npAmbientOn !== false
-            ? h(
-                'div',
-                { className: 'mp-npe-smoke-grid' },
-                rangeRow(t('editor.ambientDrift'), Number(prefs.npAmbientDrift) || 300, 0, 300, 5, '%', function (value) {
-                  setPrefs({ npAmbientDrift: value })
-                }),
-                rangeRow(t('editor.ambientSpeed'), Number(prefs.npAmbientSpeed) || 400, 50, 400, 5, '%', function (value) {
-                  setPrefs({ npAmbientSpeed: value })
-                }),
-                rangeRow(t('editor.beatSensitivity'), Number(prefs.npBeatSensitivity) || 200, 0, 200, 5, '%', function (value) {
-                  setPrefs({ npBeatSensitivity: value })
-                }),
-                rangeRow(t('editor.beatAmount'), Number(prefs.npBeatAmount) || 300, 0, 300, 5, '%', function (value) {
-                  setPrefs({ npBeatAmount: value })
-                }),
-              )
-            : null,
-        ),
       ),
       h(
         'div',
@@ -1407,6 +1382,123 @@ function WaveSeekBar(props) {
   )
 }
 
+/**
+ * 播放页底部的 Folia 式播放胶囊：播放/暂停、曲名、进度与时间、循环模式、队列。
+ *
+ * Folia 的胶囊是页面自己的 transport（`FloatingPlayerControls`）；这个插件在
+ * `is-visualizer` 布局下会隐藏左侧栏，所以这里补一份页面级 transport。进度用
+ * 全局 `SeekBar`，队列沿用 `QueuePopover`，状态全部来自现有 player / props。
+ */
+function NowPlayingCapsule(props) {
+  var snap = usePlayerSnapshot()
+  var time = usePlayerTime()
+  var track = snap.queue[snap.index] || null
+  var duration = Number(time.duration) > 0
+    ? Number(time.duration)
+    : track
+      ? Number(track.durationSec) || 0
+      : 0
+  var position = Math.min(Number(time.currentTime) || 0, duration || 0)
+  var mode = playModeOf(snap)
+  return h(
+    'div',
+    { className: 'mp-cap' },
+    h(
+      'div',
+      { className: 'mp-cap-inner' },
+      h(
+        'div',
+        { className: 'mp-cap-transport' },
+        h(
+          'button',
+          {
+            type: 'button',
+            className: 'mp-cap-skip',
+            disabled: track === null,
+            title: t('page.prev'),
+            'aria-label': t('page.prev'),
+            onClick: function () {
+              player.prev()
+            },
+          },
+          icon('prev', 18),
+        ),
+        h(
+          'button',
+          {
+            type: 'button',
+            className: 'mp-cap-play',
+            disabled: track === null,
+            title: snap.playing ? t('page.pause') : t('page.play'),
+            'aria-label': snap.playing ? t('page.pause') : t('page.play'),
+            onClick: function () {
+              player.toggle()
+            },
+          },
+          icon(snap.playing ? 'pause' : 'play', 20),
+        ),
+        h(
+          'button',
+          {
+            type: 'button',
+            className: 'mp-cap-skip',
+            disabled: track === null,
+            title: t('page.next'),
+            'aria-label': t('page.next'),
+            onClick: function () {
+              player.next()
+            },
+          },
+          icon('next', 18),
+        ),
+      ),
+      h(
+        'div',
+        { className: 'mp-cap-body' },
+        h('div', { className: 'mp-cap-title', title: track ? trackTitleOf(track) : '' }, track ? trackTitleOf(track) : t('page.noTrack')),
+        h(
+          'div',
+          { className: 'mp-cap-seek' },
+          h('span', { className: 'mp-cap-time' }, fmtClock(position)),
+          h(SeekBar, { fallbackDuration: track ? Number(track.durationSec) || 0 : 0 }),
+          h('span', { className: 'mp-cap-time' }, fmtClock(duration)),
+        ),
+      ),
+      h(
+        'div',
+        { className: 'mp-cap-actions' },
+        h(IconButton, {
+          icon: playModeIcon(mode),
+          size: 20,
+          title: playModeLabel(mode),
+          onClick: function () {
+            cyclePlayMode(snap)
+          },
+        }),
+        h(
+          'div',
+          { className: 'mp-pb-queue-wrap mp-cap-queue' },
+          h(IconButton, {
+            icon: 'playlist',
+            size: 20,
+            active: props.queueOpen,
+            title: t('page.queue'),
+            onClick: props.onToggleQueue,
+          }),
+          props.queueOpen
+            ? h(QueuePopover, {
+                open: true,
+                anchored: true,
+                snap: snap,
+                onClose: props.onToggleQueue,
+              })
+            : null,
+        ),
+      ),
+    ),
+  )
+}
+
 function NowPlaying(props) {
   var snap = usePlayerSnapshot()
   var time = usePlayerTime()
@@ -1438,10 +1530,8 @@ function NowPlaying(props) {
   var lyrics = pair[0]
   var setLyrics = pair[1]
   var loadingPair = useState(false)
-  var lyricsLoading = loadingPair[0]
   var setLyricsLoading = loadingPair[1]
   var errorPair = useState('')
-  var lyricError = errorPair[0]
   var setLyricError = errorPair[1]
   var settingsPair = useState(false)
   var editorPair = useState(false)
@@ -1543,9 +1633,72 @@ function NowPlaying(props) {
       applyLyricWidth(560, true)
     }
   }
+  // Chorus window for the jump-to-hook control; null when the provider has none.
+  var chorusPair = useState(null)
+  var chorusSec = chorusPair[0]
+  var setChorusSec = chorusPair[1]
   var sourcePair = useState('')
   var lyricSource = sourcePair[0]
   var setLyricSource = sourcePair[1]
+  // Bottom sheet (cover / local / controls / queue / quality), opened from "词".
+  var sheetPair = useState(false)
+  var sheetOpen = sheetPair[0]
+  var setSheetOpen = sheetPair[1]
+  // Where the "词" control sits, so the card opens beside it (Folia anchors its panel
+  // to the round handle the same way). -1 means "use the default corner".
+  var anchorPair = useState({ right: -1, bottom: -1 })
+  var sheetAnchor = anchorPair[0]
+  var setSheetAnchor = anchorPair[1]
+  var wordBtnRef = useRef(null)
+  // Folia's player chrome auto-hides: the transport capsule and the bottom-right
+  // handle fade out after 3 s without pointer activity and come back on the next move.
+  // Any open panel keeps them visible.
+  var chromePair = useState(true)
+  var chromeVisible = chromePair[0]
+  var setChromeVisible = chromePair[1]
+  var chromePinned =
+    sheetOpen || editorOpen || settingsOpen || extraPanel !== '' || props.queueOpen === true
+  useEffect(
+    function () {
+      if (props.open !== true) return undefined
+      var timer = null
+      function clear() {
+        if (timer !== null) {
+          clearTimeout(timer)
+          timer = null
+        }
+      }
+      function arm() {
+        clear()
+        if (chromePinned) return
+        timer = setTimeout(function () {
+          setChromeVisible(false)
+        }, 3000)
+      }
+      function wake() {
+        setChromeVisible(true)
+        arm()
+      }
+      var root = npRef.current
+      if (root === null) return undefined
+      root.addEventListener('pointermove', wake, { passive: true })
+      root.addEventListener('pointerdown', wake, { passive: true })
+      root.addEventListener('keydown', wake)
+      if (chromePinned) {
+        setChromeVisible(true)
+        clear()
+      } else {
+        wake()
+      }
+      return function () {
+        clear()
+        root.removeEventListener('pointermove', wake)
+        root.removeEventListener('pointerdown', wake)
+        root.removeEventListener('keydown', wake)
+      }
+    },
+    [props.open, chromePinned],
+  )
   var offsetPair = useState(0)
   var offsetMs = offsetPair[0]
   var setOffsetMs = offsetPair[1]
@@ -1600,6 +1753,23 @@ function NowPlaying(props) {
   )
   var cover = track ? trackCoverSrc(track) : ''
   var flowAccent = useCoverAccent(cover, coverImgRef)
+  // Local theme source: generate once per song, entirely on this machine. The sheet's
+  // "generate" button forces a fresh variation; this effect only fills the cache.
+  useEffect(function () {
+    if (props.open !== true || prefs.themeSource !== 'cover') return undefined
+    if (trackPath === '' || typeof mpEnsureLocalTheme !== 'function') return undefined
+    var text = lyrics.map(function (line) {
+      return line && typeof line.text === 'string' ? line.text : ''
+    }).join('\n')
+    mpEnsureLocalTheme({
+      key: trackPath,
+      cover: cover,
+      lyricsText: text,
+      songTitle: track ? trackTitleOf(track) : '',
+      variation: 0,
+    })
+    return undefined
+  }, [props.open, prefs.themeSource, trackPath, cover, lyrics])
   var pageHiddenPair = useState(false)
   var pageHidden = pageHiddenPair[0]
   var setPageHidden = pageHiddenPair[1]
@@ -1613,40 +1783,8 @@ function NowPlaying(props) {
       document.removeEventListener('visibilitychange', sync)
     }
   }, [])
-  var ambientRef = useRef(null)
-  var bgPair = useState({ current: '', previous: '' })
-  var bg = bgPair[0]
-  var setBg = bgPair[1]
-  useAmbientBeat(
-    ambientRef,
-    prefs.npAmbientOn !== false,
-    snap.playing === true,
-    clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 2),
-    clamp((Number(prefs.npBeatAmount) || 60) / 100, 0, 3),
-    bg.current !== '' || bg.previous !== '',
-  )
-
-  useEffect(
-    function () {
-      var cancelled = false
-      if (cover === '') {
-        setBg({ current: '', previous: '' })
-        return undefined
-      }
-      createBlurredBackdrop(cover).then(function (texture) {
-        if (cancelled || texture === '') return
-        setBg(function (prev) {
-          if (prev.current === texture) return prev
-          return { current: texture, previous: prev.current }
-        })
-      })
-      return function () {
-        cancelled = true
-      }
-    },
-    [cover],
-  )
-
+  // The player page's backdrop is Folia's shell background (src/render/styles/folia-backdrop.js);
+  // the old blurred-cover/ambient layer is gone from the page.
   // Cached online streams carry real codec/sample-rate/bitrate facts; probe the
   // cache after playback starts and merge them into the current queue track.
   useEffect(
@@ -1727,7 +1865,117 @@ function NowPlaying(props) {
   var lyricSize = prefs.lyricSize || 18
   var translationSize = Math.round((lyricSize * (prefs.translationScale || 80)) / 100)
   var lyricsTimed = lyrics.length > 0 && lyrics[0].time >= 0
+  // ReplayGain values from the file's tags, and which lyric sources it has.
+  var gainPair = useState(null)
+  // The song's tag gain goes to the player, which uses it when the balance has no reading.
+  useEffect(
+    function () {
+      if (player.setTagGain) player.setTagGain(gainInfo)
+    },
+    [gainInfo, trackPath],
+  )
+  var gainInfo = gainPair[0]
+  var setGainInfo = gainPair[1]
+  var sourceInfoPair = useState(null)
+  var sourceInfo = sourceInfoPair[0]
+  var setSourceInfo = sourceInfoPair[1]
+  var balance = useStore(balanceStore)
+  var gainMode = prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album' ? prefs.replayGainMode : 'auto'
+
+  useEffect(
+    function () {
+      setGainInfo(null)
+      if (trackPath === '') return undefined
+      if (track !== null && track.onlineProvider && track.onlineProvider !== 'navidrome') return undefined
+      var cancelled = false
+      // Navidrome reports its gain through OpenSubsonic; the file route only knows local paths.
+      var gainUrl =
+        track !== null && track.onlineProvider === 'navidrome'
+          ? API +
+            'online/replaygain?provider=navidrome&id=' +
+            encodeURIComponent(track.onlineId || '')
+          : API + 'replaygain?path=' + encodeURIComponent(trackPath)
+      getJson(gainUrl)
+        .then(function (body) {
+          if (!cancelled) setGainInfo({ trackGain: body.trackGain, albumGain: body.albumGain })
+        })
+        .catch(function () {
+          if (!cancelled) setGainInfo({ trackGain: null, albumGain: null })
+        })
+      return function () {
+        cancelled = true
+      }
+    },
+    [trackPath],
+  )
+
+  useEffect(
+    function () {
+      setSourceInfo(null)
+      if (trackPath === '' || (track !== null && track.onlineProvider)) return undefined
+      var cancelled = false
+      getJson(API + 'lyrics/sources?path=' + encodeURIComponent(trackPath))
+        .then(function (body) {
+          if (!cancelled) setSourceInfo(body)
+        })
+        .catch(function () {
+          if (!cancelled) setSourceInfo(null)
+        })
+      return function () {
+        cancelled = true
+      }
+    },
+    [trackPath, lyricReload],
+  )
+
+  // off / auto / track / album — auto is the measured loudness trim, the two tag
+  // modes use the file's own gains, and off disables both.
+  useEffect(
+    function () {
+      if (!player.setReplayGain || !player.setNormalize) return
+      if (gainMode === 'off') {
+        player.setReplayGain(0)
+        player.setNormalize(false)
+        return
+      }
+      if (gainMode === 'auto') {
+        player.setReplayGain(0)
+        player.setNormalize(true)
+        return
+      }
+      var db = gainInfo === null ? null : gainMode === 'album' ? gainInfo.albumGain ?? gainInfo.trackGain : gainInfo.trackGain
+      if (typeof db === 'number' && Number.isFinite(db)) {
+        player.setNormalize(false)
+        player.setReplayGain(db)
+      } else {
+        player.setReplayGain(0)
+        player.setNormalize(true)
+      }
+    },
+    [gainMode, gainInfo, trackPath],
+  )
   var lyricOrderKey = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
+  // 本地 tab: the timeline offset, the lyric source's name, the lyric text to export.
+  var lyricSourceLabel =
+    lyricSource === 'embedded'
+      ? t('sheet.srcEmbedded')
+      : lyricSource === 'lrc'
+        ? t('sheet.srcLocal')
+        : lyricSource === 'online'
+          ? t('sheet.srcOnline')
+          : ''
+  var lyricsText = lyrics
+    .map(function (line) {
+      var total = Number(line.time) || 0
+      var minutes = Math.floor(total / 60)
+      var seconds = total % 60
+      var stamp =
+        '[' + (minutes < 10 ? '0' : '') + String(minutes) + ':' + (seconds < 10 ? '0' : '') + seconds.toFixed(2) + ']'
+      var text = stamp + String(line.text || '')
+      if (line.translation) text += '\n' + stamp + String(line.translation)
+      return text
+    })
+    .join('\n')
 
   useEffect(
     function () {
@@ -1735,6 +1983,7 @@ function NowPlaying(props) {
       var cancelled = false
       setLyrics([])
       setLyricSource('')
+      setChorusSec(null)
       setLyricError('')
       setLyricsLoading(true)
       var current = snap.queue[snap.index]
@@ -1746,14 +1995,46 @@ function NowPlaying(props) {
                 'online/lyric?provider=' +
                 encodeURIComponent(current.onlineProvider) +
                 '&id=' +
-                encodeURIComponent(current.onlineId || ''),
+                encodeURIComponent(current.onlineId || '') +
+                // Metadata lets the Host borrow lyrics from another source when the
+                // track's own platform has none.
+                '&title=' +
+                encodeURIComponent(current.title || '') +
+                '&artist=' +
+                encodeURIComponent(current.artist || '') +
+                '&album=' +
+                encodeURIComponent(current.album || '') +
+                '&duration=' +
+                encodeURIComponent(String(current.durationSec || 0)),
             )
             var lines = parseLrcText(body.lrc || '')
             if (body.translation) mergeLyricTranslation(lines, body.translation)
+            // Word-level timeline (only present when the platform has one).
+            attachWordTimeline(lines, body.lines)
             if (!cancelled) {
               setLyrics(lines)
               setLyricSource('ONLINE')
               setOffsetMs(0)
+            }
+            // The chorus window powers the "jump to hook" control; absent when the
+            // platform or the track has none.
+            try {
+              var chorusBody = await getJson(
+                API +
+                  'online/chorus?provider=' +
+                  encodeURIComponent(current.onlineProvider) +
+                  '&id=' +
+                  encodeURIComponent(current.onlineId || ''),
+              )
+              if (!cancelled) {
+                setChorusSec(
+                  chorusBody && chorusBody.chorus
+                    ? Number(chorusBody.chorus.startSec) || null
+                    : null,
+                )
+              }
+            } catch (chorusError) {
+              if (!cancelled) setChorusSec(null)
             }
             return
           }
@@ -1780,7 +2061,8 @@ function NowPlaying(props) {
     [props.open, trackPath, lyricReload, lyricOrderKey],
   )
 
-  var active = lyricActiveIndex(lyrics, time.currentTime - offsetMs / 1000)
+  var lyricNow = time.currentTime - offsetMs / 1000
+  var active = lyricActiveIndex(lyrics, lyricNow)
   var duration = time.duration > 0 ? time.duration : track ? track.durationSec || 0 : 0
   var favorite = track !== null && props.favoriteSet[track.path] === true
 
@@ -1874,7 +2156,7 @@ function NowPlaying(props) {
 
   function openOnlineLyric() {
     if (!track || track.onlineProvider) return
-    pushLayer('onlineLyric', {
+    pushLayer('lyricMatch', {
       track: { path: track.path, title: trackTitleOf(track), artist: trackArtistOf(track) },
       onApply: function (lrc) {
         postJson(API + 'lyrics/save', { path: track.path, lrc: lrc })
@@ -1940,6 +2222,58 @@ function NowPlaying(props) {
     setSettingsOpen(true)
   }
 
+  // Folia puts the player panel behind one round button at the page's bottom-right.
+  // The old "词" badge next to the translation toggle was the same panel; this is the
+  // same trigger, moved out of the lyrics column so it is always reachable.
+  function togglePlayerSheet() {
+    if (sheetOpen) {
+      setSheetOpen(false)
+      return
+    }
+    var element = wordBtnRef.current
+    if (element !== null && typeof element.getBoundingClientRect === 'function') {
+      var rect = element.getBoundingClientRect()
+      setSheetAnchor({
+        right: Math.max(8, window.innerWidth - rect.right),
+        bottom: Math.max(8, window.innerHeight - rect.top + 10),
+      })
+    }
+    setSheetOpen(true)
+  }
+
+  var foliaBackdrop = h(FoliaBackgroundHost, {
+    mode: mpLookId(MP_BG_MODES, prefs.bgMode),
+    cover: cover,
+    accent: flowAccent,
+    seed: track && track.path ? track.path : '',
+    url: typeof prefs.bgUrl === 'string' ? prefs.bgUrl : '',
+    transparent: prefs.npTransparentBg === true,
+    latentDisplayMode: prefs.latentDisplayMode,
+    latentColorSource: prefs.latentColorSource,
+  })
+  var lyricStage = h(LyricStage, {
+    lines: lyrics,
+    active: active,
+    focus: lyricFocus,
+    now: lyricNow,
+    timed: lyricsTimed,
+    prefs: prefs,
+    boxRef: boxRef,
+    innerRef: innerRef,
+    rowRefs: rowRefs.current,
+    wordSpans: wordSpans,
+    onSeekLine: seekLine,
+    manualIndex: lyricScroll.manualIndex,
+    formatClock: fmtClock,
+    stylePref: prefs.lyricStyle,
+    seed: trackPath,
+    accent: mpAccentCss(flowAccent),
+    coverUrl: cover,
+    title: track && track.title ? track.title : '',
+    artist: track && track.artist ? track.artist : '',
+    album: track && track.album ? track.album : '',
+    duration: Number(snap.duration) || (track && Number(track.durationSec)) || 0,
+  })
   return h(
     'div',
     {
@@ -1951,6 +2285,14 @@ function NowPlaying(props) {
         prefs.showTranslation === true && 'is-trans',
         prefs.coverStyle === 'vinyl' && 'is-vinyl',
         'mp-align-' + (prefs.lyricAlign || 'center'),
+        // 外观: the lyric style and backdrop mode come from the registry.
+        'mp-style-' + mpStyleIdOf(prefs.lyricStyle),
+        // A visualizer style is a full stage (Folia's VisualizerShell): the cover
+        // column steps aside and the lyrics take the whole page.
+        mpStyleIdOf(prefs.lyricStyle) !== 'classic' && 'is-visualizer',
+        prefs.npTransparentBg === true && 'is-transparent-bg',
+        chromeVisible !== true && 'is-chrome-hidden',
+        'mp-bgmode-' + mpLookId(MP_BG_MODES, prefs.bgMode),
       ),
       ref: npRef,
       role: 'dialog',
@@ -1962,46 +2304,10 @@ function NowPlaying(props) {
         '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
         '--mp-lyric-w': lyricWidth + 'px',
         '--mp-pane-gap-w': paneGap + 'px',
+        '--mp-look-accent': mpLookAccent(prefs, flowAccent),
       },
     },
-    bg.current !== '' || bg.previous !== ''
-      ? h(
-          'div',
-          {
-            ref: ambientRef,
-            className: cx('mp-np-bg', prefs.npAmbientOn !== false && 'is-ambient'),
-            style: (function () {
-              var drift = clamp((Number(prefs.npAmbientDrift) || 0) / 100, 0, 3)
-              return {
-                '--mp-drift-x': (drift * 12).toFixed(2) + '%',
-                '--mp-drift-nx': (drift * -12).toFixed(2) + '%',
-                '--mp-drift-y': (drift * 7).toFixed(2) + '%',
-                '--mp-drift-ny': (drift * -6).toFixed(2) + '%',
-                '--mp-drift-s0': (1.06 + drift * 0.18).toFixed(3),
-                '--mp-drift-s1': (1.12 + drift * 0.22).toFixed(3),
-                '--mp-drift-r': (drift * 3.5).toFixed(2) + 'deg',
-                '--mp-drift-nr': (drift * -3.5).toFixed(2) + 'deg',
-                '--mp-speed':
-                  (8 / Math.max(0.5, (Number(prefs.npAmbientSpeed) || 100) / 100)).toFixed(1) + 's',
-                '--mp-beat-scale': '1',
-              }
-            })(),
-          },
-          h(
-            'div',
-            { className: 'mp-np-bg-drift' },
-            bg.previous !== ''
-              ? h('img', { key: 'prev:' + bg.previous, src: bg.previous, alt: '', className: 'is-prev' })
-              : null,
-            bg.current !== ''
-              ? h('img', { key: 'cur:' + bg.current, src: bg.current, alt: '', className: 'is-cur' })
-              : null,
-          ),
-          bg.current !== ''
-            ? h('img', { key: 'echo:' + bg.current, src: bg.current, alt: '', className: 'is-echo', 'aria-hidden': 'true' })
-            : null,
-        )
-      : null,
+    foliaBackdrop,
     h('div', { className: 'mp-np-shade' }),
     h(
       'div',
@@ -2246,6 +2552,16 @@ function NowPlaying(props) {
           track && track.bitrate ? h('span', null, fmtKbps(track.bitrate)) : null,
           track && track.qualityHint ? h('span', null, track.qualityHint) : null,
         ),
+        // Folia's floating pill: transport, the bar, the times — one rounded panel.
+        h(
+          'div',
+          { className: 'mp-np-pill' },
+          h(
+            'div',
+            { className: 'mp-np-pill-title' },
+            h('span', { className: 'mp-np-pill-name' }, trackTitleOf(track)),
+            h('span', { className: 'mp-np-pill-artist' }, trackArtistOf(track)),
+          ),
         h(
           'div',
           { className: 'mp-np-progress' },
@@ -2297,6 +2613,8 @@ function NowPlaying(props) {
               player.next()
             },
           }),
+        ),
+
         ),
         h(
           'div',
@@ -2501,116 +2819,173 @@ function NowPlaying(props) {
       h(
         'div',
         { className: 'mp-np-right' },
-        h(
-          'div',
-          { className: 'mp-np-lyrics' + (lyricsTimed ? '' : ' is-static'), ref: boxRef },
-          lyrics.length === 0
-            ? null
-            : h(
-                'div',
-                { className: 'mp-np-lyrics-inner', ref: innerRef },
-                lyrics.map(function (line, index) {
-                  return h(
-                    'div',
-                    {
-                      key: String(index),
-                      ref: function (element) {
-                        rowRefs.current[index] = element
-                      },
-                      className:
-                        'mp-np-line' +
-                        (index === active ? ' is-active' : '') +
-                        (index === lyricFocus ? ' is-focus' : '') +
-                        (active >= 0 && index < active ? ' is-past' : ''),
-                      style: {
-                        '--mp-line-stagger': String(
-                          lyricFocus >= 0 ? Math.min(Math.abs(index - lyricFocus), 8) : 0,
-                        ),
-                        '--mp-trans': line.translation ? '1' : '0',
-                      },
-                      onClick: function () {
-                        seekLine(line, index)
-                      },
-                    },
-                    h(
-                      'div',
-                      { className: 'mp-np-line-text' },
-                      line.text,
-                      lyricScroll.manualIndex === index && index === active && line.time >= 0
-                        ? h('span', { className: 'mp-np-line-time' }, fmtClock(line.time))
-                        : null,
-                    ),
-                    h(
-                      'div',
-                      {
-                        className: 'mp-np-line-trans',
-                        'aria-hidden':
-                          prefs.showTranslation === true && line.translation ? 'false' : 'true',
-                      },
-                      h(
-                        'span',
-                        { className: 'mp-np-line-trans-inner' },
-                        line.translation
-                          ? line.translation.split('\n').map(function (part, partIndex) {
-                              return h(
-                                'span',
-                                { key: 'translation-' + partIndex, className: 'mp-np-line-trans-text' },
-                                part,
-                              )
-                            })
-                          : null,
-                      ),
-                    ),
-                  )
-                }),
-              ),
-        ),
-        lyrics.length === 0 && lyricsLoading !== true
+        chorusSec !== null
           ? h(
-              'div',
-              { className: 'mp-np-lyrics-empty', 'aria-live': 'polite' },
-              h('div', { className: 'mp-np-lyrics-empty-icon' }, icon('lyrics', 34)),
-              h(
-                'div',
-                { className: 'mp-np-lyrics-empty-text' },
-                lyricError !== '' ? lyricError : t('page.noLyrics'),
-              ),
-            )
-          : null,
-        h(
-          'div',
-          { className: 'mp-np-lyric-foot' },
-          h(
-            'span',
-            { className: 'mp-np-lyric-tag' },
-            h(
               'button',
               {
                 type: 'button',
-                className: cx('mp-np-lyric-tag-badge', 'is-btn', prefs.showTranslation === true && 'is-on'),
-                title: t('page.translation'),
+                className: 'mp-np-chorus',
+                title: t('page.chorusJump'),
+                style: {
+                  alignSelf: 'flex-end',
+                  margin: '0 12px 6px',
+                  padding: '4px 12px',
+                  borderRadius: '999px',
+                  border: '1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.12))',
+                  background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))',
+                  color: 'inherit',
+                  font: 'inherit',
+                  cursor: 'pointer',
+                },
                 onClick: function () {
-                  setPrefs({ showTranslation: prefs.showTranslation !== true })
+                  player.seek(chorusSec)
                 },
               },
-              '译',
-            ),
-            h(
-              'button',
-              {
-                type: 'button',
-                ref: settingsBtnRef,
-                className: cx('mp-np-lyric-tag-badge', 'is-btn', settingsOpen && 'is-on'),
-                title: t('v2.lyricSettings'),
-                'aria-label': t('v2.lyricSettings'),
-                onClick: toggleLyricSettings,
-              },
-              '词',
-            ),
-            lyricSource !== '' ? h('span', { className: 'mp-np-lyric-source' }, lyricSource.toUpperCase()) : null,
-          ),
+              t('page.chorusJump'),
+            )
+          : null,
+        lyricStage,
+      ),
+      h(NowPlayingCapsule, { queueOpen: props.queueOpen, onToggleQueue: props.onToggleQueue }),
+      h(
+        'div',
+        { className: cx('mp-np-handle', sheetOpen && 'is-on') },
+        h('div', { className: 'mp-np-handle-track', 'aria-hidden': 'true' }, icon('equalizer', 14)),
+        h(
+          'button',
+          {
+            type: 'button',
+            ref: wordBtnRef,
+            className: 'mp-np-handle-btn',
+            title: t('page.settings'),
+            'aria-label': t('page.settings'),
+            'aria-expanded': sheetOpen ? 'true' : 'false',
+            onClick: togglePlayerSheet,
+          },
+          icon('equalizer', 20),
         ),
       ),
+      // Always mounted: AnimatePresence needs the child present to play the exit.
+      h(PlayerSheet, {
+            open: sheetOpen,
+            // Same cover the page itself shows (local file cover or the provider's).
+            cover: track === null ? '' : trackCoverSrc(track),
+            songTitle: track ? trackTitleOf(track) : '',
+            // One SongLike for both kinds of track (see src/47-likes.js).
+            like: likeStateOf(track, props.favoriteSet),
+            canLocate: track !== null,
+            offsetMs: offsetMs,
+            onOffsetChange: setOffsetMs,
+            lyricSourceLabel: lyricSourceLabel,
+            lyricsText: lyricsText,
+            lyricsPath: trackPath,
+            onLyricsSaved: function () {
+              setLyricReload(lyricReload + 1)
+            },
+            gainValues: gainInfo,
+            accentCss: mpAccentCss(flowAccent),
+            gainAutoDb: balance.gainDb,
+            gainAutoEstimated: balance.estimated === true,
+            gainMode: gainMode,
+            gainAppliedDb:
+              gainMode === 'auto'
+                ? null
+                : gainInfo === null
+                  ? null
+                  : gainMode === 'album'
+                    ? gainInfo.albumGain ?? gainInfo.trackGain
+                    : gainMode === 'track'
+                      ? gainInfo.trackGain
+                      : null,
+            onGainModeChange: function (next) {
+              setPrefs({ replayGainMode: next })
+            },
+            lyricSources: sourceInfo,
+            onSwitchLyricSource: function (key) {
+              setPrefs({ lyricOrder: [key] })
+              setLyricReload(lyricReload + 1)
+            },
+            onResetLyricSource: function () {
+              setPrefs({ lyricOrder: ['embedded', 'lrc'] })
+              setLyricReload(lyricReload + 1)
+            },
+            onOpenLyricFile: function () {
+              pushLayer('lyricFile', {
+                path: trackPath,
+                name: (trackPath.split(/[\\/]/).pop() || 'lyrics').replace(/\.[^.]+$/, ''),
+                text: lyricsText,
+                onSaved: function () {
+                  setLyricReload(lyricReload + 1)
+                },
+              })
+            },
+            normalizeOn: prefs.normalizeVolume !== false,
+            onToggleNormalize: function (next) {
+              setPrefs({ normalizeVolume: next })
+              if (player.setNormalize) player.setNormalize(next)
+            },
+            anchor: sheetAnchor,
+            onClose: function () {
+              setSheetOpen(false)
+            },
+            track: track,
+            favoriteSet: props.favoriteSet,
+            onOpenLyricSettings: toggleLyricSettings,
+            onAction: function (key) {
+              if (key === 'favorite') {
+                if (track !== null) toggleLikeTrack(track)
+                return
+              }
+              if (key === 'addToPlaylist') {
+                setSheetOpen(false)
+                if (track === null) return
+                if (track.onlineProvider) {
+                  pushLayer('onlineAddTo', { provider: track.onlineProvider, song: track })
+                } else {
+                  pushLayer('addTo', { paths: [track.path] })
+                }
+                return
+              }
+              if (key === 'locate') {
+                setSheetOpen(false)
+                if (typeof props.onLocate === 'function') props.onLocate()
+                return
+              }
+              if (key === 'home') {
+                setSheetOpen(false)
+                if (typeof props.onHome === 'function') props.onHome()
+                return
+              }
+              if (key === 'settings') {
+                setSheetOpen(false)
+                if (typeof props.onOpenSettings === 'function') props.onOpenSettings()
+                return
+              }
+              if (key === 'lyricSettings') {
+                toggleLyricSettings()
+                return
+              }
+              if (key === 'matchOnline') {
+                // The 本地 tab's "在线匹配" row: open the match window over the panel.
+                setSheetOpen(false)
+                if (track !== null && !track.onlineProvider) {
+                  pushLayer('lyricMatch', {
+                    track: {
+                      path: track.path,
+                      title: trackTitleOf(track),
+                      artist: trackArtistOf(track),
+                      album: track.album || '',
+                      durationSec: Number(track.durationSec) || 0,
+                    },
+                  })
+                }
+                return
+              }
+              // The remaining actions only close the card; their destinations live
+              // outside the player.
+              setSheetOpen(false)
+            },
+          }),
       h('div', {
         className: 'mp-np-split',
         'data-side': 'right',
@@ -2645,3 +3020,6 @@ function NowPlaying(props) {
 
   )
 }
+
+
+

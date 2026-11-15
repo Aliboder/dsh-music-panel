@@ -40,12 +40,18 @@ global.window = {
     clearTimeout(id)
   },
   location: { href: 'http://127.0.0.1/' },
+  matchMedia() {
+    return { matches: false, addEventListener() {}, removeEventListener() {} }
+  },
   innerWidth: 1400,
   innerHeight: 900,
 }
 
+global.HTMLElement = class HTMLElement {}
+
 global.document = {
   head: { appendChild() {} },
+  activeElement: null,
   createElement() {
     return { dataset: {}, textContent: '', remove() {} }
   },
@@ -62,8 +68,15 @@ if (typeof global.navigator === 'undefined') {
 const React = {
   createElement: (type, props, ...children) => {
     const nextProps = props ? { ...props } : {}
-    if (children.length > 0) nextProps.children = children.length === 1 ? children[0] : children
-    return { type, props: nextProps, children }
+    // JSX passes children positionally, but a component that spreads its own props
+    // (motion's fallback wrapper) carries them on props.children: keep both.
+    const kids = children.length > 0
+      ? children
+      : nextProps.children === undefined
+        ? []
+        : Array.isArray(nextProps.children) ? nextProps.children : [nextProps.children]
+    if (kids.length > 0) nextProps.children = kids.length === 1 ? kids[0] : kids
+    return { type, props: nextProps, children: kids }
   },
   useState: (initial) => [typeof initial === 'function' ? initial() : initial, () => {}],
   useEffect() {},
@@ -685,9 +698,3 @@ assert.ok(!classesOf(volumeOn).has('mp-xf-chip'), 'no duration picker: the engin
 internals.prefsStore.set(savedTransition)
 
 console.log('panel.render.test.mjs ok')
-
-
-
-
-
-

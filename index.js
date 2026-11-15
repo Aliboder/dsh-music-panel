@@ -18,7 +18,12 @@ import { createKugouSessionManager } from './lib/kugou-session.js'
 import { createRoutes } from './lib/routes.js'
 import { createSettings } from './lib/settings.js'
 import { createStats } from './lib/stats.js'
+import { readLyricsFor } from './lib/lyrics.js'
 import { enqueueControl } from './lib/control.js'
+import { registerBodianSource, registerLocalSource, registerOnlineSources, resetSources } from './lib/sources/index.js'
+import { createLoginStore } from './lib/login/store.js'
+import { stopNeteaseService } from './lib/services/netease-api.js'
+import { stopQqService } from './lib/services/qq-api.js'
 
 /** Cordis plugin name. */
 export const name = 'music'
@@ -39,9 +44,31 @@ export function apply(ctx, rawConfig) {
   const library = createLibrary({ getSettings: settings.read, stats })
   const playlists = createPlaylists({ dir: settings.dir })
   const providerStore = createProviderStore({ dir: settings.dir })
+  // Bodian persists its own session; it shares the same credential file format.
+  const loginStore = createLoginStore({ dir: settings.dir })
   const onlineCache = createOnlineCache({ dir: settings.dir })
   const kugouSessions = createKugouSessionManager({ providerStore })
   const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, onlineCache, kugouSessions })
+
+  // Sources are registered once per load; the registry is the single list every
+  // future caller reads instead of branching on platform names.
+  ctx.effect(() => {
+    registerOnlineSources()
+    // Native upstream package (AGPL), registered outside the legacy factory.
+    registerBodianSource({ dir: settings.dir, store: loginStore })
+    if (library !== null && typeof library.scan === 'function') {
+      registerLocalSource({
+        scan: (options) => library.scan(options),
+        readLyrics: (file) => readLyricsFor(file),
+      })
+    }
+    return () => {
+      resetSources()
+      // Upstream services hold listening sockets; they must not outlive the plugin.
+      void stopNeteaseService()
+      void stopQqService()
+    }
+  }, 'music: sources')
 
   // KuGou standard tokens last under a day. Refresh while the app stays open;
   // the settings route also refreshes on demand and validates Lite.

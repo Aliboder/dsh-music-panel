@@ -23,8 +23,18 @@ const MODULE_ID = 'dsh-music-panel'
 /** Explicit order: runtime → generated blocks → core → states → UI → plugin. */
 const FILES = [
   'src/00-runtime.js',
+  'src/vendor/00-react-global.js',
+  'src/vendor/framer.bundle.js',
+  'src/vendor/pixi.bundle.js',
+  'src/vendor/three.bundle.js',
+  'src/vendor/10-framer-aliases.js',
+  'src/vendor/20-pixi-global.js',
+  'src/vendor/30-three-global.js',
+  'src/02-layers.js',
   'src/02-autoanimate.js',
   'src/00-host-ui.js',
+  'src/render/folia/folia-css.js',
+  'src/render/folia/folia-tailwind.js',
   'src/05-i18n.js',
   'src/06-strings.js',
   'src/10-base.js',
@@ -34,6 +44,21 @@ const FILES = [
   'src/18-stats.js',
   'src/19-extra-icons.js',
   'src/20-api.js',
+  'src/render/registry.js',
+  'src/render/shell.js',
+  'src/render/stage.js',
+  'src/render/canvas-stage.js',
+  'src/render/pixi-stage.js',
+  'src/render/three-stage.js',
+  'src/render/folia/pendolo.bundle.js',
+  'src/render/styles/folia-audio.js',
+  'src/render/styles/folia-pendolo.js',
+  'src/render/folia/styles.bundle.js',
+  'src/render/styles/folia-local-theme.js',
+  'src/render/styles/folia-styles.js',
+  'src/render/folia/backgrounds.bundle.js',
+  'src/render/styles/folia-backdrop.js',
+  'src/28-look.js',
   'src/30-prefs.js',
   'src/35-loudness.js',
   'src/35-provider-logos.js',
@@ -48,6 +73,9 @@ const FILES = [
   'src/50-player.js',
   'src/60-library.js',
   'src/70-online.js',
+  'src/47-likes.js',
+  'src/48-volume-balance.js',
+  'src/49-balance-meter.js',
   'src/80-overlay.js',
   'src/85-select.js',
   'src/90-theme.js',
@@ -55,12 +83,20 @@ const FILES = [
   'src/ui/02-track-row.js',
   'src/ui/03-player-bar.js',
   'src/ui/04-eq-panel.js',
+  'src/ui/04-player-page.js',
   'src/ui/04-now-playing.js',
   'src/ui/05-queue.js',
   'src/ui/06-settings.js',
   'src/ui/07-dialogs.js',
   'src/ui/08-local.js',
   'src/ui/09-online.js',
+  'src/ui/20-player-sheet.js',
+  'src/ui/21-lyric-match.js',
+  'src/ui/22-lyric-preview.js',
+  'src/ui/23-online-add.js',
+  'src/ui/24-lyric-file.js',
+  'src/ui/25-look-picker.js',
+  'src/ui/26-fx.js',
   'src/ui/10-navigation.js',
   'src/ui/11-panel.js',
   'src/ui/12-composer.js',
@@ -103,6 +139,10 @@ function assertNoDuplicates(fragments) {
   const seen = new Map()
   const problems = []
   for (const fragment of fragments) {
+    // Bundled vendor/scene fragments contain shader source strings whose GLSL
+    // declarations look like JS declarations to the regex above; their top-level
+    // surface is the single `__mp*Bundle` function.
+    if (fragment.file.endsWith('.bundle.js')) continue
     for (const name of topLevelNames(fragment)) {
       if (seen.has(name)) {
         problems.push(`  ${name}: ${seen.get(name)} ↔ ${fragment.file}`)
@@ -177,10 +217,34 @@ ${body}
           openOnlineAlbum: openOnlineAlbum,
           // Equalizer: the panel renders in tests, and the curve maths is pure.
           AudioEffectsPanel: AudioEffectsPanel,
+          // The player card renders in tests so a missing pane cannot ship silently.
+          PlayerSheet: PlayerSheet,
+          PlayerPage: PlayerPage,
+          LyricMatchDialog: LyricMatchDialog,
           EqPanel: EqPanel,
           normalizeEqPrefs: normalizeEqPrefs,
           eqCurveSamples: eqCurveSamples,
           EQ_PRESETS: EQ_PRESETS,
+          // The Folia port's boundary: tests assert the Line/Theme mapping it hands the
+          // unmodified Folia renderer, and that the compiled bundle really loaded.
+          foliaPendoloLines: typeof foliaPendoloLines === 'function' ? foliaPendoloLines : null,
+          foliaPendoloTheme: typeof foliaPendoloTheme === 'function' ? foliaPendoloTheme : null,
+          FOLIA_PENDOLO: typeof FOLIA_PENDOLO !== 'undefined' ? FOLIA_PENDOLO : null,
+          FOLIA_BG: typeof FOLIA_BG !== 'undefined' ? FOLIA_BG : null,
+          foliaBackgroundConfig: typeof foliaBackgroundConfig === 'function' ? foliaBackgroundConfig : null,
+          // Folia's band maths (folia-audio.js): pure, so a test can feed it a wave.
+          foliaAudioBandsFromWave: typeof foliaAudioBandsFromWave === 'function' ? foliaAudioBandsFromWave : null,
+          foliaAudioBands: typeof foliaAudioBands === 'function' ? foliaAudioBands : null,
+          // Local theme generation (folia-local-theme.js): pure build + store.
+          mpBuildLocalTheme: typeof mpBuildLocalTheme === 'function' ? mpBuildLocalTheme : null,
+          mpLocalMoodOf: typeof mpLocalMoodOf === 'function' ? mpLocalMoodOf : null,
+          mpLocalWords: typeof mpLocalWords === 'function' ? mpLocalWords : null,
+          mpGenerateLocalThemeForSong: typeof mpGenerateLocalThemeForSong === 'function' ? mpGenerateLocalThemeForSong : null,
+          mpGetLocalTheme: typeof mpGetLocalTheme === 'function' ? mpGetLocalTheme : null,
+          FOLIA_STYLES: typeof FOLIA_STYLES !== 'undefined' ? FOLIA_STYLES : null,
+          FOLIA_STYLE_META: typeof FOLIA_STYLE_META !== 'undefined' ? FOLIA_STYLE_META : null,
+          mpStyleCatalog: typeof mpStyleCatalog !== 'undefined' ? mpStyleCatalog : null,
+          mpStyleOf: typeof mpStyleOf !== 'undefined' ? mpStyleOf : null,
         },
         enumerable: false,
       })
@@ -210,5 +274,11 @@ if (check) {
     `client.js written: ${result.fragments} fragments, ${result.declared} top-level names, ${result.output.length} bytes`,
   )
 }
+
+
+
+
+
+
 
 

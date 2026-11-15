@@ -11,7 +11,19 @@
 
 import assert from 'node:assert/strict'
 import { createRoutes } from '../lib/routes.js'
+import { setUpstreamOverride } from '../lib/services/netease-api.js'
 import { fakeReq, fakeRes } from './helpers.mjs'
+
+/**
+ * NetEase now runs through a local upstream service. This file is about route
+ * behaviour with a stubbed `fetch`, so the service is replaced wholesale: a
+ * canned search answer keeps the Chinese-platform fallback path offline.
+ */
+setUpstreamOverride(async (route) => {
+  if (route === '/cloudsearch') return { code: 200, result: { songs: [], songCount: 0 } }
+  if (route === '/lyric') return { code: 200, lrc: { lyric: '' }, yrc: { lyric: '[00:00.000]x' } }
+  throw new Error(`unexpected upstream route in navidrome-routes.test: ${route}`)
+})
 
 const settings = {
   read: async () => ({ roots: [], depth: 2, extensions: ['wav'] }),

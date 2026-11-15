@@ -104,14 +104,8 @@ function TopBar(props) {
     h(
       'div',
       { className: 'mp-src-tabs', role: 'tablist' },
-      [
-        ['local', t('page.tabLocal')],
-        ['netease', t('online.providerNetease')],
-        ['qq', t('online.providerQq')],
-        ['kugou', t('online.providerKugou')],
-        ['kugouLite', t('online.providerKugouLite')],
-        ['navidrome', t('online.providerNavidrome')],
-      ].map(function (entry) {
+      availableSources().map(function (id) {
+        var entry = [id, sourceLabelOf(id)]
         return h(
           'button',
           {
@@ -183,14 +177,14 @@ function TopBar(props) {
                   onClick: function () {
                     // Navidrome has no QR flow: open the credential dialog
                     // directly instead of the shared sign-in sheet.
-                    if (ui.source === 'navidrome') {
+                    if (!supports(ui.source, 'loginQr')) {
                       pushLayer('navidrome')
                       return
                     }
                     pushLayer('login', { provider: ui.source, mode: 'qq' })
                   },
                 },
-                ui.source === 'navidrome' ? t('online.navidromeConnect') : t('online.login'),
+                supports(ui.source, 'loginQr') ? t('online.login') : t('online.navidromeConnect'),
               ),
         )
       : null,
@@ -296,8 +290,11 @@ function OverlayRoot() {
     if (layer.kind === 'login') return h(LoginDialog, { key: 'login', layer: layer })
     if (layer.kind === 'tag') return h(TagDialog, { key: 'tag', layer: layer })
     if (layer.kind === 'addTo') return h(AddToPlaylistDialog, { key: 'addTo', layer: layer })
+    if (layer.kind === 'onlineAddTo') return h(OnlineAddToPlaylistDialog, { key: 'onlineAddTo', layer: layer })
     if (layer.kind === 'batchEdit') return h(BatchEditDialog, { key: 'batchEdit', layer: layer })
     if (layer.kind === 'duplicates') return h(DuplicatesDialog, { key: 'duplicates', layer: layer })
+    if (layer.kind === 'lyricMatch') return h(LyricMatchDialog, { key: 'lyricMatch', layer: layer })
+    if (layer.kind === 'lyricFile') return h(LyricFileDialog, { key: 'lyricFile', layer: layer })
     if (layer.kind === 'onlineLyric') return h(OnlineLyricDialog, { key: 'onlineLyric', layer: layer })
     if (layer.kind === 'trash') return h(TrashDialog, { key: 'trash', layer: layer })
     if (layer.kind === 'confirm') return h(ConfirmDialog, { key: 'confirm', layer: layer })
@@ -839,6 +836,14 @@ function Panel() {
       onToggleFavorite: function (track) {
         void toggleFavorite(track.path)
       },
+      // The card's actions: locate the playing song, go home, open settings.
+      onLocate: locateCurrent,
+      onHome: function () {
+        setUi({ npOpen: false, queueOpen: false, nav: 'songs', filter: null, query: '' })
+      },
+      onOpenSettings: function () {
+        pushLayer('settings')
+      },
     }),
     h(NowPlaying, {
       open: ui.npOpen === true,
@@ -852,6 +857,14 @@ function Panel() {
       },
       onToggleFavorite: function (track) {
         void toggleFavorite(track.path)
+      },
+      // The card's actions: locate the playing song, go home, open settings.
+      onLocate: locateCurrent,
+      onHome: function () {
+        setUi({ npOpen: false, queueOpen: false, nav: 'songs', filter: null, query: '' })
+      },
+      onOpenSettings: function () {
+        pushLayer('settings')
       },
     }),
     h(OverlayRoot),

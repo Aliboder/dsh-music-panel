@@ -15,8 +15,20 @@ function coverUrl(path) {
   return API + 'cover?path=' + encodeURIComponent(path)
 }
 
-function onlineStreamUrl(provider, id) {
-  return API + 'online/stream?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(id)
+function onlineStreamUrl(provider, id, quality) {
+  var level =
+    typeof quality === 'string' && quality !== ''
+      ? quality
+      : (readPrefs().onlineQuality || 'high')
+  return (
+    API +
+    'online/stream?provider=' +
+    encodeURIComponent(provider) +
+    '&id=' +
+    encodeURIComponent(id) +
+    '&quality=' +
+    encodeURIComponent(level)
+  )
 }
 
 /**
