@@ -8,7 +8,14 @@
 import assert from 'node:assert/strict'
 import { plain, songOf } from '../lib/providers/netease.js'
 import { assertOk, ensureNeteaseService, stopNeteaseService } from '../lib/services/netease-api.js'
-import { installClientIpPolicy, withoutImplicitClientIp } from '../lib/services/netease-upstream.js'
+import {
+  createLoginQrCheck,
+  installClientIpPolicy,
+  installUpstreamPolicies,
+  isUpstreamNetworkFailure,
+  withoutImplicitClientIp,
+  withQrNetworkRetry,
+} from '../lib/services/netease-upstream.js'
 
 // ── pure mapping ────────────────────────────────────────────────────────────
 
@@ -97,6 +104,75 @@ assert.equal(songOf({ name: 'no id' }), null)
   assert.equal((await patched('/x', {}, { ip: '9.9.9.9', randomCNIP: true })).ip, '9.9.9.9')
 }
 
+
+// ── the QR policies ─────────────────────────────────────────────────────────
+//
+// Folia's other two startup policies (electron/netease/neteaseApiStartup.cjs): the QR
+// steps retry once on a network-level failure, and the package's own login_qr_check is
+// replaced because its catch clause reads a variable that only exists in the try.
+
+{
+  assert.equal(isUpstreamNetworkFailure({ status: 502, body: { msg: 'socket hang up' } }), true)
+  assert.equal(isUpstreamNetworkFailure({ status: 502, body: { msg: 'getaddrinfo ENOTFOUND interface.music.163.com' } }), true)
+  assert.equal(isUpstreamNetworkFailure({ status: 502, body: { msg: 'some other error' } }), false)
+  assert.equal(isUpstreamNetworkFailure({ status: 503, body: { msg: 'socket hang up' } }), false)
+  assert.equal(isUpstreamNetworkFailure(null), false)
+
+  // A reset on the QR key step is retried once, with fresh copies of data/options.
+  let attempts = 0
+  const sent = []
+  const flaky = async (uri, data, options) => {
+    attempts += 1
+    sent.push({ uri, data, options })
+    if (attempts === 1) throw { status: 502, body: { msg: 'socket hang up' } }
+    return { uri, data }
+  }
+  const retried = withQrNetworkRetry(flaky, { sleep: async () => {}, logger: { warn() {} } })
+  const data = { key: 'k' }
+  const options = { cookie: { a: 'b' }, ip: '' }
+  await retried('/api/login/qrcode/unikey', data, options)
+  assert.equal(attempts, 2, 'the QR step is sent twice')
+  assert.notEqual(sent[1].data, data, 'each attempt gets its own payload copy')
+  assert.notEqual(sent[1].options.cookie, options.cookie, 'each attempt gets its own option copy')
+
+  // Any other route, or any other failure, is answered as it came.
+  let otherAttempts = 0
+  const other = withQrNetworkRetry(async () => {
+    otherAttempts += 1
+    throw { status: 502, body: { msg: 'socket hang up' } }
+  }, { sleep: async () => {}, logger: { warn() {} } })
+  await assert.rejects(() => other('/song/url/v1', {}, {}))
+  assert.equal(otherAttempts, 1, 'non-QR routes are not retried')
+
+  // The replacement answers the real body, and a refusal keeps its status/body.
+  const check = createLoginQrCheck((query) => ({ key: query.key }))
+  const answered = await check({ key: 'k' }, async () => ({ body: { code: 803 }, cookie: ['a=1', 'b=2'] }))
+  assert.equal(answered.status, 200)
+  assert.equal(answered.body.code, 803)
+  assert.equal(answered.body.cookie, 'a=1;b=2')
+  await assert.rejects(
+    () => check({ key: 'k' }, async () => { throw { status: 503, body: { code: -460, msg: 'refused' } } }),
+    (error) => error.status === 503 && error.body.code === -460,
+  )
+
+  // Installing replaces both modules the package reads.
+  const cache = {}
+  const requestOriginal = async (uri, data, options) => ({ uri, ip: options.ip })
+  const qrOriginal = async () => { throw new Error('the upstream one') }
+  const fakeRequire = (path) => {
+    if (cache[path] === undefined) {
+      cache[path] = { exports: path.endsWith('login_qr_check.js') ? qrOriginal : path.endsWith('option.js') ? (() => ({})) : requestOriginal }
+    }
+    return cache[path].exports
+  }
+  fakeRequire.cache = cache
+  const paths = { requestPath: '/pkg/util/request.js', qrCheckPath: '/pkg/module/login_qr_check.js', optionPath: '/pkg/util/option.js' }
+  assert.deepEqual(installUpstreamPolicies(fakeRequire, paths), { clientIpPolicy: true, loginQrCheck: true })
+  const patchedRequest = cache[paths.requestPath].exports
+  assert.equal((await patchedRequest('/x', {}, { ip: '127.0.0.1' })).ip, '', 'the installed request carries the IP policy')
+  assert.notEqual(cache[paths.qrCheckPath].exports, qrOriginal, 'the QR poll module is replaced')
+}
+
 // ── QR poll status codes ────────────────────────────────────────────────────
 //
 // `/login/qr/check` answers 800/801/802/803 for expired/waiting/scanned/signed-in.
@@ -117,7 +193,8 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
 
   const service = await ensureNeteaseService()
   assert.ok(service.port > 0, 'the local service must report a bound port')
-  assert.equal(service.clientIpPolicy, true, 'the upstream request export carries the client-IP policy')
+  assert.equal(service.policies?.clientIpPolicy, true, 'the upstream request export carries the client-IP policy')
+  assert.equal(service.policies?.loginQrCheck, true, 'the QR poll module is the fixed one')
 
   const found = await search('周杰伦 晴天', '', 1, 1)
   assert.ok(found.results.length > 0, 'search must return at least one song')

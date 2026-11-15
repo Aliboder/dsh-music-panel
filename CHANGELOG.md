@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 向 Folia 对齐：网易云扫码的两条上游策略
+
+- 扫码两步（要码 / 轮询）遇到网络层失败时重发一次：上游把连接被重置答成
+  `{ status: 502, body: { msg } }`，而同一个请求前后的请求都正常，单次重置不该结束一次登录。
+  照 Folia 的 `withQrNetworkRetry`，每次尝试各复制一份 `data` / `options`（上游会往里写）。
+- 替换上游的 `module/login_qr_check`：它 `catch` 里读的是 `try` 里声明的 `result`，请求被拒时
+  抛 ReferenceError，server.js 把没有 body 的错误一律答成 404——登录窗分不清“连不上”和“被拒绝”。
+  换掉之后被拒绝的回答按它自己的 status / body 回给页面（`createLoginQrCheck`）。
+- 两条策略和客户端 IP 策略一起由 `installUpstreamPolicies` 装进包的 require 缓存；worker 的
+  ready 消息带 `policies`，`ensureNeteaseService()` 的句柄原样交给调用方，live 测试断言
+  `clientIpPolicy` / `loginQrCheck` 都是 true。
+
 ### 向 Folia 对齐：网易云的客户端 IP
 
 - 网易云本地服务不再把本机地址当成来源 IP 发给平台：worker 加载上游之前替换包的
