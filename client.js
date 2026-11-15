@@ -4925,39 +4925,6 @@ window.__ModuleLoader__.load({
      * @param {{ h?: number, s?: number, l?: number } | null | undefined} accent
      * @returns {Array<{ h: number, s: number, l: number }>}
      */
-    function wavePalette(accent) {
-      var base = accent !== null && typeof accent === 'object' ? accent : {}
-      var hue = Number(base.h)
-      if (!isFinite(hue)) hue = 40
-      var sat = Number(base.s)
-      if (!isFinite(sat) || sat < 0) sat = 30
-      var light = Number(base.l)
-      if (!isFinite(light) || light < 0) light = 60
-      // The extractor reports 0-100, but tolerate 0-1 inputs from older callers.
-      if (sat > 0 && sat <= 1) sat *= 100
-      if (light > 0 && light <= 1) light *= 100
-      // Neutral artwork (black & white, monochrome) must stay neutral: forcing a
-      // minimum saturation turns an arbitrary hue into a false red/green tint.
-      var neutral = sat < 20
-      sat = neutral ? Math.min(8, sat) : Math.min(92, Math.max(38, sat))
-      light = Math.min(78, Math.max(52, light))
-      function tone(hueShift, satScale, lightShift) {
-        return {
-          h: (hue + hueShift + 360) % 360,
-          s: neutral ? Math.min(8, sat * satScale) : Math.min(92, Math.max(38, sat * satScale)),
-          l: Math.min(80, Math.max(48, light + lightShift)),
-        }
-      }
-      return [tone(-14, 0.92, -6), tone(0, 1.04, 4), tone(16, 0.88, -1)]
-    }
-
-    /**
-     * Shared beat envelope for the smoke shader and the progress waveform.
-     *
-     * Uses half-wave rectified spectral flux over the sub-bass bins with an
-     * adaptive threshold and a fast-attack / slow-release envelope, so kicks and
-     * bass notes produce a short pulse instead of a slow loudness drift.
-     */
     function createBeatTracker() {
       var previous = null
       var average = 0
@@ -12030,15 +11997,23 @@ window.__ModuleLoader__.load({
       var duration = time.duration > 0 ? time.duration : props.fallbackDuration || 0
       var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
       var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
+      var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0
       var progressRef = useRef(progress)
       var durationRef = useRef(duration)
+      var bufferedRef = useRef(buffered)
       var morphRef = useRef(props.wave === false ? 0 : 1)
       var targetMorphRef = useRef(props.wave === false ? 0 : 1)
-      var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0
-      var bufferedRef = useRef(buffered)
+      var canvasRef = useRef(null)
+      var drawRef = useRef(null)
+      var startRef = useRef(null)
+      var playing = props.playing === true
+      var active = props.active !== false
+      var playingRef = useRef(playing)
+      playingRef.current = playing
       progressRef.current = progress
       durationRef.current = duration
       bufferedRef.current = buffered
+
       function choose(value) {
         seekingRef.current = value
         setSeeking(value)
@@ -12050,50 +12025,53 @@ window.__ModuleLoader__.load({
         seekingRef.current = null
         setSeeking(null)
       }
-      var gainsRef = useRef({
-        beat: Number(props.beat) || 0,
-        sensitivity: Number(props.beatSensitivity) || 0.6,
-        speed: 2.2,
-        intensity: 1,
-        scale: 0.18,
-        warp: 1.2,
-      })
-      useEffect(
-        function () {
-          gainsRef.current = {
-            beat: Number(props.beat) || 0,
-            sensitivity: Number(props.beatSensitivity) || 0.6,
-            speed: 2.2,
-            intensity: 1,
-            scale: 0.18,
-            warp: 1.2,
-          }
-        },
-        [props.beat, props.beatSensitivity],
-      )
+
+      function toneOf(source) {
+        var h = Number(source && source.h)
+        if (!isFinite(h)) h = 0
+        var sat = Number(source && source.s)
+        if (!isFinite(sat) || sat < 0) sat = 0
+        if (sat > 0 && sat <= 1) sat *= 100
+        var light = Number(source && source.l)
+        if (!isFinite(light) || light < 0) light = 60
+        if (light > 0 && light <= 1) light *= 100
+        // Neutral covers must not gain a hue; muted colours keep their own tone.
+        if (sat < 20) sat = 0
+        return {
+          h: ((h % 360) + 360) % 360,
+          s: Math.min(80, Math.max(0, sat)),
+          l: Math.min(78, Math.max(52, light)),
+        }
+      }
+
       useEffect(
         function () {
           targetMorphRef.current = props.wave === false ? 0 : 1
           if (drawRef.current !== null) drawRef.current(performance.now())
+          if (startRef.current !== null) startRef.current()
         },
         [props.wave],
       )
-      var playing = props.playing === true
-      var active = props.active !== false
-      var playingRef = useRef(playing)
-      playingRef.current = playing
-      var ref = useRef(null)
-      var drawRef = useRef(null)
+
       useEffect(
         function () {
-          var canvas = ref.current
+          if (props.playing === true && startRef.current !== null) {
+            drawRef.current(performance.now())
+            startRef.current()
+          }
+        },
+        [props.playing],
+      )
+
+      useEffect(
+        function () {
+          var canvas = canvasRef.current
           if (canvas === null) return undefined
           var ctx = canvas.getContext('2d')
           if (ctx === null) return undefined
           if (active !== true) {
-            // Keep the last painted frame while CSS scales/fades the canvas out.
             var clearTimer = setTimeout(function () {
-              var node = ref.current
+              var node = canvasRef.current
               if (node === null) return
               var clearCtx = node.getContext('2d')
               if (clearCtx !== null) clearCtx.clearRect(0, 0, node.width, node.height)
@@ -12103,95 +12081,49 @@ window.__ModuleLoader__.load({
             }
           }
           var dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1)
-          var beatTracker = createBeatTracker()
-          var phase = 0
-          var lastPhaseAt = 0
-          var frame = 0
-          var last = 0
           var levels = []
           var bands = 32
           var spectrumBands = 16
+          var raf = 0
+          var last = 0
+          var tone = toneOf(accent)
+
           function resize() {
-            // clientWidth/Height use the layout box, not the CSS fade transform.
-            // Measuring getBoundingClientRect() while is-fading scales the canvas
-            // to 12% and makes the backing store permanently too small on resume.
-            canvas.width = Math.max(1, Math.round(canvas.clientWidth * dpr))
-            canvas.height = Math.max(1, Math.round(canvas.clientHeight * dpr))
+            var width = Math.max(1, Math.round(canvas.clientWidth * dpr))
+            var height = Math.max(1, Math.round(canvas.clientHeight * dpr))
+            if (width === canvas.width && height === canvas.height) return
+            canvas.width = width
+            canvas.height = height
+            // Assigning width/height clears the bitmap; repaint when idle.
+            if (drawRef.current !== null) drawRef.current(performance.now())
           }
           resize()
           var observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : null
           if (observer !== null) observer.observe(canvas)
           window.addEventListener('resize', resize)
-          function colorOf(c, alpha) {
-            return 'hsla(' + c.h + ',' + c.s + '%,' + c.l + '%,' + alpha + ')'
+
+          function shouldAnimate() {
+            if (Math.abs(morphRef.current - targetMorphRef.current) > 0.005) return true
+            if (targetMorphRef.current === 0) return false
+            return playingRef.current === true
           }
-          var palette = wavePalette(accent)
+
           function draw(now) {
-            frame = 0
-            if (now - last < 33) {
-              frame = requestAnimationFrame(draw)
-              return
-            }
-            last = now
             var w = canvas.width / dpr
             var h = canvas.height / dpr
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
             ctx.clearRect(0, 0, w, h)
-            var playingNow = playingRef.current
-            var morph = morphRef.current
-            var morphTarget = targetMorphRef.current
-            morph += (morphTarget - morph) * 0.16
-            if (Math.abs(morph - morphTarget) < 0.004) morph = morphTarget
-            morphRef.current = morph
-            var waveOn = morphTarget > 0 || morph > 0.01
-            var data = playingNow && waveOn ? player.getWave() : null
-            var gains = gainsRef.current
-            var beat = beatTracker.update(data, playingNow, gains.sensitivity) * gains.beat
-            var beatSpeedGain = gains.speed
-            var beatIntensityGain = gains.intensity
-            var beatScaleGain = gains.scale
-            var beatWarpGain = gains.warp
-            var raw = []
-            if (data !== null && data.length > 0) {
-              for (var band = 0; band < spectrumBands; band += 1) {
-                var start = Math.floor(Math.pow(band / spectrumBands, 1.6) * data.length)
-                var end = Math.max(start + 1, Math.floor(Math.pow((band + 1) / spectrumBands, 1.6) * data.length))
-                end = Math.min(end, data.length)
-                var sum = 0
-                for (var i = start; i < end; i += 1) sum += data[i]
-                raw.push((sum / Math.max(1, end - start)) / 255)
-              }
-            } else {
-              for (var z = 0; z < spectrumBands; z += 1) raw.push(0)
-            }
-            var peak = 0.4
-            for (var p = 0; p < raw.length; p += 1) peak = Math.max(peak, raw[p])
-            var gap = w / bands
-            function mixFeature(list, t) {
-              if (!list.length) return accent
-              if (list.length === 1) return list[0]
-              var scaled = (((t % 1) + 1) % 1) * list.length
-              var from = Math.floor(scaled) % list.length
-              var to = (from + 1) % list.length
-              var frac = scaled - Math.floor(scaled)
-              var a = list[from]
-              var b = list[to]
-              var hueDelta = ((b.h - a.h + 540) % 360) - 180
-              return {
-                h: (a.h + hueDelta * frac + 360) % 360,
-                s: a.s + (b.s - a.s) * frac,
-                l: a.l + (b.l - a.l) * frac,
-              }
-            }
-            var phaseDelta = Math.min(0.1, (now - lastPhaseAt) / 1000)
-            lastPhaseAt = now
-            phase = (phase + phaseDelta * 0.0625 * (1 + beat * beatSpeedGain)) % 1
             ctx.globalAlpha = 1
-            if (morph < 0.02 && targetMorphRef.current === 0) {
-              ctx.globalAlpha = 1
-              var trackY = h / 2
+            var morph = morphRef.current
+            var target = targetMorphRef.current
+            morph += (target - morph) * 0.18
+            if (Math.abs(morph - target) < 0.003) morph = target
+            morphRef.current = morph
+
+            if (morph < 0.02 && target === 0) {
               var trackH = 4
-              function railBar(x, width, color) {
+              var trackY = h / 2
+              function rail(x, width, color) {
                 if (width <= 0) return
                 ctx.fillStyle = color
                 if (typeof ctx.roundRect === 'function') {
@@ -12202,25 +12134,41 @@ window.__ModuleLoader__.load({
                   ctx.fillRect(x, trackY - trackH / 2, width, trackH)
                 }
               }
-              railBar(0, w, '#26262c')
+              rail(0, w, '#26262c')
               if (durationRef.current > 0 && bufferedRef.current > 0) {
-                railBar(0, Math.min(1, bufferedRef.current / durationRef.current) * w, '#3a3a43')
+                rail(0, Math.min(1, bufferedRef.current / durationRef.current) * w, '#3a3a43')
               }
-              var railPlayed = progressRef.current * w
-              railBar(0, railPlayed, colorOf(palette[0] || accent, 1))
+              var playedWidth = progressRef.current * w
+              rail(0, playedWidth, 'hsla(' + tone.h + ',' + tone.s + '%,' + tone.l + '%,1)')
               ctx.fillStyle = '#f7f7f8'
               ctx.beginPath()
-              ctx.arc(Math.max(5, Math.min(w - 5, railPlayed)), trackY, 5, 0, Math.PI * 2)
+              ctx.arc(Math.max(5, Math.min(w - 5, playedWidth)), trackY, 5, 0, Math.PI * 2)
               ctx.fill()
               if (hoverRef.current !== null) {
                 ctx.fillStyle = 'rgba(255,255,255,.3)'
                 ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
               }
-              frame = 0
               return
             }
+
+            var data = playingRef.current ? player.getWave() : null
+            var raw = []
+            if (data !== null && data.length > 0) {
+              for (var band = 0; band < spectrumBands; band += 1) {
+                var from = Math.floor(Math.pow(band / spectrumBands, 1.6) * data.length)
+                var to = Math.max(from + 1, Math.floor(Math.pow((band + 1) / spectrumBands, 1.6) * data.length))
+                to = Math.min(to, data.length)
+                var sum = 0
+                for (var i = from; i < to; i += 1) sum += data[i]
+                raw.push(sum / Math.max(1, to - from) / 255)
+              }
+            } else {
+              for (var z = 0; z < spectrumBands; z += 1) raw.push(0)
+            }
+            var peak = 0.4
+            for (var p = 0; p < raw.length; p += 1) peak = Math.max(peak, raw[p])
+            var gap = w / bands
             var mid = (bands - 1) / 2
-            var railHalf = 2
             var bufferedRatio =
               durationRef.current > 0 ? Math.min(1, bufferedRef.current / durationRef.current) : 0
             for (var k = 0; k < bands; k += 1) {
@@ -12228,39 +12176,23 @@ window.__ModuleLoader__.load({
               var bandIndex = Math.min(spectrumBands - 1, Math.round(dist * (spectrumBands - 1)))
               var level = Math.pow(Math.max(0, raw[bandIndex]) / peak, 1.5)
               level = 0.02 + Math.min(1, level) * 0.98
-              var prev = levels[k] || 0
-              levels[k] = level > prev ? level : prev * 0.45 + level * 0.55
-              var targetHalf = ((levels[k] * h) / 2) * (1 + beat * beatIntensityGain)
-              if (targetHalf > h * 0.5) targetHalf = h * 0.5
-              if (targetHalf < railHalf) targetHalf = railHalf
-              var half = railHalf + (targetHalf - railHalf) * morph
+              var previous = levels[k] || 0
+              levels[k] = level > previous ? level : previous * 0.45 + level * 0.55
+              var targetHalf = Math.max(2, (levels[k] * h) / 2)
+              var half = 2 + (targetHalf - 2) * morph
               var barW = gap * (1 - 0.42 * morph)
               var x = k * gap + (gap - barW) / 2
-              var centerRatio = (k + 0.5) / bands
-              var played = centerRatio <= progressRef.current
-              var buffered = centerRatio <= bufferedRatio
-              if (played) {
-                var stable = palette[0] || accent
-                var animated = mixFeature(palette, phase + dist * 0.72 * (1 + beat * beatWarpGain))
-                if (morph < 0.999) {
-                  var hueDelta = ((animated.h - stable.h + 540) % 360) - 180
-                  animated = {
-                    h: (stable.h + hueDelta * morph + 360) % 360,
-                    s: stable.s + (animated.s - stable.s) * morph,
-                    l: stable.l + (animated.l - stable.l) * morph,
-                  }
-                }
-                ctx.fillStyle = colorOf(animated, 0.96)
-              } else if (buffered) {
-                ctx.fillStyle = 'rgba(255,255,255,.28)'
-              } else {
-                ctx.fillStyle = 'rgba(255,255,255,' + (0.16 + 0.16 * morph).toFixed(3) + ')'
-              }
+              var center = (k + 0.5) / bands
+              var played = center <= progressRef.current
+              var bufferedBar = center <= bufferedRatio
+              ctx.fillStyle = played
+                ? 'hsla(' + tone.h + ',' + tone.s + '%,' + tone.l + '%,0.96)'
+                : bufferedBar
+                  ? 'rgba(255,255,255,.32)'
+                  : 'rgba(255,255,255,' + (0.18 + 0.14 * morph).toFixed(3) + ')'
               var radius = Math.min(barW / 2, 4, half) * Math.min(1, morph * 2)
               if (morph < 0.05 && (k === 0 || k === bands - 1)) radius = Math.min(2, half)
-              if (morph < 0.02) {
-                ctx.fillRect(k * gap, h / 2 - half, gap + 0.5, half * 2)
-              } else if (typeof ctx.roundRect === 'function') {
+              if (typeof ctx.roundRect === 'function') {
                 ctx.beginPath()
                 ctx.roundRect(x, h / 2 - half, barW, half * 2, [radius, radius, radius, radius])
                 ctx.fill()
@@ -12269,44 +12201,63 @@ window.__ModuleLoader__.load({
               }
             }
             if (durationRef.current > 0) {
-              var headX = progressRef.current * w
+              var head = progressRef.current * w
               if (morph > 0.08) {
                 ctx.fillStyle = 'rgba(255,255,255,' + (0.22 + 0.68 * morph).toFixed(3) + ')'
-                ctx.fillRect(Math.max(0, Math.min(w - 1.5, headX - 0.75)), 2, 1.5, h - 4)
+                ctx.fillRect(Math.max(0, Math.min(w - 1.5, head - 0.75)), 2, 1.5, h - 4)
               }
               ctx.fillStyle = '#f7f7f8'
               ctx.beginPath()
-              ctx.arc(Math.max(5, Math.min(w - 5, headX)), h / 2, 5 - 2 * morph, 0, Math.PI * 2)
+              ctx.arc(Math.max(5, Math.min(w - 5, head)), h / 2, 5 - 2 * morph, 0, Math.PI * 2)
               ctx.fill()
             }
-            if (hoverRef.current !== null && durationRef.current > 0) {
-              ctx.fillStyle = 'rgba(255,255,255,.28)'
+            if (hoverRef.current !== null) {
+              ctx.fillStyle = 'rgba(255,255,255,.3)'
               ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
             }
-            frame = requestAnimationFrame(draw)
+          }
+
+          function frame(now) {
+            raf = 0
+            if (now - last < 33) {
+              raf = requestAnimationFrame(frame)
+              return
+            }
+            last = now
+            draw(now)
+            if (shouldAnimate()) raf = requestAnimationFrame(frame)
+          }
+          function start() {
+            if (raf === 0 && shouldAnimate()) raf = requestAnimationFrame(frame)
           }
           drawRef.current = draw
-          frame = requestAnimationFrame(draw)
+          startRef.current = start
+          draw(performance.now())
+          start()
           return function () {
-            if (frame !== 0) cancelAnimationFrame(frame)
+            if (raf !== 0) cancelAnimationFrame(raf)
             if (observer !== null) observer.disconnect()
             window.removeEventListener('resize', resize)
             drawRef.current = null
+            startRef.current = null
           }
         },
         [accent, active],
       )
+
       useEffect(
         function () {
           if (drawRef.current !== null) drawRef.current(performance.now())
+          if (startRef.current !== null) startRef.current()
         },
-        [progress, duration, props.wave, seeking],
+        [progress, duration, seeking],
       )
+
       return h(
         'div',
         { className: 'mp-wave-seek' },
         h('canvas', {
-          ref: ref,
+          ref: canvasRef,
           className: cx('mp-np-reflect-wave', active !== true && 'is-fading', props.wave === false && 'is-rail'),
           'aria-hidden': 'true',
         }),
@@ -13186,8 +13137,6 @@ window.__ModuleLoader__.load({
                 imageRef: coverImgRef,
                 active: staged,
                 wave: prefs.waveEnabled !== false,
-                beat: clamp((Number(prefs.npBeatAmount) || 0) / 100, 0, 3),
-                beatSensitivity: clamp((Number(prefs.npBeatSensitivity) || 60) / 100, 0, 2),
                 fallbackDuration: track ? track.durationSec || 0 : 0,
               }),
             ),

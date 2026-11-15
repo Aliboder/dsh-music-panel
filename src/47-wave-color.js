@@ -10,39 +10,6 @@
  * @param {{ h?: number, s?: number, l?: number } | null | undefined} accent
  * @returns {Array<{ h: number, s: number, l: number }>}
  */
-function wavePalette(accent) {
-  var base = accent !== null && typeof accent === 'object' ? accent : {}
-  var hue = Number(base.h)
-  if (!isFinite(hue)) hue = 40
-  var sat = Number(base.s)
-  if (!isFinite(sat) || sat < 0) sat = 30
-  var light = Number(base.l)
-  if (!isFinite(light) || light < 0) light = 60
-  // The extractor reports 0-100, but tolerate 0-1 inputs from older callers.
-  if (sat > 0 && sat <= 1) sat *= 100
-  if (light > 0 && light <= 1) light *= 100
-  // Neutral artwork (black & white, monochrome) must stay neutral: forcing a
-  // minimum saturation turns an arbitrary hue into a false red/green tint.
-  var neutral = sat < 20
-  sat = neutral ? Math.min(8, sat) : Math.min(92, Math.max(38, sat))
-  light = Math.min(78, Math.max(52, light))
-  function tone(hueShift, satScale, lightShift) {
-    return {
-      h: (hue + hueShift + 360) % 360,
-      s: neutral ? Math.min(8, sat * satScale) : Math.min(92, Math.max(38, sat * satScale)),
-      l: Math.min(80, Math.max(48, light + lightShift)),
-    }
-  }
-  return [tone(-14, 0.92, -6), tone(0, 1.04, 4), tone(16, 0.88, -1)]
-}
-
-/**
- * Shared beat envelope for the smoke shader and the progress waveform.
- *
- * Uses half-wave rectified spectral flux over the sub-bass bins with an
- * adaptive threshold and a fast-attack / slow-release envelope, so kicks and
- * bass notes produce a short pulse instead of a slow loudness drift.
- */
 function createBeatTracker() {
   var previous = null
   var average = 0
