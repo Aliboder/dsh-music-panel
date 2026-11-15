@@ -190,3 +190,34 @@ function wordSpans(line, atSeconds) {
     return { text: word.text, sung: now >= word.t - 0.02 }
   })
 }
+/**
+ * Folia's `LyricData` → the renderer's line shape.
+ *
+ * Folia's parser owns word timing, translations, romanization and the staff-credit
+ * policy; the player and the visualizer read `{time, end, text, translation, words}`.
+ * Keeping this the only bridge means the two pipelines cannot drift.
+ */
+function linesFromFoliaDocument(document) {
+  var source = document && Array.isArray(document.lines) ? document.lines : []
+  return source
+    .map(function (line) {
+      if (!line || !isFinite(Number(line.startTime))) return null
+      return {
+        time: Number(line.startTime) || 0,
+        end: Number(line.endTime) || 0,
+        text: String(line.fullText || ''),
+        translation: typeof line.translation === 'string' ? line.translation : '',
+        words: (Array.isArray(line.words) ? line.words : [])
+          .filter(function (word) {
+            return word && String(word.text || '') !== ''
+          })
+          .map(function (word) {
+            return { t: Number(word.startTime) || 0, end: Number(word.endTime) || 0, text: String(word.text || '') }
+          }),
+        isChorus: line.isChorus === true,
+      }
+    })
+    .filter(function (line) {
+      return line !== null && line.text !== ''
+    })
+}

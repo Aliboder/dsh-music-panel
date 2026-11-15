@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### 歌词处理逻辑改用 Folia 的流水线
+
+- `src/utils/lyrics/**` 本来就与 Folia 逐字一致（解析器、staff credits 策略、合唱效果、
+  render hints 都在），但从来没被编译进客户端：插件自己的歌词是 `parseLrcText` +
+  `attachWordTimeline` 手解析的。
+- 新增 `src/render/lyrics/entry.ts` + `scripts/build-lyrics.mjs`，把
+  `LyricParserFactory.parse` 编成 `lyrics.bundle.js`（`MPFoliaLyrics`）。Folia 的歌词
+  解析跑在 Web Worker 里，插件客户端是一段拼接脚本没有 worker 资源，所以
+  `workerClient` 在构建时换成同线程实现（`src/render/lyrics/worker-inline.ts`），
+  跑的是同一个 `parseLyricsByFormat`。
+- Host 在歌词结果里多带一份 Folia 的原始来源：网易云 `{type:'local', formatHint:'yrc'}`、
+  QQ `{type:'qrc', qrcContent}`、酷狗 `{type:'local', formatHint:'krc'}`（KRC 只下一次，
+  明文同时喂解析器和兜底）；歌词缓存 v5 → v6。客户端有 `raw` 时走
+  `MPFoliaLyrics.parse`，没有时仍回退旧解析。
+- 逐词、翻译/罗马音、`isWordByWord`、staff credits 判定都由 Folia 的解析器给出；
+  播放器与视觉器读同一份 `{time,end,text,translation,words}`。
+- 新增 `test/lyrics-folia.test.mjs`：在 Node 的 `vm` 里加载 bundle，验证 enhanced LRC /
+  QRC / YRC / TTML 四种输入都产出词级时间轴；实测四个平台（网易云/QQ/酷狗/概念版）
+  的 raw 经解析器都是逐词（60/63/63/63 行全带词）。
+
 ### 逐词歌词：QQ 与酷狗补上下发
 
 - 渲染端本来就支持逐词：客户端把 Host 回的 `lines[].words` 按行时间合到 LRC 行上

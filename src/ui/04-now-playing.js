@@ -2007,10 +2007,28 @@ function NowPlaying(props) {
                 '&duration=' +
                 encodeURIComponent(String(current.durationSec || 0)),
             )
-            var lines = parseLrcText(body.lrc || '')
-            if (body.translation) mergeLyricTranslation(lines, body.translation)
-            // Word-level timeline (only present when the platform has one).
-            attachWordTimeline(lines, body.lines)
+            // Folia's pipeline when the Host sent the raw source (cache v6+): it parses
+            // LRC / enhanced LRC / YRC / QRC / KRC / TTML itself, with word timing and
+            // credits policy. The old ad-hoc parse stays as the fallback.
+            var lines = null
+            if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
+              try {
+                var document = await MPFoliaLyrics.parse(body.raw, {
+                  songId: Number(current.onlineId) || 0,
+                })
+                if (document && Array.isArray(document.lines) && document.lines.length > 0) {
+                  lines = linesFromFoliaDocument(document)
+                }
+              } catch (error) {
+                lines = null
+              }
+            }
+            if (lines === null) {
+              lines = parseLrcText(body.lrc || '')
+              if (body.translation) mergeLyricTranslation(lines, body.translation)
+              // Word-level timeline (only present when the platform has one).
+              attachWordTimeline(lines, body.lines)
+            }
             if (!cancelled) {
               setLyrics(lines)
               setLyricSource('ONLINE')

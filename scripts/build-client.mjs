@@ -40,6 +40,7 @@ const FILES = [
   'src/10-base.js',
   'src/15-icons.js',
   'src/16-lyrics.js',
+  'src/render/lyrics/lyrics.bundle.js',
   'src/17-list.js',
   'src/18-stats.js',
   'src/19-extra-icons.js',
