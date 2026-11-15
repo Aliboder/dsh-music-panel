@@ -158729,6 +158729,7 @@ window.__ModuleLoader__.load({
                 var pureMusicNotice = false
                 var lines = null
                 var appliedAutoSegmentation = false
+                var usedFolia = false
                 // Folia loads icu-folia's engines lazily and re-bakes the shown lyrics when they
                 // land. Fire the load with the first online lyric; the promise below re-runs this
                 // effect once if the engines were not ready for this pass.
@@ -158764,6 +158765,7 @@ window.__ModuleLoader__.load({
                     }
                     if (document && Array.isArray(document.lines) && document.lines.length > 0) {
                       lines = linesFromFoliaDocument(document)
+                      usedFolia = true
                     }
                   } catch (error) {
                     lines = null
@@ -158776,6 +158778,21 @@ window.__ModuleLoader__.load({
                   if (body.translation) mergeLyricTranslation(lines, body.translation)
                   // Word-level timeline (only present when the platform has one).
                   attachWordTimeline(lines, body.lines)
+                }
+                // One line of diagnostics per lyric load: if a word-by-word effect is missing,
+                // this says whether the client ever received word timings at all.
+                if (typeof console !== 'undefined' && typeof console.info === 'function') {
+                  var wordLines = lines.filter(function (line) {
+                    return line && Array.isArray(line.words) && line.words.length > 1
+                  })
+                  console.info(
+                    '[dsh-music] lyric',
+                    String(current.onlineProvider || '') + '/' + String(current.onlineId || ''),
+                    'style=' + String(prefs.lyricStyle || ''),
+                    'lines=' + String(lines.length),
+                    'wordLevel=' + String(wordLines.length),
+                    usedFolia ? '(folia)' : '(legacy)',
+                  )
                 }
                 if (!cancelled) {
                   setLyrics(lines)

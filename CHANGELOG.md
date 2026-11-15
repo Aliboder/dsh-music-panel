@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 网易云逐词排查
+
+- 用运行中的 Host 实测：用户最近播放的网易云歌里 27649067 / 16818144 / 17753288
+  都返回 `raw: yrc`，48–61 行、42–59 行带词；445845838（イヴステッパー）网易云
+  只给 LRC，没有逐字时轴。
+- 把真实响应喂给构建后的客户端代码：`parse → prepare → linesFromFoliaDocument →
+  foliaPendoloLines` 全程 60/60 行保留词级时间，576 个词与行文本逐一对得上
+  （monet 的逐词扫描靠这个顺序对齐）。
+- 客户端加一行诊断（每次在线歌词加载一次）：
+  `[dsh-music] lyric <provider>/<id> style=<样式> lines=N wordLevel=M (folia|legacy)`，
+  用来区分「词级没到客户端」和「样式不画逐词」。
+
 ### icu-folia 自动分词（Folia 的默认分词）
 
 - 新增 `scripts/build-icu-folia.mjs`：从 Folia 的 `dev/icuFolia/jieba/*` 生成同一份数据
