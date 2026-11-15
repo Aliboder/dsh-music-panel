@@ -1292,10 +1292,17 @@ function WaveSeekBar(props) {
           var played = centerRatio <= progressRef.current
           var buffered = centerRatio <= bufferedRatio
           if (played) {
-            ctx.fillStyle = colorOf(
-              mixFeature(palette, phase + dist * 0.72 * (1 + beat * beatWarpGain)),
-              0.96,
-            )
+            var stable = palette[0] || accent
+            var animated = mixFeature(palette, phase + dist * 0.72 * (1 + beat * beatWarpGain))
+            if (morph < 0.999) {
+              var hueDelta = ((animated.h - stable.h + 540) % 360) - 180
+              animated = {
+                h: (stable.h + hueDelta * morph + 360) % 360,
+                s: stable.s + (animated.s - stable.s) * morph,
+                l: stable.l + (animated.l - stable.l) * morph,
+              }
+            }
+            ctx.fillStyle = colorOf(animated, 0.96)
           } else if (buffered) {
             ctx.fillStyle = 'rgba(255,255,255,.28)'
           } else {
