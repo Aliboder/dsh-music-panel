@@ -152775,6 +152775,18 @@ window.__ModuleLoader__.load({
         }
       }
       if (artistId === '' && detail.length === 1 && detail[0] && detail[0].id) artistId = String(detail[0].id)
+      var state = onlineStore.get()
+      // Folia keeps the artist resource in memory per key: going back to the same artist
+      // in one session shows the list instead of fetching it again.
+      if (
+        String(state.artistProvider || '') === provider &&
+        String(state.artistName || '') === artist &&
+        Array.isArray(state.artistSongs) &&
+        state.artistSongs.length > 0
+      ) {
+        setNav('artistSongs')
+        return
+      }
       var from = uiStore.get().nav
       var token = (artistLoadToken += 1)
       onlineStore.set({
@@ -152789,24 +152801,47 @@ window.__ModuleLoader__.load({
         error: '',
       })
       setNav('artistSongs')
-      try {
-        var body = await getJson(
-          API +
-            'online/artist-songs?provider=' +
-            encodeURIComponent(provider) +
-            '&artist=' +
-            encodeURIComponent(artist) +
-            (artistId !== '' ? '&artistId=' + encodeURIComponent(artistId) : ''),
-        )
-        if (token !== artistLoadToken) return
-        var songs = Array.isArray(body.songs) ? body.songs : []
-        onlineStore.set({ artistSongs: songs, artistPhase: 'ready' })
+      var base =
+        API +
+        'online/artist-songs?provider=' +
+        encodeURIComponent(provider) +
+        '&artist=' +
+        encodeURIComponent(artist) +
+        (artistId !== '' ? '&artistId=' + encodeURIComponent(artistId) : '')
+      function cacheStatus(list) {
         void refreshCacheStatus(
           provider,
-          songs.map(function (item) {
+          list.map(function (item) {
             return item.id
           }),
         )
+      }
+      try {
+        // Folia's artist page opens with ARTIST_TOP_SONG_LIMIT (10) songs: one small
+        // request, first paint at once. The rest of the list fills in behind it.
+        var head = await getJson(base + '&limit=10')
+        if (token !== artistLoadToken) return
+        var songs = Array.isArray(head.songs) ? head.songs : []
+        onlineStore.set({ artistSongs: songs, artistPhase: 'ready' })
+        cacheStatus(songs)
+        // Only NetEase pages this endpoint today; the other providers answer the whole
+        // list on the first request already.
+        if (provider !== 'netease' || songs.length < 10) return
+        var rest = await getJson(base + '&limit=200&offset=10')
+        if (token !== artistLoadToken) return
+        var more = Array.isArray(rest.songs) ? rest.songs : []
+        if (more.length === 0) return
+        var seen = {}
+        songs.forEach(function (item) {
+          seen[String(item.id)] = true
+        })
+        var merged = songs.concat(
+          more.filter(function (item) {
+            return seen[String(item.id)] !== true
+          }),
+        )
+        onlineStore.set({ artistSongs: merged })
+        cacheStatus(merged)
       } catch (error) {
         if (token !== artistLoadToken) return
         onlineStore.set({ artistSongs: [], artistPhase: 'error', artistError: errorText(error) })

@@ -239,6 +239,12 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
   const viaId = await providers.artistSongs('netease', '周杰伦', '', {}, artistId)
   assert.ok(viaId.length > 0, 'the provider answers with the id the song carries')
   assert.ok(viaId.every((song) => song.id && song.title !== ''), 'every row is a full song')
+  // Folia's artist page opens with ten songs; the rest pages in behind it.
+  const head = await providers.artistSongs('netease', '周杰伦', '', {}, artistId, { limit: 10 })
+  assert.equal(head.length, 10, 'the first page is ten songs')
+  const next = await providers.artistSongs('netease', '周杰伦', '', {}, artistId, { limit: 10, offset: 10 })
+  assert.equal(next.length, 10, 'the second page is ten songs')
+  assert.notEqual(next[0].id, head[0].id, 'paging moves the window')
 
   // The first poll after the code appears must be a scan state, not an error.
   const qr = await createQRLogin()

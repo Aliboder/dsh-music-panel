@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### 网易云歌手页：按 Folia 的两段式加载
+
+- 与 Folia 的 `ArtistResource` 对齐：首屏只取 **10 首热门**（`ARTIST_TOP_SONG_LIMIT`），
+  `/artist/songs?id=&limit=10&offset=0&order=hot` 一次小请求，列表立刻出来；
+  随后后台再取 `offset=10&limit=200` 补齐（按 id 去重），失败不影响已显示的部分。
+- 路由/适配器/provider 都支持 `limit` / `offset`（netease 生效，其它源一次返回全量）。
+- 同一会话里再次进入同一个歌手直接复用已加载的列表（Folia 的 artist resource 也是按
+  key 缓存的），不重新请求。
+- 与 Folia 的差异（有意）：Folia 还会并行请求 `/artist/detail`（头像/简介/专辑数）并在
+  后台分页 `/artist/album`；我们的歌手页只有歌曲列表，所以这两样没有做。Folia 的「全部
+  歌曲」是单独一页按需分页，我们是自动补齐。
+- 测试：live 段断言第一页 10 首、第二页 10 首且窗口前移。
+
 ### 网易云歌手页：改走 Folia 的 `/artist/songs` 单次请求
 
 - 之前慢的原因：`artistSongs('netease', 名字)` 根本不是歌手接口，而是**按歌手名做歌曲
