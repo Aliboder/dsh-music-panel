@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### 向 Folia 对齐：QQ 扫码失败时说出具体原因
+
+- QQ 上游包在扫码失败时会给一条 `failureHint`（设备上限 / 请求过频 / 扫错 App /
+  账号受限 / 平台拒绝，见它的 `loginHints`）。插件以前把它丢掉，登录窗只能说
+  「平台拒绝了这次登录」；现在 `qq.checkQRLogin` 带上 hint、重试等待和失败环节，
+  `providers.loginStatus` 把 hint 折成 Folia 的 case（`device-limit` /
+  `retry-later` / `wrong-scan-app` / `account-restricted` / `refused`），
+  经 bridge 和状态机一路带到登录路由，最终显示成对应的中文说明。
+- `qq-upstream` 补了 hint → case 的断言（含 unknown code 仍是普通失败）。
+
 ### 向 Folia 对齐：登录失败改名成有名字的情况
 
 - 新增 `lib/core/login-failure.js`：照 Folia 的 `loginFailureCase.ts`，把登录失败的

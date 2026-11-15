@@ -6,7 +6,9 @@
 
 import assert from 'node:assert/strict'
 import { toLegacyResult } from '../lib/providers/qq.js'
-import { assertOk, ensureQqService, stopQqService } from '../lib/services/qq-api.js'
+import { assertOk, ensureQqService, resetUpstreamOverride, setUpstreamOverride, stopQqService } from '../lib/services/qq-api.js'
+import * as QQ from '../lib/providers/qq.js'
+import { loginStatus } from '../lib/providers/index.js'
 
 const item = toLegacyResult({
   mid: '0039MnYb0qxYhV',
@@ -29,6 +31,44 @@ assert.equal(item.source, 'qq')
 assert.equal(toLegacyResult({ name: 'no mid' }), null)
 assert.equal(toLegacyResult(null), null)
 assert.equal(toLegacyResult({ mid: '', name: 'x' }), null)
+
+
+// ── login hints ─────────────────────────────────────────────────────────────
+//
+// The package recognises some refusals (loginHints): device limit, rate limit, wrong
+// scan app, restricted account. The plugin carries the hint and maps it to Folia's
+// login case so the window can name the reason.
+
+{
+  setUpstreamOverride(async (route) => {
+    if (route !== '/login/qr/check') throw new Error('unexpected route: ' + route)
+    return {
+      code: 800,
+      message: 'Too many login attempts.',
+      failureHint: { key: 'login.rate-limited', message: 'Too many login attempts.' },
+      retryAfterMs: 30_000,
+      failureStage: 'qr-poll',
+    }
+  })
+  try {
+    const polled = await QQ.checkQRLogin('k1')
+    assert.equal(polled.status, 'expired', 'the package\'s 800 is the QR having expired')
+    assert.equal(polled.extra.hint, 'login.rate-limited')
+    assert.equal(polled.extra.retryAfterMs, 30000)
+
+    const status = await loginStatus('qq', 'k1')
+    assert.equal(status.case, 'retry-later', 'the hint becomes a named case')
+    assert.equal(status.retryAfterMs, 30000, 'the wait the platform asked for is carried')
+
+    setUpstreamOverride(async () => ({ code: 9999, message: 'nope', failureHint: { key: 'login.device-limit' } }))
+    const refused = await loginStatus('qq', 'k2')
+    assert.equal(refused.status, 'failed', 'an unknown code is a plain failure')
+    assert.equal(refused.case, 'device-limit')
+  } finally {
+    // The live block below (and every later caller) needs the real transport back.
+    resetUpstreamOverride()
+  }
+}
 
 // ── QR poll status codes ────────────────────────────────────────────────────
 //
