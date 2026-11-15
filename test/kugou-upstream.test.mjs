@@ -143,6 +143,29 @@ import {
   }
 }
 
+// ── lyrics ─────────────────────────────────────────────────────────────────
+
+{
+  setUpstreamOverride(async (operation, params) => {
+    if (operation === 'search_lyric') {
+      assert.equal(params.hash, 'H1')
+      return { status: 200, body: { status: 200, candidates: [{ id: 'C1', accesskey: 'A1', duration: 269000, song: '晴天' }] }, cookie: [] }
+    }
+    if (operation === 'lyric') {
+      assert.equal(params.id, 'C1')
+      assert.equal(params.fmt, 'lrc')
+      return { status: 200, body: { status: 200, content: Buffer.from('[00:00.000]晴天', 'utf8').toString('base64') }, cookie: [] }
+    }
+    throw new Error('unexpected operation: ' + operation)
+  })
+  try {
+    const lrc = await KG.getLyric({ hash: 'H1', title: '晴天' }, 'standard')
+    assert.ok(lrc.lyric.includes('晴天'), 'the downloaded lrc is decoded from base64')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
 // ── live (opt-in) ───────────────────────────────────────────────────────────
 
 if (process.env.DSH_MUSIC_UPSTREAM === '1') {
@@ -155,6 +178,8 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
     const search = await KG.search('晴天', '', 1, platform)
     assert.ok(search.total > 0, 'anonymous search works through the bridge')
     assert.ok(search.results[0].title !== '', 'the Android result shape is mapped to the plugin\'s song')
+    const lrc = await KG.getLyric({ hash: search.results[0].id, title: '晴天' }, platform)
+    assert.ok(lrc.lyric.length > 0, 'lyrics are found and downloaded through the bridge')
   }
   await stopAllKugouServices()
   console.log('kugou-upstream.test.mjs ok (live)')
