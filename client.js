@@ -9457,12 +9457,19 @@ window.__ModuleLoader__.load({
 
     /** Legacy `{time,end,text,translation,words:[{t,end,text}]}` → Folia's `Line`. */
     function legacyLinesToFolia(lines) {
-      return (Array.isArray(lines) ? lines : [])
-        .map(function (line) {
+      var source = Array.isArray(lines) ? lines : []
+      return source
+        .map(function (line, index) {
           if (!line || !isFinite(Number(line.time))) return null
           var start = Number(line.time) || 0
+          // Folia's parser ends a line at the next line's start; only the last line
+          // (and lines whose neighbour has no usable time) keeps a fallback span.
+          var next = source[index + 1]
+          var nextStart = next && isFinite(Number(next.time)) ? Number(next.time) : NaN
           var end = Number(line.end)
-          if (!isFinite(end) || end <= start) end = start + 4
+          if (!isFinite(end) || end <= start) {
+            end = isFinite(nextStart) && nextStart > start ? nextStart : start + 4
+          }
           return {
             fullText: String(line.text || ''),
             startTime: start,

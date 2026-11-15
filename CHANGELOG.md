@@ -17,6 +17,8 @@
 - 行的开始/结束统一走 `mpLineStart` / `mpLineEnd`（兼容旧形状），播放器、播放页、
   作曲器、导出 LRC 都用它。
 - 顺带修：`foliaPlainFallback` 读 `line.fullText`（原来只读 `line.text`，Folia 行会空白）。
+- legacy 行的结束时间也按 Folia 的规则补：没有 `end` 时取下一行的 `startTime`，
+  只有最后一行才用固定跨度。
 - 验证：真实网易云响应 49 行按引用透传（`lines[0] === doc.lines[0]`，`words` /
   `renderHints` 同一引用）；legacy 形状转换一次；全量测试与 check 全过。
 
