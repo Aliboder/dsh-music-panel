@@ -77,4 +77,26 @@ assert.ok(typeof lyrics.LyricParserFactory?.parse === 'function', 'and the parse
   assert.equal(lyrics.detectNonTtmlTimedLyricFormat('<tt xmlns="http://www.w3.org/ns/ttml"></tt>'), 'lrc')
 }
 
+// ── the display-time pass (Folia's createLyricsSetter) ─────────────────────
+{
+  const credits = '[00:00.00]作词: A\n[00:00.20]作曲: B\n[00:00.40]编曲: C\n[00:20.00]第一句\n[00:24.00]第二句'
+  const parsed = await parseDocument({ type: 'local', lrcContent: credits })
+  assert.ok(parsed.lines.length >= 5, 'the credits are lines of the document')
+  const hidden = JSON.parse(JSON.stringify(lyrics.prepare(parsed, { policy: 'hide' })))
+  assert.ok(hidden.lines.length < parsed.lines.length, 'the dense credit block is dropped')
+  assert.equal(hidden.lines.some((line) => /作词|作曲|编曲/.test(line.fullText)), false, 'no credit line survives')
+  assert.ok(hidden.lines.some((line) => line.fullText === '第一句'), 'the sung lines stay')
+  const kept = JSON.parse(JSON.stringify(lyrics.prepare(parsed, { policy: 'keep' })))
+  assert.equal(kept.lines.length, parsed.lines.length, 'keep leaves the credits alone')
+}
+
+{
+  // A line sung three times is what Folia's text-repetition detector calls a chorus.
+  const body = ['副歌一', '副歌一', '副歌一'].map((text, index) => '[' + String(10 + index * 4).padStart(2, '0') + ':00.00]' + text).join('\n')
+  const verses = ['主歌一', '主歌二', '主歌三', '主歌四'].map((text, index) => '[' + String(30 + index * 4).padStart(2, '0') + ':00.00]' + text).join('\n')
+  const parsed = await parseDocument({ type: 'local', lrcContent: body + '\n' + verses })
+  const prepared = JSON.parse(JSON.stringify(lyrics.prepare(parsed, { policy: 'keep' })))
+  assert.ok(prepared.lines.some((line) => line.isChorus === true), 'a repeated line is marked as chorus')
+}
+
 console.log('lyrics-folia.test.mjs ok')

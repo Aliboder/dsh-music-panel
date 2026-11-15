@@ -15977,9 +15977,13 @@ window.__ModuleLoader__.load({
       var entry_exports = {};
       __export(entry_exports, {
         LyricParserFactory: () => LyricParserFactory,
+        applyChorusRangesByTime: () => applyChorusRangesByTime,
+        applyDetectedChorusEffects: () => applyDetectedChorusEffects,
+        applyLyricStaffPolicy: () => applyLyricStaffPolicy,
         detectNonTtmlTimedLyricFormat: () => detectNonTtmlTimedLyricFormat,
         ensureLyricDataRenderHints: () => ensureLyricDataRenderHints,
         parse: () => parse,
+        prepare: () => prepare,
         resolveLyricProcessingOptions: () => resolveLyricProcessingOptions
       });
 
@@ -17031,6 +17035,7 @@ window.__ModuleLoader__.load({
       var AWLRC_LINE_REGEX = /^\[(\d{1,3}(?::\d{1,3}){0,2})\.(\d{1,3})\](.*)$/;
       var AWLRC_WORD_REGEX = /<(\d+),(\d+)(?:,\d+)?>([^<]*)/g;
       var INTERLUDE_FULL_TEXT = "......";
+      var isInterludeLine = (line) => line.fullText === INTERLUDE_FULL_TEXT;
       var attachInterludes = (lines) => {
         const finalLines = [];
         const createInterlude = (start, end) => {
@@ -18303,6 +18308,87 @@ window.__ModuleLoader__.load({
       };
       var COLON_SHAPED_REGEX = /^[^:：，。！？；…!?]{1,60}[:：]\s*\S/;
       var isColonShaped = (line) => COLON_SHAPED_REGEX.test(line.fullText?.trim() || "");
+      var isHeaderLike = (line, meta) => {
+        const text = line.fullText?.trim() || "";
+        if (!text) {
+          return true;
+        }
+        if (/\s[-–—]\s/.test(text)) {
+          return true;
+        }
+        return Boolean(
+          meta.title && text.includes(meta.title.trim()) || meta.artist && text.includes(meta.artist.trim())
+        );
+      };
+      var detectLeadingStaffBlock = (lines, isStaffLine, options = {}) => {
+        const maxHeaderLines = options.maxHeaderLines ?? 2;
+        const minStaffLines = options.minStaffLines ?? 2;
+        const minDictionaryHits = options.minDictionaryHits ?? 2;
+        const minTrailingStructuralRun = options.minTrailingStructuralRun ?? 2;
+        const meta = options.meta ?? {};
+        let cursor = 0;
+        let headerLineCount = 0;
+        while (cursor < lines.length && !isStaffLine(lines[cursor])) {
+          if (isFillerLine(lines[cursor])) {
+            cursor += 1;
+            continue;
+          }
+          if (headerLineCount >= maxHeaderLines || !isHeaderLike(lines[cursor], meta)) {
+            return null;
+          }
+          headerLineCount += 1;
+          cursor += 1;
+        }
+        if (cursor >= lines.length) {
+          return null;
+        }
+        const accepted = [];
+        let dictionaryHits = 0;
+        let pendingFiller = [];
+        let scan = cursor;
+        while (scan < lines.length) {
+          const line = lines[scan];
+          if (isFillerLine(line)) {
+            pendingFiller.push(scan);
+            scan += 1;
+            continue;
+          }
+          const fromDictionary = isStaffLine(line);
+          const isStructural = dictionaryHits >= minDictionaryHits && isColonShaped(line);
+          if (!fromDictionary && !isStructural) {
+            break;
+          }
+          if (fromDictionary) {
+            dictionaryHits += 1;
+          }
+          accepted.push({ index: scan, fromDictionary, leadingFiller: pendingFiller });
+          pendingFiller = [];
+          scan += 1;
+        }
+        let trailingStructural = 0;
+        while (trailingStructural < accepted.length && !accepted[accepted.length - 1 - trailingStructural].fromDictionary) {
+          trailingStructural += 1;
+        }
+        if (trailingStructural > 0 && trailingStructural < minTrailingStructuralRun) {
+          accepted.length -= trailingStructural;
+          pendingFiller = [];
+        }
+        if (accepted.length < minStaffLines) {
+          return null;
+        }
+        const staffIndexes = accepted.map((entry) => entry.index);
+        const memberIndexes = accepted.flatMap((entry) => [...entry.leadingFiller, entry.index]);
+        memberIndexes.push(...pendingFiller);
+        const lastMemberIndex = memberIndexes[memberIndexes.length - 1];
+        let firstLyricIndex = null;
+        for (let index = lastMemberIndex + 1; index < lines.length; index += 1) {
+          if (!isFillerLine(lines[index])) {
+            firstLyricIndex = index;
+            break;
+          }
+        }
+        return { staffIndexes, memberIndexes, firstLyricIndex, headerLineCount, absorbedIndexes: [] };
+      };
 
       // src/utils/lyrics/pureMusic.ts
       var LRC_TAG_PATTERN = /\[[^\]]*]/g;
@@ -18758,9 +18844,347 @@ window.__ModuleLoader__.load({
         }
       };
 
+      // src/utils/lyrics/staffCreditsAbsorb.ts
+      var isShortLine = (line, maxDuration) => !isFillerLine(line) && line.endTime - line.startTime < maxDuration;
+      var sortAscending = (values) => [...values].sort((a, b) => a - b);
+      var collectShortRun = (lines, start, step, memberSet, maxDuration) => {
+        const taken = [];
+        for (let index = start; index >= 0 && index < lines.length; index += step) {
+          if (memberSet.has(index) || !isShortLine(lines[index], maxDuration)) {
+            break;
+          }
+          taken.push(index);
+        }
+        return taken;
+      };
+      var absorbAdjacentLines = (lines, block, options) => {
+        if (options.mode === "off" || block.staffIndexes.length === 0) {
+          return block;
+        }
+        const memberSet = new Set(block.memberIndexes);
+        const blockStart = block.memberIndexes[0];
+        const lastMember = block.memberIndexes[block.memberIndexes.length - 1];
+        const absorbed = collectShortRun(lines, blockStart - 1, -1, memberSet, options.maxDuration);
+        if (options.mode === "both") {
+          const lastIndex = lines.length - 1;
+          const backward = collectShortRun(
+            lines,
+            Math.min(lastMember + 1, lastIndex),
+            1,
+            memberSet,
+            options.maxDuration
+          ).filter((index) => index < lastIndex);
+          absorbed.push(...backward);
+        }
+        if (absorbed.length === 0) {
+          return block;
+        }
+        const absorbedIndexes = sortAscending(absorbed);
+        const memberIndexes = sortAscending([...block.memberIndexes, ...absorbedIndexes]);
+        for (let index = memberIndexes[memberIndexes.length - 1] + 1; index < lines.length; index += 1) {
+          if (!isFillerLine(lines[index])) {
+            break;
+          }
+          memberIndexes.push(index);
+        }
+        const nextIndex = memberIndexes[memberIndexes.length - 1] + 1;
+        const firstLyricIndex = nextIndex < lines.length ? nextIndex : null;
+        return {
+          ...block,
+          memberIndexes,
+          firstLyricIndex,
+          absorbedIndexes
+        };
+      };
+
+      // src/utils/lyrics/staffCreditsDecision.ts
+      var TAIL_MARGIN_SECONDS = 1;
+      var needsRetime = (staffLines, windowEnd, minDwell) => {
+        for (let index = 0; index < staffLines.length; index += 1) {
+          const nextStart = index + 1 < staffLines.length ? staffLines[index + 1].startTime : windowEnd;
+          if (nextStart - staffLines[index].startTime < minDwell) {
+            return true;
+          }
+        }
+        return false;
+      };
+      var resolveStaffDecision = (lines, block, minDwell) => {
+        const displayIndexes = [...block.staffIndexes, ...block.absorbedIndexes].sort((a, b) => a - b);
+        const displayLines = displayIndexes.map((index) => lines[index]);
+        const blockLineCount = block.staffIndexes.length;
+        const windowStart = lines[block.memberIndexes[0]].startTime;
+        const firstLyric = block.firstLyricIndex === null ? null : lines[block.firstLyricIndex];
+        const base = {
+          blockLineCount,
+          requiredSeconds: displayLines.length * minDwell + TAIL_MARGIN_SECONDS,
+          staffIndexes: block.staffIndexes,
+          memberIndexes: block.memberIndexes,
+          absorbedLineCount: block.absorbedIndexes.length,
+          absorbedIndexes: block.absorbedIndexes
+        };
+        if (!firstLyric) {
+          const lastLine = lines[lines.length - 1];
+          return {
+            ...base,
+            verdict: "keep",
+            windowSeconds: Math.max(0, lastLine.endTime - windowStart)
+          };
+        }
+        const windowSeconds = Math.max(0, firstLyric.startTime - windowStart);
+        if (windowSeconds >= base.requiredSeconds) {
+          return {
+            ...base,
+            verdict: needsRetime(displayLines, firstLyric.startTime - TAIL_MARGIN_SECONDS, minDwell) ? "retime" : "keep",
+            windowSeconds
+          };
+        }
+        return { ...base, verdict: "hide", windowSeconds };
+      };
+
+      // src/utils/lyrics/staffCreditsRewrite.ts
+      var retimeSyllables = (syllables, shift) => syllables?.map((syllable) => ({
+        ...syllable,
+        startTime: shift(syllable.startTime),
+        endTime: shift(syllable.endTime),
+        ruby: syllable.ruby?.map((ruby) => ({
+          ...ruby,
+          startTime: shift(ruby.startTime),
+          endTime: shift(ruby.endTime)
+        }))
+      }));
+      var retimeWords = (words, shift) => words.map((word) => ({
+        ...word,
+        startTime: shift(word.startTime),
+        endTime: shift(word.endTime),
+        syllables: retimeSyllables(word.syllables, shift)
+      }));
+      var retimeAlternateTexts = (alternateTexts, shift) => alternateTexts?.map((alternate) => ({
+        ...alternate,
+        syllables: retimeSyllables(alternate.syllables, shift)
+      }));
+      var retimeBackgroundVocal = (vocal, shift) => ({
+        ...vocal,
+        startTime: shift(vocal.startTime),
+        endTime: shift(vocal.endTime),
+        words: retimeWords(vocal.words, shift),
+        alternateTexts: retimeAlternateTexts(vocal.alternateTexts, shift)
+      });
+      var retimeLine = (line, startTime, endTime) => {
+        const originalSpan = Math.max(line.endTime - line.startTime, 1e-3);
+        const scale = (endTime - startTime) / originalSpan;
+        const shift = (time) => startTime + (time - line.startTime) * scale;
+        return {
+          ...line,
+          startTime,
+          endTime,
+          words: retimeWords(line.words, shift),
+          alternateTexts: retimeAlternateTexts(line.alternateTexts, shift),
+          backgroundVocal: line.backgroundVocal && retimeBackgroundVocal(line.backgroundVocal, shift),
+          backgroundVocals: line.backgroundVocals?.map((vocal) => retimeBackgroundVocal(vocal, shift)),
+          renderHints: void 0
+        };
+      };
+      var rebuildStaffLines = (lines, block, decision, minDwell) => {
+        const memberIndexes = new Set(block.memberIndexes);
+        const spreadIndexes = [...block.staffIndexes, ...block.absorbedIndexes].sort((a, b) => a - b);
+        const spreadLines = spreadIndexes.map((index) => lines[index]);
+        const windowStart = lines[block.memberIndexes[0]].startTime;
+        const firstLyric = block.firstLyricIndex === null ? null : lines[block.firstLyricIndex];
+        const windowEnd = firstLyric ? firstLyric.startTime - TAIL_MARGIN_SECONDS : spreadLines[spreadLines.length - 1].endTime;
+        const replacement = decision.verdict === "retime" ? spreadLines.map((line, index) => {
+          const slot = Math.max((windowEnd - windowStart) / spreadLines.length, minDwell);
+          return retimeLine(line, windowStart + index * slot, windowStart + (index + 1) * slot);
+        }) : [];
+        const next = [];
+        lines.forEach((line, index) => {
+          if (!memberIndexes.has(index)) {
+            next.push(line);
+            return;
+          }
+          if (index === block.memberIndexes[0]) {
+            next.push(...replacement);
+          }
+        });
+        return next;
+      };
+
+      // src/utils/lyrics/staffCreditsPolicy.ts
+      var DEFAULT_LYRIC_STAFF_POLICY = "smart";
+      var DEFAULT_LYRIC_STAFF_MIN_DWELL_SECONDS = 1.5;
+      var DEFAULT_LYRIC_STAFF_ABSORB_MODE = "off";
+      var LYRIC_STAFF_MIN_DWELL_RANGE = { min: 0.6, max: 4 };
+      var NO_BLOCK_DECISION = {
+        verdict: "none",
+        blockLineCount: 0,
+        windowSeconds: 0,
+        requiredSeconds: 0,
+        staffIndexes: [],
+        memberIndexes: [],
+        absorbedLineCount: 0,
+        absorbedIndexes: []
+      };
+      var clampMinDwell = (value) => {
+        if (!Number.isFinite(value)) {
+          return DEFAULT_LYRIC_STAFF_MIN_DWELL_SECONDS;
+        }
+        return Math.min(LYRIC_STAFF_MIN_DWELL_RANGE.max, Math.max(LYRIC_STAFF_MIN_DWELL_RANGE.min, value));
+      };
+      var stripInterludes = (lines) => lines.filter((line) => !isInterludeLine(line));
+      var analyze = (lyrics, options) => {
+        const minDwell = clampMinDwell(options.minDwellSeconds);
+        const policy = options.policy ?? DEFAULT_LYRIC_STAFF_POLICY;
+        const lines = stripInterludes(lyrics.lines);
+        const detected = detectLeadingStaffBlock(lines, createStaffCreditMatcher(options.pattern), {
+          meta: { title: lyrics.title, artist: lyrics.artist }
+        });
+        const block = detected && (policy === "hide" ? detected : absorbAdjacentLines(lines, detected, {
+          mode: options.absorbMode ?? DEFAULT_LYRIC_STAFF_ABSORB_MODE,
+          maxDuration: minDwell
+        }));
+        if (!block) {
+          return { lines, block: null, decision: NO_BLOCK_DECISION, minDwell };
+        }
+        if (policy === "hide") {
+          return {
+            lines,
+            block,
+            minDwell,
+            decision: {
+              ...NO_BLOCK_DECISION,
+              verdict: "hide",
+              blockLineCount: block.staffIndexes.length,
+              staffIndexes: block.staffIndexes,
+              memberIndexes: block.memberIndexes,
+              absorbedLineCount: block.absorbedIndexes.length,
+              absorbedIndexes: block.absorbedIndexes
+            }
+          };
+        }
+        return { lines, block, decision: resolveStaffDecision(lines, block, minDwell), minDwell };
+      };
+      var applyLyricStaffPolicy = (lyrics, options = {}) => {
+        if (!lyrics) {
+          return null;
+        }
+        const policy = options.policy ?? DEFAULT_LYRIC_STAFF_POLICY;
+        if (policy === "keep") {
+          return ensureLyricDataRenderHints(lyrics);
+        }
+        const { lines, block, decision, minDwell } = analyze(lyrics, options);
+        if (!block || decision.verdict === "none" || decision.verdict === "keep") {
+          return ensureLyricDataRenderHints(lyrics);
+        }
+        return {
+          ...lyrics,
+          lines: finalizeParsedLyricLines(rebuildStaffLines(lines, block, decision, minDwell), { includeInterludes: true })
+        };
+      };
+
+      // src/utils/chorusDetector.ts
+      var detectChorusLines = (lrcString) => {
+        const lines = lrcString.split("\n");
+        const lineCounts = /* @__PURE__ */ new Map();
+        const timeRegex = /\[(\d{2,3}):(\d{2})[.:](\d{2,3})\]/g;
+        lines.forEach((line) => {
+          const text = line.replace(timeRegex, "").trim();
+          if (!text || text === "......") return;
+          if (text.length < 2) return;
+          const count = lineCounts.get(text) || 0;
+          lineCounts.set(text, count + 1);
+        });
+        let maxCount = 0;
+        lineCounts.forEach((count) => {
+          if (count > maxCount) maxCount = count;
+        });
+        const chorusLines = /* @__PURE__ */ new Set();
+        if (maxCount <= 1) return chorusLines;
+        lineCounts.forEach((count, text) => {
+          if (count === maxCount) {
+            chorusLines.add(text);
+          }
+        });
+        console.log("[ChorusDetector] Chorus lines detected:", chorusLines);
+        return chorusLines;
+      };
+
+      // src/utils/lyrics/chorusEffects.ts
+      var CHORUS_EFFECTS = ["bars", "circles", "beams"];
+      var applyDetectedChorusEffects = (lyrics, mainLrc, random = Math.random) => {
+        const chorusLines = detectChorusLines(mainLrc);
+        if (chorusLines.size === 0) {
+          return lyrics;
+        }
+        const effectMap = /* @__PURE__ */ new Map();
+        chorusLines.forEach((text) => {
+          const index = Math.floor(random() * CHORUS_EFFECTS.length) % CHORUS_EFFECTS.length;
+          effectMap.set(text, CHORUS_EFFECTS[index]);
+        });
+        return {
+          ...lyrics,
+          lines: lyrics.lines.map((line) => {
+            const text = line.fullText.trim();
+            if (!chorusLines.has(text)) {
+              return line;
+            }
+            return {
+              ...line,
+              isChorus: true,
+              chorusEffect: effectMap.get(text)
+            };
+          })
+        };
+      };
+      var applyChorusRangesByTime = (lyrics, chorusRanges, random = Math.random) => {
+        if (!chorusRanges || chorusRanges.length === 0) {
+          return lyrics;
+        }
+        const rangeEffects = chorusRanges.map(() => {
+          const index = Math.floor(random() * CHORUS_EFFECTS.length) % CHORUS_EFFECTS.length;
+          return CHORUS_EFFECTS[index];
+        });
+        return {
+          ...lyrics,
+          lines: lyrics.lines.map((line) => {
+            const lineStart = line.startTime;
+            const lineEnd = line.endTime;
+            if (typeof lineStart !== "number" || typeof lineEnd !== "number") {
+              return line;
+            }
+            let matchedRangeIndex = -1;
+            for (let i = 0; i < chorusRanges.length; i++) {
+              const range = chorusRanges[i];
+              const rangeStart = range.startTime;
+              const rangeEnd = range.endTime;
+              if (lineStart < rangeEnd && lineEnd > rangeStart) {
+                matchedRangeIndex = i;
+                break;
+              }
+            }
+            if (matchedRangeIndex === -1) {
+              return line;
+            }
+            return {
+              ...line,
+              isChorus: true,
+              chorusEffect: rangeEffects[matchedRangeIndex]
+            };
+          })
+        };
+      };
+
       // src/render/lyrics/entry.ts
       function parse(source, options = {}) {
         return LyricParserFactory.parse(source, options);
+      }
+      function prepare(lyrics, options = {}) {
+        if (!lyrics) return null;
+        let next = applyLyricStaffPolicy(lyrics, { policy: options.policy ?? "smart" });
+        if (!next) return null;
+        if (next.lines.some((line) => line.isChorus)) return next;
+        const ranges = Array.isArray(options.chorusRanges) ? options.chorusRanges : [];
+        if (ranges.length > 0) return applyChorusRangesByTime(next, ranges);
+        const rebuilt = next.lines.map((line) => `[00:00.00]${line.fullText}`).join("\n");
+        return applyDetectedChorusEffects(next, rebuilt);
       }
       return __toCommonJS(entry_exports);
     })();
@@ -157182,6 +157606,10 @@ window.__ModuleLoader__.load({
                     var document = await MPFoliaLyrics.parse(body.raw, {
                       songId: Number(current.onlineId) || 0,
                     })
+                    // Folia's display-time pass: staff-credit policy, then chorus decoration.
+                    if (document && typeof MPFoliaLyrics.prepare === 'function') {
+                      document = MPFoliaLyrics.prepare(document, { policy: 'smart' })
+                    }
                     if (document && Array.isArray(document.lines) && document.lines.length > 0) {
                       lines = linesFromFoliaDocument(document)
                     }

@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### 歌词显示流水线对齐 Folia（staff credits / 合唱）
+
+- 歌词 bundle 新增 `prepare()`，对应 Folia 的 `createLyricsSetter` 显示前那一段：
+  先跑 staff credits 策略（`keep` / `smart` / `hide`，默认 smart，按前奏时间预算
+  决定保留、重排还是整块隐藏），再跑合唱装饰：歌词自带 `isChorus` 就用它，否则用
+  时间区间（`applyChorusRangesByTime`），再否则用 Folia 的文本重复检测
+  （`applyDetectedChorusEffects`）。
+- 逐字移植了 Folia 的 `src/utils/chorusDetector.ts`（合唱检测），歌词 bundle 因此多 15KB。
+- 客户端在 `MPFoliaLyrics.parse` 之后调用 `prepare`（目前策略固定 `smart`），
+  `isChorus` 随行进入渲染器和视觉器。
+- 仍没接的两块（Folia 有、插件还没有对应设置面）：用户按歌曲保存的分词
+  （`applyLyricWordSegmentation` + 分词 store）、icu-folia 的自动分词（依赖 Vite 虚拟
+  字典，插件 bundle 里没有；在 Folia 里也是引擎就绪前不起作用）。
+- 测试：staff 的 hide / keep 两条路径、文本重复检测标出合唱；staff 样本里 Folia 会插入
+  `......` 间奏行，隐藏只针对署名块，间奏保留。
+
 ### 歌词处理逻辑改用 Folia 的流水线
 
 - `src/utils/lyrics/**` 本来就与 Folia 逐字一致（解析器、staff credits 策略、合唱效果、

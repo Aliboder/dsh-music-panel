@@ -2016,6 +2016,10 @@ function NowPlaying(props) {
                 var document = await MPFoliaLyrics.parse(body.raw, {
                   songId: Number(current.onlineId) || 0,
                 })
+                // Folia's display-time pass: staff-credit policy, then chorus decoration.
+                if (document && typeof MPFoliaLyrics.prepare === 'function') {
+                  document = MPFoliaLyrics.prepare(document, { policy: 'smart' })
+                }
                 if (document && Array.isArray(document.lines) && document.lines.length > 0) {
                   lines = linesFromFoliaDocument(document)
                 }
