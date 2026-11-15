@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### 向 Folia 对齐：网易云的客户端 IP
+
+- 网易云本地服务不再把本机地址当成来源 IP 发给平台：worker 加载上游之前替换包的
+  `util/request` 导出（`lib/services/netease-upstream.js` 的 `withoutImplicitClientIp`），
+  只有显式要求随机国内 IP（`randomCNIP`）的请求才带 `X-Real-IP` / `X-Forwarded-For`。
+  做法照 Folia 的 `electron/netease/neteaseApiStartup.cjs`——那边记过：上游默认会把
+  127.0.0.1 写进去，而扫码确认这一步会被平台判成来源不对而失败。
+- worker 现在先建好 `os.tmpdir()/anonymous_token` 再加载该模块（上游在模块加载时就读它），
+  并把「策略有没有装上」放进 ready 消息：`ensureNeteaseService()` 返回的句柄带
+  `clientIpPolicy`，live 测试断言它为 true。
+
 ### 登录窗换成 Folia 原版
 
 - 登录窗不再是手写的 `.mp-login-*` 版面：`src/render/login/folia-src/**` 是 Folia

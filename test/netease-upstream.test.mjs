@@ -8,6 +8,7 @@
 import assert from 'node:assert/strict'
 import { plain, songOf } from '../lib/providers/netease.js'
 import { assertOk, ensureNeteaseService, stopNeteaseService } from '../lib/services/netease-api.js'
+import { installClientIpPolicy, withoutImplicitClientIp } from '../lib/services/netease-upstream.js'
 
 // ── pure mapping ────────────────────────────────────────────────────────────
 
@@ -50,6 +51,52 @@ assert.equal(songOf(null), null)
 assert.equal(songOf(undefined), null)
 assert.equal(songOf({ name: 'no id' }), null)
 
+
+// ── the client-IP policy ────────────────────────────────────────────────────
+//
+// Folia strips the caller's IP from every NetEase request (electron/netease/
+// neteaseApiStartup.cjs, "withoutImplicitClientIp"): the package would otherwise
+// send X-Real-IP: 127.0.0.1, which the platform can read as a spoofed source and
+// which Folia measured to break the QR confirm step. The policy keeps the header
+// only where a request explicitly asks for a random domestic IP.
+
+{
+  const seen = []
+  const wrapped = withoutImplicitClientIp((uri, data, options) => {
+    seen.push({ uri, data, options })
+    return Promise.resolve('answered')
+  })
+
+  assert.equal(await wrapped('/song/url/v1', { id: 1 }, { ip: '127.0.0.1', cookie: { a: 'b' } }), 'answered')
+  assert.equal(seen[0].options.ip, '', 'the implicit client IP is dropped')
+  assert.deepEqual(seen[0].data, { id: 1 }, 'the payload is passed through untouched')
+  assert.deepEqual(seen[0].options.cookie, { a: 'b' }, 'other options survive the policy')
+
+  await wrapped('/song/url/v1', {}, { ip: '36.1.2.3', randomCNIP: true })
+  assert.equal(seen[1].options.ip, '36.1.2.3', 'a random domestic IP is what the caller asked for')
+
+  await wrapped('/login/qr/check', {}, {})
+  assert.equal(seen[2].options.ip, '', 'a request without options still gets no IP')
+}
+
+{
+  // The install replaces the module export the package's own modules will read.
+  const cache = {}
+  const requestPath = '/pkg/util/request.js'
+  const original = (uri, data, options) => Promise.resolve({ uri, ip: options.ip })
+  const fakeRequire = (path) => {
+    cache[path] = { exports: original }
+    return cache[path].exports
+  }
+  fakeRequire.cache = cache
+
+  installClientIpPolicy(fakeRequire, requestPath)
+  const patched = cache[requestPath].exports
+  assert.notEqual(patched, original, 'the export is replaced, not wrapped around')
+  assert.equal((await patched('/x', {}, { ip: '127.0.0.1' })).ip, '', 'the installed export carries the policy')
+  assert.equal((await patched('/x', {}, { ip: '9.9.9.9', randomCNIP: true })).ip, '9.9.9.9')
+}
+
 // ── QR poll status codes ────────────────────────────────────────────────────
 //
 // `/login/qr/check` answers 800/801/802/803 for expired/waiting/scanned/signed-in.
@@ -70,6 +117,7 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
 
   const service = await ensureNeteaseService()
   assert.ok(service.port > 0, 'the local service must report a bound port')
+  assert.equal(service.clientIpPolicy, true, 'the upstream request export carries the client-IP policy')
 
   const found = await search('周杰伦 晴天', '', 1, 1)
   assert.ok(found.results.length > 0, 'search must return at least one song')
