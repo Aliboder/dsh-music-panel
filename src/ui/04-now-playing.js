@@ -1271,6 +1271,37 @@ function WaveSeekBar(props) {
         lastPhaseAt = now
         phase = (phase + phaseDelta * 0.0625 * (1 + beat * beatSpeedGain)) % 1
         ctx.globalAlpha = 1
+        if (morph < 0.02 && targetMorphRef.current === 0) {
+          var trackY = h / 2
+          var trackH = 4
+          function railBar(x, width, color) {
+            if (width <= 0) return
+            ctx.fillStyle = color
+            if (typeof ctx.roundRect === 'function') {
+              ctx.beginPath()
+              ctx.roundRect(x, trackY - trackH / 2, width, trackH, trackH / 2)
+              ctx.fill()
+            } else {
+              ctx.fillRect(x, trackY - trackH / 2, width, trackH)
+            }
+          }
+          railBar(0, w, 'rgba(255,255,255,.16)')
+          if (durationRef.current > 0 && bufferedRef.current > 0) {
+            railBar(0, Math.min(1, bufferedRef.current / durationRef.current) * w, 'rgba(255,255,255,.28)')
+          }
+          var railPlayed = progressRef.current * w
+          railBar(0, railPlayed, colorOf(palette[0] || accent, 0.96))
+          ctx.fillStyle = '#f7f7f8'
+          ctx.beginPath()
+          ctx.arc(Math.max(5, Math.min(w - 5, railPlayed)), trackY, 5, 0, Math.PI * 2)
+          ctx.fill()
+          if (hoverRef.current !== null) {
+            ctx.fillStyle = 'rgba(255,255,255,.3)'
+            ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
+          }
+          frame = requestAnimationFrame(draw)
+          return
+        }
         var mid = (bands - 1) / 2
         var railHalf = 2
         var bufferedRatio =
@@ -1359,7 +1390,7 @@ function WaveSeekBar(props) {
     { className: 'mp-wave-seek' },
     h('canvas', {
       ref: ref,
-      className: cx('mp-np-reflect-wave', active !== true && 'is-fading'),
+      className: cx('mp-np-reflect-wave', active !== true && 'is-fading', props.wave === false && 'is-rail'),
       'aria-hidden': 'true',
     }),
     h('input', {

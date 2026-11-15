@@ -373,6 +373,7 @@ var THEME_CSS = [
   '.mp-np-disc-wrap{position:relative;display:flex;align-items:center;justify-content:center;box-sizing:border-box}',
   '.mp-np-disc-wrap.is-vinyl{width:calc(var(--mp-cover) * .9);margin-left:auto;margin-right:auto;padding:calc(var(--mp-cover) * .06);top:30px}',
   '.mp-np-reflect-wave{position:absolute;left:0;top:50%;transform:translateY(-50%);transform-origin:50% 50%;transition:opacity .3s ease,transform .3s ease;width:100%;height:36px;pointer-events:none;z-index:0;mix-blend-mode:screen;opacity:.86;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%)}.mp-np-reflect-wave.is-fading{opacity:0;transform:translateY(-50%) scaleY(.12)}',
+  '.mp-np-reflect-wave.is-rail{mix-blend-mode:normal;opacity:1}',
   '.mp-np-cover-stage.is-vinyl .mp-np-reflect-wave{left:5%;width:90%}',
   '.mp-np-disc{position:relative;width:var(--mp-cover);height:var(--mp-cover);flex:none;aspect-ratio:1;display:flex;align-items:center;justify-content:center;animation:mp-disc-spin 24s linear infinite;animation-play-state:paused}',
   '.mp-np-disc.is-playing{animation-play-state:running}',
