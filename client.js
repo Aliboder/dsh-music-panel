@@ -21115,10 +21115,19 @@ window.__ModuleLoader__.load({
       return API + 'online/subsonic-cover?provider=navidrome&id=' + encodeURIComponent(coverArtId)
     }
 
-    async function getJson(url) {
+    /**
+     * GET one Host route.
+     *
+     * `options.signal` lets a caller that no longer needs the answer cancel the request
+     * (the search behind a lyric upgrade can walk four sources). The Host finishes the
+     * request it already started; this only stops the browser waiting for it.
+     */
+    async function getJson(url, options) {
+      var signal = options && options.signal ? options.signal : undefined
       var response = await fetch(url, {
         credentials: 'same-origin',
         headers: { accept: 'application/json' },
+        ...(signal === undefined ? {} : { signal: signal }),
       })
       var body = null
       try {
@@ -159336,6 +159345,10 @@ window.__ModuleLoader__.load({
         function () {
           if (props.open !== true || trackPath === '') return undefined
           var cancelled = false
+          // The upgrade search is the only request that can outlive its song: it runs after the
+          // lyric is on screen and walks every source. Abort it when this effect is torn down
+          // (track change / panel close) instead of letting four searches stack up.
+          var upgradeAbort = typeof AbortController === 'function' ? new AbortController() : null
           lyricDocRef.current = null
           setLyrics([])
           setLyricSource('')
@@ -159349,7 +159362,7 @@ window.__ModuleLoader__.load({
            * on screen (playback never waits for the search) and applied only when the match
            * really is word-level, so the sweep cannot get worse than what is showing.
            */
-          async function upgradeLyric(current, chorusRanges) {
+          async function upgradeLyric(current, chorusRanges, signal) {
             var query =
               'online/best-lyric?provider=' +
               encodeURIComponent(current.onlineProvider) +
@@ -159363,7 +159376,7 @@ window.__ModuleLoader__.load({
               encodeURIComponent(current.album || '') +
               '&duration=' +
               encodeURIComponent(String(current.durationSec || 0))
-            var answer = await getJson(API + query)
+            var answer = await getJson(API + query, signal === null ? undefined : { signal: signal })
             var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
             if (cancelled || match === null || match.wordLevel !== true) return
             var upgraded = null
@@ -159555,7 +159568,9 @@ window.__ModuleLoader__.load({
                 // not auto-match over it either, so the visualizer keeps its own path.
                 var primaryPureMusic = shown !== null && shown.pureMusic === true
                 if (!primaryWordLevel && !primaryPureMusic && prefs.autoUseBestLyric !== false) {
-                  void upgradeLyric(current, chorusRanges).catch(function () {})
+                  void upgradeLyric(current, chorusRanges, upgradeAbort === null ? null : upgradeAbort.signal).catch(
+                    function () {},
+                  )
                 }
                 // `chorusRanges` above already marked the hook lines and filled `chorusSec`
                 // for the "jump to hook" control; nothing else is awaited for this track.
@@ -159591,6 +159606,8 @@ window.__ModuleLoader__.load({
           load()
           return function () {
             cancelled = true
+            // Also drops the upgrade that is still searching for this song's lyrics.
+            if (upgradeAbort !== null) upgradeAbort.abort()
           }
         },
         [props.open, trackPath, lyricReload, lyricOrderKey],

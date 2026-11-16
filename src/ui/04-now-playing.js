@@ -2000,6 +2000,10 @@ function NowPlaying(props) {
     function () {
       if (props.open !== true || trackPath === '') return undefined
       var cancelled = false
+      // The upgrade search is the only request that can outlive its song: it runs after the
+      // lyric is on screen and walks every source. Abort it when this effect is torn down
+      // (track change / panel close) instead of letting four searches stack up.
+      var upgradeAbort = typeof AbortController === 'function' ? new AbortController() : null
       lyricDocRef.current = null
       setLyrics([])
       setLyricSource('')
@@ -2013,7 +2017,7 @@ function NowPlaying(props) {
        * on screen (playback never waits for the search) and applied only when the match
        * really is word-level, so the sweep cannot get worse than what is showing.
        */
-      async function upgradeLyric(current, chorusRanges) {
+      async function upgradeLyric(current, chorusRanges, signal) {
         var query =
           'online/best-lyric?provider=' +
           encodeURIComponent(current.onlineProvider) +
@@ -2027,7 +2031,7 @@ function NowPlaying(props) {
           encodeURIComponent(current.album || '') +
           '&duration=' +
           encodeURIComponent(String(current.durationSec || 0))
-        var answer = await getJson(API + query)
+        var answer = await getJson(API + query, signal === null ? undefined : { signal: signal })
         var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
         if (cancelled || match === null || match.wordLevel !== true) return
         var upgraded = null
@@ -2219,7 +2223,9 @@ function NowPlaying(props) {
             // not auto-match over it either, so the visualizer keeps its own path.
             var primaryPureMusic = shown !== null && shown.pureMusic === true
             if (!primaryWordLevel && !primaryPureMusic && prefs.autoUseBestLyric !== false) {
-              void upgradeLyric(current, chorusRanges).catch(function () {})
+              void upgradeLyric(current, chorusRanges, upgradeAbort === null ? null : upgradeAbort.signal).catch(
+                function () {},
+              )
             }
             // `chorusRanges` above already marked the hook lines and filled `chorusSec`
             // for the "jump to hook" control; nothing else is awaited for this track.
@@ -2255,6 +2261,8 @@ function NowPlaying(props) {
       load()
       return function () {
         cancelled = true
+        // Also drops the upgrade that is still searching for this song's lyrics.
+        if (upgradeAbort !== null) upgradeAbort.abort()
       }
     },
     [props.open, trackPath, lyricReload, lyricOrderKey],

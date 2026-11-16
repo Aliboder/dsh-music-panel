@@ -43,10 +43,19 @@ function subsonicCoverUrl(coverArtId) {
   return API + 'online/subsonic-cover?provider=navidrome&id=' + encodeURIComponent(coverArtId)
 }
 
-async function getJson(url) {
+/**
+ * GET one Host route.
+ *
+ * `options.signal` lets a caller that no longer needs the answer cancel the request
+ * (the search behind a lyric upgrade can walk four sources). The Host finishes the
+ * request it already started; this only stops the browser waiting for it.
+ */
+async function getJson(url, options) {
+  var signal = options && options.signal ? options.signal : undefined
   var response = await fetch(url, {
     credentials: 'same-origin',
     headers: { accept: 'application/json' },
+    ...(signal === undefined ? {} : { signal: signal }),
   })
   var body = null
   try {
