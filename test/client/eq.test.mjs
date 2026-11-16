@@ -1,7 +1,7 @@
 /**
  * Equalizer data + math.
  *
- * `src/client/services/player/effects/40-eq.js` is a fragment rather than a module (it ships inside client.js),
+ * `src/client/services/player/effects/eq.js` is a fragment rather than a module (it ships inside client.js),
  * so it is evaluated in isolation here with `clamp`/`LANG` supplied. That keeps
  * the curves and the preset table under test without a browser.
  */
@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const root = new URL('../..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
-const source = readFileSync(join(root, 'src/client/services/player/effects/40-eq.js'), 'utf8')
+const source = readFileSync(join(root, 'src/client/services/player/effects/eq.js'), 'utf8')
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value))
@@ -186,4 +186,5 @@ assert.equal(eq.eqSavedPresetId(customList, 'rock', customList[0].bands), '', 'f
 assert.equal(eq.eqSavedPresetId(null, 'custom', customList[0].bands), '')
 
 console.log('eq.test.mjs ok')
+
 

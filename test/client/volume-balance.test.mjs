@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
 // The two modules are plain browser fragments; strip their guards and evaluate.
-const source = readFileSync(new URL('../../src/client/services/player/effects/48-volume-balance.js', import.meta.url), 'utf8')
+const source = readFileSync(new URL('../../src/client/services/player/effects/volume-balance.js', import.meta.url), 'utf8')
 const sandbox = { exports: {} }
 const factory = new Function(
   'createStore',
@@ -61,4 +61,5 @@ assert.equal(planBalanceMove({ playSec: 5, moved: true, currentDb: 0, nextDb: -4
 assert.equal(planBalanceMove({ playSec: 5, moved: false, currentDb: -4, nextDb: -4 }), null)
 
 console.log('volume-balance.test.mjs ok')
+
 

@@ -16,8 +16,8 @@
 改 UI 前按顺序确认：
 
 1. **MUST** 先判断这是“新控件”还是“纯布局”。新控件不能直接写 `<div>`。
-2. **MUST** 先查宿主组件：`src/client/app/00-host-ui.js` 的 `hostComponent(name)`。
-3. 宿主没有，再用本仓原语：`src/client/components/ui/01-primitives.js`。
+2. **MUST** 先查宿主组件：`src/client/app/host-ui.js` 的 `hostComponent(name)`。
+3. 宿主没有，再用本仓原语：`src/client/components/ui/primitives.js`。
 4. 只有纯布局/容器/装饰才直接写元素；颜色、圆角、字号、焦点环仍从 token 来。
 5. 样式只作用于自己的 `.mp-*` 命名空间。
 6. 浅色、深色各看一遍；播放页/播放器卡片按“深色岛”处理（§4.12）。
@@ -33,8 +33,8 @@
 
 | 顺序 | 用什么 | 位置 | 适用 |
 |---|---|---|---|
-| 1 | 宿主组件适配 | `00-host-ui.js` + `01-primitives.js` | Tooltip / Switch / Pill / Modal / Menu / Toast |
-| 2 | 本仓原语 | `src/client/components/ui/01-primitives.js` | IconButton / Button / Switch / KitPill / KitModal / SetRow / Empty / Spinner / Cover / SeekBar |
+| 1 | 宿主组件适配 | `host-ui.js` + `primitives.js` | Tooltip / Switch / Pill / Modal / Menu / Toast |
+| 2 | 本仓原语 | `src/client/components/ui/primitives.js` | IconButton / Button / Switch / KitPill / KitModal / SetRow / Empty / Spinner / Cover / SeekBar |
 | 3 | 一次性布局 | 直接写元素 | 纯容器、网格、装饰；颜色/圆角/字号仍走 token |
 
 **NEVER**：跳过前两层直接写 `<div>` 造控件；只改文案或只画胶囊冒充功能。
@@ -149,7 +149,7 @@ border-color: color-mix(in srgb, var(--dsw-alias-state-business-primary) 46%, tr
 
 ### 3.1 唯一入口
 
-`src/client/app/00-host-ui.js` 是**唯一**允许 `require('@deepseek-ai/dsh-client-ui-primitives')` 的地方：
+`src/client/app/host-ui.js` 是**唯一**允许 `require('@deepseek-ai/dsh-client-ui-primitives')` 的地方：
 
 ```js
 var hostUi = null
@@ -172,9 +172,9 @@ try {
 
 ### 3.3 图标
 
-`src/client/components/common/15-icons.js` 的 `icon(name, size)`：
+`src/client/components/common/icons.js` 的 `icon(name, size)`：
 
-1. 先查 `HOST_ICON_MAP`（`src/client/app/00-host-ui.js`）里的宿主图标组件（如 `search` → `IconSearchOutlineRegular`）；
+1. 先查 `HOST_ICON_MAP`（`src/client/app/host-ui.js`）里的宿主图标组件（如 `search` → `IconSearchOutlineRegular`）；
 2. 宿主没有映射，就用本地 SVG（Feather/Lucide 路径，MIT）。
 
 规则：
@@ -470,16 +470,16 @@ node --run check
 
 | 文件 | 职责 |
 |---|---|
-| `src/client/styles/90-theme.js` | 全部 CSS 与 `--dsw-*` 使用 |
-| `src/client/app/00-host-ui.js` | 宿主模块加载、`hostComponent`、`HOST_ICON_MAP` |
-| `src/client/components/common/15-icons.js` | `icon()` 本地 SVG + 宿主图标分流 |
-| `src/client/components/ui/01-primitives.js` | `IconButton`、`Button`、`Switch`、`KitPill`、`KitModal`、`SetRow`、`Cover`、`Spinner`、`Empty`、`SeekBar` |
-| `src/client/components/ui/07-dialogs.js` | `Toast`、确认框、右键菜单等浮层 |
-| `src/client/components/ui/16-header.js` | `HeadMenu`、`ContentHeader`、选择/排序菜单 |
-| `src/client/components/ui/06-settings.js` | 设置面板（headless Modal）与宿主组件状态行 |
-| `src/client/components/ui/20-player-sheet.js` | 播放器卡片（深色岛） |
-| `src/client/components/ui/04-now-playing.js` | 播放页（深色岛）与播放页设置 |
-| `src/client/components/ui/25-look-picker.js` | 外观选择器（歌词样式 / 背景） |
+| `src/client/styles/theme.js` | 全部 CSS 与 `--dsw-*` 使用 |
+| `src/client/app/host-ui.js` | 宿主模块加载、`hostComponent`、`HOST_ICON_MAP` |
+| `src/client/components/common/icons.js` | `icon()` 本地 SVG + 宿主图标分流 |
+| `src/client/components/ui/primitives.js` | `IconButton`、`Button`、`Switch`、`KitPill`、`KitModal`、`SetRow`、`Cover`、`Spinner`、`Empty`、`SeekBar` |
+| `src/client/components/ui/dialogs.js` | `Toast`、确认框、右键菜单等浮层 |
+| `src/client/components/ui/header.js` | `HeadMenu`、`ContentHeader`、选择/排序菜单 |
+| `src/client/components/ui/settings.js` | 设置面板（headless Modal）与宿主组件状态行 |
+| `src/client/components/ui/player-sheet.js` | 播放器卡片（深色岛） |
+| `src/client/components/ui/now-playing.js` | 播放页（深色岛）与播放页设置 |
+| `src/client/components/ui/look-picker.js` | 外观选择器（歌词样式 / 背景） |
 | `test/client/theme.test.mjs` | 主题/组件守卫 |
 | `A_other/docs/theme-guidelines.md` | 本文档 |
 | `A_other/docs/screenshots/v2-light.png` / `v2-dark.png` | 浅色 / 深色基准图 |
@@ -494,3 +494,5 @@ node --run check
 | 2026-11-16 | 补 §1.1「深色岛例外」：播放页与播放器卡片始终按深色取值，修复浅色模式白底白字 |
 | 2026-11-16 | 扩成完整组件开发规范：主题机制、token 表、适配层、8 类组件、浅/深色对照、验收清单 |
 | 2026-11-17 | 目录重构后更新路径；增加 Agent 速读、选型决策表、验收命令与文件地图 |
+| 2026-11-17 | 去掉插件自有片段的数字前缀（顺序改由 `src/client/manifest.json` 负责），更新文件地图 |
+

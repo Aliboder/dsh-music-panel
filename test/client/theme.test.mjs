@@ -8,26 +8,26 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const root = new URL('../..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
-const theme = readFileSync(join(root, 'src/client/styles/90-theme.js'), 'utf8')
+const theme = readFileSync(join(root, 'src/client/styles/theme.js'), 'utf8')
 const uiDir = join(root, 'src/client/components/ui')
 const uiFiles = [
-  '01-primitives.js',
-  '02-track-row.js',
-  '03-player-bar.js',
-  '04-eq-panel.js',
-  '04-now-playing.js',
-  '05-queue.js',
-  '06-settings.js',
-  '07-dialogs.js',
-  '08-local.js',
-  '09-online.js',
-  '10-navigation.js',
-  '11-panel.js',
-  '12-composer.js',
-  '13-batch.js',
-  '14-online-lyric.js',
-  '15-trash.js',
-  '16-header.js',
+  'primitives.js',
+  'track-row.js',
+  'player-bar.js',
+  'eq-panel.js',
+  'now-playing.js',
+  'queue.js',
+  'settings.js',
+  'dialogs.js',
+  'local.js',
+  'online.js',
+  'navigation.js',
+  'panel.js',
+  'composer.js',
+  'batch.js',
+  'online-lyric.js',
+  'trash.js',
+  'header.js',
 ]
 const all = [theme, ...uiFiles.map((name) => readFileSync(join(uiDir, name), 'utf8'))]
 const joined = all.join('\n')
@@ -84,16 +84,16 @@ assert.match(theme, /\.mp-switch i\{[^']*background:var\(--dsw-alias-switch-thum
 for (const [index, text] of all.entries()) {
   const hits = text.match(/require\('@deepseek-ai\/dsh-client-ui-primitives'\)/g) || []
   if (index === 0) continue
-  assert.equal(hits.length, 0, 'only src/client/app/00-host-ui.js may require host primitives')
+  assert.equal(hits.length, 0, 'only src/client/app/host-ui.js may require host primitives')
 }
-const adapter = readFileSync(join(root, 'src/client/app/00-host-ui.js'), 'utf8')
+const adapter = readFileSync(join(root, 'src/client/app/host-ui.js'), 'utf8')
 assert.ok(adapter.includes("require('@deepseek-ai/dsh-client-ui-primitives')"), 'adapter must load host primitives')
 assert.ok(adapter.includes('HOST_ICON_MAP'), 'adapter must own the host icon map')
 
 // Dialogs must go through KitModal, not raw overlay markup (only fallbacks may).
 const rawDialogs = uiFiles
   .map((name) => [name, readFileSync(join(uiDir, name), 'utf8')])
-  .filter(([name, text]) => name !== '01-primitives.js' && text.includes("className: 'mp-overlay is-on'"))
+  .filter(([name, text]) => name !== 'primitives.js' && text.includes("className: 'mp-overlay is-on'"))
   .map(([name]) => name)
 assert.deepEqual(rawDialogs, [], 'dialogs must use KitModal (raw mp-overlay found in ' + rawDialogs.join(', ') + ')')
 
@@ -169,5 +169,7 @@ assert.match(theme, /\.mp-npe-section\.is-ambient\{grid-column:1\/4;grid-row:3\}
 assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/, 'ambient section has four columns')
 
 console.log('theme.test.mjs ok')
+
+
 
 

@@ -2,7 +2,7 @@
  * In-view search (issue #13): the content header magnifier opens its own field
  * and filters the list below, instead of jumping to the global online search.
  *
- * The matching rules are pure (src/client/components/library/44-filter.js), so they are tested directly.
+ * The matching rules are pure (src/client/components/library/filter.js), so they are tested directly.
  */
 
 import assert from 'node:assert/strict'
@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const root = new URL('../..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
-const source = readFileSync(join(root, 'src/client/components/library/44-filter.js'), 'utf8')
+const source = readFileSync(join(root, 'src/client/components/library/filter.js'), 'utf8')
 const factory = new Function(`${source}
   return { matchesContentFilter, filterTracksByQuery, contentFilterText }`)
 const filter = factory()
@@ -51,20 +51,20 @@ assert.equal(filter.filterTracksByQuery(songs, 'zzz').length, 0)
 assert.deepEqual(filter.filterTracksByQuery(null, 'x'), [])
 
 // Wiring: the header owns an inline field, the list consumes the query.
-const header = readFileSync(join(root, 'src/client/components/ui/16-header.js'), 'utf8')
+const header = readFileSync(join(root, 'src/client/components/ui/header.js'), 'utf8')
 assert.match(header, /mp-head-search/, 'the header renders an inline search field')
 assert.match(header, /setContentFilter/, 'typing updates the in-view filter')
 assert.doesNotMatch(header, /focusGlobalSearch/, 'the magnifier no longer jumps to the global search box')
 assert.match(header, /clearContentFilter/, 'leaving the view clears the filter')
 
-const list = readFileSync(join(root, 'src/client/components/ui/02-track-row.js'), 'utf8')
+const list = readFileSync(join(root, 'src/client/components/ui/track-row.js'), 'utf8')
 assert.match(list, /filterTracksByQuery/, 'the list applies the in-view filter')
 assert.match(list, /page\.filterEmpty/, 'a filtered-out list explains itself')
 
-const store = readFileSync(join(root, 'src/client/stores/40-store.js'), 'utf8')
+const store = readFileSync(join(root, 'src/client/stores/store.js'), 'utf8')
 assert.match(store, /contentFilterStore/, 'the filter lives in its own tiny store')
 
-const theme = readFileSync(join(root, 'src/client/styles/90-theme.js'), 'utf8')
+const theme = readFileSync(join(root, 'src/client/styles/theme.js'), 'utf8')
 assert.match(
   theme,
   /\.mp-head-search\{[^']*box-sizing:border-box[^']*height:30px/,
@@ -72,9 +72,11 @@ assert.match(
 )
 
 const build = readFileSync(join(root, 'src/client/manifest.json'), 'utf8')
-assert.match(build, /src\/client\/components\/library\/44-filter\.js/, 'the filter fragment is part of the bundle')
+assert.match(build, /src\/client\/components\/library\/filter\.js/, 'the filter fragment is part of the bundle')
 
 console.log('in-view-search.test.mjs ok')
+
+
 
 
 

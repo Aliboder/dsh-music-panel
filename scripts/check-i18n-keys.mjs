@@ -1,7 +1,7 @@
 // Verify every online.navidrome* key exists in both the zh and en dictionaries.
 import { readFileSync } from 'node:fs'
 
-const src = readFileSync('src/client/i18n/05-i18n.js', 'utf8')
+const src = readFileSync('src/client/i18n/i18n.js', 'utf8')
 const keys = [...new Set([...src.matchAll(/'(online\.navidrome[A-Za-z]*)'/g)].map((m) => m[1]))]
 
 console.log(`navidrome keys: ${keys.length}\n`)
@@ -20,7 +20,7 @@ for (const key of keys) {
 }
 
 // Also confirm the keys the component actually calls are all defined.
-const ui = readFileSync('src/client/components/ui/06-settings.js', 'utf8') + readFileSync('src/client/components/online/70-online.js', 'utf8')
+const ui = readFileSync('src/client/components/ui/settings.js', 'utf8') + readFileSync('src/client/components/online/online.js', 'utf8')
 const used = [...new Set([...ui.matchAll(/t\('(online\.navidrome[A-Za-z]*)'/g)].map((m) => m[1]))]
 console.log('\nkeys used by code:')
 for (const key of used) {
@@ -31,4 +31,5 @@ for (const key of used) {
 
 console.log(bad === 0 ? '\nall good' : `\n${bad} problem(s)`)
 process.exit(bad === 0 ? 0 : 1)
+
 

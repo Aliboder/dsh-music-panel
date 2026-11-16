@@ -26,7 +26,7 @@ const HOOKS = [
   'useContext',
 ]
 
-const SETTINGS = join('src', 'client', 'components', 'ui', '06-settings.js')
+const SETTINGS = join('src', 'client', 'components', 'ui', 'settings.js')
 const source = readFileSync(SETTINGS, 'utf8')
 const lines = source.split('\n')
 
@@ -76,7 +76,7 @@ const calls = (source.match(/useNavidromeForm\(\)/g) || []).length
 assert.equal(
   calls,
   1,
-  `useNavidromeForm() is called ${calls} times in ${SETTINGS}; it must be called exactly once (the definition is in src/client/components/online/70-online.js)`,
+  `useNavidromeForm() is called ${calls} times in ${SETTINGS}; it must be called exactly once (the definition is in src/client/components/online/online.js)`,
 )
 
 // ── 3. the navidrome card takes the form as a parameter ───────────────────
@@ -130,4 +130,6 @@ console.log('  ok  no hooks inside tab render helpers')
 console.log('  ok  no hooks inside .map() callbacks')
 console.log('  ok  useNavidromeForm() is called once, on SettingsSheet')
 console.log('\npanel.hooks.test.mjs ok')
+
+
 

@@ -16,7 +16,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const FILE = join('src', 'client', 'components', 'ui', '09-online.js')
+const FILE = join('src', 'client', 'components', 'ui', 'online.js')
 const source = readFileSync(FILE, 'utf8')
 const lines = source.split('\n')
 
@@ -98,4 +98,5 @@ console.log('  ok  other providers keep their previous sort behaviour')
 console.log('  ok  album playback uses the same array as the rendered list')
 console.log('  ok  the songs view still honours the user sort preference')
 console.log('\npanel.album-order.test.mjs ok')
+
 

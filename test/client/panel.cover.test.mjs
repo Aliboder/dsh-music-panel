@@ -17,7 +17,7 @@ import { join } from 'node:path'
 const read = (path) => readFileSync(join(...path.split('/')), 'utf8')
 
 // ── 1. the API layer resolves navidrome artwork by id, not by URL ─────────
-const api = read('src/client/services/api/20-api.js')
+const api = read('src/client/services/api/api.js')
 assert.match(
   api,
   /onlineProvider === 'navidrome'\) return subsonicCoverUrl\(track\.coverArtId\)/,
@@ -35,7 +35,7 @@ assert.match(
 )
 
 // ── 2. the queue track keeps it through persistence and restore ───────────
-const player = read('src/client/services/player/50-player.js')
+const player = read('src/client/services/player/player.js')
 assert.match(
   player,
   /coverArtId: track\.coverArtId \|\| ''/,
@@ -48,7 +48,7 @@ assert.match(
 )
 
 // ── 3. recent history keeps it across a reload ───────────────────────────
-const online = read('src/client/components/online/70-online.js')
+const online = read('src/client/components/online/online.js')
 assert.match(
   online,
   /coverArtId: track\.coverArtId \|\| ''/,
@@ -67,4 +67,5 @@ console.log('  ok  trackCoverSrc resolves navidrome artwork by id')
 console.log('  ok  coverArtId survives the API result, queue snapshot and restore')
 console.log('  ok  recent history and the host queue sanitiser keep coverArtId')
 console.log('\npanel.cover.test.mjs ok')
+
 

@@ -106,7 +106,8 @@
 - framer-motion：复用插件已内联的 `MPFramer`；`useDragControls` 等缺失 API 提供带 `subscribe` 的兼容对象。
 - 歌词/主题/音频：`FoliaStyleHost` 构造 `MotionValue` 时钟、五条 band、Folia `Line[]`（含 `words`）与 `Theme`；样式只挂载一次，换句不重建。
 - 歌词样式注册顺序按 Folia 的 `order` 排序（静止 10、莫奈 20、浮名 30、花火 40、时计 60、云阶 80、倾诉 90、回环 100、心象 110、绘光 120、商籁 130、凝彩 140、雾笺 150、镜台 160）。
-- 歌词本身：在线与本地都走 `src/client/utils/lyrics/**` 的解析器（`lyrics.bundle.js`），显示前处理按 Folia setter 的顺序在 `mpPrepareLyrics`（`src/client/services/lyrics/16-lyrics.js`）里跑；中文分词用 Host 提供的 icu-folia 数据，手动词级分词按歌曲保存在 `lyric_segmentations`。
+- 歌词本身：在线与本地都走 `src/client/utils/lyrics/**` 的解析器（`lyrics.bundle.js`），显示前处理按 Folia setter 的顺序在 `mpPrepareLyrics`（`src/client/services/lyrics/lyrics.js`）里跑；中文分词用 Host 提供的 icu-folia 数据，手动词级分词按歌曲保存在 `lyric_segmentations`。
+
 
 
 
