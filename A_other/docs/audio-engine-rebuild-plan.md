@@ -377,15 +377,17 @@ P6b（单独评估）：
 - [x] `player.js` P4b-2：transport 事件驱动状态；`bind` / `unbind` / `ensureSecondary` / `wireSecondary` / `buildEqNodes` 删除。
 - [x] `player-folia-wiring.test.mjs`：源级守卫，防止旧 limiter/preamp 图和旧传输回潮。
 - [x] `player-folia-runtime.test.mjs`：fake AudioContext 下 attach/ensure/volume/EQ/dispose。
+- [x] P6a-1：Folia crossfade 曲线 + 静音 intro 修复。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`。
 
 ### 进行中
 
 - [x] P4a：`player.js` 的图/音量/静音/EQ 已切到 `foliaGraph`；旧 limiter/preamp 不再创建。
 - [x] P4b-1：`load` / `play` / `pause` / `seek` / `stop` 已切到 `foliaTransport`；`swapDecks` 同步 active deck。
 - [x] P4b-2：transport 的 `onState` / `onTime` / `onEnded` / `onError` 驱动 `player.js`；`bind` / `unbind` / `ensureSecondary` / `wireSecondary` / `buildEqNodes` 已删除。
-- [ ] P4b-3：crossfade 仍用旧实现，P6a 换成 `transport.crossfadeTo` + Folia 曲线/tone/echo。
+- [x] P6a-1：crossfade 曲线改用 Folia `buildCrossfadeCurves`；`prepareCrossfade` 现在传 `introSilentSec`，静音开头跳过不再是死代码。
+- [ ] P4b-3：crossfade 仍用旧的 deck/adopt 实现，未换成 `transport.crossfadeTo`。
 - [ ] 用真实 `<audio>` 接本地/在线各一首。
 
 ### 下一步
