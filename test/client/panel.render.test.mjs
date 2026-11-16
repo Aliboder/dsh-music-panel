@@ -514,14 +514,15 @@ assert.equal(pageWindow(1, 31).filter((n) => n !== null).length, 3, 'no index is
 const isOnlineSource = internals.isOnlineSource
 assert.equal(typeof isOnlineSource, 'function', 'isOnlineSource is exposed for tests')
 assert.equal(isOnlineSource('navidrome'), true, 'navidrome counts as an online source')
-for (const provider of ['netease', 'qq', 'kugou', 'kugouLite']) {
+for (const provider of ['netease', 'qq', 'kugouLite']) {
   assert.equal(isOnlineSource(provider), true, `${provider} stays an online source`)
 }
+assert.equal(isOnlineSource('kugou'), false, 'the standard KuGou id is hidden behind the single concept tab')
 assert.equal(isOnlineSource('local'), false, 'local is not an online source')
 assert.equal(isOnlineSource('nope'), false, 'an unknown source is not an online source')
 assert.deepEqual(
   internals.UI_SOURCES,
-  ['local', 'netease', 'qq', 'kugou', 'kugouLite', 'navidrome'],
+  ['local', 'netease', 'qq', 'kugouLite', 'navidrome'],
   'the provider list has one definition',
 )
 
