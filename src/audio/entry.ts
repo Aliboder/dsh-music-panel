@@ -13,6 +13,26 @@ import {
 } from '../../A_other/upstream/folia-major-main/src/services/audioEqualizerGraph'
 import { createAudioEffectChain } from '../../A_other/upstream/folia-major-main/src/services/audioEffects/effectChain'
 import {
+  connectAutomixDeck,
+  connectStemBus,
+  connectStemDeck,
+  rampGain,
+  rampGainDb,
+  resetThrow,
+  resetTone,
+  scheduleBandBlend,
+  scheduleCrossfade,
+  scheduleEchoThrow,
+  scheduleStemWindow,
+  softLimit,
+} from '../../A_other/upstream/folia-major-main/src/services/automix/crossfadeGraph'
+import { createDeckAnalyser } from '../../A_other/upstream/folia-major-main/src/services/automix/deckAnalyser'
+import { createBalanceMeter } from '../../A_other/upstream/folia-major-main/src/services/volumeBalance/balanceMeter'
+import {
+  createPlaybackFadeController,
+  PLAYBACK_FADE_SECONDS,
+} from '../../A_other/upstream/folia-major-main/src/services/playbackFade'
+import {
   AUDIO_EQUALIZER_BANDS,
   DEFAULT_AUDIO_EQUALIZER_SETTINGS,
   audioEqualizerBandShape,
@@ -31,13 +51,29 @@ export {
   DEFAULT_AUDIO_EFFECT_SETTINGS,
   DEFAULT_AUDIO_EQUALIZER_SETTINGS,
   MOD_EQUALIZER_GLIDE_SECONDS,
+  PLAYBACK_FADE_SECONDS,
   applyAudioEqualizerSettings,
   audioEqualizerBandShape,
   buildPlaybackGraph,
   connectAudioEqualizerGraph,
+  connectAutomixDeck,
+  connectStemBus,
+  connectStemDeck,
   createAudioEffectChain,
+  createBalanceMeter,
+  createDeckAnalyser,
+  createPlaybackFadeController,
   normalizeAudioEffects,
   normalizeAudioEqualizerGains,
   planAudioEqualizerApply,
+  rampGain,
+  rampGainDb,
+  resetThrow,
+  resetTone,
   resolveAudioEqualizerSettings,
+  scheduleBandBlend,
+  scheduleCrossfade,
+  scheduleEchoThrow,
+  scheduleStemWindow,
+  softLimit,
 }

@@ -34,6 +34,9 @@ function param(value) {
     exponentialRampToValueAtTime(next) {
       this.value = next
     },
+    setValueCurveAtTime(curve) {
+      this.value = curve[curve.length - 1]
+    },
     cancelScheduledValues() {},
     cancelAndHoldAtTime() {},
   }
@@ -141,6 +144,11 @@ function createContext() {
       this.nodes.push(value)
       return value
     },
+    createMediaElementSource() {
+      const value = node('media-source')
+      this.nodes.push(value)
+      return value
+    },
   }
   return context
 }
@@ -188,5 +196,26 @@ assert.equal(typeof graph.effectChain.apply, 'function')
 const mix = context.nodes.find((item) => item.kind === 'gain')
 assert.ok(mix, 'the graph built a mix gain')
 assert.ok(mix.connections.includes(equalizerNodesRef.current[0]), 'mix feeds the first EQ band')
+
+// A deck chain is Folia's four gain stages: replayGain -> trim -> tone -> fade.
+const element = {
+  currentTime: 0,
+  paused: true,
+  duration: 180,
+  currentSrc: '',
+  addEventListener() {},
+  removeEventListener() {},
+}
+const deckOutput = context.createGain()
+const chain = audio.connectAutomixDeck(context, element, deckOutput)
+assert.equal(chain.source.connections[0], chain.replayGain, 'deck source feeds replayGain')
+assert.equal(chain.replayGain.connections[0], chain.trim, 'replayGain feeds trim')
+assert.equal(chain.trim.connections[0], chain.tone.low, 'trim feeds the low tone band')
+assert.equal(chain.tone.low.connections[0], chain.tone.mid, 'low feeds mid')
+assert.equal(chain.tone.mid.connections[0], chain.tone.high, 'mid feeds high')
+assert.equal(chain.tone.high.connections[0], chain.fade, 'high feeds the crossfade envelope')
+assert.equal(chain.fade.connections[0], deckOutput, 'fade feeds the shared mix')
+assert.equal(typeof chain.analyser.tick, 'function', 'the deck has its own analyser')
+assert.equal(typeof chain.balanceMeter.tick, 'function', 'the deck has its own balance meter')
 
 console.log('audio-graph.test.mjs ok')

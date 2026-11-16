@@ -31,15 +31,31 @@ function __mpAudioBundle() {
       DEFAULT_AUDIO_EFFECT_SETTINGS: () => DEFAULT_AUDIO_EFFECT_SETTINGS,
       DEFAULT_AUDIO_EQUALIZER_SETTINGS: () => DEFAULT_AUDIO_EQUALIZER_SETTINGS,
       MOD_EQUALIZER_GLIDE_SECONDS: () => MOD_EQUALIZER_GLIDE_SECONDS,
+      PLAYBACK_FADE_SECONDS: () => PLAYBACK_FADE_SECONDS,
       applyAudioEqualizerSettings: () => applyAudioEqualizerSettings,
       audioEqualizerBandShape: () => audioEqualizerBandShape,
       buildPlaybackGraph: () => buildPlaybackGraph,
       connectAudioEqualizerGraph: () => connectAudioEqualizerGraph,
+      connectAutomixDeck: () => connectAutomixDeck,
+      connectStemBus: () => connectStemBus,
+      connectStemDeck: () => connectStemDeck,
       createAudioEffectChain: () => createAudioEffectChain,
+      createBalanceMeter: () => createBalanceMeter,
+      createDeckAnalyser: () => createDeckAnalyser,
+      createPlaybackFadeController: () => createPlaybackFadeController,
       normalizeAudioEffects: () => normalizeAudioEffects,
       normalizeAudioEqualizerGains: () => normalizeAudioEqualizerGains,
       planAudioEqualizerApply: () => planAudioEqualizerApply,
-      resolveAudioEqualizerSettings: () => resolveAudioEqualizerSettings
+      rampGain: () => rampGain,
+      rampGainDb: () => rampGainDb,
+      resetThrow: () => resetThrow,
+      resetTone: () => resetTone,
+      resolveAudioEqualizerSettings: () => resolveAudioEqualizerSettings,
+      scheduleBandBlend: () => scheduleBandBlend,
+      scheduleCrossfade: () => scheduleCrossfade,
+      scheduleEchoThrow: () => scheduleEchoThrow,
+      scheduleStemWindow: () => scheduleStemWindow,
+      softLimit: () => softLimit
     });
   
     // A_other/upstream/folia-major-main/src/utils/audioEffects.ts
@@ -717,6 +733,881 @@ function __mpAudioBundle() {
       );
       return { gainNode, fadeNode, effectChain, decksConnected };
     };
+  
+    // A_other/upstream/folia-major-main/src/services/automix/signalAnalysis.ts
+    var MIN_BPM = 60;
+    var MAX_BPM = 180;
+    var MIN_TEMPO_CONFIDENCE = 0.35;
+    var SILENCE_DB = -90;
+    var clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+    var dbToGain = (db) => 10 ** (db / 20);
+    var rmsDb = (samples) => {
+      if (!samples.length) return SILENCE_DB;
+      let sum = 0;
+      for (let index = 0; index < samples.length; index += 1) {
+        sum += samples[index] * samples[index];
+      }
+      const rms = Math.sqrt(sum / samples.length);
+      return rms > 0 ? Math.max(SILENCE_DB, 20 * Math.log10(rms)) : SILENCE_DB;
+    };
+    var spectralFlux = (current, previous, bins) => {
+      const limit = Math.min(bins, current.length, previous.length);
+      let flux = 0;
+      for (let index = 0; index < limit; index += 1) {
+        const now = Number.isFinite(current[index]) ? current[index] : SILENCE_DB;
+        const before = Number.isFinite(previous[index]) ? previous[index] : SILENCE_DB;
+        if (now > before) flux += now - before;
+      }
+      return flux;
+    };
+    var tempoPrior = (bpm) => Math.exp(-0.5 * (Math.log2(bpm / 120) / 0.55) ** 2);
+    var TEMPO_HARMONICS = 4;
+    var PHASE_BEATS = 96;
+    var estimateTempo = (envelope, hopSec) => {
+      if (!(hopSec > 0)) return null;
+      const count = envelope.length;
+      const minLag = Math.max(2, Math.round(60 / (MAX_BPM * hopSec)));
+      const maxLag = Math.round(60 / (MIN_BPM * hopSec));
+      if (count < maxLag * 3) return null;
+      let mean = 0;
+      for (const value of envelope) mean += value;
+      mean /= count;
+      const centred = new Float64Array(count);
+      let energy = 0;
+      for (let index = 0; index < count; index += 1) {
+        const value = Math.max(0, envelope[index] - mean);
+        centred[index] = value;
+        energy += value * value;
+      }
+      if (energy <= 0) return null;
+      const topLag = Math.min(Math.floor(count / 3), maxLag * TEMPO_HARMONICS);
+      const correlation = new Float64Array(topLag + 1);
+      for (let lag = minLag; lag <= topLag; lag += 1) {
+        let sum = 0;
+        for (let index = lag; index < count; index += 1) {
+          sum += centred[index] * centred[index - lag];
+        }
+        correlation[lag] = sum / (count - lag);
+      }
+      let bestLag = 0;
+      let bestScore = 0;
+      let scoreSum = 0;
+      let scored = 0;
+      for (let lag = minLag; lag <= maxLag; lag += 1) {
+        let sum = 0;
+        for (let harmonic = 1; harmonic <= TEMPO_HARMONICS; harmonic += 1) {
+          const at = lag * harmonic;
+          if (at > topLag) break;
+          sum += correlation[at] / harmonic;
+        }
+        const score = sum * tempoPrior(60 / (lag * hopSec));
+        scoreSum += score;
+        scored += 1;
+        if (score > bestScore) {
+          bestScore = score;
+          bestLag = lag;
+        }
+      }
+      const average = scored ? scoreSum / scored : 0;
+      if (!bestLag || bestScore <= 0 || average <= 0) return null;
+      const refinePeriod = (lag) => {
+        for (let harmonic = TEMPO_HARMONICS; harmonic >= 1; harmonic -= 1) {
+          const centre = lag * harmonic;
+          if (centre + 1 > topLag) continue;
+          let peak = centre;
+          const from = Math.max(minLag + 1, centre - harmonic);
+          const to = Math.min(topLag - 1, centre + harmonic);
+          for (let at = from; at <= to; at += 1) if (correlation[at] > correlation[peak]) peak = at;
+          if (peak <= minLag || peak >= topLag) continue;
+          const before = correlation[peak - 1];
+          const after = correlation[peak + 1];
+          const curve = before - 2 * correlation[peak] + after;
+          if (!(curve < 0)) continue;
+          const period2 = (peak + (before - after) / (2 * curve)) / harmonic;
+          if (Math.abs(period2 - lag) <= 0.5) return period2;
+        }
+        return lag;
+      };
+      const period = refinePeriod(bestLag);
+      let beatOffsetHops = 0;
+      let bestPhase = -1;
+      for (let offset = 0; offset < bestLag; offset += 1) {
+        let sum = 0;
+        for (let beat = 0; beat < PHASE_BEATS; beat += 1) {
+          const index = Math.round(count - 1 - offset - beat * period);
+          if (index < 0) break;
+          sum += centred[index];
+        }
+        if (sum > bestPhase) {
+          bestPhase = sum;
+          beatOffsetHops = offset;
+        }
+      }
+      return {
+        bpm: 60 / (period * hopSec),
+        periodSec: period * hopSec,
+        confidence: clamp((bestScore / average - 1) / 2, 0, 1),
+        beatOffsetHops
+      };
+    };
+    var BLEND_HEADROOM_DB = 1.5;
+    var headroomBell = (progress) => Math.sin(clamp(progress, 0, 1) * Math.PI);
+    var buildCrossfadeCurves = (crossover, together = 0, points = 64) => {
+      const pivot = clamp(crossover, 0.15, 0.85);
+      const held = clamp(together, 0, 0.8);
+      const lead = pivot * (1 - held);
+      const trail = pivot + (1 - pivot) * held;
+      const out = new Float32Array(points);
+      const incoming = new Float32Array(points);
+      for (let index = 0; index < points; index += 1) {
+        const progress = index / (points - 1);
+        const warped = progress <= lead ? progress / Math.max(1e-3, lead) * 0.5 : progress >= trail ? 0.5 + (progress - trail) / Math.max(1e-3, 1 - trail) * 0.5 : 0.5;
+        const angle = warped * (Math.PI / 2);
+        const headroom = dbToGain(-BLEND_HEADROOM_DB * headroomBell(progress));
+        out[index] = Math.cos(angle) * headroom;
+        incoming[index] = Math.sin(angle) * headroom;
+      }
+      return { out, in: incoming };
+    };
+    var TONE_EDGE_HZ = [250, 4e3];
+    var TONE_MID_HZ = Math.round(Math.sqrt(TONE_EDGE_HZ[0] * TONE_EDGE_HZ[1]));
+    var BASS_KILL_DB = 24;
+    var SWEEP_OUT_HIGH_DB = 9;
+    var BASS_SWAP_WIDTH = 0.12;
+    var MAX_TILT_DB = 3;
+    var buildBandCurves = (request) => {
+      const points = request.points ?? 64;
+      const seam = clamp(request.crossover, 0.15, 0.85);
+      const width = Math.max(0.02, Math.min(BASS_SWAP_WIDTH, seam, 1 - seam));
+      const tiltMid = clamp(request.tiltDb[0], -MAX_TILT_DB, MAX_TILT_DB);
+      const tiltHigh = clamp(request.tiltDb[1], -MAX_TILT_DB, MAX_TILT_DB);
+      const band = () => [
+        new Float32Array(points),
+        new Float32Array(points),
+        new Float32Array(points)
+      ];
+      const out = band();
+      const incoming = band();
+      for (let index = 0; index < points; index += 1) {
+        const progress = index / (points - 1);
+        const handover = clamp((progress - (seam - width / 2)) / width, 0, 1);
+        const leaving = clamp((progress - seam) / Math.max(1e-3, 1 - seam), 0, 1) ** 2;
+        const settling = clamp(1 - progress / Math.max(1e-3, seam), 0, 1);
+        if (request.swapBass) {
+          out[0][index] = -BASS_KILL_DB * handover;
+          incoming[0][index] = -BASS_KILL_DB * (1 - handover);
+        }
+        if (request.sweepOut) {
+          out[2][index] = -SWEEP_OUT_HIGH_DB * leaving;
+        }
+        incoming[1][index] = tiltMid * settling;
+        incoming[2][index] = tiltHigh * settling;
+      }
+      return { out, in: incoming };
+    };
+    var LUFS_OFFSET_DB = -0.691;
+    var kWeightStep = (sampleRate) => {
+      const shelfHz = 1681.974450955533;
+      const shelfGainDb = 3.999843853973347;
+      const shelfQ = 0.7071752369554196;
+      const k1 = Math.tan(Math.PI * shelfHz / sampleRate);
+      const vh = 10 ** (shelfGainDb / 20);
+      const vb = vh ** 0.4996667741545416;
+      const d0 = 1 + k1 / shelfQ + k1 * k1;
+      const b = [
+        (vh + vb * k1 / shelfQ + k1 * k1) / d0,
+        2 * (k1 * k1 - vh) / d0,
+        (vh - vb * k1 / shelfQ + k1 * k1) / d0
+      ];
+      const a = [2 * (k1 * k1 - 1) / d0, (1 - k1 / shelfQ + k1 * k1) / d0];
+      const hpHz = 38.13547087602444;
+      const hpQ = 0.5003270373238773;
+      const k2 = Math.tan(Math.PI * hpHz / sampleRate);
+      const d1 = 1 + k2 / hpQ + k2 * k2;
+      const c = [2 * (k2 * k2 - 1) / d1, (1 - k2 / hpQ + k2 * k2) / d1];
+      let x1 = 0;
+      let x2 = 0;
+      let y1 = 0;
+      let y2 = 0;
+      let p1 = 0;
+      let p2 = 0;
+      let q1 = 0;
+      let q2 = 0;
+      return (x) => {
+        const y = b[0] * x + b[1] * x1 + b[2] * x2 - a[0] * y1 - a[1] * y2;
+        x2 = x1;
+        x1 = x;
+        y2 = y1;
+        y1 = y;
+        const z = y - 2 * p1 + p2 - c[0] * q1 - c[1] * q2;
+        p2 = p1;
+        p1 = y;
+        q2 = q1;
+        q1 = z;
+        return z;
+      };
+    };
+    var ABSOLUTE_GATE_LUFS = -70;
+    var RELATIVE_GATE_LU = 10;
+    var gatedLoudness = (steps) => {
+      const blocks = [];
+      for (let index = 3; index < steps.length; index += 1) {
+        blocks.push((steps[index - 3] + steps[index - 2] + steps[index - 1] + steps[index]) / 4);
+      }
+      const lufs = (blockPower) => LUFS_OFFSET_DB + 10 * Math.log10(blockPower);
+      const meanAbove = (gate) => {
+        let sum = 0;
+        let count = 0;
+        for (const block of blocks) {
+          if (block > 0 && lufs(block) > gate) {
+            sum += block;
+            count += 1;
+          }
+        }
+        return count ? sum / count : 0;
+      };
+      const audible = meanAbove(ABSOLUTE_GATE_LUFS);
+      if (!(audible > 0)) return SILENCE_DB;
+      return lufs(meanAbove(Math.max(ABSOLUTE_GATE_LUFS, lufs(audible) - RELATIVE_GATE_LU)));
+    };
+  
+    // A_other/upstream/folia-major-main/src/services/volumeBalance/balanceRules.ts
+    var LIVE_MIN_SOUND_SEC = 10;
+    var PLAY_MISS_TOLERANCE_SEC = 2;
+  
+    // A_other/upstream/folia-major-main/src/services/volumeBalance/balanceMeter.ts
+    var MIN_BUFFER_SEC = 0.2;
+    var ANALYSIS_BAND_HZ = 1e4;
+    var bandStep = (sampleRate) => {
+      if (ANALYSIS_BAND_HZ >= sampleRate * 0.45) return (x) => x;
+      const stages = [0.5412, 1.3066].map((q) => {
+        const w = 2 * Math.PI * ANALYSIS_BAND_HZ / sampleRate;
+        const cos = Math.cos(w);
+        const a0 = 1 + Math.sin(w) / (2 * q);
+        const b0 = (1 - cos) / 2 / a0;
+        const a1 = -2 * cos / a0;
+        const a2 = (1 - Math.sin(w) / (2 * q)) / a0;
+        let x1 = 0;
+        let x2 = 0;
+        let y1 = 0;
+        let y2 = 0;
+        return (x) => {
+          const y = b0 * (x + 2 * x1 + x2) - a1 * y1 - a2 * y2;
+          x2 = x1;
+          x1 = x;
+          y2 = y1;
+          y1 = y;
+          return y;
+        };
+      });
+      return (x) => stages[1](stages[0](x));
+    };
+    var wrapListeners = /* @__PURE__ */ new Set();
+    var createBalanceMeter = (context, source, sink, element) => {
+      const stereo = context.createGain();
+      stereo.channelCount = 2;
+      stereo.channelCountMode = "explicit";
+      stereo.channelInterpretation = "speakers";
+      const splitter = context.createChannelSplitter(2);
+      const size = Math.min(32768, 2 ** Math.ceil(Math.log2(context.sampleRate * MIN_BUFFER_SEC)));
+      const silent = context.createGain();
+      silent.gain.value = 0;
+      source.connect(stereo).connect(splitter);
+      const taps = [0, 1].map((channel) => {
+        const tap = context.createAnalyser();
+        tap.fftSize = size;
+        tap.smoothingTimeConstant = 0;
+        splitter.connect(tap, channel);
+        tap.connect(silent);
+        return tap;
+      });
+      silent.connect(sink);
+      const buffers = taps.map(() => new Float32Array(size));
+      const sampleRate = context.sampleRate;
+      const stepLength = Math.round(sampleRate / 10);
+      const audibleStep = 10 ** ((ABSOLUTE_GATE_LUFS - LUFS_OFFSET_DB) / 10);
+      let weighLeft = kWeightStep(sampleRate);
+      let weighRight = kWeightStep(sampleRate);
+      let bandLeft = bandStep(sampleRate);
+      let bandRight = bandStep(sampleRate);
+      let steps = [];
+      let power = 0;
+      let filled = 0;
+      let peak = 0;
+      let heard = 0;
+      let from = null;
+      let to = 0;
+      let audibleSteps = 0;
+      let last = null;
+      let position = null;
+      let broken = null;
+      let plays = 0;
+      let wraps = 0;
+      const play = () => heard > 0 ? { loudness: gatedLoudness(steps), peak, heardSec: heard, fromSec: from ?? 0, toSec: to, broken } : null;
+      const reset = () => {
+        weighLeft = kWeightStep(sampleRate);
+        weighRight = kWeightStep(sampleRate);
+        bandLeft = bandStep(sampleRate);
+        bandRight = bandStep(sampleRate);
+        steps = [];
+        power = 0;
+        filled = 0;
+        peak = 0;
+        heard = 0;
+        from = null;
+        to = 0;
+        audibleSteps = 0;
+        last = null;
+        position = null;
+        broken = null;
+        plays += 1;
+      };
+      const meter = {
+        tick: (contextTime) => {
+          const at = element.currentTime;
+          if (element.paused || last === null || position === null) {
+            last = contextTime;
+            position = at;
+            return;
+          }
+          const fresh = Math.round((contextTime - last) * sampleRate);
+          last = contextTime;
+          const advanced = at - position;
+          if (advanced > 0) {
+            from ??= position;
+            to = at;
+            heard += advanced;
+          }
+          position = at;
+          if (fresh <= 0) return;
+          if (fresh > size) broken ??= "gap";
+          const take = Math.min(fresh, size);
+          taps.forEach((tap, channel) => tap.getFloatTimeDomainData(buffers[channel]));
+          const [left, right] = buffers;
+          for (let index = size - take; index < size; index += 1) {
+            const l = left[index];
+            const r = right[index];
+            peak = Math.max(peak, Math.abs(l), Math.abs(r));
+            const wl = weighLeft(bandLeft(l));
+            const wr = weighRight(bandRight(r));
+            power += wl * wl + wr * wr;
+            filled += 1;
+            if (filled === stepLength) {
+              const step = power / stepLength;
+              steps.push(step);
+              if (step > audibleStep) audibleSteps += 1;
+              power = 0;
+              filled = 0;
+            }
+          }
+        },
+        heardSec: () => heard,
+        plays: () => plays,
+        wraps: () => wraps,
+        liveLoudness: () => audibleSteps / 10 >= LIVE_MIN_SOUND_SEC ? gatedLoudness(steps) : null,
+        play
+      };
+      element.addEventListener("loadstart", reset);
+      element.addEventListener("seeking", () => {
+        const at = element.currentTime;
+        if (heard > 0 && !element.paused && position !== null && position >= element.duration - PLAY_MISS_TOLERANCE_SEC && at <= PLAY_MISS_TOLERANCE_SEC) {
+          const ended = play();
+          const clock = last;
+          reset();
+          last = clock;
+          position = at;
+          wraps += 1;
+          wrapListeners.forEach((listener) => listener(meter, ended));
+          return;
+        }
+        if (heard > 0) broken ??= "seek";
+        position = at;
+      });
+      return meter;
+    };
+  
+    // A_other/upstream/folia-major-main/src/services/automix/deckAnalyser.ts
+    var FFT_SIZE = 1024;
+    var FLUX_CEILING_HZ = 5e3;
+    var ENVELOPE_SIZE = 320;
+    var PEAK_DECAY_DB_PER_SEC = 12;
+    var MIN_FRAMES_FOR_LEVEL = 16;
+    var TEMPO_REFRESH_SEC = 0.5;
+    var CONTINUITY_GAP_SEC = 0.5;
+    var createDeckAnalyser = (context, input, sink) => {
+      const node = context.createAnalyser();
+      node.fftSize = FFT_SIZE;
+      node.smoothingTimeConstant = 0;
+      const shelf = context.createBiquadFilter();
+      shelf.type = "highshelf";
+      shelf.frequency.value = 1681.974;
+      shelf.gain.value = 4;
+      const rumble = context.createBiquadFilter();
+      rumble.type = "highpass";
+      rumble.frequency.value = 38.135;
+      rumble.Q.value = 0.5003;
+      const silent = context.createGain();
+      silent.gain.value = 0;
+      input.connect(shelf).connect(rumble).connect(node).connect(silent).connect(sink);
+      const spectrum = new Float32Array(node.frequencyBinCount);
+      const previous = new Float32Array(node.frequencyBinCount);
+      const samples = new Float32Array(node.fftSize);
+      const fluxBins = Math.max(
+        8,
+        Math.round(node.frequencyBinCount * FLUX_CEILING_HZ / (context.sampleRate / 2))
+      );
+      let envelope = [];
+      let levels = [];
+      let continuous = true;
+      let frames = 0;
+      let firstTickTime = 0;
+      let lastTickTime = 0;
+      let peakDb = SILENCE_DB;
+      let cachedTempo = null;
+      let cachedAt = -Infinity;
+      const hopSec = () => frames > 1 ? (lastTickTime - firstTickTime) / (frames - 1) : 0;
+      const tick = (contextTime) => {
+        node.getFloatTimeDomainData(samples);
+        node.getFloatFrequencyData(spectrum);
+        const level = rmsDb(samples);
+        const elapsed = frames ? Math.max(0, contextTime - lastTickTime) : 0;
+        peakDb = Math.max(level, peakDb - PEAK_DECAY_DB_PER_SEC * elapsed);
+        if (elapsed > CONTINUITY_GAP_SEC) continuous = false;
+        levels.push(level);
+        if (frames) {
+          envelope.push(spectralFlux(spectrum, previous, fluxBins));
+          if (envelope.length > ENVELOPE_SIZE) envelope.shift();
+        } else {
+          firstTickTime = contextTime;
+        }
+        previous.set(spectrum);
+        lastTickTime = contextTime;
+        frames += 1;
+      };
+      const tempo = () => {
+        if (lastTickTime - cachedAt < TEMPO_REFRESH_SEC) return cachedTempo;
+        cachedAt = lastTickTime;
+        cachedTempo = estimateTempo(envelope, hopSec());
+        return cachedTempo;
+      };
+      const nextBeatIn = (contextTime) => {
+        const estimate = tempo();
+        if (!estimate || estimate.confidence < MIN_TEMPO_CONFIDENCE) return null;
+        const period = estimate.periodSec;
+        const lastBeatAt = lastTickTime - estimate.beatOffsetHops * hopSec();
+        const since = contextTime - lastBeatAt;
+        return period - (since % period + period) % period;
+      };
+      return {
+        tick,
+        loudnessDb: () => frames >= MIN_FRAMES_FOR_LEVEL ? peakDb : null,
+        levelHistory: () => continuous && frames > MIN_FRAMES_FOR_LEVEL ? { db: levels, hopSec: hopSec() } : null,
+        tempo,
+        nextBeatIn,
+        reset: () => {
+          envelope = [];
+          levels = [];
+          continuous = true;
+          frames = 0;
+          peakDb = SILENCE_DB;
+          cachedTempo = null;
+          cachedAt = -Infinity;
+        }
+      };
+    };
+  
+    // src/audio/shims/stems.ts
+    var STEM_NAMES = ["drums", "bass", "other", "vocals"];
+  
+    // src/audio/shims/stemGesture.ts
+    var OTHER_SWEEP_HZ = [25, 2200];
+    var OTHER_SWEEP_END = 0.92;
+  
+    // A_other/upstream/folia-major-main/src/services/automix/crossfadeGraph.ts
+    var MID_BELL_Q = 0.8;
+    var TONE_RESET_SEC = 0.12;
+    var CURVE_TAIL_GUARD_SEC = 6e-3;
+    var DEFAULT_THROW_DELAY_SEC = 0.25;
+    var THROW_FEEDBACK = 0.45;
+    var THROW_SEND = 0.6;
+    var THROW_OPEN_SEC = 0.15;
+    var connectAutomixDeck = (context, element, output) => {
+      const source = context.createMediaElementSource(element);
+      const replayGain = context.createGain();
+      const trim = context.createGain();
+      const fade = context.createGain();
+      const band = (type, frequency, q) => {
+        const filter = context.createBiquadFilter();
+        filter.type = type;
+        filter.frequency.value = frequency;
+        filter.gain.value = 0;
+        if (q !== void 0) filter.Q.value = q;
+        return filter;
+      };
+      const tone = {
+        low: band("lowshelf", TONE_EDGE_HZ[0]),
+        mid: band("peaking", TONE_MID_HZ, MID_BELL_Q),
+        high: band("highshelf", TONE_EDGE_HZ[1])
+      };
+      source.connect(replayGain).connect(trim).connect(tone.low).connect(tone.mid).connect(tone.high).connect(fade).connect(output);
+      const send = context.createGain();
+      send.gain.value = 0;
+      const delay = context.createDelay(2);
+      delay.delayTime.value = DEFAULT_THROW_DELAY_SEC;
+      const feedback = context.createGain();
+      feedback.gain.value = THROW_FEEDBACK;
+      tone.high.connect(send).connect(delay).connect(output);
+      delay.connect(feedback).connect(delay);
+      return {
+        source,
+        replayGain,
+        trim,
+        tone,
+        fade,
+        throw: { send, delay, feedback },
+        analyser: createDeckAnalyser(context, replayGain, output),
+        balanceMeter: createBalanceMeter(context, source, output, element),
+        output
+      };
+    };
+    var releaseParam = (param, now) => {
+      if (typeof param.cancelAndHoldAtTime === "function") param.cancelAndHoldAtTime(now);
+      else param.cancelScheduledValues(now);
+    };
+    var rampGain = (context, gain, value, seconds = 0) => {
+      const now = context.currentTime;
+      releaseParam(gain.gain, now);
+      if (seconds <= 0) {
+        gain.gain.setValueAtTime(value, now);
+        return;
+      }
+      gain.gain.setValueAtTime(gain.gain.value, now);
+      gain.gain.linearRampToValueAtTime(value, now + seconds);
+    };
+    var rampGainDb = (context, gain, db, seconds) => rampGain(context, gain, dbToGain(db), seconds);
+    var resetTone = (context, tone, seconds = 0.05) => {
+      const now = context.currentTime;
+      const span = Math.max(0.01, seconds);
+      [tone.low, tone.mid, tone.high].forEach((filter) => {
+        releaseParam(filter.gain, now);
+        filter.gain.setValueAtTime(filter.gain.value, now);
+        filter.gain.linearRampToValueAtTime(0, now + span);
+      });
+    };
+    var resetThrow = (context, send, seconds = 0.05) => rampGain(context, send.send, 0, seconds);
+    var scheduleBandBlend = (context, outgoing, incoming, startAt, seconds, request) => {
+      const curves = buildBandCurves(request);
+      const bands = (stack) => [stack.low, stack.mid, stack.high];
+      const begins = Math.max(startAt, context.currentTime);
+      const resetAt = begins + seconds + CURVE_TAIL_GUARD_SEC;
+      try {
+        [[bands(outgoing), curves.out], [bands(incoming), curves.in]].forEach(
+          ([filters, shapes]) => filters.forEach((filter, band) => {
+            filter.gain.cancelScheduledValues(begins);
+            filter.gain.setValueCurveAtTime(shapes[band], begins, seconds);
+            filter.gain.setValueAtTime(shapes[band][shapes[band].length - 1], resetAt);
+            filter.gain.linearRampToValueAtTime(0, resetAt + TONE_RESET_SEC);
+          })
+        );
+        return true;
+      } catch (error) {
+        console.warn("[Automix] band shaping rejected by the audio engine, blending flat", error);
+        resetTone(context, outgoing, 0.05);
+        resetTone(context, incoming, 0.05);
+        return false;
+      }
+    };
+    var scheduleEchoThrow = (context, node, at, periodSec) => {
+      const repeat = periodSec && periodSec > 0 ? Math.min(1, Math.max(0.08, periodSec / 2)) : DEFAULT_THROW_DELAY_SEC;
+      const opensAt = Math.max(context.currentTime, at - THROW_OPEN_SEC);
+      try {
+        node.delay.delayTime.cancelScheduledValues(opensAt);
+        node.delay.delayTime.setValueAtTime(repeat, opensAt);
+        node.send.gain.cancelScheduledValues(opensAt);
+        node.send.gain.setValueAtTime(0, opensAt);
+        node.send.gain.linearRampToValueAtTime(THROW_SEND, Math.max(opensAt + 1e-3, at));
+        node.send.gain.setValueAtTime(THROW_SEND, Math.max(opensAt + 1e-3, at));
+        node.send.gain.linearRampToValueAtTime(0, Math.max(opensAt + 1e-3, at) + 0.03);
+      } catch (error) {
+        console.warn("[Automix] the echo throw was refused, cutting dry instead", error);
+        node.send.gain.value = 0;
+      }
+    };
+    var SPLICE_SEC = 8e-3;
+    var LIMIT_KNEE = 0.95;
+    var LIMIT_RANGE = 4;
+    var softLimit = (x) => {
+      const level = x < 0 ? -x : x;
+      if (level <= LIMIT_KNEE) return x;
+      const room = 1 - LIMIT_KNEE;
+      const held = LIMIT_KNEE + room * Math.tanh((level - LIMIT_KNEE) / room);
+      return x < 0 ? -held : held;
+    };
+    var connectStemBus = (context, output) => {
+      const points = 8192;
+      const curve = new Float32Array(points);
+      for (let i = 0; i < points; i += 1) {
+        curve[i] = softLimit((i / (points - 1) * 2 - 1) * LIMIT_RANGE);
+      }
+      const shaper = context.createWaveShaper();
+      shaper.curve = curve;
+      shaper.oversample = "none";
+      const input = context.createGain();
+      input.gain.value = 1 / LIMIT_RANGE;
+      input.connect(shaper).connect(output);
+      return {
+        input,
+        stop: () => {
+          input.disconnect();
+          shaper.disconnect();
+        }
+      };
+    };
+    var connectStemDeck = (context, stems, output, fromMediaTime, startAt, sweepPad) => {
+      const gains = {};
+      const sources = {};
+      const changeover = context.createGain();
+      changeover.gain.value = 0;
+      changeover.connect(output);
+      const sweep = context.createBiquadFilter();
+      sweep.type = "highpass";
+      sweep.frequency.value = OTHER_SWEEP_HZ[0];
+      sweep.Q.value = 0.7;
+      sweep.connect(changeover);
+      const offset = Math.max(0, fromMediaTime - stems.from);
+      const begins = Math.max(context.currentTime, startAt);
+      for (const name of STEM_NAMES) {
+        const gain = context.createGain();
+        const source = context.createBufferSource();
+        source.buffer = stems.buffers[name];
+        source.connect(gain);
+        gain.connect(sweepPad && name === "other" ? sweep : changeover);
+        source.start(begins, offset);
+        gains[name] = gain;
+        sources[name] = source;
+      }
+      return {
+        sources,
+        gains,
+        sweep,
+        output: changeover,
+        stop: () => {
+          for (const name of STEM_NAMES) {
+            try {
+              sources[name].stop();
+            } catch {
+            }
+            sources[name].disconnect();
+            gains[name].disconnect();
+          }
+          sweep.disconnect();
+          changeover.disconnect();
+        }
+      };
+    };
+    var scheduleStemWindow = (context, chain, curves, element, startAt, seconds, direction) => {
+      const begins = Math.max(startAt, context.currentTime);
+      const ends = begins + seconds;
+      try {
+        for (const name of STEM_NAMES) {
+          const param = chain.gains[name].gain;
+          param.cancelScheduledValues(begins);
+          param.setValueCurveAtTime(curves[name], begins, seconds);
+        }
+        if (direction === "out") {
+          chain.sweep.frequency.cancelScheduledValues(begins);
+          chain.sweep.frequency.setValueAtTime(OTHER_SWEEP_HZ[0], begins);
+          chain.sweep.frequency.exponentialRampToValueAtTime(
+            OTHER_SWEEP_HZ[1],
+            begins + seconds * OTHER_SWEEP_END
+          );
+        }
+        const changeover = chain.output.gain;
+        changeover.cancelScheduledValues(begins);
+        element.gain.cancelScheduledValues(begins);
+        if (direction === "out") {
+          changeover.setValueAtTime(0, begins);
+          changeover.linearRampToValueAtTime(1, begins + SPLICE_SEC);
+          element.gain.setValueAtTime(element.gain.value, begins);
+          element.gain.linearRampToValueAtTime(0, begins + SPLICE_SEC);
+        } else {
+          changeover.setValueAtTime(0, context.currentTime);
+          changeover.setValueAtTime(1, begins);
+          changeover.setValueAtTime(1, ends - SPLICE_SEC);
+          changeover.linearRampToValueAtTime(0, ends);
+          element.gain.setValueAtTime(0, context.currentTime);
+          element.gain.setValueAtTime(0, ends - SPLICE_SEC);
+          element.gain.linearRampToValueAtTime(1, ends);
+        }
+        return true;
+      } catch (error) {
+        console.warn("[Automix] the stem gesture was refused, using the plain crossfade", error);
+        chain.stop();
+        rampGain(context, element, direction === "out" ? 0 : 1, 0.05);
+        return false;
+      }
+    };
+    var scheduleCrossfade = (context, outgoing, incoming, seconds, crossover = 0.5, hold = 0, together = 0) => {
+      const curves = buildCrossfadeCurves(crossover, together);
+      const now = context.currentTime;
+      const startAt = now + Math.max(0, hold);
+      try {
+        outgoing.gain.cancelScheduledValues(now);
+        incoming.gain.cancelScheduledValues(now);
+        if (hold > 0) {
+          outgoing.gain.setValueAtTime(1, now);
+          incoming.gain.setValueAtTime(0, now);
+        }
+        outgoing.gain.setValueCurveAtTime(curves.out, startAt, seconds);
+        incoming.gain.setValueCurveAtTime(curves.in, startAt, seconds);
+        return true;
+      } catch (error) {
+        console.warn("[Automix] Crossfade rejected by the audio engine, cutting instead", error);
+        rampGain(context, outgoing, 0, 0.05);
+        rampGain(context, incoming, 1, 0.05);
+        return false;
+      }
+    };
+  
+    // src/audio/shims/useAudioSettingsStore.ts
+    var useAudioSettingsStore = {
+      getState: () => ({ playbackFadeEnabled: true })
+    };
+  
+    // A_other/upstream/folia-major-main/src/services/playbackFade.ts
+    var PLAYBACK_FADE_SECONDS = 0.2;
+    var TIMER_GRACE_MS = 15;
+    var PAUSE_DRAIN_MS = 150;
+    var RESTORE_RAMP_SECONDS = 0.03;
+    var createPlaybackFadeController = ({
+      getGraph,
+      isEnabled,
+      setTimer = (callback, ms) => setTimeout(callback, ms),
+      clearTimer = (handle) => clearTimeout(handle),
+      durationSec = PLAYBACK_FADE_SECONDS
+    }) => {
+      let generation = 0;
+      let timer = null;
+      let pendingOut = false;
+      let pendingAction = null;
+      let restoreTimer = null;
+      const clearPendingTimer = () => {
+        if (timer !== null) {
+          clearTimer(timer);
+          timer = null;
+        }
+      };
+      const clearRestoreTimer = () => {
+        if (restoreTimer !== null) {
+          clearTimer(restoreTimer);
+          restoreTimer = null;
+        }
+      };
+      const resolveUsableGraph = () => {
+        if (!isEnabled()) return null;
+        const graph = getGraph();
+        if (!graph || graph.context.state !== "running") return null;
+        return graph;
+      };
+      const snapToUnity = () => {
+        clearRestoreTimer();
+        const graph = getGraph();
+        if (graph) rampGain(graph.context, graph.gain, 1, 0);
+      };
+      const restoreAfterDrain = () => {
+        clearRestoreTimer();
+        restoreTimer = setTimer(() => {
+          restoreTimer = null;
+          const graph = getGraph();
+          if (graph) rampGain(graph.context, graph.gain, 1, RESTORE_RAMP_SECONDS);
+        }, PAUSE_DRAIN_MS);
+      };
+      const settleToUnity = () => {
+        if (restoreTimer === null) snapToUnity();
+      };
+      const takePending = () => {
+        generation += 1;
+        clearPendingTimer();
+        pendingOut = false;
+        const action = pendingAction;
+        pendingAction = null;
+        return action;
+      };
+      const runAndRestore = (action, reason) => {
+        try {
+          action(reason);
+        } finally {
+          restoreAfterDrain();
+        }
+      };
+      const fadeOutThen = (action) => {
+        if (pendingOut) return true;
+        const graph = resolveUsableGraph();
+        if (!graph) return false;
+        clearRestoreTimer();
+        const token = ++generation;
+        pendingOut = true;
+        pendingAction = action;
+        rampGain(graph.context, graph.gain, 0, durationSec);
+        timer = setTimer(() => {
+          if (token !== generation) return;
+          takePending();
+          runAndRestore(action, "elapsed");
+        }, durationSec * 1e3 + TIMER_GRACE_MS);
+        return true;
+      };
+      const cancelPendingPause = () => {
+        if (!pendingOut) return false;
+        takePending();
+        clearRestoreTimer();
+        const graph = getGraph();
+        if (graph) rampGain(graph.context, graph.gain, 1, durationSec);
+        return true;
+      };
+      const prepareFadeIn = () => {
+        const graph = resolveUsableGraph();
+        if (!graph) return null;
+        takePending();
+        clearRestoreTimer();
+        const token = generation;
+        rampGain(graph.context, graph.gain, 0, 0);
+        return token;
+      };
+      const runFadeIn = (token) => {
+        if (token === null || token !== generation) return;
+        const graph = getGraph();
+        if (graph) rampGain(graph.context, graph.gain, 1, durationSec);
+      };
+      const abortFadeIn = (token) => {
+        if (token === null || token !== generation) return;
+        generation += 1;
+        snapToUnity();
+      };
+      const cancel = () => {
+        takePending();
+        settleToUnity();
+      };
+      const flush = () => {
+        const action = takePending();
+        if (action) runAndRestore(action, "flushed");
+        else settleToUnity();
+      };
+      return {
+        fadeOutThen,
+        isFadingOut: () => pendingOut,
+        cancelPendingPause,
+        prepareFadeIn,
+        runFadeIn,
+        abortFadeIn,
+        cancel,
+        flush
+      };
+    };
+    var registeredGraph = null;
+    var playbackFade = createPlaybackFadeController({
+      getGraph: () => registeredGraph,
+      isEnabled: () => useAudioSettingsStore.getState().playbackFadeEnabled
+    });
     return __toCommonJS(entry_exports);
   })();
   

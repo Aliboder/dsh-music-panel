@@ -29,6 +29,29 @@ const result = await build({
   minify: false,
   logLevel: 'silent',
   loader: { '.ts': 'ts' },
+  plugins: [
+    {
+      name: 'audio-shims',
+      setup(context) {
+        // `crossfadeGraph` imports the stem registry and gesture constants. The
+        // plugin ships no htdemucs, so the stem branches are wired to constants
+        // instead of pulling the model and scheduler into the bundle.
+        context.onResolve({ filter: /^\.\/stems$/ }, (args) => (
+          args.importer.endsWith('crossfadeGraph.ts')
+            ? { path: join(ROOT, 'src/audio/shims/stems.ts') }
+            : null
+        ))
+        context.onResolve({ filter: /^\.\/stemGesture$/ }, (args) => (
+          args.importer.endsWith('crossfadeGraph.ts')
+            ? { path: join(ROOT, 'src/audio/shims/stemGesture.ts') }
+            : null
+        ))
+        context.onResolve({ filter: /^\.\.\/stores\/useAudioSettingsStore$/ }, () => ({
+          path: join(ROOT, 'src/audio/shims/useAudioSettingsStore.ts'),
+        }))
+      },
+    },
+  ],
   define: {
     'import.meta.env.DEV': 'false',
     'import.meta.env.PROD': 'true',
