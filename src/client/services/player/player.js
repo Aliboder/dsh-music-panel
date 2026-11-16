@@ -2022,6 +2022,12 @@ function createPlayer() {
       if (foliaGraph !== null) foliaGraph.setOutputDevice(next)
       return next
     },
+    setPlaybackFade: function (enabled) {
+      var next = enabled !== false
+      savePrefs({ playbackFade: next })
+      if (foliaTransport !== null) foliaTransport.setPlaybackFade(next)
+      return next
+    },
     setMuted: function (value) {
       state = Object.assign({}, state, { muted: value })
       if (gainNode !== null && foliaGraph !== null) {

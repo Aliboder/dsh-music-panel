@@ -625,6 +625,21 @@ function SettingsSheet(props) {
           },
         }),
       ),
+      h(
+        SetRow,
+        {
+          key: 'playback-fade',
+          label: t('settings.playbackFade'),
+          desc: t('settings.playbackFadeHint'),
+        },
+        h(Switch, {
+          value: prefs.playbackFade !== false,
+          onChange: function (value) {
+            patchPrefs({ playbackFade: value })
+            player.setPlaybackFade(value)
+          },
+        }),
+      ),
       sinkSupported && outputDevices.length > 0
         ? h(
             SetRow,

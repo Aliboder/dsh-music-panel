@@ -33,6 +33,8 @@ assert.match(player, /balanceMeter\.tick\(audioContext/, 'the Folia meter receiv
 assert.match(player, /setPositionState/, 'Media Session progress is published')
 assert.match(player, /audioSession\.type = 'playback'/, 'the audio session is playback')
 assert.match(player, /setOutputDevice/, 'the player exposes output-device selection')
+assert.match(player, /setPlaybackFade/, 'the player exposes the playback fade switch')
+assert.match(settings, /playbackFade/, 'the settings UI exposes the playback fade switch')
 assert.match(settings, /setSinkId/, 'the settings UI feature-detects setSinkId')
 assert.match(settings, /audioOutputDeviceId/, 'the selected sink is persisted')
 

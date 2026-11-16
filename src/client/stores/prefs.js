@@ -70,6 +70,7 @@ var PREF_DEFAULTS = {
   composerLyricPlace: 'input-left',
   volume: 1,
   audioOutputDeviceId: '',
+  playbackFade: true,
   loop: 'none',
   order: 'list',
   resumeOnStart: true,

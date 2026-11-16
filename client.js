@@ -8112,6 +8112,8 @@ window.__ModuleLoader__.load({
         'settings.crossfade': '智能过渡',
         'settings.crossfadeHint': '分析前后两首歌首尾的响度，自动选择切入点和重叠长度；同专辑连续曲目保持原始的硬切衔接。',
         'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
+        'settings.playbackFade': '播放淡入淡出',
+        'settings.playbackFadeHint': '暂停时淡出、恢复时淡入，避免 click/pop。',
         'settings.outputDevice': '输出设备',
         'settings.outputDeviceHint': '仅在支持 AudioContext.setSinkId 的环境显示。',
         'settings.outputDefault': '系统默认',
@@ -8550,6 +8552,8 @@ window.__ModuleLoader__.load({
         'settings.crossfade': 'Smart transition',
         'settings.crossfadeHint': 'Measures how both tracks start and end, then picks the cut point and overlap length itself; consecutive tracks of one album keep their original hard join.',
         'settings.crossfadeRuntimeHint': 'Needs Web Audio; skipped when the browser or the source cannot route through it.',
+        'settings.playbackFade': 'Playback fade',
+        'settings.playbackFadeHint': 'Fade out on pause and in on resume to avoid clicks and pops.',
         'settings.outputDevice': 'Output device',
         'settings.outputDeviceHint': 'Shown only where AudioContext.setSinkId is available.',
         'settings.outputDefault': 'System default',
@@ -149134,6 +149138,7 @@ window.__ModuleLoader__.load({
       composerLyricPlace: 'input-left',
       volume: 1,
       audioOutputDeviceId: '',
+      playbackFade: true,
       loop: 'none',
       order: 'list',
       resumeOnStart: true,
@@ -155235,6 +155240,12 @@ window.__ModuleLoader__.load({
           var next = deviceId === undefined || deviceId === null ? '' : String(deviceId)
           savePrefs({ audioOutputDeviceId: next })
           if (foliaGraph !== null) foliaGraph.setOutputDevice(next)
+          return next
+        },
+        setPlaybackFade: function (enabled) {
+          var next = enabled !== false
+          savePrefs({ playbackFade: next })
+          if (foliaTransport !== null) foliaTransport.setPlaybackFade(next)
           return next
         },
         setMuted: function (value) {
@@ -164144,6 +164155,21 @@ window.__ModuleLoader__.load({
               value: crossfadeFadeSeconds(prefs) > 0,
               onChange: function (value) {
                 patchPrefs({ crossfadeSeconds: value ? CROSSFADE_MAX_SECONDS : 0 })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            {
+              key: 'playback-fade',
+              label: t('settings.playbackFade'),
+              desc: t('settings.playbackFadeHint'),
+            },
+            h(Switch, {
+              value: prefs.playbackFade !== false,
+              onChange: function (value) {
+                patchPrefs({ playbackFade: value })
+                player.setPlaybackFade(value)
               },
             }),
           ),
