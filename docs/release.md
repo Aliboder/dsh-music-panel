@@ -113,7 +113,7 @@ git push origin vX.Y.Z
 
 - push tag 会触发 `publish.yml` → npm 发布，以及 `ci.yml`（main + tag 各跑一次）。
 - **推送前确认 FlClash 在跑**（git 走 `127.0.0.1:7899`，见 §0「网络」）；失败时先看是不是代理端口没起来。
-- tag 一旦推送就不要移动；发布失败优先“修工作流 + 手动 dispatch”，而不是 force-push tag。
+- tag 一旦推送就不要移动（**只有“撤回发布”按 §7.1 删除 tag 是例外**）；发布失败优先“修工作流 + 手动 dispatch”，而不是 force-push tag。
 
 ---
 
@@ -197,11 +197,46 @@ for ($i = 0; $i -lt 20; $i++) {
 
 ---
 
-## 7. 回滚
+## 7. 回滚 / 撤回
 
-- **npm**：发布 72 小时内可 `npm unpublish dsh-music-panel@X.Y.Z`；超过 72 小时只能 `npm deprecate` 并发布补丁版。不要 unpublish 已被别人依赖的版本。
-- **GitHub**：`gh release delete vX.Y.Z`；tag 可以保留，已推送的 tag 不要随意移动或删除（会破坏别人的固定引用与 provenance）。
-- **代码**：`git revert <release commit>`，按本流程发一个补丁版本（不要修改已发布的版本号）。
+分两种：**这个版本有严重问题、要彻底下架**（撤回），与**发布流程出错但版本可用**（重发 / 补丁）。
+
+### 7.1 彻底撤回一个刚发布的版本
+
+1. **GitHub**：删 Release 和 tag（`--cleanup-tag` 会一起删远端 tag）：
+
+   ```powershell
+   & $GH release delete vX.Y.Z --yes --cleanup-tag
+   git tag -d vX.Y.Z
+   git ls-remote --tags origin | Select-String 'vX\.Y\.Z'   # 确认远端已无该 tag
+   ```
+
+   Release 列表里上一版会自动重新成为 Latest。tag 一删，`publish.yml` 就不会再被触发，
+   不存在“再推一次就误发布”的风险。
+
+2. **npm**：72 小时内可以撤回单个版本。**Trusted Publishing / OIDC 只支持 publish，不能 unpublish**，
+   必须由账号本人登录（本机 `~/.npmrc` 的 token 失效时尤其如此）：
+
+   ```powershell
+   & $NODE $PNPM login --registry https://registry.npmjs.org/            # 2FA 账号需要 OTP
+   & $NODE $PNPM unpublish dsh-music-panel@X.Y.Z --registry https://registry.npmjs.org/
+   & $NODE $PNPM dist-tag add dsh-music-panel@<上一版> latest --registry https://registry.npmjs.org/
+   ```
+
+   核对：registry 的 `versions` 里已没有 X.Y.Z，`dist-tags.latest` 指回上一版。
+   **同版本号 24 小时内不能重新发布**：0.36.0 撤回后，修复版直接发 0.36.1。
+
+3. **代码**：默认**不**回退 main —— 撤回的是发布物，不是提交。若确实要退回代码，
+   用 `git revert <提交>` 再发补丁版，不要强推历史。
+
+4. 收尾：CHANGELOG 记一条「发布撤回」（原因 + 下一个版本号），修好之前不要重新打同名 tag。
+
+### 7.2 发布流程出错但版本可用
+
+- 重发：`gh workflow run publish.yml --ref main`（工作流自带“是否已发布”检查，幂等）。
+- 修了工作流之后不要 `rerun` 旧 tag 的运行，那条运行用的是 tag 里的旧工作流。
+- 超过 72 小时不能 unpublish，只能
+  `npm deprecate dsh-music-panel@X.Y.Z "原因，请升级到 X.Y.Z+1"`。
 
 ---
 

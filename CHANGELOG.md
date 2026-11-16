@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 发布撤回
+
+- 0.36.0 撤回（**只撤发布物，代码保留在 main**）：GitHub Release 与 tag `v0.36.0` 已删除，
+  npm 上的 `dsh-music-panel@0.36.0` 撤回中。同版本号 24 小时内不能重发，修复后按 **0.36.1** 发布。
+- `docs/release.md` 的「回滚」扩成可操作的撤回步骤（GitHub 删 Release/tag、npm unpublish + 把
+  latest 指回上一版、Trusted Publishing 不能 unpublish 这个事实）。
+
 ### 文档
 
 - 新增 [发布手册](docs/release.md)：版本号与 `client.js` 的联动、tag 与推送、面向用户的 Release 写法、
