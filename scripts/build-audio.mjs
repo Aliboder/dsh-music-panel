@@ -17,6 +17,19 @@ import { fileURLToPath } from 'node:url'
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = join(ROOT, 'src/client/audio/engine.bundle.js')
 const CHECK = process.argv.includes('--check')
+const UPSTREAM_ENTRY = join(ROOT, 'A_other/upstream/folia-major-main/src/services/playbackGraph.ts')
+
+// `A_other/upstream` is not part of the published package or a clean CI
+// checkout. The generated bundle is committed, so --check only verifies that
+// it exists there; it can only rebuild when the upstream source is present.
+if (CHECK && !existsSync(UPSTREAM_ENTRY)) {
+  if (!existsSync(OUT)) {
+    console.error('src/client/audio/engine.bundle.js is missing and the upstream audio source is unavailable')
+    process.exit(1)
+  }
+  console.log('audio bundle present (upstream source not checked out)')
+  process.exit(0)
+}
 
 const result = await build({
   entryPoints: [join(ROOT, 'src/audio/entry.ts')],
