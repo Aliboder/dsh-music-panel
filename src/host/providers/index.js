@@ -199,7 +199,7 @@ function albumCard(provider, raw) {
   return {
     id: textOf(firstValue(item, ['albummid', 'album_id', 'albumId', 'id']) || firstValue(nested, ['id'])),
     name: textOf(firstValue(item, ['albumname', 'album_name', 'name', 'title']) || firstValue(nested, ['name'])),
-    cover: textOf(firstValue(item, ['pic', 'cover', 'sizable_cover', 'picUrl']) || firstValue(nested, ['coverUrl', 'cover'])),
+    cover: textOf(firstValue(item, ['picUrl', 'coverUrl', 'pic', 'cover', 'sizable_cover']) || firstValue(nested, ['coverUrl', 'cover'])),
     artist,
     trackCount: Number(firstValue(item, ['song_count', 'songCount', 'size', 'trackCount'])) || 0,
     provider,
@@ -212,7 +212,7 @@ function artistCard(provider, raw) {
   return {
     id: textOf(firstValue(item, ['id', 'singermid', 'artist_id', 'author_id'])),
     name: textOf(firstValue(item, ['name', 'artist_name', 'author_name', 'singername'])),
-    cover: textOf(firstValue(item, ['cover', 'avatar', 'imgurl', 'sizable_avatar', 'pic', 'picUrl'])),
+    cover: textOf(firstValue(item, ['cover', 'avatar', 'imgurl', 'sizable_avatar', 'picUrl', 'pic'])),
     description: textOf(firstValue(item, ['briefDesc', 'description', 'intro', 'singer_brief'])),
     provider,
   }
