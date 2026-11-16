@@ -46,6 +46,16 @@ import {
   assert.deepEqual(kugouSessionPatch([], { data: { token: 't1', userid: '9' } }), {}, 'a pair without a confirmation is not taken')
 }
 
+// ── title cleanup ───────────────────────────────────────────────────────────
+
+{
+  const song = KG.normalizeSong({ hash: 'h', songname: 'A、B - Title', SingerName: 'A、B' })
+  assert.equal(song.title, 'Title')
+  assert.deepEqual(song.artists, ['A', 'B'])
+  const unrelated = KG.normalizeSong({ hash: 'h', songname: 'C - Title', SingerName: 'A、B' })
+  assert.equal(unrelated.title, 'C - Title', 'an unrelated prefix is part of the title')
+}
+
 // ── login mapping ───────────────────────────────────────────────────────────
 
 {

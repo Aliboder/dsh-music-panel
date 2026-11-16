@@ -333,6 +333,24 @@ export function normalizePackageSong(item) {
 }
 
 /** 统一歌曲形状（对齐 qq.js 结果字段 + 酷狗特有 hash 组）。 */
+function artistPrefixKey(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[\s、,，/&]/g, '')
+}
+
+/** Drop a duplicated "artist - title" prefix when the provider also supplies artists. */
+function stripArtistPrefix(title, artists) {
+  const match = /^(.+?)\s+-\s+(.+)$/u.exec(title)
+  if (match === null || !Array.isArray(artists) || artists.length === 0) return title
+  const wanted = artistPrefixKey(match[1])
+  if (wanted === '') return title
+  return wanted === artistPrefixKey(artists.join(', ')) || artists.some((artist) => artistPrefixKey(artist) === wanted)
+    ? match[2].trim()
+    : title
+}
+
 export function normalizeSong(o, opts = {}) {
   const hash = lowHash(opts.hashKey ? o[opts.hashKey] : o.hash)
   const arts = Array.isArray(o.authors)
@@ -352,6 +370,7 @@ export function normalizeSong(o, opts = {}) {
     title = emStrip(sp.title)
     if (arts.length === 0) arts.splice(0, 0, ...sp.artists.map(emStrip))
   }
+  title = stripArtistPrefix(title, arts)
   const durSec = Number(opts.durationKey ? o[opts.durationKey] : o.duration)
   const albumAudioId = Number(o.album_audio_id || o.Audioid || o.audio_id || 0) || 0
   return {
