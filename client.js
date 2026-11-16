@@ -152604,6 +152604,12 @@ window.__ModuleLoader__.load({
         getActiveDeck: function () {
           return activeDeck
         },
+        setActiveDeck: function (deck) {
+          activeDeck = deck === 'B' ? 'B' : 'A'
+          if (typeof graph.setActiveDeck === 'function') graph.setActiveDeck(activeDeck)
+          emitState(activeDeck)
+          return activeDeck
+        },
         load: load,
         play: play,
         pause: pause,
@@ -153171,6 +153177,7 @@ window.__ModuleLoader__.load({
       var audio = null
       /** Folia graph/transport boundary; one per player instance. */
       var foliaGraph = null
+      var foliaTransport = null
       /**
        * Second element used only for the incoming side of a crossfade. The active
        * deck is always the one in `audio`; the two swap roles when a fade lands, so
@@ -153893,9 +153900,15 @@ window.__ModuleLoader__.load({
               // If the context cannot start, leave the media element untouched.
             })
           }
-          audio.play().catch(function () {
-            // Autoplay may still be blocked; the play event will update the UI.
-          })
+          if (foliaTransport !== null) {
+            foliaTransport.play(foliaTransport.getActiveDeck()).catch(function () {
+              // Autoplay may still be blocked; the play event will update the UI.
+            })
+          } else {
+            audio.play().catch(function () {
+              // Autoplay may still be blocked; the play event will update the UI.
+            })
+          }
         })
       }
 
@@ -153950,6 +153963,18 @@ window.__ModuleLoader__.load({
           .then(function () {
             finish()
           })
+      }
+
+      /** Point the active deck at a source through Folia's transport. */
+      function loadActiveSource(url) {
+        if (foliaTransport !== null) {
+          return foliaTransport.load(foliaTransport.getActiveDeck(), url, { autoplay: false })
+        }
+        if (audio !== null) {
+          audio.src = url
+          audio.load()
+        }
+        return Promise.resolve(true)
       }
 
       function load(at, autoplay) {
@@ -154037,8 +154062,7 @@ window.__ModuleLoader__.load({
               releaseObjectUrl()
               objectUrl = URL.createObjectURL(blob)
               currentBlob = blob
-              audio.src = objectUrl
-              audio.load()
+              loadActiveSource(objectUrl)
               scheduleLoudness(item, blob, loudness.resolve)
               if (pendingAutoplay) playAfterLoudness(token)
             })
@@ -154054,8 +154078,7 @@ window.__ModuleLoader__.load({
               if (audio === null) return
               // Streaming fallback: playback still starts even if the prefetch
               // failed (seeking may be less reliable in this rare path).
-              audio.src = item.onlineUrl
-              audio.load()
+              loadActiveSource(item.onlineUrl)
               if (pendingAutoplay) playAfterLoudness(token)
             })
           return
@@ -154096,8 +154119,7 @@ window.__ModuleLoader__.load({
             releaseObjectUrl()
             objectUrl = URL.createObjectURL(blob)
             currentBlob = blob
-            audio.src = objectUrl
-            audio.load()
+            loadActiveSource(objectUrl)
             scheduleLoudness(item, blob, loudness.resolve)
             if (pendingResumeSeconds !== null) {
               var resumeAt = pendingResumeSeconds
@@ -154452,6 +154474,7 @@ window.__ModuleLoader__.load({
       }
 
       function swapDecks() {
+        var nextDeck = foliaGraph !== null && audio === foliaGraph.getDeckElement('A') ? 'B' : 'A'
         var element = audio
         audio = audioB
         audioB = element
@@ -154470,6 +154493,7 @@ window.__ModuleLoader__.load({
         var loudness = normalizeGain
         normalizeGain = normalizeGainB
         normalizeGainB = loudness
+        if (foliaTransport !== null) foliaTransport.setActiveDeck(nextDeck)
       }
 
       /**
@@ -154716,6 +154740,10 @@ window.__ModuleLoader__.load({
           cancelPrefetch()
           if (audio !== null) unbind(audio)
           if (audioB !== null) unbind(audioB)
+          if (foliaTransport !== null) {
+            foliaTransport.dispose()
+            foliaTransport = null
+          }
           if (foliaGraph !== null) {
             foliaGraph.dispose()
             foliaGraph = null
@@ -154741,6 +154769,7 @@ window.__ModuleLoader__.load({
           foliaGraph = createFoliaGraph()
           foliaGraph.attach(el)
           audioB = foliaGraph.getDeckElement('B')
+          foliaTransport = createFoliaTransport({ graph: foliaGraph })
           bind(el)
           if (audioB !== null) bind(audioB)
           el.preload = 'metadata'
@@ -154753,8 +154782,7 @@ window.__ModuleLoader__.load({
           var item = currentItem()
           if (item !== null) {
             if (objectUrl !== null) {
-              el.src = objectUrl
-              el.load()
+              loadActiveSource(objectUrl)
               if (pendingAutoplay) playAfterLoudness(loadToken)
             } else {
               load(state.index, pendingAutoplay || state.playing)
@@ -154957,7 +154985,8 @@ window.__ModuleLoader__.load({
         pause: function () {
           pendingAutoplay = false
           abortCrossfade()
-          if (audio) audio.pause()
+          if (foliaTransport !== null) foliaTransport.pause(foliaTransport.getActiveDeck())
+          else if (audio) audio.pause()
         },
         toggle: function () {
           if (state.playing) api.pause()
@@ -154986,6 +155015,13 @@ window.__ModuleLoader__.load({
               : 0
           var target = clamp(seconds, 0, limit > 0 ? limit : seconds)
           if (!isFinite(target)) return
+
+          if (foliaTransport !== null) {
+            foliaTransport.seek(foliaTransport.getActiveDeck(), target)
+            state = Object.assign({}, state, { currentTime: target })
+            emitTime()
+            return
+          }
 
           function apply() {
             try {
@@ -155145,7 +155181,9 @@ window.__ModuleLoader__.load({
           cancelPrefetch()
           currentBlob = null
           releaseObjectUrl()
-          if (audio) {
+          if (foliaTransport !== null) {
+            foliaTransport.stop(foliaTransport.getActiveDeck())
+          } else if (audio) {
             audio.pause()
             audio.removeAttribute('src')
             audio.load()
@@ -155162,13 +155200,22 @@ window.__ModuleLoader__.load({
           syncMediaSession()
         },
         suspend: function () {
-          if (audio) audio.pause()
+          if (foliaTransport !== null) foliaTransport.pause(foliaTransport.getActiveDeck())
+          else if (audio) audio.pause()
         },
         destroy: function () {
           stopLeaderElection()
           loadToken += 1
           cancelPendingFetch()
           releaseObjectUrl()
+          if (foliaTransport !== null) {
+            foliaTransport.dispose()
+            foliaTransport = null
+          }
+          if (foliaGraph !== null) {
+            foliaGraph.dispose()
+            foliaGraph = null
+          }
           if (audio) {
             unbind(audio)
             audio.pause()

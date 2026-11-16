@@ -315,6 +315,12 @@ function createFoliaTransport(options) {
     getActiveDeck: function () {
       return activeDeck
     },
+    setActiveDeck: function (deck) {
+      activeDeck = deck === 'B' ? 'B' : 'A'
+      if (typeof graph.setActiveDeck === 'function') graph.setActiveDeck(activeDeck)
+      emitState(activeDeck)
+      return activeDeck
+    },
     load: load,
     play: play,
     pause: pause,

@@ -16,6 +16,11 @@ const player = readFileSync(join(ROOT, 'src/client/services/player/player.js'), 
 
 assert.match(player, /foliaGraph = createFoliaGraph\(\)/, 'attachAudio creates the Folia graph')
 assert.match(player, /foliaGraph\.attach\(el\)/, 'attachAudio hands the element to the graph')
+assert.match(player, /createFoliaTransport\(\{ graph: foliaGraph \}\)/, 'attachAudio creates the Folia transport')
+assert.match(player, /foliaTransport\.load\(foliaTransport\.getActiveDeck\(\)/, 'loadActiveSource uses the transport')
+assert.match(player, /foliaTransport\.play\(foliaTransport\.getActiveDeck\(\)\)/, 'autoplay uses the transport')
+assert.match(player, /foliaTransport\.pause\(foliaTransport\.getActiveDeck\(\)\)/, 'pause uses the transport')
+assert.match(player, /foliaTransport\.seek\(foliaTransport\.getActiveDeck\(\), target\)/, 'seek uses the transport')
 assert.match(player, /foliaGraph\.ensure\(\)/, 'ensureAnalyser delegates to the Folia graph')
 assert.match(player, /foliaGraph\.setVolume\(state\.volume\)/, 'volume goes to the Folia master gain')
 assert.match(player, /foliaGraph\.setMuted\(state\.muted\)/, 'mute goes to the Folia master gain')
