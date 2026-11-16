@@ -1633,10 +1633,8 @@ function NowPlaying(props) {
       applyLyricWidth(560, true)
     }
   }
-  // Chorus window for the jump-to-hook control; null when the provider has none.
-  var chorusPair = useState(null)
-  var chorusSec = chorusPair[0]
-  var setChorusSec = chorusPair[1]
+  // Chorus windows from the provider still feed the lyric pipeline (hook lines and
+  // their styling); there is no seek control for them.
   var sourcePair = useState('')
   var lyricSource = sourcePair[0]
   var setLyricSource = sourcePair[1]
@@ -2007,7 +2005,6 @@ function NowPlaying(props) {
       lyricDocRef.current = null
       setLyrics([])
       setLyricSource('')
-      setChorusSec(null)
       setLyricError('')
       setLyricsLoading(true)
       var current = snap.queue[snap.index]
@@ -2131,11 +2128,6 @@ function NowPlaying(props) {
             )
             var chorusBody = await chorusPromise
             var chorusRanges = mpChorusRanges(chorusBody)
-            if (!cancelled) {
-              setChorusSec(
-                chorusBody && chorusBody.chorus ? Number(chorusBody.chorus.startSec) || null : null,
-              )
-            }
             // Folia's pipeline when the Host sent the raw source (cache v6+): it parses
             // LRC / enhanced LRC / YRC / QRC / KRC / TTML itself, with word timing and
             // credits policy. The old ad-hoc parse stays as the fallback.
@@ -2227,8 +2219,8 @@ function NowPlaying(props) {
                 function () {},
               )
             }
-            // `chorusRanges` above already marked the hook lines and filled `chorusSec`
-            // for the "jump to hook" control; nothing else is awaited for this track.
+            // `chorusRanges` above already marked the hook lines in the lyric document;
+            // nothing else is awaited for this track.
             return
           }
           var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
@@ -3082,33 +3074,6 @@ function NowPlaying(props) {
       h(
         'div',
         { className: 'mp-np-right' },
-        chorusSec !== null
-          ? h(
-              'button',
-              {
-                type: 'button',
-                className: 'mp-np-chorus',
-                title: t('page.chorusJump'),
-                style: {
-                  alignSelf: 'flex-end',
-                  margin: '0 12px 6px',
-                  padding: '4px 12px',
-                  borderRadius: '999px',
-                  // The player page is a dark surface in both themes (see theme-guidelines
-                  // §1.1): a host layer token would turn this pill white-on-white in light.
-                  border: '1px solid rgba(255,255,255,.14)',
-                  background: 'rgba(255,255,255,.06)',
-                  color: 'inherit',
-                  font: 'inherit',
-                  cursor: 'pointer',
-                },
-                onClick: function () {
-                  player.seek(chorusSec)
-                },
-              },
-              t('page.chorusJump'),
-            )
-          : null,
         lyricStage,
       ),
       h(NowPlayingCapsule, { queueOpen: props.queueOpen, onToggleQueue: props.onToggleQueue }),
