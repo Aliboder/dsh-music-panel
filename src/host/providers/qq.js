@@ -131,7 +131,16 @@ export async function getLyric(songmid, cookie = '') {
 
 /** Legacy contract: `{ source, key, imageDataUrl, expiresAt, extra }`. */
 export async function createQRLogin() {
-  const keyJson = await callUpstream('/login/qr/key', {})
+  return await createQrLogin('qq')
+}
+
+/** WeChat is the other package channel; it must not use the legacy wx endpoints. */
+export async function createWXQRLogin() {
+  return await createQrLogin('wechat')
+}
+
+async function createQrLogin(channel) {
+  const keyJson = await callUpstream('/login/qr/key', { channel })
   const key = String(keyJson.data?.unikey ?? '')
   if (key === '') throw new Error('qq qr key missing')
 
@@ -150,6 +159,14 @@ export async function createQRLogin() {
 
 /** Legacy contract: `{ source, key, status, message, extra, cookie? }`. */
 export async function checkQRLogin(keyStr) {
+  return await checkQrLogin(keyStr)
+}
+
+export async function checkWXQRLogin(keyStr) {
+  return await checkQrLogin(keyStr)
+}
+
+async function checkQrLogin(keyStr) {
   const key = String(keyStr ?? '').trim()
   if (key === '') throw new Error('qq qr login key missing')
 
@@ -178,9 +195,8 @@ export async function checkQRLogin(keyStr) {
   if (status !== 'success') return result
 
   const bodyCookie = typeof json.cookie === 'string' ? json.cookie.trim() : ''
-  // The package's Koa layer stores the sealed credential as the `qqmusic_session`
-  // cookie. It is a Set-Cookie header, not part of the JSON body, so keep it
-  // alongside the raw QQ cookie for the package's authenticated routes.
+  // Node stores the session in the package repository; serverless/other builds may
+  // return the sealed credential as the `qqmusic_session` Set-Cookie instead.
   const setCookies = Array.isArray(json.__setCookie) ? json.__setCookie : []
   const sealed = setCookies
     .map((line) => /(?:^|;\s*)qqmusic_session=([^;]+)/.exec(String(line)))
