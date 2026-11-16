@@ -26,8 +26,9 @@ jobs:
         run: npm install -g npm@latest
       - name: Install dependencies
         # npm 12 (installed above for Trusted Publishing) refuses remote tarballs by default;
-        # `kugoumusicapi` is a GitHub tarball, so allow remote specs explicitly.
-        run: npm install --no-audit --no-fund --no-package-lock --allow-remote
+        # `kugoumusicapi` is a GitHub tarball named in this package.json. `root` allows only
+        # remote specs the project itself declares, not ones pulled in transitively.
+        run: npm install --no-audit --no-fund --no-package-lock --allow-remote=root
       - name: Test
         run: |
           npm test
