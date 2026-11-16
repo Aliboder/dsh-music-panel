@@ -9,8 +9,8 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const OUT = join(ROOT, 'src/render/folia/styles.bundle.js')
-const FOLIA = 'src/render/folia'
+const OUT = join(ROOT, 'src/folia/styles.bundle.js')
+const FOLIA = 'src/folia'
 
 const aliases = [
   [/^react$/, 'src/client/vendor/react-shim.js'],
@@ -39,7 +39,7 @@ const aliases = [
 
 try {
   const result = await build({
-    entryPoints: [join(ROOT, 'src/render/folia/styles-entry.tsx')],
+    entryPoints: [join(ROOT, 'src/folia/styles-entry.tsx')],
     write: false,
     bundle: true,
     format: 'iife',

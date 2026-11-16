@@ -3,7 +3,7 @@
  *
  * Runs in plain canvas 2D: no pixi in the bundle, the same renderer protocol as
  * `CanvasLyricStage`. 时计（pendolo）is no longer a sketch here; it is the verbatim
- * Folia renderer in `src/render/folia/` (see `src/render/styles/folia-pendolo.js`).
+ * Folia renderer in `src/folia/` (see `src/render/styles/folia-pendolo.js`).
  */
 
 function mpCanvasLineText(line) {

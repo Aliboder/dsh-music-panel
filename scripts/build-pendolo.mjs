@@ -13,20 +13,20 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const OUT = join(ROOT, 'src/render/folia/pendolo.bundle.js')
+const OUT = join(ROOT, 'src/folia/pendolo.bundle.js')
 
 const aliases = [
   [/^react$/, 'src/client/vendor/react-shim.js'],
   [/^react\/jsx-runtime$/, 'src/client/vendor/jsx-runtime-shim.js'],
-  [/^framer-motion$/, 'src/render/folia/shims/framer-motion.js'],
-  [/^lucide-react$/, 'src/render/folia/shims/lucide-react.js'],
-  [/^@chenglou\/pretext$/, 'src/render/folia/vendor/pretext/dist/layout.js'],
-  [/^@chenglou\/pretext\/rich-inline$/, 'src/render/folia/vendor/pretext/dist/rich-inline.js'],
+  [/^framer-motion$/, 'src/folia/shims/framer-motion.js'],
+  [/^lucide-react$/, 'src/folia/shims/lucide-react.js'],
+  [/^@chenglou\/pretext$/, 'src/folia/vendor/pretext/dist/layout.js'],
+  [/^@chenglou\/pretext\/rich-inline$/, 'src/folia/vendor/pretext/dist/rich-inline.js'],
 ]
 
 try {
   const result = await build({
-    entryPoints: [join(ROOT, 'src/render/folia/entry.tsx')],
+    entryPoints: [join(ROOT, 'src/folia/entry.tsx')],
     write: false,
     bundle: true,
     format: 'iife',

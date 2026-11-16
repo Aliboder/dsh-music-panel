@@ -4,7 +4,7 @@
  *
  * The ported sources live at src/client/utils/lyrics/** (verbatim Folia) and import
  * ../../types, which resolves to src/shared/types.ts (the same module as
- * src/render/folia/types.ts).
+ * src/folia/types.ts).
  *
  * Usage: node scripts/build-lyrics.mjs
  */
@@ -36,20 +36,21 @@ const icuFoliaStubs = {
 const inlineWorker = {
   name: 'inline-lyric-worker',
   setup(pluginBuild) {
-    pluginBuild.onResolve({ filter: /^(\.\.\/|\.\/)workerClient$/ }, () => ({ path: join(root, 'src', 'render', 'lyrics', 'worker-inline.ts') }))
+    pluginBuild.onResolve({ filter: /^(\.\.\/|\.\/)workerClient$/ }, () => ({ path: join(root, 'src', 'client', 'render', 'lyrics', 'worker-inline.ts') }))
   },
 }
 
 await build({
-  entryPoints: [join(root, 'src', 'render', 'lyrics', 'entry.ts')],
+  entryPoints: [join(root, 'src', 'client', 'render', 'lyrics', 'entry.ts')],
   bundle: true,
   format: 'iife',
   globalName: 'MPFoliaLyrics',
   platform: 'browser',
   target: ['chrome120'],
   legalComments: 'none',
-  outfile: join(root, 'src', 'render', 'lyrics', 'lyrics.bundle.js'),
+  outfile: join(root, 'src', 'client', 'render', 'lyrics', 'lyrics.bundle.js'),
   plugins: [inlineWorker, icuFoliaStubs],
   logLevel: 'info',
 })
+
 
