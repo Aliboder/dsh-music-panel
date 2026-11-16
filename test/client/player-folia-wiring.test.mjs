@@ -16,7 +16,11 @@ const player = readFileSync(join(ROOT, 'src/client/services/player/player.js'), 
 
 assert.match(player, /foliaGraph = createFoliaGraph\(\)/, 'attachAudio creates the Folia graph')
 assert.match(player, /foliaGraph\.attach\(el\)/, 'attachAudio hands the element to the graph')
-assert.match(player, /createFoliaTransport\(\{ graph: foliaGraph \}\)/, 'attachAudio creates the Folia transport')
+assert.match(player, /createFoliaTransport\(\{/, 'attachAudio creates the Folia transport')
+assert.match(player, /onState: transportStateChanged/, 'transport state drives the player state')
+assert.match(player, /onTime: transportTimeChanged/, 'transport time drives the player clock')
+assert.match(player, /onEnded: transportEnded/, 'transport ended drives the player advance')
+assert.match(player, /onError: transportFailed/, 'transport errors reach the player')
 assert.match(player, /foliaTransport\.load\(foliaTransport\.getActiveDeck\(\)/, 'loadActiveSource uses the transport')
 assert.match(player, /foliaTransport\.play\(foliaTransport\.getActiveDeck\(\)\)/, 'autoplay uses the transport')
 assert.match(player, /foliaTransport\.pause\(foliaTransport\.getActiveDeck\(\)\)/, 'pause uses the transport')
@@ -27,8 +31,9 @@ assert.match(player, /foliaGraph\.setMuted\(state\.muted\)/, 'mute goes to the F
 assert.match(player, /balanceMeter\.tick\(audioContext/, 'the Folia meter receives its audio clock')
 
 assert.doesNotMatch(player, /createDynamicsCompressor/, 'no private limiter is created')
-assert.doesNotMatch(player, /preampNode = audioContext\.createGain/, 'no private preamp is created')
-assert.doesNotMatch(player, /limiterNode = audioContext/, 'no private limiter node is wired')
-assert.doesNotMatch(player, /tail\.connect\(limiterNode\)/, 'the old limiter chain is gone')
+assert.doesNotMatch(player, /preampNode/, 'the private preamp is gone')
+assert.doesNotMatch(player, /limiterNode/, 'the private limiter node is gone')
+assert.doesNotMatch(player, /buildEqNodes/, 'the private EQ graph builder is gone')
+assert.doesNotMatch(player, /ensureSecondary|wireSecondary/, 'the private spare-deck graph is gone')
 
 console.log('player-folia-wiring.test.mjs ok')

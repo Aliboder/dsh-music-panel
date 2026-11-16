@@ -133,7 +133,7 @@ assert.doesNotMatch(settings, /crossfadeAlbums/, 'the album rule is not a settin
 assert.match(settings, /CROSSFADE_MAX_SECONDS/, 'turning it on stores the automatic cap')
 
 const player = readFileSync(join(root, 'src/client/services/player/player.js'), 'utf8')
-assert.match(player, /createMediaElementSource\(audioB\)/, 'the spare deck gets its own source node')
+assert.match(player, /getDeckChain\('B'\)/, 'the spare deck comes from Folia graph')
 assert.match(player, /setValueCurveAtTime/, 'the fade is scheduled as a curve, not a setInterval ramp')
 assert.match(player, /function swapDecks\(\)/, 'promotion swaps deck roles instead of reloading the track')
 assert.match(player, /adoptIncoming\(token\)/, 'the UI switches to the next track when the fade starts')

@@ -153213,19 +153213,11 @@ window.__ModuleLoader__.load({
       var audioContext = null
       var analyser = null
       var gainNode = null
-      /** Preamp stage in front of the EQ chain (0 dB when the EQ is off). */
-      var preampNode = null
-      /** Safety limiter after the EQ: heavy boosts must not clip the DAC. */
-      var limiterNode = null
       /** `[{ band, node }]` — bands above Nyquist are skipped, so keep the mapping. */
       var eqNodes = []
       /** Resolved EQ settings; persisted through prefs on every change. */
       var eq = normalizeEqPrefs(prefs)
       var waveData = null
-      var captureAnalyser = null
-      var captureData = null
-      var captureElement = null
-      var captureContext = null
       var normalizeGain = 1
       // The loudness trim and the tag gain multiply: `normalizeBase` is the measured
       // trim, `replayGainFactor` the ReplayGain tag multiplier (1 when off).
@@ -153238,9 +153230,6 @@ window.__ModuleLoader__.load({
       var objectUrl = null
       /** Live meter tapped ahead of the balance gain (see 49-balance-meter.js). */
       var balanceMeter = null
-      var balanceSplitter = null
-      var balanceTaps = []
-      var balanceSilent = null
       /** What the balance asked for this play, and whether it already moved once. */
       var balanceMoved = false
       var balanceAppliedDb = 0
@@ -153618,24 +153607,6 @@ window.__ModuleLoader__.load({
         maybeCrossfade()
       }
 
-      function onDuration(event) {
-        if (!isActiveEvent(event)) return
-        if (audio === null) return
-        state = Object.assign({}, state, { duration: isFinite(audio.duration) ? audio.duration : 0 })
-        emitTime()
-      }
-
-      function onProgress(event) {
-        if (!isActiveEvent(event)) return
-        if (audio === null) return
-        if (audio.buffered && audio.buffered.length > 0) {
-          state = Object.assign({}, state, {
-            buffered: audio.buffered.end(audio.buffered.length - 1),
-          })
-          emitTime()
-        }
-      }
-
       function onPlaying(event) {
         if (!isActiveEvent(event)) return
         errorStreak = 0
@@ -153714,32 +153685,6 @@ window.__ModuleLoader__.load({
           return
         }
         load(nextIndexOf(state.index, state.queue.length), true)
-      }
-
-      function bind(el) {
-        el.addEventListener('timeupdate', onTime)
-        el.addEventListener('durationchange', onDuration)
-        el.addEventListener('loadedmetadata', onDuration)
-        el.addEventListener('progress', onProgress)
-        el.addEventListener('canplay', onProgress)
-        el.addEventListener('playing', onPlaying)
-        el.addEventListener('play', onPlay)
-        el.addEventListener('pause', onPause)
-        el.addEventListener('ended', onEnded)
-        el.addEventListener('error', onError)
-      }
-
-      function unbind(el) {
-        el.removeEventListener('timeupdate', onTime)
-        el.removeEventListener('durationchange', onDuration)
-        el.removeEventListener('loadedmetadata', onDuration)
-        el.removeEventListener('progress', onProgress)
-        el.removeEventListener('canplay', onProgress)
-        el.removeEventListener('playing', onPlaying)
-        el.removeEventListener('play', onPlay)
-        el.removeEventListener('pause', onPause)
-        el.removeEventListener('ended', onEnded)
-        el.removeEventListener('error', onError)
       }
 
       function releaseObjectUrl() {
@@ -153836,21 +153781,6 @@ window.__ModuleLoader__.load({
         } catch (error) {
           return false
         }
-      }
-
-      function buildEqNodes(context) {
-        var nodes = []
-        for (var band = 0; band < EQ_FREQS.length; band += 1) {
-          // A band at or above Nyquist cannot be realised; skip it and keep going.
-          if (EQ_FREQS[band] >= context.sampleRate / 2) continue
-          var filter = context.createBiquadFilter()
-          filter.type = 'peaking'
-          filter.frequency.value = EQ_FREQS[band]
-          filter.Q.value = EQ_Q[band]
-          filter.gain.value = 0
-          nodes.push({ band: band, node: filter })
-        }
-        return nodes
       }
 
       /**
@@ -154155,40 +154085,6 @@ window.__ModuleLoader__.load({
       // roles, so every other part of the engine keeps working with `audio` and
       // `normalizeGain`.
 
-      function ensureSecondary() {
-        if (audio === null || audioB !== null) return
-        var doc = audio.ownerDocument || (typeof document !== 'undefined' ? document : null)
-        if (doc === null || typeof doc.createElement !== 'function') return
-        audioB = doc.createElement('audio')
-        audioB.preload = 'metadata'
-        audioB.setAttribute('aria-hidden', 'true')
-        audioB.className = 'mp-audio-host'
-        if (audio.parentNode) audio.parentNode.insertBefore(audioB, audio.nextSibling)
-        bind(audioB)
-        audioB.volume = effectiveVolume()
-        audioB.muted = state.muted
-      }
-
-      /** Build the spare deck's source/fade/trim nodes once the graph exists. */
-      function wireSecondary() {
-        if (secondaryWired) return
-        if (audioB === null || audioContext === null || preampNode === null) return
-        try {
-          deckSourceB = audioContext.createMediaElementSource(audioB)
-          fadeNodeB = audioContext.createGain()
-          fadeNodeB.gain.value = 0
-          trimNodeB = audioContext.createGain()
-          trimNodeB.gain.value = normalizeGainB
-          deckSourceB.connect(fadeNodeB)
-          fadeNodeB.connect(trimNodeB)
-          trimNodeB.connect(preampNode)
-          secondaryWired = true
-        } catch (error) {
-          // A media element can only be bound once; leave crossfade disabled.
-          secondaryWired = false
-        }
-      }
-
       function releaseObjectUrlB() {
         if (objectUrlB === null) return
         try {
@@ -154400,10 +154296,8 @@ window.__ModuleLoader__.load({
 
       function beginCrossfadePlayback(prepared) {
         if (prepared === null || prepared === undefined) return abortCrossfade()
-        ensureSecondary()
         if (audioB === null || audioContext === null || fadeNode === null) return abortCrossfade()
-        wireSecondary()
-        if (!secondaryWired || fadeNodeB === null || trimNodeB === null) return abortCrossfade()
+        if (fadeNodeB === null || trimNodeB === null) return abortCrossfade()
         var remaining = (state.duration > 0 ? state.duration : audio.duration || 0) - audio.currentTime
         var fade = Math.min(prepared.plan.overlap, remaining - 0.05)
         if (!(fade >= 1)) return abortCrossfade()
@@ -154630,6 +154524,39 @@ window.__ModuleLoader__.load({
         return xfadeActive === true
       }
 
+      /** Forward a transport event only when it belongs to the deck on screen. */
+      function transportIsActive(info) {
+        return foliaTransport !== null && info !== null && info.deck === foliaTransport.getActiveDeck()
+      }
+
+      function transportStateChanged(info) {
+        if (!transportIsActive(info)) return
+        if (info.playing === true) {
+          onPlaying({ target: audio })
+          onPlay({ target: audio })
+          return
+        }
+        onPause({ target: audio })
+      }
+
+      function transportTimeChanged(info) {
+        if (!transportIsActive(info)) return
+        state = Object.assign({}, state, {
+          duration: Number(info.duration) || state.duration,
+          buffered: Number(info.buffered) || 0,
+        })
+        onTime({ target: audio })
+      }
+
+      function transportFailed(info) {
+        onError(info)
+      }
+
+      function transportEnded(info) {
+        if (!transportIsActive(info)) return
+        onEnded({ target: audio })
+      }
+
       var api = {
         subscribe: function (fn) {
           listeners.push(fn)
@@ -154738,8 +154665,8 @@ window.__ModuleLoader__.load({
           if (audio === el && (el === null || foliaGraph !== null)) return
           abortCrossfade()
           cancelPrefetch()
-          if (audio !== null) unbind(audio)
-          if (audioB !== null) unbind(audioB)
+          if (audio !== null) audio = null
+          if (audioB !== null) audioB = null
           if (foliaTransport !== null) {
             foliaTransport.dispose()
             foliaTransport = null
@@ -154753,8 +154680,6 @@ window.__ModuleLoader__.load({
           audioContext = null
           analyser = null
           gainNode = null
-          preampNode = null
-          limiterNode = null
           deckSource = null
           deckSourceB = null
           fadeNode = null
@@ -154769,9 +154694,14 @@ window.__ModuleLoader__.load({
           foliaGraph = createFoliaGraph()
           foliaGraph.attach(el)
           audioB = foliaGraph.getDeckElement('B')
-          foliaTransport = createFoliaTransport({ graph: foliaGraph })
-          bind(el)
-          if (audioB !== null) bind(audioB)
+          foliaTransport = createFoliaTransport({
+            graph: foliaGraph,
+            playbackFade: readPrefs().playbackFade !== false,
+            onState: transportStateChanged,
+            onTime: transportTimeChanged,
+            onError: transportFailed,
+            onEnded: transportEnded,
+          })
           el.preload = 'metadata'
           el.volume = effectiveVolume()
           el.muted = state.muted
@@ -155217,7 +155147,6 @@ window.__ModuleLoader__.load({
             foliaGraph = null
           }
           if (audio) {
-            unbind(audio)
             audio.pause()
             audio.removeAttribute('src')
             audio = null
