@@ -279,6 +279,49 @@ export function splitFileName(fn) {
   return { title: s.slice(i + 3).trim(), artists: [s.slice(0, i).trim()] }
 }
 
+/** Normalize the nested `{base,audio_info,album_info,authors}` rows returned by the package's KMR routes. */
+export function normalizePackageSong(item) {
+  const row = item !== null && typeof item === 'object' ? item : {}
+  if (!row.base && !row.audio_info && !row.album_info) {
+    const authors = Array.isArray(row.authors) ? row.authors : []
+    const artistName = row.author_name || row.singername || row.SingerName || ''
+    return normalizeSong({
+      ...row,
+      songname: row.songname || row.audio_name || row.SongName || '',
+      albumname: row.albumname || row.album_name || '',
+      SingerName: artistName,
+      Singers: authors.length > 0
+        ? authors.map((author) => ({ id: author?.author_id, name: author?.author_name }))
+        : artistName
+          ? String(artistName).split(/、|\/|,/).map((name) => ({ id: row.author_id, name: name.trim() })).filter((artist) => artist.name)
+          : [],
+      duration: row.duration || (Number(row.timelength) || Number(row.timelength_128) || 0) / 1000,
+    })
+  }
+  const base = row.base || {}
+  const audio = row.audio_info || {}
+  const album = row.album_info || {}
+  const authors = Array.isArray(row.authors) ? row.authors : []
+  const hash = lowHash(audio.hash || audio.hash_128 || '')
+  if (hash === '') return normalizeSong(row)
+  return normalizeSong({
+    ...base,
+    hash,
+    '320hash': lowHash(audio.hash_320 || ''),
+    sqhash: lowHash(audio.hash_flac || ''),
+    hash_high: lowHash(audio.hash_high || ''),
+    hash_super: lowHash(audio.hash_super || ''),
+    songname: base.audio_name || base.songname || '',
+    album_id: base.album_id || album.album_id || 0,
+    albumname: album.album_name || album.albumname || '',
+    AlbumImage: album.cover || album.sizable_cover || '',
+    duration: audio.duration ? Number(audio.duration) / 1000 : 0,
+    Singers: authors.map((author) => ({ id: author?.author_id, name: author?.author_name })),
+    SingerName: authors.map((author) => author?.author_name).filter(Boolean).join(' / '),
+    authors,
+  })
+}
+
 /** 统一歌曲形状（对齐 qq.js 结果字段 + 酷狗特有 hash 组）。 */
 export function normalizeSong(o, opts = {}) {
   const hash = lowHash(opts.hashKey ? o[opts.hashKey] : o.hash)

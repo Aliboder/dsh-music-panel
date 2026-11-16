@@ -42,7 +42,7 @@ import { resetUpstreamOverride as resetKugou, setUpstreamOverride as setKugou } 
     if (route === '/getSingerAlbum') {
       return {
         response: {
-          singer: { data: { albumList: [{ albummid: 'qq-album', albumname: '叶惠美', pic: 'https://cover', singername: '周杰伦', song_count: 1 }] } },
+          singer: { data: { albumList: [{ albumMid: 'qq-album', albumName: '叶惠美', singername: '周杰伦', totalNum: 1 }] } },
         },
       }
     }
@@ -80,7 +80,21 @@ import { resetUpstreamOverride as resetKugou, setUpstreamOverride as setKugou } 
       return { body: { data: [{ album_id: 'kg-album', album_name: '叶惠美', sizable_cover: 'https://cover', author_name: '周杰伦' }] }, cookie: [] }
     }
     if (operation === 'album_songs') {
-      return { body: { data: { info: [{ hash: 'kg-song', songname: '晴天', singername: '周杰伦', albumname: '叶惠美' }] } }, cookie: [] }
+      return {
+        body: {
+          total: 1,
+          data: {
+            total: 1,
+            songs: [{
+              base: { audio_name: '晴天', album_id: 966846, author_name: '周杰伦' },
+              audio_info: { hash: 'kg-song', duration: 269000 },
+              album_info: { album_name: '叶惠美', cover: 'https://cover' },
+              authors: [{ author_id: 3520, author_name: '周杰伦' }],
+            }],
+          },
+        },
+        cookie: [],
+      }
     }
     if (operation === 'artist_detail') {
       return { body: { data: { author_id: '12345', author_name: '周杰伦', sizable_avatar: 'https://a', intro: 'bio' } }, cookie: [] }

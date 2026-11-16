@@ -217,9 +217,9 @@ export async function callUpstream(route, params = {}, options = {}) {
     if (value === undefined || value === '') continue
     query.set(key, String(value))
   }
+  if (typeof options.cookie === 'string' && options.cookie !== '') query.set('cookie', options.cookie)
   const suffix = query.toString() === '' ? '' : `?${query.toString()}`
   const url = `http://127.0.0.1:${handle.port}${route}${suffix}`
-
   const headers = { accept: 'application/json' }
   if (typeof options.cookie === 'string' && options.cookie !== '') headers.cookie = options.cookie
 

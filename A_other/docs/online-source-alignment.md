@@ -1,0 +1,51 @@
+# 在线来源与 Folia 对齐审计
+
+目标：在线资源的取数必须走 Folia 同款平台 provider / transport 操作，不在插件里另写一套平台协议。
+
+## 当前状态
+
+| 平台 | 已对齐 | 仍是自有实现 | 说明 |
+| --- | --- | --- | --- |
+| 网易云 | 搜索、播放地址、歌词、歌单、喜欢、歌手、专辑 | 无（少量旧路由兜底） | 专辑曲目与 Folia 一样读 `/album` 顶层 `songs` |
+| QQ | 搜索、播放地址、歌词、扫码登录、专辑、歌手歌曲、歌手专辑 | 我的歌单、歌单曲目、喜欢读取/写入、用户资料 | QQ 登录仍存旧式原始 Cookie；包内需要 `qqmusic_session` 会话，导致登录类路由不可用 |
+| 酷狗 | 搜索、歌词、扫码登录、专辑、歌手歌曲、歌手专辑 | 播放地址、用户资料、我的歌单、喜欢写入 | 播放仍直连 gateway；用户/歌单仍是旧接口 |
+| 酷狗概念版 | 同上 | 同上 | 与酷狗共用旧实现 |
+| Navidrome | Subsonic 协议（歌手/专辑/歌单/收藏） | 自有 Subsonic 客户端 | 协议相同，但不是 Folia 的 `navidromeService` 封装 |
+| 汽水 | 搜索、播放、歌词、歌手歌曲、歌手详情、歌单、喜欢 | 推荐/探索等扩展 | 使用同一个 `qishui-music-api` 包 |
+| 波点 | 搜索、播放、歌单、喜欢 | 歌手/专辑目录 | 波点没有专辑方法 |
+
+## 已实测
+
+用本机已保存的登录态调用 Host provider：
+
+```text
+netease  ALBUM 1  春日影
+netease  ARTIST_SONGS 10
+netease  ARTIST_ALBUMS 29 鹏泊
+qq       ALBUM 11 叶惠美
+qq       ARTIST_SONGS 10
+qq       ARTIST_ALBUMS 43 周杰伦
+kugou    ALBUM 11 叶惠美
+kugou    ARTIST_SONGS 10
+kugou    ARTIST_ALBUMS 49 周杰伦
+kugouLite 同上
+```
+
+Navidrome 未配置服务器；Qishui/Bodian 当前没有登录态，未做真实账号测试。
+
+## 这一轮修复
+
+- 网易云专辑曲目改读 `/album` 顶层 `songs`，与 Folia 的 `getAlbumTracks` 完全一致。
+- QQ 歌手专辑兼容包返回的 camelCase 字段（`albumMid` / `albumName` / `totalNum`），不再过滤成空列表。
+- 酷狗专辑曲目兼容包返回的 `{base,audio_info,album_info,authors}`，并按 Folia 的 30 条分页读取。
+- 酷狗歌手歌曲兼容包返回的平坦字段（`audio_name` / `author_name` / `album_name` / `timelength`）。
+- QQ 包请求同时把整串 Cookie 放进 `?cookie=`，与 Folia 的 Electron transport 一致。
+
+## 还需要迁移
+
+1. **QQ 登录会话**：登录后保存 Folia 的 `qqmusic_session` 封装，而不是原始 QQ Cookie 键。这是 QQ 歌单/喜欢能走包路由的前提。
+2. **QQ 歌单与喜欢**：`/user/playlist`、`/user/playlist-detail`、`/user/liked-songs`、`/user/song/like`。
+3. **酷狗播放地址**：`song_url` 包操作，替换现在的 gateway 直连。
+4. **酷狗用户/歌单/喜欢**：包操作替换旧接口。
+5. **Navidrome**：要么继续按 Subsonic 协议对齐，要么接入 Folia 的 `navidromeService`。
+6. **Qishui/Bodian 扩展**：推荐、探索、歌手目录等未迁移。

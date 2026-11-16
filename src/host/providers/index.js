@@ -195,13 +195,13 @@ function albumCard(provider, raw) {
   const nested = item.album && typeof item.album === 'object' ? item.album : {}
   const artist = Array.isArray(item.artists) && item.artists[0]
     ? textOf(item.artists[0].name)
-    : textOf(firstValue(item, ['singername', 'author_name', 'artistName']) || item.artist?.name || item.artist || firstValue(nested, ['artist']))
+    : textOf(firstValue(item, ['singername', 'singerName', 'author_name', 'artistName']) || item.artist?.name || item.artist || firstValue(nested, ['artist']))
   return {
-    id: textOf(firstValue(item, ['albummid', 'album_id', 'albumId', 'id']) || firstValue(nested, ['id'])),
-    name: textOf(firstValue(item, ['albumname', 'album_name', 'name', 'title']) || firstValue(nested, ['name'])),
+    id: textOf(firstValue(item, ['albummid', 'albumMid', 'album_id', 'albumId', 'albumID', 'id']) || firstValue(nested, ['id'])),
+    name: textOf(firstValue(item, ['albumname', 'albumName', 'album_name', 'name', 'title']) || firstValue(nested, ['name'])),
     cover: textOf(firstValue(item, ['picUrl', 'coverUrl', 'pic', 'cover', 'sizable_cover']) || firstValue(nested, ['coverUrl', 'cover'])),
     artist,
-    trackCount: Number(firstValue(item, ['song_count', 'songCount', 'size', 'trackCount'])) || 0,
+    trackCount: Number(firstValue(item, ['song_count', 'songCount', 'size', 'trackCount', 'totalNum'])) || 0,
     provider,
   }
 }
@@ -346,7 +346,7 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
         const rows = kugouList(answer.body)
         if (rows.length > 0) {
           return rows
-            .map((item) => ({ ...KG.normalizeSong(item), source: provider }))
+            .map((item) => shape(provider, KG.normalizePackageSong(item)))
             .filter((song) => song.id !== '')
         }
       } catch {
@@ -416,14 +416,23 @@ export async function albumSongs(provider, id, cookie = '', session = {}, hint =
     try {
       const detail = await callKugou(platform, 'album_detail', { id: String(id) })
       const rawAlbum = kugouObject(detail.body) ?? {}
-      const answer = await callKugou(platform, 'album_songs', {
-        id: String(id),
-        page: 1,
-        pagesize: 100,
-      })
-      const songs = kugouList(answer.body)
-        .map((item) => ({ ...KG.normalizeSong(item), source: provider }))
-        .filter((song) => song.id !== '')
+      const songs = []
+      for (let page = 1; page <= 20; page += 1) {
+        const answer = await callKugou(platform, 'album_songs', {
+          id: String(id),
+          page,
+          pagesize: 30,
+        })
+        const rows = kugouList(answer.body)
+        if (rows.length === 0) break
+        for (const item of rows) {
+          const song = shape(provider, KG.normalizePackageSong(item))
+          if (song.id !== '') songs.push(song)
+        }
+        const total = Number(answer.body?.total ?? answer.body?.data?.total) || 0
+        if (total > 0 && songs.length >= total) break
+        if (rows.length < 30) break
+      }
       if (songs.length > 0) {
         return {
           id: String(id),
