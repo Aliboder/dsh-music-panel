@@ -81,6 +81,8 @@ docs/                        移植/架构说明
 ## 参考
 
 - [README](README.md)
+- [主题与组件开发规范](docs/theme-guidelines.md)
+- [平台架构](docs/provider-architecture.md)
 - [Folia 移植说明](docs/folia-porting.md)
 - [踩坑记录](docs/pitfalls.md)
 - [发布流程](docs/release.md)

@@ -71,9 +71,14 @@ for (const token of [
   '--dsw-alias-button-primary-fill',
   '--dsw-alias-toast-bg',
   '--dsw-alias-state-business-primary',
+  '--dsw-alias-switch-thumb',
 ]) {
   assert.ok(theme.includes(token), 'theme must reference ' + token)
 }
+
+// The local Switch fallback must use the host's thumb token, otherwise the
+// documented light/dark contract and the actual control drift apart.
+assert.match(theme, /\.mp-switch i\{[^']*background:var\(--dsw-alias-switch-thumb/, 'switch thumb follows the token')
 
 // Only the adapter may require the host client package.
 for (const [index, text] of all.entries()) {
