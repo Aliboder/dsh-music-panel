@@ -106,6 +106,8 @@ function createPlayer() {
   if (typeof window !== 'undefined' && window[PLAYER_KEY]) return window[PLAYER_KEY]
   var prefs = readPrefs()
   var audio = null
+  /** Folia graph/transport boundary; one per player instance. */
+  var foliaGraph = null
   /**
    * Second element used only for the incoming side of a crossfade. The active
    * deck is always the one in `audio`; the two swap roles when a fade lands, so
@@ -518,7 +520,7 @@ function createPlayer() {
 
   function onTime(event) {
     if (balanceMeter !== null) {
-      balanceMeter.tick()
+      balanceMeter.tick(audioContext === null ? 0 : audioContext.currentTime)
       // Until the file itself was read, a better live reading may move the gain:
       // within the first 10 s it eases in, later only a clear turn-down.
       if (readPrefs().normalizeVolume !== false && balanceAppliedReading !== 'file') {
@@ -701,11 +703,19 @@ function createPlayer() {
    */
   /** Element volume when normalization is applied without a Web Audio graph. */
   function effectiveVolume() {
-    var trim = gainNode === null ? Math.min(1, normalizeGain) : 1
+    if (gainNode !== null) return 1
+    var trim = Math.min(1, normalizeGain)
     return clamp(state.volume * trim, 0, 1)
   }
 
   function applyOutputVolume() {
+    if (gainNode !== null && foliaGraph !== null) {
+      foliaGraph.setVolume(state.volume)
+      foliaGraph.setMuted(state.muted)
+      if (audio) audio.volume = 1
+      if (audioB) audioB.volume = 1
+      return
+    }
     if (audio) audio.volume = effectiveVolume()
     if (audioB) audioB.volume = effectiveVolume()
   }
@@ -774,36 +784,16 @@ function createPlayer() {
   }
 
   /**
-   * Push the current EQ settings into the live graph. Disabled means every
-   * band at 0 dB and no preamp, i.e. an actual bypass rather than "flat preset".
+   * Push the current EQ settings into Folia's graph. The old preamp/headroom
+   * path is gone: Folia owns the ten filters and the effect chain.
    */
   function applyEq(immediate) {
-    var bands = eq.enabled ? eq.bands : zeroEqBands()
-    var preampDb = eq.enabled ? eqTotalPreampDb(eq.preamp, bands) : 0
-    var linear = eqDbToLinear(preampDb)
-    var paused = audio === null || audio.paused === true || immediate === true
-    if (preampNode !== null && audioContext !== null) {
-      try {
-        var now = audioContext.currentTime
-        preampNode.gain.cancelScheduledValues(now)
-        if (paused) preampNode.gain.setValueAtTime(linear, now)
-        else preampNode.gain.setTargetAtTime(linear, now, 0.02)
-      } catch (error) {
-        preampNode.gain.value = linear
-      }
-    }
-    for (var index = 0; index < eqNodes.length; index += 1) {
-      var entry = eqNodes[index]
-      var target = bands[entry.band]
-      try {
-        var time = audioContext === null ? 0 : audioContext.currentTime
-        entry.node.gain.cancelScheduledValues(time)
-        if (paused) entry.node.gain.setValueAtTime(target, time)
-        else entry.node.gain.setTargetAtTime(target, time, 0.02)
-      } catch (error) {
-        entry.node.gain.value = target
-      }
-    }
+    if (foliaGraph === null) return
+    foliaGraph.setEq({
+      enabled: eq.enabled,
+      gains: eq.bands,
+      preset: 'custom1',
+    })
   }
 
   /** Web Audio is the whole mechanism; without it the panel must say so. */
@@ -860,7 +850,7 @@ function createPlayer() {
   function commitBalanceReading(item, durationSec) {
     if (balanceMeter === null) return
     var play = balanceMeter.play()
-    balanceMeter.reset()
+    if (typeof balanceMeter.reset === 'function') balanceMeter.reset()
     if (!item || item.onlineProvider) return
     if (!balanceWholePlay(play, durationSec)) return
     noteBalanceReading(item.path, play, VOLUME_BALANCE_TARGET_DB - play.loudness)
@@ -919,7 +909,7 @@ function createPlayer() {
     currentLoudnessBlob = null
     loudnessToken += 1
     applyNormalizeGain(1)
-    if (balanceMeter !== null) balanceMeter.reset()
+    if (balanceMeter !== null && typeof balanceMeter.reset === 'function') balanceMeter.reset()
     balanceMoved = false
     if (readPrefs().normalizeVolume !== false) {
       // What is known before the file is read: a whole play of it, else the typical gain.
@@ -1608,76 +1598,46 @@ function createPlayer() {
     /** Flush statistics + resume state when the page is hidden/closed. */
     flushOnHide: flushOnHide,
     /**
-     * Lazily build the analyser graph. Called from a user gesture so the
+     * Lazily build Folia's graph. Called from a user gesture so the
      * AudioContext can start; connecting a media element source silences
      * the element until the context runs, so it must never be automatic.
      */
     ensureAnalyser: function () {
-      if (audio === null) return null
+      if (audio === null || foliaGraph === null) return null
       if (analyser !== null) return analyser
       if (!canRouteThroughWebAudio(audio)) return null
-      try {
-        var Ctx = window.AudioContext || window.webkitAudioContext
-        if (!Ctx) return null
-        if (audioContext === null) audioContext = new Ctx()
-        deckSource = audioContext.createMediaElementSource(audio)
-        preampNode = audioContext.createGain()
-        eqNodes = buildEqNodes(audioContext)
-        limiterNode = audioContext.createDynamicsCompressor()
-        limiterNode.threshold.value = -1.5
-        limiterNode.knee.value = 0
-        limiterNode.ratio.value = 20
-        limiterNode.attack.value = 0.003
-        limiterNode.release.value = 0.15
-        gainNode = audioContext.createGain()
-        analyser = audioContext.createAnalyser()
-        analyser.fftSize = 2048
-        // Folia's own analyser runs at 0.6 (usePlaybackAudioBridge); the Folia port's
-        // bands must be read from the same response curve or the visualizers lag the
-        // music. The bar and page spectrum derive their own smoothing from this data.
-        analyser.smoothingTimeConstant = 0.6
-        // Each deck owns a fade gain and a loudness trim; both sum into the
-        // shared preamp so the EQ, limiter and analyser stay single-instance.
-        fadeNode = audioContext.createGain()
-        trimNode = audioContext.createGain()
-        deckSource.connect(fadeNode)
-        fadeNode.connect(trimNode)
-        trimNode.connect(preampNode)
-        // Meter taps hang off the fade node: they hear the song before its balance
-        // gain, like Folia's per-deck meter.
-        balanceSplitter = audioContext.createChannelSplitter(2)
-        balanceTaps = [audioContext.createAnalyser(), audioContext.createAnalyser()]
-        balanceSilent = audioContext.createGain()
-        balanceSilent.gain.value = 0
-        fadeNode.connect(balanceSplitter)
-        balanceTaps.forEach(function (tap, channel) {
-          tap.fftSize = 4096
-          tap.smoothingTimeConstant = 0
-          balanceSplitter.connect(tap, channel)
-          tap.connect(balanceSilent)
-        })
-        balanceSilent.connect(audioContext.destination)
-        balanceMeter = createBalanceMeter(balanceTaps[0], balanceTaps[1], audio)
-        var tail = preampNode
-        for (var index = 0; index < eqNodes.length; index += 1) {
-          tail.connect(eqNodes[index].node)
-          tail = eqNodes[index].node
-        }
-        tail.connect(limiterNode)
-        tail = limiterNode
-        tail.connect(gainNode)
-        gainNode.connect(analyser)
-        analyser.connect(audioContext.destination)
-        if (audio) audio.volume = state.volume
-        wireSecondary()
-        applyNormalizeGain(normalizeGain)
-        applyEq(true)
-        waveData = new Uint8Array(analyser.frequencyBinCount)
-        if (audioContext.state === 'suspended') audioContext.resume().catch(function () {})
-      } catch (error) {
+      var built = foliaGraph.ensure()
+      if (built === null) return null
+      audioContext = foliaGraph.getContext()
+      analyser = foliaGraph.getAnalyser()
+      gainNode = foliaGraph.getMasterGain()
+      if (audioContext === null || analyser === null || gainNode === null) {
         analyser = null
         return null
       }
+      var chainA = foliaGraph.getDeckChain('A')
+      var chainB = foliaGraph.getDeckChain('B')
+      if (chainA === null || chainB === null) {
+        analyser = null
+        return null
+      }
+      // Compatibility aliases while the transport half is still the old code:
+      // the deck chain's four gain stages now back the old names. The old
+      // preamp/limiter are not created any more.
+      deckSource = chainA.source
+      deckSourceB = chainB.source
+      fadeNode = chainA.fade
+      fadeNodeB = chainB.fade
+      trimNode = chainA.replayGain
+      trimNodeB = chainB.replayGain
+      secondaryWired = true
+      balanceMeter = chainA.balanceMeter
+      eqNodes = []
+      waveData = new Uint8Array(analyser.frequencyBinCount)
+      applyNormalizeGain(normalizeGain)
+      applyEq(true)
+      applyOutputVolume()
+      if (audioContext.state === 'suspended') audioContext.resume().catch(function () {})
       return analyser
     },
     /** Latest frequency data (0..255 per bin) or null when unavailable. */
@@ -1688,24 +1648,17 @@ function createPlayer() {
     },
     /** Hand the resident <audio> element to the engine (null detaches). */
     attachAudio: function (el) {
-      if (audio === el) return
+      if (audio === el && (el === null || foliaGraph !== null)) return
       abortCrossfade()
       cancelPrefetch()
       if (audio !== null) unbind(audio)
-      if (audioB !== null) {
-        unbind(audioB)
-        if (audioB.parentNode) audioB.parentNode.removeChild(audioB)
-        audioB = null
+      if (audioB !== null) unbind(audioB)
+      if (foliaGraph !== null) {
+        foliaGraph.dispose()
+        foliaGraph = null
       }
+      audioB = null
       releaseObjectUrlB()
-      // A new media element needs a fresh source node; close the old graph.
-      if (audioContext !== null) {
-        try {
-          audioContext.close()
-        } catch (error) {
-          // Already closed.
-        }
-      }
       audioContext = null
       analyser = null
       gainNode = null
@@ -1722,11 +1675,18 @@ function createPlayer() {
       waveData = null
       audio = el
       if (el === null) return
+      foliaGraph = createFoliaGraph()
+      foliaGraph.attach(el)
+      audioB = foliaGraph.getDeckElement('B')
       bind(el)
+      if (audioB !== null) bind(audioB)
       el.preload = 'metadata'
       el.volume = effectiveVolume()
       el.muted = state.muted
-      ensureSecondary()
+      if (audioB !== null) {
+        audioB.volume = effectiveVolume()
+        audioB.muted = state.muted
+      }
       var item = currentItem()
       if (item !== null) {
         if (objectUrl !== null) {
@@ -2084,8 +2044,12 @@ function createPlayer() {
     },
     setMuted: function (value) {
       state = Object.assign({}, state, { muted: value })
-      if (audio) audio.muted = value
-      if (audioB) audioB.muted = value
+      if (gainNode !== null && foliaGraph !== null) {
+        applyOutputVolume()
+      } else {
+        if (audio) audio.muted = value
+        if (audioB) audioB.muted = value
+      }
       emit()
     },
     setLoop: function (value) {
