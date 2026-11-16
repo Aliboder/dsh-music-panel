@@ -77,6 +77,10 @@ export function createRegistry() {
         capabilities: source.capabilities ?? {},
         qualityLevels: Array.isArray(source.qualityLevels) ? source.qualityLevels.slice() : [],
         loginMethods: Array.isArray(source.loginMethods) ? source.loginMethods.slice() : [],
+        availability: typeof source.availability === 'function'
+          ? source.availability()
+          : { configured: true },
+        requiresAccount: source.requiresAccount !== false,
       }))
     },
 

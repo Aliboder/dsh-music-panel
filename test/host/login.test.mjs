@@ -365,4 +365,50 @@ console.log('login.test.mjs ok')
   assert.equal(body.error.facts.step, 'start')
 }
 
+// ── transient poll / cancel ────────────────────────────────────────────────
+
+{
+  let cancelled = 0
+  const state = createLoginState({
+    sourceId: 'demo',
+    adapter: {
+      start: async () => ({ key: 'k', expiresAt: Date.now() + 60_000 }),
+      poll: async () => ({ status: 'failed', transient: true, message: 'socket reset' }),
+      cancel: async () => { cancelled += 1 },
+    },
+  })
+  await state.start('qr')
+  const first = await state.poll()
+  assert.equal(first.status, LOGIN_STATUS.PENDING)
+  assert.equal(first.transient, true)
+  const second = await state.poll()
+  assert.equal(second.status, LOGIN_STATUS.PENDING)
+  const third = await state.poll()
+  assert.equal(third.status, LOGIN_STATUS.ERROR)
+
+  await state.start('qr')
+  await state.cancel()
+  assert.equal(cancelled, 1)
+  assert.equal(state.getSnapshot().status, LOGIN_STATUS.ANONYMOUS)
+}
+
+{
+  // The Folia-shaped session view carries the fields the wide window needs.
+  const view = accountSessionOf({
+    sourceId: 'qq',
+    sessionId: 4,
+    status: LOGIN_STATUS.PENDING,
+    detail: 'waiting',
+    key: 'k',
+    expiresAt: 1234,
+    methods: [{ id: 'qq' }, { id: 'wx' }],
+    selectedMethodId: 'wx',
+    failure: null,
+  })
+  assert.equal(view.sessionId, 4)
+  assert.equal(view.expiresAt, 1234)
+  assert.deepEqual(view.methods, [{ id: 'qq' }, { id: 'wx' }])
+  assert.equal(view.selectedMethodId, 'wx')
+}
+
 console.log('login-session.test ok')

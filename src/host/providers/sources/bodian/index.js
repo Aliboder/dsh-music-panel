@@ -134,6 +134,9 @@ export function createBodianSource(options) {
 
   async function request(operation, params) {
     try {
+      // Registration starts the stored-session read in the background; a
+      // request that arrives first waits for it instead of acting signed out.
+      if (typeof sessions.whenReady === 'function') await sessions.whenReady()
       return unwrap(await api.request(operation, params), operation)
     } catch (error) {
       throw toMusicError(error, SOURCE_ID)
@@ -219,6 +222,9 @@ export function createBodianSource(options) {
     },
     loginStatus(key) {
       return this.auth.checkLogin(key)
+    },
+    async cancelLogin() {
+      return true
     },
 
     auth: {

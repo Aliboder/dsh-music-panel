@@ -5,18 +5,23 @@
  * (`{ cookie, token, mid, dfid, guid, userid, nickname, avatarUrl, vip_type, … }`)
  * and ~50 call sites read it through `providerStore.session()/cookie()`. The login
  * rewrite introduced `login/store.js` with a versioned, per-source structure; this
- * file keeps the old API on top of it so the migration is one layer, not fifty
- * call sites.
+ * file keeps the old API on top of it so the migration is one layer, not fifty call
+ * sites.
  *
  * Old `providers.json` files are intentionally **not** read: the migration decision
  * was "existing sign-ins are discarded", so users sign in once more.
+ *
+ * The store is deliberately generic: a platform that is not in `EMPTY` still
+ * round-trips its credentials as long as it is registered here or already has a
+ * row on disk. That is what lets Bodian share the same file instead of creating a
+ * second `login/store.js` instance over it.
  *
  * @module dsh-music-panel/provider-store
  */
 
 import { createLoginStore } from './login/store.js'
 
-/** Rows for the five built-in platforms, with their historical defaults. */
+/** Known platforms, with their historical defaults. */
 const EMPTY = {
   netease: { cookie: '', nickname: '', avatarUrl: '', loggedIn: false },
   qq: { cookie: '', nickname: '', avatarUrl: '', loggedIn: false },
@@ -32,13 +37,15 @@ const EMPTY = {
     server: '', username: '', salt: '', token: '', password: '', nativeSongs: false,
     nickname: '', avatarUrl: '', loggedIn: false,
   },
+  // Bodian keeps an opaque session object; only the display fields are read here.
+  bodian: { nickname: '', avatarUrl: '', loggedIn: false },
 }
 
 /** Providers whose session carries a KuGou-style device identity. */
 const DEVICE_PROVIDERS = ['kugou', 'kugouLite']
 
 /** Providers that sign in with a QR flow (Navidrome uses credentials instead). */
-const QR_PROVIDERS = ['netease', 'qq', 'kugou', 'kugouLite']
+const QR_PROVIDERS = ['netease', 'qq', 'kugou', 'kugouLite', 'bodian']
 
 const ALL_PROVIDERS = Object.keys(EMPTY)
 
@@ -59,14 +66,25 @@ export function createProviderStore(options) {
     return { ...emptyRow(provider), ...(entry.credentials ?? {}) }
   }
 
+  async function hasEntry(provider) {
+    return (await loginStore.get(provider)) !== null
+  }
+
   return {
     /** The file the credentials now live in (kept for logs and tests). */
     file: loginStore.file,
 
+    /** Full stored entry, for adapters that need opaque credentials (Bodian). */
+    async getEntry(provider) {
+      return await loginStore.get(provider)
+    },
+
     /** Public summary for the settings UI (no cookies). */
     async summary() {
+      const stored = await loginStore.summary()
+      const ids = [...new Set([...ALL_PROVIDERS, ...Object.keys(stored)])]
       const result = {}
-      for (const provider of ALL_PROVIDERS) {
+      for (const provider of ids) {
         const data = await row(provider)
         const entry = {
           loggedIn: data.loggedIn === true,
@@ -85,7 +103,6 @@ export function createProviderStore(options) {
 
     /** Cookie for one provider ('' when signed out). */
     async cookie(provider) {
-      if (!QR_PROVIDERS.includes(provider)) return ''
       return String((await row(provider)).cookie || '')
     },
 
@@ -119,7 +136,8 @@ export function createProviderStore(options) {
 
     /** Persist a successful login. */
     async setLogin(provider, value) {
-      if (!QR_PROVIDERS.includes(provider) && provider !== 'navidrome') return
+      if (typeof provider !== 'string' || provider === '') return
+      if (!ALL_PROVIDERS.includes(provider) && !(await hasEntry(provider))) return
       const current = await row(provider)
       const kugou = DEVICE_PROVIDERS.includes(provider)
       const next = {
@@ -128,15 +146,15 @@ export function createProviderStore(options) {
         loggedIn: true,
         ...(kugou ? { token_refreshed_at: Date.now() } : {}),
       }
-      await loginStore.save(provider, next, {
-        nickname: next.nickname || '',
-        avatarUrl: next.avatarUrl || '',
-      })
+      const profile = next.nickname || next.avatarUrl
+        ? { nickname: next.nickname || '', avatarUrl: next.avatarUrl || '' }
+        : null
+      await loginStore.save(provider, next, profile)
     },
 
     /** Mark a stored session as rejected by the provider, keeping device/profile fields. */
     async markExpired(provider) {
-      if (!QR_PROVIDERS.includes(provider)) return
+      if (!ALL_PROVIDERS.includes(provider)) return
       const data = await row(provider)
       const kugou = DEVICE_PROVIDERS.includes(provider)
       await loginStore.save(provider, {
@@ -166,10 +184,11 @@ export function createProviderStore(options) {
         await loginStore.clearAll()
         return
       }
-      if (!ALL_PROVIDERS.includes(provider)) return
+      if (typeof provider !== 'string' || provider === '') return
+      if (!ALL_PROVIDERS.includes(provider) && !(await hasEntry(provider))) return
       await loginStore.clear(provider)
     },
   }
 }
 
-export { DEVICE_PROVIDERS, QR_PROVIDERS }
+export { ALL_PROVIDERS, DEVICE_PROVIDERS, QR_PROVIDERS }

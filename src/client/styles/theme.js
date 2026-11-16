@@ -838,6 +838,7 @@ var THEME_CSS = [
   '.mp-provider-name{display:flex;align-items:center;gap:8px}',
   '.mp-provider-icon{display:inline-flex;width:20px;height:20px;flex:none}',
   '.mp-provider-logo{width:100%;height:100%;object-fit:contain;border-radius:8px;display:block}',
+  '.mp-provider-logo.is-fallback{display:grid;place-items:center;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:inherit;font-weight:650;border-radius:8px}',
   '.mp-account{display:flex;align-items:center;gap:8px}',
   '.mp-login-modes{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}',
   '.mp-account-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));flex:none}',
@@ -949,6 +950,8 @@ var THEME_CSS = [
   '.mp-d-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}',
 
   '.mp-login-card{width:100%;max-width:320px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:10px;padding:2px 0 4px}',
+  '.mp-login-methods{display:flex;align-items:center;gap:8px;width:100%;justify-content:center}',
+  '.mp-login-methods .mp-btn{flex:1;justify-content:center}',
   '.mp-login-head{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;text-align:center}',
   '.mp-login-logo{width:38px;height:38px;border-radius:8px;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.18)}',
   '.mp-login-logo img{width:100%;height:100%;object-fit:cover;display:block}',

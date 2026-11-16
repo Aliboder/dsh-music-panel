@@ -16,6 +16,7 @@ export function createBodianSessions(options = {}) {
   const store = options.store ?? null
   let value = null
   let writing = Promise.resolve()
+  let hydrating = null
 
   function persist(task) {
     if (store === null) return
@@ -24,6 +25,11 @@ export function createBodianSessions(options = {}) {
 
   return {
     get: () => value,
+
+    /** A request that needs the stored session waits for the startup read. */
+    whenReady() {
+      return hydrating ?? Promise.resolve()
+    },
 
     set(next) {
       value = next
@@ -38,13 +44,16 @@ export function createBodianSessions(options = {}) {
     /** Load the stored session once at startup. */
     async hydrate() {
       if (store === null) return null
-      try {
-        const entry = await store.get('bodian')
-        value = entry === null ? null : entry.credentials ?? null
-      } catch {
-        value = null
-      }
-      return value
+      hydrating = (async () => {
+        try {
+          const entry = await store.get('bodian')
+          value = entry === null ? null : entry.credentials ?? null
+        } catch {
+          value = null
+        }
+        return value
+      })()
+      return await hydrating
     },
 
     /** Flush pending writes (used by tests and shutdown). */

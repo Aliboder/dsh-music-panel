@@ -82,19 +82,19 @@ export function createOnlineRoutes(deps) {
 
   // QR sign-in goes through the shared state machine; persistence still writes the
   // legacy provider store, so the rest of the plugin keeps reading one source.
+  // The adapter is resolved from the registry at start time: platforms registered
+  // after the routes were built (Bodian) are still found.
   const login = createLoginBridge({
-    adapters: Object.fromEntries(
-      ['netease', 'qq', 'kugou', 'kugouLite', 'bodian'].map((id) => [
-        id,
-        (kind) =>
-          createQrAdapter({
-            sourceId: id,
-            omni,
-            mode: kind || 'qq',
-            getSession: async () => (providerStore === undefined ? {} : await providerStore.session(id)),
-          }),
-      ]),
-    ),
+    adapterFor: (id, kind) => {
+      const source = omni.summaries().find((entry) => entry.id === id)
+      if (source === undefined || source.capabilities?.loginQr !== true) return {}
+      return createQrAdapter({
+        sourceId: id,
+        omni,
+        mode: kind || 'qq',
+        getSession: async () => (providerStore === undefined ? {} : await providerStore.session(id)),
+      })
+    },
     store: {
       save: async (id, credentials, user) => {
         if (providerStore !== undefined) {
@@ -831,6 +831,7 @@ export function createOnlineRoutes(deps) {
             key: snapshot.key,
             imageDataUrl: snapshot.imageDataUrl,
             url: snapshot.url,
+            expiresAt: snapshot.expiresAt,
           })
         } catch (error) {
           const failure = loginFailureOf('start', error)
@@ -848,6 +849,12 @@ export function createOnlineRoutes(deps) {
         if (!supportsQrLogin(provider) || key === '') {
           return fail(res, 400, 'BAD_REQUEST', '缺少 provider / key')
         }
+        // A poll belongs to the exact key it was started with. Without this an
+        // answer from a replaced attempt would overwrite the current one.
+        const current = login.snapshot(provider)
+        if (String(current?.key ?? '') !== key) {
+          return fail(res, 409, 'LOGIN_STALE', '这次登录已经被新的尝试取代')
+        }
         try {
           const snapshot = await login.poll(provider)
           if (snapshot.status === 'error') {
@@ -860,8 +867,12 @@ export function createOnlineRoutes(deps) {
             })
             return fail(res, 502, 'LOGIN_STATUS_FAILED', failure.message, { failure: failure.case, facts: failure.facts })
           }
-          const status = snapshot.status === 'authenticated' ? 'success' : snapshot.detail || snapshot.status
-          return sendJson(res, 200, { ok: true, status })
+          const status = snapshot.status === 'authenticated'
+            ? 'success'
+            : snapshot.transient === true
+              ? (snapshot.detail === 'scanned' ? 'scanned' : 'waiting')
+              : snapshot.detail || snapshot.status
+          return sendJson(res, 200, { ok: true, status, transient: snapshot.transient === true })
         } catch (error) {
           const failure = loginFailureOf('check', error)
           return fail(res, 502, 'LOGIN_STATUS_FAILED', failure.message, { failure: failure.case, facts: failure.facts })
@@ -874,7 +885,8 @@ export function createOnlineRoutes(deps) {
           return fail(res, 400, 'BAD_PROVIDER', '该平台没有扫码登录')
         }
         try {
-          await login.poll(provider)
+          // Reading the session is a read: it must not poll the platform and
+          // change the sign-in state under the caller.
           return sendJson(res, 200, {
             ok: true,
             provider,
@@ -890,6 +902,21 @@ export function createOnlineRoutes(deps) {
             error instanceof Error ? error.message : '登录会话查询失败',
           )
         }
+      }
+
+      if (pathname === '/online/login/cancel' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const provider = String(body?.provider || '')
+        if (!supportsQrLogin(provider)) {
+          return fail(res, 400, 'BAD_PROVIDER', '该平台没有扫码登录')
+        }
+        await login.cancel(provider)
+        return sendJson(res, 200, { ok: true })
       }
 
       // Navidrome/Subsonic has no QR flow: the client posts a server URL plus      // Navidrome/Subsonic has no QR flow: the client posts a server URL plus
@@ -1457,7 +1484,11 @@ export function createOnlineRoutes(deps) {
           await kugouSessions.validate('kugouLite')
         }
         const summary = providerStore === undefined ? {} : await providerStore.summary()
-        for (const provider of ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome']) {
+        const registeredIds = new Set(omni.summaries().map((source) => source.id))
+        // Every registered platform the store knows about is refreshed; the
+        // registry is the platform list, not this loop.
+        for (const provider of Object.keys(summary)) {
+          if (!registeredIds.has(provider)) continue
           if (summary[provider] && summary[provider].loggedIn === true) {
             const vipInfo = await vipInfoState(provider)
             summary[provider].vip = vipInfo.vip
@@ -1472,9 +1503,12 @@ export function createOnlineRoutes(deps) {
         }
         // Sources registered outside the legacy provider store (Bodian today) are
         // merged in here so the client can list every platform with its
-        // capabilities. Legacy keys are preserved for the existing UI.
+        // capabilities. A stored row for a platform this runtime cannot register
+        // (optional package missing) is not shown.
         const merged = {}
+        const registered = new Set()
         for (const source of omni.summaries()) {
+          registered.add(source.id)
           merged[source.id] = {
             ...(summary[source.id] ?? {}),
             displayName: source.displayName,
@@ -1482,10 +1516,12 @@ export function createOnlineRoutes(deps) {
             capabilities: source.capabilities,
             qualityLevels: source.qualityLevels,
             loginMethods: source.loginMethods,
+            availability: source.availability,
+            requiresAccount: source.requiresAccount,
           }
         }
         for (const [id, entry] of Object.entries(summary)) {
-          if (merged[id] === undefined) merged[id] = entry
+          if (registered.has(id) && merged[id] === undefined) merged[id] = entry
         }
         return sendJson(res, 200, { ok: true, providers: merged })
       }

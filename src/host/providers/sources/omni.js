@@ -120,6 +120,7 @@ export function createOmni(registry) {
     profile: route('profile'),
     loginStart: route('loginStart'),
     loginStatus: route('loginStatus'),
+    cancelLogin: route('cancelLogin'),
     forgetTokens: route('forgetTokens'),
     createDevice: route('createDevice'),
 

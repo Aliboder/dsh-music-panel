@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createProviderStore, DEVICE_PROVIDERS, QR_PROVIDERS } from '../../src/host/providers/provider-store.js'
 
-assert.deepEqual(QR_PROVIDERS, ['netease', 'qq', 'kugou', 'kugouLite'])
+assert.deepEqual(QR_PROVIDERS, ['netease', 'qq', 'kugou', 'kugouLite', 'bodian'])
 assert.deepEqual(DEVICE_PROVIDERS, ['kugou', 'kugouLite'])
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-providers-'))
@@ -20,7 +20,7 @@ const store = createProviderStore({ dir })
 // ── signed out ─────────────────────────────────────────────────────────────
 
 const empty = await store.summary()
-for (const provider of ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome']) {
+for (const provider of ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome', 'bodian']) {
   assert.equal(empty[provider].loggedIn, false, `${provider} starts signed out`)
   assert.equal(empty[provider].nickname, '')
 }
@@ -83,6 +83,18 @@ assert.equal(nd.server, 'https://nd.example.com')
 assert.equal(nd.token, 't')
 assert.equal((await store.summary()).navidrome.nativeSongs, false)
 assert.equal((await store.summary()).navidrome.server, 'https://nd.example.com')
+
+// ── opaque session provider (Bodian) ───────────────────────────────────────
+
+await store.setLogin('bodian', { token: 'bd-token', devices: ['d1'], nickname: 'Bodian User' })
+const bodian = await store.summary()
+assert.equal(bodian.bodian.loggedIn, true)
+assert.equal(bodian.bodian.nickname, 'Bodian User')
+const bodianEntry = await store.getEntry('bodian')
+assert.equal(bodianEntry.credentials.token, 'bd-token')
+assert.deepEqual(bodianEntry.credentials.devices, ['d1'])
+assert.equal(bodianEntry.credentials.loggedIn, true)
+assert.equal(JSON.stringify(bodian).includes('bd-token'), false, 'summary never leaks Bodian credentials')
 
 // ── clearing ───────────────────────────────────────────────────────────────
 

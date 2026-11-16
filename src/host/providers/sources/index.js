@@ -69,7 +69,11 @@ const KUGOU_LITE_CAPABILITIES = {
   auth: true,
   userLibrary: true,
   wordByWordLyrics: true,
-  mutations: true,
+  // The package exposes read/play, but not cloud like/playlist writes yet.
+  likeWrite: false,
+  playlistAdd: false,
+  mutations: false,
+  userAlbums: false,
 }
 
 /** Navidrome signs in with credentials, not a QR code. */

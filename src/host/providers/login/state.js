@@ -45,7 +45,7 @@ export function accountSessionOf(snapshot) {
     ? null
     : {
         case: {
-          id: String(snapshot.failure.code ?? 'login-failed'),
+          id: String(snapshot.failure.case || snapshot.failure.code || 'login-failed'),
           kind: snapshot.failure.code === 'network' ? 'B' : 'C',
           action: 'retry',
           details: false,
@@ -53,23 +53,27 @@ export function accountSessionOf(snapshot) {
         facts: {
           message: String(snapshot.failure.message ?? snapshot.message ?? ''),
           step: String(snapshot.detail ?? status),
+          retryAfterMs: Number(snapshot.failure.retryAfterMs) || undefined,
         },
         at: Number(snapshot.failure.at) || Date.now(),
       }
   return {
+    sessionId: Number(snapshot.sessionId) || 0,
     providerId: snapshot.sourceId,
     phase,
-    methods: [],
-    selectedMethodId: '',
+    methods: Array.isArray(snapshot.methods) ? snapshot.methods.slice() : [],
+    selectedMethodId: String(snapshot.selectedMethodId ?? ''),
     codeImage: phase === 'code' || phase === 'scanned' ? String(snapshot.imageDataUrl ?? '') : '',
     codeKey: phase === 'code' || phase === 'scanned' ? String(snapshot.key ?? '') : '',
+    expiresAt: Number(snapshot.expiresAt) || 0,
     failure,
+    transient: snapshot.transient === true,
     inBrowser: false,
     canReopenLoginPage: false,
     localService: null,
     selfCheck: null,
     checksAfterLogin: false,
-    texts: null,
+    texts: snapshot.texts ?? null,
   }
 }
 
@@ -108,6 +112,7 @@ export function createLoginState(options) {
 
   let snapshot = Object.freeze({
     sourceId,
+    sessionId: 0,
     status: LOGIN_STATUS.UNKNOWN,
     key: '',
     imageDataUrl: '',
@@ -119,6 +124,13 @@ export function createLoginState(options) {
     // Raw platform status for the current attempt ('waiting' | 'scanned' | …).
     detail: '',
     failure: null,
+    // Folia's transient check: a network-level miss while the platform-side code
+    // may still be valid must not end the wait.
+    transient: false,
+    transientFailures: 0,
+    methods: Array.isArray(adapter.methods) ? adapter.methods.slice() : [],
+    selectedMethodId: '',
+    texts: adapter.texts ?? null,
   })
   const listeners = new Set()
 
@@ -160,7 +172,16 @@ export function createLoginState(options) {
           failure: { code: 'unavailable', message: 'this source has no sign-in flow', retryable: false, retryAfterMs: 0 },
         })
       }
-      set({ status: LOGIN_STATUS.PENDING, failure: null, message: '' })
+      const sessionId = snapshot.sessionId + 1
+      set({
+        sessionId,
+        status: LOGIN_STATUS.PENDING,
+        failure: null,
+        message: '',
+        transient: false,
+        transientFailures: 0,
+        selectedMethodId: String(kind ?? ''),
+      })
       try {
         const started = await adapter.start(kind)
         return set({
@@ -183,7 +204,7 @@ export function createLoginState(options) {
     async poll() {
       if (snapshot.status !== LOGIN_STATUS.PENDING) return snapshot
       if (snapshot.expiresAt > 0 && now() > snapshot.expiresAt) {
-        return set({ status: LOGIN_STATUS.EXPIRED, message: '二维码已过期' })
+        return set({ status: LOGIN_STATUS.EXPIRED, message: '二维码已过期', transient: false })
       }
       if (typeof adapter.poll !== 'function' || snapshot.key === '') return snapshot
 
@@ -191,13 +212,33 @@ export function createLoginState(options) {
         const result = await adapter.poll(snapshot.key)
         const status = String(result?.status ?? 'failed')
         if (PENDING_RESULTS.has(status)) {
-          return set({ status: LOGIN_STATUS.PENDING, message: String(result?.message ?? ''), detail: status })
+          return set({
+            status: LOGIN_STATUS.PENDING,
+            message: String(result?.message ?? ''),
+            detail: status,
+            transient: false,
+            transientFailures: 0,
+          })
         }
         if (status === 'success') return await this.complete(result)
-        if (status === 'expired') return set({ status: LOGIN_STATUS.EXPIRED, message: String(result?.message ?? '二维码已过期') })
+        if (status === 'expired') {
+          return set({ status: LOGIN_STATUS.EXPIRED, message: String(result?.message ?? '二维码已过期'), transient: false })
+        }
+        // A miss at the network layer, while the platform still holds the code:
+        // keep waiting for the first two, then report it as a real failure.
+        if (result?.transient === true && snapshot.transientFailures < 2) {
+          return set({
+            status: LOGIN_STATUS.PENDING,
+            message: String(result?.message ?? '网络暂时不可用，正在重试'),
+            detail: status,
+            transient: true,
+            transientFailures: snapshot.transientFailures + 1,
+          })
+        }
         return set({
           status: LOGIN_STATUS.ERROR,
           message: String(result?.message ?? '登录失败'),
+          transient: false,
           failure: {
             code: 'auth-required',
             message: String(result?.message ?? ''),
@@ -208,7 +249,7 @@ export function createLoginState(options) {
           },
         })
       } catch (error) {
-        return set({ status: LOGIN_STATUS.ERROR, message: describe(error), failure: failureOf(error) })
+        return set({ status: LOGIN_STATUS.ERROR, message: describe(error), transient: false, failure: failureOf(error) })
       }
     },
 
@@ -257,6 +298,8 @@ export function createLoginState(options) {
         url: '',
         message: '',
         failure: null,
+        transient: false,
+        transientFailures: 0,
       })
     },
 
@@ -290,6 +333,17 @@ export function createLoginState(options) {
       return set({ status: LOGIN_STATUS.EXPIRED, message })
     },
 
+    /** Release the pending key (window closed / new attempt) and clear the view. */
+    async cancel() {
+      const key = snapshot.key
+      try {
+        if (typeof adapter.cancel === 'function' && key !== '') await adapter.cancel(key)
+      } catch {
+        // Cancelling is best-effort: an expired/unknown key must not surface.
+      }
+      return this.reset()
+    },
+
     reset() {
       return set({
         status: LOGIN_STATUS.ANONYMOUS,
@@ -301,6 +355,8 @@ export function createLoginState(options) {
         user: null,
         message: '',
         failure: null,
+        transient: false,
+        transientFailures: 0,
       })
     },
   }

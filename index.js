@@ -21,7 +21,6 @@ import { createStats } from './src/host/stores/stats.js'
 import { readLyricsFor } from './src/host/services/lyrics/lyrics.js'
 import { enqueueControl } from './src/host/services/playback/control.js'
 import { registerBodianSource, registerLocalSource, registerOnlineSources, resetSources } from './src/host/providers/sources/index.js'
-import { createLoginStore } from './src/host/providers/login/store.js'
 import { stopNeteaseService } from './src/host/services/netease-api.js'
 import { stopQqService } from './src/host/services/qq-api.js'
 import { stopAllKugouServices } from './src/host/services/kugou-api.js'
@@ -45,8 +44,14 @@ export function apply(ctx, rawConfig) {
   const library = createLibrary({ getSettings: settings.read, stats })
   const playlists = createPlaylists({ dir: settings.dir })
   const providerStore = createProviderStore({ dir: settings.dir })
-  // Bodian persists its own session; it shares the same credential file format.
-  const loginStore = createLoginStore({ dir: settings.dir })
+  // Bodian's upstream client wants a synchronous `{ get, save, clear }` repository.
+  // It shares the one credential file with every other platform; there is no second
+  // `createLoginStore` over the same path.
+  const bodianStore = {
+    get: (provider) => providerStore.getEntry(provider),
+    save: (provider, credentials) => providerStore.setLogin(provider, credentials, null),
+    clear: (provider) => providerStore.clear(provider),
+  }
   const onlineCache = createOnlineCache({ dir: settings.dir })
   const kugouSessions = createKugouSessionManager({ providerStore })
 
@@ -63,7 +68,6 @@ export function apply(ctx, rawConfig) {
     favorites.invalidate?.()
     playlists.invalidate?.()
     await providerStore.clear()
-    await loginStore.clearAll()
     await onlineCache.clear()
     settings.invalidate()
     await settings.reset()
@@ -78,7 +82,7 @@ export function apply(ctx, rawConfig) {
   ctx.effect(() => {
     registerOnlineSources()
     // Native upstream package (AGPL), registered outside the legacy factory.
-    registerBodianSource({ dir: settings.dir, store: loginStore })
+    registerBodianSource({ dir: settings.dir, store: bodianStore })
     if (library !== null && typeof library.scan === 'function') {
       registerLocalSource({
         scan: (options) => library.scan(options),

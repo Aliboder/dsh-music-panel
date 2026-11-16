@@ -67,17 +67,26 @@ export function createQrAdapter(options) {
           // A provider that named the case (QQ's package does) hands it over here.
           case: String(result?.case ?? ''),
           retryAfterMs: Number(result?.retryAfterMs) || 0,
+          // A network-level miss whose platform-side code may still be valid.
+          transient: result?.transient === true,
         }
       }
       return {
         status,
-        session: credentialsOf(result),
+        // Platforms with an opaque session object (Bodian) hand it over whole;
+        // the flat cookie/token platforms are shaped by `credentialsOf`.
+        session: result?.session !== null && typeof result?.session === 'object'
+          ? result.session
+          : credentialsOf(result),
         user: {
-          id: String(result?.userid ?? ''),
-          nickname: String(result?.nickname ?? ''),
-          avatarUrl: String(result?.avatarUrl ?? ''),
+          id: String(result?.userid ?? result?.user?.id ?? ''),
+          nickname: String(result?.nickname ?? result?.user?.nickname ?? ''),
+          avatarUrl: String(result?.avatarUrl ?? result?.user?.avatarUrl ?? ''),
         },
       }
+    },
+    async cancel(key) {
+      if (typeof options.omni.cancelLogin === 'function') await options.omni.cancelLogin(options.sourceId, key)
     },
   }
 }
@@ -94,15 +103,24 @@ export function createLoginBridge(options) {
   const states = new Map()
 
   /**
-   * One state per source. `adapters[id]` may be an adapter or a factory
-   * `(kind) => adapter`, so a per-request mode (qq vs wx) can be honoured.
+   * Resolve one source's adapter at the moment it starts. `adapterFor` exists so
+   * a platform registered after the routes were built (Bodian) is still found;
+   * the static `adapters` map stays for tests and the fixed built-ins.
+   */
+  function adapterFor(sourceId, kind) {
+    if (typeof options.adapterFor === 'function') return options.adapterFor(sourceId, kind) ?? {}
+    const entry = adapters[sourceId]
+    return typeof entry === 'function' ? entry(kind) : (entry ?? {})
+  }
+
+  /**
+   * One state per source. The adapter may be built per attempt so a changed
+   * QR method (`qq` vs `wx`) takes effect on the next attempt.
    */
   function stateFor(sourceId, kind) {
     let state = states.get(sourceId)
     if (state !== undefined) return state
-    const entry = adapters[sourceId]
-    const adapter = typeof entry === 'function' ? entry(kind) : (entry ?? {})
-    state = createLoginState({ sourceId, adapter })
+    state = createLoginState({ sourceId, adapter: adapterFor(sourceId, kind) })
     states.set(sourceId, state)
     return state
   }
@@ -122,12 +140,22 @@ export function createLoginBridge(options) {
     async poll(sourceId) {
       const state = stateFor(sourceId, undefined)
       const snapshot = await state.poll()
+      // A new start replaced this state while the poll was in flight: the
+      // answer belongs to the old attempt and must not be handed to the client.
+      if (states.get(sourceId) !== state) {
+        return stateFor(sourceId, undefined).getSnapshot()
+      }
       if (snapshot.status === 'authenticated' && snapshot.session !== null) {
         await store.save(sourceId, snapshot.session, snapshot.user)
       }
       return snapshot
     },
 
+    async cancel(sourceId) {
+      const state = states.get(sourceId)
+      states.delete(sourceId)
+      if (state !== undefined) await state.cancel()
+    },
 
     async logout(sourceId) {
       states.delete(sourceId)

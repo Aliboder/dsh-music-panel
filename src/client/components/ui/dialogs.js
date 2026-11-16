@@ -477,7 +477,9 @@ function AddToPlaylistDialog(props) {
 
 function LoginDialog(props) {
   var provider = props.layer.props.provider || 'netease'
-  var mode = props.layer.props.mode || 'qq'
+  var runPair = useState({ mode: props.layer.props.mode || 'qq', seq: 0 })
+  var run = runPair[0]
+  var setRun = runPair[1]
   var qrPair = useState(null)
   var qr = qrPair[0]
   var setQr = qrPair[1]
@@ -487,69 +489,136 @@ function LoginDialog(props) {
   var errorPair = useState('')
   var error = errorPair[0]
   var setError = errorPair[1]
-  var attemptPair = useState(0)
-  var attempt = attemptPair[0]
-  var setAttempt = attemptPair[1]
+  var expiresAtRef = useRef(0)
+  var scannedAtRef = useRef(0)
+  var finishedRef = useRef(false)
 
-  function retry() {
+  function cancel() {
+    void postJson(API + 'online/login/cancel', { provider: provider }).catch(function () {
+      // The key may already have expired; closing the window is enough.
+    })
+  }
+
+  function close() {
+    cancel()
+    popLayer()
+  }
+
+  function retry(nextMode) {
     setError('')
     setStatus('waiting')
     setQr(null)
-    setAttempt(attempt + 1)
+    finishedRef.current = false
+    expiresAtRef.current = 0
+    scannedAtRef.current = 0
+    setRun({ mode: nextMode || run.mode, seq: run.seq + 1 })
   }
 
   useEffect(
     function () {
       var cancelled = false
       var timer = null
-      startProviderLogin(provider, mode)
+      var polling = false
+      var current = null
+
+      function stop(nextStatus) {
+        if (timer !== null) {
+          clearTimeout(timer)
+          timer = null
+        }
+        if (!cancelled) setStatus(nextStatus)
+      }
+
+      function expire() {
+        stop('expired')
+        cancel()
+      }
+
+      function schedule() {
+        if (cancelled) return
+        timer = setTimeout(poll, 2000)
+      }
+
+      function poll() {
+        if (cancelled || polling || current === null) return
+        if (expiresAtRef.current > 0 && Date.now() > expiresAtRef.current) {
+          expire()
+          return
+        }
+        if (scannedAtRef.current > 0 && Date.now() - scannedAtRef.current > 60 * 1000) {
+          expire()
+          return
+        }
+        polling = true
+        checkProviderLogin(provider, current.key, current.mode || run.mode)
+          .then(function (next) {
+            if (cancelled) return
+            if (next === 'success') {
+              finishedRef.current = true
+              stop('success')
+              resetOnlineAccountData()
+              void loadProviders()
+              void loadMyPlaylists(provider)
+              showToast(t('online.loginSuccess'))
+              popLayer()
+              return
+            }
+            if (next === 'scanned') {
+              if (scannedAtRef.current === 0) scannedAtRef.current = Date.now()
+            } else if (next === 'waiting') {
+              scannedAtRef.current = 0
+            }
+            setStatus(next)
+            if (next === 'expired' || next === 'failed') {
+              stop(next)
+              cancel()
+              return
+            }
+            schedule()
+          })
+          .catch(function (pollError) {
+            if (cancelled) return
+            if (pollError && pollError.body && pollError.body.error && pollError.body.error.code === 'LOGIN_STALE') {
+              stop('failed')
+              return
+            }
+            setError(errorText(pollError))
+          })
+          .finally(function () {
+            polling = false
+          })
+      }
+
+      startProviderLogin(provider, run.mode)
         .then(function (body) {
-          if (cancelled) return
+          if (cancelled) {
+            // The window was closed while the key was being created.
+            void postJson(API + 'online/login/cancel', { provider: provider }).catch(function () {})
+            return
+          }
           setQr(body)
-          timer = setInterval(function () {
-            checkProviderLogin(provider, body.key, body.mode || mode)
-              .then(function (next) {
-                if (cancelled) return
-                setStatus(next)
-                if (next === 'success') {
-                  clearInterval(timer)
-                  timer = null
-                  resetOnlineAccountData()
-                  void loadProviders()
-                  void loadMyPlaylists(provider)
-                  showToast(t('online.loginSuccess'))
-                  popLayer()
-                }
-                if (next === 'expired' || next === 'failed') {
-                  clearInterval(timer)
-                  timer = null
-                }
-              })
-              .catch(function (pollError) {
-                if (cancelled) return
-                setError(errorText(pollError))
-              })
-          }, 2000)
+          current = body
+          expiresAtRef.current = Number(body.expiresAt) || 0
+          scannedAtRef.current = 0
+          schedule()
         })
         .catch(function (startError) {
           if (cancelled) return
           setError(errorText(startError))
+          setStatus('failed')
         })
       return function () {
         cancelled = true
-        if (timer !== null) clearInterval(timer)
+        if (timer !== null) clearTimeout(timer)
+        if (!finishedRef.current) {
+          void postJson(API + 'online/login/cancel', { provider: provider }).catch(function () {})
+        }
       }
     },
-    [provider, mode, attempt],
+    [provider, run.mode, run.seq],
   )
 
-  var providerLabel =
-    provider === 'netease'
-      ? t('online.providerNetease')
-      : provider === 'qq'
-        ? t('online.providerQq')
-        : t('online.providerKugou')
-
+  var providerLabel = sourceLabelOf(provider)
   var failed = error !== '' || status === 'expired' || status === 'failed'
   var statusLabel =
     error !== ''
@@ -568,7 +637,7 @@ function LoginDialog(props) {
     {
       title: '',
       small: true,
-      onClose: popLayer,
+      onClose: close,
     },
     h(
       'div',
@@ -584,6 +653,26 @@ function LoginDialog(props) {
           h('div', { className: 'mp-login-sub' }, t('online.qrDesc', { provider: providerLabel })),
         ),
       ),
+      provider === 'qq'
+        ? h(
+            'div',
+            { className: 'mp-login-methods' },
+            h(Button, {
+              variant: run.mode === 'qq' ? 'primary' : 'ghost',
+              onClick: function () {
+                retry('qq')
+              },
+              children: t('online.loginQq'),
+            }),
+            h(Button, {
+              variant: run.mode === 'wx' ? 'primary' : 'ghost',
+              onClick: function () {
+                retry('wx')
+              },
+              children: t('online.loginWechat'),
+            }),
+          )
+        : null,
       h(
         'div',
         { className: 'mp-login-qr-shell' },
@@ -621,8 +710,8 @@ function LoginDialog(props) {
         ? h(
             'div',
             { className: 'mp-login-actions' },
-            h(Button, { variant: 'primary', icon: 'refresh', onClick: retry, children: t('online.qrRefresh') }),
-            h(Button, { variant: 'ghost', onClick: popLayer, children: t('v2.close') }),
+            h(Button, { variant: 'primary', icon: 'refresh', onClick: function () { retry(run.mode) }, children: t('online.qrRefresh') }),
+            h(Button, { variant: 'ghost', onClick: close, children: t('v2.close') }),
           )
         : null,
     ),

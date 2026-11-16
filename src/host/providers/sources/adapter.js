@@ -159,6 +159,11 @@ export function createOnlineAdapter(spec) {
     loginStatus(key, mode) {
       return providers.loginStatus(providerKey, key, mode)
     },
+    // Platforms whose upstream has no keyed cancel are no-ops: releasing an
+    // unknown/expired key is success, and the key expires on its own.
+    async cancelLogin() {
+      return true
+    },
     forgetTokens() {
       return providers.forgetProviderTokens(providerKey)
     },
