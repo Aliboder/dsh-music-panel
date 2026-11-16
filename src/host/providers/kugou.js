@@ -719,6 +719,38 @@ const QUALITY_LABELS = { flac: '无损', high: '无损', 320: '高音质', 128: 
  * 登录态取链。song: {hash, sqHash?, albumAudioId?, albumId?}；prefer 档位从优到劣。
  * 返回 { url, quality, bitrate } 或 { url:'' }（拿不到明确抛错交给上层提示）。
  */
+/**
+ * Folia's package route for one quality. It is tried before the legacy gateway
+ * when the account has a session; anonymous playback keeps the direct route.
+ */
+async function packageStreamUrl(song, session, platform, quality, hash) {
+  const s = normSession(session)
+  if (!s.userid && !s.token) return ''
+  const variants = [
+    { album_id: Number(song.albumId) || 0, album_audio_id: Number(song.albumAudioId) || 0 },
+    { album_id: 0, album_audio_id: 0 },
+  ]
+  for (const variant of variants) {
+    try {
+      const answer = await callKugou(platform, 'song_url', {
+        hash,
+        quality,
+        ...variant,
+        cookie: kugouCookies({ ...s, dfid: session.dfid }, platform),
+      })
+      const data = answer.body?.data ?? answer.body
+      const payload = Array.isArray(data) ? data[0] : data
+      const raw = payload?.play_url ?? payload?.playUrl ?? payload?.url
+        ?? (Array.isArray(data) ? data[0]?.url : '')
+      const url = Array.isArray(raw) ? raw.find((entry) => typeof entry === 'string' && entry !== '') : raw
+      if (typeof url === 'string' && url !== '') return url
+    } catch {
+      // Try the next form, then the gateway fallback.
+    }
+  }
+  return ''
+}
+
 export async function getDownloadURL(song, session = {}, prefer = ['flac', '320', '128']) {
   const s = normSession(session)
   const primaryHash = lowHash(song.hash) || lowHash(song.hqHash) || lowHash(song.sqHash)
@@ -748,6 +780,13 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
   let lastExplain = ''
   for (const quality of ['flac', 'high', '320', '128']) {
     const qHash = hashForQuality(quality)
+    const packageUrl = await packageStreamUrl(song, session, 'standard', quality, qHash)
+    if (packageUrl !== '') {
+      return {
+        url: packageUrl,
+        quality: QUALITY_LABELS[quality] || quality,
+      }
+    }
     const { d } = gatewayDefaults(s)
     const params = {
       ...d,
