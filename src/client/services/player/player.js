@@ -177,6 +177,7 @@ function createPlayer() {
   var timeListeners = []
   var errorListeners = []
   var errorStreak = 0
+  var lastPositionSync = 0
   var state = {
     queue: [],
     index: -1,
@@ -451,6 +452,30 @@ function createPlayer() {
 
   // ── media session (system media keys, lock screen, OS media panel) ──
 
+  function syncMediaPosition(force) {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return
+    var session = navigator.mediaSession
+    if (typeof session.setPositionState !== 'function') return
+    var now = Date.now()
+    if (force !== true && now - lastPositionSync < 1000) return
+    lastPositionSync = now
+    try {
+      var duration = Number(state.duration)
+      var position = Number(state.currentTime)
+      if (duration > 0 && isFinite(position)) {
+        session.setPositionState({
+          duration: duration,
+          position: clamp(position, 0, duration),
+          playbackRate: 1,
+        })
+      } else {
+        session.setPositionState()
+      }
+    } catch (error) {
+      // Media Session is best effort.
+    }
+  }
+
   function syncMediaSession() {
     if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return
     var item = currentItem()
@@ -473,6 +498,7 @@ function createPlayer() {
     } catch (error) {
       // Media Session is best effort.
     }
+    syncMediaPosition(true)
   }
 
   function syncMediaHandlers() {
@@ -1488,6 +1514,7 @@ function createPlayer() {
       buffered: Number(info.buffered) || 0,
     })
     onTime({ target: audio })
+    syncMediaPosition(false)
   }
 
   function transportFailed(info) {
@@ -1593,6 +1620,11 @@ function createPlayer() {
       applyNormalizeGain(normalizeGain)
       applyEq(true)
       applyOutputVolume()
+      try {
+        if (typeof navigator !== 'undefined' && navigator.audioSession) navigator.audioSession.type = 'playback'
+      } catch (error) {
+        // audioSession is optional.
+      }
       if (audioContext.state === 'suspended') audioContext.resume().catch(function () {})
       return analyser
     },

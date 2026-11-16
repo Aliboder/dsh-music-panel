@@ -29,6 +29,8 @@ assert.match(player, /foliaGraph\.ensure\(\)/, 'ensureAnalyser delegates to the 
 assert.match(player, /foliaGraph\.setVolume\(state\.volume\)/, 'volume goes to the Folia master gain')
 assert.match(player, /foliaGraph\.setMuted\(state\.muted\)/, 'mute goes to the Folia master gain')
 assert.match(player, /balanceMeter\.tick\(audioContext/, 'the Folia meter receives its audio clock')
+assert.match(player, /setPositionState/, 'Media Session progress is published')
+assert.match(player, /audioSession\.type = 'playback'/, 'the audio session is playback')
 
 assert.doesNotMatch(player, /createDynamicsCompressor/, 'no private limiter is created')
 assert.doesNotMatch(player, /preampNode/, 'the private preamp is gone')
