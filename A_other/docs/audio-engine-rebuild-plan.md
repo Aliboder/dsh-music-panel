@@ -202,6 +202,8 @@ node scripts/build-client.mjs --check
 
 ### P4 替换 `player.js` 内部（高风险）
 
+当前进度：**P4a 图替换已完成**。`attachAudio` / `ensureAnalyser` / 音量 / 静音 / EQ 已走 `foliaGraph`；旧 limiter/preamp 不再创建；旧 crossfade 暂时通过 deck chain 的 `replayGain`/`fade` 别名运行。P4b 的传输/事件替换和旧代码删除还未做。
+
 #### P4 替换映射
 
 | 旧实现 | 新实现 |
@@ -370,20 +372,24 @@ P6b（单独评估）：
 - [x] `audio-folia.test.mjs`：crossfade/band 曲线、balance 规则、fade 控制器、模型未进 bundle。
 - [x] `folia-graph.js` + `folia-graph.test.mjs`：双 deck 图适配、master gain、EQ、spare deck。
 - [x] `folia-transport.js` + `folia-transport.test.mjs`：load/play/pause/seek/crossfade/stop、deck gain/meter。
+- [x] `player.js` P4a：`attachAudio` / `ensureAnalyser` / 音量 / 静音 / EQ 切到 `foliaGraph`；旧 limiter/preamp 不再创建。
+- [x] `player-folia-wiring.test.mjs`：源级守卫，防止旧 limiter/preamp 图回潮。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`。
 
 ### 进行中
 
-- [ ] P4：把 `folia-graph.js` / `folia-transport.js` 接入 `player.js` 的图与传输路径。
-- [ ] 用真实 `<audio>` 接本地/在线各一首。
+- [x] P4a：`player.js` 的图/音量/静音/EQ 已切到 `foliaGraph`；旧 limiter/preamp 不再创建。
+- [ ] P4b：`load` / `play` / `pause` / `seek` / 事件 / crossfade 切到 `foliaTransport`。
+- [ ] 删除旧图变量和 dead code，接真实本地/在线播放。
 
 ### 下一步
 
-1. 先替换 `player.js` 的 `ensureAnalyser` / `attachAudio` 建图路径，队列不动。
-2. 验证本地/在线播放、暂停、seek、音量、EQ。
-3. 再替换 `pause` / `play` / `seek` / crossfade，删除旧图代码。
-4. 进入 P5 音频 UI。
+1. 把 `load` 的落点从 `audio.src` 改为 `transport.load`，保留 Blob 获取。
+2. `play` / `pause` / `seek` / `next` / `prev` 走 transport。
+3. 用 transport 回调驱动现有 `onTime` / `onPlay` / `onPause` / `onEnded` / `onError` 状态逻辑。
+4. 再接 `transport.crossfadeTo`，删除旧 crossfade。
+5. 进入 P5 音频 UI。
 
 ---
 
