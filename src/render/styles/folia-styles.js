@@ -263,6 +263,10 @@ function FoliaStyleStage(props) {
         lines: lines.length,
         wordLevel: wordLines,
         hasAudio: typeof document !== 'undefined' && document.querySelector('audio.mp-audio-host') !== null,
+        primaryColor: theme && theme.primaryColor ? String(theme.primaryColor) : '',
+        accentColor: theme && theme.accentColor ? String(theme.accentColor) : '',
+        secondaryColor: theme && theme.secondaryColor ? String(theme.secondaryColor) : '',
+        wordColors: theme && Array.isArray(theme.wordColors) ? theme.wordColors.length : 0,
         first: lines[0]
           ? {
               start: lines[0].startTime,
