@@ -98,6 +98,7 @@ const FILES = [
   'src/ui/24-lyric-file.js',
   'src/ui/25-look-picker.js',
   'src/ui/26-fx.js',
+  'src/ui/27-lyric-segmentation.js',
   'src/ui/10-navigation.js',
   'src/ui/11-panel.js',
   'src/ui/12-composer.js',
@@ -255,6 +256,14 @@ ${body}
           mpGetLocalTheme: typeof mpGetLocalTheme === 'function' ? mpGetLocalTheme : null,
           FOLIA_STYLES: typeof FOLIA_STYLES !== 'undefined' ? FOLIA_STYLES : null,
           FOLIA_STYLE_META: typeof FOLIA_STYLE_META !== 'undefined' ? FOLIA_STYLE_META : null,
+          // Saved word segmentation (Folia's lyricSegmentationRecord): the dialog test drives
+          // the exchange end to end, and the display pass must bake what it saved.
+          MPFoliaLyrics: typeof MPFoliaLyrics !== 'undefined' ? MPFoliaLyrics : null,
+          LyricSegmentationDialog: LyricSegmentationDialog,
+          readLyricSegmentation: typeof readLyricSegmentation === 'function' ? readLyricSegmentation : null,
+          saveLyricSegmentation: typeof saveLyricSegmentation === 'function' ? saveLyricSegmentation : null,
+          mpSegmentationLineCount: typeof mpSegmentationLineCount === 'function' ? mpSegmentationLineCount : null,
+          mpPrepareLyrics: typeof mpPrepareLyrics === 'function' ? mpPrepareLyrics : null,
           mpStyleCatalog: typeof mpStyleCatalog !== 'undefined' ? mpStyleCatalog : null,
           mpStyleOf: typeof mpStyleOf !== 'undefined' ? mpStyleOf : null,
         },

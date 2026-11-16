@@ -2346,6 +2346,43 @@ function NowPlaying(props) {
       })
   }
 
+  var lyricSegCount = mpSegmentationLineCount(lyrics, trackPath)
+
+  /**
+   * Bake (or drop) this song's saved word split over the lines on screen. A reset goes back
+   * to the parsed document so the default split (icu-folia / Intl.Segmenter) returns: the
+   * baked boundaries cannot be removed from an already-prepared copy.
+   */
+  function applyLyricSegmentation(record) {
+    if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return
+    if (!Array.isArray(lyrics) || lyrics.length === 0) return
+    if (record === null) {
+      var saved = lyricDocRef.current
+      if (saved !== null && saved.path === trackPath) {
+        setLyrics(mpPrepareLyrics(saved.document, saved.path, saved.chorusRanges).lyrics)
+        return
+      }
+      setLyrics(
+        lyrics.map(function (line) {
+          var copy = Object.assign({}, line)
+          delete copy.wordSegments
+          return copy
+        }),
+      )
+      return
+    }
+    var next = MPFoliaLyrics.applyLyricWordSegmentation({ lines: lyrics }, record)
+    if (next && Array.isArray(next.lines)) setLyrics(next.lines)
+  }
+
+  function openLyricSegmentation() {
+    if (!Array.isArray(lyrics) || lyrics.length === 0) {
+      if (typeof showToast === 'function') showToast(t('sheet.lyricSegNoLyrics'))
+      return
+    }
+    pushLayer('lyricSeg', { songKey: trackPath, lyrics: lyrics, onSaved: applyLyricSegmentation })
+  }
+
   function openOnlineLyric() {
     if (!track || track.onlineProvider) return
     pushLayer('lyricMatch', {
@@ -3102,6 +3139,8 @@ function NowPlaying(props) {
               setPrefs({ lyricOrder: ['embedded', 'lrc'] })
               setLyricReload(lyricReload + 1)
             },
+            lyricSegCount: lyricSegCount,
+            onOpenLyricSegmentation: openLyricSegmentation,
             onOpenLyricFile: function () {
               pushLayer('lyricFile', {
                 path: trackPath,

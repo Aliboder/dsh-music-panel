@@ -8189,6 +8189,22 @@ window.__ModuleLoader__.load({
         'sheet.unmute': '取消静音',
         'sheet.lyricStyle': '歌词样式',
         'sheet.lyricUpgraded': '已换用 {source} 的逐字歌词',
+        'sheet.lyricSegmentation': '歌词分词',
+        'sheet.lyricSegTitle': '歌词分词',
+        'sheet.lyricSegOpen': '编辑',
+        'sheet.lyricSegDefault': '默认分词',
+        'sheet.lyricSegCount': '{count} 行已自定义',
+        'sheet.lyricSegHint': '每行歌词一行，用 / 分隔词边界；行数要与歌词一致，且每行必须拼回原句。',
+        'sheet.lyricSegPlaceholder': '我们/一起/去/听歌/吧',
+        'sheet.lyricSegSaved': '分词已保存',
+        'sheet.lyricSegReset': '恢复默认',
+        'sheet.lyricSegResetDone': '已恢复默认分词',
+        'sheet.lyricSegEmpty': '没有可保存的内容',
+        'sheet.lyricSegBadFormat': '格式无法识别：应为每行用 / 分隔的词',
+        'sheet.lyricSegLineCount': '行数与歌词不一致',
+        'sheet.lyricSegLineText': '第 {row} 行拼不回原句',
+        'sheet.lyricSegNoLyrics': '还没有歌词可以分词',
+        'sheet.lyricSegNoTimedLines': '这首歌的歌词没有时间轴，无法按行分词。',
         'sheet.background': '背景类型',
         'sheet.transparentBg': '播放页透明背景',
         'sheet.scene': '场景',
@@ -8564,6 +8580,22 @@ window.__ModuleLoader__.load({
         'sheet.unmute': 'Unmute',
         'sheet.lyricStyle': 'Lyric style',
         'sheet.lyricUpgraded': 'Using {source} word-by-word lyrics',
+        'sheet.lyricSegmentation': 'Word split',
+        'sheet.lyricSegTitle': 'Lyric word split',
+        'sheet.lyricSegOpen': 'Edit',
+        'sheet.lyricSegDefault': 'Default split',
+        'sheet.lyricSegCount': '{count} lines customised',
+        'sheet.lyricSegHint': 'One row per lyric line, words separated by /. The row count must match the lyrics, and each row must rebuild its line exactly.',
+        'sheet.lyricSegPlaceholder': 'We/ go/ to/ listen/ together',
+        'sheet.lyricSegSaved': 'Split saved',
+        'sheet.lyricSegReset': 'Reset',
+        'sheet.lyricSegResetDone': 'Default split restored',
+        'sheet.lyricSegEmpty': 'Nothing to save',
+        'sheet.lyricSegBadFormat': 'Unrecognised format: one row per line, words separated by /',
+        'sheet.lyricSegLineCount': 'The row count does not match the lyrics',
+        'sheet.lyricSegLineText': 'Row {row} does not rebuild its line',
+        'sheet.lyricSegNoLyrics': 'There are no lyrics to split yet',
+        'sheet.lyricSegNoTimedLines': 'This lyric has no timeline, so it cannot be split by line.',
         'sheet.background': 'Background type',
         'sheet.transparentBg': 'Transparent player background',
         'sheet.scene': 'Scene',
@@ -9669,6 +9701,15 @@ window.__ModuleLoader__.load({
       var end = Number(chorus.endSec)
       if (!isFinite(start) || !isFinite(end) || start < 0 || end <= start) return []
       return [{ startTime: start, endTime: end }]
+    }
+
+    /** How many of the lines on screen carry this song's saved split (0 when none does). */
+    function mpSegmentationLineCount(lines, songKey) {
+      if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return 0
+      if (typeof MPFoliaLyrics.countAppliedSegmentationLines !== 'function') return 0
+      var record = readLyricSegmentation(songKey)
+      if (record === null) return 0
+      return MPFoliaLyrics.countAppliedSegmentationLines({ lines: Array.isArray(lines) ? lines : [] }, record)
     }
 
     /** The name to show for the source a lyric came from (AMLL is a database, not a platform). */
@@ -159597,6 +159638,43 @@ window.__ModuleLoader__.load({
           })
       }
 
+      var lyricSegCount = mpSegmentationLineCount(lyrics, trackPath)
+
+      /**
+       * Bake (or drop) this song's saved word split over the lines on screen. A reset goes back
+       * to the parsed document so the default split (icu-folia / Intl.Segmenter) returns: the
+       * baked boundaries cannot be removed from an already-prepared copy.
+       */
+      function applyLyricSegmentation(record) {
+        if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return
+        if (!Array.isArray(lyrics) || lyrics.length === 0) return
+        if (record === null) {
+          var saved = lyricDocRef.current
+          if (saved !== null && saved.path === trackPath) {
+            setLyrics(mpPrepareLyrics(saved.document, saved.path, saved.chorusRanges).lyrics)
+            return
+          }
+          setLyrics(
+            lyrics.map(function (line) {
+              var copy = Object.assign({}, line)
+              delete copy.wordSegments
+              return copy
+            }),
+          )
+          return
+        }
+        var next = MPFoliaLyrics.applyLyricWordSegmentation({ lines: lyrics }, record)
+        if (next && Array.isArray(next.lines)) setLyrics(next.lines)
+      }
+
+      function openLyricSegmentation() {
+        if (!Array.isArray(lyrics) || lyrics.length === 0) {
+          if (typeof showToast === 'function') showToast(t('sheet.lyricSegNoLyrics'))
+          return
+        }
+        pushLayer('lyricSeg', { songKey: trackPath, lyrics: lyrics, onSaved: applyLyricSegmentation })
+      }
+
       function openOnlineLyric() {
         if (!track || track.onlineProvider) return
         pushLayer('lyricMatch', {
@@ -160353,6 +160431,8 @@ window.__ModuleLoader__.load({
                   setPrefs({ lyricOrder: ['embedded', 'lrc'] })
                   setLyricReload(lyricReload + 1)
                 },
+                lyricSegCount: lyricSegCount,
+                onOpenLyricSegmentation: openLyricSegmentation,
                 onOpenLyricFile: function () {
                   pushLayer('lyricFile', {
                     path: trackPath,
@@ -165760,6 +165840,23 @@ window.__ModuleLoader__.load({
               t('sheet.lyricFile'),
             ),
           ),
+          mpPanelRow(
+            t('sheet.lyricSegmentation'),
+            h(
+              'div',
+              { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+              h(
+                'span',
+                { style: { fontSize: '12px', opacity: '.65' } },
+                Number(props.lyricSegCount) > 0
+                  ? t('sheet.lyricSegCount', { count: String(props.lyricSegCount) })
+                  : t('sheet.lyricSegDefault'),
+              ),
+              mpSmallButton(t('sheet.lyricSegOpen'), function () {
+                if (typeof props.onOpenLyricSegmentation === 'function') props.onOpenLyricSegmentation()
+              }),
+            ),
+          ),
           h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
           mpPanelRow(
             t('sheet.audioGain'),
@@ -165900,6 +165997,27 @@ window.__ModuleLoader__.load({
                 { label: 'ID', value: track.onlineId || '' },
               ])
             : mpFacts([{ label: t('sheet.provider'), value: '—' }]),
+          // Online tracks split their lyrics here too: the saved split is per song, not per
+          // file, so a platform lyric and a local lyric each keep their own.
+          track !== null && providerId !== ''
+            ? mpPanelRow(
+                t('sheet.lyricSegmentation'),
+                h(
+                  'div',
+                  { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+                  h(
+                    'span',
+                    { style: { fontSize: '12px', opacity: '.65' } },
+                    Number(props.lyricSegCount) > 0
+                      ? t('sheet.lyricSegCount', { count: String(props.lyricSegCount) })
+                      : t('sheet.lyricSegDefault'),
+                  ),
+                  mpSmallButton(t('sheet.lyricSegOpen'), function () {
+                    if (typeof props.onOpenLyricSegmentation === 'function') props.onOpenLyricSegmentation()
+                  }),
+                ),
+              )
+            : null,
         )
       }
       var queueCount = snap.queue.length || 0
@@ -167598,6 +167716,150 @@ window.__ModuleLoader__.load({
       return 'rgba(255,255,255,' + String(alpha) + ')'
     }
 
+    // ── src/ui/27-lyric-segmentation.js
+    /**
+     * 歌词分词 — Folia's manual word-segmentation exchange.
+     *
+     * Folia copies a song's split out as `词/词/词` rows (one per lyric line) and takes it
+     * back the same way; its model path is off by default, so the manual exchange is the
+     * working route in both apps. This is that exchange with the pieces this plugin has:
+     * the rows are editable in a textarea, saving writes the record the lyric setter bakes
+     * (lyric_segmentations), and 恢复默认 deletes it so icu-folia's split returns.
+     */
+
+    function LyricSegmentationDialog(props) {
+      var layer = props.layer || {}
+      var payload = layer.props || {}
+      var songKey = String(payload.songKey || '')
+      var onSaved = payload.onSaved
+      var source = Array.isArray(payload.lyrics) ? payload.lyrics : []
+      // Only timed lines can carry a split, and only lines with text can be compared at all:
+      // a legacy line (plain text, no timeline) has neither.
+      var document = {
+        lines: source.filter(function (line) {
+          return line && typeof line.fullText === 'string' && line.fullText !== ''
+        }),
+      }
+
+      // The exported rows are computed once, on mount: later renders must not overwrite what
+      // the listener has typed.
+      var initialRef = useRef(null)
+      if (initialRef.current === null) {
+        var initial = ''
+        try {
+          initial = document.lines.length === 0 ? '' : MPFoliaLyrics.buildSegmentationExportText(document)
+        } catch (error) {
+          initial = ''
+        }
+        initialRef.current = initial
+      }
+      var textPair = useState(initialRef.current)
+      var text = textPair[0]
+      var setText = textPair[1]
+      var errorPair = useState('')
+      var error = errorPair[0]
+      var setError = errorPair[1]
+      var busyPair = useState(false)
+      var busy = busyPair[0]
+      var setBusy = busyPair[1]
+
+      function save() {
+        if (busy) return
+        setBusy(true)
+        setError('')
+        try {
+          var result = MPFoliaLyrics.parseSegmentationImport(text, document)
+          var record = saveLyricSegmentation(songKey, result.lines)
+          if (typeof onSaved === 'function') onSaved(record)
+          if (typeof showToast === 'function') showToast(t('sheet.lyricSegSaved'))
+          popLayer()
+        } catch (saveError) {
+          setBusy(false)
+          setError(segmentationErrorText(saveError))
+        }
+      }
+
+      function reset() {
+        saveLyricSegmentation(songKey, null)
+        if (typeof onSaved === 'function') onSaved(null)
+        if (typeof showToast === 'function') showToast(t('sheet.lyricSegResetDone'))
+        popLayer()
+      }
+
+      var empty = document.lines.length === 0
+
+      return h(
+        KitModal,
+        {
+          title: t('sheet.lyricSegTitle'),
+          onClose: popLayer,
+          className: 'mp-lym-modal',
+          footer: [
+            h(
+              'button',
+              { key: 'reset', type: 'button', className: 'mp-btn', disabled: busy || empty, onClick: reset, style: footerBtn() },
+              icon('repeat', 15),
+              t('sheet.lyricSegReset'),
+            ),
+            h('div', { key: 'gap', style: { flex: '1 1 auto' } }),
+            h(
+              'button',
+              { key: 'cancel', type: 'button', className: 'mp-btn', onClick: popLayer, style: footerBtn() },
+              t('sheet.cancel'),
+            ),
+            h(
+              'button',
+              { key: 'save', type: 'button', className: 'mp-btn', disabled: busy || empty, onClick: save, style: footerBtn(true) },
+              busy ? t('sheet.saving') : t('sheet.save'),
+            ),
+          ],
+        },
+        h(
+          'div',
+          { style: { display: 'flex', flexDirection: 'column', gap: '8px', minHeight: '320px' } },
+          error !== '' ? h('div', { style: { fontSize: '12px', color: '#f87171' } }, error) : null,
+          empty
+            ? h('div', { style: { fontSize: '12.5px', opacity: '.7' } }, t('sheet.lyricSegNoTimedLines'))
+            : h('textarea', {
+                value: text,
+                spellCheck: false,
+                placeholder: t('sheet.lyricSegPlaceholder'),
+                onChange: function (event) {
+                  setText(event.target.value)
+                },
+                style: {
+                  flex: '1 1 auto',
+                  minHeight: '300px',
+                  resize: 'vertical',
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: '1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.1))',
+                  background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04))',
+                  color: 'inherit',
+                  font: 'inherit',
+                  fontSize: '12.5px',
+                  lineHeight: '20px',
+                  outline: 'none',
+                  whiteSpace: 'pre',
+                  overflow: 'auto',
+                },
+              }),
+          h('div', { style: { fontSize: '11px', opacity: '.5' } }, t('sheet.lyricSegHint')),
+        ),
+      )
+    }
+
+    /** Folia's import errors carry a code (and the failing row); say what went wrong. */
+    function segmentationErrorText(error) {
+      var code = error && error.message ? String(error.message) : ''
+      var row = error && typeof error.row === 'number' ? error.row : 0
+      if (code === 'empty') return t('sheet.lyricSegEmpty')
+      if (code === 'invalid-json' || code === 'invalid-json-shape') return t('sheet.lyricSegBadFormat')
+      if (code === 'line-count-mismatch') return t('sheet.lyricSegLineCount')
+      if (code === 'line-text-mismatch') return t('sheet.lyricSegLineText', { row: String(row) })
+      return code
+    }
+
     // ── src/ui/10-navigation.js
     /**
      * navigation: one model, two shapes (top section bar or left rail).
@@ -168178,6 +168440,7 @@ window.__ModuleLoader__.load({
         if (layer.kind === 'duplicates') return h(DuplicatesDialog, { key: 'duplicates', layer: layer })
         if (layer.kind === 'lyricMatch') return h(LyricMatchDialog, { key: 'lyricMatch', layer: layer })
         if (layer.kind === 'lyricFile') return h(LyricFileDialog, { key: 'lyricFile', layer: layer })
+        if (layer.kind === 'lyricSeg') return h(LyricSegmentationDialog, { key: 'lyricSeg', layer: layer })
         if (layer.kind === 'onlineLyric') return h(OnlineLyricDialog, { key: 'onlineLyric', layer: layer })
         if (layer.kind === 'trash') return h(TrashDialog, { key: 'trash', layer: layer })
         if (layer.kind === 'confirm') return h(ConfirmDialog, { key: 'confirm', layer: layer })
@@ -170633,6 +170896,14 @@ window.__ModuleLoader__.load({
           mpGetLocalTheme: typeof mpGetLocalTheme === 'function' ? mpGetLocalTheme : null,
           FOLIA_STYLES: typeof FOLIA_STYLES !== 'undefined' ? FOLIA_STYLES : null,
           FOLIA_STYLE_META: typeof FOLIA_STYLE_META !== 'undefined' ? FOLIA_STYLE_META : null,
+          // Saved word segmentation (Folia's lyricSegmentationRecord): the dialog test drives
+          // the exchange end to end, and the display pass must bake what it saved.
+          MPFoliaLyrics: typeof MPFoliaLyrics !== 'undefined' ? MPFoliaLyrics : null,
+          LyricSegmentationDialog: LyricSegmentationDialog,
+          readLyricSegmentation: typeof readLyricSegmentation === 'function' ? readLyricSegmentation : null,
+          saveLyricSegmentation: typeof saveLyricSegmentation === 'function' ? saveLyricSegmentation : null,
+          mpSegmentationLineCount: typeof mpSegmentationLineCount === 'function' ? mpSegmentationLineCount : null,
+          mpPrepareLyrics: typeof mpPrepareLyrics === 'function' ? mpPrepareLyrics : null,
           mpStyleCatalog: typeof mpStyleCatalog !== 'undefined' ? mpStyleCatalog : null,
           mpStyleOf: typeof mpStyleOf !== 'undefined' ? mpStyleOf : null,
         },

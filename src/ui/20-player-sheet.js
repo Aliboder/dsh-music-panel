@@ -1347,6 +1347,23 @@ function PlayerSheetInner(props) {
           t('sheet.lyricFile'),
         ),
       ),
+      mpPanelRow(
+        t('sheet.lyricSegmentation'),
+        h(
+          'div',
+          { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+          h(
+            'span',
+            { style: { fontSize: '12px', opacity: '.65' } },
+            Number(props.lyricSegCount) > 0
+              ? t('sheet.lyricSegCount', { count: String(props.lyricSegCount) })
+              : t('sheet.lyricSegDefault'),
+          ),
+          mpSmallButton(t('sheet.lyricSegOpen'), function () {
+            if (typeof props.onOpenLyricSegmentation === 'function') props.onOpenLyricSegmentation()
+          }),
+        ),
+      ),
       h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
       mpPanelRow(
         t('sheet.audioGain'),
@@ -1487,6 +1504,27 @@ function PlayerSheetInner(props) {
             { label: 'ID', value: track.onlineId || '' },
           ])
         : mpFacts([{ label: t('sheet.provider'), value: '—' }]),
+      // Online tracks split their lyrics here too: the saved split is per song, not per
+      // file, so a platform lyric and a local lyric each keep their own.
+      track !== null && providerId !== ''
+        ? mpPanelRow(
+            t('sheet.lyricSegmentation'),
+            h(
+              'div',
+              { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+              h(
+                'span',
+                { style: { fontSize: '12px', opacity: '.65' } },
+                Number(props.lyricSegCount) > 0
+                  ? t('sheet.lyricSegCount', { count: String(props.lyricSegCount) })
+                  : t('sheet.lyricSegDefault'),
+              ),
+              mpSmallButton(t('sheet.lyricSegOpen'), function () {
+                if (typeof props.onOpenLyricSegmentation === 'function') props.onOpenLyricSegmentation()
+              }),
+            ),
+          )
+        : null,
     )
   }
   var queueCount = snap.queue.length || 0

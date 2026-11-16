@@ -52,10 +52,10 @@ export function parse(source: RawLyricSource, options: Record<string, unknown> =
  * the staff-credit policy first, then chorus decoration (ranges by time, or the
  * text-repetition fallback when no ranges are known).
  *
- * Not ported here: the user's per-song word segmentation store and icu-folia's
- * automatic segmentation (the plugin has neither a settings surface nor the Vite
- * virtual dictionary the engines load from); both are no-ops in Folia until those
- * exist, and neither changes the line/word timings this pipeline produces.
+ * Not here: the listener's saved word split (`applyLyricWordSegmentation`) and
+ * icu-folia's automatic one (`applyAutoWordSegmentation`). Folia's setter bakes both
+ * after this pass, and so does the client (`mpPrepareLyrics` in src/16-lyrics.js):
+ * this module stays pure so the parser can run wherever it is called.
  */
 export function prepare(lyrics: LyricData | null, options: {
   policy?: 'keep' | 'smart' | 'hide';

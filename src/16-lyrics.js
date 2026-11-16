@@ -416,6 +416,15 @@ function mpChorusRanges(body) {
   return [{ startTime: start, endTime: end }]
 }
 
+/** How many of the lines on screen carry this song's saved split (0 when none does). */
+function mpSegmentationLineCount(lines, songKey) {
+  if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return 0
+  if (typeof MPFoliaLyrics.countAppliedSegmentationLines !== 'function') return 0
+  var record = readLyricSegmentation(songKey)
+  if (record === null) return 0
+  return MPFoliaLyrics.countAppliedSegmentationLines({ lines: Array.isArray(lines) ? lines : [] }, record)
+}
+
 /** The name to show for the source a lyric came from (AMLL is a database, not a platform). */
 function mpLyricSourceLabel(id) {
   var key = String(id || '')

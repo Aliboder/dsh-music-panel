@@ -295,6 +295,7 @@ function OverlayRoot() {
     if (layer.kind === 'duplicates') return h(DuplicatesDialog, { key: 'duplicates', layer: layer })
     if (layer.kind === 'lyricMatch') return h(LyricMatchDialog, { key: 'lyricMatch', layer: layer })
     if (layer.kind === 'lyricFile') return h(LyricFileDialog, { key: 'lyricFile', layer: layer })
+    if (layer.kind === 'lyricSeg') return h(LyricSegmentationDialog, { key: 'lyricSeg', layer: layer })
     if (layer.kind === 'onlineLyric') return h(OnlineLyricDialog, { key: 'onlineLyric', layer: layer })
     if (layer.kind === 'trash') return h(TrashDialog, { key: 'trash', layer: layer })
     if (layer.kind === 'confirm') return h(ConfirmDialog, { key: 'confirm', layer: layer })
