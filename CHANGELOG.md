@@ -30,6 +30,11 @@
   npm Trusted Publishing 与 `allow-remote=root` 等已知坑、发布后验证与回滚。也在 README「开发」
   与 AGENTS.md「参考」里链出。
 - [主题规范](docs/theme-guidelines.md) 补「深色岛例外」：播放页与播放器卡片始终按深色取值。
+- [主题与组件开发规范](docs/theme-guidelines.md) 扩成完整组件手册：DSH 浅/深色机制、token 表与
+  fallback 规则、宿主组件适配层（Tooltip / Switch / Pill / Modal / Menu / Toast 及 fallback）、
+  12 类组件的结构与可访问性、浅色/深色对照、原生观感基准和验收清单；AGENTS/README 已链出。
+- [踩坑记录](docs/pitfalls.md) 扩写：新增浅色播放器卡片、主题守卫盲区、宿主 fallback、本地安装/
+  数据清理、生成物清单等 12 条；AGENTS「总是」增加「踩坑后当场按格式补一条」。
 
 ## 0.36.0 — 2026-11-16
 
