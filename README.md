@@ -206,7 +206,7 @@ node scripts/build-client.mjs --check  # verify src and client.js agree
 node scripts/build-vendor.mjs          # rebuild the bundled framer-motion fragment
 ```
 
-更多规范见 [主题与组件规范](docs/theme-guidelines.md) 与 [UI review](docs/ui-review-2026-11.md)。
+更多规范见 [主题与组件规范](docs/theme-guidelines.md) 与 [UI review](docs/ui-review-2026-11.md)；发版步骤见 [发布手册](docs/release.md)。
 
 ### 参考与致谢
 
@@ -359,7 +359,7 @@ node scripts/build-client.mjs
 node scripts/build-client.mjs --check
 ```
 
-See [theme guidelines](docs/theme-guidelines.md) and [UI review](docs/ui-review-2026-11.md) for conventions.
+See [theme guidelines](docs/theme-guidelines.md) and [UI review](docs/ui-review-2026-11.md) for conventions, and the [release guide](docs/release.md) for how a version is shipped.
 
 ### Credits
 

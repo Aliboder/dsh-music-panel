@@ -1,0 +1,187 @@
+# 发布手册
+
+面向维护者（以及协助发布的 Agent）。目标：一次发布 30 分钟内完成，每一步都能验证，出问题知道从哪一步重来。
+
+本仓库的发布由两部分组成：**GitHub Release（打 tag 时创建）** 与 **npm 发布（push tag 时由 GitHub Actions 的 Trusted Publishing 完成）**。本机不需要 npm 登录。
+
+---
+
+## 0. 环境
+
+本机 PATH 里没有 `node` / `npm`，用 DSH runtime 里的绝对路径：
+
+```powershell
+$NODE = 'C:\Users\Aliboder\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe'
+$PNPM = 'C:\Users\Aliboder\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\pnpm\bin\pnpm.mjs'
+$GH   = 'C:\Program Files\GitHub CLI\gh.exe'
+```
+
+- `gh` 已登录 `Aliboder`（`repo` + `workflow` 权限），push 与 release 都靠它。
+- npm 发布走 `.github/workflows/publish.yml` 的 **Trusted Publishing（OIDC）**，不读本机凭据。本机 `~/.npmrc` 里的 npmjs token 已失效（`whoami` 401），**不要**为发布会话去翻或替换 token。
+- 本机默认 registry 是 npmmirror；查询 npm 时显式加 `--registry https://registry.npmjs.org/`，或用下一节的 HTTP 轮询。
+
+---
+
+## 1. 发布前：必须全绿
+
+```powershell
+# 工作区必须干净（不要带着未验证的改动发布）
+git status --short
+
+# 全量测试 + check（把 package.json 里的 node 换成绝对路径）
+$PKG = Get-Content package.json -Raw | ConvertFrom-Json
+Invoke-Expression ($PKG.scripts.test.Replace('node ', "& '$NODE' "))
+Invoke-Expression ($PKG.scripts.check.Replace('node ', "& '$NODE' "))
+```
+
+`check` 已包含 `node --check` 全量、i18n key 检查与 `client.js --check`，不需要再单独跑一遍。
+
+构建物规则（改了什么就得重建什么，漏了 `--check` 不一定发现）：
+
+| 改动的目录 | 发布前必须跑 |
+|---|---|
+| `src/**`（除 `src/utils/lyrics/**`、`src/render/lyrics/entry.ts`） | `node scripts/build-client.mjs` |
+| `src/utils/lyrics/**` 或 `src/render/lyrics/entry.ts` | `node scripts/build-lyrics.mjs` → 再 `build-client` |
+| 背景 / 样式 / pendolo 源码或 `src/render/folia/vendor/**` | `build-backgrounds` / `build-styles` / `build-pendolo` → 再 `build-client` |
+| `lib/assets/icu-folia/**` | `node scripts/build-icu-folia.mjs`（需要 folia 检出，不要手改） |
+
+> `client.js` / `*.bundle.js` 都是生成物，**不要手改**。
+
+打包自检（`npm pack --dry-run` 在无 npm 环境下用 pnpm 代替）：
+
+```powershell
+$tmp = Join-Path $ENV:TEMP ('pack-' + ((New-Guid).ToString('N').Substring(0, 6)))
+New-Item -ItemType Directory $tmp | Out-Null
+& $NODE $PNPM pack --pack-destination $tmp
+tar -tzf (Get-ChildItem $tmp -Filter *.tgz).FullName | Select-Object -First 20
+```
+
+确认：版本号正确、包含 `client.js` / `lib/**` / `LICENSE` / `THIRD_PARTY_NOTICES.md`、**不包含**用户音乐、歌词缓存、登录凭据、`.auth-state/`。看完删除临时目录。
+
+---
+
+## 2. 改版本与文档
+
+1. **`package.json` 的 `version`**：semver（功能发布用 minor，修复用 patch）。
+   改完**必须** `node scripts/build-client.mjs`：`APP_VERSION` 被写进 `client.js`，不重建时 `check` 会报 `client.js is stale`。
+2. **CHANGELOG**：把顶部 `## Unreleased` 整段改成 `## x.y.z — YYYY-MM-DD`（保留小节结构），然后在其上方补一个新的空 `## Unreleased` 给下个版本用。
+3. **README**：顶部 release 徽章改成 `release-x.y.z`；测试文件数量若变了，顺手改 `npm test # N test files`。
+4. **许可与第三方**：新增依赖、新增移植来源 → 更新 `THIRD_PARTY_NOTICES.md`。
+   本项目必须保持 **AGPL-3.0-only**（`src/render/folia/**`、`src/utils/lyrics/**` 是 Folia 的 AGPL 移植），不能换成更宽松的协议。Folia 归属固定在 README 的「参考与致谢 / Credits」里，仓库地址 <https://github.com/chthollyphile/folia-major>。
+5. **提交**：`chore(release): x.y.z —— <一句话主题>`，把 CHANGELOG / README / package.json / 重建后的 client.js 放在同一个提交里。
+
+发布前再想一遍：这一版有没有 **用户会踩到的行为变化**（偏好迁移、需要重新登录、设置改名）。有就必须写进 Release 的「升级提示」。
+
+---
+
+## 3. 打 tag 并推送
+
+```powershell
+git tag -a vX.Y.Z -m "dsh-music-panel X.Y.Z — <主题>"
+git push origin main
+git push origin vX.Y.Z
+```
+
+- push tag 会触发 `publish.yml` → npm 发布，以及 `ci.yml`（main + tag 各跑一次）。
+- tag 一旦推送就不要移动；发布失败优先“修工作流 + 手动 dispatch”，而不是 force-push tag。
+
+---
+
+## 4. GitHub Release：写给用户，不是贴 CHANGELOG
+
+Release 页是用户看到的门面，**不要**把 CHANGELOG 整段贴上去（会出现大量内部实现和一个名字被反复提及的参考项目）。CHANGELOG 是开发者记录；Release 只写用户能感知的东西。
+
+写法规约：
+
+- 一段话说明这版解决什么，然后 6–10 条要点，顺序：**新功能 → 改进 → 修复 → 升级提示 → 许可**。
+- 每条都写成用户视角：做什么、在哪打开（如「设置 → 音乐 → 自动使用最佳歌词」）、会看到什么变化。
+- 不写内部类名、文件路径、函数名、测试数量、CI 细节。
+- 修复条目只写用户遇到的现象，不写根因。
+- Folia 只在最后一行许可归属里出现一次（带链接）；细节留在 README / `THIRD_PARTY_NOTICES.md`。
+- 任何需要用户动手的变化（重新登录、偏好重置、路径变更）单列「升级提示」。
+
+模板：
+
+```markdown
+X.Y.Z <主题>：<一句话说明这版带来什么>
+
+- **<最亮的新功能>**：<用户视角描述>；<在哪打开 / 怎么用>
+- **<新功能 2>**：…
+- <改进 1>
+- 修复：<用户会看到的现象>
+- 修复：<现象 2>
+
+- 升级提示：<需要用户做的事>
+- 许可：<仅在许可/归属有变化时写这一行>
+```
+
+创建/修改：
+
+```powershell
+& $GH release create vX.Y.Z --title "X.Y.Z <主题>" --notes-file <notes.md>
+# 已创建但正文要改：
+& $GH release edit vX.Y.Z --title "X.Y.Z <主题>" --notes-file <notes.md>
+```
+
+---
+
+## 5. npm 发布与排错
+
+正常路径（推荐）：push tag → Actions 的 `publish` 任务：
+
+1. `npm install --no-audit --no-fund --no-package-lock --allow-remote=root`
+2. `npm test` + `npm run check`
+3. 检查该版本是否已发布（已发布则跳过，幂等）
+4. `npm publish --access public`（Provenance / Trusted Publishing）
+
+**不要**跳过测试直接 `npm publish`，也不要用本机 token 手动发布。
+
+### 已知坑
+
+- **npm 12 默认 `allow-remote=none`**：`kugoumusicapi` 是 GitHub tarball 依赖，安装时会 `EALLOWREMOTE`。工作流里必须 `--allow-remote=root`。
+  该参数是枚举（`all` / `none` / `root`），写成裸 `--allow-remote` 会被当成 `true`，警告后仍然拒绝；`root` = 只放行本项目 `package.json` 声明的 remote 规格，不放行传递依赖。
+- **修完工作流后要重新 dispatch**：tag 上那次失败运行使用的是 tag 里的旧工作流，`rerun` 不会带上修复。用 `gh workflow run publish.yml --ref main`。
+- **npm 12 发布是异步处理的**：CLI 会提示 “Your package is being processed and may take a few minutes to become available”。`registry.npmjs.org/latest` 可能延迟数分钟（0.36.0 实测约 5 分钟）。不要因为查不到就重复发布；用轮询：
+
+```powershell
+for ($i = 0; $i -lt 20; $i++) {
+  $u = 'https://registry.npmjs.org/dsh-music-panel/latest?x=' + ((New-Guid).ToString('N'))
+  $v = (Invoke-RestMethod $u).version
+  if ($v -eq 'X.Y.Z') { break }
+  Start-Sleep -Seconds 15
+}
+```
+
+- `npm whoami` 401 与本流程无关（Trusted Publishing 不读 token），不要因此去动凭据。
+
+---
+
+## 6. 发布后验证
+
+- [ ] `https://registry.npmjs.org/dsh-music-panel/latest`：`version` = 新版本，`license` = `AGPL-3.0-only`
+- [ ] npm tarball 抽查：`tar -xzf` 后确认 README 有 Folia 致谢段、有 `LICENSE` / `THIRD_PARTY_NOTICES.md`
+- [ ] `gh release view vX.Y.Z`：标题与正文是面向用户的版本，不是 CHANGELOG 原文；非 draft / prerelease
+- [ ] Actions：`ci`（main、tag）与 `publish` 均为 success
+- [ ] 安装验证（可选但推荐）：在测试 profile `pnpm add dsh-music-panel@X.Y.Z`，完整重启 DSH，侧栏图标与「关于」里的版本正确
+- [ ] 本文件收尾：这次遇到的新坑补进第 5 节
+
+---
+
+## 7. 回滚
+
+- **npm**：发布 72 小时内可 `npm unpublish dsh-music-panel@X.Y.Z`；超过 72 小时只能 `npm deprecate` 并发布补丁版。不要 unpublish 已被别人依赖的版本。
+- **GitHub**：`gh release delete vX.Y.Z`；tag 可以保留，已推送的 tag 不要随意移动或删除（会破坏别人的固定引用与 provenance）。
+- **代码**：`git revert <release commit>`，按本流程发一个补丁版本（不要修改已发布的版本号）。
+
+---
+
+## 附：关键文件
+
+| 文件 | 作用 |
+|---|---|
+| `.github/workflows/publish.yml` | tag / 手动 dispatch → 测试 → npm Trusted Publishing |
+| `.github/workflows/ci.yml` | push / PR → 测试 + check + pack:check |
+| `package.json` | `version`、`files`（发布内容）、`scripts` |
+| `CHANGELOG.md` | 开发者变更记录（按版本分段） |
+| `README.md` | 用户文档 + 参考与致谢 + License |
+| `THIRD_PARTY_NOTICES.md` | 第三方与 Folia 的逐项许可 |

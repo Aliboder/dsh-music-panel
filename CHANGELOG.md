@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### 文档
+
+- 新增 [发布手册](docs/release.md)：版本号与 `client.js` 的联动、tag 与推送、面向用户的 Release 写法、
+  npm Trusted Publishing 与 `allow-remote=root` 等已知坑、发布后验证与回滚。也在 README「开发」
+  与 AGENTS.md「参考」里链出。
+
 ## 0.36.0 — 2026-11-16
 
 ### 许可与 Folia 致谢

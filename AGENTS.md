@@ -83,5 +83,6 @@ docs/                        移植/架构说明
 - [README](README.md)
 - [Folia 移植说明](docs/folia-porting.md)
 - [踩坑记录](docs/pitfalls.md)
+- [发布流程](docs/release.md)
 - [CHANGELOG](CHANGELOG.md)
 - [第三方与许可证](THIRD_PARTY_NOTICES.md)
