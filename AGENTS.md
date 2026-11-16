@@ -29,6 +29,7 @@ node scripts/build-vendor-pixi.mjs        # 仅升级 pixi 时
 - 改 `src/client/**` 后运行 `node scripts/build-client.mjs`，提交前跑 `--check`。
 - 改 UI/Folia 后至少跑 `npm test` 和 `npm run check`。
 - **新增或修改任何界面组件前，先读 `A_other/docs/theme-guidelines.md`。** 无特别说明时，组件实现一律按该文档执行：宿主组件优先 → 本仓原语 → 一次性布局；只用 `--dsw-*` token；浅/深色都要成立；不做假控件。若需求与该文档冲突，先说明冲突并确认，不要自行另起一套样式。
+- **新增任何持久化/存储时，必须先读 `A_other/docs/data-reset.md`，同步扩充“清空插件所有数据”的范围、分类与测试。** 存储包括 Host 文件/目录、localStorage、IndexedDB、CacheStorage、内存缓存、远端 session；只加存储不更新清理视为未完成。
 - Folia 音频用 0–255 频谱；暂停时停止更新 bands。
 - 修改 Folia 源码前，先确认是边界问题还是上游问题，并在 `CHANGELOG.md` 说明。
 - 使用真实状态和真实数据；未实现的功能要明确标注。
@@ -71,6 +72,7 @@ A_other/                    非插件资料（releases/design/docs/shared/upstre
 
 - [README](README.md)
 - [主题与组件开发规范](A_other/docs/theme-guidelines.md)
+- [数据清理实现说明](A_other/docs/data-reset.md)
 - [平台架构](A_other/docs/provider-architecture.md)
 - [Folia 移植说明](A_other/docs/folia-porting.md)
 - [踩坑记录](A_other/docs/pitfalls.md)

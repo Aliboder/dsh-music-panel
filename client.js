@@ -161106,18 +161106,21 @@ window.__ModuleLoader__.load({
 
       function clearPluginLocalStorage() {
         try {
+          var prefixes = ['music.', 'dsh-music', 'mu.', 'lyric_', 'visualizer_', 'url_background_', 'folia.dev.']
+          var suffixes = ['_tuning']
           var keys = []
           for (var index = 0; index < window.localStorage.length; index += 1) {
             var key = window.localStorage.key(index)
             if (key === null) continue
-            if (
-              key.indexOf('music.') === 0 ||
-              key.indexOf('dsh-music') === 0 ||
-              key === 'lyric_segmentations' ||
-              key.indexOf('mu.') === 0
-            ) {
-              keys.push(key)
+            var owned = prefixes.some(function (prefix) {
+              return key.indexOf(prefix) === 0
+            })
+            if (!owned) {
+              owned = suffixes.some(function (suffix) {
+                return key.length >= suffix.length && key.slice(-suffix.length) === suffix
+              })
             }
+            if (owned) keys.push(key)
           }
           keys.forEach(function (key) {
             window.localStorage.removeItem(key)
