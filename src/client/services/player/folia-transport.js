@@ -272,6 +272,8 @@ function createFoliaTransport(options) {
     if (!(fadeSeconds > 0)) return Promise.resolve(false)
     return load(targetDeck, source, { autoplay: false, startAt: settings.startAt }).then(function (loaded) {
       if (!loaded) return false
+      var gainDb = Number(settings.replayGainDb)
+      if (isFinite(gainDb)) setDeckReplayGain(targetDeck, gainDb, 0.05)
       return play(targetDeck, { fade: false }).then(function (playing) {
         if (!playing || disposed) return false
         var scheduled = graph.scheduleCrossfade(
@@ -281,10 +283,12 @@ function createFoliaTransport(options) {
           settings.together,
         )
         if (!scheduled) return false
-        activeDeck = targetDeck
-        graph.setActiveDeck(activeDeck)
-        emitState(outgoing)
-        emitState(targetDeck)
+        if (settings.setActive !== false) {
+          activeDeck = targetDeck
+          graph.setActiveDeck(activeDeck)
+          emitState(outgoing)
+          emitState(targetDeck)
+        }
         return true
       })
     })

@@ -134,7 +134,8 @@ assert.match(settings, /CROSSFADE_MAX_SECONDS/, 'turning it on stores the automa
 
 const player = readFileSync(join(root, 'src/client/services/player/player.js'), 'utf8')
 assert.match(player, /getDeckChain\('B'\)/, 'the spare deck comes from Folia graph')
-assert.match(player, /setValueCurveAtTime/, 'the fade is scheduled as a curve, not a setInterval ramp')
+assert.match(player, /crossfadeTo\(incomingDeck/, 'the fade is scheduled by the Folia transport')
+assert.match(player, /setActive: false/, 'the player adopts the incoming deck explicitly')
 assert.match(player, /function swapDecks\(\)/, 'promotion swaps deck roles instead of reloading the track')
 assert.match(player, /adoptIncoming\(token\)/, 'the UI switches to the next track when the fade starts')
 assert.match(player, /function finishCrossfade\(token\)/, 'the ghost deck is released when the curve lands')

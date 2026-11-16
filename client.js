@@ -152703,6 +152703,8 @@ window.__ModuleLoader__.load({
         if (!(fadeSeconds > 0)) return Promise.resolve(false)
         return load(targetDeck, source, { autoplay: false, startAt: settings.startAt }).then(function (loaded) {
           if (!loaded) return false
+          var gainDb = Number(settings.replayGainDb)
+          if (isFinite(gainDb)) setDeckReplayGain(targetDeck, gainDb, 0.05)
           return play(targetDeck, { fade: false }).then(function (playing) {
             if (!playing || disposed) return false
             var scheduled = graph.scheduleCrossfade(
@@ -152712,10 +152714,12 @@ window.__ModuleLoader__.load({
               settings.together,
             )
             if (!scheduled) return false
-            activeDeck = targetDeck
-            graph.setActiveDeck(activeDeck)
-            emitState(outgoing)
-            emitState(targetDeck)
+            if (settings.setActive !== false) {
+              activeDeck = targetDeck
+              graph.setActiveDeck(activeDeck)
+              emitState(outgoing)
+              emitState(targetDeck)
+            }
             return true
           })
         })
@@ -154464,78 +154468,34 @@ window.__ModuleLoader__.load({
         prepareCrossfade(next)
       }
 
-      /** Folia's curve pair; fall back to the pure equal-power pair only if the bundle is missing. */
-      function crossfadeCurvesFor(points) {
-        var api = typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
-        if (api !== null && typeof api.buildCrossfadeCurves === 'function') {
-          var pair = api.buildCrossfadeCurves(0.5, 0, points)
-          return { out: pair.out, incoming: pair.in }
-        }
-        return crossfadeEqualPowerCurves(points)
-      }
-
       function beginCrossfadePlayback(prepared) {
         if (prepared === null || prepared === undefined) return abortCrossfade()
-        if (audioB === null || audioContext === null || fadeNode === null) return abortCrossfade()
-        if (fadeNodeB === null || trimNodeB === null) return abortCrossfade()
+        if (audioB === null || audioContext === null || foliaTransport === null) return abortCrossfade()
         var remaining = (state.duration > 0 ? state.duration : audio.duration || 0) - audio.currentTime
         var fade = Math.min(prepared.plan.overlap, remaining - 0.05)
         if (!(fade >= 1)) return abortCrossfade()
         var token = xfadeToken
+        var incomingDeck = foliaGraph !== null && audio === foliaGraph.getDeckElement('A') ? 'B' : 'A'
         releaseObjectUrlB()
         objectUrlB = URL.createObjectURL(prepared.blob)
         normalizeGainB = prepared.trim
-        audioB.volume = effectiveVolume()
-        audioB.muted = state.muted
-        audioB.src = objectUrlB
-        audioB.load()
-        try {
-          audioB.currentTime = prepared.plan.startInNext
-        } catch (error) {
-          // Older engines refuse a seek before metadata; start from zero then.
-        }
-        var now = audioContext.currentTime
-        trimNodeB.gain.setValueAtTime(prepared.trim, now)
-        fadeNodeB.gain.cancelScheduledValues(now)
-        fadeNodeB.gain.setValueAtTime(0, now)
-        fadeNode.gain.cancelScheduledValues(now)
-        fadeNode.gain.setValueAtTime(1, now)
-        var started
-        try {
-          started = audioB.play()
-        } catch (error) {
-          return abortCrossfade()
-        }
-        Promise.resolve(started)
-          .then(function () {
-            if (token !== xfadeToken || audioContext === null || audio === null) return
-            var at = audioContext.currentTime
-            var curves = crossfadeCurvesFor(32)
-            // The outgoing track fades across the whole overlap, but the incoming
-            // one only rises during its last few seconds: the next song must not be
-            // singing a long time before the hand-over.
-            var blend = crossfadeIncomingWindow(fade)
-            fadeNode.gain.cancelScheduledValues(at)
-            fadeNode.gain.setValueAtTime(1, at)
-            fadeNode.gain.setValueCurveAtTime(curves.out, at, fade)
-            fadeNodeB.gain.cancelScheduledValues(at)
-            fadeNodeB.gain.setValueAtTime(0, at)
-            if (blend.delay > 0.02) fadeNodeB.gain.setValueAtTime(0, at + blend.delay)
-            fadeNodeB.gain.setValueCurveAtTime(curves.incoming, at + blend.delay, blend.window)
-            xfadeActive = true
-            xfadePending = false
-            // The UI switches when the incoming track becomes audible, not when the
-            // (possibly silent) overlap starts.
-            if (xfadeAdoptTimer !== null) clearTimeout(xfadeAdoptTimer)
-            if (blend.delay > 0.05) {
-              xfadeAdoptTimer = setTimeout(function () {
-                xfadeAdoptTimer = null
-                adoptIncoming(token)
-              }, blend.delay * 1000)
-            } else {
-              xfadeAdoptTimer = null
-              adoptIncoming(token)
-            }
+        var trimDb = prepared.trim > 0 ? 20 * Math.log10(prepared.trim) : 0
+        xfadeActive = true
+        xfadePending = false
+        xfadeAdopted = false
+        foliaTransport
+          .crossfadeTo(incomingDeck, objectUrlB, {
+            seconds: fade,
+            crossover: 0.5,
+            hold: 0,
+            together: 0,
+            startAt: prepared.plan.startInNext,
+            replayGainDb: trimDb,
+            setActive: false,
+          })
+          .then(function (started) {
+            if (!started || token !== xfadeToken) return abortCrossfade()
+            adoptIncoming(token)
             if (xfadeTimer !== null) clearTimeout(xfadeTimer)
             xfadeTimer = setTimeout(function () {
               xfadeTimer = null
@@ -157593,12 +157553,12 @@ window.__ModuleLoader__.load({
       '.mp-eq-preset.is-on .mp-eq-bars i,.mp-eq-saved-main:hover .mp-eq-bars i{background:rgba(150,180,255,.95)}',
       '.mp-eq-mine{display:flex;flex-direction:column;gap:8px}',
       '.mp-eq-slots{display:flex;flex-direction:column;gap:6px}',
-      '.mp-eq-slot{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid rgba(255,255,255,.1);border-radius:9px}',
+      '.mp-eq-slot{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid rgba(255,255,255,.1);border-radius:8px}',
       '.mp-eq-slot.is-on{border-color:rgba(120,160,255,.55);background:rgba(90,130,255,.12)}',
-      '.mp-eq-slot-main{display:flex;flex:1;align-items:center;gap:8px;min-width:0;padding:5px 6px;border:0;border-radius:7px;background:transparent;color:rgba(255,255,255,.85);font:inherit;text-align:left;cursor:pointer}',
+      '.mp-eq-slot-main{display:flex;flex:1;align-items:center;gap:8px;min-width:0;padding:5px 6px;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.85);font:inherit;text-align:left;cursor:pointer}',
       '.mp-eq-slot-main:hover{background:rgba(255,255,255,.08);color:#fff}',
       '.mp-eq-slot-name{flex:1;min-width:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-      '.mp-eq-slot-save{flex:0 0 auto;padding:6px 8px;border:1px solid rgba(255,255,255,.12);border-radius:7px;background:transparent;color:rgba(255,255,255,.65);font:inherit;font-size:11px;cursor:pointer}',
+      '.mp-eq-slot-save{flex:0 0 auto;padding:6px 8px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:rgba(255,255,255,.65);font:inherit;font-size:11px;cursor:pointer}',
       '.mp-eq-slot-save:hover{background:rgba(255,255,255,.08);color:#fff}',
       // AutoEQ device browser: search stays fixed, only the result list scrolls.
       '.mp-eq-device{display:flex;flex:1;flex-direction:column;min-height:0;gap:8px}',
