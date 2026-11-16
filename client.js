@@ -159474,7 +159474,10 @@ window.__ModuleLoader__.load({
                 var primaryWordLevel = lines.some(function (line) {
                   return line && Array.isArray(line.words) && line.words.length > 1
                 })
-                if (!primaryWordLevel && prefs.autoUseBestLyric !== false) {
+                // A lyric that is only the pure-music notice is no lyric at all: Folia does
+                // not auto-match over it either, so the visualizer keeps its own path.
+                var primaryPureMusic = shown !== null && shown.pureMusic === true
+                if (!primaryWordLevel && !primaryPureMusic && prefs.autoUseBestLyric !== false) {
                   void upgradeLyric(current, chorusRanges).catch(function () {})
                 }
                 // `chorusRanges` above already marked the hook lines and filled `chorusSec`

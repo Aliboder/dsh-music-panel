@@ -56,7 +56,7 @@
 | 音频/节拍 | `motionSignals` + beat_this/htdemucs | 播放器 analyser（`src/render/styles/folia-audio.js`） | 按上游 `usePlaybackVisualizerBridge` 写五条 band、`audioPower` 与 `spectrum`（0–255、21.5 Hz 分段、同样的 power 曲线）；分析器 smoothing 与上游一致（0.6）；beat 服务仍固定关闭 |
 | Paper Shaders 的 `ref` | React 19：函数组件把 `ref` 当普通 prop 透传 | React 18.3.1：`memo(function …)` 不转发 ref | 把 vendored `paper-shaders-react/dist/shaders/*.js` 的 7 个包装改成 `memo(forwardRef(...))` 并把 `ref` 传给 `ShaderMount`；否则 latent 的逐帧 `setSpeed`/`setUniforms`（音频扭曲、暂停减速）和 nomand 的首帧检测全部失效 |
 | 主题 | 封面色板提取 | 插件 accent | 已移植 `builtinTheme`+`themeColorMath`：按封面色生成 Folia 的 light/dark 主题，样式与背景共用一次提取缓存；AI/自定义主题仍不接 |
-| 歌词数据 | `Line[]`（start/end/fullText/words/renderHints） | 插件 `lines` | 边界转换；无逐字时间线的行用上游 `buildTimedWords` 估算 |
+| 歌词数据 | raw → 解析器 → `Line[]`（start/end/fullText/words/renderHints） | 在线与本地都由 Host 交出 raw，客户端跑同一份解析器与显示前处理 | 不再有第二套解析：`mpPrepareLyrics` 按 Folia setter 的顺序跑规则/staff/副歌/分词；只有无时间轴的纯文本与旧生产者仍走 `legacyLinesToFolia` 边界转换 |
 | 内置头像/表情 | Vite `import.meta.glob` | 单文件 bundle | 素材按 Folia 原图放在 `cappella/{avatar,emo}`，由宿主的 `/music/assets` 路由提供；`avatarImages/emoImages` 仅替换发现方式 |
 | 笔顺数据 | 构建时从 AnimCJK 下载 | 无数据 | 暂缺 `nebbia-strokes.json`，雾笺使用上游的字体骨架回退；不影响其他样式 |
 | Worker | `new Worker(new URL(...))` | 单文件 | 保留绘制函数，改 OffscreenCanvas/主线程队列（Monet）；其他样式无 Worker |
@@ -95,9 +95,9 @@
 | 雾笺 `nebbia` | ✅ 渲染器原样；笔顺数据缺省时走上游骨架回退 |
 | 町景 `machi` | ✅ 使用已经编好的 Folia machi 引擎（`machi.bundle.js`），补上了时钟/音频/歌词桥接 |
 | 六种背景 | ✅ 渲染器原样；Monet Worker 改 OffscreenCanvas；设置仅模式选择 |
-| 镜台 `diorama` | ✅ 渲染器原样；`@react-three/fiber@8.18.0` 已 vendor，React 18 下 Canvas/CameraRig/DioramaScene 正常出画（首帧需要等场景 raster 完成）；React 18 宿主由样式错误边界回退经典 |
+| 镜台 `diorama` | ✅ 渲染器原样；`@react-three/fiber@8.18.0` 已 vendor，React 18 下 Canvas/CameraRig/DioramaScene 正常出画（首帧需要等场景 raster 完成）；渲染异常时由样式错误边界回退为纯文本歌词 |
 
-已启用的样式共 16 个：`still / partita / fume / monet / cappella / tilt / claddagh / cadenza / lumiere / sonnet / tempera / hanabi / nebbia / machi / diorama / pendolo`。经典样式已移除，默认样式是 `monet`。
+已启用的样式共 14 个：`still / partita / fume / monet / tilt / claddagh / cadenza / lumiere / sonnet / tempera / hanabi / nebbia / diorama / pendolo`。经典（`classic`）、群唱（`cappella`）、町景（`machi`）按 AGENTS.md 的边界移除，默认样式是 `monet`。
 
 ### 本次移植中实际做的边界工作
 
@@ -105,7 +105,8 @@
 - Pixi：vendor `pixi.js@8.21.0`（`vendor/pixi/pixi.min.mjs`），与 Folia 同版本。
 - framer-motion：复用插件已内联的 `MPFramer`；`useDragControls` 等缺失 API 提供带 `subscribe` 的兼容对象。
 - 歌词/主题/音频：`FoliaStyleHost` 构造 `MotionValue` 时钟、五条 band、Folia `Line[]`（含 `words`）与 `Theme`；样式只挂载一次，换句不重建。
-- 歌词样式注册顺序按 Folia 的 `order` 排序（静止 10、莫奈 20、浮名 30、花火 40、町景 50、时计 60、群唱 70、云阶 80、倾诉 90、回环 100、心象 110、绘光 120、商籁 130、凝彩 140、雾笺 150）。
+- 歌词样式注册顺序按 Folia 的 `order` 排序（静止 10、莫奈 20、浮名 30、花火 40、时计 60、云阶 80、倾诉 90、回环 100、心象 110、绘光 120、商籁 130、凝彩 140、雾笺 150、镜台 160）。
+- 歌词本身：在线与本地都走 `src/utils/lyrics/**` 的解析器（`lyrics.bundle.js`），显示前处理按 Folia setter 的顺序在 `mpPrepareLyrics`（`src/16-lyrics.js`）里跑；中文分词用 Host 提供的 icu-folia 数据，手动词级分词按歌曲保存在 `lyric_segmentations`。
 
 
 

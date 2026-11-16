@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+### 歌词处理对齐 Folia（本地 + 在线一次打通）
+
+- **本地词级歌词**：Host 的 `/lyrics` 现在把文件自己的文本按 Folia 的 raw 形状交出来
+  （LRC / 增强 LRC / TTML / VTT / QRC / YRC / KRC / `.fia`，sidecar 按 Folia 的格式顺序挑，
+  `.t.<ext>` 兄弟文件当译文；ID3 SYLT 转成毫秒精度的 LRC + 译文）。客户端用
+  `MPFoliaLyrics.parse` 解析，所以本地文件也拿到逐字时间轴、staff 署名策略、副歌标记与
+  icu-folia 分词——之前本地只有行级 LRC 的整行均分。
+  无时间轴的纯文本仍走 Host 自己的行（原样显示），不会被当成 0 行丢掉。
+- **逐字换源**（Folia 的 `autoUseBestLyric`，默认开）：平台自己的歌词没有逐字时间轴时，
+  歌词上屏**之后**再问 `/online/best-lyric`，按 Folia 的来源顺序（网易云 → AMLL → QQ → 酷狗，
+  逐字优先）检索同一首歌；只有匹配到的确实是逐字歌词才替换并吐一句 toast。有逐字时间轴时
+  不再检索（Folia 连已有逐字也会再比一轮；这里换源只可能让对齐/译文变差）。
+  设置 → 音乐 → 自动使用最佳歌词。未移植：`keepProviderWordTiming`（Folia 里只有 Apple Music
+  把 `prefersOwnWordByWord` 设为 true，本插件的平台都没有这个能力）与 AI 分词。
+- **借源保留原文**：平台完全没有歌词时借来的结果，现在把出借方的 `raw` / 译文 / 罗马音一起带回
+  并缓存，所以借来的 QQ/KRC/AMLL 逐字歌词也走 Folia 的解析器；顺带修掉这条路径上
+  `lrcTime` 未定义导致的 502（`/music/online/lyric` 在借源时一直抛 ReferenceError）。
+- **原生副歌范围**：`/online/chorus` 的范围现在作为 `chorusRanges` 进 `prepare`（Folia 的
+  `applyChorusRangesByTime`），不再只用来做「跳到副歌」按钮；没有范围时仍用文本重复回退。
+- **行过滤规则即时生效**：改过滤词 / 预设不再需要换歌。上屏的歌词与「规则前」的文档一起留着，
+  规则变化时只对这份文档重跑显示前处理（Folia 的 `lyricsBeforeRules` 语义），不重新取歌词。
+- **手动词级分词**：`lyricSegmentationRecord` 的数据层进 bundle（`shared/lyricSegmentationPrompt.mjs`
+  与 `src/types/lyricSegmentation.ts` 按 Folia 原样补上），客户端按 Folia 的顺序烘焙
+  （用户记录 → icu-folia 默认）。界面是 Folia 的手工交换格式：每行歌词一行、`/` 分隔词边界，
+  保存写进 `lyric_segmentations`（按歌曲路径），「恢复默认」删掉记录并回到文档重新烘焙。
+  入口：播放器卡片 → 本地 / 音质页签的「歌词分词」。
+- 诊断：歌词日志仍上报 `wordLevel`；换源时额外走一次同一条解析+显示前处理。
+
 ### 歌词管线诊断上报（临时）
 
 - `POST/GET /music/debug/report`（仅本机、内存里留最近 40 条）：客户端在三种时机自动上报——
