@@ -284,19 +284,29 @@ export function normalizePackageSong(item) {
   const row = item !== null && typeof item === 'object' ? item : {}
   if (!row.base && !row.audio_info && !row.album_info) {
     const authors = Array.isArray(row.authors) ? row.authors : []
-    const artistName = row.author_name || row.singername || row.SingerName || ''
-    return normalizeSong({
+    const singerinfo = Array.isArray(row.singerinfo) ? row.singerinfo : []
+    const albumInfo = row.albuminfo || row.album_info || {}
+    const artistNames = (singerinfo.length > 0 ? singerinfo : authors)
+      .map((artist) => emStrip(artist?.name || artist?.author_name || artist?.singer_name || ''))
+      .filter(Boolean)
+    const artistName = row.author_name || row.singername || row.SingerName || artistNames.join(' / ')
+    const normalized = normalizeSong({
       ...row,
-      songname: row.songname || row.audio_name || row.SongName || '',
-      albumname: row.albumname || row.album_name || '',
+      songname: row.songname || row.audio_name || row.name || row.SongName || '',
+      albumname: row.albumname || row.album_name || albumInfo.name || albumInfo.album_name || '',
       SingerName: artistName,
       Singers: authors.length > 0
         ? authors.map((author) => ({ id: author?.author_id, name: author?.author_name }))
-        : artistName
-          ? String(artistName).split(/、|\/|,/).map((name) => ({ id: row.author_id, name: name.trim() })).filter((artist) => artist.name)
-          : [],
-      duration: row.duration || (Number(row.timelength) || Number(row.timelength_128) || 0) / 1000,
+        : artistNames.length > 0
+          ? artistNames.map((name) => ({ id: row.author_id, name }))
+          : artistName
+            ? String(artistName).split(/、|\/|,/).map((name) => ({ id: row.author_id, name: name.trim() })).filter((artist) => artist.name)
+            : [],
+      duration: row.duration || (Number(row.timelength) || Number(row.timelen) || 0) / 1000,
+      AlbumImage: row.cover || albumInfo.cover || albumInfo.sizable_cover || '',
     })
+    if (row.fileid !== undefined) normalized.fileId = row.fileid
+    return normalized
   }
   const base = row.base || {}
   const audio = row.audio_info || {}
@@ -1310,16 +1320,31 @@ const CL_PATH = (p) => `/cloudlist.service${p}`
 // 封面兜底（「我喜欢」is_def=2 走内嵌爱心封面，不走这里）。缓存 key = `${userid}:${listid}`，
 // 避免每次刷新「我的歌单」都重复拉取歌单歌曲。
 const kgOwnCoverCache = new Map()
+const kgPlaylistGlobalIds = new Map()
 
 /** 我的歌单列表（创建 + 收藏都在一个云歌单列表里；type 2 = 全部）。 */
 export async function getMyPlaylists(session = {}, page = 1, pagesize = 60) {
   const s = normSession(session)
   if (!s.token) throw new Error('未登录，无法读取我的歌单')
-  const body = { userid: String(s.userid || ''), token: s.token, total_ver: 979, type: 2, page: Math.max(1, page | 0), pagesize }
-  const r = await kgGateway('/v7/get_all_list', { plat: 1, userid: Number(s.userid) || 0, token: s.token }, s, { method: 'POST', data: body, headers: { 'x-router': 'cloudlist.service.kugou.com' } })
-  const j = r.json
+  let j = null
+  try {
+    const answer = await callKugou('standard', 'user_playlist', {
+      userid: String(s.userid || ''),
+      page: Math.max(1, page | 0),
+      pagesize,
+      cookie: kugouCookies({ ...s, dfid: session.dfid }, 'standard'),
+    })
+    j = answer.body
+  } catch {
+    j = null
+  }
   if (!j || Number(j.status) !== 1 || !j.data) {
-    throw new Error('获取我的歌单失败：' + explainKgError(j, r.status))
+    const body = { userid: String(s.userid || ''), token: s.token, total_ver: 979, type: 2, page: Math.max(1, page | 0), pagesize }
+    const r = await kgGateway('/v7/get_all_list', { plat: 1, userid: Number(s.userid) || 0, token: s.token }, s, { method: 'POST', data: body, headers: { 'x-router': 'cloudlist.service.kugou.com' } })
+    j = r.json
+  }
+  if (!j || Number(j.status) !== 1 || !j.data) {
+    throw new Error('获取我的歌单失败：' + explainKgError(j, 0))
   }
   const info = Array.isArray(j.data.info) ? j.data.info : []
   const items = info.map((o) => {
@@ -1329,6 +1354,7 @@ export async function getMyPlaylists(session = {}, page = 1, pagesize = 60) {
     // （不是 description，旧代码读错字段导致恒为空）。
     const kind = Number(o.type) === 1 ? 'collect' : 'own'
     const isDef = Number(o.is_def) || 0
+    const globalId = String(o.global_collection_id || '')
     const p = normalizePlaylistItem({
       specialid: o.listid ?? o.id,
       name: o.name,
@@ -1338,8 +1364,10 @@ export async function getMyPlaylists(session = {}, page = 1, pagesize = 60) {
       username: o.list_create_username || o.creator_name || o.nickname || '',
       intro: o.intro,
     })
+    if (globalId !== '') kgPlaylistGlobalIds.set(String(p.id), globalId)
     return {
       ...p,
+      globalId,
       kind,
       isDefault: isDef > 0,
       // 系统默认歌单标记：is_def=1 默认收藏、2 我喜欢。isLike 同时决定「我喜欢」
@@ -1390,6 +1418,30 @@ export async function getMyPlaylistSongs(listId, session = {}) {
   const listid = Number(listId) || 0
   if (!listid) throw new Error('缺少歌单 listid')
   if (!s.token) throw new Error('未登录，无法读取歌单内容')
+  const globalId = kgPlaylistGlobalIds.get(String(listid)) || ''
+  if (globalId !== '') {
+    try {
+      const songs = []
+      for (let page = 1; page <= 20; page += 1) {
+        const answer = await callKugou('standard', 'playlist_track_all', {
+          id: globalId,
+          page,
+          pagesize: 100,
+          cookie: kugouCookies({ ...s, dfid: session.dfid }, 'standard'),
+        })
+        const data = answer.body?.data ?? {}
+        const rows = Array.isArray(data.songs) ? data.songs : []
+        if (rows.length === 0) break
+        songs.push(...rows.map(normalizePackageSong).filter((song) => song.id))
+        const total = Number(data.count) || 0
+        if (total > 0 && songs.length >= total) break
+        if (rows.length < 100) break
+      }
+      if (songs.length > 0) return songs
+    } catch {
+      // Fall through to the legacy cloudlist reader.
+    }
+  }
   const r = await kgGateway('/v4/get_list_all_file', { plat: 1, userid: Number(s.userid) || 0, token: s.token }, s, {
     method: 'POST',
     data: {

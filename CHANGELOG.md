@@ -34,6 +34,7 @@
 - 修复酷狗/酷狗概念版专辑与歌手歌曲：兼容包的嵌套音频结构和 30 条分页；QQ 包请求按 Folia 的 Electron 方式同时携带 `?cookie=`。
 - QQ 登录改走包的微信/QQ 通道并持久化 `qqmusic_session`；我的歌单、歌单曲目、喜欢读取改用 `/user/playlist`、`/user/playlist-detail`、`/user/liked-songs`、`/user/song/like`。
 - 酷狗已登录时优先走包的 `song_url` 取播放地址，匿名/包失败时保留 gateway 回退；补了包缺失的 `generateWebGLHash` 运行时。
+- 酷狗我的歌单/歌单曲目已登录时改走包的 `user_playlist`、`playlist_track_all`，旧 cloudlist 接口保留兜底。
 
 ### 发布撤回
 
