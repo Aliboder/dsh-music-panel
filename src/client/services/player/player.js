@@ -211,6 +211,36 @@ function createPlayer() {
       pending: 0,
       lastTime: 0,
       counted: false,
+      reported: false,
+    }
+  }
+
+  /**
+   * Send the one listening report a track earned, if its platform takes them.
+   * The Host still checks the capability; this client-side check only avoids a
+   * request for local tracks and platforms without reports.
+   */
+  function reportProviderPlayback(item) {
+    if (item === null || item === undefined || session.reported === true) return
+    if (session.seconds < 30) return
+    if (readPrefs().playbackReports !== true) return
+    var provider = String(item.onlineProvider || '')
+    if (provider === '' || typeof supports !== 'function' || !supports(provider, 'playbackReports')) return
+    session.reported = true
+    try {
+      postJson(API + 'online/report-playback', {
+        provider: provider,
+        id: String(item.onlineId || ''),
+        title: trackTitleOf(item),
+        artist: trackArtistOf(item),
+        playedSeconds: Math.round(session.seconds),
+        totalSeconds: Math.round(durationOf(item)),
+        quality: String(readPrefs().onlineQuality || 'high'),
+      }).catch(function () {
+        // Reporting is a background courtesy; a failure never touches playback.
+      })
+    } catch (error) {
+      // Best effort.
     }
   }
 
@@ -576,6 +606,7 @@ function createPlayer() {
 
   function onPause(event) {
     if (!isActiveEvent(event)) return
+    reportProviderPlayback(currentItem())
     flushListening(true)
     flushSessionPosition()
     savePlaybackState()
@@ -589,10 +620,12 @@ function createPlayer() {
     // The song was heard whole: keep its reading for the next play.
     commitBalanceReading(currentItem(), audio === null ? 0 : audio.duration)
     if (!isActiveEvent(event)) return
+    reportProviderPlayback(currentItem())
     flushListening(true)
     flushSessionPosition()
     if (state.queue.length === 0) return
     if (state.loop === 'one') {
+      reportProviderPlayback(currentItem())
       resetSession(currentItem())
       if (audio) {
         audio.currentTime = 0
@@ -867,6 +900,7 @@ function createPlayer() {
     cancelPrefetch()
     currentBlob = null
     // Close the previous listening session before switching tracks.
+    reportProviderPlayback(currentItem())
     flushListening(true)
     flushSessionPosition()
     var token = (loadToken += 1)

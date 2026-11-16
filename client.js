@@ -6959,6 +6959,7 @@ window.__ModuleLoader__.load({
         'online.loginWechat': '微信登录',
         'online.loginQq': 'QQ 登录',
         'online.logout': '退出',
+        'online.syncAccount': '同步数据',
         'online.loginHint': '扫码登录：用对应 App 扫描弹出的二维码并确认，登录状态保存在本机。',
         'online.qrDesc': '打开 {provider} App，扫描二维码完成登录',
         'online.scanLogin': '扫码登录',
@@ -6967,6 +6968,8 @@ window.__ModuleLoader__.load({
         'online.qrStep2': '扫一扫，并在手机上确认',
         'online.qrSecure': '登录信息仅保存在本机',
         'online.qrRefresh': '刷新二维码',
+        'online.restartService': '重启本地服务',
+        'online.restartingService': '正在重启…',
         'online.loginTitle': '登录 {provider}',
         'online.scanTitle': '扫码登录',
         'online.scanHeadline': '使用{provider}APP扫码',
@@ -7552,6 +7555,7 @@ window.__ModuleLoader__.load({
         'online.loginWechat': 'WeChat sign-in',
         'online.loginQq': 'QQ sign-in',
         'online.logout': 'Sign out',
+        'online.syncAccount': 'Sync account',
         'online.loginHint': 'Scan the QR code with the matching app, then confirm in the app. The login stays on this machine.',
         'online.qrDesc': 'Open {provider} and scan the QR code to sign in',
         'online.scanLogin': 'Scan to sign in',
@@ -7560,6 +7564,8 @@ window.__ModuleLoader__.load({
         'online.qrStep2': 'Scan the code and confirm',
         'online.qrSecure': 'Credentials stay on this device',
         'online.qrRefresh': 'Refresh QR code',
+        'online.restartService': 'Restart local service',
+        'online.restartingService': 'Restarting…',
         'online.loginTitle': 'Sign in to {provider}',
         'online.scanTitle': 'Scan to sign in',
         'online.scanHeadline': 'Scan with the {provider} app',
@@ -8118,6 +8124,8 @@ window.__ModuleLoader__.load({
         'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
         'settings.playbackFade': '播放淡入淡出',
         'settings.playbackFadeHint': '暂停时淡出、恢复时淡入，避免 click/pop。',
+        'settings.playbackReports': '播放上报',
+        'settings.playbackReportsHint': '播放满 30 秒后把这次收听从账号上报给平台（目前仅网易云）；写入真实账号，默认关闭。',
         'settings.outputDevice': '输出设备',
         'settings.outputDeviceHint': '仅在支持 AudioContext.setSinkId 的环境显示。',
         'settings.outputDefault': '系统默认',
@@ -8558,6 +8566,8 @@ window.__ModuleLoader__.load({
         'settings.crossfadeRuntimeHint': 'Needs Web Audio; skipped when the browser or the source cannot route through it.',
         'settings.playbackFade': 'Playback fade',
         'settings.playbackFadeHint': 'Fade out on pause and in on resume to avoid clicks and pops.',
+        'settings.playbackReports': 'Playback reports',
+        'settings.playbackReportsHint': 'After 30 seconds of real playback, report the listen to the account\u2019s platform (NetEase today). This writes to a real account, so it is off by default.',
         'settings.outputDevice': 'Output device',
         'settings.outputDeviceHint': 'Shown only where AudioContext.setSinkId is available.',
         'settings.outputDefault': 'System default',
@@ -149143,6 +149153,8 @@ window.__ModuleLoader__.load({
       volume: 1,
       audioOutputDeviceId: '',
       playbackFade: true,
+      // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
+      playbackReports: false,
       loop: 'none',
       order: 'list',
       resumeOnStart: true,
@@ -153460,6 +153472,36 @@ window.__ModuleLoader__.load({
           pending: 0,
           lastTime: 0,
           counted: false,
+          reported: false,
+        }
+      }
+
+      /**
+       * Send the one listening report a track earned, if its platform takes them.
+       * The Host still checks the capability; this client-side check only avoids a
+       * request for local tracks and platforms without reports.
+       */
+      function reportProviderPlayback(item) {
+        if (item === null || item === undefined || session.reported === true) return
+        if (session.seconds < 30) return
+        if (readPrefs().playbackReports !== true) return
+        var provider = String(item.onlineProvider || '')
+        if (provider === '' || typeof supports !== 'function' || !supports(provider, 'playbackReports')) return
+        session.reported = true
+        try {
+          postJson(API + 'online/report-playback', {
+            provider: provider,
+            id: String(item.onlineId || ''),
+            title: trackTitleOf(item),
+            artist: trackArtistOf(item),
+            playedSeconds: Math.round(session.seconds),
+            totalSeconds: Math.round(durationOf(item)),
+            quality: String(readPrefs().onlineQuality || 'high'),
+          }).catch(function () {
+            // Reporting is a background courtesy; a failure never touches playback.
+          })
+        } catch (error) {
+          // Best effort.
         }
       }
 
@@ -153825,6 +153867,7 @@ window.__ModuleLoader__.load({
 
       function onPause(event) {
         if (!isActiveEvent(event)) return
+        reportProviderPlayback(currentItem())
         flushListening(true)
         flushSessionPosition()
         savePlaybackState()
@@ -153838,10 +153881,12 @@ window.__ModuleLoader__.load({
         // The song was heard whole: keep its reading for the next play.
         commitBalanceReading(currentItem(), audio === null ? 0 : audio.duration)
         if (!isActiveEvent(event)) return
+        reportProviderPlayback(currentItem())
         flushListening(true)
         flushSessionPosition()
         if (state.queue.length === 0) return
         if (state.loop === 'one') {
+          reportProviderPlayback(currentItem())
           resetSession(currentItem())
           if (audio) {
             audio.currentTime = 0
@@ -154116,6 +154161,7 @@ window.__ModuleLoader__.load({
         cancelPrefetch()
         currentBlob = null
         // Close the previous listening session before switching tracks.
+        reportProviderPlayback(currentItem())
         flushListening(true)
         flushSessionPosition()
         var token = (loadToken += 1)
@@ -164228,6 +164274,20 @@ window.__ModuleLoader__.load({
               },
             }),
           ),
+          h(
+            SetRow,
+            {
+              key: 'playback-reports',
+              label: t('settings.playbackReports'),
+              desc: t('settings.playbackReportsHint'),
+            },
+            h(Switch, {
+              value: prefs.playbackReports === true,
+              onChange: function (value) {
+                patchPrefs({ playbackReports: value })
+              },
+            }),
+          ),
           sinkSupported && outputDevices.length > 0
             ? h(
                 SetRow,
@@ -165395,6 +165455,9 @@ window.__ModuleLoader__.load({
       var errorPair = useState('')
       var error = errorPair[0]
       var setError = errorPair[1]
+      var servicePair = useState(null)
+      var service = servicePair[0]
+      var setService = servicePair[1]
       var expiresAtRef = useRef(0)
       var scannedAtRef = useRef(0)
       var finishedRef = useRef(false)
@@ -165412,6 +165475,39 @@ window.__ModuleLoader__.load({
         },
         [],
       )
+
+      useEffect(
+        function () {
+          var cancelled = false
+          getJson(API + 'online/login/local-service?provider=' + encodeURIComponent(provider))
+            .then(function (body) {
+              if (!cancelled) setService(body.localService || null)
+            })
+            .catch(function () {
+              if (!cancelled) setService(null)
+            })
+          return function () {
+            cancelled = true
+          }
+        },
+        [provider],
+      )
+
+      function restartService() {
+        setService(function (previous) {
+          return Object.assign({}, previous || {}, { restarting: true })
+        })
+        void postJson(API + 'online/login/local-service/restart', { provider: provider })
+          .then(function (body) {
+            setService(body.localService || null)
+            retry(run.mode)
+          })
+          .catch(function (error) {
+            setService(function (previous) {
+              return Object.assign({}, previous || {}, { restarting: false, error: errorText(error) })
+            })
+          })
+      }
 
       function selectProvider(id) {
         if (id === provider) return
@@ -165588,6 +165684,19 @@ window.__ModuleLoader__.load({
         )
       }
 
+      function syncAccount() {
+        void postJson(API + 'online/account-sync', { provider: provider })
+          .then(function () {
+            return loadProviders()
+          })
+          .then(function () {
+            showToast(t('online.loginSuccess'))
+          })
+          .catch(function (error) {
+            showToast(errorText(error))
+          })
+      }
+
       function accountView() {
         var avatar = providerInfo.avatarUrl
           ? h('img', {
@@ -165614,6 +165723,12 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'mp-login-actions' },
+            h(Button, {
+              variant: 'ghost',
+              icon: 'refresh',
+              onClick: syncAccount,
+              children: t('online.syncAccount'),
+            }),
             h(Button, {
               variant: 'primary',
               icon: 'logout',
@@ -165766,6 +165881,15 @@ window.__ModuleLoader__.load({
           ? h(
               'div',
               { className: 'mp-login-actions' },
+              service && service.available === true && service.failed === true
+                ? h(Button, {
+                    variant: 'ghost',
+                    icon: 'refresh',
+                    disabled: service.restarting === true,
+                    onClick: restartService,
+                    children: service.restarting === true ? t('online.restartingService') : t('online.restartService'),
+                  })
+                : null,
               h(Button, { variant: 'primary', icon: 'refresh', onClick: function () { retry(run.mode) }, children: t('online.qrRefresh') }),
               h(Button, { variant: 'ghost', onClick: close, children: t('v2.close') }),
             )

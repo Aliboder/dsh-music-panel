@@ -53,6 +53,7 @@ export function createOnlineAdapter(spec) {
     capabilities: caps,
     qualityLevels: Array.isArray(spec.qualityLevels) ? spec.qualityLevels.slice() : undefined,
     loginMethods: loginMethodsOf(caps),
+    loginTexts: spec.loginTexts ?? null,
 
     // ── search / catalogue ────────────────────────────────────────────────
     search(query, ctx) {
@@ -137,6 +138,14 @@ export function createOnlineAdapter(spec) {
     },
     requiresVip(id) {
       return providers.requiresVip(providerKey, id)
+    },
+    listeningRank(range, ctx) {
+      const { cookie, session } = parts(ctx)
+      return call('listeningRank', range, cookie, session)
+    },
+    reportPlayback(song, report, ctx) {
+      const { cookie } = parts(ctx)
+      return call('reportPlayback', song, report, cookie)
     },
 
     // ── account ───────────────────────────────────────────────────────────

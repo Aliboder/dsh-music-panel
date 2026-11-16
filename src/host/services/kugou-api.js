@@ -201,6 +201,30 @@ export async function stopKugouService(platform = 'standard') {
   }
 }
 
+/** Whether a platform's KuGou worker is running. */
+export async function kugouServiceStatus(platform = 'standard') {
+  const flavor = kugouPlatformOf(platform)
+  const current = services.get(flavor)
+  if (current === undefined) return { running: false, starting: false, error: null }
+  try {
+    await current
+    return { running: true, starting: false, error: null }
+  } catch (error) {
+    return { running: false, starting: false, error: error?.message ?? String(error) }
+  }
+}
+
+/** Stop and start one platform's KuGou worker. */
+export async function restartKugouService(platform = 'standard') {
+  await stopKugouService(platform)
+  try {
+    await ensureKugouService(platform)
+  } catch {
+    // The status below reports the failure to the caller.
+  }
+  return await kugouServiceStatus(platform)
+}
+
 /** Stop every worker; the next call starts fresh ones. */
 export async function stopAllKugouServices() {
   await Promise.all([...services.keys()].map((platform) => stopKugouService(platform)))

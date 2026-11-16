@@ -80,6 +80,7 @@ const request = createRequire(workerData.base)
 
 /** @type {Promise<{ port: number, policies: { clientIpPolicy: boolean, loginQrCheck: boolean } | null }> | null} */
 let pending = null
+let lastStartError = null
 
 /**
  * Test seam. Tests that exercise routes with a stubbed `fetch` must not spawn a
@@ -198,12 +199,44 @@ async function start() {
 /** Start (or reuse) the local service. */
 export function ensureNeteaseService() {
   if (pending === null) {
-    pending = start().catch((error) => {
-      pending = null
-      throw error
-    })
+    pending = start().then(
+      (handle) => {
+        lastStartError = null
+        return handle
+      },
+      (error) => {
+        lastStartError = error?.message ?? String(error)
+        pending = null
+        throw error
+      },
+    )
   }
   return pending
+}
+
+/** Whether the local NetEase service is running, starting, or failed. */
+export async function neteaseServiceStatus() {
+  if (pending === null) {
+    return { running: false, starting: false, error: lastStartError, port: null }
+  }
+  try {
+    const handle = await pending
+    return { running: true, starting: false, error: null, port: handle.port }
+  } catch (error) {
+    return { running: false, starting: false, error: error?.message ?? String(error), port: null }
+  }
+}
+
+/** Stop and start the local NetEase service; the next call gets a fresh worker. */
+export async function restartNeteaseService() {
+  lastStartError = null
+  await stopNeteaseService()
+  try {
+    await ensureNeteaseService()
+  } catch {
+    // The status below reports the failure to the caller.
+  }
+  return await neteaseServiceStatus()
 }
 
 /** Terminate the worker; the next call starts a fresh one. */

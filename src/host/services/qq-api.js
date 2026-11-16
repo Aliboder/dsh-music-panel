@@ -49,6 +49,7 @@ const request = createRequire(workerData.base)
 
 /** @type {Promise<{ port: number }> | null} */
 let pending = null
+let lastStartError = null
 
 /** Test seam: replaces the whole transport. */
 let upstreamOverride = null
@@ -143,12 +144,44 @@ async function start() {
 
 export function ensureQqService() {
   if (pending === null) {
-    pending = start().catch((error) => {
-      pending = null
-      throw error
-    })
+    pending = start().then(
+      (handle) => {
+        lastStartError = null
+        return handle
+      },
+      (error) => {
+        lastStartError = error?.message ?? String(error)
+        pending = null
+        throw error
+      },
+    )
   }
   return pending
+}
+
+/** Whether the local QQ service is running, starting, or failed. */
+export async function qqServiceStatus() {
+  if (pending === null) {
+    return { running: false, starting: false, error: lastStartError, port: null }
+  }
+  try {
+    const handle = await pending
+    return { running: true, starting: false, error: null, port: handle.port }
+  } catch (error) {
+    return { running: false, starting: false, error: error?.message ?? String(error), port: null }
+  }
+}
+
+/** Stop and start the local QQ service; the next call gets a fresh worker. */
+export async function restartQqService() {
+  lastStartError = null
+  await stopQqService()
+  try {
+    await ensureQqService()
+  } catch {
+    // The status below reports the failure to the caller.
+  }
+  return await qqServiceStatus()
 }
 
 export async function stopQqService() {

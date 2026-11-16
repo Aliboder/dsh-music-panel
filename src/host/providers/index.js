@@ -16,6 +16,9 @@ import * as KG from './kugou.js'
 import * as KGL from './kugou-lite.js'
 import { parseYrc } from './yrc.js'
 import * as ND from './navidrome.js'
+import { callUpstream as ncUpstream } from '../services/netease-api.js'
+import { callUpstream as qqUpstream } from '../services/qq-api.js'
+import { callKugou } from '../services/kugou-api.js'
 
 export const PROVIDERS = ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
 
@@ -987,7 +990,93 @@ export async function onlineLikedIds(provider, cookie = '', session = {}) {
   return (result.songs || []).map((song) => 'online:netease:' + song.id)
 }
 
-/** Whether the signed-in account has a paid membership; null when unknown. */
+/**
+ * One account's listening ranking, newest first. `week` and `all` follow the
+ * platform's own spans (QQ's `all` is its year ranking; the name says so).
+ *
+ * @param {'netease'|'qq'|'kugou'|'kugouLite'} provider
+ * @param {'week'|'all'} range
+ * @returns {Promise<object[]>}
+ */
+export async function listeningRank(provider, range, cookie = '', session = {}) {
+  const span = range === 'all' ? 'all' : 'week'
+  if (provider === 'netease') {
+    const account = await NC.getAccount(cookie)
+    if (account === null) throw new Error('登录态已失效，请重新扫码登录')
+    const answer = await ncUpstream('/user/record', {
+      uid: Number(account.userId) || 0,
+      type: span === 'week' ? 1 : 0,
+    }, { cookie })
+    const rows = span === 'week' ? answer?.weekData : answer?.allData
+    if (!Array.isArray(rows)) throw new Error('网易云没有返回听歌排行')
+    return rows
+      .filter((row) => row && row.song && typeof row.song === 'object')
+      .map((row) => {
+        const song = NC.songOf(row.song)
+        return song === null ? null : { ...song, listenCount: Number(row.playCount) || 0 }
+      })
+      .filter(Boolean)
+  }
+  if (provider === 'qq') {
+    const answer = await qqUpstream('/user/listening-rank', {
+      range: span === 'week' ? 'week' : 'year',
+    }, { cookie })
+    const items = Array.isArray(answer?.items) ? answer.items : []
+    return items.flatMap((item) => {
+      if (item === null || typeof item !== 'object' || item.track === null || typeof item.track !== 'object') return []
+      const song = QQ.toLegacyResult(item.track)
+      return song === null ? [] : [{ ...song, listenCount: Number(item.listenCount) || 0 }]
+    })
+  }
+  if (provider === 'kugou' || provider === 'kugouLite') {
+    const platform = provider === 'kugouLite' ? 'lite' : 'standard'
+    const answer = await callKugou(platform, 'user_listen', {
+      userid: String(session.userid ?? ''),
+      type: span === 'week' ? 0 : 1,
+    })
+    const rows = answer.body?.data?.lists
+    if (!Array.isArray(rows)) throw new Error('酷狗没有返回听歌排行')
+    return rows
+      .map((item) => ({ ...KG.normalizeSong(item), listenCount: Number(item?.listen_count) || 0 }))
+      .filter((song) => song.id !== '')
+  }
+  throw new Error('该平台没有听歌排行')
+}
+
+/**
+ * Report one real listen to the platform that owns the song. Only NetEase
+ * declares this capability today; the Host keeps the platform vocabulary here.
+ *
+ * @param {object} song
+ * @param {{ playedSeconds: number, totalSeconds?: number, quality?: string }} report
+ */
+export async function reportPlayback(provider, song, report, cookie = '') {
+  if (provider !== 'netease') throw new Error('该平台不接受播放上报')
+  const id = String(song?.id ?? '')
+  if (!/^\d+$/.test(id) || Number(id) <= 0) throw new Error('这首歌不能上报')
+  const quality = String(report?.quality ?? 'high')
+  const level = quality === 'standard'
+    ? { level: 'standard', bitrate: 128 }
+    : quality === 'lossless'
+      ? { level: 'lossless', bitrate: 999 }
+      : quality === 'hires'
+        ? { level: 'hires', bitrate: 1999 }
+        : { level: 'exhigh', bitrate: 320 }
+  const answer = await ncUpstream('/scrobble/v1', {
+    id: Number(id),
+    time: Math.max(1, Math.round(Number(report?.playedSeconds) || 0)),
+    name: String(song?.title ?? ''),
+    artist: String(song?.artist ?? ''),
+    level: level.level,
+    bitrate: level.bitrate,
+    ...(Number(report?.totalSeconds) > 0 ? { total: Math.round(Number(report.totalSeconds)) } : {}),
+  }, { cookie })
+  const code = Number(answer?.code)
+  if (!Number.isFinite(code)) throw new Error('网易云没有返回播放上报状态')
+  if ([301, 401, 403].includes(code)) throw new Error('登录态已失效，不能上报播放')
+  if (code !== 200) throw new Error(`播放上报被拒绝（${code}）`)
+  return true
+}
 export async function providerVip(provider, cookie = '', session = {}) {
   if (provider === 'navidrome') {
     // A self-hosted library has no paid tier: everything the account can see
@@ -1086,7 +1175,7 @@ export async function providerProfile(provider, cookie = '', session = {}) {
     const account = await NC.getAccount(cookie)
     return account === null
       ? null
-      : { nickname: account.nickname || '', avatarUrl: account.avatarUrl || '' }
+      : { accountId: String(account.userId || ''), nickname: account.nickname || '', avatarUrl: account.avatarUrl || '' }
   }
   if (provider === 'kugou' || provider === 'kugouLite') {
     if (provider === 'kugouLite') {
@@ -1094,7 +1183,7 @@ export async function providerProfile(provider, cookie = '', session = {}) {
       return { nickname: info?.nickname || '', avatarUrl: info?.avatarUrl || '', accountId: String(session.userid || '') }
     }
     const info = await KG.getMyUserInfo(session)
-    return { nickname: info.nickname || '', avatarUrl: info.pic || '' }
+    return { nickname: info.nickname || '', avatarUrl: info.pic || '', accountId: String(session.userid || '') }
   }
   if (provider === 'qq') {
     const uin = cookiePart(cookie, 'uin') || cookiePart(cookie, 'musicid') || cookiePart(cookie, 'p_uin')

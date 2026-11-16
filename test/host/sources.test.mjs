@@ -179,6 +179,10 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   assert.equal(builtinRegistry.get('kugouLite').capabilities.likeWrite, false)
   assert.equal(builtinRegistry.get('kugouLite').capabilities.playlistAdd, false)
   assert.equal(builtinRegistry.get('kugouLite').capabilities.mutations, false)
+  assert.equal(builtinRegistry.get('netease').capabilities.listeningRank, true)
+  assert.equal(builtinRegistry.get('netease').capabilities.playbackReports, true)
+  assert.equal(builtinRegistry.get('qq').capabilities.listeningRank, true)
+  assert.equal(builtinRegistry.get('kugou').capabilities.listeningRank, true)
   // Folia-style provider metadata: quality ladder, login methods and the
   // namespaced API view are part of every registered provider.
   assert.deepEqual(builtinRegistry.get('kugou').qualityLevels, ['standard', 'high', 'lossless'])

@@ -50,6 +50,8 @@ const NETEASE_CAPABILITIES = {
   wordByWordLyrics: true,
   userAlbums: true,
   mutations: true,
+  listeningRank: true,
+  playbackReports: true,
 }
 const QQ_CAPABILITIES = {
   ...CHINESE_CAPABILITIES,
@@ -58,6 +60,7 @@ const QQ_CAPABILITIES = {
   wordByWordLyrics: true,
   userAlbums: true,
   mutations: true,
+  listeningRank: true,
 }
 const KUGOU_CAPABILITIES = {
   ...CHINESE_CAPABILITIES,
@@ -66,6 +69,7 @@ const KUGOU_CAPABILITIES = {
   wordByWordLyrics: true,
   userAlbums: true,
   mutations: true,
+  listeningRank: true,
 }
 const KUGOU_LITE_CAPABILITIES = {
   ...CHINESE_CAPABILITIES,

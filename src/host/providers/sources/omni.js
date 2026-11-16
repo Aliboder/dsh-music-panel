@@ -101,6 +101,8 @@ export function createOmni(registry) {
     // ── playback / lyrics ─────────────────────────────────────────────────
     stream: route('stream'),
     lyric: route('lyric'),
+    listeningRank: route('listeningRank'),
+    reportPlayback: route('reportPlayback'),
     /**
      * Optional capability: a source without a chorus endpoint answers `null`
      * instead of failing, so the route stays 200 and the client just has no hook.

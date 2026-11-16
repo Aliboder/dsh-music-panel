@@ -640,6 +640,20 @@ function SettingsSheet(props) {
           },
         }),
       ),
+      h(
+        SetRow,
+        {
+          key: 'playback-reports',
+          label: t('settings.playbackReports'),
+          desc: t('settings.playbackReportsHint'),
+        },
+        h(Switch, {
+          value: prefs.playbackReports === true,
+          onChange: function (value) {
+            patchPrefs({ playbackReports: value })
+          },
+        }),
+      ),
       sinkSupported && outputDevices.length > 0
         ? h(
             SetRow,

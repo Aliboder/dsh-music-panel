@@ -71,6 +71,8 @@ var PREF_DEFAULTS = {
   volume: 1,
   audioOutputDeviceId: '',
   playbackFade: true,
+  // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
+  playbackReports: false,
   loop: 'none',
   order: 'list',
   resumeOnStart: true,

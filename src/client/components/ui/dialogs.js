@@ -494,6 +494,9 @@ function LoginDialog(props) {
   var errorPair = useState('')
   var error = errorPair[0]
   var setError = errorPair[1]
+  var servicePair = useState(null)
+  var service = servicePair[0]
+  var setService = servicePair[1]
   var expiresAtRef = useRef(0)
   var scannedAtRef = useRef(0)
   var finishedRef = useRef(false)
@@ -511,6 +514,39 @@ function LoginDialog(props) {
     },
     [],
   )
+
+  useEffect(
+    function () {
+      var cancelled = false
+      getJson(API + 'online/login/local-service?provider=' + encodeURIComponent(provider))
+        .then(function (body) {
+          if (!cancelled) setService(body.localService || null)
+        })
+        .catch(function () {
+          if (!cancelled) setService(null)
+        })
+      return function () {
+        cancelled = true
+      }
+    },
+    [provider],
+  )
+
+  function restartService() {
+    setService(function (previous) {
+      return Object.assign({}, previous || {}, { restarting: true })
+    })
+    void postJson(API + 'online/login/local-service/restart', { provider: provider })
+      .then(function (body) {
+        setService(body.localService || null)
+        retry(run.mode)
+      })
+      .catch(function (error) {
+        setService(function (previous) {
+          return Object.assign({}, previous || {}, { restarting: false, error: errorText(error) })
+        })
+      })
+  }
 
   function selectProvider(id) {
     if (id === provider) return
@@ -687,6 +723,19 @@ function LoginDialog(props) {
     )
   }
 
+  function syncAccount() {
+    void postJson(API + 'online/account-sync', { provider: provider })
+      .then(function () {
+        return loadProviders()
+      })
+      .then(function () {
+        showToast(t('online.loginSuccess'))
+      })
+      .catch(function (error) {
+        showToast(errorText(error))
+      })
+  }
+
   function accountView() {
     var avatar = providerInfo.avatarUrl
       ? h('img', {
@@ -713,6 +762,12 @@ function LoginDialog(props) {
       h(
         'div',
         { className: 'mp-login-actions' },
+        h(Button, {
+          variant: 'ghost',
+          icon: 'refresh',
+          onClick: syncAccount,
+          children: t('online.syncAccount'),
+        }),
         h(Button, {
           variant: 'primary',
           icon: 'logout',
@@ -865,6 +920,15 @@ function LoginDialog(props) {
       ? h(
           'div',
           { className: 'mp-login-actions' },
+          service && service.available === true && service.failed === true
+            ? h(Button, {
+                variant: 'ghost',
+                icon: 'refresh',
+                disabled: service.restarting === true,
+                onClick: restartService,
+                children: service.restarting === true ? t('online.restartingService') : t('online.restartService'),
+              })
+            : null,
           h(Button, { variant: 'primary', icon: 'refresh', onClick: function () { retry(run.mode) }, children: t('online.qrRefresh') }),
           h(Button, { variant: 'ghost', onClick: close, children: t('v2.close') }),
         )

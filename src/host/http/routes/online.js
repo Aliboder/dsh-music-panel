@@ -20,6 +20,9 @@ import { omni } from '../../providers/sources/index.js'
 import * as ND from '../../providers/navidrome.js'
 import { createLoginBridge, createQrAdapter } from '../../providers/login/bridge.js'
 import { loginFailureOf } from '../../services/core/login-failure.js'
+import { neteaseServiceStatus, restartNeteaseService } from '../../services/netease-api.js'
+import { qqServiceStatus, restartQqService } from '../../services/qq-api.js'
+import { kugouServiceStatus, restartKugouService } from '../../services/kugou-api.js'
 import { createAmllClient } from '../../services/lyrics/amll.js'
 import { buildLyricSourceOrder } from '../../services/lyrics/lyrics-sources.js'
 import { findBestLyrics, linesFromLrc, lrcTime } from '../../services/lyrics/lyrics-match-runner.js'
@@ -78,6 +81,41 @@ export function createOnlineRoutes(deps) {
   function supportsQrLogin(id) {
     const source = omni.summaries().find((entry) => entry.id === id)
     return source !== undefined && source.capabilities !== undefined && source.capabilities.loginQr === true
+  }
+
+  /** Local worker state for the platforms whose upstream runs in a Host worker. */
+  async function localServiceStatus(provider) {
+    let status
+    if (provider === 'netease') status = await neteaseServiceStatus()
+    else if (provider === 'qq') status = await qqServiceStatus()
+    else if (provider === 'kugou' || provider === 'kugouLite') status = await kugouServiceStatus(provider)
+    else return { available: false, failed: false, error: null, restarting: false }
+    return {
+      available: true,
+      failed: status.running !== true && status.error !== null,
+      error: status.error ?? null,
+      restarting: false,
+    }
+  }
+
+  async function restartLocalService(provider) {
+    if (provider === 'netease') return await restartNeteaseService()
+    if (provider === 'qq') return await restartQqService()
+    if (provider === 'kugou' || provider === 'kugouLite') return await restartKugouService(provider)
+    return null
+  }
+
+  // Playback reports write to a real account; the gate below refuses bursts no
+  // listener could produce, whatever the client believed about its session.
+  const recentReports = []
+  function allowPlaybackReport() {
+    const now = Date.now()
+    while (recentReports.length > 0 && now - recentReports[0] >= 60 * 60 * 1000) recentReports.shift()
+    if (recentReports.length >= 60) return false
+    const last = recentReports[recentReports.length - 1]
+    if (last !== undefined && now - last < 5000) return false
+    recentReports.push(now)
+    return true
   }
 
   // QR sign-in goes through the shared state machine; persistence still writes the
@@ -765,6 +803,36 @@ export function createOnlineRoutes(deps) {
         }
       }
 
+      if (pathname === '/online/report-playback' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const provider = String(body?.provider || '')
+        if (!isOnlineSource(provider)) return fail(res, 400, 'BAD_PROVIDER', '未知平台')
+        const playedSeconds = Math.max(0, Number(body?.playedSeconds) || 0)
+        if (playedSeconds < 30) return sendJson(res, 200, { ok: true, reported: false })
+        if (!allowPlaybackReport()) return sendJson(res, 200, { ok: true, reported: false })
+        try {
+          const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
+          const session = providerStore === undefined ? {} : await providerStore.session(provider)
+          await omni.reportPlayback(provider, {
+            id: String(body?.id || ''),
+            title: String(body?.title || ''),
+            artist: String(body?.artist || ''),
+          }, {
+            playedSeconds,
+            totalSeconds: Number(body?.totalSeconds) || 0,
+            quality: String(body?.quality || 'high'),
+          }, { cookie, session })
+          return sendJson(res, 200, { ok: true, reported: true })
+        } catch (error) {
+          return fail(res, 502, 'PLAYBACK_REPORT_FAILED', error instanceof Error ? error.message : '播放上报失败')
+        }
+      }
+
       if (pathname === '/online/check-playable' && method === 'POST') {
         let body
         try {
@@ -928,6 +996,86 @@ export function createOnlineRoutes(deps) {
 
       // Navidrome/Subsonic has no QR flow: the client posts a server URL plus      // Navidrome/Subsonic has no QR flow: the client posts a server URL plus
       // credentials, we verify with ping, then persist only salt + token.
+      if (pathname === '/online/account-sync' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const provider = String(body?.provider || '')
+        if (!isOnlineSource(provider)) return fail(res, 400, 'BAD_PROVIDER', '未知平台')
+        if (accountReads === undefined) return sendJson(res, 200, { ok: true, account: null })
+        try {
+          const account = await accountReads.read(provider, 'sync')
+          return sendJson(res, 200, { ok: true, account })
+        } catch (error) {
+          return fail(res, 502, 'ACCOUNT_SYNC_FAILED', error instanceof Error ? error.message : '账号同步失败')
+        }
+      }
+
+      if (pathname === '/online/account' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        if (!isOnlineSource(provider)) return fail(res, 400, 'BAD_PROVIDER', '未知平台')
+        return sendJson(res, 200, {
+          ok: true,
+          account: accountStore === undefined ? null : await accountStore.get(provider),
+        })
+      }
+
+      if (pathname === '/online/login/local-service' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        if (!isOnlineSource(provider)) return fail(res, 400, 'BAD_PROVIDER', '未知平台')
+        return sendJson(res, 200, { ok: true, localService: await localServiceStatus(provider) })
+      }
+
+      if (pathname === '/online/login/local-service/restart' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const provider = String(body?.provider || '')
+        if (!isOnlineSource(provider)) return fail(res, 400, 'BAD_PROVIDER', '未知平台')
+        await restartLocalService(provider)
+        return sendJson(res, 200, { ok: true, localService: await localServiceStatus(provider) })
+      }
+
+      if (pathname === '/online/login/self-check' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        const checks = [{
+          id: 'source',
+          ok: isOnlineSource(provider),
+          detail: isOnlineSource(provider) ? 'registered' : 'not registered',
+        }]
+        const local = await localServiceStatus(provider)
+        if (local.available === true) {
+          checks.push({
+            id: 'local-service',
+            ok: local.failed !== true,
+            detail: local.error || (local.failed === true ? 'failed' : 'running or idle'),
+          })
+        }
+        return sendJson(res, 200, { ok: checks.every((check) => check.ok), checks })
+      }
+
+      if (pathname === '/online/login/diagnostics' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        const snapshot = login.snapshot(provider)
+        const local = await localServiceStatus(provider)
+        return sendJson(res, 200, {
+          ok: true,
+          lines: [
+            `provider=${provider}`,
+            `registered=${isOnlineSource(provider)}`,
+            `phase=${snapshot?.status ?? 'unknown'}`,
+            `failure=${snapshot?.failure?.code ?? 'none'}`,
+            `local-service=${local.available ? (local.failed ? 'failed' : 'ok') : 'n/a'}`,
+          ],
+        })
+      }
+
       if (pathname === '/online/navidrome/login' && method === 'POST') {
         let body
         try {
@@ -1103,6 +1251,31 @@ export function createOnlineRoutes(deps) {
           const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
           const session = providerStore === undefined ? {} : await providerStore.session(provider)
           const playlists = await omni.myPlaylists(provider, { cookie, session })
+          // Folia lists the account's listening ranking among its collections.
+          // The Host has no i18n, so the cards carry the Chinese names the rest of
+          // this Host surface already speaks.
+          if (omni.capabilities(provider)?.listeningRank === true) {
+            const profile = await profileState(provider)
+            const accountId = String(profile?.accountId || 'self')
+            for (const range of ['week', 'all']) {
+              try {
+                const songs = await omni.listeningRank(provider, range, { cookie, session })
+                if (!Array.isArray(songs) || songs.length === 0) continue
+                playlists.unshift({
+                  id: `listening-rank-${range}-${accountId}`,
+                  name: range === 'week' ? '最近一周' : (provider === 'qq' ? '年度排行' : '所有时间'),
+                  coverUrl: songs.find((song) => song.coverUrl)?.coverUrl || '',
+                  trackCount: songs.length,
+                  type: 'listening',
+                  listeningRank: range,
+                  isOwned: false,
+                  creator: profile?.nickname || '',
+                })
+              } catch {
+                // A missing route or an unreadable ranking only omits the card.
+              }
+            }
+          }
           return sendJson(res, 200, { ok: true, provider, playlists })
         } catch (error) {
           return fail(
@@ -1154,6 +1327,18 @@ export function createOnlineRoutes(deps) {
         try {
           const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
           const session = providerStore === undefined ? {} : await providerStore.session(provider)
+          if (id.startsWith('listening-rank-')) {
+            const range = id.split('-')[2] === 'all' ? 'all' : 'week'
+            const songs = await omni.listeningRank(provider, range, { cookie, session })
+            return sendJson(res, 200, {
+              ok: true,
+              provider,
+              name: range === 'week' ? '最近一周' : (provider === 'qq' ? '年度排行' : '所有时间'),
+              cover: songs.find((song) => song.coverUrl)?.coverUrl || '',
+              trackCount: songs.length,
+              songs,
+            })
+          }
           const result = await omni.playlistSongs(provider, id, { cookie, session })
           return sendJson(res, 200, {
             ok: true,

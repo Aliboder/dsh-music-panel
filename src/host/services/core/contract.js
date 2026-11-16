@@ -109,6 +109,8 @@ export const METHOD_CAPABILITY = {
   stream: 'playback',
   lyric: 'lyrics',
   chorus: 'lyrics',
+  listeningRank: 'listeningRank',
+  reportPlayback: 'playbackReports',
   vip: 'vip',
   vipInfo: 'vip',
   profile: null,
