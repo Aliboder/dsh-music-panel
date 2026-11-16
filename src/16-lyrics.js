@@ -467,6 +467,37 @@ function mpLocalRawSource(body) {
 }
 
 /**
+ * Local lyrics as the renderers need them, shared by every surface that shows a local
+ * file's lyrics: the Host's raw text through Folia's pipeline, or the Host's own lines
+ * when the text carries no timeline.
+ *
+ * `folia` says which shape `lyrics` is in: the pipeline's lines are Folia's `Line`,
+ * the fallback is still the Host's `{time, text, translation}`.
+ *
+ * @returns {Promise<{ lyrics: Array<object>, pureMusic: boolean, document: object|null, folia: boolean }>}
+ */
+async function mpLocalLyricLines(body, songKey) {
+  var raw = mpLocalRawSource(body)
+  if (raw !== null && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
+    try {
+      var parsed = await MPFoliaLyrics.parse(raw, { songId: 0 })
+      if (parsed && Array.isArray(parsed.lines) && parsed.lines.length > 0) {
+        var shown = mpPrepareLyrics(parsed, songKey, [])
+        return { lyrics: shown.lyrics, pureMusic: shown.pureMusic, document: parsed, folia: true }
+      }
+    } catch (error) {
+      // Fall through to the Host's own lines: a file the parser cannot read still shows.
+    }
+  }
+  return {
+    lyrics: Array.isArray(body && body.lines) ? body.lines : [],
+    pureMusic: false,
+    document: null,
+    folia: false,
+  }
+}
+
+/**
  * The display-time pass over one parsed Folia document.
  * @returns {{ lyrics: Array<object>, pureMusic: boolean }}
  */

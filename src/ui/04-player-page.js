@@ -36,10 +36,13 @@ function PlayerPage(props) {
       var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
       setLyrics([])
       getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&order=' + encodeURIComponent(order))
-        .then(function (body) {
+        .then(async function (body) {
           if (cancelled) return
-          var lines = legacyLinesToFolia(Array.isArray(body.lines) ? body.lines : [])
-          setLyrics(lines)
+          // Same pipeline as the player card: the Host's raw text (TTML / YRC / enhanced
+          // LRC sidecars included) instead of only the Host's line array.
+          var shown = await mpLocalLyricLines(body, trackPath)
+          if (cancelled) return
+          setLyrics(shown.folia ? shown.lyrics : legacyLinesToFolia(shown.lyrics))
           setOffsetMs(Number(body.offsetMs) || 0)
         })
         .catch(function () {

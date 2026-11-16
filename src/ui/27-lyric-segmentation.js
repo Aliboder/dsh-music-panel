@@ -138,5 +138,5 @@ function segmentationErrorText(error) {
   if (code === 'invalid-json' || code === 'invalid-json-shape') return t('sheet.lyricSegBadFormat')
   if (code === 'line-count-mismatch') return t('sheet.lyricSegLineCount')
   if (code === 'line-text-mismatch') return t('sheet.lyricSegLineText', { row: String(row) })
-  return code
+  return t('sheet.lyricSegFailed')
 }

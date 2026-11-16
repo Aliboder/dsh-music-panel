@@ -264,6 +264,7 @@ ${body}
           saveLyricSegmentation: typeof saveLyricSegmentation === 'function' ? saveLyricSegmentation : null,
           mpSegmentationLineCount: typeof mpSegmentationLineCount === 'function' ? mpSegmentationLineCount : null,
           mpPrepareLyrics: typeof mpPrepareLyrics === 'function' ? mpPrepareLyrics : null,
+          mpLocalLyricLines: typeof mpLocalLyricLines === 'function' ? mpLocalLyricLines : null,
           mpStyleCatalog: typeof mpStyleCatalog !== 'undefined' ? mpStyleCatalog : null,
           mpStyleOf: typeof mpStyleOf !== 'undefined' ? mpStyleOf : null,
         },

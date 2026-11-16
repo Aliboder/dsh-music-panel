@@ -8205,6 +8205,7 @@ window.__ModuleLoader__.load({
         'sheet.lyricSegLineText': '第 {row} 行拼不回原句',
         'sheet.lyricSegNoLyrics': '还没有歌词可以分词',
         'sheet.lyricSegNoTimedLines': '这首歌的歌词没有时间轴，无法按行分词。',
+        'sheet.lyricSegFailed': '分词没有保存：内容和歌词对不上。',
         'sheet.background': '背景类型',
         'sheet.transparentBg': '播放页透明背景',
         'sheet.scene': '场景',
@@ -8596,6 +8597,7 @@ window.__ModuleLoader__.load({
         'sheet.lyricSegLineText': 'Row {row} does not rebuild its line',
         'sheet.lyricSegNoLyrics': 'There are no lyrics to split yet',
         'sheet.lyricSegNoTimedLines': 'This lyric has no timeline, so it cannot be split by line.',
+        'sheet.lyricSegFailed': 'The split was not saved: it does not match the lyrics.',
         'sheet.background': 'Background type',
         'sheet.transparentBg': 'Transparent player background',
         'sheet.scene': 'Scene',
@@ -9750,6 +9752,37 @@ window.__ModuleLoader__.load({
         lrcContent: body.raw,
         ...(typeof body.translation === 'string' && body.translation !== '' ? { tLrcContent: body.translation } : {}),
         ...(typeof body.formatHint === 'string' && body.formatHint !== '' ? { formatHint: body.formatHint } : {}),
+      }
+    }
+
+    /**
+     * Local lyrics as the renderers need them, shared by every surface that shows a local
+     * file's lyrics: the Host's raw text through Folia's pipeline, or the Host's own lines
+     * when the text carries no timeline.
+     *
+     * `folia` says which shape `lyrics` is in: the pipeline's lines are Folia's `Line`,
+     * the fallback is still the Host's `{time, text, translation}`.
+     *
+     * @returns {Promise<{ lyrics: Array<object>, pureMusic: boolean, document: object|null, folia: boolean }>}
+     */
+    async function mpLocalLyricLines(body, songKey) {
+      var raw = mpLocalRawSource(body)
+      if (raw !== null && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
+        try {
+          var parsed = await MPFoliaLyrics.parse(raw, { songId: 0 })
+          if (parsed && Array.isArray(parsed.lines) && parsed.lines.length > 0) {
+            var shown = mpPrepareLyrics(parsed, songKey, [])
+            return { lyrics: shown.lyrics, pureMusic: shown.pureMusic, document: parsed, folia: true }
+          }
+        } catch (error) {
+          // Fall through to the Host's own lines: a file the parser cannot read still shows.
+        }
+      }
+      return {
+        lyrics: Array.isArray(body && body.lines) ? body.lines : [],
+        pureMusic: false,
+        document: null,
+        folia: false,
       }
     }
 
@@ -157143,10 +157176,13 @@ window.__ModuleLoader__.load({
           var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
           setLyrics([])
           getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&order=' + encodeURIComponent(order))
-            .then(function (body) {
+            .then(async function (body) {
               if (cancelled) return
-              var lines = legacyLinesToFolia(Array.isArray(body.lines) ? body.lines : [])
-              setLyrics(lines)
+              // Same pipeline as the player card: the Host's raw text (TTML / YRC / enhanced
+              // LRC sidecars included) instead of only the Host's line array.
+              var shown = await mpLocalLyricLines(body, trackPath)
+              if (cancelled) return
+              setLyrics(shown.folia ? shown.lyrics : legacyLinesToFolia(shown.lyrics))
               setOffsetMs(Number(body.offsetMs) || 0)
             })
             .catch(function () {
@@ -159348,19 +159384,47 @@ window.__ModuleLoader__.load({
             // lyrics: the ref is what a later rule change re-applies the pass to.
             if (cancelled) return
             if (upgraded !== null && upgraded.pureMusic === true) return
+            var shownCount = 0
             if (upgraded !== null && upgraded.lyrics.length > 0 && parsedDocument !== null) {
               lyricDocRef.current = { path: trackPath, document: parsedDocument, chorusRanges: chorusRanges }
               setLyrics(upgraded.lyrics)
+              shownCount = upgraded.lyrics.length
             } else {
               // No raw document (an older lyric cache): the lender's own lines still carry the
-              // timeline, so attach it the way the legacy path does.
+              // timeline, so attach it the way the legacy path does — then run the same display
+              // pass over it, so the listener's rules and the credits policy apply here too.
               var fallbackLines = parseLrcText(match.lrc || '')
               if (match.translation) mergeLyricTranslation(fallbackLines, match.translation)
               attachWordTimeline(fallbackLines, match.lines)
               var foliaLines = legacyLinesToFolia(fallbackLines)
               if (foliaLines.length === 0) return
-              lyricDocRef.current = null
-              setLyrics(foliaLines)
+              var fallbackDoc = { lines: foliaLines }
+              var fallbackShown = mpPrepareLyrics(fallbackDoc, trackPath, chorusRanges)
+              if (fallbackShown.pureMusic === true || fallbackShown.lyrics.length === 0) return
+              lyricDocRef.current = { path: trackPath, document: fallbackDoc, chorusRanges: chorusRanges }
+              setLyrics(fallbackShown.lyrics)
+              shownCount = fallbackShown.lyrics.length
+            }
+            // The upgrade is a second lyric load: say so, so the diagnostics can tell it apart
+            // from the platform's own lyric (the normal path reports its own line).
+            if (typeof console !== 'undefined' && typeof console.info === 'function') {
+              console.info(
+                '[dsh-music] lyric upgrade',
+                String(current.onlineProvider || '') + '/' + String(current.onlineId || ''),
+                'from=' + String(match.source || '') + '/' + String(match.id || ''),
+                'wordLevel=true',
+              )
+            }
+            if (typeof postJson === 'function' && typeof API === 'string') {
+              void postJson(API + 'debug/report', {
+                kind: 'lyric-upgrade',
+                provider: String(current.onlineProvider || ''),
+                id: String(current.onlineId || ''),
+                from: String(match.source || ''),
+                fromId: String(match.id || ''),
+                hadRaw: match.raw !== null && typeof match.raw === 'object',
+                lines: shownCount,
+              }).catch(function () {})
             }
             if (typeof showToast === 'function') {
               showToast(t('sheet.lyricUpgraded', { source: mpLyricSourceLabel(match.source) }))
@@ -159504,26 +159568,13 @@ window.__ModuleLoader__.load({
               // Local files take the same pipeline as online ones: the Host hands over the
               // file's own text (LRC / enhanced LRC / TTML / VTT / QRC / YRC / KRC / .fia),
               // so word timing, credits policy and icu-folia's split all apply here too.
-              var localShown = null
-              var localRaw = mpLocalRawSource(local)
-              if (localRaw !== null && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
-                try {
-                  armIcuFolia()
-                  var localDoc = await MPFoliaLyrics.parse(localRaw, { songId: 0 })
-                  if (localDoc && Array.isArray(localDoc.lines) && localDoc.lines.length > 0) {
-                    lyricDocRef.current = { path: trackPath, document: localDoc, chorusRanges: [] }
-                    localShown = mpPrepareLyrics(localDoc, trackPath, [])
-                  }
-                } catch (error) {
-                  localShown = null
-                }
-              }
-              if (localShown === null) {
-                lyricDocRef.current = null
-                // Untimed text (a plain tag or a sidecar without stamps) has no timeline to
-                // parse: it keeps the Host's own lines, as it always did.
-                localShown = { lyrics: Array.isArray(local.lines) ? local.lines : [], pureMusic: false }
-              }
+              armIcuFolia()
+              var localShown = await mpLocalLyricLines(local, trackPath)
+              // Keep the document so a rule change re-runs the display pass; the fallback
+              // (untimed text) has no document and keeps the Host's lines as they are.
+              lyricDocRef.current = localShown.document === null
+                ? null
+                : { path: trackPath, document: localShown.document, chorusRanges: [] }
               if (!cancelled) {
                 setLyrics(localShown.lyrics)
                 setLyricSource(String(local.source || ''))
@@ -167873,7 +167924,7 @@ window.__ModuleLoader__.load({
       if (code === 'invalid-json' || code === 'invalid-json-shape') return t('sheet.lyricSegBadFormat')
       if (code === 'line-count-mismatch') return t('sheet.lyricSegLineCount')
       if (code === 'line-text-mismatch') return t('sheet.lyricSegLineText', { row: String(row) })
-      return code
+      return t('sheet.lyricSegFailed')
     }
 
     // ── src/ui/10-navigation.js
@@ -169053,6 +169104,17 @@ window.__ModuleLoader__.load({
       return ''
     }
 
+    /** The strip reads {time, text, translation}; Folia's lines carry the same data. */
+    function composerLyricRows(lines) {
+      return (Array.isArray(lines) ? lines : []).map(function (line) {
+        return {
+          time: mpLineStart(line),
+          text: String(line.fullText !== undefined ? line.fullText : line.text || ''),
+          translation: typeof line.translation === 'string' ? line.translation : '',
+        }
+      })
+    }
+
     function composerLyricContent(entry) {
       var translation = firstComposerTranslation(entry.translation)
       return [
@@ -169135,15 +169197,32 @@ window.__ModuleLoader__.load({
                     '&id=' +
                     encodeURIComponent(active.onlineId || ''),
                 )
-                var lines = parseLrcText(body.lrc || '')
-                if (body.translation) mergeLyricTranslation(lines, body.translation)
-                if (!cancelled) setLines(lines)
+                // The same raw pipeline the player uses, so a lyric that only exists as YRC /
+                // QRC / KRC / TTML still drives this strip.
+                var rows = null
+                if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
+                  try {
+                    var document = await MPFoliaLyrics.parse(body.raw, { songId: Number(active.onlineId) || 0 })
+                    if (document && Array.isArray(document.lines) && document.lines.length > 0) {
+                      rows = composerLyricRows(mpPrepareLyrics(document, trackPath, []).lyrics)
+                    }
+                  } catch (error) {
+                    rows = null
+                  }
+                }
+                if (rows === null) {
+                  var legacy = parseLrcText(body.lrc || '')
+                  if (body.translation) mergeLyricTranslation(legacy, body.translation)
+                  rows = composerLyricRows(legacy)
+                }
+                if (!cancelled) setLines(rows)
                 return
               }
               var local = await getJson(
                 API + 'lyrics?path=' + encodeURIComponent(active.path) + '&order=embedded,lrc',
               )
-              if (!cancelled) setLines(Array.isArray(local.lines) ? local.lines : [])
+              var localShown = await mpLocalLyricLines(local, trackPath)
+              if (!cancelled) setLines(composerLyricRows(localShown.lyrics))
             } catch (error) {
               if (!cancelled) setLines([])
             }
@@ -170920,6 +170999,7 @@ window.__ModuleLoader__.load({
           saveLyricSegmentation: typeof saveLyricSegmentation === 'function' ? saveLyricSegmentation : null,
           mpSegmentationLineCount: typeof mpSegmentationLineCount === 'function' ? mpSegmentationLineCount : null,
           mpPrepareLyrics: typeof mpPrepareLyrics === 'function' ? mpPrepareLyrics : null,
+          mpLocalLyricLines: typeof mpLocalLyricLines === 'function' ? mpLocalLyricLines : null,
           mpStyleCatalog: typeof mpStyleCatalog !== 'undefined' ? mpStyleCatalog : null,
           mpStyleOf: typeof mpStyleOf !== 'undefined' ? mpStyleOf : null,
         },

@@ -15,6 +15,17 @@ function firstComposerTranslation(value) {
   return ''
 }
 
+/** The strip reads {time, text, translation}; Folia's lines carry the same data. */
+function composerLyricRows(lines) {
+  return (Array.isArray(lines) ? lines : []).map(function (line) {
+    return {
+      time: mpLineStart(line),
+      text: String(line.fullText !== undefined ? line.fullText : line.text || ''),
+      translation: typeof line.translation === 'string' ? line.translation : '',
+    }
+  })
+}
+
 function composerLyricContent(entry) {
   var translation = firstComposerTranslation(entry.translation)
   return [
@@ -97,15 +108,32 @@ function ComposerLyrics() {
                 '&id=' +
                 encodeURIComponent(active.onlineId || ''),
             )
-            var lines = parseLrcText(body.lrc || '')
-            if (body.translation) mergeLyricTranslation(lines, body.translation)
-            if (!cancelled) setLines(lines)
+            // The same raw pipeline the player uses, so a lyric that only exists as YRC /
+            // QRC / KRC / TTML still drives this strip.
+            var rows = null
+            if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
+              try {
+                var document = await MPFoliaLyrics.parse(body.raw, { songId: Number(active.onlineId) || 0 })
+                if (document && Array.isArray(document.lines) && document.lines.length > 0) {
+                  rows = composerLyricRows(mpPrepareLyrics(document, trackPath, []).lyrics)
+                }
+              } catch (error) {
+                rows = null
+              }
+            }
+            if (rows === null) {
+              var legacy = parseLrcText(body.lrc || '')
+              if (body.translation) mergeLyricTranslation(legacy, body.translation)
+              rows = composerLyricRows(legacy)
+            }
+            if (!cancelled) setLines(rows)
             return
           }
           var local = await getJson(
             API + 'lyrics?path=' + encodeURIComponent(active.path) + '&order=embedded,lrc',
           )
-          if (!cancelled) setLines(Array.isArray(local.lines) ? local.lines : [])
+          var localShown = await mpLocalLyricLines(local, trackPath)
+          if (!cancelled) setLines(composerLyricRows(localShown.lyrics))
         } catch (error) {
           if (!cancelled) setLines([])
         }

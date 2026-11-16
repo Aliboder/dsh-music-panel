@@ -14,8 +14,11 @@
   歌词上屏**之后**再问 `/online/best-lyric`，按 Folia 的来源顺序（网易云 → AMLL → QQ → 酷狗，
   逐字优先）检索同一首歌；只有匹配到的确实是逐字歌词才替换并吐一句 toast。有逐字时间轴时
   不再检索（Folia 连已有逐字也会再比一轮；这里换源只可能让对齐/译文变差）。
-  设置 → 音乐 → 自动使用最佳歌词。未移植：`keepProviderWordTiming`（Folia 里只有 Apple Music
-  把 `prefersOwnWordByWord` 设为 true，本插件的平台都没有这个能力）与 AI 分词。
+  设置 → 音乐 → 自动使用最佳歌词。命中与未命中都缓存（未命中 24 小时后重试），所以重播不会
+  每次把四个源都搜一遍。AMLL 只对网易云 / QQ 曲目可达（它的库用这两家的 id），酷狗 / Navidrome /
+  Bodian 曲目不会问它——Folia 会先搜网易云拿 id，这里没有做。
+  未移植：`keepProviderWordTiming`（Folia 里只有 Apple Music 把 `prefersOwnWordByWord` 设为
+  true，本插件的平台都没有这个能力）与 AI 分词。
 - **借源保留原文**：平台完全没有歌词时借来的结果，现在把出借方的 `raw` / 译文 / 罗马音一起带回
   并缓存，所以借来的 QQ/KRC/AMLL 逐字歌词也走 Folia 的解析器；顺带修掉这条路径上
   `lrcTime` 未定义导致的 502（`/music/online/lyric` 在借源时一直抛 ReferenceError）。

@@ -91,9 +91,11 @@ assert.equal(
   'a row is the line with / between words',
 )
 
-// The footer is [reset, spacer, cancel, save]; the primary style marks the last one.
+// The footer is [reset, spacer, cancel, save]: save is the last button and the only one
+// that applies the text.
 const saveButton = buttons[buttons.length - 1]
-assert.ok(saveButton && saveButton.props.style && saveButton.props.style.background === '#3b82f6', 'the dialog offers 保存')
+assert.ok(saveButton && typeof saveButton.props.onClick === 'function', 'the dialog offers 保存')
+assert.equal(saveButton.props.disabled, false, '保存 is enabled while the rows are editable')
 saveButton.props.onClick()
 
 // ── saving wrote the record the setter bakes ──────────────────────────────
@@ -123,6 +125,27 @@ assert.equal(internals.mpSegmentationLineCount(doc.lines, songKey), 1)
 
 // Other songs do not inherit it.
 assert.equal(internals.readLyricSegmentation('D:/music/other.flac'), null)
+
+// ── local lyrics take the same raw pipeline ───────────────────────────────
+{
+  // A timed sidecar's raw text is parsed (here: enhanced LRC, which only the parser can
+  // turn into per-word timing); the Host's own lines are the fallback for untimed text.
+  const timed = await internals.mpLocalLyricLines(
+    { raw: '[00:01.00]<00:01.00>晴<00:01.50>天', formatHint: '' },
+    'D:/music/timed.flac',
+  )
+  assert.equal(timed.folia, true)
+  assert.equal(timed.document !== null, true, 'the document is kept for the rule re-run')
+  assert.deepEqual(JSON.parse(JSON.stringify(timed.lyrics[0].words.map((word) => word.text))), ['晴', '天'])
+
+  const untimed = await internals.mpLocalLyricLines(
+    { lines: [{ time: -1, text: 'plain words', translation: '' }], raw: '' },
+    'D:/music/plain.flac',
+  )
+  assert.equal(untimed.folia, false, 'untimed text keeps the Host lines')
+  assert.equal(untimed.lyrics[0].text, 'plain words')
+  assert.equal(untimed.document, null)
+}
 
 // ── reset forgets it ──────────────────────────────────────────────────────
 internals.saveLyricSegmentation(songKey, null)

@@ -90,10 +90,10 @@
 | 项 | 状态 |
 |---|---|
 | 时计 `pendolo` | ✅ 渲染器原样；边界完整（时钟/Line/Theme/band）；设置在默认值 |
-| 静止 `still` / 云阶 `partita` / 浮名 `fume` / 莫奈 `monet` / 群唱 `cappella` / 倾诉 `tilt` / 回环 `claddagh` / 心象 `cadenza` | ✅ 渲染器原样（`styles.bundle.js` 编译） |
+| 静止 `still` / 云阶 `partita` / 浮名 `fume` / 莫奈 `monet` / 倾诉 `tilt` / 回环 `claddagh` / 心象 `cadenza` | ✅ 渲染器原样（`styles.bundle.js` 编译） |
 | 绘光 `lumiere` / 商籁 `sonnet` / 凝彩 `tempera` / 花火 `hanabi` | ✅ 渲染器原样；Pixi 8.21 已 vendor |
 | 雾笺 `nebbia` | ✅ 渲染器原样；笔顺数据缺省时走上游骨架回退 |
-| 町景 `machi` | ✅ 使用已经编好的 Folia machi 引擎（`machi.bundle.js`），补上了时钟/音频/歌词桥接 |
+| 群唱 `cappella` / 町景 `machi` / 经典 `classic` | ⛔️ 按 AGENTS.md 移除，不再注册（`FOLIA_STYLE_META` 里没有它们） |
 | 六种背景 | ✅ 渲染器原样；Monet Worker 改 OffscreenCanvas；设置仅模式选择 |
 | 镜台 `diorama` | ✅ 渲染器原样；`@react-three/fiber@8.18.0` 已 vendor，React 18 下 Canvas/CameraRig/DioramaScene 正常出画（首帧需要等场景 raster 完成）；渲染异常时由样式错误边界回退为纯文本歌词 |
 

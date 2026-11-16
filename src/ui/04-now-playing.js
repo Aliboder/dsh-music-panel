@@ -2048,19 +2048,47 @@ function NowPlaying(props) {
         // lyrics: the ref is what a later rule change re-applies the pass to.
         if (cancelled) return
         if (upgraded !== null && upgraded.pureMusic === true) return
+        var shownCount = 0
         if (upgraded !== null && upgraded.lyrics.length > 0 && parsedDocument !== null) {
           lyricDocRef.current = { path: trackPath, document: parsedDocument, chorusRanges: chorusRanges }
           setLyrics(upgraded.lyrics)
+          shownCount = upgraded.lyrics.length
         } else {
           // No raw document (an older lyric cache): the lender's own lines still carry the
-          // timeline, so attach it the way the legacy path does.
+          // timeline, so attach it the way the legacy path does — then run the same display
+          // pass over it, so the listener's rules and the credits policy apply here too.
           var fallbackLines = parseLrcText(match.lrc || '')
           if (match.translation) mergeLyricTranslation(fallbackLines, match.translation)
           attachWordTimeline(fallbackLines, match.lines)
           var foliaLines = legacyLinesToFolia(fallbackLines)
           if (foliaLines.length === 0) return
-          lyricDocRef.current = null
-          setLyrics(foliaLines)
+          var fallbackDoc = { lines: foliaLines }
+          var fallbackShown = mpPrepareLyrics(fallbackDoc, trackPath, chorusRanges)
+          if (fallbackShown.pureMusic === true || fallbackShown.lyrics.length === 0) return
+          lyricDocRef.current = { path: trackPath, document: fallbackDoc, chorusRanges: chorusRanges }
+          setLyrics(fallbackShown.lyrics)
+          shownCount = fallbackShown.lyrics.length
+        }
+        // The upgrade is a second lyric load: say so, so the diagnostics can tell it apart
+        // from the platform's own lyric (the normal path reports its own line).
+        if (typeof console !== 'undefined' && typeof console.info === 'function') {
+          console.info(
+            '[dsh-music] lyric upgrade',
+            String(current.onlineProvider || '') + '/' + String(current.onlineId || ''),
+            'from=' + String(match.source || '') + '/' + String(match.id || ''),
+            'wordLevel=true',
+          )
+        }
+        if (typeof postJson === 'function' && typeof API === 'string') {
+          void postJson(API + 'debug/report', {
+            kind: 'lyric-upgrade',
+            provider: String(current.onlineProvider || ''),
+            id: String(current.onlineId || ''),
+            from: String(match.source || ''),
+            fromId: String(match.id || ''),
+            hadRaw: match.raw !== null && typeof match.raw === 'object',
+            lines: shownCount,
+          }).catch(function () {})
         }
         if (typeof showToast === 'function') {
           showToast(t('sheet.lyricUpgraded', { source: mpLyricSourceLabel(match.source) }))
@@ -2204,26 +2232,13 @@ function NowPlaying(props) {
           // Local files take the same pipeline as online ones: the Host hands over the
           // file's own text (LRC / enhanced LRC / TTML / VTT / QRC / YRC / KRC / .fia),
           // so word timing, credits policy and icu-folia's split all apply here too.
-          var localShown = null
-          var localRaw = mpLocalRawSource(local)
-          if (localRaw !== null && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
-            try {
-              armIcuFolia()
-              var localDoc = await MPFoliaLyrics.parse(localRaw, { songId: 0 })
-              if (localDoc && Array.isArray(localDoc.lines) && localDoc.lines.length > 0) {
-                lyricDocRef.current = { path: trackPath, document: localDoc, chorusRanges: [] }
-                localShown = mpPrepareLyrics(localDoc, trackPath, [])
-              }
-            } catch (error) {
-              localShown = null
-            }
-          }
-          if (localShown === null) {
-            lyricDocRef.current = null
-            // Untimed text (a plain tag or a sidecar without stamps) has no timeline to
-            // parse: it keeps the Host's own lines, as it always did.
-            localShown = { lyrics: Array.isArray(local.lines) ? local.lines : [], pureMusic: false }
-          }
+          armIcuFolia()
+          var localShown = await mpLocalLyricLines(local, trackPath)
+          // Keep the document so a rule change re-runs the display pass; the fallback
+          // (untimed text) has no document and keeps the Host's lines as they are.
+          lyricDocRef.current = localShown.document === null
+            ? null
+            : { path: trackPath, document: localShown.document, chorusRanges: [] }
           if (!cancelled) {
             setLyrics(localShown.lyrics)
             setLyricSource(String(local.source || ''))

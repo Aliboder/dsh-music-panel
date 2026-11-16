@@ -106,6 +106,25 @@ assert.ok(typeof lyrics.LyricParserFactory?.parse === 'function', 'and the parse
   assert.ok(prepared.lines.some((line) => line.isChorus === true), 'a repeated line is marked as chorus')
 }
 
+// ── native chorus ranges (Folia's provider pass) ───────────────────────────
+{
+  const lrc = ['[00:10.00]第一句', '[00:14.00]副歌开始', '[00:18.00]第二句']
+    .join('\n')
+  const parsed = await parseDocument({ type: 'local', lrcContent: lrc })
+  const marked = JSON.parse(
+    JSON.stringify(lyrics.prepare(parsed, { policy: 'keep', chorusRanges: [{ startTime: 15, endTime: 17 }] })),
+  )
+  const chorusTexts = marked.lines.filter((line) => line.isChorus === true).map((line) => line.fullText)
+  assert.deepEqual(chorusTexts, ['副歌开始'], 'only the line inside the range is marked')
+  assert.ok(marked.lines.every((line) => line.chorusEffect === undefined || line.isChorus === true))
+  // Existing chorus markers win: no second decoration pass.
+  const already = JSON.parse(JSON.stringify(marked))
+  const again = JSON.parse(
+    JSON.stringify(lyrics.prepare(already, { policy: 'keep', chorusRanges: [{ startTime: 0, endTime: 30 }] })),
+  )
+  assert.equal(again.lines.filter((line) => line.isChorus === true).length, chorusTexts.length)
+}
+
 // ── pure music ─────────────────────────────────────────────────────────────
 // Folia's rule: only a line that *is* the notice counts; the word appearing inside
 // a sung line does not.
