@@ -159471,12 +159471,20 @@ window.__ModuleLoader__.load({
       var setTab = tabPair[1]
       var slots = normalizeEqSlots(eq.slots)
       var available = player.getEq().available
+      function soundPresetForBands(bands) {
+        for (var index = 0; index < FOLIA_SOUND_PRESET_IDS.length; index += 1) {
+          var id = FOLIA_SOUND_PRESET_IDS[index]
+          var preset = FOLIA_SOUND_PRESETS[id]
+          if (preset && eqBandsEqual(preset.gains, bands)) return id
+        }
+        return ''
+      }
       var activePreset =
         eq.preset === 'device'
           ? 'device'
           : FOLIA_SOUND_PRESET_IDS.indexOf(eq.preset) >= 0
             ? eq.preset
-            : eqPresetForBands(eq.bands)
+            : soundPresetForBands(eq.bands) || eqPresetForBands(eq.bands)
 
       // ── AutoEQ device search (debounced, cancelled by sequence) ──────────
       var searchPair = useState('')
