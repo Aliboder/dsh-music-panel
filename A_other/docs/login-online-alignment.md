@@ -254,12 +254,41 @@ Folia 的登录窗口场景在 `components/login/window/LoginScreen.tsx:26-77`�
 10. **`THIRD_PARTY_NOTICES.md` 与代码漂移**
     里面写“kugoumusicapi 未启用”，但 `kugou.js` 已经在用 `callKugou`；qishui 写“网络不可达”，但包已安装且未接入。
 
-### 3.9 凭据安全差距
+### 3.9 凭据安全差距（已验证）
 
 - 我方：`sessions.json` 明文 JSON，文件 mode 0600；Windows 上 0600 的保证弱于 Unix。
 - Folia 桌面端：QQ / 酷狗 / 汽水 / 波点 / 飞牛等会话由 Electron 主进程 `safeStorage` 加密；渲染进程不接触凭据。
 - 我方边界是好的：客户端从不拿 cookie/token；但静态加密缺失。
-- DSH 插件 Host 不一定能直接用 Electron `safeStorage`（取决于 DSH 运行形态）；需要单独确认可用方案，不能假设。
+
+对 DSH 运行形态的实际验证：
+
+1. **Host 不是 Electron 主进程，拿不到 `safeStorage`。**
+   DSH Desktop 的 Host 由 Electron shell 以独立子进程启动；`dsh-desktop-host/package.json` 自述
+   "Private Node-mode host process for the Electron desktop application"，启动代码
+   `desktopNodeEnvironment()` 强制设置 `ELECTRON_RUN_AS_NODE=1`。
+   在 Electron-as-Node 下执行 `require('electron')` 直接报 `Cannot find module 'electron'`，
+   `safeStorage` 不可用。
+2. **DSH 有 `ctx.credentials`，但默认实现不加密。**
+   `@deepseek-ai/dsh-credentials` 提供 `resolve / set / readRecord / modifyRecord / deleteRecord`
+   等接口；默认 provider 是 `@deepseek-ai/dsh-credentials-local`，落在
+   `$DSH_HOME/.credentials.yaml`，YAML 明文。README 明确写了：Windows 不检查 mode；
+   agent 的工具进程与用户同权限，因此这个文件挡不住 agent。
+3. **Windows ACL 并不等于“只有本人可读”。**
+   本机 `$DSH_HOME/.credentials.yaml` 和 `$DSH_HOME/music/sessions.json` 的 ACL 都包含
+   `S-1-5-21-…-1004:(I)(RX)`、`Administrators:(I)(F)`、`SYSTEM:(I)(F)`，不只是当前用户。
+4. **真正的加密仍然可做：DSH 自带 `koffi`。**
+   `koffi` 3.1.1 是 `dsh-desktop-host` 的依赖，位于 `app.asar/dsh/node_modules/koffi`，
+   可从 `DSH_INSTALL_DIR` 解析。用 `koffi` 调 `crypt32.dll` 的
+   `CryptProtectData` / `CryptUnprotectData` 已实测：15 字节明文 → 230 字节 DPAPI 密文，
+   再解密回原文。该验证在 Electron-as-Node 下完成，和 Host 的运行方式一致。
+
+结论：
+
+- **不能**直接复用 Electron `safeStorage`。
+- **可以**在 Windows 上用 DPAPI 做真正的用户级加密，且不需要给插件新增原生依赖
+  （复用 DSH 自带的 koffi）。
+- DSH 自己的 `ctx.credentials` 只解决“统一存放/锁定/热加载”，不解决加密；
+  可以作为后续存储层，但不是加密方案。
 
 ## 4. 对齐方案
 
@@ -399,6 +428,31 @@ P3d 能力审计：
 - 不把 Folia 的 React 组件/视觉直接搬进 DSH；只移植状态机、交互规则和信息结构。
 - 不在本次做 Folia 的完整红心对账/推荐偏好/探索页；这些属于平台数据层，后续按平台单独评估。
 
+### 4.7 凭据存储与加密（P1 内做）
+
+已验证 Windows 可行方案：
+
+- 新增 `SecretBox` 抽象：`seal(plain) -> { v, backend, data }`、`open(sealed) -> plain`、
+  `available()`、`backend`。
+- **Windows：DPAPI**。通过 `koffi` 调 `crypt32.dll` 的 `CryptProtectData` /
+  `CryptUnprotectData`，用户级作用域；固定应用 entropy（如 `dsh-music-panel/v1`），
+  密文 base64 存入 `sessions.json` 的每个平台记录。换机器、换用户、文件被复制到别处都解不开。
+- **其他平台：先明文回退**，记录 `encrypted: false` 并在日志里写明原因；
+  后续再补 macOS Keychain / Linux Secret Service。不要在未实现的平台上假装加密。
+- `koffi` 从 `DSH_INSTALL_DIR` 解析；解析失败或调用失败时回退明文，不能因为加密不可用而让登录失败。
+- 只保留**一个** `sessions.json` 和一个 credential store；Bodian 也走同一个 store，
+  去掉 `index.js` 里第二个 `createLoginStore` 和 `providerStore` 的双缓存。
+- 解密失败（换机器、DPAPI 重置、密文损坏）：当作“未登录”，保留密文到下一次登录覆盖；
+  不崩溃、不把错误内容写日志。
+- “清空插件所有数据”必须清掉 `sessions.json`；测试覆盖加密/解密/篡改/回退。
+
+不选方案：
+
+- 不通过 `process.send` 找 Electron 主进程代解 `safeStorage`：Host 与 shell 之间没有这条凭据通道，
+  加它要改 DSH 本体。
+- 不把密文写进 DSH `.credentials.yaml` 然后在 P1 同时维护两套 store；后续可以把
+  `SecretBox` 的输出迁进 `ctx.credentials` 的 record，但那是 P2 的清理项，不是 P1 的前置。
+
 ## 5. 需要确认的选择
 
 1. **范围**
@@ -408,7 +462,9 @@ P3d 能力审计：
    - D：平台数量不是重点，只要登录体验和架构对齐 → P1 + P2。
 
 2. **凭据加密**
-   DSH Host 能否使用操作系统级加密（Electron `safeStorage` / DPAPI / Keychain）需要先验证。若不能，是否接受“0600 文件 + 明确文档风险”，还是要求先做一层 Host 侧加密（需要额外的密钥管理方案）？
+   已验证：Host 拿不到 Electron `safeStorage`；但 Windows 可用 DSH 自带 `koffi` 调 DPAPI 做真实加密。
+   是否按 4.7 做（Windows DPAPI，其他平台先明文回退），还是要求同时把 macOS Keychain / Linux
+   Secret Service 也一起做掉再开工？
 
 3. **登录窗口形态**
    是否接受把当前 320px 小卡片替换为 Folia 式宽窗口（左平台列 + 右账号/登录面板，窄宽度自动单列）？这会影响设置页入口和面板宽度，需要按 `theme-guidelines.md` 做。
