@@ -428,46 +428,34 @@ P3d 能力审计：
 - 不把 Folia 的 React 组件/视觉直接搬进 DSH；只移植状态机、交互规则和信息结构。
 - 不在本次做 Folia 的完整红心对账/推荐偏好/探索页；这些属于平台数据层，后续按平台单独评估。
 
-### 4.7 凭据存储与加密（P1 内做）
+### 4.7 凭据存储（已决定：不做加密）
 
-已验证 Windows 可行方案：
+2026-11-17 决策：**不投入凭据加密**，接受明文存储的风险。
 
-- 新增 `SecretBox` 抽象：`seal(plain) -> { v, backend, data }`、`open(sealed) -> plain`、
-  `available()`、`backend`。
-- **Windows：DPAPI**。通过 `koffi` 调 `crypt32.dll` 的 `CryptProtectData` /
-  `CryptUnprotectData`，用户级作用域；固定应用 entropy（如 `dsh-music-panel/v1`），
-  密文 base64 存入 `sessions.json` 的每个平台记录。换机器、换用户、文件被复制到别处都解不开。
-- **其他平台：先明文回退**，记录 `encrypted: false` 并在日志里写明原因；
-  后续再补 macOS Keychain / Linux Secret Service。不要在未实现的平台上假装加密。
-- `koffi` 从 `DSH_INSTALL_DIR` 解析；解析失败或调用失败时回退明文，不能因为加密不可用而让登录失败。
+仍然要做的：
+
 - 只保留**一个** `sessions.json` 和一个 credential store；Bodian 也走同一个 store，
   去掉 `index.js` 里第二个 `createLoginStore` 和 `providerStore` 的双缓存。
-- 解密失败（换机器、DPAPI 重置、密文损坏）：当作“未登录”，保留密文到下一次登录覆盖；
-  不崩溃、不把错误内容写日志。
-- “清空插件所有数据”必须清掉 `sessions.json`；测试覆盖加密/解密/篡改/回退。
+- 文件 0600、原子写；客户端永远拿不到 cookie/token；日志/诊断/导出不包含凭据。
+- “清空插件所有数据”必须清掉 `sessions.json`；测试覆盖。
+- 文档写清楚：凭据未加密；能读该文件的用户/进程即可冒用账号。
 
-不选方案：
+不做的：
 
-- 不通过 `process.send` 找 Electron 主进程代解 `safeStorage`：Host 与 shell 之间没有这条凭据通道，
-  加它要改 DSH 本体。
-- 不把密文写进 DSH `.credentials.yaml` 然后在 P1 同时维护两套 store；后续可以把
-  `SecretBox` 的输出迁进 `ctx.credentials` 的 record，但那是 P2 的清理项，不是 P1 的前置。
+- 不新增 `SecretBox` / DPAPI / Keychain / Secret Service。
+- 不把音乐凭据迁进 DSH `.credentials.yaml`（会和 LLM key 放在同一个明文文件里，扩大影响面）。
 
-## 5. 需要确认的选择
+## 5. 已确认的范围与形态
 
-1. **范围**
-   - A：只对齐现有平台（NetEase / QQ / KuGou / KuGouLite / Navidrome / Bodian）的登录与账户 → P1 + P2 + P3a。
-   - B：在 A 之上加汽水 → P3b。
-   - C：再加飞牛 → P3c。
-   - D：平台数量不是重点，只要登录体验和架构对齐 → P1 + P2。
+2026-11-17 决策：
 
-2. **凭据加密**
-   已验证：Host 拿不到 Electron `safeStorage`；但 Windows 可用 DSH 自带 `koffi` 调 DPAPI 做真实加密。
-   是否按 4.7 做（Windows DPAPI，其他平台先明文回退），还是要求同时把 macOS Keychain / Linux
-   Secret Service 也一起做掉再开工？
+1. **平台支持**：对齐 Folia 的平台支持，按“7 个可用 + 1 个可选 + 3 个明确不可用”执行：
+   - 可用：NetEase / QQ / KuGou / KuGouLite / Navidrome / Bodian / 汽水
+   - 可选：飞牛
+   - 明确不可用：Spotify / YouTube Music / Apple Music
+   - 不把“平台名单”和“每个平台的推荐/探索/日推/私人 FM 全量能力”混在一起；
+     能力面后续按平台单独补。
+2. **登录窗口**：接受 Folia 式宽窗口（左平台列 + 右账号/登录面板，窄宽度单列）。
+3. **凭据**：不做加密；按 4.7 的明文存储约束执行。
 
-3. **登录窗口形态**
-   是否接受把当前 320px 小卡片替换为 Folia 式宽窗口（左平台列 + 右账号/登录面板，窄宽度自动单列）？这会影响设置页入口和面板宽度，需要按 `theme-guidelines.md` 做。
-
-4. **平台优先级**
-   如果要做 P3，先 Bodian（低成本修复）还是先汽水（新平台，成本高但用户可能更想要）？
+执行顺序不变：P1 登录内核 → P2 账户模型与登录窗口 → P3 平台支持。
