@@ -457,13 +457,48 @@ export async function getPlaylistSongs(id, cookie = '') {
   }
 }
 
+/**
+ * The package's `/album` route currently answers `songs: []` for the modern
+ * `/api/v1/album/{id}` endpoint. The public `ext=true` form still carries the
+ * track list, so it is used only as a fallback when the package answer is empty.
+ */
+async function fetchAlbumExt(id, cookie = '') {
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+    Referer: 'https://music.163.com/',
+  }
+  if (typeof cookie === 'string' && cookie !== '') headers.Cookie = cookie
+  const response = await fetch(`https://music.163.com/api/album/${encodeURIComponent(id)}?ext=true`, {
+    headers,
+    signal: AbortSignal.timeout(12000),
+  })
+  if (!response.ok) throw new Error(`NetEase album ext answered ${response.status}`)
+  return await response.json()
+}
+
 /** Same contract as the legacy `getAlbumSongs`. */
 export async function getAlbumSongs(id, cookie = '') {
   const albumId = String(id ?? '').trim()
   if (albumId === '') throw new Error('缺少网易云专辑 ID')
 
-  const json = await callUpstream('/album', { id: albumId }, { cookie: await dataCookie(cookie) })
-  const album = json.album
+  const requestCookie = await dataCookie(cookie)
+  const json = await callUpstream('/album', { id: albumId }, { cookie: requestCookie })
+  let album = json.album
+  if (
+    album === undefined ||
+    album === null ||
+    !Array.isArray(album.songs) ||
+    album.songs.length === 0
+  ) {
+    try {
+      const extended = await fetchAlbumExt(albumId, requestCookie)
+      if (extended?.album && Array.isArray(extended.album.songs) && extended.album.songs.length > 0) {
+        album = extended.album
+      }
+    } catch {
+      // The package answer is still the authoritative one when the fallback fails.
+    }
+  }
   if (album === undefined || album === null || !Array.isArray(album.songs)) {
     throw new Error('网易云专辑获取失败')
   }
