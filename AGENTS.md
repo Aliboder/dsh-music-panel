@@ -31,7 +31,7 @@ node scripts/build-vendor-pixi.mjs        # 仅升级 pixi 时
 - Folia 音频用 0–255 频谱；暂停时停止更新 bands。
 - 修改 Folia 源码前，先确认是边界问题还是上游问题，并在 `CHANGELOG.md` 说明。
 - 使用真实状态和真实数据；未实现的功能要明确标注。
-- 解决一个非显而易见的坑后，立刻在 `docs/pitfalls.md` 按「现象 → 原因 → 处理 → 防回归」补一条；简洁、只增不改，不要把结论只留在对话里。
+- 改 `client.js`、bundle、Folia 或歌词管线前，先查 `docs/pitfalls.md` 的对应条目；解决新坑后按「现象 → 原因 → 处理 → 防回归」当场补一条，简洁、只增不改，不要把结论只留在对话里。
 - 每做完一步修改就打一个 git 存档点（`git commit`），message 写清这一步做了什么、为什么，回退时能直接找到；没验证过的改动不要攒进存档点。
 
 ⚠️ **先确认**
@@ -65,19 +65,8 @@ test/                        Node 测试
 docs/                        移植/架构说明
 ```
 
-## 必须知道的坑
-
-- `client.js` 是 `src/**` 拼接的 IIFE factory；所有 fragment 共享作用域，顶层声明必须唯一。`.bundle.js` 跳过重复扫描。
-- Tailwind 有两份：`folia-tailwind.css` 是生成结果，`folia-tailwind.js` 才是 `client.js` 注入的字符串。只改 `.css` 会导致线上仍是旧样式。
-- Folia 背景用 `useTransform(spring, [10,200], ...)`；频谱归一化到 0..1 会让背景完全静止。使用 FFT 2048、按 Hz 分段、`process(value, boost)` 输出 0–255。
-- 暂停判断应看真实 `<audio>` 的 `paused/ended`，不要只信 snapshot；暂停时不要继续写 bands。
-- Folia 资源 URL 需相对 `document.baseURI` 解析为绝对地址；Vite 的 `import.meta.glob` 不存在。
-- Folia 的 paper-shaders 包装靠 React 19 的 ref-as-prop；宿主固定 React 18.3.1，必须用 vendored 的 `forwardRef` 包装（否则背景无鼓动、暂停不停）。详见 [docs/pitfalls.md](docs/pitfalls.md)。
-- 改背景/样式源码或 `src/render/folia/vendor/**` 后，先重建对应 bundle（`build-backgrounds` / `build-pendolo` / `build-styles`），再 `build-client`；`client.js --check` 不会发现 bundle 过期。
-- icu-folia 的词典是生成物（`lib/assets/icu-folia/*.json.gz`，来自 `folia-major-main/dev/icuFolia`），随插件发布、由 `/music/assets/icu-folia/` 以 gzip 提供；要重建跑 `build-icu-folia`，不要手改。
-- 歌词处理走 Folia 的流水线：`src/utils/lyrics/**` 是上游逐字副本（`src/types.ts` 只是 `src/render/folia/types.ts` 的同一模块），`src/render/lyrics/entry.ts` 编成 `lyrics.bundle.js` 并由 client 注入；改它们之后先 `build-lyrics` 再 `build-client`，`client.js --check` 不会发现 bundle 过期。
-- `VisualizerShell` 必须 `forwardRef` 转发容器 ref，否则心象的 ResizeObserver 拿不到尺寸。
-- 已移除功能对应的偏好要迁移到 `monet`；新增迁移保持同样行为。
+> 构建产物、播放/Folia、歌词、安装与数据相关的具体陷阱，全部记在
+> [踩坑记录](docs/pitfalls.md)；改这些区域前先查对应条目，不要在这里重复维护。
 
 ## 参考
 

@@ -7,11 +7,12 @@
 
 | 区域 | 条目 |
 |---|---|
-| 构建 / 生成物 | 2, 21 |
-| 主题 / UI | 1, 6, 7, 8, 9, 10, 11, 12, 19 |
+| 构建 / 生成物 | 2, 21, 22, 23, 28 |
+| 主题 / UI | 1, 6, 7, 8, 9, 10, 11, 12, 19, 26 |
 | 安装 / 本地调试 | 13, 14, 15, 16, 17, 18, 20 |
-| 背景 / 音频 | 1, 3, 4, 5, 6, 7, 8 |
-| 歌词 | 9 |
+| 背景 / 音频 / 播放 | 1, 3, 4, 5, 6, 7, 8, 25 |
+| 歌词 | 9, 28 |
+| 偏好 / 迁移 | 27 |
 
 ---
 
@@ -203,6 +204,62 @@
 - **处理**：按 `AGENTS.md` 的命令先重建对应 bundle，再 `build-client`；`icu-folia` 需要
   `folia-major-main` 检出。不要直接改生成物。
 - **防回归**：提交前 `git status` 应包含预期的生成文件；review 时检查「源码改了，bundle 有没有改」。
+
+---
+
+## 22. client.js 顶层声明重名 / `.bundle.js` 被重复扫描（构建）
+
+- **现象**：构建后浏览器报 `Identifier '…' has already been declared`，或新 fragment 的函数被同名旧声明覆盖。
+- **原因**：`client.js` 是 `src/**` 拼接的单个 IIFE，所有 fragment 共享作用域，顶层 `var/function/const` 必须唯一；`.bundle.js` 是独立产物，构建时跳过重复扫描，不受这条约束。
+- **处理**：新增顶层名一律带 `mp` 前缀并先搜同名；改 `.bundle.js` 走对应 `build-*` 脚本，不要直接改 `client.js`。
+- **防回归**：`node scripts/build-client.mjs --check` + `node --check client.js`；CI 跑全量测试。
+
+## 23. 只改 `folia-tailwind.css`，线上仍是旧样式（构建）
+
+- **现象**：改了 `src/render/folia/folia-tailwind.css`，刷新后样式没变。
+- **原因**：Tailwind 有两份。`.css` 是生成结果，`client.js` 实际注入的是 `folia-tailwind.js`
+  里的字符串；仓库目前没有专门生成这份 `.js` 的 build 脚本。
+- **处理**：改 Tailwind 后同步把新 CSS 写进 `folia-tailwind.js`（保持现有字符串格式），
+  或先补一个生成脚本；最后 `build-client`。不要只改 `.css` 当交付物。
+- **防回归**：提交前确认 `.css` 和 `.js` 都变了，并抽查一个新增 utility 是否在 `.js` 里。
+
+## 24. Folia 资源 404 / `import.meta.glob` 不存在（Folia）
+
+- **现象**：样式里的图片、字体、背景 404；或代码用了 `import.meta.glob` 直接报错。
+- **原因**：插件运行在浏览器 IIFE，不是 Vite 构建；资源 URL 必须相对 `document.baseURI` 解析为绝对地址，也没有 Vite 的静态分析 API。
+- **处理**：用 `new URL(path, document.baseURI).href`；资源走插件导出或 `/music/...` 路由；不要依赖 Vite 专有 API。
+- **防回归**：在带子路径的部署下打开插件，确认资源请求 URL 正确。
+
+## 25. 暂停判断信 snapshot，bands 继续写（播放 / 音频）
+
+- **现象**：按暂停后背景/频谱仍在动，或恢复播放时状态错位。
+- **原因**：player snapshot 可能滞后；真实 `<audio>` 的 `paused` / `ended` 才是权威状态。
+- **处理**：暂停判断读 `<audio>` 的 `paused/ended`；暂停时停止写 bands（或写 0），恢复时重新启动。
+- **防回归**：暂停/恢复测试断言 bands 停止/恢复；不要只断言 `snapshot.playing`。
+
+## 26. `VisualizerShell` 没转发 ref，心象拿不到尺寸（Folia / UI）
+
+- **现象**：心象样式的 `ResizeObserver` 尺寸为 0，画面不显示或错位。
+- **原因**：`VisualizerShell` 必须 `forwardRef` 转发容器 ref；普通函数组件会丢掉 ref。
+- **处理**：用 vendored 的 `forwardRef` 包装并转发到容器（与 paper-shaders 的 React 18 处理一致）。
+- **防回归**：样式测试断言 ref 转发/容器有尺寸；新增 Folia 包装时先搜 `forwardRef`。
+
+## 27. 移除功能后偏好没迁移（偏好 / 迁移）
+
+- **现象**：老用户升级后样式空白或回退错误；旧 `classic` / `cappella` / `machi` 仍然生效。
+- **原因**：已移除功能的偏好没有映射到 `monet`，或者迁移只改内存没写回。
+- **处理**：在 `src/30-prefs.js` 的迁移里把旧 id 映射到 `monet`；新增移除功能保持同样行为，并一次性写回。
+- **防回归**：注入旧偏好值跑迁移测试；不要只测全新用户。
+
+## 28. 歌词 / icu-folia 生成物：不要手改（构建 / 歌词）
+
+- **现象**：改了歌词解析或词典，线上没变；手改 `.json.gz` 后又无法复现。
+- **原因**：`src/utils/lyrics/**` 是 Folia 上游逐字副本；`src/render/lyrics/entry.ts` 编成
+  `lyrics.bundle.js`；`lib/assets/icu-folia/*.json.gz` 来自 `folia-major-main/dev/icuFolia`，都是生成物；
+  `client.js --check` 不会发现它们过期。
+- **处理**：改歌词源码后先 `build-lyrics` 再 `build-client`；重建词典跑 `build-icu-folia`
+  （需要 folia 检出）；不要手改 `lyrics.bundle.js` 或词典。
+- **防回归**：`git status` 应包含预期的生成物；跑 `test/lyrics-folia.test.mjs` 等歌词测试。
 
 ---
 
