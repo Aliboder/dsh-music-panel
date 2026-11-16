@@ -168,7 +168,7 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
 {
   resetSources()
   const registered = registerOnlineSources()
-  assert.deepEqual(registered.map((source) => source.id), ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome'])
+  assert.deepEqual(registered.map((source) => source.id), ['netease', 'qq', 'kugouLite', 'navidrome'])
   assert.equal(builtinRegistry.get('netease').displayName, 'NetEase Cloud Music')
   assert.equal(builtinRegistry.get('navidrome').capabilities.loginPassword, true)
   assert.equal(builtinRegistry.get('navidrome').capabilities.loginQr, false)
@@ -182,10 +182,9 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   assert.equal(builtinRegistry.get('netease').capabilities.listeningRank, true)
   assert.equal(builtinRegistry.get('netease').capabilities.playbackReports, true)
   assert.equal(builtinRegistry.get('qq').capabilities.listeningRank, true)
-  assert.equal(builtinRegistry.get('kugou').capabilities.listeningRank, true)
   // Folia-style provider metadata: quality ladder, login methods and the
   // namespaced API view are part of every registered provider.
-  assert.deepEqual(builtinRegistry.get('kugou').qualityLevels, ['standard', 'high', 'lossless'])
+  assert.deepEqual(builtinRegistry.get('kugouLite').qualityLevels, ['standard', 'high', 'lossless'])
   assert.deepEqual(builtinRegistry.get('netease').qualityLevels, ['standard', 'high', 'lossless', 'hires'])
   assert.deepEqual(builtinRegistry.get('navidrome').qualityLevels, ['original'])
   assert.deepEqual(builtinOmni.loginMethods('netease'), ['qr'])
@@ -222,7 +221,7 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   const ids = builtinRegistry.list().map((source) => source.id).sort()
   // Bodian is optional (its package may be absent) but must never break startup.
   assert.ok(ids.includes('local'))
-  for (const id of ['kugou', 'kugouLite', 'navidrome', 'netease', 'qq']) assert.ok(ids.includes(id), `missing ${id}`)
+  for (const id of ['kugouLite', 'navidrome', 'netease', 'qq']) assert.ok(ids.includes(id), `missing ${id}`)
   assert.equal(builtinRegistry.get('local').kind, 'local')
 
   // Unloading must leave the registry empty.

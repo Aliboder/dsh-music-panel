@@ -10,7 +10,7 @@ import { allocateFreePort, closeServer, waitForHttp, waitForListening } from '..
 
 // ── contract ────────────────────────────────────────────────────────────────
 
-assert.deepEqual(SOURCE_IDS, ['local', 'netease', 'qq', 'kugou', 'kugouLite', 'navidrome'])
+assert.deepEqual(SOURCE_IDS, ['local', 'netease', 'qq', 'kugouLite', 'navidrome'])
 
 const caps = capabilities({ search: true, playback: true })
 assert.equal(caps.search, true)

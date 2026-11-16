@@ -216,9 +216,9 @@ function unusedIo() {
 // ── an entry from a previous shape is searched again ───────────────────────
 
 {
-  await onlineCache.writeMeta('kugou', 'old-shape', { v: 1, match: null, at: Date.now() })
+  await onlineCache.writeMeta('kugouLite', 'old-shape', { v: 1, match: null, at: Date.now() })
   const calls = []
-  const answer = await ask(routesWith(wordLevelIo(calls)), 'kugou', 'old-shape')
+  const answer = await ask(routesWith(wordLevelIo(calls)), 'kugouLite', 'old-shape')
   assert.equal(answer.body.cached, undefined, 'v1 entries are ignored')
   assert.ok(calls.length > 0)
 }
@@ -233,7 +233,7 @@ function unusedIo() {
     fetchLyric: async () => ({ lines: [{ t: 1, end: 2, text: '只有整行' }], lrc: '[00:01.000]只有整行' }),
     fetchAmll: async () => null,
   }
-  const answer = await ask(routesWith(lineOnly), 'kugou', 'line-only')
+  const answer = await ask(routesWith(lineOnly), 'kugouLite', 'line-only')
   assert.equal(answer.status, 200)
   // The runner hands back a line-level answer as the fallback; the client only replaces
   // the platform's lyric when `wordLevel` is true, so the flag must stay honest here.

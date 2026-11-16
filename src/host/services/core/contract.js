@@ -11,7 +11,7 @@
  */
 
 /** Stable ids. `local` is a source like any other. */
-export const SOURCE_IDS = ['local', 'netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
+export const SOURCE_IDS = ['local', 'netease', 'qq', 'kugouLite', 'navidrome']
 
 /** Where a track lives. Every track carries one. */
 export const SOURCE_KIND = { LOCAL: 'local', ONLINE: 'online' }

@@ -62,15 +62,6 @@ const QQ_CAPABILITIES = {
   mutations: true,
   listeningRank: true,
 }
-const KUGOU_CAPABILITIES = {
-  ...CHINESE_CAPABILITIES,
-  auth: true,
-  userLibrary: true,
-  wordByWordLyrics: true,
-  userAlbums: true,
-  mutations: true,
-  listeningRank: true,
-}
 const KUGOU_LITE_CAPABILITIES = {
   ...CHINESE_CAPABILITIES,
   auth: true,
@@ -124,14 +115,8 @@ export const ONLINE_SPECS = [
     qualityLevels: FULL_QUALITY,
   },
   {
-    id: 'kugou',
-    displayName: 'KuGou Music',
-    capabilities: KUGOU_CAPABILITIES,
-    qualityLevels: KUGOU_QUALITY,
-  },
-  {
     id: 'kugouLite',
-    displayName: 'KuGou Concept',
+    displayName: 'KuGou',
     capabilities: KUGOU_LITE_CAPABILITIES,
     qualityLevels: KUGOU_QUALITY,
   },

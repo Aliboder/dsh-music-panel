@@ -11,8 +11,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createProviderStore, DEVICE_PROVIDERS, QR_PROVIDERS } from '../../src/host/providers/provider-store.js'
 
-assert.deepEqual(QR_PROVIDERS, ['netease', 'qq', 'kugou', 'kugouLite', 'bodian', 'qishui'])
-assert.deepEqual(DEVICE_PROVIDERS, ['kugou', 'kugouLite'])
+assert.deepEqual(QR_PROVIDERS, ['netease', 'qq', 'kugouLite', 'bodian', 'qishui'])
+assert.deepEqual(DEVICE_PROVIDERS, ['kugouLite'])
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-providers-'))
 const store = createProviderStore({ dir })
@@ -20,7 +20,7 @@ const store = createProviderStore({ dir })
 // ── signed out ─────────────────────────────────────────────────────────────
 
 const empty = await store.summary()
-for (const provider of ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome', 'bodian', 'qishui']) {
+for (const provider of ['netease', 'qq', 'kugouLite', 'navidrome', 'bodian', 'qishui']) {
   assert.equal(empty[provider].loggedIn, false, `${provider} starts signed out`)
   assert.equal(empty[provider].nickname, '')
 }
@@ -29,7 +29,7 @@ assert.deepEqual(await store.session('netease'), {})
 assert.deepEqual(await store.session('navidrome'), {
   server: '', username: '', salt: '', token: '', password: '', nativeSongs: false,
 })
-assert.deepEqual(await store.session('kugou'), {
+assert.deepEqual(await store.session('kugouLite'), {
   mid: '', dfid: '', guid: '', token: '', vipType: '', vipToken: '', userid: 0, refreshedAt: 0,
 })
 
@@ -50,27 +50,26 @@ assert.equal(await store.cookie('netease'), 'MUSIC_U=secret', 'cookie itself is 
 
 // ── device provider ────────────────────────────────────────────────────────
 
-await store.setSession('kugou', { mid: 'mid-1', userid: 42 })
-const device = await store.session('kugou')
+await store.setSession('kugouLite', { mid: 'mid-1', userid: 42 })
+const device = await store.session('kugouLite')
 assert.equal(device.mid, 'mid-1')
 assert.equal(device.userid, 42)
 
-await store.setLogin('kugou', {
+await store.setLogin('kugouLite', {
   cookie: 'kg=1', token: 'tok', mid: 'mid-1', dfid: 'd', guid: 'g',
   userid: 42, nickname: 'KG', vip_type: 'v', vip_token: 'vt',
 })
-const kugouSession = await store.session('kugou')
-assert.equal(kugouSession.token, 'tok')
-assert.equal(kugouSession.vipType, 'v')
-assert.equal(kugouSession.vipToken, 'vt')
-assert.equal(kugouSession.userid, 42)
-assert.ok(kugouSession.refreshedAt > 0, 'a KuGou login records its refresh time')
-assert.equal((await store.summary()).kugou.platform, 'standard')
+const kugouLiteSession = await store.session('kugouLite')
+assert.equal(kugouLiteSession.token, 'tok')
+assert.equal(kugouLiteSession.vipType, 'v')
+assert.equal(kugouLiteSession.vipToken, 'vt')
+assert.equal(kugouLiteSession.userid, 42)
+assert.ok(kugouLiteSession.refreshedAt > 0, 'a KuGou login records its refresh time')
 
 // setSession must not disturb the token.
-await store.setSession('kugou', { mid: 'mid-2' })
-assert.equal((await store.session('kugou')).mid, 'mid-2')
-assert.equal((await store.session('kugou')).token, 'tok')
+await store.setSession('kugouLite', { mid: 'mid-2' })
+assert.equal((await store.session('kugouLite')).mid, 'mid-2')
+assert.equal((await store.session('kugouLite')).token, 'tok')
 
 // ── Navidrome ──────────────────────────────────────────────────────────────
 
@@ -103,10 +102,10 @@ assert.equal((await store.summary()).netease.loggedIn, false)
 assert.equal(await store.cookie('netease'), '')
 
 await store.clear()
-for (const provider of ['qq', 'kugou', 'kugouLite', 'navidrome']) {
+for (const provider of ['qq', 'kugouLite', 'navidrome']) {
   assert.equal((await store.summary())[provider].loggedIn, false, `${provider} cleared`)
 }
-assert.deepEqual(await store.session('kugou'), {
+assert.deepEqual(await store.session('kugouLite'), {
   mid: '', dfid: '', guid: '', token: '', vipType: '', vipToken: '', userid: 0, refreshedAt: 0,
 })
 

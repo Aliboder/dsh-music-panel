@@ -82,9 +82,10 @@ const providers = await get('/music/online/providers')
 assert.equal(providers.status, 200)
 const map = providers.body.providers
 
-for (const id of ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome']) {
+for (const id of ['netease', 'qq', 'kugouLite', 'navidrome']) {
   assert.ok(map[id], `legacy platform missing from /online/providers: ${id}`)
 }
+assert.equal(map.kugou, undefined, 'the standard KuGou platform is gone')
 assert.ok(map.netease.capabilities, 'capabilities must be exposed to the client')
 assert.equal(map.netease.capabilities.loginQr, true)
 assert.equal(map.navidrome.capabilities.loginQr, false)

@@ -25,10 +25,6 @@ import { createLoginStore } from './login/store.js'
 const EMPTY = {
   netease: { cookie: '', nickname: '', avatarUrl: '', loggedIn: false },
   qq: { cookie: '', nickname: '', avatarUrl: '', loggedIn: false },
-  kugou: {
-    cookie: '', mid: '', dfid: '', guid: '', token: '', vip_type: '', vip_token: '', userid: 0,
-    nickname: '', avatarUrl: '', platform: 'standard', loggedIn: false, token_refreshed_at: 0,
-  },
   kugouLite: {
     cookie: '', mid: '', dfid: '', guid: '', token: '', vip_type: '', vip_token: '', userid: 0,
     nickname: '', avatarUrl: '', loggedIn: false, token_refreshed_at: 0,
@@ -44,10 +40,10 @@ const EMPTY = {
 }
 
 /** Providers whose session carries a KuGou-style device identity. */
-const DEVICE_PROVIDERS = ['kugou', 'kugouLite']
+const DEVICE_PROVIDERS = ['kugouLite']
 
 /** Providers that sign in with a QR flow (Navidrome uses credentials instead). */
-const QR_PROVIDERS = ['netease', 'qq', 'kugou', 'kugouLite', 'bodian', 'qishui']
+const QR_PROVIDERS = ['netease', 'qq', 'kugouLite', 'bodian', 'qishui']
 
 const ALL_PROVIDERS = Object.keys(EMPTY)
 
@@ -93,7 +89,6 @@ export function createProviderStore(options) {
           nickname: data.nickname || '',
           avatarUrl: data.avatarUrl || '',
         }
-        if (provider === 'kugou') entry.platform = 'standard'
         if (provider === 'navidrome') {
           entry.server = data.server || ''
           entry.nativeSongs = data.nativeSongs === true

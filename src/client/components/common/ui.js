@@ -10,9 +10,6 @@ var LEGACY_UI_KEYS = ['mu.source', 'mu.view']
 
 /** Every selectable playback source, in tab order. */
 var UI_SOURCES = ['local', 'netease', 'qq', 'kugouLite', 'navidrome']
-// Folia exposes KuGou only through the concept (lite) client. Keep the old
-// standard id out of every picker so the panel has one KuGou tab.
-var HIDDEN_SOURCES = ['kugou']
 
 // Derived from UI_SOURCES so the list only exists once: a second hardcoded copy
 // is exactly how `music_control`'s source whitelist drifted and started
@@ -36,7 +33,6 @@ function availableSources() {
   }
   var registered = Object.keys(onlineStore.get().providers || {}).sort()
   for (var j = 0; j < registered.length; j++) {
-    if (HIDDEN_SOURCES.indexOf(registered[j]) >= 0) continue
     if (list.indexOf(registered[j]) < 0) list.push(registered[j])
   }
   return list
@@ -62,7 +58,6 @@ function supports(source, capability) {
 function sourceLabelOf(source) {
   if (source === 'netease') return t('online.providerNetease')
   if (source === 'qq') return t('online.providerQq')
-  if (source === 'kugou') return t('online.providerKugou')
   if (source === 'kugouLite') return t('online.providerKugouLite')
   if (source === 'navidrome') return t('online.providerNavidrome')
   if (source === 'qishui') return t('online.providerQishui')

@@ -20,7 +20,7 @@ import { callUpstream as ncUpstream } from '../services/netease-api.js'
 import { callUpstream as qqUpstream } from '../services/qq-api.js'
 import { callKugou } from '../services/kugou-api.js'
 
-export const PROVIDERS = ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome']
+export const PROVIDERS = ['netease', 'qq', 'kugouLite', 'navidrome']
 
 /**
  * Navidrome keeps a server URL + token in the session object instead of a
