@@ -275,10 +275,10 @@ P6b（单独评估）：
 
 ### P7 系统集成
 
-- `MediaSession.setPositionState`。
-- `navigator.audioSession.type = 'playback'`（存在时）。
-- `AudioContext.setSinkId`（存在时）。
-- 输出设备选择只在能力可用时出现。
+- `MediaSession.setPositionState`。**已完成**。
+- `navigator.audioSession.type = 'playback'`（存在时）。**已完成**。
+- `AudioContext.setSinkId`（存在时）。待做。
+- 输出设备选择只在能力可用时出现。待做。
 
 **Gate**：Windows 媒体面板进度正确；无设备能力时不显示假控件。
 
@@ -378,8 +378,9 @@ P6b（单独评估）：
 - [x] `player-folia-wiring.test.mjs`：源级守卫，防止旧 limiter/preamp 图和旧传输回潮。
 - [x] `player-folia-runtime.test.mjs`：fake AudioContext 下 attach/ensure/volume/EQ/dispose。
 - [x] P6a-1：Folia crossfade 曲线 + 静音 intro 修复。
+- [x] P7-1：Media Session `setPositionState` + `audioSession.type='playback'`。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`、`ab064b8`。
 
 ### 进行中
 
