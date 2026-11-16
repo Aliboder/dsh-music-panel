@@ -27,9 +27,9 @@ function load() {
   if (api === null) {
     // The package's generate_simulate.js calls generateWebGLHash without importing it
     // (Node falls back to a random fingerprint). Install it before loading the API.
-    const util = request('kugoumusicapi/util/util')
+    const util = request('../vendor/kugoumusicapi/util/util')
     globalThis.generateWebGLHash = util.generateWebGLHash
-    api = request('kugoumusicapi')
+    api = request('../vendor/kugoumusicapi')
   }
   return api
 }

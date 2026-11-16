@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.36.2 — 2026-11-17
+
+### 安装
+
+- 修复 0.36.0/0.36.1 在 pnpm 默认 `blockExoticSubdeps` 下无法安装：把 `kugoumusicapi`
+  的 MIT 源码 vendored 到 `src/host/vendor/kugoumusicapi/`，其运行时依赖改为普通 npm 直接依赖，
+  不再使用 GitHub tarball；安装时不需要修改 `pnpm-workspace.yaml`。
+
 ## 0.36.1 — 2026-11-17
 
 ### 音频播放引擎改为 Folia

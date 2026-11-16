@@ -14,33 +14,57 @@ importers:
       '@yakult-green-tea/qq-music-api':
         specifier: 3.3.6
         version: 3.3.6(debug@4.4.3(supports-color@5.5.0))(supports-color@5.5.0)
+      axios:
+        specifier: 1.21.1
+        version: 1.21.1(debug@4.4.3(supports-color@5.5.0))(supports-color@5.5.0)
+      big-integer:
+        specifier: 1.6.52
+        version: 1.6.52
       bodian-music-api:
         specifier: 0.1.2
         version: 0.1.2
+      crypto-js:
+        specifier: 4.2.0
+        version: 4.2.0
+      dotenv:
+        specifier: 16.6.1
+        version: 16.6.1
+      express:
+        specifier: 4.22.3
+        version: 4.22.3(supports-color@5.5.0)
       flac-tagger:
         specifier: ^2.1.0
         version: 2.1.0
       framer-motion:
         specifier: ^14.14.0
         version: 14.14.0(react@19.3.1)
-      kugoumusicapi:
-        specifier: https://github.com/MakcRe/KuGouMusicApi/archive/refs/tags/v1.6.0.tar.gz
-        version: https://github.com/MakcRe/KuGouMusicApi/archive/refs/tags/v1.6.0.tar.gz(debug@4.4.3(supports-color@5.5.0))(supports-color@5.5.0)
       music-metadata:
         specifier: ^12.3.4
         version: 12.3.4(supports-color@5.5.0)
+      node-forge:
+        specifier: 1.4.3
+        version: 1.4.3
       node-id3:
         specifier: ^0.2.9
         version: 0.2.9
       opencc-js:
         specifier: ^1.4.2
         version: 1.4.2
+      pako:
+        specifier: 2.2.0
+        version: 2.2.0
       pinyin-pro:
         specifier: ^3.29.5
         version: 3.29.5
       qishui-music-api:
         specifier: 0.2.2
         version: 0.2.2
+      qrcode:
+        specifier: 1.5.4
+        version: 1.5.4
+      safe-decode-uri-component:
+        specifier: 1.2.1
+        version: 1.2.1
       wanakana:
         specifier: ^5.3.1
         version: 5.3.1
@@ -1230,12 +1254,6 @@ packages:
     resolution: {integrity: sha512-3An0GCLDSR34tsCO4H8Tef8Pp2ngtaZDAZnsWJYelqXUK5wyiHvGItgK/xcSkmHLSTn1Jcho1mRQs2ehRzvKKw==}
     engines: {node: ^4.8.4 || ^6.10.1 || ^7.10.1 || >= 8.1.4}
 
-  kugoumusicapi@https://github.com/MakcRe/KuGouMusicApi/archive/refs/tags/v1.6.0.tar.gz:
-    resolution: {integrity: sha512-dmKVFq9IlrhWgfDPBCOGeBfLjTpT9xSTiaQ/PRjbNVrhIFk0D3b0K4oALDgf7nsUF7IQiv6s2rWXEwrsIn3Txw==, tarball: https://github.com/MakcRe/KuGouMusicApi/archive/refs/tags/v1.6.0.tar.gz}
-    version: 1.6.0
-    engines: {node: '>=12'}
-    hasBin: true
-
   leven@2.1.0:
     resolution: {integrity: sha512-nvVPLpIHUxCUoRLrFqTgSxXJ614d8AgQoWl7zPe/2VadE8+1dpU3LBhowRuBAcuwruWtOdD8oYC9jDNJjXDPyA==}
     engines: {node: '>=0.10.0'}
@@ -1562,9 +1580,6 @@ packages:
   pump@3.0.4:
     resolution: {integrity: sha512-VS7sjc6KR7e1ukRFhQSY5LM2uBWAUPiOPa/A3mkKmiMwSmRFUITt0xuj+/lesgnCv+dPIEYlkzrcyXgquIHMcA==}
 
-  punycode@1.4.1:
-    resolution: {integrity: sha512-jmYNElW7yvO7TV33CjSmvSiE2yco3bV2czu/OzDKdMNVZQWfxCblURLhf+47syQRBntjfLdd/H0egrzIG+oaFQ==}
-
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
@@ -1853,10 +1868,6 @@ packages:
 
   url-parse@1.5.10:
     resolution: {integrity: sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==}
-
-  url@0.11.4:
-    resolution: {integrity: sha512-oCwdVC7mTuWiPyjLUz/COz5TLk6wgp0RCsN+wHZ2Ekneac9w8uuV0njcbbie2ME+Vs+d6duwmYuR3HgQXs1fOg==}
-    engines: {node: '>= 0.4'}
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
@@ -3204,22 +3215,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  kugoumusicapi@https://github.com/MakcRe/KuGouMusicApi/archive/refs/tags/v1.6.0.tar.gz(debug@4.4.3(supports-color@5.5.0))(supports-color@5.5.0):
-    dependencies:
-      axios: 1.21.1(debug@4.4.3(supports-color@5.5.0))(supports-color@5.5.0)
-      big-integer: 1.6.52
-      crypto-js: 4.2.0
-      dotenv: 16.6.1
-      express: 4.22.3(supports-color@5.5.0)
-      node-forge: 1.4.3
-      pako: 2.2.0
-      qrcode: 1.5.4
-      safe-decode-uri-component: 1.2.1
-      url: 0.11.4
-    transitivePeerDependencies:
-      - debug
-      - supports-color
-
   leven@2.1.0: {}
 
   lightningcss-android-arm64@1.33.0:
@@ -3514,8 +3509,6 @@ snapshots:
     dependencies:
       end-of-stream: 1.4.5
       once: 1.4.0
-
-  punycode@1.4.1: {}
 
   punycode@2.3.1: {}
 
@@ -3834,11 +3827,6 @@ snapshots:
     dependencies:
       querystringify: 2.2.0
       requires-port: 1.0.0
-
-  url@0.11.4:
-    dependencies:
-      punycode: 1.4.1
-      qs: 6.17.1
 
   util-deprecate@1.0.2: {}
 
