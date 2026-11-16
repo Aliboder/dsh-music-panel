@@ -569,8 +569,10 @@ assert.ok(classesOf(presetTab).has('mp-eq-preset'), 'preset tiles render')
 assert.ok(classesOf(presetTab).has('mp-eq-bars'), 'each preset shows its curve thumbnail')
 
 const mineTab = renderEq({ initialTab: 'mine' })
-assert.ok(textOf(mineTab).includes('还没有自定义预设'), 'the empty saved-presets state renders')
-assert.ok(classesOf(mineTab).has('mp-eq-add'), 'the save entry renders')
+assert.ok(textOf(mineTab).includes('自定义 1'), 'the first custom slot renders')
+assert.ok(textOf(mineTab).includes('自定义 2'), 'the second custom slot renders')
+assert.ok(textOf(mineTab).includes('保存当前'), 'the slot save action renders')
+assert.ok(classesOf(mineTab).has('mp-eq-slot'), 'custom slots render')
 
 const deviceTab = renderEq({ initialTab: 'device' })
 assert.ok(classesOf(deviceTab).has('mp-eq-search'), 'the device search field renders')
@@ -591,30 +593,22 @@ assert.notDeepEqual(
   'the curve reflects the band gains',
 )
 
-// A saved preset shows up in the list and can be re-applied.
-internals.prefsStore.set(
-  Object.assign({}, internals.prefsStore.get(), {
-    eqCustom: [{ id: 'u1', name: '我的耳机', bands: [3, 2, 1, 0, 0, 0, 0, 1, 2, 3], preamp: 0, at: 1 }],
-  }),
-)
-const savedTab = renderEq({ initialTab: 'mine' })
-assert.ok(textOf(savedTab).includes('我的耳机'), 'saved presets render')
-assert.ok(classesOf(savedTab).has('mp-eq-saved-row'), 'saved rows render')
-
-// A saved preset must show which row is applied; before this it changed the
-// sound but left the list looking untouched.
+// A custom slot can be applied and shows its active state.
 internals.prefsStore.set(
   Object.assign({}, eqPrefs, {
     eqEnabled: true,
-    eqPreset: 'custom',
+    eqPreset: 'custom1',
     eqBands: [5, 3, 1, 0, -1, 0, 2, 4, 6, 7],
-    eqCustom: [{ id: 'u1', name: '我的耳机', bands: [5, 3, 1, 0, -1, 0, 2, 4, 6, 7], preamp: 0, at: 1 }],
+    eqSlots: [
+      { bands: [5, 3, 1, 0, -1, 0, 2, 4, 6, 7], effects: {} },
+      { bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], effects: {} },
+    ],
   }),
 )
 const savedActiveTab = renderEq({ initialTab: 'mine' })
 const savedActiveClasses = classesOf(savedActiveTab)
-assert.ok(savedActiveClasses.has('mp-eq-saved-row'), 'the saved row renders')
-assert.ok(savedActiveClasses.has('is-on'), 'the applied saved preset is marked')
+assert.ok(savedActiveClasses.has('mp-eq-slot'), 'custom slots render')
+assert.ok(savedActiveClasses.has('is-on'), 'the applied custom slot is marked')
 
 // The parent snapshot drives the pane when provided (the now-playing bar keeps
 // it live even if this subtree's own store subscription were dropped).

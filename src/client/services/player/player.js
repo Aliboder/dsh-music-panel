@@ -1999,6 +1999,8 @@ function createPlayer() {
         preset = 'device'
       } else if (isEqSoundPreset(source.preset)) {
         preset = String(source.preset)
+      } else if (isEqCustomSlotId(source.preset)) {
+        preset = String(source.preset)
       } else {
         preset = eqPresetById(source.preset) === null ? 'flat' : String(source.preset)
       }
@@ -2008,6 +2010,8 @@ function createPlayer() {
         bands: bands,
         effects:
           source.effects === undefined ? normalizeEqEffects(eq.effects) : normalizeEqEffects(source.effects),
+        slots:
+          source.slots === undefined ? normalizeEqSlots(eq.slots) : normalizeEqSlots(source.slots),
         device:
           source.device === undefined
             ? preset === 'device'
@@ -2021,6 +2025,7 @@ function createPlayer() {
         eqPreset: next.preset,
         eqBands: next.bands,
         eqEffects: next.effects,
+        eqSlots: next.slots,
         // Any EQ change also re-writes the layout tag, so a library upgrade can
         // tell which band grid the stored bands belong to.
         eqLayout: EQ_LAYOUT,
@@ -2035,6 +2040,7 @@ function createPlayer() {
         preset: eq.preset,
         bands: eq.bands.slice(),
         effects: normalizeEqEffects(eq.effects),
+        slots: normalizeEqSlots(eq.slots),
         device: eq.device,
         /** False when the browser cannot host the graph (EQ is inert then). */
         available: eqSupported() && (analyser !== null || audio === null || canRouteThroughWebAudio(audio)),

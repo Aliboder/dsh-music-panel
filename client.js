@@ -8424,6 +8424,9 @@ window.__ModuleLoader__.load({
         'eq.presetHall': '大厅',
         'eq.presetVocal': '人声',
         'eq.presetBass': '低音增强',
+        'eq.slotN': '自定义 {n}',
+        'eq.slotHint': '两个自定义槽保存当前 10 段曲线与音效。',
+        'eq.saveHere': '保存当前',
         'eq.fxHint': 'Folia 后期音效链；默认值保持透明。',
         'eq.fxHighpass': '低切',
         'eq.fxLowpass': '高切',
@@ -8857,6 +8860,9 @@ window.__ModuleLoader__.load({
         'eq.presetHall': 'Hall',
         'eq.presetVocal': 'Vocal',
         'eq.presetBass': 'Bass boost',
+        'eq.slotN': 'Custom {n}',
+        'eq.slotHint': 'Two custom slots store the current ten bands and effects.',
+        'eq.saveHere': 'Save current',
         'eq.fxHint': "Folia's post-EQ chain; neutral values stay transparent.",
         'eq.fxHighpass': 'Low cut',
         'eq.fxLowpass': 'High cut',
@@ -149153,7 +149159,10 @@ window.__ModuleLoader__.load({
       /** Written on the first EQ change; an empty value means "old band grid". */
       eqLayout: '',
       eqDevice: '',
-      eqCustom: [],
+      eqSlots: [
+        { bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], effects: {} },
+        { bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], effects: {} },
+      ],
       /** 0 keeps the old hard cut; a positive value enables the automatic blend. */
       crossfadeSeconds: 0,
       onlinePlaylistSort: 'source',
@@ -149526,9 +149535,25 @@ window.__ModuleLoader__.load({
 
     /** Folia's six built-in sound presets; the UI supplies their gains/effects. */
     var EQ_SOUND_PRESET_IDS = ['flat', 'lofi', 'radio', 'hall', 'vocal', 'bass']
+    var EQ_CUSTOM_SLOT_IDS = ['custom1', 'custom2']
 
     function isEqSoundPreset(id) {
       return EQ_SOUND_PRESET_IDS.indexOf(String(id || '')) >= 0
+    }
+
+    function isEqCustomSlotId(id) {
+      return EQ_CUSTOM_SLOT_IDS.indexOf(String(id || '')) >= 0
+    }
+
+    function normalizeEqSlots(value) {
+      var source = Array.isArray(value) ? value : []
+      return EQ_CUSTOM_SLOT_IDS.map(function (_, index) {
+        var slot = source[index] !== null && typeof source[index] === 'object' ? source[index] : {}
+        return {
+          bands: normalizeEqBands(slot.bands),
+          effects: normalizeEqEffects(slot.effects),
+        }
+      })
     }
 
     function normalizeEqEffects(value) {
@@ -149747,6 +149772,7 @@ window.__ModuleLoader__.load({
       var preset = eqPresetById(presetId)
       var isDevice = presetId === 'device'
       var isSound = isEqSoundPreset(presetId)
+      var isCustom = isEqCustomSlotId(presetId)
       var sameLayout = source.eqLayout === EQ_LAYOUT
       var bands
       if (sameLayout && Array.isArray(source.eqBands)) {
@@ -149758,16 +149784,19 @@ window.__ModuleLoader__.load({
         ? 'device'
         : isSound
           ? presetId
-          : presetId === 'custom'
-            ? 'custom'
-            : preset === null
-              ? 'flat'
-              : preset.id
+          : isCustom
+            ? presetId
+            : presetId === 'custom'
+              ? 'custom'
+              : preset === null
+                ? 'flat'
+                : preset.id
       return {
         enabled: source.eqEnabled === true,
         preset: savedPreset,
         bands: bands,
         effects: normalizeEqEffects(source.eqEffects),
+        slots: normalizeEqSlots(source.eqSlots),
         device: isDevice ? String(source.eqDevice || '') : '',
       }
     }
@@ -155181,6 +155210,8 @@ window.__ModuleLoader__.load({
             preset = 'device'
           } else if (isEqSoundPreset(source.preset)) {
             preset = String(source.preset)
+          } else if (isEqCustomSlotId(source.preset)) {
+            preset = String(source.preset)
           } else {
             preset = eqPresetById(source.preset) === null ? 'flat' : String(source.preset)
           }
@@ -155190,6 +155221,8 @@ window.__ModuleLoader__.load({
             bands: bands,
             effects:
               source.effects === undefined ? normalizeEqEffects(eq.effects) : normalizeEqEffects(source.effects),
+            slots:
+              source.slots === undefined ? normalizeEqSlots(eq.slots) : normalizeEqSlots(source.slots),
             device:
               source.device === undefined
                 ? preset === 'device'
@@ -155203,6 +155236,7 @@ window.__ModuleLoader__.load({
             eqPreset: next.preset,
             eqBands: next.bands,
             eqEffects: next.effects,
+            eqSlots: next.slots,
             // Any EQ change also re-writes the layout tag, so a library upgrade can
             // tell which band grid the stored bands belong to.
             eqLayout: EQ_LAYOUT,
@@ -155217,6 +155251,7 @@ window.__ModuleLoader__.load({
             preset: eq.preset,
             bands: eq.bands.slice(),
             effects: normalizeEqEffects(eq.effects),
+            slots: normalizeEqSlots(eq.slots),
             device: eq.device,
             /** False when the browser cannot host the graph (EQ is inert then). */
             available: eqSupported() && (analyser !== null || audio === null || canRouteThroughWebAudio(audio)),
@@ -157557,6 +157592,14 @@ window.__ModuleLoader__.load({
       '.mp-eq-bars i{display:block;width:3px;min-height:2px;border-radius:1px;background:rgba(255,255,255,.42)}',
       '.mp-eq-preset.is-on .mp-eq-bars i,.mp-eq-saved-main:hover .mp-eq-bars i{background:rgba(150,180,255,.95)}',
       '.mp-eq-mine{display:flex;flex-direction:column;gap:8px}',
+      '.mp-eq-slots{display:flex;flex-direction:column;gap:6px}',
+      '.mp-eq-slot{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid rgba(255,255,255,.1);border-radius:9px}',
+      '.mp-eq-slot.is-on{border-color:rgba(120,160,255,.55);background:rgba(90,130,255,.12)}',
+      '.mp-eq-slot-main{display:flex;flex:1;align-items:center;gap:8px;min-width:0;padding:5px 6px;border:0;border-radius:7px;background:transparent;color:rgba(255,255,255,.85);font:inherit;text-align:left;cursor:pointer}',
+      '.mp-eq-slot-main:hover{background:rgba(255,255,255,.08);color:#fff}',
+      '.mp-eq-slot-name{flex:1;min-width:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-eq-slot-save{flex:0 0 auto;padding:6px 8px;border:1px solid rgba(255,255,255,.12);border-radius:7px;background:transparent;color:rgba(255,255,255,.65);font:inherit;font-size:11px;cursor:pointer}',
+      '.mp-eq-slot-save:hover{background:rgba(255,255,255,.08);color:#fff}',
       // AutoEQ device browser: search stays fixed, only the result list scrolls.
       '.mp-eq-device{display:flex;flex:1;flex-direction:column;min-height:0;gap:8px}',
       '.mp-eq-search{flex:none;height:30px;padding:0 9px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none}',
@@ -159436,13 +159479,7 @@ window.__ModuleLoader__.load({
       )
       var tab = tabPair[0]
       var setTab = tabPair[1]
-      var namingPair = useState(false)
-      var naming = namingPair[0]
-      var setNaming = namingPair[1]
-      var draftPair = useState('')
-      var draft = draftPair[0]
-      var setDraft = draftPair[1]
-      var custom = Array.isArray(prefs.eqCustom) ? prefs.eqCustom : []
+      var slots = normalizeEqSlots(eq.slots)
       var available = player.getEq().available
       var activePreset =
         eq.preset === 'device'
@@ -159450,9 +159487,6 @@ window.__ModuleLoader__.load({
           : FOLIA_SOUND_PRESET_IDS.indexOf(eq.preset) >= 0
             ? eq.preset
             : eqPresetForBands(eq.bands)
-      // Saved presets live outside the factory list, so they need their own marker:
-      // without it, applying one changed the sound but left every row unchanged.
-      var savedActiveId = eq.enabled === true ? eqSavedPresetId(custom, eq.preset, eq.bands) : ''
 
       // ── AutoEQ device search (debounced, cancelled by sequence) ──────────
       var searchPair = useState('')
@@ -159565,46 +159599,30 @@ window.__ModuleLoader__.load({
         player.setEq({ bands: bands, preset: eqPresetForBands(bands), enabled: true })
       }
 
-      function useSaved(entry) {
-        if (entry === null || typeof entry !== 'object') return
-        if (!Array.isArray(entry.bands)) return
+      function useSlot(index) {
+        var slot = normalizeEqSlots(eq.slots)[index]
         player.setEq({
-          bands: entry.bands,
-          effects: entry.effects,
-          preset: eqPresetForBands(entry.bands),
+          preset: 'custom' + (index + 1),
+          bands: slot.bands,
+          effects: slot.effects,
           enabled: true,
         })
       }
 
-      function saveCurrent() {
-        var name = String(draft || '').trim()
-        if (name === '') {
-          showToast(t('eq.needName'))
-          return
-        }
-        var entry = {
-          id: 'u' + Date.now().toString(36),
-          name: name.slice(0, 24),
+      function saveSlot(index) {
+        var next = normalizeEqSlots(eq.slots)
+        next[index] = {
           bands: eq.bands.slice(),
           effects: normalizeEqEffects(eq.effects),
-          at: Date.now(),
         }
-        var list = custom.filter(function (item) {
-          return item && item.name !== entry.name
+        player.setEq({
+          slots: next,
+          preset: 'custom' + (index + 1),
+          bands: next[index].bands,
+          effects: next[index].effects,
+          enabled: true,
         })
-        list.unshift(entry)
-        setPrefs({ eqCustom: list.slice(0, EQ_CUSTOM_LIMIT) })
-        setNaming(false)
-        setDraft('')
         showToast(t('eq.saved'))
-      }
-
-      function removeSaved(id) {
-        setPrefs({
-          eqCustom: custom.filter(function (item) {
-            return item && item.id !== id
-          }),
-        })
       }
 
       var body = null
@@ -159695,91 +159713,42 @@ window.__ModuleLoader__.load({
         body = h(
           'div',
           { className: 'mp-eq-mine' },
-          custom.length === 0
-            ? h(
+          h(
+            'div',
+            { className: 'mp-eq-slots' },
+            EQ_CUSTOM_SLOT_IDS.map(function (id, index) {
+              var slot = slots[index]
+              return h(
                 'div',
-                { className: 'mp-eq-empty' },
-                h('span', { className: 'mp-eq-empty-title' }, t('eq.empty')),
-                h('span', { className: 'mp-eq-empty-hint' }, t('eq.emptyHint')),
-              )
-            : h(
-                'div',
-                { className: 'mp-eq-saved' },
-                custom.map(function (entry) {
-                  return h(
-                    'div',
-                    {
-                      key: entry.id,
-                      className: cx('mp-eq-saved-row', entry.id === savedActiveId && 'is-on'),
-                    },
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mp-eq-saved-main',
-                        'aria-pressed': entry.id === savedActiveId,
-                        onClick: function () {
-                          useSaved(entry)
-                        },
-                      },
-                      h('span', { className: 'mp-eq-saved-name' }, entry.name),
-                      h(EqMiniBars, { bands: entry.bands }),
-                    ),
-                    h(IconButton, {
-                      icon: 'trash',
-                      size: 13,
-                      title: t('eq.delete'),
-                      onClick: function () {
-                        removeSaved(entry.id)
-                      },
-                    }),
-                  )
-                }),
-              ),
-          naming
-            ? h(
-                'div',
-                { className: 'mp-eq-save-form' },
-                h('input', {
-                  type: 'text',
-                  className: 'mp-kit-input mp-eq-save-input',
-                  value: draft,
-                  maxLength: 24,
-                  autoFocus: true,
-                  placeholder: t('eq.savePlaceholder'),
-                  onChange: function (event) {
-                    setDraft(event.target.value)
-                  },
-                  onKeyDown: function (event) {
-                    if (event.key === 'Enter') saveCurrent()
-                    if (event.key === 'Escape') setNaming(false)
-                  },
-                }),
-                h(Button, { onClick: saveCurrent, className: 'mp-eq-save-ok' }, t('eq.save')),
+                { key: id, className: cx('mp-eq-slot', eq.enabled && eq.preset === id && 'is-on') },
                 h(
                   'button',
                   {
                     type: 'button',
-                    className: 'mp-eq-save-cancel',
+                    className: 'mp-eq-slot-main',
+                    'aria-pressed': eq.enabled && eq.preset === id,
                     onClick: function () {
-                      setNaming(false)
+                      useSlot(index)
                     },
                   },
-                  t('eq.cancel'),
+                  h('span', { className: 'mp-eq-slot-name' }, t('eq.slotN', { n: index + 1 })),
+                  h(EqMiniBars, { bands: slot.bands }),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'mp-eq-slot-save',
+                    onClick: function () {
+                      saveSlot(index)
+                    },
+                  },
+                  t('eq.saveHere'),
                 ),
               )
-            : h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mp-eq-add',
-                  onClick: function () {
-                    setNaming(true)
-                  },
-                },
-                icon('plus', 13),
-                h('span', null, t('eq.saveCurrent')),
-              ),
+            }),
+          ),
+          h('div', { className: 'mp-eq-hint' }, t('eq.slotHint')),
         )
       } else {
         body = h(
@@ -159840,7 +159809,6 @@ window.__ModuleLoader__.load({
                 className: 'mp-eq-action',
                 onClick: function () {
                   setTab('mine')
-                  setNaming(true)
                 },
               },
               t('eq.saveCurrent'),

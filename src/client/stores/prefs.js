@@ -95,7 +95,10 @@ var PREF_DEFAULTS = {
   /** Written on the first EQ change; an empty value means "old band grid". */
   eqLayout: '',
   eqDevice: '',
-  eqCustom: [],
+  eqSlots: [
+    { bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], effects: {} },
+    { bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], effects: {} },
+  ],
   /** 0 keeps the old hard cut; a positive value enables the automatic blend. */
   crossfadeSeconds: 0,
   onlinePlaylistSort: 'source',

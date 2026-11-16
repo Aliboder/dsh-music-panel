@@ -28,6 +28,7 @@ const factory = new Function(
     eqBandsMatchPreset, eqBandsEqual, eqSavedPresetId,
     eqPeakingCoefficients, eqSectionDb, eqCurveSamples,
     EQ_EFFECT_CONTROLS, EQ_EFFECT_DEFAULT, normalizeEqEffects,
+    EQ_CUSTOM_SLOT_IDS, normalizeEqSlots,
   }`,
 )
 
@@ -73,6 +74,15 @@ assert.deepEqual(empty.bands, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 assert.equal(empty.effects.highpass, 20)
 assert.equal(empty.effects.width, 1)
 assert.equal(eq.EQ_EFFECT_CONTROLS.length, 9, 'Folia exposes nine effect sliders')
+assert.equal(eq.EQ_CUSTOM_SLOT_IDS.length, 2, 'Folia exposes two custom slots')
+const slots = eq.normalizeEqSlots([
+  { bands: [1, 2, 3], effects: { drive: 0.5 } },
+  { bands: [4, 5, 6], effects: { width: 2 } },
+])
+assert.equal(slots.length, 2)
+assert.deepEqual(slots[0].bands, [1, 2, 3, 0, 0, 0, 0, 0, 0, 0])
+assert.equal(slots[0].effects.drive, 0.5)
+assert.equal(slots[1].effects.width, 2)
 
 const junk = eq.normalizeEqPrefs({
   eqBands: [3, 'x', 99, null],

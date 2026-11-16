@@ -328,13 +328,7 @@ function EqPanel(props) {
   )
   var tab = tabPair[0]
   var setTab = tabPair[1]
-  var namingPair = useState(false)
-  var naming = namingPair[0]
-  var setNaming = namingPair[1]
-  var draftPair = useState('')
-  var draft = draftPair[0]
-  var setDraft = draftPair[1]
-  var custom = Array.isArray(prefs.eqCustom) ? prefs.eqCustom : []
+  var slots = normalizeEqSlots(eq.slots)
   var available = player.getEq().available
   var activePreset =
     eq.preset === 'device'
@@ -342,9 +336,6 @@ function EqPanel(props) {
       : FOLIA_SOUND_PRESET_IDS.indexOf(eq.preset) >= 0
         ? eq.preset
         : eqPresetForBands(eq.bands)
-  // Saved presets live outside the factory list, so they need their own marker:
-  // without it, applying one changed the sound but left every row unchanged.
-  var savedActiveId = eq.enabled === true ? eqSavedPresetId(custom, eq.preset, eq.bands) : ''
 
   // ── AutoEQ device search (debounced, cancelled by sequence) ──────────
   var searchPair = useState('')
@@ -457,46 +448,30 @@ function EqPanel(props) {
     player.setEq({ bands: bands, preset: eqPresetForBands(bands), enabled: true })
   }
 
-  function useSaved(entry) {
-    if (entry === null || typeof entry !== 'object') return
-    if (!Array.isArray(entry.bands)) return
+  function useSlot(index) {
+    var slot = normalizeEqSlots(eq.slots)[index]
     player.setEq({
-      bands: entry.bands,
-      effects: entry.effects,
-      preset: eqPresetForBands(entry.bands),
+      preset: 'custom' + (index + 1),
+      bands: slot.bands,
+      effects: slot.effects,
       enabled: true,
     })
   }
 
-  function saveCurrent() {
-    var name = String(draft || '').trim()
-    if (name === '') {
-      showToast(t('eq.needName'))
-      return
-    }
-    var entry = {
-      id: 'u' + Date.now().toString(36),
-      name: name.slice(0, 24),
+  function saveSlot(index) {
+    var next = normalizeEqSlots(eq.slots)
+    next[index] = {
       bands: eq.bands.slice(),
       effects: normalizeEqEffects(eq.effects),
-      at: Date.now(),
     }
-    var list = custom.filter(function (item) {
-      return item && item.name !== entry.name
+    player.setEq({
+      slots: next,
+      preset: 'custom' + (index + 1),
+      bands: next[index].bands,
+      effects: next[index].effects,
+      enabled: true,
     })
-    list.unshift(entry)
-    setPrefs({ eqCustom: list.slice(0, EQ_CUSTOM_LIMIT) })
-    setNaming(false)
-    setDraft('')
     showToast(t('eq.saved'))
-  }
-
-  function removeSaved(id) {
-    setPrefs({
-      eqCustom: custom.filter(function (item) {
-        return item && item.id !== id
-      }),
-    })
   }
 
   var body = null
@@ -587,91 +562,42 @@ function EqPanel(props) {
     body = h(
       'div',
       { className: 'mp-eq-mine' },
-      custom.length === 0
-        ? h(
+      h(
+        'div',
+        { className: 'mp-eq-slots' },
+        EQ_CUSTOM_SLOT_IDS.map(function (id, index) {
+          var slot = slots[index]
+          return h(
             'div',
-            { className: 'mp-eq-empty' },
-            h('span', { className: 'mp-eq-empty-title' }, t('eq.empty')),
-            h('span', { className: 'mp-eq-empty-hint' }, t('eq.emptyHint')),
-          )
-        : h(
-            'div',
-            { className: 'mp-eq-saved' },
-            custom.map(function (entry) {
-              return h(
-                'div',
-                {
-                  key: entry.id,
-                  className: cx('mp-eq-saved-row', entry.id === savedActiveId && 'is-on'),
-                },
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mp-eq-saved-main',
-                    'aria-pressed': entry.id === savedActiveId,
-                    onClick: function () {
-                      useSaved(entry)
-                    },
-                  },
-                  h('span', { className: 'mp-eq-saved-name' }, entry.name),
-                  h(EqMiniBars, { bands: entry.bands }),
-                ),
-                h(IconButton, {
-                  icon: 'trash',
-                  size: 13,
-                  title: t('eq.delete'),
-                  onClick: function () {
-                    removeSaved(entry.id)
-                  },
-                }),
-              )
-            }),
-          ),
-      naming
-        ? h(
-            'div',
-            { className: 'mp-eq-save-form' },
-            h('input', {
-              type: 'text',
-              className: 'mp-kit-input mp-eq-save-input',
-              value: draft,
-              maxLength: 24,
-              autoFocus: true,
-              placeholder: t('eq.savePlaceholder'),
-              onChange: function (event) {
-                setDraft(event.target.value)
-              },
-              onKeyDown: function (event) {
-                if (event.key === 'Enter') saveCurrent()
-                if (event.key === 'Escape') setNaming(false)
-              },
-            }),
-            h(Button, { onClick: saveCurrent, className: 'mp-eq-save-ok' }, t('eq.save')),
+            { key: id, className: cx('mp-eq-slot', eq.enabled && eq.preset === id && 'is-on') },
             h(
               'button',
               {
                 type: 'button',
-                className: 'mp-eq-save-cancel',
+                className: 'mp-eq-slot-main',
+                'aria-pressed': eq.enabled && eq.preset === id,
                 onClick: function () {
-                  setNaming(false)
+                  useSlot(index)
                 },
               },
-              t('eq.cancel'),
+              h('span', { className: 'mp-eq-slot-name' }, t('eq.slotN', { n: index + 1 })),
+              h(EqMiniBars, { bands: slot.bands }),
+            ),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-eq-slot-save',
+                onClick: function () {
+                  saveSlot(index)
+                },
+              },
+              t('eq.saveHere'),
             ),
           )
-        : h(
-            'button',
-            {
-              type: 'button',
-              className: 'mp-eq-add',
-              onClick: function () {
-                setNaming(true)
-              },
-            },
-            icon('plus', 13),
-            h('span', null, t('eq.saveCurrent')),
-          ),
+        }),
+      ),
+      h('div', { className: 'mp-eq-hint' }, t('eq.slotHint')),
     )
   } else {
     body = h(
@@ -732,7 +658,6 @@ function EqPanel(props) {
             className: 'mp-eq-action',
             onClick: function () {
               setTab('mine')
-              setNaming(true)
             },
           },
           t('eq.saveCurrent'),
