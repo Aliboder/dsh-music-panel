@@ -11,7 +11,7 @@ var SETTINGS_TABS = [
   { key: 'playback', label: 'v2.playback' },
   { key: 'online', label: 'v2.online' },
   { key: 'library', label: 'v2.library' },
-  { key: 'cache', label: 'v2.cacheTab' },
+  { key: 'cache', label: 'v2.dataTab' },
   { key: 'about', label: 'v2.about' },
 ]
 
@@ -33,6 +33,15 @@ function SettingsSheet(props) {
       typeof window.webkitOfflineAudioContext !== 'undefined')
   var cache = cachePair[0]
   var setCache = cachePair[1]
+  var dataPair = useState(null)
+  var data = dataPair[0]
+  var setData = dataPair[1]
+  var resetPair = useState(0)
+  var resetStage = resetPair[0]
+  var setResetStage = resetPair[1]
+  var resetBusyPair = useState(false)
+  var resetBusy = resetBusyPair[0]
+  var setResetBusy = resetBusyPair[1]
   var pathPair = useState('')
   var rootDraft = pathPair[0]
   var setRootDraft = pathPair[1]
@@ -63,6 +72,13 @@ function SettingsSheet(props) {
         .catch(function () {
           if (!cancelled) setCache(null)
         })
+      getJson(API + 'data')
+        .then(function (body) {
+          if (!cancelled) setData(body)
+        })
+        .catch(function () {
+          if (!cancelled) setData(null)
+        })
       getJson(API + 'online/cache/list')
         .then(function (body) {
           if (!cancelled) setCacheSongs(Array.isArray(body.songs) ? body.songs : [])
@@ -78,6 +94,97 @@ function SettingsSheet(props) {
   )
 
   if (props.open !== true) return null
+
+  function clearPluginLocalStorage() {
+    try {
+      var keys = []
+      for (var index = 0; index < window.localStorage.length; index += 1) {
+        var key = window.localStorage.key(index)
+        if (key === null) continue
+        if (
+          key.indexOf('music.') === 0 ||
+          key.indexOf('dsh-music') === 0 ||
+          key === 'lyric_segmentations' ||
+          key.indexOf('mu.') === 0
+        ) {
+          keys.push(key)
+        }
+      }
+      keys.forEach(function (key) {
+        window.localStorage.removeItem(key)
+      })
+    } catch (error) {
+      /* Private mode / quota errors must not block the host reset. */
+    }
+  }
+
+  function clearAllData() {
+    if (resetBusy) return
+    setResetBusy(true)
+    postJson(API + 'data/clear', { confirm: 'clear-all' })
+      .then(function () {
+        clearPluginLocalStorage()
+        setResetBusy(false)
+        setResetStage(0)
+        showToast(t('data.resetDone'))
+        if (typeof window !== 'undefined' && typeof window.location?.reload === 'function') {
+          window.setTimeout(function () {
+            window.location.reload()
+          }, 260)
+        }
+      })
+      .catch(function (error) {
+        setResetBusy(false)
+        setResetStage(0)
+        showToast(errorText(error))
+      })
+  }
+
+  function resetDialog() {
+    if (resetStage === 0) return null
+    var final = resetStage === 2
+    return h(
+      KitModal,
+      {
+        key: 'data-reset',
+        title: final ? t('data.resetTitleFinal') : t('data.resetTitle'),
+        small: true,
+        onClose: function () {
+          if (!resetBusy) setResetStage(0)
+        },
+        footer: [
+          h(
+            Button,
+            {
+              key: 'cancel',
+              variant: 'ghost',
+              disabled: resetBusy,
+              onClick: function () {
+                if (!resetBusy) setResetStage(0)
+              },
+            },
+            t('page.cancel'),
+          ),
+          h(
+            Button,
+            {
+              key: final ? 'confirm' : 'continue',
+              variant: 'primary',
+              className: final ? 'mp-data-danger-btn' : undefined,
+              disabled: resetBusy,
+              onClick: function () {
+                if (resetBusy) return
+                if (final) clearAllData()
+                else setResetStage(2)
+              },
+            },
+            resetBusy ? t('data.resetting') : final ? t('data.resetConfirm') : t('data.resetContinue'),
+          ),
+        ],
+      },
+      h('p', { className: 'mp-kit-text' }, final ? t('data.resetHintFinal') : t('data.resetHint')),
+    )
+  }
 
   function patchPrefs(patch) {
     setPrefs(patch)
@@ -903,8 +1010,35 @@ function SettingsSheet(props) {
 
   function cacheTab() {
     var stats = cache || { files: 0, bytes: 0, maxBytes: 0 }
+    var dataStats = data || { files: 0, bytes: 0, categories: [] }
+    var categories = Array.isArray(dataStats.categories) ? dataStats.categories : []
     return [
-      h('h2', { key: 'h' }, t('v2.cacheTab')),
+      h('h2', { key: 'h' }, t('v2.dataTab')),
+      h(
+        'div',
+        { key: 'data-total', className: 'mp-data-total' },
+        h('span', { className: 'mp-data-total-label' }, t('data.total')),
+        h('strong', null, t('data.files', { n: dataStats.files || 0, size: fmtBytes(dataStats.bytes || 0) })),
+      ),
+      categories.length === 0
+        ? null
+        : h(
+            'div',
+            { key: 'data-rows', className: 'mp-data-rows' },
+            categories.map(function (category) {
+              return h(
+                'div',
+                { key: category.id, className: 'mp-data-row' },
+                h('span', { className: 'mp-data-row-label' }, t('data.category.' + category.id)),
+                h(
+                  'span',
+                  { className: 'mp-data-row-meta' },
+                  t('data.files', { n: category.files || 0, size: fmtBytes(category.bytes || 0) }),
+                ),
+              )
+            }),
+          ),
+      h('p', { key: 'data-hint', className: 'mp-set-desc' }, t('data.hint')),
       h(
         SetRow,
         { key: 'size', label: t('online.cacheSize', { files: stats.files || 0, n: fmtBytes(stats.bytes || 0) }), desc: t('online.cacheList') },
@@ -960,6 +1094,23 @@ function SettingsSheet(props) {
                 )
               }),
             ),
+      ),
+      h(
+        'div',
+        { key: 'danger', className: 'mp-data-danger' },
+        h('div', { className: 'mp-data-danger-title' }, t('data.resetTitle')),
+        h('p', { className: 'mp-data-danger-desc' }, t('data.resetHint')),
+        h(
+          Button,
+          {
+            variant: 'primary',
+            className: 'mp-data-danger-btn',
+            onClick: function () {
+              setResetStage(1)
+            },
+          },
+          t('data.resetAction'),
+        ),
       ),
     ]
   }
@@ -1065,7 +1216,7 @@ function SettingsSheet(props) {
         },
         icon('x', 16),
       ),
-      h('div', { className: 'mp-sheet-body' }, body),
+      h('div', { className: 'mp-sheet-body' }, body, resetDialog()),
     ),
   )
 }

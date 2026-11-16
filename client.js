@@ -8057,6 +8057,28 @@ window.__ModuleLoader__.load({
 
         'v2.online': '在线',
         'v2.cacheTab': '缓存',
+        'v2.dataTab': '数据',
+        'data.total': '插件数据',
+        'data.files': '{size} · {n} 个文件',
+        'data.hint': '包括设置、收藏、歌单、统计、播放状态、登录凭证、缓存和回收站。音乐文件本身不在其中。',
+        'data.category.settings': '设置',
+        'data.category.favorites': '收藏',
+        'data.category.playlists': '歌单',
+        'data.category.stats': '播放统计',
+        'data.category.playback': '播放状态',
+        'data.category.accounts': '账号与登录',
+        'data.category.cache': '缓存',
+        'data.category.trash': '回收站',
+        'data.category.other': '其他',
+        'data.resetTitle': '清空插件所有数据',
+        'data.resetHint': '会删除设置、收藏、歌单、统计、播放状态、登录凭证、缓存和回收站。音乐文件不会删除。',
+        'data.resetAction': '清空插件所有数据',
+        'data.resetContinue': '继续',
+        'data.resetTitleFinal': '再次确认',
+        'data.resetHintFinal': '此操作不可恢复。清空后需要重新添加音乐目录并重新登录在线平台。',
+        'data.resetConfirm': '确认清空',
+        'data.resetting': '正在清空…',
+        'data.resetDone': '插件数据已清空',
         'v2.about': '关于',
         'online.cacheSongs': '缓存歌曲',
         'online.qqAccount': 'QQ 音乐用户',
@@ -8458,6 +8480,28 @@ window.__ModuleLoader__.load({
 
         'v2.online': 'Online',
         'v2.cacheTab': 'Cache',
+        'v2.dataTab': 'Data',
+        'data.total': 'Plugin data',
+        'data.files': '{size} · {n} files',
+        'data.hint': 'Includes settings, favorites, playlists, stats, playback state, sign-ins, cache and recycle bin. Your music files are not included.',
+        'data.category.settings': 'Settings',
+        'data.category.favorites': 'Favorites',
+        'data.category.playlists': 'Playlists',
+        'data.category.stats': 'Play stats',
+        'data.category.playback': 'Playback state',
+        'data.category.accounts': 'Accounts & sign-ins',
+        'data.category.cache': 'Cache',
+        'data.category.trash': 'Recycle bin',
+        'data.category.other': 'Other',
+        'data.resetTitle': 'Clear all plugin data',
+        'data.resetHint': 'Deletes settings, favorites, playlists, stats, playback state, sign-ins, cache and the recycle bin. Music files are not deleted.',
+        'data.resetAction': 'Clear all plugin data',
+        'data.resetContinue': 'Continue',
+        'data.resetTitleFinal': 'Confirm again',
+        'data.resetHintFinal': 'This cannot be undone. You will need to add music folders and sign in to online providers again.',
+        'data.resetConfirm': 'Clear everything',
+        'data.resetting': 'Clearing…',
+        'data.resetDone': 'Plugin data cleared',
         'v2.about': 'About',
         'online.cacheSongs': 'Cached songs',
         'online.qqAccount': 'QQ Music user',
@@ -155367,6 +155411,18 @@ window.__ModuleLoader__.load({
       '.mp-cache-size{min-width:52px;text-align:right}',
       '.mp-cache-tag{font-size:9px;padding:1px 4px;border-radius:4px;background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-tertiary,#8a8a93);flex:none}',
       '.mp-cache-empty{padding:18px 12px;text-align:center;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);border:1px dashed var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:12px}',
+      '.mp-data-total{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:2px 0 10px;padding:10px 12px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:12px;background:var(--dsw-alias-bg-layer-2,#1e1e22)}',
+      '.mp-data-total-label{font-size:12px;color:var(--dsw-alias-label-secondary,#b4b4bd)}',
+      '.mp-data-total strong{font-size:12px;color:var(--dsw-alias-label-primary,#f4f4f5);font-variant-numeric:tabular-nums}',
+      '.mp-data-rows{display:flex;flex-direction:column;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:12px;overflow:hidden;margin-bottom:10px}',
+      '.mp-data-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;font-size:12px}',
+      '.mp-data-row + .mp-data-row{border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mp-data-row-label{color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-data-row-meta{color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
+      '.mp-data-danger{margin-top:22px;padding:12px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 34%,transparent);border-radius:12px;background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 7%,transparent)}',
+      '.mp-data-danger-title{font-size:12px;font-weight:650;color:var(--dsw-alias-state-error-primary,#e5484d)}',
+      '.mp-data-danger-desc{margin:5px 0 10px;font-size:11px;line-height:1.55;color:var(--dsw-alias-label-secondary,#b4b4bd)}',
+      '.mp-data-danger-btn.mp-btn{color:var(--dsw-alias-state-error-primary,#e5484d);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 38%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 8%,transparent)}',
 
       '.mp-set-page-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px}',
       '.mp-set-page-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
@@ -160964,7 +161020,7 @@ window.__ModuleLoader__.load({
       { key: 'playback', label: 'v2.playback' },
       { key: 'online', label: 'v2.online' },
       { key: 'library', label: 'v2.library' },
-      { key: 'cache', label: 'v2.cacheTab' },
+      { key: 'cache', label: 'v2.dataTab' },
       { key: 'about', label: 'v2.about' },
     ]
 
@@ -160986,6 +161042,15 @@ window.__ModuleLoader__.load({
           typeof window.webkitOfflineAudioContext !== 'undefined')
       var cache = cachePair[0]
       var setCache = cachePair[1]
+      var dataPair = useState(null)
+      var data = dataPair[0]
+      var setData = dataPair[1]
+      var resetPair = useState(0)
+      var resetStage = resetPair[0]
+      var setResetStage = resetPair[1]
+      var resetBusyPair = useState(false)
+      var resetBusy = resetBusyPair[0]
+      var setResetBusy = resetBusyPair[1]
       var pathPair = useState('')
       var rootDraft = pathPair[0]
       var setRootDraft = pathPair[1]
@@ -161016,6 +161081,13 @@ window.__ModuleLoader__.load({
             .catch(function () {
               if (!cancelled) setCache(null)
             })
+          getJson(API + 'data')
+            .then(function (body) {
+              if (!cancelled) setData(body)
+            })
+            .catch(function () {
+              if (!cancelled) setData(null)
+            })
           getJson(API + 'online/cache/list')
             .then(function (body) {
               if (!cancelled) setCacheSongs(Array.isArray(body.songs) ? body.songs : [])
@@ -161031,6 +161103,97 @@ window.__ModuleLoader__.load({
       )
 
       if (props.open !== true) return null
+
+      function clearPluginLocalStorage() {
+        try {
+          var keys = []
+          for (var index = 0; index < window.localStorage.length; index += 1) {
+            var key = window.localStorage.key(index)
+            if (key === null) continue
+            if (
+              key.indexOf('music.') === 0 ||
+              key.indexOf('dsh-music') === 0 ||
+              key === 'lyric_segmentations' ||
+              key.indexOf('mu.') === 0
+            ) {
+              keys.push(key)
+            }
+          }
+          keys.forEach(function (key) {
+            window.localStorage.removeItem(key)
+          })
+        } catch (error) {
+          /* Private mode / quota errors must not block the host reset. */
+        }
+      }
+
+      function clearAllData() {
+        if (resetBusy) return
+        setResetBusy(true)
+        postJson(API + 'data/clear', { confirm: 'clear-all' })
+          .then(function () {
+            clearPluginLocalStorage()
+            setResetBusy(false)
+            setResetStage(0)
+            showToast(t('data.resetDone'))
+            if (typeof window !== 'undefined' && typeof window.location?.reload === 'function') {
+              window.setTimeout(function () {
+                window.location.reload()
+              }, 260)
+            }
+          })
+          .catch(function (error) {
+            setResetBusy(false)
+            setResetStage(0)
+            showToast(errorText(error))
+          })
+      }
+
+      function resetDialog() {
+        if (resetStage === 0) return null
+        var final = resetStage === 2
+        return h(
+          KitModal,
+          {
+            key: 'data-reset',
+            title: final ? t('data.resetTitleFinal') : t('data.resetTitle'),
+            small: true,
+            onClose: function () {
+              if (!resetBusy) setResetStage(0)
+            },
+            footer: [
+              h(
+                Button,
+                {
+                  key: 'cancel',
+                  variant: 'ghost',
+                  disabled: resetBusy,
+                  onClick: function () {
+                    if (!resetBusy) setResetStage(0)
+                  },
+                },
+                t('page.cancel'),
+              ),
+              h(
+                Button,
+                {
+                  key: final ? 'confirm' : 'continue',
+                  variant: 'primary',
+                  className: final ? 'mp-data-danger-btn' : undefined,
+                  disabled: resetBusy,
+                  onClick: function () {
+                    if (resetBusy) return
+                    if (final) clearAllData()
+                    else setResetStage(2)
+                  },
+                },
+                resetBusy ? t('data.resetting') : final ? t('data.resetConfirm') : t('data.resetContinue'),
+              ),
+            ],
+          },
+          h('p', { className: 'mp-kit-text' }, final ? t('data.resetHintFinal') : t('data.resetHint')),
+        )
+      }
 
       function patchPrefs(patch) {
         setPrefs(patch)
@@ -161856,8 +162019,35 @@ window.__ModuleLoader__.load({
 
       function cacheTab() {
         var stats = cache || { files: 0, bytes: 0, maxBytes: 0 }
+        var dataStats = data || { files: 0, bytes: 0, categories: [] }
+        var categories = Array.isArray(dataStats.categories) ? dataStats.categories : []
         return [
-          h('h2', { key: 'h' }, t('v2.cacheTab')),
+          h('h2', { key: 'h' }, t('v2.dataTab')),
+          h(
+            'div',
+            { key: 'data-total', className: 'mp-data-total' },
+            h('span', { className: 'mp-data-total-label' }, t('data.total')),
+            h('strong', null, t('data.files', { n: dataStats.files || 0, size: fmtBytes(dataStats.bytes || 0) })),
+          ),
+          categories.length === 0
+            ? null
+            : h(
+                'div',
+                { key: 'data-rows', className: 'mp-data-rows' },
+                categories.map(function (category) {
+                  return h(
+                    'div',
+                    { key: category.id, className: 'mp-data-row' },
+                    h('span', { className: 'mp-data-row-label' }, t('data.category.' + category.id)),
+                    h(
+                      'span',
+                      { className: 'mp-data-row-meta' },
+                      t('data.files', { n: category.files || 0, size: fmtBytes(category.bytes || 0) }),
+                    ),
+                  )
+                }),
+              ),
+          h('p', { key: 'data-hint', className: 'mp-set-desc' }, t('data.hint')),
           h(
             SetRow,
             { key: 'size', label: t('online.cacheSize', { files: stats.files || 0, n: fmtBytes(stats.bytes || 0) }), desc: t('online.cacheList') },
@@ -161913,6 +162103,23 @@ window.__ModuleLoader__.load({
                     )
                   }),
                 ),
+          ),
+          h(
+            'div',
+            { key: 'danger', className: 'mp-data-danger' },
+            h('div', { className: 'mp-data-danger-title' }, t('data.resetTitle')),
+            h('p', { className: 'mp-data-danger-desc' }, t('data.resetHint')),
+            h(
+              Button,
+              {
+                variant: 'primary',
+                className: 'mp-data-danger-btn',
+                onClick: function () {
+                  setResetStage(1)
+                },
+              },
+              t('data.resetAction'),
+            ),
           ),
         ]
       }
@@ -162018,7 +162225,7 @@ window.__ModuleLoader__.load({
             },
             icon('x', 16),
           ),
-          h('div', { className: 'mp-sheet-body' }, body),
+          h('div', { className: 'mp-sheet-body' }, body, resetDialog()),
         ),
       )
     }

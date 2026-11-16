@@ -40,6 +40,7 @@ import { searchOnline } from '../services/online-metadata.js'
 import { fetchLyricById, searchLyricCandidates } from '../services/lyrics/lyrics-search.js'
 import { takeControls } from '../services/playback/control.js'
 import { createTrash } from '../services/media/trash.js'
+import { clearData, inspectData } from '../services/media/plugin-data.js'
 import { eqPresetRow, loadEqPresets, searchEqPresets } from '../stores/eq-presets.js'
 import * as providers from '../providers/index.js'
 import { createOnlineRoutes, onlineSongId } from './routes/online.js'
@@ -231,7 +232,7 @@ async function validateRoots(list) {
  */
 const debugReports = []
 
-export function createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, onlineCache, kugouSessions }) {
+export function createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, onlineCache, kugouSessions, resetData }) {
   const trash = createTrash({
     dir: join(settings.dir || settings.home || '.', 'trash'),
     getRoots: async () => (await settings.read()).roots,
@@ -689,6 +690,37 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         } catch (error) {
           const code = error?.code === 'BAD_ID' ? 400 : error?.code === 'NOT_FOUND' ? 404 : error?.code === 'NO_PATH' ? 409 : 500
           return fail(res, code, String(error?.code ?? 'RESTORE_FAILED'), String(error?.message ?? error))
+        }
+      }
+
+      if (pathname === '/data' && method === 'GET') {
+        try {
+          return sendJson(res, 200, { ok: true, ...(await inspectData(settings.dir)) })
+        } catch (error) {
+          return fail(res, 500, 'DATA_FAILED', String(error?.message ?? error))
+        }
+      }
+
+      if (pathname === '/data/clear' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        if (body?.confirm !== 'clear-all') {
+          return fail(res, 400, 'CONFIRM_REQUIRED', '缺少清空确认')
+        }
+        if (typeof resetData !== 'function') {
+          return fail(res, 503, 'RESET_UNAVAILABLE', '数据重置不可用')
+        }
+        try {
+          const config = await settings.read()
+          const cleared = await clearData(settings.dir, Array.isArray(config.roots) ? config.roots : [])
+          await resetData()
+          return sendJson(res, 200, { ok: true, ...cleared })
+        } catch (error) {
+          return fail(res, 500, 'RESET_FAILED', String(error?.message ?? error))
         }
       }
 

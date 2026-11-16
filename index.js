@@ -49,7 +49,29 @@ export function apply(ctx, rawConfig) {
   const loginStore = createLoginStore({ dir: settings.dir })
   const onlineCache = createOnlineCache({ dir: settings.dir })
   const kugouSessions = createKugouSessionManager({ providerStore })
-  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, onlineCache, kugouSessions })
+
+  /**
+   * Reset in-memory stores after the data directory has been cleared. The route
+   * removes the files; this callback makes sure no memoized value survives and
+   * writes a fresh settings file with empty roots (the install-time seed must not
+   * re-populate the library after "clear all data").
+   */
+  async function resetData() {
+    library.clear()
+    stats.invalidate?.()
+    playback.invalidate?.()
+    favorites.invalidate?.()
+    playlists.invalidate?.()
+    await providerStore.clear()
+    await loginStore.clearAll()
+    await onlineCache.clear()
+    settings.invalidate()
+    await settings.reset()
+    library.clear()
+  }
+
+  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, onlineCache, kugouSessions, resetData })
+
 
   // Sources are registered once per load; the registry is the single list every
   // future caller reads instead of branching on platform names.

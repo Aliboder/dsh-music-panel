@@ -57,6 +57,18 @@ export function createSettings({ dshHome, seed } = {}) {
     return next
   }
 
+  /**
+   * Fresh-install reset: keep the install-time depth/extensions defaults, but
+   * force the library roots empty. The configured seed must not bring old roots
+   * back after "clear all data" (the user explicitly chose an empty library).
+   */
+  async function reset() {
+    const next = normalizeConfig({ ...base, roots: [], hiddenRoots: [] })
+    await writeJsonAtomic(file, next)
+    cached = next
+    return next
+  }
+
   return {
     home,
     dir,
@@ -64,6 +76,7 @@ export function createSettings({ dshHome, seed } = {}) {
     seed: base,
     read,
     write,
+    reset,
     /** Forget the memoized value; the next read re-reads the file. */
     invalidate() {
       cached = undefined
