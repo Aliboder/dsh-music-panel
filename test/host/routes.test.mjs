@@ -1,0 +1,203 @@
+import assert from 'node:assert/strict'
+import { dirname } from 'node:path'
+import { createRoutes, onlineSongId, parseRange, resolveTrack } from '../../src/host/http/routes.js'
+import { fakeReq, fakeRes, tempWav } from '../helpers.mjs'
+
+const file = await tempWav('song.wav', 1)
+const root = dirname(file)
+const outside = await tempWav('outside.wav', 1)
+
+const settings = {
+  read: async () => ({ roots: [root], depth: 2, extensions: ['wav'] }),
+  write: async (patch) => ({ roots: [], depth: 4, extensions: ['wav'], ...patch }),
+  home: 'C:/dsh-home',
+  file: 'C:/dsh-home/music/settings.json',
+}
+const library = {
+  scan: async () => ({
+    tracks: [{ path: file, title: 'song' }],
+    roots: [root],
+    warnings: [],
+    truncated: false,
+    empty: false,
+    scannedAt: 0,
+  }),
+}
+const handle = createRoutes({ settings, library })
+
+// config
+let res = fakeRes()
+await handle(fakeReq('/music/config'), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().ok, true)
+assert.equal(res.json().config.depth, 2)
+
+// library
+res = fakeRes()
+await handle(fakeReq('/music/library'), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().tracks.length, 1)
+
+// stream outside every configured root is refused
+res = fakeRes()
+await handle(fakeReq('/music/stream?path=' + encodeURIComponent(outside)), res)
+assert.equal(res.status, 404)
+assert.equal(res.json().error.code, 'NOT_FOUND')
+
+// cover for a file with no artwork
+res = fakeRes()
+await handle(fakeReq('/music/cover?path=' + encodeURIComponent(file)), res)
+assert.equal(res.status, 404)
+
+// online like accepts the client's onlineId as the song id
+assert.equal(onlineSongId({ onlineId: '42' }), '42')
+assert.equal(onlineSongId({ id: '7' }), '7')
+assert.equal(onlineSongId(null), '')
+
+// AutoEQ device preset library: search is served from the bundled dataset.
+res = fakeRes()
+await handle(fakeReq('/music/eq/presets?q=airpods&limit=5'), res)
+assert.equal(res.status, 200)
+const eqBody = res.json()
+assert.equal(eqBody.ok, true)
+assert.ok(eqBody.total > 5000, 'the whole library is advertised')
+assert.ok(eqBody.results.length > 0 && eqBody.results.length <= 5, 'the limit is respected')
+assert.equal(eqBody.results[0].bands.length, 10, 'each result carries ten bands')
+assert.ok(eqBody.results.every((row) => /airpods/i.test(row.name)), 'results match the query')
+assert.ok(Array.isArray(eqBody.sources) && eqBody.sources.length > 3, 'sources are listed')
+
+// icu-folia data: gzipped assets shipped with the plugin, served with Content-Encoding.
+res = fakeRes()
+await handle(fakeReq('/music/assets/icu-folia/dict.json.gz'), res)
+assert.equal(res.status, 200)
+assert.equal(res.headers['content-encoding'], 'gzip', 'the browser decodes it transparently')
+assert.ok(Number(res.headers['content-length']) > 1_000_000, 'the real dictionary, not a stub')
+
+res = fakeRes()
+await handle(fakeReq('/music/assets/icu-folia/nope.json.gz'), res)
+assert.equal(res.status, 404, 'only the two known payloads are served')
+
+// unknown route
+res = fakeRes()
+await handle(fakeReq('/music/nope'), res)
+assert.equal(res.status, 404)
+
+// non-loopback peers are rejected
+res = fakeRes()
+const remote = fakeReq('/music/config')
+remote.socket.remoteAddress = '10.0.0.8'
+await handle(remote, res)
+assert.equal(res.status, 403)
+
+// Playback state, listening time and stats endpoints.
+const statsMock = {
+  playSeconds: 0,
+  position: null,
+  plays: 0,
+  async addPlayTime(path, seconds) {
+    this.playSeconds += seconds
+    return { playSeconds: this.playSeconds, plays: this.plays }
+  },
+  async setPosition(path, seconds) {
+    this.position = seconds
+    return { lastPositionSec: seconds }
+  },
+  async summarize(range) {
+    return { [file]: { plays: 1, playSeconds: 60, lastPlayedAt: 1, range } }
+  },
+  async get(path) {
+    return { lyricOffsetMs: 0 }
+  },
+  async setLyricOffset(path, offsetMs) {
+    return { lyricOffsetMs: offsetMs }
+  },
+}
+const playbackState = { value: null }
+const playbackMock = {
+  async read() {
+    return playbackState.value
+  },
+  async write(state) {
+    playbackState.value = state
+    return state
+  },
+}
+const favoritesMock = {
+  async list() {
+    return [{ path: file, addedAt: 1 }]
+  },
+  async toggle(path) {
+    return { favorite: true, favorites: [{ path, addedAt: 2 }] }
+  },
+}
+const full = createRoutes({ settings, library, stats: statsMock, playback: playbackMock, favorites: favoritesMock })
+
+res = fakeRes()
+await full(fakeReq('/music/state'), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().state, null)
+
+res = fakeRes()
+await full(
+  fakeReq('/music/state', 'POST', {}, JSON.stringify({ queue: [file], index: 0, positionSec: 12 })),
+  res,
+)
+assert.equal(res.status, 200)
+assert.equal(res.json().state.positionSec, 12)
+
+res = fakeRes()
+await full(fakeReq('/music/playback', 'POST', {}, JSON.stringify({ path: file, seconds: 12.5 })), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().playSeconds, 12.5)
+assert.equal(statsMock.playSeconds, 12.5)
+
+res = fakeRes()
+await full(fakeReq('/music/position', 'POST', {}, JSON.stringify({ path: file, seconds: 33 })), res)
+assert.equal(res.status, 200)
+assert.equal(statsMock.position, 33)
+
+res = fakeRes()
+await full(fakeReq('/music/stats?range=week'), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().range, 'week')
+assert.equal(res.json().tracks[file].playSeconds, 60)
+
+// Favourites and lyrics calibration.
+res = fakeRes()
+await full(fakeReq('/music/favorites'), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().favorites.length, 1)
+
+res = fakeRes()
+await full(fakeReq('/music/favorites', 'POST', {}, JSON.stringify({ path: file })), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().favorite, true)
+
+res = fakeRes()
+await full(fakeReq('/music/lyrics/calibrate', 'POST', {}, JSON.stringify({ path: file, offsetMs: 500 })), res)
+assert.equal(res.status, 200)
+assert.equal(res.json().offsetMs, 500)
+
+// Invalid seconds / unknown path are rejected.
+res = fakeRes()
+await full(fakeReq('/music/playback', 'POST', {}, JSON.stringify({ path: file, seconds: 0 })), res)
+assert.equal(res.status, 400)
+res = fakeRes()
+await full(fakeReq('/music/playback', 'POST', {}, JSON.stringify({ path: outside, seconds: 5 })), res)
+assert.equal(res.status, 404)
+
+// resolveTrack: inside vs outside, and extension filtering
+assert.equal(await resolveTrack(file, [root]), file)
+assert.equal(await resolveTrack(outside, [root]), null)
+assert.equal(await resolveTrack('', [root]), null)
+
+// Range parsing, including the edge cases browsers actually send
+assert.deepEqual(parseRange('bytes=0-99', 1000), { start: 0, end: 99 })
+assert.deepEqual(parseRange('bytes=500-', 1000), { start: 500, end: 999 })
+assert.deepEqual(parseRange('bytes=-100', 1000), { start: 900, end: 999 })
+assert.deepEqual(parseRange('bytes=2000-', 1000), { invalid: true })
+assert.equal(parseRange('', 1000), null)
+assert.equal(parseRange('pages=1', 1000), null)
+
+console.log('routes.test.mjs ok')
+
