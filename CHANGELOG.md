@@ -29,6 +29,7 @@
 - 登录窗口新增「同步数据」；失败时可重启网易云/QQ/酷狗的本地服务；Host 增加自检与诊断接口。
 - 歌手/专辑取数切到 Folia 同款上游路由：QQ 用 `/getSingerHotsong`、`/getSingerAlbum`、`/getAlbumInfo`；酷狗用 `artist_audios`、`artist_albums`、`artist_detail`、`album_detail`、`album_songs`；网易云保持 `/artist/songs`、`/album`；汽水补 `artist_detail`。QQ/酷狗/网易云的歌手页现在能拿歌手信息和专辑列表。
 - 从歌曲点歌手现在进入歌手页（头像、简介、专辑列表），可再进「热门歌曲」；歌手页的专辑卡可直接展开专辑曲目。歌手歌曲页的标题和「歌手主页」按钮也能回到歌手页。
+- 修复网易云专辑页空白：上游 `/album` 包接口现在返回空 `songs`，增加带 `ext=true` 的公开接口兜底，并继续使用当前登录 Cookie。
 
 ### 发布撤回
 
