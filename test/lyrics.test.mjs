@@ -115,4 +115,47 @@ const missing = await readLyricsFor(join(dir, 'nothing.ogg'))
 assert.deepEqual(missing.lines, [])
 assert.equal(missing.file, null)
 
+// The raw text goes to the client so it can run Folia's parser: the timeline of a
+// synced tag is written out as LRC, keeping millisecond precision and the translations.
+assert.match(synced.raw, /^\[00:00\.000\]first\n\[00:01\.500\]second\n\[01:30\.000\]third$/)
+const syncedPair = parseSyncText(
+  [
+    { timestamp: 2000, text: '原文' },
+    { timestamp: 2000, text: '翻译' },
+  ],
+  2,
+)
+assert.equal(syncedPair.raw, '[00:02.000]原文')
+assert.equal(syncedPair.translation, '[00:02.000]翻译')
+
+// Untimed sidecars stay on the Host's plain lines: a timed parser would return none.
+await writeFile(join(dir, 'plain.mp3'), 'not really audio')
+await writeFile(join(dir, 'plain.lrc'), 'just some words\nno timestamps\n')
+const plainSidecar = await readLyricsFor(join(dir, 'plain.mp3'))
+assert.equal(plainSidecar.timed, false)
+assert.equal(plainSidecar.raw, '')
+assert.equal(plainSidecar.lines.length, 2)
+
+// A timed LRC sidecar is handed over both ways: the parsed lines and the raw text.
+const timedSidecar = await readLyricsFor(audio)
+assert.equal(timedSidecar.raw, '[00:01.00]hello\n')
+assert.equal(timedSidecar.formatHint, '')
+
+// Format priority follows Folia's order: an .lrc outranks a .ttml next to the same track.
+await writeFile(join(dir, 'song one.ttml'), '<tt xmlns="http://www.w3.org/ns/ttml"></tt>')
+assert.equal((await readLyricsFor(audio)).raw, '[00:01.00]hello\n')
+await writeFile(join(dir, 'only.ttml'), '<tt xmlns="http://www.w3.org/ns/ttml"><body/></tt>')
+await writeFile(join(dir, 'only.mp3'), 'not really audio')
+const onlyTtml = await readLyricsFor(join(dir, 'only.mp3'))
+assert.equal(onlyTtml.formatHint, 'ttml')
+assert.deepEqual(onlyTtml.lines, [])
+
+// A \`<stem>.t.<ext>\` sibling is the translation of the same timeline.
+await writeFile(join(dir, 'paired.mp3'), 'not really audio')
+await writeFile(join(dir, 'paired.yrc'), '[1000,2000](1000,500,0)晴')
+await writeFile(join(dir, 'paired.t.yrc'), '[1000,2000](1000,500,0)sunny')
+const pairedSidecar = await readLyricsFor(join(dir, 'paired.mp3'))
+assert.equal(pairedSidecar.formatHint, 'yrc')
+assert.equal(pairedSidecar.translation, '[1000,2000](1000,500,0)sunny')
+
 console.log('lyrics.test.mjs ok')
