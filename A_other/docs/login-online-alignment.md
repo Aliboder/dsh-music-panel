@@ -474,6 +474,7 @@ P3d 能力审计：
 - **账户生命周期**：快照读取、失败保留、主动同步、退出清理、启动/登录/切换触发的后台刷新。
 - **歌手/专辑渠道**：QQ 改到 `/getSingerHotsong`、`/getSingerAlbum`、`/getAlbumInfo`；酷狗改到 `artist_audios`、`artist_albums`、`artist_detail`、`album_detail`、`album_songs`；网易云保持 `/artist/songs`、`/album`；汽水补 `artist_detail`。QQ/酷狗/网易云现在能返回歌手信息和专辑列表。
 - **歌手页入口**：从歌曲点歌手进入歌手页（头像、简介、专辑列表），可再进「热门歌曲」；歌手页专辑卡直接展开专辑曲目。
+- **网易云专辑曲目**：与 Folia 一致读 `/album` 响应的顶层 `songs`；`album.songs` 为空不再是失败。
 
 未做：
 
