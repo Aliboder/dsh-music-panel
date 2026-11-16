@@ -6968,6 +6968,7 @@ window.__ModuleLoader__.load({
         'online.qrStep2': '扫一扫，并在手机上确认',
         'online.qrSecure': '登录信息仅保存在本机',
         'online.qrRefresh': '刷新二维码',
+        'online.artistSongs': '热门歌曲',
         'online.restartService': '重启本地服务',
         'online.restartingService': '正在重启…',
         'online.loginTitle': '登录 {provider}',
@@ -7564,6 +7565,7 @@ window.__ModuleLoader__.load({
         'online.qrStep2': 'Scan the code and confirm',
         'online.qrSecure': 'Credentials stay on this device',
         'online.qrRefresh': 'Refresh QR code',
+        'online.artistSongs': 'Top songs',
         'online.restartService': 'Restart local service',
         'online.restartingService': 'Restarting…',
         'online.loginTitle': 'Sign in to {provider}',
@@ -156022,10 +156024,27 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * Artist song list, built from the provider's search endpoint and filtered to
-     * the clicked artist. Chinese providers have no artist catalogue endpoint, so
-     * this keeps one shared list shape instead of a provider-specific page.
+     * The artist a track points at: the id already carried by the row when there is
+     * one, so the page can open on the provider's own artist endpoint.
      */
+    function onlineArtistTarget(track, artistOverride) {
+      var names = trackArtistNames(track)
+      var artist = String(artistOverride || (names.length > 0 ? names[0] : (track && track.artist)) || '').trim()
+      if (artist === '') return null
+      var provider = (track && track.onlineProvider) || onlineStore.get().provider
+      var artistId = ''
+      var detail = Array.isArray(track && track.artistsDetail) ? track.artistsDetail : []
+      for (var detailIndex = 0; detailIndex < detail.length; detailIndex += 1) {
+        var entry = detail[detailIndex] || {}
+        if (String(entry.name || '').trim() === artist && entry.id) {
+          artistId = String(entry.id)
+          break
+        }
+      }
+      if (artistId === '' && detail.length === 1 && detail[0] && detail[0].id) artistId = String(detail[0].id)
+      return { artist: artist, provider: provider, artistId: artistId }
+    }
+
     async function openOnlineArtist(track, artistOverride) {
       var names = trackArtistNames(track)
       var artist = String(artistOverride || (names.length > 0 ? names[0] : (track && track.artist)) || '').trim()
@@ -157941,6 +157960,14 @@ window.__ModuleLoader__.load({
       '.mp-entry-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}',
       '.mp-entry-title{font-size:16px;font-weight:550;line-height:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-entry-sub{font-size:14px;line-height:19px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-artist-page{flex:1;min-height:0;display:flex;flex-direction:column}',
+      '.mp-artist-head{display:flex;align-items:center;gap:14px;flex:none;padding:12px 16px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
+      '.mp-artist-avatar{width:64px;height:64px;flex:none;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-artist-avatar img{width:100%;height:100%;object-fit:cover;display:block}',
+      '.mp-artist-info{min-width:0;display:flex;flex-direction:column;gap:3px}',
+      '.mp-artist-name{font-size:20px;line-height:26px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-artist-desc{font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#a1a1aa);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
+      '.mp-artist-meta{font-size:12px;line-height:17px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-pager{display:flex;align-items:center;justify-content:center;gap:10px;flex:0 0 auto;padding:8px 12px 14px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
       '.mp-pager.is-hint{justify-content:space-between;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.03))}',
       '.mp-loaded-end{font-size:12px;color:var(--dsw-alias-state-success-text,#4ade80)}',
@@ -167225,18 +167252,41 @@ window.__ModuleLoader__.load({
           albumId: album.id || '',
           artist: album.artist || '',
           onlineProvider: provider,
-          coverUrl: '',
+          coverUrl: album.cover || '',
           coverArtId: album.coverArtId || '',
         })
       }
 
       function openArtistCard(artist) {
+        onlineStore.set({
+          artistName: artist.name || '',
+          artistProvider: provider,
+          artistFrom: uiStore.get().nav,
+        })
         setBrowseId(String(artist.id || ''))
         uiStore.set({ nav: 'artist', filter: null, query: '' })
       }
 
       function openArtist(track, artist) {
-        void openOnlineArtist(track, artist)
+        var target = onlineArtistTarget(track, artist)
+        if (target === null) return
+        if (target.artistId === '') {
+          void openOnlineArtist(track, artist)
+          return
+        }
+        onlineStore.set({
+          artistName: target.artist,
+          artistProvider: target.provider,
+          artistFrom: uiStore.get().nav,
+          artistSongs: [],
+          artistPhase: 'idle',
+          artistError: '',
+          query: '',
+          phase: 'idle',
+          error: '',
+        })
+        setBrowseId(target.artistId)
+        uiStore.set({ nav: 'artist', filter: null, query: '' })
       }
 
       var title = t('v2.recent')
@@ -167715,26 +167765,88 @@ window.__ModuleLoader__.load({
             : (artistDetail && artistDetail.name) || t('v2.artists')
         count = cards.length
         resetKey = 'online-' + nav + ':' + provider + (nav === 'artist' ? ':' + browseId : '')
+        if (nav === 'artist') {
+          backActions = [
+            h(
+              Button,
+              {
+                key: 'back',
+                variant: 'ghost',
+                icon: 'chevronLeft',
+                onClick: function () {
+                  setNav(online.artistFrom || 'recent')
+                },
+              },
+              t('v2.back'),
+            ),
+          ]
+          actions = [
+            h(
+              Button,
+              {
+                key: 'artist-songs',
+                variant: 'primary',
+                icon: 'play',
+                onClick: function () {
+                  void openOnlineArtist(
+                    {
+                      onlineProvider: provider,
+                      artist: artistDetail && artistDetail.name,
+                      artistsDetail: [{ id: browseId, name: (artistDetail && artistDetail.name) || '' }],
+                    },
+                    artistDetail && artistDetail.name,
+                  )
+                },
+              },
+              t('online.artistSongs'),
+            ),
+          ]
+        }
+        var artistHead = null
+        if (nav === 'artist' && artistDetail) {
+          var artistCover = artistDetail.cover
+            ? onlineCoverSrc({ coverUrl: artistDetail.cover })
+            : ''
+          artistHead = h(
+            'div',
+            { className: 'mp-artist-head' },
+            h(
+              'span',
+              { className: 'mp-artist-avatar' },
+              artistCover === '' ? icon('user', 26) : h(Cover, { src: artistCover, iconSize: 26 }),
+            ),
+            h(
+              'div',
+              { className: 'mp-artist-info' },
+              h('div', { className: 'mp-artist-name' }, artistDetail.name || ''),
+              artistDetail.description ? h('div', { className: 'mp-artist-desc' }, artistDetail.description) : null,
+              h('div', { className: 'mp-artist-meta' }, t('online.albumCount', { n: cards.length })),
+            ),
+          )
+        }
         if (browsePhase === 'loading' || browsePhase === 'idle') {
           body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
         } else if (browsePhase === 'error') {
           body = h(Empty, { title: t('online.networkError'), icon: 'info' })
         } else if (cards.length === 0) {
-          body = h(Empty, { title: t('page.noResults'), icon: isArtistList ? 'user' : 'disc' })
+          var emptyCard = h(Empty, { title: t('page.noResults'), icon: isArtistList ? 'user' : 'disc' })
+          body = artistHead === null ? emptyCard : h('div', { className: 'mp-artist-page' }, artistHead, emptyCard)
         } else {
           var openCard = isArtistList
             ? openArtistCard
             : function (card) {
                 openAlbumCard(card)
               }
-          body = h(
+          var cardList = h(
             ScrollBox,
             { resetKey: resetKey },
             h(
               'div',
               { className: 'mp-entry-list' },
               cards.map(function (card) {
-                var cover = subsonicCoverUrl(card.coverArtId)
+                var cover = card.cover
+                  ? onlineCoverSrc({ coverUrl: card.cover })
+                  : subsonicCoverUrl(card.coverArtId)
                 return h(
                   'button',
                   {
@@ -167763,13 +167875,17 @@ window.__ModuleLoader__.load({
                         ? t('online.albumCount', { n: card.albumCount })
                         : isAlbumList
                           ? (card.artist || '') + (card.songCount > 0 ? ' · ' + t('page.trackCountUnit', { n: card.songCount }) : '')
-                          : t('page.trackCountUnit', { n: card.songCount }),
+                          : (card.artist || '') + ((card.trackCount || card.songCount) > 0 ? ' · ' + t('page.trackCountUnit', { n: card.trackCount || card.songCount }) : ''),
                     ),
                   ),
                 )
               }),
             ),
           )
+          body = cardList
+          if (artistHead !== null) {
+            body = h('div', { className: 'mp-artist-page' }, artistHead, cardList)
+          }
         }
       } else if (nav === 'cache') {
         title = t('v2.cache')

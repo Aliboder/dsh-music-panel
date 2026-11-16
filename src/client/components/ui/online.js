@@ -317,18 +317,41 @@ function OnlineContent(props) {
       albumId: album.id || '',
       artist: album.artist || '',
       onlineProvider: provider,
-      coverUrl: '',
+      coverUrl: album.cover || '',
       coverArtId: album.coverArtId || '',
     })
   }
 
   function openArtistCard(artist) {
+    onlineStore.set({
+      artistName: artist.name || '',
+      artistProvider: provider,
+      artistFrom: uiStore.get().nav,
+    })
     setBrowseId(String(artist.id || ''))
     uiStore.set({ nav: 'artist', filter: null, query: '' })
   }
 
   function openArtist(track, artist) {
-    void openOnlineArtist(track, artist)
+    var target = onlineArtistTarget(track, artist)
+    if (target === null) return
+    if (target.artistId === '') {
+      void openOnlineArtist(track, artist)
+      return
+    }
+    onlineStore.set({
+      artistName: target.artist,
+      artistProvider: target.provider,
+      artistFrom: uiStore.get().nav,
+      artistSongs: [],
+      artistPhase: 'idle',
+      artistError: '',
+      query: '',
+      phase: 'idle',
+      error: '',
+    })
+    setBrowseId(target.artistId)
+    uiStore.set({ nav: 'artist', filter: null, query: '' })
   }
 
   var title = t('v2.recent')
@@ -807,26 +830,88 @@ function OnlineContent(props) {
         : (artistDetail && artistDetail.name) || t('v2.artists')
     count = cards.length
     resetKey = 'online-' + nav + ':' + provider + (nav === 'artist' ? ':' + browseId : '')
+    if (nav === 'artist') {
+      backActions = [
+        h(
+          Button,
+          {
+            key: 'back',
+            variant: 'ghost',
+            icon: 'chevronLeft',
+            onClick: function () {
+              setNav(online.artistFrom || 'recent')
+            },
+          },
+          t('v2.back'),
+        ),
+      ]
+      actions = [
+        h(
+          Button,
+          {
+            key: 'artist-songs',
+            variant: 'primary',
+            icon: 'play',
+            onClick: function () {
+              void openOnlineArtist(
+                {
+                  onlineProvider: provider,
+                  artist: artistDetail && artistDetail.name,
+                  artistsDetail: [{ id: browseId, name: (artistDetail && artistDetail.name) || '' }],
+                },
+                artistDetail && artistDetail.name,
+              )
+            },
+          },
+          t('online.artistSongs'),
+        ),
+      ]
+    }
+    var artistHead = null
+    if (nav === 'artist' && artistDetail) {
+      var artistCover = artistDetail.cover
+        ? onlineCoverSrc({ coverUrl: artistDetail.cover })
+        : ''
+      artistHead = h(
+        'div',
+        { className: 'mp-artist-head' },
+        h(
+          'span',
+          { className: 'mp-artist-avatar' },
+          artistCover === '' ? icon('user', 26) : h(Cover, { src: artistCover, iconSize: 26 }),
+        ),
+        h(
+          'div',
+          { className: 'mp-artist-info' },
+          h('div', { className: 'mp-artist-name' }, artistDetail.name || ''),
+          artistDetail.description ? h('div', { className: 'mp-artist-desc' }, artistDetail.description) : null,
+          h('div', { className: 'mp-artist-meta' }, t('online.albumCount', { n: cards.length })),
+        ),
+      )
+    }
     if (browsePhase === 'loading' || browsePhase === 'idle') {
       body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
     } else if (browsePhase === 'error') {
       body = h(Empty, { title: t('online.networkError'), icon: 'info' })
     } else if (cards.length === 0) {
-      body = h(Empty, { title: t('page.noResults'), icon: isArtistList ? 'user' : 'disc' })
+      var emptyCard = h(Empty, { title: t('page.noResults'), icon: isArtistList ? 'user' : 'disc' })
+      body = artistHead === null ? emptyCard : h('div', { className: 'mp-artist-page' }, artistHead, emptyCard)
     } else {
       var openCard = isArtistList
         ? openArtistCard
         : function (card) {
             openAlbumCard(card)
           }
-      body = h(
+      var cardList = h(
         ScrollBox,
         { resetKey: resetKey },
         h(
           'div',
           { className: 'mp-entry-list' },
           cards.map(function (card) {
-            var cover = subsonicCoverUrl(card.coverArtId)
+            var cover = card.cover
+              ? onlineCoverSrc({ coverUrl: card.cover })
+              : subsonicCoverUrl(card.coverArtId)
             return h(
               'button',
               {
@@ -855,13 +940,17 @@ function OnlineContent(props) {
                     ? t('online.albumCount', { n: card.albumCount })
                     : isAlbumList
                       ? (card.artist || '') + (card.songCount > 0 ? ' · ' + t('page.trackCountUnit', { n: card.songCount }) : '')
-                      : t('page.trackCountUnit', { n: card.songCount }),
+                      : (card.artist || '') + ((card.trackCount || card.songCount) > 0 ? ' · ' + t('page.trackCountUnit', { n: card.trackCount || card.songCount }) : ''),
                 ),
               ),
             )
           }),
         ),
       )
+      body = cardList
+      if (artistHead !== null) {
+        body = h('div', { className: 'mp-artist-page' }, artistHead, cardList)
+      }
     }
   } else if (nav === 'cache') {
     title = t('v2.cache')

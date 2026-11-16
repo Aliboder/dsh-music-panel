@@ -352,10 +352,27 @@ function closeOnlineAlbum() {
 }
 
 /**
- * Artist song list, built from the provider's search endpoint and filtered to
- * the clicked artist. Chinese providers have no artist catalogue endpoint, so
- * this keeps one shared list shape instead of a provider-specific page.
+ * The artist a track points at: the id already carried by the row when there is
+ * one, so the page can open on the provider's own artist endpoint.
  */
+function onlineArtistTarget(track, artistOverride) {
+  var names = trackArtistNames(track)
+  var artist = String(artistOverride || (names.length > 0 ? names[0] : (track && track.artist)) || '').trim()
+  if (artist === '') return null
+  var provider = (track && track.onlineProvider) || onlineStore.get().provider
+  var artistId = ''
+  var detail = Array.isArray(track && track.artistsDetail) ? track.artistsDetail : []
+  for (var detailIndex = 0; detailIndex < detail.length; detailIndex += 1) {
+    var entry = detail[detailIndex] || {}
+    if (String(entry.name || '').trim() === artist && entry.id) {
+      artistId = String(entry.id)
+      break
+    }
+  }
+  if (artistId === '' && detail.length === 1 && detail[0] && detail[0].id) artistId = String(detail[0].id)
+  return { artist: artist, provider: provider, artistId: artistId }
+}
+
 async function openOnlineArtist(track, artistOverride) {
   var names = trackArtistNames(track)
   var artist = String(artistOverride || (names.length > 0 ? names[0] : (track && track.artist)) || '').trim()

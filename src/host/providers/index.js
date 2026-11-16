@@ -252,18 +252,23 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
   if (provider === 'qq') {
     const mid = String(artistId || '').trim()
     if (/^[A-Za-z0-9_-]+$/.test(mid)) {
-      const limit = Math.max(1, Math.min(100, Number(page.limit) || 80))
-      const pageNo = Math.floor(Math.max(0, Number(page.offset) || 0) / limit) + 1
-      const answer = await qqUpstream('/getSingerHotsong', { singermid: mid, limit, page: pageNo }, { cookie })
-      const rows = answer?.response?.singer?.data?.songlist
-      if (Array.isArray(rows)) {
-        return rows
-          .map((row) => QQ.toLegacyResult(row))
-          .filter((song) => song !== null)
-          .map((song) => {
-            rawSongs.set('qq:' + song.songmid, song)
-            return shape('qq', song)
-          })
+      try {
+        const limit = Math.max(1, Math.min(100, Number(page.limit) || 80))
+        const pageNo = Math.floor(Math.max(0, Number(page.offset) || 0) / limit) + 1
+        const answer = await qqUpstream('/getSingerHotsong', { singermid: mid, limit, page: pageNo }, { cookie })
+        const rows = answer?.response?.singer?.data?.songlist
+        if (Array.isArray(rows)) {
+          return rows
+            .map((row) => QQ.toLegacyResult(row))
+            .filter((song) => song !== null)
+            .map((song) => {
+              rawSongs.set('qq:' + song.songmid, song)
+              return shape('qq', song)
+            })
+        }
+      } catch {
+        // Older local backends may not expose this route; the name search below
+        // is the documented fallback.
       }
     }
     const { results } = await QQ.searchArtistSongs(name, cookie)
@@ -328,20 +333,25 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
   if (provider === 'kugou' || provider === 'kugouLite') {
     const artistKey = String(artistId || '').trim()
     if (/^\d+$/.test(artistKey)) {
-      const limit = Math.max(1, Math.min(100, Number(page.limit) || 60))
-      const pageNo = Math.floor(Math.max(0, Number(page.offset) || 0) / limit) + 1
-      const platform = provider === 'kugouLite' ? 'lite' : 'standard'
-      const answer = await callKugou(platform, 'artist_audios', {
-        id: artistKey,
-        page: pageNo,
-        pagesize: limit,
-        sort: 'hot',
-      })
-      const rows = kugouList(answer.body)
-      if (rows.length > 0) {
-        return rows
-          .map((item) => ({ ...KG.normalizeSong(item), source: provider }))
-          .filter((song) => song.id !== '')
+      try {
+        const limit = Math.max(1, Math.min(100, Number(page.limit) || 60))
+        const pageNo = Math.floor(Math.max(0, Number(page.offset) || 0) / limit) + 1
+        const platform = provider === 'kugouLite' ? 'lite' : 'standard'
+        const answer = await callKugou(platform, 'artist_audios', {
+          id: artistKey,
+          page: pageNo,
+          pagesize: limit,
+          sort: 'hot',
+        })
+        const rows = kugouList(answer.body)
+        if (rows.length > 0) {
+          return rows
+            .map((item) => ({ ...KG.normalizeSong(item), source: provider }))
+            .filter((song) => song.id !== '')
+        }
+      } catch {
+        // Fall back to the name search when the local KuGou package has no
+        // artist_audios route.
       }
     }
   }
