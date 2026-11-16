@@ -16,6 +16,9 @@ import { createBodianSessions } from './bodian/sessions.js'
 import { createLocalSource } from './local.js'
 import { createOmni } from './omni.js'
 import { createRegistry } from './registry.js'
+import { createQishuiSource } from './qishui/index.js'
+import { ensureQishuiDeviceId } from './qishui/device.js'
+import { createQishuiSessions } from './qishui/sessions.js'
 
 /** Everything the Chinese platforms are believed to support today. */
 const CHINESE_CAPABILITIES = {
@@ -190,6 +193,28 @@ export function registerBodianSource(options) {
     return source
   } catch (error) {
     // Keep the rest of the plugin working; the platform simply will not appear.
+    return null
+  }
+}
+
+/**
+ * Qishui is pure Node, so it can be registered in the Host without an Electron
+ * bridge. The package is optional for installs that ship without it.
+ *
+ * @param {{ dir: string, store?: object }} options
+ */
+export function registerQishuiSource(options) {
+  try {
+    const require = createRequire(import.meta.url)
+    const { createQishuiApi } = require('qishui-music-api')
+    const deviceId = ensureQishuiDeviceId(options.dir)
+    const sessions = createQishuiSessions({ deviceId, store: options.store })
+    if (options.store !== undefined && options.store !== null) void sessions.hydrate()
+    const source = createQishuiSource({ createApi: createQishuiApi, deviceId, sessions })
+    registry.register(source)
+    return source
+  } catch (error) {
+    // Optional package missing or incompatible: hide the platform, keep the rest.
     return null
   }
 }

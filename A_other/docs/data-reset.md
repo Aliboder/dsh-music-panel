@@ -64,6 +64,7 @@
 | `accounts.json` | `src/host/stores/accounts.js` | 各平台账号快照：昵称、头像、歌单、喜欢 id |
 | `providers.json` | legacy provider store | 旧登录数据（如存在） |
 | `bodian-device.json` | `src/host/providers/sources/bodian/device.js` | Bodian 设备身份 |
+| `qishui-device.json` | `src/host/providers/sources/qishui/device.js` | 汽水设备身份 |
 | `cache/**` | `src/host/services/media/online-cache.js` | 在线音频 / 封面 / 元数据 |
 | `trash/**` | `src/host/services/media/trash.js` | 回收站 |
 | `*.bak` / `*.tmp` | `src/host/stores/json-store.js` | 原子写备份/临时文件（随根目录清理） |

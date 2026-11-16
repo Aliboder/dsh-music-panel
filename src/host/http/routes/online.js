@@ -93,6 +93,9 @@ export function createOnlineRoutes(deps) {
         omni,
         mode: kind || 'qq',
         getSession: async () => (providerStore === undefined ? {} : await providerStore.session(id)),
+        logout: async () => {
+          if (typeof omni.logout === 'function') await omni.logout(id)
+        },
       })
     },
     store: {

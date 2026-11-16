@@ -22,7 +22,7 @@ import { createSettings } from './src/host/stores/settings.js'
 import { createStats } from './src/host/stores/stats.js'
 import { readLyricsFor } from './src/host/services/lyrics/lyrics.js'
 import { enqueueControl } from './src/host/services/playback/control.js'
-import { omni, registerBodianSource, registerLocalSource, registerOnlineSources, resetSources } from './src/host/providers/sources/index.js'
+import { omni, registerBodianSource, registerLocalSource, registerOnlineSources, registerQishuiSource, resetSources } from './src/host/providers/sources/index.js'
 import { stopNeteaseService } from './src/host/services/netease-api.js'
 import { stopQqService } from './src/host/services/qq-api.js'
 import { stopAllKugouServices } from './src/host/services/kugou-api.js'
@@ -60,6 +60,13 @@ export function apply(ctx, rawConfig) {
     save: (provider, credentials) => providerStore.setLogin(provider, credentials, null),
     clear: (provider) => providerStore.clear(provider),
   }
+  // Qishui's package also wants a synchronous store; it carries the user for
+  // the display fields, so the adapter forwards it to setLogin's profile.
+  const qishuiStore = {
+    get: (provider) => providerStore.getEntry(provider),
+    save: (provider, credentials, user) => providerStore.setLogin(provider, credentials, user),
+    clear: (provider) => providerStore.clear(provider),
+  }
   const onlineCache = createOnlineCache({ dir: settings.dir })
   const kugouSessions = createKugouSessionManager({ providerStore })
 
@@ -92,6 +99,8 @@ export function apply(ctx, rawConfig) {
     registerOnlineSources()
     // Native upstream package (AGPL), registered outside the legacy factory.
     registerBodianSource({ dir: settings.dir, store: bodianStore })
+    // Qishui is pure Node; its package owns the car protocol.
+    registerQishuiSource({ dir: settings.dir, store: qishuiStore })
     if (library !== null && typeof library.scan === 'function') {
       registerLocalSource({
         scan: (options) => library.scan(options),

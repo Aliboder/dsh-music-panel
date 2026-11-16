@@ -85,6 +85,16 @@ const lazy = createBodianSource({
 assert.deepEqual(await lazy.search('   ', 1, {}), { songs: [], total: 0, page: 1 })
 assert.equal(called, 0)
 
+// The account profile is read from the injected session, not from a second store.
+{
+  const profiled = createBodianSource({
+    deviceId: 'a'.repeat(32),
+    sessions: createMemorySessions(),
+    createApi: () => ({ request: async () => ({ ok: true, data: { user: { id: 'u1', nickname: 'Bodian User', avatarUrl: 'https://a' } } }) }),
+  })
+  assert.deepEqual(await profiled.profile(), { id: 'u1', nickname: 'Bodian User', avatarUrl: 'https://a' })
+}
+
 // Registry + omni route to it like any other source.
 {
   const registry = createRegistry()

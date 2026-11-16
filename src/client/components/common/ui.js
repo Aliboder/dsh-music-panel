@@ -61,6 +61,8 @@ function sourceLabelOf(source) {
   if (source === 'kugou') return t('online.providerKugou')
   if (source === 'kugouLite') return t('online.providerKugouLite')
   if (source === 'navidrome') return t('online.providerNavidrome')
+  if (source === 'qishui') return t('online.providerQishui')
+  if (source === 'bodian') return t('online.providerBodian')
   if (source !== 'local') {
     var info = providerInfoOf(source)
     if (info.displayName) return String(info.displayName)

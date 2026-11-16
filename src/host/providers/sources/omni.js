@@ -121,6 +121,7 @@ export function createOmni(registry) {
     loginStart: route('loginStart'),
     loginStatus: route('loginStatus'),
     cancelLogin: route('cancelLogin'),
+    logout: route('logout'),
     forgetTokens: route('forgetTokens'),
     createDevice: route('createDevice'),
 

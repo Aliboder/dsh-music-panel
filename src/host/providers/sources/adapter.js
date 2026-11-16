@@ -164,6 +164,9 @@ export function createOnlineAdapter(spec) {
     async cancelLogin() {
       return true
     },
+    async logout() {
+      return true
+    },
     forgetTokens() {
       return providers.forgetProviderTokens(providerKey)
     },

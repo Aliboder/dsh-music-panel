@@ -71,19 +71,41 @@ export function createQrAdapter(options) {
           transient: result?.transient === true,
         }
       }
+      const credentials = result?.session !== null && typeof result?.session === 'object'
+        ? result.session
+        : credentialsOf(result)
+      const user = {
+        id: String(result?.userid ?? result?.user?.id ?? ''),
+        nickname: String(result?.nickname ?? result?.user?.nickname ?? ''),
+        avatarUrl: String(result?.avatarUrl ?? result?.user?.avatarUrl ?? ''),
+      }
+      // Some platforms answer the QR check without a profile. Ask once, now
+      // that the credentials are known, so the account row is not nameless.
+      if (user.nickname === '' && typeof options.omni.profile === 'function') {
+        try {
+          const profile = await options.omni.profile(options.sourceId, {
+            cookie: String(result?.cookie ?? ''),
+            session: credentials,
+          })
+          if (profile !== null && typeof profile === 'object') {
+            user.id = String(profile.id ?? profile.accountId ?? user.id)
+            user.nickname = String(profile.nickname ?? user.nickname)
+            user.avatarUrl = String(profile.avatarUrl ?? user.avatarUrl)
+          }
+        } catch {
+          // A profile is cosmetic; the credentials above still count as signed in.
+        }
+      }
       return {
         status,
         // Platforms with an opaque session object (Bodian) hand it over whole;
         // the flat cookie/token platforms are shaped by `credentialsOf`.
-        session: result?.session !== null && typeof result?.session === 'object'
-          ? result.session
-          : credentialsOf(result),
-        user: {
-          id: String(result?.userid ?? result?.user?.id ?? ''),
-          nickname: String(result?.nickname ?? result?.user?.nickname ?? ''),
-          avatarUrl: String(result?.avatarUrl ?? result?.user?.avatarUrl ?? ''),
-        },
+        session: credentials,
+        user,
       }
+    },
+    async logout() {
+      if (typeof options.logout === 'function') await options.logout()
     },
     async cancel(key) {
       if (typeof options.omni.cancelLogin === 'function') await options.omni.cancelLogin(options.sourceId, key)
@@ -158,7 +180,9 @@ export function createLoginBridge(options) {
     },
 
     async logout(sourceId) {
+      const state = states.get(sourceId)
       states.delete(sourceId)
+      if (state !== undefined) await state.logout()
       await store.clear(sourceId)
     },
   }

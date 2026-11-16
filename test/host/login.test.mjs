@@ -288,6 +288,29 @@ console.log('login.test.mjs ok')
   assert.deepEqual(credentialsOf({}), {
     cookie: '', token: '', mid: '', dfid: '', guid: '', userid: 0, nickname: '', avatarUrl: '', vip_type: '', vip_token: '',
   })
+
+  // An opaque session (Bodian) is persisted whole, not flattened into cookie/token.
+  {
+    const bodianSaved = []
+    const bodian = createLoginBridge({
+      adapterFor: () => createQrAdapter({
+        sourceId: 'bodian',
+        omni: {
+          loginStart: async () => ({ key: 'bk', expiresAt: Date.now() + 60_000 }),
+          loginStatus: async () => ({ status: 'success', session: { token: 'bd', devices: ['d'] }, user: { id: 'u', nickname: 'B' } }),
+          cancelLogin: async () => {},
+        },
+        mode: 'qq',
+        getSession: async () => ({}),
+      }),
+      store: { save: async (id, credentials, user) => bodianSaved.push([id, credentials, user]), clear: async () => {} },
+    })
+    await bodian.start('bodian', 'qq')
+    const done = await bodian.poll('bodian')
+    assert.equal(done.status, LOGIN_STATUS.AUTHENTICATED)
+    assert.deepEqual(bodianSaved[0][1], { token: 'bd', devices: ['d'] })
+    assert.equal(bodianSaved[0][2].nickname, 'B')
+  }
 }
 
 // Folia-shaped account session view over the host state machine.

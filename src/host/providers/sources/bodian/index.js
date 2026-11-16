@@ -223,7 +223,13 @@ export function createBodianSource(options) {
     loginStatus(key) {
       return this.auth.checkLogin(key)
     },
+    async profile() {
+      return await this.auth.readUser()
+    },
     async cancelLogin() {
+      return true
+    },
+    async logout() {
       return true
     },
 

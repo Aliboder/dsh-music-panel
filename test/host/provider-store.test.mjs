@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createProviderStore, DEVICE_PROVIDERS, QR_PROVIDERS } from '../../src/host/providers/provider-store.js'
 
-assert.deepEqual(QR_PROVIDERS, ['netease', 'qq', 'kugou', 'kugouLite', 'bodian'])
+assert.deepEqual(QR_PROVIDERS, ['netease', 'qq', 'kugou', 'kugouLite', 'bodian', 'qishui'])
 assert.deepEqual(DEVICE_PROVIDERS, ['kugou', 'kugouLite'])
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-providers-'))
@@ -20,7 +20,7 @@ const store = createProviderStore({ dir })
 // ── signed out ─────────────────────────────────────────────────────────────
 
 const empty = await store.summary()
-for (const provider of ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome', 'bodian']) {
+for (const provider of ['netease', 'qq', 'kugou', 'kugouLite', 'navidrome', 'bodian', 'qishui']) {
   assert.equal(empty[provider].loggedIn, false, `${provider} starts signed out`)
   assert.equal(empty[provider].nickname, '')
 }

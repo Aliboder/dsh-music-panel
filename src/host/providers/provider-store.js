@@ -39,13 +39,15 @@ const EMPTY = {
   },
   // Bodian keeps an opaque session object; only the display fields are read here.
   bodian: { nickname: '', avatarUrl: '', loggedIn: false },
+  // Qishui also keeps an opaque session; the display fields come from its user.
+  qishui: { nickname: '', avatarUrl: '', loggedIn: false },
 }
 
 /** Providers whose session carries a KuGou-style device identity. */
 const DEVICE_PROVIDERS = ['kugou', 'kugouLite']
 
 /** Providers that sign in with a QR flow (Navidrome uses credentials instead). */
-const QR_PROVIDERS = ['netease', 'qq', 'kugou', 'kugouLite', 'bodian']
+const QR_PROVIDERS = ['netease', 'qq', 'kugou', 'kugouLite', 'bodian', 'qishui']
 
 const ALL_PROVIDERS = Object.keys(EMPTY)
 
@@ -134,8 +136,8 @@ export function createProviderStore(options) {
       }
     },
 
-    /** Persist a successful login. */
-    async setLogin(provider, value) {
+    /** Persist a successful login. `user` may carry display fields for opaque sessions. */
+    async setLogin(provider, value, user = null) {
       if (typeof provider !== 'string' || provider === '') return
       if (!ALL_PROVIDERS.includes(provider) && !(await hasEntry(provider))) return
       const current = await row(provider)
@@ -143,6 +145,8 @@ export function createProviderStore(options) {
       const next = {
         ...current,
         ...value,
+        ...(user?.nickname ? { nickname: String(user.nickname) } : {}),
+        ...(user?.avatarUrl ? { avatarUrl: String(user.avatarUrl) } : {}),
         loggedIn: true,
         ...(kugou ? { token_refreshed_at: Date.now() } : {}),
       }

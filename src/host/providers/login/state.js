@@ -344,6 +344,16 @@ export function createLoginState(options) {
       return this.reset()
     },
 
+    /** Tell the platform this sign-out is intentional, then clear the view. */
+    async logout() {
+      try {
+        if (typeof adapter.logout === 'function') await adapter.logout()
+      } catch {
+        // The local session is dropped regardless; the platform call is best-effort.
+      }
+      return this.reset()
+    },
+
     reset() {
       return set({
         status: LOGIN_STATUS.ANONYMOUS,
