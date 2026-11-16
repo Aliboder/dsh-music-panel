@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createPlaylists } from '../lib/playlists.js'
+import { createPlaylists } from '../src/host/stores/playlists.js'
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-pl-'))
 const store = createPlaylists({ dir })
@@ -58,3 +58,4 @@ const broken = createPlaylists({ dir: brokenDir })
 assert.deepEqual(await broken.list(), [])
 
 console.log('playlists.test.mjs ok')
+

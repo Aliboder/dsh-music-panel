@@ -17,7 +17,7 @@ import { join } from 'node:path'
 const read = (path) => readFileSync(join(...path.split('/')), 'utf8')
 
 // ── 1. the API layer resolves navidrome artwork by id, not by URL ─────────
-const api = read('src/20-api.js')
+const api = read('src/client/services/api/20-api.js')
 assert.match(
   api,
   /onlineProvider === 'navidrome'\) return subsonicCoverUrl\(track\.coverArtId\)/,
@@ -35,7 +35,7 @@ assert.match(
 )
 
 // ── 2. the queue track keeps it through persistence and restore ───────────
-const player = read('src/50-player.js')
+const player = read('src/client/services/player/50-player.js')
 assert.match(
   player,
   /coverArtId: track\.coverArtId \|\| ''/,
@@ -48,7 +48,7 @@ assert.match(
 )
 
 // ── 3. recent history keeps it across a reload ───────────────────────────
-const online = read('src/70-online.js')
+const online = read('src/client/components/online/70-online.js')
 assert.match(
   online,
   /coverArtId: track\.coverArtId \|\| ''/,
@@ -56,7 +56,7 @@ assert.match(
 )
 
 // ── 4. the host sanitiser must not strip it ──────────────────────────────
-const playback = read('lib/playback.js')
+const playback = read('src/host/services/playback/playback.js')
 assert.match(
   playback,
   /coverArtId: textField\(value\.coverArtId, 256\)/,
@@ -67,3 +67,4 @@ console.log('  ok  trackCoverSrc resolves navidrome artwork by id')
 console.log('  ok  coverArtId survives the API result, queue snapshot and restore')
 console.log('  ok  recent history and the host queue sanitiser keep coverArtId')
 console.log('\npanel.cover.test.mjs ok')
+

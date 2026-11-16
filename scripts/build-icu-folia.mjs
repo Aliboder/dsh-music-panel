@@ -110,3 +110,4 @@ for (const [name, payload] of [['dict', dict], ['hmm', hmm]]) {
   console.log(name + '.json.gz', (gz.length / 1024 / 1024).toFixed(2) + 'MB (json ' + (json.length / 1024 / 1024).toFixed(2) + 'MB)')
 }
 console.log('icu-folia data written to', OUT.replace(root + '\\', ''))
+

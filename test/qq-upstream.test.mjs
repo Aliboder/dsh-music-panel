@@ -5,11 +5,11 @@
  */
 
 import assert from 'node:assert/strict'
-import { toLegacyResult } from '../lib/providers/qq.js'
-import { assertOk, ensureQqService, resetUpstreamOverride, setUpstreamOverride, stopQqService } from '../lib/services/qq-api.js'
-import * as QQ from '../lib/providers/qq.js'
-import { parseQrc } from '../lib/providers/qrc.js'
-import { loginStatus } from '../lib/providers/index.js'
+import { toLegacyResult } from '../src/host/providers/qq.js'
+import { assertOk, ensureQqService, resetUpstreamOverride, setUpstreamOverride, stopQqService } from '../src/host/services/qq-api.js'
+import * as QQ from '../src/host/providers/qq.js'
+import { parseQrc } from '../src/host/providers/qrc.js'
+import { loginStatus } from '../src/host/providers/index.js'
 
 const item = toLegacyResult({
   mid: '0039MnYb0qxYhV',
@@ -96,7 +96,7 @@ assert.equal(assertOk({ code: 801, message: 'Waiting for QR scan' }, '/login/qr/
 assert.equal(assertOk({ code: 803, cookie: 'qqmusic_session=x' }, '/login/qr/check', { skipCodeCheck: true }).cookie, 'qqmusic_session=x')
 
 if (process.env.DSH_MUSIC_UPSTREAM === '1') {
-  const { search, getLyric, createQRLogin, checkQRLogin } = await import('../lib/providers/qq.js')
+  const { search, getLyric, createQRLogin, checkQRLogin } = await import('../src/host/providers/qq.js')
 
   const service = await ensureQqService()
   assert.ok(service.port > 0, 'the local QQ service must report a bound port')
@@ -126,3 +126,4 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
   await stopQqService()
   console.log('qq-upstream.test.mjs ok (pure only)')
 }
+

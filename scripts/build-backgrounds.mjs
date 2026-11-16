@@ -16,8 +16,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = join(ROOT, 'src/render/folia/backgrounds.bundle.js')
 
 const aliases = [
-  [/^react$/, 'src/vendor/react-shim.js'],
-  [/^react\/jsx-runtime$/, 'src/vendor/jsx-runtime-shim.js'],
+  [/^react$/, 'src/client/vendor/react-shim.js'],
+  [/^react\/jsx-runtime$/, 'src/client/vendor/jsx-runtime-shim.js'],
   [/^framer-motion$/, 'src/render/folia/shims/framer-motion.js'],
   [/^lucide-react$/, 'src/render/folia/shims/lucide-react.js'],
   [/^@paper-design\/shaders-react$/, 'src/render/folia/vendor/paper-shaders-react/dist/index.js'],
@@ -82,3 +82,4 @@ try {
   )
   process.exitCode = 1
 }
+

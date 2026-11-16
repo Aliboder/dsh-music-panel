@@ -8,11 +8,11 @@ import { createRequire } from 'node:module'
 import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createRegistry } from '../lib/sources/registry.js'
-import { createOmni } from '../lib/sources/omni.js'
-import { createBodianSource, createMemorySessions, toTrack } from '../lib/sources/bodian/index.js'
-import { ensureDeviceId } from '../lib/sources/bodian/device.js'
-import { mergeTranslation, parseLrc } from '../lib/sources/lrc.js'
+import { createRegistry } from '../src/host/providers/sources/registry.js'
+import { createOmni } from '../src/host/providers/sources/omni.js'
+import { createBodianSource, createMemorySessions, toTrack } from '../src/host/providers/sources/bodian/index.js'
+import { ensureDeviceId } from '../src/host/providers/sources/bodian/device.js'
+import { mergeTranslation, parseLrc } from '../src/host/providers/sources/lrc.js'
 
 const require = createRequire(import.meta.url)
 
@@ -140,7 +140,7 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
 // ── session persistence ─────────────────────────────────────────────────────
 
 {
-  const { createBodianSessions } = await import('../lib/sources/bodian/sessions.js')
+  const { createBodianSessions } = await import('../src/host/providers/sources/bodian/sessions.js')
 
   const saved = []
   const cleared = []

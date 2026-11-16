@@ -10,8 +10,8 @@
  */
 
 import assert from 'node:assert/strict'
-import { createRoutes } from '../lib/routes.js'
-import { setUpstreamOverride } from '../lib/services/netease-api.js'
+import { createRoutes } from '../src/host/http/routes.js'
+import { setUpstreamOverride } from '../src/host/services/netease-api.js'
 import { fakeReq, fakeRes } from './helpers.mjs'
 
 /**
@@ -187,3 +187,4 @@ if (failed > 0) {
   process.exit(1)
 }
 console.log(`navidrome-routes.test.mjs ok (${tests.length} tests)`)
+

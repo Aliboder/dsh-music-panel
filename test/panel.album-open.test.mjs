@@ -22,7 +22,7 @@ import { join } from 'node:path'
 const read = (path) => readFileSync(join(...path.split('/')), 'utf8')
 
 // ── 1. the entry point ends the search it was launched from ──────────────
-const online = read('src/70-online.js')
+const online = read('src/client/components/online/70-online.js')
 const openAlbum = online.slice(
   online.indexOf('async function openOnlineAlbum'),
   online.indexOf('function closeOnlineAlbum'),
@@ -146,3 +146,4 @@ assert.equal(internals.onlineStore.get().albumPhase, 'ready', 'the album request
 console.log('  ok  opening an album ends the search it came from')
 console.log('  ok  the album view is the one that renders afterwards')
 console.log('\npanel.album-open.test.mjs ok')
+

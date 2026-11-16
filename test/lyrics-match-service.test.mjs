@@ -4,7 +4,7 @@
  */
 
 import assert from 'node:assert/strict'
-import { MATCH_SOURCES, createLyricMatchService } from '../lib/lyrics-match-service.js'
+import { MATCH_SOURCES, createLyricMatchService } from '../src/host/services/lyrics/lyrics-match-service.js'
 
 assert.deepEqual(
   MATCH_SOURCES.map((source) => source.id),
@@ -107,3 +107,4 @@ assert.deepEqual(await service.preview({ source: 'qq', id: '' }), {
 })
 
 console.log('lyrics-match-service.test.mjs ok')
+

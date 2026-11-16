@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
-const source = readFileSync(new URL('../src/47-wave-color.js', import.meta.url), 'utf8')
+const source = readFileSync(new URL('../src/client/styles/47-wave-color.js', import.meta.url), 'utf8')
 const createBeatTracker = new Function(source + '\nreturn createBeatTracker')()
 
 // Beat tracker: rising sub-bass energy produces a pulse, quieter frames decay.
@@ -19,3 +19,4 @@ assert.ok(paused < playingPulse, 'paused playback lets the beat decay')
 assert.ok(tracker.update(null, true) >= 0, 'missing wave is tolerated')
 
 console.log('wave-color.test.mjs ok')
+

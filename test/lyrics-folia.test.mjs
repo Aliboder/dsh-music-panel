@@ -14,7 +14,7 @@ import vm from 'node:vm'
 import { gunzipSync } from 'node:zlib'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const bundle = readFileSync(join(here, '..', 'src', 'render', 'lyrics', 'lyrics.bundle.js'), 'utf8')
+const bundle = readFileSync(join(here, '..', 'src', 'client', 'render', 'lyrics', 'lyrics.bundle.js'), 'utf8')
 
 const stored = new Map()
 const localStorage = {
@@ -195,8 +195,8 @@ assert.ok(typeof lyrics.LyricParserFactory?.parse === 'function', 'and the parse
 
 // ── icu-folia engines (the Host's data) ────────────────────────────────────
 {
-  const dict = JSON.parse(gunzipSync(readFileSync(join(here, '..', 'lib', 'assets', 'icu-folia', 'dict.json.gz'))).toString('utf8'))
-  const hmm = JSON.parse(gunzipSync(readFileSync(join(here, '..', 'lib', 'assets', 'icu-folia', 'hmm.json.gz'))).toString('utf8'))
+  const dict = JSON.parse(gunzipSync(readFileSync(join(here, '..', 'src', 'host', 'assets', 'icu-folia', 'dict.json.gz'))).toString('utf8'))
+  const hmm = JSON.parse(gunzipSync(readFileSync(join(here, '..', 'src', 'host', 'assets', 'icu-folia', 'hmm.json.gz'))).toString('utf8'))
   assert.ok(dict.words.split('\n').length > 300_000, 'the dictionary is jieba\'s own')
   const ready = await lyrics.loadIcuFoliaFromData({ dict, hmm })
   assert.equal(ready, true, 'the engines build from the served data')
@@ -209,3 +209,5 @@ assert.ok(typeof lyrics.LyricParserFactory?.parse === 'function', 'and the parse
 }
 
 console.log('lyrics-folia.test.mjs ok')
+
+

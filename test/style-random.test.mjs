@@ -125,3 +125,4 @@ assert.equal(internals.mpStyleIdOf('random'), 'random', 'random is a valid store
 assert.ok(internals.mpStyleLabelOf('random') !== '', 'random has a label')
 
 console.log('style-random.test.mjs ok')
+

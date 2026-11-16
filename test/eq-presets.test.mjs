@@ -4,7 +4,7 @@
  */
 
 import assert from 'node:assert/strict'
-import { eqPresetId, eqPresetRow, loadEqPresets, searchEqPresets } from '../lib/eq-presets.js'
+import { eqPresetId, eqPresetRow, loadEqPresets, searchEqPresets } from '../src/host/stores/eq-presets.js'
 
 const payload = await loadEqPresets()
 
@@ -88,3 +88,4 @@ assert.ok(
 )
 
 console.log('eq-presets.test.mjs ok')
+

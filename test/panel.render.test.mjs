@@ -526,7 +526,7 @@ assert.deepEqual(
 )
 
 // …and applyControlAction must call it instead of listing providers again.
-const panelSource = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'ui', '11-panel.js'), 'utf8')
+const panelSource = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'client', 'components', 'ui', '11-panel.js'), 'utf8')
 const controlBody = panelSource.slice(
   panelSource.indexOf('function applyControlAction'),
   panelSource.indexOf('function applyControlAction') + 1600,
@@ -636,7 +636,7 @@ internals.prefsStore.set(eqPrefs)
 
 // 11. audio effects is ONE panel with two views: the volume controls and the
 //     equalizer must not be two separate popovers that swap under the button.
-const npSource = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'ui', '04-now-playing.js'), 'utf8')
+const npSource = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'client', 'components', 'ui', '04-now-playing.js'), 'utf8')
 assert.match(npSource, /h\(AudioEffectsPanel, \{/, 'the now-playing bar mounts the shared panel')
 assert.doesNotMatch(npSource, /is-eq'/, 'the old separate equalizer popover is gone')
 assert.doesNotMatch(npSource, /mp-np-extra-link/, 'the old entry row is gone')
@@ -747,3 +747,4 @@ internals.prefsStore.set(savedTransition)
 }
 
 console.log('panel.render.test.mjs ok')
+

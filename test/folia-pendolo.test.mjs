@@ -136,3 +136,4 @@ assert.ok(Array.isArray(theme.fontFamilyStack) && theme.fontFamilyStack.length >
 assert.ok(Array.isArray(theme.wordColors))
 
 console.log('folia-pendolo.test.mjs ok')
+

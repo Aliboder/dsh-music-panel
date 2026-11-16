@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createStats, dayKey, playThreshold } from '../lib/stats.js'
+import { createStats, dayKey, playThreshold } from '../src/host/stores/stats.js'
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-stats-'))
 const stats = createStats({ dir })
@@ -90,3 +90,4 @@ assert.deepEqual(await oldStats.summarize('week'), {})
 assert.equal((await oldStats.summarize('all')).z.playSeconds, 300)
 
 console.log('stats.test.mjs ok')
+

@@ -153,3 +153,4 @@ assert.equal(internals.readLyricSegmentation(songKey), null)
 assert.equal(internals.mpPrepareLyrics(doc, songKey, []).lyrics[0].wordSegments, undefined)
 
 console.log('lyric-segmentation.test.mjs ok')
+

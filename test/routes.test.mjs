@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { dirname } from 'node:path'
-import { createRoutes, onlineSongId, parseRange, resolveTrack } from '../lib/routes.js'
+import { createRoutes, onlineSongId, parseRange, resolveTrack } from '../src/host/http/routes.js'
 import { fakeReq, fakeRes, tempWav } from './helpers.mjs'
 
 const file = await tempWav('song.wav', 1)
@@ -200,3 +200,4 @@ assert.equal(parseRange('', 1000), null)
 assert.equal(parseRange('pages=1', 1000), null)
 
 console.log('routes.test.mjs ok')
+

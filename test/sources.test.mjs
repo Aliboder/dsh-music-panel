@@ -4,12 +4,12 @@
  */
 
 import assert from 'node:assert/strict'
-import { MusicError } from '../lib/core/errors.js'
-import { createRegistry } from '../lib/sources/registry.js'
-import { createOmni } from '../lib/sources/omni.js'
-import { createLocalSource, toTrack } from '../lib/sources/local.js'
-import { createOnlineAdapter } from '../lib/sources/adapter.js'
-import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registerOnlineSources, resetSources } from '../lib/sources/index.js'
+import { MusicError } from '../src/host/services/core/errors.js'
+import { createRegistry } from '../src/host/providers/sources/registry.js'
+import { createOmni } from '../src/host/providers/sources/omni.js'
+import { createLocalSource, toTrack } from '../src/host/providers/sources/local.js'
+import { createOnlineAdapter } from '../src/host/providers/sources/adapter.js'
+import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registerOnlineSources, resetSources } from '../src/host/providers/sources/index.js'
 
 // ── registry ────────────────────────────────────────────────────────────────
 
@@ -225,7 +225,7 @@ console.log('sources.test.mjs ok')
 // ── local lyrics ────────────────────────────────────────────────────────────
 
 {
-  const { toLyricLines } = await import('../lib/sources/local.js')
+  const { toLyricLines } = await import('../src/host/providers/sources/local.js')
   const lines = toLyricLines({
     lines: [
       { time: 1.5, text: 'one', translation: '一' },

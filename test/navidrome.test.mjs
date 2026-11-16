@@ -7,7 +7,7 @@
 
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import * as ND from '../lib/providers/navidrome.js'
+import * as ND from '../src/host/providers/navidrome.js'
 
 const tests = []
 function test(name, fn) {
@@ -714,3 +714,4 @@ if (failed > 0) {
   process.exit(1)
 }
 console.log('\nnavidrome.test.mjs ok (' + tests.length + ' tests)')
+

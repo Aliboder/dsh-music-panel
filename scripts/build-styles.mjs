@@ -13,8 +13,8 @@ const OUT = join(ROOT, 'src/render/folia/styles.bundle.js')
 const FOLIA = 'src/render/folia'
 
 const aliases = [
-  [/^react$/, 'src/vendor/react-shim.js'],
-  [/^react\/jsx-runtime$/, 'src/vendor/jsx-runtime-shim.js'],
+  [/^react$/, 'src/client/vendor/react-shim.js'],
+  [/^react\/jsx-runtime$/, 'src/client/vendor/jsx-runtime-shim.js'],
   [/^framer-motion$/, `${FOLIA}/shims/framer-motion.js`],
   [/^lucide-react$/, `${FOLIA}/shims/lucide-react.js`],
   [/^@chenglou\/pretext$/, `${FOLIA}/vendor/pretext/dist/layout.js`],
@@ -22,7 +22,7 @@ const aliases = [
   [/^pixi\.js$/, `${FOLIA}/vendor/pixi/pixi.min.mjs`],
   [/^pixi\.js\/advanced-blend-modes$/, `${FOLIA}/vendor/pixi/pixi.min.mjs`],
   [/^@react-three\/fiber$/, `${FOLIA}/vendor/r3f/r3f8.mjs`],
-  [/^three$/, 'src/vendor/three.esm.js'],
+  [/^three$/, 'src/client/vendor/three.esm.js'],
   [/^@applemusic-like-lyrics\/ttml$/, `${FOLIA}/shims/ttml.ts`],
   [/^@xmldom\/xmldom$/, `${FOLIA}/shims/ttml.ts`],
   [/^react-dom\/server$/, `${FOLIA}/shims/react-dom-server.ts`],
@@ -95,3 +95,4 @@ try {
   )
   process.exitCode = 1
 }
+

@@ -135,3 +135,4 @@ assert.equal(getLocalTheme('/music/b.flac'), generated)
 assert.equal(getLocalTheme('/music/does-not-exist.flac'), null)
 
 console.log('folia-local-theme.test.mjs ok')
+

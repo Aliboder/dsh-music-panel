@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createLibrary } from '../lib/library.js'
+import { createLibrary } from '../src/host/services/media/library.js'
 import { wavBuffer } from './helpers.mjs'
 
 const root = await mkdtemp(join(tmpdir(), 'dsh-music-lib-'))
@@ -51,3 +51,4 @@ assert.equal(missingResult.tracks.length, 0)
 assert.equal(missingResult.warnings.length, 1)
 
 console.log('library.test.mjs ok')
+

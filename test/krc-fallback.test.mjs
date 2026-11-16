@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { chooseTranslatedKrc } from '../lib/providers/krc.js'
+import { chooseTranslatedKrc } from '../src/host/providers/krc.js'
 
 const line = (t) => ({ t, end: t + 1, text: 'x' })
 const krc = (count, translations) => ({
@@ -28,3 +28,4 @@ assert.equal(chooseTranslatedKrc(null, []), null)
 assert.equal(chooseTranslatedKrc(plain, null), null)
 
 console.log('krc-fallback.test.mjs ok')
+

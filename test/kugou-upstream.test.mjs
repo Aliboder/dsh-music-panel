@@ -6,13 +6,13 @@
  */
 
 import assert from 'node:assert/strict'
-import * as KG from '../lib/providers/kugou.js'
-import { kugouCookies, kugouSessionPatch } from '../lib/providers/kugou-cookie.js'
+import * as KG from '../src/host/providers/kugou.js'
+import { kugouCookies, kugouSessionPatch } from '../src/host/providers/kugou-cookie.js'
 import {
   resetUpstreamOverride,
   setUpstreamOverride,
   stopAllKugouServices,
-} from '../lib/services/kugou-api.js'
+} from '../src/host/services/kugou-api.js'
 
 // ── the cookie vocabulary ───────────────────────────────────────────────────
 
@@ -189,3 +189,4 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
   await stopAllKugouServices()
   console.log('kugou-upstream.test.mjs ok (pure only)')
 }
+

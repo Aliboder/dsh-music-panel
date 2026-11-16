@@ -17,7 +17,7 @@ import { fakeReq, fakeRes } from './helpers.mjs'
 // The route factory fails loudly when a dependency is missing, so a wiring
 // mistake cannot degrade into a silent 502 at request time.
 {
-  const { createOnlineRoutes } = await import('../lib/routes/online.js')
+  const { createOnlineRoutes } = await import('../src/host/http/routes/online.js')
   assert.throws(() => createOnlineRoutes({}), /missing dependency: settings/)
 }
 
@@ -181,3 +181,4 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
 
 // Unloading must release both service workers and the refresh timer.
 for (const dispose of disposers) dispose()
+

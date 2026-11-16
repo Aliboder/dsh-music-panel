@@ -2,8 +2,8 @@
 /**
  * Build Folia's lyric pipeline into an IIFE for the plugin's client.
  *
- * The ported sources live at src/utils/lyrics/** (verbatim Folia) and import
- * ../../types, which resolves to src/types.ts (the same module as
+ * The ported sources live at src/client/utils/lyrics/** (verbatim Folia) and import
+ * ../../types, which resolves to src/shared/types.ts (the same module as
  * src/render/folia/types.ts).
  *
  * Usage: node scripts/build-lyrics.mjs
@@ -52,3 +52,4 @@ await build({
   plugins: [inlineWorker, icuFoliaStubs],
   logLevel: 'info',
 })
+

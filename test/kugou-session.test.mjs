@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { createKugouSessionManager, isKugouAuthError } from '../lib/kugou-session.js'
+import { createKugouSessionManager, isKugouAuthError } from '../src/host/providers/kugou-session.js'
 
 function authError(code) {
   const error = new Error('auth ' + code)
@@ -94,3 +94,4 @@ assert.equal(isKugouAuthError(authError(20017)), true)
 assert.equal(isKugouAuthError(authError(20018)), true)
 assert.equal(isKugouAuthError(new Error('fetch failed')), false)
 console.log('kugou-session.test.mjs ok')
+

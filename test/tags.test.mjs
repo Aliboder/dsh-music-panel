@@ -7,7 +7,7 @@ import {
   formatOf,
   normalizeTags,
   validateTags,
-} from '../lib/tags.js'
+} from '../src/host/services/media/tags.js'
 
 assert.equal(TAG_FIELDS.length, 12, 'twelve editable tag fields')
 assert.deepEqual(Object.keys(VORBIS_KEYS), TAG_FIELDS, 'every editable field has a Vorbis key, in order')
@@ -31,3 +31,4 @@ assert.match(validateTags(normalizeTags({ lyrics: 'x'.repeat(MAX_LYRICS_LENGTH +
 assert.equal(validateTags(normalizeTags({ lyrics: 'x'.repeat(MAX_LYRICS_LENGTH) })), null)
 
 console.log('tags.test.mjs ok')
+

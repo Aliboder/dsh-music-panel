@@ -14,3 +14,4 @@ const resolved = requireFromProfile.resolve('dsh-music-panel/package.json')
 assert.equal(resolved, join(root, 'package.json'))
 
 console.log('package-exports.test.mjs ok')
+

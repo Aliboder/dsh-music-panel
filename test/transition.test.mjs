@@ -1,6 +1,6 @@
 /**
  * Transition envelope analysis: how long a track is quiet at its edges.
- * `src/46-transition.js` is a fragment, so it is evaluated with plain typed
+ * `src/client/services/player/effects/46-transition.js` is a fragment, so it is evaluated with plain typed
  * arrays here instead of an AudioBuffer.
  */
 
@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
-const source = readFileSync(join(root, 'src/46-transition.js'), 'utf8')
+const source = readFileSync(join(root, 'src/client/services/player/effects/46-transition.js'), 'utf8')
 const factory = new Function(
   `${source}
   return { analyzeTransitionEnvelope, TRANSITION_WINDOW, TRANSITION_HOP }`,
@@ -85,3 +85,4 @@ assert.equal(transition.analyzeTransitionEnvelope([new Float32Array(10)], 0), nu
 assert.ok(transition.TRANSITION_WINDOW <= 0.2 && transition.TRANSITION_HOP <= transition.TRANSITION_WINDOW)
 
 console.log('transition.test.mjs ok')
+

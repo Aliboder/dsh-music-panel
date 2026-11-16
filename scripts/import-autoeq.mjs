@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(HERE, '..')
-const DATA = join(ROOT, 'lib', 'data', 'autoeq-presets.json')
+const DATA = join(ROOT, 'src', 'host', 'stores', 'data', 'autoeq-presets.json')
 const CACHE = join(ROOT, '.autoeq-cache')
 const RAW = 'https://raw.githubusercontent.com/jaakkopasanen/AutoEq/master/results'
 const INDEX = `${RAW}/INDEX.md`
@@ -32,7 +32,7 @@ const CONCURRENCY = 32
 const check = process.argv.includes('--check')
 if (check) {
   if (!existsSyncSync(DATA)) {
-    console.error('missing lib/data/autoeq-presets.json — run node scripts/import-autoeq.mjs')
+    console.error('missing src/host/stores/data/autoeq-presets.json — run node scripts/import-autoeq.mjs')
     process.exit(1)
   }
   const parsed = JSON.parse(await readFile(DATA, 'utf8'))
@@ -184,3 +184,4 @@ const payload = {
 await writeFile(DATA, JSON.stringify(payload), 'utf8')
 console.log(`wrote ${presets.length} presets (${failed} failed, ${skipped} skipped) to ${DATA}`)
 console.log(`size: ${(JSON.stringify(payload).length / 1024).toFixed(0)} KiB`)
+

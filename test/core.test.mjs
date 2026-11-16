@@ -4,9 +4,9 @@
 
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
-import { capabilities, resolveQuality, SOURCE_IDS, CAPABILITIES } from '../lib/core/contract.js'
-import { MusicError, statusFor, toMusicError } from '../lib/core/errors.js'
-import { allocateFreePort, closeServer, waitForHttp, waitForListening } from '../lib/core/ports.js'
+import { capabilities, resolveQuality, SOURCE_IDS, CAPABILITIES } from '../src/host/services/core/contract.js'
+import { MusicError, statusFor, toMusicError } from '../src/host/services/core/errors.js'
+import { allocateFreePort, closeServer, waitForHttp, waitForListening } from '../src/host/services/core/ports.js'
 
 // ── contract ────────────────────────────────────────────────────────────────
 
@@ -92,3 +92,4 @@ await closeServer(server)
 await assert.rejects(() => waitForListening(createServer(), { timeoutMs: 50 }), /did not start/)
 
 console.log('core.test.mjs ok')
+

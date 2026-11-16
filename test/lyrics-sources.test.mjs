@@ -4,13 +4,13 @@
  */
 
 import assert from 'node:assert/strict'
-import { parseTtml, parseTtmlTime, buildLyricsUrl, createAmllClient } from '../lib/amll.js'
+import { parseTtml, parseTtmlTime, buildLyricsUrl, createAmllClient } from '../src/host/services/lyrics/amll.js'
 import {
   LYRIC_SOURCE_IDS,
   buildLyricSourceOrder,
   getPlatformLyricSource,
   offeredSources,
-} from '../lib/lyrics-sources.js'
+} from '../src/host/services/lyrics/lyrics-sources.js'
 import {
   AUTO_MATCH_SEARCH_LIMIT,
   buildLyricSearchQuery,
@@ -19,7 +19,7 @@ import {
   linesFromLrc,
   lrcTime,
   withTimeout,
-} from '../lib/lyrics-match-runner.js'
+} from '../src/host/services/lyrics/lyrics-match-runner.js'
 
 // ── registry ───────────────────────────────────────────────────────────────
 

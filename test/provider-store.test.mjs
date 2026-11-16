@@ -9,7 +9,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createProviderStore, DEVICE_PROVIDERS, QR_PROVIDERS } from '../lib/provider-store.js'
+import { createProviderStore, DEVICE_PROVIDERS, QR_PROVIDERS } from '../src/host/providers/provider-store.js'
 
 assert.deepEqual(QR_PROVIDERS, ['netease', 'qq', 'kugou', 'kugouLite'])
 assert.deepEqual(DEVICE_PROVIDERS, ['kugou', 'kugouLite'])
@@ -113,3 +113,4 @@ await store.setLogin('spotify', { cookie: 'x' })
 assert.equal((await store.summary()).spotify, undefined)
 
 console.log('provider-store.test.mjs ok')
+

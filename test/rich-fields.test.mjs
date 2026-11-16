@@ -4,8 +4,8 @@
  */
 
 import assert from 'node:assert/strict'
-import { normalizeSong } from '../lib/providers/netease-legacy.js'
-import { parseYrc } from '../lib/providers/yrc.js'
+import { normalizeSong } from '../src/host/providers/netease-legacy.js'
+import { parseYrc } from '../src/host/providers/yrc.js'
 
 const song = normalizeSong({
   id: 42,
@@ -89,7 +89,7 @@ console.log('rich-fields.test.mjs ok')
 // ── QQ and KuGou speak the same entity contract ─────────────────────────────
 
 {
-  const { toLegacyResult } = await import('../lib/providers/qq.js')
+  const { toLegacyResult } = await import('../src/host/providers/qq.js')
   const qq = toLegacyResult({
     mid: '0039MnYb0qxYhV',
     title: '晴天',
@@ -116,7 +116,7 @@ console.log('rich-fields.test.mjs ok')
   assert.deepEqual(qq.availableQualities, ['standard', 'high'])
   assert.equal(qq.privilegeDetail.payplay, 1)
 
-  const { normalizeSong: normalizeKugou } = await import('../lib/providers/kugou.js')
+  const { normalizeSong: normalizeKugou } = await import('../src/host/providers/kugou.js')
   const kg = normalizeKugou({
     FileHash: 'B3A52A7A958BF0AED0EBFBA2E9A818B7',
     FileName: '周杰伦 - 晴天',

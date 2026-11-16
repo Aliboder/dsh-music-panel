@@ -8,8 +8,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
-const theme = readFileSync(join(root, 'src/90-theme.js'), 'utf8')
-const uiDir = join(root, 'src/ui')
+const theme = readFileSync(join(root, 'src/client/styles/90-theme.js'), 'utf8')
+const uiDir = join(root, 'src/client/components/ui')
 const uiFiles = [
   '01-primitives.js',
   '02-track-row.js',
@@ -84,9 +84,9 @@ assert.match(theme, /\.mp-switch i\{[^']*background:var\(--dsw-alias-switch-thum
 for (const [index, text] of all.entries()) {
   const hits = text.match(/require\('@deepseek-ai\/dsh-client-ui-primitives'\)/g) || []
   if (index === 0) continue
-  assert.equal(hits.length, 0, 'only src/00-host-ui.js may require host primitives')
+  assert.equal(hits.length, 0, 'only src/client/app/00-host-ui.js may require host primitives')
 }
-const adapter = readFileSync(join(root, 'src/00-host-ui.js'), 'utf8')
+const adapter = readFileSync(join(root, 'src/client/app/00-host-ui.js'), 'utf8')
 assert.ok(adapter.includes("require('@deepseek-ai/dsh-client-ui-primitives')"), 'adapter must load host primitives')
 assert.ok(adapter.includes('HOST_ICON_MAP'), 'adapter must own the host icon map')
 
@@ -169,3 +169,5 @@ assert.match(theme, /\.mp-npe-section\.is-ambient\{grid-column:1\/4;grid-row:3\}
 assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/, 'ambient section has four columns')
 
 console.log('theme.test.mjs ok')
+
+

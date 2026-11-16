@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { parseLrc, parseLyricsText, parseSyncText, readLyricsFor } from '../lib/lyrics.js'
+import { parseLrc, parseLyricsText, parseSyncText, readLyricsFor } from '../src/host/services/lyrics/lyrics.js'
 
 // Metadata tags are skipped; timestamps become seconds.
 const basic = parseLrc('[ti:Demo]\n[ar:Someone]\n[00:01.50]first line\n[00:12.00]second line\n')
@@ -159,3 +159,4 @@ assert.equal(pairedSidecar.formatHint, 'yrc')
 assert.equal(pairedSidecar.translation, '[1000,2000](1000,500,0)sunny')
 
 console.log('lyrics.test.mjs ok')
+

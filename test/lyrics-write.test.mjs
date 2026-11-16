@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { serializeLrc, shiftLrc, writeEmbeddedLyrics } from '../lib/lyrics-write.js'
+import { serializeLrc, shiftLrc, writeEmbeddedLyrics } from '../src/host/services/lyrics/lyrics-write.js'
 
 // Timestamps move by the requested offset.
 assert.equal(shiftLrc('[00:01.00]a', 500), '[00:01.50]a')
@@ -22,3 +22,4 @@ assert.equal(serializeLrc([{ time: -1, text: 'plain', translation: '' }]), 'plai
 await assert.rejects(writeEmbeddedLyrics('D:/x.m4a', '[00:00.00]a'), /不支持/)
 
 console.log('lyrics-write.test.mjs ok')
+

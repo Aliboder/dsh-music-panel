@@ -6,8 +6,8 @@
  */
 
 import assert from 'node:assert/strict'
-import { plain, songOf } from '../lib/providers/netease.js'
-import { assertOk, ensureNeteaseService, stopNeteaseService } from '../lib/services/netease-api.js'
+import { plain, songOf } from '../src/host/providers/netease.js'
+import { assertOk, ensureNeteaseService, stopNeteaseService } from '../src/host/services/netease-api.js'
 import {
   createLoginQrCheck,
   installClientIpPolicy,
@@ -15,7 +15,7 @@ import {
   isUpstreamNetworkFailure,
   withoutImplicitClientIp,
   withQrNetworkRetry,
-} from '../lib/services/netease-upstream.js'
+} from '../src/host/services/netease-upstream.js'
 
 // ── pure mapping ────────────────────────────────────────────────────────────
 
@@ -189,8 +189,8 @@ assert.equal(assertOk({ code: 803, cookie: 'MUSIC_U=x' }, '/login/qr/check', { s
 // ── live (opt-in) ───────────────────────────────────────────────────────────
 
 if (process.env.DSH_MUSIC_UPSTREAM === '1') {
-  const { search, getLyric, getDownloadURL, getChorus, createQRLogin, checkQRLogin, findArtistId, getArtistSongs } = await import('../lib/providers/netease.js')
-  const providers = await import('../lib/providers/index.js')
+  const { search, getLyric, getDownloadURL, getChorus, createQRLogin, checkQRLogin, findArtistId, getArtistSongs } = await import('../src/host/providers/netease.js')
+  const providers = await import('../src/host/providers/index.js')
 
   const service = await ensureNeteaseService()
   assert.ok(service.port > 0, 'the local service must report a bound port')
@@ -212,7 +212,7 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
   // the route module never does.
   const wordLevel = await getLyric('1901371647', '')
   assert.ok(wordLevel.yrc.length > 0, 'YRC must be fetched explicitly')
-  const { parseYrc } = await import('../lib/providers/yrc.js')
+  const { parseYrc } = await import('../src/host/providers/yrc.js')
   const parsed = parseYrc(wordLevel.yrc)
   assert.equal(parsed.wordLevel, true)
   assert.ok(parsed.lines.some((line) => (line.words || []).length > 0), 'parsed lines carry word timelines')
@@ -258,3 +258,4 @@ if (process.env.DSH_MUSIC_UPSTREAM === '1') {
   await stopNeteaseService()
   console.log('netease-upstream.test.mjs ok (pure only)')
 }
+

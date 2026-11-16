@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { mkdir, stat } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { createRoutes } from '../lib/routes.js'
+import { createRoutes } from '../src/host/http/routes.js'
 import { fakeReq, fakeRes, tempWav } from './helpers.mjs'
 
 const file = await tempWav('song.wav', 1)
@@ -66,3 +66,4 @@ await handle(post('/music/trash/restore', {}), res)
 assert.equal(res.status, 400)
 
 console.log('trash.test.mjs ok')
+

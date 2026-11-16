@@ -135,3 +135,4 @@ assert.ok(String(texts[0].textContent).includes('.mp-audio-host'), 'the resident
 assert.equal(registrations.length, 10, 'style + engine + flush/leader listeners + six seats are effects')
 
 console.log('client.smoke.test.mjs ok')
+

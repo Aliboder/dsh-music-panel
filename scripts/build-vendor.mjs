@@ -16,10 +16,10 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const OUT = join(ROOT, 'src/vendor/framer.bundle.js')
+const OUT = join(ROOT, 'src/client/vendor/framer.bundle.js')
 
 const result = await build({
-  entryPoints: [join(ROOT, 'src/vendor/framer-entry.js')],
+  entryPoints: [join(ROOT, 'src/client/vendor/framer-entry.js')],
   write: false,
   bundle: true,
   format: 'iife',
@@ -36,12 +36,12 @@ const result = await build({
     {
       name: 'host-react',
       setup(context) {
-        context.onResolve({ filter: /^react$/ }, () => ({ path: join(ROOT, 'src/vendor/react-shim.js') }))
+        context.onResolve({ filter: /^react$/ }, () => ({ path: join(ROOT, 'src/client/vendor/react-shim.js') }))
         context.onResolve({ filter: /^react\/jsx-runtime$/ }, () => ({
-          path: join(ROOT, 'src/vendor/jsx-runtime-shim.js'),
+          path: join(ROOT, 'src/client/vendor/jsx-runtime-shim.js'),
         }))
         context.onResolve({ filter: /^react\/jsx-dev-runtime$/ }, () => ({
-          path: join(ROOT, 'src/vendor/jsx-runtime-shim.js'),
+          path: join(ROOT, 'src/client/vendor/jsx-runtime-shim.js'),
         }))
       },
     },
@@ -58,4 +58,5 @@ const wrapped =
   '\nreturn typeof MPFramerBundle === "undefined" ? {} : MPFramerBundle\n}\n'
 
 writeFileSync(OUT, wrapped, 'utf8')
-console.log(`src/vendor/framer.bundle.js written: ${wrapped.length} bytes`)
+console.log(`src/client/vendor/framer.bundle.js written: ${wrapped.length} bytes`)
+

@@ -104,3 +104,4 @@ assert.equal(quote, null, 'unterminated string in CSS')
 assert.equal(stack.length, 0, 'unclosed CSS block or function remains: ' + stack.join(''))
 
 console.log('style.test.mjs ok')
+

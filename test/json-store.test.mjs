@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { readJsonWithBackup, writeJsonAtomic } from '../lib/json-store.js'
+import { readJsonWithBackup, writeJsonAtomic } from '../src/host/stores/json-store.js'
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-json-'))
 const file = join(dir, 'state.json')
@@ -27,3 +27,4 @@ assert.equal(parsed.payload.length, 1000)
 assert.ok((await readFile(file, 'utf8')).endsWith('\n'))
 
 console.log('json-store.test.mjs ok')
+

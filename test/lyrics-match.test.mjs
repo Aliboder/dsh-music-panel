@@ -14,7 +14,7 @@ import {
   normalizeLyricMatchText,
   normalizeTitleForMatch,
   pickBestLyricCandidate,
-} from '../lib/lyrics-match.js'
+} from '../src/host/services/lyrics/lyrics-match.js'
 
 // ── weights match Folia's table ─────────────────────────────────────────────
 
@@ -114,3 +114,4 @@ assert.equal(pickBestLyricCandidate(track, []), null)
 assert.equal(pickBestLyricCandidate(track, null), null)
 
 console.log('lyrics-match.test.mjs ok')
+

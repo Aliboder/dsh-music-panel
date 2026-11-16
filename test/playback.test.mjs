@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createPlayback, sanitizePlayback } from '../lib/playback.js'
+import { createPlayback, sanitizePlayback } from '../src/host/services/playback/playback.js'
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-playback-'))
 const playback = createPlayback({ dir })
@@ -63,3 +63,4 @@ assert.equal(objectState.queue[1].onlineId, 'abc')
 assert.equal(objectState.queue[1].qualityHint, 'VIP')
 
 console.log('playback.test.mjs ok')
+

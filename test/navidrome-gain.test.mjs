@@ -4,7 +4,7 @@
  */
 
 import assert from 'node:assert/strict'
-import * as ND from '../lib/providers/navidrome.js'
+import * as ND from '../src/host/providers/navidrome.js'
 
 // Parsing the payload the server sends.
 const parsed = ND.replayGainOf({
@@ -66,3 +66,4 @@ try {
 }
 
 console.log('navidrome-gain.test.mjs ok')
+

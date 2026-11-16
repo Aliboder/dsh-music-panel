@@ -13,8 +13,8 @@ import assert from 'node:assert/strict'
 import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createOnlineCache } from '../lib/online-cache.js'
-import { createOnlineRoutes } from '../lib/routes/online.js'
+import { createOnlineCache } from '../src/host/services/media/online-cache.js'
+import { createOnlineRoutes } from '../src/host/http/routes/online.js'
 import { fakeReq, fakeRes } from './helpers.mjs'
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-best-lyric-'))
@@ -242,3 +242,4 @@ function unusedIo() {
 }
 
 console.log('best-lyric-route.test.mjs ok')
+

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readTrackMeta } from '../lib/meta.js'
+import { readTrackMeta } from '../src/host/services/media/meta.js'
 import { tempWav } from './helpers.mjs'
 
 const file = await tempWav('meta-one.wav', 1)
@@ -17,3 +17,4 @@ assert.equal(missing.durationSec, 0)
 assert.equal(missing.hasCover, false)
 
 console.log('meta.test.mjs ok')
+

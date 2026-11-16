@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { DEFAULTS, extensionOf, isAllowedName, mimeOf, normalizeConfig } from '../lib/config.js'
+import { DEFAULTS, extensionOf, isAllowedName, mimeOf, normalizeConfig } from '../src/host/stores/config.js'
 
 // Empty/garbage input falls back to the defaults.
 assert.deepEqual(normalizeConfig(undefined), DEFAULTS)
@@ -34,3 +34,4 @@ assert.equal(isAllowedName('x.mp3', ['mp3']), true)
 assert.equal(isAllowedName('x.wav', ['mp3']), false)
 
 console.log('config.test.mjs ok')
+

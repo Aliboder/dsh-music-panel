@@ -6,10 +6,10 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { accountSessionOf, createLoginState, LOGIN_STATUS } from '../lib/login/state.js'
-import { createLoginStore, SESSION_VERSION } from '../lib/login/store.js'
-import { caseIdOf, loginFailureOf } from '../lib/core/login-failure.js'
-import { fail } from '../lib/http.js'
+import { accountSessionOf, createLoginState, LOGIN_STATUS } from '../src/host/providers/login/state.js'
+import { createLoginStore, SESSION_VERSION } from '../src/host/providers/login/store.js'
+import { caseIdOf, loginFailureOf } from '../src/host/services/core/login-failure.js'
+import { fail } from '../src/host/http/http.js'
 import { fakeRes } from './helpers.mjs'
 
 // ── state machine ───────────────────────────────────────────────────────────
@@ -209,7 +209,7 @@ console.log('login.test.mjs ok')
 // ── bridge (state machine wired to a platform) ──────────────────────────────
 
 {
-  const { createLoginBridge, createQrAdapter, credentialsOf } = await import('../lib/login/bridge.js')
+  const { createLoginBridge, createQrAdapter, credentialsOf } = await import('../src/host/providers/login/bridge.js')
 
   const calls = []
   const omni = {

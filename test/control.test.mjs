@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { enqueueControl, takeControls } from '../lib/control.js'
+import { enqueueControl, takeControls } from '../src/host/services/playback/control.js'
 
 test('control queue drains in order', () => {
   takeControls()
@@ -28,3 +28,4 @@ test('control queue ignores empty actions and keeps the newest ten', () => {
   assert.equal(actions[0].query, '2')
   assert.equal(actions[9].query, '11')
 })
+

@@ -1,5 +1,5 @@
 /**
- * Crossfade decisions (src/45-crossfade.js is a fragment, evaluated here with
+ * Crossfade decisions (src/client/services/player/effects/45-crossfade.js is a fragment, evaluated here with
  * no browser so the rules stay testable).
  */
 
@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
-const source = readFileSync(join(root, 'src/45-crossfade.js'), 'utf8')
+const source = readFileSync(join(root, 'src/client/services/player/effects/45-crossfade.js'), 'utf8')
 
 const factory = new Function(
   `${source}
@@ -126,13 +126,13 @@ for (let index = 0; index <= 32; index += 1) {
 }
 
 // Wiring: the switch drives the pref, the player owns the two decks.
-const settings = readFileSync(join(root, 'src/ui/06-settings.js'), 'utf8')
+const settings = readFileSync(join(root, 'src/client/components/ui/06-settings.js'), 'utf8')
 assert.match(settings, /crossfadeSeconds/, 'the settings sheet writes the preference')
 assert.doesNotMatch(settings, /crossfadeOff/, 'there is no duration dropdown to translate any more')
 assert.doesNotMatch(settings, /crossfadeAlbums/, 'the album rule is not a setting')
 assert.match(settings, /CROSSFADE_MAX_SECONDS/, 'turning it on stores the automatic cap')
 
-const player = readFileSync(join(root, 'src/50-player.js'), 'utf8')
+const player = readFileSync(join(root, 'src/client/services/player/50-player.js'), 'utf8')
 assert.match(player, /createMediaElementSource\(audioB\)/, 'the spare deck gets its own source node')
 assert.match(player, /setValueCurveAtTime/, 'the fade is scheduled as a curve, not a setInterval ramp')
 assert.match(player, /function swapDecks\(\)/, 'promotion swaps deck roles instead of reloading the track')
@@ -144,10 +144,11 @@ assert.match(player, /analyzeTransitionBuffer/, 'the engine measures the envelop
 assert.match(player, /crossfadePlan\(/, 'the overlap comes from the measurement, not a fixed number')
 
 // The control sits inside the volume view of the audio-effects panel.
-const panel = readFileSync(join(root, 'src/ui/04-eq-panel.js'), 'utf8')
+const panel = readFileSync(join(root, 'src/client/components/ui/04-eq-panel.js'), 'utf8')
 assert.match(panel, /settings\.crossfade/, 'the switch is rendered in the effects panel')
 assert.match(panel, /crossfadeSeconds/, 'it writes the same preference as settings')
 assert.doesNotMatch(panel, /id: 'transition'/, 'no separate transition view')
 assert.doesNotMatch(panel, /mp-xf-chip/, 'no duration chips: the engine decides')
 
 console.log('crossfade.test.mjs ok')
+

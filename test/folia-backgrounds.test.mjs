@@ -158,3 +158,4 @@ assert.match(
 )
 
 console.log('folia-backgrounds.test.mjs ok')
+

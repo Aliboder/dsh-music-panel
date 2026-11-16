@@ -6,7 +6,7 @@ import {
   neteaseCandidate,
   qqCandidate,
   scoreCandidate,
-} from '../lib/online.js'
+} from '../src/host/services/online-metadata.js'
 
 assert.deepEqual(SOURCES, ['netease', 'qq', 'itunes', 'musicbrainz'])
 
@@ -68,3 +68,4 @@ const weak = scoreCandidate({ title: '红山果', artist: '别人', coverUrl: ''
 assert.ok(exact > weak, 'exact title+artist ranks above a partial match')
 
 console.log('online.test.mjs ok')
+

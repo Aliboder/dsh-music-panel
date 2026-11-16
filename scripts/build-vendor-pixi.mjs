@@ -2,7 +2,7 @@
 /**
  * Bundle pixi into one committed fragment, the same way framer-motion is bundled.
  *
- * The source is the prebuilt ESM release downloaded to `src/vendor/pixi.esm.js`, so
+ * The source is the prebuilt ESM release downloaded to `src/client/vendor/pixi.esm.js`, so
  * this does not need the npm registry: esbuild only rewrites and minifies it into an
  * IIFE that the client can concatenate. Run: node scripts/build-vendor-pixi.mjs
  */
@@ -13,10 +13,10 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const OUT = join(ROOT, 'src/vendor/pixi.bundle.js')
+const OUT = join(ROOT, 'src/client/vendor/pixi.bundle.js')
 
 const result = await build({
-  entryPoints: [join(ROOT, 'src/vendor/pixi-entry.js')],
+  entryPoints: [join(ROOT, 'src/client/vendor/pixi-entry.js')],
   write: false,
   bundle: true,
   format: 'iife',
@@ -33,4 +33,5 @@ const wrapped =
   text +
   '\nreturn typeof MPPixiBundle === "undefined" ? null : MPPixiBundle\n}\n'
 writeFileSync(OUT, wrapped, 'utf8')
-console.log('src/vendor/pixi.bundle.js written: ' + String(wrapped.length) + ' bytes')
+console.log('src/client/vendor/pixi.bundle.js written: ' + String(wrapped.length) + ' bytes')
+

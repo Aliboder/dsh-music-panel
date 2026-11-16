@@ -20,97 +20,25 @@ const ROOT = resolve(HERE, '..')
 const OUT = join(ROOT, 'client.js')
 const MODULE_ID = 'dsh-music-panel'
 
-/** Explicit order: runtime → generated blocks → core → states → UI → plugin. */
-const FILES = [
-  'src/00-runtime.js',
-  'src/vendor/00-react-global.js',
-  'src/vendor/framer.bundle.js',
-  'src/vendor/pixi.bundle.js',
-  'src/vendor/three.bundle.js',
-  'src/vendor/10-framer-aliases.js',
-  'src/vendor/20-pixi-global.js',
-  'src/vendor/30-three-global.js',
-  'src/02-layers.js',
-  'src/02-autoanimate.js',
-  'src/00-host-ui.js',
-  'src/render/folia/folia-css.js',
-  'src/render/folia/folia-tailwind.js',
-  'src/05-i18n.js',
-  'src/06-strings.js',
-  'src/10-base.js',
-  'src/15-icons.js',
-  'src/16-lyrics.js',
-  'src/render/lyrics/lyrics.bundle.js',
-  'src/17-list.js',
-  'src/18-stats.js',
-  'src/19-extra-icons.js',
-  'src/20-api.js',
-  'src/render/registry.js',
-  'src/render/shell.js',
-  'src/render/stage.js',
-  'src/render/canvas-stage.js',
-  'src/render/pixi-stage.js',
-  'src/render/three-stage.js',
-  'src/render/folia/pendolo.bundle.js',
-  'src/render/styles/folia-audio.js',
-  'src/render/styles/folia-pendolo.js',
-  'src/render/folia/styles.bundle.js',
-  'src/render/styles/folia-local-theme.js',
-  'src/render/styles/folia-styles.js',
-  'src/render/folia/backgrounds.bundle.js',
-  'src/render/styles/folia-backdrop.js',
-  'src/28-look.js',
-  'src/30-prefs.js',
-  'src/35-loudness.js',
-  'src/35-provider-logos.js',
-  'src/36-guide-shots.js',
-  'src/40-eq.js',
-  'src/40-store.js',
-  'src/44-filter.js',
-  'src/45-crossfade.js',
-  'src/46-transition.js',
-  'src/45-ui.js',
-  'src/47-wave-color.js',
-  'src/50-player.js',
-  'src/60-library.js',
-  'src/70-online.js',
-  'src/47-likes.js',
-  'src/48-volume-balance.js',
-  'src/49-balance-meter.js',
-  'src/80-overlay.js',
-  'src/85-select.js',
-  'src/90-theme.js',
-  'src/ui/01-primitives.js',
-  'src/ui/02-track-row.js',
-  'src/ui/03-player-bar.js',
-  'src/ui/04-eq-panel.js',
-  'src/ui/04-player-page.js',
-  'src/ui/04-now-playing.js',
-  'src/ui/05-queue.js',
-  'src/ui/06-settings.js',
-  'src/ui/07-dialogs.js',
-  'src/ui/08-local.js',
-  'src/ui/09-online.js',
-  'src/ui/20-player-sheet.js',
-  'src/ui/21-lyric-match.js',
-  'src/ui/22-lyric-preview.js',
-  'src/ui/23-online-add.js',
-  'src/ui/24-lyric-file.js',
-  'src/ui/25-look-picker.js',
-  'src/ui/26-fx.js',
-  'src/ui/27-lyric-segmentation.js',
-  'src/ui/10-navigation.js',
-  'src/ui/11-panel.js',
-  'src/ui/12-composer.js',
-  'src/ui/13-batch.js',
-  'src/ui/14-online-lyric.js',
-  'src/ui/15-trash.js',
-  'src/ui/16-header.js',
-  'src/ui/17-folder-picker.js',
-  'src/ui/18-online-add.js',
-  'src/ui/19-navidrome-dialog.js',
-  'src/99-plugin.js',
-]
+/** Explicit order comes from src/client/manifest.json; never infer from prefixes. */
+const MANIFEST = join(ROOT, 'src/client/manifest.json')
+function readManifest() {
+  const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8'))
+  if (manifest === null || manifest.version !== 1 || !Array.isArray(manifest.fragments)) {
+    throw new Error('src/client/manifest.json must be { version: 1, fragments: [] }')
+  }
+  if (manifest.fragments.length === 0) throw new Error('client manifest is empty')
+  const seen = new Set()
+  for (const relative of manifest.fragments) {
+    if (typeof relative !== 'string' || relative === '' || relative.includes('..')) {
+      throw new Error(`invalid fragment path: ${relative}`)
+    }
+    if (seen.has(relative)) throw new Error(`duplicate fragment: ${relative}`)
+    seen.add(relative)
+  }
+  return manifest.fragments
+}
+const FILES = readManifest()
 
 function readFragments() {
   const out = []
@@ -304,6 +232,7 @@ if (check) {
     `client.js written: ${result.fragments} fragments, ${result.declared} top-level names, ${result.output.length} bytes`,
   )
 }
+
 
 
 

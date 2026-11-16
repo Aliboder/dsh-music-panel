@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createFavorites, sanitizeFavorites } from '../lib/favorites.js'
+import { createFavorites, sanitizeFavorites } from '../src/host/stores/favorites.js'
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-fav-'))
 const favorites = createFavorites({ dir })
@@ -39,3 +39,4 @@ assert.ok(badList.every((entry) => typeof entry.addedAt === 'number' && entry.ad
 assert.equal(sanitizeFavorites('nope') && Object.keys(sanitizeFavorites('nope')).length, 0)
 
 console.log('favorites.test.mjs ok')
+
