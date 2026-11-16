@@ -412,3 +412,48 @@ console.log('login.test.mjs ok')
 }
 
 console.log('login-session.test ok')
+
+// ── account snapshot ───────────────────────────────────────────────────────
+
+{
+  const { createAccountStore } = await import('../../src/host/stores/accounts.js')
+  const { createAccountReads } = await import('../../src/host/services/account-read.js')
+  const { createProviderStore } = await import('../../src/host/providers/provider-store.js')
+
+  const dir = await mkdtemp(join(tmpdir(), 'dsh-music-accounts-'))
+  const accountStore = createAccountStore({ dir })
+  const providerStore = createProviderStore({ dir })
+  await providerStore.setLogin('netease', { cookie: 'MUSIC_U=secret', nickname: 'Alice' })
+
+  let failProfile = false
+  const omni = {
+    capabilities: () => ({ userPlaylists: true, likes: true }),
+    profile: async () => {
+      if (failProfile) throw new Error('offline')
+      return { nickname: 'Alice', avatarUrl: 'https://a', accountId: 'u1' }
+    },
+    myPlaylists: async () => [{ id: 'p1', name: 'Mine' }],
+    likedIds: async () => ['online:netease:1'],
+  }
+  const reads = createAccountReads({ accountStore, providerStore, omni })
+
+  const first = await reads.read('netease', 'sign-in')
+  assert.equal(first.user.nickname, 'Alice')
+  assert.equal(first.collections[0].id, 'p1')
+  assert.deepEqual(first.likedSongIds, ['online:netease:1'])
+  assert.equal(first.freshness, 'fresh')
+
+  const raw = await readFile(accountStore.file, 'utf8')
+  assert.equal(raw.includes('MUSIC_U'), false, 'account snapshot never holds credentials')
+
+  failProfile = true
+  const failed = await reads.read('netease', 'sync')
+  assert.equal(failed.user.nickname, 'Alice', 'a failed read keeps the last account')
+  assert.equal(failed.freshness, 'error')
+  assert.equal(failed.error, 'offline')
+
+  await reads.signOut('netease')
+  assert.equal(await accountStore.get('netease'), null)
+}
+
+console.log('account-read.test ok')

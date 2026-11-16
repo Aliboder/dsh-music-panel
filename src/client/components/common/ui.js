@@ -64,6 +64,7 @@ function sourceLabelOf(source) {
   if (source !== 'local') {
     var info = providerInfoOf(source)
     if (info.displayName) return String(info.displayName)
+    return String(source)
   }
   return t('page.tabLocal')
 }

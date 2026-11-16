@@ -60,7 +60,8 @@
 | `playlists.json` | `src/host/stores/playlists.js` | 本地歌单 |
 | `stats.json` | `src/host/stores/stats.js` | 播放次数 / addedAt / 播放秒数 |
 | `playback.json` / `.bak` | `src/host/services/playback/playback.js` | 队列 / 进度 / loop / order |
-| `sessions.json` | `src/host/providers/login/store.js` | 各平台登录态与 profile |
+| `sessions.json` | `src/host/providers/login/store.js` | 各平台登录态与 profile（含 Bodian） |
+| `accounts.json` | `src/host/stores/accounts.js` | 各平台账号快照：昵称、头像、歌单、喜欢 id |
 | `providers.json` | legacy provider store | 旧登录数据（如存在） |
 | `bodian-device.json` | `src/host/providers/sources/bodian/device.js` | Bodian 设备身份 |
 | `cache/**` | `src/host/services/media/online-cache.js` | 在线音频 / 封面 / 元数据 |
@@ -81,7 +82,7 @@ playback.invalidate()
 favorites.invalidate()
 playlists.invalidate()
 await providerStore.clear()     // 登录态（含 sessions.json）
-await loginStore.clearAll()     // Bodian 使用的独立 login store
+await accountReads.clearAll()   // 账号快照（accounts.json）与进行中的读取
 await onlineCache.clear()       // 在线缓存内存/文件
 settings.invalidate()
 await settings.reset()          // 写入 roots: []，忽略 seed roots
@@ -186,7 +187,7 @@ library.clear()                 // 再清一次，防止 reset 期间产生新�
 
 - `clearData()` 只保证 `<DSH_HOME>/music` 下的条目；**新存储如果放在目录外，不会被自动清理**。
 - localStorage 是**前缀/后缀启发式**；新 key 命名不规范时会漏。新增 key 必须检查本文表。
-- 清空后会写入空的 `settings.json` 和空的 `sessions.json`，所以数据目录不是字面空目录，但状态是全新。
+- 清空后会写入空的 `settings.json`、`sessions.json` 和 `accounts.json`，所以数据目录不是字面空目录，但状态是全新。
 - `resetData()` 期间如果有并发刷新（例如 KuGou token 刷新）可能写回旧 session；执行清空时应避免播放/登录操作。
 - 清空后需要重新添加音乐目录、重新登录在线平台；这是产品预期，不是缺陷。
 

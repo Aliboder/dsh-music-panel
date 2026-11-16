@@ -66,7 +66,7 @@ export function createOnlineRoutes(deps) {
     if (deps[key] === undefined) throw new Error(`createOnlineRoutes is missing dependency: ${key}`)
   }
 
-  const { settings, providerStore, onlineCache, kugouSessions, profileState, vipInfoState, vipState, invalidateProviderCaches } =
+  const { settings, providerStore, accountStore, accountReads, onlineCache, kugouSessions, profileState, vipInfoState, vipState, invalidateProviderCaches } =
     deps
 
   /** Addressable online sources come from the registry, never a literal list. */
@@ -104,9 +104,13 @@ export function createOnlineRoutes(deps) {
           })
         }
         invalidateProviderCaches(id)
+        // A sign-in is the best moment to read the account; the client does not
+        // wait for it, and the snapshot is shown on the next providers read.
+        if (accountReads !== undefined) void accountReads.read(id, 'sign-in')
       },
       clear: async (id) => {
         if (providerStore !== undefined) await providerStore.clear(id)
+        if (accountReads !== undefined) await accountReads.signOut(id)
         invalidateProviderCaches(id)
       },
     },
@@ -990,6 +994,7 @@ export function createOnlineRoutes(deps) {
         }
         // The bridge clears the stored session and drops any pending QR state.
         await login.logout(provider)
+        if (accountReads !== undefined) await accountReads.signOut(provider)
         // The native-API JWT lives in a module-level cache keyed by server +
         // user, so clearing the stored session is not enough: without this a
         // re-login (or a password change) keeps using the old token.
@@ -1484,21 +1489,31 @@ export function createOnlineRoutes(deps) {
           await kugouSessions.validate('kugouLite')
         }
         const summary = providerStore === undefined ? {} : await providerStore.summary()
+        const accounts = accountStore === undefined ? {} : await accountStore.summary()
         const registeredIds = new Set(omni.summaries().map((source) => source.id))
         // Every registered platform the store knows about is refreshed; the
         // registry is the platform list, not this loop.
         for (const provider of Object.keys(summary)) {
           if (!registeredIds.has(provider)) continue
           if (summary[provider] && summary[provider].loggedIn === true) {
+            const account = accounts[provider]
+            if (account?.user) {
+              if (account.user.nickname) summary[provider].nickname = account.user.nickname
+              if (account.user.avatarUrl) summary[provider].avatarUrl = account.user.avatarUrl
+              if (account.user.id) summary[provider].accountId = account.user.id
+            } else {
+              const profile = await profileState(provider)
+              if (profile) {
+                if (profile.nickname) summary[provider].nickname = profile.nickname
+                if (profile.avatarUrl) summary[provider].avatarUrl = profile.avatarUrl
+                if (profile.accountId) summary[provider].accountId = profile.accountId
+              }
+            }
             const vipInfo = await vipInfoState(provider)
             summary[provider].vip = vipInfo.vip
             summary[provider].vipExpiresAt = vipInfo.expiresAt
-            const profile = await profileState(provider)
-            if (profile) {
-              if (profile.nickname) summary[provider].nickname = profile.nickname
-              if (profile.avatarUrl) summary[provider].avatarUrl = profile.avatarUrl
-              if (profile.accountId) summary[provider].accountId = profile.accountId
-            }
+            // Refresh in the background; this response carries the last snapshot.
+            if (accountReads !== undefined) void accountReads.readIfStale(provider)
           }
         }
         // Sources registered outside the legacy provider store (Bodian today) are
@@ -1509,6 +1524,8 @@ export function createOnlineRoutes(deps) {
         const registered = new Set()
         for (const source of omni.summaries()) {
           registered.add(source.id)
+          const account = accounts[source.id] ?? null
+          const signedIn = summary[source.id]?.loggedIn === true
           merged[source.id] = {
             ...(summary[source.id] ?? {}),
             displayName: source.displayName,
@@ -1518,6 +1535,13 @@ export function createOnlineRoutes(deps) {
             loginMethods: source.loginMethods,
             availability: source.availability,
             requiresAccount: source.requiresAccount,
+            status: signedIn ? (account?.freshness === 'error' ? 'error' : 'authenticated') : 'anonymous',
+            user: account?.user ?? null,
+            collections: Array.isArray(account?.collections) ? account.collections : [],
+            freshness: account?.freshness ?? 'stale',
+            lastUpdatedAt: Number(account?.savedAt) || 0,
+            error: account?.error ?? undefined,
+            hydration: 'ready',
           }
         }
         for (const [id, entry] of Object.entries(summary)) {

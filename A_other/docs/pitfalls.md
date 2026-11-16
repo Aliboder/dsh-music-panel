@@ -263,6 +263,20 @@
   （需要 folia 检出）；不要手改 `lyrics.bundle.js` 或词典。
 - **防回归**：`git status` 应包含预期的生成物；跑 `test/lyrics-folia.test.mjs` 等歌词测试。
 
+## 29. Bodian 登录成功，设置里仍显示未登录（登录 / 凭据）
+
+- **现象**：Bodian 扫码成功，卡片还是“未登录”；重启后会话丢失。
+- **原因**：`providerStore` 只认固定平台列表，`setLogin('bodian')` 被直接 return；同时 `index.js` 又建了第二个 `createLoginStore` 写同一个 `sessions.json`，两个缓存互相覆盖。
+- **处理**：`provider-store.js` 接受 Bodian 等已登记平台；Bodian 的 `sessions` 通过适配器写同一个 store；删除第二个 `createLoginStore`。
+- **防回归**：`provider-store.test.mjs` 覆盖 Bodian 的 `setLogin` / `summary`；`login.test.mjs` 覆盖会话适配。
+
+## 30. 关掉登录窗口，二维码还能被扫（登录 / 会话）
+
+- **现象**：关窗后重新打开，旧二维码仍有效；已扫码后一直转圈。
+- **原因**：客户端只清定时器，Host 没有取消 key；没有 TTL / 已扫码超时；`/online/login/status` 也不校验 key。
+- **处理**：`/online/login/cancel` + `createLoginState.cancel()`；启动时带回 `expiresAt`；客户端的过期/已扫码 60 秒超时；Host 对 key 不匹配返回 `LOGIN_STALE`。
+- **防回归**：`login.test.mjs` 的 transient/cancel 用例；手动测试关窗后旧 key 不再被接受。
+
 ---
 
 ## 模板

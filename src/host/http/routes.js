@@ -232,7 +232,7 @@ async function validateRoots(list) {
  */
 const debugReports = []
 
-export function createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, onlineCache, kugouSessions, resetData }) {
+export function createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, onlineCache, kugouSessions, resetData }) {
   const trash = createTrash({
     dir: join(settings.dir || settings.home || '.', 'trash'),
     getRoots: async () => (await settings.read()).roots,
@@ -280,6 +280,8 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
   const online = createOnlineRoutes({
     settings,
     providerStore,
+    accountStore,
+    accountReads,
     onlineCache,
     kugouSessions,
     profileState,

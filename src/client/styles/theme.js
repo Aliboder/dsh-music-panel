@@ -950,6 +950,29 @@ var THEME_CSS = [
   '.mp-d-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}',
 
   '.mp-login-card{width:100%;max-width:320px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:10px;padding:2px 0 4px}',
+  '.mp-login-window{width:min(772px,calc(100vw - 48px))}',
+  '.mp-kit-modal.mp-login-window,.mp-dialog.mp-login-window{width:min(772px,calc(100vw - 48px))}',
+  '.mp-login-layout{display:flex;align-items:stretch;min-height:420px}',
+  '.mp-login-platforms{width:212px;flex:none;display:flex;flex-direction:column;gap:4px;padding:8px;border-right:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));overflow:auto}',
+  '.mp-login-platform{display:flex;align-items:center;gap:9px;width:100%;padding:8px;border:0;border-radius:12px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer;text-align:left}',
+  '.mp-login-platform:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+  '.mp-login-platform.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1))}',
+  '.mp-login-platform-logo{width:24px;height:24px;flex:none;border-radius:8px;overflow:hidden}',
+  '.mp-login-platform-logo .mp-provider-logo{width:100%;height:100%}',
+  '.mp-login-platform-text{min-width:0;display:flex;flex-direction:column;gap:1px;flex:1}',
+  '.mp-login-platform-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+  '.mp-login-platform-state{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+  '.mp-login-platform-dot{width:6px;height:6px;border-radius:50%;flex:none;background:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.35}',
+  '.mp-login-platform-dot.is-on{background:var(--dsw-alias-state-success-primary,#2f9e44);opacity:1}',
+  '.mp-login-main{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}',
+  '.mp-login-account{max-width:360px;width:100%}',
+  '.mp-login-account-head{display:flex;align-items:center;gap:14px;width:100%;text-align:left}',
+  '.mp-login-account-text{min-width:0;display:flex;flex-direction:column;gap:3px;align-items:flex-start}',
+  '.mp-login-avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08))}',
+  '.mp-login-avatar.is-fallback{display:grid;place-items:center;font-size:20px;font-weight:650;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+  '.mp-login-nav{max-width:360px;width:100%}',
+  '.mp-login-nav .mp-kit-input{width:100%;box-sizing:border-box}',
+  '@media (max-width:720px){.mp-login-window{width:calc(100vw - 24px)}.mp-login-layout{flex-direction:column;min-height:0}.mp-login-platforms{width:auto;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}.mp-login-platform{flex:none;min-width:150px}.mp-login-main{padding:14px}}',
   '.mp-login-methods{display:flex;align-items:center;gap:8px;width:100%;justify-content:center}',
   '.mp-login-methods .mp-btn{flex:1;justify-content:center}',
   '.mp-login-head{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;text-align:center}',
@@ -1192,10 +1215,3 @@ var THEME_CSS = [
 ]
 
 var THEME_TEXT = THEME_CSS.join('')
-
-
-
-
-
-
-

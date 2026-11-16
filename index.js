@@ -14,13 +14,15 @@ import { createPlayback } from './src/host/services/playback/playback.js'
 import { createPlaylists } from './src/host/stores/playlists.js'
 import { createOnlineCache } from './src/host/services/media/online-cache.js'
 import { createProviderStore } from './src/host/providers/provider-store.js'
+import { createAccountStore } from './src/host/stores/accounts.js'
+import { createAccountReads } from './src/host/services/account-read.js'
 import { createKugouSessionManager } from './src/host/providers/kugou-session.js'
 import { createRoutes } from './src/host/http/routes.js'
 import { createSettings } from './src/host/stores/settings.js'
 import { createStats } from './src/host/stores/stats.js'
 import { readLyricsFor } from './src/host/services/lyrics/lyrics.js'
 import { enqueueControl } from './src/host/services/playback/control.js'
-import { registerBodianSource, registerLocalSource, registerOnlineSources, resetSources } from './src/host/providers/sources/index.js'
+import { omni, registerBodianSource, registerLocalSource, registerOnlineSources, resetSources } from './src/host/providers/sources/index.js'
 import { stopNeteaseService } from './src/host/services/netease-api.js'
 import { stopQqService } from './src/host/services/qq-api.js'
 import { stopAllKugouServices } from './src/host/services/kugou-api.js'
@@ -44,6 +46,12 @@ export function apply(ctx, rawConfig) {
   const library = createLibrary({ getSettings: settings.read, stats })
   const playlists = createPlaylists({ dir: settings.dir })
   const providerStore = createProviderStore({ dir: settings.dir })
+  const accountStore = createAccountStore({ dir: settings.dir })
+  const accountReads = createAccountReads({
+    accountStore,
+    providerStore,
+    omni,
+  })
   // Bodian's upstream client wants a synchronous `{ get, save, clear }` repository.
   // It shares the one credential file with every other platform; there is no second
   // `createLoginStore` over the same path.
@@ -68,13 +76,14 @@ export function apply(ctx, rawConfig) {
     favorites.invalidate?.()
     playlists.invalidate?.()
     await providerStore.clear()
+    await accountReads.clearAll()
     await onlineCache.clear()
     settings.invalidate()
     await settings.reset()
     library.clear()
   }
 
-  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, onlineCache, kugouSessions, resetData })
+  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, onlineCache, kugouSessions, resetData })
 
 
   // Sources are registered once per load; the registry is the single list every

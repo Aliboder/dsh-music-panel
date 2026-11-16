@@ -476,7 +476,12 @@ function AddToPlaylistDialog(props) {
 // dialogs.
 
 function LoginDialog(props) {
-  var provider = props.layer.props.provider || 'netease'
+  var onlineState = useStore(onlineStore)
+  var navForm = useNavidromeForm()
+  var initial = props.layer.props.provider || 'netease'
+  var selectedPair = useState(initial)
+  var provider = selectedPair[0]
+  var setProvider = selectedPair[1]
   var runPair = useState({ mode: props.layer.props.mode || 'qq', seq: 0 })
   var run = runPair[0]
   var setRun = runPair[1]
@@ -492,6 +497,32 @@ function LoginDialog(props) {
   var expiresAtRef = useRef(0)
   var scannedAtRef = useRef(0)
   var finishedRef = useRef(false)
+  var providerInfo = (onlineState.providers || {})[provider] || {}
+  var providerKnown = Object.prototype.hasOwnProperty.call(onlineState.providers || {}, provider)
+  var signedIn = providerInfo.loggedIn === true
+  var passwordOnly = supports(provider, 'loginPassword') && !supports(provider, 'loginQr')
+  var providers = availableSources().filter(function (id) {
+    return id !== 'local' && (supports(id, 'loginQr') || supports(id, 'loginPassword'))
+  })
+
+  useEffect(
+    function () {
+      void loadProviders()
+    },
+    [],
+  )
+
+  function selectProvider(id) {
+    if (id === provider) return
+    setProvider(id)
+    setError('')
+    setStatus('waiting')
+    setQr(null)
+    finishedRef.current = false
+    expiresAtRef.current = 0
+    scannedAtRef.current = 0
+    setRun({ mode: 'qq', seq: run.seq + 1 })
+  }
 
   function cancel() {
     void postJson(API + 'online/login/cancel', { provider: provider }).catch(function () {
@@ -516,6 +547,7 @@ function LoginDialog(props) {
 
   useEffect(
     function () {
+      if (!providerKnown || signedIn || passwordOnly) return undefined
       var cancelled = false
       var timer = null
       var polling = false
@@ -615,7 +647,7 @@ function LoginDialog(props) {
         }
       }
     },
-    [provider, run.mode, run.seq],
+    [provider, run.mode, run.seq, providerKnown, signedIn, passwordOnly],
   )
 
   var providerLabel = sourceLabelOf(provider)
@@ -632,16 +664,73 @@ function LoginDialog(props) {
             : status === 'failed'
               ? t('online.statusfailed')
               : t('online.statuswaiting')
-  return h(
-    KitModal,
-    {
-      title: '',
-      small: true,
-      onClose: close,
-    },
-    h(
+  function platformRow(id) {
+    var info = (onlineState.providers || {})[id] || {}
+    return h(
+      'button',
+      {
+        key: id,
+        type: 'button',
+        className: cx('mp-login-platform', id === provider && 'is-on'),
+        onClick: function () {
+          selectProvider(id)
+        },
+      },
+      h('span', { className: 'mp-login-platform-logo' }, providerLogo(id, 24)),
+      h(
+        'span',
+        { className: 'mp-login-platform-text' },
+        h('span', { className: 'mp-login-platform-name' }, sourceLabelOf(id)),
+        h('span', { className: 'mp-login-platform-state' }, info.loggedIn === true ? t('online.loggedIn') : t('online.loggedOut')),
+      ),
+      h('span', { className: cx('mp-login-platform-dot', info.loggedIn === true && 'is-on'), 'aria-hidden': 'true' }),
+    )
+  }
+
+  function accountView() {
+    var avatar = providerInfo.avatarUrl
+      ? h('img', {
+          className: 'mp-login-avatar',
+          src: API + 'online/cover?url=' + encodeURIComponent(providerInfo.avatarUrl),
+          alt: '',
+        })
+      : h('span', { className: 'mp-login-avatar is-fallback' }, (providerInfo.nickname || '?').slice(0, 1))
+    return h(
       'div',
-      { className: 'mp-login-card' },
+      { className: 'mp-login-card mp-login-account' },
+      h(
+        'div',
+        { className: 'mp-login-account-head' },
+        avatar,
+        h(
+          'div',
+          { className: 'mp-login-account-text' },
+          h('div', { className: 'mp-login-title' }, providerInfo.nickname || t('online.loggedIn')),
+          h('div', { className: 'mp-login-sub' }, providerInfo.server || providerLabel),
+          providerInfo.vip === true ? h('span', { className: 'mp-online-vip' }, 'VIP') : null,
+        ),
+      ),
+      h(
+        'div',
+        { className: 'mp-login-actions' },
+        h(Button, {
+          variant: 'primary',
+          icon: 'logout',
+          onClick: function () {
+            void logoutProvider(provider)
+          },
+          children: t('online.logout'),
+        }),
+        h(Button, { variant: 'ghost', onClick: close, children: t('v2.close') }),
+      ),
+    )
+  }
+
+  function navView() {
+    var busy = navForm.phase === 'loading'
+    return h(
+      'div',
+      { className: 'mp-login-card mp-login-nav' },
       h(
         'div',
         { className: 'mp-login-head' },
@@ -649,71 +738,155 @@ function LoginDialog(props) {
         h(
           'div',
           { className: 'mp-login-headtext' },
-          h('div', { className: 'mp-login-title' }, t('online.loginTitle', { provider: providerLabel })),
-          h('div', { className: 'mp-login-sub' }, t('online.qrDesc', { provider: providerLabel })),
+          h('div', { className: 'mp-login-title' }, t('online.navidromeTitle')),
+          h('div', { className: 'mp-login-sub' }, t('online.navidromeHint')),
         ),
       ),
-      provider === 'qq'
-        ? h(
-            'div',
-            { className: 'mp-login-methods' },
-            h(Button, {
-              variant: run.mode === 'qq' ? 'primary' : 'ghost',
-              onClick: function () {
-                retry('qq')
-              },
-              children: t('online.loginQq'),
-            }),
-            h(Button, {
-              variant: run.mode === 'wx' ? 'primary' : 'ghost',
-              onClick: function () {
-                retry('wx')
-              },
-              children: t('online.loginWechat'),
-            }),
-          )
-        : null,
+      h('input', {
+        className: 'mp-kit-input',
+        type: 'url',
+        placeholder: t('online.navidromeServerPlaceholder'),
+        value: navForm.server,
+        disabled: busy,
+        onChange: function (event) {
+          navForm.setServer(event.target.value)
+        },
+      }),
+      h('input', {
+        className: 'mp-kit-input',
+        type: 'text',
+        placeholder: t('online.navidromeUser'),
+        value: navForm.username,
+        disabled: busy,
+        onChange: function (event) {
+          navForm.setUsername(event.target.value)
+        },
+      }),
+      h('input', {
+        className: 'mp-kit-input',
+        type: 'password',
+        placeholder: t('online.navidromePassword'),
+        value: navForm.password,
+        disabled: busy,
+        onChange: function (event) {
+          navForm.setPassword(event.target.value)
+        },
+      }),
+      navForm.error !== ''
+        ? h('span', { className: 'mp-online-error' }, navForm.error)
+        : navForm.notice !== ''
+          ? h('span', { className: 'mp-online-ok' }, navForm.notice)
+          : null,
       h(
         'div',
-        { className: 'mp-login-qr-shell' },
-        h(
+        { className: 'mp-login-actions' },
+        h(Button, {
+          variant: 'primary',
+          icon: 'checkCircle',
+          disabled: busy,
+          onClick: function () {
+            void navForm.connect()
+          },
+          children: busy ? t('online.navidromeConnecting') : t('online.navidromeConnect'),
+        }),
+        h(Button, { variant: 'ghost', onClick: close, children: t('v2.close') }),
+      ),
+    )
+  }
+
+  var qrCard = h(
+    'div',
+    { className: 'mp-login-card' },
+    h(
+      'div',
+      { className: 'mp-login-head' },
+      h('span', { className: 'mp-login-logo' }, providerLogo(provider, 34)),
+      h(
+        'div',
+        { className: 'mp-login-headtext' },
+        h('div', { className: 'mp-login-title' }, t('online.loginTitle', { provider: providerLabel })),
+        h('div', { className: 'mp-login-sub' }, t('online.qrDesc', { provider: providerLabel })),
+      ),
+    ),
+    provider === 'qq'
+      ? h(
           'div',
-          { className: cx('mp-login-qr-frame', status === 'scanned' && 'is-scanned') },
-          qr && qr.imageDataUrl
-            ? h('img', { className: 'mp-login-qr-img', src: qr.imageDataUrl, alt: '' })
-            : h(
-                'div',
-                { className: 'mp-login-qr-loading' },
-                h('span', { className: 'mp-login-spinner' }),
-                h('span', null, t('online.qrLoading')),
-              ),
-          h('i', { className: 'mp-login-corner tl' }),
-          h('i', { className: 'mp-login-corner tr' }),
-          h('i', { className: 'mp-login-corner bl' }),
-          h('i', { className: 'mp-login-corner br' }),
-        ),
-      ),
+          { className: 'mp-login-methods' },
+          h(Button, {
+            variant: run.mode === 'qq' ? 'primary' : 'ghost',
+            onClick: function () {
+              retry('qq')
+            },
+            children: t('online.loginQq'),
+          }),
+          h(Button, {
+            variant: run.mode === 'wx' ? 'primary' : 'ghost',
+            onClick: function () {
+              retry('wx')
+            },
+            children: t('online.loginWechat'),
+          }),
+        )
+      : null,
+    h(
+      'div',
+      { className: 'mp-login-qr-shell' },
       h(
         'div',
-        { className: cx('mp-login-status', failed && 'is-error', status === 'scanned' && 'is-scanned', status === 'success' && 'is-success') },
-        h('span', { className: 'mp-login-dot' }),
-        h('span', null, statusLabel),
+        { className: cx('mp-login-qr-frame', status === 'scanned' && 'is-scanned') },
+        qr && qr.imageDataUrl
+          ? h('img', { className: 'mp-login-qr-img', src: qr.imageDataUrl, alt: '' })
+          : h(
+              'div',
+              { className: 'mp-login-qr-loading' },
+              h('span', { className: 'mp-login-spinner' }),
+              h('span', null, t('online.qrLoading')),
+            ),
+        h('i', { className: 'mp-login-corner tl' }),
+        h('i', { className: 'mp-login-corner tr' }),
+        h('i', { className: 'mp-login-corner bl' }),
+        h('i', { className: 'mp-login-corner br' }),
       ),
+    ),
+    h(
+      'div',
+      { className: cx('mp-login-status', failed && 'is-error', status === 'scanned' && 'is-scanned', status === 'success' && 'is-success') },
+      h('span', { className: 'mp-login-dot' }),
+      h('span', null, statusLabel),
+    ),
+    h(
+      'div',
+      { className: 'mp-login-steps' },
+      h('div', { className: 'mp-login-step' }, h('b', null, '1'), h('span', null, t('online.qrStep1'))),
+      h('div', { className: 'mp-login-step' }, h('b', null, '2'), h('span', null, t('online.qrStep2'))),
+    ),
+    h('div', { className: 'mp-login-secure' }, icon('checkCircle', 12), h('span', null, t('online.qrSecure'))),
+    failed
+      ? h(
+          'div',
+          { className: 'mp-login-actions' },
+          h(Button, { variant: 'primary', icon: 'refresh', onClick: function () { retry(run.mode) }, children: t('online.qrRefresh') }),
+          h(Button, { variant: 'ghost', onClick: close, children: t('v2.close') }),
+        )
+      : null,
+  )
+
+  return h(
+    KitModal,
+    {
+      title: '',
+      className: 'mp-login-window',
+      onClose: close,
+    },
+    h(
+      'div',
+      { className: 'mp-login-layout' },
+      h('div', { className: 'mp-login-platforms' }, providers.map(platformRow)),
       h(
         'div',
-        { className: 'mp-login-steps' },
-        h('div', { className: 'mp-login-step' }, h('b', null, '1'), h('span', null, t('online.qrStep1'))),
-        h('div', { className: 'mp-login-step' }, h('b', null, '2'), h('span', null, t('online.qrStep2'))),
+        { className: 'mp-login-main' },
+        signedIn ? accountView() : passwordOnly ? navView() : qrCard,
       ),
-      h('div', { className: 'mp-login-secure' }, icon('checkCircle', 12), h('span', null, t('online.qrSecure'))),
-      failed
-        ? h(
-            'div',
-            { className: 'mp-login-actions' },
-            h(Button, { variant: 'primary', icon: 'refresh', onClick: function () { retry(run.mode) }, children: t('online.qrRefresh') }),
-            h(Button, { variant: 'ghost', onClick: close, children: t('v2.close') }),
-          )
-        : null,
     ),
   )
 }
