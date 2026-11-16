@@ -149269,7 +149269,7 @@ window.__ModuleLoader__.load({
      */
 
     var LOUDNESS_CACHE_KEY = 'music.loudness.v1'
-    var LOUDNESS_TARGET = -16
+    var LOUDNESS_TARGET = -14
     var loudnessDecoder = null
     var loudnessCache = readLoudnessCache()
 
@@ -153751,7 +153751,6 @@ window.__ModuleLoader__.load({
 
       function onTime(event) {
         if (balanceMeter !== null) {
-          balanceMeter.tick(audioContext === null ? 0 : audioContext.currentTime)
           // Until the file itself was read, a better live reading may move the gain:
           // within the first 10 s it eases in, later only a clear turn-down.
           if (readPrefs().normalizeVolume !== false && balanceAppliedReading !== 'file') {
@@ -154528,6 +154527,7 @@ window.__ModuleLoader__.load({
         normalizeGain = normalizeGainB
         normalizeGainB = loudness
         if (foliaTransport !== null) foliaTransport.setActiveDeck(nextDeck)
+        if (foliaGraph !== null) balanceMeter = foliaGraph.getDeckChain(nextDeck).balanceMeter
       }
 
       /**
@@ -154680,6 +154680,12 @@ window.__ModuleLoader__.load({
       }
 
       function transportTimeChanged(info) {
+        if (foliaTransport !== null && foliaGraph !== null && audioContext !== null) {
+          var chain = foliaGraph.getDeckChain(info.deck)
+          if (chain !== null && chain.balanceMeter && typeof chain.balanceMeter.tick === 'function') {
+            chain.balanceMeter.tick(audioContext.currentTime)
+          }
+        }
         if (!transportIsActive(info)) return
         state = Object.assign({}, state, {
           duration: Number(info.duration) || state.duration,

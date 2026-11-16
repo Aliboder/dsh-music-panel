@@ -7,7 +7,7 @@
  */
 
 var LOUDNESS_CACHE_KEY = 'music.loudness.v1'
-var LOUDNESS_TARGET = -16
+var LOUDNESS_TARGET = -14
 var loudnessDecoder = null
 var loudnessCache = readLoudnessCache()
 

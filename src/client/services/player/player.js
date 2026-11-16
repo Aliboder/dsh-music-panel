@@ -536,7 +536,6 @@ function createPlayer() {
 
   function onTime(event) {
     if (balanceMeter !== null) {
-      balanceMeter.tick(audioContext === null ? 0 : audioContext.currentTime)
       // Until the file itself was read, a better live reading may move the gain:
       // within the first 10 s it eases in, later only a clear turn-down.
       if (readPrefs().normalizeVolume !== false && balanceAppliedReading !== 'file') {
@@ -1313,6 +1312,7 @@ function createPlayer() {
     normalizeGain = normalizeGainB
     normalizeGainB = loudness
     if (foliaTransport !== null) foliaTransport.setActiveDeck(nextDeck)
+    if (foliaGraph !== null) balanceMeter = foliaGraph.getDeckChain(nextDeck).balanceMeter
   }
 
   /**
@@ -1465,6 +1465,12 @@ function createPlayer() {
   }
 
   function transportTimeChanged(info) {
+    if (foliaTransport !== null && foliaGraph !== null && audioContext !== null) {
+      var chain = foliaGraph.getDeckChain(info.deck)
+      if (chain !== null && chain.balanceMeter && typeof chain.balanceMeter.tick === 'function') {
+        chain.balanceMeter.tick(audioContext.currentTime)
+      }
+    }
     if (!transportIsActive(info)) return
     state = Object.assign({}, state, {
       duration: Number(info.duration) || state.duration,
