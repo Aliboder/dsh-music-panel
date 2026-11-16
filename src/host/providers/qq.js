@@ -13,11 +13,12 @@ export * from './qq-legacy.js'
 
 // `export *` re-exports but creates no local binding, so helpers we call here must
 // be imported explicitly.
-import { decodeEntities } from './qq-legacy.js'
+import { decodeEntities, getPlaylistSongs as legacyPlaylistSongs } from './qq-legacy.js'
 import { callUpstream } from '../services/qq-api.js'
 
 const QR_TTL_MS = 2 * 60 * 1000
 const PAGE_SIZE = 60
+const playlistMeta = new Map()
 
 const QR_STATUS = { 800: 'expired', 801: 'waiting', 802: 'scanned', 803: 'success' }
 const QR_MESSAGE = {
@@ -94,6 +95,100 @@ export async function search(keyword, cookie = '', page = 1) {
     total: Number(json.total) || results.length,
     page: p,
   }
+}
+
+/** Own playlists and the built-in liked list, from the package's `/user/playlist`. */
+export async function getMyPlaylists(cookie = '') {
+  const json = await callUpstream('/user/playlist', {}, { cookie })
+  const rows = Array.isArray(json.playlist) ? json.playlist : []
+  return rows.map((row) => {
+    const dirId = Number(row.dirId) || 0
+    const tid = String(row.tid ?? '')
+    const id = tid || String(dirId)
+    const liked = dirId === 201
+    playlistMeta.set(id, { dirId, tid, liked })
+    return {
+      source: 'qq',
+      id,
+      name: decodeEntities(row.dirName || ''),
+      cover: String(row.picUrl || row.bigpicUrl || ''),
+      trackCount: Number(row.songNum) || 0,
+      creator: decodeEntities(row.nick || ''),
+      kind: liked ? 'default' : 'own',
+      isLike: liked,
+      isDefault: liked,
+    }
+  })
+}
+
+/** One own playlist (or the liked list), from the package's authenticated routes. */
+export async function getPlaylistSongs(id, cookie = '') {
+  const key = String(id ?? '')
+  const meta = playlistMeta.get(key)
+  if (!meta) return await legacyPlaylistSongs(key, cookie)
+
+  if (meta.liked) {
+    const songs = []
+    let offset = 0
+    while (offset < 10000) {
+      const page = await callUpstream('/user/liked-songs', { limit: 100, offset }, { cookie })
+      const rows = Array.isArray(page.songs) ? page.songs : []
+      songs.push(...rows)
+      if (page.more !== true || rows.length === 0) break
+      offset += rows.length
+    }
+    return { name: '我喜欢', cover: '', trackCount: songs.length, songs: songs.map(toLegacyResult).filter(Boolean) }
+  }
+
+  if (meta.tid === '') throw new Error('QQ playlist has no tid')
+  const page = await callUpstream('/user/playlist-detail', {
+    tid: meta.tid,
+    dirid: meta.dirId,
+    offset: 0,
+    limit: 1000,
+  }, { cookie })
+  const songs = Array.isArray(page.songs) ? page.songs : []
+  return { name: '', cover: '', trackCount: Number(page.total) || songs.length, songs: songs.map(toLegacyResult).filter(Boolean) }
+}
+
+/** Legacy contract: `{ mids, songids }` for the liked songs. */
+export async function getQQFavIds(cookie = '') {
+  const mids = []
+  const songids = []
+  let offset = 0
+  while (offset < 10000) {
+    const page = await callUpstream('/user/liked-songs', { limit: 100, offset }, { cookie })
+    const rows = Array.isArray(page.songs) ? page.songs : []
+    for (const row of rows) {
+      const mid = String(row.mid ?? row.songmid ?? '')
+      if (mid !== '') mids.push(mid)
+      if (Number(row.id)) songids.push(Number(row.id))
+    }
+    if (page.more !== true || rows.length === 0) break
+    offset += rows.length
+  }
+  return { mids, songids }
+}
+
+async function setQqLiked(song, liked, cookie) {
+  const mid = String(song?.songmid ?? song?.mid ?? '')
+  const id = Number(song?.songid ?? song?.id ?? 0)
+  if (mid === '' || !Number.isFinite(id) || id <= 0) throw new Error('QQ 喜欢写入缺少 songmid/songid')
+  const response = await callUpstream('/user/song/like', {}, {
+    cookie,
+    method: 'POST',
+    body: { song: { id, mid, type: 0 }, liked },
+  })
+  if (response?.liked !== liked) throw new Error('QQ 没有确认喜欢写入')
+  return true
+}
+
+export async function addQQFav(song, cookie = '') {
+  return await setQqLiked(song, true, cookie)
+}
+
+export async function removeQQFav(song, cookie = '') {
+  return await setQqLiked(song, false, cookie)
 }
 
 /** Legacy contract: `{ url, filename }`; an empty url means "not playable". */

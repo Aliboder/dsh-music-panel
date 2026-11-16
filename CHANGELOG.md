@@ -32,6 +32,7 @@
 - 修复网易云专辑页空白：与 Folia 一样读 `/album` 响应的顶层 `songs`（包的 `album.songs` 现在是空的），不再走额外兜底接口。
 - 修复 QQ 歌手专辑空列表：兼容包返回的 `albumMid` / `albumName` / `totalNum` 字段。
 - 修复酷狗/酷狗概念版专辑与歌手歌曲：兼容包的嵌套音频结构和 30 条分页；QQ 包请求按 Folia 的 Electron 方式同时携带 `?cookie=`。
+- QQ 登录改走包的微信/QQ 通道并持久化 `qqmusic_session`；我的歌单、歌单曲目、喜欢读取改用 `/user/playlist`、`/user/playlist-detail`、`/user/liked-songs`、`/user/song/like`。
 
 ### 发布撤回
 

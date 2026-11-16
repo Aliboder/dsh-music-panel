@@ -7,7 +7,7 @@
 | 平台 | 已对齐 | 仍是自有实现 | 说明 |
 | --- | --- | --- | --- |
 | 网易云 | 搜索、播放地址、歌词、歌单、喜欢、歌手、专辑 | 无（少量旧路由兜底） | 专辑曲目与 Folia 一样读 `/album` 顶层 `songs` |
-| QQ | 搜索、播放地址、歌词、扫码登录、专辑、歌手歌曲、歌手专辑 | 我的歌单、歌单曲目、喜欢读取/写入、用户资料 | QQ 登录仍存旧式原始 Cookie；包内需要 `qqmusic_session` 会话，导致登录类路由不可用 |
+| QQ | 搜索、播放地址、歌词、扫码登录（QQ/微信）、我的歌单、歌单曲目、喜欢读取/写入、专辑、歌手歌曲、歌手专辑 | 歌单创建/删除/加歌、用户资料等未迁移 | 登录已保存 `qqmusic_session`；歌单与喜欢走包路由 |
 | 酷狗 | 搜索、歌词、扫码登录、专辑、歌手歌曲、歌手专辑 | 播放地址、用户资料、我的歌单、喜欢写入 | 播放仍直连 gateway；用户/歌单仍是旧接口 |
 | 酷狗概念版 | 同上 | 同上 | 与酷狗共用旧实现 |
 | Navidrome | Subsonic 协议（歌手/专辑/歌单/收藏） | 自有 Subsonic 客户端 | 协议相同，但不是 Folia 的 `navidromeService` 封装 |
@@ -43,9 +43,8 @@ Navidrome 未配置服务器；Qishui/Bodian 当前没有登录态，未做真�
 
 ## 还需要迁移
 
-1. **QQ 登录会话**：登录后保存 Folia 的 `qqmusic_session` 封装，而不是原始 QQ Cookie 键。这是 QQ 歌单/喜欢能走包路由的前提。
-2. **QQ 歌单与喜欢**：`/user/playlist`、`/user/playlist-detail`、`/user/liked-songs`、`/user/song/like`。
-3. **酷狗播放地址**：`song_url` 包操作，替换现在的 gateway 直连。
-4. **酷狗用户/歌单/喜欢**：包操作替换旧接口。
-5. **Navidrome**：要么继续按 Subsonic 协议对齐，要么接入 Folia 的 `navidromeService`。
-6. **Qishui/Bodian 扩展**：推荐、探索、歌手目录等未迁移。
+1. **QQ 歌单写入**：创建、删除、加入/移出歌单仍走旧接口；读取与喜欢已经切到包路由。
+2. **酷狗播放地址**：`song_url` 包操作，替换现在的 gateway 直连。
+3. **酷狗用户/歌单/喜欢**：包操作替换旧接口。
+4. **Navidrome**：要么继续按 Subsonic 协议对齐，要么接入 Folia 的 `navidromeService`。
+5. **Qishui/Bodian 扩展**：推荐、探索、歌手目录等未迁移。

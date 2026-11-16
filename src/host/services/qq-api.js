@@ -237,7 +237,7 @@ export async function stopQqService() {
  *
  * @param {string} route
  * @param {Record<string, string|number|boolean|undefined>} [params]
- * @param {{ cookie?: string, timeoutMs?: number, skipCodeCheck?: boolean, includeHeaders?: boolean }} [options]
+ * @param {{ cookie?: string, timeoutMs?: number, skipCodeCheck?: boolean, includeHeaders?: boolean, method?: 'GET'|'POST', body?: object }} [options]
  */
 export async function callUpstream(route, params = {}, options = {}) {
   if (upstreamOverride !== null) return upstreamOverride(route, params, options)
@@ -253,10 +253,16 @@ export async function callUpstream(route, params = {}, options = {}) {
   const url = `http://127.0.0.1:${handle.port}${route}${suffix}`
   const headers = { accept: 'application/json' }
   if (typeof options.cookie === 'string' && options.cookie !== '') headers.cookie = options.cookie
+  if (options.method === 'POST') headers['content-type'] = 'application/json'
 
   let response
   try {
-    response = await fetch(url, { headers, signal: AbortSignal.timeout(options.timeoutMs ?? REQUEST_TIMEOUT_MS) })
+    response = await fetch(url, {
+      method: options.method === 'POST' ? 'POST' : 'GET',
+      headers,
+      ...(options.method === 'POST' ? { body: JSON.stringify(options.body ?? {}) } : {}),
+      signal: AbortSignal.timeout(options.timeoutMs ?? REQUEST_TIMEOUT_MS),
+    })
   } catch (error) {
     throw toMusicError(error, 'qq')
   }
