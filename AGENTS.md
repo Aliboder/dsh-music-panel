@@ -9,6 +9,8 @@ npm test                                  # 全量 Node 测试
 npm run check                             # 语法 + i18n key + client 同步
 node scripts/build-client.mjs             # 改 src/client/** 后重建 client.js
 node scripts/build-client.mjs --check     # 只检查 client.js 是否最新
+node scripts/build-audio.mjs              # 改 src/audio/** 或 Folia 音频上游后重建音频 bundle
+node scripts/build-audio.mjs --check      # 只检查音频 bundle 是否最新
 
 
 node scripts/build-lyrics.mjs             # 改 src/client/utils/lyrics/** 或 src/client/render/lyrics/entry.ts 后
@@ -31,6 +33,7 @@ node scripts/build-vendor-pixi.mjs        # 仅升级 pixi 时
 - **新增或修改任何界面组件前，先读 `A_other/docs/theme-guidelines.md`。** 无特别说明时，组件实现一律按该文档执行：宿主组件优先 → 本仓原语 → 一次性布局；只用 `--dsw-*` token；浅/深色都要成立；不做假控件。若需求与该文档冲突，先说明冲突并确认，不要自行另起一套样式。
 - **新增任何持久化/存储时，必须先读 `A_other/docs/data-reset.md`，同步扩充“清空插件所有数据”的范围、分类与测试。** 存储包括 Host 文件/目录、localStorage、IndexedDB、CacheStorage、内存缓存、远端 session；只加存储不更新清理视为未完成。
 - Folia 音频用 0–255 频谱；暂停时停止更新 bands。
+- **改播放/音频链路前先读 [音频引擎重建执行计划](A_other/docs/audio-engine-rebuild-plan.md)。** 不恢复旧播放图、旧增益公式或旧音频 UI；范围或决策变化先改计划文档，再改代码。
 - 修改 Folia 源码前，先确认是边界问题还是上游问题，并在 `CHANGELOG.md` 说明。
 - 使用真实状态和真实数据；未实现的功能要明确标注。
 - 改 `client.js`、bundle、Folia 或歌词管线前，先查 `A_other/docs/pitfalls.md` 的对应条目；解决新坑后按「现象 → 原因 → 处理 → 防回归」当场补一条，简洁、只增不改，不要把结论只留在对话里。
@@ -75,6 +78,7 @@ A_other/                    非插件资料（releases/design/docs/shared/upstre
 - [数据清理实现说明](A_other/docs/data-reset.md)
 - [平台架构](A_other/docs/provider-architecture.md)
 - [Folia 移植说明](A_other/docs/folia-porting.md)
+- [音频引擎重建执行计划](A_other/docs/audio-engine-rebuild-plan.md)
 - [踩坑记录](A_other/docs/pitfalls.md)
 - [发布流程](A_other/docs/release.md)
 - [CHANGELOG](CHANGELOG.md)
