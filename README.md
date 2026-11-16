@@ -7,8 +7,7 @@
 **A local + online music player, natively embedded in DeepSeek Harness.**  
 **在 DeepSeek Harness 里，把本地曲库、在线音乐平台和自建音乐服务器装进同一台播放器。**
 
-Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsonic · Lyrics · Cache · EBU R128 · 10-band EQ  
-本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · Navidrome / Subsonic · 歌词 · 缓存 · 音量均衡 · 均衡器
+Local library · NetEase Cloud Music · QQ Music · KuGou · Bodian · Qishui · Navidrome / Subsonic · Lyrics · Cache · EBU R128 · 10-band EQ`n本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · 波点音乐 · 汽水音乐 · Navidrome / Subsonic · 歌词 · 缓存 · 音量均衡 · 均衡器
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
 [![release](https://img.shields.io/badge/release-0.36.0-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
@@ -64,7 +63,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsoni
 
 | | 能力 |
 | :--- | :--- |
-| **本地 + 在线** | 硬盘里的歌直接播；网易云 / QQ 音乐 / 酷狗的云端歌单与喜欢也能直接浏览和播放；Navidrome / Subsonic 自建库可接入。 |
+| **本地 + 在线** | 硬盘里的歌直接播；网易云 / QQ 音乐 / 酷狗 / 波点 / 汽水的云端歌单与喜欢也能直接浏览和播放；Navidrome / Subsonic 自建库可接入。 |
 | **像播放器，而不是列表** | 专辑网格、黑胶播放页、逐行歌词与翻译、可拖拽队列、播放统计、快速定位。 |
 | **把在线歌单当本地歌单** | 歌单缓存 + 预取 + 后台校准，切走再切回不重新加载；支持按平台顺序 / 名称 / 歌曲数排序。 |
 | **曲库维护留在窗口里** | 在线补全标签、替换封面、校准歌词、检测重复、回收站恢复，不用打开第三方工具。 |
@@ -83,7 +82,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsoni
 
 #### 在线音乐
 
-- 顶栏一键切换本地音乐、网易云、QQ 音乐、酷狗、Navidrome / Subsonic；播放队列跨来源保留。
+- 顶栏一键切换本地音乐、网易云、QQ 音乐、酷狗、波点、汽水、Navidrome / Subsonic；播放队列跨来源保留。
 - 扫码登录后读取云端歌单、喜欢、最近播放；未登录也可播放平台免费曲目。
 - **Navidrome / Subsonic**：设置 → 在线填写服务器地址、用户名和密码；搜索、播放、歌词、封面、收藏和歌单通过 Subsonic 标准接口完成。
 - **完整曲库（可选）**：主动勾选「保存密码，启用完整曲库」后，使用 Navidrome 原生分页接口浏览全库；不勾选时使用随机采样的「全部歌曲」，不影响搜索和其他功能。

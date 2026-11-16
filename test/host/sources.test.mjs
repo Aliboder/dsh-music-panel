@@ -173,6 +173,12 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   assert.equal(builtinRegistry.get('navidrome').capabilities.loginPassword, true)
   assert.equal(builtinRegistry.get('navidrome').capabilities.loginQr, false)
   assert.equal(builtinRegistry.get('qq').capabilities.search, true)
+  // A declared capability must be executable: KuGou Concept reads likes but
+  // cannot write them or add to a cloud playlist yet.
+  assert.equal(builtinRegistry.get('kugouLite').capabilities.likes, true)
+  assert.equal(builtinRegistry.get('kugouLite').capabilities.likeWrite, false)
+  assert.equal(builtinRegistry.get('kugouLite').capabilities.playlistAdd, false)
+  assert.equal(builtinRegistry.get('kugouLite').capabilities.mutations, false)
   // Folia-style provider metadata: quality ladder, login methods and the
   // namespaced API view are part of every registered provider.
   assert.deepEqual(builtinRegistry.get('kugou').qualityLevels, ['standard', 'high', 'lossless'])

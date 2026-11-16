@@ -95,6 +95,11 @@ assert.ok(map.bodian, 'the native source must be listed')
 assert.equal(map.bodian.displayName, 'Bodian Music')
 assert.equal(map.bodian.capabilities.search, true)
 
+// Qishui is also registered outside the legacy factory, from its Node package.
+assert.ok(map.qishui, 'the Qishui source must be listed')
+assert.equal(map.qishui.displayName, 'Qishui Music')
+assert.equal(map.qishui.capabilities.loginQr, true)
+
 // Local library is a source too.
 assert.ok(map.local, 'the local source must be listed')
 assert.equal(map.local.displayName, 'Local library')

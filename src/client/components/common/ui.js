@@ -94,7 +94,9 @@ function readUiState() {
     }
     return { source: source, nav: nav, playlistId: '' }
   }
-  var source = UI_SOURCES.indexOf(saved.source) >= 0 ? saved.source : 'local'
+  var source = UI_SOURCES.indexOf(saved.source) >= 0 || (typeof saved.source === 'string' && saved.source !== '')
+    ? saved.source
+    : 'local'
   var nav = typeof saved.nav === 'string' && saved.nav !== '' ? saved.nav : 'songs'
   var playlistId = typeof saved.playlistId === 'string' ? saved.playlistId : ''
   if (nav === 'playlists') nav = source === 'local' ? 'songs' : 'recent'
