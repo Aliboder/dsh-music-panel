@@ -6916,6 +6916,9 @@ window.__ModuleLoader__.load({
         'settings.lyricFilterWords': '自定义过滤词',
         'settings.lyricFilterWordsDesc': '逗号或换行分隔；歌词行包含其中任一词就不显示',
         'settings.lyricFilterWordsPlaceholder': '例如：歌词贡献者，LRC',
+        'settings.lyricAutoBest': '自动使用最佳歌词',
+        'settings.lyricAutoBestDesc': '平台自己的歌词没有逐字时间轴时，检索网易云、AMLL、QQ、酷狗的匹配歌词，有逐字歌词就换用',
+        'settings.lyricAutoBestOff': '只使用平台自己的歌词',
         'page.lyricSize': '字体大小',
         'page.lyricGap': '歌词间距',
         'page.lyricBlur': '模糊非当前歌词',
@@ -7504,6 +7507,9 @@ window.__ModuleLoader__.load({
         'settings.lyricFilterWords': 'Custom filter words',
         'settings.lyricFilterWordsDesc': 'Separated by commas or newlines; a line containing any of them is hidden',
         'settings.lyricFilterWordsPlaceholder': 'e.g. lyrics by, LRC',
+        'settings.lyricAutoBest': 'Auto use best lyrics',
+        'settings.lyricAutoBestDesc': "When the platform's own lyric has no word timing, search NetEase, AMLL, QQ and KuGou and use a matched word-by-word lyric",
+        'settings.lyricAutoBestOff': 'Use the platform lyric only',
         'page.lyricSize': 'Font size',
         'page.lyricGap': 'Line spacing',
         'page.lyricBlur': 'Blur inactive lines',
@@ -8182,6 +8188,7 @@ window.__ModuleLoader__.load({
         'sheet.mute': '静音',
         'sheet.unmute': '取消静音',
         'sheet.lyricStyle': '歌词样式',
+        'sheet.lyricUpgraded': '已换用 {source} 的逐字歌词',
         'sheet.background': '背景类型',
         'sheet.transparentBg': '播放页透明背景',
         'sheet.scene': '场景',
@@ -8556,6 +8563,7 @@ window.__ModuleLoader__.load({
         'sheet.mute': 'Mute',
         'sheet.unmute': 'Unmute',
         'sheet.lyricStyle': 'Lyric style',
+        'sheet.lyricUpgraded': 'Using {source} word-by-word lyrics',
         'sheet.background': 'Background type',
         'sheet.transparentBg': 'Transparent player background',
         'sheet.scene': 'Scene',
@@ -9661,6 +9669,18 @@ window.__ModuleLoader__.load({
       var end = Number(chorus.endSec)
       if (!isFinite(start) || !isFinite(end) || start < 0 || end <= start) return []
       return [{ startTime: start, endTime: end }]
+    }
+
+    /** The name to show for the source a lyric came from (AMLL is a database, not a platform). */
+    function mpLyricSourceLabel(id) {
+      var key = String(id || '')
+      if (key === '') return ''
+      if (key === 'amll') return 'AMLL'
+      var info = typeof providerInfoOf === 'function' ? providerInfoOf(key) : null
+      if (info !== null && typeof info === 'object' && typeof info.displayName === 'string' && info.displayName !== '') {
+        return info.displayName
+      }
+      return key
     }
 
     /** A signature of the listener's line rules, so a change re-runs the display pass. */
@@ -148805,6 +148825,11 @@ window.__ModuleLoader__.load({
       lyricStyle: 'monet',
       /** Folia's calm/normal/chaotic chip (used by the styles' animation tuning). */
       lyricIntensity: 'normal',
+      /**
+       * Folia's `autoUseBestLyric`: when the platform's own lyric has no word-level timing,
+       * ask the other lyric sources for a matched word-by-word one. On by default there too.
+       */
+      autoUseBestLyric: true,
       /** Global lyric font multiplier (the ≋ quick control). */
       lyricsFontScale: 1,
       bgMode: 'latent',
@@ -159233,6 +159258,60 @@ window.__ModuleLoader__.load({
           setLyricError('')
           setLyricsLoading(true)
           var current = snap.queue[snap.index]
+          /**
+           * Folia's `autoUseBestLyric`: when the platform's own lyric has no word-level
+           * timing, another source may have this song word-by-word. Asked after the lines are
+           * on screen (playback never waits for the search) and applied only when the match
+           * really is word-level, so the sweep cannot get worse than what is showing.
+           */
+          async function upgradeLyric(current, chorusRanges) {
+            var query =
+              'online/best-lyric?provider=' +
+              encodeURIComponent(current.onlineProvider) +
+              '&id=' +
+              encodeURIComponent(current.onlineId || '') +
+              '&title=' +
+              encodeURIComponent(current.title || '') +
+              '&artist=' +
+              encodeURIComponent(current.artist || '') +
+              '&album=' +
+              encodeURIComponent(current.album || '') +
+              '&duration=' +
+              encodeURIComponent(String(current.durationSec || 0))
+            var answer = await getJson(API + query)
+            var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
+            if (cancelled || match === null || match.wordLevel !== true) return
+            var upgraded = null
+            var raw = match.raw !== null && typeof match.raw === 'object' ? match.raw : null
+            if (raw !== null && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
+              try {
+                var parsed = await MPFoliaLyrics.parse(raw, { songId: Number(current.onlineId) || 0 })
+                if (parsed && Array.isArray(parsed.lines) && parsed.lines.length > 0) {
+                  lyricDocRef.current = { path: trackPath, document: parsed, chorusRanges: chorusRanges }
+                  upgraded = mpPrepareLyrics(parsed, trackPath, chorusRanges)
+                }
+              } catch (error) {
+                upgraded = null
+              }
+            }
+            if (cancelled) return
+            if (upgraded !== null && upgraded.lyrics.length > 0) {
+              setLyrics(upgraded.lyrics)
+            } else {
+              // No raw document (an older lyric cache): the lender's own lines still carry the
+              // timeline, so attach it the way the legacy path does.
+              var fallbackLines = parseLrcText(match.lrc || '')
+              if (match.translation) mergeLyricTranslation(fallbackLines, match.translation)
+              attachWordTimeline(fallbackLines, match.lines)
+              var foliaLines = legacyLinesToFolia(fallbackLines)
+              if (foliaLines.length === 0) return
+              lyricDocRef.current = null
+              setLyrics(foliaLines)
+            }
+            if (typeof showToast === 'function') {
+              showToast(t('sheet.lyricUpgraded', { source: mpLyricSourceLabel(match.source) }))
+            }
+          }
           async function load() {
             try {
               if (current.onlineProvider) {
@@ -159347,6 +159426,15 @@ window.__ModuleLoader__.load({
                   setLyricSource('ONLINE')
                   // Folia restores the song's last manual offset instead of resetting it.
                   setOffsetMs(readSavedLyricOffset(trackPath))
+                }
+                // With word-level timing already in hand another source cannot improve the
+                // sweep — it could only change the translation or the alignment — so the
+                // search runs only for a line-level lyric (Folia's autoUseBestLyric purpose).
+                var primaryWordLevel = lines.some(function (line) {
+                  return line && Array.isArray(line.words) && line.words.length > 1
+                })
+                if (!primaryWordLevel && prefs.autoUseBestLyric !== false) {
+                  void upgradeLyric(current, chorusRanges).catch(function () {})
                 }
                 // `chorusRanges` above already marked the hook lines and filled `chorusSec`
                 // for the "jump to hook" control; nothing else is awaited for this track.
@@ -160943,6 +161031,20 @@ window.__ModuleLoader__.load({
               placeholder: t('settings.lyricFilterWordsPlaceholder'),
               onChange: function (event) {
                 patchPrefs({ lyricFilterWords: event.target.value })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            {
+              key: 'auto-best-lyric',
+              label: t('settings.lyricAutoBest'),
+              desc: t(prefs.autoUseBestLyric === false ? 'settings.lyricAutoBestOff' : 'settings.lyricAutoBestDesc'),
+            },
+            h(Switch, {
+              value: prefs.autoUseBestLyric !== false,
+              onChange: function (value) {
+                patchPrefs({ autoUseBestLyric: value })
               },
             }),
           ),

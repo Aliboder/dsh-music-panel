@@ -337,6 +337,20 @@ function SettingsSheet(props) {
           },
         }),
       ),
+      h(
+        SetRow,
+        {
+          key: 'auto-best-lyric',
+          label: t('settings.lyricAutoBest'),
+          desc: t(prefs.autoUseBestLyric === false ? 'settings.lyricAutoBestOff' : 'settings.lyricAutoBestDesc'),
+        },
+        h(Switch, {
+          value: prefs.autoUseBestLyric !== false,
+          onChange: function (value) {
+            patchPrefs({ autoUseBestLyric: value })
+          },
+        }),
+      ),
     ]
   }
 

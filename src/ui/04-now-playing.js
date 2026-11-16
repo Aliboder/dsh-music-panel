@@ -2007,6 +2007,60 @@ function NowPlaying(props) {
       setLyricError('')
       setLyricsLoading(true)
       var current = snap.queue[snap.index]
+      /**
+       * Folia's `autoUseBestLyric`: when the platform's own lyric has no word-level
+       * timing, another source may have this song word-by-word. Asked after the lines are
+       * on screen (playback never waits for the search) and applied only when the match
+       * really is word-level, so the sweep cannot get worse than what is showing.
+       */
+      async function upgradeLyric(current, chorusRanges) {
+        var query =
+          'online/best-lyric?provider=' +
+          encodeURIComponent(current.onlineProvider) +
+          '&id=' +
+          encodeURIComponent(current.onlineId || '') +
+          '&title=' +
+          encodeURIComponent(current.title || '') +
+          '&artist=' +
+          encodeURIComponent(current.artist || '') +
+          '&album=' +
+          encodeURIComponent(current.album || '') +
+          '&duration=' +
+          encodeURIComponent(String(current.durationSec || 0))
+        var answer = await getJson(API + query)
+        var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
+        if (cancelled || match === null || match.wordLevel !== true) return
+        var upgraded = null
+        var raw = match.raw !== null && typeof match.raw === 'object' ? match.raw : null
+        if (raw !== null && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
+          try {
+            var parsed = await MPFoliaLyrics.parse(raw, { songId: Number(current.onlineId) || 0 })
+            if (parsed && Array.isArray(parsed.lines) && parsed.lines.length > 0) {
+              lyricDocRef.current = { path: trackPath, document: parsed, chorusRanges: chorusRanges }
+              upgraded = mpPrepareLyrics(parsed, trackPath, chorusRanges)
+            }
+          } catch (error) {
+            upgraded = null
+          }
+        }
+        if (cancelled) return
+        if (upgraded !== null && upgraded.lyrics.length > 0) {
+          setLyrics(upgraded.lyrics)
+        } else {
+          // No raw document (an older lyric cache): the lender's own lines still carry the
+          // timeline, so attach it the way the legacy path does.
+          var fallbackLines = parseLrcText(match.lrc || '')
+          if (match.translation) mergeLyricTranslation(fallbackLines, match.translation)
+          attachWordTimeline(fallbackLines, match.lines)
+          var foliaLines = legacyLinesToFolia(fallbackLines)
+          if (foliaLines.length === 0) return
+          lyricDocRef.current = null
+          setLyrics(foliaLines)
+        }
+        if (typeof showToast === 'function') {
+          showToast(t('sheet.lyricUpgraded', { source: mpLyricSourceLabel(match.source) }))
+        }
+      }
       async function load() {
         try {
           if (current.onlineProvider) {
@@ -2121,6 +2175,15 @@ function NowPlaying(props) {
               setLyricSource('ONLINE')
               // Folia restores the song's last manual offset instead of resetting it.
               setOffsetMs(readSavedLyricOffset(trackPath))
+            }
+            // With word-level timing already in hand another source cannot improve the
+            // sweep — it could only change the translation or the alignment — so the
+            // search runs only for a line-level lyric (Folia's autoUseBestLyric purpose).
+            var primaryWordLevel = lines.some(function (line) {
+              return line && Array.isArray(line.words) && line.words.length > 1
+            })
+            if (!primaryWordLevel && prefs.autoUseBestLyric !== false) {
+              void upgradeLyric(current, chorusRanges).catch(function () {})
             }
             // `chorusRanges` above already marked the hook lines and filled `chorusSec`
             // for the "jump to hook" control; nothing else is awaited for this track.

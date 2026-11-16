@@ -41,6 +41,11 @@ var PREF_DEFAULTS = {
   lyricStyle: 'monet',
   /** Folia's calm/normal/chaotic chip (used by the styles' animation tuning). */
   lyricIntensity: 'normal',
+  /**
+   * Folia's `autoUseBestLyric`: when the platform's own lyric has no word-level timing,
+   * ask the other lyric sources for a matched word-by-word one. On by default there too.
+   */
+  autoUseBestLyric: true,
   /** Global lyric font multiplier (the ≋ quick control). */
   lyricsFontScale: 1,
   bgMode: 'latent',

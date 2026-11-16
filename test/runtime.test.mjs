@@ -107,6 +107,13 @@ assert.equal(badProvider.status, 400, 'unknown providers are rejected')
 const missingId = await get('/music/online/album?provider=navidrome')
 assert.equal(missingId.status, 400, 'navidrome needs an album id')
 
+// Folia's Lyric 自动换源 is a route of its own: it is asked after the platform's lyric is
+// on screen, so it must exist and guard its input even with no network.
+const bestLyricBad = await get('/music/online/best-lyric?provider=nope&id=1')
+assert.equal(bestLyricBad.status, 400, 'best-lyric rejects unknown providers')
+const bestLyricNoId = await get('/music/online/best-lyric?provider=netease')
+assert.equal(bestLyricNoId.status, 400, 'best-lyric needs the track id')
+
 // ── sign-in surface stays compatible ────────────────────────────────────────
 
 const badLogin = await post('/music/online/login/start', { provider: 'spotify' })

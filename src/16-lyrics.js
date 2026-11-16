@@ -416,6 +416,18 @@ function mpChorusRanges(body) {
   return [{ startTime: start, endTime: end }]
 }
 
+/** The name to show for the source a lyric came from (AMLL is a database, not a platform). */
+function mpLyricSourceLabel(id) {
+  var key = String(id || '')
+  if (key === '') return ''
+  if (key === 'amll') return 'AMLL'
+  var info = typeof providerInfoOf === 'function' ? providerInfoOf(key) : null
+  if (info !== null && typeof info === 'object' && typeof info.displayName === 'string' && info.displayName !== '') {
+    return info.displayName
+  }
+  return key
+}
+
 /** A signature of the listener's line rules, so a change re-runs the display pass. */
 function mpLyricRulesKey() {
   var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}

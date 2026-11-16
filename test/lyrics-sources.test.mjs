@@ -17,6 +17,7 @@ import {
   findBestLyrics,
   hasRenderableLyrics,
   linesFromLrc,
+  lrcTime,
   withTimeout,
 } from '../lib/lyrics-match-runner.js'
 
@@ -153,6 +154,38 @@ const survived = await findBestLyrics(track, {
   fetchLyric: async () => lineLyric,
 })
 assert.equal(survived.source, 'qq', 'a failing source falls through to the next')
+
+// The runner carries the source's own document, translation and romanization through:
+// the client parses the document with Folia's pipeline, the runner only compares lines.
+const withRaw = await findBestLyrics(track, {
+  order: ['netease'],
+  search: async () => [{ id: 'n1', title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }],
+  fetchLyric: async () => ({
+    ...wordLyric,
+    translation: '[00:01.000]story',
+    romaji: '[00:01.000]monogatari',
+    raw: { type: 'local', lrcContent: '[1000,2000](1000,500,0)故事', formatHint: 'yrc' },
+  }),
+})
+assert.equal(withRaw.raw.formatHint, 'yrc')
+assert.equal(withRaw.translation, '[00:01.000]story')
+assert.equal(withRaw.romaji, '[00:01.000]monogatari')
+
+// AMLL's TTML travels with its lines, so the client parses it the same way.
+const amllRaw = await findBestLyrics(track, {
+  order: ['amll'],
+  neteaseId: '186016',
+  fetchLyric: async () => lineLyric,
+  fetchAmll: async () => ({ lines: wordLyric.lines, text: '<tt xmlns="http://www.w3.org/ns/ttml"></tt>' }),
+})
+assert.equal(amllRaw.source, 'amll')
+assert.equal(amllRaw.raw.formatHint, 'ttml')
+assert.match(amllRaw.raw.lrcContent, /<tt/)
+
+// lrcTime is the inverse of linesFromLrc (a line-level match is handed back as LRC).
+assert.equal(lrcTime(1.5), '[00:01.500]')
+assert.equal(lrcTime(61.25), '[01:01.250]')
+assert.equal(linesFromLrc(lrcTime(61.25) + '行')[0].t, 61.25)
 
 // A candidate below the threshold is never fetched.
 let fetchedForBadCandidate = false
