@@ -28,13 +28,20 @@ function __mpAudioBundle() {
     __export(entry_exports, {
       AUDIO_EFFECT_CONTROLS: () => AUDIO_EFFECT_CONTROLS,
       AUDIO_EQUALIZER_BANDS: () => AUDIO_EQUALIZER_BANDS,
+      BLEND_HEADROOM_DB: () => BLEND_HEADROOM_DB,
+      CROSSOVER_EARLY: () => CROSSOVER_EARLY,
+      CROSSOVER_LATE: () => CROSSOVER_LATE,
       DEFAULT_AUDIO_EFFECT_SETTINGS: () => DEFAULT_AUDIO_EFFECT_SETTINGS,
       DEFAULT_AUDIO_EQUALIZER_SETTINGS: () => DEFAULT_AUDIO_EQUALIZER_SETTINGS,
+      MAX_TRIM_DB: () => MAX_TRIM_DB,
       MOD_EQUALIZER_GLIDE_SECONDS: () => MOD_EQUALIZER_GLIDE_SECONDS,
       PLAYBACK_FADE_SECONDS: () => PLAYBACK_FADE_SECONDS,
       applyAudioEqualizerSettings: () => applyAudioEqualizerSettings,
       audioEqualizerBandShape: () => audioEqualizerBandShape,
+      buildBandCurves: () => buildBandCurves,
+      buildCrossfadeCurves: () => buildCrossfadeCurves,
       buildPlaybackGraph: () => buildPlaybackGraph,
+      chooseBalance: () => chooseBalance,
       connectAudioEqualizerGraph: () => connectAudioEqualizerGraph,
       connectAutomixDeck: () => connectAutomixDeck,
       connectStemBus: () => connectStemBus,
@@ -43,19 +50,31 @@ function __mpAudioBundle() {
       createBalanceMeter: () => createBalanceMeter,
       createDeckAnalyser: () => createDeckAnalyser,
       createPlaybackFadeController: () => createPlaybackFadeController,
+      crossoverFor: () => crossoverFor,
+      dbToGain: () => dbToGain,
+      gatedLoudness: () => gatedLoudness,
+      kWeightStep: () => kWeightStep,
+      liftWithinPeak: () => liftWithinPeak,
       normalizeAudioEffects: () => normalizeAudioEffects,
       normalizeAudioEqualizerGains: () => normalizeAudioEqualizerGains,
       planAudioEqualizerApply: () => planAudioEqualizerApply,
+      planBalanceMove: () => planBalanceMove,
+      planBlendShape: () => planBlendShape,
       rampGain: () => rampGain,
       rampGainDb: () => rampGainDb,
       resetThrow: () => resetThrow,
       resetTone: () => resetTone,
       resolveAudioEqualizerSettings: () => resolveAudioEqualizerSettings,
+      rmsDb: () => rmsDb,
       scheduleBandBlend: () => scheduleBandBlend,
       scheduleCrossfade: () => scheduleCrossfade,
       scheduleEchoThrow: () => scheduleEchoThrow,
       scheduleStemWindow: () => scheduleStemWindow,
-      softLimit: () => softLimit
+      softLimit: () => softLimit,
+      toneTilt: () => toneTilt,
+      trimForBalance: () => trimForBalance,
+      typicalGainDb: () => typicalGainDb,
+      whyNotWholePlay: () => whyNotWholePlay
     });
   
     // A_other/upstream/folia-major-main/src/utils/audioEffects.ts
@@ -739,6 +758,13 @@ function __mpAudioBundle() {
     var MAX_BPM = 180;
     var MIN_TEMPO_CONFIDENCE = 0.35;
     var SILENCE_DB = -90;
+    var LOUD_OUTRO_DB = -14;
+    var QUIET_OUTRO_DB = -30;
+    var SILENT_TAIL_DB = -45;
+    var CROSSOVER_EARLY = 0.35;
+    var CROSSOVER_LATE = 0.55;
+    var MAX_TRIM_DB = 6;
+    var BEAT_SNAP_TOLERANCE = 0.25;
     var clamp = (value, low, high) => Math.min(high, Math.max(low, value));
     var dbToGain = (db) => 10 ** (db / 20);
     var rmsDb = (samples) => {
@@ -850,6 +876,30 @@ function __mpAudioBundle() {
         beatOffsetHops
       };
     };
+    var crossoverFor = (outgoingDb) => {
+      if (outgoingDb === null || !Number.isFinite(outgoingDb)) {
+        return (CROSSOVER_EARLY + CROSSOVER_LATE) / 2;
+      }
+      if (outgoingDb <= SILENT_TAIL_DB) return CROSSOVER_EARLY;
+      const loudness = clamp((outgoingDb - QUIET_OUTRO_DB) / (LOUD_OUTRO_DB - QUIET_OUTRO_DB), 0, 1);
+      return CROSSOVER_LATE + (CROSSOVER_EARLY - CROSSOVER_LATE) * loudness;
+    };
+    var trimForBalance = (outgoingDb, incomingDb) => clamp(outgoingDb - incomingDb, 0, MAX_TRIM_DB);
+    var planBlendShape = (input) => {
+      const crossover = crossoverFor(input.outgoingDb);
+      const shape = { overlap: input.overlap, crossover, snappedToBeat: false };
+      const { nextBeatIn, periodSec } = input;
+      if (nextBeatIn === null || periodSec === null || !(periodSec > 0)) return shape;
+      const low = Math.max(input.minOverlap, input.overlap * (1 - BEAT_SNAP_TOLERANCE));
+      const high = Math.min(input.maxOverlap, input.overlap * (1 + BEAT_SNAP_TOLERANCE));
+      if (low > high) return shape;
+      const target = input.overlap * crossover;
+      const beat = nextBeatIn + Math.round((target - nextBeatIn) / periodSec) * periodSec;
+      if (!(beat > 0)) return shape;
+      const overlap = beat / crossover;
+      if (overlap < low || overlap > high) return shape;
+      return { overlap, crossover, snappedToBeat: true };
+    };
     var BLEND_HEADROOM_DB = 1.5;
     var headroomBell = (progress) => Math.sin(clamp(progress, 0, 1) * Math.PI);
     var buildCrossfadeCurves = (crossover, together = 0, points = 64) => {
@@ -904,6 +954,16 @@ function __mpAudioBundle() {
         incoming[2][index] = tiltHigh * settling;
       }
       return { out, in: incoming };
+    };
+    var toneTilt = (outgoing, incoming) => {
+      if (!outgoing || !incoming || outgoing.length < 3 || incoming.length < 3) return [0, 0];
+      const bend = (band) => {
+        const a = outgoing[band];
+        const b = incoming[band];
+        if (!(a > 0) || !(b > 0)) return 0;
+        return clamp(10 * Math.log10(a / b), -MAX_TILT_DB, MAX_TILT_DB);
+      };
+      return [bend(1), bend(2)];
     };
     var LUFS_OFFSET_DB = -0.691;
     var kWeightStep = (sampleRate) => {
@@ -972,8 +1032,81 @@ function __mpAudioBundle() {
     };
   
     // A_other/upstream/folia-major-main/src/services/volumeBalance/balanceRules.ts
+    var VOLUME_BALANCE_TARGET_DB = -14;
+    var VOLUME_BALANCE_MAX_BOOST_DB = 6;
+    var VOLUME_BALANCE_PEAK_CEILING_DB = -1.5;
+    var TAG_TARGET_OFFSET_DB = 4;
     var LIVE_MIN_SOUND_SEC = 10;
+    var TYPICAL_SIZE = 20;
+    var TYPICAL_FALLBACK_DB = -5;
+    var EARLY_MOVE_SEC = 10;
+    var EARLY_RAMP_SEC = 2;
+    var LATE_MOVE_SEC = 30;
+    var LATE_RAMP_SEC = 5;
+    var LATE_MIN_CUT_DB = 3;
+    var SAME_GAIN_DB = 0.05;
+    var isAudible = (measured) => measured.loudness > SILENCE_DB;
+    var liftWithinPeak = (gainDb, peak) => {
+      if (gainDb <= 0) return gainDb;
+      if (!(typeof peak === "number" && peak > 0)) return 0;
+      const headroomDb = VOLUME_BALANCE_PEAK_CEILING_DB - 20 * Math.log10(peak);
+      return Math.min(gainDb, VOLUME_BALANCE_MAX_BOOST_DB, Math.max(0, headroomDb));
+    };
+    var choice = (reading, gainDb, effectiveGainDb, estimated) => ({ reading, gainDb, effectiveGainDb, estimated });
+    var chooseBalance = (inputs) => {
+      const whole = [
+        ["file", inputs.file],
+        ["played", inputs.played],
+        ["profile", inputs.profile]
+      ];
+      for (const [reading, measured] of whole) {
+        if (!measured || !isAudible(measured)) continue;
+        const gainDb = VOLUME_BALANCE_TARGET_DB - measured.loudness;
+        return choice(reading, gainDb, liftWithinPeak(gainDb, measured.peak), false);
+      }
+      if (inputs.tag) {
+        const gainDb = inputs.tag.gainDb + TAG_TARGET_OFFSET_DB;
+        return choice("tag", gainDb, liftWithinPeak(gainDb, inputs.tag.peak), false);
+      }
+      const estimates = [
+        ["head", typeof inputs.head === "number" ? VOLUME_BALANCE_TARGET_DB - inputs.head : null],
+        ["platform", inputs.platformDb],
+        ["live", typeof inputs.live === "number" ? VOLUME_BALANCE_TARGET_DB - inputs.live : null],
+        ["typical", inputs.typicalDb]
+      ];
+      for (const [reading, gainDb] of estimates) {
+        if (typeof gainDb === "number" && Number.isFinite(gainDb)) return choice(reading, gainDb, Math.min(0, gainDb), true);
+      }
+      return choice("typical", TYPICAL_FALLBACK_DB, TYPICAL_FALLBACK_DB, true);
+    };
+    var typicalGainDb = (gains) => {
+      const recent = gains.slice(-TYPICAL_SIZE).filter(Number.isFinite).sort((a, b) => a - b);
+      if (!recent.length) return TYPICAL_FALLBACK_DB;
+      const middle = Math.floor(recent.length / 2);
+      const median = recent.length % 2 ? recent[middle] : (recent[middle - 1] + recent[middle]) / 2;
+      return Math.min(0, median);
+    };
+    var planBalanceMove = (question) => {
+      const { playSec, moved, currentDb, nextDb, blendAudible } = question;
+      if (Math.abs(nextDb - currentDb) < SAME_GAIN_DB) return null;
+      if (playSec <= 0) return "set";
+      if (moved) return null;
+      const rampSec = playSec < EARLY_MOVE_SEC ? EARLY_RAMP_SEC : playSec < LATE_MOVE_SEC && nextDb <= currentDb - LATE_MIN_CUT_DB ? LATE_RAMP_SEC : null;
+      if (rampSec === null) return null;
+      return blendAudible ? "hold" : { rampSec };
+    };
     var PLAY_MISS_TOLERANCE_SEC = 2;
+    var PLAY_LATE_START_SEC = 2;
+    var whyNotWholePlay = (play, question) => {
+      const { duration, leadInSec, clip } = question;
+      if (play.broken) return play.broken;
+      if (clip) return `not the whole song (${clip})`;
+      if (!(Number.isFinite(duration) && duration > 0)) return "length unknown";
+      if (play.fromSec > Math.max(0, leadInSec ?? 0) + PLAY_LATE_START_SEC) return `started at ${play.fromSec.toFixed(1)}s`;
+      if (duration - play.toSec > PLAY_MISS_TOLERANCE_SEC) return `stopped at ${play.toSec.toFixed(1)}s`;
+      if (play.loudness <= SILENCE_DB) return "silence";
+      return null;
+    };
   
     // A_other/upstream/folia-major-main/src/services/volumeBalance/balanceMeter.ts
     var MIN_BUFFER_SEC = 0.2;

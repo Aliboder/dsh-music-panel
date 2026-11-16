@@ -150279,13 +150279,20 @@ window.__ModuleLoader__.load({
         __export(entry_exports, {
           AUDIO_EFFECT_CONTROLS: () => AUDIO_EFFECT_CONTROLS,
           AUDIO_EQUALIZER_BANDS: () => AUDIO_EQUALIZER_BANDS,
+          BLEND_HEADROOM_DB: () => BLEND_HEADROOM_DB,
+          CROSSOVER_EARLY: () => CROSSOVER_EARLY,
+          CROSSOVER_LATE: () => CROSSOVER_LATE,
           DEFAULT_AUDIO_EFFECT_SETTINGS: () => DEFAULT_AUDIO_EFFECT_SETTINGS,
           DEFAULT_AUDIO_EQUALIZER_SETTINGS: () => DEFAULT_AUDIO_EQUALIZER_SETTINGS,
+          MAX_TRIM_DB: () => MAX_TRIM_DB,
           MOD_EQUALIZER_GLIDE_SECONDS: () => MOD_EQUALIZER_GLIDE_SECONDS,
           PLAYBACK_FADE_SECONDS: () => PLAYBACK_FADE_SECONDS,
           applyAudioEqualizerSettings: () => applyAudioEqualizerSettings,
           audioEqualizerBandShape: () => audioEqualizerBandShape,
+          buildBandCurves: () => buildBandCurves,
+          buildCrossfadeCurves: () => buildCrossfadeCurves,
           buildPlaybackGraph: () => buildPlaybackGraph,
+          chooseBalance: () => chooseBalance,
           connectAudioEqualizerGraph: () => connectAudioEqualizerGraph,
           connectAutomixDeck: () => connectAutomixDeck,
           connectStemBus: () => connectStemBus,
@@ -150294,19 +150301,31 @@ window.__ModuleLoader__.load({
           createBalanceMeter: () => createBalanceMeter,
           createDeckAnalyser: () => createDeckAnalyser,
           createPlaybackFadeController: () => createPlaybackFadeController,
+          crossoverFor: () => crossoverFor,
+          dbToGain: () => dbToGain,
+          gatedLoudness: () => gatedLoudness,
+          kWeightStep: () => kWeightStep,
+          liftWithinPeak: () => liftWithinPeak,
           normalizeAudioEffects: () => normalizeAudioEffects,
           normalizeAudioEqualizerGains: () => normalizeAudioEqualizerGains,
           planAudioEqualizerApply: () => planAudioEqualizerApply,
+          planBalanceMove: () => planBalanceMove,
+          planBlendShape: () => planBlendShape,
           rampGain: () => rampGain,
           rampGainDb: () => rampGainDb,
           resetThrow: () => resetThrow,
           resetTone: () => resetTone,
           resolveAudioEqualizerSettings: () => resolveAudioEqualizerSettings,
+          rmsDb: () => rmsDb,
           scheduleBandBlend: () => scheduleBandBlend,
           scheduleCrossfade: () => scheduleCrossfade,
           scheduleEchoThrow: () => scheduleEchoThrow,
           scheduleStemWindow: () => scheduleStemWindow,
-          softLimit: () => softLimit
+          softLimit: () => softLimit,
+          toneTilt: () => toneTilt,
+          trimForBalance: () => trimForBalance,
+          typicalGainDb: () => typicalGainDb,
+          whyNotWholePlay: () => whyNotWholePlay
         });
       
         // A_other/upstream/folia-major-main/src/utils/audioEffects.ts
@@ -150990,6 +151009,13 @@ window.__ModuleLoader__.load({
         var MAX_BPM = 180;
         var MIN_TEMPO_CONFIDENCE = 0.35;
         var SILENCE_DB = -90;
+        var LOUD_OUTRO_DB = -14;
+        var QUIET_OUTRO_DB = -30;
+        var SILENT_TAIL_DB = -45;
+        var CROSSOVER_EARLY = 0.35;
+        var CROSSOVER_LATE = 0.55;
+        var MAX_TRIM_DB = 6;
+        var BEAT_SNAP_TOLERANCE = 0.25;
         var clamp = (value, low, high) => Math.min(high, Math.max(low, value));
         var dbToGain = (db) => 10 ** (db / 20);
         var rmsDb = (samples) => {
@@ -151101,6 +151127,30 @@ window.__ModuleLoader__.load({
             beatOffsetHops
           };
         };
+        var crossoverFor = (outgoingDb) => {
+          if (outgoingDb === null || !Number.isFinite(outgoingDb)) {
+            return (CROSSOVER_EARLY + CROSSOVER_LATE) / 2;
+          }
+          if (outgoingDb <= SILENT_TAIL_DB) return CROSSOVER_EARLY;
+          const loudness = clamp((outgoingDb - QUIET_OUTRO_DB) / (LOUD_OUTRO_DB - QUIET_OUTRO_DB), 0, 1);
+          return CROSSOVER_LATE + (CROSSOVER_EARLY - CROSSOVER_LATE) * loudness;
+        };
+        var trimForBalance = (outgoingDb, incomingDb) => clamp(outgoingDb - incomingDb, 0, MAX_TRIM_DB);
+        var planBlendShape = (input) => {
+          const crossover = crossoverFor(input.outgoingDb);
+          const shape = { overlap: input.overlap, crossover, snappedToBeat: false };
+          const { nextBeatIn, periodSec } = input;
+          if (nextBeatIn === null || periodSec === null || !(periodSec > 0)) return shape;
+          const low = Math.max(input.minOverlap, input.overlap * (1 - BEAT_SNAP_TOLERANCE));
+          const high = Math.min(input.maxOverlap, input.overlap * (1 + BEAT_SNAP_TOLERANCE));
+          if (low > high) return shape;
+          const target = input.overlap * crossover;
+          const beat = nextBeatIn + Math.round((target - nextBeatIn) / periodSec) * periodSec;
+          if (!(beat > 0)) return shape;
+          const overlap = beat / crossover;
+          if (overlap < low || overlap > high) return shape;
+          return { overlap, crossover, snappedToBeat: true };
+        };
         var BLEND_HEADROOM_DB = 1.5;
         var headroomBell = (progress) => Math.sin(clamp(progress, 0, 1) * Math.PI);
         var buildCrossfadeCurves = (crossover, together = 0, points = 64) => {
@@ -151155,6 +151205,16 @@ window.__ModuleLoader__.load({
             incoming[2][index] = tiltHigh * settling;
           }
           return { out, in: incoming };
+        };
+        var toneTilt = (outgoing, incoming) => {
+          if (!outgoing || !incoming || outgoing.length < 3 || incoming.length < 3) return [0, 0];
+          const bend = (band) => {
+            const a = outgoing[band];
+            const b = incoming[band];
+            if (!(a > 0) || !(b > 0)) return 0;
+            return clamp(10 * Math.log10(a / b), -MAX_TILT_DB, MAX_TILT_DB);
+          };
+          return [bend(1), bend(2)];
         };
         var LUFS_OFFSET_DB = -0.691;
         var kWeightStep = (sampleRate) => {
@@ -151223,8 +151283,81 @@ window.__ModuleLoader__.load({
         };
       
         // A_other/upstream/folia-major-main/src/services/volumeBalance/balanceRules.ts
+        var VOLUME_BALANCE_TARGET_DB = -14;
+        var VOLUME_BALANCE_MAX_BOOST_DB = 6;
+        var VOLUME_BALANCE_PEAK_CEILING_DB = -1.5;
+        var TAG_TARGET_OFFSET_DB = 4;
         var LIVE_MIN_SOUND_SEC = 10;
+        var TYPICAL_SIZE = 20;
+        var TYPICAL_FALLBACK_DB = -5;
+        var EARLY_MOVE_SEC = 10;
+        var EARLY_RAMP_SEC = 2;
+        var LATE_MOVE_SEC = 30;
+        var LATE_RAMP_SEC = 5;
+        var LATE_MIN_CUT_DB = 3;
+        var SAME_GAIN_DB = 0.05;
+        var isAudible = (measured) => measured.loudness > SILENCE_DB;
+        var liftWithinPeak = (gainDb, peak) => {
+          if (gainDb <= 0) return gainDb;
+          if (!(typeof peak === "number" && peak > 0)) return 0;
+          const headroomDb = VOLUME_BALANCE_PEAK_CEILING_DB - 20 * Math.log10(peak);
+          return Math.min(gainDb, VOLUME_BALANCE_MAX_BOOST_DB, Math.max(0, headroomDb));
+        };
+        var choice = (reading, gainDb, effectiveGainDb, estimated) => ({ reading, gainDb, effectiveGainDb, estimated });
+        var chooseBalance = (inputs) => {
+          const whole = [
+            ["file", inputs.file],
+            ["played", inputs.played],
+            ["profile", inputs.profile]
+          ];
+          for (const [reading, measured] of whole) {
+            if (!measured || !isAudible(measured)) continue;
+            const gainDb = VOLUME_BALANCE_TARGET_DB - measured.loudness;
+            return choice(reading, gainDb, liftWithinPeak(gainDb, measured.peak), false);
+          }
+          if (inputs.tag) {
+            const gainDb = inputs.tag.gainDb + TAG_TARGET_OFFSET_DB;
+            return choice("tag", gainDb, liftWithinPeak(gainDb, inputs.tag.peak), false);
+          }
+          const estimates = [
+            ["head", typeof inputs.head === "number" ? VOLUME_BALANCE_TARGET_DB - inputs.head : null],
+            ["platform", inputs.platformDb],
+            ["live", typeof inputs.live === "number" ? VOLUME_BALANCE_TARGET_DB - inputs.live : null],
+            ["typical", inputs.typicalDb]
+          ];
+          for (const [reading, gainDb] of estimates) {
+            if (typeof gainDb === "number" && Number.isFinite(gainDb)) return choice(reading, gainDb, Math.min(0, gainDb), true);
+          }
+          return choice("typical", TYPICAL_FALLBACK_DB, TYPICAL_FALLBACK_DB, true);
+        };
+        var typicalGainDb = (gains) => {
+          const recent = gains.slice(-TYPICAL_SIZE).filter(Number.isFinite).sort((a, b) => a - b);
+          if (!recent.length) return TYPICAL_FALLBACK_DB;
+          const middle = Math.floor(recent.length / 2);
+          const median = recent.length % 2 ? recent[middle] : (recent[middle - 1] + recent[middle]) / 2;
+          return Math.min(0, median);
+        };
+        var planBalanceMove = (question) => {
+          const { playSec, moved, currentDb, nextDb, blendAudible } = question;
+          if (Math.abs(nextDb - currentDb) < SAME_GAIN_DB) return null;
+          if (playSec <= 0) return "set";
+          if (moved) return null;
+          const rampSec = playSec < EARLY_MOVE_SEC ? EARLY_RAMP_SEC : playSec < LATE_MOVE_SEC && nextDb <= currentDb - LATE_MIN_CUT_DB ? LATE_RAMP_SEC : null;
+          if (rampSec === null) return null;
+          return blendAudible ? "hold" : { rampSec };
+        };
         var PLAY_MISS_TOLERANCE_SEC = 2;
+        var PLAY_LATE_START_SEC = 2;
+        var whyNotWholePlay = (play, question) => {
+          const { duration, leadInSec, clip } = question;
+          if (play.broken) return play.broken;
+          if (clip) return `not the whole song (${clip})`;
+          if (!(Number.isFinite(duration) && duration > 0)) return "length unknown";
+          if (play.fromSec > Math.max(0, leadInSec ?? 0) + PLAY_LATE_START_SEC) return `started at ${play.fromSec.toFixed(1)}s`;
+          if (duration - play.toSec > PLAY_MISS_TOLERANCE_SEC) return `stopped at ${play.toSec.toFixed(1)}s`;
+          if (play.loudness <= SILENCE_DB) return "silence";
+          return null;
+        };
       
         // A_other/upstream/folia-major-main/src/services/volumeBalance/balanceMeter.ts
         var MIN_BUFFER_SEC = 0.2;
@@ -151863,6 +151996,294 @@ window.__ModuleLoader__.load({
       })();
       
       return typeof MPAudio === 'undefined' ? null : MPAudio
+    }
+
+    // ── src/client/services/player/folia-graph.js
+    /**
+     * Folia playback graph: one AudioContext, two deck chains, one shared mix.
+     *
+     * This is the non-React replacement for the graph half of `player.ensureAnalyser()`.
+     * It owns the Web Audio nodes only; the queue, source fetching, statistics and UI
+     * stay in `player.js` until the transport is migrated too.
+     *
+     * The graph itself is built by Folia's `buildPlaybackGraph` from
+     * `src/client/audio/engine.bundle.js`; this file is the DSH boundary that supplies
+     * the two media elements and keeps the volume/EQ handles.
+     */
+
+    function createFoliaGraph(options) {
+      var settings = options !== null && typeof options === 'object' ? options : {}
+      var createContext =
+        typeof settings.createContext === 'function'
+          ? settings.createContext
+          : function () {
+              var Ctor = typeof window !== 'undefined' ? window.AudioContext || window.webkitAudioContext : null
+              if (!Ctor) throw new Error('Web Audio is unavailable')
+              return new Ctor()
+            }
+      var createAudioElement =
+        typeof settings.createAudioElement === 'function'
+          ? settings.createAudioElement
+          : function () {
+              if (typeof document === 'undefined') throw new Error('document is unavailable')
+              return document.createElement('audio')
+            }
+
+      var audioApi = typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
+      if (audioApi === null) throw new Error('Folia audio bundle is missing')
+
+      var context = null
+      var analyser = null
+      var waveData = null
+      var graph = null
+      var mixNode = null
+      var chains = { A: null, B: null }
+      var equalizerNodesRef = { current: [] }
+      var elements = { A: null, B: null }
+      var activeDeck = 'A'
+      var volume = 1
+      var muted = false
+      var eqSettings = audioApi.resolveAudioEqualizerSettings(audioApi.DEFAULT_AUDIO_EQUALIZER_SETTINGS)
+      var disposed = false
+
+      function otherDeck(deck) {
+        return deck === 'A' ? 'B' : 'A'
+      }
+
+      function makeSecondary() {
+        if (elements.B !== null) return elements.B
+        var secondary = createAudioElement()
+        secondary.preload = 'metadata'
+        secondary.setAttribute('aria-hidden', 'true')
+        secondary.className = 'mp-audio-host'
+        var primary = elements.A
+        if (primary !== null && primary.parentNode) primary.parentNode.insertBefore(secondary, primary.nextSibling)
+        elements.B = secondary
+        return secondary
+      }
+
+      function masterGain() {
+        return graph === null ? null : graph.gainNode
+      }
+
+      function applyVolume(immediate) {
+        var target = muted ? 0 : volume
+        var gain = masterGain()
+        if (gain === null || context === null) {
+          if (elements.A !== null) elements.A.volume = target
+          if (elements.B !== null) elements.B.volume = target
+          return
+        }
+        if (immediate === true) {
+          try {
+            gain.gain.cancelScheduledValues(context.currentTime)
+            gain.gain.setValueAtTime(target, context.currentTime)
+          } catch (error) {
+            gain.gain.value = target
+          }
+          return
+        }
+        audioApi.rampGain(context, gain, target, 0.015)
+      }
+
+      function applyEq() {
+        if (graph === null || context === null) return
+        audioApi.applyAudioEqualizerSettings(context, equalizerNodesRef.current, eqSettings, 0.015)
+        graph.effectChain.apply(eqSettings.effects, eqSettings.enabled)
+      }
+
+      function build() {
+        if (graph !== null) return graph
+        if (disposed) return null
+        if (elements.A === null) return null
+        makeSecondary()
+        try {
+          context = createContext()
+          analyser = context.createAnalyser()
+          analyser.fftSize = 2048
+          analyser.smoothingTimeConstant = 0.6
+          waveData = new Uint8Array(analyser.frequencyBinCount)
+
+          graph = audioApi.buildPlaybackGraph({
+            context: context,
+            analyser: analyser,
+            connectDecks: function (ctx, output) {
+              mixNode = output
+              chains.A = audioApi.connectAutomixDeck(ctx, elements.A, output)
+              chains.B = elements.B === null ? null : audioApi.connectAutomixDeck(ctx, elements.B, output)
+              return chains.A !== null && chains.B !== null
+            },
+            equalizerNodesRef: equalizerNodesRef,
+            settings: eqSettings,
+          })
+          // With the graph in place, volume/mute belong to the master gain. The
+          // element's own volume would otherwise attenuate the signal twice and
+          // make the EQ/effects see a level the listener did not choose.
+          elements.A.volume = 1
+          elements.A.muted = false
+          if (elements.B !== null) {
+            elements.B.volume = 1
+            elements.B.muted = false
+          }
+          applyVolume(true)
+          applyEq()
+          if (context.state === 'suspended') context.resume().catch(function () {})
+          return graph
+        } catch (error) {
+          graph = null
+          analyser = null
+          waveData = null
+          mixNode = null
+          chains = { A: null, B: null }
+          equalizerNodesRef = { current: [] }
+          context = null
+          return null
+        }
+      }
+
+      function detachSecondary() {
+        var secondary = elements.B
+        if (secondary === null) return
+        try {
+          secondary.pause()
+          secondary.removeAttribute('src')
+          secondary.load()
+        } catch (error) {
+          // The element may already be detached.
+        }
+        if (secondary.parentNode) secondary.parentNode.removeChild(secondary)
+        elements.B = null
+      }
+
+      function destroyGraph() {
+        if (context !== null) {
+          try {
+            context.close()
+          } catch (error) {
+            // Already closed.
+          }
+        }
+        context = null
+        analyser = null
+        waveData = null
+        graph = null
+        mixNode = null
+        chains = { A: null, B: null }
+        equalizerNodesRef = { current: [] }
+      }
+
+      var api = {
+        /** Build the graph lazily; call from a user gesture so the context can start. */
+        ensure: function () {
+          return build()
+        },
+
+        /**
+         * Hand the resident `<audio>` element to the engine. The spare deck is
+         * created beside it, like the old engine did. A different element tears the
+         * old graph down because `createMediaElementSource` can only bind once.
+         */
+        attach: function (element) {
+          if (element === elements.A) return elements.B
+          if (graph !== null) destroyGraph()
+          detachSecondary()
+          elements.A = element === undefined ? null : element
+          if (elements.A === null) return null
+          return makeSecondary()
+        },
+
+        /** The spare deck, so the transport can load a track into it. */
+        getDeckElement: function (deck) {
+          return deck === 'B' ? elements.B : elements.A
+        },
+
+        /** The active deck is the one the UI's transport controls. */
+        getActiveDeck: function () {
+          return activeDeck
+        },
+        setActiveDeck: function (deck) {
+          activeDeck = deck === 'B' ? 'B' : 'A'
+          return activeDeck
+        },
+        otherDeck: otherDeck,
+
+        getDeckChain: function (deck) {
+          return deck === 'B' ? chains.B : chains.A
+        },
+        getMixNode: function () {
+          return mixNode
+        },
+        getEqualizerNodes: function () {
+          return equalizerNodesRef.current
+        },
+        getContext: function () {
+          return context
+        },
+        getAnalyser: function () {
+          return analyser
+        },
+        getMasterGain: function () {
+          return masterGain()
+        },
+        /** The transport fade node Folia's playbackFade controller owns. */
+        getFadeGraph: function () {
+          return graph === null ? null : { context: context, gain: graph.fadeNode }
+        },
+
+        getWave: function () {
+          if (analyser === null || waveData === null) return null
+          analyser.getByteFrequencyData(waveData)
+          return waveData
+        },
+
+        getVolume: function () {
+          return volume
+        },
+        isMuted: function () {
+          return muted
+        },
+        setVolume: function (value) {
+          var next = Number(value)
+          if (!isFinite(next)) return
+          volume = Math.min(1, Math.max(0, next))
+          applyVolume(false)
+        },
+        setMuted: function (value) {
+          muted = value === true
+          applyVolume(false)
+        },
+
+        getEq: function () {
+          return eqSettings
+        },
+        setEq: function (next) {
+          eqSettings = audioApi.resolveAudioEqualizerSettings(next)
+          applyEq()
+        },
+
+        /** Crossfade the two deck envelopes with Folia's scheduled curves. */
+        scheduleCrossfade: function (seconds, crossover, hold, together) {
+          if (graph === null || context === null || chains.A === null || chains.B === null) return false
+          return audioApi.scheduleCrossfade(
+            context,
+            chains[activeDeck].fade,
+            chains[otherDeck(activeDeck)].fade,
+            seconds,
+            crossover,
+            hold,
+            together,
+          )
+        },
+
+        dispose: function () {
+          disposed = true
+          destroyGraph()
+          detachSecondary()
+          elements.A = null
+        },
+      }
+
+      return api
     }
 
     // ── src/client/components/common/ui.js
@@ -172873,6 +173294,7 @@ window.__ModuleLoader__.load({
           player: player,
           // The Folia audio subsystem bundle: tests can build a graph with a fake context.
           MPAudio: typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null,
+          createFoliaGraph: typeof createFoliaGraph === 'function' ? createFoliaGraph : null,
           lufsFromAudioBuffer: lufsFromAudioBuffer,
           analyzeLoudnessBlob: analyzeLoudnessBlob,
           mergeLyricTranslation: mergeLyricTranslation,

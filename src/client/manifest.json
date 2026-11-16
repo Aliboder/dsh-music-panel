@@ -49,6 +49,7 @@
     "src/client/services/player/effects/crossfade.js",
     "src/client/services/player/effects/transition.js",
     "src/client/audio/engine.bundle.js",
+    "src/client/services/player/folia-graph.js",
     "src/client/components/common/ui.js",
     "src/client/styles/wave-color.js",
     "src/client/services/player/player.js",

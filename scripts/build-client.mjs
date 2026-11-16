@@ -130,6 +130,7 @@ ${body}
           player: player,
           // The Folia audio subsystem bundle: tests can build a graph with a fake context.
           MPAudio: typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null,
+          createFoliaGraph: typeof createFoliaGraph === 'function' ? createFoliaGraph : null,
           lufsFromAudioBuffer: lufsFromAudioBuffer,
           analyzeLoudnessBlob: analyzeLoudnessBlob,
           mergeLyricTranslation: mergeLyricTranslation,
