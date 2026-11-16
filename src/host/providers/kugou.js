@@ -1640,6 +1640,22 @@ export async function addSongToPlaylist(song, listId, session = {}) {
   const hash = lowHash(song.hash || song.hqHash)
   if (!hash) throw new Error('缺少歌曲 hash')
   const mixsongid = Number(song.mixSongId || song.albumAudioId || 0) || 0
+  const packageData = [
+    String(song.title || '').replace(/[|,]/g, ' ') || '未知歌曲',
+    hash,
+    String(Number(song.albumId) || 0),
+    String(mixsongid),
+  ].join('|')
+  try {
+    const answer = await callKugou('standard', 'playlist_tracks_add', {
+      listid: String(listid),
+      data: packageData,
+      cookie: kugouCookies({ ...s, dfid: session.dfid }, 'standard'),
+    })
+    if (Number(answer.body?.status) === 1 || Number(answer.body?.error_code) === 0) return true
+  } catch {
+    // Fall through to the legacy cloudlist writer.
+  }
   const clienttime = Math.floor(Date.now() / 1000)
   const body = {
     userid: String(s.userid || ''),
@@ -1674,6 +1690,16 @@ export async function deleteSongFromPlaylist(fileId, listId, session = {}) {
   const fileid = Number(fileId) || 0
   if (!listid || !fileid) throw new Error('缺少 listid/fileid')
   if (!s.token) throw new Error('未登录，无法移除歌曲')
+  try {
+    const answer = await callKugou('standard', 'playlist_tracks_del', {
+      listid: String(listid),
+      fileids: String(fileid),
+      cookie: kugouCookies({ ...s, dfid: session.dfid }, 'standard'),
+    })
+    if (Number(answer.body?.status) === 1 || Number(answer.body?.error_code) === 0) return true
+  } catch {
+    // Fall through to the legacy cloudlist writer.
+  }
   const clienttime = Math.floor(Date.now() / 1000)
   const body = {
     listid,

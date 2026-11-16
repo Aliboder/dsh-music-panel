@@ -7,7 +7,9 @@ import crypto from 'node:crypto'
  * A standard-edition login must never be reused for concept playback.
  */
 
-import { createDeviceIdentity, signWeb } from './kugou.js'
+import { createDeviceIdentity, normalizePackageSong, signWeb } from './kugou.js'
+import { callKugou } from '../services/kugou-api.js'
+import { kugouCookies } from './kugou-cookie.js'
 
 const APPID = 3116
 const CLIENTVER = 11440
@@ -310,8 +312,25 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
   const s = normSession(session)
   const hash = String(song.hash || '').toLowerCase()
   if (!hash) throw new Error('缺少歌曲 hash')
-  const auth = await songAuth(s, song)
   const qualities = prefer.filter((item) => ['flac', '320', '128'].includes(item))
+  try {
+    for (const quality of qualities.length ? qualities : ['128']) {
+      const answer = await callKugou('lite', 'song_url', {
+        hash,
+        quality,
+        album_id: String(song.albumId || song.album_id || 0),
+        album_audio_id: String(song.albumAudioId || song.album_audio_id || 0),
+        cookie: kugouCookies({ ...s, dfid: s.dfid }, 'lite'),
+      })
+      const url = findPlaybackUrl(answer.body)
+      if (url && !/\/p_0_/.test(url)) {
+        return { url, quality, bitrate: Number(answer.body?.bitrate) || 0 }
+      }
+    }
+  } catch {
+    // Fall through to the legacy concept signed endpoint.
+  }
+  const auth = await songAuth(s, song)
   for (const quality of qualities.length ? qualities : ['128']) {
     const params = {
       album_id: String(song.albumId || song.album_id || 0),
@@ -394,16 +413,30 @@ export async function getProfile(session = {}) {
 /** Minimal concept playlist support; signs every request with the lite identity. */
 export async function getMyPlaylists(session = {}) {
   const s = normSession(session)
-  const body = { userid: s.userid, token: s.token, total_ver: 979, type: 2, page: 1, pagesize: 60 }
-  const data = await liteRequest('/v7/get_all_list', {
-    plat: '1',
-    userid: s.userid,
-    token: s.token,
-  }, s, {
-    method: 'POST',
-    body,
-    headers: { 'x-router': 'cloudlist.service.kugou.com' },
-  })
+  let data = null
+  try {
+    const answer = await callKugou('lite', 'user_playlist', {
+      userid: s.userid,
+      page: 1,
+      pagesize: 60,
+      cookie: kugouCookies({ ...s, dfid: s.dfid }, 'lite'),
+    })
+    data = answer.body
+  } catch {
+    data = null
+  }
+  if (!data) {
+    const body = { userid: s.userid, token: s.token, total_ver: 979, type: 2, page: 1, pagesize: 60 }
+    data = await liteRequest('/v7/get_all_list', {
+      plat: '1',
+      userid: s.userid,
+      token: s.token,
+    }, s, {
+      method: 'POST',
+      body,
+      headers: { 'x-router': 'cloudlist.service.kugou.com' },
+    })
+  }
   return flattenObjects(data)
     .map((item) => {
       if (item.hash || item.Hash || item.FileHash) return null
@@ -427,6 +460,35 @@ export async function getMyPlaylists(session = {}) {
 
 export async function getMyPlaylistSongs(listId, session = {}) {
   const s = normSession(session)
+  try {
+    const collected = []
+    for (let page = 1; page <= 20; page += 1) {
+      const answer = await callKugou('lite', 'playlist_track_all', {
+        id: String(listId),
+        page,
+        pagesize: 100,
+        cookie: kugouCookies({ ...s, dfid: s.dfid }, 'lite'),
+      })
+      const data = answer.body?.data ?? {}
+      const rows = Array.isArray(data.songs) ? data.songs : []
+      if (rows.length === 0) break
+      for (const row of rows) {
+        const song = normalizePackageSong(row)
+        if (!song.id) continue
+        collected.push({
+          ...song,
+          singer: song.artists.join(' / '),
+          durationSec: song.interval,
+        })
+      }
+      const total = Number(data.count) || 0
+      if (total > 0 && collected.length >= total) break
+      if (rows.length < 100) break
+    }
+    if (collected.length > 0) return collected
+  } catch {
+    // Fall through to the legacy concept (pubsongs) reader.
+  }
   const songs = new Map()
   const pageSize = 200
   for (let page = 0; page < 20; page += 1) {

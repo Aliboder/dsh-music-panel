@@ -8,8 +8,8 @@
 | --- | --- | --- | --- |
 | 网易云 | 搜索、播放地址、歌词、歌单、喜欢、歌手、专辑 | 无（少量旧路由兜底） | 专辑曲目与 Folia 一样读 `/album` 顶层 `songs` |
 | QQ | 搜索、播放地址、歌词、扫码登录（QQ/微信）、我的歌单、歌单曲目、喜欢读取/写入、专辑、歌手歌曲、歌手专辑 | 歌单创建/删除/加歌、用户资料等未迁移 | 登录已保存 `qqmusic_session`；歌单与喜欢走包路由 |
-| 酷狗 | 搜索、歌词、扫码登录、专辑、歌手歌曲、歌手专辑；已登录时播放优先包 `song_url`、我的歌单/歌单曲目走 `user_playlist`/`playlist_track_all` | 匿名/包失败时播放回退 gateway；喜欢写入、歌单写入、榜单/推荐仍旧接口 | 包缺 `generateWebGLHash` 已在 worker 补上 |
-| 酷狗概念版 | 同上 | 同上 | 与酷狗共用旧实现 |
+| 酷狗 | 搜索、歌词、扫码登录、专辑、歌手歌曲、歌手专辑；播放优先包 `song_url`，我的歌单/歌单曲目走 `user_playlist`/`playlist_track_all`，写入优先 `playlist_tracks_add`/`playlist_tracks_del` | 匿名/包失败时回退 gateway；榜单/推荐仍旧接口 | 包缺 `generateWebGLHash` 已在 worker 补上 |
+| 酷狗概念版 | 搜索、歌词、扫码登录、专辑、歌手歌曲、歌手专辑；播放/歌单读取优先包 `song_url`/`user_playlist`/`playlist_track_all` | 匿名/包失败时回退旧签名接口 | 与酷狗共用 worker，`platform=lite` |
 | Navidrome | Subsonic 协议（歌手/专辑/歌单/收藏） | 自有 Subsonic 客户端 | 协议相同，但不是 Folia 的 `navidromeService` 封装 |
 | 汽水 | 搜索、播放、歌词、歌手歌曲、歌手详情、歌单、喜欢 | 推荐/探索等扩展 | 使用同一个 `qishui-music-api` 包 |
 | 波点 | 搜索、播放、歌单、喜欢 | 歌手/专辑目录 | 波点没有专辑方法 |

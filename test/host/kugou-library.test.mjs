@@ -3,7 +3,7 @@
  */
 
 import assert from 'node:assert/strict'
-import { getMyPlaylistSongs, getMyPlaylists } from '../../src/host/providers/kugou.js'
+import { addSongToPlaylist, deleteSongFromPlaylist, getMyPlaylistSongs, getMyPlaylists } from '../../src/host/providers/kugou.js'
 import { resetUpstreamOverride, setUpstreamOverride } from '../../src/host/services/kugou-api.js'
 
 const calls = []
@@ -42,6 +42,9 @@ setUpstreamOverride(async (operation, params) => {
       cookie: [],
     }
   }
+  if (operation === 'playlist_tracks_add' || operation === 'playlist_tracks_del') {
+    return { body: { status: 1, error_code: 0 }, cookie: [] }
+  }
   throw new Error('unexpected KuGou operation: ' + operation)
 })
 
@@ -57,6 +60,14 @@ assert.equal(songs[0].title, 'Ievan Polkka')
 assert.equal(songs[0].artists[0], 'Miku')
 assert.equal(songs[0].fileId, 916)
 assert.equal(calls.some(([operation]) => operation === 'playlist_track_all'), true)
+
+assert.equal(await addSongToPlaylist({ hash: 'kg-hash', title: 'Song', albumId: 1, mixSongId: 2 }, 2, session), true)
+const addCall = calls.find(([operation]) => operation === 'playlist_tracks_add')
+assert.equal(addCall[1].listid, '2')
+assert.equal(addCall[1].data, 'Song|kg-hash|1|2')
+assert.equal(await deleteSongFromPlaylist(916, 2, session), true)
+const delCall = calls.find(([operation]) => operation === 'playlist_tracks_del')
+assert.equal(delCall[1].fileids, '916')
 
 resetUpstreamOverride()
 console.log('kugou-library.test.mjs ok')
