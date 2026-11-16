@@ -9580,6 +9580,144 @@ window.__ModuleLoader__.load({
       return icuFoliaPromise
     }
 
+    // ── saved word segmentation (one record per song) ─────────────────────
+    // Folia keeps this in IndexedDB behind a service; the plugin's convention is one
+    // localStorage map, as lyricOffsetMemory does for the timeline offset. The record
+    // shape and the baking are Folia's own (lyricSegmentationRecord.ts), so a record has
+    // the same meaning in both apps: line key -> the boundaries that rejoin to its text.
+    var LYRIC_SEGMENTATION_KEY = 'lyric_segmentations'
+    var LYRIC_SEGMENTATION_MAX = 300
+
+    function lyricSegmentationMap() {
+      var map = {}
+      if (typeof window === 'undefined') return map
+      try {
+        var raw = window.localStorage.getItem(LYRIC_SEGMENTATION_KEY)
+        var parsed = raw === null ? null : JSON.parse(raw)
+        if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) map = parsed
+      } catch (error) {
+        map = {}
+      }
+      return map
+    }
+
+    function writeLyricSegmentationMap(map) {
+      if (typeof window === 'undefined') return
+      var keys = Object.keys(map)
+      if (keys.length > LYRIC_SEGMENTATION_MAX) {
+        keys
+          .sort(function (left, right) {
+            return (Number(map[left] && map[left].updatedAt) || 0) - (Number(map[right] && map[right].updatedAt) || 0)
+          })
+          .slice(0, keys.length - LYRIC_SEGMENTATION_MAX)
+          .forEach(function (key) {
+            delete map[key]
+          })
+      }
+      try {
+        window.localStorage.setItem(LYRIC_SEGMENTATION_KEY, JSON.stringify(map))
+      } catch (error) {
+        // Storage full or blocked: the lyrics in this session keep the split until a reload.
+      }
+    }
+
+    /** This song's saved segmentation record, or null when it has none (or it is malformed). */
+    function readLyricSegmentation(songKey) {
+      if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return null
+      if (typeof MPFoliaLyrics.isLyricSegmentationRecord !== 'function') return null
+      var key = String(songKey || '')
+      if (key === '') return null
+      var record = lyricSegmentationMap()[key]
+      return MPFoliaLyrics.isLyricSegmentationRecord(record) ? record : null
+    }
+
+    /** Save (or, with null, forget) this song's segmentation. Returns what is now stored. */
+    function saveLyricSegmentation(songKey, boundaries) {
+      var key = String(songKey || '')
+      if (key === '' || typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return null
+      var map = lyricSegmentationMap()
+      if (boundaries === null) {
+        delete map[key]
+        writeLyricSegmentationMap(map)
+        return null
+      }
+      var record = MPFoliaLyrics.createLyricSegmentationRecord(key, 'manual', boundaries)
+      map[key] = record
+      writeLyricSegmentationMap(map)
+      return record
+    }
+
+    // ── one place where lyrics become what the visualizers draw ───────────
+    // Folia's `createLyricsSetter` order: line rules -> staff-credit policy -> chorus
+    // decoration -> the listener's saved segmentation -> icu-folia's default split.
+    // Everything ahead of the word split is a display decision taken on the finished
+    // timeline, so it runs again whenever the listener changes a rule (no re-fetch).
+
+    /** Chorus ranges from the Host's `/online/chorus` answer (empty when unknown). */
+    function mpChorusRanges(body) {
+      var chorus = body && body.chorus ? body.chorus : null
+      if (chorus === null || typeof chorus !== 'object') return []
+      var start = Number(chorus.startSec)
+      var end = Number(chorus.endSec)
+      if (!isFinite(start) || !isFinite(end) || start < 0 || end <= start) return []
+      return [{ startTime: start, endTime: end }]
+    }
+
+    /** A signature of the listener's line rules, so a change re-runs the display pass. */
+    function mpLyricRulesKey() {
+      var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
+      var presets = Array.isArray(state.lyricFilterPresets) ? state.lyricFilterPresets : []
+      return presets.join(',') + '\u0000' + String(state.lyricFilterWords || '')
+    }
+
+    /**
+     * The Host's raw text as Folia's local-file source (LRC / enhanced LRC / TTML / VTT /
+     * QRC / YRC / KRC / .fia), or null when there is nothing to parse.
+     */
+    function mpLocalRawSource(body) {
+      if (!body || typeof body.raw !== 'string' || body.raw === '') return null
+      return {
+        type: 'local',
+        lrcContent: body.raw,
+        ...(typeof body.translation === 'string' && body.translation !== '' ? { tLrcContent: body.translation } : {}),
+        ...(typeof body.formatHint === 'string' && body.formatHint !== '' ? { formatHint: body.formatHint } : {}),
+      }
+    }
+
+    /**
+     * The display-time pass over one parsed Folia document.
+     * @returns {{ lyrics: Array<object>, pureMusic: boolean }}
+     */
+    function mpPrepareLyrics(document, songKey, chorusRanges) {
+      if (!document || typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) {
+        return { lyrics: [], pureMusic: false }
+      }
+      var next = document
+      if (typeof MPFoliaLyrics.prepare === 'function') {
+        next = MPFoliaLyrics.prepare(next, {
+          policy: 'smart',
+          rules: lyricFilterRules(),
+          chorusRanges: Array.isArray(chorusRanges) ? chorusRanges : [],
+        })
+      }
+      if (!next) return { lyrics: [], pureMusic: false }
+      // A lyric that is only "纯音乐，请欣赏" is no lyric at all (Folia's setter agrees).
+      if (typeof MPFoliaLyrics.isPureMusicLyricLines === 'function'
+        && MPFoliaLyrics.isPureMusicLyricLines(next.lines)) {
+        return { lyrics: [], pureMusic: true }
+      }
+      // The listener's saved split for this song, then icu-folia's default for the rest.
+      var record = readLyricSegmentation(songKey)
+      if (record !== null && typeof MPFoliaLyrics.applyLyricWordSegmentation === 'function') {
+        next = MPFoliaLyrics.applyLyricWordSegmentation(next, record)
+      }
+      if (typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
+        && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
+        next = MPFoliaLyrics.applyAutoWordSegmentation(next)
+      }
+      return { lyrics: foliaLyricLines(next), pureMusic: false }
+    }
+
     // ── src/render/lyrics/lyrics.bundle.js
     var MPFoliaLyrics = (() => {
       var __create = Object.create;
@@ -16738,19 +16876,29 @@ window.__ModuleLoader__.load({
       __export(entry_exports, {
         LYRIC_LINE_PRESETS: () => LYRIC_LINE_PRESETS,
         LyricParserFactory: () => LyricParserFactory,
+        SEGMENTATION_DELIMITER: () => SEGMENTATION_DELIMITER,
+        SegmentationImportError: () => SegmentationImportError,
         applyAutoWordSegmentation: () => applyAutoWordSegmentation,
         applyChorusRangesByTime: () => applyChorusRangesByTime,
         applyDetectedChorusEffects: () => applyDetectedChorusEffects,
         applyLyricLineRules: () => applyLyricLineRules,
         applyLyricStaffPolicy: () => applyLyricStaffPolicy,
+        applyLyricWordSegmentation: () => applyLyricWordSegmentation,
+        buildSegmentationBoundaries: () => buildSegmentationBoundaries,
+        buildSegmentationExportText: () => buildSegmentationExportText,
         compileLyricLineRules: () => compileLyricLineRules,
+        countAppliedSegmentationLines: () => countAppliedSegmentationLines,
+        createLyricSegmentationRecord: () => createLyricSegmentationRecord,
         detectNonTtmlTimedLyricFormat: () => detectNonTtmlTimedLyricFormat,
         ensureLyricDataRenderHints: () => ensureLyricDataRenderHints,
+        getLyricLineSegmentationKey: () => getLyricLineSegmentationKey,
         isIcuFoliaReady: () => isIcuFoliaReady,
+        isLyricSegmentationRecord: () => isLyricSegmentationRecord,
         isPureMusicLyricLines: () => isPureMusicLyricLines,
         isPureMusicLyricText: () => isPureMusicLyricText,
         loadIcuFoliaFromData: () => loadIcuFoliaFromData,
         parse: () => parse,
+        parseSegmentationImport: () => parseSegmentationImport,
         prepare: () => prepare,
         readLyricOffset: () => readLyricOffset,
         resolveLyricProcessingOptions: () => resolveLyricProcessingOptions,
@@ -19482,7 +19630,48 @@ window.__ModuleLoader__.load({
       };
 
       // src/utils/lyrics/wordSegmentation.ts
+      var PUNCTUATION_ONLY = /^[\s\p{P}\p{S}]+$/u;
+      var isWordLikeText = (text) => !PUNCTUATION_ONLY.test(text);
+      var segmentsFromBoundaries = (boundaries) => {
+        let cursor = 0;
+        return boundaries.map((segment) => {
+          const part = { segment, index: cursor, isWordLike: isWordLikeText(segment) };
+          cursor += segment.length;
+          return part;
+        });
+      };
+      var segmentTextWords = (text) => {
+        if (!text) {
+          return [];
+        }
+        const Segmenter = typeof Intl !== "undefined" ? Intl.Segmenter : void 0;
+        if (Segmenter) {
+          try {
+            return Array.from(new Segmenter(void 0, { granularity: "word" }).segment(text), (part) => ({
+              segment: part.segment,
+              index: part.index,
+              isWordLike: part.isWordLike ?? isWordLikeText(part.segment)
+            }));
+          } catch {
+          }
+        }
+        return segmentsFromBoundaries(splitLyricGraphemes(text));
+      };
       var isValidWordSegmentation = (text, boundaries) => Array.isArray(boundaries) && boundaries.length > 0 && boundaries.every((segment) => typeof segment === "string") && boundaries.join("") === text;
+      var EDGE_WHITESPACE = /^(\s*)(.*?)(\s*)$/su;
+      var splitEdgeWhitespace = (boundaries) => boundaries.flatMap((boundary) => {
+        const [, lead, core, trail] = EDGE_WHITESPACE.exec(boundary) ?? [];
+        return core ? [lead, core, trail].filter(Boolean) : [boundary].filter(Boolean);
+      });
+      var segmentLyricWords = (line) => {
+        if (isValidWordSegmentation(line.fullText, line.wordSegments)) {
+          return segmentsFromBoundaries(splitEdgeWhitespace(line.wordSegments));
+        }
+        if (isValidWordSegmentation(line.fullText, line.autoWordSegments)) {
+          return segmentsFromBoundaries(line.autoWordSegments);
+        }
+        return segmentTextWords(line.fullText);
+      };
 
       // src/utils/lyrics/foliaLyricDocument.ts
       var FOLIA_LYRIC_DOCUMENT_FORMAT = "folia-lyricdata";
@@ -20080,6 +20269,194 @@ window.__ModuleLoader__.load({
           ...lyrics,
           lines: finalizeParsedLyricLines(lines.filter((_, index) => !hits[index]), { includeInterludes: true })
         };
+      };
+
+      // src/types/lyricSegmentation.ts
+      var LYRIC_SEGMENTATION_RECORD_VERSION = 1;
+
+      // shared/lyricSegmentationPrompt.mjs
+      var SEGMENTATION_SYSTEM_PROMPT = [
+        "You segment song lyrics into words for a typography engine.",
+        "",
+        "You receive numbered lyric lines. For each line, split it into the units a human reader would",
+        "treat as single words, and return them in order.",
+        "",
+        "Hard rules, in priority order:",
+        "1. Lossless. Concatenating one line\u2019s segments must reproduce that line character for character,",
+        "   including every space, punctuation mark and symbol. Never add, drop, reorder or normalise a",
+        "   character. Never translate, romanise, or correct spelling.",
+        "2. Same count. Return exactly one segment array per input line, in the same order.",
+        "3. Split at meaning, not at characters. For Chinese, Japanese and Korean, group characters into",
+        "   real words and set phrases (\u4E0D\u77E5\u9053 / \u5B64\u72EC\u7684 / \u30AD\u30E9\u30AD\u30E9), not one character per segment.",
+        "   Keep verb\u2013complement and noun\u2013suffix pairs together when they read as one word.",
+        "4. One word per segment. A segment carries a single content word plus the grammatical tail glued",
+        "   to it. If a segment still holds a second noun, verb or adjective, split it again. Spaces are",
+        "   not the only split points: a Japanese or Chinese line usually has none and still needs one",
+        "   segment per word. Returning a whole clause, or a whole line, as one segment is a failure.",
+        "5. Japanese specifically: split before every content word, and keep each content word together",
+        "   with the okurigana, auxiliaries and particles that follow it (\u898B\u3048\u306A\u3044 / \u3088\u3046\u306B / \u96C6\u3081\u305F\u3044 /",
+        "   \u3051\u3069). Sentence-final particles (\u3088 / \u306D / \u3055) attach to what precedes them.",
+        "6. Keep space-delimited words whole for Latin scripts, and keep contractions such as it\u2019s or",
+        "   don\u2019t in one segment.",
+        "7. Attach trailing punctuation to the segment it follows (\u4E16\u754C\u3002 not \u4E16\u754C + \u3002). A bracket or quote",
+        "   stays in one segment with the text it wraps ((\u62FC\u56FE\u5973\u5B69) not ( + \u62FC\u56FE\u5973\u5B69 + )). A space belongs",
+        "   to the segment that precedes it.",
+        '8. The "N. " prefix on each input line is numbering added by this request. It is NOT part of the',
+        "   lyric. Never include it in a segment.",
+        "",
+        "Examples. Given:",
+        "  1. \u628A\u56DE\u5FC6\u62FC\u597D\u7ED9\u4F60",
+        "  2. It\u2019s unbelievable, isn\u2019t it?",
+        "  3. \u3044\u3063\u3071\u3044\u3042\u308B\u3093\u3060\u3088\u6B32\u3057\u3044\u3082\u306E",
+        "  4. \u898B\u3048\u306A\u3044\u3088\u3046\u306B\u3055 \u96A0\u3057\u3066\u3082",
+        "answer exactly:",
+        '  {"lines": [["\u628A", "\u56DE\u5FC6", "\u62FC\u597D", "\u7ED9", "\u4F60"], ["It\u2019s ", "unbelievable, ", "isn\u2019t ", "it?"], ["\u3044\u3063\u3071\u3044", "\u3042\u308B\u3093\u3060\u3088", "\u6B32\u3057\u3044", "\u3082\u306E"], ["\u898B\u3048\u306A\u3044", "\u3088\u3046\u306B", "\u3055 ", "\u96A0\u3057\u3066\u3082"]]}',
+        "",
+        'Respond with JSON only: {"lines": [["seg", "seg"], ["seg"]]}. No prose, no code fence.'
+      ].join("\n");
+      var WHITESPACE = /\s/;
+      var realignSegmentsToText = (boundaries, text) => {
+        if (boundaries.join("") === text) {
+          return boundaries;
+        }
+        const slices = [];
+        let cursor = 0;
+        for (const boundary of boundaries) {
+          const wanted = boundary.replace(/\s+/gu, "");
+          if (!wanted) {
+            continue;
+          }
+          const start = cursor;
+          let matched = 0;
+          while (cursor < text.length && matched < wanted.length) {
+            const char = text[cursor];
+            if (WHITESPACE.test(char)) {
+              cursor += 1;
+              continue;
+            }
+            if (char !== wanted[matched]) {
+              return null;
+            }
+            matched += 1;
+            cursor += 1;
+          }
+          if (matched < wanted.length) {
+            return null;
+          }
+          slices.push(text.slice(start, cursor));
+        }
+        if (slices.length === 0) {
+          return null;
+        }
+        const tail = text.slice(cursor);
+        if (tail.trim()) {
+          return null;
+        }
+        slices[slices.length - 1] += tail;
+        return slices;
+      };
+
+      // src/utils/lyrics/lyricSegmentationRecord.ts
+      var SEGMENTATION_DELIMITER = "/";
+      var getLyricLineSegmentationKey = (line) => `${Math.round(line.startTime * 1e3)}|${line.fullText}`;
+      var createLyricSegmentationRecord = (songKey, source, lines) => ({
+        version: LYRIC_SEGMENTATION_RECORD_VERSION,
+        songKey,
+        updatedAt: Date.now(),
+        source,
+        lines
+      });
+      var isLyricSegmentationRecord = (value) => {
+        if (!value || typeof value !== "object") return false;
+        const record = value;
+        return record.version === LYRIC_SEGMENTATION_RECORD_VERSION && typeof record.songKey === "string" && typeof record.updatedAt === "number" && (record.source === "ai" || record.source === "manual") && Boolean(record.lines) && typeof record.lines === "object";
+      };
+      var applyLyricWordSegmentation = (lyrics, record) => {
+        if (!lyrics || !record) {
+          return lyrics;
+        }
+        let changed = false;
+        const lines = lyrics.lines.map((line) => {
+          const boundaries = record.lines[getLyricLineSegmentationKey(line)];
+          if (!isValidWordSegmentation(line.fullText, boundaries)) {
+            return line;
+          }
+          changed = true;
+          return { ...line, wordSegments: boundaries };
+        });
+        return changed ? { ...lyrics, lines } : lyrics;
+      };
+      var countAppliedSegmentationLines = (lyrics, record) => {
+        if (!lyrics || !record) return 0;
+        return lyrics.lines.reduce((total, line) => {
+          const boundaries = record.lines[getLyricLineSegmentationKey(line)];
+          return isValidWordSegmentation(line.fullText, boundaries) ? total + 1 : total;
+        }, 0);
+      };
+      var buildSegmentationBoundaries = (lyrics) => lyrics.lines.map((line) => segmentLyricWords(line).map((part) => part.segment));
+      var buildSegmentationExportText = (lyrics) => buildSegmentationBoundaries(lyrics).map((boundaries) => boundaries.join(SEGMENTATION_DELIMITER)).join("\n");
+      var SegmentationImportError = class extends Error {
+        /** 1-based row in the pasted text, or null when the failure is not row-specific. */
+        row;
+        constructor(message, row = null) {
+          super(message);
+          this.name = "SegmentationImportError";
+          this.row = row;
+        }
+      };
+      var parseDelimitedRows = (text) => text.replace(/\r\n?/g, "\n").split("\n").map((row) => row.split(SEGMENTATION_DELIMITER).filter((segment) => segment.length > 0));
+      var parseJsonRows = (text) => {
+        let parsed;
+        try {
+          parsed = JSON.parse(text);
+        } catch {
+          throw new SegmentationImportError("invalid-json");
+        }
+        const rows = Array.isArray(parsed) ? parsed : parsed?.lines;
+        if (!Array.isArray(rows) || !rows.every((row) => Array.isArray(row) && row.every((segment) => typeof segment === "string"))) {
+          throw new SegmentationImportError("invalid-json-shape");
+        }
+        return rows;
+      };
+      var parseSegmentationImport = (text, lyrics) => {
+        const normalized = text.replace(/\r\n?/g, "\n");
+        const trimmed = normalized.trim();
+        if (!trimmed) {
+          throw new SegmentationImportError("empty");
+        }
+        const fenced = /^```[^\n]*\n([\s\S]*?)\n?```$/.exec(trimmed);
+        const content = fenced ? fenced[1] : normalized;
+        const isJson = /^[\[{]/.test(content.trimStart());
+        let rows = isJson ? parseJsonRows(content.trim()) : parseDelimitedRows(content);
+        const segmentableLines = lyrics.lines.filter((line) => Boolean(line.fullText));
+        const coversKnownLines = () => rows.length === lyrics.lines.length || rows.length === segmentableLines.length;
+        if (!isJson && !coversKnownLines()) {
+          const nonblankRows = rows.filter((row) => row.join("").trim() !== "");
+          if (nonblankRows.length === segmentableLines.length) rows = nonblankRows;
+        }
+        if (!coversKnownLines()) {
+          throw new SegmentationImportError("line-count-mismatch");
+        }
+        const targetLines = rows.length === lyrics.lines.length ? lyrics.lines : segmentableLines;
+        const lines = {};
+        let appliedCount = 0;
+        rows.forEach((boundaries, index) => {
+          const line = targetLines[index];
+          if (!line.fullText) {
+            if (boundaries.join("")) throw new SegmentationImportError("line-text-mismatch", index + 1);
+            return;
+          }
+          const realigned = realignSegmentsToText(boundaries, line.fullText);
+          if (!realigned || !isValidWordSegmentation(line.fullText, realigned)) {
+            throw new SegmentationImportError("line-text-mismatch", index + 1);
+          }
+          lines[getLyricLineSegmentationKey(line)] = realigned;
+          appliedCount += 1;
+        });
+        if (appliedCount === 0) {
+          throw new SegmentationImportError("empty");
+        }
+        return { lines, appliedCount };
       };
 
       // src/render/lyrics/entry.ts
@@ -137718,6 +138095,10 @@ window.__ModuleLoader__.load({
             lines: lines.length,
             wordLevel: wordLines,
             hasAudio: typeof document !== 'undefined' && document.querySelector('audio.mp-audio-host') !== null,
+            primaryColor: theme && theme.primaryColor ? String(theme.primaryColor) : '',
+            accentColor: theme && theme.accentColor ? String(theme.accentColor) : '',
+            secondaryColor: theme && theme.secondaryColor ? String(theme.secondaryColor) : '',
+            wordColors: theme && Array.isArray(theme.wordColors) ? theme.wordColors.length : 0,
             first: lines[0]
               ? {
                   start: lines[0].startTime,
@@ -158823,10 +159204,29 @@ window.__ModuleLoader__.load({
         })
         .join('\n')
 
+      // The parsed document the lines on screen came from, before the display-time pass:
+      // a change of the listener's line rules re-runs that pass on it (Folia's setter does
+      // the same, and its `lyricsBeforeRules` keeps the pre-rule lines for exactly this).
+      var lyricDocRef = useRef(null)
+      var lyricRulesKey = mpLyricRulesKey()
+      // Folia loads icu-folia's engines lazily and re-bakes the shown lyrics when they land.
+      // Armed with the first document that can carry a split; the reload is a module-level
+      // one-shot (a per-run flag would re-arm every pass and loop: see the note in CHANGELOG).
+      function armIcuFolia() {
+        ensureIcuFoliaData().then(function (ready) {
+          if (!ready || icuFoliaRebaked) return
+          icuFoliaRebaked = true
+          setLyricReload(function (value) {
+            return value + 1
+          })
+        })
+      }
+
       useEffect(
         function () {
           if (props.open !== true || trackPath === '') return undefined
           var cancelled = false
+          lyricDocRef.current = null
           setLyrics([])
           setLyricSource('')
           setChorusSec(null)
@@ -158836,6 +159236,17 @@ window.__ModuleLoader__.load({
           async function load() {
             try {
               if (current.onlineProvider) {
+                // The native chorus window is part of the display pass (Folia marks the hook
+                // lines with the provider's own ranges), so ask for it alongside the lyrics.
+                var chorusPromise = getJson(
+                  API +
+                    'online/chorus?provider=' +
+                    encodeURIComponent(current.onlineProvider) +
+                    '&id=' +
+                    encodeURIComponent(current.onlineId || ''),
+                ).catch(function () {
+                  return null
+                })
                 var body = await getJson(
                   API +
                     'online/lyric?provider=' +
@@ -158853,61 +159264,39 @@ window.__ModuleLoader__.load({
                     '&duration=' +
                     encodeURIComponent(String(current.durationSec || 0)),
                 )
+                var chorusBody = await chorusPromise
+                var chorusRanges = mpChorusRanges(chorusBody)
+                if (!cancelled) {
+                  setChorusSec(
+                    chorusBody && chorusBody.chorus ? Number(chorusBody.chorus.startSec) || null : null,
+                  )
+                }
                 // Folia's pipeline when the Host sent the raw source (cache v6+): it parses
                 // LRC / enhanced LRC / YRC / QRC / KRC / TTML itself, with word timing and
                 // credits policy. The old ad-hoc parse stays as the fallback.
-                var pureMusicNotice = false
-                var lines = null
                 var usedFolia = false
-                // Folia loads icu-folia's engines lazily and re-bakes the shown lyrics when they
-                // land. Fire the load with the first online lyric; if the engines were not ready
-                // for this pass, re-run the effect ONCE to bake them.
-                //
-                // The reload must be a module-level one-shot: a per-run flag would be false at the
-                // time an already-resolved loader promise fires (the parse above is still awaiting),
-                // so every run would reload again — an endless fetch/parse/setLyrics loop that
-                // restarts the visualizers (style flash, jitter, empty layouts).
-                var icuLoad = ensureIcuFoliaData()
-                icuLoad.then(function (ready) {
-                  if (!ready || icuFoliaRebaked) return
-                  icuFoliaRebaked = true
-                  setLyricReload(function (value) {
-                    return value + 1
-                  })
-                })
+                var shown = null
                 if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
                   try {
+                    // icu-folia's split is the default for every line this document carries.
+                    armIcuFolia()
                     var document = await MPFoliaLyrics.parse(body.raw, {
                       songId: Number(current.onlineId) || 0,
                     })
-                    // Folia's display-time pass: staff-credit policy, then chorus decoration.
-                    if (document && typeof MPFoliaLyrics.prepare === 'function') {
-                      document = MPFoliaLyrics.prepare(document, { policy: 'smart', rules: lyricFilterRules() })
-                    }
-                    // A lyric that is only "纯音乐，请欣赏" is no lyric at all (Folia's setter
-                    // treats it that way, so the visualizer takes its pure-music path).
-                    if (document && typeof MPFoliaLyrics.isPureMusicLyricLines === 'function'
-                      && MPFoliaLyrics.isPureMusicLyricLines(document.lines)) {
-                      document = null
-                      pureMusicNotice = true
-                    }
-                    // Folia bakes icu-folia's word boundaries after the display-time pass.
-                    if (document && typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
-                      && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
-                      document = MPFoliaLyrics.applyAutoWordSegmentation(document)
-                    }
                     if (document && Array.isArray(document.lines) && document.lines.length > 0) {
-                      // Folia's own lines, verbatim: no renderer shape in between.
-                      lines = foliaLyricLines(document)
+                      // Keep the parsed document: the display-time pass below, and again whenever
+                      // the listener's line rules change, runs on this rather than a new fetch.
+                      lyricDocRef.current = { path: trackPath, document: document, chorusRanges: chorusRanges }
+                      shown = mpPrepareLyrics(document, trackPath, chorusRanges)
                       usedFolia = true
                     }
                   } catch (error) {
-                    lines = null
+                    shown = null
                   }
                 }
-                if (pureMusicNotice) {
-                  lines = []
-                } else if (lines === null) {
+                var lines = shown === null ? null : shown.lyrics
+                if (shown === null) {
+                  lyricDocRef.current = null
                   lines = parseLrcText(body.lrc || '')
                   if (body.translation) mergeLyricTranslation(lines, body.translation)
                   // Word-level timeline (only present when the platform has one).
@@ -158959,34 +159348,39 @@ window.__ModuleLoader__.load({
                   // Folia restores the song's last manual offset instead of resetting it.
                   setOffsetMs(readSavedLyricOffset(trackPath))
                 }
-                // The chorus window powers the "jump to hook" control; absent when the
-                // platform or the track has none.
-                try {
-                  var chorusBody = await getJson(
-                    API +
-                      'online/chorus?provider=' +
-                      encodeURIComponent(current.onlineProvider) +
-                      '&id=' +
-                      encodeURIComponent(current.onlineId || ''),
-                  )
-                  if (!cancelled) {
-                    setChorusSec(
-                      chorusBody && chorusBody.chorus
-                        ? Number(chorusBody.chorus.startSec) || null
-                        : null,
-                    )
-                  }
-                } catch (chorusError) {
-                  if (!cancelled) setChorusSec(null)
-                }
+                // `chorusRanges` above already marked the hook lines and filled `chorusSec`
+                // for the "jump to hook" control; nothing else is awaited for this track.
                 return
               }
               var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
               var local = await getJson(
                 API + 'lyrics?path=' + encodeURIComponent(current.path) + '&order=' + encodeURIComponent(order),
               )
+              // Local files take the same pipeline as online ones: the Host hands over the
+              // file's own text (LRC / enhanced LRC / TTML / VTT / QRC / YRC / KRC / .fia),
+              // so word timing, credits policy and icu-folia's split all apply here too.
+              var localShown = null
+              var localRaw = mpLocalRawSource(local)
+              if (localRaw !== null && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
+                try {
+                  armIcuFolia()
+                  var localDoc = await MPFoliaLyrics.parse(localRaw, { songId: 0 })
+                  if (localDoc && Array.isArray(localDoc.lines) && localDoc.lines.length > 0) {
+                    lyricDocRef.current = { path: trackPath, document: localDoc, chorusRanges: [] }
+                    localShown = mpPrepareLyrics(localDoc, trackPath, [])
+                  }
+                } catch (error) {
+                  localShown = null
+                }
+              }
+              if (localShown === null) {
+                lyricDocRef.current = null
+                // Untimed text (a plain tag or a sidecar without stamps) has no timeline to
+                // parse: it keeps the Host's own lines, as it always did.
+                localShown = { lyrics: Array.isArray(local.lines) ? local.lines : [], pureMusic: false }
+              }
               if (!cancelled) {
-                setLyrics(Array.isArray(local.lines) ? local.lines : [])
+                setLyrics(localShown.lyrics)
                 setLyricSource(String(local.source || ''))
                 // The host's file-level offset is the primary for local tracks; the
                 // remembered one covers tracks whose offset never reached the file.
@@ -159004,6 +159398,18 @@ window.__ModuleLoader__.load({
           }
         },
         [props.open, trackPath, lyricReload, lyricOrderKey],
+      )
+
+      // A change of the listener's line rules re-runs the display pass on the document the
+      // lines on screen came from. Folia's setter does the same: the rules run on the
+      // pre-rule lines, so changing one never needs another fetch or another parse.
+      useEffect(
+        function () {
+          var saved = lyricDocRef.current
+          if (saved === null || saved.path !== trackPath) return
+          setLyrics(mpPrepareLyrics(saved.document, saved.path, saved.chorusRanges).lyrics)
+        },
+        [lyricRulesKey],
       )
 
       var lyricNow = time.currentTime - offsetMs / 1000

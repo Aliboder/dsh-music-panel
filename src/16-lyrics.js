@@ -332,3 +332,141 @@ function ensureIcuFoliaData() {
     })
   return icuFoliaPromise
 }
+
+// ── saved word segmentation (one record per song) ─────────────────────
+// Folia keeps this in IndexedDB behind a service; the plugin's convention is one
+// localStorage map, as lyricOffsetMemory does for the timeline offset. The record
+// shape and the baking are Folia's own (lyricSegmentationRecord.ts), so a record has
+// the same meaning in both apps: line key -> the boundaries that rejoin to its text.
+var LYRIC_SEGMENTATION_KEY = 'lyric_segmentations'
+var LYRIC_SEGMENTATION_MAX = 300
+
+function lyricSegmentationMap() {
+  var map = {}
+  if (typeof window === 'undefined') return map
+  try {
+    var raw = window.localStorage.getItem(LYRIC_SEGMENTATION_KEY)
+    var parsed = raw === null ? null : JSON.parse(raw)
+    if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) map = parsed
+  } catch (error) {
+    map = {}
+  }
+  return map
+}
+
+function writeLyricSegmentationMap(map) {
+  if (typeof window === 'undefined') return
+  var keys = Object.keys(map)
+  if (keys.length > LYRIC_SEGMENTATION_MAX) {
+    keys
+      .sort(function (left, right) {
+        return (Number(map[left] && map[left].updatedAt) || 0) - (Number(map[right] && map[right].updatedAt) || 0)
+      })
+      .slice(0, keys.length - LYRIC_SEGMENTATION_MAX)
+      .forEach(function (key) {
+        delete map[key]
+      })
+  }
+  try {
+    window.localStorage.setItem(LYRIC_SEGMENTATION_KEY, JSON.stringify(map))
+  } catch (error) {
+    // Storage full or blocked: the lyrics in this session keep the split until a reload.
+  }
+}
+
+/** This song's saved segmentation record, or null when it has none (or it is malformed). */
+function readLyricSegmentation(songKey) {
+  if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return null
+  if (typeof MPFoliaLyrics.isLyricSegmentationRecord !== 'function') return null
+  var key = String(songKey || '')
+  if (key === '') return null
+  var record = lyricSegmentationMap()[key]
+  return MPFoliaLyrics.isLyricSegmentationRecord(record) ? record : null
+}
+
+/** Save (or, with null, forget) this song's segmentation. Returns what is now stored. */
+function saveLyricSegmentation(songKey, boundaries) {
+  var key = String(songKey || '')
+  if (key === '' || typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return null
+  var map = lyricSegmentationMap()
+  if (boundaries === null) {
+    delete map[key]
+    writeLyricSegmentationMap(map)
+    return null
+  }
+  var record = MPFoliaLyrics.createLyricSegmentationRecord(key, 'manual', boundaries)
+  map[key] = record
+  writeLyricSegmentationMap(map)
+  return record
+}
+
+// ── one place where lyrics become what the visualizers draw ───────────
+// Folia's `createLyricsSetter` order: line rules -> staff-credit policy -> chorus
+// decoration -> the listener's saved segmentation -> icu-folia's default split.
+// Everything ahead of the word split is a display decision taken on the finished
+// timeline, so it runs again whenever the listener changes a rule (no re-fetch).
+
+/** Chorus ranges from the Host's `/online/chorus` answer (empty when unknown). */
+function mpChorusRanges(body) {
+  var chorus = body && body.chorus ? body.chorus : null
+  if (chorus === null || typeof chorus !== 'object') return []
+  var start = Number(chorus.startSec)
+  var end = Number(chorus.endSec)
+  if (!isFinite(start) || !isFinite(end) || start < 0 || end <= start) return []
+  return [{ startTime: start, endTime: end }]
+}
+
+/** A signature of the listener's line rules, so a change re-runs the display pass. */
+function mpLyricRulesKey() {
+  var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
+  var presets = Array.isArray(state.lyricFilterPresets) ? state.lyricFilterPresets : []
+  return presets.join(',') + '\u0000' + String(state.lyricFilterWords || '')
+}
+
+/**
+ * The Host's raw text as Folia's local-file source (LRC / enhanced LRC / TTML / VTT /
+ * QRC / YRC / KRC / .fia), or null when there is nothing to parse.
+ */
+function mpLocalRawSource(body) {
+  if (!body || typeof body.raw !== 'string' || body.raw === '') return null
+  return {
+    type: 'local',
+    lrcContent: body.raw,
+    ...(typeof body.translation === 'string' && body.translation !== '' ? { tLrcContent: body.translation } : {}),
+    ...(typeof body.formatHint === 'string' && body.formatHint !== '' ? { formatHint: body.formatHint } : {}),
+  }
+}
+
+/**
+ * The display-time pass over one parsed Folia document.
+ * @returns {{ lyrics: Array<object>, pureMusic: boolean }}
+ */
+function mpPrepareLyrics(document, songKey, chorusRanges) {
+  if (!document || typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) {
+    return { lyrics: [], pureMusic: false }
+  }
+  var next = document
+  if (typeof MPFoliaLyrics.prepare === 'function') {
+    next = MPFoliaLyrics.prepare(next, {
+      policy: 'smart',
+      rules: lyricFilterRules(),
+      chorusRanges: Array.isArray(chorusRanges) ? chorusRanges : [],
+    })
+  }
+  if (!next) return { lyrics: [], pureMusic: false }
+  // A lyric that is only "纯音乐，请欣赏" is no lyric at all (Folia's setter agrees).
+  if (typeof MPFoliaLyrics.isPureMusicLyricLines === 'function'
+    && MPFoliaLyrics.isPureMusicLyricLines(next.lines)) {
+    return { lyrics: [], pureMusic: true }
+  }
+  // The listener's saved split for this song, then icu-folia's default for the rest.
+  var record = readLyricSegmentation(songKey)
+  if (record !== null && typeof MPFoliaLyrics.applyLyricWordSegmentation === 'function') {
+    next = MPFoliaLyrics.applyLyricWordSegmentation(next, record)
+  }
+  if (typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
+    && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
+    next = MPFoliaLyrics.applyAutoWordSegmentation(next)
+  }
+  return { lyrics: foliaLyricLines(next), pureMusic: false }
+}

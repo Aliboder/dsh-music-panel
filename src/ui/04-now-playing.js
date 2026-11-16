@@ -1978,10 +1978,29 @@ function NowPlaying(props) {
     })
     .join('\n')
 
+  // The parsed document the lines on screen came from, before the display-time pass:
+  // a change of the listener's line rules re-runs that pass on it (Folia's setter does
+  // the same, and its `lyricsBeforeRules` keeps the pre-rule lines for exactly this).
+  var lyricDocRef = useRef(null)
+  var lyricRulesKey = mpLyricRulesKey()
+  // Folia loads icu-folia's engines lazily and re-bakes the shown lyrics when they land.
+  // Armed with the first document that can carry a split; the reload is a module-level
+  // one-shot (a per-run flag would re-arm every pass and loop: see the note in CHANGELOG).
+  function armIcuFolia() {
+    ensureIcuFoliaData().then(function (ready) {
+      if (!ready || icuFoliaRebaked) return
+      icuFoliaRebaked = true
+      setLyricReload(function (value) {
+        return value + 1
+      })
+    })
+  }
+
   useEffect(
     function () {
       if (props.open !== true || trackPath === '') return undefined
       var cancelled = false
+      lyricDocRef.current = null
       setLyrics([])
       setLyricSource('')
       setChorusSec(null)
@@ -1991,6 +2010,17 @@ function NowPlaying(props) {
       async function load() {
         try {
           if (current.onlineProvider) {
+            // The native chorus window is part of the display pass (Folia marks the hook
+            // lines with the provider's own ranges), so ask for it alongside the lyrics.
+            var chorusPromise = getJson(
+              API +
+                'online/chorus?provider=' +
+                encodeURIComponent(current.onlineProvider) +
+                '&id=' +
+                encodeURIComponent(current.onlineId || ''),
+            ).catch(function () {
+              return null
+            })
             var body = await getJson(
               API +
                 'online/lyric?provider=' +
@@ -2008,61 +2038,39 @@ function NowPlaying(props) {
                 '&duration=' +
                 encodeURIComponent(String(current.durationSec || 0)),
             )
+            var chorusBody = await chorusPromise
+            var chorusRanges = mpChorusRanges(chorusBody)
+            if (!cancelled) {
+              setChorusSec(
+                chorusBody && chorusBody.chorus ? Number(chorusBody.chorus.startSec) || null : null,
+              )
+            }
             // Folia's pipeline when the Host sent the raw source (cache v6+): it parses
             // LRC / enhanced LRC / YRC / QRC / KRC / TTML itself, with word timing and
             // credits policy. The old ad-hoc parse stays as the fallback.
-            var pureMusicNotice = false
-            var lines = null
             var usedFolia = false
-            // Folia loads icu-folia's engines lazily and re-bakes the shown lyrics when they
-            // land. Fire the load with the first online lyric; if the engines were not ready
-            // for this pass, re-run the effect ONCE to bake them.
-            //
-            // The reload must be a module-level one-shot: a per-run flag would be false at the
-            // time an already-resolved loader promise fires (the parse above is still awaiting),
-            // so every run would reload again — an endless fetch/parse/setLyrics loop that
-            // restarts the visualizers (style flash, jitter, empty layouts).
-            var icuLoad = ensureIcuFoliaData()
-            icuLoad.then(function (ready) {
-              if (!ready || icuFoliaRebaked) return
-              icuFoliaRebaked = true
-              setLyricReload(function (value) {
-                return value + 1
-              })
-            })
+            var shown = null
             if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
               try {
+                // icu-folia's split is the default for every line this document carries.
+                armIcuFolia()
                 var document = await MPFoliaLyrics.parse(body.raw, {
                   songId: Number(current.onlineId) || 0,
                 })
-                // Folia's display-time pass: staff-credit policy, then chorus decoration.
-                if (document && typeof MPFoliaLyrics.prepare === 'function') {
-                  document = MPFoliaLyrics.prepare(document, { policy: 'smart', rules: lyricFilterRules() })
-                }
-                // A lyric that is only "纯音乐，请欣赏" is no lyric at all (Folia's setter
-                // treats it that way, so the visualizer takes its pure-music path).
-                if (document && typeof MPFoliaLyrics.isPureMusicLyricLines === 'function'
-                  && MPFoliaLyrics.isPureMusicLyricLines(document.lines)) {
-                  document = null
-                  pureMusicNotice = true
-                }
-                // Folia bakes icu-folia's word boundaries after the display-time pass.
-                if (document && typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
-                  && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
-                  document = MPFoliaLyrics.applyAutoWordSegmentation(document)
-                }
                 if (document && Array.isArray(document.lines) && document.lines.length > 0) {
-                  // Folia's own lines, verbatim: no renderer shape in between.
-                  lines = foliaLyricLines(document)
+                  // Keep the parsed document: the display-time pass below, and again whenever
+                  // the listener's line rules change, runs on this rather than a new fetch.
+                  lyricDocRef.current = { path: trackPath, document: document, chorusRanges: chorusRanges }
+                  shown = mpPrepareLyrics(document, trackPath, chorusRanges)
                   usedFolia = true
                 }
               } catch (error) {
-                lines = null
+                shown = null
               }
             }
-            if (pureMusicNotice) {
-              lines = []
-            } else if (lines === null) {
+            var lines = shown === null ? null : shown.lyrics
+            if (shown === null) {
+              lyricDocRef.current = null
               lines = parseLrcText(body.lrc || '')
               if (body.translation) mergeLyricTranslation(lines, body.translation)
               // Word-level timeline (only present when the platform has one).
@@ -2114,34 +2122,39 @@ function NowPlaying(props) {
               // Folia restores the song's last manual offset instead of resetting it.
               setOffsetMs(readSavedLyricOffset(trackPath))
             }
-            // The chorus window powers the "jump to hook" control; absent when the
-            // platform or the track has none.
-            try {
-              var chorusBody = await getJson(
-                API +
-                  'online/chorus?provider=' +
-                  encodeURIComponent(current.onlineProvider) +
-                  '&id=' +
-                  encodeURIComponent(current.onlineId || ''),
-              )
-              if (!cancelled) {
-                setChorusSec(
-                  chorusBody && chorusBody.chorus
-                    ? Number(chorusBody.chorus.startSec) || null
-                    : null,
-                )
-              }
-            } catch (chorusError) {
-              if (!cancelled) setChorusSec(null)
-            }
+            // `chorusRanges` above already marked the hook lines and filled `chorusSec`
+            // for the "jump to hook" control; nothing else is awaited for this track.
             return
           }
           var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
           var local = await getJson(
             API + 'lyrics?path=' + encodeURIComponent(current.path) + '&order=' + encodeURIComponent(order),
           )
+          // Local files take the same pipeline as online ones: the Host hands over the
+          // file's own text (LRC / enhanced LRC / TTML / VTT / QRC / YRC / KRC / .fia),
+          // so word timing, credits policy and icu-folia's split all apply here too.
+          var localShown = null
+          var localRaw = mpLocalRawSource(local)
+          if (localRaw !== null && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
+            try {
+              armIcuFolia()
+              var localDoc = await MPFoliaLyrics.parse(localRaw, { songId: 0 })
+              if (localDoc && Array.isArray(localDoc.lines) && localDoc.lines.length > 0) {
+                lyricDocRef.current = { path: trackPath, document: localDoc, chorusRanges: [] }
+                localShown = mpPrepareLyrics(localDoc, trackPath, [])
+              }
+            } catch (error) {
+              localShown = null
+            }
+          }
+          if (localShown === null) {
+            lyricDocRef.current = null
+            // Untimed text (a plain tag or a sidecar without stamps) has no timeline to
+            // parse: it keeps the Host's own lines, as it always did.
+            localShown = { lyrics: Array.isArray(local.lines) ? local.lines : [], pureMusic: false }
+          }
           if (!cancelled) {
-            setLyrics(Array.isArray(local.lines) ? local.lines : [])
+            setLyrics(localShown.lyrics)
             setLyricSource(String(local.source || ''))
             // The host's file-level offset is the primary for local tracks; the
             // remembered one covers tracks whose offset never reached the file.
@@ -2159,6 +2172,18 @@ function NowPlaying(props) {
       }
     },
     [props.open, trackPath, lyricReload, lyricOrderKey],
+  )
+
+  // A change of the listener's line rules re-runs the display pass on the document the
+  // lines on screen came from. Folia's setter does the same: the rules run on the
+  // pre-rule lines, so changing one never needs another fetch or another parse.
+  useEffect(
+    function () {
+      var saved = lyricDocRef.current
+      if (saved === null || saved.path !== trackPath) return
+      setLyrics(mpPrepareLyrics(saved.document, saved.path, saved.chorusRanges).lyrics)
+    },
+    [lyricRulesKey],
   )
 
   var lyricNow = time.currentTime - offsetMs / 1000
