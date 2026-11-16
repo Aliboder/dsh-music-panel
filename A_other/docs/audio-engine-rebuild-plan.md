@@ -201,19 +201,43 @@ node scripts/build-client.mjs --check
 
 ### P4 替换 `player.js` 内部（高风险）
 
-- `load()` 只负责取 Blob/URL，然后交给 engine。
-- 删除 `ensureAnalyser` 内联图、`trimNode`、`limiterNode`、`preampNode`、`eqNodes`、`balanceMeter` 的建图代码。
-- `setReplayGain` / `setNormalize` 改为 engine 的 balance API。
-- `setEq` 改为 Folia EQ settings。
-- `pause` / `play` / `next` / `prev` / `seek` 接 fade controller。
-- crossfade 的 `prepareCrossfade` / `beginCrossfadePlayback` / `swapDecks` 删除，交给 engine/automix。
-- 保留：队列、顺序、循环、恢复、统计、错误、Media Session 外壳、leader 选举。
+#### P4 替换映射
 
-**Gate**：
+| 旧实现 | 新实现 |
+|---|---|
+| `attachAudio` + `ensureSecondary` | `createFoliaGraph` + `createFoliaTransport` |
+| `ensureAnalyser` 内联建图 | `graph.ensure()` |
+| `getWave` | `graph.getWave()` |
+| `setVolume` / `setMuted` | `graph.setVolume` / `setMuted` |
+| `setEq` + `eqNodes` | `graph.setEq` + Folia EQ settings |
+| `trimNode` / `preampNode` / `limiterNode` | 删除；Folia deck `replayGain`/`trim`/`tone`/`fade` |
+| `setReplayGain` / `setTagGain` / `setNormalize` | 接 Folia `chooseBalance`；先由 transport 写每 deck `replayGain` |
+| `load()` 里设 `audio.src` | 保留 Blob 获取；交给 `transport.load(deck, url, { autoplay:false })` |
+| `play()` / `pause()` / `seek()` | `transport.play` / `pause` / `seek` |
+| `prepareCrossfade` / `beginCrossfadePlayback` / `swapDecks` / `adoptIncoming` | `transport.crossfadeTo`（P6a 再补齐 tone/echo） |
+| `bind` / `unbind` 的媒体事件 | `transport` 的 `onState` / `onTime` / `onError` / `onEnded` |
+| `audio` 变量 | `transport.getDeckState(activeDeck)` + `graph.getDeckElement(activeDeck)`（只读时） |
+| `balanceMeter` / `createBalanceMeter` | Folia 每 deck meter；transport 暴露 `getBalanceMeter(deck)` |
+| `analyzeLoudnessBlob` / `balanceMeter` 学习 | Folia `createBalancePlay` + `noteWholeReading`；不再离线解码整曲 |
+
+#### P4 执行顺序
+
+1. **先加 transport 的增益接口**：`setDeckReplayGain(deck, db)`、`setDeckTrim(deck, db)`、`getBalanceMeter(deck)`、`getDeckAnalyser(deck)`。
+2. **替换 `attachAudio`**：创建 graph + transport；把 `audioA` 交给 graph，spare deck 由 graph 创建。
+3. **替换图相关 API**：`ensureAnalyser`、`getWave`、`setVolume`、`setMuted`、`setEq` 先切到新 graph，旧图变量删除。
+4. **替换 `load` 的落点**：Blob 仍由 `player.js` 获取，`audio.src` 改为 `transport.load`；`autoplay` 仍走 `playAfterLoudness` 的时机。
+5. **替换传输**：`play` / `pause` / `seek` / `next` / `prev` 走 transport；保留队列/统计/恢复逻辑。
+6. **替换事件**：用 transport 回调驱动 `onTime` / `onPlay` / `onPause` / `onEnded` / `onError` 的现有状态逻辑；删除 `bind` / `unbind`。
+7. **替换 crossfade**：先接 `transport.crossfadeTo` 的固定曲线；P6a 再加 tone/echo 和完整规划。
+8. **删除旧图代码**：`trimNode`、`limiterNode`、`preampNode`、`eqNodes`、`buildEqNodes`、`applyEq`、`applyTrimGain`、`applyNormalizeGain`、`balanceMeter`、`createBalanceMeter` 调用。
+9. **保留**：队列、顺序、循环、恢复、统计、错误、Media Session 外壳、leader 选举。
+
+#### P4 Gate
 
 - 旧图代码完全删除，没有第二套增益。
 - 切歌、暂停、seek、crossfade 手工通过。
 - 全量测试通过。
+- 真实本地/在线各一首播放正常。
 
 ### P5 音频 UI/设置对齐
 
