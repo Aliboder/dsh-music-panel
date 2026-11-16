@@ -153,6 +153,8 @@ var THEME_CSS = [
   '@media (max-width:620px){.mp-playlist-grid{grid-template-columns:1fr}}',
   '.mp-content-head{display:flex;align-items:center;gap:12px;padding:10px 22px 6px;min-height:0;flex:none}',
   '.mp-title{margin:0;font-size:20px;font-weight:650;letter-spacing:-.015em;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+  '.mp-title-link{padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}',
+  '.mp-title-link:hover{text-decoration:underline}',
   '.mp-count{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding-bottom:3px;font-variant-numeric:tabular-nums;white-space:nowrap}',
   '.mp-sel-count{margin-left:2px;padding:2px 9px;border-radius:999px;font-size:12px;line-height:18px;color:var(--dsw-alias-state-business-primary,#7AAAFF);background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
   '.mp-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px;flex:none}',

@@ -354,6 +354,18 @@ function OnlineContent(props) {
     uiStore.set({ nav: 'artist', filter: null, query: '' })
   }
 
+  function openArtistPage(id, name) {
+    var artistId = String(id || '')
+    if (artistId === '') return
+    onlineStore.set({
+      artistName: String(name || ''),
+      artistProvider: provider,
+      artistFrom: 'artistSongs',
+    })
+    setBrowseId(artistId)
+    uiStore.set({ nav: 'artist', filter: null, query: '' })
+  }
+
   var title = t('v2.recent')
   var count = 0
   var actions = null
@@ -648,6 +660,37 @@ function OnlineContent(props) {
         t('v2.back'),
       ),
     ]
+    var artistPageId = String(online.artistId || '')
+    if (artistPageId === '') {
+      for (var artistRowIndex = 0; artistRowIndex < artistTracks.length; artistRowIndex += 1) {
+        var artistDetails = Array.isArray(artistTracks[artistRowIndex].artistsDetail)
+          ? artistTracks[artistRowIndex].artistsDetail
+          : []
+        for (var artistDetailIndex = 0; artistDetailIndex < artistDetails.length; artistDetailIndex += 1) {
+          if (String(artistDetails[artistDetailIndex].name || '') === String(online.artistName || '')) {
+            artistPageId = String(artistDetails[artistDetailIndex].id || '')
+            break
+          }
+        }
+        if (artistPageId !== '') break
+      }
+    }
+    if (artistPageId !== '') {
+      actions = [
+        h(
+          Button,
+          {
+            key: 'artist-page',
+            variant: 'ghost',
+            icon: 'user',
+            onClick: function () {
+              openArtistPage(artistPageId, online.artistName)
+            },
+          },
+          t('online.artistHome'),
+        ),
+      ]
+    }
     if (online.artistPhase === 'loading') {
       body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
     } else if (online.artistPhase === 'error') {
@@ -1044,6 +1087,12 @@ function OnlineContent(props) {
       key: 'head',
       title: title,
       count: count,
+      onTitleClick:
+        nav === 'artistSongs' && artistPageId
+          ? function () {
+              openArtistPage(artistPageId, online.artistName)
+            }
+          : undefined,
       onAll: function () {
         selectAllIn(onlineSelectionList)
       },

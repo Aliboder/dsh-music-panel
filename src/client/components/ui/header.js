@@ -207,7 +207,18 @@ function ContentHeader(props) {
   return h(
     'header',
     { className: 'mp-content-head' },
-    h('h1', { className: 'mp-title', title: props.title }, props.title),
+    typeof props.onTitleClick === 'function'
+      ? h(
+          'button',
+          {
+            type: 'button',
+            className: 'mp-title mp-title-link',
+            title: props.title,
+            onClick: props.onTitleClick,
+          },
+          props.title,
+        )
+      : h('h1', { className: 'mp-title', title: props.title }, props.title),
     h('span', { className: 'mp-count' }, props.count > 0 ? t('page.trackCountUnit', { n: props.count }) : ''),
     props.selecting === true && (props.selectedCount || 0) > 0
       ? h('span', { className: 'mp-sel-count' }, t('page.selectedCount', { n: props.selectedCount }))

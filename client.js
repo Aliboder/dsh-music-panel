@@ -6969,6 +6969,7 @@ window.__ModuleLoader__.load({
         'online.qrSecure': '登录信息仅保存在本机',
         'online.qrRefresh': '刷新二维码',
         'online.artistSongs': '热门歌曲',
+        'online.artistHome': '歌手主页',
         'online.restartService': '重启本地服务',
         'online.restartingService': '正在重启…',
         'online.loginTitle': '登录 {provider}',
@@ -7566,6 +7567,7 @@ window.__ModuleLoader__.load({
         'online.qrSecure': 'Credentials stay on this device',
         'online.qrRefresh': 'Refresh QR code',
         'online.artistSongs': 'Top songs',
+        'online.artistHome': 'Artist page',
         'online.restartService': 'Restart local service',
         'online.restartingService': 'Restarting…',
         'online.loginTitle': 'Sign in to {provider}',
@@ -155724,6 +155726,7 @@ window.__ModuleLoader__.load({
       artistName: '',
       artistProvider: '',
       artistFrom: '',
+      artistId: '',
       artistSongs: [],
       artistPhase: 'idle',
       artistError: '',
@@ -156080,6 +156083,7 @@ window.__ModuleLoader__.load({
         artistName: artist,
         artistProvider: provider,
         artistFrom: from,
+        artistId: artistId,
         artistSongs: [],
         artistPhase: 'loading',
         artistError: '',
@@ -157304,6 +157308,8 @@ window.__ModuleLoader__.load({
       '@media (max-width:620px){.mp-playlist-grid{grid-template-columns:1fr}}',
       '.mp-content-head{display:flex;align-items:center;gap:12px;padding:10px 22px 6px;min-height:0;flex:none}',
       '.mp-title{margin:0;font-size:20px;font-weight:650;letter-spacing:-.015em;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-title-link{padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}',
+      '.mp-title-link:hover{text-decoration:underline}',
       '.mp-count{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding-bottom:3px;font-variant-numeric:tabular-nums;white-space:nowrap}',
       '.mp-sel-count{margin-left:2px;padding:2px 9px;border-radius:999px;font-size:12px;line-height:18px;color:var(--dsw-alias-state-business-primary,#7AAAFF);background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
       '.mp-head-actions{margin-left:auto;display:flex;align-items:center;gap:6px;flex:none}',
@@ -167289,6 +167295,18 @@ window.__ModuleLoader__.load({
         uiStore.set({ nav: 'artist', filter: null, query: '' })
       }
 
+      function openArtistPage(id, name) {
+        var artistId = String(id || '')
+        if (artistId === '') return
+        onlineStore.set({
+          artistName: String(name || ''),
+          artistProvider: provider,
+          artistFrom: 'artistSongs',
+        })
+        setBrowseId(artistId)
+        uiStore.set({ nav: 'artist', filter: null, query: '' })
+      }
+
       var title = t('v2.recent')
       var count = 0
       var actions = null
@@ -167583,6 +167601,37 @@ window.__ModuleLoader__.load({
             t('v2.back'),
           ),
         ]
+        var artistPageId = String(online.artistId || '')
+        if (artistPageId === '') {
+          for (var artistRowIndex = 0; artistRowIndex < artistTracks.length; artistRowIndex += 1) {
+            var artistDetails = Array.isArray(artistTracks[artistRowIndex].artistsDetail)
+              ? artistTracks[artistRowIndex].artistsDetail
+              : []
+            for (var artistDetailIndex = 0; artistDetailIndex < artistDetails.length; artistDetailIndex += 1) {
+              if (String(artistDetails[artistDetailIndex].name || '') === String(online.artistName || '')) {
+                artistPageId = String(artistDetails[artistDetailIndex].id || '')
+                break
+              }
+            }
+            if (artistPageId !== '') break
+          }
+        }
+        if (artistPageId !== '') {
+          actions = [
+            h(
+              Button,
+              {
+                key: 'artist-page',
+                variant: 'ghost',
+                icon: 'user',
+                onClick: function () {
+                  openArtistPage(artistPageId, online.artistName)
+                },
+              },
+              t('online.artistHome'),
+            ),
+          ]
+        }
         if (online.artistPhase === 'loading') {
           body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
         } else if (online.artistPhase === 'error') {
@@ -167979,6 +168028,12 @@ window.__ModuleLoader__.load({
           key: 'head',
           title: title,
           count: count,
+          onTitleClick:
+            nav === 'artistSongs' && artistPageId
+              ? function () {
+                  openArtistPage(artistPageId, online.artistName)
+                }
+              : undefined,
           onAll: function () {
             selectAllIn(onlineSelectionList)
           },
@@ -173530,7 +173585,18 @@ window.__ModuleLoader__.load({
       return h(
         'header',
         { className: 'mp-content-head' },
-        h('h1', { className: 'mp-title', title: props.title }, props.title),
+        typeof props.onTitleClick === 'function'
+          ? h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-title mp-title-link',
+                title: props.title,
+                onClick: props.onTitleClick,
+              },
+              props.title,
+            )
+          : h('h1', { className: 'mp-title', title: props.title }, props.title),
         h('span', { className: 'mp-count' }, props.count > 0 ? t('page.trackCountUnit', { n: props.count }) : ''),
         props.selecting === true && (props.selectedCount || 0) > 0
           ? h('span', { className: 'mp-sel-count' }, t('page.selectedCount', { n: props.selectedCount }))
