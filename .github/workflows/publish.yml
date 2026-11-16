@@ -25,7 +25,9 @@ jobs:
       - name: Ensure npm supports trusted publishing
         run: npm install -g npm@latest
       - name: Install dependencies
-        run: npm install --no-audit --no-fund --no-package-lock
+        # npm 12 (installed above for Trusted Publishing) refuses remote tarballs by default;
+        # `kugoumusicapi` is a GitHub tarball, so allow remote specs explicitly.
+        run: npm install --no-audit --no-fund --no-package-lock --allow-remote
       - name: Test
         run: |
           npm test
