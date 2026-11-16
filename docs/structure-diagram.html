@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dsh-music-panel · 目录结构方案</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #151b23;
+    --panel-2: #1b232d;
+    --line: #2b3645;
+    --text: #e6edf3;
+    --muted: #8b98a9;
+    --host: #58a6ff;
+    --client: #3fb950;
+    --shared: #d29922;
+    --folia: #bc8cff;
+    --build: #ff7b72;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(900px 500px at 10% -10%, rgba(88,166,255,.12), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(63,185,80,.10), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font: 14px/1.55 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  }
+  .wrap { max-width: 1440px; margin: 0 auto; padding: 34px 28px 60px; }
+  header { margin-bottom: 26px; }
+  .eyebrow {
+    display: inline-flex; gap: 8px; align-items: center;
+    color: var(--muted); font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--client); box-shadow: 0 0 12px var(--client); }
+  h1 { margin: 10px 0 8px; font-size: clamp(26px, 3.2vw, 42px); letter-spacing: -.02em; }
+  h1 span { color: var(--muted); font-weight: 500; }
+  .lede { margin: 0; color: var(--muted); max-width: 900px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .badge {
+    border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px;
+    color: var(--muted); font-size: 12px; background: rgba(255,255,255,.02);
+  }
+  .badge b { color: var(--text); font-weight: 600; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 250px minmax(0, 1.15fr);
+    gap: 18px;
+    align-items: start;
+  }
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,.025), transparent 42%), var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,.32);
+  }
+  .card__head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,.018);
+  }
+  .card__title { display: flex; align-items: center; gap: 9px; font-weight: 650; letter-spacing: .01em; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; }
+  .host .swatch { background: var(--host); box-shadow: 0 0 16px rgba(88,166,255,.5); }
+  .client .swatch { background: var(--client); box-shadow: 0 0 16px rgba(63,185,80,.5); }
+  .shared .swatch { background: var(--shared); box-shadow: 0 0 16px rgba(210,153,34,.5); }
+  .folia .swatch { background: var(--folia); box-shadow: 0 0 16px rgba(188,140,255,.5); }
+  .card__note { color: var(--muted); font: 11px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .card__body { padding: 12px 14px 16px; }
+
+  .tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+  .tree ul { margin-left: 13px; border-left: 1px dashed var(--line); padding-left: 13px; }
+  .tree li { position: relative; padding: 3px 0; }
+  .tree ul > li::before {
+    content: ""; position: absolute; left: -13px; top: 15px;
+    width: 9px; border-top: 1px dashed var(--line);
+  }
+  .row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .name { font: 12.5px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .dir { color: var(--text); font-weight: 600; }
+  .file { color: #c9d5e1; }
+  .desc { color: var(--muted); font-size: 11.5px; }
+  .tag {
+    display: inline-block; padding: 1px 7px; border-radius: 999px;
+    font-size: 10.5px; line-height: 1.6;
+    border: 1px solid var(--line); color: var(--muted);
+  }
+  .host .tag { border-color: rgba(88,166,255,.35); color: #9dc7ff; }
+  .client .tag { border-color: rgba(63,185,80,.35); color: #8fe39b; }
+  .shared .tag { border-color: rgba(210,153,34,.35); color: #f0c86a; }
+  .folia .tag { border-color: rgba(188,140,255,.35); color: #d8b4ff; }
+
+  .center { display: flex; flex-direction: column; gap: 18px; }
+  .flow { padding: 14px; }
+  .flow__label { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; }
+  .flow__item {
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 11px;
+    background: var(--panel-2); font: 12px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  .flow__item b { color: var(--text); }
+  .flow__item small { display: block; color: var(--muted); font: 11px/1.45 "Segoe UI", "Microsoft YaHei", sans-serif; margin-top: 4px; }
+  .arrow { text-align: center; color: var(--build); font-size: 18px; line-height: 1; margin: 6px 0; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .pill { font-size: 10.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
+
+  .bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+  .mini { padding: 14px 16px; }
+  .mini h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: .04em; }
+  .mini p { margin: 0; color: var(--muted); font-size: 12.5px; }
+  .mapping { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .mapping td {
+    padding: 6px 4px; border-bottom: 1px solid rgba(43,54,69,.7);
+    font: 11.5px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; vertical-align: top;
+  }
+  .mapping td:first-child { color: #b9c6d3; }
+  .mapping td:last-child { color: #8fe39b; }
+  .mapping tr:last-child td { border-bottom: 0; }
+  .arrow-cell { color: var(--build) !important; width: 26px; text-align: center; }
+
+  .rule {
+    margin-top: 18px; border: 1px solid rgba(255,123,114,.28); border-radius: var(--radius);
+    padding: 14px 16px; background: rgba(255,123,114,.045);
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 14px;
+  }
+  .rule h3 { margin: 0 0 6px; font-size: 13px; color: #ffb4ae; }
+  .rule p, .rule li { color: #d8c3c0; font-size: 12.5px; }
+  .rule ul { margin: 0; padding-left: 18px; }
+  .rule li { margin: 3px 0; }
+  .ok { color: #8fe39b; }
+
+  footer { margin-top: 26px; color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: #c9d5e1; }
+  @media (max-width: 1080px) {
+    .grid { grid-template-columns: 1fr; }
+    .center { order: 3; }
+    .bottom, .rule { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><span class="dot"></span> dsh-music-panel · architecture refactor</div>
+    <h1>只搬代码，<span>不改功能和界面</span></h1>
+    <p class="lede">
+      目标不是重写插件，而是把现有 Host / Client / 共享代码按职责搬进更清晰的目录。
+      对用户完全无感，收益是分类清晰、边界明确、以后开发维护更容易。
+    </p>
+    <div class="badges">
+      <span class="badge">基线 <b>pre-arch-rewrite-20261116</b></span>
+      <span class="badge">Host <b>70 files</b></span>
+      <span class="badge">Client <b>35 fragments</b></span>
+      <span class="badge">Tests <b>108</b></span>
+      <span class="badge">行为 <b>零改动</b></span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- HOST -->
+    <section class="card host">
+      <div class="card__head">
+        <div class="card__title"><span class="swatch"></span>src/host</div>
+        <div class="card__note">Node · 从 lib/** 搬入</div>
+      </div>
+      <div class="card__body">
+        <ul class="tree">
+          <li>
+            <div class="row"><span class="name dir">host/</span><span class="tag">Host</span></div>
+            <ul>
+              <li><div class="row"><span class="name dir">app/</span><span class="desc">入口 / 装配</span></div>
+                <ul>
+                  <li><div class="row"><span class="name file">index.js</span><span class="desc">根 index.js 薄转发</span></div></li>
+                </ul>
+              </li>
+              <li><div class="row"><span class="name dir">http/</span><span class="desc">路由 / 静态资源</span></div>
+                <ul>
+                  <li><div class="row"><span class="name file">routes.js</span><span class="desc">原 lib/routes.js</span></div></li>
+                  <li><div class="row"><span class="name dir">routes/</span><span class="desc">原 lib/routes/**</span></div></li>
+                </ul>
+              </li>
+              <li><div class="row"><span class="name dir">providers/</span><span class="desc">在线平台 / 登录 / sources</span></div>
+                <ul>
+                  <li><div class="row"><span class="name file">netease · qq · kugou · navidrome</span></div></li>
+                  <li><div class="row"><span class="name file">login/ · sources/ · provider-store</span></div></li>
+                </ul>
+              </li>
+              <li><div class="row"><span class="name dir">services/</span><span class="desc">扫描 / 标签 / 歌词 / 播放 / 统计</span></div>
+                <ul>
+                  <li><div class="row"><span class="name file">media/ · lyrics/ · playback/ · core/</span></div></li>
+                </ul>
+              </li>
+              <li><div class="row"><span class="name dir">stores/</span><span class="desc">设置 / 收藏 / 歌单 / session</span></div>
+                <ul>
+                  <li><div class="row"><span class="name file">settings · favorites · playlists · json-store</span></div></li>
+                </ul>
+              </li>
+              <li><div class="row"><span class="name dir">assets/</span><span class="desc">原 lib/assets/**</span></div></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- CENTER -->
+    <div class="center">
+      <section class="card shared">
+        <div class="card__head">
+          <div class="card__title"><span class="swatch"></span>src/shared</div>
+          <div class="card__note">跨 Host / Client</div>
+        </div>
+        <div class="card__body">
+          <ul class="tree">
+            <li><div class="row"><span class="name dir">shared/</span></div>
+              <ul>
+                <li><div class="row"><span class="name file">types.ts</span><span class="desc">原 src/types.ts</span></div></li>
+                <li><div class="row"><span class="name file">contracts/</span><span class="desc">真正跨端的类型，先只搬不改</span></div></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__head"><div class="card__title"><span class="swatch" style="background:var(--build)"></span>构建入口</div><div class="card__note">入口保持不变</div></div>
+        <div class="card__body flow">
+          <div class="flow__label">DSH package entry</div>
+          <div class="flow__item"><b>index.js</b><small>根入口保留，内部 import src/host/app</small></div>
+          <div class="arrow">↓</div>
+          <div class="flow__item"><b>src/client/manifest.json</b><small>片段顺序的唯一事实源；替代 00- / 20- / 50- 前缀排序</small></div>
+          <div class="arrow">↓</div>
+          <div class="flow__item"><b>client.js</b><small>拼接产物；内容与行为不变</small></div>
+          <div class="pill-row">
+            <span class="pill">build-client --check</span>
+            <span class="pill">SHA-256 基线</span>
+            <span class="pill">不手改产物</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card folia">
+        <div class="card__head"><div class="card__title"><span class="swatch"></span>src/folia</div><div class="card__note">独立上游树</div></div>
+        <div class="card__body">
+          <ul class="tree">
+            <li><div class="row"><span class="name dir">folia/</span><span class="tag">AGPL</span></div>
+              <ul>
+                <li><div class="row"><span class="name dir">upstream/</span><span class="desc">逐字同步</span></div></li>
+                <li><div class="row"><span class="name dir">bridge/</span><span class="desc">边界适配</span></div></li>
+                <li><div class="row"><span class="name dir">vendor/ · entries/ · assets/</span></div></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <!-- CLIENT -->
+    <section class="card client">
+      <div class="card__head">
+        <div class="card__title"><span class="swatch"></span>src/client</div>
+        <div class="card__note">Browser · 从 src/** 搬入</div>
+      </div>
+      <div class="card__body">
+        <ul class="tree">
+          <li>
+            <div class="row"><span class="name dir">client/</span><span class="tag">Client</span></div>
+            <ul>
+              <li><div class="row"><span class="name file">manifest.json</span><span class="desc">片段顺序</span></div></li>
+              <li><div class="row"><span class="name dir">app/</span><span class="desc">00-runtime · 00-host-ui · 99-plugin</span></div></li>
+              <li><div class="row"><span class="name dir">components/</span><span class="desc">现有 UI 片段，按领域分组</span></div>
+                <ul>
+                  <li><div class="row"><span class="name file">common/ · player/ · library/</span></div></li>
+                  <li><div class="row"><span class="name file">online/ · settings/ · lyrics/ · dialogs/</span></div></li>
+                </ul>
+              </li>
+              <li><div class="row"><span class="name dir">services/</span><span class="desc">api / player engine / prefs / theme / effects</span></div></li>
+              <li><div class="row"><span class="name dir">stores/</span><span class="desc">全局状态片段</span></div></li>
+              <li><div class="row"><span class="name dir">hooks/ · utils/ · types/</span></div></li>
+              <li><div class="row"><span class="name dir">i18n/</span><span class="desc">05-i18n · 06-strings</span></div></li>
+              <li><div class="row"><span class="name dir">styles/</span><span class="desc">base / theme / look / wave-color</span></div></li>
+              <li><div class="row"><span class="name dir">render/</span><span class="desc">原 src/render/** + 生成 bundles</span></div></li>
+              <li><div class="row"><span class="name dir">vendor/</span><span class="desc">React 18 shims / framer / three / pixi</span></div></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <div class="bottom">
+    <section class="card mini">
+      <h3>关键搬家映射</h3>
+      <table class="mapping">
+        <tr><td>lib/routes.js</td><td class="arrow-cell">→</td><td>src/host/http/routes.js</td></tr>
+        <tr><td>lib/providers/** · lib/sources/**</td><td class="arrow-cell">→</td><td>src/host/providers/**</td></tr>
+        <tr><td>lib/services/** · lib/core/**</td><td class="arrow-cell">→</td><td>src/host/services/**</td></tr>
+        <tr><td>src/50-player.js + effects</td><td class="arrow-cell">→</td><td>src/client/services/player/**</td></tr>
+        <tr><td>src/60-library.js + list/filter</td><td class="arrow-cell">→</td><td>src/client/components/library/**</td></tr>
+        <tr><td>src/70-online.js + logos</td><td class="arrow-cell">→</td><td>src/client/components/online/**</td></tr>
+        <tr><td>src/ui/**</td><td class="arrow-cell">→</td><td>src/client/components/**</td></tr>
+        <tr><td>src/types.ts</td><td class="arrow-cell">→</td><td>src/shared/types.ts</td></tr>
+      </table>
+    </section>
+
+    <section class="card mini">
+      <h3>验收标准</h3>
+      <p>每一步只允许路径/import/manifest 变化，逻辑零改动。</p>
+      <ul class="tree" style="margin-top:8px">
+        <li><div class="row"><span class="ok">✓</span><span class="name">108 tests 全绿</span></div></li>
+        <li><div class="row"><span class="ok">✓</span><span class="name">client.js 归一化 SHA-256 不变</span></div></li>
+        <li><div class="row"><span class="ok">✓</span><span class="name">Folia bundle 哈希不变</span></div></li>
+        <li><div class="row"><span class="ok">✓</span><span class="name">浅 / 深色截图一致</span></div></li>
+        <li><div class="row"><span class="ok">✓</span><span class="name">pack / 安装冒烟通过</span></div></li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="rule">
+    <div>
+      <h3>不做的事</h3>
+      <ul>
+        <li>不重写 Client / Host，不新增/删除功能</li>
+        <li>不换 UI、交互、样式、文案</li>
+        <li>不把 JS 重写成 TS</li>
+        <li>不做数据迁移/兼容</li>
+      </ul>
+    </div>
+    <div>
+      <h3>搬迁原则</h3>
+      <ul>
+        <li>一次只搬一个领域组，一个 commit</li>
+        <li>只改路径 / import / manifest / 测试引用</li>
+        <li>遇到循环依赖先记录，不在搬家 commit 里重构</li>
+        <li>每步可单独回退</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <span>dsh-music-panel · 目录结构优化方案</span>
+    <span><code>docs/structure-refactor-plan.md</code> · 对用户完全无感</span>
+  </footer>
+</div>
+</body>
+</html>
