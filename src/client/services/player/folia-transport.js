@@ -115,6 +115,46 @@ function createFoliaTransport(options) {
     return fade
   }
 
+  function audioApi() {
+    return typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
+  }
+
+  function deckChain(deck) {
+    return typeof graph.getDeckChain === 'function' ? graph.getDeckChain(deck) : null
+  }
+
+  /** Write the per-track gain Folia's balance owns. */
+  function setDeckReplayGain(deck, db, seconds) {
+    var api = audioApi()
+    var chain = deckChain(deck)
+    var context = typeof graph.getContext === 'function' ? graph.getContext() : null
+    var value = Number(db)
+    if (api === null || chain === null || context === null || !isFinite(value)) return false
+    api.rampGainDb(context, chain.replayGain, value, seconds === undefined ? 0.1 : Number(seconds) || 0)
+    return true
+  }
+
+  /** Write the blend's balance correction; zero outside a transition. */
+  function setDeckTrim(deck, db, seconds) {
+    var api = audioApi()
+    var chain = deckChain(deck)
+    var context = typeof graph.getContext === 'function' ? graph.getContext() : null
+    var value = Number(db)
+    if (api === null || chain === null || context === null || !isFinite(value)) return false
+    api.rampGainDb(context, chain.trim, value, seconds === undefined ? 0.1 : Number(seconds) || 0)
+    return true
+  }
+
+  function getBalanceMeter(deck) {
+    var chain = deckChain(deck)
+    return chain === null ? null : chain.balanceMeter
+  }
+
+  function getDeckAnalyser(deck) {
+    var chain = deckChain(deck)
+    return chain === null ? null : chain.analyser
+  }
+
   function play(deck, playOptions) {
     var element = elements[deck]
     if (!element) return Promise.resolve(false)
@@ -281,6 +321,10 @@ function createFoliaTransport(options) {
     seek: seek,
     stop: stop,
     crossfadeTo: crossfadeTo,
+    setDeckReplayGain: setDeckReplayGain,
+    setDeckTrim: setDeckTrim,
+    getBalanceMeter: getBalanceMeter,
+    getDeckAnalyser: getDeckAnalyser,
     setPlaybackFade: function (enabled) {
       fadeEnabled = enabled !== false
     },

@@ -69,11 +69,32 @@ function createElement() {
 const elements = { A: createElement(), B: createElement() }
 let active = 'A'
 let scheduled = null
+function gainNode() {
+  return {
+    gain: {
+      value: 1,
+      setValueAtTime(next) {
+        this.value = next
+      },
+      linearRampToValueAtTime(next) {
+        this.value = next
+      },
+      cancelScheduledValues() {},
+      cancelAndHoldAtTime() {},
+    },
+  }
+}
+const chains = {
+  A: { replayGain: gainNode(), trim: gainNode(), balanceMeter: { tick() {} }, analyser: {} },
+  B: { replayGain: gainNode(), trim: gainNode(), balanceMeter: { tick() {} }, analyser: {} },
+}
 const graph = {
   ensure: () => ({}),
   getDeckElement: (deck) => elements[deck],
   getActiveDeck: () => active,
   setActiveDeck: (deck) => { active = deck },
+  getContext: () => ({ state: 'running', currentTime: 0 }),
+  getDeckChain: (deck) => chains[deck],
   getFadeGraph: () => ({
     context: { state: 'running', currentTime: 0 },
     gain: {
@@ -107,6 +128,13 @@ const transport = sandbox.createFoliaTransport({
 
 assert.equal(transport.getActiveDeck(), 'A')
 assert.equal(transport.getDeckState('A').playing, false)
+
+assert.equal(transport.setDeckReplayGain('A', 3, 0), true)
+assert.equal(transport.setDeckTrim('A', -2, 0), true)
+assert.ok(chains.A.replayGain.gain.value > 1.4, 'replay gain is written to the deck')
+assert.ok(chains.A.trim.gain.value < 0.8, 'trim is written to the deck')
+assert.equal(transport.getBalanceMeter('A'), chains.A.balanceMeter)
+assert.equal(transport.getDeckAnalyser('A'), chains.A.analyser)
 
 const loaded = await transport.load('A', 'a.mp3', { autoplay: true })
 assert.equal(loaded, true)
