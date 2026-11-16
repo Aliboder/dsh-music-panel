@@ -20,6 +20,35 @@ $GH   = 'C:\Program Files\GitHub CLI\gh.exe'
 - npm 发布走 `.github/workflows/publish.yml` 的 **Trusted Publishing（OIDC）**，不读本机凭据。本机 `~/.npmrc` 里的 npmjs token 已失效（`whoami` 401），**不要**为发布会话去翻或替换 token。
 - 本机默认 registry 是 npmmirror；查询 npm 时显式加 `--registry https://registry.npmjs.org/`，或用下一节的 HTTP 轮询。
 
+### 网络：push 必须走加速器
+
+这台机器开着 FlClash 加速器（系统代理 `127.0.0.1:7899`）。**git 与 gh 的代理是分开的**：
+
+- **git（push / fetch / ls-remote）**：全局 `~/.gitconfig` 里已有
+  `http.https://github.com/.proxy = http://127.0.0.1:7899`，所有 GitHub 流量自动走加速器。
+  不要再往仓库里设 `http.proxy`：URL 专属配置会覆盖通用 `http.proxy`，重复配置只会让人误判。
+  发版前验证一次：
+
+  ```powershell
+  $env:GIT_CURL_VERBOSE = '1'
+  git ls-remote origin 2>&1 | Select-String 'proxy tunnel|Trying 127.0.0.1'
+  # 期望看到：Trying 127.0.0.1:7899 … CONNECT github.com:443 HTTP/1.1 … 200 Connection established
+  Remove-Item Env:GIT_CURL_VERBOSE
+  ```
+
+- **gh / npm / pnpm**：它们不读 git config，也不读 Windows 系统代理，默认是直连。需要走加速器时
+  在命令里显式带上环境变量（每个新进程都要重设）：
+
+  ```powershell
+  $env:HTTPS_PROXY = 'http://127.0.0.1:7899'
+  $env:HTTP_PROXY  = 'http://127.0.0.1:7899'
+  & $GH release create vX.Y.Z --title "..." --notes-file <notes.md>
+  ```
+
+- 端口以 FlClash 里的“混合端口”为准；改了端口就同步改 `~/.gitconfig` 的那一行和上面的示例。
+- `git push` 报 `Failed to connect to 127.0.0.1 port 7899` = 加速器没开，先开加速器再推。
+- `gh` 直连偶尔也能通，但既然本机约定推更新走加速器，Release / Actions 相关命令统一带环境变量。
+
 ---
 
 ## 1. 发布前：必须全绿
@@ -83,6 +112,7 @@ git push origin vX.Y.Z
 ```
 
 - push tag 会触发 `publish.yml` → npm 发布，以及 `ci.yml`（main + tag 各跑一次）。
+- **推送前确认 FlClash 在跑**（git 走 `127.0.0.1:7899`，见 §0「网络」）；失败时先看是不是代理端口没起来。
 - tag 一旦推送就不要移动；发布失败优先“修工作流 + 手动 dispatch”，而不是 force-push tag。
 
 ---
