@@ -57,6 +57,13 @@ var EQ_EFFECT_DEFAULT = EQ_EFFECT_CONTROLS.reduce(function (out, control) {
   return out
 }, {})
 
+/** Folia's six built-in sound presets; the UI supplies their gains/effects. */
+var EQ_SOUND_PRESET_IDS = ['flat', 'lofi', 'radio', 'hall', 'vocal', 'bass']
+
+function isEqSoundPreset(id) {
+  return EQ_SOUND_PRESET_IDS.indexOf(String(id || '')) >= 0
+}
+
 function normalizeEqEffects(value) {
   var source = value !== null && typeof value === 'object' ? value : {}
   return EQ_EFFECT_CONTROLS.reduce(function (out, control) {
@@ -272,6 +279,7 @@ function normalizeEqPrefs(prefs) {
   var presetId = String(source.eqPreset || 'flat')
   var preset = eqPresetById(presetId)
   var isDevice = presetId === 'device'
+  var isSound = isEqSoundPreset(presetId)
   var sameLayout = source.eqLayout === EQ_LAYOUT
   var bands
   if (sameLayout && Array.isArray(source.eqBands)) {
@@ -281,11 +289,13 @@ function normalizeEqPrefs(prefs) {
   }
   var savedPreset = isDevice
     ? 'device'
-    : presetId === 'custom'
-      ? 'custom'
-      : preset === null
-        ? 'flat'
-        : preset.id
+    : isSound
+      ? presetId
+      : presetId === 'custom'
+        ? 'custom'
+        : preset === null
+          ? 'flat'
+          : preset.id
   return {
     enabled: source.eqEnabled === true,
     preset: savedPreset,

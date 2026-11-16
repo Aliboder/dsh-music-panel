@@ -67,10 +67,16 @@ import {
   DEFAULT_AUDIO_EFFECT_SETTINGS,
   normalizeAudioEffects,
 } from '../../A_other/upstream/folia-major-main/src/utils/audioEffects'
+import {
+  AUDIO_SOUND_PRESET_IDS,
+  AUDIO_SOUND_PRESETS,
+} from '../../A_other/upstream/folia-major-main/src/utils/audioPresets'
 
 export {
   AUDIO_EQUALIZER_BANDS,
   AUDIO_EFFECT_CONTROLS,
+  AUDIO_SOUND_PRESET_IDS,
+  AUDIO_SOUND_PRESETS,
   BLEND_HEADROOM_DB,
   CROSSOVER_EARLY,
   CROSSOVER_LATE,

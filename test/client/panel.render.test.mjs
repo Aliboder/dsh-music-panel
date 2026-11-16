@@ -564,7 +564,7 @@ assert.ok(classesOf(presetTab).has('mp-eq-tab'), 'the tab bar renders')
 for (const label of ['预设', '设备', '我的', '编辑']) {
   assert.ok(textOf(presetTab).includes(label), `the ${label} tab label renders`)
 }
-assert.ok(textOf(presetTab).includes('摇滚'), 'factory presets are listed by name')
+assert.ok(textOf(presetTab).includes('Lo-Fi'), 'Folia sound presets are listed by name')
 assert.ok(classesOf(presetTab).has('mp-eq-preset'), 'preset tiles render')
 assert.ok(classesOf(presetTab).has('mp-eq-bars'), 'each preset shows its curve thumbnail')
 
@@ -622,8 +622,8 @@ const propDriven = renderEq({
   initialTab: 'presets',
   prefs: {
     eqEnabled: true,
-    eqPreset: 'rock',
-    eqBands: [1, 4.5, 2.5, -1.7, -6.3, -4.6, 0.6, 4.2, 4.9, 8.9],
+    eqPreset: 'lofi',
+    eqBands: [-4, -2, 0, 2, 3, 2, 0, -3, -7, -10],
     eqLayout: 'iso10',
     eqCustom: [],
   },
@@ -679,7 +679,7 @@ assert.ok(eqViewClasses.has('mp-np-extra-pop'), 'the equalizer shares the same p
 assert.ok(eqViewClasses.has('is-effects'), 'switching views does not replace the panel')
 assert.ok(eqViewClasses.has('mp-eqp'), 'the equalizer content renders inside it')
 assert.ok(eqViewClasses.has('mp-fx-seg-btn'), 'the view switch stays visible in the equalizer view')
-assert.ok(textOf(eqView).includes('摇滚'), 'presets are available from the shared panel')
+assert.ok(textOf(eqView).includes('Lo-Fi'), 'presets are available from the shared panel')
 
 // Turning the crossfade on is the same pref the settings sheet writes.
 const savedTransition = internals.prefsStore.get()

@@ -113,6 +113,15 @@ assert.equal(device.preset, 'device')
 assert.equal(device.device, 'oratory1990::over-ear::Sennheiser HD 600')
 assert.deepEqual(device.bands, [6.9, 3.3, -1.1, -1.6, 0.6, -0.8, 0.1, -1, 3.9, -6.5], 'tenths survive')
 
+const sound = eq.normalizeEqPrefs({
+  eqEnabled: true,
+  eqPreset: 'lofi',
+  eqBands: [-4, -2, 0, 2, 3, 2, 0, -3, -7, -10],
+  eqLayout: 'iso10',
+})
+assert.equal(sound.preset, 'lofi', 'Folia sound preset ids survive normalization')
+assert.deepEqual(sound.bands, [-4, -2, 0, 2, 3, 2, 0, -3, -7, -10])
+
 const badPreset = eq.normalizeEqPrefs({ eqPreset: 'nope', eqBands: rock, eqLayout: 'iso10' })
 assert.equal(badPreset.preset, 'flat', 'unknown presets fall back to flat')
 

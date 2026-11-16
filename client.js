@@ -8418,6 +8418,12 @@ window.__ModuleLoader__.load({
         'eq.emptyHint': '在「编辑」里调好后点保存。',
         'eq.unavailable': '当前环境无法启用均衡器：浏览器不支持 Web Audio，或该音源跨域。',
         'eq.effects': '音效',
+        'eq.presetFlat': '平直',
+        'eq.presetLofi': 'Lo-Fi',
+        'eq.presetRadio': '收音机',
+        'eq.presetHall': '大厅',
+        'eq.presetVocal': '人声',
+        'eq.presetBass': '低音增强',
         'eq.fxHint': 'Folia 后期音效链；默认值保持透明。',
         'eq.fxHighpass': '低切',
         'eq.fxLowpass': '高切',
@@ -8845,6 +8851,12 @@ window.__ModuleLoader__.load({
         'eq.emptyHint': 'Tune the editor, then save it here.',
         'eq.unavailable': 'The equalizer cannot run here: Web Audio is unavailable, or this source is cross-origin.',
         'eq.effects': 'Effects',
+        'eq.presetFlat': 'Flat',
+        'eq.presetLofi': 'Lo-Fi',
+        'eq.presetRadio': 'Radio',
+        'eq.presetHall': 'Hall',
+        'eq.presetVocal': 'Vocal',
+        'eq.presetBass': 'Bass boost',
         'eq.fxHint': "Folia's post-EQ chain; neutral values stay transparent.",
         'eq.fxHighpass': 'Low cut',
         'eq.fxLowpass': 'High cut',
@@ -149512,6 +149524,13 @@ window.__ModuleLoader__.load({
       return out
     }, {})
 
+    /** Folia's six built-in sound presets; the UI supplies their gains/effects. */
+    var EQ_SOUND_PRESET_IDS = ['flat', 'lofi', 'radio', 'hall', 'vocal', 'bass']
+
+    function isEqSoundPreset(id) {
+      return EQ_SOUND_PRESET_IDS.indexOf(String(id || '')) >= 0
+    }
+
     function normalizeEqEffects(value) {
       var source = value !== null && typeof value === 'object' ? value : {}
       return EQ_EFFECT_CONTROLS.reduce(function (out, control) {
@@ -149727,6 +149746,7 @@ window.__ModuleLoader__.load({
       var presetId = String(source.eqPreset || 'flat')
       var preset = eqPresetById(presetId)
       var isDevice = presetId === 'device'
+      var isSound = isEqSoundPreset(presetId)
       var sameLayout = source.eqLayout === EQ_LAYOUT
       var bands
       if (sameLayout && Array.isArray(source.eqBands)) {
@@ -149736,11 +149756,13 @@ window.__ModuleLoader__.load({
       }
       var savedPreset = isDevice
         ? 'device'
-        : presetId === 'custom'
-          ? 'custom'
-          : preset === null
-            ? 'flat'
-            : preset.id
+        : isSound
+          ? presetId
+          : presetId === 'custom'
+            ? 'custom'
+            : preset === null
+              ? 'flat'
+              : preset.id
       return {
         enabled: source.eqEnabled === true,
         preset: savedPreset,
@@ -150346,6 +150368,8 @@ window.__ModuleLoader__.load({
         __export(entry_exports, {
           AUDIO_EFFECT_CONTROLS: () => AUDIO_EFFECT_CONTROLS,
           AUDIO_EQUALIZER_BANDS: () => AUDIO_EQUALIZER_BANDS,
+          AUDIO_SOUND_PRESETS: () => AUDIO_SOUND_PRESETS,
+          AUDIO_SOUND_PRESET_IDS: () => AUDIO_SOUND_PRESET_IDS,
           BLEND_HEADROOM_DB: () => BLEND_HEADROOM_DB,
           CROSSOVER_EARLY: () => CROSSOVER_EARLY,
           CROSSOVER_LATE: () => CROSSOVER_LATE,
@@ -155155,6 +155179,8 @@ window.__ModuleLoader__.load({
             preset = 'custom'
           } else if (source.preset === 'device') {
             preset = 'device'
+          } else if (isEqSoundPreset(source.preset)) {
+            preset = String(source.preset)
           } else {
             preset = eqPresetById(source.preset) === null ? 'flat' : String(source.preset)
           }
@@ -159099,6 +159125,25 @@ window.__ModuleLoader__.load({
     /** One page of the AutoEQ library; "load more" appends the next batch. */
     var EQ_DEVICE_PAGE = 40
 
+    /** Folia's six sound presets; the bundle owns the gains and effects. */
+    var FOLIA_AUDIO_API = typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
+    var FOLIA_SOUND_PRESETS =
+      FOLIA_AUDIO_API !== null && FOLIA_AUDIO_API.AUDIO_SOUND_PRESETS
+        ? FOLIA_AUDIO_API.AUDIO_SOUND_PRESETS
+        : {}
+    var FOLIA_SOUND_PRESET_IDS =
+      FOLIA_AUDIO_API !== null && Array.isArray(FOLIA_AUDIO_API.AUDIO_SOUND_PRESET_IDS)
+        ? FOLIA_AUDIO_API.AUDIO_SOUND_PRESET_IDS
+        : []
+    var FOLIA_SOUND_PRESET_LABELS = {
+      flat: 'eq.presetFlat',
+      lofi: 'eq.presetLofi',
+      radio: 'eq.presetRadio',
+      hall: 'eq.presetHall',
+      vocal: 'eq.presetVocal',
+      bass: 'eq.presetBass',
+    }
+
     /** AutoEQ stores the measurement rig family; show it in the user's language. */
     function eqFormLabel(form) {
       var value = String(form || '')
@@ -159399,7 +159444,12 @@ window.__ModuleLoader__.load({
       var setDraft = draftPair[1]
       var custom = Array.isArray(prefs.eqCustom) ? prefs.eqCustom : []
       var available = player.getEq().available
-      var activePreset = eq.preset === 'device' ? 'device' : eqPresetForBands(eq.bands)
+      var activePreset =
+        eq.preset === 'device'
+          ? 'device'
+          : FOLIA_SOUND_PRESET_IDS.indexOf(eq.preset) >= 0
+            ? eq.preset
+            : eqPresetForBands(eq.bands)
       // Saved presets live outside the factory list, so they need their own marker:
       // without it, applying one changed the sound but left every row unchanged.
       var savedActiveId = eq.enabled === true ? eqSavedPresetId(custom, eq.preset, eq.bands) : ''
@@ -159498,8 +159548,15 @@ window.__ModuleLoader__.load({
         fetchDevices(String(search || '').trim(), found.length, true)
       }
 
-      function usePreset(preset) {
-        player.setEq({ preset: preset.id, bands: eqBandsForPreset(preset.id), enabled: true })
+      function usePreset(presetId) {
+        var preset = FOLIA_SOUND_PRESETS[presetId]
+        if (!preset) return
+        player.setEq({
+          preset: presetId,
+          bands: preset.gains,
+          effects: preset.effects,
+          enabled: true,
+        })
       }
 
       function changeBand(index, value) {
@@ -159552,17 +159609,22 @@ window.__ModuleLoader__.load({
 
       var body = null
       if (tab === 'presets') {
+        var soundIds = FOLIA_SOUND_PRESET_IDS.length > 0
+          ? FOLIA_SOUND_PRESET_IDS
+          : EQ_PRESETS.map(function (preset) { return preset.id })
         body = h(
           'div',
           { className: 'mp-eq-grid' },
-          EQ_PRESETS.map(function (preset) {
+          soundIds.map(function (presetId) {
+            var sound = FOLIA_SOUND_PRESETS[presetId]
+            var labelKey = FOLIA_SOUND_PRESET_LABELS[presetId]
             return h(EqPresetTile, {
-              key: preset.id,
-              name: eqPresetName(preset),
-              bands: eqBandsForPreset(preset.id),
-              active: activePreset === preset.id && eq.enabled,
+              key: presetId,
+              name: labelKey ? t(labelKey) : eqPresetName(eqPresetById(presetId)),
+              bands: sound ? sound.gains : eqBandsForPreset(presetId),
+              active: activePreset === presetId && eq.enabled,
               onClick: function () {
-                usePreset(preset)
+                usePreset(presetId)
               },
             })
           }),

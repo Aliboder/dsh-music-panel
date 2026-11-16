@@ -1997,6 +1997,8 @@ function createPlayer() {
         preset = 'custom'
       } else if (source.preset === 'device') {
         preset = 'device'
+      } else if (isEqSoundPreset(source.preset)) {
+        preset = String(source.preset)
       } else {
         preset = eqPresetById(source.preset) === null ? 'flat' : String(source.preset)
       }
