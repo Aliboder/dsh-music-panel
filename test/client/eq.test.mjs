@@ -25,8 +25,9 @@ const factory = new Function(
     EQ_FREQS, EQ_PRESETS, EQ_MAX_DB, EQ_CUSTOM_LIMIT,
     eqFaderToDb, eqBandsForPreset, zeroEqBands, normalizeEqBands,
     normalizeEqPrefs, eqPresetById, eqPresetName, eqPresetForBands,
-    eqBandsMatchPreset, eqBandsEqual, eqSavedPresetId, eqHeadroomDb, eqTotalPreampDb, eqDbToLinear,
+    eqBandsMatchPreset, eqBandsEqual, eqSavedPresetId,
     eqPeakingCoefficients, eqSectionDb, eqCurveSamples,
+    EQ_EFFECT_CONTROLS, EQ_EFFECT_DEFAULT, normalizeEqEffects,
   }`,
 )
 
@@ -69,15 +70,21 @@ const empty = eq.normalizeEqPrefs({})
 assert.equal(empty.enabled, false, 'an upgrade must not switch the EQ on')
 assert.equal(empty.preset, 'flat')
 assert.deepEqual(empty.bands, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+assert.equal(empty.effects.highpass, 20)
+assert.equal(empty.effects.width, 1)
+assert.equal(eq.EQ_EFFECT_CONTROLS.length, 9, 'Folia exposes nine effect sliders')
 
 const junk = eq.normalizeEqPrefs({
   eqBands: [3, 'x', 99, null],
   eqPreamp: 99,
   eqEnabled: 'yes',
   eqLayout: 'iso10',
+  eqEffects: { drive: 99, width: -1, noise: 'x' },
 })
 assert.deepEqual(junk.bands, [3, 0, 12, 0, 0, 0, 0, 0, 0, 0], 'junk bands are clamped/padded')
-assert.equal(junk.preamp, 12, 'preamp is clamped')
+assert.equal(junk.effects.drive, 1, 'effect values are clamped')
+assert.equal(junk.effects.width, 0, 'width is clamped')
+assert.equal(junk.effects.noise, 0, 'junk effect values fall back to neutral')
 assert.equal(junk.enabled, false, 'only a real boolean enables the EQ')
 
 const saved = eq.normalizeEqPrefs({
@@ -109,32 +116,6 @@ assert.deepEqual(device.bands, [6.9, 3.3, -1.1, -1.6, 0.6, -0.8, 0.1, -1, 3.9, -
 const badPreset = eq.normalizeEqPrefs({ eqPreset: 'nope', eqBands: rock, eqLayout: 'iso10' })
 assert.equal(badPreset.preset, 'flat', 'unknown presets fall back to flat')
 
-// ── headroom ──────────────────────────────────────────────────────────────
-assert.equal(eq.eqHeadroomDb([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 0)
-assert.ok(
-  Math.abs(eq.eqHeadroomDb([6, 0, 0, 0, 0, 0, 0, 0, 0, 0]) + 6) < 0.4,
-  'one +6 dB band trims about 6 dB',
-)
-assert.equal(eq.eqHeadroomDb([-3, -1, 0, 0, 0, 0, 0, 0, 0, 0]), 0, 'cuts need no trim')
-assert.ok(
-  Math.abs(eq.eqTotalPreampDb(0, [6, 0, 0, 0, 0, 0, 0, 0, 0, 0]) + 6) < 0.4,
-  'the total preamp carries the trim',
-)
-assert.ok(
-  Math.abs(eq.eqTotalPreampDb(3, [6, 0, 0, 0, 0, 0, 0, 0, 0, 0]) + 3) < 0.4,
-  'user preamp stacks on top of the headroom',
-)
-assert.ok(
-  eq.eqHeadroomDb([7, 7, 7, 7, 0, 0, 0, 0, 0, 0]) >= -6,
-  'the automatic trim is capped at 6 dB',
-)
-assert.ok(
-  eq.eqHeadroomDb([7, 7, 7, 7, 0, 0, 0, 0, 0, 0]) < -3,
-  'overlapping boosts still trim more than one band',
-)
-assert.equal(eq.eqDbToLinear(0), 1)
-assert.ok(Math.abs(eq.eqDbToLinear(6) - 1.9953) < 0.001)
-
 // ── response curve ────────────────────────────────────────────────────────
 assert.ok(Math.abs(eq.eqSectionDb(eq.eqPeakingCoefficients(1000, 1.1, 0, 44100), 1000, 44100)) < 0.01)
 
@@ -147,8 +128,8 @@ const boostedCurve = eq.eqCurveSamples(boosted, 0, 64, 44100)
 const at1k = boostedCurve.reduce((best, point) =>
   Math.abs(point.freq - 1000) < Math.abs(best.freq - 1000) ? point : best,
 )
-// The chain adds the -6 dB headroom trim, so a +6 dB band peaks near 0 dB total.
-assert.ok(at1k.db > -1 && at1k.db < 1, `1 kHz should sit near the headroom-trimmed peak, got ${at1k.db}`)
+// The chain is just the ten filters now: a +6 dB band peaks near +6 dB.
+assert.ok(at1k.db > 5 && at1k.db < 7, `1 kHz should sit near the +6 dB band, got ${at1k.db}`)
 
 const cutCurve = eq.eqCurveSamples([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], -6, 24, 44100)
 for (const point of cutCurve) assert.ok(Math.abs(point.db + 6) < 0.01, 'preamp applies flat')

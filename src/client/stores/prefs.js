@@ -80,7 +80,17 @@ var PREF_DEFAULTS = {
   eqEnabled: false,
   eqPreset: 'flat',
   eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  eqPreamp: 0,
+  eqEffects: {
+    highpass: 20,
+    lowpass: 20000,
+    drive: 0,
+    crush: 0,
+    wow: 0,
+    noise: 0,
+    width: 1,
+    space: 0,
+    punch: 0,
+  },
   /** Written on the first EQ change; an empty value means "old band grid". */
   eqLayout: '',
   eqDevice: '',

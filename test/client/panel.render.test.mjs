@@ -579,7 +579,8 @@ assert.ok(classesOf(deviceTab).has('mp-eq-device-scroll'), 'the device list scro
 const editTab = renderEq({ initialTab: 'edit' })
 assert.ok(classesOf(editTab).has('mp-eq-curve'), 'the response curve renders')
 assert.ok(classesOf(editTab).has('mp-eq-fader'), 'the band faders render')
-assert.ok(textOf(editTab).includes('前置增益'), 'the preamp row renders')
+assert.ok(textOf(editTab).includes('音效'), 'the Folia effect section renders')
+assert.ok(textOf(editTab).includes('低切'), 'the effect controls render')
 assert.ok(textOf(editTab).includes('重置'), 'the reset action renders')
 
 // The curve must follow the stored bands rather than a static image.

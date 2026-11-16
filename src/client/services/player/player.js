@@ -750,6 +750,7 @@ function createPlayer() {
       enabled: eq.enabled,
       gains: eq.bands,
       preset: 'custom1',
+      effects: eq.effects,
     })
   }
 
@@ -2002,10 +2003,8 @@ function createPlayer() {
         enabled: source.enabled === undefined ? eq.enabled : source.enabled === true,
         preset: preset,
         bands: bands,
-        preamp:
-          source.preamp === undefined
-            ? eq.preamp
-            : Math.round(clamp(Number(source.preamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)),
+        effects:
+          source.effects === undefined ? normalizeEqEffects(eq.effects) : normalizeEqEffects(source.effects),
         device:
           source.device === undefined
             ? preset === 'device'
@@ -2018,7 +2017,7 @@ function createPlayer() {
         eqEnabled: next.enabled,
         eqPreset: next.preset,
         eqBands: next.bands,
-        eqPreamp: next.preamp,
+        eqEffects: next.effects,
         // Any EQ change also re-writes the layout tag, so a library upgrade can
         // tell which band grid the stored bands belong to.
         eqLayout: EQ_LAYOUT,
@@ -2032,7 +2031,7 @@ function createPlayer() {
         enabled: eq.enabled,
         preset: eq.preset,
         bands: eq.bands.slice(),
-        preamp: eq.preamp,
+        effects: normalizeEqEffects(eq.effects),
         device: eq.device,
         /** False when the browser cannot host the graph (EQ is inert then). */
         available: eqSupported() && (analyser !== null || audio === null || canRouteThroughWebAudio(audio)),

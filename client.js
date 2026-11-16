@@ -8402,8 +8402,6 @@ window.__ModuleLoader__.load({
         'eq.formInEar': '入耳',
         'eq.formOverEar': '头戴',
         'eq.formEarbud': '半入耳',
-        'eq.preamp': '前置增益',
-        'eq.preampHint': '多段提升时自动衰减防削波，可在这里补回。',
         'eq.reset': '重置',
         'eq.saveCurrent': '保存当前设置',
         'eq.save': '保存',
@@ -8415,6 +8413,17 @@ window.__ModuleLoader__.load({
         'eq.empty': '还没有自定义预设',
         'eq.emptyHint': '在「编辑」里调好后点保存。',
         'eq.unavailable': '当前环境无法启用均衡器：浏览器不支持 Web Audio，或该音源跨域。',
+        'eq.effects': '音效',
+        'eq.fxHint': 'Folia 后期音效链；默认值保持透明。',
+        'eq.fxHighpass': '低切',
+        'eq.fxLowpass': '高切',
+        'eq.fxDrive': '饱和',
+        'eq.fxCrush': '位深压缩',
+        'eq.fxWow': '走带抖动',
+        'eq.fxNoise': '黑胶噪声',
+        'eq.fxWidth': '立体声宽度',
+        'eq.fxSpace': '空间混响',
+        'eq.fxPunch': '冲击感',
       },
       en: {
         'v2.songs': 'Songs',
@@ -8816,8 +8825,6 @@ window.__ModuleLoader__.load({
         'eq.formInEar': 'in-ear',
         'eq.formOverEar': 'over-ear',
         'eq.formEarbud': 'earbud',
-        'eq.preamp': 'Preamp',
-        'eq.preampHint': 'Boosting several bands trims the level to avoid clipping; add it back here.',
         'eq.reset': 'Reset',
         'eq.saveCurrent': 'Save current',
         'eq.save': 'Save',
@@ -8829,6 +8836,17 @@ window.__ModuleLoader__.load({
         'eq.empty': 'No saved presets yet',
         'eq.emptyHint': 'Tune the editor, then save it here.',
         'eq.unavailable': 'The equalizer cannot run here: Web Audio is unavailable, or this source is cross-origin.',
+        'eq.effects': 'Effects',
+        'eq.fxHint': "Folia's post-EQ chain; neutral values stay transparent.",
+        'eq.fxHighpass': 'Low cut',
+        'eq.fxLowpass': 'High cut',
+        'eq.fxDrive': 'Saturation',
+        'eq.fxCrush': 'Bit crush',
+        'eq.fxWow': 'Wow / flutter',
+        'eq.fxNoise': 'Vinyl noise',
+        'eq.fxWidth': 'Stereo width',
+        'eq.fxSpace': 'Reverb',
+        'eq.fxPunch': 'Punch',
       },
     }
 
@@ -149100,7 +149118,17 @@ window.__ModuleLoader__.load({
       eqEnabled: false,
       eqPreset: 'flat',
       eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      eqPreamp: 0,
+      eqEffects: {
+        highpass: 20,
+        lowpass: 20000,
+        drive: 0,
+        crush: 0,
+        wow: 0,
+        noise: 0,
+        width: 1,
+        space: 0,
+        punch: 0,
+      },
       /** Written on the first EQ change; an empty value means "old band grid". */
       eqLayout: '',
       eqDevice: '',
@@ -149449,16 +149477,41 @@ window.__ModuleLoader__.load({
 
     var EQ_MAX_DB = 12
     var EQ_PREAMP_MAX = 12
-    /**
-     * Cap on the automatic trim. Compensating the full boosted peak would make a
-     * preset like Rock ~10 dB quieter than flat, which reads as a bug to users;
-     * the output limiter in the player catches whatever the cap leaves over.
-     */
-    var EQ_HEADROOM_MAX = 6
     var EQ_CUSTOM_LIMIT = 20
     var EQ_CURVE_POINTS = 64
     var EQ_MIN_HZ = 20
     var EQ_MAX_HZ = 20000
+
+    /**
+     * Folia's post-EQ effect controls. Values and neutral points are copied from
+     * `src/utils/audioEffects.ts`; the DSP itself lives in the Folia bundle.
+     */
+    var EQ_EFFECT_CONTROLS = [
+      { id: 'highpass', min: 20, max: 2000, step: 1, neutral: 20, scale: 'log', unit: 'hz' },
+      { id: 'lowpass', min: 500, max: 20000, step: 1, neutral: 20000, scale: 'log', unit: 'hz' },
+      { id: 'drive', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+      { id: 'crush', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+      { id: 'wow', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+      { id: 'noise', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+      { id: 'width', min: 0, max: 2, step: 0.01, neutral: 1, scale: 'linear', unit: 'ratio' },
+      { id: 'space', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+      { id: 'punch', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+    ]
+
+    var EQ_EFFECT_DEFAULT = EQ_EFFECT_CONTROLS.reduce(function (out, control) {
+      out[control.id] = control.neutral
+      return out
+    }, {})
+
+    function normalizeEqEffects(value) {
+      var source = value !== null && typeof value === 'object' ? value : {}
+      return EQ_EFFECT_CONTROLS.reduce(function (out, control) {
+        var raw = Number(source[control.id])
+        var next = isFinite(raw) ? raw : control.neutral
+        out[control.id] = clamp(next, control.min, control.max)
+        return out
+      }, {})
+    }
 
     /**
      * Winamp's original factory presets: ten raw fader values (0..64, 33 = 0 dB)
@@ -149683,7 +149736,7 @@ window.__ModuleLoader__.load({
         enabled: source.eqEnabled === true,
         preset: savedPreset,
         bands: bands,
-        preamp: Math.round(clamp(Number(source.eqPreamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)),
+        effects: normalizeEqEffects(source.eqEffects),
         device: isDevice ? String(source.eqDevice || '') : '',
       }
     }
@@ -149746,50 +149799,6 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * Loudest point of the boosted response. Adjacent bands overlap in phase, so
-     * the true peak is above the largest single band; sampling the response keeps
-     * the headroom honest instead of guessing from the fader values.
-     */
-    function eqPeakBoostDb(bands, sampleRate) {
-      var sections = eqSections(bands, sampleRate)
-      if (sections.length === 0) return 0
-      var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
-      var lowLog = Math.log(EQ_MIN_HZ)
-      var highLog = Math.log(Math.min(EQ_MAX_HZ, rate / 2))
-      var peak = 0
-      for (var index = 0; index <= 48; index += 1) {
-        var freq = Math.exp(lowLog + ((highLog - lowLog) * index) / 48)
-        var db = 0
-        for (var section = 0; section < sections.length; section += 1) {
-          db += eqSectionDb(sections[section], freq, rate)
-        }
-        if (db > peak) peak = db
-      }
-      return peak
-    }
-
-    /**
-     * Automatic headroom: trim by the boosted peak, capped at EQ_HEADROOM_MAX so a
-     * heavy preset stays roughly as loud as flat. Never boosts, so switching the EQ
-     * off and on cannot make the track louder.
-     */
-    function eqHeadroomDb(bands) {
-      var peak = eqPeakBoostDb(bands, 44100)
-      if (!(peak > 0)) return 0
-      return -Math.min(roundDecimals(peak, 1), EQ_HEADROOM_MAX)
-    }
-
-    /** Total gain the preamp node should apply, including the headroom trim. */
-    function eqTotalPreampDb(preamp, bands) {
-      var value = clamp(Number(preamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)
-      return roundDecimals(value + eqHeadroomDb(bands), 2)
-    }
-
-    function eqDbToLinear(db) {
-      return Math.pow(10, (Number(db) || 0) / 20)
-    }
-
-    /**
      * Peaking-filter coefficients, matching the Web Audio `BiquadFilterNode`
      * definition (RBJ audio EQ cookbook). Returned as [b0, b1, b2, a0, a1, a2].
      */
@@ -149837,7 +149846,7 @@ window.__ModuleLoader__.load({
       var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
       var points = Math.max(2, Math.floor(Number(count) || EQ_CURVE_POINTS))
       var sections = eqSections(list, rate)
-      var total = eqTotalPreampDb(preampDb, list)
+      var total = clamp(Number(preampDb) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)
       var output = []
       var lowLog = Math.log(EQ_MIN_HZ)
       var highLog = Math.log(Math.min(EQ_MAX_HZ, rate / 2))
@@ -153819,6 +153828,7 @@ window.__ModuleLoader__.load({
           enabled: eq.enabled,
           gains: eq.bands,
           preset: 'custom1',
+          effects: eq.effects,
         })
       }
 
@@ -155071,10 +155081,8 @@ window.__ModuleLoader__.load({
             enabled: source.enabled === undefined ? eq.enabled : source.enabled === true,
             preset: preset,
             bands: bands,
-            preamp:
-              source.preamp === undefined
-                ? eq.preamp
-                : Math.round(clamp(Number(source.preamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)),
+            effects:
+              source.effects === undefined ? normalizeEqEffects(eq.effects) : normalizeEqEffects(source.effects),
             device:
               source.device === undefined
                 ? preset === 'device'
@@ -155087,7 +155095,7 @@ window.__ModuleLoader__.load({
             eqEnabled: next.enabled,
             eqPreset: next.preset,
             eqBands: next.bands,
-            eqPreamp: next.preamp,
+            eqEffects: next.effects,
             // Any EQ change also re-writes the layout tag, so a library upgrade can
             // tell which band grid the stored bands belong to.
             eqLayout: EQ_LAYOUT,
@@ -155101,7 +155109,7 @@ window.__ModuleLoader__.load({
             enabled: eq.enabled,
             preset: eq.preset,
             bands: eq.bands.slice(),
-            preamp: eq.preamp,
+            effects: normalizeEqEffects(eq.effects),
             device: eq.device,
             /** False when the browser cannot host the graph (EQ is inert then). */
             available: eqSupported() && (analyser !== null || audio === null || canRouteThroughWebAudio(audio)),
@@ -157474,10 +157482,13 @@ window.__ModuleLoader__.load({
       '.mp-eq-fader.is-active .mp-eq-fader-value{color:#fff}',
       '.mp-eq-fader input{position:absolute;top:54px;left:50%;width:88px;height:16px;margin:0;transform:translateX(-50%) rotate(-90deg);accent-color:rgba(150,180,255,.95)}',
       '.mp-eq-fader-label{position:absolute;bottom:0;font-size:11px;line-height:14px;color:rgba(255,255,255,.45)}',
-      '.mp-eq-preamp{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.55)}',
-      '.mp-eq-preamp input{flex:1;min-width:0;width:auto}',
-      '.mp-eq-preamp-value{flex:0 0 46px;text-align:right;font-variant-numeric:tabular-nums}',
       '.mp-eq-hint{font-size:11px;line-height:1.5;color:rgba(255,255,255,.4)}',
+      '.mp-eq-effects{display:flex;flex-direction:column;gap:6px;padding-top:2px}',
+      '.mp-eq-effects-title{font-size:11px;line-height:16px;color:rgba(255,255,255,.55);font-weight:600}',
+      '.mp-eq-fx-row{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.55)}',
+      '.mp-eq-fx-label{flex:0 0 70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-eq-fx-row input{flex:1;min-width:0;width:auto}',
+      '.mp-eq-fx-value{flex:0 0 52px;text-align:right;font-variant-numeric:tabular-nums}',
       '.mp-eq-actions{display:flex;gap:6px}',
       '.mp-eq-action{flex:1;padding:7px 8px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:transparent;color:rgba(255,255,255,.85);font:inherit;font-size:12px;cursor:pointer}',
       '.mp-eq-action:hover{background:rgba(255,255,255,.08);color:#fff}',
@@ -158985,7 +158996,7 @@ window.__ModuleLoader__.load({
      * eq-panel: the equalizer surface inside the audio-effects popover.
      *
      * Three tabs, mirroring how desktop players organise this: factory presets,
-     * the user's saved curves, and the editor (response curve + faders + preamp).
+     * the user's saved curves, and the editor (response curve + faders + effects).
      * All state lives in prefs through `player.setEq`, so the panel stays a pure
      * view of a single source of truth.
      */
@@ -159038,7 +159049,7 @@ window.__ModuleLoader__.load({
     /** Real magnitude response of the current chain, drawn as a line. */
     function EqCurve(props) {
       var bands = props.bands || []
-      var samples = eqCurveSamples(bands, props.preamp, 72, 44100)
+      var samples = eqCurveSamples(bands, 0, 72, 44100)
       var width = 300
       var height = 64
       var span = EQ_MAX_DB + 6
@@ -159096,6 +159107,52 @@ window.__ModuleLoader__.load({
         h('span', { className: 'mp-eq-fader-label' }, props.label),
       )
     }
+
+    var EQ_EFFECT_LABEL_KEYS = {
+      highpass: 'eq.fxHighpass',
+      lowpass: 'eq.fxLowpass',
+      drive: 'eq.fxDrive',
+      crush: 'eq.fxCrush',
+      wow: 'eq.fxWow',
+      noise: 'eq.fxNoise',
+      width: 'eq.fxWidth',
+      space: 'eq.fxSpace',
+      punch: 'eq.fxPunch',
+    }
+
+    function eqEffectReadout(control, value) {
+      if (control.unit === 'hz') {
+        return value >= 1000 ? (value / 1000).toFixed(1) + ' kHz' : Math.round(value) + ' Hz'
+      }
+      return Math.round(value * 100) + '%'
+    }
+
+    /** One Folia post-EQ effect slider. */
+    function EqEffectRow(props) {
+      var control = props.control
+      var value = Number(props.value)
+      return h(
+        'div',
+        { className: 'mp-eq-fx-row' },
+        h('span', { className: 'mp-eq-fx-label' }, t(EQ_EFFECT_LABEL_KEYS[control.id])),
+        h('input', {
+          type: 'range',
+          min: control.min,
+          max: control.max,
+          step: control.step,
+          value: isFinite(value) ? value : control.neutral,
+          className: 'mp-range',
+          'aria-label': t(EQ_EFFECT_LABEL_KEYS[control.id]),
+          onChange: function (event) {
+            var next = normalizeEqEffects(props.effects)
+            next[control.id] = Number(event.target.value)
+            player.setEq({ effects: next, enabled: true })
+          },
+        }),
+        h('span', { className: 'mp-eq-fx-value' }, eqEffectReadout(control, isFinite(value) ? value : control.neutral)),
+      )
+    }
+
 
     function EqPresetTile(props) {
       return h(
@@ -159368,7 +159425,7 @@ window.__ModuleLoader__.load({
         if (!Array.isArray(entry.bands)) return
         player.setEq({
           bands: entry.bands,
-          preamp: entry.preamp,
+          effects: entry.effects,
           preset: eqPresetForBands(entry.bands),
           enabled: true,
         })
@@ -159384,7 +159441,7 @@ window.__ModuleLoader__.load({
           id: 'u' + Date.now().toString(36),
           name: name.slice(0, 24),
           bands: eq.bands.slice(),
-          preamp: eq.preamp,
+          effects: normalizeEqEffects(eq.effects),
           at: Date.now(),
         }
         var list = custom.filter(function (item) {
@@ -159578,7 +159635,7 @@ window.__ModuleLoader__.load({
         body = h(
           'div',
           { className: 'mp-eq-edit' },
-          h(EqCurve, { bands: eq.bands, preamp: eq.preamp }),
+          h(EqCurve, { bands: eq.bands }),
           h(
             'div',
             { className: 'mp-eq-faders' },
@@ -159596,23 +159653,18 @@ window.__ModuleLoader__.load({
           ),
           h(
             'div',
-            { className: 'mp-eq-preamp' },
-            h('span', { className: 'mp-eq-preamp-label' }, t('eq.preamp')),
-            h('input', {
-              type: 'range',
-              min: -EQ_PREAMP_MAX,
-              max: EQ_PREAMP_MAX,
-              step: 1,
-              className: 'mp-range',
-              value: eq.preamp,
-              'aria-label': t('eq.preamp'),
-              onChange: function (event) {
-                player.setEq({ preamp: Number(event.target.value), enabled: true })
-              },
+            { className: 'mp-eq-effects' },
+            h('div', { className: 'mp-eq-effects-title' }, t('eq.effects')),
+            EQ_EFFECT_CONTROLS.map(function (control) {
+              return h(EqEffectRow, {
+                key: control.id,
+                control: control,
+                value: normalizeEqEffects(eq.effects)[control.id],
+                effects: eq.effects,
+              })
             }),
-            h('span', { className: 'mp-eq-preamp-value' }, eqFormatDb(eq.preamp) + ' dB'),
           ),
-          h('div', { className: 'mp-eq-hint' }, t('eq.preampHint')),
+          h('div', { className: 'mp-eq-hint' }, t('eq.fxHint')),
           h(
             'div',
             { className: 'mp-eq-actions' },
@@ -159622,7 +159674,11 @@ window.__ModuleLoader__.load({
                 type: 'button',
                 className: 'mp-eq-action',
                 onClick: function () {
-                  player.setEq({ preset: 'flat', bands: zeroEqBands(), preamp: 0 })
+                  player.setEq({
+                    preset: 'flat',
+                    bands: zeroEqBands(),
+                    effects: normalizeEqEffects({}),
+                  })
                 },
               },
               t('eq.reset'),

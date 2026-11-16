@@ -2,7 +2,7 @@
  * eq-panel: the equalizer surface inside the audio-effects popover.
  *
  * Three tabs, mirroring how desktop players organise this: factory presets,
- * the user's saved curves, and the editor (response curve + faders + preamp).
+ * the user's saved curves, and the editor (response curve + faders + effects).
  * All state lives in prefs through `player.setEq`, so the panel stays a pure
  * view of a single source of truth.
  */
@@ -55,7 +55,7 @@ function EqMiniBars(props) {
 /** Real magnitude response of the current chain, drawn as a line. */
 function EqCurve(props) {
   var bands = props.bands || []
-  var samples = eqCurveSamples(bands, props.preamp, 72, 44100)
+  var samples = eqCurveSamples(bands, 0, 72, 44100)
   var width = 300
   var height = 64
   var span = EQ_MAX_DB + 6
@@ -113,6 +113,52 @@ function EqFader(props) {
     h('span', { className: 'mp-eq-fader-label' }, props.label),
   )
 }
+
+var EQ_EFFECT_LABEL_KEYS = {
+  highpass: 'eq.fxHighpass',
+  lowpass: 'eq.fxLowpass',
+  drive: 'eq.fxDrive',
+  crush: 'eq.fxCrush',
+  wow: 'eq.fxWow',
+  noise: 'eq.fxNoise',
+  width: 'eq.fxWidth',
+  space: 'eq.fxSpace',
+  punch: 'eq.fxPunch',
+}
+
+function eqEffectReadout(control, value) {
+  if (control.unit === 'hz') {
+    return value >= 1000 ? (value / 1000).toFixed(1) + ' kHz' : Math.round(value) + ' Hz'
+  }
+  return Math.round(value * 100) + '%'
+}
+
+/** One Folia post-EQ effect slider. */
+function EqEffectRow(props) {
+  var control = props.control
+  var value = Number(props.value)
+  return h(
+    'div',
+    { className: 'mp-eq-fx-row' },
+    h('span', { className: 'mp-eq-fx-label' }, t(EQ_EFFECT_LABEL_KEYS[control.id])),
+    h('input', {
+      type: 'range',
+      min: control.min,
+      max: control.max,
+      step: control.step,
+      value: isFinite(value) ? value : control.neutral,
+      className: 'mp-range',
+      'aria-label': t(EQ_EFFECT_LABEL_KEYS[control.id]),
+      onChange: function (event) {
+        var next = normalizeEqEffects(props.effects)
+        next[control.id] = Number(event.target.value)
+        player.setEq({ effects: next, enabled: true })
+      },
+    }),
+    h('span', { className: 'mp-eq-fx-value' }, eqEffectReadout(control, isFinite(value) ? value : control.neutral)),
+  )
+}
+
 
 function EqPresetTile(props) {
   return h(
@@ -385,7 +431,7 @@ function EqPanel(props) {
     if (!Array.isArray(entry.bands)) return
     player.setEq({
       bands: entry.bands,
-      preamp: entry.preamp,
+      effects: entry.effects,
       preset: eqPresetForBands(entry.bands),
       enabled: true,
     })
@@ -401,7 +447,7 @@ function EqPanel(props) {
       id: 'u' + Date.now().toString(36),
       name: name.slice(0, 24),
       bands: eq.bands.slice(),
-      preamp: eq.preamp,
+      effects: normalizeEqEffects(eq.effects),
       at: Date.now(),
     }
     var list = custom.filter(function (item) {
@@ -595,7 +641,7 @@ function EqPanel(props) {
     body = h(
       'div',
       { className: 'mp-eq-edit' },
-      h(EqCurve, { bands: eq.bands, preamp: eq.preamp }),
+      h(EqCurve, { bands: eq.bands }),
       h(
         'div',
         { className: 'mp-eq-faders' },
@@ -613,23 +659,18 @@ function EqPanel(props) {
       ),
       h(
         'div',
-        { className: 'mp-eq-preamp' },
-        h('span', { className: 'mp-eq-preamp-label' }, t('eq.preamp')),
-        h('input', {
-          type: 'range',
-          min: -EQ_PREAMP_MAX,
-          max: EQ_PREAMP_MAX,
-          step: 1,
-          className: 'mp-range',
-          value: eq.preamp,
-          'aria-label': t('eq.preamp'),
-          onChange: function (event) {
-            player.setEq({ preamp: Number(event.target.value), enabled: true })
-          },
+        { className: 'mp-eq-effects' },
+        h('div', { className: 'mp-eq-effects-title' }, t('eq.effects')),
+        EQ_EFFECT_CONTROLS.map(function (control) {
+          return h(EqEffectRow, {
+            key: control.id,
+            control: control,
+            value: normalizeEqEffects(eq.effects)[control.id],
+            effects: eq.effects,
+          })
         }),
-        h('span', { className: 'mp-eq-preamp-value' }, eqFormatDb(eq.preamp) + ' dB'),
       ),
-      h('div', { className: 'mp-eq-hint' }, t('eq.preampHint')),
+      h('div', { className: 'mp-eq-hint' }, t('eq.fxHint')),
       h(
         'div',
         { className: 'mp-eq-actions' },
@@ -639,7 +680,11 @@ function EqPanel(props) {
             type: 'button',
             className: 'mp-eq-action',
             onClick: function () {
-              player.setEq({ preset: 'flat', bands: zeroEqBands(), preamp: 0 })
+              player.setEq({
+                preset: 'flat',
+                bands: zeroEqBands(),
+                effects: normalizeEqEffects({}),
+              })
             },
           },
           t('eq.reset'),

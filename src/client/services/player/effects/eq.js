@@ -31,16 +31,41 @@ var WINAMP_Q = [1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 2, 3, 3]
 
 var EQ_MAX_DB = 12
 var EQ_PREAMP_MAX = 12
-/**
- * Cap on the automatic trim. Compensating the full boosted peak would make a
- * preset like Rock ~10 dB quieter than flat, which reads as a bug to users;
- * the output limiter in the player catches whatever the cap leaves over.
- */
-var EQ_HEADROOM_MAX = 6
 var EQ_CUSTOM_LIMIT = 20
 var EQ_CURVE_POINTS = 64
 var EQ_MIN_HZ = 20
 var EQ_MAX_HZ = 20000
+
+/**
+ * Folia's post-EQ effect controls. Values and neutral points are copied from
+ * `src/utils/audioEffects.ts`; the DSP itself lives in the Folia bundle.
+ */
+var EQ_EFFECT_CONTROLS = [
+  { id: 'highpass', min: 20, max: 2000, step: 1, neutral: 20, scale: 'log', unit: 'hz' },
+  { id: 'lowpass', min: 500, max: 20000, step: 1, neutral: 20000, scale: 'log', unit: 'hz' },
+  { id: 'drive', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+  { id: 'crush', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+  { id: 'wow', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+  { id: 'noise', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+  { id: 'width', min: 0, max: 2, step: 0.01, neutral: 1, scale: 'linear', unit: 'ratio' },
+  { id: 'space', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+  { id: 'punch', min: 0, max: 1, step: 0.01, neutral: 0, scale: 'linear', unit: 'ratio' },
+]
+
+var EQ_EFFECT_DEFAULT = EQ_EFFECT_CONTROLS.reduce(function (out, control) {
+  out[control.id] = control.neutral
+  return out
+}, {})
+
+function normalizeEqEffects(value) {
+  var source = value !== null && typeof value === 'object' ? value : {}
+  return EQ_EFFECT_CONTROLS.reduce(function (out, control) {
+    var raw = Number(source[control.id])
+    var next = isFinite(raw) ? raw : control.neutral
+    out[control.id] = clamp(next, control.min, control.max)
+    return out
+  }, {})
+}
 
 /**
  * Winamp's original factory presets: ten raw fader values (0..64, 33 = 0 dB)
@@ -265,7 +290,7 @@ function normalizeEqPrefs(prefs) {
     enabled: source.eqEnabled === true,
     preset: savedPreset,
     bands: bands,
-    preamp: Math.round(clamp(Number(source.eqPreamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)),
+    effects: normalizeEqEffects(source.eqEffects),
     device: isDevice ? String(source.eqDevice || '') : '',
   }
 }
@@ -328,50 +353,6 @@ function eqSections(bands, sampleRate) {
 }
 
 /**
- * Loudest point of the boosted response. Adjacent bands overlap in phase, so
- * the true peak is above the largest single band; sampling the response keeps
- * the headroom honest instead of guessing from the fader values.
- */
-function eqPeakBoostDb(bands, sampleRate) {
-  var sections = eqSections(bands, sampleRate)
-  if (sections.length === 0) return 0
-  var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
-  var lowLog = Math.log(EQ_MIN_HZ)
-  var highLog = Math.log(Math.min(EQ_MAX_HZ, rate / 2))
-  var peak = 0
-  for (var index = 0; index <= 48; index += 1) {
-    var freq = Math.exp(lowLog + ((highLog - lowLog) * index) / 48)
-    var db = 0
-    for (var section = 0; section < sections.length; section += 1) {
-      db += eqSectionDb(sections[section], freq, rate)
-    }
-    if (db > peak) peak = db
-  }
-  return peak
-}
-
-/**
- * Automatic headroom: trim by the boosted peak, capped at EQ_HEADROOM_MAX so a
- * heavy preset stays roughly as loud as flat. Never boosts, so switching the EQ
- * off and on cannot make the track louder.
- */
-function eqHeadroomDb(bands) {
-  var peak = eqPeakBoostDb(bands, 44100)
-  if (!(peak > 0)) return 0
-  return -Math.min(roundDecimals(peak, 1), EQ_HEADROOM_MAX)
-}
-
-/** Total gain the preamp node should apply, including the headroom trim. */
-function eqTotalPreampDb(preamp, bands) {
-  var value = clamp(Number(preamp) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)
-  return roundDecimals(value + eqHeadroomDb(bands), 2)
-}
-
-function eqDbToLinear(db) {
-  return Math.pow(10, (Number(db) || 0) / 20)
-}
-
-/**
  * Peaking-filter coefficients, matching the Web Audio `BiquadFilterNode`
  * definition (RBJ audio EQ cookbook). Returned as [b0, b1, b2, a0, a1, a2].
  */
@@ -419,7 +400,7 @@ function eqCurveSamples(bands, preampDb, count, sampleRate) {
   var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
   var points = Math.max(2, Math.floor(Number(count) || EQ_CURVE_POINTS))
   var sections = eqSections(list, rate)
-  var total = eqTotalPreampDb(preampDb, list)
+  var total = clamp(Number(preampDb) || 0, -EQ_PREAMP_MAX, EQ_PREAMP_MAX)
   var output = []
   var lowLog = Math.log(EQ_MIN_HZ)
   var highLog = Math.log(Math.min(EQ_MAX_HZ, rate / 2))
