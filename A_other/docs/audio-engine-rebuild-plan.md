@@ -386,8 +386,9 @@ P6b（单独评估）：
 - [x] P4b-3：crossfade deck/adopt 交给 Folia transport。
 - [x] P4b-4：crossfade 目标 -14 + 每 deck meter 跟随 active deck。
 - [x] P5d：播放淡入淡出设置开关。
+- [x] P6a-2a：crossover 交给 Folia `planBlendShape`。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`、`ab064b8`、`536f94f`、`665a712`、`d63c8a1`、`67f42ab`、`5b73fad`、`51fb95b`、`ee64b3d`、`235e96d`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`、`ab064b8`、`536f94f`、`665a712`、`d63c8a1`、`67f42ab`、`5b73fad`、`51fb95b`、`ee64b3d`、`235e96d`、`3ab031c`。
 
 ### 进行中
 
@@ -397,7 +398,8 @@ P6b（单独评估）：
 - [x] P6a-1：crossfade 曲线改用 Folia `buildCrossfadeCurves`；`prepareCrossfade` 现在传 `introSilentSec`，静音开头跳过不再是死代码。
 - [x] P4b-3：crossfade 的 deck 切换/adopt 已交给 `foliaTransport.crossfadeTo`；旧的 `audioB.src`/手写曲线调度删除。
 - [x] P4b-4：入轨响度目标从 -16 改为 -14；transport 每 deck tick 自己的 meter，换 deck 后 `balanceMeter` 跟随 active deck。
-- [ ] P6a-2：tone 三段 / echo throw 还没接入；当前是 Folia 等功率曲线。
+- [x] P6a-2a：crossover 由 Folia `planBlendShape` 决定（当前无 beat grid，只按 outgoing loudness）。
+- [ ] P6a-2b：tone 三段 / echo throw 还没接入；当前是 Folia 等功率曲线。
 - [ ] 用真实 `<audio>` 接本地/在线各一首。
 
 ### 下一步
