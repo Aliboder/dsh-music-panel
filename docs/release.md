@@ -69,10 +69,10 @@ Invoke-Expression ($PKG.scripts.check.Replace('node ', "& '$NODE' "))
 
 | 改动的目录 | 发布前必须跑 |
 |---|---|
-| `src/**`（除 `src/utils/lyrics/**`、`src/render/lyrics/entry.ts`） | `node scripts/build-client.mjs` |
-| `src/utils/lyrics/**` 或 `src/render/lyrics/entry.ts` | `node scripts/build-lyrics.mjs` → 再 `build-client` |
-| 背景 / 样式 / pendolo 源码或 `src/render/folia/vendor/**` | `build-backgrounds` / `build-styles` / `build-pendolo` → 再 `build-client` |
-| `lib/assets/icu-folia/**` | `node scripts/build-icu-folia.mjs`（需要 folia 检出，不要手改） |
+| `src/client/**`（除 `src/client/utils/lyrics/**`、`src/client/render/lyrics/entry.ts`） | `node scripts/build-client.mjs` |
+| `src/client/utils/lyrics/**` 或 `src/client/render/lyrics/entry.ts` | `node scripts/build-lyrics.mjs` → 再 `build-client` |
+| 背景 / 样式 / pendolo 源码或 `src/folia/vendor/**` | `build-backgrounds` / `build-styles` / `build-pendolo` → 再 `build-client` |
+| `src/host/assets/icu-folia/**` | `node scripts/build-icu-folia.mjs`（需要 folia 检出，不要手改） |
 
 > `client.js` / `*.bundle.js` 都是生成物，**不要手改**。
 
@@ -85,7 +85,7 @@ New-Item -ItemType Directory $tmp | Out-Null
 tar -tzf (Get-ChildItem $tmp -Filter *.tgz).FullName | Select-Object -First 20
 ```
 
-确认：版本号正确、包含 `client.js` / `lib/**` / `LICENSE` / `THIRD_PARTY_NOTICES.md`、**不包含**用户音乐、歌词缓存、登录凭据、`.auth-state/`。看完删除临时目录。
+确认：版本号正确、包含 `client.js` / `src/host/**` / `LICENSE` / `THIRD_PARTY_NOTICES.md`、**不包含**用户音乐、歌词缓存、登录凭据、`.auth-state/`。看完删除临时目录。
 
 ---
 
@@ -96,7 +96,7 @@ tar -tzf (Get-ChildItem $tmp -Filter *.tgz).FullName | Select-Object -First 20
 2. **CHANGELOG**：把顶部 `## Unreleased` 整段改成 `## x.y.z — YYYY-MM-DD`（保留小节结构），然后在其上方补一个新的空 `## Unreleased` 给下个版本用。
 3. **README**：顶部 release 徽章改成 `release-x.y.z`；测试文件数量若变了，顺手改 `npm test # N test files`。
 4. **许可与第三方**：新增依赖、新增移植来源 → 更新 `THIRD_PARTY_NOTICES.md`。
-   本项目必须保持 **AGPL-3.0-only**（`src/render/folia/**`、`src/utils/lyrics/**` 是 Folia 的 AGPL 移植），不能换成更宽松的协议。Folia 归属固定在 README 的「参考与致谢 / Credits」里，仓库地址 <https://github.com/chthollyphile/folia-major>。
+   本项目必须保持 **AGPL-3.0-only**（`src/folia/**`、`src/client/utils/lyrics/**` 是 Folia 的 AGPL 移植），不能换成更宽松的协议。Folia 归属固定在 README 的「参考与致谢 / Credits」里，仓库地址 <https://github.com/chthollyphile/folia-major>。
 5. **提交**：`chore(release): x.y.z —— <一句话主题>`，把 CHANGELOG / README / package.json / 重建后的 client.js 放在同一个提交里。
 
 发布前再想一遍：这一版有没有 **用户会踩到的行为变化**（偏好迁移、需要重新登录、设置改名）。有就必须写进 Release 的「升级提示」。

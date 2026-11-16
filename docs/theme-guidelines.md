@@ -12,9 +12,9 @@
 
 每个新控件按这个顺序决定怎么做，**不要跳过前两层直接写 `<div>`**：
 
-1. **宿主组件**：`src/00-host-ui.js` 的 `hostComponent(name)` 能拿到，就走宿主（Tooltip /
+1. **宿主组件**：`src/client/app/00-host-ui.js` 的 `hostComponent(name)` 能拿到，就走宿主（Tooltip /
    Switch / Pill / Modal / Menu / Toast）。
-2. **本仓原语**：宿主没有、或宿主版本不可用，就用 `src/ui/01-primitives.js` 的本地组件
+2. **本仓原语**：宿主没有、或宿主版本不可用，就用 `src/client/components/ui/01-primitives.js` 的本地组件
    （`IconButton` / `Button` / `Switch` / `KitPill` / `KitModal` / `SetRow` / `Empty` / `Spinner` …）。
    本地原语的 fallback 必须和宿主同貌，而不是另一套设计。
 3. **一次性布局**：只有纯布局、容器、装饰才直接写元素；颜色、圆角、字号、焦点环仍从 token 来。
@@ -36,7 +36,7 @@
 4. **样式只作用于自己的 `.mp-*` 命名空间。** 不改宿主类的全局行为，不覆盖宿主的全局
    `--dsw-*` 定义（作用域内的深色岛例外见 §1.1）。
 5. **风险边界。** 宿主 client 包是 DSH 内部 API，官方明确不建议第三方插件依赖；所有访问都
-   收敛在 `src/00-host-ui.js`，模块不存在时自动回退，升级出问题只修适配层。
+   收敛在 `src/client/app/00-host-ui.js`，模块不存在时自动回退，升级出问题只修适配层。
 6. **不要假控件。** 按钮必须真的执行操作，开关必须真的改状态，空状态/加载态必须对应真实状态；
    只改文案或只画一个胶囊不算功能。
 7. **先映射，后发明。** 常见交互（开关、菜单、对话框、提示、胶囊）都已经有对应物；不要为同一
@@ -153,7 +153,7 @@ border-color: color-mix(in srgb, var(--dsw-alias-state-business-primary) 46%, tr
 
 ### 3.1 加载与判定
 
-`src/00-host-ui.js` 是**唯一**允许 `require('@deepseek-ai/dsh-client-ui-primitives')` 的地方：
+`src/client/app/00-host-ui.js` 是**唯一**允许 `require('@deepseek-ai/dsh-client-ui-primitives')` 的地方：
 
 ```js
 var hostUi = null
@@ -176,9 +176,9 @@ try {
 
 ### 3.3 图标
 
-`src/15-icons.js` 的 `icon(name, size)`：
+`src/client/components/common/15-icons.js` 的 `icon(name, size)`：
 
-1. 先查 `HOST_ICON_MAP`（`src/00-host-ui.js`）里对应的宿主图标组件（如 `search` →
+1. 先查 `HOST_ICON_MAP`（`src/client/app/00-host-ui.js`）里对应的宿主图标组件（如 `search` →
    `IconSearchOutlineRegular`）；
 2. 宿主没有映射，就用本地 SVG（Feather/Lucide 路径，MIT）。
 
@@ -458,7 +458,7 @@ h(KitModal, {
 
 新增/修改组件后至少跑：
 
-1. `node scripts/build-client.mjs`（改 `src/**` 后必须）
+1. `node scripts/build-client.mjs`（改 `src/client/**` 后必须）
 2. `node scripts/build-client.mjs --check`
 3. `npm test`（含 `test/theme.test.mjs` 主题守卫）
 4. `npm run check`
@@ -495,16 +495,16 @@ h(KitModal, {
 
 | 文件 | 职责 |
 |---|---|
-| `src/90-theme.js` | 全部 CSS 与 `--dsw-*` 使用 |
-| `src/00-host-ui.js` | 宿主模块加载、`hostComponent`、`HOST_ICON_MAP` |
-| `src/15-icons.js` | `icon()` 本地 SVG + 宿主图标分流 |
-| `src/ui/01-primitives.js` | `IconButton`、`Button`、`Switch`、`KitPill`、`KitModal`、`SetRow`、`Cover`、`Spinner`、`Empty`、`SeekBar` |
-| `src/ui/07-dialogs.js` | `Toast`、确认框、右键菜单等浮层 |
-| `src/ui/16-header.js` | `HeadMenu`、`ContentHeader`、选择/排序菜单 |
-| `src/ui/06-settings.js` | 设置面板（headless Modal）与宿主组件状态行 |
-| `src/ui/20-player-sheet.js` | 播放器卡片（深色岛） |
-| `src/ui/04-now-playing.js` | 播放页（深色岛）与播放页设置 |
-| `src/ui/25-look-picker.js` | 外观选择器（歌词样式 / 背景） |
+| `src/client/styles/90-theme.js` | 全部 CSS 与 `--dsw-*` 使用 |
+| `src/client/app/00-host-ui.js` | 宿主模块加载、`hostComponent`、`HOST_ICON_MAP` |
+| `src/client/components/common/15-icons.js` | `icon()` 本地 SVG + 宿主图标分流 |
+| `src/client/components/ui/01-primitives.js` | `IconButton`、`Button`、`Switch`、`KitPill`、`KitModal`、`SetRow`、`Cover`、`Spinner`、`Empty`、`SeekBar` |
+| `src/client/components/ui/07-dialogs.js` | `Toast`、确认框、右键菜单等浮层 |
+| `src/client/components/ui/16-header.js` | `HeadMenu`、`ContentHeader`、选择/排序菜单 |
+| `src/client/components/ui/06-settings.js` | 设置面板（headless Modal）与宿主组件状态行 |
+| `src/client/components/ui/20-player-sheet.js` | 播放器卡片（深色岛） |
+| `src/client/components/ui/04-now-playing.js` | 播放页（深色岛）与播放页设置 |
+| `src/client/components/ui/25-look-picker.js` | 外观选择器（歌词样式 / 背景） |
 | `test/theme.test.mjs` | 主题/组件守卫 |
 | `docs/theme-guidelines.md` | 本文档 |
 | `docs/screenshots/v2-light.png` / `v2-dark.png` | 浅色 / 深色基准图 |

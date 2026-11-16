@@ -127,11 +127,11 @@ scripts/
 | `60-library.js`、`44-filter.js`、`17-list.js`、`18-stats.js` | `src/client/components/library/**` |
 | `70-online.js`、`35-provider-logos.js` | `src/client/components/online/**` |
 | `10-base.js`、`28-look.js`、`90-theme.js`、`47-wave-color.js` | `src/client/styles/**` |
-| `15-icons.js`、`19-extra-icons.js`、`36-guide-shots.js`、`45-ui.js`、`80-overlay.js`、`85-select.js` | `src/client/components/common|shell/**` |
-| `02-autoanimate.js`、`02-layers.js` | `src/client/components/common/animation/**` |
-| `src/ui/**` | `src/client/components/**`（按现有文件名领域分组） |
+| `15-icons.js`、`19-extra-icons.js`、`36-guide-shots.js`、`45-ui.js`、`80-overlay.js`、`85-select.js` | `src/client/components/common/**` |
+| `02-autoanimate.js`、`02-layers.js` | `src/client/components/common/**` |
+| `src/ui/**` | `src/client/components/ui/**` |
 | `src/render/styles/**`、`src/render/lyrics/**` | `src/client/render/**` |
-| `src/render/folia/*.bundle.js` 等生成物 | 保持原位或 `src/client/render/folia/**`，仅改构建路径 |
+| `src/render/folia/**` | `src/folia/**`（顶层 Folia 树） |
 | `src/vendor/**` | `src/client/vendor/**` |
 | `src/stores/**` | `src/client/stores/**` |
 | `src/services/**` | `src/client/services/**` |

@@ -243,16 +243,12 @@
       </section>
 
       <section class="card folia">
-        <div class="card__head"><div class="card__title"><span class="swatch"></span>src/folia</div><div class="card__note">独立上游树</div></div>
+        <div class="card__head"><div class="card__title"><span class="swatch"></span>src/folia</div><div class="card__note">独立上游树 · 顶层</div></div>
         <div class="card__body">
           <ul class="tree">
-            <li><div class="row"><span class="name dir">folia/</span><span class="tag">AGPL</span></div>
-              <ul>
-                <li><div class="row"><span class="name dir">upstream/</span><span class="desc">逐字同步</span></div></li>
-                <li><div class="row"><span class="name dir">bridge/</span><span class="desc">边界适配</span></div></li>
-                <li><div class="row"><span class="name dir">vendor/ · entries/ · assets/</span></div></li>
-              </ul>
-            </li>
+            <li><div class="row"><span class="name dir">upstream/</span><span class="tag">AGPL</span><span class="desc">逐字同步</span></div></li>
+            <li><div class="row"><span class="name dir">bridge/</span><span class="desc">边界适配</span></div></li>
+            <li><div class="row"><span class="name dir">vendor/ · entries/ · assets/</span></div></li>
           </ul>
         </div>
       </section>
@@ -262,7 +258,7 @@
     <section class="card client">
       <div class="card__head">
         <div class="card__title"><span class="swatch"></span>src/client</div>
-        <div class="card__note">Browser · 从 src/** 搬入</div>
+        <div class="card__note">Browser · 由 src/** 片段搬入</div>
       </div>
       <div class="card__body">
         <ul class="tree">
@@ -273,16 +269,15 @@
               <li><div class="row"><span class="name dir">app/</span><span class="desc">00-runtime · 00-host-ui · 99-plugin</span></div></li>
               <li><div class="row"><span class="name dir">components/</span><span class="desc">现有 UI 片段，按领域分组</span></div>
                 <ul>
-                  <li><div class="row"><span class="name file">common/ · player/ · library/</span></div></li>
-                  <li><div class="row"><span class="name file">online/ · settings/ · lyrics/ · dialogs/</span></div></li>
+                  <li><div class="row"><span class="name file">common/ · library/ · online/ · ui/</span></div></li>
                 </ul>
               </li>
-              <li><div class="row"><span class="name dir">services/</span><span class="desc">api / player engine / prefs / theme / effects</span></div></li>
+              <li><div class="row"><span class="name dir">services/</span><span class="desc">api / player / effects / lyrics</span></div></li>
               <li><div class="row"><span class="name dir">stores/</span><span class="desc">全局状态片段</span></div></li>
-              <li><div class="row"><span class="name dir">hooks/ · utils/ · types/</span></div></li>
+              <li><div class="row"><span class="name dir">utils/ · types/</span></div></li>
               <li><div class="row"><span class="name dir">i18n/</span><span class="desc">05-i18n · 06-strings</span></div></li>
               <li><div class="row"><span class="name dir">styles/</span><span class="desc">base / theme / look / wave-color</span></div></li>
-              <li><div class="row"><span class="name dir">render/</span><span class="desc">原 src/render/** + 生成 bundles</span></div></li>
+              <li><div class="row"><span class="name dir">render/</span><span class="desc">原 src/render/**（不含 Folia；Folia 已迁至 src/folia）</span></div></li>
               <li><div class="row"><span class="name dir">vendor/</span><span class="desc">React 18 shims / framer / three / pixi</span></div></li>
             </ul>
           </li>

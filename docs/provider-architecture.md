@@ -1,6 +1,6 @@
 # 平台支持架构（对齐 Folia）
 
-平台（本地与在线）都注册进同一个 `lib/sources` registry，上层只通过 `omni` 调用。这一层是
+平台（本地与在线）都注册进同一个 `src/host/providers/sources` registry，上层只通过 `omni` 调用。这一层是
 Folia `OnlineMusicProvider` 的最小对等实现：能力位、每平台音质档、登录方式、namespace API。
 
 ## 一个 source 的形状
@@ -10,7 +10,7 @@ Folia `OnlineMusicProvider` 的最小对等实现：能力位、每平台音质�
   id: 'netease',
   kind: 'online' | 'local',
   displayName: 'NetEase Cloud Music',
-  capabilities: { search: true, playback: true, ... }, // 见 lib/core/contract.js
+  capabilities: { search: true, playback: true, ... }, // 见 src/host/services/core/contract.js
   qualityLevels: ['standard', 'high', 'lossless', 'hires'],
   loginMethods: ['qr'],        // qr | password | external
   api: {                       // providerApi() 生成，按 namespaces 分组
@@ -36,7 +36,7 @@ Folia `OnlineMusicProvider` 的最小对等实现：能力位、每平台音质�
 
 ## 加一个平台
 
-1. 在 `lib/providers/` 或独立目录实现协议（或 `lib/sources/<id>/`，像 Bodian）。
+1. 在 `src/host/providers/` 或独立目录实现协议（或 `src/host/providers/sources/<id>/`，像 Bodian）。
 2. 在 `ONLINE_SPECS`（或 `registerXxxSource`）声明 `capabilities`、`qualityLevels`。
 3. 登录方式由能力位自动得出；客户端无需新增平台分支。
 4. 补 `test/sources.test.mjs` 的能力/音质/登录方式断言。

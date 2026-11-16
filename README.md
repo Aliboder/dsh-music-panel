@@ -197,12 +197,12 @@ npm run check       # syntax + manifest checks
 npm run pack:check  # package self-check
 ```
 
-- Host：`index.js` + `lib/**`，提供 `/music/*` HTTP API。
-- Web：`client.js` 由 `src/**` 分片构建，单文件、零运行时依赖，只依赖宿主注入的 `react`。
+- Host：`index.js` + `src/host/**`，提供 `/music/*` HTTP API。
+- Web：`client.js` 由 `src/client/**` 分片（`src/client/manifest.json` 定序）构建，单文件、零运行时依赖，只依赖宿主注入的 `react`。
 
 ```bash
 node scripts/build-client.mjs          # rebuild client.js
-node scripts/build-client.mjs --check  # verify src and client.js agree
+node scripts/build-client.mjs --check  # verify src/client and client.js agree
 node scripts/build-vendor.mjs          # rebuild the bundled framer-motion fragment
 ```
 
@@ -212,7 +212,7 @@ node scripts/build-vendor.mjs          # rebuild the bundled framer-motion fragm
 
 本项目大量参考并移植了 **[Folia](https://github.com/chthollyphile/folia-major)**（`folia-major-main` 0.7.28，AGPL-3.0-only），Folia 仓库地址：<https://github.com/chthollyphile/folia-major>。
 
-- `src/render/folia/**` 的歌词舞台与背景是 Folia 渲染器的逐文件移植；`src/utils/lyrics/**` 是 Folia 歌词流水线的逐字副本（LRC / 增强 LRC / TTML / VTT / QRC / YRC / KRC 解析、staff 署名、副歌、行过滤、icu-folia 分词）。
+- `src/folia/**` 的歌词舞台与背景是 Folia 渲染器的逐文件移植；`src/client/utils/lyrics/**` 是 Folia 歌词流水线的逐字副本（LRC / 增强 LRC / TTML / VTT / QRC / YRC / KRC 解析、staff 署名、副歌、行过滤、icu-folia 分词）。
 - 在线层（provider 能力位、注册表、统一门面、失败分类、本地服务生命周期）按 Folia 的架构对齐；逐字换源、行过滤规则即时生效、手动词级分词、原生副歌范围等行为都以 Folia 为参照实现。
 - 移植只改边界（React props、播放时钟、主题、音频带、存储 / 服务 / worker shim），渲染与解析代码保持上游原样。逐项来源与许可见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)、移植规则见 [docs/folia-porting.md](docs/folia-porting.md)。
 
@@ -351,8 +351,8 @@ npm run check
 npm run pack:check
 ```
 
-- Host: `index.js` + `lib/**`, exposing `/music/*` HTTP routes.
-- Web: `client.js` is built from `src/**` as a single CJS module with no runtime dependencies beyond the host-provided `react`.
+- Host: `index.js` + `src/host/**`, exposing `/music/*` HTTP routes.
+- Web: `client.js` is built from `src/client/**` as a single CJS module with no runtime dependencies beyond the host-provided `react`.
 
 ```bash
 node scripts/build-client.mjs
@@ -364,7 +364,7 @@ See [theme guidelines](docs/theme-guidelines.md) and [UI review](docs/ui-review-
 ### Credits
 
 - [AutoAnimate](https://github.com/formkit/auto-animate) (MIT) powers the now-playing track transitions.
-- **[Folia](https://github.com/chthollyphile/folia-major)** (AGPL-3.0-only, `folia-major-main` 0.7.28): the lyric stages and backgrounds in `src/render/folia/**` are a file-by-file port of Folia's renderers, and `src/utils/lyrics/**` is a verbatim copy of its lyric pipeline (LRC / enhanced LRC / TTML / VTT / QRC / YRC / KRC parsing, staff credits, chorus, line rules, icu-folia segmentation). The online layer (provider capabilities, registry, unified facade, failure classes, local service lifecycle) follows Folia's architecture, and so do the word-level lyric upgrade, instant line-rule re-filtering, manual word segmentation and native chorus ranges. Only the boundaries are adapted (React props, playback clock, theme, audio bands, storage / service / worker shims); rendering and parsing stay as upstream. Repo: <https://github.com/chthollyphile/folia-major>. Per-item notices: [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md); porting rules: [docs/folia-porting.md](docs/folia-porting.md).
+- **[Folia](https://github.com/chthollyphile/folia-major)** (AGPL-3.0-only, `folia-major-main` 0.7.28): the lyric stages and backgrounds in `src/folia/**` are a file-by-file port of Folia's renderers, and `src/client/utils/lyrics/**` is a verbatim copy of its lyric pipeline (LRC / enhanced LRC / TTML / VTT / QRC / YRC / KRC parsing, staff credits, chorus, line rules, icu-folia segmentation). The online layer (provider capabilities, registry, unified facade, failure classes, local service lifecycle) follows Folia's architecture, and so do the word-level lyric upgrade, instant line-rule re-filtering, manual word segmentation and native chorus ranges. Only the boundaries are adapted (React props, playback clock, theme, audio bands, storage / service / worker shims); rendering and parsing stay as upstream. Repo: <https://github.com/chthollyphile/folia-major>. Per-item notices: [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md); porting rules: [docs/folia-porting.md](docs/folia-porting.md).
 
 ### License
 

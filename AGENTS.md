@@ -1,17 +1,17 @@
 # AGENTS.md
 
-`dsh-music-panel` — DeepSeek Harness（DSH）的本地音乐插件。Host 在 `index.js` / `lib/**`（扫描、标签、歌词、路由、在线源、持久化），Client 在 `src/**`（面板、播放器、Folia 歌词舞台）。
+`dsh-music-panel` — DeepSeek Harness（DSH）的本地音乐插件。Host 在 `index.js` / `src/host/**`（扫描、标签、歌词、路由、在线源、持久化），Client 在 `src/client/**`（面板、播放器、Folia 歌词舞台；Folia 源码在 `src/folia/**`）。
 
 ## 命令
 
 ```bash
 npm test                                  # 全量 Node 测试
 npm run check                             # 语法 + i18n key + client 同步
-node scripts/build-client.mjs             # 改 src/** 后重建 client.js
+node scripts/build-client.mjs             # 改 src/client/** 后重建 client.js
 node scripts/build-client.mjs --check     # 只检查 client.js 是否最新
 
 
-node scripts/build-lyrics.mjs             # 改 src/utils/lyrics/** 或 src/render/lyrics/entry.ts 后
+node scripts/build-lyrics.mjs             # 改 src/client/utils/lyrics/** 或 src/client/render/lyrics/entry.ts 后
 node scripts/build-icu-folia.mjs          # 重新生成 icu-folia 词典（需要 folia-major-main 检出）
 node scripts/build-pendolo.mjs            # 改 Folia 歌词样式 bundle 后
 node scripts/build-backgrounds.mjs
@@ -26,7 +26,7 @@ node scripts/build-vendor-pixi.mjs        # 仅升级 pixi 时
 
 ✅ **总是**
 
-- 改 `src/**` 后运行 `node scripts/build-client.mjs`，提交前跑 `--check`。
+- 改 `src/client/**` 后运行 `node scripts/build-client.mjs`，提交前跑 `--check`。
 - 改 UI/Folia 后至少跑 `npm test` 和 `npm run check`。
 - Folia 音频用 0–255 频谱；暂停时停止更新 bands。
 - 修改 Folia 源码前，先确认是边界问题还是上游问题，并在 `CHANGELOG.md` 说明。
@@ -37,7 +37,7 @@ node scripts/build-vendor-pixi.mjs        # 仅升级 pixi 时
 ⚠️ **先确认**
 
 - 升级 React、framer、three、pixi 或 R3F。
-- 修改 `src/vendor/**` 或 `src/render/folia/*.bundle.js`。
+- 修改 `src/client/vendor/**` 或 `src/folia/*.bundle.js`。
 - 改变 Folia 样式注册、顺序、默认样式或迁移逻辑。
 - 改音频输出/WebAudio 路由。
 
@@ -53,13 +53,11 @@ node scripts/build-vendor-pixi.mjs        # 仅升级 pixi 时
 ## 架构
 
 ```text
-index.js, lib/**             Host
-src/                         Client fragments（拼成 client.js）
-  vendor/                    React 18 shims、framer、three、pixi
-  render/styles/             样式 stage 与 Folia 边界
-  render/folia/              Folia 源码、bundle、Tailwind
-  ui/                        面板、播放器、设置 sheet
-  *.js                       prefs/player/i18n/theme
+index.js, src/host/**        Host
+src/client/**                Client fragments（由 src/client/manifest.json 定序，拼成 client.js）
+  app/ i18n/ services/ stores/ components/ styles/ render/ vendor/ types/ utils/
+src/folia/**                 Folia 源码、bundle、Tailwind
+src/shared/types.ts          Host/Client 共享类型
 scripts/                     构建
 test/                        Node 测试
 docs/                        移植/架构说明

@@ -53,7 +53,7 @@
 | 设置 UI | 自家 settings kit | 无 | 构建时把 `*SettingsPanel` / `*SettingsCard` alias 到 no-op；先用默认 tuning |
 | 存储 | zustand + localStorage | 插件 `prefs` | `useVisualizerSettingsStore` 等写 shim，读固定默认值 |
 | i18n | react-i18next | 插件 `t()` | `react-i18next` shim 返回插件 `t` |
-| 音频/节拍 | `motionSignals` + beat_this/htdemucs | 播放器 analyser（`src/render/styles/folia-audio.js`） | 按上游 `usePlaybackVisualizerBridge` 写五条 band、`audioPower` 与 `spectrum`（0–255、21.5 Hz 分段、同样的 power 曲线）；分析器 smoothing 与上游一致（0.6）；beat 服务仍固定关闭 |
+| 音频/节拍 | `motionSignals` + beat_this/htdemucs | 播放器 analyser（`src/client/render/styles/folia-audio.js`） | 按上游 `usePlaybackVisualizerBridge` 写五条 band、`audioPower` 与 `spectrum`（0–255、21.5 Hz 分段、同样的 power 曲线）；分析器 smoothing 与上游一致（0.6）；beat 服务仍固定关闭 |
 | Paper Shaders 的 `ref` | React 19：函数组件把 `ref` 当普通 prop 透传 | React 18.3.1：`memo(function …)` 不转发 ref | 把 vendored `paper-shaders-react/dist/shaders/*.js` 的 7 个包装改成 `memo(forwardRef(...))` 并把 `ref` 传给 `ShaderMount`；否则 latent 的逐帧 `setSpeed`/`setUniforms`（音频扭曲、暂停减速）和 nomand 的首帧检测全部失效 |
 | 主题 | 封面色板提取 | 插件 accent | 已移植 `builtinTheme`+`themeColorMath`：按封面色生成 Folia 的 light/dark 主题，样式与背景共用一次提取缓存；AI/自定义主题仍不接 |
 | 歌词数据 | raw → 解析器 → `Line[]`（start/end/fullText/words/renderHints） | 在线与本地都由 Host 交出 raw，客户端跑同一份解析器与显示前处理 | 不再有第二套解析：`mpPrepareLyrics` 按 Folia setter 的顺序跑规则/staff/副歌/分词；只有无时间轴的纯文本与旧生产者仍走 `legacyLinesToFolia` 边界转换 |
@@ -106,7 +106,7 @@
 - framer-motion：复用插件已内联的 `MPFramer`；`useDragControls` 等缺失 API 提供带 `subscribe` 的兼容对象。
 - 歌词/主题/音频：`FoliaStyleHost` 构造 `MotionValue` 时钟、五条 band、Folia `Line[]`（含 `words`）与 `Theme`；样式只挂载一次，换句不重建。
 - 歌词样式注册顺序按 Folia 的 `order` 排序（静止 10、莫奈 20、浮名 30、花火 40、时计 60、云阶 80、倾诉 90、回环 100、心象 110、绘光 120、商籁 130、凝彩 140、雾笺 150、镜台 160）。
-- 歌词本身：在线与本地都走 `src/utils/lyrics/**` 的解析器（`lyrics.bundle.js`），显示前处理按 Folia setter 的顺序在 `mpPrepareLyrics`（`src/16-lyrics.js`）里跑；中文分词用 Host 提供的 icu-folia 数据，手动词级分词按歌曲保存在 `lyric_segmentations`。
+- 歌词本身：在线与本地都走 `src/client/utils/lyrics/**` 的解析器（`lyrics.bundle.js`），显示前处理按 Folia setter 的顺序在 `mpPrepareLyrics`（`src/client/services/lyrics/16-lyrics.js`）里跑；中文分词用 Host 提供的 icu-folia 数据，手动词级分词按歌曲保存在 `lyric_segmentations`。
 
 
 
