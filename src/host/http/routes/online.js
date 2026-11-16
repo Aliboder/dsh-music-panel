@@ -814,6 +814,9 @@ export function createOnlineRoutes(deps) {
         if (!isOnlineSource(provider)) return fail(res, 400, 'BAD_PROVIDER', '未知平台')
         const playedSeconds = Math.max(0, Number(body?.playedSeconds) || 0)
         if (playedSeconds < 30) return sendJson(res, 200, { ok: true, reported: false })
+        if (omni.capabilities(provider)?.playbackReports !== true) {
+          return sendJson(res, 200, { ok: true, reported: false })
+        }
         if (!allowPlaybackReport()) return sendJson(res, 200, { ok: true, reported: false })
         try {
           const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
@@ -1264,7 +1267,7 @@ export function createOnlineRoutes(deps) {
                 playlists.unshift({
                   id: `listening-rank-${range}-${accountId}`,
                   name: range === 'week' ? '最近一周' : (provider === 'qq' ? '年度排行' : '所有时间'),
-                  coverUrl: songs.find((song) => song.coverUrl)?.coverUrl || '',
+                  cover: songs.find((song) => song.coverUrl)?.coverUrl || '',
                   trackCount: songs.length,
                   type: 'listening',
                   listeningRank: range,

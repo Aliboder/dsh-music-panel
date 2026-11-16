@@ -44,6 +44,7 @@ export function createAccountReads(options) {
   const omni = options.omni
   const now = options.now ?? (() => Date.now())
   const pending = new Map()
+  const lastAttempt = new Map()
 
   async function contextOf(provider) {
     return {
@@ -137,7 +138,10 @@ export function createAccountReads(options) {
   /** Read only when the snapshot is missing or older than the stale window. */
   async function readIfStale(provider) {
     const entry = await accountStore.get(provider)
+    const last = lastAttempt.get(provider) ?? 0
+    if (now() - last < 30_000) return entry
     if (entry === null || now() - (Number(entry.savedAt) || 0) > ACCOUNT_STALE_MS) {
+      lastAttempt.set(provider, now())
       void read(provider, 'start')
     }
     return entry
@@ -145,11 +149,13 @@ export function createAccountReads(options) {
 
   async function signOut(provider) {
     pending.delete(provider)
+    lastAttempt.delete(provider)
     await accountStore.clear(provider)
   }
 
   async function clearAll() {
     pending.clear()
+    lastAttempt.clear()
     await accountStore.clearAll()
   }
 
