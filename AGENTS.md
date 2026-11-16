@@ -60,7 +60,7 @@ src/folia/**                 Folia 源码、bundle、Tailwind
 src/shared/types.ts          Host/Client 共享类型
 scripts/                     构建
 test/                        Node 测试
-A_other/docs/               移植/架构说明
+A_other/                    非插件资料（releases/design/docs/shared/upstream）
 ```
 
 > 构建产物、播放/Folia、歌词、安装与数据相关的具体陷阱，全部记在
