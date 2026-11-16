@@ -7155,19 +7155,29 @@ var MPFoliaLyrics = (() => {
   __export(entry_exports, {
     LYRIC_LINE_PRESETS: () => LYRIC_LINE_PRESETS,
     LyricParserFactory: () => LyricParserFactory,
+    SEGMENTATION_DELIMITER: () => SEGMENTATION_DELIMITER,
+    SegmentationImportError: () => SegmentationImportError,
     applyAutoWordSegmentation: () => applyAutoWordSegmentation,
     applyChorusRangesByTime: () => applyChorusRangesByTime,
     applyDetectedChorusEffects: () => applyDetectedChorusEffects,
     applyLyricLineRules: () => applyLyricLineRules,
     applyLyricStaffPolicy: () => applyLyricStaffPolicy,
+    applyLyricWordSegmentation: () => applyLyricWordSegmentation,
+    buildSegmentationBoundaries: () => buildSegmentationBoundaries,
+    buildSegmentationExportText: () => buildSegmentationExportText,
     compileLyricLineRules: () => compileLyricLineRules,
+    countAppliedSegmentationLines: () => countAppliedSegmentationLines,
+    createLyricSegmentationRecord: () => createLyricSegmentationRecord,
     detectNonTtmlTimedLyricFormat: () => detectNonTtmlTimedLyricFormat,
     ensureLyricDataRenderHints: () => ensureLyricDataRenderHints,
+    getLyricLineSegmentationKey: () => getLyricLineSegmentationKey,
     isIcuFoliaReady: () => isIcuFoliaReady,
+    isLyricSegmentationRecord: () => isLyricSegmentationRecord,
     isPureMusicLyricLines: () => isPureMusicLyricLines,
     isPureMusicLyricText: () => isPureMusicLyricText,
     loadIcuFoliaFromData: () => loadIcuFoliaFromData,
     parse: () => parse,
+    parseSegmentationImport: () => parseSegmentationImport,
     prepare: () => prepare,
     readLyricOffset: () => readLyricOffset,
     resolveLyricProcessingOptions: () => resolveLyricProcessingOptions,
@@ -9899,7 +9909,48 @@ var MPFoliaLyrics = (() => {
   };
 
   // src/utils/lyrics/wordSegmentation.ts
+  var PUNCTUATION_ONLY = /^[\s\p{P}\p{S}]+$/u;
+  var isWordLikeText = (text) => !PUNCTUATION_ONLY.test(text);
+  var segmentsFromBoundaries = (boundaries) => {
+    let cursor = 0;
+    return boundaries.map((segment) => {
+      const part = { segment, index: cursor, isWordLike: isWordLikeText(segment) };
+      cursor += segment.length;
+      return part;
+    });
+  };
+  var segmentTextWords = (text) => {
+    if (!text) {
+      return [];
+    }
+    const Segmenter = typeof Intl !== "undefined" ? Intl.Segmenter : void 0;
+    if (Segmenter) {
+      try {
+        return Array.from(new Segmenter(void 0, { granularity: "word" }).segment(text), (part) => ({
+          segment: part.segment,
+          index: part.index,
+          isWordLike: part.isWordLike ?? isWordLikeText(part.segment)
+        }));
+      } catch {
+      }
+    }
+    return segmentsFromBoundaries(splitLyricGraphemes(text));
+  };
   var isValidWordSegmentation = (text, boundaries) => Array.isArray(boundaries) && boundaries.length > 0 && boundaries.every((segment) => typeof segment === "string") && boundaries.join("") === text;
+  var EDGE_WHITESPACE = /^(\s*)(.*?)(\s*)$/su;
+  var splitEdgeWhitespace = (boundaries) => boundaries.flatMap((boundary) => {
+    const [, lead, core, trail] = EDGE_WHITESPACE.exec(boundary) ?? [];
+    return core ? [lead, core, trail].filter(Boolean) : [boundary].filter(Boolean);
+  });
+  var segmentLyricWords = (line) => {
+    if (isValidWordSegmentation(line.fullText, line.wordSegments)) {
+      return segmentsFromBoundaries(splitEdgeWhitespace(line.wordSegments));
+    }
+    if (isValidWordSegmentation(line.fullText, line.autoWordSegments)) {
+      return segmentsFromBoundaries(line.autoWordSegments);
+    }
+    return segmentTextWords(line.fullText);
+  };
 
   // src/utils/lyrics/foliaLyricDocument.ts
   var FOLIA_LYRIC_DOCUMENT_FORMAT = "folia-lyricdata";
@@ -10497,6 +10548,194 @@ var MPFoliaLyrics = (() => {
       ...lyrics,
       lines: finalizeParsedLyricLines(lines.filter((_, index) => !hits[index]), { includeInterludes: true })
     };
+  };
+
+  // src/types/lyricSegmentation.ts
+  var LYRIC_SEGMENTATION_RECORD_VERSION = 1;
+
+  // shared/lyricSegmentationPrompt.mjs
+  var SEGMENTATION_SYSTEM_PROMPT = [
+    "You segment song lyrics into words for a typography engine.",
+    "",
+    "You receive numbered lyric lines. For each line, split it into the units a human reader would",
+    "treat as single words, and return them in order.",
+    "",
+    "Hard rules, in priority order:",
+    "1. Lossless. Concatenating one line\u2019s segments must reproduce that line character for character,",
+    "   including every space, punctuation mark and symbol. Never add, drop, reorder or normalise a",
+    "   character. Never translate, romanise, or correct spelling.",
+    "2. Same count. Return exactly one segment array per input line, in the same order.",
+    "3. Split at meaning, not at characters. For Chinese, Japanese and Korean, group characters into",
+    "   real words and set phrases (\u4E0D\u77E5\u9053 / \u5B64\u72EC\u7684 / \u30AD\u30E9\u30AD\u30E9), not one character per segment.",
+    "   Keep verb\u2013complement and noun\u2013suffix pairs together when they read as one word.",
+    "4. One word per segment. A segment carries a single content word plus the grammatical tail glued",
+    "   to it. If a segment still holds a second noun, verb or adjective, split it again. Spaces are",
+    "   not the only split points: a Japanese or Chinese line usually has none and still needs one",
+    "   segment per word. Returning a whole clause, or a whole line, as one segment is a failure.",
+    "5. Japanese specifically: split before every content word, and keep each content word together",
+    "   with the okurigana, auxiliaries and particles that follow it (\u898B\u3048\u306A\u3044 / \u3088\u3046\u306B / \u96C6\u3081\u305F\u3044 /",
+    "   \u3051\u3069). Sentence-final particles (\u3088 / \u306D / \u3055) attach to what precedes them.",
+    "6. Keep space-delimited words whole for Latin scripts, and keep contractions such as it\u2019s or",
+    "   don\u2019t in one segment.",
+    "7. Attach trailing punctuation to the segment it follows (\u4E16\u754C\u3002 not \u4E16\u754C + \u3002). A bracket or quote",
+    "   stays in one segment with the text it wraps ((\u62FC\u56FE\u5973\u5B69) not ( + \u62FC\u56FE\u5973\u5B69 + )). A space belongs",
+    "   to the segment that precedes it.",
+    '8. The "N. " prefix on each input line is numbering added by this request. It is NOT part of the',
+    "   lyric. Never include it in a segment.",
+    "",
+    "Examples. Given:",
+    "  1. \u628A\u56DE\u5FC6\u62FC\u597D\u7ED9\u4F60",
+    "  2. It\u2019s unbelievable, isn\u2019t it?",
+    "  3. \u3044\u3063\u3071\u3044\u3042\u308B\u3093\u3060\u3088\u6B32\u3057\u3044\u3082\u306E",
+    "  4. \u898B\u3048\u306A\u3044\u3088\u3046\u306B\u3055 \u96A0\u3057\u3066\u3082",
+    "answer exactly:",
+    '  {"lines": [["\u628A", "\u56DE\u5FC6", "\u62FC\u597D", "\u7ED9", "\u4F60"], ["It\u2019s ", "unbelievable, ", "isn\u2019t ", "it?"], ["\u3044\u3063\u3071\u3044", "\u3042\u308B\u3093\u3060\u3088", "\u6B32\u3057\u3044", "\u3082\u306E"], ["\u898B\u3048\u306A\u3044", "\u3088\u3046\u306B", "\u3055 ", "\u96A0\u3057\u3066\u3082"]]}',
+    "",
+    'Respond with JSON only: {"lines": [["seg", "seg"], ["seg"]]}. No prose, no code fence.'
+  ].join("\n");
+  var WHITESPACE = /\s/;
+  var realignSegmentsToText = (boundaries, text) => {
+    if (boundaries.join("") === text) {
+      return boundaries;
+    }
+    const slices = [];
+    let cursor = 0;
+    for (const boundary of boundaries) {
+      const wanted = boundary.replace(/\s+/gu, "");
+      if (!wanted) {
+        continue;
+      }
+      const start = cursor;
+      let matched = 0;
+      while (cursor < text.length && matched < wanted.length) {
+        const char = text[cursor];
+        if (WHITESPACE.test(char)) {
+          cursor += 1;
+          continue;
+        }
+        if (char !== wanted[matched]) {
+          return null;
+        }
+        matched += 1;
+        cursor += 1;
+      }
+      if (matched < wanted.length) {
+        return null;
+      }
+      slices.push(text.slice(start, cursor));
+    }
+    if (slices.length === 0) {
+      return null;
+    }
+    const tail = text.slice(cursor);
+    if (tail.trim()) {
+      return null;
+    }
+    slices[slices.length - 1] += tail;
+    return slices;
+  };
+
+  // src/utils/lyrics/lyricSegmentationRecord.ts
+  var SEGMENTATION_DELIMITER = "/";
+  var getLyricLineSegmentationKey = (line) => `${Math.round(line.startTime * 1e3)}|${line.fullText}`;
+  var createLyricSegmentationRecord = (songKey, source, lines) => ({
+    version: LYRIC_SEGMENTATION_RECORD_VERSION,
+    songKey,
+    updatedAt: Date.now(),
+    source,
+    lines
+  });
+  var isLyricSegmentationRecord = (value) => {
+    if (!value || typeof value !== "object") return false;
+    const record = value;
+    return record.version === LYRIC_SEGMENTATION_RECORD_VERSION && typeof record.songKey === "string" && typeof record.updatedAt === "number" && (record.source === "ai" || record.source === "manual") && Boolean(record.lines) && typeof record.lines === "object";
+  };
+  var applyLyricWordSegmentation = (lyrics, record) => {
+    if (!lyrics || !record) {
+      return lyrics;
+    }
+    let changed = false;
+    const lines = lyrics.lines.map((line) => {
+      const boundaries = record.lines[getLyricLineSegmentationKey(line)];
+      if (!isValidWordSegmentation(line.fullText, boundaries)) {
+        return line;
+      }
+      changed = true;
+      return { ...line, wordSegments: boundaries };
+    });
+    return changed ? { ...lyrics, lines } : lyrics;
+  };
+  var countAppliedSegmentationLines = (lyrics, record) => {
+    if (!lyrics || !record) return 0;
+    return lyrics.lines.reduce((total, line) => {
+      const boundaries = record.lines[getLyricLineSegmentationKey(line)];
+      return isValidWordSegmentation(line.fullText, boundaries) ? total + 1 : total;
+    }, 0);
+  };
+  var buildSegmentationBoundaries = (lyrics) => lyrics.lines.map((line) => segmentLyricWords(line).map((part) => part.segment));
+  var buildSegmentationExportText = (lyrics) => buildSegmentationBoundaries(lyrics).map((boundaries) => boundaries.join(SEGMENTATION_DELIMITER)).join("\n");
+  var SegmentationImportError = class extends Error {
+    /** 1-based row in the pasted text, or null when the failure is not row-specific. */
+    row;
+    constructor(message, row = null) {
+      super(message);
+      this.name = "SegmentationImportError";
+      this.row = row;
+    }
+  };
+  var parseDelimitedRows = (text) => text.replace(/\r\n?/g, "\n").split("\n").map((row) => row.split(SEGMENTATION_DELIMITER).filter((segment) => segment.length > 0));
+  var parseJsonRows = (text) => {
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      throw new SegmentationImportError("invalid-json");
+    }
+    const rows = Array.isArray(parsed) ? parsed : parsed?.lines;
+    if (!Array.isArray(rows) || !rows.every((row) => Array.isArray(row) && row.every((segment) => typeof segment === "string"))) {
+      throw new SegmentationImportError("invalid-json-shape");
+    }
+    return rows;
+  };
+  var parseSegmentationImport = (text, lyrics) => {
+    const normalized = text.replace(/\r\n?/g, "\n");
+    const trimmed = normalized.trim();
+    if (!trimmed) {
+      throw new SegmentationImportError("empty");
+    }
+    const fenced = /^```[^\n]*\n([\s\S]*?)\n?```$/.exec(trimmed);
+    const content = fenced ? fenced[1] : normalized;
+    const isJson = /^[\[{]/.test(content.trimStart());
+    let rows = isJson ? parseJsonRows(content.trim()) : parseDelimitedRows(content);
+    const segmentableLines = lyrics.lines.filter((line) => Boolean(line.fullText));
+    const coversKnownLines = () => rows.length === lyrics.lines.length || rows.length === segmentableLines.length;
+    if (!isJson && !coversKnownLines()) {
+      const nonblankRows = rows.filter((row) => row.join("").trim() !== "");
+      if (nonblankRows.length === segmentableLines.length) rows = nonblankRows;
+    }
+    if (!coversKnownLines()) {
+      throw new SegmentationImportError("line-count-mismatch");
+    }
+    const targetLines = rows.length === lyrics.lines.length ? lyrics.lines : segmentableLines;
+    const lines = {};
+    let appliedCount = 0;
+    rows.forEach((boundaries, index) => {
+      const line = targetLines[index];
+      if (!line.fullText) {
+        if (boundaries.join("")) throw new SegmentationImportError("line-text-mismatch", index + 1);
+        return;
+      }
+      const realigned = realignSegmentsToText(boundaries, line.fullText);
+      if (!realigned || !isValidWordSegmentation(line.fullText, realigned)) {
+        throw new SegmentationImportError("line-text-mismatch", index + 1);
+      }
+      lines[getLyricLineSegmentationKey(line)] = realigned;
+      appliedCount += 1;
+    });
+    if (appliedCount === 0) {
+      throw new SegmentationImportError("empty");
+    }
+    return { lines, appliedCount };
   };
 
   // src/render/lyrics/entry.ts

@@ -148,6 +148,32 @@ assert.ok(typeof lyrics.LyricParserFactory?.parse === 'function', 'and the parse
   assert.equal(untouched.lines.length, parsed.lines.length, 'no rules, no filtering')
 }
 
+// ── saved word segmentation (Folia's lyricSegmentationRecord) ──────────────
+{
+  const doc = await parseDocument({ type: 'local', lrcContent: '[00:01.00]我们一起去听歌吧\n[00:05.00]第二句' })
+  const line = doc.lines[0]
+  assert.equal(line.fullText, '我们一起去听歌吧')
+  const key = lyrics.getLyricLineSegmentationKey(line)
+  const record = lyrics.createLyricSegmentationRecord('track:1', 'manual', {
+    [key]: ['我们', '一起', '去', '听歌', '吧'],
+  })
+  assert.equal(lyrics.isLyricSegmentationRecord(record), true, 'the record survives its own guard')
+  const baked = JSON.parse(JSON.stringify(lyrics.applyLyricWordSegmentation(doc, record)))
+  assert.deepEqual(baked.lines[0].wordSegments, ['我们', '一起', '去', '听歌', '吧'], 'the saved split is baked')
+  assert.equal(baked.lines[1].wordSegments, undefined, 'a line the record does not cover keeps the default split')
+  assert.equal(lyrics.applyLyricWordSegmentation(doc, null), doc, 'no record, no new object')
+  assert.equal(lyrics.countAppliedSegmentationLines(doc, record), 1)
+
+  // The manual path is copy-out / paste-back, so the exported text must import again.
+  const exported = lyrics.buildSegmentationExportText(doc)
+  assert.equal(exported.split('\n').length, 2, 'one row per lyric line')
+  const imported = lyrics.parseSegmentationImport(exported, doc)
+  assert.equal(imported.appliedCount, 2)
+  assert.equal(imported.lines[key].join(''), line.fullText, 'the rows rebuild their lines exactly')
+  // Rows that do not rebuild their line are rejected, never applied at an offset.
+  assert.throws(() => lyrics.parseSegmentationImport('我/们/一起\n第二句', doc), /line-text-mismatch/)
+}
+
 // ── icu-folia engines (the Host's data) ────────────────────────────────────
 {
   const dict = JSON.parse(gunzipSync(readFileSync(join(here, '..', 'lib', 'assets', 'icu-folia', 'dict.json.gz'))).toString('utf8'))

@@ -19,6 +19,18 @@ export { applyChorusRangesByTime, applyDetectedChorusEffects } from '../../utils
 export { isPureMusicLyricLines, isPureMusicLyricText } from '../../utils/lyrics/pureMusic';
 export { readLyricOffset, writeLyricOffset } from '../../utils/lyrics/lyricOffsetMemory';
 export { applyLyricLineRules, compileLyricLineRules, LYRIC_LINE_PRESETS } from '../../utils/lyrics/lyricLineRules';
+export {
+  SEGMENTATION_DELIMITER,
+  applyLyricWordSegmentation,
+  buildSegmentationBoundaries,
+  buildSegmentationExportText,
+  countAppliedSegmentationLines,
+  createLyricSegmentationRecord,
+  getLyricLineSegmentationKey,
+  isLyricSegmentationRecord,
+  parseSegmentationImport,
+  SegmentationImportError,
+} from '../../utils/lyrics/lyricSegmentationRecord';
 import { applyLyricLineRules, compileLyricLineRules } from '../../utils/lyrics/lyricLineRules';
 import { applyLyricStaffPolicy } from '../../utils/lyrics/staffCreditsPolicy';
 import { applyChorusRangesByTime, applyDetectedChorusEffects } from '../../utils/lyrics/chorusEffects';
