@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.36.0 — 2026-11-16
+
+### 许可与 Folia 致谢
+
+- 许可证改为 **AGPL-3.0-only**（0.35.0 及更早版本为 MIT，已发布的旧版本不受影响）。本版本包含
+  移植自 Folia（`folia-major-main` 0.7.28，AGPL-3.0-only）的渲染器与歌词流水线源码，整体必须保持
+  同一许可；`LICENSE`、`package.json`、`README`（中英双语）与 `THIRD_PARTY_NOTICES.md` 已同步。
+- README 新增「参考与致谢 / Credits」：说明在线层、歌词管线与可视化参考或移植自
+  [Folia](https://github.com/chthollyphile/folia-major)，并给出仓库地址
+  <https://github.com/chthollyphile/folia-major>。
 
 ### 歌词处理对齐 Folia（本地 + 在线一次打通）
 
@@ -535,7 +544,6 @@
   `publishTime` / `popularity` / `mvId` / `isVideo` / `resourceState` / `privilegeDetail` /
   `availableQualities`（波点另含 `audios` 音质档位与 `preOnline`）。
 - `parseYrc` 支持混合流：`/lyric/new` 把富 JSON 文档混进经典 YRC 时不再丢弃 credit 行。
-- 许可证改为 **AGPL-3.0-only**（含上游包与 Folia 架构参考的第三方声明）。
 
 ## 0.35.0
 

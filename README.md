@@ -11,7 +11,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsoni
 本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · Navidrome / Subsonic · 歌词 · 缓存 · 音量均衡 · 均衡器
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
-[![release](https://img.shields.io/badge/release-0.33.1-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
+[![release](https://img.shields.io/badge/release-0.36.0-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
 [![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
 
@@ -94,7 +94,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Navidrome / Subsoni
 - **音频缓存**：边播边写、播完落盘，默认上限 10 GB、LRU 淘汰；设置 → 缓存可查看全部缓存歌曲并清空。
 - **可调歌词宽度**：播放页歌词栏两侧都可拖动调整宽度（双击复位），宽度按本机偏好保存。
 - **两栏间距可调**：界面编辑里可调封面栏与歌词栏的间距（12–96px，默认 60px）。
-- **Folia 歌词样式**：14 种 Folia 样式按上游源码移植（静止 / 云阶 / 浮名 / 莫奈 / 倾诉 / 回环 / 心象 / 绘光 / 商籁 / 凝彩 / 花火 / 雾笺 / 镜台 / 时计），共用 Folia 的时钟、逐字时间线、封面取色主题与音频带。原“经典”布局已移除，默认样式为“莫奈”。
+- **Folia 歌词样式**：14 种 [Folia](https://github.com/chthollyphile/folia-major) 样式按上游源码移植（静止 / 云阶 / 浮名 / 莫奈 / 倾诉 / 回环 / 心象 / 绘光 / 商籁 / 凝彩 / 花火 / 雾笺 / 镜台 / 时计），共用 Folia 的时钟、逐字时间线、封面取色主题与音频带。原“经典”布局已移除，默认样式为“莫奈”。
 - **Folia 背景**：播放页使用 Folia 的六种 shell 背景（通用 / 莫奈 / 漫游 / 隐现 / 星空 / 嵌入，另可选“空”），支持封面取色流体、Paper Shaders 抖动与印刷效果、星空与网页嵌入；可在外观设置里切换，默认「隐现」。
 - **列表内搜索**：歌单 / 专辑 / 本地库右上角的放大镜点开后是当前列表的搜索框，按歌名、歌手、专辑实时过滤；顶部的全局搜索只负责在线搜索，两者互不干扰。
 - **智能过渡**：播放页「音频效果 → 音量」或设置 → 播放，只有一个开关。播放到曲末前 14 秒时自动分析当前曲尾与下一首开头的响度，从安静点切入、按安静段长度决定重叠（2.5–6 秒），但**下一首只在重叠的最后 2.5 秒才淡入**（不会提前一大段就开始唱）；下一首一旦出声，界面（标题 / 封面 / 歌词 / 进度 / 队列）就切换到它；开启过渡时会在当前曲播放期间于后台预取下一首在线曲目，未缓存的在线歌曲不必等曲末 14 秒窗口才开始下载；只有真正静音的前奏（低于 -45 dBFS）才会被跳过，轻声前奏属于音乐内容会完整保留；**同专辑连续曲目固定保持原始衔接**；暂停、切歌、拖动进度会立即取消过渡。
@@ -192,7 +192,7 @@ Navidrome 的「全部歌曲」默认是随机采样。需要按页浏览完整�
 ### 开发
 
 ```bash
-npm test            # 32 test files
+npm test            # 60 test files
 npm run check       # syntax + manifest checks
 npm run pack:check  # package self-check
 ```
@@ -208,9 +208,17 @@ node scripts/build-vendor.mjs          # rebuild the bundled framer-motion fragm
 
 更多规范见 [主题与组件规范](docs/theme-guidelines.md) 与 [UI review](docs/ui-review-2026-11.md)。
 
+### 参考与致谢
+
+本项目大量参考并移植了 **[Folia](https://github.com/chthollyphile/folia-major)**（`folia-major-main` 0.7.28，AGPL-3.0-only），Folia 仓库地址：<https://github.com/chthollyphile/folia-major>。
+
+- `src/render/folia/**` 的歌词舞台与背景是 Folia 渲染器的逐文件移植；`src/utils/lyrics/**` 是 Folia 歌词流水线的逐字副本（LRC / 增强 LRC / TTML / VTT / QRC / YRC / KRC 解析、staff 署名、副歌、行过滤、icu-folia 分词）。
+- 在线层（provider 能力位、注册表、统一门面、失败分类、本地服务生命周期）按 Folia 的架构对齐；逐字换源、行过滤规则即时生效、手动词级分词、原生副歌范围等行为都以 Folia 为参照实现。
+- 移植只改边界（React props、播放时钟、主题、音频带、存储 / 服务 / worker shim），渲染与解析代码保持上游原样。逐项来源与许可见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)、移植规则见 [docs/folia-porting.md](docs/folia-porting.md)。
+
 ### License
 
-[AGPL-3.0-only](LICENSE) © Aliboder
+本项目自 **0.36.0** 起以 [AGPL-3.0-only](LICENSE) 发布，© Aliboder。0.35.0 及更早版本为 MIT，已发布的旧版本不受影响；因为本版本包含 AGPL-3.0-only 的 Folia 移植代码，整体必须保持同一许可。
 
 ---
 
@@ -356,10 +364,11 @@ See [theme guidelines](docs/theme-guidelines.md) and [UI review](docs/ui-review-
 ### Credits
 
 - [AutoAnimate](https://github.com/formkit/auto-animate) (MIT) powers the now-playing track transitions.
+- **[Folia](https://github.com/chthollyphile/folia-major)** (AGPL-3.0-only, `folia-major-main` 0.7.28): the lyric stages and backgrounds in `src/render/folia/**` are a file-by-file port of Folia's renderers, and `src/utils/lyrics/**` is a verbatim copy of its lyric pipeline (LRC / enhanced LRC / TTML / VTT / QRC / YRC / KRC parsing, staff credits, chorus, line rules, icu-folia segmentation). The online layer (provider capabilities, registry, unified facade, failure classes, local service lifecycle) follows Folia's architecture, and so do the word-level lyric upgrade, instant line-rule re-filtering, manual word segmentation and native chorus ranges. Only the boundaries are adapted (React props, playback clock, theme, audio bands, storage / service / worker shims); rendering and parsing stay as upstream. Repo: <https://github.com/chthollyphile/folia-major>. Per-item notices: [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md); porting rules: [docs/folia-porting.md](docs/folia-porting.md).
 
 ### License
 
-[AGPL-3.0-only](LICENSE) © Aliboder
+[AGPL-3.0-only](LICENSE) © Aliboder — since **0.36.0**. Versions up to 0.35.0 were MIT and stay as published. This release ships AGPL-3.0-only code ported from Folia, so the whole work keeps the same license.
 
 
 

@@ -1,6 +1,6 @@
 # Folia 可视化移植手册
 
-本文件记录 `dsh-music-panel` 把 Folia（`folia-major-main` 0.7.28，AGPL-3.0）的歌词样式与背景移植进插件时必须遵守的规则、边界改动、验收标准，以及此前“照着写”失败的原因。遇到常见故障（背景不鼓动、暂停不停、bundle 过期等）先看 [踩坑记录](pitfalls.md)。
+本文件记录 `dsh-music-panel` 把 [Folia](https://github.com/chthollyphile/folia-major)（`folia-major-main` 0.7.28，AGPL-3.0）的歌词样式与背景移植进插件时必须遵守的规则、边界改动、验收标准，以及此前“照着写”失败的原因。遇到常见故障（背景不鼓动、暂停不停、bundle 过期等）先看 [踩坑记录](pitfalls.md)。
 
 ---
 
