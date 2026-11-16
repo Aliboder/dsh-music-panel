@@ -159,39 +159,43 @@ node scripts/build-client.mjs --check
 
 **Gate**：bundle 能加载；图顺序正确；测试通过。
 
-### P2 deck/crossfade/balance/fade bundle（进行中）
-
-已完成：
+### P2 deck/crossfade/balance/fade bundle（已完成）
 
 - 引入 `connectAutomixDeck`、`scheduleCrossfade`、`scheduleBandBlend`、`scheduleEchoThrow`。
 - 引入 `createDeckAnalyser`、`createBalanceMeter`、`createPlaybackFadeController`。
 - shim 掉 `stems`、`stemGesture`、`useAudioSettingsStore`。
-- 测试断言 deck 四段增益链。
+- `audio-graph.test.mjs` 断言 deck 四段增益链。
+- `audio-folia.test.mjs` 断言 crossfade 曲线、band 曲线、balance 规则、fade 控制器、`scheduleCrossfade`。
+- `audio-folia.test.mjs` 断言 bundle 不含 `htdemucs` / `beat_this` / 模型调度。
+- bundle 体积约 65 KB（源码文本），低于 150 KB 上限。
 
-待完成：
+**Gate**：通过；`engine.bundle.js` 可由 `--check` 复现。
 
-- 纯函数测试：crossfade 曲线、tone 曲线、balance 选择、fade 控制器。
-- 确认 bundle 没有把模型/GPU 代码带进来。
-- 记录 bundle 体积上限（当前约 59 KB 源码文本，目标 < 150 KB）。
+### P3 非 React 播放控制器
 
-**Gate**：上述测试通过；`engine.bundle.js` 可由 `--check` 复现。
+#### P3a 图适配器（已完成）
 
-### P3 非 React 播放控制器（下一步）
+新增 `src/client/services/player/folia-graph.js`：
 
-新增 `src/client/services/player/engine.js`：
+- 管理 `AudioContext`、主动 `<audio>`、spare `<audio>`、两个 deck chain、共享图、master gain、analyser。
+- `ensure()` 惰性建图；`attach(element)` 接管主动元素并创建 spare。
+- `setVolume` / `setMuted` 写 master gain；建图后把元素 `volume` 固定为 1，避免双重衰减。
+- `setEq(settings)` 写 Folia EQ + effects。
+- `getWave()`、`getFadeGraph()`、`getDeckChain()`、`getMixNode()`。
+- `folia-graph.test.mjs` 用 fake context 验证图、音量、EQ、spare deck、dispose。
 
-- `createFoliaEngine({ getWave? })` 或类似工厂。
-- 管理：`AudioContext`、两个 `<audio>`、两个 deck chain、共享图、master gain、fade controller。
-- API：
-  - `attach(audioA, audioB?)`
-  - `load(track, { autoplay, startAt })`
-  - `play()` / `pause()` / `seek(sec)` / `stop()`
-  - `setVolume(v)` / `setMuted(bool)`
-  - `setEq(settings)` / `setEffects(settings)` / `setPlaybackFade(bool)`
-  - `getWave()` / `getCrossfadeState()`
-  - `destroy()`
+**Gate**：通过；`check` 与全量测试通过。
+
+#### P3b 传输控制器（下一步）
+
+在 `folia-graph.js` 之上增加传输层，仍不依赖 React：
+
+- `load(deck, track, { src, autoplay, startAt })`
+- `play(deck)` / `pause(deck)` / `seek(deck, sec)` / `stop(deck)`
+- `crossfadeTo(...)`（先用 `scheduleCrossfade`，P6a 再补 tone/echo）
+- `setPlaybackFade(bool)`，接 `createPlaybackFadeController`
+- 状态回调：`onState`, `onTime`, `onError`, `onEnded`
 - 音源通过注入的 `fetchTrackBlob(track)` 获取；不把 Host 逻辑写进 controller。
-- 状态通过回调上报：`onState`, `onTime`, `onError`, `onEnded`。
 
 约束：
 
@@ -349,20 +353,22 @@ P6b（单独评估）：
 - [x] `connectAutomixDeck` / `scheduleCrossfade` / tone/echo / balance meter / fade controller bundle。
 - [x] `stems` / `stemGesture` / `useAudioSettingsStore` shim。
 - [x] `audio-graph.test.mjs`：图顺序、EQ 形状、deck 四段链。
+- [x] `audio-folia.test.mjs`：crossfade/band 曲线、balance 规则、fade 控制器、模型未进 bundle。
+- [x] `folia-graph.js` + `folia-graph.test.mjs`：双 deck 图适配、master gain、EQ、spare deck。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`。
 
 ### 进行中
 
-- [ ] P2 的行为测试：crossfade 曲线、tone、balance、fade 控制器。
-- [ ] 确认 bundle 没有模型代码。
+- [ ] P3b 传输控制器：`load` / `play` / `pause` / `seek` / `crossfadeTo` / `setPlaybackFade`。
+- [ ] 用真实 `<audio>` 接本地/在线各一首。
 
 ### 下一步
 
-1. 完成 P2 行为测试。
-2. 写 P3 `player/engine.js` 控制器（fake context 优先）。
-3. 再用真实 `<audio>` 接本地/在线各一首。
-4. 替换 `player.js` 内部，删除旧图代码。
+1. 完成 P3b 传输控制器（fake context + fake element 优先）。
+2. 把 `folia-graph.js` 接入 `player.js` 的 `ensureAnalyser`/`attachAudio` 路径，先替换图，不换队列。
+3. 验证本地/在线播放、暂停、seek、音量、EQ。
+4. 再按 P4 删除旧图代码，进入 P5 音频 UI。
 
 ---
 
