@@ -194,8 +194,9 @@ node scripts/build-client.mjs --check
 - `play(deck)` / `pause(deck)` / `seek(deck, sec)` / `stop(deck)`
 - `crossfadeTo(deck, src, { seconds, crossover, hold, together, startAt })`
 - `setPlaybackFade(bool)`，接 `createPlaybackFadeController`
+- `setDeckReplayGain(deck, db)` / `setDeckTrim(deck, db)` / `getBalanceMeter(deck)` / `getDeckAnalyser(deck)`
 - 状态回调：`onState`, `onTime`, `onError`, `onEnded`
-- `folia-transport.test.mjs` 用 fake graph/element 验证 load、autoplay、pause、seek、crossfade、ended、stop、dispose。
+- `folia-transport.test.mjs` 用 fake graph/element 验证 load、autoplay、pause、seek、crossfade、ended、stop、dispose、deck gain。
 
 **Gate**：通过；`check` 与全量测试通过。
 
@@ -222,7 +223,7 @@ node scripts/build-client.mjs --check
 
 #### P4 执行顺序
 
-1. **先加 transport 的增益接口**：`setDeckReplayGain(deck, db)`、`setDeckTrim(deck, db)`、`getBalanceMeter(deck)`、`getDeckAnalyser(deck)`。
+1. **先加 transport 的增益接口**：`setDeckReplayGain(deck, db)`、`setDeckTrim(deck, db)`、`getBalanceMeter(deck)`、`getDeckAnalyser(deck)`。**已完成**。
 2. **替换 `attachAudio`**：创建 graph + transport；把 `audioA` 交给 graph，spare deck 由 graph 创建。
 3. **替换图相关 API**：`ensureAnalyser`、`getWave`、`setVolume`、`setMuted`、`setEq` 先切到新 graph，旧图变量删除。
 4. **替换 `load` 的落点**：Blob 仍由 `player.js` 获取，`audio.src` 改为 `transport.load`；`autoplay` 仍走 `playAfterLoudness` 的时机。
@@ -368,9 +369,9 @@ P6b（单独评估）：
 - [x] `audio-graph.test.mjs`：图顺序、EQ 形状、deck 四段链。
 - [x] `audio-folia.test.mjs`：crossfade/band 曲线、balance 规则、fade 控制器、模型未进 bundle。
 - [x] `folia-graph.js` + `folia-graph.test.mjs`：双 deck 图适配、master gain、EQ、spare deck。
-- [x] `folia-transport.js` + `folia-transport.test.mjs`：load/play/pause/seek/crossfade/stop。
+- [x] `folia-transport.js` + `folia-transport.test.mjs`：load/play/pause/seek/crossfade/stop、deck gain/meter。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`。
 
 ### 进行中
 
