@@ -186,29 +186,18 @@ node scripts/build-client.mjs --check
 
 **Gate**：通过；`check` 与全量测试通过。
 
-#### P3b 传输控制器（下一步）
+#### P3b 传输控制器（已完成）
 
-在 `folia-graph.js` 之上增加传输层，仍不依赖 React：
+新增 `src/client/services/player/folia-transport.js`：
 
-- `load(deck, track, { src, autoplay, startAt })`
+- `load(deck, src, { autoplay, startAt })`
 - `play(deck)` / `pause(deck)` / `seek(deck, sec)` / `stop(deck)`
-- `crossfadeTo(...)`（先用 `scheduleCrossfade`，P6a 再补 tone/echo）
+- `crossfadeTo(deck, src, { seconds, crossover, hold, together, startAt })`
 - `setPlaybackFade(bool)`，接 `createPlaybackFadeController`
 - 状态回调：`onState`, `onTime`, `onError`, `onEnded`
-- 音源通过注入的 `fetchTrackBlob(track)` 获取；不把 Host 逻辑写进 controller。
+- `folia-transport.test.mjs` 用 fake graph/element 验证 load、autoplay、pause、seek、crossfade、ended、stop、dispose。
 
-约束：
-
-- 不接受 React hooks。
-- 不复制 `usePlaybackAudioBridge` / `useAutomixDecks` 的 React 生命周期。
-- 不自己实现 Folia 已有的增益/曲线；只调用 bundle。
-- `createMediaElementSource` 每个元素只调一次；context 重建时整图重建。
-
-**Gate**：
-
-- fake context 能建图、装 deck、切歌、暂停/恢复、调音量。
-- 不出现旧 `trim/limiter` 代码路径。
-- 手工播放本地/在线各一首无异常。
+**Gate**：通过；`check` 与全量测试通过。
 
 ### P4 替换 `player.js` 内部（高风险）
 
@@ -355,20 +344,21 @@ P6b（单独评估）：
 - [x] `audio-graph.test.mjs`：图顺序、EQ 形状、deck 四段链。
 - [x] `audio-folia.test.mjs`：crossfade/band 曲线、balance 规则、fade 控制器、模型未进 bundle。
 - [x] `folia-graph.js` + `folia-graph.test.mjs`：双 deck 图适配、master gain、EQ、spare deck。
+- [x] `folia-transport.js` + `folia-transport.test.mjs`：load/play/pause/seek/crossfade/stop。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`。
 
 ### 进行中
 
-- [ ] P3b 传输控制器：`load` / `play` / `pause` / `seek` / `crossfadeTo` / `setPlaybackFade`。
+- [ ] P4：把 `folia-graph.js` / `folia-transport.js` 接入 `player.js` 的图与传输路径。
 - [ ] 用真实 `<audio>` 接本地/在线各一首。
 
 ### 下一步
 
-1. 完成 P3b 传输控制器（fake context + fake element 优先）。
-2. 把 `folia-graph.js` 接入 `player.js` 的 `ensureAnalyser`/`attachAudio` 路径，先替换图，不换队列。
-3. 验证本地/在线播放、暂停、seek、音量、EQ。
-4. 再按 P4 删除旧图代码，进入 P5 音频 UI。
+1. 先替换 `player.js` 的 `ensureAnalyser` / `attachAudio` 建图路径，队列不动。
+2. 验证本地/在线播放、暂停、seek、音量、EQ。
+3. 再替换 `pause` / `play` / `seek` / crossfade，删除旧图代码。
+4. 进入 P5 音频 UI。
 
 ---
 
