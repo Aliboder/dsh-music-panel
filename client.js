@@ -154240,7 +154240,8 @@ window.__ModuleLoader__.load({
           var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
           var plan = crossfadePlan(
             { outroQuietSec: results[0] ? results[0].outroQuietSec : 0 },
-            { introQuietSec: incoming.envelope ? incoming.envelope.introQuietSec : 0 },
+            { introQuietSec: incoming.envelope ? incoming.envelope.introQuietSec : 0,
+              introSilentSec: incoming.envelope ? incoming.envelope.introSilentSec : 0 },
             { prefs: readPrefs(), remaining: duration - audio.currentTime },
           )
           if (plan === null) {
@@ -154294,6 +154295,16 @@ window.__ModuleLoader__.load({
         prepareCrossfade(next)
       }
 
+      /** Folia's curve pair; fall back to the pure equal-power pair only if the bundle is missing. */
+      function crossfadeCurvesFor(points) {
+        var api = typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
+        if (api !== null && typeof api.buildCrossfadeCurves === 'function') {
+          var pair = api.buildCrossfadeCurves(0.5, 0, points)
+          return { out: pair.out, incoming: pair.in }
+        }
+        return crossfadeEqualPowerCurves(points)
+      }
+
       function beginCrossfadePlayback(prepared) {
         if (prepared === null || prepared === undefined) return abortCrossfade()
         if (audioB === null || audioContext === null || fadeNode === null) return abortCrossfade()
@@ -154330,7 +154341,7 @@ window.__ModuleLoader__.load({
           .then(function () {
             if (token !== xfadeToken || audioContext === null || audio === null) return
             var at = audioContext.currentTime
-            var curves = crossfadeEqualPowerCurves(32)
+            var curves = crossfadeCurvesFor(32)
             // The outgoing track fades across the whole overlap, but the incoming
             // one only rises during its last few seconds: the next song must not be
             // singing a long time before the hand-over.
