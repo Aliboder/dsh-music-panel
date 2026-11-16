@@ -202,7 +202,7 @@ node scripts/build-client.mjs --check
 
 ### P4 替换 `player.js` 内部（高风险）
 
-当前进度：**P4b 主传输已接上，crossfade/事件/旧代码删除未完成**。`attachAudio` 同时创建 graph 与 transport；`load` 通过 `loadActiveSource` 走 `transport.load`；`play` / `pause` / `seek` / `stop` 走 transport；`swapDecks` 同步 transport 的 active deck。旧 crossfade 仍在使用 deck chain 的 `replayGain`/`fade` 别名，旧媒体事件绑定也还在。
+当前进度：**P4b 主传输与事件已接上，旧图 dead code 已删除；crossfade 仍是旧实现，计划在 P6a 换成 Folia 的 transport/曲线**。`attachAudio` 同时创建 graph 与 transport；`load` 通过 `loadActiveSource` 走 `transport.load`；`play` / `pause` / `seek` / `stop` 走 transport；`transport` 的 `onState` / `onTime` / `onEnded` / `onError` 驱动现有状态逻辑；`swapDecks` 同步 transport 的 active deck。旧 crossfade 仍在使用 deck chain 的 `replayGain`/`fade` 别名。
 
 #### P4 替换映射
 
@@ -374,25 +374,25 @@ P6b（单独评估）：
 - [x] `folia-transport.js` + `folia-transport.test.mjs`：load/play/pause/seek/crossfade/stop、deck gain/meter。
 - [x] `player.js` P4a：`attachAudio` / `ensureAnalyser` / 音量 / 静音 / EQ 切到 `foliaGraph`；旧 limiter/preamp 不再创建。
 - [x] `player.js` P4b-1：`loadActiveSource` + `play`/`pause`/`seek`/`stop` 切到 `foliaTransport`；`swapDecks` 同步 active deck。
+- [x] `player.js` P4b-2：transport 事件驱动状态；`bind` / `unbind` / `ensureSecondary` / `wireSecondary` / `buildEqNodes` 删除。
 - [x] `player-folia-wiring.test.mjs`：源级守卫，防止旧 limiter/preamp 图和旧传输回潮。
+- [x] `player-folia-runtime.test.mjs`：fake AudioContext 下 attach/ensure/volume/EQ/dispose。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`。
 
 ### 进行中
 
 - [x] P4a：`player.js` 的图/音量/静音/EQ 已切到 `foliaGraph`；旧 limiter/preamp 不再创建。
 - [x] P4b-1：`load` / `play` / `pause` / `seek` / `stop` 已切到 `foliaTransport`；`swapDecks` 同步 active deck。
-- [ ] P4b-2：crossfade 切到 `transport.crossfadeTo`；媒体事件切到 transport 回调。
-- [ ] P4b-3：删除旧 `ensureSecondary` / `wireSecondary` / `buildEqNodes` / 旧 crossfade dead code。
+- [x] P4b-2：transport 的 `onState` / `onTime` / `onEnded` / `onError` 驱动 `player.js`；`bind` / `unbind` / `ensureSecondary` / `wireSecondary` / `buildEqNodes` 已删除。
+- [ ] P4b-3：crossfade 仍用旧实现，P6a 换成 `transport.crossfadeTo` + Folia 曲线/tone/echo。
 - [ ] 用真实 `<audio>` 接本地/在线各一首。
 
 ### 下一步
 
-1. 把 `beginCrossfadePlayback` / `adoptIncoming` / `finishCrossfade` 的职责收进 `transport.crossfadeTo`，保留现有分析结果作为参数。
-2. 用 transport 的 `onTime` / `onState` / `onEnded` / `onError` 驱动现有状态逻辑，删除 `bind` / `unbind`。
-3. 删旧图变量与 dead code。
-4. 同步 Desktop 安装副本，本地/在线各播一首验证。
-5. 进入 P5 音频 UI。
+1. 同步 Desktop 安装副本，本地/在线各播一首，验证普通播放、暂停、seek、音量、EQ。
+2. 进入 P6a：crossfade 换成 Folia 的曲线与 transport。
+3. 再进 P5 音频 UI。
 
 ---
 
