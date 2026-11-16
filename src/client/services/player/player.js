@@ -1668,6 +1668,7 @@ function createPlayer() {
       if (el === null) return
       foliaGraph = createFoliaGraph()
       foliaGraph.attach(el)
+      foliaGraph.setOutputDevice(readPrefs().audioOutputDeviceId || '')
       audioB = foliaGraph.getDeckElement('B')
       foliaTransport = createFoliaTransport({
         graph: foliaGraph,
@@ -2043,6 +2044,13 @@ function createPlayer() {
       applyOutputVolume()
       savePrefs({ volume: next })
       emit()
+    },
+    /** Select the AudioContext sink; harmless when the engine has no setSinkId. */
+    setOutputDevice: function (deviceId) {
+      var next = deviceId === undefined || deviceId === null ? '' : String(deviceId)
+      savePrefs({ audioOutputDeviceId: next })
+      if (foliaGraph !== null) foliaGraph.setOutputDevice(next)
+      return next
     },
     setMuted: function (value) {
       state = Object.assign({}, state, { muted: value })

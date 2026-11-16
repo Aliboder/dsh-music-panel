@@ -51,6 +51,51 @@ function SettingsSheet(props) {
   // Navidrome credential form. Every hook in this component must run on each
   // render, so it lives here rather than inside the tab/card render helpers.
   var navForm = useNavidromeForm()
+  var outputPair = useState([])
+  var outputDevices = outputPair[0]
+  var setOutputDevices = outputPair[1]
+  var sinkSupported =
+    typeof window !== 'undefined' &&
+    typeof window.AudioContext !== 'undefined' &&
+    typeof window.AudioContext.prototype.setSinkId === 'function'
+
+  useEffect(
+    function () {
+      if (tab !== 'playback' || props.open !== true || !sinkSupported) return undefined
+      if (
+        typeof navigator === 'undefined' ||
+        !navigator.mediaDevices ||
+        typeof navigator.mediaDevices.enumerateDevices !== 'function'
+      ) {
+        return undefined
+      }
+      var cancelled = false
+      navigator.mediaDevices
+        .enumerateDevices()
+        .then(function (devices) {
+          if (cancelled) return
+          setOutputDevices(
+            devices
+              .filter(function (device) {
+                return device.kind === 'audiooutput'
+              })
+              .map(function (device, index) {
+                return {
+                  id: device.deviceId,
+                  label: device.label || t('settings.outputDeviceN', { n: index + 1 }),
+                }
+              }),
+          )
+        })
+        .catch(function () {
+          if (!cancelled) setOutputDevices([])
+        })
+      return function () {
+        cancelled = true
+      }
+    },
+    [tab, props.open, sinkSupported],
+  )
 
   useEffect(
     function () {
@@ -580,6 +625,32 @@ function SettingsSheet(props) {
           },
         }),
       ),
+      sinkSupported && outputDevices.length > 0
+        ? h(
+            SetRow,
+            {
+              key: 'output-device',
+              label: t('settings.outputDevice'),
+              desc: t('settings.outputDeviceHint'),
+            },
+            h(
+              'select',
+              {
+                value: prefs.audioOutputDeviceId || '',
+                onChange: function (event) {
+                  var value = String(event.target.value || '')
+                  patchPrefs({ audioOutputDeviceId: value })
+                  player.setOutputDevice(value)
+                },
+              },
+              [h('option', { key: 'default', value: '' }, t('settings.outputDefault'))].concat(
+                outputDevices.map(function (device) {
+                  return h('option', { key: device.id, value: device.id }, device.label)
+                }),
+              ),
+            ),
+          )
+        : null,
       h(
         SetRow,
         { key: 'sleep', label: t('settings.sleepTimer') },

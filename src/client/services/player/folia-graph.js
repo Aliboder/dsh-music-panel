@@ -42,6 +42,7 @@ function createFoliaGraph(options) {
   var activeDeck = 'A'
   var volume = 1
   var muted = false
+  var outputDeviceId = ''
   var eqSettings = audioApi.resolveAudioEqualizerSettings(audioApi.DEFAULT_AUDIO_EQUALIZER_SETTINGS)
   var disposed = false
 
@@ -91,6 +92,19 @@ function createFoliaGraph(options) {
     graph.effectChain.apply(eqSettings.effects, eqSettings.enabled)
   }
 
+  /** Put the context on the saved sink; a missing setSinkId leaves the default. */
+  function applyOutputDevice() {
+    if (context === null || typeof context.setSinkId !== 'function') return false
+    var target = outputDeviceId === 'default' ? '' : outputDeviceId
+    try {
+      var pending = context.setSinkId(target)
+      if (pending && typeof pending.catch === 'function') pending.catch(function () {})
+      return true
+    } catch (error) {
+      return false
+    }
+  }
+
   function build() {
     if (graph !== null) return graph
     if (disposed) return null
@@ -98,6 +112,7 @@ function createFoliaGraph(options) {
     makeSecondary()
     try {
       context = createContext()
+      applyOutputDevice()
       analyser = context.createAnalyser()
       analyser.fftSize = 2048
       analyser.smoothingTimeConstant = 0.6
@@ -258,6 +273,13 @@ function createFoliaGraph(options) {
     setEq: function (next) {
       eqSettings = audioApi.resolveAudioEqualizerSettings(next)
       applyEq()
+    },
+    getOutputDevice: function () {
+      return outputDeviceId
+    },
+    setOutputDevice: function (deviceId) {
+      outputDeviceId = deviceId === undefined || deviceId === null ? '' : String(deviceId)
+      return applyOutputDevice()
     },
 
     /** Crossfade the two deck envelopes with Folia's scheduled curves. */

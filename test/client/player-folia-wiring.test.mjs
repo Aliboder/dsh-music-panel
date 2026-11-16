@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..')
 const player = readFileSync(join(ROOT, 'src/client/services/player/player.js'), 'utf8')
+const settings = readFileSync(join(ROOT, 'src/client/components/ui/settings.js'), 'utf8')
 
 assert.match(player, /foliaGraph = createFoliaGraph\(\)/, 'attachAudio creates the Folia graph')
 assert.match(player, /foliaGraph\.attach\(el\)/, 'attachAudio hands the element to the graph')
@@ -31,6 +32,9 @@ assert.match(player, /foliaGraph\.setMuted\(state\.muted\)/, 'mute goes to the F
 assert.match(player, /balanceMeter\.tick\(audioContext/, 'the Folia meter receives its audio clock')
 assert.match(player, /setPositionState/, 'Media Session progress is published')
 assert.match(player, /audioSession\.type = 'playback'/, 'the audio session is playback')
+assert.match(player, /setOutputDevice/, 'the player exposes output-device selection')
+assert.match(settings, /setSinkId/, 'the settings UI feature-detects setSinkId')
+assert.match(settings, /audioOutputDeviceId/, 'the selected sink is persisted')
 
 assert.doesNotMatch(player, /createDynamicsCompressor/, 'no private limiter is created')
 assert.doesNotMatch(player, /preampNode/, 'the private preamp is gone')

@@ -69,6 +69,11 @@ function createContext() {
     close() {
       this.state = 'closed'
     },
+    sinkId: '',
+    setSinkId(next) {
+      this.sinkId = next
+      return Promise.resolve()
+    },
     resume() {
       this.state = 'running'
       return Promise.resolve()
@@ -230,6 +235,8 @@ assert.equal(engine.getEqualizerNodes()[0].gain.value, 3)
 assert.equal(engine.getEqualizerNodes()[9].gain.value, -2)
 
 assert.equal(engine.getWave().length, 1024, 'the analyser buffer is exposed at Folia size')
+assert.equal(engine.setOutputDevice('dev-1'), true, 'setSinkId is applied')
+assert.equal(context.sinkId, 'dev-1')
 
 engine.dispose()
 assert.equal(primary.volume, 1)

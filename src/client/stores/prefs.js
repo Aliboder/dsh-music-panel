@@ -69,6 +69,7 @@ var PREF_DEFAULTS = {
   composerTranslation: true,
   composerLyricPlace: 'input-left',
   volume: 1,
+  audioOutputDeviceId: '',
   loop: 'none',
   order: 'list',
   resumeOnStart: true,

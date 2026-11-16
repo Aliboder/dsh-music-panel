@@ -8112,6 +8112,10 @@ window.__ModuleLoader__.load({
         'settings.crossfade': '智能过渡',
         'settings.crossfadeHint': '分析前后两首歌首尾的响度，自动选择切入点和重叠长度；同专辑连续曲目保持原始的硬切衔接。',
         'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
+        'settings.outputDevice': '输出设备',
+        'settings.outputDeviceHint': '仅在支持 AudioContext.setSinkId 的环境显示。',
+        'settings.outputDefault': '系统默认',
+        'settings.outputDeviceN': '设备 {n}',
         'v2.listenTime': '累计播放时长',
         'v2.totalPlays': '总播放次数',
         'v2.trackedTracks': '有记录曲目',
@@ -8537,6 +8541,10 @@ window.__ModuleLoader__.load({
         'settings.crossfade': 'Smart transition',
         'settings.crossfadeHint': 'Measures how both tracks start and end, then picks the cut point and overlap length itself; consecutive tracks of one album keep their original hard join.',
         'settings.crossfadeRuntimeHint': 'Needs Web Audio; skipped when the browser or the source cannot route through it.',
+        'settings.outputDevice': 'Output device',
+        'settings.outputDeviceHint': 'Shown only where AudioContext.setSinkId is available.',
+        'settings.outputDefault': 'System default',
+        'settings.outputDeviceN': 'Device {n}',
         'v2.listenTime': 'Listening time',
         'v2.totalPlays': 'Total plays',
         'v2.trackedTracks': 'Tracks tracked',
@@ -149107,6 +149115,7 @@ window.__ModuleLoader__.load({
       composerTranslation: true,
       composerLyricPlace: 'input-left',
       volume: 1,
+      audioOutputDeviceId: '',
       loop: 'none',
       order: 'list',
       resumeOnStart: true,
@@ -152101,6 +152110,7 @@ window.__ModuleLoader__.load({
       var activeDeck = 'A'
       var volume = 1
       var muted = false
+      var outputDeviceId = ''
       var eqSettings = audioApi.resolveAudioEqualizerSettings(audioApi.DEFAULT_AUDIO_EQUALIZER_SETTINGS)
       var disposed = false
 
@@ -152150,6 +152160,19 @@ window.__ModuleLoader__.load({
         graph.effectChain.apply(eqSettings.effects, eqSettings.enabled)
       }
 
+      /** Put the context on the saved sink; a missing setSinkId leaves the default. */
+      function applyOutputDevice() {
+        if (context === null || typeof context.setSinkId !== 'function') return false
+        var target = outputDeviceId === 'default' ? '' : outputDeviceId
+        try {
+          var pending = context.setSinkId(target)
+          if (pending && typeof pending.catch === 'function') pending.catch(function () {})
+          return true
+        } catch (error) {
+          return false
+        }
+      }
+
       function build() {
         if (graph !== null) return graph
         if (disposed) return null
@@ -152157,6 +152180,7 @@ window.__ModuleLoader__.load({
         makeSecondary()
         try {
           context = createContext()
+          applyOutputDevice()
           analyser = context.createAnalyser()
           analyser.fftSize = 2048
           analyser.smoothingTimeConstant = 0.6
@@ -152317,6 +152341,13 @@ window.__ModuleLoader__.load({
         setEq: function (next) {
           eqSettings = audioApi.resolveAudioEqualizerSettings(next)
           applyEq()
+        },
+        getOutputDevice: function () {
+          return outputDeviceId
+        },
+        setOutputDevice: function (deviceId) {
+          outputDeviceId = deviceId === undefined || deviceId === null ? '' : String(deviceId)
+          return applyOutputDevice()
         },
 
         /** Crossfade the two deck envelopes with Folia's scheduled curves. */
@@ -154795,6 +154826,7 @@ window.__ModuleLoader__.load({
           if (el === null) return
           foliaGraph = createFoliaGraph()
           foliaGraph.attach(el)
+          foliaGraph.setOutputDevice(readPrefs().audioOutputDeviceId || '')
           audioB = foliaGraph.getDeckElement('B')
           foliaTransport = createFoliaTransport({
             graph: foliaGraph,
@@ -155170,6 +155202,13 @@ window.__ModuleLoader__.load({
           applyOutputVolume()
           savePrefs({ volume: next })
           emit()
+        },
+        /** Select the AudioContext sink; harmless when the engine has no setSinkId. */
+        setOutputDevice: function (deviceId) {
+          var next = deviceId === undefined || deviceId === null ? '' : String(deviceId)
+          savePrefs({ audioOutputDeviceId: next })
+          if (foliaGraph !== null) foliaGraph.setOutputDevice(next)
+          return next
         },
         setMuted: function (value) {
           state = Object.assign({}, state, { muted: value })
@@ -163538,6 +163577,51 @@ window.__ModuleLoader__.load({
       // Navidrome credential form. Every hook in this component must run on each
       // render, so it lives here rather than inside the tab/card render helpers.
       var navForm = useNavidromeForm()
+      var outputPair = useState([])
+      var outputDevices = outputPair[0]
+      var setOutputDevices = outputPair[1]
+      var sinkSupported =
+        typeof window !== 'undefined' &&
+        typeof window.AudioContext !== 'undefined' &&
+        typeof window.AudioContext.prototype.setSinkId === 'function'
+
+      useEffect(
+        function () {
+          if (tab !== 'playback' || props.open !== true || !sinkSupported) return undefined
+          if (
+            typeof navigator === 'undefined' ||
+            !navigator.mediaDevices ||
+            typeof navigator.mediaDevices.enumerateDevices !== 'function'
+          ) {
+            return undefined
+          }
+          var cancelled = false
+          navigator.mediaDevices
+            .enumerateDevices()
+            .then(function (devices) {
+              if (cancelled) return
+              setOutputDevices(
+                devices
+                  .filter(function (device) {
+                    return device.kind === 'audiooutput'
+                  })
+                  .map(function (device, index) {
+                    return {
+                      id: device.deviceId,
+                      label: device.label || t('settings.outputDeviceN', { n: index + 1 }),
+                    }
+                  }),
+              )
+            })
+            .catch(function () {
+              if (!cancelled) setOutputDevices([])
+            })
+          return function () {
+            cancelled = true
+          }
+        },
+        [tab, props.open, sinkSupported],
+      )
 
       useEffect(
         function () {
@@ -164067,6 +164151,32 @@ window.__ModuleLoader__.load({
               },
             }),
           ),
+          sinkSupported && outputDevices.length > 0
+            ? h(
+                SetRow,
+                {
+                  key: 'output-device',
+                  label: t('settings.outputDevice'),
+                  desc: t('settings.outputDeviceHint'),
+                },
+                h(
+                  'select',
+                  {
+                    value: prefs.audioOutputDeviceId || '',
+                    onChange: function (event) {
+                      var value = String(event.target.value || '')
+                      patchPrefs({ audioOutputDeviceId: value })
+                      player.setOutputDevice(value)
+                    },
+                  },
+                  [h('option', { key: 'default', value: '' }, t('settings.outputDefault'))].concat(
+                    outputDevices.map(function (device) {
+                      return h('option', { key: device.id, value: device.id }, device.label)
+                    }),
+                  ),
+                ),
+              )
+            : null,
           h(
             SetRow,
             { key: 'sleep', label: t('settings.sleepTimer') },
