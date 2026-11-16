@@ -11,6 +11,8 @@
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { Worker } from 'node:worker_threads'
+import { homedir } from 'node:os'
+import { join } from 'node:path'
 import { MusicError, toMusicError } from './core/errors.js'
 import { allocateFreePort } from './core/ports.js'
 
@@ -20,6 +22,8 @@ const REQUEST_TIMEOUT_MS = 20_000
 const WORKER_SOURCE = `
 const { parentPort, workerData } = require('node:worker_threads')
 const { createRequire } = require('node:module')
+const fs = require('node:fs')
+const path = require('node:path')
 const request = createRequire(workerData.base)
 
 ;(async () => {
@@ -29,6 +33,29 @@ const request = createRequire(workerData.base)
     process.env.HOST = '127.0.0.1'
 
     const mod = request(workerData.entryPath)
+    // The package keeps its server-side auth sessions in memory unless a
+    // repository is installed. Folia installs its encrypted one; this plugin
+    // keeps the same session list in the plugin data directory.
+    const configure = mod.configureAuthSessionRepository ||
+      (mod.default && mod.default.configureAuthSessionRepository)
+    if (typeof configure === 'function') {
+      configure({
+        kind: 'json-file',
+        load() {
+          try {
+            const parsed = JSON.parse(fs.readFileSync(workerData.authSessionFile, 'utf8'))
+            return Array.isArray(parsed) ? parsed : []
+          } catch {
+            return []
+          }
+        },
+        save(sessions) {
+          if (!Array.isArray(sessions)) throw new TypeError('QQ auth sessions must be an array')
+          fs.mkdirSync(path.dirname(workerData.authSessionFile), { recursive: true })
+          fs.writeFileSync(workerData.authSessionFile, JSON.stringify(sessions), 'utf8')
+        },
+      })
+    }
     const server = mod.server
     if (!server) throw new Error('QQ upstream did not expose a server')
 
@@ -66,7 +93,11 @@ function resolveEntry() {
   const base = fileURLToPath(import.meta.url)
   const require = createRequire(base)
   try {
-    return { base, entryPath: require.resolve('@yakult-green-tea/qq-music-api') }
+    return {
+      base,
+      entryPath: require.resolve('@yakult-green-tea/qq-music-api'),
+      authSessionFile: join(homedir(), '.dsh', 'music', 'qq-auth-sessions.json'),
+    }
   } catch (error) {
     throw new MusicError('the QQ Music API package is not installed', {
       code: 'not-configured',

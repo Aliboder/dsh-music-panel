@@ -65,6 +65,7 @@
 | `providers.json` | legacy provider store | 旧登录数据（如存在） |
 | `bodian-device.json` | `src/host/providers/sources/bodian/device.js` | Bodian 设备身份 |
 | `qishui-device.json` | `src/host/providers/sources/qishui/device.js` | 汽水设备身份 |
+| `qq-auth-sessions.json` | `src/host/services/qq-api.js` | QQ 包的 `qqmusic_session` 服务端登录仓库 |
 | `cache/**` | `src/host/services/media/online-cache.js` | 在线音频 / 封面 / 元数据 |
 | `trash/**` | `src/host/services/media/trash.js` | 回收站 |
 | `*.bak` / `*.tmp` | `src/host/stores/json-store.js` | 原子写备份/临时文件（随根目录清理） |
