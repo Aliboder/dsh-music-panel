@@ -244,13 +244,10 @@ node scripts/build-client.mjs --check
 
 ### P5 音频 UI/设置对齐
 
-- EQ 改成 Folia 的 10 段（首 lowshelf、末 highshelf、Q=1.4）。
-- 增加/接入 Folia 的音效控制（highpass、lowpass、drive、crush、wow、noise、width、space、punch）。
-- 播放淡入淡出开关（默认开）。
-- 过渡模式/长度按 Folia 的设置模型。
-- 输出设备可用时做选择；不可用时不显示假控件。
-- 移除旧 EQ preamp、自动 headroom、自定义预设的存储语义；旧数据重置。
-- i18n、主题、键盘可达性按 `A_other/docs/theme-guidelines.md`。
+- [x] P5a：EQ 编辑页加入 Folia 9 个音效滑杆；`eqEffects` 进入 prefs/player；preamp/headroom UI 与存储语义删除。
+- [ ] P5b：EQ 预设/自定义槽换成 Folia 的 sound preset 模型；当前仍保留 Winamp 预设 + AutoEQ 设备库。
+- [ ] P5c：输出设备选择（`setSinkId`）；无能力时不显示假控件。
+- [ ] EQ 曲线数学改成首 lowshelf / 末 highshelf，与 Folia 图一致（当前曲线仍按全 peaking 画）。
 
 **Gate**：
 
@@ -379,8 +376,9 @@ P6b（单独评估）：
 - [x] `player-folia-runtime.test.mjs`：fake AudioContext 下 attach/ensure/volume/EQ/dispose。
 - [x] P6a-1：Folia crossfade 曲线 + 静音 intro 修复。
 - [x] P7-1：Media Session `setPositionState` + `audioSession.type='playback'`。
+- [x] P5a：Folia 音效滑杆 + `eqEffects` 存储；preamp/headroom UI 删除。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`、`ab064b8`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`、`ab064b8`、`536f94f`。
 
 ### 进行中
 
