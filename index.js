@@ -168,9 +168,9 @@ export function apply(ctx, rawConfig) {
               },
               source: {
                 type: 'string',
-                enum: ['local', 'netease', 'qq', 'kugou', 'kugouLite', 'bodian', 'qishui', 'navidrome'],
+                enum: ['local', 'netease', 'qq', 'kugouLite', 'bodian', 'qishui', 'navidrome'],
                 description:
-                  'Where to play from: local library (default), the online providers NetEase / QQ Music / KuGou / KuGou Concept / Bodian / Qishui (free tracks work without signing in), or navidrome for a self-hosted Navidrome/Subsonic library (configure it in Settings → Online first).',
+                  'Where to play from: local library (default), the online providers NetEase / QQ Music / KuGou / Bodian / Qishui (free tracks work without signing in), or navidrome for a self-hosted Navidrome/Subsonic library (configure it in Settings → Online first).',
               },
             },
             required: ['action'],
@@ -207,7 +207,7 @@ export function apply(ctx, rawConfig) {
       systemPrompt.section({
         name: 'tool:music-online',
         order: 117,
-        text: '在线音乐：music_control 的 source 可设为 netease / qq / kugou / kugouLite（酷狗概念版）/ bodian（波点）/ qishui（汽水）/ navidrome（自建 Navidrome 或 Subsonic 服务器），按歌名或歌手在线搜索并播放（未登录只播免费曲；用户可在「设置 → 在线」扫码登录以提升音质，Navidrome 则在此填写服务器地址与账号）。',
+        text: '在线音乐：music_control 的 source 可设为 netease / qq / kugouLite（酷狗，概念版客户端）/ bodian（波点）/ qishui（汽水）/ navidrome（自建 Navidrome 或 Subsonic 服务器），按歌名或歌手在线搜索并播放（未登录只播免费曲；用户可在「设置 → 在线」扫码登录以提升音质，Navidrome 则在此填写服务器地址与账号）。',
       })
       return () => {}
     }, 'music-online-prompt')
