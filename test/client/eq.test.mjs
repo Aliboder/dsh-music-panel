@@ -131,6 +131,16 @@ const at1k = boostedCurve.reduce((best, point) =>
 // The chain is just the ten filters now: a +6 dB band peaks near +6 dB.
 assert.ok(at1k.db > 5 && at1k.db < 7, `1 kHz should sit near the +6 dB band, got ${at1k.db}`)
 
+// The first and last bands are shelves, matching Folia's graph shape.
+const shelfCurve = eq.eqCurveSamples([6, 0, 0, 0, 0, 0, 0, 0, 0, -6], 0, 96, 44100)
+const near = (freq) => shelfCurve.reduce((best, point) =>
+  Math.abs(point.freq - freq) < Math.abs(best.freq - freq) ? point : best,
+)
+assert.ok(near(20).db > 5, 'the low shelf lifts the sub-bass')
+assert.ok(Math.abs(near(1000).db) < 1, 'the low shelf is gone by 1 kHz')
+assert.ok(near(20000).db < -5, 'the high shelf cuts the top')
+assert.ok(Math.abs(near(1000).db) < 1, 'the high shelf is gone by 1 kHz')
+
 const cutCurve = eq.eqCurveSamples([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], -6, 24, 44100)
 for (const point of cutCurve) assert.ok(Math.abs(point.db + 6) < 0.01, 'preamp applies flat')
 

@@ -149463,7 +149463,7 @@ window.__ModuleLoader__.load({
      * no curve fitting, and 31 Hz stays available for in-ear bass correction.
      */
     var EQ_FREQS = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
-    var EQ_Q = [1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41, 1.41]
+    var EQ_Q = [1.4, 1.4, 1.4, 1.4, 1.4, 1.4, 1.4, 1.4, 1.4, 1.4]
 
     /**
      * Layout tag saved with the preferences. Bumped whenever EQ_FREQS changes so
@@ -149783,19 +149783,68 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * Peaking sections for the current bands, skipping anything a 0 dB band or the
-     * Nyquist limit makes pointless.
+     * Sections for the current bands, skipping anything a 0 dB band or the
+     * Nyquist limit makes pointless. The first and last bands are shelves, like
+     * Folia's graph; the middle bands are peaking filters.
      */
     function eqSections(bands, sampleRate) {
       var list = normalizeEqBands(bands)
       var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
       var sections = []
+      var last = EQ_FREQS.length - 1
       for (var band = 0; band < EQ_FREQS.length; band += 1) {
         if (EQ_FREQS[band] >= rate / 2) continue
         if (Math.abs(list[band]) < 0.01) continue
-        sections.push(eqPeakingCoefficients(EQ_FREQS[band], EQ_Q[band], list[band], rate))
+        if (band === 0) {
+          sections.push(eqLowShelfCoefficients(EQ_FREQS[band], list[band], rate))
+        } else if (band === last) {
+          sections.push(eqHighShelfCoefficients(EQ_FREQS[band], list[band], rate))
+        } else {
+          sections.push(eqPeakingCoefficients(EQ_FREQS[band], EQ_Q[band], list[band], rate))
+        }
       }
       return sections
+    }
+
+    /**
+     * Low-shelf coefficients (RBJ cookbook, S=1). Web Audio's lowshelf is the
+     * same transfer function; its Q is not the shelf slope.
+     */
+    function eqLowShelfCoefficients(freq, gainDb, sampleRate) {
+      var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
+      var f0 = clamp(freq, 10, rate / 2 - 1)
+      var A = Math.pow(10, (Number(gainDb) || 0) / 40)
+      var omega = (2 * Math.PI * f0) / rate
+      var cos = Math.cos(omega)
+      var alpha = (Math.sin(omega) / 2) * Math.SQRT2
+      var sqrtA2alpha = 2 * Math.sqrt(A) * alpha
+      return [
+        A * (A + 1 - (A - 1) * cos + sqrtA2alpha),
+        2 * A * (A - 1 - (A + 1) * cos),
+        A * (A + 1 - (A - 1) * cos - sqrtA2alpha),
+        A + 1 + (A - 1) * cos + sqrtA2alpha,
+        -2 * (A - 1 + (A + 1) * cos),
+        A + 1 + (A - 1) * cos - sqrtA2alpha,
+      ]
+    }
+
+    /** High-shelf coefficients (RBJ cookbook, S=1). */
+    function eqHighShelfCoefficients(freq, gainDb, sampleRate) {
+      var rate = isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 44100
+      var f0 = clamp(freq, 10, rate / 2 - 1)
+      var A = Math.pow(10, (Number(gainDb) || 0) / 40)
+      var omega = (2 * Math.PI * f0) / rate
+      var cos = Math.cos(omega)
+      var alpha = (Math.sin(omega) / 2) * Math.SQRT2
+      var sqrtA2alpha = 2 * Math.sqrt(A) * alpha
+      return [
+        A * (A + 1 + (A - 1) * cos + sqrtA2alpha),
+        -2 * A * (A - 1 + (A + 1) * cos),
+        A * (A + 1 + (A - 1) * cos - sqrtA2alpha),
+        A + 1 - (A - 1) * cos + sqrtA2alpha,
+        2 * (A - 1 - (A + 1) * cos),
+        A + 1 - (A - 1) * cos - sqrtA2alpha,
+      ]
     }
 
     /**
