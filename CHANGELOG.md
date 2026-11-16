@@ -37,6 +37,7 @@
 - 酷狗我的歌单/歌单曲目已登录时改走包的 `user_playlist`、`playlist_track_all`，旧 cloudlist 接口保留兜底。
 - 酷狗概念版同样优先走包的 `user_playlist`、`playlist_track_all`、`song_url`，旧签名接口保留兜底；酷狗喜欢/歌单写入优先走 `playlist_tracks_add`、`playlist_tracks_del`。
 - 对齐 Folia 的会员/试听行为：移除客户端按 VIP 标签的硬拦截；网易云 `freeTrialInfo` 和 QQ `preview=1` 返回的试听片段照常播放并提示，不写入缓存、不计入播放统计。
+- 修复 QQ 歌单/专辑曲目标题显示成 `online:qq:...`：兼容 `name`/`songname`/`title` 字段。
 
 ### 发布撤回
 
