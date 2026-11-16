@@ -6521,10 +6521,10 @@ var MPFoliaLyrics = (() => {
     }
   });
 
-  // src/utils/lyrics/icuFolia/jieba.ts
+  // src/client/utils/lyrics/icuFolia/jieba.ts
   var STATES, B, E, M, S, PREV_STATES, MIN_FLOAT, RE_HAN_DEFAULT, RE_SKIP_DEFAULT, RE_HAN_HMM, RE_SKIP_HMM, LATIN_CHAR, decodeBase64, decodeVarints, splitKeep, createJieba;
   var init_jieba = __esm({
-    "src/utils/lyrics/icuFolia/jieba.ts"() {
+    "src/client/utils/lyrics/icuFolia/jieba.ts"() {
       STATES = ["B", "E", "M", "S"];
       B = 0;
       E = 1;
@@ -6795,10 +6795,10 @@ var MPFoliaLyrics = (() => {
     }
   });
 
-  // src/utils/lyrics/icuFolia/jiebaLexicon.ts
+  // src/client/utils/lyrics/icuFolia/jiebaLexicon.ts
   var CHINESE_EXTRA_WORDS, CHINESE_DEMOTED_WORDS;
   var init_jiebaLexicon = __esm({
-    "src/utils/lyrics/icuFolia/jiebaLexicon.ts"() {
+    "src/client/utils/lyrics/icuFolia/jiebaLexicon.ts"() {
       CHINESE_EXTRA_WORDS = [
         "\u6211\u54CB",
         "\u4F60\u54CB",
@@ -7056,14 +7056,14 @@ var MPFoliaLyrics = (() => {
     }
   });
 
-  // src/utils/lyrics/icuFolia/budouxJapanese.ts
+  // src/client/utils/lyrics/icuFolia/budouxJapanese.ts
   var budouxJapanese_exports = {};
   __export(budouxJapanese_exports, {
     createJapaneseParser: () => createJapaneseParser
   });
   var createJapaneseParser;
   var init_budouxJapanese = __esm({
-    "src/utils/lyrics/icuFolia/budouxJapanese.ts"() {
+    "src/client/utils/lyrics/icuFolia/budouxJapanese.ts"() {
       init_module();
       createJapaneseParser = () => new Parser(model);
     }
@@ -7103,14 +7103,14 @@ var MPFoliaLyrics = (() => {
     }
   });
 
-  // src/utils/lyrics/icuFolia/engines.ts
+  // src/client/utils/lyrics/icuFolia/engines.ts
   var engines_exports = {};
   __export(engines_exports, {
     loadIcuFoliaEngines: () => loadIcuFoliaEngines
   });
   var MAX_HMM_WORD_LENGTH, createSimplifier, loadIcuFoliaEngines;
   var init_engines = __esm({
-    "src/utils/lyrics/icuFolia/engines.ts"() {
+    "src/client/utils/lyrics/icuFolia/engines.ts"() {
       init_jieba();
       init_jiebaLexicon();
       MAX_HMM_WORD_LENGTH = 2;
@@ -7150,7 +7150,7 @@ var MPFoliaLyrics = (() => {
     }
   });
 
-  // src/render/lyrics/entry.ts
+  // src/client/render/lyrics/entry.ts
   var entry_exports = {};
   __export(entry_exports, {
     LYRIC_LINE_PRESETS: () => LYRIC_LINE_PRESETS,
@@ -7184,7 +7184,7 @@ var MPFoliaLyrics = (() => {
     writeLyricOffset: () => writeLyricOffset
   });
 
-  // src/utils/lyrics/renderHints.ts
+  // src/client/utils/lyrics/renderHints.ts
   var MICRO_LINE_DURATION_THRESHOLD = 0.1;
   var SHORT_LINE_DURATION_THRESHOLD = 0.18;
   var MICRO_LINE_RENDER_FLOOR = 0.067;
@@ -7311,7 +7311,7 @@ var MPFoliaLyrics = (() => {
     return migrateLyricDataRenderHints(lyrics).value;
   };
 
-  // src/utils/lyrics/graphemeTiming.ts
+  // src/client/utils/lyrics/graphemeTiming.ts
   var graphemeSegmenter = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
   var splitLyricGraphemes = (text) => {
     if (!text) {
@@ -7323,7 +7323,7 @@ var MPFoliaLyrics = (() => {
     return Array.from(text);
   };
 
-  // src/utils/lyrics/estimatedLineTiming.ts
+  // src/client/utils/lyrics/estimatedLineTiming.ts
   var buildTimedWords = (text, startTime, endTime) => {
     const duration = Math.max(endTime - startTime, 0.1);
     const rawTokens = text.split(/\s+/).filter((token) => token);
@@ -8036,10 +8036,10 @@ var MPFoliaLyrics = (() => {
     }
   };
 
-  // src/utils/lyrics/parserCore.ts
+  // src/client/utils/lyrics/parserCore.ts
   var import_xmldom = __toESM(require_lib(), 1);
 
-  // src/utils/lyrics/ttmlConversion.ts
+  // src/client/utils/lyrics/ttmlConversion.ts
   var NON_WESTERN_TEXT_REGEX = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/u;
   var WESTERN_JOINABLE_TEXT_REGEX = /[\p{Script=Latin}\p{N}'’`-]/u;
   var seconds = (milliseconds) => Math.max((milliseconds ?? 0) / 1e3, 0);
@@ -8223,7 +8223,7 @@ var MPFoliaLyrics = (() => {
     };
   };
 
-  // src/utils/lyrics/parserCore.ts
+  // src/client/utils/lyrics/parserCore.ts
   var GLOBAL_LRC_TIME_REGEX = /\[(\d{2,3}):(\d{2})[.:](\d{2,3})\]/g;
   var GLOBAL_ANGLE_TIME_REGEX = /<(\d{2,3}):(\d{2})[.:](\d{2,3})>/g;
   var LRC_LINE_TIME_REGEX = /^\[(\d{2,3}):(\d{2})[.:](\d{2,3})\]/;
@@ -9089,7 +9089,7 @@ var MPFoliaLyrics = (() => {
     }
   };
 
-  // src/utils/lyrics/filtering.ts
+  // src/client/utils/lyrics/filtering.ts
   var normalizeFilterPattern = (pattern) => pattern?.trim() || "";
   var compileLyricFilterPattern = (pattern) => {
     const normalized = normalizeFilterPattern(pattern);
@@ -9107,7 +9107,7 @@ var MPFoliaLyrics = (() => {
     includeInterludes: options.includeInterludes ?? true
   });
 
-  // src/render/lyrics/worker-inline.ts
+  // src/client/render/lyrics/worker-inline.ts
   var normalizeWorkerFormat = (format) => {
     if (format === "yrc" || format === "qrc" || format === "krc" || format === "awlrc" || format === "enhanced-lrc" || format === "vtt" || format === "ttml") {
       return format;
@@ -9116,7 +9116,7 @@ var MPFoliaLyrics = (() => {
   };
   var parseLyricsAsync = (format, content, translation, options, romanization) => Promise.resolve().then(() => parseLyricsByFormat(normalizeWorkerFormat(format), content, translation || "", options, romanization || ""));
 
-  // src/utils/lyrics/formatDetection.ts
+  // src/client/utils/lyrics/formatDetection.ts
   var VTT_TIMING_LINE_REGEX = /(?:^|\n)\s*(?:\d{2}:)?\d{2}:\d{2}\.\d{3}\s*-->\s*(?:\d{2}:)?\d{2}:\d{2}\.\d{3}/m;
   var ENHANCED_LRC_ANGLE_REGEX = /<\d{2}:\d{2}[.:]\d{2,3}>/;
   var ENHANCED_LRC_INLINE_BRACKET_REGEX = /(?:^|\n)\s*\[\d{2}:\d{2}[.:]\d{2,3}\][^\[\]\n]+(?:\[\d{2}:\d{2}[.:]\d{2,3}\][^\[\]\n]*)+/m;
@@ -9139,7 +9139,7 @@ var MPFoliaLyrics = (() => {
     return format === "ttml" ? "lrc" : format;
   }
 
-  // src/utils/lyrics/timelineSplitter.ts
+  // src/client/utils/lyrics/timelineSplitter.ts
   var hasCjkScript = (text) => /[\u3400-\u9fff\uf900-\ufaff\u3040-\u30ff\uac00-\ud7af]/u.test(text);
   var isRomanizationCandidate = (text) => {
     const lyricText = text.replace(/\[[^\]]*\]|<[^>]*>/gu, "");
@@ -9231,7 +9231,7 @@ var MPFoliaLyrics = (() => {
     }
   }
 
-  // src/utils/lyrics/lrcTimestamp.ts
+  // src/client/utils/lyrics/lrcTimestamp.ts
   var formatLrcTimestamp = (timestampMs) => {
     const totalMs = Math.max(0, Math.floor(timestampMs));
     const minutes = Math.floor(totalMs / 6e4);
@@ -9240,7 +9240,7 @@ var MPFoliaLyrics = (() => {
     return `[${String(minutes).padStart(2, "0")}:${String(seconds2).padStart(2, "0")}.${String(centiseconds).padStart(2, "0")}]`;
   };
 
-  // src/utils/lyrics/embeddedLrcNormalization.ts
+  // src/client/utils/lyrics/embeddedLrcNormalization.ts
   function isTranslationUsltTag(tag) {
     const language = tag.language?.toLowerCase();
     const descriptor = tag.descriptor?.toLowerCase() || "";
@@ -9306,7 +9306,7 @@ var MPFoliaLyrics = (() => {
     };
   }
 
-  // src/utils/lyrics/awlrcContainer.ts
+  // src/client/utils/lyrics/awlrcContainer.ts
   var AWLRC_CONTAINER_REGEX = /\[awlrc:(.+)\]/;
   var CJK_SCRIPT_REGEX = /[\u3400-\u9fff\uf900-\ufaff\u3040-\u30ff\uac00-\ud7af]/gu;
   var LATIN_LETTER_REGEX = /[A-Za-z]/g;
@@ -9357,7 +9357,7 @@ var MPFoliaLyrics = (() => {
     return decodedAny ? tracks : null;
   };
 
-  // src/utils/lyrics/adapters/EmbeddedLyricAdapter.ts
+  // src/client/utils/lyrics/adapters/EmbeddedLyricAdapter.ts
   var EmbeddedLyricAdapter = class {
     async parse(source, options = {}) {
       let mainLrc = "";
@@ -9385,7 +9385,7 @@ var MPFoliaLyrics = (() => {
     }
   };
 
-  // src/utils/lyrics/staffCredits.ts
+  // src/client/utils/lyrics/staffCredits.ts
   var STAFF_ROLE_KEYWORDS = [
     "\u4F5C\u8BCD",
     "\u4F5C\u66F2",
@@ -9599,7 +9599,7 @@ var MPFoliaLyrics = (() => {
     return { staffIndexes, memberIndexes, firstLyricIndex, headerLineCount, absorbedIndexes: [] };
   };
 
-  // src/utils/lyrics/pureMusic.ts
+  // src/client/utils/lyrics/pureMusic.ts
   var LRC_TAG_PATTERN = /\[[^\]]*]/g;
   var WORD_TIMING_TAG_PATTERN = /<[\d:.,\s]*>|\(\d+,\d+,\d+\)/g;
   var JSON_LINE_PATTERN = /^\s*\{.*}\s*$/;
@@ -9638,7 +9638,7 @@ var MPFoliaLyrics = (() => {
   };
   var isPureMusicLyricLines = (lines) => Boolean(lines?.length) && isPureMusicLyricText(lines.map((line) => line.fullText).join("\n"));
 
-  // src/utils/lyrics/neteaseProcessing.ts
+  // src/client/utils/lyrics/neteaseProcessing.ts
   var extractNeteaseLyricPayload = (source) => {
     const mainLrc = source?.lrc?.lyric || null;
     const yrcLrc = source?.yrc?.lyric || source?.lrc?.yrc?.lyric || null;
@@ -9685,14 +9685,14 @@ var MPFoliaLyrics = (() => {
     };
   };
 
-  // src/utils/lyrics/adapters/NeteaseLyricAdapter.ts
+  // src/client/utils/lyrics/adapters/NeteaseLyricAdapter.ts
   var NeteaseLyricAdapter = class {
     async parse(source, options = {}) {
       return (await processNeteaseLyrics(source, options)).lyrics;
     }
   };
 
-  // src/utils/lyrics/navidromeStructuredLyrics.ts
+  // src/client/utils/lyrics/navidromeStructuredLyrics.ts
   var pickMainCueLines = (lyrics) => {
     const mainAgentIds = new Set(
       lyrics.agents?.filter((agent) => agent.role === "main").map((agent) => agent.id) ?? []
@@ -9854,7 +9854,7 @@ var MPFoliaLyrics = (() => {
     };
   };
 
-  // src/utils/lyrics/adapters/NavidromeLyricAdapter.ts
+  // src/client/utils/lyrics/adapters/NavidromeLyricAdapter.ts
   var NavidromeLyricAdapter = class {
     async parse(source, options = {}) {
       if (source.structuredLyrics && isNavidromeStructuredLyricCollection(source.structuredLyrics)) {
@@ -9908,7 +9908,7 @@ var MPFoliaLyrics = (() => {
     }
   };
 
-  // src/utils/lyrics/wordSegmentation.ts
+  // src/client/utils/lyrics/wordSegmentation.ts
   var PUNCTUATION_ONLY = /^[\s\p{P}\p{S}]+$/u;
   var isWordLikeText = (text) => !PUNCTUATION_ONLY.test(text);
   var segmentsFromBoundaries = (boundaries) => {
@@ -9952,7 +9952,7 @@ var MPFoliaLyrics = (() => {
     return segmentTextWords(line.fullText);
   };
 
-  // src/utils/lyrics/foliaLyricDocument.ts
+  // src/client/utils/lyrics/foliaLyricDocument.ts
   var FOLIA_LYRIC_DOCUMENT_FORMAT = "folia-lyricdata";
   var FOLIA_LYRIC_DOCUMENT_VERSION = 1;
   var isFiniteNumber = (value) => typeof value === "number" && Number.isFinite(value);
@@ -10031,7 +10031,7 @@ var MPFoliaLyrics = (() => {
     });
   };
 
-  // src/utils/lyrics/adapters/LocalFileLyricAdapter.ts
+  // src/client/utils/lyrics/adapters/LocalFileLyricAdapter.ts
   var LocalFileLyricAdapter = class {
     async parse(source, options = {}) {
       if (!source.lrcContent) return null;
@@ -10058,7 +10058,7 @@ var MPFoliaLyrics = (() => {
     }
   };
 
-  // src/utils/lyrics/adapters/QrcLyricAdapter.ts
+  // src/client/utils/lyrics/adapters/QrcLyricAdapter.ts
   var QrcLyricAdapter = class {
     async parse(source, options = {}) {
       if (!source.qrcContent?.trim()) return null;
@@ -10066,7 +10066,7 @@ var MPFoliaLyrics = (() => {
     }
   };
 
-  // src/utils/lyrics/LyricParserFactory.ts
+  // src/client/utils/lyrics/LyricParserFactory.ts
   var LyricParserFactory = class {
     static async parse(source, options = {}) {
       const resolvedOptions = resolveLyricProcessingOptions(options);
@@ -10095,7 +10095,7 @@ var MPFoliaLyrics = (() => {
     }
   };
 
-  // src/utils/lyrics/staffCreditsAbsorb.ts
+  // src/client/utils/lyrics/staffCreditsAbsorb.ts
   var isShortLine = (line, maxDuration) => !isFillerLine(line) && line.endTime - line.startTime < maxDuration;
   var sortAscending = (values) => [...values].sort((a, b) => a - b);
   var collectShortRun = (lines, start, step, memberSet, maxDuration) => {
@@ -10148,7 +10148,7 @@ var MPFoliaLyrics = (() => {
     };
   };
 
-  // src/utils/lyrics/staffCreditsDecision.ts
+  // src/client/utils/lyrics/staffCreditsDecision.ts
   var TAIL_MARGIN_SECONDS = 1;
   var needsRetime = (staffLines, windowEnd, minDwell) => {
     for (let index = 0; index < staffLines.length; index += 1) {
@@ -10192,7 +10192,7 @@ var MPFoliaLyrics = (() => {
     return { ...base, verdict: "hide", windowSeconds };
   };
 
-  // src/utils/lyrics/staffCreditsRewrite.ts
+  // src/client/utils/lyrics/staffCreditsRewrite.ts
   var retimeSyllables = (syllables, shift) => syllables?.map((syllable) => ({
     ...syllable,
     startTime: shift(syllable.startTime),
@@ -10259,7 +10259,7 @@ var MPFoliaLyrics = (() => {
     return next;
   };
 
-  // src/utils/lyrics/staffCreditsPolicy.ts
+  // src/client/utils/lyrics/staffCreditsPolicy.ts
   var DEFAULT_LYRIC_STAFF_POLICY = "smart";
   var DEFAULT_LYRIC_STAFF_MIN_DWELL_SECONDS = 1.5;
   var DEFAULT_LYRIC_STAFF_ABSORB_MODE = "off";
@@ -10331,7 +10331,7 @@ var MPFoliaLyrics = (() => {
     };
   };
 
-  // src/utils/chorusDetector.ts
+  // src/client/utils/chorusDetector.ts
   var detectChorusLines = (lrcString) => {
     const lines = lrcString.split("\n");
     const lineCounts = /* @__PURE__ */ new Map();
@@ -10358,7 +10358,7 @@ var MPFoliaLyrics = (() => {
     return chorusLines;
   };
 
-  // src/utils/lyrics/chorusEffects.ts
+  // src/client/utils/lyrics/chorusEffects.ts
   var CHORUS_EFFECTS = ["bars", "circles", "beams"];
   var applyDetectedChorusEffects = (lyrics, mainLrc, random = Math.random) => {
     const chorusLines = detectChorusLines(mainLrc);
@@ -10423,7 +10423,7 @@ var MPFoliaLyrics = (() => {
     };
   };
 
-  // src/utils/lyrics/lyricOffsetMemory.ts
+  // src/client/utils/lyrics/lyricOffsetMemory.ts
   var STORAGE_KEY = "lyric_timeline_offsets";
   var MAX_ENTRIES = 1e3;
   var cache = null;
@@ -10491,7 +10491,7 @@ var MPFoliaLyrics = (() => {
     persist(map);
   };
 
-  // src/utils/lyrics/lyricLineRules.ts
+  // src/client/utils/lyrics/lyricLineRules.ts
   var LYRIC_LINE_PRESETS = [
     { id: "copyright", words: ["\u7248\u6743\u6240\u6709", "\u672A\u7ECF\u8BB8\u53EF", "\u672A\u7ECF\u6388\u6743", "\u4E0D\u5F97\u7FFB\u5531", "\u7981\u6B62\u7FFB\u5531", "\u4FB5\u6743\u5FC5\u7A76", "all rights reserved", "copyright", "\xA9", "\u2117"] },
     { id: "lyricSource", words: ["\u6B4C\u8BCD\u8D21\u732E\u8005", "\u7FFB\u8BD1\u8D21\u732E\u8005", "\u6B4C\u8BCD\u6765\u6E90", "\u6B4C\u8BCD\u6765\u81EA", "\u6B4C\u8BCD\u63D0\u4F9B", "\u6B4C\u8BCD\u5236\u4F5C", "\u6B4C\u8BCD\u6821\u5BF9", "lrc by"] }
@@ -10550,7 +10550,7 @@ var MPFoliaLyrics = (() => {
     };
   };
 
-  // src/types/lyricSegmentation.ts
+  // src/client/types/lyricSegmentation.ts
   var LYRIC_SEGMENTATION_RECORD_VERSION = 1;
 
   // shared/lyricSegmentationPrompt.mjs
@@ -10635,7 +10635,7 @@ var MPFoliaLyrics = (() => {
     return slices;
   };
 
-  // src/utils/lyrics/lyricSegmentationRecord.ts
+  // src/client/utils/lyrics/lyricSegmentationRecord.ts
   var SEGMENTATION_DELIMITER = "/";
   var getLyricLineSegmentationKey = (line) => `${Math.round(line.startTime * 1e3)}|${line.fullText}`;
   var createLyricSegmentationRecord = (songKey, source, lines) => ({
@@ -10738,12 +10738,12 @@ var MPFoliaLyrics = (() => {
     return { lines, appliedCount };
   };
 
-  // src/render/lyrics/entry.ts
+  // src/client/render/lyrics/entry.ts
   init_jieba();
   init_jiebaLexicon();
   init_budouxJapanese();
 
-  // src/utils/lyrics/icuFolia/lexicon.ts
+  // src/client/utils/lyrics/icuFolia/lexicon.ts
   var CHINESE_TRAILING_PARTICLES = /* @__PURE__ */ new Set([
     "\u7684",
     "\u5730",
@@ -10831,7 +10831,7 @@ var MPFoliaLyrics = (() => {
     "\u5572"
   ]);
 
-  // src/utils/lyrics/icuFolia/segmenter.ts
+  // src/client/utils/lyrics/icuFolia/segmenter.ts
   var CJ_PIECE = /^[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ー々〆〇]+$/u;
   var KANA = /[\p{Script=Hiragana}\p{Script=Katakana}ー]/u;
   var ALPHABETIC_WORD = /^[\p{L}\p{M}\p{N}]+$/u;
@@ -10906,7 +10906,7 @@ var MPFoliaLyrics = (() => {
     return joinHyphenatedWords(out);
   };
 
-  // src/utils/lyrics/icuFolia/index.ts
+  // src/client/utils/lyrics/icuFolia/index.ts
   var engines = null;
   var loading = null;
   var loadIcuFolia = (loader = async () => (await Promise.resolve().then(() => (init_engines(), engines_exports))).loadIcuFoliaEngines()) => {
@@ -10943,7 +10943,7 @@ var MPFoliaLyrics = (() => {
     return changed ? { ...lyrics, lines } : lyrics;
   };
 
-  // src/render/lyrics/entry.ts
+  // src/client/render/lyrics/entry.ts
   function parse(source, options = {}) {
     return LyricParserFactory.parse(source, options);
   }
