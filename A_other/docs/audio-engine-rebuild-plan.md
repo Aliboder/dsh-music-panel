@@ -269,6 +269,7 @@ P6b（单独评估）：
 - beat_this / htdemucs / stems / automixSession 的完整模型路径。
 - 需要确认模型分发、GPU/CPU 预算、包体积、启动时间。
 - 未确认前不实现，不用假数据冒充。
+- 当前证据：Folia 的模型权重约 249MB，插件安装目录和 `C:\Users\Aliboder\.dsh` 下都没有 `beat_this` / `htdemucs` 权重；没有权重时 `trackProfile`/`stems` 只能走无模型 fallback。要做完整 automix，必须先决定是否随插件分发这 249MB。
 
 **Gate**：P6a 的过渡 A/B 通过；P6b 另立计划。
 

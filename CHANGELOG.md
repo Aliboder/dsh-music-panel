@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### 音频播放引擎改为 Folia
+
+- 客户端播放链路整体换成 Folia 的音频子系统：`deck → replayGain → trim → tone → fade → mix → EQ → effects → playback fade → volume → analyser`。旧的插件自建图（preamp、常驻 limiter、单 deck 增益、手写 crossfade 曲线）已删除。
+- 新增 `scripts/build-audio.mjs`，把 `A_other/upstream/folia-major-main` 的纯 TS 音频模块编译进 `src/client/audio/engine.bundle.js`；不手写等价 DSP。
+- EQ 改为 Folia 的 10 段（首 lowshelf / 末 highshelf / Q=1.4），预设改为 Folia 的 6 个 sound preset，自定义区改为 `custom1` / `custom2` 两个槽。
+- 接入 Folia 的 9 个音效滑杆（低切、高切、饱和、位深压缩、走带抖动、黑胶噪声、立体声宽度、空间混响、冲击感）。
+- 播放/暂停改用 Folia 的 0.2 s 淡入淡出；设置页新增开关。
+- 暂停/播放、seek、音量、静音、输出设备、analyser、Media Session 进度和 `audioSession.type` 都切到新引擎。
+- crossfade 改用 Folia 的曲线与 `planBlendShape` crossover；入轨响度目标与正常播放统一为 -14 LUFS；每 deck 的 Folia meter 跟随 active deck。
+- 仍保留插件自己的队列、恢复、统计、在线源、歌词和 DSH Host 适配。
+
 ### 发布撤回
 
 - 0.36.0 撤回（**只撤发布物，代码保留在 main**）：GitHub Release 与 tag `v0.36.0` 已删除，
