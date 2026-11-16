@@ -194,7 +194,9 @@ scripts/
 剩余：
 
 - P5：`test/` 仍平铺，未按 host/client/integration 分类；`npm pack`/安装冒烟未跑。
-- 未做：额外重构、逻辑清理、TS 化、UI 改动。
+- P5 测试：62 个测试文件已分到 `test/host`、`test/client`、`test/integration`，`package.json`
+  `scripts.test` 路径更新；`player-page` 也纳入脚本。`npm test`/`check` 全绿。
+- 剩余：`npm pack --dry-run`/干净 profile 安装冒烟未跑（本机无 npm CLI）。
 
 ## 8. 验证
 
