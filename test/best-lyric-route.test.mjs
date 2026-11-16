@@ -198,6 +198,21 @@ function unusedIo() {
   assert.notEqual(replaced.match, null, 'the found match replaces the stale miss')
 }
 
+// ── no title: nothing is searched, and nothing is cached ───────────────────
+
+{
+  const calls = []
+  const routes = routesWith(wordLevelIo(calls))
+  const answer = await ask(routes, 'qq', 'no-title', { title: '' })
+  assert.equal(answer.status, 200)
+  assert.equal(answer.body.match, null)
+  assert.deepEqual(calls, [], 'a request without a title never reaches a source')
+  // An unsearchable answer says nothing about this track: caching it would hide the real
+  // answer for a day once the client sent the metadata.
+  await new Promise((resolve) => setTimeout(resolve, 100))
+  assert.equal(await onlineCache.readMeta('qq', 'no-title', 'best-lyric'), null)
+}
+
 // ── an entry from a previous shape is searched again ───────────────────────
 
 {
