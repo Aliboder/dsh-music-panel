@@ -245,9 +245,9 @@ node scripts/build-client.mjs --check
 ### P5 音频 UI/设置对齐
 
 - [x] P5a：EQ 编辑页加入 Folia 9 个音效滑杆；`eqEffects` 进入 prefs/player；preamp/headroom UI 与存储语义删除。
+- [x] P5a-2：EQ 曲线数学改成首 lowshelf / 末 highshelf，与 Folia 图一致。
 - [ ] P5b：EQ 预设/自定义槽换成 Folia 的 sound preset 模型；当前仍保留 Winamp 预设 + AutoEQ 设备库。
 - [ ] P5c：输出设备选择（`setSinkId`）；无能力时不显示假控件。
-- [ ] EQ 曲线数学改成首 lowshelf / 末 highshelf，与 Folia 图一致（当前曲线仍按全 peaking 画）。
 
 **Gate**：
 
@@ -377,8 +377,9 @@ P6b（单独评估）：
 - [x] P6a-1：Folia crossfade 曲线 + 静音 intro 修复。
 - [x] P7-1：Media Session `setPositionState` + `audioSession.type='playback'`。
 - [x] P5a：Folia 音效滑杆 + `eqEffects` 存储；preamp/headroom UI 删除。
+- [x] P5a-2：EQ 曲线改为 shelf 形状。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`、`ab064b8`、`536f94f`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`、`ab064b8`、`536f94f`、`665a712`。
 
 ### 进行中
 
