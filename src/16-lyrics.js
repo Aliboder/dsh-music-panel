@@ -341,16 +341,23 @@ function ensureIcuFoliaData() {
 var LYRIC_SEGMENTATION_KEY = 'lyric_segmentations'
 var LYRIC_SEGMENTATION_MAX = 300
 
+// Parsed once and kept: the player asks for the count on every render, and the map can
+// hold hundreds of records.
+var lyricSegmentationCache = null
+
 function lyricSegmentationMap() {
+  if (lyricSegmentationCache !== null) return lyricSegmentationCache
   var map = {}
-  if (typeof window === 'undefined') return map
-  try {
-    var raw = window.localStorage.getItem(LYRIC_SEGMENTATION_KEY)
-    var parsed = raw === null ? null : JSON.parse(raw)
-    if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) map = parsed
-  } catch (error) {
-    map = {}
+  if (typeof window !== 'undefined') {
+    try {
+      var raw = window.localStorage.getItem(LYRIC_SEGMENTATION_KEY)
+      var parsed = raw === null ? null : JSON.parse(raw)
+      if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) map = parsed
+    } catch (error) {
+      map = {}
+    }
   }
+  lyricSegmentationCache = map
   return map
 }
 
@@ -367,6 +374,7 @@ function writeLyricSegmentationMap(map) {
         delete map[key]
       })
   }
+  lyricSegmentationCache = map
   try {
     window.localStorage.setItem(LYRIC_SEGMENTATION_KEY, JSON.stringify(map))
   } catch (error) {

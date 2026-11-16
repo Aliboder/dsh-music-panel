@@ -9628,16 +9628,23 @@ window.__ModuleLoader__.load({
     var LYRIC_SEGMENTATION_KEY = 'lyric_segmentations'
     var LYRIC_SEGMENTATION_MAX = 300
 
+    // Parsed once and kept: the player asks for the count on every render, and the map can
+    // hold hundreds of records.
+    var lyricSegmentationCache = null
+
     function lyricSegmentationMap() {
+      if (lyricSegmentationCache !== null) return lyricSegmentationCache
       var map = {}
-      if (typeof window === 'undefined') return map
-      try {
-        var raw = window.localStorage.getItem(LYRIC_SEGMENTATION_KEY)
-        var parsed = raw === null ? null : JSON.parse(raw)
-        if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) map = parsed
-      } catch (error) {
-        map = {}
+      if (typeof window !== 'undefined') {
+        try {
+          var raw = window.localStorage.getItem(LYRIC_SEGMENTATION_KEY)
+          var parsed = raw === null ? null : JSON.parse(raw)
+          if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) map = parsed
+        } catch (error) {
+          map = {}
+        }
       }
+      lyricSegmentationCache = map
       return map
     }
 
@@ -9654,6 +9661,7 @@ window.__ModuleLoader__.load({
             delete map[key]
           })
       }
+      lyricSegmentationCache = map
       try {
         window.localStorage.setItem(LYRIC_SEGMENTATION_KEY, JSON.stringify(map))
       } catch (error) {
@@ -159323,20 +159331,25 @@ window.__ModuleLoader__.load({
             var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
             if (cancelled || match === null || match.wordLevel !== true) return
             var upgraded = null
+            var parsedDocument = null
             var raw = match.raw !== null && typeof match.raw === 'object' ? match.raw : null
             if (raw !== null && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
               try {
                 var parsed = await MPFoliaLyrics.parse(raw, { songId: Number(current.onlineId) || 0 })
                 if (parsed && Array.isArray(parsed.lines) && parsed.lines.length > 0) {
-                  lyricDocRef.current = { path: trackPath, document: parsed, chorusRanges: chorusRanges }
+                  parsedDocument = parsed
                   upgraded = mpPrepareLyrics(parsed, trackPath, chorusRanges)
                 }
               } catch (error) {
                 upgraded = null
               }
             }
+            // A skip during the search must not put this document behind the next song's
+            // lyrics: the ref is what a later rule change re-applies the pass to.
             if (cancelled) return
-            if (upgraded !== null && upgraded.lyrics.length > 0) {
+            if (upgraded !== null && upgraded.pureMusic === true) return
+            if (upgraded !== null && upgraded.lyrics.length > 0 && parsedDocument !== null) {
+              lyricDocRef.current = { path: trackPath, document: parsedDocument, chorusRanges: chorusRanges }
               setLyrics(upgraded.lyrics)
             } else {
               // No raw document (an older lyric cache): the lender's own lines still carry the
