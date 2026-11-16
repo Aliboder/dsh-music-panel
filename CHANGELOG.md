@@ -11,6 +11,7 @@
 - 播放/暂停改用 Folia 的 0.2 s 淡入淡出；设置页新增开关。
 - 暂停/播放、seek、音量、静音、输出设备、analyser、Media Session 进度和 `audioSession.type` 都切到新引擎。
 - crossfade 改用 Folia 的曲线与 `planBlendShape` crossover；入轨响度目标与正常播放统一为 -14 LUFS；每 deck 的 Folia meter 跟随 active deck。
+- 本轮不包含 beat_this / htdemucs 模型与分轨；没有模型时保持普通 crossfade fallback。模型权重约 133MB，按需另议。
 - 仍保留插件自己的队列、恢复、统计、在线源、歌词和 DSH Host 适配。
 
 ### 发布撤回

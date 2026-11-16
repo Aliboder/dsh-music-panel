@@ -88,7 +88,7 @@
 | D7 | 音源继续用 Blob（本地/在线都先落 Blob） | 桌面端 HTTP 流 seek 的已知问题；先对齐音频图，不混入音源改造 |
 | D8 | 旧音频设置/EQ 自定义不迁移，重置为新默认 | 用户已确认“我们的都可以舍弃”；静默塞旧值会制造第二套语义 |
 | D9 | 上游音频文件不改；需要适配时在 `src/audio/shims/**` 写 shim | 保持 `git diff` 可审计 |
-| D10 | automix 模型/分轨不在第一阶段 | 模型、GPU/CPU 调度、窗口状态机是另一个量级；先做 fallback |
+| D10 | automix 模型/分轨不在本轮 | 用户 2026-11-17 明确决定：先不做模型，保持无模型普通 crossfade；不下载、不分发 133MB 权重 |
 | D11 | 只对齐 Web Audio route | 插件没有 mpv/native 层，HiFi 是另一条运行时 |
 
 ---
@@ -264,21 +264,22 @@ P6a（先做）：
 - crossfade fallback：tone 三段、echo throw、crossover/together 参数、取消/暂停/seek。
 - 不做 beat grid/stems，但行为要像 Folia 没有模型时的 fallback。
 
-P6b（单独评估）：
+P6b（本轮不做，用户已决定）：
 
 - beat_this / htdemucs / stems / automixSession 的完整模型路径。
 - 需要确认模型分发、GPU/CPU 预算、包体积、启动时间。
-- 未确认前不实现，不用假数据冒充。
-- 当前证据：Folia 的模型权重约 249MB，插件安装目录和 `C:\Users\Aliboder\.dsh` 下都没有 `beat_this` / `htdemucs` 权重；没有权重时 `trackProfile`/`stems` 只能走无模型 fallback。要做完整 automix，必须先决定是否随插件分发这 249MB。
+- 用户 2026-11-17 决定：先不做模型，保持无模型普通 crossfade；不下载、不分发权重。
+- 事实更正：Folia 的权重不是 249MB ONNX，而是 `beat_this-wgsl.bin` 41MB + `htdemucs-wgsl.bin` 92MB，共约 133MB，随安装包分发。
+- 没有权重时 `trackProfile`/`stems` 只能走无模型 fallback；以后要做，先重新确认是否接受这 133MB。
 
-**Gate**：P6a 的过渡 A/B 通过；P6b 另立计划。
+**Gate**：本轮不适用；未实现，不用假数据冒充。
 
 ### P7 系统集成
 
 - `MediaSession.setPositionState`。**已完成**。
 - `navigator.audioSession.type = 'playback'`（存在时）。**已完成**。
-- `AudioContext.setSinkId`（存在时）。待做。
-- 输出设备选择只在能力可用时出现。待做。
+- `AudioContext.setSinkId`（存在时）。**已完成**。
+- 输出设备选择只在能力可用时出现。**已完成**。
 
 **Gate**：Windows 媒体面板进度正确；无设备能力时不显示假控件。
 
@@ -391,23 +392,25 @@ P6b（单独评估）：
 - [x] `check` 包含 `build-audio --check`。
 - [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`、`ab064b8`、`536f94f`、`665a712`、`d63c8a1`、`67f42ab`、`5b73fad`、`51fb95b`、`ee64b3d`、`235e96d`、`3ab031c`。
 
-### 进行中
+### 已收口 / 明确不做
 
-- [x] P4a：`player.js` 的图/音量/静音/EQ 已切到 `foliaGraph`；旧 limiter/preamp 不再创建。
-- [x] P4b-1：`load` / `play` / `pause` / `seek` / `stop` 已切到 `foliaTransport`；`swapDecks` 同步 active deck。
-- [x] P4b-2：transport 的 `onState` / `onTime` / `onEnded` / `onError` 驱动 `player.js`；`bind` / `unbind` / `ensureSecondary` / `wireSecondary` / `buildEqNodes` 已删除。
-- [x] P6a-1：crossfade 曲线改用 Folia `buildCrossfadeCurves`；`prepareCrossfade` 现在传 `introSilentSec`，静音开头跳过不再是死代码。
-- [x] P4b-3：crossfade 的 deck 切换/adopt 已交给 `foliaTransport.crossfadeTo`；旧的 `audioB.src`/手写曲线调度删除。
-- [x] P4b-4：入轨响度目标从 -16 改为 -14；transport 每 deck tick 自己的 meter，换 deck 后 `balanceMeter` 跟随 active deck。
-- [x] P6a-2a：crossover 由 Folia `planBlendShape` 决定（当前无 beat grid，只按 outgoing loudness）。
-- [ ] P6a-2b：tone 三段 / echo throw 还没接入；当前是 Folia 等功率曲线。
-- [ ] 用真实 `<audio>` 接本地/在线各一首。
+- [x] P4a / P4b-1 / P4b-2 / P4b-3 / P4b-4：图、传输、事件、crossfade、balance meter 全部切到 Folia。
+- [x] P5a / P5a-2 / P5b-1 / P5b-2 / P5c / P5d：音效、shelf 曲线、6 个预设、2 个自定义槽、输出设备、播放淡入淡出。
+- [x] P6a-1 / P6a-2a：Folia 曲线、静音 intro、`planBlendShape` crossover。
+- [x] P7-1：Media Session 进度 + `audioSession.type`。
+- [x] P6a-2b：**不做**。用户决定先用普通的；不加 tone/echo 的额外分析。
+- [x] P6b：**不做**。不下载/不分发 133MB 模型；保持无模型 fallback。
+
+### 验收
+
+- [x] 自动测试全绿。
+- [x] `check` 全绿。
+- [x] 用户 2026-11-17 真实试听确认当前版本没有听感问题。
+- [x] Desktop 安装副本已同步。
 
 ### 下一步
 
-1. 同步 Desktop 安装副本，本地/在线各播一首，验证普通播放、暂停、seek、音量、EQ。
-2. 进入 P6a：crossfade 换成 Folia 的曲线与 transport。
-3. 再进 P5 音频 UI。
+本轮范围完成，没有待写代码。后续只有维护或重新开启模型/自动混音时才继续。
 
 ---
 

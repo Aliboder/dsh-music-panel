@@ -1,6 +1,6 @@
 # 播放引擎与 Folia 的差异报告与对齐方案
 
-状态：调研完成，**未改代码**。
+状态：**历史分析**。本报告写于改造前；P0/P1 的播放链路问题已在 [audio-engine-rebuild-plan.md](audio-engine-rebuild-plan.md) 的 P4/P5/P7 中修复。P6b 的模型/分轨按用户 2026-11-17 的决定不做。
 
 基线：`dsh-music-panel` 0.36.0，分支 `refactor/structure`。
 
