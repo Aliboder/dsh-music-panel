@@ -459,3 +459,20 @@ P3d 能力审计：
 3. **凭据**：不做加密；按 4.7 的明文存储约束执行。
 
 执行顺序不变：P1 登录内核 → P2 账户模型与登录窗口 → P3 平台支持。
+
+## 6. 执行进度（2026-11-17）
+
+已落地并验证：
+
+- **P1**：统一 `sessions.json`（Bodian 不再建第二个 store）；Bodian 登录持久化；二维码 `expiresAt`；关窗取消；已扫码 60 秒超时；瞬时失败重试；旧 key 轮询隔离；QQ QQ/微信；登录弹窗平台名/图标不再错配。
+- **P2**：`accounts.json` 快照（昵称、头像、歌单、喜欢 id），失败读取保留旧账号；登录窗口宽版面（平台列 + 账号/二维码/Navidrome 表单）；Navidrome 不再单独弹卡片。
+- **P3a**：Bodian `profile` 与账号快照接通。
+- **P3b**：汽水音乐 Host 侧平台（扫码、搜索、播放地址、歌词、歌单、喜欢）；`qishui-music-api` 注册进 source registry。
+- **P4 部分**：酷狗概念版能力声明修正；`music_control` / README / notices 更新。
+
+未做：
+
+- P3c 飞牛（可选）。
+- Spotify / YouTube Music / Apple Music（明确不可用，未注册）。
+- P4 的干净 profile 安装 smoke、版本号/发布说明仍未做。
+
