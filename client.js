@@ -153335,13 +153335,10 @@ window.__ModuleLoader__.load({
        * everything below keeps talking about "the current element".
        */
       var audioB = null
-      var deckSource = null
-      var deckSourceB = null
       var fadeNode = null
       var fadeNodeB = null
       var trimNode = null
       var trimNodeB = null
-      var secondaryWired = false
       var objectUrlB = null
       var normalizeGainB = 1
       /** Crossfade controller: token cancels stale fetches, timer lands the swap. */
@@ -153350,7 +153347,6 @@ window.__ModuleLoader__.load({
       var xfadePending = false
       var xfadeAdopted = false
       var xfadeTimer = null
-      var xfadeAdoptTimer = null
       var xfadeNext = -1
       /** Blob of the track on the active deck, kept for the tail analysis. */
       var currentBlob = null
@@ -154529,9 +154525,6 @@ window.__ModuleLoader__.load({
         var element = audio
         audio = audioB
         audioB = element
-        var source = deckSource
-        deckSource = deckSourceB
-        deckSourceB = source
         var fade = fadeNode
         fadeNode = fadeNodeB
         fadeNodeB = fade
@@ -154588,10 +154581,6 @@ window.__ModuleLoader__.load({
       /** The overlap is over: silence and release the outgoing element. */
       function finishCrossfade(token) {
         if (token !== xfadeToken) return
-        if (xfadeAdoptTimer !== null) {
-          clearTimeout(xfadeAdoptTimer)
-          xfadeAdoptTimer = null
-        }
         // Timers can race under throttling; never leave the UI on the ghost.
         if (!xfadeAdopted && xfadePrepared !== null) adoptIncoming(token)
         xfadeActive = false
@@ -154641,10 +154630,6 @@ window.__ModuleLoader__.load({
         if (xfadeTimer !== null) {
           clearTimeout(xfadeTimer)
           xfadeTimer = null
-        }
-        if (xfadeAdoptTimer !== null) {
-          clearTimeout(xfadeAdoptTimer)
-          xfadeAdoptTimer = null
         }
         if (audioB !== null) {
           try {
@@ -154803,13 +154788,10 @@ window.__ModuleLoader__.load({
           // Compatibility aliases while the transport half is still the old code:
           // the deck chain's four gain stages now back the old names. The old
           // preamp/limiter are not created any more.
-          deckSource = chainA.source
-          deckSourceB = chainB.source
           fadeNode = chainA.fade
           fadeNodeB = chainB.fade
           trimNode = chainA.replayGain
           trimNodeB = chainB.replayGain
-          secondaryWired = true
           balanceMeter = chainA.balanceMeter
           eqNodes = []
           waveData = new Uint8Array(analyser.frequencyBinCount)
@@ -154850,13 +154832,10 @@ window.__ModuleLoader__.load({
           audioContext = null
           analyser = null
           gainNode = null
-          deckSource = null
-          deckSourceB = null
           fadeNode = null
           fadeNodeB = null
           trimNode = null
           trimNodeB = null
-          secondaryWired = false
           eqNodes = []
           waveData = null
           audio = el
@@ -155079,7 +155058,7 @@ window.__ModuleLoader__.load({
             pending: xfadePending,
             adopted: xfadeAdopted,
             secondary: audioB !== null,
-            wired: secondaryWired,
+            wired: foliaGraph !== null && analyser !== null,
             next: xfadeNext,
           }
         },
