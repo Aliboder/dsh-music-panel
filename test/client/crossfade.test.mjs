@@ -143,6 +143,8 @@ assert.match(player, /maybePrefetchNext\(\)/, 'the next track is warmed while th
 assert.match(player, /prefetchedNext\.path === item\.path/, 'the prepare step reuses the prefetched bytes')
 assert.match(player, /analyzeTransitionBuffer/, 'the engine measures the envelopes before deciding')
 assert.match(player, /crossfadePlan\(/, 'the overlap comes from the measurement, not a fixed number')
+assert.match(player, /planBlendShape\(/, 'the crossover comes from Folia signal analysis')
+assert.match(player, /crossover: prepared\.crossover/, 'the planned crossover reaches the transport')
 const loudness = readFileSync(join(root, 'src/client/services/player/effects/loudness.js'), 'utf8')
 assert.match(loudness, /LOUDNESS_TARGET = -14/, 'crossfade uses the same balance target as normal play')
 

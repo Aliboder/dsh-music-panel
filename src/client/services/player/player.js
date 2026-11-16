@@ -1205,9 +1205,22 @@ function createPlayer() {
         abortCrossfade()
         return
       }
+      var shape = null
+      var audioApi = typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
+      if (audioApi !== null && typeof audioApi.planBlendShape === 'function') {
+        shape = audioApi.planBlendShape({
+          overlap: plan.overlap,
+          outgoingDb: results[0] ? results[0].loudnessDb : null,
+          nextBeatIn: null,
+          periodSec: null,
+          minOverlap: CROSSFADE_MIN_SECONDS,
+          maxOverlap: CROSSFADE_MAX_SECONDS,
+        })
+      }
       xfadePrepared = {
         nextAt: nextAt,
         plan: plan,
+        crossover: shape !== null ? shape.crossover : 0.5,
         blob: nextBlob,
         trim: incoming.trim,
         duration: incoming.envelope ? incoming.envelope.duration : 0,
@@ -1270,7 +1283,7 @@ function createPlayer() {
     foliaTransport
       .crossfadeTo(incomingDeck, objectUrlB, {
         seconds: fade,
-        crossover: 0.5,
+        crossover: prepared.crossover,
         hold: 0,
         together: 0,
         startAt: prepared.plan.startInNext,
