@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.36.1 — 2026-11-17
+
 ### 音频播放引擎改为 Folia
 
 - 客户端播放链路整体换成 Folia 的音频子系统：`deck → replayGain → trim → tone → fade → mix → EQ → effects → playback fade → volume → analyser`。旧的插件自建图（preamp、常驻 limiter、单 deck 增益、手写 crossfade 曲线）已删除。

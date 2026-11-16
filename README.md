@@ -10,7 +10,7 @@
 Local library · NetEase Cloud Music · QQ Music · KuGou · Bodian · Qishui · Navidrome / Subsonic · Lyrics · Cache · EBU R128 · 10-band EQ`n本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · 波点音乐 · 汽水音乐 · Navidrome / Subsonic · 歌词 · 缓存 · 音量均衡 · 均衡器
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
-[![release](https://img.shields.io/badge/release-0.36.0-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
+[![release](https://img.shields.io/badge/release-0.36.1-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
 [![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
 
