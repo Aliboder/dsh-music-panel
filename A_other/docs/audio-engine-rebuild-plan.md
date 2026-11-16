@@ -249,6 +249,7 @@ node scripts/build-client.mjs --check
 - [x] P5b-1：预设页换成 Folia 的 6 个 sound preset（gains + effects 一起应用）。
 - [x] P5b-2：自定义区换成 Folia 的 `custom1` / `custom2` 两个槽，保存曲线 + 音效；AutoEQ 设备库保留为本插件扩展。
 - [x] P5c：输出设备选择（`setSinkId`）；无能力时不显示假控件。
+- [x] P5d：播放淡入淡出开关（默认开，写 `playbackFade`，transport 即时生效）。
 
 **Gate**：
 
@@ -384,8 +385,9 @@ P6b（单独评估）：
 - [x] P5b-2：Folia `custom1` / `custom2` 两个自定义槽。
 - [x] P4b-3：crossfade deck/adopt 交给 Folia transport。
 - [x] P4b-4：crossfade 目标 -14 + 每 deck meter 跟随 active deck。
+- [x] P5d：播放淡入淡出设置开关。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`、`ab064b8`、`536f94f`、`665a712`、`d63c8a1`、`67f42ab`、`5b73fad`、`51fb95b`、`ee64b3d`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`、`f0051a2`、`31569d7`、`ab064b8`、`536f94f`、`665a712`、`d63c8a1`、`67f42ab`、`5b73fad`、`51fb95b`、`ee64b3d`、`235e96d`。
 
 ### 进行中
 
