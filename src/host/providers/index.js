@@ -70,8 +70,10 @@ function shape(provider, song) {
   return {
     provider,
     id: String(id ?? ''),
-    title: song.title || '',
-    artist: Array.isArray(song.artists) ? song.artists.join(' / ') : '',
+    title: song.title || song.name || song.songname || song.SongName || song.audio_name || '',
+    artist: Array.isArray(song.artists)
+      ? song.artists.join(' / ')
+      : String(song.artist || song.singer || song.author_name || ''),
     album: song.album || '',
     albumId: provider === 'qq' ? albumMid : String(song.albumId || song.album_id || ''),
     durationSec: Number(song.interval) || 0,

@@ -21331,8 +21331,8 @@ window.__ModuleLoader__.load({
       var provider = result.provider
       return {
         path: 'online:' + provider + ':' + result.id,
-        title: result.title,
-        artist: result.artist,
+        title: result.title || result.name || result.songname || '',
+        artist: result.artist || (Array.isArray(result.artists) ? result.artists.join(' / ') : ''),
         album: result.album,
         albumId: result.albumId || '',
         durationSec: result.durationSec,
