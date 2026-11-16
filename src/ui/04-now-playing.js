@@ -2640,7 +2640,9 @@ function NowPlaying(props) {
           h(
             'div',
             { className: 'mp-np-setting-head' },
-            h('span', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary,#a1a1aa)' } }, t('page.translationScale')),
+            // The editor is a dark surface too; inherit its light ink (the head sets it)
+            // instead of the host label token, which is dark ink in the light theme.
+            h('span', { style: { fontSize: '12px' } }, t('page.translationScale')),
             h('span', { className: 'mp-set-val' }, String(prefs.translationScale || 80) + '%'),
           ),
           h('input', {
@@ -3092,8 +3094,10 @@ function NowPlaying(props) {
                   margin: '0 12px 6px',
                   padding: '4px 12px',
                   borderRadius: '999px',
-                  border: '1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.12))',
-                  background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))',
+                  // The player page is a dark surface in both themes (see theme-guidelines
+                  // §1.1): a host layer token would turn this pill white-on-white in light.
+                  border: '1px solid rgba(255,255,255,.14)',
+                  background: 'rgba(255,255,255,.06)',
                   color: 'inherit',
                   font: 'inherit',
                   cursor: 'pointer',

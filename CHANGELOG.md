@@ -9,11 +9,19 @@
 - `docs/release.md` 的「回滚」扩成可操作的撤回步骤（GitHub 删 Release/tag、npm unpublish + 把
   latest 指回上一版、Trusted Publishing 不能 unpublish 这个事实）。
 
+### 修复
+
+- 浅色模式下播放页的播放器卡片（封面 / 本地 / 控制 / 播放列表 / 音质）里，圆角块、胶囊、输入框和
+  页签变成白底白字：卡片本身是盖在播放页上的深色玻璃，但内部控件读的是宿主 token，浅色主题把它们
+  解析成近白表面与深色文字。现在卡片把用到的 `--dsw-*` 钉回深色值（与播放页「始终深色」的既有例外
+  一致，覆盖只作用于 `.mp-card` 子树），浅色 / 深色都可读；`test/theme.test.mjs` 加了守卫。
+
 ### 文档
 
 - 新增 [发布手册](docs/release.md)：版本号与 `client.js` 的联动、tag 与推送、面向用户的 Release 写法、
   npm Trusted Publishing 与 `allow-remote=root` 等已知坑、发布后验证与回滚。也在 README「开发」
   与 AGENTS.md「参考」里链出。
+- [主题规范](docs/theme-guidelines.md) 补「深色岛例外」：播放页与播放器卡片始终按深色取值。
 
 ## 0.36.0 — 2026-11-16
 

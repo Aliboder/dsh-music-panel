@@ -140,6 +140,16 @@ assert.match(theme, /@media \(max-width:980px\)\{[^']*\.mp-np-cover-stage\{margi
 assert.match(theme, /\.mp-np\{[^']*background:#141417;color:#f4f4f5/, 'player surface stays dark')
 assert.match(theme, /\.mp-np-title\{[^']*color:#f7f7f8/, 'player title stays light')
 
+// The floating player card is a dark island on that surface: it paints its own dark
+// glass, so the tokens its controls read must be pinned to the dark theme. Without
+// this the light theme resolves them to dark ink / near-white layers and the card's
+// tiles, pills and inputs turn white-on-white.
+assert.match(theme, /\.mp-card\{[^']*--dsw-alias-label-primary:#f4f4f5/, 'player card ink stays light')
+assert.match(theme, /\.mp-card\{[^']*--dsw-alias-bg-layer-2:rgba\(255,255,255,\.06\)/, 'player card tiles stay dark')
+assert.match(theme, /\.mp-card\{[^']*--dsw-alias-bg-layer-3:rgba\(255,255,255,\.08\)/, 'player card nested surfaces stay dark')
+assert.match(theme, /\.mp-card\{[^']*--dsw-alias-border-l1:rgba\(255,255,255,\.07\)/, 'player card hairlines stay light')
+assert.match(theme, /\.mp-card\{[^']*color:#f4f4f5/, 'player card sets its own light ink')
+
 // Song rows are larger for readability.
 assert.match(theme, /\.mp-row\{[^']*height:84px/, 'song rows are taller')
 assert.match(theme, /\.mp-row-cover\{[^']*width:56px;height:56px/, 'song row covers are larger')

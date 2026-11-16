@@ -155507,6 +155507,13 @@ window.__ModuleLoader__.load({
       '.mp-pill.is-on{color:var(--dsw-alias-label-primary,#f4f4f5);border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 14%,transparent)}',
       '.mp-pill.is-primary{background:var(--dsw-alias-state-business-primary,#4176E6);border-color:transparent;color:#fff}',
       '.mp-kit-modal{width:min(640px,calc(100vw - 48px))}',
+      // The floating player card paints its own dark glass on the always-dark player page
+      // (the same dark-surface exception as `.mp-np`, guarded in test/theme.test.mjs), but
+      // its controls read the host tokens. In the light theme those resolve to dark ink and
+      // near-white layers, so the card ended up with white-on-white tiles, pills and inputs.
+      // Pin the tokens it sits on to their dark-theme values for everything inside the card;
+      // the surface itself stays on the inline dark glass above.
+      '.mp-card{--dsw-alias-label-primary:#f4f4f5;--dsw-alias-label-secondary:#a1a1aa;--dsw-alias-label-tertiary:#8a8a93;--dsw-alias-bg-layer-1:#17171a;--dsw-alias-bg-layer-2:rgba(255,255,255,.06);--dsw-alias-bg-layer-3:rgba(255,255,255,.08);--dsw-alias-border-l1:rgba(255,255,255,.07);--dsw-alias-border-l2:rgba(255,255,255,.14);--dsw-alias-interactive-bg-hover:rgba(255,255,255,.07);--dsw-alias-interactive-bg-active:rgba(255,255,255,.1);color:#f4f4f5}',
       // The card's panes scroll, but a scrollbar appearing for one frame during the tab
       // animation takes width from the content and the layout jumps when it leaves again.
       // Hide it on every scroll container inside the card instead of reserving a gutter.
@@ -159985,7 +159992,9 @@ window.__ModuleLoader__.load({
               h(
                 'div',
                 { className: 'mp-np-setting-head' },
-                h('span', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary,#a1a1aa)' } }, t('page.translationScale')),
+                // The editor is a dark surface too; inherit its light ink (the head sets it)
+                // instead of the host label token, which is dark ink in the light theme.
+                h('span', { style: { fontSize: '12px' } }, t('page.translationScale')),
                 h('span', { className: 'mp-set-val' }, String(prefs.translationScale || 80) + '%'),
               ),
               h('input', {
@@ -160437,8 +160446,10 @@ window.__ModuleLoader__.load({
                       margin: '0 12px 6px',
                       padding: '4px 12px',
                       borderRadius: '999px',
-                      border: '1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.12))',
-                      background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))',
+                      // The player page is a dark surface in both themes (see theme-guidelines
+                      // §1.1): a host layer token would turn this pill white-on-white in light.
+                      border: '1px solid rgba(255,255,255,.14)',
+                      background: 'rgba(255,255,255,.06)',
                       color: 'inherit',
                       font: 'inherit',
                       cursor: 'pointer',
