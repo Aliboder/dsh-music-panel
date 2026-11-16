@@ -178,7 +178,25 @@ scripts/
 | P5 | `test/` 分类、docs、`package.json files` | pack/安装冒烟 |
 | P6 | 全量验证 + 截图 | `structure-done` tag |
 
-## 7. 验证
+## 7. 实施状态（2026-11-17）
+
+已完成：
+
+- P1 Host：`lib/**` → `src/host/{http,providers,services,stores,assets}`；根 `index.js` 只改 import。
+- P2 Client：根片段 + `ui/render/vendor/stores/services/types/utils` → `src/client/**`；
+  `src/types.ts` → `src/shared/types.ts`；`src/client/manifest.json` 成为片段顺序来源。
+- P4 Folia：`src/render/folia/**` → `src/folia/**`；`src/render` 已删除。
+- 构建：`build-client` 读 manifest；build-styles/backgrounds/pendolo/lyrics 路径更新；
+  `check` 改为 `check-syntax` + i18n + client 同步；`package.json files` 改为 `src/host/**`。
+- 验证：108 个测试通过；`check` 通过；`client.js --check` 通过；Host/Client 源码语法通过；
+  `client.js` 归一化后（去掉注释/空行/EOL）内容与基线一致。
+
+剩余：
+
+- P5：`test/` 仍平铺，未按 host/client/integration 分类；`npm pack`/安装冒烟未跑。
+- 未做：额外重构、逻辑清理、TS 化、UI 改动。
+
+## 8. 验证
 
 - `npm test`：108 个测试数量与结果不变；
 - `npm run check`；
@@ -189,10 +207,11 @@ scripts/
 - 浅/深色截图一致；
 - 干净 profile 安装/启动。
 
-## 8. 约束
+## 9. 约束
 
 - 一次只搬一个领域组，一个 commit；
 - 只改 import/路径/manifest，不改逻辑；
 - 遇到循环依赖先记录，不在搬家 commit 里重构；
 - 不引入新依赖、不换构建器、不改 UI；
 - 旧数据不迁移，但插件行为不变。
+
