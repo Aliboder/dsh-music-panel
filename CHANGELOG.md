@@ -26,14 +26,14 @@
 
 ### 文档
 
-- 新增 [发布手册](docs/release.md)：版本号与 `client.js` 的联动、tag 与推送、面向用户的 Release 写法、
+- 新增 [发布手册](A_other/docs/release.md)：版本号与 `client.js` 的联动、tag 与推送、面向用户的 Release 写法、
   npm Trusted Publishing 与 `allow-remote=root` 等已知坑、发布后验证与回滚。也在 README「开发」
   与 AGENTS.md「参考」里链出。
-- [主题规范](docs/theme-guidelines.md) 补「深色岛例外」：播放页与播放器卡片始终按深色取值。
-- [主题与组件开发规范](docs/theme-guidelines.md) 扩成完整组件手册：DSH 浅/深色机制、token 表与
+- [主题规范](A_other/docs/theme-guidelines.md) 补「深色岛例外」：播放页与播放器卡片始终按深色取值。
+- [主题与组件开发规范](A_other/docs/theme-guidelines.md) 扩成完整组件手册：DSH 浅/深色机制、token 表与
   fallback 规则、宿主组件适配层（Tooltip / Switch / Pill / Modal / Menu / Toast 及 fallback）、
   12 类组件的结构与可访问性、浅色/深色对照、原生观感基准和验收清单；AGENTS/README 已链出。
-- [踩坑记录](docs/pitfalls.md) 扩写：新增 19 条（10–28），并把 AGENTS.md「必须知道的坑」整段
+- [踩坑记录](A_other/docs/pitfalls.md) 扩写：新增 19 条（10–28），并把 AGENTS.md「必须知道的坑」整段
   移入本文件；AGENTS 只保留「先查踩坑记录 / 解决后按格式补一条」的指针与规则。
 
 ## 0.36.0 — 2026-11-16
@@ -423,7 +423,7 @@
 - 新增 `providerApi(source)`：把扁平方法分组为 `search / playback / lyrics / library / catalog /
   mutations` 的 namespace 视图，供后续登录页和新平台使用；现有路由继续走扁平方法。
 - 本地音乐与在线平台使用同一 source 形状（本地：`kind: local`、`original` 音质、无登录方式）。
-- 架构说明见 [docs/provider-architecture.md](docs/provider-architecture.md)。
+- 架构说明见 [docs/provider-architecture.md](A_other/docs/provider-architecture.md)。
 
 ### Folia 歌词样式（16 种全量接入）
 
@@ -458,7 +458,7 @@
 - 主题改为 Folia 的 **封面取色生成器**（`builtinTheme` + `themeColorMath`）：每首歌提取一次
   封面色，生成 light/dark 主题，样式与背景共用缓存。
 - 群唱的内置头像/表情使用 Folia 原素材，由宿主 `/music/assets` 路由提供；不再内联进 bundle。
-- 移植规则、边界与验收标准见 [docs/folia-porting.md](docs/folia-porting.md)。
+- 移植规则、边界与验收标准见 [docs/folia-porting.md](A_other/docs/folia-porting.md)。
 
 ### Folia 音频输入与上游对齐
 
@@ -2176,6 +2176,7 @@ ode scripts/build-client.mjs），构建脚本检测重复顶层声明
 ### 说明
 
 - npm 包名：`dsh-music-panel`；DSH patch id：`music`；本地 HTTP 前缀：`/music`
+
 
 
 

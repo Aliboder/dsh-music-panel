@@ -19,8 +19,8 @@ import * as OpenCC from 'opencc-js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
-const JIEBA = join(root, 'folia-major-main', 'dev', 'icuFolia', 'jieba')
-const OUT = join(root, 'lib', 'assets', 'icu-folia')
+const JIEBA = join(root, 'A_other', 'upstream', 'folia-major-main', 'dev', 'icuFolia', 'jieba')
+const OUT = join(root, 'src', 'host', 'assets', 'icu-folia')
 
 const dataPath = (file) => join(JIEBA, readExists(join(JIEBA, file + '.gz')) ? file + '.gz' : file)
 function readExists(path) {
@@ -110,4 +110,5 @@ for (const [name, payload] of [['dict', dict], ['hmm', hmm]]) {
   console.log(name + '.json.gz', (gz.length / 1024 / 1024).toFixed(2) + 'MB (json ' + (json.length / 1024 / 1024).toFixed(2) + 'MB)')
 }
 console.log('icu-folia data written to', OUT.replace(root + '\\', ''))
+
 

@@ -12,7 +12,7 @@ node scripts/build-client.mjs --check     # 只检查 client.js 是否最新
 
 
 node scripts/build-lyrics.mjs             # 改 src/client/utils/lyrics/** 或 src/client/render/lyrics/entry.ts 后
-node scripts/build-icu-folia.mjs          # 重新生成 icu-folia 词典（需要 folia-major-main 检出）
+node scripts/build-icu-folia.mjs          # 重新生成 icu-folia 词典（需要 A_other/upstream/folia-major-main 检出）
 node scripts/build-pendolo.mjs            # 改 Folia 歌词样式 bundle 后
 node scripts/build-backgrounds.mjs
 node scripts/build-styles.mjs
@@ -31,7 +31,7 @@ node scripts/build-vendor-pixi.mjs        # 仅升级 pixi 时
 - Folia 音频用 0–255 频谱；暂停时停止更新 bands。
 - 修改 Folia 源码前，先确认是边界问题还是上游问题，并在 `CHANGELOG.md` 说明。
 - 使用真实状态和真实数据；未实现的功能要明确标注。
-- 改 `client.js`、bundle、Folia 或歌词管线前，先查 `docs/pitfalls.md` 的对应条目；解决新坑后按「现象 → 原因 → 处理 → 防回归」当场补一条，简洁、只增不改，不要把结论只留在对话里。
+- 改 `client.js`、bundle、Folia 或歌词管线前，先查 `A_other/docs/pitfalls.md` 的对应条目；解决新坑后按「现象 → 原因 → 处理 → 防回归」当场补一条，简洁、只增不改，不要把结论只留在对话里。
 - 每做完一步修改就打一个 git 存档点（`git commit`），message 写清这一步做了什么、为什么，回退时能直接找到；没验证过的改动不要攒进存档点。
 
 ⚠️ **先确认**
@@ -60,19 +60,21 @@ src/folia/**                 Folia 源码、bundle、Tailwind
 src/shared/types.ts          Host/Client 共享类型
 scripts/                     构建
 test/                        Node 测试
-docs/                        移植/架构说明
+A_other/docs/               移植/架构说明
 ```
 
 > 构建产物、播放/Folia、歌词、安装与数据相关的具体陷阱，全部记在
-> [踩坑记录](docs/pitfalls.md)；改这些区域前先查对应条目，不要在这里重复维护。
+> [踩坑记录](A_other/docs/pitfalls.md)；改这些区域前先查对应条目，不要在这里重复维护。
 
 ## 参考
 
 - [README](README.md)
-- [主题与组件开发规范](docs/theme-guidelines.md)
-- [平台架构](docs/provider-architecture.md)
-- [Folia 移植说明](docs/folia-porting.md)
-- [踩坑记录](docs/pitfalls.md)
-- [发布流程](docs/release.md)
+- [主题与组件开发规范](A_other/docs/theme-guidelines.md)
+- [平台架构](A_other/docs/provider-architecture.md)
+- [Folia 移植说明](A_other/docs/folia-porting.md)
+- [踩坑记录](A_other/docs/pitfalls.md)
+- [发布流程](A_other/docs/release.md)
 - [CHANGELOG](CHANGELOG.md)
 - [第三方与许可证](THIRD_PARTY_NOTICES.md)
+
+
