@@ -304,19 +304,9 @@ export function createOnlineRoutes(deps) {
         if (!isOnlineSource(provider) || id === '') {
           return fail(res, 400, 'BAD_REQUEST', '缺少 provider / id')
         }
-        // Enforce the account entitlement on the Host as well as in the client:
-        // a direct /online/stream request must not bypass the VIP gate.
-        let vipRequired = omni.requiresVip(provider, id)
-        if (vipRequired === null && onlineCache !== undefined) {
-          const cachedInfo = await onlineCache.readMeta(provider, id, 'info')
-          if (cachedInfo !== null && cachedInfo.vip === true) vipRequired = true
-        }
-        if (vipRequired === true) {
-          const accountVip = await vipState(provider)
-          if (accountVip !== true) {
-            return fail(res, 403, 'VIP_REQUIRED', '该曲目需要对应平台的 VIP 会员')
-          }
-        }
+        // The platform decides whether this account gets a full stream, a preview
+        // clip, or no stream. A VIP label on the row is metadata, not a gate: a
+        // non-VIP account may still play the track or receive a free preview.
         // The client sends the default quality it shows in the panel; older URLs
         // without the parameter keep using the host's saved value.
         const config = await settings.read()
@@ -467,6 +457,7 @@ export function createOnlineRoutes(deps) {
             // header. Without this the browser refuses to seek and restarts.
             'accept-ranges': 'bytes',
           }
+          if (stream.preview === true) headers['x-music-preview'] = '1'
           const length = upstream.headers.get('content-length')
           if (length !== null) headers['content-length'] = length
           const contentRange = upstream.headers.get('content-range')
@@ -491,6 +482,7 @@ export function createOnlineRoutes(deps) {
           // Cache only complete downloads under the size cap. The sink writes
           // straight to a temp file, so memory stays flat.
           const cacheable =
+            stream.preview !== true &&
             (!hasRange || (fullFromStart && fullRangeBody)) &&
             (upstream.status === 200 || upstream.status === 206) &&
             onlineCache !== undefined &&

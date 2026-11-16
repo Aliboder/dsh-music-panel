@@ -6969,6 +6969,7 @@ window.__ModuleLoader__.load({
         'online.qrSecure': '登录信息仅保存在本机',
         'online.qrRefresh': '刷新二维码',
         'online.artistSongs': '热门歌曲',
+        'online.previewOnly': '当前账号只能试听这首歌的片段',
         'online.artistHome': '歌手主页',
         'online.restartService': '重启本地服务',
         'online.restartingService': '正在重启…',
@@ -7567,6 +7568,7 @@ window.__ModuleLoader__.load({
         'online.qrSecure': 'Credentials stay on this device',
         'online.qrRefresh': 'Refresh QR code',
         'online.artistSongs': 'Top songs',
+        'online.previewOnly': 'This account can play only a preview of this song',
         'online.artistHome': 'Artist page',
         'online.restartService': 'Restart local service',
         'online.restartingService': 'Restarting…',
@@ -153477,6 +153479,7 @@ window.__ModuleLoader__.load({
           lastTime: 0,
           counted: false,
           reported: false,
+          preview: false,
         }
       }
 
@@ -153487,6 +153490,7 @@ window.__ModuleLoader__.load({
        */
       function reportProviderPlayback(item) {
         if (item === null || item === undefined || session.reported === true) return
+        if (session.preview === true) return
         if (session.seconds < 30) return
         if (readPrefs().playbackReports !== true) return
         var provider = String(item.onlineProvider || '')
@@ -153524,6 +153528,7 @@ window.__ModuleLoader__.load({
 
       /** Flush the seconds that have not been reported yet (>= 30s only). */
       function flushListening(force) {
+        if (session.preview === true) return
         if (session.path === '' || session.pending <= 0) return
         if (session.seconds < 30) {
           if (force) session.pending = 0
@@ -153604,6 +153609,18 @@ window.__ModuleLoader__.load({
         if (session.path !== item.path) resetSession(item)
 
         var current = audio.currentTime
+        var expected = Number(item.durationSec) || 0
+        if (
+          session.preview !== true &&
+          item.onlineProvider &&
+          expected > 0 &&
+          isFinite(audio.duration) &&
+          audio.duration > 0 &&
+          audio.duration < expected * 0.5
+        ) {
+          session.preview = true
+          showToast(t('online.previewOnly'))
+        }
         if (state.playing && !audio.paused) {
           var delta = current - session.lastTime
           // A seek produces a large or negative jump; only natural playback
@@ -153617,12 +153634,12 @@ window.__ModuleLoader__.load({
 
         var duration = durationOf(item)
         var threshold = playThresholdOf(duration)
-        if (!session.counted && duration > 30 && session.seconds >= threshold) {
+        if (!session.preview && !session.counted && duration > 30 && session.seconds >= threshold) {
           session.counted = true
           recordStatsPlay(item)
         }
 
-        if (session.seconds >= 30 && session.pending >= 10) flushListening(false)
+        if (!session.preview && session.seconds >= 30 && session.pending >= 10) flushListening(false)
 
         var now = Date.now()
         if (now - lastStateSave >= 5000) {
@@ -156296,27 +156313,12 @@ window.__ModuleLoader__.load({
     function playOnlineResults(results, index) {
       var list = Array.isArray(results) ? results : []
       var wanted = list[index]
-      // Never pre-block VIP tracks on the client: whether a track is playable
-      // depends on the signed-in account, and the Host resolves that with cookies.
-      var provider = (wanted && wanted.provider) || (list[0] && list[0].provider) || ''
-      var account = onlineStore.get().providers[provider] || {}
-      // Strict gate: a VIP track is only allowed when the provider summary
-      // explicitly says this account is logged in with VIP. Unknown/stale state
-      // must not be treated as permission.
-      var allowVip = account.loggedIn === true && account.vip === true
+      // Do not pre-block VIP-labelled rows: the platform decides whether this
+      // account gets a full stream, a preview clip, or no stream at all.
       var playable = list.filter(function (item) {
-        return item && item.id && (item.qualityHint !== 'VIP' || allowVip)
+        return item && item.id
       })
-      if (playable.length === 0) {
-        showToast(t('online.vipOnly'))
-        return
-      }
-      var skippedVip = list.filter(function (item) {
-        return item && item.id && item.qualityHint === 'VIP' && !allowVip
-      }).length
-      if (skippedVip > 0 && !(wanted && wanted.qualityHint === 'VIP')) {
-        showToast(t('online.vipSkipped', { n: skippedVip }))
-      }
+      if (playable.length === 0) return
       var at = 0
       if (wanted) {
         for (var i = 0; i < playable.length; i += 1) {
@@ -156324,10 +156326,6 @@ window.__ModuleLoader__.load({
             at = i
             break
           }
-        }
-        if (wanted.qualityHint === 'VIP' && !allowVip) {
-          showToast(t('online.vipOnly'))
-          return
         }
       }
       var tracks = playable.map(onlineTrackOf)

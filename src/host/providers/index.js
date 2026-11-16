@@ -505,12 +505,18 @@ export async function resolveStream(provider, id, cookie = '', session = {}, qua
   }
   if (provider === 'netease') {
     const dl = await NC.getDownloadURL(id, cookie, quality)
-    return { url: dl.url || '', quality: dl.quality || '', code: dl.code || 0, fee: dl.fee || 0 }
+    return {
+      url: dl.url || '',
+      quality: dl.quality || '',
+      code: dl.code || 0,
+      fee: dl.fee || 0,
+      preview: typeof dl.freeTrialInfo === 'object' && dl.freeTrialInfo !== null,
+    }
   }
   if (provider === 'qq') {
     const dl = await QQ.getDownloadURL(id, cookie, quality)
     const prefix = String(dl.filename || '').slice(0, 4)
-    return { url: dl.url || '', quality: QQ_QUALITY[prefix] || '' }
+    return { url: dl.url || '', quality: QQ_QUALITY[prefix] || '', preview: dl.preview === true }
   }
   if (provider === 'kugou' || provider === 'kugouLite') {
     const concept = provider === 'kugouLite'

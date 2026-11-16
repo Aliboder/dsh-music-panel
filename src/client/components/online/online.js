@@ -622,27 +622,12 @@ function removeHistory(entry) {
 function playOnlineResults(results, index) {
   var list = Array.isArray(results) ? results : []
   var wanted = list[index]
-  // Never pre-block VIP tracks on the client: whether a track is playable
-  // depends on the signed-in account, and the Host resolves that with cookies.
-  var provider = (wanted && wanted.provider) || (list[0] && list[0].provider) || ''
-  var account = onlineStore.get().providers[provider] || {}
-  // Strict gate: a VIP track is only allowed when the provider summary
-  // explicitly says this account is logged in with VIP. Unknown/stale state
-  // must not be treated as permission.
-  var allowVip = account.loggedIn === true && account.vip === true
+  // Do not pre-block VIP-labelled rows: the platform decides whether this
+  // account gets a full stream, a preview clip, or no stream at all.
   var playable = list.filter(function (item) {
-    return item && item.id && (item.qualityHint !== 'VIP' || allowVip)
+    return item && item.id
   })
-  if (playable.length === 0) {
-    showToast(t('online.vipOnly'))
-    return
-  }
-  var skippedVip = list.filter(function (item) {
-    return item && item.id && item.qualityHint === 'VIP' && !allowVip
-  }).length
-  if (skippedVip > 0 && !(wanted && wanted.qualityHint === 'VIP')) {
-    showToast(t('online.vipSkipped', { n: skippedVip }))
-  }
+  if (playable.length === 0) return
   var at = 0
   if (wanted) {
     for (var i = 0; i < playable.length; i += 1) {
@@ -650,10 +635,6 @@ function playOnlineResults(results, index) {
         at = i
         break
       }
-    }
-    if (wanted.qualityHint === 'VIP' && !allowVip) {
-      showToast(t('online.vipOnly'))
-      return
     }
   }
   var tracks = playable.map(onlineTrackOf)

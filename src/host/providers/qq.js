@@ -202,10 +202,24 @@ export async function getDownloadURL(songmid, cookie = '', qualityOrVip = 'lossl
     : String(qualityOrVip || 'lossless')
 
   const json = await callUpstream(`/getMusicPlay/${encodeURIComponent(mid)}`, { quality }, { cookie })
-  const entry = json?.data?.playUrl?.[mid] ?? {}
+  let entry = json?.data?.playUrl?.[mid] ?? {}
+  let preview = false
+  if ((typeof entry.url !== 'string' || entry.url === '') && cookie !== '') {
+    try {
+      const previewJson = await callUpstream(`/getMusicPlay/${encodeURIComponent(mid)}`, { quality: 'standard', preview: 1 }, { cookie })
+      const previewEntry = previewJson?.data?.playUrl?.[mid] ?? {}
+      if (typeof previewEntry.url === 'string' && previewEntry.url !== '') {
+        entry = previewEntry
+        preview = previewEntry.preview === true
+      }
+    } catch {
+      // No preview is the same answer as no stream.
+    }
+  }
   return {
     url: typeof entry.url === 'string' ? entry.url : '',
     filename: '',
+    preview,
   }
 }
 

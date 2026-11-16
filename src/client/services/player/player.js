@@ -212,6 +212,7 @@ function createPlayer() {
       lastTime: 0,
       counted: false,
       reported: false,
+      preview: false,
     }
   }
 
@@ -222,6 +223,7 @@ function createPlayer() {
    */
   function reportProviderPlayback(item) {
     if (item === null || item === undefined || session.reported === true) return
+    if (session.preview === true) return
     if (session.seconds < 30) return
     if (readPrefs().playbackReports !== true) return
     var provider = String(item.onlineProvider || '')
@@ -259,6 +261,7 @@ function createPlayer() {
 
   /** Flush the seconds that have not been reported yet (>= 30s only). */
   function flushListening(force) {
+    if (session.preview === true) return
     if (session.path === '' || session.pending <= 0) return
     if (session.seconds < 30) {
       if (force) session.pending = 0
@@ -339,6 +342,18 @@ function createPlayer() {
     if (session.path !== item.path) resetSession(item)
 
     var current = audio.currentTime
+    var expected = Number(item.durationSec) || 0
+    if (
+      session.preview !== true &&
+      item.onlineProvider &&
+      expected > 0 &&
+      isFinite(audio.duration) &&
+      audio.duration > 0 &&
+      audio.duration < expected * 0.5
+    ) {
+      session.preview = true
+      showToast(t('online.previewOnly'))
+    }
     if (state.playing && !audio.paused) {
       var delta = current - session.lastTime
       // A seek produces a large or negative jump; only natural playback
@@ -352,12 +367,12 @@ function createPlayer() {
 
     var duration = durationOf(item)
     var threshold = playThresholdOf(duration)
-    if (!session.counted && duration > 30 && session.seconds >= threshold) {
+    if (!session.preview && !session.counted && duration > 30 && session.seconds >= threshold) {
       session.counted = true
       recordStatsPlay(item)
     }
 
-    if (session.seconds >= 30 && session.pending >= 10) flushListening(false)
+    if (!session.preview && session.seconds >= 30 && session.pending >= 10) flushListening(false)
 
     var now = Date.now()
     if (now - lastStateSave >= 5000) {
