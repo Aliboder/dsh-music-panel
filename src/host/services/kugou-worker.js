@@ -24,7 +24,13 @@ process.env.platform = workerData.platform
 let api = null
 
 function load() {
-  if (api === null) api = request('kugoumusicapi')
+  if (api === null) {
+    // The package's generate_simulate.js calls generateWebGLHash without importing it
+    // (Node falls back to a random fingerprint). Install it before loading the API.
+    const util = request('kugoumusicapi/util/util')
+    globalThis.generateWebGLHash = util.generateWebGLHash
+    api = request('kugoumusicapi')
+  }
   return api
 }
 
