@@ -155,7 +155,7 @@ export async function checkQRLogin(keyStr) {
 
   // The poll answers 800–803 as the scan state; the generic success gate would
   // throw on every *waiting* answer and surface as "platform refused the login".
-  const json = await callUpstream('/login/qr/check', { key }, { skipCodeCheck: true })
+  const json = await callUpstream('/login/qr/check', { key }, { skipCodeCheck: true, includeHeaders: true })
   const status = QR_STATUS[Number(json.code)] ?? 'failed'
   // The package names the reason it recognised (loginHints): device limit, rate
   // limited, wrong scan app, restricted account. Carry it through so the login window
@@ -177,7 +177,17 @@ export async function checkQRLogin(keyStr) {
   }
   if (status !== 'success') return result
 
-  const cookie = typeof json.cookie === 'string' ? json.cookie.trim() : ''
+  const bodyCookie = typeof json.cookie === 'string' ? json.cookie.trim() : ''
+  // The package's Koa layer stores the sealed credential as the `qqmusic_session`
+  // cookie. It is a Set-Cookie header, not part of the JSON body, so keep it
+  // alongside the raw QQ cookie for the package's authenticated routes.
+  const setCookies = Array.isArray(json.__setCookie) ? json.__setCookie : []
+  const sealed = setCookies
+    .map((line) => /(?:^|;\s*)qqmusic_session=([^;]+)/.exec(String(line)))
+    .find((match) => match && match[1] !== '')
+  const cookie = [bodyCookie, sealed ? 'qqmusic_session=' + sealed[1] : '']
+    .filter((part) => part !== '')
+    .join('; ')
   if (cookie === '') {
     result.status = 'failed'
     result.message = '登录成功但未取到 cookie，请重试'

@@ -206,7 +206,7 @@ export async function stopQqService() {
  *
  * @param {string} route
  * @param {Record<string, string|number|boolean|undefined>} [params]
- * @param {{ cookie?: string, timeoutMs?: number, skipCodeCheck?: boolean }} [options]
+ * @param {{ cookie?: string, timeoutMs?: number, skipCodeCheck?: boolean, includeHeaders?: boolean }} [options]
  */
 export async function callUpstream(route, params = {}, options = {}) {
   if (upstreamOverride !== null) return upstreamOverride(route, params, options)
@@ -242,6 +242,12 @@ export async function callUpstream(route, params = {}, options = {}) {
       code: response.status === 401 ? 'auth-required' : 'protocol',
       sourceId: 'qq',
       status: response.status,
+    })
+  }
+  if (options.includeHeaders === true && typeof json === 'object' && json !== null) {
+    Object.defineProperty(json, '__setCookie', {
+      value: typeof response.headers.getSetCookie === 'function' ? response.headers.getSetCookie() : [],
+      enumerable: false,
     })
   }
   return assertOk(json, route, options)
