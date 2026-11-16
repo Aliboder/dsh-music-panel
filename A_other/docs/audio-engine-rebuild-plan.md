@@ -202,7 +202,7 @@ node scripts/build-client.mjs --check
 
 ### P4 替换 `player.js` 内部（高风险）
 
-当前进度：**P4a 图替换已完成**。`attachAudio` / `ensureAnalyser` / 音量 / 静音 / EQ 已走 `foliaGraph`；旧 limiter/preamp 不再创建；旧 crossfade 暂时通过 deck chain 的 `replayGain`/`fade` 别名运行。P4b 的传输/事件替换和旧代码删除还未做。
+当前进度：**P4b 主传输已接上，crossfade/事件/旧代码删除未完成**。`attachAudio` 同时创建 graph 与 transport；`load` 通过 `loadActiveSource` 走 `transport.load`；`play` / `pause` / `seek` / `stop` 走 transport；`swapDecks` 同步 transport 的 active deck。旧 crossfade 仍在使用 deck chain 的 `replayGain`/`fade` 别名，旧媒体事件绑定也还在。
 
 #### P4 替换映射
 
@@ -373,22 +373,25 @@ P6b（单独评估）：
 - [x] `folia-graph.js` + `folia-graph.test.mjs`：双 deck 图适配、master gain、EQ、spare deck。
 - [x] `folia-transport.js` + `folia-transport.test.mjs`：load/play/pause/seek/crossfade/stop、deck gain/meter。
 - [x] `player.js` P4a：`attachAudio` / `ensureAnalyser` / 音量 / 静音 / EQ 切到 `foliaGraph`；旧 limiter/preamp 不再创建。
-- [x] `player-folia-wiring.test.mjs`：源级守卫，防止旧 limiter/preamp 图回潮。
+- [x] `player.js` P4b-1：`loadActiveSource` + `play`/`pause`/`seek`/`stop` 切到 `foliaTransport`；`swapDecks` 同步 active deck。
+- [x] `player-folia-wiring.test.mjs`：源级守卫，防止旧 limiter/preamp 图和旧传输回潮。
 - [x] `check` 包含 `build-audio --check`。
-- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`。
+- [x] 提交：`a6f1e36`、`691da85`、`dfefec4`、`e24e049`、`865d54d`、`be69113`、`5d17122`、`0aa572d`、`2c2304f`、`2b1f644`。
 
 ### 进行中
 
 - [x] P4a：`player.js` 的图/音量/静音/EQ 已切到 `foliaGraph`；旧 limiter/preamp 不再创建。
-- [ ] P4b：`load` / `play` / `pause` / `seek` / 事件 / crossfade 切到 `foliaTransport`。
-- [ ] 删除旧图变量和 dead code，接真实本地/在线播放。
+- [x] P4b-1：`load` / `play` / `pause` / `seek` / `stop` 已切到 `foliaTransport`；`swapDecks` 同步 active deck。
+- [ ] P4b-2：crossfade 切到 `transport.crossfadeTo`；媒体事件切到 transport 回调。
+- [ ] P4b-3：删除旧 `ensureSecondary` / `wireSecondary` / `buildEqNodes` / 旧 crossfade dead code。
+- [ ] 用真实 `<audio>` 接本地/在线各一首。
 
 ### 下一步
 
-1. 把 `load` 的落点从 `audio.src` 改为 `transport.load`，保留 Blob 获取。
-2. `play` / `pause` / `seek` / `next` / `prev` 走 transport。
-3. 用 transport 回调驱动现有 `onTime` / `onPlay` / `onPause` / `onEnded` / `onError` 状态逻辑。
-4. 再接 `transport.crossfadeTo`，删除旧 crossfade。
+1. 把 `beginCrossfadePlayback` / `adoptIncoming` / `finishCrossfade` 的职责收进 `transport.crossfadeTo`，保留现有分析结果作为参数。
+2. 用 transport 的 `onTime` / `onState` / `onEnded` / `onError` 驱动现有状态逻辑，删除 `bind` / `unbind`。
+3. 删旧图变量与 dead code。
+4. 同步 Desktop 安装副本，本地/在线各播一首验证。
 5. 进入 P5 音频 UI。
 
 ---
