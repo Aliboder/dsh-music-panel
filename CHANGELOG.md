@@ -27,6 +27,7 @@
 - 在线页新增「听歌排行」入口（网易云 / QQ / 酷狗）：最近一周；QQ 的“所有时间”按其年榜显示，不冒充历史总排行。
 - 新增可选的「播放上报」（默认关闭）：真实播放满 30 秒后向网易云上报一次；Host 侧限制 5 秒最小间隔与每小时 60 次。
 - 登录窗口新增「同步数据」；失败时可重启网易云/QQ/酷狗的本地服务；Host 增加自检与诊断接口。
+- 歌手/专辑取数切到 Folia 同款上游路由：QQ 用 `/getSingerHotsong`、`/getSingerAlbum`、`/getAlbumInfo`；酷狗用 `artist_audios`、`artist_albums`、`artist_detail`、`album_detail`、`album_songs`；网易云保持 `/artist/songs`、`/album`；汽水补 `artist_detail`。QQ/酷狗/网易云的歌手页现在能拿歌手信息和专辑列表。
 
 ### 发布撤回
 

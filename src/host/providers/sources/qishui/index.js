@@ -103,6 +103,20 @@ export function toCollection(raw, type = 'playlist') {
   }
 }
 
+function toArtist(raw) {
+  const item = record(raw)
+  const base = record(item.base_info)
+  const id = text(base.id || item.id)
+  if (id === '') return null
+  return {
+    id,
+    name: text(base.title || base.name || item.name),
+    cover: image(base.url_avatar || item.display_info?.url_cover),
+    description: text(base.desc || base.intro),
+    provider: SOURCE_ID,
+  }
+}
+
 function lrcTime(seconds) {
   const value = Math.max(0, Number(seconds) || 0)
   const minutes = Math.floor(value / 60)
@@ -213,6 +227,11 @@ export function createQishuiSource(options) {
       const data = await request('artist_songs', { id: String(artistId || id), limit, offset })
       const items = Array.isArray(data?.items) ? data.items : []
       return items.map(toTrack).filter(Boolean)
+    },
+
+    async artistAlbums(id) {
+      const data = await request('artist_detail', { id: String(id) })
+      return { artist: toArtist(data), albums: [] }
     },
 
     async stream(id) {

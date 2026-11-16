@@ -472,6 +472,7 @@ P3d 能力审计：
 - **能力面**：听歌排行（网易云 / QQ / 酷狗，作为账号歌单条目）；播放上报（网易云，默认关闭，Host 侧 5 秒/每小时 60 次限流）。
 - **登录契约**：本地服务状态/重启、Host 自检、诊断接口、登录窗口失败时的重启按钮、账号「同步数据」。
 - **账户生命周期**：快照读取、失败保留、主动同步、退出清理、启动/登录/切换触发的后台刷新。
+- **歌手/专辑渠道**：QQ 改到 `/getSingerHotsong`、`/getSingerAlbum`、`/getAlbumInfo`；酷狗改到 `artist_audios`、`artist_albums`、`artist_detail`、`album_detail`、`album_songs`；网易云保持 `/artist/songs`、`/album`；汽水补 `artist_detail`。QQ/酷狗/网易云现在能返回歌手信息和专辑列表。
 
 未做：
 

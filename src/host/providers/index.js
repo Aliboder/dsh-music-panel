@@ -178,6 +178,70 @@ function artistMatches(track, artist) {
   return wanted.split(/\s*[\/,&、]\s*/).some((part) => part !== '' && actualParts.includes(part))
 }
 
+function textOf(value) {
+  return value === null || value === undefined ? '' : String(value)
+}
+
+function firstValue(raw, keys) {
+  for (const key of keys) {
+    if (raw?.[key] !== undefined && raw[key] !== null && raw[key] !== '') return raw[key]
+  }
+  return ''
+}
+
+/** One album row, shaped for the online album cards (provider-agnostic). */
+function albumCard(provider, raw) {
+  const item = raw !== null && typeof raw === 'object' ? raw : {}
+  const nested = item.album && typeof item.album === 'object' ? item.album : {}
+  const artist = Array.isArray(item.artists) && item.artists[0]
+    ? textOf(item.artists[0].name)
+    : textOf(firstValue(item, ['singername', 'author_name', 'artistName']) || item.artist?.name || item.artist || firstValue(nested, ['artist']))
+  return {
+    id: textOf(firstValue(item, ['albummid', 'album_id', 'albumId', 'id']) || firstValue(nested, ['id'])),
+    name: textOf(firstValue(item, ['albumname', 'album_name', 'name', 'title']) || firstValue(nested, ['name'])),
+    cover: textOf(firstValue(item, ['pic', 'cover', 'sizable_cover', 'picUrl']) || firstValue(nested, ['coverUrl', 'cover'])),
+    artist,
+    trackCount: Number(firstValue(item, ['song_count', 'songCount', 'size', 'trackCount'])) || 0,
+    provider,
+  }
+}
+
+/** One artist row for the artist page header. */
+function artistCard(provider, raw) {
+  const item = raw !== null && typeof raw === 'object' ? raw : {}
+  return {
+    id: textOf(firstValue(item, ['id', 'singermid', 'artist_id', 'author_id'])),
+    name: textOf(firstValue(item, ['name', 'artist_name', 'author_name', 'singername'])),
+    cover: textOf(firstValue(item, ['cover', 'avatar', 'imgurl', 'sizable_avatar', 'pic', 'picUrl'])),
+    description: textOf(firstValue(item, ['briefDesc', 'description', 'intro', 'singer_brief'])),
+    provider,
+  }
+}
+
+/** The first song/album array inside a KuGou package envelope. */
+function kugouList(body) {
+  const queue = [body?.data ?? body?.body?.data ?? body]
+  const keys = ['lists', 'list', 'info', 'songs', 'song_list', 'songlist', 'songList', 'audios', 'albums', 'items', 'records', 'data', 'result']
+  const seen = new Set()
+  while (queue.length > 0) {
+    const current = queue.shift()
+    if (Array.isArray(current)) return current
+    if (current === null || typeof current !== 'object' || seen.has(current)) continue
+    seen.add(current)
+    for (const key of keys) {
+      if (current[key] !== undefined && current[key] !== null) queue.push(current[key])
+    }
+  }
+  return []
+}
+
+function kugouObject(body) {
+  const data = body?.data ?? body?.body?.data ?? body?.body ?? body
+  if (Array.isArray(data)) return data[0] ?? null
+  if (data?.data && typeof data.data === 'object' && !Array.isArray(data.data)) return data.data
+  return data !== null && typeof data === 'object' ? data : null
+}
+
 /**
  * Songs for one artist. QQ has a dedicated singer endpoint; the other providers
  * use their song search and filter to the clicked artist.
@@ -186,6 +250,22 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
   const name = String(artist ?? '').trim()
   if (name === '') return []
   if (provider === 'qq') {
+    const mid = String(artistId || '').trim()
+    if (/^[A-Za-z0-9_-]+$/.test(mid)) {
+      const limit = Math.max(1, Math.min(100, Number(page.limit) || 80))
+      const pageNo = Math.floor(Math.max(0, Number(page.offset) || 0) / limit) + 1
+      const answer = await qqUpstream('/getSingerHotsong', { singermid: mid, limit, page: pageNo }, { cookie })
+      const rows = answer?.response?.singer?.data?.songlist
+      if (Array.isArray(rows)) {
+        return rows
+          .map((row) => QQ.toLegacyResult(row))
+          .filter((song) => song !== null)
+          .map((song) => {
+            rawSongs.set('qq:' + song.songmid, song)
+            return shape('qq', song)
+          })
+      }
+    }
     const { results } = await QQ.searchArtistSongs(name, cookie)
     return (results || []).map((song) => {
       rawSongs.set('qq:' + song.songmid, song)
@@ -245,6 +325,26 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
     songs.forEach((song) => rawSongs.set('navidrome:' + song.id, song))
     return songs.filter((song) => artistMatches(song, name))
   }
+  if (provider === 'kugou' || provider === 'kugouLite') {
+    const artistKey = String(artistId || '').trim()
+    if (/^\d+$/.test(artistKey)) {
+      const limit = Math.max(1, Math.min(100, Number(page.limit) || 60))
+      const pageNo = Math.floor(Math.max(0, Number(page.offset) || 0) / limit) + 1
+      const platform = provider === 'kugouLite' ? 'lite' : 'standard'
+      const answer = await callKugou(platform, 'artist_audios', {
+        id: artistKey,
+        page: pageNo,
+        pagesize: limit,
+        sort: 'hot',
+      })
+      const rows = kugouList(answer.body)
+      if (rows.length > 0) {
+        return rows
+          .map((item) => ({ ...KG.normalizeSong(item), source: provider }))
+          .filter((song) => song.id !== '')
+      }
+    }
+  }
   const results = await search(provider, name, cookie, session)
   return results.filter((song) => artistMatches(song, name))
 }
@@ -267,6 +367,64 @@ export async function albumSongs(provider, id, cookie = '', session = {}, hint =
       coverArtId: (result.album && result.album.coverArtId) || '',
       artist: (result.album && result.album.artist) || hint.artist || '',
       songs: result.songs,
+    }
+  }
+  if (provider === 'qq') {
+    const mid = String(id || '').trim()
+    if (mid !== '') {
+      try {
+        const answer = await qqUpstream('/getAlbumInfo', { albummid: mid }, { cookie })
+        const album = answer?.response?.data
+        if (album && Array.isArray(album.list)) {
+          const songs = album.list
+            .map((row) => QQ.toLegacyResult(row))
+            .filter((song) => song !== null)
+            .map((song) => {
+              const shaped = shape('qq', song)
+              if (!shaped.album) shaped.album = textOf(album.name || album.albumname || hint.album)
+              rawSongs.set('qq:' + shaped.id, song)
+              return shaped
+            })
+            .filter((song) => song.id !== '')
+          if (songs.length > 0) {
+            return {
+              id: mid,
+              name: textOf(album.name || album.albumname || hint.album),
+              cover: textOf(album.pic || album.cover || songs[0].coverUrl),
+              artist: textOf(album.singername || album.singer_name || hint.artist),
+              songs,
+            }
+          }
+        }
+      } catch (error) {
+        if (!hint.album) throw error
+      }
+    }
+  }
+  if (provider === 'kugou' || provider === 'kugouLite') {
+    const platform = provider === 'kugouLite' ? 'lite' : 'standard'
+    try {
+      const detail = await callKugou(platform, 'album_detail', { id: String(id) })
+      const rawAlbum = kugouObject(detail.body) ?? {}
+      const answer = await callKugou(platform, 'album_songs', {
+        id: String(id),
+        page: 1,
+        pagesize: 100,
+      })
+      const songs = kugouList(answer.body)
+        .map((item) => ({ ...KG.normalizeSong(item), source: provider }))
+        .filter((song) => song.id !== '')
+      if (songs.length > 0) {
+        return {
+          id: String(id),
+          name: textOf(firstValue(rawAlbum, ['album_name', 'albumname', 'name']) || hint.album || songs[0].album),
+          cover: textOf(firstValue(rawAlbum, ['sizable_cover', 'cover', 'pic']) || songs[0].cover),
+          artist: textOf(firstValue(rawAlbum, ['author_name', 'singername']) || hint.artist || songs[0].artist),
+          songs,
+        }
+      }
+    } catch (error) {
+      if (!hint.album) throw error
     }
   }
   let payload = null
@@ -782,8 +940,62 @@ export async function albums(provider, cookie = '', session = {}, size = 200) {
 
 /** One artist's albums, for expanding an artist card. */
 export async function artistAlbums(provider, id, cookie = '', session = {}) {
-  if (provider !== 'navidrome') return { artist: null, albums: [] }
-  return ND.artistAlbums(navidromeConfig(session), id)
+  if (provider === 'navidrome') {
+    return ND.artistAlbums(navidromeConfig(session), id)
+  }
+  if (provider === 'qq') {
+    const mid = String(id || '').trim()
+    if (mid === '') return { artist: null, albums: [] }
+    const detailAnswer = await qqUpstream('/getSingerHotsong', { singermid: mid, limit: 1, page: 1 }, { cookie })
+    const data = detailAnswer?.response?.singer?.data
+    const info = data?.singer_info ?? {}
+    const answer = await qqUpstream('/getSingerAlbum', { singermid: mid, limit: 50, page: 0 }, { cookie })
+    const rows = answer?.response?.singer?.data?.albumList
+    const albums = Array.isArray(rows)
+      ? rows.map((row) => albumCard('qq', row)).filter((album) => album.id !== '')
+      : []
+    return {
+      artist: {
+        id: mid,
+        name: textOf(info.singer_name || info.name || ''),
+        cover: textOf(info.singer_pic || info.pic || ''),
+        description: textOf(data?.singer_brief || info.briefDesc || ''),
+        provider: 'qq',
+      },
+      albums,
+    }
+  }
+  if (provider === 'kugou' || provider === 'kugouLite') {
+    const platform = provider === 'kugouLite' ? 'lite' : 'standard'
+    const detail = await callKugou(platform, 'artist_detail', { id: String(id) })
+    const rawArtist = kugouObject(detail.body) ?? {}
+    const answer = await callKugou(platform, 'artist_albums', {
+      id: String(id),
+      page: 1,
+      pagesize: 50,
+    })
+    const albums = kugouList(answer.body)
+      .map((row) => albumCard(provider, row))
+      .filter((album) => album.id !== '')
+    return {
+      artist: artistCard(provider, rawArtist),
+      albums,
+    }
+  }
+  if (provider === 'netease') {
+    const detailAnswer = await ncUpstream('/artist/detail', { id: String(id) }, { cookie })
+    const rawArtist = detailAnswer?.data?.artist ?? detailAnswer?.artist ?? {}
+    const answer = await ncUpstream('/artist/album', { id: String(id), limit: 50, offset: 0 }, { cookie })
+    const rows = answer?.hotAlbums
+    const albums = Array.isArray(rows)
+      ? rows.map((row) => albumCard('netease', row)).filter((album) => album.id !== '')
+      : []
+    return {
+      artist: artistCard('netease', rawArtist),
+      albums,
+    }
+  }
+  return { artist: null, albums: [] }
 }
 
 /**
