@@ -71,6 +71,11 @@ function PlayerPage(props) {
     h('div', { className: 'mp-page-wash', 'aria-hidden': 'true' }),
   )
 
+  var lyricStyleId = mpResolveLyricStyle(prefs.lyricStyle, {
+    seed: trackPath,
+    time: Number(time.currentTime) || 0,
+    duration: duration,
+  })
   var stage =
     lyrics.length === 0
       ? null
@@ -90,7 +95,7 @@ function PlayerPage(props) {
     },
     manualIndex: -1,
     formatClock: fmtClock,
-    stylePref: prefs.lyricStyle,
+    stylePref: lyricStyleId,
     title: track ? trackTitleOf(track) : '',
     artist: track ? trackArtistOf(track) : '',
     album: track ? track.album || '' : '',

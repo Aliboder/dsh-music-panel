@@ -2503,6 +2503,15 @@ function NowPlaying(props) {
     latentDisplayMode: prefs.latentDisplayMode,
     latentColorSource: prefs.latentColorSource,
   })
+  // 外观 · 随机: the page paints one concrete style per slice of the song. The same
+  // resolved id drives both the stage and the `mp-style-*` class, so CSS variants and
+  // the renderer never disagree. The clock is the raw playback position, not the
+  // lyric offset, so a lyric nudge does not move the style boundaries.
+  var lyricStyleId = mpResolveLyricStyle(prefs.lyricStyle, {
+    seed: trackPath,
+    time: Number(time.currentTime) || 0,
+    duration: duration,
+  })
   var lyricStage = h(LyricStage, {
     lines: lyrics,
     offsetMs: offsetMs,
@@ -2518,7 +2527,7 @@ function NowPlaying(props) {
     onSeekLine: seekLine,
     manualIndex: lyricScroll.manualIndex,
     formatClock: fmtClock,
-    stylePref: prefs.lyricStyle,
+    stylePref: lyricStyleId,
     seed: trackPath,
     accent: mpAccentCss(flowAccent),
     coverUrl: cover,
@@ -2538,11 +2547,12 @@ function NowPlaying(props) {
         prefs.showTranslation === true && 'is-trans',
         prefs.coverStyle === 'vinyl' && 'is-vinyl',
         'mp-align-' + (prefs.lyricAlign || 'center'),
-        // 外观: the lyric style and backdrop mode come from the registry.
-        'mp-style-' + mpStyleIdOf(prefs.lyricStyle),
+        // 外观: the lyric style and backdrop mode come from the registry. A random
+        // preference has already been resolved to a concrete id for this slice.
+        'mp-style-' + lyricStyleId,
         // A visualizer style is a full stage (Folia's VisualizerShell): the cover
         // column steps aside and the lyrics take the whole page.
-        mpStyleIdOf(prefs.lyricStyle) !== 'classic' && 'is-visualizer',
+        lyricStyleId !== 'classic' && 'is-visualizer',
         prefs.npTransparentBg === true && 'is-transparent-bg',
         chromeVisible !== true && 'is-chrome-hidden',
         'mp-bgmode-' + mpLookId(MP_BG_MODES, prefs.bgMode),

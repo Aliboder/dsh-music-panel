@@ -8330,6 +8330,7 @@ window.__ModuleLoader__.load({
         'sheet.foliaStyleNebbia': '雾笺',
         'sheet.foliaStyleDiorama': '镜台',
         'sheet.foliaStyleMachi': '町景',
+        'sheet.foliaStyleRandom': '随机',
         'sheet.sourceCover': '封面取色',
         'sheet.styleAmbient': '流光',
         'sheet.off': '关闭',
@@ -8721,6 +8722,7 @@ window.__ModuleLoader__.load({
         'sheet.foliaStyleNebbia': 'Nebbia',
         'sheet.foliaStyleDiorama': 'Diorama',
         'sheet.foliaStyleMachi': 'Machi',
+        'sheet.foliaStyleRandom': 'Random',
         'sheet.sourceCover': 'Cover tint',
         'sheet.styleAmbient': 'Flow',
         'sheet.off': 'Off',
@@ -21257,6 +21259,11 @@ window.__ModuleLoader__.load({
 
     var MP_STYLE_REGISTRY = []
 
+    /** The picker's pseudo style: it has no renderer, the page resolves it per song. */
+    var MP_RANDOM_STYLE_ID = 'random'
+    /** Songs without a usable duration still rotate; this is the slot length. */
+    var MP_RANDOM_STYLE_FALLBACK_SECONDS = 8
+
     function mpRegisterStyle(entry) {
       if (typeof window !== 'undefined') window.__mpStyleIds = (window.__mpStyleIds || []).concat([entry && entry.id])
       if (!entry || typeof entry.id !== 'string') return
@@ -21288,6 +21295,88 @@ window.__ModuleLoader__.load({
       })
     }
 
+    /** The picker shows every real style, then the random entry that drives them. */
+    function mpStylePickerCatalog() {
+      return mpStyleCatalog().concat([
+        { id: MP_RANDOM_STYLE_ID, labelKey: 'sheet.foliaStyleRandom', glyph: 'shuffle', order: 999 },
+      ])
+    }
+
+    /** What random may choose from: every real style except 静止 (the plain one). */
+    function mpStyleRandomPool() {
+      return mpStyleCatalog()
+        .map(function (entry) {
+          return entry.id
+        })
+        .filter(function (id) {
+          return id !== 'still' && id !== MP_RANDOM_STYLE_ID
+        })
+    }
+
+    /** FNV-1a: a tiny stable string hash for the per-song shuffle. */
+    function mpRandomStyleHash(text) {
+      var value = 2166136261
+      var source = String(text || '')
+      for (var index = 0; index < source.length; index += 1) {
+        value ^= source.charCodeAt(index)
+        value = Math.imul(value, 16777619)
+      }
+      return value >>> 0
+    }
+
+    /**
+     * Fisher-Yates with a mulberry32 stream. The seed is the song, so a replay (or a
+     * seek) sees the same order; a different song gets a different one.
+     */
+    function mpRandomStyleOrder(ids, seed) {
+      var order = ids.slice()
+      var state = mpRandomStyleHash(seed) || 1
+      function next() {
+        state = (state + 0x6d2b79f5) >>> 0
+        var value = state
+        value = Math.imul(value ^ (value >>> 15), value | 1)
+        value ^= value + Math.imul(value ^ (value >>> 7), value | 61)
+        return ((value ^ (value >>> 14)) >>> 0) / 4294967296
+      }
+      for (var index = order.length - 1; index > 0; index -= 1) {
+        var swap = Math.floor(next() * (index + 1))
+        var held = order[index]
+        order[index] = order[swap]
+        order[swap] = held
+      }
+      return order
+    }
+
+    /**
+     * The style the page actually paints for a stored preference.
+     *
+     * A concrete preference passes through. `random` shuffles the non-静止 styles once
+     * per song, then gives each one the same slice of the song (`duration / count`),
+     * so a 100 s song with 13 choices changes every ~7.7 s. Time is the playback clock,
+     * which makes pause, seek and replay behave: the style is a function of position,
+     * not of when the page happened to render.
+     */
+    function mpResolveLyricStyle(pref, options) {
+      if (pref !== MP_RANDOM_STYLE_ID) return mpStyleFromPrefs(pref).id
+      var opts = options !== null && typeof options === 'object' ? options : {}
+      var pool = Array.isArray(opts.pool) ? opts.pool.slice() : mpStyleRandomPool()
+      pool = pool.filter(function (id) {
+        return typeof id === 'string' && id !== '' && id !== 'still' && id !== MP_RANDOM_STYLE_ID
+      })
+      if (pool.length === 0) return mpStyleFromPrefs('').id
+      if (pool.length === 1) return pool[0]
+      var order = mpRandomStyleOrder(pool, String(opts.seed || '') + '\u0000' + pool.join('\u0001'))
+      var duration = Number(opts.duration)
+      var time = Number(opts.time)
+      if (!isFinite(time) || time < 0) time = 0
+      var interval = isFinite(duration) && duration > 0 ? duration / order.length : MP_RANDOM_STYLE_FALLBACK_SECONDS
+      var index = Math.floor(time / interval)
+      if (!isFinite(index) || index < 0) index = 0
+      // A known duration ends the song at its last slice; a stream keeps cycling.
+      index = isFinite(duration) && duration > 0 ? Math.min(index, order.length - 1) : index % order.length
+      return order[index]
+    }
+
     /**
      * Old preferences stored a CSS variant (standard/glow/outline/karaoke/mirror).
      * They now select the `classic` renderer with that variant, so nobody's setting
@@ -21295,6 +21384,7 @@ window.__ModuleLoader__.load({
      */
     function mpStyleFromPrefs(pref) {
       var value = typeof pref === 'string' ? pref : ''
+      if (value === MP_RANDOM_STYLE_ID) return { id: MP_RANDOM_STYLE_ID, variant: '' }
       if (mpStyleOf(value) !== null && mpStyleOf(value).id === value) return { id: value, variant: '' }
       return { id: 'monet', variant: '' }
     }
@@ -21305,7 +21395,9 @@ window.__ModuleLoader__.load({
     }
     /** The style's display name for a stored preference (legacy variants read 经典). */
     function mpStyleLabelOf(pref) {
-      var entry = mpStyleOf(mpStyleFromPrefs(pref).id)
+      var id = mpStyleFromPrefs(pref).id
+      if (id === MP_RANDOM_STYLE_ID) return t('sheet.foliaStyleRandom')
+      var entry = mpStyleOf(id)
       return entry === null ? '' : t(entry.labelKey)
     }
 
@@ -21366,6 +21458,17 @@ window.__ModuleLoader__.load({
 
     function LyricStage(props) {
       var picked = mpStyleFromPrefs(props.stylePref)
+      // Pages resolve `random` before they render, so the class on the stage matches
+      // what is painted. Resolve here too for any caller that passes the raw preference.
+      if (picked.id === MP_RANDOM_STYLE_ID) {
+        picked = mpStyleFromPrefs(
+          mpResolveLyricStyle(MP_RANDOM_STYLE_ID, {
+            seed: props.seed,
+            time: props.now,
+            duration: props.duration,
+          }),
+        )
+      }
       var entry = mpStyleOf(picked.id)
       if (entry === null) return null
       // Canvas styles draw themselves; everything else returns DOM.
@@ -157225,6 +157328,11 @@ window.__ModuleLoader__.load({
         h('div', { className: 'mp-page-wash', 'aria-hidden': 'true' }),
       )
 
+      var lyricStyleId = mpResolveLyricStyle(prefs.lyricStyle, {
+        seed: trackPath,
+        time: Number(time.currentTime) || 0,
+        duration: duration,
+      })
       var stage =
         lyrics.length === 0
           ? null
@@ -157244,7 +157352,7 @@ window.__ModuleLoader__.load({
         },
         manualIndex: -1,
         formatClock: fmtClock,
-        stylePref: prefs.lyricStyle,
+        stylePref: lyricStyleId,
         title: track ? trackTitleOf(track) : '',
         artist: track ? trackArtistOf(track) : '',
         album: track ? track.album || '' : '',
@@ -159853,6 +159961,15 @@ window.__ModuleLoader__.load({
         latentDisplayMode: prefs.latentDisplayMode,
         latentColorSource: prefs.latentColorSource,
       })
+      // 外观 · 随机: the page paints one concrete style per slice of the song. The same
+      // resolved id drives both the stage and the `mp-style-*` class, so CSS variants and
+      // the renderer never disagree. The clock is the raw playback position, not the
+      // lyric offset, so a lyric nudge does not move the style boundaries.
+      var lyricStyleId = mpResolveLyricStyle(prefs.lyricStyle, {
+        seed: trackPath,
+        time: Number(time.currentTime) || 0,
+        duration: duration,
+      })
       var lyricStage = h(LyricStage, {
         lines: lyrics,
         offsetMs: offsetMs,
@@ -159868,7 +159985,7 @@ window.__ModuleLoader__.load({
         onSeekLine: seekLine,
         manualIndex: lyricScroll.manualIndex,
         formatClock: fmtClock,
-        stylePref: prefs.lyricStyle,
+        stylePref: lyricStyleId,
         seed: trackPath,
         accent: mpAccentCss(flowAccent),
         coverUrl: cover,
@@ -159888,11 +160005,12 @@ window.__ModuleLoader__.load({
             prefs.showTranslation === true && 'is-trans',
             prefs.coverStyle === 'vinyl' && 'is-vinyl',
             'mp-align-' + (prefs.lyricAlign || 'center'),
-            // 外观: the lyric style and backdrop mode come from the registry.
-            'mp-style-' + mpStyleIdOf(prefs.lyricStyle),
+            // 外观: the lyric style and backdrop mode come from the registry. A random
+            // preference has already been resolved to a concrete id for this slice.
+            'mp-style-' + lyricStyleId,
             // A visualizer style is a full stage (Folia's VisualizerShell): the cover
             // column steps aside and the lyrics take the whole page.
-            mpStyleIdOf(prefs.lyricStyle) !== 'classic' && 'is-visualizer',
+            lyricStyleId !== 'classic' && 'is-visualizer',
             prefs.npTransparentBg === true && 'is-transparent-bg',
             chromeVisible !== true && 'is-chrome-hidden',
             'mp-bgmode-' + mpLookId(MP_BG_MODES, prefs.bgMode),
@@ -167500,7 +167618,7 @@ window.__ModuleLoader__.load({
         return h(
           'div',
           { style: mpGridStyle(3) },
-          mpStyleCatalog().map(function (entry) {
+          mpStylePickerCatalog().map(function (entry) {
             var selected = entry.id === value
             return h(
               'button',
@@ -170953,6 +171071,14 @@ window.__ModuleLoader__.load({
           normalizeEqPrefs: normalizeEqPrefs,
           eqCurveSamples: eqCurveSamples,
           EQ_PRESETS: EQ_PRESETS,
+          // Random lyric style: the per-song shuffle and slot maths are pure, so a
+          // test can assert the order and boundaries without mounting a renderer.
+          mpRandomStyleOrder: typeof mpRandomStyleOrder === 'function' ? mpRandomStyleOrder : null,
+          mpResolveLyricStyle: typeof mpResolveLyricStyle === 'function' ? mpResolveLyricStyle : null,
+          mpStylePickerCatalog: typeof mpStylePickerCatalog === 'function' ? mpStylePickerCatalog : null,
+          mpStyleIdOf: typeof mpStyleIdOf === 'function' ? mpStyleIdOf : null,
+          mpStyleLabelOf: typeof mpStyleLabelOf === 'function' ? mpStyleLabelOf : null,
+          MP_RANDOM_STYLE_ID: typeof MP_RANDOM_STYLE_ID === 'string' ? MP_RANDOM_STYLE_ID : null,
           // The Folia port's boundary: tests assert the Line/Theme mapping it hands the
           // unmodified Folia renderer, and that the compiled bundle really loaded.
           foliaPendoloLines: typeof foliaPendoloLines === 'function' ? foliaPendoloLines : null,

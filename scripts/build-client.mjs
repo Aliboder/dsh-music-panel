@@ -227,6 +227,14 @@ ${body}
           normalizeEqPrefs: normalizeEqPrefs,
           eqCurveSamples: eqCurveSamples,
           EQ_PRESETS: EQ_PRESETS,
+          // Random lyric style: the per-song shuffle and slot maths are pure, so a
+          // test can assert the order and boundaries without mounting a renderer.
+          mpRandomStyleOrder: typeof mpRandomStyleOrder === 'function' ? mpRandomStyleOrder : null,
+          mpResolveLyricStyle: typeof mpResolveLyricStyle === 'function' ? mpResolveLyricStyle : null,
+          mpStylePickerCatalog: typeof mpStylePickerCatalog === 'function' ? mpStylePickerCatalog : null,
+          mpStyleIdOf: typeof mpStyleIdOf === 'function' ? mpStyleIdOf : null,
+          mpStyleLabelOf: typeof mpStyleLabelOf === 'function' ? mpStyleLabelOf : null,
+          MP_RANDOM_STYLE_ID: typeof MP_RANDOM_STYLE_ID === 'string' ? MP_RANDOM_STYLE_ID : null,
           // The Folia port's boundary: tests assert the Line/Theme mapping it hands the
           // unmodified Folia renderer, and that the compiled bundle really loaded.
           foliaPendoloLines: typeof foliaPendoloLines === 'function' ? foliaPendoloLines : null,

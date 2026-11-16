@@ -39,7 +39,7 @@ function LookChoiceGrid(props) {
     return h(
       'div',
       { style: mpGridStyle(3) },
-      mpStyleCatalog().map(function (entry) {
+      mpStylePickerCatalog().map(function (entry) {
         var selected = entry.id === value
         return h(
           'button',

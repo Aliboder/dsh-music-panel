@@ -6,6 +6,17 @@
 
 function LyricStage(props) {
   var picked = mpStyleFromPrefs(props.stylePref)
+  // Pages resolve `random` before they render, so the class on the stage matches
+  // what is painted. Resolve here too for any caller that passes the raw preference.
+  if (picked.id === MP_RANDOM_STYLE_ID) {
+    picked = mpStyleFromPrefs(
+      mpResolveLyricStyle(MP_RANDOM_STYLE_ID, {
+        seed: props.seed,
+        time: props.now,
+        duration: props.duration,
+      }),
+    )
+  }
   var entry = mpStyleOf(picked.id)
   if (entry === null) return null
   // Canvas styles draw themselves; everything else returns DOM.
