@@ -306,6 +306,15 @@
 
 ---
 
+## 34. 在线缓存按「播完」触发时，交叉淡化的那首永远不缓存（播放 / 缓存）
+
+- **现象**：打开「缓存歌曲」后，正常播完的歌能进缓存，但交叉淡化切走的歌始终不缓存。
+- **原因**：淡化时换牌后淡出方由 `finishCrossfade` 暂停，`<audio>` 不会派发 `ended`；而缓存写入只挂在 `onEnded` 上。单曲循环则是我们手动回到 0（没有原生 `loop`），每遍都会触发 `ended`，不需要单独处理。
+- **处理**：`beginCrossfadePlayback` 记下淡出曲目（item/duration），`finishCrossfade` 在暂停鬼影前按 `duration - currentTime <= 1.5s` 判断它已到结尾并发 `POST /online/played`；淡化的 `fade` 被夹到 `remaining - 0.05`，所以正常淡化一定满足。
+- **防回归**：`media-cache.test.mjs` 覆盖写入/修剪/分类清理；手动验证开缓存播一首、交叉淡化切一首，两种都应出现条目；`online/played` 只在开关打开时发送。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

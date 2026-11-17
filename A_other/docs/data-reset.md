@@ -68,7 +68,7 @@
 | `bodian-device.json` | `src/host/providers/sources/bodian/device.js` | Bodian 设备身份 |
 | `qishui-device.json` | `src/host/providers/sources/qishui/device.js` | 汽水设备身份 |
 | `qq-auth-sessions.json` | `src/host/services/qq-api.js` | QQ 包的 `qqmusic_session` 服务端登录仓库 |
-| `cache/**` | `src/host/services/media/online-cache.js` | 在线音频 / 封面 / 元数据 |
+| `cache/**` | `src/host/stores/media-cache.js` | 在线缓存：`audio/<provider>/<id>.<ext>` + meta、`cover/<provider>/<id>.<ext>` + meta、`version.json`（旧 `cache/online` 在升级时被一次性清掉） |
 | `trash/**` | `src/host/services/media/trash.js` | 回收站 |
 | `*.bak` / `*.tmp` | `src/host/stores/json-store.js` | 原子写备份/临时文件（随根目录清理） |
 
@@ -88,7 +88,8 @@ favorites.invalidate()
 playlists.invalidate()
 await providerStore.clear()     // 登录态（含 sessions.json）
 await accountReads.clearAll()   // 账号快照（accounts.json）与进行中的读取
-await onlineCache.clear()       // 在线缓存内存/文件
+await onlineCache.clear()       // 旧在线缓存（歌词体等，过渡期仍在）
+await mediaCache.clear('all')   // 在线音频与封面（Folia 语义的新缓存）
 settings.invalidate()
 await settings.reset()          // 写入 roots: []，忽略 seed roots
 library.clear()                 // 再清一次，防止 reset 期间产生新缓存
