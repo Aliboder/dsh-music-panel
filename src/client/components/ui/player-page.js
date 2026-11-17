@@ -33,9 +33,11 @@ function PlayerPage(props) {
     function () {
       if (trackPath === '') return undefined
       var cancelled = false
-      var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
+      // Folia's local priority decides which lyric this file shows; the record (choice,
+      // match, instrumental mark) is read by the Host, so this surface just asks again.
+      var priority = prefs.lyricLocalPriority === 'online' ? 'online' : 'local'
       setLyrics([])
-      getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&order=' + encodeURIComponent(order))
+      getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&priority=' + encodeURIComponent(priority))
         .then(async function (body) {
           if (cancelled) return
           // Same pipeline as the player card: the Host's raw text (TTML / YRC / enhanced

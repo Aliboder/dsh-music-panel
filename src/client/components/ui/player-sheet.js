@@ -1127,37 +1127,48 @@ function PlayerSheetInner(props) {
     )
   }
 
-  /** Where the lyric comes from: a choice when the file has more than one. */
+  /**
+   * Where the lyric comes from — Folia's source row for a local file: the file's own
+   * lyrics, the matched online lyric, and the instrumental mark. The choice is stored on
+   * the song, so the reset control appears only when this song has an explicit one.
+   */
   function lyricSourceControl() {
     var info = props.lyricSources || null
     var hasEmbedded = info !== null && info.embedded === true
     var hasLocal = info !== null && info.local === true
-    if (hasEmbedded && hasLocal) {
-      var active = info.active === 'lrc' ? 'lrc' : 'embedded'
+    var hasOnline = info !== null && info.online === true
+    if (!hasEmbedded && !hasLocal && !hasOnline) {
       return h(
-        'div',
-        { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
-        mpSegment(
-          [
-            { value: 'embedded', label: t('sheet.srcEmbedded') },
-            { value: 'lrc', label: t('sheet.srcLocal') },
-          ],
-          active,
-          function (next) {
-            if (typeof props.onSwitchLyricSource === 'function') props.onSwitchLyricSource(next)
-          },
-        ),
-        props.lastLyricOrderChanged === true
-          ? mpSmallButton('\u21ba', function () {
-              if (typeof props.onResetLyricSource === 'function') props.onResetLyricSource()
-            })
-          : null,
+        'span',
+        { style: { fontSize: '13px', opacity: '.75', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
+        props.lyricSourceLabel || t('sheet.srcNone'),
       )
     }
+    var settled = info !== null && info.markedPureMusic === true
+    var active = settled
+      ? 'pure'
+      : info.active === 'embedded'
+        ? 'embedded'
+        : info.active === 'online'
+          ? 'online'
+          : 'local'
+    var options = []
+    if (hasLocal) options.push({ value: 'local', label: t('sheet.srcLocal') })
+    if (hasEmbedded) options.push({ value: 'embedded', label: t('sheet.srcEmbedded') })
+    if (hasOnline) options.push({ value: 'online', label: t('sheet.srcOnline') })
+    options.push({ value: 'pure', label: t('sheet.srcPureMusic') })
+    var explicit = settled || (info !== null && info.source !== null && info.source !== undefined)
     return h(
-      'span',
-      { style: { fontSize: '13px', opacity: '.75', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
-      props.lyricSourceLabel || t('sheet.srcNone'),
+      'div',
+      { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+      mpSegment(options, active, function (next) {
+        if (typeof props.onSwitchLyricSource === 'function') props.onSwitchLyricSource(next)
+      }),
+      explicit
+        ? mpSmallButton('\u21ba', function () {
+            if (typeof props.onResetLyricSource === 'function') props.onResetLyricSource()
+          })
+        : null,
     )
   }
 

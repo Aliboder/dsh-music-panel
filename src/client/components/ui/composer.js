@@ -130,7 +130,11 @@ function ComposerLyrics() {
             return
           }
           var local = await getJson(
-            API + 'lyrics?path=' + encodeURIComponent(active.path) + '&order=embedded,lrc',
+            API +
+              'lyrics?path=' +
+              encodeURIComponent(active.path) +
+              '&priority=' +
+              encodeURIComponent(prefs.lyricLocalPriority === 'online' ? 'online' : 'local'),
           )
           var localShown = await mpLocalLyricLines(local, trackPath)
           if (!cancelled) setLines(composerLyricRows(localShown.lyrics))

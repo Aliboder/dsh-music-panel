@@ -18,7 +18,21 @@ var PREF_DEFAULTS = {
   vinylRing: false,
   npLookMigrated: true,
   coverSpin: true,
-  lyricOrder: ['embedded', 'lrc'],
+  /**
+   * Folia's `localLyricsPriority`: which lyric a local file shows when it has both
+   * its own file lyric and a matched online one. 'local' keeps the file's own.
+   */
+  lyricLocalPriority: 'local',
+  /** Folia's `preferredAlternativeLyricSource`: asked first when another source is searched. */
+  lyricPreferredSource: 'qq',
+  /**
+   * Folia's `keepProviderWordTiming`: keep a platform's own word timing over another
+   * source's. The plugin has no `prefersOwnWordByWord` platform (Apple Music), so this
+   * is stored for parity and consumed where a provider declares it.
+   */
+  lyricKeepProviderWordTiming: true,
+  /** Folia's `localLyricFormatOrder`: which sidecar lyric file wins when several exist. */
+  lyricFormatOrder: ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'],
   /** Preferred online audio level: standard | high | lossless | hires. */
   onlineQuality: 'high',
   lyricAlign: 'left',
@@ -146,8 +160,9 @@ function readPrefs() {
   // backgrounds; a stored old id falls back to Folia's default (latent).
   var foliaBackgrounds = ['common', 'monet', 'nomand', 'latent', 'sora', 'url', 'none']
   if (foliaBackgrounds.indexOf(merged.bgMode) < 0) merged.bgMode = 'latent'
-  // The order selector was removed; always prefer embedded lyrics over LRC.
-  merged.lyricOrder = ['embedded', 'lrc']
+  // The old "lyric order" switch is gone: Folia's local/online priority decides, and the
+  // sidecar always outranks the embedded lyric. A stored `lyricOrder` is simply ignored.
+  delete merged.lyricOrder
   // 0.12.0 briefly defaulted to square covers; restore the 0.11 player look once.
   if (merged.npLookMigrated !== true) {
     merged.circularCover = PREF_DEFAULTS.circularCover

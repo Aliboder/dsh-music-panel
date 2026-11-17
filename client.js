@@ -6919,6 +6919,12 @@ window.__ModuleLoader__.load({
         'settings.lyricAutoBest': '自动使用最佳歌词',
         'settings.lyricAutoBestDesc': '平台自己的歌词没有逐字时间轴时，检索网易云、AMLL、QQ、酷狗的匹配歌词，有逐字歌词就换用',
         'settings.lyricAutoBestOff': '只使用平台自己的歌词',
+        'settings.lyricLocalPriority': '本地歌曲歌词优先级',
+        'settings.lyricLocalPriorityDesc': '同一首本地歌既有自己的歌词文件、又有匹配到的在线歌词时，先显示哪一个',
+        'settings.lyricLocalPriorityLocal': '本地（同目录 > 内嵌）',
+        'settings.lyricLocalPriorityOnline': '在线（匹配歌词）',
+        'settings.lyricPreferredSource': '首选歌词来源',
+        'settings.lyricPreferredSourceDesc': '自动匹配歌词时最先检索的来源',
         'page.lyricSize': '字体大小',
         'page.lyricGap': '歌词间距',
         'page.lyricBlur': '模糊非当前歌词',
@@ -7521,6 +7527,12 @@ window.__ModuleLoader__.load({
         'settings.lyricAutoBest': 'Auto use best lyrics',
         'settings.lyricAutoBestDesc': "When the platform's own lyric has no word timing, search NetEase, AMLL, QQ and KuGou and use a matched word-by-word lyric",
         'settings.lyricAutoBestOff': 'Use the platform lyric only',
+        'settings.lyricLocalPriority': 'Local song lyric priority',
+        'settings.lyricLocalPriorityDesc': 'When a local file has both its own lyric and a matched online one, which one shows first',
+        'settings.lyricLocalPriorityLocal': 'Local file (sidecar > embedded)',
+        'settings.lyricLocalPriorityOnline': 'Online (matched lyric)',
+        'settings.lyricPreferredSource': 'Preferred lyric source',
+        'settings.lyricPreferredSourceDesc': 'The source the automatic lyric pick asks first',
         'page.lyricSize': 'Font size',
         'page.lyricGap': 'Line spacing',
         'page.lyricBlur': 'Blur inactive lines',
@@ -8082,11 +8094,12 @@ window.__ModuleLoader__.load({
         'v2.dataTab': '数据',
         'data.total': '插件数据',
         'data.files': '{size} · {n} 个文件',
-        'data.hint': '包括设置、收藏、歌单、统计、播放状态、登录凭证、缓存和回收站。音乐文件本身不在其中。',
+        'data.hint': '包括设置、收藏、歌单、统计、歌词选择与匹配、播放状态、登录凭证、缓存和回收站。音乐文件本身不在其中。',
         'data.category.settings': '设置',
         'data.category.favorites': '收藏',
         'data.category.playlists': '歌单',
         'data.category.stats': '播放统计',
+        'data.category.lyrics': '歌词选择与匹配',
         'data.category.playback': '播放状态',
         'data.category.accounts': '账号与登录',
         'data.category.cache': '缓存',
@@ -8400,6 +8413,7 @@ window.__ModuleLoader__.load({
         'sheet.srcEmbedded': '内嵌',
         'sheet.srcLocal': '本地',
         'sheet.srcOnline': '在线',
+        'sheet.srcPureMusic': '纯音乐',
         'sheet.srcNone': '无',
         'sheet.lyricsImported': '歌词已导入',
         'sheet.noLyricsToExport': '当前没有可导出的歌词',
@@ -8615,11 +8629,12 @@ window.__ModuleLoader__.load({
         'v2.dataTab': 'Data',
         'data.total': 'Plugin data',
         'data.files': '{size} · {n} files',
-        'data.hint': 'Includes settings, favorites, playlists, stats, playback state, sign-ins, cache and recycle bin. Your music files are not included.',
+        'data.hint': 'Includes settings, favorites, playlists, stats, lyric choices & matches, playback state, sign-ins, cache and recycle bin. Your music files are not included.',
         'data.category.settings': 'Settings',
         'data.category.favorites': 'Favorites',
         'data.category.playlists': 'Playlists',
         'data.category.stats': 'Play stats',
+        'data.category.lyrics': 'Lyric choices & matches',
         'data.category.playback': 'Playback state',
         'data.category.accounts': 'Accounts & sign-ins',
         'data.category.cache': 'Cache',
@@ -8924,6 +8939,7 @@ window.__ModuleLoader__.load({
         'sheet.srcEmbedded': 'Embedded',
         'sheet.srcLocal': 'Local',
         'sheet.srcOnline': 'Online',
+        'sheet.srcPureMusic': 'Instrumental',
         'sheet.srcNone': 'None',
         'sheet.lyricsImported': 'Lyrics imported',
         'sheet.noLyricsToExport': 'No lyrics to export',
@@ -149280,7 +149296,21 @@ window.__ModuleLoader__.load({
       vinylRing: false,
       npLookMigrated: true,
       coverSpin: true,
-      lyricOrder: ['embedded', 'lrc'],
+      /**
+       * Folia's `localLyricsPriority`: which lyric a local file shows when it has both
+       * its own file lyric and a matched online one. 'local' keeps the file's own.
+       */
+      lyricLocalPriority: 'local',
+      /** Folia's `preferredAlternativeLyricSource`: asked first when another source is searched. */
+      lyricPreferredSource: 'qq',
+      /**
+       * Folia's `keepProviderWordTiming`: keep a platform's own word timing over another
+       * source's. The plugin has no `prefersOwnWordByWord` platform (Apple Music), so this
+       * is stored for parity and consumed where a provider declares it.
+       */
+      lyricKeepProviderWordTiming: true,
+      /** Folia's `localLyricFormatOrder`: which sidecar lyric file wins when several exist. */
+      lyricFormatOrder: ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'],
       /** Preferred online audio level: standard | high | lossless | hires. */
       onlineQuality: 'high',
       lyricAlign: 'left',
@@ -149408,8 +149438,9 @@ window.__ModuleLoader__.load({
       // backgrounds; a stored old id falls back to Folia's default (latent).
       var foliaBackgrounds = ['common', 'monet', 'nomand', 'latent', 'sora', 'url', 'none']
       if (foliaBackgrounds.indexOf(merged.bgMode) < 0) merged.bgMode = 'latent'
-      // The order selector was removed; always prefer embedded lyrics over LRC.
-      merged.lyricOrder = ['embedded', 'lrc']
+      // The old "lyric order" switch is gone: Folia's local/online priority decides, and the
+      // sidecar always outranks the embedded lyric. A stored `lyricOrder` is simply ignored.
+      delete merged.lyricOrder
       // 0.12.0 briefly defaulted to square covers; restore the 0.11 player look once.
       if (merged.npLookMigrated !== true) {
         merged.circularCover = PREF_DEFAULTS.circularCover
@@ -160974,9 +161005,11 @@ window.__ModuleLoader__.load({
         function () {
           if (trackPath === '') return undefined
           var cancelled = false
-          var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
+          // Folia's local priority decides which lyric this file shows; the record (choice,
+          // match, instrumental mark) is read by the Host, so this surface just asks again.
+          var priority = prefs.lyricLocalPriority === 'online' ? 'online' : 'local'
           setLyrics([])
-          getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&order=' + encodeURIComponent(order))
+          getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&priority=' + encodeURIComponent(priority))
             .then(async function (body) {
               if (cancelled) return
               // Same pipeline as the player card: the Host's raw text (TTML / YRC / enhanced
@@ -161547,7 +161580,8 @@ window.__ModuleLoader__.load({
           lyricBlur: true,
           waveEnabled: true,
           showTranslation: true,
-          lyricOrder: ['embedded', 'lrc'],
+          lyricLocalPriority: 'local',
+          lyricPreferredSource: 'qq',
           npPaneGap: 60,
           npLyricWidth: 560,
           npFlowBg: true,
@@ -163050,12 +163084,18 @@ window.__ModuleLoader__.load({
         [trackPath],
       )
 
+      // The local lyric pick depends on these two settings; a change re-reads the track.
+      // Declared before the effects that use it: a `var` below them would still be undefined
+      // when their dependency arrays are built.
+      var lyricPriorityKey = (prefs.lyricLocalPriority === 'online' ? 'online' : 'local')
+        + '\u0000' + String(prefs.lyricPreferredSource || '')
+
       useEffect(
         function () {
           setSourceInfo(null)
           if (trackPath === '' || (track !== null && track.onlineProvider)) return undefined
           var cancelled = false
-          getJson(API + 'lyrics/sources?path=' + encodeURIComponent(trackPath))
+          getJson(API + 'lyrics/sources?path=' + encodeURIComponent(trackPath) + '&priority=' + (prefs.lyricLocalPriority === 'online' ? 'online' : 'local'))
             .then(function (body) {
               if (!cancelled) setSourceInfo(body)
             })
@@ -163066,7 +163106,7 @@ window.__ModuleLoader__.load({
             cancelled = true
           }
         },
-        [trackPath, lyricReload],
+        [trackPath, lyricReload, lyricPriorityKey],
       )
 
       // off / auto / track / album — auto is the measured loudness trim, the two tag
@@ -163095,16 +163135,17 @@ window.__ModuleLoader__.load({
         },
         [gainMode, gainInfo, trackPath],
       )
-      var lyricOrderKey = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
       // 本地 tab: the timeline offset, the lyric source's name, the lyric text to export.
       var lyricSourceLabel =
         lyricSource === 'embedded'
           ? t('sheet.srcEmbedded')
-          : lyricSource === 'lrc'
+          : lyricSource === 'lrc' || lyricSource === 'local'
             ? t('sheet.srcLocal')
             : lyricSource === 'online'
               ? t('sheet.srcOnline')
-              : ''
+              : lyricSource === 'pure'
+                ? t('sheet.srcPureMusic')
+                : ''
       var lyricsText = lyrics
         .map(function (line) {
           var total = mpLineStart(line) || 0
@@ -163365,10 +163406,39 @@ window.__ModuleLoader__.load({
                 // nothing else is awaited for this track.
                 return
               }
-              var order = Array.isArray(prefs.lyricOrder) ? prefs.lyricOrder.join(',') : 'embedded,lrc'
-              var local = await getJson(
-                API + 'lyrics?path=' + encodeURIComponent(current.path) + '&order=' + encodeURIComponent(order),
-              )
+              // Folia's local pick: the record decides which lyric this file shows. When it
+              // says none of the file's own lyrics is usable (or the listener chose online),
+              // ask for a match once, then read the resolved lyric again.
+              var priority = prefs.lyricLocalPriority === 'online' ? 'online' : 'local'
+              var formatOrder = Array.isArray(prefs.lyricFormatOrder) ? prefs.lyricFormatOrder.join(',') : ''
+              var localUrl =
+                API +
+                'lyrics?path=' +
+                encodeURIComponent(current.path) +
+                '&priority=' +
+                encodeURIComponent(priority) +
+                '&formatOrder=' +
+                encodeURIComponent(formatOrder)
+              var local = await getJson(localUrl)
+              if (local.needsAutoMatch === true && !cancelled) {
+                var auto = await getJson(
+                  API +
+                    'lyrics/auto?path=' +
+                    encodeURIComponent(current.path) +
+                    '&preferred=' +
+                    encodeURIComponent(String(prefs.lyricPreferredSource || '')),
+                ).catch(function () {
+                  return null
+                })
+                if (auto !== null && auto.matched) {
+                  local = await getJson(localUrl)
+                  getJson(API + 'lyrics/sources?path=' + encodeURIComponent(current.path) + '&priority=' + encodeURIComponent(priority))
+                    .then(function (body) {
+                      if (!cancelled) setSourceInfo(body)
+                    })
+                    .catch(function () {})
+                }
+              }
               // Local files take the same pipeline as online ones: the Host hands over the
               // file's own text (LRC / enhanced LRC / TTML / VTT / QRC / YRC / KRC / .fia),
               // so word timing, credits policy and icu-folia's split all apply here too.
@@ -163381,7 +163451,7 @@ window.__ModuleLoader__.load({
                 : { path: trackPath, document: localShown.document, chorusRanges: [] }
               if (!cancelled) {
                 setLyrics(localShown.lyrics)
-                setLyricSource(String(local.source || ''))
+                setLyricSource(local.pureMusic === true ? 'pure' : String(local.source || ''))
                 // The host's file-level offset is the primary for local tracks; the
                 // remembered one covers tracks whose offset never reached the file.
                 setOffsetMs(Number(local.offsetMs) || readSavedLyricOffset(trackPath))
@@ -163399,7 +163469,7 @@ window.__ModuleLoader__.load({
             if (upgradeAbort !== null) upgradeAbort.abort()
           }
         },
-        [props.open, trackPath, lyricReload, lyricOrderKey],
+        [props.open, trackPath, lyricReload, lyricPriorityKey],
       )
 
       // A change of the listener's line rules re-runs the display pass on the document the
@@ -164283,13 +164353,32 @@ window.__ModuleLoader__.load({
                   setPrefs({ replayGainMode: next })
                 },
                 lyricSources: sourceInfo,
+                // Folia keeps the choice on the song, not in a global setting: each switch
+                // writes the record through the Host and the panel re-reads this track.
                 onSwitchLyricSource: function (key) {
-                  setPrefs({ lyricOrder: [key] })
-                  setLyricReload(lyricReload + 1)
+                  var request = key === 'pure'
+                    ? postJson(API + 'lyrics/pure-music', { path: trackPath, marked: true })
+                    : postJson(API + 'lyrics/choice', { path: trackPath, source: key })
+                  request
+                    .then(function () {
+                      setLyricReload(function (value) {
+                        return value + 1
+                      })
+                    })
+                    .catch(function (error) {
+                      if (typeof showToast === 'function') showToast(errorText(error))
+                    })
                 },
                 onResetLyricSource: function () {
-                  setPrefs({ lyricOrder: ['embedded', 'lrc'] })
-                  setLyricReload(lyricReload + 1)
+                  postJson(API + 'lyrics/choice', { path: trackPath, source: 'auto' })
+                    .then(function () {
+                      setLyricReload(function (value) {
+                        return value + 1
+                      })
+                    })
+                    .catch(function (error) {
+                      if (typeof showToast === 'function') showToast(errorText(error))
+                    })
                 },
                 lyricSegCount: lyricSegCount,
                 onOpenLyricSegmentation: openLyricSegmentation,
@@ -165032,16 +165121,34 @@ window.__ModuleLoader__.load({
           ),
           h(
             SetRow,
-            { key: 'order', label: t('settings.lyricOrder') },
+            { key: 'local-priority', label: t('settings.lyricLocalPriority'), desc: t('settings.lyricLocalPriorityDesc') },
             h(KitSelect, {
-              value: (prefs.lyricOrder || []).join(','),
-              label: t('settings.lyricOrder'),
+              value: prefs.lyricLocalPriority === 'online' ? 'online' : 'local',
+              label: t('settings.lyricLocalPriority'),
               options: [
-                { value: 'embedded,lrc', label: t('settings.lyricSourceEmbedded') + ' → LRC' },
-                { value: 'lrc,embedded', label: 'LRC → ' + t('settings.lyricSourceEmbedded') },
+                { value: 'local', label: t('settings.lyricLocalPriorityLocal') },
+                { value: 'online', label: t('settings.lyricLocalPriorityOnline') },
               ],
               onChange: function (value) {
-                patchPrefs({ lyricOrder: String(value).split(',') })
+                patchPrefs({ lyricLocalPriority: String(value) })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'preferred-source', label: t('settings.lyricPreferredSource'), desc: t('settings.lyricPreferredSourceDesc') },
+            h(KitSelect, {
+              value: prefs.lyricPreferredSource || 'qq',
+              label: t('settings.lyricPreferredSource'),
+              options: [
+                { value: 'qq', label: 'QQ Music' },
+                { value: 'netease', label: 'NetEase Cloud Music' },
+                { value: 'amll', label: 'AMLLDB' },
+                { value: 'kugouLite', label: 'KuGou' },
+                { value: 'qishui', label: 'Qishui' },
+              ],
+              onChange: function (value) {
+                patchPrefs({ lyricPreferredSource: String(value) })
               },
             }),
           ),
@@ -170191,37 +170298,48 @@ window.__ModuleLoader__.load({
         )
       }
 
-      /** Where the lyric comes from: a choice when the file has more than one. */
+      /**
+       * Where the lyric comes from — Folia's source row for a local file: the file's own
+       * lyrics, the matched online lyric, and the instrumental mark. The choice is stored on
+       * the song, so the reset control appears only when this song has an explicit one.
+       */
       function lyricSourceControl() {
         var info = props.lyricSources || null
         var hasEmbedded = info !== null && info.embedded === true
         var hasLocal = info !== null && info.local === true
-        if (hasEmbedded && hasLocal) {
-          var active = info.active === 'lrc' ? 'lrc' : 'embedded'
+        var hasOnline = info !== null && info.online === true
+        if (!hasEmbedded && !hasLocal && !hasOnline) {
           return h(
-            'div',
-            { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
-            mpSegment(
-              [
-                { value: 'embedded', label: t('sheet.srcEmbedded') },
-                { value: 'lrc', label: t('sheet.srcLocal') },
-              ],
-              active,
-              function (next) {
-                if (typeof props.onSwitchLyricSource === 'function') props.onSwitchLyricSource(next)
-              },
-            ),
-            props.lastLyricOrderChanged === true
-              ? mpSmallButton('\u21ba', function () {
-                  if (typeof props.onResetLyricSource === 'function') props.onResetLyricSource()
-                })
-              : null,
+            'span',
+            { style: { fontSize: '13px', opacity: '.75', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
+            props.lyricSourceLabel || t('sheet.srcNone'),
           )
         }
+        var settled = info !== null && info.markedPureMusic === true
+        var active = settled
+          ? 'pure'
+          : info.active === 'embedded'
+            ? 'embedded'
+            : info.active === 'online'
+              ? 'online'
+              : 'local'
+        var options = []
+        if (hasLocal) options.push({ value: 'local', label: t('sheet.srcLocal') })
+        if (hasEmbedded) options.push({ value: 'embedded', label: t('sheet.srcEmbedded') })
+        if (hasOnline) options.push({ value: 'online', label: t('sheet.srcOnline') })
+        options.push({ value: 'pure', label: t('sheet.srcPureMusic') })
+        var explicit = settled || (info !== null && info.source !== null && info.source !== undefined)
         return h(
-          'span',
-          { style: { fontSize: '13px', opacity: '.75', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
-          props.lyricSourceLabel || t('sheet.srcNone'),
+          'div',
+          { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+          mpSegment(options, active, function (next) {
+            if (typeof props.onSwitchLyricSource === 'function') props.onSwitchLyricSource(next)
+          }),
+          explicit
+            ? mpSmallButton('\u21ba', function () {
+                if (typeof props.onResetLyricSource === 'function') props.onResetLyricSource()
+              })
+            : null,
         )
       }
 
@@ -173723,7 +173841,11 @@ window.__ModuleLoader__.load({
                 return
               }
               var local = await getJson(
-                API + 'lyrics?path=' + encodeURIComponent(active.path) + '&order=embedded,lrc',
+                API +
+                  'lyrics?path=' +
+                  encodeURIComponent(active.path) +
+                  '&priority=' +
+                  encodeURIComponent(prefs.lyricLocalPriority === 'online' ? 'online' : 'local'),
               )
               var localShown = await mpLocalLyricLines(local, trackPath)
               if (!cancelled) setLines(composerLyricRows(localShown.lyrics))

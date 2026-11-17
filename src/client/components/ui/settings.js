@@ -395,16 +395,34 @@ function SettingsSheet(props) {
       ),
       h(
         SetRow,
-        { key: 'order', label: t('settings.lyricOrder') },
+        { key: 'local-priority', label: t('settings.lyricLocalPriority'), desc: t('settings.lyricLocalPriorityDesc') },
         h(KitSelect, {
-          value: (prefs.lyricOrder || []).join(','),
-          label: t('settings.lyricOrder'),
+          value: prefs.lyricLocalPriority === 'online' ? 'online' : 'local',
+          label: t('settings.lyricLocalPriority'),
           options: [
-            { value: 'embedded,lrc', label: t('settings.lyricSourceEmbedded') + ' → LRC' },
-            { value: 'lrc,embedded', label: 'LRC → ' + t('settings.lyricSourceEmbedded') },
+            { value: 'local', label: t('settings.lyricLocalPriorityLocal') },
+            { value: 'online', label: t('settings.lyricLocalPriorityOnline') },
           ],
           onChange: function (value) {
-            patchPrefs({ lyricOrder: String(value).split(',') })
+            patchPrefs({ lyricLocalPriority: String(value) })
+          },
+        }),
+      ),
+      h(
+        SetRow,
+        { key: 'preferred-source', label: t('settings.lyricPreferredSource'), desc: t('settings.lyricPreferredSourceDesc') },
+        h(KitSelect, {
+          value: prefs.lyricPreferredSource || 'qq',
+          label: t('settings.lyricPreferredSource'),
+          options: [
+            { value: 'qq', label: 'QQ Music' },
+            { value: 'netease', label: 'NetEase Cloud Music' },
+            { value: 'amll', label: 'AMLLDB' },
+            { value: 'kugouLite', label: 'KuGou' },
+            { value: 'qishui', label: 'Qishui' },
+          ],
+          onChange: function (value) {
+            patchPrefs({ lyricPreferredSource: String(value) })
           },
         }),
       ),
