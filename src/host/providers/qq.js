@@ -43,7 +43,9 @@ export function toLegacyResult(item) {
     album: decodeEntities(row.album?.name ?? row.albumname ?? row.album_name ?? ''),
     albummid: String(row.album?.mid ?? row.albummid ?? row.album_mid ?? ''),
     interval: Number(row.interval) || 0,
-    payplay: row.pay?.payplay,
+    // QQ's own payload spells it `pay.pay_play`; the camelCase form appears in older
+    // responses. Both mean "this song needs VIP to play".
+    payplay: Number(row.pay?.pay_play ?? row.pay?.payplay ?? row.payplay ?? 0),
     pay: row.pay,
     source: 'qq',
 

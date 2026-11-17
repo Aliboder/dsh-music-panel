@@ -33,6 +33,46 @@ assert.equal(toLegacyResult({ name: 'no mid' }), null)
 assert.equal(toLegacyResult(null), null)
 assert.equal(toLegacyResult({ mid: '', name: 'x' }), null)
 
+// QQ's own payload marks a VIP-only song with `pay.pay_play` (snake_case); the badge
+// reads the row's `payplay`, so the mapping has to resolve both spellings.
+assert.equal(
+  toLegacyResult({ mid: 'vip-1', name: 'vip', singer: [], pay: { pay_play: 1 } }).payplay,
+  1,
+)
+assert.equal(
+  toLegacyResult({ mid: 'free-1', name: 'free', pay: { pay_play: 0, payplay: 0 } }).payplay,
+  0,
+)
+assert.equal(
+  toLegacyResult({ mid: 'camel-1', name: 'camel', pay: { payplay: 1 } }).payplay,
+  1,
+  'the older camelCase shape still counts',
+)
+
+// The row the client receives is shaped by the provider layer: the badge follows
+// `qualityHint`, which was empty for QQ before this fix.
+{
+  const { search: searchProvider } = await import('../../src/host/providers/index.js')
+  setUpstreamOverride(async (route) => {
+    if (route !== '/search') throw new Error('unexpected route: ' + route)
+    return {
+      items: [
+        { mid: 'vip-2', name: '晴天', singer: [{ name: '周杰伦' }], album: { mid: 'm', name: 'a' }, interval: 269, pay: { pay_play: 1 } },
+        { mid: 'free-2', name: '免费歌', singer: [{ name: '某人' }], album: { mid: 'm2', name: 'b' }, interval: 200, pay: { pay_play: 0 } },
+      ],
+      total: 2,
+      page: 1,
+    }
+  })
+  try {
+    const results = await searchProvider('qq', '晴天')
+    assert.equal(results[0].qualityHint, 'VIP', 'a pay_play song gets the VIP badge')
+    assert.equal(results[1].qualityHint, '', 'a free song does not')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
 
 // ── word-level QRC ──────────────────────────────────────────────────────────
 //

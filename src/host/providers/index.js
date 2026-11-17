@@ -56,11 +56,12 @@ const QQ_QUALITY = {
 function shape(provider, song) {
   const id = provider === 'qq' ? song.songmid : song.id
   const payType = Number(song.payType) || 0
-  const payplay = Number(song.payplay) || 0
+  // QQ spells the flag `pay.pay_play`; `payplay` is the legacy/camelCase shape.
+  const payplay = Number(song.payplay ?? song.pay?.pay_play ?? song.pay?.payplay) || 0
   const fee = Number(song.fee) || 0
   const privilege = Number(song.privilege) || 0
   let qualityHint = ''
-  if (provider === 'qq' && (payplay === 1 || (song.pay && Number(song.pay.payplay) === 1))) qualityHint = 'VIP'
+  if (provider === 'qq' && payplay === 1) qualityHint = 'VIP'
   if (provider === 'kugouLite' ? privilege >= 10 : (provider === 'kugou' && (payType > 0 || privilege > 0))) qualityHint = 'VIP'
   if (provider === 'netease' && fee === 1) qualityHint = 'VIP'
   const albumMid = String(song.albummid || '').trim()
@@ -492,7 +493,9 @@ export function requiresVip(provider, id) {
   const raw = rawSongs.get(provider + ':' + String(id || ''))
   if (!raw) return null
   if (provider === 'netease') return Number(raw.fee) === 1 || Number(raw.fee) === 4
-  if (provider === 'qq') return Number(raw.payplay) === 1 || Number(raw.pay && raw.pay.payplay) === 1
+  if (provider === 'qq') {
+    return Number(raw.payplay ?? raw.pay?.pay_play ?? raw.pay?.payplay) === 1
+  }
   if (provider === 'kugou' || provider === 'kugouLite') return Number(raw.privilege) >= 10
   return null
 }

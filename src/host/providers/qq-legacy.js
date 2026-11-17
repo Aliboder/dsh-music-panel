@@ -405,7 +405,7 @@ export async function search(keyword, cookie = '', page = 1) {
       songid: s.songid, songtype: s.songtype || 0,
       artists: (s.singer || []).map(x => dec(x.name)),
       album: dec(s.albumname), albummid: s.albummid || (s.album && s.album.mid) || '', interval: s.interval,
-      payplay: s.pay?.payplay, pay: s.pay,
+      payplay: Number(s.pay?.pay_play ?? s.pay?.payplay ?? s.payplay ?? 0), pay: s.pay,
       source: 'qq',
     }))
     const total = Number(ready.data?.song?.totalnum) || results.length
@@ -528,7 +528,7 @@ export async function getAlbumSongs(albumMid, cookie = '') {
     album: dec(s.albumname || data.name || ''),
     albummid: s.albummid || mid,
     interval: Number(s.interval) || 0,
-    payplay: s.pay && s.pay.payplay,
+    payplay: s.pay ? Number(s.pay.pay_play ?? s.pay.payplay ?? 0) : 0,
     pay: s.pay,
     source: 'qq',
   })).filter((song) => song.id)
@@ -860,7 +860,7 @@ export async function getPlaylistSongs(id, cookie = '') {
           artists: (s.singer || []).map((x) => dec(x.name)), album: dec(s.albumname),
           albummid: s.albummid || (s.album && s.album.mid) || '',
           interval: s.interval,
-          payplay: s.pay ? s.pay.payplay : 0, source: 'qq',
+          payplay: s.pay ? Number(s.pay.pay_play ?? s.pay.payplay ?? 0) : 0, source: 'qq',
         })).filter((s) => s.songmid),
       }
     } catch (err) { lastErr = err }
@@ -1159,7 +1159,7 @@ export async function getNewSongs(type = 5, cookie = '') {
     songid: s.id, songtype: s.type || s.songtype || 0,
     artists: (s.singer || []).map((x) => dec(x.name)),
     album: s.album ? dec(s.album.name || '') : '', interval: s.interval,
-    payplay: s.pay ? s.pay.payplay : 0, source: 'qq',
+    payplay: s.pay ? Number(s.pay.pay_play ?? s.pay.payplay ?? 0) : 0, source: 'qq',
   }))
   const lan = (data.lanlist || []).find((x) => String(x.type) === String(type))
   return {
