@@ -867,6 +867,25 @@ function LoginDialog(props) {
     ]
   }
 
+  // Folia's provider-specific notes: Qishui's code is a Douyin authorization (scan it in
+  // the Douyin app), and Bodian/Kugou name their own app. Everything else is generic.
+  var loginTitleText =
+    provider === 'qishui'
+      ? t('online.loginTitleQishui')
+      : provider === 'bodian'
+        ? t('online.loginTitleBodian')
+        : provider === 'kugou' || provider === 'kugouLite'
+          ? t('online.loginTitleKugou')
+          : t('online.loginTitle', { provider: providerLabel })
+  var loginNoteText =
+    provider === 'qishui'
+      ? t('online.loginNoteQishui')
+      : provider === 'bodian'
+        ? t('online.loginNoteBodian')
+        : provider === 'kugou' || provider === 'kugouLite'
+          ? t('online.loginNoteKugou')
+          : t('online.qrDesc', { provider: providerLabel })
+
   var qrView = [
     h(
       'div',
@@ -874,8 +893,8 @@ function LoginDialog(props) {
       h(
         'div',
         { className: 'mp-login-view' },
-        h('div', { className: 'mp-login-view-title' }, t('online.loginTitle', { provider: providerLabel })),
-        h('div', { className: 'mp-login-view-sub' }, t('online.qrDesc', { provider: providerLabel })),
+        h('div', { className: 'mp-login-view-title' }, loginTitleText),
+        h('div', { className: 'mp-login-view-sub' }, loginNoteText),
         provider === 'qq'
           ? h(
               'div',

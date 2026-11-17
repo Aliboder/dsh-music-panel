@@ -6999,6 +6999,14 @@ window.__ModuleLoader__.load({
         'online.syncAccount': '同步数据',
         'online.loginHint': '扫码登录：用对应 App 扫描弹出的二维码并确认，登录状态保存在本机。',
         'online.qrDesc': '打开 {provider} App，扫描二维码完成登录',
+        // Folia's provider notes: Qishui's QR is a Douyin open-platform authorization, so it is
+        // scanned in the Douyin app, not in Qishui itself.
+        'online.loginTitleQishui': '用抖音扫码登录汽水音乐',
+        'online.loginNoteQishui': '请使用抖音 App 扫码并确认授权',
+        'online.loginTitleBodian': '使用波点音乐 App 扫码',
+        'online.loginNoteBodian': '打开波点音乐 App 扫描二维码并确认登录',
+        'online.loginTitleKugou': '使用酷狗音乐 App 扫码',
+        'online.loginNoteKugou': '打开酷狗音乐 App 扫描二维码',
         'online.scanLogin': '扫码登录',
         'online.qrLoading': '正在生成二维码…',
         'online.qrStep1': '打开手机上的对应 App',
@@ -7614,6 +7622,12 @@ window.__ModuleLoader__.load({
         'online.syncAccount': 'Sync account',
         'online.loginHint': 'Scan the QR code with the matching app, then confirm in the app. The login stays on this machine.',
         'online.qrDesc': 'Open {provider} and scan the QR code to sign in',
+        'online.loginTitleQishui': 'Scan with Douyin to sign in to Qishui',
+        'online.loginNoteQishui': 'Scan with the Douyin app and confirm the authorization',
+        'online.loginTitleBodian': 'Scan with the Bodian Music app',
+        'online.loginNoteBodian': 'Open the Bodian Music app, scan the code and confirm',
+        'online.loginTitleKugou': 'Scan with the Kugou Music app',
+        'online.loginNoteKugou': 'Open the Kugou Music app and scan the code',
         'online.scanLogin': 'Scan to sign in',
         'online.qrLoading': 'Generating QR code…',
         'online.qrStep1': 'Open the matching app on your phone',
@@ -167479,6 +167493,25 @@ window.__ModuleLoader__.load({
         ]
       }
 
+      // Folia's provider-specific notes: Qishui's code is a Douyin authorization (scan it in
+      // the Douyin app), and Bodian/Kugou name their own app. Everything else is generic.
+      var loginTitleText =
+        provider === 'qishui'
+          ? t('online.loginTitleQishui')
+          : provider === 'bodian'
+            ? t('online.loginTitleBodian')
+            : provider === 'kugou' || provider === 'kugouLite'
+              ? t('online.loginTitleKugou')
+              : t('online.loginTitle', { provider: providerLabel })
+      var loginNoteText =
+        provider === 'qishui'
+          ? t('online.loginNoteQishui')
+          : provider === 'bodian'
+            ? t('online.loginNoteBodian')
+            : provider === 'kugou' || provider === 'kugouLite'
+              ? t('online.loginNoteKugou')
+              : t('online.qrDesc', { provider: providerLabel })
+
       var qrView = [
         h(
           'div',
@@ -167486,8 +167519,8 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'mp-login-view' },
-            h('div', { className: 'mp-login-view-title' }, t('online.loginTitle', { provider: providerLabel })),
-            h('div', { className: 'mp-login-view-sub' }, t('online.qrDesc', { provider: providerLabel })),
+            h('div', { className: 'mp-login-view-title' }, loginTitleText),
+            h('div', { className: 'mp-login-view-sub' }, loginNoteText),
             provider === 'qq'
               ? h(
                   'div',
