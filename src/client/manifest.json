@@ -63,6 +63,7 @@
     "src/client/components/common/select.js",
     "src/client/styles/theme.js",
     "src/client/components/ui/primitives.js",
+    "src/client/components/ui/component-gallery.js",
     "src/client/components/ui/track-row.js",
     "src/client/components/ui/player-bar.js",
     "src/client/components/ui/eq-panel.js",

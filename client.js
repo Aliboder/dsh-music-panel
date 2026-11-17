@@ -8110,6 +8110,90 @@ window.__ModuleLoader__.load({
         'about.description': '多目录曲库、网易云 / QQ / 酷狗在线播放、歌词翻译、标签与封面编辑、音频缓存、统计与回收站。',
         'about.source': 'GitHub 源码',
         'about.npm': 'npm 包',
+        'about.componentTest': "组件测试页",
+        'about.componentTestDesc': "并排查看所有共用控件的实际外观，用来对照 DSH 官方界面。",
+        'about.componentTestOpen': "测试页面",
+        'gallery.title': "组件测试页",
+        'gallery.back': "返回关于",
+        'gallery.hostKit': "宿主组件",
+        'gallery.native': "native（DSH 官方组件）",
+        'gallery.fallback': "fallback（本仓回退）",
+        'gallery.secButtons': "按钮",
+        'gallery.secForm': "表单",
+        'gallery.secNav': "导航与标签",
+        'gallery.secOverlays': "浮层",
+        'gallery.secStates': "状态",
+        'gallery.caseButtonVariants': "按钮变体",
+        'gallery.primary': "主要",
+        'gallery.outline': "描边",
+        'gallery.ghost': "幽灵",
+        'gallery.toolbar': "工具栏",
+        'gallery.caseButtonSizes': "按钮尺寸",
+        'gallery.medium': "中号 36",
+        'gallery.small': "小号 28",
+        'gallery.caseButtonIcon': "带图标",
+        'gallery.withIcon': "新建",
+        'gallery.play': "播放",
+        'gallery.caseButtonDisabled': "禁用",
+        'gallery.disabled': "禁用项",
+        'gallery.caseDanger': "危险操作",
+        'gallery.danger': "删除全部",
+        'gallery.caseIconButton': "图标按钮",
+        'gallery.iconButton': "图标按钮",
+        'gallery.caseInput': "输入框",
+        'gallery.inputPlaceholder': "搜索歌曲、歌手或专辑",
+        'gallery.caseSelect': "下拉选择",
+        'gallery.optLatest': "最近添加",
+        'gallery.optTitle': "标题",
+        'gallery.optArtist': "歌手",
+        'gallery.caseSwitch': "开关",
+        'gallery.caseCheckbox': "复选框",
+        'gallery.caseRange': "滑动条",
+        'gallery.casePill': "胶囊开关（Pill）",
+        'gallery.pillLyrics': "歌词",
+        'gallery.pillCover': "封面",
+        'gallery.pillInfo': "信息",
+        'gallery.caseSegmented': "互斥分段",
+        'gallery.segAll': "全部",
+        'gallery.segLocal': "本地",
+        'gallery.segOnline': "在线",
+        'gallery.caseSegmentedTabs': "Tab 切换（md）",
+        'gallery.tabSongs': "歌曲",
+        'gallery.tabAlbums': "专辑",
+        'gallery.tabArtists': "歌手",
+        'gallery.caseTabsSm': "Tab 切换（sm）",
+        'gallery.casePillsTab': "胶囊组（可多选语义）",
+        'gallery.pillTabOne': "最近",
+        'gallery.pillTabTwo': "收藏",
+        'gallery.pillTabThree': "下载",
+        'gallery.caseTag': "标签",
+        'gallery.tagOutline': "描边",
+        'gallery.tagNeutral': "中性",
+        'gallery.tagSuccess': "成功",
+        'gallery.tagWarning': "警告",
+        'gallery.tagDanger': "错误",
+        'gallery.tagInfo': "信息",
+        'gallery.tabPanel': "当前面板",
+        'gallery.caseMenu': "菜单",
+        'gallery.menuClear': "清空播放队列",
+        'gallery.caseTooltip': "提示气泡",
+        'gallery.caseModal': "对话框",
+        'gallery.openModal': "打开对话框",
+        'gallery.caseToast': "轻提示",
+        'gallery.showToast': "显示提示",
+        'gallery.toastText': "已保存到本地配置",
+        'gallery.modalTitle': "示例对话框",
+        'gallery.modalBody': "对话框、按钮和间距都来自本仓原语与 DSH token。",
+        'gallery.cancel': "取消",
+        'gallery.ok': "确定",
+        'gallery.caseState': "状态点",
+        'gallery.caseSpinner': "加载",
+        'gallery.loading': "加载中",
+        'gallery.caseSetRow': "设置行",
+        'gallery.caseSetRowDesc': "左侧标签与说明，右侧控件。",
+        'gallery.action': "操作",
+        'gallery.emptyTitle': "这里是空的",
+        'gallery.emptyHint': "空状态用 Empty，不用空白页。",
         'settings.volumeNormalize': '音量均衡',
         'settings.replayGain': '音频增益',
         'settings.replayGainHint': '智能平衡把每首歌的响度带到 -14 LUFS（EBU R128 分析，首次需要几秒）；单曲 / 专辑使用文件自带的 ReplayGain 标签。',
@@ -8559,6 +8643,90 @@ window.__ModuleLoader__.load({
         'about.description': 'Multi-folder library, NetEase / QQ / KuGou / KuGou Concept playback, lyric translation, tag and cover editing, audio cache, stats and trash.',
         'about.source': 'GitHub source',
         'about.npm': 'npm package',
+        'about.componentTest': "Component test page",
+        'about.componentTestDesc': "Every shared control side by side, to compare against the DSH host UI.",
+        'about.componentTestOpen': "Test page",
+        'gallery.title': "Component test page",
+        'gallery.back': "Back to About",
+        'gallery.hostKit': "Host kit",
+        'gallery.native': "native (DSH components)",
+        'gallery.fallback': "fallback (local)",
+        'gallery.secButtons': "Buttons",
+        'gallery.secForm': "Form",
+        'gallery.secNav': "Navigation",
+        'gallery.secOverlays': "Overlays",
+        'gallery.secStates': "States",
+        'gallery.caseButtonVariants': "Button variants",
+        'gallery.primary': "Primary",
+        'gallery.outline': "Outline",
+        'gallery.ghost': "Ghost",
+        'gallery.toolbar': "Toolbar",
+        'gallery.caseButtonSizes': "Button sizes",
+        'gallery.medium': "Medium 36",
+        'gallery.small': "Small 28",
+        'gallery.caseButtonIcon': "With icon",
+        'gallery.withIcon': "New",
+        'gallery.play': "Play",
+        'gallery.caseButtonDisabled': "Disabled",
+        'gallery.disabled': "Disabled",
+        'gallery.caseDanger': "Danger",
+        'gallery.danger': "Delete all",
+        'gallery.caseIconButton': "Icon button",
+        'gallery.iconButton': "Icon button",
+        'gallery.caseInput': "Input",
+        'gallery.inputPlaceholder': "Search songs, artists or albums",
+        'gallery.caseSelect': "Dropdown",
+        'gallery.optLatest': "Recently added",
+        'gallery.optTitle': "Title",
+        'gallery.optArtist': "Artist",
+        'gallery.caseSwitch': "Switch",
+        'gallery.caseCheckbox': "Checkbox",
+        'gallery.caseRange': "Slider",
+        'gallery.casePill': "Pill toggle",
+        'gallery.pillLyrics': "Lyrics",
+        'gallery.pillCover': "Cover",
+        'gallery.pillInfo': "Info",
+        'gallery.caseSegmented': "Segmented control",
+        'gallery.segAll': "All",
+        'gallery.segLocal': "Local",
+        'gallery.segOnline': "Online",
+        'gallery.caseSegmentedTabs': "Tabs (md)",
+        'gallery.tabSongs': "Songs",
+        'gallery.tabAlbums': "Albums",
+        'gallery.tabArtists': "Artists",
+        'gallery.caseTabsSm': "Tabs (sm)",
+        'gallery.casePillsTab': "Pill group (multi-select)",
+        'gallery.pillTabOne': "Recent",
+        'gallery.pillTabTwo': "Favorites",
+        'gallery.pillTabThree': "Downloads",
+        'gallery.caseTag': "Tags",
+        'gallery.tagOutline': "Outline",
+        'gallery.tagNeutral': "Neutral",
+        'gallery.tagSuccess': "Success",
+        'gallery.tagWarning': "Warning",
+        'gallery.tagDanger': "Error",
+        'gallery.tagInfo': "Info",
+        'gallery.tabPanel': "Current panel",
+        'gallery.caseMenu': "Menu",
+        'gallery.menuClear': "Clear the queue",
+        'gallery.caseTooltip': "Tooltip",
+        'gallery.caseModal': "Dialog",
+        'gallery.openModal': "Open dialog",
+        'gallery.caseToast': "Toast",
+        'gallery.showToast': "Show toast",
+        'gallery.toastText': "Saved to the local config",
+        'gallery.modalTitle': "Sample dialog",
+        'gallery.modalBody': "The dialog, buttons and spacing all come from the local primitives and DSH tokens.",
+        'gallery.cancel': "Cancel",
+        'gallery.ok': "OK",
+        'gallery.caseState': "Status dots",
+        'gallery.caseSpinner': "Loading",
+        'gallery.loading': "Loading",
+        'gallery.caseSetRow': "Settings row",
+        'gallery.caseSetRowDesc': "Label and description on the left, control on the right.",
+        'gallery.action': "Action",
+        'gallery.emptyTitle': "Nothing here",
+        'gallery.emptyHint': "Empty states use Empty, never a blank page.",
         'settings.volumeNormalize': 'Volume leveling',
         'settings.volumeNormalizeOff': 'Disabled',
         'settings.volumeNormalizeReady': 'Active · built-in EBU R128 analysis',
@@ -157245,16 +157413,24 @@ window.__ModuleLoader__.load({
       '.mp-userchip-vip.is-on{color:#8a5a00;background:#ffd76a}',
       '.mp-userchip-out{color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;margin-left:2px}',
       '.mp-userchip-out:hover{color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mp-iconbtn{width:30px;height:30px;display:inline-grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;flex:none}',
-      '.mp-iconbtn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-iconbtn{width:28px;height:28px;display:inline-grid;place-items:center;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;flex:none}',
+      '@media (hover: hover){.mp-iconbtn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}}',
       '.mp-iconbtn.is-on{color:var(--dsw-alias-state-business-primary,#4176E6)}',
-      '.mp-btn{height:30px;padding:0 12px;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:8px;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.05));color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;cursor:pointer;white-space:nowrap}',
-      '.mp-btn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
-      '.mp-btn.is-primary{background:var(--dsw-alias-button-primary-fill,#0f1115);border-color:transparent;color:var(--dsw-alias-label-primary-foreground,#fff)}',
-      '.mp-btn.is-primary:hover{background:var(--dsw-alias-button-primary-hover,#232324)}',
-      '.mp-btn.is-ghost{background:transparent;border-color:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mp-btn.is-ghost:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
-      '.mp-btn:disabled{opacity:.5;cursor:default}',
+      '.mp-iconbtn:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
+      // Button geometry mirrors the official primitive (ui-primitives Button.module.css):
+      // sm = H28/R8 with 12/18 text, md = H36/R12 with 14/22; outline is a hairline inset
+      // stroke (no fill), primary fills with the button tokens, toolbar uses its own pair.
+      '.mp-btn{box-sizing:border-box;height:28px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:4px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12px;line-height:18px;cursor:pointer;white-space:nowrap;box-shadow:inset 0 0 0 .5px var(--dsw-alias-border-l3,rgba(255,255,255,.18))}',
+      '.mp-btn.is-md{height:36px;padding:0 14px;border-radius:var(--dsw-radius-md,12px);font-size:14px;line-height:22px}',
+      '@media (hover: hover){.mp-btn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}}',
+      '.mp-btn.is-ghost{box-shadow:none;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-btn.is-ghost:active:not(:disabled){background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1))}',
+      '.mp-btn.is-primary{background:var(--dsw-alias-button-primary-fill,#0f1115);color:var(--dsw-alias-label-primary-foreground,#fff);box-shadow:none}',
+      '@media (hover: hover){.mp-btn.is-primary:hover:not(:disabled){background:var(--dsw-alias-button-primary-hover,#232324)}}',
+      '.mp-btn.is-toolbar{box-shadow:none;background:var(--dsw-alias-button-tool-bar-fill,rgba(255,255,255,.06))}',
+      '@media (hover: hover){.mp-btn.is-toolbar:hover:not(:disabled){background:var(--dsw-alias-button-tool-bar-hover,rgba(255,255,255,.1))}}',
+      '.mp-btn:disabled{opacity:.4;cursor:not-allowed}',
+      '.mp-btn:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
 
       // ── workspace ───────────────────────────────────────────────────────────
       '.mp-workspace{display:grid;grid-template-columns:188px minmax(0,1fr);flex:1;min-height:0}',
@@ -158036,7 +158212,7 @@ window.__ModuleLoader__.load({
       '.mp-data-danger{margin-top:22px;padding:12px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 34%,transparent);border-radius:12px;background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 7%,transparent)}',
       '.mp-data-danger-title{font-size:12px;font-weight:650;color:var(--dsw-alias-state-error-primary,#e5484d)}',
       '.mp-data-danger-desc{margin:5px 0 10px;font-size:11px;line-height:1.55;color:var(--dsw-alias-label-secondary,#b4b4bd)}',
-      '.mp-data-danger-btn.mp-btn{color:var(--dsw-alias-state-error-primary,#e5484d);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 38%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 8%,transparent)}',
+      '.mp-data-danger-btn.mp-btn{color:var(--dsw-alias-state-error-primary,#e5484d);box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 38%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 8%,transparent)}',
 
       '.mp-set-page-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px}',
       '.mp-set-page-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
@@ -158057,7 +158233,7 @@ window.__ModuleLoader__.load({
       '.mp-root-add .mp-kit-input{flex:1;min-width:0}',
       '.mp-set-empty-card{padding:18px 0;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-set-hint-line{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding:0 0 10px}',
-      '.mp-about-card{display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));background:var(--dsw-alias-bg-layer-2,#1e1e22)}',
+      '.mp-about-card{display:flex;align-items:center;gap:14px;padding:16px;border-radius:var(--dsw-radius-xl,16px);border:.5px solid var(--dsw-alias-settings-card-stroke,var(--dsw-alias-border-l1,rgba(255,255,255,.08)));background:var(--dsw-alias-settings-card-fill,var(--dsw-alias-bg-layer-2,#1e1e22))}',
       '.mp-about-logo{width:64px;height:64px;flex:none;border-radius:50%;object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,.28)}',
       '.mp-about-main{min-width:0}',
       '.mp-about-name{font-size:15px;font-weight:700;letter-spacing:.01em}',
@@ -158073,7 +158249,7 @@ window.__ModuleLoader__.load({
 
       '.mp-sheet-close{position:absolute;top:10px;right:10px;z-index:3;width:28px;height:28px;display:grid;place-items:center;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;transition:background .14s,color .14s}',
       '.mp-sheet-close:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5);border-color:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
-      '.mp-sheet{position:relative;width:min(760px,calc(100vw - 48px));height:min(560px,calc(100vh - 96px));display:grid;grid-template-columns:180px minmax(0,1fr);background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;overflow:hidden;box-shadow:var(--dsw-elevation-panel,0 30px 80px rgba(0,0,0,.5))}',
+      '.mp-sheet{position:relative;width:min(760px,calc(100vw - 48px));height:min(560px,calc(100vh - 96px));display:grid;grid-template-columns:180px minmax(0,1fr);background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:0;border-radius:var(--dsw-radius-panel,28px);overflow:hidden;box-shadow:var(--dsw-elevation-panel,0 30px 80px rgba(0,0,0,.5))}',
       '.mp-sheet-nav{display:flex;flex-direction:column;gap:2px;padding:16px 10px;background:var(--dsw-alias-bg-layer-1,#15151a);border-right:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
       '.mp-sheet-title{padding:0 10px 10px;font-size:13px;font-weight:650}',
       '.mp-sheet-tab{height:32px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:13px;text-align:left;cursor:pointer}',
@@ -158081,7 +158257,7 @@ window.__ModuleLoader__.load({
       '.mp-sheet-tab.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
       '.mp-sheet-body{overflow-y:auto;padding:18px 52px 26px 22px}',
       '.mp-sheet-body h2{margin:0 0 14px;font-size:14px;font-weight:650}',
-      '.mp-set-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-set-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;padding:11px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
       '.mp-set-choice-row{display:flex;flex-wrap:wrap;gap:4px}',
       '.mp-set-text{min-width:0;flex:1 1 220px}',
       '.mp-set-label{font-size:13px}',
@@ -158090,14 +158266,16 @@ window.__ModuleLoader__.load({
       '.mp-set-control select{height:28px;padding:0 8px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12px}',
       '.mp-range{width:120px;accent-color:var(--dsw-alias-state-business-primary,#4176E6)}',
       '.mp-set-val{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);width:44px;text-align:right;font-variant-numeric:tabular-nums}',
-      '.mp-switch{position:relative;width:38px;height:22px;border-radius:999px;border:0;background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.12));cursor:pointer;transition:background .15s;flex:none}',
-      '.mp-switch i{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-switch-thumb,#fff);transition:transform .15s}',
-      '.mp-switch.is-on{background:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-switch{box-sizing:border-box;position:relative;width:36px;height:20px;padding:2px;border-radius:999px;corner-shape:round;border:0;background:var(--dsw-alias-border-l3,rgba(255,255,255,.18));cursor:pointer;transition:background .12s;flex:none}',
+      '.mp-switch i{display:block;width:16px;height:16px;border-radius:50%;corner-shape:round;background:var(--dsw-alias-switch-thumb,#fff);transition:transform .12s}',
+      '.mp-switch.is-on{background:var(--dsw-alias-brand-primary,var(--dsw-alias-state-business-primary,#4176E6))}',
       '.mp-switch.is-on i{transform:translateX(16px)}',
-      '.mp-dialog{position:relative;width:min(640px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;overflow:hidden;box-shadow:var(--dsw-elevation-panel,0 30px 80px rgba(0,0,0,.5))}',
+      '.mp-switch:disabled{cursor:default;opacity:.5}',
+      '.mp-switch:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
+      '.mp-dialog{position:relative;width:min(640px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:0;border-radius:var(--dsw-radius-panel,28px);overflow:hidden;box-shadow:var(--dsw-elevation-panel,0 30px 80px rgba(0,0,0,.5))}',
       '.mp-dialog.is-sm{width:min(380px,100%)}',
       '.mp-d-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      '.mp-d-title{font-size:13.5px;font-weight:650}',
+      '.mp-d-title{font-size:14px;line-height:20px;font-weight:650}',
       '.mp-d-head .mp-spacer{margin-left:auto}',
       '.mp-d-body{padding:16px 18px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:12px}',
       '.mp-d-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
@@ -158298,9 +158476,10 @@ window.__ModuleLoader__.load({
       '.mp-headmenu-label{flex:1}',
       '.mp-headmenu-hint{color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:11px}',
       '.mp-headmenu-sep{margin:5px 6px;border:0;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      '.mp-pill{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:12px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}',
-      '.mp-pill:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
-      '.mp-pill.is-on{color:var(--dsw-alias-label-primary,#f4f4f5);border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 14%,transparent)}',
+      '.mp-pill{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border:0;border-radius:999px;corner-shape:round;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:12px;line-height:18px;cursor:pointer;transition:background .12s,color .12s}',
+      '@media (hover: hover){.mp-pill:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}}',
+      '.mp-pill.is-on{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-button-ghost-active-fill,var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1)));box-shadow:inset 0 0 0 1px var(--dsw-alias-button-ghost-active-border,var(--dsw-alias-border-l2,rgba(255,255,255,.14)))}',
+      '.mp-pill:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
       '.mp-pill.is-primary{background:var(--dsw-alias-state-business-primary,#4176E6);border-color:transparent;color:#fff}',
       '.mp-kit-modal{width:min(640px,calc(100vw - 48px))}',
       // The floating player card paints its own dark glass on the always-dark player page
@@ -158372,6 +158551,71 @@ window.__ModuleLoader__.load({
       '@media (max-width:620px){.mp-tag-grid{grid-template-columns:1fr}.mp-tag-layout{grid-template-columns:1fr}.mp-tag-aside{position:static;display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;column-gap:10px;row-gap:3px}.mp-tag-aside .mp-tag-cover{width:72px;height:72px;grid-row:1/4}.mp-tag-aside-title{grid-column:2;grid-row:1}.mp-tag-aside-artist{grid-column:2;grid-row:2}.mp-tag-aside-meta{grid-column:2;grid-row:3}.mp-tag-aside-actions{grid-column:1/-1;flex-direction:row;flex-wrap:wrap}.mp-tag-hint{grid-column:1/-1}.mp-tag-body{max-height:min(68vh,620px)}.mp-tag-footer{flex-wrap:wrap}.mp-tag-footer .mp-btn{flex:1}}',
       '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
       '@media (prefers-reduced-motion:reduce){.mp-np-line-trans{transition:none}.mp-np.is-trans .mp-np-line-trans{transition:none}}',
+
+      // ── host-primitive fallbacks (theme-guidelines §3.2) ───────────────────
+      // Geometry copied from the official primitive stylesheets pinned in
+      // A_other/design/official/ (Button/Input/Switch/Pill/Segmented/Tag/Checkbox).
+      '.mp-kit-input-wrap{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 8px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-bg-layer-1,rgba(255,255,255,.03));color:var(--dsw-alias-label-tertiary,#8a8a93);min-width:0}',
+      '.mp-kit-input-wrap:focus-within{border-color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-kit-input-wrap .mp-kit-input{flex:1;min-width:0;height:30px;padding:0;border:0;outline:none;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:14px;line-height:22px}',
+      '.mp-kit-input-wrap .mp-kit-input::placeholder{color:var(--dsw-alias-label-dimmed,var(--dsw-alias-label-tertiary,#8a8a93))}',
+      '.mp-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;line-height:20px;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer}',
+      '.mp-check input{flex:none;width:16px;height:16px;margin:0;accent-color:var(--dsw-alias-brand-primary,var(--dsw-alias-state-business-primary,#4176E6));cursor:inherit}',
+      '.mp-check input:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
+      '.mp-check.is-disabled{cursor:default;opacity:.5}',
+      '.mp-segment{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;padding:4px;border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
+      '.mp-segment-tab{box-sizing:border-box;position:relative;height:28px;padding:0 16px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:13px;line-height:20px;font-weight:500;white-space:nowrap;cursor:pointer;transition:color .12s}',
+      '.mp-segment-tab.is-on{background:var(--dsw-alias-bg-layer-1,#1b1b1e);box-shadow:var(--dsw-elevation-soft,0 2px 8px rgba(0,0,0,.18));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-segment-tab:disabled{cursor:default;opacity:.4}',
+      // SegmentedTabs sizing (official): md = 34px tabs in a 4px inset (42 total),
+      // sm = 30px tabs in a 2px inset (34 total).
+      '.mp-segment-tabs .mp-segment-tab{height:34px}',
+      '.mp-segment-tabs.is-sm{padding:2px}',
+      '.mp-segment-tabs.is-sm .mp-segment-tab{height:30px;font-size:12px;line-height:18px}',
+      '.mp-tag{display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;corner-shape:round;font-size:11px;line-height:17px;font-weight:500;white-space:nowrap}',
+      '.mp-tag[data-tone="outline"]{border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.12));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-tag[data-tone="neutral"]{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-tag[data-tone="quiet"]{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-tag[data-tone="success"]{background:color-mix(in srgb,var(--dsw-alias-state-success-primary,#2f9e68) 10%,transparent);color:var(--dsw-alias-state-success-primary,#2f9e68)}',
+      '.mp-tag[data-tone="info"]{background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 10%,transparent);color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-tag[data-tone="warning"]{background:color-mix(in srgb,var(--dsw-alias-state-warn-primary,#c98a0a) 12%,transparent);color:var(--dsw-alias-state-warn-primary,#c98a0a)}',
+      '.mp-tag[data-tone="danger"]{background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 10%,transparent);color:var(--dsw-alias-state-error-primary,#e5484d)}',
+      '.mp-state-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-state-dot.is-done{background:var(--dsw-alias-state-success-primary,#2f9e68)}',
+      '.mp-state-dot.is-warning{background:var(--dsw-alias-state-warn-primary,#c98a0a)}',
+      '.mp-state-dot.is-error{background:var(--dsw-alias-state-error-primary,#e5484d)}',
+      '.mp-state-dot.is-ongoing{box-sizing:border-box;background:transparent;border:2px solid var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-select-wrap{position:relative;display:inline-flex}',
+      '.mp-select{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;height:32px;min-width:160px;padding:0 8px 0 10px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-bg-layer-1,rgba(255,255,255,.03));color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:13px;line-height:20px;cursor:pointer}',
+      '.mp-select:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
+      '.mp-select.is-open{border-color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-select svg{flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-select-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-select-pop{position:absolute;left:0;top:calc(100% + 4px);z-index:20;min-width:100%;padding:4px;border:0;border-radius:var(--dsw-radius-lg,16px);background:var(--dsw-menu-surface-fill,var(--dsw-alias-bg-overlay,#232326));box-shadow:var(--dsw-elevation-panel,0 12px 32px rgba(0,0,0,.4));-webkit-backdrop-filter:var(--dsw-menu-backdrop-filter,blur(11px));backdrop-filter:var(--dsw-menu-backdrop-filter,blur(11px))}',
+      '.mp-select-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;height:32px;padding:0 8px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:13px;text-align:left;cursor:pointer}',
+      '.mp-select-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
+      '.mp-select-item.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));font-weight:600}',
+
+      // ── component test page (settings → about → 测试页面) ──────────────────
+      '.mp-gallery{grid-column:1 / -1;display:flex;flex:1;min-height:0;flex-direction:column;min-width:0}',
+      '.mp-gallery-head{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-gallery-title{font-size:14px;line-height:20px;font-weight:650;flex:1;min-width:0}',
+      '.mp-gallery-hint{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-gallery-body{display:flex;flex:1;min-height:0}',
+      '.mp-gallery-nav{width:176px;flex:none;display:flex;flex-direction:column;gap:2px;padding:10px;border-right:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));overflow:auto}',
+      '.mp-gallery-navbtn{height:32px;padding:0 10px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:13px;text-align:left;cursor:pointer}',
+      '.mp-gallery-navbtn.is-on{background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 13%,transparent);color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
+      '.mp-gallery-main{flex:1;min-width:0;overflow:auto;padding:16px 18px 24px;display:flex;flex-direction:column;gap:16px}',
+      '.mp-gallery-section{display:flex;flex-direction:column;gap:8px}',
+      '.mp-gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}',
+      '.mp-gallery-case.is-wide{grid-column:1 / -1}',
+      '.mp-gallery-case{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:var(--dsw-radius-xl,20px);border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,rgba(255,255,255,.03))}',
+      '.mp-gallery-case-title{font-size:11px;line-height:16px;letter-spacing:.04em;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-gallery-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
+      '.mp-gallery-note{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-gallery-swatches{display:flex;gap:6px;flex-wrap:wrap}',
+      '.mp-gallery-swatch{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:999px;corner-shape:round;font-size:11px;line-height:17px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '@media (max-width:720px){.mp-gallery-body{flex-direction:column}.mp-gallery-nav{width:auto;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}}',
     ]
 
     var THEME_TEXT = THEME_CSS.join('')
@@ -158446,15 +158690,46 @@ window.__ModuleLoader__.load({
       return button
     }
 
+    /**
+     * Button: the host `Button` when available (variant/size/icon per the official
+     * primitive), otherwise the same geometry as a local fallback.
+     *
+     * Geometry (A_other/docs/theme-guidelines.md §2.3): `sm` = H28 / R8,
+     * `md` = H36 / R12. Variants: primary / ghost / outline (default) / toolbar.
+     */
     function Button(props) {
+      var variant = props.variant === 'primary'
+        ? 'primary'
+        : props.variant === 'ghost'
+          ? 'ghost'
+          : props.variant === 'toolbar'
+            ? 'toolbar'
+            : 'outline'
+      var size = props.size === 'md' ? 'md' : 'sm'
+      var HostButton = hostComponent('Button')
+      if (HostButton !== null) {
+        return h(
+          HostButton,
+          {
+            variant: variant,
+            size: size,
+            icon: props.icon ? icon(props.icon, 16) : undefined,
+            className: props.className,
+            disabled: props.disabled === true,
+            onClick: props.onClick,
+            title: props.title,
+          },
+          props.children,
+        )
+      }
       return h(
         'button',
         {
           type: 'button',
           className: cx(
             'mp-btn',
-            props.variant === 'primary' && 'is-primary',
-            props.variant === 'ghost' && 'is-ghost',
+            'is-' + variant,
+            size === 'md' && 'is-md',
             props.className,
           ),
           disabled: props.disabled === true,
@@ -158624,9 +158899,39 @@ window.__ModuleLoader__.load({
     /**
      * Dialog shell: the host Modal when available (focus trap, Escape, portal,
      * native chrome), otherwise the same overlay markup the plugin used before.
+     *
+     * The fallback still owns Escape (theme-guidelines §5.2): only the top-most
+     * fallback dialog closes, so a dialog opened from inside another one does not
+     * dismiss both at once.
      */
+    var MP_MODAL_STACK = []
+
     function KitModal(props) {
       var HostModal = hostComponent('Modal')
+      var closeRef = useRef(props.onClose)
+      closeRef.current = props.onClose
+      var tokenRef = useRef(null)
+      if (tokenRef.current === null) tokenRef.current = { id: {} }
+      useEffect(
+        function () {
+          if (HostModal !== null) return undefined
+          var token = tokenRef.current
+          MP_MODAL_STACK.push(token)
+          function onKey(event) {
+            if (event.key !== 'Escape') return
+            if (MP_MODAL_STACK[MP_MODAL_STACK.length - 1] !== token) return
+            event.stopPropagation()
+            if (typeof closeRef.current === 'function') closeRef.current()
+          }
+          window.addEventListener('keydown', onKey)
+          return function () {
+            window.removeEventListener('keydown', onKey)
+            var at = MP_MODAL_STACK.indexOf(token)
+            if (at >= 0) MP_MODAL_STACK.splice(at, 1)
+          }
+        },
+        [],
+      )
       if (HostModal !== null) {
         if (props.headless === true) {
           return h(HostModal, {
@@ -158695,6 +159000,659 @@ window.__ModuleLoader__.load({
           props.desc ? h('div', { className: 'mp-set-desc' }, props.desc) : null,
         ),
         h('div', { className: 'mp-set-control' }, props.children),
+      )
+    }
+
+    /**
+     * The host-first family below: each control renders the official DSH primitive when the
+     * host bundle exposes it, and an equivalent local fallback otherwise. Both paths must
+     * share the same props and the same geometry (A_other/docs/theme-guidelines.md §1.2/§3.2).
+     */
+
+    /** Single-line text input. `icon` is a local icon name; `onChange(value)`. */
+    function KitInput(props) {
+      var value = props.value === null || props.value === undefined ? '' : String(props.value)
+      var label = props.label || props.placeholder || ''
+      function change(event) {
+        if (typeof props.onChange === 'function') props.onChange(event.target.value, event)
+      }
+      var HostInput = hostComponent('Input')
+      if (HostInput !== null) {
+        return h(
+          HostInput,
+          {
+            value: value,
+            type: props.type || 'text',
+            placeholder: props.placeholder || '',
+            icon: props.icon ? icon(props.icon, 16) : undefined,
+            disabled: props.disabled === true,
+            readOnly: props.readOnly === true,
+            'aria-label': label,
+            onChange: change,
+            className: props.className,
+          },
+        )
+      }
+      return h(
+        'span',
+        { className: cx('mp-kit-input-wrap', props.className) },
+        props.icon ? icon(props.icon, 15) : null,
+        h('input', {
+          className: 'mp-kit-input',
+          type: props.type || 'text',
+          value: value,
+          placeholder: props.placeholder || '',
+          disabled: props.disabled === true,
+          readOnly: props.readOnly === true,
+          'aria-label': label,
+          onChange: change,
+        }),
+      )
+    }
+
+    /** Labeled checkbox. `onChange(next)`. */
+    function KitCheckbox(props) {
+      var HostCheckbox = hostComponent('Checkbox')
+      if (HostCheckbox !== null) {
+        return h(HostCheckbox, {
+          checked: props.checked === true,
+          onChange: function (next) {
+            if (typeof props.onChange === 'function') props.onChange(next === true)
+          },
+          label: props.label || '',
+          disabled: props.disabled === true,
+          title: props.title,
+          className: props.className,
+        })
+      }
+      return h(
+        'label',
+        { className: cx('mp-check', props.disabled === true && 'is-disabled', props.className), title: props.title },
+        h('input', {
+          type: 'checkbox',
+          checked: props.checked === true,
+          disabled: props.disabled === true,
+          onChange: function (event) {
+            if (typeof props.onChange === 'function') props.onChange(event.target.checked)
+          },
+        }),
+        h('span', null, props.label || ''),
+      )
+    }
+
+    /** Mutually exclusive segments. `options` = [{ value, label }]; `onChange(value)`. */
+    function KitSegmented(props) {
+      var options = Array.isArray(props.options) ? props.options : []
+      var value = String(props.value === undefined ? '' : props.value)
+      var label = props.label || ''
+      var id = props.id || 'mp-segment'
+      var HostSegmented = hostComponent('SegmentedControl')
+      if (HostSegmented !== null) {
+        return h(HostSegmented, {
+          id: id,
+          value: value,
+          options: options.map(function (option) {
+            return { value: String(option.value), label: option.label, disabled: option.disabled === true }
+          }),
+          onChange: function (next) {
+            if (typeof props.onChange === 'function') props.onChange(next)
+          },
+          label: label,
+          disabled: props.disabled === true,
+          className: props.className,
+        })
+      }
+      return h(
+        'div',
+        { className: cx('mp-segment', props.className), role: 'tablist', 'aria-label': label },
+        options.map(function (option) {
+          var on = String(option.value) === value
+          return h(
+            'button',
+            {
+              key: String(option.value),
+              type: 'button',
+              role: 'tab',
+              'aria-selected': on ? 'true' : 'false',
+              className: cx('mp-segment-tab', on && 'is-on'),
+              disabled: props.disabled === true || option.disabled === true,
+              onClick: function () {
+                if (!on && typeof props.onChange === 'function') props.onChange(String(option.value))
+              },
+            },
+            option.label,
+          )
+        }),
+      )
+    }
+
+    /** Controlled tab list. `items` = [{ value, label, id, panelId }]; panels are caller-owned. */
+    function KitSegmentedTabs(props) {
+      var items = Array.isArray(props.items) ? props.items : []
+      var value = String(props.value === undefined ? '' : props.value)
+      var size = props.size === 'sm' ? 'sm' : 'md'
+      var HostTabs = hostComponent('SegmentedTabs')
+      if (HostTabs !== null) {
+        return h(HostTabs, {
+          items: items,
+          value: value,
+          onChange: function (next) {
+            if (typeof props.onChange === 'function') props.onChange(next)
+          },
+          label: props.label || '',
+          size: size,
+          className: props.className,
+        })
+      }
+      return h(
+        'div',
+        {
+          className: cx('mp-segment', 'mp-segment-tabs', size === 'sm' && 'is-sm', props.className),
+          role: 'tablist',
+          'aria-label': props.label || '',
+        },
+        items.map(function (item) {
+          var on = String(item.value) === value
+          return h(
+            'button',
+            {
+              key: String(item.value),
+              id: item.id,
+              type: 'button',
+              role: 'tab',
+              'aria-selected': on ? 'true' : 'false',
+              'aria-controls': item.panelId,
+              tabIndex: on ? 0 : -1,
+              className: cx('mp-segment-tab', on && 'is-on'),
+              onClick: function () {
+                if (typeof props.onChange === 'function') props.onChange(String(item.value))
+              },
+            },
+            item.label,
+          )
+        }),
+      )
+    }
+
+    /** Read-only badge. `tone` = outline | neutral | brand | success | warning | error | info | accent. */
+    function KitTag(props) {
+      var tone = props.tone || 'outline'
+      var HostTag = hostComponent('Tag')
+      if (HostTag !== null) {
+        return h(HostTag, { tone: tone, className: props.className }, props.children)
+      }
+      return h('span', { className: cx('mp-tag', props.className), 'data-tone': tone }, props.children)
+    }
+
+    /** 10px status dot. `state` = done | warning | error | idle | ongoing. */
+    function KitStateDot(props) {
+      var state = props.state || 'idle'
+      var HostDot = hostComponent('StateDot')
+      if (HostDot !== null) return h(HostDot, { state: state })
+      return h('span', { className: cx('mp-state-dot', 'is-' + state), 'aria-hidden': 'true' })
+    }
+
+    /**
+     * Dropdown select. DSH has no Select primitive: the official pattern is an anchored
+     * `Menu`, so the trigger is a field and the list is the host menu (`Menu`).
+     */
+    function KitSelect(props) {
+      var pair = useState(false)
+      var open = pair[0]
+      var setOpen = pair[1]
+      var options = Array.isArray(props.options) ? props.options : []
+      var value = String(props.value === undefined ? '' : props.value)
+      var current = null
+      for (var index = 0; index < options.length; index += 1) {
+        if (String(options[index].value) === value) current = options[index]
+      }
+      var ref = useRef(null)
+      var HostMenu = hostComponent('Menu')
+
+      useEffect(
+        function () {
+          if (!open) return undefined
+          if (HostMenu !== null) return undefined
+          function onDown(event) {
+            if (ref.current && ref.current.contains(event.target)) return
+            setOpen(false)
+          }
+          function onKey(event) {
+            if (event.key === 'Escape') setOpen(false)
+          }
+          document.addEventListener('pointerdown', onDown, true)
+          window.addEventListener('keydown', onKey)
+          return function () {
+            document.removeEventListener('pointerdown', onDown, true)
+            window.removeEventListener('keydown', onKey)
+          }
+        },
+        [open],
+      )
+
+      var trigger = h(
+        'button',
+        {
+          type: 'button',
+          className: cx('mp-select', open && 'is-open'),
+          'aria-label': props.label || '',
+          'aria-haspopup': 'listbox',
+          'aria-expanded': open ? 'true' : 'false',
+          disabled: props.disabled === true,
+          onClick: function () {
+            setOpen(!open)
+          },
+        },
+        h('span', { className: 'mp-select-label' }, current ? current.label : props.placeholder || ''),
+        icon('chevronDown', 14),
+      )
+
+      if (HostMenu !== null) {
+        var hostItems = options.map(function (option) {
+          return {
+            id: String(option.value),
+            label: option.label,
+            disabled: option.disabled === true,
+          }
+        })
+        return h(HostMenu, {
+          open: open,
+          anchor: trigger,
+          items: hostItems,
+          selectedId: value,
+          onSelect: function (id) {
+            setOpen(false)
+            if (typeof props.onChange === 'function') props.onChange(id)
+          },
+          onClose: function () {
+            setOpen(false)
+          },
+          side: 'bottom',
+          align: 'start',
+          portal: true,
+          compact: true,
+        })
+      }
+      return h(
+        'div',
+        { className: 'mp-select-wrap', ref: ref },
+        trigger,
+        open
+          ? h(
+              'div',
+              { className: 'mp-select-pop', role: 'listbox', 'aria-label': props.label || '' },
+              options.map(function (option) {
+                var on = String(option.value) === value
+                return h(
+                  'button',
+                  {
+                    key: String(option.value),
+                    type: 'button',
+                    role: 'option',
+                    'aria-selected': on ? 'true' : 'false',
+                    className: cx('mp-select-item', on && 'is-on'),
+                    disabled: option.disabled === true,
+                    onClick: function () {
+                      setOpen(false)
+                      if (typeof props.onChange === 'function') props.onChange(String(option.value))
+                    },
+                  },
+                  h('span', null, option.label),
+                  on ? icon('check', 13) : null,
+                )
+              }),
+            )
+          : null,
+      )
+    }
+
+    // ── src/client/components/ui/component-gallery.js
+    /**
+     * Component test page (设置 → 关于 → 测试页面).
+     *
+     * One screen with every shared control, so a change to the gap between the plugin's
+     * controls and the DSH host is visible at a glance. Each case renders the real primitive
+     * (host component when the host exposes it, otherwise its fallback), not a mock: what you
+     * see is what the rest of the plugin draws. Rules: A_other/docs/theme-guidelines.md.
+     */
+
+    var GALLERY_SECTIONS = [
+      { key: 'buttons', labelKey: 'gallery.secButtons' },
+      { key: 'form', labelKey: 'gallery.secForm' },
+      { key: 'navigation', labelKey: 'gallery.secNav' },
+      { key: 'overlays', labelKey: 'gallery.secOverlays' },
+      { key: 'states', labelKey: 'gallery.secStates' },
+    ]
+
+    /** One labelled case in the grid: a title above whatever the case renders. */
+    function GalleryCase(props) {
+      return h(
+        'div',
+        { className: cx('mp-gallery-case', props.wide === true && 'is-wide') },
+        h('div', { className: 'mp-gallery-case-title' }, props.title),
+        h('div', { className: 'mp-gallery-row' }, props.children),
+      )
+    }
+
+    function ComponentGallery(props) {
+      var sectionPair = useState('buttons')
+      var section = sectionPair[0]
+      var setSection = sectionPair[1]
+      var modalPair = useState(false)
+      var modalOpen = modalPair[0]
+      var setModalOpen = modalPair[1]
+
+      var inputPair = useState('')
+      var inputValue = inputPair[0]
+      var setInputValue = inputPair[1]
+
+      var selectPair = useState('a')
+      var selectValue = selectPair[0]
+      var setSelectValue = selectPair[1]
+
+      var switchPair = useState(true)
+      var switchOn = switchPair[0]
+      var setSwitchOn = switchPair[1]
+
+      var checkPair = useState(true)
+      var checked = checkPair[0]
+      var setChecked = checkPair[1]
+
+      var rangePair = useState(48)
+      var rangeValue = rangePair[0]
+      var setRangeValue = rangePair[1]
+
+      var pillPair = useState('lyrics')
+      var pillValue = pillPair[0]
+      var setPillValue = pillPair[1]
+
+      var segmentPair = useState('all')
+      var segmentValue = segmentPair[0]
+      var setSegmentValue = segmentPair[1]
+
+      var tabsPair = useState('songs')
+      var tabsValue = tabsPair[0]
+      var setTabsValue = tabsPair[1]
+
+      var hostKit = hostComponent('Button') !== null ? 'native' : 'fallback'
+
+      function buttonsSection() {
+        return [
+          h(
+            'div',
+            { key: 'variants' },
+            h(
+              'div',
+              { className: 'mp-gallery-grid' },
+              h(GalleryCase, { title: t('gallery.caseButtonVariants') },
+                h(Button, { variant: 'primary' }, t('gallery.primary')),
+                h(Button, null, t('gallery.outline')),
+                h(Button, { variant: 'ghost' }, t('gallery.ghost')),
+                h(Button, { variant: 'toolbar' }, t('gallery.toolbar')),
+              ),
+              h(GalleryCase, { title: t('gallery.caseButtonSizes') },
+                h(Button, { size: 'md' }, t('gallery.medium')),
+                h(Button, { size: 'sm' }, t('gallery.small')),
+              ),
+              h(GalleryCase, { title: t('gallery.caseButtonIcon') },
+                h(Button, { icon: 'plus' }, t('gallery.withIcon')),
+                h(Button, { variant: 'primary', icon: 'play' }, t('gallery.play')),
+              ),
+              h(GalleryCase, { title: t('gallery.caseButtonDisabled') },
+                h(Button, { disabled: true }, t('gallery.disabled')),
+                h(Button, { variant: 'primary', disabled: true }, t('gallery.disabled')),
+              ),
+              h(GalleryCase, { title: t('gallery.caseDanger') },
+                h(Button, { className: 'mp-data-danger-btn', icon: 'trash' }, t('gallery.danger')),
+              ),
+              h(GalleryCase, { title: t('gallery.caseIconButton') },
+                h(IconButton, { icon: 'note', title: t('gallery.iconButton') }),
+                h(IconButton, { icon: 'list', title: t('gallery.iconButton'), active: true }),
+                h(IconButton, { icon: 'refresh', title: t('gallery.iconButton'), disabled: true }),
+              ),
+            ),
+          ),
+        ]
+      }
+
+      function formSection() {
+        return [
+          h(
+            'div',
+            { key: 'grid', className: 'mp-gallery-grid' },
+            h(GalleryCase, { title: t('gallery.caseInput') },
+              h(KitInput, {
+                value: inputValue,
+                placeholder: t('gallery.inputPlaceholder'),
+                icon: 'search',
+                label: t('gallery.caseInput'),
+                onChange: setInputValue,
+              }),
+            ),
+            h(GalleryCase, { title: t('gallery.caseSelect') },
+              h(KitSelect, {
+                value: selectValue,
+                label: t('gallery.caseSelect'),
+                options: [
+                  { value: 'a', label: t('gallery.optLatest') },
+                  { value: 'b', label: t('gallery.optTitle') },
+                  { value: 'c', label: t('gallery.optArtist') },
+                ],
+                onChange: setSelectValue,
+              }),
+            ),
+            h(GalleryCase, { title: t('gallery.caseSwitch') },
+              h(Switch, { value: switchOn, label: t('gallery.caseSwitch'), onChange: setSwitchOn }),
+              h(Switch, { value: !switchOn, label: t('gallery.caseSwitch'), onChange: setSwitchOn }),
+              h(Switch, { value: false, label: t('gallery.caseSwitch'), disabled: true }),
+            ),
+            h(GalleryCase, { title: t('gallery.caseCheckbox') },
+              h(KitCheckbox, { checked: checked, label: t('gallery.caseCheckbox'), onChange: setChecked }),
+              h(KitCheckbox, { checked: false, label: t('gallery.disabled'), disabled: true, onChange: function () {} }),
+            ),
+            h(GalleryCase, { title: t('gallery.caseRange') },
+              h('input', {
+                type: 'range',
+                className: 'mp-range',
+                min: 0,
+                max: 100,
+                value: rangeValue,
+                'aria-label': t('gallery.caseRange'),
+                onChange: function (event) {
+                  setRangeValue(Number(event.target.value))
+                },
+              }),
+              h('span', { className: 'mp-set-val' }, rangeValue + '%'),
+            ),
+            h(GalleryCase, { title: t('gallery.casePill') },
+              [
+                ['lyrics', t('gallery.pillLyrics')],
+                ['cover', t('gallery.pillCover')],
+                ['info', t('gallery.pillInfo')],
+              ].map(function (entry) {
+                return h(
+                  KitPill,
+                  {
+                    key: entry[0],
+                    active: pillValue === entry[0],
+                    onClick: function () {
+                      setPillValue(entry[0])
+                    },
+                  },
+                  entry[1],
+                )
+              }),
+            ),
+          ),
+        ]
+      }
+
+      function navigationSection() {
+        var tabItems = [
+          { value: 'songs', label: t('gallery.tabSongs'), id: 'mp-gallery-tab-songs', panelId: 'mp-gallery-panel-songs' },
+          { value: 'albums', label: t('gallery.tabAlbums'), id: 'mp-gallery-tab-albums', panelId: 'mp-gallery-panel-albums' },
+          { value: 'artists', label: t('gallery.tabArtists'), id: 'mp-gallery-tab-artists', panelId: 'mp-gallery-panel-artists' },
+        ]
+        return [
+          h(
+            'div',
+            { key: 'grid', className: 'mp-gallery-grid' },
+            h(GalleryCase, { title: t('gallery.caseSegmented') },
+              h(KitSegmented, {
+                id: 'mp-gallery-segment',
+                value: segmentValue,
+                label: t('gallery.caseSegmented'),
+                options: [
+                  { value: 'all', label: t('gallery.segAll') },
+                  { value: 'local', label: t('gallery.segLocal') },
+                  { value: 'online', label: t('gallery.segOnline') },
+                ],
+                onChange: setSegmentValue,
+              }),
+            ),
+            h(GalleryCase, { title: t('gallery.caseSegmentedTabs') },
+              h(KitSegmentedTabs, {
+                items: tabItems,
+                value: tabsValue,
+                label: t('gallery.caseSegmentedTabs'),
+                onChange: setTabsValue,
+              }),
+            ),
+            h(GalleryCase, { title: t('gallery.caseTabsSm') },
+              h(KitSegmentedTabs, {
+                items: tabItems,
+                value: tabsValue,
+                size: 'sm',
+                label: t('gallery.caseTabsSm'),
+                onChange: setTabsValue,
+              }),
+            ),
+            h(GalleryCase, { title: t('gallery.casePillsTab') },
+              h(KitPill, { active: true, onClick: function () {} }, t('gallery.pillTabOne')),
+              h(KitPill, { active: false, onClick: function () {} }, t('gallery.pillTabTwo')),
+              h(KitPill, { active: false, onClick: function () {} }, t('gallery.pillTabThree')),
+            ),
+            h(GalleryCase, { title: t('gallery.caseTag') },
+              h(KitTag, { tone: 'outline' }, t('gallery.tagOutline')),
+              h(KitTag, { tone: 'neutral' }, t('gallery.tagNeutral')),
+              h(KitTag, { tone: 'success' }, t('gallery.tagSuccess')),
+              h(KitTag, { tone: 'warning' }, t('gallery.tagWarning')),
+              h(KitTag, { tone: 'danger' }, t('gallery.tagDanger')),
+              h(KitTag, { tone: 'info' }, t('gallery.tagInfo')),
+            ),
+          ),
+          h(
+            'div',
+            { key: 'panel', className: 'mp-gallery-note', id: 'mp-gallery-panel-' + tabsValue, role: 'tabpanel', 'aria-labelledby': 'mp-gallery-tab-' + tabsValue },
+            t('gallery.tabPanel') + ': ' + tabsValue,
+          ),
+        ]
+      }
+
+      function overlaysSection() {
+        var menuItems = [
+          { key: 'sort-latest', label: t('gallery.optLatest'), active: true, run: function () {} },
+          { key: 'sort-title', label: t('gallery.optTitle'), run: function () {} },
+          { key: 'sort-artist', label: t('gallery.optArtist'), run: function () {} },
+          { key: 'separator', separator: true },
+          { key: 'clear', label: t('gallery.menuClear'), danger: true, run: function () {} },
+        ]
+        return [
+          h(
+            'div',
+            { key: 'grid', className: 'mp-gallery-grid' },
+            h(GalleryCase, { title: t('gallery.caseMenu') }, h(HeadMenu, { icon: 'more', title: t('gallery.caseMenu'), items: menuItems })),
+            h(GalleryCase, { title: t('gallery.caseTooltip') },
+              h(IconButton, { icon: 'info', title: t('gallery.caseTooltip') }),
+            ),
+            h(GalleryCase, { title: t('gallery.caseModal') },
+              h(Button, { onClick: function () { setModalOpen(true) } }, t('gallery.openModal')),
+            ),
+            h(GalleryCase, { title: t('gallery.caseToast') },
+              h(Button, { onClick: function () { showToast(t('gallery.toastText')) } }, t('gallery.showToast')),
+            ),
+          ),
+          modalOpen
+            ? h(
+                KitModal,
+                {
+                  title: t('gallery.modalTitle'),
+                  onClose: function () { setModalOpen(false) },
+                  footer: [
+                    h(Button, { key: 'cancel', onClick: function () { setModalOpen(false) } }, t('gallery.cancel')),
+                    h(Button, { key: 'ok', variant: 'primary', onClick: function () { setModalOpen(false) } }, t('gallery.ok')),
+                  ],
+                },
+                h('p', { className: 'mp-set-desc' }, t('gallery.modalBody')),
+              )
+            : null,
+        ]
+      }
+
+      function statesSection() {
+        return [
+          h(
+            'div',
+            { key: 'grid', className: 'mp-gallery-grid' },
+            h(GalleryCase, { title: t('gallery.caseState') },
+              h(KitStateDot, { state: 'done' }),
+              h(KitStateDot, { state: 'warning' }),
+              h(KitStateDot, { state: 'error' }),
+              h(KitStateDot, { state: 'idle' }),
+              h(KitStateDot, { state: 'ongoing' }),
+            ),
+            h(GalleryCase, { title: t('gallery.caseSpinner') }, h(Spinner), h('span', { className: 'mp-gallery-note' }, t('gallery.loading'))),
+            h(GalleryCase, { title: t('gallery.caseSetRow'), wide: true },
+              h(SetRow, { label: t('gallery.caseSetRow'), desc: t('gallery.caseSetRowDesc') }, h(Button, null, t('gallery.action'))),
+            ),
+          ),
+          h('div', { key: 'empty', className: 'mp-gallery-section' }, h(Empty, { title: t('gallery.emptyTitle'), hint: t('gallery.emptyHint') })),
+        ]
+      }
+
+      function sectionBody() {
+        if (section === 'form') return formSection()
+        if (section === 'navigation') return navigationSection()
+        if (section === 'overlays') return overlaysSection()
+        if (section === 'states') return statesSection()
+        return buttonsSection()
+      }
+
+      return h(
+        'div',
+        { className: 'mp-gallery' },
+        h(
+          'div',
+          { className: 'mp-gallery-head' },
+          h(IconButton, { icon: 'chevronLeft', title: t('gallery.back'), onClick: props.onClose }),
+          h('div', { className: 'mp-gallery-title' }, t('gallery.title')),
+          h('span', { className: 'mp-gallery-hint' }, t('gallery.hostKit') + ': ' + (hostKit === 'native' ? t('gallery.native') : t('gallery.fallback'))),
+        ),
+        h(
+          'div',
+          { className: 'mp-gallery-body' },
+          h(
+            'div',
+            { className: 'mp-gallery-nav', role: 'tablist', 'aria-label': t('gallery.title') },
+            GALLERY_SECTIONS.map(function (entry) {
+              return h(
+                'button',
+                {
+                  key: entry.key,
+                  type: 'button',
+                  role: 'tab',
+                  'aria-selected': section === entry.key ? 'true' : 'false',
+                  className: cx('mp-gallery-navbtn', section === entry.key && 'is-on'),
+                  onClick: function () {
+                    setSection(entry.key)
+                  },
+                },
+                t(entry.labelKey),
+              )
+            }),
+          ),
+          h('div', { className: 'mp-gallery-main', role: 'tabpanel' }, sectionBody()),
+        ),
       )
     }
 
@@ -163685,6 +164643,11 @@ window.__ModuleLoader__.load({
       var tabPair = useState('appearance')
       var tab = tabPair[0]
       var setTab = tabPair[1]
+      // Component test page: a full view inside the same sheet, so it shares the sheet's
+      // modal layer instead of opening a second one.
+      var galleryPair = useState(false)
+      var galleryOpen = galleryPair[0]
+      var setGalleryOpen = galleryPair[1]
       var cachePair = useState(null)
       var cacheSongsPair = useState(null)
       var cacheSongs = cacheSongsPair[0]
@@ -164926,6 +165889,11 @@ window.__ModuleLoader__.load({
               t('about.npm'),
             ),
           ),
+          h(
+            SetRow,
+            { key: 'gallery', label: t('about.componentTest'), desc: t('about.componentTestDesc') },
+            h(Button, { icon: 'list', onClick: function () { setGalleryOpen(true) } }, t('about.componentTestOpen')),
+          ),
           h('p', { key: 'desc', className: 'mp-set-desc' }, t('about.description')),
         ]
       }
@@ -164951,37 +165919,47 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'mp-sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('page.settings') },
-          h(
-            'div',
-            { className: 'mp-sheet-nav' },
-            h('div', { className: 'mp-sheet-title' }, t('page.settings')),
-            SETTINGS_TABS.map(function (item) {
-              return h(
-                'button',
-                {
-                  key: item.key,
-                  type: 'button',
-                  className: cx('mp-sheet-tab', tab === item.key && 'is-on'),
-                  onClick: function () {
-                    setTab(item.key)
-                  },
+          galleryOpen
+            ? h(ComponentGallery, {
+                key: 'gallery',
+                onClose: function () {
+                  setGalleryOpen(false)
                 },
-                t(item.label),
-              )
-            }),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mp-sheet-close',
-              title: t('v2.close'),
-              'aria-label': t('v2.close'),
-              onClick: props.onClose,
-            },
-            icon('x', 16),
-          ),
-          h('div', { className: 'mp-sheet-body' }, body, resetDialog()),
+              })
+            : [
+                h(
+                  'div',
+                  { key: 'nav', className: 'mp-sheet-nav' },
+                  h('div', { className: 'mp-sheet-title' }, t('page.settings')),
+                  SETTINGS_TABS.map(function (item) {
+                    return h(
+                      'button',
+                      {
+                        key: item.key,
+                        type: 'button',
+                        className: cx('mp-sheet-tab', tab === item.key && 'is-on'),
+                        onClick: function () {
+                          setTab(item.key)
+                        },
+                      },
+                      t(item.label),
+                    )
+                  }),
+                ),
+                h(
+                  'button',
+                  {
+                    key: 'close',
+                    type: 'button',
+                    className: 'mp-sheet-close',
+                    title: t('v2.close'),
+                    'aria-label': t('v2.close'),
+                    onClick: props.onClose,
+                  },
+                  icon('x', 16),
+                ),
+                h('div', { key: 'body', className: 'mp-sheet-body' }, body, resetDialog()),
+              ],
         ),
       )
     }
@@ -174561,6 +175539,9 @@ window.__ModuleLoader__.load({
           mpLocalLyricLines: typeof mpLocalLyricLines === 'function' ? mpLocalLyricLines : null,
           mpStyleCatalog: typeof mpStyleCatalog !== 'undefined' ? mpStyleCatalog : null,
           mpStyleOf: typeof mpStyleOf !== 'undefined' ? mpStyleOf : null,
+          // The component test page (settings → about): a render test mounts it to keep
+          // every shared control wired.
+          ComponentGallery: typeof ComponentGallery === 'function' ? ComponentGallery : null,
         },
         enumerable: false,
       })

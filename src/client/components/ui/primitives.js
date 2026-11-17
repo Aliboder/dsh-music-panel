@@ -67,15 +67,46 @@ function IconButton(props) {
   return button
 }
 
+/**
+ * Button: the host `Button` when available (variant/size/icon per the official
+ * primitive), otherwise the same geometry as a local fallback.
+ *
+ * Geometry (A_other/docs/theme-guidelines.md §2.3): `sm` = H28 / R8,
+ * `md` = H36 / R12. Variants: primary / ghost / outline (default) / toolbar.
+ */
 function Button(props) {
+  var variant = props.variant === 'primary'
+    ? 'primary'
+    : props.variant === 'ghost'
+      ? 'ghost'
+      : props.variant === 'toolbar'
+        ? 'toolbar'
+        : 'outline'
+  var size = props.size === 'md' ? 'md' : 'sm'
+  var HostButton = hostComponent('Button')
+  if (HostButton !== null) {
+    return h(
+      HostButton,
+      {
+        variant: variant,
+        size: size,
+        icon: props.icon ? icon(props.icon, 16) : undefined,
+        className: props.className,
+        disabled: props.disabled === true,
+        onClick: props.onClick,
+        title: props.title,
+      },
+      props.children,
+    )
+  }
   return h(
     'button',
     {
       type: 'button',
       className: cx(
         'mp-btn',
-        props.variant === 'primary' && 'is-primary',
-        props.variant === 'ghost' && 'is-ghost',
+        'is-' + variant,
+        size === 'md' && 'is-md',
         props.className,
       ),
       disabled: props.disabled === true,
@@ -245,9 +276,39 @@ function KitPill(props) {
 /**
  * Dialog shell: the host Modal when available (focus trap, Escape, portal,
  * native chrome), otherwise the same overlay markup the plugin used before.
+ *
+ * The fallback still owns Escape (theme-guidelines §5.2): only the top-most
+ * fallback dialog closes, so a dialog opened from inside another one does not
+ * dismiss both at once.
  */
+var MP_MODAL_STACK = []
+
 function KitModal(props) {
   var HostModal = hostComponent('Modal')
+  var closeRef = useRef(props.onClose)
+  closeRef.current = props.onClose
+  var tokenRef = useRef(null)
+  if (tokenRef.current === null) tokenRef.current = { id: {} }
+  useEffect(
+    function () {
+      if (HostModal !== null) return undefined
+      var token = tokenRef.current
+      MP_MODAL_STACK.push(token)
+      function onKey(event) {
+        if (event.key !== 'Escape') return
+        if (MP_MODAL_STACK[MP_MODAL_STACK.length - 1] !== token) return
+        event.stopPropagation()
+        if (typeof closeRef.current === 'function') closeRef.current()
+      }
+      window.addEventListener('keydown', onKey)
+      return function () {
+        window.removeEventListener('keydown', onKey)
+        var at = MP_MODAL_STACK.indexOf(token)
+        if (at >= 0) MP_MODAL_STACK.splice(at, 1)
+      }
+    },
+    [],
+  )
   if (HostModal !== null) {
     if (props.headless === true) {
       return h(HostModal, {
@@ -316,5 +377,308 @@ function SetRow(props) {
       props.desc ? h('div', { className: 'mp-set-desc' }, props.desc) : null,
     ),
     h('div', { className: 'mp-set-control' }, props.children),
+  )
+}
+
+/**
+ * The host-first family below: each control renders the official DSH primitive when the
+ * host bundle exposes it, and an equivalent local fallback otherwise. Both paths must
+ * share the same props and the same geometry (A_other/docs/theme-guidelines.md §1.2/§3.2).
+ */
+
+/** Single-line text input. `icon` is a local icon name; `onChange(value)`. */
+function KitInput(props) {
+  var value = props.value === null || props.value === undefined ? '' : String(props.value)
+  var label = props.label || props.placeholder || ''
+  function change(event) {
+    if (typeof props.onChange === 'function') props.onChange(event.target.value, event)
+  }
+  var HostInput = hostComponent('Input')
+  if (HostInput !== null) {
+    return h(
+      HostInput,
+      {
+        value: value,
+        type: props.type || 'text',
+        placeholder: props.placeholder || '',
+        icon: props.icon ? icon(props.icon, 16) : undefined,
+        disabled: props.disabled === true,
+        readOnly: props.readOnly === true,
+        'aria-label': label,
+        onChange: change,
+        className: props.className,
+      },
+    )
+  }
+  return h(
+    'span',
+    { className: cx('mp-kit-input-wrap', props.className) },
+    props.icon ? icon(props.icon, 15) : null,
+    h('input', {
+      className: 'mp-kit-input',
+      type: props.type || 'text',
+      value: value,
+      placeholder: props.placeholder || '',
+      disabled: props.disabled === true,
+      readOnly: props.readOnly === true,
+      'aria-label': label,
+      onChange: change,
+    }),
+  )
+}
+
+/** Labeled checkbox. `onChange(next)`. */
+function KitCheckbox(props) {
+  var HostCheckbox = hostComponent('Checkbox')
+  if (HostCheckbox !== null) {
+    return h(HostCheckbox, {
+      checked: props.checked === true,
+      onChange: function (next) {
+        if (typeof props.onChange === 'function') props.onChange(next === true)
+      },
+      label: props.label || '',
+      disabled: props.disabled === true,
+      title: props.title,
+      className: props.className,
+    })
+  }
+  return h(
+    'label',
+    { className: cx('mp-check', props.disabled === true && 'is-disabled', props.className), title: props.title },
+    h('input', {
+      type: 'checkbox',
+      checked: props.checked === true,
+      disabled: props.disabled === true,
+      onChange: function (event) {
+        if (typeof props.onChange === 'function') props.onChange(event.target.checked)
+      },
+    }),
+    h('span', null, props.label || ''),
+  )
+}
+
+/** Mutually exclusive segments. `options` = [{ value, label }]; `onChange(value)`. */
+function KitSegmented(props) {
+  var options = Array.isArray(props.options) ? props.options : []
+  var value = String(props.value === undefined ? '' : props.value)
+  var label = props.label || ''
+  var id = props.id || 'mp-segment'
+  var HostSegmented = hostComponent('SegmentedControl')
+  if (HostSegmented !== null) {
+    return h(HostSegmented, {
+      id: id,
+      value: value,
+      options: options.map(function (option) {
+        return { value: String(option.value), label: option.label, disabled: option.disabled === true }
+      }),
+      onChange: function (next) {
+        if (typeof props.onChange === 'function') props.onChange(next)
+      },
+      label: label,
+      disabled: props.disabled === true,
+      className: props.className,
+    })
+  }
+  return h(
+    'div',
+    { className: cx('mp-segment', props.className), role: 'tablist', 'aria-label': label },
+    options.map(function (option) {
+      var on = String(option.value) === value
+      return h(
+        'button',
+        {
+          key: String(option.value),
+          type: 'button',
+          role: 'tab',
+          'aria-selected': on ? 'true' : 'false',
+          className: cx('mp-segment-tab', on && 'is-on'),
+          disabled: props.disabled === true || option.disabled === true,
+          onClick: function () {
+            if (!on && typeof props.onChange === 'function') props.onChange(String(option.value))
+          },
+        },
+        option.label,
+      )
+    }),
+  )
+}
+
+/** Controlled tab list. `items` = [{ value, label, id, panelId }]; panels are caller-owned. */
+function KitSegmentedTabs(props) {
+  var items = Array.isArray(props.items) ? props.items : []
+  var value = String(props.value === undefined ? '' : props.value)
+  var size = props.size === 'sm' ? 'sm' : 'md'
+  var HostTabs = hostComponent('SegmentedTabs')
+  if (HostTabs !== null) {
+    return h(HostTabs, {
+      items: items,
+      value: value,
+      onChange: function (next) {
+        if (typeof props.onChange === 'function') props.onChange(next)
+      },
+      label: props.label || '',
+      size: size,
+      className: props.className,
+    })
+  }
+  return h(
+    'div',
+    {
+      className: cx('mp-segment', 'mp-segment-tabs', size === 'sm' && 'is-sm', props.className),
+      role: 'tablist',
+      'aria-label': props.label || '',
+    },
+    items.map(function (item) {
+      var on = String(item.value) === value
+      return h(
+        'button',
+        {
+          key: String(item.value),
+          id: item.id,
+          type: 'button',
+          role: 'tab',
+          'aria-selected': on ? 'true' : 'false',
+          'aria-controls': item.panelId,
+          tabIndex: on ? 0 : -1,
+          className: cx('mp-segment-tab', on && 'is-on'),
+          onClick: function () {
+            if (typeof props.onChange === 'function') props.onChange(String(item.value))
+          },
+        },
+        item.label,
+      )
+    }),
+  )
+}
+
+/** Read-only badge. `tone` = outline | neutral | brand | success | warning | error | info | accent. */
+function KitTag(props) {
+  var tone = props.tone || 'outline'
+  var HostTag = hostComponent('Tag')
+  if (HostTag !== null) {
+    return h(HostTag, { tone: tone, className: props.className }, props.children)
+  }
+  return h('span', { className: cx('mp-tag', props.className), 'data-tone': tone }, props.children)
+}
+
+/** 10px status dot. `state` = done | warning | error | idle | ongoing. */
+function KitStateDot(props) {
+  var state = props.state || 'idle'
+  var HostDot = hostComponent('StateDot')
+  if (HostDot !== null) return h(HostDot, { state: state })
+  return h('span', { className: cx('mp-state-dot', 'is-' + state), 'aria-hidden': 'true' })
+}
+
+/**
+ * Dropdown select. DSH has no Select primitive: the official pattern is an anchored
+ * `Menu`, so the trigger is a field and the list is the host menu (`Menu`).
+ */
+function KitSelect(props) {
+  var pair = useState(false)
+  var open = pair[0]
+  var setOpen = pair[1]
+  var options = Array.isArray(props.options) ? props.options : []
+  var value = String(props.value === undefined ? '' : props.value)
+  var current = null
+  for (var index = 0; index < options.length; index += 1) {
+    if (String(options[index].value) === value) current = options[index]
+  }
+  var ref = useRef(null)
+  var HostMenu = hostComponent('Menu')
+
+  useEffect(
+    function () {
+      if (!open) return undefined
+      if (HostMenu !== null) return undefined
+      function onDown(event) {
+        if (ref.current && ref.current.contains(event.target)) return
+        setOpen(false)
+      }
+      function onKey(event) {
+        if (event.key === 'Escape') setOpen(false)
+      }
+      document.addEventListener('pointerdown', onDown, true)
+      window.addEventListener('keydown', onKey)
+      return function () {
+        document.removeEventListener('pointerdown', onDown, true)
+        window.removeEventListener('keydown', onKey)
+      }
+    },
+    [open],
+  )
+
+  var trigger = h(
+    'button',
+    {
+      type: 'button',
+      className: cx('mp-select', open && 'is-open'),
+      'aria-label': props.label || '',
+      'aria-haspopup': 'listbox',
+      'aria-expanded': open ? 'true' : 'false',
+      disabled: props.disabled === true,
+      onClick: function () {
+        setOpen(!open)
+      },
+    },
+    h('span', { className: 'mp-select-label' }, current ? current.label : props.placeholder || ''),
+    icon('chevronDown', 14),
+  )
+
+  if (HostMenu !== null) {
+    var hostItems = options.map(function (option) {
+      return {
+        id: String(option.value),
+        label: option.label,
+        disabled: option.disabled === true,
+      }
+    })
+    return h(HostMenu, {
+      open: open,
+      anchor: trigger,
+      items: hostItems,
+      selectedId: value,
+      onSelect: function (id) {
+        setOpen(false)
+        if (typeof props.onChange === 'function') props.onChange(id)
+      },
+      onClose: function () {
+        setOpen(false)
+      },
+      side: 'bottom',
+      align: 'start',
+      portal: true,
+      compact: true,
+    })
+  }
+  return h(
+    'div',
+    { className: 'mp-select-wrap', ref: ref },
+    trigger,
+    open
+      ? h(
+          'div',
+          { className: 'mp-select-pop', role: 'listbox', 'aria-label': props.label || '' },
+          options.map(function (option) {
+            var on = String(option.value) === value
+            return h(
+              'button',
+              {
+                key: String(option.value),
+                type: 'button',
+                role: 'option',
+                'aria-selected': on ? 'true' : 'false',
+                className: cx('mp-select-item', on && 'is-on'),
+                disabled: option.disabled === true,
+                onClick: function () {
+                  setOpen(false)
+                  if (typeof props.onChange === 'function') props.onChange(String(option.value))
+                },
+              },
+              h('span', null, option.label),
+              on ? icon('check', 13) : null,
+            )
+          }),
+        )
+      : null,
   )
 }

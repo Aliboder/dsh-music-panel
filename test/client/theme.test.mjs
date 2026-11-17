@@ -12,6 +12,7 @@ const theme = readFileSync(join(root, 'src/client/styles/theme.js'), 'utf8')
 const uiDir = join(root, 'src/client/components/ui')
 const uiFiles = [
   'primitives.js',
+  'component-gallery.js',
   'track-row.js',
   'player-bar.js',
   'eq-panel.js',
@@ -32,7 +33,8 @@ const uiFiles = [
 const all = [theme, ...uiFiles.map((name) => readFileSync(join(uiDir, name), 'utf8'))]
 const joined = all.join('\n')
 
-// Official radius scale: 8 / 12 / 16 / 20 / 28 (pills/circles use 999/50%).
+// Official radius scale: 4 / 8 / 12 / 16 / 20 / 28 (pills/circles use 999/50%).
+// R4 is the small-detail step; 10/14/24 are explicitly disallowed local values.
 assert.doesNotMatch(theme, /border-radius:(?:6|7|9|10|11|14|18)px/, 'radius must stay on the 8/12/16/20 scale')
 
 // Official type scale: 13 / 12 / 11 (no half pixels).
@@ -167,6 +169,38 @@ assert.match(theme, /\.mp-entry-title\{[^']*font-size:16px/, 'entry titles use s
 
 assert.match(theme, /\.mp-npe-section\.is-ambient\{grid-column:1\/4;grid-row:3\}/, 'ambient section spans the editor')
 assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/, 'ambient section has four columns')
+
+
+// Geometry follows the official primitive stylesheets pinned in
+// A_other/design/official/ (theme-guidelines §2.3/§3.2): sm button H28/R8,
+// md button H36/R12, switch 36x20, pill 24px capsule.
+assert.match(theme, /\.mp-btn\{[^']*height:28px/, 'sm buttons are 28px tall')
+assert.match(theme, /\.mp-btn\.is-md\{[^']*height:36px/, 'md buttons are 36px tall')
+assert.match(theme, /\.mp-switch\{[^']*width:36px;height:20px/, 'switch is the official 36x20')
+assert.match(theme, /\.mp-pill\{[^']*height:24px/, 'pill is the official 24px capsule')
+assert.match(theme, /\.mp-iconbtn\{[^']*width:28px;height:28px/, 'compact icon button is 28px')
+
+// Elevated surfaces draw their edge with the elevation shadow, never with an extra
+// alias border (theme-guidelines §2.4).
+assert.doesNotMatch(theme, /\.mp-dialog\{[^']*border:1px/, 'dialog has no extra border')
+assert.doesNotMatch(theme, /\.mp-sheet\{[^']*border:1px/, 'settings sheet has no extra border')
+
+// Neutral dividers are 0.5px hairlines; dashed and status borders stay 1px.
+assert.match(theme, /\.mp-set-row\{[^']*border-bottom:\.5px solid/, 'settings rows use a hairline')
+
+// The component test page ships, and every string it renders exists in both
+// dictionaries (the i18n checker only covers the Navidrome block).
+const manifest = readFileSync(join(root, 'src/client/manifest.json'), 'utf8')
+assert.ok(manifest.includes('src/client/components/ui/component-gallery.js'), 'the test page is in the client manifest')
+const gallery = readFileSync(join(uiDir, 'component-gallery.js'), 'utf8')
+const strings = readFileSync(join(root, 'src/client/i18n/strings.js'), 'utf8')
+const galleryKeys = [...new Set([...gallery.matchAll(/t\('((?:gallery|about)\.[A-Za-z.]*)'\)/g)].map((match) => match[1]))]
+assert.ok(galleryKeys.length > 40, 'the test page renders a broad set of keys')
+for (const key of galleryKeys) {
+  const needle = "'" + key + "'"
+  const hits = strings.split(needle).length - 1
+  assert.ok(hits >= 2, 'gallery key ' + key + ' must exist in zh and en (found ' + hits + ')')
+}
 
 console.log('theme.test.mjs ok')
 

@@ -23,6 +23,11 @@ function SettingsSheet(props) {
   var tabPair = useState('appearance')
   var tab = tabPair[0]
   var setTab = tabPair[1]
+  // Component test page: a full view inside the same sheet, so it shares the sheet's
+  // modal layer instead of opening a second one.
+  var galleryPair = useState(false)
+  var galleryOpen = galleryPair[0]
+  var setGalleryOpen = galleryPair[1]
   var cachePair = useState(null)
   var cacheSongsPair = useState(null)
   var cacheSongs = cacheSongsPair[0]
@@ -1264,6 +1269,11 @@ function SettingsSheet(props) {
           t('about.npm'),
         ),
       ),
+      h(
+        SetRow,
+        { key: 'gallery', label: t('about.componentTest'), desc: t('about.componentTestDesc') },
+        h(Button, { icon: 'list', onClick: function () { setGalleryOpen(true) } }, t('about.componentTestOpen')),
+      ),
       h('p', { key: 'desc', className: 'mp-set-desc' }, t('about.description')),
     ]
   }
@@ -1289,37 +1299,47 @@ function SettingsSheet(props) {
     h(
       'div',
       { className: 'mp-sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('page.settings') },
-      h(
-        'div',
-        { className: 'mp-sheet-nav' },
-        h('div', { className: 'mp-sheet-title' }, t('page.settings')),
-        SETTINGS_TABS.map(function (item) {
-          return h(
-            'button',
-            {
-              key: item.key,
-              type: 'button',
-              className: cx('mp-sheet-tab', tab === item.key && 'is-on'),
-              onClick: function () {
-                setTab(item.key)
-              },
+      galleryOpen
+        ? h(ComponentGallery, {
+            key: 'gallery',
+            onClose: function () {
+              setGalleryOpen(false)
             },
-            t(item.label),
-          )
-        }),
-      ),
-      h(
-        'button',
-        {
-          type: 'button',
-          className: 'mp-sheet-close',
-          title: t('v2.close'),
-          'aria-label': t('v2.close'),
-          onClick: props.onClose,
-        },
-        icon('x', 16),
-      ),
-      h('div', { className: 'mp-sheet-body' }, body, resetDialog()),
+          })
+        : [
+            h(
+              'div',
+              { key: 'nav', className: 'mp-sheet-nav' },
+              h('div', { className: 'mp-sheet-title' }, t('page.settings')),
+              SETTINGS_TABS.map(function (item) {
+                return h(
+                  'button',
+                  {
+                    key: item.key,
+                    type: 'button',
+                    className: cx('mp-sheet-tab', tab === item.key && 'is-on'),
+                    onClick: function () {
+                      setTab(item.key)
+                    },
+                  },
+                  t(item.label),
+                )
+              }),
+            ),
+            h(
+              'button',
+              {
+                key: 'close',
+                type: 'button',
+                className: 'mp-sheet-close',
+                title: t('v2.close'),
+                'aria-label': t('v2.close'),
+                onClick: props.onClose,
+              },
+              icon('x', 16),
+            ),
+            h('div', { key: 'body', className: 'mp-sheet-body' }, body, resetDialog()),
+          ],
     ),
   )
 }

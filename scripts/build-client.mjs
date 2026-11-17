@@ -207,6 +207,9 @@ ${body}
           mpLocalLyricLines: typeof mpLocalLyricLines === 'function' ? mpLocalLyricLines : null,
           mpStyleCatalog: typeof mpStyleCatalog !== 'undefined' ? mpStyleCatalog : null,
           mpStyleOf: typeof mpStyleOf !== 'undefined' ? mpStyleOf : null,
+          // The component test page (settings → about): a render test mounts it to keep
+          // every shared control wired.
+          ComponentGallery: typeof ComponentGallery === 'function' ? ComponentGallery : null,
         },
         enumerable: false,
       })
