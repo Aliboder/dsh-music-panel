@@ -869,18 +869,26 @@ function LoginDialog(props) {
         h('div', { className: 'mp-login-view-title' }, t('online.loginTitle', { provider: providerLabel })),
         h('div', { className: 'mp-login-view-sub' }, t('online.qrDesc', { provider: providerLabel })),
         provider === 'qq'
-          ? h(KitSegmented, {
-              id: 'mp-login-method',
-              value: run.mode === 'wx' ? 'wx' : 'qq',
-              label: t('online.loginMethods'),
-              options: [
+          ? h(
+              'div',
+              { className: 'mp-login-methods', role: 'group', 'aria-label': t('online.loginMethods') },
+              [
                 { value: 'qq', label: t('online.loginQq') },
                 { value: 'wx', label: t('online.loginWechat') },
-              ],
-              onChange: function (value) {
-                retry(value)
-              },
-            })
+              ].map(function (method) {
+                return h(
+                  KitPill,
+                  {
+                    key: method.value,
+                    active: (run.mode === 'wx' ? 'wx' : 'qq') === method.value,
+                    onClick: function () {
+                      retry(method.value)
+                    },
+                  },
+                  method.label,
+                )
+              }),
+            )
           : null,
         h(
           'div',

@@ -158307,8 +158307,8 @@ window.__ModuleLoader__.load({
       // cards — hairlines, type and one accent are what carry the structure.
       '.mp-login-window{width:min(440px,calc(100vw - 32px))}',
       '.mp-kit-modal.mp-login-window,.mp-dialog.mp-login-window{width:min(440px,calc(100vw - 32px))}',
-      '.mp-login{display:flex;flex-direction:column}',
-      '.mp-login-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:16px 24px 12px}',
+      '.mp-login{display:flex;flex-direction:column;min-height:480px}',
+      '.mp-login-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:14px 24px 10px}',
       '.mp-login-chip{position:relative;width:40px;height:40px;padding:0;display:grid;place-items:center;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));cursor:pointer;transition:background .12s,border-color .12s}',
       '@media (hover: hover){.mp-login-chip:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}}',
       '.mp-login-chip.is-on{border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 9%,transparent)}',
@@ -158316,13 +158316,14 @@ window.__ModuleLoader__.load({
       '.mp-login-chip-logo{width:24px;height:24px;border-radius:var(--dsw-radius-xs,4px);overflow:hidden}',
       '.mp-login-chip-logo .mp-provider-logo{width:100%;height:100%}',
       '.mp-login-chip-dot{position:absolute;right:3px;bottom:3px;width:6px;height:6px;border-radius:50%;corner-shape:round;background:var(--dsw-alias-state-success-primary,#2f9e44);box-shadow:0 0 0 2px var(--dsw-alias-bg-layer-1,#1a1a1e)}',
-      '.mp-login-body{padding:4px 24px 16px}',
-      '.mp-login-view{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}',
+      '.mp-login-body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:2px 24px 14px}',
+      '.mp-login-view{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}',
       '.mp-login-view-title{font-size:15px;line-height:22px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-login-view-sub{max-width:300px;font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mp-login-view .mp-segment{width:100%;max-width:260px;margin:2px 0}',
+      '.mp-login-methods{display:flex;justify-content:center;gap:6px}',
+      '.mp-login-methods .mp-pill{height:24px;font-size:12px;line-height:18px}',
       '.mp-login-qr-shell{padding:7px;border-radius:var(--dsw-radius-md,12px);background:#fff;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14))}',
-      '.mp-login-qr-frame{position:relative;width:196px;height:196px;padding:4px;border-radius:var(--dsw-radius-sm,8px);background:#fff;display:grid;place-items:center;overflow:hidden}',
+      '.mp-login-qr-frame{position:relative;width:168px;height:168px;padding:4px;border-radius:var(--dsw-radius-sm,8px);background:#fff;display:grid;place-items:center;overflow:hidden}',
       '.mp-login-qr-img{width:100%;height:100%;object-fit:contain;display:block}',
       '.mp-login-qr-loading{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:11px;line-height:16px;color:#8a8a93}',
       '.mp-login-spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,.12);border-top-color:var(--dsw-alias-state-business-primary,#4176E6);border-radius:50%;animation:mp-login-spin .8s linear infinite}',
@@ -158352,6 +158353,7 @@ window.__ModuleLoader__.load({
       '.mp-login-avatar.is-fallback{display:grid;place-items:center;font-size:18px;font-weight:650;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mp-login-fields{display:flex;flex-direction:column;gap:8px;width:100%}',
       '.mp-login-fields .mp-kit-input-wrap{width:100%}',
+      '@media (max-height:660px){.mp-login{min-height:0}}',
       '@media (max-width:480px){.mp-login-chips{padding:14px 16px 10px;gap:6px}.mp-login-body{padding:4px 16px 14px}.mp-login-foot{padding:10px 16px}.mp-login-qr-shell{padding:6px}.mp-login-qr-frame{width:180px;height:180px}}',
       '@keyframes mp-login-pulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}',
       '@keyframes mp-login-spin{to{transform:rotate(360deg)}}',
@@ -166809,18 +166811,26 @@ window.__ModuleLoader__.load({
             h('div', { className: 'mp-login-view-title' }, t('online.loginTitle', { provider: providerLabel })),
             h('div', { className: 'mp-login-view-sub' }, t('online.qrDesc', { provider: providerLabel })),
             provider === 'qq'
-              ? h(KitSegmented, {
-                  id: 'mp-login-method',
-                  value: run.mode === 'wx' ? 'wx' : 'qq',
-                  label: t('online.loginMethods'),
-                  options: [
+              ? h(
+                  'div',
+                  { className: 'mp-login-methods', role: 'group', 'aria-label': t('online.loginMethods') },
+                  [
                     { value: 'qq', label: t('online.loginQq') },
                     { value: 'wx', label: t('online.loginWechat') },
-                  ],
-                  onChange: function (value) {
-                    retry(value)
-                  },
-                })
+                  ].map(function (method) {
+                    return h(
+                      KitPill,
+                      {
+                        key: method.value,
+                        active: (run.mode === 'wx' ? 'wx' : 'qq') === method.value,
+                        onClick: function () {
+                          retry(method.value)
+                        },
+                      },
+                      method.label,
+                    )
+                  }),
+                )
               : null,
             h(
               'div',
