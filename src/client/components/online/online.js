@@ -263,6 +263,15 @@ var artistLoadToken = 0
 async function openOnlineAlbum(track) {
   if (!track || !track.album) return
   var provider = track.onlineProvider || onlineStore.get().provider
+  // Providers without the albums capability have no album endpoint (Qishui's car API has
+  // none); say so instead of opening a page that can only fail. Unknown capabilities
+  // (providers not loaded yet, tests) do not block: the request decides then.
+  var knownProvider = (onlineStore.get().providers || {})[provider]
+  var caps = knownProvider && knownProvider.capabilities
+  if (caps && caps.albums !== true) {
+    showToast(t('online.albumUnsupported'))
+    return
+  }
   var token = (albumLoadToken += 1)
   onlineStore.set({
     albumId: String(track.albumId || ''),

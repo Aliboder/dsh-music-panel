@@ -56,6 +56,18 @@ function artistsOf(item) {
     : []
 }
 
+/**
+ * Whether the car payload says this song needs a membership. The platform marks such a
+ * song with `commerce_info.icon_info.type` (`vip`/`svip`) and a membership condition;
+ * `payment_type` alone is not used because free tracks carry their own value.
+ */
+function vipOf(item) {
+  const commerce = record(item.commerce_info)
+  const icon = text(commerce.icon_info?.type).toLowerCase()
+  if (icon === 'vip' || icon === 'svip') return true
+  return /membership_type/.test(text(commerce.playable_condition))
+}
+
 /** One upstream track → the plugin's track shape. */
 export function toTrack(raw) {
   const item = record(raw)
@@ -65,20 +77,25 @@ export function toTrack(raw) {
   const related = record(item.related_info)
   const album = record(related.album_link)
   const artists = artistsOf(item)
+  const durationMs = Math.max(0, Number(base.duration_ms) || 0)
+  const coverUrl = image(item.display_info?.cover_url)
   return {
     id,
     title: text(base.name),
     artist: artists.map((artist) => artist.name).join(' / '),
     album: text(album.name),
-    durationMs: Math.max(0, Number(base.duration_ms) || 0),
-    coverUrl: image(item.display_info?.cover_url),
+    albumId: text(album.id),
+    durationSec: Math.round(durationMs / 1000),
+    durationMs,
+    coverUrl,
+    qualityHint: vipOf(item) ? 'VIP' : '',
     sourceRef: { kind: 'online', sourceId: SOURCE_ID, ref: id },
     providerData: {
       albumId: text(album.id),
       artists,
     },
     artistsDetail: artists,
-    albumDetail: { id: text(album.id), name: text(album.name), coverUrl: image(item.display_info?.cover_url) },
+    albumDetail: { id: text(album.id), name: text(album.name), coverUrl },
     aliases: [],
     translatedNames: [],
     availableQualities: ['standard'],
@@ -221,10 +238,17 @@ export function createQishuiSource(options) {
       }
     },
 
-    async artistSongs(id, ctx, artistId, page = {}) {
-      const offset = Number(page.offset) || 0
-      const limit = Number(page.limit) || PAGE_SIZE
-      const data = await request('artist_songs', { id: String(artistId || id), limit, offset })
+    async artistSongs(artist, ctx = {}) {
+      const artistId = text(ctx.artistId)
+      if (artistId === '') {
+        throw new MusicError('Qishui singer has no id', { code: 'unavailable', sourceId: SOURCE_ID })
+      }
+      const page = record(ctx.page)
+      const data = await request('artist_songs', {
+        id: artistId,
+        limit: Number(page.limit) || PAGE_SIZE,
+        offset: Number(page.offset) || 0,
+      })
       const items = Array.isArray(data?.items) ? data.items : []
       return items.map(toTrack).filter(Boolean)
     },

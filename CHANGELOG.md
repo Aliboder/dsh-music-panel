@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 汽水 / 波点的歌曲信息与专辑·歌手页
+
+- 汽水搜索结果补齐歌曲信息：`durationSec`（客户端读秒，之前只有毫秒所以显示 `—:—`）、`albumId`、SVIP 标签（来自 `commerce_info.icon_info` / `playable_condition`，与其他平台的 VIP 标签一致），封面代理允许抖音图床（`douyinpic.com` 等），专辑名/封面恢复显示。
+- 汽水歌手页按 Folia 的 `artist_songs` 实现并修正参数（传 `artistId` 而不是歌手名）；汽水的车机接口没有专辑页（Folia 的 `albums: false`），点专辑时提示「该平台不提供专辑页」，不再报错。
+- 波点搜索/专辑/歌手页：补上 Folia `bodianCatalog` 的 `album_tracks`、`album_detail`、`artist_songs`、`artist_albums`，并声明 `albums` / `artists` 能力；歌曲补 `durationSec`、`albumId`，专辑与歌手页不再是「does not support」。
+
 ### 扫码登录（波点 / 汽水）
 
 - 汽水音乐的登录说明改为「用抖音扫码登录汽水音乐 / 请使用抖音 App 扫码并确认授权」（与 Folia 文案一致）：二维码是抖音开放平台的授权码，用汽水音乐 App 扫只会停在「已扫码」，必须在抖音里确认授权；波点、酷狗也改成具名 App 的提示。

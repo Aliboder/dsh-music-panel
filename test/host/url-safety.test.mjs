@@ -4,6 +4,10 @@ import { assertPublicHttpUrl, isAllowedCoverUrl } from '../../src/host/http/url-
 assert.equal(isAllowedCoverUrl('https://p1.music.126.net/x.jpg'), true)
 assert.equal(isAllowedCoverUrl('https://y.gtimg.cn/music/photo_new/x.jpg'), true)
 assert.equal(isAllowedCoverUrl('https://imge.kugou.com/x.jpg'), true)
+// Qishui (Douyin) artwork hosts.
+assert.equal(isAllowedCoverUrl('https://p3-luna.douyinpic.com/img/x'), true)
+assert.equal(isAllowedCoverUrl('https://p1.douyinpic.com/x.jpg'), true)
+assert.equal(isAllowedCoverUrl('https://example.com/x.jpg'), false)
 assert.equal(isAllowedCoverUrl('http://127.0.0.1/x.jpg'), false)
 assert.equal(isAllowedCoverUrl('http://localhost/x.jpg'), false)
 assert.equal(isAllowedCoverUrl('file:///etc/passwd'), false)

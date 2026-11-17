@@ -6998,6 +6998,7 @@ window.__ModuleLoader__.load({
         'online.logout': '退出',
         'online.syncAccount': '同步数据',
         'online.loginHint': '扫码登录：用对应 App 扫描弹出的二维码并确认，登录状态保存在本机。',
+        'online.albumUnsupported': '该平台不提供专辑页',
         'online.qrDesc': '打开 {provider} App，扫描二维码完成登录',
         // Folia's provider notes: Qishui's QR is a Douyin open-platform authorization, so it is
         // scanned in the Douyin app, not in Qishui itself.
@@ -7621,6 +7622,7 @@ window.__ModuleLoader__.load({
         'online.logout': 'Sign out',
         'online.syncAccount': 'Sync account',
         'online.loginHint': 'Scan the QR code with the matching app, then confirm in the app. The login stays on this machine.',
+        'online.albumUnsupported': 'This platform has no album page',
         'online.qrDesc': 'Open {provider} and scan the QR code to sign in',
         'online.loginTitleQishui': 'Scan with Douyin to sign in to Qishui',
         'online.loginNoteQishui': 'Scan with the Douyin app and confirm the authorization',
@@ -156769,6 +156771,15 @@ window.__ModuleLoader__.load({
     async function openOnlineAlbum(track) {
       if (!track || !track.album) return
       var provider = track.onlineProvider || onlineStore.get().provider
+      // Providers without the albums capability have no album endpoint (Qishui's car API has
+      // none); say so instead of opening a page that can only fail. Unknown capabilities
+      // (providers not loaded yet, tests) do not block: the request decides then.
+      var knownProvider = (onlineStore.get().providers || {})[provider]
+      var caps = knownProvider && knownProvider.capabilities
+      if (caps && caps.albums !== true) {
+        showToast(t('online.albumUnsupported'))
+        return
+      }
       var token = (albumLoadToken += 1)
       onlineStore.set({
         albumId: String(track.albumId || ''),

@@ -23,6 +23,10 @@ const COVER_HOST_SUFFIXES = [
   'itunes.apple.com',
   // Bodian serves artwork from Kuwo's CDN.
   'kuwo.cn',
+  // Qishui (Douyin) artwork and avatars.
+  'douyinpic.com',
+  'douyin.com',
+  'byteimg.com',
 ]
 
 function privateAddress(address) {

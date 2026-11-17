@@ -52,6 +52,8 @@ export function toTrack(row) {
     title: String(item.name ?? item.songName ?? item.FSONGNAME ?? '').trim(),
     artist: artist !== '' ? artist : artists.join(' / '),
     album: String(item.album ?? ''),
+    albumId: String(item.albumId ?? ''),
+    durationSec,
     durationMs: Math.round(durationSec * 1000),
     coverUrl: cover,
     sourceRef: { kind: 'online', sourceId: SOURCE_ID, ref: String(id) },
@@ -130,6 +132,8 @@ export function createBodianSource(options) {
     playback: true,
     lyrics: true,
     loginQr: true,
+    artists: true,
+    albums: true,
   })
 
   async function request(operation, params) {
@@ -172,6 +176,63 @@ export function createBodianSource(options) {
         page: Math.max(1, page),
         hasMore: songs.length >= PAGE_SIZE,
       }
+    },
+
+    // ── catalogue pages (Folia's bodianCatalog operations) ────────────────
+    async artistSongs(name, ctx = {}) {
+      const artistId = String(ctx.artistId || '').trim()
+      if (artistId === '') {
+        throw new MusicError('Bodian singer has no id', { code: 'unavailable', sourceId: SOURCE_ID })
+      }
+      const page = ctx.page ?? {}
+      const data = await request('artist_songs', {
+        id: artistId,
+        limit: Number(page.limit) || 200,
+        offset: Number(page.offset) || 0,
+      })
+      const rows = Array.isArray(data?.resultList) ? data.resultList : []
+      return rows.map(toTrack).filter(Boolean)
+    },
+
+    async albumSongs(id, _ctx, hint = {}) {
+      const albumId = String(id || '').trim()
+      if (albumId === '') {
+        throw new MusicError('Bodian album has no id', { code: 'unavailable', sourceId: SOURCE_ID })
+      }
+      const data = await request('album_tracks', { id: albumId, limit: 500, offset: 0 })
+      const rows = Array.isArray(data?.resultList) ? data.resultList : []
+      const songs = rows.map(toTrack).filter(Boolean)
+      let info = {}
+      try {
+        info = (await request('album_detail', { id: albumId }))?.albumInfo ?? {}
+      } catch {
+        // The track list is the page; a missing detail only loses its header.
+      }
+      return {
+        id: albumId,
+        name: String(info.name ?? hint.album ?? ''),
+        artist: String(info.artist ?? hint.artist ?? ''),
+        cover: String(info.pic ?? ''),
+        trackCount: songs.length,
+        songs,
+      }
+    },
+
+    async artistAlbums(id) {
+      const artistId = String(id || '').trim()
+      if (artistId === '') return { artist: null, albums: [] }
+      const data = await request('artist_albums', { id: artistId, limit: 100, offset: 0 })
+      const rows = Array.isArray(data?.resultList) ? data.resultList : []
+      const albums = rows
+        .map((row) => ({
+          id: String(row?.albumId ?? row?.id ?? ''),
+          name: String(row?.name ?? ''),
+          type: 'album',
+          coverUrl: String(row?.pic ?? ''),
+          trackCount: Number(row?.songNum ?? row?.total) || undefined,
+        }))
+        .filter((album) => album.id !== '')
+      return { artist: null, albums }
     },
 
     async getAudioSource(mediaId, _ctx, quality) {

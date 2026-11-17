@@ -24,10 +24,21 @@ assert.equal(track.id, '123')
 assert.equal(track.title, '晴天')
 assert.equal(track.artist, '周杰伦')
 assert.equal(track.album, '叶惠美')
+assert.equal(track.albumId, 'a1')
 assert.equal(track.durationMs, 269000)
+assert.equal(track.durationSec, 269, 'the client reads durationSec, not the millisecond field')
+assert.equal(track.qualityHint, '')
 assert.equal(track.coverUrl, 'https://img.example/cover.jpg')
 assert.deepEqual(track.sourceRef, { kind: 'online', sourceId: 'qishui', ref: '123' })
 assert.equal(toTrack({ base_info: { id: 'bad' } }), null)
+
+// The car payload marks membership songs with a commerce icon/condition.
+const vip = toTrack({
+  base_info: { id: '456', name: '会员歌', duration_ms: 200000 },
+  commerce_info: { icon_info: { type: 'svip' }, playable_condition: "membership_type == 'svip'" },
+})
+assert.equal(vip.qualityHint, 'VIP')
+assert.equal(vip.durationSec, 200)
 
 const collection = toCollection({
   base_info: { id: 'p1', title: '我的歌单' },
@@ -85,6 +96,8 @@ const api = {
         return { ok: true, data: {} }
       case 'search':
         return { ok: true, data: { items: [rawSong], hasMore: false, total: 1 } }
+      case 'artist_songs':
+        return { ok: true, data: { items: [rawSong], total: 1, hasMore: false } }
       case 'audio':
         return { ok: true, data: { url: 'https://audio.example/a.mp3', quality: 'standard', preview: false } }
       case 'lyrics':
@@ -133,6 +146,9 @@ assert.deepEqual(await source.profile(), { id: 'u1', nickname: '汽水用户', a
 
 const page = await source.searchPage('晴天', {}, 1)
 assert.equal(page.results[0].id, '123')
+
+const artistSongs = await source.artistSongs('周杰伦', { artistId: 'ar1', page: { limit: 10, offset: 0 } })
+assert.equal(artistSongs[0].id, '123', 'the artist page passes the id through ctx.artistId')
 assert.equal(page.hasMore, false)
 
 const audio = await source.stream('123')
