@@ -142,6 +142,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
+
+## 应用图标（在线平台）
+
+`src/client/components/online/provider-logos.js` 内嵌网易云音乐、QQ 音乐、酷狗音乐（概念版）、Navidrome、波点音乐、汽水音乐的应用图标，仅用于在界面中标示对应平台。图标版权归各平台所有，不属于本项目代码的许可范围；抓取来源：各平台 App Store 页面（`artworkUrl512`）与官网 favicon（2026-11-17）。
+
+- 波点音乐：App Store（`com.wenyu.bodian`）
+- 汽水音乐：App Store（`com.soda.music`）
+
 ## twgl.js
 
 - Project: https://github.com/greggman/twgl.js
