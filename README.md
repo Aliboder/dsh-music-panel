@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/38a9f74d9c1ad7685b01385ac6759ad7c055dae5/icon.svg" alt="dsh-music-panel icon" width="96" height="96" />
+<img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/icon.svg" alt="dsh-music-panel icon" width="96" height="96" />
 
 # dsh-music-panel
 
@@ -10,13 +10,13 @@
 Local library · NetEase Cloud Music · QQ Music · KuGou · Bodian · Qishui · Navidrome / Subsonic · Lyrics · Cache · EBU R128 · 10-band EQ`n本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · 波点音乐 · 汽水音乐 · Navidrome / Subsonic · 歌词 · 缓存 · 音量均衡 · 均衡器
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
-[![release](https://img.shields.io/badge/release-0.37.0-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
+[![release](https://img.shields.io/badge/release-0.37.1-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
 [![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
 
 [中文](#中文) · [English](#english)
 
-<img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-library-grid.png" alt="Local library · 本地曲库" width="100%" />
+<img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/library-grid.webp" alt="Local library · 本地曲库" width="100%" />
 
 </div>
 
@@ -24,32 +24,24 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Bodian · Qishui ·
 
 ## Screenshots · 截图
 
-| Online playlists · 在线歌单 | Platform accounts · 平台账号 |
-| :---: | :---: |
-| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-online-recent.png" alt="Online playlists and recent plays" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-online-accounts.png" alt="Provider accounts and official icons" /> |
-
 | Now playing · 播放页 | Queue · 播放队列 |
 | :---: | :---: |
-| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-now-playing-lyrics.png" alt="Now playing with translated lyrics" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-queue-compact.png" alt="Queue popover" /> |
+| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/now-playing-lyrics.webp" alt="Now playing with vinyl artwork, translated lyrics and romaji" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/queue.webp" alt="Playback queue panel" /> |
+
+| Folia stage · 歌词舞台 | Folia lyrics · 逐行歌词 |
+| :---: | :---: |
+| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/folia-stage.webp" alt="Folia lyric stage with light rays and large lyrics" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/folia-lyrics.webp" alt="Folia lyric stage with multiple lyric lines" /> |
 
 <details>
 <summary>More screenshots · 更多截图</summary>
 
-| Statistics · 播放统计 | Instrumental · 纯音乐播放页 |
+| Local library · 本地曲库 | Statistics · 播放统计 |
 | :---: | :---: |
-| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-stats.png" alt="Listening statistics" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-now-playing-instrumental.png" alt="Instrumental now playing" /> |
+| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/library-grid.webp" alt="Local library album grid" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/listening-stats.webp" alt="Listening statistics" /> |
 
-| Settings · 设置 | Context menu · 右键菜单 |
+| Instrumental · 纯音乐播放页 | Orbit stage · 轨道歌词 |
 | :---: | :---: |
-| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-settings.png" alt="Settings" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-menu.png" alt="Context menu" /> |
-
-| Batch actions · 批量操作 | Metadata matching · 在线匹配 |
-| :---: | :---: |
-| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-selection.png" alt="Batch selection" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-tag-match.png" alt="Metadata matching" /> |
-
-| Light theme · 浅色 | Dark theme · 深色 |
-| :---: | :---: |
-| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-light.png" alt="Light theme" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/v2-dark.png" alt="Dark theme" /> |
+| <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/now-playing-instrumental.webp" alt="Instrumental now playing screen" /> | <img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/folia-orbit.webp" alt="Folia orbit lyric stage" /> |
 
 </details>
 
