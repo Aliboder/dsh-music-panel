@@ -84,7 +84,9 @@ function LyricMatchDialog(props) {
   // They only exist when the window applies the pick to the song's record (the tag
   // editor's own use of this window just returns the text).
   var applyToRecord = layer.props && layer.props.applyToRecord === true
-  var coverPair = useState(true)
+  // Folia's OnlineSongLyricMatch only picks lyrics: an online song has no file to retag.
+  var onlineTrack = layer.props && layer.props.online === true
+  var coverPair = useState(onlineTrack !== true)
   var useCover = coverPair[0]
   var setUseCover = coverPair[1]
   var metadataPair = useState(false)
@@ -217,6 +219,7 @@ function LyricMatchDialog(props) {
         applyMetadata: useMetadata === true && noAutoMatch !== true,
         applyCover: useCover === true && noAutoMatch !== true,
         noAutoMatch: noAutoMatch === true,
+        online: onlineTrack === true,
       })
         .then(function (answer) {
           setSaving(false)
@@ -262,7 +265,7 @@ function LyricMatchDialog(props) {
       })
   }
 
-  var fileName = track.path ? String(track.path).split(/[\\/]/).pop() : ''
+  var fileName = onlineTrack ? '' : track.path ? String(track.path).split(/[\\/]/).pop() : ''
   var songLine = [target.title, target.artist, target.album].filter(Boolean).join(' · ')
   var previewLines = mpPreviewLines(preview)
 
@@ -592,8 +595,9 @@ function LyricMatchDialog(props) {
         h('div', { style: { fontSize: '14px', fontWeight: '500', opacity: '.75', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, selected ? selected.artists.join(' / ') : ''),
         h('div', { style: { fontSize: '12px', opacity: '.6', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, selected ? selected.album : ''),
       ),
-      // Folia's switches: each part of the pick can be left as the file has it.
-      applyToRecord
+      // Folia's switches: each part of the pick can be left as the file has it. An online
+      // song has no file, and Folia's OnlineSongLyricMatch shows no switches at all.
+      applyToRecord && onlineTrack !== true
         ? h(
             'div',
             { style: { width: '100%', marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' } },
@@ -606,8 +610,8 @@ function LyricMatchDialog(props) {
                 ),
               },
               matchSwitchRow(t('sheet.matchApplyLyrics'), useLyrics, setUseLyrics, 'apply-lyrics'),
-              matchSwitchRow(t('sheet.matchApplyMetadata'), useMetadata, setUseMetadata, 'apply-metadata'),
-              matchSwitchRow(t('sheet.matchApplyCover'), useCover, setUseCover, 'apply-cover'),
+              onlineTrack ? null : matchSwitchRow(t('sheet.matchApplyMetadata'), useMetadata, setUseMetadata, 'apply-metadata'),
+              onlineTrack ? null : matchSwitchRow(t('sheet.matchApplyCover'), useCover, setUseCover, 'apply-cover'),
             ),
             matchSwitchRow(t('sheet.matchNoAutoMatch'), noAutoMatch, setNoAutoMatch, 'no-auto'),
           )

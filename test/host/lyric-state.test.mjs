@@ -347,6 +347,26 @@ assert.equal(answer.status, 200)
 assert.equal(answer.body.noAutoMatch, true)
 assert.equal((await call('POST', '/music/lyrics/no-auto-match', { path: routeFile, on: false })).body.noAutoMatch, false)
 
+// An online song has no file: the pick lands on its online lyric record and never on tags.
+answer = await call('POST', '/music/lyrics/match-apply', {
+  path: 'online:qishui:123',
+  provider: 'qq',
+  id: 'm2',
+  lrc: '[00:02.000]online match',
+  applyLyrics: true,
+  applyMetadata: true,
+  applyCover: true,
+  online: true,
+})
+assert.equal(answer.status, 200)
+assert.equal(answer.body.lyricsApplied, true)
+assert.equal(answer.body.metadataApplied, false)
+assert.equal(answer.body.coverApplied, false)
+const onlineRecord = await matchStore.get('online:qishui:123')
+assert.equal(onlineRecord.matched.source, 'qq')
+assert.equal(onlineRecord.source, 'online')
+assert.equal((await matchStore.readPayload('online:qishui:123')).text, '[00:02.000]online match')
+
 // A file outside the roots is never touched.
 answer = await call('GET', '/music/lyrics?path=' + encodeURIComponent(join(tmpdir(), 'outside.mp3')))
 assert.equal(answer.status, 404)

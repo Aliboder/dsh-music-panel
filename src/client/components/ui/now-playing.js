@@ -2342,10 +2342,10 @@ function NowPlaying(props) {
   }
 
   function openOnlineLyric() {
-    if (!track || track.onlineProvider) return
+    if (!track) return
     // Folia's match window: the pick goes onto the song's record (lyrics) and, if asked,
-    // into the file's tags (metadata and cover) — it no longer rewrites the audio file's
-    // lyric tag only.
+    // into the file's tags (metadata and cover). An online song has no file, so the same
+    // window keeps only the lyric half (`OnlineSongLyricMatch`).
     pushLayer('lyricMatch', {
       track: {
         path: track.path,
@@ -2353,7 +2353,10 @@ function NowPlaying(props) {
         artist: trackArtistOf(track),
         album: track.album || '',
         durationSec: Number(track.durationSec) || 0,
+        onlineProvider: track.onlineProvider || '',
+        onlineId: track.onlineId || '',
       },
+      online: Boolean(track.onlineProvider),
       applyToRecord: true,
       onSaved: function () {
         MPLyricLoader.invalidate(track.path)
@@ -3194,8 +3197,10 @@ function NowPlaying(props) {
               }
               if (key === 'matchOnline') {
                 // The 本地 tab's "在线匹配" row: open the match window over the panel.
+                // Folia keeps this entry for online songs too (`OnlineSongLyricMatch`);
+                // there it only writes the song's lyric record.
                 setSheetOpen(false)
-                if (track !== null && !track.onlineProvider) {
+                if (track !== null) {
                   pushLayer('lyricMatch', {
                     track: {
                       path: track.path,
@@ -3203,7 +3208,10 @@ function NowPlaying(props) {
                       artist: trackArtistOf(track),
                       album: track.album || '',
                       durationSec: Number(track.durationSec) || 0,
+                      onlineProvider: track.onlineProvider || '',
+                      onlineId: track.onlineId || '',
                     },
+                    online: Boolean(track.onlineProvider),
                     applyToRecord: true,
                     onSaved: function () {
                       MPLyricLoader.invalidate(track.path)

@@ -360,6 +360,15 @@
 
 ---
 
+## 40. 在线歌曲点「在线匹配」没反应（Client / 歌词）
+
+- **现象**：播放本地文件时「在线匹配」能打开搜索/匹配窗，播放在线歌曲时点了没有任何反应。
+- **原因**：`matchOnline` 与 `openOnlineLyric` 都写死了 `!track.onlineProvider` 才打开窗口；Folia 对在线歌曲用 `OnlineSongLyricMatch`，同样有匹配窗，只匹配歌词。
+- **处理**：在线歌曲也打开同一个窗，传 `online: true`：隐藏封面/元数据/停止匹配开关，只保留歌词匹配；保存走 `/lyrics/match-apply` 的 `online:` 路径，写入 `online:<provider>:<id>` 歌词记录，不写文件标签。
+- **防回归**：`lyric-state.test.mjs` 覆盖 `online:` 路径的 match-apply（记录被写入、metadata/cover 为 false）。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

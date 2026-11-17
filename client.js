@@ -164139,10 +164139,10 @@ window.__ModuleLoader__.load({
       }
 
       function openOnlineLyric() {
-        if (!track || track.onlineProvider) return
+        if (!track) return
         // Folia's match window: the pick goes onto the song's record (lyrics) and, if asked,
-        // into the file's tags (metadata and cover) — it no longer rewrites the audio file's
-        // lyric tag only.
+        // into the file's tags (metadata and cover). An online song has no file, so the same
+        // window keeps only the lyric half (`OnlineSongLyricMatch`).
         pushLayer('lyricMatch', {
           track: {
             path: track.path,
@@ -164150,7 +164150,10 @@ window.__ModuleLoader__.load({
             artist: trackArtistOf(track),
             album: track.album || '',
             durationSec: Number(track.durationSec) || 0,
+            onlineProvider: track.onlineProvider || '',
+            onlineId: track.onlineId || '',
           },
+          online: Boolean(track.onlineProvider),
           applyToRecord: true,
           onSaved: function () {
             MPLyricLoader.invalidate(track.path)
@@ -164991,8 +164994,10 @@ window.__ModuleLoader__.load({
                   }
                   if (key === 'matchOnline') {
                     // The 本地 tab's "在线匹配" row: open the match window over the panel.
+                    // Folia keeps this entry for online songs too (`OnlineSongLyricMatch`);
+                    // there it only writes the song's lyric record.
                     setSheetOpen(false)
-                    if (track !== null && !track.onlineProvider) {
+                    if (track !== null) {
                       pushLayer('lyricMatch', {
                         track: {
                           path: track.path,
@@ -165000,7 +165005,10 @@ window.__ModuleLoader__.load({
                           artist: trackArtistOf(track),
                           album: track.album || '',
                           durationSec: Number(track.durationSec) || 0,
+                          onlineProvider: track.onlineProvider || '',
+                          onlineId: track.onlineId || '',
                         },
+                        online: Boolean(track.onlineProvider),
                         applyToRecord: true,
                         onSaved: function () {
                           MPLyricLoader.invalidate(track.path)
@@ -171625,7 +171633,9 @@ window.__ModuleLoader__.load({
       // They only exist when the window applies the pick to the song's record (the tag
       // editor's own use of this window just returns the text).
       var applyToRecord = layer.props && layer.props.applyToRecord === true
-      var coverPair = useState(true)
+      // Folia's OnlineSongLyricMatch only picks lyrics: an online song has no file to retag.
+      var onlineTrack = layer.props && layer.props.online === true
+      var coverPair = useState(onlineTrack !== true)
       var useCover = coverPair[0]
       var setUseCover = coverPair[1]
       var metadataPair = useState(false)
@@ -171758,6 +171768,7 @@ window.__ModuleLoader__.load({
             applyMetadata: useMetadata === true && noAutoMatch !== true,
             applyCover: useCover === true && noAutoMatch !== true,
             noAutoMatch: noAutoMatch === true,
+            online: onlineTrack === true,
           })
             .then(function (answer) {
               setSaving(false)
@@ -171803,7 +171814,7 @@ window.__ModuleLoader__.load({
           })
       }
 
-      var fileName = track.path ? String(track.path).split(/[\\/]/).pop() : ''
+      var fileName = onlineTrack ? '' : track.path ? String(track.path).split(/[\\/]/).pop() : ''
       var songLine = [target.title, target.artist, target.album].filter(Boolean).join(' · ')
       var previewLines = mpPreviewLines(preview)
 
@@ -172133,8 +172144,9 @@ window.__ModuleLoader__.load({
             h('div', { style: { fontSize: '14px', fontWeight: '500', opacity: '.75', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, selected ? selected.artists.join(' / ') : ''),
             h('div', { style: { fontSize: '12px', opacity: '.6', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, selected ? selected.album : ''),
           ),
-          // Folia's switches: each part of the pick can be left as the file has it.
-          applyToRecord
+          // Folia's switches: each part of the pick can be left as the file has it. An online
+          // song has no file, and Folia's OnlineSongLyricMatch shows no switches at all.
+          applyToRecord && onlineTrack !== true
             ? h(
                 'div',
                 { style: { width: '100%', marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' } },
@@ -172147,8 +172159,8 @@ window.__ModuleLoader__.load({
                     ),
                   },
                   matchSwitchRow(t('sheet.matchApplyLyrics'), useLyrics, setUseLyrics, 'apply-lyrics'),
-                  matchSwitchRow(t('sheet.matchApplyMetadata'), useMetadata, setUseMetadata, 'apply-metadata'),
-                  matchSwitchRow(t('sheet.matchApplyCover'), useCover, setUseCover, 'apply-cover'),
+                  onlineTrack ? null : matchSwitchRow(t('sheet.matchApplyMetadata'), useMetadata, setUseMetadata, 'apply-metadata'),
+                  onlineTrack ? null : matchSwitchRow(t('sheet.matchApplyCover'), useCover, setUseCover, 'apply-cover'),
                 ),
                 matchSwitchRow(t('sheet.matchNoAutoMatch'), noAutoMatch, setNoAutoMatch, 'no-auto'),
               )

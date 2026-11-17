@@ -696,8 +696,14 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
           return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
         }
         const config = await settings.read()
-        const file = await resolveTrack(body?.path, config.roots)
-        if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
+        // Online songs have no file to retag: the pick lands on the song's lyric record
+        // (the same `online:<provider>:<id>` key the lyric route reads).
+        const onlineKey =
+          typeof body?.path === 'string' && body.path.startsWith('online:') ? body.path : ''
+        const file = onlineKey === '' ? await resolveTrack(body?.path, config.roots) : null
+        if (onlineKey === '' && file === null) {
+          return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
+        }
         const applyLyrics = body?.applyLyrics !== false
         const applyMetadata = body?.applyMetadata === true
         const applyCover = body?.applyCover === true
@@ -705,12 +711,13 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         const lrc = typeof body?.lrc === 'string' ? body.lrc : ''
         const provider = String(body?.provider ?? '')
         const songId = String(body?.id ?? '')
+        const recordKey = onlineKey !== '' ? onlineKey : file
         let lyricsApplied = false
         if (noAutoMatch) {
-          await lyricRecords.patch(file, { noAutoMatch: true })
+          await lyricRecords.patch(recordKey, { noAutoMatch: true })
         } else if (applyLyrics && lrc.trim() !== '') {
-          await lyricRecords.writePayload(file, { text: lrc, formatHint: '' })
-          await lyricRecords.patch(file, {
+          await lyricRecords.writePayload(recordKey, { text: lrc, formatHint: '' })
+          await lyricRecords.patch(recordKey, {
             matched: {
               source: provider || 'local',
               id: songId,
@@ -729,6 +736,16 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
             noAutoMatch: false,
           })
           lyricsApplied = true
+        }
+        if (onlineKey !== '') {
+          // Nothing to write into tags for an online song.
+          return sendJson(res, 200, {
+            ok: true,
+            lyricsApplied,
+            metadataApplied: false,
+            coverApplied: false,
+            noAutoMatch,
+          })
         }
         let metadataApplied = false
         let coverApplied = false

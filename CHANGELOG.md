@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 在线歌曲的「在线匹配」
+
+- 播放在线歌曲时点「在线匹配」不再无反应：以前按钮写死为仅本地文件（`!track.onlineProvider` 才打开），现在与 Folia 的 `OnlineSongLyricMatch` 对齐——在线歌曲同样打开匹配窗，只匹配歌词，选中后写到该曲的歌词记录（`online:<provider>:<id>`），不触碰文件标签；本地文件仍保留「元数据 / 封面 / 停止自动匹配」开关。
+- `/lyrics/match-apply` 支持 `online:` 路径：走歌词记录而不是 `resolveTrack`，并返回 `metadataApplied:false / coverApplied:false`。
+
 ### 歌手页（汽水 / 波点）
 
 - 修复汽水歌手页 `Qishui singer has no id`：从历史/队列恢复的歌曲可能只剩歌手名，Folia 靠歌曲里的 `catalogRef`，我们改为在 `artistSongs` 里按名字走一次本平台搜索解析出 `artistId`；播放快照也会保留 `artistsDetail`，从播放栏进歌手页同样可用。
