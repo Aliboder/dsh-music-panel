@@ -100,44 +100,11 @@ function ComposerLyrics() {
       if (!active) return undefined
       async function load() {
         try {
-          if (active.onlineProvider) {
-            var body = await getJson(
-              API +
-                'online/lyric?provider=' +
-                encodeURIComponent(active.onlineProvider) +
-                '&id=' +
-                encodeURIComponent(active.onlineId || ''),
-            )
-            // The same raw pipeline the player uses, so a lyric that only exists as YRC /
-            // QRC / KRC / TTML still drives this strip.
-            var rows = null
-            if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
-              try {
-                var document = await MPFoliaLyrics.parse(body.raw, { songId: Number(active.onlineId) || 0 })
-                if (document && Array.isArray(document.lines) && document.lines.length > 0) {
-                  rows = composerLyricRows(mpPrepareLyrics(document, trackPath, []).lyrics)
-                }
-              } catch (error) {
-                rows = null
-              }
-            }
-            if (rows === null) {
-              var legacy = parseLrcText(body.lrc || '')
-              if (body.translation) mergeLyricTranslation(legacy, body.translation)
-              rows = composerLyricRows(legacy)
-            }
-            if (!cancelled) setLines(rows)
-            return
-          }
-          var local = await getJson(
-            API +
-              'lyrics?path=' +
-              encodeURIComponent(active.path) +
-              '&priority=' +
-              encodeURIComponent(prefs.lyricLocalPriority === 'online' ? 'online' : 'local'),
-          )
-          var localShown = await mpLocalLyricLines(local, trackPath)
-          if (!cancelled) setLines(composerLyricRows(localShown.lyrics))
+          // One resolved lyric for every surface: the strip follows the same source the
+          // stage and the player card show, including a matched or imported online lyric.
+          var loaded = await MPLyricLoader.load(active)
+          if (cancelled) return
+          setLines(composerLyricRows(loaded.lyrics))
         } catch (error) {
           if (!cancelled) setLines([])
         }

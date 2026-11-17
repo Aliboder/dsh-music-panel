@@ -148,8 +148,8 @@
 | sidecar 命名 / 跨格式翻译 / 格式顺序 | ✅ 读取与「优先格式」设置；完整排序界面未做 | `readSidecarLyrics`、`/lyrics` 的 `formatOrder`、设置页「同目录歌词优先格式」 |
 | 内嵌 native 标签回退 | ✅ | `readEmbeddedLyrics` |
 | AMLL 候选探测（按需） | ✅ | `online.js` 的 `findMatchedLyric` 与 `local-match.js` 的 `match` |
-| 统一加载器 | ✅ | `src/client/services/lyrics/loader.js`：按歌去重，面板与播放器共用一次请求 |
-| 播放门控（D1） | ✅ | `player.js` 的 `whenLyricReady`：响度闸门与歌词闸门都就绪才 `play()`；超时 8s 放行 |
+| 统一加载器 | ✅ | `src/client/services/lyrics/loader.js`：按歌去重，播放器、面板、播放页与输入框歌词条共用一次请求 |
+| 播放门控（D1） | ✅ | `player.js` 的 `whenLyricReady`：响度闸门与歌词闸门并行，都就绪才 `play()`；超时 8s 放行 |
 | 别名 / 换歌手再搜、匹配窗三开关 | ⏳ 可选 | P4 |
 
 ### 门控与升级的分工

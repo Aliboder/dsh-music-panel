@@ -33,19 +33,16 @@ function PlayerPage(props) {
     function () {
       if (trackPath === '') return undefined
       var cancelled = false
-      // Folia's local priority decides which lyric this file shows; the record (choice,
-      // match, instrumental mark) is read by the Host, so this surface just asks again.
-      var priority = prefs.lyricLocalPriority === 'online' ? 'online' : 'local'
+      // The stage reads the same resolved lyric every surface gets — an online song
+      // through the platform (or its borrowed/imported lyric), a local file through the
+      // Host's pick. Before this, an online track had no lyric here at all: `/lyrics` only
+      // accepts a file path, and `online:<provider>:<id>` is not one.
       setLyrics([])
-      getJson(API + 'lyrics?path=' + encodeURIComponent(trackPath) + '&priority=' + encodeURIComponent(priority))
-        .then(async function (body) {
+      MPLyricLoader.load(track)
+        .then(function (loaded) {
           if (cancelled) return
-          // Same pipeline as the player card: the Host's raw text (TTML / YRC / enhanced
-          // LRC sidecars included) instead of only the Host's line array.
-          var shown = await mpLocalLyricLines(body, trackPath)
-          if (cancelled) return
-          setLyrics(shown.folia ? shown.lyrics : legacyLinesToFolia(shown.lyrics))
-          setOffsetMs(Number(body.offsetMs) || 0)
+          setLyrics(loaded.document === null ? legacyLinesToFolia(loaded.lyrics) : loaded.lyrics)
+          setOffsetMs(Number(loaded.offsetMs) || 0)
         })
         .catch(function () {
           if (!cancelled) setLyrics([])
