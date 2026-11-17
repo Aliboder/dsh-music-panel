@@ -1727,12 +1727,32 @@ export function createOnlineRoutes(deps) {
               if (account.user.nickname) summary[provider].nickname = account.user.nickname
               if (account.user.avatarUrl) summary[provider].avatarUrl = account.user.avatarUrl
               if (account.user.id) summary[provider].accountId = account.user.id
-            } else {
+            }
+            // Platform reads can be partial (QQ has only the session cookie, KuGou Lite's
+            // verify endpoint often returns no profile). Ask the provider for whatever the
+            // stored snapshot still misses instead of leaving the window without an avatar.
+            if (!summary[provider].avatarUrl || !summary[provider].nickname) {
               const profile = await profileState(provider)
               if (profile) {
-                if (profile.nickname) summary[provider].nickname = profile.nickname
-                if (profile.avatarUrl) summary[provider].avatarUrl = profile.avatarUrl
-                if (profile.accountId) summary[provider].accountId = profile.accountId
+                if (profile.nickname && !summary[provider].nickname) summary[provider].nickname = profile.nickname
+                if (profile.avatarUrl && !summary[provider].avatarUrl) summary[provider].avatarUrl = profile.avatarUrl
+                if (profile.accountId && !summary[provider].accountId) summary[provider].accountId = profile.accountId
+              }
+            }
+            if (!summary[provider].avatarUrl && provider === 'kugouLite') {
+              // Both KuGou sources describe the same account; the full session can still
+              // report the avatar when the lite one answers with an empty profile.
+              const full = await profileState('kugou')
+              if (
+                full &&
+                full.avatarUrl &&
+                (full.accountId === '' ||
+                  summary[provider].accountId === '' ||
+                  full.accountId === summary[provider].accountId)
+              ) {
+                summary[provider].avatarUrl = full.avatarUrl
+                if (!summary[provider].nickname && full.nickname) summary[provider].nickname = full.nickname
+                if (!summary[provider].accountId && full.accountId) summary[provider].accountId = full.accountId
               }
             }
             const vipInfo = await vipInfoState(provider)
@@ -1752,6 +1772,17 @@ export function createOnlineRoutes(deps) {
           registered.add(source.id)
           const account = accounts[source.id] ?? null
           const signedIn = summary[source.id]?.loggedIn === true
+          const row = summary[source.id] ?? null
+          const storedUser =
+            account?.user && (account.user.id || account.user.nickname || account.user.avatarUrl)
+              ? account.user
+              : null
+          // The window reads `avatarUrl`/`nickname` from the row; expose the same fields as
+          // a user object so every caller sees the profile even without a full account read.
+          const rowUser =
+            row && (row.accountId || row.nickname || row.avatarUrl)
+              ? { id: String(row.accountId || ''), nickname: row.nickname || '', avatarUrl: row.avatarUrl || '' }
+              : null
           merged[source.id] = {
             ...(summary[source.id] ?? {}),
             displayName: source.displayName,
@@ -1762,7 +1793,7 @@ export function createOnlineRoutes(deps) {
             availability: source.availability,
             requiresAccount: source.requiresAccount,
             status: signedIn ? (account?.freshness === 'error' ? 'error' : 'authenticated') : 'anonymous',
-            user: account?.user ?? null,
+            user: storedUser ?? rowUser,
             collections: Array.isArray(account?.collections) ? account.collections : [],
             freshness: account?.freshness ?? 'stale',
             lastUpdatedAt: Number(account?.savedAt) || 0,

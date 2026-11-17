@@ -477,7 +477,6 @@ function AddToPlaylistDialog(props) {
 
 function LoginDialog(props) {
   var onlineState = useStore(onlineStore)
-  var navForm = useNavidromeForm()
   var initial = props.layer.props.provider || 'netease'
   var selectedPair = useState(initial)
   var provider = selectedPair[0]
@@ -503,9 +502,10 @@ function LoginDialog(props) {
   var providerInfo = (onlineState.providers || {})[provider] || {}
   var providerKnown = Object.prototype.hasOwnProperty.call(onlineState.providers || {}, provider)
   var signedIn = providerInfo.loggedIn === true
-  var passwordOnly = supports(provider, 'loginPassword') && !supports(provider, 'loginQr')
+  // Folia keeps server connections (Navidrome) in Settings; this window is for the
+  // online platforms that sign in with a QR code.
   var providers = availableSources().filter(function (id) {
-    return id !== 'local' && (supports(id, 'loginQr') || supports(id, 'loginPassword'))
+    return id !== 'local' && supports(id, 'loginQr')
   })
 
   useEffect(
@@ -586,7 +586,7 @@ function LoginDialog(props) {
 
   useEffect(
     function () {
-      if (!providerKnown || signedIn || passwordOnly) return undefined
+      if (!providerKnown || signedIn) return undefined
       var cancelled = false
       var timer = null
       var polling = false
@@ -691,7 +691,7 @@ function LoginDialog(props) {
         }
       }
     },
-    [provider, run.mode, run.seq, providerKnown, signedIn, passwordOnly],
+    [provider, run.mode, run.seq, providerKnown, signedIn],
   )
 
   var providerLabel = sourceLabelOf(provider)
@@ -713,20 +713,31 @@ function LoginDialog(props) {
     var info = (onlineState.providers || {})[id] || {}
     var signed = info.loggedIn === true
     var label = sourceLabelOf(id)
+    var labelText = signed && info.nickname ? label + ' · ' + info.nickname : label
+    var avatar =
+      signed && typeof info.avatarUrl === 'string' && info.avatarUrl !== ''
+        ? h('img', {
+            className: 'mp-login-chip-avatar',
+            src: API + 'online/cover?provider=' + encodeURIComponent(id) + '&url=' + encodeURIComponent(info.avatarUrl),
+            alt: '',
+          })
+        : null
     return h(
       'button',
       {
         key: id,
         type: 'button',
         className: cx('mp-login-chip', id === provider && 'is-on'),
-        title: label,
-        'aria-label': label,
+        title: labelText,
+        'aria-label': labelText,
         'aria-pressed': id === provider ? 'true' : 'false',
         onClick: function () {
           selectProvider(id)
         },
       },
-      h('span', { className: 'mp-login-chip-logo' }, providerLogo(id, 24)),
+      avatar === null
+        ? h('span', { className: 'mp-login-chip-logo' }, providerLogo(id, 24))
+        : avatar,
       signed ? h('i', { className: 'mp-login-chip-dot', 'aria-hidden': 'true' }) : null,
     )
   }
@@ -750,7 +761,7 @@ function LoginDialog(props) {
     var avatar = providerInfo.avatarUrl
       ? h('img', {
           className: 'mp-login-avatar',
-          src: API + 'online/cover?url=' + encodeURIComponent(providerInfo.avatarUrl),
+          src: API + 'online/cover?provider=' + encodeURIComponent(provider) + '&url=' + encodeURIComponent(providerInfo.avatarUrl),
           alt: '',
         })
       : h('span', { className: 'mp-login-avatar is-fallback' }, (providerInfo.nickname || '?').slice(0, 1))
@@ -790,77 +801,6 @@ function LoginDialog(props) {
               void logoutProvider(provider)
             },
             children: t('online.logout'),
-          }),
-        ),
-      ),
-    ]
-  }
-
-  function navView() {
-    var busy = navForm.phase === 'loading'
-    return [
-      h(
-        'div',
-        { key: 'body', className: 'mp-login-body' },
-        h('div', { className: 'mp-login-view' },
-          h('div', { className: 'mp-login-view-title' }, t('online.navidromeTitle')),
-          h('div', { className: 'mp-login-view-sub' }, t('online.navidromeHint')),
-          h(
-            'div',
-            { className: 'mp-login-fields' },
-            h(KitInput, {
-              type: 'url',
-              label: t('online.navidromeServerPlaceholder'),
-              placeholder: t('online.navidromeServerPlaceholder'),
-              value: navForm.server,
-              disabled: busy,
-              onChange: function (value) {
-                navForm.setServer(value)
-              },
-            }),
-            h(KitInput, {
-              type: 'text',
-              label: t('online.navidromeUser'),
-              placeholder: t('online.navidromeUser'),
-              value: navForm.username,
-              disabled: busy,
-              onChange: function (value) {
-                navForm.setUsername(value)
-              },
-            }),
-            h(KitInput, {
-              type: 'password',
-              label: t('online.navidromePassword'),
-              placeholder: t('online.navidromePassword'),
-              value: navForm.password,
-              disabled: busy,
-              onChange: function (value) {
-                navForm.setPassword(value)
-              },
-            }),
-          ),
-          navForm.error !== ''
-            ? h('span', { className: 'mp-online-error' }, navForm.error)
-            : navForm.notice !== ''
-              ? h('span', { className: 'mp-online-ok' }, navForm.notice)
-              : null,
-        ),
-      ),
-      h(
-        'div',
-        { key: 'foot', className: 'mp-login-foot' },
-        footNote,
-        h(
-          'div',
-          { className: 'mp-login-foot-actions' },
-          h(Button, {
-            variant: 'primary',
-            icon: 'checkCircle',
-            disabled: busy,
-            onClick: function () {
-              void navForm.connect()
-            },
-            children: busy ? t('online.navidromeConnecting') : t('online.navidromeConnect'),
           }),
         ),
       ),
@@ -992,7 +932,7 @@ function LoginDialog(props) {
       'div',
       { className: 'mp-login' },
       h('div', { className: 'mp-login-chips', role: 'group', 'aria-label': t('online.loginAccounts') }, providers.map(providerChip)),
-      signedIn ? accountView() : passwordOnly ? navView() : qrView,
+      signedIn ? accountView() : qrView,
     ),
   )
 }

@@ -93,11 +93,13 @@ function OnlineContent(props) {
 
   function reloginExpired() {
     void logoutProvider(provider).then(function () {
-      // Navidrome signs in with a URL + credentials, not a QR code, so it must
-      // reopen the credential dialog; the QR sheet would show an empty code the
-      // user cannot scan and leave them stuck.
-      var layer = supports(provider, 'loginQr') ? 'login' : 'navidrome'
-      pushLayer(layer, layer === 'navidrome' ? {} : { provider: provider, mode: 'qq' })
+      // Folia keeps server connections (Navidrome) in Settings and QR platforms in the
+      // shared login window; the window would show an empty code for Navidrome.
+      if (!supports(provider, 'loginQr')) {
+        pushLayer('settings', { tab: 'online' })
+        return
+      }
+      pushLayer('login', { provider: provider, mode: 'qq' })
     })
   }
   var currentEntries = []
@@ -802,7 +804,7 @@ function OnlineContent(props) {
             {
               icon: 'settings',
               onClick: function () {
-                pushLayer('navidrome')
+                pushLayer('settings', { tab: 'online' })
               },
             },
             t('online.enableFullLibrary'),

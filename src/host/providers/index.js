@@ -1482,9 +1482,14 @@ export async function providerProfile(provider, cookie = '', session = {}) {
     return { nickname: info.nickname || '', avatarUrl: info.pic || '', accountId: String(session.userid || '') }
   }
   if (provider === 'qq') {
-    const uin = cookiePart(cookie, 'uin') || cookiePart(cookie, 'musicid') || cookiePart(cookie, 'p_uin')
+    const uin =
+      cookiePart(cookie, 'uin') ||
+      cookiePart(cookie, 'musicid') ||
+      cookiePart(cookie, 'p_uin') ||
+      String(session.userid ?? session.musicid ?? session.uin ?? '').trim()
+    const nickname = String(session.nickname ?? '').trim()
     return {
-      nickname: uin === '' ? '' : 'QQ ' + uin,
+      nickname: nickname !== '' ? nickname : uin === '' ? '' : 'QQ ' + uin,
       avatarUrl: uin === '' ? '' : 'https://q.qlogo.cn/headimg_dl?dst_uin=' + encodeURIComponent(uin) + '&spec=100',
       accountId: uin,
     }

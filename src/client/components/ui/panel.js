@@ -175,10 +175,10 @@ function TopBar(props) {
                   role: 'button',
                   tabIndex: 0,
                   onClick: function () {
-                    // Navidrome has no QR flow: open the credential dialog
-                    // directly instead of the shared sign-in sheet.
+                    // Folia keeps server connections (Navidrome) in Settings; only the
+                    // platforms with a QR sign-in live in the login window.
                     if (!supports(ui.source, 'loginQr')) {
-                      pushLayer('navidrome')
+                      pushLayer('settings', { tab: 'online' })
                       return
                     }
                     pushLayer('login', { provider: ui.source, mode: 'qq' })
@@ -302,11 +302,11 @@ function OverlayRoot() {
     if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
     if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
     if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
-    if (layer.kind === 'navidrome') return h(NavidromeDialog, { key: 'navidrome', layer: layer })
     if (layer.kind === 'settings') {
       return h(SettingsSheet, {
         key: 'settings',
         open: true,
+        initialTab: layer.props && layer.props.tab,
         onClose: function () {
           removeLayer('settings')
         },

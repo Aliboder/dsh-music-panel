@@ -669,6 +669,9 @@ function useNavidromeForm() {
   var phasePair = useState('idle') // idle | loading
   var errorPair = useState('')
   var noticePair = useState('')
+  // Opt-in: keeping the password is what unlocks paging the whole library through
+  // the native API; the Host otherwise stores only a salted token.
+  var keepPair = useState(false)
 
   var setServer = serverPair[1]
   var setUsername = userPair[1]
@@ -676,6 +679,7 @@ function useNavidromeForm() {
   var setPhase = phasePair[1]
   var setError = errorPair[1]
   var setNotice = noticePair[1]
+  var setKeepPassword = keepPair[1]
 
   function reset() {
     setServer('')
@@ -684,6 +688,7 @@ function useNavidromeForm() {
     setPhase('idle')
     setError('')
     setNotice('')
+    setKeepPassword(false)
   }
 
   async function connect() {
@@ -706,6 +711,7 @@ function useNavidromeForm() {
         server: server,
         username: username,
         password: password,
+        storePassword: keepPair[0] === true,
       })
       setPassword('')
       setPhase('idle')
@@ -725,11 +731,13 @@ function useNavidromeForm() {
     phase: phasePair[0],
     error: errorPair[0],
     notice: noticePair[0],
+    keepPassword: keepPair[0],
     setServer: setServer,
     setUsername: setUsername,
     setPassword: setPassword,
     setError: setError,
     setNotice: setNotice,
+    setKeepPassword: setKeepPassword,
     connect: connect,
     reset: reset,
   }

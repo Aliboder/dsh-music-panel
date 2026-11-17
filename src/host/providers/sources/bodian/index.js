@@ -436,7 +436,17 @@ export function createBodianSource(options) {
       async readUser() {
         try {
           const data = await request('login_status', {})
-          return data?.user ?? null
+          // `login_status` returns the stored user itself (not `{ user }`); accept both
+          // shapes and the upstream avatar spellings so a refresh keeps the avatar.
+          const user = data?.userInfo ?? data?.user ?? data
+          if (user === null || typeof user !== 'object') return null
+          const id = String(user.id ?? user.uid ?? '')
+          if (id === '') return null
+          return {
+            id,
+            nickname: String(user.nickname ?? ''),
+            avatarUrl: String(user.avatarUrl ?? user.headImg ?? user.head_img ?? user.avatar ?? ''),
+          }
         } catch {
           return null
         }

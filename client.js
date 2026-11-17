@@ -157214,6 +157214,9 @@ window.__ModuleLoader__.load({
       var phasePair = useState('idle') // idle | loading
       var errorPair = useState('')
       var noticePair = useState('')
+      // Opt-in: keeping the password is what unlocks paging the whole library through
+      // the native API; the Host otherwise stores only a salted token.
+      var keepPair = useState(false)
 
       var setServer = serverPair[1]
       var setUsername = userPair[1]
@@ -157221,6 +157224,7 @@ window.__ModuleLoader__.load({
       var setPhase = phasePair[1]
       var setError = errorPair[1]
       var setNotice = noticePair[1]
+      var setKeepPassword = keepPair[1]
 
       function reset() {
         setServer('')
@@ -157229,6 +157233,7 @@ window.__ModuleLoader__.load({
         setPhase('idle')
         setError('')
         setNotice('')
+        setKeepPassword(false)
       }
 
       async function connect() {
@@ -157251,6 +157256,7 @@ window.__ModuleLoader__.load({
             server: server,
             username: username,
             password: password,
+            storePassword: keepPair[0] === true,
           })
           setPassword('')
           setPhase('idle')
@@ -157270,11 +157276,13 @@ window.__ModuleLoader__.load({
         phase: phasePair[0],
         error: errorPair[0],
         notice: noticePair[0],
+        keepPassword: keepPair[0],
         setServer: setServer,
         setUsername: setUsername,
         setPassword: setPassword,
         setError: setError,
         setNotice: setNotice,
+        setKeepPassword: setKeepPassword,
         connect: connect,
         reset: reset,
       }
@@ -158966,6 +158974,7 @@ window.__ModuleLoader__.load({
       '.mp-login-chip.is-on{border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 9%,transparent)}',
       '.mp-login-chip:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
       '.mp-login-chip-logo{width:24px;height:24px;border-radius:var(--dsw-radius-xs,4px);overflow:hidden}',
+      '.mp-login-chip-avatar{width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08))}',
       '.mp-login-chip-logo .mp-provider-logo{width:100%;height:100%}',
       '.mp-login-chip-dot{position:absolute;right:3px;bottom:3px;width:6px;height:6px;border-radius:50%;corner-shape:round;background:var(--dsw-alias-state-success-primary,#2f9e44);box-shadow:0 0 0 2px var(--dsw-alias-bg-layer-1,#1a1a1e)}',
       '.mp-login-body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:2px 24px 14px}',
@@ -165312,9 +165321,17 @@ window.__ModuleLoader__.load({
       var sleepRemaining = useCountdown(prefs.sleepDeadline)
       var library = useStore(libraryStore)
       var online = useStore(onlineStore)
-      var tabPair = useState('appearance')
+      var tabPair = useState(props.initialTab || 'appearance')
       var tab = tabPair[0]
       var setTab = tabPair[1]
+      // Opening the sheet from a specific entry (e.g. the Navidrome connect chip) lands on
+      // that tab even when the sheet was already mounted.
+      useEffect(
+        function () {
+          if (props.initialTab) setTab(props.initialTab)
+        },
+        [props.initialTab],
+      )
       // Component test page: a full view inside the same sheet, so it shares the sheet's
       // modal layer instead of opening a second one.
       var galleryPair = useState(false)
@@ -166151,6 +166168,25 @@ window.__ModuleLoader__.load({
                       form.setPassword(value)
                     },
                   }),
+                  h(
+                    'div',
+                    {
+                      className: 'mp-online-hint-text',
+                      style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' },
+                    },
+                    h('span', null, t('online.navidromeKeep')),
+                    h(Switch, {
+                      value: form.keepPassword === true,
+                      label: t('online.navidromeKeep'),
+                      disabled: busy,
+                      onChange: function (next) {
+                        form.setKeepPassword(next === true)
+                      },
+                    }),
+                  ),
+                  form.keepPassword === true
+                    ? h('span', { className: 'mp-online-hint-text' }, t('online.navidromeKeepWarn'))
+                    : null,
                   form.error !== ''
                     ? h('span', { className: 'mp-online-error' }, form.error)
                     : form.notice !== ''
@@ -167159,7 +167195,6 @@ window.__ModuleLoader__.load({
 
     function LoginDialog(props) {
       var onlineState = useStore(onlineStore)
-      var navForm = useNavidromeForm()
       var initial = props.layer.props.provider || 'netease'
       var selectedPair = useState(initial)
       var provider = selectedPair[0]
@@ -167185,9 +167220,10 @@ window.__ModuleLoader__.load({
       var providerInfo = (onlineState.providers || {})[provider] || {}
       var providerKnown = Object.prototype.hasOwnProperty.call(onlineState.providers || {}, provider)
       var signedIn = providerInfo.loggedIn === true
-      var passwordOnly = supports(provider, 'loginPassword') && !supports(provider, 'loginQr')
+      // Folia keeps server connections (Navidrome) in Settings; this window is for the
+      // online platforms that sign in with a QR code.
       var providers = availableSources().filter(function (id) {
-        return id !== 'local' && (supports(id, 'loginQr') || supports(id, 'loginPassword'))
+        return id !== 'local' && supports(id, 'loginQr')
       })
 
       useEffect(
@@ -167268,7 +167304,7 @@ window.__ModuleLoader__.load({
 
       useEffect(
         function () {
-          if (!providerKnown || signedIn || passwordOnly) return undefined
+          if (!providerKnown || signedIn) return undefined
           var cancelled = false
           var timer = null
           var polling = false
@@ -167373,7 +167409,7 @@ window.__ModuleLoader__.load({
             }
           }
         },
-        [provider, run.mode, run.seq, providerKnown, signedIn, passwordOnly],
+        [provider, run.mode, run.seq, providerKnown, signedIn],
       )
 
       var providerLabel = sourceLabelOf(provider)
@@ -167395,20 +167431,31 @@ window.__ModuleLoader__.load({
         var info = (onlineState.providers || {})[id] || {}
         var signed = info.loggedIn === true
         var label = sourceLabelOf(id)
+        var labelText = signed && info.nickname ? label + ' · ' + info.nickname : label
+        var avatar =
+          signed && typeof info.avatarUrl === 'string' && info.avatarUrl !== ''
+            ? h('img', {
+                className: 'mp-login-chip-avatar',
+                src: API + 'online/cover?provider=' + encodeURIComponent(id) + '&url=' + encodeURIComponent(info.avatarUrl),
+                alt: '',
+              })
+            : null
         return h(
           'button',
           {
             key: id,
             type: 'button',
             className: cx('mp-login-chip', id === provider && 'is-on'),
-            title: label,
-            'aria-label': label,
+            title: labelText,
+            'aria-label': labelText,
             'aria-pressed': id === provider ? 'true' : 'false',
             onClick: function () {
               selectProvider(id)
             },
           },
-          h('span', { className: 'mp-login-chip-logo' }, providerLogo(id, 24)),
+          avatar === null
+            ? h('span', { className: 'mp-login-chip-logo' }, providerLogo(id, 24))
+            : avatar,
           signed ? h('i', { className: 'mp-login-chip-dot', 'aria-hidden': 'true' }) : null,
         )
       }
@@ -167432,7 +167479,7 @@ window.__ModuleLoader__.load({
         var avatar = providerInfo.avatarUrl
           ? h('img', {
               className: 'mp-login-avatar',
-              src: API + 'online/cover?url=' + encodeURIComponent(providerInfo.avatarUrl),
+              src: API + 'online/cover?provider=' + encodeURIComponent(provider) + '&url=' + encodeURIComponent(providerInfo.avatarUrl),
               alt: '',
             })
           : h('span', { className: 'mp-login-avatar is-fallback' }, (providerInfo.nickname || '?').slice(0, 1))
@@ -167472,77 +167519,6 @@ window.__ModuleLoader__.load({
                   void logoutProvider(provider)
                 },
                 children: t('online.logout'),
-              }),
-            ),
-          ),
-        ]
-      }
-
-      function navView() {
-        var busy = navForm.phase === 'loading'
-        return [
-          h(
-            'div',
-            { key: 'body', className: 'mp-login-body' },
-            h('div', { className: 'mp-login-view' },
-              h('div', { className: 'mp-login-view-title' }, t('online.navidromeTitle')),
-              h('div', { className: 'mp-login-view-sub' }, t('online.navidromeHint')),
-              h(
-                'div',
-                { className: 'mp-login-fields' },
-                h(KitInput, {
-                  type: 'url',
-                  label: t('online.navidromeServerPlaceholder'),
-                  placeholder: t('online.navidromeServerPlaceholder'),
-                  value: navForm.server,
-                  disabled: busy,
-                  onChange: function (value) {
-                    navForm.setServer(value)
-                  },
-                }),
-                h(KitInput, {
-                  type: 'text',
-                  label: t('online.navidromeUser'),
-                  placeholder: t('online.navidromeUser'),
-                  value: navForm.username,
-                  disabled: busy,
-                  onChange: function (value) {
-                    navForm.setUsername(value)
-                  },
-                }),
-                h(KitInput, {
-                  type: 'password',
-                  label: t('online.navidromePassword'),
-                  placeholder: t('online.navidromePassword'),
-                  value: navForm.password,
-                  disabled: busy,
-                  onChange: function (value) {
-                    navForm.setPassword(value)
-                  },
-                }),
-              ),
-              navForm.error !== ''
-                ? h('span', { className: 'mp-online-error' }, navForm.error)
-                : navForm.notice !== ''
-                  ? h('span', { className: 'mp-online-ok' }, navForm.notice)
-                  : null,
-            ),
-          ),
-          h(
-            'div',
-            { key: 'foot', className: 'mp-login-foot' },
-            footNote,
-            h(
-              'div',
-              { className: 'mp-login-foot-actions' },
-              h(Button, {
-                variant: 'primary',
-                icon: 'checkCircle',
-                disabled: busy,
-                onClick: function () {
-                  void navForm.connect()
-                },
-                children: busy ? t('online.navidromeConnecting') : t('online.navidromeConnect'),
               }),
             ),
           ),
@@ -167674,7 +167650,7 @@ window.__ModuleLoader__.load({
           'div',
           { className: 'mp-login' },
           h('div', { className: 'mp-login-chips', role: 'group', 'aria-label': t('online.loginAccounts') }, providers.map(providerChip)),
-          signedIn ? accountView() : passwordOnly ? navView() : qrView,
+          signedIn ? accountView() : qrView,
         ),
       )
     }
@@ -168764,11 +168740,13 @@ window.__ModuleLoader__.load({
 
       function reloginExpired() {
         void logoutProvider(provider).then(function () {
-          // Navidrome signs in with a URL + credentials, not a QR code, so it must
-          // reopen the credential dialog; the QR sheet would show an empty code the
-          // user cannot scan and leave them stuck.
-          var layer = supports(provider, 'loginQr') ? 'login' : 'navidrome'
-          pushLayer(layer, layer === 'navidrome' ? {} : { provider: provider, mode: 'qq' })
+          // Folia keeps server connections (Navidrome) in Settings and QR platforms in the
+          // shared login window; the window would show an empty code for Navidrome.
+          if (!supports(provider, 'loginQr')) {
+            pushLayer('settings', { tab: 'online' })
+            return
+          }
+          pushLayer('login', { provider: provider, mode: 'qq' })
         })
       }
       var currentEntries = []
@@ -169473,7 +169451,7 @@ window.__ModuleLoader__.load({
                 {
                   icon: 'settings',
                   onClick: function () {
-                    pushLayer('navidrome')
+                    pushLayer('settings', { tab: 'online' })
                   },
                 },
                 t('online.enableFullLibrary'),
@@ -173704,10 +173682,10 @@ window.__ModuleLoader__.load({
                       role: 'button',
                       tabIndex: 0,
                       onClick: function () {
-                        // Navidrome has no QR flow: open the credential dialog
-                        // directly instead of the shared sign-in sheet.
+                        // Folia keeps server connections (Navidrome) in Settings; only the
+                        // platforms with a QR sign-in live in the login window.
                         if (!supports(ui.source, 'loginQr')) {
-                          pushLayer('navidrome')
+                          pushLayer('settings', { tab: 'online' })
                           return
                         }
                         pushLayer('login', { provider: ui.source, mode: 'qq' })
@@ -173831,11 +173809,11 @@ window.__ModuleLoader__.load({
         if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
         if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
         if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
-        if (layer.kind === 'navidrome') return h(NavidromeDialog, { key: 'navidrome', layer: layer })
         if (layer.kind === 'settings') {
           return h(SettingsSheet, {
             key: 'settings',
             open: true,
+            initialTab: layer.props && layer.props.tab,
             onClose: function () {
               removeLayer('settings')
             },
@@ -175633,172 +175611,6 @@ window.__ModuleLoader__.load({
         },
         h('div', { className: 'mp-set-desc' }, track ? track.title || '' : ''),
         body,
-      )
-    }
-
-    // ── src/client/components/ui/navidrome-dialog.js
-    /**
-     * Navidrome / Subsonic connection dialog.
-     *
-     * Navidrome has no QR sign-in, so the top-bar chip opens this form instead of
-     * the shared login layer: server URL, username, password, and a save button.
-     *
-     * The password is sent once to POST /online/navidrome/login, where the host
-     * trades it for a salted token (md5(paste + salt)) and persists only that. It
-     * is cleared from component state the moment the request settles.
-     */
-
-    function NavidromeDialog() {
-      var serverPair = useState('')
-      var userPair = useState('')
-      var passPair = useState('')
-      var busyPair = useState(false)
-      var errorPair = useState('')
-      var noticePair = useState('')
-      // Opt-in: keeping the password is the only way to page the whole library,
-      // because the native API mints a JWT from it.
-      var keepPair = useState(false)
-      var keepPassword = keepPair[0]
-      var setKeepPassword = keepPair[1]
-
-      var server = serverPair[0]
-      var setServer = serverPair[1]
-      var username = userPair[0]
-      var setUsername = userPair[1]
-      var password = passPair[0]
-      var setPassword = passPair[1]
-      var busy = busyPair[0]
-      var setBusy = busyPair[1]
-      var error = errorPair[0]
-      var setError = errorPair[1]
-      var notice = noticePair[0]
-      var setNotice = noticePair[1]
-
-      function save() {
-        if (busy) return
-        var trimmedServer = String(server || '').trim()
-        var trimmedUser = String(username || '').trim()
-        var secret = String(password || '')
-        setError('')
-        setNotice('')
-
-        if (!/^https?:\/\//i.test(trimmedServer)) {
-          setError(t('online.navidromeBadServer'))
-          return
-        }
-        if (trimmedUser === '') {
-          setError(t('online.navidromeNeedUser'))
-          return
-        }
-        if (secret === '') {
-          setError(t('online.navidromeNeedPassword'))
-          return
-        }
-
-        setBusy(true)
-        postJson(API + 'online/navidrome/login', {
-          server: trimmedServer,
-          username: trimmedUser,
-          password: secret,
-          storePassword: keepPassword === true,
-        })
-          .then(function (result) {
-            setBusy(false)
-            // Drop the secret as soon as it is spent.
-            setPassword('')
-            setNotice(t('online.navidromeOk', { version: (result && result.serverVersion) || 'ok' }))
-            void loadProviders()
-            showToast(t('online.loginSuccess'))
-            // Leave the dialog open briefly so the success line is readable, then
-            // close and land on the source the user just configured.
-            window.setTimeout(function () {
-              popLayer()
-            }, 700)
-          })
-          .catch(function (err) {
-            setBusy(false)
-            setError(errorText(err))
-          })
-      }
-
-      function onKeyDown(event) {
-        if (event.key === 'Enter') save()
-        if (event.key === 'Escape') popLayer()
-      }
-
-      return h(
-        KitModal,
-        {
-          title: t('online.navidromeTitle'),
-          small: true,
-          onClose: popLayer,
-          footer: h(
-            'div',
-            { className: 'mp-navidrome-footer' },
-            h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
-            h(
-              Button,
-              { key: 'save', variant: 'primary', disabled: busy, onClick: save },
-              busy ? t('online.navidromeConnecting') : t('online.navidromeSave'),
-            ),
-          ),
-        },
-        h(
-          'div',
-          { className: 'mp-navidrome-form' },
-          h('label', { className: 'mp-navidrome-label' }, t('online.navidromeServer')),
-          h('input', {
-            className: 'mp-kit-input',
-            type: 'url',
-            placeholder: t('online.navidromeServerPlaceholder'),
-            value: server,
-            disabled: busy,
-            autoFocus: true,
-            onKeyDown: onKeyDown,
-            onChange: function (event) {
-              setServer(event.target.value)
-            },
-          }),
-          h('label', { className: 'mp-navidrome-label' }, t('online.navidromeUser')),
-          h('input', {
-            className: 'mp-kit-input',
-            type: 'text',
-            value: username,
-            disabled: busy,
-            onKeyDown: onKeyDown,
-            onChange: function (event) {
-              setUsername(event.target.value)
-            },
-          }),
-          h('label', { className: 'mp-navidrome-label' }, t('online.navidromePassword')),
-          h('input', {
-            className: 'mp-kit-input',
-            type: 'password',
-            value: password,
-            disabled: busy,
-            onKeyDown: onKeyDown,
-            onChange: function (event) {
-              setPassword(event.target.value)
-            },
-          }),
-          h(
-            'label',
-            { className: 'mp-navidrome-check' },
-            h('input', {
-              type: 'checkbox',
-              checked: keepPassword === true,
-              disabled: busy,
-              onChange: function (event) {
-                setKeepPassword(event.target.checked === true)
-              },
-            }),
-            h('span', null, t('online.navidromeKeep')),
-          ),
-          h('p', { className: 'mp-navidrome-hint' }, t('online.navidromeHint')),
-          keepPassword === true ? h('p', { className: 'mp-navidrome-warn' }, t('online.navidromeKeepWarn')) : null,
-          error !== '' ? h('p', { className: 'mp-online-error' }, error) : null,
-          notice !== '' ? h('p', { className: 'mp-online-ok' }, notice) : null,
-        ),
       )
     }
 

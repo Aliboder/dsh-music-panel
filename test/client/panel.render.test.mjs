@@ -419,18 +419,65 @@ assert.ok(
   'the settings sheet survives a navidrome source with no session',
 )
 
-// 5c. the Navidrome connection dialog renders its three fields
-internals.overlayStore.set({ layers: [{ kind: 'navidrome', props: {} }] })
-const navDialog = panel()
-const navDialogText = textOf(navDialog)
-assert.ok(classesOf(navDialog).has('mp-dialog'), 'the navidrome connection dialog renders')
-assert.ok(navDialogText.includes('服务器地址') || navDialogText.includes('Server URL'), 'the server field renders')
-assert.ok(navDialogText.includes('用户名') || navDialogText.includes('Username'), 'the username field renders')
-assert.ok(navDialogText.includes('密码') || navDialogText.includes('Password'), 'the password field renders')
+// 5c. Navidrome is configured in Settings (Folia keeps server connections there):
+// the online tab holds the single credential form, with the keep-password opt-in.
+internals.overlayStore.set({ layers: [{ kind: 'settings', props: { tab: 'online' } }] })
+internals.onlineStore.set({
+  provider: 'navidrome',
+  results: [],
+  phase: 'idle',
+  playlists: [],
+  providers: {
+    navidrome: {
+      loggedIn: false,
+      nickname: '',
+      avatarUrl: '',
+      capabilities: { loginPassword: true, loginQr: false },
+    },
+  },
+})
+const navSettings = panel()
+const navSettingsText = textOf(navSettings)
+assert.ok(classesOf(navSettings).has('mp-sheet'), 'the settings sheet renders')
 assert.ok(
-  navDialogText.includes('保存并连接') || navDialogText.includes('Save and connect'),
-  'the save button renders',
+  nodesWithClass(navSettings, 'is-navidrome').length === 1,
+  'the Navidrome card renders in the online tab',
 )
+assert.ok(
+  nodesWithClass(navSettings, 'mp-kit-input').length >= 3,
+  'the server / username / password fields render',
+)
+assert.ok(
+  navSettingsText.includes('保存密码') || navSettingsText.includes('Keep'),
+  'the keep-password opt-in renders',
+)
+assert.ok(
+  navSettingsText.includes('连接') || navSettingsText.includes('Connect'),
+  'the connect button renders',
+)
+
+// 5d. Signed-in platforms show their avatar in the login rail; server connections
+// (Navidrome) are not part of this window (Folia keeps them in Settings).
+internals.overlayStore.set({ layers: [{ kind: 'login', props: { provider: 'netease' } }] })
+internals.onlineStore.set({
+  provider: 'netease',
+  results: [],
+  phase: 'idle',
+  playlists: [],
+  providers: {
+    netease: {
+      loggedIn: true,
+      nickname: 'Aliboder',
+      avatarUrl: 'https://p1.music.126.net/a.jpg',
+      capabilities: { loginQr: true },
+    },
+    qq: { loggedIn: false, nickname: '', avatarUrl: '', capabilities: { loginQr: true } },
+    navidrome: { loggedIn: false, nickname: '', avatarUrl: '', capabilities: { loginPassword: true, loginQr: false } },
+  },
+})
+const loginPanel = panel()
+assert.equal(nodesWithClass(loginPanel, 'mp-login-chip').length, 2, 'the login rail lists QR platforms only')
+assert.equal(nodesWithClass(loginPanel, 'mp-login-chip-avatar').length, 1, 'the signed-in platform shows its avatar')
 
 // 6. tag editor / batch / duplicates / online lyric dialogs
 internals.overlayStore.set({ layers: [{ kind: 'tag', props: { path: TRACKS[0].path } }] })

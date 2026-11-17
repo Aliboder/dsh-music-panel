@@ -9,7 +9,7 @@ import { toLegacyResult } from '../../src/host/providers/qq.js'
 import { assertOk, ensureQqService, resetUpstreamOverride, setUpstreamOverride, stopQqService } from '../../src/host/services/qq-api.js'
 import * as QQ from '../../src/host/providers/qq.js'
 import { parseQrc } from '../../src/host/providers/qrc.js'
-import { loginStatus } from '../../src/host/providers/index.js'
+import { loginStatus, providerProfile } from '../../src/host/providers/index.js'
 
 const item = toLegacyResult({
   mid: '0039MnYb0qxYhV',
@@ -134,6 +134,15 @@ assert.equal(assertOk({ code: 200, items: [] }, '/search').items.length, 0)
 assert.throws(() => assertOk({ code: 801, message: 'Waiting for QR scan' }, '/login/qr/check'), /Waiting for QR scan/)
 assert.equal(assertOk({ code: 801, message: 'Waiting for QR scan' }, '/login/qr/check', { skipCodeCheck: true }).code, 801)
 assert.equal(assertOk({ code: 803, cookie: 'qqmusic_session=x' }, '/login/qr/check', { skipCodeCheck: true }).cookie, 'qqmusic_session=x')
+
+// A QQ session may carry no cookie uin (wx login stores only qqmusic_session); the
+// stored userid still names the account, so the profile keeps its nickname and qlogo avatar.
+{
+  const profile = await providerProfile('qq', '', { userid: '12345', nickname: '' })
+  assert.equal(profile.accountId, '12345')
+  assert.equal(profile.avatarUrl, 'https://q.qlogo.cn/headimg_dl?dst_uin=12345&spec=100')
+  assert.equal(profile.nickname, 'QQ 12345')
+}
 
 if (process.env.DSH_MUSIC_UPSTREAM === '1') {
   const { search, getLyric, createQRLogin, checkQRLogin } = await import('../../src/host/providers/qq.js')

@@ -92,8 +92,6 @@
     "src/client/components/ui/header.js",
     "src/client/components/ui/folder-picker.js",
     "src/client/components/ui/online-add-to-dialog.js",
-    "src/client/components/ui/navidrome-dialog.js",
     "src/client/app/plugin.js"
   ]
 }
-

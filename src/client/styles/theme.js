@@ -988,6 +988,7 @@ var THEME_CSS = [
   '.mp-login-chip.is-on{border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 9%,transparent)}',
   '.mp-login-chip:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
   '.mp-login-chip-logo{width:24px;height:24px;border-radius:var(--dsw-radius-xs,4px);overflow:hidden}',
+  '.mp-login-chip-avatar{width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08))}',
   '.mp-login-chip-logo .mp-provider-logo{width:100%;height:100%}',
   '.mp-login-chip-dot{position:absolute;right:3px;bottom:3px;width:6px;height:6px;border-radius:50%;corner-shape:round;background:var(--dsw-alias-state-success-primary,#2f9e44);box-shadow:0 0 0 2px var(--dsw-alias-bg-layer-1,#1a1a1e)}',
   '.mp-login-body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:2px 24px 14px}',

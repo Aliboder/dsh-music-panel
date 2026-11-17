@@ -20,9 +20,17 @@ function SettingsSheet(props) {
   var sleepRemaining = useCountdown(prefs.sleepDeadline)
   var library = useStore(libraryStore)
   var online = useStore(onlineStore)
-  var tabPair = useState('appearance')
+  var tabPair = useState(props.initialTab || 'appearance')
   var tab = tabPair[0]
   var setTab = tabPair[1]
+  // Opening the sheet from a specific entry (e.g. the Navidrome connect chip) lands on
+  // that tab even when the sheet was already mounted.
+  useEffect(
+    function () {
+      if (props.initialTab) setTab(props.initialTab)
+    },
+    [props.initialTab],
+  )
   // Component test page: a full view inside the same sheet, so it shares the sheet's
   // modal layer instead of opening a second one.
   var galleryPair = useState(false)
@@ -859,6 +867,25 @@ function SettingsSheet(props) {
                   form.setPassword(value)
                 },
               }),
+              h(
+                'div',
+                {
+                  className: 'mp-online-hint-text',
+                  style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' },
+                },
+                h('span', null, t('online.navidromeKeep')),
+                h(Switch, {
+                  value: form.keepPassword === true,
+                  label: t('online.navidromeKeep'),
+                  disabled: busy,
+                  onChange: function (next) {
+                    form.setKeepPassword(next === true)
+                  },
+                }),
+              ),
+              form.keepPassword === true
+                ? h('span', { className: 'mp-online-hint-text' }, t('online.navidromeKeepWarn'))
+                : null,
               form.error !== ''
                 ? h('span', { className: 'mp-online-error' }, form.error)
                 : form.notice !== ''

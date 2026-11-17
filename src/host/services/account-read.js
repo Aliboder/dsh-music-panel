@@ -80,7 +80,15 @@ export function createAccountReads(options) {
       try {
         const profile = await omni.profile(provider, ctx)
         const nextUser = normaliseUser(profile)
-        if (nextUser !== null) user = nextUser
+        if (nextUser !== null) {
+          // A provider may answer with only a nickname or only an avatar; never replace a
+          // fuller stored user with the empty fields of a partial read.
+          const merged = { ...(user ?? {}) }
+          if (nextUser.id !== '') merged.id = nextUser.id
+          if (nextUser.nickname !== '') merged.nickname = nextUser.nickname
+          if (nextUser.avatarUrl !== '') merged.avatarUrl = nextUser.avatarUrl
+          if (merged.id || merged.nickname || merged.avatarUrl) user = merged
+        }
       } catch (caught) {
         failed = true
         error = messageOf(caught)

@@ -159,6 +159,27 @@ assert.equal(sessions.get(), null)
   assert.equal(repository.get(), null, 'sign-out drops the session')
 }
 
+// `login_status` returns the user itself; a refresh must keep the avatar instead of
+// reading only a nested `user` field that the package does not send.
+{
+  const source = createBodianSource({
+    deviceId: 'a'.repeat(32),
+    sessions: createMemorySessions({ uid: '1', token: 't', user: { id: '1', nickname: 'N' } }),
+    createApi: () => ({
+      request: async (operation) => {
+        if (operation === 'login_status') {
+          return { ok: true, data: { id: 1, nickname: 'N', avatarUrl: 'https://img.example/a.jpg' } }
+        }
+        return { ok: true, data: {} }
+      },
+    }),
+  })
+  const user = await source.auth.readUser()
+  assert.equal(user.id, '1')
+  assert.equal(user.nickname, 'N')
+  assert.equal(user.avatarUrl, 'https://img.example/a.jpg')
+}
+
 // ── QR sign-in ──────────────────────────────────────────────────────────────
 //
 // Bodian's package answers `confirmed` on a successful scan (it has already written the

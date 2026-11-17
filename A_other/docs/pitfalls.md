@@ -369,6 +369,15 @@
 
 ---
 
+## 41. 登录后没有平台头像 / Navidrome 又长出第二套表单（登录 / 账号）
+
+- **现象**：登录窗平台列表只有 logo；QQ、酷狗、波点登录后账号页没有头像。Navidrome 同时存在设置页表单和登录窗口表单。
+- **原因**：① QQ 的会话 cookie 只有 `qqmusic_session`，没有 `uin`，旧逻辑取不到头像；② 酷狗 Lite 的 `user_verify` 经常返回空昵称/头像，但同账号的酷狗完整会话有；③ 波点的 `login_status` 返回用户对象本身，适配器只读 `.user`，刷新时拿不到资料；④ `/online/providers` 只要 `account.user` 是空对象就跳过 profile；⑤ Folia 把 Navidrome 这种服务器连接放在设置里，登录窗只服务扫码平台，我们两处都做了一遍。
+- **处理**：QQ 用 `session.userid` 生成 qlogo；酷狗 Lite 在没有头像时回退同账号酷狗资料；波点 `readUser` 兼容两种形状并映射头像字段；账号读取按字段合并，不用空值覆盖；登录窗有头像时显示头像；Navidrome 的单一表单归位到设置 → 在线，删除独立对话框与登录窗分支。
+- **防回归**：`panel.render.test.mjs` 覆盖登录窗头像与「只列扫码平台」；`bodian.test.mjs` / `qq-upstream.test.mjs` 覆盖资料读取。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
