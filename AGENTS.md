@@ -78,6 +78,7 @@ A_other/                    非插件资料（releases/design/docs/shared/upstre
 - [数据清理实现说明](A_other/docs/data-reset.md)
 - [平台架构](A_other/docs/provider-architecture.md)
 - [Folia 移植说明](A_other/docs/folia-porting.md)
+- [歌词获取与 Folia 对齐执行计划](A_other/docs/lyric-alignment-plan.md)
 - [音频引擎重建执行计划](A_other/docs/audio-engine-rebuild-plan.md)
 - [踩坑记录](A_other/docs/pitfalls.md)
 - [发布流程](A_other/docs/release.md)
