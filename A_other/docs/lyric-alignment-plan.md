@@ -145,7 +145,7 @@
 | 在线升级口径（`isWordByWord`、接受逐行、纯音乐） | ✅ | `now-playing.js`、`mpPrepareLyrics` |
 | 在线导入 / 在线-导入切换（服务端） | ✅ | `/online/lyric-import`、`/online/lyric-choice`、`/online/lyric-state` |
 | 在线导入的界面入口 | ⏳ 待做 | 面板来源行目前只显示在线/导入，导入入口仍在本地文件上 |
-| sidecar 命名 / 跨格式翻译 / 格式顺序 | ✅ | `readSidecarLyrics`、`/lyrics` 的 `formatOrder` |
+| sidecar 命名 / 跨格式翻译 / 格式顺序 | ✅（读取）／⏳（排序界面） | `readSidecarLyrics`、`/lyrics` 的 `formatOrder`；设置页还没有排序控件 |
 | 内嵌 native 标签回退 | ✅ | `readEmbeddedLyrics` |
 | AMLL 候选探测（按需） | ✅ | `online.js` 的 `findMatchedLyric` 与 `local-match.js` 的 `match` |
 | 统一加载器 + 播放门控（D1） | ⏳ 待做 | 需要把取词从面板提到共享 loader，再由 `player.js` 的 `playAfterLoudness` 等待；面板关着时也必须加载，否则门控会死锁 |

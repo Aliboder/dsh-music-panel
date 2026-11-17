@@ -11,7 +11,7 @@
 - 在线歌曲：来源顺序改为首选来源优先；升级搜索不再以「合成词数」判断逐字（普通网易云 LRC 以前因此从不升级），并接受另一个来源的逐行匹配（同 Folia）；导入歌词与纯音乐判定可按歌保存。
 - 歌词来源表与 Folia 一致：`netease → amll → qq → kugouLite → qishui`，来源 id 使用 provider id（修掉酷狗永远被跳过的问题）；Bodian 不再参与跨源匹配。
 - AMLL 的候选 id 改为按需取：自身不是网易云/QQ 时先搜一次网易云拿候选 id，且只在匹配走到 AMLL 时才搜。
-- 同目录歌词支持 `track.lrc` 与 `track.mp3.lrc` 两种命名，翻译可用不同格式（`.t.vtt` 配 `.lrc`），格式顺序可排；内嵌歌词在 `common.lyrics` 为空时回退读取原生标签。
+- 同目录歌词支持 `track.lrc` 与 `track.mp3.lrc` 两种命名，翻译可用不同格式（`.t.vtt` 配 `.lrc`），读取时接受格式顺序（排序界面待做）；内嵌歌词在 `common.lyrics` 为空时回退读取原生标签。
 - 新增 `A_other/docs/lyric-alignment-plan.md`，记录决策、契约、数据模型与阶段。
 
 ### 界面规范与组件
