@@ -36,11 +36,15 @@ const sandbox = {
     },
     removeItem: (key) => stored.delete(key),
   },
-  prefs: {
-    lyricPreferredSource: 'qq',
-    lyricLocalPriority: 'online',
-    lyricFormatOrder: ['yrc', 'lrc'],
-    autoUseBestLyric: true,
+  // The app's preferences live in a store; a component's `prefs` is a local value, so the
+  // loader must read the store (specifically: no bare `prefs` in this sandbox).
+  prefsStore: {
+    get: () => ({
+      lyricPreferredSource: 'qq',
+      lyricLocalPriority: 'online',
+      lyricFormatOrder: ['yrc', 'lrc'],
+      autoUseBestLyric: true,
+    }),
   },
   getJson: async (url) => {
     requests.push(url)

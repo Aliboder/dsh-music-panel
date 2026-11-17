@@ -297,6 +297,15 @@
 
 ---
 
+## 33. 装上新构建后所有歌都不显示歌词（Client / 歌词）
+
+- **现象**：更新到含统一歌词加载器的构建后，播放页、卡片、播放条都不显示歌词；调试报告里 `stage.lines=0`、`hasRaw=false`，而 Host 的 `/online/lyric` 直接请求能返回完整 LRC。
+- **原因**：`src/client/services/lyrics/loader.js` 里写的是裸 `prefs.xxx`，但 `prefs` 只是各组件里的 `var prefs = usePrefs()`，不是全局；加载器调用时抛 `ReferenceError`，又被 `load()` 的 `.catch` 吞成空结果，于是「有歌词但没人拿到」。单测的 sandbox 恰好注入了全局 `prefs`，把问题遮住了。
+- **处理**：加载器改为 `lyricPrefs()`，从 `prefsStore.get()` 读当前偏好；单测 sandbox 只留 `prefsStore`、删掉 `prefs`，让同类错误直接失败。
+- **防回归**：`lyric-loader.test.mjs` 不再提供全局 `prefs`；新增服务代码读偏好看 `prefsStore.get()`（组件里才用 `usePrefs()`），不要假设组件局部变量在 service 里可见。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

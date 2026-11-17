@@ -10241,10 +10241,23 @@ window.__ModuleLoader__.load({
         }
       }
 
+      /**
+       * The listener's preferences, read from the store. A component's `prefs` is its own
+       * `usePrefs()` value, so this service must not borrow that name — it would throw.
+       */
+      function lyricPrefs() {
+        if (typeof prefsStore !== 'undefined' && prefsStore !== null && typeof prefsStore.get === 'function') {
+          var state = prefsStore.get()
+          if (state !== null && typeof state === 'object') return state
+        }
+        return {}
+      }
+
       async function loadOnline(track) {
         var key = keyOf(track)
         var provider = String(track.onlineProvider || '')
         var id = String(track.onlineId || '')
+        var wanted = lyricPrefs()
         var query =
           API +
           'online/lyric?provider=' +
@@ -10260,7 +10273,7 @@ window.__ModuleLoader__.load({
           '&duration=' +
           encodeURIComponent(String(track.durationSec || 0)) +
           '&preferred=' +
-          encodeURIComponent(String(prefs.lyricPreferredSource || ''))
+          encodeURIComponent(String(wanted.lyricPreferredSource || ''))
         // The hook lines are part of the display pass (Folia marks them with the provider's
         // own ranges), so the chorus window is asked alongside the lyric.
         var chorusPromise = getJson(API + 'online/chorus?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(id)).catch(
@@ -10317,8 +10330,9 @@ window.__ModuleLoader__.load({
 
       async function loadLocal(track) {
         var key = keyOf(track)
-        var priority = prefs.lyricLocalPriority === 'online' ? 'online' : 'local'
-        var formatOrder = Array.isArray(prefs.lyricFormatOrder) ? prefs.lyricFormatOrder.join(',') : ''
+        var wanted = lyricPrefs()
+        var priority = wanted.lyricLocalPriority === 'online' ? 'online' : 'local'
+        var formatOrder = Array.isArray(wanted.lyricFormatOrder) ? wanted.lyricFormatOrder.join(',') : ''
         var url =
           API +
           'lyrics?path=' +
@@ -10337,7 +10351,7 @@ window.__ModuleLoader__.load({
               'lyrics/auto?path=' +
               encodeURIComponent(track.path) +
               '&preferred=' +
-              encodeURIComponent(String(prefs.lyricPreferredSource || '')),
+              encodeURIComponent(String(wanted.lyricPreferredSource || '')),
           ).catch(function () {
             return null
           })
@@ -10388,6 +10402,7 @@ window.__ModuleLoader__.load({
       async function upgrade(track, base) {
         var key = keyOf(track)
         var provider = String(track.onlineProvider || '')
+        var wanted = lyricPrefs()
         try {
           var answer = await getJson(
             API +
@@ -10404,7 +10419,7 @@ window.__ModuleLoader__.load({
               '&duration=' +
               encodeURIComponent(String(track.durationSec || 0)) +
               '&preferred=' +
-              encodeURIComponent(String(prefs.lyricPreferredSource || '')),
+              encodeURIComponent(String(wanted.lyricPreferredSource || '')),
           )
           var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
           if (match === null) return null
@@ -10439,7 +10454,7 @@ window.__ModuleLoader__.load({
 
       function maybeUpgrade(track, result) {
         if (!track || !track.onlineProvider) return
-        if (prefs.autoUseBestLyric === false) return
+        if (lyricPrefs().autoUseBestLyric === false) return
         if (result.pureMusic === true || result.source === 'imported') return
         if (result.lyrics.length === 0) return
         upgrade(track, result).catch(function () {})
