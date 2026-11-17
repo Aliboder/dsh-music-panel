@@ -696,21 +696,6 @@ function Panel() {
     }
   }, [])
 
-  useEffect(
-    function () {
-      if (current === null || !current.onlineProvider) return undefined
-      var provider = current.onlineProvider
-      var id = current.onlineId
-      var timer = setInterval(function () {
-        void refreshCacheStatus(provider, [id])
-      }, 3000)
-      return function () {
-        clearInterval(timer)
-      }
-    },
-    [current ? current.path : ''],
-  )
-
   useEffect(function () {
     function onKey(event) {
       var tag = event.target && event.target.tagName

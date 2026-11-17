@@ -335,6 +335,16 @@ export function createBodianSource(options) {
       return true
     },
     async logout() {
+      sessions.clear()
+      rowMeta.clear()
+      return true
+    },
+
+    // The logout route asks every source to drop native token caches; Bodian has none,
+    // but it must still answer or the route rejects (which used to kill the Host).
+    async forgetTokens() {
+      sessions.clear()
+      rowMeta.clear()
       return true
     },
 

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 崩溃与遗留引用
+
+- 修复「退出登录把 DSH 带崩」：`/online/logout` 对所有平台无条件调 `omni.forgetTokens`，波点原生源没有该方法，抛出的 `unavailable` 从未捕获路径逃出导致 Host 退出；波点补 `forgetTokens`/`logout` 清 session，退出清理改 best-effort，路由兜底再保护已关闭的响应。
+- 清理缓存对齐的残留：`panel.js` 仍在每 3 秒轮询已删除的 `refreshCacheStatus`，renderer 报 `Uncaught ReferenceError`；删除该轮询。
+- 歌手页透传 `artistsDetail`（`onlineTrackOf`），波点/汽水的歌手页才能拿到 `artistId` 打开，而不是只剩歌手名。
+
 ### 波点专辑 / 歌手页与播放
 
 - 修复波点专辑页「Invalid Bodian pagination」：车机接口单页上限是 100（原先传 500/200 被包直接拒绝），专辑与歌手歌曲改为按 100 分页取完。

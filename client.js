@@ -22022,6 +22022,10 @@ window.__ModuleLoader__.load({
         artist: result.artist || (Array.isArray(result.artists) ? result.artists.join(' / ') : ''),
         album: result.album,
         albumId: result.albumId || '',
+        // The artist page opens on the id the row already carries (Folia's catalogRef):
+        // without it the page can only search by name, which Bodian/Qishui do not offer.
+        artistsDetail: Array.isArray(result.artistsDetail) ? result.artistsDetail : [],
+        albumDetail: result.albumDetail && typeof result.albumDetail === 'object' ? result.albumDetail : null,
         durationSec: result.durationSec,
         hasCover: false,
         coverUrl: result.coverUrl || '',
@@ -174182,21 +174186,6 @@ window.__ModuleLoader__.load({
           clearInterval(timer)
         }
       }, [])
-
-      useEffect(
-        function () {
-          if (current === null || !current.onlineProvider) return undefined
-          var provider = current.onlineProvider
-          var id = current.onlineId
-          var timer = setInterval(function () {
-            void refreshCacheStatus(provider, [id])
-          }, 3000)
-          return function () {
-            clearInterval(timer)
-          }
-        },
-        [current ? current.path : ''],
-      )
 
       useEffect(function () {
         function onKey(event) {

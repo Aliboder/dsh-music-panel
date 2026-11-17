@@ -1261,7 +1261,18 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
 
       return fail(res, 404, 'NO_ROUTE', `未知接口：${method} ${pathname}`)
     } catch (error) {
-      return fail(res, 500, 'INTERNAL', String(error?.message ?? error))
+      // A request that raced the app quitting may already have a destroyed socket; a
+      // failed 500 write must not turn into an unhandled rejection that stops the Host.
+      try {
+        return fail(res, 500, 'INTERNAL', String(error?.message ?? error))
+      } catch {
+        try {
+          res.destroy()
+        } catch {
+          // The socket is gone already.
+        }
+        return
+      }
     }
   }
 }

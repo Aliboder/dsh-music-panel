@@ -130,6 +130,20 @@ assert.equal(sessions.get(), null)
   assert.equal(playable.coverUrl, 'https://img1.kuwo.cn/a.jpg', 'kuwo http artwork is upgraded to https')
 }
 
+// Sign-out is complete: the stored session is cleared, and the route's optional
+// `forgetTokens` call has an implementation (a missing one crashed the Host).
+{
+  const repository = createMemorySessions({ uid: 'u1', token: 't' })
+  const source = createBodianSource({
+    deviceId: 'a'.repeat(32),
+    sessions: repository,
+    createApi: () => ({ request: async () => ({ ok: true, data: {} }) }),
+  })
+  assert.equal(typeof source.forgetTokens, 'function')
+  await source.forgetTokens()
+  assert.equal(repository.get(), null, 'sign-out drops the session')
+}
+
 // ── QR sign-in ──────────────────────────────────────────────────────────────
 //
 // Bodian's package answers `confirmed` on a successful scan (it has already written the

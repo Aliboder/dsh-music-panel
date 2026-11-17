@@ -1234,10 +1234,13 @@ export function createOnlineRoutes(deps) {
         // The bridge clears the stored session and drops any pending QR state.
         await login.logout(provider)
         if (accountReads !== undefined) await accountReads.signOut(provider)
-        // The native-API JWT lives in a module-level cache keyed by server +
-        // user, so clearing the stored session is not enough: without this a
-        // re-login (or a password change) keeps using the old token.
-        omni.forgetTokens(provider)
+        // The native-API token cache is optional per source; a source without one must
+        // not turn a sign-out into a failed request (or an unhandled rejection).
+        try {
+          omni.forgetTokens(provider)
+        } catch {
+          // Best effort: the stored session is already gone.
+        }
         return sendJson(res, 200, { ok: true })
       }
 

@@ -324,6 +324,24 @@
 
 ---
 
+## 36. 退出登录让整个 DSH 崩溃（Host / 在线源）
+
+- **现象**：播放中点「退出」，DSH 弹出「应用无法启动或已意外停止」，crash log 为 `MusicError: Bodian Music does not support forgetTokens`。
+- **原因**：`/online/logout` 对所有平台无条件调 `omni.forgetTokens`，波点原生源没有该方法 → 抛 `unavailable` 并从未捕获的路径逃出，Host 进程退出；退出瞬间 socket 已断时，500 兜底写回也可能再抛一次。
+- **处理**：波点补 `forgetTokens` / `logout`（清 session 与行缓存）；`/online/logout` 的 token 清理改为 best-effort；`routes.js` 的兜底 catch 再包一层，写不出去时直接销毁响应。
+- **防回归**：`bodian.test.mjs` 覆盖 `forgetTokens` 清 session。
+
+---
+
+## 37. 缓存对齐删掉 `refreshCacheStatus` 后，面板仍每 3 秒轮询（Client / 缓存）
+
+- **现象**：crash log 的 renderer 段出现 `Uncaught ReferenceError: refreshCacheStatus is not defined`，面板有红灯级报错。
+- **原因**：在线缓存对齐移除了缓存角标刷新函数，但 `panel.js` 里给「正在播放」歌曲轮询缓存状态的 `useEffect` 还在，定时器每 3 秒触发一次未定义引用。
+- **处理**：删除这段轮询（缓存角标已随方案移除）。
+- **防回归**：全量 `npm test` 的 client 构建 + 运行期无未定义引用；新增 UI 改动后按 `pitfalls.md` 检查残留符号。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
