@@ -155,7 +155,9 @@ function trackCoverSrc(track) {
 
 /** Map one online search / playlist result into the queue's track shape. */
 function onlineTrackOf(result) {
-  var provider = result.provider
+  // Native sources historically carried only `sourceRef`; legacy rows carry `provider`.
+  // Without one the stream URL and cover proxy are built with `provider=undefined`.
+  var provider = result.provider || result.onlineProvider || (result.sourceRef && result.sourceRef.sourceId) || ''
   return {
     path: 'online:' + provider + ':' + result.id,
     title: result.title || result.name || result.songname || '',

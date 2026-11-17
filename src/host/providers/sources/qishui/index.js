@@ -40,8 +40,10 @@ function image(raw) {
   const url = Array.isArray(value.urls)
     ? value.urls.find((item) => typeof item === 'string' && item.startsWith('https://'))
     : ''
-  if (!url) return ''
-  return value.uri && url.endsWith('/') ? `${url}${value.uri}` : url
+  if (!url || !value.uri || !url.endsWith('/')) return url || ''
+  // Douyin's image CDN rejects the bare /img/<uri> URL; Folia appends the template
+  // suffix (`~<template_prefix>-image.image`) and that is what returns the picture.
+  return `${url}${value.uri}${value.template_prefix ? `~${value.template_prefix}-image.image` : ''}`
 }
 
 function artistsOf(item) {
@@ -81,6 +83,7 @@ export function toTrack(raw) {
   const coverUrl = image(item.display_info?.cover_url)
   return {
     id,
+    provider: SOURCE_ID,
     title: text(base.name),
     artist: artists.map((artist) => artist.name).join(' / '),
     album: text(album.name),

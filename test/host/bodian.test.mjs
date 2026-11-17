@@ -36,6 +36,7 @@ assert.equal(track.durationMs, 269000)
 assert.equal(track.durationSec, 269, 'the client reads durationSec')
 assert.equal(track.albumId, '1293')
 assert.deepEqual(track.sourceRef, { kind: 'online', sourceId: 'bodian', ref: '228908' })
+assert.equal(track.provider, 'bodian', 'the row names its provider for the client')
 
 // Fallbacks: a row without `name` uses songName, and no id means "not a track".
 assert.equal(toTrack({ id: 1, songName: 'B' }).title, 'B')

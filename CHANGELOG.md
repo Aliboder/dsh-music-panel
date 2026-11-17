@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 在线封面与播放 URL
+
+- 修复汽水/波点「列表无封面、点播报 Failed to load because no supported source」：原生源的歌曲行只有 `sourceRef`、没有 `provider`，客户端 `onlineTrackOf` 取到 `undefined`，于是封面代理和取流 URL 都变成 `provider=undefined`。两个源的行现在带 `provider`，`onlineTrackOf` 也回退到 `sourceRef.sourceId`。
+- 汽水封面按 Folia 的 `qishuiImage` 追加抖音图床的 `~<template_prefix>-image.image` 后缀；不带后缀的裸 `/img/<uri>` 会被 CDN 400。
+- 在线取流失败时不再把同一个失败 URL 当媒体源重试，而是解析 Host 的错误体并把平台原因显示出来；播放器停在这首，不再刷「no supported source」。
+
 ### 崩溃与遗留引用
 
 - 修复「退出登录把 DSH 带崩」：`/online/logout` 对所有平台无条件调 `omni.forgetTokens`，波点原生源没有该方法，抛出的 `unavailable` 从未捕获路径逃出导致 Host 退出；波点补 `forgetTokens`/`logout` 清 session，退出清理改 best-effort，路由兜底再保护已关闭的响应。

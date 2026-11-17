@@ -342,6 +342,15 @@
 
 ---
 
+## 38. 原生在线源的行没有 `provider`，封面和取流全变成 `provider=undefined`（在线源 / Client）
+
+- **现象**：汽水、波点的歌曲列表全部是占位图；点歌弹出 `无法播放：Failed to load because no supported source was found.`。
+- **原因**：`onlineTrackOf` 只读 `result.provider`，而原生源（qishui/bodian）的 `toTrack` 只带 `sourceRef`；客户端于是生成 `online:undefined:<id>`、`cover?provider=undefined`、`stream?provider=undefined`，Host 拒绝，媒体元素最后只报笼统的「no supported source」。
+- **处理**：两个源的行补 `provider`；`onlineTrackOf` 回退 `result.onlineProvider` 与 `result.sourceRef.sourceId`；客户端取流失败不再回退同一 URL 当媒体源，而是展示 Host 返回的真实原因。汽水封面还要按 Folia 追加 `~<template_prefix>-image.image`（裸 `/img/<uri>` 会被抖音 CDN 400）。
+- **防回归**：`qishui.test.mjs` / `bodian.test.mjs` 断言行带 `provider`；`panel.cover.test.mjs` 断言 `onlineTrackOf` 的 sourceRef 回退。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

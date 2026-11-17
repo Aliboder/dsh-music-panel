@@ -28,6 +28,13 @@ assert.match(
   /coverArtId: result\.coverArtId \|\| ''/,
   'onlineTrackOf must carry coverArtId into the queue track',
 )
+// Native sources only carried sourceRef; without a provider fallback every cover and
+// stream URL was built with provider=undefined and the media element rejected it.
+assert.match(
+  api,
+  /var provider = result\.provider \|\| result\.onlineProvider \|\| \(result\.sourceRef && result\.sourceRef\.sourceId\)/,
+  'onlineTrackOf must fall back to sourceRef.sourceId for native rows',
+)
 assert.match(
   api,
   /function subsonicCoverUrl\(coverArtId\)[\s\S]*?online\/subsonic-cover\?provider=navidrome&id=/,

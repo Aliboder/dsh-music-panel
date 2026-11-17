@@ -1066,8 +1066,19 @@ function createPlayer() {
       fetchAbort = onlineController
       fetch(item.onlineUrl, onlineController === null ? {} : { signal: onlineController.signal })
         .then(function (response) {
-          if (!response.ok) throw new Error('HTTP ' + response.status)
-          return response.blob()
+          if (response.ok) return response.blob()
+          // Read the Host's error body so the toast names the platform's reason instead of
+          // a bare HTTP status (or, worse, a media-element "no supported source").
+          return response
+            .json()
+            .catch(function () {
+              return null
+            })
+            .then(function (body) {
+              var reason =
+                body && body.error && typeof body.error.message === 'string' ? body.error.message : ''
+              throw new Error(reason || 'HTTP ' + response.status)
+            })
         })
         .then(function (blob) {
           if (onlineToken !== loadToken) {
@@ -1086,20 +1097,19 @@ function createPlayer() {
           scheduleLoudness(item, blob, loudness.resolve)
           if (pendingAutoplay) playAfterLoudness(token)
         })
-        .catch(function () {
+        .catch(function (error) {
           if (onlineToken !== loadToken) {
             loudness.resolve()
             return
           }
           fetchAbort = null
-          // The gate must open even when analysis is impossible: this path
-          // streams without a blob and therefore has no gain to apply.
+          // The gate must open even when analysis is impossible.
           loudness.resolve()
-          if (audio === null) return
-          // Streaming fallback: playback still starts even if the prefetch
-          // failed (seeking may be less reliable in this rare path).
-          loadActiveSource(item.onlineUrl)
-          if (pendingAutoplay) playAfterLoudness(token)
+          if (error && error.name === 'AbortError') return
+          // Do not fall back to the same URL as a media source: the Host answered with an
+          // error body, and the element would only report "no supported source", hiding the
+          // platform's reason. The error listener shows the real message and stops.
+          onError(error && typeof error.message === 'string' ? error.message : '')
         })
       return
     }

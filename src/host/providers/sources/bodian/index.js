@@ -61,6 +61,7 @@ export function toTrack(row) {
 
   return {
     id: String(id),
+    provider: SOURCE_ID,
     title: String(item.name ?? item.songName ?? item.FSONGNAME ?? '').trim(),
     artist: artist !== '' ? artist : artists.join(' / '),
     album: String(item.album ?? ''),

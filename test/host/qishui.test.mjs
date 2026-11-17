@@ -30,6 +30,7 @@ assert.equal(track.durationSec, 269, 'the client reads durationSec, not the mill
 assert.equal(track.qualityHint, '')
 assert.equal(track.coverUrl, 'https://img.example/cover.jpg')
 assert.deepEqual(track.sourceRef, { kind: 'online', sourceId: 'qishui', ref: '123' })
+assert.equal(track.provider, 'qishui', 'the row names its provider for the client')
 assert.equal(toTrack({ base_info: { id: 'bad' } }), null)
 
 // The car payload marks membership songs with a commerce icon/condition.
