@@ -8,6 +8,7 @@
 - 宿主适配层补齐官方组件：`Button` / `Input` / `Checkbox` / `SegmentedControl` / `SegmentedTabs` / `Tag` / `StateDot`，并新增基于 `Menu` 的 `KitSelect`（DSH 没有 Select）；本地回退按官方样式表几何实现。
 - 按钮 28/36（R8/R12）、图标按钮 28、开关 36×20、胶囊 24、设置行 0.5px 分隔线、对话框与设置面板改为只用 elevation 描边；回退对话框补上 Escape（只关最上层）。
 - 设置 → 关于 →「测试页面」新增组件测试页：按钮、图标按钮、输入框、下拉、开关、复选、滑杆、胶囊、分段、Tab（md/sm）、菜单、Tooltip、对话框、Toast、状态点、加载、空态与设置行，页头显示宿主组件是 native 还是 fallback。
+- 设置页按新规范重做：左侧导航带图标、选中态用 business 高亮；下拉全部换成基于 `Menu` 的 `KitSelect`，文本输入换成 `KitInput`，布局/封面的二选一换成 `KitSegmented`，宿主组件状态改为 `KitTag`；设置卡片 R20 + 0.5px 发丝线 + settings-card 材质，行高 44、分区标题与说明统一；正文右侧留出关闭按钮的位置。
 
 ## 0.36.2 — 2026-11-17
 

@@ -406,6 +406,8 @@ function KitInput(props) {
         readOnly: props.readOnly === true,
         'aria-label': label,
         onChange: change,
+        onKeyDown: props.onKeyDown,
+        onBlur: props.onBlur,
         className: props.className,
       },
     )
@@ -423,6 +425,8 @@ function KitInput(props) {
       readOnly: props.readOnly === true,
       'aria-label': label,
       onChange: change,
+      onKeyDown: props.onKeyDown,
+      onBlur: props.onBlur,
     }),
   )
 }

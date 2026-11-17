@@ -188,6 +188,15 @@ assert.doesNotMatch(theme, /\.mp-sheet\{[^']*border:1px/, 'settings sheet has no
 // Neutral dividers are 0.5px hairlines; dashed and status borders stay 1px.
 assert.match(theme, /\.mp-set-row\{[^']*border-bottom:\.5px solid/, 'settings rows use a hairline')
 
+// The settings page speaks the same primitive set as the gallery: dropdowns are the
+// Menu-based KitSelect, text fields are KitInput, and the rail/cards follow the geometry.
+const settings = readFileSync(join(uiDir, 'settings.js'), 'utf8')
+assert.doesNotMatch(settings, /h\('select'/, 'settings use KitSelect instead of a native select')
+assert.doesNotMatch(settings, /className: 'mp-kit-input'/, 'settings use KitInput instead of a raw input')
+assert.match(theme, /\.mp-sheet-tab\.is-on\{[^']*state-business-primary/, 'the active settings tab is tinted with the business token')
+assert.match(theme, /\.mp-set-card\{[^']*--dsw-radius-xl/, 'settings cards use the R20 card radius')
+assert.match(theme, /\.mp-set-card\{[^']*settings-card-stroke/, 'settings cards use the settings-card material')
+
 // The component test page ships, and every string it renders exists in both
 // dictionaries (the i18n checker only covers the Navidrome block).
 const manifest = readFileSync(join(root, 'src/client/manifest.json'), 'utf8')

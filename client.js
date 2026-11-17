@@ -158216,12 +158216,12 @@ window.__ModuleLoader__.load({
 
       '.mp-set-page-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px}',
       '.mp-set-page-meta{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
-      '.mp-set-card{border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:16px;background:var(--dsw-alias-bg-layer-2,#1e1e22);margin-top:12px;overflow:hidden}',
-      '.mp-set-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
-      '.mp-set-card-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mp-set-card-body{padding:2px 12px}',
+      '.mp-set-card{border:.5px solid var(--dsw-alias-settings-card-stroke,var(--dsw-alias-border-l1,rgba(255,255,255,.08)));border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-settings-card-fill,var(--dsw-alias-bg-layer-2,#1e1e22));margin-top:10px;overflow:hidden}',
+      '.mp-set-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mp-set-card-title{display:flex;align-items:center;gap:7px;font-size:12px;line-height:18px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-set-card-body{padding:0 14px}',
       '.mp-set-card-body .mp-set-row:last-child{border-bottom:0}',
-      '.mp-root-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mp-root-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
       '.mp-set-card-body > .mp-root-row:first-child{border-top:0}',
       '.mp-root-row.is-hidden .mp-root-path{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-root-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;color:var(--dsw-alias-state-business-primary,#7AAAFF);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
@@ -158229,8 +158229,9 @@ window.__ModuleLoader__.load({
       '.mp-root-path{font-size:12px;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-root-state{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px}',
       '.mp-root-actions{display:flex;align-items:center;gap:6px;flex:none}',
-      '.mp-root-add{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));background:var(--dsw-alias-bg-layer-1,#15151a)}',
+      '.mp-root-add{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));background:var(--dsw-alias-bg-layer-1,#15151a)}',
       '.mp-root-add .mp-kit-input{flex:1;min-width:0}',
+      '.mp-set-hint{padding:0 0 10px;font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-set-empty-card{padding:18px 0;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-set-hint-line{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);padding:0 0 10px}',
       '.mp-about-card{display:flex;align-items:center;gap:14px;padding:16px;border-radius:var(--dsw-radius-xl,16px);border:.5px solid var(--dsw-alias-settings-card-stroke,var(--dsw-alias-border-l1,rgba(255,255,255,.08)));background:var(--dsw-alias-settings-card-fill,var(--dsw-alias-bg-layer-2,#1e1e22))}',
@@ -158239,29 +158240,34 @@ window.__ModuleLoader__.load({
       '.mp-about-name{font-size:15px;font-weight:700;letter-spacing:.01em}',
       '.mp-about-version{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px;font-variant-numeric:tabular-nums}',
       '.mp-about-tagline{font-size:12px;color:var(--dsw-alias-label-secondary,#b4b4bd);margin-top:6px}',
-      '.mp-about-rows{display:flex;flex-direction:column;gap:0;margin-top:14px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:12px;overflow:hidden}',
-      '.mp-about-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;font-size:12px;color:var(--dsw-alias-label-secondary,#b4b4bd)}',
+      '.mp-about-rows{display:flex;flex-direction:column;gap:0;margin-top:14px;border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));border-radius:var(--dsw-radius-lg,16px);overflow:hidden}',
+      '.mp-about-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#b4b4bd)}',
       '.mp-about-row + .mp-about-row{border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
       '.mp-about-row strong{font-weight:550;color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-about-row a,.mp-about-links a{color:var(--dsw-alias-state-business-primary,#7AAAFF);text-decoration:none}',
       '.mp-about-row a:hover,.mp-about-links a:hover{text-decoration:underline}',
       '.mp-about-links{display:flex;gap:16px;margin-top:14px;font-size:12px}',
 
+      '.mp-sheet-body > h2 + .mp-set-card{margin-top:10px}',
+      '.mp-sheet-body > h2:not(:first-child){margin-top:24px}',
+      '.mp-sheet-body > .mp-set-row:last-child{border-bottom:0}',
+      '@media (hover: hover){.mp-sheet-tab:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}}',
+      '.mp-sheet-tab:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:-2px}',
       '.mp-sheet-close{position:absolute;top:10px;right:10px;z-index:3;width:28px;height:28px;display:grid;place-items:center;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer;transition:background .14s,color .14s}',
       '.mp-sheet-close:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5);border-color:var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
       '.mp-sheet{position:relative;width:min(760px,calc(100vw - 48px));height:min(560px,calc(100vh - 96px));display:grid;grid-template-columns:180px minmax(0,1fr);background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:0;border-radius:var(--dsw-radius-panel,28px);overflow:hidden;box-shadow:var(--dsw-elevation-panel,0 30px 80px rgba(0,0,0,.5))}',
-      '.mp-sheet-nav{display:flex;flex-direction:column;gap:2px;padding:16px 10px;background:var(--dsw-alias-bg-layer-1,#15151a);border-right:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      '.mp-sheet-title{padding:0 10px 10px;font-size:13px;font-weight:650}',
-      '.mp-sheet-tab{height:32px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:13px;text-align:left;cursor:pointer}',
+      '.mp-sheet-nav{display:flex;flex-direction:column;gap:2px;padding:14px 10px;background:var(--dsw-alias-bg-layer-1,#15151a);border-right:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-sheet-title{padding:0 10px 10px;font-size:14px;line-height:20px;font-weight:650}',
+      '.mp-sheet-tab{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:13px;line-height:20px;text-align:left;cursor:pointer;white-space:nowrap}',
       '.mp-sheet-tab:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mp-sheet-tab.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
-      '.mp-sheet-body{overflow-y:auto;padding:18px 52px 26px 22px}',
-      '.mp-sheet-body h2{margin:0 0 14px;font-size:14px;font-weight:650}',
-      '.mp-set-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;padding:11px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-sheet-tab.is-on{background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 13%,transparent);color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
+      '.mp-sheet-body{overflow-y:auto;padding:20px 48px 28px 22px}',
+      '.mp-sheet-body h2{margin:0 0 4px;font-size:14px;line-height:20px;font-weight:650}',
+      '.mp-set-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-height:44px;padding:11px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
       '.mp-set-choice-row{display:flex;flex-wrap:wrap;gap:4px}',
       '.mp-set-text{min-width:0;flex:1 1 220px}',
-      '.mp-set-label{font-size:13px}',
-      '.mp-set-desc{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px}',
+      '.mp-set-label{font-size:13px;line-height:18px;font-weight:500}',
+      '.mp-set-desc{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px}',
       '.mp-set-control{flex:0 1 auto;max-width:100%;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-left:auto}',
       '.mp-set-control select{height:28px;padding:0 8px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-primary,#f4f4f5);font-size:12px}',
       '.mp-range{width:120px;accent-color:var(--dsw-alias-state-business-primary,#4176E6)}',
@@ -159029,6 +159035,8 @@ window.__ModuleLoader__.load({
             readOnly: props.readOnly === true,
             'aria-label': label,
             onChange: change,
+            onKeyDown: props.onKeyDown,
+            onBlur: props.onBlur,
             className: props.className,
           },
         )
@@ -159046,6 +159054,8 @@ window.__ModuleLoader__.load({
           readOnly: props.readOnly === true,
           'aria-label': label,
           onChange: change,
+          onKeyDown: props.onKeyDown,
+          onBlur: props.onBlur,
         }),
       )
     }
@@ -164626,13 +164636,13 @@ window.__ModuleLoader__.load({
      */
 
     var SETTINGS_TABS = [
-      { key: 'appearance', label: 'v2.appearance' },
-      { key: 'lyrics', label: 'v2.lyrics' },
-      { key: 'playback', label: 'v2.playback' },
-      { key: 'online', label: 'v2.online' },
-      { key: 'library', label: 'v2.library' },
-      { key: 'cache', label: 'v2.dataTab' },
-      { key: 'about', label: 'v2.about' },
+      { key: 'appearance', label: 'v2.appearance', glyph: 'settings' },
+      { key: 'lyrics', label: 'v2.lyrics', glyph: 'note' },
+      { key: 'playback', label: 'v2.playback', glyph: 'equalizer' },
+      { key: 'online', label: 'v2.online', glyph: 'refresh' },
+      { key: 'library', label: 'v2.library', glyph: 'folder' },
+      { key: 'cache', label: 'v2.dataTab', glyph: 'trash' },
+      { key: 'about', label: 'v2.about', glyph: 'info' },
     ]
 
     function SettingsSheet(props) {
@@ -164878,34 +164888,18 @@ window.__ModuleLoader__.load({
       }
 
       function layoutChoices() {
-        return h(
-          'div',
-          { className: 'mp-set-choice-row' },
-          h(
-            'button',
-            {
-              type: 'button',
-              className: cx('mp-chip', prefs.layout === 'top' && 'is-on'),
-              onClick: function () {
-                patchPrefs({ layout: 'top' })
-              },
-            },
-            icon('list', 13),
-            t('v2.layoutTop'),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: cx('mp-chip', prefs.layout === 'rail' && 'is-on'),
-              onClick: function () {
-                patchPrefs({ layout: 'rail' })
-              },
-            },
-            icon('list', 13),
-            t('v2.layoutRail'),
-          ),
-        )
+        return h(KitSegmented, {
+          id: 'mp-layout-choice',
+          value: prefs.layout === 'rail' ? 'rail' : 'top',
+          label: t('v2.layout'),
+          options: [
+            { value: 'top', label: t('v2.layoutTop') },
+            { value: 'rail', label: t('v2.layoutRail') },
+          ],
+          onChange: function (value) {
+            patchPrefs({ layout: value })
+          },
+        })
       }
 
       function appearanceTab() {
@@ -164919,41 +164913,27 @@ window.__ModuleLoader__.load({
           h(
             SetRow,
             { key: 'coverStyle', label: t('v2.coverStyle'), desc: t('v2.coverStyleDesc') },
-            h(
-              'div',
-              { className: 'mp-set-choice-row' },
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: cx('mp-chip', prefs.coverStyle !== 'vinyl' && 'is-on'),
-                  onClick: function () {
-                    patchPrefs({ coverStyle: 'square', circularCover: false, vinylRing: false, coverSpin: false })
-                  },
-                },
-                t('v2.coverSquare'),
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: cx('mp-chip', prefs.coverStyle === 'vinyl' && 'is-on'),
-                  onClick: function () {
-                    patchPrefs({ coverStyle: 'vinyl', circularCover: true, vinylRing: true, coverSpin: true })
-                  },
-                },
-                t('v2.coverVinyl'),
-              ),
-            ),
+            h(KitSegmented, {
+              id: 'mp-cover-style',
+              value: prefs.coverStyle === 'vinyl' ? 'vinyl' : 'square',
+              label: t('v2.coverStyle'),
+              options: [
+                { value: 'square', label: t('v2.coverSquare') },
+                { value: 'vinyl', label: t('v2.coverVinyl') },
+              ],
+              onChange: function (value) {
+                if (value === 'vinyl') {
+                  patchPrefs({ coverStyle: 'vinyl', circularCover: true, vinylRing: true, coverSpin: true })
+                } else {
+                  patchPrefs({ coverStyle: 'square', circularCover: false, vinylRing: false, coverSpin: false })
+                }
+              },
+            }),
           ),
           h(
             SetRow,
             { key: 'hostkit', label: t('v2.hostKit'), desc: t('v2.hostKitDesc') },
-            h(
-              'span',
-              { className: 'mp-chip', style: { cursor: 'default' } },
-              hostUi ? t('v2.hostKitNative') : t('v2.hostKitFallback'),
-            ),
+            h(KitTag, { tone: hostUi ? 'info' : 'neutral' }, hostUi ? t('v2.hostKitNative') : t('v2.hostKitFallback')),
           ),
         ]
       }
@@ -165046,17 +165026,17 @@ window.__ModuleLoader__.load({
           h(
             SetRow,
             { key: 'order', label: t('settings.lyricOrder') },
-            h(
-              'select',
-              {
-                value: (prefs.lyricOrder || []).join(','),
-                onChange: function (event) {
-                  patchPrefs({ lyricOrder: event.target.value.split(',') })
-                },
+            h(KitSelect, {
+              value: (prefs.lyricOrder || []).join(','),
+              label: t('settings.lyricOrder'),
+              options: [
+                { value: 'embedded,lrc', label: t('settings.lyricSourceEmbedded') + ' → LRC' },
+                { value: 'lrc,embedded', label: 'LRC → ' + t('settings.lyricSourceEmbedded') },
+              ],
+              onChange: function (value) {
+                patchPrefs({ lyricOrder: String(value).split(',') })
               },
-              h('option', { value: 'embedded,lrc' }, t('settings.lyricSourceEmbedded') + ' → LRC'),
-              h('option', { value: 'lrc,embedded' }, 'LRC → ' + t('settings.lyricSourceEmbedded')),
-            ),
+            }),
           ),
           h(
             SetRow,
@@ -165071,18 +165051,18 @@ window.__ModuleLoader__.load({
           h(
             SetRow,
             { key: 'align', label: t('settings.lyricAlign') },
-            h(
-              'select',
-              {
-                value: prefs.lyricAlign || 'center',
-                onChange: function (event) {
-                  patchPrefs({ lyricAlign: event.target.value })
-                },
+            h(KitSelect, {
+              value: prefs.lyricAlign || 'center',
+              label: t('settings.lyricAlign'),
+              options: [
+                { value: 'center', label: t('settings.alignCenter') },
+                { value: 'left', label: t('settings.alignLeft') },
+                { value: 'right', label: t('settings.alignRight') },
+              ],
+              onChange: function (value) {
+                patchPrefs({ lyricAlign: String(value) })
               },
-              h('option', { value: 'center' }, t('settings.alignCenter')),
-              h('option', { value: 'left' }, t('settings.alignLeft')),
-              h('option', { value: 'right' }, t('settings.alignRight')),
-            ),
+            }),
           ),
           h(
             SetRow,
@@ -165107,13 +165087,12 @@ window.__ModuleLoader__.load({
           h(
             SetRow,
             { key: 'filter-words', label: t('settings.lyricFilterWords'), desc: t('settings.lyricFilterWordsDesc') },
-            h('input', {
-              type: 'text',
-              className: 'mp-kit-input',
+            h(KitInput, {
               value: String(prefs.lyricFilterWords || ''),
               placeholder: t('settings.lyricFilterWordsPlaceholder'),
-              onChange: function (event) {
-                patchPrefs({ lyricFilterWords: event.target.value })
+              label: t('settings.lyricFilterWords'),
+              onChange: function (value) {
+                patchPrefs({ lyricFilterWords: value })
               },
             }),
           ),
@@ -165177,40 +165156,36 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
-              h(
-                'select',
-                {
-                  value: prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album'
-                          ? prefs.replayGainMode
-                          : prefs.normalizeVolume === false
-                            ? 'off'
-                            : 'auto',
-                  onChange: function (event) {
-                    var next = String(event.target.value)
-                    // 'off' also switches the loudness analysis off; the tag modes leave it
-                    // off too, since they read the file's own gain.
-                    patchPrefs({
-                      replayGainMode: next,
-                      normalizeVolume: next === 'off' ? false : true,
-                    })
-                    if (player.setNormalize) player.setNormalize(next === 'auto')
-                    if (player.setReplayGain) player.setReplayGain(0)
-                  },
-                },
-                [
+              h(KitSelect, {
+                value: prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album'
+                  ? prefs.replayGainMode
+                  : prefs.normalizeVolume === false
+                    ? 'off'
+                    : 'auto',
+                label: t('settings.replayGain'),
+                options: [
                   { value: 'off', label: t('settings.replayGainOff') },
                   { value: 'auto', label: t('settings.replayGainAuto') },
                   { value: 'track', label: t('settings.replayGainTrack') },
                   { value: 'album', label: t('settings.replayGainAlbum') },
-                ].map(function (option) {
-                  return h('option', { key: option.value, value: option.value }, option.label)
-                }),
-              ),
+                ],
+                onChange: function (value) {
+                  var next = String(value)
+                  // 'off' also switches the loudness analysis off; the tag modes leave it
+                  // off too, since they read the file's own gain.
+                  patchPrefs({
+                    replayGainMode: next,
+                    normalizeVolume: next === 'off' ? false : true,
+                  })
+                  if (player.setNormalize) player.setNormalize(next === 'auto')
+                  if (player.setReplayGain) player.setReplayGain(0)
+                },
+              }),
             ),
           ),
           h(
             'div',
-            { className: 'mp-set-hint', style: { padding: '0 18px 10px', fontSize: '12px', opacity: '.55' } },
+            { className: 'mp-set-hint' },
             t('settings.replayGainStatus'),
           ),
           h(
@@ -165287,22 +165262,20 @@ window.__ModuleLoader__.load({
                   label: t('settings.outputDevice'),
                   desc: t('settings.outputDeviceHint'),
                 },
-                h(
-                  'select',
-                  {
-                    value: prefs.audioOutputDeviceId || '',
-                    onChange: function (event) {
-                      var value = String(event.target.value || '')
-                      patchPrefs({ audioOutputDeviceId: value })
-                      player.setOutputDevice(value)
-                    },
-                  },
-                  [h('option', { key: 'default', value: '' }, t('settings.outputDefault'))].concat(
+                h(KitSelect, {
+                  value: prefs.audioOutputDeviceId || '',
+                  label: t('settings.outputDevice'),
+                  options: [{ value: '', label: t('settings.outputDefault') }].concat(
                     outputDevices.map(function (device) {
-                      return h('option', { key: device.id, value: device.id }, device.label)
+                      return { value: device.id, label: device.label }
                     }),
                   ),
-                ),
+                  onChange: function (value) {
+                    var next = String(value || '')
+                    patchPrefs({ audioOutputDeviceId: next })
+                    player.setOutputDevice(next)
+                  },
+                }),
               )
             : null,
           h(
@@ -165311,26 +165284,23 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
-              h(
-                'select',
-                {
-                  value: String(prefs.sleepTimerMinutes || 0),
-                  onChange: function (event) {
-                    var minutes = Number(event.target.value) || 0
-                    patchPrefs({
-                      sleepTimerMinutes: minutes,
-                      sleepDeadline: minutes > 0 ? Date.now() + minutes * 60000 : 0,
-                    })
-                  },
-                },
-                [0, 15, 30, 60, 90].map(function (minutes) {
-                  return h(
-                    'option',
-                    { key: minutes, value: String(minutes) },
-                    minutes === 0 ? t('settings.sleepOff') : t('v2.minutes', { n: minutes }),
-                  )
+              h(KitSelect, {
+                value: String(prefs.sleepTimerMinutes || 0),
+                label: t('settings.sleepTimer'),
+                options: [0, 15, 30, 60, 90].map(function (minutes) {
+                  return {
+                    value: String(minutes),
+                    label: minutes === 0 ? t('settings.sleepOff') : t('v2.minutes', { n: minutes }),
+                  }
                 }),
-              ),
+                onChange: function (value) {
+                  var minutes = Number(value) || 0
+                  patchPrefs({
+                    sleepTimerMinutes: minutes,
+                    sleepDeadline: minutes > 0 ? Date.now() + minutes * 60000 : 0,
+                  })
+                },
+              }),
               sleepRemaining > 0
                 ? h('span', { className: 'mp-set-val' }, t('v2.sleepRemaining', { time: fmtClock(sleepRemaining / 1000) }))
                 : null,
@@ -165426,34 +165396,34 @@ window.__ModuleLoader__.load({
                   'div',
                   { className: 'mp-online-body is-out mp-navidrome-body' },
                   h('span', { className: 'mp-online-hint-text' }, t('online.navidromeHint')),
-                  h('input', {
-                    className: 'mp-kit-input',
+                  h(KitInput, {
                     type: 'url',
                     placeholder: t('online.navidromeServerPlaceholder'),
+                    label: t('online.navidromeServerPlaceholder'),
                     value: form.server,
                     disabled: busy,
-                    onChange: function (event) {
-                      form.setServer(event.target.value)
+                    onChange: function (value) {
+                      form.setServer(value)
                     },
                   }),
-                  h('input', {
-                    className: 'mp-kit-input',
+                  h(KitInput, {
                     type: 'text',
                     placeholder: t('online.navidromeUser'),
+                    label: t('online.navidromeUser'),
                     value: form.username,
                     disabled: busy,
-                    onChange: function (event) {
-                      form.setUsername(event.target.value)
+                    onChange: function (value) {
+                      form.setUsername(value)
                     },
                   }),
-                  h('input', {
-                    className: 'mp-kit-input',
+                  h(KitInput, {
                     type: 'password',
                     placeholder: t('online.navidromePassword'),
+                    label: t('online.navidromePassword'),
                     value: form.password,
                     disabled: busy,
-                    onChange: function (event) {
-                      form.setPassword(event.target.value)
+                    onChange: function (value) {
+                      form.setPassword(value)
                     },
                   }),
                   form.error !== ''
@@ -165649,13 +165619,12 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { className: 'mp-root-add' },
-              h('input', {
-                type: 'text',
-                className: 'mp-kit-input',
+              h(KitInput, {
                 value: rootDraft,
                 placeholder: 'D:\\Music',
-                onChange: function (event) {
-                  setRootDraft(event.target.value)
+                label: t('settings.addFolder'),
+                onChange: function (value) {
+                  setRootDraft(value)
                 },
                 onKeyDown: function (event) {
                   if (event.key === 'Enter') addRoot()
@@ -165689,18 +165658,16 @@ window.__ModuleLoader__.load({
               h(
                 SetRow,
                 { key: 'depth', label: t('settings.depth'), desc: t('settings.depthHint') },
-                h(
-                  'select',
-                  {
-                    value: String(config.depth === undefined ? 4 : config.depth),
-                    onChange: function (event) {
-                      void saveConfig({ depth: Number(event.target.value) })
-                    },
-                  },
-                  [0, 1, 2, 3, 4, 5, 6].map(function (n) {
-                    return h('option', { key: n, value: String(n) }, String(n))
+                h(KitSelect, {
+                  value: String(config.depth === undefined ? 4 : config.depth),
+                  label: t('settings.depth'),
+                  options: [0, 1, 2, 3, 4, 5, 6].map(function (n) {
+                    return { value: String(n), label: String(n) }
                   }),
-                ),
+                  onChange: function (value) {
+                    void saveConfig({ depth: Number(value) })
+                  },
+                }),
               ),
               h('div', { className: 'mp-set-hint-line' }, t('settings.formatsHint')),
             ),
@@ -165942,7 +165909,8 @@ window.__ModuleLoader__.load({
                           setTab(item.key)
                         },
                       },
-                      t(item.label),
+                      icon(item.glyph, 15),
+                      h('span', { className: 'mp-sheet-tab-label' }, t(item.label)),
                     )
                   }),
                 ),
@@ -175542,6 +175510,7 @@ window.__ModuleLoader__.load({
           // The component test page (settings → about): a render test mounts it to keep
           // every shared control wired.
           ComponentGallery: typeof ComponentGallery === 'function' ? ComponentGallery : null,
+          SettingsSheet: typeof SettingsSheet === 'function' ? SettingsSheet : null,
         },
         enumerable: false,
       })

@@ -210,6 +210,7 @@ ${body}
           // The component test page (settings → about): a render test mounts it to keep
           // every shared control wired.
           ComponentGallery: typeof ComponentGallery === 'function' ? ComponentGallery : null,
+          SettingsSheet: typeof SettingsSheet === 'function' ? SettingsSheet : null,
         },
         enumerable: false,
       })

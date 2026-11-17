@@ -6,13 +6,13 @@
  */
 
 var SETTINGS_TABS = [
-  { key: 'appearance', label: 'v2.appearance' },
-  { key: 'lyrics', label: 'v2.lyrics' },
-  { key: 'playback', label: 'v2.playback' },
-  { key: 'online', label: 'v2.online' },
-  { key: 'library', label: 'v2.library' },
-  { key: 'cache', label: 'v2.dataTab' },
-  { key: 'about', label: 'v2.about' },
+  { key: 'appearance', label: 'v2.appearance', glyph: 'settings' },
+  { key: 'lyrics', label: 'v2.lyrics', glyph: 'note' },
+  { key: 'playback', label: 'v2.playback', glyph: 'equalizer' },
+  { key: 'online', label: 'v2.online', glyph: 'refresh' },
+  { key: 'library', label: 'v2.library', glyph: 'folder' },
+  { key: 'cache', label: 'v2.dataTab', glyph: 'trash' },
+  { key: 'about', label: 'v2.about', glyph: 'info' },
 ]
 
 function SettingsSheet(props) {
@@ -258,34 +258,18 @@ function SettingsSheet(props) {
   }
 
   function layoutChoices() {
-    return h(
-      'div',
-      { className: 'mp-set-choice-row' },
-      h(
-        'button',
-        {
-          type: 'button',
-          className: cx('mp-chip', prefs.layout === 'top' && 'is-on'),
-          onClick: function () {
-            patchPrefs({ layout: 'top' })
-          },
-        },
-        icon('list', 13),
-        t('v2.layoutTop'),
-      ),
-      h(
-        'button',
-        {
-          type: 'button',
-          className: cx('mp-chip', prefs.layout === 'rail' && 'is-on'),
-          onClick: function () {
-            patchPrefs({ layout: 'rail' })
-          },
-        },
-        icon('list', 13),
-        t('v2.layoutRail'),
-      ),
-    )
+    return h(KitSegmented, {
+      id: 'mp-layout-choice',
+      value: prefs.layout === 'rail' ? 'rail' : 'top',
+      label: t('v2.layout'),
+      options: [
+        { value: 'top', label: t('v2.layoutTop') },
+        { value: 'rail', label: t('v2.layoutRail') },
+      ],
+      onChange: function (value) {
+        patchPrefs({ layout: value })
+      },
+    })
   }
 
   function appearanceTab() {
@@ -299,41 +283,27 @@ function SettingsSheet(props) {
       h(
         SetRow,
         { key: 'coverStyle', label: t('v2.coverStyle'), desc: t('v2.coverStyleDesc') },
-        h(
-          'div',
-          { className: 'mp-set-choice-row' },
-          h(
-            'button',
-            {
-              type: 'button',
-              className: cx('mp-chip', prefs.coverStyle !== 'vinyl' && 'is-on'),
-              onClick: function () {
-                patchPrefs({ coverStyle: 'square', circularCover: false, vinylRing: false, coverSpin: false })
-              },
-            },
-            t('v2.coverSquare'),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: cx('mp-chip', prefs.coverStyle === 'vinyl' && 'is-on'),
-              onClick: function () {
-                patchPrefs({ coverStyle: 'vinyl', circularCover: true, vinylRing: true, coverSpin: true })
-              },
-            },
-            t('v2.coverVinyl'),
-          ),
-        ),
+        h(KitSegmented, {
+          id: 'mp-cover-style',
+          value: prefs.coverStyle === 'vinyl' ? 'vinyl' : 'square',
+          label: t('v2.coverStyle'),
+          options: [
+            { value: 'square', label: t('v2.coverSquare') },
+            { value: 'vinyl', label: t('v2.coverVinyl') },
+          ],
+          onChange: function (value) {
+            if (value === 'vinyl') {
+              patchPrefs({ coverStyle: 'vinyl', circularCover: true, vinylRing: true, coverSpin: true })
+            } else {
+              patchPrefs({ coverStyle: 'square', circularCover: false, vinylRing: false, coverSpin: false })
+            }
+          },
+        }),
       ),
       h(
         SetRow,
         { key: 'hostkit', label: t('v2.hostKit'), desc: t('v2.hostKitDesc') },
-        h(
-          'span',
-          { className: 'mp-chip', style: { cursor: 'default' } },
-          hostUi ? t('v2.hostKitNative') : t('v2.hostKitFallback'),
-        ),
+        h(KitTag, { tone: hostUi ? 'info' : 'neutral' }, hostUi ? t('v2.hostKitNative') : t('v2.hostKitFallback')),
       ),
     ]
   }
@@ -426,17 +396,17 @@ function SettingsSheet(props) {
       h(
         SetRow,
         { key: 'order', label: t('settings.lyricOrder') },
-        h(
-          'select',
-          {
-            value: (prefs.lyricOrder || []).join(','),
-            onChange: function (event) {
-              patchPrefs({ lyricOrder: event.target.value.split(',') })
-            },
+        h(KitSelect, {
+          value: (prefs.lyricOrder || []).join(','),
+          label: t('settings.lyricOrder'),
+          options: [
+            { value: 'embedded,lrc', label: t('settings.lyricSourceEmbedded') + ' → LRC' },
+            { value: 'lrc,embedded', label: 'LRC → ' + t('settings.lyricSourceEmbedded') },
+          ],
+          onChange: function (value) {
+            patchPrefs({ lyricOrder: String(value).split(',') })
           },
-          h('option', { value: 'embedded,lrc' }, t('settings.lyricSourceEmbedded') + ' → LRC'),
-          h('option', { value: 'lrc,embedded' }, 'LRC → ' + t('settings.lyricSourceEmbedded')),
-        ),
+        }),
       ),
       h(
         SetRow,
@@ -451,18 +421,18 @@ function SettingsSheet(props) {
       h(
         SetRow,
         { key: 'align', label: t('settings.lyricAlign') },
-        h(
-          'select',
-          {
-            value: prefs.lyricAlign || 'center',
-            onChange: function (event) {
-              patchPrefs({ lyricAlign: event.target.value })
-            },
+        h(KitSelect, {
+          value: prefs.lyricAlign || 'center',
+          label: t('settings.lyricAlign'),
+          options: [
+            { value: 'center', label: t('settings.alignCenter') },
+            { value: 'left', label: t('settings.alignLeft') },
+            { value: 'right', label: t('settings.alignRight') },
+          ],
+          onChange: function (value) {
+            patchPrefs({ lyricAlign: String(value) })
           },
-          h('option', { value: 'center' }, t('settings.alignCenter')),
-          h('option', { value: 'left' }, t('settings.alignLeft')),
-          h('option', { value: 'right' }, t('settings.alignRight')),
-        ),
+        }),
       ),
       h(
         SetRow,
@@ -487,13 +457,12 @@ function SettingsSheet(props) {
       h(
         SetRow,
         { key: 'filter-words', label: t('settings.lyricFilterWords'), desc: t('settings.lyricFilterWordsDesc') },
-        h('input', {
-          type: 'text',
-          className: 'mp-kit-input',
+        h(KitInput, {
           value: String(prefs.lyricFilterWords || ''),
           placeholder: t('settings.lyricFilterWordsPlaceholder'),
-          onChange: function (event) {
-            patchPrefs({ lyricFilterWords: event.target.value })
+          label: t('settings.lyricFilterWords'),
+          onChange: function (value) {
+            patchPrefs({ lyricFilterWords: value })
           },
         }),
       ),
@@ -557,40 +526,36 @@ function SettingsSheet(props) {
         h(
           'div',
           { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
-          h(
-            'select',
-            {
-              value: prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album'
-                      ? prefs.replayGainMode
-                      : prefs.normalizeVolume === false
-                        ? 'off'
-                        : 'auto',
-              onChange: function (event) {
-                var next = String(event.target.value)
-                // 'off' also switches the loudness analysis off; the tag modes leave it
-                // off too, since they read the file's own gain.
-                patchPrefs({
-                  replayGainMode: next,
-                  normalizeVolume: next === 'off' ? false : true,
-                })
-                if (player.setNormalize) player.setNormalize(next === 'auto')
-                if (player.setReplayGain) player.setReplayGain(0)
-              },
-            },
-            [
+          h(KitSelect, {
+            value: prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album'
+              ? prefs.replayGainMode
+              : prefs.normalizeVolume === false
+                ? 'off'
+                : 'auto',
+            label: t('settings.replayGain'),
+            options: [
               { value: 'off', label: t('settings.replayGainOff') },
               { value: 'auto', label: t('settings.replayGainAuto') },
               { value: 'track', label: t('settings.replayGainTrack') },
               { value: 'album', label: t('settings.replayGainAlbum') },
-            ].map(function (option) {
-              return h('option', { key: option.value, value: option.value }, option.label)
-            }),
-          ),
+            ],
+            onChange: function (value) {
+              var next = String(value)
+              // 'off' also switches the loudness analysis off; the tag modes leave it
+              // off too, since they read the file's own gain.
+              patchPrefs({
+                replayGainMode: next,
+                normalizeVolume: next === 'off' ? false : true,
+              })
+              if (player.setNormalize) player.setNormalize(next === 'auto')
+              if (player.setReplayGain) player.setReplayGain(0)
+            },
+          }),
         ),
       ),
       h(
         'div',
-        { className: 'mp-set-hint', style: { padding: '0 18px 10px', fontSize: '12px', opacity: '.55' } },
+        { className: 'mp-set-hint' },
         t('settings.replayGainStatus'),
       ),
       h(
@@ -667,22 +632,20 @@ function SettingsSheet(props) {
               label: t('settings.outputDevice'),
               desc: t('settings.outputDeviceHint'),
             },
-            h(
-              'select',
-              {
-                value: prefs.audioOutputDeviceId || '',
-                onChange: function (event) {
-                  var value = String(event.target.value || '')
-                  patchPrefs({ audioOutputDeviceId: value })
-                  player.setOutputDevice(value)
-                },
-              },
-              [h('option', { key: 'default', value: '' }, t('settings.outputDefault'))].concat(
+            h(KitSelect, {
+              value: prefs.audioOutputDeviceId || '',
+              label: t('settings.outputDevice'),
+              options: [{ value: '', label: t('settings.outputDefault') }].concat(
                 outputDevices.map(function (device) {
-                  return h('option', { key: device.id, value: device.id }, device.label)
+                  return { value: device.id, label: device.label }
                 }),
               ),
-            ),
+              onChange: function (value) {
+                var next = String(value || '')
+                patchPrefs({ audioOutputDeviceId: next })
+                player.setOutputDevice(next)
+              },
+            }),
           )
         : null,
       h(
@@ -691,26 +654,23 @@ function SettingsSheet(props) {
         h(
           'div',
           { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
-          h(
-            'select',
-            {
-              value: String(prefs.sleepTimerMinutes || 0),
-              onChange: function (event) {
-                var minutes = Number(event.target.value) || 0
-                patchPrefs({
-                  sleepTimerMinutes: minutes,
-                  sleepDeadline: minutes > 0 ? Date.now() + minutes * 60000 : 0,
-                })
-              },
-            },
-            [0, 15, 30, 60, 90].map(function (minutes) {
-              return h(
-                'option',
-                { key: minutes, value: String(minutes) },
-                minutes === 0 ? t('settings.sleepOff') : t('v2.minutes', { n: minutes }),
-              )
+          h(KitSelect, {
+            value: String(prefs.sleepTimerMinutes || 0),
+            label: t('settings.sleepTimer'),
+            options: [0, 15, 30, 60, 90].map(function (minutes) {
+              return {
+                value: String(minutes),
+                label: minutes === 0 ? t('settings.sleepOff') : t('v2.minutes', { n: minutes }),
+              }
             }),
-          ),
+            onChange: function (value) {
+              var minutes = Number(value) || 0
+              patchPrefs({
+                sleepTimerMinutes: minutes,
+                sleepDeadline: minutes > 0 ? Date.now() + minutes * 60000 : 0,
+              })
+            },
+          }),
           sleepRemaining > 0
             ? h('span', { className: 'mp-set-val' }, t('v2.sleepRemaining', { time: fmtClock(sleepRemaining / 1000) }))
             : null,
@@ -806,34 +766,34 @@ function SettingsSheet(props) {
               'div',
               { className: 'mp-online-body is-out mp-navidrome-body' },
               h('span', { className: 'mp-online-hint-text' }, t('online.navidromeHint')),
-              h('input', {
-                className: 'mp-kit-input',
+              h(KitInput, {
                 type: 'url',
                 placeholder: t('online.navidromeServerPlaceholder'),
+                label: t('online.navidromeServerPlaceholder'),
                 value: form.server,
                 disabled: busy,
-                onChange: function (event) {
-                  form.setServer(event.target.value)
+                onChange: function (value) {
+                  form.setServer(value)
                 },
               }),
-              h('input', {
-                className: 'mp-kit-input',
+              h(KitInput, {
                 type: 'text',
                 placeholder: t('online.navidromeUser'),
+                label: t('online.navidromeUser'),
                 value: form.username,
                 disabled: busy,
-                onChange: function (event) {
-                  form.setUsername(event.target.value)
+                onChange: function (value) {
+                  form.setUsername(value)
                 },
               }),
-              h('input', {
-                className: 'mp-kit-input',
+              h(KitInput, {
                 type: 'password',
                 placeholder: t('online.navidromePassword'),
+                label: t('online.navidromePassword'),
                 value: form.password,
                 disabled: busy,
-                onChange: function (event) {
-                  form.setPassword(event.target.value)
+                onChange: function (value) {
+                  form.setPassword(value)
                 },
               }),
               form.error !== ''
@@ -1029,13 +989,12 @@ function SettingsSheet(props) {
         h(
           'div',
           { className: 'mp-root-add' },
-          h('input', {
-            type: 'text',
-            className: 'mp-kit-input',
+          h(KitInput, {
             value: rootDraft,
             placeholder: 'D:\\Music',
-            onChange: function (event) {
-              setRootDraft(event.target.value)
+            label: t('settings.addFolder'),
+            onChange: function (value) {
+              setRootDraft(value)
             },
             onKeyDown: function (event) {
               if (event.key === 'Enter') addRoot()
@@ -1069,18 +1028,16 @@ function SettingsSheet(props) {
           h(
             SetRow,
             { key: 'depth', label: t('settings.depth'), desc: t('settings.depthHint') },
-            h(
-              'select',
-              {
-                value: String(config.depth === undefined ? 4 : config.depth),
-                onChange: function (event) {
-                  void saveConfig({ depth: Number(event.target.value) })
-                },
-              },
-              [0, 1, 2, 3, 4, 5, 6].map(function (n) {
-                return h('option', { key: n, value: String(n) }, String(n))
+            h(KitSelect, {
+              value: String(config.depth === undefined ? 4 : config.depth),
+              label: t('settings.depth'),
+              options: [0, 1, 2, 3, 4, 5, 6].map(function (n) {
+                return { value: String(n), label: String(n) }
               }),
-            ),
+              onChange: function (value) {
+                void saveConfig({ depth: Number(value) })
+              },
+            }),
           ),
           h('div', { className: 'mp-set-hint-line' }, t('settings.formatsHint')),
         ),
@@ -1322,7 +1279,8 @@ function SettingsSheet(props) {
                       setTab(item.key)
                     },
                   },
-                  t(item.label),
+                  icon(item.glyph, 15),
+                  h('span', { className: 'mp-sheet-tab-label' }, t(item.label)),
                 )
               }),
             ),
