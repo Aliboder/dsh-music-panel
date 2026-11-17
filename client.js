@@ -6974,6 +6974,9 @@ window.__ModuleLoader__.load({
         'online.restartService': '重启本地服务',
         'online.restartingService': '正在重启…',
         'online.loginTitle': '登录 {provider}',
+        'online.loginWindowTitle': '登录在线账号',
+        'online.loginAccounts': '账号',
+        'online.loginMethods': '登录方式',
         'online.scanTitle': '扫码登录',
         'online.scanHeadline': '使用{provider}APP扫码',
         'online.scanNote': '打开{provider}APP > 发现 > 扫一扫',
@@ -7572,6 +7575,9 @@ window.__ModuleLoader__.load({
         'online.restartService': 'Restart local service',
         'online.restartingService': 'Restarting…',
         'online.loginTitle': 'Sign in to {provider}',
+        'online.loginWindowTitle': 'Sign in to online music',
+        'online.loginAccounts': 'Accounts',
+        'online.loginMethods': 'Sign-in method',
         'online.scanTitle': 'Scan to sign in',
         'online.scanHeadline': 'Scan with the {provider} app',
         'online.scanNote': 'Open {provider} > Discover > Scan',
@@ -158281,7 +158287,7 @@ window.__ModuleLoader__.load({
       '.mp-dialog{position:relative;width:min(640px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:0;border-radius:var(--dsw-radius-panel,28px);overflow:hidden;box-shadow:var(--dsw-elevation-panel,0 30px 80px rgba(0,0,0,.5))}',
       '.mp-dialog.is-sm{width:min(380px,100%)}',
       '.mp-d-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      '.mp-d-title{font-size:14px;line-height:20px;font-weight:650}',
+      '.mp-d-title{flex:1;min-width:0;font-size:14px;line-height:20px;font-weight:650}',
       '.mp-d-head .mp-spacer{margin-left:auto}',
       '.mp-d-body{padding:16px 18px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:12px}',
       '.mp-d-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
@@ -158293,29 +158299,63 @@ window.__ModuleLoader__.load({
       '.mp-field textarea{resize:vertical;min-height:96px;font-size:12px;line-height:1.6}',
       '.mp-d-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}',
 
-      '.mp-login-card{width:100%;max-width:320px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:10px;padding:2px 0 4px}',
-      '.mp-login-window{width:min(772px,calc(100vw - 48px))}',
-      '.mp-kit-modal.mp-login-window,.mp-dialog.mp-login-window{width:min(772px,calc(100vw - 48px))}',
-      '.mp-login-layout{display:flex;align-items:stretch;min-height:420px}',
-      '.mp-login-platforms{width:212px;flex:none;display:flex;flex-direction:column;gap:4px;padding:8px;border-right:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));overflow:auto}',
-      '.mp-login-platform{display:flex;align-items:center;gap:9px;width:100%;padding:8px;border:0;border-radius:12px;background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer;text-align:left}',
-      '.mp-login-platform:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
-      '.mp-login-platform.is-on{background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1))}',
-      '.mp-login-platform-logo{width:24px;height:24px;flex:none;border-radius:8px;overflow:hidden}',
+      // ── login dialog ────────────────────────────────────────────────────────
+      // Two panes: an account rail and one detail pane. Geometry and material follow
+      // theme-guidelines §2/§3; the dialog title comes from the host Modal.
+      '.mp-login-window{width:min(720px,calc(100vw - 48px))}',
+      '.mp-kit-modal.mp-login-window,.mp-dialog.mp-login-window{width:min(720px,calc(100vw - 48px))}',
+      '.mp-login-layout{display:grid;grid-template-columns:208px minmax(0,1fr);min-height:440px}',
+      '.mp-login-platforms{display:flex;flex-direction:column;gap:2px;padding:12px 8px;border-right:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));overflow:auto}',
+      '.mp-login-rail-label{padding:4px 10px 8px;font-size:11px;line-height:16px;letter-spacing:.04em;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-login-platform{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;padding:6px 10px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5);cursor:pointer;text-align:left}',
+      '@media (hover: hover){.mp-login-platform:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}}',
+      '.mp-login-platform.is-on{background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 13%,transparent)}',
+      '.mp-login-platform:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:-2px}',
+      '.mp-login-platform-logo{width:22px;height:22px;flex:none;border-radius:var(--dsw-radius-sm,8px);overflow:hidden}',
       '.mp-login-platform-logo .mp-provider-logo{width:100%;height:100%}',
       '.mp-login-platform-text{min-width:0;display:flex;flex-direction:column;gap:1px;flex:1}',
-      '.mp-login-platform-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-      '.mp-login-platform-state{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-login-platform-name{font-size:13px;line-height:18px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-login-platform-state{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-login-platform-dot{width:6px;height:6px;border-radius:50%;flex:none;background:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.35}',
       '.mp-login-platform-dot.is-on{background:var(--dsw-alias-state-success-primary,#2f9e44);opacity:1}',
-      '.mp-login-main{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}',
-      '.mp-login-account{max-width:360px;width:100%}',
+      '.mp-login-main{min-width:0;display:flex;align-items:flex-start;justify-content:center;padding:20px 24px 24px;overflow:auto}',
+      '.mp-login-detail{width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px}',
+      '.mp-login-detail-head{display:flex;align-items:center;gap:10px}',
+      '.mp-login-logo{width:30px;height:30px;border-radius:8px;overflow:hidden;flex:none}',
+      '.mp-login-logo img{width:100%;height:100%;object-fit:cover;display:block}',
+      '.mp-login-headtext{min-width:0}',
+      '.mp-login-title{font-size:15px;line-height:22px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-login-sub{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px}',
+      '.mp-login-qr-shell{display:flex;justify-content:center;padding:12px;border-radius:var(--dsw-radius-lg,16px);background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
+      '.mp-login-qr-frame{position:relative;width:200px;height:200px;padding:8px;border-radius:var(--dsw-radius-md,12px);background:#fff;display:grid;place-items:center;overflow:hidden}',
+      '.mp-login-qr-img{width:100%;height:100%;object-fit:contain;border-radius:8px;display:block}',
+      '.mp-login-qr-loading{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:11px;line-height:16px;color:#8a8a93}',
+      '.mp-login-spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,.12);border-top-color:var(--dsw-alias-state-business-primary,#4176E6);border-radius:50%;animation:mp-login-spin .8s linear infinite}',
+      '.mp-login-corner{position:absolute;width:16px;height:16px;border-color:var(--dsw-alias-state-business-primary,#4176E6);border-style:solid;pointer-events:none}',
+      '.mp-login-corner.tl{left:2px;top:2px;border-width:2px 0 0 2px;border-radius:8px 0 0 0}',
+      '.mp-login-corner.tr{right:2px;top:2px;border-width:2px 2px 0 0;border-radius:0 8px 0 0}',
+      '.mp-login-corner.bl{left:2px;bottom:2px;border-width:0 0 2px 2px;border-radius:0 0 0 8px}',
+      '.mp-login-corner.br{right:2px;bottom:2px;border-width:0 2px 2px 0;border-radius:0 0 8px 0}',
+      '.mp-login-qr-frame.is-scanned{box-shadow:inset 0 0 0 2px var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-login-status{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:28px;padding:4px 10px;border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;line-height:18px}',
+      '.mp-login-dot{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-business-primary,#4176E6);flex:none;animation:mp-login-pulse 1.6s ease-in-out infinite}',
+      '.mp-login-status.is-scanned{color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 10%,transparent)}',
+      '.mp-login-status.is-error{color:var(--dsw-alias-state-error-primary,#e5484d);background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 10%,transparent)}',
+      '.mp-login-status.is-success{color:var(--dsw-alias-state-success-primary,#2f9e44);background:color-mix(in srgb,var(--dsw-alias-state-success-primary,#2f9e44) 10%,transparent)}',
+      '.mp-login-steps{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04))}',
+      '.mp-login-step{display:flex;align-items:center;gap:8px;font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-login-step b{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:11px;font-weight:600;flex:none}',
+      '.mp-login-secure{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-login-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap}',
       '.mp-login-account-head{display:flex;align-items:center;gap:14px;width:100%;text-align:left}',
       '.mp-login-account-text{min-width:0;display:flex;flex-direction:column;gap:3px;align-items:flex-start}',
-      '.mp-login-avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08))}',
-      '.mp-login-avatar.is-fallback{display:grid;place-items:center;font-size:20px;font-weight:650;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mp-login-nav{max-width:360px;width:100%}',
-      '.mp-login-nav .mp-kit-input{width:100%;box-sizing:border-box}',
+      '.mp-login-account-name{display:flex;align-items:center;gap:8px;font-size:15px;line-height:22px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-login-avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08))}',
+      '.mp-login-avatar.is-fallback{display:grid;place-items:center;font-size:18px;font-weight:650;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-login-fields{display:flex;flex-direction:column;gap:10px}',
+      '.mp-login-fields .mp-kit-input-wrap{width:100%}',
+      '@media (max-width:720px){.mp-login-window{width:calc(100vw - 24px)}.mp-login-layout{grid-template-columns:1fr;min-height:0}.mp-login-platforms{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));padding:8px}.mp-login-rail-label{display:none}.mp-login-platform{min-width:132px}.mp-login-main{padding:16px}}',
+
       '@media (max-width:720px){.mp-login-window{width:calc(100vw - 24px)}.mp-login-layout{flex-direction:column;min-height:0}.mp-login-platforms{width:auto;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}.mp-login-platform{flex:none;min-width:150px}.mp-login-main{padding:14px}}',
       '.mp-login-methods{display:flex;align-items:center;gap:8px;width:100%;justify-content:center}',
       '.mp-login-methods .mp-btn{flex:1;justify-content:center}',
@@ -166637,24 +166677,26 @@ window.__ModuleLoader__.load({
                   : t('online.statuswaiting')
       function platformRow(id) {
         var info = (onlineState.providers || {})[id] || {}
+        var signed = info.loggedIn === true
         return h(
           'button',
           {
             key: id,
             type: 'button',
             className: cx('mp-login-platform', id === provider && 'is-on'),
+            'aria-pressed': id === provider ? 'true' : 'false',
             onClick: function () {
               selectProvider(id)
             },
           },
-          h('span', { className: 'mp-login-platform-logo' }, providerLogo(id, 24)),
+          h('span', { className: 'mp-login-platform-logo' }, providerLogo(id, 22)),
           h(
             'span',
             { className: 'mp-login-platform-text' },
             h('span', { className: 'mp-login-platform-name' }, sourceLabelOf(id)),
-            h('span', { className: 'mp-login-platform-state' }, info.loggedIn === true ? t('online.loggedIn') : t('online.loggedOut')),
+            h('span', { className: 'mp-login-platform-state' }, signed ? t('online.loggedIn') : t('online.loggedOut')),
           ),
-          h('span', { className: cx('mp-login-platform-dot', info.loggedIn === true && 'is-on'), 'aria-hidden': 'true' }),
+          h('span', { className: cx('mp-login-platform-dot', signed && 'is-on'), 'aria-hidden': 'true' }),
         )
       }
 
@@ -166671,6 +166713,21 @@ window.__ModuleLoader__.load({
           })
       }
 
+      /** Header of the detail pane: provider mark, title and one line of context. */
+      function detailHead(title, sub) {
+        return h(
+          'div',
+          { className: 'mp-login-detail-head' },
+          h('span', { className: 'mp-login-logo' }, providerLogo(provider, 30)),
+          h(
+            'div',
+            { className: 'mp-login-headtext' },
+            h('div', { className: 'mp-login-title' }, title),
+            h('div', { className: 'mp-login-sub' }, sub),
+          ),
+        )
+      }
+
       function accountView() {
         var avatar = providerInfo.avatarUrl
           ? h('img', {
@@ -166681,7 +166738,7 @@ window.__ModuleLoader__.load({
           : h('span', { className: 'mp-login-avatar is-fallback' }, (providerInfo.nickname || '?').slice(0, 1))
         return h(
           'div',
-          { className: 'mp-login-card mp-login-account' },
+          { className: 'mp-login-detail' },
           h(
             'div',
             { className: 'mp-login-account-head' },
@@ -166689,23 +166746,22 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { className: 'mp-login-account-text' },
-              h('div', { className: 'mp-login-title' }, providerInfo.nickname || t('online.loggedIn')),
+              h(
+                'div',
+                { className: 'mp-login-account-name' },
+                providerInfo.nickname || t('online.loggedIn'),
+                providerInfo.vip === true ? h(KitTag, { tone: 'warning' }, 'VIP') : null,
+              ),
               h('div', { className: 'mp-login-sub' }, providerInfo.server || providerLabel),
-              providerInfo.vip === true ? h('span', { className: 'mp-online-vip' }, 'VIP') : null,
             ),
           ),
           h(
             'div',
             { className: 'mp-login-actions' },
-            h(Button, {
-              variant: 'ghost',
-              icon: 'refresh',
-              onClick: syncAccount,
-              children: t('online.syncAccount'),
-            }),
+            h(Button, { variant: 'ghost', icon: 'refresh', onClick: syncAccount, children: t('online.syncAccount') }),
             h(Button, {
               variant: 'primary',
-              icon: 'logout',
+              icon: 'x',
               onClick: function () {
                 void logoutProvider(provider)
               },
@@ -166720,48 +166776,42 @@ window.__ModuleLoader__.load({
         var busy = navForm.phase === 'loading'
         return h(
           'div',
-          { className: 'mp-login-card mp-login-nav' },
+          { className: 'mp-login-detail' },
+          detailHead(t('online.navidromeTitle'), t('online.navidromeHint')),
           h(
             'div',
-            { className: 'mp-login-head' },
-            h('span', { className: 'mp-login-logo' }, providerLogo(provider, 34)),
-            h(
-              'div',
-              { className: 'mp-login-headtext' },
-              h('div', { className: 'mp-login-title' }, t('online.navidromeTitle')),
-              h('div', { className: 'mp-login-sub' }, t('online.navidromeHint')),
-            ),
+            { className: 'mp-login-fields' },
+            h(KitInput, {
+              type: 'url',
+              label: t('online.navidromeServerPlaceholder'),
+              placeholder: t('online.navidromeServerPlaceholder'),
+              value: navForm.server,
+              disabled: busy,
+              onChange: function (value) {
+                navForm.setServer(value)
+              },
+            }),
+            h(KitInput, {
+              type: 'text',
+              label: t('online.navidromeUser'),
+              placeholder: t('online.navidromeUser'),
+              value: navForm.username,
+              disabled: busy,
+              onChange: function (value) {
+                navForm.setUsername(value)
+              },
+            }),
+            h(KitInput, {
+              type: 'password',
+              label: t('online.navidromePassword'),
+              placeholder: t('online.navidromePassword'),
+              value: navForm.password,
+              disabled: busy,
+              onChange: function (value) {
+                navForm.setPassword(value)
+              },
+            }),
           ),
-          h('input', {
-            className: 'mp-kit-input',
-            type: 'url',
-            placeholder: t('online.navidromeServerPlaceholder'),
-            value: navForm.server,
-            disabled: busy,
-            onChange: function (event) {
-              navForm.setServer(event.target.value)
-            },
-          }),
-          h('input', {
-            className: 'mp-kit-input',
-            type: 'text',
-            placeholder: t('online.navidromeUser'),
-            value: navForm.username,
-            disabled: busy,
-            onChange: function (event) {
-              navForm.setUsername(event.target.value)
-            },
-          }),
-          h('input', {
-            className: 'mp-kit-input',
-            type: 'password',
-            placeholder: t('online.navidromePassword'),
-            value: navForm.password,
-            disabled: busy,
-            onChange: function (event) {
-              navForm.setPassword(event.target.value)
-            },
-          }),
           navForm.error !== ''
             ? h('span', { className: 'mp-online-error' }, navForm.error)
             : navForm.notice !== ''
@@ -166786,37 +166836,21 @@ window.__ModuleLoader__.load({
 
       var qrCard = h(
         'div',
-        { className: 'mp-login-card' },
-        h(
-          'div',
-          { className: 'mp-login-head' },
-          h('span', { className: 'mp-login-logo' }, providerLogo(provider, 34)),
-          h(
-            'div',
-            { className: 'mp-login-headtext' },
-            h('div', { className: 'mp-login-title' }, t('online.loginTitle', { provider: providerLabel })),
-            h('div', { className: 'mp-login-sub' }, t('online.qrDesc', { provider: providerLabel })),
-          ),
-        ),
+        { className: 'mp-login-detail' },
+        detailHead(t('online.loginTitle', { provider: providerLabel }), t('online.qrDesc', { provider: providerLabel })),
         provider === 'qq'
-          ? h(
-              'div',
-              { className: 'mp-login-methods' },
-              h(Button, {
-                variant: run.mode === 'qq' ? 'primary' : 'ghost',
-                onClick: function () {
-                  retry('qq')
-                },
-                children: t('online.loginQq'),
-              }),
-              h(Button, {
-                variant: run.mode === 'wx' ? 'primary' : 'ghost',
-                onClick: function () {
-                  retry('wx')
-                },
-                children: t('online.loginWechat'),
-              }),
-            )
+          ? h(KitSegmented, {
+              id: 'mp-login-method',
+              value: run.mode === 'wx' ? 'wx' : 'qq',
+              label: t('online.loginMethods'),
+              options: [
+                { value: 'qq', label: t('online.loginQq') },
+                { value: 'wx', label: t('online.loginWechat') },
+              ],
+              onChange: function (value) {
+                retry(value)
+              },
+            })
           : null,
         h(
           'div',
@@ -166873,14 +166907,19 @@ window.__ModuleLoader__.load({
       return h(
         KitModal,
         {
-          title: '',
+          title: t('online.loginWindowTitle'),
           className: 'mp-login-window',
           onClose: close,
         },
         h(
           'div',
           { className: 'mp-login-layout' },
-          h('div', { className: 'mp-login-platforms' }, providers.map(platformRow)),
+          h(
+            'div',
+            { className: 'mp-login-platforms', role: 'tablist', 'aria-label': t('online.loginAccounts') },
+            h('div', { className: 'mp-login-rail-label' }, t('online.loginAccounts')),
+            providers.map(platformRow),
+          ),
           h(
             'div',
             { className: 'mp-login-main' },
@@ -175511,6 +175550,7 @@ window.__ModuleLoader__.load({
           // every shared control wired.
           ComponentGallery: typeof ComponentGallery === 'function' ? ComponentGallery : null,
           SettingsSheet: typeof SettingsSheet === 'function' ? SettingsSheet : null,
+          LoginDialog: typeof LoginDialog === 'function' ? LoginDialog : null,
         },
         enumerable: false,
       })

@@ -211,6 +211,7 @@ ${body}
           // every shared control wired.
           ComponentGallery: typeof ComponentGallery === 'function' ? ComponentGallery : null,
           SettingsSheet: typeof SettingsSheet === 'function' ? SettingsSheet : null,
+          LoginDialog: typeof LoginDialog === 'function' ? LoginDialog : null,
         },
         enumerable: false,
       })
