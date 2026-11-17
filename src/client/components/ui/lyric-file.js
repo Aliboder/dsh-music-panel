@@ -21,6 +21,9 @@ function LyricFileDialog(props) {
   var errorPair = useState('')
   var error = errorPair[0]
   var setError = errorPair[1]
+  // An online song has no file to write: its imported lyric is kept on its record
+  // (Folia's `handleImportOnlineLyrics`).
+  var online = layer.props && layer.props.online && typeof layer.props.online === 'object' ? layer.props.online : null
 
   function pick() {
     if (typeof document === 'undefined') return
@@ -51,10 +54,18 @@ function LyricFileDialog(props) {
   }
 
   function save() {
-    if (busy || path === '') return
+    if (busy || (online === null && path === '')) return
     setBusy(true)
     setError('')
-    postJson(API + 'lyrics/save', { path: path, lrc: text })
+    var request = online === null
+      ? postJson(API + 'lyrics/save', { path: path, lrc: text })
+      : postJson(API + 'online/lyric-import', {
+          provider: String(online.provider || ''),
+          id: String(online.id || ''),
+          text: text,
+          name: baseName + '.lrc',
+        })
+    request
       .then(function () {
         setBusy(false)
         popLayer()

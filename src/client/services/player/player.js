@@ -820,27 +820,51 @@ function createPlayer() {
     }
   }
 
+  /**
+   * Folia's lyric gate: audio starts once the song's first lyric is resolved (the
+   * optional word-by-word upgrade is not part of it). Always resolves, and is a no-op
+   * when the loader is absent (tests, or a client built without the lyric surface).
+   */
+  function whenLyricReady(item) {
+    var loader = typeof MPLyricLoader === 'undefined' ? null : MPLyricLoader
+    if (loader === null || typeof loader !== 'object' || typeof loader.whenReady !== 'function') {
+      return Promise.resolve(null)
+    }
+    try {
+      return loader.whenReady(item).catch(function () {
+        return null
+      })
+    } catch (error) {
+      return Promise.resolve(null)
+    }
+  }
+
   function playAfterLoudness(token) {
     var gate = loudnessGate === null ? Promise.resolve() : loudnessGate
-    gate.then(function () {
-      if (token !== loadToken || pendingAutoplay !== true || audio === null) return
-      pendingAutoplay = false
-      var context = api.ensureAnalyser()
-      if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
-        audioContext.resume().catch(function () {
-          // If the context cannot start, leave the media element untouched.
-        })
-      }
-      if (foliaTransport !== null) {
-        foliaTransport.play(foliaTransport.getActiveDeck()).catch(function () {
-          // Autoplay may still be blocked; the play event will update the UI.
-        })
-      } else {
-        audio.play().catch(function () {
-          // Autoplay may still be blocked; the play event will update the UI.
-        })
-      }
-    })
+    gate
+      .then(function () {
+        if (token !== loadToken || pendingAutoplay !== true || audio === null) return null
+        return whenLyricReady(currentItem())
+      })
+      .then(function () {
+        if (token !== loadToken || pendingAutoplay !== true || audio === null) return
+        pendingAutoplay = false
+        var context = api.ensureAnalyser()
+        if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
+          audioContext.resume().catch(function () {
+            // If the context cannot start, leave the media element untouched.
+          })
+        }
+        if (foliaTransport !== null) {
+          foliaTransport.play(foliaTransport.getActiveDeck()).catch(function () {
+            // Autoplay may still be blocked; the play event will update the UI.
+          })
+        } else {
+          audio.play().catch(function () {
+            // Autoplay may still be blocked; the play event will update the UI.
+          })
+        }
+      })
   }
 
   /** Analyse the downloaded blob in-browser and apply the per-track gain. */

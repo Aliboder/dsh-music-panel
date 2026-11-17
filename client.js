@@ -6925,6 +6925,8 @@ window.__ModuleLoader__.load({
         'settings.lyricLocalPriorityOnline': '在线（匹配歌词）',
         'settings.lyricPreferredSource': '首选歌词来源',
         'settings.lyricPreferredSourceDesc': '自动匹配歌词时最先检索的来源',
+        'settings.lyricFormatOrder': '同目录歌词优先格式',
+        'settings.lyricFormatOrderDesc': '一首歌有多个歌词文件时先读哪种；其余格式按默认顺序',
         'page.lyricSize': '字体大小',
         'page.lyricGap': '歌词间距',
         'page.lyricBlur': '模糊非当前歌词',
@@ -7533,6 +7535,8 @@ window.__ModuleLoader__.load({
         'settings.lyricLocalPriorityOnline': 'Online (matched lyric)',
         'settings.lyricPreferredSource': 'Preferred lyric source',
         'settings.lyricPreferredSourceDesc': 'The source the automatic lyric pick asks first',
+        'settings.lyricFormatOrder': 'Preferred sidecar format',
+        'settings.lyricFormatOrderDesc': 'Which lyric file next to the audio reads first when a track has several; the rest keep the default order',
         'page.lyricSize': 'Font size',
         'page.lyricGap': 'Line spacing',
         'page.lyricBlur': 'Blur inactive lines',
@@ -10130,6 +10134,240 @@ window.__ModuleLoader__.load({
       }
       return { lyrics: foliaLyricLines(next), pureMusic: false, isWordByWord }
     }
+
+    // ── src/client/services/lyrics/loader.js
+    /**
+     * One lyric load per song, shared by the player and every surface that shows lyrics.
+     *
+     * Folia loads a song's lyric where playback starts, not where a panel happens to be
+     * open: the visualizer and the player's start gate both need it. This module is that
+     * place — `load()` answers the resolved lyric (local file, matched online lyric, or the
+     * platform's own), `whenReady()` is what the player waits on before starting audio.
+     *
+     * It does not run the optional word-by-word upgrade: that is a display decision with a
+     * toast and diagnostics, and it stays where the lyrics are shown.
+     *
+     * @module dsh-music-panel/lyric-loader
+     */
+
+    var MPLyricLoader = (function () {
+      /** Songs whose resolved lyric is kept (both decks and the panel rarely exceed this). */
+      var CACHE_LIMIT = 12
+      /** The gate never holds playback hostage to a slow network. */
+      var GATE_TIMEOUT_MS = 8000
+
+      var cache = new Map()
+      var inflight = new Map()
+
+      /** The identity of a song, the same key the Host's lyric record uses. */
+      function keyOf(track) {
+        if (track === null || typeof track !== 'object') return ''
+        if (track.onlineProvider) {
+          return 'online:' + String(track.onlineProvider) + ':' + String(track.onlineId || '')
+        }
+        return String(track.path || '')
+      }
+
+      function emptyResult(key) {
+        return {
+          key: key,
+          lyrics: [],
+          document: null,
+          source: null,
+          pureMusic: false,
+          isWordByWord: false,
+          offsetMs: 0,
+          chorusRanges: [],
+          matchedUpdated: false,
+        }
+      }
+
+      function remember(key, result) {
+        cache.set(key, result)
+        while (cache.size > CACHE_LIMIT) {
+          var oldest = cache.keys().next().value
+          if (oldest === undefined) break
+          cache.delete(oldest)
+        }
+      }
+
+      async function loadOnline(track) {
+        var key = keyOf(track)
+        var provider = String(track.onlineProvider || '')
+        var id = String(track.onlineId || '')
+        var query =
+          API +
+          'online/lyric?provider=' +
+          encodeURIComponent(provider) +
+          '&id=' +
+          encodeURIComponent(id) +
+          '&title=' +
+          encodeURIComponent(track.title || '') +
+          '&artist=' +
+          encodeURIComponent(track.artist || '') +
+          '&album=' +
+          encodeURIComponent(track.album || '') +
+          '&duration=' +
+          encodeURIComponent(String(track.durationSec || 0)) +
+          '&preferred=' +
+          encodeURIComponent(String(prefs.lyricPreferredSource || ''))
+        // The hook lines are part of the display pass (Folia marks them with the provider's
+        // own ranges), so the chorus window is asked alongside the lyric.
+        var chorusPromise = getJson(API + 'online/chorus?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(id)).catch(
+          function () {
+            return null
+          },
+        )
+        var body = await getJson(query)
+        var chorusRanges = mpChorusRanges(await chorusPromise)
+        var result = emptyResult(key)
+        result.chorusRanges = chorusRanges
+        result.source = body.source === 'imported' ? 'imported' : 'online'
+        result.offsetMs = readSavedLyricOffset(key)
+        if (body.pureMusic === true) {
+          result.pureMusic = true
+          return result
+        }
+        var document = null
+        if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
+          try {
+            var parsed = await MPFoliaLyrics.parse(body.raw, { songId: Number(track.onlineId) || 0 })
+            if (parsed && Array.isArray(parsed.lines) && parsed.lines.length > 0) document = parsed
+          } catch (error) {
+            document = null
+          }
+        }
+        if (document !== null) {
+          var shown = mpPrepareLyrics(document, key, chorusRanges)
+          result.lyrics = shown.lyrics
+          result.document = document
+          result.pureMusic = shown.pureMusic === true
+          result.isWordByWord = shown.isWordByWord === true
+          return result
+        }
+        // No document the pipeline can parse (an older cache): the Host's LRC and its word
+        // timeline, converted the way the legacy producers are.
+        var lines = parseLrcText(body.lrc || '')
+        if (body.translation) mergeLyricTranslation(lines, body.translation)
+        attachWordTimeline(lines, body.lines)
+        result.lyrics = legacyLinesToFolia(lines)
+        result.isWordByWord = body.wordLevel === true
+        return result
+      }
+
+      async function loadLocal(track) {
+        var key = keyOf(track)
+        var priority = prefs.lyricLocalPriority === 'online' ? 'online' : 'local'
+        var formatOrder = Array.isArray(prefs.lyricFormatOrder) ? prefs.lyricFormatOrder.join(',') : ''
+        var url =
+          API +
+          'lyrics?path=' +
+          encodeURIComponent(track.path) +
+          '&priority=' +
+          encodeURIComponent(priority) +
+          '&formatOrder=' +
+          encodeURIComponent(formatOrder)
+        var body = await getJson(url)
+        var matchedUpdated = false
+        // Folia's `matchLyrics`: none of the file's own lyrics is usable (or the listener chose
+        // online) — ask once, then read the resolved lyric again.
+        if (body.needsAutoMatch === true) {
+          var auto = await getJson(
+            API +
+              'lyrics/auto?path=' +
+              encodeURIComponent(track.path) +
+              '&preferred=' +
+              encodeURIComponent(String(prefs.lyricPreferredSource || '')),
+          ).catch(function () {
+            return null
+          })
+          if (auto !== null && auto.matched) {
+            body = await getJson(url)
+            matchedUpdated = true
+          }
+        }
+        var shown = await mpLocalLyricLines(body, key)
+        return {
+          key: key,
+          lyrics: shown.lyrics,
+          document: shown.document,
+          source: body.pureMusic === true ? 'pure' : String(body.source || ''),
+          pureMusic: body.pureMusic === true || shown.pureMusic === true,
+          isWordByWord: shown.isWordByWord === true,
+          offsetMs: Number(body.offsetMs) || readSavedLyricOffset(key),
+          chorusRanges: [],
+          matchedUpdated: matchedUpdated,
+        }
+      }
+
+      /** The resolved lyric for one song; concurrent callers share the same request. */
+      function load(track) {
+        var key = keyOf(track)
+        if (key === '') return Promise.resolve(emptyResult(''))
+        var hit = cache.get(key)
+        if (hit !== undefined) return Promise.resolve(hit)
+        var running = inflight.get(key)
+        if (running !== undefined) return running
+        var promise = (track.onlineProvider ? loadOnline(track) : loadLocal(track))
+          .catch(function () {
+            return emptyResult(key)
+          })
+          .then(function (result) {
+            inflight.delete(key)
+            remember(key, result)
+            return result
+          })
+        inflight.set(key, promise)
+        return promise
+      }
+
+      /**
+       * What the player's start gate waits on. Always resolves: a timeout, a failed request
+       * and "no loader" all mean "start the song anyway", never "never start".
+       *
+       * @param {object} track
+       * @param {number} [timeoutMs]
+       */
+      function whenReady(track, timeoutMs) {
+        var ms = typeof timeoutMs === 'number' && timeoutMs >= 0 ? timeoutMs : GATE_TIMEOUT_MS
+        return new Promise(function (resolve) {
+          var settled = false
+          var timer = setTimeout(function () {
+            if (settled) return
+            settled = true
+            if (typeof console !== 'undefined' && typeof console.info === 'function') {
+              console.info('[dsh-music] lyric gate timed out for ' + keyOf(track))
+            }
+            resolve(null)
+          }, ms)
+          load(track).then(
+            function (result) {
+              if (settled) return
+              settled = true
+              clearTimeout(timer)
+              resolve(result)
+            },
+            function () {
+              if (settled) return
+              settled = true
+              clearTimeout(timer)
+              resolve(null)
+            },
+          )
+        })
+      }
+
+      /** Forget one song's resolved lyric (after the listener changes its source), or all. */
+      function invalidate(key) {
+        if (key === undefined) {
+          cache.clear()
+          return
+        }
+        cache.delete(String(key))
+      }
+
+      return { load: load, whenReady: whenReady, invalidate: invalidate, keyOf: keyOf }
+    })()
 
     // ── src/client/render/lyrics/lyrics.bundle.js
     var MPFoliaLyrics = (() => {
@@ -154300,27 +154538,51 @@ window.__ModuleLoader__.load({
         }
       }
 
+      /**
+       * Folia's lyric gate: audio starts once the song's first lyric is resolved (the
+       * optional word-by-word upgrade is not part of it). Always resolves, and is a no-op
+       * when the loader is absent (tests, or a client built without the lyric surface).
+       */
+      function whenLyricReady(item) {
+        var loader = typeof MPLyricLoader === 'undefined' ? null : MPLyricLoader
+        if (loader === null || typeof loader !== 'object' || typeof loader.whenReady !== 'function') {
+          return Promise.resolve(null)
+        }
+        try {
+          return loader.whenReady(item).catch(function () {
+            return null
+          })
+        } catch (error) {
+          return Promise.resolve(null)
+        }
+      }
+
       function playAfterLoudness(token) {
         var gate = loudnessGate === null ? Promise.resolve() : loudnessGate
-        gate.then(function () {
-          if (token !== loadToken || pendingAutoplay !== true || audio === null) return
-          pendingAutoplay = false
-          var context = api.ensureAnalyser()
-          if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
-            audioContext.resume().catch(function () {
-              // If the context cannot start, leave the media element untouched.
-            })
-          }
-          if (foliaTransport !== null) {
-            foliaTransport.play(foliaTransport.getActiveDeck()).catch(function () {
-              // Autoplay may still be blocked; the play event will update the UI.
-            })
-          } else {
-            audio.play().catch(function () {
-              // Autoplay may still be blocked; the play event will update the UI.
-            })
-          }
-        })
+        gate
+          .then(function () {
+            if (token !== loadToken || pendingAutoplay !== true || audio === null) return null
+            return whenLyricReady(currentItem())
+          })
+          .then(function () {
+            if (token !== loadToken || pendingAutoplay !== true || audio === null) return
+            pendingAutoplay = false
+            var context = api.ensureAnalyser()
+            if (context !== null && audioContext !== null && audioContext.state === 'suspended') {
+              audioContext.resume().catch(function () {
+                // If the context cannot start, leave the media element untouched.
+              })
+            }
+            if (foliaTransport !== null) {
+              foliaTransport.play(foliaTransport.getActiveDeck()).catch(function () {
+                // Autoplay may still be blocked; the play event will update the UI.
+              })
+            } else {
+              audio.play().catch(function () {
+                // Autoplay may still be blocked; the play event will update the UI.
+              })
+            }
+          })
       }
 
       /** Analyse the downloaded blob in-browser and apply the per-track gain. */
@@ -163102,8 +163364,39 @@ window.__ModuleLoader__.load({
       useEffect(
         function () {
           setSourceInfo(null)
-          if (trackPath === '' || (track !== null && track.onlineProvider)) return undefined
+          if (trackPath === '') return undefined
           var cancelled = false
+          if (track !== null && track.onlineProvider) {
+            // A platform song has no file lyric: its record says "the platform's own" or
+            // "the imported one" (Folia's SourceTab for an online track).
+            getJson(
+              API +
+                'online/lyric-state?provider=' +
+                encodeURIComponent(track.onlineProvider) +
+                '&id=' +
+                encodeURIComponent(track.onlineId || ''),
+            )
+              .then(function (body) {
+                if (cancelled) return
+                setSourceInfo({
+                  embedded: false,
+                  local: false,
+                  online: true,
+                  imported: String(body.imported || '') !== '',
+                  active: body.source === 'imported' ? 'imported' : 'online',
+                  source: body.source === undefined ? null : body.source,
+                  markedPureMusic: body.pureMusic === true,
+                })
+              })
+              .catch(function () {
+                if (!cancelled) {
+                  setSourceInfo({ embedded: false, local: false, online: true, imported: false, active: 'online', source: null, markedPureMusic: false })
+                }
+              })
+            return function () {
+              cancelled = true
+            }
+          }
           getJson(API + 'lyrics/sources?path=' + encodeURIComponent(trackPath) + '&priority=' + (prefs.lyricLocalPriority === 'online' ? 'online' : 'local'))
             .then(function (body) {
               if (!cancelled) setSourceInfo(body)
@@ -163174,6 +163467,9 @@ window.__ModuleLoader__.load({
       // a change of the listener's line rules re-runs that pass on it (Folia's setter does
       // the same, and its `lyricsBeforeRules` keeps the pre-rule lines for exactly this).
       var lyricDocRef = useRef(null)
+      // Which priority/preferred-source pair the shared loader was filled with: a change means
+      // the resolved lyrics on record may differ now, so its cache is dropped once.
+      var lyricPrefsKeyRef = useRef(lyricPriorityKey)
       var lyricRulesKey = mpLyricRulesKey()
       // Folia loads icu-folia's engines lazily and re-bakes the shown lyrics when they land.
       // Armed with the first document that can carry a split; the reload is a module-level
@@ -163192,6 +163488,10 @@ window.__ModuleLoader__.load({
         function () {
           if (props.open !== true || trackPath === '') return undefined
           var cancelled = false
+          if (lyricPrefsKeyRef.current !== lyricPriorityKey) {
+            lyricPrefsKeyRef.current = lyricPriorityKey
+            MPLyricLoader.invalidate()
+          }
           // The upgrade search is the only request that can outlive its song: it runs after the
           // lyric is on screen and walks every source. Abort it when this effect is torn down
           // (track change / panel close) instead of letting four searches stack up.
@@ -163300,84 +163600,26 @@ window.__ModuleLoader__.load({
           }
           async function load() {
             try {
+              // One load per song, shared with the player's start gate. Folia resolves the
+              // lyric where playback starts, so this asks the same module the gate already
+              // did instead of fetching a second copy.
+              var loaded = await MPLyricLoader.load(current)
+              var lyricsNow = loaded.lyrics
+              var usedFolia = loaded.document !== null
               if (current.onlineProvider) {
-                // The native chorus window is part of the display pass (Folia marks the hook
-                // lines with the provider's own ranges), so ask for it alongside the lyrics.
-                var chorusPromise = getJson(
-                  API +
-                    'online/chorus?provider=' +
-                    encodeURIComponent(current.onlineProvider) +
-                    '&id=' +
-                    encodeURIComponent(current.onlineId || ''),
-                ).catch(function () {
-                  return null
-                })
-                var body = await getJson(
-                  API +
-                    'online/lyric?provider=' +
-                    encodeURIComponent(current.onlineProvider) +
-                    '&id=' +
-                    encodeURIComponent(current.onlineId || '') +
-                    // Metadata lets the Host borrow lyrics from another source when the
-                    // track's own platform has none; the preferred source decides who it
-                    // asks first (Folia's preferredAlternativeLyricSource).
-                    '&title=' +
-                    encodeURIComponent(current.title || '') +
-                    '&artist=' +
-                    encodeURIComponent(current.artist || '') +
-                    '&album=' +
-                    encodeURIComponent(current.album || '') +
-                    '&duration=' +
-                    encodeURIComponent(String(current.durationSec || 0)) +
-                    '&preferred=' +
-                    encodeURIComponent(String(prefs.lyricPreferredSource || '')),
-                )
-                var chorusBody = await chorusPromise
-                var chorusRanges = mpChorusRanges(chorusBody)
-                // Folia's pipeline when the Host sent the raw source (cache v6+): it parses
-                // LRC / enhanced LRC / YRC / QRC / KRC / TTML itself, with word timing and
-                // credits policy. The old ad-hoc parse stays as the fallback.
-                var usedFolia = false
-                var shown = null
-                if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
-                  try {
-                    // icu-folia's split is the default for every line this document carries.
-                    armIcuFolia()
-                    var document = await MPFoliaLyrics.parse(body.raw, {
-                      songId: Number(current.onlineId) || 0,
-                    })
-                    if (document && Array.isArray(document.lines) && document.lines.length > 0) {
-                      // Keep the parsed document: the display-time pass below, and again whenever
-                      // the listener's line rules change, runs on this rather than a new fetch.
-                      lyricDocRef.current = { path: trackPath, document: document, chorusRanges: chorusRanges }
-                      shown = mpPrepareLyrics(document, trackPath, chorusRanges)
-                      usedFolia = true
-                    }
-                  } catch (error) {
-                    shown = null
-                  }
-                }
-                var lines = shown === null ? null : shown.lyrics
-                if (shown === null) {
-                  lyricDocRef.current = null
-                  lines = parseLrcText(body.lrc || '')
-                  if (body.translation) mergeLyricTranslation(lines, body.translation)
-                  // Word-level timeline (only present when the platform has one).
-                  attachWordTimeline(lines, body.lines)
-                  lines = legacyLinesToFolia(lines)
-                }
                 // One line of diagnostics per lyric load: if a word-by-word effect is missing,
                 // this says whether the client ever received word timings at all.
                 if (typeof console !== 'undefined' && typeof console.info === 'function') {
-                  var wordLines = lines.filter(function (line) {
-                    return line && Array.isArray(line.words) && line.words.length > 1
-                  })
                   console.info(
                     '[dsh-music] lyric',
                     String(current.onlineProvider || '') + '/' + String(current.onlineId || ''),
                     'style=' + String(prefs.lyricStyle || ''),
-                    'lines=' + String(lines.length),
-                    'wordLevel=' + String(wordLines.length),
+                    'lines=' + String(lyricsNow.length),
+                    'wordLevel=' + String(
+                      lyricsNow.filter(function (line) {
+                        return line && Array.isArray(line.words) && line.words.length > 1
+                      }).length,
+                    ),
                     usedFolia ? '(folia)' : '(legacy)',
                   )
                 }
@@ -163389,102 +163631,68 @@ window.__ModuleLoader__.load({
                     style: String((typeof prefs !== 'undefined' && prefs && prefs.lyricStyle) || ''),
                     usedFolia: usedFolia,
                     hasFolia: typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null,
-                    hasRaw: Boolean(body.raw),
+                    hasRaw: loaded.document !== null,
                     appVersion: typeof APP_VERSION === 'string' ? APP_VERSION : '',
-                    lines: lines.length,
-                    wordLevel: lines.filter(function (line) {
+                    lines: lyricsNow.length,
+                    wordLevel: lyricsNow.filter(function (line) {
                       return line && Array.isArray(line.words) && line.words.length > 1
                     }).length,
-                    first: lines[0]
+                    first: lyricsNow[0]
                       ? {
-                          start: mpLineStart(lines[0]),
-                          end: mpLineEnd(lines[0]),
-                          words: Array.isArray(lines[0].words) ? lines[0].words.length : 0,
-                          text: String((lines[0].fullText !== undefined ? lines[0].fullText : lines[0].text) || '').slice(0, 40),
+                          start: mpLineStart(lyricsNow[0]),
+                          end: mpLineEnd(lyricsNow[0]),
+                          words: Array.isArray(lyricsNow[0].words) ? lyricsNow[0].words.length : 0,
+                          text: String((lyricsNow[0].fullText !== undefined ? lyricsNow[0].fullText : lyricsNow[0].text) || '').slice(0, 40),
                         }
                       : null,
                   }).catch(function () {})
                 }
-                // A lyric that is only the pure-music notice, or the song's stored
-                // instrumental verdict, is no lyric at all: Folia does not auto-match over it.
-                var primaryPureMusic = body.pureMusic === true || (shown !== null && shown.pureMusic === true)
-                if (primaryPureMusic) {
-                  if (!cancelled) {
-                    setLyrics([])
-                    setLyricSource('online')
-                    setOffsetMs(readSavedLyricOffset(trackPath))
-                  }
-                  return
-                }
+              }
+              // Keep the parsed document: the display-time pass below, and again whenever the
+              // listener's line rules change, runs on this rather than a new fetch.
+              lyricDocRef.current = loaded.document === null
+                ? null
+                : { path: trackPath, document: loaded.document, chorusRanges: loaded.chorusRanges }
+              // A lyric that is only the pure-music notice, or the song's stored instrumental
+              // verdict, is no lyric at all: Folia does not auto-match over it either.
+              if (loaded.pureMusic === true) {
                 if (!cancelled) {
-                  setLyrics(lines)
-                  // Folia's SourceTab names the imported lyric separately from the platform's.
-                  setLyricSource(body.source === 'imported' ? 'imported' : 'online')
-                  // Folia restores the song's last manual offset instead of resetting it.
-                  setOffsetMs(readSavedLyricOffset(trackPath))
+                  setLyrics([])
+                  setLyricSource('pure')
+                  setOffsetMs(loaded.offsetMs)
                 }
-                // Folia's `autoUseBestLyric`: the lyric on screen is shown first, then another
-                // source is asked for one with better timing — even when the platform's own
-                // lyrics already have word timing the listener did not choose them (only an
-                // `imported` lyric, or an instrumental verdict, ends the search).
-                if (body.source !== 'imported' && prefs.autoUseBestLyric !== false) {
-                  void upgradeLyric(current, chorusRanges, upgradeAbort === null ? null : upgradeAbort.signal).catch(
-                    function () {},
-                  )
-                }
-                // `chorusRanges` above already marked the hook lines in the lyric document;
-                // nothing else is awaited for this track.
                 return
               }
-              // Folia's local pick: the record decides which lyric this file shows. When it
-              // says none of the file's own lyrics is usable (or the listener chose online),
-              // ask for a match once, then read the resolved lyric again.
-              var priority = prefs.lyricLocalPriority === 'online' ? 'online' : 'local'
-              var formatOrder = Array.isArray(prefs.lyricFormatOrder) ? prefs.lyricFormatOrder.join(',') : ''
-              var localUrl =
-                API +
-                'lyrics?path=' +
-                encodeURIComponent(current.path) +
-                '&priority=' +
-                encodeURIComponent(priority) +
-                '&formatOrder=' +
-                encodeURIComponent(formatOrder)
-              var local = await getJson(localUrl)
-              if (local.needsAutoMatch === true && !cancelled) {
-                var auto = await getJson(
-                  API +
-                    'lyrics/auto?path=' +
-                    encodeURIComponent(current.path) +
-                    '&preferred=' +
-                    encodeURIComponent(String(prefs.lyricPreferredSource || '')),
-                ).catch(function () {
-                  return null
-                })
-                if (auto !== null && auto.matched) {
-                  local = await getJson(localUrl)
-                  getJson(API + 'lyrics/sources?path=' + encodeURIComponent(current.path) + '&priority=' + encodeURIComponent(priority))
-                    .then(function (body) {
-                      if (!cancelled) setSourceInfo(body)
-                    })
-                    .catch(function () {})
-                }
-              }
-              // Local files take the same pipeline as online ones: the Host hands over the
-              // file's own text (LRC / enhanced LRC / TTML / VTT / QRC / YRC / KRC / .fia),
-              // so word timing, credits policy and icu-folia's split all apply here too.
+              // icu-folia's engines are armed here so their split lands on this surface too.
               armIcuFolia()
-              var localShown = await mpLocalLyricLines(local, trackPath)
-              // Keep the document so a rule change re-runs the display pass; the fallback
-              // (untimed text) has no document and keeps the Host's lines as they are.
-              lyricDocRef.current = localShown.document === null
-                ? null
-                : { path: trackPath, document: localShown.document, chorusRanges: [] }
               if (!cancelled) {
-                setLyrics(localShown.lyrics)
-                setLyricSource(local.pureMusic === true ? 'pure' : String(local.source || ''))
-                // The host's file-level offset is the primary for local tracks; the
-                // remembered one covers tracks whose offset never reached the file.
-                setOffsetMs(Number(local.offsetMs) || readSavedLyricOffset(trackPath))
+                setLyrics(lyricsNow)
+                // Folia's SourceTab names the imported lyric separately from the platform's.
+                setLyricSource(String(loaded.source || ''))
+                setOffsetMs(loaded.offsetMs)
+              }
+              // The auto-match wrote a new record: refresh the source switcher's data.
+              if (loaded.matchedUpdated === true && !cancelled) {
+                getJson(
+                  API +
+                    'lyrics/sources?path=' +
+                    encodeURIComponent(current.path) +
+                    '&priority=' +
+                    encodeURIComponent(prefs.lyricLocalPriority === 'online' ? 'online' : 'local'),
+                )
+                  .then(function (body) {
+                    if (!cancelled) setSourceInfo(body)
+                  })
+                  .catch(function () {})
+              }
+              // Folia's `autoUseBestLyric`: the lyric on screen is shown first, then another
+              // source is asked for one with better timing — even when the platform's own
+              // lyrics already have word timing, unless they were imported (that is an explicit
+              // choice) or the song is instrumental.
+              if (current.onlineProvider && loaded.source !== 'imported' && prefs.autoUseBestLyric !== false) {
+                void upgradeLyric(current, loaded.chorusRanges, upgradeAbort === null ? null : upgradeAbort.signal).catch(
+                  function () {},
+                )
               }
             } catch (error) {
               if (!cancelled) setLyricError(errorText(error))
@@ -163655,6 +163863,7 @@ window.__ModuleLoader__.load({
           onApply: function (lrc) {
             postJson(API + 'lyrics/save', { path: track.path, lrc: lrc })
               .then(function () {
+                MPLyricLoader.invalidate(track.path)
                 setLyricReload(function (value) {
                   return value + 1
                 })
@@ -164362,6 +164571,7 @@ window.__ModuleLoader__.load({
                 lyricsText: lyricsText,
                 lyricsPath: trackPath,
                 onLyricsSaved: function () {
+                  MPLyricLoader.invalidate(trackPath)
                   setLyricReload(lyricReload + 1)
                 },
                 gainValues: gainInfo,
@@ -164386,11 +164596,24 @@ window.__ModuleLoader__.load({
                 // Folia keeps the choice on the song, not in a global setting: each switch
                 // writes the record through the Host and the panel re-reads this track.
                 onSwitchLyricSource: function (key) {
-                  var request = key === 'pure'
-                    ? postJson(API + 'lyrics/pure-music', { path: trackPath, marked: true })
-                    : postJson(API + 'lyrics/choice', { path: trackPath, source: key })
+                  var isOnline = track !== null && Boolean(track.onlineProvider)
+                  var request
+                  if (isOnline) {
+                    var record = {
+                      provider: String(track.onlineProvider),
+                      id: String(track.onlineId || ''),
+                    }
+                    request = key === 'pure'
+                      ? postJson(API + 'online/lyric-choice', Object.assign({}, record, { pureMusic: true }))
+                      : postJson(API + 'online/lyric-choice', Object.assign({}, record, { source: key === 'imported' ? 'imported' : 'online' }))
+                  } else {
+                    request = key === 'pure'
+                      ? postJson(API + 'lyrics/pure-music', { path: trackPath, marked: true })
+                      : postJson(API + 'lyrics/choice', { path: trackPath, source: key })
+                  }
                   request
                     .then(function () {
+                      MPLyricLoader.invalidate(trackPath)
                       setLyricReload(function (value) {
                         return value + 1
                       })
@@ -164400,8 +164623,16 @@ window.__ModuleLoader__.load({
                     })
                 },
                 onResetLyricSource: function () {
-                  postJson(API + 'lyrics/choice', { path: trackPath, source: 'auto' })
+                  var request = track !== null && track.onlineProvider
+                    ? postJson(API + 'online/lyric-choice', {
+                        provider: String(track.onlineProvider),
+                        id: String(track.onlineId || ''),
+                        source: null,
+                      })
+                    : postJson(API + 'lyrics/choice', { path: trackPath, source: 'auto' })
+                  request
                     .then(function () {
+                      MPLyricLoader.invalidate(trackPath)
                       setLyricReload(function (value) {
                         return value + 1
                       })
@@ -164417,7 +164648,12 @@ window.__ModuleLoader__.load({
                     path: trackPath,
                     name: (trackPath.split(/[\\/]/).pop() || 'lyrics').replace(/\.[^.]+$/, ''),
                     text: lyricsText,
+                    // An online song imports onto its record; there is no file to write.
+                    online: track !== null && track.onlineProvider
+                      ? { provider: String(track.onlineProvider), id: String(track.onlineId || '') }
+                      : null,
                     onSaved: function () {
+                      MPLyricLoader.invalidate(trackPath)
                       setLyricReload(lyricReload + 1)
                     },
                   })
@@ -165179,6 +165415,25 @@ window.__ModuleLoader__.load({
               ],
               onChange: function (value) {
                 patchPrefs({ lyricPreferredSource: String(value) })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'format-order', label: t('settings.lyricFormatOrder'), desc: t('settings.lyricFormatOrderDesc') },
+            h(KitSelect, {
+              value: Array.isArray(prefs.lyricFormatOrder) && prefs.lyricFormatOrder.length > 0
+                ? prefs.lyricFormatOrder[0]
+                : 'lrc',
+              label: t('settings.lyricFormatOrder'),
+              options: ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'].map(function (format) {
+                return { value: format, label: format.toUpperCase() }
+              }),
+              onChange: function (value) {
+                var order = ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'].filter(function (format) {
+                  return format !== value
+                })
+                patchPrefs({ lyricFormatOrder: [String(value)].concat(order) })
               },
             }),
           ),
@@ -170338,7 +170593,8 @@ window.__ModuleLoader__.load({
         var hasEmbedded = info !== null && info.embedded === true
         var hasLocal = info !== null && info.local === true
         var hasOnline = info !== null && info.online === true
-        if (!hasEmbedded && !hasLocal && !hasOnline) {
+        var hasImported = info !== null && info.imported === true
+        if (!hasEmbedded && !hasLocal && !hasOnline && !hasImported) {
           return h(
             'span',
             { style: { fontSize: '13px', opacity: '.75', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
@@ -170348,15 +170604,26 @@ window.__ModuleLoader__.load({
         var settled = info !== null && info.markedPureMusic === true
         var active = settled
           ? 'pure'
-          : info.active === 'embedded'
-            ? 'embedded'
-            : info.active === 'online'
-              ? 'online'
-              : 'local'
+          : info.active === 'imported' && hasImported
+            ? 'imported'
+            : info.active === 'embedded' && hasEmbedded
+              ? 'embedded'
+              : info.active === 'online' && hasOnline
+                ? 'online'
+                : info.active === 'local' && hasLocal
+                  ? 'local'
+                  : hasOnline
+                    ? 'online'
+                    : hasLocal
+                      ? 'local'
+                      : hasEmbedded
+                        ? 'embedded'
+                        : 'imported'
         var options = []
         if (hasLocal) options.push({ value: 'local', label: t('sheet.srcLocal') })
         if (hasEmbedded) options.push({ value: 'embedded', label: t('sheet.srcEmbedded') })
         if (hasOnline) options.push({ value: 'online', label: t('sheet.srcOnline') })
+        if (hasImported) options.push({ value: 'imported', label: t('sheet.srcImported') })
         options.push({ value: 'pure', label: t('sheet.srcPureMusic') })
         var explicit = settled || (info !== null && info.source !== null && info.source !== undefined)
         return h(
@@ -171989,6 +172256,9 @@ window.__ModuleLoader__.load({
       var errorPair = useState('')
       var error = errorPair[0]
       var setError = errorPair[1]
+      // An online song has no file to write: its imported lyric is kept on its record
+      // (Folia's `handleImportOnlineLyrics`).
+      var online = layer.props && layer.props.online && typeof layer.props.online === 'object' ? layer.props.online : null
 
       function pick() {
         if (typeof document === 'undefined') return
@@ -172019,10 +172289,18 @@ window.__ModuleLoader__.load({
       }
 
       function save() {
-        if (busy || path === '') return
+        if (busy || (online === null && path === '')) return
         setBusy(true)
         setError('')
-        postJson(API + 'lyrics/save', { path: path, lrc: text })
+        var request = online === null
+          ? postJson(API + 'lyrics/save', { path: path, lrc: text })
+          : postJson(API + 'online/lyric-import', {
+              provider: String(online.provider || ''),
+              id: String(online.id || ''),
+              text: text,
+              name: baseName + '.lrc',
+            })
+        request
           .then(function () {
             setBusy(false)
             popLayer()

@@ -38,6 +38,26 @@ assert.match(settings, /playbackFade/, 'the settings UI exposes the playback fad
 assert.match(settings, /setSinkId/, 'the settings UI feature-detects setSinkId')
 assert.match(settings, /audioOutputDeviceId/, 'the selected sink is persisted')
 
+// Folia starts the audio once the song's first lyric is resolved. The gate is a step of
+// `playAfterLoudness`, before the transport is asked to play, and it is always a no-op
+// when the loader is absent (tests, a client without the lyric surface).
+assert.match(player, /function whenLyricReady\(/, 'the lyric gate is a named step')
+assert.match(player, /MPLyricLoader/, 'the gate uses the shared lyric loader')
+const gateBody = player.slice(
+  player.indexOf('function playAfterLoudness'),
+  player.indexOf('\n  }', player.indexOf('foliaTransport.play(', player.indexOf('function playAfterLoudness'))),
+)
+assert.ok(
+  gateBody.indexOf('whenLyricReady(currentItem())') < gateBody.indexOf('foliaTransport.play('),
+  'the lyric gate runs before the transport starts the song',
+)
+const manifestSource = readFileSync(join(ROOT, 'src/client/manifest.json'), 'utf8')
+assert.match(manifestSource, /services\/lyrics\/loader\.js/, 'the loader is part of the client bundle')
+const loaderSource = readFileSync(join(ROOT, 'src/client/services/lyrics/loader.js'), 'utf8')
+assert.match(loaderSource, /function whenReady\(/, 'the loader exposes the gate')
+assert.match(loaderSource, /GATE_TIMEOUT_MS/, 'a slow network cannot hold playback forever')
+assert.match(loaderSource, /inflight/, 'concurrent loads of one song share the request')
+
 assert.doesNotMatch(player, /createDynamicsCompressor/, 'no private limiter is created')
 assert.doesNotMatch(player, /preampNode/, 'the private preamp is gone')
 assert.doesNotMatch(player, /limiterNode/, 'the private limiter node is gone')

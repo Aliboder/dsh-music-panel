@@ -428,6 +428,25 @@ function SettingsSheet(props) {
       ),
       h(
         SetRow,
+        { key: 'format-order', label: t('settings.lyricFormatOrder'), desc: t('settings.lyricFormatOrderDesc') },
+        h(KitSelect, {
+          value: Array.isArray(prefs.lyricFormatOrder) && prefs.lyricFormatOrder.length > 0
+            ? prefs.lyricFormatOrder[0]
+            : 'lrc',
+          label: t('settings.lyricFormatOrder'),
+          options: ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'].map(function (format) {
+            return { value: format, label: format.toUpperCase() }
+          }),
+          onChange: function (value) {
+            var order = ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'].filter(function (format) {
+              return format !== value
+            })
+            patchPrefs({ lyricFormatOrder: [String(value)].concat(order) })
+          },
+        }),
+      ),
+      h(
+        SetRow,
         { key: 'blur', label: t('page.lyricBlur') },
         h(Switch, {
           value: prefs.lyricBlur === true,

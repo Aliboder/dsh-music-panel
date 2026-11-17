@@ -1137,7 +1137,8 @@ function PlayerSheetInner(props) {
     var hasEmbedded = info !== null && info.embedded === true
     var hasLocal = info !== null && info.local === true
     var hasOnline = info !== null && info.online === true
-    if (!hasEmbedded && !hasLocal && !hasOnline) {
+    var hasImported = info !== null && info.imported === true
+    if (!hasEmbedded && !hasLocal && !hasOnline && !hasImported) {
       return h(
         'span',
         { style: { fontSize: '13px', opacity: '.75', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
@@ -1147,15 +1148,26 @@ function PlayerSheetInner(props) {
     var settled = info !== null && info.markedPureMusic === true
     var active = settled
       ? 'pure'
-      : info.active === 'embedded'
-        ? 'embedded'
-        : info.active === 'online'
-          ? 'online'
-          : 'local'
+      : info.active === 'imported' && hasImported
+        ? 'imported'
+        : info.active === 'embedded' && hasEmbedded
+          ? 'embedded'
+          : info.active === 'online' && hasOnline
+            ? 'online'
+            : info.active === 'local' && hasLocal
+              ? 'local'
+              : hasOnline
+                ? 'online'
+                : hasLocal
+                  ? 'local'
+                  : hasEmbedded
+                    ? 'embedded'
+                    : 'imported'
     var options = []
     if (hasLocal) options.push({ value: 'local', label: t('sheet.srcLocal') })
     if (hasEmbedded) options.push({ value: 'embedded', label: t('sheet.srcEmbedded') })
     if (hasOnline) options.push({ value: 'online', label: t('sheet.srcOnline') })
+    if (hasImported) options.push({ value: 'imported', label: t('sheet.srcImported') })
     options.push({ value: 'pure', label: t('sheet.srcPureMusic') })
     var explicit = settled || (info !== null && info.source !== null && info.source !== undefined)
     return h(

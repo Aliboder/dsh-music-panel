@@ -144,9 +144,15 @@
 | 在线首选来源顺序 | ✅ | `/online/lyric`、`/online/best-lyric` 的 `preferred` 参数 |
 | 在线升级口径（`isWordByWord`、接受逐行、纯音乐） | ✅ | `now-playing.js`、`mpPrepareLyrics` |
 | 在线导入 / 在线-导入切换（服务端） | ✅ | `/online/lyric-import`、`/online/lyric-choice`、`/online/lyric-state` |
-| 在线导入的界面入口 | ⏳ 待做 | 面板来源行目前只显示在线/导入，导入入口仍在本地文件上 |
-| sidecar 命名 / 跨格式翻译 / 格式顺序 | ✅（读取）／⏳（排序界面） | `readSidecarLyrics`、`/lyrics` 的 `formatOrder`；设置页还没有排序控件 |
+| 在线导入的界面入口 | ✅ | 面板来源段（在线 / 导入 / 纯音乐）与「导入 / 导出」窗口（导入写到歌曲记录） |
+| sidecar 命名 / 跨格式翻译 / 格式顺序 | ✅ 读取与「优先格式」设置；完整排序界面未做 | `readSidecarLyrics`、`/lyrics` 的 `formatOrder`、设置页「同目录歌词优先格式」 |
 | 内嵌 native 标签回退 | ✅ | `readEmbeddedLyrics` |
 | AMLL 候选探测（按需） | ✅ | `online.js` 的 `findMatchedLyric` 与 `local-match.js` 的 `match` |
-| 统一加载器 + 播放门控（D1） | ⏳ 待做 | 需要把取词从面板提到共享 loader，再由 `player.js` 的 `playAfterLoudness` 等待；面板关着时也必须加载，否则门控会死锁 |
+| 统一加载器 | ✅ | `src/client/services/lyrics/loader.js`：按歌去重，面板与播放器共用一次请求 |
+| 播放门控（D1） | ✅ | `player.js` 的 `whenLyricReady`：响度闸门与歌词闸门都就绪才 `play()`；超时 8s 放行 |
 | 别名 / 换歌手再搜、匹配窗三开关 | ⏳ 可选 | P4 |
+
+### 门控与升级的分工
+
+- **门控只等第一份歌词**：`MPLyricLoader.whenReady`，本地同目录/内嵌或在线平台歌词一到位就放行；
+- **升级搜索不在门控内**：`/online/best-lyric` 在歌词上屏之后才发，面板打开时由面板发起（面板关着时下一次打开会补做）。

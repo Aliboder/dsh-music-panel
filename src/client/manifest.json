@@ -19,6 +19,7 @@
     "src/client/styles/base.js",
     "src/client/components/common/icons.js",
     "src/client/services/lyrics/lyrics.js",
+    "src/client/services/lyrics/loader.js",
     "src/client/render/lyrics/lyrics.bundle.js",
     "src/client/components/library/list.js",
     "src/client/components/library/stats.js",
