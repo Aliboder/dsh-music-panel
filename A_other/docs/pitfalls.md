@@ -288,6 +288,15 @@
 
 ---
 
+## 32. 改了插件、重启 DSH 却没生效（安装 / 开发）
+
+- **现象**：仓库里改完、测试全绿、`client.js` 也重建了，重启桌面版后界面还是旧的（例如 Folia 样式仍显示 `ui.waitingForMusic`、字幕背景仍是硬块）。
+- **原因**：DSH 从 `<DSH_HOME>/profiles/<profile>/node_modules/dsh-music-panel` 这个**真实副本**加载插件，桌面版的副本由 `local-packages/*.tgz` 安装而成；仓库里的改动不会自动进去。`web` profile 的同一路径是指向 desktop 副本的 junction，所以更新 desktop 副本就同时覆盖两者。
+- **处理**：`node scripts/install-local.mjs desktop`（先校验 `client.js` 是最新，再把旧安装备份到 `~/.dsh/backups/`，然后复制 `index.js` / `client.js` / `src/host` / `locale` 等），之后**完全退出** DSH 再启动；只刷新窗口不会重载 Host 插件。
+- **防回归**：安装后比较仓库与 `<installed>/client.js` 的 sha256；脚本在 `client.js` 过期时会拒绝复制并提示先跑 `build-client.mjs`。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

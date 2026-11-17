@@ -87,6 +87,18 @@ tar -tzf (Get-ChildItem $tmp -Filter *.tgz).FullName | Select-Object -First 20
 
 确认：版本号正确、包含 `client.js` / `src/host/**` / `LICENSE` / `THIRD_PARTY_NOTICES.md`、**不包含**用户音乐、歌词缓存、登录凭据、`.auth-state/`。看完删除临时目录。
 
+### 本机开发安装（桌面版与 web 共用）
+
+桌面版（以及 `dsh web`）加载的是 profile 里的**副本**：`<DSH_HOME>/profiles/<profile>/node_modules/dsh-music-panel`，仓库里的改动不会自动进去；`web` profile 的这个目录是指向 desktop 副本的 junction。所以本机验证改动时：
+
+```powershell
+# 先按上面的构建物规则重建（至少 build-client；改了样式/音频 bundle 还要各自的 build）
+& $NODE scripts/build-client.mjs
+& $NODE scripts/install-local.mjs desktop
+```
+
+脚本会先跑 `build-client.mjs --check` 拒绝过期产物，把旧安装备份到 `<DSH_HOME>/backups/`，再复制 `index.js` / `client.js` / `src/host` / `locale` 等（保留插件自己的 `node_modules`）。装完**完全退出** DSH 再启动——只刷新窗口只重载客户端，Host 仍是旧的。验证：比较仓库与 `<installed>/client.js` 的 sha256。
+
 ---
 
 ## 2. 改版本与文档

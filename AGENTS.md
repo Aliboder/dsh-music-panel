@@ -9,6 +9,7 @@ npm test                                  # 全量 Node 测试
 npm run check                             # 语法 + i18n key + client 同步
 node scripts/build-client.mjs             # 改 src/client/** 后重建 client.js
 node scripts/build-client.mjs --check     # 只检查 client.js 是否最新
+node scripts/install-local.mjs desktop    # 把当前构建装进 DSH profile（验证前必做，装完完全退出再启动）
 node scripts/build-audio.mjs              # 改 src/audio/** 或 Folia 音频上游后重建音频 bundle
 node scripts/build-audio.mjs --check      # 只检查音频 bundle 是否最新
 
