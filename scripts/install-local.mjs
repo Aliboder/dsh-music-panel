@@ -39,6 +39,8 @@ const ENTRY_FILES = [
 // already bundled into `client.js`, and `locale/` is a directory of its own.
 const HOST_SOURCE = join(ROOT, 'src', 'host')
 const LOCALE_SOURCE = join(ROOT, 'locale')
+// The plugin-details page reads meta.detail from locale and the document/image it names.
+const DETAIL_FILES = ['docs/DETAIL.md', 'docs/DETAIL.zh.md', 'docs/preview.svg']
 
 function argumentOf(argv, flag) {
   const index = argv.indexOf(flag)
@@ -84,7 +86,7 @@ if (check.status !== 0) {
 const stamp = new Date().toISOString().replace(/[:.]/g, '-')
 const backup = join(home, 'backups', `${pkg.name}-installed-${stamp}`)
 await mkdir(backup, { recursive: true })
-for (const name of [...ENTRY_FILES, 'src', 'locale']) {
+for (const name of [...ENTRY_FILES, 'src', 'locale', 'docs']) {
   const source = join(target, name)
   if (await directoryExists(source)) {
     await cp(source, join(backup, name), { recursive: true })
@@ -107,6 +109,11 @@ console.log('[install-local] copied src/host/')
 await rm(join(target, 'locale'), { recursive: true, force: true })
 await cp(LOCALE_SOURCE, join(target, 'locale'), { recursive: true })
 console.log('[install-local] copied locale/')
+for (const name of DETAIL_FILES) {
+  await mkdir(dirname(join(target, name)), { recursive: true })
+  await cp(join(ROOT, name), join(target, name))
+}
+console.log('[install-local] copied plugin details/')
 
 console.log(`[install-local] ${pkg.name}@${pkg.version} → ${target}`)
 console.log('[install-local] backup: ' + backup)
