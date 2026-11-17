@@ -173,10 +173,19 @@ export function createLoginBridge(options) {
       return snapshot
     },
 
-    async cancel(sourceId) {
+    async cancel(sourceId, key) {
       const state = states.get(sourceId)
+      if (state === undefined) return
+      const wanted = typeof key === 'string' ? key : ''
+      const currentKey = String(state.getSnapshot().key ?? '')
+      // The window closing/refreshing may send its cancel after a newer attempt has
+      // started. Only that attempt's key is released; the current one is left alone.
+      if (wanted !== '' && currentKey !== wanted) {
+        await state.cancel(wanted)
+        return
+      }
       states.delete(sourceId)
-      if (state !== undefined) await state.cancel()
+      await state.cancel(wanted)
     },
 
     async logout(sourceId) {

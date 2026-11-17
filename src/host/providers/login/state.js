@@ -333,11 +333,24 @@ export function createLoginState(options) {
       return set({ status: LOGIN_STATUS.EXPIRED, message })
     },
 
-    /** Release the pending key (window closed / new attempt) and clear the view. */
-    async cancel() {
-      const key = snapshot.key
+    /**
+     * Release a pending key (window closed / new attempt) and clear the view.
+     *
+     * A key may be passed: a late cancel belongs to the attempt it started, and must not
+     * throw away a newer one (that race is what showed "this sign-in was replaced").
+     */
+    async cancel(key) {
+      const wanted = typeof key === 'string' && key !== '' ? key : snapshot.key
+      if (wanted !== '' && wanted !== snapshot.key) {
+        try {
+          if (typeof adapter.cancel === 'function') await adapter.cancel(wanted)
+        } catch {
+          // Best effort: the old key is already gone.
+        }
+        return snapshot
+      }
       try {
-        if (typeof adapter.cancel === 'function' && key !== '') await adapter.cancel(key)
+        if (typeof adapter.cancel === 'function' && wanted !== '') await adapter.cancel(wanted)
       } catch {
         // Cancelling is best-effort: an expired/unknown key must not surface.
       }

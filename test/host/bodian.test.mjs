@@ -61,6 +61,42 @@ assert.deepEqual(sessions.get(), { token: 't' })
 sessions.clear()
 assert.equal(sessions.get(), null)
 
+// ── QR sign-in ──────────────────────────────────────────────────────────────
+//
+// Bodian's package answers `confirmed` on a successful scan (it has already written the
+// session into the repository). Treating that as an unknown status made a scanned code
+// look like a refusal, which is what the login window used to show.
+
+{
+  const repository = createMemorySessions()
+  const api = {
+    request: async (operation, params) => {
+      switch (operation) {
+        case 'login_qr_key':
+          return { ok: true, data: { key: 'qr-1' } }
+        case 'login_qr_create':
+          return { ok: true, data: { imageUrl: 'data:image/png;base64,x' } }
+        case 'login_qr_check':
+          repository.set({ uid: 'u1', token: 'token', user: { id: 'u1', nickname: '波点用户' } })
+          return { ok: true, data: { state: 'confirmed' } }
+        case 'login_qr_cancel':
+          return { ok: true, data: {} }
+        default:
+          return { ok: true, data: {} }
+      }
+    },
+  }
+  const source = createBodianSource({ deviceId: 'a'.repeat(32), sessions: repository, createApi: () => api })
+  const started = await source.auth.startLogin()
+  assert.equal(started.key, 'qr-1')
+  assert.ok(started.expiresAt > Date.now() + 4 * 60 * 1000, 'the QR lives five minutes, as in the package')
+  const result = await source.auth.checkLogin('qr-1')
+  assert.equal(result.status, 'success', 'confirmed is the successful scan')
+  assert.equal(result.session.uid, 'u1')
+  assert.equal(result.session.token, 'token')
+  assert.equal(result.user.nickname, '波点用户')
+}
+
 // A failing upstream result becomes a MusicError, and the adapter declares its
 // capabilities rather than being probed at runtime.
 const failing = createBodianSource({

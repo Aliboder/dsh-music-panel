@@ -560,8 +560,11 @@ function LoginDialog(props) {
     setRun({ mode: 'qq', seq: run.seq + 1 })
   }
 
-  function cancel() {
-    void postJson(API + 'online/login/cancel', { provider: provider }).catch(function () {
+  function cancel(key) {
+    // Attempt-scoped: a window closing after a newer attempt started must only release
+    // the QR it owns, never the newer one.
+    var attemptKey = typeof key === 'string' && key !== '' ? key : (qr && qr.key) || ''
+    void postJson(API + 'online/login/cancel', { provider: provider, key: attemptKey }).catch(function () {
       // The key may already have expired; closing the window is enough.
     })
   }
@@ -599,7 +602,7 @@ function LoginDialog(props) {
 
       function expire() {
         stop('expired')
-        cancel()
+        cancel(current && current.key)
       }
 
       function schedule() {
@@ -639,7 +642,7 @@ function LoginDialog(props) {
             setStatus(next)
             if (next === 'expired' || next === 'failed') {
               stop(next)
-              cancel()
+              cancel(current && current.key)
               return
             }
             schedule()
@@ -661,7 +664,7 @@ function LoginDialog(props) {
         .then(function (body) {
           if (cancelled) {
             // The window was closed while the key was being created.
-            void postJson(API + 'online/login/cancel', { provider: provider }).catch(function () {})
+            void postJson(API + 'online/login/cancel', { provider: provider, key: body.key }).catch(function () {})
             return
           }
           setQr(body)
@@ -678,8 +681,13 @@ function LoginDialog(props) {
       return function () {
         cancelled = true
         if (timer !== null) clearTimeout(timer)
+        // The key belongs to this attempt: after a refresh/newer start, releasing it is
+        // harmless and the newer attempt is left untouched.
         if (!finishedRef.current) {
-          void postJson(API + 'online/login/cancel', { provider: provider }).catch(function () {})
+          void postJson(API + 'online/login/cancel', {
+            provider: provider,
+            key: current === null ? '' : current.key,
+          }).catch(function () {})
         }
       }
     },

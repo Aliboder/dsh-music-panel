@@ -61,6 +61,29 @@ import { fakeRes } from '../helpers.mjs'
 }
 
 {
+  // A late cancel belongs to its own attempt: it must not clear a newer key.
+  const cancelled = []
+  const state = createLoginState({
+    sourceId: 'demo',
+    adapter: {
+      start: async () => ({ key: 'current', expiresAt: 0 }),
+      poll: async () => ({ status: 'waiting' }),
+      cancel: async (key) => {
+        cancelled.push(key)
+      },
+    },
+  })
+  await state.start('qr')
+  const kept = await state.cancel('older')
+  assert.equal(kept.status, LOGIN_STATUS.PENDING)
+  assert.equal(kept.key, 'current', 'the newer attempt survives a stale cancel')
+  assert.deepEqual(cancelled, ['older'])
+  const cleared = await state.cancel()
+  assert.equal(cleared.key, '')
+  assert.deepEqual(cancelled, ['older', 'current'])
+}
+
+{
   // Expiry wins over polling.
   const state = createLoginState({
     sourceId: 'demo',

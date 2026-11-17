@@ -1074,11 +1074,13 @@ export function createOnlineRoutes(deps) {
         if (!supportsQrLogin(provider)) {
           return fail(res, 400, 'BAD_PROVIDER', '该平台没有扫码登录')
         }
-        await login.cancel(provider)
+        // The key makes the cancel attempt-scoped: a window that closed after a newer
+        // attempt started must not delete the newer one.
+        await login.cancel(provider, String(body?.key || ''))
         return sendJson(res, 200, { ok: true })
       }
 
-      // Navidrome/Subsonic has no QR flow: the client posts a server URL plus      // Navidrome/Subsonic has no QR flow: the client posts a server URL plus
+      // Navidrome/Subsonic has no QR flow: the client posts a server URL plus
       // credentials, we verify with ping, then persist only salt + token.
       if (pathname === '/online/account-sync' && method === 'POST') {
         let body

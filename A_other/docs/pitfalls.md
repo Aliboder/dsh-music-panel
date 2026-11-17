@@ -315,6 +315,15 @@
 
 ---
 
+## 35. 扫码成功却被判失败 / 新二维码被旧取消删掉（登录 / 波点·汽水）
+
+- **现象**：波点音乐扫码后显示「平台拒绝了这次登录」；汽水音乐刷新二维码后显示「这次登录已经被新的尝试取代」，扫了也没反应。
+- **原因**：① 波点包的 `login_qr_check` 成功态是 `confirmed`（session 已写进仓库），插件只认 `success`，把它归成失败；② 取消登录只带 provider，Host 无条件删掉当前状态，刷新/关窗的取消请求晚到就会删掉新一次尝试；汽水的 `error` 状态还丢了 `failure.case`。
+- **处理**：bodian 映射 `confirmed` → success 并取回 session、二维码 TTL 改为包本身的 5 分钟；取消改为按 key 归属（客户端带 `key`，`state.cancel(key)`/bridge/route 只释放对应尝试）；qishui 透传 `failure.case`。
+- **防回归**：`bodian.test.mjs`（confirmed）、`qishui.test.mjs`（refused case）、`login.test.mjs`（旧 key 取消不清新状态）。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

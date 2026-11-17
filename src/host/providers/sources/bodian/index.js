@@ -243,26 +243,32 @@ export function createBodianSource(options) {
           key: keyId,
           imageDataUrl: String(created?.imageUrl ?? created?.qrimg ?? created?.image ?? ''),
           url: String(created?.qrurl ?? ''),
-          expiresAt: Date.now() + 2 * 60 * 1000,
+          // The package keeps the QR for five minutes (its QR_TTL_MS); a shorter
+          // deadline here would expire a code the platform still accepts.
+          expiresAt: Date.now() + 5 * 60 * 1000,
         }
       },
 
       async checkLogin(key) {
         const result = await request('login_qr_check', { key })
-        // Upstream reports `state`; older builds used `status`.
+        // The package's states are waiting / scanned / confirmed / expired; `confirmed`
+        // is the successful scan (it has already written the session into the repository).
         const status = String(result?.state ?? result?.status ?? 'failed')
-        if (status === 'success' || status === 'scanned') {
-          const session = result?.session ?? result?.credential ?? null
-          // The package normally writes the session into the injected repository
-          // itself; persist it here too in case this build only returns it.
-          if (session !== null) sessions.set(session)
+        if (status === 'confirmed' || status === 'success') {
+          const session = result?.session ?? result?.credential ?? sessions.get()
+          if (session !== null && session !== undefined) sessions.set(session)
           return {
-            status: status === 'scanned' ? 'scanned' : 'success',
-            session,
-            user: result?.user ?? null,
+            status: 'success',
+            session: session ?? null,
+            user: result?.user ?? session?.user ?? null,
           }
         }
-        return { status, message: String(result?.message ?? '') }
+        if (status === 'scanned') return { status: 'scanned', message: String(result?.message ?? '') }
+        if (status === 'waiting' || status === 'new') {
+          return { status: 'waiting', message: String(result?.message ?? '') }
+        }
+        if (status === 'expired') return { status: 'expired', message: String(result?.message ?? '') }
+        return { status: 'failed', message: String(result?.message ?? '') }
       },
 
       async readUser() {

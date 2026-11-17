@@ -343,7 +343,13 @@ export function createQishuiSource(options) {
       }
       if (state === 'scanned' || state === 'waiting') return { status: state, message: text(result.message) }
       if (state === 'expired') return { status: 'expired', message: text(result.message) }
-      return { status: 'failed', message: text(result.message || 'Qishui sign-in failed') }
+      // `error` carries the platform's own case (the package maps a refused scan to
+      // `failure.case = 'refused'`); hand it to the Host so the window names the reason.
+      return {
+        status: 'failed',
+        message: text(result.message),
+        case: text(result.failure?.case),
+      }
     },
 
     async cancelLogin(key) {

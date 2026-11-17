@@ -73,6 +73,9 @@ const api = {
       case 'login_qr_create':
         return { ok: true, data: { imageUrl: 'data:image/png;base64,x' } }
       case 'login_qr_check':
+        if (params.key === 'refused-key') {
+          return { ok: true, data: { state: 'error', failure: { case: 'refused' } } }
+        }
         return { ok: true, data: { state: 'confirmed' } }
       case 'login_qr_cancel':
         cancelled += 1
@@ -121,6 +124,11 @@ assert.ok(started.expiresAt > Date.now())
 const confirmed = await source.loginStatus('qr-key')
 assert.equal(confirmed.status, 'success')
 assert.equal(confirmed.user.nickname, '汽水用户')
+
+// A refused scan carries the platform's case, so the window can say why.
+const refused = await source.loginStatus('refused-key')
+assert.equal(refused.status, 'failed')
+assert.equal(refused.case, 'refused')
 assert.deepEqual(await source.profile(), { id: 'u1', nickname: '汽水用户', avatarUrl: 'https://img.example/a.jpg' })
 
 const page = await source.searchPage('晴天', {}, 1)
