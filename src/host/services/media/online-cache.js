@@ -6,7 +6,7 @@
  * from disk (including seeking) without touching the provider CDN again.
  *
  * The cache is bounded: after each store the least-recently-used files are
- * pruned back under `maxBytes` (default 2 GiB).
+ * pruned back under `maxBytes` (default 10 GiB).
  *
  * @module dsh-music-panel/online-cache
  */
