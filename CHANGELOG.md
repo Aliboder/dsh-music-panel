@@ -11,6 +11,8 @@
 - 封面改为随整首播放缓存（按歌），`/online/cover` 先返回按歌的缓存，未命中再按 URL 代理；删除按 URL 的封面资产缓存。
 - 删除我们自己的缓存 UI 与接口：在线列表的「已缓存/进度」徽标、缓存子页与歌曲列表、单删、「数据」页的旧缓存块，以及 `/online/cache/{list,remove,meta,status}`。存储页现在是：开关、上限、已缓存歌曲数与体积、音频/封面/歌词分类清空。
 - 缓存目录固定为 `<DSH_HOME>/music/cache`（`audio/`、`cover/`、`version.json`）。
+- 在线歌词改为按歌缓存：平台返回的解析结果（含逐字信息）、auto-match 覆盖和纯音乐判定都写进每首歌的歌词记录（Folia 的 `lyric_<key>` + `OnlineLyricsState`），播放开始先读记录；`/online/lyric` 不再在请求内跨来源搜索，升级结果通过 `best-lyric?persist=1` 落盘，下一次播放直接读记录。
+- 歌词预取与 Folia 的轻资源窗口一致：切歌后预取队列后 2 首 + 前 1 首的在线歌词，队列切换时歌词通常已在本地。
 
 ### 歌词获取与 Folia 对齐
 

@@ -10310,6 +10310,7 @@ window.__ModuleLoader__.load({
         var result = emptyResult(key)
         result.chorusRanges = chorusRanges
         result.source = body.source === 'imported' ? 'imported' : 'online'
+        result.override = body.override === true
         result.offsetMs = readSavedLyricOffset(key)
         if (body.pureMusic === true) {
           result.pureMusic = true
@@ -10422,6 +10423,19 @@ window.__ModuleLoader__.load({
         return promise
       }
 
+      /**
+       * Folia's light prefetch window: warm the lyric cache for neighbouring tracks so a queue
+       * move starts with its lyric already local. Best effort, deduped like a normal load.
+       */
+      function prefetch(tracks) {
+        if (!Array.isArray(tracks)) return
+        for (var index = 0; index < tracks.length; index += 1) {
+          var track = tracks[index]
+          if (!track || !track.onlineProvider) continue
+          load(track).catch(function () {})
+        }
+      }
+
       /** A source with better timing for this song, or nothing. Never awaited by playback. */
       async function upgrade(track, base) {
         var key = keyOf(track)
@@ -10443,7 +10457,9 @@ window.__ModuleLoader__.load({
               '&duration=' +
               encodeURIComponent(String(track.durationSec || 0)) +
               '&preferred=' +
-              encodeURIComponent(String(wanted.lyricPreferredSource || '')),
+              encodeURIComponent(String(wanted.lyricPreferredSource || '')) +
+              // Remember the upgrade on the song record: the next play reads it from there.
+              '&persist=1',
           )
           var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
           if (match === null) return null
@@ -10480,7 +10496,9 @@ window.__ModuleLoader__.load({
         if (!track || !track.onlineProvider) return
         if (lyricPrefs().autoUseBestLyric === false) return
         if (result.pureMusic === true || result.source === 'imported') return
-        if (result.lyrics.length === 0) return
+        if (result.override === true) return
+        // Folia searches even when the platform has no lyric at all: the other sources may, and
+        // a full "nothing anywhere" answer still tells the surface to stop looking.
         upgrade(track, result).catch(function () {})
       }
 
@@ -10571,7 +10589,7 @@ window.__ModuleLoader__.load({
         cache.delete(String(key))
       }
 
-      return { load: load, whenReady: whenReady, invalidate: invalidate, keyOf: keyOf, subscribe: subscribe }
+      return { load: load, prefetch: prefetch, whenReady: whenReady, invalidate: invalidate, keyOf: keyOf, subscribe: subscribe }
     })()
 
     // ── src/client/render/lyrics/lyrics.bundle.js
@@ -154230,9 +154248,27 @@ window.__ModuleLoader__.load({
         }
       }
 
+      /**
+       * Folia's light prefetch window (the next two songs and the previous one): a queue move
+       * should start with its lyric already local. Lyrics only — the Host resolves stream URLs
+       * per play, so there is nothing to prefetch for the audio.
+       */
+      function prefetchLyricsAround() {
+        if (typeof MPLyricLoader === 'undefined' || MPLyricLoader === null) return
+        if (typeof MPLyricLoader.prefetch !== 'function') return
+        if (state.index < 0 || state.queue.length === 0) return
+        var around = []
+        for (var offset = -1; offset <= 2; offset += 1) {
+          var at = state.index + offset
+          if (at < 0 || at >= state.queue.length) continue
+          var item = state.queue[at]
+          if (item && item.onlineProvider) around.push(item)
+        }
+        if (around.length > 0) MPLyricLoader.prefetch(around)
+      }
+
       /** The cached copy failed to play: the Host bypasses it until a new one is written. */
-      function reportCacheDistrust(item) {
-        if (item === null || item === undefined) return
+      function reportCacheDistrust(item) {    if (item === null || item === undefined) return
         if (!item.onlineProvider || !item.onlineId) return
         try {
           postJson(API + 'online/cache/distrust', {
@@ -154954,6 +154990,8 @@ window.__ModuleLoader__.load({
         // A new session starts here. The play count is recorded later, and
         // only when the Last.fm / MusicBee threshold is reached.
         resetSession(item)
+        // Folia's light prefetch window: the next two and the previous track's lyrics.
+        prefetchLyricsAround()
         currentLoudnessBlob = null
         loudnessToken += 1
         applyNormalizeGain(1)
@@ -155423,6 +155461,7 @@ window.__ModuleLoader__.load({
         applyOutputVolume()
         emit()
         savePlaybackState()
+        prefetchLyricsAround()
         maybePrefetchNext()
       }
 

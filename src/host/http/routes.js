@@ -234,7 +234,7 @@ async function validateRoots(list) {
  */
 const debugReports = []
 
-export function createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, onlineCache, mediaCache, kugouSessions, resetData, lyricState, lyricOmni }) {
+export function createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, mediaCache, kugouSessions, resetData, lyricState, lyricOmni }) {
   // The per-song lyric record (choice, matched lyric, instrumental mark). Routes stay
   // usable without one — a test or an older wiring simply never remembers anything.
   const lyricRecords = lyricState === undefined || lyricState === null
@@ -346,7 +346,6 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
     providerStore,
     accountStore,
     accountReads,
-    onlineCache,
     mediaCache,
     kugouSessions,
     lyricState: lyricRecords,

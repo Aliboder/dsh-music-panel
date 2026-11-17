@@ -57,6 +57,7 @@ function sanitizeMatch(raw) {
     coverUrl: textOf(raw.coverUrl, 1000),
     score: Math.max(0, Math.min(100, Math.round(finiteOr(raw.score, 0)))),
     wordLevel: raw.wordLevel === true,
+    isPureMusic: raw.isPureMusic === true,
     at: Math.max(0, Math.round(finiteOr(raw.at, 0))),
   }
 }
@@ -72,6 +73,14 @@ function sanitizeRecord(raw) {
     imported: raw.imported !== null && typeof raw.imported === 'object' && !Array.isArray(raw.imported)
       ? { name: textOf(raw.imported.name), at: Math.max(0, Math.round(finiteOr(raw.imported.at, 0))) }
       : null,
+    // The platform's own parsed lyric, cached for the next play (Folia's `lyric_<key>`).
+    lyric: raw.lyric !== null && typeof raw.lyric === 'object' && !Array.isArray(raw.lyric)
+      ? { v: 1, at: Math.max(0, Math.round(finiteOr(raw.lyric.at, 0))) }
+      : null,
+    // The automatic pick already ran; `pure` records "every source agrees: instrumental".
+    autoMatched: raw.autoMatched !== null && typeof raw.autoMatched === 'object' && !Array.isArray(raw.autoMatched)
+      ? { at: Math.max(0, Math.round(finiteOr(raw.autoMatched.at, 0))), pure: raw.autoMatched.pure === true }
+      : null,
     updatedAt: Math.max(0, Math.round(finiteOr(raw.updatedAt, 0))),
   }
   // A record of nothing is no record: the caller then falls back to the file's own lyric.
@@ -82,6 +91,8 @@ function sanitizeRecord(raw) {
     && !record.pureMusic
     && record.matched === null
     && record.imported === null
+    && record.lyric === null
+    && record.autoMatched === null
   ) {
     return null
   }
@@ -92,11 +103,27 @@ function sanitizePayload(raw) {
   if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return null
   const text = typeof raw.text === 'string' ? raw.text : ''
   if (text.trim() === '') return null
+  // Folia caches the parsed lyric, word timings included; the payload carries what the
+  // lyric route answered so a replay does not lose the word-level timeline.
+  let rawBody = null
+  if (raw.raw !== null && typeof raw.raw === 'object' && !Array.isArray(raw.raw)) {
+    try {
+      rawBody = JSON.stringify(raw.raw).length <= 512 * 1024 ? raw.raw : null
+    } catch {
+      rawBody = null
+    }
+  }
+  const lines = Array.isArray(raw.lines)
+    ? raw.lines.filter((line) => line !== null && typeof line === 'object' && !Array.isArray(line))
+    : null
   return {
     text,
     formatHint: textOf(raw.formatHint, 20),
     translation: typeof raw.translation === 'string' ? raw.translation : '',
     romaji: typeof raw.romaji === 'string' ? raw.romaji : '',
+    lines: lines === null || lines.length === 0 ? null : lines,
+    wordLevel: raw.wordLevel === true,
+    raw: rawBody,
   }
 }
 

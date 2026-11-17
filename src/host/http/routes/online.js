@@ -47,9 +47,6 @@ function onlineReferer(provider) {
   return ONLINE_REFERERS[provider] || 'https://www.kugou.com/'
 }
 
-/** How long a "/best-lyric found nothing" answer is trusted before searching again. */
-const BEST_LYRIC_MISS_TTL_MS = 24 * 60 * 60 * 1000
-
 /** Client tracks carry onlineId; accept both wire shapes. */
 export function onlineSongId(song) {
   if (song === null || typeof song !== 'object') return ''
@@ -64,7 +61,6 @@ export function onlineLyricKey(provider, id) {
 /**
  * @param {{
  *   providerStore: object,
- *   onlineCache: object,
  *   kugouSessions: object,
  *   lyricState?: object,
  *   profileState: (provider: string) => Promise<object | null>,
@@ -81,7 +77,7 @@ export function createOnlineRoutes(deps) {
     if (deps[key] === undefined) throw new Error(`createOnlineRoutes is missing dependency: ${key}`)
   }
 
-  const { settings, providerStore, accountStore, accountReads, onlineCache, kugouSessions, profileState, vipInfoState, vipState, invalidateProviderCaches } =
+  const { settings, providerStore, accountStore, accountReads, kugouSessions, profileState, vipInfoState, vipState, invalidateProviderCaches } =
     deps
   // The per-song lyric record shared with local files. Optional so a test can drive the
   // routes without one; nothing is remembered then.
@@ -589,10 +585,24 @@ export function createOnlineRoutes(deps) {
           return fail(res, 400, 'BAD_REQUEST', '缺少 provider / id')
         }
         try {
-          // The song's own record wins over anything fetched: an imported lyric, or the
-          // listener saying this one is instrumental (Folia's OnlineLyricsState).
+          // Folia's `resolveOnlineLyrics`: the song's own record wins over anything the
+          // platform would answer now — an imported lyric, a matched override, an
+          // "instrumental" verdict, then the platform lyric cached by the last play.
           const lyricKey = onlineLyricKey(provider, id)
           const record = await lyricRecords.get(lyricKey)
+          const payload = record === null ? null : await lyricRecords.readPayload(lyricKey)
+          function lyricAnswer(source, extra) {
+            return sendJson(res, 200, Object.assign({
+              ok: true,
+              lrc: payload === null ? '' : payload.text,
+              translation: payload === null ? '' : payload.translation || '',
+              romaji: payload === null ? '' : payload.romaji || '',
+              lines: payload === null ? null : payload.lines ?? null,
+              wordLevel: payload === null ? false : payload.wordLevel === true,
+              raw: payload === null ? null : payload.raw ?? null,
+              source,
+            }, extra))
+          }
           if (record !== null && record.pureMusic === true) {
             return sendJson(res, 200, {
               ok: true,
@@ -604,93 +614,47 @@ export function createOnlineRoutes(deps) {
               raw: null,
               source: 'online',
               pureMusic: true,
+              override: true,
             })
           }
-          if (record !== null && record.source === 'imported') {
-            const payload = await lyricRecords.readPayload(lyricKey)
-            if (payload !== null) {
-              return sendJson(res, 200, {
-                ok: true,
-                lrc: payload.text,
-                translation: payload.translation || '',
-                romaji: payload.romaji || '',
-                lines: null,
-                wordLevel: false,
-                raw: { type: 'local', lrcContent: payload.text, formatHint: payload.formatHint || '' },
-                source: 'imported',
-                state: { source: record.source, importedName: record.imported?.name ?? '' },
-              })
-            }
-          }
-          const cachedLyric =
-            onlineCache === undefined ? null : await onlineCache.readMeta(provider, id, 'lyric')
-          // A lyric cached without a translation used to be served forever, even
-          // when the provider (or another candidate, for KuGou) later supplied
-          // one. Give such entries a day of grace and then revalidate.
-          const cachedMissingTranslation =
-            cachedLyric !== null &&
-            cachedLyric.v === 6 &&
-            String(cachedLyric.translation || '').trim() === ''
-          const cachedStale =
-            cachedMissingTranslation &&
-            Date.now() - (Number(cachedLyric.at) || 0) > 24 * 60 * 60 * 1000
-          if (
-            cachedLyric !== null &&
-            cachedLyric.v === 6 &&
-            typeof cachedLyric.lrc === 'string' &&
-            !cachedStale
-          ) {
-            return sendJson(res, 200, {
-              ok: true,
-              lrc: cachedLyric.lrc,
-              translation: cachedLyric.translation || '',
-              romaji: cachedLyric.romaji || '',
-              lines: cachedLyric.lines ?? null,
-              wordLevel: cachedLyric.wordLevel === true,
-              raw: cachedLyric.raw ?? null,
-              cached: true,
+          if (record !== null && record.source === 'imported' && payload !== null) {
+            return lyricAnswer('imported', {
+              // An imported file is parsed from the synthesized local document.
+              raw: payload.raw ?? {
+                type: 'local',
+                lrcContent: payload.text,
+                formatHint: payload.formatHint || '',
+              },
+              state: { source: record.source, importedName: record.imported?.name ?? '' },
             })
+          }
+          if (record !== null && record.matched !== null && payload !== null) {
+            return lyricAnswer(record.matched.source, {
+              override: true,
+              state: { source: 'online', matched: record.matched, pureMusic: record.pureMusic === true },
+            })
+          }
+          if (record !== null && record.lyric !== null && payload !== null) {
+            return lyricAnswer('online', { cached: true })
           }
           const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
           // Same trap as search: Navidrome keeps its server + token in the
           // session, so the lyric lookup needs it or it resolves nowhere.
           const session = providerStore === undefined ? {} : await providerStore.session(provider)
-          const primary = await omni.lyric(provider, id, { cookie, session })
-          let lyric = primary
-          let lyricSource = provider
-          let borrowedFrom = ''
-          // Folia's automatic pick: only when the track's own platform has no
-          // lyrics do we ask the other sources, so the common path keeps one request.
-          if (String(primary.lrc ?? '') === '') {
-            const matched = await findMatchedLyric(provider, id, params)
-            if (matched !== null) {
-              lyricSource = matched.source
-              borrowedFrom = matched.source
-              lyric = {
-                lrc:
-                  typeof matched.lrc === 'string' && matched.lrc !== ''
-                    ? matched.lrc
-                    : matched.lyrics.map((line) => lrcTime(line.t) + String(line.text ?? '')).join('\n'),
-                translation: matched.translation || '',
-                romaji: matched.romaji || '',
-                lines: matched.lyrics,
-                wordLevel: matched.wordLevel === true,
-                ...(matched.raw ? { raw: matched.raw } : {}),
-              }
-            }
-          }
-          if (onlineCache !== undefined && lyric.lrc !== '') {
-            void onlineCache.writeMeta(provider, id, 'lyric', {
-              lrc: lyric.lrc,
+          const lyric = await omni.lyric(provider, id, { cookie, session })
+          // Cache the platform lyric with the song record (Folia's `lyric_<key>`). The
+          // optional cross-source upgrade is a separate request, after this is on screen.
+          if (lyric.lrc !== '') {
+            await lyricRecords.writePayload(lyricKey, {
+              text: lyric.lrc,
+              formatHint: lyric.formatHint || '',
               translation: lyric.translation || '',
               romaji: lyric.romaji || '',
               lines: lyric.lines ?? null,
               wordLevel: lyric.wordLevel === true,
               raw: lyric.raw ?? null,
-              // v6 adds the raw payload Folia's pipeline parses; older entries are re-fetched.
-              v: 6,
-              at: Date.now(),
             })
+            await lyricRecords.patch(lyricKey, { source: 'online', lyric: { v: 1, at: Date.now() } })
           }
           return sendJson(res, 200, {
             ok: true,
@@ -700,8 +664,7 @@ export function createOnlineRoutes(deps) {
             lines: lyric.lines ?? null,
             wordLevel: lyric.wordLevel === true,
             raw: lyric.raw ?? null,
-            source: lyricSource,
-            borrowedFrom,
+            source: provider,
           })
         } catch (error) {
           return fail(
@@ -726,17 +689,6 @@ export function createOnlineRoutes(deps) {
         // for a day once the client had the metadata).
         const matchable = (params.get('title') || '').trim() !== ''
         try {
-          const cached = onlineCache === undefined ? null : await onlineCache.readMeta(provider, id, 'best-lyric')
-          // A hit and a miss are both cached: the search walks every source (up to four
-          // searches plus fetches), and a line-level lyric is the common case that asks.
-          // A miss expires after a day; a match is kept until the lyric cache is cleared.
-          const cachedFresh =
-            cached !== null
-            && cached.v === 2
-            && (cached.match !== null || Date.now() - (Number(cached.at) || 0) < BEST_LYRIC_MISS_TTL_MS)
-          if (cachedFresh) {
-            return sendJson(res, 200, { ok: true, match: cached.match ?? null, cached: true })
-          }
           const matched = await findMatchedLyric(provider, id, params)
           const match =
             matched === null
@@ -746,6 +698,7 @@ export function createOnlineRoutes(deps) {
                   id: String(matched.id ?? ''),
                   score: Number(matched.score) || 0,
                   wordLevel: matched.wordLevel === true,
+                  isPureMusic: matched.isPureMusic === true,
                   lrc:
                     typeof matched.lrc === 'string' && matched.lrc !== ''
                       ? matched.lrc
@@ -755,10 +708,35 @@ export function createOnlineRoutes(deps) {
                   lines: matched.lyrics,
                   raw: matched.raw ?? null,
                 }
-          if (onlineCache !== undefined && matchable) {
-            void onlineCache.writeMeta(provider, id, 'best-lyric', { v: 2, match, at: Date.now() })
+          // With `persist`, the upgrade is remembered the way Folia stores
+          // `onlineOverrideLyrics`: next play reads it from the song's record, not the network.
+          // A match from the song's own platform is not an override — its lyric is cached by
+          // /online/lyric already, so only another source is written here.
+          const persist = params.get('persist') === '1' && matchable && match !== null && match.source !== provider
+          if (persist) {
+            const lyricKey = onlineLyricKey(provider, id)
+            await lyricRecords.writePayload(lyricKey, {
+              text: match.lrc,
+              formatHint: '',
+              translation: match.translation,
+              romaji: match.romaji,
+              lines: match.lines,
+              wordLevel: match.wordLevel,
+              raw: match.raw,
+            })
+            await lyricRecords.patch(lyricKey, {
+              source: 'online',
+              matched: {
+                source: match.source,
+                id: match.id,
+                wordLevel: match.wordLevel,
+                isPureMusic: match.isPureMusic,
+                at: Date.now(),
+              },
+              autoMatched: { at: Date.now(), pure: false },
+            })
           }
-          return sendJson(res, 200, { ok: true, match })
+          return sendJson(res, 200, { ok: true, match, persisted: persist })
         } catch (error) {
           return fail(res, 502, 'BEST_LYRIC_FAILED', error instanceof Error ? error.message : '逐字歌词检索失败')
         }

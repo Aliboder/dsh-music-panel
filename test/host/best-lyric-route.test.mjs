@@ -1,25 +1,20 @@
 /**
  * `/online/best-lyric`: the upgrade search behind Folia's `autoUseBestLyric`.
  *
- * The route itself owns the cache, so this drives the real handler with the network
- * callbacks injected (`deps.lyricMatchIo`) instead of reaching a platform: what is being
- * tested is the search order, the shape handed to the client, and the rule that both a
- * hit and a miss are cached (a miss for 24 hours, a match until the lyric cache is
- * cleared). Without that rule a replay searches up to four sources for every line-level
- * lyric.
+ * The route itself owns no cache any more: with `persist=1` a match is written into the
+ * song's lyric record (`matched` + payload), which is what the next play reads; a request
+ * without metadata never reaches a source and never writes a record.
  */
 
 import assert from 'node:assert/strict'
 import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createOnlineCache } from '../../src/host/services/media/online-cache.js'
 import { createOnlineRoutes } from '../../src/host/http/routes/online.js'
 import { createLyricState } from '../../src/host/stores/lyric-state.js'
 import { fakeReq, fakeRes } from '../helpers.mjs'
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-best-lyric-'))
-const onlineCache = createOnlineCache({ dir })
 const lyricState = createLyricState({ dir: join(dir, 'lyric-state') })
 
 /** The one track every query below is about; the runner scores candidates against it. */
@@ -33,6 +28,7 @@ function queryOf(provider, id, extra = {}) {
     artist: extra.artist ?? track.artist,
     album: extra.album ?? track.album,
     duration: String(extra.duration ?? track.duration),
+    persist: '1',
     ...(extra.preferred === undefined ? {} : { preferred: String(extra.preferred) }),
   })
   return { params, url: new URL('http://127.0.0.1/music/online/best-lyric?' + params.toString()) }
@@ -46,7 +42,6 @@ function routesWith(io, state = lyricState) {
     vipState: async () => null,
     invalidateProviderCaches: () => {},
     providerStore: undefined,
-    onlineCache,
     kugouSessions: undefined,
     lyricState: state,
     lyricMatchIo: io,
@@ -65,16 +60,7 @@ async function ask(routes, provider, id, extra) {
   return { status: res.status, body: res.json() }
 }
 
-/** The cache write is fire-and-forget, so wait for it instead of sleeping blindly. */
-async function waitForCache(provider, id, accept = (value) => value !== null, timeoutMs = 2000) {
-  const deadline = Date.now() + timeoutMs
-  for (;;) {
-    const value = await onlineCache.readMeta(provider, id, 'best-lyric')
-    if (accept(value)) return value
-    if (Date.now() > deadline) return value
-    await new Promise((resolve) => setTimeout(resolve, 10))
-  }
-}
+const recordOf = (provider, id) => lyricState.get('online:' + provider + ':' + id)
 
 function wordLevelIo(calls) {
   return {
@@ -138,27 +124,17 @@ function unusedIo() {
   assert.deepEqual(calls[0], ['amll', 'ncm', '186016'], 'AMLL is asked first for a NetEase track')
   assert.ok(calls.some(([kind]) => kind === 'lyric'), 'the matching source was actually fetched')
 
-  // Cached hit: the answer comes back, and no source is asked again.
-  const cached = await waitForCache('netease', '186016')
-  assert.equal(cached.v, 2, 'the cache entry carries its shape version')
-  assert.equal(cached.match.source, 'qq')
-  const second = await ask(routesWith(unusedIo()), 'netease', '186016')
-  assert.equal(second.status, 200)
-  assert.equal(second.body.cached, true)
-  assert.deepEqual(second.body.match, match)
-
-  // A stored match never expires: it is replaced only when the lyric cache is cleared.
-  await onlineCache.writeMeta('netease', '186016', 'best-lyric', {
-    v: 2,
-    match,
-    at: Date.now() - 40 * 24 * 60 * 60 * 1000,
-  })
-  const old = await ask(routesWith(unusedIo()), 'netease', '186016')
-  assert.equal(old.body.cached, true, 'a 40-day-old match is still served')
-  assert.deepEqual(old.body.match, match)
+  // The match is written into the song's own record, so the next play reads it from there.
+  const record = await recordOf('netease', '186016')
+  assert.ok(record && record.matched, 'the match is persisted on the song record')
+  assert.equal(record.matched.source, 'qq')
+  assert.equal(record.matched.wordLevel, true)
+  const payload = await lyricState.readPayload('online:netease:186016')
+  assert.equal(payload.text, '[00:01.000]故事')
+  assert.equal(payload.raw.formatHint, 'yrc')
 }
 
-// ── a miss is cached for 24 hours ──────────────────────────────────────────
+// ── a miss persists nothing ────────────────────────────────────────────────
 
 {
   const calls = []
@@ -177,32 +153,11 @@ function unusedIo() {
   assert.equal(missed.body.match, null)
   assert.ok(calls.length > 0, 'a miss walks the sources')
   assert.equal(calls.includes('qq'), false, 'the track\'s own platform is not asked')
-
-  const stored = await waitForCache('qq', 'neg-miss')
-  assert.equal(stored.v, 2)
-  assert.equal(stored.match, null)
-
-  // Within the day: answered from the cache, no search.
-  const cachedMiss = await ask(routesWith(unusedIo()), 'qq', 'neg-miss')
-  assert.equal(cachedMiss.body.cached, true)
-  assert.equal(cachedMiss.body.match, null)
-
-  // After the day: searched again, and a match replaces the miss.
-  await onlineCache.writeMeta('qq', 'neg-miss', 'best-lyric', {
-    v: 2,
-    match: null,
-    at: Date.now() - 25 * 60 * 60 * 1000,
-  })
-  const retriedCalls = []
-  const retried = await ask(routesWith(wordLevelIo(retriedCalls)), 'qq', 'neg-miss')
-  assert.equal(retried.body.cached, undefined, 'an expired miss is searched again')
-  assert.equal(retried.body.match.wordLevel, true)
-  assert.ok(retriedCalls.length > 0)
-  const replaced = await waitForCache('qq', 'neg-miss', (value) => value !== null && value.match !== null)
-  assert.notEqual(replaced.match, null, 'the found match replaces the stale miss')
+  // A miss can be a network failure, so it must not be remembered as "instrumental".
+  assert.equal(await recordOf('qq', 'neg-miss'), null)
 }
 
-// ── no title: nothing is searched, and nothing is cached ───────────────────
+// ── no title: nothing is searched, and nothing is recorded ─────────────────
 
 {
   const calls = []
@@ -211,20 +166,8 @@ function unusedIo() {
   assert.equal(answer.status, 200)
   assert.equal(answer.body.match, null)
   assert.deepEqual(calls, [], 'a request without a title never reaches a source')
-  // An unsearchable answer says nothing about this track: caching it would hide the real
-  // answer for a day once the client sent the metadata.
-  await new Promise((resolve) => setTimeout(resolve, 100))
-  assert.equal(await onlineCache.readMeta('qq', 'no-title', 'best-lyric'), null)
-}
-
-// ── an entry from a previous shape is searched again ───────────────────────
-
-{
-  await onlineCache.writeMeta('kugouLite', 'old-shape', { v: 1, match: null, at: Date.now() })
-  const calls = []
-  const answer = await ask(routesWith(wordLevelIo(calls)), 'kugouLite', 'old-shape')
-  assert.equal(answer.body.cached, undefined, 'v1 entries are ignored')
-  assert.ok(calls.length > 0)
+  // An unsearchable answer says nothing about this track, so no record is written.
+  assert.equal(await recordOf('qq', 'no-title'), null)
 }
 
 // ── the answer never claims word-level without it ──────────────────────────

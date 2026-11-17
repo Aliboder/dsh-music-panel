@@ -44,7 +44,15 @@ const payload = await store.writePayload(key, {
 assert.equal(payload.translation, '[00:01.000]你好')
 assert.deepEqual(
   { ...(await store.readPayload(key)) },
-  { text: '[00:01.000]hello', formatHint: '', translation: '[00:01.000]你好', romaji: '' },
+  {
+    text: '[00:01.000]hello',
+    formatHint: '',
+    translation: '[00:01.000]你好',
+    romaji: '',
+    lines: null,
+    wordLevel: false,
+    raw: null,
+  },
 )
 
 // A second store over the same directory reads the index back from disk.

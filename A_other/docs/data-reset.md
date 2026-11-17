@@ -88,8 +88,7 @@ favorites.invalidate()
 playlists.invalidate()
 await providerStore.clear()     // 登录态（含 sessions.json）
 await accountReads.clearAll()   // 账号快照（accounts.json）与进行中的读取
-await onlineCache.clear()       // 旧在线缓存（歌词体等，过渡期仍在）
-await mediaCache.clear('all')   // 在线音频与封面（Folia 语义的新缓存）
+await mediaCache.clear('all')   // 在线音频与封面（Folia 语义的缓存）
 settings.invalidate()
 await settings.reset()          // 写入 roots: []，忽略 seed roots
 library.clear()                 // 再清一次，防止 reset 期间产生新缓存

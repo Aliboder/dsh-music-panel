@@ -100,6 +100,7 @@ var MPLyricLoader = (function () {
     var result = emptyResult(key)
     result.chorusRanges = chorusRanges
     result.source = body.source === 'imported' ? 'imported' : 'online'
+    result.override = body.override === true
     result.offsetMs = readSavedLyricOffset(key)
     if (body.pureMusic === true) {
       result.pureMusic = true
@@ -212,6 +213,19 @@ var MPLyricLoader = (function () {
     return promise
   }
 
+  /**
+   * Folia's light prefetch window: warm the lyric cache for neighbouring tracks so a queue
+   * move starts with its lyric already local. Best effort, deduped like a normal load.
+   */
+  function prefetch(tracks) {
+    if (!Array.isArray(tracks)) return
+    for (var index = 0; index < tracks.length; index += 1) {
+      var track = tracks[index]
+      if (!track || !track.onlineProvider) continue
+      load(track).catch(function () {})
+    }
+  }
+
   /** A source with better timing for this song, or nothing. Never awaited by playback. */
   async function upgrade(track, base) {
     var key = keyOf(track)
@@ -233,7 +247,9 @@ var MPLyricLoader = (function () {
           '&duration=' +
           encodeURIComponent(String(track.durationSec || 0)) +
           '&preferred=' +
-          encodeURIComponent(String(wanted.lyricPreferredSource || '')),
+          encodeURIComponent(String(wanted.lyricPreferredSource || '')) +
+          // Remember the upgrade on the song record: the next play reads it from there.
+          '&persist=1',
       )
       var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
       if (match === null) return null
@@ -270,7 +286,9 @@ var MPLyricLoader = (function () {
     if (!track || !track.onlineProvider) return
     if (lyricPrefs().autoUseBestLyric === false) return
     if (result.pureMusic === true || result.source === 'imported') return
-    if (result.lyrics.length === 0) return
+    if (result.override === true) return
+    // Folia searches even when the platform has no lyric at all: the other sources may, and
+    // a full "nothing anywhere" answer still tells the surface to stop looking.
     upgrade(track, result).catch(function () {})
   }
 
@@ -361,5 +379,5 @@ var MPLyricLoader = (function () {
     cache.delete(String(key))
   }
 
-  return { load: load, whenReady: whenReady, invalidate: invalidate, keyOf: keyOf, subscribe: subscribe }
+  return { load: load, prefetch: prefetch, whenReady: whenReady, invalidate: invalidate, keyOf: keyOf, subscribe: subscribe }
 })()

@@ -275,9 +275,27 @@ function createPlayer() {
     }
   }
 
+  /**
+   * Folia's light prefetch window (the next two songs and the previous one): a queue move
+   * should start with its lyric already local. Lyrics only — the Host resolves stream URLs
+   * per play, so there is nothing to prefetch for the audio.
+   */
+  function prefetchLyricsAround() {
+    if (typeof MPLyricLoader === 'undefined' || MPLyricLoader === null) return
+    if (typeof MPLyricLoader.prefetch !== 'function') return
+    if (state.index < 0 || state.queue.length === 0) return
+    var around = []
+    for (var offset = -1; offset <= 2; offset += 1) {
+      var at = state.index + offset
+      if (at < 0 || at >= state.queue.length) continue
+      var item = state.queue[at]
+      if (item && item.onlineProvider) around.push(item)
+    }
+    if (around.length > 0) MPLyricLoader.prefetch(around)
+  }
+
   /** The cached copy failed to play: the Host bypasses it until a new one is written. */
-  function reportCacheDistrust(item) {
-    if (item === null || item === undefined) return
+  function reportCacheDistrust(item) {    if (item === null || item === undefined) return
     if (!item.onlineProvider || !item.onlineId) return
     try {
       postJson(API + 'online/cache/distrust', {
@@ -999,6 +1017,8 @@ function createPlayer() {
     // A new session starts here. The play count is recorded later, and
     // only when the Last.fm / MusicBee threshold is reached.
     resetSession(item)
+    // Folia's light prefetch window: the next two and the previous track's lyrics.
+    prefetchLyricsAround()
     currentLoudnessBlob = null
     loudnessToken += 1
     applyNormalizeGain(1)
@@ -1468,6 +1488,7 @@ function createPlayer() {
     applyOutputVolume()
     emit()
     savePlaybackState()
+    prefetchLyricsAround()
     maybePrefetchNext()
   }
 
