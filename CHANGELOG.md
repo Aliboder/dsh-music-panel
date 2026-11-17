@@ -21,8 +21,13 @@
 - 自动匹配支持「换个名字再搜」：首选来源没找到逐字歌词时，用平台知道的另一个歌名（`searchAlias`）重试；完全没结果时，用另一种歌手写法（`alternateArtist`，网易云的歌手 tns/alias）再试一次。
 - 同目录歌词格式顺序可在设置里逐项上移/下移，不再只是「优先格式」。
 
-### 界面规范与组件
+### 歌词与 Folia 样式
 
+- 修复播放页底部歌词后面的硬边深色方块：Folia 编译出的 Tailwind 表依赖它自己的主题变量，插件从未定义（`--spacing`、`--blur-2xl`、`--radius-*`、`--text-*` 等），所有引用它们的工具类整条失效并被排在手写样式之后，字幕的模糊光晕退化成实心矩形。现在按 Tailwind v4 默认值补齐这些变量（`src/folia/folia-css.js`）。
+- 字幕背景本身是 Folia 的「字幕背景」设置（默认开）：已接入 `prefs.subtitleOverlayBackground`，设置 → 歌词里可以关掉，pendolo 与其余 Folia 样式都按这个开关渲染。
+- 修复歌词还没加载好时屏幕中央显示 `ui.waitingForMusic` 原文：Folia 样式包的 i18n shim 原来是恒等翻译（`t(key) => key`）。现在样式包经 `MP_FOLIA_T` 读插件字典，字典里没有的 key 显示为空；`ui.waitingForMusic` 在 Folia 语言表里本来就是空串，等待首句歌词时不显示占位文字（与 Folia 一致）。
+
+### 界面规范与组件
 - 按 DSH 官方文档（`dsh-v0.2.2-rc.3`）重写主题开发指导：先判有无参考界面（有参考时布局/排版与组件类型跟参考、外观跟 DSH），圆角按用途×高度、0.5px 发丝线、层级表面只用 elevation、菜单材质、悬停能力、页面级审查。
 - 宿主适配层补齐官方组件：`Button` / `Input` / `Checkbox` / `SegmentedControl` / `SegmentedTabs` / `Tag` / `StateDot`，并新增基于 `Menu` 的 `KitSelect`（DSH 没有 Select）；本地回退按官方样式表几何实现。
 - 按钮 28/36（R8/R12）、图标按钮 28、开关 36×20、胶囊 24、设置行 0.5px 分隔线、对话框与设置面板改为只用 elevation 描边；回退对话框补上 Escape（只关最上层）。

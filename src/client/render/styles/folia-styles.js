@@ -292,6 +292,9 @@ function FoliaStyleStage(props) {
   var translationScale = Number(prefs.translationScale)
   if (!isFinite(translationScale) || translationScale <= 0) translationScale = 90
   var showTranslation = prefs.showTranslation !== false
+  // Folia's subtitle overlay draws a soft theme-coloured halo behind the bottom line. It is
+  // a setting there too (`subtitleOverlayBackground`), on by default; ours mirrors it.
+  var subtitleOverlayBackground = prefs.subtitleOverlayBackground !== false
 
   var active = Number(props.active)
   var currentLineIndex = isFinite(active) ? active : -1
@@ -323,6 +326,7 @@ function FoliaStyleStage(props) {
     showSubtitleTranslation: showTranslation,
     lyricsFontScale: lyricsFontScale,
     subtitleFontScale: translationScale / 100,
+    subtitleOverlayBackground: subtitleOverlayBackground,
     hideTranslationSubtitle: !showTranslation,
     isPlayerChromeHidden: false,
     isPreviewMode: false,

@@ -8,6 +8,12 @@
  */
 
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
 global.window = {
   __ModuleLoader__: {
@@ -132,6 +138,35 @@ for (const id of ['monet', 'pendolo', ...expected]) {
   )
 }
 assert.equal(internals.mpStyleOf('monet').id, 'monet')
+
+// ── the boundary helpers the renderers rely on ───────────────────────────────
+// Folia's compiled Tailwind sheet is written against its theme variables; the plugin has to
+// define them or every utility that uses one (spacing, blur, radii, text sizes) is dropped
+// by the browser — the subtitle glow then paints as a hard box.
+const foliaCss = readFileSync(join(ROOT, 'src/folia/folia-css.js'), 'utf8')
+assert.match(foliaCss, /--spacing:\.25rem/, 'the Tailwind spacing scale is defined')
+assert.match(foliaCss, /--blur-2xl:40px/, 'the blur scale the subtitle glow uses is defined')
+assert.match(foliaCss, /--radius-2xl:1rem/, 'the radius scale is defined')
+assert.match(foliaCss, /--text-sm:/, 'the text scale is defined')
+
+// The style host passes Folia's subtitle-background setting through.
+const stylesHost = readFileSync(join(ROOT, 'src/client/render/styles/folia-styles.js'), 'utf8')
+assert.match(stylesHost, /subtitleOverlayBackground/, 'the subtitle background setting reaches the styles')
+assert.match(stylesHost, /prefs\.subtitleOverlayBackground !== false/, 'it is on unless the listener turns it off')
+const pendoloHost = readFileSync(join(ROOT, 'src/client/render/styles/folia-pendolo.js'), 'utf8')
+assert.match(pendoloHost, /subtitleOverlayBackground/, 'pendolo gets the same setting')
+
+// Folia leaves `ui.waitingForMusic` empty; the renderers must not print the raw key.
+const i18nShim = readFileSync(join(ROOT, 'src/folia/shims/i18n.ts'), 'utf8')
+assert.match(i18nShim, /MP_FOLIA_T/, 'the ported styles translate through the plugin dictionary')
+assert.doesNotMatch(i18nShim, /t: \(key: string\) => key/, 'the identity translation is gone')
+const i18nSource = readFileSync(join(ROOT, 'src/client/i18n/i18n.js'), 'utf8')
+assert.equal(
+  (i18nSource.match(/'ui\.waitingForMusic': ''/g) || []).length,
+  2,
+  'both dictionaries define it as empty, as Folia does',
+)
+assert.match(i18nSource, /globalThis\.MP_FOLIA_T = t/, 'the dictionary is exposed to the styles bundle')
 
 console.log('folia-styles.test.mjs ok')
 

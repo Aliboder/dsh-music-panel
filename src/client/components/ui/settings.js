@@ -354,6 +354,20 @@ function SettingsSheet(props) {
       ),
       h(
         SetRow,
+        {
+          key: 'subtitle-bg',
+          label: t('settings.subtitleOverlayBackground'),
+          desc: t('settings.subtitleOverlayBackgroundDesc'),
+        },
+        h(Switch, {
+          value: prefs.subtitleOverlayBackground !== false,
+          onChange: function (value) {
+            patchPrefs({ subtitleOverlayBackground: value })
+          },
+        }),
+      ),
+      h(
+        SetRow,
         { key: 'composer-lyrics', label: t('settings.composerLyrics') },
         h(Switch, {
           value: prefs.composerLyrics === true,

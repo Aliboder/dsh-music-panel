@@ -180,6 +180,8 @@ var DICTS = {
     'settings.lyricPreferredSourceDesc': '自动匹配歌词时最先检索的来源',
     'settings.lyricFormatOrder': '同目录歌词优先格式',
     'settings.lyricFormatOrderDesc': '一首歌有多个歌词文件时先读哪种；其余格式按默认顺序',
+    'settings.subtitleOverlayBackground': '字幕背景',
+    'settings.subtitleOverlayBackgroundDesc': '为底部歌词加一层随主题的柔和背景；关掉后只留文字',
     'page.lyricSize': '字体大小',
     'page.lyricGap': '歌词间距',
     'page.lyricBlur': '模糊非当前歌词',
@@ -622,6 +624,9 @@ var DICTS = {
     'status.loginExpired': '登录状态已失效，请重新登录',
     'status.syncFailed': '同步失败',
     'ui.close': '关闭',
+    // Folia's visualizer placeholder while a song's first lyric is still loading. It is
+    // empty there on purpose: no placeholder text, the stage just draws its background.
+    'ui.waitingForMusic': '',
   },
   en: {
     'nav.label': 'Music',
@@ -790,6 +795,8 @@ var DICTS = {
     'settings.lyricPreferredSourceDesc': 'The source the automatic lyric pick asks first',
     'settings.lyricFormatOrder': 'Preferred sidecar format',
     'settings.lyricFormatOrderDesc': 'Which lyric file next to the audio reads first when a track has several; the rest keep the default order',
+    'settings.subtitleOverlayBackground': 'Subtitle background',
+    'settings.subtitleOverlayBackgroundDesc': 'A soft theme-coloured halo behind the bottom lyric; off leaves the text alone',
     'page.lyricSize': 'Font size',
     'page.lyricGap': 'Line spacing',
     'page.lyricBlur': 'Blur inactive lines',
@@ -1231,6 +1238,9 @@ var DICTS = {
     'status.loginExpired': 'Login expired. Please sign in again',
     'status.syncFailed': 'Sync failed',
     'ui.close': 'Close',
+    // Empty on purpose, exactly as in Folia: while the first lyric loads the visualizer
+    // draws nothing in the lyric position.
+    'ui.waitingForMusic': '',
 
   },
 }
@@ -1274,3 +1284,6 @@ function t(key, vars) {
 
 // The vendored Folia login tree translates through this, so it says what the panel says.
 globalThis.MP_LOGIN_T = t
+// The ported Folia lyric styles read their labels through this. A key the dictionary does
+// not have is shown as nothing, never as the raw key (`src/folia/shims/i18n.ts`).
+globalThis.MP_FOLIA_T = t

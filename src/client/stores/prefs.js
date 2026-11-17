@@ -31,6 +31,8 @@ var PREF_DEFAULTS = {
    * is stored for parity and consumed where a provider declares it.
    */
   lyricKeepProviderWordTiming: true,
+  /** Folia's `subtitleOverlayBackground`: a soft halo behind the bottom subtitle line. */
+  subtitleOverlayBackground: true,
   /** Folia's `localLyricFormatOrder`: which sidecar lyric file wins when several exist. */
   lyricFormatOrder: ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'],
   /** Preferred online audio level: standard | high | lossless | hires. */

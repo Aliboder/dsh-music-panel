@@ -279,6 +279,15 @@
 
 ---
 
+## 31. 播放页底部歌词后面有一块硬边深色方块（Folia / 样式）
+
+- **现象**：切歌后底部歌词（字幕）后面出现矩形背景色块；歌词还没加载时屏幕中央显示 `ui.waitingForMusic`。
+- **原因**：两处都来自移植边界。① `styles.bundle.js` 的 i18n shim 之前是 identity（`t(key)=>key`），Folia 的 `ui.waitingForMusic` 在其语言表里是空串；② `folia-tailwind.js` 是 Folia 编译出的完整 Tailwind 表，但插件从未定义 Tailwind 的主题变量（`--spacing`、`--blur-2xl`、`--radius-*`、`--text-*` 等），所有引用它们的工具类在浏览器里整条失效，并被排在 `FOLIA_CSS` 之后而覆盖手写值——字幕的 `-inset-x-10/-inset-y-6/blur-2xl` 失效后，径向渐变直接铺满内容盒，就成了硬边方块。
+- **处理**：shim 改为走插件字典（未知 key 返回空串，见 `src/folia/shims/i18n.ts`）；`src/folia/folia-css.js` 开头补上 Tailwind v4 的默认主题变量。字幕背景本身是 Folia 的「字幕背景」设置（默认开），已接入 `prefs.subtitleOverlayBackground` 并在设置里可关。
+- **防回归**：`folia-styles.test.mjs` 断言 `FOLIA_CSS` 里定义了 `--spacing` / `--blur-2xl`，且样式宿主把 `subtitleOverlayBackground` 传下去；改 `folia-css.js` 后跑 `build-client` 并手看一次播放页。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

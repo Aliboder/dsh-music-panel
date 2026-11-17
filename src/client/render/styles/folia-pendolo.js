@@ -301,6 +301,7 @@ function FoliaPendoloStage(props) {
     showSubtitleTranslation: true,
     lyricsFontScale: 1,
     subtitleFontScale: 1,
+    subtitleOverlayBackground: !(props.prefs && props.prefs.subtitleOverlayBackground === false),
     hideTranslationSubtitle: false,
     isPlayerChromeHidden: false,
     isPreviewMode: false,

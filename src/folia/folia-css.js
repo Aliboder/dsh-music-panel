@@ -8,6 +8,33 @@
  */
 
 var FOLIA_CSS = [
+  // Folia compiles Tailwind with its default theme. The plugin ships the compiled sheet
+  // (`folia-tailwind.js`) but not that theme, so every utility written as
+  // `calc(var(--spacing) * 4)` or `blur(var(--blur-2xl))` resolved to nothing and was
+  // dropped by the browser — spacing, radii, blur, text sizes and the subtitle glow all
+  // silently fell back to defaults. These are Tailwind v4's defaults for the names the
+  // compiled sheet references.
+  '.mp-np{'
+    + '--spacing:.25rem;'
+    + '--blur-sm:8px;--blur-md:12px;--blur-xl:24px;--blur-2xl:40px;'
+    + '--radius-sm:.25rem;--radius-md:.375rem;--radius-lg:.5rem;--radius-xl:.75rem;--radius-2xl:1rem;--radius-3xl:1.5rem;'
+    + '--text-xs:.75rem;--text-xs--line-height:calc(1/.75);'
+    + '--text-sm:.875rem;--text-sm--line-height:calc(1.25/.875);'
+    + '--text-lg:1.125rem;--text-lg--line-height:calc(1.75/1.125);'
+    + '--text-xl:1.25rem;--text-xl--line-height:calc(1.75/1.25);'
+    + '--text-2xl:1.5rem;--text-2xl--line-height:calc(2/1.5);'
+    + '--text-3xl:1.875rem;--text-3xl--line-height:calc(2.25/1.875);'
+    + '--font-weight-normal:400;--font-weight-medium:500;--font-weight-semibold:600;'
+    + '--font-mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;'
+    + '--tracking-wide:.025em;'
+    + '--leading-tight:1.25;--leading-snug:1.375;'
+    + '--container-2xl:42rem;--container-4xl:56rem;--container-5xl:64rem;'
+    + '--ease-out:cubic-bezier(0,0,.2,1);--ease-in-out:cubic-bezier(.4,0,.2,1);'
+    + '--default-transition-duration:150ms;--default-transition-timing-function:cubic-bezier(.4,0,.2,1);'
+    + '--animate-pulse:pulse 2s cubic-bezier(.4,0,.6,1) infinite;--animate-spin:spin 1s linear infinite;'
+    + '--drop-shadow-sm:0 1px 2px rgb(0 0 0/.15);--drop-shadow-md:0 3px 3px rgb(0 0 0/.12);'
+    + '--color-white:#fff;--color-black:#000;--color-zinc-700:oklch(37% .013 285.805);--color-zinc-900:oklch(21% .006 285.885);'
+    + '}',
   '.mp-np .relative{position:relative}',
   '.mp-np .absolute{position:absolute}',
   '.mp-np .inset-0{top:0;right:0;bottom:0;left:0}',
