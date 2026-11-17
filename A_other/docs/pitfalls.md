@@ -378,6 +378,15 @@
 
 ---
 
+## 42. 设置页切到「歌词 / 数据」白屏（Client / 设置）
+
+- **现象**：设置弹层里点「歌词」或「数据」，插件面板直接空白（React 渲染抛错）。
+- **原因**：这两个标签用到的 `mpSmallButton`、`mpSegment` 只在 `player-sheet.js` 的组件函数内部定义；settings.js 在另一个组件里调用同名全局，实际是未定义引用，渲染一进入该标签就抛 `ReferenceError`。
+- **处理**：把两个小控件抽到 `primitives.js` 作为共享顶层函数（player-sheet 内部同名局部函数会自然遮蔽原实现），settings 直接复用；新增「所有设置标签都能渲染」的回归测试。
+- **防回归**：`panel.render.test.mjs` 遍历 appearance / lyrics / playback / online / library / cache / about 七个标签渲染面板。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

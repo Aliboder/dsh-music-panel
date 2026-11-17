@@ -479,6 +479,13 @@ const loginPanel = panel()
 assert.equal(nodesWithClass(loginPanel, 'mp-login-chip').length, 2, 'the login rail lists QR platforms only')
 assert.equal(nodesWithClass(loginPanel, 'mp-login-chip-avatar').length, 1, 'the signed-in platform shows its avatar')
 
+// 5e. Every settings tab renders; a dead reference in one tab blanks the whole sheet.
+for (const tab of ['appearance', 'lyrics', 'playback', 'online', 'library', 'cache', 'about']) {
+  internals.overlayStore.set({ layers: [{ kind: 'settings', props: { tab } }] })
+  const tabPanel = panel()
+  assert.ok(classesOf(tabPanel).has('mp-sheet'), `the settings ${tab} tab renders`)
+}
+
 // 6. tag editor / batch / duplicates / online lyric dialogs
 internals.overlayStore.set({ layers: [{ kind: 'tag', props: { path: TRACKS[0].path } }] })
 const tag = panel()

@@ -387,6 +387,75 @@ function SetRow(props) {
  */
 
 /** Single-line text input. `icon` is a local icon name; `onChange(value)`. */
+/** A small text button shared by the settings sheet and the player sheet. */
+function mpSmallButton(label, onClick) {
+  return h(
+    'button',
+    {
+      key: 'btn-' + String(label),
+      type: 'button',
+      onClick: onClick,
+      style: {
+        height: '28px',
+        padding: '0 10px',
+        borderRadius: '8px',
+        border: '0',
+        background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.07))',
+        color: 'inherit',
+        fontSize: '12px',
+        font: 'inherit',
+        cursor: 'pointer',
+      },
+    },
+    label,
+  )
+}
+
+/** A segmented control; the player sheet has a local copy with its own motion timing. */
+function mpSegment(options, value, onChange) {
+  return h(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        gap: '2px',
+        padding: '2px',
+        borderRadius: '10px',
+        background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))',
+      },
+    },
+    options.map(function (option) {
+      var selected = option.value === value
+      return h(
+        'button',
+        {
+          key: option.value,
+          type: 'button',
+          'aria-pressed': selected ? 'true' : 'false',
+          onClick: function () {
+            onChange(option.value)
+          },
+          style: {
+            height: '28px',
+            padding: '0 10px',
+            borderRadius: '8px',
+            border: '0',
+            background: selected ? 'var(--st-raise,rgba(255,255,255,.18))' : 'transparent',
+            boxShadow: selected ? '0 1px 2px rgba(0,0,0,.2)' : 'none',
+            color: 'inherit',
+            font: 'inherit',
+            fontSize: '12px',
+            opacity: selected ? '1' : '.65',
+            cursor: 'pointer',
+            transition: 'background-color .22s cubic-bezier(.22,1,.36,1), opacity .22s',
+          },
+        },
+        option.label,
+      )
+    }),
+  )
+}
+
 function KitInput(props) {
   var value = props.value === null || props.value === undefined ? '' : String(props.value)
   var label = props.label || props.placeholder || ''
