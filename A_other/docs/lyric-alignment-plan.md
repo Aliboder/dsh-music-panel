@@ -150,7 +150,7 @@
 | AMLL 候选探测（按需） | ✅ | `online.js` 的 `findMatchedLyric` 与 `local-match.js` 的 `match` |
 | 统一加载器 | ✅ | `src/client/services/lyrics/loader.js`：按歌去重，播放器、面板、播放页与输入框歌词条共用一次请求 |
 | 播放门控（D1） | ✅ | `player.js` 的 `whenLyricReady`：响度闸门与歌词闸门并行，都就绪才 `play()`；超时 8s 放行 |
-| 别名 / 换歌手再搜、匹配窗三开关 | ⏳ 可选 | P4 |
+| 别名 / 换歌手再搜、匹配窗三开关 | ✅ | `findBestLyrics` 的 `searchAlias` / `alternateArtist` 重试；`providers.lyricSearchAlias` / `alternateArtistName`（网易云歌手 tns/alias、QQ 行内另一个名字）；匹配窗的歌词/元数据/封面开关与「不再为这首歌自动匹配」 |
 
 ### 门控与升级的分工
 

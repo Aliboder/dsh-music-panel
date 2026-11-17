@@ -222,6 +222,60 @@ const amllOnlyLineLevel = await findBestLyrics(track, {
 assert.equal(amllOnlyLineLevel.source, 'amll')
 assert.equal(amllOnlyLineLevel.wordLevel, false)
 
+// ── the alias retries (Folia's lyric aliases) ──────────────────────────────
+
+{
+  // A line-level first pass is retried under the platform's other name.
+  const aliasQueries = []
+  const aliasResult = await findBestLyrics(track, {
+    order: ['qq'],
+    search: async (sourceId, query) => {
+      aliasQueries.push(query)
+      const title = String(query).split(' ')[0]
+      return [{ id: sourceId + '-1', title, artist: '周杰伦', album: '叶惠美', durationMs: 269000 }]
+    },
+    fetchLyric: async (sourceId, id, candidate) => (candidate.title === 'Original' ? wordLyric : lineLyric),
+    searchAlias: async () => ({ title: 'Original' }),
+  })
+  assert.equal(aliasResult.source, 'qq')
+  assert.equal(aliasResult.wordLevel, true, 'the alias pass found the word-level lyric')
+  assert.deepEqual(aliasQueries, ['晴天 周杰伦', 'Original 周杰伦'], 'the retry searches the other title')
+
+  // Nothing matched: another spelling of the artist is tried once.
+  const artistQueries = []
+  const alternateResult = await findBestLyrics(track, {
+    order: ['qq'],
+    search: async (sourceId, query) => {
+      artistQueries.push(query)
+      if (!String(query).includes('周董')) return []
+      return [{ id: 'qq-9', title: '晴天', artist: '周董', album: '叶惠美', durationMs: 269000 }]
+    },
+    fetchLyric: async () => lineLyric,
+    alternateArtist: async () => '周董',
+  })
+  assert.equal(alternateResult.source, 'qq')
+  assert.deepEqual(artistQueries, ['晴天 周杰伦', '晴天 周董'])
+
+  // A word-level answer on the first pass never pays for either retry.
+  let aliasAsked = 0
+  let artistAsked = 0
+  await findBestLyrics(track, {
+    order: ['qq'],
+    search: async (sourceId) => [{ id: sourceId + '-1', title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }],
+    fetchLyric: async () => wordLyric,
+    searchAlias: async () => {
+      aliasAsked += 1
+      return { title: 'x' }
+    },
+    alternateArtist: async () => {
+      artistAsked += 1
+      return 'y'
+    },
+  })
+  assert.equal(aliasAsked, 0)
+  assert.equal(artistAsked, 0)
+}
+
 // lrcTime is the inverse of linesFromLrc (a line-level match is handed back as LRC).
 assert.equal(lrcTime(1.5), '[00:01.500]')
 assert.equal(lrcTime(61.25), '[01:01.250]')

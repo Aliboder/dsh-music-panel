@@ -308,9 +308,40 @@ function SettingsSheet(props) {
     ]
   }
 
+  /** The sidecar lyric formats, reorderable: the first one wins when a track has several. */
+  function lyricFormatOrderList() {
+    var fallback = ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc']
+    var order = Array.isArray(prefs.lyricFormatOrder) && prefs.lyricFormatOrder.length > 0
+      ? prefs.lyricFormatOrder.slice()
+      : fallback.slice()
+    for (var index = 0; index < fallback.length; index += 1) {
+      if (order.indexOf(fallback[index]) < 0) order.push(fallback[index])
+    }
+    function move(from, delta) {
+      var target = from + delta
+      if (from < 0 || target < 0 || from >= order.length || target >= order.length) return
+      var next = order.slice()
+      var item = next.splice(from, 1)[0]
+      next.splice(target, 0, item)
+      patchPrefs({ lyricFormatOrder: next })
+    }
+    return h(
+      'div',
+      { style: { display: 'flex', flexDirection: 'column', gap: '4px' } },
+      order.map(function (format, index) {
+        return h(
+          'div',
+          { key: format, style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+          h('span', { style: { minWidth: '56px', fontSize: '12px', opacity: '.8' } }, format.toUpperCase()),
+          index > 0 ? mpSmallButton('\u2191', function () { move(index, -1) }) : null,
+          index < order.length - 1 ? mpSmallButton('\u2193', function () { move(index, 1) }) : null,
+        )
+      }),
+    )
+  }
+
   function lyricsTab() {
-    return [
-      h('h2', { key: 'h' }, t('v2.lyrics')),
+    return [      h('h2', { key: 'h' }, t('v2.lyrics')),
       h(
         SetRow,
         { key: 'tr', label: t('page.translation') },
@@ -427,23 +458,14 @@ function SettingsSheet(props) {
         }),
       ),
       h(
-        SetRow,
-        { key: 'format-order', label: t('settings.lyricFormatOrder'), desc: t('settings.lyricFormatOrderDesc') },
-        h(KitSelect, {
-          value: Array.isArray(prefs.lyricFormatOrder) && prefs.lyricFormatOrder.length > 0
-            ? prefs.lyricFormatOrder[0]
-            : 'lrc',
-          label: t('settings.lyricFormatOrder'),
-          options: ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'].map(function (format) {
-            return { value: format, label: format.toUpperCase() }
-          }),
-          onChange: function (value) {
-            var order = ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'].filter(function (format) {
-              return format !== value
-            })
-            patchPrefs({ lyricFormatOrder: [String(value)].concat(order) })
-          },
-        }),
+        'div',
+        {
+          key: 'format-order',
+          style: { display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px 0 4px' },
+        },
+        h('div', { className: 'mp-set-label' }, t('settings.lyricFormatOrder')),
+        h('div', { className: 'mp-set-desc' }, t('settings.lyricFormatOrderDesc')),
+        lyricFormatOrderList(),
       ),
       h(
         SetRow,

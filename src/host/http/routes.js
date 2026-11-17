@@ -684,6 +684,85 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         return sendJson(res, 200, await localLyricPayload(file, { priority: lyricPriorityOf(params), formatOrder: lyricFormatOrderOf(params) }))
       }
 
+      // Folia's `applyLocalSongMatchSelection`: the manually picked result can bring the
+      // lyrics, the metadata and the cover, and the listener chooses which of the three.
+      // Lyrics go onto the song's record; metadata and the cover are written into the
+      // file's tags (the plugin's own way of owning them).
+      if (pathname === '/lyrics/match-apply' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const config = await settings.read()
+        const file = await resolveTrack(body?.path, config.roots)
+        if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
+        const applyLyrics = body?.applyLyrics !== false
+        const applyMetadata = body?.applyMetadata === true
+        const applyCover = body?.applyCover === true
+        const noAutoMatch = body?.noAutoMatch === true
+        const lrc = typeof body?.lrc === 'string' ? body.lrc : ''
+        const provider = String(body?.provider ?? '')
+        const songId = String(body?.id ?? '')
+        let lyricsApplied = false
+        if (noAutoMatch) {
+          await lyricRecords.patch(file, { noAutoMatch: true })
+        } else if (applyLyrics && lrc.trim() !== '') {
+          await lyricRecords.writePayload(file, { text: lrc, formatHint: '' })
+          await lyricRecords.patch(file, {
+            matched: {
+              source: provider || 'local',
+              id: songId,
+              title: String(body?.title ?? ''),
+              artist: String(body?.artist ?? ''),
+              album: String(body?.album ?? ''),
+              coverUrl: String(body?.coverUrl ?? ''),
+              score: Number(body?.score) || 0,
+              wordLevel: body?.wordLevel === true,
+              at: Date.now(),
+            },
+            source: 'online',
+            pureMusic: false,
+            markedPureMusic: false,
+            imported: null,
+            noAutoMatch: false,
+          })
+          lyricsApplied = true
+        }
+        let metadataApplied = false
+        let coverApplied = false
+        let warning = ''
+        if (applyMetadata || applyCover) {
+          try {
+            // The tag writer rewrites the whole editable set, so the file's own values are
+            // read first and only the chosen fields are replaced.
+            const existing = await readTags(file)
+            const tags = { ...existing.tags }
+            if (applyMetadata) {
+              if (String(body?.title ?? '') !== '') tags.title = String(body.title)
+              if (String(body?.artist ?? '') !== '') tags.artist = String(body.artist)
+              if (String(body?.album ?? '') !== '') tags.album = String(body.album)
+            }
+            const coverUrl = applyCover && typeof body?.coverUrl === 'string' ? body.coverUrl : ''
+            await writeTags(file, tags, coverUrl)
+            metadataApplied = applyMetadata
+            coverApplied = coverUrl !== ''
+          } catch (error) {
+            // An unsupported container keeps the lyrics: say what was skipped.
+            warning = error instanceof Error ? error.message : String(error)
+          }
+        }
+        return sendJson(res, 200, {
+          ok: true,
+          lyricsApplied,
+          metadataApplied,
+          coverApplied,
+          noAutoMatch,
+          ...(warning === '' ? {} : { warning }),
+        })
+      }
+
       if (pathname === '/lyrics/no-auto-match' && method === 'POST') {
         let body
         try {

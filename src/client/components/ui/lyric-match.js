@@ -34,6 +34,19 @@ function lyricMatchBadge(label, tone) {
   )
 }
 
+/** One of the match window's "take this from the pick" switches. */
+function matchSwitchRow(label, value, onChange, key) {
+  return h(
+    'div',
+    {
+      key: key,
+      style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' },
+    },
+    h('span', { style: { fontSize: '13px', opacity: '.8' } }, label),
+    h(Switch, { value: value === true, label: label, onChange: onChange }),
+  )
+}
+
 function LyricMatchDialog(props) {
   var layer = props.layer
   var track = (layer.props && layer.props.track) || {}
@@ -67,6 +80,22 @@ function LyricMatchDialog(props) {
   var savingPair = useState(false)
   var saving = savingPair[0]
   var setSaving = savingPair[1]
+  // Folia's three switches under the cover, and the "do not search for this one" mark.
+  // They only exist when the window applies the pick to the song's record (the tag
+  // editor's own use of this window just returns the text).
+  var applyToRecord = layer.props && layer.props.applyToRecord === true
+  var coverPair = useState(true)
+  var useCover = coverPair[0]
+  var setUseCover = coverPair[1]
+  var metadataPair = useState(false)
+  var useMetadata = metadataPair[0]
+  var setUseMetadata = metadataPair[1]
+  var lyricsPair = useState(true)
+  var useLyrics = lyricsPair[0]
+  var setUseLyrics = lyricsPair[1]
+  var noAutoPair = useState(false)
+  var noAutoMatch = noAutoPair[0]
+  var setNoAutoMatch = noAutoPair[1]
 
   var target = {
     title: String(track.title || '').trim(),
@@ -79,8 +108,8 @@ function LyricMatchDialog(props) {
     { id: 'netease', label: 'NetEase Cloud Music' },
     { id: 'amll', label: 'AMLLDB' },
     { id: 'qq', label: 'QQ Music' },
-    { id: 'kugou', label: 'KuGou Music' },
-    { id: 'bodian', label: 'Bodian Music' },
+    { id: 'kugouLite', label: 'KuGou Music' },
+    { id: 'qishui', label: 'Qishui' },
   ]
 
   useEffect(function () {
@@ -159,10 +188,55 @@ function LyricMatchDialog(props) {
     return parseLrcText(body.lrc || '')
   }
 
+  function canSave() {
+    if (saving) return false
+    if (noAutoMatch) return true
+    if (selected === null) return false
+    if (useLyrics && (preview === null || String(preview.lrc || '').trim() === '')) return false
+    return useLyrics || useMetadata || useCover
+  }
+
   function save() {
-    if (preview === null || String(preview.lrc || '').trim() === '' || saving) return
+    if (!canSave()) return
     setSaving(true)
     setError('')
+    if (applyToRecord) {
+      // Folia's `applyLocalSongMatchSelection`: lyrics onto the song's record, the chosen
+      // fields onto the file's tags. `noAutoMatch` is the "stop matching this song" answer.
+      postJson(API + 'lyrics/match-apply', {
+        path: track.path,
+        provider: selected ? String(selected.source || '') : '',
+        id: selected ? String(selected.id || '') : '',
+        title: selected ? String(selected.title || '') : '',
+        artist: selected ? (Array.isArray(selected.artists) ? selected.artists.join(' / ') : '') : '',
+        album: selected ? String(selected.album || '') : '',
+        coverUrl: selected ? String(selected.coverUrl || '') : '',
+        lrc: preview && typeof preview.lrc === 'string' ? preview.lrc : '',
+        wordLevel: preview ? preview.wordLevel === true : false,
+        applyLyrics: useLyrics === true && noAutoMatch !== true,
+        applyMetadata: useMetadata === true && noAutoMatch !== true,
+        applyCover: useCover === true && noAutoMatch !== true,
+        noAutoMatch: noAutoMatch === true,
+      })
+        .then(function (answer) {
+          setSaving(false)
+          closeSheet()
+          var onSaved = layer.props && layer.props.onSaved
+          if (typeof onSaved === 'function') onSaved()
+          if (typeof showToast === 'function') {
+            showToast(answer && answer.warning ? String(answer.warning) : t('page.lyricsSaved'))
+          }
+        })
+        .catch(function (saveError) {
+          setSaving(false)
+          setError(errorText(saveError))
+        })
+      return
+    }
+    if (preview === null || String(preview.lrc || '').trim() === '') {
+      setSaving(false)
+      return
+    }
     var lines = linesOf(preview)
     if (preview.translation) mergeLyricTranslation(lines, preview.translation)
     var lrc = preview.translation ? buildTranslatedLrc(lines, preview.lrc) : preview.lrc
@@ -276,17 +350,17 @@ function LyricMatchDialog(props) {
       'button',
       {
         type: 'button',
-        disabled: selected === null || saving,
+        disabled: !canSave(),
         onClick: save,
         style: {
           padding: '8px 20px',
           borderRadius: '8px',
           border: '0',
-          background: selected === null || saving ? 'rgba(59,130,246,.5)' : '#3b82f6',
+          background: !canSave() ? 'rgba(59,130,246,.5)' : '#3b82f6',
           color: '#fff',
           font: 'inherit',
           fontSize: '14px',
-          cursor: selected === null || saving ? 'default' : 'pointer',
+          cursor: !canSave() ? 'default' : 'pointer',
         },
       },
       saving ? t('sheet.saving') : t('page.save'),
@@ -518,6 +592,26 @@ function LyricMatchDialog(props) {
         h('div', { style: { fontSize: '14px', fontWeight: '500', opacity: '.75', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, selected ? selected.artists.join(' / ') : ''),
         h('div', { style: { fontSize: '12px', opacity: '.6', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, selected ? selected.album : ''),
       ),
+      // Folia's switches: each part of the pick can be left as the file has it.
+      applyToRecord
+        ? h(
+            'div',
+            { style: { width: '100%', marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' } },
+            h(
+              'div',
+              {
+                style: Object.assign(
+                  { display: 'flex', flexDirection: 'column', gap: '10px' },
+                  noAutoMatch ? { opacity: '.45', pointerEvents: 'none' } : {},
+                ),
+              },
+              matchSwitchRow(t('sheet.matchApplyLyrics'), useLyrics, setUseLyrics, 'apply-lyrics'),
+              matchSwitchRow(t('sheet.matchApplyMetadata'), useMetadata, setUseMetadata, 'apply-metadata'),
+              matchSwitchRow(t('sheet.matchApplyCover'), useCover, setUseCover, 'apply-cover'),
+            ),
+            matchSwitchRow(t('sheet.matchNoAutoMatch'), noAutoMatch, setNoAutoMatch, 'no-auto'),
+          )
+        : null,
     ),
     h(
       'div',

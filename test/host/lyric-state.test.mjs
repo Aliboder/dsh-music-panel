@@ -309,6 +309,36 @@ assert.equal(answer.body.raw, '[1000,2000](1000,900,0)word level')
 answer = await call('POST', '/music/lyrics/choice', { path: routeFile, source: 'nope' })
 assert.equal(answer.status, 400)
 
+// The manual match puts the pick on the record; metadata/cover go to the file's tags and
+// a container the tag writer cannot touch still keeps the lyric.
+answer = await call('POST', '/music/lyrics/match-apply', {
+  path: routeFile,
+  provider: 'qq',
+  id: 'm1',
+  title: 'Picked',
+  artist: 'Someone',
+  album: 'Album',
+  coverUrl: '',
+  lrc: '[00:04.000]手动匹配',
+  applyLyrics: true,
+  applyMetadata: true,
+  applyCover: false,
+})
+assert.equal(answer.status, 200)
+assert.equal(answer.body.lyricsApplied, true)
+assert.equal(answer.body.metadataApplied, false)
+assert.ok(String(answer.body.warning || '') !== '', 'a wav cannot take tags, and says so')
+answer = await call('POST', '/music/lyrics/choice', { path: routeFile, source: 'online' })
+assert.equal(answer.body.raw, '[00:04.000]手动匹配')
+assert.equal(answer.body.matched.source, 'qq')
+assert.equal(answer.body.matched.title, 'Picked')
+
+// "Stop matching this song" is a real answer on the record.
+answer = await call('POST', '/music/lyrics/match-apply', { path: routeFile, noAutoMatch: true })
+assert.equal(answer.status, 200)
+assert.equal(answer.body.noAutoMatch, true)
+assert.equal((await call('POST', '/music/lyrics/no-auto-match', { path: routeFile, on: false })).body.noAutoMatch, false)
+
 // A file outside the roots is never touched.
 answer = await call('GET', '/music/lyrics?path=' + encodeURIComponent(join(tmpdir(), 'outside.mp3')))
 assert.equal(answer.status, 404)

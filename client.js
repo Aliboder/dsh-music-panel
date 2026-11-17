@@ -8343,6 +8343,10 @@ window.__ModuleLoader__.load({
         'sheet.lyricUpgraded': '已换用 {source} 的逐字歌词',
         'sheet.lyricSwitched': '已换用 {source} 的歌词',
         'sheet.srcImported': '导入',
+        'sheet.matchApplyLyrics': '使用这条歌词',
+        'sheet.matchApplyMetadata': '使用这条的歌曲信息',
+        'sheet.matchApplyCover': '使用这条的封面',
+        'sheet.matchNoAutoMatch': '不再为这首歌自动匹配',
         'sheet.lyricSegmentation': '歌词分词',
         'sheet.lyricSegTitle': '歌词分词',
         'sheet.lyricSegOpen': '编辑',
@@ -8871,6 +8875,10 @@ window.__ModuleLoader__.load({
         'sheet.lyricUpgraded': 'Using {source} word-by-word lyrics',
         'sheet.lyricSwitched': 'Using {source} lyrics',
         'sheet.srcImported': 'Imported',
+        'sheet.matchApplyLyrics': 'Use this lyric',
+        'sheet.matchApplyMetadata': 'Use this song info',
+        'sheet.matchApplyCover': 'Use this cover',
+        'sheet.matchNoAutoMatch': 'Stop matching this song automatically',
         'sheet.lyricSegmentation': 'Word split',
         'sheet.lyricSegTitle': 'Lyric word split',
         'sheet.lyricSegOpen': 'Edit',
@@ -163914,20 +163922,23 @@ window.__ModuleLoader__.load({
 
       function openOnlineLyric() {
         if (!track || track.onlineProvider) return
+        // Folia's match window: the pick goes onto the song's record (lyrics) and, if asked,
+        // into the file's tags (metadata and cover) — it no longer rewrites the audio file's
+        // lyric tag only.
         pushLayer('lyricMatch', {
-          track: { path: track.path, title: trackTitleOf(track), artist: trackArtistOf(track) },
-          onApply: function (lrc) {
-            postJson(API + 'lyrics/save', { path: track.path, lrc: lrc })
-              .then(function () {
-                MPLyricLoader.invalidate(track.path)
-                setLyricReload(function (value) {
-                  return value + 1
-                })
-                showToast(t('page.lyricsSaved'))
-              })
-              .catch(function (error) {
-                showToast(errorText(error))
-              })
+          track: {
+            path: track.path,
+            title: trackTitleOf(track),
+            artist: trackArtistOf(track),
+            album: track.album || '',
+            durationSec: Number(track.durationSec) || 0,
+          },
+          applyToRecord: true,
+          onSaved: function () {
+            MPLyricLoader.invalidate(track.path)
+            setLyricReload(function (value) {
+              return value + 1
+            })
           },
         })
       }
@@ -164772,6 +164783,13 @@ window.__ModuleLoader__.load({
                           album: track.album || '',
                           durationSec: Number(track.durationSec) || 0,
                         },
+                        applyToRecord: true,
+                        onSaved: function () {
+                          MPLyricLoader.invalidate(track.path)
+                          setLyricReload(function (value) {
+                            return value + 1
+                          })
+                        },
                       })
                     }
                     return
@@ -165356,9 +165374,40 @@ window.__ModuleLoader__.load({
         ]
       }
 
+      /** The sidecar lyric formats, reorderable: the first one wins when a track has several. */
+      function lyricFormatOrderList() {
+        var fallback = ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc']
+        var order = Array.isArray(prefs.lyricFormatOrder) && prefs.lyricFormatOrder.length > 0
+          ? prefs.lyricFormatOrder.slice()
+          : fallback.slice()
+        for (var index = 0; index < fallback.length; index += 1) {
+          if (order.indexOf(fallback[index]) < 0) order.push(fallback[index])
+        }
+        function move(from, delta) {
+          var target = from + delta
+          if (from < 0 || target < 0 || from >= order.length || target >= order.length) return
+          var next = order.slice()
+          var item = next.splice(from, 1)[0]
+          next.splice(target, 0, item)
+          patchPrefs({ lyricFormatOrder: next })
+        }
+        return h(
+          'div',
+          { style: { display: 'flex', flexDirection: 'column', gap: '4px' } },
+          order.map(function (format, index) {
+            return h(
+              'div',
+              { key: format, style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+              h('span', { style: { minWidth: '56px', fontSize: '12px', opacity: '.8' } }, format.toUpperCase()),
+              index > 0 ? mpSmallButton('\u2191', function () { move(index, -1) }) : null,
+              index < order.length - 1 ? mpSmallButton('\u2193', function () { move(index, 1) }) : null,
+            )
+          }),
+        )
+      }
+
       function lyricsTab() {
-        return [
-          h('h2', { key: 'h' }, t('v2.lyrics')),
+        return [      h('h2', { key: 'h' }, t('v2.lyrics')),
           h(
             SetRow,
             { key: 'tr', label: t('page.translation') },
@@ -165475,23 +165524,14 @@ window.__ModuleLoader__.load({
             }),
           ),
           h(
-            SetRow,
-            { key: 'format-order', label: t('settings.lyricFormatOrder'), desc: t('settings.lyricFormatOrderDesc') },
-            h(KitSelect, {
-              value: Array.isArray(prefs.lyricFormatOrder) && prefs.lyricFormatOrder.length > 0
-                ? prefs.lyricFormatOrder[0]
-                : 'lrc',
-              label: t('settings.lyricFormatOrder'),
-              options: ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'].map(function (format) {
-                return { value: format, label: format.toUpperCase() }
-              }),
-              onChange: function (value) {
-                var order = ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'].filter(function (format) {
-                  return format !== value
-                })
-                patchPrefs({ lyricFormatOrder: [String(value)].concat(order) })
-              },
-            }),
+            'div',
+            {
+              key: 'format-order',
+              style: { display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px 0 4px' },
+            },
+            h('div', { className: 'mp-set-label' }, t('settings.lyricFormatOrder')),
+            h('div', { className: 'mp-set-desc' }, t('settings.lyricFormatOrderDesc')),
+            lyricFormatOrderList(),
           ),
           h(
             SetRow,
@@ -171350,6 +171390,19 @@ window.__ModuleLoader__.load({
       )
     }
 
+    /** One of the match window's "take this from the pick" switches. */
+    function matchSwitchRow(label, value, onChange, key) {
+      return h(
+        'div',
+        {
+          key: key,
+          style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' },
+        },
+        h('span', { style: { fontSize: '13px', opacity: '.8' } }, label),
+        h(Switch, { value: value === true, label: label, onChange: onChange }),
+      )
+    }
+
     function LyricMatchDialog(props) {
       var layer = props.layer
       var track = (layer.props && layer.props.track) || {}
@@ -171383,6 +171436,22 @@ window.__ModuleLoader__.load({
       var savingPair = useState(false)
       var saving = savingPair[0]
       var setSaving = savingPair[1]
+      // Folia's three switches under the cover, and the "do not search for this one" mark.
+      // They only exist when the window applies the pick to the song's record (the tag
+      // editor's own use of this window just returns the text).
+      var applyToRecord = layer.props && layer.props.applyToRecord === true
+      var coverPair = useState(true)
+      var useCover = coverPair[0]
+      var setUseCover = coverPair[1]
+      var metadataPair = useState(false)
+      var useMetadata = metadataPair[0]
+      var setUseMetadata = metadataPair[1]
+      var lyricsPair = useState(true)
+      var useLyrics = lyricsPair[0]
+      var setUseLyrics = lyricsPair[1]
+      var noAutoPair = useState(false)
+      var noAutoMatch = noAutoPair[0]
+      var setNoAutoMatch = noAutoPair[1]
 
       var target = {
         title: String(track.title || '').trim(),
@@ -171395,8 +171464,8 @@ window.__ModuleLoader__.load({
         { id: 'netease', label: 'NetEase Cloud Music' },
         { id: 'amll', label: 'AMLLDB' },
         { id: 'qq', label: 'QQ Music' },
-        { id: 'kugou', label: 'KuGou Music' },
-        { id: 'bodian', label: 'Bodian Music' },
+        { id: 'kugouLite', label: 'KuGou Music' },
+        { id: 'qishui', label: 'Qishui' },
       ]
 
       useEffect(function () {
@@ -171475,10 +171544,55 @@ window.__ModuleLoader__.load({
         return parseLrcText(body.lrc || '')
       }
 
+      function canSave() {
+        if (saving) return false
+        if (noAutoMatch) return true
+        if (selected === null) return false
+        if (useLyrics && (preview === null || String(preview.lrc || '').trim() === '')) return false
+        return useLyrics || useMetadata || useCover
+      }
+
       function save() {
-        if (preview === null || String(preview.lrc || '').trim() === '' || saving) return
+        if (!canSave()) return
         setSaving(true)
         setError('')
+        if (applyToRecord) {
+          // Folia's `applyLocalSongMatchSelection`: lyrics onto the song's record, the chosen
+          // fields onto the file's tags. `noAutoMatch` is the "stop matching this song" answer.
+          postJson(API + 'lyrics/match-apply', {
+            path: track.path,
+            provider: selected ? String(selected.source || '') : '',
+            id: selected ? String(selected.id || '') : '',
+            title: selected ? String(selected.title || '') : '',
+            artist: selected ? (Array.isArray(selected.artists) ? selected.artists.join(' / ') : '') : '',
+            album: selected ? String(selected.album || '') : '',
+            coverUrl: selected ? String(selected.coverUrl || '') : '',
+            lrc: preview && typeof preview.lrc === 'string' ? preview.lrc : '',
+            wordLevel: preview ? preview.wordLevel === true : false,
+            applyLyrics: useLyrics === true && noAutoMatch !== true,
+            applyMetadata: useMetadata === true && noAutoMatch !== true,
+            applyCover: useCover === true && noAutoMatch !== true,
+            noAutoMatch: noAutoMatch === true,
+          })
+            .then(function (answer) {
+              setSaving(false)
+              closeSheet()
+              var onSaved = layer.props && layer.props.onSaved
+              if (typeof onSaved === 'function') onSaved()
+              if (typeof showToast === 'function') {
+                showToast(answer && answer.warning ? String(answer.warning) : t('page.lyricsSaved'))
+              }
+            })
+            .catch(function (saveError) {
+              setSaving(false)
+              setError(errorText(saveError))
+            })
+          return
+        }
+        if (preview === null || String(preview.lrc || '').trim() === '') {
+          setSaving(false)
+          return
+        }
         var lines = linesOf(preview)
         if (preview.translation) mergeLyricTranslation(lines, preview.translation)
         var lrc = preview.translation ? buildTranslatedLrc(lines, preview.lrc) : preview.lrc
@@ -171592,17 +171706,17 @@ window.__ModuleLoader__.load({
           'button',
           {
             type: 'button',
-            disabled: selected === null || saving,
+            disabled: !canSave(),
             onClick: save,
             style: {
               padding: '8px 20px',
               borderRadius: '8px',
               border: '0',
-              background: selected === null || saving ? 'rgba(59,130,246,.5)' : '#3b82f6',
+              background: !canSave() ? 'rgba(59,130,246,.5)' : '#3b82f6',
               color: '#fff',
               font: 'inherit',
               fontSize: '14px',
-              cursor: selected === null || saving ? 'default' : 'pointer',
+              cursor: !canSave() ? 'default' : 'pointer',
             },
           },
           saving ? t('sheet.saving') : t('page.save'),
@@ -171834,6 +171948,26 @@ window.__ModuleLoader__.load({
             h('div', { style: { fontSize: '14px', fontWeight: '500', opacity: '.75', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, selected ? selected.artists.join(' / ') : ''),
             h('div', { style: { fontSize: '12px', opacity: '.6', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, selected ? selected.album : ''),
           ),
+          // Folia's switches: each part of the pick can be left as the file has it.
+          applyToRecord
+            ? h(
+                'div',
+                { style: { width: '100%', marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' } },
+                h(
+                  'div',
+                  {
+                    style: Object.assign(
+                      { display: 'flex', flexDirection: 'column', gap: '10px' },
+                      noAutoMatch ? { opacity: '.45', pointerEvents: 'none' } : {},
+                    ),
+                  },
+                  matchSwitchRow(t('sheet.matchApplyLyrics'), useLyrics, setUseLyrics, 'apply-lyrics'),
+                  matchSwitchRow(t('sheet.matchApplyMetadata'), useMetadata, setUseMetadata, 'apply-metadata'),
+                  matchSwitchRow(t('sheet.matchApplyCover'), useCover, setUseCover, 'apply-cover'),
+                ),
+                matchSwitchRow(t('sheet.matchNoAutoMatch'), noAutoMatch, setNoAutoMatch, 'no-auto'),
+              )
+            : null,
         ),
         h(
           'div',

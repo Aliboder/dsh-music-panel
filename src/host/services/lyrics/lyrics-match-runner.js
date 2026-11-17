@@ -110,7 +110,11 @@ export function buildLyricSearchQuery(track) {
  *   log?: (message: string) => void,
  * }} io
  */
-export async function findBestLyrics(track, io) {
+/**
+ * One pass over the sources for one title/artist. `findBestLyrics` wraps this with the
+ * alias retries Folia's automatic pick does.
+ */
+async function searchOnce(track, io) {
   const query = buildLyricSearchQuery(track)
   if (query === '') return null
   const order = Array.isArray(io.order) && io.order.length > 0 ? io.order : LYRIC_SOURCES.map((source) => source.id)
@@ -213,6 +217,52 @@ export async function findBestLyrics(track, io) {
   }
 
   return fallback
+}
+
+/**
+ * The automatic pick, with Folia's two retries: a song its platform lists under another
+ * name is searched again as that name (only while no word-level answer is in hand), and
+ * an artist the sources spell differently gets one more pass when nothing matched at all.
+ *
+ * @param {object} track
+ * @param {object} io — `searchOnce`'s callbacks plus `searchAlias` / `alternateArtist`
+ */
+export async function findBestLyrics(track, io) {
+  const match = await searchOnce(track, io)
+  if (match !== null && match.wordLevel === true) return match
+
+  if (typeof io.searchAlias === 'function') {
+    let alias = null
+    try {
+      alias = await io.searchAlias()
+    } catch (error) {
+      alias = null
+    }
+    const title = alias !== null && typeof alias === 'object' ? String(alias.title ?? '').trim() : ''
+    if (title !== '' && title !== String(track.title ?? '')) {
+      const retried = await searchOnce(
+        {
+          ...track,
+          title,
+          artist: String(alias.artist ?? track.artist ?? ''),
+          album: String(alias.album ?? track.album ?? ''),
+        },
+        io,
+      )
+      if (retried !== null && (match === null || retried.wordLevel === true)) return retried
+    }
+  }
+
+  if (match !== null || typeof io.alternateArtist !== 'function') return match
+  let artist = null
+  try {
+    artist = await io.alternateArtist()
+  } catch (error) {
+    artist = null
+  }
+  const wanted = String(artist ?? '').trim()
+  if (wanted === '' || wanted === String(track.artist ?? '')) return match
+  return await searchOnce({ ...track, artist: wanted }, io)
 }
 
 export { AUTO_MATCH_MIN_SCORE }

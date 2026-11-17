@@ -497,6 +497,60 @@ export function requiresVip(provider, id) {
   return null
 }
 
+const EMP_MARKUP = /<\/?em(?:\s[^>]*)?>/gi
+
+/** Upstream search answers wrap the matched terms in `<em>`; a name has to be plain text. */
+function plainText(value) {
+  return String(value ?? '').replace(EMP_MARKUP, '').trim()
+}
+
+/**
+ * Another name this platform lists the song under (Folia's `getSearchAlias`): a title that
+ * carries a translation or a version suffix often has an original name beside it.
+ *
+ * @returns {{ title: string, artist?: string, album?: string } | null}
+ */
+export function lyricSearchAlias(provider, id) {
+  const raw = rawSongs.get(provider + ':' + String(id || ''))
+  if (raw === null || raw === undefined) return null
+  // QQ's legacy shape keeps the decoded `name` as `title`, so a second spelling exists only
+  // when the search row itself carried one.
+  if (provider === 'qq') {
+    const original = typeof raw.name === 'string' ? plainText(raw.name) : ''
+    const current = String(raw.title ?? '')
+    if (original === '' || original === current) return null
+    const singer = Array.isArray(raw.singer)
+      ? raw.singer.map((item) => plainText(item?.name ?? '')).filter(Boolean).join(' / ')
+      : ''
+    return { title: original, ...(singer === '' ? {} : { artist: singer }) }
+  }
+  return null
+}
+
+/**
+ * Another spelling of the artist this platform knows (Folia's `getAlternateArtistName`):
+ * NetEase carries the translated / alternative artist names on each artist row.
+ *
+ * @returns {string | null}
+ */
+export function alternateArtistName(provider, id) {
+  const raw = rawSongs.get(provider + ':' + String(id || ''))
+  if (raw === null || raw === undefined) return null
+  if (provider === 'netease') {
+    const artist = Array.isArray(raw.artistsDetail) && raw.artistsDetail.length > 0 ? raw.artistsDetail[0] : null
+    if (artist === null) return null
+    const candidates = []
+    if (Array.isArray(artist.translatedNames)) candidates.push(...artist.translatedNames)
+    if (Array.isArray(artist.aliases)) candidates.push(...artist.aliases)
+    const current = String(raw.artist ?? '')
+    for (const item of candidates) {
+      const name = String(item ?? '').trim()
+      if (name !== '' && name !== current) return name
+    }
+  }
+  return null
+}
+
 /**
  * Resolve a playable URL for one song id (cookies unlock higher quality).
  * @returns {Promise<{ url: string, quality: string }>}

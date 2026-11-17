@@ -116,6 +116,30 @@ export function createOmni(registry) {
       return dispatch(sourceId, 'chorus', [id, ctx])
     },
 
+    /**
+     * The platform's other name for a song, or another spelling of its artist: used by the
+     * lyric search only when nothing matched (Folia's lyric aliases). Optional, never throws.
+     */
+    async lyricSearchAlias(sourceId, id) {
+      const source = registry.get(sourceId)
+      if (source === null || typeof source.lyricSearchAlias !== 'function') return null
+      try {
+        return await source.lyricSearchAlias(id)
+      } catch (error) {
+        return null
+      }
+    },
+
+    async alternateArtistName(sourceId, id) {
+      const source = registry.get(sourceId)
+      if (source === null || typeof source.alternateArtistName !== 'function') return null
+      try {
+        return await source.alternateArtistName(id)
+      } catch (error) {
+        return null
+      }
+    },
+
     // ── account ───────────────────────────────────────────────────────────
     vip: route('vip'),
     vipInfo: route('vipInfo'),

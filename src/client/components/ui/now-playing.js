@@ -2343,20 +2343,23 @@ function NowPlaying(props) {
 
   function openOnlineLyric() {
     if (!track || track.onlineProvider) return
+    // Folia's match window: the pick goes onto the song's record (lyrics) and, if asked,
+    // into the file's tags (metadata and cover) — it no longer rewrites the audio file's
+    // lyric tag only.
     pushLayer('lyricMatch', {
-      track: { path: track.path, title: trackTitleOf(track), artist: trackArtistOf(track) },
-      onApply: function (lrc) {
-        postJson(API + 'lyrics/save', { path: track.path, lrc: lrc })
-          .then(function () {
-            MPLyricLoader.invalidate(track.path)
-            setLyricReload(function (value) {
-              return value + 1
-            })
-            showToast(t('page.lyricsSaved'))
-          })
-          .catch(function (error) {
-            showToast(errorText(error))
-          })
+      track: {
+        path: track.path,
+        title: trackTitleOf(track),
+        artist: trackArtistOf(track),
+        album: track.album || '',
+        durationSec: Number(track.durationSec) || 0,
+      },
+      applyToRecord: true,
+      onSaved: function () {
+        MPLyricLoader.invalidate(track.path)
+        setLyricReload(function (value) {
+          return value + 1
+        })
       },
     })
   }
@@ -3200,6 +3203,13 @@ function NowPlaying(props) {
                       artist: trackArtistOf(track),
                       album: track.album || '',
                       durationSec: Number(track.durationSec) || 0,
+                    },
+                    applyToRecord: true,
+                    onSaved: function () {
+                      MPLyricLoader.invalidate(track.path)
+                      setLyricReload(function (value) {
+                        return value + 1
+                      })
                     },
                   })
                 }

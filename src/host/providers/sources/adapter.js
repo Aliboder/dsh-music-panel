@@ -136,6 +136,14 @@ export function createOnlineAdapter(spec) {
       const { cookie, session } = parts(ctx)
       return call('lyric', id, cookie, session)
     },
+    // Optional: another name / artist spelling this platform knows, used only when a lyric
+    // search found nothing (Folia's `getSearchAlias` / `getAlternateArtistName`).
+    lyricSearchAlias(id) {
+      return providers.lyricSearchAlias(providerKey, id)
+    },
+    alternateArtistName(id) {
+      return providers.alternateArtistName(providerKey, id)
+    },
     requiresVip(id) {
       return providers.requiresVip(providerKey, id)
     },

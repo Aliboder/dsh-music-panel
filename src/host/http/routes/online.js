@@ -251,6 +251,11 @@ export function createOnlineRoutes(deps) {
           }
         }),
         fetchAmll: fetchAmllOverride ?? ((platform, musicId) => amll.fetchLyrics(platform, musicId)),
+        // A song its own platform lists under another name (the original title beside a
+        // translated one), or an artist the sources spell differently: one more pass when
+        // the first found no word-level lyric (Folia's lyric aliases).
+        searchAlias: async () => await omni.lyricSearchAlias(provider, id),
+        alternateArtist: async () => await omni.alternateArtistName(provider, id),
         resolveAmllIds: async () => {
           if (provider === 'netease') return { neteaseId: id }
           if (provider === 'qq') return { qqId: id }
