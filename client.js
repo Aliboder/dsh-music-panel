@@ -8138,6 +8138,18 @@ window.__ModuleLoader__.load({
         'v2.dataTab': '数据',
         'data.total': '插件数据',
         'data.files': '{size} · {n} 个文件',
+        'data.cacheEnable': '缓存歌曲',
+        'data.cacheEnableDesc': '整首听完后才保存；默认关闭，读取不受影响',
+        'data.cacheLimit': '缓存上限',
+        'data.cacheLimitDesc': '空间不够时先删最近没播过的；0 表示不限',
+        'data.cacheNoLimit': '不限',
+        'data.cacheUsageLabel': '在线缓存',
+        'data.cacheUsage': '已缓存 {songs} 首 · {size}',
+        'data.cacheAudio': '音频',
+        'data.cacheCovers': '封面',
+        'data.cacheLyrics': '歌词缓存',
+        'data.cacheClear': '清空',
+        'data.cacheHint': '音频与封面在整首播完后写入；歌词在解析后写入。清空音频会连同这些歌的封面一起删除。',
         'data.hint': '包括设置、收藏、歌单、统计、歌词选择与匹配、播放状态、登录凭证、缓存和回收站。音乐文件本身不在其中。',
         'data.category.settings': '设置',
         'data.category.favorites': '收藏',
@@ -8679,6 +8691,18 @@ window.__ModuleLoader__.load({
         'v2.dataTab': 'Data',
         'data.total': 'Plugin data',
         'data.files': '{size} · {n} files',
+        'data.cacheEnable': 'Cache songs',
+        'data.cacheEnableDesc': 'Saved only after a song is played through; off by default, reads still use the cache',
+        'data.cacheLimit': 'Cache limit',
+        'data.cacheLimitDesc': 'Least recently played songs are evicted first; 0 means no limit',
+        'data.cacheNoLimit': 'No limit',
+        'data.cacheUsageLabel': 'Online cache',
+        'data.cacheUsage': '{songs} songs · {size}',
+        'data.cacheAudio': 'Audio',
+        'data.cacheCovers': 'Covers',
+        'data.cacheLyrics': 'Lyric cache',
+        'data.cacheClear': 'Clear',
+        'data.cacheHint': 'Audio and covers are written after a full play; lyrics when they are resolved. Clearing audio also removes those songs\' covers.',
         'data.hint': 'Includes settings, favorites, playlists, stats, lyric choices & matches, playback state, sign-ins, cache and recycle bin. Your music files are not included.',
         'data.category.settings': 'Settings',
         'data.category.favorites': 'Favorites',
@@ -21936,9 +21960,20 @@ window.__ModuleLoader__.load({
         // by coverArt id rather than by URL; the generic route only allows the
         // public provider CDNs.
         if (track.onlineProvider === 'navidrome') return subsonicCoverUrl(track.coverArtId)
-        return typeof track.coverUrl === 'string' && track.coverUrl !== ''
-          ? API + 'online/cover?url=' + encodeURIComponent(track.coverUrl)
-          : ''
+        // The Host serves the cover cached with a played-through song first; `url` is the
+        // fallback while nothing is cached (Folia keys covers by song, not by URL).
+        if (typeof track.coverUrl === 'string' && track.coverUrl !== '') {
+          return (
+            API +
+            'online/cover?provider=' +
+            encodeURIComponent(track.onlineProvider) +
+            '&id=' +
+            encodeURIComponent(String(track.onlineId || '')) +
+            '&url=' +
+            encodeURIComponent(track.coverUrl)
+          )
+        }
+        return ''
       }
       if (track.hasCover === true && track.path) return coverUrl(track.path)
       return ''
@@ -149758,6 +149793,13 @@ window.__ModuleLoader__.load({
       lyricFormatOrder: ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'],
       /** Preferred online audio level: standard | high | lossless | hires. */
       onlineQuality: 'high',
+      /**
+       * Folia's `enableMediaCache`: cache a song's audio only after it was played through.
+       * Off by default, exactly as upstream; reads use the cache either way.
+       */
+      onlineCacheEnabled: false,
+      /** Folia's `mediaCacheLimitGb`: 1/2/5/10/20/50, 0 = no ceiling. */
+      onlineCacheLimitGb: 5,
       lyricAlign: 'left',
       lyricSize: 35,
       lyricGap: 15,
@@ -153680,7 +153722,6 @@ window.__ModuleLoader__.load({
             label: t('v2.sectionOnline'),
             items: browse.concat([
               { key: 'recent', label: t('v2.recent'), icon: 'clock', count: null },
-              { key: 'cache', label: t('v2.cache'), icon: 'download', count: null },
             ]),
           },
         ]
@@ -153794,8 +153835,6 @@ window.__ModuleLoader__.load({
           return t('v2.recent')
         case 'album':
           return onlineStore.get().albumName || t('online.album')
-        case 'cache':
-          return t('v2.cache')
         default:
           return t('v2.songs')
       }
@@ -154048,6 +154087,8 @@ window.__ModuleLoader__.load({
       var currentBlob = null
       /** Measured plan + fetched audio for the incoming side. */
       var xfadePrepared = null
+      /** The track leaving on the ghost deck, kept until the fade lands (cache report). */
+      var xfadeOutgoing = null
       /** Background download of the next track, so an uncached online song is ready. */
       var prefetchedNext = null
       var prefetchAbort = null
@@ -154157,6 +154198,47 @@ window.__ModuleLoader__.load({
           }).catch(function () {
             // Reporting is a background courtesy; a failure never touches playback.
           })
+        } catch (error) {
+          // Best effort.
+        }
+      }
+
+      /**
+       * Folia caches an online song only once it was heard to its end: the Host downloads it
+       * then. This says which song, at which quality, and with which stated length/cover — the
+       * decision (preview / half song / limit) belongs to the Host.
+       */
+      function reportPlayed(item) {
+        if (item === null || item === undefined) return
+        if (!item.onlineProvider || !item.onlineId) return
+        var settings = readPrefs()
+        if (settings.onlineCacheEnabled !== true) return
+        var limitGb = Number(settings.onlineCacheLimitGb)
+        try {
+          postJson(API + 'online/played', {
+            provider: String(item.onlineProvider),
+            id: String(item.onlineId),
+            quality: String(settings.onlineQuality || 'high'),
+            limitGb: isFinite(limitGb) && limitGb >= 0 ? limitGb : 5,
+            durationSec: Number(item.durationSec) || 0,
+            coverUrl: typeof item.coverUrl === 'string' ? item.coverUrl : '',
+          }).catch(function () {
+            // Caching is a background courtesy; a failure never touches playback.
+          })
+        } catch (error) {
+          // Best effort.
+        }
+      }
+
+      /** The cached copy failed to play: the Host bypasses it until a new one is written. */
+      function reportCacheDistrust(item) {
+        if (item === null || item === undefined) return
+        if (!item.onlineProvider || !item.onlineId) return
+        try {
+          postJson(API + 'online/cache/distrust', {
+            provider: String(item.onlineProvider),
+            id: String(item.onlineId),
+          }).catch(function () {})
         } catch (error) {
           // Best effort.
         }
@@ -154551,6 +154633,8 @@ window.__ModuleLoader__.load({
         // The song was heard whole: keep its reading for the next play.
         commitBalanceReading(currentItem(), audio === null ? 0 : audio.duration)
         if (!isActiveEvent(event)) return
+        // Folia's cache rule: the song was heard whole, so the Host may keep it.
+        reportPlayed(currentItem())
         reportProviderPlayback(currentItem())
         flushListening(true)
         flushSessionPosition()
@@ -154588,6 +154672,7 @@ window.__ModuleLoader__.load({
               : ''
         errorStreak += 1
         var failedTrack = state.queue[state.index] || null
+        reportCacheDistrust(failedTrack)
         errorListeners.forEach(function (fn) {
           try {
             fn({ track: failedTrack, streak: errorStreak, reason: reason || '' })
@@ -154907,18 +154992,6 @@ window.__ModuleLoader__.load({
           var onlineController =
             typeof AbortController !== 'undefined' ? new AbortController() : null
           fetchAbort = onlineController
-          if (item.onlineProvider && item.onlineId) {
-            void postJson(API + 'online/cache/meta', {
-              provider: item.onlineProvider,
-              id: item.onlineId,
-              title: item.title || '',
-              artist: item.artist || '',
-              album: item.album || '',
-              coverUrl: item.coverUrl || '',
-              durationSec: item.durationSec || 0,
-              vip: item.qualityHint === 'VIP',
-            }).catch(function () {})
-          }
           fetch(item.onlineUrl, onlineController === null ? {} : { signal: onlineController.signal })
             .then(function (response) {
               if (!response.ok) throw new Error('HTTP ' + response.status)
@@ -155260,6 +155333,9 @@ window.__ModuleLoader__.load({
         var fade = Math.min(prepared.plan.overlap, remaining - 0.05)
         if (!(fade >= 1)) return abortCrossfade()
         var token = xfadeToken
+        // The outgoing song never fires `ended` once the fade takes it off the active deck; its
+        // "played whole" report is made when the fade lands, from this capture.
+        xfadeOutgoing = { item: currentItem(), duration: state.duration > 0 ? state.duration : audio.duration || 0 }
         var incomingDeck = foliaGraph !== null && audio === foliaGraph.getDeckElement('A') ? 'B' : 'A'
         releaseObjectUrlB()
         objectUrlB = URL.createObjectURL(prepared.blob)
@@ -155379,6 +155455,14 @@ window.__ModuleLoader__.load({
         }
         if (audioB !== null) {
           try {
+            // Before the ghost is silenced: did it reach the end of the song? The fade is
+            // clamped to `remaining - 0.05`, so a completed crossfade always did.
+            var reachedEnd =
+              xfadeOutgoing !== null &&
+              isFinite(audioB.duration) &&
+              audioB.duration > 0 &&
+              audioB.duration - audioB.currentTime <= 1.5
+            if (reachedEnd) reportPlayed(xfadeOutgoing.item)
             audioB.pause()
             audioB.removeAttribute('src')
             audioB.load()
@@ -155386,6 +155470,7 @@ window.__ModuleLoader__.load({
             // Detached element: nothing to stop.
           }
         }
+        xfadeOutgoing = null
         releaseObjectUrlB()
         normalizeGainB = 1
         maybePrefetchNext()
@@ -155399,6 +155484,7 @@ window.__ModuleLoader__.load({
         xfadeAdopted = false
         xfadeNext = -1
         xfadePrepared = null
+        xfadeOutgoing = null
         if (xfadeTimer !== null) {
           clearTimeout(xfadeTimer)
           xfadeTimer = null
@@ -156425,8 +156511,6 @@ window.__ModuleLoader__.load({
       artistError: '',
       history: readOnlineHistory(),
       liked: {},
-      cache: {},
-      progress: {},
       providers: {},
     })
 
@@ -156483,7 +156567,6 @@ window.__ModuleLoader__.load({
           searchTotal: Number(body.total) || results.length,
           searchLoadingMore: false,
         })
-        void refreshCacheStatus(provider, incoming.map(function (item) { return item.id }))
       } catch (error) {
         if (token !== onlineSearchToken) return
         if (more) {
@@ -156492,27 +156575,6 @@ window.__ModuleLoader__.load({
         } else {
           onlineStore.set({ phase: 'error', error: errorText(error) })
         }
-      }
-    }
-
-    async function refreshCacheStatus(provider, ids) {
-      var list = (ids || []).filter(Boolean).slice(0, 120)
-      if (list.length === 0) return
-      try {
-        var body = await getJson(
-          API +
-            'online/cache/status?provider=' +
-            encodeURIComponent(provider) +
-            '&ids=' +
-            encodeURIComponent(list.join(',')),
-        )
-        var state = onlineStore.get()
-        onlineStore.set({
-          cache: Object.assign({}, state.cache, body.cached || {}),
-          progress: Object.assign({}, state.progress, body.progress || {}),
-        })
-      } catch (error) {
-        // Cache badges are cosmetic.
       }
     }
 
@@ -156792,14 +156854,6 @@ window.__ModuleLoader__.load({
         '&artist=' +
         encodeURIComponent(artist) +
         (artistId !== '' ? '&artistId=' + encodeURIComponent(artistId) : '')
-      function cacheStatus(list) {
-        void refreshCacheStatus(
-          provider,
-          list.map(function (item) {
-            return item.id
-          }),
-        )
-      }
       try {
         // Folia's artist page opens with ARTIST_TOP_SONG_LIMIT (10) songs: one small
         // request, first paint at once. The rest of the list fills in behind it.
@@ -156807,7 +156861,6 @@ window.__ModuleLoader__.load({
         if (token !== artistLoadToken) return
         var songs = Array.isArray(head.songs) ? head.songs : []
         onlineStore.set({ artistSongs: songs, artistPhase: 'ready' })
-        cacheStatus(songs)
         // Only NetEase pages this endpoint today; the other providers answer the whole
         // list on the first request already.
         if (provider !== 'netease' || songs.length < 10) return
@@ -156825,7 +156878,6 @@ window.__ModuleLoader__.load({
           }),
         )
         onlineStore.set({ artistSongs: merged })
-        cacheStatus(merged)
       } catch (error) {
         if (token !== artistLoadToken) return
         onlineStore.set({ artistSongs: [], artistPhase: 'error', artistError: errorText(error) })
@@ -156925,7 +156977,6 @@ window.__ModuleLoader__.load({
           playlistSongs: body.songs,
           error: '',
         })
-        void refreshCacheStatus(provider, body.songs.map(function (item) { return item.id }))
       } catch (error) {
         var current = onlineStore.get()
         if (String(current.playlistId) !== String(playlist.id) || current.provider !== provider) return
@@ -157007,9 +157058,6 @@ window.__ModuleLoader__.load({
       var tracks = playable.map(onlineTrackOf)
       player.playList(tracks, at)
       rememberOnline(tracks[at])
-      if (tracks[at] && tracks[at].onlineProvider) {
-        void refreshCacheStatus(tracks[at].onlineProvider, [tracks[at].onlineId])
-      }
     }
 
     function playHistoryEntry(entry) {
@@ -160266,9 +160314,6 @@ window.__ModuleLoader__.load({
             { className: 'mp-row-title' },
             trackTitleOf(track),
             vip ? h('span', { className: 'mp-badge is-vip' }, 'VIP') : null,
-            online && props.cached === true
-              ? h('span', { className: 'mp-badge is-cache', title: t('v2.cached') }, icon('download', 10))
-              : null,
             current && props.playing === true
               ? h('span', { className: 'mp-eq' }, [h('i', { key: 1 }), h('i', { key: 2 }), h('i', { key: 3 })])
               : null,
@@ -165167,9 +165212,6 @@ window.__ModuleLoader__.load({
       var galleryOpen = galleryPair[0]
       var setGalleryOpen = galleryPair[1]
       var cachePair = useState(null)
-      var cacheSongsPair = useState(null)
-      var cacheSongs = cacheSongsPair[0]
-      var setCacheSongs = cacheSongsPair[1]
       var builtinLoudness =
         typeof window !== 'undefined' &&
         (typeof window.OfflineAudioContext !== 'undefined' ||
@@ -165266,13 +165308,6 @@ window.__ModuleLoader__.load({
             })
             .catch(function () {
               if (!cancelled) setData(null)
-            })
-          getJson(API + 'online/cache/list')
-            .then(function (body) {
-              if (!cancelled) setCacheSongs(Array.isArray(body.songs) ? body.songs : [])
-            })
-            .catch(function () {
-              if (!cancelled) setCacheSongs([])
             })
           return function () {
             cancelled = true
@@ -166285,11 +166320,89 @@ window.__ModuleLoader__.load({
       }
 
       function cacheTab() {
-        var stats = cache || { files: 0, bytes: 0, maxBytes: 0 }
+        var stats = cache || { songs: 0, files: 0, bytes: 0, categories: { audio: { files: 0, bytes: 0 }, cover: { files: 0, bytes: 0 } } }
         var dataStats = data || { files: 0, bytes: 0, categories: [] }
         var categories = Array.isArray(dataStats.categories) ? dataStats.categories : []
+        var cacheCategories = [
+          { key: 'audio', label: t('data.cacheAudio'), meta: fmtBytes((stats.categories && stats.categories.audio && stats.categories.audio.bytes) || 0) },
+          { key: 'cover', label: t('data.cacheCovers'), meta: fmtBytes((stats.categories && stats.categories.cover && stats.categories.cover.bytes) || 0) },
+          { key: 'lyrics', label: t('data.cacheLyrics'), meta: '' },
+        ]
+        var limitOptions = [
+          { value: '1', label: '1 GB' },
+          { value: '2', label: '2 GB' },
+          { value: '5', label: '5 GB' },
+          { value: '10', label: '10 GB' },
+          { value: '20', label: '20 GB' },
+          { value: '50', label: '50 GB' },
+          { value: '0', label: t('data.cacheNoLimit') },
+        ]
+        var limitGb = prefs.onlineCacheLimitGb === undefined ? 5 : Number(prefs.onlineCacheLimitGb)
+        function clearCategory(category) {
+          postJson(API + 'online/cache', { category: category })
+            .then(function () {
+              showToast(t('online.cacheCleared'))
+              return getJson(API + 'online/cache').then(function (body) {
+                setCache(body)
+              })
+            })
+            .catch(function (error) {
+              showToast(errorText(error))
+            })
+        }
         return [
           h('h2', { key: 'h' }, t('v2.dataTab')),
+          h(
+            SetRow,
+            { key: 'cache-enable', label: t('data.cacheEnable'), desc: t('data.cacheEnableDesc') },
+            h(Switch, {
+              value: prefs.onlineCacheEnabled === true,
+              onChange: function (value) {
+                patchPrefs({ onlineCacheEnabled: value })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'cache-limit', label: t('data.cacheLimit'), desc: t('data.cacheLimitDesc') },
+            mpSegment(limitOptions, String(limitGb), function (value) {
+              patchPrefs({ onlineCacheLimitGb: Number(value) })
+            }),
+          ),
+          h(
+            'div',
+            { key: 'cache-usage', className: 'mp-data-total' },
+            h('span', { className: 'mp-data-total-label' }, t('data.cacheUsageLabel')),
+            h(
+              'strong',
+              null,
+              t('data.cacheUsage', { songs: stats.songs || 0, size: fmtBytes(stats.bytes || 0) }),
+            ),
+          ),
+          h(
+            'div',
+            { key: 'cache-rows', className: 'mp-data-rows' },
+            cacheCategories.map(function (category) {
+              return h(
+                'div',
+                { key: category.key, className: 'mp-data-row' },
+                h('span', { className: 'mp-data-row-label' }, category.label),
+                h('span', { className: 'mp-data-row-meta' }, category.meta),
+                h(
+                  Button,
+                  {
+                    variant: 'ghost',
+                    icon: 'trash',
+                    onClick: function () {
+                      clearCategory(category.key)
+                    },
+                  },
+                  t('data.cacheClear'),
+                ),
+              )
+            }),
+          ),
+          h('p', { key: 'cache-hint', className: 'mp-set-desc' }, t('data.cacheHint')),
           h(
             'div',
             { key: 'data-total', className: 'mp-data-total' },
@@ -166315,62 +166428,6 @@ window.__ModuleLoader__.load({
                 }),
               ),
           h('p', { key: 'data-hint', className: 'mp-set-desc' }, t('data.hint')),
-          h(
-            SetRow,
-            { key: 'size', label: t('online.cacheSize', { files: stats.files || 0, n: fmtBytes(stats.bytes || 0) }), desc: t('online.cacheList') },
-            h(Button, {
-              variant: 'ghost',
-              icon: 'trash',
-              onClick: function () {
-                postJson(API + 'online/cache', {})
-                  .then(function () {
-                    setCache({ files: 0, bytes: 0, maxBytes: stats.maxBytes || 0 })
-                    setCacheSongs([])
-                    showToast(t('online.cacheCleared'))
-                  })
-                  .catch(function (error) {
-                    showToast(errorText(error))
-                  })
-              },
-              children: t('online.clearCache'),
-            }),
-          ),
-          h(
-            'p',
-            { key: 'hint', className: 'mp-set-desc' },
-            t('online.cacheListHint'),
-          ),
-          h(
-            'div',
-            { key: 'songs', className: 'mp-cache-block' },
-            h('div', { className: 'mp-cache-heading' }, t('online.cacheSongs'), h('span', null, String((cacheSongs || []).length))),
-            (cacheSongs || []).length === 0
-              ? h('div', { className: 'mp-cache-empty' }, t('online.cacheNoSongs'))
-              : h(
-                  'div',
-                  { className: 'mp-cache-list' },
-                  cacheSongs.map(function (song) {
-                    return h(
-                      'div',
-                      { key: song.provider + ':' + song.id, className: 'mp-cache-row' },
-                      h('span', { className: 'mp-cache-provider' }, providerLogo(song.provider, 18)),
-                      h(
-                        'div',
-                        { className: 'mp-cache-main' },
-                        h('div', { className: 'mp-cache-title' }, song.title || song.id),
-                        h(
-                          'div',
-                          { className: 'mp-cache-sub' },
-                          [song.artist, song.album].filter(Boolean).join(' · ') || t('page.unknownArtist'),
-                        ),
-                      ),
-                      h('span', { className: 'mp-cache-time' }, fmtTime(song.durationSec)),
-                      h('span', { className: 'mp-cache-size' }, fmtBytes(song.size || 0)),
-                      song.hasLyric ? h('span', { className: 'mp-cache-tag' }, 'LRC') : null,
-                    )
-                  }),
-                ),
-          ),
           h(
             'div',
             { key: 'danger', className: 'mp-data-danger' },
@@ -168515,12 +168572,6 @@ window.__ModuleLoader__.load({
       var provider = online.provider
       var nav = ui.nav
       var showingSearch = online.query !== '' && (online.phase === 'searching' || online.phase === 'ready' || online.phase === 'error')
-      var cachePair = useState(null)
-      var cacheList = cachePair[0]
-      var setCacheList = cachePair[1]
-      var cachePhasePair = useState('idle')
-      var cachePhase = cachePhasePair[0]
-      var setCachePhase = cachePhasePair[1]
       // Library-wide song list (Navidrome only; other providers return none).
       var songsPair = useState(null)
       var songsList = songsPair[0]
@@ -168657,32 +168708,6 @@ window.__ModuleLoader__.load({
           }
         },
         [provider, online.playlistsPhase, online.playlistsProvider],
-      )
-
-      useEffect(
-        function () {
-          if (nav !== 'cache') {
-            setCachePhase('idle')
-            return undefined
-          }
-          var cancelled = false
-          setCachePhase('loading')
-          getJson(API + 'online/cache/list?provider=' + encodeURIComponent(provider))
-            .then(function (body) {
-              if (cancelled) return
-              setCacheList(Array.isArray(body.songs) ? body.songs : [])
-              setCachePhase('ready')
-            })
-            .catch(function () {
-              if (cancelled) return
-              setCacheList([])
-              setCachePhase('error')
-            })
-          return function () {
-            cancelled = true
-          }
-        },
-        [nav, provider],
       )
 
       useEffect(
@@ -168878,9 +168903,6 @@ window.__ModuleLoader__.load({
             currentPath: props.currentPath,
             playing: props.playing,
             favoriteSet: likedSet,
-            cachedOf: function (track) {
-              return online.cache[track.onlineId] === true
-            },
             onPlay: function (track) {
               var index = results.findIndex(function (item) {
                 return 'online:' + item.provider + ':' + item.id === track.path
@@ -168983,9 +169005,6 @@ window.__ModuleLoader__.load({
             currentPath: props.currentPath,
             playing: props.playing,
             favoriteSet: likedSet,
-            cachedOf: function (track) {
-              return online.cache[track.onlineId] === true
-            },
             onPlay: function (track) {
               var index = albumSongs.findIndex(function (item) {
                 return 'online:' + item.provider + ':' + item.id === track.path
@@ -169098,9 +169117,6 @@ window.__ModuleLoader__.load({
             currentPath: props.currentPath,
             playing: props.playing,
             favoriteSet: likedSet,
-            cachedOf: function (track) {
-              return online.cache[track.onlineId] === true
-            },
             onPlay: function (track) {
               var index = songs.findIndex(function (item) {
                 return 'online:' + item.provider + ':' + item.id === track.path
@@ -169189,9 +169205,6 @@ window.__ModuleLoader__.load({
             currentPath: props.currentPath,
             playing: props.playing,
             favoriteSet: likedSet,
-            cachedOf: function (track) {
-              return online.cache[track.onlineId] === true
-            },
             onPlay: function (track) {
               var index = artistTracks.findIndex(function (item) {
                 return 'online:' + item.provider + ':' + item.id === track.path
@@ -169242,9 +169255,6 @@ window.__ModuleLoader__.load({
             currentPath: props.currentPath,
             playing: props.playing,
             favoriteSet: likedSet,
-            cachedOf: function (track) {
-              return online.cache[track.onlineId] === true
-            },
             onPlay: function (track) {
               var index = allSongs.findIndex(function (item) {
                 return 'online:' + item.provider + ':' + item.id === track.path
@@ -169472,45 +169482,6 @@ window.__ModuleLoader__.load({
           if (artistHead !== null) {
             body = h('div', { className: 'mp-artist-page' }, artistHead, cardList)
           }
-        }
-      } else if (nav === 'cache') {
-        title = t('v2.cache')
-        var entries = cacheList || []
-        count = entries.length
-        resetKey = 'online-cache'
-        if (cachePhase === 'loading') {
-          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-        } else if (entries.length === 0) {
-          body = h(Empty, { title: t('online.cacheEmpty'), icon: 'download' })
-        } else {
-          body = h(TrackListBody, {
-            items: (setPlayAll(entries), (onlineSelectionList = sortOnlineTracks(entries))),
-            resetKey: resetKey,
-            selectionMode: selecting,
-            selectedSet: selectedSet,
-            onToggleSelect: toggleSelected,
-            onSelect: function (track, additive) {
-              selectTrackIn(onlineSelectionList, track, additive)
-            },
-            focusPath: props.locatePath || '',
-            currentPath: props.currentPath,
-            playing: props.playing,
-            favoriteSet: likedSet,
-            onToggleFavorite: toggleOnlineFavorite,
-            onAlbum: function (track) {
-              void openOnlineAlbum(track)
-            },
-            onArtist: openArtist,
-            cachedOf: function () {
-              return true
-            },
-            onPlay: function (track) {
-              var index = entries.findIndex(function (item) {
-                return 'online:' + item.provider + ':' + item.id === track.path
-              })
-              playOnlineResults(entries, index < 0 ? 0 : index)
-            },
-          })
         }
       } else {
         var history = onlineEntriesForHistory(online, provider)

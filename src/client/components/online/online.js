@@ -58,8 +58,6 @@ var onlineStore = createStore({
   artistError: '',
   history: readOnlineHistory(),
   liked: {},
-  cache: {},
-  progress: {},
   providers: {},
 })
 
@@ -116,7 +114,6 @@ async function searchOnline(text, page, append) {
       searchTotal: Number(body.total) || results.length,
       searchLoadingMore: false,
     })
-    void refreshCacheStatus(provider, incoming.map(function (item) { return item.id }))
   } catch (error) {
     if (token !== onlineSearchToken) return
     if (more) {
@@ -125,27 +122,6 @@ async function searchOnline(text, page, append) {
     } else {
       onlineStore.set({ phase: 'error', error: errorText(error) })
     }
-  }
-}
-
-async function refreshCacheStatus(provider, ids) {
-  var list = (ids || []).filter(Boolean).slice(0, 120)
-  if (list.length === 0) return
-  try {
-    var body = await getJson(
-      API +
-        'online/cache/status?provider=' +
-        encodeURIComponent(provider) +
-        '&ids=' +
-        encodeURIComponent(list.join(',')),
-    )
-    var state = onlineStore.get()
-    onlineStore.set({
-      cache: Object.assign({}, state.cache, body.cached || {}),
-      progress: Object.assign({}, state.progress, body.progress || {}),
-    })
-  } catch (error) {
-    // Cache badges are cosmetic.
   }
 }
 
@@ -425,14 +401,6 @@ async function openOnlineArtist(track, artistOverride) {
     '&artist=' +
     encodeURIComponent(artist) +
     (artistId !== '' ? '&artistId=' + encodeURIComponent(artistId) : '')
-  function cacheStatus(list) {
-    void refreshCacheStatus(
-      provider,
-      list.map(function (item) {
-        return item.id
-      }),
-    )
-  }
   try {
     // Folia's artist page opens with ARTIST_TOP_SONG_LIMIT (10) songs: one small
     // request, first paint at once. The rest of the list fills in behind it.
@@ -440,7 +408,6 @@ async function openOnlineArtist(track, artistOverride) {
     if (token !== artistLoadToken) return
     var songs = Array.isArray(head.songs) ? head.songs : []
     onlineStore.set({ artistSongs: songs, artistPhase: 'ready' })
-    cacheStatus(songs)
     // Only NetEase pages this endpoint today; the other providers answer the whole
     // list on the first request already.
     if (provider !== 'netease' || songs.length < 10) return
@@ -458,7 +425,6 @@ async function openOnlineArtist(track, artistOverride) {
       }),
     )
     onlineStore.set({ artistSongs: merged })
-    cacheStatus(merged)
   } catch (error) {
     if (token !== artistLoadToken) return
     onlineStore.set({ artistSongs: [], artistPhase: 'error', artistError: errorText(error) })
@@ -558,7 +524,6 @@ async function openOnlinePlaylist(playlist, force) {
       playlistSongs: body.songs,
       error: '',
     })
-    void refreshCacheStatus(provider, body.songs.map(function (item) { return item.id }))
   } catch (error) {
     var current = onlineStore.get()
     if (String(current.playlistId) !== String(playlist.id) || current.provider !== provider) return
@@ -640,9 +605,6 @@ function playOnlineResults(results, index) {
   var tracks = playable.map(onlineTrackOf)
   player.playList(tracks, at)
   rememberOnline(tracks[at])
-  if (tracks[at] && tracks[at].onlineProvider) {
-    void refreshCacheStatus(tracks[at].onlineProvider, [tracks[at].onlineId])
-  }
 }
 
 function playHistoryEntry(entry) {

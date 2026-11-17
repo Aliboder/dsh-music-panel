@@ -37,6 +37,13 @@ var PREF_DEFAULTS = {
   lyricFormatOrder: ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'],
   /** Preferred online audio level: standard | high | lossless | hires. */
   onlineQuality: 'high',
+  /**
+   * Folia's `enableMediaCache`: cache a song's audio only after it was played through.
+   * Off by default, exactly as upstream; reads use the cache either way.
+   */
+  onlineCacheEnabled: false,
+  /** Folia's `mediaCacheLimitGb`: 1/2/5/10/20/50, 0 = no ceiling. */
+  onlineCacheLimitGb: 5,
   lyricAlign: 'left',
   lyricSize: 35,
   lyricGap: 15,

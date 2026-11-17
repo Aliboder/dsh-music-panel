@@ -134,9 +134,20 @@ function trackCoverSrc(track) {
     // by coverArt id rather than by URL; the generic route only allows the
     // public provider CDNs.
     if (track.onlineProvider === 'navidrome') return subsonicCoverUrl(track.coverArtId)
-    return typeof track.coverUrl === 'string' && track.coverUrl !== ''
-      ? API + 'online/cover?url=' + encodeURIComponent(track.coverUrl)
-      : ''
+    // The Host serves the cover cached with a played-through song first; `url` is the
+    // fallback while nothing is cached (Folia keys covers by song, not by URL).
+    if (typeof track.coverUrl === 'string' && track.coverUrl !== '') {
+      return (
+        API +
+        'online/cover?provider=' +
+        encodeURIComponent(track.onlineProvider) +
+        '&id=' +
+        encodeURIComponent(String(track.onlineId || '')) +
+        '&url=' +
+        encodeURIComponent(track.coverUrl)
+      )
+    }
+    return ''
   }
   if (track.hasCover === true && track.path) return coverUrl(track.path)
   return ''

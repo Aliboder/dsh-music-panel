@@ -87,9 +87,6 @@ function TrackRow(props) {
         { className: 'mp-row-title' },
         trackTitleOf(track),
         vip ? h('span', { className: 'mp-badge is-vip' }, 'VIP') : null,
-        online && props.cached === true
-          ? h('span', { className: 'mp-badge is-cache', title: t('v2.cached') }, icon('download', 10))
-          : null,
         current && props.playing === true
           ? h('span', { className: 'mp-eq' }, [h('i', { key: 1 }), h('i', { key: 2 }), h('i', { key: 3 })])
           : null,

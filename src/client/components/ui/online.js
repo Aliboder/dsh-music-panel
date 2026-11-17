@@ -37,12 +37,6 @@ function OnlineContent(props) {
   var provider = online.provider
   var nav = ui.nav
   var showingSearch = online.query !== '' && (online.phase === 'searching' || online.phase === 'ready' || online.phase === 'error')
-  var cachePair = useState(null)
-  var cacheList = cachePair[0]
-  var setCacheList = cachePair[1]
-  var cachePhasePair = useState('idle')
-  var cachePhase = cachePhasePair[0]
-  var setCachePhase = cachePhasePair[1]
   // Library-wide song list (Navidrome only; other providers return none).
   var songsPair = useState(null)
   var songsList = songsPair[0]
@@ -179,32 +173,6 @@ function OnlineContent(props) {
       }
     },
     [provider, online.playlistsPhase, online.playlistsProvider],
-  )
-
-  useEffect(
-    function () {
-      if (nav !== 'cache') {
-        setCachePhase('idle')
-        return undefined
-      }
-      var cancelled = false
-      setCachePhase('loading')
-      getJson(API + 'online/cache/list?provider=' + encodeURIComponent(provider))
-        .then(function (body) {
-          if (cancelled) return
-          setCacheList(Array.isArray(body.songs) ? body.songs : [])
-          setCachePhase('ready')
-        })
-        .catch(function () {
-          if (cancelled) return
-          setCacheList([])
-          setCachePhase('error')
-        })
-      return function () {
-        cancelled = true
-      }
-    },
-    [nav, provider],
   )
 
   useEffect(
@@ -400,9 +368,6 @@ function OnlineContent(props) {
         currentPath: props.currentPath,
         playing: props.playing,
         favoriteSet: likedSet,
-        cachedOf: function (track) {
-          return online.cache[track.onlineId] === true
-        },
         onPlay: function (track) {
           var index = results.findIndex(function (item) {
             return 'online:' + item.provider + ':' + item.id === track.path
@@ -505,9 +470,6 @@ function OnlineContent(props) {
         currentPath: props.currentPath,
         playing: props.playing,
         favoriteSet: likedSet,
-        cachedOf: function (track) {
-          return online.cache[track.onlineId] === true
-        },
         onPlay: function (track) {
           var index = albumSongs.findIndex(function (item) {
             return 'online:' + item.provider + ':' + item.id === track.path
@@ -620,9 +582,6 @@ function OnlineContent(props) {
         currentPath: props.currentPath,
         playing: props.playing,
         favoriteSet: likedSet,
-        cachedOf: function (track) {
-          return online.cache[track.onlineId] === true
-        },
         onPlay: function (track) {
           var index = songs.findIndex(function (item) {
             return 'online:' + item.provider + ':' + item.id === track.path
@@ -711,9 +670,6 @@ function OnlineContent(props) {
         currentPath: props.currentPath,
         playing: props.playing,
         favoriteSet: likedSet,
-        cachedOf: function (track) {
-          return online.cache[track.onlineId] === true
-        },
         onPlay: function (track) {
           var index = artistTracks.findIndex(function (item) {
             return 'online:' + item.provider + ':' + item.id === track.path
@@ -764,9 +720,6 @@ function OnlineContent(props) {
         currentPath: props.currentPath,
         playing: props.playing,
         favoriteSet: likedSet,
-        cachedOf: function (track) {
-          return online.cache[track.onlineId] === true
-        },
         onPlay: function (track) {
           var index = allSongs.findIndex(function (item) {
             return 'online:' + item.provider + ':' + item.id === track.path
@@ -994,45 +947,6 @@ function OnlineContent(props) {
       if (artistHead !== null) {
         body = h('div', { className: 'mp-artist-page' }, artistHead, cardList)
       }
-    }
-  } else if (nav === 'cache') {
-    title = t('v2.cache')
-    var entries = cacheList || []
-    count = entries.length
-    resetKey = 'online-cache'
-    if (cachePhase === 'loading') {
-      body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-    } else if (entries.length === 0) {
-      body = h(Empty, { title: t('online.cacheEmpty'), icon: 'download' })
-    } else {
-      body = h(TrackListBody, {
-        items: (setPlayAll(entries), (onlineSelectionList = sortOnlineTracks(entries))),
-        resetKey: resetKey,
-        selectionMode: selecting,
-        selectedSet: selectedSet,
-        onToggleSelect: toggleSelected,
-        onSelect: function (track, additive) {
-          selectTrackIn(onlineSelectionList, track, additive)
-        },
-        focusPath: props.locatePath || '',
-        currentPath: props.currentPath,
-        playing: props.playing,
-        favoriteSet: likedSet,
-        onToggleFavorite: toggleOnlineFavorite,
-        onAlbum: function (track) {
-          void openOnlineAlbum(track)
-        },
-        onArtist: openArtist,
-        cachedOf: function () {
-          return true
-        },
-        onPlay: function (track) {
-          var index = entries.findIndex(function (item) {
-            return 'online:' + item.provider + ':' + item.id === track.path
-          })
-          playOnlineResults(entries, index < 0 ? 0 : index)
-        },
-      })
     }
   } else {
     var history = onlineEntriesForHistory(online, provider)

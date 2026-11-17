@@ -13,6 +13,7 @@ import { createLibrary } from './src/host/services/media/library.js'
 import { createPlayback } from './src/host/services/playback/playback.js'
 import { createPlaylists } from './src/host/stores/playlists.js'
 import { createOnlineCache } from './src/host/services/media/online-cache.js'
+import { createMediaCache } from './src/host/stores/media-cache.js'
 import { createProviderStore } from './src/host/providers/provider-store.js'
 import { createAccountStore } from './src/host/stores/accounts.js'
 import { createAccountReads } from './src/host/services/account-read.js'
@@ -70,6 +71,9 @@ export function apply(ctx, rawConfig) {
     clear: (provider) => providerStore.clear(provider),
   }
   const onlineCache = createOnlineCache({ dir: settings.dir })
+  // Folia's media cache: written after a full play, with its own layout and one-time migration.
+  const mediaCache = createMediaCache({ dir: settings.dir })
+  void mediaCache.ensure()
   const kugouSessions = createKugouSessionManager({ providerStore })
 
   /**
@@ -88,12 +92,13 @@ export function apply(ctx, rawConfig) {
     await providerStore.clear()
     await accountReads.clearAll()
     await onlineCache.clear()
+    await mediaCache.clear('all')
     settings.invalidate()
     await settings.reset()
     library.clear()
   }
 
-  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, onlineCache, kugouSessions, resetData, lyricState })
+  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, onlineCache, mediaCache, kugouSessions, resetData, lyricState })
 
 
   // Sources are registered once per load; the registry is the single list every

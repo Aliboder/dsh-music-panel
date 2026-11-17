@@ -190,7 +190,6 @@ function navGroupsFor(source, favoritesCount) {
         label: t('v2.sectionOnline'),
         items: browse.concat([
           { key: 'recent', label: t('v2.recent'), icon: 'clock', count: null },
-          { key: 'cache', label: t('v2.cache'), icon: 'download', count: null },
         ]),
       },
     ]
@@ -304,8 +303,6 @@ function sectionTitleOf(ui) {
       return t('v2.recent')
     case 'album':
       return onlineStore.get().albumName || t('online.album')
-    case 'cache':
-      return t('v2.cache')
     default:
       return t('v2.songs')
   }

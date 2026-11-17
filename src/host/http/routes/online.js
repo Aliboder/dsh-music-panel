@@ -11,11 +11,11 @@
  * @module dsh-music-panel/routes/online
  */
 
-import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { fail, readJson, sendJson } from '../http.js'
 import { isAllowedCoverUrl } from '../url-safety.js'
 import { readTrackMeta } from '../../services/media/meta.js'
+import { createCacheWriter } from '../../services/media/cache-writer.js'
 import { omni } from '../../providers/sources/index.js'
 import * as ND from '../../providers/navidrome.js'
 import { createLoginBridge, createQrAdapter } from '../../providers/login/bridge.js'
@@ -91,6 +91,76 @@ export function createOnlineRoutes(deps) {
     writePayload: async () => null,
     patch: async () => null,
     clearPayload: async () => {},
+  }
+  // Folia's media cache: written only after a full play, read before the provider is asked.
+  const mediaCache = deps.mediaCache
+  const cacheWriter = mediaCache === undefined
+    ? null
+    : createCacheWriter({
+        mediaCache,
+        omni,
+        providerStore,
+        isAllowedCoverUrl,
+        userAgent: ONLINE_UA,
+        refererFor: onlineReferer,
+      })
+
+  /**
+   * Serve one song from Folia's media cache. A copy of another quality is passed over unless
+   * `anyQuality` is set (the "no URL at all" fallback). Returns false when nothing is served.
+   */
+  async function serveCachedAudio(req, res, provider, id, options = {}) {
+    if (mediaCache === undefined) return false
+    if (cacheWriter !== null && cacheWriter.isDistrusted(provider, id)) return false
+    const quality = typeof options.quality === 'string' && options.quality !== '' ? options.quality : ''
+    const cached = await mediaCache.lookup(provider, id)
+    if (cached === null) return false
+    if (options.anyQuality !== true && cached.quality !== '' && quality !== '' && cached.quality !== quality) {
+      return false
+    }
+    void mediaCache.touch(provider, id)
+    if (cacheWriter !== null) cacheWriter.noteStream(provider, id, { preview: false })
+    const rangeHeader = req.headers.range
+    const baseHeaders = {
+      'content-type': cached.mime,
+      'accept-ranges': 'bytes',
+      'cache-control': 'public, max-age=604800',
+    }
+    if (options.anyQuality === true) baseHeaders['x-music-cache-fallback'] = '1'
+    if (typeof rangeHeader === 'string' && rangeHeader !== '') {
+      const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim())
+      let start = 0
+      let end = cached.size - 1
+      if (match !== null) {
+        if (match[1] !== '') start = Number.parseInt(match[1], 10)
+        if (match[2] !== '') end = Number.parseInt(match[2], 10)
+      }
+      if (!Number.isFinite(start) || !Number.isFinite(end) || start > end || start >= cached.size) {
+        res.writeHead(416, { 'content-range': 'bytes */' + cached.size })
+        res.end()
+        return true
+      }
+      end = Math.min(end, cached.size - 1)
+      const length = end - start + 1
+      res.writeHead(206, {
+        ...baseHeaders,
+        'content-length': length,
+        'content-range': 'bytes ' + start + '-' + end + '/' + cached.size,
+      })
+      if (req.method === 'HEAD') {
+        res.end()
+        return true
+      }
+      createReadStream(cached.file, { start, end }).pipe(res)
+      return true
+    }
+    res.writeHead(200, { ...baseHeaders, 'content-length': cached.size })
+    if (req.method === 'HEAD') {
+      res.end()
+      return true
+    }
+    createReadStream(cached.file).pipe(res)
+    return true
   }
 
   /** Addressable online sources come from the registry, never a literal list. */
@@ -355,65 +425,13 @@ export function createOnlineRoutes(deps) {
           ? requestedQuality
           : config.onlineQuality || 'high'
         try {
-          // 1) Serve from the on-disk cache when we already have the bytes **of
-          // the requested quality**: a cached standard file must not answer a
-          // lossless request.
-          let cached = onlineCache === undefined ? null : await onlineCache.lookup(provider, id)
-          if (cached !== null && onlineCache !== undefined) {
-            const cachedQuality = await onlineCache.readMeta(provider, id, 'quality')
-            if (
-              cachedQuality !== null &&
-              typeof cachedQuality.quality === 'string' &&
-              cachedQuality.quality !== '' &&
-              cachedQuality.quality !== quality
-            ) {
-              cached = null
-            }
-          }
-          if (cached !== null) {
-            const rangeHeader = req.headers.range
-            const baseHeaders = {
-              'content-type': cached.contentType,
-              'accept-ranges': 'bytes',
-              'cache-control': 'public, max-age=604800',
-            }
-            if (typeof rangeHeader === 'string' && rangeHeader !== '') {
-              const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim())
-              let start = 0
-              let end = cached.size - 1
-              if (match !== null) {
-                if (match[1] !== '') start = Number.parseInt(match[1], 10)
-                if (match[2] !== '') end = Number.parseInt(match[2], 10)
-              }
-              if (!Number.isFinite(start) || !Number.isFinite(end) || start > end || start >= cached.size) {
-                res.writeHead(416, { 'content-range': 'bytes */' + cached.size })
-                res.end()
-                return
-              }
-              end = Math.min(end, cached.size - 1)
-              const length = end - start + 1
-              res.writeHead(206, {
-                ...baseHeaders,
-                'content-length': length,
-                'content-range': 'bytes ' + start + '-' + end + '/' + cached.size,
-              })
-              if (method === 'HEAD') {
-                res.end()
-                return
-              }
-              createReadStream(cached.file, { start, end }).pipe(res)
-              return
-            }
-            res.writeHead(200, { ...baseHeaders, 'content-length': cached.size })
-            if (method === 'HEAD') {
-              res.end()
-              return
-            }
-            createReadStream(cached.file).pipe(res)
-            return
-          }
+          // 1) A copy written after a full play (Folia's rule) plays before the platform is
+          // asked, as long as it was fetched at the quality the option now asks for.
+          if (await serveCachedAudio(req, res, provider, id, { quality })) return
 
-          // 2) Miss: resolve the CDN URL, stream it through, and cache the bytes.
+          // 2) Miss: resolve the CDN URL and stream it through. Nothing is written here: a
+          // song is cached only after /online/played says it was heard to its end.
+
           let cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
           let session = providerStore === undefined ? {} : await providerStore.session(provider)
           if ((provider === 'kugou' || provider === 'kugouLite') && (session.mid === undefined || session.mid === '')) {
@@ -433,6 +451,9 @@ export function createOnlineRoutes(deps) {
             }
           }
           if (stream.url === '') {
+            // No address: a copy of another quality is better than no song (Folia's
+            // `playCopyOfAnyLevel`). Only then is the failure reported.
+            if (await serveCachedAudio(req, res, provider, id, { anyQuality: true })) return
             // NetEase answers 404 for region-locked / delisted tracks. Keep the
             // real reason visible instead of blaming the user's login state.
             const message =
@@ -448,23 +469,9 @@ export function createOnlineRoutes(deps) {
             Referer: onlineReferer(provider),
           }
           // Forward the browser's Range request so seeking streams from the
-          // right offset. Chromium probes media with `Range: bytes=0-`, which
-          // covers the whole file: treat that as a full fetch so the bytes can
-          // be cached (otherwise audio caching would never trigger).
+          // right offset.
           const rangeHeader = req.headers.range
-          let rangeStart = 0
-          let rangeEnd = -1
-          let hasRange = typeof rangeHeader === 'string' && rangeHeader !== ''
-          if (hasRange) {
-            const rangeMatch = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim())
-            if (rangeMatch !== null) {
-              if (rangeMatch[1] !== '') rangeStart = Number.parseInt(rangeMatch[1], 10)
-              if (rangeMatch[2] !== '') rangeEnd = Number.parseInt(rangeMatch[2], 10)
-            } else {
-              rangeStart = -1
-            }
-          }
-          const fullFromStart = hasRange && rangeStart === 0 && rangeEnd === -1
+          const hasRange = typeof rangeHeader === 'string' && rangeHeader !== ''
           // Always forward the browser's Range, including `bytes=0-`.
           // Chromium treats a 200 answer to a Range request as "not seekable"
           // and restarts playback when the user scrubs (Chromium issue 973357);
@@ -478,6 +485,12 @@ export function createOnlineRoutes(deps) {
               signal: controller.signal,
               headers: upstreamHeaders,
             })
+          } catch (error) {
+            clearTimeout(timer)
+            // The platform gave an address but the request failed; a copy of another level
+            // still beats silence, as in Folia's `loadOnlineSongAudioSource`.
+            if (await serveCachedAudio(req, res, provider, id, { anyQuality: true })) return
+            throw error
           } finally {
             clearTimeout(timer)
           }
@@ -508,66 +521,20 @@ export function createOnlineRoutes(deps) {
             res.end()
             return
           }
-          let written = 0
-          let interrupted = false
-          let truncated = false
-          const declared = Number(headers['content-length'] || 0)
-          // `bytes=0-` is answered with a full-body 206; that is still a
-          // complete download worth caching. Any other Range is a seek.
-          const contentRangeHeader = String(headers['content-range'] || '')
-          const fullRangeMatch = /^bytes 0-(\d+)\/(\d+)$/.exec(contentRangeHeader)
-          const fullRangeBody =
-            fullRangeMatch !== null &&
-            Number(fullRangeMatch[1]) === Number(fullRangeMatch[2]) - 1
-          // Cache only complete downloads under the size cap. The sink writes
-          // straight to a temp file, so memory stays flat.
-          const cacheable =
-            stream.preview !== true &&
-            (!hasRange || (fullFromStart && fullRangeBody)) &&
-            (upstream.status === 200 || upstream.status === 206) &&
-            onlineCache !== undefined &&
-            (declared === 0 || declared <= 120 * 1024 * 1024)
-          let sink = null
-          if (cacheable) {
-            sink = await onlineCache.createSink(provider, id, headers['content-type'], declared)
-          }
           if (upstream.body !== null) {
             for await (const chunk of upstream.body) {
               if (res.writableEnded || res.destroyed) {
-                interrupted = true
                 controller.abort()
                 break
               }
               res.write(chunk)
-              written += chunk.length
-              if (sink !== null) {
-                if (written <= 120 * 1024 * 1024) {
-                  sink.write(chunk)
-                } else {
-                  truncated = true
-                  await sink.abort()
-                  sink = null
-                }
-              }
             }
           }
           if (!res.writableEnded) res.end()
-          if (sink !== null) {
-            const complete =
-              !interrupted && !truncated && (declared > 0 ? written === declared : written > 0)
-            if (complete) {
-              // Fire-and-forget: the rename must never delay the response.
-              void sink.finish().then(() => {
-                if (onlineCache !== undefined) {
-                  void onlineCache.writeMeta(provider, id, 'quality', {
-                    quality,
-                    at: Date.now(),
-                  })
-                }
-              })
-            } else {
-              void sink.abort()
-            }
+          // Remember how this stream turned out: /online/played only caches a song whose
+          // last stream was the real thing, never a provider-marked preview clip.
+          if (cacheWriter !== null) {
+            cacheWriter.noteStream(provider, id, { preview: stream.preview === true })
           }
           return
         } catch (error) {
@@ -591,13 +558,9 @@ export function createOnlineRoutes(deps) {
           return fail(res, 400, 'BAD_REQUEST', '缺少 provider / id')
         }
         try {
-          const cached = onlineCache === undefined ? null : await onlineCache.lookup(provider, id)
+          const cached = mediaCache === undefined ? null : await mediaCache.lookup(provider, id)
           if (cached === null) {
             return sendJson(res, 200, { ok: true, cached: false })
-          }
-          const saved = await onlineCache.readMeta(provider, id, 'audio')
-          if (saved !== null && saved.v === 1 && saved.size === cached.size && saved.info) {
-            return sendJson(res, 200, { ok: true, cached: true, info: saved.info })
           }
           const meta = await readTrackMeta(cached.file)
           const info = {
@@ -606,13 +569,8 @@ export function createOnlineRoutes(deps) {
             bitrate: meta.bitrate || 0,
             durationSec: meta.durationSec || 0,
             size: cached.size,
+            quality: cached.quality,
           }
-          await onlineCache.writeMeta(provider, id, 'audio', {
-            v: 1,
-            size: cached.size,
-            info,
-            at: Date.now(),
-          })
           return sendJson(res, 200, { ok: true, cached: true, info })
         } catch (error) {
           return fail(
@@ -1635,6 +1593,22 @@ export function createOnlineRoutes(deps) {
       }
 
       if (pathname === '/online/cover' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        const id = (params.get('id') || '').trim()
+        // 1) A cover cached with a played-through song (Folia caches covers by song, not by
+        // URL). The caller also sends the remote URL, used when nothing is cached yet.
+        if (mediaCache !== undefined && isOnlineSource(provider) && id !== '') {
+          const cachedCover = await mediaCache.coverFile(provider, id)
+          if (cachedCover !== null) {
+            res.writeHead(200, {
+              'content-type': cachedCover.mime,
+              'cache-control': 'public, max-age=604800',
+              'content-length': cachedCover.size,
+            })
+            createReadStream(cachedCover.file).pipe(res)
+            return
+          }
+        }
         const target = (params.get('url') || '').trim()
         let parsed = null
         try {
@@ -1648,18 +1622,7 @@ export function createOnlineRoutes(deps) {
         if (!isAllowedCoverUrl(target)) {
           return fail(res, 400, 'BAD_URL', '封面域名不在允许列表')
         }
-        const cacheKey = createHash('sha1').update(parsed.toString()).digest('hex')
         try {
-          const cachedCover = onlineCache === undefined ? null : await onlineCache.readAsset(cacheKey)
-          if (cachedCover !== null) {
-            res.writeHead(200, {
-              'content-type': cachedCover.contentType,
-              'cache-control': 'public, max-age=604800',
-              'content-length': cachedCover.size,
-            })
-            createReadStream(cachedCover.file).pipe(res)
-            return
-          }
           const upstream = await fetch(parsed.toString(), {
             redirect: 'follow',
             headers: { 'User-Agent': ONLINE_UA, Referer: 'https://y.qq.com/' },
@@ -1673,18 +1636,7 @@ export function createOnlineRoutes(deps) {
           const buffer = Buffer.from(await upstream.arrayBuffer())
           headers['content-length'] = buffer.length
           res.writeHead(200, headers)
-          res.end(buffer)
-          if (onlineCache !== undefined) {
-            const ext = contentType.includes('png')
-              ? 'png'
-              : contentType.includes('webp')
-                ? 'webp'
-                : contentType.includes('gif')
-                  ? 'gif'
-                  : 'jpg'
-            void onlineCache.writeAsset(cacheKey, buffer, ext)
-          }
-          return
+          return res.end(buffer)
         } catch (error) {
           return fail(
             res,
@@ -1695,49 +1647,7 @@ export function createOnlineRoutes(deps) {
         }
       }
 
-      if (pathname === '/online/cache/list' && method === 'GET') {
-        if (onlineCache === undefined) return sendJson(res, 200, { ok: true, songs: [] })
-        const entries = await onlineCache.listEntries()
-        const providerFilter = (params.get('provider') || '').trim()
-        const grouped = new Map()
-        for (const entry of entries) {
-          if (entry.provider === 'cover') continue
-          if (providerFilter !== '' && entry.provider !== providerFilter) continue
-          const key = entry.provider + ':' + entry.id
-          const item = grouped.get(key) || {
-            provider: entry.provider,
-            id: entry.id,
-            size: 0,
-            mtime: 0,
-            kinds: [],
-          }
-          item.size += entry.size
-          item.mtime = Math.max(item.mtime, entry.mtime)
-          item.kinds.push(entry.kind)
-          grouped.set(key, item)
-        }
-        const songs = []
-        for (const item of grouped.values()) {
-          if (!item.kinds.includes('audio')) continue
-          const meta = await onlineCache.readMeta(item.provider, item.id, 'info')
-          songs.push({
-            provider: item.provider,
-            id: item.id,
-            title: (meta && meta.title) || item.id,
-            artist: (meta && meta.artist) || '',
-            album: (meta && meta.album) || '',
-            coverUrl: (meta && meta.coverUrl) || '',
-            durationSec: Number(meta && meta.durationSec) || 0,
-            size: item.size,
-            mtime: item.mtime,
-            hasLyric: item.kinds.includes('lyric'),
-          })
-        }
-        songs.sort((left, right) => right.mtime - left.mtime)
-        return sendJson(res, 200, { ok: true, songs })
-      }
-
-      if (pathname === '/online/cache/remove' && method === 'POST') {
+      if (pathname === '/online/played' && method === 'POST') {
         let body
         try {
           body = await readJson(req)
@@ -1749,16 +1659,23 @@ export function createOnlineRoutes(deps) {
         if (!isOnlineSource(provider) || id === '') {
           return fail(res, 400, 'BAD_REQUEST', '缺少 provider / id')
         }
-        let removed = 0
-        if (onlineCache !== undefined) {
-          for (const kind of ['audio', 'lyric', 'info']) {
-            if (await onlineCache.removeEntry(provider, id, kind)) removed += 1
-          }
-        }
-        return sendJson(res, 200, { ok: true, removed })
+        if (cacheWriter === null) return sendJson(res, 200, { ok: true, stored: false, reason: 'unavailable' })
+        const requestedQuality = String(body?.quality || '')
+        const quality = ['standard', 'high', 'lossless', 'hires'].includes(requestedQuality)
+          ? requestedQuality
+          : (await settings.read()).onlineQuality || 'high'
+        const result = await cacheWriter.storePlayed({
+          provider,
+          id,
+          quality,
+          limitGb: body?.limitGb,
+          durationSec: body?.durationSec,
+          coverUrl: body?.coverUrl,
+        })
+        return sendJson(res, 200, { ok: true, ...result })
       }
 
-      if (pathname === '/online/cache/meta' && method === 'POST') {
+      if (pathname === '/online/cache/distrust' && method === 'POST') {
         let body
         try {
           body = await readJson(req)
@@ -1770,53 +1687,37 @@ export function createOnlineRoutes(deps) {
         if (!isOnlineSource(provider) || id === '') {
           return fail(res, 400, 'BAD_REQUEST', '缺少 provider / id')
         }
-        if (onlineCache !== undefined) {
-          await onlineCache.writeMeta(provider, id, 'info', {
-            title: String(body?.title || ''),
-            artist: String(body?.artist || ''),
-            album: String(body?.album || ''),
-            coverUrl: String(body?.coverUrl || ''),
-            durationSec: Number(body?.durationSec) || 0,
-            vip: body?.vip === true,
-            at: Date.now(),
-          })
-        }
+        // The copy failed to decode: bypass it for the rest of this process, like Folia's
+        // session-scoped distrust mark. A successful write clears it.
+        if (cacheWriter !== null) cacheWriter.markDistrusted(provider, id)
         return sendJson(res, 200, { ok: true })
-      }
-
-      if (pathname === '/online/cache/status' && method === 'GET') {
-        const provider = (params.get('provider') || '').trim()
-        const ids = (params.get('ids') || '')
-          .split(',')
-          .map((value) => value.trim())
-          .filter((value) => value !== '')
-          .slice(0, 200)
-        if (!isOnlineSource(provider)) {
-          return fail(res, 400, 'BAD_PROVIDER', '未知平台')
-        }
-        const cached = {}
-        const progress = {}
-        if (onlineCache !== undefined) {
-          for (const id of ids) {
-            cached[id] = await onlineCache.isCached(provider, id)
-            const live = onlineCache.progress(provider, id)
-            if (live !== null) progress[id] = live
-          }
-        }
-        return sendJson(res, 200, { ok: true, cached, progress })
       }
 
       if (pathname === '/online/cache' && method === 'GET') {
         const stats =
-          onlineCache === undefined
-            ? { files: 0, bytes: 0, maxBytes: 0 }
-            : await onlineCache.stats()
+          mediaCache === undefined
+            ? { songs: 0, files: 0, bytes: 0, categories: { audio: { files: 0, bytes: 0 }, cover: { files: 0, bytes: 0 } } }
+            : await mediaCache.stats()
         return sendJson(res, 200, { ok: true, ...stats })
       }
 
       if (pathname === '/online/cache' && method === 'POST') {
-        const removed = onlineCache === undefined ? 0 : await onlineCache.clear()
-        return sendJson(res, 200, { ok: true, removed })
+        let body = null
+        try {
+          body = await readJson(req)
+        } catch {
+          body = null
+        }
+        const category = body?.category === 'audio' || body?.category === 'cover' || body?.category === 'lyrics'
+          ? body.category
+          : 'all'
+        let removed = 0
+        if (category === 'lyrics') {
+          removed = (await lyricRecords.clear?.()) ?? 0
+        } else if (mediaCache !== undefined) {
+          removed = await mediaCache.clear(category)
+        }
+        return sendJson(res, 200, { ok: true, removed, category })
       }
 
       if (pathname === '/online/providers' && method === 'GET') {

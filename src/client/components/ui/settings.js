@@ -29,9 +29,6 @@ function SettingsSheet(props) {
   var galleryOpen = galleryPair[0]
   var setGalleryOpen = galleryPair[1]
   var cachePair = useState(null)
-  var cacheSongsPair = useState(null)
-  var cacheSongs = cacheSongsPair[0]
-  var setCacheSongs = cacheSongsPair[1]
   var builtinLoudness =
     typeof window !== 'undefined' &&
     (typeof window.OfflineAudioContext !== 'undefined' ||
@@ -128,13 +125,6 @@ function SettingsSheet(props) {
         })
         .catch(function () {
           if (!cancelled) setData(null)
-        })
-      getJson(API + 'online/cache/list')
-        .then(function (body) {
-          if (!cancelled) setCacheSongs(Array.isArray(body.songs) ? body.songs : [])
-        })
-        .catch(function () {
-          if (!cancelled) setCacheSongs([])
         })
       return function () {
         cancelled = true
@@ -1147,11 +1137,89 @@ function SettingsSheet(props) {
   }
 
   function cacheTab() {
-    var stats = cache || { files: 0, bytes: 0, maxBytes: 0 }
+    var stats = cache || { songs: 0, files: 0, bytes: 0, categories: { audio: { files: 0, bytes: 0 }, cover: { files: 0, bytes: 0 } } }
     var dataStats = data || { files: 0, bytes: 0, categories: [] }
     var categories = Array.isArray(dataStats.categories) ? dataStats.categories : []
+    var cacheCategories = [
+      { key: 'audio', label: t('data.cacheAudio'), meta: fmtBytes((stats.categories && stats.categories.audio && stats.categories.audio.bytes) || 0) },
+      { key: 'cover', label: t('data.cacheCovers'), meta: fmtBytes((stats.categories && stats.categories.cover && stats.categories.cover.bytes) || 0) },
+      { key: 'lyrics', label: t('data.cacheLyrics'), meta: '' },
+    ]
+    var limitOptions = [
+      { value: '1', label: '1 GB' },
+      { value: '2', label: '2 GB' },
+      { value: '5', label: '5 GB' },
+      { value: '10', label: '10 GB' },
+      { value: '20', label: '20 GB' },
+      { value: '50', label: '50 GB' },
+      { value: '0', label: t('data.cacheNoLimit') },
+    ]
+    var limitGb = prefs.onlineCacheLimitGb === undefined ? 5 : Number(prefs.onlineCacheLimitGb)
+    function clearCategory(category) {
+      postJson(API + 'online/cache', { category: category })
+        .then(function () {
+          showToast(t('online.cacheCleared'))
+          return getJson(API + 'online/cache').then(function (body) {
+            setCache(body)
+          })
+        })
+        .catch(function (error) {
+          showToast(errorText(error))
+        })
+    }
     return [
       h('h2', { key: 'h' }, t('v2.dataTab')),
+      h(
+        SetRow,
+        { key: 'cache-enable', label: t('data.cacheEnable'), desc: t('data.cacheEnableDesc') },
+        h(Switch, {
+          value: prefs.onlineCacheEnabled === true,
+          onChange: function (value) {
+            patchPrefs({ onlineCacheEnabled: value })
+          },
+        }),
+      ),
+      h(
+        SetRow,
+        { key: 'cache-limit', label: t('data.cacheLimit'), desc: t('data.cacheLimitDesc') },
+        mpSegment(limitOptions, String(limitGb), function (value) {
+          patchPrefs({ onlineCacheLimitGb: Number(value) })
+        }),
+      ),
+      h(
+        'div',
+        { key: 'cache-usage', className: 'mp-data-total' },
+        h('span', { className: 'mp-data-total-label' }, t('data.cacheUsageLabel')),
+        h(
+          'strong',
+          null,
+          t('data.cacheUsage', { songs: stats.songs || 0, size: fmtBytes(stats.bytes || 0) }),
+        ),
+      ),
+      h(
+        'div',
+        { key: 'cache-rows', className: 'mp-data-rows' },
+        cacheCategories.map(function (category) {
+          return h(
+            'div',
+            { key: category.key, className: 'mp-data-row' },
+            h('span', { className: 'mp-data-row-label' }, category.label),
+            h('span', { className: 'mp-data-row-meta' }, category.meta),
+            h(
+              Button,
+              {
+                variant: 'ghost',
+                icon: 'trash',
+                onClick: function () {
+                  clearCategory(category.key)
+                },
+              },
+              t('data.cacheClear'),
+            ),
+          )
+        }),
+      ),
+      h('p', { key: 'cache-hint', className: 'mp-set-desc' }, t('data.cacheHint')),
       h(
         'div',
         { key: 'data-total', className: 'mp-data-total' },
@@ -1177,62 +1245,6 @@ function SettingsSheet(props) {
             }),
           ),
       h('p', { key: 'data-hint', className: 'mp-set-desc' }, t('data.hint')),
-      h(
-        SetRow,
-        { key: 'size', label: t('online.cacheSize', { files: stats.files || 0, n: fmtBytes(stats.bytes || 0) }), desc: t('online.cacheList') },
-        h(Button, {
-          variant: 'ghost',
-          icon: 'trash',
-          onClick: function () {
-            postJson(API + 'online/cache', {})
-              .then(function () {
-                setCache({ files: 0, bytes: 0, maxBytes: stats.maxBytes || 0 })
-                setCacheSongs([])
-                showToast(t('online.cacheCleared'))
-              })
-              .catch(function (error) {
-                showToast(errorText(error))
-              })
-          },
-          children: t('online.clearCache'),
-        }),
-      ),
-      h(
-        'p',
-        { key: 'hint', className: 'mp-set-desc' },
-        t('online.cacheListHint'),
-      ),
-      h(
-        'div',
-        { key: 'songs', className: 'mp-cache-block' },
-        h('div', { className: 'mp-cache-heading' }, t('online.cacheSongs'), h('span', null, String((cacheSongs || []).length))),
-        (cacheSongs || []).length === 0
-          ? h('div', { className: 'mp-cache-empty' }, t('online.cacheNoSongs'))
-          : h(
-              'div',
-              { className: 'mp-cache-list' },
-              cacheSongs.map(function (song) {
-                return h(
-                  'div',
-                  { key: song.provider + ':' + song.id, className: 'mp-cache-row' },
-                  h('span', { className: 'mp-cache-provider' }, providerLogo(song.provider, 18)),
-                  h(
-                    'div',
-                    { className: 'mp-cache-main' },
-                    h('div', { className: 'mp-cache-title' }, song.title || song.id),
-                    h(
-                      'div',
-                      { className: 'mp-cache-sub' },
-                      [song.artist, song.album].filter(Boolean).join(' · ') || t('page.unknownArtist'),
-                    ),
-                  ),
-                  h('span', { className: 'mp-cache-time' }, fmtTime(song.durationSec)),
-                  h('span', { className: 'mp-cache-size' }, fmtBytes(song.size || 0)),
-                  song.hasLyric ? h('span', { className: 'mp-cache-tag' }, 'LRC') : null,
-                )
-              }),
-            ),
-      ),
       h(
         'div',
         { key: 'danger', className: 'mp-data-danger' },

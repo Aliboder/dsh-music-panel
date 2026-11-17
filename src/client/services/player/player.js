@@ -132,6 +132,8 @@ function createPlayer() {
   var currentBlob = null
   /** Measured plan + fetched audio for the incoming side. */
   var xfadePrepared = null
+  /** The track leaving on the ghost deck, kept until the fade lands (cache report). */
+  var xfadeOutgoing = null
   /** Background download of the next track, so an uncached online song is ready. */
   var prefetchedNext = null
   var prefetchAbort = null
@@ -241,6 +243,47 @@ function createPlayer() {
       }).catch(function () {
         // Reporting is a background courtesy; a failure never touches playback.
       })
+    } catch (error) {
+      // Best effort.
+    }
+  }
+
+  /**
+   * Folia caches an online song only once it was heard to its end: the Host downloads it
+   * then. This says which song, at which quality, and with which stated length/cover — the
+   * decision (preview / half song / limit) belongs to the Host.
+   */
+  function reportPlayed(item) {
+    if (item === null || item === undefined) return
+    if (!item.onlineProvider || !item.onlineId) return
+    var settings = readPrefs()
+    if (settings.onlineCacheEnabled !== true) return
+    var limitGb = Number(settings.onlineCacheLimitGb)
+    try {
+      postJson(API + 'online/played', {
+        provider: String(item.onlineProvider),
+        id: String(item.onlineId),
+        quality: String(settings.onlineQuality || 'high'),
+        limitGb: isFinite(limitGb) && limitGb >= 0 ? limitGb : 5,
+        durationSec: Number(item.durationSec) || 0,
+        coverUrl: typeof item.coverUrl === 'string' ? item.coverUrl : '',
+      }).catch(function () {
+        // Caching is a background courtesy; a failure never touches playback.
+      })
+    } catch (error) {
+      // Best effort.
+    }
+  }
+
+  /** The cached copy failed to play: the Host bypasses it until a new one is written. */
+  function reportCacheDistrust(item) {
+    if (item === null || item === undefined) return
+    if (!item.onlineProvider || !item.onlineId) return
+    try {
+      postJson(API + 'online/cache/distrust', {
+        provider: String(item.onlineProvider),
+        id: String(item.onlineId),
+      }).catch(function () {})
     } catch (error) {
       // Best effort.
     }
@@ -635,6 +678,8 @@ function createPlayer() {
     // The song was heard whole: keep its reading for the next play.
     commitBalanceReading(currentItem(), audio === null ? 0 : audio.duration)
     if (!isActiveEvent(event)) return
+    // Folia's cache rule: the song was heard whole, so the Host may keep it.
+    reportPlayed(currentItem())
     reportProviderPlayback(currentItem())
     flushListening(true)
     flushSessionPosition()
@@ -672,6 +717,7 @@ function createPlayer() {
           : ''
     errorStreak += 1
     var failedTrack = state.queue[state.index] || null
+    reportCacheDistrust(failedTrack)
     errorListeners.forEach(function (fn) {
       try {
         fn({ track: failedTrack, streak: errorStreak, reason: reason || '' })
@@ -991,18 +1037,6 @@ function createPlayer() {
       var onlineController =
         typeof AbortController !== 'undefined' ? new AbortController() : null
       fetchAbort = onlineController
-      if (item.onlineProvider && item.onlineId) {
-        void postJson(API + 'online/cache/meta', {
-          provider: item.onlineProvider,
-          id: item.onlineId,
-          title: item.title || '',
-          artist: item.artist || '',
-          album: item.album || '',
-          coverUrl: item.coverUrl || '',
-          durationSec: item.durationSec || 0,
-          vip: item.qualityHint === 'VIP',
-        }).catch(function () {})
-      }
       fetch(item.onlineUrl, onlineController === null ? {} : { signal: onlineController.signal })
         .then(function (response) {
           if (!response.ok) throw new Error('HTTP ' + response.status)
@@ -1344,6 +1378,9 @@ function createPlayer() {
     var fade = Math.min(prepared.plan.overlap, remaining - 0.05)
     if (!(fade >= 1)) return abortCrossfade()
     var token = xfadeToken
+    // The outgoing song never fires `ended` once the fade takes it off the active deck; its
+    // "played whole" report is made when the fade lands, from this capture.
+    xfadeOutgoing = { item: currentItem(), duration: state.duration > 0 ? state.duration : audio.duration || 0 }
     var incomingDeck = foliaGraph !== null && audio === foliaGraph.getDeckElement('A') ? 'B' : 'A'
     releaseObjectUrlB()
     objectUrlB = URL.createObjectURL(prepared.blob)
@@ -1463,6 +1500,14 @@ function createPlayer() {
     }
     if (audioB !== null) {
       try {
+        // Before the ghost is silenced: did it reach the end of the song? The fade is
+        // clamped to `remaining - 0.05`, so a completed crossfade always did.
+        var reachedEnd =
+          xfadeOutgoing !== null &&
+          isFinite(audioB.duration) &&
+          audioB.duration > 0 &&
+          audioB.duration - audioB.currentTime <= 1.5
+        if (reachedEnd) reportPlayed(xfadeOutgoing.item)
         audioB.pause()
         audioB.removeAttribute('src')
         audioB.load()
@@ -1470,6 +1515,7 @@ function createPlayer() {
         // Detached element: nothing to stop.
       }
     }
+    xfadeOutgoing = null
     releaseObjectUrlB()
     normalizeGainB = 1
     maybePrefetchNext()
@@ -1483,6 +1529,7 @@ function createPlayer() {
     xfadeAdopted = false
     xfadeNext = -1
     xfadePrepared = null
+    xfadeOutgoing = null
     if (xfadeTimer !== null) {
       clearTimeout(xfadeTimer)
       xfadeTimer = null
