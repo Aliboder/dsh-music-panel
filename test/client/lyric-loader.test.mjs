@@ -131,6 +131,62 @@ assert.equal(loader.keyOf(null), '')
   assert.ok(requests[0].includes('priority=online'), 'the local/online priority is sent')
 }
 
+// ── the upgrade lands after the first lyric, and the surfaces are told ─────
+
+/** Let the fire-and-forget upgrade finish. */
+async function settle(notifications) {
+  for (let i = 0; i < 100 && notifications.length === 0; i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 5))
+  }
+}
+
+{
+  requests.length = 0
+  loader.invalidate()
+  responder = async (url) => {
+    if (url.includes('online/best-lyric')) {
+      return {
+        ok: true,
+        match: {
+          source: 'qq',
+          id: 'q1',
+          wordLevel: true,
+          raw: { type: 'local', lrcContent: '[1000,2000](1000,900,0)升级', formatHint: 'yrc' },
+        },
+      }
+    }
+    return { source: 'online', raw: { type: 'local', lrcContent: '[00:01.000]第一版' } }
+  }
+  const track = { onlineProvider: 'netease', onlineId: 'up1', title: 't', artist: 'a' }
+  const notifications = []
+  const base = await loader.load(track)
+  assert.equal(base.lyrics[0].fullText, '第一版')
+  const off = loader.subscribe('online:netease:up1', (result) => notifications.push(result))
+  await settle(notifications)
+  off()
+  assert.equal(notifications.length, 1, 'the upgrade is announced once')
+  assert.equal(notifications[0].upgraded.source, 'qq')
+  assert.equal(notifications[0].upgraded.wordLevel, true)
+  assert.equal(notifications[0].lyrics[0].fullText, '升级')
+  assert.ok(requests.some((url) => url.includes('online/best-lyric')), 'the other sources were asked')
+  // The upgraded lyric is what the next load answers with.
+  const cached = await loader.load(track)
+  assert.equal(cached.lyrics[0].fullText, '升级')
+}
+
+// An imported lyric is the listener's own choice: no other source replaces it.
+{
+  requests.length = 0
+  loader.invalidate()
+  responder = async (url) => {
+    if (url.includes('online/best-lyric')) return { ok: true, match: { source: 'qq', id: 'q2', raw: null, lrc: '[00:01.000]x' } }
+    return { source: 'imported', raw: { type: 'local', lrcContent: '[00:01.000]导入' } }
+  }
+  await loader.load({ onlineProvider: 'qq', onlineId: 'imp1' })
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  assert.equal(requests.some((url) => url.includes('online/best-lyric')), false, 'an imported lyric is not upgraded')
+}
+
 // ── the gate always resolves: a hung request times out ─────────────────────
 
 {

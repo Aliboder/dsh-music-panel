@@ -10158,6 +10158,8 @@ window.__ModuleLoader__.load({
 
       var cache = new Map()
       var inflight = new Map()
+      /** key -> Set of listeners waiting for the upgrade that replaces the first lyric. */
+      var listeners = new Map()
 
       /** The identity of a song, the same key the Host's lyric record uses. */
       function keyOf(track) {
@@ -10228,31 +10230,41 @@ window.__ModuleLoader__.load({
           result.pureMusic = true
           return result
         }
+        return Object.assign(result, await parseOnlineBody(track, body, chorusRanges))
+      }
+
+      /**
+       * The lyric document of one platform answer (or of a borrowed match). Shared by the
+       * first load and the upgrade, so both parse through Folia's pipeline the same way.
+       */
+      async function parseOnlineBody(track, body, chorusRanges) {
+        var key = keyOf(track)
+        var parsed = { lyrics: [], document: null, pureMusic: false, isWordByWord: false }
         var document = null
         if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
           try {
-            var parsed = await MPFoliaLyrics.parse(body.raw, { songId: Number(track.onlineId) || 0 })
-            if (parsed && Array.isArray(parsed.lines) && parsed.lines.length > 0) document = parsed
+            var doc = await MPFoliaLyrics.parse(body.raw, { songId: Number(track.onlineId) || 0 })
+            if (doc && Array.isArray(doc.lines) && doc.lines.length > 0) document = doc
           } catch (error) {
             document = null
           }
         }
         if (document !== null) {
           var shown = mpPrepareLyrics(document, key, chorusRanges)
-          result.lyrics = shown.lyrics
-          result.document = document
-          result.pureMusic = shown.pureMusic === true
-          result.isWordByWord = shown.isWordByWord === true
-          return result
+          parsed.lyrics = shown.lyrics
+          parsed.document = document
+          parsed.pureMusic = shown.pureMusic === true
+          parsed.isWordByWord = shown.isWordByWord === true
+          return parsed
         }
         // No document the pipeline can parse (an older cache): the Host's LRC and its word
         // timeline, converted the way the legacy producers are.
         var lines = parseLrcText(body.lrc || '')
         if (body.translation) mergeLyricTranslation(lines, body.translation)
         attachWordTimeline(lines, body.lines)
-        result.lyrics = legacyLinesToFolia(lines)
-        result.isWordByWord = body.wordLevel === true
-        return result
+        parsed.lyrics = legacyLinesToFolia(lines)
+        parsed.isWordByWord = body.wordLevel === true
+        return parsed
       }
 
       async function loadLocal(track) {
@@ -10315,10 +10327,116 @@ window.__ModuleLoader__.load({
           .then(function (result) {
             inflight.delete(key)
             remember(key, result)
+            // Folia asks another source for better timing once the first lyric is on its way;
+            // the surfaces are told when a match replaces it.
+            maybeUpgrade(track, result)
             return result
           })
         inflight.set(key, promise)
         return promise
+      }
+
+      /** A source with better timing for this song, or nothing. Never awaited by playback. */
+      async function upgrade(track, base) {
+        var key = keyOf(track)
+        var provider = String(track.onlineProvider || '')
+        try {
+          var answer = await getJson(
+            API +
+              'online/best-lyric?provider=' +
+              encodeURIComponent(provider) +
+              '&id=' +
+              encodeURIComponent(String(track.onlineId || '')) +
+              '&title=' +
+              encodeURIComponent(track.title || '') +
+              '&artist=' +
+              encodeURIComponent(track.artist || '') +
+              '&album=' +
+              encodeURIComponent(track.album || '') +
+              '&duration=' +
+              encodeURIComponent(String(track.durationSec || 0)) +
+              '&preferred=' +
+              encodeURIComponent(String(prefs.lyricPreferredSource || '')),
+          )
+          var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
+          if (match === null) return null
+          // The platform's own lyric cannot replace itself.
+          if (String(match.source || '') === provider) return null
+          var parsed = await parseOnlineBody(
+            track,
+            {
+              raw: match.raw && typeof match.raw === 'object' ? match.raw : null,
+              lrc: typeof match.lrc === 'string' ? match.lrc : '',
+              translation: typeof match.translation === 'string' ? match.translation : '',
+              lines: Array.isArray(match.lines) ? match.lines : null,
+              wordLevel: match.wordLevel === true,
+            },
+            base.chorusRanges,
+          )
+          if (parsed.pureMusic === true || parsed.lyrics.length === 0) return null
+          var next = Object.assign({}, base, parsed, {
+            upgraded: {
+              source: String(match.source || ''),
+              id: String(match.id || ''),
+              wordLevel: match.wordLevel === true,
+            },
+          })
+          remember(key, next)
+          notify(key, next)
+          return next
+        } catch (error) {
+          return null
+        }
+      }
+
+      function maybeUpgrade(track, result) {
+        if (!track || !track.onlineProvider) return
+        if (prefs.autoUseBestLyric === false) return
+        if (result.pureMusic === true || result.source === 'imported') return
+        if (result.lyrics.length === 0) return
+        upgrade(track, result).catch(function () {})
+      }
+
+      function notify(key, result) {
+        var set = listeners.get(key)
+        if (set === undefined) return
+        set.forEach(function (listener) {
+          try {
+            listener(result)
+          } catch (error) {
+            // A surface that throws must not stop the others.
+          }
+        })
+      }
+
+      /**
+       * Listen for the upgrade that replaces a song's first lyric. The listener is called
+       * immediately when the upgrade already landed (a slow subscriber would otherwise miss
+       * the notification). Returns the unsubscribe function.
+       */
+      function subscribe(key, listener) {
+        if (typeof listener !== 'function') return function () {}
+        var id = String(key)
+        var set = listeners.get(id)
+        if (set === undefined) {
+          set = new Set()
+          listeners.set(id, set)
+        }
+        set.add(listener)
+        var current = cache.get(id)
+        if (current !== undefined && current.upgraded !== undefined) {
+          try {
+            listener(current)
+          } catch (error) {
+            // Same: one bad surface does not break the others.
+          }
+        }
+        return function () {
+          var live = listeners.get(id)
+          if (live === undefined) return
+          live.delete(listener)
+          if (live.size === 0) listeners.delete(id)
+        }
       }
 
       /**
@@ -10366,7 +10484,7 @@ window.__ModuleLoader__.load({
         cache.delete(String(key))
       }
 
-      return { load: load, whenReady: whenReady, invalidate: invalidate, keyOf: keyOf }
+      return { load: load, whenReady: whenReady, invalidate: invalidate, keyOf: keyOf, subscribe: subscribe }
     })()
 
     // ── src/client/render/lyrics/lyrics.bundle.js
@@ -161284,6 +161402,12 @@ window.__ModuleLoader__.load({
           // Host's pick. Before this, an online track had no lyric here at all: `/lyrics` only
           // accepts a file path, and `online:<provider>:<id>` is not one.
           setLyrics([])
+          // The loader may replace the first lyric with a better-timed one after playback
+          // starts; the stage follows it, as Folia's setter does.
+          var unsubscribe = MPLyricLoader.subscribe(trackPath, function (next) {
+            if (cancelled || next.upgraded === undefined) return
+            setLyrics(next.document === null ? legacyLinesToFolia(next.lyrics) : next.lyrics)
+          })
           MPLyricLoader.load(track)
             .then(function (loaded) {
               if (cancelled) return
@@ -161295,6 +161419,7 @@ window.__ModuleLoader__.load({
             })
           return function () {
             cancelled = true
+            if (typeof unsubscribe === 'function') unsubscribe()
           }
         },
         [props.open, trackPath],
@@ -163492,112 +163617,50 @@ window.__ModuleLoader__.load({
             lyricPrefsKeyRef.current = lyricPriorityKey
             MPLyricLoader.invalidate()
           }
-          // The upgrade search is the only request that can outlive its song: it runs after the
-          // lyric is on screen and walks every source. Abort it when this effect is torn down
-          // (track change / panel close) instead of letting four searches stack up.
-          var upgradeAbort = typeof AbortController === 'function' ? new AbortController() : null
           lyricDocRef.current = null
           setLyrics([])
           setLyricSource('')
           setLyricError('')
           setLyricsLoading(true)
           var current = snap.queue[snap.index]
-          /**
-           * Folia's `autoUseBestLyric`: when the platform's own lyric has no word-level
-           * timing, another source may have this song word-by-word. Asked after the lines are
-           * on screen (playback never waits for the search). Any match from another source is
-           * applied — Folia accepts a line-level answer too, which is how the preferred source's
-           * translation can win over the platform's own line-level lyric.
-           */
-          async function upgradeLyric(current, chorusRanges, signal) {
-            var query =
-              'online/best-lyric?provider=' +
-              encodeURIComponent(current.onlineProvider) +
-              '&id=' +
-              encodeURIComponent(current.onlineId || '') +
-              '&title=' +
-              encodeURIComponent(current.title || '') +
-              '&artist=' +
-              encodeURIComponent(current.artist || '') +
-              '&album=' +
-              encodeURIComponent(current.album || '') +
-              '&duration=' +
-              encodeURIComponent(String(current.durationSec || 0)) +
-              '&preferred=' +
-              encodeURIComponent(String(prefs.lyricPreferredSource || ''))
-            var answer = await getJson(API + query, signal === null ? undefined : { signal: signal })
-            var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
-            if (cancelled || match === null) return
-            var upgraded = null
-            var parsedDocument = null
-            var raw = match.raw !== null && typeof match.raw === 'object' ? match.raw : null
-            if (raw !== null && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
-              try {
-                var parsed = await MPFoliaLyrics.parse(raw, { songId: Number(current.onlineId) || 0 })
-                if (parsed && Array.isArray(parsed.lines) && parsed.lines.length > 0) {
-                  parsedDocument = parsed
-                  upgraded = mpPrepareLyrics(parsed, trackPath, chorusRanges)
-                }
-              } catch (error) {
-                upgraded = null
-              }
-            }
-            // A skip during the search must not put this document behind the next song's
-            // lyrics: the ref is what a later rule change re-applies the pass to.
-            if (cancelled) return
-            if (upgraded !== null && upgraded.pureMusic === true) return
-            var shownCount = 0
-            if (upgraded !== null && upgraded.lyrics.length > 0 && parsedDocument !== null) {
-              lyricDocRef.current = { path: trackPath, document: parsedDocument, chorusRanges: chorusRanges }
-              setLyrics(upgraded.lyrics)
-              shownCount = upgraded.lyrics.length
-            } else {
-              // No raw document (an older lyric cache): the lender's own lines still carry the
-              // timeline, so attach it the way the legacy path does — then run the same display
-              // pass over it, so the listener's rules and the credits policy apply here too.
-              var fallbackLines = parseLrcText(match.lrc || '')
-              if (match.translation) mergeLyricTranslation(fallbackLines, match.translation)
-              attachWordTimeline(fallbackLines, match.lines)
-              var foliaLines = legacyLinesToFolia(fallbackLines)
-              if (foliaLines.length === 0) return
-              var fallbackDoc = { lines: foliaLines }
-              var fallbackShown = mpPrepareLyrics(fallbackDoc, trackPath, chorusRanges)
-              if (fallbackShown.pureMusic === true || fallbackShown.lyrics.length === 0) return
-              lyricDocRef.current = { path: trackPath, document: fallbackDoc, chorusRanges: chorusRanges }
-              setLyrics(fallbackShown.lyrics)
-              shownCount = fallbackShown.lyrics.length
-            }
-            // The upgrade is a second lyric load: say so, so the diagnostics can tell it apart
-            // from the platform's own lyric (the normal path reports its own line).
+          // Folia's `autoUseBestLyric` runs in the shared loader once the first lyric is on its
+          // way; this is where its replacement lands. The listener is also the diagnostics
+          // point: an upgrade is a second lyric load, told apart from the platform's own.
+          var unsubscribe = MPLyricLoader.subscribe(trackPath, function (next) {
+            if (cancelled || next.upgraded === undefined) return
+            setLyrics(next.document === null ? legacyLinesToFolia(next.lyrics) : next.lyrics)
+            lyricDocRef.current = next.document === null
+              ? null
+              : { path: trackPath, document: next.document, chorusRanges: next.chorusRanges }
             if (typeof console !== 'undefined' && typeof console.info === 'function') {
               console.info(
                 '[dsh-music] lyric upgrade',
-                String(current.onlineProvider || '') + '/' + String(current.onlineId || ''),
-                'from=' + String(match.source || '') + '/' + String(match.id || ''),
-                'wordLevel=true',
+                String((current && current.onlineProvider) || '') + '/' + String((current && current.onlineId) || ''),
+                'from=' + String(next.upgraded.source || '') + '/' + String(next.upgraded.id || ''),
+                'wordLevel=' + String(next.upgraded.wordLevel === true),
               )
             }
             if (typeof postJson === 'function' && typeof API === 'string') {
               void postJson(API + 'debug/report', {
                 kind: 'lyric-upgrade',
-                provider: String(current.onlineProvider || ''),
-                id: String(current.onlineId || ''),
-                from: String(match.source || ''),
-                fromId: String(match.id || ''),
-                hadRaw: match.raw !== null && typeof match.raw === 'object',
-                lines: shownCount,
+                provider: String((current && current.onlineProvider) || ''),
+                id: String((current && current.onlineId) || ''),
+                from: String(next.upgraded.source || ''),
+                fromId: String(next.upgraded.id || ''),
+                hadRaw: next.document !== null,
+                lines: next.lyrics.length,
               }).catch(function () {})
             }
             if (typeof showToast === 'function') {
               // Folia can settle on a line-level match too (the preferred source's translation,
               // say); only say "word-by-word" when it really is.
               showToast(
-                t(match.wordLevel === true ? 'sheet.lyricUpgraded' : 'sheet.lyricSwitched', {
-                  source: mpLyricSourceLabel(match.source),
+                t(next.upgraded.wordLevel === true ? 'sheet.lyricUpgraded' : 'sheet.lyricSwitched', {
+                  source: mpLyricSourceLabel(next.upgraded.source),
                 }),
               )
             }
-          }
+          })
           async function load() {
             try {
               // One load per song, shared with the player's start gate. Folia resolves the
@@ -163685,15 +163748,8 @@ window.__ModuleLoader__.load({
                   })
                   .catch(function () {})
               }
-              // Folia's `autoUseBestLyric`: the lyric on screen is shown first, then another
-              // source is asked for one with better timing — even when the platform's own
-              // lyrics already have word timing, unless they were imported (that is an explicit
-              // choice) or the song is instrumental.
-              if (current.onlineProvider && loaded.source !== 'imported' && prefs.autoUseBestLyric !== false) {
-                void upgradeLyric(current, loaded.chorusRanges, upgradeAbort === null ? null : upgradeAbort.signal).catch(
-                  function () {},
-                )
-              }
+              // The loader already asked the other sources for better timing (Folia's
+              // `autoUseBestLyric`); a match arrives through the subscription above.
             } catch (error) {
               if (!cancelled) setLyricError(errorText(error))
             } finally {
@@ -163703,8 +163759,8 @@ window.__ModuleLoader__.load({
           load()
           return function () {
             cancelled = true
-            // Also drops the upgrade that is still searching for this song's lyrics.
-            if (upgradeAbort !== null) upgradeAbort.abort()
+            // Stops the upgrade notification from reaching this song's UI.
+            if (typeof unsubscribe === 'function') unsubscribe()
           }
         },
         [props.open, trackPath, lyricReload, lyricPriorityKey],
@@ -174117,6 +174173,10 @@ window.__ModuleLoader__.load({
           var cancelled = false
           var active = snap.queue[snap.index]
           if (!active) return undefined
+          var unsubscribe = MPLyricLoader.subscribe(trackPath, function (next) {
+            if (cancelled || next.upgraded === undefined) return
+            setLines(composerLyricRows(next.lyrics))
+          })
           async function load() {
             try {
               // One resolved lyric for every surface: the strip follows the same source the
@@ -174131,6 +174191,7 @@ window.__ModuleLoader__.load({
           load()
           return function () {
             cancelled = true
+            if (typeof unsubscribe === 'function') unsubscribe()
           }
         },
         [prefs.composerLyrics, trackPath],

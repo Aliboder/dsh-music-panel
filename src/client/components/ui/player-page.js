@@ -38,6 +38,12 @@ function PlayerPage(props) {
       // Host's pick. Before this, an online track had no lyric here at all: `/lyrics` only
       // accepts a file path, and `online:<provider>:<id>` is not one.
       setLyrics([])
+      // The loader may replace the first lyric with a better-timed one after playback
+      // starts; the stage follows it, as Folia's setter does.
+      var unsubscribe = MPLyricLoader.subscribe(trackPath, function (next) {
+        if (cancelled || next.upgraded === undefined) return
+        setLyrics(next.document === null ? legacyLinesToFolia(next.lyrics) : next.lyrics)
+      })
       MPLyricLoader.load(track)
         .then(function (loaded) {
           if (cancelled) return
@@ -49,6 +55,7 @@ function PlayerPage(props) {
         })
       return function () {
         cancelled = true
+        if (typeof unsubscribe === 'function') unsubscribe()
       }
     },
     [props.open, trackPath],

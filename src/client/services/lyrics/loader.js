@@ -20,6 +20,8 @@ var MPLyricLoader = (function () {
 
   var cache = new Map()
   var inflight = new Map()
+  /** key -> Set of listeners waiting for the upgrade that replaces the first lyric. */
+  var listeners = new Map()
 
   /** The identity of a song, the same key the Host's lyric record uses. */
   function keyOf(track) {
@@ -90,31 +92,41 @@ var MPLyricLoader = (function () {
       result.pureMusic = true
       return result
     }
+    return Object.assign(result, await parseOnlineBody(track, body, chorusRanges))
+  }
+
+  /**
+   * The lyric document of one platform answer (or of a borrowed match). Shared by the
+   * first load and the upgrade, so both parse through Folia's pipeline the same way.
+   */
+  async function parseOnlineBody(track, body, chorusRanges) {
+    var key = keyOf(track)
+    var parsed = { lyrics: [], document: null, pureMusic: false, isWordByWord: false }
     var document = null
     if (body.raw && typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null) {
       try {
-        var parsed = await MPFoliaLyrics.parse(body.raw, { songId: Number(track.onlineId) || 0 })
-        if (parsed && Array.isArray(parsed.lines) && parsed.lines.length > 0) document = parsed
+        var doc = await MPFoliaLyrics.parse(body.raw, { songId: Number(track.onlineId) || 0 })
+        if (doc && Array.isArray(doc.lines) && doc.lines.length > 0) document = doc
       } catch (error) {
         document = null
       }
     }
     if (document !== null) {
       var shown = mpPrepareLyrics(document, key, chorusRanges)
-      result.lyrics = shown.lyrics
-      result.document = document
-      result.pureMusic = shown.pureMusic === true
-      result.isWordByWord = shown.isWordByWord === true
-      return result
+      parsed.lyrics = shown.lyrics
+      parsed.document = document
+      parsed.pureMusic = shown.pureMusic === true
+      parsed.isWordByWord = shown.isWordByWord === true
+      return parsed
     }
     // No document the pipeline can parse (an older cache): the Host's LRC and its word
     // timeline, converted the way the legacy producers are.
     var lines = parseLrcText(body.lrc || '')
     if (body.translation) mergeLyricTranslation(lines, body.translation)
     attachWordTimeline(lines, body.lines)
-    result.lyrics = legacyLinesToFolia(lines)
-    result.isWordByWord = body.wordLevel === true
-    return result
+    parsed.lyrics = legacyLinesToFolia(lines)
+    parsed.isWordByWord = body.wordLevel === true
+    return parsed
   }
 
   async function loadLocal(track) {
@@ -177,10 +189,116 @@ var MPLyricLoader = (function () {
       .then(function (result) {
         inflight.delete(key)
         remember(key, result)
+        // Folia asks another source for better timing once the first lyric is on its way;
+        // the surfaces are told when a match replaces it.
+        maybeUpgrade(track, result)
         return result
       })
     inflight.set(key, promise)
     return promise
+  }
+
+  /** A source with better timing for this song, or nothing. Never awaited by playback. */
+  async function upgrade(track, base) {
+    var key = keyOf(track)
+    var provider = String(track.onlineProvider || '')
+    try {
+      var answer = await getJson(
+        API +
+          'online/best-lyric?provider=' +
+          encodeURIComponent(provider) +
+          '&id=' +
+          encodeURIComponent(String(track.onlineId || '')) +
+          '&title=' +
+          encodeURIComponent(track.title || '') +
+          '&artist=' +
+          encodeURIComponent(track.artist || '') +
+          '&album=' +
+          encodeURIComponent(track.album || '') +
+          '&duration=' +
+          encodeURIComponent(String(track.durationSec || 0)) +
+          '&preferred=' +
+          encodeURIComponent(String(prefs.lyricPreferredSource || '')),
+      )
+      var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
+      if (match === null) return null
+      // The platform's own lyric cannot replace itself.
+      if (String(match.source || '') === provider) return null
+      var parsed = await parseOnlineBody(
+        track,
+        {
+          raw: match.raw && typeof match.raw === 'object' ? match.raw : null,
+          lrc: typeof match.lrc === 'string' ? match.lrc : '',
+          translation: typeof match.translation === 'string' ? match.translation : '',
+          lines: Array.isArray(match.lines) ? match.lines : null,
+          wordLevel: match.wordLevel === true,
+        },
+        base.chorusRanges,
+      )
+      if (parsed.pureMusic === true || parsed.lyrics.length === 0) return null
+      var next = Object.assign({}, base, parsed, {
+        upgraded: {
+          source: String(match.source || ''),
+          id: String(match.id || ''),
+          wordLevel: match.wordLevel === true,
+        },
+      })
+      remember(key, next)
+      notify(key, next)
+      return next
+    } catch (error) {
+      return null
+    }
+  }
+
+  function maybeUpgrade(track, result) {
+    if (!track || !track.onlineProvider) return
+    if (prefs.autoUseBestLyric === false) return
+    if (result.pureMusic === true || result.source === 'imported') return
+    if (result.lyrics.length === 0) return
+    upgrade(track, result).catch(function () {})
+  }
+
+  function notify(key, result) {
+    var set = listeners.get(key)
+    if (set === undefined) return
+    set.forEach(function (listener) {
+      try {
+        listener(result)
+      } catch (error) {
+        // A surface that throws must not stop the others.
+      }
+    })
+  }
+
+  /**
+   * Listen for the upgrade that replaces a song's first lyric. The listener is called
+   * immediately when the upgrade already landed (a slow subscriber would otherwise miss
+   * the notification). Returns the unsubscribe function.
+   */
+  function subscribe(key, listener) {
+    if (typeof listener !== 'function') return function () {}
+    var id = String(key)
+    var set = listeners.get(id)
+    if (set === undefined) {
+      set = new Set()
+      listeners.set(id, set)
+    }
+    set.add(listener)
+    var current = cache.get(id)
+    if (current !== undefined && current.upgraded !== undefined) {
+      try {
+        listener(current)
+      } catch (error) {
+        // Same: one bad surface does not break the others.
+      }
+    }
+    return function () {
+      var live = listeners.get(id)
+      if (live === undefined) return
+      live.delete(listener)
+      if (live.size === 0) listeners.delete(id)
+    }
   }
 
   /**
@@ -228,5 +346,5 @@ var MPLyricLoader = (function () {
     cache.delete(String(key))
   }
 
-  return { load: load, whenReady: whenReady, invalidate: invalidate, keyOf: keyOf }
+  return { load: load, whenReady: whenReady, invalidate: invalidate, keyOf: keyOf, subscribe: subscribe }
 })()

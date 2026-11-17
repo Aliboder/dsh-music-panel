@@ -98,6 +98,10 @@ function ComposerLyrics() {
       var cancelled = false
       var active = snap.queue[snap.index]
       if (!active) return undefined
+      var unsubscribe = MPLyricLoader.subscribe(trackPath, function (next) {
+        if (cancelled || next.upgraded === undefined) return
+        setLines(composerLyricRows(next.lyrics))
+      })
       async function load() {
         try {
           // One resolved lyric for every surface: the strip follows the same source the
@@ -112,6 +116,7 @@ function ComposerLyrics() {
       load()
       return function () {
         cancelled = true
+        if (typeof unsubscribe === 'function') unsubscribe()
       }
     },
     [prefs.composerLyrics, trackPath],
