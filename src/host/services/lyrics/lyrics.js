@@ -215,8 +215,11 @@ export function parseLyricsText(text, source) {
 export async function readEmbeddedLyrics(audioFile) {
   try {
     const meta = await parseFile(audioFile, { duration: false })
-    const tags = meta.common.lyrics
-    if (!Array.isArray(tags) || tags.length === 0) return null
+    const common = Array.isArray(meta.common.lyrics) ? meta.common.lyrics : []
+    // `common.lyrics` is the normalised view; a file whose tag layout the parser only
+    // exposes natively (some ID3 USLT/SYLT and FLAC SYNCEDLYRICS files) still has lyrics.
+    const tags = common.length > 0 ? common : nativeLyricTags(meta)
+    if (tags.length === 0) return null
 
     // 1. Synced frames: exact timeline.
     for (const tag of tags) {
@@ -242,17 +245,53 @@ export async function readEmbeddedLyrics(audioFile) {
 }
 
 /**
+ * Lyric tags from `meta.native`, in the shape `common.lyrics` would have given.
+ *
+ * @param {{ native?: Record<string, unknown> }} meta
+ */
+function nativeLyricTags(meta) {
+  const out = []
+  const native = meta.native !== null && typeof meta.native === 'object' ? meta.native : {}
+  for (const list of Object.values(native)) {
+    if (!Array.isArray(list)) continue
+    for (const tag of list) {
+      const id = String(tag?.id ?? '').toLowerCase()
+      if (!(id.includes('lyric') || id.includes('uslt') || id.includes('sylt'))) continue
+      const value = tag.value
+      if (value === null || value === undefined) continue
+      if (typeof value === 'string') {
+        out.push({ text: value })
+      } else if (typeof value === 'object') {
+        if (Array.isArray(value.syncText)) {
+          out.push({ syncText: value.syncText, timeStampFormat: value.timeStampFormat })
+        } else if (typeof value.text === 'string') {
+          out.push({ text: value.text })
+        }
+      }
+    }
+  }
+  return out
+}
+
+/**
  * Read the sidecar lyric file next to the audio file, if present.
  *
- * Folia reads every format in LOCAL_LYRIC_FILE_FORMATS and keeps the one that ranks first;
- * this is the same scan (plus its `.fia` export, which always wins). A `<stem>.t.<ext>`
- * sibling is the translation of the same timeline.
+ * Folia's scan: every format in the listener's order (`localLyricFormatOrder`, with
+ * `.fia` always first), and both names a track can carry — `track.lrc` and
+ * `track.mp3.lrc`. The translation is `<base>.t.<ext>` and may use a different format
+ * from the main lyric (a `.lrc` main with a `.t.vtt` translation is fine).
  *
  * @param {string} audioFile
+ * @param {{ formatOrder?: string[] }} [options]
  */
-export async function readSidecarLyrics(audioFile) {
+export async function readSidecarLyrics(audioFile, options = {}) {
   const dir = dirname(audioFile)
   const stem = basename(audioFile, extname(audioFile)).toLowerCase()
+  // `track.mp3.lrc` is the other name Folia accepts: the audio file name itself, with the
+  // lyric extension after it.
+  const fullStem = basename(audioFile).toLowerCase()
+  const bases = stem === fullStem ? [stem] : [stem, fullStem]
+  const formatOrder = lyricFormatOrderOf(options.formatOrder)
 
   let entries
   try {
@@ -263,54 +302,74 @@ export async function readSidecarLyrics(audioFile) {
   const names = new Map()
   for (const name of entries) names.set(name.toLowerCase(), name)
 
-  for (const format of SIDECAR_FORMATS) {
-    const hit = names.get(`${stem}.${format}`)
-    if (hit === undefined) continue
+  for (const format of formatOrder) {
+    for (const base of bases) {
+      const hit = names.get(`${base}.${format}`)
+      if (hit === undefined) continue
 
-    let text
-    try {
-      text = await readFile(join(dir, hit), 'utf8')
-    } catch {
-      continue
-    }
-    if (text.trim() === '') continue
-
-    const translationName = names.get(`${stem}.t.${format}`)
-    let translation = ''
-    if (translationName !== undefined) {
+      let text
       try {
-        translation = await readFile(join(dir, translationName), 'utf8')
+        text = await readFile(join(dir, hit), 'utf8')
       } catch {
-        translation = ''
+        continue
       }
-    }
+      if (text.trim() === '') continue
 
-    const file = join(dir, hit)
-    if (format === 'lrc') {
-      const parsed = parseLyricsText(text, 'sidecar')
-      // Untimed text is shown as a plain list by the player; `raw` stays empty so the
-      // client does not hand it to a timed parser that would return no lines.
+      const translation = await readTranslation(dir, names, base, format, formatOrder)
+
+      const file = join(dir, hit)
+      if (format === 'lrc') {
+        const parsed = parseLyricsText(text, 'sidecar')
+        // Untimed text is shown as a plain list by the player; `raw` stays empty so the
+        // client does not hand it to a timed parser that would return no lines.
+        return {
+          lines: parsed.lines,
+          timed: parsed.timed,
+          source: 'sidecar',
+          file,
+          raw: parsed.timed ? text : '',
+          translation: parsed.timed ? translation : '',
+          formatHint: '',
+        }
+      }
       return {
-        lines: parsed.lines,
-        timed: parsed.timed,
+        lines: [],
+        timed: true,
         source: 'sidecar',
         file,
-        raw: parsed.timed ? text : '',
-        translation: parsed.timed ? translation : '',
-        formatHint: '',
+        raw: text,
+        translation,
+        formatHint: SIDECAR_FORMAT_HINT[format] ?? '',
       }
-    }
-    return {
-      lines: [],
-      timed: true,
-      source: 'sidecar',
-      file,
-      raw: text,
-      translation,
-      formatHint: SIDECAR_FORMAT_HINT[format] ?? '',
     }
   }
   return null
+}
+
+/** Folia's order, with `.fia` pinned first and unknown entries dropped. */
+function lyricFormatOrderOf(order) {
+  const wanted = Array.isArray(order) ? order.filter((format) => SIDECAR_FORMATS.includes(format)) : []
+  const ordered = ['fia', ...wanted.filter((format) => format !== 'fia')]
+  for (const format of SIDECAR_FORMATS) {
+    if (!ordered.includes(format)) ordered.push(format)
+  }
+  return ordered
+}
+
+/** The translation beside one main lyric: same format first, then the listener's order. */
+async function readTranslation(dir, names, base, mainFormat, formatOrder) {
+  const formats = [mainFormat, ...formatOrder.filter((format) => format !== mainFormat)]
+  for (const format of formats) {
+    const name = names.get(`${base}.t.${format}`)
+    if (name === undefined) continue
+    try {
+      const text = await readFile(join(dir, name), 'utf8')
+      if (text.trim() !== '') return text
+    } catch {
+      // Try the next format.
+    }
+  }
+  return ''
 }
 
 /**

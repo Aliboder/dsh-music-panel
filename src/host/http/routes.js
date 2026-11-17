@@ -251,15 +251,23 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
     providerStore,
   })
   const lyricPriorityOf = (params) => (String(params.get('priority') || '') === 'online' ? 'online' : 'local')
+  const lyricFormatOrderOf = (params) => {
+    const raw = String(params.get('formatOrder') || '').trim()
+    return raw === '' ? undefined : raw.split(',').map((format) => format.trim()).filter(Boolean)
+  }
   const lyricPreferredOf = (params) => {
     const preferred = String(params.get('preferred') || '').trim()
     return preferred === '' ? undefined : preferred
   }
   /** The resolved lyric plus the flags the player's source switcher needs. */
-  async function localLyricPayload(file, params) {
-    const priority = lyricPriorityOf(params)
+  async function localLyricPayload(file, options = {}) {
+    const priority = options.priority === 'online' ? 'online' : 'local'
     const state = await lyricRecords.get(file)
-    const resolved = await resolveLocalLyrics(file, { lyricState: lyricRecords, priority })
+    const resolved = await resolveLocalLyrics(file, {
+      lyricState: lyricRecords,
+      priority,
+      formatOrder: options.formatOrder,
+    })
     const autoMatch = needsAutoMatch({
       state,
       hasSidecar: resolved.available.sidecar,
@@ -340,6 +348,7 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
     accountReads,
     onlineCache,
     kugouSessions,
+    lyricState: lyricRecords,
     profileState,
     vipInfoState,
     vipState,
@@ -596,7 +605,7 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         const config = await settings.read()
         const file = await resolveTrack(params.get('path'), config.roots)
         if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
-        return sendJson(res, 200, await localLyricPayload(file, params))
+        return sendJson(res, 200, await localLyricPayload(file, { priority: lyricPriorityOf(params), formatOrder: lyricFormatOrderOf(params) }))
       }
 
       // Folia's `matchLyrics` for one local file: ask the lyric sources, keep the record.
@@ -637,7 +646,10 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
           await localLyricMatcher.match(file, { state, preferred: lyricPreferredOf(new URLSearchParams()) })
         }
         await lyricRecords.patch(file, { source: requested })
-        return sendJson(res, 200, await localLyricPayload(file, new URLSearchParams(`priority=${lyricPriorityOf(params)}`)))
+        return sendJson(res, 200, await localLyricPayload(file, {
+          priority: lyricPriorityOf(params),
+          formatOrder: lyricFormatOrderOf(params),
+        }))
       }
 
       if (pathname === '/lyrics/pure-music' && method === 'POST') {
@@ -669,7 +681,7 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
             matched: null,
           })
         }
-        return sendJson(res, 200, await localLyricPayload(file, params))
+        return sendJson(res, 200, await localLyricPayload(file, { priority: lyricPriorityOf(params), formatOrder: lyricFormatOrderOf(params) }))
       }
 
       if (pathname === '/lyrics/no-auto-match' && method === 'POST') {
@@ -683,7 +695,7 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         const file = await resolveTrack(body?.path, config.roots)
         if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
         await lyricRecords.patch(file, { noAutoMatch: body?.on === true })
-        return sendJson(res, 200, await localLyricPayload(file, params))
+        return sendJson(res, 200, await localLyricPayload(file, { priority: lyricPriorityOf(params), formatOrder: lyricFormatOrderOf(params) }))
       }
 
       // Imported lyrics live on the record (Folia's `localLyricsContent`), not in the file:
@@ -707,7 +719,7 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         })
         if (payload === null) return fail(res, 400, 'EMPTY', '歌词为空')
         await lyricRecords.patch(file, { imported: { name, at: Date.now() }, source: 'local', markedPureMusic: false })
-        return sendJson(res, 200, await localLyricPayload(file, params))
+        return sendJson(res, 200, await localLyricPayload(file, { priority: lyricPriorityOf(params), formatOrder: lyricFormatOrderOf(params) }))
       }
 
       if (pathname === '/lyrics/calibrate' && method === 'POST') {
@@ -937,7 +949,7 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         const file = await resolveTrack(params.get('path'), config.roots)
         if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
         const state = await lyricRecords.get(file)
-        const sources = await describeLocalSources(file, state)
+        const sources = await describeLocalSources(file, state, lyricFormatOrderOf(params))
         const resolved = await resolveLocalLyrics(file, {
           lyricState: lyricRecords,
           priority: lyricPriorityOf(params),

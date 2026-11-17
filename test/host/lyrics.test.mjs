@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { parseLrc, parseLyricsText, parseSyncText, readLyricsFor } from '../../src/host/services/lyrics/lyrics.js'
+import { parseLrc, parseLyricsText, parseSyncText, readLyricsFor, readSidecarLyrics } from '../../src/host/services/lyrics/lyrics.js'
 
 // Metadata tags are skipped; timestamps become seconds.
 const basic = parseLrc('[ti:Demo]\n[ar:Someone]\n[00:01.50]first line\n[00:12.00]second line\n')
@@ -157,6 +157,29 @@ await writeFile(join(dir, 'paired.t.yrc'), '[1000,2000](1000,500,0)sunny')
 const pairedSidecar = await readLyricsFor(join(dir, 'paired.mp3'))
 assert.equal(pairedSidecar.formatHint, 'yrc')
 assert.equal(pairedSidecar.translation, '[1000,2000](1000,500,0)sunny')
+
+// `track.mp3.lrc` is the second name Folia accepts beside `track.lrc`.
+await writeFile(join(dir, 'named.mp3'), 'not really audio')
+await writeFile(join(dir, 'named.mp3.lrc'), '[00:01.00]named\n')
+const namedSidecar = await readLyricsFor(join(dir, 'named.mp3'))
+assert.equal(namedSidecar.lines[0].text, 'named')
+
+// A translation may use a different format from the main lyric (Folia keeps them apart).
+await writeFile(join(dir, 'cross.mp3'), 'not really audio')
+await writeFile(join(dir, 'cross.lrc'), '[00:01.00]main\n')
+await writeFile(join(dir, 'cross.t.vtt'), 'WEBVTT\n\n00:01.000 --> 00:02.000\ntrans\n')
+const crossSidecar = await readLyricsFor(join(dir, 'cross.mp3'))
+assert.equal(crossSidecar.raw, '[00:01.00]main\n')
+assert.ok(crossSidecar.translation.includes('trans'))
+
+// The listener's format order decides which sidecar wins; `.fia` always outranks it.
+await writeFile(join(dir, 'ordering.mp3'), 'not really audio')
+await writeFile(join(dir, 'ordering.lrc'), '[00:01.00]lrc\n')
+await writeFile(join(dir, 'ordering.yrc'), '[1000,2000](1000,500,0)yrc')
+assert.equal((await readSidecarLyrics(join(dir, 'ordering.mp3'))).formatHint, '')
+assert.equal((await readSidecarLyrics(join(dir, 'ordering.mp3'), { formatOrder: ['yrc', 'lrc'] })).formatHint, 'yrc')
+await writeFile(join(dir, 'ordering.fia'), '{"lines":[{"fullText":"x","startTime":0,"endTime":1}]}')
+assert.equal((await readSidecarLyrics(join(dir, 'ordering.mp3'), { formatOrder: ['yrc', 'lrc'] })).file.endsWith('ordering.fia'), true)
 
 console.log('lyrics.test.mjs ok')
 

@@ -24,8 +24,14 @@ import { neteaseServiceStatus, restartNeteaseService } from '../../services/nete
 import { qqServiceStatus, restartQqService } from '../../services/qq-api.js'
 import { kugouServiceStatus, restartKugouService } from '../../services/kugou-api.js'
 import { createAmllClient } from '../../services/lyrics/amll.js'
+import { pickBestLyricCandidate } from '../../services/lyrics/lyrics-match.js'
 import { buildLyricSourceOrder } from '../../services/lyrics/lyrics-sources.js'
-import { findBestLyrics, linesFromLrc, lrcTime } from '../../services/lyrics/lyrics-match-runner.js'
+import {
+  buildLyricSearchQuery,
+  findBestLyrics,
+  linesFromLrc,
+  lrcTime,
+} from '../../services/lyrics/lyrics-match-runner.js'
 
 const ONLINE_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
@@ -50,11 +56,17 @@ export function onlineSongId(song) {
   return String(song.id || song.onlineId || '')
 }
 
+/** The lyric record key for an online song (the same store local files use). */
+export function onlineLyricKey(provider, id) {
+  return `online:${String(provider ?? '')}:${String(id ?? '')}`
+}
+
 /**
  * @param {{
  *   providerStore: object,
  *   onlineCache: object,
  *   kugouSessions: object,
+ *   lyricState?: object,
  *   profileState: (provider: string) => Promise<object | null>,
  *   vipInfoState: (provider: string) => Promise<{ vip: unknown, expiresAt: string }>,
  *   vipState: (provider: string) => Promise<unknown>,
@@ -71,6 +83,15 @@ export function createOnlineRoutes(deps) {
 
   const { settings, providerStore, accountStore, accountReads, onlineCache, kugouSessions, profileState, vipInfoState, vipState, invalidateProviderCaches } =
     deps
+  // The per-song lyric record shared with local files. Optional so a test can drive the
+  // routes without one; nothing is remembered then.
+  const lyricRecords = deps.lyricState ?? {
+    get: async () => null,
+    readPayload: async () => null,
+    writePayload: async () => null,
+    patch: async () => null,
+    clearPayload: async () => {},
+  }
 
   /** Addressable online sources come from the registry, never a literal list. */
   function isOnlineSource(id) {
@@ -173,13 +194,13 @@ export function createOnlineRoutes(deps) {
 
   /**
    * The best lyric another source has for this track, in Folia's auto-match order:
-   * the sources are asked in the registry order and a word-level match outranks every
-   * line-level one. Shared by the "the platform has none" fallback and the
+   * the listener's preferred source first, then the registry order; a word-level match
+   * outranks every line-level one. Shared by "the platform has none" and the
    * `/online/best-lyric` upgrade, so both ask the same question the same way.
    *
-   * AMLL is only reachable for a track whose platform is NetEase or QQ: its database is
-   * keyed by those platforms' ids, so a KuGou/Navidrome/Bodian track never asks it (Folia
-   * finds those ids by searching NetEase first; this route does not).
+   * AMLL keeps its lyrics under NetEase / QQ song ids. For a track of one of those two
+   * the id is in hand; any other platform's track asks NetEase first, exactly as Folia's
+   * matcher does, and only when the pick reaches the AMLL step.
    */
   async function findMatchedLyric(provider, id, params) {
     const title = (params.get('title') || '').trim()
@@ -190,29 +211,30 @@ export function createOnlineRoutes(deps) {
       album: (params.get('album') || '').trim(),
       durationMs: Number(params.get('duration')) > 0 ? Number(params.get('duration')) * 1000 : 0,
     }
+    const preferred = String(params.get('preferred') || '').trim() || undefined
     const searchOverride = ioOverride('search')
     const fetchLyricOverride = ioOverride('fetchLyric')
     const fetchAmllOverride = ioOverride('fetchAmll')
     // The AMLL client is only built when nothing injects it: a test that injects all three
     // must not construct (or ever call) the real one.
     const amll = fetchAmllOverride === null ? createAmllClient() : null
+    const search = searchOverride ?? (async (sourceId, query, limit) => {
+      const paged = await omni.searchPage(sourceId, query, {}, 1)
+      return (Array.isArray(paged.results) ? paged.results : []).slice(0, limit).map((song) => ({
+        id: song.id,
+        title: song.title,
+        artist: song.artist,
+        album: song.album,
+        coverUrl: song.coverUrl || song.cover || '',
+        durationMs: Number(song.durationMs) || (Number(song.durationSec) || 0) * 1000,
+      }))
+    })
     try {
       return await findBestLyrics(wantedTrack, {
-        order: buildLyricSourceOrder(provider)
+        order: buildLyricSourceOrder(preferred)
           .map((source) => source.id)
           .filter((sourceId) => sourceId !== provider),
-        neteaseId: provider === 'netease' ? id : undefined,
-        qqId: provider === 'qq' ? id : undefined,
-        search: searchOverride ?? (async (sourceId, query, limit) => {
-          const paged = await omni.searchPage(sourceId, query, {}, 1)
-          return (Array.isArray(paged.results) ? paged.results : []).slice(0, limit).map((song) => ({
-            id: song.id,
-            title: song.title,
-            artist: song.artist,
-            album: song.album,
-            durationMs: Number(song.durationMs) || (Number(song.durationSec) || 0) * 1000,
-          }))
-        }),
+        search,
         fetchLyric: fetchLyricOverride ?? (async (sourceId, sourceSongId) => {
           const got = await omni.lyric(sourceId, sourceSongId, {})
           if (got === null) return null
@@ -229,6 +251,19 @@ export function createOnlineRoutes(deps) {
           }
         }),
         fetchAmll: fetchAmllOverride ?? ((platform, musicId) => amll.fetchLyrics(platform, musicId)),
+        resolveAmllIds: async () => {
+          if (provider === 'netease') return { neteaseId: id }
+          if (provider === 'qq') return { qqId: id }
+          const query = buildLyricSearchQuery(wantedTrack)
+          if (query === '') return {}
+          try {
+            const songs = await search('netease', query, 10)
+            const best = pickBestLyricCandidate(wantedTrack, songs)
+            return best === null ? {} : { neteaseId: String(best.candidate.id) }
+          } catch {
+            return {}
+          }
+        },
       })
     } catch (error) {
       return null
@@ -591,6 +626,39 @@ export function createOnlineRoutes(deps) {
           return fail(res, 400, 'BAD_REQUEST', '缺少 provider / id')
         }
         try {
+          // The song's own record wins over anything fetched: an imported lyric, or the
+          // listener saying this one is instrumental (Folia's OnlineLyricsState).
+          const lyricKey = onlineLyricKey(provider, id)
+          const record = await lyricRecords.get(lyricKey)
+          if (record !== null && record.pureMusic === true) {
+            return sendJson(res, 200, {
+              ok: true,
+              lrc: '',
+              translation: '',
+              romaji: '',
+              lines: null,
+              wordLevel: false,
+              raw: null,
+              source: 'online',
+              pureMusic: true,
+            })
+          }
+          if (record !== null && record.source === 'imported') {
+            const payload = await lyricRecords.readPayload(lyricKey)
+            if (payload !== null) {
+              return sendJson(res, 200, {
+                ok: true,
+                lrc: payload.text,
+                translation: payload.translation || '',
+                romaji: payload.romaji || '',
+                lines: null,
+                wordLevel: false,
+                raw: { type: 'local', lrcContent: payload.text, formatHint: payload.formatHint || '' },
+                source: 'imported',
+                state: { source: record.source, importedName: record.imported?.name ?? '' },
+              })
+            }
+          }
           const cachedLyric =
             onlineCache === undefined ? null : await onlineCache.readMeta(provider, id, 'lyric')
           // A lyric cached without a translation used to be served forever, even
@@ -731,6 +799,86 @@ export function createOnlineRoutes(deps) {
         } catch (error) {
           return fail(res, 502, 'BEST_LYRIC_FAILED', error instanceof Error ? error.message : '逐字歌词检索失败')
         }
+      }
+
+      // Folia's OnlineLyricsState: "use the platform's lyric", "use the imported one",
+      // or "this song is instrumental". One record per song, like the local one.
+      if (pathname === '/online/lyric-state' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        const id = (params.get('id') || '').trim()
+        if (!isOnlineSource(provider) || id === '') return fail(res, 400, 'BAD_REQUEST', '缺少 provider / id')
+        const record = await lyricRecords.get(onlineLyricKey(provider, id))
+        return sendJson(res, 200, {
+          ok: true,
+          source: record?.source ?? null,
+          imported: record?.imported?.name ?? '',
+          pureMusic: record?.pureMusic === true,
+        })
+      }
+
+      if (pathname === '/online/lyric-choice' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const provider = String(body?.provider ?? '').trim()
+        const id = String(body?.id ?? '').trim()
+        if (!isOnlineSource(provider) || id === '') return fail(res, 400, 'BAD_REQUEST', '缺少 provider / id')
+        const lyricKey = onlineLyricKey(provider, id)
+        const requested = body?.source === null || body?.source === undefined || body?.source === 'auto'
+          ? null
+          : String(body.source)
+        if (requested !== null && requested !== 'online' && requested !== 'imported') {
+          return fail(res, 400, 'BAD_SOURCE', '未知的歌词来源')
+        }
+        if (requested === 'imported') {
+          const payload = await lyricRecords.readPayload(lyricKey)
+          if (payload === null) return fail(res, 400, 'NO_IMPORTED', '还没有导入歌词')
+        }
+        if (body?.pureMusic === true) {
+          await lyricRecords.clearPayload?.(lyricKey)
+          await lyricRecords.patch(lyricKey, {
+            pureMusic: true,
+            markedPureMusic: true,
+            source: 'online',
+            matched: null,
+          })
+        } else {
+          await lyricRecords.patch(lyricKey, {
+            source: requested,
+            ...(requested === null ? {} : { pureMusic: false, markedPureMusic: false }),
+          })
+        }
+        return sendJson(res, 200, { ok: true, source: requested, pureMusic: body?.pureMusic === true })
+      }
+
+      if (pathname === '/online/lyric-import' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const provider = String(body?.provider ?? '').trim()
+        const id = String(body?.id ?? '').trim()
+        if (!isOnlineSource(provider) || id === '') return fail(res, 400, 'BAD_REQUEST', '缺少 provider / id')
+        const text = typeof body?.text === 'string' ? body.text : ''
+        if (text.trim() === '') return fail(res, 400, 'EMPTY', '歌词为空')
+        const lyricKey = onlineLyricKey(provider, id)
+        const payload = await lyricRecords.writePayload(lyricKey, {
+          text,
+          formatHint: typeof body?.formatHint === 'string' ? body.formatHint : '',
+        })
+        if (payload === null) return fail(res, 400, 'EMPTY', '歌词为空')
+        await lyricRecords.patch(lyricKey, {
+          source: 'imported',
+          imported: { name: typeof body?.name === 'string' ? body.name : '', at: Date.now() },
+          pureMusic: false,
+          markedPureMusic: false,
+        })
+        return sendJson(res, 200, { ok: true, source: 'imported' })
       }
 
       // The platform's own ReplayGain. Folia reads it for Navidrome only; the Chinese

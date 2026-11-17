@@ -130,3 +130,23 @@
 - 插件没有 Spotify / Apple Music，因此 `linesOnly`、`prefersOwnWordByWord` 只保留字段与判断，不产生来源。
 - 插件没有曲库数据库：Folia 的“歌曲记录”由本 store 承担（键控方式不同，语义相同）。
 - 本地歌词写回音频标签保留为显式动作（Folia 无此功能）；匹配结果不再走它。
+
+---
+
+## 7. 实现状态（2026-11-17）
+
+| 项 | 状态 | 位置 |
+|---|---|---|
+| 每首歌的歌词记录 + 清理 | ✅ | `src/host/stores/lyric-state.js`、`plugin-data.js`、`data-reset.md` |
+| 本地选源（Folia 顺序） | ✅ | `src/host/services/lyrics/local-lyrics.js`、`/lyrics`、`/lyrics/sources` |
+| 本地自动匹配 + 写回 | ✅ | `src/host/services/lyrics/local-match.js`、`/lyrics/auto` |
+| 每首来源切换 / 纯音乐 / 不使用在线数据 / 导入 | ✅ | `/lyrics/choice`、`/lyrics/pure-music`、`/lyrics/no-auto-match`、`/lyrics/import`；面板来源段与设置项 |
+| 在线首选来源顺序 | ✅ | `/online/lyric`、`/online/best-lyric` 的 `preferred` 参数 |
+| 在线升级口径（`isWordByWord`、接受逐行、纯音乐） | ✅ | `now-playing.js`、`mpPrepareLyrics` |
+| 在线导入 / 在线-导入切换（服务端） | ✅ | `/online/lyric-import`、`/online/lyric-choice`、`/online/lyric-state` |
+| 在线导入的界面入口 | ⏳ 待做 | 面板来源行目前只显示在线/导入，导入入口仍在本地文件上 |
+| sidecar 命名 / 跨格式翻译 / 格式顺序 | ✅ | `readSidecarLyrics`、`/lyrics` 的 `formatOrder` |
+| 内嵌 native 标签回退 | ✅ | `readEmbeddedLyrics` |
+| AMLL 候选探测（按需） | ✅ | `online.js` 的 `findMatchedLyric` 与 `local-match.js` 的 `match` |
+| 统一加载器 + 播放门控（D1） | ⏳ 待做 | 需要把取词从面板提到共享 loader，再由 `player.js` 的 `playAfterLoudness` 等待；面板关着时也必须加载，否则门控会死锁 |
+| 别名 / 换歌手再搜、匹配窗三开关 | ⏳ 可选 | P4 |

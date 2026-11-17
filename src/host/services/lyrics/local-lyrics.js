@@ -158,7 +158,10 @@ export async function resolveLocalLyrics(file, options) {
   const priority = options?.priority === 'online' ? 'online' : 'local'
   const lyricState = options?.lyricState
   const state = lyricState === undefined ? null : await lyricState.get(file)
-  const sidecar = options?.probe?.sidecar !== undefined ? options.probe.sidecar : await readSidecarLyrics(file)
+  const formatOrder = Array.isArray(options?.formatOrder) ? options.formatOrder : undefined
+  const sidecar = options?.probe?.sidecar !== undefined
+    ? options.probe.sidecar
+    : await readSidecarLyrics(file, { formatOrder })
   const embedded = options?.probe?.embedded !== undefined ? options.probe.embedded : await readEmbeddedLyrics(file)
   const available = { sidecar: sidecar !== null, embedded: embedded !== null }
   const selection = selectLocalLyricSource({
@@ -217,9 +220,13 @@ export async function resolveLocalLyrics(file, options) {
  *
  * @param {string} file
  * @param {object | null} state
+ * @param {string[]} [formatOrder]
  */
-export async function describeLocalSources(file, state) {
-  const [sidecar, embedded] = await Promise.all([readSidecarLyrics(file), readEmbeddedLyrics(file)])
+export async function describeLocalSources(file, state, formatOrder) {
+  const [sidecar, embedded] = await Promise.all([
+    readSidecarLyrics(file, { formatOrder }),
+    readEmbeddedLyrics(file),
+  ])
   return {
     embedded: embedded !== null,
     local: sidecar !== null || (state?.imported !== null && state?.imported !== undefined),

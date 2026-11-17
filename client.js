@@ -8337,6 +8337,8 @@ window.__ModuleLoader__.load({
         'sheet.unmute': '取消静音',
         'sheet.lyricStyle': '歌词样式',
         'sheet.lyricUpgraded': '已换用 {source} 的逐字歌词',
+        'sheet.lyricSwitched': '已换用 {source} 的歌词',
+        'sheet.srcImported': '导入',
         'sheet.lyricSegmentation': '歌词分词',
         'sheet.lyricSegTitle': '歌词分词',
         'sheet.lyricSegOpen': '编辑',
@@ -8863,6 +8865,8 @@ window.__ModuleLoader__.load({
         'sheet.unmute': 'Unmute',
         'sheet.lyricStyle': 'Lyric style',
         'sheet.lyricUpgraded': 'Using {source} word-by-word lyrics',
+        'sheet.lyricSwitched': 'Using {source} lyrics',
+        'sheet.srcImported': 'Imported',
         'sheet.lyricSegmentation': 'Word split',
         'sheet.lyricSegTitle': 'Lyric word split',
         'sheet.lyricSegOpen': 'Edit',
@@ -10065,7 +10069,7 @@ window.__ModuleLoader__.load({
      * `folia` says which shape `lyrics` is in: the pipeline's lines are Folia's `Line`,
      * the fallback is still the Host's `{time, text, translation}`.
      *
-     * @returns {Promise<{ lyrics: Array<object>, pureMusic: boolean, document: object|null, folia: boolean }>}
+     * @returns {Promise<{ lyrics: Array<object>, pureMusic: boolean, isWordByWord: boolean, document: object|null, folia: boolean }>}
      */
     async function mpLocalLyricLines(body, songKey) {
       var raw = mpLocalRawSource(body)
@@ -10074,7 +10078,7 @@ window.__ModuleLoader__.load({
           var parsed = await MPFoliaLyrics.parse(raw, { songId: 0 })
           if (parsed && Array.isArray(parsed.lines) && parsed.lines.length > 0) {
             var shown = mpPrepareLyrics(parsed, songKey, [])
-            return { lyrics: shown.lyrics, pureMusic: shown.pureMusic, document: parsed, folia: true }
+            return { lyrics: shown.lyrics, pureMusic: shown.pureMusic, isWordByWord: shown.isWordByWord, document: parsed, folia: true }
           }
         } catch (error) {
           // Fall through to the Host's own lines: a file the parser cannot read still shows.
@@ -10083,6 +10087,7 @@ window.__ModuleLoader__.load({
       return {
         lyrics: Array.isArray(body && body.lines) ? body.lines : [],
         pureMusic: false,
+        isWordByWord: false,
         document: null,
         folia: false,
       }
@@ -10090,12 +10095,16 @@ window.__ModuleLoader__.load({
 
     /**
      * The display-time pass over one parsed Folia document.
-     * @returns {{ lyrics: Array<object>, pureMusic: boolean }}
+     * @returns {{ lyrics: Array<object>, pureMusic: boolean, isWordByWord: boolean }}
      */
     function mpPrepareLyrics(document, songKey, chorusRanges) {
       if (!document || typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) {
-        return { lyrics: [], pureMusic: false }
+        return { lyrics: [], pureMusic: false, isWordByWord: false }
       }
+      // The source's own timing, taken before `prepare` rewrites anything: a word-level
+      // lyric must be told apart from a line-level one whose words Folia synthesised, or
+      // the automatic pick would think every LRC already has word timing.
+      var isWordByWord = document.isWordByWord === true
       var next = document
       if (typeof MPFoliaLyrics.prepare === 'function') {
         next = MPFoliaLyrics.prepare(next, {
@@ -10104,11 +10113,11 @@ window.__ModuleLoader__.load({
           chorusRanges: Array.isArray(chorusRanges) ? chorusRanges : [],
         })
       }
-      if (!next) return { lyrics: [], pureMusic: false }
+      if (!next) return { lyrics: [], pureMusic: false, isWordByWord }
       // A lyric that is only "纯音乐，请欣赏" is no lyric at all (Folia's setter agrees).
       if (typeof MPFoliaLyrics.isPureMusicLyricLines === 'function'
         && MPFoliaLyrics.isPureMusicLyricLines(next.lines)) {
-        return { lyrics: [], pureMusic: true }
+        return { lyrics: [], pureMusic: true, isWordByWord }
       }
       // The listener's saved split for this song, then icu-folia's default for the rest.
       var record = readLyricSegmentation(songKey)
@@ -10119,7 +10128,7 @@ window.__ModuleLoader__.load({
         && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
         next = MPFoliaLyrics.applyAutoWordSegmentation(next)
       }
-      return { lyrics: foliaLyricLines(next), pureMusic: false }
+      return { lyrics: foliaLyricLines(next), pureMusic: false, isWordByWord }
     }
 
     // ── src/client/render/lyrics/lyrics.bundle.js
@@ -163143,9 +163152,11 @@ window.__ModuleLoader__.load({
             ? t('sheet.srcLocal')
             : lyricSource === 'online'
               ? t('sheet.srcOnline')
-              : lyricSource === 'pure'
-                ? t('sheet.srcPureMusic')
-                : ''
+              : lyricSource === 'imported'
+                ? t('sheet.srcImported')
+                : lyricSource === 'pure'
+                  ? t('sheet.srcPureMusic')
+                  : ''
       var lyricsText = lyrics
         .map(function (line) {
           var total = mpLineStart(line) || 0
@@ -163194,8 +163205,9 @@ window.__ModuleLoader__.load({
           /**
            * Folia's `autoUseBestLyric`: when the platform's own lyric has no word-level
            * timing, another source may have this song word-by-word. Asked after the lines are
-           * on screen (playback never waits for the search) and applied only when the match
-           * really is word-level, so the sweep cannot get worse than what is showing.
+           * on screen (playback never waits for the search). Any match from another source is
+           * applied — Folia accepts a line-level answer too, which is how the preferred source's
+           * translation can win over the platform's own line-level lyric.
            */
           async function upgradeLyric(current, chorusRanges, signal) {
             var query =
@@ -163210,10 +163222,12 @@ window.__ModuleLoader__.load({
               '&album=' +
               encodeURIComponent(current.album || '') +
               '&duration=' +
-              encodeURIComponent(String(current.durationSec || 0))
+              encodeURIComponent(String(current.durationSec || 0)) +
+              '&preferred=' +
+              encodeURIComponent(String(prefs.lyricPreferredSource || ''))
             var answer = await getJson(API + query, signal === null ? undefined : { signal: signal })
             var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
-            if (cancelled || match === null || match.wordLevel !== true) return
+            if (cancelled || match === null) return
             var upgraded = null
             var parsedDocument = null
             var raw = match.raw !== null && typeof match.raw === 'object' ? match.raw : null
@@ -163275,7 +163289,13 @@ window.__ModuleLoader__.load({
               }).catch(function () {})
             }
             if (typeof showToast === 'function') {
-              showToast(t('sheet.lyricUpgraded', { source: mpLyricSourceLabel(match.source) }))
+              // Folia can settle on a line-level match too (the preferred source's translation,
+              // say); only say "word-by-word" when it really is.
+              showToast(
+                t(match.wordLevel === true ? 'sheet.lyricUpgraded' : 'sheet.lyricSwitched', {
+                  source: mpLyricSourceLabel(match.source),
+                }),
+              )
             }
           }
           async function load() {
@@ -163299,7 +163319,8 @@ window.__ModuleLoader__.load({
                     '&id=' +
                     encodeURIComponent(current.onlineId || '') +
                     // Metadata lets the Host borrow lyrics from another source when the
-                    // track's own platform has none.
+                    // track's own platform has none; the preferred source decides who it
+                    // asks first (Folia's preferredAlternativeLyricSource).
                     '&title=' +
                     encodeURIComponent(current.title || '') +
                     '&artist=' +
@@ -163307,7 +163328,9 @@ window.__ModuleLoader__.load({
                     '&album=' +
                     encodeURIComponent(current.album || '') +
                     '&duration=' +
-                    encodeURIComponent(String(current.durationSec || 0)),
+                    encodeURIComponent(String(current.durationSec || 0)) +
+                    '&preferred=' +
+                    encodeURIComponent(String(prefs.lyricPreferredSource || '')),
                 )
                 var chorusBody = await chorusPromise
                 var chorusRanges = mpChorusRanges(chorusBody)
@@ -163382,22 +163405,29 @@ window.__ModuleLoader__.load({
                       : null,
                   }).catch(function () {})
                 }
+                // A lyric that is only the pure-music notice, or the song's stored
+                // instrumental verdict, is no lyric at all: Folia does not auto-match over it.
+                var primaryPureMusic = body.pureMusic === true || (shown !== null && shown.pureMusic === true)
+                if (primaryPureMusic) {
+                  if (!cancelled) {
+                    setLyrics([])
+                    setLyricSource('online')
+                    setOffsetMs(readSavedLyricOffset(trackPath))
+                  }
+                  return
+                }
                 if (!cancelled) {
                   setLyrics(lines)
-                  setLyricSource('ONLINE')
+                  // Folia's SourceTab names the imported lyric separately from the platform's.
+                  setLyricSource(body.source === 'imported' ? 'imported' : 'online')
                   // Folia restores the song's last manual offset instead of resetting it.
                   setOffsetMs(readSavedLyricOffset(trackPath))
                 }
-                // With word-level timing already in hand another source cannot improve the
-                // sweep — it could only change the translation or the alignment — so the
-                // search runs only for a line-level lyric (Folia's autoUseBestLyric purpose).
-                var primaryWordLevel = lines.some(function (line) {
-                  return line && Array.isArray(line.words) && line.words.length > 1
-                })
-                // A lyric that is only the pure-music notice is no lyric at all: Folia does
-                // not auto-match over it either, so the visualizer keeps its own path.
-                var primaryPureMusic = shown !== null && shown.pureMusic === true
-                if (!primaryWordLevel && !primaryPureMusic && prefs.autoUseBestLyric !== false) {
+                // Folia's `autoUseBestLyric`: the lyric on screen is shown first, then another
+                // source is asked for one with better timing — even when the platform's own
+                // lyrics already have word timing the listener did not choose them (only an
+                // `imported` lyric, or an instrumental verdict, ends the search).
+                if (body.source !== 'imported' && prefs.autoUseBestLyric !== false) {
                   void upgradeLyric(current, chorusRanges, upgradeAbort === null ? null : upgradeAbort.signal).catch(
                     function () {},
                   )

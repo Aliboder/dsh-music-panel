@@ -474,7 +474,7 @@ function mpLocalRawSource(body) {
  * `folia` says which shape `lyrics` is in: the pipeline's lines are Folia's `Line`,
  * the fallback is still the Host's `{time, text, translation}`.
  *
- * @returns {Promise<{ lyrics: Array<object>, pureMusic: boolean, document: object|null, folia: boolean }>}
+ * @returns {Promise<{ lyrics: Array<object>, pureMusic: boolean, isWordByWord: boolean, document: object|null, folia: boolean }>}
  */
 async function mpLocalLyricLines(body, songKey) {
   var raw = mpLocalRawSource(body)
@@ -483,7 +483,7 @@ async function mpLocalLyricLines(body, songKey) {
       var parsed = await MPFoliaLyrics.parse(raw, { songId: 0 })
       if (parsed && Array.isArray(parsed.lines) && parsed.lines.length > 0) {
         var shown = mpPrepareLyrics(parsed, songKey, [])
-        return { lyrics: shown.lyrics, pureMusic: shown.pureMusic, document: parsed, folia: true }
+        return { lyrics: shown.lyrics, pureMusic: shown.pureMusic, isWordByWord: shown.isWordByWord, document: parsed, folia: true }
       }
     } catch (error) {
       // Fall through to the Host's own lines: a file the parser cannot read still shows.
@@ -492,6 +492,7 @@ async function mpLocalLyricLines(body, songKey) {
   return {
     lyrics: Array.isArray(body && body.lines) ? body.lines : [],
     pureMusic: false,
+    isWordByWord: false,
     document: null,
     folia: false,
   }
@@ -499,12 +500,16 @@ async function mpLocalLyricLines(body, songKey) {
 
 /**
  * The display-time pass over one parsed Folia document.
- * @returns {{ lyrics: Array<object>, pureMusic: boolean }}
+ * @returns {{ lyrics: Array<object>, pureMusic: boolean, isWordByWord: boolean }}
  */
 function mpPrepareLyrics(document, songKey, chorusRanges) {
   if (!document || typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) {
-    return { lyrics: [], pureMusic: false }
+    return { lyrics: [], pureMusic: false, isWordByWord: false }
   }
+  // The source's own timing, taken before `prepare` rewrites anything: a word-level
+  // lyric must be told apart from a line-level one whose words Folia synthesised, or
+  // the automatic pick would think every LRC already has word timing.
+  var isWordByWord = document.isWordByWord === true
   var next = document
   if (typeof MPFoliaLyrics.prepare === 'function') {
     next = MPFoliaLyrics.prepare(next, {
@@ -513,11 +518,11 @@ function mpPrepareLyrics(document, songKey, chorusRanges) {
       chorusRanges: Array.isArray(chorusRanges) ? chorusRanges : [],
     })
   }
-  if (!next) return { lyrics: [], pureMusic: false }
+  if (!next) return { lyrics: [], pureMusic: false, isWordByWord }
   // A lyric that is only "纯音乐，请欣赏" is no lyric at all (Folia's setter agrees).
   if (typeof MPFoliaLyrics.isPureMusicLyricLines === 'function'
     && MPFoliaLyrics.isPureMusicLyricLines(next.lines)) {
-    return { lyrics: [], pureMusic: true }
+    return { lyrics: [], pureMusic: true, isWordByWord }
   }
   // The listener's saved split for this song, then icu-folia's default for the rest.
   var record = readLyricSegmentation(songKey)
@@ -528,5 +533,5 @@ function mpPrepareLyrics(document, songKey, chorusRanges) {
     && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
     next = MPFoliaLyrics.applyAutoWordSegmentation(next)
   }
-  return { lyrics: foliaLyricLines(next), pureMusic: false }
+  return { lyrics: foliaLyricLines(next), pureMusic: false, isWordByWord }
 }

@@ -15,10 +15,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createOnlineCache } from '../../src/host/services/media/online-cache.js'
 import { createOnlineRoutes } from '../../src/host/http/routes/online.js'
+import { createLyricState } from '../../src/host/stores/lyric-state.js'
 import { fakeReq, fakeRes } from '../helpers.mjs'
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-best-lyric-'))
 const onlineCache = createOnlineCache({ dir })
+const lyricState = createLyricState({ dir: join(dir, 'lyric-state') })
 
 /** The one track every query below is about; the runner scores candidates against it. */
 const track = { title: '晴天', artist: '周杰伦', album: '叶惠美', duration: 269 }
@@ -31,11 +33,12 @@ function queryOf(provider, id, extra = {}) {
     artist: extra.artist ?? track.artist,
     album: extra.album ?? track.album,
     duration: String(extra.duration ?? track.duration),
+    ...(extra.preferred === undefined ? {} : { preferred: String(extra.preferred) }),
   })
   return { params, url: new URL('http://127.0.0.1/music/online/best-lyric?' + params.toString()) }
 }
 
-function routesWith(io) {
+function routesWith(io, state = lyricState) {
   return createOnlineRoutes({
     settings: { get: () => ({}) },
     profileState: async () => null,
@@ -45,6 +48,7 @@ function routesWith(io) {
     providerStore: undefined,
     onlineCache,
     kugouSessions: undefined,
+    lyricState: state,
     lyricMatchIo: io,
   })
 }
@@ -239,6 +243,82 @@ function unusedIo() {
   // the platform's lyric when `wordLevel` is true, so the flag must stay honest here.
   assert.equal(answer.body.match.wordLevel, false)
   assert.equal(answer.body.match.lrc, '[00:01.000]只有整行')
+}
+
+// ── the song's own record: an imported lyric, an instrumental verdict ──────
+
+/** One request against the online routes with a JSON body. */
+async function send(routes, pathname, method, params, body) {
+  const url = new URL('http://127.0.0.1/music' + pathname + '?' + new URLSearchParams(params).toString())
+  const res = fakeRes()
+  await routes(
+    fakeReq(url.pathname + url.search, method, { host: '127.0.0.1:1' }, body === undefined ? '' : JSON.stringify(body)),
+    res,
+    { url, pathname, method, params: url.searchParams },
+  )
+  return { status: res.status, body: res.json() }
+}
+
+{
+  // No io may run: every answer below comes from the record.
+  const routes = routesWith(unusedIo())
+  const target = { provider: 'qq', id: 'record-1' }
+
+  let answer = await send(routes, '/online/lyric-import', 'POST', {}, {
+    ...target,
+    text: '[00:01.000]导入的歌词',
+    name: 'mine.lrc',
+  })
+  assert.equal(answer.status, 200)
+  assert.equal(answer.body.source, 'imported')
+
+  answer = await send(routes, '/online/lyric', 'GET', target)
+  assert.equal(answer.status, 200)
+  assert.equal(answer.body.source, 'imported', 'an imported lyric is served without asking the provider')
+  assert.equal(answer.body.raw.lrcContent, '[00:01.000]导入的歌词')
+
+  answer = await send(routes, '/online/lyric-state', 'GET', target)
+  assert.equal(answer.body.source, 'imported')
+  assert.equal(answer.body.imported, 'mine.lrc')
+
+  // The instrumental verdict is an answer too: nothing is fetched, no lyric is shown.
+  answer = await send(routes, '/online/lyric-choice', 'POST', {}, { ...target, pureMusic: true })
+  assert.equal(answer.status, 200)
+  answer = await send(routes, '/online/lyric', 'GET', target)
+  assert.equal(answer.body.pureMusic, true)
+  assert.equal(answer.body.lrc, '')
+  assert.equal(answer.body.lines, null)
+
+  answer = await send(routes, '/online/lyric-state', 'GET', target)
+  assert.equal(answer.body.pureMusic, true)
+
+  answer = await send(routes, '/online/lyric-choice', 'POST', {}, { ...target, source: 'bogus' })
+  assert.equal(answer.status, 400)
+}
+
+// ── AMLL is probed through a NetEase candidate for a non-NetEase track ─────
+
+{
+  const calls = []
+  const io = {
+    search: async (sourceId, query, limit) => {
+      calls.push(['search', sourceId, query, limit])
+      return [{ id: 'ncm-9', title: track.title, artist: track.artist, album: track.album, durationMs: 269000 }]
+    },
+    fetchLyric: async (sourceId, id) => {
+      calls.push(['lyric', sourceId, id])
+      return null
+    },
+    fetchAmll: async (platform, id) => {
+      calls.push(['amll', platform, id])
+      return null
+    },
+  }
+  // The listener prefers AMLL, so the pick reaches it before any platform search.
+  const answer = await ask(routesWith(io), 'kugouLite', 'kg-1', { preferred: 'amll' })
+  assert.equal(answer.status, 200)
+  assert.deepEqual(calls[0], ['search', 'netease', '晴天 周杰伦', 10], 'the AMLL ids come from a NetEase search')
+  assert.deepEqual(calls[1], ['amll', 'ncm', 'ncm-9'], 'AMLL is asked with the candidate id it can key on')
 }
 
 console.log('best-lyric-route.test.mjs ok')
