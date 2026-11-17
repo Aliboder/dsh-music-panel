@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 界面规范与组件
+
+- 按 DSH 官方文档（`dsh-v0.2.2-rc.3`）重写主题开发指导：先判有无参考界面（有参考时布局/排版与组件类型跟参考、外观跟 DSH），圆角按用途×高度、0.5px 发丝线、层级表面只用 elevation、菜单材质、悬停能力、页面级审查。
+- 宿主适配层补齐官方组件：`Button` / `Input` / `Checkbox` / `SegmentedControl` / `SegmentedTabs` / `Tag` / `StateDot`，并新增基于 `Menu` 的 `KitSelect`（DSH 没有 Select）；本地回退按官方样式表几何实现。
+- 按钮 28/36（R8/R12）、图标按钮 28、开关 36×20、胶囊 24、设置行 0.5px 分隔线、对话框与设置面板改为只用 elevation 描边；回退对话框补上 Escape（只关最上层）。
+- 设置 → 关于 →「测试页面」新增组件测试页：按钮、图标按钮、输入框、下拉、开关、复选、滑杆、胶囊、分段、Tab（md/sm）、菜单、Tooltip、对话框、Toast、状态点、加载、空态与设置行，页头显示宿主组件是 native 还是 fallback。
+
 ## 0.36.2 — 2026-11-17
 
 ### 安装
