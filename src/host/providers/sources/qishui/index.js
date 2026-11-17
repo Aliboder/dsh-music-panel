@@ -131,8 +131,8 @@ function toArtist(raw) {
   return {
     id,
     name: text(base.title || base.name || item.name),
-    cover: image(base.url_avatar || item.display_info?.url_cover),
-    description: text(base.desc || base.intro),
+    cover: image(base.url_avatar || item.pic || item.display_info?.url_cover),
+    description: text(base.desc || base.intro || item.intro),
     provider: SOURCE_ID,
   }
 }
@@ -194,6 +194,24 @@ export function createQishuiSource(options) {
     return answer.data
   }
 
+  // A row restored from history may carry only the singer's name; Folia's rows carry a
+  // catalogRef. Resolve the id once through the provider's own search when it is missing.
+  async function resolveArtistId(name) {
+    const wanted = String(name ?? '').trim()
+    if (wanted === '') return ''
+    try {
+      const data = await request('search', { query: wanted, limit: 20, offset: 0 })
+      const items = Array.isArray(data?.items) ? data.items : []
+      for (const item of items) {
+        const match = artistsOf(item).find((artist) => artist.name === wanted && artist.id !== '')
+        if (match !== undefined) return match.id
+      }
+    } catch {
+      // The caller reports the missing id with the provider's message.
+    }
+    return ''
+  }
+
   const capabilities = buildCapabilities({
     search: true,
     playback: true,
@@ -242,7 +260,8 @@ export function createQishuiSource(options) {
     },
 
     async artistSongs(artist, ctx = {}) {
-      const artistId = text(ctx.artistId)
+      let artistId = text(ctx.artistId)
+      if (artistId === '') artistId = await resolveArtistId(artist)
       if (artistId === '') {
         throw new MusicError('Qishui singer has no id', { code: 'unavailable', sourceId: SOURCE_ID })
       }

@@ -356,6 +356,7 @@ function createPlayer() {
       title: trackTitleOf(track),
       artist: trackArtistOf(track),
       album: track.album || '',
+      albumId: track.albumId || '',
       durationSec: Number(track.durationSec) || 0,
       coverUrl: track.coverUrl || '',
       hasCover: track.hasCover === true,
@@ -365,6 +366,8 @@ function createPlayer() {
       onlineProvider: track.onlineProvider || '',
       onlineId: track.onlineId || '',
       qualityHint: track.qualityHint || '',
+      // The artist page opens on catalog ids; a restored queue must keep them too.
+      artistsDetail: Array.isArray(track.artistsDetail) ? track.artistsDetail : [],
     }
   }
 
@@ -451,6 +454,7 @@ function createPlayer() {
         title: entry.title || '',
         artist: entry.artist || '',
         album: entry.album || '',
+        albumId: entry.albumId || '',
         durationSec: Number(entry.durationSec) || 0,
         hasCover: entry.hasCover === true,
         coverUrl: entry.coverUrl || '',
@@ -459,6 +463,7 @@ function createPlayer() {
         onlineProvider: entry.onlineProvider,
         onlineId: entry.onlineId,
         qualityHint: entry.qualityHint || '',
+        artistsDetail: Array.isArray(entry.artistsDetail) ? entry.artistsDetail : [],
         sampleRate: 0,
         size: 0,
         mtime: 0,

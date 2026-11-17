@@ -150,6 +150,10 @@ assert.equal(page.results[0].id, '123')
 
 const artistSongs = await source.artistSongs('周杰伦', { artistId: 'ar1', page: { limit: 10, offset: 0 } })
 assert.equal(artistSongs[0].id, '123', 'the artist page passes the id through ctx.artistId')
+
+// Rows restored from history may carry only the singer's name; resolve it by search.
+const byName = await source.artistSongs('周杰伦', {})
+assert.equal(byName[0].id, '123', 'a missing artistId is resolved through the provider search')
 assert.equal(page.hasMore, false)
 
 const audio = await source.stream('123')

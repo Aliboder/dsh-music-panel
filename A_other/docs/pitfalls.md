@@ -351,6 +351,15 @@
 
 ---
 
+## 39. 歌手页只拿到歌手名 / 专辑卡片只认 `cover`（在线源 / Client）
+
+- **现象**：汽水歌手页报 `Qishui singer has no id`；波点歌手页的专辑卡片全是占位图，且没有歌手头像。
+- **原因**：`/online/artist-songs` 需要 `artistId`，但客户端从历史/恢复队列拿到的行可能只有歌手名；而歌手页的专辑卡片渲染读的是 `card.cover`（旧集合形状），`artist_albums` 却只返回了 `coverUrl`；`artist_detail` 也未被使用。
+- **处理**：两个源在 `artistSongs` 里用歌手名走一次自己的 search 解析 id（Folia 用歌曲里的 `catalogRef`，效果等价）；`artist_albums` 同时带 `cover` 与 `coverUrl`，`artist_detail` 提供头部信息；播放快照保留 `artistsDetail`/`albumId`。
+- **防回归**：`qishui.test.mjs` / `bodian.test.mjs` 覆盖「仅名字」解析、VIP 标记、专辑卡片 `cover` 与艺术家头部。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

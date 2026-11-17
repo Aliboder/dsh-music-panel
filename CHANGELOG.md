@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 歌手页（汽水 / 波点）
+
+- 修复汽水歌手页 `Qishui singer has no id`：从历史/队列恢复的歌曲可能只剩歌手名，Folia 靠歌曲里的 `catalogRef`，我们改为在 `artistSongs` 里按名字走一次本平台搜索解析出 `artistId`；播放快照也会保留 `artistsDetail`，从播放栏进歌手页同样可用。
+- 波点歌手页的专辑卡片没有封面：卡片读的是 `cover` 字段，而 `artist_albums` 只给了 `coverUrl`；现在两者都带，并且 `artist_detail` 提供艺术家头像/简介头部。
+- 波点歌曲行的 VIP 标按 `payInfo.feeType.vip` 恢复（平台自己的会员标记，与其它平台徽标一致）。
+- 专辑/歌手卡片封面代理带上 `provider`，按平台使用各自的 Referer。
+
 ### 在线封面与播放 URL
 
 - 修复汽水/波点「列表无封面、点播报 Failed to load because no supported source」：原生源的歌曲行只有 `sourceRef`、没有 `provider`，客户端 `onlineTrackOf` 取到 `undefined`，于是封面代理和取流 URL 都变成 `provider=undefined`。两个源的行现在带 `provider`，`onlineTrackOf` 也回退到 `sourceRef.sourceId`。

@@ -58,6 +58,10 @@ export function toTrack(row) {
   // keyed by the track id for the later stream request (and for pages).
   const freeSign = String(item.freeSign ?? item.fsig ?? '')
   rowMeta.set(String(id), { freeSign })
+  // The platform marks membership-only tracks in payInfo.feeType.vip ("1"); the same
+  // field the web player badges. A missing value is not treated as free.
+  const pay = item.payInfo && typeof item.payInfo === 'object' ? item.payInfo : {}
+  const qualityHint = String(pay.feeType?.vip ?? '') === '1' ? 'VIP' : ''
 
   return {
     id: String(id),
@@ -69,6 +73,7 @@ export function toTrack(row) {
     durationSec,
     durationMs: Math.round(durationSec * 1000),
     coverUrl: cover,
+    qualityHint,
     sourceRef: { kind: 'online', sourceId: SOURCE_ID, ref: String(id) },
     providerData: {
       albumId: item.albumId ?? null,
@@ -161,6 +166,28 @@ export function createBodianSource(options) {
     }
   }
 
+  // Rows restored from history carry only the singer's name. Resolve it through the
+  // provider's own search once, the same way Folia's catalogRef would have brought it.
+  async function resolveArtistId(name) {
+    const wanted = String(name ?? '').trim()
+    if (wanted === '') return ''
+    try {
+      const data = await request('search', { query: wanted, limit: 20, offset: 0 })
+      const rows = Array.isArray(data?.resultList) ? data.resultList : []
+      for (const row of rows) {
+        const artists = Array.isArray(row?.artists) ? row.artists : []
+        const match = artists.find(
+          (artist) => String(artist?.name ?? '') === wanted && String(artist?.id ?? row?.artistId ?? '') !== '',
+        )
+        if (match !== undefined) return String(match.id ?? row.artistId)
+        if (String(row?.artist ?? '') === wanted && row?.artistId !== undefined) return String(row.artistId)
+      }
+    } catch {
+      // The caller reports the missing id with the provider's message.
+    }
+    return ''
+  }
+
   const source = {
     id: SOURCE_ID,
     kind: 'online',
@@ -194,7 +221,8 @@ export function createBodianSource(options) {
 
     // ── catalogue pages (Folia's bodianCatalog operations) ────────────────
     async artistSongs(name, ctx = {}) {
-      const artistId = String(ctx.artistId || '').trim()
+      let artistId = String(ctx.artistId || '').trim()
+      if (artistId === '') artistId = await resolveArtistId(name)
       if (artistId === '') {
         throw new MusicError('Bodian singer has no id', { code: 'unavailable', sourceId: SOURCE_ID })
       }
@@ -253,15 +281,33 @@ export function createBodianSource(options) {
       const data = await request('artist_albums', { id: artistId, limit: 100, offset: 0 })
       const rows = Array.isArray(data?.resultList) ? data.resultList : []
       const albums = rows
-        .map((row) => ({
-          id: String(row?.albumId ?? row?.id ?? ''),
-          name: String(row?.name ?? ''),
-          type: 'album',
-          coverUrl: coverOf(row?.pic),
-          trackCount: Number(row?.songNum ?? row?.total) || undefined,
-        }))
+        .map((row) => {
+          const cover = coverOf(row?.pic)
+          return {
+            id: String(row?.albumId ?? row?.id ?? ''),
+            name: String(row?.name ?? ''),
+            type: 'album',
+            // Album cards read `cover` (the legacy collection shape); keep coverUrl too.
+            cover,
+            coverUrl: cover,
+            trackCount: Number(row?.songNum ?? row?.total) || undefined,
+            artist: String(row?.artist ?? ''),
+          }
+        })
         .filter((album) => album.id !== '')
-      return { artist: null, albums }
+      let artist = null
+      try {
+        const info = (await request('artist_detail', { id: artistId }))?.artistInfo ?? {}
+        artist = {
+          id: artistId,
+          name: String(info.name ?? ''),
+          cover: coverOf(info.pic),
+          description: String(info.intro ?? ''),
+        }
+      } catch {
+        // The album grid still stands without the header.
+      }
+      return { artist, albums }
     },
 
     async getAudioSource(mediaId, _ctx, quality) {

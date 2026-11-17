@@ -186,9 +186,18 @@ function onlineTrackOf(result) {
   }
 }
 
-function onlineCoverSrc(result) {
+function onlineCoverSrc(result, provider) {
   if (!result) return ''
   if (typeof result.coverArtId === 'string' && result.coverArtId !== '') return subsonicCoverUrl(result.coverArtId)
   if (typeof result.coverUrl !== 'string' || result.coverUrl === '') return ''
-  return API + 'online/cover?url=' + encodeURIComponent(result.coverUrl)
+  var pid = provider || result.provider || (result.sourceRef && result.sourceRef.sourceId) || ''
+  return (
+    API +
+    'online/cover?provider=' +
+    encodeURIComponent(pid) +
+    '&id=' +
+    encodeURIComponent(String(result.id || '')) +
+    '&url=' +
+    encodeURIComponent(result.coverUrl)
+  )
 }

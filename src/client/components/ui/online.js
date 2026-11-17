@@ -866,7 +866,7 @@ function OnlineContent(props) {
     var artistHead = null
     if (nav === 'artist' && artistDetail) {
       var artistCover = artistDetail.cover
-        ? onlineCoverSrc({ coverUrl: artistDetail.cover })
+        ? onlineCoverSrc({ coverUrl: artistDetail.cover }, provider)
         : ''
       artistHead = h(
         'div',
@@ -906,7 +906,7 @@ function OnlineContent(props) {
           { className: 'mp-entry-list' },
           cards.map(function (card) {
             var cover = card.cover
-              ? onlineCoverSrc({ coverUrl: card.cover })
+              ? onlineCoverSrc({ coverUrl: card.cover }, provider)
               : subsonicCoverUrl(card.coverArtId)
             return h(
               'button',

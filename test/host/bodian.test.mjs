@@ -44,6 +44,10 @@ assert.equal(toTrack({ id: 2, artists: [{ name: 'X' }, { name: 'Y' }] }).artist,
 assert.equal(toTrack({ name: 'no id' }), null)
 assert.equal(toTrack(null), null)
 
+// payInfo.feeType.vip marks membership-only tracks; the row badge follows it.
+const vipRow = toTrack({ id: 3, name: '会员歌', payInfo: { feeType: { song: '1', vip: '1' } } })
+assert.equal(vipRow.qualityHint, 'VIP')
+
 const lrc = parseLrc('[ti:x]\n[00:01.50]hello\n[00:02.500][00:03]twice')
 assert.deepEqual(lrc, [
   { timeMs: 1500, text: 'hello' },
@@ -85,6 +89,10 @@ assert.equal(sessions.get(), null)
             return { ok: true, data: { resultList: [{ id: 12, name: '歌二', artist: 'X', duration: 120 }], total: 1 } }
           case 'artist_albums':
             return { ok: true, data: { resultList: [{ albumId: 9, name: '专辑', pic: 'https://img.kuwo.cn/a.jpg', songNum: 1 }], total: 1 } }
+          case 'artist_detail':
+            return { ok: true, data: { artistInfo: { id: 5, name: 'X', pic: 'https://img.kuwo.cn/x.jpg' } } }
+          case 'search':
+            return { ok: true, data: { resultList: [{ id: 12, name: '歌二', artist: 'X', artistId: 5, artists: [{ id: 5, name: 'X' }], duration: 120 }], total: 1 } }
           default:
             return { ok: true, data: {} }
         }
@@ -101,9 +109,15 @@ assert.equal(sessions.get(), null)
   const songs = await source.artistSongs('X', { artistId: '5', page: { limit: 10, offset: 0 } })
   assert.equal(songs[0].id, '12')
   assert.equal(songs[0].durationSec, 120)
+  // A name-only entry resolves the singer through search (restored queues lack the id).
+  const byName = await source.artistSongs('X', {})
+  assert.equal(byName[0].id, '12')
   const albums = await source.artistAlbums('5')
   assert.equal(albums.albums[0].id, '9')
   assert.equal(albums.albums[0].name, '专辑')
+  assert.equal(albums.albums[0].cover, 'https://img.kuwo.cn/a.jpg', 'album cards read `cover`')
+  assert.equal(albums.artist.name, 'X', 'the artist header comes from artist_detail')
+  assert.equal(albums.artist.cover, 'https://img.kuwo.cn/x.jpg')
 }
 
 // The playback context from the row (`freeSign`) reaches the audio operation, and the
