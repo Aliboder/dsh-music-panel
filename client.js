@@ -154732,6 +154732,13 @@ window.__ModuleLoader__.load({
             /* a listener must never break playback */
           }
         })
+        // An online track that cannot be fetched (expired sign-in, rights restriction, provider
+        // refusal) must not spin the queue: stop on it and let the toast name the reason.
+        if (failedTrack !== null && failedTrack.onlineProvider) {
+          errorStreak = 0
+          patch({ playing: false })
+          return
+        }
         if (errorStreak > 3 || state.queue.length <= 1) {
           errorStreak = 0
           patch({ playing: false })

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 波点专辑 / 歌手页与播放
+
+- 修复波点专辑页「Invalid Bodian pagination」：车机接口单页上限是 100（原先传 500/200 被包直接拒绝），专辑与歌手歌曲改为按 100 分页取完。
+- 波点播放补上 `freeSign` 与音质：搜索行里的 `freeSign` 记入 `providerData`（队列恢复时回退 `song_detail` 再取），`/online/audio` 不再因为缺少播放上下文被判「需要额外权限」。
+- 波点封面：Kuwo 的 `http://*.kuwo.cn` 图片升级为 https；封面代理按平台使用各自 Referer（波点用 kuwo、汽水用抖音），专辑/歌手页与歌曲行的封面恢复。
+- 在线歌曲取流失效时不再自动跳过整队列：播放器停在这首歌并提示失败原因（避免列表和正在播放疯狂切换）。
+
 ### 汽水 / 波点的歌曲信息与专辑·歌手页
 
 - 汽水搜索结果补齐歌曲信息：`durationSec`（客户端读秒，之前只有毫秒所以显示 `—:—`）、`albumId`、SVIP 标签（来自 `commerce_info.icon_info` / `playable_condition`，与其他平台的 VIP 标签一致），封面代理允许抖音图床（`douyinpic.com` 等），专辑名/封面恢复显示。

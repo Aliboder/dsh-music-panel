@@ -41,6 +41,8 @@ const ONLINE_REFERERS = {
   qq: 'https://y.qq.com/',
   kugou: 'https://www.kugou.com/',
   kugouLite: 'https://www.kugou.com/',
+  bodian: 'https://www.kuwo.cn/',
+  qishui: 'https://music.douyin.com/',
 }
 
 function onlineReferer(provider) {
@@ -1605,7 +1607,11 @@ export function createOnlineRoutes(deps) {
         try {
           const upstream = await fetch(parsed.toString(), {
             redirect: 'follow',
-            headers: { 'User-Agent': ONLINE_UA, Referer: 'https://y.qq.com/' },
+            headers: {
+              'User-Agent': ONLINE_UA,
+              // Each platform's CDN may check its own Referer (Kuwo's artwork, Douyin's).
+              Referer: isOnlineSource(provider) ? onlineReferer(provider) : 'https://y.qq.com/',
+            },
           })
           if (!upstream.ok) return fail(res, 502, 'COVER_FAILED', 'HTTP ' + upstream.status)
           const contentType = upstream.headers.get('content-type') || 'image/jpeg'

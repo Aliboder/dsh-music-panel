@@ -105,6 +105,31 @@ assert.equal(sessions.get(), null)
   assert.equal(albums.albums[0].name, '专辑')
 }
 
+// The playback context from the row (`freeSign`) reaches the audio operation, and the
+// quality option is honoured; without it Bodian answers "additional rights required".
+{
+  const calls = []
+  const source = createBodianSource({
+    deviceId: 'a'.repeat(32),
+    sessions: createMemorySessions(),
+    createApi: () => ({
+      request: async (operation, params) => {
+        calls.push([operation, params])
+        if (operation === 'audio') return { ok: true, data: { url: 'https://audio.kuwo.cn/a.mp3', quality: params.quality } }
+        return { ok: true, data: {} }
+      },
+    }),
+  })
+  const playable = toTrack({ id: 77, name: '歌', album: '专辑', albumPic: 'http://img1.kuwo.cn/a.jpg', duration: 10, freeSign: 'sign-1' })
+  assert.equal(playable.providerData.freeSign, 'sign-1')
+  const stream = await source.getAudioSource('77', {}, 'lossless')
+  assert.equal(stream.url, 'https://audio.kuwo.cn/a.mp3')
+  const audio = calls.find(([operation]) => operation === 'audio')
+  assert.equal(audio[1].freeSign, 'sign-1')
+  assert.equal(audio[1].quality, 'lossless')
+  assert.equal(playable.coverUrl, 'https://img1.kuwo.cn/a.jpg', 'kuwo http artwork is upgraded to https')
+}
+
 // ── QR sign-in ──────────────────────────────────────────────────────────────
 //
 // Bodian's package answers `confirmed` on a successful scan (it has already written the

@@ -20,6 +20,14 @@ import { parseLrc } from '../lrc.js'
 const SOURCE_ID = 'bodian'
 const PAGE_SIZE = 60
 
+/** Playback context remembered from the row that produced a track (Folia's providerData). */
+const rowMeta = new Map()
+
+/** Kuwo's CDN answers http links; Folia upgrades the kuwo hosts to https. */
+function coverOf(value) {
+  return String(value ?? '').replace(/^http:\/\/(?=[\w-]+\.kuwo\.cn\/)/, 'https://')
+}
+
 /** In-memory session repository shaped like the upstream package expects. */
 export function createMemorySessions(initial = null) {
   let value = initial
@@ -44,8 +52,12 @@ export function toTrack(row) {
     ? item.artists.map((artist) => String(artist?.name ?? artist?.artistName ?? '')).filter(Boolean)
     : []
   const artist = String(item.artist ?? '')
-  const cover = String(item.albumPic ?? item.albumPic120 ?? '')
+  const cover = coverOf(item.albumPic ?? item.albumPic120 ?? '')
   const durationSec = Number(item.duration) || 0
+  // `audio` needs the row's freeSign to resolve the account's playback rights; keep it
+  // keyed by the track id for the later stream request (and for pages).
+  const freeSign = String(item.freeSign ?? item.fsig ?? '')
+  rowMeta.set(String(id), { freeSign })
 
   return {
     id: String(id),
@@ -61,6 +73,7 @@ export function toTrack(row) {
       albumId: item.albumId ?? null,
       artistId: item.artistId ?? null,
       pay: item.payInfo ?? null,
+      freeSign,
     },
 
     // ── Full entity, aligned with the online source contract ─────────────
@@ -74,8 +87,8 @@ export function toTrack(row) {
     albumDetail: {
       id: String(item.albumId ?? ''),
       name: String(item.album ?? ''),
-      coverUrl: String(item.albumPic ?? ''),
-      coverUrlSmall: String(item.albumPic120 ?? ''),
+      coverUrl: cover,
+      coverUrlSmall: coverOf(item.albumPic120 ?? ''),
     },
     aliases: item.subtitle ? [String(item.subtitle)] : [],
     translatedNames: [],
@@ -185,13 +198,19 @@ export function createBodianSource(options) {
         throw new MusicError('Bodian singer has no id', { code: 'unavailable', sourceId: SOURCE_ID })
       }
       const page = ctx.page ?? {}
-      const data = await request('artist_songs', {
-        id: artistId,
-        limit: Number(page.limit) || 200,
-        offset: Number(page.offset) || 0,
-      })
-      const rows = Array.isArray(data?.resultList) ? data.resultList : []
-      return rows.map(toTrack).filter(Boolean)
+      const wanted = Math.max(1, Number(page.limit) || 200)
+      let offset = Math.max(0, Number(page.offset) || 0)
+      const songs = []
+      // The package rejects a limit above 100; walk pages until the route's ask is met.
+      while (songs.length < wanted) {
+        const limit = Math.min(100, wanted - songs.length)
+        const data = await request('artist_songs', { id: artistId, limit, offset })
+        const rows = Array.isArray(data?.resultList) ? data.resultList : []
+        songs.push(...rows.map(toTrack).filter(Boolean))
+        offset += rows.length
+        if (rows.length < limit || data?.bodianPagination?.hasMore !== true) break
+      }
+      return songs
     },
 
     async albumSongs(id, _ctx, hint = {}) {
@@ -199,9 +218,18 @@ export function createBodianSource(options) {
       if (albumId === '') {
         throw new MusicError('Bodian album has no id', { code: 'unavailable', sourceId: SOURCE_ID })
       }
-      const data = await request('album_tracks', { id: albumId, limit: 500, offset: 0 })
-      const rows = Array.isArray(data?.resultList) ? data.resultList : []
-      const songs = rows.map(toTrack).filter(Boolean)
+      const songs = []
+      let offset = 0
+      // The car API caps a page at 100 rows; an album is normally a single page but the
+      // pagination hint is honoured when it is not.
+      for (;;) {
+        const data = await request('album_tracks', { id: albumId, limit: 100, offset })
+        const rows = Array.isArray(data?.resultList) ? data.resultList : []
+        songs.push(...rows.map(toTrack).filter(Boolean))
+        offset += rows.length
+        if (rows.length < 100 || data?.bodianPagination?.hasMore !== true) break
+        if (offset > 1000) break
+      }
       let info = {}
       try {
         info = (await request('album_detail', { id: albumId }))?.albumInfo ?? {}
@@ -212,7 +240,7 @@ export function createBodianSource(options) {
         id: albumId,
         name: String(info.name ?? hint.album ?? ''),
         artist: String(info.artist ?? hint.artist ?? ''),
-        cover: String(info.pic ?? ''),
+        cover: coverOf(info.pic),
         trackCount: songs.length,
         songs,
       }
@@ -228,7 +256,7 @@ export function createBodianSource(options) {
           id: String(row?.albumId ?? row?.id ?? ''),
           name: String(row?.name ?? ''),
           type: 'album',
-          coverUrl: String(row?.pic ?? ''),
+          coverUrl: coverOf(row?.pic),
           trackCount: Number(row?.songNum ?? row?.total) || undefined,
         }))
         .filter((album) => album.id !== '')
@@ -236,7 +264,23 @@ export function createBodianSource(options) {
     },
 
     async getAudioSource(mediaId, _ctx, quality) {
-      const data = await request('audio', { id: String(mediaId) })
+      const id = String(mediaId)
+      let meta = rowMeta.get(id) ?? null
+      if (meta === null) {
+        // The queue may be restored after a restart: the row cache is empty then.
+        try {
+          const detail = await request('song_detail', { id })
+          meta = { freeSign: String(detail?.freeSign ?? detail?.fsig ?? '') }
+          rowMeta.set(id, meta)
+        } catch {
+          meta = { freeSign: '' }
+        }
+      }
+      const data = await request('audio', {
+        id,
+        quality: ['standard', 'high', 'lossless', 'hires'].includes(quality) ? quality : 'high',
+        freeSign: meta.freeSign || '',
+      })
       const url = typeof data?.url === 'string' ? data.url : ''
       if (url === '') {
         throw new MusicError('this track has no playable URL', { code: 'not-playable', sourceId: SOURCE_ID })
