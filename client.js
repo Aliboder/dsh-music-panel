@@ -8,7 +8,7 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
-    var APP_VERSION = "0.37.1"
+    var APP_VERSION = "0.37.2"
 
     // ── src/client/app/runtime.js
     /**

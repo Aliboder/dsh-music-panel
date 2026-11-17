@@ -10,7 +10,7 @@
 Local library · NetEase Cloud Music · QQ Music · KuGou · Bodian · Qishui · Navidrome / Subsonic · Lyrics · Cache · EBU R128 · 10-band EQ`n本地曲库 · 网易云音乐 · QQ 音乐 · 酷狗 · 波点音乐 · 汽水音乐 · Navidrome / Subsonic · 歌词 · 缓存 · 音量均衡 · 均衡器
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
-[![release](https://img.shields.io/badge/release-0.37.1-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
+[![release](https://img.shields.io/badge/release-0.37.2-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
 [![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
 
@@ -82,7 +82,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Bodian · Qishui ·
 - **在线歌单排序**：平台顺序 / 名称 / 歌曲数，偏好保存在本机。
 - **账号资料**：设置 → 在线显示官方平台图标、当前昵称与头像；头像通过本机代理加载。
 - **VIP 识别**：根据当前登录账号判断可播放性，VIP 曲目显示金色徽标。
-- **音频缓存**：边播边写、播完落盘，默认上限 10 GB、LRU 淘汰；设置 → 缓存可查看全部缓存歌曲并清空。
+- **音频缓存**：默认关闭；只有整首播完后才写入，设置 → 数据里可开关、限制容量（默认 5 GB）并按最近播放清理。跳过、失败和试听片段不会写入。
 - **可调歌词宽度**：播放页歌词栏两侧都可拖动调整宽度（双击复位），宽度按本机偏好保存。
 - **两栏间距可调**：界面编辑里可调封面栏与歌词栏的间距（12–96px，默认 60px）。
 - **Folia 歌词样式**：14 种 [Folia](https://github.com/chthollyphile/folia-major) 样式按上游源码移植（静止 / 云阶 / 浮名 / 莫奈 / 倾诉 / 回环 / 心象 / 绘光 / 商籁 / 凝彩 / 花火 / 雾笺 / 镜台 / 时计），共用 Folia 的时钟、逐字时间线、封面取色主题与音频带；另有「随机」：按歌曲时长等分，把除静止外的样式洗牌后依次上场，同曲顺序固定。原“经典”布局已移除，默认样式为“莫奈”。
@@ -157,14 +157,14 @@ pnpm add dsh-music-panel
 
 1. 顶栏切到网易云 / QQ 音乐 / 酷狗，或选择 Navidrome / Subsonic。
 2. 首次使用：齿轮 → **在线**，点对应平台「登录」，用手机 App 扫码确认；Navidrome 填写服务器地址、用户名和密码后连接。
-3. 直接点导航里的云端歌单开始播放；播放过的歌曲会自动进入音频缓存。
-4. 需要清理时到 **设置 → 缓存** 查看或清空。
+3. 直接点导航里的云端歌单开始播放；整首播放完的歌曲才会写入音频缓存（默认关闭）。
+4. 需要清理时到 **设置 → 数据** 查看用量或清空。
 
-Navidrome 的「全部歌曲」默认是随机采样。需要按页浏览完整曲库时，在连接表单中勾选「保存密码，启用完整曲库」；该选项会把密码额外写入本机 `providers.json`，详见下方隐私说明。
+Navidrome 的「全部歌曲」默认是随机采样。需要按页浏览完整曲库时，在连接表单中勾选「保存密码，启用完整曲库」；该选项会把密码额外写入本机 `sessions.json`，详见下方隐私说明。
 
 ### 隐私
 
-- 全部逻辑在本机运行；登录 Cookie、token 以及 Navidrome 的 salt + token 只写入 `~/.dsh/music/providers.json`（权限 0600）。
+- 全部逻辑在本机运行；登录 Cookie、token 以及 Navidrome 的 salt + token 只写入 `~/.dsh/music/sessions.json`（权限 0600）。
 - Navidrome 默认只保存盐化 token。只有主动勾选「保存密码，启用完整曲库」时，密码才会以**明文**额外写入同一文件；这会扩大本机账户泄露后的影响面，请只在自己的机器上使用，并确保系统账户和磁盘加密可信。
 - 缓存与播放记录位于 `~/.dsh/music/`，可随时清理。
 - 客户端不向外部域名发请求：在线搜索、取链、歌词、封面均由 Host 发起并同源代理。
@@ -177,7 +177,7 @@ Navidrome 的「全部歌曲」默认是随机采样。需要按页浏览完整�
 - Navidrome 的「完整曲库」使用其内部 `/api/song` 接口，可能随版本变化；失效时会退回随机采样，不影响搜索、播放和收藏。
 - VIP / 付费曲目是否可播取决于当前登录账号，界面会显示金色徽标。
 - 平台图标使用各平台 App Store 官方应用图标，仅用于平台识别，商标归各平台所有。
-- **在线层实现来源**：网易云与 QQ 走各自的上游 API 包（本机 `127.0.0.1` 服务，由插件自分配端口）；酷狗保留插件自有的签名实现——实测上游在匿名态下取链返回 `20028 需要验证`、歌词返回 `20010 Bad Request`；波点走 `bodian-music-api`；汽水已接入依赖但当前网络环境无法连通其服务端，因此不会出现在平台列表；飞牛（fnOS）需要用户自建服务器才能验证，尚未启用。
+- **在线层实现来源**：网易云与 QQ 走各自的上游 API 包（本机 `127.0.0.1` 服务，由插件自分配端口）；酷狗保留插件自有的签名实现；波点走 `bodian-music-api`；汽水走 `qishui-music-api`（二维码需用抖音 App 扫码授权）；飞牛（fnOS）需要用户自建服务器才能验证，尚未启用。
 - **登录态**：0.36 起改为新的 `sessions.json` 结构（0600），旧的 `providers.json` 不再读取，升级后需重新登录一次。
 
 ### 开发
@@ -221,7 +221,7 @@ Most music plugins stop at “it plays”. `dsh-music-panel` is built as a **rea
 
 | | What you get |
 | :--- | :--- |
-| **Local + online** | Play files from disk, browse cloud playlists from NetEase Cloud Music, QQ Music, and KuGou, or connect your own Navidrome / Subsonic server. |
+| **Local + online** | Play files from disk, browse cloud playlists from NetEase Cloud Music, QQ Music, KuGou, Bodian, and Qishui, or connect your own Navidrome / Subsonic server. |
 | **A player, not just a list** | Album grid, vinyl now-playing view, synced lyrics with translations, draggable queue, listening stats, and “jump to current track”. |
 | **Online playlists that feel local** | Per-playlist cache, hover prefetch, stale-while-revalidate refresh, and sorting by platform order / name / track count. |
 | **Library maintenance in place** | Match metadata, replace covers, edit tags, calibrate lyrics, deduplicate tracks, and restore from trash. |
@@ -240,7 +240,7 @@ Most music plugins stop at “it plays”. `dsh-music-panel` is built as a **rea
 
 #### Online music
 
-- Switch between local, NetEase, QQ Music, KuGou, and Navidrome / Subsonic from the top bar; the queue is shared across sources.
+- Switch between local, NetEase, QQ Music, KuGou, Bodian, Qishui, and Navidrome / Subsonic from the top bar; the queue is shared across sources.
 - QR sign-in for cloud playlists, favorites, and recent plays; free tracks work without signing in.
 - **Navidrome / Subsonic**: enter the server URL, username, and password in Settings → Online. Search, streaming, lyrics, covers, favorites, and playlists use standard Subsonic endpoints.
 - **Complete library (optional)**: opt into “Save password, enable complete library” to page the full library through Navidrome’s native API. Without it, “All songs” is a random sample; search and every other feature still work.
@@ -248,7 +248,7 @@ Most music plugins stop at “it plays”. `dsh-music-panel` is built as a **rea
 - **Playlist sorting**: platform order / name / track count, persisted locally.
 - **Account profiles**: official provider icons, nickname, and avatar in Settings → Online; avatars are proxied by the Host.
 - **VIP awareness**: playability follows the signed-in account; VIP tracks are marked.
-- **Audio cache**: write-while-playing, default 10 GB with LRU eviction; Settings → Cache lists every cached track across providers.
+- **Audio cache**: off by default; a track is written only after a full play. Settings → Data has the switch, a size limit (5 GB default), usage, and per-category clearing. Skips, failures, and preview clips are never written.
 - **Volume leveling**: built-in EBU R128 / BS.1770 analysis with per-track gain, no ffmpeg required; results are cached.
 - **10-band equalizer**: Audio effects → Equalizer in the player bar (31 / 62 / 125 / 250 / 500 / 1k / 2k / 4k / 8k / 16k Hz, Q=1.41, ±12 dB). The Devices tab ships ~8,800 AutoEQ headphone correction curves with model search; factory presets reuse Winamp’s 18 curves; the Edit tab has a live response curve, preamp, and automatic headroom + limiter.
 - **Smart transition**: one switch in Audio effects → Volume (or Settings → Playback). It analyses the end of the current track and the start of the next, then blends with an equal-power curve for 2.5–6 s; the next track only fades in during the last 2.5 s, and the UI switches the moment it becomes audible. Album tracks keep their original join; pause, seek, or next cancels the blend.
@@ -312,13 +312,13 @@ For 0.27.3+:
 2. Settings → **Library**, add one or more music folders.
 3. Double-click a track, or press “Play all”.
 4. For online music, switch to a provider and sign in via QR in Settings → **Online**; for Navidrome/Subsonic, enter the server URL, username, and password.
-5. Open a cloud playlist or your server library from the navigation; played tracks are cached automatically.
+5. Open a cloud playlist or your server library from the navigation; tracks are cached only after a full play (the cache is off by default).
 
-Navidrome’s “All songs” view is a random sample by default. To page the complete library, enable “Save password, enable complete library” in the connection form; that stores the password in the local `providers.json` (see Privacy).
+Navidrome’s “All songs” view is a random sample by default. To page the complete library, enable “Save password, enable complete library” in the connection form; that stores the password in the local `sessions.json` (see Privacy).
 
 ### Privacy
 
-- Everything runs locally. Cookies, tokens, and Navidrome’s salt + token are stored only in `~/.dsh/music/providers.json` (mode 0600).
+- Everything runs locally. Cookies, tokens, and Navidrome’s salt + token are stored only in `~/.dsh/music/sessions.json` (mode 0600).
 - Navidrome stores only a salted token by default. If you opt into “Save password, enable complete library”, the password is additionally written **in plaintext** to the same file; this increases the impact of a local account compromise. Use it only on a machine you trust, with a protected OS account and disk encryption.
 - Cache and history live under `~/.dsh/music/` and can be cleared at any time.
 - The browser side never calls external domains: search, stream resolution, lyrics, and covers are proxied by the Host.
@@ -331,7 +331,7 @@ Navidrome’s “All songs” view is a random sample by default. To page the co
 - Navidrome’s complete-library view uses its internal `/api/song` endpoint, which may change between versions; if it fails, the panel falls back to random sampling without affecting search, playback, or favorites.
 - VIP / paid track availability depends on the signed-in account and is marked in the UI.
 - Provider icons come from the official App Store artwork and are used only for identification; trademarks belong to their owners.
-- **Online transports**: NetEase and QQ run their upstream API packages as local `127.0.0.1` services on ports the plugin allocates itself. KuGou keeps the plugin's own signing implementation — upstream answers `20028 (verification required)` for stream lookups and `20010 Bad Request` for lyrics when anonymous. Bodian uses `bodian-music-api`. Qishui is wired but its service host is unreachable from this network, so it is not listed; fnOS needs a user-hosted server and is not enabled yet.
+- **Online transports**: NetEase and QQ run their upstream API packages as local `127.0.0.1` services on ports the plugin allocates itself. KuGou keeps the plugin's own signing implementation. Bodian uses `bodian-music-api`; Qishui uses `qishui-music-api` and its QR must be authorized in the Douyin app. fnOS needs a user-hosted server and is not enabled yet.
 - **Sign-in state**: 0.36 stores credentials in the new `sessions.json` (0600). The old `providers.json` is no longer read, so upgrading asks for one fresh sign-in.
 
 ### Development
