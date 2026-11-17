@@ -31,7 +31,9 @@ import { fileURLToPath } from 'node:url'
 import { SUPPORTED_EXTENSIONS, extensionOf, mimeOf } from '../stores/config.js'
 import { fail, isLoopback, isSameOrigin, queryOf, readJson, sendJson } from './http.js'
 import { isAllowedCoverUrl } from './url-safety.js'
-import { readLyricsFor } from '../services/lyrics/lyrics.js'
+import { readLyricsFor, lyricFormatHintForName } from '../services/lyrics/lyrics.js'
+import { describeLocalSources, needsAutoMatch, resolveLocalLyrics } from '../services/lyrics/local-lyrics.js'
+import { createLocalLyricMatcher } from '../services/lyrics/local-match.js'
 import { backupLyrics, serializeLrc, shiftLrc, writeEmbeddedLyrics } from '../services/lyrics/lyrics-write.js'
 import { readCover } from '../services/media/meta.js'
 import { readTags, writeTags } from '../services/media/tags.js'
@@ -232,7 +234,61 @@ async function validateRoots(list) {
  */
 const debugReports = []
 
-export function createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, onlineCache, kugouSessions, resetData }) {
+export function createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, onlineCache, kugouSessions, resetData, lyricState, lyricOmni }) {
+  // The per-song lyric record (choice, matched lyric, instrumental mark). Routes stay
+  // usable without one — a test or an older wiring simply never remembers anything.
+  const lyricRecords = lyricState === undefined || lyricState === null
+    ? {
+        get: async () => null,
+        readPayload: async () => null,
+        writePayload: async () => null,
+        patch: async () => null,
+      }
+    : lyricState
+  const localLyricMatcher = createLocalLyricMatcher({
+    lyricState: lyricRecords,
+    omni: lyricOmni ?? omni,
+    providerStore,
+  })
+  const lyricPriorityOf = (params) => (String(params.get('priority') || '') === 'online' ? 'online' : 'local')
+  const lyricPreferredOf = (params) => {
+    const preferred = String(params.get('preferred') || '').trim()
+    return preferred === '' ? undefined : preferred
+  }
+  /** The resolved lyric plus the flags the player's source switcher needs. */
+  async function localLyricPayload(file, params) {
+    const priority = lyricPriorityOf(params)
+    const state = await lyricRecords.get(file)
+    const resolved = await resolveLocalLyrics(file, { lyricState: lyricRecords, priority })
+    const autoMatch = needsAutoMatch({
+      state,
+      hasSidecar: resolved.available.sidecar,
+      hasEmbedded: resolved.available.embedded,
+      priority,
+    })
+    const offsetMs = stats !== undefined ? (await stats.get(file))?.lyricOffsetMs ?? 0 : 0
+    return {
+      ok: true,
+      lines: resolved.lines,
+      timed: resolved.timed,
+      source: resolved.source,
+      file: resolved.file,
+      offsetMs,
+      // Folia's raw shape for the client's own parser: the very text the source holds
+      // (LRC / enhanced LRC / TTML / VTT / QRC / YRC / KRC / .fia), plus a format hint
+      // for the formats that cannot be detected from the text alone.
+      raw: resolved.raw ?? '',
+      translation: resolved.translation ?? '',
+      formatHint: resolved.formatHint ?? '',
+      pureMusic: resolved.pureMusic === true,
+      matched: resolved.matched ?? null,
+      explicitSource: state?.source ?? null,
+      markedPureMusic: state?.markedPureMusic === true,
+      noAutoMatch: state?.noAutoMatch === true,
+      needsAutoMatch: autoMatch,
+    }
+  }
+
   const trash = createTrash({
     dir: join(settings.dir || settings.home || '.', 'trash'),
     getRoots: async () => (await settings.read()).roots,
@@ -540,26 +596,118 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         const config = await settings.read()
         const file = await resolveTrack(params.get('path'), config.roots)
         if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
-        const order = String(params.get('order') || '')
-          .split(',')
-          .map((part) => part.trim())
-          .filter((part) => part === 'embedded' || part === 'lrc')
-        const result = await readLyricsFor(file, order.length > 0 ? order : undefined)
-        const offsetMs = stats !== undefined ? (await stats.get(file))?.lyricOffsetMs ?? 0 : 0
-        return sendJson(res, 200, {
-          ok: true,
-          lines: result.lines,
-          timed: result.timed,
-          source: result.source,
-          file: result.file,
-          offsetMs,
-          // Folia's raw shape for the client's own parser: the very text the file holds
-          // (LRC / enhanced LRC / TTML / VTT / QRC / YRC / KRC / .fia), plus a format hint
-          // for the formats that cannot be detected from the text alone.
-          raw: result.raw ?? '',
-          translation: result.translation ?? '',
-          formatHint: result.formatHint ?? '',
+        return sendJson(res, 200, await localLyricPayload(file, params))
+      }
+
+      // Folia's `matchLyrics` for one local file: ask the lyric sources, keep the record.
+      // The player calls this when the resolved lyric says `needsAutoMatch`.
+      if (pathname === '/lyrics/auto' && method === 'GET') {
+        const config = await settings.read()
+        const file = await resolveTrack(params.get('path'), config.roots)
+        if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
+        const state = await lyricRecords.get(file)
+        if (params.get('force') !== '1' && state?.noAutoMatch === true) {
+          return sendJson(res, 200, { ok: true, matched: state?.matched ?? null, pureMusic: state?.pureMusic === true, skipped: true })
+        }
+        const result = await localLyricMatcher.match(file, { state, preferred: lyricPreferredOf(params) })
+        return sendJson(res, 200, { ok: true, ...result })
+      }
+
+      // The source switcher: Folia's `lyricsSource` on the song's record.
+      if (pathname === '/lyrics/choice' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const config = await settings.read()
+        const file = await resolveTrack(body?.path, config.roots)
+        if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
+        const requested = body?.source === null || body?.source === undefined || body?.source === 'auto'
+          ? null
+          : String(body.source)
+        if (requested !== null && !['local', 'embedded', 'online', 'imported'].includes(requested)) {
+          return fail(res, 400, 'BAD_SOURCE', '未知的歌词来源')
+        }
+        const state = await lyricRecords.get(file)
+        // Choosing the online lyric with none on the record asks for one, the way Folia's
+        // online choice resumes matching instead of showing nothing.
+        if (requested === 'online' && (state === null || (state.matched === null && state.pureMusic !== true))) {
+          await localLyricMatcher.match(file, { state, preferred: lyricPreferredOf(new URLSearchParams()) })
+        }
+        await lyricRecords.patch(file, { source: requested })
+        return sendJson(res, 200, await localLyricPayload(file, new URLSearchParams(`priority=${lyricPriorityOf(params)}`)))
+      }
+
+      if (pathname === '/lyrics/pure-music' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const config = await settings.read()
+        const file = await resolveTrack(body?.path, config.roots)
+        if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
+        // Folia's `setLocalSongPureMusicMark`: the mark is stored as a matched pure-music
+        // verdict pinned to the online source, so neither the priority nor a stale match
+        // can put lyrics back on screen. Removing it returns the song to automatic.
+        if (body?.marked === true) {
+          await lyricRecords.clearPayload?.(file)
+          await lyricRecords.patch(file, {
+            markedPureMusic: true,
+            pureMusic: true,
+            source: 'online',
+            matched: null,
+          })
+        } else {
+          await lyricRecords.patch(file, {
+            markedPureMusic: false,
+            pureMusic: false,
+            source: null,
+            matched: null,
+          })
+        }
+        return sendJson(res, 200, await localLyricPayload(file, params))
+      }
+
+      if (pathname === '/lyrics/no-auto-match' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const config = await settings.read()
+        const file = await resolveTrack(body?.path, config.roots)
+        if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
+        await lyricRecords.patch(file, { noAutoMatch: body?.on === true })
+        return sendJson(res, 200, await localLyricPayload(file, params))
+      }
+
+      // Imported lyrics live on the record (Folia's `localLyricsContent`), not in the file:
+      // every audio format can take one, and a rescan does not lose it.
+      if (pathname === '/lyrics/import' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const config = await settings.read()
+        const file = await resolveTrack(body?.path, config.roots)
+        if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
+        const text = typeof body?.text === 'string' ? body.text : ''
+        if (text.trim() === '') return fail(res, 400, 'EMPTY', '歌词为空')
+        const name = typeof body?.name === 'string' ? body.name : ''
+        const payload = await lyricRecords.writePayload(file, {
+          text,
+          formatHint: lyricFormatHintForName(name),
         })
+        if (payload === null) return fail(res, 400, 'EMPTY', '歌词为空')
+        await lyricRecords.patch(file, { imported: { name, at: Date.now() }, source: 'local', markedPureMusic: false })
+        return sendJson(res, 200, await localLyricPayload(file, params))
       }
 
       if (pathname === '/lyrics/calibrate' && method === 'POST') {
@@ -788,14 +936,23 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         const config = await settings.read()
         const file = await resolveTrack(params.get('path'), config.roots)
         if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
-        const embedded = await readLyricsFor(file, ['embedded'])
-        const sidecar = await readLyricsFor(file, ['lrc'])
-        const active = await readLyricsFor(file)
+        const state = await lyricRecords.get(file)
+        const sources = await describeLocalSources(file, state)
+        const resolved = await resolveLocalLyrics(file, {
+          lyricState: lyricRecords,
+          priority: lyricPriorityOf(params),
+        })
         return sendJson(res, 200, {
           ok: true,
-          embedded: embedded.source === 'embedded',
-          local: sidecar.source === 'lrc',
-          active: active.source,
+          embedded: sources.embedded,
+          local: sources.local,
+          online: sources.online,
+          active: resolved.source,
+          source: state?.source ?? null,
+          matchedSource: state?.matched?.source ?? null,
+          pureMusic: resolved.pureMusic === true,
+          markedPureMusic: state?.markedPureMusic === true,
+          noAutoMatch: state?.noAutoMatch === true,
           offsetMs: stats !== undefined ? (await stats.get(file))?.lyricOffsetMs ?? 0 : 0,
         })
       }

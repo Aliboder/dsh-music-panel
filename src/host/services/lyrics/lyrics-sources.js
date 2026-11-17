@@ -5,29 +5,35 @@
  * pick asks them after the preferred one. Every list, order and capability check
  * about a source is read from here.
  *
+ * Ids are the Host's provider ids (`kugouLite`, not `kugou`), because the
+ * automatic pick resolves a source through the same registry playback uses.
+ * Bodian is not a source: Folia keeps it out of the table too — its own songs
+ * still show their own lyrics, they are just never used as another song's
+ * candidate.
+ *
  * @module dsh-music-panel/lyrics-sources
  */
 
 /**
  * @typedef {object} LyricSourceEntry
- * @property {string} id
+ * @property {string} id               provider id
  * @property {boolean} platform        the platform's own catalogue (searched by text)
+ * @property {boolean} [localMetadataIdentity] a selected local-song metadata identity may resume matching
  * @property {boolean} [needsAccount]  usable only while signed in
  * @property {boolean} [needsConfiguredProvider]
  * @property {boolean} [linesOnly]     line-level lyrics only, no word timing
- * @property {boolean} [localMetadataIdentity]
- * @property {boolean} [platformLyricSearch] true when the source is searched via its platform search
  */
 
 /** @type {readonly LyricSourceEntry[]} */
 export const LYRIC_SOURCES = [
-  // Folia's order: netease → amll → qq → kugou, with our Bodian source after it.
-  { id: 'netease', platform: false, localMetadataIdentity: true, platformLyricSearch: true },
+  // Folia's order, without the platforms this plugin does not have (Spotify, Apple Music)
+  // and without a Qishui account requirement: free tracks work signed out.
+  { id: 'netease', platform: true, localMetadataIdentity: true },
   // AMLL TTML DB keeps lyrics under NetEase / QQ song ids and is reached through them.
   { id: 'amll', platform: false },
-  { id: 'qq', platform: false, localMetadataIdentity: true, platformLyricSearch: true },
-  { id: 'kugou', platform: false, localMetadataIdentity: true, platformLyricSearch: true },
-  { id: 'bodian', platform: false, platformLyricSearch: true },
+  { id: 'qq', platform: true, localMetadataIdentity: true },
+  { id: 'kugouLite', platform: true, localMetadataIdentity: true },
+  { id: 'qishui', platform: true, localMetadataIdentity: true },
 ]
 
 export const LYRIC_SOURCE_IDS = LYRIC_SOURCES.map((source) => source.id)
@@ -35,17 +41,17 @@ export const LYRIC_SOURCE_IDS = LYRIC_SOURCES.map((source) => source.id)
 const BY_ID = new Map(LYRIC_SOURCES.map((source) => [source.id, source]))
 
 export function isLyricSource(id) {
-  return BY_ID.has(id)
+  return BY_ID.has(String(id ?? ''))
 }
 
 export function getLyricSource(id) {
-  return BY_ID.get(id)
+  return BY_ID.get(String(id ?? ''))
 }
 
 /** The source whose lyrics a song of `providerId` has as its own. */
 export function getPlatformLyricSource(providerId) {
   const source = BY_ID.get(String(providerId ?? ''))
-  return source !== undefined && source.platformLyricSearch === true ? source : undefined
+  return source !== undefined && source.platform === true ? source : undefined
 }
 
 /**
@@ -69,13 +75,12 @@ export function buildLyricSourceOrder(preferred, isOffered) {
 /**
  * Which sources may be asked right now.
  *
- * @param {{ platform: string, hasAccount?: boolean, configured?: Record<string, boolean> }} context
+ * @param {{ platform?: string, hasAccount?: boolean, configured?: Record<string, boolean> }} context
  */
 export function offeredSources(context) {
   return buildLyricSourceOrder(context.platform, (source) => {
-    if (source.id === 'amll') return true
     if (source.needsConfiguredProvider === true && context.configured?.[source.id] === false) return false
     if (source.needsAccount === true && context.hasAccount !== true) return false
-    return LYRIC_SOURCES.some((entry) => entry.id === source.id)
+    return true
   }).map((source) => source.id)
 }

@@ -23,24 +23,26 @@ import {
 
 // ── registry ───────────────────────────────────────────────────────────────
 
-assert.deepEqual(LYRIC_SOURCE_IDS, ['netease', 'amll', 'qq', 'kugou', 'bodian'])
+assert.deepEqual(LYRIC_SOURCE_IDS, ['netease', 'amll', 'qq', 'kugouLite', 'qishui'])
 assert.equal(getPlatformLyricSource('netease').id, 'netease')
+assert.equal(getPlatformLyricSource('kugouLite').id, 'kugouLite', 'source ids are the provider ids')
 assert.equal(getPlatformLyricSource('amll'), undefined, 'AMLL is not a platform')
+assert.equal(getPlatformLyricSource('bodian'), undefined, 'Bodian is not a lyric source (Folia keeps it out too)')
 assert.deepEqual(
   buildLyricSourceOrder('qq').map((source) => source.id),
-  ['qq', 'netease', 'amll', 'kugou', 'bodian'],
+  ['qq', 'netease', 'amll', 'kugouLite', 'qishui'],
   'the preferred source goes first, the rest keep registry order',
 )
 // Capability filtering is exercised through the order builder, since none of our
 // sources needs configuration.
 assert.deepEqual(
-  buildLyricSourceOrder('netease', (source) => source.id !== 'kugou').map((source) => source.id),
-  ['netease', 'amll', 'qq', 'bodian'],
+  buildLyricSourceOrder('netease', (source) => source.id !== 'kugouLite').map((source) => source.id),
+  ['netease', 'amll', 'qq', 'qishui'],
   'a source that is not offered is skipped',
 )
 assert.deepEqual(
   offeredSources({ platform: 'netease', hasAccount: false }).sort(),
-  ['amll', 'bodian', 'kugou', 'netease', 'qq'],
+  ['amll', 'kugouLite', 'netease', 'qishui', 'qq'],
 )
 
 // ── TTML ───────────────────────────────────────────────────────────────────
@@ -181,6 +183,44 @@ const amllRaw = await findBestLyrics(track, {
 assert.equal(amllRaw.source, 'amll')
 assert.equal(amllRaw.raw.formatHint, 'ttml')
 assert.match(amllRaw.raw.lrcContent, /<tt/)
+
+// AMLL's candidate ids are resolved lazily: a word-level answer from an earlier source
+// never pays for the extra search (Folia asks for the id only at the AMLL step).
+let amllIdsAsked = 0
+const lazyIds = await findBestLyrics(track, {
+  order: ['netease', 'amll', 'qq'],
+  search: async (sourceId) => [{ id: sourceId + '-1', title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }],
+  fetchLyric: async (sourceId) => (sourceId === 'qq' ? wordLyric : lineLyric),
+  resolveAmllIds: async () => {
+    amllIdsAsked += 1
+    return { neteaseId: '186016' }
+  },
+  fetchAmll: async () => null,
+})
+assert.equal(lazyIds.source, 'qq', 'the word-level answer still wins')
+assert.equal(amllIdsAsked, 1, 'the candidate search ran once, at the AMLL step')
+
+// A line-level AMLL answer is the fallback: a word-level lyric from a later source still wins.
+const amllRunsFirst = await findBestLyrics(track, {
+  order: ['amll', 'qq'],
+  resolveAmllIds: async () => ({ neteaseId: '186016' }),
+  search: async (sourceId) => [{ id: sourceId + '-1', title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }],
+  fetchLyric: async () => wordLyric,
+  fetchAmll: async () => ({ lines: lineLyric.lines }),
+})
+assert.equal(amllRunsFirst.source, 'qq', 'word-level outranks the earlier line-level answer')
+assert.equal(amllRunsFirst.wordLevel, true)
+
+// When every source is line-level, the first one asked is the answer.
+const amllOnlyLineLevel = await findBestLyrics(track, {
+  order: ['amll', 'qq'],
+  resolveAmllIds: async () => ({ neteaseId: '186016' }),
+  search: async (sourceId) => [{ id: sourceId + '-1', title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }],
+  fetchLyric: async () => lineLyric,
+  fetchAmll: async () => ({ lines: lineLyric.lines }),
+})
+assert.equal(amllOnlyLineLevel.source, 'amll')
+assert.equal(amllOnlyLineLevel.wordLevel, false)
 
 // lrcTime is the inverse of linesFromLrc (a line-level match is handed back as LRC).
 assert.equal(lrcTime(1.5), '[00:01.500]')

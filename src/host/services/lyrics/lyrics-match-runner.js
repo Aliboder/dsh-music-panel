@@ -40,11 +40,14 @@ export function withTimeout(promise, ms, label) {
   })
 }
 
-/** A lyric answer worth returning: at least one line with text. */
+/** A lyric answer worth returning: at least one line with text (Folia checks `fullText` too). */
 export function hasRenderableLyrics(lyrics) {
   if (lyrics === null || typeof lyrics !== 'object') return false
   const lines = Array.isArray(lyrics.lines) ? lyrics.lines : []
-  return lines.some((line) => String(line?.text ?? '').trim() !== '')
+  return lines.some(
+    (line) => String(line?.text ?? line?.fullText ?? '').trim() !== ''
+      || String(line?.translation ?? '').trim() !== '',
+  )
 }
 
 function isWordLevel(lyrics) {
@@ -100,6 +103,7 @@ export function buildLyricSearchQuery(track) {
  *   order?: string[],
  *   neteaseId?: string|number,
  *   qqId?: string|number,
+ *   resolveAmllIds?: () => Promise<{ neteaseId?: string|number, qqId?: string|number }>,
  *   search: (sourceId: string, query: string, limit: number) => Promise<Array<object>>,
  *   fetchLyric: (sourceId: string, id: string, candidate: object) => Promise<object|null>,
  *   fetchAmll?: (platform: 'ncm'|'qq', id: string) => Promise<{ lines: Array<object>, text?: string }|null>,
@@ -116,9 +120,20 @@ export async function findBestLyrics(track, io) {
   for (const sourceId of order) {
     if (sourceId === 'amll') {
       if (typeof io.fetchAmll !== 'function') continue
+      // Folia probes AMLL with the candidate id it found for NetEase/QQ in this run. The
+      // resolver is asked only when the pick reaches AMLL, so a word-level answer from an
+      // earlier source never pays for the extra search.
+      let musicIds = { neteaseId: io.neteaseId, qqId: io.qqId }
+      if (typeof io.resolveAmllIds === 'function') {
+        try {
+          musicIds = { ...musicIds, ...(await io.resolveAmllIds()) }
+        } catch (error) {
+          log(`amll candidate: ${error.message}`)
+        }
+      }
       const ids = [
-        ['ncm', io.neteaseId],
-        ['qq', io.qqId],
+        ['ncm', musicIds.neteaseId],
+        ['qq', musicIds.qqId],
       ].filter(([, id]) => String(id ?? '').trim() !== '')
       for (const [platform, id] of ids) {
         try {
@@ -180,6 +195,9 @@ export async function findBestLyrics(track, io) {
       id: String(best.candidate.id),
       score: best.score,
       wordLevel: isWordLevel(lyrics),
+      // The candidate itself travels with the answer, so a caller that persists the
+      // match (a local song's record) keeps the title/artist/album/cover it came from.
+      candidate: best.candidate,
       // The platform's own raw document, translation and romanization, when it sent any:
       // the client parses that with Folia's pipeline (words, credits, split) rather than
       // the line array this module compares.

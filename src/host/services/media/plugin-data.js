@@ -17,6 +17,7 @@ const CATEGORIES = [
   { id: 'favorites', label: 'favorites', names: ['favorites.json'] },
   { id: 'playlists', label: 'playlists', names: ['playlists.json'] },
   { id: 'stats', label: 'stats', names: ['stats.json'] },
+  { id: 'lyrics', label: 'lyrics', names: ['lyric-states.json', 'lyrics'] },
   { id: 'playback', label: 'playback', names: ['playback.json', 'playback.json.bak'] },
   { id: 'accounts', label: 'accounts', names: ['sessions.json', 'accounts.json', 'providers.json', 'bodian-device.json', 'qishui-device.json', 'qq-auth-sessions.json'] },
   { id: 'cache', label: 'cache', names: ['cache'] },

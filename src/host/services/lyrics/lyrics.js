@@ -41,6 +41,18 @@ const SIDECAR_FORMATS = ['fia', 'lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc']
 /** Formats whose text is word/line-timed by construction; the client parses them itself. */
 const SIDECAR_FORMAT_HINT = { vtt: 'vtt', ttml: 'ttml', qrc: 'qrc', yrc: 'yrc', krc: 'krc' }
 
+/**
+ * The format hint for a lyric file the listener picked: the timed formats that
+ * cannot be detected from the text itself. An empty string lets the client sniff
+ * it (LRC, enhanced LRC, `.fia`).
+ *
+ * @param {string} name
+ */
+export function lyricFormatHintForName(name) {
+  const ext = String(name ?? '').toLowerCase().split('.').pop() || ''
+  return SIDECAR_FORMAT_HINT[ext] ?? ''
+}
+
 /** Canonical `[mm:ss.xxx]` LRC stamp (millisecond precision, the parser's own grain). */
 function lrcStamp(seconds) {
   const total = Math.max(0, Number(seconds) || 0)
@@ -200,7 +212,7 @@ export function parseLyricsText(text, source) {
  *
  * @param {string} audioFile
  */
-async function embeddedLyrics(audioFile) {
+export async function readEmbeddedLyrics(audioFile) {
   try {
     const meta = await parseFile(audioFile, { duration: false })
     const tags = meta.common.lyrics
@@ -238,7 +250,7 @@ async function embeddedLyrics(audioFile) {
  *
  * @param {string} audioFile
  */
-async function sidecarLyrics(audioFile) {
+export async function readSidecarLyrics(audioFile) {
   const dir = dirname(audioFile)
   const stem = basename(audioFile, extname(audioFile)).toLowerCase()
 
@@ -313,7 +325,7 @@ export async function readLyricsFor(audioFile, order) {
 
   for (const source of sequence) {
     if (source === 'embedded') {
-      const embedded = await embeddedLyrics(audioFile)
+      const embedded = await readEmbeddedLyrics(audioFile)
       if (embedded !== null) {
         return {
           lines: embedded.lines,
@@ -326,7 +338,7 @@ export async function readLyricsFor(audioFile, order) {
         }
       }
     } else if (source === 'lrc') {
-      const sidecar = await sidecarLyrics(audioFile)
+      const sidecar = await readSidecarLyrics(audioFile)
       if (sidecar !== null) return sidecar
     }
   }

@@ -20,6 +20,7 @@ import { createKugouSessionManager } from './src/host/providers/kugou-session.js
 import { createRoutes } from './src/host/http/routes.js'
 import { createSettings } from './src/host/stores/settings.js'
 import { createStats } from './src/host/stores/stats.js'
+import { createLyricState } from './src/host/stores/lyric-state.js'
 import { readLyricsFor } from './src/host/services/lyrics/lyrics.js'
 import { enqueueControl } from './src/host/services/playback/control.js'
 import { omni, registerBodianSource, registerLocalSource, registerOnlineSources, registerQishuiSource, resetSources } from './src/host/providers/sources/index.js'
@@ -41,6 +42,7 @@ export function apply(ctx, rawConfig) {
   const config = rawConfig !== null && typeof rawConfig === 'object' ? rawConfig : {}
   const settings = createSettings({ dshHome: config.dshHome, seed: config })
   const stats = createStats({ dir: settings.dir })
+  const lyricState = createLyricState({ dir: settings.dir })
   const playback = createPlayback({ dir: settings.dir })
   const favorites = createFavorites({ dir: settings.dir })
   const library = createLibrary({ getSettings: settings.read, stats })
@@ -79,6 +81,7 @@ export function apply(ctx, rawConfig) {
   async function resetData() {
     library.clear()
     stats.invalidate?.()
+    lyricState.invalidate?.()
     playback.invalidate?.()
     favorites.invalidate?.()
     playlists.invalidate?.()
@@ -90,7 +93,7 @@ export function apply(ctx, rawConfig) {
     library.clear()
   }
 
-  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, onlineCache, kugouSessions, resetData })
+  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, onlineCache, kugouSessions, resetData, lyricState })
 
 
   // Sources are registered once per load; the registry is the single list every

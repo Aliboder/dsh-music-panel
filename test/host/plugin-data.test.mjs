@@ -8,13 +8,19 @@ import { clearData, inspectData } from '../../src/host/services/media/plugin-dat
 import { createRoutes } from '../../src/host/http/routes.js'
 import { fakeReq, fakeRes } from '../helpers.mjs'
 
+const settingsJson = '{"roots":[]}'
+const lyricStatesJson = '{"version":1,"tracks":{}}'
+
 async function fixture() {
   const dir = await mkdtemp(join(tmpdir(), 'dsh-music-data-'))
   await mkdir(join(dir, 'cache'), { recursive: true })
   await mkdir(join(dir, 'trash'), { recursive: true })
-  await writeFile(join(dir, 'settings.json'), '{"roots":[]}')
+  await mkdir(join(dir, 'lyrics'), { recursive: true })
+  await writeFile(join(dir, 'settings.json'), settingsJson)
   await writeFile(join(dir, 'favorites.json'), '{}')
   await writeFile(join(dir, 'sessions.json'), '{}')
+  await writeFile(join(dir, 'lyric-states.json'), lyricStatesJson)
+  await writeFile(join(dir, 'lyrics', 'deadbeef.json'), '{}')
   await writeFile(join(dir, 'cache', 'a.mp3'), Buffer.alloc(10))
   await writeFile(join(dir, 'trash', 'b.mp3'), Buffer.alloc(5))
   return dir
@@ -24,15 +30,20 @@ test('inspectData groups plugin files without touching music roots', async () =>
   const dir = await fixture()
   try {
     const data = await inspectData(dir)
-    assert.equal(data.files, 5)
-    assert.equal(data.bytes, 10 + 5 + '{"roots":[]}'.length + 2 + 2)
+    assert.equal(data.files, 7)
+    assert.equal(
+      data.bytes,
+      10 + 5 + 2 + 2 + settingsJson.length + lyricStatesJson.length + 2,
+    )
     assert.deepEqual(
       data.categories.map((row) => row.id).sort(),
-      ['accounts', 'cache', 'favorites', 'settings', 'trash'],
+      ['accounts', 'cache', 'favorites', 'lyrics', 'settings', 'trash'],
     )
     const byId = Object.fromEntries(data.categories.map((row) => [row.id, row]))
     assert.equal(byId.cache.bytes, 10)
     assert.equal(byId.trash.bytes, 5)
+    assert.equal(byId.lyrics.files, 2, 'the index and the lyric text are one category')
+    assert.equal(byId.lyrics.bytes, lyricStatesJson.length + 2)
   } finally {
     await rm(dir, { recursive: true, force: true })
   }

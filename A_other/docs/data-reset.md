@@ -59,6 +59,8 @@
 | `favorites.json` | `src/host/stores/favorites.js` | 收藏 path → addedAt |
 | `playlists.json` | `src/host/stores/playlists.js` | 本地歌单 |
 | `stats.json` | `src/host/stores/stats.js` | 播放次数 / addedAt / 播放秒数 |
+| `lyric-states.json` | `src/host/stores/lyric-state.js` | 每首歌的歌词选择、匹配结果与纯音乐标记（本地键=绝对路径，在线键=`online:<provider>:<id>`） |
+| `lyrics/**` | `src/host/stores/lyric-state.js` | 匹配到或导入的歌词正文（`<sha1>.json`，不属于可清缓存） |
 | `playback.json` / `.bak` | `src/host/services/playback/playback.js` | 队列 / 进度 / loop / order |
 | `sessions.json` | `src/host/providers/login/store.js` | 各平台登录态与 profile（含 Bodian） |
 | `accounts.json` | `src/host/stores/accounts.js` | 各平台账号快照：昵称、头像、歌单、喜欢 id |
@@ -80,6 +82,7 @@
 ```js
 library.clear()                 // 扫描 / 元数据缓存
 stats.invalidate()
+lyricState.invalidate()         // 每首的歌词选择/匹配结果（lyric-states.json）
 playback.invalidate()
 favorites.invalidate()
 playlists.invalidate()
