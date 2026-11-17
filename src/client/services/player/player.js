@@ -841,10 +841,13 @@ function createPlayer() {
 
   function playAfterLoudness(token) {
     var gate = loudnessGate === null ? Promise.resolve() : loudnessGate
+    // Both waits run at once: the lyric request is in flight while the loudness analysis
+    // measures, instead of the song starting after one wait and then the other.
+    var lyrics = whenLyricReady(currentItem())
     gate
       .then(function () {
         if (token !== loadToken || pendingAutoplay !== true || audio === null) return null
-        return whenLyricReady(currentItem())
+        return lyrics
       })
       .then(function () {
         if (token !== loadToken || pendingAutoplay !== true || audio === null) return
