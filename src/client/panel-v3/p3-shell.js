@@ -2,30 +2,40 @@
  * panel-v3 shell: top bar, view bar, content, player bar, queue and runtime.
  */
 
+function p3AccountPictureSrc(url) {
+  var text = String(url || '')
+  if (text === '') return ''
+  if (typeof window !== 'undefined' && window.location && window.location.protocol === 'https:') {
+    return text.replace(/^http:\/\//i, 'https://')
+  }
+  return text
+}
+
 function P3TopBar(props) {
   var route = useStore(p3RouteStore)
   var search = useStore(p3SearchStore)
   var collection = useStore(p3CollectionNavStore)
   var online = useStore(onlineStore)
-  var searchKind = useStore(p3SearchKindStore)
   var prefs = usePrefs()
   var sourceRef = useRef(null)
-  var accountRef = useRef(null)
   var [sourceOpen, setSourceOpen] = useState(false)
-  var [accountOpen, setAccountOpen] = useState(false)
   var [draft, setDraft] = useState('')
   var source = route.source
   var info = p3SourceInfo(source)
   var meta = p3PageMeta(route, props.library, online, prefs)
   var loggedIn = p3SourceLoggedIn(source)
+  var avatarUrl = p3AccountPictureSrc(info.avatarUrl)
   var sourceItems = p3SourceList().map(function (item) {
     return {
       key: item.id,
-      label: item.name + ' · ' + p3SourceStatus(item.id),
-      icon: item.id === 'local' ? 'music' : (item.id === 'navidrome' ? 'server' : 'music'),
+      label: item.name,
+      logo: item.id === 'local' ? null : item.id,
+      icon: item.id === 'local' ? 'music' : null,
+      status: p3SourceStatus(item.id),
       active: item.id === source,
     }
   })
+  sourceItems.push({ separator: true, key: 'source-sep' })
   sourceItems.push({ key: 'manage', label: t('p3.manageSources'), icon: 'settings' })
   var accountItems = loggedIn
     ? [
@@ -37,6 +47,9 @@ function P3TopBar(props) {
         { key: 'login', label: t('p3.login'), icon: 'user' },
         { key: 'accountSettings', label: t('p3.sourceSettings'), icon: 'settings' },
       ]
+  var menuItems = source !== 'local'
+    ? accountItems.concat([{ separator: true, key: 'account-sep' }], sourceItems)
+    : sourceItems
 
   function searchValue() {
     return search.open ? search.query : draft
@@ -72,19 +85,13 @@ function P3TopBar(props) {
     if (search.open) p3CloseSearch()
   }
 
-  function pickSource(item) {
+  function pickMenuItem(item) {
     setSourceOpen(false)
     if (!item) return
     if (item.key === 'manage') {
       pushLayer('settings', { tab: 'online' })
       return
     }
-    p3SwitchSource(item.key)
-  }
-
-  function pickAccount(item) {
-    setAccountOpen(false)
-    if (!item) return
     if (item.key === 'login' || item.key === 'relogin') {
       if (source === 'navidrome') pushLayer('settings', { tab: 'online' })
       else pushLayer('login', { provider: source })
@@ -97,7 +104,11 @@ function P3TopBar(props) {
       }).catch(function (error) { showToast(errorText(error)) })
       return
     }
-    pushLayer('settings', { tab: 'online' })
+    if (item.key === 'accountSettings') {
+      pushLayer('settings', { tab: 'online' })
+      return
+    }
+    p3SwitchSource(item.key)
   }
 
   function refresh() {
@@ -114,7 +125,13 @@ function P3TopBar(props) {
   return h(
     'header',
     { className: 'mpv3-topbar' },
-    h(IconButton, { icon: 'back', size: 16, title: t('page.back'), className: 'mpv3-back', disabled: !p3CanGoBack(), onClick: function () { p3GoBack() } }),
+    p3CanGoBack() ? h('button', {
+      type: 'button',
+      className: 'mpv3-back-btn',
+      title: t('page.back'),
+      'aria-label': t('page.back'),
+      onClick: function () { p3GoBack() },
+    }, icon('back', 16), h('span', null, t('page.back'))) : null,
     h('span', { className: 'mpv3-parent' }, meta.parent),
     h('div', { className: 'mpv3-source-wrap' },
       h('button', {
@@ -123,15 +140,27 @@ function P3TopBar(props) {
         className: 'mpv3-source-btn',
         'aria-haspopup': 'menu',
         'aria-expanded': sourceOpen ? 'true' : 'false',
+        'aria-label': t('p3.switchSource') + ' · ' + t('p3.account'),
         onClick: function () { setSourceOpen(!sourceOpen) },
         title: t('p3.switchSource'),
       },
-        icon(source === 'navidrome' ? 'server' : 'music', 15),
+        h('span', { className: cx('mpv3-source-avatar', source === 'local' && 'is-local') },
+          avatarUrl
+            ? h('img', { src: avatarUrl, alt: '' })
+            : loggedIn && info.nickname
+              ? h('span', { className: 'mpv3-source-initial' }, p3Initial(info.nickname || info.name))
+              : source === 'local'
+                ? icon('music', 14)
+                : h('span', { className: 'mpv3-source-logo' }, providerLogo(source, 24)),
+          source !== 'local' && (avatarUrl || (loggedIn && info.nickname))
+            ? h('span', { className: 'mpv3-source-badge' }, providerLogo(source, 14))
+            : null,
+        ),
         h('span', { className: 'mpv3-source-name' }, p3SourceLabel(source)),
         !loggedIn ? h('i', { className: 'mpv3-source-dot' }) : null,
         icon('chevronDown', 12),
       ),
-      h(P3Menu, { open: sourceOpen, anchor: sourceRef.current, items: sourceItems, align: 'left', onSelect: pickSource, onClose: function () { setSourceOpen(false) } }),
+      h(P3Menu, { open: sourceOpen, anchor: sourceRef.current, items: menuItems, align: 'left', onSelect: pickMenuItem, onClose: function () { setSourceOpen(false) } }),
     ),
     h('div', { className: 'mpv3-grow' }),
     h('div', { className: 'mpv3-search' },
@@ -150,24 +179,6 @@ function P3TopBar(props) {
         ? h('button', { type: 'button', className: 'mpv3-search-clear', title: t('p3.clearSearch'), onClick: clearSearch }, icon('close', 13))
         : null,
     ),
-    source !== 'local'
-      ? h('div', { className: 'mpv3-account-wrap' },
-          h('button', {
-            type: 'button',
-            ref: accountRef,
-            className: 'mpv3-account-btn',
-            title: t('p3.account'),
-            'aria-haspopup': 'menu',
-            'aria-expanded': accountOpen ? 'true' : 'false',
-            onClick: function () { setAccountOpen(!accountOpen) },
-          },
-            loggedIn && (info.avatarUrl || info.nickname)
-              ? (info.avatarUrl ? h('img', { src: info.avatarUrl, alt: '' }) : h('span', null, p3Initial(info.nickname || info.name)))
-              : icon('user', 15),
-          ),
-          h(P3Menu, { open: accountOpen, anchor: accountRef.current, items: accountItems, align: 'right', onSelect: pickAccount, onClose: function () { setAccountOpen(false) } }),
-        )
-      : null,
     h(IconButton, { icon: 'refresh', size: 16, title: t('page.refresh'), onClick: refresh }),
     h(IconButton, { icon: 'settings', size: 16, title: t('page.settings'), onClick: function () { pushLayer('settings') } }),
   )
@@ -176,7 +187,6 @@ function P3TopBar(props) {
 function P3ViewBar(props) {
   var route = useStore(p3RouteStore)
   var selection = useStore(selectionStore)
-  var searchKind = useStore(p3SearchKindStore)
   var prefs = usePrefs()
   var sortRef = useRef(null)
   var selectRef = useRef(null)
@@ -186,7 +196,6 @@ function P3ViewBar(props) {
   var tabs = p3Tabs(source)
   var active = route.page
   var tracks = p3CurrentTracks(route, props.library, props.online, prefs)
-  if (route.page === 'search' && searchKind !== 'song') tracks = []
   var selected = (selection.paths || []).map(function (path) {
     return tracks.filter(function (track) { return track.path === path })[0]
   }).filter(Boolean)

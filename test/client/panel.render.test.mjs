@@ -218,8 +218,13 @@ internals.onlineStore.set({
   provider: 'netease', phase: 'ready', providers: { netease: { loggedIn: true, nickname: 'Tester', capabilities: { recent: true } } },
   history: [{ provider: 'netease', id: '42', title: 'Online Song', artist: 'Online Artist', album: 'Online Album', durationSec: 210, coverUrl: '', qualityHint: '', playedAt: Date.now() }],
 })
-const onlineText = textOf(panel())
+const onlineTree = panel()
+const onlineText = textOf(onlineTree)
 assert.ok(onlineText.includes('Online Song'), 'online history rows render')
+assert.ok(classesOf(onlineTree).has('mpv3-source-avatar'), 'platform and account share one avatar control')
+assert.ok(classesOf(onlineTree).has('mpv3-source-badge'), 'the platform logo badges the account avatar')
+assert.ok(classesOf(onlineTree).has('mp-provider-logo'), 'the platform logo image is rendered')
+assert.ok(!classesOf(onlineTree).has('mpv3-account-btn'), 'the separate account button is gone')
 
 internals.onlineStore.set({
   provider: 'netease', phase: 'ready', searchTotal: 1, searchPage: 1,
@@ -271,14 +276,21 @@ internals.p3PushCollection({ type: 'artist', source: 'local', id: 'Artist A', pa
 assert.equal(internals.p3RouteStore.get().page, 'artist', 'artist detail is a collection layer')
 assert.ok(internals.p3CanGoBack(), 'a collection layer can go back')
 assert.ok(!classesOf(internals.P3Shell()).has('mpv3-tabs'), 'detail view hides the library tabs')
-const detailBack = nodesWithClass(internals.P3Shell(), 'mpv3-back')[0]
+const detailBack = nodesWithClass(internals.P3Shell(), 'mpv3-back-btn')[0]
 assert.ok(detailBack, 'detail view has a back control')
+assert.ok(textOf(detailBack).includes('返回'), 'the back control has a visible label')
 assert.notEqual(detailBack.props.disabled, true, 'detail back control is enabled')
 internals.p3GoBack()
 assert.equal(internals.p3RouteStore.get().page, 'search', 'back from detail restores search')
 assert.equal(internals.p3RouteStore.get().query, 'Alpha', 'back from detail keeps the search query')
 internals.p3GoBack()
 assert.equal(internals.p3RouteStore.get().page, 'songs', 'back from search restores browse')
+
+internals.p3OpenSearch()
+internals.p3SetSearchQuery('Alpha')
+internals.p3SetSearchQuery('')
+assert.equal(internals.p3RouteStore.get().page, 'songs', 'deleting the whole query exits search')
+assert.equal(internals.p3SearchStore.get().open, false, 'empty search does not leave a blank overlay')
 
 internals.p3SelectBrowseTab('albums')
 assert.ok(textOf(internals.P3Shell()).includes('Album One'), 'albums tab lists every album')

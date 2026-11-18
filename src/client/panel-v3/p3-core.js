@@ -667,7 +667,7 @@ function P3Menu(props) {
             if (typeof props.onSelect === 'function') props.onSelect(item)
           },
         },
-        item.icon ? icon(item.icon, 15) : null,
+        item.logo ? h('span', { className: 'mpv3-menu-logo' }, providerLogo(item.logo, 18)) : item.icon ? icon(item.icon, 15) : null,
         h('span', { className: 'mpv3-menu-label' }, item.label),
         item.active === true ? icon('check', 14) : item.status ? h('span', { className: 'mpv3-menu-status' }, item.status) : null,
       )

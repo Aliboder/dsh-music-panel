@@ -325,6 +325,7 @@ function p3LegacyCollectionDescriptor(type, source, param) {
 
 function p3InitNav() {
   var nav = p3ReadStoredNav()
+  if (nav.search.open && String(nav.search.query || '').trim() === '') nav.search.open = false
   p3BrowseStore.set(nav.browse)
   p3SearchStore.set(nav.search)
   p3SearchKindStore.set(nav.kind)
@@ -365,6 +366,15 @@ function p3SetSearchQuery(value) {
     p3CollectionNavStore.set({ snapshot: null, scroll: {} })
   }
   var search = p3SearchStore.get()
+  if (text === '') {
+    // Deleting the whole query exits search instead of leaving a blank overlay
+    // that hides the small back control.
+    if (search.open) {
+      p3SearchStore.set({ query: '', submittedQuery: '' })
+      p3CloseSearch()
+    }
+    return
+  }
   if (!search.open) {
     p3OpenSearch()
     search = p3SearchStore.get()
