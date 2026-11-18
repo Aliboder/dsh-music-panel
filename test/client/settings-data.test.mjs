@@ -35,7 +35,7 @@ test('settings page reflects current features and no dead preferences', () => {
   assert.match(source, /LookChoiceGrid/, 'Folia lyric style and background pickers are in settings')
   assert.match(source, /settings.crossfadeSeconds/, 'crossfade duration is configurable')
   assert.match(source, /about.diagnostics/, 'Host diagnosis lives under About')
-  for (const dead of ['bgBlend', 'composerLyricPlace', 'lyricKeepProviderWordTiming']) {
+  for (const dead of ['bgBlend', 'composerLyricPlace', 'lyricKeepProviderWordTiming', 'coverStyle', 'npTransparentBg']) {
     assert.doesNotMatch(prefsSource, new RegExp(dead), `${dead} was removed from PREF_DEFAULTS`)
     assert.doesNotMatch(source, new RegExp(dead), `${dead} has no settings UI`)
   }

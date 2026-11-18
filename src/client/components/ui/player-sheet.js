@@ -1002,44 +1002,6 @@ function PlayerSheetInner(props) {
               setPrefs({ bgCoverOnly: prefs.bgCoverOnly !== true, latentColorSource: prefs.bgCoverOnly === true ? 'cover-theme' : 'cover-only' })
             }),
           ),
-          mpPanelRow(
-            t('sheet.transparentBg'),
-            h(
-              'button',
-              {
-                type: 'button',
-                role: 'switch',
-                'aria-checked': prefs.npTransparentBg === true ? 'true' : 'false',
-                onClick: function () {
-                  setPrefs({ npTransparentBg: prefs.npTransparentBg !== true })
-                },
-                style: {
-                  width: '40px',
-                  height: '24px',
-                  padding: '0',
-                  borderRadius: '12px',
-                  border: '0',
-                  background:
-                    prefs.npTransparentBg === true
-                      ? 'var(--dsw-alias-state-business-primary,#4f8cff)'
-                      : 'rgba(255,255,255,.16)',
-                  cursor: 'pointer',
-                  transition: 'background-color .16s linear',
-                },
-              },
-              h('span', {
-                style: {
-                  display: 'block',
-                  width: '18px',
-                  height: '18px',
-                  marginLeft: prefs.npTransparentBg === true ? '20px' : '3px',
-                  borderRadius: '9px',
-                  background: '#fff',
-                  transition: 'margin-left .16s cubic-bezier(.22,1,.36,1)',
-                },
-              }),
-            ),
-          ),
         ),
       ),
       mpSection(

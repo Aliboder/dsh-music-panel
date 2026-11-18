@@ -171,8 +171,6 @@ function StartupGuide(props) {
   var dontShow = dontPair[0]
   var setDontShow = dontPair[1]
   var dontShowRef = useRef(false)
-  var prefs = usePrefs()
-  var coverStyle = prefs.coverStyle === 'vinyl' ? 'vinyl' : 'square'
 
   function changeDontShow(next) {
     dontShowRef.current = next
@@ -219,15 +217,6 @@ function StartupGuide(props) {
     props.onClose(dontShowRef.current)
   }
 
-  function chooseCoverStyle(style) {
-    setPrefs({
-      coverStyle: style,
-      circularCover: style === 'vinyl',
-      vinylRing: style === 'vinyl',
-      coverSpin: style === 'vinyl',
-    })
-  }
-
   var features = [
     {
       key: 'online',
@@ -260,28 +249,6 @@ function StartupGuide(props) {
   ]
   var progress = Math.round(((3 - countdown) / 3) * 100)
 
-  function styleOption(style, label) {
-    var on = coverStyle === style
-    return h(
-      'button',
-      {
-        type: 'button',
-        className: cx('mp-guide-style-option', on && 'is-on'),
-        'aria-pressed': on,
-        onClick: function () {
-          chooseCoverStyle(style)
-        },
-      },
-      h(
-        'span',
-        { className: cx('mp-guide-style-thumb', style === 'vinyl' ? 'is-vinyl' : 'is-square') },
-        h('img', { src: BRAND_LOGO, alt: '' }),
-      ),
-      h('span', { className: 'mp-guide-style-name' }, label),
-      on ? h('span', { className: 'mp-guide-style-check' }, icon('check', 12)) : null,
-    )
-  }
-
   return h(
     KitModal,
     { headless: true, onClose: countdown > 0 ? undefined : finish, className: 'mp-guide-modal' },
@@ -308,13 +275,13 @@ function StartupGuide(props) {
           ),
       h(
         'div',
-        { className: cx('mp-guide-visual', coverStyle === 'vinyl' ? 'is-vinyl' : 'is-square') },
+        { className: 'mp-guide-visual is-square' },
         h('div', { className: 'mp-guide-watermark', 'aria-hidden': 'true' }, 'MUSIC'),
         h(
           'div',
           { className: 'mp-guide-shot' },
           h('img', {
-            src: coverStyle === 'vinyl' ? GUIDE_SHOT_VINYL : GUIDE_SHOT_SQUARE,
+            src: GUIDE_SHOT_SQUARE,
             alt: '',
           }),
         ),
@@ -349,22 +316,6 @@ function StartupGuide(props) {
                 h('span', { className: 'mp-guide-row-index' }, String(index + 1).padStart(2, '0')),
               )
             }),
-          ),
-          h(
-            'div',
-            { className: 'mp-guide-style' },
-            h(
-              'div',
-              { className: 'mp-guide-style-head' },
-              h('span', null, t('guide.styleTitle')),
-              h('span', { className: 'mp-guide-style-hint' }, t('guide.styleHint')),
-            ),
-            h(
-              'div',
-              { className: 'mp-guide-style-options' },
-              styleOption('square', t('guide.styleSquare')),
-              styleOption('vinyl', t('guide.styleVinyl')),
-            ),
           ),
           h(
             'div',

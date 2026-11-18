@@ -13,11 +13,7 @@ var PREF_DEFAULTS = {
   layout: 'top',
   sortBy: 'title',
   sortDir: 'asc',
-  circularCover: false,
-  coverStyle: 'square',
-  vinylRing: false,
   npLookMigrated: true,
-  coverSpin: true,
   /**
    * Folia's `localLyricsPriority`: which lyric a local file shows when it has both
    * its own file lyric and a matched online one. 'local' keeps the file's own.
@@ -52,8 +48,6 @@ var PREF_DEFAULTS = {
   npPaneGap: 60,
   /** Animated flowing-light background on the player page. */
   npFlowBg: true,
-  /** Hide the ambient art behind the player page (the card's 透明背景 switch). */
-  npTransparentBg: false,
   /** 外观: lyric style, Folia shell background and where the accent comes from (28-look.js). */
   lyricStyle: 'monet',
   /** Folia's calm/normal/chaotic chip (used by the styles' animation tuning). */
@@ -168,7 +162,6 @@ function readPrefs() {
   }
   // 0.12.0 briefly defaulted to square covers; restore the 0.11 player look once.
   if (merged.npLookMigrated !== true) {
-    merged.circularCover = PREF_DEFAULTS.circularCover
     merged.npLookMigrated = true
     try {
       window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
@@ -179,7 +172,6 @@ function readPrefs() {
   // One-time move to the reference now-playing layout (square cover, left lyrics,
   // denser lyric typography). Later user edits still win.
   if (merged.npLayoutV2 !== true) {
-    merged.coverStyle = PREF_DEFAULTS.coverStyle
     merged.lyricAlign = PREF_DEFAULTS.lyricAlign
     merged.lyricSize = PREF_DEFAULTS.lyricSize
     merged.lyricBlur = PREF_DEFAULTS.lyricBlur

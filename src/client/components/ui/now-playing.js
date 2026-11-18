@@ -383,21 +383,8 @@ function NpEditor(props) {
 
   if (props.open !== true) return null
 
-  function chooseCover(style) {
-    setPrefs({
-      coverStyle: style,
-      circularCover: style === 'vinyl',
-      vinylRing: style === 'vinyl',
-      coverSpin: style === 'vinyl',
-    })
-  }
-
   function resetDefaults() {
     setPrefs({
-      coverStyle: 'square',
-      circularCover: false,
-      vinylRing: false,
-      coverSpin: false,
       lyricSize: 35,
       lyricGap: 15,
       translationScale: 90,
@@ -424,39 +411,6 @@ function NpEditor(props) {
       { className: 'mp-npe-sec-head' },
       h('span', { className: 'mp-npe-sec-title' }, label),
       h('span', { className: 'mp-npe-sec-line' }),
-    )
-  }
-
-  function coverPreview(style) {
-    if (cover === '') return icon('note', 22)
-    if (style === 'vinyl') return h('img', { src: cover, alt: '' })
-    return h('img', { src: cover, alt: '' })
-  }
-
-  function coverCard(style, label) {
-    var selected = style === 'vinyl' ? prefs.coverStyle === 'vinyl' : prefs.coverStyle !== 'vinyl'
-    return h(
-      'button',
-      {
-        type: 'button',
-        className: cx('mp-npe-cover-card', selected && 'is-on'),
-        'aria-pressed': selected ? 'true' : 'false',
-        onClick: function () {
-          chooseCover(style)
-        },
-      },
-      h(
-        'span',
-        {
-          className: cx(
-            'mp-npe-cover-preview',
-            style === 'vinyl' ? 'mp-npe-cover-vinyl' : 'mp-npe-cover-square',
-          ),
-        },
-        coverPreview(style),
-      ),
-      h('span', { className: 'mp-npe-cover-label' }, label),
-      selected ? h('span', { className: 'mp-npe-cover-check' }, icon('check', 12)) : null,
     )
   }
 
@@ -522,7 +476,7 @@ function NpEditor(props) {
             'div',
             {
               className:
-                'mp-npe-preview-cover' + (prefs.coverStyle === 'vinyl' ? ' is-vinyl' : ''),
+                'mp-npe-preview-cover',
               style:
                 cover !== ''
                   ? { '--mp-preview-cover': 'url("' + cover.replace(/"/g, '%22') + '")' }
@@ -643,17 +597,6 @@ function NpEditor(props) {
         'div',
         { className: 'mp-npe-body' },
         previewCard(),
-        h(
-          'div',
-          { className: 'mp-npe-section is-cover' },
-          sectionHead(t('editor.cover')),
-          h(
-            'div',
-            { className: 'mp-npe-cover-grid' },
-            coverCard('square', t('v2.coverSquare')),
-            coverCard('vinyl', t('v2.coverVinyl')),
-          ),
-        ),
         h(
           'div',
           { className: 'mp-npe-section is-type' },
@@ -1838,7 +1781,8 @@ function NowPlaying(props) {
     },
     [trackPath, track && track.onlineProvider, track && track.onlineId],
   )
-  var circular = prefs.coverStyle === 'vinyl'
+  // The vinyl/square cover templates were removed with the new player page.
+  var circular = false
   var stagedPair = useState(false)
   var staged = stagedPair[0]
   var setStaged = stagedPair[1]
@@ -2441,7 +2385,6 @@ function NowPlaying(props) {
     accent: flowAccent,
     seed: track && track.path ? track.path : '',
     url: typeof prefs.bgUrl === 'string' ? prefs.bgUrl : '',
-    transparent: prefs.npTransparentBg === true,
     latentDisplayMode: prefs.latentDisplayMode,
     latentColorSource: prefs.latentColorSource,
   })
@@ -2487,7 +2430,6 @@ function NowPlaying(props) {
         isFullscreen && 'is-fs',
         prefs.lyricBlur === true && 'is-blur',
         prefs.showTranslation === true && 'is-trans',
-        prefs.coverStyle === 'vinyl' && 'is-vinyl',
         'mp-align-' + (prefs.lyricAlign || 'center'),
         // 外观: the lyric style and backdrop mode come from the registry. A random
         // preference has already been resolved to a concrete id for this slice.
@@ -2495,7 +2437,6 @@ function NowPlaying(props) {
         // A visualizer style is a full stage (Folia's VisualizerShell): the cover
         // column steps aside and the lyrics take the whole page.
         lyricStyleId !== 'classic' && 'is-visualizer',
-        prefs.npTransparentBg === true && 'is-transparent-bg',
         chromeVisible !== true && 'is-chrome-hidden',
         'mp-bgmode-' + mpLookId(MP_BG_MODES, prefs.bgMode),
       ),

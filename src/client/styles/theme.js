@@ -288,7 +288,6 @@ var THEME_CSS = [
   '.mp-queue-pop .mp-q-list{max-height:40vh}',
 
   // ── now playing (reference layout) ──────────────────────────────────────────
-  '.mp-np.is-transparent-bg{background:transparent}',
   '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:var(--mp-z-page-raised,70);display:flex;flex-direction:column;overflow:hidden;background:#141417;color:#f4f4f5;transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
   '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
   '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden;--mp-speed:12s;--mp-beat-scale:1}',

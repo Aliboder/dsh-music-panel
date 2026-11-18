@@ -283,26 +283,6 @@ function SettingsSheet(props) {
         { key: 'layout', label: t('v2.layout'), desc: t('v2.layoutHint') },
         layoutChoices(),
       ),
-      h(
-        SetRow,
-        { key: 'coverStyle', label: t('v2.coverStyle'), desc: t('v2.coverStyleDesc') },
-        h(KitSegmented, {
-          id: 'mp-cover-style',
-          value: prefs.coverStyle === 'vinyl' ? 'vinyl' : 'square',
-          label: t('v2.coverStyle'),
-          options: [
-            { value: 'square', label: t('v2.coverSquare') },
-            { value: 'vinyl', label: t('v2.coverVinyl') },
-          ],
-          onChange: function (value) {
-            if (value === 'vinyl') {
-              patchPrefs({ coverStyle: 'vinyl', circularCover: true, vinylRing: true, coverSpin: true })
-            } else {
-              patchPrefs({ coverStyle: 'square', circularCover: false, vinylRing: false, coverSpin: false })
-            }
-          },
-        }),
-      ),
       h('div', { key: 'player-head', className: 'mp-set-label' }, t('settings.appearancePlayer')),
       h('div', { key: 'player-hint', className: 'mp-set-desc' }, t('settings.appearancePlayerHint')),
       h(
@@ -351,14 +331,6 @@ function SettingsSheet(props) {
             { value: 'custom', label: t('sheet.sourceCustom') },
           ],
           onChange: function (value) { patchPrefs({ themeSource: String(value) }) },
-        }),
-      ),
-      h(
-        SetRow,
-        { key: 'transparent-bg', label: t('sheet.transparentBg'), desc: t('settings.transparentBgDesc') },
-        h(Switch, {
-          value: prefs.npTransparentBg === true,
-          onChange: function (value) { patchPrefs({ npTransparentBg: value }) },
         }),
       ),
     ]

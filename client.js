@@ -6798,11 +6798,7 @@ window.__ModuleLoader__.load({
         'guide.wait': '请稍候 {seconds}s',
         'guide.start': '开始使用',
         'guide.signature': '为对话而生',
-        'guide.styleTitle': '播放页封面',
-        'guide.styleHint': '选一个你喜欢的样式',
-        'guide.styleSquare': '方形',
-        'guide.styleVinyl': '黑胶',
-        'guide.composerSample': '这一刻，歌词就在输入框上方',
+                'guide.composerSample': '这一刻，歌词就在输入框上方',
         'guide.chipPlaylists': '歌单',
         'guide.chipLikes': '喜欢',
         'guide.chipCache': '缓存',
@@ -7281,14 +7277,7 @@ window.__ModuleLoader__.load({
         'settings.pickFailed': '无法读取文件夹路径，请重试或手动填写。',
         'settings.miniPlayer': '迷你浮窗',
         'settings.composerQueueButton': '输入框播放列表按钮',
-        'settings.circularCover': '播放页圆形封面',
-        'v2.coverStyle': '播放页封面样式',
-        'v2.coverStyleDesc': '方形适合查看完整封面，黑胶适合模拟唱片',
-        'v2.coverSquare': '方形封面',
-        'v2.coverVinyl': '黑胶封面',
-        'settings.vinylRing': '圆形封面黑胶底盘',
-        'settings.coverSpin': '圆形封面旋转',
-        'settings.lyricOrder': '歌词获取顺序',
+                      'settings.lyricOrder': '歌词获取顺序',
         'settings.lyricSourceEmbedded': '内嵌歌词',
         'settings.lyricSourceLrc': 'LRC 文件',
         'settings.lyricAlign': '歌词对齐方式',
@@ -7429,11 +7418,7 @@ window.__ModuleLoader__.load({
         'guide.wait': 'Please wait {seconds}s',
         'guide.start': 'Start',
         'guide.signature': 'Made for conversation',
-        'guide.styleTitle': 'Player artwork',
-        'guide.styleHint': 'Pick a look you like',
-        'guide.styleSquare': 'Square',
-        'guide.styleVinyl': 'Vinyl',
-        'guide.composerSample': 'This lyric sits above the composer',
+                'guide.composerSample': 'This lyric sits above the composer',
         'guide.chipPlaylists': 'Playlists',
         'guide.chipLikes': 'Likes',
         'guide.chipCache': 'Cache',
@@ -7901,14 +7886,7 @@ window.__ModuleLoader__.load({
         'settings.pickFailed': 'Could not read the folder path. Try again or type it manually.',
         'settings.miniPlayer': 'Mini player window',
         'settings.composerQueueButton': 'Playlist button in composer',
-        'settings.circularCover': 'Circular cover on player page',
-        'v2.coverStyle': 'Now-playing cover style',
-        'v2.coverStyleDesc': 'Square shows the full artwork; vinyl simulates a record',
-        'v2.coverSquare': 'Square',
-        'v2.coverVinyl': 'Vinyl',
-        'settings.vinylRing': 'Vinyl ring behind the cover',
-        'settings.coverSpin': 'Rotate the cover',
-        'settings.lyricOrder': 'Lyric source order',
+                      'settings.lyricOrder': 'Lyric source order',
         'settings.lyricSourceEmbedded': 'Embedded',
         'settings.lyricSourceLrc': 'LRC file',
         'settings.lyricAlign': 'Lyric alignment',
@@ -8305,7 +8283,6 @@ window.__ModuleLoader__.load({
         'settings.lyricIntensityNormal': '标准',
         'settings.lyricIntensityChaotic': '剧烈',
         'settings.themeSourceDesc': '主题强调色的来源。',
-        'settings.transparentBgDesc': '隐藏播放页封面后的环境背景。',
         'settings.onlineQuality': '在线音质',
         'settings.onlineQualityDesc': '在线播放时优先请求的音质；平台不支持时会自动降级。',
         'settings.crossfadeSeconds': '过渡上限',
@@ -8379,8 +8356,6 @@ window.__ModuleLoader__.load({
         'v2.spin': '封面旋转',
         'v2.spinDesc': '播放时唱片转动',
         'v2.roundCover': '圆形封面',
-        'v2.vinylRing': '黑胶环',
-        'v2.vinylRingDesc': '圆形封面外圈的唱片纹路',
         'v2.roundCoverDesc': '列表行使用圆形封面',
         'v2.paused': '已暂停',
         'v2.filters': '筛选',
@@ -8465,7 +8440,6 @@ window.__ModuleLoader__.load({
         'sheet.lyricSegNoTimedLines': '这首歌的歌词没有时间轴，无法按行分词。',
         'sheet.lyricSegFailed': '分词没有保存：内容和歌词对不上。',
         'sheet.background': '背景类型',
-        'sheet.transparentBg': '播放页透明背景',
         'sheet.scene': '场景',
         'sheet.sceneOff': '关',
         'sheet.sceneCinema': '影厅',
@@ -8989,7 +8963,6 @@ window.__ModuleLoader__.load({
         'settings.lyricIntensityNormal': 'Normal',
         'settings.lyricIntensityChaotic': 'Chaotic',
         'settings.themeSourceDesc': 'Where the accent colour comes from.',
-        'settings.transparentBgDesc': 'Hide the ambient artwork behind the now-playing page.',
         'settings.onlineQuality': 'Online quality',
         'settings.onlineQualityDesc': 'The preferred quality for online playback; unsupported levels fall back automatically.',
         'settings.crossfadeSeconds': 'Maximum transition',
@@ -9055,8 +9028,6 @@ window.__ModuleLoader__.load({
         'v2.spin': 'Cover rotation',
         'v2.spinDesc': 'The disc spins while playing',
         'v2.roundCover': 'Round covers',
-        'v2.vinylRing': 'Vinyl ring',
-        'v2.vinylRingDesc': 'Record grooves around a circular cover',
         'v2.roundCoverDesc': 'Use round covers in lists',
         'v2.paused': 'Paused',
         'v2.filters': 'Filters',
@@ -9139,7 +9110,6 @@ window.__ModuleLoader__.load({
         'sheet.lyricSegNoTimedLines': 'This lyric has no timeline, so it cannot be split by line.',
         'sheet.lyricSegFailed': 'The split was not saved: it does not match the lyrics.',
         'sheet.background': 'Background type',
-        'sheet.transparentBg': 'Transparent player background',
         'sheet.scene': 'Scene',
         'sheet.sceneOff': 'Off',
         'sheet.sceneCinema': 'Cinema',
@@ -150039,11 +150009,7 @@ window.__ModuleLoader__.load({
       layout: 'top',
       sortBy: 'title',
       sortDir: 'asc',
-      circularCover: false,
-      coverStyle: 'square',
-      vinylRing: false,
       npLookMigrated: true,
-      coverSpin: true,
       /**
        * Folia's `localLyricsPriority`: which lyric a local file shows when it has both
        * its own file lyric and a matched online one. 'local' keeps the file's own.
@@ -150078,8 +150044,6 @@ window.__ModuleLoader__.load({
       npPaneGap: 60,
       /** Animated flowing-light background on the player page. */
       npFlowBg: true,
-      /** Hide the ambient art behind the player page (the card's 透明背景 switch). */
-      npTransparentBg: false,
       /** 外观: lyric style, Folia shell background and where the accent comes from (28-look.js). */
       lyricStyle: 'monet',
       /** Folia's calm/normal/chaotic chip (used by the styles' animation tuning). */
@@ -150194,7 +150158,6 @@ window.__ModuleLoader__.load({
       }
       // 0.12.0 briefly defaulted to square covers; restore the 0.11 player look once.
       if (merged.npLookMigrated !== true) {
-        merged.circularCover = PREF_DEFAULTS.circularCover
         merged.npLookMigrated = true
         try {
           window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
@@ -150205,7 +150168,6 @@ window.__ModuleLoader__.load({
       // One-time move to the reference now-playing layout (square cover, left lyrics,
       // denser lyric typography). Later user edits still win.
       if (merged.npLayoutV2 !== true) {
-        merged.coverStyle = PREF_DEFAULTS.coverStyle
         merged.lyricAlign = PREF_DEFAULTS.lyricAlign
         merged.lyricSize = PREF_DEFAULTS.lyricSize
         merged.lyricBlur = PREF_DEFAULTS.lyricBlur
@@ -158522,7 +158484,6 @@ window.__ModuleLoader__.load({
       '.mp-queue-pop .mp-q-list{max-height:40vh}',
 
       // ── now playing (reference layout) ──────────────────────────────────────────
-      '.mp-np.is-transparent-bg{background:transparent}',
       '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:var(--mp-z-page-raised,70);display:flex;flex-direction:column;overflow:hidden;background:#141417;color:#f4f4f5;transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
       '.mp-np.is-open{transform:translateY(0);visibility:visible;pointer-events:auto}',
       '.mp-np-bg{position:absolute;inset:-40px;z-index:0;overflow:hidden;--mp-speed:12s;--mp-beat-scale:1}',
@@ -161998,21 +161959,8 @@ window.__ModuleLoader__.load({
 
       if (props.open !== true) return null
 
-      function chooseCover(style) {
-        setPrefs({
-          coverStyle: style,
-          circularCover: style === 'vinyl',
-          vinylRing: style === 'vinyl',
-          coverSpin: style === 'vinyl',
-        })
-      }
-
       function resetDefaults() {
         setPrefs({
-          coverStyle: 'square',
-          circularCover: false,
-          vinylRing: false,
-          coverSpin: false,
           lyricSize: 35,
           lyricGap: 15,
           translationScale: 90,
@@ -162039,39 +161987,6 @@ window.__ModuleLoader__.load({
           { className: 'mp-npe-sec-head' },
           h('span', { className: 'mp-npe-sec-title' }, label),
           h('span', { className: 'mp-npe-sec-line' }),
-        )
-      }
-
-      function coverPreview(style) {
-        if (cover === '') return icon('note', 22)
-        if (style === 'vinyl') return h('img', { src: cover, alt: '' })
-        return h('img', { src: cover, alt: '' })
-      }
-
-      function coverCard(style, label) {
-        var selected = style === 'vinyl' ? prefs.coverStyle === 'vinyl' : prefs.coverStyle !== 'vinyl'
-        return h(
-          'button',
-          {
-            type: 'button',
-            className: cx('mp-npe-cover-card', selected && 'is-on'),
-            'aria-pressed': selected ? 'true' : 'false',
-            onClick: function () {
-              chooseCover(style)
-            },
-          },
-          h(
-            'span',
-            {
-              className: cx(
-                'mp-npe-cover-preview',
-                style === 'vinyl' ? 'mp-npe-cover-vinyl' : 'mp-npe-cover-square',
-              ),
-            },
-            coverPreview(style),
-          ),
-          h('span', { className: 'mp-npe-cover-label' }, label),
-          selected ? h('span', { className: 'mp-npe-cover-check' }, icon('check', 12)) : null,
         )
       }
 
@@ -162137,7 +162052,7 @@ window.__ModuleLoader__.load({
                 'div',
                 {
                   className:
-                    'mp-npe-preview-cover' + (prefs.coverStyle === 'vinyl' ? ' is-vinyl' : ''),
+                    'mp-npe-preview-cover',
                   style:
                     cover !== ''
                       ? { '--mp-preview-cover': 'url("' + cover.replace(/"/g, '%22') + '")' }
@@ -162258,17 +162173,6 @@ window.__ModuleLoader__.load({
             'div',
             { className: 'mp-npe-body' },
             previewCard(),
-            h(
-              'div',
-              { className: 'mp-npe-section is-cover' },
-              sectionHead(t('editor.cover')),
-              h(
-                'div',
-                { className: 'mp-npe-cover-grid' },
-                coverCard('square', t('v2.coverSquare')),
-                coverCard('vinyl', t('v2.coverVinyl')),
-              ),
-            ),
             h(
               'div',
               { className: 'mp-npe-section is-type' },
@@ -163453,7 +163357,8 @@ window.__ModuleLoader__.load({
         },
         [trackPath, track && track.onlineProvider, track && track.onlineId],
       )
-      var circular = prefs.coverStyle === 'vinyl'
+      // The vinyl/square cover templates were removed with the new player page.
+      var circular = false
       var stagedPair = useState(false)
       var staged = stagedPair[0]
       var setStaged = stagedPair[1]
@@ -164056,7 +163961,6 @@ window.__ModuleLoader__.load({
         accent: flowAccent,
         seed: track && track.path ? track.path : '',
         url: typeof prefs.bgUrl === 'string' ? prefs.bgUrl : '',
-        transparent: prefs.npTransparentBg === true,
         latentDisplayMode: prefs.latentDisplayMode,
         latentColorSource: prefs.latentColorSource,
       })
@@ -164102,7 +164006,6 @@ window.__ModuleLoader__.load({
             isFullscreen && 'is-fs',
             prefs.lyricBlur === true && 'is-blur',
             prefs.showTranslation === true && 'is-trans',
-            prefs.coverStyle === 'vinyl' && 'is-vinyl',
             'mp-align-' + (prefs.lyricAlign || 'center'),
             // 外观: the lyric style and backdrop mode come from the registry. A random
             // preference has already been resolved to a concrete id for this slice.
@@ -164110,7 +164013,6 @@ window.__ModuleLoader__.load({
             // A visualizer style is a full stage (Folia's VisualizerShell): the cover
             // column steps aside and the lyrics take the whole page.
             lyricStyleId !== 'classic' && 'is-visualizer',
-            prefs.npTransparentBg === true && 'is-transparent-bg',
             chromeVisible !== true && 'is-chrome-hidden',
             'mp-bgmode-' + mpLookId(MP_BG_MODES, prefs.bgMode),
           ),
@@ -165393,26 +165295,6 @@ window.__ModuleLoader__.load({
             { key: 'layout', label: t('v2.layout'), desc: t('v2.layoutHint') },
             layoutChoices(),
           ),
-          h(
-            SetRow,
-            { key: 'coverStyle', label: t('v2.coverStyle'), desc: t('v2.coverStyleDesc') },
-            h(KitSegmented, {
-              id: 'mp-cover-style',
-              value: prefs.coverStyle === 'vinyl' ? 'vinyl' : 'square',
-              label: t('v2.coverStyle'),
-              options: [
-                { value: 'square', label: t('v2.coverSquare') },
-                { value: 'vinyl', label: t('v2.coverVinyl') },
-              ],
-              onChange: function (value) {
-                if (value === 'vinyl') {
-                  patchPrefs({ coverStyle: 'vinyl', circularCover: true, vinylRing: true, coverSpin: true })
-                } else {
-                  patchPrefs({ coverStyle: 'square', circularCover: false, vinylRing: false, coverSpin: false })
-                }
-              },
-            }),
-          ),
           h('div', { key: 'player-head', className: 'mp-set-label' }, t('settings.appearancePlayer')),
           h('div', { key: 'player-hint', className: 'mp-set-desc' }, t('settings.appearancePlayerHint')),
           h(
@@ -165461,14 +165343,6 @@ window.__ModuleLoader__.load({
                 { value: 'custom', label: t('sheet.sourceCustom') },
               ],
               onChange: function (value) { patchPrefs({ themeSource: String(value) }) },
-            }),
-          ),
-          h(
-            SetRow,
-            { key: 'transparent-bg', label: t('sheet.transparentBg'), desc: t('settings.transparentBgDesc') },
-            h(Switch, {
-              value: prefs.npTransparentBg === true,
-              onChange: function (value) { patchPrefs({ npTransparentBg: value }) },
             }),
           ),
         ]
@@ -168161,8 +168035,6 @@ window.__ModuleLoader__.load({
       var dontShow = dontPair[0]
       var setDontShow = dontPair[1]
       var dontShowRef = useRef(false)
-      var prefs = usePrefs()
-      var coverStyle = prefs.coverStyle === 'vinyl' ? 'vinyl' : 'square'
 
       function changeDontShow(next) {
         dontShowRef.current = next
@@ -168209,15 +168081,6 @@ window.__ModuleLoader__.load({
         props.onClose(dontShowRef.current)
       }
 
-      function chooseCoverStyle(style) {
-        setPrefs({
-          coverStyle: style,
-          circularCover: style === 'vinyl',
-          vinylRing: style === 'vinyl',
-          coverSpin: style === 'vinyl',
-        })
-      }
-
       var features = [
         {
           key: 'online',
@@ -168250,28 +168113,6 @@ window.__ModuleLoader__.load({
       ]
       var progress = Math.round(((3 - countdown) / 3) * 100)
 
-      function styleOption(style, label) {
-        var on = coverStyle === style
-        return h(
-          'button',
-          {
-            type: 'button',
-            className: cx('mp-guide-style-option', on && 'is-on'),
-            'aria-pressed': on,
-            onClick: function () {
-              chooseCoverStyle(style)
-            },
-          },
-          h(
-            'span',
-            { className: cx('mp-guide-style-thumb', style === 'vinyl' ? 'is-vinyl' : 'is-square') },
-            h('img', { src: BRAND_LOGO, alt: '' }),
-          ),
-          h('span', { className: 'mp-guide-style-name' }, label),
-          on ? h('span', { className: 'mp-guide-style-check' }, icon('check', 12)) : null,
-        )
-      }
-
       return h(
         KitModal,
         { headless: true, onClose: countdown > 0 ? undefined : finish, className: 'mp-guide-modal' },
@@ -168298,13 +168139,13 @@ window.__ModuleLoader__.load({
               ),
           h(
             'div',
-            { className: cx('mp-guide-visual', coverStyle === 'vinyl' ? 'is-vinyl' : 'is-square') },
+            { className: 'mp-guide-visual is-square' },
             h('div', { className: 'mp-guide-watermark', 'aria-hidden': 'true' }, 'MUSIC'),
             h(
               'div',
               { className: 'mp-guide-shot' },
               h('img', {
-                src: coverStyle === 'vinyl' ? GUIDE_SHOT_VINYL : GUIDE_SHOT_SQUARE,
+                src: GUIDE_SHOT_SQUARE,
                 alt: '',
               }),
             ),
@@ -168339,22 +168180,6 @@ window.__ModuleLoader__.load({
                     h('span', { className: 'mp-guide-row-index' }, String(index + 1).padStart(2, '0')),
                   )
                 }),
-              ),
-              h(
-                'div',
-                { className: 'mp-guide-style' },
-                h(
-                  'div',
-                  { className: 'mp-guide-style-head' },
-                  h('span', null, t('guide.styleTitle')),
-                  h('span', { className: 'mp-guide-style-hint' }, t('guide.styleHint')),
-                ),
-                h(
-                  'div',
-                  { className: 'mp-guide-style-options' },
-                  styleOption('square', t('guide.styleSquare')),
-                  styleOption('vinyl', t('guide.styleVinyl')),
-                ),
               ),
               h(
                 'div',
@@ -173138,44 +172963,6 @@ window.__ModuleLoader__.load({
                 mpSmallButton(t('sheet.bgCoverOnly'), function () {
                   setPrefs({ bgCoverOnly: prefs.bgCoverOnly !== true, latentColorSource: prefs.bgCoverOnly === true ? 'cover-theme' : 'cover-only' })
                 }),
-              ),
-              mpPanelRow(
-                t('sheet.transparentBg'),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    role: 'switch',
-                    'aria-checked': prefs.npTransparentBg === true ? 'true' : 'false',
-                    onClick: function () {
-                      setPrefs({ npTransparentBg: prefs.npTransparentBg !== true })
-                    },
-                    style: {
-                      width: '40px',
-                      height: '24px',
-                      padding: '0',
-                      borderRadius: '12px',
-                      border: '0',
-                      background:
-                        prefs.npTransparentBg === true
-                          ? 'var(--dsw-alias-state-business-primary,#4f8cff)'
-                          : 'rgba(255,255,255,.16)',
-                      cursor: 'pointer',
-                      transition: 'background-color .16s linear',
-                    },
-                  },
-                  h('span', {
-                    style: {
-                      display: 'block',
-                      width: '18px',
-                      height: '18px',
-                      marginLeft: prefs.npTransparentBg === true ? '20px' : '3px',
-                      borderRadius: '9px',
-                      background: '#fff',
-                      transition: 'margin-left .16s cubic-bezier(.22,1,.36,1)',
-                    },
-                  }),
-                ),
               ),
             ),
           ),
