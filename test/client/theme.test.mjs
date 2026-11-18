@@ -162,6 +162,8 @@ assert.match(p3Css, /\.mpv3-row \{[^"]*height: 56px/, 'panel-v3 rows are 56px')
 assert.match(p3Css, /\.mpv3-row-cover \{[^"]*width: 40px; height: 40px/, 'panel-v3 row covers are 40px')
 assert.match(p3Css, /\.mpv3-row-title \{[^"]*font-size: 13px/, 'panel-v3 row titles follow the type scale')
 assert.match(p3Css, /\.mpv3-row-cover img \{[^"]*width: 100%; height: 100%; object-fit: cover/, 'panel-v3 covers clamp their image')
+assert.match(p3Css, /\.mpv3-queue-list \{[^"]*overflow-x: hidden; overflow-y: auto/, 'queue list scrolls vertically only')
+assert.match(p3Css, /\.mpv3-queue-row \{[^"]*box-sizing: border-box/, 'queue rows include their padding in the width')
 
 assert.match(theme, /\.mp-npe-section\.is-ambient\{grid-column:1\/4;grid-row:3\}/, 'ambient section spans the editor')
 assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/, 'ambient section has four columns')
