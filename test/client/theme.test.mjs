@@ -24,6 +24,7 @@ const uiFiles = [
   'trash.js',
 ]
 const p3Dir = join(root, 'src/client/panel-v3')
+const p3Css = readFileSync(join(p3Dir, 'p3-styles.js'), 'utf8')
 const p3Files = ['p3-overlay.js', 'p3-core.js', 'p3-pages.js', 'p3-shell.js', 'p3-styles.js']
 const all = [
   theme,
@@ -156,15 +157,11 @@ assert.match(theme, /\.mp-card\{[^']*--dsw-alias-bg-layer-3:rgba\(255,255,255,\.
 assert.match(theme, /\.mp-card\{[^']*--dsw-alias-border-l1:rgba\(255,255,255,\.07\)/, 'player card hairlines stay light')
 assert.match(theme, /\.mp-card\{[^']*color:#f4f4f5/, 'player card sets its own light ink')
 
-// Song rows are larger for readability.
-assert.match(theme, /\.mp-row\{[^']*height:84px/, 'song rows are taller')
-assert.match(theme, /\.mp-row-cover\{[^']*width:56px;height:56px/, 'song row covers are larger')
-assert.match(theme, /\.mp-row-title\{[^']*font-size:16px/, 'song titles are larger')
-
-// Artist and album lists use the same row metrics as the song list.
-assert.match(theme, /\.mp-entry-row\{[^']*height:84px/, 'entry rows are song-row height')
-assert.match(theme, /\.mp-entry-art\{[^']*width:56px;height:56px/, 'entry rows use song-row cover size')
-assert.match(theme, /\.mp-entry-title\{[^']*font-size:16px/, 'entry titles use song-row title size')
+// panel-v3 rows: 56px, 40px cover, 13px title.
+assert.match(p3Css, /\.mpv3-row \{[^"]*height: 56px/, 'panel-v3 rows are 56px')
+assert.match(p3Css, /\.mpv3-row-cover \{[^"]*width: 40px; height: 40px/, 'panel-v3 row covers are 40px')
+assert.match(p3Css, /\.mpv3-row-title \{[^"]*font-size: 13px/, 'panel-v3 row titles follow the type scale')
+assert.match(p3Css, /\.mpv3-row-cover img \{[^"]*width: 100%; height: 100%; object-fit: cover/, 'panel-v3 covers clamp their image')
 
 assert.match(theme, /\.mp-npe-section\.is-ambient\{grid-column:1\/4;grid-row:3\}/, 'ambient section spans the editor')
 assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/, 'ambient section has four columns')
