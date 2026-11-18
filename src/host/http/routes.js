@@ -392,6 +392,27 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         }
       }
 
+      // Lyric style thumbnails shipped with the plugin. The ids are the
+      // renderer ids, so the client asks for exactly the style it draws.
+      if (pathname.startsWith('/assets/lyric-style-thumbs/') && method === 'GET') {
+        const name = pathname.slice('/assets/lyric-style-thumbs/'.length)
+        if (!/^[a-z]+\.webp$/.test(name)) {
+          return fail(res, 404, 'NOT_FOUND', '资源不存在')
+        }
+        try {
+          const file = await readFile(fileURLToPath(new URL('../assets/lyric-style-thumbs/' + name, import.meta.url)))
+          res.writeHead(200, {
+            'content-type': 'image/webp',
+            'content-length': file.length,
+            'cache-control': 'public, max-age=31536000, immutable',
+          })
+          res.end(file)
+          return
+        } catch {
+          return fail(res, 404, 'ASSET_MISSING', '歌词样式缩略图缺失，请重新安装插件')
+        }
+      }
+
       // icu-folia data (Folia's jieba/HMM tables), gzipped and shipped with the plugin.
       // Served with Content-Encoding so the browser decodes it transparently.
       if (pathname.startsWith('/assets/icu-folia/') && method === 'GET') {

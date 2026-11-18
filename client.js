@@ -174975,6 +174975,31 @@ window.__ModuleLoader__.load({
 
     var MP_LOOK_SAMPLE = '夜に駆ける'
 
+    // Settings screenshots for every real lyric style, shipped with the plugin at
+    // /music/assets/lyric-style-thumbs/<id>.webp. The random pseudo-style has none.
+    var MP_LYRIC_STYLE_THUMBS = {
+      still: 'still',
+      partita: 'partita',
+      fume: 'fume',
+      monet: 'monet',
+      tilt: 'tilt',
+      claddagh: 'claddagh',
+      cadenza: 'cadenza',
+      lumiere: 'lumiere',
+      sonnet: 'sonnet',
+      tempera: 'tempera',
+      hanabi: 'hanabi',
+      nebbia: 'nebbia',
+      diorama: 'diorama',
+      pendolo: 'pendolo',
+    }
+
+    function mpLyricStyleThumb(id) {
+      var file = MP_LYRIC_STYLE_THUMBS[String(id || '')]
+      if (!file) return ''
+      return (typeof API === 'string' ? API : 'music/') + 'assets/lyric-style-thumbs/' + file + '.webp'
+    }
+
     function mpLookCellStyle(selected) {
       return {
         position: 'relative',
@@ -175017,22 +175042,41 @@ window.__ModuleLoader__.load({
                 },
                 style: mpLookCellStyle(selected),
               },
-              h(
-                'div',
-                {
-                  className: 'mp-look-preview',
-                  style: {
-                    height: '44px',
-                    display: 'grid',
-                    placeItems: 'center',
-                    borderRadius: '6px',
-                    background: 'rgba(0,0,0,.35)',
-                    color: selected ? 'var(--mp-look-accent,#4f8cff)' : 'inherit',
-                    opacity: selected ? '1' : '.75',
+              (function () {
+                var thumb = mpLyricStyleThumb(entry.id)
+                if (thumb !== '') {
+                  return h('img', {
+                    src: thumb,
+                    alt: '',
+                    loading: 'lazy',
+                    decoding: 'async',
+                    style: {
+                      width: '100%',
+                      aspectRatio: '3 / 2',
+                      objectFit: 'cover',
+                      borderRadius: 'var(--dsw-radius-sm, 8px)',
+                      display: 'block',
+                      opacity: selected ? '1' : '.78',
+                    },
+                  })
+                }
+                return h(
+                  'div',
+                  {
+                    className: 'mp-look-preview',
+                    style: {
+                      height: '44px',
+                      display: 'grid',
+                      placeItems: 'center',
+                      borderRadius: '6px',
+                      background: 'rgba(0,0,0,.35)',
+                      color: selected ? 'var(--mp-look-accent,#4f8cff)' : 'inherit',
+                      opacity: selected ? '1' : '.75',
+                    },
                   },
-                },
-                icon(entry.glyph || 'note', 20),
-              ),
+                  icon(entry.glyph || 'note', 20),
+                )
+              })(),
               h('span', { style: { fontSize: '11px', opacity: '.7' } }, t(entry.labelKey)),
             )
           }),

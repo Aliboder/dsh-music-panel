@@ -76,6 +76,16 @@ async function post(path, payload) {
   return { status: res.status, headers, body }
 }
 
+// ── lyric style thumbnails ──────────────────────────────────────────────────
+{
+  const thumb = await get('/music/assets/lyric-style-thumbs/monet.webp')
+  assert.equal(thumb.status, 200)
+  assert.equal(thumb.headers['content-type'], 'image/webp')
+  assert.ok(Number(thumb.headers['content-length']) > 0, 'the thumbnail has bytes')
+  const missing = await get('/music/assets/lyric-style-thumbs/unknown.webp')
+  assert.equal(missing.status, 404)
+}
+
 // ── provider catalogue ──────────────────────────────────────────────────────
 
 const providers = await get('/music/online/providers')
