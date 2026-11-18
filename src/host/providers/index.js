@@ -62,7 +62,7 @@ function shape(provider, song) {
   const privilege = Number(song.privilege) || 0
   let qualityHint = ''
   if (provider === 'qq' && payplay === 1) qualityHint = 'VIP'
-  if (provider === 'kugouLite' ? privilege >= 10 : (provider === 'kugou' && (payType > 0 || privilege > 0))) qualityHint = 'VIP'
+  if (provider === 'kugouLite' ? (privilege >= 10 || payType > 0) : (provider === 'kugou' && (payType > 0 || privilege > 0))) qualityHint = 'VIP'
   if (provider === 'netease' && fee === 1) qualityHint = 'VIP'
   const albumMid = String(song.albummid || '').trim()
   const coverUrl =

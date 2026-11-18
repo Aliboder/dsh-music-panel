@@ -55,6 +55,8 @@ import {
   assert.deepEqual(song.artists, ['A', 'B'])
   const unrelated = KG.normalizeSong({ hash: 'h', songname: 'C - Title', SingerName: 'A、B' })
   assert.equal(unrelated.title, 'C - Title', 'an unrelated prefix is part of the title')
+  const nestedAlbum = KG.normalizeSong({ hash: 'h', songname: 'Title', SingerName: 'A', album_info: { album_name: 'Nested Album' } })
+  assert.equal(nestedAlbum.album, 'Nested Album', 'nested album objects do not become [object Object]')
 }
 
 // ── login mapping ───────────────────────────────────────────────────────────
@@ -172,6 +174,38 @@ import {
     assert.equal(lite.url, 'https://cdn.example/a.mp3')
     assert.equal(seen[1].album_id, '0', 'concept playback never sends a mismatched album id')
     assert.equal(seen[1].album_audio_id, '0', 'concept playback never sends a mismatched album audio id')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
+// ── VIP badge ──────────────────────────────────────────────────────────────
+
+{
+  setUpstreamOverride(async (operation) => {
+    assert.equal(operation, 'search')
+    return {
+      status: 200,
+      body: {
+        status: 1,
+        data: {
+          total: 3,
+          lists: [
+            { FileHash: 'A', FileName: 'a - one', privilege: 10 },
+            { FileHash: 'B', FileName: 'b - two', pay_type: 3 },
+            { FileHash: 'C', FileName: 'c - free', privilege: 0, pay_type: 0 },
+          ],
+        },
+      },
+      cookie: [],
+    }
+  })
+  try {
+    const { search: searchProvider } = await import('../../src/host/providers/index.js')
+    const results = await searchProvider('kugouLite', 'x')
+    assert.equal(results[0].qualityHint, 'VIP', 'privilege marks a KuGou Lite song as VIP')
+    assert.equal(results[1].qualityHint, 'VIP', 'pay_type also marks a KuGou Lite song as VIP')
+    assert.equal(results[2].qualityHint, '', 'a free song has no VIP badge')
   } finally {
     resetUpstreamOverride()
   }

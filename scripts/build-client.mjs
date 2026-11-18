@@ -163,6 +163,7 @@ ${body}
           p3CurrentTracks: p3CurrentTracks,
           P3PageSwitch: typeof P3PageSwitch === 'function' ? P3PageSwitch : null,
           P3Queue: typeof P3Queue === 'function' ? P3Queue : null,
+          P3Row: typeof P3Row === 'function' ? P3Row : null,
           P3PlaylistDialogHost: typeof P3PlaylistDialogHost === 'function' ? P3PlaylistDialogHost : null,
           openP3Playlist: typeof openP3Playlist === 'function' ? openP3Playlist : null,
           closeP3Playlist: typeof closeP3Playlist === 'function' ? closeP3Playlist : null,

@@ -803,11 +803,17 @@ function P3Row(props) {
       ),
       h('div', { className: 'mpv3-row-sub' },
         artistNames.length > 0
-          ? h('button', {
-              type: 'button',
-              className: 'mpv3-text-link',
-              onClick: function (event) { event.stopPropagation(); p3OpenArtist(track, artistNames[0]) },
-            }, artistNames.join(' / '))
+          ? artistNames.map(function (name, index) {
+              return [
+                index > 0 ? h('span', { key: 'sep-' + index, className: 'mpv3-artist-sep' }, ' / ') : null,
+                h('button', {
+                  key: 'artist-' + index,
+                  type: 'button',
+                  className: 'mpv3-text-link mpv3-artist-link',
+                  onClick: function (event) { event.stopPropagation(); p3OpenArtist(track, name) },
+                }, name),
+              ]
+            })
           : h('span', null, trackArtistOf(track)),
       ),
     ),

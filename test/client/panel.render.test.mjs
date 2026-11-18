@@ -217,7 +217,7 @@ assert.ok(internals.p3Tabs('navidrome').indexOf('artists') >= 0, 'Navidrome expo
 
 internals.p3RouteStore.set({ source: 'netease', page: 'recent', param: null, filter: null, query: '', history: [], scroll: {} })
 internals.onlineStore.set({
-  provider: 'netease', phase: 'ready', providers: { netease: { loggedIn: true, nickname: 'Tester', capabilities: { recent: true, userPlaylists: true, searchAlbums: true, search: true } } },
+  provider: 'netease', phase: 'ready', providers: { netease: { loggedIn: true, nickname: 'Tester', vip: true, vipExpiresAt: '2027-01-01', capabilities: { recent: true, userPlaylists: true, searchAlbums: true, search: true } } },
   history: [{ provider: 'netease', id: '42', title: 'Online Song', artist: 'Online Artist', album: 'Online Album', durationSec: 210, coverUrl: '', qualityHint: '', playedAt: Date.now() }],
 })
 const onlineTree = panel()
@@ -226,6 +226,7 @@ assert.ok(onlineText.includes('Online Song'), 'online history rows render')
 assert.ok(classesOf(onlineTree).has('mpv3-source-avatar'), 'platform and account share one avatar control')
 assert.ok(classesOf(onlineTree).has('mpv3-source-badge'), 'the platform logo badges the account avatar')
 assert.ok(classesOf(onlineTree).has('mp-provider-logo'), 'the platform logo image is rendered')
+assert.ok(classesOf(onlineTree).has('mpv3-source-vip'), 'the account VIP badge is shown')
 const neteaseTabs = internals.p3Tabs('netease')
 assert.ok(neteaseTabs.indexOf('playlists') >= 0, 'online tabs expose playlists')
 assert.ok(neteaseTabs.indexOf('playlists') < neteaseTabs.indexOf('recent'), 'playlists come before recent')
@@ -322,6 +323,18 @@ internals.p3GoBack()
 assert.equal(internals.p3RouteStore.get().page, 'search', 'restored collection returns to search')
 assert.equal(internals.p3RouteStore.get().query, 'Alpha', 'restored search keeps the submitted query')
 internals.p3SelectBrowseTab('songs')
+
+const multiArtistRow = internals.P3Row({
+  track: { path: 'online:test:1', title: 'Multi', artist: '周杰伦 / 李硕 / 张鑫', album: 'Live', durationSec: 120, onlineProvider: 'kugouLite', id: '1' },
+  index: 0,
+  list: [],
+  currentPath: '',
+  playing: false,
+  favoriteSet: {},
+  selected: false,
+  tabIndex: -1,
+})
+assert.equal(nodesWithClass(multiArtistRow, 'mpv3-artist-link').length, 3, 'each artist gets its own hover link')
 
 window.localStorage.setItem('music.ui.v3', JSON.stringify({ source: 'local', page: 'album', param: 'Artist A|Album One' }))
 window.localStorage.removeItem('music.ui.v4')

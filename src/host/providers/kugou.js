@@ -382,7 +382,12 @@ export function normalizeSong(o, opts = {}) {
     superHash: lowHash(o.SuperFileHash ?? o.hash_super ?? ''),
     title,
     artists: arts,
-    album: emStrip(o.albumname || o.AlbumName || o.album_name || o.albuminfo?.albumname || ''),
+    album: emStrip(
+      typeof o.albumname === 'string' ? o.albumname
+        : typeof o.AlbumName === 'string' ? o.AlbumName
+          : typeof o.album_name === 'string' ? o.album_name
+            : (o.album_info?.album_name || o.albumInfo?.albumName || o.albuminfo?.albumname || ''),
+    ),
     interval: Number.isFinite(durSec) ? durSec : 0,
     albumAudioId,
     mixSongId: Number(o.MixSongID || o.mixsongid || 0) || 0,

@@ -157,6 +157,7 @@ function P3TopBar(props) {
             : null,
         ),
         h('span', { className: 'mpv3-source-name' }, p3SourceLabel(source)),
+        loggedIn && info.vip === true ? h('span', { className: 'mpv3-source-vip', title: info.vipExpiresAt ? t('p3.vipUntil', { date: info.vipExpiresAt }) : t('p3.vip') }, 'VIP') : null,
         !loggedIn ? h('i', { className: 'mpv3-source-dot' }) : null,
         icon('chevronDown', 12),
       ),
