@@ -137,15 +137,20 @@ ${body}
           mergeLyricTranslation: mergeLyricTranslation,
           buildTranslatedLrc: buildTranslatedLrc,
           formatLrcTime: formatLrcTime,
-          // Pure pager math; the render mock cannot reach the paged branch.
-          pageWindow: pageWindow,
-          SONG_PAGE_SIZE: SONG_PAGE_SIZE,
           // Pure sidebar model, so tests can assert entries without matching
           // rendered copy (which shares words with empty-state text).
           navGroupsFor: navGroupsFor,          // Derived from UI_SOURCES; asserted so the music_control tool cannot
           // drift away from the provider list again.
           isOnlineSource: isOnlineSource,
           UI_SOURCES: UI_SOURCES,
+          P3Shell: typeof P3Shell === 'function' ? P3Shell : null,
+          p3RouteStore: p3RouteStore,
+          p3Navigate: p3Navigate,
+          p3SourceList: p3SourceList,
+          p3Tabs: p3Tabs,
+          p3CurrentTracks: p3CurrentTracks,
+          P3PageSwitch: typeof P3PageSwitch === 'function' ? P3PageSwitch : null,
+          P3_CSS: typeof P3_CSS === 'string' ? P3_CSS : null,
           // The album entry point decides which view the user lands in; the
           // render mock cannot click a row, so the test drives it directly.
           openOnlineAlbum: openOnlineAlbum,

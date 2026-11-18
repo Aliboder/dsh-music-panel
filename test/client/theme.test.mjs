@@ -13,24 +13,23 @@ const uiDir = join(root, 'src/client/components/ui')
 const uiFiles = [
   'primitives.js',
   'component-gallery.js',
-  'track-row.js',
-  'player-bar.js',
   'eq-panel.js',
   'now-playing.js',
   'queue.js',
   'settings.js',
   'dialogs.js',
-  'local.js',
-  'online.js',
-  'navigation.js',
-  'panel.js',
   'composer.js',
   'batch.js',
   'online-lyric.js',
   'trash.js',
-  'header.js',
 ]
-const all = [theme, ...uiFiles.map((name) => readFileSync(join(uiDir, name), 'utf8'))]
+const p3Dir = join(root, 'src/client/panel-v3')
+const p3Files = ['p3-overlay.js', 'p3-core.js', 'p3-pages.js', 'p3-shell.js', 'p3-styles.js']
+const all = [
+  theme,
+  ...uiFiles.map((name) => readFileSync(join(uiDir, name), 'utf8')),
+  ...p3Files.map((name) => readFileSync(join(p3Dir, name), 'utf8')),
+]
 const joined = all.join('\n')
 
 // Official radius scale: 4 / 8 / 12 / 16 / 20 / 28 (pills/circles use 999/50%).

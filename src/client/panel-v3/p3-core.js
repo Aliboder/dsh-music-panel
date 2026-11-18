@@ -1,0 +1,934 @@
+/**
+ * panel-v3 core: route store, runtime sources, data helpers and shared view parts.
+ */
+
+function trackTitleOf(track) {
+  if (!track) return ''
+  return track.title || stemOf(track.path || '') || basename(track.path || '')
+}
+
+function trackArtistOf(track) {
+  if (!track) return ''
+  return track.artist || t('page.unknownArtist')
+}
+
+/* ============================================================
+   route
+   ============================================================ */
+
+var P3_UI_KEY = 'music.ui.v3'
+var P3_PANEL_ID = 'music'
+
+var p3Collection = createStore({ album: null, artist: null, playlist: null })
+
+var p3RouteStore = createStore({
+  source: 'local',
+  page: 'songs',
+  param: null,
+  filter: null,
+  query: '',
+  history: [],
+  scroll: {},
+})
+
+function p3FallbackPage(source, page) {
+  var pages = ['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'stats', 'recent', 'album', 'artist', 'playlist', 'search']
+  if (pages.indexOf(page) >= 0) return page
+  return source === 'local' || source === 'navidrome' ? 'songs' : 'recent'
+}
+
+function p3ReadRoute() {
+  var saved = storageGet(P3_UI_KEY, null)
+  if (saved && typeof saved === 'object' && typeof saved.source === 'string') {
+    var page = typeof saved.page === 'string' ? saved.page : 'songs'
+    if (page === 'search') page = saved.source === 'local' ? 'songs' : 'recent'
+    page = p3FallbackPage(saved.source, page)
+    return {
+      source: saved.source,
+      page: page,
+      param: saved.page === 'search' ? null : (saved.param === undefined ? null : saved.param),
+      filter: null,
+      query: '',
+      history: [],
+      scroll: {},
+    }
+  }
+  // One-time migration from the old panel's saved source/nav.
+  var legacy = storageGet('music.ui.v2', null)
+  if (legacy && typeof legacy === 'object') {
+    var source = typeof legacy.source === 'string' && legacy.source !== '' ? legacy.source : 'local'
+    var nav = typeof legacy.nav === 'string' ? legacy.nav : ''
+    if (nav === 'artistSongs' || nav === 'artist' || nav === 'album') nav = source === 'local' || source === 'navidrome' ? 'songs' : 'recent'
+    var playlistId = typeof legacy.playlistId === 'string' ? legacy.playlistId : ''
+    if (nav === 'playlist' && playlistId === '') nav = source === 'local' || source === 'navidrome' ? 'songs' : 'recent'
+    nav = p3FallbackPage(source, nav)
+    return {
+      source: source,
+      page: nav === 'playlist' && playlistId !== '' ? 'playlist' : nav || 'songs',
+      param: nav === 'playlist' && playlistId !== '' ? playlistId : null,
+      filter: null,
+      query: '',
+      history: [],
+      scroll: {},
+    }
+  }
+  return { source: 'local', page: 'songs', param: null, filter: null, query: '', history: [], scroll: {} }
+}
+
+function p3SaveRoute() {
+  var state = p3RouteStore.get()
+  if (state.page === 'search') return
+  storageSet(P3_UI_KEY, { source: state.source, page: state.page, param: state.param || null })
+}
+
+function p3RouteKey(state) {
+  var current = state || p3RouteStore.get()
+  return current.source + '|' + current.page + '|' + (current.param || '')
+}
+
+function p3Navigate(page, param, options) {
+  options = options || {}
+  var state = p3RouteStore.get()
+  var scroll = Object.assign({}, state.scroll)
+  scroll[p3RouteKey(state)] = p3ScrollTop()
+  var history = state.history.slice()
+  if (options.root === true) history = []
+  else if (page !== state.page || param !== state.param) history.push({ page: state.page, param: state.param, filter: state.filter })
+  p3RouteStore.set({
+    page: page,
+    param: param === undefined ? null : param,
+    filter: options.filter === undefined ? null : options.filter,
+    query: options.keepQuery === true ? state.query : '',
+    history: history,
+    scroll: scroll,
+  })
+  p3SaveRoute()
+  requestAnimationFrame(function () {
+    var next = p3RouteStore.get()
+    p3ScrollTo(next.scroll[p3RouteKey(next)] || 0)
+  })
+}
+
+function p3Back(options) {
+  var state = p3RouteStore.get()
+  if (state.history.length === 0) {
+    if (state.page === 'album') return p3Navigate('albums', null, { root: true })
+    if (state.page === 'artist') return p3Navigate('artists', null, { root: true })
+    if (state.page === 'playlist') return p3Navigate('playlists', null, { root: true })
+    if (state.page === 'search') return p3Navigate(p3DefaultPage(state.source), null, { root: true })
+    return
+  }
+  var history = state.history.slice()
+  var route = history.pop()
+  var scroll = Object.assign({}, state.scroll)
+  scroll[p3RouteKey(state)] = p3ScrollTop()
+  p3RouteStore.set({ page: route.page, param: route.param || null, filter: route.filter || null, query: '', history: history, scroll: scroll })
+  p3SaveRoute()
+  requestAnimationFrame(function () {
+    var next = p3RouteStore.get()
+    p3ScrollTo(next.scroll[p3RouteKey(next)] || 0)
+  })
+}
+
+function p3ScrollTop() {
+  var el = document.querySelector('.mpv3-scroll')
+  return el ? el.scrollTop : 0
+}
+
+function p3ScrollTo(top) {
+  var el = document.querySelector('.mpv3-scroll')
+  if (el) el.scrollTop = top || 0
+}
+
+/* ============================================================
+   sources
+   ============================================================ */
+
+var P3_LOCAL_CAPS = {
+  songs: true,
+  albums: true,
+  artists: true,
+  folders: true,
+  favorites: true,
+  playlists: true,
+  stats: true,
+  likes: true,
+  likeWrite: true,
+  playlistAdd: true,
+}
+
+function p3ProviderMap() {
+  return onlineStore.get().providers || {}
+}
+
+function p3SourceList() {
+  var providers = p3ProviderMap()
+  var list = [{ id: 'local', name: t('page.tabLocal'), short: t('page.tabLocal'), local: true }]
+  var known = ['netease', 'qq', 'kugouLite', 'navidrome']
+  var seen = {}
+  known.forEach(function (id) {
+    if (providers[id]) {
+      seen[id] = true
+      list.push({ id: id, name: sourceLabelOf(id), short: sourceLabelOf(id), local: false })
+    }
+  })
+  Object.keys(providers).forEach(function (id) {
+    if (seen[id] === true) return
+    list.push({ id: id, name: sourceLabelOf(id), short: sourceLabelOf(id), local: false })
+  })
+  return list
+}
+
+function p3SourceCaps(source) {
+  if (source === 'local') return P3_LOCAL_CAPS
+  var info = p3ProviderMap()[source]
+  return (info && info.capabilities) || {}
+}
+
+function p3SourceInfo(source) {
+  if (source === 'local') return { id: 'local', local: true, name: t('page.tabLocal') }
+  return p3ProviderMap()[source] || { id: source, name: sourceLabelOf(source) }
+}
+
+function p3SourceLabel(source) {
+  return source === 'local' ? t('page.tabLocal') : sourceLabelOf(source)
+}
+
+function p3SourceLoggedIn(source) {
+  if (source === 'local') return true
+  var info = p3SourceInfo(source)
+  return info.loggedIn === true || info.configured === true
+}
+
+function p3SourceLoginMode(source) {
+  if (source === 'local') return ''
+  var info = p3SourceInfo(source)
+  var methods = Array.isArray(info.loginMethods) ? info.loginMethods : []
+  if (methods.indexOf('password') >= 0) return 'password'
+  if (methods.indexOf('qr') >= 0) return 'qr'
+  if (info.capabilities && info.capabilities.loginPassword === true) return 'password'
+  if (info.capabilities && info.capabilities.loginQr === true) return 'qr'
+  return ''
+}
+
+function p3SourceStatus(source) {
+  if (source === 'local') return t('p3.statusLocal')
+  var info = p3SourceInfo(source)
+  if (info.configured === false) return t('p3.statusUnconfigured')
+  if (info.loggedIn === true) return t('p3.statusOnline')
+  return t('p3.statusOffline')
+}
+
+function p3Tabs(source) {
+  var caps = p3SourceCaps(source)
+  var tabs = []
+  if (source === 'local') {
+    tabs = ['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'stats']
+    return tabs
+  }
+  tabs.push('recent')
+  if (source === 'navidrome') tabs.push('songs')
+  if (caps.albums === true) tabs.push('albums')
+  if (caps.artists === true) tabs.push('artists')
+  if (caps.favorites === true && source === 'local') tabs.push('favorites')
+  if (caps.userPlaylists === true) tabs.push('playlists')
+  return tabs
+}
+
+function p3DefaultPage(source) {
+  if (source === 'local' || source === 'navidrome') return 'songs'
+  return 'recent'
+}
+
+function p3PageLabel(page) {
+  var labels = {
+    songs: t('v2.songs'),
+    albums: t('v2.albums'),
+    artists: t('v2.artists'),
+    folders: t('v2.folders'),
+    favorites: t('v2.favorites'),
+    playlists: t('v2.playlists'),
+    stats: t('v2.stats'),
+    recent: t('v2.recent'),
+    album: t('v2.album'),
+    artist: t('v2.artist'),
+    playlist: t('v2.playlist'),
+    search: t('page.search'),
+  }
+  return labels[page] || page
+}
+
+function p3ParentLabel(page) {
+  if (page === 'album') return t('v2.album')
+  if (page === 'artist') return t('v2.artist')
+  if (page === 'playlist') return t('v2.playlist')
+  if (page === 'search') return t('page.search')
+  if (page === 'favorites' || page === 'playlists' || page === 'stats') return t('v2.sectionCollection')
+  if (page === 'recent') return t('v2.sectionOnline')
+  return t('v2.sectionLibrary')
+}
+
+function p3SwitchSource(source) {
+  if (source === p3RouteStore.get().source) return
+  if (source !== 'local' && !p3ProviderMap()[source]) return
+  setSource(source)
+  p3RouteStore.set({
+    source: source,
+    page: p3DefaultPage(source),
+    param: null,
+    filter: null,
+    query: '',
+    history: [],
+    scroll: {},
+  })
+  p3SaveRoute()
+  if (source !== 'local') void loadMyPlaylists(source)
+}
+
+/* ============================================================
+   data
+   ============================================================ */
+
+function groupTracks(list, keyOf) {
+  var map = {}
+  var order = []
+  ;(list || []).forEach(function (track) {
+    var key = keyOf(track)
+    if (!map[key]) {
+      map[key] = { key: key, tracks: [] }
+      order.push(key)
+    }
+    map[key].tracks.push(track)
+  })
+  return order.map(function (key) { return map[key] })
+}
+
+function p3FavoriteSet(favorites) {
+  var set = {}
+  ;(favorites || []).forEach(function (path) { set[path] = true })
+  return set
+}
+
+function p3LocalTracks(library) {
+  return (library && library.tracks) || []
+}
+
+function p3SortLocal(list, prefs) {
+  return sortTracks(list, prefs.sortBy || 'title', prefs.sortDir === 'desc' ? 'desc' : 'asc')
+}
+
+function p3LocalAlbumKey(track) {
+  return (track.artist || t('page.unknownArtist')) + '|' + (track.album || t('page.unknownAlbum'))
+}
+
+function p3LocalAlbums(library, prefs, query) {
+  var tracks = filterTracks(p3LocalTracks(library), query || '')
+  var groups = groupTracks(tracks, p3LocalAlbumKey)
+  var albums = groups.map(function (group) {
+    var first = group.tracks[0] || {}
+    var cover = null
+    for (var i = 0; i < group.tracks.length; i += 1) {
+      if (group.tracks[i].hasCover === true) { cover = group.tracks[i]; break }
+    }
+    return {
+      key: group.key,
+      name: first.album || t('page.unknownAlbum'),
+      artist: first.artist || t('page.unknownArtist'),
+      year: first.year || 0,
+      coverTrack: cover,
+      tracks: group.tracks,
+    }
+  })
+  albums.sort(function (a, b) {
+    var key = prefs.sortBy === 'artist' ? 'artist' : 'name'
+    return String(a[key] || '').localeCompare(String(b[key] || ''), 'zh') * (prefs.sortDir === 'desc' ? -1 : 1)
+  })
+  return albums
+}
+
+function p3LocalArtists(library, prefs, query) {
+  var tracks = filterTracks(p3LocalTracks(library), query || '')
+  var groups = groupTracks(tracks, function (track) {
+    var names = trackArtistNames(track)
+    return names.length > 0 ? names[0] : t('page.unknownArtist')
+  })
+  var artists = groups.map(function (group) {
+    var albumKeys = {}
+    group.tracks.forEach(function (track) { albumKeys[p3LocalAlbumKey(track)] = true })
+    var cover = null
+    for (var i = 0; i < group.tracks.length; i += 1) {
+      if (group.tracks[i].hasCover === true) { cover = group.tracks[i]; break }
+    }
+    return {
+      name: group.key,
+      coverTrack: cover,
+      tracks: group.tracks,
+      albumCount: Object.keys(albumKeys).length,
+    }
+  })
+  artists.sort(function (a, b) {
+    if (prefs.sortBy === 'count') return (a.tracks.length - b.tracks.length) * (prefs.sortDir === 'desc' ? -1 : 1)
+    return String(a.name).localeCompare(String(b.name), 'zh') * (prefs.sortDir === 'desc' ? -1 : 1)
+  })
+  return artists
+}
+
+function p3LocalFolders(library) {
+  var groups = groupTracks(p3LocalTracks(library), function (track) { return trackDirOf(track) })
+  return groups.map(function (group) {
+    return { path: group.key, name: folderNameOf(group.key), tracks: group.tracks }
+  }).sort(function (a, b) { return a.path.localeCompare(b.path, 'zh') })
+}
+
+function p3LocalStats(library) {
+  var stats = (library && library.stats) || {}
+  var entries = Object.keys(stats).map(function (path) {
+    var track = trackByPath(path)
+    var entry = stats[path] || {}
+    return {
+      path: path,
+      track: track,
+      seconds: Number(entry.seconds) || 0,
+      plays: Number(entry.plays) || 0,
+      lastPlayedAt: Number(entry.lastPlayedAt) || 0,
+    }
+  }).filter(function (entry) { return entry.track !== null })
+  entries.sort(function (a, b) { return b.seconds - a.seconds })
+  return entries
+}
+
+function p3PlaylistTracks(id) {
+  var playlist = playlistById(id)
+  return playlist ? playlistTracks(playlist) : []
+}
+
+function p3OnlineCover(item, source) {
+  if (!item) return ''
+  return onlineCoverSrc({
+    coverUrl: item.coverUrl || item.cover || '',
+    id: item.id || item.albumId || item.artistId || '',
+    coverArtId: item.coverArtId || '',
+  }, source)
+}
+
+function p3OnlineTrackList(raw) {
+  return (raw || []).map(onlineTrackOf).filter(function (track) { return track !== null })
+}
+
+function p3OnlineHistory(source) {
+  var list = onlineHistoryOfProvider(source)
+  return p3OnlineTrackList(list)
+}
+
+function p3OnlineAlbumsFromStore() {
+  return onlineStore.get().albumSongs || []
+}
+
+function p3OnlinePlaylistSongs() {
+  return onlineStore.get().playlistSongs || []
+}
+
+function p3OnlineArtistSongs() {
+  return onlineStore.get().artistSongs || []
+}
+
+function p3OnlineSearchResults() {
+  return p3OnlineTrackList(onlineStore.get().results || [])
+}
+
+function p3CurrentTracks(state, library, online, prefs) {
+  var route = state || p3RouteStore.get()
+  var page = route.page
+  var source = route.source
+  if (source === 'local') {
+    if (page === 'songs') {
+      var songs = filterTracks(p3LocalTracks(library), route.query || '')
+      if (route.filter && route.filter.kind === 'folder') {
+        songs = songs.filter(function (track) { return trackDirOf(track) === route.filter.value })
+      }
+      return p3SortLocal(songs, prefs)
+    }
+    if (page === 'favorites') {
+      var favorites = p3FavoriteSet(library.favorites)
+      return p3SortLocal(p3LocalTracks(library).filter(function (track) { return favorites[track.path] === true }), prefs)
+    }
+    if (page === 'playlist') return p3PlaylistTracks(route.param)
+    if (page === 'album') {
+      var album = p3LocalAlbums(library, prefs).filter(function (item) { return item.key === route.param })[0]
+      return album ? p3SortLocal(album.tracks, prefs) : []
+    }
+    if (page === 'artist') {
+      var artist = p3LocalArtists(library, prefs).filter(function (item) { return item.name === route.param })[0]
+      return artist ? p3SortLocal(artist.tracks, prefs) : []
+    }
+    if (page === 'search') return p3SortLocal(filterTracks(p3LocalTracks(library), route.query || ''), prefs)
+    return []
+  }
+  if (page === 'recent') return p3OnlineHistory(source)
+  if (page === 'songs') return p3OnlineTrackList(online.songs || [])
+  if (page === 'playlist') return p3OnlineTrackList(p3OnlinePlaylistSongs())
+  if (page === 'album') return p3OnlineTrackList(p3OnlineAlbumsFromStore())
+  if (page === 'artist') return p3OnlineTrackList(p3OnlineArtistSongs())
+  if (page === 'search') return p3OnlineSearchResults()
+  return []
+}
+
+function p3CurrentPaths(state, library, online, prefs) {
+  var list = p3CurrentTracks(state, library, online, prefs)
+  return list.map(function (track) { return track.path })
+}
+
+/* ============================================================
+   selection / playback / menus
+   ============================================================ */
+
+function p3SelectTrack(list, track, additive) {
+  selectTrackIn(list || [], track, additive === true)
+}
+
+function p3PlayList(list, index) {
+  if (!list || list.length === 0) return
+  var at = Math.max(0, Math.min(Number(index) || 0, list.length - 1))
+  player.playList(list, at)
+  if (list[at] && list[at].onlineProvider) rememberOnline(list[at])
+}
+
+function p3PlayTrack(list, track) {
+  var index = -1
+  ;(list || []).forEach(function (item, at) { if (item.path === track.path) index = at })
+  p3PlayList(list || [track], index < 0 ? 0 : index)
+}
+
+function p3OpenTrackMenu(track, event, list) {
+  if (!track) return
+  var paths = (list || []).map(function (item) { return item.path })
+  pushLayer('menu', {
+    track: track,
+    x: event ? event.clientX : 20,
+    y: event ? event.clientY : 20,
+    visiblePaths: paths,
+    playSelected: function () {
+      var selected = (list || []).filter(function (item) { return selectedPathSet()[item.path] === true })
+      if (selected.length > 0) p3PlayList(selected, 0)
+    },
+  })
+}
+
+function p3OpenAlbum(track) {
+  if (!track) return
+  if (track.onlineProvider && track.onlineProvider !== 'local') {
+    var albumCaps = p3SourceCaps(track.onlineProvider)
+    if (albumCaps && albumCaps.albums === false) { showToast(t('online.albumUnsupported')); return }
+    p3Collection.set({ album: {
+      onlineProvider: track.onlineProvider,
+      album: track.album || '',
+      albumId: track.albumId || '',
+      artist: track.artist || '',
+      coverUrl: track.coverUrl || '',
+      coverArtId: track.coverArtId || '',
+    } })
+    p3Navigate('album', track.onlineProvider + ':' + (track.albumId || track.album || ''))
+    return
+  }
+  p3Navigate('album', p3LocalAlbumKey(track))
+}
+
+function p3OpenArtist(track, name) {
+  if (!track) return
+  var artist = name || track.artist || ''
+  if (track.onlineProvider && track.onlineProvider !== 'local') {
+    var artistCaps = p3SourceCaps(track.onlineProvider)
+    if (artistCaps && artistCaps.artists === false) { showToast(t('online.albumUnsupported')); return }
+    var detail = Array.isArray(track.artistsDetail) ? track.artistsDetail : []
+    var id = ''
+    detail.forEach(function (item) { if (item && item.name === artist && item.id) id = String(item.id) })
+    p3Collection.set({ artist: {
+      onlineProvider: track.onlineProvider,
+      artist: artist,
+      artistId: id,
+      coverUrl: track.coverUrl || '',
+    } })
+    p3Navigate('artist', track.onlineProvider + ':' + artist)
+    return
+  }
+  p3Navigate('artist', artist)
+}
+
+function p3OpenPlaylist(playlist) {
+  if (!playlist) return
+  p3Collection.set({ playlist: playlist })
+  p3Navigate('playlist', playlist.id)
+}
+
+/* ============================================================
+   menus
+   ============================================================ */
+
+function P3Menu(props) {
+  var open = props.open === true
+  var ref = useRef(null)
+  var anchorRect = props.anchor && props.anchor.getBoundingClientRect ? props.anchor.getBoundingClientRect() : null
+  var [position, setPosition] = useState(null)
+  useEffect(function () {
+    if (!open || !anchorRect) return undefined
+    var menu = ref.current
+    if (!menu) return undefined
+    var rect = menu.getBoundingClientRect()
+    var left = props.align === 'right' ? anchorRect.right - rect.width : anchorRect.left
+    var top = anchorRect.bottom + 6
+    left = clamp(left, 8, window.innerWidth - rect.width - 8)
+    if (top + rect.height > window.innerHeight - 8) top = anchorRect.top - rect.height - 6
+    top = clamp(top, 8, window.innerHeight - rect.height - 8)
+    setPosition({ left: left, top: top })
+    return undefined
+  }, [open, props.anchor, props.items])
+  useEffect(function () {
+    if (!open) return undefined
+    function close(event) {
+      if (ref.current && event.target && ref.current.contains(event.target)) return
+      if (typeof props.onClose === 'function') props.onClose()
+    }
+    function key(event) {
+      if (event.key === 'Escape' && typeof props.onClose === 'function') props.onClose()
+    }
+    document.addEventListener('pointerdown', close, true)
+    window.addEventListener('keydown', key)
+    return function () {
+      document.removeEventListener('pointerdown', close, true)
+      window.removeEventListener('keydown', key)
+    }
+  }, [open, props.onClose])
+  if (!open) return null
+  var items = Array.isArray(props.items) ? props.items : []
+  return h(
+    'div',
+    { className: cx('mpv3-menu', props.className), ref: ref, role: 'menu', style: position || { left: 8, top: 60, visibility: 'hidden' } },
+    items.map(function (item) {
+      if (item.separator === true) return h('div', { key: item.key, className: 'mpv3-menu-sep' })
+      return h(
+        'button',
+        {
+          key: item.key,
+          type: 'button',
+          role: 'menuitem',
+          className: cx('mpv3-menu-item', item.danger === true && 'is-danger', item.active === true && 'is-on'),
+          disabled: item.disabled === true,
+          onClick: function () {
+            if (typeof props.onSelect === 'function') props.onSelect(item)
+          },
+        },
+        item.icon ? icon(item.icon, 15) : null,
+        h('span', { className: 'mpv3-menu-label' }, item.label),
+        item.active === true ? icon('check', 14) : item.status ? h('span', { className: 'mpv3-menu-status' }, item.status) : null,
+      )
+    }),
+  )
+}
+
+/* ============================================================
+   shared view parts
+   ============================================================ */
+
+function P3PageHead(props) {
+  var count = props.count || ''
+  return h(
+    'div',
+    { className: 'mpv3-page-head' },
+    h('h1', { className: 'mpv3-page-title' }, props.title),
+    count !== '' ? h('span', { className: 'mpv3-page-count' }, count) : null,
+  )
+}
+
+function P3Empty(props) {
+  return h(
+    'div',
+    { className: 'mpv3-empty-wrap' },
+    h(
+      'div',
+      { className: 'mpv3-empty' },
+      icon(props.icon || 'music', 28),
+      h('strong', null, props.title || ''),
+      props.hint ? h('span', null, props.hint) : null,
+      props.actions ? h('div', { className: 'mpv3-empty-actions' }, props.actions) : null,
+    ),
+  )
+}
+
+function P3Skeleton(props) {
+  var count = props.count || 8
+  var rows = []
+  for (var i = 0; i < count; i += 1) {
+    rows.push(h('div', { key: i, className: 'mpv3-skeleton-row' },
+      h('span', { className: 'mpv3-skeleton mpv3-skeleton-cover' }),
+      h('span', { className: 'mpv3-skeleton-main' },
+        h('span', { className: 'mpv3-skeleton mpv3-skeleton-line', style: { width: (34 + (i % 3) * 9) + '%' } }),
+        h('span', { className: 'mpv3-skeleton mpv3-skeleton-line', style: { width: (18 + (i % 2) * 7) + '%' } }),
+      ),
+      h('span', { className: 'mpv3-skeleton mpv3-skeleton-time' }),
+    ))
+  }
+  return h('div', { className: 'mpv3-skeleton-list' }, rows)
+}
+
+function p3Gradient(text) {
+  var hash = 0
+  var value = String(text || '')
+  for (var i = 0; i < value.length; i += 1) hash = (hash * 31 + value.charCodeAt(i)) | 0
+  var index = Math.abs(hash) % 6
+  var colors = [
+    'linear-gradient(135deg,#4b6bff,#8b5cf6)',
+    'linear-gradient(135deg,#ff6b6b,#ffa14a)',
+    'linear-gradient(135deg,#0f9b8e,#43e0b0)',
+    'linear-gradient(135deg,#f7b733,#fc4a1a)',
+    'linear-gradient(135deg,#8e2de2,#4a00e0)',
+    'linear-gradient(135deg,#2b5876,#4e4376)',
+  ]
+  return colors[index]
+}
+
+function p3Initial(value) {
+  var text = String(value || '').trim()
+  if (text === '') return '·'
+  return Array.from(text)[0] || '·'
+}
+
+function P3Row(props) {
+  var track = props.track
+  var current = props.currentPath === track.path
+  var selection = useStore(selectionStore)
+  var selected = props.selected === true || (selection.paths || []).indexOf(track.path) >= 0
+  var like = likeStateOf(track, props.favoriteSet)
+  var artistNames = trackArtistNames(track)
+  var album = track.album || ''
+  return h(
+    'div',
+    {
+      className: cx('mpv3-row', current && 'is-cur', selected && 'is-selected'),
+      role: 'row',
+      'aria-selected': selected ? 'true' : 'false',
+      'data-path': track.path,
+      'data-index': props.index,
+      tabIndex: props.tabIndex === 0 ? 0 : -1,
+      onClick: function (event) {
+        if (event.detail > 1) return
+        p3SelectTrack(props.list, track, event.metaKey || event.ctrlKey)
+      },
+      onDoubleClick: function (event) {
+        if (event.target.closest('button')) return
+        p3PlayTrack(props.list, track)
+      },
+      onContextMenu: function (event) {
+        event.preventDefault()
+        p3OpenTrackMenu(track, event, props.list)
+      },
+      onKeyDown: function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          p3PlayTrack(props.list, track)
+        }
+      },
+    },
+    h('div', { className: 'mpv3-row-cover-wrap' },
+      h('div', { className: 'mpv3-row-cover', style: track.hasCover === true || track.onlineProvider ? undefined : { background: p3Gradient(track.title) } },
+        h(Cover, { src: trackCoverSrc(track), iconSize: 15 }),
+      ),
+      h('button', {
+        type: 'button',
+        className: 'mpv3-row-play',
+        title: current && props.playing ? t('page.pause') : t('page.play'),
+        onClick: function (event) {
+          event.stopPropagation()
+          if (current) player.toggle()
+          else p3PlayTrack(props.list, track)
+        },
+      }, icon(current && props.playing ? 'pause' : 'play', 15)),
+      selected ? h('span', { className: 'mpv3-row-check' }, icon('check', 9)) : null,
+    ),
+    h('div', { className: 'mpv3-row-main' },
+      h('div', { className: 'mpv3-row-title' },
+        h('span', { className: 'mpv3-row-title-text' }, trackTitleOf(track)),
+        track.qualityHint === 'VIP' ? h('span', { className: 'mpv3-vip' }, 'VIP') : null,
+        current && props.playing ? h('span', { className: 'mpv3-eq', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')) : null,
+      ),
+      h('div', { className: 'mpv3-row-sub' },
+        artistNames.length > 0
+          ? h('button', {
+              type: 'button',
+              className: 'mpv3-text-link',
+              onClick: function (event) { event.stopPropagation(); p3OpenArtist(track, artistNames[0]) },
+            }, artistNames.join(' / '))
+          : h('span', null, trackArtistOf(track)),
+      ),
+    ),
+    h('button', {
+      type: 'button',
+      className: 'mpv3-row-album mpv3-text-link',
+      title: album,
+      onClick: function (event) { event.stopPropagation(); p3OpenAlbum(track) },
+    }, album),
+    h('span', { className: 'mpv3-row-time' }, fmtClock(track.durationSec || 0)),
+    h('div', { className: 'mpv3-row-acts' },
+      h(IconButton, {
+        icon: like.isLiked ? 'heartFill' : 'heart',
+        size: 15,
+        active: like.isLiked,
+        disabled: like.disabled === true,
+        title: like.disabled === true ? like.reason : like.isLiked ? t('page.unfavorite') : t('page.favorite'),
+        onClick: function (event) { event.stopPropagation(); like.onLike() },
+      }),
+      h(IconButton, {
+        icon: 'more',
+        size: 15,
+        title: t('page.more'),
+        onClick: function (event) { event.stopPropagation(); p3OpenTrackMenu(track, event, props.list) },
+      }),
+    ),
+  )
+}
+
+function P3List(props) {
+  var items = props.items || []
+  var selection = useStore(selectionStore)
+  var selectedSet = useMemo(function () {
+    var set = {}
+    ;(selection.paths || []).forEach(function (path) { set[path] = true })
+    return set
+  }, [selection.paths])
+  var scrollRef = useRef(null)
+  var [scrollTop, setScrollTop] = useState(0)
+  var [viewport, setViewport] = useState(600)
+  var [headerHeight, setHeaderHeight] = useState(0)
+  var [focusPath, setFocusPath] = useState(props.focusPath || (items[0] ? items[0].path : ''))
+  var rowHeight = 56
+
+  useEffect(function () {
+    var el = scrollRef.current
+    if (!el) return undefined
+    function measure() { setViewport(el.clientHeight || 600) }
+    measure()
+    var observer = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
+    if (observer) observer.observe(el)
+    window.addEventListener('resize', measure)
+    return function () {
+      if (observer) observer.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [])
+
+  useEffect(function () {
+    var header = scrollRef.current ? scrollRef.current.querySelector('.mpv3-list-header') : null
+    if (!header) { setHeaderHeight(0); return }
+    var update = function () { setHeaderHeight(header.offsetHeight || 0) }
+    update()
+    var observer = typeof ResizeObserver === 'function' ? new ResizeObserver(update) : null
+    if (observer) observer.observe(header)
+    return function () { if (observer) observer.disconnect() }
+  }, [props.header, items.length])
+
+  useEffect(function () {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0
+    setScrollTop(0)
+  }, [props.resetKey])
+
+  useEffect(function () {
+    if (!focusPath && items[0]) setFocusPath(items[0].path)
+  }, [items.length])
+
+  function focusIndex(event) {
+    var index = 0
+    items.forEach(function (item, at) { if (item.path === focusPath) index = at })
+    if (event.key === 'ArrowDown') index = Math.min(items.length - 1, index + 1)
+    else if (event.key === 'ArrowUp') index = Math.max(0, index - 1)
+    else if (event.key === 'Home') index = 0
+    else if (event.key === 'End') index = items.length - 1
+    else return false
+    var next = items[index]
+    if (!next) return false
+    setFocusPath(next.path)
+    requestAnimationFrame(function () {
+      var row = scrollRef.current ? scrollRef.current.querySelector('.mpv3-vrow[data-index="' + index + '"] .mpv3-row') : null
+      if (row) {
+        row.focus({ preventScroll: false })
+        row.scrollIntoView({ block: 'nearest' })
+      }
+    })
+    return true
+  }
+
+  var start = Math.max(0, Math.floor((scrollTop - headerHeight) / rowHeight) - 4)
+  var end = Math.min(items.length, Math.ceil((scrollTop + viewport - headerHeight) / rowHeight) + 4)
+  var visible = items.slice(start, end)
+  var total = headerHeight + items.length * rowHeight
+  if (items.length === 0) total = headerHeight + 240
+
+  return h(
+    'div',
+    {
+      className: 'mpv3-scroll',
+      ref: scrollRef,
+      tabIndex: 0,
+      onScroll: function (event) { setScrollTop(event.currentTarget.scrollTop) },
+      onKeyDown: function (event) {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
+          if (focusIndex(event)) event.preventDefault()
+        }
+      },
+    },
+    h('div', { className: 'mpv3-scroll-inner', style: { height: total + 'px' } },
+      h('div', { className: 'mpv3-list-header' }, props.header),
+      items.length === 0
+        ? h('div', { className: 'mpv3-list-empty' }, props.empty)
+        : visible.map(function (item, offset) {
+            var index = start + offset
+            return h('div', {
+              key: item.path || index,
+              className: 'mpv3-vrow',
+              'data-index': index,
+              style: { top: (headerHeight + index * rowHeight) + 'px', height: rowHeight + 'px' },
+            }, h(P3Row, {
+              track: item,
+              index: index,
+              list: items,
+              currentPath: props.currentPath,
+              playing: props.playing,
+              favoriteSet: props.favoriteSet,
+              selected: selectedSet[item.path] === true,
+              tabIndex: item.path === focusPath ? 0 : -1,
+            }))
+          }),
+    ),
+  )
+}
+
+function P3Grid(props) {
+  var items = props.items || []
+  return h('div', { className: 'mpv3-grid' }, items.map(function (item) {
+    return h('button', {
+      key: item.key || item.id || item.name,
+      type: 'button',
+      className: 'mpv3-card',
+      onClick: function () { props.onOpen(item) },
+      onContextMenu: props.onMenu ? function (event) { event.preventDefault(); props.onMenu(item, event) } : undefined,
+    },
+      h('div', { className: 'mpv3-card-cover', style: item.coverSrc ? undefined : { background: p3Gradient(item.name || item.title) } },
+        item.coverSrc ? h('img', { src: item.coverSrc, alt: '', loading: 'lazy' }) : h('span', null, p3Initial(item.name || item.title)),
+      ),
+      h('div', { className: 'mpv3-card-title' }, item.name || item.title || ''),
+      h('div', { className: 'mpv3-card-sub' }, item.subtitle || item.artist || ''),
+    )
+  }))
+}
+
+function P3Hero(props) {
+  return h('div', { className: 'mpv3-hero' },
+    h('div', { className: cx('mpv3-hero-cover', props.round && 'is-round'), style: props.coverSrc ? undefined : { background: p3Gradient(props.title) } },
+      props.coverSrc ? h('img', { src: props.coverSrc, alt: '' }) : h('span', null, p3Initial(props.title)),
+    ),
+    h('div', { className: 'mpv3-hero-info' },
+      h('div', { className: 'mpv3-hero-eyebrow' }, props.eyebrow || ''),
+      h('h1', { className: 'mpv3-hero-title' }, props.title),
+      h('div', { className: 'mpv3-hero-meta' }, props.meta || null),
+      h('div', { className: 'mpv3-hero-actions' }, props.actions || null),
+    ),
+  )
+}

@@ -192,7 +192,7 @@ function NewPlaylistDialog(props) {
       setBusy(false)
       if (created) {
         popLayer()
-        openLocalPlaylist(created.id)
+        p3Navigate('playlist', created.id)
       }
     })
   }
@@ -293,7 +293,9 @@ function apply(ctx) {
       '\n' +
       (typeof FOLIA_TAILWIND === 'string' ? FOLIA_TAILWIND : '') +
       '\n' +
-      (typeof FOLIA_LOGIN_CSS === 'string' ? FOLIA_LOGIN_CSS : '')
+      (typeof FOLIA_LOGIN_CSS === 'string' ? FOLIA_LOGIN_CSS : '') +
+      '\n' +
+      (typeof P3_CSS === 'string' ? P3_CSS : '')
     document.head.appendChild(style)
     return function () {
       style.remove()
@@ -389,7 +391,7 @@ function apply(ctx) {
     MusicSideIcon,
   )
   mount('main', { name: 'main', key: PANEL_ID }, function () {
-    return h(MusicBoundary, null, h(Panel))
+    return h(MusicBoundary, null, h(P3Shell))
   })
   mount('conversation.input.dock', { name: 'conversation.input.dock', id: 'music-lyrics-above' }, function () {
     return h(SilentBoundary, null, h(ComposerLyrics))

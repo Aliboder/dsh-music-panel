@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 主面板替换（panel-v3）
+
+- 用新的 panel-v3 壳替换旧主面板：顶栏 / 视图栏 / 内容 / 播放条 / 队列浮窗全部重写，旧 `panel.js`、`navigation.js`、`header.js`、`local.js`、`online.js`、`player-bar.js`、`track-row.js` 删除。
+- 新浏览结构：歌曲、专辑、歌手、文件夹、喜欢、歌单、统计；本地专辑 / 歌手 / 歌单详情；在线最近、歌单、专辑、歌手；统一搜索页。
+- 交互：单击选中、双击播放、悬停播放、选择操作条、右键菜单、队列浮窗；来源菜单改为运行时 `/online/providers`，不再写死平台。
+- 保留播放页、设置页、歌词、播放队列/播放卡、侧栏和输入框控制；旧 `music.ui.v2` 路由迁移到 `music.ui.v3`。
+- 新增 panel-v3 渲染测试、主题守卫覆盖；`npm test` / `npm run check` 通过。
+
 ## 0.37.2 — 2026-11-18
 
 ### 文档准确性

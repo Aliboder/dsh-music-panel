@@ -50,29 +50,20 @@ assert.deepEqual(
 assert.equal(filter.filterTracksByQuery(songs, 'zzz').length, 0)
 assert.deepEqual(filter.filterTracksByQuery(null, 'x'), [])
 
-// Wiring: the header owns an inline field, the list consumes the query.
-const header = readFileSync(join(root, 'src/client/components/ui/header.js'), 'utf8')
-assert.match(header, /mp-head-search/, 'the header renders an inline search field')
-assert.match(header, /setContentFilter/, 'typing updates the in-view filter')
-assert.doesNotMatch(header, /focusGlobalSearch/, 'the magnifier no longer jumps to the global search box')
-assert.match(header, /clearContentFilter/, 'leaving the view clears the filter')
+// Wiring: the new shell routes focus into the search page; the search page
+// consumes the shared filter for local tracks and the online search endpoint.
+const shell = readFileSync(join(root, 'src/client/panel-v3/p3-shell.js'), 'utf8')
+assert.match(shell, /p3Navigate\('search'/, 'search focus enters the search page')
+assert.match(shell, /p3-search/, 'the top bar owns the search field')
 
-const list = readFileSync(join(root, 'src/client/components/ui/track-row.js'), 'utf8')
-assert.match(list, /filterTracksByQuery/, 'the list applies the in-view filter')
-assert.match(list, /page\.filterEmpty/, 'a filtered-out list explains itself')
-
-const store = readFileSync(join(root, 'src/client/stores/store.js'), 'utf8')
-assert.match(store, /contentFilterStore/, 'the filter lives in its own tiny store')
-
-const theme = readFileSync(join(root, 'src/client/styles/theme.js'), 'utf8')
-assert.match(
-  theme,
-  /\.mp-head-search\{[^']*box-sizing:border-box[^']*height:30px/,
-  'the search box must not change the header height (border-box, same 30px)',
-)
+const pages = readFileSync(join(root, 'src/client/panel-v3/p3-pages.js'), 'utf8')
+assert.match(pages, /function P3SearchPage/, 'the search page exists')
+assert.match(pages, /filterTracks\(p3LocalTracks/, 'local search uses the shared filter')
+assert.match(pages, /searchOnline\(query\)/, 'online search uses the provider endpoint')
 
 const build = readFileSync(join(root, 'src/client/manifest.json'), 'utf8')
 assert.match(build, /src\/client\/components\/library\/filter\.js/, 'the filter fragment is part of the bundle')
+assert.match(build, /src\/client\/panel-v3\/p3-pages\.js/, 'the v3 pages fragment is part of the bundle')
 
 console.log('in-view-search.test.mjs ok')
 

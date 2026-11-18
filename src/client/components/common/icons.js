@@ -223,6 +223,74 @@ var ICONS = {
       ['path', { d: 'M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z' }],
     ],
   },
+  music: {
+    parts: [
+      ['path', { d: 'M9 18V5l12-2v13' }],
+      ['circle', { cx: 6, cy: 18, r: 3 }],
+      ['circle', { cx: 18, cy: 16, r: 3 }],
+    ],
+  },
+  user: {
+    parts: [
+      ['path', { d: 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2' }],
+      ['circle', { cx: 12, cy: 7, r: 4 }],
+    ],
+  },
+  server: {
+    parts: [
+      ['rect', { x: 3, y: 4, width: 18, height: 7, rx: 2 }],
+      ['rect', { x: 3, y: 13, width: 18, height: 7, rx: 2 }],
+      ['path', { d: 'M7 7.5h.01M7 16.5h.01' }],
+    ],
+  },
+  back: {
+    parts: [['path', { d: 'M15 18l-6-6 6-6' }]],
+  },
+  close: {
+    parts: [
+      ['path', { d: 'M18 6L6 18' }],
+      ['path', { d: 'M6 6l12 12' }],
+    ],
+  },
+  logout: {
+    parts: [
+      ['path', { d: 'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4' }],
+      ['path', { d: 'M16 17l5-5-5-5' }],
+      ['path', { d: 'M21 12H9' }],
+    ],
+  },
+  playlist: {
+    parts: [
+      ['path', { d: 'M3 6h13M3 12h10M3 18h7' }],
+      ['path', { d: 'M17 15l4 3-4 3v-6z' }],
+    ],
+  },
+  disc: {
+    parts: [
+      ['circle', { cx: 12, cy: 12, r: 9 }],
+      ['circle', { cx: 12, cy: 12, r: 2.5 }],
+    ],
+  },
+  chart: {
+    parts: [
+      ['path', { d: 'M4 20V10M10 20V4M16 20v-7M22 20H2' }],
+    ],
+  },
+  right: {
+    parts: [['path', { d: 'M9 18l6-6-6-6' }]],
+  },
+  warning: {
+    parts: [
+      ['path', { d: 'M12 3l9 16H3L12 3z' }],
+      ['path', { d: 'M12 9v5M12 17h.01' }],
+    ],
+  },
+  up: {
+    parts: [['path', { d: 'M12 19V5M5 12l7-7 7 7' }]],
+  },
+  down: {
+    parts: [['path', { d: 'M12 5v14M19 12l-7 7-7-7' }]],
+  },
 }
 
 function merge(base, extra) {

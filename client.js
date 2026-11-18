@@ -8089,6 +8089,9 @@ window.__ModuleLoader__.load({
     var EXTRA_STRINGS = {
       zh: {
         'v2.songs': '歌曲',
+        'v2.album': '专辑',
+        'v2.artist': '歌手',
+        'v2.playlist': '歌单',
         'v2.albums': '专辑',
         'v2.artists': '歌手',
         'v2.folders': '文件夹',
@@ -8639,9 +8642,88 @@ window.__ModuleLoader__.load({
         'eq.fxWidth': '立体声宽度',
         'eq.fxSpace': '空间混响',
         'eq.fxPunch': '冲击感',
+        'p3.account': '账号',
+        'p3.addToPlaylist': '加入歌单',
+        'p3.albumMissing': '找不到这张专辑',
+        'p3.allSongs': '全部歌曲',
+        'p3.artistMissing': '找不到这位歌手',
+        'p3.asc': '升序',
+        'p3.clearSearch': '清除搜索',
+        'p3.clearQueue': '清空队列',
+        'p3.clearQueueConfirm': '清空整个播放队列并停止播放？',
+        'p3.desc': '降序',
+        'p3.goSongs': '去歌曲页',
+        'p3.hotSongs': '热门歌曲',
+        'p3.hour': '小时',
+        'p3.loadFailed': '加载失败',
+        'p3.loggedOut': '已退出登录',
+        'p3.login': '登录',
+        'p3.loginForPlaylists': '登录后查看我的歌单',
+        'p3.loginForPlaylistsHint': '登录平台账号后，这里会显示你的云端歌单。',
+        'p3.logout': '退出登录',
+        'p3.manageSources': '管理在线来源',
+        'p3.minute': '分钟',
+        'p3.nextUp': '接下来播放',
+        'p3.noAlbums': '还没有专辑',
+        'p3.noAlbumsHint': '扫描曲库后，专辑会出现在这里。',
+        'p3.noArtists': '还没有歌手',
+        'p3.noArtistsHint': '扫描曲库后，歌手会出现在这里。',
+        'p3.noFilterMatch': '没有匹配的歌曲',
+        'p3.noFolders': '还没有文件夹',
+        'p3.noFoldersHint': '在设置里添加音乐文件夹。',
+        'p3.noRecent': '还没有最近播放',
+        'p3.noRecentHint': '在线播放过的歌会出现在这里。',
+        'p3.noStats': '还没有统计',
+        'p3.noStatsHint': '播放几首歌后，这里会有你的收听数据。',
+        'p3.nowPlaying': '正在播放',
+        'p3.onlinePlaylistManage': '在线歌单请在平台内管理',
+        'p3.onlineWriteUnsupported': '在线来源暂不支持这个操作',
+        'p3.pageMissing': '页面不存在',
+        'p3.pickTrack': '从曲库选一首歌',
+        'p3.playlistDeleteConfirm': '删除歌单「{name}」？',
+        'p3.playlistDeleted': '歌单已删除',
+        'p3.playlistEmpty': '歌单是空的',
+        'p3.playlistEmptyHint': '右键歌曲加入这个歌单。',
+        'p3.playlistMissing': '找不到这个歌单',
+        'p3.playlistRenamePrompt': '输入新名称；留空并确定可删除歌单',
+        'p3.playlistRenamed': '歌单已重命名',
+        'p3.queueEmpty': '队列是空的',
+        'p3.refreshLocal': '正在刷新曲库',
+        'p3.refreshOnline': '正在刷新在线来源',
+        'p3.relogin': '重新登录',
+        'p3.removeConfirm': '移除选中的 {n} 首歌？',
+        'p3.retry': '重试',
+        'p3.searchEmpty': '搜索歌曲、专辑、歌手',
+        'p3.searchEmptyHint': '输入关键词开始搜索；在线来源会搜索平台曲库。',
+        'p3.searchNoResult': '没有找到结果',
+        'p3.searchNoResultHint': '换一个关键词试试。',
+        'p3.searchPlaceholder': '搜索歌曲、歌手、专辑',
+        'p3.searchTitle': '搜索“{q}”',
+        'p3.sections': '分区',
+        'p3.selectedCount': '已选 {n} 首',
+        'p3.sequence': '顺序',
+        'p3.shuffle': '随机播放',
+        'p3.sourceSettings': '来源设置',
+        'p3.statusLocal': '本地',
+        'p3.statusOffline': '未登录',
+        'p3.statusOnline': '已登录',
+        'p3.statusUnconfigured': '未配置',
+        'p3.switchSource': '切换来源',
+        'p3.topArtist': '最常听歌手',
+        'p3.totalPlays': '总播放次数',
+        'p3.totalTime': '总收听时长',
+        'p3.unitAlbum': '张专辑',
+        'p3.unitArtist': '位歌手',
+        'p3.unitFolder': '个文件夹',
+        'p3.unitPlaylist': '个歌单',
+        'p3.unitResult': '个结果',
+        'p3.unitSong': '首歌',
       },
       en: {
         'v2.songs': 'Songs',
+        'v2.album': 'Album',
+        'v2.artist': 'Artist',
+        'v2.playlist': 'Playlist',
         'v2.albums': 'Albums',
         'v2.artists': 'Artists',
         'v2.folders': 'Folders',
@@ -9183,6 +9265,82 @@ window.__ModuleLoader__.load({
         'eq.fxWidth': 'Stereo width',
         'eq.fxSpace': 'Reverb',
         'eq.fxPunch': 'Punch',
+        'p3.account': 'Account',
+        'p3.addToPlaylist': 'Add to playlist',
+        'p3.albumMissing': 'Album not found',
+        'p3.allSongs': 'All songs',
+        'p3.artistMissing': 'Artist not found',
+        'p3.asc': 'Ascending',
+        'p3.clearSearch': 'Clear search',
+        'p3.clearQueue': 'Clear queue',
+        'p3.clearQueueConfirm': 'Clear the whole queue and stop playback?',
+        'p3.desc': 'Descending',
+        'p3.goSongs': 'Go to songs',
+        'p3.hotSongs': 'Popular songs',
+        'p3.hour': 'hours',
+        'p3.loadFailed': 'Could not load',
+        'p3.loggedOut': 'Signed out',
+        'p3.login': 'Sign in',
+        'p3.loginForPlaylists': 'Sign in to see your playlists',
+        'p3.loginForPlaylistsHint': 'Your cloud playlists appear here after signing in.',
+        'p3.logout': 'Sign out',
+        'p3.manageSources': 'Manage online sources',
+        'p3.minute': 'minutes',
+        'p3.nextUp': 'Next up',
+        'p3.noAlbums': 'No albums yet',
+        'p3.noAlbumsHint': 'Albums appear here after scanning your library.',
+        'p3.noArtists': 'No artists yet',
+        'p3.noArtistsHint': 'Artists appear here after scanning your library.',
+        'p3.noFilterMatch': 'No matching songs',
+        'p3.noFolders': 'No folders yet',
+        'p3.noFoldersHint': 'Add a music folder in Settings.',
+        'p3.noRecent': 'No recent plays',
+        'p3.noRecentHint': 'Songs played online appear here.',
+        'p3.noStats': 'No statistics yet',
+        'p3.noStatsHint': 'Your listening data appears after a few plays.',
+        'p3.nowPlaying': 'Now playing',
+        'p3.onlinePlaylistManage': 'Manage online playlists on the platform',
+        'p3.onlineWriteUnsupported': 'This action is not available for online sources',
+        'p3.pageMissing': 'Page not found',
+        'p3.pickTrack': 'Pick a song from your library',
+        'p3.playlistDeleteConfirm': 'Delete playlist "{name}"?',
+        'p3.playlistDeleted': 'Playlist deleted',
+        'p3.playlistEmpty': 'This playlist is empty',
+        'p3.playlistEmptyHint': 'Right-click a song to add it.',
+        'p3.playlistMissing': 'Playlist not found',
+        'p3.playlistRenamePrompt': 'Enter a new name; leave empty and confirm to delete the playlist',
+        'p3.playlistRenamed': 'Playlist renamed',
+        'p3.queueEmpty': 'Queue is empty',
+        'p3.refreshLocal': 'Refreshing library',
+        'p3.refreshOnline': 'Refreshing online source',
+        'p3.relogin': 'Sign in again',
+        'p3.removeConfirm': 'Remove the selected {n} songs?',
+        'p3.retry': 'Retry',
+        'p3.searchEmpty': 'Search songs, albums, artists',
+        'p3.searchEmptyHint': 'Type a keyword to search. Online sources search their catalog.',
+        'p3.searchNoResult': 'No results',
+        'p3.searchNoResultHint': 'Try another keyword.',
+        'p3.searchPlaceholder': 'Search songs, artists, albums',
+        'p3.searchTitle': 'Search "{q}"',
+        'p3.sections': 'Sections',
+        'p3.selectedCount': '{n} selected',
+        'p3.sequence': 'In order',
+        'p3.shuffle': 'Shuffle',
+        'p3.sourceSettings': 'Source settings',
+        'p3.statusLocal': 'Local',
+        'p3.statusOffline': 'Signed out',
+        'p3.statusOnline': 'Signed in',
+        'p3.statusUnconfigured': 'Not configured',
+        'p3.switchSource': 'Switch source',
+        'p3.topArtist': 'Top artist',
+        'p3.totalPlays': 'Total plays',
+        'p3.totalTime': 'Total listening time',
+        'p3.unitAlbum': 'albums',
+        'p3.unitArtist': 'artists',
+        'p3.unitFolder': 'folders',
+        'p3.unitPlaylist': 'playlists',
+        'p3.unitResult': 'results',
+        'p3.unitSong': 'songs',
       },
     }
 
@@ -9643,6 +9801,74 @@ window.__ModuleLoader__.load({
           ['path', { d: 'M12 20h9' }],
           ['path', { d: 'M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z' }],
         ],
+      },
+      music: {
+        parts: [
+          ['path', { d: 'M9 18V5l12-2v13' }],
+          ['circle', { cx: 6, cy: 18, r: 3 }],
+          ['circle', { cx: 18, cy: 16, r: 3 }],
+        ],
+      },
+      user: {
+        parts: [
+          ['path', { d: 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2' }],
+          ['circle', { cx: 12, cy: 7, r: 4 }],
+        ],
+      },
+      server: {
+        parts: [
+          ['rect', { x: 3, y: 4, width: 18, height: 7, rx: 2 }],
+          ['rect', { x: 3, y: 13, width: 18, height: 7, rx: 2 }],
+          ['path', { d: 'M7 7.5h.01M7 16.5h.01' }],
+        ],
+      },
+      back: {
+        parts: [['path', { d: 'M15 18l-6-6 6-6' }]],
+      },
+      close: {
+        parts: [
+          ['path', { d: 'M18 6L6 18' }],
+          ['path', { d: 'M6 6l12 12' }],
+        ],
+      },
+      logout: {
+        parts: [
+          ['path', { d: 'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4' }],
+          ['path', { d: 'M16 17l5-5-5-5' }],
+          ['path', { d: 'M21 12H9' }],
+        ],
+      },
+      playlist: {
+        parts: [
+          ['path', { d: 'M3 6h13M3 12h10M3 18h7' }],
+          ['path', { d: 'M17 15l4 3-4 3v-6z' }],
+        ],
+      },
+      disc: {
+        parts: [
+          ['circle', { cx: 12, cy: 12, r: 9 }],
+          ['circle', { cx: 12, cy: 12, r: 2.5 }],
+        ],
+      },
+      chart: {
+        parts: [
+          ['path', { d: 'M4 20V10M10 20V4M16 20v-7M22 20H2' }],
+        ],
+      },
+      right: {
+        parts: [['path', { d: 'M9 18l6-6-6-6' }]],
+      },
+      warning: {
+        parts: [
+          ['path', { d: 'M12 3l9 16H3L12 3z' }],
+          ['path', { d: 'M12 9v5M12 17h.01' }],
+        ],
+      },
+      up: {
+        parts: [['path', { d: 'M12 19V5M5 12l7-7 7 7' }]],
+      },
+      down: {
+        parts: [['path', { d: 'M12 5v14M19 12l-7 7-7-7' }]],
       },
     }
 
@@ -160053,6 +160279,122 @@ window.__ModuleLoader__.load({
       )
     }
 
+    // ── src/client/components/common/head-menu.js
+    /**
+     * shared head menu: host Menu when available, local popover fallback.
+     */
+
+    function HeadMenu(props) {
+      var openPair = useState(false)
+      var open = openPair[0]
+      var setOpen = openPair[1]
+      var ref = useRef(null)
+
+      useEffect(
+        function () {
+          if (!open) return undefined
+          if (props.hostMenu !== false && hostComponent('Menu') !== null) return undefined
+          function onDown(event) {
+            if (ref.current && ref.current.contains(event.target)) return
+            setOpen(false)
+          }
+          function onKey(event) {
+            if (event.key === 'Escape') setOpen(false)
+          }
+          document.addEventListener('pointerdown', onDown, true)
+          window.addEventListener('keydown', onKey)
+          return function () {
+            document.removeEventListener('pointerdown', onDown, true)
+            window.removeEventListener('keydown', onKey)
+          }
+        },
+        [open],
+      )
+
+      var trigger = h(IconButton, {
+        icon: props.icon,
+        size: 17,
+        title: props.title,
+        active: open,
+        onClick: function () {
+          setOpen(!open)
+        },
+      })
+      var HostMenu = props.hostMenu === false ? null : hostComponent('Menu')
+      if (HostMenu !== null) {
+        var hostItems = props.items.map(function (item) {
+          if (item.separator) return { type: 'separator', id: item.key }
+          return {
+            id: item.key,
+            label: item.label,
+            icon: item.icon ? icon(item.icon, 13) : undefined,
+            disabled: item.disabled === true,
+            danger: item.danger === true,
+          }
+        })
+        var selectedId
+        props.items.forEach(function (item) {
+          if (item.active === true && selectedId === undefined) selectedId = item.key
+        })
+        return h(HostMenu, {
+          open: open,
+          anchor: trigger,
+          items: hostItems,
+          selectedId: selectedId,
+          onSelect: function (id) {
+            setOpen(false)
+            var chosen = null
+            props.items.forEach(function (item) {
+              if (chosen === null && item.key === id) chosen = item
+            })
+            if (chosen !== null && typeof chosen.run === 'function') chosen.run()
+          },
+          onClose: function () {
+            setOpen(false)
+          },
+          side: 'bottom',
+          align: 'end',
+          portal: true,
+          compact: true,
+          className: 'mp-headmenu-host',
+        })
+      }
+
+      return h(
+        'div',
+        { className: 'mp-headmenu', ref: ref },
+        trigger,
+        open
+          ? h(
+              'div',
+              { className: 'mp-headmenu-pop', role: 'menu' },
+              props.items.map(function (item) {
+                if (item.separator) return h('hr', { key: item.key, className: 'mp-headmenu-sep' })
+                return h(
+                  'button',
+                  {
+                    key: item.key,
+                    type: 'button',
+                    role: 'menuitem',
+                    className: cx('mp-headmenu-item', item.active === true && 'is-on'),
+                    onClick: function () {
+                      setOpen(false)
+                      if (typeof item.run === 'function') item.run()
+                    },
+                  },
+                  item.icon ? icon(item.icon, 13) : null,
+                  h('span', { className: 'mp-headmenu-label' }, item.label),
+                  item.hint ? h('span', { className: 'mp-headmenu-hint' }, item.hint) : null,
+                )
+              }),
+            )
+          : null,
+      )
+    }
+
+    // ── src/client/panel-v3/p3-styles.js
+    var P3_CSS = "/**\n * panel-v3 styles. All selectors are prefixed .mpv3- so the old panel CSS can\n * coexist until the legacy files are deleted. Colors come from DSH tokens.\n */\n\n.mpv3-root {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n  min-height: 0;\n  overflow: hidden;\n  isolation: isolate;\n  background: var(--dsw-alias-bg-base, #151517);\n  color: var(--dsw-alias-label-primary, #f9fafb);\n  font-family: var(--dsw-font-family, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif);\n  font-size: 13px;\n  line-height: 20px;\n  user-select: none;\n}\n.mpv3-root input, .mpv3-root textarea { user-select: text; }\n.mpv3-root :focus-visible { outline: 2px solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary, #7aaaff)); outline-offset: 2px; }\n.mpv3-root .mp-iconbtn { flex: none; }\n.mpv3-grow { flex: 1; min-width: 0; }\n.mpv3-text-link {\n  padding: 0; border: 0; background: transparent; color: inherit; text-align: left;\n  font: inherit; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\n}\n.mpv3-text-link:hover { color: var(--dsw-alias-label-primary, #f9fafb); text-decoration: underline; text-underline-offset: 2px; }\n\n/* topbar */\n.mpv3-topbar {\n  height: 56px; flex: none; display: flex; align-items: center; gap: 8px;\n  padding: 0 12px 0 8px;\n  border-bottom: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n  position: relative; z-index: 30;\n}\n.mpv3-back { flex: none; }\n.mpv3-parent { flex: none; font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n.mpv3-source-wrap { position: relative; flex: none; }\n.mpv3-source-btn {\n  height: 30px; padding: 0 10px; border: 0; border-radius: 8px;\n  display: inline-flex; align-items: center; gap: 6px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6);\n  font-size: 13px; cursor: pointer; max-width: 180px;\n}\n.mpv3-source-btn:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); color: var(--dsw-alias-label-primary, #f9fafb); }\n.mpv3-source-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-source-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dsw-alias-state-warn-primary, #f2c14e); flex: none; }\n.mpv3-search {\n  position: relative; width: clamp(160px, 22vw, 300px); flex: none;\n}\n.mpv3-search > svg { position: absolute; left: 10px; top: 9px; color: var(--dsw-alias-label-tertiary, #adb2b8); pointer-events: none; }\n.mpv3-search input {\n  width: 100%; height: 32px; padding: 0 30px 0 31px; border-radius: 12px;\n  border: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-2, #2c2c2e);\n  color: var(--dsw-alias-label-primary, #f9fafb); font: inherit; font-size: 13px; outline: none;\n}\n.mpv3-search input::placeholder { color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-search input:focus { border-color: var(--dsw-alias-state-business-primary, #7aaaff); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 16%, transparent); }\n.mpv3-search-clear {\n  position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border: 0; border-radius: 8px;\n  display: grid; place-items: center; background: transparent; color: var(--dsw-alias-label-tertiary, #adb2b8); cursor: pointer;\n}\n.mpv3-account-wrap { position: relative; flex: none; }\n.mpv3-account-btn {\n  width: 28px; height: 28px; border: 0; border-radius: 50%; display: grid; place-items: center;\n  background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent);\n  color: var(--dsw-alias-state-business-primary, #7aaaff); font-size: 11px; font-weight: 600; cursor: pointer; overflow: hidden;\n}\n.mpv3-account-btn img { width: 100%; height: 100%; object-fit: cover; }\n\n/* workspace */\n.mpv3-workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); position: relative; }\n.mpv3-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }\n.mpv3-rail {\n  display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: auto;\n  padding: 12px 8px; border-right: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n}\n.mpv3-root.is-rail .mpv3-workspace { grid-template-columns: 220px minmax(0, 1fr); }\n.mpv3-rail-group { display: flex; flex-direction: column; gap: 1px; }\n.mpv3-rail-label { padding: 0 10px 6px; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-rail-item {\n  display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border: 0; border-radius: 8px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 13px; text-align: left; cursor: pointer;\n}\n.mpv3-rail-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-rail-item.is-on { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent); color: var(--dsw-alias-label-primary, #f9fafb); font-weight: 600; box-shadow: inset 2px 0 0 var(--dsw-alias-state-business-primary, #7aaaff); }\n\n/* viewbar */\n.mpv3-viewbar { height: 44px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 16px; min-width: 0; }\n.mpv3-tabs { min-width: 0; overflow-x: auto; scrollbar-width: none; }\n.mpv3-tabs::-webkit-scrollbar { display: none; }\n.mpv3-menu-anchor { position: relative; flex: none; }\n.mpv3-selection-bar { display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; }\n.mpv3-selection-count { font-size: 13px; font-weight: 600; white-space: nowrap; margin-right: 4px; }\n.mpv3-sel-btn {\n  height: 28px; padding: 0 10px; border: 0; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 13px; white-space: nowrap; cursor: pointer;\n}\n.mpv3-sel-btn:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); color: var(--dsw-alias-label-primary, #f9fafb); }\n.mpv3-sel-btn.is-primary { color: var(--dsw-alias-state-business-primary, #7aaaff); font-weight: 500; }\n.mpv3-sel-btn.is-danger { color: var(--dsw-alias-state-error-primary, #f25a5a); }\n\n/* content */\n.mpv3-content { flex: 1; min-height: 0; display: flex; flex-direction: column; }\n.mpv3-filterbar { height: 34px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 16px; }\n.mpv3-chip {\n  height: 26px; padding: 0 8px; border: .5px solid var(--dsw-alias-border-l2, rgba(255,255,255,.12)); border-radius: 8px;\n  display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 12px; cursor: pointer;\n}\n.mpv3-scroll { flex: 1; min-height: 0; overflow: auto; position: relative; padding: 0 16px 24px; scrollbar-gutter: stable; outline: none; }\n.mpv3-scroll-inner { position: relative; width: 100%; max-width: 1280px; margin: 0 auto; }\n.mpv3-scroll-inner.is-static { height: auto; }\n.mpv3-list-header { position: relative; z-index: 1; }\n.mpv3-vrow { position: absolute; left: 0; right: 0; }\n.mpv3-page-head { display: flex; align-items: baseline; gap: 10px; padding: 6px 6px 14px; min-height: 44px; }\n.mpv3-page-title { margin: 0; font-size: 20px; line-height: 28px; font-weight: 650; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-page-count { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n\n/* rows */\n.mpv3-row {\n  display: grid; grid-template-columns: 40px minmax(0, 1.6fr) minmax(0, 1fr) 64px 64px;\n  align-items: center; gap: 12px; height: 56px; padding: 0 10px; border-radius: 12px;\n  position: relative; color: var(--dsw-alias-label-primary, #f9fafb); cursor: default; outline-offset: -2px;\n}\n.mpv3-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-row.is-selected { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent); }\n.mpv3-row.is-cur { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 8%, transparent); }\n.mpv3-row.is-cur::before {\n  content: ''; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);\n  width: 2px; height: 16px; border-radius: 1px; background: var(--dsw-alias-state-business-primary, #7aaaff);\n}\n.mpv3-row.is-located { animation: mpv3-flash 1.2s ease; }\n@keyframes mpv3-flash { 0% { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 32%, transparent); } 100% { background: transparent; } }\n.mpv3-row-cover-wrap { position: relative; width: 40px; height: 40px; flex: none; }\n.mpv3-row-cover { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 14px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-row-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }\n.mpv3-row-play { position: absolute; inset: 0; border: 0; border-radius: 8px; display: grid; place-items: center; background: rgba(0,0,0,.42); color: #fff; opacity: 0; cursor: pointer; transition: opacity .12s; }\n.mpv3-row.is-cur .mpv3-row-play, .mpv3-row:focus-within .mpv3-row-play { opacity: 1; }\n.mpv3-row:hover .mpv3-row-play { opacity: 1; }\n.mpv3-row-check { position: absolute; right: -3px; top: -3px; width: 15px; height: 15px; border-radius: 50%; background: var(--dsw-alias-state-business-primary, #7aaaff); color: #fff; display: grid; place-items: center; border: 2px solid var(--dsw-alias-bg-base, #151517); }\n.mpv3-row-main { min-width: 0; }\n.mpv3-row-title { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 20px; font-weight: 500; overflow: hidden; white-space: nowrap; }\n.mpv3-row-title-text { overflow: hidden; text-overflow: ellipsis; }\n.mpv3-row.is-cur .mpv3-row-title { font-weight: 600; }\n.mpv3-row-sub { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }\n.mpv3-row-album { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: left; }\n.mpv3-row-time { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: right; font-variant-numeric: tabular-nums; }\n.mpv3-row-acts { display: flex; align-items: center; justify-content: flex-end; gap: 2px; width: 64px; opacity: 0; }\n.mpv3-row:hover .mpv3-row-acts, .mpv3-row.is-cur .mpv3-row-acts, .mpv3-row.is-selected .mpv3-row-acts, .mpv3-row:focus-within .mpv3-row-acts { opacity: 1; }\n.mpv3-vip { height: 15px; padding: 0 5px; border-radius: 4px; background: #f2c14e; color: #1a1405; font-size: 11px; line-height: 15px; font-weight: 700; flex: none; }\n.mpv3-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 11px; flex: none; }\n.mpv3-eq i { width: 2px; background: var(--dsw-alias-state-business-primary, #7aaaff); border-radius: 1px; animation: mpv3-eq .9s ease-in-out infinite; }\n.mpv3-eq i:nth-child(2) { animation-delay: .18s; }\n.mpv3-eq i:nth-child(3) { animation-delay: .36s; }\n@keyframes mpv3-eq { 0%, 100% { height: 3px; } 50% { height: 11px; } }\n\n/* grid / hero / entities */\n.mpv3-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px 16px; padding: 4px 0 20px; }\n.mpv3-card { display: flex; flex-direction: column; min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-card-cover { aspect-ratio: 1; border-radius: 12px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 28px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); transition: transform .16s; }\n.mpv3-card-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-card:hover .mpv3-card-cover { transform: translateY(-2px); }\n.mpv3-card-title { margin-top: 8px; font-size: 13px; line-height: 20px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-card-sub { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-hero { display: flex; align-items: flex-end; gap: 22px; padding: 8px 6px 20px; }\n.mpv3-hero-cover { width: 160px; height: 160px; border-radius: 16px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 48px; font-weight: 650; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-hero-cover.is-round { width: 96px; height: 96px; border-radius: 50%; font-size: 32px; }\n.mpv3-hero-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-hero-info { min-width: 0; flex: 1; padding-bottom: 4px; }\n.mpv3-hero-eyebrow { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); margin-bottom: 6px; }\n.mpv3-hero-title { margin: 0 0 8px; font-size: 24px; line-height: 32px; font-weight: 650; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-hero-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-hero-meta-line { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }\n.mpv3-hero-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }\n.mpv3-section { margin: 8px 0 22px; }\n.mpv3-section-head { display: flex; align-items: baseline; gap: 8px; padding: 0 10px 8px; font-size: 13px; line-height: 20px; }\n.mpv3-section-head strong { font-weight: 600; }\n.mpv3-section-head span { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-plain-list { display: flex; flex-direction: column; }\n.mpv3-entity-row { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 10px; border: 0; border-radius: 12px; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-entity-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-entity-cover { width: 44px; height: 44px; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 15px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-entity-cover.is-round { border-radius: 50%; }\n.mpv3-entity-cover.is-folder { color: var(--dsw-alias-state-business-primary, #7aaaff); background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 12%, transparent); box-shadow: none; }\n.mpv3-entity-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-entity-main { min-width: 0; flex: 1; }\n.mpv3-entity-title { display: block; font-size: 13px; line-height: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-entity-sub { display: block; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n\n/* stats */\n.mpv3-stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 4px 0 18px; }\n.mpv3-stat-card { border: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06)); background: var(--dsw-alias-bg-layer-1, #232324); border-radius: 20px; padding: 14px 16px; }\n.mpv3-stat-card span { display: block; font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-stat-card strong { display: block; margin-top: 6px; font-size: 22px; line-height: 28px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }\n.mpv3-rank-list { display: flex; flex-direction: column; gap: 2px; }\n.mpv3-rank-row { display: grid; grid-template-columns: 28px 32px minmax(0, 1fr) 110px 100px; gap: 12px; align-items: center; height: 52px; padding: 0 10px; border: 0; border-radius: 12px; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-rank-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-rank-n { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: center; font-variant-numeric: tabular-nums; }\n.mpv3-rank-cover { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 12px; font-weight: 600; }\n.mpv3-rank-main { min-width: 0; }\n.mpv3-rank-bar { height: 4px; border-radius: 2px; background: var(--dsw-alias-bg-layer-3, #353638); overflow: hidden; }\n.mpv3-rank-bar i { display: block; height: 100%; background: var(--dsw-alias-state-business-primary, #7aaaff); border-radius: 2px; }\n.mpv3-rank-meta { font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: right; font-variant-numeric: tabular-nums; }\n\n/* empty / skeleton */\n.mpv3-list-empty { position: relative; padding-bottom: 24px; }\n.mpv3-empty-wrap { min-height: 240px; height: calc(100% - 60px); display: grid; place-items: center; padding: 40px 16px; }\n.mpv3-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; max-width: 380px; }\n.mpv3-empty .ico { color: var(--dsw-alias-label-tertiary, #adb2b8); opacity: .8; }\n.mpv3-empty strong { font-size: 13px; line-height: 20px; font-weight: 600; color: var(--dsw-alias-label-secondary, #cfd3d6); }\n.mpv3-empty span { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-empty-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }\n.mpv3-skeleton-list { padding-top: 10px; }\n.mpv3-skeleton-row { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 10px; }\n.mpv3-skeleton { display: block; border-radius: 6px; background: linear-gradient(90deg, var(--dsw-alias-bg-layer-2, #2c2c2e), var(--dsw-alias-bg-layer-3, #353638), var(--dsw-alias-bg-layer-2, #2c2c2e)); background-size: 200% 100%; animation: mpv3-shimmer 1.2s linear infinite; }\n.mpv3-skeleton-cover { width: 40px; height: 40px; border-radius: 8px; flex: none; }\n.mpv3-skeleton-main { flex: 1; display: flex; flex-direction: column; gap: 6px; }\n.mpv3-skeleton-line { height: 10px; }\n.mpv3-skeleton-time { width: 44px; height: 10px; }\n@keyframes mpv3-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }\n\n/* player */\n.mpv3-player {\n  height: 72px; flex: none; position: relative; display: grid;\n  grid-template-columns: minmax(180px, 1fr) auto minmax(220px, 1fr);\n  align-items: center; gap: 14px; padding: 0 14px;\n  border-top: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n}\n.mpv3-player-seek { position: absolute; left: 0; right: 0; top: 0; height: 14px; z-index: 2; }\n.mpv3-player-seek .mp-seek { position: absolute; left: 0; right: 0; top: 0; height: 14px; padding: 0; }\n.mpv3-player-seek .mp-seek input { width: 100%; }\n.mpv3-player-track { display: flex; align-items: center; gap: 10px; min-width: 0; }\n.mpv3-player-cover { width: 44px; height: 44px; border: 0; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; background: var(--dsw-alias-bg-layer-3, #353638); color: var(--dsw-alias-label-tertiary, #adb2b8); cursor: pointer; position: relative; }\n.mpv3-player-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-player-eq { position: absolute; right: 5px; bottom: 5px; display: flex; align-items: flex-end; gap: 2px; padding: 3px 4px; border-radius: 6px; background: rgba(0,0,0,.52); }\n.mpv3-player-eq i { width: 2px; height: 4px; border-radius: 2px; background: #fff; animation: mpv3-eq .9s ease-in-out infinite; }\n.mpv3-player-eq i:nth-child(2) { animation-delay: .15s; }\n.mpv3-player-eq i:nth-child(3) { animation-delay: .3s; }\n.mpv3-player-meta { min-width: 0; }\n.mpv3-player-title { font-size: 13px; line-height: 18px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-player-artist { font-size: 12px; line-height: 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-player-center { display: flex; align-items: center; gap: 4px; }\n.mpv3-player-play { width: 36px; height: 36px; border: 0; border-radius: 50%; display: grid; place-items: center; background: var(--dsw-alias-button-primary-fill, #f9fafb); color: var(--dsw-alias-label-primary-foreground, #0f1115); margin: 0 6px; cursor: pointer; }\n.mpv3-player-right { display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }\n.mpv3-player-time { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); font-variant-numeric: tabular-nums; white-space: nowrap; margin: 0 4px; }\n.mpv3-player-vol { display: flex; align-items: center; gap: 4px; width: 96px; flex: none; }\n.mpv3-player-vol input { width: 64px; accent-color: var(--dsw-alias-state-business-primary, #7aaaff); }\n.mpv3-player.is-empty .mpv3-player-cover { color: var(--dsw-alias-label-tertiary, #adb2b8); }\n\n/* queue */\n.mpv3-queue {\n  position: absolute; right: 14px; bottom: 12px; width: 340px; max-height: min(560px, 62vh);\n  display: flex; flex-direction: column; min-height: 0; overflow: hidden; z-index: 50;\n  border: 0; border-radius: 16px; background: var(--dsw-alias-bg-layer-1, #232324);\n  box-shadow: var(--dsw-elevation-panel, 0 18px 48px rgba(0,0,0,.5));\n}\n.mpv3-queue-head { height: 44px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 14px; border-bottom: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06)); }\n.mpv3-queue-head strong { font-size: 13px; font-weight: 600; }\n.mpv3-queue-head > span { font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-list { flex: 1; min-height: 0; overflow: auto; padding: 6px 6px 12px; }\n.mpv3-queue-section { padding: 8px 10px 2px; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-row { display: flex; align-items: center; gap: 10px; width: 100%; height: 56px; padding: 0 8px; border: 0; border-radius: 12px; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-queue-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-queue-row.is-cur { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 12%, transparent); }\n.mpv3-queue-idx { width: 16px; flex: none; font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: center; }\n.mpv3-queue-cover { width: 32px; height: 32px; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 11px; font-weight: 600; }\n.mpv3-queue-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-queue-main { min-width: 0; flex: 1; }\n.mpv3-queue-name { display: block; font-size: 13px; line-height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-queue-artist { display: block; font-size: 11px; line-height: 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-queue-time { font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); flex: none; }\n.mpv3-queue-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n\n/* menus */\n.mpv3-menu {\n  position: fixed; min-width: 210px; max-width: 300px; padding: 4px; border-radius: 12px; z-index: 80;\n  background: var(--dsw-menu-surface-fill, var(--dsw-alias-bg-overlay, rgba(48,49,54,.94)));\n  -webkit-backdrop-filter: var(--dsw-menu-backdrop-filter, blur(20px)); backdrop-filter: var(--dsw-menu-backdrop-filter, blur(20px));\n  box-shadow: var(--dsw-elevation-panel, 0 18px 48px rgba(0,0,0,.5));\n  color: var(--dsw-alias-label-primary, #f9fafb);\n}\n.mpv3-menu-item { display: flex; align-items: center; gap: 9px; width: 100%; height: 32px; padding: 0 9px; border: 0; border-radius: 8px; background: transparent; color: inherit; font-size: 13px; text-align: left; cursor: pointer; }\n.mpv3-menu-item:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-menu-item:disabled { opacity: .45; cursor: default; }\n.mpv3-menu-item.is-danger { color: var(--dsw-alias-state-error-primary, #f25a5a); }\n.mpv3-menu-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-menu-status { margin-left: auto; font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n.mpv3-menu-sep { height: .5px; margin: 4px 6px; background: var(--dsw-alias-border-l1, rgba(255,255,255,.06)); }\n\n/* responsive */\n@media (max-width: 1079px) {\n  .mpv3-row { grid-template-columns: 40px minmax(0, 1.8fr) 64px 64px; }\n  .mpv3-row-album { display: none; }\n}\n@media (max-width: 999px) {\n  .mpv3-root.is-rail .mpv3-workspace { grid-template-columns: minmax(0, 1fr); }\n  .mpv3-rail { display: none; }\n}\n@media (max-width: 899px) {\n  .mpv3-search { width: 160px; }\n  .mpv3-player-vol { display: none; }\n}\n@media (max-width: 759px) {\n  .mpv3-search { width: 120px; }\n  .mpv3-parent { display: none; }\n  .mpv3-row { grid-template-columns: 40px minmax(0, 1fr) 56px 32px; gap: 10px; }\n  .mpv3-row-acts { width: 32px; }\n  .mpv3-row-acts .mp-iconbtn:first-child { display: none; }\n  .mpv3-hero { flex-direction: column; align-items: flex-start; gap: 14px; }\n  .mpv3-hero-cover { width: 112px; height: 112px; font-size: 36px; }\n  .mpv3-hero-title { font-size: 20px; line-height: 28px; }\n  .mpv3-player { grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; padding: 0 10px; }\n  .mpv3-player-time { display: none; }\n  .mpv3-player-right .mpv3-chip { display: none; }\n  .mpv3-player-right { gap: 0; }\n  .mpv3-queue { left: 8px; right: 8px; bottom: 8px; width: auto; max-height: min(520px, 60vh); }\n  .mpv3-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px 12px; }\n  .mpv3-rank-row { grid-template-columns: 24px 32px minmax(0, 1fr) 80px; }\n  .mpv3-rank-bar { display: none; }\n}\n@media (prefers-reduced-motion: reduce) {\n  .mpv3-root *, .mpv3-root *::before, .mpv3-root *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }\n  .mpv3-eq i, .mpv3-player-eq i { height: 7px; }\n  .mpv3-skeleton { animation: none; }\n}\n"
+
     // ── src/client/components/ui/component-gallery.js
     /**
      * Component test page (设置 → 关于 → 测试页面).
@@ -160399,551 +160741,6 @@ window.__ModuleLoader__.load({
             }),
           ),
           h('div', { className: 'mp-gallery-main', role: 'tabpanel' }, sectionBody()),
-        ),
-      )
-    }
-
-    // ── src/client/components/ui/track-row.js
-    /**
-     * track row / card: one renderer for local tracks, online results and queue
-     * rows (the queue uses a compact variant in 05-queue).
-     */
-
-    function trackTitleOf(track) {
-      if (!track) return ''
-      return track.title || stemOf(track.path || '') || basename(track.path || '')
-    }
-
-    function trackArtistOf(track) {
-      if (!track) return ''
-      return track.artist || t('page.unknownArtist')
-    }
-
-    function TrackRow(props) {
-      var track = props.track
-      var current = props.currentPath !== '' && props.currentPath === track.path
-      var online = typeof track.onlineProvider === 'string' && track.onlineProvider !== ''
-      var vip = track.qualityHint === 'VIP'
-      var selecting = props.selectionMode === true
-      var selected = props.selected === true
-
-      function play() {
-        if (props.onPlay) props.onPlay(track)
-      }
-
-      // Single click selects, double click plays (the old 0.11 interaction).
-      // The checkbox / Ctrl-click is the additive path.
-      function handleClick(event) {
-        if (event && event.detail > 1) return
-        if (props.onSelect) {
-          props.onSelect(track, event ? event.ctrlKey || event.metaKey : false)
-          return
-        }
-        if (selecting) {
-          if (props.onToggleSelect) props.onToggleSelect(track.path)
-          return
-        }
-        play()
-      }
-
-      return h(
-        'div',
-        {
-          className: cx('mp-row', current && 'is-cur', selected && 'is-selected'),
-          role: 'row',
-          tabIndex: 0,
-          'aria-selected': selected ? 'true' : 'false',
-          'aria-label': trackTitleOf(track) + ' · ' + trackArtistOf(track),
-          onClick: handleClick,
-          onDoubleClick: play,
-          onContextMenu: function (event) {
-            event.preventDefault()
-            if (props.onMenu) props.onMenu(track, event)
-          },
-          onKeyDown: function (event) {
-            if (event.key === 'Enter') play()
-          },
-        },
-        h(
-          'div',
-          { className: 'mp-row-cover' },
-          h(Cover, { src: trackCoverSrc(track), iconSize: 15 }),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mp-cover-play',
-              title: t('page.play'),
-              onClick: function (event) {
-                event.stopPropagation()
-                play()
-              },
-              onDoubleClick: function (event) {
-                event.stopPropagation()
-              },
-            },
-            icon('play', 15),
-          ),
-        ),
-        h(
-          'div',
-          { className: 'mp-row-main' },
-          h(
-            'div',
-            { className: 'mp-row-title' },
-            trackTitleOf(track),
-            vip ? h('span', { className: 'mp-badge is-vip' }, 'VIP') : null,
-            current && props.playing === true
-              ? h('span', { className: 'mp-eq' }, [h('i', { key: 1 }), h('i', { key: 2 }), h('i', { key: 3 })])
-              : null,
-          ),
-          h(
-            'div',
-            { className: 'mp-row-sub' },
-            props.onArtist && trackArtistNames(track).length > 0
-              ? h(
-                  'span',
-                  { className: 'mp-artist-links' },
-                  trackArtistNames(track).map(function (name, index) {
-                    return h(
-                      'span',
-                      { key: name, className: 'mp-artist-piece' },
-                      index > 0 ? h('span', { className: 'mp-artist-sep' }, ' / ') : null,
-                      h(
-                        'button',
-                        {
-                          type: 'button',
-                          className: 'mp-artist-link',
-                          title: name,
-                          onClick: function (event) {
-                            event.stopPropagation()
-                            props.onArtist(track, name)
-                          },
-                          onDoubleClick: function (event) {
-                            event.stopPropagation()
-                          },
-                        },
-                        name,
-                      ),
-                    )
-                  }),
-                )
-              : trackArtistOf(track),
-            props.onAlbum && track.album
-              ? h(
-                  'span',
-                  { className: 'mp-row-sub-album' },
-                  ' · ',
-                  h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mp-album-link',
-                      title: track.album,
-                      onClick: function (event) {
-                        event.stopPropagation()
-                        props.onAlbum(track)
-                      },
-                      onDoubleClick: function (event) {
-                        event.stopPropagation()
-                      },
-                    },
-                    track.album,
-                  ),
-                )
-              : null,
-          ),
-        ),
-        h(
-          'div',
-          { className: 'mp-row-album' },
-          props.onAlbum && track.album
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mp-album-link',
-                  title: track.album,
-                  onClick: function (event) {
-                    event.stopPropagation()
-                    props.onAlbum(track)
-                  },
-                  onDoubleClick: function (event) {
-                    event.stopPropagation()
-                  },
-                },
-                track.album,
-              )
-            : track.album || '',
-        ),
-        h('div', { className: 'mp-row-time' }, fmtTime(track.durationSec)),
-        h(
-          'div',
-          { className: 'mp-row-acts' },
-          h(IconButton, {
-                icon: props.favorite === true ? 'heartFill' : 'heart',
-                size: 15,
-                className: 'mp-fav',
-                active: props.favorite === true,
-                title: props.favorite === true ? t('page.unfavorite') : t('page.favorite'),
-                onClick: function (event) {
-                  event.stopPropagation()
-                  if (props.onToggleFavorite) props.onToggleFavorite(track)
-                },
-              }),
-        ),
-        h(
-          'div',
-          { className: 'mp-row-acts' },
-          selecting
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  className: cx('mp-row-check', selected && 'is-on'),
-                  title: t('page.select'),
-                  onClick: function (event) {
-                    event.stopPropagation()
-                    if (props.onToggleSelect) props.onToggleSelect(track.path)
-                  },
-                },
-                selected ? icon('check', 12) : null,
-              )
-            : h(IconButton, {
-                icon: 'more',
-                size: 15,
-                title: t('page.more'),
-                onClick: function (event) {
-                  event.stopPropagation()
-                  if (props.onMenu) props.onMenu(track, event)
-                },
-              }),
-        ),
-      )
-    }
-
-    var SCROLL_MEMORY = {}
-
-    function TrackListBody(props) {
-      var filterState = useContentFilter()
-      var query = filterState.query
-      var items = filterTracksByQuery(props.items || [], query)
-      var key = (props.resetKey || 'tracks') + (query !== '' ? '|filter:' + query : '')
-      var empty =
-        query !== '' && items.length === 0
-          ? h(Empty, { title: t('page.filterEmpty'), hint: t('page.filterEmptyHint'), icon: 'search' })
-          : props.empty
-      return h(VirtualList, {
-        className: 'mp-scroll',
-        items: items,
-        rowHeight: 84,
-        resetKey: key,
-        focusPath: props.focusPath || '',
-        initialScroll: SCROLL_MEMORY[key] || 0,
-        onScrollTop: function (top) {
-          SCROLL_MEMORY[key] = top
-        },
-        itemKey: function (track, index) {
-          return track.path + ':' + index
-        },
-        empty: empty,
-        renderRow: function (track) {
-          return h(TrackRow, {
-            track: track,
-            currentPath: props.currentPath || '',
-            playing: props.playing === true,
-            favorite: props.favoriteSet ? props.favoriteSet[track.path] === true : false,
-            cached: props.cachedOf ? props.cachedOf(track) === true : false,
-            selectionMode: props.selectionMode === true,
-            selected: props.selectedSet ? props.selectedSet[track.path] === true : false,
-            onToggleSelect: props.onToggleSelect,
-            onSelect: props.onSelect,
-            onPlay: props.onPlay,
-            onMenu: props.onMenu,
-            onToggleFavorite: props.onToggleFavorite,
-            onAlbum: props.onAlbum,
-            onArtist: props.onArtist,
-          })
-        },
-      })
-    }
-
-    function ScrollBox(props) {
-      var key = props.resetKey || 'box'
-      var ref = useRef(null)
-      useEffect(
-        function () {
-          var element = ref.current
-          if (element === null) return undefined
-          element.scrollTop = SCROLL_MEMORY[key] || 0
-          function onScroll() {
-            SCROLL_MEMORY[key] = element.scrollTop
-          }
-          element.addEventListener('scroll', onScroll, { passive: true })
-          return function () {
-            element.removeEventListener('scroll', onScroll)
-          }
-        },
-        [key],
-      )
-      return h('div', { className: 'mp-scroll', ref: ref }, props.children)
-    }
-
-    // ── src/client/components/ui/player-bar.js
-    /**
-     * player bar: the persistent transport at the bottom of the panel.
-     */
-
-    function playerLoopNext(loop) {
-      if (loop === 'none') return 'all'
-      if (loop === 'all') return 'one'
-      return 'none'
-    }
-
-    function SleepChip(props) {
-      var remaining = useCountdown(props.deadline)
-      if (remaining <= 0) return null
-      return h(
-        'button',
-        {
-          type: 'button',
-          className: 'mp-chip mp-sleep-chip',
-          title: t('v2.sleepCancel'),
-          onClick: function () {
-            setPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 })
-          },
-        },
-        icon('clock', 12),
-        fmtClock(remaining / 1000),
-      )
-    }
-
-    function PlayerBar(props) {
-      var snap = usePlayerSnapshot()
-      var prefs = usePrefs()
-      var time = usePlayerTime()
-      var previewPair = useState(null)
-      var preview = previewPair[0]
-      var setPreview = previewPair[1]
-      var current = snap.queue[snap.index] || null
-      var duration = time.duration > 0 ? time.duration : current ? current.durationSec || 0 : 0
-      var progressPercent =
-        duration > 0 ? clamp(((preview !== null ? preview : time.currentTime) / duration) * 100, 0, 100) : 0
-      // The bar, the lists and the card all read this same SongLike.
-      var like = current === null ? { isLiked: false, disabled: true, reason: '', onLike: function () {} } : likeStateOf(current, props.favoriteSet)
-
-
-
-      if (current === null) {
-        return h(
-          'div',
-          { className: 'mp-playerbar is-empty' },
-          h(
-            'div',
-            { className: 'mp-pb-track' },
-            h('div', { className: 'mp-pb-cover' }, icon('note', 16)),
-            h(
-              'div',
-              { className: 'mp-pb-meta' },
-              h('div', { className: 'mp-pb-title' }, t('page.noTrack')),
-              h('div', { className: 'mp-pb-artist' }, t('v2.pickTrack')),
-            ),
-          ),
-          h(
-            'div',
-            { className: 'mp-pb-center' },
-            h(
-              'div',
-              { className: 'mp-pb-controls' },
-              h(IconButton, { icon: 'prev', title: t('page.prev'), disabled: true }),
-              h('button', { type: 'button', className: 'mp-pb-play', disabled: true }, icon('play', 15)),
-              h(IconButton, { icon: 'next', title: t('page.next'), disabled: true }),
-            ),
-          ),
-          h('div', { className: 'mp-pb-right' }, h(SleepChip, { deadline: prefs.sleepDeadline })),
-        )
-      }
-
-      return h(
-        'div',
-        {
-          className: 'mp-playerbar',
-          onClick: function (event) {
-            var target = event.target
-            if (target && target.closest && target.closest('button,input,a,[role="slider"],.mp-pb-queue-wrap')) return
-            if (props.onOpenNowPlaying) props.onOpenNowPlaying()
-          },
-        },
-        h(
-          'div',
-          { className: 'mp-pb-seek-full' },
-          h(SeekBar, { fallbackDuration: current.durationSec || 0, onPreview: setPreview }),
-        ),
-        h(
-          'div',
-          { className: 'mp-pb-track' },
-          h(
-            'div',
-            {
-              className: 'mp-pb-cover',
-              role: 'button',
-              tabIndex: 0,
-              title: t('page.openPlayer'),
-              onClick: props.onOpenNowPlaying,
-              onKeyDown: function (event) {
-                if (event.key === 'Enter') props.onOpenNowPlaying()
-              },
-            },
-            h(Cover, { src: trackCoverSrc(current), iconSize: 16 }),
-            snap.playing
-              ? h('span', { className: 'mp-pb-eq', 'aria-hidden': 'true' }, h('i'), h('i'), h('i'))
-              : null,
-          ),
-          h(
-            'div',
-            { className: 'mp-pb-meta' },
-            h('div', { className: 'mp-pb-title', title: trackTitleOf(current) }, trackTitleOf(current)),
-            h('div', { className: 'mp-pb-artist', title: trackArtistOf(current) }, trackArtistOf(current)),
-          ),
-          h(IconButton, {
-            key: 'like',
-            icon: like.isLiked ? 'heartFill' : 'heart',
-            size: 16,
-            className: 'mp-pb-fav',
-            active: like.isLiked,
-            disabled: like.disabled === true,
-            title: like.disabled === true ? like.reason : like.isLiked ? t('page.unfavorite') : t('page.favorite'),
-            onClick: like.onLike,
-          }),
-        ),
-        h(
-          'div',
-          { className: 'mp-pb-center' },
-          h(
-            'div',
-            { className: 'mp-pb-controls' },
-            h(IconButton, {
-              icon: 'shuffle',
-              size: 17,
-              active: snap.order === 'random',
-              title: t('page.shuffle'),
-              onClick: function () {
-                player.setOrder(snap.order === 'random' ? 'list' : 'random')
-              },
-            }),
-            h(IconButton, {
-              icon: 'prev',
-              size: 17,
-              title: t('page.prev'),
-              tooltip: false,
-              onClick: function () {
-                player.prev()
-              },
-            }),
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mp-pb-play',
-                title: snap.playing ? t('page.pause') : t('page.play'),
-                'aria-label': snap.playing ? t('page.pause') : t('page.play'),
-                onClick: function () {
-                  player.toggle()
-                },
-              },
-              icon(snap.playing ? 'pause' : 'play', 15),
-            ),
-            h(IconButton, {
-              icon: 'next',
-              size: 17,
-              title: t('page.next'),
-              tooltip: false,
-              onClick: function () {
-                player.next()
-              },
-            }),
-            h(IconButton, {
-              icon: snap.loop === 'one' ? 'repeatOne' : 'repeat',
-              size: 17,
-              active: snap.loop !== 'none',
-              title:
-                snap.loop === 'one'
-                  ? t('page.loopOne')
-                  : snap.loop === 'all'
-                    ? t('page.loopAll')
-                    : t('page.loopNone'),
-              onClick: function () {
-                player.setLoop(playerLoopNext(snap.loop))
-              },
-            }),
-            h(
-              'div',
-              { className: 'mp-pb-queue-wrap' },
-              h(IconButton, {
-                icon: 'playlist',
-                size: 17,
-                active: props.queueOpen,
-                title: t('page.queue'),
-                onClick: props.onToggleQueue,
-              }),
-              props.queueOpen
-                ? h(QueuePopover, {
-                    open: true,
-                    anchored: true,
-                    snap: snap,
-                    onClose: props.onToggleQueue,
-                  })
-                : null,
-            ),
-          ),
-        ),
-        h(
-          'div',
-          { className: 'mp-pb-right' },
-          h(
-            'span',
-            { className: cx('mp-time', 'mp-pb-time', preview !== null && 'is-preview') },
-            fmtClock(preview !== null ? preview : time.currentTime) + ' / ' + fmtClock(duration),
-          ),
-          h(SleepChip, { deadline: prefs.sleepDeadline }),
-          h(IconButton, {
-            icon: 'target',
-            size: 17,
-            title: t('page.locateCurrent'),
-            onClick: props.onLocate,
-          }),
-          h(
-            'div',
-            { className: 'mp-pb-vol' },
-            h(IconButton, {
-              icon: snap.muted || snap.volume === 0 ? 'mute' : snap.volume < 0.5 ? 'volumeLow' : 'volume',
-              size: 16,
-              title: t('page.mute'),
-              onClick: function () {
-                player.setMuted(!snap.muted)
-              },
-            }),
-            h('input', {
-              type: 'range',
-              min: 0,
-              max: 100,
-              value: Math.round((snap.muted ? 0 : snap.volume) * 100),
-              style: { '--mp-v': Math.round((snap.muted ? 0 : snap.volume) * 100) + '%' },
-              'aria-label': t('page.volume'),
-              onChange: function (event) {
-                var value = Number(event.target.value) / 100
-                if (snap.muted && value > 0) player.setMuted(false)
-                player.setVolume(value)
-              },
-            }),
-          ),
-          h(IconButton, {
-            icon: 'chevronDown',
-            size: 17,
-            className: 'mp-pb-expand',
-            title: t('page.openPlayer'),
-            onClick: props.onOpenNowPlaying,
-          }),
         ),
       )
     }
@@ -168139,39 +167936,731 @@ window.__ModuleLoader__.load({
       )
     }
 
-    // ── src/client/components/ui/local.js
+    // ── src/client/panel-v3/p3-overlay.js
     /**
-     * local views: songs, albums, artists, folders, favorites, playlists, stats.
+     * panel-v3 overlay: shared boundaries, control actions, overlay host and startup guide.
      *
-     * One header + one toolbar + one scrolling body per view; the body is either
-     * the shared virtual list or a plain scroll box for grids/statistics.
+     * These lived in the old panel.js. They are moved here before the old panel is deleted;
+     * the new shell reuses the existing dialogs/settings/player-page untouched.
      */
 
-    function filterLabelOf(ui) {
-      if (!ui.filter) return ''
-      if (ui.filter.kind === 'album') return t('v2.albumFilter', { name: ui.filter.value })
-      if (ui.filter.kind === 'artist') return t('v2.artistFilter', { name: ui.filter.value })
-      return t('v2.folderFilter', { name: ui.filter.value })
+    class MusicBoundary extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = { failed: false }
+      }
+
+      static getDerivedStateFromError() {
+        return { failed: true }
+      }
+
+      componentDidCatch() {
+        // A broken render must never take the host UI down with it.
+      }
+
+      render() {
+        if (this.state.failed) return null
+        return this.props.children
+      }
     }
 
-    function applyUiFilter(list, filter) {
-      if (!filter) return list
-      return list.filter(function (track) {
-        if (filter.kind === 'album') return (track.album || t('page.unknownAlbum')) === filter.value
-        if (filter.kind === 'artist') {
-          var artistNames = trackArtistNames(track)
-          if (artistNames.length === 0) artistNames = [t('page.unknownArtist')]
-          return artistNames.indexOf(filter.value) >= 0
+    class SilentBoundary extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = { failed: false }
+      }
+
+      static getDerivedStateFromError() {
+        return { failed: true }
+      }
+
+      componentDidCatch() {}
+
+      render() {
+        if (this.state.failed) return null
+        return this.props.children
+      }
+    }
+
+    function AudioHost() {
+      var ref = useRef(null)
+      useEffect(function () {
+        player.attachAudio(ref.current)
+        player.tryRestore()
+        return function () {
+          player.attachAudio(null)
         }
-        if (filter.kind === 'folder') return trackDirOf(track) === filter.value || track.folder === filter.value
-        return true
+      }, [])
+      return h('audio', { ref: ref, className: 'mp-audio-host', preload: 'metadata', 'aria-hidden': 'true' })
+    }
+
+    function applyControlAction(action) {
+      if (!action || typeof action.action !== 'string') return
+      if (action.action === 'pause') {
+        player.pause()
+        return
+      }
+      if (action.action === 'next') {
+        player.next()
+        return
+      }
+      if (action.action === 'previous' || action.action === 'prev') {
+        player.prev()
+        return
+      }
+      if (action.action !== 'play') return
+      var query = String(action.query || '').trim()
+      if (query === '') return
+      // Must list every provider the tool advertises, or a request for that source
+      // silently degrades to a local library search (wrong track, or none at all).
+      var source = isOnlineSource(action.source) ? action.source : 'local'
+      if (source === 'local') {
+        var tracks = libraryStore.get().tracks
+        var needle = query.toLowerCase()
+        var hit = null
+        for (var i = 0; i < tracks.length; i += 1) {
+          var hay = (String(tracks[i].title || '') + ' ' + String(tracks[i].artist || '')).toLowerCase()
+          if (hay.indexOf(needle) >= 0) {
+            hit = tracks[i]
+            break
+          }
+        }
+        if (hit !== null) player.playList([hit], 0)
+        return
+      }
+      getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&q=' + encodeURIComponent(query))
+        .then(function (body) {
+          var results = Array.isArray(body.results) ? body.results : []
+          if (results.length > 0) playOnlineResults(results, 0)
+        })
+        .catch(function () {
+          // The model action is best effort.
+        })
+    }
+
+    function OverlayRoot() {
+      var overlay = useStore(overlayStore)
+      var layers = overlay.layers || []
+      return layers.map(function (layer) {
+        if (layer.kind === 'menu') return h(ContextMenu, { key: 'menu', layer: layer })
+        if (layer.kind === 'login') return h(LoginDialog, { key: 'login', layer: layer })
+        if (layer.kind === 'tag') return h(TagDialog, { key: 'tag', layer: layer })
+        if (layer.kind === 'addTo') return h(AddToPlaylistDialog, { key: 'addTo', layer: layer })
+        if (layer.kind === 'onlineAddTo') return h(OnlineAddToPlaylistDialog, { key: 'onlineAddTo', layer: layer })
+        if (layer.kind === 'batchEdit') return h(BatchEditDialog, { key: 'batchEdit', layer: layer })
+        if (layer.kind === 'duplicates') return h(DuplicatesDialog, { key: 'duplicates', layer: layer })
+        if (layer.kind === 'lyricMatch') return h(LyricMatchDialog, { key: 'lyricMatch', layer: layer })
+        if (layer.kind === 'lyricFile') return h(LyricFileDialog, { key: 'lyricFile', layer: layer })
+        if (layer.kind === 'lyricSeg') return h(LyricSegmentationDialog, { key: 'lyricSeg', layer: layer })
+        if (layer.kind === 'onlineLyric') return h(OnlineLyricDialog, { key: 'onlineLyric', layer: layer })
+        if (layer.kind === 'trash') return h(TrashDialog, { key: 'trash', layer: layer })
+        if (layer.kind === 'confirm') return h(ConfirmDialog, { key: 'confirm', layer: layer })
+        if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
+        if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
+        if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
+        if (layer.kind === 'settings') {
+          return h(SettingsSheet, {
+            key: 'settings',
+            open: true,
+            initialTab: layer.props && layer.props.tab,
+            onClose: function () {
+              removeLayer('settings')
+            },
+          })
+        }
+        return null
       })
     }
+
+    var BRAND_LOGO = 'data:image/webp;base64,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'
+
+    var STARTUP_GUIDE_KEY = 'music.startupGuide.intro.v1'
+    var startupGuideShownThisSession = false
+
+    function startupGuideDisabled() {
+      try {
+        return window.localStorage.getItem(STARTUP_GUIDE_KEY) === '1'
+      } catch (error) {
+        return false
+      }
+    }
+
+    function startupGuideOpen() {
+      if (startupGuideShownThisSession) return false
+      if (startupGuideDisabled()) return false
+      startupGuideShownThisSession = true
+      return true
+    }
+
+    function dismissStartupGuide(disable) {
+      startupGuideShownThisSession = true
+      try {
+        if (disable === true) window.localStorage.setItem(STARTUP_GUIDE_KEY, '1')
+        else window.localStorage.removeItem(STARTUP_GUIDE_KEY)
+      } catch (error) {
+        // Best effort only; if storage is unavailable the guide may show again.
+      }
+    }
+
+    function StartupGuide(props) {
+      var countPair = useState(3)
+      var countdown = countPair[0]
+      var setCountdown = countPair[1]
+      var dontPair = useState(false)
+      var dontShow = dontPair[0]
+      var setDontShow = dontPair[1]
+      var dontShowRef = useRef(false)
+      var prefs = usePrefs()
+      var coverStyle = prefs.coverStyle === 'vinyl' ? 'vinyl' : 'square'
+
+      function changeDontShow(next) {
+        dontShowRef.current = next
+        setDontShow(next)
+      }
+
+      useEffect(
+        function () {
+          if (props.open !== true) return undefined
+          setCountdown(3)
+          changeDontShow(false)
+          var timer = setInterval(function () {
+            setCountdown(function (value) {
+              return value > 0 ? value - 1 : 0
+            })
+          }, 1000)
+          return function () {
+            clearInterval(timer)
+          }
+        },
+        [props.open],
+      )
+
+      useEffect(
+        function () {
+          if (props.open !== true || countdown <= 0) return undefined
+          function blockEscape(event) {
+            if (event.key !== 'Escape') return
+            event.preventDefault()
+            event.stopPropagation()
+          }
+          window.addEventListener('keydown', blockEscape, true)
+          return function () {
+            window.removeEventListener('keydown', blockEscape, true)
+          }
+        },
+        [props.open, countdown],
+      )
+
+      if (props.open !== true) return null
+
+      function finish() {
+        if (countdown > 0) return
+        props.onClose(dontShowRef.current)
+      }
+
+      function chooseCoverStyle(style) {
+        setPrefs({
+          coverStyle: style,
+          circularCover: style === 'vinyl',
+          vinylRing: style === 'vinyl',
+          coverSpin: style === 'vinyl',
+        })
+      }
+
+      var features = [
+        {
+          key: 'online',
+          icon: 'note',
+          accent: 'var(--dsw-alias-state-business-primary,#7aaaff)',
+          title: t('guide.featureLocalTitle'),
+          desc: t('guide.featureLocalDesc'),
+        },
+        {
+          key: 'player',
+          icon: 'maximize',
+          accent: 'var(--dsw-alias-state-done-primary,#a78bfa)',
+          title: t('guide.featurePlayerTitle'),
+          desc: t('guide.featurePlayerDesc'),
+        },
+        {
+          key: 'composer',
+          icon: 'translate',
+          accent: 'var(--dsw-alias-state-success-primary,#22c55e)',
+          title: t('guide.featureComposerTitle'),
+          desc: t('guide.featureComposerDesc'),
+        },
+        {
+          key: 'library',
+          icon: 'playlist',
+          accent: 'var(--dsw-alias-state-warn-primary,#f59e0b)',
+          title: t('guide.featureLibraryTitle'),
+          desc: t('guide.featureLibraryDesc'),
+        },
+      ]
+      var progress = Math.round(((3 - countdown) / 3) * 100)
+
+      function styleOption(style, label) {
+        var on = coverStyle === style
+        return h(
+          'button',
+          {
+            type: 'button',
+            className: cx('mp-guide-style-option', on && 'is-on'),
+            'aria-pressed': on,
+            onClick: function () {
+              chooseCoverStyle(style)
+            },
+          },
+          h(
+            'span',
+            { className: cx('mp-guide-style-thumb', style === 'vinyl' ? 'is-vinyl' : 'is-square') },
+            h('img', { src: BRAND_LOGO, alt: '' }),
+          ),
+          h('span', { className: 'mp-guide-style-name' }, label),
+          on ? h('span', { className: 'mp-guide-style-check' }, icon('check', 12)) : null,
+        )
+      }
+
+      return h(
+        KitModal,
+        { headless: true, onClose: countdown > 0 ? undefined : finish, className: 'mp-guide-modal' },
+        h(
+          'div',
+          {
+            className: 'mp-guide-panel',
+            role: 'dialog',
+            'aria-modal': 'true',
+            'aria-label': t('guide.title'),
+          },
+          countdown > 0
+            ? null
+            : h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mp-guide-close',
+                  title: t('v2.close'),
+                  'aria-label': t('v2.close'),
+                  onClick: finish,
+                },
+                icon('x', 16),
+              ),
+          h(
+            'div',
+            { className: cx('mp-guide-visual', coverStyle === 'vinyl' ? 'is-vinyl' : 'is-square') },
+            h('div', { className: 'mp-guide-watermark', 'aria-hidden': 'true' }, 'MUSIC'),
+            h(
+              'div',
+              { className: 'mp-guide-shot' },
+              h('img', {
+                src: coverStyle === 'vinyl' ? GUIDE_SHOT_VINYL : GUIDE_SHOT_SQUARE,
+                alt: '',
+              }),
+            ),
+          ),
+          h(
+            'div',
+            { className: 'mp-guide-content' },
+            h(
+              'div',
+              { className: 'mp-guide-scroll' },
+              h('div', { className: 'mp-guide-eyebrow' }, 'DSH · MUSIC PLAYER'),
+              h('div', { className: 'mp-guide-title' }, t('guide.title')),
+              h('div', { className: 'mp-guide-tagline' }, t('guide.lead')),
+              h(
+                'div',
+                { className: 'mp-guide-list' },
+                features.map(function (feature, index) {
+                  return h(
+                    'div',
+                    {
+                      key: feature.key,
+                      className: 'mp-guide-row',
+                      style: { '--mp-guide-accent': feature.accent },
+                    },
+                    h('span', { className: 'mp-guide-row-icon' }, icon(feature.icon, 15)),
+                    h(
+                      'div',
+                      { className: 'mp-guide-row-main' },
+                      h('div', { className: 'mp-guide-row-title' }, feature.title),
+                      h('div', { className: 'mp-guide-row-desc' }, feature.desc),
+                    ),
+                    h('span', { className: 'mp-guide-row-index' }, String(index + 1).padStart(2, '0')),
+                  )
+                }),
+              ),
+              h(
+                'div',
+                { className: 'mp-guide-style' },
+                h(
+                  'div',
+                  { className: 'mp-guide-style-head' },
+                  h('span', null, t('guide.styleTitle')),
+                  h('span', { className: 'mp-guide-style-hint' }, t('guide.styleHint')),
+                ),
+                h(
+                  'div',
+                  { className: 'mp-guide-style-options' },
+                  styleOption('square', t('guide.styleSquare')),
+                  styleOption('vinyl', t('guide.styleVinyl')),
+                ),
+              ),
+              h(
+                'div',
+                { className: 'mp-guide-warning-card' },
+                icon('info', 15),
+                h(
+                  'div',
+                  null,
+                  h('div', { className: 'mp-guide-warning-title' }, t('guide.warningTitle')),
+                  h('div', { className: 'mp-guide-warning-text' }, t('guide.warningText')),
+                ),
+              ),
+              h(
+                'div',
+                { className: 'mp-guide-signature' },
+                h('span', null, t('guide.signature')),
+                h('span', { className: 'mp-guide-signature-rule' }),
+                h('span', null, 'DSH MUSIC'),
+              ),
+            ),
+          ),
+          h(
+            'div',
+            { className: 'mp-guide-footer' },
+            h(
+              'div',
+              { className: 'mp-guide-check' },
+              h(Switch, {
+                value: dontShow,
+                onChange: changeDontShow,
+                label: t('guide.dontShow'),
+              }),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'mp-guide-check-text',
+                  onClick: function () {
+                    changeDontShow(!dontShowRef.current)
+                  },
+                },
+                t('guide.dontShow'),
+              ),
+            ),
+            h(
+              'div',
+              { className: 'mp-guide-action' },
+              h('div', { className: 'mp-guide-progress' }, h('i', { style: { width: progress + '%' } })),
+              h(Button, {
+                variant: 'primary',
+                disabled: countdown > 0,
+                onClick: finish,
+                children:
+                  countdown > 0 ? t('guide.wait', { seconds: countdown }) : t('guide.start'),
+              }),
+            ),
+          ),
+        ),
+      )
+    }
+
+    // ── src/client/panel-v3/p3-core.js
+    /**
+     * panel-v3 core: route store, runtime sources, data helpers and shared view parts.
+     */
+
+    function trackTitleOf(track) {
+      if (!track) return ''
+      return track.title || stemOf(track.path || '') || basename(track.path || '')
+    }
+
+    function trackArtistOf(track) {
+      if (!track) return ''
+      return track.artist || t('page.unknownArtist')
+    }
+
+    /* ============================================================
+       route
+       ============================================================ */
+
+    var P3_UI_KEY = 'music.ui.v3'
+    var P3_PANEL_ID = 'music'
+
+    var p3Collection = createStore({ album: null, artist: null, playlist: null })
+
+    var p3RouteStore = createStore({
+      source: 'local',
+      page: 'songs',
+      param: null,
+      filter: null,
+      query: '',
+      history: [],
+      scroll: {},
+    })
+
+    function p3FallbackPage(source, page) {
+      var pages = ['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'stats', 'recent', 'album', 'artist', 'playlist', 'search']
+      if (pages.indexOf(page) >= 0) return page
+      return source === 'local' || source === 'navidrome' ? 'songs' : 'recent'
+    }
+
+    function p3ReadRoute() {
+      var saved = storageGet(P3_UI_KEY, null)
+      if (saved && typeof saved === 'object' && typeof saved.source === 'string') {
+        var page = typeof saved.page === 'string' ? saved.page : 'songs'
+        if (page === 'search') page = saved.source === 'local' ? 'songs' : 'recent'
+        page = p3FallbackPage(saved.source, page)
+        return {
+          source: saved.source,
+          page: page,
+          param: saved.page === 'search' ? null : (saved.param === undefined ? null : saved.param),
+          filter: null,
+          query: '',
+          history: [],
+          scroll: {},
+        }
+      }
+      // One-time migration from the old panel's saved source/nav.
+      var legacy = storageGet('music.ui.v2', null)
+      if (legacy && typeof legacy === 'object') {
+        var source = typeof legacy.source === 'string' && legacy.source !== '' ? legacy.source : 'local'
+        var nav = typeof legacy.nav === 'string' ? legacy.nav : ''
+        if (nav === 'artistSongs' || nav === 'artist' || nav === 'album') nav = source === 'local' || source === 'navidrome' ? 'songs' : 'recent'
+        var playlistId = typeof legacy.playlistId === 'string' ? legacy.playlistId : ''
+        if (nav === 'playlist' && playlistId === '') nav = source === 'local' || source === 'navidrome' ? 'songs' : 'recent'
+        nav = p3FallbackPage(source, nav)
+        return {
+          source: source,
+          page: nav === 'playlist' && playlistId !== '' ? 'playlist' : nav || 'songs',
+          param: nav === 'playlist' && playlistId !== '' ? playlistId : null,
+          filter: null,
+          query: '',
+          history: [],
+          scroll: {},
+        }
+      }
+      return { source: 'local', page: 'songs', param: null, filter: null, query: '', history: [], scroll: {} }
+    }
+
+    function p3SaveRoute() {
+      var state = p3RouteStore.get()
+      if (state.page === 'search') return
+      storageSet(P3_UI_KEY, { source: state.source, page: state.page, param: state.param || null })
+    }
+
+    function p3RouteKey(state) {
+      var current = state || p3RouteStore.get()
+      return current.source + '|' + current.page + '|' + (current.param || '')
+    }
+
+    function p3Navigate(page, param, options) {
+      options = options || {}
+      var state = p3RouteStore.get()
+      var scroll = Object.assign({}, state.scroll)
+      scroll[p3RouteKey(state)] = p3ScrollTop()
+      var history = state.history.slice()
+      if (options.root === true) history = []
+      else if (page !== state.page || param !== state.param) history.push({ page: state.page, param: state.param, filter: state.filter })
+      p3RouteStore.set({
+        page: page,
+        param: param === undefined ? null : param,
+        filter: options.filter === undefined ? null : options.filter,
+        query: options.keepQuery === true ? state.query : '',
+        history: history,
+        scroll: scroll,
+      })
+      p3SaveRoute()
+      requestAnimationFrame(function () {
+        var next = p3RouteStore.get()
+        p3ScrollTo(next.scroll[p3RouteKey(next)] || 0)
+      })
+    }
+
+    function p3Back(options) {
+      var state = p3RouteStore.get()
+      if (state.history.length === 0) {
+        if (state.page === 'album') return p3Navigate('albums', null, { root: true })
+        if (state.page === 'artist') return p3Navigate('artists', null, { root: true })
+        if (state.page === 'playlist') return p3Navigate('playlists', null, { root: true })
+        if (state.page === 'search') return p3Navigate(p3DefaultPage(state.source), null, { root: true })
+        return
+      }
+      var history = state.history.slice()
+      var route = history.pop()
+      var scroll = Object.assign({}, state.scroll)
+      scroll[p3RouteKey(state)] = p3ScrollTop()
+      p3RouteStore.set({ page: route.page, param: route.param || null, filter: route.filter || null, query: '', history: history, scroll: scroll })
+      p3SaveRoute()
+      requestAnimationFrame(function () {
+        var next = p3RouteStore.get()
+        p3ScrollTo(next.scroll[p3RouteKey(next)] || 0)
+      })
+    }
+
+    function p3ScrollTop() {
+      var el = document.querySelector('.mpv3-scroll')
+      return el ? el.scrollTop : 0
+    }
+
+    function p3ScrollTo(top) {
+      var el = document.querySelector('.mpv3-scroll')
+      if (el) el.scrollTop = top || 0
+    }
+
+    /* ============================================================
+       sources
+       ============================================================ */
+
+    var P3_LOCAL_CAPS = {
+      songs: true,
+      albums: true,
+      artists: true,
+      folders: true,
+      favorites: true,
+      playlists: true,
+      stats: true,
+      likes: true,
+      likeWrite: true,
+      playlistAdd: true,
+    }
+
+    function p3ProviderMap() {
+      return onlineStore.get().providers || {}
+    }
+
+    function p3SourceList() {
+      var providers = p3ProviderMap()
+      var list = [{ id: 'local', name: t('page.tabLocal'), short: t('page.tabLocal'), local: true }]
+      var known = ['netease', 'qq', 'kugouLite', 'navidrome']
+      var seen = {}
+      known.forEach(function (id) {
+        if (providers[id]) {
+          seen[id] = true
+          list.push({ id: id, name: sourceLabelOf(id), short: sourceLabelOf(id), local: false })
+        }
+      })
+      Object.keys(providers).forEach(function (id) {
+        if (seen[id] === true) return
+        list.push({ id: id, name: sourceLabelOf(id), short: sourceLabelOf(id), local: false })
+      })
+      return list
+    }
+
+    function p3SourceCaps(source) {
+      if (source === 'local') return P3_LOCAL_CAPS
+      var info = p3ProviderMap()[source]
+      return (info && info.capabilities) || {}
+    }
+
+    function p3SourceInfo(source) {
+      if (source === 'local') return { id: 'local', local: true, name: t('page.tabLocal') }
+      return p3ProviderMap()[source] || { id: source, name: sourceLabelOf(source) }
+    }
+
+    function p3SourceLabel(source) {
+      return source === 'local' ? t('page.tabLocal') : sourceLabelOf(source)
+    }
+
+    function p3SourceLoggedIn(source) {
+      if (source === 'local') return true
+      var info = p3SourceInfo(source)
+      return info.loggedIn === true || info.configured === true
+    }
+
+    function p3SourceLoginMode(source) {
+      if (source === 'local') return ''
+      var info = p3SourceInfo(source)
+      var methods = Array.isArray(info.loginMethods) ? info.loginMethods : []
+      if (methods.indexOf('password') >= 0) return 'password'
+      if (methods.indexOf('qr') >= 0) return 'qr'
+      if (info.capabilities && info.capabilities.loginPassword === true) return 'password'
+      if (info.capabilities && info.capabilities.loginQr === true) return 'qr'
+      return ''
+    }
+
+    function p3SourceStatus(source) {
+      if (source === 'local') return t('p3.statusLocal')
+      var info = p3SourceInfo(source)
+      if (info.configured === false) return t('p3.statusUnconfigured')
+      if (info.loggedIn === true) return t('p3.statusOnline')
+      return t('p3.statusOffline')
+    }
+
+    function p3Tabs(source) {
+      var caps = p3SourceCaps(source)
+      var tabs = []
+      if (source === 'local') {
+        tabs = ['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'stats']
+        return tabs
+      }
+      tabs.push('recent')
+      if (source === 'navidrome') tabs.push('songs')
+      if (caps.albums === true) tabs.push('albums')
+      if (caps.artists === true) tabs.push('artists')
+      if (caps.favorites === true && source === 'local') tabs.push('favorites')
+      if (caps.userPlaylists === true) tabs.push('playlists')
+      return tabs
+    }
+
+    function p3DefaultPage(source) {
+      if (source === 'local' || source === 'navidrome') return 'songs'
+      return 'recent'
+    }
+
+    function p3PageLabel(page) {
+      var labels = {
+        songs: t('v2.songs'),
+        albums: t('v2.albums'),
+        artists: t('v2.artists'),
+        folders: t('v2.folders'),
+        favorites: t('v2.favorites'),
+        playlists: t('v2.playlists'),
+        stats: t('v2.stats'),
+        recent: t('v2.recent'),
+        album: t('v2.album'),
+        artist: t('v2.artist'),
+        playlist: t('v2.playlist'),
+        search: t('page.search'),
+      }
+      return labels[page] || page
+    }
+
+    function p3ParentLabel(page) {
+      if (page === 'album') return t('v2.album')
+      if (page === 'artist') return t('v2.artist')
+      if (page === 'playlist') return t('v2.playlist')
+      if (page === 'search') return t('page.search')
+      if (page === 'favorites' || page === 'playlists' || page === 'stats') return t('v2.sectionCollection')
+      if (page === 'recent') return t('v2.sectionOnline')
+      return t('v2.sectionLibrary')
+    }
+
+    function p3SwitchSource(source) {
+      if (source === p3RouteStore.get().source) return
+      if (source !== 'local' && !p3ProviderMap()[source]) return
+      setSource(source)
+      p3RouteStore.set({
+        source: source,
+        page: p3DefaultPage(source),
+        param: null,
+        filter: null,
+        query: '',
+        history: [],
+        scroll: {},
+      })
+      p3SaveRoute()
+      if (source !== 'local') void loadMyPlaylists(source)
+    }
+
+    /* ============================================================
+       data
+       ============================================================ */
 
     function groupTracks(list, keyOf) {
       var map = {}
       var order = []
-      list.forEach(function (track) {
+      ;(list || []).forEach(function (track) {
         var key = keyOf(track)
         if (!map[key]) {
           map[key] = { key: key, tracks: [] }
@@ -168179,1616 +168668,2297 @@ window.__ModuleLoader__.load({
         }
         map[key].tracks.push(track)
       })
-      return order.map(function (key) {
-        return map[key]
+      return order.map(function (key) { return map[key] })
+    }
+
+    function p3FavoriteSet(favorites) {
+      var set = {}
+      ;(favorites || []).forEach(function (path) { set[path] = true })
+      return set
+    }
+
+    function p3LocalTracks(library) {
+      return (library && library.tracks) || []
+    }
+
+    function p3SortLocal(list, prefs) {
+      return sortTracks(list, prefs.sortBy || 'title', prefs.sortDir === 'desc' ? 'desc' : 'asc')
+    }
+
+    function p3LocalAlbumKey(track) {
+      return (track.artist || t('page.unknownArtist')) + '|' + (track.album || t('page.unknownAlbum'))
+    }
+
+    function p3LocalAlbums(library, prefs, query) {
+      var tracks = filterTracks(p3LocalTracks(library), query || '')
+      var groups = groupTracks(tracks, p3LocalAlbumKey)
+      var albums = groups.map(function (group) {
+        var first = group.tracks[0] || {}
+        var cover = null
+        for (var i = 0; i < group.tracks.length; i += 1) {
+          if (group.tracks[i].hasCover === true) { cover = group.tracks[i]; break }
+        }
+        return {
+          key: group.key,
+          name: first.album || t('page.unknownAlbum'),
+          artist: first.artist || t('page.unknownArtist'),
+          year: first.year || 0,
+          coverTrack: cover,
+          tracks: group.tracks,
+        }
+      })
+      albums.sort(function (a, b) {
+        var key = prefs.sortBy === 'artist' ? 'artist' : 'name'
+        return String(a[key] || '').localeCompare(String(b[key] || ''), 'zh') * (prefs.sortDir === 'desc' ? -1 : 1)
+      })
+      return albums
+    }
+
+    function p3LocalArtists(library, prefs, query) {
+      var tracks = filterTracks(p3LocalTracks(library), query || '')
+      var groups = groupTracks(tracks, function (track) {
+        var names = trackArtistNames(track)
+        return names.length > 0 ? names[0] : t('page.unknownArtist')
+      })
+      var artists = groups.map(function (group) {
+        var albumKeys = {}
+        group.tracks.forEach(function (track) { albumKeys[p3LocalAlbumKey(track)] = true })
+        var cover = null
+        for (var i = 0; i < group.tracks.length; i += 1) {
+          if (group.tracks[i].hasCover === true) { cover = group.tracks[i]; break }
+        }
+        return {
+          name: group.key,
+          coverTrack: cover,
+          tracks: group.tracks,
+          albumCount: Object.keys(albumKeys).length,
+        }
+      })
+      artists.sort(function (a, b) {
+        if (prefs.sortBy === 'count') return (a.tracks.length - b.tracks.length) * (prefs.sortDir === 'desc' ? -1 : 1)
+        return String(a.name).localeCompare(String(b.name), 'zh') * (prefs.sortDir === 'desc' ? -1 : 1)
+      })
+      return artists
+    }
+
+    function p3LocalFolders(library) {
+      var groups = groupTracks(p3LocalTracks(library), function (track) { return trackDirOf(track) })
+      return groups.map(function (group) {
+        return { path: group.key, name: folderNameOf(group.key), tracks: group.tracks }
+      }).sort(function (a, b) { return a.path.localeCompare(b.path, 'zh') })
+    }
+
+    function p3LocalStats(library) {
+      var stats = (library && library.stats) || {}
+      var entries = Object.keys(stats).map(function (path) {
+        var track = trackByPath(path)
+        var entry = stats[path] || {}
+        return {
+          path: path,
+          track: track,
+          seconds: Number(entry.seconds) || 0,
+          plays: Number(entry.plays) || 0,
+          lastPlayedAt: Number(entry.lastPlayedAt) || 0,
+        }
+      }).filter(function (entry) { return entry.track !== null })
+      entries.sort(function (a, b) { return b.seconds - a.seconds })
+      return entries
+    }
+
+    function p3PlaylistTracks(id) {
+      var playlist = playlistById(id)
+      return playlist ? playlistTracks(playlist) : []
+    }
+
+    function p3OnlineCover(item, source) {
+      if (!item) return ''
+      return onlineCoverSrc({
+        coverUrl: item.coverUrl || item.cover || '',
+        id: item.id || item.albumId || item.artistId || '',
+        coverArtId: item.coverArtId || '',
+      }, source)
+    }
+
+    function p3OnlineTrackList(raw) {
+      return (raw || []).map(onlineTrackOf).filter(function (track) { return track !== null })
+    }
+
+    function p3OnlineHistory(source) {
+      var list = onlineHistoryOfProvider(source)
+      return p3OnlineTrackList(list)
+    }
+
+    function p3OnlineAlbumsFromStore() {
+      return onlineStore.get().albumSongs || []
+    }
+
+    function p3OnlinePlaylistSongs() {
+      return onlineStore.get().playlistSongs || []
+    }
+
+    function p3OnlineArtistSongs() {
+      return onlineStore.get().artistSongs || []
+    }
+
+    function p3OnlineSearchResults() {
+      return p3OnlineTrackList(onlineStore.get().results || [])
+    }
+
+    function p3CurrentTracks(state, library, online, prefs) {
+      var route = state || p3RouteStore.get()
+      var page = route.page
+      var source = route.source
+      if (source === 'local') {
+        if (page === 'songs') {
+          var songs = filterTracks(p3LocalTracks(library), route.query || '')
+          if (route.filter && route.filter.kind === 'folder') {
+            songs = songs.filter(function (track) { return trackDirOf(track) === route.filter.value })
+          }
+          return p3SortLocal(songs, prefs)
+        }
+        if (page === 'favorites') {
+          var favorites = p3FavoriteSet(library.favorites)
+          return p3SortLocal(p3LocalTracks(library).filter(function (track) { return favorites[track.path] === true }), prefs)
+        }
+        if (page === 'playlist') return p3PlaylistTracks(route.param)
+        if (page === 'album') {
+          var album = p3LocalAlbums(library, prefs).filter(function (item) { return item.key === route.param })[0]
+          return album ? p3SortLocal(album.tracks, prefs) : []
+        }
+        if (page === 'artist') {
+          var artist = p3LocalArtists(library, prefs).filter(function (item) { return item.name === route.param })[0]
+          return artist ? p3SortLocal(artist.tracks, prefs) : []
+        }
+        if (page === 'search') return p3SortLocal(filterTracks(p3LocalTracks(library), route.query || ''), prefs)
+        return []
+      }
+      if (page === 'recent') return p3OnlineHistory(source)
+      if (page === 'songs') return p3OnlineTrackList(online.songs || [])
+      if (page === 'playlist') return p3OnlineTrackList(p3OnlinePlaylistSongs())
+      if (page === 'album') return p3OnlineTrackList(p3OnlineAlbumsFromStore())
+      if (page === 'artist') return p3OnlineTrackList(p3OnlineArtistSongs())
+      if (page === 'search') return p3OnlineSearchResults()
+      return []
+    }
+
+    function p3CurrentPaths(state, library, online, prefs) {
+      var list = p3CurrentTracks(state, library, online, prefs)
+      return list.map(function (track) { return track.path })
+    }
+
+    /* ============================================================
+       selection / playback / menus
+       ============================================================ */
+
+    function p3SelectTrack(list, track, additive) {
+      selectTrackIn(list || [], track, additive === true)
+    }
+
+    function p3PlayList(list, index) {
+      if (!list || list.length === 0) return
+      var at = Math.max(0, Math.min(Number(index) || 0, list.length - 1))
+      player.playList(list, at)
+      if (list[at] && list[at].onlineProvider) rememberOnline(list[at])
+    }
+
+    function p3PlayTrack(list, track) {
+      var index = -1
+      ;(list || []).forEach(function (item, at) { if (item.path === track.path) index = at })
+      p3PlayList(list || [track], index < 0 ? 0 : index)
+    }
+
+    function p3OpenTrackMenu(track, event, list) {
+      if (!track) return
+      var paths = (list || []).map(function (item) { return item.path })
+      pushLayer('menu', {
+        track: track,
+        x: event ? event.clientX : 20,
+        y: event ? event.clientY : 20,
+        visiblePaths: paths,
+        playSelected: function () {
+          var selected = (list || []).filter(function (item) { return selectedPathSet()[item.path] === true })
+          if (selected.length > 0) p3PlayList(selected, 0)
+        },
       })
     }
 
-    function playListFrom(list) {
-      if (!list || list.length === 0) return
-      player.playList(list, 0)
+    function p3OpenAlbum(track) {
+      if (!track) return
+      if (track.onlineProvider && track.onlineProvider !== 'local') {
+        var albumCaps = p3SourceCaps(track.onlineProvider)
+        if (albumCaps && albumCaps.albums === false) { showToast(t('online.albumUnsupported')); return }
+        p3Collection.set({ album: {
+          onlineProvider: track.onlineProvider,
+          album: track.album || '',
+          albumId: track.albumId || '',
+          artist: track.artist || '',
+          coverUrl: track.coverUrl || '',
+          coverArtId: track.coverArtId || '',
+        } })
+        p3Navigate('album', track.onlineProvider + ':' + (track.albumId || track.album || ''))
+        return
+      }
+      p3Navigate('album', p3LocalAlbumKey(track))
     }
 
-    function shuffleListFrom(list) {
-      if (!list || list.length === 0) return
-      player.setOrder('random')
-      player.playList(list, Math.floor(Math.random() * list.length))
+    function p3OpenArtist(track, name) {
+      if (!track) return
+      var artist = name || track.artist || ''
+      if (track.onlineProvider && track.onlineProvider !== 'local') {
+        var artistCaps = p3SourceCaps(track.onlineProvider)
+        if (artistCaps && artistCaps.artists === false) { showToast(t('online.albumUnsupported')); return }
+        var detail = Array.isArray(track.artistsDetail) ? track.artistsDetail : []
+        var id = ''
+        detail.forEach(function (item) { if (item && item.name === artist && item.id) id = String(item.id) })
+        p3Collection.set({ artist: {
+          onlineProvider: track.onlineProvider,
+          artist: artist,
+          artistId: id,
+          coverUrl: track.coverUrl || '',
+        } })
+        p3Navigate('artist', track.onlineProvider + ':' + artist)
+        return
+      }
+      p3Navigate('artist', artist)
     }
 
-    function sortSelect(prefs) {
+    function p3OpenPlaylist(playlist) {
+      if (!playlist) return
+      p3Collection.set({ playlist: playlist })
+      p3Navigate('playlist', playlist.id)
+    }
+
+    /* ============================================================
+       menus
+       ============================================================ */
+
+    function P3Menu(props) {
+      var open = props.open === true
+      var ref = useRef(null)
+      var anchorRect = props.anchor && props.anchor.getBoundingClientRect ? props.anchor.getBoundingClientRect() : null
+      var [position, setPosition] = useState(null)
+      useEffect(function () {
+        if (!open || !anchorRect) return undefined
+        var menu = ref.current
+        if (!menu) return undefined
+        var rect = menu.getBoundingClientRect()
+        var left = props.align === 'right' ? anchorRect.right - rect.width : anchorRect.left
+        var top = anchorRect.bottom + 6
+        left = clamp(left, 8, window.innerWidth - rect.width - 8)
+        if (top + rect.height > window.innerHeight - 8) top = anchorRect.top - rect.height - 6
+        top = clamp(top, 8, window.innerHeight - rect.height - 8)
+        setPosition({ left: left, top: top })
+        return undefined
+      }, [open, props.anchor, props.items])
+      useEffect(function () {
+        if (!open) return undefined
+        function close(event) {
+          if (ref.current && event.target && ref.current.contains(event.target)) return
+          if (typeof props.onClose === 'function') props.onClose()
+        }
+        function key(event) {
+          if (event.key === 'Escape' && typeof props.onClose === 'function') props.onClose()
+        }
+        document.addEventListener('pointerdown', close, true)
+        window.addEventListener('keydown', key)
+        return function () {
+          document.removeEventListener('pointerdown', close, true)
+          window.removeEventListener('keydown', key)
+        }
+      }, [open, props.onClose])
+      if (!open) return null
+      var items = Array.isArray(props.items) ? props.items : []
       return h(
-        'select',
-        {
-          className: 'mp-chip',
-          value: prefs.sortBy,
-          title: t('page.sort'),
-          'aria-label': t('page.sort'),
-          onChange: function (event) {
-            setPrefs({ sortBy: event.target.value })
-          },
-        },
-        h('option', { value: 'title' }, t('v2.sortTitle')),
-        h('option', { value: 'artist' }, t('v2.sortArtist')),
-        h('option', { value: 'duration' }, t('v2.sortDuration')),
-        h('option', { value: 'added' }, t('v2.sortAdded')),
-        h('option', { value: 'recent' }, t('v2.sortRecent')),
-      )
-    }
-
-    function LocalContent(props) {
-      var ui = props.ui
-      var library = props.library
-      var prefs = props.prefs
-      var favorites = props.favoriteSet
-      var allTracks = library.tracks || []
-      var visible = []
-      var title = ''
-      var count = 0
-      var actions = null
-      var toolbarExtras = []
-      var body = null
-      var empty = null
-      var selectionList = []
-      var playAll = null
-      var selection = useStore(selectionStore)
-      var selecting = selection.active === true
-      var selectedSet = useMemo(
-        function () {
-          var set = {}
-          selection.paths.forEach(function (path) {
-            set[path] = true
-          })
-          return set
-        },
-        [selection.paths],
-      )
-      var duplicateGroups = useMemo(
-        function () {
-          if (ui.source !== 'local' || ui.nav !== 'songs' || ui.filter || ui.query !== '') return []
-          return duplicateGroupsOf(library.tracks || [])
-        },
-        [ui.source, ui.nav, ui.filter, ui.query, library.tracks],
-      )
-
-      function selectTrack(track, additive) {
-        selectTrackIn(selectionList, track, additive)
-      }
-
-      function listFor(view) {
-        var base = allTracks
-        if (view === 'favorites') {
-          base = allTracks.filter(function (track) {
-            return favorites[track.path] === true
-          })
-        } else if (view === 'playlist') {
-          base = playlistTracks(playlistById(ui.playlistId))
-        }
-        base = applyUiFilter(base, ui.filter)
-        return sortTracks(filterTracks(base, ui.query), prefs.sortBy, prefs.sortDir)
-      }
-
-      function trackBody(list, resetKey) {
-        return h(TrackListBody, {
-          items: list,
-          resetKey: resetKey,
-          focusPath: props.locatePath || '',
-          currentPath: props.currentPath,
-          playing: props.playing,
-          favoriteSet: favorites,
-          selectionMode: selecting,
-          selectedSet: selectedSet,
-          onToggleSelect: function (path) {
-            toggleSelected(path)
-          },
-          onSelect: selectTrack,
-          onPlay: function (track) {
-            var index = list.indexOf(track)
-            player.playList(list, index < 0 ? 0 : index)
-          },
-          onMenu: function (track, event) {
-            props.onMenu(track, event, {
-              visiblePaths: list.map(function (item) {
-                return item.path
-              }),
-            })
-          },
-          onToggleFavorite: props.onToggleFavorite,
-          onAlbum: function (track) {
-            if (!track || !track.album) return
-            setUi({ nav: 'songs', filter: { kind: 'album', value: track.album }, query: '' })
-          },
-          onArtist: function (track, artist) {
-            if (!track || !String(artist || '').trim()) return
-            setUi({ nav: 'songs', filter: { kind: 'artist', value: artist }, query: '' })
-          },
-          empty: empty,
-        })
-      }
-
-      if (ui.nav === 'songs' || ui.nav === 'favorites' || ui.nav === 'playlist') {
-        visible = listFor(ui.nav)
-        selectionList = visible
-        playAll = visible.length
-          ? function () {
-              playListFrom(visible)
-            }
-          : null
-        title = ui.filter
-          ? ui.filter.value
-          : ui.nav === 'favorites'
-            ? t('v2.favorites')
-            : ui.nav === 'playlist'
-              ? (playlistById(ui.playlistId) || {}).name || t('v2.playlists')
-              : t('v2.allSongs')
-        count = visible.length
-        toolbarExtras = []
-        if (ui.filter) {
-          toolbarExtras.push(
-            h(
-              'button',
-              {
-                key: 'clear',
-                type: 'button',
-                className: 'mp-chip',
-                onClick: function () {
-                  setUi({ filter: null })
-                },
-              },
-              icon('x', 12),
-              t('v2.clearFilter'),
-            ),
-          )
-        }
-        if (ui.query !== '') {
-          toolbarExtras.push(
-            h(
-              'button',
-              {
-                key: 'clearq',
-                type: 'button',
-                className: 'mp-chip',
-                onClick: function () {
-                  setUi({ query: '' })
-                },
-              },
-              icon('x', 12),
-              t('page.clearFilter') || t('v2.clearFilter'),
-            ),
-          )
-        }
-        if (duplicateGroups.length > 0 && !selecting) {
-          toolbarExtras.push(
-            h(
-              'button',
-              {
-                key: 'dupes',
-                type: 'button',
-                className: 'mp-chip',
-                onClick: function () {
-                  pushLayer('duplicates', { groups: duplicateGroups })
-                },
-              },
-              icon('info', 13),
-              t('page.duplicates', { n: duplicateGroups.length }),
-            ),
-          )
-        }
-        empty =
-          ui.nav === 'favorites'
-            ? h(Empty, { title: t('v2.noFavorites'), hint: t('v2.noFavoritesHint'), icon: 'heart' })
-            : ui.nav === 'playlist'
-              ? h(Empty, { title: t('v2.noPlaylistTracks'), hint: t('page.playlistNoTracksHint'), icon: 'list' })
-              : ui.query !== '' || ui.filter
-                ? h(Empty, { title: t('page.noResults'), hint: '', icon: 'search' })
-                : h(Empty, { title: t('v2.noTracks'), hint: t('v2.noTracksHint'), icon: 'note' })
-        body = trackBody(visible, [ui.source, ui.nav, ui.playlistId, ui.filter ? ui.filter.kind + ':' + ui.filter.value : '', ui.query].join('|'))
-      } else if (ui.nav === 'albums') {
-        var albums = groupTracks(filterTracks(applyUiFilter(allTracks, ui.filter), ui.query), function (track) {
-          return track.album || t('page.unknownAlbum')
-        })
-        count = albums.length
-        title = t('v2.albums')
-        body = h(
-          ScrollBox,
-          { resetKey: 'albums:' + ui.query },
-          albums.map(function (group) {
-            var coverTrack = group.tracks.find(function (track) {
-              return track.hasCover === true
-            })
-            return h(
-              'button',
-              {
-                key: group.key,
-                type: 'button',
-                className: 'mp-srow',
-                onClick: function () {
-                  setUi({ nav: 'songs', filter: { kind: 'album', value: group.key } })
-                },
-              },
-              h(
-                'div',
-                { className: 'mp-srow-cover' },
-                h(Cover, { src: coverTrack ? trackCoverSrc(coverTrack) : '', iconSize: 18 }),
-              ),
-              h(
-                'div',
-                { className: 'mp-srow-main' },
-                h('div', { className: 'mp-srow-title' }, group.key),
-                h('div', { className: 'mp-srow-sub' }, (group.tracks[0].artist || '') + ' · ' + group.tracks.length),
-              ),
-              h('div', { className: 'mp-srow-meta' }, String(group.tracks.length)),
-              icon('chevronRight', 14),
-            )
-          }),
-        )
-        empty = h(Empty, { title: t('page.noResults'), icon: 'disc' })
-      } else if (ui.nav === 'artists' || ui.nav === 'folders') {
-        var isArtists = ui.nav === 'artists'
-        var groupedTracks = filterTracks(allTracks, ui.query)
-        var groups
-        if (isArtists) {
-          var artistGroups = {}
-          groupedTracks.forEach(function (track) {
-            var names = trackArtistNames(track)
-            if (names.length === 0) names = [t('page.unknownArtist')]
-            names.forEach(function (name) {
-              if (!artistGroups[name]) artistGroups[name] = []
-              artistGroups[name].push(track)
-            })
-          })
-          groups = Object.keys(artistGroups).map(function (key) {
-            return { key: key, tracks: artistGroups[key] }
-          })
-        } else {
-          groups = groupTracks(groupedTracks, trackDirOf)
-        }
-        groups.sort(function (left, right) {
-          return String(left.key).localeCompare(String(right.key), 'zh')
-        })
-        count = groups.length
-        title = isArtists ? t('v2.artists') : t('v2.folders')
-        if (!isArtists) {
-          toolbarExtras = [
-            h(
-              Button,
-              {
-                key: 'add-folder',
-                icon: 'plus',
-                onClick: function () {
-                  pushLayer('folderPicker')
-                },
-              },
-              t('v2.folderAdd'),
-            ),
-          ]
-        }
-        body = h(
-          ScrollBox,
-          { resetKey: ui.nav + ':' + ui.query },
-          groups.map(function (group) {
-            var coverTrack = group.tracks.find(function (track) {
-              return track.hasCover === true
-            })
-            return h(
-              'button',
-              {
-                key: group.key,
-                type: 'button',
-                className: 'mp-srow',
-                onClick: function () {
-                  setUi({
-                    nav: 'songs',
-                    filter: isArtists ? { kind: 'artist', value: group.key } : { kind: 'folder', value: group.key },
-                  })
-                },
-              },
-              isArtists
-                ? h(
-                    'div',
-                    { className: 'mp-srow-cover is-round' },
-                    h(Cover, { src: coverTrack ? trackCoverSrc(coverTrack) : '', iconSize: 18 }),
-                  )
-                : h('div', { className: 'mp-srow-cover' }, icon('folder', 18)),
-              h(
-                'div',
-                { className: 'mp-srow-main' },
-                h('div', { className: 'mp-srow-title' }, isArtists ? group.key : folderNameOf(group.key)),
-                isArtists
-                  ? h('div', { className: 'mp-srow-sub' }, group.tracks.length + ' · ' + t('v2.songs'))
-                  : h('div', { className: 'mp-srow-sub' }, group.key),
-              ),
-              h('div', { className: 'mp-srow-meta' }, String(group.tracks.length)),
-              icon('chevronRight', 14),
-            )
-          }),
-        )
-        empty = h(Empty, { title: t('page.noResults'), icon: isArtists ? 'user' : 'folder' })
-      } else if (ui.nav === 'playlists') {
-        var playlists = library.playlists || []
-        count = playlists.length
-        title = t('v2.playlists')
-        actions = [
-          h(
-            Button,
-            {
-              key: 'new',
-              variant: 'primary',
-              icon: 'plus',
-              onClick: function () {
-                pushLayer('newPlaylist')
-              },
-            },
-            t('v2.newPlaylist'),
-          ),
-        ]
-        body = h(
-          ScrollBox,
-          { resetKey: 'playlists' },
-          playlists.length === 0
-            ? h(Empty, { title: t('v2.noPlaylists'), hint: t('page.playlistEmptyHint'), icon: 'list' })
-            : playlists.map(function (playlist) {
-                var coverTrack = (playlistTracks(playlist)[0] || null)
-                return h(
-                  'div',
-                  {
-                    key: playlist.id,
-                    role: 'button',
-                    tabIndex: 0,
-                    className: 'mp-srow',
-                    onClick: function () {
-                      openLocalPlaylist(playlist.id)
-                    },
-                    onKeyDown: function (event) {
-                      if (event.key === 'Enter') openLocalPlaylist(playlist.id)
-                    },
-                  },
-                  h(
-                    'div',
-                    { className: 'mp-srow-cover' },
-                    coverTrack ? h(Cover, { src: trackCoverSrc(coverTrack), iconSize: 18 }) : icon('list', 18),
-                  ),
-                  h(
-                    'div',
-                    { className: 'mp-srow-main' },
-                    h('div', { className: 'mp-srow-title' }, playlist.name),
-                    h('div', { className: 'mp-srow-sub' }, (playlist.trackPaths || []).length + ' · ' + t('v2.songs')),
-                  ),
-                  h(
-                    'span',
-                    { className: 'mp-srow-meta' },
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mp-iconbtn',
-                        title: t('page.delete'),
-                        onClick: function (event) {
-                          event.stopPropagation()
-                          pushLayer('confirm', {
-                            title: t('page.delete'),
-                            text: t('page.deleteConfirm', { name: playlist.name }),
-                            onConfirm: function () {
-                              void removePlaylist(playlist.id)
-                            },
-                          })
-                        },
-                      },
-                      icon('trash', 14),
-                    ),
-                  ),
-                  icon('chevronRight', 14),
-                )
-              }),
-        )
-      } else if (ui.nav === 'stats') {
-        title = t('v2.stats')
-        count = 0
-        var stats = library.stats || {}
-        var entries = Object.keys(stats)
-          .map(function (path) {
-            var track = trackByPath(path)
-            if (!track) return null
-            var item = stats[path] || {}
-            return { track: track, plays: item.plays || 0, seconds: item.playSeconds || 0 }
-          })
-          .filter(Boolean)
-          .sort(function (left, right) {
-            return right.seconds - left.seconds
-          })
-        var totalSeconds = entries.reduce(function (sum, entry) {
-          return sum + entry.seconds
-        }, 0)
-        var totalPlays = entries.reduce(function (sum, entry) {
-          return sum + entry.plays
-        }, 0)
-        var topSeconds = entries.length > 0 ? entries[0].seconds : 1
-        toolbarExtras = [
-          ['all', 'v2.rangeAll'],
-          ['week', 'v2.rangeWeek'],
-          ['month', 'v2.rangeMonth'],
-        ].map(function (item) {
+        'div',
+        { className: cx('mpv3-menu', props.className), ref: ref, role: 'menu', style: position || { left: 8, top: 60, visibility: 'hidden' } },
+        items.map(function (item) {
+          if (item.separator === true) return h('div', { key: item.key, className: 'mpv3-menu-sep' })
           return h(
             'button',
             {
-              key: item[0],
+              key: item.key,
               type: 'button',
-              className: cx('mp-chip', library.statsRange === item[0] && 'is-on'),
+              role: 'menuitem',
+              className: cx('mpv3-menu-item', item.danger === true && 'is-danger', item.active === true && 'is-on'),
+              disabled: item.disabled === true,
               onClick: function () {
-                void loadStats(item[0])
+                if (typeof props.onSelect === 'function') props.onSelect(item)
               },
             },
-            t(item[1]),
+            item.icon ? icon(item.icon, 15) : null,
+            h('span', { className: 'mpv3-menu-label' }, item.label),
+            item.active === true ? icon('check', 14) : item.status ? h('span', { className: 'mpv3-menu-status' }, item.status) : null,
           )
-        })
-        body = h(
-          ScrollBox,
-          { resetKey: 'stats:' + library.statsRange },
-          h(
-            'div',
-            { className: 'mp-stat-cards' },
-            h(
-              'div',
-              { className: 'mp-stat-card' },
-              h('div', { className: 'mp-stat-k' }, t('v2.listenTime')),
-              h('div', { className: 'mp-stat-v' }, Math.floor(totalSeconds / 3600) + ' h ' + Math.floor((totalSeconds % 3600) / 60) + ' m'),
-            ),
-            h(
-              'div',
-              { className: 'mp-stat-card' },
-              h('div', { className: 'mp-stat-k' }, t('v2.totalPlays')),
-              h('div', { className: 'mp-stat-v' }, String(totalPlays)),
-            ),
-            h(
-              'div',
-              { className: 'mp-stat-card' },
-              h('div', { className: 'mp-stat-k' }, t('v2.trackedTracks')),
-              h('div', { className: 'mp-stat-v' }, String(entries.length)),
-            ),
-          ),
-          h(
-            'div',
-            { className: 'mp-rank' },
-            entries.slice(0, 12).map(function (entry, index) {
-              return h(
-                'div',
-                {
-                  key: entry.track.path,
-                  className: 'mp-rank-row',
-                  onClick: function () {
-                    player.playList(
-                      entries.map(function (item) {
-                        return item.track
-                      }),
-                      index,
-                    )
-                  },
-                },
-                h('div', { className: 'mp-rank-n' }, String(index + 1)),
-                h('div', { className: 'mp-rank-c' }, h(Cover, { src: trackCoverSrc(entry.track), iconSize: 12 })),
-                h(
-                  'div',
-                  { className: 'mp-rank-m' },
-                  h('div', { className: 'mp-row-title' }, trackTitleOf(entry.track)),
-                  h('div', { className: 'mp-row-sub' }, trackArtistOf(entry.track)),
-                ),
-                h(
-                  'div',
-                  { className: 'mp-rank-bar' },
-                  h('i', { style: { width: Math.round((entry.seconds / (topSeconds || 1)) * 100) + '%' } }),
-                ),
-                h('div', { className: 'mp-row-time' }, entry.plays + ' · ' + Math.floor(entry.seconds / 60) + 'm'),
-              )
-            }),
-          ),
-        )
-      } else {
-        title = t('v2.allSongs')
-        body = h(Empty, { title: t('page.noResults'), icon: 'note' })
-      }
-
-      return [
-        h(ContentHeader, {
-          key: 'head',
-          title: title,
-          count: count,
-          onAll: function () {
-            selectAllIn(selectionList)
-          },
-          onNone: function () {
-            setSelectionMode(false)
-          },
-          onRange: beginRangePick,
-          onInvert: function () {
-            invertSelectionIn(selectionList)
-          },
-          selecting: selecting,
-          selectedCount: selection.paths.length,
         }),
-        toolbarExtras.length > 0
-          ? h(
-              'div',
-              { className: 'mp-toolbar', key: 'toolbar' },
-              toolbarExtras,
-            )
-          : null,
-        h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),
-      ]
+      )
     }
 
-    // ── src/client/components/ui/online.js
+    /* ============================================================
+       shared view parts
+       ============================================================ */
+
+    function P3PageHead(props) {
+      var count = props.count || ''
+      return h(
+        'div',
+        { className: 'mpv3-page-head' },
+        h('h1', { className: 'mpv3-page-title' }, props.title),
+        count !== '' ? h('span', { className: 'mpv3-page-count' }, count) : null,
+      )
+    }
+
+    function P3Empty(props) {
+      return h(
+        'div',
+        { className: 'mpv3-empty-wrap' },
+        h(
+          'div',
+          { className: 'mpv3-empty' },
+          icon(props.icon || 'music', 28),
+          h('strong', null, props.title || ''),
+          props.hint ? h('span', null, props.hint) : null,
+          props.actions ? h('div', { className: 'mpv3-empty-actions' }, props.actions) : null,
+        ),
+      )
+    }
+
+    function P3Skeleton(props) {
+      var count = props.count || 8
+      var rows = []
+      for (var i = 0; i < count; i += 1) {
+        rows.push(h('div', { key: i, className: 'mpv3-skeleton-row' },
+          h('span', { className: 'mpv3-skeleton mpv3-skeleton-cover' }),
+          h('span', { className: 'mpv3-skeleton-main' },
+            h('span', { className: 'mpv3-skeleton mpv3-skeleton-line', style: { width: (34 + (i % 3) * 9) + '%' } }),
+            h('span', { className: 'mpv3-skeleton mpv3-skeleton-line', style: { width: (18 + (i % 2) * 7) + '%' } }),
+          ),
+          h('span', { className: 'mpv3-skeleton mpv3-skeleton-time' }),
+        ))
+      }
+      return h('div', { className: 'mpv3-skeleton-list' }, rows)
+    }
+
+    function p3Gradient(text) {
+      var hash = 0
+      var value = String(text || '')
+      for (var i = 0; i < value.length; i += 1) hash = (hash * 31 + value.charCodeAt(i)) | 0
+      var index = Math.abs(hash) % 6
+      var colors = [
+        'linear-gradient(135deg,#4b6bff,#8b5cf6)',
+        'linear-gradient(135deg,#ff6b6b,#ffa14a)',
+        'linear-gradient(135deg,#0f9b8e,#43e0b0)',
+        'linear-gradient(135deg,#f7b733,#fc4a1a)',
+        'linear-gradient(135deg,#8e2de2,#4a00e0)',
+        'linear-gradient(135deg,#2b5876,#4e4376)',
+      ]
+      return colors[index]
+    }
+
+    function p3Initial(value) {
+      var text = String(value || '').trim()
+      if (text === '') return '·'
+      return Array.from(text)[0] || '·'
+    }
+
+    function P3Row(props) {
+      var track = props.track
+      var current = props.currentPath === track.path
+      var selection = useStore(selectionStore)
+      var selected = props.selected === true || (selection.paths || []).indexOf(track.path) >= 0
+      var like = likeStateOf(track, props.favoriteSet)
+      var artistNames = trackArtistNames(track)
+      var album = track.album || ''
+      return h(
+        'div',
+        {
+          className: cx('mpv3-row', current && 'is-cur', selected && 'is-selected'),
+          role: 'row',
+          'aria-selected': selected ? 'true' : 'false',
+          'data-path': track.path,
+          'data-index': props.index,
+          tabIndex: props.tabIndex === 0 ? 0 : -1,
+          onClick: function (event) {
+            if (event.detail > 1) return
+            p3SelectTrack(props.list, track, event.metaKey || event.ctrlKey)
+          },
+          onDoubleClick: function (event) {
+            if (event.target.closest('button')) return
+            p3PlayTrack(props.list, track)
+          },
+          onContextMenu: function (event) {
+            event.preventDefault()
+            p3OpenTrackMenu(track, event, props.list)
+          },
+          onKeyDown: function (event) {
+            if (event.key === 'Enter') {
+              event.preventDefault()
+              p3PlayTrack(props.list, track)
+            }
+          },
+        },
+        h('div', { className: 'mpv3-row-cover-wrap' },
+          h('div', { className: 'mpv3-row-cover', style: track.hasCover === true || track.onlineProvider ? undefined : { background: p3Gradient(track.title) } },
+            h(Cover, { src: trackCoverSrc(track), iconSize: 15 }),
+          ),
+          h('button', {
+            type: 'button',
+            className: 'mpv3-row-play',
+            title: current && props.playing ? t('page.pause') : t('page.play'),
+            onClick: function (event) {
+              event.stopPropagation()
+              if (current) player.toggle()
+              else p3PlayTrack(props.list, track)
+            },
+          }, icon(current && props.playing ? 'pause' : 'play', 15)),
+          selected ? h('span', { className: 'mpv3-row-check' }, icon('check', 9)) : null,
+        ),
+        h('div', { className: 'mpv3-row-main' },
+          h('div', { className: 'mpv3-row-title' },
+            h('span', { className: 'mpv3-row-title-text' }, trackTitleOf(track)),
+            track.qualityHint === 'VIP' ? h('span', { className: 'mpv3-vip' }, 'VIP') : null,
+            current && props.playing ? h('span', { className: 'mpv3-eq', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')) : null,
+          ),
+          h('div', { className: 'mpv3-row-sub' },
+            artistNames.length > 0
+              ? h('button', {
+                  type: 'button',
+                  className: 'mpv3-text-link',
+                  onClick: function (event) { event.stopPropagation(); p3OpenArtist(track, artistNames[0]) },
+                }, artistNames.join(' / '))
+              : h('span', null, trackArtistOf(track)),
+          ),
+        ),
+        h('button', {
+          type: 'button',
+          className: 'mpv3-row-album mpv3-text-link',
+          title: album,
+          onClick: function (event) { event.stopPropagation(); p3OpenAlbum(track) },
+        }, album),
+        h('span', { className: 'mpv3-row-time' }, fmtClock(track.durationSec || 0)),
+        h('div', { className: 'mpv3-row-acts' },
+          h(IconButton, {
+            icon: like.isLiked ? 'heartFill' : 'heart',
+            size: 15,
+            active: like.isLiked,
+            disabled: like.disabled === true,
+            title: like.disabled === true ? like.reason : like.isLiked ? t('page.unfavorite') : t('page.favorite'),
+            onClick: function (event) { event.stopPropagation(); like.onLike() },
+          }),
+          h(IconButton, {
+            icon: 'more',
+            size: 15,
+            title: t('page.more'),
+            onClick: function (event) { event.stopPropagation(); p3OpenTrackMenu(track, event, props.list) },
+          }),
+        ),
+      )
+    }
+
+    function P3List(props) {
+      var items = props.items || []
+      var selection = useStore(selectionStore)
+      var selectedSet = useMemo(function () {
+        var set = {}
+        ;(selection.paths || []).forEach(function (path) { set[path] = true })
+        return set
+      }, [selection.paths])
+      var scrollRef = useRef(null)
+      var [scrollTop, setScrollTop] = useState(0)
+      var [viewport, setViewport] = useState(600)
+      var [headerHeight, setHeaderHeight] = useState(0)
+      var [focusPath, setFocusPath] = useState(props.focusPath || (items[0] ? items[0].path : ''))
+      var rowHeight = 56
+
+      useEffect(function () {
+        var el = scrollRef.current
+        if (!el) return undefined
+        function measure() { setViewport(el.clientHeight || 600) }
+        measure()
+        var observer = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
+        if (observer) observer.observe(el)
+        window.addEventListener('resize', measure)
+        return function () {
+          if (observer) observer.disconnect()
+          window.removeEventListener('resize', measure)
+        }
+      }, [])
+
+      useEffect(function () {
+        var header = scrollRef.current ? scrollRef.current.querySelector('.mpv3-list-header') : null
+        if (!header) { setHeaderHeight(0); return }
+        var update = function () { setHeaderHeight(header.offsetHeight || 0) }
+        update()
+        var observer = typeof ResizeObserver === 'function' ? new ResizeObserver(update) : null
+        if (observer) observer.observe(header)
+        return function () { if (observer) observer.disconnect() }
+      }, [props.header, items.length])
+
+      useEffect(function () {
+        if (scrollRef.current) scrollRef.current.scrollTop = 0
+        setScrollTop(0)
+      }, [props.resetKey])
+
+      useEffect(function () {
+        if (!focusPath && items[0]) setFocusPath(items[0].path)
+      }, [items.length])
+
+      function focusIndex(event) {
+        var index = 0
+        items.forEach(function (item, at) { if (item.path === focusPath) index = at })
+        if (event.key === 'ArrowDown') index = Math.min(items.length - 1, index + 1)
+        else if (event.key === 'ArrowUp') index = Math.max(0, index - 1)
+        else if (event.key === 'Home') index = 0
+        else if (event.key === 'End') index = items.length - 1
+        else return false
+        var next = items[index]
+        if (!next) return false
+        setFocusPath(next.path)
+        requestAnimationFrame(function () {
+          var row = scrollRef.current ? scrollRef.current.querySelector('.mpv3-vrow[data-index="' + index + '"] .mpv3-row') : null
+          if (row) {
+            row.focus({ preventScroll: false })
+            row.scrollIntoView({ block: 'nearest' })
+          }
+        })
+        return true
+      }
+
+      var start = Math.max(0, Math.floor((scrollTop - headerHeight) / rowHeight) - 4)
+      var end = Math.min(items.length, Math.ceil((scrollTop + viewport - headerHeight) / rowHeight) + 4)
+      var visible = items.slice(start, end)
+      var total = headerHeight + items.length * rowHeight
+      if (items.length === 0) total = headerHeight + 240
+
+      return h(
+        'div',
+        {
+          className: 'mpv3-scroll',
+          ref: scrollRef,
+          tabIndex: 0,
+          onScroll: function (event) { setScrollTop(event.currentTarget.scrollTop) },
+          onKeyDown: function (event) {
+            if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
+              if (focusIndex(event)) event.preventDefault()
+            }
+          },
+        },
+        h('div', { className: 'mpv3-scroll-inner', style: { height: total + 'px' } },
+          h('div', { className: 'mpv3-list-header' }, props.header),
+          items.length === 0
+            ? h('div', { className: 'mpv3-list-empty' }, props.empty)
+            : visible.map(function (item, offset) {
+                var index = start + offset
+                return h('div', {
+                  key: item.path || index,
+                  className: 'mpv3-vrow',
+                  'data-index': index,
+                  style: { top: (headerHeight + index * rowHeight) + 'px', height: rowHeight + 'px' },
+                }, h(P3Row, {
+                  track: item,
+                  index: index,
+                  list: items,
+                  currentPath: props.currentPath,
+                  playing: props.playing,
+                  favoriteSet: props.favoriteSet,
+                  selected: selectedSet[item.path] === true,
+                  tabIndex: item.path === focusPath ? 0 : -1,
+                }))
+              }),
+        ),
+      )
+    }
+
+    function P3Grid(props) {
+      var items = props.items || []
+      return h('div', { className: 'mpv3-grid' }, items.map(function (item) {
+        return h('button', {
+          key: item.key || item.id || item.name,
+          type: 'button',
+          className: 'mpv3-card',
+          onClick: function () { props.onOpen(item) },
+          onContextMenu: props.onMenu ? function (event) { event.preventDefault(); props.onMenu(item, event) } : undefined,
+        },
+          h('div', { className: 'mpv3-card-cover', style: item.coverSrc ? undefined : { background: p3Gradient(item.name || item.title) } },
+            item.coverSrc ? h('img', { src: item.coverSrc, alt: '', loading: 'lazy' }) : h('span', null, p3Initial(item.name || item.title)),
+          ),
+          h('div', { className: 'mpv3-card-title' }, item.name || item.title || ''),
+          h('div', { className: 'mpv3-card-sub' }, item.subtitle || item.artist || ''),
+        )
+      }))
+    }
+
+    function P3Hero(props) {
+      return h('div', { className: 'mpv3-hero' },
+        h('div', { className: cx('mpv3-hero-cover', props.round && 'is-round'), style: props.coverSrc ? undefined : { background: p3Gradient(props.title) } },
+          props.coverSrc ? h('img', { src: props.coverSrc, alt: '' }) : h('span', null, p3Initial(props.title)),
+        ),
+        h('div', { className: 'mpv3-hero-info' },
+          h('div', { className: 'mpv3-hero-eyebrow' }, props.eyebrow || ''),
+          h('h1', { className: 'mpv3-hero-title' }, props.title),
+          h('div', { className: 'mpv3-hero-meta' }, props.meta || null),
+          h('div', { className: 'mpv3-hero-actions' }, props.actions || null),
+        ),
+      )
+    }
+
+    // ── src/client/panel-v3/p3-pages.js
     /**
-     * online views: recent history, my playlists, one playlist, cache and search.
+     * panel-v3 pages: local library, online browse/detail, search and statistics.
      */
 
-    /** Rows per page in the paged library view. */
-    var SONG_PAGE_SIZE = 100
+    var P3PlaylistMenu = {
+      open: function (playlist) {
+        if (!playlist || !playlist.id) return
+        if (p3RouteStore.get().source !== 'local') {
+          showToast(t('p3.onlinePlaylistManage'))
+          return
+        }
+        var value = window.prompt(t('p3.playlistRenamePrompt'), playlist.name || '')
+        if (value === null) return
+        if (value.trim() === '') {
+          if (!window.confirm(t('p3.playlistDeleteConfirm', { name: playlist.name || '' }))) return
+          removePlaylist(playlist.id).then(function () {
+            if (p3RouteStore.get().page === 'playlist' && p3RouteStore.get().param === playlist.id) p3Back()
+            showToast(t('p3.playlistDeleted'))
+          })
+          return
+        }
+        if (value.trim() === playlist.name) return
+        patchPlaylist(playlist.id, { name: value.trim() }).then(function () {
+          showToast(t('p3.playlistRenamed'))
+        })
+      },
+    }
 
-    function onlineEntriesForHistory(online, provider) {
-      return (online.history || []).filter(function (entry) {
-        return entry.provider === provider
+    function p3PlayAll(items) {
+      if (!items || items.length === 0) return
+      p3PlayList(items, 0)
+    }
+
+    function p3ShuffleAll(items) {
+      if (!items || items.length === 0) return
+      player.setOrder('random')
+      p3PlayList(items, Math.floor(Math.random() * items.length))
+    }
+
+    function p3PageMeta(state, library, online, prefs) {
+      var route = state || p3RouteStore.get()
+      var page = route.page
+      var source = route.source
+      var title = p3PageLabel(page)
+      var parent = p3ParentLabel(page)
+      var count = ''
+      if (page === 'songs') {
+        if (source === 'local') {
+          var songs = p3CurrentTracks(route, library, online, prefs)
+          title = t('v2.allSongs')
+          count = songs.length + ' ' + t('p3.unitSong')
+        } else {
+          title = t('v2.allSongs')
+          count = (onlineStore.get().songsTotal || 0) + ' ' + t('p3.unitSong')
+        }
+      } else if (page === 'favorites') {
+        var favorites = p3CurrentTracks(route, library, online, prefs)
+        count = favorites.length + ' ' + t('p3.unitSong')
+      } else if (page === 'albums') {
+        count = source === 'local'
+          ? p3LocalAlbums(library, prefs).length + ' ' + t('p3.unitAlbum')
+          : (onlineStore.get().browseAlbumsTotal || 0) + ' ' + t('p3.unitAlbum')
+      } else if (page === 'artists') {
+        count = source === 'local'
+          ? p3LocalArtists(library, prefs).length + ' ' + t('p3.unitArtist')
+          : (onlineStore.get().browseArtistsTotal || 0) + ' ' + t('p3.unitArtist')
+      } else if (page === 'folders') {
+        count = p3LocalFolders(library).length + ' ' + t('p3.unitFolder')
+      } else if (page === 'playlists') {
+        count = source === 'local'
+          ? (library.playlists || []).length + ' ' + t('p3.unitPlaylist')
+          : (onlineStore.get().playlists || []).length + ' ' + t('p3.unitPlaylist')
+      } else if (page === 'stats') {
+        count = ''
+      } else if (page === 'recent') {
+        var recent = p3OnlineHistory(source)
+        count = recent.length + ' ' + t('p3.unitSong')
+      } else if (page === 'album') {
+        var album = p3CurrentAlbum(source)
+        title = album ? album.name : t('v2.album')
+        count = album && album.tracks ? album.tracks.length + ' ' + t('p3.unitSong') : ''
+      } else if (page === 'artist') {
+        var artist = p3CurrentArtist(source)
+        title = artist ? artist.name : t('v2.artist')
+        count = artist && artist.tracks ? artist.tracks.length + ' ' + t('p3.unitSong') : ''
+      } else if (page === 'playlist') {
+        var playlist = p3CurrentPlaylist(source)
+        title = playlist ? playlist.name : t('v2.playlist')
+        var playlistCount = playlist ? (playlist.trackPaths ? playlist.trackPaths.length : (playlist.ids || []).length) : 0
+        count = playlist ? playlistCount + ' ' + t('p3.unitSong') : ''
+      } else if (page === 'search') {
+        title = route.query ? t('p3.searchTitle', { q: route.query }) : t('page.search')
+        count = route.query ? p3SearchTotal(route, library, online) + ' ' + t('p3.unitResult') : ''
+        parent = t('page.search')
+      }
+      return { parent: parent, title: title, count: count }
+    }
+
+    function p3CurrentAlbum(source) {
+      if (source === 'local') {
+        var route = p3RouteStore.get()
+        return p3LocalAlbums(libraryStore.get(), prefsStore.get()).filter(function (item) { return item.key === route.param })[0] || null
+      }
+      var album = p3Collection.get().album
+      var store = onlineStore.get()
+      if (!album && !store.albumName) return null
+      return {
+        name: store.albumName || (album && album.album) || '',
+        artist: store.albumArtist || (album && album.artist) || '',
+        coverSrc: store.albumCover || (album && album.coverUrl) || '',
+        tracks: p3OnlineTrackList(store.albumSongs),
+      }
+    }
+
+    function p3CurrentArtist(source) {
+      if (source === 'local') {
+        var route = p3RouteStore.get()
+        return p3LocalArtists(libraryStore.get(), prefsStore.get()).filter(function (item) { return item.name === route.param })[0] || null
+      }
+      var artist = p3Collection.get().artist
+      var store = onlineStore.get()
+      if (!artist && !store.artistName) return null
+      return {
+        name: store.artistName || (artist && artist.artist) || '',
+        coverSrc: (artist && artist.coverUrl) || '',
+        tracks: p3OnlineTrackList(store.artistSongs),
+      }
+    }
+
+    function p3CurrentPlaylist(source) {
+      if (source === 'local') return playlistById(p3RouteStore.get().param)
+      var playlist = p3Collection.get().playlist
+      var store = onlineStore.get()
+      return {
+        id: store.playlistId || (playlist && playlist.id) || '',
+        name: store.playlistName || (playlist && playlist.name) || '',
+        ids: (store.playlistSongs || []).map(function (item) { return 'online:' + store.provider + ':' + item.id }),
+      }
+    }
+
+    function p3SearchTotal(route, library, online) {
+      if (route.source !== 'local') return onlineStore.get().searchTotal || 0
+      var query = route.query || ''
+      var lower = query.toLowerCase()
+      var tracks = filterTracks(p3LocalTracks(library), query).length
+      var albums = p3LocalAlbums(library, prefsStore.get(), query).length
+      var artists = p3LocalArtists(library, prefsStore.get(), query).length
+      var playlists = (library.playlists || []).filter(function (playlist) {
+        return String(playlist.name || '').toLowerCase().indexOf(lower) >= 0
+      }).length
+      return tracks + albums + artists + playlists
+    }
+
+    function P3PageHeadFor(props) {
+      var meta = p3PageMeta(props.route, props.library, props.online, props.prefs)
+      return h(P3PageHead, { title: meta.title, count: meta.count })
+    }
+
+    function P3LocalList(props) {
+      var selection = useStore(selectionStore)
+      var selectedSet = useMemo(function () {
+        var set = {}
+        ;(selection.paths || []).forEach(function (path) { set[path] = true })
+        return set
+      }, [selection.paths])
+      return h(P3List, {
+        items: props.items,
+        header: h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: props.favoriteSet,
+        selectedSet: selectedSet,
+        resetKey: [props.route.source, props.route.page, props.route.param, props.route.query, props.prefs.sortBy, props.prefs.sortDir].join('|'),
+        empty: props.empty || h(P3Empty, { icon: 'music', title: t('page.noResults') }),
       })
     }
 
-    /**
-     * Page numbers to draw: the first, the last, and a window around the current
-     * page, with `null` marking a gap that the caller renders as an ellipsis.
-     */
-    function pageWindow(current, total) {
-      if (total <= 7) {
-        var all = []
-        for (var i = 1; i <= total; i += 1) all.push(i)
-        return all
-      }
-      var out = [1]
-      var from = Math.max(2, current - 1)
-      var to = Math.min(total - 1, current + 1)
-      if (from > 2) out.push(null)
-      for (var p = from; p <= to; p += 1) out.push(p)
-      if (to < total - 1) out.push(null)
-      out.push(total)
-      return out
+    function P3GridPage(props) {
+      return h('div', { className: 'mpv3-scroll' },
+        h('div', { className: 'mpv3-scroll-inner is-static' },
+          h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
+          props.children,
+        ),
+      )
     }
 
-    function OnlineContent(props) {
-      var ui = props.ui
-      var online = props.online
-      var provider = online.provider
-      var nav = ui.nav
-      var showingSearch = online.query !== '' && (online.phase === 'searching' || online.phase === 'ready' || online.phase === 'error')
-      // Library-wide song list (Navidrome only; other providers return none).
-      var songsPair = useState(null)
-      var songsList = songsPair[0]
-      var setSongsList = songsPair[1]
-      var songsPhasePair = useState('idle')
-      var songsPhase = songsPhasePair[0]
-      var setSongsPhase = songsPhasePair[1]
-      // Native (opt-in) mode pages the whole library, so the view tracks how many
-      // rows the server has in total and whether another page exists.
-      var songsTotalPair = useState(0)
-      var songsTotal = songsTotalPair[0]
-      var setSongsTotal = songsTotalPair[1]
-      var songsNativePair = useState(false)
-      var songsNative = songsNativePair[0]
-      var setSongsNative = songsNativePair[1]
-      // Native mode is page-numbered, one page in memory at a time.
-      var songsPagePair = useState(1)
-      var songsPage = songsPagePair[0]
-      var setSongsPage = songsPagePair[1]
-      // Artist / album cards. These are lists only — a row opens the shared album
-      // view upstream already provides, so no detail state is kept here.
-      var browsePhasePair = useState('idle')
-      var browsePhase = browsePhasePair[0]
-      var setBrowsePhase = browsePhasePair[1]
-      var artistsPair = useState([])
-      var artistsList = artistsPair[0]
-      var setArtistsList = artistsPair[1]
-      var albumsPair = useState([])
-      var albumsList = albumsPair[0]
-      var setAlbumsList = albumsPair[1]
-      var artistDetailPair = useState(null)
-      var artistDetail = artistDetailPair[0]
-      var setArtistDetail = artistDetailPair[1]
-      var artistAlbumsPair = useState([])
-      var artistAlbumsList = artistAlbumsPair[0]
-      var setArtistAlbumsList = artistAlbumsPair[1]
-      var browseIdPair = useState('')
-      var browseId = browseIdPair[0]
-      var setBrowseId = browseIdPair[1]
-      var prefs = usePrefs()
-      var selection = useStore(selectionStore)
-      var selecting = selection.active === true
-      var selectedSet = useMemo(
-        function () {
-          var set = {}
-          selection.paths.forEach(function (path) {
-            set[path] = true
-          })
-          return set
-        },
-        [selection.paths],
-      )
-      var onlineSelectionList = []
+    function P3LocalSongsPage(props) {
+      var items = p3CurrentTracks(props.route, props.library, props.online, props.prefs)
+      if (items.length === 0) {
+        var emptyTitle = props.route.query || props.route.filter ? t('page.noResults') : t('v2.noTracks')
+        var emptyHint = props.route.query || props.route.filter ? t('p3.noFilterMatch') : t('v2.noTracksHint')
+        return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+          h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
+          h(P3Empty, {
+            icon: 'music',
+            title: emptyTitle,
+            hint: emptyHint,
+            actions: props.route.query || props.route.filter ? null : h('div', null,
+              h(Button, { variant: 'primary', onClick: function () { pushLayer('folderPicker') } }, t('v2.folderAdd')),
+              h(Button, { variant: 'ghost', onClick: function () { void loadLibrary(true) } }, t('page.refresh')),
+            ),
+          }),
+        ))
+      }
+      return h(P3LocalList, Object.assign({}, props, { items: items }))
+    }
 
-      function reloginExpired() {
-        void logoutProvider(provider).then(function () {
-          // Folia keeps server connections (Navidrome) in Settings and QR platforms in the
-          // shared login window; the window would show an empty code for Navidrome.
-          if (!supports(provider, 'loginQr')) {
-            pushLayer('settings', { tab: 'online' })
+    function P3FavoritesPage(props) {
+      var items = p3CurrentTracks(props.route, props.library, props.online, props.prefs)
+      if (items.length === 0) {
+        return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+          h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
+          h(P3Empty, {
+            icon: 'heart',
+            title: t('v2.noFavorites'),
+            hint: t('v2.noFavoritesHint'),
+            actions: h(Button, { variant: 'primary', onClick: function () { p3Navigate('songs', null, { root: true }) } }, t('p3.goSongs')),
+          }),
+        ))
+      }
+      return h(P3LocalList, Object.assign({}, props, { items: items }))
+    }
+
+    function P3PlaylistPage(props) {
+      var source = props.route.source
+      if (source !== 'local') return h(P3OnlinePlaylistPage, props)
+      var items = p3CurrentTracks(props.route, props.library, props.online, props.prefs)
+      var playlist = p3CurrentPlaylist('local')
+      if (!playlist) {
+        return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+          h(P3Empty, { icon: 'list', title: t('p3.playlistMissing'), actions: h(Button, { variant: 'ghost', onClick: function () { p3Back() } }, t('page.back')) }),
+        ))
+      }
+      var cover = items[0]
+      return h(P3List, {
+        items: items,
+        header: h('div', null,
+          h(P3Hero, {
+            eyebrow: t('v2.playlist'),
+            title: playlist.name,
+            coverSrc: cover ? trackCoverSrc(cover) : '',
+            meta: h('span', null, items.length + ' ' + t('p3.unitSong')),
+            actions: h('div', { className: 'mpv3-hero-actions' },
+              h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
+              h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
+              h(IconButton, { icon: 'more', title: t('page.more'), onClick: function (event) { P3PlaylistMenu.open(playlist, event.currentTarget) } }),
+            ),
+          }),
+        ),
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: props.favoriteSet,
+        selectedSet: {},
+        resetKey: 'playlist:' + playlist.id,
+        empty: h(P3Empty, { icon: 'list', title: t('p3.playlistEmpty'), hint: t('p3.playlistEmptyHint') }),
+      })
+    }
+
+    function P3AlbumPage(props) {
+      var source = props.route.source
+      if (source !== 'local') return h(P3OnlineAlbumPage, props)
+      var album = p3CurrentAlbum('local')
+      if (!album) {
+        return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+          h(P3Empty, { icon: 'disc', title: t('p3.albumMissing'), actions: h(Button, { variant: 'ghost', onClick: function () { p3Back() } }, t('page.back')) }),
+        ))
+      }
+      var items = p3CurrentTracks(props.route, props.library, props.online, props.prefs)
+      return h(P3List, {
+        items: items,
+        header: h(P3Hero, {
+          eyebrow: t('v2.album'),
+          title: album.name,
+          coverSrc: album.coverTrack ? trackCoverSrc(album.coverTrack) : '',
+          meta: h('div', { className: 'mpv3-hero-meta-line' },
+            h('button', { type: 'button', className: 'mpv3-text-link', onClick: function () {
+              var names = items[0] ? trackArtistNames(items[0]) : []
+              p3Navigate('artist', names.length > 0 ? names[0] : album.artist)
+            } }, album.artist),
+            album.year ? h('span', null, '· ' + album.year) : null,
+            h('span', null, '· ' + items.length + ' ' + t('p3.unitSong')),
+          ),
+          actions: h('div', { className: 'mpv3-hero-actions' },
+            h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
+            h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
+          ),
+        }),
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: props.favoriteSet,
+        selectedSet: {},
+        resetKey: 'album:' + album.key,
+      })
+    }
+
+    function P3ArtistPage(props) {
+      var source = props.route.source
+      if (source !== 'local') return h(P3OnlineArtistPage, props)
+      var artist = p3CurrentArtist('local')
+      if (!artist) {
+        return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+          h(P3Empty, { icon: 'user', title: t('p3.artistMissing'), actions: h(Button, { variant: 'ghost', onClick: function () { p3Back() } }, t('page.back')) }),
+        ))
+      }
+      var items = p3CurrentTracks(props.route, props.library, props.online, props.prefs)
+      var hot = items.slice(0, 8)
+      var albums = p3LocalAlbums(props.library, props.prefs).filter(function (item) {
+        return item.tracks.some(function (track) {
+          var names = trackArtistNames(track)
+          return (names.length > 0 ? names[0] : t('page.unknownArtist')) === artist.name
+        })
+      })
+      return h('div', { className: 'mpv3-scroll' },
+        h('div', { className: 'mpv3-scroll-inner is-static' },
+          h(P3Hero, {
+            eyebrow: t('v2.artist'),
+            title: artist.name,
+            coverSrc: artist.coverTrack ? trackCoverSrc(artist.coverTrack) : '',
+            round: true,
+            meta: h('span', null, albums.length + ' ' + t('p3.unitAlbum') + ' · ' + items.length + ' ' + t('p3.unitSong')),
+            actions: h('div', { className: 'mpv3-hero-actions' },
+              h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
+              h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
+            ),
+          }),
+          h('div', { className: 'mpv3-section' },
+            h('div', { className: 'mpv3-section-head' },
+              h('strong', null, t('p3.hotSongs')),
+              h('button', { type: 'button', className: 'mpv3-text-link', onClick: function () { p3Navigate('songs', null, { root: true }) } }, t('p3.allSongs')),
+            ),
+            h('div', { className: 'mpv3-plain-list' }, hot.map(function (track, index) {
+              return h(P3Row, {
+                key: track.path,
+                track: track,
+                index: index,
+                list: items,
+                currentPath: props.currentPath,
+                playing: props.playing,
+                favoriteSet: props.favoriteSet,
+                selected: false,
+                tabIndex: -1,
+              })
+            })),
+          ),
+          albums.length > 0 ? h('div', { className: 'mpv3-section' },
+            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.albums'))),
+            h(P3Grid, {
+              items: albums.map(function (item) {
+                return {
+                  key: item.key,
+                  name: item.name,
+                  subtitle: item.artist + (item.year ? ' · ' + item.year : ''),
+                  coverSrc: item.coverTrack ? trackCoverSrc(item.coverTrack) : '',
+                }
+              }),
+              onOpen: function (item) { p3Navigate('album', item.key) },
+            }),
+          ) : null,
+        ),
+      )
+    }
+
+    function P3PlaylistsPage(props) {
+      var source = props.route.source
+      var local = (props.library.playlists || []).map(function (playlist) {
+        var tracks = playlistTracks(playlist)
+        return {
+          id: playlist.id,
+          name: playlist.name,
+          subtitle: tracks.length + ' ' + t('p3.unitSong'),
+          coverSrc: tracks[0] ? trackCoverSrc(tracks[0]) : '',
+          playlist: playlist,
+        }
+      })
+      var online = sortOnlinePlaylists(props.online.playlists || []).map(function (playlist) {
+        return {
+          id: playlist.id,
+          name: playlist.name || '',
+          subtitle: (playlist.trackCount || 0) + ' ' + t('p3.unitSong'),
+          coverSrc: p3OnlineCover(playlist, source),
+          playlist: playlist,
+        }
+      })
+      var items = source === 'local' ? local : online
+      if (source !== 'local' && items.length === 0 && props.online.playlistsPhase === 'loading') {
+        return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Skeleton, { count: 6 }))
+      }
+      if (source !== 'local' && items.length === 0 && props.online.playlistsPhase === 'error' && p3SourceLoggedIn(source)) {
+        return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+          h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.error, actions: h(Button, { variant: 'ghost', onClick: function () { void loadMyPlaylists(source) } }, t('p3.retry')) }),
+        )
+      }
+      if (source !== 'local' && !p3SourceLoggedIn(source) && items.length === 0) {
+        return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+          h(P3Empty, {
+            icon: 'user',
+            title: t('p3.loginForPlaylists'),
+            hint: t('p3.loginForPlaylistsHint'),
+            actions: h(Button, {
+              variant: 'primary',
+              onClick: function () {
+                if (source === 'navidrome') pushLayer('settings', { tab: 'online' })
+                else pushLayer('login', { provider: source })
+              },
+            }, t('p3.login')),
+          }),
+        )
+      }
+      return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+        items.length === 0
+          ? h(P3Empty, {
+              icon: 'list',
+              title: t('v2.noPlaylists'),
+              hint: t('page.playlistEmptyHint'),
+              actions: source === 'local' ? h(Button, { variant: 'primary', onClick: function () { pushLayer('newPlaylist') } }, t('v2.newPlaylist')) : null,
+            })
+          : h(P3Grid, {
+              items: items,
+              onOpen: function (item) {
+                if (source === 'local') {
+                  p3Navigate('playlist', item.id)
+                } else {
+                  p3Collection.set({ playlist: item.playlist })
+                  p3Navigate('playlist', item.id)
+                }
+              },
+              onMenu: source === 'local' ? function (item) { P3PlaylistMenu.open(item.playlist) } : null,
+            }),
+      )
+    }
+
+    function P3AlbumsPage(props) {
+      if (props.route.source !== 'local') return h(P3OnlineAlbumsPage, props)
+      var albums = p3LocalAlbums(props.library, props.prefs, props.route.query)
+      return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+        albums.length === 0
+          ? h(P3Empty, { icon: 'disc', title: t('p3.noAlbums'), hint: t('p3.noAlbumsHint') })
+          : h(P3Grid, {
+              items: albums.map(function (album) {
+                return {
+                  key: album.key,
+                  name: album.name,
+                  subtitle: album.artist + (album.year ? ' · ' + album.year : ''),
+                  coverSrc: album.coverTrack ? trackCoverSrc(album.coverTrack) : '',
+                }
+              }),
+              onOpen: function (item) { p3Navigate('album', item.key) },
+            }),
+      )
+    }
+
+    function P3ArtistsPage(props) {
+      if (props.route.source !== 'local') return h(P3OnlineArtistsPage, props)
+      var artists = p3LocalArtists(props.library, props.prefs, props.route.query)
+      return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+        artists.length === 0
+          ? h(P3Empty, { icon: 'user', title: t('p3.noArtists'), hint: t('p3.noArtistsHint') })
+          : h('div', { className: 'mpv3-plain-list' }, artists.map(function (artist) {
+              return h('button', {
+                key: artist.name,
+                type: 'button',
+                className: 'mpv3-entity-row',
+                onClick: function () { p3Navigate('artist', artist.name) },
+              },
+                h('span', { className: 'mpv3-entity-cover', style: artist.coverTrack ? undefined : { background: p3Gradient(artist.name) } },
+                  artist.coverTrack ? h(Cover, { src: trackCoverSrc(artist.coverTrack), iconSize: 14 }) : h('span', null, p3Initial(artist.name)),
+                ),
+                h('span', { className: 'mpv3-entity-main' },
+                  h('span', { className: 'mpv3-entity-title' }, artist.name),
+                  h('span', { className: 'mpv3-entity-sub' }, artist.albumCount + ' ' + t('p3.unitAlbum') + ' · ' + artist.tracks.length + ' ' + t('p3.unitSong')),
+                ),
+                icon('right', 16),
+              )
+            })),
+      )
+    }
+
+    function P3FoldersPage(props) {
+      var folders = p3LocalFolders(props.library)
+      return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+        folders.length === 0
+          ? h(P3Empty, { icon: 'folder', title: t('p3.noFolders'), hint: t('p3.noFoldersHint') })
+          : h('div', { className: 'mpv3-plain-list' }, folders.map(function (folder) {
+              return h('button', {
+                key: folder.path,
+                type: 'button',
+                className: 'mpv3-entity-row',
+                onClick: function () {
+                  p3Navigate('songs', null, { filter: { kind: 'folder', value: folder.path } })
+                },
+              },
+                h('span', { className: 'mpv3-entity-cover is-folder' }, icon('folder', 15)),
+                h('span', { className: 'mpv3-entity-main' },
+                  h('span', { className: 'mpv3-entity-title' }, folder.path),
+                  h('span', { className: 'mpv3-entity-sub' }, folder.tracks.length + ' ' + t('p3.unitSong')),
+                ),
+                icon('right', 16),
+              )
+            })),
+      )
+    }
+
+    function P3StatsPage(props) {
+      var entries = p3LocalStats(props.library)
+      var totalSeconds = entries.reduce(function (sum, item) { return sum + item.seconds }, 0)
+      var totalPlays = entries.reduce(function (sum, item) { return sum + item.plays }, 0)
+      return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+        h('div', { className: 'mpv3-stat-cards' },
+          h('div', { className: 'mpv3-stat-card' }, h('span', null, t('p3.totalTime')), h('strong', null, p3Duration(totalSeconds))),
+          h('div', { className: 'mpv3-stat-card' }, h('span', null, t('p3.totalPlays')), h('strong', null, String(totalPlays))),
+          h('div', { className: 'mpv3-stat-card' }, h('span', null, t('p3.topArtist')), h('strong', null, entries[0] ? trackArtistOf(entries[0].track) : '—')),
+        ),
+        entries.length === 0
+          ? h(P3Empty, { icon: 'chart', title: t('p3.noStats'), hint: t('p3.noStatsHint') })
+          : h('div', { className: 'mpv3-rank-list' }, entries.slice(0, 30).map(function (entry, index) {
+              var max = entries[0].seconds || 1
+              return h('button', {
+                key: entry.path,
+                type: 'button',
+                className: 'mpv3-rank-row',
+                onClick: function () { p3PlayTrack(entries.map(function (item) { return item.track }), entry.track) },
+              },
+                h('span', { className: 'mpv3-rank-n' }, String(index + 1)),
+                h('span', { className: 'mpv3-rank-cover', style: entry.track.hasCover ? undefined : { background: p3Gradient(entry.track.title) } },
+                  h(Cover, { src: trackCoverSrc(entry.track), iconSize: 12 }),
+                ),
+                h('span', { className: 'mpv3-rank-main' },
+                  h('span', { className: 'mpv3-entity-title' }, trackTitleOf(entry.track)),
+                  h('span', { className: 'mpv3-entity-sub' }, trackArtistOf(entry.track)),
+                ),
+                h('span', { className: 'mpv3-rank-bar' }, h('i', { style: { width: Math.round((entry.seconds / max) * 100) + '%' } })),
+                h('span', { className: 'mpv3-rank-meta' }, entry.plays + ' · ' + p3Duration(entry.seconds)),
+              )
+            })),
+      )
+    }
+
+    function p3Duration(seconds) {
+      var value = Math.max(0, Math.round(Number(seconds) || 0))
+      if (value >= 3600) return Math.floor(value / 3600) + ' ' + t('p3.hour') + ' ' + Math.floor((value % 3600) / 60) + ' ' + t('p3.minute')
+      return Math.max(1, Math.round(value / 60)) + ' ' + t('p3.minute')
+    }
+
+    function P3RecentPage(props) {
+      var items = p3OnlineHistory(props.route.source)
+      return h(P3List, {
+        items: items,
+        header: h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: props.favoriteSet,
+        selectedSet: {},
+        resetKey: 'recent:' + props.route.source,
+        empty: h(P3Empty, { icon: 'clock', title: t('p3.noRecent'), hint: t('p3.noRecentHint') }),
+      })
+    }
+
+    function P3OnlineSongsPage(props) {
+      var [state, setState] = useState({ phase: 'loading', items: [], total: 0 })
+      var [reload, setReload] = useState(0)
+      useEffect(function () {
+        var cancelled = false
+        setState({ phase: 'loading', items: [], total: 0 })
+        getJson(API + 'online/songs?provider=' + encodeURIComponent(props.route.source) + '&size=200&offset=0&sort=' + encodeURIComponent(props.prefs.sortBy || 'title') + '&order=' + (props.prefs.sortDir === 'desc' ? 'desc' : 'asc'))
+          .then(function (body) {
+            if (cancelled) return
+            var items = p3OnlineTrackList(body.songs || [])
+            onlineStore.set({ songsTotal: Number(body.total) || items.length, songs: Array.isArray(body.songs) ? body.songs : [] })
+            setState({ phase: 'ready', items: items, total: Number(body.total) || items.length })
+          })
+          .catch(function (error) {
+            if (cancelled) return
+            setState({ phase: 'error', items: [], total: 0, error: errorText(error) })
+          })
+        return function () { cancelled = true }
+      }, [props.route.source, props.prefs.sortBy, props.prefs.sortDir, reload])
+      if (state.phase === 'loading') return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' }, h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }), h(P3Skeleton, { count: 8 })))
+      if (state.phase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: state.error, actions: h(Button, { variant: 'ghost', onClick: function () { setState({ phase: 'loading', items: [], total: 0 }); setReload(reload + 1) } }, t('p3.retry')) }))
+      if (state.items.length === 0) return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'music', title: t('page.noResults') }))
+      return h(P3List, {
+        items: state.items,
+        header: h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: props.favoriteSet,
+        selectedSet: {},
+        resetKey: 'online-songs:' + props.route.source + ':' + props.prefs.sortBy + ':' + props.prefs.sortDir,
+      })
+    }
+
+    function P3OnlineAlbumsPage(props) {
+      var [state, setState] = useState({ phase: 'loading', items: [] })
+      useEffect(function () {
+        var cancelled = false
+        getJson(API + 'online/albums?provider=' + encodeURIComponent(props.route.source) + '&size=200')
+          .then(function (body) {
+            if (cancelled) return
+            var items = Array.isArray(body.albums) ? body.albums : []
+            onlineStore.set({ browseAlbumsTotal: items.length })
+            setState({ phase: 'ready', items: items })
+          })
+          .catch(function (error) {
+            if (cancelled) return
+            setState({ phase: 'error', items: [], error: errorText(error) })
+          })
+        return function () { cancelled = true }
+      }, [props.route.source])
+      if (state.phase === 'loading') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Skeleton, { count: 6 }))
+      if (state.phase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: state.error }))
+      return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+        state.items.length === 0
+          ? h(P3Empty, { icon: 'disc', title: t('p3.noAlbums') })
+          : h(P3Grid, {
+              items: state.items.map(function (album) {
+                return { key: album.id, name: album.name, subtitle: album.artist || '', coverSrc: p3OnlineCover(album, props.route.source), album: album }
+              }),
+              onOpen: function (item) {
+                var album = item.album
+                p3Collection.set({ album: {
+                  onlineProvider: props.route.source,
+                  album: album.name || '',
+                  albumId: album.id || item.key,
+                  artist: album.artist || '',
+                  coverUrl: album.cover || '',
+                  coverArtId: album.coverArtId || '',
+                } })
+                p3Navigate('album', item.key)
+              },
+            }),
+      )
+    }
+
+    function P3OnlineArtistsPage(props) {
+      var [state, setState] = useState({ phase: 'loading', items: [] })
+      useEffect(function () {
+        var cancelled = false
+        getJson(API + 'online/artists?provider=' + encodeURIComponent(props.route.source))
+          .then(function (body) {
+            if (cancelled) return
+            var items = Array.isArray(body.artists) ? body.artists : []
+            onlineStore.set({ browseArtistsTotal: items.length })
+            setState({ phase: 'ready', items: items })
+          })
+          .catch(function (error) {
+            if (cancelled) return
+            setState({ phase: 'error', items: [], error: errorText(error) })
+          })
+        return function () { cancelled = true }
+      }, [props.route.source])
+      if (state.phase === 'loading') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Skeleton, { count: 6 }))
+      if (state.phase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: state.error }))
+      return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+        state.items.length === 0
+          ? h(P3Empty, { icon: 'user', title: t('p3.noArtists') })
+          : h('div', { className: 'mpv3-plain-list' }, state.items.map(function (artist) {
+              return h('button', {
+                key: artist.id || artist.name,
+                type: 'button',
+                className: 'mpv3-entity-row',
+                onClick: function () {
+                  p3Collection.set({ artist: { onlineProvider: props.route.source, artist: artist.name, artistId: artist.id || '', coverUrl: artist.cover || '' } })
+                  p3Navigate('artist', artist.id || artist.name)
+                },
+              },
+                h('span', { className: 'mpv3-entity-cover is-round', style: artist.cover ? undefined : { background: p3Gradient(artist.name) } },
+                  artist.cover ? h('img', { src: p3OnlineCover(artist, props.route.source), alt: '' }) : h('span', null, p3Initial(artist.name)),
+                ),
+                h('span', { className: 'mpv3-entity-main' },
+                  h('span', { className: 'mpv3-entity-title' }, artist.name),
+                  h('span', { className: 'mpv3-entity-sub' }, artist.albumCount ? artist.albumCount + ' ' + t('p3.unitAlbum') : ''),
+                ),
+                icon('right', 16),
+              )
+            })),
+      )
+    }
+
+    function P3OnlinePlaylistPage(props) {
+      var collection = p3Collection.get().playlist
+      if (!collection && props.route.param) {
+        var rawPlaylist = String(props.route.param)
+        var playlistId = rawPlaylist.indexOf(':') >= 0 ? rawPlaylist.slice(rawPlaylist.indexOf(':') + 1) : rawPlaylist
+        collection = { id: playlistId, name: '' }
+      }
+      var store = props.online
+      useEffect(function () {
+        if (!collection) return
+        if (String(store.playlistId) !== String(collection.id) || store.playlistPhase === 'idle' || store.playlistPhase === 'error') void openOnlinePlaylist(collection)
+      }, [props.route.param, props.route.source])
+      var items = p3OnlineTrackList(props.online.playlistSongs)
+      if (props.online.playlistPhase === 'loading') return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' }, h(P3Skeleton, { count: 8 })))
+      if (props.online.playlistPhase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.error }))
+      return h(P3List, {
+        items: items,
+        header: h(P3Hero, {
+          eyebrow: t('v2.playlist'),
+          title: props.online.playlistName || (collection && collection.name) || t('v2.playlist'),
+          coverSrc: collection && (collection.cover || collection.coverUrl) ? p3OnlineCover(collection, props.route.source) : (items[0] ? trackCoverSrc(items[0]) : ''),
+          meta: h('span', null, items.length + ' ' + t('p3.unitSong')),
+          actions: h('div', { className: 'mpv3-hero-actions' },
+            h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
+            h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
+          ),
+        }),
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: props.favoriteSet,
+        selectedSet: {},
+        resetKey: 'online-playlist:' + props.route.param,
+        empty: h(P3Empty, { icon: 'list', title: t('p3.playlistEmpty') }),
+      })
+    }
+
+    function P3OnlineAlbumPage(props) {
+      var collection = p3Collection.get().album
+      if (!collection && props.route.param) {
+        var rawAlbum = String(props.route.param)
+        var albumAt = rawAlbum.indexOf(':')
+        collection = {
+          onlineProvider: albumAt >= 0 ? rawAlbum.slice(0, albumAt) : props.route.source,
+          albumId: albumAt >= 0 ? rawAlbum.slice(albumAt + 1) : rawAlbum,
+          album: '',
+          artist: '',
+          coverUrl: '',
+        }
+      }
+      useEffect(function () {
+        if (!collection) return
+        if (String(props.online.albumId) !== String(collection.albumId || collection.album || '') || props.online.albumPhase === 'idle' || props.online.albumPhase === 'error') void openOnlineAlbum(collection)
+      }, [props.route.param, props.route.source])
+      var items = p3OnlineTrackList(props.online.albumSongs)
+      if (props.online.albumPhase === 'loading') return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' }, h(P3Skeleton, { count: 8 })))
+      if (props.online.albumPhase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.albumError }))
+      return h(P3List, {
+        items: items,
+        header: h(P3Hero, {
+          eyebrow: t('v2.album'),
+          title: props.online.albumName || (collection && collection.album) || t('v2.album'),
+          coverSrc: p3OnlineCover({ coverUrl: props.online.albumCover || (collection && collection.coverUrl) || '', id: collection && collection.albumId, coverArtId: collection && collection.coverArtId }, props.route.source),
+          meta: h('span', null, (props.online.albumArtist || '') + (items.length ? ' · ' + items.length + ' ' + t('p3.unitSong') : '')),
+          actions: h('div', { className: 'mpv3-hero-actions' },
+            h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
+            h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
+          ),
+        }),
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: props.favoriteSet,
+        selectedSet: {},
+        resetKey: 'online-album:' + props.route.param,
+        empty: h(P3Empty, { icon: 'disc', title: t('page.noResults') }),
+      })
+    }
+
+    function P3OnlineArtistPage(props) {
+      var collection = p3Collection.get().artist
+      if (!collection && props.route.param) {
+        var rawArtist = String(props.route.param)
+        var artistAt = rawArtist.indexOf(':')
+        collection = {
+          onlineProvider: artistAt >= 0 ? rawArtist.slice(0, artistAt) : props.route.source,
+          artist: artistAt >= 0 ? rawArtist.slice(artistAt + 1) : rawArtist,
+          artistId: '',
+          coverUrl: '',
+        }
+      }
+      var [detail, setDetail] = useState(null)
+      useEffect(function () {
+        if (!collection) return
+        if (String(props.online.artistName) !== String(collection.artist) || props.online.artistPhase === 'idle' || props.online.artistPhase === 'error') {
+          void openOnlineArtist({
+            onlineProvider: collection.onlineProvider,
+            artist: collection.artist,
+            artistsDetail: collection.artistId ? [{ name: collection.artist, id: collection.artistId }] : [],
+          })
+        }
+        if (collection.artistId) {
+          getJson(API + 'online/artist?provider=' + encodeURIComponent(collection.onlineProvider) + '&id=' + encodeURIComponent(collection.artistId))
+            .then(function (body) { setDetail(body || null) })
+            .catch(function () { setDetail(null) })
+        }
+      }, [props.route.param, props.route.source])
+      var items = p3OnlineTrackList(props.online.artistSongs)
+      var albums = detail && Array.isArray(detail.albums) ? detail.albums : []
+      return h('div', { className: 'mpv3-scroll' },
+        h('div', { className: 'mpv3-scroll-inner is-static' },
+          h(P3Hero, {
+            eyebrow: t('v2.artist'),
+            title: props.online.artistName || (collection && collection.artist) || t('v2.artist'),
+            coverSrc: p3OnlineCover(collection, props.route.source),
+            round: true,
+            meta: h('span', null, (albums.length ? albums.length + ' ' + t('p3.unitAlbum') + ' · ' : '') + items.length + ' ' + t('p3.unitSong')),
+            actions: h('div', { className: 'mpv3-hero-actions' },
+              h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
+              h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
+            ),
+          }),
+          props.online.artistPhase === 'loading' ? h(P3Skeleton, { count: 6 }) : null,
+          props.online.artistPhase === 'error' ? h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.artistError }) : null,
+          items.length > 0 ? h('div', { className: 'mpv3-section' },
+            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('p3.hotSongs'))),
+            h('div', { className: 'mpv3-plain-list' }, items.slice(0, 10).map(function (track, index) {
+              return h(P3Row, { key: track.path, track: track, index: index, list: items, currentPath: props.currentPath, playing: props.playing, favoriteSet: props.favoriteSet, selected: false, tabIndex: -1 })
+            })),
+          ) : null,
+          albums.length > 0 ? h('div', { className: 'mpv3-section' },
+            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.albums'))),
+            h(P3Grid, {
+              items: albums.map(function (album) {
+                return { key: album.id, name: album.name, subtitle: album.artist || '', coverSrc: p3OnlineCover(album, props.route.source), album: album }
+              }),
+              onOpen: function (item) {
+                p3Collection.set({ album: { onlineProvider: props.route.source, album: item.name, albumId: item.key, artist: item.album.artist || '', coverUrl: item.coverSrc } })
+                p3Navigate('album', item.key)
+              },
+            }),
+          ) : null,
+        ),
+      )
+    }
+
+    function P3SearchPage(props) {
+      var route = props.route
+      var query = String(route.query || '').trim()
+      var local = route.source === 'local'
+      useEffect(function () {
+        if (local) return undefined
+        if (query === '') {
+          onlineStore.set({ phase: 'idle', results: [], searchTotal: 0 })
+          return undefined
+        }
+        var timer = setTimeout(function () { void searchOnline(query) }, 250)
+        return function () { clearTimeout(timer) }
+      }, [query, route.source, local])
+      if (query === '') {
+        return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
+          h(P3Empty, { icon: 'search', title: t('p3.searchEmpty'), hint: t('p3.searchEmptyHint') }))
+      }
+      if (!local && (props.online.phase === 'searching' || props.online.phase === 'idle')) {
+        return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+          h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: '' }),
+          h(P3Skeleton, { count: 8 }),
+        ))
+      }
+      if (!local && props.online.phase === 'error') {
+        return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
+          h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.error }))
+      }
+      var tracks = local ? p3SortLocal(filterTracks(p3LocalTracks(props.library), query), props.prefs) : p3OnlineSearchResults()
+      var albums = local ? p3LocalAlbums(props.library, props.prefs, query) : []
+      var artists = local ? p3LocalArtists(props.library, props.prefs, query) : []
+      var playlists = local
+        ? (props.library.playlists || []).filter(function (playlist) { return String(playlist.name || '').toLowerCase().indexOf(query.toLowerCase()) >= 0 })
+        : []
+      var total = tracks.length + albums.length + artists.length + playlists.length
+      if (total === 0) {
+        return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
+          h(P3Empty, { icon: 'search', title: t('p3.searchNoResult'), hint: t('p3.searchNoResultHint') }))
+      }
+      return h('div', { className: 'mpv3-scroll' },
+        h('div', { className: 'mpv3-scroll-inner is-static' },
+          h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: total + ' ' + t('p3.unitResult') }),
+          tracks.length > 0 ? h('div', { className: 'mpv3-section' },
+            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.songs')), h('span', null, tracks.length)),
+            h('div', { className: 'mpv3-plain-list' }, tracks.slice(0, 8).map(function (track, index) {
+              return h(P3Row, { key: track.path, track: track, index: index, list: tracks, currentPath: props.currentPath, playing: props.playing, favoriteSet: props.favoriteSet, selected: false, tabIndex: -1 })
+            })),
+          ) : null,
+          albums.length > 0 ? h('div', { className: 'mpv3-section' },
+            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.albums')), h('span', null, albums.length)),
+            h(P3Grid, {
+              items: albums.slice(0, 4).map(function (album) { return { key: album.key, name: album.name, subtitle: album.artist, coverSrc: album.coverTrack ? trackCoverSrc(album.coverTrack) : '' } }),
+              onOpen: function (item) { p3Navigate('album', item.key) },
+            }),
+          ) : null,
+          artists.length > 0 ? h('div', { className: 'mpv3-section' },
+            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.artists')), h('span', null, artists.length)),
+            h('div', { className: 'mpv3-plain-list' }, artists.slice(0, 4).map(function (artist) {
+              return h('button', { key: artist.name, type: 'button', className: 'mpv3-entity-row', onClick: function () { p3Navigate('artist', artist.name) } },
+                h('span', { className: 'mpv3-entity-cover is-round', style: { background: p3Gradient(artist.name) } }, h('span', null, p3Initial(artist.name))),
+                h('span', { className: 'mpv3-entity-main' }, h('span', { className: 'mpv3-entity-title' }, artist.name), h('span', { className: 'mpv3-entity-sub' }, artist.tracks.length + ' ' + t('p3.unitSong'))),
+                icon('right', 16),
+              )
+            })),
+          ) : null,
+          playlists.length > 0 ? h('div', { className: 'mpv3-section' },
+            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.playlists')), h('span', null, playlists.length)),
+            h('div', { className: 'mpv3-plain-list' }, playlists.slice(0, 4).map(function (playlist) {
+              return h('button', { key: playlist.id, type: 'button', className: 'mpv3-entity-row', onClick: function () { p3Navigate('playlist', playlist.id) } },
+                h('span', { className: 'mpv3-entity-cover' }, icon('list', 15)),
+                h('span', { className: 'mpv3-entity-main' }, h('span', { className: 'mpv3-entity-title' }, playlist.name), h('span', { className: 'mpv3-entity-sub' }, playlistTracks(playlist).length + ' ' + t('p3.unitSong'))),
+                icon('right', 16),
+              )
+            })),
+          ) : null,
+        ),
+      )
+    }
+
+    function P3PageSwitch(props) {
+      var route = props.route
+      if (route.page === 'songs') {
+        if (route.source === 'local') return h(P3LocalSongsPage, props)
+        return h(P3OnlineSongsPage, props)
+      }
+      if (route.page === 'favorites') return h(P3FavoritesPage, props)
+      if (route.page === 'albums') return h(P3AlbumsPage, props)
+      if (route.page === 'artists') return h(P3ArtistsPage, props)
+      if (route.page === 'folders') return h(P3FoldersPage, props)
+      if (route.page === 'playlists') return h(P3PlaylistsPage, props)
+      if (route.page === 'stats') return h(P3StatsPage, props)
+      if (route.page === 'recent') return h(P3RecentPage, props)
+      if (route.page === 'album') return h(P3AlbumPage, props)
+      if (route.page === 'artist') return h(P3ArtistPage, props)
+      if (route.page === 'playlist') return h(P3PlaylistPage, props)
+      if (route.page === 'search') return h(P3SearchPage, props)
+      return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'search', title: t('p3.pageMissing') }))
+    }
+
+    // ── src/client/panel-v3/p3-shell.js
+    /**
+     * panel-v3 shell: top bar, view bar, content, player bar, queue and runtime.
+     */
+
+    p3RouteStore.set(p3ReadRoute())
+
+    function P3TopBar(props) {
+      var route = useStore(p3RouteStore)
+      var online = useStore(onlineStore)
+      var prefs = usePrefs()
+      var sourceRef = useRef(null)
+      var accountRef = useRef(null)
+      var [sourceOpen, setSourceOpen] = useState(false)
+      var [accountOpen, setAccountOpen] = useState(false)
+      var source = route.source
+      var info = p3SourceInfo(source)
+      var meta = p3PageMeta(route, props.library, online, prefs)
+      var loggedIn = p3SourceLoggedIn(source)
+      var sourceItems = p3SourceList().map(function (item) {
+        return {
+          key: item.id,
+          label: item.name + ' · ' + p3SourceStatus(item.id),
+          icon: item.id === 'local' ? 'music' : (item.id === 'navidrome' ? 'server' : 'music'),
+          active: item.id === source,
+        }
+      })
+      sourceItems.push({ key: 'manage', label: t('p3.manageSources'), icon: 'settings' })
+      var accountItems = loggedIn
+        ? [
+            { key: 'relogin', label: t('p3.relogin'), icon: 'refresh' },
+            { key: 'logout', label: t('p3.logout'), icon: 'logout', danger: true },
+            { key: 'accountSettings', label: t('p3.sourceSettings'), icon: 'settings' },
+          ]
+        : [
+            { key: 'login', label: t('p3.login'), icon: 'user' },
+            { key: 'accountSettings', label: t('p3.sourceSettings'), icon: 'settings' },
+          ]
+
+      function searchValue() {
+        return route.page === 'search' ? route.query : ''
+      }
+
+      function onFocusSearch() {
+        if (route.page !== 'search') p3Navigate('search', null)
+      }
+
+      function onChangeSearch(event) {
+        var value = event.target.value
+        p3RouteStore.set({ page: 'search', query: value })
+      }
+
+      function onSearchKey(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          if (source !== 'local' && route.query.trim() !== '') void searchOnline(route.query)
+          else if (route.page !== 'search') p3Navigate('search', null)
+        } else if (event.key === 'Escape') {
+          event.preventDefault()
+          if (route.page === 'search') {
+            if (route.history.length > 0) p3Back()
+            else p3Navigate(p3DefaultPage(source), null, { root: true })
+          }
+        }
+      }
+
+      function clearSearch() {
+        if (route.page === 'search') {
+          if (route.history.length > 0) p3Back()
+          else p3Navigate(p3DefaultPage(source), null, { root: true })
+          return
+        }
+        p3RouteStore.set({ query: '' })
+      }
+
+      function pickSource(item) {
+        setSourceOpen(false)
+        if (!item) return
+        if (item.key === 'manage') {
+          pushLayer('settings', { tab: 'online' })
+          return
+        }
+        p3SwitchSource(item.key)
+      }
+
+      function pickAccount(item) {
+        setAccountOpen(false)
+        if (!item) return
+        if (item.key === 'login' || item.key === 'relogin') {
+          if (source === 'navidrome') pushLayer('settings', { tab: 'online' })
+          else pushLayer('login', { provider: source })
+          return
+        }
+        if (item.key === 'logout') {
+          postJson(API + 'online/logout', { provider: source }).then(function () {
+            void loadProviders()
+            showToast(t('p3.loggedOut'))
+          }).catch(function (error) { showToast(errorText(error)) })
+          return
+        }
+        pushLayer('settings', { tab: 'online' })
+      }
+
+      function refresh() {
+        if (source === 'local') {
+          void loadLibrary(true)
+          showToast(t('p3.refreshLocal'))
+        } else {
+          void loadProviders()
+          void loadMyPlaylists(source)
+          showToast(t('p3.refreshOnline'))
+        }
+      }
+
+      return h(
+        'header',
+        { className: 'mpv3-topbar' },
+        h(IconButton, { icon: 'back', size: 16, title: t('page.back'), className: 'mpv3-back', disabled: route.history.length === 0 && !(route.page === 'album' || route.page === 'artist' || route.page === 'playlist' || route.page === 'search'), onClick: function () { p3Back() } }),
+        h('span', { className: 'mpv3-parent' }, meta.parent),
+        h('div', { className: 'mpv3-source-wrap' },
+          h('button', {
+            type: 'button',
+            ref: sourceRef,
+            className: 'mpv3-source-btn',
+            onClick: function () { setSourceOpen(!sourceOpen) },
+            title: t('p3.switchSource'),
+          },
+            icon(source === 'navidrome' ? 'server' : 'music', 15),
+            h('span', { className: 'mpv3-source-name' }, p3SourceLabel(source)),
+            !loggedIn ? h('i', { className: 'mpv3-source-dot' }) : null,
+            icon('chevronDown', 12),
+          ),
+          h(P3Menu, { open: sourceOpen, anchor: sourceRef.current, items: sourceItems, align: 'left', onSelect: pickSource, onClose: function () { setSourceOpen(false) } }),
+        ),
+        h('div', { className: 'mpv3-grow' }),
+        h('div', { className: 'mpv3-search' },
+          icon('search', 14),
+          h('input', {
+            id: 'p3-search',
+            type: 'search',
+            value: searchValue(),
+            placeholder: t('p3.searchPlaceholder'),
+            onFocus: onFocusSearch,
+            onChange: onChangeSearch,
+            onKeyDown: onSearchKey,
+            'aria-label': t('page.search'),
+          }),
+          route.page === 'search' && route.query !== ''
+            ? h('button', { type: 'button', className: 'mpv3-search-clear', title: t('p3.clearSearch'), onClick: clearSearch }, icon('close', 13))
+            : null,
+        ),
+        source !== 'local'
+          ? h('div', { className: 'mpv3-account-wrap' },
+              h('button', {
+                type: 'button',
+                ref: accountRef,
+                className: 'mpv3-account-btn',
+                title: t('p3.account'),
+                onClick: function () { setAccountOpen(!accountOpen) },
+              },
+                loggedIn && (info.avatarUrl || info.nickname)
+                  ? (info.avatarUrl ? h('img', { src: info.avatarUrl, alt: '' }) : h('span', null, p3Initial(info.nickname || info.name)))
+                  : icon('user', 15),
+              ),
+              h(P3Menu, { open: accountOpen, anchor: accountRef.current, items: accountItems, align: 'right', onSelect: pickAccount, onClose: function () { setAccountOpen(false) } }),
+            )
+          : null,
+        h(IconButton, { icon: 'refresh', size: 16, title: t('page.refresh'), onClick: refresh }),
+        h(IconButton, { icon: 'settings', size: 16, title: t('page.settings'), onClick: function () { pushLayer('settings') } }),
+      )
+    }
+
+    function p3ActiveTab(route) {
+      if (route.page === 'album') return 'albums'
+      if (route.page === 'artist') return 'artists'
+      if (route.page === 'playlist') return 'playlists'
+      if (route.page === 'search') return ''
+      return route.page
+    }
+
+    function P3ViewBar(props) {
+      var route = useStore(p3RouteStore)
+      var selection = useStore(selectionStore)
+      var prefs = usePrefs()
+      var sortRef = useRef(null)
+      var selectRef = useRef(null)
+      var [sortOpen, setSortOpen] = useState(false)
+      var [selectOpen, setSelectOpen] = useState(false)
+      var source = route.source
+      var tabs = p3Tabs(source)
+      var active = p3ActiveTab(route)
+      var tracks = p3CurrentTracks(route, props.library, props.online, prefs)
+      var selected = (selection.paths || []).map(function (path) {
+        return tracks.filter(function (track) { return track.path === path })[0]
+      }).filter(Boolean)
+      var selecting = (selection.paths || []).length > 0
+      var sortItems
+      if (route.source !== 'local' && route.page === 'playlists') {
+        sortItems = [
+          { key: 'source', label: t('v2.sortSource'), icon: 'list', active: prefs.onlinePlaylistSort !== 'name' && prefs.onlinePlaylistSort !== 'count' },
+          { key: 'name', label: t('v2.sortName'), icon: 'sort', active: prefs.onlinePlaylistSort === 'name' },
+          { key: 'count', label: t('v2.sortCount'), icon: 'chart', active: prefs.onlinePlaylistSort === 'count' },
+        ]
+      } else {
+        sortItems = [
+          { key: 'title', label: t('v2.sortTitle'), icon: 'list', active: prefs.sortBy === 'title' },
+          { key: 'artist', label: t('v2.sortArtist'), icon: 'user', active: prefs.sortBy === 'artist' },
+          { key: 'duration', label: t('v2.sortDuration'), icon: 'clock', active: prefs.sortBy === 'duration' },
+          { key: 'added', label: t('v2.sortAdded'), icon: 'clock', active: prefs.sortBy === 'added' },
+          { separator: true, key: 'sep' },
+          { key: 'asc', label: t('p3.asc'), icon: 'up', active: prefs.sortDir !== 'desc' },
+          { key: 'desc', label: t('p3.desc'), icon: 'down', active: prefs.sortDir === 'desc' },
+        ]
+      }
+      var selectItems = [
+        { key: 'all', label: t('v2.selAll'), icon: 'checkCircle' },
+        { key: 'none', label: t('v2.selNone'), icon: 'xCircle' },
+        { key: 'range', label: t('v2.selRange'), icon: 'target' },
+        { key: 'invert', label: t('v2.selInvert'), icon: 'refresh' },
+      ]
+
+      function pickSort(item) {
+        setSortOpen(false)
+        if (!item) return
+        if (item.key === 'asc') setPrefs({ sortDir: 'asc' })
+        else if (item.key === 'desc') setPrefs({ sortDir: 'desc' })
+        else if (item.key === 'source' || item.key === 'name' || item.key === 'count') setPrefs({ onlinePlaylistSort: item.key })
+        else setPrefs({ sortBy: item.key === 'duration' ? 'duration' : item.key })
+      }
+
+      function pickSelect(item) {
+        setSelectOpen(false)
+        if (!item) return
+        if (item.key === 'all') selectAllIn(tracks)
+        else if (item.key === 'none') setSelectionMode(false)
+        else if (item.key === 'range') beginRangePick()
+        else if (item.key === 'invert') invertSelectionIn(tracks)
+      }
+
+      function selectionAction(key) {
+        if (key === 'done') { setSelectionMode(false); return }
+        if (key === 'play') { if (selected.length > 0) p3PlayList(selected, 0); return }
+        if (key === 'like') {
+          selected.forEach(function (track) { likeStateOf(track, props.favoriteSet).onLike() })
+          return
+        }
+        if (key === 'add') {
+          if (source === 'local' && selected.length > 0) pushLayer('addTo', { paths: selected.map(function (track) { return track.path }) })
+          else showToast(t('p3.onlineWriteUnsupported'))
+          return
+        }
+        if (key === 'batch') {
+          if (source === 'local' && selected.length > 0) pushLayer('batchEdit', { paths: selected.map(function (track) { return track.path }) })
+          else showToast(t('p3.onlineWriteUnsupported'))
+          return
+        }
+        if (key === 'delete') {
+          if (source === 'local' && selected.length > 0) {
+            pushLayer('confirm', {
+              title: t('page.delete'),
+              text: t('p3.removeConfirm', { n: selected.length }),
+              onConfirm: function () { void removeTracks(selected.map(function (track) { return track.path })) },
+            })
+          }
+          return
+        }
+      }
+
+      if (selecting) {
+        return h('div', { className: 'mpv3-viewbar' },
+          h('div', { className: 'mpv3-selection-bar' },
+            h('strong', { className: 'mpv3-selection-count' }, t('p3.selectedCount', { n: selected.length })),
+            h('button', { type: 'button', className: 'mpv3-sel-btn', onClick: function () { selectionAction('play') } }, icon('play', 14), t('page.play')),
+            h('button', { type: 'button', className: 'mpv3-sel-btn', onClick: function () { selectionAction('like') } }, icon('heart', 14), t('page.favorite')),
+            h('button', { type: 'button', className: 'mpv3-sel-btn', onClick: function () { selectionAction('add') } }, icon('plus', 14), t('p3.addToPlaylist')),
+            source === 'local' ? h('button', { type: 'button', className: 'mpv3-sel-btn', onClick: function () { selectionAction('batch') } }, icon('edit', 14), t('page.batchEdit')) : null,
+            source === 'local' ? h('button', { type: 'button', className: 'mpv3-sel-btn is-danger', onClick: function () { selectionAction('delete') } }, icon('trash', 14), t('page.delete')) : null,
+            h('span', { className: 'mpv3-grow' }),
+            h('button', { type: 'button', className: 'mpv3-sel-btn is-primary', onClick: function () { selectionAction('done') } }, t('page.done')),
+          ),
+        )
+      }
+
+      var tabItems = tabs.map(function (tab) { return { value: tab, label: p3PageLabel(tab) } })
+      return h('div', { className: 'mpv3-viewbar' },
+        tabs.length > 0
+          ? h('div', { className: 'mpv3-tabs' }, h(KitSegmentedTabs, {
+              items: tabItems,
+              value: active,
+              size: 'sm',
+              label: t('p3.sections'),
+              onChange: function (next) { p3Navigate(next, null, { root: true }) },
+            }))
+          : null,
+        h('div', { className: 'mpv3-grow' }),
+        tracks.length > 0 ? h(IconButton, { icon: 'play', size: 16, title: t('page.playAll'), onClick: function () { p3PlayAll(tracks) } }) : null,
+        h('div', { className: 'mpv3-menu-anchor', ref: sortRef },
+          h(IconButton, { icon: 'sort', size: 16, title: t('page.sort'), onClick: function () { setSortOpen(!sortOpen) } }),
+          h(P3Menu, { open: sortOpen, anchor: sortRef.current, items: sortItems, align: 'right', onSelect: pickSort, onClose: function () { setSortOpen(false) } }),
+        ),
+        tracks.length > 0 ? h('div', { className: 'mpv3-menu-anchor', ref: selectRef },
+          h(IconButton, { icon: 'checkCircle', size: 16, title: t('page.select'), onClick: function () { setSelectOpen(!selectOpen) } }),
+          h(P3Menu, { open: selectOpen, anchor: selectRef.current, items: selectItems, align: 'right', onSelect: pickSelect, onClose: function () { setSelectOpen(false) } }),
+        ) : null,
+        route.source === 'local' && route.page === 'playlists' ? h(IconButton, { icon: 'plus', size: 16, title: t('v2.newPlaylist'), onClick: function () { pushLayer('newPlaylist') } }) : null,
+      )
+    }
+
+    function P3Content(props) {
+      var route = useStore(p3RouteStore)
+      var selection = useStore(selectionStore)
+      var snap = usePlayerSnapshot()
+      var statsPage = route.source === 'local' && route.page === 'stats'
+      useEffect(function () {
+        if (statsPage) void loadStats(props.library.statsRange || 'all')
+      }, [statsPage, props.library.statsRange])
+      var favorites = useMemo(function () { return p3FavoriteSet(props.library.favorites) }, [props.library.favorites])
+      var current = snap.queue[snap.index] || null
+      var selectedSet = useMemo(function () {
+        var set = {}
+        ;(selection.paths || []).forEach(function (path) { set[path] = true })
+        return set
+      }, [selection.paths])
+      var filter = route.filter
+      var localLoading = route.source === 'local' && (props.library.phase === 'idle' || props.library.phase === 'loading') && (props.library.tracks || []).length === 0
+      if (localLoading) {
+        return h('main', { className: 'mpv3-content' },
+          h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Skeleton, { count: 8 })),
+        )
+      }
+      return h('main', { className: 'mpv3-content' },
+        filter ? h('div', { className: 'mpv3-filterbar' },
+          h('button', { type: 'button', className: 'mpv3-chip', onClick: function () { p3RouteStore.set({ filter: null }) } },
+            icon('folder', 12),
+            h('span', null, filter.value),
+            icon('close', 12),
+          ),
+        ) : null,
+        h(P3PageSwitch, {
+          route: route,
+          library: props.library,
+          online: props.online,
+          prefs: props.prefs,
+          currentPath: current ? current.path : '',
+          playing: snap.playing,
+          favoriteSet: favorites,
+          selectedSet: selectedSet,
+        }),
+      )
+    }
+
+    function P3Rail(props) {
+      var route = useStore(p3RouteStore)
+      var selection = useStore(selectionStore)
+      var source = route.source
+      var tabs = p3Tabs(source)
+      var active = p3ActiveTab(route)
+      var playlists = source === 'local' ? (props.library.playlists || []) : sortOnlinePlaylists(props.online.playlists || [])
+      return h('aside', { className: 'mpv3-rail' },
+        h('div', { className: 'mpv3-rail-group' },
+          h('div', { className: 'mpv3-rail-label' }, t('v2.sectionLibrary')),
+          tabs.filter(function (tab) { return tab !== 'playlists'; }).map(function (tab) {
+            return h('button', {
+              key: tab,
+              type: 'button',
+              className: cx('mpv3-rail-item', active === tab && 'is-on'),
+              onClick: function () { p3Navigate(tab, null, { root: true }) },
+            }, icon(tab === 'albums' ? 'disc' : tab === 'artists' ? 'user' : tab === 'folders' ? 'folder' : tab === 'favorites' ? 'heart' : tab === 'stats' ? 'chart' : tab === 'recent' ? 'clock' : 'music', 15), h('span', null, p3PageLabel(tab)))
+          }),
+        ),
+        tabs.indexOf('playlists') >= 0 ? h('div', { className: 'mpv3-rail-group' },
+          h('div', { className: 'mpv3-rail-label' }, t('v2.playlists')),
+          playlists.map(function (playlist) {
+            return h('button', {
+              key: playlist.id,
+              type: 'button',
+              className: cx('mpv3-rail-item', route.page === 'playlist' && route.param === playlist.id && 'is-on'),
+              onClick: function () {
+                if (source === 'local') p3Navigate('playlist', playlist.id)
+                else { p3Collection.set({ playlist: playlist }); p3Navigate('playlist', playlist.id) }
+              },
+            }, icon('list', 15), h('span', null, playlist.name || t('v2.playlist')))
+          }),
+        ) : null,
+      )
+    }
+
+    function P3SleepChip(props) {
+      var remaining = useCountdown(props.deadline)
+      if (remaining <= 0) return null
+      return h('button', {
+        type: 'button',
+        className: 'mpv3-chip',
+        title: t('v2.sleepCancel'),
+        onClick: function () { setPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 }) },
+      }, icon('clock', 12), fmtClock(remaining / 1000))
+    }
+
+    function P3PlayerBar(props) {
+      var snap = usePlayerSnapshot()
+      var prefs = usePrefs()
+      var time = usePlayerTime()
+      var [preview, setPreview] = useState(null)
+      var current = snap.queue[snap.index] || null
+      var duration = time.duration > 0 ? time.duration : current ? current.durationSec || 0 : 0
+      if (!current) {
+        return h('footer', { className: 'mpv3-player is-empty' },
+          h('div', { className: 'mpv3-player-track' },
+            h('div', { className: 'mpv3-player-cover' }, icon('music', 16)),
+            h('div', { className: 'mpv3-player-meta' }, h('div', { className: 'mpv3-player-title' }, t('page.noTrack')), h('div', { className: 'mpv3-player-artist' }, t('p3.pickTrack'))),
+          ),
+          h('div', { className: 'mpv3-player-center' },
+            h(IconButton, { icon: 'prev', size: 17, title: t('page.prev'), disabled: true }),
+            h('button', { type: 'button', className: 'mpv3-player-play', disabled: true }, icon('play', 15)),
+            h(IconButton, { icon: 'next', size: 17, title: t('page.next'), disabled: true }),
+          ),
+          h('div', { className: 'mpv3-player-right' }, h(P3SleepChip, { deadline: prefs.sleepDeadline })),
+        )
+      }
+      var like = likeStateOf(current, props.favoriteSet)
+      return h('footer', {
+        className: 'mpv3-player',
+        onClick: function (event) {
+          if (event.target.closest('button,input,[role="slider"],.mpv3-queue')) return
+          props.onOpenPlayer()
+        },
+      },
+        h('div', { className: 'mpv3-player-seek' }, h(SeekBar, { fallbackDuration: current.durationSec || 0, onPreview: setPreview })),
+        h('div', { className: 'mpv3-player-track' },
+          h('button', { type: 'button', className: 'mpv3-player-cover', onClick: props.onOpenPlayer, title: t('page.openPlayer') },
+            h(Cover, { src: trackCoverSrc(current), iconSize: 16 }),
+            snap.playing ? h('span', { className: 'mpv3-player-eq' }, h('i'), h('i'), h('i')) : null,
+          ),
+          h('div', { className: 'mpv3-player-meta' },
+            h('div', { className: 'mpv3-player-title', title: trackTitleOf(current) }, trackTitleOf(current)),
+            h('div', { className: 'mpv3-player-artist', title: trackArtistOf(current) }, trackArtistOf(current)),
+          ),
+          h(IconButton, {
+            icon: like.isLiked ? 'heartFill' : 'heart',
+            size: 15,
+            active: like.isLiked,
+            disabled: like.disabled === true,
+            title: like.disabled === true ? like.reason : like.isLiked ? t('page.unfavorite') : t('page.favorite'),
+            onClick: like.onLike,
+          }),
+        ),
+        h('div', { className: 'mpv3-player-center' },
+          h(IconButton, { icon: 'shuffle', size: 16, active: snap.order === 'random', title: t('page.shuffle'), onClick: function () { player.setOrder(snap.order === 'random' ? 'list' : 'random') } }),
+          h(IconButton, { icon: 'prev', size: 17, title: t('page.prev'), onClick: function () { player.prev() } }),
+          h('button', { type: 'button', className: 'mpv3-player-play', title: snap.playing ? t('page.pause') : t('page.play'), onClick: function () { player.toggle() } }, icon(snap.playing ? 'pause' : 'play', 15)),
+          h(IconButton, { icon: 'next', size: 17, title: t('page.next'), onClick: function () { player.next() } }),
+          h(IconButton, {
+            icon: snap.loop === 'one' ? 'repeatOne' : 'repeat',
+            size: 16,
+            active: snap.loop !== 'none',
+            title: snap.loop === 'one' ? t('page.loopOne') : snap.loop === 'all' ? t('page.loopAll') : t('page.loopNone'),
+            onClick: function () { player.setLoop(playerLoopNext(snap.loop)) },
+          }),
+        ),
+        h('div', { className: 'mpv3-player-right' },
+          h('span', { className: 'mpv3-player-time' }, fmtClock(preview !== null ? preview : time.currentTime) + ' / ' + fmtClock(duration)),
+          h(P3SleepChip, { deadline: prefs.sleepDeadline }),
+          h(IconButton, { icon: 'target', size: 16, title: t('page.locateCurrent'), onClick: props.onLocate }),
+          h('div', { className: 'mpv3-player-vol' },
+            h(IconButton, {
+              icon: snap.muted || snap.volume === 0 ? 'mute' : 'volume',
+              size: 16,
+              title: t('page.mute'),
+              onClick: function () { player.setMuted(!snap.muted) },
+            }),
+            h('input', {
+              type: 'range',
+              min: 0,
+              max: 100,
+              value: Math.round((snap.muted ? 0 : snap.volume) * 100),
+              onChange: function (event) {
+                var value = Number(event.target.value) / 100
+                if (snap.muted && value > 0) player.setMuted(false)
+                player.setVolume(value)
+              },
+              'aria-label': t('page.volume'),
+            }),
+          ),
+          h(IconButton, { icon: 'playlist', size: 16, active: props.queueOpen, title: t('page.queue'), onClick: props.onToggleQueue }),
+          h(IconButton, { icon: 'chevronDown', size: 16, title: t('page.openPlayer'), onClick: props.onOpenPlayer }),
+        ),
+      )
+    }
+
+    function playerLoopNext(loop) {
+      if (loop === 'none') return 'all'
+      if (loop === 'all') return 'one'
+      return 'none'
+    }
+
+    function P3Queue(props) {
+      var snap = usePlayerSnapshot()
+      var current = snap.queue[snap.index] || null
+      if (!props.open) return null
+      return h('aside', { className: 'mpv3-queue', role: 'dialog', 'aria-label': t('page.queue') },
+        h('div', { className: 'mpv3-queue-head' },
+          h('strong', null, t('page.queue')),
+          h('span', null, snap.queue.length + ' ' + t('p3.unitSong') + ' · ' + (snap.order === 'random' ? t('page.shuffle') : t('p3.sequence'))),
+          h('span', { className: 'mpv3-grow' }),
+          snap.queue.length > 0 ? h(IconButton, { icon: 'trash', size: 15, title: t('p3.clearQueue'), onClick: function () {
+            pushLayer('confirm', {
+              title: t('p3.clearQueue'),
+              text: t('p3.clearQueueConfirm'),
+              onConfirm: function () { player.clearQueue(); props.onClose() },
+            })
+          } }) : null,
+          h(IconButton, { icon: 'target', size: 15, title: t('page.locateCurrent'), onClick: function () { props.onLocate() } }),
+          h(IconButton, { icon: 'x', size: 15, title: t('page.close'), onClick: props.onClose }),
+        ),
+        h('div', { className: 'mpv3-queue-list' },
+          current ? h('div', { className: 'mpv3-queue-section' }, t('p3.nowPlaying')) : null,
+          current ? h('button', {
+            type: 'button',
+            className: 'mpv3-queue-row is-cur',
+            onClick: function () { player.select(snap.queue, snap.index) },
+          },
+            h('span', { className: 'mpv3-queue-idx' }, icon('play', 11)),
+            h('span', { className: 'mpv3-queue-cover' }, h(Cover, { src: trackCoverSrc(current), iconSize: 12 })),
+            h('span', { className: 'mpv3-queue-main' }, h('span', { className: 'mpv3-queue-name' }, trackTitleOf(current)), h('span', { className: 'mpv3-queue-artist' }, trackArtistOf(current))),
+            h('span', { className: 'mpv3-queue-time' }, fmtClock(current.durationSec || 0)),
+          ) : null,
+          h('div', { className: 'mpv3-queue-section' }, t('p3.nextUp')),
+          (function () {
+            var order = snap.order === 'random' ? player.getPlayOrder() : snap.queue.map(function (_, index) { return index })
+            if (!Array.isArray(order) || order.length !== snap.queue.length) order = snap.queue.map(function (_, index) { return index })
+            return order.map(function (index, position) {
+              if (index === snap.index) return null
+              var track = snap.queue[index]
+              if (!track) return null
+              return h('button', {
+                key: track.path + ':' + index,
+                type: 'button',
+                className: 'mpv3-queue-row',
+                onClick: function () { player.select(snap.queue, index) },
+              },
+                h('span', { className: 'mpv3-queue-idx' }, String(position + 1)),
+                h('span', { className: 'mpv3-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+                h('span', { className: 'mpv3-queue-main' }, h('span', { className: 'mpv3-queue-name' }, trackTitleOf(track)), h('span', { className: 'mpv3-queue-artist' }, trackArtistOf(track))),
+                h('span', { className: 'mpv3-queue-time' }, fmtClock(track.durationSec || 0)),
+              )
+            })
+          })(),
+          snap.queue.length === 0 ? h('div', { className: 'mpv3-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty'))) : null,
+        ),
+      )
+    }
+
+    function p3LocateCurrent(snap) {
+      var current = snap.queue[snap.index] || null
+      if (!current) { showToast(t('page.noTrack')); return }
+      var source = current.onlineProvider || 'local'
+      if (source !== p3RouteStore.get().source) p3SwitchSource(source)
+      p3RouteStore.set({
+        page: current.onlineProvider ? 'recent' : 'songs',
+        param: null,
+        filter: null,
+        query: '',
+        history: [],
+      })
+      p3SaveRoute()
+      window.setTimeout(function () {
+        var rows = Array.prototype.slice.call(document.querySelectorAll('.mpv3-row'))
+        var row = null
+        for (var i = 0; i < rows.length; i += 1) {
+          if (rows[i].dataset && rows[i].dataset.path === current.path) { row = rows[i]; break }
+        }
+        if (row) {
+          row.scrollIntoView({ block: 'center' })
+          row.classList.add('is-located')
+          window.setTimeout(function () { row.classList.remove('is-located') }, 1400)
+        }
+      }, 80)
+    }
+
+    function P3Shell() {
+      var route = useStore(p3RouteStore)
+      var library = useStore(libraryStore)
+      var online = useStore(onlineStore)
+      var prefs = usePrefs()
+      var snap = usePlayerSnapshot()
+      var [queueOpen, setQueueOpen] = useState(false)
+      var [npOpen, setNpOpen] = useState(false)
+      var [npQueueOpen, setNpQueueOpen] = useState(false)
+      var [guideOpen, setGuideOpen] = useState(startupGuideOpen)
+      var [wide, setWide] = useState(typeof window !== 'undefined' ? window.innerWidth : 1400)
+
+      useEffect(function () {
+        function measure() { setWide(window.innerWidth) }
+        window.addEventListener('resize', measure)
+        return function () { window.removeEventListener('resize', measure) }
+      }, [])
+
+      useEffect(function () {
+        void loadLibrary(false)
+        void loadFavorites()
+        void loadPlaylists()
+        void loadConfig()
+        void loadProviders()
+      }, [])
+
+      useEffect(function () {
+        return player.subscribeError(function (info) {
+          var reason = info && typeof info.reason === 'string' ? info.reason.trim() : ''
+          showToast(reason ? t('page.playbackFailed', { reason: reason }) : t('page.playbackFailedNoReason'))
+        })
+      }, [])
+
+      useEffect(function () {
+        if (route.source !== 'local') {
+          onlineStore.set({ provider: route.source })
+          void loadProviders()
+          void loadMyPlaylists(route.source)
+        }
+      }, [route.source])
+
+      useEffect(function () {
+        var providers = onlineStore.get().providers || {}
+        if (Object.keys(providers).length === 0) return
+        if (route.source !== 'local' && !providers[route.source]) {
+          p3SwitchSource('local')
+          return
+        }
+        var tabs = p3Tabs(route.source)
+        if (route.page !== 'album' && route.page !== 'artist' && route.page !== 'playlist' && route.page !== 'search' && tabs.indexOf(route.page) < 0) {
+          p3RouteStore.set({ page: p3DefaultPage(route.source), param: null, filter: null })
+          p3SaveRoute()
+        }
+      }, [online.providers, route.source, route.page])
+
+      useEffect(function () {
+        var timer = window.setInterval(function () {
+          getJson(API + 'control/pending')
+            .then(function (body) { (body.actions || []).forEach(applyControlAction) })
+            .catch(function () {})
+        }, 2000)
+        return function () { window.clearInterval(timer) }
+      }, [])
+
+      useEffect(function () {
+        var deadline = Number(prefs.sleepDeadline) || 0
+        var minutes = Number(prefs.sleepTimerMinutes) || 0
+        if (deadline <= 0 && minutes > 0) {
+          setPrefs({ sleepDeadline: Date.now() + minutes * 60000 })
+          return undefined
+        }
+        if (deadline <= 0) return undefined
+        var delay = deadline - Date.now()
+        if (delay <= 0) {
+          player.pause()
+          setPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 })
+          showToast(t('settings.sleepTimerDone'))
+          return undefined
+        }
+        var timer = window.setTimeout(function () {
+          player.pause()
+          setPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 })
+          showToast(t('settings.sleepTimerDone'))
+        }, delay)
+        return function () { window.clearTimeout(timer) }
+      }, [prefs.sleepDeadline, prefs.sleepTimerMinutes])
+
+      useEffect(function () {
+        function onKey(event) {
+          var tag = event.target && event.target.tagName
+          if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+            if (event.key === 'Escape' && event.target.blur) event.target.blur()
             return
           }
-          pushLayer('login', { provider: provider, mode: 'qq' })
-        })
-      }
-      var currentEntries = []
-      var likedSet = online.liked || {}
-
-      function toggleOnlineFavorite(track) {
-        // Optimistic write with rollback, shared with the bar and the card.
-        toggleLikeTrack(track)
-      }
-
-      useEffect(
-        function () {
-          // The liked map is shared with the bar and the card (src/47-likes.js).
-          loadLikedIds(provider).catch(function () {
-            // Not signed in: every heart stays neutral.
-          })
-          return function () {
-            // the store keeps the map, nothing to cancel
+          if (event.key === 'Escape') {
+            var hostModal = typeof document !== 'undefined' ? document.querySelector('[role="dialog"][aria-modal="true"]') : null
+            if (hostModal !== null && hostModal.closest('.mpv3-root') === null) return
+            if (isRangePicking()) { cancelRangePick(); return }
+            if (popLayer()) return
+            if (selectionStore.get().active === true) { setSelectionMode(false); return }
+            if (queueOpen) { setQueueOpen(false); return }
+            if (npOpen) { setNpOpen(false); return }
+            if (p3RouteStore.get().history.length > 0) { p3Back(); return }
+            if (p3RouteStore.get().query !== '') { p3RouteStore.set({ query: '' }); return }
+            return
           }
-        },
-        [provider, (online.providers[provider] || {}).loggedIn],
-      )
-      var playAll = null
-
-      function sortOnlineTracks(entries) {
-        return sortTracks((entries || []).map(onlineTrackOf), prefs.sortBy, prefs.sortDir)
-      }
-
-      function playSelectedOnline() {
-        var picked = {}
-        selection.paths.forEach(function (path) {
-          picked[path] = true
-        })
-        var chosen = (currentEntries || []).filter(function (entry) {
-          return picked['online:' + (entry.provider || provider) + ':' + entry.id] === true
-        })
-        if (chosen.length > 0) {
-          playOnlineResults(chosen, 0)
-          return
-        }
-        var tracks = onlineSelectionList.filter(function (track) {
-          return picked[track.path] === true
-        })
-        if (tracks.length > 0) player.playList(tracks, 0)
-      }
-
-      function sortOnlineEntries(entries) {
-        var list = entries || []
-        var byPath = {}
-        list.forEach(function (entry) {
-          byPath['online:' + (entry.provider || provider) + ':' + entry.id] = entry
-        })
-        return sortOnlineTracks(list)
-          .map(function (track) {
-            return byPath[track.path]
-          })
-          .filter(Boolean)
-      }
-
-      function setPlayAll(entries) {
-        currentEntries = sortOnlineEntries(entries)
-        playAll = currentEntries.length > 0
-          ? function () {
-              playOnlineResults(currentEntries, 0)
-            }
-          : null
-      }
-
-      useEffect(
-        function () {
-          if (online.playlistsPhase === 'idle' || online.playlistsProvider !== provider) {
-            void loadMyPlaylists(provider)
+          if (event.code === 'Space') {
+            if (event.target.closest('button')) return
+            event.preventDefault()
+            player.toggle()
+            return
           }
-        },
-        [provider, online.playlistsPhase, online.playlistsProvider],
-      )
-
-      useEffect(
-        function () {
-          if (nav !== 'songs') {
-            setSongsPhase('idle')
-            return undefined
-          }
-          var cancelled = false
-          setSongsPhase('loading')
-          // Native mode orders on the server and returns one page at a time, so a
-          // page is addressed purely by its offset and never appended to.
-          var sort = String(prefs.sortBy || 'title')
-          var order = prefs.sortDir === 'desc' ? 'desc' : 'asc'
-          var offset = (songsPage - 1) * SONG_PAGE_SIZE
-          getJson(
-            API +
-              'online/songs?provider=' +
-              encodeURIComponent(provider) +
-              '&size=' +
-              String(SONG_PAGE_SIZE) +
-              '&offset=' +
-              String(offset) +
-              '&sort=' +
-              encodeURIComponent(sort) +
-              '&order=' +
-              encodeURIComponent(order),
-          )
-            .then(function (body) {
-              if (cancelled) return
-              setSongsList(Array.isArray(body.songs) ? body.songs : [])
-              setSongsNative(body.native === true)
-              setSongsTotal(Number(body.total) || 0)
-              setSongsPhase('ready')
-            })
-            .catch(function () {
-              if (cancelled) return
-              setSongsList([])
-              setSongsNative(false)
-              setSongsTotal(0)
-              setSongsPhase('error')
-            })
-          return function () {
-            cancelled = true
-          }
-        },
-        [nav, provider, prefs.sortBy, prefs.sortDir, songsPage],
-      )
-
-      // Any change of provider or ordering invalidates the page number.
-      useEffect(
-        function () {
-          setSongsPage(1)
-        },
-        [provider, prefs.sortBy, prefs.sortDir],
-      )
-
-      function goToSongsPage(page) {
-        var next = Math.max(1, Math.floor(Number(page) || 1))
-        if (next === songsPage) return
-        setSongsPage(next)
-      }
-
-      // Artist / album cards load their list once per view; the rows are static
-      // until the user re-enters.
-      useEffect(
-        function () {
-          if (nav !== 'artists' && nav !== 'albums' && nav !== 'artist') {
-            setBrowsePhase('idle')
-            return undefined
-          }
-          var cancelled = false
-          setBrowsePhase('loading')
-          var url = ''
-          if (nav === 'artists') url = API + 'online/artists?provider=' + encodeURIComponent(provider)
-          else if (nav === 'albums') url = API + 'online/albums?provider=' + encodeURIComponent(provider) + '&size=200'
-          else url = API + 'online/artist?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(browseId)
-          getJson(url)
-            .then(function (body) {
-              if (cancelled) return
-              if (nav === 'artists') setArtistsList(Array.isArray(body.artists) ? body.artists : [])
-              else if (nav === 'albums') setAlbumsList(Array.isArray(body.albums) ? body.albums : [])
-              else {
-                setArtistDetail(body.artist || null)
-                setArtistAlbumsList(Array.isArray(body.albums) ? body.albums : [])
-              }
-              setBrowsePhase('ready')
-            })
-            .catch(function () {
-              if (cancelled) return
-              if (nav === 'artists') setArtistsList([])
-              else if (nav === 'albums') setAlbumsList([])
-              else {
-                setArtistDetail(null)
-                setArtistAlbumsList([])
-              }
-              setBrowsePhase('error')
-            })
-          return function () {
-            cancelled = true
-          }
-        },
-        [nav, provider, browseId],
-      )
-
-      /** Open one album through the shared album view (upstream's own entry). */
-      function openAlbumCard(album) {
-        void openOnlineAlbum({
-          album: album.name || '',
-          albumId: album.id || '',
-          artist: album.artist || '',
-          onlineProvider: provider,
-          coverUrl: album.cover || '',
-          coverArtId: album.coverArtId || '',
-        })
-      }
-
-      function openArtistCard(artist) {
-        onlineStore.set({
-          artistName: artist.name || '',
-          artistProvider: provider,
-          artistFrom: uiStore.get().nav,
-        })
-        setBrowseId(String(artist.id || ''))
-        uiStore.set({ nav: 'artist', filter: null, query: '' })
-      }
-
-      function openArtist(track, artist) {
-        var target = onlineArtistTarget(track, artist)
-        if (target === null) return
-        if (target.artistId === '') {
-          void openOnlineArtist(track, artist)
-          return
-        }
-        onlineStore.set({
-          artistName: target.artist,
-          artistProvider: target.provider,
-          artistFrom: uiStore.get().nav,
-          artistSongs: [],
-          artistPhase: 'idle',
-          artistError: '',
-          query: '',
-          phase: 'idle',
-          error: '',
-        })
-        setBrowseId(target.artistId)
-        uiStore.set({ nav: 'artist', filter: null, query: '' })
-      }
-
-      function openArtistPage(id, name) {
-        var artistId = String(id || '')
-        if (artistId === '') return
-        onlineStore.set({
-          artistName: String(name || ''),
-          artistProvider: provider,
-          artistFrom: 'artistSongs',
-        })
-        setBrowseId(artistId)
-        uiStore.set({ nav: 'artist', filter: null, query: '' })
-      }
-
-      var title = t('v2.recent')
-      var count = 0
-      var actions = null
-      var backActions = []
-      var body = null
-      var resetKey = ''
-      var empty = null
-
-      if (showingSearch) {
-        title = t('online.searchResults')
-        var results = online.results || []
-        count = results.length
-        resetKey = 'search:' + provider + ':' + online.query
-
-        if (online.phase === 'searching') {
-          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('online.searching')))
-        } else if (online.phase === 'error') {
-          body = h(Empty, { title: t('online.networkError'), hint: online.error, icon: 'info' })
-        } else if (results.length === 0) {
-          body = h(Empty, { title: t('online.emptyResults'), hint: '', icon: 'search' })
-        } else {
-          body = h(TrackListBody, {
-            items: (setPlayAll(results), (onlineSelectionList = sortOnlineTracks(results))),
-            resetKey: resetKey,
-            selectionMode: selecting,
-            selectedSet: selectedSet,
-            onToggleSelect: toggleSelected,
-            onSelect: function (track, additive) {
-              selectTrackIn(onlineSelectionList, track, additive)
-            },
-            focusPath: props.locatePath || '',
-            currentPath: props.currentPath,
-            playing: props.playing,
-            favoriteSet: likedSet,
-            onPlay: function (track) {
-              var index = results.findIndex(function (item) {
-                return 'online:' + item.provider + ':' + item.id === track.path
-              })
-              playOnlineResults(results, index < 0 ? 0 : index)
-            },
-            onMenu: function (track, event) {
-              props.onMenu(track, event, { playSelected: playSelectedOnline })
-            },
-            onToggleFavorite: toggleOnlineFavorite,
-            onAlbum: function (track) {
-              void openOnlineAlbum(track)
-            },
-            onArtist: openArtist,
-            empty: empty,
-          })
-          if ((online.searchTotal || 0) > results.length) {
-            body = h(
-              'div',
-              { className: 'mp-songs-pane', key: 'search-pane' },
-              body,
-              h(
-                'div',
-                { className: 'mp-pager', key: 'pager' },
-                h(
-                  Button,
-                  {
-                    icon: 'plus',
-                    disabled: online.searchLoadingMore === true,
-                    onClick: function () {
-                      void searchOnline(online.query, (online.searchPage || 1) + 1, true)
-                    },
-                  },
-                  online.searchLoadingMore === true ? t('online.loadingMore') : t('online.loadMore'),
-                ),
-              ),
-            )
+          if ((event.ctrlKey || event.metaKey) && event.key === 'ArrowRight') { event.preventDefault(); player.next(); return }
+          if ((event.ctrlKey || event.metaKey) && event.key === 'ArrowLeft') { event.preventDefault(); player.prev(); return }
+          if (event.key === '/') {
+            event.preventDefault()
+            var input = document.getElementById('p3-search')
+            if (input) input.focus()
           }
         }
-      } else if (nav === 'album') {
-        title = online.albumName || t('online.album')
-        var albumSongs = Array.isArray(online.albumSongs) ? online.albumSongs : []
-        count = albumSongs.length
-        resetKey = 'online-album:' + online.albumProvider + ':' + online.albumId + ':' + online.albumName
-        actions = [
-          h(
-            Button,
-            {
-              key: 'play',
-              variant: 'primary',
-              icon: 'play',
-              onClick: function () {
-                playOnlineResults(albumSongs, 0)
-              },
-            },
-            t('page.playAll'),
+        window.addEventListener('keydown', onKey)
+        return function () { window.removeEventListener('keydown', onKey) }
+      }, [queueOpen, npOpen])
+
+      var topLayout = prefs.layout !== 'rail' || wide < 1000
+      var current = snap.queue[snap.index] || null
+
+      return h('div', { className: cx('mpv3-root', !topLayout && 'is-rail') },
+        h(P3TopBar, { library: library, online: online }),
+        h('div', { className: 'mpv3-workspace' },
+          !topLayout ? h(P3Rail, { library: library, online: online, prefs: prefs }) : null,
+          h('div', { className: 'mpv3-main' },
+            h(P3ViewBar, { library: library, online: online }),
+            h(P3Content, { library: library, online: online, prefs: prefs }),
           ),
-        ]
-        backActions = [
-          h(
-            Button,
-            {
-              key: 'back',
-              variant: 'ghost',
-              icon: 'chevronLeft',
-              onClick: function () {
-                closeOnlineAlbum()
-                setNav('recent')
-              },
-            },
-            t('v2.back'),
-          ),
-        ]
-        if (online.albumPhase === 'loading') {
-          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-        } else if (online.albumPhase === 'error') {
-          body = h(Empty, { title: t('online.albumFailed'), hint: online.albumError, icon: 'disc' })
-        } else if (albumSongs.length === 0) {
-          body = h(Empty, { title: t('online.emptyResults'), icon: 'disc' })
-        } else {
-          // A self-hosted server is the one provider whose album endpoint reports a
-          // meaningful disc/track sequence (and never reorders on relevance), so its
-          // album keeps the server order. The four Chinese platforms behave exactly
-          // as before — they still apply the user's sort preference — because
-          // changing their output is not this branch's call to make.
-          var albumOrder =
-            online.albumProvider === 'navidrome'
-              ? albumSongs.map(onlineTrackOf)
-              : sortOnlineTracks(albumSongs)
-          body = h(TrackListBody, {
-            items: (setPlayAll(albumSongs), (onlineSelectionList = albumOrder)),
-            resetKey: resetKey,
-            selectionMode: selecting,
-            selectedSet: selectedSet,
-            onToggleSelect: toggleSelected,
-            onSelect: function (track, additive) {
-              selectTrackIn(onlineSelectionList, track, additive)
-            },
-            focusPath: props.locatePath || '',
-            currentPath: props.currentPath,
-            playing: props.playing,
-            favoriteSet: likedSet,
-            onPlay: function (track) {
-              var index = albumSongs.findIndex(function (item) {
-                return 'online:' + item.provider + ':' + item.id === track.path
-              })
-              playOnlineResults(albumSongs, index < 0 ? 0 : index)
-            },
-            onMenu: function (track, event) {
-              props.onMenu(track, event, { playSelected: playSelectedOnline })
-            },
-            onToggleFavorite: toggleOnlineFavorite,
-            onArtist: openArtist,
-          })
-        }
-      } else if (nav === 'playlists') {
-        title = t('online.myPlaylists')
-        var playlists = online.playlists || []
-        count = playlists.length
-        resetKey = 'online-playlists'
-        var signedIn = (online.providers[provider] || {}).loggedIn === true
-        if (!signedIn && online.playlistsPhase !== 'loading') {
-          body = h(
-            Empty,
-            {
-              title: t('v2.loginNeeded'),
-              hint: t('online.playlistsHint'),
-              icon: 'user',
-            },
-          )
-          actions = [
-            h(
-              Button,
-              {
-                key: 'login',
-                variant: 'primary',
-                icon: 'qr',
-                onClick: function () {
-                  pushLayer('login', { provider: provider, mode: 'qq' })
-                },
-              },
-              t('online.login'),
-            ),
-          ]
-        } else if (online.playlistsPhase === 'loading') {
-          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-        } else if (online.playlistsPhase === 'error') {
-          body = h(Empty, {
-            title: t('online.playlistsError'),
-            hint: online.error || t('online.authExpiredHint'),
-            icon: 'info',
-          })
-        } else if (playlists.length === 0) {
-          body = h(Empty, { title: t('v2.noPlaylists'), icon: 'list' })
-        } else {
-          body = h(
-            ScrollBox,
-            { resetKey: resetKey },
-            playlists.map(function (playlist) {
-              return h(
-                'button',
-                {
-                  key: playlist.id,
-                  type: 'button',
-                  className: 'mp-srow',
-                  onClick: function () {
-                    void openOnlinePlaylist(playlist)
-                  },
-                },
-                h(
-                  'div',
-                  { className: 'mp-srow-cover' },
-                  playlist.cover
-                    ? h(Cover, { src: onlineCoverSrc({ coverUrl: playlist.cover }), iconSize: 18 })
-                    : icon('list', 18),
-                ),
-                h(
-                  'div',
-                  { className: 'mp-srow-main' },
-                  h('div', { className: 'mp-srow-title' }, playlist.name || ''),
-                  h('div', { className: 'mp-srow-sub' }, (playlist.trackCount || 0) + ' · ' + t('v2.songs')),
-                ),
-                icon('chevronRight', 14),
-              )
-            }),
-          )
-        }
-      } else if (nav === 'playlist') {
-        title = online.playlistName || t('online.myPlaylists')
-        var songs = online.playlistSongs || []
-        count = songs.length
-        resetKey = 'online-playlist:' + online.playlistId
-        backActions = [h(Button, { key: 'back', variant: 'ghost', icon: 'chevronLeft', onClick: function () {
-                    closeOnlinePlaylist()
-                    setNav('recent')
-                  } }, t('v2.back'))]
-        if (online.playlistPhase === 'loading') {
-          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-        } else if (songs.length === 0) {
-          body = h(Empty, { title: t('online.emptyResults'), icon: 'list' })
-        } else {
-          body = h(TrackListBody, {
-            items: (setPlayAll(songs), (onlineSelectionList = sortOnlineTracks(songs))),
-            resetKey: resetKey,
-            selectionMode: selecting,
-            selectedSet: selectedSet,
-            onToggleSelect: toggleSelected,
-            onSelect: function (track, additive) {
-              selectTrackIn(onlineSelectionList, track, additive)
-            },
-            focusPath: props.locatePath || '',
-            currentPath: props.currentPath,
-            playing: props.playing,
-            favoriteSet: likedSet,
-            onPlay: function (track) {
-              var index = songs.findIndex(function (item) {
-                return 'online:' + item.provider + ':' + item.id === track.path
-              })
-              playOnlineResults(songs, index < 0 ? 0 : index)
-            },
-            onMenu: function (track, event) {
-              props.onMenu(track, event, { playSelected: playSelectedOnline })
-            },
-            onToggleFavorite: toggleOnlineFavorite,
-            onAlbum: function (track) {
-              void openOnlineAlbum(track)
-            },
-            onArtist: openArtist,
-          })
-        }
-      } else if (nav === 'artistSongs') {
-        var artistTracks = Array.isArray(online.artistSongs) ? online.artistSongs : []
-        title = online.artistName || t('v2.artists')
-        count = artistTracks.length
-        resetKey = 'online-artist-songs:' + online.artistProvider + ':' + online.artistName
-        backActions = [
-          h(
-            Button,
-            {
-              key: 'back',
-              variant: 'ghost',
-              icon: 'chevronLeft',
-              onClick: function () {
-                var from = online.artistFrom || 'recent'
-                closeOnlineArtist()
-                setNav(from)
-              },
-            },
-            t('v2.back'),
-          ),
-        ]
-        var artistPageId = String(online.artistId || '')
-        if (artistPageId === '') {
-          for (var artistRowIndex = 0; artistRowIndex < artistTracks.length; artistRowIndex += 1) {
-            var artistDetails = Array.isArray(artistTracks[artistRowIndex].artistsDetail)
-              ? artistTracks[artistRowIndex].artistsDetail
-              : []
-            for (var artistDetailIndex = 0; artistDetailIndex < artistDetails.length; artistDetailIndex += 1) {
-              if (String(artistDetails[artistDetailIndex].name || '') === String(online.artistName || '')) {
-                artistPageId = String(artistDetails[artistDetailIndex].id || '')
-                break
-              }
-            }
-            if (artistPageId !== '') break
-          }
-        }
-        if (artistPageId !== '') {
-          actions = [
-            h(
-              Button,
-              {
-                key: 'artist-page',
-                variant: 'ghost',
-                icon: 'user',
-                onClick: function () {
-                  openArtistPage(artistPageId, online.artistName)
-                },
-              },
-              t('online.artistHome'),
-            ),
-          ]
-        }
-        if (online.artistPhase === 'loading') {
-          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-        } else if (online.artistPhase === 'error') {
-          body = h(Empty, { title: t('online.networkError'), hint: online.artistError, icon: 'user' })
-        } else if (artistTracks.length === 0) {
-          body = h(Empty, { title: t('online.emptyResults'), icon: 'user' })
-        } else {
-          body = h(TrackListBody, {
-            items: (setPlayAll(artistTracks), (onlineSelectionList = sortOnlineTracks(artistTracks))),
-            resetKey: resetKey,
-            selectionMode: selecting,
-            selectedSet: selectedSet,
-            onToggleSelect: toggleSelected,
-            onSelect: function (track, additive) {
-              selectTrackIn(onlineSelectionList, track, additive)
-            },
-            focusPath: props.locatePath || '',
-            currentPath: props.currentPath,
-            playing: props.playing,
-            favoriteSet: likedSet,
-            onPlay: function (track) {
-              var index = artistTracks.findIndex(function (item) {
-                return 'online:' + item.provider + ':' + item.id === track.path
-              })
-              playOnlineResults(artistTracks, index < 0 ? 0 : index)
-            },
-            onMenu: function (track, event) {
-              props.onMenu(track, event, { playSelected: playSelectedOnline })
-            },
-            onToggleFavorite: toggleOnlineFavorite,
-            onAlbum: function (track) {
-              void openOnlineAlbum(track)
-            },
-            onArtist: openArtist,
-          })
-        }
-      } else if (nav === 'songs') {
-        // Library-wide browse. Subsonic has no stable "all songs" index, so the
-        // host returns getRandomSongs: a sample of the library, not a fixed list.
-        title = t('v2.songs')
-        var allSongs = songsList || []
-        count = allSongs.length
-        resetKey = 'online-songs:' + provider
-        // Only blank the pane for the first page; "load more" keeps the rows on
-        // screen while the next page is in flight.
-        var firstPage = songsPhase === 'idle' || (songsPhase === 'loading' && allSongs.length === 0)
-        if (firstPage) {
-          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-        } else if (songsPhase === 'error' && allSongs.length === 0) {
-          body = h(Empty, { title: t('online.networkError'), icon: 'info' })
-        } else if (allSongs.length === 0) {
-          body = h(Empty, { title: t('online.allSongsEmpty'), hint: t('online.allSongsEmptyHint'), icon: 'note' })
-        } else {
-          // Native pages arrive already ordered by the server, so re-sorting them
-          // client-side would break the page boundaries; the random sample has no
-          // such constraint and keeps honouring the sort preference.
-          var songOrder = songsNative === true ? allSongs.map(onlineTrackOf) : sortOnlineTracks(allSongs)
-          body = h(TrackListBody, {
-            items: (setPlayAll(allSongs), (onlineSelectionList = songOrder)),
-            resetKey: resetKey,
-            selectionMode: selecting,
-            selectedSet: selectedSet,
-            onToggleSelect: toggleSelected,
-            onSelect: function (track, additive) {
-              selectTrackIn(onlineSelectionList, track, additive)
-            },
-            focusPath: props.locatePath || '',
-            currentPath: props.currentPath,
-            playing: props.playing,
-            favoriteSet: likedSet,
-            onPlay: function (track) {
-              var index = allSongs.findIndex(function (item) {
-                return 'online:' + item.provider + ':' + item.id === track.path
-              })
-              playOnlineResults(allSongs, index < 0 ? 0 : index)
-            },
-            onMenu: function (track, event) {
-              props.onMenu(track, event, { playSelected: playSelectedOnline })
-            },
-            onToggleFavorite: toggleOnlineFavorite,
-            onArtist: openArtist,
-            empty: empty,
-          })
-          // A real footer: the list keeps flex:1 and the pager sits below it, so
-          // it stays visible without scrolling to the end of 3000 rows.
-          var footer = null
-          if (songsNative === true) {
-            var pageCount = Math.max(1, Math.ceil(songsTotal / SONG_PAGE_SIZE))
-            var numbers = pageWindow(songsPage, pageCount)
-            var busy2 = songsPhase === 'loading'
-            footer = h(
-              'div',
-              { className: 'mp-pager', key: 'pager' },
-              h(
-                Button,
-                {
-                  key: 'prev',
-                  icon: 'chevronLeft',
-                  disabled: busy2 || songsPage <= 1,
-                  onClick: function () {
-                    goToSongsPage(songsPage - 1)
-                  },
-                },
-                '',
-              ),
-              numbers.map(function (number, index) {
-                if (number === null) {
-                  return h('span', { key: 'gap' + index, className: 'mp-page-gap' }, '…')
-                }
-                return h(
-                  'button',
-                  {
-                    key: 'p' + number,
-                    type: 'button',
-                    className: 'mp-page-num' + (number === songsPage ? ' is-on' : ''),
-                    disabled: busy2,
-                    onClick: function () {
-                      goToSongsPage(number)
-                    },
-                  },
-                  String(number),
-                )
-              }),
-              h(
-                Button,
-                {
-                  key: 'next',
-                  icon: 'chevronRight',
-                  disabled: busy2 || songsPage >= pageCount,
-                  onClick: function () {
-                    goToSongsPage(songsPage + 1)
-                  },
-                },
-                '',
-              ),
-              h(
-                'span',
-                { className: 'mp-loaded-of' },
-                t('online.pageOf', { page: songsPage, pages: pageCount, total: songsTotal }),
-              ),
-            )
-          } else if (provider === 'navidrome') {
-            // Explain why there is no pager instead of leaving a silent cap.
-            footer = h(
-              'div',
-              { className: 'mp-pager is-hint', key: 'pager' },
-              h('span', { className: 'mp-loaded-of' }, t('online.randomSample', { n: allSongs.length })),
-              h(
-                Button,
-                {
-                  icon: 'settings',
-                  onClick: function () {
-                    pushLayer('settings', { tab: 'online' })
-                  },
-                },
-                t('online.enableFullLibrary'),
-              ),
-            )
-          }
-          if (footer !== null) {
-            body = h('div', { className: 'mp-songs-pane', key: 'songs-pane' }, body, footer)
-          }
-        }
-      } else if (nav === 'artists' || nav === 'albums' || nav === 'artist') {
-        // Card grids. Every row opens the shared album view, so these are purely
-        // navigation surfaces over the provider's own catalogue.
-        var isArtistList = nav === 'artists'
-        var isAlbumList = nav === 'albums'
-        var cards = isArtistList ? artistsList : isAlbumList ? albumsList : artistAlbumsList
-        title = isArtistList
-          ? t('v2.artists')
-          : isAlbumList
-            ? t('v2.albums')
-            : (artistDetail && artistDetail.name) || t('v2.artists')
-        count = cards.length
-        resetKey = 'online-' + nav + ':' + provider + (nav === 'artist' ? ':' + browseId : '')
-        if (nav === 'artist') {
-          backActions = [
-            h(
-              Button,
-              {
-                key: 'back',
-                variant: 'ghost',
-                icon: 'chevronLeft',
-                onClick: function () {
-                  setNav(online.artistFrom || 'recent')
-                },
-              },
-              t('v2.back'),
-            ),
-          ]
-          actions = [
-            h(
-              Button,
-              {
-                key: 'artist-songs',
-                variant: 'primary',
-                icon: 'play',
-                onClick: function () {
-                  void openOnlineArtist(
-                    {
-                      onlineProvider: provider,
-                      artist: artistDetail && artistDetail.name,
-                      artistsDetail: [{ id: browseId, name: (artistDetail && artistDetail.name) || '' }],
-                    },
-                    artistDetail && artistDetail.name,
-                  )
-                },
-              },
-              t('online.artistSongs'),
-            ),
-          ]
-        }
-        var artistHead = null
-        if (nav === 'artist' && artistDetail) {
-          var artistCover = artistDetail.cover
-            ? onlineCoverSrc({ coverUrl: artistDetail.cover }, provider)
-            : ''
-          artistHead = h(
-            'div',
-            { className: 'mp-artist-head' },
-            h(
-              'span',
-              { className: 'mp-artist-avatar' },
-              artistCover === '' ? icon('user', 26) : h(Cover, { src: artistCover, iconSize: 26 }),
-            ),
-            h(
-              'div',
-              { className: 'mp-artist-info' },
-              h('div', { className: 'mp-artist-name' }, artistDetail.name || ''),
-              artistDetail.description ? h('div', { className: 'mp-artist-desc' }, artistDetail.description) : null,
-              h('div', { className: 'mp-artist-meta' }, t('online.albumCount', { n: cards.length })),
-            ),
-          )
-        }
-        if (browsePhase === 'loading' || browsePhase === 'idle') {
-          body = h('div', { className: 'mp-empty' }, h(Spinner), h('span', null, t('v2.loading')))
-        } else if (browsePhase === 'error') {
-          body = h(Empty, { title: t('online.networkError'), icon: 'info' })
-        } else if (cards.length === 0) {
-          var emptyCard = h(Empty, { title: t('page.noResults'), icon: isArtistList ? 'user' : 'disc' })
-          body = artistHead === null ? emptyCard : h('div', { className: 'mp-artist-page' }, artistHead, emptyCard)
-        } else {
-          var openCard = isArtistList
-            ? openArtistCard
-            : function (card) {
-                openAlbumCard(card)
-              }
-          var cardList = h(
-            ScrollBox,
-            { resetKey: resetKey },
-            h(
-              'div',
-              { className: 'mp-entry-list' },
-              cards.map(function (card) {
-                var cover = card.cover
-                  ? onlineCoverSrc({ coverUrl: card.cover }, provider)
-                  : subsonicCoverUrl(card.coverArtId)
-                return h(
-                  'button',
-                  {
-                    key: card.id,
-                    type: 'button',
-                    className: 'mp-entry-row',
-                    onClick: function () {
-                      openCard(card)
-                    },
-                  },
-                  h(
-                    'span',
-                    { className: 'mp-entry-art' + (isArtistList ? ' is-round' : '') },
-                    cover === ''
-                      ? h('span', { className: 'mp-entry-fallback' }, icon(isArtistList ? 'user' : 'disc', 22))
-                      : h(Cover, { src: cover, iconSize: 22 }),
-                  ),
-                  h(
-                    'span',
-                    { className: 'mp-entry-main' },
-                    h('span', { className: 'mp-entry-title' }, card.name || t('page.unknownAlbum')),
-                    h(
-                      'span',
-                      { className: 'mp-entry-sub' },
-                      isArtistList
-                        ? t('online.albumCount', { n: card.albumCount })
-                        : isAlbumList
-                          ? (card.artist || '') + (card.songCount > 0 ? ' · ' + t('page.trackCountUnit', { n: card.songCount }) : '')
-                          : (card.artist || '') + ((card.trackCount || card.songCount) > 0 ? ' · ' + t('page.trackCountUnit', { n: card.trackCount || card.songCount }) : ''),
-                    ),
-                  ),
-                )
-              }),
-            ),
-          )
-          body = cardList
-          if (artistHead !== null) {
-            body = h('div', { className: 'mp-artist-page' }, artistHead, cardList)
-          }
-        }
-      } else {
-        var history = onlineEntriesForHistory(online, provider)
-        title = t('v2.recent')
-        count = history.length
-        resetKey = 'online-recent:' + provider
-
-        if (history.length === 0) {
-          body = h(Empty, { title: t('v2.noHistory'), hint: t('v2.noHistoryHint'), icon: 'clock' })
-        } else {
-          body = h(TrackListBody, {
-            items: (setPlayAll(history), (onlineSelectionList = sortOnlineTracks(history))),
-            resetKey: resetKey,
-            selectionMode: selecting,
-            selectedSet: selectedSet,
-            onToggleSelect: toggleSelected,
-            onSelect: function (track, additive) {
-              selectTrackIn(onlineSelectionList, track, additive)
-            },
-            focusPath: props.locatePath || '',
-            currentPath: props.currentPath,
-            playing: props.playing,
-            favoriteSet: likedSet,
-            onPlay: function (track) {
-              var index = history.findIndex(function (item) {
-                return 'online:' + item.provider + ':' + item.id === track.path
-              })
-              playOnlineResults(history, index < 0 ? 0 : index)
-            },
-            onMenu: function (track, event) {
-              props.onMenu(track, event, {
-                playSelected: playSelectedOnline,
-                onRemove: function () {
-                  var match = /^online:([^:]+):(.+)$/.exec(track.path)
-                  if (match === null) return
-                  removeHistory({ provider: match[1], id: match[2] })
-                  showToast(t('online.removedFromHistory'))
-                },
-              })
-            },
-            onToggleFavorite: toggleOnlineFavorite,
-            onAlbum: function (track) {
-              void openOnlineAlbum(track)
-            },
-            onArtist: openArtist,
-          })
-        }
-      }
-
-      return [
-        h(ContentHeader, {
-          key: 'head',
-          title: title,
-          count: count,
-          onTitleClick:
-            nav === 'artistSongs' && artistPageId
-              ? function () {
-                  openArtistPage(artistPageId, online.artistName)
-                }
-              : undefined,
-          onAll: function () {
-            selectAllIn(onlineSelectionList)
-          },
-          onNone: function () {
-            setSelectionMode(false)
-          },
-          onRange: beginRangePick,
-          onInvert: function () {
-            invertSelectionIn(onlineSelectionList)
-          },
-          selecting: selecting,
-          selectedCount: selection.paths.length,
+          h(P3Queue, { open: queueOpen, onClose: function () { setQueueOpen(false) }, onLocate: function () { p3LocateCurrent(snap); setQueueOpen(false) } }),
+        ),
+        h(P3PlayerBar, {
+          favoriteSet: p3FavoriteSet(library.favorites),
+          queueOpen: queueOpen,
+          onToggleQueue: function () { setQueueOpen(!queueOpen) },
+          onOpenPlayer: function () { setNpOpen(true); setQueueOpen(false) },
+          onLocate: function () { p3LocateCurrent(snap) },
         }),
-        online.authExpired === provider
-          ? h(
-              'div',
-              { className: 'mp-online-auth', key: 'auth', role: 'status' },
-              h('span', { className: 'mp-online-auth-icon' }, icon('info', 16)),
-              h(
-                'div',
-                { className: 'mp-online-auth-text' },
-                h('div', { className: 'mp-online-auth-title' }, t('online.authExpired')),
-                h('div', { className: 'mp-online-auth-hint' }, t('online.authExpiredHint')),
-              ),
-              h(
-                'div',
-                { className: 'mp-online-auth-actions' },
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mp-online-auth-btn',
-                    onClick: function () {
-                      void loadMyPlaylists(provider)
-                    },
-                  },
-                  t('online.retry'),
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mp-online-auth-btn is-primary',
-                    onClick: reloginExpired,
-                  },
-                  t('online.relogin'),
-                ),
-              ),
-            )
-          : null,
-        backActions.length > 0 || (actions && actions.length > 0)
-          ? h(
-              'div',
-              { className: 'mp-toolbar', key: 'toolbar' },
-              h('div', { className: 'mp-toolbar-left' }, backActions),
-              actions && actions.length > 0
-                ? h('div', { className: 'mp-toolbar-right' }, actions)
-                : null,
-            )
-          : null,
-        h('div', { className: 'mp-content-body', key: 'body', style: { display: 'contents' } }, body),
-      ]
+        h(NowPlaying, {
+          open: npOpen,
+          favoriteSet: p3FavoriteSet(library.favorites),
+          onClose: function () { setNpOpen(false); setNpQueueOpen(false) },
+          queueOpen: npQueueOpen,
+          onToggleQueue: function () { setNpQueueOpen(!npQueueOpen) },
+          onToggleFavorite: function (track) { likeStateOf(track, p3FavoriteSet(library.favorites)).onLike() },
+          onLocate: function () { p3LocateCurrent(snap) },
+          onHome: function () { setNpOpen(false); setNpQueueOpen(false); p3Navigate('songs', null, { root: true }) },
+          onOpenSettings: function () { pushLayer('settings') },
+        }),
+        h(OverlayRoot),
+        h(Toast),
+        h(StartupGuide, { open: guideOpen, onClose: function (disable) { dismissStartupGuide(disable === true); setGuideOpen(false) } }),
+      )
     }
 
     // ── src/client/components/ui/player-sheet.js
@@ -173293,1150 +174463,6 @@ window.__ModuleLoader__.load({
       return t('sheet.lyricSegFailed')
     }
 
-    // ── src/client/components/ui/navigation.js
-    /**
-     * navigation: one model, two shapes (top section bar or left rail).
-     *
-     * Both shapes render `navGroupsFor`, so switching the layout never changes
-     * what is reachable — only where it sits. Playlists are first-class items,
-     * not a "playlists" list page.
-     */
-
-    function navItemContextMenu(item, active) {
-      if (!item.localPlaylistId) return undefined
-      return function (event) {
-        event.preventDefault()
-        var id = item.localPlaylistId
-        var name = item.label
-        pushLayer('confirm', {
-          title: t('page.delete'),
-          text: t('page.deleteConfirm', { name: name }),
-          onConfirm: function () {
-            if (active === item.key) setNav('songs')
-            void removePlaylist(id)
-          },
-        })
-      }
-    }
-
-    function NavRail(props) {
-      var groups = navGroupsFor(props.source, props.favoritesCount)
-      var active = activeNavKey(props.nav)
-      return h(
-        'nav',
-        { className: 'mp-nav', 'aria-label': t('page.tabLocal') },
-        groups.map(function (group) {
-          return h(
-            'div',
-            { className: 'mp-nav-group', key: group.label },
-            h(
-              'div',
-              { className: 'mp-nav-head' },
-              h('div', { className: 'mp-nav-label' }, group.label),
-              group.action
-                ? h(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'mp-nav-act',
-                      title: group.action.title,
-                      'aria-label': group.action.title,
-                      onClick: group.action.run,
-                    },
-                    icon(group.action.icon, 12),
-                  )
-                : null,
-            ),
-            group.items.map(function (item) {
-              return h(
-                'button',
-                {
-                  key: item.key,
-                  type: 'button',
-                  className: cx('mp-nav-item', active === item.key && 'is-on'),
-                  'aria-current': active === item.key ? 'page' : undefined,
-                  title: item.label,
-                  onClick: function () {
-                    activateNavItem(item)
-                  },
-                  onContextMenu: navItemContextMenu(item, active),
-                  onMouseEnter: item.onlinePlaylist
-                    ? function () {
-                        prefetchOnlinePlaylist(item.onlinePlaylist)
-                      }
-                    : undefined,
-                  onFocus: item.onlinePlaylist
-                    ? function () {
-                        prefetchOnlinePlaylist(item.onlinePlaylist)
-                      }
-                    : undefined,
-                },
-                icon(item.icon, 15),
-                h('span', null, item.label),
-                item.count !== null && item.count !== undefined
-                  ? h('em', { className: 'mp-nav-count' }, String(item.count))
-                  : null,
-              )
-            }),
-          )
-        }),
-      )
-    }
-
-    var MAX_PLAYLIST_TABS = 3
-
-    function SectionPlaylistOverflow(props) {
-      var openPair = useState(false)
-      var open = openPair[0]
-      var setOpen = openPair[1]
-      var buttonRef = useRef(null)
-      var posPair = useState(null)
-      var pos = posPair[0]
-      var setPos = posPair[1]
-      var active = activeNavKey(uiStore.get().nav)
-
-      useEffect(
-        function () {
-          if (!open) return undefined
-          function place() {
-            var button = buttonRef.current
-            if (!button) return
-            var rect = button.getBoundingClientRect()
-            var width = Math.min(720, window.innerWidth - 24)
-            var left = Math.max(12, Math.min(window.innerWidth - width - 12, rect.right - width))
-            setPos({ left: left + 'px', top: rect.bottom + 8 + 'px', width: width + 'px' })
-          }
-          function close(event) {
-            if (buttonRef.current && buttonRef.current.contains(event.target)) return
-            var pop = document.querySelector('.mp-playlist-pop')
-            if (pop && pop.contains(event.target)) return
-            setOpen(false)
-          }
-          function onKey(event) {
-            if (event.key === 'Escape') setOpen(false)
-          }
-          place()
-          window.addEventListener('resize', place)
-          window.addEventListener('scroll', place, true)
-          document.addEventListener('pointerdown', close, true)
-          window.addEventListener('keydown', onKey)
-          return function () {
-            window.removeEventListener('resize', place)
-            window.removeEventListener('scroll', place, true)
-            document.removeEventListener('pointerdown', close, true)
-            window.removeEventListener('keydown', onKey)
-          }
-        },
-        [open],
-      )
-
-      function pick(item) {
-        setOpen(false)
-        activateNavItem(item)
-      }
-
-      return h(
-        'span',
-        { className: 'mp-sec-overflow' },
-        h(
-          'button',
-          {
-            type: 'button',
-            ref: buttonRef,
-            className: cx('mp-sec-expand', open && 'is-on'),
-            title: t('v2.expandPlaylists'),
-            'aria-expanded': open === true,
-            onClick: function () {
-              setOpen(!open)
-            },
-          },
-          t('v2.expandPlaylists'),
-          icon('chevronDown', 12),
-        ),
-        open
-          ? h(
-              'div',
-              {
-                className: 'mp-playlist-pop',
-                role: 'dialog',
-                'aria-label': t('v2.playlists'),
-                style: pos || { visibility: 'hidden' },
-              },
-              h(
-                'div',
-                { className: 'mp-playlist-pop-head' },
-                h('strong', null, t('v2.playlists')),
-                h('span', { className: 'mp-playlist-pop-count' }, String(props.items.length)),
-              ),
-              h(
-                'div',
-                { className: 'mp-playlist-grid' },
-                props.items.map(function (item) {
-                  return h(
-                    'button',
-                    {
-                      key: item.key,
-                      type: 'button',
-                      className: cx('mp-playlist-card', active === item.key && 'is-on'),
-                      onClick: function () {
-                        pick(item)
-                      },
-                      onContextMenu: navItemContextMenu(item, active),
-                    },
-                    h(
-                      'span',
-                      { className: 'mp-playlist-card-icon' },
-                      item.coverSrc ? h(Cover, { src: item.coverSrc, iconSize: 16 }) : icon(item.icon || 'list', 16),
-                    ),
-                    h(
-                      'span',
-                      { className: 'mp-playlist-card-main' },
-                      h('strong', null, item.label),
-                      h(
-                        'span',
-                        null,
-                        item.count !== null && item.count !== undefined
-                          ? t('page.trackCountUnit', { n: item.count })
-                          : '',
-                      ),
-                    ),
-                  )
-                }),
-              ),
-            )
-          : null,
-      )
-    }
-
-    function SectionBar(props) {
-      var groups = navGroupsFor(props.source, props.favoritesCount)
-      var active = activeNavKey(props.nav)
-      return h(
-        'div',
-        { className: 'mp-sectionbar', role: 'tablist', 'aria-label': t('page.tabLocal') },
-        groups.map(function (group, groupIndex) {
-          return h(
-            'span',
-            { key: group.label, style: { display: 'contents' } },
-            groupIndex > 0 ? h('span', { className: 'mp-sec-sep' }) : null,
-            group.showLabel ? h('span', { className: 'mp-sec-label' }, group.label) : null,
-            group.action
-              ? h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mp-sec-act',
-                    title: group.action.title,
-                    'aria-label': group.action.title,
-                    onClick: group.action.run,
-                  },
-                  icon(group.action.icon, 12),
-                )
-              : null,
-            (group.label === t('v2.playlists') && group.items.length > MAX_PLAYLIST_TABS
-              ? group.items.slice(0, MAX_PLAYLIST_TABS)
-              : group.items
-            ).map(function (item) {
-              return h(
-                'button',
-                {
-                  key: item.key,
-                  type: 'button',
-                  role: 'tab',
-                  title: item.label,
-                  'aria-selected': active === item.key,
-                  className: cx('mp-sec-item', active === item.key && 'is-on'),
-                  onClick: function () {
-                    activateNavItem(item)
-                  },
-                  onContextMenu: navItemContextMenu(item, active),
-                  onMouseEnter: item.onlinePlaylist
-                    ? function () {
-                        prefetchOnlinePlaylist(item.onlinePlaylist)
-                      }
-                    : undefined,
-                  onFocus: item.onlinePlaylist
-                    ? function () {
-                        prefetchOnlinePlaylist(item.onlinePlaylist)
-                      }
-                    : undefined,
-                },
-                item.label,
-                item.count !== null && item.count !== undefined
-                  ? h('span', { className: 'mp-sec-count' }, String(item.count))
-                  : null,
-              )
-            }),
-            group.label === t('v2.playlists') && group.items.length > MAX_PLAYLIST_TABS
-              ? h(SectionPlaylistOverflow, { items: group.items })
-              : null,
-          )
-        }),
-      )
-    }
-
-    // ── src/client/components/ui/panel.js
-    /**
-     * panel: the single composition point (top bar, workspace, player bar, layers).
-     */
-
-    class MusicBoundary extends React.Component {
-      constructor(props) {
-        super(props)
-        this.state = { failed: false }
-      }
-
-      static getDerivedStateFromError() {
-        return { failed: true }
-      }
-
-      componentDidCatch() {
-        // A broken render must never take the host UI down with it.
-      }
-
-      render() {
-        if (this.state.failed) return null
-        return this.props.children
-      }
-    }
-
-    class SilentBoundary extends React.Component {
-      constructor(props) {
-        super(props)
-        this.state = { failed: false }
-      }
-
-      static getDerivedStateFromError() {
-        return { failed: true }
-      }
-
-      componentDidCatch() {}
-
-      render() {
-        if (this.state.failed) return null
-        return this.props.children
-      }
-    }
-
-    function TopBar(props) {
-      var ui = props.ui
-      var online = props.online
-      var inputRef = useRef(null)
-      var textPair = useState(ui.source === 'local' ? ui.query : '')
-      var text = textPair[0]
-      var setText = textPair[1]
-
-      useEffect(
-        function () {
-          setText(ui.source === 'local' ? ui.query : '')
-        },
-        [ui.source],
-      )
-
-      useEffect(
-        function () {
-          function onKey(event) {
-            var tag = event.target && event.target.tagName
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
-            if (event.key === '/') {
-              event.preventDefault()
-              if (inputRef.current) inputRef.current.focus()
-            }
-          }
-          window.addEventListener('keydown', onKey)
-          return function () {
-            window.removeEventListener('keydown', onKey)
-          }
-        },
-        [],
-      )
-
-      function submit() {
-        if (isOnlineSource(ui.source)) {
-          void searchOnline(text)
-        }
-      }
-
-      var providerInfo = isOnlineSource(ui.source) ? (online.providers[ui.source] || {}) : null
-
-      return h(
-        'header',
-        { className: 'mp-topbar' },
-        h(
-          'div',
-          { className: 'mp-brand' },
-          h(
-            'a',
-            {
-              className: 'mp-brand-link',
-              href: 'https://github.com/Aliboder/dsh-music-panel',
-              target: '_blank',
-              rel: 'noopener noreferrer',
-              title: 'GitHub',
-              'aria-label': 'GitHub',
-            },
-            h('span', { className: 'mp-brand-dot' }, h('img', { className: 'mp-brand-logo', src: BRAND_LOGO, alt: '' })),
-          ),
-          t('nav.label'),
-        ),
-        h(
-          'div',
-          { className: 'mp-src-tabs', role: 'tablist' },
-          availableSources().map(function (id) {
-            var entry = [id, sourceLabelOf(id)]
-            return h(
-              'button',
-              {
-                key: entry[0],
-                type: 'button',
-                role: 'tab',
-                'aria-selected': ui.source === entry[0],
-                className: cx('mp-src-tab', ui.source === entry[0] && 'is-on'),
-                onClick: function () {
-                  setSource(entry[0])
-                },
-              },
-              entry[1],
-            )
-          }),
-        ),
-        h(
-          'div',
-          { className: 'mp-search' },
-          icon('search', 14),
-          h('input', {
-            ref: inputRef,
-            className: 'mp-search-input',
-            type: 'search',
-            value: text,
-            placeholder: isOnlineSource(ui.source) ? t('online.searchPlaceholder') : t('page.searchPlaceholder'),
-            onChange: function (event) {
-              var value = event.target.value
-              setText(value)
-              if (!isOnlineSource(ui.source)) {
-                setUi({ query: value })
-              } else if (value === '') {
-                onlineStore.set({ query: '', results: [], phase: 'idle', error: '' })
-              }
-            },
-            onKeyDown: function (event) {
-              if (event.key === 'Enter') submit()
-            },
-          }),
-        ),
-        providerInfo !== null
-          ? h(
-              'div',
-              { className: 'mp-userchip is-on' },
-              h('span', { className: 'mp-userchip-dot' }),
-              h('span', { className: 'mp-userchip-name' }, providerInfo.loggedIn ? providerInfo.nickname || t('online.loggedIn') : t('online.loggedOut')),
-              providerInfo.loggedIn && providerInfo.vip === true
-                ? h('span', { className: 'mp-userchip-vip is-on', title: 'VIP' }, 'VIP')
-                : null,
-              providerInfo.loggedIn
-                ? h(
-                    'span',
-                    {
-                      className: 'mp-userchip-out',
-                      role: 'button',
-                      tabIndex: 0,
-                      onClick: function () {
-                        void logoutProvider(ui.source)
-                      },
-                    },
-                    t('online.logout'),
-                  )
-                : h(
-                    'span',
-                    {
-                      className: 'mp-userchip-out',
-                      role: 'button',
-                      tabIndex: 0,
-                      onClick: function () {
-                        // Folia keeps server connections (Navidrome) in Settings; only the
-                        // platforms with a QR sign-in live in the login window.
-                        if (!supports(ui.source, 'loginQr')) {
-                          pushLayer('settings', { tab: 'online' })
-                          return
-                        }
-                        pushLayer('login', { provider: ui.source, mode: 'qq' })
-                      },
-                    },
-                    supports(ui.source, 'loginQr') ? t('online.login') : t('online.navidromeConnect'),
-                  ),
-            )
-          : null,
-        h(IconButton, {
-          icon: 'refresh',
-          title: t('page.refresh'),
-          onClick: function () {
-            if (isOnlineSource(ui.source)) {
-              void loadProviders()
-              void loadMyPlaylists(ui.source)
-              showToast(t('online.refresh'))
-            } else {
-              void loadLibrary(true)
-              showToast(t('page.scanning'))
-            }
-          },
-        }),
-        h(IconButton, {
-          icon: 'settings',
-          title: t('page.settings'),
-          onClick: function () {
-            pushLayer('settings')
-          },
-        }),
-      )
-    }
-
-    function ContentArea(props) {
-      var ui = props.ui
-      useEffect(
-        function () {
-          if (ui.source === 'local' && ui.nav === 'stats') {
-            void loadStats((props.library && props.library.statsRange) || 'all')
-          }
-        },
-        [ui.source, ui.nav],
-      )
-      if (isOnlineSource(ui.source)) return h(OnlineContent, props)
-      return h(LocalContent, props)
-    }
-
-    function AudioHost() {
-      var ref = useRef(null)
-      useEffect(function () {
-        player.attachAudio(ref.current)
-        player.tryRestore()
-        return function () {
-          player.attachAudio(null)
-        }
-      }, [])
-      return h('audio', { ref: ref, className: 'mp-audio-host', preload: 'metadata', 'aria-hidden': 'true' })
-    }
-
-    function applyControlAction(action) {
-      if (!action || typeof action.action !== 'string') return
-      if (action.action === 'pause') {
-        player.pause()
-        return
-      }
-      if (action.action === 'next') {
-        player.next()
-        return
-      }
-      if (action.action === 'previous' || action.action === 'prev') {
-        player.prev()
-        return
-      }
-      if (action.action !== 'play') return
-      var query = String(action.query || '').trim()
-      if (query === '') return
-      // Must list every provider the tool advertises, or a request for that source
-      // silently degrades to a local library search (wrong track, or none at all).
-      var source = isOnlineSource(action.source) ? action.source : 'local'
-      if (source === 'local') {
-        var tracks = libraryStore.get().tracks
-        var needle = query.toLowerCase()
-        var hit = null
-        for (var i = 0; i < tracks.length; i += 1) {
-          var hay = (String(tracks[i].title || '') + ' ' + String(tracks[i].artist || '')).toLowerCase()
-          if (hay.indexOf(needle) >= 0) {
-            hit = tracks[i]
-            break
-          }
-        }
-        if (hit !== null) player.playList([hit], 0)
-        return
-      }
-      getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&q=' + encodeURIComponent(query))
-        .then(function (body) {
-          var results = Array.isArray(body.results) ? body.results : []
-          if (results.length > 0) playOnlineResults(results, 0)
-        })
-        .catch(function () {
-          // The model action is best effort.
-        })
-    }
-
-    function OverlayRoot() {
-      var overlay = useStore(overlayStore)
-      var layers = overlay.layers || []
-      return layers.map(function (layer) {
-        if (layer.kind === 'menu') return h(ContextMenu, { key: 'menu', layer: layer })
-        if (layer.kind === 'login') return h(LoginDialog, { key: 'login', layer: layer })
-        if (layer.kind === 'tag') return h(TagDialog, { key: 'tag', layer: layer })
-        if (layer.kind === 'addTo') return h(AddToPlaylistDialog, { key: 'addTo', layer: layer })
-        if (layer.kind === 'onlineAddTo') return h(OnlineAddToPlaylistDialog, { key: 'onlineAddTo', layer: layer })
-        if (layer.kind === 'batchEdit') return h(BatchEditDialog, { key: 'batchEdit', layer: layer })
-        if (layer.kind === 'duplicates') return h(DuplicatesDialog, { key: 'duplicates', layer: layer })
-        if (layer.kind === 'lyricMatch') return h(LyricMatchDialog, { key: 'lyricMatch', layer: layer })
-        if (layer.kind === 'lyricFile') return h(LyricFileDialog, { key: 'lyricFile', layer: layer })
-        if (layer.kind === 'lyricSeg') return h(LyricSegmentationDialog, { key: 'lyricSeg', layer: layer })
-        if (layer.kind === 'onlineLyric') return h(OnlineLyricDialog, { key: 'onlineLyric', layer: layer })
-        if (layer.kind === 'trash') return h(TrashDialog, { key: 'trash', layer: layer })
-        if (layer.kind === 'confirm') return h(ConfirmDialog, { key: 'confirm', layer: layer })
-        if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
-        if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
-        if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
-        if (layer.kind === 'settings') {
-          return h(SettingsSheet, {
-            key: 'settings',
-            open: true,
-            initialTab: layer.props && layer.props.tab,
-            onClose: function () {
-              removeLayer('settings')
-            },
-          })
-        }
-        return null
-      })
-    }
-
-    var BRAND_LOGO = 'data:image/webp;base64,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'
-
-    var STARTUP_GUIDE_KEY = 'music.startupGuide.intro.v1'
-    var startupGuideShownThisSession = false
-
-    function startupGuideDisabled() {
-      try {
-        return window.localStorage.getItem(STARTUP_GUIDE_KEY) === '1'
-      } catch (error) {
-        return false
-      }
-    }
-
-    function startupGuideOpen() {
-      if (startupGuideShownThisSession) return false
-      if (startupGuideDisabled()) return false
-      startupGuideShownThisSession = true
-      return true
-    }
-
-    function dismissStartupGuide(disable) {
-      startupGuideShownThisSession = true
-      try {
-        if (disable === true) window.localStorage.setItem(STARTUP_GUIDE_KEY, '1')
-        else window.localStorage.removeItem(STARTUP_GUIDE_KEY)
-      } catch (error) {
-        // Best effort only; if storage is unavailable the guide may show again.
-      }
-    }
-
-    function StartupGuide(props) {
-      var countPair = useState(3)
-      var countdown = countPair[0]
-      var setCountdown = countPair[1]
-      var dontPair = useState(false)
-      var dontShow = dontPair[0]
-      var setDontShow = dontPair[1]
-      var dontShowRef = useRef(false)
-      var prefs = usePrefs()
-      var coverStyle = prefs.coverStyle === 'vinyl' ? 'vinyl' : 'square'
-
-      function changeDontShow(next) {
-        dontShowRef.current = next
-        setDontShow(next)
-      }
-
-      useEffect(
-        function () {
-          if (props.open !== true) return undefined
-          setCountdown(3)
-          changeDontShow(false)
-          var timer = setInterval(function () {
-            setCountdown(function (value) {
-              return value > 0 ? value - 1 : 0
-            })
-          }, 1000)
-          return function () {
-            clearInterval(timer)
-          }
-        },
-        [props.open],
-      )
-
-      useEffect(
-        function () {
-          if (props.open !== true || countdown <= 0) return undefined
-          function blockEscape(event) {
-            if (event.key !== 'Escape') return
-            event.preventDefault()
-            event.stopPropagation()
-          }
-          window.addEventListener('keydown', blockEscape, true)
-          return function () {
-            window.removeEventListener('keydown', blockEscape, true)
-          }
-        },
-        [props.open, countdown],
-      )
-
-      if (props.open !== true) return null
-
-      function finish() {
-        if (countdown > 0) return
-        props.onClose(dontShowRef.current)
-      }
-
-      function chooseCoverStyle(style) {
-        setPrefs({
-          coverStyle: style,
-          circularCover: style === 'vinyl',
-          vinylRing: style === 'vinyl',
-          coverSpin: style === 'vinyl',
-        })
-      }
-
-      var features = [
-        {
-          key: 'online',
-          icon: 'note',
-          accent: 'var(--dsw-alias-state-business-primary,#7aaaff)',
-          title: t('guide.featureLocalTitle'),
-          desc: t('guide.featureLocalDesc'),
-        },
-        {
-          key: 'player',
-          icon: 'maximize',
-          accent: 'var(--dsw-alias-state-done-primary,#a78bfa)',
-          title: t('guide.featurePlayerTitle'),
-          desc: t('guide.featurePlayerDesc'),
-        },
-        {
-          key: 'composer',
-          icon: 'translate',
-          accent: 'var(--dsw-alias-state-success-primary,#22c55e)',
-          title: t('guide.featureComposerTitle'),
-          desc: t('guide.featureComposerDesc'),
-        },
-        {
-          key: 'library',
-          icon: 'playlist',
-          accent: 'var(--dsw-alias-state-warn-primary,#f59e0b)',
-          title: t('guide.featureLibraryTitle'),
-          desc: t('guide.featureLibraryDesc'),
-        },
-      ]
-      var progress = Math.round(((3 - countdown) / 3) * 100)
-
-      function styleOption(style, label) {
-        var on = coverStyle === style
-        return h(
-          'button',
-          {
-            type: 'button',
-            className: cx('mp-guide-style-option', on && 'is-on'),
-            'aria-pressed': on,
-            onClick: function () {
-              chooseCoverStyle(style)
-            },
-          },
-          h(
-            'span',
-            { className: cx('mp-guide-style-thumb', style === 'vinyl' ? 'is-vinyl' : 'is-square') },
-            h('img', { src: BRAND_LOGO, alt: '' }),
-          ),
-          h('span', { className: 'mp-guide-style-name' }, label),
-          on ? h('span', { className: 'mp-guide-style-check' }, icon('check', 12)) : null,
-        )
-      }
-
-      return h(
-        KitModal,
-        { headless: true, onClose: countdown > 0 ? undefined : finish, className: 'mp-guide-modal' },
-        h(
-          'div',
-          {
-            className: 'mp-guide-panel',
-            role: 'dialog',
-            'aria-modal': 'true',
-            'aria-label': t('guide.title'),
-          },
-          countdown > 0
-            ? null
-            : h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mp-guide-close',
-                  title: t('v2.close'),
-                  'aria-label': t('v2.close'),
-                  onClick: finish,
-                },
-                icon('x', 16),
-              ),
-          h(
-            'div',
-            { className: cx('mp-guide-visual', coverStyle === 'vinyl' ? 'is-vinyl' : 'is-square') },
-            h('div', { className: 'mp-guide-watermark', 'aria-hidden': 'true' }, 'MUSIC'),
-            h(
-              'div',
-              { className: 'mp-guide-shot' },
-              h('img', {
-                src: coverStyle === 'vinyl' ? GUIDE_SHOT_VINYL : GUIDE_SHOT_SQUARE,
-                alt: '',
-              }),
-            ),
-          ),
-          h(
-            'div',
-            { className: 'mp-guide-content' },
-            h(
-              'div',
-              { className: 'mp-guide-scroll' },
-              h('div', { className: 'mp-guide-eyebrow' }, 'DSH · MUSIC PLAYER'),
-              h('div', { className: 'mp-guide-title' }, t('guide.title')),
-              h('div', { className: 'mp-guide-tagline' }, t('guide.lead')),
-              h(
-                'div',
-                { className: 'mp-guide-list' },
-                features.map(function (feature, index) {
-                  return h(
-                    'div',
-                    {
-                      key: feature.key,
-                      className: 'mp-guide-row',
-                      style: { '--mp-guide-accent': feature.accent },
-                    },
-                    h('span', { className: 'mp-guide-row-icon' }, icon(feature.icon, 15)),
-                    h(
-                      'div',
-                      { className: 'mp-guide-row-main' },
-                      h('div', { className: 'mp-guide-row-title' }, feature.title),
-                      h('div', { className: 'mp-guide-row-desc' }, feature.desc),
-                    ),
-                    h('span', { className: 'mp-guide-row-index' }, String(index + 1).padStart(2, '0')),
-                  )
-                }),
-              ),
-              h(
-                'div',
-                { className: 'mp-guide-style' },
-                h(
-                  'div',
-                  { className: 'mp-guide-style-head' },
-                  h('span', null, t('guide.styleTitle')),
-                  h('span', { className: 'mp-guide-style-hint' }, t('guide.styleHint')),
-                ),
-                h(
-                  'div',
-                  { className: 'mp-guide-style-options' },
-                  styleOption('square', t('guide.styleSquare')),
-                  styleOption('vinyl', t('guide.styleVinyl')),
-                ),
-              ),
-              h(
-                'div',
-                { className: 'mp-guide-warning-card' },
-                icon('info', 15),
-                h(
-                  'div',
-                  null,
-                  h('div', { className: 'mp-guide-warning-title' }, t('guide.warningTitle')),
-                  h('div', { className: 'mp-guide-warning-text' }, t('guide.warningText')),
-                ),
-              ),
-              h(
-                'div',
-                { className: 'mp-guide-signature' },
-                h('span', null, t('guide.signature')),
-                h('span', { className: 'mp-guide-signature-rule' }),
-                h('span', null, 'DSH MUSIC'),
-              ),
-            ),
-          ),
-          h(
-            'div',
-            { className: 'mp-guide-footer' },
-            h(
-              'div',
-              { className: 'mp-guide-check' },
-              h(Switch, {
-                value: dontShow,
-                onChange: changeDontShow,
-                label: t('guide.dontShow'),
-              }),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'mp-guide-check-text',
-                  onClick: function () {
-                    changeDontShow(!dontShowRef.current)
-                  },
-                },
-                t('guide.dontShow'),
-              ),
-            ),
-            h(
-              'div',
-              { className: 'mp-guide-action' },
-              h('div', { className: 'mp-guide-progress' }, h('i', { style: { width: progress + '%' } })),
-              h(Button, {
-                variant: 'primary',
-                disabled: countdown > 0,
-                onClick: finish,
-                children:
-                  countdown > 0 ? t('guide.wait', { seconds: countdown }) : t('guide.start'),
-              }),
-            ),
-          ),
-        ),
-      )
-    }
-
-    function Panel() {
-      var ui = useStore(uiStore)
-      var library = useStore(libraryStore)
-      var online = useStore(onlineStore)
-      var prefs = usePrefs()
-      var snap = usePlayerSnapshot()
-      var guidePair = useState(startupGuideOpen)
-      var guideOpen = guidePair[0]
-      var setGuideOpen = guidePair[1]
-      var locatePair = useState('')
-      var locatePath = locatePair[0]
-      var setLocatePath = locatePair[1]
-      var current = snap.queue[snap.index] || null
-      var favorites = useMemo(function () {
-        return favoriteSet()
-      }, [library.favorites])
-      var favoriteCount = library.favorites.length
-
-      useEffect(
-        function () {
-          var deadline = Number(prefs.sleepDeadline) || 0
-          var minutes = Number(prefs.sleepTimerMinutes) || 0
-          if (deadline <= 0 && minutes > 0) {
-            // Older prefs only stored minutes; turn them into a deadline once.
-            setPrefs({ sleepDeadline: Date.now() + minutes * 60000 })
-            return undefined
-          }
-          if (deadline <= 0) return undefined
-          var delay = deadline - Date.now()
-          if (delay <= 0) {
-            player.pause()
-            setPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 })
-            showToast(t('settings.sleepTimerDone'))
-            return undefined
-          }
-          var timer = setTimeout(function () {
-            player.pause()
-            setPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 })
-            showToast(t('settings.sleepTimerDone'))
-          }, delay)
-          return function () {
-            clearTimeout(timer)
-          }
-        },
-        [prefs.sleepDeadline, prefs.sleepTimerMinutes],
-      )
-
-      useEffect(function () {
-        void loadLibrary(false)
-        void loadFavorites()
-        void loadPlaylists()
-        void loadConfig()
-        void loadProviders()
-      }, [])
-
-      useEffect(function () {
-        return player.subscribeError(function (info) {
-          var reason = info && typeof info.reason === 'string' ? info.reason.trim() : ''
-          showToast(reason ? t('page.playbackFailed', { reason: reason }) : t('page.playbackFailedNoReason'))
-        })
-      }, [])
-
-      useEffect(
-        function () {
-          if (isOnlineSource(ui.source)) {
-            onlineStore.set({ provider: ui.source })
-            void loadProviders()
-          }
-        },
-        [ui.source],
-      )
-
-      useEffect(function () {
-        var timer = setInterval(function () {
-          getJson(API + 'control/pending')
-            .then(function (body) {
-              ;(body.actions || []).forEach(applyControlAction)
-            })
-            .catch(function () {
-              // The queue endpoint is optional.
-            })
-        }, 2000)
-        return function () {
-          clearInterval(timer)
-        }
-      }, [])
-
-      useEffect(function () {
-        function onKey(event) {
-          var tag = event.target && event.target.tagName
-          if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
-            if (event.key === 'Escape' && event.target.blur) event.target.blur()
-            return
-          }
-          if (event.key === 'Escape') {
-            if (typeof document !== 'undefined') {
-              var hostModal = document.querySelector('[role="dialog"][aria-modal="true"]')
-              if (hostModal !== null && hostModal.closest('.mp-root') === null) return
-            }
-            if (isRangePicking()) {
-              cancelRangePick()
-              return
-            }
-            if (popLayer()) return
-            if (selectionStore.get().active === true) {
-              setSelectionMode(false)
-              return
-            }
-            if (uiStore.get().queueOpen) {
-              uiStore.set({ queueOpen: false })
-              return
-            }
-            if (uiStore.get().npOpen) uiStore.set({ npOpen: false })
-            return
-          }
-          if (event.code === 'Space') {
-            event.preventDefault()
-            player.toggle()
-            return
-          }
-          if ((event.ctrlKey || event.metaKey) && event.key === 'ArrowRight') {
-            event.preventDefault()
-            player.next()
-            return
-          }
-          if ((event.ctrlKey || event.metaKey) && event.key === 'ArrowLeft') {
-            event.preventDefault()
-            player.prev()
-          }
-        }
-        window.addEventListener('keydown', onKey)
-        return function () {
-          window.removeEventListener('keydown', onKey)
-        }
-      }, [])
-
-      function openTrackMenu(track, event, extra) {
-        pushLayer('menu', {
-          track: track,
-          x: event ? event.clientX : 20,
-          y: event ? event.clientY : 20,
-          visiblePaths: extra && Array.isArray(extra.visiblePaths) ? extra.visiblePaths : null,
-          playSelected: extra && typeof extra.playSelected === 'function' ? extra.playSelected : null,
-          onRemove: extra && typeof extra.onRemove === 'function' ? extra.onRemove : null,
-        })
-      }
-
-      function locateCurrent() {
-        if (current === null) {
-          showToast(t('page.noTrack'))
-          return
-        }
-        if (current.onlineProvider) {
-          setSource(current.onlineProvider)
-          setUi({ nav: 'recent', filter: null, query: '' })
-        } else {
-          setSource('local')
-          setUi({ nav: 'songs', filter: null, query: '' })
-        }
-        setLocatePath(current.path)
-        setTimeout(function () {
-          setLocatePath('')
-        }, 1200)
-      }
-
-      var contentProps = {
-        ui: ui,
-        library: library,
-        online: online,
-        prefs: prefs,
-        currentPath: current ? current.path : '',
-        playing: snap.playing,
-        favoriteSet: favorites,
-        locatePath: locatePath,
-        onMenu: openTrackMenu,
-        onToggleFavorite: function (track) {
-          void toggleFavorite(track.path)
-        },
-      }
-
-      function closeGuide(disable) {
-        dismissStartupGuide(disable === true)
-        setGuideOpen(false)
-      }
-
-      return h(
-        'div',
-        { className: cx('mp-root', prefs.layout === 'top' && 'is-top') },
-        h(TopBar, { ui: ui, online: online, prefs: prefs }),
-        h(
-          'div',
-          { className: 'mp-workspace' },
-          h(NavRail, { source: ui.source, nav: ui.nav, favoritesCount: favoriteCount }),
-          h(
-            'div',
-            { className: 'mp-content' },
-            h(SectionBar, { source: ui.source, nav: ui.nav, favoritesCount: favoriteCount }),
-            h(ContentArea, contentProps),
-          ),
-        ),
-        h(PlayerBar, {
-          favoriteSet: favorites,
-          queueOpen: ui.queueOpen && ui.queueSource === 'bar' && ui.npOpen !== true,
-          onToggleQueue: function () {
-            setUi({ queueOpen: !ui.queueOpen, queueSource: 'bar' })
-          },
-          onOpenNowPlaying: function () {
-            setUi({ npOpen: true, queueOpen: false })
-          },
-          onLocate: locateCurrent,
-          onToggleFavorite: function (track) {
-            void toggleFavorite(track.path)
-          },
-          // The card's actions: locate the playing song, go home, open settings.
-          onLocate: locateCurrent,
-          onHome: function () {
-            setUi({ npOpen: false, queueOpen: false, nav: 'songs', filter: null, query: '' })
-          },
-          onOpenSettings: function () {
-            pushLayer('settings')
-          },
-        }),
-        h(NowPlaying, {
-          open: ui.npOpen === true,
-          favoriteSet: favorites,
-          onClose: function () {
-            setUi({ npOpen: false, queueOpen: false })
-          },
-          queueOpen: ui.queueOpen && ui.queueSource === 'np',
-          onToggleQueue: function () {
-            setUi({ queueOpen: !ui.queueOpen, queueSource: 'np' })
-          },
-          onToggleFavorite: function (track) {
-            void toggleFavorite(track.path)
-          },
-          // The card's actions: locate the playing song, go home, open settings.
-          onLocate: locateCurrent,
-          onHome: function () {
-            setUi({ npOpen: false, queueOpen: false, nav: 'songs', filter: null, query: '' })
-          },
-          onOpenSettings: function () {
-            pushLayer('settings')
-          },
-        }),
-        h(OverlayRoot),
-        h(Toast),
-        h(StartupGuide, { open: guideOpen, onClose: closeGuide }),
-      )
-    }
-
     // ── src/client/components/ui/composer.js
     /**
      * composer seats: the inline lyric line and the compact transport next to the
@@ -175161,301 +175187,6 @@ window.__ModuleLoader__.load({
       )
     }
 
-    // ── src/client/components/ui/header.js
-    /**
-     * shared content header: title + count, select / sort / search actions, and the
-     * play-mode pills row used by both the local and online libraries.
-     */
-
-    function HeadMenu(props) {
-      var openPair = useState(false)
-      var open = openPair[0]
-      var setOpen = openPair[1]
-      var ref = useRef(null)
-
-      useEffect(
-        function () {
-          if (!open) return undefined
-          if (props.hostMenu !== false && hostComponent('Menu') !== null) return undefined
-          function onDown(event) {
-            if (ref.current && ref.current.contains(event.target)) return
-            setOpen(false)
-          }
-          function onKey(event) {
-            if (event.key === 'Escape') setOpen(false)
-          }
-          document.addEventListener('pointerdown', onDown, true)
-          window.addEventListener('keydown', onKey)
-          return function () {
-            document.removeEventListener('pointerdown', onDown, true)
-            window.removeEventListener('keydown', onKey)
-          }
-        },
-        [open],
-      )
-
-      var trigger = h(IconButton, {
-        icon: props.icon,
-        size: 17,
-        title: props.title,
-        active: open,
-        onClick: function () {
-          setOpen(!open)
-        },
-      })
-      var HostMenu = props.hostMenu === false ? null : hostComponent('Menu')
-      if (HostMenu !== null) {
-        var hostItems = props.items.map(function (item) {
-          if (item.separator) return { type: 'separator', id: item.key }
-          return {
-            id: item.key,
-            label: item.label,
-            icon: item.icon ? icon(item.icon, 13) : undefined,
-            disabled: item.disabled === true,
-            danger: item.danger === true,
-          }
-        })
-        var selectedId
-        props.items.forEach(function (item) {
-          if (item.active === true && selectedId === undefined) selectedId = item.key
-        })
-        return h(HostMenu, {
-          open: open,
-          anchor: trigger,
-          items: hostItems,
-          selectedId: selectedId,
-          onSelect: function (id) {
-            setOpen(false)
-            var chosen = null
-            props.items.forEach(function (item) {
-              if (chosen === null && item.key === id) chosen = item
-            })
-            if (chosen !== null && typeof chosen.run === 'function') chosen.run()
-          },
-          onClose: function () {
-            setOpen(false)
-          },
-          side: 'bottom',
-          align: 'end',
-          portal: true,
-          compact: true,
-          className: 'mp-headmenu-host',
-        })
-      }
-
-      return h(
-        'div',
-        { className: 'mp-headmenu', ref: ref },
-        trigger,
-        open
-          ? h(
-              'div',
-              { className: 'mp-headmenu-pop', role: 'menu' },
-              props.items.map(function (item) {
-                if (item.separator) return h('hr', { key: item.key, className: 'mp-headmenu-sep' })
-                return h(
-                  'button',
-                  {
-                    key: item.key,
-                    type: 'button',
-                    role: 'menuitem',
-                    className: cx('mp-headmenu-item', item.active === true && 'is-on'),
-                    onClick: function () {
-                      setOpen(false)
-                      if (typeof item.run === 'function') item.run()
-                    },
-                  },
-                  item.icon ? icon(item.icon, 13) : null,
-                  h('span', { className: 'mp-headmenu-label' }, item.label),
-                  item.hint ? h('span', { className: 'mp-headmenu-hint' }, item.hint) : null,
-                )
-              }),
-            )
-          : null,
-      )
-    }
-
-    function SelectMenu(props) {
-      return h(HeadMenu, {
-        icon: 'checkCircle',
-        title: t('page.select'),
-        items: [
-          { key: 'all', icon: 'check', label: t('v2.selAll'), run: props.onAll },
-          { key: 'none', icon: 'x', label: t('v2.selNone'), run: props.onNone },
-          { key: 'range', icon: 'target', label: t('v2.selRange'), run: props.onRange },
-          { key: 'invert', icon: 'refresh', label: t('v2.selInvert'), run: props.onInvert },
-        ],
-      })
-    }
-
-    function SortMenu() {
-      var prefs = usePrefs()
-      var fields = [
-        ['title', t('v2.sortTitle')],
-        ['artist', t('v2.sortArtist')],
-        ['duration', t('v2.sortDuration')],
-        ['added', t('v2.sortAdded')],
-        ['recent', t('v2.sortRecent')],
-      ]
-      var items = fields.map(function (entry) {
-        return {
-          key: entry[0],
-          label: entry[1],
-          active: prefs.sortBy === entry[0],
-          run: function () {
-            setPrefs({ sortBy: entry[0] })
-          },
-        }
-      })
-      items.push({ key: 'sep', separator: true })
-      items.push({
-        key: 'asc',
-        label: t('page.sortAsc'),
-        hint: '↑',
-        active: prefs.sortDir === 'asc',
-        run: function () {
-          setPrefs({ sortDir: 'asc' })
-        },
-      })
-      items.push({
-        key: 'desc',
-        label: t('page.sortDesc'),
-        hint: '↓',
-        active: prefs.sortDir === 'desc',
-        run: function () {
-          setPrefs({ sortDir: 'desc' })
-        },
-      })
-      return h(HeadMenu, { icon: 'sort', title: t('page.sort'), items: items, hostMenu: false })
-    }
-
-    function ContentHeader(props) {
-      var filter = useContentFilter()
-      var openPair = useState(false)
-      var open = openPair[0]
-      var setOpen = openPair[1]
-      var inputRef = useRef(null)
-
-      // A different list is a different search scope; never carry the query over.
-      useEffect(
-        function () {
-          clearContentFilter()
-          setOpen(false)
-        },
-        [props.title],
-      )
-
-      useEffect(
-        function () {
-          if (!open) return
-          var input = inputRef.current
-          if (input === null) return
-          input.focus()
-          if (typeof input.select === 'function') input.select()
-        },
-        [open],
-      )
-
-      function closeSearch() {
-        setOpen(false)
-        clearContentFilter()
-      }
-
-      function onSearchKey(event) {
-        if (event.key === 'Escape') {
-          event.preventDefault()
-          closeSearch()
-        }
-      }
-
-      return h(
-        'header',
-        { className: 'mp-content-head' },
-        typeof props.onTitleClick === 'function'
-          ? h(
-              'button',
-              {
-                type: 'button',
-                className: 'mp-title mp-title-link',
-                title: props.title,
-                onClick: props.onTitleClick,
-              },
-              props.title,
-            )
-          : h('h1', { className: 'mp-title', title: props.title }, props.title),
-        h('span', { className: 'mp-count' }, props.count > 0 ? t('page.trackCountUnit', { n: props.count }) : ''),
-        props.selecting === true && (props.selectedCount || 0) > 0
-          ? h('span', { className: 'mp-sel-count' }, t('page.selectedCount', { n: props.selectedCount }))
-          : null,
-        h(
-          'div',
-          { className: 'mp-head-actions' },
-          open
-            ? h(
-                'div',
-                { className: 'mp-head-search' },
-                icon('search', 14),
-                h('input', {
-                  ref: inputRef,
-                  type: 'search',
-                  className: 'mp-head-search-input',
-                  value: filter.query,
-                  placeholder: t('page.searchInView'),
-                  'aria-label': t('page.searchInView'),
-                  onChange: function (event) {
-                    setContentFilter(event.target.value)
-                  },
-                  onKeyDown: onSearchKey,
-                }),
-                filter.query !== ''
-                  ? h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mp-head-search-clear',
-                        title: t('page.searchClear'),
-                        'aria-label': t('page.searchClear'),
-                        onClick: function () {
-                          setContentFilter('')
-                          if (inputRef.current !== null) inputRef.current.focus()
-                        },
-                      },
-                      icon('x', 12),
-                    )
-                  : null,
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    className: 'mp-head-search-done',
-                    title: t('page.searchClose'),
-                    'aria-label': t('page.searchClose'),
-                    onClick: closeSearch,
-                  },
-                  t('page.searchClose'),
-                ),
-              )
-            : h(SelectMenu, {
-                onAll: props.onAll,
-                onNone: props.onNone,
-                onRange: props.onRange,
-                onInvert: props.onInvert,
-              }),
-          open ? null : h(SortMenu),
-          open
-            ? null
-            : h(IconButton, {
-                icon: 'search',
-                size: 17,
-                title: t('page.searchInView'),
-                onClick: function () {
-                  setOpen(true)
-                },
-              }),
-        ),
-      )
-    }
-
     // ── src/client/components/ui/folder-picker.js
     /**
      * folder picker: read-only directory browser backed by GET /browse.
@@ -175880,7 +175611,7 @@ window.__ModuleLoader__.load({
           setBusy(false)
           if (created) {
             popLayer()
-            openLocalPlaylist(created.id)
+            p3Navigate('playlist', created.id)
           }
         })
       }
@@ -175981,7 +175712,9 @@ window.__ModuleLoader__.load({
           '\n' +
           (typeof FOLIA_TAILWIND === 'string' ? FOLIA_TAILWIND : '') +
           '\n' +
-          (typeof FOLIA_LOGIN_CSS === 'string' ? FOLIA_LOGIN_CSS : '')
+          (typeof FOLIA_LOGIN_CSS === 'string' ? FOLIA_LOGIN_CSS : '') +
+          '\n' +
+          (typeof P3_CSS === 'string' ? P3_CSS : '')
         document.head.appendChild(style)
         return function () {
           style.remove()
@@ -176077,7 +175810,7 @@ window.__ModuleLoader__.load({
         MusicSideIcon,
       )
       mount('main', { name: 'main', key: PANEL_ID }, function () {
-        return h(MusicBoundary, null, h(Panel))
+        return h(MusicBoundary, null, h(P3Shell))
       })
       mount('conversation.input.dock', { name: 'conversation.input.dock', id: 'music-lyrics-above' }, function () {
         return h(SilentBoundary, null, h(ComposerLyrics))
@@ -176116,15 +175849,20 @@ window.__ModuleLoader__.load({
           mergeLyricTranslation: mergeLyricTranslation,
           buildTranslatedLrc: buildTranslatedLrc,
           formatLrcTime: formatLrcTime,
-          // Pure pager math; the render mock cannot reach the paged branch.
-          pageWindow: pageWindow,
-          SONG_PAGE_SIZE: SONG_PAGE_SIZE,
           // Pure sidebar model, so tests can assert entries without matching
           // rendered copy (which shares words with empty-state text).
           navGroupsFor: navGroupsFor,          // Derived from UI_SOURCES; asserted so the music_control tool cannot
           // drift away from the provider list again.
           isOnlineSource: isOnlineSource,
           UI_SOURCES: UI_SOURCES,
+          P3Shell: typeof P3Shell === 'function' ? P3Shell : null,
+          p3RouteStore: p3RouteStore,
+          p3Navigate: p3Navigate,
+          p3SourceList: p3SourceList,
+          p3Tabs: p3Tabs,
+          p3CurrentTracks: p3CurrentTracks,
+          P3PageSwitch: typeof P3PageSwitch === 'function' ? P3PageSwitch : null,
+          P3_CSS: typeof P3_CSS === 'string' ? P3_CSS : null,
           // The album entry point decides which view the user lands in; the
           // render mock cannot click a row, so the test drives it directly.
           openOnlineAlbum: openOnlineAlbum,

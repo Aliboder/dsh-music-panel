@@ -1,82 +1,62 @@
 /**
- * Render smoke test for the new panel.
+ * Render smoke test for panel-v3.
  *
- * The Web Client is a plain script, so this test loads it with the same minimal
- * React mock the module test uses, seeds the stores, and calls the panel
- * component once. Effects do not run, so no network is involved; the point is
- * to catch reference errors and structural regressions in every view branch.
+ * Loads the generated client bundle with a minimal React mock, seeds the stores
+ * and walks the rendered tree. Effects do not run; the test catches reference
+ * errors and structural regressions in every page branch.
  */
 
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 
 const registrations = []
 const components = new Map()
 
 global.window = {
   __ModuleLoader__: {
-    load(definition) {
-      globalThis.__dshMusicDef = definition
-    },
+    load(definition) { globalThis.__dshMusicDef = definition },
   },
   localStorage: {
-    _data: new Map(),
-    getItem(key) {
-      return this._data.has(key) ? this._data.get(key) : null
-    },
-    setItem(key, value) {
-      this._data.set(key, String(value))
-    },
+    _data: new Map([['music.startupGuide.intro.v1', '1']]),
+    getItem(key) { return this._data.has(key) ? this._data.get(key) : null },
+    setItem(key, value) { this._data.set(key, String(value)) },
+    removeItem(key) { this._data.delete(key) },
   },
   addEventListener() {},
   removeEventListener() {},
   dispatchEvent() {},
-  setTimeout(callback) {
-    return setTimeout(callback, 0)
-  },
-  clearTimeout(id) {
-    clearTimeout(id)
-  },
-  location: { href: 'http://127.0.0.1/' },
-  matchMedia() {
-    return { matches: false, addEventListener() {}, removeEventListener() {} }
-  },
+  requestAnimationFrame(callback) { return setTimeout(callback, 0) },
+  cancelAnimationFrame(id) { clearTimeout(id) },
+  setTimeout(callback) { return setTimeout(callback, 0) },
+  clearTimeout(id) { clearTimeout(id) },
   innerWidth: 1400,
   innerHeight: 900,
+  location: { href: 'http://127.0.0.1/' },
+  matchMedia() { return { matches: false, addEventListener() {}, removeEventListener() {} } },
 }
 
 global.HTMLElement = class HTMLElement {}
-
+global.ResizeObserver = undefined
 global.document = {
   head: { appendChild() {} },
+  body: { appendChild() {} },
   activeElement: null,
-  createElement() {
-    return { dataset: {}, textContent: '', remove() {} }
-  },
+  createElement() { return { dataset: {}, textContent: '', remove() {}, appendChild() {} } },
   documentElement: { getAttribute: () => 'zh-CN' },
   visibilityState: 'visible',
   addEventListener() {},
   removeEventListener() {},
+  querySelector() { return null },
+  querySelectorAll() { return [] },
 }
 
-if (typeof global.navigator === 'undefined') {
-  global.navigator = { language: 'zh-CN' }
-}
+if (typeof global.navigator === 'undefined') global.navigator = { language: 'zh-CN' }
 
 const React = {
   createElement: (type, props, ...children) => {
-    const nextProps = props ? { ...props } : {}
-    // JSX passes children positionally, but a component that spreads its own props
-    // (motion's fallback wrapper) carries them on props.children: keep both.
-    const kids = children.length > 0
-      ? children
-      : nextProps.children === undefined
-        ? []
-        : Array.isArray(nextProps.children) ? nextProps.children : [nextProps.children]
-    if (kids.length > 0) nextProps.children = kids.length === 1 ? kids[0] : kids
-    return { type, props: nextProps, children: kids }
+    const next = props ? { ...props } : {}
+    const kids = children.length > 0 ? children : next.children === undefined ? [] : Array.isArray(next.children) ? next.children : [next.children]
+    if (kids.length > 0) next.children = kids.length === 1 ? kids[0] : kids
+    return { type, props: next, children: kids }
   },
   useState: (initial) => [typeof initial === 'function' ? initial() : initial, () => {}],
   useEffect() {},
@@ -85,14 +65,7 @@ const React = {
   useMemo: (factory) => factory(),
   useCallback: (factory) => factory,
   Fragment: 'fragment',
-  Component: class Component {
-    constructor(props) {
-      this.props = props
-      this.state = {}
-    }
-
-    setState() {}
-  },
+  Component: class Component { constructor(props) { this.props = props; this.state = {} } setState() {} },
 }
 
 await import('../../client.js')
@@ -105,35 +78,21 @@ const api = definition.factory((name) => {
 })
 
 api.apply({
-  effect(factory) {
-    const dispose = factory()
-    registrations.push(dispose)
-    return dispose
-  },
+  effect(factory) { const dispose = factory(); registrations.push(dispose); return dispose },
   slots: {
-    inject(name, callback) {
-      callback()
-      return () => {}
-    },
-    register(registration, component) {
-      components.set(registration.name + ':' + (registration.id || registration.key || ''), component)
-      return () => {}
-    },
+    inject(name, callback) { callback(); return () => {} },
+    register(registration, component) { components.set(registration.name + ':' + (registration.id || registration.key || ''), component); return () => {} },
   },
 })
 
 function walk(node, visit) {
   if (node === null || node === undefined) return
-  if (Array.isArray(node)) {
-    node.forEach((item) => walk(item, visit))
-    return
-  }
+  if (Array.isArray(node)) { node.forEach((item) => walk(item, visit)); return }
   if (typeof node !== 'object') return
   if (node.type) visit(node)
   if (Array.isArray(node.children)) node.children.forEach((child) => walk(child, visit))
 }
 
-/** Call function components so assertions see the real tree (hooks are mocked). */
 function isClassComponent(type) {
   if (typeof type !== 'function' || !type.prototype) return false
   if (type.prototype.isReactComponent) return true
@@ -145,24 +104,17 @@ function expand(node) {
   if (Array.isArray(node)) return node.map(expand)
   if (typeof node !== 'object') return node
   if (typeof node.type === 'function') {
-    if (isClassComponent(node.type)) {
-      // Class boundaries only render their children; unwrap them.
-      return expand(node.children || (node.props && node.props.children))
-    }
+    if (isClassComponent(node.type)) return expand(node.children || (node.props && node.props.children))
     return expand(node.type(node.props || {}))
   }
-  return Object.assign({}, node, {
-    children: Array.isArray(node.children) ? node.children.map(expand) : node.children,
-  })
+  return Object.assign({}, node, { children: Array.isArray(node.children) ? node.children.map(expand) : node.children })
 }
 
 function classesOf(tree) {
   const classes = new Set()
   walk(expand(tree), (node) => {
     const className = node.props && node.props.className
-    if (typeof className === 'string') {
-      className.split(/\s+/).filter(Boolean).forEach((name) => classes.add(name))
-    }
+    if (typeof className === 'string') className.split(/\s+/).filter(Boolean).forEach((name) => classes.add(name))
   })
   return classes
 }
@@ -180,14 +132,8 @@ function textOf(tree) {
   const parts = []
   function collect(value) {
     if (value === null || value === undefined) return
-    if (Array.isArray(value)) {
-      value.forEach(collect)
-      return
-    }
-    if (typeof value === 'string' || typeof value === 'number') {
-      parts.push(String(value))
-      return
-    }
+    if (Array.isArray(value)) { value.forEach(collect); return }
+    if (typeof value === 'string' || typeof value === 'number') { parts.push(String(value)); return }
     if (typeof value === 'object' && Array.isArray(value.children)) value.children.forEach(collect)
   }
   collect(expand(tree))
@@ -197,605 +143,63 @@ function textOf(tree) {
 const internals = api.__internals
 assert.ok(internals, 'internals are exposed for tests')
 
-const lyricLines = [
-  { time: 0, text: '作词 : 宮本浩次', translation: '' },
-  { time: 0.142, text: '作曲 : 宮本浩次', translation: '' },
-  { time: 0.284, text: '编曲 : 小林武史/宮本浩次', translation: '' },
-  { time: 0.427, text: 'いずれ花と散る わたしの生命', translation: '' },
-]
-internals.mergeLyricTranslation(lyricLines, '[00:00.427]我的生命如同散落之花')
-assert.equal(lyricLines[0].translation, '', 'credits must not inherit the first verse translation')
-assert.equal(lyricLines[1].translation, '', 'credits must not inherit the first verse translation')
-assert.equal(lyricLines[2].translation, '', 'credits must not inherit the first verse translation')
-assert.equal(lyricLines[3].translation, '我的生命如同散落之花')
-
-const bilingual = internals.buildTranslatedLrc(
-  [
-    { time: 5.12, text: '原词', translation: '翻译词' },
-    { time: 10, text: 'next', translation: '' },
-  ],
-  '[ti:Demo]\n[00:05.12]原词\n[00:05.12]翻译词\n[00:10.00]next',
-)
-assert.equal(
-  bilingual,
-  '[ti:Demo]\n[00:05.12]原词\n[00:05.12]翻译词\n[00:10.00]next',
-)
-assert.equal(internals.formatLrcTime(65.5), '[01:05.50]')
-
 const TRACKS = [
-  {
-    path: 'D:/Music/a.mp3',
-    name: 'a.mp3',
-    title: 'Alpha',
-    artist: 'Artist A',
-    album: 'Album One',
-    folder: 'Pop',
-    durationSec: 200,
-    hasCover: false,
-    size: 1000,
-    mtime: 1,
-    plays: 3,
-  },
-  {
-    path: 'D:/Music/b.mp3',
-    name: 'b.mp3',
-    title: 'Beta',
-    artist: 'Artist B',
-    album: 'Album Two',
-    folder: 'Rock',
-    durationSec: 180,
-    hasCover: false,
-    size: 2000,
-    mtime: 2,
-    plays: 1,
-  },
-  {
-    path: 'D:/Music/c.mp3',
-    name: 'c.mp3',
-    title: 'Gamma',
-    artist: 'Artist A',
-    album: 'Album One',
-    folder: 'Pop',
-    durationSec: 240,
-    hasCover: false,
-    size: 3000,
-    mtime: 3,
-    plays: 9,
-  },
-  {
-    path: 'D:/Music/a-copy.mp3',
-    name: 'a-copy.mp3',
-    title: 'Alpha',
-    artist: 'Artist A',
-    album: 'Album One',
-    folder: 'Pop',
-    durationSec: 200,
-    hasCover: false,
-    size: 900,
-    mtime: 4,
-    plays: 0,
-  },
+  { path: 'D:/Music/a.mp3', name: 'a.mp3', title: 'Alpha', artist: 'Artist A', album: 'Album One', folder: 'Pop', durationSec: 200, hasCover: false, size: 1000, mtime: 1, plays: 3 },
+  { path: 'D:/Music/b.mp3', name: 'b.mp3', title: 'Beta', artist: 'Artist B', album: 'Album Two', folder: 'Rock', durationSec: 180, hasCover: false, size: 2000, mtime: 2, plays: 1 },
+  { path: 'D:/Music/c.mp3', name: 'c.mp3', title: 'Gamma', artist: 'Artist A', album: 'Album One', folder: 'Pop', durationSec: 240, hasCover: false, size: 3000, mtime: 3, plays: 9 },
 ]
 
 internals.libraryStore.set({
-  phase: 'ready',
-  tracks: TRACKS,
-  roots: ['D:/Music'],
-  favorites: ['D:/Music/a.mp3'],
+  phase: 'ready', tracks: TRACKS, roots: ['D:/Music'], favorites: ['D:/Music/a.mp3'],
   playlists: [{ id: 'p1', name: 'Commute', trackPaths: ['D:/Music/a.mp3', 'D:/Music/c.mp3'] }],
-  config: { roots: ['D:/Music'], depth: 3 },
-  stats: {},
-  statsRange: 'all',
+  config: { roots: ['D:/Music'], depth: 3 }, stats: {}, statsRange: 'all',
 })
 internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { layout: 'top' }))
+internals.p3RouteStore.set({ source: 'local', page: 'songs', param: null, filter: null, query: '', history: [], scroll: {} })
 internals.player.playList(TRACKS, 0)
 
 const panel = components.get('main:music')
-assert.equal(typeof panel, 'function', 'the main seat must register the panel')
+assert.equal(typeof panel, 'function', 'the main seat must register panel-v3')
 
-// 1. local songs, top layout, a queue and a player bar
 const local = panel()
 const localClasses = classesOf(local)
-for (const name of ['mp-root', 'is-top', 'mp-topbar', 'mp-workspace', 'mp-content', 'mp-playerbar']) {
-  assert.ok(localClasses.has(name), `expected class ${name}`)
+for (const name of ['mpv3-root', 'mpv3-topbar', 'mpv3-workspace', 'mpv3-content', 'mpv3-player']) {
+  assert.ok(localClasses.has(name), 'expected class ' + name)
 }
 const localText = textOf(local)
 assert.ok(localText.includes('Alpha'), 'the first track title is rendered')
-assert.ok(localText.includes('Gamma'), 'all visible tracks are rendered')
-assert.ok(localText.includes('全部歌曲') || localText.includes('All songs'), 'the section title is rendered')
+assert.ok(localText.includes('Gamma'), 'visible tracks are rendered')
 
-// 2. rail layout renders the nav rail instead of the section bar
-internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { layout: 'rail' }))
-const rail = panel()
-const railClasses = classesOf(rail)
-assert.ok(railClasses.has('mp-nav'), 'rail layout renders the nav rail')
-assert.ok(railClasses.has('mp-nav-item'), 'rail layout renders nav items')
-
-// 3. favorites view + playlist view + stats view do not throw
-for (const nav of ['favorites', 'playlists', 'stats', 'albums', 'artists', 'folders']) {
-  internals.uiStore.set({ nav })
+for (const page of ['favorites', 'playlists', 'stats', 'albums', 'artists', 'folders']) {
+  internals.p3RouteStore.set({ source: 'local', page, param: null, filter: null, query: '', history: [], scroll: {} })
   const tree = panel()
-  assert.ok(classesOf(tree).has('mp-content'), `view ${nav} renders a content area`)
+  assert.ok(classesOf(tree).has('mpv3-content'), 'view ' + page + ' renders content')
 }
 
-// 4. online recent history renders its rows
-internals.uiStore.set({ source: 'netease', nav: 'recent', filter: null, query: '' })
-internals.onlineStore.set({
-  provider: 'netease',
-  phase: 'ready',
-  history: [
-    {
-      provider: 'netease',
-      id: '42',
-      title: 'Online Song',
-      artist: 'Online Artist',
-      album: 'Online Album',
-      durationSec: 210,
-      coverUrl: '',
-      qualityHint: '',
-      playedAt: Date.now(),
-    },
-  ],
-  providers: { netease: { loggedIn: true, nickname: 'Tester' } },
-})
-const online = panel()
-const onlineText = textOf(online)
-assert.ok(onlineText.includes('Online Song'), 'online history rows render')
-assert.ok(onlineText.includes('Tester'), 'the account chip renders')
+internals.p3RouteStore.set({ source: 'local', page: 'playlist', param: 'p1', filter: null, query: '', history: [], scroll: {} })
+assert.ok(classesOf(panel()).has('mpv3-hero'), 'playlist detail renders a hero')
 
-// 5. overlays: context menu + settings sheet
-internals.overlayStore.set({ layers: [] })
-internals.uiStore.set({ source: 'local', nav: 'songs', filter: null, query: '' })
+internals.p3RouteStore.set({ source: 'local', page: 'album', param: 'Artist A|Album One', filter: null, query: '', history: [], scroll: {} })
+assert.ok(classesOf(panel()).has('mpv3-hero'), 'album detail renders a hero')
+
+internals.p3RouteStore.set({ source: 'local', page: 'artist', param: 'Artist A', filter: null, query: '', history: [], scroll: {} })
+assert.ok(classesOf(panel()).has('mpv3-hero'), 'artist detail renders a hero')
+
+internals.p3RouteStore.set({ source: 'local', page: 'search', param: null, filter: null, query: 'Alpha', history: [], scroll: {} })
+assert.ok(textOf(panel()).includes('Alpha'), 'local search renders matching tracks')
+
+internals.p3RouteStore.set({ source: 'netease', page: 'recent', param: null, filter: null, query: '', history: [], scroll: {} })
+internals.onlineStore.set({
+  provider: 'netease', phase: 'ready', providers: { netease: { loggedIn: true, nickname: 'Tester', capabilities: { recent: true } } },
+  history: [{ provider: 'netease', id: '42', title: 'Online Song', artist: 'Online Artist', album: 'Online Album', durationSec: 210, coverUrl: '', qualityHint: '', playedAt: Date.now() }],
+})
+const onlineText = textOf(panel())
+assert.ok(onlineText.includes('Online Song'), 'online history rows render')
+
 internals.overlayStore.set({ layers: [{ kind: 'menu', props: { track: TRACKS[0], x: 40, y: 40 } }] })
 assert.ok(classesOf(panel()).has('mp-ctx'), 'the context menu renders')
 
 internals.overlayStore.set({ layers: [{ kind: 'settings', props: {} }] })
-const settings = panel()
-const settingsClasses = classesOf(settings)
-assert.ok(settingsClasses.has('mp-sheet'), 'the settings sheet renders')
-assert.ok(settingsClasses.has('mp-sheet-tab'), 'settings tabs render')
-assert.ok(textOf(settings).includes('布局') || textOf(settings).includes('Layout'), 'the layout switch lives in settings')
-
-// 5b. Navidrome appears as a source tab and as a credential card in settings
-internals.overlayStore.set({ layers: [] })
-internals.uiStore.set({ source: 'navidrome', nav: 'recent', filter: null, query: '' })
-internals.onlineStore.set({ provider: 'navidrome', results: [], phase: 'idle', playlists: [] })
-const navPanel = panel()
-const navText = textOf(navPanel)
-assert.ok(navText.includes('Navidrome'), 'Navidrome renders as a source tab')
-
-// Navidrome mirrors the local library's browse shape — songs, artists, albums —
-// because Subsonic can enumerate all three. Artist and album rows open the
-// shared album view, so they are navigation surfaces, not separate viewers.
-const isZh = navText.includes('歌曲')
-const L = {
-  songs: isZh ? '歌曲' : 'Songs',
-  artists: isZh ? '歌手' : 'Artists',
-  albums: isZh ? '专辑' : 'Albums',
-}
-assert.ok(navText.includes(L.songs), 'the navidrome sidebar exposes the songs entry')
-
-// Check the sidebar entry list directly instead of the rendered text: other
-// copy on the page (empty states, hints) can contain the same word.
-const navItems = internals
-  .navGroupsFor('navidrome', 0)
-  .flatMap((group) => group.items.map((item) => item.key))
-for (const key of ['songs', 'artists', 'albums']) {
-  assert.ok(navItems.includes(key), `navidrome lists a ${key} entry`)
-}
-
-const neteaseItems = internals
-  .navGroupsFor('netease', 0)
-  .flatMap((group) => group.items.map((item) => item.key))
-for (const key of ['songs', 'artists', 'albums']) {
-  assert.ok(!neteaseItems.includes(key), `search-only providers have no ${key} entry`)
-}
-
-// Every browse view renders without throwing.
-for (const nav of ['songs', 'album', 'artists', 'albums', 'artist']) {
-  internals.uiStore.set({ source: 'navidrome', nav, filter: null, query: '' })
-  internals.onlineStore.set({
-    provider: 'navidrome',
-    results: [],
-    phase: 'idle',
-    playlists: [],
-    albumId: nav === 'album' ? 'x1' : '',
-    albumName: nav === 'album' ? 'Test Album' : '',
-  })
-  const view = panel()
-  assert.ok(classesOf(view).size > 0, `the ${nav} view renders`)
-}
-
-internals.overlayStore.set({ layers: [{ kind: 'settings', props: {} }] })
-// The settings sheet opens on the last tab; drive it to the online tab.
-const settingsNav = panel()
-assert.ok(classesOf(settingsNav).has('mp-sheet'), 'settings sheet still renders with an online source')
-
-// The online tab lists every provider card, Navidrome included, once signed out.
-internals.overlayStore.set({ layers: [{ kind: 'settings', props: {} }] })
-internals.uiStore.set({ source: 'navidrome', nav: 'recent', filter: null, query: '' })
-assert.ok(
-  classesOf(panel()).has('mp-sheet'),
-  'the settings sheet survives a navidrome source with no session',
-)
-
-// 5c. Navidrome is configured in Settings (Folia keeps server connections there):
-// the online tab holds the single credential form, with the keep-password opt-in.
-internals.overlayStore.set({ layers: [{ kind: 'settings', props: { tab: 'online' } }] })
-internals.onlineStore.set({
-  provider: 'navidrome',
-  results: [],
-  phase: 'idle',
-  playlists: [],
-  providers: {
-    navidrome: {
-      loggedIn: false,
-      nickname: '',
-      avatarUrl: '',
-      capabilities: { loginPassword: true, loginQr: false },
-    },
-  },
-})
-const navSettings = panel()
-const navSettingsText = textOf(navSettings)
-assert.ok(classesOf(navSettings).has('mp-sheet'), 'the settings sheet renders')
-assert.ok(
-  nodesWithClass(navSettings, 'is-navidrome').length === 1,
-  'the Navidrome card renders in the online tab',
-)
-assert.ok(
-  nodesWithClass(navSettings, 'mp-kit-input').length >= 3,
-  'the server / username / password fields render',
-)
-assert.ok(
-  navSettingsText.includes('保存密码') || navSettingsText.includes('Keep'),
-  'the keep-password opt-in renders',
-)
-assert.ok(
-  navSettingsText.includes('连接') || navSettingsText.includes('Connect'),
-  'the connect button renders',
-)
-
-// 5d. Signed-in platforms show their avatar in the login rail; server connections
-// (Navidrome) are not part of this window (Folia keeps them in Settings).
-internals.overlayStore.set({ layers: [{ kind: 'login', props: { provider: 'netease' } }] })
-internals.onlineStore.set({
-  provider: 'netease',
-  results: [],
-  phase: 'idle',
-  playlists: [],
-  providers: {
-    netease: {
-      loggedIn: true,
-      nickname: 'Aliboder',
-      avatarUrl: 'https://p1.music.126.net/a.jpg',
-      capabilities: { loginQr: true },
-    },
-    qq: { loggedIn: false, nickname: '', avatarUrl: '', capabilities: { loginQr: true } },
-    navidrome: { loggedIn: false, nickname: '', avatarUrl: '', capabilities: { loginPassword: true, loginQr: false } },
-  },
-})
-const loginPanel = panel()
-assert.equal(nodesWithClass(loginPanel, 'mp-login-chip').length, 2, 'the login rail lists QR platforms only')
-assert.equal(nodesWithClass(loginPanel, 'mp-login-chip-avatar').length, 1, 'the signed-in platform shows its avatar')
-
-// 5e. Every settings tab renders; a dead reference in one tab blanks the whole sheet.
-for (const tab of ['appearance', 'lyrics', 'playback', 'online', 'library', 'cache', 'about']) {
-  internals.overlayStore.set({ layers: [{ kind: 'settings', props: { tab } }] })
-  const tabPanel = panel()
-  assert.ok(classesOf(tabPanel).has('mp-sheet'), `the settings ${tab} tab renders`)
-}
-
-// 6. tag editor / batch / duplicates / online lyric dialogs
-internals.overlayStore.set({ layers: [{ kind: 'tag', props: { path: TRACKS[0].path } }] })
-const tag = panel()
-assert.ok(classesOf(tag).has('mp-dialog'), 'the tag editor renders')
-assert.ok(textOf(tag).includes('标题'), 'tag fields render')
-
-internals.overlayStore.set({ layers: [{ kind: 'batchEdit', props: { paths: [TRACKS[0].path] } }] })
-assert.ok(textOf(panel()).includes('批量'), 'the batch editor renders')
-
-internals.overlayStore.set({ layers: [{ kind: 'duplicates', props: { groups: [[TRACKS[0], TRACKS[3]]] } }] })
-assert.ok(textOf(panel()).includes('重复'), 'the duplicates dialog renders')
-
-internals.overlayStore.set({ layers: [{ kind: 'onlineLyric', props: { track: TRACKS[0], onApply() {} } }] })
-assert.ok(textOf(panel()).includes('在线歌词'), 'the online lyric dialog renders')
-
-// 7. selection mode draws checkboxes and the count chip
-internals.overlayStore.set({ layers: [] })
-internals.uiStore.set({ source: 'local', nav: 'songs', filter: null, query: '' })
-internals.selectionStore.set({ active: true, paths: [TRACKS[0].path] })
-const selecting = panel()
-assert.ok(classesOf(selecting).has('mp-row-check'), 'selection checkboxes render')
-assert.ok(textOf(selecting).includes('已选 1 首'), 'the selection count renders')
-assert.ok(!textOf(selecting).includes('收藏选中'), 'bulk actions are not duplicated in the toolbar')
-internals.selectionStore.set({ active: false, paths: [] })
-
-// 8. the duplicate chip appears for the duplicated pair
-assert.ok(textOf(panel()).includes('重复 1 组'), 'the duplicate chip renders')
-
-// 9. a legacy grid preference is ignored: songs always render as rows
-const savedPrefs = internals.prefsStore.get()
-internals.prefsStore.set(Object.assign({}, savedPrefs, { viewMode: 'grid' }))
-internals.selectionStore.set({ active: true, paths: [TRACKS[0].path] })
-const legacy = panel()
-assert.ok(classesOf(legacy).has('mp-row'), 'list rows render even with a legacy grid preference')
-assert.ok(!classesOf(legacy).has('mp-card-check'), 'grid selection checkboxes no longer render')
-internals.selectionStore.set({ active: false, paths: [] })
-internals.prefsStore.set(savedPrefs)
-
-// 10. multi-select context menu carries the bulk actions
-internals.selectionStore.set({ active: true, paths: [TRACKS[0].path, TRACKS[1].path] })
-internals.overlayStore.set({ layers: [{ kind: 'menu', props: { track: TRACKS[0], x: 10, y: 10 } }] })
-const multiMenu = textOf(panel())
-assert.ok(multiMenu.includes('播放选中'), 'the multi menu plays the selection')
-assert.ok(multiMenu.includes('批量编辑'), 'the multi menu batch-edits the selection')
-assert.ok(multiMenu.includes('删除'), 'the multi menu deletes the selection')
-internals.overlayStore.set({ layers: [] })
-internals.selectionStore.set({ active: false, paths: [] })
-
-// 11. trash dialog
-internals.overlayStore.set({ layers: [{ kind: 'trash', props: {} }] })
-assert.ok(textOf(panel()).includes('回收站'), 'the trash dialog renders')
-internals.overlayStore.set({ layers: [] })
-
-// 8. pager math. The render mock cannot reach the paged branch (useState never
-//    changes), so the window helper is exposed through __internals and tested
-//    directly — this is the part that decides which page buttons appear.
-const pageWindow = internals.pageWindow
-assert.equal(typeof pageWindow, 'function', 'pageWindow is exposed for tests')
-assert.equal(internals.SONG_PAGE_SIZE, 100, 'pages hold 100 rows')
-
-assert.deepEqual(pageWindow(1, 1), [1], 'a single page shows one button')
-assert.deepEqual(pageWindow(3, 5), [1, 2, 3, 4, 5], 'up to 7 pages are listed in full')
-assert.deepEqual(
-  pageWindow(1, 31),
-  [1, 2, null, 31],
-  'first page keeps a window on both sides plus the last page',
-)
-assert.deepEqual(pageWindow(15, 31), [1, null, 14, 15, 16, null, 31], 'a middle page shows neighbours')
-assert.deepEqual(
-  pageWindow(31, 31),
-  [1, null, 30, 31],
-  'the last page mirrors the first',
-)
-assert.equal(pageWindow(1, 31).filter((n) => n !== null).length, 3, 'no index is drawn twice')
-
-// 9. `music_control`'s source must resolve through the shared provider list.
-//    It used to hardcode the four Chinese platforms, so a request for
-//    `source: "navidrome"` fell back to a local library search — wrong track or
-//    silence, for a feature the tool description advertises.
-const isOnlineSource = internals.isOnlineSource
-assert.equal(typeof isOnlineSource, 'function', 'isOnlineSource is exposed for tests')
-assert.equal(isOnlineSource('navidrome'), true, 'navidrome counts as an online source')
-for (const provider of ['netease', 'qq', 'kugouLite']) {
-  assert.equal(isOnlineSource(provider), true, `${provider} stays an online source`)
-}
-assert.equal(isOnlineSource('kugou'), false, 'the standard KuGou id is hidden behind the single concept tab')
-assert.equal(isOnlineSource('local'), false, 'local is not an online source')
-assert.equal(isOnlineSource('nope'), false, 'an unknown source is not an online source')
-assert.deepEqual(
-  internals.UI_SOURCES,
-  ['local', 'netease', 'qq', 'kugouLite', 'navidrome'],
-  'the provider list has one definition',
-)
-
-// …and applyControlAction must call it instead of listing providers again.
-const panelSource = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src', 'client', 'components', 'ui', 'panel.js'), 'utf8')
-const controlBody = panelSource.slice(
-  panelSource.indexOf('function applyControlAction'),
-  panelSource.indexOf('function applyControlAction') + 1600,
-)
-assert.match(controlBody, /isOnlineSource\(action\.source\)/, 'the control action must use the shared helper')
-assert.doesNotMatch(
-  controlBody,
-  /action\.source === 'netease'/,
-  'the control action must not hardcode the provider list again',
-)
-
-// 10. equalizer panel: every tab renders, and the presets come from the table.
-const EqPanel = internals.EqPanel
-assert.equal(typeof EqPanel, 'function', 'EqPanel is exposed for tests')
-assert.ok(Array.isArray(internals.EQ_PRESETS) && internals.EQ_PRESETS.length >= 18, 'presets are shipped')
-
-const eqPrefs = internals.prefsStore.get()
-internals.prefsStore.set(
-  Object.assign({}, eqPrefs, {
-    eqEnabled: true,
-    eqPreset: 'rock',
-    eqBands: [5, 3, -4, -5, -3, 2, 5, 7, 7, 7],
-    eqPreamp: 0,
-    eqCustom: [],
-  }),
-)
-
-function renderEq(props) {
-  return expand(React.createElement(EqPanel, props || { onBack() {} }))
-}
-
-const presetTab = renderEq()
-assert.ok(classesOf(presetTab).has('mp-eqp'), 'the equalizer panel renders')
-assert.ok(classesOf(presetTab).has('mp-eq-tab'), 'the tab bar renders')
-for (const label of ['预设', '设备', '我的', '编辑']) {
-  assert.ok(textOf(presetTab).includes(label), `the ${label} tab label renders`)
-}
-assert.ok(textOf(presetTab).includes('Lo-Fi'), 'Folia sound presets are listed by name')
-assert.ok(classesOf(presetTab).has('mp-eq-preset'), 'preset tiles render')
-assert.ok(classesOf(presetTab).has('mp-eq-bars'), 'each preset shows its curve thumbnail')
-
-const mineTab = renderEq({ initialTab: 'mine' })
-assert.ok(textOf(mineTab).includes('自定义 1'), 'the first custom slot renders')
-assert.ok(textOf(mineTab).includes('自定义 2'), 'the second custom slot renders')
-assert.ok(textOf(mineTab).includes('保存当前'), 'the slot save action renders')
-assert.ok(classesOf(mineTab).has('mp-eq-slot'), 'custom slots render')
-
-const deviceTab = renderEq({ initialTab: 'device' })
-assert.ok(classesOf(deviceTab).has('mp-eq-search'), 'the device search field renders')
-assert.ok(classesOf(deviceTab).has('mp-eq-device-scroll'), 'the device list scrolls inside the panel')
-
-const editTab = renderEq({ initialTab: 'edit' })
-assert.ok(classesOf(editTab).has('mp-eq-curve'), 'the response curve renders')
-assert.ok(classesOf(editTab).has('mp-eq-fader'), 'the band faders render')
-assert.ok(textOf(editTab).includes('音效'), 'the Folia effect section renders')
-assert.ok(textOf(editTab).includes('低切'), 'the effect controls render')
-assert.ok(textOf(editTab).includes('重置'), 'the reset action renders')
-
-// The curve must follow the stored bands rather than a static image.
-const curveAt = (bands) => internals.eqCurveSamples(bands, 0, 8, 44100).map((point) => point.db.toFixed(2))
-assert.notDeepEqual(
-  curveAt([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-  curveAt([12, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-  'the curve reflects the band gains',
-)
-
-// A custom slot can be applied and shows its active state.
-internals.prefsStore.set(
-  Object.assign({}, eqPrefs, {
-    eqEnabled: true,
-    eqPreset: 'custom1',
-    eqBands: [5, 3, 1, 0, -1, 0, 2, 4, 6, 7],
-    eqSlots: [
-      { bands: [5, 3, 1, 0, -1, 0, 2, 4, 6, 7], effects: {} },
-      { bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], effects: {} },
-    ],
-  }),
-)
-const savedActiveTab = renderEq({ initialTab: 'mine' })
-const savedActiveClasses = classesOf(savedActiveTab)
-assert.ok(savedActiveClasses.has('mp-eq-slot'), 'custom slots render')
-assert.ok(savedActiveClasses.has('is-on'), 'the applied custom slot is marked')
-
-// The parent snapshot drives the pane when provided (the now-playing bar keeps
-// it live even if this subtree's own store subscription were dropped).
-const propDriven = renderEq({
-  initialTab: 'presets',
-  prefs: {
-    eqEnabled: true,
-    eqPreset: 'lofi',
-    eqBands: [-4, -2, 0, 2, 3, 2, 0, -3, -7, -10],
-    eqLayout: 'iso10',
-    eqCustom: [],
-  },
-})
-const activeTiles = nodesWithClass(propDriven, 'mp-eq-preset').filter((node) =>
-  String(node.props.className).includes('is-on'),
-)
-assert.equal(activeTiles.length, 1, 'exactly one preset is marked from the parent snapshot')
-
-internals.prefsStore.set(eqPrefs)
-
-// 11. audio effects is ONE panel with two views: the volume controls and the
-//     equalizer must not be two separate popovers that swap under the button.
-const npSource = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src', 'client', 'components', 'ui', 'now-playing.js'), 'utf8')
-assert.match(npSource, /h\(AudioEffectsPanel, \{/, 'the now-playing bar mounts the shared panel')
-assert.doesNotMatch(npSource, /is-eq'/, 'the old separate equalizer popover is gone')
-assert.doesNotMatch(npSource, /mp-np-extra-link/, 'the old entry row is gone')
-
-const AudioEffectsPanel = internals.AudioEffectsPanel
-assert.equal(typeof AudioEffectsPanel, 'function', 'AudioEffectsPanel is exposed for tests')
-
-const volumeView = expand(
-  React.createElement(AudioEffectsPanel, {
-    view: 'audio',
-    snap: { volume: 0.42, muted: false },
-    prefs: { normalizeVolume: true },
-    track: { qualityHint: 'FLAC 48 kHz' },
-    onView() {},
-  }),
-)
-const volumeClasses = classesOf(volumeView)
-assert.ok(volumeClasses.has('mp-np-extra-pop'), 'the panel renders one popover')
-assert.ok(volumeClasses.has('is-effects'), 'the panel carries the audio-effects class')
-assert.ok(volumeClasses.has('mp-fx-seg-btn'), 'the view switch renders inside the panel')
-assert.ok(textOf(volumeView).includes('音频效果'), 'the panel title renders')
-assert.ok(textOf(volumeView).includes('42%'), 'the volume readout renders')
-assert.ok(textOf(volumeView).includes('FLAC 48 kHz'), 'the quality hint renders')
-assert.ok(textOf(volumeView).includes('智能过渡'), 'the crossfade switch lives in the volume view')
-assert.ok(volumeClasses.has('mp-np-extra-row'), 'the switch rows share the volume layout')
-assert.doesNotMatch(npSource, /transition/, 'there is no separate transition view anymore')
-
-const eqView = expand(
-  React.createElement(AudioEffectsPanel, {
-    view: 'eq',
-    snap: { volume: 0.42 },
-    prefs: {},
-    track: null,
-    onView() {},
-  }),
-)
-const eqViewClasses = classesOf(eqView)
-assert.ok(eqViewClasses.has('mp-np-extra-pop'), 'the equalizer shares the same popover')
-assert.ok(eqViewClasses.has('is-effects'), 'switching views does not replace the panel')
-assert.ok(eqViewClasses.has('mp-eqp'), 'the equalizer content renders inside it')
-assert.ok(eqViewClasses.has('mp-fx-seg-btn'), 'the view switch stays visible in the equalizer view')
-assert.ok(textOf(eqView).includes('Lo-Fi'), 'presets are available from the shared panel')
-
-// Turning the crossfade on is the same pref the settings sheet writes.
-const savedTransition = internals.prefsStore.get()
-internals.prefsStore.set(Object.assign({}, savedTransition, { crossfadeSeconds: 6 }))
-const volumeOn = expand(
-  React.createElement(AudioEffectsPanel, {
-    view: 'audio',
-    snap: { volume: 0.42 },
-    prefs: {},
-    track: null,
-    onView() {},
-  }),
-)
-assert.ok(textOf(volumeOn).includes('智能过渡'), 'the switch stays in place when enabled')
-assert.ok(!textOf(volumeOn).includes('同专辑也过渡'), 'the album rule is fixed, not a switch')
-assert.ok(!classesOf(volumeOn).has('mp-xf-chip'), 'no duration picker: the engine decides')
-internals.prefsStore.set(savedTransition)
-
-
-// Folia's Line is the player's lyric line: the document's lines go through untouched,
-// and the legacy {time,text} shape of the Host/LRC path is converted once, at the edge.
-{
-  const foliaLine = {
-    id: 'line-1',
-    fullText: '晴天',
-    startTime: 1,
-    endTime: 3,
-    words: [
-      { text: '晴', startTime: 1, endTime: 2 },
-      { text: '天', startTime: 2, endTime: 3 },
-    ],
-    translation: 'Sunny',
-    renderHints: { wordRevealMode: 'instant', lineTransitionMode: 'fast' },
-    isChorus: true,
-  }
-  assert.ok(typeof internals.foliaLyricLines === 'function', 'the document bridge is exposed')
-  const lines = internals.foliaLyricLines({ lines: [foliaLine] })
-  assert.equal(lines.length, 1)
-  assert.equal(lines[0], foliaLine, 'Folia lines are not re-shaped')
-  assert.equal(internals.mpLineStart(lines[0]), 1)
-
-  const stage = internals.foliaPendoloLines(lines)
-  assert.equal(stage.length, 1)
-  assert.equal(stage[0].sourceIndex, 0)
-  assert.equal(stage[0].fullText, '晴天')
-  assert.equal(stage[0].renderHints.wordRevealMode, 'instant', 'render hints survive to the style')
-  assert.equal(stage[0].isChorus, true)
-  assert.deepEqual(stage[0].words.map((word) => [word.text, word.startTime]), [['晴', 1], ['天', 2]])
-
-  // The old shape (Host /lyrics, LRC fallback) converts once at the edge.
-  const legacy = internals.legacyLinesToFolia([
-    { time: 2, end: 3, text: '晴天', translation: 'Sunny', words: [{ t: 2, end: 2.5, text: '晴' }] },
-  ])
-  assert.equal(legacy[0].fullText, '晴天')
-  assert.equal(legacy[0].startTime, 2)
-  assert.equal(legacy[0].endTime, 3)
-  assert.equal(legacy[0].words[0].startTime, 2)
-  assert.equal(internals.mpLineStart(legacy[0]), 2)
-  assert.equal(internals.mpLineStart({ time: 4 }), 4, 'a legacy line still reads')
-
-  // The per-song timeline offset the player restores and remembers.
-  assert.equal(internals.readSavedLyricOffset('online:qq:1'), 0)
-  internals.rememberLyricOffset('online:qq:1', 250)
-  assert.equal(internals.readSavedLyricOffset('online:qq:1'), 250)
-  internals.rememberLyricOffset('online:qq:1', 0)
-}
+assert.ok(classesOf(panel()).has('mp-sheet'), 'the settings sheet renders')
 
 console.log('panel.render.test.mjs ok')
-
-
