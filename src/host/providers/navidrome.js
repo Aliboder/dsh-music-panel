@@ -202,7 +202,10 @@ export async function searchAlbums(config, query, options = {}) {
   const result = body.searchResult3 || body.searchResult2 || body.searchResult || {}
   const albums = Array.isArray(result.album) ? result.album : []
   const items = albums.map(albumOf).filter((album) => album !== null)
-  return { items, total: items.length, page: Math.floor(offset / count) + 1 }
+  // Subsonic search3 does not report a total: keep a sentinel when the page is full so
+  // the client can ask for the next page, and a real count when it is the last page.
+  const total = offset + items.length + (items.length >= count ? 1 : 0)
+  return { items, total, page: Math.floor(offset / count) + 1 }
 }
 
 /**
