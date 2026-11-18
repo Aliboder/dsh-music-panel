@@ -823,6 +823,48 @@ function P3OnlineArtistPage(props) {
   )
 }
 
+function p3OnlineSearchGroups(tracks, source) {
+  var albumMap = {}
+  var albumOrder = []
+  var artistMap = {}
+  var artistOrder = []
+  ;(tracks || []).forEach(function (track) {
+    var albumKey = track.albumId ? 'id:' + track.albumId : 'name:' + (track.album || '')
+    if (track.album && !albumMap[albumKey]) {
+      albumMap[albumKey] = {
+        key: albumKey,
+        name: track.album,
+        artist: track.artist || '',
+        albumId: track.albumId || '',
+        coverUrl: track.coverUrl || '',
+        coverArtId: track.coverArtId || '',
+      }
+      albumOrder.push(albumKey)
+    }
+    var names = trackArtistNames(track)
+    var artistName = names.length > 0 ? names[0] : (track.artist || '')
+    var artistKey = artistName
+    if (artistName !== '' && !artistMap[artistKey]) {
+      var detail = Array.isArray(track.artistsDetail) ? track.artistsDetail : []
+      var artistId = ''
+      detail.forEach(function (item) { if (item && item.name === artistName && item.id) artistId = String(item.id) })
+      artistMap[artistKey] = {
+        name: artistName,
+        artistId: artistId,
+        coverUrl: track.coverUrl || '',
+        coverArtId: track.coverArtId || '',
+        tracks: [],
+      }
+      artistOrder.push(artistKey)
+    }
+    if (artistName !== '' && artistMap[artistName]) artistMap[artistName].tracks.push(track)
+  })
+  return {
+    albums: albumOrder.map(function (key) { return albumMap[key] }),
+    artists: artistOrder.map(function (key) { return artistMap[key] }),
+  }
+}
+
 function P3SearchPage(props) {
   var route = props.route
   var query = String(route.query || '').trim()
@@ -851,8 +893,9 @@ function P3SearchPage(props) {
       h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.error, actions: h(Button, { variant: 'ghost', onClick: function () { void searchOnline(query) } }, t('p3.retry')) }))
   }
   var tracks = local ? p3SortLocal(filterTracks(p3LocalTracks(props.library), query), props.prefs) : p3OnlineSearchResults()
-  var albums = local ? p3LocalAlbums(props.library, props.prefs, query) : []
-  var artists = local ? p3LocalArtists(props.library, props.prefs, query) : []
+  var onlineGroups = local ? null : p3OnlineSearchGroups(tracks, route.source)
+  var albums = local ? p3LocalAlbums(props.library, props.prefs, query) : onlineGroups.albums
+  var artists = local ? p3LocalArtists(props.library, props.prefs, query) : onlineGroups.artists
   var playlists = local
     ? (props.library.playlists || []).filter(function (playlist) { return String(playlist.name || '').toLowerCase().indexOf(query.toLowerCase()) >= 0 })
     : []
@@ -874,15 +917,42 @@ function P3SearchPage(props) {
       albums.length > 0 ? h('div', { className: 'mpv3-section' },
         h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.albums')), h('span', null, albums.length)),
         h(P3Grid, {
-          items: albums.slice(0, 4).map(function (album) { return { key: album.key, name: album.name, subtitle: album.artist, coverSrc: album.coverTrack ? trackCoverSrc(album.coverTrack) : '' } }),
-          onOpen: function (item) { p3Navigate('album', item.key) },
+          items: albums.slice(0, 4).map(function (album) {
+            return {
+              key: album.key,
+              name: album.name,
+              subtitle: album.artist,
+              coverSrc: local ? (album.coverTrack ? trackCoverSrc(album.coverTrack) : '') : p3OnlineCover(album, route.source),
+              album: album,
+            }
+          }),
+          onOpen: function (item) {
+            if (local) {
+              p3Navigate('album', item.key)
+            } else {
+              p3OpenAlbum({
+                onlineProvider: route.source,
+                album: item.album.name,
+                albumId: item.album.albumId,
+                artist: item.album.artist,
+                coverUrl: item.album.coverUrl,
+                coverArtId: item.album.coverArtId,
+              })
+            }
+          },
         }),
       ) : null,
       artists.length > 0 ? h('div', { className: 'mpv3-section' },
         h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.artists')), h('span', null, artists.length)),
         h('div', { className: 'mpv3-plain-list' }, artists.slice(0, 4).map(function (artist) {
-          return h('button', { key: artist.name, type: 'button', className: 'mpv3-entity-row', onClick: function () { p3Navigate('artist', artist.name) } },
-            h('span', { className: 'mpv3-entity-cover is-round', style: { background: p3Gradient(artist.name) } }, h('span', null, p3Initial(artist.name))),
+          var cover = local ? (artist.coverTrack ? trackCoverSrc(artist.coverTrack) : '') : p3OnlineCover(artist, route.source)
+          return h('button', { key: artist.name, type: 'button', className: 'mpv3-entity-row', onClick: function () {
+            if (local) p3Navigate('artist', artist.name)
+            else p3OpenArtist({ onlineProvider: route.source, artist: artist.name, artistsDetail: artist.artistId ? [{ name: artist.name, id: artist.artistId }] : [], coverUrl: artist.coverUrl })
+          } },
+            h('span', { className: 'mpv3-entity-cover is-round', style: cover ? undefined : { background: p3Gradient(artist.name) } },
+              cover ? h('img', { src: cover, alt: '' }) : h('span', null, p3Initial(artist.name)),
+            ),
             h('span', { className: 'mpv3-entity-main' }, h('span', { className: 'mpv3-entity-title' }, artist.name), h('span', { className: 'mpv3-entity-sub' }, artist.tracks.length + ' ' + t('p3.unitSong'))),
             icon('right', 16),
           )

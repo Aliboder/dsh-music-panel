@@ -200,6 +200,16 @@ internals.onlineStore.set({
 const onlineText = textOf(panel())
 assert.ok(onlineText.includes('Online Song'), 'online history rows render')
 
+internals.onlineStore.set({
+  provider: 'netease', phase: 'ready', searchTotal: 1, searchPage: 1,
+  results: [{ provider: 'netease', id: '42', title: 'Online Song', artist: 'Online Artist', album: 'Online Album', durationSec: 210, coverUrl: '', qualityHint: '' }],
+})
+internals.p3RouteStore.set({ source: 'netease', page: 'search', param: null, filter: null, query: 'Online', history: [], scroll: {} })
+const onlineSearch = panel()
+assert.ok(classesOf(onlineSearch).has('mpv3-grid'), 'online search derives album group cards')
+
+internals.p3RouteStore.set({ source: 'local', page: 'songs', filter: null, query: '', history: [], scroll: {} })
+
 const queueTree = internals.P3Queue({
   open: true,
   onClose: function () {},

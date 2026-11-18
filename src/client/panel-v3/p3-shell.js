@@ -463,7 +463,7 @@ function P3PlayerBar(props) {
     h('div', { className: 'mpv3-player-right' },
       h('span', { className: 'mpv3-player-time' }, fmtClock(preview !== null ? preview : time.currentTime) + ' / ' + fmtClock(duration)),
       h(P3SleepChip, { deadline: prefs.sleepDeadline }),
-      h(IconButton, { icon: 'target', size: 16, title: t('page.locateCurrent'), onClick: props.onLocate }),
+      h(IconButton, { icon: 'target', size: 16, className: 'mpv3-player-locate', title: t('page.locateCurrent'), onClick: props.onLocate }),
       h('div', { className: 'mpv3-player-vol' },
         h(IconButton, {
           icon: snap.muted || snap.volume === 0 ? 'mute' : 'volume',
@@ -485,7 +485,7 @@ function P3PlayerBar(props) {
         }),
       ),
       h(IconButton, { icon: 'playlist', size: 16, active: props.queueOpen, className: 'mpv3-queue-btn', title: t('page.queue'), onClick: props.onToggleQueue }),
-      h(IconButton, { icon: 'chevronDown', size: 16, title: t('page.openPlayer'), onClick: props.onOpenPlayer }),
+      h(IconButton, { icon: 'chevronDown', size: 16, className: 'mpv3-player-expand', title: t('page.openPlayer'), onClick: props.onOpenPlayer }),
     ),
   )
 }
