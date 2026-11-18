@@ -311,19 +311,30 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
   const s = normSession(session)
   const hash = String(song.hash || '').toLowerCase()
   if (!hash) throw new Error('缺少歌曲 hash')
+  const albumId = Number(song.albumId) || 0
+  const albumAudioId = Number(song.albumAudioId) || 0
+  const attempts = []
+  if (albumId || albumAudioId) attempts.push({ album_id: String(albumId), album_audio_id: String(albumAudioId) })
+  attempts.push({ album_id: '0', album_audio_id: '0' })
   const qualities = prefer.filter((item) => ['flac', '320', '128'].includes(item))
   try {
     for (const quality of qualities.length ? qualities : ['128']) {
-      const answer = await callKugou('lite', 'song_url', {
-        hash,
-        quality,
-        album_id: '0',
-        album_audio_id: '0',
-        cookie: kugouCookies({ ...s, dfid: s.dfid }, 'lite'),
-      })
-      const url = findPlaybackUrl(answer.body)
-      if (url && !/\/p_0_/.test(url)) {
-        return { url, quality, bitrate: Number(answer.body?.bitrate) || 0 }
+      for (const attempt of attempts) {
+        try {
+          const answer = await callKugou('lite', 'song_url', {
+            hash,
+            quality,
+            album_id: attempt.album_id,
+            album_audio_id: attempt.album_audio_id,
+            cookie: kugouCookies({ ...s, dfid: s.dfid }, 'lite'),
+          })
+          const url = findPlaybackUrl(answer.body)
+          if (url && !/\/p_0_/.test(url)) {
+            return { url, quality, bitrate: Number(answer.body?.bitrate) || 0 }
+          }
+        } catch {
+          // Try the next variant for this quality.
+        }
       }
     }
   } catch {
@@ -331,42 +342,44 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
   }
   const auth = await songAuth(s, song)
   for (const quality of qualities.length ? qualities : ['128']) {
-    const params = {
-      album_id: '0',
-      area_code: '1',
-      module: '',
-      hash,
-      need_m: '0',
-      ssa_flag: 'is_fromtrack',
-      version: '11430',
-      open_time: String(auth.openTime),
-      ptype: '0',
-      need_ogg: '1',
-      page_id: '967177915',
-      auth: auth.auth,
-      mtype: '0',
-      quality,
-      album_audio_id: '0',
-      behavior: 'play',
-      pid: '411',
-      module_id: '51',
-      cmd: '26',
-      ppage_id: '356753938,823673182,967485191',
-      clientver: '11561',
-      pidversion: '3001',
-      cdnBackup: '1',
-      dfid: s.dfid || '-',
-      key: signTrackKey(hash, s),
+    for (const attempt of attempts) {
+      const params = {
+        album_id: attempt.album_id,
+        area_code: '1',
+        module: '',
+        hash,
+        need_m: '0',
+        ssa_flag: 'is_fromtrack',
+        version: '11430',
+        open_time: String(auth.openTime),
+        ptype: '0',
+        need_ogg: '1',
+        page_id: '967177915',
+        auth: auth.auth,
+        mtype: '0',
+        quality,
+        album_audio_id: attempt.album_audio_id,
+        behavior: 'play',
+        pid: '411',
+        module_id: '51',
+        cmd: '26',
+        ppage_id: '356753938,823673182,967485191',
+        clientver: '11561',
+        pidversion: '3001',
+        cdnBackup: '1',
+        dfid: s.dfid || '-',
+        key: signTrackKey(hash, s),
+      }
+      const data = await liteRequest('/v5/url', params, s, {
+        label: 'v5_url',
+        headers: { 'x-router': 'trackercdn.kugou.com' },
+      })
+      const url = findPlaybackUrl(data)
+      if (!url) continue
+      const full = Number(data.is_full_audio) !== 0 && !/\/p_0_/.test(url)
+      if (!full) continue
+      return { url, quality, bitrate: Number(data.bitrate) || 0 }
     }
-    const data = await liteRequest('/v5/url', params, s, {
-      label: 'v5_url',
-      headers: { 'x-router': 'trackercdn.kugou.com' },
-    })
-    const url = findPlaybackUrl(data)
-    if (!url) continue
-    const full = Number(data.is_full_audio) !== 0 && !/\/p_0_/.test(url)
-    if (!full) throw new Error('该曲目仅返回试听片段，概念版 VIP 未生效')
-    return { url, quality, bitrate: Number(data.bitrate) || 0 }
   }
   throw new Error('酷狗概念版取链失败')
 }
@@ -529,8 +542,11 @@ export async function getMyPlaylistSongs(listId, session = {}) {
       songs.set(id, {
         id,
         hash: id,
-        albumAudioId: Number(item.mixsongid || item.album_audio_id || item.MixSongID || 0) || 0,
-        albumId: Number(item.album_id || (item.albuminfo && item.albuminfo.id) || 0) || 0,
+        // The concept search row carries mixsongid, which is a song id, not the
+        // album audio id. Passing it to song_url was the second half of the A→B bug.
+        albumAudioId: Number(item.album_audio_id ?? item.albumAudioId ?? 0) || 0,
+        mixSongId: Number(item.mixsongid ?? item.MixSongID ?? 0) || 0,
+        albumId: Number(item.album_id ?? item.AlbumID ?? item.albumId ?? (item.albuminfo && (item.albuminfo.id ?? item.albuminfo.album_id)) ?? 0) || 0,
         title,
         singer,
         artists: singers.length > 0 ? singers : singer === '' ? [] : [singer],

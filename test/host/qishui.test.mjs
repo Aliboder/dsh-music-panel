@@ -111,6 +111,11 @@ const api = {
         }
       case 'liked_songs':
         return { ok: true, data: { ids: ['123'], whole: true } }
+      case 'search_playlists':
+        return {
+          ok: true,
+          data: { items: [{ base_info: { id: 'sp1', title: '搜索结果歌单' }, resource_cnt: { track_cnt: 8 } }], total: 1, hasMore: false },
+        }
       case 'user_playlists':
         return {
           ok: true,
@@ -147,6 +152,10 @@ assert.deepEqual(await source.profile(), { id: 'u1', nickname: '汽水用户', a
 
 const page = await source.searchPage('晴天', {}, 1)
 assert.equal(page.results[0].id, '123')
+assert.equal(source.capabilities.searchPlaylists, true)
+const searchedPlaylists = await source.searchPlaylists('晴天', {}, 1)
+assert.equal(searchedPlaylists.results[0].id, 'sp1')
+assert.equal(searchedPlaylists.results[0].trackCount, 8)
 
 const artistSongs = await source.artistSongs('周杰伦', { artistId: 'ar1', page: { limit: 10, offset: 0 } })
 assert.equal(artistSongs[0].id, '123', 'the artist page passes the id through ctx.artistId')

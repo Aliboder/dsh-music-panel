@@ -219,6 +219,7 @@ export function createQishuiSource(options) {
     auth: true,
     userLibrary: true,
     userPlaylists: true,
+    searchPlaylists: true,
     playlistSongs: true,
     likes: true,
     likeWrite: true,
@@ -254,6 +255,21 @@ export function createQishuiSource(options) {
       return {
         results: songs,
         total: Number(data?.total) || songs.length,
+        page: Math.max(1, Number(page) || 1),
+        hasMore: data?.hasMore === true,
+      }
+    },
+
+    async searchPlaylists(query, _ctx, page = 1) {
+      const keyword = String(query ?? '').trim()
+      if (keyword === '') return { results: [], total: 0, page: 1, hasMore: false }
+      const offset = (Math.max(1, Number(page) || 1) - 1) * PAGE_SIZE
+      const data = await request('search_playlists', { query: keyword, limit: PAGE_SIZE, offset })
+      const items = Array.isArray(data?.items) ? data.items : []
+      const results = items.map((item) => toCollection(item)).filter(Boolean)
+      return {
+        results,
+        total: Number(data?.total) || results.length,
         page: Math.max(1, Number(page) || 1),
         hasMore: data?.hasMore === true,
       }

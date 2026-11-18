@@ -387,6 +387,15 @@
 
 ---
 
+## 43. 酷狗点 A 播 B（在线源 / 取流）
+
+- **现象**：搜索结果点一首歌，实际播放另一首不相干的歌。
+- **原因**：旧 `normalizeSong` 把 `Audioid` / `audio_id` 当 `albumAudioId`，概念版还把 `mixsongid` 当 `albumAudioId`；package/legacy 的 `song_url` 带着错误 ID 请求，解析到别的文件。
+- **处理**：只从 `album_audio_id` / `albumAudioId` 取专辑音频 ID；package 每档 metadata → hash-only 回落；网关/v6 兜底保持 hash-only；测试断言参数顺序。
+- **防回归**：`kugou-upstream.test.mjs` 覆盖精确字段、metadata/hash 顺序；真实问题歌曲手工复核。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

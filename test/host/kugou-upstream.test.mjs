@@ -55,8 +55,14 @@ import {
   assert.deepEqual(song.artists, ['A', 'B'])
   const unrelated = KG.normalizeSong({ hash: 'h', songname: 'C - Title', SingerName: 'A、B' })
   assert.equal(unrelated.title, 'C - Title', 'an unrelated prefix is part of the title')
-  const nestedAlbum = KG.normalizeSong({ hash: 'h', songname: 'Title', SingerName: 'A', album_info: { album_name: 'Nested Album' } })
+  const nestedAlbum = KG.normalizeSong({ hash: 'h', songname: 'Title', SingerName: 'A', album_info: { album_name: 'Nested Album', album_id: 77 } })
   assert.equal(nestedAlbum.album, 'Nested Album', 'nested album objects do not become [object Object]')
+  assert.equal(nestedAlbum.albumId, 77, 'a nested album id is still album identity')
+  const precise = KG.normalizeSong({ hash: 'h', songname: 'Title', album_audio_id: 44, album_id: 55, mixsongid: 66 })
+  assert.equal(precise.albumAudioId, 44, 'only album_audio_id becomes albumAudioId')
+  assert.equal(precise.mixSongId, 66, 'mixsongid stays a song id')
+  const guessed = KG.normalizeSong({ hash: 'h', songname: 'Title', Audioid: 42, audio_id: 43 })
+  assert.equal(guessed.albumAudioId, 0, 'Audioid/audio_id are not album audio ids')
 }
 
 // ── login mapping ───────────────────────────────────────────────────────────
@@ -163,17 +169,24 @@ import {
   setUpstreamOverride(async (operation, params) => {
     assert.equal(operation, 'song_url')
     seen.push(params)
-    return { status: 200, body: { data: { play_url: 'https://cdn.example/a.mp3' } }, cookie: [] }
+    const metadata = String(params.album_id) !== '0' || String(params.album_audio_id) !== '0'
+    return {
+      status: 200,
+      body: metadata ? { data: {} } : { data: { play_url: 'https://cdn.example/a.mp3' } },
+      cookie: [],
+    }
   })
   try {
     const standard = await KG.getDownloadURL({ hash: 'HASH1', albumId: 9, albumAudioId: 8 }, { token: 'T', userid: '1', mid: '123' }, ['128'])
     assert.equal(standard.url, 'https://cdn.example/a.mp3')
-    assert.equal(seen[0].album_id, 0, 'standard playback never sends a mismatched album id')
-    assert.equal(seen[0].album_audio_id, 0, 'standard playback never sends a mismatched album audio id')
+    assert.equal(String(seen[0].album_id), '9', 'standard playback asks with precise metadata first')
+    assert.equal(String(seen[0].album_audio_id), '8', 'standard playback sends the precise album audio id')
+    assert.equal(String(seen[1].album_id), '0', 'standard playback retries by hash alone')
+    assert.equal(String(seen[1].album_audio_id), '0', 'standard playback retries without album ids')
     const lite = await KGL.resolveStream({ hash: 'HASH2', albumId: 9, albumAudioId: 8 }, { token: 'T', userid: '1', mid: '123' }, ['128'])
     assert.equal(lite.url, 'https://cdn.example/a.mp3')
-    assert.equal(seen[1].album_id, '0', 'concept playback never sends a mismatched album id')
-    assert.equal(seen[1].album_audio_id, '0', 'concept playback never sends a mismatched album audio id')
+    assert.equal(String(seen[2].album_id), '9', 'concept playback asks with precise metadata first')
+    assert.equal(String(seen[3].album_id), '0', 'concept playback retries by hash alone')
   } finally {
     resetUpstreamOverride()
   }
@@ -237,6 +250,38 @@ import {
     assert.equal(found.results[0].name, '叶惠美')
     assert.equal(found.results[0].artist, '周杰伦')
     assert.equal(found.results[0].trackCount, 11)
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
+// ── playlist search ─────────────────────────────────────────────────────────
+
+{
+  setUpstreamOverride(async (operation, params) => {
+    assert.equal(operation, 'search')
+    assert.equal(params.type, 'special')
+    assert.equal(params.keywords, '周杰伦')
+    return {
+      status: 200,
+      body: {
+        status: 1,
+        data: {
+          total: 1,
+          lists: [{ specialid: 456, specialname: '周杰伦精选', nickname: '歌单作者', img: 'https://img.example/p.jpg', songcount: 30, listennum: 9000 }],
+        },
+      },
+      cookie: [],
+    }
+  })
+  try {
+    const found = await KG.searchPlaylists('周杰伦', '', 1, 'lite')
+    assert.equal(found.total, 1)
+    assert.equal(found.results[0].id, '456')
+    assert.equal(found.results[0].name, '周杰伦精选')
+    assert.equal(found.results[0].creator, '歌单作者')
+    assert.equal(found.results[0].trackCount, 30)
+    assert.equal(found.results[0].playCount, 9000)
   } finally {
     resetUpstreamOverride()
   }

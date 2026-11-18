@@ -71,6 +71,30 @@ assert.equal(
   }
 }
 
+// Playlist search also uses the backend /search route with type=playlist.
+{
+  setUpstreamOverride(async (route, params) => {
+    assert.equal(route, '/search')
+    assert.equal(params.type, 'playlist')
+    assert.equal(params.keyword, '周杰伦')
+    return {
+      items: [{ dissid: 123, dissname: '周杰伦精选', logo: 'https://img.example/p.jpg', songnum: 30, listennum: 9000, nickname: '作者' }],
+      total: 1,
+    }
+  })
+  try {
+    const playlists = await QQ.searchPlaylists('周杰伦', '', 1)
+    assert.equal(playlists.total, 1)
+    assert.equal(playlists.results[0].id, '123')
+    assert.equal(playlists.results[0].name, '周杰伦精选')
+    assert.equal(playlists.results[0].creator, '作者')
+    assert.equal(playlists.results[0].trackCount, 30)
+    assert.equal(playlists.results[0].playCount, 9000)
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
 // The row the client receives is shaped by the provider layer: the badge follows
 // `qualityHint`, which was empty for QQ before this fix.
 {

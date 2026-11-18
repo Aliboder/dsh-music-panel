@@ -1,6 +1,6 @@
 # 在线平台向 Folia 对齐 · 修改文档
 
-> 状态：**方向确认，待实施**
+> 状态：**实施中**（阶段 1.1 搜索后端、阶段 1.2 酷狗身份与取流已完成代码；待真实账号/真实歌曲验证）
 > 确认日期：2026-11-19
 > 范围：现有在线平台（网易云 / QQ / 酷狗概念版 / 波点 / 汽水 / Navidrome）
 > 标杆：Folia `A_other/upstream/folia-major-main`
@@ -116,9 +116,9 @@ searchSongs(query) → 从结果构造 best artist → 进入歌手页
 
 **当前已知需要修的点：**
 
-1. QQ 歌单搜索仍走旧版 `client_music_search_songlist`，Folia 走后端 `/search type=playlist`；
-2. 酷狗歌单搜索仍走旧版 `mobilecdn` special 接口，Folia 走 package `search type=special`；
-3. 汽水歌单搜索尚未接；
+1. QQ 歌单搜索已改为后端 `/search type=playlist`；
+2. 酷狗歌单搜索已改为 package `search type=special`；
+3. 汽水歌单搜索后端已补 `search_playlists`；三者均不进入搜索页 UI；
 4. 搜索专辑的分页/加载更多尚未完整；
 5. 歌手派生只在结果中有匹配歌手时出现，需核对与 Folia 的匹配口径。
 
@@ -128,8 +128,8 @@ searchSongs(query) → 从结果构造 best artist → 进入歌手页
 |---|---|---|---|
 | 网易云 | 上游 `song/url/v1` + 质量/试听语义 | 有 | 校验试听、免费/VIP、错误码 |
 | QQ | package `song/url` + 质量 | 有 | 校验付费/试听/错误码 |
-| 酷狗 | 精确 providerData；metadata → hash-only | 已改 hash-only | **需要精确归一化后恢复 metadata → hash-only** |
-| 酷狗概念版 | 概念版 package/legacy | 已改 hash-only | 同上 |
+| 酷狗 | 精确 providerData；metadata → hash-only | 精确归一化；package metadata → hash-only，网关/v6 hash-only | 待真实歌曲复核 |
+| 酷狗概念版 | 概念版 package/legacy | 精确归一化；package/legacy metadata → hash-only | 待真实歌曲复核 |
 | 波点 | package playback + preview | 有 | 校验 preview 标记 |
 | 汽水 | package stream | 有 | 校验音质/错误 |
 | Navidrome | Subsonic stream | 有 | 校验 direct/transcode URL |
@@ -449,7 +449,25 @@ npm run check
 
 ---
 
-## 11. 开放项
+## 11. 实施记录
+
+### 2026-11-19 · 阶段 1.1 / 1.2
+
+- 酷狗标准版与概念版：
+  - `albumAudioId` 只取 `album_audio_id` / `albumAudioId`（含安全的嵌套/基字段），不再用 `Audioid` / `audio_id`；
+  - 概念版不再把 `mixsongid` 当 `albumAudioId`；
+  - package `song_url` 每档先 metadata，再 hash-only；网关与 v6 兜底保持 hash-only；
+  - 新增身份归一化、metadata/hash 顺序测试。
+- 搜索后端：
+  - QQ 歌单搜索改为 package `/search type=playlist`；
+  - 酷狗歌单搜索改为 package `search type=special`；
+  - 汽水补 `search_playlists`；
+  - 搜索页仍不显示歌单栏目。
+- 全量 `npm test` / `npm run check` 通过；真实账号与真实问题歌曲尚未验证。
+
+---
+
+## 12. 开放项
 
 以下不影响方向，但实施前/中需确认：
 

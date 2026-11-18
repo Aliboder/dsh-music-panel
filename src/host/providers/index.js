@@ -241,8 +241,8 @@ export async function searchPlaylists(provider, query, cookie = '', session = {}
   if (text === '') return { items: [], total: 0, page: target }
   let data = null
   if (provider === 'netease') data = await NC.searchPlaylists(text, cookie, target)
-  else if (provider === 'qq') data = await QQ.searchPlaylist(text, cookie, target)
-  else if (provider === 'kugou' || provider === 'kugouLite') data = await KG.searchPlaylist(text, cookie, target)
+  else if (provider === 'qq') data = await QQ.searchPlaylists(text, cookie, target)
+  else if (provider === 'kugou' || provider === 'kugouLite') data = await KG.searchPlaylists(text, cookie, target, provider === 'kugouLite' ? 'lite' : 'standard')
   else throw new Error('该平台没有歌单搜索')
   return {
     items: (data.results || []).map((playlist) => playlistCard(provider, playlist)),

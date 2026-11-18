@@ -372,7 +372,14 @@ export function normalizeSong(o, opts = {}) {
   }
   title = stripArtistPrefix(title, arts)
   const durSec = Number(opts.durationKey ? o[opts.durationKey] : o.duration)
-  const albumAudioId = Number(o.album_audio_id || o.Audioid || o.audio_id || 0) || 0
+  const base = o.base && typeof o.base === 'object' ? o.base : {}
+  const albumInfo = o.album_info || o.albumInfo || o.albuminfo || base.album_info || {}
+  // Folia takes album identity only from the precise album fields. The older
+  // Audioid/audio_id guesses could name another file, and the URL resolver then
+  // played that file instead of this hash.
+  const albumAudioId = Number(
+    o.album_audio_id ?? o.albumAudioId ?? base.album_audio_id ?? albumInfo.album_audio_id ?? 0,
+  ) || 0
   return {
     id: hash,
     hash,
@@ -390,8 +397,10 @@ export function normalizeSong(o, opts = {}) {
     ),
     interval: Number.isFinite(durSec) ? durSec : 0,
     albumAudioId,
-    mixSongId: Number(o.MixSongID || o.mixsongid || 0) || 0,
-    albumId: Number(o.album_id || o.AlbumID || 0) || 0,
+    mixSongId: Number(o.MixSongID ?? o.mixsongid ?? 0) || 0,
+    albumId: Number(
+      o.album_id ?? o.AlbumID ?? o.albumId ?? base.album_id ?? base.albumId ?? albumInfo.album_id ?? albumInfo.albumId ?? albumInfo.id ?? 0,
+    ) || 0,
     privilege: Number(o.Privilege ?? o.privilege ?? 0) || 0,
     payType: Number(o.PayType ?? o.pay_type ?? 0) || 0,
     cover: kgCover(o.AlbumImage || o.Image || o.album_sizable_cover || o.sizable_avatar || o.cover || (o.trans_param && o.trans_param.union_cover) || ''),
@@ -705,7 +714,37 @@ export async function getCategoryPlaylists(categoryId, page = 1, limit = 20, _se
   return list.map(normalizePlaylistItem).filter((x) => x.id)
 }
 
-/** 歌单搜索（每页 pagesize=30，即接口单请求上限；实测 100/480 都只回 30；总数封顶 480，需翻页拿全）。 */
+/** Folia align: package /search type=special; public playlist rows. */
+export async function searchPlaylists(keyword, _session = '', page = 1, platform = 'standard') {
+  const p = Math.max(1, parseInt(page, 10) || 1)
+  const kw = String(keyword ?? '').trim()
+  if (kw === '') return { results: [], total: 0, page: p }
+  const answer = await callKugou(platform, 'search', {
+    keywords: kw,
+    type: 'special',
+    page: p,
+    pagesize: 30,
+    cookie: kugouCookies({}, platform),
+  })
+  const data = answer.body?.data ?? {}
+  const lists = Array.isArray(data.lists) ? data.lists : []
+  const results = lists.map((row) => {
+    const item = row !== null && typeof row === 'object' ? row : {}
+    return {
+      id: String(item.specialid ?? item.special_id ?? item.id ?? ''),
+      name: emStrip(item.specialname ?? item.name ?? ''),
+      cover: kgCover(item.img ?? item.imgurl ?? item.cover ?? ''),
+      creator: emStrip(item.nickname ?? item.creator ?? item.singername ?? ''),
+      trackCount: Number(item.songcount ?? item.song_count ?? item.total) || 0,
+      playCount: Number(item.listennum ?? item.play_count) || 0,
+      source: 'kugou',
+      type: 'playlist',
+    }
+  }).filter((playlist) => playlist.id !== '' && playlist.name !== '')
+  return { results, total: Number(data.total) || lists.length, page: p }
+}
+
+/** Legacy mobilecdn playlist search, kept for callers that still use the old shape. */
 export async function searchPlaylist(keyword, _session = '', page = 1) {
   const p = Math.max(1, parseInt(page, 10) || 1)
   const q = new URLSearchParams({ keyword: String(keyword || ''), platform: 'WebFilter', format: 'json', page: String(p), pagesize: '30', filter: '0' })
@@ -786,27 +825,32 @@ const QUALITY_LABELS = { flac: '无损', high: '无损', 320: '高音质', 128: 
  * Folia's package route for one quality. It is tried before the legacy gateway
  * when the account has a session; anonymous playback keeps the direct route.
  */
-async function packageStreamUrl(song, session, platform, quality, hash) {
+async function packageStreamUrl(song, session, platform, quality, hash, albumId = 0, albumAudioId = 0) {
   const s = normSession(session)
   if (!s.userid && !s.token) return ''
-  // The hash is the identity. Search/playlist metadata sometimes carries album ids
-  // from another file; sending them lets the URL endpoint resolve a different song.
-  try {
-    const answer = await callKugou(platform, 'song_url', {
-      hash,
-      quality,
-      album_id: 0,
-      album_audio_id: 0,
-      cookie: kugouCookies({ ...s, dfid: session.dfid }, platform),
-    })
-    const data = answer.body?.data ?? answer.body
-    const payload = Array.isArray(data) ? data[0] : data
-    const raw = payload?.play_url ?? payload?.playUrl ?? payload?.url
-      ?? (Array.isArray(data) ? data[0]?.url : '')
-    const url = Array.isArray(raw) ? raw.find((entry) => typeof entry === 'string' && entry !== '') : raw
-    if (typeof url === 'string' && url !== '') return url
-  } catch {
-    // Fall through to the gateway.
+  const attempts = []
+  // Folia asks with the precise album identity first, then retries the same
+  // quality by hash alone because search metadata can name another file.
+  if (albumId || albumAudioId) attempts.push({ album_id: albumId, album_audio_id: albumAudioId })
+  attempts.push({ album_id: 0, album_audio_id: 0 })
+  for (const attempt of attempts) {
+    try {
+      const answer = await callKugou(platform, 'song_url', {
+        hash,
+        quality,
+        album_id: attempt.album_id,
+        album_audio_id: attempt.album_audio_id,
+        cookie: kugouCookies({ ...s, dfid: session.dfid }, platform),
+      })
+      const data = answer.body?.data ?? answer.body
+      const payload = Array.isArray(data) ? data[0] : data
+      const raw = payload?.play_url ?? payload?.playUrl ?? payload?.url
+        ?? (Array.isArray(data) ? data[0]?.url : '')
+      const url = Array.isArray(raw) ? raw.find((entry) => typeof entry === 'string' && entry !== '') : raw
+      if (typeof url === 'string' && url !== '') return url
+    } catch {
+      // Try the next variant, then the gateway.
+    }
   }
   return ''
 }
@@ -828,19 +872,19 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
     multitrack: primaryHash,
   })[quality] || primaryHash
 
-  // [修复「取链播错歌」] 不传 album_audio_id / album_id：
-  // 歌单/搜索数据里这两个值可能与主 hash 错配（如告白气球 albumAudioId=301293698
-  // 与 hash 688857… 不匹配），取链带上就会被带偏到别的文件（实测英文歌）。
-  // 去掉后酷狗纯按 hash 解析，返回歌曲自己的文件（告白气球/灰色轨迹/多首歌实测正确）。
-  const albumAudioId = 0
-  const albumId = 0
+  // Album identity is only useful when it came from the precise album fields
+  // (normalizeSong no longer guesses from Audioid/audio_id). The package call
+  // tries it first and retries the same quality by hash alone; the legacy gateway
+  // and v6 paths stay hash-only, because they are our extra transports.
+  const albumAudioId = Number(song.albumAudioId) || 0
+  const albumId = Number(song.albumId) || 0
 
   // ---- 主路：v5/url 单档循环（x-router: trackercdn.kugou.com）。----
   // 2025-08 实测：v5 为唯一稳定通道（真 dfid+标准 token 时各档按账号权限授予）。
   let lastExplain = ''
   for (const quality of ['flac', 'high', '320', '128']) {
     const qHash = hashForQuality(quality)
-    const packageUrl = await packageStreamUrl(song, session, 'standard', quality, qHash)
+    const packageUrl = await packageStreamUrl(song, session, 'standard', quality, qHash, albumId, albumAudioId)
     if (packageUrl !== '') {
       return {
         url: packageUrl,
@@ -856,8 +900,10 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
       pid: 2,
       pidversion: 3001,
       hash: qHash,
-      album_id: albumId,
-      album_audio_id: albumAudioId,
+      // The gateway is our fallback, not Folia's song_url path; keep it
+      // hash-only so a stale album id cannot select another file.
+      album_id: 0,
+      album_audio_id: 0,
       quality,
       ssa_flag: 'is_fromtrack',
       version: 11430,
@@ -904,7 +950,7 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
       behavior: 'play',
       qualities,
       resource: {
-        album_audio_id: albumAudioId,
+        album_audio_id: 0,
         collect_list_id: '3',
         collect_time: Date.now(),
         hash: primaryHash,
