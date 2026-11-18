@@ -360,6 +360,10 @@ assert.match(coreSource, /onRemove: function \(\) \{ onRemove\(track\) \}/, 'men
 // The virtualizer and the CSS must carry the same 84px row height.
 assert.match(coreSource, /var rowHeight = 84/, 'virtual list row height is 84px')
 assert.match(stylesSource, /height: 84px;/, 'row CSS height matches the virtualizer')
+assert.match(stylesSource, /\.mpv3-row-cover \{ width: 60px; height: 60px;/, 'row cover is scaled with the row')
+assert.match(stylesSource, /\.mpv3-row-title \{[^}]*font-size: 20px; line-height: 30px;/, 'row title is scaled with the row')
+assert.match(stylesSource, /grid-template-columns: 60px minmax\(0, 1\.6fr\)/, 'row grid starts with the 60px cover column')
+assert.match(coreSource, /iconSize: 23/, 'row cover icon scales with the cover')
 assert.doesNotMatch(stylesSource, /max-width: 1280px/, 'list no longer centres a 1280px island')
 assert.doesNotMatch(stylesSource, /scrollbar-gutter: stable/, 'no reserved right gutter')
 

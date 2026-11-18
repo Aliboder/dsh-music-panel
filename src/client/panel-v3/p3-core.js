@@ -790,7 +790,7 @@ function P3Row(props) {
     },
     h('div', { className: 'mpv3-row-cover-wrap' },
       h('div', { className: 'mpv3-row-cover', style: track.hasCover === true || track.onlineProvider ? undefined : { background: p3Gradient(track.title) } },
-        h(Cover, { src: trackCoverSrc(track), iconSize: 15 }),
+        h(Cover, { src: trackCoverSrc(track), iconSize: 23 }),
       ),
       h('button', {
         type: 'button',
@@ -801,8 +801,8 @@ function P3Row(props) {
           if (current) player.toggle()
           else p3PlayTrack(props.list, track)
         },
-      }, icon(current && props.playing ? 'pause' : 'play', 15)),
-      selected ? h('span', { className: 'mpv3-row-check' }, icon('check', 9)) : null,
+      }, icon(current && props.playing ? 'pause' : 'play', 22)),
+      selected ? h('span', { className: 'mpv3-row-check' }, icon('check', 14)) : null,
     ),
     h('div', { className: 'mpv3-row-main' },
       h('div', { className: 'mpv3-row-title' },
@@ -836,7 +836,7 @@ function P3Row(props) {
     h('div', { className: 'mpv3-row-acts' },
       h(IconButton, {
         icon: like.isLiked ? 'heartFill' : 'heart',
-        size: 15,
+        size: 22,
         active: like.isLiked,
         disabled: like.disabled === true,
         title: like.disabled === true ? like.reason : like.isLiked ? t('page.unfavorite') : t('page.favorite'),
@@ -844,13 +844,13 @@ function P3Row(props) {
       }),
       props.onRemove ? h(IconButton, {
         icon: 'trash',
-        size: 15,
+        size: 22,
         title: t('p3.removeFromPlaylist'),
         onClick: function (event) { event.stopPropagation(); props.onRemove(track) },
       }) : null,
       h(IconButton, {
         icon: 'more',
-        size: 15,
+        size: 22,
         title: t('page.more'),
         onClick: function (event) { event.stopPropagation(); p3OpenTrackMenu(track, event, props.list, props.onRemove) },
       }),
