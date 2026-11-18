@@ -169161,7 +169161,7 @@ window.__ModuleLoader__.load({
       p3PlayList(list || [track], index < 0 ? 0 : index)
     }
 
-    function p3OpenTrackMenu(track, event, list) {
+    function p3OpenTrackMenu(track, event, list, onRemove) {
       if (!track) return
       var paths = (list || []).map(function (item) { return item.path })
       pushLayer('menu', {
@@ -169169,6 +169169,9 @@ window.__ModuleLoader__.load({
         x: event ? event.clientX : 20,
         y: event ? event.clientY : 20,
         visiblePaths: paths,
+        ...(typeof onRemove === 'function'
+          ? { onRemove: function () { onRemove(track) } }
+          : {}),
         playSelected: function () {
           var selected = (list || []).filter(function (item) { return selectedPathSet()[item.path] === true })
           if (selected.length > 0) p3PlayList(selected, 0)
@@ -169522,7 +169525,7 @@ window.__ModuleLoader__.load({
           },
           onContextMenu: function (event) {
             event.preventDefault()
-            p3OpenTrackMenu(track, event, props.list)
+            p3OpenTrackMenu(track, event, props.list, props.onRemove)
           },
           onKeyDown: function (event) {
             if (event.key === 'Enter') {
@@ -169595,7 +169598,7 @@ window.__ModuleLoader__.load({
             icon: 'more',
             size: 15,
             title: t('page.more'),
-            onClick: function (event) { event.stopPropagation(); p3OpenTrackMenu(track, event, props.list) },
+            onClick: function (event) { event.stopPropagation(); p3OpenTrackMenu(track, event, props.list, props.onRemove) },
           }),
         ),
       )
@@ -170272,6 +170275,13 @@ window.__ModuleLoader__.load({
 
     function P3RecentPage(props) {
       var items = p3OnlineHistory(props.route.source)
+
+      function removeRecent(track) {
+        if (!track || !track.onlineProvider || !track.onlineId) return
+        removeHistory({ provider: track.onlineProvider, id: track.onlineId })
+        showToast(t('online.removedFromHistory'))
+      }
+
       return h(P3List, {
         items: items,
         header: h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
@@ -170279,6 +170289,7 @@ window.__ModuleLoader__.load({
         playing: props.playing,
         favoriteSet: props.favoriteSet,
         selectedSet: {},
+        onRemove: removeRecent,
         resetKey: 'recent:' + props.route.source,
         empty: h(P3Empty, { icon: 'clock', title: t('p3.noRecent'), hint: t('p3.noRecentHint') }),
       })

@@ -415,7 +415,7 @@ function p3PlayTrack(list, track) {
   p3PlayList(list || [track], index < 0 ? 0 : index)
 }
 
-function p3OpenTrackMenu(track, event, list) {
+function p3OpenTrackMenu(track, event, list, onRemove) {
   if (!track) return
   var paths = (list || []).map(function (item) { return item.path })
   pushLayer('menu', {
@@ -423,6 +423,9 @@ function p3OpenTrackMenu(track, event, list) {
     x: event ? event.clientX : 20,
     y: event ? event.clientY : 20,
     visiblePaths: paths,
+    ...(typeof onRemove === 'function'
+      ? { onRemove: function () { onRemove(track) } }
+      : {}),
     playSelected: function () {
       var selected = (list || []).filter(function (item) { return selectedPathSet()[item.path] === true })
       if (selected.length > 0) p3PlayList(selected, 0)
@@ -776,7 +779,7 @@ function P3Row(props) {
       },
       onContextMenu: function (event) {
         event.preventDefault()
-        p3OpenTrackMenu(track, event, props.list)
+        p3OpenTrackMenu(track, event, props.list, props.onRemove)
       },
       onKeyDown: function (event) {
         if (event.key === 'Enter') {
@@ -849,7 +852,7 @@ function P3Row(props) {
         icon: 'more',
         size: 15,
         title: t('page.more'),
-        onClick: function (event) { event.stopPropagation(); p3OpenTrackMenu(track, event, props.list) },
+        onClick: function (event) { event.stopPropagation(); p3OpenTrackMenu(track, event, props.list, props.onRemove) },
       }),
     ),
   )

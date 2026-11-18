@@ -520,6 +520,13 @@ function p3Duration(seconds) {
 
 function P3RecentPage(props) {
   var items = p3OnlineHistory(props.route.source)
+
+  function removeRecent(track) {
+    if (!track || !track.onlineProvider || !track.onlineId) return
+    removeHistory({ provider: track.onlineProvider, id: track.onlineId })
+    showToast(t('online.removedFromHistory'))
+  }
+
   return h(P3List, {
     items: items,
     header: h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
@@ -527,6 +534,7 @@ function P3RecentPage(props) {
     playing: props.playing,
     favoriteSet: props.favoriteSet,
     selectedSet: {},
+    onRemove: removeRecent,
     resetKey: 'recent:' + props.route.source,
     empty: h(P3Empty, { icon: 'clock', title: t('p3.noRecent'), hint: t('p3.noRecentHint') }),
   })

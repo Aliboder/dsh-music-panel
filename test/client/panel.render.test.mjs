@@ -7,6 +7,7 @@
  */
 
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 const registrations = []
 const components = new Map()
@@ -347,5 +348,13 @@ internals.p3GoBack()
 assert.equal(internals.p3RouteStore.get().page, 'albums', 'migrated collection returns to its parent tab')
 window.localStorage.removeItem('music.ui.v3')
 internals.p3SelectBrowseTab('songs')
+
+// Recent rows expose the existing history removal through the context menu.
+const pagesSource = readFileSync(new URL('../../src/client/panel-v3/p3-pages.js', import.meta.url), 'utf8')
+const coreSource = readFileSync(new URL('../../src/client/panel-v3/p3-core.js', import.meta.url), 'utf8')
+assert.match(pagesSource, /onRemove: removeRecent/, 'recent page passes its remove handler to P3List')
+assert.match(pagesSource, /removeHistory\(\{ provider: track\.onlineProvider, id: track\.onlineId \}\)/, 'recent remove uses the shared history store')
+assert.match(coreSource, /p3OpenTrackMenu\(track, event, props\.list, props\.onRemove\)/, 'row context menu carries the remove action')
+assert.match(coreSource, /onRemove: function \(\) \{ onRemove\(track\) \}/, 'menu action is bound to the row track')
 
 console.log('panel.render.test.mjs ok')
