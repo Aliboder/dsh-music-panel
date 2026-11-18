@@ -229,6 +229,55 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   assert.deepEqual(builtinRegistry.summaries(), [])
 }
 
+// ── collection search ───────────────────────────────────────────────────────
+
+{
+  const registry = createRegistry()
+  registry.register({
+    id: 'collections',
+    displayName: 'Collections',
+    capabilities: { search: true, searchAlbums: true, searchPlaylists: true },
+    search: async () => ({ songs: [] }),
+    searchAlbums: async (query, ctx, page) => ({ items: [{ id: 'al-1', name: 'Album' }], total: 1, page }),
+    searchPlaylists: async (query, ctx, page) => ({ items: [{ id: 'pl-1', name: 'Playlist' }], total: 1, page }),
+  })
+  const omni = createOmni(registry)
+  assert.deepEqual(omni.searchKinds('collections'), ['song', 'album', 'playlist'])
+  const albums = await omni.searchCollections('collections', 'album', 'x', {}, 1)
+  assert.deepEqual(albums.items, [{ id: 'al-1', name: 'Album' }])
+  assert.equal(albums.total, 1)
+  const playlists = await omni.searchCollections('collections', 'playlist', 'x', {}, 1)
+  assert.deepEqual(playlists.items, [{ id: 'pl-1', name: 'Playlist' }])
+  assert.deepEqual(await omni.searchCollections('collections', 'artist', 'x', {}, 1), {
+    items: [],
+    total: 0,
+    page: 1,
+    hasMore: false,
+  })
+}
+
+{
+  const specs = Object.fromEntries(ONLINE_SPECS.map((spec) => [spec.id, spec]))
+  assert.equal(specs.netease.capabilities.searchAlbums, true)
+  assert.equal(specs.netease.capabilities.searchPlaylists, true)
+  assert.ok(!specs.qq.capabilities.searchAlbums)
+  assert.equal(specs.qq.capabilities.searchPlaylists, true)
+  assert.equal(specs.navidrome.capabilities.searchAlbums, true)
+  assert.ok(!specs.navidrome.capabilities.searchPlaylists)
+}
+
+{
+  const adapter = createOnlineAdapter({
+    id: 'no-albums',
+    displayName: 'No albums',
+    capabilities: { search: true, searchAlbums: false },
+  })
+  assert.throws(
+    () => adapter.searchAlbums('x', {}, 1),
+    (error) => error instanceof MusicError && error.code === 'unavailable',
+  )
+}
+
 console.log('sources.test.mjs ok')
 
 // ── local lyrics ────────────────────────────────────────────────────────────

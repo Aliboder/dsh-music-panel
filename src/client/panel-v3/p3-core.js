@@ -23,6 +23,8 @@ var P3_PANEL_ID = 'music'
 
 var p3Collection = createStore({ album: null, artist: null, playlist: null })
 
+var p3SearchKindStore = createStore('song')
+
 var p3RouteStore = createStore({
   source: 'local',
   page: 'songs',
@@ -235,6 +237,17 @@ function p3Tabs(source) {
   if (caps.favorites === true && source === 'local') tabs.push('favorites')
   if (caps.userPlaylists === true) tabs.push('playlists')
   return tabs
+}
+
+function p3SearchKinds(source) {
+  if (source === 'local') return ['song']
+  var info = p3SourceInfo(source)
+  if (Array.isArray(info.searchKinds) && info.searchKinds.length > 0) return info.searchKinds.slice()
+  var caps = p3SourceCaps(source)
+  var kinds = ['song']
+  if (caps.searchAlbums === true) kinds.push('album')
+  if (caps.searchPlaylists === true) kinds.push('playlist')
+  return kinds
 }
 
 function p3DefaultPage(source) {

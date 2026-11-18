@@ -202,11 +202,13 @@ assert.ok(onlineText.includes('Online Song'), 'online history rows render')
 
 internals.onlineStore.set({
   provider: 'netease', phase: 'ready', searchTotal: 1, searchPage: 1,
+  providers: { netease: { loggedIn: true, capabilities: { recent: true, searchAlbums: true, searchPlaylists: true, search: true } } },
   results: [{ provider: 'netease', id: '42', title: 'Online Song', artist: 'Online Artist', album: 'Online Album', durationSec: 210, coverUrl: '', qualityHint: '' }],
 })
 internals.p3RouteStore.set({ source: 'netease', page: 'search', param: null, filter: null, query: 'Online', history: [], scroll: {} })
 const onlineSearch = panel()
-assert.ok(classesOf(onlineSearch).has('mpv3-grid'), 'online search derives album group cards')
+assert.ok(classesOf(onlineSearch).has('mpv3-search-kinds'), 'online search shows the supported kinds')
+assert.ok(textOf(onlineSearch).includes('Online Song'), 'online song search renders results')
 
 internals.p3RouteStore.set({ source: 'local', page: 'songs', filter: null, query: '', history: [], scroll: {} })
 

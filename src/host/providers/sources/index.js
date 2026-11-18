@@ -23,6 +23,7 @@ import { createQishuiSessions } from './qishui/sessions.js'
 /** Everything the Chinese platforms are believed to support today. */
 const CHINESE_CAPABILITIES = {
   search: true,
+  searchPlaylists: true,
   playback: true,
   lyrics: true,
   userPlaylists: true,
@@ -45,6 +46,7 @@ const CHINESE_CAPABILITIES = {
  */
 const NETEASE_CAPABILITIES = {
   ...CHINESE_CAPABILITIES,
+  searchAlbums: true,
   auth: true,
   userLibrary: true,
   wordByWordLyrics: true,
@@ -77,6 +79,7 @@ const KUGOU_LITE_CAPABILITIES = {
 /** Navidrome signs in with credentials, not a QR code. */
 const NAVIDROME_CAPABILITIES = {
   search: true,
+  searchAlbums: true,
   playback: true,
   lyrics: true,
   userPlaylists: true,

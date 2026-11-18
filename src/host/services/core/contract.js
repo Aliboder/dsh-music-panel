@@ -24,6 +24,8 @@ export const SOURCE_KIND = { LOCAL: 'local', ONLINE: 'online' }
  */
 export const CAPABILITIES = [
   'search',
+  'searchAlbums',
+  'searchPlaylists',
   'playback',
   'lyrics',
   'userPlaylists',
@@ -93,6 +95,8 @@ export function capabilities(declared) {
 export const METHOD_CAPABILITY = {
   search: 'search',
   searchPage: 'search',
+  searchAlbums: 'searchAlbums',
+  searchPlaylists: 'searchPlaylists',
   songs: 'search',
   nativeSongs: 'search',
   artistSongs: 'artists',
@@ -140,7 +144,7 @@ export function allowedBy(caps, method) {
  * rather than by a switch on its id.
  */
 export const PROVIDER_API_GROUPS = Object.freeze({
-  search: ['search', 'searchPage', 'songs'],
+  search: ['search', 'searchPage', 'songs', 'searchAlbums', 'searchPlaylists'],
   playback: ['stream'],
   lyrics: ['lyric', 'chorus'],
   auth: ['loginStart', 'loginStatus'],

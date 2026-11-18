@@ -66,7 +66,8 @@ function p3PageMeta(state, library, online, prefs) {
     count = playlist ? playlistCount + ' ' + t('p3.unitSong') : ''
   } else if (page === 'search') {
     title = route.query ? t('p3.searchTitle', { q: route.query }) : t('page.search')
-    count = route.query ? p3SearchTotal(route, library, online) + ' ' + t('p3.unitResult') : ''
+    var searchKind = p3SearchKindStore.get()
+    count = route.query && (route.source === 'local' || searchKind === 'song') ? p3SearchTotal(route, library, online) + ' ' + t('p3.unitResult') : ''
     parent = t('page.search')
   }
   return { parent: parent, title: title, count: count }
@@ -869,6 +870,7 @@ function P3SearchPage(props) {
   var route = props.route
   var query = String(route.query || '').trim()
   var local = route.source === 'local'
+  useEffect(function () { p3SearchKindStore.set('song') }, [])
   useEffect(function () {
     if (local) return undefined
     if (query === '') {
@@ -979,6 +981,175 @@ function P3SearchPage(props) {
   )
 }
 
+var P3_SEARCH_KIND_LABEL = { song: 'p3.kindSong', album: 'p3.kindAlbum', playlist: 'p3.kindPlaylist' }
+
+function P3OnlineSearchPage(props) {
+  var route = props.route
+  var query = String(route.query || '').trim()
+  var source = route.source
+  var kinds = p3SearchKinds(source)
+  var [kind, setKind] = useState(function () {
+    var stored = p3SearchKindStore.get()
+    return kinds.indexOf(stored) >= 0 ? stored : 'song'
+  })
+  var [reload, setReload] = useState(0)
+  var [collections, setCollections] = useState({ phase: 'idle', items: [], total: 0, page: 1, loadingMore: false, error: '' })
+
+  useEffect(function () {
+    if (kinds.indexOf(kind) < 0) setKind('song')
+  }, [source])
+
+  useEffect(function () {
+    p3SearchKindStore.set(kind)
+  }, [kind])
+
+  useEffect(function () {
+    if (kind !== 'song') return undefined
+    if (query === '') {
+      onlineStore.set({ phase: 'idle', results: [], searchTotal: 0 })
+      return undefined
+    }
+    var timer = setTimeout(function () { void searchOnline(query) }, 250)
+    return function () { clearTimeout(timer) }
+  }, [query, source, kind])
+
+  useEffect(function () {
+    if (kind === 'song' || query === '') {
+      setCollections({ phase: 'idle', items: [], total: 0, page: 1, loadingMore: false, error: '' })
+      return undefined
+    }
+    var cancelled = false
+    setCollections({ phase: 'loading', items: [], total: 0, page: 1, loadingMore: false, error: '' })
+    getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&kind=' + encodeURIComponent(kind) + '&q=' + encodeURIComponent(query) + '&page=1')
+      .then(function (body) {
+        if (cancelled) return
+        var items = Array.isArray(body.collections) ? body.collections : []
+        setCollections({ phase: 'ready', items: items, total: Number(body.total) || items.length, page: Number(body.page) || 1, loadingMore: false, error: '' })
+      })
+      .catch(function (error) {
+        if (cancelled) return
+        setCollections({ phase: 'error', items: [], total: 0, page: 1, loadingMore: false, error: errorText(error) })
+      })
+    return function () { cancelled = true }
+  }, [kind, query, source, reload])
+
+  function loadMoreCollections() {
+    if (collections.loadingMore || collections.items.length >= collections.total) return
+    var nextPage = (collections.page || 1) + 1
+    setCollections(function (current) { return Object.assign({}, current, { loadingMore: true }) })
+    getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&kind=' + encodeURIComponent(kind) + '&q=' + encodeURIComponent(query) + '&page=' + String(nextPage))
+      .then(function (body) {
+        var incoming = Array.isArray(body.collections) ? body.collections : []
+        setCollections(function (current) {
+          var seen = {}
+          var merged = (current.items || []).slice()
+          merged.forEach(function (item) { seen[String(item.id)] = true })
+          incoming.forEach(function (item) { if (seen[String(item.id)] !== true) merged.push(item) })
+          return { phase: 'ready', items: merged, total: Number(body.total) || current.total, page: Number(body.page) || nextPage, loadingMore: false, error: '' }
+        })
+      })
+      .catch(function (error) {
+        setCollections(function (current) { return Object.assign({}, current, { loadingMore: false, error: errorText(error) }) })
+        showToast(errorText(error))
+      })
+  }
+
+  function openCollection(item) {
+    if (kind === 'album') {
+      p3Collection.set({ album: {
+        onlineProvider: source,
+        album: item.name || '',
+        albumId: item.id || '',
+        artist: item.artist || '',
+        coverUrl: item.cover || '',
+        coverArtId: item.coverArtId || '',
+      } })
+      p3Navigate('album', source + ':' + item.id)
+      return
+    }
+    p3Collection.set({ playlist: { id: item.id, name: item.name || '', cover: item.cover || '', trackCount: item.trackCount || 0 } })
+    p3Navigate('playlist', item.id)
+  }
+
+  var tabs = kinds.length > 1 ? h('div', { className: 'mpv3-search-kinds' }, h(KitSegmentedTabs, {
+    items: kinds.map(function (item) { return { value: item, label: t(P3_SEARCH_KIND_LABEL[item]) } }),
+    value: kind,
+    size: 'sm',
+    label: t('p3.searchKinds'),
+    onChange: function (next) { setKind(next) },
+  })) : null
+
+  if (query === '') {
+    return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
+      tabs,
+      h(P3Empty, { icon: 'search', title: t('p3.searchEmpty'), hint: t('p3.searchEmptyHint') }))
+  }
+
+  if (kind === 'song') {
+    var tracks = p3OnlineSearchResults()
+    var songCount = props.online.searchTotal || tracks.length
+    if (props.online.phase === 'searching' || props.online.phase === 'idle') {
+      return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+        h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: '' }), tabs, h(P3Skeleton, { count: 8 })))
+    }
+    if (props.online.phase === 'error') {
+      return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, tabs,
+        h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.error, actions: h(Button, { variant: 'ghost', onClick: function () { void searchOnline(query) } }, t('p3.retry')) }))
+    }
+    if (tracks.length === 0) {
+      return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, tabs,
+        h(P3Empty, { icon: 'search', title: t('p3.searchNoResult'), hint: t('p3.searchNoResultHint') }))
+    }
+    return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+      h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: songCount + ' ' + t('p3.unitResult') }), tabs,
+      h('div', { className: 'mpv3-plain-list' }, tracks.map(function (track, index) {
+        return h(P3Row, { key: track.path, track: track, index: index, list: tracks, currentPath: props.currentPath, playing: props.playing, favoriteSet: props.favoriteSet, selected: false, tabIndex: -1 })
+      })),
+      tracks.length < songCount ? h('div', { className: 'mpv3-more' },
+        h(Button, { variant: 'ghost', disabled: props.online.searchLoadingMore === true, onClick: function () { void searchOnline(query, (props.online.searchPage || 1) + 1, true) } },
+          props.online.searchLoadingMore === true ? t('p3.loadingMore') : t('p3.loadMore')),
+      ) : null,
+    ))
+  }
+
+  if (collections.phase === 'loading' || collections.phase === 'idle') {
+    return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+      h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: '' }), tabs, h(P3Skeleton, { count: 6 })))
+  }
+  if (collections.phase === 'error') {
+    return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, tabs,
+      h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: collections.error, actions: h(Button, { variant: 'ghost', onClick: function () { setCollections({ phase: 'idle', items: [], total: 0, page: 1, loadingMore: false, error: '' }); setReload(reload + 1) } }, t('p3.retry')) }))
+  }
+  if (collections.items.length === 0) {
+    return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, tabs,
+      h(P3Empty, { icon: 'search', title: t('p3.searchNoResult'), hint: t('p3.searchNoResultHint') }))
+  }
+  return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+    h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: collections.total + ' ' + t('p3.unitResult') }), tabs,
+    h(P3Grid, {
+      items: collections.items.map(function (item) {
+        return {
+          key: item.id,
+          id: item.id,
+          name: item.name,
+          artist: item.artist || '',
+          creator: item.creator || '',
+          cover: item.cover || '',
+          coverArtId: item.coverArtId || '',
+          trackCount: item.trackCount || 0,
+          subtitle: [item.artist || item.creator || '', item.trackCount ? item.trackCount + ' ' + t('p3.unitSong') : ''].filter(Boolean).join(' · '),
+          coverSrc: p3OnlineCover(item, source),
+        }
+      }),
+      onOpen: function (item) { openCollection(item) },
+    }),
+    collections.items.length < collections.total ? h('div', { className: 'mpv3-more' },
+      h(Button, { variant: 'ghost', disabled: collections.loadingMore === true, onClick: loadMoreCollections },
+        collections.loadingMore === true ? t('p3.loadingMore') : t('p3.loadMore')),
+    ) : null,
+  ))
+}
+
 function P3PageSwitch(props) {
   var route = props.route
   if (route.page === 'songs') {
@@ -995,6 +1166,6 @@ function P3PageSwitch(props) {
   if (route.page === 'album') return h(P3AlbumPage, props)
   if (route.page === 'artist') return h(P3ArtistPage, props)
   if (route.page === 'playlist') return h(P3PlaylistPage, props)
-  if (route.page === 'search') return h(P3SearchPage, props)
+  if (route.page === 'search') return route.source === 'local' ? h(P3SearchPage, props) : h(P3OnlineSearchPage, props)
   return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'search', title: t('p3.pageMissing') }))
 }

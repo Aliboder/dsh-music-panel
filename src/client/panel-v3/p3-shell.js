@@ -7,6 +7,7 @@ p3RouteStore.set(p3ReadRoute())
 function P3TopBar(props) {
   var route = useStore(p3RouteStore)
   var online = useStore(onlineStore)
+  var searchKind = useStore(p3SearchKindStore)
   var prefs = usePrefs()
   var sourceRef = useRef(null)
   var accountRef = useRef(null)
@@ -184,6 +185,7 @@ function p3ActiveTab(route) {
 function P3ViewBar(props) {
   var route = useStore(p3RouteStore)
   var selection = useStore(selectionStore)
+  var searchKind = useStore(p3SearchKindStore)
   var prefs = usePrefs()
   var sortRef = useRef(null)
   var selectRef = useRef(null)
@@ -193,6 +195,7 @@ function P3ViewBar(props) {
   var tabs = p3Tabs(source)
   var active = p3ActiveTab(route)
   var tracks = p3CurrentTracks(route, props.library, props.online, prefs)
+  if (route.page === 'search' && searchKind !== 'song') tracks = []
   var selected = (selection.paths || []).map(function (path) {
     return tracks.filter(function (track) { return track.path === path })[0]
   }).filter(Boolean)

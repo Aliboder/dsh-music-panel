@@ -82,6 +82,38 @@ export function createOmni(registry) {
       }
     },
 
+    /**
+     * The search kinds a source actually implements, in Folia's order:
+     * songs everywhere, albums/playlists only where the provider has a search
+     * endpoint and the matching capability.
+     */
+    searchKinds(sourceId) {
+      const source = registry.get(sourceId)
+      if (source === null) return []
+      const caps = source.capabilities || {}
+      const kinds = []
+      if (caps.search === true) kinds.push('song')
+      if (caps.searchAlbums === true && typeof source.searchAlbums === 'function') kinds.push('album')
+      if (caps.searchPlaylists === true && typeof source.searchPlaylists === 'function') kinds.push('playlist')
+      return kinds
+    },
+
+    /** Albums or playlists from one provider; an empty page where the kind is unsupported. */
+    async searchCollections(sourceId, kind, query, ctx, page) {
+      const target = Math.max(1, Number(page) || 1)
+      if (kind !== 'album' && kind !== 'playlist') {
+        return { items: [], total: 0, page: target, hasMore: false }
+      }
+      if (!this.searchKinds(sourceId).includes(kind)) {
+        return { items: [], total: 0, page: target, hasMore: false }
+      }
+      const result = await dispatch(sourceId, kind === 'album' ? 'searchAlbums' : 'searchPlaylists', [query, ctx, target])
+      const items = Array.isArray(result?.items) ? result.items : []
+      const total = Number(result?.total) || items.length
+      const pageNumber = Number(result?.page) || target
+      return { items, total, page: pageNumber, hasMore: pageNumber * 30 < total }
+    },
+
     artistSongs: route('artistSongs'),
     albumSongs: route('albumSongs'),
     artists: route('artists'),

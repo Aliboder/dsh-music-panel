@@ -64,6 +64,14 @@ export function createOnlineAdapter(spec) {
       const { cookie, session } = parts(ctx)
       return call('searchPage', query, cookie, session, page)
     },
+    searchAlbums(query, ctx, page) {
+      const { cookie, session } = parts(ctx)
+      return call('searchAlbums', query, cookie, session, page)
+    },
+    searchPlaylists(query, ctx, page) {
+      const { cookie, session } = parts(ctx)
+      return call('searchPlaylists', query, cookie, session, page)
+    },
     artistSongs(artist, ctx) {
       const { cookie, session } = parts(ctx)
       // The artist page passes the id the song already carries (Folia does the same);

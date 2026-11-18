@@ -171,6 +171,70 @@ export async function searchPage(provider, query, cookie = '', session = {}, pag
   return { results, total: Number(data.total) || results.length, page: Number(data.page) || target }
 }
 
+/** One playlist row from a provider's playlist search, shaped for the shared card. */
+function playlistCard(provider, raw) {
+  const item = raw !== null && typeof raw === 'object' ? raw : {}
+  return {
+    id: textOf(firstValue(item, ['id', 'dissid', 'specialid'])),
+    name: textOf(firstValue(item, ['name', 'dissname', 'specialname'])),
+    cover: textOf(firstValue(item, ['cover', 'imgurl', 'coverUrl'])),
+    creator: textOf(firstValue(item, ['creator', 'nickname', 'author_name'])),
+    trackCount: Number(firstValue(item, ['trackCount', 'song_count', 'songCount', 'total'])) || 0,
+    playCount: Number(firstValue(item, ['playCount', 'listennum', 'play_count'])) || 0,
+    source: provider,
+    type: 'playlist',
+  }
+}
+
+/**
+ * Album search for the providers that actually have a search endpoint for it.
+ * Navidrome uses Subsonic search3; NetEase uses cloudsearch type 10. Platforms
+ * without one are not registered with the capability, so this never becomes a
+ * silent empty result.
+ */
+export async function searchAlbums(provider, query, cookie = '', session = {}, page = 1) {
+  const text = String(query ?? '').trim()
+  const target = Math.max(1, Number(page) || 1)
+  if (text === '') return { items: [], total: 0, page: target }
+  if (provider === 'netease') {
+    const data = await NC.searchAlbums(text, cookie, target)
+    return {
+      items: (data.results || []).map((album) => Object.assign(albumCard('netease', album), { type: 'album' })),
+      total: Number(data.total) || 0,
+      page: Number(data.page) || target,
+    }
+  }
+  if (provider === 'navidrome') {
+    const data = await ND.searchAlbums(navidromeConfig(session), text, {
+      count: 30,
+      offset: (target - 1) * 30,
+    })
+    return {
+      items: (data.items || []).map((album) => Object.assign(album, { type: 'album' })),
+      total: Number(data.total) || 0,
+      page: target,
+    }
+  }
+  throw new Error('该平台没有专辑搜索')
+}
+
+/** Playlist search; NetEase / QQ / KuGou expose one, Navidrome does not. */
+export async function searchPlaylists(provider, query, cookie = '', session = {}, page = 1) {
+  const text = String(query ?? '').trim()
+  const target = Math.max(1, Number(page) || 1)
+  if (text === '') return { items: [], total: 0, page: target }
+  let data = null
+  if (provider === 'netease') data = await NC.searchPlaylist(text, cookie, target)
+  else if (provider === 'qq') data = await QQ.searchPlaylist(text, cookie, target)
+  else if (provider === 'kugou' || provider === 'kugouLite') data = await KG.searchPlaylist(text, cookie, target)
+  else throw new Error('该平台没有歌单搜索')
+  return {
+    items: (data.results || []).map((playlist) => playlistCard(provider, playlist)),
+    total: Number(data.total) || 0,
+    page: Number(data.page) || target,
+  }
+}
+
 /** True when a provider result belongs to the clicked artist. */
 function artistMatches(track, artist) {
   const wanted = String(artist ?? '').trim().toLowerCase()

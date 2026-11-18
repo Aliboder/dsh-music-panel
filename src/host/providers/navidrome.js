@@ -184,6 +184,28 @@ export async function search(config, query, options = {}) {
 }
 
 /**
+ * Search albums by free text through search3. The search is a collection search,
+ * not a song scan: songCount/artistCount stay zero so the server returns only albums.
+ */
+export async function searchAlbums(config, query, options = {}) {
+  const text = String(query ?? '').trim()
+  if (text === '') return { items: [], total: 0, page: 1 }
+  const count = Math.min(Math.max(Number(options.count) || 30, 1), 100)
+  const offset = Math.max(Number(options.offset) || 0, 0)
+  const body = await requestJson(config, 'search3.view', {
+    songCount: '0',
+    albumCount: String(count),
+    albumOffset: String(offset),
+    artistCount: '0',
+    query: text,
+  })
+  const result = body.searchResult3 || body.searchResult2 || body.searchResult || {}
+  const albums = Array.isArray(result.album) ? result.album : []
+  const items = albums.map(albumOf).filter((album) => album !== null)
+  return { items, total: items.length, page: Math.floor(offset / count) + 1 }
+}
+
+/**
  * Resolve a playable URL. Subsonic answers with a redirect to the media file
  * or streams it directly; either way the host proxy already follows redirects
  * and forwards Range, so returning the URL is enough.

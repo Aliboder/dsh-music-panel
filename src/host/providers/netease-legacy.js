@@ -305,6 +305,33 @@ export async function searchPlaylist(keyword, cookie = '', page = 1) {
   }
 }
 
+/** Search albums (cloudsearch type 10); shaped for the online album cards. */
+export async function searchAlbums(keyword, cookie = '', page = 1) {
+  const p = Math.max(1, parseInt(page, 10) || 1)
+  const limit = 30
+  const kw = String(keyword || '').trim()
+  if (kw === '') return { results: [], total: 0, page: p }
+  const j = (await linuxPost('http://music.163.com/api/cloudsearch/pc', { s: kw, type: 10, offset: (p - 1) * limit, limit }, { cookie: cookie || ANON_COOKIE })).json
+  assertOk(j, '专辑搜索')
+  const albums = (j && j.result && j.result.albums) || []
+  return {
+    results: albums.map((album) => {
+      const artist = album.artist || (Array.isArray(album.artists) ? album.artists[0] : null) || {}
+      return {
+        id: String(album.id ?? ''),
+        name: dec(album.name || ''),
+        cover: dec(album.picUrl || album.pic || ''),
+        artist: dec(artist.name || ''),
+        trackCount: Number(album.size ?? album.songCount ?? 0) || 0,
+        source: 'netease',
+        type: 'album',
+      }
+    }).filter((album) => album.id && album.name),
+    total: Number(j && j.result && j.result.albumCount) || albums.length,
+    page: p,
+  }
+}
+
 /** 官方榜单列表（GET /api/toplist，匿名）。返回单组 { id:'', name:'', toplists }（对齐 kg 组结构）。 */
 export async function getTopLists(_cookie = '') {
   const j = (await getJson('https://music.163.com/api/toplist')).json

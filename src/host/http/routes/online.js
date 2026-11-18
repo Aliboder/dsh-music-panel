@@ -349,10 +349,14 @@ export function createOnlineRoutes(deps) {
       if (pathname === '/online/search' && method === 'GET') {
         const provider = (params.get('provider') || '').trim()
         const query = (params.get('q') || '').trim()
+        const kind = (params.get('kind') || 'song').trim()
         if (!isOnlineSource(provider)) {
           return fail(res, 400, 'BAD_PROVIDER', '未知平台')
         }
         if (query === '') return fail(res, 400, 'NO_QUERY', '缺少搜索词')
+        if (kind !== 'song' && kind !== 'album' && kind !== 'playlist') {
+          return fail(res, 400, 'BAD_KIND', '未知搜索种类')
+        }
         try {
           var page = Math.max(1, Number(params.get('page')) || 1)
           const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
@@ -360,11 +364,25 @@ export function createOnlineRoutes(deps) {
           // cookie, so search needs it too — without this the provider resolves
           // an empty server and every Navidrome search fails.
           const session = providerStore === undefined ? {} : await providerStore.session(provider)
+          if (kind !== 'song') {
+            const paged = await omni.searchCollections(provider, kind, query, { cookie, session }, page)
+            return sendJson(res, 200, {
+              ok: true,
+              provider,
+              query,
+              kind,
+              collections: paged.items,
+              total: paged.total,
+              page: paged.page,
+              hasMore: paged.hasMore,
+            })
+          }
           const paged = await omni.searchPage(provider, query, { cookie, session }, page)
           return sendJson(res, 200, {
             ok: true,
             provider,
             query,
+            kind: 'song',
             results: paged.results,
             total: paged.total,
             page: paged.page,
@@ -1788,6 +1806,7 @@ export function createOnlineRoutes(deps) {
             displayName: source.displayName,
             kind: source.kind,
             capabilities: source.capabilities,
+            searchKinds: omni.searchKinds(source.id),
             qualityLevels: source.qualityLevels,
             loginMethods: source.loginMethods,
             availability: source.availability,

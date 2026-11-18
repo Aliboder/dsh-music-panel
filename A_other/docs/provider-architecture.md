@@ -10,11 +10,11 @@ Folia `OnlineMusicProvider` 的最小对等实现：能力位、每平台音质�
   id: 'netease',
   kind: 'online' | 'local',
   displayName: 'NetEase Cloud Music',
-  capabilities: { search: true, playback: true, ... }, // 见 src/host/services/core/contract.js
+  capabilities: { search: true, searchAlbums: true, searchPlaylists: true, playback: true, ... }, // 见 src/host/services/core/contract.js
   qualityLevels: ['standard', 'high', 'lossless', 'hires'],
   loginMethods: ['qr'],        // qr | password | external
   api: {                       // providerApi() 生成，按 namespaces 分组
-    search: { search, searchPage, songs },
+    search: { search, searchPage, songs, searchAlbums, searchPlaylists },
     playback: { stream },
     lyrics: { lyric, chorus },
     library: { myPlaylists, playlistSongs, liked, likedIds },
@@ -33,6 +33,8 @@ Folia `OnlineMusicProvider` 的最小对等实现：能力位、每平台音质�
   登录页只按这个列表渲染，不再 switch 平台名。
 - **providerApi**：`providerApi(source)` 把扁平方法按 namespace 分组，供登录页/新平台代码使用；
   路由暂时继续用扁平方法，两边指向同一实现。
+- **搜索种类**：`searchKinds(id)` 返回 `song | album | playlist`，只有同时声明 `searchAlbums`/`searchPlaylists`
+  并实现对应方法的平台才出现；`/online/search?kind=` 按 Folia 的 `searchProviderCollections` 语义返回 collection 分页。
 
 ## 加一个平台
 
