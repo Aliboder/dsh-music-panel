@@ -170643,9 +170643,19 @@ window.__ModuleLoader__.load({
         count: query ? resultCount + ' ' + t('p3.unitResult') : '',
       })
 
+      function goBackFromSearch() {
+        if (p3CanGoBack()) {
+          p3GoBack()
+          return
+        }
+        p3SelectBrowseTab(p3DefaultPage(source))
+      }
+
+      var backAction = h(Button, { variant: 'primary', icon: 'back', onClick: goBackFromSearch }, t('page.back'))
+
       if (query === '') {
         return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
-          h(P3Empty, { icon: 'search', title: t('p3.searchEmpty'), hint: t('p3.searchEmptyHint') }))
+          h(P3Empty, { icon: 'search', title: t('p3.searchEmpty'), hint: t('p3.searchEmptyHint'), actions: backAction }))
       }
 
       if (!local && (props.online.phase === 'searching' || props.online.phase === 'idle')) {
@@ -170660,7 +170670,7 @@ window.__ModuleLoader__.load({
       }
       if (resultCount === 0) {
         return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
-          h(P3Empty, { icon: 'search', title: t('p3.searchNoResult'), hint: t('p3.searchNoResultHint') }))
+          h(P3Empty, { icon: 'search', title: t('p3.searchNoResult'), hint: t('p3.searchNoResultHint'), actions: backAction }))
       }
 
       var artistRow = bestArtist ? h('div', { className: 'mpv3-search-artist' },

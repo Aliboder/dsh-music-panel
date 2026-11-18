@@ -203,6 +203,8 @@ assert.ok(searchHeads[1] && searchHeads[1].includes('专辑'), 'album section is
 assert.ok(searchHeads[2] && searchHeads[2].includes('歌曲'), 'song section is last')
 assert.ok(!classesOf(searchTree).has('mpv3-search-kinds'), 'search no longer shows kind tabs')
 assert.ok(!classesOf(searchTree).has('mpv3-tabs'), 'search page hides the library tab strip')
+internals.p3RouteStore.set({ source: 'local', page: 'search', param: null, filter: null, query: '', history: [], scroll: {} })
+assert.ok(textOf(panel()).includes('返回'), 'empty search page offers a centered back action')
 
 assert.ok(internals.p3Tabs('netease').indexOf('recent') >= 0, 'online sources expose recent')
 assert.ok(internals.p3Tabs('netease').indexOf('songs') < 0, 'Chinese platforms do not expose a library songs page')
