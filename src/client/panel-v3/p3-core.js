@@ -102,7 +102,7 @@ function p3Navigate(page, param, options) {
     page: page,
     param: param === undefined ? null : param,
     filter: options.filter === undefined ? null : options.filter,
-    query: options.keepQuery === true ? state.query : '',
+    query: options.query !== undefined ? String(options.query) : options.keepQuery === true ? state.query : '',
     history: history,
     scroll: scroll,
   })

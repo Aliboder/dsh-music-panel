@@ -192,7 +192,9 @@ internals.p3RouteStore.set({ source: 'local', page: 'artist', param: 'Artist A',
 assert.ok(classesOf(panel()).has('mpv3-hero'), 'artist detail renders a hero')
 
 internals.p3RouteStore.set({ source: 'local', page: 'search', param: null, filter: null, query: 'Alpha', history: [], scroll: {} })
-assert.ok(textOf(panel()).includes('Alpha'), 'local search renders matching tracks')
+const searchTree = panel()
+assert.ok(textOf(searchTree).includes('Alpha'), 'local search renders matching tracks')
+assert.ok(!classesOf(searchTree).has('mpv3-tabs'), 'search page hides the library tab strip')
 
 assert.ok(internals.p3Tabs('netease').indexOf('recent') >= 0, 'online sources expose recent')
 assert.ok(internals.p3Tabs('netease').indexOf('songs') < 0, 'Chinese platforms do not expose a library songs page')

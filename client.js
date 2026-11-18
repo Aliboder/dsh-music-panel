@@ -168304,7 +168304,7 @@ window.__ModuleLoader__.load({
         page: page,
         param: param === undefined ? null : param,
         filter: options.filter === undefined ? null : options.filter,
-        query: options.keepQuery === true ? state.query : '',
+        query: options.query !== undefined ? String(options.query) : options.keepQuery === true ? state.query : '',
         history: history,
         scroll: scroll,
       })
@@ -170551,6 +170551,7 @@ window.__ModuleLoader__.load({
       var accountRef = useRef(null)
       var [sourceOpen, setSourceOpen] = useState(false)
       var [accountOpen, setAccountOpen] = useState(false)
+      var [draft, setDraft] = useState('')
       var source = route.source
       var info = p3SourceInfo(source)
       var meta = p3PageMeta(route, props.library, online, prefs)
@@ -170576,23 +170577,31 @@ window.__ModuleLoader__.load({
           ]
 
       function searchValue() {
-        return route.page === 'search' ? route.query : ''
+        return route.page === 'search' ? route.query : draft
       }
 
       function onFocusSearch() {
-        if (route.page !== 'search') p3Navigate('search', null)
+        // Focus is not navigation: typing the first character enters the search page.
       }
 
       function onChangeSearch(event) {
         var value = event.target.value
-        p3RouteStore.set({ page: 'search', query: value })
+        setDraft(value)
+        if (value === '') {
+          if (route.page === 'search') p3RouteStore.set({ query: '' })
+          return
+        }
+        if (route.page !== 'search') p3Navigate('search', null, { query: value })
+        else p3RouteStore.set({ query: value })
       }
 
       function onSearchKey(event) {
         if (event.key === 'Enter') {
           event.preventDefault()
-          if (source !== 'local' && route.query.trim() !== '') void searchOnline(route.query)
-          else if (route.page !== 'search') p3Navigate('search', null)
+          var text = searchValue().trim()
+          if (text === '') return
+          if (route.page !== 'search') p3Navigate('search', null, { query: text })
+          if (source !== 'local') void searchOnline(text)
         } else if (event.key === 'Escape') {
           event.preventDefault()
           if (route.page === 'search') {
@@ -170603,6 +170612,7 @@ window.__ModuleLoader__.load({
       }
 
       function clearSearch() {
+        setDraft('')
         if (route.page === 'search') {
           if (route.history.length > 0) p3Back()
           else p3Navigate(p3DefaultPage(source), null, { root: true })
@@ -170685,7 +170695,7 @@ window.__ModuleLoader__.load({
             onKeyDown: onSearchKey,
             'aria-label': t('page.search'),
           }),
-          route.page === 'search' && route.query !== ''
+          searchValue() !== ''
             ? h('button', { type: 'button', className: 'mpv3-search-clear', title: t('p3.clearSearch'), onClick: clearSearch }, icon('close', 13))
             : null,
         ),
@@ -170827,7 +170837,7 @@ window.__ModuleLoader__.load({
 
       var tabItems = tabs.map(function (tab) { return { value: tab, label: p3PageLabel(tab) } })
       return h('div', { className: 'mpv3-viewbar' },
-        !props.rail && tabs.length > 0
+        !props.rail && route.page !== 'search' && tabs.length > 0
           ? h('div', { className: 'mpv3-tabs' }, h(KitSegmentedTabs, {
               items: tabItems,
               value: active,
