@@ -8,8 +8,12 @@
  *
  * Auth: `?u=<user>&t=<md5(password + salt)>&s=<salt>`. Older servers also accept
  * a plaintext `p=` parameter, but Subsonic 1.13+ and Navidrome reject it by
- * default, so the salted token is the only supported form. The password itself
- * is never persisted — callers store the salt and token instead.
+ * default, so the salted token is the only supported form. Callers normally
+ * store just the salt and token.
+ *
+ * The password *is* persisted when the user opts into the native `/api/song`
+ * list, which mints a JWT from it (see `nativeSongs()` below). That is the only
+ * reason a password ever reaches disk.
  *
  * @module dsh-music-panel/providers/navidrome
  */
