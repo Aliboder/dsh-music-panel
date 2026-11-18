@@ -871,7 +871,7 @@ function P3List(props) {
   var [viewport, setViewport] = useState(600)
   var [headerHeight, setHeaderHeight] = useState(0)
   var [focusPath, setFocusPath] = useState(props.focusPath || (items[0] ? items[0].path : ''))
-  var rowHeight = 56
+  var rowHeight = 84
 
   useEffect(function () {
     var el = scrollRef.current

@@ -352,9 +352,15 @@ internals.p3SelectBrowseTab('songs')
 // Recent rows expose the existing history removal through the context menu.
 const pagesSource = readFileSync(new URL('../../src/client/panel-v3/p3-pages.js', import.meta.url), 'utf8')
 const coreSource = readFileSync(new URL('../../src/client/panel-v3/p3-core.js', import.meta.url), 'utf8')
+const stylesSource = readFileSync(new URL('../../src/client/panel-v3/p3-styles.js', import.meta.url), 'utf8')
 assert.match(pagesSource, /onRemove: removeRecent/, 'recent page passes its remove handler to P3List')
 assert.match(pagesSource, /removeHistory\(\{ provider: track\.onlineProvider, id: track\.onlineId \}\)/, 'recent remove uses the shared history store')
 assert.match(coreSource, /p3OpenTrackMenu\(track, event, props\.list, props\.onRemove\)/, 'row context menu carries the remove action')
 assert.match(coreSource, /onRemove: function \(\) \{ onRemove\(track\) \}/, 'menu action is bound to the row track')
+// The virtualizer and the CSS must carry the same 84px row height.
+assert.match(coreSource, /var rowHeight = 84/, 'virtual list row height is 84px')
+assert.match(stylesSource, /height: 84px;/, 'row CSS height matches the virtualizer')
+assert.doesNotMatch(stylesSource, /max-width: 1280px/, 'list no longer centres a 1280px island')
+assert.doesNotMatch(stylesSource, /scrollbar-gutter: stable/, 'no reserved right gutter')
 
 console.log('panel.render.test.mjs ok')
