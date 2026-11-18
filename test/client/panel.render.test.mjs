@@ -170,6 +170,12 @@ const localText = textOf(local)
 assert.ok(localText.includes('Alpha'), 'the first track title is rendered')
 assert.ok(localText.includes('Gamma'), 'visible tracks are rendered')
 
+internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { layout: 'rail' }))
+const railTree = panel()
+assert.ok(classesOf(railTree).has('mpv3-rail'), 'rail layout renders the left rail')
+assert.ok(!classesOf(railTree).has('mpv3-tabs'), 'rail layout does not duplicate the tab strip')
+internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { layout: 'top' }))
+
 for (const page of ['favorites', 'playlists', 'stats', 'albums', 'artists', 'folders']) {
   internals.p3RouteStore.set({ source: 'local', page, param: null, filter: null, query: '', history: [], scroll: {} })
   const tree = panel()

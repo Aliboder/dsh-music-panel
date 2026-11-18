@@ -170827,7 +170827,7 @@ window.__ModuleLoader__.load({
 
       var tabItems = tabs.map(function (tab) { return { value: tab, label: p3PageLabel(tab) } })
       return h('div', { className: 'mpv3-viewbar' },
-        tabs.length > 0
+        !props.rail && tabs.length > 0
           ? h('div', { className: 'mpv3-tabs' }, h(KitSegmentedTabs, {
               items: tabItems,
               value: active,
@@ -171320,7 +171320,7 @@ window.__ModuleLoader__.load({
         h('div', { className: 'mpv3-workspace' },
           !topLayout ? h(P3Rail, { library: library, online: online, prefs: prefs }) : null,
           h('div', { className: 'mpv3-main' },
-            h(P3ViewBar, { library: library, online: online }),
+            h(P3ViewBar, { library: library, online: online, rail: !topLayout }),
             h(P3Content, { library: library, online: online, prefs: prefs }),
           ),
           h(P3Queue, { open: queueOpen, onClose: function () { setQueueOpen(false) }, onLocate: function () { p3LocateCurrent(snap); setQueueOpen(false) } }),
