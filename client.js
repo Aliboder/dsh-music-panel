@@ -22182,7 +22182,7 @@ window.__ModuleLoader__.load({
       }
     }
 
-    function onlineCoverSrc(result, provider) {
+    function onlineCoverSrc(result, provider, kind) {
       if (!result) return ''
       if (typeof result.coverArtId === 'string' && result.coverArtId !== '') return subsonicCoverUrl(result.coverArtId)
       if (typeof result.coverUrl !== 'string' || result.coverUrl === '') return ''
@@ -22193,6 +22193,7 @@ window.__ModuleLoader__.load({
         encodeURIComponent(pid) +
         '&id=' +
         encodeURIComponent(String(result.id || '')) +
+        (kind ? '&kind=' + encodeURIComponent(kind) : '') +
         '&url=' +
         encodeURIComponent(result.coverUrl)
       )
@@ -153925,7 +153926,7 @@ window.__ModuleLoader__.load({
                 label: playlist.name || '',
                 icon: 'list',
                 count: playlist.trackCount || 0,
-                coverSrc: playlist.cover ? onlineCoverSrc({ coverUrl: playlist.cover }) : '',
+                coverSrc: playlist.cover ? onlineCoverSrc({ coverUrl: playlist.cover }, undefined, 'playlist') : '',
                 onlinePlaylist: playlist,
               }
             }),
@@ -156750,6 +156751,9 @@ window.__ModuleLoader__.load({
     var playlistCache = new Map()
     var playlistInflight = new Map()
     var PLAYLIST_CACHE_TTL = 60 * 1000
+    var searchCache = new Map()
+    var SEARCH_CACHE_TTL = 5 * 60 * 1000
+    var SEARCH_CACHE_LIMIT = 40
 
     async function searchOnline(text, page, append) {
       var query = String(text || '').trim()
@@ -156759,6 +156763,22 @@ window.__ModuleLoader__.load({
       var state = onlineStore.get()
       var provider = state.provider
       var token = (onlineSearchToken += 1)
+      var cacheKey = provider + '|' + query
+      if (!more) {
+        var cached = searchCache.get(cacheKey)
+        if (cached && Date.now() - cached.at < SEARCH_CACHE_TTL) {
+          onlineStore.set({
+            phase: 'ready',
+            query: query,
+            results: cached.results,
+            searchPage: 1,
+            searchTotal: cached.total,
+            searchLoadingMore: false,
+            error: '',
+          })
+          return
+        }
+      }
       if (more) {
         onlineStore.set({ searchLoadingMore: true })
       } else {
@@ -156798,6 +156818,10 @@ window.__ModuleLoader__.load({
           searchTotal: Number(body.total) || results.length,
           searchLoadingMore: false,
         })
+        if (!more) {
+          if (searchCache.size >= SEARCH_CACHE_LIMIT) searchCache.delete(searchCache.keys().next().value)
+          searchCache.set(cacheKey, { at: Date.now(), results: results.slice(), total: Number(body.total) || results.length })
+        }
       } catch (error) {
         if (token !== onlineSearchToken) return
         if (more) {
@@ -168417,6 +168441,8 @@ window.__ModuleLoader__.load({
         var search = saved.search && typeof saved.search === 'object' ? saved.search : {}
         var source = typeof browse.source === 'string' && browse.source !== '' ? browse.source : 'local'
         var tab = typeof browse.tab === 'string' && p3NavIsTab(browse.tab) ? browse.tab : p3NavDefaultTab(source)
+        // Online sources now open on playlists; an old saved "recent" becomes the new default.
+        if (source !== 'local' && tab === 'recent') tab = 'playlists'
         var searchSource = typeof search.source === 'string' && search.source !== '' ? search.source : source
         return {
           browse: { source: source, tab: tab, filter: null, scroll: {} },
@@ -168446,6 +168472,7 @@ window.__ModuleLoader__.load({
         var oldPage = typeof legacy.page === 'string' ? legacy.page : 'songs'
         var oldParam = legacy.param === undefined || legacy.param === null ? '' : String(legacy.param)
         var oldTab = p3NavIsTab(oldPage) ? oldPage : p3NavDefaultTab(oldSource)
+        if (oldSource !== 'local' && oldTab === 'recent') oldTab = 'playlists'
         var oldCollection = null
         if (oldPage === 'album' || oldPage === 'artist' || oldPage === 'playlist') {
           oldTab = oldPage === 'album' ? 'albums' : oldPage === 'artist' ? 'artists' : 'playlists'
@@ -168480,6 +168507,7 @@ window.__ModuleLoader__.load({
           v2Nav = 'playlists'
         }
         if (!p3NavIsTab(v2Nav)) v2Nav = p3NavDefaultTab(v2Source)
+        if (v2Source !== 'local' && v2Nav === 'recent') v2Nav = 'playlists'
         return {
           browse: { source: v2Source, tab: v2Nav, filter: null, scroll: {} },
           search: {
@@ -168668,9 +168696,10 @@ window.__ModuleLoader__.load({
       if (browse.source === source && !snapshot && !search.open) return
       p3NavSaveScroll()
       p3CollectionNavStore.set({ snapshot: null, scroll: {} })
-      p3BrowseStore.set({ source: source, tab: p3NavDefaultTab(source), filter: null, scroll: {} })
+      var defaultTab = typeof p3DefaultPage === 'function' ? p3DefaultPage(source) : p3NavDefaultTab(source)
+      p3BrowseStore.set({ source: source, tab: defaultTab, filter: null, scroll: {} })
       if (search.open) {
-        p3SearchStore.set({ source: source, query: '', submittedQuery: '', returnTab: p3NavDefaultTab(source), scroll: 0 })
+        p3SearchStore.set({ source: source, query: '', submittedQuery: '', returnTab: defaultTab, scroll: 0 })
       }
       p3SyncNav()
     }
@@ -168778,12 +168807,12 @@ window.__ModuleLoader__.load({
         tabs = ['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'stats']
         return tabs
       }
+      if (caps.userPlaylists === true) tabs.push('playlists')
       tabs.push('recent')
       if (source === 'navidrome') tabs.push('songs')
       if (caps.browseAlbums === true) tabs.push('albums')
       if (caps.browseArtists === true) tabs.push('artists')
       if (caps.favorites === true && source === 'local') tabs.push('favorites')
-      if (caps.userPlaylists === true) tabs.push('playlists')
       return tabs
     }
 
@@ -168799,7 +168828,8 @@ window.__ModuleLoader__.load({
     }
 
     function p3DefaultPage(source) {
-      if (source === 'local' || source === 'navidrome') return 'songs'
+      if (source === 'local') return 'songs'
+      if (p3SourceCaps(source).userPlaylists === true) return 'playlists'
       return 'recent'
     }
 
@@ -168962,13 +168992,13 @@ window.__ModuleLoader__.load({
       return playlist ? playlistTracks(playlist) : []
     }
 
-    function p3OnlineCover(item, source) {
+    function p3OnlineCover(item, source, kind) {
       if (!item) return ''
       return onlineCoverSrc({
         coverUrl: item.coverUrl || item.cover || '',
         id: item.id || item.albumId || item.artistId || '',
         coverArtId: item.coverArtId || '',
-      }, source)
+      }, source, kind)
     }
 
     function p3OnlineTrackList(raw) {
@@ -170027,7 +170057,7 @@ window.__ModuleLoader__.load({
           id: playlist.id,
           name: playlist.name || '',
           subtitle: (playlist.trackCount || 0) + ' ' + t('p3.unitSong'),
-          coverSrc: p3OnlineCover(playlist, source),
+          coverSrc: p3OnlineCover(playlist, source, 'playlist'),
           playlist: playlist,
         }
       })
@@ -170280,7 +170310,7 @@ window.__ModuleLoader__.load({
           ? h(P3Empty, { icon: 'disc', title: t('p3.noAlbums') })
           : h(P3Grid, {
               items: state.items.map(function (album) {
-                return { key: album.id, name: album.name, subtitle: album.artist || '', coverSrc: p3OnlineCover(album, props.route.source), album: album }
+                return { key: album.id, name: album.name, subtitle: album.artist || '', coverSrc: p3OnlineCover(album, props.route.source, 'album'), album: album }
               }),
               onOpen: function (item) { p3PushCollection(p3OnlineAlbumDescriptor(props.route.source, item.album)) },
             }),
@@ -170318,7 +170348,7 @@ window.__ModuleLoader__.load({
                 onClick: function () { p3PushCollection(p3OnlineArtistDescriptor(props.route.source, artist)) },
               },
                 h('span', { className: 'mpv3-entity-cover is-round', style: artist.cover ? undefined : { background: p3Gradient(artist.name) } },
-                  artist.cover ? h('img', { src: p3OnlineCover(artist, props.route.source), alt: '' }) : h('span', null, p3Initial(artist.name)),
+                  artist.cover ? h('img', { src: p3OnlineCover(artist, props.route.source, 'artist'), alt: '' }) : h('span', null, p3Initial(artist.name)),
                 ),
                 h('span', { className: 'mpv3-entity-main' },
                   h('span', { className: 'mpv3-entity-title' }, artist.name),
@@ -170350,7 +170380,7 @@ window.__ModuleLoader__.load({
         header: h(P3Hero, {
           eyebrow: t('v2.playlist'),
           title: props.online.playlistName || (collection && collection.name) || t('v2.playlist'),
-          coverSrc: collection && (collection.cover || collection.coverUrl) ? p3OnlineCover(collection, props.route.source) : (items[0] ? trackCoverSrc(items[0]) : ''),
+          coverSrc: collection && (collection.cover || collection.coverUrl) ? p3OnlineCover(collection, props.route.source, 'playlist') : (items[0] ? trackCoverSrc(items[0]) : ''),
           meta: h('span', null, items.length + ' ' + t('p3.unitSong')),
           actions: h('div', { className: 'mpv3-hero-actions' },
             h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
@@ -170391,7 +170421,7 @@ window.__ModuleLoader__.load({
         header: h(P3Hero, {
           eyebrow: t('v2.album'),
           title: props.online.albumName || (collection && collection.album) || t('v2.album'),
-          coverSrc: p3OnlineCover({ coverUrl: props.online.albumCover || (collection && collection.coverUrl) || '', id: collection && collection.albumId, coverArtId: collection && collection.coverArtId }, props.route.source),
+          coverSrc: p3OnlineCover({ coverUrl: props.online.albumCover || (collection && collection.coverUrl) || '', id: collection && collection.albumId, coverArtId: collection && collection.coverArtId }, props.route.source, 'album'),
           meta: h('span', null, (props.online.albumArtist || '') + (items.length ? ' · ' + items.length + ' ' + t('p3.unitSong') : '')),
           actions: h('div', { className: 'mpv3-hero-actions' },
             h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
@@ -170442,7 +170472,7 @@ window.__ModuleLoader__.load({
           h(P3Hero, {
             eyebrow: t('v2.artist'),
             title: props.online.artistName || (collection && collection.artist) || t('v2.artist'),
-            coverSrc: p3OnlineCover(collection, props.route.source),
+            coverSrc: p3OnlineCover(collection, props.route.source, 'artist'),
             round: true,
             meta: h('span', null, (albums.length ? albums.length + ' ' + t('p3.unitAlbum') + ' · ' : '') + items.length + ' ' + t('p3.unitSong')),
             actions: h('div', { className: 'mpv3-hero-actions' },
@@ -170464,7 +170494,7 @@ window.__ModuleLoader__.load({
             h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.albums'))),
             h(P3Grid, {
               items: albums.map(function (album) {
-                return { key: album.id, name: album.name, subtitle: album.artist || '', coverSrc: p3OnlineCover(album, props.route.source), album: album }
+                return { key: album.id, name: album.name, subtitle: album.artist || '', coverSrc: p3OnlineCover(album, props.route.source, 'album'), album: album }
               }),
               onOpen: function (item) { p3PushCollection(p3OnlineAlbumDescriptor(props.route.source, item.album)) },
             }),
@@ -170575,18 +170605,23 @@ window.__ModuleLoader__.load({
         }
         var cancelled = false
         setAlbumState({ phase: 'loading', items: [], total: 0 })
-        getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&kind=album&q=' + encodeURIComponent(query) + '&page=1')
-          .then(function (body) {
-            if (cancelled) return
-            var items = Array.isArray(body.collections) ? body.collections : []
-            setAlbumState({ phase: 'ready', items: items, total: Number(body.total) || items.length })
-          })
-          .catch(function () {
-            if (cancelled) return
-            // A failed album strip must not hide the song results; the section disappears.
-            setAlbumState({ phase: 'error', items: [], total: 0 })
-          })
-        return function () { cancelled = true }
+        var timer = setTimeout(function () {
+          getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&kind=album&q=' + encodeURIComponent(query) + '&page=1')
+            .then(function (body) {
+              if (cancelled) return
+              var items = Array.isArray(body.collections) ? body.collections : []
+              setAlbumState({ phase: 'ready', items: items, total: Number(body.total) || items.length })
+            })
+            .catch(function () {
+              if (cancelled) return
+              // A failed album strip must not hide the song results; the section disappears.
+              setAlbumState({ phase: 'error', items: [], total: 0 })
+            })
+        }, 250)
+        return function () {
+          cancelled = true
+          clearTimeout(timer)
+        }
       }, [canAlbums, local, query, source])
 
       var tracks = local
@@ -170599,7 +170634,7 @@ window.__ModuleLoader__.load({
       var songTotal = local ? tracks.length : (props.online.searchTotal || tracks.length)
       var resultCount = songTotal + albums.length + (bestArtist ? 1 : 0)
       var artistCover = bestArtist
-        ? (local ? (bestArtist.coverTrack ? trackCoverSrc(bestArtist.coverTrack) : '') : p3OnlineCover(bestArtist, source))
+        ? (local ? (bestArtist.coverTrack ? trackCoverSrc(bestArtist.coverTrack) : '') : p3OnlineCover(bestArtist, source, 'artist'))
         : ''
       var artistCount = bestArtist && Array.isArray(bestArtist.tracks) ? bestArtist.tracks.length : 0
 
@@ -170656,7 +170691,7 @@ window.__ModuleLoader__.load({
           var subtitle = local ? album.artist : (album.artist || album.creator || '')
           var cover = local
             ? (album.coverTrack ? trackCoverSrc(album.coverTrack) : '')
-            : p3OnlineCover(album, source)
+            : p3OnlineCover(album, source, 'album')
           return h('button', {
             key: local ? album.key : album.id,
             type: 'button',
@@ -176084,7 +176119,7 @@ window.__ModuleLoader__.load({
                 'div',
                 { className: 'mp-srow-cover' },
                 playlist.cover
-                  ? h(Cover, { src: onlineCoverSrc({ coverUrl: playlist.cover }), iconSize: 18 })
+                  ? h(Cover, { src: onlineCoverSrc({ coverUrl: playlist.cover }, undefined, 'playlist'), iconSize: 18 })
                   : icon('list', 18),
               ),
               h(
@@ -176563,6 +176598,7 @@ window.__ModuleLoader__.load({
           p3OpenSearch: typeof p3OpenSearch === 'function' ? p3OpenSearch : null,
           p3CloseSearch: typeof p3CloseSearch === 'function' ? p3CloseSearch : null,
           p3SetSearchQuery: typeof p3SetSearchQuery === 'function' ? p3SetSearchQuery : null,
+          p3SwitchSource: typeof p3SwitchSource === 'function' ? p3SwitchSource : null,
           p3InitNav: typeof p3InitNav === 'function' ? p3InitNav : null,
           p3SourceList: p3SourceList,
           p3Tabs: p3Tabs,

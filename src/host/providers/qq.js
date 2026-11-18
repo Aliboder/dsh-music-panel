@@ -99,6 +99,28 @@ export async function search(keyword, cookie = '', page = 1) {
   }
 }
 
+/** Folia align: the backend's /search type=album returns albummid/name/pic/singer. */
+export async function searchAlbums(keyword, cookie = '', page = 1) {
+  const p = Math.max(1, parseInt(page, 10) || 1)
+  const kw = String(keyword ?? '').trim()
+  if (kw === '') return { results: [], total: 0, page: p }
+  const json = await callUpstream('/search', { keyword: kw, type: 'album', page: p, limit: 30 }, { cookie })
+  const rows = Array.isArray(json.items) ? json.items : []
+  const results = rows.map((row) => {
+    const item = row !== null && typeof row === 'object' ? row : {}
+    return {
+      id: String(item.albummid ?? item.albumMid ?? ''),
+      name: decodeEntities(item.name ?? ''),
+      cover: String(item.pic ?? item.cover ?? ''),
+      artist: decodeEntities(item.singer ?? item.artist ?? ''),
+      trackCount: Number(item.song_num ?? item.songCount ?? 0) || 0,
+      source: 'qq',
+      type: 'album',
+    }
+  }).filter((album) => album.id !== '' && album.name !== '')
+  return { results, total: Number(json.total) || results.length, page: p }
+}
+
 /** Own playlists and the built-in liked list, from the package's `/user/playlist`. */
 export async function getMyPlaylists(cookie = '') {
   const json = await callUpstream('/user/playlist', {}, { cookie })

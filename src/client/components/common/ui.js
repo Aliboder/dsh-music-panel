@@ -208,7 +208,7 @@ function navGroupsFor(source, favoritesCount) {
             label: playlist.name || '',
             icon: 'list',
             count: playlist.trackCount || 0,
-            coverSrc: playlist.cover ? onlineCoverSrc({ coverUrl: playlist.cover }) : '',
+            coverSrc: playlist.cover ? onlineCoverSrc({ coverUrl: playlist.cover }, undefined, 'playlist') : '',
             onlinePlaylist: playlist,
           }
         }),

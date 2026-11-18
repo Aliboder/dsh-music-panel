@@ -186,7 +186,7 @@ function onlineTrackOf(result) {
   }
 }
 
-function onlineCoverSrc(result, provider) {
+function onlineCoverSrc(result, provider, kind) {
   if (!result) return ''
   if (typeof result.coverArtId === 'string' && result.coverArtId !== '') return subsonicCoverUrl(result.coverArtId)
   if (typeof result.coverUrl !== 'string' || result.coverUrl === '') return ''
@@ -197,6 +197,7 @@ function onlineCoverSrc(result, provider) {
     encodeURIComponent(pid) +
     '&id=' +
     encodeURIComponent(String(result.id || '')) +
+    (kind ? '&kind=' + encodeURIComponent(kind) : '') +
     '&url=' +
     encodeURIComponent(result.coverUrl)
   )

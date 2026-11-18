@@ -6,8 +6,8 @@
  */
 
 import assert from 'node:assert/strict'
-import { plain, songOf } from '../../src/host/providers/netease.js'
-import { assertOk, ensureNeteaseService, stopNeteaseService } from '../../src/host/services/netease-api.js'
+import { plain, searchAlbums, songOf } from '../../src/host/providers/netease.js'
+import { assertOk, ensureNeteaseService, resetUpstreamOverride, setUpstreamOverride, stopNeteaseService } from '../../src/host/services/netease-api.js'
 import {
   createLoginQrCheck,
   installClientIpPolicy,
@@ -58,6 +58,32 @@ assert.equal(songOf(null), null)
 assert.equal(songOf(undefined), null)
 assert.equal(songOf({ name: 'no id' }), null)
 
+
+// ── collection search mapping ───────────────────────────────────────────────
+
+{
+  setUpstreamOverride(async (route, params) => {
+    assert.equal(route, '/cloudsearch')
+    assert.equal(params.type, 10)
+    assert.equal(params.keywords, '叶惠美')
+    return {
+      result: {
+        albumCount: 1,
+        albums: [{ id: 7, name: '<em>叶惠美</em>', picUrl: 'https://p/a.jpg', artists: [{ name: '周杰伦' }], size: 11 }],
+      },
+    }
+  })
+  try {
+    const albums = await searchAlbums('叶惠美', 'MUSIC_U=cookie', 1)
+    assert.equal(albums.total, 1)
+    assert.equal(albums.results[0].id, '7')
+    assert.equal(albums.results[0].name, '叶惠美')
+    assert.equal(albums.results[0].artist, '周杰伦')
+    assert.equal(albums.results[0].trackCount, 11)
+  } finally {
+    resetUpstreamOverride()
+  }
+}
 
 // ── the client-IP policy ────────────────────────────────────────────────────
 //

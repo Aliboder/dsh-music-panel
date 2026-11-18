@@ -49,6 +49,28 @@ assert.equal(
   'the older camelCase shape still counts',
 )
 
+// Album search goes through the same backend /search route with type=album.
+{
+  setUpstreamOverride(async (route, params) => {
+    assert.equal(route, '/search')
+    assert.equal(params.type, 'album')
+    assert.equal(params.keyword, '叶惠美')
+    return {
+      items: [{ albummid: 'ALB1', name: '叶惠美', pic: 'https://img.example/a.jpg', singer: '周杰伦' }],
+      total: 1,
+    }
+  })
+  try {
+    const albums = await QQ.searchAlbums('叶惠美', '', 1)
+    assert.equal(albums.total, 1)
+    assert.equal(albums.results[0].id, 'ALB1')
+    assert.equal(albums.results[0].name, '叶惠美')
+    assert.equal(albums.results[0].artist, '周杰伦')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
 // The row the client receives is shaped by the provider layer: the badge follows
 // `qualityHint`, which was empty for QQ before this fix.
 {

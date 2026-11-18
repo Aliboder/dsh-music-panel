@@ -204,6 +204,22 @@ export async function searchAlbums(provider, query, cookie = '', session = {}, p
       page: Number(data.page) || target,
     }
   }
+  if (provider === 'qq') {
+    const data = await QQ.searchAlbums(text, cookie, target)
+    return {
+      items: (data.results || []).map((album) => Object.assign(albumCard('qq', album), { type: 'album' })),
+      total: Number(data.total) || 0,
+      page: Number(data.page) || target,
+    }
+  }
+  if (provider === 'kugou' || provider === 'kugouLite') {
+    const data = await KG.searchAlbums(text, cookie, target, provider === 'kugouLite' ? 'lite' : 'standard')
+    return {
+      items: (data.results || []).map((album) => Object.assign(albumCard(provider, album), { type: 'album' })),
+      total: Number(data.total) || 0,
+      page: Number(data.page) || target,
+    }
+  }
   if (provider === 'navidrome') {
     const data = await ND.searchAlbums(navidromeConfig(session), text, {
       count: 30,
@@ -224,7 +240,7 @@ export async function searchPlaylists(provider, query, cookie = '', session = {}
   const target = Math.max(1, Number(page) || 1)
   if (text === '') return { items: [], total: 0, page: target }
   let data = null
-  if (provider === 'netease') data = await NC.searchPlaylist(text, cookie, target)
+  if (provider === 'netease') data = await NC.searchPlaylists(text, cookie, target)
   else if (provider === 'qq') data = await QQ.searchPlaylist(text, cookie, target)
   else if (provider === 'kugou' || provider === 'kugouLite') data = await KG.searchPlaylist(text, cookie, target)
   else throw new Error('该平台没有歌单搜索')

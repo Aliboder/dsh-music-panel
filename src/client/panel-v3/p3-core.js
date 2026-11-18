@@ -98,12 +98,12 @@ function p3Tabs(source) {
     tabs = ['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'stats']
     return tabs
   }
+  if (caps.userPlaylists === true) tabs.push('playlists')
   tabs.push('recent')
   if (source === 'navidrome') tabs.push('songs')
   if (caps.browseAlbums === true) tabs.push('albums')
   if (caps.browseArtists === true) tabs.push('artists')
   if (caps.favorites === true && source === 'local') tabs.push('favorites')
-  if (caps.userPlaylists === true) tabs.push('playlists')
   return tabs
 }
 
@@ -119,7 +119,8 @@ function p3SearchKinds(source) {
 }
 
 function p3DefaultPage(source) {
-  if (source === 'local' || source === 'navidrome') return 'songs'
+  if (source === 'local') return 'songs'
+  if (p3SourceCaps(source).userPlaylists === true) return 'playlists'
   return 'recent'
 }
 
@@ -282,13 +283,13 @@ function p3PlaylistTracks(id) {
   return playlist ? playlistTracks(playlist) : []
 }
 
-function p3OnlineCover(item, source) {
+function p3OnlineCover(item, source, kind) {
   if (!item) return ''
   return onlineCoverSrc({
     coverUrl: item.coverUrl || item.cover || '',
     id: item.id || item.albumId || item.artistId || '',
     coverArtId: item.coverArtId || '',
-  }, source)
+  }, source, kind)
 }
 
 function p3OnlineTrackList(raw) {

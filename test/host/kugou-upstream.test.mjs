@@ -7,6 +7,7 @@
 
 import assert from 'node:assert/strict'
 import * as KG from '../../src/host/providers/kugou.js'
+import * as KGL from '../../src/host/providers/kugou-lite.js'
 import { kugouCookies, kugouSessionPatch } from '../../src/host/providers/kugou-cookie.js'
 import {
   resetUpstreamOverride,
@@ -148,6 +149,60 @@ import {
     assert.equal(song.interval, 269)
     assert.equal(song.hqHash, 'hq1', 'the Android shape\'s HQ.Hash becomes the hq rung')
     assert.equal(song.sqHash, 'sq1')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
+// ── playback identity ──────────────────────────────────────────────────────
+
+{
+  const seen = []
+  setUpstreamOverride(async (operation, params) => {
+    assert.equal(operation, 'song_url')
+    seen.push(params)
+    return { status: 200, body: { data: { play_url: 'https://cdn.example/a.mp3' } }, cookie: [] }
+  })
+  try {
+    const standard = await KG.getDownloadURL({ hash: 'HASH1', albumId: 9, albumAudioId: 8 }, { token: 'T', userid: '1', mid: '123' }, ['128'])
+    assert.equal(standard.url, 'https://cdn.example/a.mp3')
+    assert.equal(seen[0].album_id, 0, 'standard playback never sends a mismatched album id')
+    assert.equal(seen[0].album_audio_id, 0, 'standard playback never sends a mismatched album audio id')
+    const lite = await KGL.resolveStream({ hash: 'HASH2', albumId: 9, albumAudioId: 8 }, { token: 'T', userid: '1', mid: '123' }, ['128'])
+    assert.equal(lite.url, 'https://cdn.example/a.mp3')
+    assert.equal(seen[1].album_id, '0', 'concept playback never sends a mismatched album id')
+    assert.equal(seen[1].album_audio_id, '0', 'concept playback never sends a mismatched album audio id')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
+// ── album search ───────────────────────────────────────────────────────────
+
+{
+  setUpstreamOverride(async (operation, params) => {
+    assert.equal(operation, 'search')
+    assert.equal(params.type, 'album')
+    assert.equal(params.keywords, '叶惠美')
+    return {
+      status: 200,
+      body: {
+        status: 1,
+        data: {
+          total: 1,
+          lists: [{ albumid: 123, albumname: '叶惠美', singers: '周杰伦', img: 'https://img.example/a.jpg', songcount: 11 }],
+        },
+      },
+      cookie: [],
+    }
+  })
+  try {
+    const found = await KG.searchAlbums('叶惠美', '', 1, 'lite')
+    assert.equal(found.total, 1)
+    assert.equal(found.results[0].id, '123')
+    assert.equal(found.results[0].name, '叶惠美')
+    assert.equal(found.results[0].artist, '周杰伦')
+    assert.equal(found.results[0].trackCount, 11)
   } finally {
     resetUpstreamOverride()
   }

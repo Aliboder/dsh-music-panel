@@ -465,6 +465,35 @@ export async function search(keyword, _cookie = '', page = 1, platform = 'standa
   }
 }
 
+/** Folia align: package /search type=album; same anonymous account as song search. */
+export async function searchAlbums(keyword, _session = '', page = 1, platform = 'standard') {
+  const p = Math.max(1, parseInt(page, 10) || 1)
+  const kw = String(keyword ?? '').trim()
+  if (kw === '') return { results: [], total: 0, page: p }
+  const answer = await callKugou(platform, 'search', {
+    keywords: kw,
+    type: 'album',
+    page: p,
+    pagesize: 30,
+    cookie: kugouCookies({}, platform),
+  })
+  const data = answer.body?.data ?? {}
+  const lists = Array.isArray(data.lists) ? data.lists : []
+  const results = lists.map((row) => {
+    const item = row !== null && typeof row === 'object' ? row : {}
+    return {
+      id: String(item.albumid ?? item.album_id ?? item.albumId ?? ''),
+      name: emStrip(item.albumname ?? item.album_name ?? item.name ?? ''),
+      cover: kgCover(item.img ?? item.cover ?? item.AlbumImage ?? ''),
+      artist: emStrip(item.singers ?? item.singername ?? item.singer ?? ''),
+      trackCount: Number(item.songcount ?? item.song_count ?? 0) || 0,
+      source: 'kugou',
+      type: 'album',
+    }
+  }).filter((album) => album.id !== '' && album.name !== '')
+  return { results, total: Number(data.total) || lists.length, page: p }
+}
+
 /** Album songs (public mobile API; concept playback reuses the same hashes). */
 export async function getAlbumSongs(albumId, _session = {}) {
   const id = String(albumId || '').trim()
@@ -755,27 +784,24 @@ const QUALITY_LABELS = { flac: '无损', high: '无损', 320: '高音质', 128: 
 async function packageStreamUrl(song, session, platform, quality, hash) {
   const s = normSession(session)
   if (!s.userid && !s.token) return ''
-  const variants = [
-    { album_id: Number(song.albumId) || 0, album_audio_id: Number(song.albumAudioId) || 0 },
-    { album_id: 0, album_audio_id: 0 },
-  ]
-  for (const variant of variants) {
-    try {
-      const answer = await callKugou(platform, 'song_url', {
-        hash,
-        quality,
-        ...variant,
-        cookie: kugouCookies({ ...s, dfid: session.dfid }, platform),
-      })
-      const data = answer.body?.data ?? answer.body
-      const payload = Array.isArray(data) ? data[0] : data
-      const raw = payload?.play_url ?? payload?.playUrl ?? payload?.url
-        ?? (Array.isArray(data) ? data[0]?.url : '')
-      const url = Array.isArray(raw) ? raw.find((entry) => typeof entry === 'string' && entry !== '') : raw
-      if (typeof url === 'string' && url !== '') return url
-    } catch {
-      // Try the next form, then the gateway fallback.
-    }
+  // The hash is the identity. Search/playlist metadata sometimes carries album ids
+  // from another file; sending them lets the URL endpoint resolve a different song.
+  try {
+    const answer = await callKugou(platform, 'song_url', {
+      hash,
+      quality,
+      album_id: 0,
+      album_audio_id: 0,
+      cookie: kugouCookies({ ...s, dfid: session.dfid }, platform),
+    })
+    const data = answer.body?.data ?? answer.body
+    const payload = Array.isArray(data) ? data[0] : data
+    const raw = payload?.play_url ?? payload?.playUrl ?? payload?.url
+      ?? (Array.isArray(data) ? data[0]?.url : '')
+    const url = Array.isArray(raw) ? raw.find((entry) => typeof entry === 'string' && entry !== '') : raw
+    if (typeof url === 'string' && url !== '') return url
+  } catch {
+    // Fall through to the gateway.
   }
   return ''
 }

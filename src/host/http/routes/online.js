@@ -1598,10 +1598,15 @@ export function createOnlineRoutes(deps) {
       if (pathname === '/online/cover' && method === 'GET') {
         const provider = (params.get('provider') || '').trim()
         const id = (params.get('id') || '').trim()
-        // 1) A cover cached with a played-through song (Folia caches covers by song, not by
-        // URL). The caller also sends the remote URL, used when nothing is cached yet.
-        if (mediaCache !== undefined && isOnlineSource(provider) && id !== '') {
-          const cachedCover = await mediaCache.coverFile(provider, id)
+        const kind = (params.get('kind') || '').trim()
+        // Stable resource identity: playlist/album covers use a kind prefix so a playlist
+        // never shares a cache entry with a song or another collection id.
+        const cacheId = kind !== '' ? kind + '-' + id : id
+        // 1) A cover cached with a played-through song, or a collection cover cached on
+        // first fetch (Folia caches covers by resource, not by the remote URL). The caller
+        // also sends the remote URL, used when nothing is cached yet.
+        if (mediaCache !== undefined && isOnlineSource(provider) && cacheId !== '') {
+          const cachedCover = await mediaCache.coverFile(provider, cacheId)
           if (cachedCover !== null) {
             res.writeHead(200, {
               'content-type': cachedCover.mime,
@@ -1641,6 +1646,14 @@ export function createOnlineRoutes(deps) {
             'cache-control': 'public, max-age=86400',
           }
           const buffer = Buffer.from(await upstream.arrayBuffer())
+          if (mediaCache !== undefined && isOnlineSource(provider) && cacheId !== '' && /^image\//i.test(contentType)) {
+            const ext = /png/i.test(contentType) ? 'png' : /webp/i.test(contentType) ? 'webp' : /gif/i.test(contentType) ? 'gif' : 'jpg'
+            try {
+              await mediaCache.writeCover({ provider, id: cacheId, buffer, mime: contentType, ext })
+            } catch {
+              // A cache write failure must not turn a valid cover into an error.
+            }
+          }
           headers['content-length'] = buffer.length
           res.writeHead(200, headers)
           return res.end(buffer)

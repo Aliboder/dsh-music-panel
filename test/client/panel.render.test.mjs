@@ -215,7 +215,7 @@ assert.ok(internals.p3Tabs('navidrome').indexOf('artists') >= 0, 'Navidrome expo
 
 internals.p3RouteStore.set({ source: 'netease', page: 'recent', param: null, filter: null, query: '', history: [], scroll: {} })
 internals.onlineStore.set({
-  provider: 'netease', phase: 'ready', providers: { netease: { loggedIn: true, nickname: 'Tester', capabilities: { recent: true } } },
+  provider: 'netease', phase: 'ready', providers: { netease: { loggedIn: true, nickname: 'Tester', capabilities: { recent: true, userPlaylists: true, searchAlbums: true, search: true } } },
   history: [{ provider: 'netease', id: '42', title: 'Online Song', artist: 'Online Artist', album: 'Online Album', durationSec: 210, coverUrl: '', qualityHint: '', playedAt: Date.now() }],
 })
 const onlineTree = panel()
@@ -224,6 +224,12 @@ assert.ok(onlineText.includes('Online Song'), 'online history rows render')
 assert.ok(classesOf(onlineTree).has('mpv3-source-avatar'), 'platform and account share one avatar control')
 assert.ok(classesOf(onlineTree).has('mpv3-source-badge'), 'the platform logo badges the account avatar')
 assert.ok(classesOf(onlineTree).has('mp-provider-logo'), 'the platform logo image is rendered')
+const neteaseTabs = internals.p3Tabs('netease')
+assert.ok(neteaseTabs.indexOf('playlists') >= 0, 'online tabs expose playlists')
+assert.ok(neteaseTabs.indexOf('playlists') < neteaseTabs.indexOf('recent'), 'playlists come before recent')
+internals.p3SwitchSource('netease')
+assert.equal(internals.p3BrowseStore.get().tab, 'playlists', 'online sources default to playlists')
+internals.p3SwitchSource('local')
 assert.ok(!classesOf(onlineTree).has('mpv3-account-btn'), 'the separate account button is gone')
 
 internals.onlineStore.set({

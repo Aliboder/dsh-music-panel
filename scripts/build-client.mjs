@@ -156,6 +156,7 @@ ${body}
           p3OpenSearch: typeof p3OpenSearch === 'function' ? p3OpenSearch : null,
           p3CloseSearch: typeof p3CloseSearch === 'function' ? p3CloseSearch : null,
           p3SetSearchQuery: typeof p3SetSearchQuery === 'function' ? p3SetSearchQuery : null,
+          p3SwitchSource: typeof p3SwitchSource === 'function' ? p3SwitchSource : null,
           p3InitNav: typeof p3InitNav === 'function' ? p3InitNav : null,
           p3SourceList: p3SourceList,
           p3Tabs: p3Tabs,

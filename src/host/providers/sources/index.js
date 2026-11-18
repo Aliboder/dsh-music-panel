@@ -57,6 +57,7 @@ const NETEASE_CAPABILITIES = {
 }
 const QQ_CAPABILITIES = {
   ...CHINESE_CAPABILITIES,
+  searchAlbums: true,
   auth: true,
   userLibrary: true,
   wordByWordLyrics: true,
@@ -69,6 +70,7 @@ const KUGOU_LITE_CAPABILITIES = {
   auth: true,
   userLibrary: true,
   wordByWordLyrics: true,
+  searchAlbums: true,
   // The package exposes read/play, but not cloud like/playlist writes yet.
   likeWrite: false,
   playlistAdd: false,

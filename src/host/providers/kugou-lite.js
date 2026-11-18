@@ -293,11 +293,10 @@ async function ensureAuth(session) {
 async function songAuth(session, song) {
   const auth = await ensureAuth(session)
   const hash = String(song.hash || '').toLowerCase()
-  const albumAudioId = Number(song.albumAudioId || song.album_audio_id || 0) || 0
   const data = await liteRequest('/v1/authorization', {
     authorization: auth,
     module_id: '51',
-    album_audio_id: String(albumAudioId),
+    album_audio_id: '0',
     clientver: '11561',
     hash,
   }, session, { label: 'authorization', headers: { 'x-router': 'trackercdngz.kugou.com' } })
@@ -318,8 +317,8 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
       const answer = await callKugou('lite', 'song_url', {
         hash,
         quality,
-        album_id: String(song.albumId || song.album_id || 0),
-        album_audio_id: String(song.albumAudioId || song.album_audio_id || 0),
+        album_id: '0',
+        album_audio_id: '0',
         cookie: kugouCookies({ ...s, dfid: s.dfid }, 'lite'),
       })
       const url = findPlaybackUrl(answer.body)
@@ -333,7 +332,7 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
   const auth = await songAuth(s, song)
   for (const quality of qualities.length ? qualities : ['128']) {
     const params = {
-      album_id: String(song.albumId || song.album_id || 0),
+      album_id: '0',
       area_code: '1',
       module: '',
       hash,
@@ -347,7 +346,7 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
       auth: auth.auth,
       mtype: '0',
       quality,
-      album_audio_id: String(song.albumAudioId || song.album_audio_id || 0),
+      album_audio_id: '0',
       behavior: 'play',
       pid: '411',
       module_id: '51',

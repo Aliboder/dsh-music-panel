@@ -215,6 +215,8 @@ function p3ReadStoredNav() {
     var search = saved.search && typeof saved.search === 'object' ? saved.search : {}
     var source = typeof browse.source === 'string' && browse.source !== '' ? browse.source : 'local'
     var tab = typeof browse.tab === 'string' && p3NavIsTab(browse.tab) ? browse.tab : p3NavDefaultTab(source)
+    // Online sources now open on playlists; an old saved "recent" becomes the new default.
+    if (source !== 'local' && tab === 'recent') tab = 'playlists'
     var searchSource = typeof search.source === 'string' && search.source !== '' ? search.source : source
     return {
       browse: { source: source, tab: tab, filter: null, scroll: {} },
@@ -244,6 +246,7 @@ function p3ReadStoredNav() {
     var oldPage = typeof legacy.page === 'string' ? legacy.page : 'songs'
     var oldParam = legacy.param === undefined || legacy.param === null ? '' : String(legacy.param)
     var oldTab = p3NavIsTab(oldPage) ? oldPage : p3NavDefaultTab(oldSource)
+    if (oldSource !== 'local' && oldTab === 'recent') oldTab = 'playlists'
     var oldCollection = null
     if (oldPage === 'album' || oldPage === 'artist' || oldPage === 'playlist') {
       oldTab = oldPage === 'album' ? 'albums' : oldPage === 'artist' ? 'artists' : 'playlists'
@@ -278,6 +281,7 @@ function p3ReadStoredNav() {
       v2Nav = 'playlists'
     }
     if (!p3NavIsTab(v2Nav)) v2Nav = p3NavDefaultTab(v2Source)
+    if (v2Source !== 'local' && v2Nav === 'recent') v2Nav = 'playlists'
     return {
       browse: { source: v2Source, tab: v2Nav, filter: null, scroll: {} },
       search: {
@@ -466,9 +470,10 @@ function p3SwitchSource(source) {
   if (browse.source === source && !snapshot && !search.open) return
   p3NavSaveScroll()
   p3CollectionNavStore.set({ snapshot: null, scroll: {} })
-  p3BrowseStore.set({ source: source, tab: p3NavDefaultTab(source), filter: null, scroll: {} })
+  var defaultTab = typeof p3DefaultPage === 'function' ? p3DefaultPage(source) : p3NavDefaultTab(source)
+  p3BrowseStore.set({ source: source, tab: defaultTab, filter: null, scroll: {} })
   if (search.open) {
-    p3SearchStore.set({ source: source, query: '', submittedQuery: '', returnTab: p3NavDefaultTab(source), scroll: 0 })
+    p3SearchStore.set({ source: source, query: '', submittedQuery: '', returnTab: defaultTab, scroll: 0 })
   }
   p3SyncNav()
 }

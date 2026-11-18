@@ -66,6 +66,9 @@ var playlistLoadToken = 0
 var playlistCache = new Map()
 var playlistInflight = new Map()
 var PLAYLIST_CACHE_TTL = 60 * 1000
+var searchCache = new Map()
+var SEARCH_CACHE_TTL = 5 * 60 * 1000
+var SEARCH_CACHE_LIMIT = 40
 
 async function searchOnline(text, page, append) {
   var query = String(text || '').trim()
@@ -75,6 +78,22 @@ async function searchOnline(text, page, append) {
   var state = onlineStore.get()
   var provider = state.provider
   var token = (onlineSearchToken += 1)
+  var cacheKey = provider + '|' + query
+  if (!more) {
+    var cached = searchCache.get(cacheKey)
+    if (cached && Date.now() - cached.at < SEARCH_CACHE_TTL) {
+      onlineStore.set({
+        phase: 'ready',
+        query: query,
+        results: cached.results,
+        searchPage: 1,
+        searchTotal: cached.total,
+        searchLoadingMore: false,
+        error: '',
+      })
+      return
+    }
+  }
   if (more) {
     onlineStore.set({ searchLoadingMore: true })
   } else {
@@ -114,6 +133,10 @@ async function searchOnline(text, page, append) {
       searchTotal: Number(body.total) || results.length,
       searchLoadingMore: false,
     })
+    if (!more) {
+      if (searchCache.size >= SEARCH_CACHE_LIMIT) searchCache.delete(searchCache.keys().next().value)
+      searchCache.set(cacheKey, { at: Date.now(), results: results.slice(), total: Number(body.total) || results.length })
+    }
   } catch (error) {
     if (token !== onlineSearchToken) return
     if (more) {

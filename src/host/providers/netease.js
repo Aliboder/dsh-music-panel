@@ -157,6 +157,63 @@ export async function search(keyword, cookie = '', page = 1, type = 1) {
 const ARTIST_ID_CACHE = new Map()
 const ARTIST_ID_CACHE_MAX = 400
 
+/** One album row from upstream cloud search (type 10). */
+function albumOf(row) {
+  const item = row !== null && typeof row === 'object' ? row : {}
+  const artist = Array.isArray(item.artists) && item.artists[0]
+    ? plain(item.artists[0].name)
+    : plain(item.artist?.name || item.artist)
+  return {
+    id: String(item.id ?? ''),
+    name: plain(item.name),
+    cover: plain(item.picUrl || item.pic || item.cover),
+    artist,
+    trackCount: Number(item.size ?? item.songCount) || 0,
+    source: 'netease',
+    type: 'album',
+  }
+}
+
+/** Folia's cloud-search type 10: albums in the same request shape as songs. */
+export async function searchAlbums(keyword, cookie = '', page = 1) {
+  const p = Math.max(1, parseInt(page, 10) || 1)
+  const limit = 30
+  const kw = String(keyword ?? '').trim()
+  if (kw === '') return { results: [], total: 0, page: p }
+  const json = await callUpstream(
+    '/cloudsearch',
+    { keywords: kw, type: 10, limit, offset: (p - 1) * limit },
+    { cookie: await dataCookie(cookie) },
+  )
+  const result = json.result ?? {}
+  const rows = Array.isArray(result.albums) ? result.albums : []
+  return {
+    results: rows.map(albumOf).filter((album) => album.id !== '' && album.name !== ''),
+    total: Number(result.albumCount) || rows.length,
+    page: p,
+  }
+}
+
+/** Folia's cloud-search type 1000: public playlists. */
+export async function searchPlaylists(keyword, cookie = '', page = 1) {
+  const p = Math.max(1, parseInt(page, 10) || 1)
+  const limit = 30
+  const kw = String(keyword ?? '').trim()
+  if (kw === '') return { results: [], total: 0, page: p }
+  const json = await callUpstream(
+    '/cloudsearch',
+    { keywords: kw, type: 1000, limit, offset: (p - 1) * limit },
+    { cookie: await dataCookie(cookie) },
+  )
+  const result = json.result ?? {}
+  const rows = Array.isArray(result.playlists) ? result.playlists : []
+  return {
+    results: rows.map(playlistOf).filter((playlist) => playlist.id !== ''),
+    total: Number(result.playlistCount) || rows.length,
+    page: p,
+  }
+}
+
 /**
  * Artist id for a name.
  *

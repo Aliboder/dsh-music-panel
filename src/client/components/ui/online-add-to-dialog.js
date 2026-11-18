@@ -83,7 +83,7 @@ function OnlineAddToDialog(props) {
             'div',
             { className: 'mp-srow-cover' },
             playlist.cover
-              ? h(Cover, { src: onlineCoverSrc({ coverUrl: playlist.cover }), iconSize: 18 })
+              ? h(Cover, { src: onlineCoverSrc({ coverUrl: playlist.cover }, undefined, 'playlist'), iconSize: 18 })
               : icon('list', 18),
           ),
           h(
