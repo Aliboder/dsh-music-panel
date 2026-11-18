@@ -101,7 +101,7 @@ function p3Tabs(source) {
   if (caps.userPlaylists === true) tabs.push('playlists')
   if (caps.recommendations === true) tabs.push('discover')
   tabs.push('recent')
-  if (caps.userCloud === true) tabs.push('cloud')
+  if (caps.userCloud === true && p3SourceLoggedIn(source)) tabs.push('cloud')
   if (source === 'navidrome') tabs.push('songs')
   if (caps.browseAlbums === true) tabs.push('albums')
   if (caps.browseArtists === true) tabs.push('artists')
