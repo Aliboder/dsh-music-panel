@@ -35,6 +35,8 @@ export const CAPABILITIES = [
   'playlistAdd',
   'artists',
   'albums',
+  'browseArtists',
+  'browseAlbums',
   'qualityLevels',
   'vip',
   'loginQr',

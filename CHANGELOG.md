@@ -12,7 +12,8 @@
 - 队列补逐行移除、拖拽排序、外部点击关闭；在线搜索补“加载更多”；在线专辑/歌手/歌单/搜索错误补页内重试。
 - 本地专辑/歌手/文件夹/歌曲列表加缓存，减少大曲库重复分组/排序；新面板不再写旧 `music.ui.v2`，只保留一次性迁移读取。
 - 歌单管理改为正式 `KitModal` 弹窗（新建/重命名/删除）；Navidrome 歌曲页补分页加载；来源/账号/排序/选择菜单补键盘焦点与方向键/Home/End/Esc。
-- 在线搜索对齐 Folia 的 search kinds：Host 新增 `searchAlbums`/`searchPlaylists` 契约与 `/online/search?kind=`；网易云支持单曲/专辑/歌单，QQ/酷狗支持单曲/歌单，Navidrome 支持单曲/专辑，客户端按平台能力显示分类页签。
+- 在线搜索对齐 Folia 的 collection 能力：Host 新增 `searchAlbums`/`searchPlaylists` 契约与 `/online/search?kind=`；客户端统一搜索结果为“最匹配歌手 → 专辑横向行 → 歌曲列表”，不再使用单曲/专辑/歌单互斥页签；专辑栏目只在平台支持时显示，歌单搜索不进入主搜索页。
+- 在线浏览 Tab 改用 `browseAlbums`/`browseArtists` 能力位：只有本地与 Navidrome 有完整专辑/歌手目录，网易云/QQ/酷狗等不再显示空白的专辑/歌手 Tab。
 - 删掉旧 `VirtualList` 死模块及其 CSS；补窄屏 620/520 断点。
 - 搜索交互改为“聚焦不跳页、第一次输入才进入搜索页”；搜索页隐藏资料库主导航标签，避免点搜索框就清空当前列表。
 - 导航按 Folia 拆成 browse / search / collection 三层：搜索是独立 overlay，专辑/歌手/歌单详情是 `{origin, stack}` 集合栈；详情页每次都能返回搜索或资料库来源，Tab 只表示资料库分区，不再把详情映射成父级 Tab。`music.ui.v4` 保存完整导航快照，详情栈重复/往返会折叠。

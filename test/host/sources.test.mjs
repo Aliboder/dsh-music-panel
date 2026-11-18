@@ -264,6 +264,10 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   assert.equal(specs.qq.capabilities.searchPlaylists, true)
   assert.equal(specs.navidrome.capabilities.searchAlbums, true)
   assert.ok(!specs.navidrome.capabilities.searchPlaylists)
+  assert.equal(specs.navidrome.capabilities.browseAlbums, true)
+  assert.equal(specs.navidrome.capabilities.browseArtists, true)
+  assert.ok(!specs.netease.capabilities.browseAlbums)
+  assert.ok(!specs.netease.capabilities.browseArtists)
 }
 
 {

@@ -89,6 +89,8 @@ const NAVIDROME_CAPABILITIES = {
   playlistAdd: true,
   artists: true,
   albums: true,
+  browseArtists: true,
+  browseAlbums: true,
   loginPassword: true,
   auth: true,
   userLibrary: true,

@@ -100,8 +100,8 @@ function p3Tabs(source) {
   }
   tabs.push('recent')
   if (source === 'navidrome') tabs.push('songs')
-  if (caps.albums === true) tabs.push('albums')
-  if (caps.artists === true) tabs.push('artists')
+  if (caps.browseAlbums === true) tabs.push('albums')
+  if (caps.browseArtists === true) tabs.push('artists')
   if (caps.favorites === true && source === 'local') tabs.push('favorites')
   if (caps.userPlaylists === true) tabs.push('playlists')
   return tabs

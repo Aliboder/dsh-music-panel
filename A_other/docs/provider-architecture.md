@@ -35,6 +35,7 @@ Folia `OnlineMusicProvider` 的最小对等实现：能力位、每平台音质�
   路由暂时继续用扁平方法，两边指向同一实现。
 - **搜索种类**：`searchKinds(id)` 返回 `song | album | playlist`，只有同时声明 `searchAlbums`/`searchPlaylists`
   并实现对应方法的平台才出现；`/online/search?kind=` 按 Folia 的 `searchProviderCollections` 语义返回 collection 分页。
+- **详情能力不是浏览能力**：`albums` / `artists` 只表示能打开详情；完整目录浏览必须另声明 `browseAlbums` / `browseArtists`（当前只有 Navidrome）。客户端一级 Tab 只按浏览能力显示；搜索页的混合结果仍按 `searchAlbums` 决定是否显示专辑行。
 
 ## 加一个平台
 

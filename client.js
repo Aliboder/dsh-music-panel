@@ -160227,7 +160227,7 @@ window.__ModuleLoader__.load({
     }
 
     // ── src/client/panel-v3/p3-styles.js
-    var P3_CSS = "/**\n * panel-v3 styles. All selectors are prefixed .mpv3- so the old panel CSS can\n * coexist until the legacy files are deleted. Colors come from DSH tokens.\n */\n\n.mpv3-root {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n  min-height: 0;\n  overflow: hidden;\n  isolation: isolate;\n  background: var(--dsw-alias-bg-base, #151517);\n  color: var(--dsw-alias-label-primary, #f9fafb);\n  font-family: var(--dsw-font-family, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif);\n  font-size: 13px;\n  line-height: 20px;\n  user-select: none;\n}\n.mpv3-root input, .mpv3-root textarea { user-select: text; }\n.mpv3-root :focus-visible { outline: 2px solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary, #7aaaff)); outline-offset: 2px; }\n.mpv3-root .mp-iconbtn { flex: none; }\n.mpv3-grow { flex: 1; min-width: 0; }\n.mpv3-text-link {\n  padding: 0; border: 0; background: transparent; color: inherit; text-align: left;\n  font: inherit; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\n}\n.mpv3-text-link:hover { color: var(--dsw-alias-label-primary, #f9fafb); text-decoration: underline; text-underline-offset: 2px; }\n\n/* topbar */\n.mpv3-topbar {\n  height: 56px; flex: none; display: flex; align-items: center; gap: 8px;\n  padding: 0 12px 0 8px;\n  border-bottom: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n  position: relative; z-index: 30;\n}\n.mpv3-back { flex: none; }\n.mpv3-parent { flex: none; font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n.mpv3-source-wrap { position: relative; flex: none; }\n.mpv3-source-btn {\n  height: 30px; padding: 0 10px; border: 0; border-radius: 8px;\n  display: inline-flex; align-items: center; gap: 6px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6);\n  font-size: 13px; cursor: pointer; max-width: 180px;\n}\n.mpv3-source-btn:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); color: var(--dsw-alias-label-primary, #f9fafb); }\n.mpv3-source-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-source-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dsw-alias-state-warn-primary, #f2c14e); flex: none; }\n.mpv3-search {\n  position: relative; width: clamp(160px, 22vw, 300px); flex: none;\n}\n.mpv3-search > svg { position: absolute; left: 10px; top: 9px; color: var(--dsw-alias-label-tertiary, #adb2b8); pointer-events: none; }\n.mpv3-search input {\n  width: 100%; height: 32px; padding: 0 30px 0 31px; border-radius: 12px;\n  border: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-2, #2c2c2e);\n  color: var(--dsw-alias-label-primary, #f9fafb); font: inherit; font-size: 13px; outline: none;\n}\n.mpv3-search input::placeholder { color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-search input:focus { border-color: var(--dsw-alias-state-business-primary, #7aaaff); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 16%, transparent); }\n.mpv3-search-clear {\n  position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border: 0; border-radius: 8px;\n  display: grid; place-items: center; background: transparent; color: var(--dsw-alias-label-tertiary, #adb2b8); cursor: pointer;\n}\n.mpv3-account-wrap { position: relative; flex: none; }\n.mpv3-account-btn {\n  width: 28px; height: 28px; border: 0; border-radius: 50%; display: grid; place-items: center;\n  background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent);\n  color: var(--dsw-alias-state-business-primary, #7aaaff); font-size: 11px; font-weight: 600; cursor: pointer; overflow: hidden;\n}\n.mpv3-account-btn img { width: 100%; height: 100%; object-fit: cover; }\n\n/* workspace */\n.mpv3-workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); position: relative; }\n.mpv3-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }\n.mpv3-rail {\n  display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: auto;\n  padding: 12px 8px; border-right: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n}\n.mpv3-root.is-rail .mpv3-workspace { grid-template-columns: 220px minmax(0, 1fr); }\n.mpv3-rail-group { display: flex; flex-direction: column; gap: 1px; }\n.mpv3-rail-label { padding: 0 10px 6px; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-rail-item {\n  display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border: 0; border-radius: 8px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 13px; text-align: left; cursor: pointer;\n}\n.mpv3-rail-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-rail-item.is-on { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent); color: var(--dsw-alias-label-primary, #f9fafb); font-weight: 600; box-shadow: inset 2px 0 0 var(--dsw-alias-state-business-primary, #7aaaff); }\n\n/* viewbar */\n.mpv3-viewbar { height: 44px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 16px; min-width: 0; }\n.mpv3-tabs { min-width: 0; overflow-x: auto; scrollbar-width: none; }\n.mpv3-tabs::-webkit-scrollbar { display: none; }\n.mpv3-menu-anchor { position: relative; flex: none; }\n.mpv3-selection-bar { display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; }\n.mpv3-selection-count { font-size: 13px; font-weight: 600; white-space: nowrap; margin-right: 4px; }\n.mpv3-sel-btn {\n  height: 28px; padding: 0 10px; border: 0; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 13px; white-space: nowrap; cursor: pointer;\n}\n.mpv3-sel-btn:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); color: var(--dsw-alias-label-primary, #f9fafb); }\n.mpv3-sel-btn.is-primary { color: var(--dsw-alias-state-business-primary, #7aaaff); font-weight: 500; }\n.mpv3-sel-btn.is-danger { color: var(--dsw-alias-state-error-primary, #f25a5a); }\n\n/* content */\n.mpv3-content { flex: 1; min-height: 0; display: flex; flex-direction: column; }\n.mpv3-filterbar { height: 34px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 16px; }\n.mpv3-chip {\n  height: 26px; padding: 0 8px; border: .5px solid var(--dsw-alias-border-l2, rgba(255,255,255,.12)); border-radius: 8px;\n  display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 12px; cursor: pointer;\n}\n.mpv3-scroll { flex: 1; min-height: 0; overflow: auto; position: relative; padding: 0 16px 24px; scrollbar-gutter: stable; outline: none; }\n.mpv3-scroll-inner { position: relative; width: 100%; max-width: 1280px; margin: 0 auto; }\n.mpv3-scroll-inner.is-static { height: auto; }\n.mpv3-list-header { position: relative; z-index: 1; }\n.mpv3-vrow { position: absolute; left: 0; right: 0; }\n.mpv3-page-head { display: flex; align-items: baseline; gap: 10px; padding: 6px 6px 14px; min-height: 44px; }\n.mpv3-page-title { margin: 0; font-size: 20px; line-height: 28px; font-weight: 650; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-page-count { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n\n/* rows */\n.mpv3-row {\n  display: grid; grid-template-columns: 40px minmax(0, 1.6fr) minmax(0, 1fr) 64px 64px;\n  align-items: center; gap: 12px; height: 56px; padding: 0 10px; border-radius: 12px;\n  position: relative; color: var(--dsw-alias-label-primary, #f9fafb); cursor: default; outline-offset: -2px;\n}\n.mpv3-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-row.is-selected { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent); }\n.mpv3-row.is-cur { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 8%, transparent); }\n.mpv3-row.is-cur::before {\n  content: ''; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);\n  width: 2px; height: 16px; border-radius: 1px; background: var(--dsw-alias-state-business-primary, #7aaaff);\n}\n.mpv3-row.is-located { animation: mpv3-flash 1.2s ease; }\n@keyframes mpv3-flash { 0% { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 32%, transparent); } 100% { background: transparent; } }\n.mpv3-row-cover-wrap { position: relative; width: 40px; height: 40px; flex: none; }\n.mpv3-row-cover { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 14px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-row-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }\n.mpv3-row-play { position: absolute; inset: 0; border: 0; border-radius: 8px; display: grid; place-items: center; background: rgba(0,0,0,.42); color: #fff; opacity: 0; cursor: pointer; transition: opacity .12s; }\n.mpv3-row.is-cur .mpv3-row-play, .mpv3-row:focus-within .mpv3-row-play { opacity: 1; }\n.mpv3-row:hover .mpv3-row-play { opacity: 1; }\n.mpv3-row-check { position: absolute; right: -3px; top: -3px; width: 15px; height: 15px; border-radius: 50%; background: var(--dsw-alias-state-business-primary, #7aaaff); color: #fff; display: grid; place-items: center; border: 2px solid var(--dsw-alias-bg-base, #151517); }\n.mpv3-row-main { min-width: 0; }\n.mpv3-row-title { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 20px; font-weight: 500; overflow: hidden; white-space: nowrap; }\n.mpv3-row-title-text { overflow: hidden; text-overflow: ellipsis; }\n.mpv3-row.is-cur .mpv3-row-title { font-weight: 600; }\n.mpv3-row-sub { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }\n.mpv3-row-album { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: left; }\n.mpv3-row-time { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: right; font-variant-numeric: tabular-nums; }\n.mpv3-row-acts { display: flex; align-items: center; justify-content: flex-end; gap: 2px; width: 64px; opacity: 0; }\n.mpv3-row:hover .mpv3-row-acts, .mpv3-row.is-cur .mpv3-row-acts, .mpv3-row.is-selected .mpv3-row-acts, .mpv3-row:focus-within .mpv3-row-acts { opacity: 1; }\n.mpv3-vip { height: 15px; padding: 0 5px; border-radius: 4px; background: #f2c14e; color: #1a1405; font-size: 11px; line-height: 15px; font-weight: 700; flex: none; }\n.mpv3-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 11px; flex: none; }\n.mpv3-eq i { width: 2px; background: var(--dsw-alias-state-business-primary, #7aaaff); border-radius: 1px; animation: mpv3-eq .9s ease-in-out infinite; }\n.mpv3-eq i:nth-child(2) { animation-delay: .18s; }\n.mpv3-eq i:nth-child(3) { animation-delay: .36s; }\n@keyframes mpv3-eq { 0%, 100% { height: 3px; } 50% { height: 11px; } }\n\n/* grid / hero / entities */\n.mpv3-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px 16px; padding: 4px 0 20px; }\n.mpv3-card { display: flex; flex-direction: column; min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-card-cover { aspect-ratio: 1; border-radius: 12px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 28px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); transition: transform .16s; }\n.mpv3-card-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-card:hover .mpv3-card-cover { transform: translateY(-2px); }\n.mpv3-card-title { margin-top: 8px; font-size: 13px; line-height: 20px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-card-sub { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-hero { display: flex; align-items: flex-end; gap: 22px; padding: 8px 6px 20px; }\n.mpv3-hero-cover { width: 160px; height: 160px; border-radius: 16px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 48px; font-weight: 650; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-hero-cover.is-round { width: 96px; height: 96px; border-radius: 50%; font-size: 32px; }\n.mpv3-hero-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-hero-info { min-width: 0; flex: 1; padding-bottom: 4px; }\n.mpv3-hero-eyebrow { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); margin-bottom: 6px; }\n.mpv3-hero-title { margin: 0 0 8px; font-size: 24px; line-height: 32px; font-weight: 650; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-hero-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-hero-meta-line { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }\n.mpv3-hero-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }\n.mpv3-section { margin: 8px 0 22px; }\n.mpv3-more { display: flex; justify-content: center; padding: 8px 0 20px; }\n.mpv3-section-head { display: flex; align-items: baseline; gap: 8px; padding: 0 10px 8px; font-size: 13px; line-height: 20px; }\n.mpv3-section-head strong { font-weight: 600; }\n.mpv3-section-head span { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-plain-list { display: flex; flex-direction: column; }\n.mpv3-entity-row { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 10px; border: 0; border-radius: 12px; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-entity-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-entity-cover { width: 44px; height: 44px; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 15px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-entity-cover.is-round { border-radius: 50%; }\n.mpv3-entity-cover.is-folder { color: var(--dsw-alias-state-business-primary, #7aaaff); background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 12%, transparent); box-shadow: none; }\n.mpv3-entity-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-entity-main { min-width: 0; flex: 1; }\n.mpv3-entity-title { display: block; font-size: 13px; line-height: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-entity-sub { display: block; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n\n/* stats */\n.mpv3-stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 4px 0 18px; }\n.mpv3-stat-card { border: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06)); background: var(--dsw-alias-bg-layer-1, #232324); border-radius: 20px; padding: 14px 16px; }\n.mpv3-stat-card span { display: block; font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-stat-card strong { display: block; margin-top: 6px; font-size: 22px; line-height: 28px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }\n.mpv3-rank-list { display: flex; flex-direction: column; gap: 2px; }\n.mpv3-rank-row { display: grid; grid-template-columns: 28px 32px minmax(0, 1fr) 110px 100px; gap: 12px; align-items: center; height: 52px; padding: 0 10px; border: 0; border-radius: 12px; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-rank-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-rank-n { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: center; font-variant-numeric: tabular-nums; }\n.mpv3-rank-cover { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 12px; font-weight: 600; }\n.mpv3-rank-main { min-width: 0; }\n.mpv3-rank-bar { height: 4px; border-radius: 2px; background: var(--dsw-alias-bg-layer-3, #353638); overflow: hidden; }\n.mpv3-rank-bar i { display: block; height: 100%; background: var(--dsw-alias-state-business-primary, #7aaaff); border-radius: 2px; }\n.mpv3-rank-meta { font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: right; font-variant-numeric: tabular-nums; }\n\n/* empty / skeleton */\n.mpv3-list-empty { position: relative; padding-bottom: 24px; }\n.mpv3-empty-wrap { min-height: 240px; height: calc(100% - 60px); display: grid; place-items: center; padding: 40px 16px; }\n.mpv3-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; max-width: 380px; }\n.mpv3-empty .ico { color: var(--dsw-alias-label-tertiary, #adb2b8); opacity: .8; }\n.mpv3-empty strong { font-size: 13px; line-height: 20px; font-weight: 600; color: var(--dsw-alias-label-secondary, #cfd3d6); }\n.mpv3-empty span { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-empty-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }\n.mpv3-skeleton-list { padding-top: 10px; }\n.mpv3-skeleton-row { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 10px; }\n.mpv3-skeleton { display: block; border-radius: 6px; background: linear-gradient(90deg, var(--dsw-alias-bg-layer-2, #2c2c2e), var(--dsw-alias-bg-layer-3, #353638), var(--dsw-alias-bg-layer-2, #2c2c2e)); background-size: 200% 100%; animation: mpv3-shimmer 1.2s linear infinite; }\n.mpv3-skeleton-cover { width: 40px; height: 40px; border-radius: 8px; flex: none; }\n.mpv3-skeleton-main { flex: 1; display: flex; flex-direction: column; gap: 6px; }\n.mpv3-skeleton-line { height: 10px; }\n.mpv3-skeleton-time { width: 44px; height: 10px; }\n@keyframes mpv3-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }\n\n/* player */\n.mpv3-player {\n  height: 72px; flex: none; position: relative; display: grid;\n  grid-template-columns: minmax(180px, 1fr) auto minmax(220px, 1fr);\n  align-items: center; gap: 14px; padding: 0 14px;\n  border-top: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n}\n.mpv3-player-seek { position: absolute; left: 0; right: 0; top: 0; height: 14px; z-index: 2; }\n.mpv3-player-seek .mp-seek { position: absolute; left: 0; right: 0; top: 0; height: 14px; padding: 0; }\n.mpv3-player-seek .mp-seek input { width: 100%; }\n.mpv3-player-track { display: flex; align-items: center; gap: 10px; min-width: 0; }\n.mpv3-player-cover { width: 44px; height: 44px; border: 0; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; background: var(--dsw-alias-bg-layer-3, #353638); color: var(--dsw-alias-label-tertiary, #adb2b8); cursor: pointer; position: relative; }\n.mpv3-player-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-player-eq { position: absolute; right: 5px; bottom: 5px; display: flex; align-items: flex-end; gap: 2px; padding: 3px 4px; border-radius: 6px; background: rgba(0,0,0,.52); }\n.mpv3-player-eq i { width: 2px; height: 4px; border-radius: 2px; background: #fff; animation: mpv3-eq .9s ease-in-out infinite; }\n.mpv3-player-eq i:nth-child(2) { animation-delay: .15s; }\n.mpv3-player-eq i:nth-child(3) { animation-delay: .3s; }\n.mpv3-player-meta { min-width: 0; }\n.mpv3-player-title { font-size: 13px; line-height: 18px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-player-artist { font-size: 12px; line-height: 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-player-center { display: flex; align-items: center; gap: 4px; }\n.mpv3-player-play { width: 36px; height: 36px; border: 0; border-radius: 50%; display: grid; place-items: center; background: var(--dsw-alias-button-primary-fill, #f9fafb); color: var(--dsw-alias-label-primary-foreground, #0f1115); margin: 0 6px; cursor: pointer; }\n.mpv3-player-right { display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }\n.mpv3-player-time { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); font-variant-numeric: tabular-nums; white-space: nowrap; margin: 0 4px; }\n.mpv3-player-vol { display: flex; align-items: center; gap: 4px; width: 96px; flex: none; }\n.mpv3-player-vol input { width: 64px; accent-color: var(--dsw-alias-state-business-primary, #7aaaff); }\n.mpv3-player.is-empty .mpv3-player-cover { color: var(--dsw-alias-label-tertiary, #adb2b8); }\n\n/* queue */\n.mpv3-queue {\n  position: absolute; right: 14px; bottom: 12px; width: 340px; max-height: min(560px, 62vh);\n  display: flex; flex-direction: column; min-height: 0; overflow: hidden; z-index: 50;\n  border: 0; border-radius: 16px; background: var(--dsw-alias-bg-layer-1, #232324);\n  box-shadow: var(--dsw-elevation-panel, 0 18px 48px rgba(0,0,0,.5));\n}\n.mpv3-queue-head { height: 44px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 14px; border-bottom: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06)); }\n.mpv3-queue-head strong { font-size: 13px; font-weight: 600; }\n.mpv3-queue-head > span { font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-list { flex: 1; min-height: 0; overflow: auto; padding: 6px 6px 12px; }\n.mpv3-queue-section { padding: 8px 10px 2px; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-row { display: flex; align-items: center; gap: 10px; width: 100%; height: 56px; padding: 0 8px; border: 0; border-radius: 12px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: grab; user-select: none; }\n.mpv3-queue-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-queue-row.is-cur { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 12%, transparent); }\n.mpv3-queue-idx { width: 16px; flex: none; font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: center; }\n.mpv3-queue-cover { width: 32px; height: 32px; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 11px; font-weight: 600; }\n.mpv3-queue-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-queue-main { min-width: 0; flex: 1; }\n.mpv3-queue-name { display: block; font-size: 13px; line-height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-queue-artist { display: block; font-size: 11px; line-height: 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-queue-time { font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); flex: none; }\n.mpv3-queue-remove { display: none; flex: none; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-row:hover .mpv3-queue-time, .mpv3-queue-row:focus-within .mpv3-queue-time { display: none; }\n.mpv3-queue-row:hover .mpv3-queue-remove, .mpv3-queue-row:focus-within .mpv3-queue-remove { display: grid; }\n.mpv3-queue-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n\n/* menus */\n.mpv3-menu {\n  position: fixed; min-width: 210px; max-width: 300px; padding: 4px; border-radius: 12px; z-index: 80;\n  background: var(--dsw-menu-surface-fill, var(--dsw-alias-bg-overlay, rgba(48,49,54,.94)));\n  -webkit-backdrop-filter: var(--dsw-menu-backdrop-filter, blur(20px)); backdrop-filter: var(--dsw-menu-backdrop-filter, blur(20px));\n  box-shadow: var(--dsw-elevation-panel, 0 18px 48px rgba(0,0,0,.5));\n  color: var(--dsw-alias-label-primary, #f9fafb);\n}\n.mpv3-menu-item { display: flex; align-items: center; gap: 9px; width: 100%; height: 32px; padding: 0 9px; border: 0; border-radius: 8px; background: transparent; color: inherit; font-size: 13px; text-align: left; cursor: pointer; }\n.mpv3-menu-item:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-menu-item:disabled { opacity: .45; cursor: default; }\n.mpv3-menu-item.is-danger { color: var(--dsw-alias-state-error-primary, #f25a5a); }\n.mpv3-menu-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-menu-status { margin-left: auto; font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n.mpv3-menu-sep { height: .5px; margin: 4px 6px; background: var(--dsw-alias-border-l1, rgba(255,255,255,.06)); }\n\n/* responsive */\n@media (max-width: 1079px) {\n  .mpv3-row { grid-template-columns: 40px minmax(0, 1.8fr) 64px 64px; }\n  .mpv3-row-album { display: none; }\n}\n@media (max-width: 999px) {\n  .mpv3-root.is-rail .mpv3-workspace { grid-template-columns: minmax(0, 1fr); }\n  .mpv3-rail { display: none; }\n}\n@media (max-width: 899px) {\n  .mpv3-search { width: 160px; }\n  .mpv3-player-vol { display: none; }\n}\n@media (max-width: 759px) {\n  .mpv3-search { width: 120px; }\n  .mpv3-parent { display: none; }\n  .mpv3-row { grid-template-columns: 40px minmax(0, 1fr) 56px 32px; gap: 10px; }\n  .mpv3-row-acts { width: 32px; }\n  .mpv3-row-acts .mp-iconbtn:first-child { display: none; }\n  .mpv3-hero { flex-direction: column; align-items: flex-start; gap: 14px; }\n  .mpv3-hero-cover { width: 112px; height: 112px; font-size: 36px; }\n  .mpv3-hero-title { font-size: 20px; line-height: 28px; }\n  .mpv3-player { grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; padding: 0 10px; }\n  .mpv3-player-time { display: none; }\n  .mpv3-player-right .mpv3-chip { display: none; }\n  .mpv3-player-right { gap: 0; }\n  .mpv3-queue { left: 8px; right: 8px; bottom: 8px; width: auto; max-height: min(520px, 60vh); }\n  .mpv3-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px 12px; }\n  .mpv3-rank-row { grid-template-columns: 24px 32px minmax(0, 1fr) 80px; }\n  .mpv3-rank-bar { display: none; }\n}\n@media (prefers-reduced-motion: reduce) {\n  .mpv3-root *, .mpv3-root *::before, .mpv3-root *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }\n  .mpv3-eq i, .mpv3-player-eq i { height: 7px; }\n  .mpv3-skeleton { animation: none; }\n}\n\n.mpv3-dialog-field { display: flex; flex-direction: column; gap: 8px; }\n\n@media (max-width: 620px) {\n  .mpv3-source-name { display: none; }\n  .mpv3-source-btn { padding: 0 6px; }\n  .mpv3-search { flex: 1; width: auto; min-width: 0; }\n}\n@media (max-width: 520px) {\n  .mpv3-topbar { gap: 4px; padding: 0 6px 0 4px; }\n  .mpv3-viewbar { padding: 0 10px; }\n  .mpv3-scroll { padding-left: 10px; padding-right: 10px; }\n  .mpv3-player { gap: 4px; padding: 0 8px; }\n  .mpv3-player-locate, .mpv3-player-expand { display: none; }\n  .mpv3-player-right { gap: 0; }\n  .mpv3-queue { left: 6px; right: 6px; }\n}\n\n.mpv3-search-kinds { padding: 0 6px 12px; }\n"
+    var P3_CSS = "/**\n * panel-v3 styles. All selectors are prefixed .mpv3- so the old panel CSS can\n * coexist until the legacy files are deleted. Colors come from DSH tokens.\n */\n\n.mpv3-root {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n  min-height: 0;\n  overflow: hidden;\n  isolation: isolate;\n  background: var(--dsw-alias-bg-base, #151517);\n  color: var(--dsw-alias-label-primary, #f9fafb);\n  font-family: var(--dsw-font-family, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif);\n  font-size: 13px;\n  line-height: 20px;\n  user-select: none;\n}\n.mpv3-root input, .mpv3-root textarea { user-select: text; }\n.mpv3-root :focus-visible { outline: 2px solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary, #7aaaff)); outline-offset: 2px; }\n.mpv3-root .mp-iconbtn { flex: none; }\n.mpv3-grow { flex: 1; min-width: 0; }\n.mpv3-text-link {\n  padding: 0; border: 0; background: transparent; color: inherit; text-align: left;\n  font: inherit; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\n}\n.mpv3-text-link:hover { color: var(--dsw-alias-label-primary, #f9fafb); text-decoration: underline; text-underline-offset: 2px; }\n\n/* topbar */\n.mpv3-topbar {\n  height: 56px; flex: none; display: flex; align-items: center; gap: 8px;\n  padding: 0 12px 0 8px;\n  border-bottom: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n  position: relative; z-index: 30;\n}\n.mpv3-back { flex: none; }\n.mpv3-parent { flex: none; font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n.mpv3-source-wrap { position: relative; flex: none; }\n.mpv3-source-btn {\n  height: 30px; padding: 0 10px; border: 0; border-radius: 8px;\n  display: inline-flex; align-items: center; gap: 6px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6);\n  font-size: 13px; cursor: pointer; max-width: 180px;\n}\n.mpv3-source-btn:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); color: var(--dsw-alias-label-primary, #f9fafb); }\n.mpv3-source-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-source-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dsw-alias-state-warn-primary, #f2c14e); flex: none; }\n.mpv3-search {\n  position: relative; width: clamp(160px, 22vw, 300px); flex: none;\n}\n.mpv3-search > svg { position: absolute; left: 10px; top: 9px; color: var(--dsw-alias-label-tertiary, #adb2b8); pointer-events: none; }\n.mpv3-search input {\n  width: 100%; height: 32px; padding: 0 30px 0 31px; border-radius: 12px;\n  border: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-2, #2c2c2e);\n  color: var(--dsw-alias-label-primary, #f9fafb); font: inherit; font-size: 13px; outline: none;\n}\n.mpv3-search input::placeholder { color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-search input:focus { border-color: var(--dsw-alias-state-business-primary, #7aaaff); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 16%, transparent); }\n.mpv3-search-clear {\n  position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border: 0; border-radius: 8px;\n  display: grid; place-items: center; background: transparent; color: var(--dsw-alias-label-tertiary, #adb2b8); cursor: pointer;\n}\n.mpv3-account-wrap { position: relative; flex: none; }\n.mpv3-account-btn {\n  width: 28px; height: 28px; border: 0; border-radius: 50%; display: grid; place-items: center;\n  background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent);\n  color: var(--dsw-alias-state-business-primary, #7aaaff); font-size: 11px; font-weight: 600; cursor: pointer; overflow: hidden;\n}\n.mpv3-account-btn img { width: 100%; height: 100%; object-fit: cover; }\n\n/* workspace */\n.mpv3-workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); position: relative; }\n.mpv3-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }\n.mpv3-rail {\n  display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: auto;\n  padding: 12px 8px; border-right: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n}\n.mpv3-root.is-rail .mpv3-workspace { grid-template-columns: 220px minmax(0, 1fr); }\n.mpv3-rail-group { display: flex; flex-direction: column; gap: 1px; }\n.mpv3-rail-label { padding: 0 10px 6px; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-rail-item {\n  display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border: 0; border-radius: 8px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 13px; text-align: left; cursor: pointer;\n}\n.mpv3-rail-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-rail-item.is-on { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent); color: var(--dsw-alias-label-primary, #f9fafb); font-weight: 600; box-shadow: inset 2px 0 0 var(--dsw-alias-state-business-primary, #7aaaff); }\n\n/* viewbar */\n.mpv3-viewbar { height: 44px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 16px; min-width: 0; }\n.mpv3-tabs { min-width: 0; overflow-x: auto; scrollbar-width: none; }\n.mpv3-tabs::-webkit-scrollbar { display: none; }\n.mpv3-menu-anchor { position: relative; flex: none; }\n.mpv3-selection-bar { display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; }\n.mpv3-selection-count { font-size: 13px; font-weight: 600; white-space: nowrap; margin-right: 4px; }\n.mpv3-sel-btn {\n  height: 28px; padding: 0 10px; border: 0; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 13px; white-space: nowrap; cursor: pointer;\n}\n.mpv3-sel-btn:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); color: var(--dsw-alias-label-primary, #f9fafb); }\n.mpv3-sel-btn.is-primary { color: var(--dsw-alias-state-business-primary, #7aaaff); font-weight: 500; }\n.mpv3-sel-btn.is-danger { color: var(--dsw-alias-state-error-primary, #f25a5a); }\n\n/* content */\n.mpv3-content { flex: 1; min-height: 0; display: flex; flex-direction: column; }\n.mpv3-filterbar { height: 34px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 16px; }\n.mpv3-chip {\n  height: 26px; padding: 0 8px; border: .5px solid var(--dsw-alias-border-l2, rgba(255,255,255,.12)); border-radius: 8px;\n  display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 12px; cursor: pointer;\n}\n.mpv3-scroll { flex: 1; min-height: 0; overflow: auto; position: relative; padding: 0 16px 24px; scrollbar-gutter: stable; outline: none; }\n.mpv3-scroll-inner { position: relative; width: 100%; max-width: 1280px; margin: 0 auto; }\n.mpv3-scroll-inner.is-static { height: auto; }\n.mpv3-list-header { position: relative; z-index: 1; }\n.mpv3-vrow { position: absolute; left: 0; right: 0; }\n.mpv3-page-head { display: flex; align-items: baseline; gap: 10px; padding: 6px 6px 14px; min-height: 44px; }\n.mpv3-page-title { margin: 0; font-size: 20px; line-height: 28px; font-weight: 650; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-page-count { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n\n/* rows */\n.mpv3-row {\n  display: grid; grid-template-columns: 40px minmax(0, 1.6fr) minmax(0, 1fr) 64px 64px;\n  align-items: center; gap: 12px; height: 56px; padding: 0 10px; border-radius: 12px;\n  position: relative; color: var(--dsw-alias-label-primary, #f9fafb); cursor: default; outline-offset: -2px;\n}\n.mpv3-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-row.is-selected { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent); }\n.mpv3-row.is-cur { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 8%, transparent); }\n.mpv3-row.is-cur::before {\n  content: ''; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);\n  width: 2px; height: 16px; border-radius: 1px; background: var(--dsw-alias-state-business-primary, #7aaaff);\n}\n.mpv3-row.is-located { animation: mpv3-flash 1.2s ease; }\n@keyframes mpv3-flash { 0% { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 32%, transparent); } 100% { background: transparent; } }\n.mpv3-row-cover-wrap { position: relative; width: 40px; height: 40px; flex: none; }\n.mpv3-row-cover { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 14px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-row-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }\n.mpv3-row-play { position: absolute; inset: 0; border: 0; border-radius: 8px; display: grid; place-items: center; background: rgba(0,0,0,.42); color: #fff; opacity: 0; cursor: pointer; transition: opacity .12s; }\n.mpv3-row.is-cur .mpv3-row-play, .mpv3-row:focus-within .mpv3-row-play { opacity: 1; }\n.mpv3-row:hover .mpv3-row-play { opacity: 1; }\n.mpv3-row-check { position: absolute; right: -3px; top: -3px; width: 15px; height: 15px; border-radius: 50%; background: var(--dsw-alias-state-business-primary, #7aaaff); color: #fff; display: grid; place-items: center; border: 2px solid var(--dsw-alias-bg-base, #151517); }\n.mpv3-row-main { min-width: 0; }\n.mpv3-row-title { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 20px; font-weight: 500; overflow: hidden; white-space: nowrap; }\n.mpv3-row-title-text { overflow: hidden; text-overflow: ellipsis; }\n.mpv3-row.is-cur .mpv3-row-title { font-weight: 600; }\n.mpv3-row-sub { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }\n.mpv3-row-album { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: left; }\n.mpv3-row-time { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: right; font-variant-numeric: tabular-nums; }\n.mpv3-row-acts { display: flex; align-items: center; justify-content: flex-end; gap: 2px; width: 64px; opacity: 0; }\n.mpv3-row:hover .mpv3-row-acts, .mpv3-row.is-cur .mpv3-row-acts, .mpv3-row.is-selected .mpv3-row-acts, .mpv3-row:focus-within .mpv3-row-acts { opacity: 1; }\n.mpv3-vip { height: 15px; padding: 0 5px; border-radius: 4px; background: #f2c14e; color: #1a1405; font-size: 11px; line-height: 15px; font-weight: 700; flex: none; }\n.mpv3-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 11px; flex: none; }\n.mpv3-eq i { width: 2px; background: var(--dsw-alias-state-business-primary, #7aaaff); border-radius: 1px; animation: mpv3-eq .9s ease-in-out infinite; }\n.mpv3-eq i:nth-child(2) { animation-delay: .18s; }\n.mpv3-eq i:nth-child(3) { animation-delay: .36s; }\n@keyframes mpv3-eq { 0%, 100% { height: 3px; } 50% { height: 11px; } }\n\n/* grid / hero / entities */\n.mpv3-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px 16px; padding: 4px 0 20px; }\n.mpv3-card { display: flex; flex-direction: column; min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-card-cover { aspect-ratio: 1; border-radius: 12px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 28px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); transition: transform .16s; }\n.mpv3-card-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-card:hover .mpv3-card-cover { transform: translateY(-2px); }\n.mpv3-card-title { margin-top: 8px; font-size: 13px; line-height: 20px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-card-sub { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-hero { display: flex; align-items: flex-end; gap: 22px; padding: 8px 6px 20px; }\n.mpv3-hero-cover { width: 160px; height: 160px; border-radius: 16px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 48px; font-weight: 650; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-hero-cover.is-round { width: 96px; height: 96px; border-radius: 50%; font-size: 32px; }\n.mpv3-hero-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-hero-info { min-width: 0; flex: 1; padding-bottom: 4px; }\n.mpv3-hero-eyebrow { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); margin-bottom: 6px; }\n.mpv3-hero-title { margin: 0 0 8px; font-size: 24px; line-height: 32px; font-weight: 650; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-hero-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-hero-meta-line { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }\n.mpv3-hero-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }\n.mpv3-section { margin: 8px 0 22px; }\n.mpv3-more { display: flex; justify-content: center; padding: 8px 0 20px; }\n.mpv3-section-head { display: flex; align-items: baseline; gap: 8px; padding: 0 10px 8px; font-size: 13px; line-height: 20px; }\n.mpv3-section-head strong { font-weight: 600; }\n.mpv3-section-head span { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-plain-list { display: flex; flex-direction: column; }\n.mpv3-entity-row { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 10px; border: 0; border-radius: 12px; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-entity-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-entity-cover { width: 44px; height: 44px; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 15px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-entity-cover.is-round { border-radius: 50%; }\n.mpv3-entity-cover.is-folder { color: var(--dsw-alias-state-business-primary, #7aaaff); background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 12%, transparent); box-shadow: none; }\n.mpv3-entity-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-entity-main { min-width: 0; flex: 1; }\n.mpv3-entity-title { display: block; font-size: 13px; line-height: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-entity-sub { display: block; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n\n/* stats */\n.mpv3-stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 4px 0 18px; }\n.mpv3-stat-card { border: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06)); background: var(--dsw-alias-bg-layer-1, #232324); border-radius: 20px; padding: 14px 16px; }\n.mpv3-stat-card span { display: block; font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-stat-card strong { display: block; margin-top: 6px; font-size: 22px; line-height: 28px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }\n.mpv3-rank-list { display: flex; flex-direction: column; gap: 2px; }\n.mpv3-rank-row { display: grid; grid-template-columns: 28px 32px minmax(0, 1fr) 110px 100px; gap: 12px; align-items: center; height: 52px; padding: 0 10px; border: 0; border-radius: 12px; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-rank-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-rank-n { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: center; font-variant-numeric: tabular-nums; }\n.mpv3-rank-cover { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 12px; font-weight: 600; }\n.mpv3-rank-main { min-width: 0; }\n.mpv3-rank-bar { height: 4px; border-radius: 2px; background: var(--dsw-alias-bg-layer-3, #353638); overflow: hidden; }\n.mpv3-rank-bar i { display: block; height: 100%; background: var(--dsw-alias-state-business-primary, #7aaaff); border-radius: 2px; }\n.mpv3-rank-meta { font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: right; font-variant-numeric: tabular-nums; }\n\n/* empty / skeleton */\n.mpv3-list-empty { position: relative; padding-bottom: 24px; }\n.mpv3-empty-wrap { min-height: 240px; height: calc(100% - 60px); display: grid; place-items: center; padding: 40px 16px; }\n.mpv3-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; max-width: 380px; }\n.mpv3-empty .ico { color: var(--dsw-alias-label-tertiary, #adb2b8); opacity: .8; }\n.mpv3-empty strong { font-size: 13px; line-height: 20px; font-weight: 600; color: var(--dsw-alias-label-secondary, #cfd3d6); }\n.mpv3-empty span { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-empty-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }\n.mpv3-skeleton-list { padding-top: 10px; }\n.mpv3-skeleton-row { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 10px; }\n.mpv3-skeleton { display: block; border-radius: 6px; background: linear-gradient(90deg, var(--dsw-alias-bg-layer-2, #2c2c2e), var(--dsw-alias-bg-layer-3, #353638), var(--dsw-alias-bg-layer-2, #2c2c2e)); background-size: 200% 100%; animation: mpv3-shimmer 1.2s linear infinite; }\n.mpv3-skeleton-cover { width: 40px; height: 40px; border-radius: 8px; flex: none; }\n.mpv3-skeleton-main { flex: 1; display: flex; flex-direction: column; gap: 6px; }\n.mpv3-skeleton-line { height: 10px; }\n.mpv3-skeleton-time { width: 44px; height: 10px; }\n@keyframes mpv3-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }\n\n/* player */\n.mpv3-player {\n  height: 72px; flex: none; position: relative; display: grid;\n  grid-template-columns: minmax(180px, 1fr) auto minmax(220px, 1fr);\n  align-items: center; gap: 14px; padding: 0 14px;\n  border-top: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n}\n.mpv3-player-seek { position: absolute; left: 0; right: 0; top: 0; height: 14px; z-index: 2; }\n.mpv3-player-seek .mp-seek { position: absolute; left: 0; right: 0; top: 0; height: 14px; padding: 0; }\n.mpv3-player-seek .mp-seek input { width: 100%; }\n.mpv3-player-track { display: flex; align-items: center; gap: 10px; min-width: 0; }\n.mpv3-player-cover { width: 44px; height: 44px; border: 0; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; background: var(--dsw-alias-bg-layer-3, #353638); color: var(--dsw-alias-label-tertiary, #adb2b8); cursor: pointer; position: relative; }\n.mpv3-player-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-player-eq { position: absolute; right: 5px; bottom: 5px; display: flex; align-items: flex-end; gap: 2px; padding: 3px 4px; border-radius: 6px; background: rgba(0,0,0,.52); }\n.mpv3-player-eq i { width: 2px; height: 4px; border-radius: 2px; background: #fff; animation: mpv3-eq .9s ease-in-out infinite; }\n.mpv3-player-eq i:nth-child(2) { animation-delay: .15s; }\n.mpv3-player-eq i:nth-child(3) { animation-delay: .3s; }\n.mpv3-player-meta { min-width: 0; }\n.mpv3-player-title { font-size: 13px; line-height: 18px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-player-artist { font-size: 12px; line-height: 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-player-center { display: flex; align-items: center; gap: 4px; }\n.mpv3-player-play { width: 36px; height: 36px; border: 0; border-radius: 50%; display: grid; place-items: center; background: var(--dsw-alias-button-primary-fill, #f9fafb); color: var(--dsw-alias-label-primary-foreground, #0f1115); margin: 0 6px; cursor: pointer; }\n.mpv3-player-right { display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }\n.mpv3-player-time { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); font-variant-numeric: tabular-nums; white-space: nowrap; margin: 0 4px; }\n.mpv3-player-vol { display: flex; align-items: center; gap: 4px; width: 96px; flex: none; }\n.mpv3-player-vol input { width: 64px; accent-color: var(--dsw-alias-state-business-primary, #7aaaff); }\n.mpv3-player.is-empty .mpv3-player-cover { color: var(--dsw-alias-label-tertiary, #adb2b8); }\n\n/* queue */\n.mpv3-queue {\n  position: absolute; right: 14px; bottom: 12px; width: 340px; max-height: min(560px, 62vh);\n  display: flex; flex-direction: column; min-height: 0; overflow: hidden; z-index: 50;\n  border: 0; border-radius: 16px; background: var(--dsw-alias-bg-layer-1, #232324);\n  box-shadow: var(--dsw-elevation-panel, 0 18px 48px rgba(0,0,0,.5));\n}\n.mpv3-queue-head { height: 44px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 14px; border-bottom: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06)); }\n.mpv3-queue-head strong { font-size: 13px; font-weight: 600; }\n.mpv3-queue-head > span { font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-list { flex: 1; min-height: 0; overflow: auto; padding: 6px 6px 12px; }\n.mpv3-queue-section { padding: 8px 10px 2px; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-row { display: flex; align-items: center; gap: 10px; width: 100%; height: 56px; padding: 0 8px; border: 0; border-radius: 12px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: grab; user-select: none; }\n.mpv3-queue-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-queue-row.is-cur { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 12%, transparent); }\n.mpv3-queue-idx { width: 16px; flex: none; font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: center; }\n.mpv3-queue-cover { width: 32px; height: 32px; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 11px; font-weight: 600; }\n.mpv3-queue-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-queue-main { min-width: 0; flex: 1; }\n.mpv3-queue-name { display: block; font-size: 13px; line-height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-queue-artist { display: block; font-size: 11px; line-height: 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-queue-time { font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); flex: none; }\n.mpv3-queue-remove { display: none; flex: none; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-row:hover .mpv3-queue-time, .mpv3-queue-row:focus-within .mpv3-queue-time { display: none; }\n.mpv3-queue-row:hover .mpv3-queue-remove, .mpv3-queue-row:focus-within .mpv3-queue-remove { display: grid; }\n.mpv3-queue-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n\n/* menus */\n.mpv3-menu {\n  position: fixed; min-width: 210px; max-width: 300px; padding: 4px; border-radius: 12px; z-index: 80;\n  background: var(--dsw-menu-surface-fill, var(--dsw-alias-bg-overlay, rgba(48,49,54,.94)));\n  -webkit-backdrop-filter: var(--dsw-menu-backdrop-filter, blur(20px)); backdrop-filter: var(--dsw-menu-backdrop-filter, blur(20px));\n  box-shadow: var(--dsw-elevation-panel, 0 18px 48px rgba(0,0,0,.5));\n  color: var(--dsw-alias-label-primary, #f9fafb);\n}\n.mpv3-menu-item { display: flex; align-items: center; gap: 9px; width: 100%; height: 32px; padding: 0 9px; border: 0; border-radius: 8px; background: transparent; color: inherit; font-size: 13px; text-align: left; cursor: pointer; }\n.mpv3-menu-item:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-menu-item:disabled { opacity: .45; cursor: default; }\n.mpv3-menu-item.is-danger { color: var(--dsw-alias-state-error-primary, #f25a5a); }\n.mpv3-menu-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-menu-status { margin-left: auto; font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n.mpv3-menu-sep { height: .5px; margin: 4px 6px; background: var(--dsw-alias-border-l1, rgba(255,255,255,.06)); }\n\n/* responsive */\n@media (max-width: 1079px) {\n  .mpv3-row { grid-template-columns: 40px minmax(0, 1.8fr) 64px 64px; }\n  .mpv3-row-album { display: none; }\n}\n@media (max-width: 999px) {\n  .mpv3-root.is-rail .mpv3-workspace { grid-template-columns: minmax(0, 1fr); }\n  .mpv3-rail { display: none; }\n}\n@media (max-width: 899px) {\n  .mpv3-search { width: 160px; }\n  .mpv3-player-vol { display: none; }\n}\n@media (max-width: 759px) {\n  .mpv3-search { width: 120px; }\n  .mpv3-parent { display: none; }\n  .mpv3-row { grid-template-columns: 40px minmax(0, 1fr) 56px 32px; gap: 10px; }\n  .mpv3-row-acts { width: 32px; }\n  .mpv3-row-acts .mp-iconbtn:first-child { display: none; }\n  .mpv3-hero { flex-direction: column; align-items: flex-start; gap: 14px; }\n  .mpv3-hero-cover { width: 112px; height: 112px; font-size: 36px; }\n  .mpv3-hero-title { font-size: 20px; line-height: 28px; }\n  .mpv3-player { grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; padding: 0 10px; }\n  .mpv3-player-time { display: none; }\n  .mpv3-player-right .mpv3-chip { display: none; }\n  .mpv3-player-right { gap: 0; }\n  .mpv3-queue { left: 8px; right: 8px; bottom: 8px; width: auto; max-height: min(520px, 60vh); }\n  .mpv3-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px 12px; }\n  .mpv3-rank-row { grid-template-columns: 24px 32px minmax(0, 1fr) 80px; }\n  .mpv3-rank-bar { display: none; }\n}\n@media (prefers-reduced-motion: reduce) {\n  .mpv3-root *, .mpv3-root *::before, .mpv3-root *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }\n  .mpv3-eq i, .mpv3-player-eq i { height: 7px; }\n  .mpv3-skeleton { animation: none; }\n}\n\n.mpv3-dialog-field { display: flex; flex-direction: column; gap: 8px; }\n\n@media (max-width: 620px) {\n  .mpv3-source-name { display: none; }\n  .mpv3-source-btn { padding: 0 6px; }\n  .mpv3-search { flex: 1; width: auto; min-width: 0; }\n}\n@media (max-width: 520px) {\n  .mpv3-topbar { gap: 4px; padding: 0 6px 0 4px; }\n  .mpv3-viewbar { padding: 0 10px; }\n  .mpv3-scroll { padding-left: 10px; padding-right: 10px; }\n  .mpv3-player { gap: 4px; padding: 0 8px; }\n  .mpv3-player-locate, .mpv3-player-expand { display: none; }\n  .mpv3-player-right { gap: 0; }\n  .mpv3-queue { left: 6px; right: 6px; }\n}\n\n.mpv3-search-kinds { padding: 0 6px 12px; }\n\n.mpv3-search-artist { padding: 0 6px 6px; }\n.mpv3-search-artist-main { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 76px; padding: 8px 14px; border: 0; border-radius: 14px; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-search-artist-main:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-search-artist-cover { width: 60px; height: 60px; flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--dsw-alias-bg-secondary, rgba(255,255,255,.08)); color: var(--dsw-alias-label-secondary, #c8ccd2); font-size: 20px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.14); }\n.mpv3-search-artist-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-search-artist-meta { min-width: 0; display: flex; flex-direction: column; gap: 3px; }\n.mpv3-search-artist-name { font-size: 16px; line-height: 22px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-search-artist-sub { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-hrow { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 16px; overflow-x: auto; overflow-y: hidden; padding: 2px 6px 12px; scroll-snap-type: x proximity; scrollbar-width: thin; }\n.mpv3-hcard { flex: 0 0 156px; width: 156px; scroll-snap-align: start; }\n.mpv3-hcard .mpv3-card-cover { width: 156px; height: 156px; }\n.mpv3-hcard-fallback { display: grid; place-items: center; width: 100%; height: 100%; }\n"
 
     // ── src/client/components/ui/component-gallery.js
     /**
@@ -168770,8 +168770,8 @@ window.__ModuleLoader__.load({
       }
       tabs.push('recent')
       if (source === 'navidrome') tabs.push('songs')
-      if (caps.albums === true) tabs.push('albums')
-      if (caps.artists === true) tabs.push('artists')
+      if (caps.browseAlbums === true) tabs.push('albums')
+      if (caps.browseArtists === true) tabs.push('artists')
       if (caps.favorites === true && source === 'local') tabs.push('favorites')
       if (caps.userPlaylists === true) tabs.push('playlists')
       return tabs
@@ -169722,8 +169722,7 @@ window.__ModuleLoader__.load({
         count = playlist ? playlistCount + ' ' + t('p3.unitSong') : ''
       } else if (page === 'search') {
         title = route.query ? t('p3.searchTitle', { q: route.query }) : t('page.search')
-        var searchKind = p3SearchKindStore.get()
-        count = route.query && (route.source === 'local' || searchKind === 'song') ? p3SearchTotal(route, library, online) + ' ' + t('p3.unitResult') : ''
+        count = ''
         parent = t('page.search')
       }
       var snapshot = p3CollectionNavStore.get().snapshot
@@ -170506,11 +170505,41 @@ window.__ModuleLoader__.load({
       }
     }
 
+    function p3SearchNameScore(name, query) {
+      var q = String(query || '').trim().toLowerCase()
+      var n = String(name || '').trim().toLowerCase()
+      if (q === '' || n === '') return 0
+      if (n === q) return 1000
+      if (n.indexOf(q) === 0) return 800
+      if (n.indexOf(q) >= 0) return 600
+      return 0
+    }
+
+    /** The one artist that best matches the query: exact, prefix, substring, then track count. */
+    function p3BestSearchArtist(artists, query) {
+      var best = null
+      var bestScore = -1
+      var bestCount = -1
+      ;(artists || []).forEach(function (artist) {
+        var score = p3SearchNameScore(artist && artist.name, query)
+        var count = artist && Array.isArray(artist.tracks) ? artist.tracks.length : 0
+        if (score > bestScore || (score === bestScore && count > bestCount)) {
+          best = artist
+          bestScore = score
+          bestCount = count
+        }
+      })
+      return bestScore > 0 ? best : null
+    }
+
     function P3SearchPage(props) {
       var route = props.route
       var query = String(route.query || '').trim()
-      var local = route.source === 'local'
-      useEffect(function () { p3SetSearchKind('song') }, [])
+      var source = route.source
+      var local = source === 'local'
+      var canAlbums = local || p3SearchKinds(source).indexOf('album') >= 0
+      var [albumState, setAlbumState] = useState({ phase: canAlbums ? 'idle' : 'disabled', items: [], total: 0 })
+
       useEffect(function () {
         if (local) return undefined
         if (query === '') {
@@ -170519,14 +170548,64 @@ window.__ModuleLoader__.load({
         }
         var timer = setTimeout(function () { void searchOnline(query) }, 250)
         return function () { clearTimeout(timer) }
-      }, [query, route.source, local])
+      }, [query, source, local])
+
+      useEffect(function () {
+        if (!canAlbums) {
+          setAlbumState({ phase: 'disabled', items: [], total: 0 })
+          return undefined
+        }
+        if (local) {
+          setAlbumState({ phase: 'ready', items: [], total: 0 })
+          return undefined
+        }
+        if (query === '') {
+          setAlbumState({ phase: 'idle', items: [], total: 0 })
+          return undefined
+        }
+        var cancelled = false
+        setAlbumState({ phase: 'loading', items: [], total: 0 })
+        getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&kind=album&q=' + encodeURIComponent(query) + '&page=1')
+          .then(function (body) {
+            if (cancelled) return
+            var items = Array.isArray(body.collections) ? body.collections : []
+            setAlbumState({ phase: 'ready', items: items, total: Number(body.total) || items.length })
+          })
+          .catch(function () {
+            if (cancelled) return
+            // A failed album strip must not hide the song results; the section disappears.
+            setAlbumState({ phase: 'error', items: [], total: 0 })
+          })
+        return function () { cancelled = true }
+      }, [canAlbums, local, query, source])
+
+      var tracks = local
+        ? p3SortLocal(filterTracks(p3LocalTracks(props.library), query), props.prefs)
+        : p3OnlineSearchResults()
+      var onlineGroups = local ? null : p3OnlineSearchGroups(tracks, source)
+      var artistList = local ? p3LocalArtists(props.library, props.prefs, query) : (onlineGroups ? onlineGroups.artists : [])
+      var bestArtist = p3BestSearchArtist(artistList, query)
+      var albums = local ? p3LocalAlbums(props.library, props.prefs, query) : albumState.items
+      var songTotal = local ? tracks.length : (props.online.searchTotal || tracks.length)
+      var resultCount = songTotal + albums.length + (bestArtist ? 1 : 0)
+      var artistCover = bestArtist
+        ? (local ? (bestArtist.coverTrack ? trackCoverSrc(bestArtist.coverTrack) : '') : p3OnlineCover(bestArtist, source))
+        : ''
+      var artistCount = bestArtist && Array.isArray(bestArtist.tracks) ? bestArtist.tracks.length : 0
+
+      var pageHead = h(P3PageHead, {
+        title: query ? t('p3.searchTitle', { q: query }) : t('page.search'),
+        count: query ? resultCount + ' ' + t('p3.unitResult') : '',
+      })
+
       if (query === '') {
         return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
           h(P3Empty, { icon: 'search', title: t('p3.searchEmpty'), hint: t('p3.searchEmptyHint') }))
       }
+
       if (!local && (props.online.phase === 'searching' || props.online.phase === 'idle')) {
         return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
-          h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: '' }),
+          pageHead,
           h(P3Skeleton, { count: 8 }),
         ))
       }
@@ -170534,74 +170613,76 @@ window.__ModuleLoader__.load({
         return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
           h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.error, actions: h(Button, { variant: 'ghost', onClick: function () { void searchOnline(query) } }, t('p3.retry')) }))
       }
-      var tracks = local ? p3SortLocal(filterTracks(p3LocalTracks(props.library), query), props.prefs) : p3OnlineSearchResults()
-      var onlineGroups = local ? null : p3OnlineSearchGroups(tracks, route.source)
-      var albums = local ? p3LocalAlbums(props.library, props.prefs, query) : onlineGroups.albums
-      var artists = local ? p3LocalArtists(props.library, props.prefs, query) : onlineGroups.artists
-      var playlists = local
-        ? (props.library.playlists || []).filter(function (playlist) { return String(playlist.name || '').toLowerCase().indexOf(query.toLowerCase()) >= 0 })
-        : []
-      var total = tracks.length + albums.length + artists.length + playlists.length
-      var resultCount = local ? total : (props.online.searchTotal || tracks.length)
-      if (total === 0) {
+      if (resultCount === 0) {
         return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
           h(P3Empty, { icon: 'search', title: t('p3.searchNoResult'), hint: t('p3.searchNoResultHint') }))
       }
+
+      var artistRow = bestArtist ? h('div', { className: 'mpv3-search-artist' },
+        h('button', {
+          type: 'button',
+          className: 'mpv3-search-artist-main',
+          onClick: function () {
+            if (local) p3PushCollection(p3LocalArtistDescriptor(bestArtist))
+            else p3PushCollection(p3OnlineArtistDescriptor(source, bestArtist))
+          },
+        },
+          h('span', { className: 'mpv3-search-artist-cover' },
+            artistCover
+              ? h('img', { src: artistCover, alt: '' })
+              : h('span', null, p3Initial(bestArtist.name)),
+          ),
+          h('span', { className: 'mpv3-search-artist-meta' },
+            h('span', { className: 'mpv3-search-artist-name' }, bestArtist.name),
+            h('span', { className: 'mpv3-search-artist-sub' }, t('v2.artist') + ' · ' + artistCount + ' ' + t('p3.unitSong')),
+          ),
+          icon('right', 16),
+        ),
+      ) : null
+
+      var albumRow = canAlbums && albums.length > 0 ? h('div', { className: 'mpv3-hrow' },
+        albums.map(function (album) {
+          var name = local ? album.name : album.name
+          var subtitle = local ? album.artist : (album.artist || album.creator || '')
+          var cover = local
+            ? (album.coverTrack ? trackCoverSrc(album.coverTrack) : '')
+            : p3OnlineCover(album, source)
+          return h('button', {
+            key: local ? album.key : album.id,
+            type: 'button',
+            className: 'mpv3-card mpv3-hcard',
+            onClick: function () {
+              if (local) p3PushCollection(p3LocalAlbumDescriptor(album))
+              else p3PushCollection(p3OnlineAlbumDescriptor(source, album))
+            },
+          },
+            h('span', { className: 'mpv3-card-cover' },
+              cover ? h('img', { src: cover, alt: '' }) : h('span', { className: 'mpv3-hcard-fallback' }, icon('disc', 22)),
+            ),
+            h('span', { className: 'mpv3-card-title' }, name),
+            h('span', { className: 'mpv3-card-sub' }, subtitle),
+          )
+        }),
+      ) : null
+
+      var songRows = tracks.map(function (track, index) {
+        return h(P3Row, { key: track.path, track: track, index: index, list: tracks, currentPath: props.currentPath, playing: props.playing, favoriteSet: props.favoriteSet, selected: false, tabIndex: -1 })
+      })
+
       return h('div', { className: 'mpv3-scroll' },
         h('div', { className: 'mpv3-scroll-inner is-static' },
-          h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: resultCount + ' ' + t('p3.unitResult') }),
+          pageHead,
+          bestArtist ? h('div', { className: 'mpv3-section' },
+            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.artist')), h('span', null, '1')),
+            artistRow,
+          ) : null,
+          albumRow ? h('div', { className: 'mpv3-section' },
+            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.albums')), h('span', null, albums.length)),
+            albumRow,
+          ) : null,
           tracks.length > 0 ? h('div', { className: 'mpv3-section' },
             h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.songs')), h('span', null, tracks.length)),
-            h('div', { className: 'mpv3-plain-list' }, (local ? tracks.slice(0, 8) : tracks).map(function (track, index) {
-              return h(P3Row, { key: track.path, track: track, index: index, list: tracks, currentPath: props.currentPath, playing: props.playing, favoriteSet: props.favoriteSet, selected: false, tabIndex: -1 })
-            })),
-          ) : null,
-          albums.length > 0 ? h('div', { className: 'mpv3-section' },
-            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.albums')), h('span', null, albums.length)),
-            h(P3Grid, {
-              items: albums.slice(0, 4).map(function (album) {
-                return {
-                  key: album.key,
-                  name: album.name,
-                  subtitle: album.artist,
-                  coverSrc: local ? (album.coverTrack ? trackCoverSrc(album.coverTrack) : '') : p3OnlineCover(album, route.source),
-                  album: album,
-                }
-              }),
-              onOpen: function (item) {
-                if (local) {
-                  p3PushCollection(p3LocalAlbumDescriptor(item.album))
-                } else {
-                  p3PushCollection(p3OnlineAlbumDescriptor(route.source, item.album))
-                }
-              },
-            }),
-          ) : null,
-          artists.length > 0 ? h('div', { className: 'mpv3-section' },
-            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.artists')), h('span', null, artists.length)),
-            h('div', { className: 'mpv3-plain-list' }, artists.slice(0, 4).map(function (artist) {
-              var cover = local ? (artist.coverTrack ? trackCoverSrc(artist.coverTrack) : '') : p3OnlineCover(artist, route.source)
-              return h('button', { key: artist.name, type: 'button', className: 'mpv3-entity-row', onClick: function () {
-                if (local) p3PushCollection(p3LocalArtistDescriptor(artist))
-                else p3PushCollection(p3OnlineArtistDescriptor(route.source, artist))
-              } },
-                h('span', { className: 'mpv3-entity-cover is-round', style: cover ? undefined : { background: p3Gradient(artist.name) } },
-                  cover ? h('img', { src: cover, alt: '' }) : h('span', null, p3Initial(artist.name)),
-                ),
-                h('span', { className: 'mpv3-entity-main' }, h('span', { className: 'mpv3-entity-title' }, artist.name), h('span', { className: 'mpv3-entity-sub' }, artist.tracks.length + ' ' + t('p3.unitSong'))),
-                icon('right', 16),
-              )
-            })),
-          ) : null,
-          playlists.length > 0 ? h('div', { className: 'mpv3-section' },
-            h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.playlists')), h('span', null, playlists.length)),
-            h('div', { className: 'mpv3-plain-list' }, playlists.slice(0, 4).map(function (playlist) {
-              return h('button', { key: playlist.id, type: 'button', className: 'mpv3-entity-row', onClick: function () { p3OpenPlaylist(playlist) } },
-                h('span', { className: 'mpv3-entity-cover' }, icon('list', 15)),
-                h('span', { className: 'mpv3-entity-main' }, h('span', { className: 'mpv3-entity-title' }, playlist.name), h('span', { className: 'mpv3-entity-sub' }, playlistTracks(playlist).length + ' ' + t('p3.unitSong'))),
-                icon('right', 16),
-              )
-            })),
+            h('div', { className: 'mpv3-plain-list' }, songRows),
           ) : null,
           !local && tracks.length < (props.online.searchTotal || 0) ? h('div', { className: 'mpv3-more' },
             h(Button, {
@@ -170612,166 +170693,6 @@ window.__ModuleLoader__.load({
           ) : null,
         ),
       )
-    }
-
-    var P3_SEARCH_KIND_LABEL = { song: 'p3.kindSong', album: 'p3.kindAlbum', playlist: 'p3.kindPlaylist' }
-
-    function P3OnlineSearchPage(props) {
-      var route = props.route
-      var query = String(route.query || '').trim()
-      var source = route.source
-      var kinds = p3SearchKinds(source)
-      var [kind, setKind] = useState(function () {
-        var stored = p3SearchKindStore.get()
-        return kinds.indexOf(stored) >= 0 ? stored : 'song'
-      })
-      var [reload, setReload] = useState(0)
-      var [collections, setCollections] = useState({ phase: 'idle', items: [], total: 0, page: 1, loadingMore: false, error: '' })
-
-      useEffect(function () {
-        if (kinds.indexOf(kind) < 0) setKind('song')
-      }, [source])
-
-      useEffect(function () {
-        p3SetSearchKind(kind)
-      }, [kind])
-
-      useEffect(function () {
-        if (kind !== 'song') return undefined
-        if (query === '') {
-          onlineStore.set({ phase: 'idle', results: [], searchTotal: 0 })
-          return undefined
-        }
-        var timer = setTimeout(function () { void searchOnline(query) }, 250)
-        return function () { clearTimeout(timer) }
-      }, [query, source, kind])
-
-      useEffect(function () {
-        if (kind === 'song' || query === '') {
-          setCollections({ phase: 'idle', items: [], total: 0, page: 1, loadingMore: false, error: '' })
-          return undefined
-        }
-        var cancelled = false
-        setCollections({ phase: 'loading', items: [], total: 0, page: 1, loadingMore: false, error: '' })
-        getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&kind=' + encodeURIComponent(kind) + '&q=' + encodeURIComponent(query) + '&page=1')
-          .then(function (body) {
-            if (cancelled) return
-            var items = Array.isArray(body.collections) ? body.collections : []
-            setCollections({ phase: 'ready', items: items, total: Number(body.total) || items.length, page: Number(body.page) || 1, loadingMore: false, error: '' })
-          })
-          .catch(function (error) {
-            if (cancelled) return
-            setCollections({ phase: 'error', items: [], total: 0, page: 1, loadingMore: false, error: errorText(error) })
-          })
-        return function () { cancelled = true }
-      }, [kind, query, source, reload])
-
-      function loadMoreCollections() {
-        if (collections.loadingMore || collections.items.length >= collections.total) return
-        var nextPage = (collections.page || 1) + 1
-        setCollections(function (current) { return Object.assign({}, current, { loadingMore: true }) })
-        getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&kind=' + encodeURIComponent(kind) + '&q=' + encodeURIComponent(query) + '&page=' + String(nextPage))
-          .then(function (body) {
-            var incoming = Array.isArray(body.collections) ? body.collections : []
-            setCollections(function (current) {
-              var seen = {}
-              var merged = (current.items || []).slice()
-              merged.forEach(function (item) { seen[String(item.id)] = true })
-              incoming.forEach(function (item) { if (seen[String(item.id)] !== true) merged.push(item) })
-              return { phase: 'ready', items: merged, total: Number(body.total) || current.total, page: Number(body.page) || nextPage, loadingMore: false, error: '' }
-            })
-          })
-          .catch(function (error) {
-            setCollections(function (current) { return Object.assign({}, current, { loadingMore: false, error: errorText(error) }) })
-            showToast(errorText(error))
-          })
-      }
-
-      function openCollection(item) {
-        if (kind === 'album') {
-          p3PushCollection(p3OnlineAlbumDescriptor(source, item))
-          return
-        }
-        p3PushCollection(p3PlaylistDescriptor(item, source))
-      }
-
-      var tabs = kinds.length > 1 ? h('div', { className: 'mpv3-search-kinds' }, h(KitSegmentedTabs, {
-        items: kinds.map(function (item) { return { value: item, label: t(P3_SEARCH_KIND_LABEL[item]) } }),
-        value: kind,
-        size: 'sm',
-        label: t('p3.searchKinds'),
-        onChange: function (next) { setKind(next) },
-      })) : null
-
-      if (query === '') {
-        return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
-          tabs,
-          h(P3Empty, { icon: 'search', title: t('p3.searchEmpty'), hint: t('p3.searchEmptyHint') }))
-      }
-
-      if (kind === 'song') {
-        var tracks = p3OnlineSearchResults()
-        var songCount = props.online.searchTotal || tracks.length
-        if (props.online.phase === 'searching' || props.online.phase === 'idle') {
-          return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
-            h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: '' }), tabs, h(P3Skeleton, { count: 8 })))
-        }
-        if (props.online.phase === 'error') {
-          return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, tabs,
-            h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.error, actions: h(Button, { variant: 'ghost', onClick: function () { void searchOnline(query) } }, t('p3.retry')) }))
-        }
-        if (tracks.length === 0) {
-          return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, tabs,
-            h(P3Empty, { icon: 'search', title: t('p3.searchNoResult'), hint: t('p3.searchNoResultHint') }))
-        }
-        return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
-          h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: songCount + ' ' + t('p3.unitResult') }), tabs,
-          h('div', { className: 'mpv3-plain-list' }, tracks.map(function (track, index) {
-            return h(P3Row, { key: track.path, track: track, index: index, list: tracks, currentPath: props.currentPath, playing: props.playing, favoriteSet: props.favoriteSet, selected: false, tabIndex: -1 })
-          })),
-          tracks.length < songCount ? h('div', { className: 'mpv3-more' },
-            h(Button, { variant: 'ghost', disabled: props.online.searchLoadingMore === true, onClick: function () { void searchOnline(query, (props.online.searchPage || 1) + 1, true) } },
-              props.online.searchLoadingMore === true ? t('p3.loadingMore') : t('p3.loadMore')),
-          ) : null,
-        ))
-      }
-
-      if (collections.phase === 'loading' || collections.phase === 'idle') {
-        return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
-          h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: '' }), tabs, h(P3Skeleton, { count: 6 })))
-      }
-      if (collections.phase === 'error') {
-        return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, tabs,
-          h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: collections.error, actions: h(Button, { variant: 'ghost', onClick: function () { setCollections({ phase: 'idle', items: [], total: 0, page: 1, loadingMore: false, error: '' }); setReload(reload + 1) } }, t('p3.retry')) }))
-      }
-      if (collections.items.length === 0) {
-        return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, tabs,
-          h(P3Empty, { icon: 'search', title: t('p3.searchNoResult'), hint: t('p3.searchNoResultHint') }))
-      }
-      return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
-        h(P3PageHead, { title: t('p3.searchTitle', { q: query }), count: collections.total + ' ' + t('p3.unitResult') }), tabs,
-        h(P3Grid, {
-          items: collections.items.map(function (item) {
-            return {
-              key: item.id,
-              id: item.id,
-              name: item.name,
-              artist: item.artist || '',
-              creator: item.creator || '',
-              cover: item.cover || '',
-              coverArtId: item.coverArtId || '',
-              trackCount: item.trackCount || 0,
-              subtitle: [item.artist || item.creator || '', item.trackCount ? item.trackCount + ' ' + t('p3.unitSong') : ''].filter(Boolean).join(' · '),
-              coverSrc: p3OnlineCover(item, source),
-            }
-          }),
-          onOpen: function (item) { openCollection(item) },
-        }),
-        collections.items.length < collections.total ? h('div', { className: 'mpv3-more' },
-          h(Button, { variant: 'ghost', disabled: collections.loadingMore === true, onClick: loadMoreCollections },
-            collections.loadingMore === true ? t('p3.loadingMore') : t('p3.loadMore')),
-        ) : null,
-      ))
     }
 
     function P3PageSwitch(props) {
@@ -170790,7 +170711,7 @@ window.__ModuleLoader__.load({
       if (route.page === 'album') return h(P3AlbumPage, props)
       if (route.page === 'artist') return h(P3ArtistPage, props)
       if (route.page === 'playlist') return h(P3PlaylistPage, props)
-      if (route.page === 'search') return route.source === 'local' ? h(P3SearchPage, props) : h(P3OnlineSearchPage, props)
+      if (route.page === 'search') return h(P3SearchPage, props)
       return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'search', title: t('p3.pageMissing') }))
     }
 
