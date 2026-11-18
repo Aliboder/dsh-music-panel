@@ -387,6 +387,15 @@
 
 ---
 
+## 43. 密码存储位置改了，界面文案还指着旧文件（Navidrome / 文案）
+
+- **现象**：设置 → 在线勾选「保存密码，启用完整曲库」时，警告写「密码将以明文保存在本机 providers.json」；按这个路径去找，文件根本不存在。模块注释也声称「密码从不落盘」。
+- **原因**：登录存储从旧版扁平 `providers.json` 迁到 `sessions.json`（`login/store.js:36`），`storePassword` 落盘的是后者；但 `online.navidromeKeepWarn` 的两条文案和 `navidrome.js` 头部注释都没跟着改，一个指错文件、一个与 `nativeSongs()` 的实际行为矛盾。
+- **处理**：文案改为 `sessions.json`（`0600` 仍属实，`login/store.js:59` 确认）；模块注释改为「默认只存 salt + token，仅在用户开启原生完整曲库时存密码」。
+- **防回归**：`check-i18n-keys.mjs` 不校验文案内容，故本次靠人工核对；改存储路径时同步 grep 旧文件名（`providers.json` 现仅剩历史注释引用）。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
