@@ -8,7 +8,7 @@ import { MATCH_SOURCES, createLyricMatchService } from '../../src/host/services/
 
 assert.deepEqual(
   MATCH_SOURCES.map((source) => source.id),
-  ['netease', 'amll', 'qq', 'kugou', 'bodian'],
+  ['netease', 'amll', 'qq', 'kugouLite', 'qishui'],
   'tabs follow Folia order',
 )
 
@@ -73,8 +73,15 @@ assert.equal(platform.candidates[0].titleMatched, true)
 assert.ok(platform.candidates[1].score < platform.candidates[0].score)
 assert.equal(platform.candidates[0].artists[0], '周杰伦')
 
-// Empty query asks nothing.
-assert.deepEqual((await service.search({ source: 'netease', query: '  ', target })).candidates, [])
+// An empty query uses the source's default query; KuGou searches the title alone.
+await service.search({ source: 'kugouLite', query: '', target })
+assert.equal(searched[searched.length - 1][0], 'kugouLite')
+assert.equal(searched[searched.length - 1][1], '晴天')
+
+// Whitespace alone also falls back to the song's own structured query.
+const defaulted = await service.search({ source: 'netease', query: '  ', target })
+assert.equal(defaulted.query, '晴天 - 周杰伦 - 叶惠美')
+assert.ok(defaulted.candidates.length > 0)
 // Unknown source is reported, not thrown.
 assert.equal((await service.search({ source: 'spotify', query: 'x', target })).error, 'unknown source')
 
@@ -86,6 +93,8 @@ assert.equal(amll.candidates[0].id, '186016', 'the NetEase id is preferred')
 assert.equal(amll.candidates[0].source, 'amll')
 assert.ok(amll.candidates[0].score > 0)
 assert.equal(amll.candidates[1].id, '0039MnYb0qxYhV', 'QQ id is used when there is no NetEase one')
+assert.equal(amll.candidates[0].platform, 'ncm', 'AMLL keeps the platform its id belongs to')
+assert.equal(amll.candidates[1].platform, 'qq')
 
 // ── preview ────────────────────────────────────────────────────────────────
 

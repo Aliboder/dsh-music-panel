@@ -26,6 +26,9 @@
 - 酷狗取流身份对齐 Folia：`albumAudioId` 只取精确的 `album_audio_id` / `albumAudioId`，概念版不再把 `mixsongid` 当专辑音频 ID；package 每档先按 metadata 请求，再按 hash-only 回落，网关与 v6 兜底保持 hash-only。
 - 在线能力补齐：新增「推荐」与「云盘」Tab；推荐页显示每日推荐、推荐歌单，并提供私人 FM 播放入口；云盘页支持网易云/QQ/酷狗（含概念版）云盘列表与取流；登录账号可订阅/取消订阅歌单与专辑，自建歌单可从行内移除歌曲。
 - 歌词对齐：来源 id 兼容旧 `kugou` 并映射到 `kugouLite`；默认首选来源改为 QQ；搜索查询改为 Folia 的 `title - artist - album`，酷狗歌词搜索用标题；自动匹配不再排除歌曲自身平台。
+- 歌词匹配窗口按 Folia 重做：来源顺序改为 netease / AMLL / qq / kugouLite / qishui（共享歌词来源表，去掉不是歌词源的波点），打开即用 title - artist - album 搜索；在线歌曲自动选中首条、Navidrome 优先同名；AMLL 候选保留 ncm/qq 平台并禁用其封面/元数据；结果列表补时长匹配标签；本地文件补“不使用在线匹配”和“纯音乐”按钮；界面改用 KitModal / KitInput / Button / Switch / Tabs / Tag 与 DSH token。
+- 歌词匹配仍缺 Folia 的三项能力：Spotify / Apple Music 来源（本插件没有这两个 provider）、Navidrome 的“服务器歌词/在线歌词”二选一，以及 QQ 专用歌词搜索（当前走 omni 曲库搜索）。
+
 - 设置页外观的歌词样式改为真实界面缩略图：14 张截图按样式 id 压缩为 480px WebP（合计约 107 KiB），由插件本地 `/music/assets/lyric-style-thumbs/` 提供，随机样式保留图标。
 - 设置页重做：外观增加 Folia 歌词样式/背景/动态/主题来源；播放增加在线音质与 1–25 秒过渡上限；恢复增益补默认值；Host Kit 状态与组件测试归入「关于与诊断」；缓存显示歌词大小；许可证修正为 AGPL-3.0-only。
 - 删除无消费方的旧配置 `bgBlend`、`composerLyricPlace`、`lyricKeepProviderWordTiming` 及其文案；修正 `lyricAlign`/`lyricGap` 默认值不一致。

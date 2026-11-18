@@ -235,7 +235,9 @@ function Switch(props) {
       role: 'switch',
       'aria-checked': props.value === true,
       'aria-label': props.label || '',
+      disabled: props.disabled === true,
       onClick: function () {
+        if (props.disabled === true) return
         if (props.onChange) props.onChange(!props.value)
       },
     },

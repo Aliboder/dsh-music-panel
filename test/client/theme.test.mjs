@@ -204,6 +204,12 @@ for (const key of galleryKeys) {
   assert.ok(hits >= 2, 'gallery key ' + key + ' must exist in zh and en (found ' + hits + ')')
 }
 
+// The lyric-match window uses the DSH modal, panel and hairline geometry.
+assert.match(theme, /\.mp-lym-window\{[^']*border-radius:var\(--dsw-radius-panel/, 'match window uses the panel radius')
+assert.match(theme, /\.mp-lym-head\{[^']*border-bottom:\.5px solid/, 'match header uses a hairline')
+assert.match(theme, /\.mp-lym-result\{[^']*border:\.5px solid/, 'match results use a hairline')
+assert.match(theme, /@media \(max-width:860px\)\{[^']*\.mp-lym-body\{flex-direction:column/, 'match window folds on narrow screens')
+
 console.log('theme.test.mjs ok')
 
 

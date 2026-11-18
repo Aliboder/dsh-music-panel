@@ -1,10 +1,10 @@
 /**
  * Lyric match service — the backend of the "匹配歌词" window.
  *
- * Ported from Folia: `onlineMetadataSearchService` scores every candidate with the
- * same `calculateMatchScoreDetails` the automatic pick uses, and a source answers
- * candidates for one platform (or for the AMLL TTML DB, which is keyed by that
- * platform's song ids but searched by name).
+ * Ported from Folia's lyric match flow: the tab order is the shared lyric-source
+ * registry (NetEase, AMLL, QQ, KuGou Lite, Qishui), every candidate is scored with
+ * the automatic pick's `calculateMatchScoreDetails`, and AMLL DB candidates keep
+ * the platform their id belongs to so the preview asks the right platform endpoint.
  *
  * Media come from the unified source layer (`omni`), never from public web APIs, so
  * the window searches through the same transport playback uses.
@@ -13,20 +13,47 @@
  */
 
 import { calculateMatchScoreDetails } from './lyrics-match.js'
+import { buildLyricSearchQuery, buildKugouLyricSearchQuery } from './lyrics-match-runner.js'
+import { LYRIC_SOURCES } from './lyrics-sources.js'
 import { buildLyricsUrl } from './amll.js'
 
-/** The tabs of the window, in Folia's order. */
-export const MATCH_SOURCES = [
-  { id: 'netease', label: 'NetEase Cloud Music', kind: 'platform' },
-  { id: 'amll', label: 'AMLLDB', kind: 'catalog' },
-  { id: 'qq', label: 'QQ Music', kind: 'platform' },
-  { id: 'kugou', label: 'KuGou Music', kind: 'platform' },
-  { id: 'bodian', label: 'Bodian Music', kind: 'platform' },
-]
+const SOURCE_LABELS = {
+  netease: 'NetEase Cloud Music',
+  amll: 'AMLLDB',
+  qq: 'QQ Music',
+  kugouLite: 'KuGou Music',
+  qishui: 'Qishui Music',
+}
 
-const AMLL_SEARCH_URL = 'https://api.amll.dev/v1/lyrics/search'
+/** The tabs of the window, in Folia's order and with the plugin's provider ids. */
+export const MATCH_SOURCES = LYRIC_SOURCES.map((source) => ({
+  id: source.id,
+  label: SOURCE_LABELS[source.id] || source.id,
+}))
 
-function toCandidate(source, song, target) {
+const AMLL_SEARCH_PAGE_SIZE = 50
+const AMLL_MAX_RESULTS = 20
+const AMLL_TITLE_SUFFIX = /(?:\s*[(\[（【][^)\]）】]*[)\]）】])+\s*$/u
+const AMLL_ARTIST_SEPARATOR = /\s*[,，、&]\s*|\s+(?:feat\.?|ft\.?)\s+/iu
+
+function amllSearchParams(query) {
+  const parts = String(query || '')
+    .split(/\s+-\s+/u)
+    .map((part) => part.trim())
+    .filter(Boolean)
+  if (parts.length === 0) return []
+  if (parts.length === 1) return [{ musicName: parts[0] }, { q: parts[0] }]
+  const musicName = parts[0]
+  const artistName = (parts[1].split(AMLL_ARTIST_SEPARATOR)[0] || '').trim()
+  const baseName = musicName.replace(AMLL_TITLE_SUFFIX, '').trim() || musicName
+  const params = []
+  if (artistName !== '') params.push({ musicName, artistName })
+  if (artistName !== '' && baseName !== musicName) params.push({ musicName: baseName, artistName })
+  params.push({ musicName: baseName })
+  return params
+}
+
+function toCandidate(source, song, target, platform) {
   const details = calculateMatchScoreDetails(target, {
     title: song.title,
     artist: song.artist,
@@ -45,6 +72,7 @@ function toCandidate(source, song, target) {
     album: String(song.album ?? ''),
     coverUrl: String(song.coverUrl ?? song.cover ?? ''),
     durationMs: Number(song.durationMs) || (Number(song.durationSec) || 0) * 1000,
+    ...(platform ? { platform } : {}),
     score: details.score,
     titleMatched: details.titleMatched,
     durationMatched: details.durationMatched,
@@ -53,7 +81,7 @@ function toCandidate(source, song, target) {
 
 /**
  * @param {{
- *   omni: { searchPage: Function, lyric: Function },
+ *   omni: { searchPage: Function, lyric: Function, summaries?: Function },
  *   providerStore?: { cookie: Function },
  *   fetchImpl?: typeof fetch,
  *   amllBaseUrl?: string,
@@ -64,9 +92,22 @@ export function createLyricMatchService(deps) {
   const fetchImpl = deps.fetchImpl ?? fetch
   const timeoutMs = deps.timeoutMs ?? 6000
 
+  function availableSources() {
+    if (typeof deps.omni.summaries !== 'function') return MATCH_SOURCES
+    const registered = new Set(
+      (deps.omni.summaries() || []).map((source) => String(source?.id ?? '')).filter(Boolean),
+    )
+    return MATCH_SOURCES.filter((source) => source.id === 'amll' || registered.has(source.id))
+  }
+
   async function searchPlatform(source, query, target) {
     const cookie = deps.providerStore === undefined ? '' : await deps.providerStore.cookie(source)
-    const paged = await deps.omni.searchPage(source, query, { cookie }, 1)
+    // Folia's KuGou provider searches with the title part only, even when the
+    // window's default query is the structured "title - artist - album".
+    const sourceQuery = source === 'kugouLite'
+      ? (String(query).split(/\s+-\s+/u)[0] || '').trim()
+      : query
+    const paged = await deps.omni.searchPage(source, sourceQuery, { cookie }, 1)
     const rows = Array.isArray(paged.results) ? paged.results : []
     return rows
       .map((song) => toCandidate(source, song, target))
@@ -74,62 +115,83 @@ export function createLyricMatchService(deps) {
   }
 
   async function searchAmll(query, target) {
-    const search = new URLSearchParams({ q: query, pageSize: '20' })
-    const url = `${deps.amllBaseUrl ?? 'https://api.amll.dev'}/v1/lyrics/search?${search.toString()}`
-    const response = await fetchImpl(url, { signal: AbortSignal.timeout(timeoutMs) })
-    if (!response.ok) return []
-    const body = await response.json()
-    const items = Array.isArray(body?.data?.items) ? body.data.items : Array.isArray(body?.items) ? body.items : []
-    return items
-      .map((item) => {
-        // AMLL is keyed by the platform's song id: prefer the NetEase id, then QQ's.
-        const id =
-          (Array.isArray(item.ncmMusicIds) && item.ncmMusicIds[0]) ||
-          (Array.isArray(item.qqMusicIds) && item.qqMusicIds[0]) ||
-          ''
-        if (String(id) === '') return null
+    for (const params of amllSearchParams(query)) {
+      const search = new URLSearchParams({ ...params, pageSize: String(AMLL_SEARCH_PAGE_SIZE) })
+      const url = `${deps.amllBaseUrl ?? 'https://api.amll.dev'}/v1/lyrics/search?${search.toString()}`
+      let body
+      try {
+        const response = await fetchImpl(url, { signal: AbortSignal.timeout(timeoutMs) })
+        if (!response.ok) return []
+        body = await response.json()
+      } catch {
+        return []
+      }
+      const items = Array.isArray(body?.data?.items) ? body.data.items : Array.isArray(body?.items) ? body.items : []
+      const seen = new Set()
+      const candidates = []
+      for (const item of items) {
+        const ncmId = Array.isArray(item.ncmMusicIds) && item.ncmMusicIds.length > 0 ? item.ncmMusicIds[0] : ''
+        const qqId = Array.isArray(item.qqMusicIds) && item.qqMusicIds.length > 0 ? item.qqMusicIds[0] : ''
+        const platform = String(ncmId) !== '' ? 'ncm' : String(qqId) !== '' ? 'qq' : ''
+        const id = platform === 'ncm' ? ncmId : platform === 'qq' ? qqId : ''
+        if (platform === '' || String(id) === '') continue
+        const key = platform + ':' + String(id)
+        if (seen.has(key)) continue
+        seen.add(key)
         const title = Array.isArray(item.musicNames) ? String(item.musicNames[0] ?? '') : ''
-        const artist = Array.isArray(item.artistNames) ? item.artistNames.join(' / ') : ''
+        const artists = Array.isArray(item.artistNames) ? item.artistNames.map((name) => String(name)) : []
         const album = Array.isArray(item.albumNames) ? String(item.albumNames[0] ?? '') : ''
-        const details = calculateMatchScoreDetails(target, { title, artist, album })
-        return {
+        const details = calculateMatchScoreDetails(target, { title, artist: artists.join(' / '), album })
+        candidates.push({
           source: 'amll',
           id: String(id),
           title,
-          artists: Array.isArray(item.artistNames) ? item.artistNames : [],
+          artists,
           album,
           coverUrl: '',
           durationMs: 0,
+          platform,
           score: details.score,
           titleMatched: details.titleMatched,
           durationMatched: details.durationMatched,
-        }
-      })
-      .filter((entry) => entry !== null)
-      .sort((left, right) => right.score - left.score)
+        })
+      }
+      if (candidates.length > 0) {
+        return candidates
+          .sort((left, right) => right.score - left.score)
+          .slice(0, AMLL_MAX_RESULTS)
+      }
+    }
+    return []
   }
 
   return {
     sources() {
-      return MATCH_SOURCES.map((source) => ({ id: source.id, label: source.label }))
+      return availableSources().map((source) => ({ id: source.id, label: source.label }))
     },
 
     /**
-     * @param {{ source: string, query: string, target: { title: string, artist?: string, album?: string, durationMs?: number } }} input
+     * @param {{ source: string, query?: string, target: { title: string, artist?: string, album?: string, durationMs?: number } }} input
      */
     async search(input) {
-      const source = MATCH_SOURCES.find((entry) => entry.id === input.source)
+      const source = availableSources().find((entry) => entry.id === input.source)
       if (source === undefined) return { source: input.source, candidates: [], error: 'unknown source' }
-      const query = String(input.query ?? '').trim()
+      const typed = String(input.query ?? '').trim()
+      const target = input.target || { title: '', artist: '', album: '', durationMs: 0 }
+      const query = typed !== ''
+        ? typed
+        : source.id === 'kugouLite'
+          ? buildKugouLyricSearchQuery(target)
+          : buildLyricSearchQuery(target)
       if (query === '') return { source: source.id, candidates: [], error: '' }
       try {
         const candidates =
           source.id === 'amll'
-            ? await searchAmll(query, input.target)
-            : await searchPlatform(source.id, query, input.target)
-        return { source: source.id, candidates, error: '' }
+            ? await searchAmll(query, target)
+            : await searchPlatform(source.id, query, target)
+        return { source: source.id, query, candidates, error: '' }
       } catch (error) {
-        return { source: source.id, candidates: [], error: String(error?.message ?? error) }
+        return { source: source.id, query, candidates: [], error: String(error?.message ?? error) }
       }
     },
 
