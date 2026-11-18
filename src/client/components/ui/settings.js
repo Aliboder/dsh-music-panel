@@ -1,18 +1,18 @@
 /**
- * settings: one full-height sheet with six tabs.
+ * settings: one full-height sheet with seven tabs.
  *
  * The layout switch lives here (Appearance → Layout) because the user asked for
  * a single, discoverable place to change it.
  */
 
 var SETTINGS_TABS = [
-  { key: 'appearance', label: 'v2.appearance', glyph: 'settings' },
+  { key: 'appearance', label: 'settings.tabAppearance', glyph: 'settings' },
   { key: 'lyrics', label: 'v2.lyrics', glyph: 'note' },
-  { key: 'playback', label: 'v2.playback', glyph: 'equalizer' },
-  { key: 'online', label: 'v2.online', glyph: 'refresh' },
-  { key: 'library', label: 'v2.library', glyph: 'folder' },
-  { key: 'cache', label: 'v2.dataTab', glyph: 'trash' },
-  { key: 'about', label: 'v2.about', glyph: 'info' },
+  { key: 'playback', label: 'settings.tabPlayback', glyph: 'equalizer' },
+  { key: 'online', label: 'settings.tabOnline', glyph: 'refresh' },
+  { key: 'library', label: 'settings.tabLibrary', glyph: 'folder' },
+  { key: 'cache', label: 'settings.tabStorage', glyph: 'trash' },
+  { key: 'about', label: 'settings.tabAbout', glyph: 'info' },
 ]
 
 
@@ -273,8 +273,11 @@ function SettingsSheet(props) {
   }
 
   function appearanceTab() {
+    var styleId = typeof mpStyleIdOf === 'function' ? mpStyleIdOf(prefs.lyricStyle) : prefs.lyricStyle
+    var bgId = typeof mpLookId === 'function' ? mpLookId(MP_BG_MODES, prefs.bgMode) : prefs.bgMode
     return [
       h('h2', { key: 'h' }, t('v2.appearance')),
+      h('div', { key: 'panel-head', className: 'mp-set-label' }, t('settings.appearancePanel')),
       h(
         SetRow,
         { key: 'layout', label: t('v2.layout'), desc: t('v2.layoutHint') },
@@ -300,10 +303,63 @@ function SettingsSheet(props) {
           },
         }),
       ),
+      h('div', { key: 'player-head', className: 'mp-set-label' }, t('settings.appearancePlayer')),
+      h('div', { key: 'player-hint', className: 'mp-set-desc' }, t('settings.appearancePlayerHint')),
+      h(
+        'div',
+        { key: 'lyric-style', style: { display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px 0' } },
+        h('div', { className: 'mp-set-label' }, t('sheet.lyricStyle')),
+        h(LookChoiceGrid, {
+          kind: 'lyricStyle',
+          value: styleId,
+          onPick: function (next) { patchPrefs({ lyricStyle: next }) },
+        }),
+      ),
+      h(
+        'div',
+        { key: 'bg-mode', style: { display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px 0' } },
+        h('div', { className: 'mp-set-label' }, t('sheet.background')),
+        h(LookChoiceGrid, {
+          kind: 'bgMode',
+          value: bgId,
+          onPick: function (next) { patchPrefs({ bgMode: next }) },
+        }),
+      ),
       h(
         SetRow,
-        { key: 'hostkit', label: t('v2.hostKit'), desc: t('v2.hostKitDesc') },
-        h(KitTag, { tone: hostUi ? 'info' : 'neutral' }, hostUi ? t('v2.hostKitNative') : t('v2.hostKitFallback')),
+        { key: 'lyric-intensity', label: t('settings.lyricIntensity'), desc: t('settings.lyricIntensityDesc') },
+        h(KitSelect, {
+          value: ['calm', 'normal', 'chaotic'].indexOf(prefs.lyricIntensity) >= 0 ? prefs.lyricIntensity : 'normal',
+          label: t('settings.lyricIntensity'),
+          options: [
+            { value: 'calm', label: t('settings.lyricIntensityCalm') },
+            { value: 'normal', label: t('settings.lyricIntensityNormal') },
+            { value: 'chaotic', label: t('settings.lyricIntensityChaotic') },
+          ],
+          onChange: function (value) { patchPrefs({ lyricIntensity: String(value) }) },
+        }),
+      ),
+      h(
+        SetRow,
+        { key: 'theme-source', label: t('sheet.themeSource'), desc: t('settings.themeSourceDesc') },
+        h(KitSelect, {
+          value: MP_THEME_SOURCES.indexOf(prefs.themeSource) >= 0 ? prefs.themeSource : 'default',
+          label: t('sheet.themeSource'),
+          options: [
+            { value: 'default', label: t('sheet.sourceDefault') },
+            { value: 'cover', label: t('sheet.sourceAI') },
+            { value: 'custom', label: t('sheet.sourceCustom') },
+          ],
+          onChange: function (value) { patchPrefs({ themeSource: String(value) }) },
+        }),
+      ),
+      h(
+        SetRow,
+        { key: 'transparent-bg', label: t('sheet.transparentBg'), desc: t('settings.transparentBgDesc') },
+        h(Switch, {
+          value: prefs.npTransparentBg === true,
+          onChange: function (value) { patchPrefs({ npTransparentBg: value }) },
+        }),
       ),
     ]
   }
@@ -342,6 +398,7 @@ function SettingsSheet(props) {
 
   function lyricsTab() {
     return [      h('h2', { key: 'h' }, t('v2.lyrics')),
+      h('div', { key: 'display-head', className: 'mp-set-label' }, t('settings.groupLyricDisplay')),
       h(
         SetRow,
         { key: 'tr', label: t('page.translation') },
@@ -415,12 +472,12 @@ function SettingsSheet(props) {
           min: 2,
           max: 16,
           step: 1,
-          value: Number(prefs.lyricGap) || 6,
+          value: Number(prefs.lyricGap) || 15,
           onChange: function (event) {
             patchPrefs({ lyricGap: Number(event.target.value) })
           },
         }),
-        h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 6) + ' px'),
+        h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 15) + ' px'),
       ),
       h(
         SetRow,
@@ -438,6 +495,7 @@ function SettingsSheet(props) {
         }),
         h('span', { className: 'mp-set-val' }, String(prefs.translationScale) + '%'),
       ),
+      h('div', { key: 'source-head', className: 'mp-set-label' }, t('settings.groupLyricSource')),
       h(
         SetRow,
         { key: 'local-priority', label: t('settings.lyricLocalPriority'), desc: t('settings.lyricLocalPriorityDesc') },
@@ -495,7 +553,7 @@ function SettingsSheet(props) {
         SetRow,
         { key: 'align', label: t('settings.lyricAlign') },
         h(KitSelect, {
-          value: prefs.lyricAlign || 'center',
+          value: prefs.lyricAlign || 'left',
           label: t('settings.lyricAlign'),
           options: [
             { value: 'center', label: t('settings.alignCenter') },
@@ -507,6 +565,7 @@ function SettingsSheet(props) {
           },
         }),
       ),
+      h('div', { key: 'filter-head', className: 'mp-set-label' }, t('settings.groupLyricFilter')),
       h(
         SetRow,
         { key: 'filter-copyright', label: t('settings.lyricFilterCopyright'), desc: t('settings.lyricFilterCopyrightDesc') },
@@ -557,8 +616,10 @@ function SettingsSheet(props) {
   }
 
   function playbackTab() {
+    var reportSupported = availableSources().some(function (provider) { return supports(provider, 'playbackReports') })
     return [
       h('h2', { key: 'h' }, t('v2.playback')),
+      h('div', { key: 'startup-head', className: 'mp-set-label' }, t('settings.groupStartup')),
       h(
         SetRow,
         { key: 'resume', label: t('settings.resumeOnStart') },
@@ -589,6 +650,7 @@ function SettingsSheet(props) {
           },
         }),
       ),
+      h('div', { key: 'sound-head', className: 'mp-set-label' }, t('settings.groupSound')),
       h(
         SetRow,
         {
@@ -657,6 +719,26 @@ function SettingsSheet(props) {
       h(
         SetRow,
         {
+          key: 'online-quality',
+          label: t('settings.onlineQuality'),
+          desc: t('settings.onlineQualityDesc'),
+        },
+        h(KitSelect, {
+          value: ['standard', 'high', 'lossless', 'hires'].indexOf(prefs.onlineQuality) >= 0 ? prefs.onlineQuality : 'high',
+          label: t('settings.onlineQuality'),
+          options: [
+            { value: 'standard', label: t('sheet.qStandard') },
+            { value: 'high', label: t('sheet.qHigh') },
+            { value: 'lossless', label: t('sheet.qLossless') },
+            { value: 'hires', label: t('sheet.qHires') },
+          ],
+          onChange: function (value) { patchPrefs({ onlineQuality: String(value) }) },
+        }),
+      ),
+      h('div', { key: 'transition-head', className: 'mp-set-label' }, t('settings.groupTransition')),
+      h(
+        SetRow,
+        {
           key: 'crossfade',
           label: t('settings.crossfade'),
           desc: t('settings.crossfadeHint'),
@@ -664,10 +746,26 @@ function SettingsSheet(props) {
         h(Switch, {
           value: crossfadeFadeSeconds(prefs) > 0,
           onChange: function (value) {
-            patchPrefs({ crossfadeSeconds: value ? CROSSFADE_MAX_SECONDS : 0 })
+            patchPrefs({ crossfadeSeconds: value ? CROSSFADE_DEFAULT_SECONDS : 0 })
           },
         }),
       ),
+      crossfadeFadeSeconds(prefs) > 0
+        ? h(
+            SetRow,
+            { key: 'crossfade-seconds', label: t('settings.crossfadeSeconds'), desc: t('settings.crossfadeSecondsHint') },
+            h('input', {
+              type: 'range',
+              className: 'mp-range',
+              min: CROSSFADE_MIN_SECONDS,
+              max: CROSSFADE_MAX_SECONDS,
+              step: 1,
+              value: crossfadeFadeSeconds(prefs),
+              onChange: function (event) { patchPrefs({ crossfadeSeconds: Number(event.target.value) }) },
+            }),
+            h('span', { className: 'mp-set-val' }, crossfadeFadeSeconds(prefs) + ' s'),
+          )
+        : null,
       h(
         SetRow,
         {
@@ -688,7 +786,7 @@ function SettingsSheet(props) {
         {
           key: 'playback-reports',
           label: t('settings.playbackReports'),
-          desc: t('settings.playbackReportsHint'),
+          desc: t('settings.playbackReportsHint') + (reportSupported ? '' : ' ' + t('settings.playbackReportsUnavailable')),
         },
         h(Switch, {
           value: prefs.playbackReports === true,
@@ -697,6 +795,7 @@ function SettingsSheet(props) {
           },
         }),
       ),
+      h('div', { key: 'output-head', className: 'mp-set-label' }, t('settings.groupOutput')),
       sinkSupported && outputDevices.length > 0
         ? h(
             SetRow,
@@ -1169,10 +1268,11 @@ function SettingsSheet(props) {
     var stats = cache || { songs: 0, files: 0, bytes: 0, categories: { audio: { files: 0, bytes: 0 }, cover: { files: 0, bytes: 0 } } }
     var dataStats = data || { files: 0, bytes: 0, categories: [] }
     var categories = Array.isArray(dataStats.categories) ? dataStats.categories : []
+    var lyricsCategory = categories.filter(function (category) { return category.id === 'lyrics' })[0] || null
     var cacheCategories = [
       { key: 'audio', label: t('data.cacheAudio'), meta: fmtBytes((stats.categories && stats.categories.audio && stats.categories.audio.bytes) || 0) },
       { key: 'cover', label: t('data.cacheCovers'), meta: fmtBytes((stats.categories && stats.categories.cover && stats.categories.cover.bytes) || 0) },
-      { key: 'lyrics', label: t('data.cacheLyrics'), meta: '' },
+      { key: 'lyrics', label: t('data.cacheLyrics'), meta: lyricsCategory ? fmtBytes(lyricsCategory.bytes || 0) : '' },
     ]
     var limitOptions = [
       { value: '1', label: '1 GB' },
@@ -1198,6 +1298,7 @@ function SettingsSheet(props) {
     }
     return [
       h('h2', { key: 'h' }, t('v2.dataTab')),
+      h('div', { key: 'cache-head', className: 'mp-set-label' }, t('settings.groupCache')),
       h(
         SetRow,
         { key: 'cache-enable', label: t('data.cacheEnable'), desc: t('data.cacheEnableDesc') },
@@ -1274,6 +1375,7 @@ function SettingsSheet(props) {
             }),
           ),
       h('p', { key: 'data-hint', className: 'mp-set-desc' }, t('data.hint')),
+      h('div', { key: 'reset-head', className: 'mp-set-label' }, t('settings.groupReset')),
       h(
         'div',
         { key: 'danger', className: 'mp-data-danger' },
@@ -1313,7 +1415,7 @@ function SettingsSheet(props) {
         'div',
         { key: 'meta', className: 'mp-about-rows' },
         h('div', { className: 'mp-about-row' }, h('span', null, t('about.project')), h('strong', null, 'DeepSeek Harness Music Panel')),
-        h('div', { className: 'mp-about-row' }, h('span', null, t('about.license')), h('strong', null, 'MIT')),
+        h('div', { className: 'mp-about-row' }, h('span', null, t('about.license')), h('strong', null, 'AGPL-3.0-only')),
         h('div', { className: 'mp-about-row' }, h('span', null, t('about.author')), h('strong', null, 'Aliboder')),
         h(
           'div',
@@ -1339,6 +1441,12 @@ function SettingsSheet(props) {
           { href: 'https://www.npmjs.com/package/dsh-music-panel', target: '_blank', rel: 'noreferrer' },
           t('about.npm'),
         ),
+      ),
+      h('div', { key: 'diag-head', className: 'mp-set-label' }, t('about.diagnostics')),
+      h(
+        SetRow,
+        { key: 'hostkit', label: t('v2.hostKit'), desc: t('v2.hostKitDesc') },
+        h(KitTag, { tone: hostUi ? 'info' : 'neutral' }, hostUi ? t('v2.hostKitNative') : t('v2.hostKitFallback')),
       ),
       h(
         SetRow,

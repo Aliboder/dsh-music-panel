@@ -26,6 +26,9 @@
 - 酷狗取流身份对齐 Folia：`albumAudioId` 只取精确的 `album_audio_id` / `albumAudioId`，概念版不再把 `mixsongid` 当专辑音频 ID；package 每档先按 metadata 请求，再按 hash-only 回落，网关与 v6 兜底保持 hash-only。
 - 在线能力补齐：新增「推荐」与「云盘」Tab；推荐页显示每日推荐、推荐歌单，并提供私人 FM 播放入口；云盘页支持网易云/QQ/酷狗（含概念版）云盘列表与取流；登录账号可订阅/取消订阅歌单与专辑，自建歌单可从行内移除歌曲。
 - 歌词对齐：来源 id 兼容旧 `kugou` 并映射到 `kugouLite`；默认首选来源改为 QQ；搜索查询改为 Folia 的 `title - artist - album`，酷狗歌词搜索用标题；自动匹配不再排除歌曲自身平台。
+- 设置页重做：外观增加 Folia 歌词样式/背景/动态/主题来源；播放增加在线音质与 1–25 秒过渡上限；恢复增益补默认值；Host Kit 状态与组件测试归入「关于与诊断」；缓存显示歌词大小；许可证修正为 AGPL-3.0-only。
+- 删除无消费方的旧配置 `bgBlend`、`composerLyricPlace`、`lyricKeepProviderWordTiming` 及其文案；修正 `lyricAlign`/`lyricGap` 默认值不一致。
+- 智能过渡对齐 Folia 的 plain crossfade：1–25 秒上限、等功率、按曲目剩余空间/静音边/曲目四分之一限制重叠；设置页提供上限滑杆。Folia Automix（节拍/分轨）引擎未移植，当前只实现 crossfade 模式。
 - 酷狗/酷狗概念版取流只按 hash，不再把可能错配的 album_id/album_audio_id 交给播放地址接口，修复点 A 播 B。
 - 清理旧面板已不再引用的基础 CSS 选择器（顶栏、侧栏、旧行/网格/入口等）与旧媒体查询，保留设置页/播放页共用的样式。
 

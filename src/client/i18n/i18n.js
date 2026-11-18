@@ -528,8 +528,7 @@ var DICTS = {
     'settings.composerLyrics': '输入框歌词',
     'settings.composerTranslation': '输入框歌词翻译',
     'settings.composerTranslationDesc': '关闭后输入框上方只显示原文',
-    'settings.composerLyricPlace': '输入框歌词位置',
-    'settings.placeInputLeft': '输入框内（播放列表按钮左侧）',
+      'settings.placeInputLeft': '输入框内（播放列表按钮左侧）',
     'settings.placeAbove': '输入框上方',
     // ── Folia login window (src/render/login/folia-src) ─────────────────────────
     // Copied from Folia's locale, with its {{name}} placeholders rewritten to this
@@ -1149,8 +1148,7 @@ var DICTS = {
     'settings.composerLyrics': 'Composer lyrics',
     'settings.composerTranslation': 'Composer lyric translation',
     'settings.composerTranslationDesc': 'Turn off to show only the original line above the input',
-    'settings.composerLyricPlace': 'Composer lyric position',
-    'settings.placeInputLeft': 'Left of the queue button',
+      'settings.placeInputLeft': 'Left of the queue button',
     'settings.placeAbove': 'Above input',
     // ── Folia login window (src/render/login/folia-src) ─────────────────────────
     // Copied from Folia's locale, with its {{name}} placeholders rewritten to this

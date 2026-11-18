@@ -7302,8 +7302,7 @@ window.__ModuleLoader__.load({
         'settings.composerLyrics': '输入框歌词',
         'settings.composerTranslation': '输入框歌词翻译',
         'settings.composerTranslationDesc': '关闭后输入框上方只显示原文',
-        'settings.composerLyricPlace': '输入框歌词位置',
-        'settings.placeInputLeft': '输入框内（播放列表按钮左侧）',
+          'settings.placeInputLeft': '输入框内（播放列表按钮左侧）',
         'settings.placeAbove': '输入框上方',
         // ── Folia login window (src/render/login/folia-src) ─────────────────────────
         // Copied from Folia's locale, with its {{name}} placeholders rewritten to this
@@ -7923,8 +7922,7 @@ window.__ModuleLoader__.load({
         'settings.composerLyrics': 'Composer lyrics',
         'settings.composerTranslation': 'Composer lyric translation',
         'settings.composerTranslationDesc': 'Turn off to show only the original line above the input',
-        'settings.composerLyricPlace': 'Composer lyric position',
-        'settings.placeInputLeft': 'Left of the queue button',
+          'settings.placeInputLeft': 'Left of the queue button',
         'settings.placeAbove': 'Above input',
         // ── Folia login window (src/render/login/folia-src) ─────────────────────────
         // Copied from Folia's locale, with its {{name}} placeholders rewritten to this
@@ -8298,13 +8296,44 @@ window.__ModuleLoader__.load({
         'settings.replayGainTrack': '单曲',
         'settings.replayGainAlbum': '专辑',
         'settings.replayGainStatus': '估计值只降低增益；整曲播放过之后，下一首起使用实测读数。',
+        'settings.appearancePanel': '主面板',
+        'settings.appearancePlayer': '播放页',
+        'settings.appearancePlayerHint': '这些是默认外观；播放页编辑器里调整会同步到同一份设置。',
+        'settings.lyricIntensity': '歌词动态',
+        'settings.lyricIntensityDesc': 'Folia 风格对歌词动画强度的选择。',
+        'settings.lyricIntensityCalm': '平静',
+        'settings.lyricIntensityNormal': '标准',
+        'settings.lyricIntensityChaotic': '剧烈',
+        'settings.themeSourceDesc': '主题强调色的来源。',
+        'settings.transparentBgDesc': '隐藏播放页封面后的环境背景。',
+        'settings.onlineQuality': '在线音质',
+        'settings.onlineQualityDesc': '在线播放时优先请求的音质；平台不支持时会自动降级。',
+        'settings.crossfadeSeconds': '过渡上限',
+        'settings.crossfadeSecondsHint': '最长淡入淡出时间；实际长度还会受曲目剩余空间和静音边限制。',
+        'settings.playbackReportsUnavailable': '当前没有平台声明支持播放上报。',
+        'about.diagnostics': '诊断',
+        'settings.tabAppearance': '外观与布局',
+        'settings.tabPlayback': '播放与音频',
+        'settings.tabOnline': '在线与账号',
+        'settings.tabLibrary': '音乐库',
+        'settings.tabStorage': '存储与数据',
+        'settings.tabAbout': '关于与诊断',
+        'settings.groupStartup': '启动与恢复',
+        'settings.groupSound': '音质与音量',
+        'settings.groupTransition': '过渡',
+        'settings.groupOutput': '输出与定时',
+        'settings.groupLyricDisplay': '显示',
+        'settings.groupLyricSource': '来源与回退',
+        'settings.groupLyricFilter': '过滤',
+        'settings.groupCache': '在线缓存',
+        'settings.groupReset': '数据清理',
         'settings.volumeNormalizeOff': '已关闭',
         'settings.volumeNormalizeReady': '已生效 · 内置 EBU R128 分析',
         'settings.volumeNormalizeMissing': '未生效 · 浏览器不支持 Web Audio',
         'settings.volumeNormalizeMissingHint': '请使用支持 Web Audio 的 DSH Web / Desktop。',
         'settings.volumeNormalizeHint': '浏览器内置 EBU R128 分析，按曲目响度自动调整增益；首次分析需要几秒。',
         'settings.crossfade': '智能过渡',
-        'settings.crossfadeHint': '分析前后两首歌首尾的响度，自动选择切入点和重叠长度；同专辑连续曲目保持原始的硬切衔接。',
+        'settings.crossfadeHint': '等功率淡入淡出，重叠长度受设定上限、曲目剩余空间和静音边限制；同专辑连续曲目保持原始的硬切衔接。',
         'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
         'settings.playbackFade': '播放淡入淡出',
         'settings.playbackFadeHint': '暂停时淡出、恢复时淡入，避免 click/pop。',
@@ -8458,9 +8487,6 @@ window.__ModuleLoader__.load({
         'sheet.latentDithering': '像素',
         'sheet.latentMesh': '流体',
         'sheet.latentBoth': '混合',
-        'sheet.bgBlendMix': '混合',
-        'sheet.bgBlendCover': '封面与主题',
-        'sheet.bgBlendLayers': '叠层',
         'sheet.themeSource': '主题来源',
         'sheet.themeName': '当前主题',
         'sheet.genAI': '主题生成',
@@ -8952,8 +8978,39 @@ window.__ModuleLoader__.load({
         'settings.volumeNormalizeMissingHint': 'Use a DSH Web / Desktop build with Web Audio support.',
         'settings.volumeNormalizeHint': 'Built-in EBU R128 analysis adjusts each track to avoid jumps between songs; the first analysis takes a few seconds.',
         'settings.crossfade': 'Smart transition',
-        'settings.crossfadeHint': 'Measures how both tracks start and end, then picks the cut point and overlap length itself; consecutive tracks of one album keep their original hard join.',
+        'settings.crossfadeHint': 'Equal-power crossfade capped by the selected maximum, remaining track room and silence edges; consecutive tracks of one album keep their original hard join.',
         'settings.crossfadeRuntimeHint': 'Needs Web Audio; skipped when the browser or the source cannot route through it.',
+        'settings.appearancePanel': 'Main panel',
+        'settings.appearancePlayer': 'Now playing',
+        'settings.appearancePlayerHint': 'These are defaults; changes in the player editor write the same settings.',
+        'settings.lyricIntensity': 'Lyric motion',
+        'settings.lyricIntensityDesc': 'The Folia style animation intensity.',
+        'settings.lyricIntensityCalm': 'Calm',
+        'settings.lyricIntensityNormal': 'Normal',
+        'settings.lyricIntensityChaotic': 'Chaotic',
+        'settings.themeSourceDesc': 'Where the accent colour comes from.',
+        'settings.transparentBgDesc': 'Hide the ambient artwork behind the now-playing page.',
+        'settings.onlineQuality': 'Online quality',
+        'settings.onlineQualityDesc': 'The preferred quality for online playback; unsupported levels fall back automatically.',
+        'settings.crossfadeSeconds': 'Maximum transition',
+        'settings.crossfadeSecondsHint': 'The longest crossfade; track room and silence edges can shorten it.',
+        'settings.playbackReportsUnavailable': 'No platform currently declares playback reporting.',
+        'about.diagnostics': 'Diagnostics',
+        'settings.tabAppearance': 'Appearance & layout',
+        'settings.tabPlayback': 'Playback & audio',
+        'settings.tabOnline': 'Online & accounts',
+        'settings.tabLibrary': 'Library',
+        'settings.tabStorage': 'Storage & data',
+        'settings.tabAbout': 'About & diagnostics',
+        'settings.groupStartup': 'Startup & resume',
+        'settings.groupSound': 'Quality & volume',
+        'settings.groupTransition': 'Transitions',
+        'settings.groupOutput': 'Output & timer',
+        'settings.groupLyricDisplay': 'Display',
+        'settings.groupLyricSource': 'Source & fallback',
+        'settings.groupLyricFilter': 'Filters',
+        'settings.groupCache': 'Online cache',
+        'settings.groupReset': 'Data cleanup',
         'settings.playbackFade': 'Playback fade',
         'settings.playbackFadeHint': 'Fade out on pause and in on resume to avoid clicks and pops.',
         'settings.playbackReports': 'Playback reports',
@@ -9104,9 +9161,6 @@ window.__ModuleLoader__.load({
         'sheet.latentDithering': 'Pixel',
         'sheet.latentMesh': 'Fluid',
         'sheet.latentBoth': 'Mix',
-        'sheet.bgBlendMix': 'Mix',
-        'sheet.bgBlendCover': 'Cover & theme',
-        'sheet.bgBlendLayers': 'Layers',
         'sheet.themeSource': 'Theme source',
         'sheet.themeName': 'Current theme',
         'sheet.genAI': 'Theme generation',
@@ -149997,12 +150051,6 @@ window.__ModuleLoader__.load({
       lyricLocalPriority: 'local',
       /** Folia's `preferredAlternativeLyricSource`: asked first when another source is searched. */
       lyricPreferredSource: 'qq',
-      /**
-       * Folia's `keepProviderWordTiming`: keep a platform's own word timing over another
-       * source's. The plugin has no `prefersOwnWordByWord` platform (Apple Music), so this
-       * is stored for parity and consumed where a provider declares it.
-       */
-      lyricKeepProviderWordTiming: true,
       /** Folia's `subtitleOverlayBackground`: a soft halo behind the bottom subtitle line. */
       subtitleOverlayBackground: true,
       /** Folia's `localLyricFormatOrder`: which sidecar lyric file wins when several exist. */
@@ -150044,8 +150092,6 @@ window.__ModuleLoader__.load({
       /** Global lyric font multiplier (the ≋ quick control). */
       lyricsFontScale: 1,
       bgMode: 'latent',
-      /** Folia background blend chip (mix / cover / layers); kept for the controls panel. */
-      bgBlend: 'mix',
       bgCoverOnly: false,
       /** Latent background layers: pixel dithering, fluid mesh, or both. */
       latentDisplayMode: 'both',
@@ -150062,12 +150108,13 @@ window.__ModuleLoader__.load({
       npBeatAmount: 300,
       composerLyrics: false,
       composerTranslation: true,
-      composerLyricPlace: 'input-left',
       volume: 1,
       audioOutputDeviceId: '',
       playbackFade: true,
       // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
       playbackReports: false,
+      /** Folia's replay-gain choice; `normalizeVolume` is the legacy on/off form. */
+      replayGainMode: 'auto',
       loop: 'none',
       order: 'list',
       resumeOnStart: true,
@@ -150135,8 +150182,6 @@ window.__ModuleLoader__.load({
       }
       // The classic renderer is removed; legacy variant ids now select the default Monet style.
       if (['standard', 'glow', 'outline', 'karaoke', 'mirror', 'classic', 'cappella'].indexOf(merged.lyricStyle) >= 0) merged.lyricStyle = 'monet'
-      merged.composerLyricPlace =
-        String(merged.composerLyricPlace || '').indexOf('above') === 0 ? 'above' : 'input-left'
       // The player page switched from the old ambient/flow backdrop to Folia's six shell
       // backgrounds; a stored old id falls back to Folia's default (latent).
       var foliaBackgrounds = ['common', 'monet', 'nomand', 'latent', 'sora', 'url', 'none']
@@ -150144,6 +150189,9 @@ window.__ModuleLoader__.load({
       // The old "lyric order" switch is gone: Folia's local/online priority decides, and the
       // sidecar always outranks the embedded lyric. A stored `lyricOrder` is simply ignored.
       delete merged.lyricOrder
+      if (['off', 'auto', 'track', 'album'].indexOf(merged.replayGainMode) < 0) {
+        merged.replayGainMode = merged.normalizeVolume === false ? 'off' : 'auto'
+      }
       // 0.12.0 briefly defaulted to square covers; restore the 0.11 player look once.
       if (merged.npLookMigrated !== true) {
         merged.circularCover = PREF_DEFAULTS.circularCover
@@ -151056,10 +151104,11 @@ window.__ModuleLoader__.load({
      * cheaply and reliably — no beat grid, no segment model.
      */
 
-    var CROSSFADE_MAX_SECONDS = 6
-    var CROSSFADE_MIN_SECONDS = 2.5
+    var CROSSFADE_MAX_SECONDS = 25
+    var CROSSFADE_MIN_SECONDS = 1
+    var CROSSFADE_DEFAULT_SECONDS = 5
     /** Start analysing this early; analysis is fast but the fetch is not. */
-    var CROSSFADE_PREPARE_SECONDS = 14
+    var CROSSFADE_PREPARE_SECONDS = 28
     /** Only a genuinely silent intro is skipped, and never more than this. */
     var CROSSFADE_INTRO_SKIP_SECONDS = 2
     var CROSSFADE_SKIP_LIMIT_SECONDS = 10
@@ -151117,22 +151166,27 @@ window.__ModuleLoader__.load({
       if (limit <= 0) return null
       var remaining = Number(settings.remaining)
       if (!isFinite(remaining) || remaining <= 0) return null
-      var max = Math.min(limit, Math.max(CROSSFADE_MIN_SECONDS, remaining))
-      var tail = Number(current && current.outroQuietSec)
-      var silentIntro = Number(next && next.introSilentSec)
-      if (!isFinite(tail) || tail < 0) tail = 0
-      if (!isFinite(silentIntro) || silentIntro < 0) silentIntro = 0
-      var overlap = tail > 0.4 ? tail : CROSSFADE_MIN_SECONDS
-      overlap = Math.max(CROSSFADE_MIN_SECONDS, Math.min(overlap, max))
-      // Skipping is reserved for actual silence: a soft musical intro is content,
-      // and cutting into it makes the next track start mid-phrase.
-      var startInNext =
-        silentIntro >= CROSSFADE_INTRO_SKIP_SECONDS
-          ? Math.max(0, Math.min(silentIntro - 0.5, CROSSFADE_SKIP_LIMIT_SECONDS))
-          : 0
+      var total = Number(current && current.duration)
+      var outro = Number(current && current.outroQuietSec)
+      var introSilent = Number(next && next.introSilentSec)
+      var nextDuration = Number(next && next.durationSec)
+      if (!isFinite(outro) || outro < 0) outro = 0
+      if (!isFinite(introSilent) || introSilent < 0) introSilent = 0
+      // Folia's plain crossfade is deliberately blind: it reads only where the
+      // outgoing track stops sounding and how much of the incoming track exists.
+      var soundingEnd = isFinite(total) && total > 0 ? Math.max(0, total - outro) : 0
+      var at = isFinite(total) && total > 0 ? Math.max(0, total - remaining) : 0
+      var tailRoom = soundingEnd > 0 ? Math.max(0, soundingEnd - at) : remaining
+      var inStart = Math.max(0, introSilent - 0.1)
+      var incomingRoom = isFinite(nextDuration) && nextDuration > 0
+        ? Math.max(0, nextDuration - inStart)
+        : Infinity
+      var quarter = soundingEnd > 0 ? soundingEnd / 4 : Infinity
+      var overlap = Math.min(limit, tailRoom, incomingRoom, quarter)
+      if (overlap < CROSSFADE_MIN_SECONDS) return null
       return {
-        overlap: Math.round(overlap * 10) / 10,
-        startInNext: Math.round(startInNext * 10) / 10,
+        overlap: Math.round(overlap * 100) / 100,
+        startInNext: Math.round(inStart * 100) / 100,
       }
     }
 
@@ -155518,8 +155572,9 @@ window.__ModuleLoader__.load({
           releasePrefetched()
           var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
           var plan = crossfadePlan(
-            { outroQuietSec: results[0] ? results[0].outroQuietSec : 0 },
-            { introQuietSec: incoming.envelope ? incoming.envelope.introQuietSec : 0,
+            { duration: duration, outroQuietSec: results[0] ? results[0].outroQuietSec : 0 },
+            { durationSec: incoming.envelope ? incoming.envelope.duration : 0,
+              introQuietSec: incoming.envelope ? incoming.envelope.introQuietSec : 0,
               introSilentSec: incoming.envelope ? incoming.envelope.introSilentSec : 0 },
             { prefs: readPrefs(), remaining: duration - audio.currentTime },
           )
@@ -160860,7 +160915,7 @@ window.__ModuleLoader__.load({
       function toggleCrossfade(value) {
         // A positive value enables the feature; the engine decides the real
         // overlap, this is only its upper bound.
-        setPrefs({ crossfadeSeconds: value ? CROSSFADE_MAX_SECONDS : 0 })
+        setPrefs({ crossfadeSeconds: value ? CROSSFADE_DEFAULT_SECONDS : 0 })
       }
 
       var body =
@@ -165054,20 +165109,20 @@ window.__ModuleLoader__.load({
 
     // ── src/client/components/ui/settings.js
     /**
-     * settings: one full-height sheet with six tabs.
+     * settings: one full-height sheet with seven tabs.
      *
      * The layout switch lives here (Appearance → Layout) because the user asked for
      * a single, discoverable place to change it.
      */
 
     var SETTINGS_TABS = [
-      { key: 'appearance', label: 'v2.appearance', glyph: 'settings' },
+      { key: 'appearance', label: 'settings.tabAppearance', glyph: 'settings' },
       { key: 'lyrics', label: 'v2.lyrics', glyph: 'note' },
-      { key: 'playback', label: 'v2.playback', glyph: 'equalizer' },
-      { key: 'online', label: 'v2.online', glyph: 'refresh' },
-      { key: 'library', label: 'v2.library', glyph: 'folder' },
-      { key: 'cache', label: 'v2.dataTab', glyph: 'trash' },
-      { key: 'about', label: 'v2.about', glyph: 'info' },
+      { key: 'playback', label: 'settings.tabPlayback', glyph: 'equalizer' },
+      { key: 'online', label: 'settings.tabOnline', glyph: 'refresh' },
+      { key: 'library', label: 'settings.tabLibrary', glyph: 'folder' },
+      { key: 'cache', label: 'settings.tabStorage', glyph: 'trash' },
+      { key: 'about', label: 'settings.tabAbout', glyph: 'info' },
     ]
 
 
@@ -165328,8 +165383,11 @@ window.__ModuleLoader__.load({
       }
 
       function appearanceTab() {
+        var styleId = typeof mpStyleIdOf === 'function' ? mpStyleIdOf(prefs.lyricStyle) : prefs.lyricStyle
+        var bgId = typeof mpLookId === 'function' ? mpLookId(MP_BG_MODES, prefs.bgMode) : prefs.bgMode
         return [
           h('h2', { key: 'h' }, t('v2.appearance')),
+          h('div', { key: 'panel-head', className: 'mp-set-label' }, t('settings.appearancePanel')),
           h(
             SetRow,
             { key: 'layout', label: t('v2.layout'), desc: t('v2.layoutHint') },
@@ -165355,10 +165413,63 @@ window.__ModuleLoader__.load({
               },
             }),
           ),
+          h('div', { key: 'player-head', className: 'mp-set-label' }, t('settings.appearancePlayer')),
+          h('div', { key: 'player-hint', className: 'mp-set-desc' }, t('settings.appearancePlayerHint')),
+          h(
+            'div',
+            { key: 'lyric-style', style: { display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px 0' } },
+            h('div', { className: 'mp-set-label' }, t('sheet.lyricStyle')),
+            h(LookChoiceGrid, {
+              kind: 'lyricStyle',
+              value: styleId,
+              onPick: function (next) { patchPrefs({ lyricStyle: next }) },
+            }),
+          ),
+          h(
+            'div',
+            { key: 'bg-mode', style: { display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px 0' } },
+            h('div', { className: 'mp-set-label' }, t('sheet.background')),
+            h(LookChoiceGrid, {
+              kind: 'bgMode',
+              value: bgId,
+              onPick: function (next) { patchPrefs({ bgMode: next }) },
+            }),
+          ),
           h(
             SetRow,
-            { key: 'hostkit', label: t('v2.hostKit'), desc: t('v2.hostKitDesc') },
-            h(KitTag, { tone: hostUi ? 'info' : 'neutral' }, hostUi ? t('v2.hostKitNative') : t('v2.hostKitFallback')),
+            { key: 'lyric-intensity', label: t('settings.lyricIntensity'), desc: t('settings.lyricIntensityDesc') },
+            h(KitSelect, {
+              value: ['calm', 'normal', 'chaotic'].indexOf(prefs.lyricIntensity) >= 0 ? prefs.lyricIntensity : 'normal',
+              label: t('settings.lyricIntensity'),
+              options: [
+                { value: 'calm', label: t('settings.lyricIntensityCalm') },
+                { value: 'normal', label: t('settings.lyricIntensityNormal') },
+                { value: 'chaotic', label: t('settings.lyricIntensityChaotic') },
+              ],
+              onChange: function (value) { patchPrefs({ lyricIntensity: String(value) }) },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'theme-source', label: t('sheet.themeSource'), desc: t('settings.themeSourceDesc') },
+            h(KitSelect, {
+              value: MP_THEME_SOURCES.indexOf(prefs.themeSource) >= 0 ? prefs.themeSource : 'default',
+              label: t('sheet.themeSource'),
+              options: [
+                { value: 'default', label: t('sheet.sourceDefault') },
+                { value: 'cover', label: t('sheet.sourceAI') },
+                { value: 'custom', label: t('sheet.sourceCustom') },
+              ],
+              onChange: function (value) { patchPrefs({ themeSource: String(value) }) },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'transparent-bg', label: t('sheet.transparentBg'), desc: t('settings.transparentBgDesc') },
+            h(Switch, {
+              value: prefs.npTransparentBg === true,
+              onChange: function (value) { patchPrefs({ npTransparentBg: value }) },
+            }),
           ),
         ]
       }
@@ -165397,6 +165508,7 @@ window.__ModuleLoader__.load({
 
       function lyricsTab() {
         return [      h('h2', { key: 'h' }, t('v2.lyrics')),
+          h('div', { key: 'display-head', className: 'mp-set-label' }, t('settings.groupLyricDisplay')),
           h(
             SetRow,
             { key: 'tr', label: t('page.translation') },
@@ -165470,12 +165582,12 @@ window.__ModuleLoader__.load({
               min: 2,
               max: 16,
               step: 1,
-              value: Number(prefs.lyricGap) || 6,
+              value: Number(prefs.lyricGap) || 15,
               onChange: function (event) {
                 patchPrefs({ lyricGap: Number(event.target.value) })
               },
             }),
-            h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 6) + ' px'),
+            h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 15) + ' px'),
           ),
           h(
             SetRow,
@@ -165493,6 +165605,7 @@ window.__ModuleLoader__.load({
             }),
             h('span', { className: 'mp-set-val' }, String(prefs.translationScale) + '%'),
           ),
+          h('div', { key: 'source-head', className: 'mp-set-label' }, t('settings.groupLyricSource')),
           h(
             SetRow,
             { key: 'local-priority', label: t('settings.lyricLocalPriority'), desc: t('settings.lyricLocalPriorityDesc') },
@@ -165550,7 +165663,7 @@ window.__ModuleLoader__.load({
             SetRow,
             { key: 'align', label: t('settings.lyricAlign') },
             h(KitSelect, {
-              value: prefs.lyricAlign || 'center',
+              value: prefs.lyricAlign || 'left',
               label: t('settings.lyricAlign'),
               options: [
                 { value: 'center', label: t('settings.alignCenter') },
@@ -165562,6 +165675,7 @@ window.__ModuleLoader__.load({
               },
             }),
           ),
+          h('div', { key: 'filter-head', className: 'mp-set-label' }, t('settings.groupLyricFilter')),
           h(
             SetRow,
             { key: 'filter-copyright', label: t('settings.lyricFilterCopyright'), desc: t('settings.lyricFilterCopyrightDesc') },
@@ -165612,8 +165726,10 @@ window.__ModuleLoader__.load({
       }
 
       function playbackTab() {
+        var reportSupported = availableSources().some(function (provider) { return supports(provider, 'playbackReports') })
         return [
           h('h2', { key: 'h' }, t('v2.playback')),
+          h('div', { key: 'startup-head', className: 'mp-set-label' }, t('settings.groupStartup')),
           h(
             SetRow,
             { key: 'resume', label: t('settings.resumeOnStart') },
@@ -165644,6 +165760,7 @@ window.__ModuleLoader__.load({
               },
             }),
           ),
+          h('div', { key: 'sound-head', className: 'mp-set-label' }, t('settings.groupSound')),
           h(
             SetRow,
             {
@@ -165712,6 +165829,26 @@ window.__ModuleLoader__.load({
           h(
             SetRow,
             {
+              key: 'online-quality',
+              label: t('settings.onlineQuality'),
+              desc: t('settings.onlineQualityDesc'),
+            },
+            h(KitSelect, {
+              value: ['standard', 'high', 'lossless', 'hires'].indexOf(prefs.onlineQuality) >= 0 ? prefs.onlineQuality : 'high',
+              label: t('settings.onlineQuality'),
+              options: [
+                { value: 'standard', label: t('sheet.qStandard') },
+                { value: 'high', label: t('sheet.qHigh') },
+                { value: 'lossless', label: t('sheet.qLossless') },
+                { value: 'hires', label: t('sheet.qHires') },
+              ],
+              onChange: function (value) { patchPrefs({ onlineQuality: String(value) }) },
+            }),
+          ),
+          h('div', { key: 'transition-head', className: 'mp-set-label' }, t('settings.groupTransition')),
+          h(
+            SetRow,
+            {
               key: 'crossfade',
               label: t('settings.crossfade'),
               desc: t('settings.crossfadeHint'),
@@ -165719,10 +165856,26 @@ window.__ModuleLoader__.load({
             h(Switch, {
               value: crossfadeFadeSeconds(prefs) > 0,
               onChange: function (value) {
-                patchPrefs({ crossfadeSeconds: value ? CROSSFADE_MAX_SECONDS : 0 })
+                patchPrefs({ crossfadeSeconds: value ? CROSSFADE_DEFAULT_SECONDS : 0 })
               },
             }),
           ),
+          crossfadeFadeSeconds(prefs) > 0
+            ? h(
+                SetRow,
+                { key: 'crossfade-seconds', label: t('settings.crossfadeSeconds'), desc: t('settings.crossfadeSecondsHint') },
+                h('input', {
+                  type: 'range',
+                  className: 'mp-range',
+                  min: CROSSFADE_MIN_SECONDS,
+                  max: CROSSFADE_MAX_SECONDS,
+                  step: 1,
+                  value: crossfadeFadeSeconds(prefs),
+                  onChange: function (event) { patchPrefs({ crossfadeSeconds: Number(event.target.value) }) },
+                }),
+                h('span', { className: 'mp-set-val' }, crossfadeFadeSeconds(prefs) + ' s'),
+              )
+            : null,
           h(
             SetRow,
             {
@@ -165743,7 +165896,7 @@ window.__ModuleLoader__.load({
             {
               key: 'playback-reports',
               label: t('settings.playbackReports'),
-              desc: t('settings.playbackReportsHint'),
+              desc: t('settings.playbackReportsHint') + (reportSupported ? '' : ' ' + t('settings.playbackReportsUnavailable')),
             },
             h(Switch, {
               value: prefs.playbackReports === true,
@@ -165752,6 +165905,7 @@ window.__ModuleLoader__.load({
               },
             }),
           ),
+          h('div', { key: 'output-head', className: 'mp-set-label' }, t('settings.groupOutput')),
           sinkSupported && outputDevices.length > 0
             ? h(
                 SetRow,
@@ -166224,10 +166378,11 @@ window.__ModuleLoader__.load({
         var stats = cache || { songs: 0, files: 0, bytes: 0, categories: { audio: { files: 0, bytes: 0 }, cover: { files: 0, bytes: 0 } } }
         var dataStats = data || { files: 0, bytes: 0, categories: [] }
         var categories = Array.isArray(dataStats.categories) ? dataStats.categories : []
+        var lyricsCategory = categories.filter(function (category) { return category.id === 'lyrics' })[0] || null
         var cacheCategories = [
           { key: 'audio', label: t('data.cacheAudio'), meta: fmtBytes((stats.categories && stats.categories.audio && stats.categories.audio.bytes) || 0) },
           { key: 'cover', label: t('data.cacheCovers'), meta: fmtBytes((stats.categories && stats.categories.cover && stats.categories.cover.bytes) || 0) },
-          { key: 'lyrics', label: t('data.cacheLyrics'), meta: '' },
+          { key: 'lyrics', label: t('data.cacheLyrics'), meta: lyricsCategory ? fmtBytes(lyricsCategory.bytes || 0) : '' },
         ]
         var limitOptions = [
           { value: '1', label: '1 GB' },
@@ -166253,6 +166408,7 @@ window.__ModuleLoader__.load({
         }
         return [
           h('h2', { key: 'h' }, t('v2.dataTab')),
+          h('div', { key: 'cache-head', className: 'mp-set-label' }, t('settings.groupCache')),
           h(
             SetRow,
             { key: 'cache-enable', label: t('data.cacheEnable'), desc: t('data.cacheEnableDesc') },
@@ -166329,6 +166485,7 @@ window.__ModuleLoader__.load({
                 }),
               ),
           h('p', { key: 'data-hint', className: 'mp-set-desc' }, t('data.hint')),
+          h('div', { key: 'reset-head', className: 'mp-set-label' }, t('settings.groupReset')),
           h(
             'div',
             { key: 'danger', className: 'mp-data-danger' },
@@ -166368,7 +166525,7 @@ window.__ModuleLoader__.load({
             'div',
             { key: 'meta', className: 'mp-about-rows' },
             h('div', { className: 'mp-about-row' }, h('span', null, t('about.project')), h('strong', null, 'DeepSeek Harness Music Panel')),
-            h('div', { className: 'mp-about-row' }, h('span', null, t('about.license')), h('strong', null, 'MIT')),
+            h('div', { className: 'mp-about-row' }, h('span', null, t('about.license')), h('strong', null, 'AGPL-3.0-only')),
             h('div', { className: 'mp-about-row' }, h('span', null, t('about.author')), h('strong', null, 'Aliboder')),
             h(
               'div',
@@ -166394,6 +166551,12 @@ window.__ModuleLoader__.load({
               { href: 'https://www.npmjs.com/package/dsh-music-panel', target: '_blank', rel: 'noreferrer' },
               t('about.npm'),
             ),
+          ),
+          h('div', { key: 'diag-head', className: 'mp-set-label' }, t('about.diagnostics')),
+          h(
+            SetRow,
+            { key: 'hostkit', label: t('v2.hostKit'), desc: t('v2.hostKitDesc') },
+            h(KitTag, { tone: hostUi ? 'info' : 'neutral' }, hostUi ? t('v2.hostKitNative') : t('v2.hostKitFallback')),
           ),
           h(
             SetRow,

@@ -27,7 +27,9 @@ assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 0 }), 0)
 assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: -4 }), 0)
 assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 6 }), 6)
 assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 99 }), fx.CROSSFADE_MAX_SECONDS)
-assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 1 }), fx.CROSSFADE_MIN_SECONDS)
+assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 0.2 }), fx.CROSSFADE_MIN_SECONDS)
+assert.equal(fx.CROSSFADE_MAX_SECONDS, 25, 'Folia slider ceiling')
+assert.equal(fx.CROSSFADE_MIN_SECONDS, 1, 'Folia slider floor')
 assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 'abc' }), 0)
 
 // ── album continuity ──────────────────────────────────────────────────────
@@ -55,23 +57,20 @@ assert.equal(fx.crossfadeNextAllowed({}, null, albumB), false)
 const prefs = { crossfadeSeconds: 10 }
 const plan = (current, next, remaining) => fx.crossfadePlan(current, next, { prefs, remaining })
 
-// A long quiet outro is exactly the region to fade through.
-assert.deepEqual(plan({ outroQuietSec: 6 }, { introQuietSec: 0 }, 30), { overlap: 6, startInNext: 0 })
-// No quiet tail: still overlap the minimum instead of hard cutting.
-assert.deepEqual(plan({ outroQuietSec: 0 }, { introQuietSec: 0 }, 30), {
-  overlap: fx.CROSSFADE_MIN_SECONDS,
-  startInNext: 0,
-})
+// Folia's crossfade is blind: the requested ceiling is used while the pair has room.
+assert.deepEqual(plan({ duration: 180, outroQuietSec: 6 }, { durationSec: 180 }, 30), { overlap: 10, startInNext: 0 })
+assert.deepEqual(plan({ duration: 180, outroQuietSec: 0 }, { durationSec: 180 }, 30), { overlap: 10, startInNext: 0 })
 // Never exceed the cap.
-assert.equal(plan({ outroQuietSec: 25 }, {}, 60).overlap, fx.CROSSFADE_MAX_SECONDS)
+assert.equal(plan({ duration: 300, outroQuietSec: 0 }, { durationSec: 300 }, 60).overlap, 10)
 // Never exceed what is left of the track.
-assert.equal(plan({ outroQuietSec: 12 }, {}, 5).overlap, 5)
-// Only a genuinely silent intro is skipped; a soft musical intro is content.
-assert.equal(plan({ outroQuietSec: 4 }, { introSilentSec: 8 }, 30).startInNext, 7.5)
-assert.equal(plan({ outroQuietSec: 4 }, { introSilentSec: 0.8 }, 30).startInNext, 0)
-assert.equal(plan({ outroQuietSec: 4 }, {}, 30).startInNext, 0)
-// Skipping is bounded so a mostly-silent track cannot jump far ahead.
-assert.equal(plan({ outroQuietSec: 4 }, { introSilentSec: 40 }, 30).startInNext, 10)
+assert.equal(plan({ duration: 180, outroQuietSec: 0 }, { durationSec: 180 }, 5).overlap, 5)
+// Never exceed the incoming track, or a quarter of the outgoing one.
+assert.equal(plan({ duration: 180, outroQuietSec: 0 }, { durationSec: 6 }, 30).overlap, 6)
+assert.equal(plan({ duration: 8, outroQuietSec: 0 }, { durationSec: 180 }, 6).overlap, 2)
+// The incoming track starts after its leading silence, minus Folia's entry margin.
+assert.equal(plan({ duration: 180, outroQuietSec: 4 }, { durationSec: 180, introSilentSec: 8 }, 30).startInNext, 7.9)
+assert.equal(plan({ duration: 180, outroQuietSec: 4 }, { durationSec: 180, introSilentSec: 0.8 }, 30).startInNext, 0.7)
+assert.equal(plan({ duration: 180, outroQuietSec: 4 }, { durationSec: 180 }, 30).startInNext, 0)
 // Disabled or no remaining time means no plan at all.
 assert.equal(fx.crossfadePlan({}, {}, { prefs: { crossfadeSeconds: 0 }, remaining: 30 }), null)
 assert.equal(fx.crossfadePlan({}, {}, { prefs, remaining: 0 }), null)

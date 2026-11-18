@@ -1344,8 +1344,9 @@ function createPlayer() {
       releasePrefetched()
       var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
       var plan = crossfadePlan(
-        { outroQuietSec: results[0] ? results[0].outroQuietSec : 0 },
-        { introQuietSec: incoming.envelope ? incoming.envelope.introQuietSec : 0,
+        { duration: duration, outroQuietSec: results[0] ? results[0].outroQuietSec : 0 },
+        { durationSec: incoming.envelope ? incoming.envelope.duration : 0,
+          introQuietSec: incoming.envelope ? incoming.envelope.introQuietSec : 0,
           introSilentSec: incoming.envelope ? incoming.envelope.introSilentSec : 0 },
         { prefs: readPrefs(), remaining: duration - audio.currentTime },
       )

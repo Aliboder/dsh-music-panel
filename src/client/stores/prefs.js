@@ -25,12 +25,6 @@ var PREF_DEFAULTS = {
   lyricLocalPriority: 'local',
   /** Folia's `preferredAlternativeLyricSource`: asked first when another source is searched. */
   lyricPreferredSource: 'qq',
-  /**
-   * Folia's `keepProviderWordTiming`: keep a platform's own word timing over another
-   * source's. The plugin has no `prefersOwnWordByWord` platform (Apple Music), so this
-   * is stored for parity and consumed where a provider declares it.
-   */
-  lyricKeepProviderWordTiming: true,
   /** Folia's `subtitleOverlayBackground`: a soft halo behind the bottom subtitle line. */
   subtitleOverlayBackground: true,
   /** Folia's `localLyricFormatOrder`: which sidecar lyric file wins when several exist. */
@@ -72,8 +66,6 @@ var PREF_DEFAULTS = {
   /** Global lyric font multiplier (the ≋ quick control). */
   lyricsFontScale: 1,
   bgMode: 'latent',
-  /** Folia background blend chip (mix / cover / layers); kept for the controls panel. */
-  bgBlend: 'mix',
   bgCoverOnly: false,
   /** Latent background layers: pixel dithering, fluid mesh, or both. */
   latentDisplayMode: 'both',
@@ -90,12 +82,13 @@ var PREF_DEFAULTS = {
   npBeatAmount: 300,
   composerLyrics: false,
   composerTranslation: true,
-  composerLyricPlace: 'input-left',
   volume: 1,
   audioOutputDeviceId: '',
   playbackFade: true,
   // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
   playbackReports: false,
+  /** Folia's replay-gain choice; `normalizeVolume` is the legacy on/off form. */
+  replayGainMode: 'auto',
   loop: 'none',
   order: 'list',
   resumeOnStart: true,
@@ -163,8 +156,6 @@ function readPrefs() {
   }
   // The classic renderer is removed; legacy variant ids now select the default Monet style.
   if (['standard', 'glow', 'outline', 'karaoke', 'mirror', 'classic', 'cappella'].indexOf(merged.lyricStyle) >= 0) merged.lyricStyle = 'monet'
-  merged.composerLyricPlace =
-    String(merged.composerLyricPlace || '').indexOf('above') === 0 ? 'above' : 'input-left'
   // The player page switched from the old ambient/flow backdrop to Folia's six shell
   // backgrounds; a stored old id falls back to Folia's default (latent).
   var foliaBackgrounds = ['common', 'monet', 'nomand', 'latent', 'sora', 'url', 'none']
@@ -172,6 +163,9 @@ function readPrefs() {
   // The old "lyric order" switch is gone: Folia's local/online priority decides, and the
   // sidecar always outranks the embedded lyric. A stored `lyricOrder` is simply ignored.
   delete merged.lyricOrder
+  if (['off', 'auto', 'track', 'album'].indexOf(merged.replayGainMode) < 0) {
+    merged.replayGainMode = merged.normalizeVolume === false ? 'off' : 'auto'
+  }
   // 0.12.0 briefly defaulted to square covers; restore the 0.11 player look once.
   if (merged.npLookMigrated !== true) {
     merged.circularCover = PREF_DEFAULTS.circularCover

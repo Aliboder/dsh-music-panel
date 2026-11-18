@@ -7,10 +7,11 @@
  * cheaply and reliably — no beat grid, no segment model.
  */
 
-var CROSSFADE_MAX_SECONDS = 6
-var CROSSFADE_MIN_SECONDS = 2.5
+var CROSSFADE_MAX_SECONDS = 25
+var CROSSFADE_MIN_SECONDS = 1
+var CROSSFADE_DEFAULT_SECONDS = 5
 /** Start analysing this early; analysis is fast but the fetch is not. */
-var CROSSFADE_PREPARE_SECONDS = 14
+var CROSSFADE_PREPARE_SECONDS = 28
 /** Only a genuinely silent intro is skipped, and never more than this. */
 var CROSSFADE_INTRO_SKIP_SECONDS = 2
 var CROSSFADE_SKIP_LIMIT_SECONDS = 10
@@ -68,22 +69,27 @@ function crossfadePlan(current, next, options) {
   if (limit <= 0) return null
   var remaining = Number(settings.remaining)
   if (!isFinite(remaining) || remaining <= 0) return null
-  var max = Math.min(limit, Math.max(CROSSFADE_MIN_SECONDS, remaining))
-  var tail = Number(current && current.outroQuietSec)
-  var silentIntro = Number(next && next.introSilentSec)
-  if (!isFinite(tail) || tail < 0) tail = 0
-  if (!isFinite(silentIntro) || silentIntro < 0) silentIntro = 0
-  var overlap = tail > 0.4 ? tail : CROSSFADE_MIN_SECONDS
-  overlap = Math.max(CROSSFADE_MIN_SECONDS, Math.min(overlap, max))
-  // Skipping is reserved for actual silence: a soft musical intro is content,
-  // and cutting into it makes the next track start mid-phrase.
-  var startInNext =
-    silentIntro >= CROSSFADE_INTRO_SKIP_SECONDS
-      ? Math.max(0, Math.min(silentIntro - 0.5, CROSSFADE_SKIP_LIMIT_SECONDS))
-      : 0
+  var total = Number(current && current.duration)
+  var outro = Number(current && current.outroQuietSec)
+  var introSilent = Number(next && next.introSilentSec)
+  var nextDuration = Number(next && next.durationSec)
+  if (!isFinite(outro) || outro < 0) outro = 0
+  if (!isFinite(introSilent) || introSilent < 0) introSilent = 0
+  // Folia's plain crossfade is deliberately blind: it reads only where the
+  // outgoing track stops sounding and how much of the incoming track exists.
+  var soundingEnd = isFinite(total) && total > 0 ? Math.max(0, total - outro) : 0
+  var at = isFinite(total) && total > 0 ? Math.max(0, total - remaining) : 0
+  var tailRoom = soundingEnd > 0 ? Math.max(0, soundingEnd - at) : remaining
+  var inStart = Math.max(0, introSilent - 0.1)
+  var incomingRoom = isFinite(nextDuration) && nextDuration > 0
+    ? Math.max(0, nextDuration - inStart)
+    : Infinity
+  var quarter = soundingEnd > 0 ? soundingEnd / 4 : Infinity
+  var overlap = Math.min(limit, tailRoom, incomingRoom, quarter)
+  if (overlap < CROSSFADE_MIN_SECONDS) return null
   return {
-    overlap: Math.round(overlap * 10) / 10,
-    startInNext: Math.round(startInNext * 10) / 10,
+    overlap: Math.round(overlap * 100) / 100,
+    startInNext: Math.round(inStart * 100) / 100,
   }
 }
 
