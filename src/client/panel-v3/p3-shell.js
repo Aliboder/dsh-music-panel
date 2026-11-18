@@ -121,6 +121,8 @@ function P3TopBar(props) {
         type: 'button',
         ref: sourceRef,
         className: 'mpv3-source-btn',
+        'aria-haspopup': 'menu',
+        'aria-expanded': sourceOpen ? 'true' : 'false',
         onClick: function () { setSourceOpen(!sourceOpen) },
         title: t('p3.switchSource'),
       },
@@ -155,6 +157,8 @@ function P3TopBar(props) {
             ref: accountRef,
             className: 'mpv3-account-btn',
             title: t('p3.account'),
+            'aria-haspopup': 'menu',
+            'aria-expanded': accountOpen ? 'true' : 'false',
             onClick: function () { setAccountOpen(!accountOpen) },
           },
             loggedIn && (info.avatarUrl || info.nickname)
@@ -301,7 +305,7 @@ function P3ViewBar(props) {
       h(IconButton, { icon: 'checkCircle', size: 16, title: t('page.select'), onClick: function () { setSelectOpen(!selectOpen) } }),
       h(P3Menu, { open: selectOpen, anchor: selectRef.current, items: selectItems, align: 'right', onSelect: pickSelect, onClose: function () { setSelectOpen(false) } }),
     ) : null,
-    route.source === 'local' && route.page === 'playlists' ? h(IconButton, { icon: 'plus', size: 16, title: t('v2.newPlaylist'), onClick: function () { pushLayer('newPlaylist') } }) : null,
+    route.source === 'local' && route.page === 'playlists' ? h(IconButton, { icon: 'plus', size: 16, title: t('v2.newPlaylist'), onClick: function () { openP3Playlist('create') } }) : null,
   )
 }
 
@@ -799,6 +803,7 @@ function P3Shell() {
       onOpenSettings: function () { pushLayer('settings') },
     }),
     h(OverlayRoot),
+    h(P3PlaylistDialogHost),
     h(Toast),
     h(StartupGuide, { open: guideOpen, onClose: function (disable) { dismissStartupGuide(disable === true); setGuideOpen(false) } }),
   )

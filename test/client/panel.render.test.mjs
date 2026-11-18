@@ -213,6 +213,12 @@ const queueBefore = internals.player.getSnapshot().queue.length
 removeButtons[0].props.onClick({ stopPropagation: function () {} })
 assert.equal(internals.player.getSnapshot().queue.length, queueBefore - 1, 'remove action drops one queue row')
 
+internals.openP3Playlist('create')
+const playlistDialog = internals.P3PlaylistDialogHost()
+assert.ok(classesOf(playlistDialog).has('mp-overlay'), 'playlist dialog renders through the kit modal')
+assert.ok(textOf(playlistDialog).includes('新建歌单'), 'playlist dialog shows its title')
+internals.closeP3Playlist()
+
 internals.overlayStore.set({ layers: [{ kind: 'menu', props: { track: TRACKS[0], x: 40, y: 40 } }] })
 assert.ok(classesOf(panel()).has('mp-ctx'), 'the context menu renders')
 

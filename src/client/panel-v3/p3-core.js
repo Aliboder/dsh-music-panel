@@ -616,6 +616,7 @@ function P3Menu(props) {
   var ref = useRef(null)
   var anchorRect = props.anchor && props.anchor.getBoundingClientRect ? props.anchor.getBoundingClientRect() : null
   var [position, setPosition] = useState(null)
+  var focusedRef = useRef(false)
   useEffect(function () {
     if (!open || !anchorRect) return undefined
     var menu = ref.current
@@ -629,6 +630,9 @@ function P3Menu(props) {
     setPosition({ left: left, top: top })
     return undefined
   }, [open, props.anchor, props.items])
+  function focusAnchor() {
+    if (props.anchor && typeof props.anchor.focus === 'function') props.anchor.focus()
+  }
   useEffect(function () {
     if (!open) return undefined
     function close(event) {
@@ -636,7 +640,10 @@ function P3Menu(props) {
       if (typeof props.onClose === 'function') props.onClose()
     }
     function key(event) {
-      if (event.key === 'Escape' && typeof props.onClose === 'function') props.onClose()
+      if (event.key === 'Escape' && typeof props.onClose === 'function') {
+        props.onClose()
+        focusAnchor()
+      }
     }
     document.addEventListener('pointerdown', close, true)
     window.addEventListener('keydown', key)
@@ -645,11 +652,49 @@ function P3Menu(props) {
       window.removeEventListener('keydown', key)
     }
   }, [open, props.onClose])
+  useEffect(function () {
+    if (!open) { focusedRef.current = false; return }
+    if (focusedRef.current) return
+    var menu = ref.current
+    if (!menu) return
+    var chosen = menu.querySelector('.mpv3-menu-item.is-on') || menu.querySelector('.mpv3-menu-item:not(:disabled)')
+    if (chosen && typeof chosen.focus === 'function') {
+      chosen.focus()
+      focusedRef.current = true
+    }
+  }, [open])
+  function onMenuKey(event) {
+    var entries = Array.prototype.slice.call(event.currentTarget.querySelectorAll('.mpv3-menu-item:not(:disabled)'))
+    if (entries.length === 0) return
+    var at = entries.indexOf(document.activeElement)
+    var last = entries.length - 1
+    if (event.key === 'Tab') {
+      event.preventDefault()
+      if (typeof props.onClose === 'function') props.onClose()
+      focusAnchor()
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      entries[at < last ? at + 1 : 0].focus()
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      entries[at > 0 ? at - 1 : last].focus()
+    } else if (event.key === 'Home') {
+      event.preventDefault()
+      entries[0].focus()
+    } else if (event.key === 'End') {
+      event.preventDefault()
+      entries[last].focus()
+    } else if (event.key === 'Escape') {
+      event.preventDefault()
+      if (typeof props.onClose === 'function') props.onClose()
+      focusAnchor()
+    }
+  }
   if (!open) return null
   var items = Array.isArray(props.items) ? props.items : []
   return h(
     'div',
-    { className: cx('mpv3-menu', props.className), ref: ref, role: 'menu', style: position || { left: 8, top: 60, visibility: 'hidden' } },
+    { className: cx('mpv3-menu', props.className), ref: ref, role: 'menu', tabIndex: -1, onKeyDown: onMenuKey, style: position || { left: 8, top: 60, visibility: 'hidden' } },
     items.map(function (item) {
       if (item.separator === true) return h('div', { key: item.key, className: 'mpv3-menu-sep' })
       return h(
