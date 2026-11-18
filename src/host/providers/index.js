@@ -98,6 +98,8 @@ function shape(provider, song) {
     noCopyright: song.noCopyright ?? null,
     privilegeDetail: song.privilegeDetail ?? null,
     availableQualities: song.availableQualities ?? [],
+    variant: song.variant ?? null,
+    fileId: song.fileId ?? 0,
   }
 }
 
@@ -184,6 +186,94 @@ function playlistCard(provider, raw) {
     source: provider,
     type: 'playlist',
   }
+}
+
+/** Folia daily recommendations for the platforms that expose the route. */
+export async function dailySongs(provider, cookie = '', session = {}) {
+  if (provider === 'netease') {
+    const rows = await NC.dailySongs(cookie)
+    return rows.map((song) => {
+      rawSongs.set('netease:' + song.id, song)
+      return shape('netease', song)
+    }).filter((song) => song.id !== '')
+  }
+  if (provider === 'qq') {
+    const rows = await QQ.dailySongs(cookie)
+    return rows.map((song) => {
+      rawSongs.set('qq:' + song.songmid, song)
+      return shape('qq', song)
+    }).filter((song) => song.id !== '')
+  }
+  if (provider === 'kugou' || provider === 'kugouLite') {
+    const platform = provider === 'kugouLite' ? 'lite' : 'standard'
+    const rows = await KG.dailySongs(session, platform)
+    return rows.map((song) => {
+      rawSongs.set(provider + ':' + song.id, song)
+      return shape(provider, song)
+    }).filter((song) => song.id !== '')
+  }
+  throw new Error('该平台没有每日推荐')
+}
+
+/** Folia recommended collections for the platforms that expose the route. */
+export async function recommendedCollections(provider, cookie = '', session = {}, limit = 30) {
+  let rows = []
+  if (provider === 'netease') rows = await NC.recommendedCollections(cookie, limit)
+  else if (provider === 'qq') rows = await QQ.recommendedCollections(cookie, limit)
+  else if (provider === 'kugou' || provider === 'kugouLite') {
+    const data = await KG.getRecommendedPlaylists(session, 1)
+    rows = Array.isArray(data.playlists) ? data.playlists : []
+  } else throw new Error('该平台没有推荐歌单')
+  return rows.map((playlist) => playlistCard(provider, playlist)).filter((playlist) => playlist.id !== '')
+}
+
+/** Folia personal FM for the platforms that expose the route. */
+export async function personalFm(provider, cookie = '', session = {}) {
+  let rows = []
+  if (provider === 'netease') rows = await NC.personalFm(cookie)
+  else if (provider === 'qq') rows = await QQ.personalFm(cookie)
+  else if (provider === 'kugou' || provider === 'kugouLite') rows = await KG.personalFm(session, provider === 'kugouLite' ? 'lite' : 'standard')
+  else throw new Error('该平台没有私人 FM')
+  return rows.map((song) => {
+    const key = provider === 'qq' ? song.songmid : song.id
+    rawSongs.set(provider + ':' + key, song)
+    return shape(provider, song)
+  }).filter((song) => song.id !== '')
+}
+
+/** Folia cloud-drive tracks; NetEase/QQ/KuGou expose the route. */
+export async function cloudSongs(provider, cookie = '', session = {}, page = 1) {
+  const target = Math.max(1, Number(page) || 1)
+  let rows = []
+  if (provider === 'netease') rows = await NC.cloudSongs(cookie, 200, (target - 1) * 200)
+  else if (provider === 'qq') rows = await QQ.cloudSongs(cookie, 100, (target - 1) * 100)
+  else if (provider === 'kugou' || provider === 'kugouLite') rows = await KG.cloudSongs(session, target, 100, provider === 'kugouLite' ? 'lite' : 'standard')
+  else throw new Error('该平台没有云盘')
+  return rows.map((song) => {
+    const key = provider === 'qq' ? song.songmid : song.id
+    rawSongs.set(provider + ':' + key, song)
+    return shape(provider, song)
+  }).filter((song) => song.id !== '')
+}
+
+/** Folia daily-history dates for the platforms that expose the route. */
+export async function historyDates(provider, cookie = '') {
+  if (provider === 'netease') return await NC.historyDates(cookie)
+  if (provider === 'qq') return await QQ.historyDates(cookie)
+  throw new Error('该平台没有日推历史')
+}
+
+/** Folia daily-history songs for one date. */
+export async function historySongs(provider, cookie = '', date = '') {
+  let rows = []
+  if (provider === 'netease') rows = await NC.historySongs(cookie, date)
+  else if (provider === 'qq') rows = await QQ.historySongs(cookie, date)
+  else throw new Error('该平台没有日推历史')
+  return rows.map((song) => {
+    const key = provider === 'qq' ? song.songmid : song.id
+    rawSongs.set(provider + ':' + key, song)
+    return shape(provider, song)
+  }).filter((song) => song.id !== '')
 }
 
 /**
@@ -1043,6 +1133,7 @@ function shapePlaylist(item) {  return {
     trackCount: Number(item.trackCount) || 0,
     creator: item.creator || '',
     kind: item.kind || 'own',
+    isOwned: item.isOwned === true || (item.kind || 'own') !== 'collect',
     isLike: item.isLike === true,
     isDefault: item.isDefault === true || item.isLike === true,
   }
@@ -1417,6 +1508,35 @@ export async function listeningRank(provider, range, cookie = '', session = {}) 
       .filter((song) => song.id !== '')
   }
   throw new Error('该平台没有听歌排行')
+}
+
+/** Remove one song from an owned playlist; each platform has its own write route. */
+export async function removeOnlineSongFromPlaylist(provider, song, playlistId, cookie = '', session = {}) {
+  if (provider === 'netease') return await NC.removeFromPlaylist(song, playlistId, cookie)
+  if (provider === 'qq') return await QQ.removeFromPlaylist(song, playlistId, cookie)
+  if (provider === 'kugou' || provider === 'kugouLite') {
+    const key = provider === 'kugouLite' ? 'kugouLite:' : 'kugou:'
+    const raw = rawSongs.get(key + String(song?.id ?? '')) || song
+    const fileId = raw?.fileId ?? song?.fileId
+    if (!fileId) throw new Error('酷狗歌曲缺少 fileId，无法从歌单移除')
+    await KG.deleteSongFromPlaylist(fileId, playlistId, session)
+    return true
+  }
+  throw new Error('该平台不支持从歌单移除歌曲')
+}
+
+/** Folia's collection subscription status. Kugou concept has no write route here. */
+export async function subscriptionStatus(provider, type, id, cookie = '') {
+  if (provider === 'netease') return await NC.subscriptionStatus(type, id, cookie)
+  if (provider === 'qq') return await QQ.subscriptionStatus(type, id, cookie)
+  return false
+}
+
+/** Subscribe/unsubscribe an album or playlist. */
+export async function subscribeCollection(provider, type, id, subscribed, cookie = '') {
+  if (provider === 'netease') return await NC.subscribeCollection(type, id, subscribed, cookie)
+  if (provider === 'qq') return await QQ.subscribeCollection(type, id, subscribed, cookie)
+  throw new Error('该平台不支持订阅')
 }
 
 /**

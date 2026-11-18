@@ -152,6 +152,95 @@ export async function search(keyword, cookie = '', page = 1, type = 1) {
   }
 }
 
+// ── recommendations / cloud (Folia routes) ──────────────────────────────────
+
+function dailyRows(json) {
+  const data = json && typeof json.data === 'object' ? json.data : {}
+  return data.dailySongs || data.songs || (json.recommendData && json.recommendData.dailySongs) || json.songs || []
+}
+
+/** Folia daily 30: /recommend/songs; afresh asks the platform for another pick. */
+export async function dailySongs(cookie = '', refresh = false) {
+  const json = await callUpstream(
+    '/recommend/songs',
+    { afresh: refresh ? 1 : 0, timestamp: Date.now() },
+    { cookie: await dataCookie(cookie) },
+  )
+  return dailyRows(json).map((row) => normalizeSong(row)).filter(Boolean)
+}
+
+/** Folia personal FM: /personal_fm (the platform returns a few tracks per call). */
+export async function personalFm(cookie = '') {
+  const json = await callUpstream('/personal_fm', { timestamp: Date.now() }, { cookie: await dataCookie(cookie) })
+  const rows = Array.isArray(json.data) ? json.data : (Array.isArray(json.result) ? json.result : [])
+  return rows.map((row) => normalizeSong(row)).filter(Boolean)
+}
+
+/** Folia recommended collections: /personalized. */
+export async function recommendedCollections(cookie = '', limit = 30) {
+  const json = await callUpstream('/personalized', { limit: Math.max(1, Math.min(100, Number(limit) || 30)) }, { cookie: await dataCookie(cookie) })
+  const rows = Array.isArray(json.result) ? json.result : []
+  return rows.map(playlistOf).filter((playlist) => playlist.id !== '')
+}
+
+/** Folia cloud drive: /user/cloud; the rows are ordinary songs. */
+export async function cloudSongs(cookie = '', limit = 200, offset = 0) {
+  const json = await callUpstream('/user/cloud', { limit: Number(limit) || 200, offset: Number(offset) || 0 }, { cookie: await dataCookie(cookie) })
+  const rows = Array.isArray(json.data) ? json.data : (Array.isArray(json.songs) ? json.songs : [])
+  return rows.map((row) => normalizeSong(row.simpleSong || row)).filter(Boolean).map((song) => ({ ...song, variant: 'cloud' }))
+}
+
+/** Folia daily-history dates: /history/recommend/songs. */
+export async function historyDates(cookie = '') {
+  const json = await callUpstream('/history/recommend/songs', { timestamp: Date.now() }, { cookie: await dataCookie(cookie) })
+  const rows = Array.isArray(json.data?.dates) ? json.data.dates : (Array.isArray(json.dates) ? json.dates : [])
+  return rows.map((row) => (typeof row === 'string' ? row : row?.date)).filter((date) => typeof date === 'string' && date !== '')
+}
+
+/** Folia daily-history songs for one date. */
+export async function historySongs(cookie = '', date = '') {
+  const day = String(date || '').trim()
+  if (day === '') return []
+  const json = await callUpstream('/history/recommend/songs/detail', { date: day, timestamp: Date.now() }, { cookie: await dataCookie(cookie) })
+  return dailyRows(json).map((row) => normalizeSong(row)).filter(Boolean)
+}
+
+/** Remove one song from an owned playlist (Folia mutations.updatePlaylistTracks). */
+export async function removeFromPlaylist(song, playlistId, cookie = '') {
+  const pid = String(playlistId || '').trim()
+  const trackId = String(song?.id ?? song?.onlineId ?? '').trim()
+  if (!/^[0-9]+$/.test(pid) || !/^[0-9]+$/.test(trackId)) throw new Error('缺少歌单或歌曲 id')
+  const json = await callUpstream('/playlist/tracks', {
+    op: 'del',
+    pid,
+    tracks: trackId,
+    timestamp: Date.now(),
+  }, { cookie: await dataCookie(cookie) })
+  const code = Number(json?.body?.code ?? json?.code ?? 200)
+  if (code !== 200) throw new Error('网易云拒绝从歌单移除歌曲（code=' + code + '）')
+  return true
+}
+
+/** Folia subscription status for an album/playlist. */
+export async function subscriptionStatus(type, id, cookie = '') {
+  const key = String(id || '').trim()
+  if (!/^[0-9]+$/.test(key)) return false
+  const route = type === 'album' ? '/album/detail/dynamic' : '/playlist/detail/dynamic'
+  const json = await callUpstream(route, { id: key }, { cookie: await dataCookie(cookie) })
+  return type === 'album' ? Boolean(json.isSub) : Boolean(json.subscribed)
+}
+
+/** Folia subscribe/unsubscribe for an album/playlist. */
+export async function subscribeCollection(type, id, subscribed, cookie = '') {
+  const key = String(id || '').trim()
+  if (!/^[0-9]+$/.test(key)) throw new Error('缺少专辑/歌单 id')
+  const route = type === 'album' ? '/album/sub' : '/playlist/subscribe'
+  const json = await callUpstream(route, { id: key, t: subscribed ? 1 : 2 }, { cookie: await dataCookie(cookie) })
+  const code = Number(json?.code ?? 200)
+  if (code !== 200) throw new Error('网易云拒绝订阅操作（code=' + code + '）')
+  return true
+}
+
 // ── artist ──────────────────────────────────────────────────────────────────
 
 const ARTIST_ID_CACHE = new Map()

@@ -40,17 +40,26 @@ export const LYRIC_SOURCE_IDS = LYRIC_SOURCES.map((source) => source.id)
 
 const BY_ID = new Map(LYRIC_SOURCES.map((source) => [source.id, source]))
 
+// Old rows and protocol code still call the platform `kugou`; the source id is
+// `kugouLite` because that is the registered provider id.
+const SOURCE_ALIASES = new Map([['kugou', 'kugouLite']])
+
+function sourceIdOf(id) {
+  const key = String(id ?? '')
+  return SOURCE_ALIASES.get(key) || key
+}
+
 export function isLyricSource(id) {
-  return BY_ID.has(String(id ?? ''))
+  return BY_ID.has(sourceIdOf(id))
 }
 
 export function getLyricSource(id) {
-  return BY_ID.get(String(id ?? ''))
+  return BY_ID.get(sourceIdOf(id))
 }
 
 /** The source whose lyrics a song of `providerId` has as its own. */
 export function getPlatformLyricSource(providerId) {
-  const source = BY_ID.get(String(providerId ?? ''))
+  const source = BY_ID.get(sourceIdOf(providerId))
   return source !== undefined && source.platform === true ? source : undefined
 }
 
@@ -63,7 +72,7 @@ export function getPlatformLyricSource(providerId) {
 export function buildLyricSourceOrder(preferred, isOffered) {
   const allowed = typeof isOffered === 'function' ? isOffered : () => true
   const order = []
-  const wanted = BY_ID.get(String(preferred ?? ''))
+  const wanted = BY_ID.get(sourceIdOf(preferred || 'qq'))
   if (wanted !== undefined && allowed(wanted)) order.push(wanted)
   for (const source of LYRIC_SOURCES) {
     if (source.id === wanted?.id) continue

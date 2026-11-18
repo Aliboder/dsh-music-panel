@@ -121,7 +121,7 @@ function unusedIo() {
   assert.equal(match.lrc, '[00:01.000]故事', 'line text without a raw document still comes back as LRC')
   assert.equal(match.translation, '')
   assert.equal(match.lines.length, 1)
-  assert.deepEqual(calls[0], ['amll', 'ncm', '186016'], 'AMLL is asked first for a NetEase track')
+  assert.deepEqual(calls[0], ['search', 'qq', '晴天 - 周杰伦 - 叶惠美', 10], 'Folia asks the preferred source first')
   assert.ok(calls.some(([kind]) => kind === 'lyric'), 'the matching source was actually fetched')
 
   // The match is written into the song's own record, so the next play reads it from there.
@@ -152,7 +152,7 @@ function unusedIo() {
   assert.equal(missed.status, 200)
   assert.equal(missed.body.match, null)
   assert.ok(calls.length > 0, 'a miss walks the sources')
-  assert.equal(calls.includes('qq'), false, 'the track\'s own platform is not asked')
+  assert.equal(calls.includes('qq'), true, 'Folia keeps the track\'s own platform in the order')
   // A miss can be a network failure, so it must not be remembered as "instrumental".
   assert.equal(await recordOf('qq', 'neg-miss'), null)
 }
@@ -260,7 +260,7 @@ async function send(routes, pathname, method, params, body) {
   // The listener prefers AMLL, so the pick reaches it before any platform search.
   const answer = await ask(routesWith(io), 'kugouLite', 'kg-1', { preferred: 'amll' })
   assert.equal(answer.status, 200)
-  assert.deepEqual(calls[0], ['search', 'netease', '晴天 周杰伦', 10], 'the AMLL ids come from a NetEase search')
+  assert.deepEqual(calls[0], ['search', 'netease', '晴天 - 周杰伦 - 叶惠美', 10], 'the AMLL ids come from a NetEase search')
   assert.deepEqual(calls[1], ['amll', 'ncm', 'ncm-9'], 'AMLL is asked with the candidate id it can key on')
 }
 

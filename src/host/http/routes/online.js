@@ -299,9 +299,8 @@ export function createOnlineRoutes(deps) {
     })
     try {
       return await findBestLyrics(wantedTrack, {
-        order: buildLyricSourceOrder(preferred)
-          .map((source) => source.id)
-          .filter((sourceId) => sourceId !== provider),
+        // Folia keeps the song's own platform in the order: a word-level own lyric can win.
+        order: buildLyricSourceOrder(preferred).map((source) => source.id),
         search,
         fetchLyric: fetchLyricOverride ?? (async (sourceId, sourceSongId) => {
           const got = await omni.lyric(sourceId, sourceSongId, {})
@@ -1268,6 +1267,52 @@ export function createOnlineRoutes(deps) {
       // Two modes: when the user opted into the native API we page the whole
       // library (ordered on the server so pages never overlap); otherwise we
       // serve Subsonic's getRandomSongs sample, which has no offset.
+      if (pathname === '/online/discover' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        if (!isOnlineSource(provider)) return fail(res, 400, 'BAD_PROVIDER', '未知平台')
+        try {
+          const session = providerStore === undefined ? {} : await providerStore.session(provider)
+          const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
+          const caps = omni.capabilities(provider)
+          if (caps.recommendations !== true) return sendJson(res, 200, { ok: true, provider, songs: [], playlists: [] })
+          const [songs, playlists] = await Promise.all([
+            omni.dailySongs(provider, { cookie, session }).catch(() => []),
+            omni.recommendedCollections(provider, { cookie, session }, 30).catch(() => []),
+          ])
+          return sendJson(res, 200, { ok: true, provider, songs, playlists })
+        } catch (error) {
+          return fail(res, 502, 'DISCOVER_FAILED', error instanceof Error ? error.message : '推荐获取失败')
+        }
+      }
+
+      if (pathname === '/online/personal-fm' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        if (!isOnlineSource(provider)) return fail(res, 400, 'BAD_PROVIDER', '未知平台')
+        try {
+          const session = providerStore === undefined ? {} : await providerStore.session(provider)
+          const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
+          const songs = await omni.personalFm(provider, { cookie, session })
+          return sendJson(res, 200, { ok: true, provider, songs })
+        } catch (error) {
+          return fail(res, 502, 'FM_FAILED', error instanceof Error ? error.message : '私人 FM 获取失败')
+        }
+      }
+
+      if (pathname === '/online/cloud' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        if (!isOnlineSource(provider)) return fail(res, 400, 'BAD_PROVIDER', '未知平台')
+        try {
+          const session = providerStore === undefined ? {} : await providerStore.session(provider)
+          const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
+          const page = Math.max(1, Number(params.get('page')) || 1)
+          const songs = await omni.cloudSongs(provider, { cookie, session }, page)
+          const pageSize = provider === 'netease' ? 200 : 100
+          return sendJson(res, 200, { ok: true, provider, page, songs, hasMore: songs.length >= pageSize })
+        } catch (error) {
+          return fail(res, 502, 'CLOUD_FAILED', error instanceof Error ? error.message : '云盘获取失败')
+        }
+      }
+
       if (pathname === '/online/songs' && method === 'GET') {
         const provider = (params.get('provider') || '').trim()
         if (!isOnlineSource(provider)) {
@@ -1544,6 +1589,69 @@ export function createOnlineRoutes(deps) {
           return sendJson(res, 200, { ok: true })
         } catch (error) {
           return fail(res, 502, 'PLAYLIST_ADD_FAILED', error instanceof Error ? error.message : '加入歌单失败')
+        }
+      }
+
+      if (pathname === '/online/subscription' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        const type = (params.get('type') || '').trim()
+        const id = (params.get('id') || '').trim()
+        if (!isOnlineSource(provider) || (type !== 'album' && type !== 'playlist') || id === '') {
+          return fail(res, 400, 'BAD_REQUEST', '缺少 provider / type / id')
+        }
+        try {
+          const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
+          const subscribed = await omni.subscriptionStatus(provider, type, id, { cookie })
+          return sendJson(res, 200, { ok: true, subscribed })
+        } catch (error) {
+          return fail(res, 502, 'SUBSCRIPTION_FAILED', error instanceof Error ? error.message : '订阅状态获取失败')
+        }
+      }
+
+      if (pathname === '/online/subscription' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const provider = String(body?.provider || '')
+        const type = String(body?.type || '')
+        const id = String(body?.id || '')
+        const subscribed = body?.subscribed === true
+        if (!isOnlineSource(provider) || (type !== 'album' && type !== 'playlist') || id === '') {
+          return fail(res, 400, 'BAD_REQUEST', '缺少 provider / type / id')
+        }
+        try {
+          const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
+          await omni.subscribeCollection(provider, type, id, subscribed, { cookie })
+          return sendJson(res, 200, { ok: true, subscribed })
+        } catch (error) {
+          return fail(res, 502, 'SUBSCRIPTION_FAILED', error instanceof Error ? error.message : '订阅操作失败')
+        }
+      }
+
+      if (pathname === '/online/playlist-remove' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const provider = String(body?.provider || '')
+        const playlistId = String(body?.playlistId || '')
+        const rawSong = body?.song && typeof body.song === 'object' ? body.song : null
+        const songId = String(rawSong?.id || rawSong?.onlineId || '')
+        if (!isOnlineSource(provider) || playlistId === '' || rawSong === null || songId === '') {
+          return fail(res, 400, 'BAD_REQUEST', '缺少 provider / playlistId / song')
+        }
+        try {
+          const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
+          const session = providerStore === undefined ? {} : await providerStore.session(provider)
+          await omni.removeFromPlaylist(provider, { ...rawSong, id: songId }, playlistId, { cookie, session })
+          return sendJson(res, 200, { ok: true })
+        } catch (error) {
+          return fail(res, 502, 'PLAYLIST_REMOVE_FAILED', error instanceof Error ? error.message : '从歌单移除失败')
         }
       }
 

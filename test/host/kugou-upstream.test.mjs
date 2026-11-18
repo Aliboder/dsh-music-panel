@@ -224,6 +224,30 @@ import {
   }
 }
 
+// ── recommendations / cloud ─────────────────────────────────────────────────
+
+{
+  setUpstreamOverride(async (operation) => {
+    if (operation === 'everyday_recommend') {
+      return { status: 200, body: { status: 1, data: { songs: [{ FileHash: 'D1', songname: 'Daily', Singers: [{ name: 'A' }], timelen: 100 }] } }, cookie: [] }
+    }
+    if (operation === 'user_cloud') {
+      return { status: 200, body: { status: 1, data: { songs: [{ FileHash: 'C1', songname: 'Cloud', Singers: [{ name: 'A' }], fileid: 77, timelen: 100 }] } }, cookie: [] }
+    }
+    throw new Error('unexpected operation: ' + operation)
+  })
+  try {
+    const daily = await KG.dailySongs({}, 'lite')
+    assert.equal(daily[0].title, 'Daily')
+    const cloud = await KG.cloudSongs({}, 1, 100, 'lite')
+    assert.equal(cloud[0].title, 'Cloud')
+    assert.equal(cloud[0].variant, 'cloud')
+    assert.equal(cloud[0].fileId, 77)
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
 // ── album search ───────────────────────────────────────────────────────────
 
 {

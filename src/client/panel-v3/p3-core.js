@@ -99,7 +99,9 @@ function p3Tabs(source) {
     return tabs
   }
   if (caps.userPlaylists === true) tabs.push('playlists')
+  if (caps.recommendations === true) tabs.push('discover')
   tabs.push('recent')
+  if (caps.userCloud === true) tabs.push('cloud')
   if (source === 'navidrome') tabs.push('songs')
   if (caps.browseAlbums === true) tabs.push('albums')
   if (caps.browseArtists === true) tabs.push('artists')
@@ -134,6 +136,8 @@ function p3PageLabel(page) {
     playlists: t('v2.playlists'),
     stats: t('v2.stats'),
     recent: t('v2.recent'),
+    discover: t('p3.discover'),
+    cloud: t('p3.cloud'),
     album: t('v2.album'),
     artist: t('v2.artist'),
     playlist: t('v2.playlist'),
@@ -148,7 +152,7 @@ function p3ParentLabel(page) {
   if (page === 'playlist') return t('v2.playlist')
   if (page === 'search') return t('page.search')
   if (page === 'favorites' || page === 'playlists' || page === 'stats') return t('v2.sectionCollection')
-  if (page === 'recent') return t('v2.sectionOnline')
+  if (page === 'recent' || page === 'discover' || page === 'cloud') return t('v2.sectionOnline')
   return t('v2.sectionLibrary')
 }
 
@@ -522,6 +526,8 @@ function p3PlaylistDescriptor(playlist, provider) {
       cover: item.cover || item.coverUrl || '',
       coverUrl: item.coverUrl || item.cover || '',
       trackCount: Number(item.trackCount) || 0,
+      isOwned: item.isOwned === true,
+      kind: item.kind || '',
     }
   }
   return {
@@ -833,6 +839,12 @@ function P3Row(props) {
         title: like.disabled === true ? like.reason : like.isLiked ? t('page.unfavorite') : t('page.favorite'),
         onClick: function (event) { event.stopPropagation(); like.onLike() },
       }),
+      props.onRemove ? h(IconButton, {
+        icon: 'trash',
+        size: 15,
+        title: t('p3.removeFromPlaylist'),
+        onClick: function (event) { event.stopPropagation(); props.onRemove(track) },
+      }) : null,
       h(IconButton, {
         icon: 'more',
         size: 15,
@@ -951,6 +963,7 @@ function P3List(props) {
               favoriteSet: props.favoriteSet,
               selected: selectedSet[item.path] === true,
               tabIndex: item.path === focusPath ? 0 : -1,
+              onRemove: props.onRemove,
             }))
           }),
     ),

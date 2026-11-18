@@ -129,6 +129,17 @@ export function createOmni(registry) {
     likedIds: route('likedIds'),
     setLiked: route('setLiked'),
     addToPlaylist: route('addToPlaylist'),
+  removeFromPlaylist: route('removeFromPlaylist'),
+  subscriptionStatus: route('subscriptionStatus'),
+  subscribeCollection: route('subscribeCollection'),
+
+  // ── recommendations / cloud ──────────────────────────────────────────
+  dailySongs: route('dailySongs'),
+  recommendedCollections: route('recommendedCollections'),
+  personalFm: route('personalFm'),
+  historyDates: route('historyDates'),
+  historySongs: route('historySongs'),
+  cloudSongs: route('cloudSongs'),
 
     // ── playback / lyrics ─────────────────────────────────────────────────
     stream: route('stream'),

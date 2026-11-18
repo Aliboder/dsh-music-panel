@@ -280,7 +280,7 @@ export function splitFileName(fn) {
 }
 
 /** Normalize the nested `{base,audio_info,album_info,authors}` rows returned by the package's KMR routes. */
-export function normalizePackageSong(item) {
+export function normalizePackageSong(item, opts = {}) {
   const row = item !== null && typeof item === 'object' ? item : {}
   if (!row.base && !row.audio_info && !row.album_info) {
     const authors = Array.isArray(row.authors) ? row.authors : []
@@ -304,7 +304,7 @@ export function normalizePackageSong(item) {
             : [],
       duration: row.duration || (Number(row.timelength) || Number(row.timelen) || 0) / 1000,
       AlbumImage: row.cover || albumInfo.cover || albumInfo.sizable_cover || '',
-    })
+    }, opts)
     if (row.fileid !== undefined) normalized.fileId = row.fileid
     return normalized
   }
@@ -313,7 +313,7 @@ export function normalizePackageSong(item) {
   const album = row.album_info || {}
   const authors = Array.isArray(row.authors) ? row.authors : []
   const hash = lowHash(audio.hash || audio.hash_128 || '')
-  if (hash === '') return normalizeSong(row)
+  if (hash === '') return normalizeSong(row, opts)
   return normalizeSong({
     ...base,
     hash,
@@ -329,7 +329,7 @@ export function normalizePackageSong(item) {
     Singers: authors.map((author) => ({ id: author?.author_id, name: author?.author_name })),
     SingerName: authors.map((author) => author?.author_name).filter(Boolean).join(' / '),
     authors,
-  })
+  }, opts)
 }
 
 /** 统一歌曲形状（对齐 qq.js 结果字段 + 酷狗特有 hash 组）。 */
@@ -664,6 +664,44 @@ async function ensureDeviceSession(session = {}) {
   return s
 }
 
+// ── recommendations / cloud (Folia routes) ──────────────────────────────────
+
+function recommendationRows(body) {
+  const data = body?.data ?? body?.body?.data ?? body
+  if (Array.isArray(data)) return data
+  for (const key of ['songs', 'song_list', 'songlist', 'list', 'lists', 'recommend', 'data']) {
+    if (Array.isArray(data?.[key])) return data[key]
+  }
+  return []
+}
+
+/** Folia daily recommendation: package /everyday/recommend. */
+export async function dailySongs(session = {}, platform = 'standard') {
+  const answer = await callKugou(platform, 'everyday_recommend', {})
+  return recommendationRows(answer.body).map((row) => normalizePackageSong(row, { hashKey: 'FileHash' })).filter((song) => song.id !== '')
+}
+
+/** Folia personal FM: package /personal/fm. */
+export async function personalFm(session = {}, platform = 'standard') {
+  const answer = await callKugou(platform, 'personal_fm', {})
+  return recommendationRows(answer.body).map((row) => normalizePackageSong(row, { hashKey: 'FileHash' })).filter((song) => song.id !== '')
+}
+
+/** Folia cloud drive: package /user/cloud; rows keep their fileId for playback. */
+export async function cloudSongs(session = {}, page = 1, size = 100, platform = 'standard') {
+  const answer = await callKugou(platform, 'user_cloud', {
+    userid: String(session.userid ?? ''),
+    page: Math.max(1, Number(page) || 1),
+    pagesize: Math.max(1, Math.min(200, Number(size) || 100)),
+  })
+  return recommendationRows(answer.body)
+    .map((row) => {
+      const song = normalizePackageSong(row, { hashKey: 'FileHash' })
+      return { ...song, variant: 'cloud', fileId: row.fileid ?? row.fileId ?? song.fileId ?? 0 }
+    })
+    .filter((song) => song.id !== '')
+}
+
 /** 歌单分类（酷狗权威接口 pubsongs/v1/get_tags_by_type，Android 网关签名）。
  *  返回两级结构：[{ id, name, children: [{ id, name }] }]。
  *  id 编码为 `"<父tag_id>:<子tag_id>"`（一级子分类 id 为 `<tag_id>:`），
@@ -859,6 +897,18 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
   const s = normSession(session)
   const primaryHash = lowHash(song.hash) || lowHash(song.hqHash) || lowHash(song.sqHash)
   if (!primaryHash) throw new Error('缺少歌曲 hash')
+  if (song.variant === 'cloud') {
+    const answer = await callKugou('standard', 'user_cloud_url', {
+      hash: primaryHash,
+      id: String(song.fileId || ''),
+    })
+    const data = answer.body?.data ?? answer.body
+    const payload = Array.isArray(data) ? data[0] : data
+    const raw = payload?.play_url ?? payload?.playUrl ?? payload?.url ?? payload?.backup_url
+    const url = Array.isArray(raw) ? raw.find((entry) => typeof entry === 'string' && entry !== '') : raw
+    if (typeof url === 'string' && url !== '') return { url, quality: '标准' }
+    throw new Error('酷狗云盘没有返回播放地址')
+  }
   const ladder = ['flac', 'high', '320', '128']
   const want = prefer.filter((x) => ladder.includes(x))
   const qualities = want.length > 0 ? [...new Set([...want, ...ladder])] : ladder

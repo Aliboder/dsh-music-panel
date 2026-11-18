@@ -311,6 +311,12 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
   const s = normSession(session)
   const hash = String(song.hash || '').toLowerCase()
   if (!hash) throw new Error('缺少歌曲 hash')
+  if (song.variant === 'cloud') {
+    const answer = await callKugou('lite', 'user_cloud_url', { hash, id: String(song.fileId || '') })
+    const url = findPlaybackUrl(answer.body)
+    if (url) return { url, quality: 'standard' }
+    throw new Error('酷狗概念版云盘没有返回播放地址')
+  }
   const albumId = Number(song.albumId) || 0
   const albumAudioId = Number(song.albumAudioId) || 0
   const attempts = []

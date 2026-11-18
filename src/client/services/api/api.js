@@ -177,6 +177,7 @@ function onlineTrackOf(result) {
     onlineUrl: onlineStreamUrl(provider, result.id),
     onlineProvider: provider,
     onlineId: result.id,
+    fileId: result.fileId || 0,
     qualityHint: result.qualityHint || '',
     addedAt: Number(result.addedAt || result.createdAt || 0) || 0,
     lastPlayedAt: Number(result.playedAt || result.lastPlayedAt || result.updatedAt || 0) || 0,

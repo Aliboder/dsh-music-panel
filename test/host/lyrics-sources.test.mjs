@@ -99,7 +99,8 @@ assert.equal(await emptyAmll.fetchLyrics('qq', 'x'), null)
 // ── runner ─────────────────────────────────────────────────────────────────
 
 const track = { title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }
-assert.equal(buildLyricSearchQuery(track), '晴天 周杰伦')
+assert.equal(buildLyricSearchQuery(track), '晴天 - 周杰伦 - 叶惠美')
+assert.equal(buildLyricSearchQuery({ title: '周杰伦 - 晴天', artist: '周杰伦', album: '' }), '晴天 - 周杰伦')
 assert.equal(AUTO_MATCH_SEARCH_LIMIT, 10)
 assert.equal(hasRenderableLyrics({ lines: [] }), false)
 assert.equal(hasRenderableLyrics({ lines: [{ text: '' }] }), false)
@@ -239,7 +240,7 @@ assert.equal(amllOnlyLineLevel.wordLevel, false)
   })
   assert.equal(aliasResult.source, 'qq')
   assert.equal(aliasResult.wordLevel, true, 'the alias pass found the word-level lyric')
-  assert.deepEqual(aliasQueries, ['晴天 周杰伦', 'Original 周杰伦'], 'the retry searches the other title')
+  assert.deepEqual(aliasQueries, ['晴天 - 周杰伦 - 叶惠美', 'Original - 周杰伦 - 叶惠美'], 'the retry searches the other title')
 
   // Nothing matched: another spelling of the artist is tried once.
   const artistQueries = []
@@ -254,7 +255,7 @@ assert.equal(amllOnlyLineLevel.wordLevel, false)
     alternateArtist: async () => '周董',
   })
   assert.equal(alternateResult.source, 'qq')
-  assert.deepEqual(artistQueries, ['晴天 周杰伦', '晴天 周董'])
+  assert.deepEqual(artistQueries, ['晴天 - 周杰伦 - 叶惠美', '晴天 - 周董 - 叶惠美'])
 
   // A word-level answer on the first pass never pays for either retry.
   let aliasAsked = 0

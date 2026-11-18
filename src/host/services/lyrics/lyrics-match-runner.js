@@ -86,12 +86,44 @@ export function lrcTime(seconds) {
   return '[' + String(minutes).padStart(2, '0') + ':' + String(secs).padStart(2, '0') + '.' + String(rest - secs * 1000).padStart(3, '0') + ']'
 }
 
-/** The query Folia sends: title plus artist, nothing else. */
-export function buildLyricSearchQuery(track) {
+const LYRIC_QUERY_ALBUM_MAX = 48
+
+function normalizeLyricIdentity(value) {
+  return String(value ?? '').normalize('NFKC').toLowerCase().replace(/\s+/g, '')
+}
+
+function lyricTitle(track) {
   const title = String(track?.title ?? '').trim()
   const artist = String(track?.artist ?? '').trim()
-  if (title === '') return ''
-  return artist === '' ? title : `${title} ${artist}`
+  if (title === '' || artist === '') return title
+  const match = /^(.+?)\s+-\s+(.+)$/u.exec(title)
+  if (match === null) return title
+  return normalizeLyricIdentity(match[1]) === normalizeLyricIdentity(artist) ? match[2].trim() : title
+}
+
+function lyricAlbum(track) {
+  const album = String(track?.album ?? '').trim()
+  if (album === '') return null
+  if (album.length <= LYRIC_QUERY_ALBUM_MAX) return album
+  const compact = album
+    .replace(/\s*※.*$/u, '')
+    .replace(/\s*(歌|歌唱|アーティスト|Artist)\s*[:：]?\s*.+$/iu, '')
+    .trim()
+  return compact.slice(0, LYRIC_QUERY_ALBUM_MAX).trim() || null
+}
+
+/** Folia's query: title - artist - album, with the title prefix and long albums normalised. */
+export function buildLyricSearchQuery(track) {
+  if (String(track?.title ?? '').trim() === '') return ''
+  return [lyricTitle(track), String(track?.artist ?? '').trim(), lyricAlbum(track)]
+    .filter((part) => typeof part === 'string' && part !== '')
+    .join(' - ')
+}
+
+/** KuGou's lyric search works best with the title alone (Folia's own query), not the full structured string. */
+export function buildKugouLyricSearchQuery(track) {
+  const full = buildLyricSearchQuery(track)
+  return full.split(/\s+-\s+/u)[0]?.trim() || full
 }
 
 /**
@@ -168,8 +200,11 @@ async function searchOnce(track, io) {
 
     let candidates = []
     try {
+      const sourceQuery = sourceId === 'kugouLite' || sourceId === 'kugou'
+        ? buildKugouLyricSearchQuery(track)
+        : query
       candidates = await withTimeout(
-        io.search(sourceId, query, AUTO_MATCH_SEARCH_LIMIT),
+        io.search(sourceId, sourceQuery, AUTO_MATCH_SEARCH_LIMIT),
         SEARCH_TIMEOUT_MS,
         `${sourceId} search`,
       )

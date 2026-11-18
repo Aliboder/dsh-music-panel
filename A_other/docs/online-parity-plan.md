@@ -1,6 +1,6 @@
 # 在线平台向 Folia 对齐 · 修改文档
 
-> 状态：**实施中**（阶段 1.1 搜索后端、阶段 1.2 酷狗身份与取流已完成代码；待真实账号/真实歌曲验证）
+> 状态：**阶段 1.1 / 1.2 / 1.3、阶段 2 主要能力、阶段 3 推荐与云盘已完成代码；探索页和个别平台写操作仍待补**。真实账号与真实歌曲验证未完成。
 > 确认日期：2026-11-19
 > 范围：现有在线平台（网易云 / QQ / 酷狗概念版 / 波点 / 汽水 / Navidrome）
 > 标杆：Folia `A_other/upstream/folia-major-main`
@@ -451,7 +451,7 @@ npm run check
 
 ## 11. 实施记录
 
-### 2026-11-19 · 阶段 1.1 / 1.2
+### 2026-11-19 · 阶段 1.1 / 1.2 / 1.3 / 2 / 3（核心）
 
 - 酷狗标准版与概念版：
   - `albumAudioId` 只取 `album_audio_id` / `albumAudioId`（含安全的嵌套/基字段），不再用 `Audioid` / `audio_id`；
@@ -463,6 +463,15 @@ npm run check
   - 酷狗歌单搜索改为 package `search type=special`；
   - 汽水补 `search_playlists`；
   - 搜索页仍不显示歌单栏目。
+- 歌词对齐：来源 id 兼容旧 `kugou`，默认首选来源 QQ；查询改为 `title - artist - album`；自动匹配保留歌曲自身平台。
+- 推荐/云盘：
+  - Host 新增 `dailySongs`、`recommendedCollections`、`personalFm`、`cloudSongs` 门面、路由与能力位；
+  - panel-v3 新增「推荐」「云盘」Tab；推荐页含每日推荐、推荐歌单、私人 FM；云盘页含分页；
+  - 网易云/QQ/酷狗（含概念版）已接入；汽水/波点没有对应能力，不显示入口。
+- 资料库/写操作：
+  - 网易云/QQ 支持歌单/专辑订阅；
+  - 网易云/QQ/酷狗支持自建歌单行内移除；酷狗概念版沿用其能力位，未强行打开写操作。
+- 未完成：探索页（NetEase/QQ 的 section 流）、歌单创建/改名、播放上报（QQ/酷狗平台无对应接口）。
 - 全量 `npm test` / `npm run check` 通过；真实账号与真实问题歌曲尚未验证。
 
 ---

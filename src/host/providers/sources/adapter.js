@@ -103,7 +103,33 @@ export function createOnlineAdapter(spec) {
       return call('nativeSongs', session, options)
     },
 
-    // ── playlists / likes ─────────────────────────────────────────────────
+    // ── recommendations / discovery ───────────────────────────────────────
+  dailySongs(ctx) {
+    const { cookie, session } = parts(ctx)
+    return call('dailySongs', cookie, session)
+  },
+  recommendedCollections(ctx, limit) {
+    const { cookie, session } = parts(ctx)
+    return call('recommendedCollections', cookie, session, limit)
+  },
+  personalFm(ctx) {
+    const { cookie, session } = parts(ctx)
+    return call('personalFm', cookie, session)
+  },
+  cloudSongs(ctx, page) {
+    const { cookie, session } = parts(ctx)
+    return call('cloudSongs', cookie, session, page)
+  },
+  historyDates(ctx) {
+    const { cookie } = parts(ctx)
+    return call('historyDates', cookie)
+  },
+  historySongs(ctx, date) {
+    const { cookie } = parts(ctx)
+    return call('historySongs', cookie, date)
+  },
+
+  // ── playlists / likes ─────────────────────────────────────────────────
     myPlaylists(ctx) {
       const { cookie, session } = parts(ctx)
       return call('myPlaylists', cookie, session)
@@ -127,6 +153,18 @@ export function createOnlineAdapter(spec) {
     addToPlaylist(song, playlistId, ctx) {
       const { cookie, session } = parts(ctx)
       return call('addOnlineSongToPlaylist', song, playlistId, cookie, session)
+    },
+    removeFromPlaylist(song, playlistId, ctx) {
+      const { cookie, session } = parts(ctx)
+      return call('removeOnlineSongFromPlaylist', song, playlistId, cookie, session)
+    },
+    subscriptionStatus(type, id, ctx) {
+      const { cookie } = parts(ctx)
+      return call('subscriptionStatus', type, id, cookie)
+    },
+    subscribeCollection(type, id, subscribed, ctx) {
+      const { cookie } = parts(ctx)
+      return call('subscribeCollection', type, id, subscribed, cookie)
     },
 
     // ── playback / lyrics ─────────────────────────────────────────────────

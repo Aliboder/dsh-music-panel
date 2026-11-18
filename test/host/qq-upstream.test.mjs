@@ -95,6 +95,33 @@ assert.equal(
   }
 }
 
+// Recommendations and cloud use the same package routes Folia uses.
+{
+  setUpstreamOverride(async (route) => {
+    if (route === '/user/daily-songs') {
+      return { songs: [{ mid: 'D1', name: 'Daily', singer: [{ name: 'A' }], album: { mid: 'AL', name: 'Album' }, interval: 100 }] }
+    }
+    if (route === '/recommend/playlists') {
+      return { playlists: [{ dissid: 9, dissname: '推荐歌单', logo: 'https://p/c.jpg', songnum: 4 }] }
+    }
+    if (route === '/user/cloud') {
+      return { count: 1, data: [{ playable: true, song: { mid: 'C1', name: 'Cloud', singer: [{ name: 'A' }], album: { mid: 'AL', name: 'Album' }, interval: 100 } }] }
+    }
+    throw new Error('unexpected route: ' + route)
+  })
+  try {
+    const daily = await QQ.dailySongs('cookie')
+    assert.equal(daily[0].title, 'Daily')
+    const playlists = await QQ.recommendedCollections('cookie', 10)
+    assert.equal(playlists[0].name, '推荐歌单')
+    const cloud = await QQ.cloudSongs('cookie')
+    assert.equal(cloud[0].title, 'Cloud')
+    assert.equal(cloud[0].variant, 'cloud')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
 // The row the client receives is shaped by the provider layer: the badge follows
 // `qualityHint`, which was empty for QQ before this fix.
 {

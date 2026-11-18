@@ -144,6 +144,114 @@ export async function searchPlaylists(keyword, cookie = '', page = 1) {
   return { results, total: Number(json.total) || results.length, page: p }
 }
 
+// ── recommendations / cloud (Folia routes) ──────────────────────────────────
+
+function qqSongRows(json) {
+  return Array.isArray(json?.songs) ? json.songs : (Array.isArray(json?.data?.songs) ? json.data.songs : [])
+}
+
+/** Folia daily 30: /user/daily-songs. It needs a signed-in account. */
+export async function dailySongs(cookie = '') {
+  const json = await callUpstream('/user/daily-songs', {}, { cookie })
+  return qqSongRows(json).map(toLegacyResult).filter(Boolean)
+}
+
+/** Folia personal FM: /user/personal-fm?page=1. */
+export async function personalFm(cookie = '') {
+  const json = await callUpstream('/user/personal-fm', { page: 1 }, { cookie })
+  return qqSongRows(json).map(toLegacyResult).filter(Boolean)
+}
+
+/** Folia recommended collections: /recommend/playlists. */
+export async function recommendedCollections(cookie = '', limit = 30) {
+  const json = await callUpstream('/recommend/playlists', { limit: Math.max(1, Math.min(60, Number(limit) || 30)) }, { cookie })
+  const rows = Array.isArray(json.playlists) ? json.playlists : []
+  return rows.map((row) => {
+    const item = row !== null && typeof row === 'object' ? row : {}
+    return {
+      id: String(item.dissid ?? item.id ?? ''),
+      name: decodeEntities(item.dissname ?? item.name ?? ''),
+      cover: String(item.logo ?? item.imgurl ?? item.pic ?? ''),
+      creator: decodeEntities(item.nickname ?? item.creator ?? ''),
+      trackCount: Number(item.songnum ?? item.songNum ?? item.total) || 0,
+      playCount: Number(item.listennum ?? item.listenNum) || 0,
+      source: 'qq',
+      type: 'playlist',
+    }
+  }).filter((playlist) => playlist.id !== '' && playlist.name !== '')
+}
+
+/** Folia cloud drive: /user/cloud; only rows whose song is playable. */
+export async function cloudSongs(cookie = '', limit = 100, offset = 0) {
+  const json = await callUpstream('/user/cloud', { limit: Math.min(1000, Math.max(1, Number(limit) || 100)), offset: Math.max(0, Number(offset) || 0) }, { cookie })
+  const rows = Array.isArray(json.data) ? json.data : []
+  return rows
+    .filter((entry) => entry && entry.playable === true && entry.song && typeof entry.song === 'object')
+    .map((entry) => toLegacyResult(entry.song))
+    .filter(Boolean)
+    .map((song) => ({ ...song, variant: 'cloud' }))
+}
+
+/** Folia daily-history: /user/daily-songs/history. */
+export async function historyDates(cookie = '') {
+  const json = await callUpstream('/user/daily-songs/history/dates', {}, { cookie })
+  return (Array.isArray(json.dates) ? json.dates : []).filter((date) => typeof date === 'string' && date !== '')
+}
+
+export async function historySongs(cookie = '', date = '') {
+  const day = String(date || '').trim()
+  if (day === '') return []
+  const json = await callUpstream('/user/daily-songs/history', { date: day }, { cookie })
+  return qqSongRows(json).map(toLegacyResult).filter(Boolean)
+}
+
+/** Remove one song from an owned playlist (Folia mutations.updatePlaylistTracks). */
+export async function removeFromPlaylist(song, playlistId, cookie = '') {
+  const tid = String(playlistId || '').trim()
+  const songId = Number(song?.songid ?? song?.id)
+  if (tid === '' || !Number.isSafeInteger(songId) || songId <= 0) throw new Error('缺少歌单或歌曲 id')
+  const json = await callUpstream('/user/playlist/tracks', {}, {
+    cookie,
+    method: 'POST',
+    body: { tid, op: 'del', songs: [{ id: songId, type: 0 }] },
+  })
+  if (json?.changed === false) throw new Error('QQ 音乐拒绝从歌单移除歌曲')
+  return true
+}
+
+/** Folia subscription status; an unknown answer means "not subscribed". */
+export async function subscriptionStatus(type, id, cookie = '') {
+  const key = type === 'album' ? String(id || '').trim() : String(Number(id) || '')
+  if (key === '') return false
+  const json = await callUpstream('/user/subscription-status', { type, ids: key }, { cookie })
+  const items = Array.isArray(json.items) ? json.items : []
+  return items.some((item) => String(item?.id) === key && item?.status === 'subscribed')
+}
+
+/** Folia subscribe/unsubscribe. */
+export async function subscribeCollection(type, id, subscribed, cookie = '') {
+  if (type === 'album') {
+    const albumMid = String(id || '').trim()
+    if (albumMid === '') throw new Error('缺少专辑 mid')
+    const json = await callUpstream('/user/album/subscribe', {}, {
+      cookie,
+      method: 'POST',
+      body: { id: albumMid, subscribed },
+    })
+    if (json?.subscribed !== subscribed) throw new Error('QQ 音乐没有确认专辑订阅')
+    return true
+  }
+  const tid = String(id || '').trim()
+  if (tid === '') throw new Error('缺少歌单 tid')
+  const json = await callUpstream('/user/playlist/subscribe', {}, {
+    cookie,
+    method: 'POST',
+    body: { tid, subscribed },
+  })
+  if (json?.subscribed !== subscribed) throw new Error('QQ 音乐没有确认歌单订阅')
+  return true
+}
+
 /** Own playlists and the built-in liked list, from the package's `/user/playlist`. */
 export async function getMyPlaylists(cookie = '') {
   const json = await callUpstream('/user/playlist', {}, { cookie })

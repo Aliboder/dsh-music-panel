@@ -54,6 +54,11 @@ const NETEASE_CAPABILITIES = {
   mutations: true,
   listeningRank: true,
   playbackReports: true,
+  recommendations: true,
+  userCloud: true,
+  historyRecommendations: true,
+  playlistTrackMutations: true,
+  playlistSubscription: true,
 }
 const QQ_CAPABILITIES = {
   ...CHINESE_CAPABILITIES,
@@ -64,6 +69,11 @@ const QQ_CAPABILITIES = {
   userAlbums: true,
   mutations: true,
   listeningRank: true,
+  recommendations: true,
+  userCloud: true,
+  historyRecommendations: true,
+  playlistTrackMutations: true,
+  playlistSubscription: true,
 }
 const KUGOU_LITE_CAPABILITIES = {
   ...CHINESE_CAPABILITIES,
@@ -71,6 +81,9 @@ const KUGOU_LITE_CAPABILITIES = {
   userLibrary: true,
   wordByWordLyrics: true,
   searchAlbums: true,
+  recommendations: true,
+  userCloud: true,
+  historyRecommendations: true,
   // The package exposes read/play, but not cloud like/playlist writes yet.
   likeWrite: false,
   playlistAdd: false,

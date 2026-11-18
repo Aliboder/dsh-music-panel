@@ -534,6 +534,172 @@ function P3RecentPage(props) {
 
 var P3_ONLINE_SONG_PAGE = 100
 
+function P3DiscoverPage(props) {
+  var source = props.route.source
+  var [state, setState] = useState({ phase: 'loading', songs: [], playlists: [], error: '' })
+  var [reload, setReload] = useState(0)
+  var [fmBusy, setFmBusy] = useState(false)
+
+  useEffect(function () {
+    var cancelled = false
+    setState({ phase: 'loading', songs: [], playlists: [], error: '' })
+    getJson(API + 'online/discover?provider=' + encodeURIComponent(source))
+      .then(function (body) {
+        if (cancelled) return
+        setState({
+          phase: 'ready',
+          songs: Array.isArray(body.songs) ? body.songs : [],
+          playlists: Array.isArray(body.playlists) ? body.playlists : [],
+          error: '',
+        })
+      })
+      .catch(function (error) {
+        if (cancelled) return
+        setState({ phase: 'error', songs: [], playlists: [], error: errorText(error) })
+      })
+    return function () { cancelled = true }
+  }, [source, reload])
+
+  function startFm() {
+    if (fmBusy) return
+    setFmBusy(true)
+    getJson(API + 'online/personal-fm?provider=' + encodeURIComponent(source))
+      .then(function (body) {
+        var tracks = p3OnlineTrackList(Array.isArray(body.songs) ? body.songs : [])
+        if (tracks.length === 0) {
+          showToast(t('p3.fmEmpty'))
+          return
+        }
+        p3PlayAll(tracks)
+      })
+      .catch(function (error) { showToast(errorText(error)) })
+      .finally(function () { setFmBusy(false) })
+  }
+
+  var items = p3OnlineTrackList(state.songs)
+  var playlistItems = state.playlists.map(function (playlist) {
+    return {
+      id: playlist.id,
+      name: playlist.name || '',
+      subtitle: (playlist.trackCount || 0) + ' ' + t('p3.unitSong'),
+      coverSrc: p3OnlineCover(playlist, source, 'playlist'),
+      playlist: playlist,
+    }
+  })
+  var actions = h('div', { className: 'mpv3-more' },
+    h(Button, { variant: 'ghost', disabled: fmBusy, onClick: startFm }, fmBusy ? t('p3.loadingMore') : t('p3.personalFm')),
+    h(Button, { variant: 'ghost', onClick: function () { setReload(reload + 1) } }, t('page.refresh')),
+  )
+  var playlistsBlock = playlistItems.length > 0 ? h('div', { className: 'mpv3-discover-playlists' },
+    h(P3Grid, {
+      items: playlistItems,
+      onOpen: function (item) { p3OpenPlaylist(item.playlist, source) },
+    }),
+  ) : null
+  var header = h('div', null,
+    h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
+    actions,
+    playlistsBlock,
+  )
+
+  if (state.phase === 'loading') {
+    return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+      h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
+      h(P3Skeleton, { count: 8 }),
+    ))
+  }
+  if (state.phase === 'error') {
+    return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+      h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: state.error, actions: h(Button, { variant: 'ghost', onClick: function () { setReload(reload + 1) } }, t('p3.retry')) }),
+    )
+  }
+  if (items.length === 0 && playlistItems.length === 0) {
+    return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+      h(P3Empty, { icon: 'music', title: t('p3.discoverEmpty'), hint: t('p3.discoverEmptyHint') }),
+    )
+  }
+  if (items.length === 0) {
+    return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+      actions,
+      playlistsBlock,
+    )
+  }
+  return h(P3List, {
+    items: items,
+    header: header,
+    currentPath: props.currentPath,
+    playing: props.playing,
+    favoriteSet: props.favoriteSet,
+    selectedSet: {},
+    resetKey: 'online-discover:' + source + ':' + reload,
+  })
+}
+
+function P3CloudPage(props) {
+  var source = props.route.source
+  var [state, setState] = useState({ phase: 'loading', items: [], page: 1, loadingMore: false, error: '' })
+  var [page, setPage] = useState(1)
+  var [reload, setReload] = useState(0)
+
+  useEffect(function () {
+    var cancelled = false
+    if (page === 1) setState({ phase: 'loading', items: [], page: 1, loadingMore: false, error: '' })
+    else setState(function (current) { return Object.assign({}, current, { loadingMore: true, error: '' }) })
+    getJson(API + 'online/cloud?provider=' + encodeURIComponent(source) + '&page=' + String(page))
+      .then(function (body) {
+        if (cancelled) return
+        var incoming = p3OnlineTrackList(Array.isArray(body.songs) ? body.songs : [])
+        setState(function (current) {
+          var merged = page === 1 ? incoming : current.items.concat(incoming)
+          return { phase: 'ready', items: merged, page: page, loadingMore: false, error: '', hasMore: body.hasMore === true }
+        })
+      })
+      .catch(function (error) {
+        if (cancelled) return
+        if (page === 1) setState({ phase: 'error', items: [], page: 1, loadingMore: false, error: errorText(error) })
+        else {
+          setState(function (current) { return Object.assign({}, current, { loadingMore: false, error: errorText(error) }) })
+          showToast(errorText(error))
+        }
+      })
+    return function () { cancelled = true }
+  }, [source, page, reload])
+
+  useEffect(function () { setPage(1) }, [source])
+  if (state.phase === 'loading') {
+    return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' },
+      h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
+      h(P3Skeleton, { count: 8 }),
+    ))
+  }
+  if (state.phase === 'error') {
+    return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+      h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: state.error, actions: h(Button, { variant: 'ghost', onClick: function () { setPage(1); setReload(reload + 1) } }, t('p3.retry')) }),
+    )
+  }
+  if (state.items.length === 0) {
+    return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+      h(P3Empty, { icon: 'download', title: t('p3.cloudEmpty'), hint: t('p3.cloudEmptyHint') }),
+    )
+  }
+  var more = state.hasMore === true
+  return h(P3List, {
+    items: state.items,
+    header: h('div', null,
+      h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }),
+      more ? h('div', { className: 'mpv3-more' },
+        h(Button, { variant: 'ghost', disabled: state.loadingMore === true, onClick: function () { if (!state.loadingMore) setPage(page + 1) } },
+          state.loadingMore === true ? t('p3.loadingMore') : t('p3.loadMore')),
+      ) : null,
+    ),
+    currentPath: props.currentPath,
+    playing: props.playing,
+    favoriteSet: props.favoriteSet,
+    selectedSet: {},
+    resetKey: 'online-cloud:' + source + ':' + reload,
+  })
+}
+
 function P3OnlineSongsPage(props) {
   var [state, setState] = useState({ phase: 'loading', items: [], total: 0, loadingMore: false, error: '' })
   var [page, setPage] = useState(1)
@@ -664,6 +830,34 @@ function P3OnlineArtistsPage(props) {
   )
 }
 
+function P3SubscribeButton(props) {
+  var provider = props.provider
+  var type = props.type
+  var id = String(props.id || '')
+  var enabled = id !== '' && p3SourceCaps(provider).playlistSubscription === true
+  var [subscribed, setSubscribed] = useState(false)
+  var [busy, setBusy] = useState(false)
+  useEffect(function () {
+    if (!enabled) return undefined
+    var cancelled = false
+    getJson(API + 'online/subscription?provider=' + encodeURIComponent(provider) + '&type=' + encodeURIComponent(type) + '&id=' + encodeURIComponent(id))
+      .then(function (body) { if (!cancelled) setSubscribed(body.subscribed === true) })
+      .catch(function () { /* a failed status leaves the star off */ })
+    return function () { cancelled = true }
+  }, [provider, type, id, enabled])
+  if (!enabled) return null
+  function toggle() {
+    if (busy) return
+    setBusy(true)
+    postJson(API + 'online/subscription', { provider: provider, type: type, id: id, subscribed: !subscribed })
+      .then(function (body) { setSubscribed(body.subscribed === true) })
+      .catch(function (error) { showToast(errorText(error)) })
+      .finally(function () { setBusy(false) })
+  }
+  return h(Button, { variant: 'ghost', icon: 'star', disabled: busy, onClick: toggle },
+    subscribed ? t('p3.subscribed') : t('p3.subscribe'))
+}
+
 function P3OnlinePlaylistPage(props) {
   var collection = p3Collection.get().playlist
   if (!collection && props.route.param) {
@@ -677,6 +871,27 @@ function P3OnlinePlaylistPage(props) {
     if (String(store.playlistId) !== String(collection.id) || store.playlistPhase === 'idle' || store.playlistPhase === 'error') void openOnlinePlaylist(collection)
   }, [props.route.param, props.route.source])
   var items = p3OnlineTrackList(props.online.playlistSongs)
+  var canRemove = collection && collection.isOwned === true && p3SourceCaps(props.route.source).playlistTrackMutations === true
+  function removeTrack(track) {
+    if (!canRemove || !collection) return
+    postJson(API + 'online/playlist-remove', {
+      provider: props.route.source,
+      playlistId: collection.id,
+      song: {
+        id: track.onlineId,
+        songid: track.onlineId,
+        title: track.title,
+        artist: track.artist,
+        album: track.album,
+        fileId: track.fileId,
+      },
+    })
+      .then(function () {
+        showToast(t('p3.removedFromPlaylist'))
+        return openOnlinePlaylist(collection)
+      })
+      .catch(function (error) { showToast(errorText(error)) })
+  }
   if (props.online.playlistPhase === 'loading') return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' }, h(P3Skeleton, { count: 8 })))
   if (props.online.playlistPhase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.error, actions: h(Button, { variant: 'ghost', onClick: function () { void openOnlinePlaylist(collection) } }, t('p3.retry')) }))
   return h(P3List, {
@@ -689,12 +904,14 @@ function P3OnlinePlaylistPage(props) {
       actions: h('div', { className: 'mpv3-hero-actions' },
         h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
         h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
+        collection && collection.isOwned !== true ? h(P3SubscribeButton, { provider: props.route.source, type: 'playlist', id: collection.id }) : null,
       ),
     }),
     currentPath: props.currentPath,
     playing: props.playing,
     favoriteSet: props.favoriteSet,
     selectedSet: {},
+    onRemove: canRemove ? removeTrack : undefined,
     resetKey: 'online-playlist:' + props.route.param,
     empty: h(P3Empty, { icon: 'list', title: t('p3.playlistEmpty') }),
   })
@@ -730,6 +947,7 @@ function P3OnlineAlbumPage(props) {
       actions: h('div', { className: 'mpv3-hero-actions' },
         h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
         h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
+        h(P3SubscribeButton, { provider: props.route.source, type: 'album', id: collection && collection.albumId ? collection.albumId : String(props.route.param || '').split(':').pop() }),
       ),
     }),
     currentPath: props.currentPath,
@@ -1067,6 +1285,8 @@ function P3PageSwitch(props) {
   if (route.page === 'playlists') return h(P3PlaylistsPage, props)
   if (route.page === 'stats') return h(P3StatsPage, props)
   if (route.page === 'recent') return h(P3RecentPage, props)
+  if (route.page === 'discover') return h(P3DiscoverPage, props)
+  if (route.page === 'cloud') return h(P3CloudPage, props)
   if (route.page === 'album') return h(P3AlbumPage, props)
   if (route.page === 'artist') return h(P3ArtistPage, props)
   if (route.page === 'playlist') return h(P3PlaylistPage, props)

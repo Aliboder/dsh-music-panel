@@ -6,7 +6,7 @@
  */
 
 import assert from 'node:assert/strict'
-import { plain, searchAlbums, songOf } from '../../src/host/providers/netease.js'
+import { cloudSongs, dailySongs, plain, recommendedCollections, searchAlbums, songOf } from '../../src/host/providers/netease.js'
 import { assertOk, ensureNeteaseService, resetUpstreamOverride, setUpstreamOverride, stopNeteaseService } from '../../src/host/services/netease-api.js'
 import {
   createLoginQrCheck,
@@ -80,6 +80,38 @@ assert.equal(songOf({ name: 'no id' }), null)
     assert.equal(albums.results[0].name, '叶惠美')
     assert.equal(albums.results[0].artist, '周杰伦')
     assert.equal(albums.results[0].trackCount, 11)
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
+// ── recommendations / cloud mapping ─────────────────────────────────────────
+
+{
+  const calls = []
+  setUpstreamOverride(async (route) => {
+    calls.push(route)
+    if (route === '/recommend/songs') {
+      return { data: { dailySongs: [{ id: 1, name: 'Daily', ar: [{ name: 'A' }], al: { id: 2, name: 'Album' }, dt: 1000 }] } }
+    }
+    if (route === '/personalized') {
+      return { result: [{ id: 9, name: '推荐歌单', coverImgUrl: 'https://p/c.jpg', trackCount: 4 }] }
+    }
+    if (route === '/user/cloud') {
+      return { data: [{ id: 3, name: 'Cloud', ar: [{ name: 'A' }], al: { id: 4, name: 'Album' }, dt: 1000 }] }
+    }
+    throw new Error('unexpected route: ' + route)
+  })
+  try {
+    const daily = await dailySongs('MUSIC_U=cookie')
+    assert.equal(daily[0].title, 'Daily')
+    const playlists = await recommendedCollections('MUSIC_U=cookie', 10)
+    assert.equal(playlists[0].name, '推荐歌单')
+    const cloud = await cloudSongs('MUSIC_U=cookie')
+    assert.equal(cloud[0].title, 'Cloud')
+    assert.equal(cloud[0].variant, 'cloud')
+    assert.ok(calls.includes('/recommend/songs'))
+    assert.ok(calls.includes('/user/cloud'))
   } finally {
     resetUpstreamOverride()
   }

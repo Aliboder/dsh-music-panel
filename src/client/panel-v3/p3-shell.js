@@ -374,7 +374,7 @@ function P3Rail(props) {
           type: 'button',
           className: cx('mpv3-rail-item', active === tab && 'is-on'),
           onClick: function () { p3SelectBrowseTab(tab) },
-        }, icon(tab === 'albums' ? 'disc' : tab === 'artists' ? 'user' : tab === 'folders' ? 'folder' : tab === 'favorites' ? 'heart' : tab === 'stats' ? 'chart' : tab === 'recent' ? 'clock' : 'music', 15), h('span', null, p3PageLabel(tab)))
+        }, icon(tab === 'albums' ? 'disc' : tab === 'artists' ? 'user' : tab === 'folders' ? 'folder' : tab === 'favorites' ? 'heart' : tab === 'stats' ? 'chart' : tab === 'recent' ? 'clock' : tab === 'discover' ? 'disc' : tab === 'cloud' ? 'download' : 'music', 15), h('span', null, p3PageLabel(tab)))
       }),
     ),
     tabs.indexOf('playlists') >= 0 ? h('div', { className: 'mpv3-rail-group' },
