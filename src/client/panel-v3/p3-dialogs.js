@@ -43,7 +43,7 @@ function P3PlaylistDialog(props) {
         setBusy(false)
         if (!created) return
         closeP3Playlist()
-        p3Navigate('playlist', created.id)
+        p3OpenPlaylist(created)
       })
       return
     }
@@ -62,9 +62,10 @@ function P3PlaylistDialog(props) {
     removePlaylist(playlist.id).then(function (ok) {
       setBusy(false)
       if (!ok) return
-      var route = p3RouteStore.get()
+      var snapshot = p3CollectionNavStore.get().snapshot
+      var top = snapshot && snapshot.stack.length > 0 ? snapshot.stack[snapshot.stack.length - 1] : null
       closeP3Playlist()
-      if (route.source === 'local' && route.page === 'playlist' && route.param === playlist.id) p3Back()
+      if (top && top.type === 'playlist' && top.id === playlist.id && top.source === 'local') p3GoBack()
       showToast(t('p3.playlistDeleted'))
     })
   }

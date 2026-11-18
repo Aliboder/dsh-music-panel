@@ -13,138 +13,6 @@ function trackArtistOf(track) {
 }
 
 /* ============================================================
-   route
-   ============================================================ */
-
-var P3_UI_KEY = 'music.ui.v3'
-// Once the v3 shell is present, music.ui.v2 is read only for migration and must not be written again.
-var P3_OWNS_ROUTE = true
-var P3_PANEL_ID = 'music'
-
-var p3Collection = createStore({ album: null, artist: null, playlist: null })
-
-var p3SearchKindStore = createStore('song')
-
-var p3RouteStore = createStore({
-  source: 'local',
-  page: 'songs',
-  param: null,
-  filter: null,
-  query: '',
-  history: [],
-  scroll: {},
-})
-
-function p3FallbackPage(source, page) {
-  var pages = ['songs', 'albums', 'artists', 'folders', 'favorites', 'playlists', 'stats', 'recent', 'album', 'artist', 'playlist', 'search']
-  if (pages.indexOf(page) >= 0) return page
-  return source === 'local' || source === 'navidrome' ? 'songs' : 'recent'
-}
-
-function p3ReadRoute() {
-  var saved = storageGet(P3_UI_KEY, null)
-  if (saved && typeof saved === 'object' && typeof saved.source === 'string') {
-    var page = typeof saved.page === 'string' ? saved.page : 'songs'
-    if (page === 'search') page = saved.source === 'local' ? 'songs' : 'recent'
-    page = p3FallbackPage(saved.source, page)
-    return {
-      source: saved.source,
-      page: page,
-      param: saved.page === 'search' ? null : (saved.param === undefined ? null : saved.param),
-      filter: null,
-      query: '',
-      history: [],
-      scroll: {},
-    }
-  }
-  // One-time migration from the old panel's saved source/nav.
-  var legacy = storageGet('music.ui.v2', null)
-  if (legacy && typeof legacy === 'object') {
-    var source = typeof legacy.source === 'string' && legacy.source !== '' ? legacy.source : 'local'
-    var nav = typeof legacy.nav === 'string' ? legacy.nav : ''
-    if (nav === 'artistSongs' || nav === 'artist' || nav === 'album') nav = source === 'local' || source === 'navidrome' ? 'songs' : 'recent'
-    var playlistId = typeof legacy.playlistId === 'string' ? legacy.playlistId : ''
-    if (nav === 'playlist' && playlistId === '') nav = source === 'local' || source === 'navidrome' ? 'songs' : 'recent'
-    nav = p3FallbackPage(source, nav)
-    return {
-      source: source,
-      page: nav === 'playlist' && playlistId !== '' ? 'playlist' : nav || 'songs',
-      param: nav === 'playlist' && playlistId !== '' ? playlistId : null,
-      filter: null,
-      query: '',
-      history: [],
-      scroll: {},
-    }
-  }
-  return { source: 'local', page: 'songs', param: null, filter: null, query: '', history: [], scroll: {} }
-}
-
-function p3SaveRoute() {
-  var state = p3RouteStore.get()
-  if (state.page === 'search') return
-  storageSet(P3_UI_KEY, { source: state.source, page: state.page, param: state.param || null })
-}
-
-function p3RouteKey(state) {
-  var current = state || p3RouteStore.get()
-  return current.source + '|' + current.page + '|' + (current.param || '')
-}
-
-function p3Navigate(page, param, options) {
-  options = options || {}
-  var state = p3RouteStore.get()
-  var scroll = Object.assign({}, state.scroll)
-  scroll[p3RouteKey(state)] = p3ScrollTop()
-  var history = state.history.slice()
-  if (options.root === true) history = []
-  else if (page !== state.page || param !== state.param) history.push({ page: state.page, param: state.param, filter: state.filter })
-  p3RouteStore.set({
-    page: page,
-    param: param === undefined ? null : param,
-    filter: options.filter === undefined ? null : options.filter,
-    query: options.query !== undefined ? String(options.query) : options.keepQuery === true ? state.query : '',
-    history: history,
-    scroll: scroll,
-  })
-  p3SaveRoute()
-  requestAnimationFrame(function () {
-    var next = p3RouteStore.get()
-    p3ScrollTo(next.scroll[p3RouteKey(next)] || 0)
-  })
-}
-
-function p3Back(options) {
-  var state = p3RouteStore.get()
-  if (state.history.length === 0) {
-    if (state.page === 'album') return p3Navigate('albums', null, { root: true })
-    if (state.page === 'artist') return p3Navigate('artists', null, { root: true })
-    if (state.page === 'playlist') return p3Navigate('playlists', null, { root: true })
-    if (state.page === 'search') return p3Navigate(p3DefaultPage(state.source), null, { root: true })
-    return
-  }
-  var history = state.history.slice()
-  var route = history.pop()
-  var scroll = Object.assign({}, state.scroll)
-  scroll[p3RouteKey(state)] = p3ScrollTop()
-  p3RouteStore.set({ page: route.page, param: route.param || null, filter: route.filter || null, query: '', history: history, scroll: scroll })
-  p3SaveRoute()
-  requestAnimationFrame(function () {
-    var next = p3RouteStore.get()
-    p3ScrollTo(next.scroll[p3RouteKey(next)] || 0)
-  })
-}
-
-function p3ScrollTop() {
-  var el = document.querySelector('.mpv3-scroll')
-  return el ? el.scrollTop : 0
-}
-
-function p3ScrollTo(top) {
-  var el = document.querySelector('.mpv3-scroll')
-  if (el) el.scrollTop = top || 0
-}
-
-/* ============================================================
    sources
    ============================================================ */
 
@@ -281,23 +149,6 @@ function p3ParentLabel(page) {
   if (page === 'favorites' || page === 'playlists' || page === 'stats') return t('v2.sectionCollection')
   if (page === 'recent') return t('v2.sectionOnline')
   return t('v2.sectionLibrary')
-}
-
-function p3SwitchSource(source) {
-  if (source === p3RouteStore.get().source) return
-  if (source !== 'local' && !p3ProviderMap()[source]) return
-  setSource(source)
-  p3RouteStore.set({
-    source: source,
-    page: p3DefaultPage(source),
-    param: null,
-    filter: null,
-    query: '',
-    history: [],
-    scroll: {},
-  })
-  p3SaveRoute()
-  if (source !== 'local') void loadMyPlaylists(source)
 }
 
 /* ============================================================
@@ -574,23 +425,124 @@ function p3OpenTrackMenu(track, event, list) {
   })
 }
 
+function p3LocalAlbumDescriptor(album) {
+  return {
+    type: 'album',
+    source: 'local',
+    id: album.key,
+    param: album.key,
+    name: album.name || '',
+    artist: album.artist || '',
+    year: Number(album.year) || 0,
+    coverTrack: album.coverTrack || null,
+    trackCount: Array.isArray(album.tracks) ? album.tracks.length : 0,
+  }
+}
+
+function p3LocalAlbumDescriptorForTrack(track) {
+  return {
+    type: 'album',
+    source: 'local',
+    id: p3LocalAlbumKey(track),
+    param: p3LocalAlbumKey(track),
+    name: track.album || t('page.unknownAlbum'),
+    artist: track.artist || t('page.unknownArtist'),
+    year: Number(track.year) || 0,
+    coverTrack: track,
+    trackCount: 0,
+  }
+}
+
+function p3LocalArtistDescriptor(artist) {
+  return {
+    type: 'artist',
+    source: 'local',
+    id: artist.name,
+    param: artist.name,
+    name: artist.name || '',
+    artist: artist.name || '',
+    coverTrack: artist.coverTrack || null,
+    trackCount: Array.isArray(artist.tracks) ? artist.tracks.length : 0,
+  }
+}
+
+function p3OnlineAlbumDescriptor(provider, album) {
+  var raw = album !== null && typeof album === 'object' ? album : {}
+  var id = String(raw.albumId || raw.albummid || raw.id || raw.key || '')
+  var name = String(raw.album || raw.name || raw.title || '')
+  var artist = String(raw.artist || raw.artistName || raw.singername || '')
+  return {
+    type: 'album',
+    source: 'online',
+    provider: provider,
+    onlineProvider: provider,
+    id: id,
+    param: provider + ':' + id,
+    albumId: id,
+    album: name,
+    name: name,
+    artist: artist,
+    coverUrl: String(raw.coverUrl || raw.cover || raw.picUrl || ''),
+    coverArtId: String(raw.coverArtId || ''),
+    trackCount: Number(raw.trackCount || raw.songCount || 0) || 0,
+  }
+}
+
+function p3OnlineArtistDescriptor(provider, artist) {
+  var raw = artist !== null && typeof artist === 'object' ? artist : {}
+  var name = String(raw.artist || raw.name || '')
+  var id = String(raw.artistId || raw.id || '')
+  return {
+    type: 'artist',
+    source: 'online',
+    provider: provider,
+    onlineProvider: provider,
+    id: id || name,
+    param: provider + ':' + name,
+    artist: name,
+    name: name,
+    artistId: id,
+    coverUrl: String(raw.coverUrl || raw.cover || ''),
+  }
+}
+
+function p3PlaylistDescriptor(playlist, provider) {
+  var item = playlist || {}
+  var online = provider || item.onlineProvider || item.provider
+  if (online && online !== 'local') {
+    return {
+      type: 'playlist',
+      source: 'online',
+      provider: online,
+      onlineProvider: online,
+      id: String(item.id || ''),
+      param: String(item.id || ''),
+      name: item.name || '',
+      cover: item.cover || item.coverUrl || '',
+      coverUrl: item.coverUrl || item.cover || '',
+      trackCount: Number(item.trackCount) || 0,
+    }
+  }
+  return {
+    type: 'playlist',
+    source: 'local',
+    id: String(item.id || ''),
+    param: String(item.id || ''),
+    name: item.name || '',
+    cover: item.cover || '',
+    trackCount: Number(item.trackCount) || 0,
+  }
+}
+
 function p3OpenAlbum(track) {
   if (!track) return
   if (track.onlineProvider && track.onlineProvider !== 'local') {
     var albumCaps = p3SourceCaps(track.onlineProvider)
     if (albumCaps && albumCaps.albums === false) { showToast(t('online.albumUnsupported')); return }
-    p3Collection.set({ album: {
-      onlineProvider: track.onlineProvider,
-      album: track.album || '',
-      albumId: track.albumId || '',
-      artist: track.artist || '',
-      coverUrl: track.coverUrl || '',
-      coverArtId: track.coverArtId || '',
-    } })
-    p3Navigate('album', track.onlineProvider + ':' + (track.albumId || track.album || ''))
+    p3PushCollection(p3OnlineAlbumDescriptor(track.onlineProvider, track))
     return
   }
-  p3Navigate('album', p3LocalAlbumKey(track))
+  p3PushCollection(p3LocalAlbumDescriptorForTrack(track))
 }
 
 function p3OpenArtist(track, name) {
@@ -602,22 +554,15 @@ function p3OpenArtist(track, name) {
     var detail = Array.isArray(track.artistsDetail) ? track.artistsDetail : []
     var id = ''
     detail.forEach(function (item) { if (item && item.name === artist && item.id) id = String(item.id) })
-    p3Collection.set({ artist: {
-      onlineProvider: track.onlineProvider,
-      artist: artist,
-      artistId: id,
-      coverUrl: track.coverUrl || '',
-    } })
-    p3Navigate('artist', track.onlineProvider + ':' + artist)
+    p3PushCollection(p3OnlineArtistDescriptor(track.onlineProvider, { artist: artist, artistId: id, coverUrl: track.coverUrl || '' }))
     return
   }
-  p3Navigate('artist', artist)
+  p3PushCollection({ type: 'artist', source: 'local', id: artist, param: artist, name: artist, artist: artist })
 }
 
-function p3OpenPlaylist(playlist) {
+function p3OpenPlaylist(playlist, provider) {
   if (!playlist) return
-  p3Collection.set({ playlist: playlist })
-  p3Navigate('playlist', playlist.id)
+  p3PushCollection(p3PlaylistDescriptor(playlist, provider))
 }
 
 /* ============================================================

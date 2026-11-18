@@ -50,10 +50,10 @@ assert.deepEqual(
 assert.equal(filter.filterTracksByQuery(songs, 'zzz').length, 0)
 assert.deepEqual(filter.filterTracksByQuery(null, 'x'), [])
 
-// Wiring: the new shell routes focus into the search page; the search page
-// consumes the shared filter for local tracks and the online search endpoint.
+// Wiring: typing enters the search page; the search page consumes the shared
+// filter for local tracks and the online search endpoint.
 const shell = readFileSync(join(root, 'src/client/panel-v3/p3-shell.js'), 'utf8')
-assert.match(shell, /p3Navigate\('search'/, 'search focus enters the search page')
+assert.match(shell, /p3SetSearchQuery/, 'typing enters the search page')
 assert.match(shell, /p3-search/, 'the top bar owns the search field')
 
 const pages = readFileSync(join(root, 'src/client/panel-v3/p3-pages.js'), 'utf8')

@@ -103,7 +103,7 @@ library.clear()                 // 再清一次，防止 reset 期间产生新�
 
 | 类型 | 值 | 覆盖 |
 |---|---|---|
-| 前缀 | `music.` | prefs / UI（含 `music.ui.v3` 主面板路由，兼容旧 `music.ui.v2`）/ loudness / balance / startupGuide 等 |
+| 前缀 | `music.` | prefs / UI（含 `music.ui.v4` 主面板导航快照，兼容迁移旧 `music.ui.v3` / `music.ui.v2`）/ loudness / balance / startupGuide 等 |
 | 前缀 | `dsh-music` | legacy prefs、player leader |
 | 前缀 | `mu.` | 在线历史、legacy UI |
 | 前缀 | `lyric_` | 分词、时间轴偏移、渲染质量 |

@@ -2,10 +2,10 @@
  * panel-v3 shell: top bar, view bar, content, player bar, queue and runtime.
  */
 
-p3RouteStore.set(p3ReadRoute())
-
 function P3TopBar(props) {
   var route = useStore(p3RouteStore)
+  var search = useStore(p3SearchStore)
+  var collection = useStore(p3CollectionNavStore)
   var online = useStore(onlineStore)
   var searchKind = useStore(p3SearchKindStore)
   var prefs = usePrefs()
@@ -39,7 +39,7 @@ function P3TopBar(props) {
       ]
 
   function searchValue() {
-    return route.page === 'search' ? route.query : draft
+    return search.open ? search.query : draft
   }
 
   function onFocusSearch() {
@@ -49,12 +49,8 @@ function P3TopBar(props) {
   function onChangeSearch(event) {
     var value = event.target.value
     setDraft(value)
-    if (value === '') {
-      if (route.page === 'search') p3RouteStore.set({ query: '' })
-      return
-    }
-    if (route.page !== 'search') p3Navigate('search', null, { query: value })
-    else p3RouteStore.set({ query: value })
+    if (value === '' && !search.open) return
+    p3SetSearchQuery(value)
   }
 
   function onSearchKey(event) {
@@ -62,25 +58,18 @@ function P3TopBar(props) {
       event.preventDefault()
       var text = searchValue().trim()
       if (text === '') return
-      if (route.page !== 'search') p3Navigate('search', null, { query: text })
+      p3SetSearchQuery(text)
       if (source !== 'local') void searchOnline(text)
     } else if (event.key === 'Escape') {
       event.preventDefault()
-      if (route.page === 'search') {
-        if (route.history.length > 0) p3Back()
-        else p3Navigate(p3DefaultPage(source), null, { root: true })
-      }
+      if (p3CanGoBack()) p3GoBack()
+      else setDraft('')
     }
   }
 
   function clearSearch() {
     setDraft('')
-    if (route.page === 'search') {
-      if (route.history.length > 0) p3Back()
-      else p3Navigate(p3DefaultPage(source), null, { root: true })
-      return
-    }
-    p3RouteStore.set({ query: '' })
+    if (search.open) p3CloseSearch()
   }
 
   function pickSource(item) {
@@ -125,7 +114,7 @@ function P3TopBar(props) {
   return h(
     'header',
     { className: 'mpv3-topbar' },
-    h(IconButton, { icon: 'back', size: 16, title: t('page.back'), className: 'mpv3-back', disabled: route.history.length === 0 && !(route.page === 'album' || route.page === 'artist' || route.page === 'playlist' || route.page === 'search'), onClick: function () { p3Back() } }),
+    h(IconButton, { icon: 'back', size: 16, title: t('page.back'), className: 'mpv3-back', disabled: !p3CanGoBack(), onClick: function () { p3GoBack() } }),
     h('span', { className: 'mpv3-parent' }, meta.parent),
     h('div', { className: 'mpv3-source-wrap' },
       h('button', {
@@ -157,7 +146,7 @@ function P3TopBar(props) {
         onKeyDown: onSearchKey,
         'aria-label': t('page.search'),
       }),
-      searchValue() !== ''
+      !collection.snapshot && searchValue() !== ''
         ? h('button', { type: 'button', className: 'mpv3-search-clear', title: t('p3.clearSearch'), onClick: clearSearch }, icon('close', 13))
         : null,
     ),
@@ -184,14 +173,6 @@ function P3TopBar(props) {
   )
 }
 
-function p3ActiveTab(route) {
-  if (route.page === 'album') return 'albums'
-  if (route.page === 'artist') return 'artists'
-  if (route.page === 'playlist') return 'playlists'
-  if (route.page === 'search') return ''
-  return route.page
-}
-
 function P3ViewBar(props) {
   var route = useStore(p3RouteStore)
   var selection = useStore(selectionStore)
@@ -203,7 +184,7 @@ function P3ViewBar(props) {
   var [selectOpen, setSelectOpen] = useState(false)
   var source = route.source
   var tabs = p3Tabs(source)
-  var active = p3ActiveTab(route)
+  var active = route.page
   var tracks = p3CurrentTracks(route, props.library, props.online, prefs)
   if (route.page === 'search' && searchKind !== 'song') tracks = []
   var selected = (selection.paths || []).map(function (path) {
@@ -305,7 +286,7 @@ function P3ViewBar(props) {
           value: active,
           size: 'sm',
           label: t('p3.sections'),
-          onChange: function (next) { p3Navigate(next, null, { root: true }) },
+          onChange: function (next) { p3SelectBrowseTab(next) },
         }))
       : null,
     h('div', { className: 'mpv3-grow' }),
@@ -324,6 +305,7 @@ function P3ViewBar(props) {
 
 function P3Content(props) {
   var route = useStore(p3RouteStore)
+  var collection = useStore(p3CollectionNavStore)
   var selection = useStore(selectionStore)
   var snap = usePlayerSnapshot()
   var statsPage = route.source === 'local' && route.page === 'stats'
@@ -346,7 +328,7 @@ function P3Content(props) {
   }
   return h('main', { className: 'mpv3-content' },
     filter ? h('div', { className: 'mpv3-filterbar' },
-      h('button', { type: 'button', className: 'mpv3-chip', onClick: function () { p3RouteStore.set({ filter: null }) } },
+      h('button', { type: 'button', className: 'mpv3-chip', onClick: function () { p3SetBrowseFilter(null) } },
         icon('folder', 12),
         h('span', null, filter.value),
         icon('close', 12),
@@ -354,6 +336,7 @@ function P3Content(props) {
     ) : null,
     h(P3PageSwitch, {
       route: route,
+      collection: collection.snapshot && collection.snapshot.stack.length > 0 ? collection.snapshot.stack[collection.snapshot.stack.length - 1] : null,
       library: props.library,
       online: props.online,
       prefs: props.prefs,
@@ -366,11 +349,11 @@ function P3Content(props) {
 }
 
 function P3Rail(props) {
-  var route = useStore(p3RouteStore)
+  var browse = useStore(p3BrowseStore)
   var selection = useStore(selectionStore)
-  var source = route.source
+  var source = browse.source
   var tabs = p3Tabs(source)
-  var active = p3ActiveTab(route)
+  var active = browse.tab
   var playlists = source === 'local' ? (props.library.playlists || []) : sortOnlinePlaylists(props.online.playlists || [])
   return h('aside', { className: 'mpv3-rail' },
     h('div', { className: 'mpv3-rail-group' },
@@ -380,7 +363,7 @@ function P3Rail(props) {
           key: tab,
           type: 'button',
           className: cx('mpv3-rail-item', active === tab && 'is-on'),
-          onClick: function () { p3Navigate(tab, null, { root: true }) },
+          onClick: function () { p3SelectBrowseTab(tab) },
         }, icon(tab === 'albums' ? 'disc' : tab === 'artists' ? 'user' : tab === 'folders' ? 'folder' : tab === 'favorites' ? 'heart' : tab === 'stats' ? 'chart' : tab === 'recent' ? 'clock' : 'music', 15), h('span', null, p3PageLabel(tab)))
       }),
     ),
@@ -390,11 +373,8 @@ function P3Rail(props) {
         return h('button', {
           key: playlist.id,
           type: 'button',
-          className: cx('mpv3-rail-item', route.page === 'playlist' && route.param === playlist.id && 'is-on'),
-          onClick: function () {
-            if (source === 'local') p3Navigate('playlist', playlist.id)
-            else { p3Collection.set({ playlist: playlist }); p3Navigate('playlist', playlist.id) }
-          },
+          className: cx('mpv3-rail-item'),
+          onClick: function () { p3OpenPlaylist(playlist, source === 'local' ? '' : source) },
         }, icon('list', 15), h('span', null, playlist.name || t('v2.playlist')))
       }),
     ) : null,
@@ -637,15 +617,8 @@ function p3LocateCurrent(snap) {
   var current = snap.queue[snap.index] || null
   if (!current) { showToast(t('page.noTrack')); return }
   var source = current.onlineProvider || 'local'
-  if (source !== p3RouteStore.get().source) p3SwitchSource(source)
-  p3RouteStore.set({
-    page: current.onlineProvider ? 'recent' : 'songs',
-    param: null,
-    filter: null,
-    query: '',
-    history: [],
-  })
-  p3SaveRoute()
+  if (source !== p3BrowseStore.get().source) p3SwitchSource(source)
+  p3SelectBrowseTab(current.onlineProvider ? 'recent' : 'songs')
   window.setTimeout(function () {
     var rows = Array.prototype.slice.call(document.querySelectorAll('.mpv3-row'))
     var row = null
@@ -662,6 +635,9 @@ function p3LocateCurrent(snap) {
 
 function P3Shell() {
   var route = useStore(p3RouteStore)
+  var browse = useStore(p3BrowseStore)
+  var search = useStore(p3SearchStore)
+  var collection = useStore(p3CollectionNavStore)
   var library = useStore(libraryStore)
   var online = useStore(onlineStore)
   var prefs = usePrefs()
@@ -704,16 +680,15 @@ function P3Shell() {
   useEffect(function () {
     var providers = onlineStore.get().providers || {}
     if (Object.keys(providers).length === 0) return
-    if (route.source !== 'local' && !providers[route.source]) {
+    if (browse.source !== 'local' && !providers[browse.source]) {
       p3SwitchSource('local')
       return
     }
-    var tabs = p3Tabs(route.source)
-    if (route.page !== 'album' && route.page !== 'artist' && route.page !== 'playlist' && route.page !== 'search' && tabs.indexOf(route.page) < 0) {
-      p3RouteStore.set({ page: p3DefaultPage(route.source), param: null, filter: null })
-      p3SaveRoute()
+    var tabs = p3Tabs(browse.source)
+    if (tabs.indexOf(browse.tab) < 0) {
+      p3SelectBrowseTab(p3DefaultPage(browse.source))
     }
-  }, [online.providers, route.source, route.page])
+  }, [online.providers, browse.source, browse.tab])
 
   useEffect(function () {
     var timer = window.setInterval(function () {
@@ -762,8 +737,7 @@ function P3Shell() {
         if (selectionStore.get().active === true) { setSelectionMode(false); return }
         if (queueOpen) { setQueueOpen(false); return }
         if (npOpen) { setNpOpen(false); return }
-        if (p3RouteStore.get().history.length > 0) { p3Back(); return }
-        if (p3RouteStore.get().query !== '') { p3RouteStore.set({ query: '' }); return }
+        if (p3CanGoBack()) { p3GoBack(); return }
         return
       }
       if (event.code === 'Space') {
@@ -787,12 +761,12 @@ function P3Shell() {
   var topLayout = prefs.layout !== 'rail' || wide < 1000
   var current = snap.queue[snap.index] || null
 
-  return h('div', { className: cx('mpv3-root', !topLayout && 'is-rail') },
+  return h('div', { className: cx('mpv3-root', !topLayout && !search.open && !collection.snapshot && 'is-rail') },
     h(P3TopBar, { library: library, online: online }),
     h('div', { className: 'mpv3-workspace' },
-      !topLayout ? h(P3Rail, { library: library, online: online, prefs: prefs }) : null,
+      !topLayout && !search.open && !collection.snapshot ? h(P3Rail, { library: library, online: online, prefs: prefs }) : null,
       h('div', { className: 'mpv3-main' },
-        h(P3ViewBar, { library: library, online: online, rail: !topLayout }),
+        !search.open && !collection.snapshot ? h(P3ViewBar, { library: library, online: online, rail: !topLayout }) : null,
         h(P3Content, { library: library, online: online, prefs: prefs }),
       ),
       h(P3Queue, { open: queueOpen, onClose: function () { setQueueOpen(false) }, onLocate: function () { p3LocateCurrent(snap); setQueueOpen(false) } }),
@@ -812,7 +786,7 @@ function P3Shell() {
       onToggleQueue: function () { setNpQueueOpen(!npQueueOpen) },
       onToggleFavorite: function (track) { likeStateOf(track, p3FavoriteSet(library.favorites)).onLike() },
       onLocate: function () { p3LocateCurrent(snap) },
-      onHome: function () { setNpOpen(false); setNpQueueOpen(false); p3Navigate('songs', null, { root: true }) },
+      onHome: function () { setNpOpen(false); setNpQueueOpen(false); p3SelectBrowseTab('songs') },
       onOpenSettings: function () { pushLayer('settings') },
     }),
     h(OverlayRoot),

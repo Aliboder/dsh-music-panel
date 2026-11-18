@@ -22,9 +22,10 @@ test('clear-all data flow keeps the confirm token and two-step UI', () => {
   assert.match(source, /location\.reload/)
 })
 
-test('clear-all data flow covers the panel-v3 route key', () => {
-  const route = readFileSync(join(root, 'src/client/panel-v3/p3-core.js'), 'utf8')
-  assert.match(route, /music\.ui\.v3/, 'the new route key lives under the cleared music. prefix')
+test('clear-all data flow covers the panel-v3 navigation key', () => {
+  const route = readFileSync(join(root, 'src/client/panel-v3/p3-nav.js'), 'utf8')
+  assert.match(route, /music\.ui\.v4/, 'the new route key lives under the cleared music. prefix')
+  assert.match(route, /music\.ui\.v3/, 'the v3 route key is still read for migration')
   assert.match(route, /music\.ui\.v2/, 'the old route key is still read for migration')
 })
 
