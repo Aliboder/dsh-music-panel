@@ -13,7 +13,6 @@ var PREF_DEFAULTS = {
   layout: 'top',
   sortBy: 'title',
   sortDir: 'asc',
-  npLookMigrated: true,
   /**
    * Folia's `localLyricsPriority`: which lyric a local file shows when it has both
    * its own file lyric and a matched online one. 'local' keeps the file's own.
@@ -159,15 +158,6 @@ function readPrefs() {
   delete merged.lyricOrder
   if (['off', 'auto', 'track', 'album'].indexOf(merged.replayGainMode) < 0) {
     merged.replayGainMode = merged.normalizeVolume === false ? 'off' : 'auto'
-  }
-  // 0.12.0 briefly defaulted to square covers; restore the 0.11 player look once.
-  if (merged.npLookMigrated !== true) {
-    merged.npLookMigrated = true
-    try {
-      window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
-    } catch (error) {
-      // Best effort only.
-    }
   }
   // One-time move to the reference now-playing layout (square cover, left lyrics,
   // denser lyric typography). Later user edits still win.

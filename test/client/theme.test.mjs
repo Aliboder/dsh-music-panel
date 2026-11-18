@@ -133,12 +133,7 @@ assert.match(theme, /\.mp-align-right \.mp-np-lyric-foot\{justify-content:flex-e
 // The editor becomes a three-column tablet layout on wide screens.
 assert.match(theme, /@media \(min-width:1000px\)\{[^']*\.mp-npe-body\{[^']*display:grid/, 'tablet editor grid')
 assert.match(theme, /\.mp-npe-section\.is-type\{grid-column:2/, 'settings columns are placed by area')
-assert.match(theme, /\.mp-npe-preview-cover\.is-vinyl\{[^']*repeating-radial-gradient/, 'vinyl preview keeps its disc edge')
-assert.match(theme, /\.mp-npe-preview-cover\.is-vinyl::after\{[^']*background:var\(--mp-preview-cover/, 'vinyl preview artwork is clipped by its own circle')
-
-// Narrow single-column vinyl layout keeps the disc inside its stage.
-assert.match(theme, /@media \(max-width:980px\)\{[^']*\.mp-np-cover-stage\.is-vinyl \.mp-np-disc-wrap\{top:0\}/, 'narrow vinyl layout has no vertical offset')
-assert.match(theme, /\.mp-np\.is-vinyl\{--mp-cover:min\(66vw/, 'narrow vinyl cover is sized to leave room for controls')
+assert.doesNotMatch(theme, /is-vinyl|mp-npe-cover|mp-guide-vinyl/, 'the removed cover-style templates leave no CSS')
 
 assert.match(theme, /@media \(max-width:980px\)\{[^']*\.mp-np-cover-stage\{margin-left:auto;margin-right:auto\}/, 'narrow cover is centred')
 

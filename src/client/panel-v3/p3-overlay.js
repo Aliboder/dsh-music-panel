@@ -275,7 +275,7 @@ function StartupGuide(props) {
           ),
       h(
         'div',
-        { className: 'mp-guide-visual is-square' },
+        { className: 'mp-guide-visual' },
         h('div', { className: 'mp-guide-watermark', 'aria-hidden': 'true' }, 'MUSIC'),
         h(
           'div',

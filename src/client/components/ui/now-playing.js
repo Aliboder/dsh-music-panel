@@ -1,6 +1,6 @@
 /**
- * now playing: the 0.11.1 full-panel player (square/circular disc, blurred
- * cover backdrop, floating transport panel) rebuilt on the v2 state layer.
+ * now playing: the full-panel player (square cover, blurred cover backdrop,
+ * floating transport panel) rebuilt on the v2 state layer.
  */
 
 function lyricActiveIndex(lines, seconds) {
@@ -1781,8 +1781,6 @@ function NowPlaying(props) {
     },
     [trackPath, track && track.onlineProvider, track && track.onlineId],
   )
-  // The vinyl/square cover templates were removed with the new player page.
-  var circular = false
   var stagedPair = useState(false)
   var staged = stagedPair[0]
   var setStaged = stagedPair[1]
@@ -1792,9 +1790,8 @@ function NowPlaying(props) {
         setStaged(false)
         return undefined
       }
-      // Let the 320ms slide-in finish before starting the vinyl spin and the
-      // wave rAF. Starting both on the same frame competes with the entrance
-      // paint and makes the page feel heavier than it is.
+      // Let the 320ms slide-in finish before starting the wave rAF. Starting it
+      // on the entrance frame competes with the paint and makes the page heavier.
       var timer = setTimeout(function () {
         setStaged(true)
       }, 360)
@@ -1804,8 +1801,6 @@ function NowPlaying(props) {
     },
     [props.open],
   )
-  var spinning = circular && snap.playing && staged
-  var vinyl = circular
   var lyricSize = prefs.lyricSize || 18
   var translationSize = Math.round((lyricSize * (prefs.translationScale || 80)) / 100)
   var lyricsTimed = lyrics.length > 0 && mpLineStart(lyrics[0]) >= 0
@@ -2666,21 +2661,13 @@ function NowPlaying(props) {
         ),
         h(
           'div',
-          { className: cx('mp-np-cover-stage', vinyl && 'is-vinyl'), ref: coverMotionRef },
+          { className: 'mp-np-cover-stage', ref: coverMotionRef },
           h(
             'div',
-            { key: 'cover:' + trackPath, className: cx('mp-np-disc-wrap', vinyl && 'is-vinyl'), ref: discWrapRef },
+            { key: 'cover:' + trackPath, className: 'mp-np-disc-wrap', ref: discWrapRef },
           h(
             'div',
-            {
-              className: cx(
-                'mp-np-disc',
-                circular ? 'is-circle' : 'is-square',
-                spinning && 'is-playing',
-                vinyl && 'is-vinyl',
-              ),
-            },
-            vinyl ? h('div', { className: 'mp-np-vinyl' }) : null,
+            { className: 'mp-np-disc' },
             h(
               'div',
               { className: 'mp-np-art' },
