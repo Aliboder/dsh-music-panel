@@ -17,6 +17,8 @@ function trackArtistOf(track) {
    ============================================================ */
 
 var P3_UI_KEY = 'music.ui.v3'
+// Once the v3 shell is present, music.ui.v2 is read only for migration and must not be written again.
+var P3_OWNS_ROUTE = true
 var P3_PANEL_ID = 'music'
 
 var p3Collection = createStore({ album: null, artist: null, playlist: null })
@@ -313,6 +315,8 @@ function p3LocalTracks(library) {
   return (library && library.tracks) || []
 }
 
+var p3LocalCache = { albums: null, artists: null, folders: null, songs: null }
+
 function p3SortLocal(list, prefs) {
   return sortTracks(list, prefs.sortBy || 'title', prefs.sortDir === 'desc' ? 'desc' : 'asc')
 }
@@ -322,6 +326,9 @@ function p3LocalAlbumKey(track) {
 }
 
 function p3LocalAlbums(library, prefs, query) {
+  var cacheKey = String(query || '') + '|' + String(prefs.sortBy || '') + '|' + String(prefs.sortDir || '')
+  var cached = p3LocalCache.albums
+  if (cached && cached.tracks === (library && library.tracks) && cached.key === cacheKey) return cached.value
   var tracks = filterTracks(p3LocalTracks(library), query || '')
   var groups = groupTracks(tracks, p3LocalAlbumKey)
   var albums = groups.map(function (group) {
@@ -343,10 +350,14 @@ function p3LocalAlbums(library, prefs, query) {
     var key = prefs.sortBy === 'artist' ? 'artist' : 'name'
     return String(a[key] || '').localeCompare(String(b[key] || ''), 'zh') * (prefs.sortDir === 'desc' ? -1 : 1)
   })
+  p3LocalCache.albums = { tracks: library && library.tracks, key: cacheKey, value: albums }
   return albums
 }
 
 function p3LocalArtists(library, prefs, query) {
+  var cacheKey = String(query || '') + '|' + String(prefs.sortBy || '') + '|' + String(prefs.sortDir || '')
+  var cached = p3LocalCache.artists
+  if (cached && cached.tracks === (library && library.tracks) && cached.key === cacheKey) return cached.value
   var tracks = filterTracks(p3LocalTracks(library), query || '')
   var groups = groupTracks(tracks, function (track) {
     var names = trackArtistNames(track)
@@ -370,14 +381,19 @@ function p3LocalArtists(library, prefs, query) {
     if (prefs.sortBy === 'count') return (a.tracks.length - b.tracks.length) * (prefs.sortDir === 'desc' ? -1 : 1)
     return String(a.name).localeCompare(String(b.name), 'zh') * (prefs.sortDir === 'desc' ? -1 : 1)
   })
+  p3LocalCache.artists = { tracks: library && library.tracks, key: cacheKey, value: artists }
   return artists
 }
 
 function p3LocalFolders(library) {
+  var cached = p3LocalCache.folders
+  if (cached && cached.tracks === (library && library.tracks)) return cached.value
   var groups = groupTracks(p3LocalTracks(library), function (track) { return trackDirOf(track) })
-  return groups.map(function (group) {
+  var value = groups.map(function (group) {
     return { path: group.key, name: folderNameOf(group.key), tracks: group.tracks }
   }).sort(function (a, b) { return a.path.localeCompare(b.path, 'zh') })
+  p3LocalCache.folders = { tracks: library && library.tracks, value: value }
+  return value
 }
 
 function p3LocalStats(library) {
@@ -436,34 +452,65 @@ function p3OnlineSearchResults() {
   return p3OnlineTrackList(onlineStore.get().results || [])
 }
 
+function p3LocalTracksFor(route, library, prefs) {
+  var page = route.page
+  var cacheKey = [
+    page,
+    route.param || '',
+    route.query || '',
+    route.filter && route.filter.kind ? route.filter.kind : '',
+    route.filter && route.filter.value ? route.filter.value : '',
+    prefs.sortBy || '',
+    prefs.sortDir || '',
+  ].join('|')
+  var cached = p3LocalCache.songs
+  if (
+    cached &&
+    cached.tracks === (library && library.tracks) &&
+    cached.favorites === (library && library.favorites) &&
+    cached.playlists === (library && library.playlists) &&
+    cached.key === cacheKey
+  ) {
+    return cached.value
+  }
+  var value
+  if (page === 'songs') {
+    var songs = filterTracks(p3LocalTracks(library), route.query || '')
+    if (route.filter && route.filter.kind === 'folder') {
+      songs = songs.filter(function (track) { return trackDirOf(track) === route.filter.value })
+    }
+    value = p3SortLocal(songs, prefs)
+  } else if (page === 'favorites') {
+    var favorites = p3FavoriteSet(library.favorites)
+    value = p3SortLocal(p3LocalTracks(library).filter(function (track) { return favorites[track.path] === true }), prefs)
+  } else if (page === 'playlist') {
+    value = p3PlaylistTracks(route.param)
+  } else if (page === 'album') {
+    var album = p3LocalAlbums(library, prefs).filter(function (item) { return item.key === route.param })[0]
+    value = album ? p3SortLocal(album.tracks, prefs) : []
+  } else if (page === 'artist') {
+    var artist = p3LocalArtists(library, prefs).filter(function (item) { return item.name === route.param })[0]
+    value = artist ? p3SortLocal(artist.tracks, prefs) : []
+  } else if (page === 'search') {
+    value = p3SortLocal(filterTracks(p3LocalTracks(library), route.query || ''), prefs)
+  } else {
+    value = []
+  }
+  p3LocalCache.songs = {
+    tracks: library && library.tracks,
+    favorites: library && library.favorites,
+    playlists: library && library.playlists,
+    key: cacheKey,
+    value: value,
+  }
+  return value
+}
+
 function p3CurrentTracks(state, library, online, prefs) {
   var route = state || p3RouteStore.get()
   var page = route.page
   var source = route.source
-  if (source === 'local') {
-    if (page === 'songs') {
-      var songs = filterTracks(p3LocalTracks(library), route.query || '')
-      if (route.filter && route.filter.kind === 'folder') {
-        songs = songs.filter(function (track) { return trackDirOf(track) === route.filter.value })
-      }
-      return p3SortLocal(songs, prefs)
-    }
-    if (page === 'favorites') {
-      var favorites = p3FavoriteSet(library.favorites)
-      return p3SortLocal(p3LocalTracks(library).filter(function (track) { return favorites[track.path] === true }), prefs)
-    }
-    if (page === 'playlist') return p3PlaylistTracks(route.param)
-    if (page === 'album') {
-      var album = p3LocalAlbums(library, prefs).filter(function (item) { return item.key === route.param })[0]
-      return album ? p3SortLocal(album.tracks, prefs) : []
-    }
-    if (page === 'artist') {
-      var artist = p3LocalArtists(library, prefs).filter(function (item) { return item.name === route.param })[0]
-      return artist ? p3SortLocal(artist.tracks, prefs) : []
-    }
-    if (page === 'search') return p3SortLocal(filterTracks(p3LocalTracks(library), route.query || ''), prefs)
-    return []
-  }
+  if (source === 'local') return p3LocalTracksFor(route, library, prefs)
   if (page === 'recent') return p3OnlineHistory(source)
   if (page === 'songs') return p3OnlineTrackList(online.songs || [])
   if (page === 'playlist') return p3OnlineTrackList(p3OnlinePlaylistSongs())

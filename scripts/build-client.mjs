@@ -150,6 +150,7 @@ ${body}
           p3Tabs: p3Tabs,
           p3CurrentTracks: p3CurrentTracks,
           P3PageSwitch: typeof P3PageSwitch === 'function' ? P3PageSwitch : null,
+          P3Queue: typeof P3Queue === 'function' ? P3Queue : null,
           P3_CSS: typeof P3_CSS === 'string' ? P3_CSS : null,
           // The album entry point decides which view the user lands in; the
           // render mock cannot click a row, so the test drives it directly.

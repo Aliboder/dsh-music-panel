@@ -480,7 +480,7 @@ function P3PlayerBar(props) {
           'aria-label': t('page.volume'),
         }),
       ),
-      h(IconButton, { icon: 'playlist', size: 16, active: props.queueOpen, title: t('page.queue'), onClick: props.onToggleQueue }),
+      h(IconButton, { icon: 'playlist', size: 16, active: props.queueOpen, className: 'mpv3-queue-btn', title: t('page.queue'), onClick: props.onToggleQueue }),
       h(IconButton, { icon: 'chevronDown', size: 16, title: t('page.openPlayer'), onClick: props.onOpenPlayer }),
     ),
   )
@@ -494,8 +494,98 @@ function playerLoopNext(loop) {
 
 function P3Queue(props) {
   var snap = usePlayerSnapshot()
+  var dragFrom = useRef(null)
   var current = snap.queue[snap.index] || null
+
+  useEffect(function () {
+    if (!props.open) return undefined
+    function onDown(event) {
+      var target = event.target
+      if (!target || typeof target.closest !== 'function') return
+      if (target.closest('.mpv3-queue') || target.closest('.mpv3-queue-btn')) return
+      // A confirmation/dialog opened from the queue should not dismiss it behind the dialog.
+      if (target.closest('[role="dialog"]') || target.closest('.mp-overlay')) return
+      props.onClose()
+    }
+    document.addEventListener('pointerdown', onDown, true)
+    return function () { document.removeEventListener('pointerdown', onDown, true) }
+  }, [props.open, props.onClose])
+
   if (!props.open) return null
+
+  var order = snap.order === 'random' ? player.getPlayOrder() : snap.queue.map(function (_, index) { return index })
+  if (!Array.isArray(order) || order.length !== snap.queue.length) order = snap.queue.map(function (_, index) { return index })
+  var currentPosition = order.indexOf(snap.index)
+  if (currentPosition < 0) currentPosition = 0
+
+  function selectQueue(index) {
+    if (dragFrom.current !== null) return
+    player.select(snap.queue, index)
+  }
+
+  function removeAt(index) {
+    player.removeQueueAt(index)
+  }
+
+  function dropAt(position) {
+    var from = dragFrom.current
+    dragFrom.current = null
+    if (from === null || from === position) return
+    var indices = order.slice()
+    var moved = indices.splice(from, 1)[0]
+    indices.splice(position, 0, moved)
+    player.reorderQueue(indices)
+  }
+
+  function row(track, index, position, isCurrent) {
+    return h('div', {
+      key: track.path + ':' + index,
+      role: 'button',
+      tabIndex: 0,
+      draggable: true,
+      className: cx('mpv3-queue-row', isCurrent && 'is-cur'),
+      onClick: function () { selectQueue(index) },
+      onKeyDown: function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          selectQueue(index)
+        }
+      },
+      onDragStart: function (event) {
+        dragFrom.current = position
+        if (event.dataTransfer) {
+          event.dataTransfer.effectAllowed = 'move'
+          event.dataTransfer.setData('text/plain', String(position))
+        }
+      },
+      onDragOver: function (event) {
+        if (dragFrom.current === null) return
+        event.preventDefault()
+        if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+      },
+      onDrop: function (event) {
+        event.preventDefault()
+        dropAt(position)
+      },
+      onDragEnd: function () { dragFrom.current = null },
+    },
+      h('span', { className: 'mpv3-queue-idx' }, isCurrent ? icon('play', 11) : String(position + 1)),
+      h('span', { className: 'mpv3-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+      h('span', { className: 'mpv3-queue-main' }, h('span', { className: 'mpv3-queue-name' }, trackTitleOf(track)), h('span', { className: 'mpv3-queue-artist' }, trackArtistOf(track))),
+      h('span', { className: 'mpv3-queue-time' }, fmtClock(track.durationSec || 0)),
+      h(IconButton, {
+        icon: 'x',
+        size: 13,
+        title: t('p3.removeFromQueue'),
+        className: 'mpv3-queue-remove',
+        onClick: function (event) {
+          event.stopPropagation()
+          removeAt(index)
+        },
+      }),
+    )
+  }
+
   return h('aside', { className: 'mpv3-queue', role: 'dialog', 'aria-label': t('page.queue') },
     h('div', { className: 'mpv3-queue-head' },
       h('strong', null, t('page.queue')),
@@ -513,37 +603,14 @@ function P3Queue(props) {
     ),
     h('div', { className: 'mpv3-queue-list' },
       current ? h('div', { className: 'mpv3-queue-section' }, t('p3.nowPlaying')) : null,
-      current ? h('button', {
-        type: 'button',
-        className: 'mpv3-queue-row is-cur',
-        onClick: function () { player.select(snap.queue, snap.index) },
-      },
-        h('span', { className: 'mpv3-queue-idx' }, icon('play', 11)),
-        h('span', { className: 'mpv3-queue-cover' }, h(Cover, { src: trackCoverSrc(current), iconSize: 12 })),
-        h('span', { className: 'mpv3-queue-main' }, h('span', { className: 'mpv3-queue-name' }, trackTitleOf(current)), h('span', { className: 'mpv3-queue-artist' }, trackArtistOf(current))),
-        h('span', { className: 'mpv3-queue-time' }, fmtClock(current.durationSec || 0)),
-      ) : null,
+      current ? row(current, snap.index, currentPosition, true) : null,
       h('div', { className: 'mpv3-queue-section' }, t('p3.nextUp')),
-      (function () {
-        var order = snap.order === 'random' ? player.getPlayOrder() : snap.queue.map(function (_, index) { return index })
-        if (!Array.isArray(order) || order.length !== snap.queue.length) order = snap.queue.map(function (_, index) { return index })
-        return order.map(function (index, position) {
-          if (index === snap.index) return null
-          var track = snap.queue[index]
-          if (!track) return null
-          return h('button', {
-            key: track.path + ':' + index,
-            type: 'button',
-            className: 'mpv3-queue-row',
-            onClick: function () { player.select(snap.queue, index) },
-          },
-            h('span', { className: 'mpv3-queue-idx' }, String(position + 1)),
-            h('span', { className: 'mpv3-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
-            h('span', { className: 'mpv3-queue-main' }, h('span', { className: 'mpv3-queue-name' }, trackTitleOf(track)), h('span', { className: 'mpv3-queue-artist' }, trackArtistOf(track))),
-            h('span', { className: 'mpv3-queue-time' }, fmtClock(track.durationSec || 0)),
-          )
-        })
-      })(),
+      order.map(function (index, position) {
+        if (index === snap.index) return null
+        var track = snap.queue[index]
+        if (!track) return null
+        return row(track, index, position, false)
+      }),
       snap.queue.length === 0 ? h('div', { className: 'mpv3-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty'))) : null,
     ),
   )

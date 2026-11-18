@@ -365,6 +365,9 @@ function openOnlineSection(nav) {
 }
 
 uiStore.subscribe(function (state) {
+  // panel-v3 owns the route persistence; keeping the legacy key in sync would
+  // recreate the dual-source-of-truth drift the v3 migration removed.
+  if (typeof P3_OWNS_ROUTE !== 'undefined' && P3_OWNS_ROUTE === true) return
   storageSet(UI_KEY, {
     source: state.source,
     nav: state.nav,

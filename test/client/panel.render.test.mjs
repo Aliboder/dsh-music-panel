@@ -188,6 +188,10 @@ assert.ok(classesOf(panel()).has('mpv3-hero'), 'artist detail renders a hero')
 internals.p3RouteStore.set({ source: 'local', page: 'search', param: null, filter: null, query: 'Alpha', history: [], scroll: {} })
 assert.ok(textOf(panel()).includes('Alpha'), 'local search renders matching tracks')
 
+assert.ok(internals.p3Tabs('netease').indexOf('recent') >= 0, 'online sources expose recent')
+assert.ok(internals.p3Tabs('netease').indexOf('songs') < 0, 'Chinese platforms do not expose a library songs page')
+assert.ok(internals.p3Tabs('navidrome').indexOf('songs') >= 0, 'Navidrome exposes its library songs page')
+
 internals.p3RouteStore.set({ source: 'netease', page: 'recent', param: null, filter: null, query: '', history: [], scroll: {} })
 internals.onlineStore.set({
   provider: 'netease', phase: 'ready', providers: { netease: { loggedIn: true, nickname: 'Tester', capabilities: { recent: true } } },
@@ -195,6 +199,19 @@ internals.onlineStore.set({
 })
 const onlineText = textOf(panel())
 assert.ok(onlineText.includes('Online Song'), 'online history rows render')
+
+const queueTree = internals.P3Queue({
+  open: true,
+  onClose: function () {},
+  onLocate: function () {},
+})
+assert.ok(classesOf(queueTree).has('mpv3-queue'), 'queue popover renders')
+assert.ok(textOf(queueTree).includes('Alpha'), 'queue lists the current track')
+const removeButtons = nodesWithClass(queueTree, 'mpv3-queue-remove')
+assert.ok(removeButtons.length > 0, 'queue rows expose a remove action')
+const queueBefore = internals.player.getSnapshot().queue.length
+removeButtons[0].props.onClick({ stopPropagation: function () {} })
+assert.equal(internals.player.getSnapshot().queue.length, queueBefore - 1, 'remove action drops one queue row')
 
 internals.overlayStore.set({ layers: [{ kind: 'menu', props: { track: TRACKS[0], x: 40, y: 40 } }] })
 assert.ok(classesOf(panel()).has('mp-ctx'), 'the context menu renders')
