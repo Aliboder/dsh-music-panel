@@ -135,6 +135,10 @@ assert.ok(String(texts[0].textContent).includes('.mp-audio-host'), 'the resident
 assert.equal(registrations.length, 11, 'style + engine + audio focus + flush/leader listeners + six seats are effects')
 assert.equal(typeof window.__dshMusicAudioFocus?.begin, 'function', 'the TTS/audio-focus window API is installed')
 assert.equal(typeof window.__dshMusicAudioFocus?.end, 'function', 'the TTS/audio-focus release API is installed')
+window.__dshMusicAudioFocus.begin('tts', { level: 0.2, fadeMs: 0 })
+assert.equal(api.__internals.player.getDuck(), 0.2, 'the window API lowers the player immediately')
+window.__dshMusicAudioFocus.end('tts')
+assert.equal(api.__internals.player.getDuck(), 1, 'the window API releases the player')
 
 console.log('client.smoke.test.mjs ok')
 
