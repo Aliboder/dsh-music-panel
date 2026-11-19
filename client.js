@@ -156738,7 +156738,10 @@ window.__ModuleLoader__.load({
         })
         applyVoiceInput(status)
         applyDuck(status)
-        if ((audioFocusPrefs().voiceInputPause === true) !== (status.voiceInputPause === true)) {
+        if (
+          status.supported === true &&
+          (audioFocusPrefs().voiceInputPause === true) !== (status.voiceInputPause === true)
+        ) {
           syncConfig()
         }
       }
