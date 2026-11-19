@@ -95,6 +95,26 @@ assert.equal(
   }
 }
 
+// QQ quality is an API token ladder, exactly Folia's: high asks 320 then 128;
+// a level with no URL is not the end of the song.
+{
+  const seen = []
+  setUpstreamOverride(async (route, params) => {
+    assert.equal(route, '/getMusicPlay/MID1')
+    seen.push(params.quality)
+    if (params.quality === '320') return { data: { playUrl: { MID1: { url: '' } } } }
+    if (params.quality === '128') return { data: { playUrl: { MID1: { url: 'https://cdn.example/128.mp3' } } } }
+    throw new Error('unexpected quality: ' + params.quality)
+  })
+  try {
+    const dl = await QQ.getDownloadURL('MID1', 'cookie', 'high')
+    assert.equal(dl.url, 'https://cdn.example/128.mp3')
+    assert.deepEqual(seen, ['320', '128'], 'high falls from 320 to 128')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
 // Recommendations and cloud use the same package routes Folia uses.
 {
   setUpstreamOverride(async (route) => {

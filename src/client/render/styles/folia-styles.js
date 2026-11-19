@@ -45,6 +45,19 @@ function foliaStyleEntry(mode) {
  * "作词：…" block stays in the article and the fume camera frames that credit instead of
  * the sung line.
  */
+/** Folia's parser always synthesizes words, so every style may index them; legacy/line-level lines must too. */
+function ensureStyleLineWords(line) {
+  if (line === null || line === undefined) return line
+  if (Array.isArray(line.words) && line.words.length > 0) return line
+  var bundle = typeof FOLIA_PENDOLO !== 'undefined' ? FOLIA_PENDOLO : null
+  var start = Number(line.startTime) || 0
+  var end = Number(line.endTime) || start + 4
+  var words = bundle && typeof bundle.buildTimedWords === 'function'
+    ? bundle.buildTimedWords(String(line.fullText || ''), start, end)
+    : (String(line.fullText || '') === '' ? [] : [{ text: String(line.fullText), startTime: start, endTime: end }])
+  return words.length > 0 ? Object.assign({}, line, { words }) : line
+}
+
 function foliaStyleLines(raw, title, artist) {
   var lines = foliaPendoloLines(raw)
   if (FOLIA_STYLES !== null && typeof FOLIA_STYLES.applyLyricStaffPolicy === 'function') {
@@ -57,11 +70,13 @@ function foliaStyleLines(raw, title, artist) {
     } catch (error) {}
   }
   // The lines are already Folia's own (or converted by foliaPendoloLines above):
-  // pass them on untouched, as Folia's app does. Rebuilding `words` here used to
-  // re-derive timings a second time and drift from the parser.
-  return lines.filter(function (line) {
-    return line && typeof line.fullText === 'string' && line.fullText.trim() !== ''
-  })
+  // pass them on untouched, as Folia's app does. Only a line that crossed the
+  // legacy boundary without words gets the parser's estimated timeline here.
+  return lines
+    .filter(function (line) {
+      return line && typeof line.fullText === 'string' && line.fullText.trim() !== ''
+    })
+    .map(ensureStyleLineWords)
 }
 
 // Folia derives the visualizer theme from the cover palette (generateBuiltinDualTheme) and

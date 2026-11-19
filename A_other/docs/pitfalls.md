@@ -414,6 +414,15 @@
 
 ---
 
+## 46. 云阶 / 心象在英文歌里空白（歌词 / Folia 样式）
+
+- **现象**：云阶（partita）和心象（cadenza）在英文歌里没有任何字形/布局，其他歌词样式正常。
+- **原因**：这两个样式按 `line.words` 建列/落点；行级 LRC 或在线歌词回退只有 `fullText` 时，legacy 桥接生成 `words: []`，布局为空。中文/日文常见逐字词轴，所以不触发；Folia 的解析器总会用 `buildTimedWords` 合成词轴，本插件没有在桥接层补齐。
+- **处理**：`legacyLinesToFolia` 对空 words 调用 FOLIA_PENDOLO 的 `buildTimedWords`；`foliaStyleLines` 在舞台入口再做一次空 words 修补。
+- **防回归**：folia-styles 测试覆盖行级英文与空 words 输入；Partita/Cadenza 在有 words 时布局非空。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

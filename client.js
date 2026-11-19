@@ -10230,6 +10230,17 @@ window.__ModuleLoader__.load({
       })
     }
 
+    /** Folia's parser always leaves line.words non-empty; the legacy bridge must too, or word-driven styles (partita/cadenza) draw nothing. */
+    function legacyWordTimeline(text, start, end) {
+      var bundle = typeof FOLIA_PENDOLO !== 'undefined' ? FOLIA_PENDOLO : null
+      if (bundle && typeof bundle.buildTimedWords === 'function') {
+        return bundle.buildTimedWords(String(text || ''), Number(start) || 0, Number(end) || (Number(start) || 0) + 4)
+      }
+      return String(text || '') === ''
+        ? []
+        : [{ text: String(text), startTime: Number(start) || 0, endTime: Number(end) || (Number(start) || 0) + 4 }]
+    }
+
     /** Legacy `{time,end,text,translation,words:[{t,end,text}]}` → Folia's `Line`. */
     function legacyLinesToFolia(lines) {
       var source = Array.isArray(lines) ? lines : []
@@ -10249,19 +10260,24 @@ window.__ModuleLoader__.load({
             fullText: String(line.text || ''),
             startTime: start,
             endTime: end,
-            words: (Array.isArray(line.words) ? line.words : [])
-              .filter(function (word) {
-                return word && String(word.text || '') !== ''
-              })
-              .map(function (word) {
-                var wordStart = Number(word.t)
-                var wordEnd = Number(word.end)
-                return {
-                  text: String(word.text || ''),
-                  startTime: isFinite(wordStart) ? wordStart : start,
-                  endTime: isFinite(wordEnd) && wordEnd > wordStart ? wordEnd : start,
-                }
-              }),
+            words: (function () {
+              var mapped = (Array.isArray(line.words) ? line.words : [])
+                .filter(function (word) {
+                  return word && String(word.text || '') !== ''
+                })
+                .map(function (word) {
+                  var wordStart = Number(word.t)
+                  var wordEnd = Number(word.end)
+                  return {
+                    text: String(word.text || ''),
+                    startTime: isFinite(wordStart) ? wordStart : start,
+                    endTime: isFinite(wordEnd) && wordEnd > wordStart ? wordEnd : start,
+                  }
+                })
+              // A line-level source has no words at all. Folia's parser synthesizes them; a
+              // legacy line has to cross the same boundary or word-driven styles go blank.
+              return mapped.length > 0 ? mapped : legacyWordTimeline(line.text, start, end)
+            })(),
             translation: typeof line.translation === 'string' ? line.translation : '',
             ...(line.isChorus === true ? { isChorus: true } : {}),
           }
@@ -139143,6 +139159,19 @@ window.__ModuleLoader__.load({
      * "作词：…" block stays in the article and the fume camera frames that credit instead of
      * the sung line.
      */
+    /** Folia's parser always synthesizes words, so every style may index them; legacy/line-level lines must too. */
+    function ensureStyleLineWords(line) {
+      if (line === null || line === undefined) return line
+      if (Array.isArray(line.words) && line.words.length > 0) return line
+      var bundle = typeof FOLIA_PENDOLO !== 'undefined' ? FOLIA_PENDOLO : null
+      var start = Number(line.startTime) || 0
+      var end = Number(line.endTime) || start + 4
+      var words = bundle && typeof bundle.buildTimedWords === 'function'
+        ? bundle.buildTimedWords(String(line.fullText || ''), start, end)
+        : (String(line.fullText || '') === '' ? [] : [{ text: String(line.fullText), startTime: start, endTime: end }])
+      return words.length > 0 ? Object.assign({}, line, { words }) : line
+    }
+
     function foliaStyleLines(raw, title, artist) {
       var lines = foliaPendoloLines(raw)
       if (FOLIA_STYLES !== null && typeof FOLIA_STYLES.applyLyricStaffPolicy === 'function') {
@@ -139155,11 +139184,13 @@ window.__ModuleLoader__.load({
         } catch (error) {}
       }
       // The lines are already Folia's own (or converted by foliaPendoloLines above):
-      // pass them on untouched, as Folia's app does. Rebuilding `words` here used to
-      // re-derive timings a second time and drift from the parser.
-      return lines.filter(function (line) {
-        return line && typeof line.fullText === 'string' && line.fullText.trim() !== ''
-      })
+      // pass them on untouched, as Folia's app does. Only a line that crossed the
+      // legacy boundary without words gets the parser's estimated timeline here.
+      return lines
+        .filter(function (line) {
+          return line && typeof line.fullText === 'string' && line.fullText.trim() !== ''
+        })
+        .map(ensureStyleLineWords)
     }
 
     // Folia derives the visualizer theme from the cover palette (generateBuiltinDualTheme) and

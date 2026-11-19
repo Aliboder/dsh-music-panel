@@ -346,6 +346,14 @@ export async function removeQQFav(song, cookie = '') {
   return await setQqLiked(song, false, cookie)
 }
 
+/** Folia's QQ quality ladder: API tokens, not the semantic preference names. */
+const QQ_QUALITY_FALLBACKS = {
+  standard: ['128'],
+  high: ['320', '128'],
+  lossless: ['flac', '320', '128'],
+  hires: ['flac', '320', '128'],
+}
+
 /** Legacy contract: `{ url, filename }`; an empty url means "not playable". */
 export async function getDownloadURL(songmid, cookie = '', qualityOrVip = 'lossless') {
   const mid = String(songmid ?? '').trim()
@@ -356,25 +364,49 @@ export async function getDownloadURL(songmid, cookie = '', qualityOrVip = 'lossl
     ? (qualityOrVip ? 'lossless' : 'standard')
     : String(qualityOrVip || 'lossless')
 
-  const json = await callUpstream(`/getMusicPlay/${encodeURIComponent(mid)}`, { quality }, { cookie })
-  let entry = json?.data?.playUrl?.[mid] ?? {}
-  let preview = false
-  if ((typeof entry.url !== 'string' || entry.url === '') && cookie !== '') {
+  // Folia asks QQ from the requested level down: 128 / 320 / flac, never the
+  // semantic words "high"/"lossless". A level that answers without a URL is not
+  // the end of the song; try the next one before giving up.
+  const tiers = QQ_QUALITY_FALLBACKS[quality] || QQ_QUALITY_FALLBACKS.lossless
+  let firstError = null
+  for (const apiQuality of tiers) {
+    try {
+      const json = await callUpstream(`/getMusicPlay/${encodeURIComponent(mid)}`, { quality: apiQuality }, { cookie })
+      const entry = json?.data?.playUrl?.[mid] ?? Object.values(json?.data?.playUrl || {})[0] ?? {}
+      if (typeof entry.url === 'string' && entry.url !== '') {
+        return {
+          url: entry.url,
+          filename: '',
+          preview: entry.preview === true,
+        }
+      }
+    } catch (error) {
+      if (error && error.code === 'auth-required') throw error
+      firstError = firstError || error
+    }
+  }
+  if (cookie !== '') {
     try {
       const previewJson = await callUpstream(`/getMusicPlay/${encodeURIComponent(mid)}`, { quality: 'standard', preview: 1 }, { cookie })
-      const previewEntry = previewJson?.data?.playUrl?.[mid] ?? {}
+      const previewEntry = previewJson?.data?.playUrl?.[mid]
+        ?? Object.values(previewJson?.data?.playUrl || {})[0]
+        ?? {}
       if (typeof previewEntry.url === 'string' && previewEntry.url !== '') {
-        entry = previewEntry
-        preview = previewEntry.preview === true
+        return {
+          url: previewEntry.url,
+          filename: '',
+          preview: previewEntry.preview === true,
+        }
       }
     } catch {
       // No preview is the same answer as no stream.
     }
   }
+  if (firstError !== null) throw firstError
   return {
-    url: typeof entry.url === 'string' ? entry.url : '',
+    url: '',
     filename: '',
-    preview,
+    preview: false,
   }
 }
 

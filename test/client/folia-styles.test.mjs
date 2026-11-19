@@ -122,6 +122,21 @@ for (const mode of expected) {
   assert.equal(typeof entries[mode].render, 'function')
 }
 
+// A line-level source has no parser words; the legacy bridge must synthesize them,
+// otherwise the word-driven styles (partita/cadenza) draw nothing.
+{
+  const converted = internals.legacyLinesToFolia([
+    { time: 1, text: 'Fly, broken wings' },
+    { time: 4, text: 'I know you are still with me' },
+  ])
+  assert.ok(converted[0].words.length > 1, 'line-level English gets parser-style words')
+  assert.equal(converted[0].words[0].text, 'Fly,')
+  const styleLines = internals.foliaStyleLines([
+    { fullText: 'Fly, broken wings', startTime: 1, endTime: 4, words: [] },
+  ], 'Fly', 'Mili')
+  assert.ok(styleLines[0].words.length > 1, 'the style boundary repairs a missing word timeline')
+}
+
 assert.ok(Array.isArray(internals.FOLIA_STYLE_META))
 assert.deepEqual(
   internals.FOLIA_STYLE_META.map((item) => item.id).sort(),

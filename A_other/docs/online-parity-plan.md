@@ -477,6 +477,10 @@ npm run check
 - 未完成：探索页（NetEase/QQ 的 section 流）、歌单创建/改名、播放上报（QQ/酷狗平台无对应接口）。
 - 全量 `npm test` / `npm run check` 通过；真实账号与真实问题歌曲尚未验证。
 
+### 2026-11-19 · QQ 音质阶梯
+
+- `getDownloadURL` 不再只请求一次语义音质；按 Folia 的 128 / 320 / flac 阶梯逐档请求，任一一档有 URL 即返回，全部无 URL 才请求试听。
+
 ### 2026-11-19 · 0.38.0 酷狗 high/lossless 404 回归
 
 - 真实报告：酷狗概念版登录普通账号，`quality=high` / `lossless` 的 CDN 地址 404，Host 回 502；`standard` 200。

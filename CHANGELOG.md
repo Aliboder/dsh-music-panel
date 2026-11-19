@@ -2,10 +2,15 @@
 
 ## Unreleased
 
+### 歌词样式
+
+- 行级歌词（没有 `line.words` 的 LRC / 在线回退）在 legacy → Folia 边界按 Folia 的 `buildTimedWords` 合成逐词时间轴；云阶（partita）和心象（cadenza）不再因英文行级歌词空白，其他词布局样式也不会再收到空 words。
+
 ### 在线播放修复
 
 - 修复 0.38.0 酷狗概念版 `high` / `lossless` 取流 404：半套 `album_id` 不再触发 metadata 请求，嵌套 package 行保留精确 `album_audio_id`；标准路径按 Folia 的请求档位与主 hash 取流，不再固定从 `flac`/`hqHash` 开始。
 - Host 在已解析地址仍返回 404 时按 Folia 音质阶梯降档重试（high → standard、lossless → high → standard），避免整首 502。
+- QQ 音质请求改为 Folia 的 API token 阶梯（128 / 320 / flac），高档无 URL 时自动降档；标准档仍无地址才请求试听。
 
 ### 列表密度
 

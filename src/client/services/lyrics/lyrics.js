@@ -208,6 +208,17 @@ function foliaLyricLines(document) {
   })
 }
 
+/** Folia's parser always leaves line.words non-empty; the legacy bridge must too, or word-driven styles (partita/cadenza) draw nothing. */
+function legacyWordTimeline(text, start, end) {
+  var bundle = typeof FOLIA_PENDOLO !== 'undefined' ? FOLIA_PENDOLO : null
+  if (bundle && typeof bundle.buildTimedWords === 'function') {
+    return bundle.buildTimedWords(String(text || ''), Number(start) || 0, Number(end) || (Number(start) || 0) + 4)
+  }
+  return String(text || '') === ''
+    ? []
+    : [{ text: String(text), startTime: Number(start) || 0, endTime: Number(end) || (Number(start) || 0) + 4 }]
+}
+
 /** Legacy `{time,end,text,translation,words:[{t,end,text}]}` → Folia's `Line`. */
 function legacyLinesToFolia(lines) {
   var source = Array.isArray(lines) ? lines : []
@@ -227,19 +238,24 @@ function legacyLinesToFolia(lines) {
         fullText: String(line.text || ''),
         startTime: start,
         endTime: end,
-        words: (Array.isArray(line.words) ? line.words : [])
-          .filter(function (word) {
-            return word && String(word.text || '') !== ''
-          })
-          .map(function (word) {
-            var wordStart = Number(word.t)
-            var wordEnd = Number(word.end)
-            return {
-              text: String(word.text || ''),
-              startTime: isFinite(wordStart) ? wordStart : start,
-              endTime: isFinite(wordEnd) && wordEnd > wordStart ? wordEnd : start,
-            }
-          }),
+        words: (function () {
+          var mapped = (Array.isArray(line.words) ? line.words : [])
+            .filter(function (word) {
+              return word && String(word.text || '') !== ''
+            })
+            .map(function (word) {
+              var wordStart = Number(word.t)
+              var wordEnd = Number(word.end)
+              return {
+                text: String(word.text || ''),
+                startTime: isFinite(wordStart) ? wordStart : start,
+                endTime: isFinite(wordEnd) && wordEnd > wordStart ? wordEnd : start,
+              }
+            })
+          // A line-level source has no words at all. Folia's parser synthesizes them; a
+          // legacy line has to cross the same boundary or word-driven styles go blank.
+          return mapped.length > 0 ? mapped : legacyWordTimeline(line.text, start, end)
+        })(),
         translation: typeof line.translation === 'string' ? line.translation : '',
         ...(line.isChorus === true ? { isChorus: true } : {}),
       }
