@@ -151,7 +151,7 @@ function P3TopBar(props) {
             : loggedIn && info.nickname
               ? h('span', { className: 'mpv3-source-initial' }, p3Initial(info.nickname || info.name))
               : source === 'local'
-                ? icon('music', 14)
+                ? icon('hardDrive', 14)
                 : h('span', { className: 'mpv3-source-logo' }, providerLogo(source, 24)),
           source !== 'local' && (avatarUrl || (loggedIn && info.nickname))
             ? h('span', { className: 'mpv3-source-badge' }, providerLogo(source, 14))

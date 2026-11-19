@@ -495,6 +495,15 @@
 
 ---
 
+## 55. 在线账号卡片被服务器表单撑高，长 ID 溢出
+
+- **现象**：酷狗卡片和 Navidrome 并排时被拉高；汽水音乐的长 ID 横向溢出卡片。
+- **原因**：CSS grid 默认 `align-items:stretch`，同一行高度取最高的 Navidrome 表单；账号 ID 在 flex 子项中 `white-space:nowrap` 且没有 `min-width:0`/省略规则。
+- **处理**：所有账号卡片设统一 `min-height`；Navidrome 表单默认收起，展开时 `grid-column:1/-1` 独占整行；`mp-online-id`/`mp-online-nick` 加 `min-width:0` + ellipsis，并补 `title`。
+- **防回归**：设置页卡片不使用内容自适应行高；长 ID 必须可省略。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

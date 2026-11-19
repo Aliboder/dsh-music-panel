@@ -82,8 +82,8 @@ assert.equal(
 // ── 3. the navidrome card takes the form as a parameter ───────────────────
 assert.match(
   source,
-  /function navidromeCard\(info, form\)/,
-  'navidromeCard must receive the form from its caller instead of creating its own state',
+  /function navidromeCard\(info, form, open, setOpen\)/,
+  'navidromeCard must receive the form and open state from its caller instead of creating its own state',
 )
 
 // ── 4. no hook called from a .map() callback anywhere in src/ ─────────────

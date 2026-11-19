@@ -64,6 +64,11 @@ function SettingsSheet(props) {
   // Navidrome credential form. Every hook in this component must run on each
   // render, so it lives here rather than inside the tab/card render helpers.
   var navForm = useNavidromeForm()
+  // The server form is taller than every other account card. Keep it collapsed
+  // until asked for, so the default grid stays one uniform card size.
+  var navOpenPair = useState(false)
+  var navOpen = navOpenPair[0]
+  var setNavOpen = navOpenPair[1]
   var outputPair = useState([])
   var outputDevices = outputPair[0]
   var setOutputDevices = outputPair[1]
@@ -926,11 +931,11 @@ function SettingsSheet(props) {
      * Navidrome / Subsonic: a URL + credential form instead of a QR flow.
      * The password only travels once, to be traded for a salted token.
      */
-    function navidromeCard(info, form) {
+    function navidromeCard(info, form, open, setOpen) {
       var busy = form.phase === 'loading'
       return h(
         'div',
-        { key: 'navidrome', className: cx('mp-online-card', 'is-navidrome', info.loggedIn === true && 'is-logged') },
+        { key: 'navidrome', className: cx('mp-online-card', 'is-navidrome', info.loggedIn === true && 'is-logged', open === true && info.loggedIn !== true && 'is-expanded') },
         h(
           'div',
           { className: 'mp-online-card-head' },
@@ -969,7 +974,21 @@ function SettingsSheet(props) {
                 },
               }),
             )
-          : h(
+          : open !== true
+            ? h(
+                'div',
+                { className: 'mp-online-body is-out mp-navidrome-body is-compact' },
+                h('span', { className: 'mp-online-hint-text' }, t('online.navidromeHint')),
+                h(Button, {
+                  variant: 'primary',
+                  icon: 'server',
+                  onClick: function () {
+                    setOpen(true)
+                  },
+                  children: t('online.navidromeConnect'),
+                }),
+              )
+            : h(
               'div',
               { className: 'mp-online-body is-out mp-navidrome-body' },
               h('span', { className: 'mp-online-hint-text' }, t('online.navidromeHint')),
@@ -1027,15 +1046,26 @@ function SettingsSheet(props) {
                 : form.notice !== ''
                   ? h('span', { className: 'mp-online-ok' }, form.notice)
                   : null,
-              h(Button, {
-                variant: 'primary',
-                icon: 'checkCircle',
-                disabled: busy,
-                onClick: function () {
-                  void form.connect()
-                },
-                children: busy ? t('online.navidromeConnecting') : t('online.navidromeConnect'),
-              }),
+              h(
+                'div',
+                { className: 'mp-navidrome-footer' },
+                h(Button, {
+                  variant: 'ghost',
+                  onClick: function () {
+                    setOpen(false)
+                  },
+                  children: t('online.navidromeCollapse'),
+                }),
+                h(Button, {
+                  variant: 'primary',
+                  icon: 'checkCircle',
+                  disabled: busy,
+                  onClick: function () {
+                    void form.connect()
+                  },
+                  children: busy ? t('online.navidromeConnecting') : t('online.navidromeConnect'),
+                }),
+              ),
             ),
       )
     }
@@ -1044,7 +1074,7 @@ function SettingsSheet(props) {
       var info = providers[provider] || {}
       // Navidrome signs in with credentials, not a QR code, so it gets its own
       // body instead of the shared "scan to sign in" branch below.
-      if (provider === 'navidrome') return navidromeCard(info, navForm)
+      if (provider === 'navidrome') return navidromeCard(info, navForm, navOpen, setNavOpen)
       return h(
         'div',
         { key: provider, className: cx('mp-online-card', 'is-' + provider, info.loggedIn === true && 'is-logged') },
@@ -1071,8 +1101,13 @@ function SettingsSheet(props) {
               h(
                 'div',
                 { className: 'mp-online-meta' },
-                h('strong', { className: 'mp-online-nick' }, info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn'))),
-                info.accountId ? h('span', { className: 'mp-online-id' }, 'ID ' + info.accountId) : null,
+                h('strong', {
+                  className: 'mp-online-nick',
+                  title: info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn')),
+                }, info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn'))),
+                info.accountId
+                  ? h('span', { className: 'mp-online-id', title: 'ID ' + info.accountId }, 'ID ' + info.accountId)
+                  : null,
                 info.vip === true ? h('span', { className: 'mp-online-vip' }, 'VIP') : null,
               ),
               h(IconButton, {

@@ -7,6 +7,12 @@
 - Folia 歌词舞台的共享时钟改用播放器当前 active deck 的 `getPlaybackTime()`，不再 `querySelector` 第一个 `audio.mp-audio-host`；交叉淡入淡出切换到 B deck 后，回环等所有歌词样式不会再冻结在每句第一个字。音频带也按 active deck 判断是否在播放。
 - Folia 当前歌词行不再使用父层约 4Hz 的 `timeupdate` 索引，而是在舞台内部用同一 `clock` 按 Folia 的 `findLatestActiveLineIndex` 逐帧计算；逐词动画和行切换现在共用一份时间真值。
 
+### 在线与账号
+
+- 在线来源卡片统一为同一最小高度；Navidrome 连接表单默认收起为紧凑卡片，展开后独占整行，不再把同行的酷狗卡片撑高。
+- 汽水音乐等超长账号 ID 改为单行省略，并保留完整 ID 的悬浮提示。
+- 左上角来源按钮的本地音乐图标改为与菜单一致的硬盘图标。
+
 ### Folia 样式
 
 - `VisualizerShell` 补上 Folia 页面由 Tailwind preflight 提供的默认 `line-height: 1.5`：此前宿主页面的行高更紧，Monet 歌手名被 `truncate` 的 `overflow:hidden` 上下裁切。Monet 源码本身与 Folia 一致，差异在宿主 shell 的全局排版上下文。

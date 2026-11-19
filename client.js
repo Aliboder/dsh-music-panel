@@ -7051,6 +7051,7 @@ window.__ModuleLoader__.load({
         'online.navidromeUser': '用户名',
         'online.navidromePassword': '密码',
         'online.navidromeConnect': '连接',
+        'online.navidromeCollapse': '收起',
         'online.navidromeTitle': '连接 Navidrome / Subsonic',
         'online.navidromeSave': '保存并连接',
         'online.navidromeNeedUser': '请填写用户名',
@@ -7661,6 +7662,7 @@ window.__ModuleLoader__.load({
         'online.navidromeUser': 'Username',
         'online.navidromePassword': 'Password',
         'online.navidromeConnect': 'Connect',
+        'online.navidromeCollapse': 'Collapse',
         'online.navidromeTitle': 'Connect Navidrome / Subsonic',
         'online.navidromeSave': 'Save and connect',
         'online.navidromeNeedUser': 'Enter a username',
@@ -159307,8 +159309,9 @@ window.__ModuleLoader__.load({
       '.mp-online-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}',
       '.mp-online-head h2{margin:0}',
       '.mp-online-count{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));padding:3px 8px;border-radius:999px;font-variant-numeric:tabular-nums}',
-      '.mp-online-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}',
-      '.mp-online-card{--mp-brand:#4176E6;position:relative;overflow:hidden;padding:13px;border-radius:16px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));background:var(--dsw-alias-bg-layer-2,#1e1e22);min-width:0}',
+      '.mp-online-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}',
+      '.mp-online-card{--mp-brand:#4176E6;position:relative;display:flex;flex-direction:column;overflow:hidden;padding:13px;border-radius:16px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));background:var(--dsw-alias-bg-layer-2,#1e1e22);min-width:0;min-height:152px}',
+      '.mp-online-card.is-expanded{grid-column:1/-1;min-height:0}',
       '.mp-online-card:before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;border-radius:0 8px 8px 0;background:var(--mp-brand)}',
       '.mp-online-card.is-netease{--mp-brand:#e60026}',
       '.mp-online-card.is-qq{--mp-brand:#31c27c}',
@@ -159356,9 +159359,9 @@ window.__ModuleLoader__.load({
       '.mp-online-card.is-logged .mp-online-state{color:var(--mp-brand)}',
       '.mp-online-body{display:flex;align-items:center;gap:9px;margin-top:12px;padding-top:10px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));min-width:0}',
       '.mp-online-card .mp-account-avatar{width:34px;height:34px}',
-      '.mp-online-meta{min-width:0;flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap}',
-      '.mp-online-nick{font-size:11px;font-weight:550;color:var(--dsw-alias-label-secondary,#b4b4bd);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}',
-      '.mp-online-id{font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
+      '.mp-online-meta{min-width:0;flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;overflow:hidden}',
+      '.mp-online-nick{font-size:11px;font-weight:550;color:var(--dsw-alias-label-secondary,#b4b4bd);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;min-width:0}',
+      '.mp-online-id{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-online-vip{font-size:9px;font-weight:700;line-height:1;padding:2px 5px;border-radius:8px;color:#8a5a00;background:#ffd76a;flex:none}',
       '.mp-online-body.is-out{justify-content:space-between;gap:8px;border-top:0;padding-top:0;margin-top:10px}',
       '.mp-online-hint-text{font-size:10px;line-height:1.35;color:var(--dsw-alias-label-tertiary,#8a8a93);min-width:0}',
@@ -165512,6 +165515,11 @@ window.__ModuleLoader__.load({
       // Navidrome credential form. Every hook in this component must run on each
       // render, so it lives here rather than inside the tab/card render helpers.
       var navForm = useNavidromeForm()
+      // The server form is taller than every other account card. Keep it collapsed
+      // until asked for, so the default grid stays one uniform card size.
+      var navOpenPair = useState(false)
+      var navOpen = navOpenPair[0]
+      var setNavOpen = navOpenPair[1]
       var outputPair = useState([])
       var outputDevices = outputPair[0]
       var setOutputDevices = outputPair[1]
@@ -166374,11 +166382,11 @@ window.__ModuleLoader__.load({
          * Navidrome / Subsonic: a URL + credential form instead of a QR flow.
          * The password only travels once, to be traded for a salted token.
          */
-        function navidromeCard(info, form) {
+        function navidromeCard(info, form, open, setOpen) {
           var busy = form.phase === 'loading'
           return h(
             'div',
-            { key: 'navidrome', className: cx('mp-online-card', 'is-navidrome', info.loggedIn === true && 'is-logged') },
+            { key: 'navidrome', className: cx('mp-online-card', 'is-navidrome', info.loggedIn === true && 'is-logged', open === true && info.loggedIn !== true && 'is-expanded') },
             h(
               'div',
               { className: 'mp-online-card-head' },
@@ -166417,7 +166425,21 @@ window.__ModuleLoader__.load({
                     },
                   }),
                 )
-              : h(
+              : open !== true
+                ? h(
+                    'div',
+                    { className: 'mp-online-body is-out mp-navidrome-body is-compact' },
+                    h('span', { className: 'mp-online-hint-text' }, t('online.navidromeHint')),
+                    h(Button, {
+                      variant: 'primary',
+                      icon: 'server',
+                      onClick: function () {
+                        setOpen(true)
+                      },
+                      children: t('online.navidromeConnect'),
+                    }),
+                  )
+                : h(
                   'div',
                   { className: 'mp-online-body is-out mp-navidrome-body' },
                   h('span', { className: 'mp-online-hint-text' }, t('online.navidromeHint')),
@@ -166475,15 +166497,26 @@ window.__ModuleLoader__.load({
                     : form.notice !== ''
                       ? h('span', { className: 'mp-online-ok' }, form.notice)
                       : null,
-                  h(Button, {
-                    variant: 'primary',
-                    icon: 'checkCircle',
-                    disabled: busy,
-                    onClick: function () {
-                      void form.connect()
-                    },
-                    children: busy ? t('online.navidromeConnecting') : t('online.navidromeConnect'),
-                  }),
+                  h(
+                    'div',
+                    { className: 'mp-navidrome-footer' },
+                    h(Button, {
+                      variant: 'ghost',
+                      onClick: function () {
+                        setOpen(false)
+                      },
+                      children: t('online.navidromeCollapse'),
+                    }),
+                    h(Button, {
+                      variant: 'primary',
+                      icon: 'checkCircle',
+                      disabled: busy,
+                      onClick: function () {
+                        void form.connect()
+                      },
+                      children: busy ? t('online.navidromeConnecting') : t('online.navidromeConnect'),
+                    }),
+                  ),
                 ),
           )
         }
@@ -166492,7 +166525,7 @@ window.__ModuleLoader__.load({
           var info = providers[provider] || {}
           // Navidrome signs in with credentials, not a QR code, so it gets its own
           // body instead of the shared "scan to sign in" branch below.
-          if (provider === 'navidrome') return navidromeCard(info, navForm)
+          if (provider === 'navidrome') return navidromeCard(info, navForm, navOpen, setNavOpen)
           return h(
             'div',
             { key: provider, className: cx('mp-online-card', 'is-' + provider, info.loggedIn === true && 'is-logged') },
@@ -166519,8 +166552,13 @@ window.__ModuleLoader__.load({
                   h(
                     'div',
                     { className: 'mp-online-meta' },
-                    h('strong', { className: 'mp-online-nick' }, info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn'))),
-                    info.accountId ? h('span', { className: 'mp-online-id' }, 'ID ' + info.accountId) : null,
+                    h('strong', {
+                      className: 'mp-online-nick',
+                      title: info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn')),
+                    }, info.nickname || (provider === 'qq' ? t('online.qqAccount') : t('online.loggedIn'))),
+                    info.accountId
+                      ? h('span', { className: 'mp-online-id', title: 'ID ' + info.accountId }, 'ID ' + info.accountId)
+                      : null,
                     info.vip === true ? h('span', { className: 'mp-online-vip' }, 'VIP') : null,
                   ),
                   h(IconButton, {
@@ -171822,7 +171860,7 @@ window.__ModuleLoader__.load({
                 : loggedIn && info.nickname
                   ? h('span', { className: 'mpv3-source-initial' }, p3Initial(info.nickname || info.name))
                   : source === 'local'
-                    ? icon('music', 14)
+                    ? icon('hardDrive', 14)
                     : h('span', { className: 'mpv3-source-logo' }, providerLogo(source, 24)),
               source !== 'local' && (avatarUrl || (loggedIn && info.nickname))
                 ? h('span', { className: 'mpv3-source-badge' }, providerLogo(source, 14))
