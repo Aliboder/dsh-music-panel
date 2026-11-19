@@ -978,7 +978,7 @@ function SettingsSheet(props) {
             ? h(
                 'div',
                 { className: 'mp-online-body is-out mp-navidrome-body is-compact' },
-                h('span', { className: 'mp-online-hint-text' }, t('online.navidromeHint')),
+                h('span', { className: 'mp-online-hint-text' }, t('online.navidromeCompactHint')),
                 h(Button, {
                   variant: 'primary',
                   icon: 'server',

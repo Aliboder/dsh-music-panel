@@ -501,6 +501,7 @@
 - **原因**：CSS grid 默认 `align-items:stretch`，同一行高度取最高的 Navidrome 表单；账号 ID 在 flex 子项中 `white-space:nowrap` 且没有 `min-width:0`/省略规则。
 - **处理**：所有账号卡片设统一 `min-height`；Navidrome 表单默认收起，展开时 `grid-column:1/-1` 独占整行；`mp-online-id`/`mp-online-nick` 加 `min-width:0` + ellipsis，并补 `title`。
 - **防回归**：设置页卡片不使用内容自适应行高；长 ID 必须可省略。
+- **补充**：初版固定 152px 仍会在已登录卡片底部留白；现改为 120px，Navidrome 收起态用单行横排的「说明 + 连接」，四张已登录卡片内容刚好填满。
 
 ---
 
