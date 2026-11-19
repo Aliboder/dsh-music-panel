@@ -178,14 +178,17 @@ function createPlayer() {
   var lastPositionSync = 0
   var duckFactor = 1
   var duckRampSeconds = 0.3
+  // The slider saves every change through savePrefs; a new engine must start from
+  // that value, or a restart resets the visible and audible level to 1.
+  var savedVolume = Number(prefs.volume)
+  if (!isFinite(savedVolume)) savedVolume = 1
   var state = {
     queue: [],
     index: -1,
     playing: false,
     loop: prefs.loop === 'one' ? 'one' : 'none',
     order: prefs.order === 'random' && prefs.loop !== 'one' ? 'random' : 'list',
-    // Volume follows the system mixer: the plugin no longer exposes its own.
-    volume: 1,
+    volume: clamp(savedVolume, 0, 1),
     muted: false,
     currentTime: 0,
     duration: 0,

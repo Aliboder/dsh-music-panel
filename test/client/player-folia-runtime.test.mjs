@@ -196,7 +196,10 @@ const window = {
   webkitAudioContext: function () {
     return context
   },
-  localStorage: { getItem: () => null, setItem() {} },
+  localStorage: {
+    getItem: (key) => (key === 'music.prefs.v2' ? JSON.stringify({ volume: 0.37 }) : null),
+    setItem: (key, value) => { window.localStorage.__saved = { key, value } },
+  },
   addEventListener() {},
   removeEventListener() {},
   dispatchEvent() {},
@@ -245,6 +248,7 @@ const plugin = definition.factory((name) => {
 })
 const player = plugin.__internals.player
 assert.ok(player && typeof player.attachAudio === 'function')
+assert.equal(player.getSnapshot().volume, 0.37, 'the saved volume is restored on engine creation')
 
 const primary = createAudioElement()
 primary.parentNode = { insertBefore(child) { child.parentNode = this }, removeChild(child) { child.parentNode = null } }
@@ -259,6 +263,7 @@ assert.equal(analyser.smoothingTimeConstant, 0.6)
 assert.ok(player.getWave() !== null, 'the player exposes the Folia analyser')
 
 player.setVolume(0.35)
+assert.equal(JSON.parse(window.localStorage.__saved.value).volume, 0.35, 'changing volume persists it')
 player.setMuted(true)
 player.setMuted(false)
 player.setVolume(1)
