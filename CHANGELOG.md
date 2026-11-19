@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.39.2 — 2026-11-20
+
 ### 播放时钟
 
 - Folia 歌词舞台的共享时钟改用播放器当前 active deck 的 `getPlaybackTime()`，不再 `querySelector` 第一个 `audio.mp-audio-host`；交叉淡入淡出切换到 B deck 后，回环等所有歌词样式不会再冻结在每句第一个字。音频带也按 active deck 判断是否在播放。
