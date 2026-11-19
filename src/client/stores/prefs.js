@@ -80,6 +80,14 @@ var PREF_DEFAULTS = {
   playbackFade: true,
   // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
   playbackReports: false,
+  /** Folia's voice-input pause: Windows microphone capture pauses playback. */
+  voiceInputPause: false,
+  /** External TTS/voice plugins may duck the music through the audio-focus API. */
+  audioFocusDucking: true,
+  /** Remaining volume while ducked (0.3 = 30%). */
+  audioFocusDuckLevel: 0.3,
+  /** Duck/release ramp in milliseconds. */
+  audioFocusFadeMs: 300,
   /** Folia's replay-gain choice; `normalizeVolume` is the legacy on/off form. */
   replayGainMode: 'auto',
   loop: 'none',

@@ -95,6 +95,7 @@ Local library · NetEase Cloud Music · QQ Music · KuGou · Bodian · Qishui ·
 - **新主面板**：歌曲 / 专辑 / 歌手 / 文件夹 / 喜欢 / 歌单 / 统计、专辑/歌手/歌单详情、在线最近/歌单（Navidrome 另有完整专辑/歌手库）、队列浮窗、选择操作条和可折叠左侧导航；单击选中、双击播放、悬停播放。
 - **智能过渡（Folia crossfade 模式）**：播放页「音频效果 → 音量」或设置 → 播放；开关启用后可在 1–25 秒之间设置上限。过渡按 Folia 的 plain crossfade 逻辑等功率淡入淡出，实际长度受曲目剩余空间、下一首静音前奏和曲目长度四分之一限制；下一首从静音边之后进入，同专辑连续曲目保持原始硬切；开启后在当前曲播放期间后台预取下一首在线曲目；暂停、切歌、拖动进度会立即取消过渡。Folia 的 Automix（节拍/分轨）引擎尚未移植，本插件只实现其 crossfade 模式。
 - **音量均衡**：浏览器内置 EBU R128（BS.1770）分析，按曲目自动调整增益，不依赖 ffmpeg；首次分析后缓存结果。
+- **音频焦点**：Windows 语音输入或其他应用占用麦克风时暂停，结束后恢复（Folia 同款 2/3 次去抖）；TTS / 语音插件可通过窗口 API 或 `/music/audio-focus/duck` 请求临时避让，音量和渐变可调。设置 → 播放 → 音频焦点。
 - **均衡器**：播放页音量按钮里的「音频效果 → 均衡器」，10 段（31 / 62 / 125 / 250 / 500 / 1k / 2k / 4k / 8k / 16k Hz，Q=1.41，±12 dB）。「设备」页签内置约 8800 条 AutoEQ 耳机补偿曲线，可按型号搜索并套用（数据来源与许可见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)）；出厂预设沿用 Winamp 原版 18 组曲线，可保存自己的曲线；“编辑”页有实时频响曲线、前置增益、自动 headroom 与输出限幅（多段提升不破音）。
 - 在线歌词与翻译：网易云 `trans`、QQ 加密翻译流、酷狗 KRC 内嵌译文；Navidrome / Subsonic 使用 OpenSubsonic 结构化歌词（如服务器支持）。
 
@@ -254,6 +255,7 @@ Most music plugins stop at “it plays”. `dsh-music-panel` is built as a **rea
 - **VIP awareness**: playability follows the signed-in account; VIP tracks are marked.
 - **Audio cache**: off by default; a track is written only after a full play. Settings → Data has the switch, a size limit (5 GB default), usage, and per-category clearing. Skips, failures, and preview clips are never written.
 - **Volume leveling**: built-in EBU R128 / BS.1770 analysis with per-track gain, no ffmpeg required; results are cached.
+- **Audio focus**: on Windows, playback pauses while voice input or another app captures the microphone and resumes afterwards (the same 2/3-sample debounce as Folia). TTS/voice plugins can request temporary ducking through the window API or `/music/audio-focus/duck`; level and fade are configurable under Settings → Playback → Audio focus.
 - **10-band equalizer**: Audio effects → Equalizer in the player bar (31 / 62 / 125 / 250 / 500 / 1k / 2k / 4k / 8k / 16k Hz, Q=1.41, ±12 dB). The Devices tab ships ~8,800 AutoEQ headphone correction curves with model search; factory presets reuse Winamp’s 18 curves; the Edit tab has a live response curve, preamp, and automatic headroom + limiter.
 - **Smart transition**: one switch in Audio effects → Volume (or Settings → Playback). It analyses the end of the current track and the start of the next, then blends with an equal-power curve for 2.5–6 s; the next track only fades in during the last 2.5 s, and the UI switches the moment it becomes audible. Album tracks keep their original join; pause, seek, or next cancels the blend.
 - **In-list search**: the magnifier in a playlist, album, or library header expands into a search field for the list you are looking at (title / artist / album); the top-bar search stays dedicated to online search.

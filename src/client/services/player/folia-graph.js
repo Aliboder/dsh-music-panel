@@ -66,7 +66,7 @@ function createFoliaGraph(options) {
     return graph === null ? null : graph.gainNode
   }
 
-  function applyVolume(immediate) {
+  function applyVolume(immediate, rampSeconds) {
     var target = muted ? 0 : volume
     var gain = masterGain()
     if (gain === null || context === null) {
@@ -83,7 +83,8 @@ function createFoliaGraph(options) {
       }
       return
     }
-    audioApi.rampGain(context, gain, target, 0.015)
+    var ramp = Number(rampSeconds)
+    audioApi.rampGain(context, gain, target, isFinite(ramp) && ramp >= 0 ? ramp : 0.015)
   }
 
   function applyEq() {
@@ -256,15 +257,15 @@ function createFoliaGraph(options) {
     isMuted: function () {
       return muted
     },
-    setVolume: function (value) {
+    setVolume: function (value, rampSeconds) {
       var next = Number(value)
       if (!isFinite(next)) return
       volume = Math.min(1, Math.max(0, next))
-      applyVolume(false)
+      applyVolume(false, rampSeconds)
     },
-    setMuted: function (value) {
+    setMuted: function (value, rampSeconds) {
       muted = value === true
-      applyVolume(false)
+      applyVolume(false, rampSeconds)
     },
 
     getEq: function () {

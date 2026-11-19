@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 音频焦点
+
+- 按 Folia 的 `voiceInputPause.cjs` 移植 Windows 麦克风占用检测：注册表轮询、2 次确认开始 / 3 次确认停止、暂停后只恢复由语音输入造成的暂停；默认关闭，仅 Windows。
+- 新增 TTS / 语音预览避让：`window.__dshMusicAudioFocus` 同窗口 API 与 `/music/audio-focus/duck` Host 路由，支持 reason、剩余音量、渐变时间和 TTL；多个 reason 取最低音量。
+- 播放器 master gain 增加独立 duck 因子与可调 ramp，不修改保存音量；设置 → 播放 → 音频焦点提供开关、避让后音量与渐变时间。
+- Host 路由 `/music/audio-focus/status`、`/config`、`/duck`；Host 服务在插件卸载时停止轮询。
+
 ## 0.38.0 — 2026-11-19
 
 ### 主面板替换（panel-v3）

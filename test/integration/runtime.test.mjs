@@ -86,6 +86,34 @@ async function post(path, payload) {
   assert.equal(missing.status, 404)
 }
 
+// ── audio focus ─────────────────────────────────────────────────────────────
+{
+  const status = await get('/music/audio-focus/status')
+  assert.equal(status.status, 200)
+  assert.equal(status.body.ok, true)
+  assert.equal(typeof status.body.supported, 'boolean')
+
+  const configured = await post('/music/audio-focus/config', { voiceInputPause: false })
+  assert.equal(configured.status, 200)
+  assert.equal(configured.body.voiceInputPause, false)
+
+  const ducked = await post('/music/audio-focus/duck', {
+    reason: 'tts',
+    active: true,
+    level: 0.2,
+    fadeMs: 120,
+    ttlMs: 5000,
+  })
+  assert.equal(ducked.status, 200)
+  assert.equal(ducked.body.duck.active, true)
+  assert.equal(ducked.body.duck.level, 0.2)
+  assert.deepEqual(ducked.body.duck.reasons, ['tts'])
+
+  const released = await post('/music/audio-focus/duck', { reason: 'tts', active: false })
+  assert.equal(released.status, 200)
+  assert.equal(released.body.duck.active, false)
+}
+
 // ── provider catalogue ──────────────────────────────────────────────────────
 
 const providers = await get('/music/online/providers')

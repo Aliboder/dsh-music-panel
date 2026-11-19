@@ -27,6 +27,7 @@ import { omni, registerBodianSource, registerLocalSource, registerOnlineSources,
 import { stopNeteaseService } from './src/host/services/netease-api.js'
 import { stopQqService } from './src/host/services/qq-api.js'
 import { stopAllKugouServices } from './src/host/services/kugou-api.js'
+import { createAudioFocusService } from './src/host/services/audio-focus.js'
 
 /** Cordis plugin name. */
 export const name = 'music'
@@ -95,7 +96,12 @@ export function apply(ctx, rawConfig) {
     library.clear()
   }
 
-  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, mediaCache, kugouSessions, resetData, lyricState })
+  const audioFocus = createAudioFocusService()
+  ctx.effect(() => () => {
+    audioFocus.dispose()
+  }, 'music: audio focus')
+
+  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, mediaCache, kugouSessions, resetData, lyricState, audioFocus })
 
 
   // Sources are registered once per load; the registry is the single list every

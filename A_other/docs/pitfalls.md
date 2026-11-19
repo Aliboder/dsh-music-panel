@@ -396,6 +396,15 @@
 
 ---
 
+## 44. TTS 避让渐变被 mute 重置（播放器 / 音频焦点）
+
+- **现象**：避让设为 300ms，实际音量瞬间跳变，听不到渐变。
+- **原因**：applyOutputVolume 先 setVolume(target, fade)，紧接着 setMuted(muted) 用默认 15ms ramp 再写一次 master gain，把长渐变取消；mute 状态没变时也会重写。
+- **处理**：foliaGraph.setMuted 接受 rampSeconds；player 调 setVolume 与 setMuted 时传同一个 fade。
+- **防回归**：player-folia-wiring 断言两个调用都收到 fade；audio-focus 测试覆盖 level/fade 状态。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

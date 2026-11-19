@@ -8,7 +8,7 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
-    var APP_VERSION = "0.38.0"
+    var APP_VERSION = "0.39.0"
 
     // ── src/client/app/runtime.js
     /**
@@ -8298,6 +8298,16 @@ window.__ModuleLoader__.load({
         'settings.groupStartup': '启动与恢复',
         'settings.groupSound': '音质与音量',
         'settings.groupTransition': '过渡',
+        'settings.groupAudioFocus': '音频焦点',
+        'settings.voiceInputPause': '语音输入时暂停播放',
+        'settings.voiceInputPauseDesc': '检测到系统语音输入或其他应用占用麦克风时暂停，结束后恢复。',
+        'settings.audioFocusUnsupported': '仅 Windows 桌面版可用。',
+        'settings.audioFocusDucking': '外部语音避让',
+        'settings.audioFocusDuckingDesc': '允许 TTS、语音预览等插件通过音频焦点接口临时降低音乐音量。',
+        'settings.audioFocusDuckLevel': '避让后音量',
+        'settings.audioFocusDuckLevelDesc': '外部语音开始时的音乐音量；0% 为静音。',
+        'settings.audioFocusFade': '渐变时间',
+        'settings.audioFocusFadeDesc': '降低和恢复音量的淡入淡出时间，0 为立即切换。',
         'settings.groupOutput': '输出与定时',
         'settings.groupLyricDisplay': '显示',
         'settings.groupLyricSource': '来源与回退',
@@ -8987,6 +8997,16 @@ window.__ModuleLoader__.load({
         'settings.groupStartup': 'Startup & resume',
         'settings.groupSound': 'Quality & volume',
         'settings.groupTransition': 'Transitions',
+        'settings.groupAudioFocus': 'Audio focus',
+        'settings.voiceInputPause': 'Pause playback on voice input',
+        'settings.voiceInputPauseDesc': 'Pauses when system voice input or another app captures the microphone; resumes afterwards.',
+        'settings.audioFocusUnsupported': 'Windows desktop only.',
+        'settings.audioFocusDucking': 'Duck for other voice plugins',
+        'settings.audioFocusDuckingDesc': 'Lets TTS and voice-preview plugins lower music volume temporarily through the audio-focus API.',
+        'settings.audioFocusDuckLevel': 'Volume while ducked',
+        'settings.audioFocusDuckLevelDesc': 'Music level when external speech starts; 0% is silent.',
+        'settings.audioFocusFade': 'Fade duration',
+        'settings.audioFocusFadeDesc': 'Fade in/out when ducking and releasing; 0 switches immediately.',
         'settings.groupOutput': 'Output & timer',
         'settings.groupLyricDisplay': 'Display',
         'settings.groupLyricSource': 'Source & fallback',
@@ -150094,6 +150114,14 @@ window.__ModuleLoader__.load({
       playbackFade: true,
       // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
       playbackReports: false,
+      /** Folia's voice-input pause: Windows microphone capture pauses playback. */
+      voiceInputPause: false,
+      /** External TTS/voice plugins may duck the music through the audio-focus API. */
+      audioFocusDucking: true,
+      /** Remaining volume while ducked (0.3 = 30%). */
+      audioFocusDuckLevel: 0.3,
+      /** Duck/release ramp in milliseconds. */
+      audioFocusFadeMs: 300,
       /** Folia's replay-gain choice; `normalizeVolume` is the legacy on/off form. */
       replayGainMode: 'auto',
       loop: 'none',
@@ -153166,7 +153194,7 @@ window.__ModuleLoader__.load({
         return graph === null ? null : graph.gainNode
       }
 
-      function applyVolume(immediate) {
+      function applyVolume(immediate, rampSeconds) {
         var target = muted ? 0 : volume
         var gain = masterGain()
         if (gain === null || context === null) {
@@ -153183,7 +153211,8 @@ window.__ModuleLoader__.load({
           }
           return
         }
-        audioApi.rampGain(context, gain, target, 0.015)
+        var ramp = Number(rampSeconds)
+        audioApi.rampGain(context, gain, target, isFinite(ramp) && ramp >= 0 ? ramp : 0.015)
       }
 
       function applyEq() {
@@ -153356,15 +153385,15 @@ window.__ModuleLoader__.load({
         isMuted: function () {
           return muted
         },
-        setVolume: function (value) {
+        setVolume: function (value, rampSeconds) {
           var next = Number(value)
           if (!isFinite(next)) return
           volume = Math.min(1, Math.max(0, next))
-          applyVolume(false)
+          applyVolume(false, rampSeconds)
         },
-        setMuted: function (value) {
+        setMuted: function (value, rampSeconds) {
           muted = value === true
-          applyVolume(false)
+          applyVolume(false, rampSeconds)
         },
 
         getEq: function () {
@@ -154374,6 +154403,8 @@ window.__ModuleLoader__.load({
       var errorListeners = []
       var errorStreak = 0
       var lastPositionSync = 0
+      var duckFactor = 1
+      var duckRampSeconds = 0.3
       var state = {
         queue: [],
         index: -1,
@@ -154994,13 +155025,15 @@ window.__ModuleLoader__.load({
       function effectiveVolume() {
         if (gainNode !== null) return 1
         var trim = Math.min(1, normalizeGain)
-        return clamp(state.volume * trim, 0, 1)
+        return clamp(state.volume * trim * duckFactor, 0, 1)
       }
 
-      function applyOutputVolume() {
+      function applyOutputVolume(fadeSeconds) {
+        var fade = fadeSeconds === undefined ? 0.015 : Math.max(0, Number(fadeSeconds) || 0)
+        var target = clamp(state.volume * duckFactor, 0, 1)
         if (gainNode !== null && foliaGraph !== null) {
-          foliaGraph.setVolume(state.volume)
-          foliaGraph.setMuted(state.muted)
+          foliaGraph.setVolume(target, fade)
+          foliaGraph.setMuted(state.muted, fade)
           if (audio) audio.volume = 1
           if (audioB) audioB.volume = 1
           return
@@ -156372,6 +156405,26 @@ window.__ModuleLoader__.load({
           savePrefs({ volume: next })
           emit()
         },
+        /**
+         * Lower the audible master gain without changing the saved volume. Used by
+         * host audio focus (TTS ducking); level is the remaining volume and fadeMs the ramp.
+         */
+        setDuck: function (level, fadeMs) {
+          var next = clamp(Number(level), 0, 1)
+          if (!isFinite(next)) return duckFactor
+          var fade = Number(fadeMs)
+          if (!isFinite(fade) || fade < 0) fade = 300
+          fade = Math.min(5000, Math.max(0, Math.round(fade))) / 1000
+          if (next === duckFactor && fade === duckRampSeconds) return duckFactor
+          duckFactor = next
+          duckRampSeconds = fade
+          applyOutputVolume(fade)
+          emit()
+          return duckFactor
+        },
+        getDuck: function () {
+          return duckFactor
+        },
         /** Select the AudioContext sink; harmless when the engine has no setSinkId. */
         setOutputDevice: function (deviceId) {
           var next = deviceId === undefined || deviceId === null ? '' : String(deviceId)
@@ -156544,6 +156597,238 @@ window.__ModuleLoader__.load({
     }
 
     var player = createPlayer()
+
+    // ── src/client/services/player/audio-focus.js
+    /**
+     * Audio focus bridge.
+     *
+     * Host owns the platform probe; this service polls its status, pauses/resumes
+     * playback for Windows voice input, and applies TTS/voice-preview ducking.
+     *
+     * window.__dshMusicAudioFocus is the same-window API for another client plugin:
+     *
+     *   window.__dshMusicAudioFocus.begin('tts', { level: 0.3, fadeMs: 300 })
+     *   window.__dshMusicAudioFocus.end('tts')
+     *
+     * The same state is also available cross-process through
+     * POST /music/audio-focus/duck, but the window API applies the duck immediately
+     * instead of waiting for the next status poll.
+     */
+
+    var AUDIO_FOCUS_POLL_MS = 1000
+    var AUDIO_FOCUS_DUCK_TTL_MS = 60000
+
+    var audioFocusStore = createStore({
+      supported: false,
+      platform: '',
+      voiceInputPause: false,
+      voiceInputActive: false,
+      duck: { active: false, level: 1, fadeMs: 0, reasons: [] },
+      error: '',
+    })
+
+    function audioFocusPrefs() {
+      return prefsStore.get()
+    }
+
+    function audioFocusClamp(value, min, max) {
+      return Math.min(max, Math.max(min, value))
+    }
+
+    function audioFocusDuckLevel(prefs) {
+      var level = Number(prefs && prefs.audioFocusDuckLevel)
+      return isFinite(level) ? audioFocusClamp(level, 0, 1) : 0.3
+    }
+
+    function audioFocusDuckFade(prefs) {
+      var fade = Number(prefs && prefs.audioFocusFadeMs)
+      return isFinite(fade) ? audioFocusClamp(Math.round(fade), 0, 5000) : 300
+    }
+
+    function startAudioFocus() {
+      if (window.__dshMusicAudioFocusStop) window.__dshMusicAudioFocusStop()
+      var stopped = false
+      var timer = null
+      var pausedByVoiceInput = false
+      var lastDuckLevel = 1
+      var lastDuckFade = 0
+      var localDucks = {}
+
+      function pruneLocalDucks(now) {
+        for (var reason in localDucks) {
+          if (!Object.prototype.hasOwnProperty.call(localDucks, reason)) continue
+          var entry = localDucks[reason]
+          if (entry.expiresAt > 0 && entry.expiresAt <= now) delete localDucks[reason]
+        }
+      }
+
+      function localDuck() {
+        pruneLocalDucks(Date.now())
+        var level = 1
+        var fade = 0
+        var active = false
+        var reasons = []
+        for (var reason in localDucks) {
+          if (!Object.prototype.hasOwnProperty.call(localDucks, reason)) continue
+          var entry = localDucks[reason]
+          active = true
+          reasons.push(reason)
+          if (entry.level < level) {
+            level = entry.level
+            fade = entry.fadeMs
+          }
+        }
+        return { active: active, level: level, fadeMs: fade, reasons: reasons }
+      }
+
+      function applyDuck(hostStatus) {
+        var prefs = audioFocusPrefs()
+        if (prefs.audioFocusDucking === false) {
+          if (lastDuckLevel !== 1) {
+            lastDuckLevel = 1
+            lastDuckFade = 0
+            player.setDuck(1, 0)
+          }
+          return
+        }
+        var hostDuck = hostStatus && hostStatus.duck ? hostStatus.duck : null
+        var local = localDuck()
+        var hostActive = hostDuck !== null && hostDuck.active === true
+        var hostLevel = hostActive ? audioFocusClamp(Number(hostDuck.level), 0, 1) : 1
+        var hostFade = hostActive ? audioFocusClamp(Number(hostDuck.fadeMs), 0, 5000) : 0
+        var target = Math.min(hostLevel, local.level)
+        var releaseFade = audioFocusDuckFade(prefs)
+        var fade = hostActive && hostDuck.level <= local.level
+          ? hostFade
+          : local.active
+            ? local.fadeMs
+            : releaseFade
+        if (target === lastDuckLevel && fade === lastDuckFade) return
+        lastDuckLevel = target
+        lastDuckFade = fade
+        player.setDuck(target, fade)
+      }
+
+      function applyVoiceInput(status) {
+        var enabled = audioFocusPrefs().voiceInputPause === true
+        var active = status && status.voiceInputActive === true
+        var snapshot = player.getSnapshot()
+        if (enabled && active && snapshot.playing === true && !pausedByVoiceInput) {
+          pausedByVoiceInput = true
+          player.pause()
+          return
+        }
+        if (!active && pausedByVoiceInput) {
+          pausedByVoiceInput = false
+          if (!player.getSnapshot().playing) player.play()
+        }
+      }
+
+      function applyStatus(status) {
+        if (stopped || status === null || typeof status !== 'object') return
+        audioFocusStore.set({
+          supported: status.supported === true,
+          platform: String(status.platform || ''),
+          voiceInputPause: status.voiceInputPause === true,
+          voiceInputActive: status.voiceInputActive === true,
+          duck: status.duck && typeof status.duck === 'object'
+            ? status.duck
+            : { active: false, level: 1, fadeMs: 0, reasons: [] },
+          error: '',
+        })
+        applyVoiceInput(status)
+        applyDuck(status)
+        if ((audioFocusPrefs().voiceInputPause === true) !== (status.voiceInputPause === true)) {
+          syncConfig()
+        }
+      }
+
+      function refresh() {
+        if (stopped) return
+        getJson(API + 'audio-focus/status')
+          .then(applyStatus)
+          .catch(function (error) {
+            if (!stopped) audioFocusStore.set({ error: errorText(error) })
+          })
+      }
+
+      function syncConfig() {
+        if (stopped) return
+        postJson(API + 'audio-focus/config', {
+          voiceInputPause: audioFocusPrefs().voiceInputPause === true,
+        }).catch(function () {
+          // The status endpoint remains the source of truth.
+        })
+      }
+
+      function beginDuck(reason, options) {
+        var key = String(reason || '').trim()
+        if (key === '') return
+        var opts = options !== null && typeof options === 'object' ? options : {}
+        var prefs = audioFocusPrefs()
+        var level = opts.level === undefined ? audioFocusDuckLevel(prefs) : audioFocusClamp(Number(opts.level), 0, 1)
+        var fadeMs = opts.fadeMs === undefined ? audioFocusDuckFade(prefs) : audioFocusClamp(Math.round(Number(opts.fadeMs)), 0, 5000)
+        var ttlMs = opts.ttlMs === undefined ? AUDIO_FOCUS_DUCK_TTL_MS : audioFocusClamp(Math.round(Number(opts.ttlMs)), 0, 300000)
+        localDucks[key] = { level: level, fadeMs: fadeMs, expiresAt: ttlMs > 0 ? Date.now() + ttlMs : 0 }
+        applyDuck(audioFocusStore.get())
+        postJson(API + 'audio-focus/duck', {
+          reason: key,
+          active: true,
+          level: level,
+          fadeMs: fadeMs,
+          ttlMs: ttlMs,
+        }).catch(function () {})
+        return { level: level, fadeMs: fadeMs }
+      }
+
+      function endDuck(reason) {
+        var key = String(reason || '').trim()
+        if (key === '') return
+        delete localDucks[key]
+        applyDuck(audioFocusStore.get())
+        postJson(API + 'audio-focus/duck', { reason: key, active: false }).catch(function () {})
+      }
+
+      function stopAudioFocus() {
+        if (stopped) return
+        stopped = true
+        if (timer !== null) {
+          clearInterval(timer)
+          timer = null
+        }
+        if (typeof unsubscribePrefs === 'function') unsubscribePrefs()
+        if (pausedByVoiceInput) {
+          pausedByVoiceInput = false
+          if (!player.getSnapshot().playing) player.play()
+        }
+        player.setDuck(1, 0)
+        localDucks = {}
+        delete window.__dshMusicAudioFocus
+        delete window.__dshMusicAudioFocusStop
+      }
+
+      var unsubscribePrefs = prefsStore.subscribe(function () {
+        if (stopped) return
+        if (audioFocusPrefs().voiceInputPause !== true && pausedByVoiceInput) {
+          pausedByVoiceInput = false
+          if (!player.getSnapshot().playing) player.play()
+        }
+        syncConfig()
+        applyDuck(audioFocusStore.get())
+      })
+
+      window.__dshMusicAudioFocus = {
+        begin: beginDuck,
+        end: endDuck,
+        getStatus: function () { return audioFocusStore.get() },
+      }
+      window.__dshMusicAudioFocusStop = stopAudioFocus
+      syncConfig()
+      refresh()
+      timer = setInterval(refresh, AUDIO_FOCUS_POLL_MS)
+      if (timer !== null && typeof timer.unref === 'function') timer.unref()
+      return stopAudioFocus
+    }
 
     // ── src/client/components/library/library.js
     /**
@@ -165053,6 +165338,7 @@ window.__ModuleLoader__.load({
       var sleepRemaining = useCountdown(prefs.sleepDeadline)
       var library = useStore(libraryStore)
       var online = useStore(onlineStore)
+      var audioFocus = useStore(audioFocusStore)
       var tabPair = useState(props.initialTab || 'appearance')
       var tab = tabPair[0]
       var setTab = tabPair[1]
@@ -165798,6 +166084,68 @@ window.__ModuleLoader__.load({
               },
             }),
           ),
+          h('div', { key: 'focus-head', className: 'mp-set-label' }, t('settings.groupAudioFocus')),
+          h(
+            SetRow,
+            {
+              key: 'voice-input-pause',
+              label: t('settings.voiceInputPause'),
+              desc: t('settings.voiceInputPauseDesc') + (audioFocus.supported ? '' : ' ' + t('settings.audioFocusUnsupported')),
+            },
+            h(Switch, {
+              value: prefs.voiceInputPause === true,
+              label: t('settings.voiceInputPause'),
+              disabled: !audioFocus.supported,
+              onChange: function (value) { patchPrefs({ voiceInputPause: value }) },
+            }),
+          ),
+          h(
+            SetRow,
+            {
+              key: 'audio-focus-ducking',
+              label: t('settings.audioFocusDucking'),
+              desc: t('settings.audioFocusDuckingDesc'),
+            },
+            h(Switch, {
+              value: prefs.audioFocusDucking !== false,
+              label: t('settings.audioFocusDucking'),
+              onChange: function (value) { patchPrefs({ audioFocusDucking: value }) },
+            }),
+          ),
+          prefs.audioFocusDucking !== false
+            ? h(
+                SetRow,
+                { key: 'audio-focus-level', label: t('settings.audioFocusDuckLevel'), desc: t('settings.audioFocusDuckLevelDesc') },
+                h('input', {
+                  type: 'range',
+                  className: 'mp-range',
+                  min: 0,
+                  max: 100,
+                  step: 5,
+                  value: Math.round((isFinite(Number(prefs.audioFocusDuckLevel)) ? Number(prefs.audioFocusDuckLevel) : 0.3) * 100),
+                  onChange: function (event) {
+                    patchPrefs({ audioFocusDuckLevel: Number(event.target.value) / 100 })
+                  },
+                }),
+                h('span', { className: 'mp-set-val' }, Math.round((isFinite(Number(prefs.audioFocusDuckLevel)) ? Number(prefs.audioFocusDuckLevel) : 0.3) * 100) + '%'),
+              )
+            : null,
+          prefs.audioFocusDucking !== false
+            ? h(
+                SetRow,
+                { key: 'audio-focus-fade', label: t('settings.audioFocusFade'), desc: t('settings.audioFocusFadeDesc') },
+                h('input', {
+                  type: 'range',
+                  className: 'mp-range',
+                  min: 0,
+                  max: 1000,
+                  step: 50,
+                  value: Number(prefs.audioFocusFadeMs) || 0,
+                  onChange: function (event) { patchPrefs({ audioFocusFadeMs: Number(event.target.value) }) },
+                }),
+                h('span', { className: 'mp-set-val' }, (Number(prefs.audioFocusFadeMs) || 0) + ' ms'),
+              )
+            : null,
           h('div', { key: 'output-head', className: 'mp-set-label' }, t('settings.groupOutput')),
           sinkSupported && outputDevices.length > 0
             ? h(
@@ -176648,6 +176996,13 @@ window.__ModuleLoader__.load({
         document.head.appendChild(style)
         return function () {
           style.remove()
+        }
+      })
+
+      ctx.effect(function () {
+        var stopAudioFocus = startAudioFocus()
+        return function () {
+          if (typeof stopAudioFocus === 'function') stopAudioFocus()
         }
       })
 

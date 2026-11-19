@@ -40,6 +40,9 @@ test('settings page reflects current features and no dead preferences', () => {
     assert.doesNotMatch(source, new RegExp(dead), `${dead} has no settings UI`)
   }
   assert.match(prefsSource, /replayGainMode: 'auto'/, 'replay gain has a default')
+  assert.match(source, /voiceInputPause/, 'Folia voice-input pause has a settings row')
+  assert.match(source, /audioFocusDucking/, 'external TTS ducking has a settings row')
+  assert.match(prefsSource, /audioFocusDuckLevel/, 'ducking level has a persisted default')
 })
 
 test('clear-all data flow covers plugin localStorage ownership prefixes', () => {

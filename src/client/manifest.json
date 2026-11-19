@@ -54,6 +54,7 @@
     "src/client/components/common/ui.js",
     "src/client/styles/wave-color.js",
     "src/client/services/player/player.js",
+    "src/client/services/player/audio-focus.js",
     "src/client/components/library/library.js",
     "src/client/components/online/online.js",
     "src/client/services/player/effects/likes.js",

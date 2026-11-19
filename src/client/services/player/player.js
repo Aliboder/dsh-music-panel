@@ -176,6 +176,8 @@ function createPlayer() {
   var errorListeners = []
   var errorStreak = 0
   var lastPositionSync = 0
+  var duckFactor = 1
+  var duckRampSeconds = 0.3
   var state = {
     queue: [],
     index: -1,
@@ -796,13 +798,15 @@ function createPlayer() {
   function effectiveVolume() {
     if (gainNode !== null) return 1
     var trim = Math.min(1, normalizeGain)
-    return clamp(state.volume * trim, 0, 1)
+    return clamp(state.volume * trim * duckFactor, 0, 1)
   }
 
-  function applyOutputVolume() {
+  function applyOutputVolume(fadeSeconds) {
+    var fade = fadeSeconds === undefined ? 0.015 : Math.max(0, Number(fadeSeconds) || 0)
+    var target = clamp(state.volume * duckFactor, 0, 1)
     if (gainNode !== null && foliaGraph !== null) {
-      foliaGraph.setVolume(state.volume)
-      foliaGraph.setMuted(state.muted)
+      foliaGraph.setVolume(target, fade)
+      foliaGraph.setMuted(state.muted, fade)
       if (audio) audio.volume = 1
       if (audioB) audioB.volume = 1
       return
@@ -2173,6 +2177,26 @@ function createPlayer() {
       applyOutputVolume()
       savePrefs({ volume: next })
       emit()
+    },
+    /**
+     * Lower the audible master gain without changing the saved volume. Used by
+     * host audio focus (TTS ducking); level is the remaining volume and fadeMs the ramp.
+     */
+    setDuck: function (level, fadeMs) {
+      var next = clamp(Number(level), 0, 1)
+      if (!isFinite(next)) return duckFactor
+      var fade = Number(fadeMs)
+      if (!isFinite(fade) || fade < 0) fade = 300
+      fade = Math.min(5000, Math.max(0, Math.round(fade))) / 1000
+      if (next === duckFactor && fade === duckRampSeconds) return duckFactor
+      duckFactor = next
+      duckRampSeconds = fade
+      applyOutputVolume(fade)
+      emit()
+      return duckFactor
+    },
+    getDuck: function () {
+      return duckFactor
     },
     /** Select the AudioContext sink; harmless when the engine has no setSinkId. */
     setOutputDevice: function (deviceId) {

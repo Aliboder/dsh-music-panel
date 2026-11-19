@@ -234,7 +234,7 @@ async function validateRoots(list) {
  */
 const debugReports = []
 
-export function createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, mediaCache, kugouSessions, resetData, lyricState, lyricOmni }) {
+export function createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, mediaCache, kugouSessions, resetData, lyricState, lyricOmni, audioFocus }) {
   // The per-song lyric record (choice, matched lyric, instrumental mark). Routes stay
   // usable without one — a test or an older wiring simply never remembers anything.
   const lyricRecords = lyricState === undefined || lyricState === null
@@ -369,6 +369,59 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
       // Model tools enqueue playback actions here; the open panel drains them.
       if (pathname === '/control/pending' && method === 'GET') {
         return sendJson(res, 200, { ok: true, actions: takeControls() })
+      }
+
+      // Audio focus: Folia's Windows voice-input pause plus a ducking API other
+      // plugins use for TTS / voice previews. Both are local-origin only, like
+      // the rest of the /music surface.
+      if (pathname === '/audio-focus/status' && method === 'GET') {
+        if (audioFocus === undefined || audioFocus === null) {
+          return fail(res, 503, 'AUDIO_FOCUS_UNAVAILABLE', '音频焦点服务不可用')
+        }
+        return sendJson(res, 200, { ok: true, ...audioFocus.status() })
+      }
+      if (pathname === '/audio-focus/config' && method === 'POST') {
+        if (audioFocus === undefined || audioFocus === null) {
+          return fail(res, 503, 'AUDIO_FOCUS_UNAVAILABLE', '音频焦点服务不可用')
+        }
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        if (typeof body?.voiceInputPause !== 'boolean') {
+          return fail(res, 400, 'BAD_REQUEST', 'voiceInputPause 必须是布尔值')
+        }
+        return sendJson(res, 200, {
+          ok: true,
+          ...audioFocus.configure({ voiceInputPause: body.voiceInputPause }),
+        })
+      }
+      if (pathname === '/audio-focus/duck' && method === 'POST') {
+        if (audioFocus === undefined || audioFocus === null) {
+          return fail(res, 503, 'AUDIO_FOCUS_UNAVAILABLE', '音频焦点服务不可用')
+        }
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const reason = String(body?.reason ?? '').trim()
+        if (reason === '') return fail(res, 400, 'BAD_REQUEST', '缺少 reason')
+        if (typeof body?.active !== 'boolean') {
+          return fail(res, 400, 'BAD_REQUEST', 'active 必须是布尔值')
+        }
+        const next = body.active
+          ? audioFocus.beginDuck({
+              reason,
+              level: body.level,
+              fadeMs: body.fadeMs,
+              ttlMs: body.ttlMs,
+            })
+          : audioFocus.endDuck(reason)
+        return sendJson(res, 200, { ok: true, ...next })
       }
 
       // ── AutoEQ device presets (read-only library) ───────────────────────

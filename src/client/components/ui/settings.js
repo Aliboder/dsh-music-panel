@@ -22,6 +22,7 @@ function SettingsSheet(props) {
   var sleepRemaining = useCountdown(prefs.sleepDeadline)
   var library = useStore(libraryStore)
   var online = useStore(onlineStore)
+  var audioFocus = useStore(audioFocusStore)
   var tabPair = useState(props.initialTab || 'appearance')
   var tab = tabPair[0]
   var setTab = tabPair[1]
@@ -767,6 +768,68 @@ function SettingsSheet(props) {
           },
         }),
       ),
+      h('div', { key: 'focus-head', className: 'mp-set-label' }, t('settings.groupAudioFocus')),
+      h(
+        SetRow,
+        {
+          key: 'voice-input-pause',
+          label: t('settings.voiceInputPause'),
+          desc: t('settings.voiceInputPauseDesc') + (audioFocus.supported ? '' : ' ' + t('settings.audioFocusUnsupported')),
+        },
+        h(Switch, {
+          value: prefs.voiceInputPause === true,
+          label: t('settings.voiceInputPause'),
+          disabled: !audioFocus.supported,
+          onChange: function (value) { patchPrefs({ voiceInputPause: value }) },
+        }),
+      ),
+      h(
+        SetRow,
+        {
+          key: 'audio-focus-ducking',
+          label: t('settings.audioFocusDucking'),
+          desc: t('settings.audioFocusDuckingDesc'),
+        },
+        h(Switch, {
+          value: prefs.audioFocusDucking !== false,
+          label: t('settings.audioFocusDucking'),
+          onChange: function (value) { patchPrefs({ audioFocusDucking: value }) },
+        }),
+      ),
+      prefs.audioFocusDucking !== false
+        ? h(
+            SetRow,
+            { key: 'audio-focus-level', label: t('settings.audioFocusDuckLevel'), desc: t('settings.audioFocusDuckLevelDesc') },
+            h('input', {
+              type: 'range',
+              className: 'mp-range',
+              min: 0,
+              max: 100,
+              step: 5,
+              value: Math.round((isFinite(Number(prefs.audioFocusDuckLevel)) ? Number(prefs.audioFocusDuckLevel) : 0.3) * 100),
+              onChange: function (event) {
+                patchPrefs({ audioFocusDuckLevel: Number(event.target.value) / 100 })
+              },
+            }),
+            h('span', { className: 'mp-set-val' }, Math.round((isFinite(Number(prefs.audioFocusDuckLevel)) ? Number(prefs.audioFocusDuckLevel) : 0.3) * 100) + '%'),
+          )
+        : null,
+      prefs.audioFocusDucking !== false
+        ? h(
+            SetRow,
+            { key: 'audio-focus-fade', label: t('settings.audioFocusFade'), desc: t('settings.audioFocusFadeDesc') },
+            h('input', {
+              type: 'range',
+              className: 'mp-range',
+              min: 0,
+              max: 1000,
+              step: 50,
+              value: Number(prefs.audioFocusFadeMs) || 0,
+              onChange: function (event) { patchPrefs({ audioFocusFadeMs: Number(event.target.value) }) },
+            }),
+            h('span', { className: 'mp-set-val' }, (Number(prefs.audioFocusFadeMs) || 0) + ' ms'),
+          )
+        : null,
       h('div', { key: 'output-head', className: 'mp-set-label' }, t('settings.groupOutput')),
       sinkSupported && outputDevices.length > 0
         ? h(

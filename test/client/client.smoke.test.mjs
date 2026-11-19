@@ -132,7 +132,9 @@ assert.deepEqual(mounts, [
 assert.equal(texts.length, 1, 'exactly one style element is injected')
 assert.ok(String(texts[0].textContent).includes('.mp-root'), 'the player styles are in place')
 assert.ok(String(texts[0].textContent).includes('.mp-audio-host'), 'the resident audio host style is in place')
-assert.equal(registrations.length, 10, 'style + engine + flush/leader listeners + six seats are effects')
+assert.equal(registrations.length, 11, 'style + engine + audio focus + flush/leader listeners + six seats are effects')
+assert.equal(typeof window.__dshMusicAudioFocus?.begin, 'function', 'the TTS/audio-focus window API is installed')
+assert.equal(typeof window.__dshMusicAudioFocus?.end, 'function', 'the TTS/audio-focus release API is installed')
 
 console.log('client.smoke.test.mjs ok')
 

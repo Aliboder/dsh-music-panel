@@ -303,6 +303,13 @@ function apply(ctx) {
   })
 
   ctx.effect(function () {
+    var stopAudioFocus = startAudioFocus()
+    return function () {
+      if (typeof stopAudioFocus === 'function') stopAudioFocus()
+    }
+  })
+
+  ctx.effect(function () {
     return function () {
       player.suspend()
     }
