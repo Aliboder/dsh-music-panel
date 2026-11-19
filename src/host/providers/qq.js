@@ -261,49 +261,111 @@ export async function getMyPlaylists(cookie = '') {
     const tid = String(row.tid ?? '')
     const id = tid || String(dirId)
     const liked = dirId === 201
-    playlistMeta.set(id, { dirId, tid, liked })
+    // Folia distinguishes playlists this account created (dirName) from ones it
+    // favourited (name/songnum/orderTime): a favourite also carries a creator's
+    // dirId, but the credential-backed owned route loses paid songs there.
+    const owned = row.dirName !== undefined || row.dirname !== undefined
+    playlistMeta.set(id, { dirId, tid, liked, owned })
     return {
       source: 'qq',
       id,
-      name: decodeEntities(row.dirName || ''),
+      name: decodeEntities(row.dirName ?? row.dirname ?? row.name ?? row.dissname ?? ''),
       cover: String(row.picUrl || row.bigpicUrl || ''),
-      trackCount: Number(row.songNum) || 0,
-      creator: decodeEntities(row.nick || ''),
-      kind: liked ? 'default' : 'own',
+      trackCount: Number(row.songNum ?? row.songnum ?? row.trackCount) || 0,
+      creator: decodeEntities(row.nick || row.nickname || ''),
+      kind: liked ? 'default' : owned ? 'own' : 'collect',
       isLike: liked,
       isDefault: liked,
     }
   })
 }
 
-/** One own playlist (or the liked list), from the package's authenticated routes. */
+const PLAYLIST_PAGE_SIZE = 100
+const PLAYLIST_MAX_PAGES = 100
+
+/** Stable identity for one upstream song row; only used to stop duplicate pages. */
+function playlistRowId(row) {
+  return String(row?.mid ?? row?.songmid ?? row?.id ?? row?.songid ?? '')
+}
+
+/**
+ * Folia's owned-playlist read is a page, not the whole list: the backend caps
+ * `limit` at 100, and the caller advances `offset` until the total is covered.
+ * The Host's legacy API returns one array, so this collects those pages here.
+ */
 export async function getPlaylistSongs(id, cookie = '') {
   const key = String(id ?? '')
   const meta = playlistMeta.get(key)
-  if (!meta) return await legacyPlaylistSongs(key, cookie)
+  // Favourites and public playlists stay on the anonymous route: Folia found the
+  // credential-backed route drops paid songs from a favourite and lowers its total.
+  if (!meta || meta.owned !== true) return await legacyPlaylistSongs(key, cookie)
 
   if (meta.liked) {
     const songs = []
+    const seen = new Set()
     let offset = 0
-    while (offset < 10000) {
-      const page = await callUpstream('/user/liked-songs', { limit: 100, offset }, { cookie })
+    let total = 0
+    for (let pageNumber = 0; pageNumber < PLAYLIST_MAX_PAGES; pageNumber += 1) {
+      const page = await callUpstream('/user/liked-songs', { limit: PLAYLIST_PAGE_SIZE, offset }, { cookie })
       const rows = Array.isArray(page.songs) ? page.songs : []
-      songs.push(...rows)
-      if (page.more !== true || rows.length === 0) break
+      const pageTotal = Number(page.total)
+      if (Number.isFinite(pageTotal) && pageTotal > 0) total = pageTotal
+      let added = 0
+      for (const row of rows) {
+        const rowId = playlistRowId(row)
+        if (rowId !== '' && seen.has(rowId)) continue
+        if (rowId !== '') seen.add(rowId)
+        songs.push(row)
+        added += 1
+      }
+      if (rows.length === 0 || added === 0) break
       offset += rows.length
+      const more = page.more === true || (total > 0 ? offset < total : rows.length >= PLAYLIST_PAGE_SIZE)
+      if (!more) break
     }
-    return { name: '我喜欢', cover: '', trackCount: songs.length, songs: songs.map(toLegacyResult).filter(Boolean) }
+    return {
+      name: '我喜欢',
+      cover: '',
+      trackCount: total || songs.length,
+      songs: songs.map(toLegacyResult).filter(Boolean),
+    }
   }
 
   if (meta.tid === '') throw new Error('QQ playlist has no tid')
-  const page = await callUpstream('/user/playlist-detail', {
-    tid: meta.tid,
-    dirid: meta.dirId,
-    offset: 0,
-    limit: 1000,
-  }, { cookie })
-  const songs = Array.isArray(page.songs) ? page.songs : []
-  return { name: '', cover: '', trackCount: Number(page.total) || songs.length, songs: songs.map(toLegacyResult).filter(Boolean) }
+  const songs = []
+  const seen = new Set()
+  let offset = 0
+  let total = 0
+  for (let pageNumber = 0; pageNumber < PLAYLIST_MAX_PAGES; pageNumber += 1) {
+    const page = await callUpstream('/user/playlist-detail', {
+      tid: meta.tid,
+      dirid: meta.dirId,
+      offset,
+      limit: PLAYLIST_PAGE_SIZE,
+    }, { cookie })
+    const rows = Array.isArray(page.songs) ? page.songs : []
+    const pageTotal = Number(page.total)
+    if (Number.isFinite(pageTotal) && pageTotal > 0) total = pageTotal
+    let added = 0
+    for (const row of rows) {
+      const rowId = playlistRowId(row)
+      if (rowId !== '' && seen.has(rowId)) continue
+      if (rowId !== '') seen.add(rowId)
+      songs.push(row)
+      added += 1
+    }
+    if (rows.length === 0 || added === 0) break
+    offset += rows.length
+    // A full page with no total is not the end; a total is the authoritative stop.
+    const more = page.more === true || (total > 0 ? offset < total : rows.length >= PLAYLIST_PAGE_SIZE)
+    if (!more) break
+  }
+  return {
+    name: '',
+    cover: '',
+    trackCount: total || songs.length,
+    songs: songs.map(toLegacyResult).filter(Boolean),
+  }
 }
 
 /** Legacy contract: `{ mids, songids }` for the liked songs. */

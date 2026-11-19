@@ -54,6 +54,46 @@ assert.equal(owned.songs[0].title, 'Song 1')
 assert.equal(calls.some(([route]) => route === '/user/playlist-detail'), true)
 assert.equal(calls.find(([route]) => route === '/user/playlist-detail')[1].tid, '22')
 
+// Own playlists page at 100 even when a larger limit is sent: the provider must
+// walk offset until the total, like Folia's getPlaylistTracks.
+{
+  const pageOffsets = []
+  const songRow = (n) => ({ mid: 'big-' + n, name: 'Big ' + n, singer: [{ name: 'S' }], album: { name: 'A', mid: 'am' }, interval: 180 })
+  setUpstreamOverride(async (route, params, options) => {
+    calls.push([route, params, options])
+    if (route === '/user/playlist') {
+      return {
+        playlist: [
+          { dirId: 2, tid: 'big', dirName: 'Big', songNum: 150 },
+          { dirId: 36, tid: 'fav', name: 'Fav', songnum: 5, dirType: 0 },
+        ],
+      }
+    }
+    if (route === '/user/playlist-detail') {
+      assert.equal(params.limit, 100, 'each page asks for at most 100, the upstream cap')
+      pageOffsets.push(params.offset)
+      const start = params.offset
+      const count = start === 0 ? 100 : 50
+      return {
+        songs: Array.from({ length: count }, (_, i) => songRow(start + i)),
+        total: 150,
+        more: start + count < 150,
+      }
+    }
+    if (route === '/user/song/like') return { liked: true }
+    throw new Error('unexpected QQ route: ' + route)
+  })
+  const lists = await myPlaylists('qq', 'sealed')
+  assert.equal(lists[1].kind, 'collect', 'a favourite is not owned')
+  assert.equal(lists[1].name, 'Fav')
+  const big = await playlistSongs('qq', 'big', 'sealed')
+  assert.equal(big.songs.length, 150)
+  assert.equal(big.trackCount, 150)
+  assert.equal(big.songs[0].id, 'big-0')
+  assert.equal(big.songs[149].id, 'big-149')
+  assert.deepEqual(pageOffsets, [0, 100], 'the second page is requested at offset 100')
+}
+
 assert.equal(await addQQFav({ songmid: 'mid-1', songid: 7 }, 'sealed'), true)
 const likeCall = calls.find(([route]) => route === '/user/song/like')
 assert.equal(likeCall[2].method, 'POST')
