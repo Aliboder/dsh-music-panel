@@ -5152,10 +5152,12 @@ function __mpStylesBundle() {
     });
   
     // src/folia/hooks/usePlayerBottomBarBottomPx.ts
-    var usePlayerSubtitleBottomPx, usePlayerSubtitleYieldsToDock;
+    var PLAYER_BOTTOM_BAR_BASE_OFFSET_PX, PLAYER_SUBTITLE_CLEARANCE_PX, usePlayerSubtitleBottomPx, usePlayerSubtitleYieldsToDock;
     var init_usePlayerBottomBarBottomPx = __esm({
       "src/folia/hooks/usePlayerBottomBarBottomPx.ts"() {
-        usePlayerSubtitleBottomPx = (_4) => 64;
+        PLAYER_BOTTOM_BAR_BASE_OFFSET_PX = 32;
+        PLAYER_SUBTITLE_CLEARANCE_PX = 80;
+        usePlayerSubtitleBottomPx = (isPlayerChromeHidden) => isPlayerChromeHidden ? PLAYER_BOTTOM_BAR_BASE_OFFSET_PX : PLAYER_BOTTOM_BAR_BASE_OFFSET_PX + PLAYER_SUBTITLE_CLEARANCE_PX;
         usePlayerSubtitleYieldsToDock = (_4) => false;
       }
     });

@@ -982,6 +982,7 @@ function SettingsSheet(props) {
                 h(Button, {
                   variant: 'primary',
                   icon: 'server',
+                  className: 'mp-online-connect-btn',
                   onClick: function () {
                     setOpen(true)
                   },

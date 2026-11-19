@@ -502,6 +502,7 @@
 - **处理**：所有账号卡片设统一 `min-height`；Navidrome 表单默认收起，展开时 `grid-column:1/-1` 独占整行；`mp-online-id`/`mp-online-nick` 加 `min-width:0` + ellipsis，并补 `title`。
 - **防回归**：设置页卡片不使用内容自适应行高；长 ID 必须可省略。
 - **补充**：初版固定 152px 仍会在已登录卡片底部留白；现改为 120px，Navidrome 收起态用单行横排的「说明 + 连接」，四张已登录卡片内容刚好填满。
+- **再补充**：固定最小高度仍会制造底部空白；现在卡片高度由内容驱动，`justify-content:space-between` 让头部/账号行分贴上下 padding。连接按钮加 `flex:none + min-width + white-space:nowrap`，避免两个汉字在窄槽里换行。
 
 ---
 
@@ -511,6 +512,15 @@
 - **原因**：这些曲目的 search 行没有专辑身份（album / albumId 为空），现代 `/song/url` 返回的是已从 CDN 消失的旧对象地址；hash 本身仍有效。Folia 的酷狗 provider 在取不到/失效时会走旧版 `m.kugou.com/app/i/getSongInfo.php?cmd=playInfo`，本插件原先没有这层回退。
 - **处理**：`resolveLegacyStream(hash)` 取旧版接口的 `url`/`backup_url`；`/online/stream` 在酷狗 CDN 404 时先尝试 legacy URL，成功才递归代理，失败继续原质量降级。
 - **防回归**：online-stream-fallback 覆盖「现代地址 404 → legacy 地址成功」和「legacy 无地址 → 质量降级」两条路径。
+
+---
+
+## 57. 播放页底部字幕比 Folia 低
+
+- **现象**：底部翻译字幕离底边比 Folia 近，控制条与字幕的呼吸感不同。
+- **原因**：`usePlayerSubtitleBottomPx` 是宿主边界桩，固定返回 64；Folia 桌面档是 32px 基线 + 80px 净空 = 112px。字幕组件源码本身与上游一致。
+- **处理**：边界 hook 恢复 112px；chrome 隐藏时退回 32px 基线；底部字幕组件、行解析、active/recent/upcoming 逻辑不改。
+- **防回归**：styles bundle 重建；如改播放页底栏几何，同步改这个 hook，而不是改字幕组件。
 
 ---
 
