@@ -1,6 +1,6 @@
 # 在线平台向 Folia 对齐 · 修改文档
 
-> 状态：**阶段 1.1 / 1.2 / 1.3、阶段 2 主要能力、阶段 3 推荐与云盘已完成代码；探索页和个别平台写操作仍待补**。真实账号与真实歌曲验证未完成。
+> 状态：**阶段 1.1 / 1.2 / 1.3、阶段 2 主要能力、阶段 3 推荐与云盘已完成代码；0.38.0 酷狗 high/lossless 404 回归已修复**。探索页、个别平台写操作与修复后的本机实播复核仍待完成。
 > 确认日期：2026-11-19
 > 范围：现有在线平台（网易云 / QQ / 酷狗概念版 / 波点 / 汽水 / Navidrome）
 > 标杆：Folia `A_other/upstream/folia-major-main`
@@ -272,7 +272,8 @@ Folia 的推荐能力包括：
   - `albumId` 只取 `album_id` / `AlbumID` / `albumId` / 嵌套 album；
   - **移除** `Audioid` / `audio_id` 作为 albumAudioId 的 fallback；
 - `packageStreamUrl` 支持 metadata/hash-only 两种参数；
-- `getDownloadURL` 每档先 metadata，再 hash-only；
+- 只有 `album_audio_id` 存在时才发 metadata；半套 album_id 直接 hash-only；
+- `getDownloadURL` 按请求音质档位的 Folia 阶梯取流，并统一使用主 hash；
 - 概念版同样处理，但概念版 legacy 端点保留 hash-only 兜底；
 - 新增测试：
   - 搜索/歌单/专辑来源归一化；
@@ -281,6 +282,8 @@ Folia 的推荐能力包括：
   - 真实问题歌曲手工复核。
 
 **验收**：点 A 播 A；相同 hash 的不同来源一致；若 metadata 仍错，立即停止并回到 hash-only，记录差异。
+
+**0.38.0 回归**：精确身份改造后，概念版歌单行只剩 album_id、没有 album_audio_id，却仍先发 metadata，导致 high/lossless 的 CDN 地址 404；标准路径又固定从 flac 开始并使用 hqHash/sqHash。已改为半套身份直接 hash-only、嵌套 package 保留 album_audio_id、按 Folia 的请求档位 + 主 hash 取流，并在 Host 的 CDN 404 分支按 Folia 阶梯降档。
 
 #### 1.3 歌词
 
@@ -473,6 +476,13 @@ npm run check
   - 网易云/QQ/酷狗支持自建歌单行内移除；酷狗概念版沿用其能力位，未强行打开写操作。
 - 未完成：探索页（NetEase/QQ 的 section 流）、歌单创建/改名、播放上报（QQ/酷狗平台无对应接口）。
 - 全量 `npm test` / `npm run check` 通过；真实账号与真实问题歌曲尚未验证。
+
+### 2026-11-19 · 0.38.0 酷狗 high/lossless 404 回归
+
+- 真实报告：酷狗概念版登录普通账号，`quality=high` / `lossless` 的 CDN 地址 404，Host 回 502；`standard` 200。
+- 根因：0.38.0 把歌单/专辑行的 `albumAudioId` 从旧的 `mixsongid` 改为精确字段后，行上只剩 album_id，却仍先发半套 metadata；接口返回另一个文件地址。标准路径的固定 flac 起点与 hqHash/sqHash 也偏离 Folia。
+- 修复：半套身份直接 hash-only；嵌套 package 保留 album_audio_id；标准路径按请求档位（128 / 320 / flac）与主 hash 取流；Host 在 CDN 404 时按 Folia 阶梯降档重试。
+- 回归：`kugou-upstream.test.mjs`、`online-stream-fallback.test.mjs`；真实问题歌曲待本机复核。
 
 ---
 

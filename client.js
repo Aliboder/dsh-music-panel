@@ -161895,6 +161895,17 @@ window.__ModuleLoader__.load({
      * floating transport panel) rebuilt on the v2 state layer.
      */
 
+    /** Browser fullscreen can reject when the document is no longer active; that is cleanup, not an error. */
+    function exitFullscreenQuietly() {
+      if (typeof document === 'undefined' || typeof document.exitFullscreen !== 'function') return
+      try {
+        var result = document.exitFullscreen()
+        if (result && typeof result.catch === 'function') result.catch(function () {})
+      } catch (error) {
+        // The document changed while the request was in flight.
+      }
+    }
+
     function lyricActiveIndex(lines, seconds) {
       if (!Array.isArray(lines) || lines.length === 0) return -1
       if (mpLineStart(lines[0]) < 0) return -1
@@ -164096,7 +164107,7 @@ window.__ModuleLoader__.load({
         var node = npRef.current
         if (node === null) return
         if (document.fullscreenElement === node) {
-          void document.exitFullscreen()
+          exitFullscreenQuietly()
           return
         }
         if (typeof node.requestFullscreen !== 'function') {
@@ -164216,7 +164227,7 @@ window.__ModuleLoader__.load({
           document.addEventListener('fullscreenchange', onChange)
           return function () {
             document.removeEventListener('fullscreenchange', onChange)
-            if (document.fullscreenElement === npRef.current) void document.exitFullscreen()
+            if (document.fullscreenElement === npRef.current) exitFullscreenQuietly()
           }
         },
         [],
@@ -164225,7 +164236,7 @@ window.__ModuleLoader__.load({
       useEffect(
         function () {
           if (props.open !== true && document.fullscreenElement === npRef.current) {
-            void document.exitFullscreen()
+            exitFullscreenQuietly()
           }
         },
         [props.open],

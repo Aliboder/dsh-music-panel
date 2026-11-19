@@ -405,6 +405,15 @@
 
 ---
 
+## 45. 酷狗概念版 high / lossless 取流 502（在线源 / 取流）
+
+- **现象**：0.38.0 播放酷狗概念版的任意歌曲，high / lossless 的 CDN 地址返回 404，Host 回 502；standard 仍可播放。
+- **原因**：0.38 的精确身份改造让歌单/专辑行只剩 album_id、album_audio_id 为 0，却仍先发半套 metadata；接口回了一个别的文件的地址。同时标准路径的循环固定从 flac 开始、使用 hqHash/sqHash，和 Folia 的“请求档位 + 主 hash”不一致。
+- **处理**：只在 album_audio_id 存在时发 metadata，否则直接 hash-only；嵌套 package 归一化保留 album_audio_id；标准路径按请求档位的 Folia 阶梯（128 / 320 / flac）并使用主 hash；Host 在已解析地址仍 404 时按 Folia 阶梯降一档再取。
+- **防回归**：kugou-upstream 覆盖高音质 320、主 hash、半套身份不发送；online-stream-fallback 覆盖 404 → standard；真实问题歌曲复测。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

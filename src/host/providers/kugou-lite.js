@@ -320,7 +320,12 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
   const albumId = Number(song.albumId) || 0
   const albumAudioId = Number(song.albumAudioId) || 0
   const attempts = []
-  if (albumId || albumAudioId) attempts.push({ album_id: String(albumId), album_audio_id: String(albumAudioId) })
+  // A half album identity is worse than none: the concept endpoint can resolve a
+  // URL for another file, which then answers 404 at the CDN. Folia's precise
+  // identity needs album_audio_id; without it, ask by hash alone.
+  if (albumAudioId) {
+    attempts.push({ album_id: albumId ? String(albumId) : '0', album_audio_id: String(albumAudioId) })
+  }
   attempts.push({ album_id: '0', album_audio_id: '0' })
   const qualities = prefer.filter((item) => ['flac', '320', '128'].includes(item))
   try {

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 在线播放修复
+
+- 修复 0.38.0 酷狗概念版 `high` / `lossless` 取流 404：半套 `album_id` 不再触发 metadata 请求，嵌套 package 行保留精确 `album_audio_id`；标准路径按 Folia 的请求档位与主 hash 取流，不再固定从 `flac`/`hqHash` 开始。
+- Host 在已解析地址仍返回 404 时按 Folia 音质阶梯降档重试（high → standard、lossless → high → standard），避免整首 502。
+
 ### 列表密度
 
 - 歌曲列表行高从 84px 调整为 76px（84 × 90%，取整保证虚拟列表整像素定位）；封面、标题、副标题、专辑、时长、操作按钮、列宽、间距与图标同步缩放到约 90%，CSS 行高与 JS `rowHeight` 同步更新。

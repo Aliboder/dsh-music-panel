@@ -8,12 +8,19 @@
 import assert from 'node:assert/strict'
 import * as KG from '../../src/host/providers/kugou.js'
 import * as KGL from '../../src/host/providers/kugou-lite.js'
+import { nextLowerOnlineQuality } from '../../src/host/http/routes/online.js'
 import { kugouCookies, kugouSessionPatch } from '../../src/host/providers/kugou-cookie.js'
 import {
   resetUpstreamOverride,
   setUpstreamOverride,
   stopAllKugouServices,
 } from '../../src/host/services/kugou-api.js'
+
+// Folia's fallback order: only a level the account does not serve is skipped.
+assert.equal(nextLowerOnlineQuality('hires'), 'lossless')
+assert.equal(nextLowerOnlineQuality('lossless'), 'high')
+assert.equal(nextLowerOnlineQuality('high'), 'standard')
+assert.equal(nextLowerOnlineQuality('standard'), null)
 
 // ── the cookie vocabulary ───────────────────────────────────────────────────
 
@@ -63,6 +70,12 @@ import {
   assert.equal(precise.mixSongId, 66, 'mixsongid stays a song id')
   const guessed = KG.normalizeSong({ hash: 'h', songname: 'Title', Audioid: 42, audio_id: 43 })
   assert.equal(guessed.albumAudioId, 0, 'Audioid/audio_id are not album audio ids')
+  const nestedPackage = KG.normalizePackageSong({
+    base: { audio_name: 'Nested', album_id: 77 },
+    audio_info: { hash: 'ABC' },
+    album_info: { album_audio_id: 88 },
+  })
+  assert.equal(nestedPackage.albumAudioId, 88, 'the nested package keeps a precise album audio id')
 }
 
 // ── login mapping ───────────────────────────────────────────────────────────
@@ -187,6 +200,51 @@ import {
     assert.equal(lite.url, 'https://cdn.example/a.mp3')
     assert.equal(String(seen[2].album_id), '9', 'concept playback asks with precise metadata first')
     assert.equal(String(seen[3].album_id), '0', 'concept playback retries by hash alone')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
+// Folia's requested-quality ladder and canonical hash: high is 320, not flac or
+// the string "high"; every quality asks the primary hash, never hqHash/sqHash.
+{
+  const seen = []
+  setUpstreamOverride(async (operation, params) => {
+    assert.equal(operation, 'song_url')
+    seen.push(params)
+    return { status: 200, body: { data: { play_url: 'https://cdn.example/high.mp3' } }, cookie: [] }
+  })
+  try {
+    const high = await KG.getDownloadURL(
+      { hash: 'HASH1', hqHash: 'HQ', sqHash: 'SQ', albumId: 9, albumAudioId: 8 },
+      { token: 'T', userid: '1', mid: '123' },
+      ['320', '128'],
+    )
+    assert.equal(high.url, 'https://cdn.example/high.mp3')
+    assert.equal(high.quality, '高音质', 'high maps to the 320 label')
+    assert.equal(seen[0].quality, '320', 'high asks KuGou for 320, matching Folia')
+    assert.equal(seen[0].hash, 'hash1', 'quality does not switch to hqHash/sqHash')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
+// A partial album identity is not precise. Album_id without album_audio_id must
+// not be sent: it can resolve another file, whose CDN URL then answers 404.
+{
+  const seen = []
+  setUpstreamOverride(async (operation, params) => {
+    assert.equal(operation, 'song_url')
+    seen.push(params)
+    return { status: 200, body: { data: { play_url: 'https://cdn.example/hash-only.mp3' } }, cookie: [] }
+  })
+  try {
+    await KG.getDownloadURL({ hash: 'HASH1', albumId: 9, albumAudioId: 0 }, { token: 'T', userid: '1', mid: '123' }, ['128'])
+    assert.equal(String(seen[0].album_id), '0', 'standard playback starts hash-only with a partial identity')
+    assert.equal(String(seen[0].album_audio_id), '0', 'standard playback never sends half an identity')
+    await KGL.resolveStream({ hash: 'HASH2', albumId: 9, albumAudioId: 0 }, { token: 'T', userid: '1', mid: '123' }, ['128'])
+    assert.equal(String(seen[1].album_id), '0', 'concept playback starts hash-only with a partial identity')
+    assert.equal(String(seen[1].album_audio_id), '0', 'concept playback never sends half an identity')
   } finally {
     resetUpstreamOverride()
   }

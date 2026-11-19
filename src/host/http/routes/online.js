@@ -49,6 +49,14 @@ function onlineReferer(provider) {
   return ONLINE_REFERERS[provider] || 'https://www.kugou.com/'
 }
 
+/** Folia's quality ladder, lowest first; only used when a resolved URL is dead. */
+const ONLINE_QUALITY_LADDER = ['standard', 'high', 'lossless', 'hires']
+
+export function nextLowerOnlineQuality(quality) {
+  const index = ONLINE_QUALITY_LADDER.indexOf(quality)
+  return index > 0 ? ONLINE_QUALITY_LADDER[index - 1] : null
+}
+
 /** Client tracks carry onlineId; accept both wire shapes. */
 export function onlineSongId(song) {
   if (song === null || typeof song !== 'object') return ''
@@ -515,6 +523,23 @@ export function createOnlineRoutes(deps) {
             return
           }
           if (!upstream.ok) {
+            clearTimeout(timer)
+            // Folia falls back down the quality ladder before giving up. A CDN
+            // 404 for a resolved level means that level is unavailable to this
+            // account, not that the song is unplayable: retry one level lower.
+            if ((provider === 'kugou' || provider === 'kugouLite') && upstream.status === 404) {
+              const lower = nextLowerOnlineQuality(quality)
+              if (lower !== null) {
+                if (upstream.body !== null) await upstream.body.cancel().catch(() => {})
+                const retryUrl = new URL(req.url ?? '/', 'http://localhost')
+                retryUrl.searchParams.set('quality', lower)
+                return handle(
+                  Object.assign(Object.create(req), { url: retryUrl.pathname + retryUrl.search }),
+                  res,
+                  { ...ctx, url: retryUrl, params: retryUrl.searchParams },
+                )
+              }
+            }
             return fail(res, 502, 'UPSTREAM_FAILED', 'HTTP ' + upstream.status)
           }
           const headers = {

@@ -323,6 +323,9 @@ export function normalizePackageSong(item, opts = {}) {
     hash_super: lowHash(audio.hash_super || ''),
     songname: base.audio_name || base.songname || '',
     album_id: base.album_id || album.album_id || 0,
+    // Keep the precise album audio id through the nested package shape; without
+    // it album_id alone is a half identity and can resolve another file.
+    album_audio_id: base.album_audio_id ?? base.albumAudioId ?? album.album_audio_id ?? album.albumAudioId ?? audio.album_audio_id ?? audio.albumAudioId ?? 0,
     albumname: album.album_name || album.albumname || '',
     AlbumImage: album.cover || album.sizable_cover || '',
     duration: audio.duration ? Number(audio.duration) / 1000 : 0,
@@ -867,10 +870,13 @@ async function packageStreamUrl(song, session, platform, quality, hash, albumId 
   const s = normSession(session)
   if (!s.userid && !s.token) return ''
   const attempts = []
-  // Folia asks with the precise album identity first, then retries the same
-  // quality by hash alone because search metadata can name another file.
-  if (albumId || albumAudioId) attempts.push({ album_id: albumId, album_audio_id: albumAudioId })
-  attempts.push({ album_id: 0, album_audio_id: 0 })
+  // Folia only has a precise album identity when album_audio_id is present. An
+  // album_id without it is a half identity: KuGou can answer with another file's
+  // URL, and the CDN then 404s. Use metadata only when that precise id exists.
+  if (albumAudioId) {
+    attempts.push({ album_id: albumId ? String(albumId) : '0', album_audio_id: String(albumAudioId) })
+  }
+  attempts.push({ album_id: '0', album_audio_id: '0' })
   for (const attempt of attempts) {
     try {
       const answer = await callKugou(platform, 'song_url', {
@@ -909,18 +915,11 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
     if (typeof url === 'string' && url !== '') return { url, quality: '标准' }
     throw new Error('酷狗云盘没有返回播放地址')
   }
-  const ladder = ['flac', 'high', '320', '128']
+  const ladder = ['flac', '320', '128']
   const want = prefer.filter((x) => ladder.includes(x))
-  const qualities = want.length > 0 ? [...new Set([...want, ...ladder])] : ladder
-  // 分档位 hash：128 用主 hash、320 用 hqHash、flac 用 sqHash（有则用之，无则回退主 hash）。
-  const hashForQuality = (quality) => ({
-    128: primaryHash,
-    320: lowHash(song.hqHash) || primaryHash,
-    flac: lowHash(song.sqHash) || primaryHash,
-    high: lowHash(song.hiResHash) || primaryHash,
-    super: lowHash(song.superHash) || primaryHash,
-    multitrack: primaryHash,
-  })[quality] || primaryHash
+  // Folia asks the requested quality ladder, not every level: standard is 128,
+  // high is 320, lossless is flac, and each falls back down the ladder.
+  const qualities = want.length > 0 ? [...new Set(want)] : ladder
 
   // Album identity is only useful when it came from the precise album fields
   // (normalizeSong no longer guesses from Audioid/audio_id). The package call
@@ -930,10 +929,11 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
   const albumId = Number(song.albumId) || 0
 
   // ---- 主路：v5/url 单档循环（x-router: trackercdn.kugou.com）。----
-  // 2025-08 实测：v5 为唯一稳定通道（真 dfid+标准 token 时各档按账号权限授予）。
+  // Folia uses the song's canonical hash for every quality; hqHash/sqHash can
+  // name a different file and turn a playable track into a CDN 404.
   let lastExplain = ''
-  for (const quality of ['flac', 'high', '320', '128']) {
-    const qHash = hashForQuality(quality)
+  for (const quality of qualities) {
+    const qHash = primaryHash
     const packageUrl = await packageStreamUrl(song, session, 'standard', quality, qHash, albumId, albumAudioId)
     if (packageUrl !== '') {
       return {
@@ -988,7 +988,7 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
     for (const e of candidates) {
       const url = pickStreamUrl(e)
       if (url) {
-        return { url, quality: QUALITY_LABELS[quality] || quality, bitrate: Number(e.bitrate) || Number(json.bitrate) || 0, hash: qHash }
+        return { url, quality: QUALITY_LABELS[quality] || quality, bitrate: Number(e.bitrate) || Number(json.bitrate) || 0, hash: primaryHash }
       }
     }
   }
@@ -1043,7 +1043,7 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
         const url = pickStreamUrl(entries[i])
         if (!url) continue
         const bitrate = Number(entries[i].bitrate) || Number(entries[i].kbps) || 0
-        return { url, quality: QUALITY_LABELS[labelByIndex] || String(labelByIndex), bitrate, hash: hashForQuality(labelByIndex) }
+        return { url, quality: QUALITY_LABELS[labelByIndex] || String(labelByIndex), bitrate, hash: primaryHash }
       }
       break
     }

@@ -753,7 +753,7 @@ export async function resolveStream(provider, id, cookie = '', session = {}, qua
     const ready = await ensureKugouDevice(session || {}, kugouPlatform(provider))
     const prefer =
       quality === 'standard'
-        ? ['128', '320']
+        ? ['128']
         : quality === 'high'
           ? ['320', '128']
           : ['flac', '320', '128']
