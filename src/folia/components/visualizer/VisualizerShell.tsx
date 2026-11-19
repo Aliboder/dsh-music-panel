@@ -24,6 +24,10 @@ const VisualizerShell = React.forwardRef<HTMLDivElement, VisualizerShellProps>((
             position: 'absolute',
             inset: 0,
             overflow: 'hidden',
+            // Tailwind preflight gives Folia's page the normal 1.5 line box. The host
+            // page is a different stacking context, so without this the artist row's
+            // italic glyphs get clipped by `truncate` on a shorter inherited line box.
+            lineHeight: 1.5,
             fontFamily: resolveThemeFontStack(theme),
             fontWeight: resolveThemeFontWeight(theme, 400),
             // Folia styles own pointer interaction (line seek, scroll, camera drag). Page

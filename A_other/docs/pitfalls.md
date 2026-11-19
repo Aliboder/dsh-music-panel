@@ -477,6 +477,15 @@
 
 ---
 
+## 53. Monet 歌手名上下被截断
+
+- **现象**：Monet 样式左上角歌手名（如「伍佰 & China Blue」）顶部/底部被裁掉一截，标题和其他样式正常。
+- **原因**：Monet 的歌手行使用 `truncate`（`overflow:hidden`）且没有显式行高；Folia 全局由 Tailwind preflight 提供 `line-height:1.5`，本插件宿主的继承行高更紧，斜体字形超出行盒后被裁。
+- **处理**：`VisualizerShell` 显式设置 Folia 的 `line-height:1.5`，恢复 Folia 的全局排版上下文；Monet 源码保持与上游一致。
+- **防回归**：样式 bundle 重建并跑 Folia/panel 渲染测试；如再改 shell，需保留该行高。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
