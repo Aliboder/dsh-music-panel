@@ -763,6 +763,16 @@ export async function resolveStream(provider, id, cookie = '', session = {}, qua
   throw new Error('未知平台：' + provider)
 }
 
+/**
+ * KuGou's legacy play-info fallback, for when the current /song/url answer points
+ * at a CDN object that has disappeared (HTTP 404). It is the same last resort
+ * Folia keeps in its KuGou provider.
+ */
+export async function resolveLegacyStream(provider, id) {
+  if (provider !== 'kugou' && provider !== 'kugouLite') return null
+  return KGL.resolveLegacyStream(id)
+}
+
 /** Stable KuGou device identity (generated once, then persisted by the caller). */
 export function createKugouDevice() {
   return KG.createDeviceIdentity()

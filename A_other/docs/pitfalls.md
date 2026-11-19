@@ -504,6 +504,15 @@
 
 ---
 
+## 56. 酷狗个别老歌播放 404，其他歌正常
+
+- **现象**：酷狗概念版播放某些老单曲提示「无法播放：HTTP 404」，同队列其他歌正常。
+- **原因**：这些曲目的 search 行没有专辑身份（album / albumId 为空），现代 `/song/url` 返回的是已从 CDN 消失的旧对象地址；hash 本身仍有效。Folia 的酷狗 provider 在取不到/失效时会走旧版 `m.kugou.com/app/i/getSongInfo.php?cmd=playInfo`，本插件原先没有这层回退。
+- **处理**：`resolveLegacyStream(hash)` 取旧版接口的 `url`/`backup_url`；`/online/stream` 在酷狗 CDN 404 时先尝试 legacy URL，成功才递归代理，失败继续原质量降级。
+- **防回归**：online-stream-fallback 覆盖「现代地址 404 → legacy 地址成功」和「legacy 无地址 → 质量降级」两条路径。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

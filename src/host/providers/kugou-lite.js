@@ -395,6 +395,28 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
   throw new Error('酷狗概念版取链失败')
 }
 
+/**
+ * KuGou's old mobile play-info endpoint. Folia keeps this as a last resort because
+ * /song/url can hand back an address whose object has since disappeared from the
+ * CDN (a 404 even though the hash still exists). The legacy endpoint resolves the
+ * current object for the same hash.
+ */
+export async function resolveLegacyStream(hash) {
+  const value = String(hash || '').trim().toLowerCase()
+  if (value === '') return null
+  const endpoint = 'https://m.kugou.com/app/i/getSongInfo.php?cmd=playInfo&hash=' + encodeURIComponent(value)
+  const { response, json } = await fetchJson(endpoint, {
+    headers: {
+      'User-Agent': UA_WEB,
+      Referer: 'https://m.kugou.com/',
+    },
+  }, 10000)
+  if (!response.ok || json === null || typeof json !== 'object') return null
+  const url = findPlaybackUrl(json.url) || findPlaybackUrl(json.backup_url)
+  if (url === '' || /\/p_0_/.test(url)) return null
+  return { url, quality: 'standard', bitrate: 128 }
+}
+
 function findPlaybackUrl(root) {
   if (typeof root === 'string') return /^https?:\/\//.test(root) ? root : ''
   if (Array.isArray(root)) {

@@ -17,6 +17,7 @@ import { isAllowedCoverUrl } from '../url-safety.js'
 import { readTrackMeta } from '../../services/media/meta.js'
 import { createCacheWriter } from '../../services/media/cache-writer.js'
 import { omni } from '../../providers/sources/index.js'
+import { resolveLegacyStream } from '../../providers/index.js'
 import * as ND from '../../providers/navidrome.js'
 import { createLoginBridge, createQrAdapter } from '../../providers/login/bridge.js'
 import { loginFailureOf } from '../../services/core/login-failure.js'
@@ -463,6 +464,7 @@ export function createOnlineRoutes(deps) {
         const quality = ['standard', 'high', 'lossless', 'hires'].includes(requestedQuality)
           ? requestedQuality
           : config.onlineQuality || 'high'
+        const legacyStreamRequest = params.get('legacy') === '1'
         try {
           // 1) A copy written after a full play (Folia's rule) plays before the platform is
           // asked, as long as it was fetched at the quality the option now asks for.
@@ -480,15 +482,20 @@ export function createOnlineRoutes(deps) {
           // Provider lookups occasionally fail on a transient network hiccup:
           // retry once before surfacing the error.
           let stream = null
-          for (let attempt = 0; attempt < 2; attempt += 1) {
-            try {
-              stream = await omni.stream(provider, id, { cookie, session }, quality)
-              break
-            } catch (error) {
-              if (attempt === 1) throw error
-              await new Promise((resolveDelay) => setTimeout(resolveDelay, 400))
+          if (legacyStreamRequest) {
+            stream = await resolveLegacyStream(provider, id)
+          } else {
+            for (let attempt = 0; attempt < 2; attempt += 1) {
+              try {
+                stream = await omni.stream(provider, id, { cookie, session }, quality)
+                break
+              } catch (error) {
+                if (attempt === 1) throw error
+                await new Promise((resolveDelay) => setTimeout(resolveDelay, 400))
+              }
             }
           }
+          if (stream === null) stream = { url: '' }
           if (stream.url === '') {
             // No address: a copy of another quality is better than no song (Folia's
             // `playCopyOfAnyLevel`). Only then is the failure reported.
@@ -540,6 +547,27 @@ export function createOnlineRoutes(deps) {
           }
           if (!upstream.ok) {
             clearTimeout(timer)
+            // KuGou's current /song/url can hand back an old CDN object for a
+            // still-existing hash. Folia resolves that case through its legacy
+            // mobile play-info endpoint; do the same before degrading quality.
+            if ((provider === 'kugou' || provider === 'kugouLite') && upstream.status === 404 && !legacyStreamRequest) {
+              let legacy = null
+              try {
+                legacy = await resolveLegacyStream(provider, id)
+              } catch {
+                // Fall through to the quality ladder.
+              }
+              if (legacy !== null && legacy.url !== '') {
+                if (upstream.body !== null) await upstream.body.cancel().catch(() => {})
+                const retryUrl = new URL(req.url ?? '/', 'http://localhost')
+                retryUrl.searchParams.set('legacy', '1')
+                return handle(
+                  Object.assign(Object.create(req), { url: retryUrl.pathname + retryUrl.search }),
+                  res,
+                  { ...ctx, url: retryUrl, params: retryUrl.searchParams },
+                )
+              }
+            }
             // Folia falls back down the quality ladder before giving up. A CDN
             // 404 for a resolved level means that level is unavailable to this
             // account, not that the song is unplayable: retry one level lower.
