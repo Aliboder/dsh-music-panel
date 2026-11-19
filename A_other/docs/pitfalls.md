@@ -459,6 +459,15 @@
 
 ---
 
+## 51. 歌词记录标记 wordLevel，payload 却只有 LRC
+
+- **现象**：酷狗/QQ 源有逐词歌词，但云阶、心象空白或逐词不准；`/online/lyric` 返回 `lines:null`、`raw:null`、`wordLevel:false`，而 `state.matched.wordLevel:true`。
+- **原因**：旧版本的 override 记录只持久化了 LRC，词轴/raw 没有写进 payload；匹配记录仍保留 wordLevel 标记，造成“知道有词轴，实际没有词轴”。
+- **处理**：`/online/lyric` 检测 `matched.wordLevel===true` 且 payload 无 words 时，用匹配来源重新取一次并写回 `lines/raw/wordLevel`；同时在线匹配获取歌词时带上来源 cookie/session。
+- **防回归**：best-lyric 路由测试构造只有 LRC 的旧记录，断言 `/online/lyric` 回源后返回并持久化 words。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

@@ -188,6 +188,25 @@ function unusedIo() {
   assert.equal(answer.body.match.lrc, '[00:01.000]只有整行')
 }
 
+// A record written before word payloads were kept can say wordLevel while carrying
+// only LRC. /online/lyric refetches that same source once and repairs the payload.
+{
+  const key = 'online:qq:repair-1'
+  await lyricState.writePayload(key, { text: '[00:01.000]old line', formatHint: '' })
+  await lyricState.patch(key, {
+    source: 'online',
+    matched: { source: 'qq', id: 'qq-1', wordLevel: true, at: Date.now() },
+  })
+  const routes = routesWith(wordLevelIo([]))
+  const answer = await send(routes, '/online/lyric', 'GET', { provider: 'qq', id: 'repair-1' })
+  assert.equal(answer.status, 200)
+  assert.equal(answer.body.wordLevel, true, 'the stale record is upgraded to word level')
+  assert.ok(Array.isArray(answer.body.lines[0].words) && answer.body.lines[0].words.length > 0)
+  const repaired = await lyricState.readPayload(key)
+  assert.equal(repaired.wordLevel, true)
+  assert.equal(repaired.lines[0].words.length > 0, true)
+}
+
 // ── the song's own record: an imported lyric, an instrumental verdict ──────
 
 /** One request against the online routes with a JSON body. */

@@ -269,6 +269,37 @@ export function createOnlineRoutes(deps) {
   }
 
   /**
+   * Fetch one source's lyric in the shape the match runner and the payload repair
+   * share. The provider's own cookie/session is used; without one, Kugou/KRC would
+   * silently fall back to line-level LRC.
+   */
+  async function fetchLyricSource(sourceId, sourceSongId) {
+    const override = ioOverride('fetchLyric')
+    if (override !== null) return await override(sourceId, sourceSongId)
+    const cookie = providerStore === undefined ? '' : await providerStore.cookie(sourceId)
+    const session = providerStore === undefined ? {} : await providerStore.session(sourceId)
+    const got = await omni.lyric(sourceId, sourceSongId, { cookie, session })
+    if (got === null) return null
+    const lines = Array.isArray(got.lines) && got.lines.length > 0 ? got.lines : linesFromLrc(got.lrc)
+    if (lines.length === 0) return null
+    return {
+      lines,
+      lrc: got.lrc || '',
+      translation: got.translation || '',
+      romaji: got.romaji || '',
+      ...(got.raw ? { raw: got.raw } : {}),
+    }
+  }
+
+  /** True when a cached payload really carries word timings, not just line text. */
+  function payloadHasWords(payload) {
+    return payload !== null
+      && typeof payload === 'object'
+      && Array.isArray(payload.lines)
+      && payload.lines.some((line) => line && Array.isArray(line.words) && line.words.length > 0)
+  }
+
+  /**
    * The best lyric another source has for this track, in Folia's auto-match order:
    * the listener's preferred source first, then the registry order; a word-level match
    * outranks every line-level one. Shared by "the platform has none" and the
@@ -289,7 +320,6 @@ export function createOnlineRoutes(deps) {
     }
     const preferred = String(params.get('preferred') || '').trim() || undefined
     const searchOverride = ioOverride('search')
-    const fetchLyricOverride = ioOverride('fetchLyric')
     const fetchAmllOverride = ioOverride('fetchAmll')
     // The AMLL client is only built when nothing injects it: a test that injects all three
     // must not construct (or ever call) the real one.
@@ -310,21 +340,7 @@ export function createOnlineRoutes(deps) {
         // Folia keeps the song's own platform in the order: a word-level own lyric can win.
         order: buildLyricSourceOrder(preferred).map((source) => source.id),
         search,
-        fetchLyric: fetchLyricOverride ?? (async (sourceId, sourceSongId) => {
-          const got = await omni.lyric(sourceId, sourceSongId, {})
-          if (got === null) return null
-          const lines = Array.isArray(got.lines) && got.lines.length > 0 ? got.lines : linesFromLrc(got.lrc)
-          if (lines.length === 0) return null
-          // The lender's own payload travels with its lines: the client runs it through
-          // Folia's parser, so a borrowed word-level lyric looks like a native one.
-          return {
-            lines,
-            lrc: got.lrc || '',
-            translation: got.translation || '',
-            romaji: got.romaji || '',
-            ...(got.raw ? { raw: got.raw } : {}),
-          }
-        }),
+        fetchLyric: fetchLyricSource,
         fetchAmll: fetchAmllOverride ?? ((platform, musicId) => amll.fetchLyrics(platform, musicId)),
         // A song its own platform lists under another name (the original title beside a
         // translated one), or an artist the sources spell differently: one more pass when
@@ -634,7 +650,36 @@ export function createOnlineRoutes(deps) {
           // "instrumental" verdict, then the platform lyric cached by the last play.
           const lyricKey = onlineLyricKey(provider, id)
           const record = await lyricRecords.get(lyricKey)
-          const payload = record === null ? null : await lyricRecords.readPayload(lyricKey)
+          let payload = record === null ? null : await lyricRecords.readPayload(lyricKey)
+          // A record written before the payload kept word timing can carry matched.wordLevel
+          // but only line text. Re-read that same source once, the way Folia repairs an
+          // override that has lost its word timeline, instead of degrading to estimated words.
+          if (record !== null
+            && record.matched !== null
+            && record.matched.wordLevel === true
+            && payload !== null
+            && !payloadHasWords(payload)
+            && String(record.matched.id ?? '') !== '') {
+            try {
+              const restored = await fetchLyricSource(record.matched.source, String(record.matched.id))
+              if (restored !== null
+                && Array.isArray(restored.lines)
+                && restored.lines.some((line) => Array.isArray(line.words) && line.words.length > 0)) {
+                await lyricRecords.writePayload(lyricKey, {
+                  text: restored.lrc || payload.text,
+                  formatHint: restored.raw?.formatHint || '',
+                  translation: restored.translation || '',
+                  romaji: restored.romaji || '',
+                  lines: restored.lines,
+                  wordLevel: true,
+                  raw: restored.raw ?? null,
+                })
+                payload = await lyricRecords.readPayload(lyricKey)
+              }
+            } catch {
+              // The current payload is still a usable line-level fallback.
+            }
+          }
           function lyricAnswer(source, extra) {
             return sendJson(res, 200, Object.assign({
               ok: true,
