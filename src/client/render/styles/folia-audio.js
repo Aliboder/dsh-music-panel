@@ -18,8 +18,14 @@
 
 var FOLIA_AUDIO_HZ_PER_BIN = 21.5
 
-/** The resident <audio>, re-found when the shell remounts it. */
-var foliaAudioElement = null
+/** The player's active deck, or the resident <audio> before it is attached. */
+function foliaActiveAudioElement() {
+  if (typeof player !== 'undefined' && player !== null && typeof player.getActiveAudio === 'function') {
+    var active = player.getActiveAudio()
+    if (active !== null) return active
+  }
+  return typeof document !== 'undefined' ? document.querySelector('audio.mp-audio-host') : null
+}
 
 /** True while a crossfade's second deck sounds: the analyser is downstream of both. */
 function foliaAudioCrossfading() {
@@ -39,11 +45,9 @@ function foliaAudioCrossfading() {
  * A blend keeps the last deck's bands alive instead of dropping to the idle breath.
  */
 function foliaAudioIsPlaying() {
-  if (foliaAudioElement === null || foliaAudioElement.isConnected !== true) {
-    foliaAudioElement = typeof document !== 'undefined' ? document.querySelector('audio.mp-audio-host') : null
-  }
-  if (foliaAudioElement !== null && typeof foliaAudioElement.paused === 'boolean') {
-    if (foliaAudioElement.paused !== true && foliaAudioElement.ended !== true) return true
+  var active = foliaActiveAudioElement()
+  if (active !== null && typeof active.paused === 'boolean') {
+    if (active.paused !== true && active.ended !== true) return true
     return foliaAudioCrossfading()
   }
   if (foliaAudioCrossfading()) return true

@@ -441,6 +441,15 @@
 
 ---
 
+## 49. 交叉淡入淡出后所有歌词样式冻结在每句第一个字
+
+- **现象**：播放一段时间、发生切歌淡入淡出后打开播放页，所有 Folia 歌词样式的逐字/逐词动画停在每句第一个字，行索引仍会跳下一句。
+- **原因**：共享时钟用 `document.querySelector('audio.mp-audio-host')`，查到的是文档里的旧 A deck；active deck 已切到 B，旧 A 在 `finishCrossfade` 里被 `removeAttribute('src') + load()`，时间归 0。行索引来自 active deck，时钟却停在 0。
+- **处理**：播放器暴露 `getPlaybackTime()` / `getActiveAudio()`；Folia 样式、Pendolo、音频带全部读 active deck。Folia 也是如此：共享 lyric clock 来自 active transport。
+- **防回归**：player-folia-runtime 断言 `getActiveAudio()` 与 `getPlaybackTime()` 跟随挂载的 deck。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

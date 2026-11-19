@@ -1705,6 +1705,25 @@ function createPlayer() {
     getTime: function () {
       return { currentTime: state.currentTime, duration: state.duration, buffered: state.buffered }
     },
+    /**
+     * The active deck's media time, read at frame rate. `getTime()` is driven by
+     * timeupdate (~4 Hz) and is not enough for a lyric clock; this follows the deck
+     * that is actually sounding, including after a crossfade swaps A and B.
+     */
+    getPlaybackTime: function () {
+      var source = audio
+      var currentTime = source !== null && isFinite(source.currentTime) ? source.currentTime : state.currentTime
+      var duration = source !== null && isFinite(source.duration) ? source.duration : state.duration
+      return {
+        currentTime: Number(currentTime) || 0,
+        duration: Number(duration) || 0,
+        buffered: Number(state.buffered) || 0,
+      }
+    },
+    /** The deck currently producing sound; the Folia stages read it instead of the first DOM audio. */
+    getActiveAudio: function () {
+      return audio
+    },
     /** Queue indices in the current playback order (random mode). */
     getPlayOrder: function () {
       return state.queue.map(function (_, index) {

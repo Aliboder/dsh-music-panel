@@ -213,12 +213,13 @@ function FoliaStyleStage(props) {
   useEffect(function () {
     var stopped = false
     var frame = 0
-    var audioElement = null
+    // The player owns the active deck. A DOM query returns the first `audio` element,
+    // which after a crossfade can be the old deck whose src was just cleared (time 0).
     function readTime() {
-      if (audioElement === null || audioElement.isConnected !== true) {
-        audioElement = typeof document !== 'undefined' ? document.querySelector('audio.mp-audio-host') : null
+      if (player && typeof player.getPlaybackTime === 'function') {
+        var playback = player.getPlaybackTime()
+        return Number(playback && playback.currentTime) || 0
       }
-      if (audioElement !== null && isFinite(audioElement.currentTime)) return audioElement.currentTime
       var time = player.getTime()
       return Number(time && time.currentTime) || 0
     }
@@ -277,7 +278,9 @@ function FoliaStyleStage(props) {
         mode: String(props.mode || ''),
         lines: lines.length,
         wordLevel: wordLines,
-        hasAudio: typeof document !== 'undefined' && document.querySelector('audio.mp-audio-host') !== null,
+        hasAudio: typeof player !== 'undefined' && player !== null && typeof player.getActiveAudio === 'function'
+          ? player.getActiveAudio() !== null
+          : (typeof document !== 'undefined' && document.querySelector('audio.mp-audio-host') !== null),
         primaryColor: theme && theme.primaryColor ? String(theme.primaryColor) : '',
         accentColor: theme && theme.accentColor ? String(theme.accentColor) : '',
         secondaryColor: theme && theme.secondaryColor ? String(theme.secondaryColor) : '',

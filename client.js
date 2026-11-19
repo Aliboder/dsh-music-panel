@@ -31734,8 +31734,14 @@ window.__ModuleLoader__.load({
 
     var FOLIA_AUDIO_HZ_PER_BIN = 21.5
 
-    /** The resident <audio>, re-found when the shell remounts it. */
-    var foliaAudioElement = null
+    /** The player's active deck, or the resident <audio> before it is attached. */
+    function foliaActiveAudioElement() {
+      if (typeof player !== 'undefined' && player !== null && typeof player.getActiveAudio === 'function') {
+        var active = player.getActiveAudio()
+        if (active !== null) return active
+      }
+      return typeof document !== 'undefined' ? document.querySelector('audio.mp-audio-host') : null
+    }
 
     /** True while a crossfade's second deck sounds: the analyser is downstream of both. */
     function foliaAudioCrossfading() {
@@ -31755,11 +31761,9 @@ window.__ModuleLoader__.load({
      * A blend keeps the last deck's bands alive instead of dropping to the idle breath.
      */
     function foliaAudioIsPlaying() {
-      if (foliaAudioElement === null || foliaAudioElement.isConnected !== true) {
-        foliaAudioElement = typeof document !== 'undefined' ? document.querySelector('audio.mp-audio-host') : null
-      }
-      if (foliaAudioElement !== null && typeof foliaAudioElement.paused === 'boolean') {
-        if (foliaAudioElement.paused !== true && foliaAudioElement.ended !== true) return true
+      var active = foliaActiveAudioElement()
+      if (active !== null && typeof active.paused === 'boolean') {
+        if (active.paused !== true && active.ended !== true) return true
         return foliaAudioCrossfading()
       }
       if (foliaAudioCrossfading()) return true
@@ -32071,17 +32075,15 @@ window.__ModuleLoader__.load({
       useEffect(function () {
         var stopped = false
         var frame = 0
-        var audioElement = null
 
-        // `player.getTime()` is refreshed on the media element's timeupdate (~4 Hz); a PV
-        // clock needs the element's own currentTime at frame rate. The resident AudioHost
-        // owns that element in the shell overlay, so read it directly and fall back to the
-        // player snapshot if it is not mounted yet.
+        // The player's active deck is the only clock source. Querying the first
+        // `audio.mp-audio-host` is wrong after a crossfade: that can be the old deck
+        // whose src was cleared, so the clock would sit at 0.
         function readTime() {
-          if (audioElement === null || audioElement.isConnected !== true) {
-            audioElement = typeof document !== 'undefined' ? document.querySelector('audio.mp-audio-host') : null
+          if (player && typeof player.getPlaybackTime === 'function') {
+            var playback = player.getPlaybackTime()
+            return Number(playback && playback.currentTime) || 0
           }
-          if (audioElement !== null && isFinite(audioElement.currentTime)) return audioElement.currentTime
           var time = player.getTime()
           return Number(time && time.currentTime) || 0
         }
@@ -139327,12 +139329,13 @@ window.__ModuleLoader__.load({
       useEffect(function () {
         var stopped = false
         var frame = 0
-        var audioElement = null
+        // The player owns the active deck. A DOM query returns the first `audio` element,
+        // which after a crossfade can be the old deck whose src was just cleared (time 0).
         function readTime() {
-          if (audioElement === null || audioElement.isConnected !== true) {
-            audioElement = typeof document !== 'undefined' ? document.querySelector('audio.mp-audio-host') : null
+          if (player && typeof player.getPlaybackTime === 'function') {
+            var playback = player.getPlaybackTime()
+            return Number(playback && playback.currentTime) || 0
           }
-          if (audioElement !== null && isFinite(audioElement.currentTime)) return audioElement.currentTime
           var time = player.getTime()
           return Number(time && time.currentTime) || 0
         }
@@ -139391,7 +139394,9 @@ window.__ModuleLoader__.load({
             mode: String(props.mode || ''),
             lines: lines.length,
             wordLevel: wordLines,
-            hasAudio: typeof document !== 'undefined' && document.querySelector('audio.mp-audio-host') !== null,
+            hasAudio: typeof player !== 'undefined' && player !== null && typeof player.getActiveAudio === 'function'
+              ? player.getActiveAudio() !== null
+              : (typeof document !== 'undefined' && document.querySelector('audio.mp-audio-host') !== null),
             primaryColor: theme && theme.primaryColor ? String(theme.primaryColor) : '',
             accentColor: theme && theme.accentColor ? String(theme.accentColor) : '',
             secondaryColor: theme && theme.secondaryColor ? String(theme.secondaryColor) : '',
@@ -155962,6 +155967,25 @@ window.__ModuleLoader__.load({
         },
         getTime: function () {
           return { currentTime: state.currentTime, duration: state.duration, buffered: state.buffered }
+        },
+        /**
+         * The active deck's media time, read at frame rate. `getTime()` is driven by
+         * timeupdate (~4 Hz) and is not enough for a lyric clock; this follows the deck
+         * that is actually sounding, including after a crossfade swaps A and B.
+         */
+        getPlaybackTime: function () {
+          var source = audio
+          var currentTime = source !== null && isFinite(source.currentTime) ? source.currentTime : state.currentTime
+          var duration = source !== null && isFinite(source.duration) ? source.duration : state.duration
+          return {
+            currentTime: Number(currentTime) || 0,
+            duration: Number(duration) || 0,
+            buffered: Number(state.buffered) || 0,
+          }
+        },
+        /** The deck currently producing sound; the Folia stages read it instead of the first DOM audio. */
+        getActiveAudio: function () {
+          return audio
         },
         /** Queue indices in the current playback order (random mode). */
         getPlayOrder: function () {

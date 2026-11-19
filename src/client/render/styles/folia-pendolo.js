@@ -221,17 +221,15 @@ function FoliaPendoloStage(props) {
   useEffect(function () {
     var stopped = false
     var frame = 0
-    var audioElement = null
 
-    // `player.getTime()` is refreshed on the media element's timeupdate (~4 Hz); a PV
-    // clock needs the element's own currentTime at frame rate. The resident AudioHost
-    // owns that element in the shell overlay, so read it directly and fall back to the
-    // player snapshot if it is not mounted yet.
+    // The player's active deck is the only clock source. Querying the first
+    // `audio.mp-audio-host` is wrong after a crossfade: that can be the old deck
+    // whose src was cleared, so the clock would sit at 0.
     function readTime() {
-      if (audioElement === null || audioElement.isConnected !== true) {
-        audioElement = typeof document !== 'undefined' ? document.querySelector('audio.mp-audio-host') : null
+      if (player && typeof player.getPlaybackTime === 'function') {
+        var playback = player.getPlaybackTime()
+        return Number(playback && playback.currentTime) || 0
       }
-      if (audioElement !== null && isFinite(audioElement.currentTime)) return audioElement.currentTime
       var time = player.getTime()
       return Number(time && time.currentTime) || 0
     }

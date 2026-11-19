@@ -255,6 +255,9 @@ primary.parentNode = { insertBefore(child) { child.parentNode = this }, removeCh
 primary.nextSibling = null
 player.attachAudio(primary)
 assert.ok(primary.volume <= 1, 'the resident element is accepted')
+primary.currentTime = 42.5
+assert.equal(player.getActiveAudio(), primary, 'the player exposes the deck producing sound')
+assert.equal(player.getPlaybackTime().currentTime, 42.5, 'the lyric clock follows that deck at frame rate')
 
 const analyser = player.ensureAnalyser()
 assert.ok(analyser !== null, 'the Folia graph builds from the player')
