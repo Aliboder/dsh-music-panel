@@ -195,6 +195,7 @@ for ($i = 0; $i -lt 20; $i++) {
 ```
 
 - `npm whoami` 401 与本流程无关（Trusted Publishing 不读 token），不要因此去动凭据。
+- **`latest` 已是新版本但 tarball 404**：registry 元数据与 tarball CDN 复制不同步，或代理缓存了 404。先在 tarball URL 加随机 `?x=` 或用 HEAD 轮询；不要因为 404 重复 `npm publish`。本次 0.38.0 首次 GET 404、带 cache-buster 后正常。
 
 ---
 
