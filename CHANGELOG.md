@@ -7,6 +7,11 @@
 - Folia 歌词舞台的共享时钟改用播放器当前 active deck 的 `getPlaybackTime()`，不再 `querySelector` 第一个 `audio.mp-audio-host`；交叉淡入淡出切换到 B deck 后，回环等所有歌词样式不会再冻结在每句第一个字。音频带也按 active deck 判断是否在播放。
 - Folia 当前歌词行不再使用父层约 4Hz 的 `timeupdate` 索引，而是在舞台内部用同一 `clock` 按 Folia 的 `findLatestActiveLineIndex` 逐帧计算；逐词动画和行切换现在共用一份时间真值。
 
+### 来源菜单
+
+- 左上角来源菜单不再出现两个「本地音乐」：`/online/providers` 只返回在线来源，客户端同时防御性跳过 `local`。
+- 来源菜单首次打开不再从只有本地逐项长到完整列表：在 `/online/providers` 加载期间先渲染已知平台的禁用占位项（显示「加载中」），元数据到达后原位替换；本地音乐改用硬盘图标。
+
 ### 歌词时间轴
 
 - 修复旧歌词 override 丢失词轴的问题：记录标记为 `wordLevel` 但 payload 只有 LRC 时，`/online/lyric` 会用同一来源重新取一次并修复 payload；酷狗 KRC、QQ QRC 等逐词歌词不再退化成估算词轴，云阶 / 心象也能恢复渲染。

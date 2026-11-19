@@ -124,6 +124,7 @@ for (const id of ['netease', 'qq', 'kugouLite', 'navidrome']) {
   assert.ok(map[id], `legacy platform missing from /online/providers: ${id}`)
 }
 assert.equal(map.kugou, undefined, 'the standard KuGou platform is gone')
+assert.equal(map.local, undefined, 'the local library is not an online provider')
 assert.ok(map.netease.capabilities, 'capabilities must be exposed to the client')
 assert.equal(map.netease.capabilities.loginQr, true)
 assert.equal(map.navidrome.capabilities.loginQr, false)
@@ -139,9 +140,6 @@ assert.ok(map.qishui, 'the Qishui source must be listed')
 assert.equal(map.qishui.displayName, 'Qishui Music')
 assert.equal(map.qishui.capabilities.loginQr, true)
 
-// Local library is a source too.
-assert.ok(map.local, 'the local source must be listed')
-assert.equal(map.local.displayName, 'Local library')
 
 // ── guards ──────────────────────────────────────────────────────────────────
 

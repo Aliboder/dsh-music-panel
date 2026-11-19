@@ -29,9 +29,10 @@ function P3TopBar(props) {
     return {
       key: item.id,
       label: item.name,
-      logo: item.id === 'local' ? null : item.id,
-      icon: item.id === 'local' ? 'music' : null,
-      status: p3SourceStatus(item.id),
+      logo: item.id === 'local' || item.pending === true ? null : item.id,
+      icon: item.id === 'local' ? 'hardDrive' : item.pending === true ? 'server' : null,
+      status: item.pending === true ? t('p3.statusLoading') : p3SourceStatus(item.id),
+      disabled: item.pending === true,
       active: item.id === source,
     }
   })

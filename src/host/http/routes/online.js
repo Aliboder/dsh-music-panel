@@ -1925,7 +1925,10 @@ export function createOnlineRoutes(deps) {
         }
         const summary = providerStore === undefined ? {} : await providerStore.summary()
         const accounts = accountStore === undefined ? {} : await accountStore.summary()
-        const registeredIds = new Set(omni.summaries().map((source) => source.id))
+        // The registry also contains the local library (kind: 'local'). It is not an
+        // online provider and must not be sent to the client's source list.
+        const onlineSources = omni.summaries().filter((source) => source.kind === 'online')
+        const registeredIds = new Set(onlineSources.map((source) => source.id))
         // Every registered platform the store knows about is refreshed; the
         // registry is the platform list, not this loop.
         for (const provider of Object.keys(summary)) {
@@ -1977,7 +1980,7 @@ export function createOnlineRoutes(deps) {
         // (optional package missing) is not shown.
         const merged = {}
         const registered = new Set()
-        for (const source of omni.summaries()) {
+        for (const source of onlineSources) {
           registered.add(source.id)
           const account = accounts[source.id] ?? null
           const signedIn = summary[source.id]?.loggedIn === true

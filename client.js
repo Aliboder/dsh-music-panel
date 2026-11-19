@@ -8747,6 +8747,7 @@ window.__ModuleLoader__.load({
         'p3.shuffle': '随机播放',
         'p3.sourceSettings': '来源设置',
         'p3.statusLocal': '本地',
+        'p3.statusLoading': '加载中',
         'p3.statusOffline': '未登录',
         'p3.statusOnline': '已登录',
         'p3.statusUnconfigured': '未配置',
@@ -9436,6 +9437,7 @@ window.__ModuleLoader__.load({
         'p3.shuffle': 'Shuffle',
         'p3.sourceSettings': 'Source settings',
         'p3.statusLocal': 'Local',
+        'p3.statusLoading': 'Loading',
         'p3.statusOffline': 'Signed out',
         'p3.statusOnline': 'Signed in',
         'p3.statusUnconfigured': 'Not configured',
@@ -9891,6 +9893,13 @@ window.__ModuleLoader__.load({
       },
       folder: {
         parts: [['path', { d: 'M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z' }]],
+      },
+      hardDrive: {
+        parts: [
+          ['path', { d: 'M5 12H2v7a2 2 0 002 2h16a2 2 0 002-2v-7h-3' }],
+          ['path', { d: 'M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7' }],
+          ['path', { d: 'M7 16h.01M11 16h6' }],
+        ],
       },
       copy: {
         parts: [
@@ -153907,7 +153916,7 @@ window.__ModuleLoader__.load({
       }
       var registered = Object.keys(onlineStore.get().providers || {}).sort()
       for (var j = 0; j < registered.length; j++) {
-        if (list.indexOf(registered[j]) < 0) list.push(registered[j])
+        if (registered[j] !== 'local' && list.indexOf(registered[j]) < 0) list.push(registered[j])
       }
       return list
     }
@@ -157182,6 +157191,7 @@ window.__ModuleLoader__.load({
       history: readOnlineHistory(),
       liked: {},
       providers: {},
+      providersPhase: 'idle',
     })
 
     var onlineSearchToken = 0
@@ -157695,11 +157705,14 @@ window.__ModuleLoader__.load({
     }
 
     async function loadProviders() {
+      onlineStore.set({ providersPhase: 'loading' })
       try {
         var body = await getJson(API + 'online/providers')
-        onlineStore.set({ providers: body.providers || {} })
+        onlineStore.set({ providers: body.providers || {}, providersPhase: 'ready' })
       } catch (error) {
-        // Provider status only drives labels.
+        // Provider status only drives labels. Mark ready so the source menu never
+        // waits forever for a failed background request.
+        onlineStore.set({ providersPhase: 'ready' })
       }
     }
 
@@ -169236,19 +169249,27 @@ window.__ModuleLoader__.load({
       return onlineStore.get().providers || {}
     }
 
+    const P3_SOURCE_ORDER = ['netease', 'qq', 'kugouLite', 'navidrome', 'bodian', 'qishui']
+
     function p3SourceList() {
-      var providers = p3ProviderMap()
+      var state = onlineStore.get()
+      var providers = state.providers || {}
+      var phase = state.providersPhase || 'idle'
       var list = [{ id: 'local', name: t('page.tabLocal'), short: t('page.tabLocal'), local: true }]
-      var known = ['netease', 'qq', 'kugouLite', 'navidrome']
-      var seen = {}
-      known.forEach(function (id) {
+      var seen = { local: true }
+      // Render the known platforms immediately while /online/providers is in flight.
+      // They are disabled placeholders, not tappable sources; the loaded metadata
+      // replaces them in place. Without this the menu visibly grew on every first open.
+      P3_SOURCE_ORDER.forEach(function (id) {
         if (providers[id]) {
           seen[id] = true
           list.push({ id: id, name: sourceLabelOf(id), short: sourceLabelOf(id), local: false })
+        } else if (phase !== 'ready') {
+          list.push({ id: id, name: sourceLabelOf(id), short: sourceLabelOf(id), local: false, pending: true })
         }
       })
       Object.keys(providers).forEach(function (id) {
-        if (seen[id] === true) return
+        if (seen[id] === true || id === 'local') return
         list.push({ id: id, name: sourceLabelOf(id), short: sourceLabelOf(id), local: false })
       })
       return list
@@ -171669,9 +171690,10 @@ window.__ModuleLoader__.load({
         return {
           key: item.id,
           label: item.name,
-          logo: item.id === 'local' ? null : item.id,
-          icon: item.id === 'local' ? 'music' : null,
-          status: p3SourceStatus(item.id),
+          logo: item.id === 'local' || item.pending === true ? null : item.id,
+          icon: item.id === 'local' ? 'hardDrive' : item.pending === true ? 'server' : null,
+          status: item.pending === true ? t('p3.statusLoading') : p3SourceStatus(item.id),
+          disabled: item.pending === true,
           active: item.id === source,
         }
       })

@@ -216,6 +216,19 @@ internals.onlineStore.set({ providers: { navidrome: { loggedIn: true, capabiliti
 assert.ok(internals.p3Tabs('navidrome').indexOf('albums') >= 0, 'Navidrome exposes its album browse tab')
 assert.ok(internals.p3Tabs('navidrome').indexOf('artists') >= 0, 'Navidrome exposes its artist browse tab')
 
+// The source menu must not list local twice, and must not grow after the provider
+// metadata arrives: known platforms are placeholders while the request is in flight.
+{
+  internals.onlineStore.set({ providers: { local: {}, netease: {}, qq: {}, kugouLite: {}, navidrome: {} }, providersPhase: 'loading' })
+  const loadingSources = internals.p3SourceList()
+  assert.equal(loadingSources.filter((item) => item.id === 'local').length, 1, 'local appears once')
+  assert.ok(loadingSources.some((item) => item.id === 'bodian' && item.pending === true), 'known sources are placeholders while loading')
+  internals.onlineStore.set({ providers: { local: {}, netease: {}, qq: {}, kugouLite: {}, navidrome: {}, bodian: {}, qishui: {} }, providersPhase: 'ready' })
+  const readySources = internals.p3SourceList()
+  assert.equal(readySources.filter((item) => item.id === 'local').length, 1, 'loaded providers never add a second local')
+  assert.deepEqual(readySources.map((item) => item.id), ['local', 'netease', 'qq', 'kugouLite', 'navidrome', 'bodian', 'qishui'])
+}
+
 internals.p3RouteStore.set({ source: 'netease', page: 'recent', param: null, filter: null, query: '', history: [], scroll: {} })
 internals.onlineStore.set({
   provider: 'netease', phase: 'ready', providers: { netease: { loggedIn: true, nickname: 'Tester', vip: true, vipExpiresAt: '2027-01-01', capabilities: { recent: true, userPlaylists: true, searchAlbums: true, search: true, recommendations: true, userCloud: true, listeningRank: true } } },

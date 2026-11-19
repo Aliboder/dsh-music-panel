@@ -59,6 +59,7 @@ var onlineStore = createStore({
   history: readOnlineHistory(),
   liked: {},
   providers: {},
+  providersPhase: 'idle',
 })
 
 var onlineSearchToken = 0
@@ -572,11 +573,14 @@ function closeOnlinePlaylist() {
 }
 
 async function loadProviders() {
+  onlineStore.set({ providersPhase: 'loading' })
   try {
     var body = await getJson(API + 'online/providers')
-    onlineStore.set({ providers: body.providers || {} })
+    onlineStore.set({ providers: body.providers || {}, providersPhase: 'ready' })
   } catch (error) {
-    // Provider status only drives labels.
+    // Provider status only drives labels. Mark ready so the source menu never
+    // waits forever for a failed background request.
+    onlineStore.set({ providersPhase: 'ready' })
   }
 }
 

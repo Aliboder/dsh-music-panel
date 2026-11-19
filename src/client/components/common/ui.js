@@ -33,7 +33,7 @@ function availableSources() {
   }
   var registered = Object.keys(onlineStore.get().providers || {}).sort()
   for (var j = 0; j < registered.length; j++) {
-    if (list.indexOf(registered[j]) < 0) list.push(registered[j])
+    if (registered[j] !== 'local' && list.indexOf(registered[j]) < 0) list.push(registered[j])
   }
   return list
 }

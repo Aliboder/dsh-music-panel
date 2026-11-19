@@ -33,19 +33,27 @@ function p3ProviderMap() {
   return onlineStore.get().providers || {}
 }
 
+const P3_SOURCE_ORDER = ['netease', 'qq', 'kugouLite', 'navidrome', 'bodian', 'qishui']
+
 function p3SourceList() {
-  var providers = p3ProviderMap()
+  var state = onlineStore.get()
+  var providers = state.providers || {}
+  var phase = state.providersPhase || 'idle'
   var list = [{ id: 'local', name: t('page.tabLocal'), short: t('page.tabLocal'), local: true }]
-  var known = ['netease', 'qq', 'kugouLite', 'navidrome']
-  var seen = {}
-  known.forEach(function (id) {
+  var seen = { local: true }
+  // Render the known platforms immediately while /online/providers is in flight.
+  // They are disabled placeholders, not tappable sources; the loaded metadata
+  // replaces them in place. Without this the menu visibly grew on every first open.
+  P3_SOURCE_ORDER.forEach(function (id) {
     if (providers[id]) {
       seen[id] = true
       list.push({ id: id, name: sourceLabelOf(id), short: sourceLabelOf(id), local: false })
+    } else if (phase !== 'ready') {
+      list.push({ id: id, name: sourceLabelOf(id), short: sourceLabelOf(id), local: false, pending: true })
     }
   })
   Object.keys(providers).forEach(function (id) {
-    if (seen[id] === true) return
+    if (seen[id] === true || id === 'local') return
     list.push({ id: id, name: sourceLabelOf(id), short: sourceLabelOf(id), local: false })
   })
   return list

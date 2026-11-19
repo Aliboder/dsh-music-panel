@@ -468,6 +468,15 @@
 
 ---
 
+## 52. 来源菜单出现两个本地音乐，且首次打开列表不全
+
+- **现象**：左上角来源菜单有两个「本地音乐」；第一次打开时只有部分平台，过一会才补全。
+- **原因**：`/online/providers` 把注册表里的 local 也当作在线来源返回，客户端 `p3SourceList()` 先固定加 local，再由 provider map 追加一次；provider map 初始为空，来源菜单按异步结果逐项增长。
+- **处理**：Host 只返回 `kind === 'online'` 的来源；客户端跳过 local，并在 `providersPhase` 不是 ready 时为已知平台渲染禁用占位项（状态「加载中」），加载完成后原位替换。
+- **防回归**：runtime 断言 providers 不含 local；panel.render 断言 local 只出现一次、loading 阶段有占位项。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
