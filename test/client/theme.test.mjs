@@ -152,10 +152,10 @@ assert.match(theme, /\.mp-card\{[^']*--dsw-alias-bg-layer-3:rgba\(255,255,255,\.
 assert.match(theme, /\.mp-card\{[^']*--dsw-alias-border-l1:rgba\(255,255,255,\.07\)/, 'player card hairlines stay light')
 assert.match(theme, /\.mp-card\{[^']*color:#f4f4f5/, 'player card sets its own light ink')
 
-// panel-v3 rows: 56px, 40px cover, 13px title.
-assert.match(p3Css, /\.mpv3-row \{[^"]*height: 56px/, 'panel-v3 rows are 56px')
-assert.match(p3Css, /\.mpv3-row-cover \{[^"]*width: 40px; height: 40px/, 'panel-v3 row covers are 40px')
-assert.match(p3Css, /\.mpv3-row-title \{[^"]*font-size: 13px/, 'panel-v3 row titles follow the type scale')
+// panel-v3 rows: 76px, 54px cover, 18px title (90% of the 84/60/20 scale).
+assert.match(p3Css, /\.mpv3-row \{[^"]*height: 76px/, 'panel-v3 rows are 76px')
+assert.match(p3Css, /\.mpv3-row-cover \{[^"]*width: 54px; height: 54px/, 'panel-v3 row covers are 54px')
+assert.match(p3Css, /\.mpv3-row-title \{[^"]*font-size: 18px/, 'panel-v3 row titles follow the scaled type')
 assert.match(p3Css, /\.mpv3-row-cover img \{[^"]*width: 100%; height: 100%; object-fit: cover/, 'panel-v3 covers clamp their image')
 assert.match(p3Css, /\.mpv3-queue-list \{[^"]*overflow-x: hidden; overflow-y: auto/, 'queue list scrolls vertically only')
 assert.match(p3Css, /\.mpv3-queue-row \{[^"]*box-sizing: border-box/, 'queue rows include their padding in the width')

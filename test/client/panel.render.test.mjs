@@ -357,13 +357,15 @@ assert.match(pagesSource, /onRemove: removeRecent/, 'recent page passes its remo
 assert.match(pagesSource, /removeHistory\(\{ provider: track\.onlineProvider, id: track\.onlineId \}\)/, 'recent remove uses the shared history store')
 assert.match(coreSource, /p3OpenTrackMenu\(track, event, props\.list, props\.onRemove\)/, 'row context menu carries the remove action')
 assert.match(coreSource, /onRemove: function \(\) \{ onRemove\(track\) \}/, 'menu action is bound to the row track')
-// The virtualizer and the CSS must carry the same 84px row height.
-assert.match(coreSource, /var rowHeight = 84/, 'virtual list row height is 84px')
-assert.match(stylesSource, /height: 84px;/, 'row CSS height matches the virtualizer')
-assert.match(stylesSource, /\.mpv3-row-cover \{ width: 60px; height: 60px;/, 'row cover is scaled with the row')
-assert.match(stylesSource, /\.mpv3-row-title \{[^}]*font-size: 20px; line-height: 30px;/, 'row title is scaled with the row')
-assert.match(stylesSource, /grid-template-columns: 60px minmax\(0, 1\.6fr\)/, 'row grid starts with the 60px cover column')
-assert.match(coreSource, /iconSize: 23/, 'row cover icon scales with the cover')
+// The virtualizer and the CSS must carry the same 76px row height (90% of 84,
+// rounded to a whole pixel for the absolutely positioned virtual rows).
+assert.match(coreSource, /var rowHeight = 76/, 'virtual list row height is 76px')
+assert.match(stylesSource, /height: 76px;/, 'row CSS height matches the virtualizer')
+assert.match(stylesSource, /\.mpv3-row-cover \{ width: 54px; height: 54px;/, 'row cover is scaled with the row')
+assert.match(stylesSource, /\.mpv3-row-title \{[^}]*font-size: 18px; line-height: 27px;/, 'row title is scaled with the row')
+assert.match(stylesSource, /grid-template-columns: 54px minmax\(0, 1\.6fr\) minmax\(0, 1fr\) 86px 120px;/, 'row grid columns are scaled with the row')
+assert.match(stylesSource, /\.mpv3-row-acts \.mp-iconbtn \{ width: 38px; height: 38px;/, 'row actions are scaled with the row')
+assert.match(coreSource, /iconSize: 21/, 'row cover icon scales with the cover')
 assert.doesNotMatch(stylesSource, /max-width: 1280px/, 'list no longer centres a 1280px island')
 assert.doesNotMatch(stylesSource, /scrollbar-gutter: stable/, 'no reserved right gutter')
 
