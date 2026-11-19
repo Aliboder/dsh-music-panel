@@ -486,6 +486,15 @@
 
 ---
 
+## 54. 歌词样式列表顺序与 Folia 不一致
+
+- **现象**：样式选择器顺序与 Folia 不同；部分样式的全局排版上下文也有偏差。
+- **原因**：13 个样式目录虽与上游一致，但本地 `FOLIA_STYLE_META` 使用了另一套 order；`VisualizerShell` 移植时漏了 Folia 的 1.5 行高和 flex 居中。
+- **处理**：按各 `entry.tsx` 的 order 重排（sonnet 10…still 130），shell 恢复 line-height 1.5、flex column 居中。
+- **防回归**：folia-styles 测试断言完整顺序；styles/client bundle 重建并全量测试。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

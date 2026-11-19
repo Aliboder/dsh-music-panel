@@ -32410,6 +32410,10 @@ window.__ModuleLoader__.load({
                 style: {
                   position: "absolute",
                   inset: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
                   overflow: "hidden",
                   // Tailwind preflight gives Folia's page the normal 1.5 line box. The host
                   // page is a different stacking context, so without this the artist row's
@@ -139148,18 +139152,20 @@ window.__ModuleLoader__.load({
     })()
 
     var FOLIA_STYLE_META = [
-      { id: 'still', labelKey: 'sheet.foliaStyleStill', glyph: 'note', order: 10 },
-      { id: 'partita', labelKey: 'sheet.foliaStylePartita', glyph: 'list', order: 80 },
-      { id: 'fume', labelKey: 'sheet.foliaStyleFume', glyph: 'note', order: 30 },
-      { id: 'monet', labelKey: 'sheet.foliaStyleMonet', glyph: 'disc', order: 20 },  { id: 'tilt', labelKey: 'sheet.foliaStyleTilt', glyph: 'note', order: 90 },
-      { id: 'claddagh', labelKey: 'sheet.foliaStyleCladdagh', glyph: 'disc', order: 100 },
-      { id: 'cadenza', labelKey: 'sheet.foliaStyleCadenza', glyph: 'note', order: 110 },
-      { id: 'lumiere', labelKey: 'sheet.foliaStyleLumiere', glyph: 'note', order: 120 },
-      { id: 'sonnet', labelKey: 'sheet.foliaStyleSonnet', glyph: 'note', order: 130 },
-      { id: 'tempera', labelKey: 'sheet.foliaStyleTempera', glyph: 'note', order: 140 },
-      { id: 'hanabi', labelKey: 'sheet.foliaStyleHanabi', glyph: 'star', order: 40 },
-      { id: 'nebbia', labelKey: 'sheet.foliaStyleNebbia', glyph: 'note', order: 150 },
-      { id: 'diorama', labelKey: 'sheet.foliaStyleDiorama', glyph: 'disc', order: 160 },
+      // Same order values as each style's own entry.tsx in Folia.
+      { id: 'sonnet', labelKey: 'sheet.foliaStyleSonnet', glyph: 'note', order: 10 },
+      { id: 'tempera', labelKey: 'sheet.foliaStyleTempera', glyph: 'note', order: 20 },
+      { id: 'lumiere', labelKey: 'sheet.foliaStyleLumiere', glyph: 'note', order: 25 },
+      { id: 'hanabi', labelKey: 'sheet.foliaStyleHanabi', glyph: 'star', order: 26 },
+      { id: 'nebbia', labelKey: 'sheet.foliaStyleNebbia', glyph: 'note', order: 29 },
+      { id: 'cadenza', labelKey: 'sheet.foliaStyleCadenza', glyph: 'note', order: 40 },
+      { id: 'partita', labelKey: 'sheet.foliaStylePartita', glyph: 'list', order: 50 },
+      { id: 'fume', labelKey: 'sheet.foliaStyleFume', glyph: 'note', order: 60 },
+      { id: 'tilt', labelKey: 'sheet.foliaStyleTilt', glyph: 'note', order: 70 },
+      { id: 'claddagh', labelKey: 'sheet.foliaStyleCladdagh', glyph: 'disc', order: 80 },
+      { id: 'monet', labelKey: 'sheet.foliaStyleMonet', glyph: 'disc', order: 90 },
+      { id: 'diorama', labelKey: 'sheet.foliaStyleDiorama', glyph: 'disc', order: 120 },
+      { id: 'still', labelKey: 'sheet.foliaStyleStill', glyph: 'note', order: 130 },
     ]
 
     function foliaStyleEntry(mode) {

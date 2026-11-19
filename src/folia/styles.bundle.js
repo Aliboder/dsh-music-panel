@@ -215,6 +215,10 @@ function __mpStylesBundle() {
             style: {
               position: "absolute",
               inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
               overflow: "hidden",
               // Tailwind preflight gives Folia's page the normal 1.5 line box. The host
               // page is a different stacking context, so without this the artist row's

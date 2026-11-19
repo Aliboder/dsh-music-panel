@@ -10,6 +10,7 @@
 ### Folia 样式
 
 - `VisualizerShell` 补上 Folia 页面由 Tailwind preflight 提供的默认 `line-height: 1.5`：此前宿主页面的行高更紧，Monet 歌手名被 `truncate` 的 `overflow:hidden` 上下裁切。Monet 源码本身与 Folia 一致，差异在宿主 shell 的全局排版上下文。
+- 13 个歌词样式的源码目录与 Folia 上游逐文件一致；`FOLIA_STYLE_META` 的排序改为各 `entry.tsx` 的 `order`（sonnet 10 … still 130），`VisualizerShell` 同时恢复 Folia 的 flex 居中布局。
 
 ### 来源菜单
 
