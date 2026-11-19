@@ -450,6 +450,15 @@
 
 ---
 
+## 50. 逐词歌词和实际进度对不准
+
+- **现象**：逐词扫色/高亮和实际进度有偏差，行切换时尤其明显；Folia 同一首歌、同一词源正常。
+- **原因**：Folia 舞台的 currentTime 是约 60Hz 的 rAF 时钟，但当前行索引来自父层 usePlayerTime() 的 timeupdate（约 4Hz）。两个时钟在行边界最多错开约 250ms，逐词动画和行索引不同步。
+- **处理**：在 FoliaStyleStage 内用同一 clock 逐帧计算 foliaLineIndex（与 Folia 的 findLatestActiveLineIndex 一致，行间间隙返回 -1），不再依赖父层 active。
+- **防回归**：foliaLineIndex 覆盖行内、行间、renderEndTime 与最后一行；player 测试继续覆盖 active deck 时钟。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

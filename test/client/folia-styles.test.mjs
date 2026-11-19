@@ -137,6 +137,18 @@ for (const mode of expected) {
   assert.ok(styleLines[0].words.length > 1, 'the style boundary repairs a missing word timeline')
 }
 
+// Folia's line index comes from the same lyric clock as the word sweep; gaps return -1.
+{
+  const lines = [
+    { startTime: 1, endTime: 2 },
+    { startTime: 3, endTime: 4, renderHints: { renderEndTime: 4.5 } },
+  ]
+  assert.equal(internals.foliaLineIndex(lines, 1.5), 0, 'inside the first line')
+  assert.equal(internals.foliaLineIndex(lines, 2.5), -1, 'between lines is not the previous line')
+  assert.equal(internals.foliaLineIndex(lines, 4.2), 1, 'renderEndTime extends the line')
+  assert.equal(internals.foliaLineIndex(lines, 5), -1, 'after the last line')
+}
+
 assert.ok(Array.isArray(internals.FOLIA_STYLE_META))
 assert.deepEqual(
   internals.FOLIA_STYLE_META.map((item) => item.id).sort(),

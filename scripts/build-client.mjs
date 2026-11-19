@@ -205,6 +205,7 @@ ${body}
           mpLineStart: typeof mpLineStart === 'function' ? mpLineStart : null,
           lyricActiveIndex: typeof lyricActiveIndex === 'function' ? lyricActiveIndex : null,
           foliaStyleLines: typeof foliaStyleLines === 'function' ? foliaStyleLines : null,
+          foliaLineIndex: typeof foliaLineIndex === 'function' ? foliaLineIndex : null,
           lyricFilterRules: typeof lyricFilterRules === 'function' ? lyricFilterRules : null,
           readSavedLyricOffset: typeof readSavedLyricOffset === 'function' ? readSavedLyricOffset : null,
           rememberLyricOffset: typeof rememberLyricOffset === 'function' ? rememberLyricOffset : null,

@@ -139298,6 +139298,29 @@ window.__ModuleLoader__.load({
       return localTheme !== null ? localTheme : currentTheme
     }
 
+    /**
+     * Folia's findLatestActiveLineIndex: the last line whose start has passed and whose
+     * render window still contains `time`; gaps between lines are -1, not the previous line.
+     */
+    function foliaLineIndex(lines, time) {
+      for (var index = lines.length - 1; index >= 0; index -= 1) {
+        var line = lines[index]
+        if (!line || time < line.startTime) continue
+        if (time <= ((line.renderHints && line.renderHints.renderEndTime) ?? line.endTime)) return index
+      }
+      return -1
+    }
+
+    function foliaLineForActive(lines, active) {
+      var current = Number(active)
+      if (!isFinite(current) || current < 0) return -1
+      var mapped = -1
+      for (var index = 0; index < lines.length; index += 1) {
+        if (Number(lines[index].sourceIndex) <= current) mapped = index
+      }
+      return lines.length === 0 ? -1 : mapped
+    }
+
     function FoliaStyleStage(props) {
       var snapshot = usePlayerSnapshot()
       var clock = useMotionValue(0)
@@ -139383,6 +139406,28 @@ window.__ModuleLoader__.load({
       var lines = useMemo(function () {
         return foliaStyleLines(props.lines, props.title, props.artist)
       }, [props.lines, props.title, props.artist])
+      // Folia computes the active line from the same lyric clock as the word sweep. The
+      // parent's active prop is refreshed by timeupdate (~4 Hz), so using it directly puts
+      // the line and the words on two clocks. Resolve it here at frame rate instead.
+      var linePair = useState(function () {
+        return foliaLineForActive(lines, props.active)
+      })
+      var lineIndex = linePair[0]
+      var setLineIndex = linePair[1]
+      var linesRef = useRef(lines)
+      linesRef.current = lines
+      useEffect(function () {
+        setLineIndex(foliaLineIndex(lines, clock.get()))
+      }, [lines])
+      useEffect(function () {
+        if (clock === null || typeof clock.on !== 'function') return undefined
+        return clock.on('change', function (latest) {
+          var next = foliaLineIndex(linesRef.current, latest)
+          setLineIndex(function (previous) {
+            return next === previous ? previous : next
+          })
+        })
+      }, [clock])
       useEffect(function () {
         try {
           if (typeof postJson !== 'function' || typeof API !== 'string') return
@@ -139430,15 +139475,7 @@ window.__ModuleLoader__.load({
       // a setting there too (`subtitleOverlayBackground`), on by default; ours mirrors it.
       var subtitleOverlayBackground = prefs.subtitleOverlayBackground !== false
 
-      var active = Number(props.active)
-      var currentLineIndex = isFinite(active) ? active : -1
-      if (currentLineIndex >= 0) {
-        var mapped = 0
-        for (var index = 0; index < lines.length; index += 1) {
-          if (Number(lines[index].sourceIndex) <= currentLineIndex) mapped = index
-        }
-        currentLineIndex = lines.length === 0 ? -1 : mapped
-      }
+      var currentLineIndex = lineIndex
       probeRef.current.active = currentLineIndex
 
       var seed = typeof props.seed === 'string' && props.seed !== '' ? props.seed : 'folia'
@@ -177274,6 +177311,7 @@ window.__ModuleLoader__.load({
           mpLineStart: typeof mpLineStart === 'function' ? mpLineStart : null,
           lyricActiveIndex: typeof lyricActiveIndex === 'function' ? lyricActiveIndex : null,
           foliaStyleLines: typeof foliaStyleLines === 'function' ? foliaStyleLines : null,
+          foliaLineIndex: typeof foliaLineIndex === 'function' ? foliaLineIndex : null,
           lyricFilterRules: typeof lyricFilterRules === 'function' ? lyricFilterRules : null,
           readSavedLyricOffset: typeof readSavedLyricOffset === 'function' ? readSavedLyricOffset : null,
           rememberLyricOffset: typeof rememberLyricOffset === 'function' ? rememberLyricOffset : null,
