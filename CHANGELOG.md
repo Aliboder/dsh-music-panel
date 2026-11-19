@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.38.0 — 2026-11-19
+
 ### 主面板替换（panel-v3）
 
 - 用新的 panel-v3 壳替换旧主面板：顶栏 / 视图栏 / 内容 / 播放条 / 队列浮窗全部重写，旧 `panel.js`、`navigation.js`、`header.js`、`local.js`、`online.js`、`player-bar.js`、`track-row.js` 删除。
