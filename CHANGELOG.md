@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.39.0 — 2026-11-19
+
 ### 歌词样式
 
 - 行级歌词（没有 `line.words` 的 LRC / 在线回退）在 legacy → Folia 边界按 Folia 的 `buildTimedWords` 合成逐词时间轴；云阶（partita）和心象（cadenza）不再因英文行级歌词空白，其他词布局样式也不会再收到空 words。
