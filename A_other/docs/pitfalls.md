@@ -423,6 +423,15 @@
 
 ---
 
+## 47. 重启后音量回到 100%
+
+- **现象**：音量滑杆保存后，退出并重新打开 DSH 又回到默认值。
+- **原因**：`player.js` 的初始 state 把 `volume` 固定为 1；`setVolume` 会写 `prefs.volume`，但新引擎创建时没有读回。
+- **处理**：创建播放引擎时从 `prefs.volume` 恢复并 clamp 到 0–1；无效值回退 1。
+- **防回归**：player-folia-runtime 测试用带 volume 的 prefs 启动，断言 snapshot 恢复且 setVolume 写回。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
