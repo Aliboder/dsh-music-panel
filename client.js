@@ -161603,46 +161603,37 @@ window.__ModuleLoader__.load({
 
       // ── selection / batch / match / lyric search ───────────────────────────
       '.mp-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-tag-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;width:100%;min-width:0}',
-      '.mp-tag-footer .mp-btn{flex:none;min-width:76px;justify-content:center}',
-      '.mp-tag-body{gap:14px;max-height:min(66vh,720px);overflow-y:auto;padding-right:6px;scrollbar-width:thin;overscroll-behavior:contain;flex:1 1 auto;min-height:0}',
-      '.mp-tag-body>*{flex:none}',
-      '.mp-tag-layout{display:grid;grid-template-columns:172px minmax(0,1fr);gap:16px;align-items:start;min-width:0}',
-      '.mp-tag-aside{position:sticky;top:0;display:flex;flex-direction:column;gap:10px;min-width:0;padding:12px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.035))}',
-      '.mp-tag-aside .mp-tag-cover{width:112px;height:112px}',
-      '.mp-tag-aside-title{font-size:16px;line-height:22px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-tag-aside-artist{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-tag-aside-meta{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-tag-aside-actions{display:flex;flex-direction:column;gap:6px}',
-      '.mp-tag-aside-actions .mp-btn{width:100%;justify-content:center}',
-      '.mp-tag-form{display:flex;flex-direction:column;gap:12px;min-width:0}',
-      '.mp-tag-hero{display:flex;gap:14px;align-items:center;min-width:0;padding:12px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.035));flex:none}',
-      '.mp-tag-cover-row{display:flex;gap:12px;align-items:center}',
-      '.mp-tag-cover{width:88px;height:88px;border-radius:12px;flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));display:grid;place-items:center;overflow:hidden;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mp-tag-cover img{width:100%;height:100%;object-fit:cover}',
-      '.mp-tag-hero-main{min-width:0;flex:1}',
-      '.mp-tag-hero-title{font-size:16px;line-height:22px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-tag-hero-meta{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-tag-hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:9px}',
-      '.mp-tag-hint{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:8px}',
-      '.mp-tag-section{border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;overflow:hidden;background:var(--dsw-alias-bg-layer-1,rgba(255,255,255,.02));flex:none}',
-      '.mp-tag-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.035))}',
-      '.mp-tag-section-title{margin:0;font-size:11px;line-height:16px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-      '.mp-tag-section-extra{display:flex;align-items:center;gap:8px;min-width:0}',
-      '.mp-tag-section-meta{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
-      '.mp-tag-section-body{display:flex;flex-direction:column;gap:10px;padding:12px}',
-      '.mp-tag-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 12px;min-width:0}',
-      '.mp-tag-lyrics textarea{min-height:180px;resize:vertical;font-size:12px;line-height:1.65}',
-      '.mp-tag-lyrics-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}',
-      '.mp-tag-cover-actions{display:flex;flex-direction:column;gap:8px;min-width:0;align-items:flex-start}',
-      '.mp-tag-lyrics-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
-      '.mp-match{border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));border-radius:12px;padding:10px;max-height:260px;overflow:auto}',
-      '.mp-match-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-bottom:6px}',
-      '.mp-match-item{display:flex;gap:10px;align-items:center;width:100%;padding:6px 4px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;cursor:pointer}',
-      '.mp-match-item:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07))}',
-      '.mp-match-cover{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));overflow:hidden;flex:none}',
-      '.mp-match-cover img{width:100%;height:100%;object-fit:cover}',
-      '.mp-match-main{min-width:0;flex:1}',
+      '.mp-meta-modal{width:min(880px,calc(100vw - 48px))}',
+      '.mp-meta-body{max-height:min(70vh,760px);overflow-y:auto;padding-right:4px;scrollbar-width:thin;overscroll-behavior:contain}',
+      '.mp-meta-layout{display:grid;grid-template-columns:188px minmax(0,1fr);gap:24px;align-items:start;min-width:0}',
+      '.mp-meta-preview{position:sticky;top:0;display:flex;flex-direction:column;gap:12px;min-width:0;padding:16px;border:.5px solid var(--dsw-alias-settings-card-stroke,rgba(255,255,255,.12));border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-settings-card-fill,rgba(255,255,255,.03))}',
+      '.mp-meta-cover{width:100%;aspect-ratio:1;border-radius:var(--dsw-radius-lg,16px);flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));display:grid;place-items:center;overflow:hidden;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-meta-cover img{width:100%;height:100%;object-fit:cover}',
+      '.mp-meta-title{font-size:16px;line-height:22px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-meta-artist{font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#a1a1aa);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-meta-source{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-meta-actions{display:flex;flex-direction:column;gap:8px}',
+      '.mp-meta-actions .mp-btn{width:100%;justify-content:center}',
+      '.mp-meta-hint{margin:0;font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-meta-fields{display:flex;flex-direction:column;min-width:0}',
+      '.mp-meta-section{padding:0 0 22px;min-width:0}',
+      '.mp-meta-section+.mp-meta-section{padding-top:22px;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-meta-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;min-width:0}',
+      '.mp-meta-section-head .mp-set-label{margin:0}',
+      '.mp-meta-section-extra{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;min-width:0}',
+      '.mp-meta-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 16px;min-width:0}',
+      '.mp-meta-field{display:flex;flex-direction:column;gap:6px;min-width:0}',
+      '.mp-meta-field.is-wide{grid-column:1/-1}',
+      '.mp-meta-label{font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-meta-field .mp-kit-input-wrap,.mp-meta-field .mp-meta-input{width:100%}',
+      '.mp-meta-textarea{box-sizing:border-box;width:100%;min-height:180px;padding:10px 12px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-bg-layer-1,rgba(255,255,255,.03));color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:13px;line-height:20px;outline:none;resize:vertical}',
+      '.mp-meta-textarea::placeholder{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-meta-textarea:focus-visible{border-color:var(--dsw-alias-state-business-primary,#4176E6);box-shadow:0 0 0 var(--dsw-focus-ring-width,2px) var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6))}',
+      '.mp-meta-count{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
+      '.mp-meta-error{margin-bottom:12px;padding:8px 12px;border-radius:var(--dsw-radius-md,12px);background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 10%,transparent);color:var(--dsw-alias-state-error-text,var(--dsw-alias-state-error-primary,#e5484d));font-size:12px;line-height:18px}',
+      '.mp-meta-loading{display:flex;align-items:center;justify-content:center;gap:8px;min-height:220px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:13px;line-height:20px}',
+      '.mp-meta-footer{display:flex;align-items:center;justify-content:flex-end;gap:8px;width:100%;min-width:0}',
+      '.mp-meta-footer .mp-btn{flex:none;min-width:76px;justify-content:center}',
       '.mp-dupe-group{padding:8px 0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
       '.mp-dupe-row{display:flex;gap:8px;align-items:center;font-size:12px;padding:2px 0;min-width:0}',
       '.mp-dupe-row.is-keep{color:var(--dsw-alias-label-primary,#f4f4f5)}',
@@ -161706,10 +161697,6 @@ window.__ModuleLoader__.load({
       '.mp-trash-icon{color:var(--dsw-alias-label-tertiary,#8a8a93);flex:none;display:flex}',
       '.mp-trash-main{min-width:0;flex:1;font-size:13px}',
       '.mp-trash-path{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}',
-      '.mp-match-row{display:flex;flex-direction:column;gap:2px}',
-      '.mp-match-fields{display:flex;flex-wrap:wrap;gap:4px;padding:0 4px 6px 46px}',
-      '.mp-match-chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.1));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04));color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer}',
-      '.mp-match-chip:hover{border-color:var(--dsw-alias-state-business-primary,#4176E6);color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-sleep-chip{display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}',
       '.mp-headmenu{position:relative;display:inline-flex}',
       '.mp-headmenu-pop{position:absolute;right:0;top:34px;z-index:30;min-width:156px;padding:6px;border:.5px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));border-radius:12px;background:var(--dsw-menu-surface-fill,rgba(26,26,30,.72));-webkit-backdrop-filter:var(--dsw-menu-backdrop-filter,blur(20px) saturate(1.3));backdrop-filter:var(--dsw-menu-backdrop-filter,blur(20px) saturate(1.3));box-shadow:var(--dsw-elevation-panel,0 12px 32px rgba(0,0,0,.45))}',
@@ -161831,7 +161818,9 @@ window.__ModuleLoader__.load({
       '@media (max-width:720px){.mp-sheet-nav{padding-right:48px}.mp-sheet-close{top:8px;right:8px}.mp-sheet{width:calc(100vw - 16px);height:calc(100dvh - 16px);grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.mp-sheet-nav{flex-direction:row;align-items:center;gap:4px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));padding:8px}.mp-sheet-title{display:none}.mp-sheet-tab{flex:none;white-space:nowrap;height:30px}.mp-sheet-nav>div:last-child{margin-top:0!important;margin-left:auto}.mp-sheet-body{padding:12px 14px 18px}}',
       '@media (max-width:620px){.mp-online-grid{grid-template-columns:1fr}.mp-online-name{font-size:13px}}',
       '@media (max-width:620px){.mp-set-row{flex-direction:column;align-items:stretch;gap:6px}.mp-set-text{flex:0 0 auto}.mp-set-control{justify-content:flex-start;margin-left:0}.mp-set-control select,.mp-range{max-width:100%}}',
-      '@media (max-width:620px){.mp-tag-grid{grid-template-columns:1fr}.mp-tag-layout{grid-template-columns:1fr}.mp-tag-aside{position:static;display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;column-gap:10px;row-gap:3px}.mp-tag-aside .mp-tag-cover{width:72px;height:72px;grid-row:1/4}.mp-tag-aside-title{grid-column:2;grid-row:1}.mp-tag-aside-artist{grid-column:2;grid-row:2}.mp-tag-aside-meta{grid-column:2;grid-row:3}.mp-tag-aside-actions{grid-column:1/-1;flex-direction:row;flex-wrap:wrap}.mp-tag-hint{grid-column:1/-1}.mp-tag-body{max-height:min(68vh,620px)}.mp-tag-footer{flex-wrap:wrap}.mp-tag-footer .mp-btn{flex:1}}',
+      '@media (max-width:900px){.mp-meta-modal{width:calc(100vw - 24px)}.mp-meta-layout{grid-template-columns:168px minmax(0,1fr);gap:16px}}',
+      '@media (max-width:760px){.mp-meta-layout{grid-template-columns:1fr}.mp-meta-preview{position:static;display:grid;grid-template-columns:96px minmax(0,1fr);align-items:start;column-gap:12px;row-gap:4px}.mp-meta-cover{width:96px;height:96px;grid-row:1/4}.mp-meta-title,.mp-meta-artist,.mp-meta-source{grid-column:2}.mp-meta-actions,.mp-meta-hint{grid-column:1/-1}.mp-meta-actions{flex-direction:row;flex-wrap:wrap}.mp-meta-actions .mp-btn{width:auto;flex:1 1 140px}.mp-meta-body{max-height:min(68vh,620px)}}',
+      '@media (max-width:620px){.mp-meta-grid{grid-template-columns:1fr}.mp-meta-footer{flex-wrap:wrap}.mp-meta-footer .mp-btn{flex:1}}',
       '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
       '@media (prefers-reduced-motion:reduce){.mp-np-line-trans{transition:none}.mp-np.is-trans .mp-np-line-trans{transition:none}}',
 
@@ -169969,24 +169958,6 @@ window.__ModuleLoader__.load({
       ['comment', 'page.comment'],
     ]
 
-    var TAG_MATCH_FIELDS = [
-      ['title', 'page.metaTitle'],
-      ['artist', 'page.artist'],
-      ['album', 'page.album'],
-      ['year', 'page.year'],
-      ['genre', 'page.genre'],
-      ['track', 'page.trackNo'],
-      ['disc', 'page.discNo'],
-    ]
-
-    function tagSourceLabel(source) {
-      if (source === 'netease') return t('page.sourceNetease')
-      if (source === 'qq') return t('page.sourceQq')
-      if (source === 'itunes') return t('page.sourceItunes')
-      if (source === 'musicbrainz') return t('page.sourceMusicbrainz')
-      return String(source || '')
-    }
-
     // Fields the editor keeps while the match window is open over the panel.
     var tagEditorDraft = null
 
@@ -170007,16 +169978,6 @@ window.__ModuleLoader__.load({
       var coverPair = useState(null)
       var coverPreview = coverPair[0]
       var setCoverPreview = coverPair[1]
-      var matchPair = useState(false)
-      var matchOpen = matchPair[0]
-      var setMatchOpen = matchPair[1]
-      var matchPhasePair = useState('idle')
-      var matchPhase = matchPhasePair[0]
-      var setMatchPhase = matchPhasePair[1]
-      var matchListPair = useState([])
-      var matchResults = matchListPair[0]
-      var setMatchResults = matchListPair[1]
-
       useEffect(
         function () {
           var cancelled = false
@@ -170060,62 +170021,21 @@ window.__ModuleLoader__.load({
         })
       }
 
-      function field(key) {
+      function metaField(key, wide) {
+        var labelKey = TAG_FIELDS.find(function (entry) { return entry[0] === key })[1]
         return h(
-          'div',
-          { className: 'mp-field' },
-          h('label', null, t(TAG_FIELDS.find(function (entry) { return entry[0] === key })[1])),
-          h('input', {
-            type: 'text',
+          'label',
+          { className: 'mp-meta-field' + (wide === true ? ' is-wide' : '') },
+          h('span', { className: 'mp-meta-label' }, t(labelKey)),
+          h(KitInput, {
+            className: 'mp-meta-input',
             value: form[key] || '',
-            onChange: function (event) {
-              setField(key, event.target.value)
+            disabled: busy,
+            onChange: function (value) {
+              setField(key, value)
             },
           }),
         )
-      }
-
-      function runMatch() {
-        if (matchPhase === 'loading') return
-        setMatchOpen(true)
-        setMatchPhase('loading')
-        setMatchResults([])
-        setError('')
-        postJson(API + 'online-search', {
-          title: form.title || '',
-          artist: form.artist || '',
-          album: form.album || '',
-        })
-          .then(function (body) {
-            setMatchResults(Array.isArray(body.results) ? body.results : [])
-            setMatchPhase('ready')
-          })
-          .catch(function (matchError) {
-            setError(errorText(matchError))
-            setMatchPhase('error')
-          })
-      }
-
-      function pickMatch(item) {
-        var next = Object.assign({}, form)
-        ;['title', 'artist', 'album', 'year', 'track', 'disc', 'genre'].forEach(function (key) {
-          if (item[key] !== undefined && item[key] !== null && String(item[key]) !== '') {
-            next[key] = String(item[key])
-          }
-        })
-        setForm(next)
-        if (item.coverUrl) setCoverPreview(item.coverUrl)
-        setMatchOpen(false)
-        setMatchPhase('idle')
-      }
-
-      function applyMatchField(item, key) {
-        if (key === 'cover') {
-          if (item.coverUrl) setCoverPreview(item.coverUrl)
-          return
-        }
-        if (item[key] === undefined || item[key] === null || String(item[key]) === '') return
-        setField(key, String(item[key]))
       }
 
       function openOnlineLyric() {
@@ -170186,136 +170106,150 @@ window.__ModuleLoader__.load({
       function section(title, body, extra) {
         return h(
           'section',
-          { className: 'mp-tag-section' },
+          { className: 'mp-meta-section' },
           h(
             'div',
-            { className: 'mp-tag-section-head' },
-            h('h3', { className: 'mp-tag-section-title' }, title),
-            extra ? h('div', { className: 'mp-tag-section-extra' }, extra) : null,
+            { className: 'mp-meta-section-head' },
+            h('h3', { className: 'mp-set-label' }, title),
+            extra ? h('div', { className: 'mp-meta-section-extra' }, extra) : null,
           ),
-          h('div', { className: 'mp-tag-section-body' }, body),
+          body,
         )
       }
+
+      var loading = tags === null
+      var body =
+        loading === true
+          ? error !== ''
+            ? h('div', { className: 'mp-meta-error', role: 'alert' }, error)
+            : h('div', { className: 'mp-meta-loading' }, h(Spinner), h('span', null, t('v2.loading')))
+          : h(
+              'div',
+              { className: 'mp-meta-body' },
+              error !== '' ? h('div', { className: 'mp-meta-error', role: 'alert' }, error) : null,
+              h(
+                'div',
+                { className: 'mp-meta-layout' },
+                h(
+                  'aside',
+                  { className: 'mp-meta-preview' },
+                  h(Cover, { src: coverSrc, className: 'mp-meta-cover', iconSize: 52 }),
+                  h('div', { className: 'mp-meta-title' }, form.title || fileName || t('page.editMeta')),
+                  h('div', { className: 'mp-meta-artist' }, form.artist || t('page.unknownArtist')),
+                  h(
+                    'div',
+                    { className: 'mp-meta-source' },
+                    [tags && tags.format, fileName].filter(Boolean).join(' · '),
+                  ),
+                  h(
+                    'div',
+                    { className: 'mp-meta-actions' },
+                    h(
+                      Button,
+                      { icon: 'search', disabled: busy, onClick: openOnlineLyric },
+                      t('page.onlineLyrics'),
+                    ),
+                    coverPreview !== null
+                      ? h(
+                          Button,
+                          {
+                            variant: 'ghost',
+                            icon: 'refresh',
+                            disabled: busy,
+                            onClick: function () {
+                              setCoverPreview(null)
+                            },
+                          },
+                          t('page.resetCover'),
+                        )
+                      : null,
+                  ),
+                  h('p', { className: 'mp-meta-hint' }, t('page.metaHint')),
+                ),
+                h(
+                  'div',
+                  { className: 'mp-meta-fields' },
+                  section(
+                    t('page.metaBasic'),
+                    h(
+                      'div',
+                      { className: 'mp-meta-grid' },
+                      metaField('title'),
+                      metaField('artist'),
+                      metaField('album'),
+                      metaField('albumArtist'),
+                    ),
+                  ),
+                  section(
+                    t('page.metaDetail'),
+                    [
+                      h(
+                        'div',
+                        { key: 'release', className: 'mp-meta-grid' },
+                        metaField('year'),
+                        metaField('genre'),
+                        metaField('track'),
+                        metaField('disc'),
+                      ),
+                      h(
+                        'div',
+                        { key: 'credits', className: 'mp-meta-grid' },
+                        metaField('composer'),
+                        metaField('lyricist'),
+                      ),
+                      h(
+                        'div',
+                        { key: 'comment', className: 'mp-meta-grid' },
+                        metaField('comment', true),
+                      ),
+                    ],
+                  ),
+                  section(
+                    t('page.lyrics'),
+                    h(
+                      'label',
+                      { className: 'mp-meta-field is-wide' },
+                      h('span', { className: 'mp-meta-label' }, t('page.lyrics')),
+                      h('textarea', {
+                        className: 'mp-meta-textarea',
+                        rows: 10,
+                        value: form.lyrics || '',
+                        placeholder: t('page.lyricsPlaceholder'),
+                        disabled: busy,
+                        onChange: function (event) {
+                          setField('lyrics', event.target.value)
+                        },
+                      }),
+                    ),
+                    h('span', { className: 'mp-meta-count' }, t('page.lyricsLineCount', { n: lyricLineCount })),
+                  ),
+                ),
+              ),
+            )
 
       return h(
         KitModal,
         {
           title: t('page.editMeta'),
+          className: 'mp-meta-modal',
           onClose: popLayer,
           footer: h(
             'div',
-            { className: 'mp-tag-footer' },
+            { className: 'mp-meta-footer' },
             h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
             h(
               Button,
               {
                 key: 'save',
                 variant: 'primary',
-                disabled: busy,
+                disabled: busy || loading,
                 onClick: save,
               },
               busy ? t('page.saving') : t('page.save'),
             ),
           ),
         },
-    h(
-            'div',
-            { className: 'mp-kit-body mp-tag-body' },
-            error !== '' ? h('div', { className: 'mp-qr-hint' }, error) : null,
-            h(
-              'div',
-              { className: 'mp-tag-layout' },
-              h(
-                'aside',
-                { className: 'mp-tag-aside' },
-                h(Cover, { src: coverSrc, className: 'mp-tag-cover', iconSize: 52 }),
-                h('div', { className: 'mp-tag-aside-title' }, form.title || fileName || t('page.editMeta')),
-                h('div', { className: 'mp-tag-aside-artist' }, form.artist || t('page.unknownArtist')),
-                h(
-                  'div',
-                  { className: 'mp-tag-aside-meta' },
-                  [tags && tags.format, fileName].filter(Boolean).join(' · '),
-                ),
-                h(
-                  'div',
-                  { className: 'mp-tag-aside-actions' },
-                  h(Button, { icon: 'search', onClick: openOnlineLyric, disabled: matchPhase === 'loading' }, t('v2.match')),
-                  coverPreview !== null
-                    ? h(Button, { variant: 'ghost', icon: 'refresh', onClick: function () { setCoverPreview(null) } }, t('page.resetCover'))
-                    : null,
-                ),
-                h('div', { className: 'mp-tag-hint' }, t('page.metaHint')),
-              ),
-              h(
-                'div',
-                { className: 'mp-tag-form' },
-            section(
-              t('page.metaBasic'),
-              h(
-                'div',
-                { className: 'mp-tag-grid' },
-                field('title'),
-                field('artist'),
-                field('album'),
-                field('albumArtist'),
-              ),
-            ),
-            section(
-              t('page.metaDetail'),
-              [
-                h(
-                  'div',
-                  { key: 'release', className: 'mp-tag-grid' },
-                  field('year'),
-                  field('genre'),
-                  field('track'),
-                  field('disc'),
-                ),
-                h(
-                  'div',
-                  { key: 'credits', className: 'mp-tag-grid' },
-                  field('composer'),
-                  field('lyricist'),
-                ),
-                h(
-                  'div',
-                  { key: 'comment', className: 'mp-field' },
-                  h('label', null, t('page.comment')),
-                  h('input', {
-                    type: 'text',
-                    value: form.comment || '',
-                    onChange: function (event) {
-                      setField('comment', event.target.value)
-                    },
-                  }),
-                ),
-              ],
-            ),
-            section(
-              t('page.lyrics'),
-              h(
-                'div',
-                { className: 'mp-field mp-tag-lyrics' },
-                h('textarea', {
-                  rows: 8,
-                  value: form.lyrics || '',
-                  placeholder: t('page.lyricsPlaceholder'),
-                  onChange: function (event) {
-                    setField('lyrics', event.target.value)
-                  },
-                }),
-              ),
-              h(
-                'div',
-                { className: 'mp-tag-lyrics-actions' },
-                h('span', { className: 'mp-tag-section-meta' }, t('page.lyricsLineCount', { n: lyricLineCount })),
-                h(Button, { variant: 'ghost', icon: 'search', onClick: openOnlineLyric }, t('page.onlineLyrics')),
-              ),
-            ),
-              ),
-            ),
-          ),
-
+        body,
       )
     }
 

@@ -951,24 +951,6 @@ var TAG_FIELDS = [
   ['comment', 'page.comment'],
 ]
 
-var TAG_MATCH_FIELDS = [
-  ['title', 'page.metaTitle'],
-  ['artist', 'page.artist'],
-  ['album', 'page.album'],
-  ['year', 'page.year'],
-  ['genre', 'page.genre'],
-  ['track', 'page.trackNo'],
-  ['disc', 'page.discNo'],
-]
-
-function tagSourceLabel(source) {
-  if (source === 'netease') return t('page.sourceNetease')
-  if (source === 'qq') return t('page.sourceQq')
-  if (source === 'itunes') return t('page.sourceItunes')
-  if (source === 'musicbrainz') return t('page.sourceMusicbrainz')
-  return String(source || '')
-}
-
 // Fields the editor keeps while the match window is open over the panel.
 var tagEditorDraft = null
 
@@ -989,16 +971,6 @@ function TagDialog(props) {
   var coverPair = useState(null)
   var coverPreview = coverPair[0]
   var setCoverPreview = coverPair[1]
-  var matchPair = useState(false)
-  var matchOpen = matchPair[0]
-  var setMatchOpen = matchPair[1]
-  var matchPhasePair = useState('idle')
-  var matchPhase = matchPhasePair[0]
-  var setMatchPhase = matchPhasePair[1]
-  var matchListPair = useState([])
-  var matchResults = matchListPair[0]
-  var setMatchResults = matchListPair[1]
-
   useEffect(
     function () {
       var cancelled = false
@@ -1042,62 +1014,21 @@ function TagDialog(props) {
     })
   }
 
-  function field(key) {
+  function metaField(key, wide) {
+    var labelKey = TAG_FIELDS.find(function (entry) { return entry[0] === key })[1]
     return h(
-      'div',
-      { className: 'mp-field' },
-      h('label', null, t(TAG_FIELDS.find(function (entry) { return entry[0] === key })[1])),
-      h('input', {
-        type: 'text',
+      'label',
+      { className: 'mp-meta-field' + (wide === true ? ' is-wide' : '') },
+      h('span', { className: 'mp-meta-label' }, t(labelKey)),
+      h(KitInput, {
+        className: 'mp-meta-input',
         value: form[key] || '',
-        onChange: function (event) {
-          setField(key, event.target.value)
+        disabled: busy,
+        onChange: function (value) {
+          setField(key, value)
         },
       }),
     )
-  }
-
-  function runMatch() {
-    if (matchPhase === 'loading') return
-    setMatchOpen(true)
-    setMatchPhase('loading')
-    setMatchResults([])
-    setError('')
-    postJson(API + 'online-search', {
-      title: form.title || '',
-      artist: form.artist || '',
-      album: form.album || '',
-    })
-      .then(function (body) {
-        setMatchResults(Array.isArray(body.results) ? body.results : [])
-        setMatchPhase('ready')
-      })
-      .catch(function (matchError) {
-        setError(errorText(matchError))
-        setMatchPhase('error')
-      })
-  }
-
-  function pickMatch(item) {
-    var next = Object.assign({}, form)
-    ;['title', 'artist', 'album', 'year', 'track', 'disc', 'genre'].forEach(function (key) {
-      if (item[key] !== undefined && item[key] !== null && String(item[key]) !== '') {
-        next[key] = String(item[key])
-      }
-    })
-    setForm(next)
-    if (item.coverUrl) setCoverPreview(item.coverUrl)
-    setMatchOpen(false)
-    setMatchPhase('idle')
-  }
-
-  function applyMatchField(item, key) {
-    if (key === 'cover') {
-      if (item.coverUrl) setCoverPreview(item.coverUrl)
-      return
-    }
-    if (item[key] === undefined || item[key] === null || String(item[key]) === '') return
-    setField(key, String(item[key]))
   }
 
   function openOnlineLyric() {
@@ -1168,136 +1099,150 @@ function TagDialog(props) {
   function section(title, body, extra) {
     return h(
       'section',
-      { className: 'mp-tag-section' },
+      { className: 'mp-meta-section' },
       h(
         'div',
-        { className: 'mp-tag-section-head' },
-        h('h3', { className: 'mp-tag-section-title' }, title),
-        extra ? h('div', { className: 'mp-tag-section-extra' }, extra) : null,
+        { className: 'mp-meta-section-head' },
+        h('h3', { className: 'mp-set-label' }, title),
+        extra ? h('div', { className: 'mp-meta-section-extra' }, extra) : null,
       ),
-      h('div', { className: 'mp-tag-section-body' }, body),
+      body,
     )
   }
+
+  var loading = tags === null
+  var body =
+    loading === true
+      ? error !== ''
+        ? h('div', { className: 'mp-meta-error', role: 'alert' }, error)
+        : h('div', { className: 'mp-meta-loading' }, h(Spinner), h('span', null, t('v2.loading')))
+      : h(
+          'div',
+          { className: 'mp-meta-body' },
+          error !== '' ? h('div', { className: 'mp-meta-error', role: 'alert' }, error) : null,
+          h(
+            'div',
+            { className: 'mp-meta-layout' },
+            h(
+              'aside',
+              { className: 'mp-meta-preview' },
+              h(Cover, { src: coverSrc, className: 'mp-meta-cover', iconSize: 52 }),
+              h('div', { className: 'mp-meta-title' }, form.title || fileName || t('page.editMeta')),
+              h('div', { className: 'mp-meta-artist' }, form.artist || t('page.unknownArtist')),
+              h(
+                'div',
+                { className: 'mp-meta-source' },
+                [tags && tags.format, fileName].filter(Boolean).join(' · '),
+              ),
+              h(
+                'div',
+                { className: 'mp-meta-actions' },
+                h(
+                  Button,
+                  { icon: 'search', disabled: busy, onClick: openOnlineLyric },
+                  t('page.onlineLyrics'),
+                ),
+                coverPreview !== null
+                  ? h(
+                      Button,
+                      {
+                        variant: 'ghost',
+                        icon: 'refresh',
+                        disabled: busy,
+                        onClick: function () {
+                          setCoverPreview(null)
+                        },
+                      },
+                      t('page.resetCover'),
+                    )
+                  : null,
+              ),
+              h('p', { className: 'mp-meta-hint' }, t('page.metaHint')),
+            ),
+            h(
+              'div',
+              { className: 'mp-meta-fields' },
+              section(
+                t('page.metaBasic'),
+                h(
+                  'div',
+                  { className: 'mp-meta-grid' },
+                  metaField('title'),
+                  metaField('artist'),
+                  metaField('album'),
+                  metaField('albumArtist'),
+                ),
+              ),
+              section(
+                t('page.metaDetail'),
+                [
+                  h(
+                    'div',
+                    { key: 'release', className: 'mp-meta-grid' },
+                    metaField('year'),
+                    metaField('genre'),
+                    metaField('track'),
+                    metaField('disc'),
+                  ),
+                  h(
+                    'div',
+                    { key: 'credits', className: 'mp-meta-grid' },
+                    metaField('composer'),
+                    metaField('lyricist'),
+                  ),
+                  h(
+                    'div',
+                    { key: 'comment', className: 'mp-meta-grid' },
+                    metaField('comment', true),
+                  ),
+                ],
+              ),
+              section(
+                t('page.lyrics'),
+                h(
+                  'label',
+                  { className: 'mp-meta-field is-wide' },
+                  h('span', { className: 'mp-meta-label' }, t('page.lyrics')),
+                  h('textarea', {
+                    className: 'mp-meta-textarea',
+                    rows: 10,
+                    value: form.lyrics || '',
+                    placeholder: t('page.lyricsPlaceholder'),
+                    disabled: busy,
+                    onChange: function (event) {
+                      setField('lyrics', event.target.value)
+                    },
+                  }),
+                ),
+                h('span', { className: 'mp-meta-count' }, t('page.lyricsLineCount', { n: lyricLineCount })),
+              ),
+            ),
+          ),
+        )
 
   return h(
     KitModal,
     {
       title: t('page.editMeta'),
+      className: 'mp-meta-modal',
       onClose: popLayer,
       footer: h(
         'div',
-        { className: 'mp-tag-footer' },
+        { className: 'mp-meta-footer' },
         h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
         h(
           Button,
           {
             key: 'save',
             variant: 'primary',
-            disabled: busy,
+            disabled: busy || loading,
             onClick: save,
           },
           busy ? t('page.saving') : t('page.save'),
         ),
       ),
     },
-h(
-        'div',
-        { className: 'mp-kit-body mp-tag-body' },
-        error !== '' ? h('div', { className: 'mp-qr-hint' }, error) : null,
-        h(
-          'div',
-          { className: 'mp-tag-layout' },
-          h(
-            'aside',
-            { className: 'mp-tag-aside' },
-            h(Cover, { src: coverSrc, className: 'mp-tag-cover', iconSize: 52 }),
-            h('div', { className: 'mp-tag-aside-title' }, form.title || fileName || t('page.editMeta')),
-            h('div', { className: 'mp-tag-aside-artist' }, form.artist || t('page.unknownArtist')),
-            h(
-              'div',
-              { className: 'mp-tag-aside-meta' },
-              [tags && tags.format, fileName].filter(Boolean).join(' · '),
-            ),
-            h(
-              'div',
-              { className: 'mp-tag-aside-actions' },
-              h(Button, { icon: 'search', onClick: openOnlineLyric, disabled: matchPhase === 'loading' }, t('v2.match')),
-              coverPreview !== null
-                ? h(Button, { variant: 'ghost', icon: 'refresh', onClick: function () { setCoverPreview(null) } }, t('page.resetCover'))
-                : null,
-            ),
-            h('div', { className: 'mp-tag-hint' }, t('page.metaHint')),
-          ),
-          h(
-            'div',
-            { className: 'mp-tag-form' },
-        section(
-          t('page.metaBasic'),
-          h(
-            'div',
-            { className: 'mp-tag-grid' },
-            field('title'),
-            field('artist'),
-            field('album'),
-            field('albumArtist'),
-          ),
-        ),
-        section(
-          t('page.metaDetail'),
-          [
-            h(
-              'div',
-              { key: 'release', className: 'mp-tag-grid' },
-              field('year'),
-              field('genre'),
-              field('track'),
-              field('disc'),
-            ),
-            h(
-              'div',
-              { key: 'credits', className: 'mp-tag-grid' },
-              field('composer'),
-              field('lyricist'),
-            ),
-            h(
-              'div',
-              { key: 'comment', className: 'mp-field' },
-              h('label', null, t('page.comment')),
-              h('input', {
-                type: 'text',
-                value: form.comment || '',
-                onChange: function (event) {
-                  setField('comment', event.target.value)
-                },
-              }),
-            ),
-          ],
-        ),
-        section(
-          t('page.lyrics'),
-          h(
-            'div',
-            { className: 'mp-field mp-tag-lyrics' },
-            h('textarea', {
-              rows: 8,
-              value: form.lyrics || '',
-              placeholder: t('page.lyricsPlaceholder'),
-              onChange: function (event) {
-                setField('lyrics', event.target.value)
-              },
-            }),
-          ),
-          h(
-            'div',
-            { className: 'mp-tag-lyrics-actions' },
-            h('span', { className: 'mp-tag-section-meta' }, t('page.lyricsLineCount', { n: lyricLineCount })),
-            h(Button, { variant: 'ghost', icon: 'search', onClick: openOnlineLyric }, t('page.onlineLyrics')),
-          ),
-        ),
-          ),
-        ),
-      ),
-
+    body,
   )
 }
 

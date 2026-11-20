@@ -225,6 +225,16 @@ assert.match(theme, /\.mp-sheet-tab\.is-on\{[^']*state-business-primary/, 'the a
 assert.match(theme, /\.mp-set-card\{[^']*--dsw-radius-xl/, 'settings cards use the R20 card radius')
 assert.match(theme, /\.mp-set-card\{[^']*settings-card-stroke/, 'settings cards use the settings-card material')
 
+// Metadata editor: one dialog, a host-input field grid, and a settings-card
+// preview. No bespoke tag-card/border stack, no dead metadata-match CSS.
+const tagDialog = readFileSync(join(uiDir, 'dialogs.js'), 'utf8')
+assert.match(tagDialog, /h\(KitInput, \{/, 'metadata fields use the host-first KitInput')
+assert.match(tagDialog, /className: 'mp-meta-modal'/, 'metadata editor uses the wider dialog canvas')
+assert.doesNotMatch(tagDialog, /mp-tag-section|mp-tag-grid|mp-tag-aside/, 'old bespoke tag editor markup is gone')
+assert.match(theme, /\.mp-meta-preview\{[^']*settings-card-stroke/, 'preview column uses the settings-card material')
+assert.match(theme, /\.mp-meta-textarea\{[^']*--dsw-alias-bg-layer-1/, 'lyrics textarea uses the DSH input surface token')
+assert.doesNotMatch(theme, /\.mp-tag-section|\.mp-match{/, 'dead tag/match editor CSS is gone')
+
 // The component test page ships, and every string it renders exists in both
 // dictionaries (the i18n checker only covers the Navidrome block).
 const manifest = readFileSync(join(root, 'src/client/manifest.json'), 'utf8')

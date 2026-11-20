@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 元数据编辑器
+
+- 按 DSH 主题与组件规范重做编辑元数据：`KitModal` + `KitInput` 表单、settings-card 预览栏、`.mp-set-label` 分区、0.5px 分隔线和 token 化歌词输入区；窄屏改为单列，加载/错误/忙碌态使用真实控件。
+- 移除未渲染的 metadata match 代码和 CSS；左上角“在线匹配”实际打开歌词匹配且与歌词区按钮重复，改为唯一的“在线歌词”入口，不再用不存在的元数据匹配冒充。
+
 ### 智能平衡
 
 - 智能平衡改用 Folia 音频 bundle 的 `chooseBalance` / `planBalanceMove` / `whyNotWholePlay` 作为权威规则（无 bundle 时保留纯 JS 回退），补齐 `profile` / `head` / `platform` 输入顺序、`blendAudible` 的 hold 和整曲 clip/lead-in 判定。
