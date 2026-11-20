@@ -798,6 +798,91 @@ export async function searchPlaylist(keyword, _session = '', page = 1) {
   return { results: list.map(normalizePlaylistItem).filter((x) => x.id), total: Number(j.data.total) || list.length, page: p }
 }
 
+const KG_SPECIAL_META_TTL = 5 * 60 * 1000
+const kgSpecialMetaCache = new Map()
+
+async function kgSpecialMeta(sid) {
+  const hit = kgSpecialMetaCache.get(sid)
+  if (hit && Date.now() - hit.at < KG_SPECIAL_META_TTL) return hit.meta
+  const res = await fetchWithTimeout(`http://mobilecdn.kugou.com/api/v3/special/info?specialid=${sid}&version=9108`, {
+    headers: { 'User-Agent': UA_WEB, Referer: 'http://m.kugou.com/' },
+  }).then((r) => r.json()).catch(() => null)
+  const data = (res && res.status === 1 && res.data) || {}
+  const meta = {
+    name: emStrip(data.specialname || ''),
+    creator: emStrip(data.nickname || ''),
+    creatorId: String(data.suid ?? data.userid ?? data.author_id ?? data.uid ?? ''),
+    gid: String(data.global_specialid || ''),
+    slid: String(data.slid ?? ''),
+    description: dec(typeof data.intro === 'string' ? data.intro : ''),
+    cover: kgCover(data.imgurl, 300),
+  }
+  kgSpecialMetaCache.set(sid, { at: Date.now(), meta })
+  return meta
+}
+
+/** One page of a public specialid playlist. */
+export async function getPlaylistSongsPage(specialId, limit = 100, offset = 0, _session = {}) {
+  const sid = String(specialId).trim()
+  if (!/^[0-9]+$/.test(sid)) throw new Error('bad specialid')
+  const size = Math.max(1, Math.min(300, parseInt(limit, 10) || 100))
+  const at = Math.max(0, parseInt(offset, 10) || 0)
+  const meta = await kgSpecialMeta(sid)
+  const res = await fetchWithTimeout(`http://mobilecdn.kugou.com/api/v3/special/song?specialid=${sid}&page=${Math.floor(at / size) + 1}&pagesize=${size}&version=9108&area_code=1`, {
+    headers: { 'User-Agent': UA_WEB, Referer: 'http://m.kugou.com/' },
+  })
+  const j = await res.json().catch(() => null)
+  if (!j || Number(j.status) !== 1 || !j.data) throw new Error('酷狗歌单详情获取失败')
+  const rows = Array.isArray(j.data.info) ? j.data.info : []
+  const songs = rows.map((o) => normalizeSong(o)).filter((x) => x.hash)
+  const total = Number(j.data.total) || Number(j.data.count) || 0
+  return {
+    ...meta,
+    trackCount: total || songs.length,
+    songs,
+    hasMore: total > 0 ? at + songs.length < total : rows.length >= size,
+    nextOffset: at + songs.length,
+  }
+}
+
+/** One page of a cloudlist (my playlist) via the concept-client endpoint. */
+export async function getMyPlaylistSongsPage(listId, limit = 100, offset = 0, session = {}) {
+  const size = Math.max(1, Math.min(200, parseInt(limit, 10) || 100))
+  const at = Math.max(0, parseInt(offset, 10) || 0)
+  const s = normSession(session)
+  const globalId = kgPlaylistGlobalIds.get(String(Number(listId) || 0)) || ''
+  if (globalId !== '') {
+    try {
+      const answer = await callKugou('standard', 'playlist_track_all', {
+        id: globalId,
+        page: Math.floor(at / size) + 1,
+        pagesize: size,
+        cookie: kugouCookies({ ...s, dfid: session.dfid }, 'standard'),
+      })
+      const data = answer.body?.data ?? {}
+      const rows = Array.isArray(data.songs) ? data.songs : []
+      const songs = rows.map(normalizePackageSong).filter((song) => song.id)
+      const total = Number(data.count) || 0
+      return {
+        songs,
+        trackCount: total || songs.length,
+        hasMore: total > 0 ? at + songs.length < total : rows.length >= size,
+        nextOffset: at + songs.length,
+      }
+    } catch {
+      // Fall back to the legacy reader below.
+    }
+  }
+  const all = await getMyPlaylistSongs(listId, session)
+  const songs = all.slice(at, at + size)
+  return {
+    songs,
+    trackCount: all.length,
+    hasMore: at + songs.length < all.length,
+    nextOffset: at + songs.length,
+  }
+}
+
 /** 歌单详情 + 全部歌曲（specialid；filename 是 "歌手 - 标题"，逐项拆开）。 */
 export async function getPlaylistSongs(specialId, _session = {}) {
   const sid = String(specialId).trim()

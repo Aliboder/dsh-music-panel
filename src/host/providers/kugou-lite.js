@@ -590,6 +590,45 @@ export async function setLiked(song, on, session = {}) {
   return true
 }
 
+export async function getMyPlaylistSongsPage(listId, limit = 100, offset = 0, session = {}) {
+  const size = Math.max(1, Math.min(200, parseInt(limit, 10) || 100))
+  const at = Math.max(0, parseInt(offset, 10) || 0)
+  const s = normSession(session)
+  try {
+    const page = Math.floor(at / size) + 1
+    const answer = await callKugou('lite', 'playlist_track_all', {
+      id: String(listId),
+      page,
+      pagesize: size,
+      cookie: kugouCookies({ ...s, dfid: s.dfid }, 'lite'),
+    })
+    const data = answer.body?.data ?? {}
+    const rows = Array.isArray(data.songs) ? data.songs : []
+    const songs = []
+    for (const row of rows) {
+      const song = normalizePackageSong(row)
+      if (!song.id) continue
+      songs.push({ ...song, singer: song.artists.join(' / '), durationSec: song.interval })
+    }
+    const total = Number(data.count) || 0
+    return {
+      songs,
+      trackCount: total || songs.length,
+      hasMore: total > 0 ? at + songs.length < total : rows.length >= size,
+      nextOffset: at + songs.length,
+    }
+  } catch {
+    const all = await getMyPlaylistSongs(listId, session)
+    const songs = all.slice(at, at + size)
+    return {
+      songs,
+      trackCount: all.length,
+      hasMore: at + songs.length < all.length,
+      nextOffset: at + songs.length,
+    }
+  }
+}
+
 export async function getMyPlaylistSongs(listId, session = {}) {
   const s = normSession(session)
   try {
