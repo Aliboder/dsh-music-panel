@@ -136,7 +136,7 @@ assert.equal(transparent.transparent, true)
 // normal prop. Under React 18 the vendored paper-shaders wrappers would drop it, so
 // latent's paperShaderMount stays null and the per-frame speed/distortion (the audio
 // response and the pause slowdown) never run. The committed bundle must carry the
-// forwardRef wrappers; see docs/Folia可视化移植手册.md.
+// forwardRef wrappers.
 const backgroundsSource = readFileSync(
   new URL('../../src/folia/backgrounds.bundle.js', import.meta.url),
   'utf8',

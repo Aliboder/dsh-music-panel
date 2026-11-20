@@ -788,7 +788,7 @@
 - 新增 `providerApi(source)`：把扁平方法分组为 `search / playback / lyrics / library / catalog /
   mutations` 的 namespace 视图，供后续登录页和新平台使用；现有路由继续走扁平方法。
 - 本地音乐与在线平台使用同一 source 形状（本地：`kind: local`、`original` 音质、无登录方式）。
-- 架构说明见 [docs/平台支持架构.md](A_other/docs/平台支持架构.md)。
+- 架构说明见 `A_other/docs/平台支持架构.md`。
 
 ### Folia 歌词样式（16 种全量接入）
 
@@ -823,7 +823,7 @@
 - 主题改为 Folia 的 **封面取色生成器**（`builtinTheme` + `themeColorMath`）：每首歌提取一次
   封面色，生成 light/dark 主题，样式与背景共用缓存。
 - 群唱的内置头像/表情使用 Folia 原素材，由宿主 `/music/assets` 路由提供；不再内联进 bundle。
-- 移植规则、边界与验收标准见 [docs/Folia可视化移植手册.md](A_other/docs/Folia可视化移植手册.md)。
+- 移植规则、边界与验收标准见 `A_other/docs/Folia可视化移植手册.md`。
 
 ### Folia 音频输入与上游对齐
 
