@@ -12,7 +12,7 @@
 - **新增或修改任何界面组件前，先读 `A_other/docs/theme-guidelines.md`。**
 - **新增任何持久化/存储时**，必须先读 `A_other/docs/data-reset.md`，同步扩充“清空插件所有数据”的范围、分类与测试。
 - **每做完一步修改就打一个 git 存档点**（`git commit`），message 中文写清这一步做了什么，回退时能直接找到；没验证过的改动不要攒进存档点。
-- **做完修改后最终给用户的回答：**简要修改流程“A→B→C...、通俗易懂的简要说明(问题、思路、做法、收益)、(若有)受影响的文档修改清单和变更内容简介”
+- **做完修改后最终给用户的回答：**简要修改流程“A→B→C...、通俗易懂的简要说明（问题、思路、做法、收益）、(若有)受影响的文档修改清单和变更内容简介、存档点（axxbxx：优化了...）”
 
 🚫 **不要做**
 
@@ -41,20 +41,38 @@ node scripts/build-vendor-pixi.mjs        # 仅升级 pixi 时
 ## 架构
 
 ```text
-index.js, src/host/**        Host
-src/client/**                Client fragments（由 src/client/manifest.json 定序，拼成 client.js）
-  app/ i18n/ services/ stores/ components/ styles/ render/ vendor/ types/ utils/
-src/folia/**                 Folia 源码、bundle、Tailwind
+index.js                     Host 入口：Cordis 插件（name="music"），只做装配与接线
+cordis.patch.yml             DSH bundle patch：注册 music 服务与默认 config
+client.js                    Client 构建产物（src/client + src/folia 片段拼接而成）
+src/host/                    Host：Node 侧，随包发布（见 package.json files）
+  http/                      /music/* 路由（routes/、routes.js）+ URL 安全检查
+  providers/                 在线源适配：sources（注册表 + 网易云/QQ/酷狗/波点/汽水/本地）、login、vendor
+  services/                  core（契约/端口/错误）、media（扫描/标签/缓存/回收站）、lyrics、playback
+  stores/                    持久化：settings / stats / favorites / playlists / accounts / media-cache
+  assets/                    icu-folia 词典、歌词样式缩略图
+src/client/                  Client：浏览器侧片段，按 manifest.json 顺序拼成 client.js
+  app/                       插件注册（plugin.js）、宿主 UI 挂载（host-ui.js）、runtime
+  panel-v3/                  面板外壳：p3-shell / p3-nav / p3-pages / p3-dialogs / p3-overlay
+  components/                library / online / ui / common / visualizer
+  services/                  player（含 effects/）、lyrics、api、automix、beatFx、analysis
+  render/                    Folia 舞台：registry + stage，canvas / pixi / three 三档渲染
+  audio/ styles/ stores/     音频引擎 bundle、主题与配色、状态
+  i18n/ types/ utils/ vendor/
+src/audio/                   音频引擎 TS 源码 → 构建为 src/client/audio/engine.bundle.js
+src/folia/                   Folia 上游源码、i18n、*.bundle.js、Tailwind
 src/shared/types.ts          Host/Client 共享类型
-scripts/                     构建
-test/                        Node 测试
-A_other/                    非插件资料（releases/design/docs/shared/upstream）
+scripts/                     构建与检查脚本（见「命令」）
+test/                        client / host / integration / manual
+locale/                      zh/en 插件元数据：插件列表标题、简介、DETAIL 路径
+docs/                        DETAIL.md / DETAIL.zh.md、截图与预览图
+A_other/                     非插件资料：design / docs / releases / shared / upstream
 ```
 
-两侧分工：
+分工：
 
-- **Host**（`index.js` / `src/host/**`）：扫描、标签、歌词、路由、在线源、持久化。
-- **Client**（`src/client/**`）：面板、播放器、Folia 歌词舞台；Folia 源码在 `src/folia/**`。
+- **Host**：承担重活与全部外部访问——扫库与标签、歌词抓取与匹配、在线源与登录、媒体缓存写入、`/music/*` HTTP。浏览器侧不直连外部平台，凭据和缓存都落在 Host 的数据目录。
+- **Client**：只消费 Host 的 HTTP 接口，负责面板、播放器、队列与歌词舞台；片段顺序由 `src/client/manifest.json` 定死。
+- **构建产物**（都提交进仓，改源码后由对应脚本重建）：`client.js`、`src/client/audio/engine.bundle.js`、`src/client/render/lyrics/lyrics.bundle.js`、`src/client/services/automix/profile.bundle.js`、`src/folia/*.bundle.js`、`src/client/vendor/*.bundle.js`。
 
 > 构建产物、播放/Folia、歌词、安装与数据相关的具体陷阱，全部记在
 > [踩坑记录](A_other/docs/pitfalls.md)；改这些区域前先查对应条目，不要在这里重复维护。
