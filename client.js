@@ -176464,7 +176464,7 @@ window.__ModuleLoader__.load({
       var markedPurePair = useState(track.markedPureMusic === true)
       var markedPureMusic = markedPurePair[0]
       var setMarkedPureMusic = markedPurePair[1]
-      var embedPair = useState(false)
+      var embedPair = useState(true)
       var embedTags = embedPair[0]
       var setEmbedTags = embedPair[1]
 
