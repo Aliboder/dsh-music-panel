@@ -287,22 +287,77 @@ assert.equal(nextLowerOnlineQuality('standard'), null)
 // ── recommendations / cloud ─────────────────────────────────────────────────
 
 {
-  setUpstreamOverride(async (operation) => {
+  const calls = []
+  setUpstreamOverride(async (operation, params) => {
+    calls.push({ operation, params })
     if (operation === 'everyday_recommend') {
       return { status: 200, body: { status: 1, data: { songs: [{ FileHash: 'D1', songname: 'Daily', Singers: [{ name: 'A' }], timelen: 100 }] } }, cookie: [] }
     }
     if (operation === 'user_cloud') {
-      return { status: 200, body: { status: 1, data: { songs: [{ FileHash: 'C1', songname: 'Cloud', Singers: [{ name: 'A' }], fileid: 77, timelen: 100 }] } }, cookie: [] }
+      // The real drive answers `data.list`, and each row is a flat uploaded file:
+      // `name` is the filename, the hash is `hash`, identity is album_audio_id.
+      return {
+        status: 200,
+        body: {
+          status: 1,
+          data: {
+            type_size: { type_1: 1024 },
+            list: [{
+              hash: 'C1',
+              name: 'A - Cloud.mp3',
+              authors: [{ author_id: 5, author_name: 'A' }],
+              timelen: 148000,
+              fileid: 77,
+              album_info: { album_id: 9, album_name: 'Album' },
+            }],
+          },
+        },
+        cookie: [],
+      }
     }
     throw new Error('unexpected operation: ' + operation)
   })
   try {
     const daily = await KG.dailySongs({}, 'lite')
     assert.equal(daily[0].title, 'Daily')
-    const cloud = await KG.cloudSongs({}, 1, 100, 'lite')
-    assert.equal(cloud[0].title, 'Cloud')
+
+    // Signed out: no request goes out, and the answer is an empty drive, not an error.
+    assert.deepEqual(await KG.cloudSongs({}, 1, 100, 'lite'), [])
+    assert.equal(calls.filter((call) => call.operation === 'user_cloud').length, 0)
+
+    // Signed in: the account pair and the device cookie travel with the call. Without
+    // them the package signs an empty token and KuGou answers 20010 (param error),
+    // which used to read as an empty drive.
+    const session = { userid: 890420605, token: 'tok', mid: '42', dfid: 'D1', guid: 'g1' }
+    const cloud = await KG.cloudSongs(session, 1, 100, 'lite')
+    const sent = calls.filter((call) => call.operation === 'user_cloud').at(-1).params
+    assert.equal(sent.userid, '890420605')
+    assert.equal(sent.token, 'tok', 'the package signs the body with the account pair')
+    assert.equal(sent.cookie.KUGOU_API_MID, '42', 'the device headers come from the cookie')
+    assert.equal(sent.cookie.token, 'tok')
+    assert.equal(cloud[0].title, 'Cloud', 'a filename loses its extension and artist prefix')
+    assert.deepEqual(cloud[0].artists, ['A'])
+    assert.equal(cloud[0].album, 'Album')
+    assert.equal(cloud[0].id, 'c1', 'the row hash is the id')
+    assert.equal(cloud[0].interval, 148)
     assert.equal(cloud[0].variant, 'cloud')
     assert.equal(cloud[0].fileId, 77)
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+
+// A refused cloud request is reported, not shown as an empty drive.
+{
+  setUpstreamOverride(async (operation) => {
+    assert.equal(operation, 'user_cloud')
+    return { status: 200, body: { status: 0, error_code: 20010, data: '' }, cookie: [] }
+  })
+  try {
+    await assert.rejects(
+      () => KG.cloudSongs({ userid: 1, token: 'expired', mid: '42' }, 1, 100, 'lite'),
+      /20010/,
+    )
   } finally {
     resetUpstreamOverride()
   }

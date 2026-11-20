@@ -282,7 +282,9 @@ export function splitFileName(fn) {
 /** Normalize the nested `{base,audio_info,album_info,authors}` rows returned by the package's KMR routes. */
 export function normalizePackageSong(item, opts = {}) {
   const row = item !== null && typeof item === 'object' ? item : {}
-  if (!row.base && !row.audio_info && !row.album_info) {
+  // A nested package row carries `base`/`audio_info`; `album_info` alone does not make
+  // one (the cloud drive lists flat rows that also carry an album block).
+  if (!row.base && !row.audio_info) {
     const authors = Array.isArray(row.authors) ? row.authors : []
     const singerinfo = Array.isArray(row.singerinfo) ? row.singerinfo : []
     const albumInfo = row.albuminfo || row.album_info || {}
@@ -355,7 +357,9 @@ function stripArtistPrefix(title, artists) {
 }
 
 export function normalizeSong(o, opts = {}) {
-  const hash = lowHash(opts.hashKey ? o[opts.hashKey] : o.hash)
+  // `hashKey` names the shape's preferred key (search rows carry FileHash); the canonical
+  // `hash` stays a fallback, otherwise a row of another shape silently loses its id.
+  const hash = lowHash((opts.hashKey ? o[opts.hashKey] : '') || o.hash)
   const arts = Array.isArray(o.authors)
     ? o.authors.map((a) => emStrip(a.author_name)).filter(Boolean)
     : (() => {
@@ -690,16 +694,43 @@ export async function personalFm(session = {}, platform = 'standard') {
   return recommendationRows(answer.body).map((row) => normalizePackageSong(row, { hashKey: 'FileHash' })).filter((song) => song.id !== '')
 }
 
-/** Folia cloud drive: package /user/cloud; rows keep their fileId for playback. */
+/**
+ * Folia cloud drive: package /user/cloud; rows keep their fileId for playback.
+ *
+ * The package signs the request body with the account pair (rsaEncrypt2 uid+token) and
+ * builds its device headers from the cookie, so both have to travel on every call.
+ * Folia gets that for free because its bridge injects them before invoking a module
+ * (electron/kugou/kugouApiBridge.cjs, invokeModule); here the Host passes them itself.
+ * Without them KuGou answers error_code 20010 (param error) — which reads exactly like
+ * an empty drive.
+ */
 export async function cloudSongs(session = {}, page = 1, size = 100, platform = 'standard') {
+  const s = session !== null && typeof session === 'object' ? session : {}
+  const userid = String(s.userid ?? '')
+  const token = String(s.token ?? '')
+  // The drive is the signed-in account's own list; asking without an account is an
+  // upstream error, not an empty answer.
+  if (userid === '' || userid === '0' || token === '') return []
   const answer = await callKugou(platform, 'user_cloud', {
-    userid: String(session.userid ?? ''),
+    userid,
+    token,
+    cookie: kugouCookies({ ...s, dfid: s.dfid }, platform),
     page: Math.max(1, Number(page) || 1),
-    pagesize: Math.max(1, Math.min(200, Number(size) || 100)),
+    pagesize: Math.max(1, Math.min(100, Number(size) || 100)),
   })
-  return recommendationRows(answer.body)
+  const rows = recommendationRows(answer.body)
+  const errorCode = Number(answer.body?.error_code ?? answer.body?.errcode) || 0
+  // An empty page and a refused request are different facts; never show a refusal as
+  // "the drive is empty".
+  if (rows.length === 0 && errorCode !== 0) {
+    throw new Error('酷狗云盘请求被拒绝（error_code ' + errorCode + '）')
+  }
+  return rows
     .map((row) => {
-      const song = normalizePackageSong(row, { hashKey: 'FileHash' })
+      // A cloud row's `name` is the uploaded file's name ("深七 - 9277.mp3"); the title is
+      // that name without the container extension.
+      const name = String(row?.name ?? '').replace(/\.(?:mp3|flac|m4a|aac|ogg|oga|opus|wav|ape|wma|dsf|dff|mp4|m4b)$/i, '')
+      const song = normalizePackageSong(name === '' ? row : { ...row, name })
       return { ...song, variant: 'cloud', fileId: row.fileid ?? row.fileId ?? song.fileId ?? 0 }
     })
     .filter((song) => song.id !== '')
