@@ -1966,6 +1966,22 @@ export function createOnlineRoutes(deps) {
         return sendJson(res, 200, { ok: true })
       }
 
+      if (pathname === '/online/cache-info' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        const id = (params.get('id') || '').trim()
+        if (!isOnlineSource(provider) || id === '') {
+          return fail(res, 400, 'BAD_REQUEST', '缺少 provider / id')
+        }
+        const cached = mediaCache === undefined ? null : await mediaCache.lookup(provider, id)
+        return sendJson(res, 200, {
+          ok: true,
+          cached: cached !== null,
+          quality: cached === null ? '' : cached.quality,
+          size: cached === null ? 0 : cached.size,
+          replayGain: cached === null ? null : cached.replayGain,
+        })
+      }
+
       if (pathname === '/online/cache' && method === 'GET') {
         const stats =
           mediaCache === undefined

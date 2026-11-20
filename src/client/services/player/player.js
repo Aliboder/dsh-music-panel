@@ -1037,15 +1037,37 @@ var prefetchedProfilePath = ''
     if (!item || typeof item.path !== 'string' || item.path === '') return
     if (prefetchedProfilePath === item.path || profileFor(item.path) !== null) return
     if (item.onlineProvider && item.onlineProvider !== 'navidrome') {
-      // Folia analyses an online track only when its bytes are already in hand.
-      if (prefetchedNext === null || prefetchedNext.path !== item.path) return
-      prefetchedProfilePath = item.path
-      analyzeLoudnessBlob(
-        item,
-        prefetchedNext.blob,
-        function () { return true },
-        function () { /* the store is the result */ },
-      ).catch(function () { /* optional */ })
+      // Folia analyses an online track only when its bytes are already in hand:
+      // the crossfade prefetch, or the Host's played-through media cache.
+      if (prefetchedNext !== null && prefetchedNext.path === item.path) {
+        prefetchedProfilePath = item.path
+        analyzeLoudnessBlob(
+          item,
+          prefetchedNext.blob,
+          function () { return true },
+          function () { /* the store is the result */ },
+        ).catch(function () { /* optional */ })
+        return
+      }
+      getJson(API + 'online/cache-info?provider=' + encodeURIComponent(item.onlineProvider) + '&id=' + encodeURIComponent(item.onlineId || ''))
+        .then(function (info) {
+          if (!info || info.cached !== true) return null
+          prefetchedProfilePath = item.path
+          return fetch(streamUrl(item.path))
+            .then(function (response) {
+              if (!response.ok) throw new Error('HTTP ' + response.status)
+              return response.blob()
+            })
+            .then(function (blob) {
+              return analyzeLoudnessBlob(
+                item,
+                blob,
+                function () { return true },
+                function () { /* the store is the result */ },
+              )
+            })
+        })
+        .catch(function () { /* optional */ })
       return
     }
     prefetchedProfilePath = item.path
@@ -1458,11 +1480,22 @@ var prefetchedProfilePath = ''
       // The prefetched blob now lives in the prepared plan.
       releasePrefetched()
       var duration = state.duration > 0 ? state.duration : isFinite(audio.duration) ? audio.duration : 0
+      var currentProfile = currentItem() === null ? null : profileFor(currentItem().path)
+      var nextProfile = item === null ? null : profileFor(item.path)
       var plan = crossfadePlan(
-        { duration: duration, outroQuietSec: results[0] ? results[0].outroQuietSec : 0 },
-        { durationSec: incoming.envelope ? incoming.envelope.duration : 0,
+        {
+          duration: duration,
+          outroQuietSec: results[0] && typeof results[0].outroQuietSec === 'number'
+            ? results[0].outroQuietSec
+            : currentProfile && typeof currentProfile.bodyOut === 'number' ? currentProfile.bodyOut : 0,
+        },
+        {
+          durationSec: incoming.envelope ? incoming.envelope.duration : 0,
           introQuietSec: incoming.envelope ? incoming.envelope.introQuietSec : 0,
-          introSilentSec: incoming.envelope ? incoming.envelope.introSilentSec : 0 },
+          introSilentSec: incoming.envelope && incoming.envelope.introSilentSec > 0
+            ? incoming.envelope.introSilentSec
+            : nextProfile && typeof nextProfile.leadIn === 'number' ? nextProfile.leadIn : 0,
+        },
         { prefs: readPrefs(), remaining: duration - audio.currentTime },
       )
       if (plan === null) {
@@ -1473,7 +1506,6 @@ var prefetchedProfilePath = ''
       var audioApi = typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
   if (audioApi !== null && typeof window !== 'undefined') window.__mpFoliaAudio = audioApi
       if (audioApi !== null && typeof audioApi.planBlendShape === 'function') {
-        var nextProfile = item === null ? null : profileFor(item.path)
         var periodSec = nextProfile && typeof nextProfile.bpm === 'number' && nextProfile.bpm > 0 ? 60 / nextProfile.bpm : null
         var nextBeatIn = null
         if (periodSec !== null) {

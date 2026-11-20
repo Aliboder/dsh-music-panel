@@ -22,6 +22,8 @@
 - 接入 Folia `gridFromBeats` 的纯转换：有 Beat This 拍点时可以生成 bpm/outroBpm/beatOffset/downbeatOffset/beatsPerBar；模型推理本身仍不在本插件内。
 - profile 记录带 `TRACK_PROFILE_VERSION`，版本不匹配的旧 profile 会被忽略；在线下一首只有在跨淡预取已经拿到 blob 时才分析，不额外下载。
 - 交叉淡入的 `planBlendShape` 现在读下一首 profile 的 bpm/beatOffset，把 overlap 吸附到拍点；没有 profile 时保持原有 envelope 计划。
+- `/online/cache-info` 现在给下一首在线曲提供缓存命中信息；已缓存的在线下一首可直接用 Host 缓存分析 profile，不额外访问 CDN。
+- crossfade 的尾部/开头估算在没有 envelope 时回退到 profile 的 `bodyOut` / `leadIn`。
 
 ### 代码结构
 
