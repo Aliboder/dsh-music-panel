@@ -1,6 +1,8 @@
 # AGENTS.md
 
-`dsh-music-panel` — DeepSeek Harness（DSH）的本地音乐插件。Host 在 `index.js` / `src/host/**`（扫描、标签、歌词、路由、在线源、持久化），Client 在 `src/client/**`（面板、播放器、Folia 歌词舞台；Folia 源码在 `src/folia/**`）。
+`dsh-music-panel` — DeepSeek Harness（DSH）的本地 + 在线音乐插件：本地曲库、网易云 / QQ 音乐 / 酷狗 / 波点 / 汽水、自建 Navidrome / Subsonic 共用同一套界面、队列与缓存；包含侧栏面板、播放器、歌词与 Folia 歌词舞台，以及 10 段均衡器 + AutoEQ、EBU R128 音量均衡、智能过渡等音频处理。
+
+**你的任务**：维护这个插件。新功能和修复都落在 Host 或 Client 一侧（分工见[架构](#架构)），改动后同步构建产物，并按 `## 命令`、`## 边界` 自检；遇到构建产物、播放、歌词、安装、数据相关的问题，先查[踩坑记录](A_other/docs/pitfalls.md)。
 
 ## 命令
 
@@ -74,6 +76,11 @@ scripts/                     构建
 test/                        Node 测试
 A_other/                    非插件资料（releases/design/docs/shared/upstream）
 ```
+
+两侧分工：
+
+- **Host**（`index.js` / `src/host/**`）：扫描、标签、歌词、路由、在线源、持久化。
+- **Client**（`src/client/**`）：面板、播放器、Folia 歌词舞台；Folia 源码在 `src/folia/**`。
 
 > 构建产物、播放/Folia、歌词、安装与数据相关的具体陷阱，全部记在
 > [踩坑记录](A_other/docs/pitfalls.md)；改这些区域前先查对应条目，不要在这里重复维护。
