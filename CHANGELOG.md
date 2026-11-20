@@ -29,6 +29,10 @@
 - crossfade 接入 Folia `chooseTransitionStyle` / `shapeBlend`：按 key、tempo、endsHot、startsHot、outroSlope 选择 beatCut / bassSwap / tailRide / plainBlend，并把 `hold` / `together` / `crossover` 真正传给 transport；style 的 `lengthScale` 现在会缩放 overlap。
 - automix profile 分析不再依赖“音量平衡”开关：关闭智能平衡时仍会分析当前曲/下一首，但播放不会等待它。
 
+### 在线播放启动
+
+- 在线曲不再先 `fetch` 整首成 blob 再播放：当前曲直接把 Host `/online/stream` 交给媒体元素，首字节到达即可开始，完整下载/分析不再阻塞首音。平台增益改为后台 HEAD 获取；已缓存当前曲才在后台补 profile。
+
 ### 代码结构
 
 - `now-playing.js` 按职责拆到 `src/client/components/ui/now-playing/`：`index.js` 只保留页面编排与状态，`capsule.js`、`transport-pill.js`、`seek-bar.js`、`settings-panel.js`、`secondary-actions.js`、`sleep-menu.js`、`editor.js`、`lyrics-scroll.js`、`lyrics-timing.js`、`cover-accent.js`、`fullscreen.js` 各自承担一个组件或 hook；不再把所有功能塞进一个 3200 行文件。

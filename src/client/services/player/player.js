@@ -1201,72 +1201,55 @@ var profileToken = 0
     }
 
     cancelPendingFetch()
-    // Online providers stream through the Host. The Desktop media stack
-    // silently drops `currentTime` writes on this HTTP stream (seeking
-    // restarted the track), so download the file first — when it is cached
-    // this is a local read — and play from a blob like local tracks.
+    // Folia starts the media element on the Host URL: first byte in, first
+    // sound out. The profile/loudness pass is deliberately not on this path.
     if (typeof item.onlineUrl === 'string' && item.onlineUrl !== '') {
       audio.pause()
       audio.removeAttribute('src')
       audio.load()
       releaseObjectUrl()
+      currentBlob = null
       var onlineToken = token
-      var onlineController =
-        typeof AbortController !== 'undefined' ? new AbortController() : null
-      fetchAbort = onlineController
-      fetch(item.onlineUrl, onlineController === null ? {} : { signal: onlineController.signal })
+      loadActiveSource(item.onlineUrl)
+      loudness.resolve()
+      if (pendingAutoplay) playAfterLoudness(token)
+      // Platform gain is metadata, not a prerequisite for sound. Ask for the
+      // headers in the background and apply them when they land.
+      var gainController = typeof AbortController !== 'undefined' ? new AbortController() : null
+      fetchAbort = gainController
+      getJson(API + 'online/cache-info?provider=' + encodeURIComponent(item.onlineProvider) + '&id=' + encodeURIComponent(item.onlineId || ''))
+        .then(function (info) {
+          if (!info || info.cached !== true || onlineToken !== loadToken) return null
+          return fetch(streamUrl(item.path))
+            .then(function (response) {
+              if (!response.ok) throw new Error('HTTP ' + response.status)
+              return response.blob()
+            })
+            .then(function (blob) {
+              return analyzeLoudnessBlob(
+                item,
+                blob,
+                function () { return onlineToken === loadToken },
+                function () { /* the store is the result */ },
+              )
+            })
+        })
+        .catch(function () { /* optional */ })
+      fetch(item.onlineUrl, {
+        method: 'HEAD',
+        ...(gainController === null ? {} : { signal: gainController.signal }),
+      })
         .then(function (response) {
-          if (response.ok) {
-            var gain = readReplayGainHeaders(response.headers)
-            if (gain !== null) {
-              platformGain = gain
-              reconsiderBalance(null)
-            }
-            return response.blob()
+          if (!response.ok || onlineToken !== loadToken) return
+          var gain = readReplayGainHeaders(response.headers)
+          if (gain !== null) {
+            platformGain = gain
+            reconsiderBalance(null)
           }
-          // Read the Host's error body so the toast names the platform's reason instead of
-          // a bare HTTP status (or, worse, a media-element "no supported source").
-          return response
-            .json()
-            .catch(function () {
-              return null
-            })
-            .then(function (body) {
-              var reason =
-                body && body.error && typeof body.error.message === 'string' ? body.error.message : ''
-              throw new Error(reason || 'HTTP ' + response.status)
-            })
         })
-        .then(function (blob) {
-          if (onlineToken !== loadToken) {
-            loudness.resolve()
-            return
-          }
-          fetchAbort = null
-          if (audio === null) {
-            loudness.resolve()
-            return
-          }
-          releaseObjectUrl()
-          objectUrl = URL.createObjectURL(blob)
-          currentBlob = blob
-          loadActiveSource(objectUrl)
-          scheduleLoudness(item, blob, loudness.resolve)
-          if (pendingAutoplay) playAfterLoudness(token)
-        })
-        .catch(function (error) {
-          if (onlineToken !== loadToken) {
-            loudness.resolve()
-            return
-          }
-          fetchAbort = null
-          // The gate must open even when analysis is impossible.
-          loudness.resolve()
-          if (error && error.name === 'AbortError') return
-          // Do not fall back to the same URL as a media source: the Host answered with an
-          // error body, and the element would only report "no supported source", hiding the
-          // platform's reason. The error listener shows the real message and stops.
-          onError(error && typeof error.message === 'string' ? error.message : '')
+        .catch(function () { /* metadata only */ })
+        .then(function () {
+          if (onlineToken === loadToken) fetchAbort = null
         })
       return
     }

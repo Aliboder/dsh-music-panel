@@ -714,6 +714,15 @@
 
 ---
 
+## 80. 在线首音不能等整首 blob 和分析
+
+- **现象**：同一首在线歌，Folia 很快出声，本插件长时间停在加载。
+- **原因**：`fetch(...).blob()` 等完整响应，然后解码整首、跑 profile，`playAfterLoudness` 等分析结束才 `play()`；平台/网络不是根因。
+- **处理**：在线当前曲直接 `audio.src = Host /online/stream`，立即 resolve 播放门；profile 只在媒体缓存命中时后台补，平台增益后台 HEAD 取。
+- **防回归**：不要把完整下载、完整解码或 profile 放回首音关键路径；桌面 seek 若回归，应用 Range/MediaSource 解决，不要恢复整首 blob。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
