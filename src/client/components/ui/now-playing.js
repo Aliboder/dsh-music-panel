@@ -1354,7 +1354,12 @@ function NowPlayingCapsule(props) {
       ? Number(track.durationSec) || 0
       : 0
   var position = Math.min(Number(time.currentTime) || 0, duration || 0)
-  var mode = playModeOf(snap)
+  var loopMode = snap.loop === 'one' ? 'one' : snap.loop === 'all' ? 'all' : 'none'
+  var loopLabel = loopMode === 'one' ? t('page.loopOne') : loopMode === 'all' ? t('page.loopAll') : t('page.loopNone')
+  function cycleLoop() {
+    var next = loopMode === 'none' ? 'all' : loopMode === 'all' ? 'one' : 'none'
+    player.setLoop(next)
+  }
   return h(
     'div',
     { className: 'mp-cap' },
@@ -1423,12 +1428,12 @@ function NowPlayingCapsule(props) {
         'div',
         { className: 'mp-cap-actions' },
         h(IconButton, {
-          icon: playModeIcon(mode),
+          icon: loopMode === 'one' ? 'repeatOne' : 'repeat',
           size: 20,
-          title: playModeLabel(mode),
-          onClick: function () {
-            cyclePlayMode(snap)
-          },
+          title: loopLabel,
+          active: loopMode !== 'none',
+          disabled: track === null,
+          onClick: cycleLoop,
         }),
         h(
           'div',

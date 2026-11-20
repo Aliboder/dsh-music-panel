@@ -158917,22 +158917,22 @@ window.__ModuleLoader__.load({
       '.mp-np-fs .mp-iconbtn{width:36px;height:36px;border-radius:8px;color:rgba(255,255,255,.78)}',
       // Folia's player panel button: one round sliders button at the page's bottom-right.
       '.mp-cap{position:absolute;left:50%;bottom:32px;transform:translateX(-50%);z-index:60;width:min(560px,calc(100% - 260px));pointer-events:auto;transition:opacity .25s ease,transform .25s ease}',
-      '.mp-cap-inner{display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:999px;background:rgba(16,14,20,.7);border:1px solid rgba(255,255,255,.08);box-shadow:0 18px 50px rgba(0,0,0,.45);backdrop-filter:blur(28px) saturate(1.2);-webkit-backdrop-filter:blur(28px) saturate(1.2)}',
-      '.mp-cap-play{width:48px;height:48px;flex:none;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:#f4f4f5;color:#0b0b0d;transition:transform .15s ease}',
+      '.mp-cap-inner{display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#17171a) 88%,transparent);border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));box-shadow:0 18px 50px color-mix(in srgb,var(--dsw-alias-bg-base,#000) 35%,transparent);backdrop-filter:blur(28px) saturate(1.2);-webkit-backdrop-filter:blur(28px) saturate(1.2)}',
+      '.mp-cap-play{width:48px;height:48px;flex:none;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:var(--dsw-alias-label-primary,#f4f4f5);color:var(--dsw-alias-bg-base,#0b0b0d);transition:transform .15s ease}',
       '.mp-cap-play:hover:not(:disabled){transform:scale(1.05)}',
       '.mp-cap-play:disabled{opacity:.45;cursor:default}',
       '.mp-cap-transport{display:flex;align-items:center;gap:4px;flex:none}',
-      '.mp-cap-skip{width:30px;height:30px;flex:none;border:0;border-radius:50%;display:grid;place-items:center;background:transparent;color:rgba(255,255,255,.72);cursor:pointer;transition:background .15s ease,color .15s ease}',
-      '.mp-cap-skip:hover:not(:disabled){background:rgba(255,255,255,.1);color:#fff}',
+      '.mp-cap-skip{width:30px;height:30px;flex:none;border:0;border-radius:50%;display:grid;place-items:center;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer;transition:background .15s ease,color .15s ease}',
+      '.mp-cap-skip:hover:not(:disabled){background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-cap-skip:disabled{opacity:.35;cursor:default}',
       '.mp-cap-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}',
-      '.mp-cap-title{text-align:center;font-size:14px;font-weight:700;line-height:1.2;letter-spacing:.01em;color:#f7f7f8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-cap-title{text-align:center;font-size:14px;font-weight:700;line-height:1.2;letter-spacing:.01em;color:var(--dsw-alias-label-primary,#f7f7f8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-cap-seek{display:flex;align-items:center;gap:10px}',
-      '.mp-cap-time{flex:none;min-width:34px;font-size:11px;line-height:1;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}',
+      '.mp-cap-time{flex:none;min-width:34px;font-size:11px;line-height:1;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
       '.mp-cap-time:last-child{text-align:right}',
       '.mp-cap .mp-seek{flex:1 1 auto;min-width:0}',
       '.mp-cap-actions{display:flex;align-items:center;gap:2px;flex:none}',
-      '.mp-cap-actions .mp-iconbtn{width:32px;height:32px;color:rgba(255,255,255,.8)}',
+      '.mp-cap-actions .mp-iconbtn{width:32px;height:32px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mp-cap-actions .mp-iconbtn:hover{background:rgba(255,255,255,.1);color:#fff}',
       '.mp-cap-queue{position:relative}',
       '.mp-np-handle{position:absolute;right:24px;bottom:44px;z-index:9999;width:96px;height:48px;display:flex;align-items:center;justify-content:flex-end;pointer-events:auto;transition:opacity .25s ease,transform .25s ease}',
@@ -163403,7 +163403,12 @@ window.__ModuleLoader__.load({
           ? Number(track.durationSec) || 0
           : 0
       var position = Math.min(Number(time.currentTime) || 0, duration || 0)
-      var mode = playModeOf(snap)
+      var loopMode = snap.loop === 'one' ? 'one' : snap.loop === 'all' ? 'all' : 'none'
+      var loopLabel = loopMode === 'one' ? t('page.loopOne') : loopMode === 'all' ? t('page.loopAll') : t('page.loopNone')
+      function cycleLoop() {
+        var next = loopMode === 'none' ? 'all' : loopMode === 'all' ? 'one' : 'none'
+        player.setLoop(next)
+      }
       return h(
         'div',
         { className: 'mp-cap' },
@@ -163472,12 +163477,12 @@ window.__ModuleLoader__.load({
             'div',
             { className: 'mp-cap-actions' },
             h(IconButton, {
-              icon: playModeIcon(mode),
+              icon: loopMode === 'one' ? 'repeatOne' : 'repeat',
               size: 20,
-              title: playModeLabel(mode),
-              onClick: function () {
-                cyclePlayMode(snap)
-              },
+              title: loopLabel,
+              active: loopMode !== 'none',
+              disabled: track === null,
+              onClick: cycleLoop,
             }),
             h(
               'div',

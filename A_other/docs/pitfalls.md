@@ -552,12 +552,12 @@
 
 ---
 
-## 62. 播放页底栏没有按 Folia 的 transport 结构组织
+## 62. 播放页底栏改错组件
 
-- **现象**：底栏只有传输键、合并的当前时间/总时长和队列键；没有标题行、当前时间与总时长左右分布，也没有循环三态。
-- **原因**：`player-page.js` 的底栏是单独写的横排，和 Folia `ExpandedView` / `ProgressBar` 的结构及控制语义不一致。
-- **处理**：标题单独一行；当前时间、进度、总时长分开；循环键按 off → all → one 循环并调用 `player.setLoop`；底栏颜色改用 `--dsw-alias-*` token。队列作为插件自己的额外入口保留。
-- **防回归**：新增底栏行为以 Folia 的 `FloatingPlayerControls` / `ProgressBar` 为参照；外观只使用 DSH token。
+- **现象**：改的是 `player-page.js` 的 `.mp-page-pill`，但当前全屏播放页实际挂载的是 `now-playing.js` 的 `NowPlayingCapsule`，界面上没有任何变化。
+- **原因**：仓里有两套播放页外壳；`p3-shell.js` 只挂载 `NowPlaying`，`PlayerPage` 是旧壳。没有先确认挂载点就按文件名改了“看起来最像”的底栏。
+- **处理**：改 `NowPlayingCapsule`：循环键按 Folia 的 off → all → one 三态调用 `player.setLoop`，不再用会改随机顺序的 `cyclePlayMode`；胶囊颜色改用 `--dsw-alias-*` token。队列作为插件额外入口保留。
+- **防回归**：改播放页 UI 前先查 `p3-shell.js` 的挂载点；底栏组件以实际渲染的 `NowPlayingCapsule` 为准，不要只按 `player-page.js` 猜。
 
 ---
 
