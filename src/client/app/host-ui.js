@@ -6,7 +6,7 @@
  * the harness, or a future DSH without this module fall back to the local
  * primitives (same markup we render today).
  *
- * Rules: docs/theme-guidelines.md.
+ * Rules: docs/主题与组件开发规范.md.
  */
 
 var hostUi = null

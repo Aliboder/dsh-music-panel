@@ -1175,7 +1175,7 @@ var THEME_CSS = [
   '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
   '@media (prefers-reduced-motion:reduce){.mp-np-line-trans{transition:none}.mp-np.is-trans .mp-np-line-trans{transition:none}}',
 
-  // ── host-primitive fallbacks (theme-guidelines §3.2) ───────────────────
+  // ── host-primitive fallbacks (主题与组件开发规范 §3.2) ───────────────────
   // Geometry copied from the official primitive stylesheets pinned in
   // A_other/design/official/ (Button/Input/Switch/Pill/Segmented/Tag/Checkbox).
   '.mp-kit-input-wrap{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 8px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-bg-layer-1,rgba(255,255,255,.03));color:var(--dsw-alias-label-tertiary,#8a8a93);min-width:0}',

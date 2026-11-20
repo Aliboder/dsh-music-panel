@@ -9,8 +9,9 @@
 ✅ **总是做**
 
 - **分析、修复问题一律采用第一性原理的思想**，第一性原理是：把问题拆到最小、可验证的事实，从这些事实推导原因，而不是从惯例、符号或猜测出发。
-- **新增或修改任何界面组件前，先读 `A_other/docs/theme-guidelines.md`。**
-- **新增任何持久化/存储时**，必须先读 `A_other/docs/data-reset.md`，同步扩充“清空插件所有数据”的范围、分类与测试。
+- **新增或修改任何界面组件前，先读 `A_other/docs/主题与组件开发规范.md`。**
+- **新增任何持久化/存储时**，必须先读 `A_other/docs/清空插件所有数据实现说明.md`，同步扩充“清空插件所有数据”的范围、分类与测试。
+- **文档命名一律用中文**：新建或改名的说明文档都用中文文件名（如 `踩坑记录.md`、`发布手册.md`），路径里也不夹带英文标题。例外只有平台约定的 `README.md` / `CHANGELOG.md` / `AGENTS.md` / `LICENSE` / `THIRD_PARTY_NOTICES.md`，以及 `vendor/`、`official/` 这类上游镜像。
 - **每做完一步修改就打一个 git 存档点**（`git commit`），message 中文写清这一步做了什么，回退时能直接找到；没验证过的改动不要攒进存档点。
 - **做完修改后最终给用户的回答：**简要修改流程“A→B→C...、通俗易懂的简要说明（问题、思路、做法、收益）、(若有)受影响的文档修改清单和变更内容简介、存档点（axxbxx：优化了...）”
 
@@ -63,8 +64,8 @@ src/folia/                   Folia 上游源码、i18n、*.bundle.js、Tailwind
 src/shared/types.ts          Host/Client 共享类型
 scripts/                     构建与检查脚本（见「命令」）
 test/                        client / host / integration / manual
-locale/                      zh/en 插件元数据：插件列表标题、简介、DETAIL 路径
-docs/                        DETAIL.md / DETAIL.zh.md、截图与预览图
+locale/                      zh/en 插件元数据：插件列表标题、简介、使用详情路径
+docs/                        使用详情-英文.md / 使用详情.md、截图与预览图
 A_other/                     非插件资料：design / docs / releases / shared / upstream
 ```
 
@@ -75,19 +76,19 @@ A_other/                     非插件资料：design / docs / releases / shared
 - **构建产物**（都提交进仓，改源码后由对应脚本重建）：`client.js`、`src/client/audio/engine.bundle.js`、`src/client/render/lyrics/lyrics.bundle.js`、`src/client/services/automix/profile.bundle.js`、`src/folia/*.bundle.js`、`src/client/vendor/*.bundle.js`。
 
 > 构建产物、播放/Folia、歌词、安装与数据相关的具体陷阱，全部记在
-> [踩坑记录](A_other/docs/pitfalls.md)；改这些区域前先查对应条目，不要在这里重复维护。
+> [踩坑记录](A_other/docs/踩坑记录.md)；改这些区域前先查对应条目，不要在这里重复维护。
 
 ## 参考
 
 - [README](README.md)
-- [主题与组件开发规范](A_other/docs/theme-guidelines.md)
-- [数据清理实现说明](A_other/docs/data-reset.md)
-- [平台架构](A_other/docs/provider-architecture.md)
-- [Folia 移植说明](A_other/docs/folia-porting.md)
-- [歌词获取与 Folia 对齐执行计划](A_other/docs/lyric-alignment-plan.md)
-- [在线缓存向 Folia 对齐计划](A_other/docs/cache-alignment-plan.md)
-- [音频引擎重建执行计划](A_other/docs/audio-engine-rebuild-plan.md)
-- [踩坑记录](A_other/docs/pitfalls.md)
-- [发布流程](A_other/docs/release.md)
+- [主题与组件开发规范](A_other/docs/主题与组件开发规范.md)
+- [数据清理实现说明](A_other/docs/清空插件所有数据实现说明.md)
+- [平台架构](A_other/docs/平台支持架构.md)
+- [Folia 移植说明](A_other/docs/Folia可视化移植手册.md)
+- [歌词获取与 Folia 对齐执行计划](A_other/docs/歌词获取与Folia对齐执行计划.md)
+- [在线缓存向 Folia 对齐计划](A_other/docs/在线缓存对齐修改计划.md)
+- [音频引擎重建执行计划](A_other/docs/音频引擎重建执行计划.md)
+- [踩坑记录](A_other/docs/踩坑记录.md)
+- [发布流程](A_other/docs/发布手册.md)
 - [CHANGELOG](CHANGELOG.md)
 - [第三方与许可证](THIRD_PARTY_NOTICES.md)

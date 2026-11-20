@@ -6469,7 +6469,7 @@ window.__ModuleLoader__.load({
      * the harness, or a future DSH without this module fall back to the local
      * primitives (same markup we render today).
      *
-     * Rules: docs/theme-guidelines.md.
+     * Rules: docs/主题与组件开发规范.md.
      */
 
     var hostUi = null
@@ -161827,7 +161827,7 @@ window.__ModuleLoader__.load({
       '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
       '@media (prefers-reduced-motion:reduce){.mp-np-line-trans{transition:none}.mp-np.is-trans .mp-np-line-trans{transition:none}}',
 
-      // ── host-primitive fallbacks (theme-guidelines §3.2) ───────────────────
+      // ── host-primitive fallbacks (主题与组件开发规范 §3.2) ───────────────────
       // Geometry copied from the official primitive stylesheets pinned in
       // A_other/design/official/ (Button/Input/Switch/Pill/Segmented/Tag/Checkbox).
       '.mp-kit-input-wrap{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 8px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-bg-layer-1,rgba(255,255,255,.03));color:var(--dsw-alias-label-tertiary,#8a8a93);min-width:0}',
@@ -161969,7 +161969,7 @@ window.__ModuleLoader__.load({
      * Button: the host `Button` when available (variant/size/icon per the official
      * primitive), otherwise the same geometry as a local fallback.
      *
-     * Geometry (A_other/docs/theme-guidelines.md §2.3): `sm` = H28 / R8,
+     * Geometry (A_other/docs/主题与组件开发规范.md §2.3): `sm` = H28 / R8,
      * `md` = H36 / R12. Variants: primary / ghost / outline (default) / toolbar.
      */
     function Button(props) {
@@ -162177,7 +162177,7 @@ window.__ModuleLoader__.load({
      * Dialog shell: the host Modal when available (focus trap, Escape, portal,
      * native chrome), otherwise the same overlay markup the plugin used before.
      *
-     * The fallback still owns Escape (theme-guidelines §5.2): only the top-most
+     * The fallback still owns Escape (主题与组件开发规范 §5.2): only the top-most
      * fallback dialog closes, so a dialog opened from inside another one does not
      * dismiss both at once.
      */
@@ -162283,7 +162283,7 @@ window.__ModuleLoader__.load({
     /**
      * The host-first family below: each control renders the official DSH primitive when the
      * host bundle exposes it, and an equivalent local fallback otherwise. Both paths must
-     * share the same props and the same geometry (A_other/docs/theme-guidelines.md §1.2/§3.2).
+     * share the same props and the same geometry (A_other/docs/主题与组件开发规范.md §1.2/§3.2).
      */
 
     /** Single-line text input. `icon` is a local icon name; `onChange(value)`. */
@@ -162779,7 +162779,7 @@ window.__ModuleLoader__.load({
      * One screen with every shared control, so a change to the gap between the plugin's
      * controls and the DSH host is visible at a glance. Each case renders the real primitive
      * (host component when the host exposes it, otherwise its fallback), not a mock: what you
-     * see is what the rest of the plugin draws. Rules: A_other/docs/theme-guidelines.md.
+     * see is what the rest of the plugin draws. Rules: A_other/docs/主题与组件开发规范.md.
      */
 
     var GALLERY_SECTIONS = [

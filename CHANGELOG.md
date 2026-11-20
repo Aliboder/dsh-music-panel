@@ -196,7 +196,7 @@
 ### 文档与插件市场
 
 - README 的截图全部换成真实界面：本地曲库、播放页（黑胶与逐行歌词）、队列、播放统计、纯音乐、Folia 的三种歌词舞台；此前指向不存在的 `docs/screenshots` 的失效图片一并移除，图标改从 `main` 读取。
-- 插件市场描述更新为当前功能与入口说明；新增 `docs/DETAIL.md` / `docs/DETAIL.zh.md` 与 `docs/preview.svg`，插件详情页显示一张播放页图片。
+- 插件市场描述更新为当前功能与入口说明；新增 `docs/使用详情-英文.md` / `docs/使用详情.md` 与 `docs/preview.svg`，插件详情页显示一张播放页图片。
 
 ## 0.37.0 — 2026-11-18
 
@@ -284,7 +284,7 @@
 - 在线歌曲可按歌选择「在线平台歌词 / 导入歌词 / 纯音乐」，导入的歌词保存在歌曲记录里（不再需要写音频文件）。
 - 设置新增「同目录歌词优先格式」；旧的全局「歌词顺序」设置已删除。
 - 同目录歌词支持 `track.lrc` 与 `track.mp3.lrc` 两种命名，翻译可用不同格式（`.t.vtt` 配 `.lrc`）；内嵌歌词在 `common.lyrics` 为空时回退读取原生标签。
-- 新增 `A_other/docs/lyric-alignment-plan.md`，记录决策、契约、数据模型与阶段。
+- 新增 `A_other/docs/歌词获取与Folia对齐执行计划.md`，记录决策、契约、数据模型与阶段。
 - 匹配歌词窗口按 Folia 补齐：选中的结果可只取歌词、连歌曲信息/封面一起取，也可以选「不再为这首歌自动匹配」；歌词写入歌曲记录，歌曲信息与封面写入文件标签（不支持的容器会保留歌词并提示）。
 - 自动匹配支持「换个名字再搜」：首选来源没找到逐字歌词时，用平台知道的另一个歌名（`searchAlias`）重试；完全没结果时，用另一种歌手写法（`alternateArtist`，网易云的歌手 tns/alias）再试一次。
 - 同目录歌词格式顺序可在设置里逐项上移/下移，不再只是「优先格式」。
@@ -359,7 +359,7 @@
 
 - 0.36.0 撤回（**只撤发布物，代码保留在 main**）：GitHub Release 与 tag `v0.36.0` 已删除，
   npm 上的 `dsh-music-panel@0.36.0` 撤回中。同版本号 24 小时内不能重发，修复后按 **0.36.1** 发布。
-- `docs/release.md` 的「回滚」扩成可操作的撤回步骤（GitHub 删 Release/tag、npm unpublish + 把
+- `docs/发布手册.md` 的「回滚」扩成可操作的撤回步骤（GitHub 删 Release/tag、npm unpublish + 把
   latest 指回上一版、Trusted Publishing 不能 unpublish 这个事实）。
 
 ### 设置 / 数据
@@ -387,14 +387,14 @@
 
 ### 文档
 
-- 新增 [发布手册](A_other/docs/release.md)：版本号与 `client.js` 的联动、tag 与推送、面向用户的 Release 写法、
+- 新增 [发布手册](A_other/docs/发布手册.md)：版本号与 `client.js` 的联动、tag 与推送、面向用户的 Release 写法、
   npm Trusted Publishing 与 `allow-remote=root` 等已知坑、发布后验证与回滚。也在 README「开发」
   与 AGENTS.md「参考」里链出。
-- [主题规范](A_other/docs/theme-guidelines.md) 补「深色岛例外」：播放页与播放器卡片始终按深色取值。
-- [主题与组件开发规范](A_other/docs/theme-guidelines.md) 扩成完整组件手册：DSH 浅/深色机制、token 表与
+- [主题规范](A_other/docs/主题与组件开发规范.md) 补「深色岛例外」：播放页与播放器卡片始终按深色取值。
+- [主题与组件开发规范](A_other/docs/主题与组件开发规范.md) 扩成完整组件手册：DSH 浅/深色机制、token 表与
   fallback 规则、宿主组件适配层（Tooltip / Switch / Pill / Modal / Menu / Toast 及 fallback）、
   12 类组件的结构与可访问性、浅色/深色对照、原生观感基准和验收清单；AGENTS/README 已链出。
-- [踩坑记录](A_other/docs/pitfalls.md) 扩写：新增 19 条（10–28），并把 AGENTS.md「必须知道的坑」整段
+- [踩坑记录](A_other/docs/踩坑记录.md) 扩写：新增 19 条（10–28），并把 AGENTS.md「必须知道的坑」整段
   移入本文件；AGENTS 只保留「先查踩坑记录 / 解决后按格式补一条」的指针与规则。
 
 ## 0.36.0 — 2026-11-16
@@ -784,7 +784,7 @@
 - 新增 `providerApi(source)`：把扁平方法分组为 `search / playback / lyrics / library / catalog /
   mutations` 的 namespace 视图，供后续登录页和新平台使用；现有路由继续走扁平方法。
 - 本地音乐与在线平台使用同一 source 形状（本地：`kind: local`、`original` 音质、无登录方式）。
-- 架构说明见 [docs/provider-architecture.md](A_other/docs/provider-architecture.md)。
+- 架构说明见 [docs/平台支持架构.md](A_other/docs/平台支持架构.md)。
 
 ### Folia 歌词样式（16 种全量接入）
 
@@ -819,7 +819,7 @@
 - 主题改为 Folia 的 **封面取色生成器**（`builtinTheme` + `themeColorMath`）：每首歌提取一次
   封面色，生成 light/dark 主题，样式与背景共用缓存。
 - 群唱的内置头像/表情使用 Folia 原素材，由宿主 `/music/assets` 路由提供；不再内联进 bundle。
-- 移植规则、边界与验收标准见 [docs/folia-porting.md](A_other/docs/folia-porting.md)。
+- 移植规则、边界与验收标准见 [docs/Folia可视化移植手册.md](A_other/docs/Folia可视化移植手册.md)。
 
 ### Folia 音频输入与上游对齐
 
@@ -1386,13 +1386,13 @@
 - 播放页 Aa 设置浮层支持点外部关闭与 Escape
 - 单曲循环不再误高亮「列表循环」胶囊
 - 标签保存后自动恢复原播放状态（用户已手动恢复则不重复 toggle）
-- 新增 docs/ui-review-2026-11.md：Tab 顺序、选择工具栏换行、网格未虚拟化、搜索未防抖、缓存清理入口等后续项
+- 新增 docs/界面交互审计-2026-11.md：Tab 顺序、选择工具栏换行、网格未虚拟化、搜索未防抖、缓存清理入口等后续项
 
 ## 0.18.1
 
 ### 规范固化
 
-- 新增 docs/theme-guidelines.md：token 速查、组件规则、宿主适配层、反例、验证清单
+- 新增 docs/主题与组件开发规范.md：token 速查、组件规则、宿主适配层、反例、验证清单
 - README 增加「主题与组件规范」入口
 - 新增 	est/theme.test.mjs 守卫：圆角只允许 8/12/16/20、字号只允许 13/12/11、禁止旧蓝色与旧 token、宿主包只能在适配层 require、对话框必须走 KitModal
 - 修复设置页在线提示剩余的 11.5px 内联字号

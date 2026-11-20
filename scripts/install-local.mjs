@@ -40,7 +40,7 @@ const ENTRY_FILES = [
 const HOST_SOURCE = join(ROOT, 'src', 'host')
 const LOCALE_SOURCE = join(ROOT, 'locale')
 // The plugin-details page reads meta.detail from locale and the document/image it names.
-const DETAIL_FILES = ['docs/DETAIL.md', 'docs/DETAIL.zh.md', 'docs/preview.svg']
+const DETAIL_FILES = ['docs/使用详情-英文.md', 'docs/使用详情.md', 'docs/preview.svg']
 
 function argumentOf(argv, flag) {
   const index = argv.indexOf(flag)

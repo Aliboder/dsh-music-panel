@@ -108,7 +108,7 @@ node scripts/build-client.mjs --check
 
 Host 在 index.js + src/host/**；客户端由 src/client/** 分片构建成单文件 client.js；src/folia/** 是 Folia 的移植层。
 
-更多： [主题与组件规范](A_other/docs/theme-guidelines.md) · [Folia 移植说明](A_other/docs/folia-porting.md) · [发布流程](A_other/docs/release.md)
+更多： [主题与组件规范](A_other/docs/主题与组件开发规范.md) · [Folia 移植说明](A_other/docs/Folia可视化移植手册.md) · [发布流程](A_other/docs/发布手册.md)
 
 ## Credits
 

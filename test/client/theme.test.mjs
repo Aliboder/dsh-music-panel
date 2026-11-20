@@ -1,6 +1,6 @@
 /**
  * Theme guard: keeps future UI additions on the DSH token/component rules
- * documented in docs/theme-guidelines.md.
+ * documented in docs/主题与组件开发规范.md.
  */
 
 import assert from 'node:assert/strict'
@@ -193,7 +193,7 @@ assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/,
 
 
 // Geometry follows the official primitive stylesheets pinned in
-// A_other/design/official/ (theme-guidelines §2.3/§3.2): sm button H28/R8,
+// A_other/design/official/ (主题与组件开发规范 §2.3/§3.2): sm button H28/R8,
 // md button H36/R12, switch 36x20, pill 24px capsule.
 assert.match(theme, /\.mp-btn\{[^']*height:28px/, 'sm buttons are 28px tall')
 assert.match(theme, /\.mp-btn\.is-md\{[^']*height:36px/, 'md buttons are 36px tall')
@@ -202,7 +202,7 @@ assert.match(theme, /\.mp-pill\{[^']*height:24px/, 'pill is the official 24px ca
 assert.match(theme, /\.mp-iconbtn\{[^']*width:28px;height:28px/, 'compact icon button is 28px')
 
 // Elevated surfaces draw their edge with the elevation shadow, never with an extra
-// alias border (theme-guidelines §2.4).
+// alias border (主题与组件开发规范 §2.4).
 assert.doesNotMatch(theme, /\.mp-dialog\{[^']*border:1px/, 'dialog has no extra border')
 assert.doesNotMatch(theme, /\.mp-sheet\{[^']*border:1px/, 'settings sheet has no extra border')
 

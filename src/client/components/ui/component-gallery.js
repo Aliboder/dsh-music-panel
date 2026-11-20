@@ -4,7 +4,7 @@
  * One screen with every shared control, so a change to the gap between the plugin's
  * controls and the DSH host is visible at a glance. Each case renders the real primitive
  * (host component when the host exposes it, otherwise its fallback), not a mock: what you
- * see is what the rest of the plugin draws. Rules: A_other/docs/theme-guidelines.md.
+ * see is what the rest of the plugin draws. Rules: A_other/docs/主题与组件开发规范.md.
  */
 
 var GALLERY_SECTIONS = [

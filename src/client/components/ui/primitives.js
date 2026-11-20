@@ -71,7 +71,7 @@ function IconButton(props) {
  * Button: the host `Button` when available (variant/size/icon per the official
  * primitive), otherwise the same geometry as a local fallback.
  *
- * Geometry (A_other/docs/theme-guidelines.md §2.3): `sm` = H28 / R8,
+ * Geometry (A_other/docs/主题与组件开发规范.md §2.3): `sm` = H28 / R8,
  * `md` = H36 / R12. Variants: primary / ghost / outline (default) / toolbar.
  */
 function Button(props) {
@@ -279,7 +279,7 @@ function KitPill(props) {
  * Dialog shell: the host Modal when available (focus trap, Escape, portal,
  * native chrome), otherwise the same overlay markup the plugin used before.
  *
- * The fallback still owns Escape (theme-guidelines §5.2): only the top-most
+ * The fallback still owns Escape (主题与组件开发规范 §5.2): only the top-most
  * fallback dialog closes, so a dialog opened from inside another one does not
  * dismiss both at once.
  */
@@ -385,7 +385,7 @@ function SetRow(props) {
 /**
  * The host-first family below: each control renders the official DSH primitive when the
  * host bundle exposes it, and an equivalent local fallback otherwise. Both paths must
- * share the same props and the same geometry (A_other/docs/theme-guidelines.md §1.2/§3.2).
+ * share the same props and the same geometry (A_other/docs/主题与组件开发规范.md §1.2/§3.2).
  */
 
 /** Single-line text input. `icon` is a local icon name; `onChange(value)`. */
