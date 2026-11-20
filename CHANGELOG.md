@@ -43,6 +43,8 @@
 
 ### 代码结构
 
+- 修复开发安装：desktop profile 原先锁 `0.38.0`，DSH 重启时 pnpm 会用 store 覆盖 `install-local` 的副本；开发期改用 `link:`，并让 `install-local` 在检测到 junction 时拒绝执行，避免反向删除工作区。
+
 - 在线播放收敛为一条链路：`prepareOnlineElement` 统一停旧源，`startOnlineDirect` 统一直连回退与平台增益，MSE 只负责字节流/缓冲/seek；所有 seek UI 共用 `effectivePlayerDuration`，不再各自算 `max(media, track)`。
 
 - `now-playing.js` 按职责拆到 `src/client/components/ui/now-playing/`：`index.js` 只保留页面编排与状态，`capsule.js`、`transport-pill.js`、`seek-bar.js`、`settings-panel.js`、`secondary-actions.js`、`sleep-menu.js`、`editor.js`、`lyrics-scroll.js`、`lyrics-timing.js`、`cover-accent.js`、`fullscreen.js` 各自承担一个组件或 hook；不再把所有功能塞进一个 3200 行文件。

@@ -18,7 +18,7 @@
  */
 
 import { spawnSync } from 'node:child_process'
-import { cp, mkdir, readFile, rm, stat } from 'node:fs/promises'
+import { cp, mkdir, readFile, realpath, rm, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -68,6 +68,14 @@ const target = join(home, 'profiles', profile, 'node_modules', pkg.name)
 if (!(await directoryExists(target))) {
   console.error(`[install-local] not installed: ${target}`)
   console.error('[install-local] add the plugin to the profile first (Settings → Plugins, or pnpm add).')
+  process.exit(1)
+}
+
+// A linked install already IS this checkout. Copying into it would write through
+// the junction and, on the rm(src) step below, delete the repository itself.
+if (await realpath(target) !== resolve(target)) {
+  console.error(`[install-local] target is a link, not a profile copy: ${target}`)
+  console.error('[install-local] linked installs already load this checkout; no copy is needed.')
   process.exit(1)
 }
 
