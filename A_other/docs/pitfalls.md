@@ -705,6 +705,15 @@
 
 ---
 
+## 79. automix profile 不能绑在音量平衡开关上
+
+- **现象**：关闭智能平衡后 crossfade 也没有 bpm/key/sections，因为 profile 分析被 `normalizeVolume` 提前 return 掉了。
+- **原因**：profile 消费端是 automix，不是音量平衡；两者只是共享测量结果。
+- **处理**：关闭平衡时仍异步分析 profile，但立即 `finish()`，不阻塞播放；分析完成后再调度下一首。
+- **防回归**：profile 分析是否运行由 automix/crossfade 需求决定，不能由音量平衡开关决定。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
