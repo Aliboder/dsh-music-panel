@@ -13,6 +13,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { apply } from '../../index.js'
 import { fakeReq, fakeRes } from '../helpers.mjs'
+import { resetUpstreamOverride, setUpstreamOverride } from '../../src/host/services/netease-api.js'
 
 // The route factory fails loudly when a dependency is missing, so a wiring
 // mistake cannot degrade into a silent 502 at request time.
@@ -155,6 +156,44 @@ const bestLyricBad = await get('/music/online/best-lyric?provider=nope&id=1')
 assert.equal(bestLyricBad.status, 400, 'best-lyric rejects unknown providers')
 const bestLyricNoId = await get('/music/online/best-lyric?provider=netease')
 assert.equal(bestLyricNoId.status, 400, 'best-lyric needs the track id')
+
+// ── paged playlist route ────────────────────────────────────────────────────
+// The route must pass limit/offset through and answer with the Folia page shape,
+// not the old full list. Mock the NetEase upstream so this stays offline.
+{
+  const calls = []
+  setUpstreamOverride(async (route, params) => {
+    if (route === '/register/anonimous') return { cookie: 'MUSIC_U=anon' }
+    if (route === '/playlist/detail') {
+      return { playlist: { id: '77', name: 'Paged', coverImgUrl: '', trackCount: 250 } }
+    }
+    if (route === '/playlist/track/all') {
+      const offset = Number(params.offset) || 0
+      const limit = Number(params.limit) || 100
+      calls.push({ offset, limit })
+      const count = Math.max(0, Math.min(limit, 250 - offset))
+      return { songs: Array.from({ length: count }, (_, index) => ({
+        id: String(900000 + offset + index), name: 'P' + (offset + index),
+        ar: [{ name: 'A' }], al: { id: 1, name: 'Al', picUrl: '' }, dt: 1000, fee: 0,
+      })) }
+    }
+    throw new Error('unexpected route: ' + route)
+  })
+  try {
+    const first = await get('/music/online/playlist-songs?provider=netease&id=77&limit=100&offset=0')
+    assert.equal(first.status, 200)
+    assert.equal(first.body.songs.length, 100)
+    assert.equal(first.body.trackCount, 250)
+    assert.equal(first.body.hasMore, true)
+    assert.equal(first.body.nextOffset, 100)
+    const second = await get('/music/online/playlist-songs?provider=netease&id=77&limit=100&offset=100')
+    assert.equal(second.status, 200)
+    assert.equal(second.body.songs[0].id, '900100')
+    assert.deepEqual(calls.map((call) => call.offset), [0, 100])
+  } finally {
+    resetUpstreamOverride()
+  }
+}
 
 // ── sign-in surface stays compatible ────────────────────────────────────────
 
