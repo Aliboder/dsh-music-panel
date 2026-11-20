@@ -397,10 +397,10 @@ function NowPlaying(props) {
           : API + 'replaygain?path=' + encodeURIComponent(trackPath)
       getJson(gainUrl)
         .then(function (body) {
-          if (!cancelled) setGainInfo({ trackGain: body.trackGain, albumGain: body.albumGain })
+          if (!cancelled) setGainInfo({ trackGain: body.trackGain, albumGain: body.albumGain, trackPeak: body.trackPeak, albumPeak: body.albumPeak })
         })
         .catch(function () {
-          if (!cancelled) setGainInfo({ trackGain: null, albumGain: null })
+          if (!cancelled) setGainInfo({ trackGain: null, albumGain: null, trackPeak: null, albumPeak: null })
         })
       return function () {
         cancelled = true

@@ -155020,7 +155020,9 @@ window.__ModuleLoader__.load({
           file: record && record.file ? record.file : null,
           played: record && record.played ? record.played : null,
           profile: null,
-          tag: tagGainDb && typeof tagGainDb.trackGain === 'number' ? { gainDb: tagGainDb.trackGain } : null,
+          tag: tagGainDb && typeof tagGainDb.trackGain === 'number'
+            ? { gainDb: tagGainDb.trackGain, peak: typeof tagGainDb.trackPeak === 'number' ? tagGainDb.trackPeak : null }
+            : null,
           head: null,
           platformDb: null,
           live: extra && typeof extra.live === 'number' ? extra.live : null,
@@ -164444,10 +164446,10 @@ window.__ModuleLoader__.load({
               : API + 'replaygain?path=' + encodeURIComponent(trackPath)
           getJson(gainUrl)
             .then(function (body) {
-              if (!cancelled) setGainInfo({ trackGain: body.trackGain, albumGain: body.albumGain })
+              if (!cancelled) setGainInfo({ trackGain: body.trackGain, albumGain: body.albumGain, trackPeak: body.trackPeak, albumPeak: body.albumPeak })
             })
             .catch(function () {
-              if (!cancelled) setGainInfo({ trackGain: null, albumGain: null })
+              if (!cancelled) setGainInfo({ trackGain: null, albumGain: null, trackPeak: null, albumPeak: null })
             })
           return function () {
             cancelled = true

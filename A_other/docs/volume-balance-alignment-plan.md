@@ -1,6 +1,6 @@
 # 智能平衡与 Folia 全量对齐执行计划
 
-状态：规则、记录、文件分析、播放集成与测试已完成；profile/head/platform 只在有真实数据时传入，未伪造。
+状态：规则、记录、文件分析、播放集成、ReplayGain peak 与测试已完成；profile/head/platform 只在有真实数据时传入，未伪造。
 
 目标：让本插件的「智能平衡」与 Folia 的 `volumeBalance` 使用同一套规则、测量、记录、播放中移动策略和文件分析口径；不是只对齐目标值。
 

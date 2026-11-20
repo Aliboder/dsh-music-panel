@@ -1110,7 +1110,13 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         const file = await resolveTrack(params.get('path'), config.roots)
         if (file === null) return fail(res, 404, 'NOT_FOUND', '文件不在已配置的音乐目录内')
         const gain = await readReplayGain(file)
-        return sendJson(res, 200, { ok: true, trackGain: gain.trackGain, albumGain: gain.albumGain })
+        return sendJson(res, 200, {
+          ok: true,
+          trackGain: gain.trackGain,
+          albumGain: gain.albumGain,
+          trackPeak: gain.trackPeak,
+          albumPeak: gain.albumPeak,
+        })
       }
 
       // Which lyric sources a file actually has, for the source switcher.

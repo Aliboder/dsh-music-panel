@@ -653,7 +653,9 @@ function createPlayer() {
       file: record && record.file ? record.file : null,
       played: record && record.played ? record.played : null,
       profile: null,
-      tag: tagGainDb && typeof tagGainDb.trackGain === 'number' ? { gainDb: tagGainDb.trackGain } : null,
+      tag: tagGainDb && typeof tagGainDb.trackGain === 'number'
+        ? { gainDb: tagGainDb.trackGain, peak: typeof tagGainDb.trackPeak === 'number' ? tagGainDb.trackPeak : null }
+        : null,
       head: null,
       platformDb: null,
       live: extra && typeof extra.live === 'number' ? extra.live : null,

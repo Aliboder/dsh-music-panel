@@ -958,7 +958,13 @@ export function createOnlineRoutes(deps) {
             salt: session.salt,
           }
           const gain = await ND.songGain(config, id)
-          return sendJson(res, 200, { ok: true, trackGain: gain.trackGain, albumGain: gain.albumGain })
+          return sendJson(res, 200, {
+            ok: true,
+            trackGain: gain.trackGain,
+            albumGain: gain.albumGain,
+            trackPeak: gain.trackPeak,
+            albumPeak: gain.albumPeak,
+          })
         } catch (error) {
           return sendJson(res, 200, { ok: true, trackGain: null, albumGain: null })
         }

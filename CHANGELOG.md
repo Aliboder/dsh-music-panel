@@ -6,6 +6,7 @@
 
 - 智能平衡改用 Folia 音频 bundle 的 `chooseBalance` / `planBalanceMove` / `whyNotWholePlay` 作为权威规则（无 bundle 时保留纯 JS 回退），补齐 `profile` / `head` / `platform` 输入顺序、`blendAudible` 的 hold 和整曲 clip/lead-in 判定。
 - 响度记录改为 `file` / `played` 两份 `loudness + peak`，典型增益按歌曲去重；文件分析改在 22.05kHz、用 Folia 的 K-weighting 与 gated loudness，缓存测量值而不是最终 gain。
+- ReplayGain 标签的 `trackPeak` / `albumPeak` 现在从文件标签读取并传到平衡输入，避免有正向标签增益时因缺少 peak 被错误限制为 0 dB。
 
 ### 代码结构
 
