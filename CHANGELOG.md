@@ -31,6 +31,9 @@
 
 ### 在线播放启动
 
+- Host 现在把 CDN 的 `application/octet-stream` 等泛类型按 URL/音质归一为 `audio/mpeg` / `audio/flac` / `audio/mp4`，避免 MSE 因 MIME 不支持而静默回退直连。
+
+
 - 修复 MSE 总时长只反映“已 append 的前缀”导致拖动比例映射错误：seek bar/时间显示优先使用歌曲已知时长，`MediaSource.duration` 在 sourceopen 时设为整首时长，`api.seek` 不再把目标 clamp 到当前 MSE 前缀。
 
 

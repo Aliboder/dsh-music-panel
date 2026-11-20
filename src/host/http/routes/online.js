@@ -46,6 +46,21 @@ const ONLINE_REFERERS = {
   qishui: 'https://music.douyin.com/',
 }
 
+/** A CDN often answers octet-stream; MSE and <audio> both need a real audio type. */
+function onlineAudioMime(upstreamType, streamUrl, quality) {
+  const type = String(upstreamType || '').split(';')[0].trim().toLowerCase()
+  if (type.startsWith('audio/')) return type
+  let path = ''
+  try { path = new URL(streamUrl).pathname.toLowerCase() } catch (error) {}
+  if (path.endsWith('.flac')) return 'audio/flac'
+  if (path.endsWith('.m4a') || path.endsWith('.mp4')) return 'audio/mp4'
+  if (path.endsWith('.ogg') || path.endsWith('.opus')) return 'audio/ogg'
+  if (path.endsWith('.wav')) return 'audio/wav'
+  if (path.endsWith('.mp3')) return 'audio/mpeg'
+  if (quality === 'lossless' || quality === 'hires') return 'audio/flac'
+  return 'audio/mpeg'
+}
+
 function onlineReferer(provider) {
   return ONLINE_REFERERS[provider] || 'https://www.kugou.com/'
 }
@@ -629,7 +644,7 @@ export function createOnlineRoutes(deps) {
             return fail(res, 502, 'UPSTREAM_FAILED', 'HTTP ' + upstream.status)
           }
           const headers = {
-            'content-type': upstream.headers.get('content-type') || 'audio/mpeg',
+            'content-type': onlineAudioMime(upstream.headers.get('content-type'), stream.url, quality),
             'cache-control': 'no-store',
             // We always proxy Range (cache hit serves it locally, a miss is
             // forwarded upstream), so advertise it even when the CDN omits the

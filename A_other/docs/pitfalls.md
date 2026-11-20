@@ -750,6 +750,15 @@
 
 ---
 
+## 84. octet-stream 会让 MSE 静默回退
+
+- **现象**：MediaSource 代码已接，但拖动仍回开头；实际走的是直连回退。
+- **原因**：CDN 返回 `application/octet-stream`，`MediaSource.isTypeSupported` 为 false，`playOnlineMse` 回退 `playOnlineDirect`；Host 又把泛类型原样转给浏览器。
+- **处理**：Host 按 CDN URL 扩展名/音质归一音频 MIME；MSE 只对真正的 `audio/*` 类型启用，泛类型不再直接判失败。
+- **防回归**：MSE 回退要看 MIME 和回退原因；不能只看首音是否正常。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

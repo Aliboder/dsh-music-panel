@@ -156959,14 +156959,17 @@ window.__ModuleLoader__.load({
             }
             mediaSource.addEventListener('sourceopen', function () {
               try {
-                if (Number(item.durationSec) > 0 && Number.isFinite(Number(item.durationSec))) {
-                  mediaSource.duration = Number(item.durationSec)
-                }
                 sourceBuffer = mediaSource.addSourceBuffer(mseMime)
               } catch (error) {
                 failed = true
+                console.warn('[OnlineMse] addSourceBuffer failed, falling back to direct media', error)
                 playOnlineDirect(item, token, loudness)
                 return
+              }
+              // Duration is metadata for the seek bar, not part of SourceBuffer
+              // creation. A failure here must not throw away the MSE path.
+              if (Number(item.durationSec) > 0 && Number.isFinite(Number(item.durationSec))) {
+                try { mediaSource.duration = Number(item.durationSec) } catch (error) {}
               }
               sourceBuffer.addEventListener('updateend', function () {
                 appending = false
