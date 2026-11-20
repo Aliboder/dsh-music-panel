@@ -1252,9 +1252,18 @@ var onlineMse = null
           reader: null,
           url: objectUrl,
           seek: function (target) {
+            if (covers(target)) {
+              pendingSeek = null
+              try { audio.currentTime = target } catch (error) {}
+              return
+            }
             pendingSeek = target
-            trySeek()
+            if (audio !== null && !audio.paused) {
+              resumeAfterSeek = true
+              audio.pause()
+            }
           },
+          seeking: function () { return pendingSeek !== null },
         }
         onlineMse = session
         var sourceBuffer = null
@@ -1264,6 +1273,7 @@ var onlineMse = null
         var ended = false
         var started = false
         var pendingSeek = null
+        var resumeAfterSeek = false
         var failed = false
         function covers(target) {
           if (sourceBuffer === null || sourceBuffer.buffered.length === 0) return false
@@ -1282,6 +1292,11 @@ var onlineMse = null
             state = Object.assign({}, state, { currentTime: target })
             emitTime()
           } catch (error) { /* waits for a later updateend */ }
+          if (resumeAfterSeek) {
+            resumeAfterSeek = false
+            if (pendingAutoplay) playAfterLoudness(token)
+            else audio.play().catch(function () {})
+          }
         }
         function pump() {
           if (sourceBuffer === null || appending || failed) return
@@ -1992,6 +2007,7 @@ var onlineMse = null
       duration: Number(info.duration) || state.duration,
       buffered: Number(info.buffered) || 0,
     })
+    if (onlineMse !== null && typeof onlineMse.seeking === 'function' && onlineMse.seeking()) return
     onTime({ target: audio })
     syncMediaPosition(false)
   }

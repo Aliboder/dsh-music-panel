@@ -32,12 +32,8 @@
 ### 在线播放启动
 
 - 在线当前曲改用 MediaSource：Host 字节流按块 append，客户端自己维护 buffered ranges 和 seek，不再依赖 `<audio src>` 对代理 Range 的判断；MP3/AAC/M4A 走 MSE，不支持 MSE 的格式才回退直连。
-
-
-- 在线流在 Host 侧缓存同一首歌/音质的已解析 CDN URL，Range 请求不再每次重新解析；若 CDN 对 `bytes=0-` 或后续 Range 返回 200，Host 会转成完整的 206 + Content-Range，后续 seek 再切片，避免 Chromium 拖动进度条后回到开头。
-
-
-- 在线曲不再先 `fetch` 整首成 blob 再播放：当前曲直接把 Host `/online/stream` 交给媒体元素，首字节到达即可开始，完整下载/分析不再阻塞首音。平台增益改为后台 HEAD 获取；已缓存当前曲才在后台补 profile。
+- MSE 的首音只等第一块数据 append；目标未缓冲时 seek 保留 pendingSeek，不把 currentTime 写回 0。
+- Host 继续固定同一首歌/音质的已解析 CDN URL，并对 Range 返回 200 的 CDN 强制转成 206 + Content-Range，作为直连回退路径的兜底。
 
 ### 代码结构
 

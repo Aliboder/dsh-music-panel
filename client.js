@@ -156886,9 +156886,18 @@ window.__ModuleLoader__.load({
               reader: null,
               url: objectUrl,
               seek: function (target) {
+                if (covers(target)) {
+                  pendingSeek = null
+                  try { audio.currentTime = target } catch (error) {}
+                  return
+                }
                 pendingSeek = target
-                trySeek()
+                if (audio !== null && !audio.paused) {
+                  resumeAfterSeek = true
+                  audio.pause()
+                }
               },
+              seeking: function () { return pendingSeek !== null },
             }
             onlineMse = session
             var sourceBuffer = null
@@ -156898,6 +156907,7 @@ window.__ModuleLoader__.load({
             var ended = false
             var started = false
             var pendingSeek = null
+            var resumeAfterSeek = false
             var failed = false
             function covers(target) {
               if (sourceBuffer === null || sourceBuffer.buffered.length === 0) return false
@@ -156916,6 +156926,11 @@ window.__ModuleLoader__.load({
                 state = Object.assign({}, state, { currentTime: target })
                 emitTime()
               } catch (error) { /* waits for a later updateend */ }
+              if (resumeAfterSeek) {
+                resumeAfterSeek = false
+                if (pendingAutoplay) playAfterLoudness(token)
+                else audio.play().catch(function () {})
+              }
             }
             function pump() {
               if (sourceBuffer === null || appending || failed) return
@@ -157626,6 +157641,7 @@ window.__ModuleLoader__.load({
           duration: Number(info.duration) || state.duration,
           buffered: Number(info.buffered) || 0,
         })
+        if (onlineMse !== null && typeof onlineMse.seeking === 'function' && onlineMse.seeking()) return
         onTime({ target: audio })
         syncMediaPosition(false)
       }
