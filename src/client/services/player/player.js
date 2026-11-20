@@ -1506,6 +1506,11 @@ var profileToken = 0
         abortCrossfade()
         return
       }
+      var keyRelation = crossfadeKeyRelation(currentProfile, nextProfile)
+      var keyScale = crossfadeKeyLengthScale(keyRelation)
+      if (keyScale !== 1) {
+        plan.overlap = Math.max(CROSSFADE_MIN_SECONDS, Math.min(CROSSFADE_MAX_SECONDS, plan.overlap * keyScale))
+      }
       var shape = null
       var audioApi = typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
   if (audioApi !== null && typeof window !== 'undefined') window.__mpFoliaAudio = audioApi

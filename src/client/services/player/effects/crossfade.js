@@ -124,6 +124,52 @@ function crossfadeIncomingWindow(overlap) {
   return { window: Math.round(window * 10) / 10, delay: Math.round((total - window) * 10) / 10 }
 }
 
+/* Folia's key relation: only the END of the outgoing and the START of the incoming matter. */
+var CROSSFADE_MIN_KEY_CONFIDENCE = 0.25
+var CROSSFADE_KEY_LENGTH_SCALE = {
+  compatible: 1,
+  adjacent: 0.85,
+  neutral: 0.7,
+  clashing: 0.4,
+  unknown: 1,
+}
+
+function crossfadeKeyEstimate(profile, which) {
+  if (!profile) return null
+  var endpoint = which === 'outro' ? profile.outroKey : profile.introKey
+  var usable = function (estimate) {
+    return estimate && typeof estimate.key === 'number' && estimate.key >= 0 && typeof estimate.confidence === 'number' && estimate.confidence >= CROSSFADE_MIN_KEY_CONFIDENCE
+      ? estimate
+      : null
+  }
+  return usable(endpoint) || usable({
+    key: profile.key,
+    major: profile.major,
+    confidence: profile.keyConfidence,
+  })
+}
+
+function crossfadeKeyRelation(from, to) {
+  var a = crossfadeKeyEstimate(from, 'outro')
+  var b = crossfadeKeyEstimate(to, 'intro')
+  if (!a || !b) return 'unknown'
+  var interval = ((b.key - a.key) % 12 + 12) % 12
+  if (a.major === b.major) {
+    if (interval === 0 || interval === 7 || interval === 5) return 'compatible'
+    if (interval === 2 || interval === 10) return 'adjacent'
+  } else if ((a.major && interval === 9) || (!a.major && interval === 3)) {
+    return 'compatible'
+  } else if (interval === 0) {
+    return 'adjacent'
+  }
+  if (interval === 1 || interval === 11 || interval === 6) return 'clashing'
+  return 'neutral'
+}
+
+function crossfadeKeyLengthScale(relation) {
+  return CROSSFADE_KEY_LENGTH_SCALE[relation] || 1
+}
+
 /** Equal-power pair for N+1 curve points (cos falls, sin rises). */
 function crossfadeEqualPowerCurves(steps) {
   var points = Math.max(2, Math.floor(Number(steps) || 32)) + 1

@@ -17,6 +17,7 @@ const factory = new Function(
     CROSSFADE_INTRO_SKIP_SECONDS, crossfadeFadeSeconds, crossfadeSameAlbum,
     crossfadeNextAllowed, crossfadePlan, crossfadeShouldStart,
     crossfadeEqualPowerCurves, crossfadeIncomingWindow,
+    crossfadeKeyRelation, crossfadeKeyLengthScale,
   }`,
 )
 const fx = factory()
@@ -52,6 +53,18 @@ assert.equal(
 )
 assert.equal(fx.crossfadeNextAllowed({}, albumA, { ...albumA }), false, 'never blend a track with itself')
 assert.equal(fx.crossfadeNextAllowed({}, null, albumB), false)
+
+// ── key relation ──────────────────────────────────────────────────────────
+const profileOf = (key, major, confidence = 0.8) => ({ key, major, keyConfidence: confidence })
+assert.equal(fx.crossfadeKeyRelation(profileOf(0, true), profileOf(0, true)), 'compatible')
+assert.equal(fx.crossfadeKeyRelation(profileOf(0, true), profileOf(7, true)), 'compatible')
+assert.equal(fx.crossfadeKeyRelation(profileOf(0, true), profileOf(2, true)), 'adjacent')
+assert.equal(fx.crossfadeKeyRelation(profileOf(0, true), profileOf(1, true)), 'clashing')
+assert.equal(fx.crossfadeKeyRelation(profileOf(0, true), profileOf(6, true)), 'clashing')
+assert.equal(fx.crossfadeKeyRelation(profileOf(0, true), profileOf(3, true)), 'neutral')
+assert.equal(fx.crossfadeKeyRelation({}, {}), 'unknown')
+assert.equal(fx.crossfadeKeyLengthScale('clashing'), 0.4)
+assert.equal(fx.crossfadeKeyLengthScale('unknown'), 1)
 
 // ── the automatic plan ────────────────────────────────────────────────────
 const prefs = { crossfadeSeconds: 10 }

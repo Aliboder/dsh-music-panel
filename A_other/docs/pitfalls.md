@@ -687,6 +687,15 @@
 
 ---
 
+## 77. key 关系只缩放长度，不是调性匹配
+
+- **现象**：crossfade 读了 keyRelation 就以为做了调性匹配。
+- **原因**：Folia 的 key 规则是不给冲突和声时间（缩短 overlap），不是移调；移调需要真实 pitch shift，会毁掉整段混音。
+- **处理**：只按 Folia 的 `LENGTH_SCALE` 缩放 overlap；不把 key 写进 pitch/gain。
+- **防回归**：clashing 只允许缩短，不允许改调；不要用 key 伪造 stem handover。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
