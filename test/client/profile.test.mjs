@@ -22,4 +22,7 @@ assert.deepEqual(api.profileFor('a'), {
 })
 api.noteProfile('b', { programLoudness: -90, peak: 0, leadIn: 0, partial: true })
 assert.equal(api.profileFor('b'), null, 'silence is not a profile')
+api.noteProfile('c', { programLoudness: -18, peak: 0.7, leadIn: 0.2, tempo: 120, sections: [1, 2] })
+assert.equal(api.profileFor('c').tempo, 120, 'the full profile is preserved')
+assert.deepEqual(api.profileFor('c').sections, [1, 2])
 console.log('profile.test.mjs ok')

@@ -17,6 +17,7 @@
 
 > profile 会对当前曲整曲测量，并为下一首本地曲预分析；Navidrome 使用 Range 读取头部 1.5MB，解码成功时写入 partial head。`head` 在 Folia 里只用于头部估算，不伪造。
 - 媒体缓存的元数据现在保存 `replayGain`，缓存命中时重新发出 `x-music-*-gain/peak` 响应头，在线增益不再因缓存重播丢失。
+- 引入 Folia `trackProfile` 的完整纯分析 bundle（`scripts/build-profile.mjs`）：当前曲/下一首本地曲和 Navidrome 头部会生成 tempo、key、leadIn、sections、programLoudness、peak 等 profile；平衡继续只读 programLoudness/peak/head/leadIn。
 
 ### 代码结构
 

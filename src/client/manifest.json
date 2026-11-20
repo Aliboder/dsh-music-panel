@@ -40,6 +40,7 @@
     "src/client/render/styles/folia-backdrop.js",
     "src/client/styles/look.js",
     "src/client/stores/prefs.js",
+    "src/client/services/automix/profile.bundle.js",
     "src/client/services/player/effects/loudness.js",
     "src/client/components/online/provider-logos.js",
     "src/client/components/common/guide-shots.js",

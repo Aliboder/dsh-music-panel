@@ -78,6 +78,36 @@ function loudnessContext() {
   return loudnessDecoder
 }
 
+var profileAnalysisCache = null
+
+function profileAnalysisApi() {
+  if (profileAnalysisCache !== null) return profileAnalysisCache
+  if (typeof __mpProfileBundle !== 'function') return null
+  try {
+    profileAnalysisCache = __mpProfileBundle()
+    return profileAnalysisCache
+  } catch (error) {
+    return null
+  }
+}
+
+/** Folia's full track profile, from the same decoded buffer the loudness uses. */
+function fullProfileOfBuffer(buffer, partial) {
+  var api = profileAnalysisApi()
+  if (!api || typeof api.analyseTrack !== 'function') return Promise.resolve(null)
+  var left = buffer.getChannelData(0)
+  var mid = new Float32Array(buffer.length)
+  var side = buffer.numberOfChannels > 1 ? new Float32Array(buffer.length) : null
+  var right = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : null
+  for (var index = 0; index < buffer.length; index += 1) {
+    var l = left[index]
+    var r = right === null ? l : right[index]
+    mid[index] = (l + r) / 2
+    if (side !== null) side[index] = (l - r) / 2
+  }
+  return api.analyseTrack(mid, buffer.sampleRate, { partial: partial === true, side: side })
+}
+
 /** Folia's K-weighting + gated loudness, on a decoded buffer. */
 function lufsWithFoliaMath(buffer) {
   var api = typeof balanceAudioApi === 'function' ? balanceAudioApi() : null
@@ -235,7 +265,9 @@ function analyzeLoudnessBlob(item, blob, isCurrent, onMeasured) {
   var cached = lookupLoudnessMeasurement(key)
   if (cached !== null) {
     noteBalanceMeasurement(item.path, 'file', cached)
-    noteProfile(item.path, { programLoudness: cached.loudness, peak: cached.peak, leadIn: cached.leadIn, partial: false })
+    if (profileFor(item.path) === null) {
+      noteProfile(item.path, { programLoudness: cached.loudness, peak: cached.peak, leadIn: cached.leadIn, partial: false })
+    }
     if (isCurrent() && typeof onMeasured === 'function') onMeasured(cached)
     return Promise.resolve(cached)
   }
@@ -250,18 +282,28 @@ function analyzeLoudnessBlob(item, blob, isCurrent, onMeasured) {
     .then(function (buffer) {
       if (!isCurrent()) return null
       measuredBuffer = buffer
-      return lufsFromAudioBuffer(buffer)
+      return fullProfileOfBuffer(buffer, false).then(function (profile) {
+        if (profile && typeof profile.programLoudness === 'number' && profile.programLoudness > -90) return profile
+        return lufsFromAudioBuffer(buffer).then(function (lufs) {
+          return lufs === null ? null : {
+            programLoudness: lufs,
+            peak: peakOfAudioBuffer(buffer),
+            leadIn: leadInOfAudioBuffer(buffer),
+            partial: false,
+          }
+        })
+      })
     })
-    .then(function (lufs) {
-      if (lufs === null || !isCurrent()) return null
+    .then(function (profile) {
+      if (!profile || typeof profile.programLoudness !== 'number' || !isCurrent()) return null
       var measured = {
-        loudness: lufs,
-        peak: peakOfAudioBuffer(measuredBuffer),
-        leadIn: leadInOfAudioBuffer(measuredBuffer),
+        loudness: profile.programLoudness,
+        peak: typeof profile.peak === 'number' ? profile.peak : peakOfAudioBuffer(measuredBuffer),
+        leadIn: typeof profile.leadIn === 'number' ? profile.leadIn : leadInOfAudioBuffer(measuredBuffer),
         partial: false,
       }
       noteBalanceMeasurement(item.path, 'file', measured)
-      noteProfile(item.path, { programLoudness: lufs, peak: measured.peak, leadIn: measured.leadIn, partial: false })
+      noteProfile(item.path, Object.assign({}, profile, { partial: false }))
       storeLoudnessMeasurement(key, measured)
       if (typeof onMeasured === 'function') onMeasured(measured)
       return measured
@@ -283,16 +325,22 @@ function analyzePartialLoudnessBlob(item, blob) {
     .then(function (bytes) { return decoder.decodeAudioData(bytes) })
     .then(function (buffer) {
       measuredBuffer = buffer
-      return lufsFromAudioBuffer(buffer)
+      return fullProfileOfBuffer(buffer, true).then(function (profile) {
+        if (profile && typeof profile.programLoudness === 'number' && profile.programLoudness > -90) {
+          return Object.assign({}, profile, { partial: true })
+        }
+        return lufsFromAudioBuffer(buffer).then(function (lufs) {
+          return lufs === null ? null : {
+            programLoudness: lufs,
+            peak: peakOfAudioBuffer(buffer),
+            leadIn: leadInOfAudioBuffer(buffer),
+            partial: true,
+          }
+        })
+      })
     })
-    .then(function (lufs) {
-      if (lufs === null) return null
-      var measured = {
-        programLoudness: lufs,
-        peak: peakOfAudioBuffer(measuredBuffer),
-        leadIn: leadInOfAudioBuffer(measuredBuffer),
-        partial: true,
-      }
+    .then(function (measured) {
+      if (!measured) return null
       noteProfile(item.path, measured)
       return measured
     })

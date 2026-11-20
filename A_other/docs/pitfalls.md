@@ -633,6 +633,15 @@
 
 ---
 
+## 71. 完整 profile 不能再当四个字段用
+
+- **现象**：`profile.js` 原来只存 `programLoudness/peak/leadIn/partial`，接上 Folia `trackProfile` 后其它字段被丢掉。
+- **原因**：profile 存储写入时重新构造了四个字段，而不是保存分析结果。
+- **处理**：`noteProfile` 现在保存完整 profile 对象；`profileFor` 返回完整对象，平衡只取自己需要的字段。
+- **防回归**：给 profile 加字段时先改 `analyseTrack`/bundle，再确认存储没有字段白名单。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

@@ -35,26 +35,26 @@ function writeProfileStore() {
 function profileFor(path) {
   var entry = path ? profileStoreData[path] : null
   if (!entry || typeof entry.programLoudness !== 'number') return null
-  return {
+  return Object.assign({}, entry, {
     programLoudness: entry.programLoudness,
     peak: typeof entry.peak === 'number' ? entry.peak : null,
     leadIn: typeof entry.leadIn === 'number' ? entry.leadIn : 0,
     partial: entry.partial === true,
     at: Number(entry.at) || 0,
-  }
+  })
 }
 
 /** A whole-track measurement, or a head-only one when partial is true. */
 function noteProfile(path, measured) {
   if (!path || !measured || typeof measured.programLoudness !== 'number') return
   if (!(measured.programLoudness > -90)) return
-  profileStoreData[path] = {
+  profileStoreData[path] = Object.assign({}, measured, {
     programLoudness: measured.programLoudness,
     peak: typeof measured.peak === 'number' ? measured.peak : null,
     leadIn: typeof measured.leadIn === 'number' ? measured.leadIn : 0,
     partial: measured.partial === true,
     at: Date.now(),
-  }
+  })
   var keys = Object.keys(profileStoreData)
   if (keys.length > PROFILE_MAX_RECORDS) {
     keys
