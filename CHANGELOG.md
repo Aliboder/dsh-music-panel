@@ -31,6 +31,9 @@
 
 ### 在线播放启动
 
+- 在线当前曲改用 MediaSource：Host 字节流按块 append，客户端自己维护 buffered ranges 和 seek，不再依赖 `<audio src>` 对代理 Range 的判断；MP3/AAC/M4A 走 MSE，不支持 MSE 的格式才回退直连。
+
+
 - 在线流在 Host 侧缓存同一首歌/音质的已解析 CDN URL，Range 请求不再每次重新解析；若 CDN 对 `bytes=0-` 或后续 Range 返回 200，Host 会转成完整的 206 + Content-Range，后续 seek 再切片，避免 Chromium 拖动进度条后回到开头。
 
 

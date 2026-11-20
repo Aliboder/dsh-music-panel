@@ -168,6 +168,7 @@ function createPlayer() {
 var platformGain = null
 var prefetchedProfilePath = ''
 var profileToken = 0
+var onlineMse = null
   var currentLoudnessBlob = null
   /** In-flight track download. */
   var fetchAbort = null
@@ -647,6 +648,17 @@ var profileToken = 0
    */
   function isActiveEvent(event) {
     return event === null || event === undefined || !event.target || event.target === audio
+  }
+
+  function stopOnlineMse() {
+    if (onlineMse === null) return
+    var session = onlineMse
+    onlineMse = null
+    try { if (session.controller !== null) session.controller.abort() } catch (error) {}
+    try { if (session.reader !== null) session.reader.cancel().catch(function () {}) } catch (error) {}
+    if (session.url !== '') {
+      try { URL.revokeObjectURL(session.url) } catch (error) {}
+    }
   }
 
   function readReplayGainHeaders(headers) {
@@ -1152,10 +1164,204 @@ var profileToken = 0
     return Promise.resolve(true)
   }
 
+  function playOnlineDirect(item, token, loudness) {
+    stopOnlineMse()
+    audio.pause()
+    audio.removeAttribute('src')
+    audio.load()
+    releaseObjectUrl()
+    currentBlob = null
+    if (audio !== null) audio.preload = 'auto'
+    loadActiveSource(item.onlineUrl)
+    loudness.resolve()
+    if (pendingAutoplay) playAfterLoudness(token)
+    var gainController = typeof AbortController !== 'undefined' ? new AbortController() : null
+    fetchAbort = gainController
+    getJson(API + 'online/cache-info?provider=' + encodeURIComponent(item.onlineProvider) + '&id=' + encodeURIComponent(item.onlineId || ''))
+      .then(function (info) {
+        if (!info || info.cached !== true || token !== loadToken) return null
+        return fetch(streamUrl(item.path))
+          .then(function (response) {
+            if (!response.ok) throw new Error('HTTP ' + response.status)
+            return response.blob()
+          })
+          .then(function (blob) {
+            return analyzeLoudnessBlob(
+              item,
+              blob,
+              function () { return token === loadToken },
+              function () { /* the store is the result */ },
+            )
+          })
+      })
+      .catch(function () { /* optional */ })
+    fetch(item.onlineUrl, {
+      method: 'HEAD',
+      ...(gainController === null ? {} : { signal: gainController.signal }),
+    })
+      .then(function (response) {
+        if (!response.ok || token !== loadToken) return
+        var gain = readReplayGainHeaders(response.headers)
+        if (gain !== null) {
+          platformGain = gain
+          reconsiderBalance(null)
+        }
+      })
+      .catch(function () { /* metadata only */ })
+      .then(function () {
+        if (token === loadToken) fetchAbort = null
+      })
+  }
+
+  /** Folia-like current song, but with MediaSource owning the seekable ranges. */
+  function playOnlineMse(item, token, loudness) {
+    var MediaSourceCtor = typeof window !== 'undefined' ? (window.MediaSource || window.webkitMediaSource) : null
+    if (typeof MediaSourceCtor !== 'function') {
+      playOnlineDirect(item, token, loudness)
+      return
+    }
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+    fetchAbort = controller
+    fetch(item.onlineUrl, controller === null ? {} : { signal: controller.signal })
+      .then(function (response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status)
+        var gain = readReplayGainHeaders(response.headers)
+        if (gain !== null) {
+          platformGain = gain
+          reconsiderBalance(null)
+        }
+        var mime = String(response.headers.get('content-type') || 'audio/mpeg').split(';')[0].trim().toLowerCase()
+        var mseMime = mime === 'audio/mp4' || mime === 'audio/m4a' || mime === 'audio/x-m4a'
+          ? 'audio/mp4; codecs="mp4a.40.2"'
+          : mime
+        if (!MediaSourceCtor.isTypeSupported(mseMime) || response.body === null) {
+          // Unsupported codec: fall back to the direct element rather than buffering the file.
+          if (response.body !== null) response.body.cancel().catch(function () {})
+          playOnlineDirect(item, token, loudness)
+          return null
+        }
+        audio.pause()
+        audio.removeAttribute('src')
+        audio.load()
+        releaseObjectUrl()
+        if (audio !== null) audio.preload = 'auto'
+        var mediaSource = new MediaSourceCtor()
+        var objectUrl = URL.createObjectURL(mediaSource)
+        var session = {
+          controller: controller,
+          reader: null,
+          url: objectUrl,
+          seek: function (target) {
+            pendingSeek = target
+            trySeek()
+          },
+        }
+        onlineMse = session
+        var sourceBuffer = null
+        var queue = []
+        var appending = false
+        var done = false
+        var ended = false
+        var started = false
+        var pendingSeek = null
+        var failed = false
+        function covers(target) {
+          if (sourceBuffer === null || sourceBuffer.buffered.length === 0) return false
+          for (var index = 0; index < sourceBuffer.buffered.length; index += 1) {
+            if (target >= sourceBuffer.buffered.start(index) && target <= sourceBuffer.buffered.end(index)) return true
+          }
+          return false
+        }
+        function trySeek() {
+          if (pendingSeek === null || sourceBuffer === null) return
+          if (!covers(pendingSeek)) return
+          var target = pendingSeek
+          pendingSeek = null
+          try {
+            audio.currentTime = target
+            state = Object.assign({}, state, { currentTime: target })
+            emitTime()
+          } catch (error) { /* waits for a later updateend */ }
+        }
+        function pump() {
+          if (sourceBuffer === null || appending || failed) return
+          if (queue.length === 0) {
+            if (done && !ended && mediaSource.readyState === 'open') {
+              ended = true
+              try { mediaSource.endOfStream() } catch (error) {}
+            }
+            return
+          }
+          var chunk = queue.shift()
+          appending = true
+          try {
+            sourceBuffer.appendBuffer(chunk)
+          } catch (error) {
+            failed = true
+            playOnlineDirect(item, token, loudness)
+          }
+        }
+        function maybeStart() {
+          if (started || failed) return
+          if (sourceBuffer === null || sourceBuffer.buffered.length === 0) return
+          started = true
+          loudness.resolve()
+          if (pendingAutoplay) playAfterLoudness(token)
+        }
+        mediaSource.addEventListener('sourceopen', function () {
+          try {
+            sourceBuffer = mediaSource.addSourceBuffer(mseMime)
+          } catch (error) {
+            failed = true
+            playOnlineDirect(item, token, loudness)
+            return
+          }
+          sourceBuffer.addEventListener('updateend', function () {
+            appending = false
+            maybeStart()
+            trySeek()
+            pump()
+          })
+          session.reader = response.body.getReader()
+          function read() {
+            session.reader.read().then(function (result) {
+              if (failed) return
+              if (result.done) {
+                done = true
+                pump()
+                return
+              }
+              queue.push(result.value)
+              pump()
+              read()
+            }).catch(function () {
+              failed = true
+              playOnlineDirect(item, token, loudness)
+            })
+          }
+          read()
+        })
+        loadActiveSource(objectUrl)
+        if (!pendingAutoplay) loudness.resolve()
+        return null
+      })
+      .catch(function () {
+        if (token !== loadToken) {
+          loudness.resolve()
+          return
+        }
+        playOnlineDirect(item, token, loudness)
+      })
+      .then(function () {
+        if (token === loadToken) fetchAbort = null
+      })
+  }
+
   function load(at, autoplay) {
     var item = state.queue[at]
     if (!item) return
     abortCrossfade()
+    stopOnlineMse()
     cancelPrefetch()
     currentBlob = null
     // Close the previous listening session before switching tracks.
@@ -1201,57 +1407,17 @@ var profileToken = 0
     }
 
     cancelPendingFetch()
-    // Folia starts the media element on the Host URL: first byte in, first
-    // sound out. The profile/loudness pass is deliberately not on this path.
+    // MediaSource owns the online byte stream, so seek is decided by this
+    // client rather than by Chromium's judgement of a proxy response. The
+    // first appended chunk starts sound; no full-file blob and no analysis gate.
     if (typeof item.onlineUrl === 'string' && item.onlineUrl !== '') {
+      stopOnlineMse()
       audio.pause()
       audio.removeAttribute('src')
       audio.load()
       releaseObjectUrl()
       currentBlob = null
-      var onlineToken = token
-      if (audio !== null) audio.preload = 'auto'
-      loadActiveSource(item.onlineUrl)
-      loudness.resolve()
-      if (pendingAutoplay) playAfterLoudness(token)
-      // Platform gain is metadata, not a prerequisite for sound. Ask for the
-      // headers in the background and apply them when they land.
-      var gainController = typeof AbortController !== 'undefined' ? new AbortController() : null
-      fetchAbort = gainController
-      getJson(API + 'online/cache-info?provider=' + encodeURIComponent(item.onlineProvider) + '&id=' + encodeURIComponent(item.onlineId || ''))
-        .then(function (info) {
-          if (!info || info.cached !== true || onlineToken !== loadToken) return null
-          return fetch(streamUrl(item.path))
-            .then(function (response) {
-              if (!response.ok) throw new Error('HTTP ' + response.status)
-              return response.blob()
-            })
-            .then(function (blob) {
-              return analyzeLoudnessBlob(
-                item,
-                blob,
-                function () { return onlineToken === loadToken },
-                function () { /* the store is the result */ },
-              )
-            })
-        })
-        .catch(function () { /* optional */ })
-      fetch(item.onlineUrl, {
-        method: 'HEAD',
-        ...(gainController === null ? {} : { signal: gainController.signal }),
-      })
-        .then(function (response) {
-          if (!response.ok || onlineToken !== loadToken) return
-          var gain = readReplayGainHeaders(response.headers)
-          if (gain !== null) {
-            platformGain = gain
-            reconsiderBalance(null)
-          }
-        })
-        .catch(function () { /* metadata only */ })
-        .then(function () {
-          if (onlineToken === loadToken) fetchAbort = null
-        })
+      playOnlineMse(item, token, loudness)
       return
     }
     // Detach the old blob before revoking it: a revoked URL still
@@ -2246,6 +2412,13 @@ var profileToken = 0
           : 0
       var target = clamp(seconds, 0, limit > 0 ? limit : seconds)
       if (!isFinite(target)) return
+
+      if (onlineMse !== null) {
+        onlineMse.seek(target)
+        state = Object.assign({}, state, { currentTime: target })
+        emitTime()
+        return
+      }
 
       if (foliaTransport !== null) {
         foliaTransport.seek(foliaTransport.getActiveDeck(), target)

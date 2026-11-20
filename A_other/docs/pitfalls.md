@@ -732,6 +732,15 @@
 
 ---
 
+## 82. 代理 Range 再准，也不如 MediaSource 可控
+
+- **现象**：Host 已返回 206/Content-Range、固定 CDN URL、preload=auto，在线 seek 仍回开头。
+- **原因**：媒体元素播放的是 Host 代理 URL，Chromium 对代理资源的 seekability 判断不等价于 CDN 原生资源；旧 blob 能 seek 是因为本地随机访问。
+- **处理**：当前曲改用 MediaSource，Host 字节流 append 到 SourceBuffer，seek 由客户端 buffered ranges 决定；不支持 MSE 的格式回退直连。
+- **防回归**：不要再通过加响应头“修”代理 seek；MSE 的 seek 必须等 `buffered` 覆盖目标或保留 pendingSeek。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
