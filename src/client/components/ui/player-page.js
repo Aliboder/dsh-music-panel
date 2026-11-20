@@ -152,43 +152,65 @@ function PlayerPage(props) {
     ),
   )
 
+  // Folia's bottom bar: title above a transport row, times around the seek bar,
+  // the loop mode as a tri-state control, and the page's own queue action.
+  // Folia cycles off -> all -> one; the engine keeps the same three modes.
+  var loopMode = snap.loop === 'one' ? 'one' : snap.loop === 'all' ? 'all' : 'none'
+  function cycleLoop() {
+    var next = loopMode === 'none' ? 'all' : loopMode === 'all' ? 'one' : 'none'
+    player.setLoop(next)
+  }
+  var loopLabel = loopMode === 'one' ? t('page.loopOne') : loopMode === 'all' ? t('page.loopAll') : t('page.loopNone')
   var bottomBar = h(
     'div',
     { className: 'mp-page-pill' },
-    h(IconButton, { icon: 'prev', size: 22, title: t('page.prev'), onClick: function () { player.prev() } }),
-    h(
-      'button',
-      {
-        type: 'button',
-        className: 'mp-page-play',
-        title: snap.playing ? t('page.pause') : t('page.play'),
-        onClick: function () {
-          player.toggle()
-        },
-      },
-      icon(snap.playing ? 'pause' : 'play', 26),
-    ),
-    h(IconButton, { icon: 'next', size: 22, title: t('page.next'), onClick: function () { player.next() } }),
+    h('div', { className: 'mp-page-pill-title' }, track ? trackTitleOf(track) : ''),
     h(
       'div',
-      { className: 'mp-page-progress' },
-      h(WaveSeekBar, {
-        cover: cover,
-        playing: snap.playing,
-        wave: prefs.waveEnabled !== false,
-        fallbackDuration: track ? Number(track.durationSec) || 0 : 0,
+      { className: 'mp-page-pill-row' },
+      h(IconButton, { icon: 'prev', size: 22, title: t('page.prev'), onClick: function () { player.prev() } }),
+      h(
+        'button',
+        {
+          type: 'button',
+          className: 'mp-page-play',
+          title: snap.playing ? t('page.pause') : t('page.play'),
+          onClick: function () {
+            player.toggle()
+          },
+        },
+        icon(snap.playing ? 'pause' : 'play', 26),
+      ),
+      h(IconButton, { icon: 'next', size: 22, title: t('page.next'), onClick: function () { player.next() } }),
+      h('span', { className: 'mp-page-time' }, fmtClock(time.currentTime || 0)),
+      h(
+        'div',
+        { className: 'mp-page-progress' },
+        h(WaveSeekBar, {
+          cover: cover,
+          playing: snap.playing,
+          wave: prefs.waveEnabled !== false,
+          fallbackDuration: track ? Number(track.durationSec) || 0 : 0,
+        }),
+      ),
+      h('span', { className: 'mp-page-time' }, fmtClock(duration)),
+      h(IconButton, {
+        icon: loopMode === 'one' ? 'repeatOne' : 'repeat',
+        size: 20,
+        title: loopLabel,
+        active: loopMode !== 'none',
+        onClick: cycleLoop,
+      }),
+      h(IconButton, {
+        icon: 'list',
+        size: 20,
+        title: t('page.queue'),
+        active: queueOpen,
+        onClick: function () {
+          setQueueOpen(!queueOpen)
+        },
       }),
     ),
-    h('span', { className: 'mp-page-time' }, fmtClock(time.currentTime || 0) + ' / ' + fmtClock(duration)),
-    h(IconButton, {
-      icon: 'list',
-      size: 20,
-      title: t('page.queue'),
-      active: queueOpen,
-      onClick: function () {
-        setQueueOpen(!queueOpen)
-      },
-    }),
   )
 
   // Closed page renders nothing: this shell is absolutely positioned and would

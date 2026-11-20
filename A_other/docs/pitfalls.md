@@ -552,6 +552,15 @@
 
 ---
 
+## 62. 播放页底栏没有按 Folia 的 transport 结构组织
+
+- **现象**：底栏只有传输键、合并的当前时间/总时长和队列键；没有标题行、当前时间与总时长左右分布，也没有循环三态。
+- **原因**：`player-page.js` 的底栏是单独写的横排，和 Folia `ExpandedView` / `ProgressBar` 的结构及控制语义不一致。
+- **处理**：标题单独一行；当前时间、进度、总时长分开；循环键按 off → all → one 循环并调用 `player.setLoop`；底栏颜色改用 `--dsw-alias-*` token。队列作为插件自己的额外入口保留。
+- **防回归**：新增底栏行为以 Folia 的 `FloatingPlayerControls` / `ProgressBar` 为参照；外观只使用 DSH token。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

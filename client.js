@@ -159143,16 +159143,21 @@ window.__ModuleLoader__.load({
       '.mp-page-artist{font-size:12px;opacity:.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-page-quality{display:flex;gap:8px;font-size:11px;opacity:.5}',
       '.mp-page-style{height:26px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:inherit;font:inherit;font-size:12px;cursor:pointer}',
-      '.mp-page-pill{display:flex;align-items:center;gap:14px;padding:10px 18px;border-radius:999px;background:rgba(18,18,22,.72);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(28px)}',
-      '.mp-page-play{width:38px;height:38px;display:grid;place-items:center;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:inherit;cursor:pointer}',
+      '.mp-page-pill{display:flex;flex-direction:column;gap:8px;padding:10px 18px 12px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-bg-overlay,#1c1c20) 88%,transparent);border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));box-shadow:0 18px 50px color-mix(in srgb,var(--dsw-alias-bg-base,#000) 35%,transparent);backdrop-filter:blur(28px)}',
+      '.mp-page-pill-title{min-width:0;text-align:center;font-size:13px;line-height:18px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-page-pill-row{display:flex;align-items:center;gap:12px;min-width:0;width:100%}',
+      '.mp-page-play{width:38px;height:38px;display:grid;place-items:center;border-radius:50%;border:0;background:var(--dsw-alias-label-primary,#f4f4f5);color:var(--dsw-alias-bg-base,#141417);cursor:pointer;flex:none;transition:transform .15s ease,opacity .15s ease}',
+      '.mp-page-play:hover:not(:disabled){transform:scale(1.06)}',
+      '.mp-page-play:disabled{opacity:.45;cursor:default;transform:none}',
       '.mp-page-progress{flex:1 1 auto;min-width:0}',
-      '.mp-page-time{font-size:11px;opacity:.65;white-space:nowrap}',
+      '.mp-page-time{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums;white-space:nowrap}',
       '.mp-shell{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#f4f4f5;background:#101014;font-family:inherit}',
       '.mp-shell-backdrop,.mp-shell-shade,.mp-shell-stage{position:absolute;inset:0}',
       '.mp-shell-stage{z-index:3;display:flex;flex-direction:column;align-items:stretch;min-height:0;padding:64px 0 96px;box-sizing:border-box}',
       '.mp-shell-stage>*{flex:1 1 auto;min-height:0;min-width:0}',
       '.mp-shell-stage .mp-np-lyrics,.mp-shell-stage .mp-np-canvas-wrap,.mp-shell-stage .mp-np-pixi-wrap{height:100%;width:100%}',
       '.mp-page-pill{width:min(720px,calc(100% - 32px));margin:0 auto}',
+      '@media (max-width:620px){.mp-page-pill-row{gap:8px}.mp-page-pill-row .mp-page-time{display:none}.mp-page-pill{padding-left:14px;padding-right:14px}}',
       '.mp-shell-shade{z-index:2;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.35),transparent 22%,transparent 72%,rgba(0,0,0,.45))}',
       '.mp-shell-backdrop{z-index:1;overflow:hidden}',
       '.mp-shell-top{position:relative;z-index:5;display:flex;align-items:center;gap:10px;padding:14px 18px}',
@@ -161967,43 +161972,65 @@ window.__ModuleLoader__.load({
         ),
       )
 
+      // Folia's bottom bar: title above a transport row, times around the seek bar,
+      // the loop mode as a tri-state control, and the page's own queue action.
+      // Folia cycles off -> all -> one; the engine keeps the same three modes.
+      var loopMode = snap.loop === 'one' ? 'one' : snap.loop === 'all' ? 'all' : 'none'
+      function cycleLoop() {
+        var next = loopMode === 'none' ? 'all' : loopMode === 'all' ? 'one' : 'none'
+        player.setLoop(next)
+      }
+      var loopLabel = loopMode === 'one' ? t('page.loopOne') : loopMode === 'all' ? t('page.loopAll') : t('page.loopNone')
       var bottomBar = h(
         'div',
         { className: 'mp-page-pill' },
-        h(IconButton, { icon: 'prev', size: 22, title: t('page.prev'), onClick: function () { player.prev() } }),
-        h(
-          'button',
-          {
-            type: 'button',
-            className: 'mp-page-play',
-            title: snap.playing ? t('page.pause') : t('page.play'),
-            onClick: function () {
-              player.toggle()
-            },
-          },
-          icon(snap.playing ? 'pause' : 'play', 26),
-        ),
-        h(IconButton, { icon: 'next', size: 22, title: t('page.next'), onClick: function () { player.next() } }),
+        h('div', { className: 'mp-page-pill-title' }, track ? trackTitleOf(track) : ''),
         h(
           'div',
-          { className: 'mp-page-progress' },
-          h(WaveSeekBar, {
-            cover: cover,
-            playing: snap.playing,
-            wave: prefs.waveEnabled !== false,
-            fallbackDuration: track ? Number(track.durationSec) || 0 : 0,
+          { className: 'mp-page-pill-row' },
+          h(IconButton, { icon: 'prev', size: 22, title: t('page.prev'), onClick: function () { player.prev() } }),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mp-page-play',
+              title: snap.playing ? t('page.pause') : t('page.play'),
+              onClick: function () {
+                player.toggle()
+              },
+            },
+            icon(snap.playing ? 'pause' : 'play', 26),
+          ),
+          h(IconButton, { icon: 'next', size: 22, title: t('page.next'), onClick: function () { player.next() } }),
+          h('span', { className: 'mp-page-time' }, fmtClock(time.currentTime || 0)),
+          h(
+            'div',
+            { className: 'mp-page-progress' },
+            h(WaveSeekBar, {
+              cover: cover,
+              playing: snap.playing,
+              wave: prefs.waveEnabled !== false,
+              fallbackDuration: track ? Number(track.durationSec) || 0 : 0,
+            }),
+          ),
+          h('span', { className: 'mp-page-time' }, fmtClock(duration)),
+          h(IconButton, {
+            icon: loopMode === 'one' ? 'repeatOne' : 'repeat',
+            size: 20,
+            title: loopLabel,
+            active: loopMode !== 'none',
+            onClick: cycleLoop,
+          }),
+          h(IconButton, {
+            icon: 'list',
+            size: 20,
+            title: t('page.queue'),
+            active: queueOpen,
+            onClick: function () {
+              setQueueOpen(!queueOpen)
+            },
           }),
         ),
-        h('span', { className: 'mp-page-time' }, fmtClock(time.currentTime || 0) + ' / ' + fmtClock(duration)),
-        h(IconButton, {
-          icon: 'list',
-          size: 20,
-          title: t('page.queue'),
-          active: queueOpen,
-          onClick: function () {
-            setQueueOpen(!queueOpen)
-          },
-        }),
       )
 
       // Closed page renders nothing: this shell is absolutely positioned and would
