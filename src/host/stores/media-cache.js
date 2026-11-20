@@ -64,6 +64,17 @@ function finite(value, fallback = 0) {
   return Number.isFinite(number) && number >= 0 ? number : fallback
 }
 
+/** Only the four numeric ReplayGain fields are persisted. */
+function replayGainOf(value) {
+  if (value === null || typeof value !== 'object') return null
+  const out = {}
+  for (const key of ['trackGain', 'albumGain', 'trackPeak', 'albumPeak']) {
+    const number = Number(value[key])
+    if (Number.isFinite(number)) out[key] = number
+  }
+  return Object.keys(out).length > 0 ? out : null
+}
+
 /** @param {{ dir: string }} options */
 export function createMediaCache(options) {
   const root = join(options.dir, 'cache')
@@ -143,6 +154,7 @@ export function createMediaCache(options) {
       size: info.size,
       mime: typeof meta.mime === 'string' && meta.mime !== '' ? meta.mime : typeOfExt(meta.ext),
       quality: typeof meta.quality === 'string' ? meta.quality : '',
+      replayGain: replayGainOf(meta.replayGain),
       durationSec: finite(meta.durationSec),
       storedAt: finite(meta.storedAt),
       usedAt: finite(meta.usedAt),
@@ -191,6 +203,7 @@ export function createMediaCache(options) {
       provider: safeId(entry.provider),
       id: safeId(entry.id),
       quality: typeof entry.quality === 'string' ? entry.quality : '',
+      replayGain: replayGainOf(entry.replayGain),
       mime: typeof entry.mime === 'string' && entry.mime !== '' ? entry.mime : typeOfExt(ext),
       ext,
       size: buffer.length,

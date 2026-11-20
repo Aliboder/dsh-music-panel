@@ -134,6 +134,18 @@ export function createOnlineRoutes(deps) {
       'cache-control': 'public, max-age=604800',
     }
     if (options.anyQuality === true) baseHeaders['x-music-cache-fallback'] = '1'
+    if (cached.replayGain && typeof cached.replayGain === 'object') {
+      for (const [field, name] of [
+        ['trackGain', 'x-music-track-gain'],
+        ['albumGain', 'x-music-album-gain'],
+        ['trackPeak', 'x-music-track-peak'],
+        ['albumPeak', 'x-music-album-peak'],
+      ]) {
+        if (typeof cached.replayGain[field] === 'number' && Number.isFinite(cached.replayGain[field])) {
+          baseHeaders[name] = String(cached.replayGain[field])
+        }
+      }
+    }
     if (typeof rangeHeader === 'string' && rangeHeader !== '') {
       const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim())
       let start = 0
@@ -958,7 +970,16 @@ export function createOnlineRoutes(deps) {
         const provider = (params.get('provider') || '').trim()
         const id = (params.get('id') || '').trim()
         if (provider !== 'navidrome') {
-          return sendJson(res, 200, { ok: true, trackGain: null, albumGain: null })
+          // A cached copy keeps the provider's gain; a miss has no platform data.
+          const cached = mediaCache === undefined ? null : await mediaCache.lookup(provider, id)
+          const cachedGain = cached && cached.replayGain ? cached.replayGain : null
+          return sendJson(res, 200, {
+            ok: true,
+            trackGain: cachedGain ? cachedGain.trackGain ?? null : null,
+            albumGain: cachedGain ? cachedGain.albumGain ?? null : null,
+            trackPeak: cachedGain ? cachedGain.trackPeak ?? null : null,
+            albumPeak: cachedGain ? cachedGain.albumPeak ?? null : null,
+          })
         }
         if (id === '') return fail(res, 400, 'BAD_REQUEST', '缺少 id')
         try {

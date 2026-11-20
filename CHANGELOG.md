@@ -15,7 +15,8 @@
 - 客户端把该增益作为 `platformDb` 送入智能平衡；切歌时清空，平台没有真实增益时不伪造。
 - 新增 `music.profile.v1`：把当前曲已解码音频测出的 `programLoudness + peak + leadIn` 作为 profile 输入；整曲判定使用 leadIn。
 
-> 当前 profile 由播放器对已取到的当前曲音频测量，不是 Folia 的下一首预分析；`head` 仍为空，未伪造。
+> 当前 profile 由播放器对已取到的当前曲音频测量，并会为下一首本地曲做一次预分析；`head` 仍为空，未伪造。
+- 媒体缓存的元数据现在保存 `replayGain`，缓存命中时重新发出 `x-music-*-gain/peak` 响应头，在线增益不再因缓存重播丢失。
 
 ### 代码结构
 

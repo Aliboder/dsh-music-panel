@@ -154568,6 +154568,7 @@ window.__ModuleLoader__.load({
       /** The song's own gain tags (local file or Navidrome), for the balance's fallbacks. */
       var tagGainDb = null
     var platformGain = null
+    var prefetchedProfilePath = ''
       var currentLoudnessBlob = null
       /** In-flight track download. */
       var fetchAbort = null
@@ -155429,6 +155430,34 @@ window.__ModuleLoader__.load({
         noteBalanceMeasurement(item.path, 'played', play)
       }
 
+      /** Folia's profile look-ahead: measure the next local track while this one plays. */
+      function prefetchNextProfile() {
+        if (readPrefs().normalizeVolume === false) return
+        if (state.index < 0 || state.queue.length < 2) return
+        var next = nextIndexOf(state.index, state.queue.length)
+        if (next === state.index) return
+        var item = state.queue[next]
+        if (!item || item.onlineProvider || typeof item.path !== 'string' || item.path === '') return
+        if (prefetchedProfilePath === item.path || profileFor(item.path) !== null) return
+        prefetchedProfilePath = item.path
+        fetch(streamUrl(item.path))
+          .then(function (response) {
+            if (!response.ok) throw new Error('HTTP ' + response.status)
+            return response.blob()
+          })
+          .then(function (blob) {
+            return analyzeLoudnessBlob(
+              item,
+              blob,
+              function () { return true },
+              function () { /* the store is the result */ },
+            )
+          })
+          .catch(function () {
+            // A profile is optional; playback never waits for it.
+          })
+      }
+
       function scheduleLoudness(item, blob, done) {
         var token = (loudnessToken += 1)
         currentLoudnessBlob = blob || null
@@ -155458,6 +155487,7 @@ window.__ModuleLoader__.load({
           })
           .then(function () {
             finish()
+            prefetchNextProfile()
           })
       }
 
@@ -155486,6 +155516,7 @@ window.__ModuleLoader__.load({
         var token = (loadToken += 1)
         tagGainDb = null
         platformGain = null
+        prefetchedProfilePath = ''
         state = Object.assign({}, state, { index: at, currentTime: 0, duration: 0, buffered: 0 })
         emit()
         syncMediaSession()

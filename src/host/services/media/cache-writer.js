@@ -194,6 +194,7 @@ export function createCacheWriter(deps) {
         provider,
         id,
         quality,
+        replayGain: stream.replayGain || null,
         mime: mime || 'audio/mpeg',
         buffer,
         durationSec: measured > 0 ? measured : stated,

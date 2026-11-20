@@ -42,6 +42,7 @@ const stored = await cache.store({
   mime: 'audio/mpeg',
   buffer: audioBytes(MIN_CACHEABLE_AUDIO_BYTES + 4096),
   durationSec: 299,
+  replayGain: { trackGain: -7.5, trackPeak: 0.9, ignored: 'x' },
 })
 assert.ok(stored && stored.file.endsWith('.mp3'))
 
@@ -50,6 +51,7 @@ assert.ok(hit, 'the stored song is found')
 assert.equal(hit.quality, 'high')
 assert.equal(hit.durationSec, 299)
 assert.equal(hit.mime, 'audio/mpeg')
+assert.deepEqual(hit.replayGain, { trackGain: -7.5, trackPeak: 0.9 }, 'cache keeps only numeric gain fields')
 assert.ok(hit.size >= MIN_CACHEABLE_AUDIO_BYTES)
 
 // A file below the floor is not stored at all.

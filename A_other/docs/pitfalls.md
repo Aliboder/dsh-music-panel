@@ -615,6 +615,15 @@
 
 ---
 
+## 69. 缓存命中会绕过平台增益
+
+- **现象**：首次解析在线流时 `platformDb` 有值，之后命中媒体缓存又变回 null。
+- **原因**：`replayGain` 原先只存在于 `/online/stream` 的 fresh 分支，缓存元数据没有保存。
+- **处理**：`mediaCache.store` 持久化四个数值增益字段，`serveCachedAudio` 重新写 `x-music-*-gain/peak` 响应头；`/online/replaygain` 也先查缓存。
+- **防回归**：新增缓存字段时必须同时更新 `lookup`、`store`、缓存清理测试和响应头路径。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
