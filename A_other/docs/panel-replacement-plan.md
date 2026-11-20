@@ -39,7 +39,7 @@
 | Client 片段 | 92 个，顺序由 <code>src/client/manifest.json</code> 决定 |
 | 测试文件 | 88 个 <code>.mjs</code>；<code>npm test</code> 是串行脚本，不是 glob |
 | 旧主面板核心 | <code>panel.js</code> 815 行、<code>local.js</code> 562 行、<code>online.js</code> 1049 行、<code>navigation.js</code> 272 行、<code>header.js</code> 281 行、<code>player-bar.js</code> 250 行、<code>track-row.js</code> 275 行 |
-| 不动的大文件 | <code>now-playing.js</code> 3190 行、<code>settings.js</code> 1389 行、<code>dialogs.js</code> 1299 行、<code>player-sheet.js</code> 1754 行 |
+| 不动的大文件 | <code>now-playing/</code>（index 编排 + capsule/seek/settings/editor 等模块）、<code>settings.js</code> 1389 行、<code>dialogs.js</code> 1299 行、<code>player-sheet.js</code> 1754 行 |
 | CSS | <code>styles/theme.js</code> 1278 行字符串数组 |
 | 宿主 React | 固定 React 18.3.1，不允许第二个 React 渲染根 |
 | 主面板挂载 | <code>main</code> 槽，key/id 为 <code>music</code>；改名会破坏侧栏选中 |
@@ -180,7 +180,7 @@ main 槽
 | 纯数据 helper（分组/排序/筛选/歌单） | <code>local.js</code>/<code>online.js</code> | 先抽到新数据模块，再删旧视图 |
 | 在线数据加载（providers/歌单/专辑/艺人/搜索） | <code>online.js</code> | 先复用；P6 后再解耦 <code>uiStore.nav</code> |
 | <code>selectionStore</code> / <code>overlayStore</code> / <code>player</code> / <code>prefs</code> | 现有 stores | 复用，尤其选择状态要让右键菜单继续工作 |
-| <code>settings.js</code> / <code>now-playing.js</code> / <code>player-sheet.js</code> | 现有 | 不动；只回归 |
+| <code>settings.js</code> / <code>now-playing/index.js</code> / <code>player-sheet.js</code> | 现有 | 不动；只回归 |
 
 ---
 
@@ -326,7 +326,7 @@ main 槽
 
 ### 7.3 共享组件与依赖
 
-- <code>QueuePanel</code> 被播放页（<code>now-playing.js</code>）使用；<code>QueuePopover</code> 被播放页、播放卡、输入框歌词条、旧播放条使用；<code>QueueList</code> 被播放卡使用。不要改这些结构。
+- <code>QueuePanel</code> 被播放页（<code>now-playing/index.js</code>）使用；<code>QueuePopover</code> 被播放页、播放卡、输入框歌词条、旧播放条使用；<code>QueueList</code> 被播放卡使用。不要改这些结构。
 - <code>ContextMenu</code> 在 <code>dialogs.js</code>，读 <code>selectionStore</code>；新面板右键菜单直接 <code>pushLayer('menu', ...)</code>，不要重写。
 - <code>OverlayRoot</code>/<code>StartupGuide</code>/<code>NewPlaylistDialog</code>/<code>applyControlAction</code> 目前在旧 <code>panel.js</code>；新壳先复用，P6 删旧文件前搬走。
 - <code>HeadMenu</code> 在 <code>header.js</code>；新面板要用，先抽到公共文件。
@@ -709,7 +709,7 @@ Collection = {
 
 ### 10.3 保留文件
 
-- <code>queue.js</code>、<code>settings.js</code>、<code>now-playing.js</code>、<code>player-sheet.js</code>、<code>dialogs.js</code>、<code>composer.js</code>、<code>batch.js</code>、<code>primitives.js</code>、<code>icons.js</code>、<code>host-ui.js</code>、<code>component-gallery.js</code>、<code>eq-panel.js</code>、<code>lyric-*</code>、<code>look-picker.js</code>、<code>online-lyric.js</code>、<code>trash.js</code>。
+- <code>queue.js</code>、<code>settings.js</code>、<code>now-playing/index.js</code>、<code>player-sheet.js</code>、<code>dialogs.js</code>、<code>composer.js</code>、<code>batch.js</code>、<code>primitives.js</code>、<code>icons.js</code>、<code>host-ui.js</code>、<code>component-gallery.js</code>、<code>eq-panel.js</code>、<code>lyric-*</code>、<code>look-picker.js</code>、<code>online-lyric.js</code>、<code>trash.js</code>。
 - <code>components/common/ui.js</code>（<code>uiStore</code>/<code>availableSources</code>）先保留；P6 审计后删死代码。
 - <code>components/common/select.js</code>（<code>selectionStore</code>）复用。
 - <code>components/library/list.js</code>（<code>VirtualList</code>）可复用；新 <code>p3-list.js</code> 做带 header 的适配。

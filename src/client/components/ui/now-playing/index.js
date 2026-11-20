@@ -1029,168 +1029,18 @@ function NowPlaying(props) {
       }),
     ),
     settingsOpen
-      ? h(
-          'div',
-          {
-            className: 'mp-np-settings',
-            ref: settingsRef,
-            style: settingsPos
-              ? { left: settingsPos.left + 'px', bottom: settingsPos.bottom + 'px', width: settingsPos.width + 'px', right: 'auto', top: 'auto' }
-              : undefined,
-          },
-          h(
-            'div',
-            { className: 'mp-np-setting' },
-            h(
-              'div',
-              { className: 'mp-np-setting-head' },
-              h('span', null, t('page.lyricSize')),
-              h('span', { className: 'mp-set-val' }, lyricSize + ' px'),
-            ),
-            h('input', {
-              type: 'range',
-              className: 'mp-range',
-              min: 14,
-              max: 40,
-              step: 1,
-              value: lyricSize,
-              onChange: function (event) {
-                setPrefs({ lyricSize: Number(event.target.value) })
-              },
-            }),
-          ),
-          h(
-            'div',
-            { className: 'mp-np-setting' },
-            h(
-              'div',
-              { className: 'mp-np-setting-head' },
-              h('span', null, t('page.lyricGap')),
-              h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 6) + ' px'),
-            ),
-            h('input', {
-              type: 'range',
-              className: 'mp-range',
-              min: 2,
-              max: 16,
-              step: 1,
-              value: Number(prefs.lyricGap) || 6,
-              onChange: function (event) {
-                setPrefs({ lyricGap: Number(event.target.value) })
-              },
-            }),
-          ),
-          h(
-            'div',
-            { className: 'mp-np-setting-head' },
-            // The editor is a dark surface too; inherit its light ink (the head sets it)
-            // instead of the host label token, which is dark ink in the light theme.
-            h('span', { style: { fontSize: '12px' } }, t('page.translationScale')),
-            h('span', { className: 'mp-set-val' }, String(prefs.translationScale || 80) + '%'),
-          ),
-          h('input', {
-            type: 'range',
-            className: 'mp-range',
-            min: 50,
-            max: 100,
-            step: 5,
-            value: prefs.translationScale || 80,
-            onChange: function (event) {
-              setPrefs({ translationScale: Number(event.target.value) })
-            },
-          }),
-          h(
-            'div',
-            { className: 'mp-np-setting' },
-            h('div', { className: 'mp-np-setting-head' }, h('span', null, t('settings.lyricAlign'))),
-            h(
-              'div',
-              { className: 'mp-np-align-row' },
-              [
-                ['left', 'settings.alignLeft'],
-                ['center', 'settings.alignCenter'],
-                ['right', 'settings.alignRight'],
-              ].map(function (item) {
-                return h(
-                  'button',
-                  {
-                    key: item[0],
-                    type: 'button',
-                    className: cx(
-                      'mp-chip',
-                      (prefs.lyricAlign || 'left') === item[0] && 'is-on',
-                    ),
-                    onClick: function () {
-                      setPrefs({ lyricAlign: item[0] })
-                    },
-                  },
-                  t(item[1]),
-                )
-              }),
-            ),
-          ),
-          h(
-            SetRow,
-            { label: t('page.lyricBlur') },
-            h(Switch, {
-              value: prefs.lyricBlur === true,
-              onChange: function (value) {
-                setPrefs({ lyricBlur: value })
-              },
-            }),
-          ),
-          h(
-            SetRow,
-            { label: t('page.translation') },
-            h(Switch, {
-              value: prefs.showTranslation === true,
-              onChange: function (value) {
-                setPrefs({ showTranslation: value })
-              },
-            }),
-          ),
-          track && !track.onlineProvider
-            ? h(
-                'div',
-                { className: 'mp-np-setting' },
-                h(
-                  'div',
-                  { className: 'mp-np-setting-head' },
-                  h('span', null, t('page.lyricOffset')),
-                  h('span', { className: 'mp-set-val' }, (offsetMs / 1000).toFixed(1) + ' s'),
-                ),
-                h(
-                  'div',
-                  { className: 'mp-np-offset-actions' },
-                  h(
-                    Button,
-                    {
-                      variant: 'ghost',
-                      onClick: function () {
-                        applyOffset(-500)
-                      },
-                    },
-                    '−0.5s',
-                  ),
-                  h(
-                    Button,
-                    {
-                      variant: 'ghost',
-                      onClick: function () {
-                        applyOffset(500)
-                      },
-                    },
-                    '+0.5s',
-                  ),
-                  h(Button, { onClick: writeLyricsBack }, t('page.writeLyrics')),
-                ),
-                h('div', { className: 'mp-np-setting-hint' }, t('page.lyricOffsetHint')),
-              )
-            : null,
-          track && !track.onlineProvider
-            ? h(Button, { icon: 'search', onClick: openOnlineLyric }, t('page.onlineLyrics'))
-            : null,
-        )
+      ? h(NpSettingsPanel, {
+          settingsRef: settingsRef,
+          settingsPos: settingsPos,
+          prefs: prefs,
+          setPrefs: setPrefs,
+          lyricSize: lyricSize,
+          track: track,
+          offsetMs: offsetMs,
+          applyOffset: applyOffset,
+          writeLyricsBack: writeLyricsBack,
+          openOnlineLyric: openOnlineLyric,
+        })
       : null,
     h(
       'div',
@@ -1250,250 +1100,34 @@ function NowPlaying(props) {
           track && track.bitrate ? h('span', null, fmtKbps(track.bitrate)) : null,
           track && track.qualityHint ? h('span', null, track.qualityHint) : null,
         ),
-        // Folia's floating pill: transport, the bar, the times — one rounded panel.
-        h(
-          'div',
-          { className: 'mp-np-pill' },
-          h(
-            'div',
-            { className: 'mp-np-pill-title' },
-            h('span', { className: 'mp-np-pill-name' }, trackTitleOf(track)),
-            h('span', { className: 'mp-np-pill-artist' }, trackArtistOf(track)),
-          ),
-        h(
-          'div',
-          { className: 'mp-np-progress' },
-          h(WaveSeekBar, {
-            cover: cover,
-            playing: snap.playing,
-            imageRef: coverImgRef,
-            active: staged,
-            wave: prefs.waveEnabled !== false,
-            fallbackDuration: track ? track.durationSec || 0 : 0,
-          }),
-        ),
-        h(
-          'div',
-          { className: 'mp-np-times' },
-          h('span', null, fmtClock(time.currentTime)),
-          h('span', null, fmtClock(duration)),
-        ),
-        h(
-          'div',
-          { className: 'mp-np-transport' },
-          h(IconButton, {
-            icon: 'prev',
-            size: 28,
-            title: t('page.prev'),
-            tooltip: false,
-            onClick: function () {
-              player.prev()
-            },
-          }),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mp-pb-play',
-              title: snap.playing ? t('page.pause') : t('page.play'),
-              onClick: function () {
-                player.toggle()
-              },
-            },
-            icon(snap.playing ? 'pause' : 'play', 38),
-          ),
-          h(IconButton, {
-            icon: 'next',
-            size: 28,
-            title: t('page.next'),
-            tooltip: false,
-            onClick: function () {
-              player.next()
-            },
-          }),
-        ),
-
-        ),
-        h(
-          'div',
-          { className: 'mp-np-secondary' },
-          h(
-            'div',
-            { className: 'mp-np-extra-item', ref: sleepRef },
-            h(IconButton, {
-              icon: 'clock',
-              size: 22,
-              active: extraPanel === 'sleep',
-              title: t('settings.sleepTimer'),
-              onClick: function () {
-                setExtraPanel(extraPanel === 'sleep' ? '' : 'sleep')
-              },
-            }),
-            extraPanel === 'sleep'
-              ? h(
-                  'div',
-                  { className: 'mp-np-extra-pop is-sleep' },
-                  h(
-                    'div',
-                    { className: 'mp-np-sleep-head' },
-                    h('span', { className: 'mp-np-sleep-head-icon' }, icon('clock', 14)),
-                    h(
-                      'div',
-                      { className: 'mp-np-sleep-title-wrap' },
-                      h('div', { className: 'mp-np-sleep-title' }, t('settings.sleepTimer')),
-                      h(
-                        'div',
-                        { className: 'mp-np-sleep-hint' },
-                        sleepRemaining > 0
-                          ? t('sleep.remaining', { time: fmtClock(sleepRemaining / 1000) })
-                          : t('sleep.hint'),
-                      ),
-                    ),
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mp-np-sleep-close',
-                        title: t('editor.close'),
-                        onClick: function () {
-                          setExtraPanel('')
-                        },
-                      },
-                      icon('x', 14),
-                    ),
-                  ),
-                  h('div', { className: 'mp-np-sleep-label' }, t('sleep.presets')),
-                  h(
-                    'div',
-                    { className: 'mp-np-sleep-grid' },
-                    [15, 30, 45, 60, 90].map(function (minutes) {
-                      var on = sleepRemaining > 0 && prefs.sleepTimerMinutes === minutes
-                      return h(
-                        'button',
-                        {
-                          key: minutes,
-                          type: 'button',
-                          className: cx('mp-np-sleep-chip', on && 'is-on'),
-                          onClick: function () {
-                            setSleep(minutes)
-                          },
-                        },
-                        minutes,
-                        h('span', null, t('sleep.minutes')),
-                      )
-                    }),
-                  ),
-                  h('div', { className: 'mp-np-sleep-label' }, t('sleep.custom')),
-                  h(
-                    'div',
-                    { className: 'mp-np-sleep-custom' },
-                    h('input', {
-                      type: 'text',
-                      inputMode: 'numeric',
-                      maxLength: 3,
-                      className: 'mp-np-sleep-input',
-                      placeholder: t('sleep.placeholder'),
-                      'aria-label': t('sleep.placeholder'),
-                      value: sleepCustom,
-                      onChange: function (event) {
-                        setSleepCustom(event.target.value.replace(/[^0-9]/g, '').slice(0, 3))
-                      },
-                      onKeyDown: function (event) {
-                        if (event.key === 'Enter') applySleepCustom()
-                      },
-                    }),
-                    h('span', { className: 'mp-np-sleep-unit' }, t('sleep.minutes')),
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        className: 'mp-np-sleep-set',
-                        disabled: !(Number(sleepCustom) >= 1 && Number(sleepCustom) <= 720),
-                        onClick: applySleepCustom,
-                      },
-                      t('sleep.set'),
-                    ),
-                  ),
-                  sleepCustom !== '' && !(Number(sleepCustom) >= 1 && Number(sleepCustom) <= 720)
-                    ? h('div', { className: 'mp-np-sleep-error' }, t('sleep.invalid'))
-                    : null,
-                  sleepRemaining > 0
-                    ? h(
-                        'button',
-                        {
-                          type: 'button',
-                          className: 'mp-np-sleep-off',
-                          onClick: function () {
-                            setSleep(0)
-                          },
-                        },
-                        t('settings.sleepOff'),
-                      )
-                    : null,
-                )
-              : null,
-          ),
-          h(IconButton, {
-            icon: playModeIcon(playModeOf(snap)),
-            size: 22,
-            title: t('page.loopAll'),
-            onClick: function () {
-              cyclePlayMode(snap)
-            },
-          }),
-          h(
-            'div',
-            { className: 'mp-np-extra-item', ref: audioRef },
-            h(IconButton, {
-              icon: 'equalizer',
-              size: 22,
-              active: extraPanel === 'audio' || extraPanel === 'eq',
-              title: t('page.audioEffects'),
-              onClick: function () {
-                var effectsOpen =
-                  extraPanel === 'audio' || extraPanel === 'eq'
-                setExtraPanel(effectsOpen ? '' : 'audio')
-              },
-            }),
-            extraPanel === 'audio' || extraPanel === 'eq'
-              ? h(AudioEffectsPanel, {
-                  view: extraPanel,
-                  onView: setExtraPanel,
-                  snap: snap,
-                  prefs: prefs,
-                  track: track,
-                })
-              : null,
-          ),
-          h(
-            'div',
-            { className: 'mp-pb-queue-wrap' },
-            h(IconButton, {
-              icon: 'playlist',
-              size: 22,
-              active: props.queueOpen,
-              title: t('page.queue'),
-              onClick: props.onToggleQueue,
-            }),
-            props.queueOpen
-              ? h(QueuePopover, {
-                  open: true,
-                  anchored: true,
-                  snap: snap,
-                  onClose: props.onToggleQueue,
-                })
-              : null,
-          ),
-          h(IconButton, {
-            icon: 'more',
-            size: 22,
-            title: t('editor.title'),
-            onClick: function () {
-              setSettingsOpen(false)
-              setEditorOpen(true)
-            },
-          }),
-        ),
+        h(NpTransportPill, {
+          cover: cover,
+          snap: snap,
+          prefs: prefs,
+          track: track,
+          duration: duration,
+          time: time,
+          staged: staged,
+          coverImgRef: coverImgRef,
+        }),
+        h(NpSecondaryActions, {
+          extraPanel: extraPanel,
+          setExtraPanel: setExtraPanel,
+          sleepRef: sleepRef,
+          audioRef: audioRef,
+          prefs: prefs,
+          sleepCustom: sleepCustom,
+          setSleepCustom: setSleepCustom,
+          sleepRemaining: sleepRemaining,
+          applySleepCustom: applySleepCustom,
+          setSleep: setSleep,
+          snap: snap,
+          track: track,
+          queueOpen: props.queueOpen,
+          onToggleQueue: props.onToggleQueue,
+          setSettingsOpen: setSettingsOpen,
+          setEditorOpen: setEditorOpen,
+        }),
       ),
       h('div', {
         className: 'mp-np-split',

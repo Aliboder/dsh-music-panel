@@ -142,7 +142,7 @@
 | 本地自动匹配 + 写回 | ✅ | `src/host/services/lyrics/local-match.js`、`/lyrics/auto` |
 | 每首来源切换 / 纯音乐 / 不使用在线数据 / 导入 | ✅ | `/lyrics/choice`、`/lyrics/pure-music`、`/lyrics/no-auto-match`、`/lyrics/import`；面板来源段与设置项 |
 | 在线首选来源顺序 | ✅ | `/online/lyric`、`/online/best-lyric` 的 `preferred` 参数 |
-| 在线升级口径（`isWordByWord`、接受逐行、纯音乐） | ✅ | `now-playing.js`、`mpPrepareLyrics` |
+| 在线升级口径（`isWordByWord`、接受逐行、纯音乐） | ✅ | `now-playing/index.js`、`mpPrepareLyrics` |
 | 在线导入 / 在线-导入切换（服务端） | ✅ | `/online/lyric-import`、`/online/lyric-choice`、`/online/lyric-state` |
 | 在线导入的界面入口 | ✅ | 面板来源段（在线 / 导入 / 纯音乐）与「导入 / 导出」窗口（导入写到歌曲记录） |
 | sidecar 命名 / 跨格式翻译 / 格式顺序 | ✅ 读取与「优先格式」设置；完整排序界面未做 | `readSidecarLyrics`、`/lyrics` 的 `formatOrder`、设置页「同目录歌词优先格式」 |

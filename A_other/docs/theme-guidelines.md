@@ -308,7 +308,7 @@ node --run check
 | `src/client/components/ui/dialogs.js` | `Toast`、确认框、右键菜单等浮层 |
 | `src/client/components/ui/header.js` | `HeadMenu`、`ContentHeader`、选择/排序菜单 |
 | `src/client/components/ui/settings.js` | 设置面板（headless Modal）与关于页 |
-| `src/client/components/ui/player-sheet.js` / `now-playing.js` | 播放器卡片 / 播放页（深色岛） |
+| `src/client/components/ui/player-sheet.js` / `now-playing/index.js` | 播放器卡片 / 播放页（深色岛） |
 | `test/client/theme.test.mjs` | 主题/组件守卫 |
 | `A_other/design/official/` | 官方文档与 token 源文件存档 |
 | `A_other/docs/theme-guidelines.md` | 本文档 |

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 代码结构
+
+- `now-playing.js` 按职责拆到 `src/client/components/ui/now-playing/`：`index.js` 只保留页面编排与状态，`capsule.js`、`transport-pill.js`、`seek-bar.js`、`settings-panel.js`、`secondary-actions.js`、`sleep-menu.js`、`editor.js`、`lyrics-scroll.js`、`lyrics-timing.js`、`cover-accent.js`、`fullscreen.js` 各自承担一个组件或 hook；不再把所有功能塞进一个 3200 行文件。
+
 ### 清理
 
 - 删除已不再挂载的旧播放页外壳 `src/client/components/ui/player-page.js`、它的测试和 `.mp-page-*` 样式；当前全屏播放页由 `NowPlaying` 渲染，旧壳只会在构建产物里留下死代码。
