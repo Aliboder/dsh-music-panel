@@ -669,6 +669,15 @@
 
 ---
 
+## 75. 有 profile 不等于 crossfade 会用
+
+- **现象**：profile 已存 bpm/beatOffset，`planBlendShape` 仍传 `nextBeatIn: null`，过渡没有卡拍。
+- **原因**：消费端没有把 profile 的拍点相位换算成 incoming 的下一拍时间。
+- **处理**：`prepareCrossfade` 用 `bpm`/`beatOffset` 计算 `nextBeatIn`，把 `planBlendShape` 的 `overlap` 写回计划。
+- **防回归**：新增 profile 字段后要同时接线消费端；只存不用等于没做。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

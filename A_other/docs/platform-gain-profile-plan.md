@@ -1,6 +1,6 @@
 # 平台增益与 automix profile 对齐计划
 
-状态：在线平台增益、缓存增益恢复、Folia 完整 trackProfile 纯分析、Blob Worker 分析、当前/下一首本地曲 profile、已跨淡预取的在线下一首 profile、Navidrome partial head、Beat This 网格纯转换已接入；模型推理仍待接入。
+状态：在线平台增益、缓存增益恢复、Folia 完整 trackProfile 纯分析、Blob Worker 分析、当前/下一首本地曲 profile、已跨淡预取的在线下一首 profile、Navidrome partial head、Beat This 网格纯转换、crossfade 拍点吸附已接入；模型推理、key/section 消费仍待接入。
 
 目标：把 Folia 的 `platformDb` 与 `profile/head` 两类真实数据接入智能平衡；没有真实数据时保持 null，不伪造。
 

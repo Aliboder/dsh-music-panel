@@ -156873,14 +156873,24 @@ window.__ModuleLoader__.load({
           var audioApi = typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
       if (audioApi !== null && typeof window !== 'undefined') window.__mpFoliaAudio = audioApi
           if (audioApi !== null && typeof audioApi.planBlendShape === 'function') {
+            var nextProfile = item === null ? null : profileFor(item.path)
+            var periodSec = nextProfile && typeof nextProfile.bpm === 'number' && nextProfile.bpm > 0 ? 60 / nextProfile.bpm : null
+            var nextBeatIn = null
+            if (periodSec !== null) {
+              var phase = ((plan.startInNext - (typeof nextProfile.beatOffset === 'number' ? nextProfile.beatOffset : 0)) % periodSec + periodSec) % periodSec
+              nextBeatIn = phase === 0 ? 0 : periodSec - phase
+            }
             shape = audioApi.planBlendShape({
               overlap: plan.overlap,
               outgoingDb: results[0] ? results[0].loudnessDb : null,
-              nextBeatIn: null,
-              periodSec: null,
+              nextBeatIn: nextBeatIn,
+              periodSec: periodSec,
               minOverlap: CROSSFADE_MIN_SECONDS,
               maxOverlap: CROSSFADE_MAX_SECONDS,
             })
+            if (shape !== null && typeof shape.overlap === 'number' && shape.overlap > 0) {
+              plan.overlap = shape.overlap
+            }
           }
           xfadePrepared = {
             nextAt: nextAt,
