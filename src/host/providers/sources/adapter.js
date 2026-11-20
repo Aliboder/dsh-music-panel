@@ -138,6 +138,10 @@ export function createOnlineAdapter(spec) {
       const { cookie, session } = parts(ctx)
       return call('playlistSongs', id, cookie, session)
     },
+    playlistSongsPage(id, ctx, page) {
+      const { cookie, session } = parts(ctx)
+      return call('playlistSongsPage', id, cookie, session, page)
+    },
     liked(id, ctx) {
       const { cookie, session } = parts(ctx)
       return call('onlineLiked', id, cookie, session)

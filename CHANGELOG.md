@@ -31,6 +31,7 @@
 ### 在线歌单
 
 - 网易云歌单不再停在 1000 首：Host 以前只请求一次 `/playlist/track/all` 的 `limit:1000, offset:0`；现在按 500 首分页，循环到歌单 `trackCount` 或返回不足一页为止，与 Folia 的 `getPlaylistTracks(limit, offset)` 分页一致。
+- 在线歌单接口新增 `limit/offset` 分页：网易云、波点、汽水、酷狗/概念版、QQ、Navidrome 返回 `songs/hasMore/nextOffset/trackCount`；客户端首屏只取 100 首，滚动到底再取下一页，不再把整张歌单放进一个请求。
 - 同类分页上限一并排查：波点原来只取 100 首，汽水只取 60 首，酷狗标准版只取 300 首，酷狗概念版停在 2000/4000 首；现在分别按 `total` / `hasMore` / 短页继续取。QQ 自建歌单与「我喜欢」本来已分页，Navidrome 和本地歌单不设固定上限。
 - 「添加到歌单」弹窗改为 DSH 组件体系：`SetRow` 分组行 + `Button`，使用 `mp-set-card` / `mp-folder-state` / `mp-online-error` 等现有样式；移除裸 `<button>`、内联边框/背景/圆角与硬编码错误色。
 

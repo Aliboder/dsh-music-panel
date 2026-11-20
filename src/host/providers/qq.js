@@ -368,6 +368,49 @@ export async function getPlaylistSongs(id, cookie = '') {
   }
 }
 
+/** One page of an owned/liked playlist; the Host route returns pages, not summaries. */
+export async function getPlaylistSongsPage(id, limit = 100, offset = 0, cookie = '') {
+  const key = String(id ?? '')
+  const size = Math.max(1, Math.min(200, parseInt(limit, 10) || 100))
+  const at = Math.max(0, parseInt(offset, 10) || 0)
+  const meta = playlistMeta.get(key)
+  if (!meta || meta.owned !== true) {
+    const full = await legacyPlaylistSongs(key, cookie)
+    const songs = (full.songs || []).slice(at, at + size)
+    return {
+      name: full.name || '',
+      cover: full.cover || '',
+      trackCount: Number(full.trackCount) || (full.songs || []).length,
+      songs,
+      hasMore: at + songs.length < (full.songs || []).length,
+      nextOffset: at + songs.length,
+    }
+  }
+  if (meta.liked) {
+    const page = await callUpstream('/user/liked-songs', { limit: size, offset: at }, { cookie })
+    const rows = Array.isArray(page.songs) ? page.songs : []
+    const total = Number(page.total) || 0
+    return {
+      name: '我喜欢', cover: '', trackCount: total || rows.length,
+      songs: rows.map(toLegacyResult).filter(Boolean),
+      hasMore: page.more === true || (total > 0 && at + rows.length < total),
+      nextOffset: at + rows.length,
+    }
+  }
+  if (meta.tid === '') throw new Error('QQ playlist has no tid')
+  const page = await callUpstream('/user/playlist-detail', {
+    tid: meta.tid, dirid: meta.dirId, offset: at, limit: size,
+  }, { cookie })
+  const rows = Array.isArray(page.songs) ? page.songs : []
+  const total = Number(page.total) || 0
+  return {
+    name: '', cover: '', trackCount: total || rows.length,
+    songs: rows.map(toLegacyResult).filter(Boolean),
+    hasMore: page.more === true || (total > 0 && at + rows.length < total),
+    nextOffset: at + rows.length,
+  }
+}
+
 /** Legacy contract: `{ mids, songids }` for the liked songs. */
 export async function getQQFavIds(cookie = '') {
   const mids = []

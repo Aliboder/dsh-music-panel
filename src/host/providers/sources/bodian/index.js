@@ -424,6 +424,22 @@ export function createBodianSource(options) {
       return { name: '', cover: '', trackCount: total || songs.length, songs }
     },
 
+    async playlistSongsPage(id, _ctx, page) {
+      const limit = Math.max(1, Math.min(200, Number(page?.limit) || 100))
+      const offset = Math.max(0, Number(page?.offset) || 0)
+      const data = await request('playlist_tracks', { id: String(id), limit, offset, source: 4 })
+      const rows = Array.isArray(data?.resultList) ? data.resultList : Array.isArray(data?.list) ? data.list : []
+      const songs = rows.map(toTrack).filter(Boolean)
+      const total = Number(data?.total) || 0
+      return {
+        name: '', cover: '',
+        trackCount: total || songs.length,
+        songs,
+        hasMore: total > 0 ? offset + songs.length < total : rows.length >= limit,
+        nextOffset: offset + songs.length,
+      }
+    },
+
     async addToPlaylist(song, playlistId) {
       const id = String(song?.id ?? '')
       const target = String(playlistId ?? '').trim()

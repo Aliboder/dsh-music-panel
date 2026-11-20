@@ -3,7 +3,7 @@
  */
 
 import assert from 'node:assert/strict'
-import { getPlaylistSongs } from '../../src/host/providers/netease.js'
+import { getPlaylistSongs, getPlaylistSongsPage } from '../../src/host/providers/netease.js'
 import { resetUpstreamOverride, setUpstreamOverride } from '../../src/host/services/netease-api.js'
 
 const total = 1200
@@ -58,3 +58,33 @@ try {
 } finally {
   resetUpstreamOverride()
 }
+// The page route asks for one page and keeps the offset contract.
+{
+  const pageCalls = []
+  setUpstreamOverride(async (route, params) => {
+    if (route === '/playlist/detail') {
+      return { playlist: { id: '77', name: 'Long playlist', coverImgUrl: '', trackCount: 1200 } }
+    }
+    if (route === '/playlist/track/all') {
+      pageCalls.push({ limit: params.limit, offset: params.offset })
+      const offset = Number(params.offset) || 0
+      const count = Math.max(0, Math.min(Number(params.limit) || 100, 1200 - offset))
+      return { songs: Array.from({ length: count }, (_, index) => rawSong(offset + index)) }
+    }
+    throw new Error('unexpected route: ' + route)
+  })
+  try {
+    const first = await getPlaylistSongsPage('77', 100, 0, 'MUSIC_U=test')
+    assert.equal(first.songs.length, 100)
+    assert.equal(first.trackCount, 1200)
+    assert.equal(first.hasMore, true)
+    assert.equal(first.nextOffset, 100)
+    const last = await getPlaylistSongsPage('77', 100, 1100, 'MUSIC_U=test')
+    assert.equal(last.songs.length, 100)
+    assert.equal(last.hasMore, false)
+    assert.deepEqual(pageCalls.map((call) => call.offset), [0, 1100])
+  } finally {
+    resetUpstreamOverride()
+  }
+}
+

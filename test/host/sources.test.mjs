@@ -87,6 +87,31 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   assert.equal(error.retryable, true)
 }
 
+// ── playlist page fallback ─────────────────────────────────────────────────
+// A source that only implements the legacy full read still exposes the page
+// contract through omni; the client never needs a provider-specific branch.
+{
+  const registry = createRegistry()
+  registry.register({
+    id: 'full',
+    displayName: 'Full',
+    capabilities: { playlistSongs: true },
+    playlistSongs: async () => ({
+      name: 'All',
+      cover: '',
+      trackCount: 250,
+      songs: Array.from({ length: 250 }, (_, index) => ({ id: String(index) })),
+    }),
+  })
+  const omni = createOmni(registry)
+  const page = await omni.playlistSongsPage('full', 'p1', {}, { limit: 100, offset: 100 })
+  assert.equal(page.songs.length, 100)
+  assert.equal(page.songs[0].id, '100')
+  assert.equal(page.trackCount, 250)
+  assert.equal(page.hasMore, true)
+  assert.equal(page.nextOffset, 200)
+}
+
 // ── adapter guard ───────────────────────────────────────────────────────────
 
 {

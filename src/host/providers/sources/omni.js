@@ -125,6 +125,32 @@ export function createOmni(registry) {
     // ── playlists / likes ─────────────────────────────────────────────────
     myPlaylists: route('myPlaylists'),
     playlistSongs: route('playlistSongs'),
+    /**
+     * A page from the provider's catalogue. Sources that still only implement the
+     * legacy full read are adapted here, so callers always get the page shape.
+     */
+    async playlistSongsPage(sourceId, id, ctx, page) {
+      const source = registry.get(sourceId)
+      if (source === null) {
+        throw new MusicError(`source is not registered: ${sourceId}`, { code: 'unavailable', sourceId })
+      }
+      if (typeof source.playlistSongsPage === 'function') {
+        return dispatch(sourceId, 'playlistSongsPage', [id, ctx, page])
+      }
+      const full = await dispatch(sourceId, 'playlistSongs', [id, ctx])
+      const songs = Array.isArray(full?.songs) ? full.songs : []
+      const limit = Math.max(1, Math.min(200, Number(page?.limit) || 100))
+      const offset = Math.max(0, Number(page?.offset) || 0)
+      const slice = songs.slice(offset, offset + limit)
+      return {
+        name: full?.name || '',
+        cover: full?.cover || '',
+        trackCount: Number(full?.trackCount) || songs.length,
+        songs: slice,
+        hasMore: offset + slice.length < songs.length,
+        nextOffset: offset + slice.length,
+      }
+    },
     liked: route('liked'),
     likedIds: route('likedIds'),
     setLiked: route('setLiked'),

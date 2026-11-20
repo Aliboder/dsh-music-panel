@@ -1346,6 +1346,106 @@ export async function playlistSongs(provider, id, cookie = '', session = {}) {
   }
 }
 
+function pageBounds(page) {
+  return {
+    limit: Math.max(1, Math.min(200, parseInt(page?.limit, 10) || 100)),
+    offset: Math.max(0, parseInt(page?.offset, 10) || 0),
+  }
+}
+
+function shapePlaylistSongs(provider, rawSongs) {
+  return (Array.isArray(rawSongs) ? rawSongs : []).map((song) => {
+    const shaped = shape(provider, song)
+    rawSongs.set(provider + ':' + shaped.id, song)
+    return shaped
+  })
+}
+
+/**
+ * One page of a playlist. Folia's catalogue contract is page-shaped; providers
+ * with a native paged read return it directly, the rest are adapted from the
+ * legacy full read until their page primitive is migrated.
+ */
+export async function playlistSongsPage(provider, id, cookie = '', session = {}, page = {}) {
+  const { limit, offset } = pageBounds(page)
+  if (provider === 'netease') {
+    const result = await NC.getPlaylistSongsPage(id, limit, offset, cookie)
+    return {
+      name: result.name || '',
+      cover: result.cover || '',
+      trackCount: Number(result.trackCount) || 0,
+      songs: shapePlaylistSongs(provider, result.songs),
+      hasMore: result.hasMore === true,
+      nextOffset: Number(result.nextOffset) || offset,
+    }
+  }
+  if (provider === 'qq') {
+    const result = await QQ.getPlaylistSongsPage(id, limit, offset, cookie)
+    return {
+      name: result.name || '',
+      cover: result.cover || '',
+      trackCount: Number(result.trackCount) || 0,
+      songs: shapePlaylistSongs(provider, result.songs),
+      hasMore: result.hasMore === true,
+      nextOffset: Number(result.nextOffset) || offset,
+    }
+  }
+  if (provider === 'navidrome') {
+    const result = await ND.playlistSongsPage(navidromeConfig(session), id, limit, offset)
+    return {
+      name: result.name || '',
+      cover: result.cover || '',
+      trackCount: Number(result.trackCount) || 0,
+      songs: shapePlaylistSongs(provider, result.songs),
+      hasMore: result.hasMore === true,
+      nextOffset: Number(result.nextOffset) || offset,
+    }
+  }
+  if (provider === 'kugou' || provider === 'kugouLite') {
+    let mine = []
+    try {
+      mine = await (provider === 'kugouLite' ? KGL.getMyPlaylists(session) : KG.getMyPlaylists(session))
+    } catch {
+      mine = []
+    }
+    const item = (mine || []).find((entry) => String(entry.id) === String(id))
+    if (item && item.kind !== 'collect') {
+      const result = await (provider === 'kugouLite'
+        ? KGL.getMyPlaylistSongsPage(id, limit, offset, session)
+        : KG.getMyPlaylistSongsPage(id, limit, offset, session))
+      return {
+        name: item.name || '',
+        cover: item.cover || '',
+        trackCount: Number(result.trackCount) || Number(item.trackCount) || 0,
+        songs: shapePlaylistSongs(provider, result.songs),
+        hasMore: result.hasMore === true,
+        nextOffset: Number(result.nextOffset) || offset,
+      }
+    }
+    if (provider === 'kugou') {
+      const result = await KG.getPlaylistSongsPage(id, limit, offset, session)
+      return {
+        name: result.name || '',
+        cover: result.cover || '',
+        trackCount: Number(result.trackCount) || 0,
+        songs: shapePlaylistSongs(provider, result.songs),
+        hasMore: result.hasMore === true,
+        nextOffset: Number(result.nextOffset) || offset,
+      }
+    }
+  }
+  const full = await playlistSongs(provider, id, cookie, session)
+  const songs = full.songs.slice(offset, offset + limit)
+  return {
+    name: full.name || '',
+    cover: full.cover || '',
+    trackCount: full.trackCount || full.songs.length,
+    songs,
+    hasMore: offset + songs.length < full.songs.length,
+    nextOffset: offset + songs.length,
+  }
+}
+
 
 // =====================================================================
 // Cloud writes: like one song / add it to one of the account's playlists.

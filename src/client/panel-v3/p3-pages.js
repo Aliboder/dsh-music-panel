@@ -879,6 +879,7 @@ function P3OnlinePlaylistPage(props) {
     if (String(store.playlistId) !== String(collection.id) || store.playlistPhase === 'idle' || store.playlistPhase === 'error') void openOnlinePlaylist(collection)
   }, [props.route.param, props.route.source])
   var items = p3OnlineTrackList(props.online.playlistSongs)
+  var totalCount = Number(props.online.playlistTrackCount) || items.length
   var canRemove = collection && collection.isOwned === true && p3SourceCaps(props.route.source).playlistTrackMutations === true
   function removeTrack(track) {
     if (!canRemove || !collection) return
@@ -896,7 +897,7 @@ function P3OnlinePlaylistPage(props) {
     })
       .then(function () {
         showToast(t('p3.removedFromPlaylist'))
-        return openOnlinePlaylist(collection)
+        return openOnlinePlaylist(collection, true)
       })
       .catch(function (error) { showToast(errorText(error)) })
   }
@@ -908,7 +909,7 @@ function P3OnlinePlaylistPage(props) {
       eyebrow: t('v2.playlist'),
       title: props.online.playlistName || (collection && collection.name) || t('v2.playlist'),
       coverSrc: collection && (collection.cover || collection.coverUrl) ? p3OnlineCover(collection, props.route.source, 'playlist') : (items[0] ? trackCoverSrc(items[0]) : ''),
-      meta: h('span', null, items.length + ' ' + t('p3.unitSong')),
+      meta: h('span', null, totalCount + ' ' + t('p3.unitSong')),
       actions: h('div', { className: 'mpv3-hero-actions' },
         h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
         h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
@@ -920,6 +921,10 @@ function P3OnlinePlaylistPage(props) {
     favoriteSet: props.favoriteSet,
     selectedSet: {},
     onRemove: canRemove ? removeTrack : undefined,
+    hasMore: props.online.playlistHasMore === true,
+    loadingMore: props.online.playlistLoadingMore === true,
+    loadMoreError: props.online.playlistPageError || '',
+    onLoadMore: function () { void loadMoreOnlinePlaylist() },
     resetKey: 'online-playlist:' + props.route.param,
     empty: h(P3Empty, { icon: 'list', title: t('p3.playlistEmpty') }),
   })

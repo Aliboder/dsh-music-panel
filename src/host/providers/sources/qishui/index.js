@@ -361,6 +361,22 @@ export function createQishuiSource(options) {
       return { name: '', cover: '', trackCount: total || songs.length, songs }
     },
 
+    async playlistSongsPage(id, _ctx, page) {
+      const limit = Math.max(1, Math.min(200, Number(page?.limit) || 100))
+      const offset = Math.max(0, Number(page?.offset) || 0)
+      const data = await request('playlist_tracks', { id: String(id), limit, offset })
+      const items = Array.isArray(data?.items) ? data.items : []
+      const songs = items.map(toTrack).filter(Boolean)
+      const total = Number(data?.total) || 0
+      return {
+        name: '', cover: '',
+        trackCount: total || songs.length,
+        songs,
+        hasMore: data?.hasMore === true || (total > 0 && offset + songs.length < total),
+        nextOffset: offset + songs.length,
+      }
+    },
+
     async liked(id) {
       const ids = await this.likedIds()
       return ids.includes('online:qishui:' + String(id))

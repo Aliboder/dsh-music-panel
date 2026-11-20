@@ -561,6 +561,48 @@ export async function getMyPlaylists(cookie = '', page = 1, pagesize = 100) {
   })
 }
 
+const PLAYLIST_META_TTL = 5 * 60 * 1000
+const playlistMetaCache = new Map()
+
+async function playlistMeta(id, cookie) {
+  const hit = playlistMetaCache.get(id)
+  if (hit && Date.now() - hit.at < PLAYLIST_META_TTL) return hit.meta
+  const json = await callUpstream('/playlist/detail', { id, n: 1, s: 8 }, { cookie })
+  const playlist = json.playlist || {}
+  const meta = {
+    name: plain(playlist.name),
+    cover: plain(playlist.coverImgUrl),
+    trackCount: Number(playlist.trackCount) || 0,
+  }
+  playlistMetaCache.set(id, { at: Date.now(), meta })
+  return meta
+}
+
+/** Pageable playlist read; Folia's getPlaylistTracks(limit, offset). */
+export async function getPlaylistSongsPage(id, limit = 100, offset = 0, cookie = '') {
+  const playlistId = String(id ?? '').trim()
+  if (!/^[0-9]+$/.test(playlistId)) throw new Error('bad playlist id')
+  const requestCookie = await dataCookie(cookie)
+  const meta = await playlistMeta(playlistId, requestCookie)
+  const size = Math.max(1, Math.min(1000, parseInt(limit, 10) || 100))
+  const at = Math.max(0, parseInt(offset, 10) || 0)
+  const page = await callUpstream(
+    '/playlist/track/all',
+    { id: playlistId, limit: size, offset: at },
+    { cookie: requestCookie },
+  )
+  const songs = (Array.isArray(page.songs) ? page.songs : []).map(songOf).filter(Boolean)
+  const trackCount = meta.trackCount || songs.length
+  return {
+    name: meta.name,
+    cover: meta.cover,
+    trackCount,
+    songs,
+    hasMore: at + songs.length < trackCount || (trackCount === 0 && songs.length === size),
+    nextOffset: at + songs.length,
+  }
+}
+
 /** Same contract as the legacy `getPlaylistSongs`. */
 export async function getPlaylistSongs(id, cookie = '') {
   const playlistId = String(id ?? '').trim()

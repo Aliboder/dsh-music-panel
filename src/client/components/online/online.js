@@ -39,6 +39,11 @@ var onlineStore = createStore({
   playlistId: '',
   playlistName: '',
   playlistSongs: [],
+  playlistTrackCount: 0,
+  playlistHasMore: false,
+  playlistNextOffset: 0,
+  playlistLoadingMore: false,
+  playlistPageError: '',
   playlistPhase: 'idle',
   playlistRefreshing: false,
   albumId: '',
@@ -255,6 +260,11 @@ function resetOnlineAccountData() {
     playlistId: '',
     playlistName: '',
     playlistSongs: [],
+    playlistTrackCount: 0,
+    playlistHasMore: false,
+    playlistNextOffset: 0,
+    playlistLoadingMore: false,
+    playlistPageError: '',
     playlistPhase: 'idle',
     playlistRefreshing: false,
     albumId: '',
@@ -492,41 +502,68 @@ function trimPlaylistCache() {
     })
 }
 
-function fetchPlaylistSongs(provider, id, force) {
+var PLAYLIST_PAGE_SIZE = 100
+
+function playlistPageOf(hit, offset) {
+  if (!hit || !hit.pages) return null
+  return hit.pages[String(offset)] || null
+}
+
+/**
+ * One page from the Host. The cache stores pages, never a synthetic full list;
+ * a playlist of 10k tracks must not allocate 10k rows to paint the first screen.
+ */
+function fetchPlaylistPage(provider, id, offset, force) {
   var key = playlistCacheKey(provider, id)
-  if (!force && playlistInflight.has(key)) return playlistInflight.get(key)
+  var inflightKey = key + '|' + String(offset)
+  if (!force && playlistInflight.has(inflightKey)) return playlistInflight.get(inflightKey)
   var request = getJson(
     API +
       'online/playlist-songs?provider=' +
       encodeURIComponent(provider) +
       '&id=' +
-      encodeURIComponent(id),
+      encodeURIComponent(id) +
+      '&limit=' +
+      String(PLAYLIST_PAGE_SIZE) +
+      '&offset=' +
+      String(offset),
   )
     .then(function (body) {
       var songs = Array.isArray(body.songs) ? body.songs : []
-      playlistCache.set(key, {
+      var page = {
         songs: songs,
         name: body.name || '',
-        at: Date.now(),
-      })
+        cover: body.cover || '',
+        trackCount: Number(body.trackCount) || 0,
+        hasMore: body.hasMore === true,
+        nextOffset: Number(body.nextOffset) || offset + songs.length,
+      }
+      var hit = playlistCache.get(key) || { pages: {}, at: 0 }
+      hit.pages = hit.pages || {}
+      hit.pages[String(offset)] = page
+      hit.name = page.name || hit.name || ''
+      hit.cover = page.cover || hit.cover || ''
+      hit.trackCount = page.trackCount || hit.trackCount || 0
+      hit.at = Date.now()
+      playlistCache.set(key, hit)
       trimPlaylistCache()
-      return { songs: songs, name: body.name || '' }
+      return page
     })
     .finally(function () {
-      if (playlistInflight.get(key) === request) playlistInflight.delete(key)
+      if (playlistInflight.get(inflightKey) === request) playlistInflight.delete(inflightKey)
     })
-  playlistInflight.set(key, request)
+  playlistInflight.set(inflightKey, request)
   return request
 }
 
-/** Warm the cache when the pointer/focus reaches a playlist nav item. */
+/** Warm the first page when the pointer/focus reaches a playlist nav item. */
 function prefetchOnlinePlaylist(playlist) {
   if (!playlist || !playlist.id) return
   var provider = onlineStore.get().provider
   var key = playlistCacheKey(provider, playlist.id)
   var hit = playlistCache.get(key)
-  if (hit && Date.now() - (hit.at || 0) < PLAYLIST_CACHE_TTL) return
-  void fetchPlaylistSongs(provider, playlist.id, false).catch(function () {
+  if (hit && playlistPageOf(hit, 0) && Date.now() - (hit.at || 0) < PLAYLIST_CACHE_TTL) return
+  void fetchPlaylistPage(provider, playlist.id, 0, false).catch(function () {
     // Prefetch is best effort.
   })
 }
@@ -535,32 +572,44 @@ async function openOnlinePlaylist(playlist, force) {
   if (!playlist || !playlist.id) return
   var provider = onlineStore.get().provider
   var key = playlistCacheKey(provider, playlist.id)
+  if (force === true) playlistCache.delete(key)
   var hit = playlistCache.get(key)
-  var fresh = hit && Date.now() - (hit.at || 0) < PLAYLIST_CACHE_TTL
+  var first = playlistPageOf(hit, 0)
+  var fresh = Boolean(first && Date.now() - (hit.at || 0) < PLAYLIST_CACHE_TTL)
   onlineStore.set({
     playlistId: playlist.id,
-    playlistName: playlist.name || (hit && hit.name) || '',
-    playlistPhase: hit ? 'ready' : 'loading',
-    playlistSongs: hit ? hit.songs : [],
+    playlistName: (first && first.name) || playlist.name || (hit && hit.name) || '',
+    playlistPhase: first ? 'ready' : 'loading',
+    playlistSongs: first ? first.songs : (hit && Array.isArray(hit.songs) ? hit.songs : []),
+    playlistTrackCount: (hit && hit.trackCount) || (playlist && playlist.trackCount) || 0,
+    playlistHasMore: first ? first.hasMore === true : false,
+    playlistNextOffset: first ? first.nextOffset : 0,
+    playlistLoadingMore: false,
+    playlistPageError: '',
     playlistRefreshing: false,
   })
   if (fresh && force !== true) return
   if (hit) onlineStore.set({ playlistRefreshing: true })
   try {
-    var body = await fetchPlaylistSongs(provider, playlist.id, force === true)
+    var page = await fetchPlaylistPage(provider, playlist.id, 0, force === true)
     var state = onlineStore.get()
     if (String(state.playlistId) !== String(playlist.id) || state.provider !== provider) return
     onlineStore.set({
       playlistPhase: 'ready',
       playlistRefreshing: false,
-      playlistName: body.name || playlist.name || '',
-      playlistSongs: body.songs,
+      playlistName: page.name || playlist.name || '',
+      playlistSongs: page.songs,
+      playlistTrackCount: page.trackCount || (playlist && playlist.trackCount) || 0,
+      playlistHasMore: page.hasMore === true,
+      playlistNextOffset: page.nextOffset,
+      playlistLoadingMore: false,
+      playlistPageError: '',
       error: '',
     })
   } catch (error) {
     var current = onlineStore.get()
     if (String(current.playlistId) !== String(playlist.id) || current.provider !== provider) return
-    if (hit) {
+    if (first) {
       onlineStore.set({ playlistPhase: 'ready', playlistRefreshing: false, error: errorText(error) })
     } else {
       onlineStore.set({ playlistPhase: 'error', playlistRefreshing: false, playlistSongs: [], error: errorText(error) })
@@ -568,8 +617,55 @@ async function openOnlinePlaylist(playlist, force) {
   }
 }
 
+async function loadMoreOnlinePlaylist() {
+  var state = onlineStore.get()
+  if (!state.playlistId || state.playlistPhase !== 'ready' || state.playlistHasMore !== true || state.playlistLoadingMore === true) return
+  var provider = state.provider
+  var id = state.playlistId
+  var offset = Number(state.playlistNextOffset) || 0
+  onlineStore.set({ playlistLoadingMore: true, playlistPageError: '' })
+  try {
+    var page = await fetchPlaylistPage(provider, id, offset, false)
+    var current = onlineStore.get()
+    if (String(current.playlistId) !== String(id) || current.provider !== provider) return
+    var seen = {}
+    var merged = (current.playlistSongs || []).slice()
+    merged.forEach(function (song) { seen[String(song.path || '')] = true })
+    ;(page.songs || []).forEach(function (song) {
+      var path = String(song.path || '')
+      if (path !== '' && seen[path] === true) return
+      if (path !== '') seen[path] = true
+      merged.push(song)
+    })
+    var nextOffset = Number(page.nextOffset) || offset + page.songs.length
+    if (nextOffset <= offset) nextOffset = offset + page.songs.length
+    onlineStore.set({
+      playlistSongs: merged,
+      playlistTrackCount: page.trackCount || current.playlistTrackCount || merged.length,
+      playlistHasMore: page.hasMore === true && nextOffset > offset,
+      playlistNextOffset: nextOffset,
+      playlistLoadingMore: false,
+      playlistPageError: '',
+    })
+  } catch (error) {
+    var latest = onlineStore.get()
+    if (String(latest.playlistId) !== String(id) || latest.provider !== provider) return
+    onlineStore.set({ playlistLoadingMore: false, playlistPageError: errorText(error) })
+  }
+}
+
 function closeOnlinePlaylist() {
-  onlineStore.set({ playlistId: '', playlistName: '', playlistSongs: [], playlistPhase: 'idle' })
+  onlineStore.set({
+    playlistId: '',
+    playlistName: '',
+    playlistSongs: [],
+    playlistTrackCount: 0,
+    playlistHasMore: false,
+    playlistNextOffset: 0,
+    playlistLoadingMore: false,
+    playlistPageError: '',
+    playlistPhase: 'idle',
+  })
 }
 
 async function loadProviders() {

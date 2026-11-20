@@ -880,6 +880,7 @@ function P3List(props) {
   var [headerHeight, setHeaderHeight] = useState(0)
   var [focusPath, setFocusPath] = useState(props.focusPath || (items[0] ? items[0].path : ''))
   var rowHeight = 76
+  var [moreBusy, setMoreBusy] = useState(false)
 
   useEffect(function () {
     var el = scrollRef.current
@@ -938,8 +939,23 @@ function P3List(props) {
   var start = Math.max(0, Math.floor((scrollTop - headerHeight) / rowHeight) - 4)
   var end = Math.min(items.length, Math.ceil((scrollTop + viewport - headerHeight) / rowHeight) + 4)
   var visible = items.slice(start, end)
-  var total = headerHeight + items.length * rowHeight
+  var footerHeight = props.hasMore === true || props.loadingMore === true || props.loadMoreError ? 56 : 0
+  var total = headerHeight + items.length * rowHeight + footerHeight
   if (items.length === 0) total = headerHeight + 240
+
+  function requestMore() {
+    if (props.hasMore !== true || props.loadingMore === true || moreBusy || typeof props.onLoadMore !== 'function') return
+    setMoreBusy(true)
+    props.onLoadMore()
+  }
+
+  useEffect(function () {
+    if (props.loadingMore !== true) setMoreBusy(false)
+  }, [props.loadingMore, items.length])
+
+  useEffect(function () {
+    if (props.hasMore === true && items.length > 0 && total <= viewport + 400) requestMore()
+  }, [items.length, total, viewport, props.hasMore, props.loadingMore])
 
   return h(
     'div',
@@ -947,7 +963,11 @@ function P3List(props) {
       className: 'mpv3-scroll',
       ref: scrollRef,
       tabIndex: 0,
-      onScroll: function (event) { setScrollTop(event.currentTarget.scrollTop) },
+      onScroll: function (event) {
+        var top = event.currentTarget.scrollTop
+        setScrollTop(top)
+        if (top + viewport >= total - 400) requestMore()
+      },
       onKeyDown: function (event) {
         if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
           if (focusIndex(event)) event.preventDefault()
@@ -977,6 +997,18 @@ function P3List(props) {
               onRemove: props.onRemove,
             }))
           }),
+      footerHeight > 0
+        ? h('div', { className: 'mpv3-list-footer', style: { top: (headerHeight + items.length * rowHeight) + 'px', height: footerHeight + 'px' } },
+            h('div', { className: 'mpv3-more' },
+              h(Button, {
+                variant: 'ghost',
+                disabled: props.loadingMore === true || moreBusy,
+                title: props.loadMoreError || '',
+                onClick: requestMore,
+              }, props.loadingMore === true || moreBusy ? t('p3.loadingMore') : t('p3.loadMore')),
+            ),
+          )
+        : null,
     ),
   )
 }

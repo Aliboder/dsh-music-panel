@@ -1591,6 +1591,24 @@ export function createOnlineRoutes(deps) {
               songs,
             })
           }
+          const limit = params.get('limit')
+          const offset = params.get('offset')
+          if (limit !== null || offset !== null) {
+            const result = await omni.playlistSongsPage(provider, id, { cookie, session }, {
+              limit: limit === null ? 100 : Number(limit),
+              offset: offset === null ? 0 : Number(offset),
+            })
+            return sendJson(res, 200, {
+              ok: true,
+              provider,
+              name: result.name,
+              cover: result.cover,
+              trackCount: result.trackCount,
+              songs: result.songs,
+              hasMore: result.hasMore === true,
+              nextOffset: result.nextOffset,
+            })
+          }
           const result = await omni.playlistSongs(provider, id, { cookie, session })
           return sendJson(res, 200, {
             ok: true,

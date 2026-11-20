@@ -589,6 +589,28 @@ export async function playlistSongs(config, playlistId) {
 }
 
 /**
+ * Subsonic has no playlist paging; this adapter still honours the page contract
+ * so callers do not need a provider-specific branch. The full list is read once
+ * per request and sliced here.
+ */
+export async function playlistSongsPage(config, playlistId, limit = 100, offset = 0) {
+  const body = await requestJson(config, 'getPlaylist.view', { id: String(playlistId ?? '') })
+  const wrap = body.playlist || {}
+  const entries = Array.isArray(wrap.entry) ? wrap.entry : []
+  const all = entries.map(songOf).filter((song) => song !== null)
+  const size = Math.max(1, Math.min(200, parseInt(limit, 10) || 100))
+  const at = Math.max(0, parseInt(offset, 10) || 0)
+  const songs = all.slice(at, at + size)
+  return {
+    name: wrap.name || '', cover: '',
+    trackCount: all.length,
+    songs,
+    hasMore: at + songs.length < all.length,
+    nextOffset: at + songs.length,
+  }
+}
+
+/**
  * Timed lyrics for one song.
  *
  * Navidrome reads a sidecar `.lrc` (or embedded tags) and serves it through
