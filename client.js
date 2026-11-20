@@ -156436,7 +156436,18 @@ window.__ModuleLoader__.load({
         var item = state.queue[next]
         if (!item || typeof item.path !== 'string' || item.path === '') return
         if (prefetchedProfilePath === item.path || profileFor(item.path) !== null) return
-        if (item.onlineProvider && item.onlineProvider !== 'navidrome') return
+        if (item.onlineProvider && item.onlineProvider !== 'navidrome') {
+          // Folia analyses an online track only when its bytes are already in hand.
+          if (prefetchedNext === null || prefetchedNext.path !== item.path) return
+          prefetchedProfilePath = item.path
+          analyzeLoudnessBlob(
+            item,
+            prefetchedNext.blob,
+            function () { return true },
+            function () { /* the store is the result */ },
+          ).catch(function () { /* optional */ })
+          return
+        }
         prefetchedProfilePath = item.path
         var request = item.onlineProvider === 'navidrome'
           ? fetch(item.onlineUrl, { headers: { Range: 'bytes=0-1572863' } })
@@ -159800,6 +159811,19 @@ window.__ModuleLoader__.load({
 
     var PROFILE_STORE_KEY = 'music.profile.v1'
     var PROFILE_MAX_RECORDS = 200
+    var profileVersionCache = null
+
+    function profileVersion() {
+      if (profileVersionCache !== null) return profileVersionCache
+      if (typeof __mpProfileBundle !== 'function') return null
+      try {
+        var api = __mpProfileBundle()
+        profileVersionCache = typeof api.TRACK_PROFILE_VERSION === 'number' ? api.TRACK_PROFILE_VERSION : null
+      } catch (error) {
+        profileVersionCache = null
+      }
+      return profileVersionCache
+    }
 
     function readProfileStore() {
       try {
@@ -159825,6 +159849,8 @@ window.__ModuleLoader__.load({
     function profileFor(path) {
       var entry = path ? profileStoreData[path] : null
       if (!entry || typeof entry.programLoudness !== 'number') return null
+      var version = profileVersion()
+      if (version !== null && typeof entry.version === 'number' && entry.version !== version) return null
       return Object.assign({}, entry, {
         programLoudness: entry.programLoudness,
         peak: typeof entry.peak === 'number' ? entry.peak : null,
@@ -159838,7 +159864,9 @@ window.__ModuleLoader__.load({
     function noteProfile(path, measured) {
       if (!path || !measured || typeof measured.programLoudness !== 'number') return
       if (!(measured.programLoudness > -90)) return
+      var version = typeof measured.version === 'number' ? measured.version : profileVersion()
       profileStoreData[path] = Object.assign({}, measured, {
+        ...(version === null ? {} : { version: version }),
         programLoudness: measured.programLoudness,
         peak: typeof measured.peak === 'number' ? measured.peak : null,
         leadIn: typeof measured.leadIn === 'number' ? measured.leadIn : 0,

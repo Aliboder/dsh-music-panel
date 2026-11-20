@@ -10,6 +10,19 @@
 
 var PROFILE_STORE_KEY = 'music.profile.v1'
 var PROFILE_MAX_RECORDS = 200
+var profileVersionCache = null
+
+function profileVersion() {
+  if (profileVersionCache !== null) return profileVersionCache
+  if (typeof __mpProfileBundle !== 'function') return null
+  try {
+    var api = __mpProfileBundle()
+    profileVersionCache = typeof api.TRACK_PROFILE_VERSION === 'number' ? api.TRACK_PROFILE_VERSION : null
+  } catch (error) {
+    profileVersionCache = null
+  }
+  return profileVersionCache
+}
 
 function readProfileStore() {
   try {
@@ -35,6 +48,8 @@ function writeProfileStore() {
 function profileFor(path) {
   var entry = path ? profileStoreData[path] : null
   if (!entry || typeof entry.programLoudness !== 'number') return null
+  var version = profileVersion()
+  if (version !== null && typeof entry.version === 'number' && entry.version !== version) return null
   return Object.assign({}, entry, {
     programLoudness: entry.programLoudness,
     peak: typeof entry.peak === 'number' ? entry.peak : null,
@@ -48,7 +63,9 @@ function profileFor(path) {
 function noteProfile(path, measured) {
   if (!path || !measured || typeof measured.programLoudness !== 'number') return
   if (!(measured.programLoudness > -90)) return
+  var version = typeof measured.version === 'number' ? measured.version : profileVersion()
   profileStoreData[path] = Object.assign({}, measured, {
+    ...(version === null ? {} : { version: version }),
     programLoudness: measured.programLoudness,
     peak: typeof measured.peak === 'number' ? measured.peak : null,
     leadIn: typeof measured.leadIn === 'number' ? measured.leadIn : 0,

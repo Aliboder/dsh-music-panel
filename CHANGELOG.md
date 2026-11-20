@@ -20,6 +20,7 @@
 - 引入 Folia `trackProfile` 的完整纯分析 bundle（`scripts/build-profile.mjs`）：当前曲/下一首本地曲和 Navidrome 头部会生成 tempo、key、leadIn、sections、programLoudness、peak 等 profile；平衡继续只读 programLoudness/peak/head/leadIn。
 - profile 分析优先在 Blob Web Worker 中运行，Worker 创建或运行失败时回退主线程；`npm run check` 现在同时校验 profile bundle 是否最新。
 - 接入 Folia `gridFromBeats` 的纯转换：有 Beat This 拍点时可以生成 bpm/outroBpm/beatOffset/downbeatOffset/beatsPerBar；模型推理本身仍不在本插件内。
+- profile 记录带 `TRACK_PROFILE_VERSION`，版本不匹配的旧 profile 会被忽略；在线下一首只有在跨淡预取已经拿到 blob 时才分析，不额外下载。
 
 ### 代码结构
 

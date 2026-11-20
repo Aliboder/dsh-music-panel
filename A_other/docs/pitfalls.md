@@ -660,6 +660,15 @@
 
 ---
 
+## 74. 旧 profile 不能跨版本继续用
+
+- **现象**：分析字段/算法升级后，旧 `music.profile.v1` 仍被平衡读取，结果和当前 `trackProfile` 不一致。
+- **原因**：存储对象没有版本校验，字段齐全就被当成有效。
+- **处理**：完整 profile 带 `TRACK_PROFILE_VERSION`；`profileFor` 在版本存在且不匹配时返回 null，让 `analyseTrack` 重新生成。
+- **防回归**：算法版本变化时同时更新 bundle 和 profile 版本；不要只改分析代码。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

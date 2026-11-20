@@ -1036,7 +1036,18 @@ var prefetchedProfilePath = ''
     var item = state.queue[next]
     if (!item || typeof item.path !== 'string' || item.path === '') return
     if (prefetchedProfilePath === item.path || profileFor(item.path) !== null) return
-    if (item.onlineProvider && item.onlineProvider !== 'navidrome') return
+    if (item.onlineProvider && item.onlineProvider !== 'navidrome') {
+      // Folia analyses an online track only when its bytes are already in hand.
+      if (prefetchedNext === null || prefetchedNext.path !== item.path) return
+      prefetchedProfilePath = item.path
+      analyzeLoudnessBlob(
+        item,
+        prefetchedNext.blob,
+        function () { return true },
+        function () { /* the store is the result */ },
+      ).catch(function () { /* optional */ })
+      return
+    }
     prefetchedProfilePath = item.path
     var request = item.onlineProvider === 'navidrome'
       ? fetch(item.onlineUrl, { headers: { Range: 'bytes=0-1572863' } })
