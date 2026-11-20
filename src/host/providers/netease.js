@@ -566,23 +566,40 @@ export async function getPlaylistSongs(id, cookie = '') {
   const playlistId = String(id ?? '').trim()
   if (!/^[0-9]+$/.test(playlistId)) throw new Error('bad playlist id')
 
+  const requestCookie = await dataCookie(cookie)
   const json = await callUpstream(
     '/playlist/detail',
     { id: playlistId, n: 1000, s: 8 },
-    { cookie: await dataCookie(cookie) },
+    { cookie: requestCookie },
   )
   const playlist = json.playlist ?? {}
   let songs = Array.isArray(playlist.tracks) ? playlist.tracks.map(songOf).filter(Boolean) : []
+  const trackCount = Number(playlist.trackCount) || 0
 
-  // Detail omits tracks past its page; ask the paged route for the rest.
-  if (songs.length < (Number(playlist.trackCount) || 0)) {
+  // Detail omits tracks past its first page. Read the paged route until the
+  // playlist's own trackCount is reached: one 1000-track request is a page, not
+  // the whole playlist. Folia does the same paging at the provider boundary;
+  // this host route returns one list, so it drains the pages here.
+  if (trackCount === 0 || songs.length < trackCount) {
     try {
-      const all = await callUpstream(
-        '/playlist/track/all',
-        { id: playlistId, limit: 1000, offset: 0 },
-        { cookie: await dataCookie(cookie) },
-      )
-      const full = (Array.isArray(all.songs) ? all.songs : []).map(songOf).filter(Boolean)
+      const pageSize = 500
+      const full = []
+      let offset = 0
+      while (trackCount === 0 || offset < trackCount) {
+        const page = await callUpstream(
+          '/playlist/track/all',
+          { id: playlistId, limit: pageSize, offset },
+          { cookie: requestCookie },
+        )
+        const batch = (Array.isArray(page.songs) ? page.songs : []).map(songOf).filter(Boolean)
+        if (batch.length === 0) break
+        full.push(...batch)
+        offset += batch.length
+        if (batch.length < pageSize) break
+        // A defensive stop; a malformed trackCount must not become an endless
+        // series of upstream requests.
+        if (offset >= 100000) break
+      }
       if (full.length > songs.length) songs = full
     } catch {
       // Keep what the detail route already returned.

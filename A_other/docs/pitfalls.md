@@ -570,6 +570,15 @@
 
 ---
 
+## 64. 网易云歌单只加载 1000 首
+
+- **现象**：网易云歌单超过 1000 首时，客户端只显示前 1000 首，和网页歌单数量不一致。
+- **原因**：`getPlaylistSongs` 只请求一次 `/playlist/track/all`，参数固定为 `{ limit: 1000, offset: 0 }`；`limit=1000` 是单页上限，不是歌单总数。Folia 的 provider 接口是 `getPlaylistTracks(id, limit, offset)`，UI 按页继续请求。
+- **处理**：Host 按 500 首一页循环请求，直到达到 `playlist.trackCount`，或某页返回不足 500 首；结果保留完整顺序。
+- **防回归**：任何“全量列表”接口都要核对上游分页语义；单请求 `limit` 不能当作总数，必须用 `trackCount`/`hasMore`/短页终止。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

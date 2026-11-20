@@ -30,6 +30,7 @@
 
 ### 在线歌单
 
+- 网易云歌单不再停在 1000 首：Host 以前只请求一次 `/playlist/track/all` 的 `limit:1000, offset:0`；现在按 500 首分页，循环到歌单 `trackCount` 或返回不足一页为止，与 Folia 的 `getPlaylistTracks(limit, offset)` 分页一致。
 - 「添加到歌单」弹窗改为 DSH 组件体系：`SetRow` 分组行 + `Button`，使用 `mp-set-card` / `mp-folder-state` / `mp-online-error` 等现有样式；移除裸 `<button>`、内联边框/背景/圆角与硬编码错误色。
 
 ## 0.39.2 — 2026-11-20
