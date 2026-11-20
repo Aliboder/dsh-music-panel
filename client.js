@@ -151257,6 +151257,64 @@ window.__ModuleLoader__.load({
       }
     }
 
+    var profileWorker = null
+    var profileWorkerId = 0
+    var profileWorkerPending = {}
+
+    function profileWorkerFor() {
+      if (profileWorker !== null) return profileWorker
+      if (typeof Worker !== 'function' || typeof Blob !== 'function' || typeof URL === 'undefined') return null
+      if (typeof __mpProfileBundle !== 'function') return null
+      try {
+        var source = __mpProfileBundle.toString()
+        var code = source + '\nvar __api = __mpProfileBundle(); self.onmessage = function (event) {'
+          + ' var data = event.data; Promise.resolve(__api.analyseTrack(data.mono, data.sampleRate, { partial: data.partial, side: data.side }))'
+          + ' .then(function (profile) { self.postMessage({ id: data.id, profile: profile }); })'
+          + ' .catch(function (error) { self.postMessage({ id: data.id, error: String(error && error.message ? error.message : error) }); }); };'
+        var url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }))
+        var worker = new Worker(url)
+        URL.revokeObjectURL(url)
+        worker.onmessage = function (event) {
+          var pending = profileWorkerPending[event.data.id]
+          if (!pending) return
+          delete profileWorkerPending[event.data.id]
+          if (event.data.error) pending.reject(new Error(event.data.error))
+          else pending.resolve(event.data.profile)
+        }
+        worker.onerror = function (event) {
+          Object.keys(profileWorkerPending).forEach(function (id) {
+            var pending = profileWorkerPending[id]
+            delete profileWorkerPending[id]
+            pending.reject(new Error(event.message || 'profile worker failed'))
+          })
+          try { worker.terminate() } catch (error) {}
+          profileWorker = null
+        }
+        profileWorker = worker
+        return worker
+      } catch (error) {
+        profileWorker = null
+        return null
+      }
+    }
+
+    function fullProfileInWorker(mono, side, sampleRate, partial) {
+      var worker = profileWorkerFor()
+      if (worker === null) return null
+      var id = (profileWorkerId += 1)
+      return new Promise(function (resolve, reject) {
+        profileWorkerPending[id] = { resolve: resolve, reject: reject }
+        try {
+          var transfer = [mono.buffer]
+          if (side !== null) transfer.push(side.buffer)
+          worker.postMessage({ id: id, mono: mono, side: side, sampleRate: sampleRate, partial: partial }, transfer)
+        } catch (error) {
+          delete profileWorkerPending[id]
+          reject(error)
+        }
+      })
+    }
+
     /** Folia's full track profile, from the same decoded buffer the loudness uses. */
     function fullProfileOfBuffer(buffer, partial) {
       var api = profileAnalysisApi()
@@ -151271,7 +151329,15 @@ window.__ModuleLoader__.load({
         mid[index] = (l + r) / 2
         if (side !== null) side[index] = (l - r) / 2
       }
-      return api.analyseTrack(mid, buffer.sampleRate, { partial: partial === true, side: side })
+      var options = { partial: partial === true, side: side }
+      var workerSide = side === null ? null : side.slice()
+      var workerCall = fullProfileInWorker(mid.slice(), workerSide, buffer.sampleRate, partial === true)
+      if (workerCall !== null) {
+        return workerCall.catch(function () {
+          return api.analyseTrack(mid, buffer.sampleRate, options)
+        })
+      }
+      return api.analyseTrack(mid, buffer.sampleRate, options)
     }
 
     /** Folia's K-weighting + gated loudness, on a decoded buffer. */

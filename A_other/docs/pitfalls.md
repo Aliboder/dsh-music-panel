@@ -642,6 +642,15 @@
 
 ---
 
+## 72. profile Worker 不能假设 Blob URL 一直有效
+
+- **现象**：用 `__mpProfileBundle.toString()` 构造 Blob Worker，主线程和 Worker 都要能独立加载分析代码。
+- **原因**：bundle 是 IIFE 函数而不是模块；直接 `import` 不可用，且 Worker 里没有主线程的全局变量。
+- **处理**：Worker 代码内重新调用 `__mpProfileBundle()`；创建/运行失败时回退主线程分析，播放不被阻塞。
+- **防回归**：不要在主线程和 Worker 各维护一份 profile 算法；源只改 `src/client/services/automix/**`，再跑 `build-profile`。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
