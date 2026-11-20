@@ -155,6 +155,9 @@ export function createBodianSource(options) {
     albums: true,
     likes: true,
     likeWrite: true,
+    userPlaylists: true,
+    playlistSongs: true,
+    playlistAdd: true,
   })
 
   async function request(operation, params) {
@@ -368,6 +371,52 @@ export function createBodianSource(options) {
         throw new MusicError('this track has no lyrics', { code: 'not-playable', sourceId: SOURCE_ID })
       }
       return { lrc: text, translation: String(data?.transText ?? data?.translation ?? '') }
+    },
+
+    async myPlaylists() {
+      const data = await request('user_playlists', { limit: 100, offset: 0 })
+      const rowsOf = (value, field) => {
+        if (Array.isArray(value)) return value
+        return Array.isArray(value?.[field]) ? value[field] : []
+      }
+      const seen = new Set()
+      const items = []
+      const add = (raw, isOwned, isLike = false) => {
+        const id = String(raw?.id ?? raw?.playlistId ?? raw?.listId ?? '')
+        if (id === '' || seen.has(id)) return
+        seen.add(id)
+        items.push({
+          provider: SOURCE_ID,
+          id,
+          name: String(raw?.name ?? raw?.title ?? '未命名歌单'),
+          cover: coverOf(raw?.cover ?? raw?.pic ?? raw?.coverUrl ?? ''),
+          trackCount: Number(raw?.songCount ?? raw?.trackCount ?? raw?.total ?? raw?.count ?? 0) || 0,
+          creator: String(raw?.nickname ?? raw?.creator ?? ''),
+          kind: isLike ? 'like' : isOwned ? 'own' : 'collect',
+          isOwned,
+          isLike,
+          isDefault: isLike,
+        })
+      }
+      if (data?.liked?.id !== undefined && data.liked !== null) add(data.liked, true, true)
+      for (const raw of rowsOf(data?.owned, 'playLists')) add(raw, true)
+      for (const raw of rowsOf(data?.collected, 'playLists')) add(raw, false)
+      return items
+    },
+
+    async playlistSongs(id) {
+      const data = await request('playlist_tracks', { id: String(id), limit: 100, offset: 0, source: 4 })
+      const rows = Array.isArray(data?.resultList) ? data.resultList : Array.isArray(data?.list) ? data.list : []
+      const songs = rows.map(toTrack).filter(Boolean)
+      return { name: '', cover: '', trackCount: Number(data?.total) || songs.length, songs }
+    },
+
+    async addToPlaylist(song, playlistId) {
+      const id = String(song?.id ?? '')
+      const target = String(playlistId ?? '').trim()
+      if (id === '' || target === '') throw new MusicError('missing song or playlist id', { code: 'invalid-response', sourceId: SOURCE_ID })
+      await request('playlist_tracks_add', { id: target, trackIds: id })
+      return true
     },
 
     async liked(id) {

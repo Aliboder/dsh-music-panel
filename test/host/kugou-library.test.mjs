@@ -4,7 +4,7 @@
 
 import assert from 'node:assert/strict'
 import { addSongToPlaylist, deleteSongFromPlaylist, getMyPlaylistSongs, getMyPlaylists } from '../../src/host/providers/kugou.js'
-import { setLiked as setLiteLiked } from '../../src/host/providers/kugou-lite.js'
+import { addSongToPlaylist as addLiteSongToPlaylist, setLiked as setLiteLiked } from '../../src/host/providers/kugou-lite.js'
 import { resetUpstreamOverride, setUpstreamOverride } from '../../src/host/services/kugou-api.js'
 
 const calls = []
@@ -81,6 +81,12 @@ assert.equal(await setLiteLiked({ hash: 'kg-hash', title: 'Song' }, false, sessi
 const liteDel = calls.find(([operation]) => operation === 'playlist_tracks_del')
 assert.equal(liteDel[1].listid, '2')
 assert.equal(liteDel[1].fileids, '916')
+
+calls.length = 0
+assert.equal(await addLiteSongToPlaylist({ hash: 'kg-hash', title: 'Song', albumId: 1, mixSongId: 2 }, '18', session), true)
+const playlistAdd = calls.find(([operation]) => operation === 'playlist_tracks_add')
+assert.equal(playlistAdd[1].listid, '18')
+assert.equal(playlistAdd[1].data, 'Song|kg-hash|1|2')
 
 resetUpstreamOverride()
 console.log('kugou-library.test.mjs ok')

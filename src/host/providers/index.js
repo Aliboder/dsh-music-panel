@@ -1449,7 +1449,16 @@ export async function addOnlineSongToPlaylist(provider, song, playlistId, cookie
     await KG.addSongToPlaylist(kgWriteSong(id, song), playlistId, session)
     return true
   }
-  if (provider === 'kugouLite') throw new Error('酷狗概念版暂不支持加入云歌单')
+  if (provider === 'kugouLite') {
+    const raw = rawSongs.get('kugouLite:' + id) || {
+      id,
+      hash: id,
+      title: String((song && song.title) || ''),
+      albumId: Number((song && song.albumId) || 0),
+      mixSongId: Number((song && (song.mixSongId || song.albumAudioId)) || 0),
+    }
+    return KGL.addSongToPlaylist(raw, playlistId, session)
+  }
   await NC.manipulateTracks(playlistId, [id], cookie, 'add')
   return true
 }

@@ -172,6 +172,33 @@ assert.equal(sessions.get(), null)
   assert.deepEqual(likeCall[1], { id: '11', liked: false })
 }
 
+// Account playlists feed the player card's "add to playlist" dialog; adding uses
+// the provider's own playlist row id and trackIds contract.
+{
+  const calls = []
+  const source = createBodianSource({
+    deviceId: 'a'.repeat(32),
+    sessions: createMemorySessions(),
+    createApi: () => ({
+      request: async (operation, params) => {
+        calls.push([operation, params])
+        if (operation === 'user_playlists') {
+          return { ok: true, data: { owned: { playLists: [{ id: 5, name: 'Mine', songCount: 1 }] }, collected: { playLists: [] } } }
+        }
+        if (operation === 'playlist_tracks_add') return { ok: true, data: {} }
+        return { ok: true, data: {} }
+      },
+    }),
+  })
+  const playlists = await source.myPlaylists()
+  assert.equal(playlists.length, 1)
+  assert.equal(playlists[0].id, '5')
+  assert.equal(playlists[0].isOwned, true)
+  assert.equal(await source.addToPlaylist({ id: '77' }, '5'), true)
+  const addCall = calls.find(([operation]) => operation === 'playlist_tracks_add')
+  assert.deepEqual(addCall[1], { id: '5', trackIds: '77' })
+}
+
 // Sign-out is complete: the stored session is cleared, and the route's optional
 // `forgetTokens` call has an implementation (a missing one crashed the Host).
 {

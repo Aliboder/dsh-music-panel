@@ -513,6 +513,31 @@ function playlistMutationSucceeded(answer) {
   return status === 1 || errorCode === 0
 }
 
+export async function addSongToPlaylist(song, playlistId, session = {}) {
+  const s = normSession(session)
+  const targetId = String(playlistId || '').trim()
+  if (targetId === '') throw new Error('缺少歌单 id')
+  const hash = String(song?.hash || song?.id || '').trim().toLowerCase()
+  if (hash === '') throw new Error('缺少歌曲 hash')
+  const playlists = await getMyPlaylists(s)
+  const target = playlists.find((item) => String(item.id) === targetId || String(item.listId) === targetId) || null
+  if (target === null) throw new Error('没有找到目标歌单')
+  const listId = String(target.listId || '').trim()
+  if (listId === '') throw new Error('目标歌单缺少 listid')
+  const title = String(song?.title || '未知歌曲').replace(/[|,]/g, ' ')
+  const albumId = Number(song?.albumId) || 0
+  const mixSongId = Number(song?.mixSongId || song?.albumAudioId) || 0
+  const answer = await callKugou('lite', 'playlist_tracks_add', {
+    listid: listId,
+    data: [title, hash, String(albumId), String(mixSongId)].join('|'),
+    cookie: kugouCookies({ ...s, dfid: s.dfid }, 'lite'),
+    userid: String(s.userid || ''),
+    token: String(s.token || ''),
+  })
+  if (!playlistMutationSucceeded(answer)) throw new Error('酷狗没有确认加入歌单')
+  return true
+}
+
 /**
  * Add/remove one song in the account's built-in "我喜欢" playlist.
  * The concept client uses the same cloudlist mutations as the standard client; the

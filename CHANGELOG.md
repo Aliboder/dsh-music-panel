@@ -9,6 +9,7 @@
 - 酷狗概念版支持写入「我喜欢」：通过 cloudlist 的 `playlist_tracks_add` / `playlist_tracks_del` 操作内置收藏歌单；取消时按 hash 在当前收藏歌单中解析 `fileid`，不会误删其他歌单中的同名行。
 - 波点音乐补齐 `likes` / `likeWrite`：读取 `liked_songs`，写入 `like_song`，与 Folia 的 `getLikedSongIds` / `likeSong` 行为一致。
 - 在线平台喜欢能力现在为：网易云、QQ、酷狗概念版、波点、汽水、Navidrome 均可读写（具体平台仍取决于登录态与上游授权）。
+- 酷狗概念版与波点补齐「收藏到歌单」：概念版按歌单 `listid` 写入 cloudlist，波点读取账号歌单并调用 `playlist_tracks_add`；播放器卡片的在线收藏对话框现在能列出目标歌单并完成添加。
 
 ### 播放时钟
 

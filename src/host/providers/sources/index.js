@@ -86,7 +86,7 @@ const KUGOU_LITE_CAPABILITIES = {
   historyRecommendations: true,
   // Likes write through the same cloudlist endpoint as the standard client.
   likeWrite: true,
-  playlistAdd: false,
+  playlistAdd: true,
   mutations: false,
   userAlbums: false,
 }

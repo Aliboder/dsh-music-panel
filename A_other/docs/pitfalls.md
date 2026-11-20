@@ -530,6 +530,7 @@
 - **原因**：来源能力表把 `kugouLite.likeWrite` 写成 false，且 `setOnlineLiked` 对概念版直接抛错；波点 source 没有声明 `likes` / `likeWrite`，也没有实现 `likedIds` / `setLiked`。
 - **处理**：概念版通过 cloudlist 的 `playlist_tracks_add` / `playlist_tracks_del` 写内置「我喜欢」；波点补 `liked_songs` 与 `like_song`。酷狗取消时按 hash 在「我喜欢」歌单里解析 `fileid`，不把其他歌单的行号传过去。
 - **防回归**：sources 断言能力位；kugou-library 与 bodian 测试覆盖读写和变更参数。
+- **补充：收藏到歌单**：酷狗概念版原先 `playlistAdd:false` 且 Host 直接抛错；波点没有 `myPlaylists`。现概念版用 cloudlist `playlist_tracks_add`，波点用 `user_playlists` + `playlist_tracks_add`。
 
 ---
 

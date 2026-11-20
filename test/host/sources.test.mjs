@@ -177,7 +177,7 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   // through its cloudlist endpoints, but still has no cloud playlist add.
   assert.equal(builtinRegistry.get('kugouLite').capabilities.likes, true)
   assert.equal(builtinRegistry.get('kugouLite').capabilities.likeWrite, true)
-  assert.equal(builtinRegistry.get('kugouLite').capabilities.playlistAdd, false)
+  assert.equal(builtinRegistry.get('kugouLite').capabilities.playlistAdd, true)
   assert.equal(builtinRegistry.get('kugouLite').capabilities.mutations, false)
   assert.equal(builtinRegistry.get('netease').capabilities.listeningRank, true)
   assert.equal(builtinRegistry.get('netease').capabilities.playbackReports, true)
