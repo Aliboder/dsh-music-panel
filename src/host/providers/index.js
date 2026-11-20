@@ -1353,8 +1353,8 @@ function pageBounds(page) {
   }
 }
 
-function shapePlaylistSongs(provider, rawSongs) {
-  return (Array.isArray(rawSongs) ? rawSongs : []).map((song) => {
+function shapePlaylistSongs(provider, rows) {
+  return (Array.isArray(rows) ? rows : []).map((song) => {
     const shaped = shape(provider, song)
     rawSongs.set(provider + ':' + shaped.id, song)
     return shaped

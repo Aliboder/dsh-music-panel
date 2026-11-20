@@ -170263,7 +170263,7 @@ window.__ModuleLoader__.load({
       var start = Math.max(0, Math.floor((scrollTop - headerHeight) / rowHeight) - 4)
       var end = Math.min(items.length, Math.ceil((scrollTop + viewport - headerHeight) / rowHeight) + 4)
       var visible = items.slice(start, end)
-      var footerHeight = props.hasMore === true || props.loadingMore === true || props.loadMoreError ? 56 : 0
+      var footerHeight = props.hasMore === true ? 56 : 0
       var total = headerHeight + items.length * rowHeight + footerHeight
       if (items.length === 0) total = headerHeight + 240
 

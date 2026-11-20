@@ -4,6 +4,7 @@
 
 import assert from 'node:assert/strict'
 import { getPlaylistSongs, getPlaylistSongsPage } from '../../src/host/providers/netease.js'
+import { playlistSongsPage } from '../../src/host/providers/index.js'
 import { resetUpstreamOverride, setUpstreamOverride } from '../../src/host/services/netease-api.js'
 
 const total = 1200
@@ -83,6 +84,11 @@ try {
     assert.equal(last.songs.length, 100)
     assert.equal(last.hasMore, false)
     assert.deepEqual(pageCalls.map((call) => call.offset), [0, 1100])
+    const shaped = await playlistSongsPage('netease', '77', 'MUSIC_U=test', {}, { limit: 100, offset: 0 })
+    assert.equal(shaped.songs.length, 100)
+    assert.equal(shaped.songs[0].id, '100000')
+    assert.equal(shaped.hasMore, true)
+    assert.equal(shaped.nextOffset, 100)
   } finally {
     resetUpstreamOverride()
   }
