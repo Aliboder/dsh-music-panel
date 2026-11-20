@@ -1,10 +1,20 @@
 # AGENTS.md
 
-`dsh-music-panel` — DeepSeek Harness（DSH）的本地 + 在线音乐插件。定位是 DSH 里的一台完整播放器，而不是一个播放控件：曲库、队列、歌词、缓存和播放统计共用同一套界面。
+`dsh-music-panel` — DeepSeek Harness（DSH）的本地 + 在线音乐插件。
 
-功能分三块：**来源**——本地文件夹，以及网易云 / QQ 音乐 / 酷狗 / 波点 / 汽水 / 自建 Navidrome，共用一个队列，切来源不清空；**界面**——侧栏面板、播放器、输入框上方歌词条与 Folia 歌词舞台；**音频**——10 段均衡器 + AutoEQ、EBU R128 音量均衡、智能过渡。
+**AGENT的任务**：帮助开发者维护、修复、更新这个插件。
 
-**你的任务**：维护这个插件。新功能和修复都落在 Host 或 Client 一侧（分工见[架构](#架构)），改动后同步构建产物，并按 `## 命令`、`## 边界` 自检；遇到构建产物、播放、歌词、安装、数据相关的问题，先查[踩坑记录](A_other/docs/pitfalls.md)。
+## 边界
+
+✅ **总是做**
+
+- **分析、修复问题一律采用第一性原理的思想**，第一性原理是：把问题拆到最小、可验证的事实，从这些事实推导原因，而不是从惯例、符号或猜测出发。
+- **新增或修改任何界面组件前，先读 `A_other/docs/theme-guidelines.md`。**
+- **新增任何持久化/存储时**，必须先读 `A_other/docs/data-reset.md`，同步扩充“清空插件所有数据”的范围、分类与测试。
+- **每做完一步修改就打一个 git 存档点**（`git commit`），message 中文写清这一步做了什么，回退时能直接找到；没验证过的改动不要攒进存档点。
+- **做完修改后最终给用户的回答：**简要修改流程“A→B→C...、通俗易懂的简要说明(问题、思路、做法、收益)、(若有)受影响的文档修改清单和变更内容简介”
+
+🚫 **不要做**
 
 ## 命令
 
@@ -17,7 +27,6 @@ node scripts/install-local.mjs desktop    # 把当前构建装进 DSH profile（
 node scripts/build-audio.mjs              # 改 src/audio/** 或 Folia 音频上游后重建音频 bundle
 node scripts/build-audio.mjs --check      # 只检查音频 bundle 是否最新
 
-
 node scripts/build-lyrics.mjs             # 改 src/client/utils/lyrics/** 或 src/client/render/lyrics/entry.ts 后
 node scripts/build-icu-folia.mjs          # 重新生成 icu-folia 词典（需要 A_other/upstream/folia-major-main 检出）
 node scripts/build-pendolo.mjs            # 改 Folia 歌词样式 bundle 后
@@ -28,43 +37,6 @@ node scripts/build-vendor.mjs             # 仅升级 framer 时
 node scripts/build-vendor-three.mjs       # 仅升级 three 时
 node scripts/build-vendor-pixi.mjs        # 仅升级 pixi 时
 ```
-
-## 边界
-
-✅ **总是**
-
-- 改 `src/client/**` 后运行 `node scripts/build-client.mjs`，提交前跑 `--check`。
-- 改 UI/Folia 后至少跑 `npm test` 和 `npm run check`。
-- **新增或修改任何界面组件前，先读 `A_other/docs/theme-guidelines.md`。** 无特别说明时，组件实现一律按该文档执行：宿主组件优先 → 本仓原语 → 一次性布局；只用 `--dsw-*` token；浅/深色都要成立；不做假控件。若需求与该文档冲突，先说明冲突并确认，不要自行另起一套样式。
-- **新增任何持久化/存储时，必须先读 `A_other/docs/data-reset.md`，同步扩充“清空插件所有数据”的范围、分类与测试。** 存储包括 Host 文件/目录、localStorage、IndexedDB、CacheStorage、内存缓存、远端 session；只加存储不更新清理视为未完成。
-- Folia 音频用 0–255 频谱；暂停时停止更新 bands。
-- **改播放/音频链路前先读 [音频引擎重建执行计划](A_other/docs/audio-engine-rebuild-plan.md)。** 不恢复旧播放图、旧增益公式或旧音频 UI；范围或决策变化先改计划文档，再改代码。
-- 修改 Folia 源码前，先确认是边界问题还是上游问题，并在 `CHANGELOG.md` 说明。
-- 使用真实状态和真实数据；未实现的功能要明确标注。
-- 改 `client.js`、bundle、Folia 或歌词管线前，先查 `A_other/docs/pitfalls.md` 的对应条目；解决新坑后按「现象 → 原因 → 处理 → 防回归」当场补一条，简洁、只增不改，不要把结论只留在对话里。
-- 每做完一步修改就打一个 git 存档点（`git commit`），message 写清这一步做了什么、为什么，回退时能直接找到；没验证过的改动不要攒进存档点。
-
-⚠️ **先确认**
-
-- 升级 React、framer、three、pixi 或 R3F。
-- 修改 `src/client/vendor/**` 或 `src/folia/*.bundle.js`。
-- 改变 Folia 样式注册、顺序、默认样式或迁移逻辑。
-- 改音频输出/WebAudio 路由。
-
-🚫 **不要**
-
-- 直接编辑 `client.js`；它是拼接产物。
-- 假设 Host 是 React 19；Host 固定 React 18.3.1，不要自带第二个 React 渲染宿主 slot。
-- 重新引入已移除功能：`classic`、`cappella`（群唱）、`machi`（町景）、`scenes/cinema`（影厅）。
-- 加假按钮、假数据或只改标签的“功能”。
-- 把 Tailwind 的 `@property` 嵌进 `.mp-np`。
-- 提交用户音乐、封面、歌词缓存或登录凭据。
-
-## 问题分析：第一性原理
-
-第一性原理是：把问题拆到最小、可验证的事实，从这些事实推导原因，而不是从惯例、符号或猜测出发。
-
-分析问题（尤其是「功能看起来在但没效果」「尺寸不对」「异常留白」等）时，请使用第一性原理。
 
 ## 架构
 
@@ -101,5 +73,3 @@ A_other/                    非插件资料（releases/design/docs/shared/upstre
 - [发布流程](A_other/docs/release.md)
 - [CHANGELOG](CHANGELOG.md)
 - [第三方与许可证](THIRD_PARTY_NOTICES.md)
-
-
