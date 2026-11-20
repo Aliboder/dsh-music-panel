@@ -31,6 +31,9 @@
 
 ### 在线播放启动
 
+- 修复 MSE 总时长只反映“已 append 的前缀”导致拖动比例映射错误：seek bar/时间显示优先使用歌曲已知时长，`MediaSource.duration` 在 sourceopen 时设为整首时长，`api.seek` 不再把目标 clamp 到当前 MSE 前缀。
+
+
 - 在线当前曲改用 MediaSource：Host 字节流按块 append，客户端自己维护 buffered ranges 和 seek，不再依赖 `<audio src>` 对代理 Range 的判断；MP3/AAC/M4A 走 MSE，不支持 MSE 的格式才回退直连。
 - MSE 的首音只等第一块数据 append；目标未缓冲时 seek 保留 pendingSeek，不把 currentTime 写回 0。
 - Host 继续固定同一首歌/音质的已解析 CDN URL，并对 Range 返回 200 的 CDN 强制转成 206 + Content-Range，作为直连回退路径的兜底。

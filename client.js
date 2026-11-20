@@ -156959,6 +156959,9 @@ window.__ModuleLoader__.load({
             }
             mediaSource.addEventListener('sourceopen', function () {
               try {
+                if (Number(item.durationSec) > 0 && Number.isFinite(Number(item.durationSec))) {
+                  mediaSource.duration = Number(item.durationSec)
+                }
                 sourceBuffer = mediaSource.addSourceBuffer(mseMime)
               } catch (error) {
                 failed = true
@@ -158053,13 +158056,18 @@ window.__ModuleLoader__.load({
           abortCrossfade()
           var el = audio
           var item = currentItem()
-          // Media duration is unavailable until metadata lands; the scanned
-          // track duration is the correct fallback, never a 1-second guess.
-          var limit = isFinite(el.duration) && el.duration > 0
-            ? el.duration
-            : item && item.durationSec > 0
-              ? item.durationSec
-              : 0
+          // Media duration is unavailable or still growing until metadata/data lands.
+          // With MediaSource el.duration is only what has been appended so far, so
+          // clamping a 90%-of-track seek to the current appended prefix would land at
+          // its end (e.g. 98s of a 276s song). The track's known duration is the ceiling
+          // until MSE reports the whole duration.
+          var mediaDuration = isFinite(el.duration) && el.duration > 0 ? el.duration : 0
+          var scannedDuration = item && Number(item.durationSec) > 0 ? Number(item.durationSec) : 0
+          var limit = onlineMse !== null && scannedDuration > 0
+            ? Math.max(mediaDuration, scannedDuration)
+            : mediaDuration > 0
+              ? mediaDuration
+              : scannedDuration
           var target = clamp(seconds, 0, limit > 0 ? limit : seconds)
           if (!isFinite(target)) return
 
@@ -162021,7 +162029,9 @@ window.__ModuleLoader__.load({
       var pair = useState(null)
       var seeking = pair[0]
       var setSeeking = pair[1]
-      var duration = time.duration > 0 ? time.duration : props.fallbackDuration || 0
+      var mediaDuration = time.duration > 0 ? time.duration : 0
+      var fallbackDuration = Number(props.fallbackDuration) > 0 ? Number(props.fallbackDuration) : 0
+      var duration = Math.max(mediaDuration, fallbackDuration)
       var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
       var percent = duration > 0 ? clamp(position / duration, 0, 1) * 100 : 0
       var buffered = Math.min(duration, Math.max(0, Number(time.buffered) || 0))
@@ -164505,7 +164515,11 @@ window.__ModuleLoader__.load({
       var setSeeking = seekPair[1]
       var seekingRef = useRef(null)
       var hoverRef = useRef(null)
-      var duration = time.duration > 0 ? time.duration : props.fallbackDuration || 0
+      var mediaDuration = time.duration > 0 ? time.duration : 0
+      var fallbackDuration = Number(props.fallbackDuration) > 0 ? Number(props.fallbackDuration) : 0
+      // MSE reports only the appended prefix until more data lands; never let that
+      // prefix shrink the seek bar's total below the track's known length.
+      var duration = Math.max(mediaDuration, fallbackDuration)
       var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
       var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
       var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0
@@ -164837,7 +164851,7 @@ window.__ModuleLoader__.load({
               'div',
               { className: 'mp-np-times' },
               h('span', null, fmtClock(time.currentTime)),
-              h('span', null, fmtClock(duration)),
+              h('span', null, fmtClock(Math.max(Number(duration) || 0, track ? Number(track.durationSec) || 0 : 0))),
             ),
             h(
               'div',
@@ -166450,7 +166464,7 @@ window.__ModuleLoader__.load({
 
       var lyricNow = time.currentTime - offsetMs / 1000
       var active = lyricActiveIndex(lyrics, lyricNow)
-      var duration = time.duration > 0 ? time.duration : track ? track.durationSec || 0 : 0
+      var duration = Math.max(time.duration > 0 ? time.duration : 0, track ? Number(track.durationSec) || 0 : 0)
       var favorite = track !== null && props.favoriteSet[track.path] === true
 
       var lyricScroll = useLyricAutoScroll(
@@ -174079,7 +174093,7 @@ window.__ModuleLoader__.load({
       var time = usePlayerTime()
       var [preview, setPreview] = useState(null)
       var current = snap.queue[snap.index] || null
-      var duration = time.duration > 0 ? time.duration : current ? current.durationSec || 0 : 0
+      var duration = Math.max(time.duration > 0 ? time.duration : 0, current ? Number(current.durationSec) || 0 : 0)
       if (!current) {
         return h('footer', { className: 'mpv3-player is-empty' },
           h('div', { className: 'mpv3-player-track' },

@@ -6,7 +6,11 @@ function WaveSeekBar(props) {
   var setSeeking = seekPair[1]
   var seekingRef = useRef(null)
   var hoverRef = useRef(null)
-  var duration = time.duration > 0 ? time.duration : props.fallbackDuration || 0
+  var mediaDuration = time.duration > 0 ? time.duration : 0
+  var fallbackDuration = Number(props.fallbackDuration) > 0 ? Number(props.fallbackDuration) : 0
+  // MSE reports only the appended prefix until more data lands; never let that
+  // prefix shrink the seek bar's total below the track's known length.
+  var duration = Math.max(mediaDuration, fallbackDuration)
   var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
   var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
   var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0

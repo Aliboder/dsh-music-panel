@@ -709,7 +709,7 @@ function NowPlaying(props) {
 
   var lyricNow = time.currentTime - offsetMs / 1000
   var active = lyricActiveIndex(lyrics, lyricNow)
-  var duration = time.duration > 0 ? time.duration : track ? track.durationSec || 0 : 0
+  var duration = Math.max(time.duration > 0 ? time.duration : 0, track ? Number(track.durationSec) || 0 : 0)
   var favorite = track !== null && props.favoriteSet[track.path] === true
 
   var lyricScroll = useLyricAutoScroll(

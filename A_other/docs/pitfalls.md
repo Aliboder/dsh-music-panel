@@ -741,6 +741,15 @@
 
 ---
 
+## 83. MSE 的 duration 是已 append 前缀
+
+- **现象**：总时长显示 0/1:38 时拖到 90%，加载完整后却停在不到一半。
+- **原因**：MSE 的 `audio.duration` 只覆盖已经 append 的媒体，不是整首；seek bar 用它当最大值，90% 实际是“已加载前缀的 90%”，随后又被 `api.seek` clamp 到该前缀。
+- **处理**：UI 使用 `max(media duration, 歌曲已知 durationSec)`；sourceopen 时把 `MediaSource.duration` 设为整首时长；`api.seek` 对 MSE 使用已知整首时长作为上限。
+- **防回归**：不要把 MSE 的 growable duration 当最终总时长；没有已知 durationSec 时不要用加载前缀做百分比 seek。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

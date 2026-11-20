@@ -1325,6 +1325,9 @@ var onlineMse = null
         }
         mediaSource.addEventListener('sourceopen', function () {
           try {
+            if (Number(item.durationSec) > 0 && Number.isFinite(Number(item.durationSec))) {
+              mediaSource.duration = Number(item.durationSec)
+            }
             sourceBuffer = mediaSource.addSourceBuffer(mseMime)
           } catch (error) {
             failed = true
@@ -2419,13 +2422,18 @@ var onlineMse = null
       abortCrossfade()
       var el = audio
       var item = currentItem()
-      // Media duration is unavailable until metadata lands; the scanned
-      // track duration is the correct fallback, never a 1-second guess.
-      var limit = isFinite(el.duration) && el.duration > 0
-        ? el.duration
-        : item && item.durationSec > 0
-          ? item.durationSec
-          : 0
+      // Media duration is unavailable or still growing until metadata/data lands.
+      // With MediaSource el.duration is only what has been appended so far, so
+      // clamping a 90%-of-track seek to the current appended prefix would land at
+      // its end (e.g. 98s of a 276s song). The track's known duration is the ceiling
+      // until MSE reports the whole duration.
+      var mediaDuration = isFinite(el.duration) && el.duration > 0 ? el.duration : 0
+      var scannedDuration = item && Number(item.durationSec) > 0 ? Number(item.durationSec) : 0
+      var limit = onlineMse !== null && scannedDuration > 0
+        ? Math.max(mediaDuration, scannedDuration)
+        : mediaDuration > 0
+          ? mediaDuration
+          : scannedDuration
       var target = clamp(seconds, 0, limit > 0 ? limit : seconds)
       if (!isFinite(target)) return
 
