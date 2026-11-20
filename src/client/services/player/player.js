@@ -1032,7 +1032,6 @@ var profileToken = 0
   function prefetchNextProfile() {
     var token = profileToken
     var stillCurrent = function () { return token === profileToken }
-    if (readPrefs().normalizeVolume === false) return
     if (state.index < 0 || state.queue.length < 2) return
     var next = nextIndexOf(state.index, state.queue.length)
     if (next === state.index) return
@@ -1100,7 +1099,19 @@ var profileToken = 0
     var token = (loudnessToken += 1)
     currentLoudnessBlob = blob || null
     var finish = typeof done === 'function' ? done : function () {}
-    if (readPrefs().normalizeVolume === false || !item || !blob) {
+    if (!item || !blob) {
+      finish()
+      return
+    }
+    if (readPrefs().normalizeVolume === false) {
+      // Folia's automix profile is independent of the balance: analyse the bytes,
+      // but never make playback wait for it when normalization is off.
+      analyzeLoudnessBlob(
+        item,
+        blob,
+        function () { return token === loudnessToken },
+        function () { /* the store is the result */ },
+      ).catch(function () { /* optional */ }).then(function () { prefetchNextProfile() })
       finish()
       return
     }
@@ -1529,10 +1540,15 @@ var profileToken = 0
       var profileApi = typeof __mpProfileBundle === 'function' ? __mpProfileBundle() : null
       if (profileApi !== null && typeof profileApi.chooseTransitionStyle === 'function' && typeof profileApi.shapeBlend === 'function') {
         var styleChoice = profileApi.chooseTransitionStyle({ from: currentProfile, to: nextProfile })
+        var baseOverlap = shape !== null && typeof shape.overlap === 'number' ? shape.overlap : plan.overlap
+        var scaledOverlap = Math.max(
+          CROSSFADE_MIN_SECONDS,
+          Math.min(CROSSFADE_MAX_SECONDS, baseOverlap * (typeof styleChoice.lengthScale === 'number' ? styleChoice.lengthScale : 1)),
+        )
         styled = profileApi.shapeBlend({
           style: styleChoice.style,
           room: Math.max(0, duration - audio.currentTime),
-          overlap: shape !== null && typeof shape.overlap === 'number' ? shape.overlap : plan.overlap,
+          overlap: scaledOverlap,
           crossover: shape !== null ? shape.crossover : 0.5,
           nextBeatIn: nextBeatIn,
           periodSec: periodSec,
