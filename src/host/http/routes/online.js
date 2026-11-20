@@ -53,6 +53,11 @@ function onlineReferer(provider) {
 /** Folia's quality ladder, lowest first; only used when a resolved URL is dead. */
 const ONLINE_QUALITY_LADDER = ['standard', 'high', 'lossless', 'hires']
 
+function rangeStartOf(value) {
+  const match = /^bytes=(\d+)-(\d*)$/.exec(String(value || '').trim())
+  return match === null ? null : Number.parseInt(match[1], 10)
+}
+
 export function nextLowerOnlineQuality(quality) {
   const index = ONLINE_QUALITY_LADDER.indexOf(quality)
   return index > 0 ? ONLINE_QUALITY_LADDER[index - 1] : null
@@ -111,6 +116,18 @@ export function createOnlineRoutes(deps) {
         userAgent: ONLINE_UA,
         refererFor: onlineReferer,
       })
+
+  /**
+   * One resolved CDN URL per song/quality for a few minutes. A media element asks
+   * for a new byte range on every seek; re-resolving the provider each time makes
+   * the resource look different to Chromium (and can return a fresh URL that does
+   * not honour Range). Folia's element talks to one stable CDN URL.
+   */
+  const streamUrlCache = new Map()
+  const STREAM_URL_TTL_MS = 4 * 60 * 1000
+  function streamUrlKey(provider, id, quality) {
+    return provider + ':' + id + ':' + quality
+  }
 
   /**
    * Serve one song from Folia's media cache. A copy of another quality is passed over unless
@@ -494,17 +511,29 @@ export function createOnlineRoutes(deps) {
           // Provider lookups occasionally fail on a transient network hiccup:
           // retry once before surfacing the error.
           let stream = null
-          if (legacyStreamRequest) {
-            stream = await resolveLegacyStream(provider, id)
-          } else {
-            for (let attempt = 0; attempt < 2; attempt += 1) {
-              try {
-                stream = await omni.stream(provider, id, { cookie, session }, quality)
-                break
-              } catch (error) {
-                if (attempt === 1) throw error
-                await new Promise((resolveDelay) => setTimeout(resolveDelay, 400))
+          const resolvedKey = streamUrlKey(provider, id, quality)
+          if (!legacyStreamRequest) {
+            const cachedStream = streamUrlCache.get(resolvedKey)
+            if (cachedStream !== undefined && Date.now() - cachedStream.at < STREAM_URL_TTL_MS && cachedStream.stream.url !== '') {
+              stream = cachedStream.stream
+            }
+          }
+          if (stream === null) {
+            if (legacyStreamRequest) {
+              stream = await resolveLegacyStream(provider, id)
+            } else {
+              for (let attempt = 0; attempt < 2; attempt += 1) {
+                try {
+                  stream = await omni.stream(provider, id, { cookie, session }, quality)
+                  break
+                } catch (error) {
+                  if (attempt === 1) throw error
+                  await new Promise((resolveDelay) => setTimeout(resolveDelay, 400))
+                }
               }
+            }
+            if (stream !== null && stream.url !== '') {
+              streamUrlCache.set(resolvedKey, { stream, at: Date.now() })
             }
           }
           if (stream === null) stream = { url: '' }
@@ -558,6 +587,7 @@ export function createOnlineRoutes(deps) {
             return
           }
           if (!upstream.ok) {
+            streamUrlCache.delete(resolvedKey)
             clearTimeout(timer)
             // KuGou's current /song/url can hand back an old CDN object for a
             // still-existing hash. Folia resolves that case through its legacy
@@ -618,6 +648,34 @@ export function createOnlineRoutes(deps) {
               if (typeof gain[field] === 'number' && Number.isFinite(gain[field])) {
                 headers[name] = String(gain[field])
               }
+            }
+          }
+          const seekStart = rangeStartOf(rangeHeader)
+          if (hasRange && seekStart !== null && seekStart > 0 && upstream.status === 200) {
+            // Some CDNs answer a Range request with 200. Passing that through makes
+            // Chromium restart from zero; slice it into a real 206 instead. The
+            // resolved URL is cached, so repeated seeks reuse the same object.
+            const bodyTimer = setTimeout(() => controller.abort(), 30000)
+            try {
+              const body = upstream.body === null ? Buffer.alloc(0) : Buffer.from(await upstream.arrayBuffer())
+              const total = body.length
+              if (seekStart >= total) {
+                res.writeHead(416, { 'content-range': 'bytes */' + total })
+                res.end()
+                return
+              }
+              const slice = body.subarray(seekStart)
+              headers['content-length'] = String(slice.length)
+              headers['content-range'] = 'bytes ' + seekStart + '-' + (total - 1) + '/' + total
+              res.writeHead(206, headers)
+              if (method === 'HEAD') res.end()
+              else res.end(slice)
+              return
+            } catch (error) {
+              if (upstream.body !== null) upstream.body.cancel().catch(() => {})
+              return fail(res, 502, 'UPSTREAM_RANGE_FAILED', error instanceof Error ? error.message : '音频范围请求失败')
+            } finally {
+              clearTimeout(bodyTimer)
             }
           }
           const length = upstream.headers.get('content-length')

@@ -1210,6 +1210,7 @@ var profileToken = 0
       releaseObjectUrl()
       currentBlob = null
       var onlineToken = token
+      if (audio !== null) audio.preload = 'auto'
       loadActiveSource(item.onlineUrl)
       loudness.resolve()
       if (pendingAutoplay) playAfterLoudness(token)

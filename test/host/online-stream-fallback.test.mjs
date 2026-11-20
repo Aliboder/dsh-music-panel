@@ -77,6 +77,34 @@ try {
   assert.equal(legacyRes.status, 206, 'the legacy URL is served when the modern CDN object is gone')
   assert.deepEqual(qualities, ['high'], 'legacy fallback happens before lowering the quality')
   assert.equal(legacyRes.body, '73,68,51,3', 'the legacy response body is the audio')
+
+// A media seek asks for a later byte range. Some CDNs answer 200 anyway;
+// the Host must turn the slice into a real 206 or Chromium restarts at zero.
+{
+  const oldStream = omni.stream
+  const oldFetch = globalThis.fetch
+  omni.stream = async (_provider, _id, _ctx, quality) => ({
+    url: 'https://cdn.test/range.mp3',
+    quality,
+    preview: false,
+  })
+  globalThis.fetch = async () => new Response(Buffer.from('0123456789'), {
+    status: 200,
+    headers: { 'content-type': 'audio/mpeg', 'content-length': '10' },
+  })
+  try {
+    const res = fakeRes()
+    await handler(fakeReq('/music/online/stream?provider=kugouLite&id=seek-range&quality=high', 'GET', { range: 'bytes=4-' }), res)
+    assert.equal(res.status, 206, 'a 200 to a seek is sliced into 206')
+    assert.equal(res.headers['content-range'], 'bytes 4-9/10')
+    assert.equal(res.headers['content-length'], '6')
+    assert.equal(res.body, '456789', 'the body is the requested slice')
+  } finally {
+    omni.stream = oldStream
+    globalThis.fetch = oldFetch
+  }
+}
+
 } finally {
   omni.stream = originalStream
   globalThis.fetch = originalFetch
