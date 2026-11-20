@@ -381,8 +381,8 @@ function analyzeLoudnessBlob(item, blob, isCurrent, onMeasured) {
 }
 
 /** A library server's front: decode whatever the range prefix gave us. */
-function analyzePartialLoudnessBlob(item, blob) {
-  if (!item || !blob) return Promise.resolve(null)
+function analyzePartialLoudnessBlob(item, blob, isCurrent) {
+  if (!item || !blob || (typeof isCurrent === 'function' && !isCurrent())) return Promise.resolve(null)
   var decoder = loudnessContext()
   if (decoder === null) return Promise.resolve(null)
   var measuredBuffer = null
@@ -406,7 +406,7 @@ function analyzePartialLoudnessBlob(item, blob) {
       })
     })
     .then(function (measured) {
-      if (!measured) return null
+      if (!measured || (typeof isCurrent === 'function' && !isCurrent())) return null
       noteProfile(item.path, measured)
       return measured
     })

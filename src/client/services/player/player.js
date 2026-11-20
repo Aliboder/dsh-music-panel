@@ -167,6 +167,7 @@ function createPlayer() {
   var tagGainDb = null
 var platformGain = null
 var prefetchedProfilePath = ''
+var profileToken = 0
   var currentLoudnessBlob = null
   /** In-flight track download. */
   var fetchAbort = null
@@ -1029,6 +1030,8 @@ var prefetchedProfilePath = ''
 
   /** Folia's profile look-ahead: measure the next local track while this one plays. */
   function prefetchNextProfile() {
+    var token = profileToken
+    var stillCurrent = function () { return token === profileToken }
     if (readPrefs().normalizeVolume === false) return
     if (state.index < 0 || state.queue.length < 2) return
     var next = nextIndexOf(state.index, state.queue.length)
@@ -1044,7 +1047,7 @@ var prefetchedProfilePath = ''
         analyzeLoudnessBlob(
           item,
           prefetchedNext.blob,
-          function () { return true },
+          stillCurrent,
           function () { /* the store is the result */ },
         ).catch(function () { /* optional */ })
         return
@@ -1062,7 +1065,7 @@ var prefetchedProfilePath = ''
               return analyzeLoudnessBlob(
                 item,
                 blob,
-                function () { return true },
+                stillCurrent,
                 function () { /* the store is the result */ },
               )
             })
@@ -1080,11 +1083,11 @@ var prefetchedProfilePath = ''
         return response.blob()
       })
       .then(function (blob) {
-        if (item.onlineProvider === 'navidrome') return analyzePartialLoudnessBlob(item, blob)
+        if (item.onlineProvider === 'navidrome') return analyzePartialLoudnessBlob(item, blob, stillCurrent)
         return analyzeLoudnessBlob(
           item,
           blob,
-          function () { return true },
+          stillCurrent,
           function () { /* the store is the result */ },
         )
       })
@@ -1152,6 +1155,7 @@ var prefetchedProfilePath = ''
     tagGainDb = null
     platformGain = null
     prefetchedProfilePath = ''
+    profileToken += 1
     state = Object.assign({}, state, { index: at, currentTime: 0, duration: 0, buffered: 0 })
     emit()
     syncMediaSession()

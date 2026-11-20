@@ -151581,8 +151581,8 @@ window.__ModuleLoader__.load({
     }
 
     /** A library server's front: decode whatever the range prefix gave us. */
-    function analyzePartialLoudnessBlob(item, blob) {
-      if (!item || !blob) return Promise.resolve(null)
+    function analyzePartialLoudnessBlob(item, blob, isCurrent) {
+      if (!item || !blob || (typeof isCurrent === 'function' && !isCurrent())) return Promise.resolve(null)
       var decoder = loudnessContext()
       if (decoder === null) return Promise.resolve(null)
       var measuredBuffer = null
@@ -151606,7 +151606,7 @@ window.__ModuleLoader__.load({
           })
         })
         .then(function (measured) {
-          if (!measured) return null
+          if (!measured || (typeof isCurrent === 'function' && !isCurrent())) return null
           noteProfile(item.path, measured)
           return measured
         })
@@ -155567,6 +155567,7 @@ window.__ModuleLoader__.load({
       var tagGainDb = null
     var platformGain = null
     var prefetchedProfilePath = ''
+    var profileToken = 0
       var currentLoudnessBlob = null
       /** In-flight track download. */
       var fetchAbort = null
@@ -156429,6 +156430,8 @@ window.__ModuleLoader__.load({
 
       /** Folia's profile look-ahead: measure the next local track while this one plays. */
       function prefetchNextProfile() {
+        var token = profileToken
+        var stillCurrent = function () { return token === profileToken }
         if (readPrefs().normalizeVolume === false) return
         if (state.index < 0 || state.queue.length < 2) return
         var next = nextIndexOf(state.index, state.queue.length)
@@ -156444,7 +156447,7 @@ window.__ModuleLoader__.load({
             analyzeLoudnessBlob(
               item,
               prefetchedNext.blob,
-              function () { return true },
+              stillCurrent,
               function () { /* the store is the result */ },
             ).catch(function () { /* optional */ })
             return
@@ -156462,7 +156465,7 @@ window.__ModuleLoader__.load({
                   return analyzeLoudnessBlob(
                     item,
                     blob,
-                    function () { return true },
+                    stillCurrent,
                     function () { /* the store is the result */ },
                   )
                 })
@@ -156480,11 +156483,11 @@ window.__ModuleLoader__.load({
             return response.blob()
           })
           .then(function (blob) {
-            if (item.onlineProvider === 'navidrome') return analyzePartialLoudnessBlob(item, blob)
+            if (item.onlineProvider === 'navidrome') return analyzePartialLoudnessBlob(item, blob, stillCurrent)
             return analyzeLoudnessBlob(
               item,
               blob,
-              function () { return true },
+              stillCurrent,
               function () { /* the store is the result */ },
             )
           })
@@ -156552,6 +156555,7 @@ window.__ModuleLoader__.load({
         tagGainDb = null
         platformGain = null
         prefetchedProfilePath = ''
+        profileToken += 1
         state = Object.assign({}, state, { index: at, currentTime: 0, duration: 0, buffered: 0 })
         emit()
         syncMediaSession()

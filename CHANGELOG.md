@@ -24,6 +24,7 @@
 - 交叉淡入的 `planBlendShape` 现在读下一首 profile 的 bpm/beatOffset，把 overlap 吸附到拍点；没有 profile 时保持原有 envelope 计划。
 - `/online/cache-info` 现在给下一首在线曲提供缓存命中信息；已缓存的在线下一首可直接用 Host 缓存分析 profile，不额外访问 CDN。
 - crossfade 的尾部/开头估算在没有 envelope 时回退到 profile 的 `bodyOut` / `leadIn`。
+- profile 预分析带当前队列 token；切歌后旧分析即使完成也不再写入 profile。
 
 ### 代码结构
 
