@@ -68,7 +68,6 @@
     "src/client/panel-v3/p3-styles.js",
     "src/client/components/ui/component-gallery.js",
     "src/client/components/ui/eq-panel.js",
-    "src/client/components/ui/player-page.js",
     "src/client/components/ui/now-playing.js",
     "src/client/components/ui/queue.js",
     "src/client/components/ui/settings.js",

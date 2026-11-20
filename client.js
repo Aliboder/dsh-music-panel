@@ -159134,30 +159134,11 @@ window.__ModuleLoader__.load({
       '.mp-look-standard .mp-np-line{text-shadow:none}',
       '.mp-bgmode-cover .mp-np-bg-drift img{filter:blur(2px) saturate(1.25) brightness(.9);transform:scale(1.02)}',
       '.mp-bgmode-off .mp-np-bg{display:none}',
-      '.mp-page-backdrop{position:absolute;inset:0;background:#101014}',
-      '.mp-page-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(60px) saturate(1.5) brightness(.55);transform:scale(1.15)}',
-      '.mp-page-wash{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 40%,rgba(0,0,0,.15),rgba(0,0,0,.65))}',
-      '.mp-page-top{display:flex;align-items:center;gap:14px;padding:4px 6px}',
-      '.mp-page-meta{min-width:0;flex:1 1 auto}',
-      '.mp-page-title{font-size:16px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-page-artist{font-size:12px;opacity:.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-page-quality{display:flex;gap:8px;font-size:11px;opacity:.5}',
-      '.mp-page-style{height:26px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:inherit;font:inherit;font-size:12px;cursor:pointer}',
-      '.mp-page-pill{display:flex;flex-direction:column;gap:8px;padding:10px 18px 12px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-bg-overlay,#1c1c20) 88%,transparent);border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));box-shadow:0 18px 50px color-mix(in srgb,var(--dsw-alias-bg-base,#000) 35%,transparent);backdrop-filter:blur(28px)}',
-      '.mp-page-pill-title{min-width:0;text-align:center;font-size:13px;line-height:18px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-page-pill-row{display:flex;align-items:center;gap:12px;min-width:0;width:100%}',
-      '.mp-page-play{width:38px;height:38px;display:grid;place-items:center;border-radius:50%;border:0;background:var(--dsw-alias-label-primary,#f4f4f5);color:var(--dsw-alias-bg-base,#141417);cursor:pointer;flex:none;transition:transform .15s ease,opacity .15s ease}',
-      '.mp-page-play:hover:not(:disabled){transform:scale(1.06)}',
-      '.mp-page-play:disabled{opacity:.45;cursor:default;transform:none}',
-      '.mp-page-progress{flex:1 1 auto;min-width:0}',
-      '.mp-page-time{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums;white-space:nowrap}',
       '.mp-shell{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#f4f4f5;background:#101014;font-family:inherit}',
       '.mp-shell-backdrop,.mp-shell-shade,.mp-shell-stage{position:absolute;inset:0}',
       '.mp-shell-stage{z-index:3;display:flex;flex-direction:column;align-items:stretch;min-height:0;padding:64px 0 96px;box-sizing:border-box}',
       '.mp-shell-stage>*{flex:1 1 auto;min-height:0;min-width:0}',
       '.mp-shell-stage .mp-np-lyrics,.mp-shell-stage .mp-np-canvas-wrap,.mp-shell-stage .mp-np-pixi-wrap{height:100%;width:100%}',
-      '.mp-page-pill{width:min(720px,calc(100% - 32px));margin:0 auto}',
-      '@media (max-width:620px){.mp-page-pill-row{gap:8px}.mp-page-pill-row .mp-page-time{display:none}.mp-page-pill{padding-left:14px;padding-right:14px}}',
       '.mp-shell-shade{z-index:2;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.35),transparent 22%,transparent 72%,rgba(0,0,0,.45))}',
       '.mp-shell-backdrop{z-index:1;overflow:hidden}',
       '.mp-shell-top{position:relative;z-index:5;display:flex;align-items:center;gap:10px;padding:14px 18px}',
@@ -161815,235 +161796,6 @@ window.__ModuleLoader__.load({
         eq.enabled && !available ? h('div', { className: 'mp-eq-warn' }, t('eq.unavailable')) : null,
         h('div', { className: 'mp-eq-body' }, body),
       )
-    }
-
-    // ── src/client/components/ui/player-page.js
-    /**
-     * 播放页（重写版）— Folia 的结构，不保留旧的三栏布局。
-     *
-     *   PlayerShell
-     *     backdrop  封面模糊 + 流光（保留的视觉资产）
-     *     stage     当前歌词样式的渲染器（注册表，见 src/render/）
-     *     topBar    返回 + 曲名/歌手 + 音质
-     *     bottomBar 播放胶囊：上一个/播放/下一个 + 进度 + 时间
-     *
-     * 歌词、进度、样式全部走现有 store 与注册表；旧的 DOM 三栏已删除。
-     */
-
-    function PlayerPage(props) {
-      var snap = usePlayerSnapshot()
-      var time = usePlayerTime()
-      var prefs = usePrefs()
-      var track = snap.queue[snap.index] || null
-      var trackPath = track ? track.path : ''
-      var cover = track ? trackCoverSrc(track) : ''
-      var duration = Number(time.duration) || (track ? Number(track.durationSec) || 0 : 0)
-
-      var pair = useState([])
-      var lyrics = pair[0]
-      var setLyrics = pair[1]
-      var offsetPair = useState(0)
-      var offsetMs = offsetPair[0]
-      var setOffsetMs = offsetPair[1]
-      var openPair = useState(false)
-      var queueOpen = openPair[0]
-      var setQueueOpen = openPair[1]
-
-      useEffect(
-        function () {
-          if (trackPath === '') return undefined
-          var cancelled = false
-          // The stage reads the same resolved lyric every surface gets — an online song
-          // through the platform (or its borrowed/imported lyric), a local file through the
-          // Host's pick. Before this, an online track had no lyric here at all: `/lyrics` only
-          // accepts a file path, and `online:<provider>:<id>` is not one.
-          setLyrics([])
-          // The loader may replace the first lyric with a better-timed one after playback
-          // starts; the stage follows it, as Folia's setter does.
-          var unsubscribe = MPLyricLoader.subscribe(trackPath, function (next) {
-            if (cancelled || next.upgraded === undefined) return
-            setLyrics(next.document === null ? legacyLinesToFolia(next.lyrics) : next.lyrics)
-          })
-          MPLyricLoader.load(track)
-            .then(function (loaded) {
-              if (cancelled) return
-              setLyrics(loaded.document === null ? legacyLinesToFolia(loaded.lyrics) : loaded.lyrics)
-              setOffsetMs(Number(loaded.offsetMs) || 0)
-            })
-            .catch(function () {
-              if (!cancelled) setLyrics([])
-            })
-          return function () {
-            cancelled = true
-            if (typeof unsubscribe === 'function') unsubscribe()
-          }
-        },
-        [props.open, trackPath],
-      )
-
-      var now = (Number(time.currentTime) || 0) - offsetMs / 1000
-      var active = -1
-      for (var index = 0; index < lyrics.length; index += 1) {
-        if (mpLineStart(lyrics[index]) <= now) active = index
-        else break
-      }
-
-      var backdrop = h(
-        'div',
-        { className: 'mp-page-backdrop' },
-        cover !== ''
-          ? h('img', { className: 'mp-page-bg', src: cover, alt: '', 'aria-hidden': 'true' })
-          : null,
-        h('div', { className: 'mp-page-wash', 'aria-hidden': 'true' }),
-      )
-
-      var lyricStyleId = mpResolveLyricStyle(prefs.lyricStyle, {
-        seed: trackPath,
-        time: Number(time.currentTime) || 0,
-        duration: duration,
-      })
-      var stage =
-        lyrics.length === 0
-          ? null
-          : h(LyricStage, {
-        lines: lyrics,
-        offsetMs: offsetMs,
-        active: active,
-        focus: active,
-        now: now,
-        timed: lyrics.length > 0 && mpLineStart(lyrics[0]) >= 0,
-        prefs: prefs,
-        rowRefs: [],
-        wordSpans: wordSpans,
-        onSeekLine: function (line) {
-          var start = mpLineStart(line)
-          if (line && isFinite(start) && start >= 0) player.seek(start + offsetMs / 1000)
-        },
-        manualIndex: -1,
-        formatClock: fmtClock,
-        stylePref: lyricStyleId,
-        title: track ? trackTitleOf(track) : '',
-        artist: track ? trackArtistOf(track) : '',
-        album: track ? track.album || '' : '',
-        coverUrl: cover,
-        duration: track ? Number(track.durationSec) || 0 : 0,
-        seed: track && track.path ? track.path : '',
-        seed: trackPath,
-        accent: '',
-      })
-
-      var topBar = h(
-        'div',
-        { className: 'mp-page-top' },
-        h(IconButton, { icon: 'chevronDown', size: 20, title: t('page.closePlayer'), onClick: props.onClose }),
-        h(
-          'div',
-          { className: 'mp-page-meta' },
-          h('div', { className: 'mp-page-title' }, track ? trackTitleOf(track) : ''),
-          h('div', { className: 'mp-page-artist' }, track ? trackArtistOf(track) : ''),
-        ),
-        h(
-          'button',
-          {
-            type: 'button',
-            className: 'mp-page-style',
-            title: t('sheet.lyricStyle'),
-            onClick: function () {
-              var list = mpStyleCatalog()
-              if (list.length === 0) return
-              var current = mpStyleIdOf(prefs.lyricStyle)
-              var at = 0
-              for (var index = 0; index < list.length; index += 1) {
-                if (list[index].id === current) at = index
-              }
-              var next = list[(at + 1) % list.length]
-              setPrefs({ lyricStyle: next.id })
-              if (typeof showToast === 'function') showToast(t('sheet.lyricStyle') + ': ' + t(next.labelKey))
-            },
-          },
-          t('sheet.lyricStyle'),
-        ),
-        h(
-          'div',
-          { className: 'mp-page-quality' },
-          track && track.codec ? h('span', null, track.codec) : null,
-          track && track.sampleRate ? h('span', null, fmtKhz(track.sampleRate)) : null,
-          track && track.bitrate ? h('span', null, fmtKbps(track.bitrate)) : null,
-        ),
-      )
-
-      // Folia's bottom bar: title above a transport row, times around the seek bar,
-      // the loop mode as a tri-state control, and the page's own queue action.
-      // Folia cycles off -> all -> one; the engine keeps the same three modes.
-      var loopMode = snap.loop === 'one' ? 'one' : snap.loop === 'all' ? 'all' : 'none'
-      function cycleLoop() {
-        var next = loopMode === 'none' ? 'all' : loopMode === 'all' ? 'one' : 'none'
-        player.setLoop(next)
-      }
-      var loopLabel = loopMode === 'one' ? t('page.loopOne') : loopMode === 'all' ? t('page.loopAll') : t('page.loopNone')
-      var bottomBar = h(
-        'div',
-        { className: 'mp-page-pill' },
-        h('div', { className: 'mp-page-pill-title' }, track ? trackTitleOf(track) : ''),
-        h(
-          'div',
-          { className: 'mp-page-pill-row' },
-          h(IconButton, { icon: 'prev', size: 22, title: t('page.prev'), onClick: function () { player.prev() } }),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'mp-page-play',
-              title: snap.playing ? t('page.pause') : t('page.play'),
-              onClick: function () {
-                player.toggle()
-              },
-            },
-            icon(snap.playing ? 'pause' : 'play', 26),
-          ),
-          h(IconButton, { icon: 'next', size: 22, title: t('page.next'), onClick: function () { player.next() } }),
-          h('span', { className: 'mp-page-time' }, fmtClock(time.currentTime || 0)),
-          h(
-            'div',
-            { className: 'mp-page-progress' },
-            h(WaveSeekBar, {
-              cover: cover,
-              playing: snap.playing,
-              wave: prefs.waveEnabled !== false,
-              fallbackDuration: track ? Number(track.durationSec) || 0 : 0,
-            }),
-          ),
-          h('span', { className: 'mp-page-time' }, fmtClock(duration)),
-          h(IconButton, {
-            icon: loopMode === 'one' ? 'repeatOne' : 'repeat',
-            size: 20,
-            title: loopLabel,
-            active: loopMode !== 'none',
-            onClick: cycleLoop,
-          }),
-          h(IconButton, {
-            icon: 'list',
-            size: 20,
-            title: t('page.queue'),
-            active: queueOpen,
-            onClick: function () {
-              setQueueOpen(!queueOpen)
-            },
-          }),
-        ),
-      )
-
-      // Closed page renders nothing: this shell is absolutely positioned and would
-      // otherwise sit on top of the library.
-      if (props.open !== true) return null
-
-      return h(PlayerShell, {
-        backdrop: backdrop,
-        stage: stage,
-        topBar: topBar,
-        bottomBar: bottomBar,
-        overlay: queueOpen ? h(QueuePanel, { snap: snap }) : null,
-      })
     }
 
     // ── src/client/components/ui/now-playing.js
@@ -168445,7 +168197,7 @@ window.__ModuleLoader__.load({
      * panel-v3 overlay: shared boundaries, control actions, overlay host and startup guide.
      *
      * These lived in the old panel.js. They are moved here before the old panel is deleted;
-     * the new shell reuses the existing dialogs/settings/player-page untouched.
+     * the new shell reuses the existing dialogs/settings untouched.
      */
 
     class MusicBoundary extends React.Component {
@@ -177385,7 +177137,6 @@ window.__ModuleLoader__.load({
           AudioEffectsPanel: AudioEffectsPanel,
           // The player card renders in tests so a missing pane cannot ship silently.
           PlayerSheet: PlayerSheet,
-          PlayerPage: PlayerPage,
           LyricMatchDialog: LyricMatchDialog,
           EqPanel: EqPanel,
           normalizeEqPrefs: normalizeEqPrefs,

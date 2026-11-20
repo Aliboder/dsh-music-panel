@@ -555,9 +555,9 @@
 ## 62. 播放页底栏改错组件
 
 - **现象**：改的是 `player-page.js` 的 `.mp-page-pill`，但当前全屏播放页实际挂载的是 `now-playing.js` 的 `NowPlayingCapsule`，界面上没有任何变化。
-- **原因**：仓里有两套播放页外壳；`p3-shell.js` 只挂载 `NowPlaying`，`PlayerPage` 是旧壳。没有先确认挂载点就按文件名改了“看起来最像”的底栏。
+- **原因**：仓里有两套播放页外壳；`p3-shell.js` 只挂载 `NowPlaying`，`PlayerPage` 是已经不再挂载的旧壳。没有先确认挂载点就按文件名改了“看起来最像”的底栏。旧壳、旧测试和 `.mp-page-*` 样式随后已删除。
 - **处理**：改 `NowPlayingCapsule`：循环键按 Folia 的 off → all → one 三态调用 `player.setLoop`，不再用会改随机顺序的 `cyclePlayMode`；胶囊颜色改用 `--dsw-alias-*` token。队列作为插件额外入口保留。
-- **防回归**：改播放页 UI 前先查 `p3-shell.js` 的挂载点；底栏组件以实际渲染的 `NowPlayingCapsule` 为准，不要只按 `player-page.js` 猜。
+- **防回归**：改播放页 UI 前先查 `p3-shell.js` 的挂载点；底栏组件以实际渲染的 `NowPlayingCapsule` 为准，不要按文件名猜。
 
 ---
 

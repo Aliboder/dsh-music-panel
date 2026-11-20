@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 清理
+
+- 删除已不再挂载的旧播放页外壳 `src/client/components/ui/player-page.js`、它的测试和 `.mp-page-*` 样式；当前全屏播放页由 `NowPlaying` 渲染，旧壳只会在构建产物里留下死代码。
+
 ### 播放底栏
 
 - 播放页实际使用的 `NowPlayingCapsule` 按 Folia 的 transport 语义对齐：标题、传输键、当前时间、进度、总时长、循环模式与队列保持在同一胶囊；循环键支持 Folia 的「不循环 / 列表循环 / 单曲循环」三态，直接调用 `player.setLoop`，不再借用会同时改随机顺序的播放模式循环。进度仍走同一个 `SeekBar` / `player.seek`。

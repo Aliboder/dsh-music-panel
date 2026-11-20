@@ -2,7 +2,7 @@
  * panel-v3 overlay: shared boundaries, control actions, overlay host and startup guide.
  *
  * These lived in the old panel.js. They are moved here before the old panel is deleted;
- * the new shell reuses the existing dialogs/settings/player-page untouched.
+ * the new shell reuses the existing dialogs/settings untouched.
  */
 
 class MusicBoundary extends React.Component {
