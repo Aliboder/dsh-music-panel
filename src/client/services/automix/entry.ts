@@ -5,3 +5,5 @@ export {
     TRACK_PROFILE_VERSION,
     programIsWholeTrack,
 } from './trackProfile';
+export { gridFromBeats } from './gridFromBeats';
+export type { BeatGrid, BeatThisGrid } from './gridFromBeats';

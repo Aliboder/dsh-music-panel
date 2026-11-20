@@ -150371,13 +150371,47 @@ window.__ModuleLoader__.load({
           PROFILE_SAMPLE_RATE: () => PROFILE_SAMPLE_RATE,
           TRACK_PROFILE_VERSION: () => TRACK_PROFILE_VERSION,
           analyseTrack: () => analyseTrack,
+          gridFromBeats: () => gridFromBeats,
           programIsWholeTrack: () => programIsWholeTrack
         });
       
         // src/client/services/automix/gridFromBeats.ts
-        function gridFromBeats(_grid, _options = {}) {
-          return null;
-        }
+        var OUTRO_WINDOW_SEC = 30;
+        var MIN_BEATS = 8;
+        var modulo = (value, span) => (value % span + span) % span;
+        var median = (values) => {
+          if (!values.length) return NaN;
+          const sorted = [...values].sort((a, b) => a - b);
+          const middle = sorted.length >> 1;
+          return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+        };
+        var intervals = (times) => {
+          const out = [];
+          for (let index = 1; index < times.length; index += 1) out.push(times[index] - times[index - 1]);
+          return out;
+        };
+        var gridFromBeats = (grid, options = {}) => {
+          if (grid.beats.length < MIN_BEATS) return null;
+          const period = median(intervals(grid.beats));
+          if (!Number.isFinite(period) || period <= 0) return null;
+          const last = grid.beats[grid.beats.length - 1];
+          const beatOffset = modulo(last, period);
+          const spans = intervals(grid.downbeats).map((span) => Math.round(span / period));
+          const perBar = Math.round(median(spans.filter((span) => span >= 2 && span <= 12)));
+          const beatsPerBar = Number.isFinite(perBar) && perBar >= 2 ? perBar : 4;
+          const barSec = period * beatsPerBar;
+          const outroFrom = last - OUTRO_WINDOW_SEC;
+          const outroBeats = grid.beats.filter((beat) => beat >= outroFrom);
+          const outroPeriod = outroBeats.length >= MIN_BEATS ? median(intervals(outroBeats)) : NaN;
+          return {
+            bpm: 60 / period,
+            outroBpm: options.partial || !Number.isFinite(outroPeriod) || outroPeriod <= 0 ? null : 60 / outroPeriod,
+            beatOffset,
+            downbeatOffset: grid.downbeats.length ? modulo(grid.downbeats[grid.downbeats.length - 1], barSec) : null,
+            headDownbeatOffset: grid.downbeats.length ? modulo(grid.downbeats[0], barSec) : null,
+            beatsPerBar
+          };
+        };
       
         // src/client/services/automix/uiYield.ts
         var YIELD_BUDGET_MS = 8;
@@ -150729,7 +150763,7 @@ window.__ModuleLoader__.load({
         var OUTRO_TEMPO_SEC = 30;
         var HEAD_TEMPO_TOLERANCE = 0.1;
         var CHROMA_MAX_FLATNESS = 0.28;
-        var modulo = (value, span) => (value % span + span) % span;
+        var modulo2 = (value, span) => (value % span + span) % span;
         var NOVELTY_BIN_SEC = 1;
         var NOVELTY_HALF_KERNEL = 4;
         var NOVELTY_MIN_KERNEL = 2;
@@ -151088,7 +151122,7 @@ window.__ModuleLoader__.load({
             lowEnvelope.slice(0, tempoFrames),
             hopSec,
             headTempo.periodSec,
-            modulo((tempoFrames - 1 - headTempo.beatOffsetHops) * hopSec, headTempo.periodSec),
+            modulo2((tempoFrames - 1 - headTempo.beatOffsetHops) * hopSec, headTempo.periodSec),
             BEATS_PER_BAR,
             chromaEnvelope.slice(0, tempoFrames)
           ) : null;
@@ -151142,13 +151176,13 @@ window.__ModuleLoader__.load({
             bpm: measured?.bpm ?? tempo?.bpm ?? null,
             outroBpm: measured ? measured.outroBpm : outroTempo?.bpm ?? null,
             beatOffset: measured?.beatOffset ?? beatOffset,
-            downbeatOffset: measured ? measured.downbeatOffset : downbeat === null ? null : modulo(downbeat + envelopeStartSec, barSec),
+            downbeatOffset: measured ? measured.downbeatOffset : downbeat === null ? null : modulo2(downbeat + envelopeStartSec, barSec),
             // Folded against the whole-track bar because that is the unit `barGrid` walks in. When the two
             // ends really do run at different tempos the fold can shift the answer by the difference between
             // the two bar lengths - a few hundredths of a second, against a walk of one or two bars.
             // ponytail: good enough at entry range; store the head period too if anything ever needs the
             // head grid further in than that.
-            headDownbeatOffset: measured ? measured.headDownbeatOffset : headDownbeat === null ? null : modulo(headDownbeat + envelopeStartSec, barSec),
+            headDownbeatOffset: measured ? measured.headDownbeatOffset : headDownbeat === null ? null : modulo2(headDownbeat + envelopeStartSec, barSec),
             beatsPerBar: measured?.beatsPerBar ?? BEATS_PER_BAR,
             key: key.key,
             major: key.major,

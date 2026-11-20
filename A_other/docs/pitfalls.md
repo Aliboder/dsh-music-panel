@@ -651,6 +651,15 @@
 
 ---
 
+## 73. gridFromBeats 不是模型推理
+
+- **现象**：`gridFromBeats` 已能生成 bpm/downbeat，但没有 Beat This 模型时 profile 仍然走 Folia 的频谱估算。
+- **原因**：模型推理在 Electron/GPU 侧，插件没有权重和桥；`gridFromBeats` 只负责把已有拍点折成均匀网格。
+- **处理**：把 `gridFromBeats` 暴露给未来的模型调用方；没有 `grid` 时不要伪造拍点，让 `analyseTrack` 走 fallback。
+- **防回归**：不要用估算出的 bpm 反推假 `BeatGrid` 再传给模型路径；两条证据不能混。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
