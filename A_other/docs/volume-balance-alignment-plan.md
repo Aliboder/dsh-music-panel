@@ -68,7 +68,7 @@ gain node + UI hint
 
 ### 阶段 5：测试与验收
 
-- 规则 parity 测试：相同输入和 Folia 规则输出一致；
+- 规则 parity 测试：相同输入和 Folia 规则输出一致（`volume-balance-parity.test.mjs`）；
 - typical 去重测试；
 - meter 可听步数/低通测试；
 - 移动 hold / ramp 测试；
