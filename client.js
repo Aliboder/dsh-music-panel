@@ -161798,12 +161798,7 @@ window.__ModuleLoader__.load({
       )
     }
 
-    // ── src/client/components/ui/now-playing.js
-    /**
-     * now playing: the full-panel player (square cover, blurred cover backdrop,
-     * floating transport panel) rebuilt on the v2 state layer.
-     */
-
+    // ── src/client/components/ui/now-playing/fullscreen.js
     /** Browser fullscreen can reject when the document is no longer active; that is cleanup, not an error. */
     function exitFullscreenQuietly() {
       if (typeof document === 'undefined' || typeof document.exitFullscreen !== 'function') return
@@ -161815,6 +161810,8 @@ window.__ModuleLoader__.load({
       }
     }
 
+    // ── src/client/components/ui/now-playing/lyrics-timing.js
+    /** The current timed lyric line, using Folia's last-line-at-or-before lookup. */
     function lyricActiveIndex(lines, seconds) {
       if (!Array.isArray(lines) || lines.length === 0) return -1
       if (mpLineStart(lines[0]) < 0) return -1
@@ -161833,6 +161830,7 @@ window.__ModuleLoader__.load({
       return found
     }
 
+    // ── src/client/components/ui/now-playing/lyrics-scroll.js
     function useLyricAutoScroll(
       boxRef,
       innerRef,
@@ -162163,6 +162161,770 @@ window.__ModuleLoader__.load({
       }
     }
 
+    // ── src/client/components/ui/now-playing/cover-accent.js
+    function fallbackCoverAccent() {
+      var h = 40
+      var sat = 12
+      var light = 70
+      return {
+        h: h,
+        s: sat,
+        l: light,
+        palette: [
+          { h: 28, s: 10, l: 62 },
+          { h: h, s: sat, l: light },
+          { h: 52, s: 14, l: 78 },
+        ],
+      }
+    }
+
+    function rgbToHslColor(red, green, blue) {
+      var r = red / 255
+      var g = green / 255
+      var b = blue / 255
+      var max = Math.max(r, g, b)
+      var min = Math.min(r, g, b)
+      var d = max - min
+      var l = (max + min) / 2
+      var s = 0
+      var h = 0
+      if (d !== 0) {
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+        if (max === r) h = ((g - b) / d) % 6
+        else if (max === g) h = (b - r) / d + 2
+        else h = (r - g) / d + 4
+        h *= 60
+        if (h < 0) h += 360
+      }
+      return { h: h, s: s, l: l }
+    }
+
+    function coverAccentFromUrl(url, image) {
+      return new Promise(function (resolve) {
+        if (!url) {
+          resolve(fallbackCoverAccent())
+          return
+        }
+        var img = image || new Image()
+        img.onload = function () {
+          try {
+            var canvas = document.createElement('canvas')
+            canvas.width = 24
+            canvas.height = 24
+            var ctx = canvas.getContext('2d', { willReadFrequently: true })
+            ctx.drawImage(img, 0, 0, 24, 24)
+            var data = ctx.getImageData(0, 0, 24, 24).data
+            var buckets = new Map()
+            for (var i = 0; i < data.length; i += 4) {
+              if (data[i + 3] < 128) continue
+              var red = data[i]
+              var green = data[i + 1]
+              var blue = data[i + 2]
+              var key = (red >> 4) + ',' + (green >> 4) + ',' + (blue >> 4)
+              var entry = buckets.get(key)
+              if (entry === undefined) {
+                entry = { count: 0, r: 0, g: 0, b: 0 }
+                buckets.set(key, entry)
+              }
+              entry.count += 1
+              entry.r += red
+              entry.g += green
+              entry.b += blue
+            }
+            var colors = []
+            buckets.forEach(function (entry) {
+              var color = rgbToHslColor(entry.r / entry.count, entry.g / entry.count, entry.b / entry.count)
+              colors.push({ h: color.h, s: color.s, l: color.l, count: entry.count })
+            })
+            colors.sort(function (a, b) {
+              return b.count - a.count
+            })
+            var picked = []
+            for (var c = 0; c < colors.length && picked.length < 3; c += 1) {
+              var candidate = colors[c]
+              var distinct = true
+              for (var p = 0; p < picked.length; p += 1) {
+                var other = picked[p]
+                var hueGap = Math.min(
+                  Math.abs(candidate.h - other.h),
+                  360 - Math.abs(candidate.h - other.h),
+                ) / 360
+                var distance = Math.hypot(hueGap, candidate.s - other.s, candidate.l - other.l)
+                if (distance < 0.16) {
+                  distinct = false
+                  break
+                }
+              }
+              if (distinct) picked.push(candidate)
+            }
+            if (picked.length === 0) {
+              resolve(fallbackCoverAccent())
+              return
+            }
+            while (picked.length < 3) {
+              var base = picked[0]
+              picked.push({
+                h: (base.h + (picked.length === 1 ? 32 : 328)) % 360,
+                s: base.s,
+                l: Math.min(0.8, Math.max(0.38, base.l + (picked.length === 1 ? 0.08 : -0.06))),
+                count: 0,
+              })
+            }
+            if (colors.length === 0) {
+              resolve(fallbackCoverAccent())
+              return
+            }
+            // Signature colour: among reasonably saturated clusters, prefer area
+            // times saturation. This ignores both a large cream background and a
+            // tiny saturated JPEG fringe (which used to win and turn the wave blue).
+            var maxCount = colors.reduce(function (max, color) {
+              return Math.max(max, color.count || 1)
+            }, 1)
+            var minCount = Math.max(3, Math.floor(maxCount * 0.02))
+            var saturated = colors.filter(function (color) {
+              return (
+                color.s > 0.3 &&
+                color.l > 0.06 &&
+                color.l < 0.92 &&
+                Math.max(1, color.count || 1) >= minCount
+              )
+            })
+            var pool = saturated.length > 0 ? saturated : colors
+            var base = pool.reduce(function (best, color) {
+              var score = Math.max(1, color.count || 1) * (0.35 + color.s)
+              var bestScore = Math.max(1, best.count || 1) * (0.35 + best.s)
+              return score > bestScore ? color : best
+            }, pool[0])
+            var feature = []
+            function addFeature(source) {
+              var candidate = {
+                h: Math.round(source.h),
+                s: Math.round(Math.min(1, Math.max(0.16, source.s)) * 100),
+                l: Math.round(Math.min(0.82, Math.max(0.38, source.l)) * 100),
+              }
+              for (var f = 0; f < feature.length; f += 1) {
+                var other = feature[f]
+                var hueGap = Math.min(
+                  Math.abs(candidate.h - other.h),
+                  360 - Math.abs(candidate.h - other.h),
+                ) / 360
+                if (Math.hypot(hueGap, (candidate.s - other.s) / 100, (candidate.l - other.l) / 100) < 0.16) {
+                  return
+                }
+              }
+              feature.push(candidate)
+            }
+            addFeature(base)
+            for (var f = 0; f < picked.length; f += 1) addFeature(picked[f])
+            // Hard bound the fallback loop. addFeature() may reject a generated
+            // neighbour as too similar, so looping on it can spin forever on
+            // low-colour artwork and freeze the panel while extracting the cover.
+            var featureGuard = 0
+            while (feature.length < 3 && featureGuard < 12) {
+              var anchor = feature[0] || { h: 40, s: 16, l: 70 }
+              var angle = (featureGuard + 1) * 30
+              feature.push({
+                h: (anchor.h + angle) % 360,
+                s: Math.max(16, anchor.s),
+                l: Math.min(82, Math.max(38, anchor.l + (featureGuard % 2 === 0 ? 8 : -6))),
+              })
+              featureGuard += 1
+            }
+            feature = feature.slice(0, 4).sort(function (a, b) {
+              return a.h - b.h
+            })
+            resolve({
+              h: Math.round(base.h),
+              s: Math.round(Math.min(1, Math.max(0.16, base.s)) * 100),
+              l: Math.round(Math.min(0.82, Math.max(0.38, base.l)) * 100),
+              palette: feature,
+            })
+          } catch (error) {
+            resolve(fallbackCoverAccent())
+          }
+        }
+        img.onerror = function () {
+          resolve(fallbackCoverAccent())
+        }
+        if (image) {
+          if (img.complete) {
+            if (img.naturalWidth > 0) img.onload()
+            else img.onerror()
+          }
+        } else {
+          img.src = url
+        }
+      })
+    }
+
+    function useCoverAccent(url, imageRef) {
+      var pair = useState(fallbackCoverAccent())
+      var accent = pair[0]
+      var setAccent = pair[1]
+      useEffect(
+        function () {
+          var cancelled = false
+          var timer = null
+          var tries = 0
+          function attempt() {
+            if (cancelled) return
+            if (url === '') {
+              setAccent(fallbackCoverAccent())
+              return
+            }
+            var image = imageRef && imageRef.current ? imageRef.current : null
+            // The <img> element is reused across tracks. Wait until it actually
+            // shows the requested cover and has decoded, otherwise we would sample
+            // the previous artwork and keep the old accent after switching songs.
+            var shown = image === null ? '' : image.getAttribute('src') || ''
+            var ready = image !== null && shown === url && image.complete && image.naturalWidth > 0
+            if (!ready) {
+              if (tries < 40) {
+                tries += 1
+                timer = setTimeout(attempt, 50)
+                return
+              }
+              setAccent(fallbackCoverAccent())
+              return
+            }
+            // Sample only the <img> already rendered by the player. Online covers
+            // are served from the Host's local cache; this never makes a second
+            // request.
+            coverAccentFromUrl(url, image).then(function (next) {
+              if (!cancelled) setAccent(next)
+            })
+          }
+          attempt()
+          return function () {
+            cancelled = true
+            if (timer !== null) clearTimeout(timer)
+          }
+        },
+        [url, imageRef],
+      )
+      return accent
+    }
+
+    function createBlurredBackdrop(url) {
+      return new Promise(function (resolve) {
+        if (!url) {
+          resolve('')
+          return
+        }
+        var img = new Image()
+        img.onload = function () {
+          try {
+            var size = 64
+            var canvas = document.createElement('canvas')
+            canvas.width = size
+            canvas.height = size
+            var ctx = canvas.getContext('2d')
+            if (ctx === null) {
+              resolve('')
+              return
+            }
+            // Blur once at 64x64 instead of applying a 110px blur to a full-screen
+            // image on every raster. Upscaling this texture is visually close and
+            // orders of magnitude cheaper.
+            if (typeof ctx.filter === 'string') {
+              ctx.filter = 'blur(4px) saturate(1.6) brightness(.68)'
+            }
+            ctx.drawImage(img, 0, 0, size, size)
+            if (typeof ctx.filter === 'string') ctx.filter = 'none'
+            resolve(canvas.toDataURL('image/jpeg', 0.82))
+          } catch (error) {
+            resolve('')
+          }
+        }
+        img.onerror = function () {
+          resolve('')
+        }
+        img.src = url
+      })
+    }
+
+
+    /**
+     * Ambient backdrop motion: CSS handles the slow drift, and this cheap loop
+     * only raises a CSS variable with the beat so the blurred cover can pulse.
+     */
+    function useAmbientBeat(ref, enabled, playing, sensitivity, amount, ready) {
+      var stateRef = useRef({
+        enabled: enabled === true,
+        playing: playing === true,
+        sensitivity: Number(sensitivity) || 0.6,
+        amount: Number(amount) || 0.6,
+      })
+      useEffect(
+        function () {
+          stateRef.current = {
+            enabled: enabled === true,
+            playing: playing === true,
+            sensitivity: Number(sensitivity) || 0.6,
+            amount: Number(amount) || 0.6,
+          }
+        },
+        [enabled, playing, sensitivity, amount],
+      )
+      useEffect(function () {
+        if (ready !== true) return undefined
+        var node = ref.current
+        if (node === null) return undefined
+        var tracker = createBeatTracker()
+        var raf = 0
+        var last = 0
+        function frame(now) {
+          raf = requestAnimationFrame(frame)
+          var state = stateRef.current
+          if (state.enabled !== true || state.playing !== true || document.visibilityState === 'hidden') {
+            node.style.setProperty('--mp-beat-scale', '1')
+            return
+          }
+          if (now - last < 50) return
+          last = now
+          var wave =
+            typeof player !== 'undefined' && player !== null && typeof player.getWave === 'function'
+              ? player.getWave()
+              : null
+          var beat = tracker.update(wave, true, state.sensitivity) * state.amount
+          node.style.setProperty('--mp-beat-scale', (1 + beat * 0.24).toFixed(4))
+        }
+        raf = requestAnimationFrame(frame)
+        return function () {
+          cancelAnimationFrame(raf)
+          if (node.style) node.style.removeProperty('--mp-beat-scale')
+        }
+      }, [ready])
+    }
+
+    // ── src/client/components/ui/now-playing/seek-bar.js
+    function WaveSeekBar(props) {
+      var accent = useCoverAccent(props.cover || '', props.imageRef)
+      var time = usePlayerTime()
+      var seekPair = useState(null)
+      var seeking = seekPair[0]
+      var setSeeking = seekPair[1]
+      var seekingRef = useRef(null)
+      var hoverRef = useRef(null)
+      var duration = time.duration > 0 ? time.duration : props.fallbackDuration || 0
+      var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
+      var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
+      var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0
+      var progressRef = useRef(progress)
+      var durationRef = useRef(duration)
+      var bufferedRef = useRef(buffered)
+      var morphRef = useRef(props.wave === false ? 0 : 1)
+      var targetMorphRef = useRef(props.wave === false ? 0 : 1)
+      var canvasRef = useRef(null)
+      var drawRef = useRef(null)
+      var startRef = useRef(null)
+      var playing = props.playing === true
+      var active = props.active !== false
+      var playingRef = useRef(playing)
+      playingRef.current = playing
+      progressRef.current = progress
+      durationRef.current = duration
+      bufferedRef.current = buffered
+
+      function choose(value) {
+        seekingRef.current = value
+        setSeeking(value)
+      }
+      function commit() {
+        var value = seekingRef.current
+        if (value === null) return
+        if (duration > 0) player.seek(value)
+        seekingRef.current = null
+        setSeeking(null)
+      }
+
+      function toneOf(source) {
+        var h = Number(source && source.h)
+        if (!isFinite(h)) h = 0
+        var sat = Number(source && source.s)
+        if (!isFinite(sat) || sat < 0) sat = 0
+        if (sat > 0 && sat <= 1) sat *= 100
+        var light = Number(source && source.l)
+        if (!isFinite(light) || light < 0) light = 60
+        if (light > 0 && light <= 1) light *= 100
+        // Neutral covers must not gain a hue; muted colours keep their own tone.
+        if (sat < 20) sat = 0
+        return {
+          h: ((h % 360) + 360) % 360,
+          s: Math.min(80, Math.max(0, sat)),
+          l: Math.min(78, Math.max(52, light)),
+        }
+      }
+
+      useEffect(
+        function () {
+          targetMorphRef.current = props.wave === false ? 0 : 1
+          if (drawRef.current !== null) drawRef.current(performance.now())
+          if (startRef.current !== null) startRef.current()
+        },
+        [props.wave],
+      )
+
+      useEffect(
+        function () {
+          if (props.playing === true && startRef.current !== null) {
+            drawRef.current(performance.now())
+            startRef.current()
+          }
+        },
+        [props.playing],
+      )
+
+      useEffect(
+        function () {
+          var canvas = canvasRef.current
+          if (canvas === null) return undefined
+          var ctx = canvas.getContext('2d')
+          if (ctx === null) return undefined
+          if (active !== true) {
+            var clearTimer = setTimeout(function () {
+              var node = canvasRef.current
+              if (node === null) return
+              var clearCtx = node.getContext('2d')
+              if (clearCtx !== null) clearCtx.clearRect(0, 0, node.width, node.height)
+            }, 420)
+            return function () {
+              clearTimeout(clearTimer)
+            }
+          }
+          var dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1)
+          var levels = []
+          var bands = 32
+          var spectrumBands = 16
+          var raf = 0
+          var last = 0
+          var tone = toneOf(accent)
+
+          function resize() {
+            var width = Math.max(1, Math.round(canvas.clientWidth * dpr))
+            var height = Math.max(1, Math.round(canvas.clientHeight * dpr))
+            if (width === canvas.width && height === canvas.height) return
+            canvas.width = width
+            canvas.height = height
+            // Assigning width/height clears the bitmap; repaint when idle.
+            if (drawRef.current !== null) drawRef.current(performance.now())
+          }
+          resize()
+          var observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : null
+          if (observer !== null) observer.observe(canvas)
+          window.addEventListener('resize', resize)
+
+          function shouldAnimate() {
+            if (Math.abs(morphRef.current - targetMorphRef.current) > 0.005) return true
+            if (targetMorphRef.current === 0) return false
+            return playingRef.current === true
+          }
+
+          function draw(now) {
+            var w = canvas.width / dpr
+            var h = canvas.height / dpr
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+            ctx.clearRect(0, 0, w, h)
+            ctx.globalAlpha = 1
+            var morph = morphRef.current
+            var target = targetMorphRef.current
+            morph += (target - morph) * 0.18
+            if (Math.abs(morph - target) < 0.003) morph = target
+            morphRef.current = morph
+
+            if (morph < 0.02 && target === 0) {
+              var trackH = 4
+              var trackY = h / 2
+              function rail(x, width, color) {
+                if (width <= 0) return
+                ctx.fillStyle = color
+                if (typeof ctx.roundRect === 'function') {
+                  ctx.beginPath()
+                  ctx.roundRect(x, trackY - trackH / 2, width, trackH, trackH / 2)
+                  ctx.fill()
+                } else {
+                  ctx.fillRect(x, trackY - trackH / 2, width, trackH)
+                }
+              }
+              rail(0, w, '#26262c')
+              if (durationRef.current > 0 && bufferedRef.current > 0) {
+                rail(0, Math.min(1, bufferedRef.current / durationRef.current) * w, '#3a3a43')
+              }
+              var playedWidth = progressRef.current * w
+              rail(0, playedWidth, 'hsla(' + tone.h + ',' + tone.s + '%,' + tone.l + '%,1)')
+              ctx.fillStyle = '#f7f7f8'
+              ctx.beginPath()
+              ctx.arc(Math.max(5, Math.min(w - 5, playedWidth)), trackY, 5, 0, Math.PI * 2)
+              ctx.fill()
+              if (hoverRef.current !== null) {
+                ctx.fillStyle = 'rgba(255,255,255,.3)'
+                ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
+              }
+              return
+            }
+
+            var data = playingRef.current ? player.getWave() : null
+            var raw = []
+            if (data !== null && data.length > 0) {
+              for (var band = 0; band < spectrumBands; band += 1) {
+                var from = Math.floor(Math.pow(band / spectrumBands, 1.6) * data.length)
+                var to = Math.max(from + 1, Math.floor(Math.pow((band + 1) / spectrumBands, 1.6) * data.length))
+                to = Math.min(to, data.length)
+                var sum = 0
+                for (var i = from; i < to; i += 1) sum += data[i]
+                raw.push(sum / Math.max(1, to - from) / 255)
+              }
+            } else {
+              for (var z = 0; z < spectrumBands; z += 1) raw.push(0)
+            }
+            var peak = 0.4
+            for (var p = 0; p < raw.length; p += 1) peak = Math.max(peak, raw[p])
+            var gap = w / bands
+            var mid = (bands - 1) / 2
+            var bufferedRatio =
+              durationRef.current > 0 ? Math.min(1, bufferedRef.current / durationRef.current) : 0
+            for (var k = 0; k < bands; k += 1) {
+              var dist = Math.abs(k - mid) / mid
+              var bandIndex = Math.min(spectrumBands - 1, Math.round(dist * (spectrumBands - 1)))
+              var level = Math.pow(Math.max(0, raw[bandIndex]) / peak, 1.5)
+              level = 0.02 + Math.min(1, level) * 0.98
+              var previous = levels[k] || 0
+              levels[k] = level > previous ? level : previous * 0.45 + level * 0.55
+              var targetHalf = Math.max(2, (levels[k] * h) / 2)
+              var half = 2 + (targetHalf - 2) * morph
+              var barW = gap * (1 - 0.42 * morph)
+              var x = k * gap + (gap - barW) / 2
+              var center = (k + 0.5) / bands
+              var played = center <= progressRef.current
+              var bufferedBar = center <= bufferedRatio
+              ctx.fillStyle = played
+                ? 'hsla(' + tone.h + ',' + tone.s + '%,' + tone.l + '%,0.96)'
+                : bufferedBar
+                  ? 'rgba(255,255,255,.32)'
+                  : 'rgba(255,255,255,' + (0.18 + 0.14 * morph).toFixed(3) + ')'
+              var radius = Math.min(barW / 2, 4, half) * Math.min(1, morph * 2)
+              if (morph < 0.05 && (k === 0 || k === bands - 1)) radius = Math.min(2, half)
+              if (typeof ctx.roundRect === 'function') {
+                ctx.beginPath()
+                ctx.roundRect(x, h / 2 - half, barW, half * 2, [radius, radius, radius, radius])
+                ctx.fill()
+              } else {
+                ctx.fillRect(x, h / 2 - half, barW, half * 2)
+              }
+            }
+            if (durationRef.current > 0) {
+              var head = progressRef.current * w
+              if (morph > 0.08) {
+                ctx.fillStyle = 'rgba(255,255,255,' + (0.22 + 0.68 * morph).toFixed(3) + ')'
+                ctx.fillRect(Math.max(0, Math.min(w - 1.5, head - 0.75)), 2, 1.5, h - 4)
+              }
+              ctx.fillStyle = '#f7f7f8'
+              ctx.beginPath()
+              ctx.arc(Math.max(5, Math.min(w - 5, head)), h / 2, 5 - 2 * morph, 0, Math.PI * 2)
+              ctx.fill()
+            }
+            if (hoverRef.current !== null) {
+              ctx.fillStyle = 'rgba(255,255,255,.3)'
+              ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
+            }
+          }
+
+          function frame(now) {
+            raf = 0
+            if (now - last < 33) {
+              raf = requestAnimationFrame(frame)
+              return
+            }
+            last = now
+            draw(now)
+            if (shouldAnimate()) raf = requestAnimationFrame(frame)
+          }
+          function start() {
+            if (raf === 0 && shouldAnimate()) raf = requestAnimationFrame(frame)
+          }
+          drawRef.current = draw
+          startRef.current = start
+          draw(performance.now())
+          start()
+          return function () {
+            if (raf !== 0) cancelAnimationFrame(raf)
+            if (observer !== null) observer.disconnect()
+            window.removeEventListener('resize', resize)
+            drawRef.current = null
+            startRef.current = null
+          }
+        },
+        [accent, active],
+      )
+
+      useEffect(
+        function () {
+          if (drawRef.current !== null) drawRef.current(performance.now())
+          if (startRef.current !== null) startRef.current()
+        },
+        [progress, duration, seeking],
+      )
+
+      return h(
+        'div',
+        { className: 'mp-wave-seek' },
+        h('canvas', {
+          ref: canvasRef,
+          className: cx('mp-np-reflect-wave', active !== true && 'is-fading', props.wave === false && 'is-rail'),
+          'aria-hidden': 'true',
+        }),
+        h('input', {
+          type: 'range',
+          className: 'mp-wave-seek-input',
+          min: 0,
+          max: duration > 0 ? duration : 1,
+          step: 0.5,
+          value: position,
+          disabled: duration <= 0,
+          'aria-label': t('page.duration'),
+          onChange: function (event) {
+            choose(Number(event.target.value))
+          },
+          onPointerUp: commit,
+          onKeyUp: commit,
+          onBlur: commit,
+          onPointerMove: function (event) {
+            var rect = event.currentTarget.getBoundingClientRect()
+            hoverRef.current = clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1)
+            if (drawRef.current !== null) drawRef.current(performance.now())
+          },
+          onPointerLeave: function () {
+            hoverRef.current = null
+            if (drawRef.current !== null) drawRef.current(performance.now())
+          },
+        }),
+      )
+    }
+
+    // ── src/client/components/ui/now-playing/capsule.js
+    /**
+     * 播放页底部的 Folia 式播放胶囊：播放/暂停、曲名、进度与时间、循环模式、队列。
+     *
+     * Folia 的胶囊是页面自己的 transport（`FloatingPlayerControls`）；这个插件在
+     * `is-visualizer` 布局下会隐藏左侧栏，所以这里补一份页面级 transport。进度用
+     * 全局 `SeekBar`，队列沿用 `QueuePopover`，状态全部来自现有 player / props。
+     */
+    function NowPlayingCapsule(props) {
+      var snap = usePlayerSnapshot()
+      var time = usePlayerTime()
+      var track = snap.queue[snap.index] || null
+      var duration = Number(time.duration) > 0
+        ? Number(time.duration)
+        : track
+          ? Number(track.durationSec) || 0
+          : 0
+      var position = Math.min(Number(time.currentTime) || 0, duration || 0)
+      var loopMode = snap.loop === 'one' ? 'one' : snap.loop === 'all' ? 'all' : 'none'
+      var loopLabel = loopMode === 'one' ? t('page.loopOne') : loopMode === 'all' ? t('page.loopAll') : t('page.loopNone')
+      function cycleLoop() {
+        var next = loopMode === 'none' ? 'all' : loopMode === 'all' ? 'one' : 'none'
+        player.setLoop(next)
+      }
+      return h(
+        'div',
+        { className: 'mp-cap' },
+        h(
+          'div',
+          { className: 'mp-cap-inner' },
+          h(
+            'div',
+            { className: 'mp-cap-transport' },
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-cap-skip',
+                disabled: track === null,
+                title: t('page.prev'),
+                'aria-label': t('page.prev'),
+                onClick: function () {
+                  player.prev()
+                },
+              },
+              icon('prev', 18),
+            ),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-cap-play',
+                disabled: track === null,
+                title: snap.playing ? t('page.pause') : t('page.play'),
+                'aria-label': snap.playing ? t('page.pause') : t('page.play'),
+                onClick: function () {
+                  player.toggle()
+                },
+              },
+              icon(snap.playing ? 'pause' : 'play', 20),
+            ),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-cap-skip',
+                disabled: track === null,
+                title: t('page.next'),
+                'aria-label': t('page.next'),
+                onClick: function () {
+                  player.next()
+                },
+              },
+              icon('next', 18),
+            ),
+          ),
+          h(
+            'div',
+            { className: 'mp-cap-body' },
+            h('div', { className: 'mp-cap-title', title: track ? trackTitleOf(track) : '' }, track ? trackTitleOf(track) : t('page.noTrack')),
+            h(
+              'div',
+              { className: 'mp-cap-seek' },
+              h('span', { className: 'mp-cap-time' }, fmtClock(position)),
+              h(SeekBar, { fallbackDuration: track ? Number(track.durationSec) || 0 : 0 }),
+              h('span', { className: 'mp-cap-time' }, fmtClock(duration)),
+            ),
+          ),
+          h(
+            'div',
+            { className: 'mp-cap-actions' },
+            h(IconButton, {
+              icon: loopMode === 'one' ? 'repeatOne' : 'repeat',
+              size: 20,
+              title: loopLabel,
+              active: loopMode !== 'none',
+              disabled: track === null,
+              onClick: cycleLoop,
+            }),
+            h(
+              'div',
+              { className: 'mp-pb-queue-wrap mp-cap-queue' },
+              h(IconButton, {
+                icon: 'playlist',
+                size: 20,
+                active: props.queueOpen,
+                title: t('page.queue'),
+                onClick: props.onToggleQueue,
+              }),
+              props.queueOpen
+                ? h(QueuePopover, {
+                    open: true,
+                    anchored: true,
+                    snap: snap,
+                    onClose: props.onToggleQueue,
+                  })
+                : null,
+            ),
+          ),
+        ),
+      )
+    }
+
+    // ── src/client/components/ui/now-playing/editor.js
     function NpEditor(props) {
       var prefs = usePrefs()
       var cover = typeof props.cover === 'string' ? props.cover : ''
@@ -162500,765 +163262,12 @@ window.__ModuleLoader__.load({
       )
     }
 
-    function fallbackCoverAccent() {
-      var h = 40
-      var sat = 12
-      var light = 70
-      return {
-        h: h,
-        s: sat,
-        l: light,
-        palette: [
-          { h: 28, s: 10, l: 62 },
-          { h: h, s: sat, l: light },
-          { h: 52, s: 14, l: 78 },
-        ],
-      }
-    }
-
-    function rgbToHslColor(red, green, blue) {
-      var r = red / 255
-      var g = green / 255
-      var b = blue / 255
-      var max = Math.max(r, g, b)
-      var min = Math.min(r, g, b)
-      var d = max - min
-      var l = (max + min) / 2
-      var s = 0
-      var h = 0
-      if (d !== 0) {
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-        if (max === r) h = ((g - b) / d) % 6
-        else if (max === g) h = (b - r) / d + 2
-        else h = (r - g) / d + 4
-        h *= 60
-        if (h < 0) h += 360
-      }
-      return { h: h, s: s, l: l }
-    }
-
-    function coverAccentFromUrl(url, image) {
-      return new Promise(function (resolve) {
-        if (!url) {
-          resolve(fallbackCoverAccent())
-          return
-        }
-        var img = image || new Image()
-        img.onload = function () {
-          try {
-            var canvas = document.createElement('canvas')
-            canvas.width = 24
-            canvas.height = 24
-            var ctx = canvas.getContext('2d', { willReadFrequently: true })
-            ctx.drawImage(img, 0, 0, 24, 24)
-            var data = ctx.getImageData(0, 0, 24, 24).data
-            var buckets = new Map()
-            for (var i = 0; i < data.length; i += 4) {
-              if (data[i + 3] < 128) continue
-              var red = data[i]
-              var green = data[i + 1]
-              var blue = data[i + 2]
-              var key = (red >> 4) + ',' + (green >> 4) + ',' + (blue >> 4)
-              var entry = buckets.get(key)
-              if (entry === undefined) {
-                entry = { count: 0, r: 0, g: 0, b: 0 }
-                buckets.set(key, entry)
-              }
-              entry.count += 1
-              entry.r += red
-              entry.g += green
-              entry.b += blue
-            }
-            var colors = []
-            buckets.forEach(function (entry) {
-              var color = rgbToHslColor(entry.r / entry.count, entry.g / entry.count, entry.b / entry.count)
-              colors.push({ h: color.h, s: color.s, l: color.l, count: entry.count })
-            })
-            colors.sort(function (a, b) {
-              return b.count - a.count
-            })
-            var picked = []
-            for (var c = 0; c < colors.length && picked.length < 3; c += 1) {
-              var candidate = colors[c]
-              var distinct = true
-              for (var p = 0; p < picked.length; p += 1) {
-                var other = picked[p]
-                var hueGap = Math.min(
-                  Math.abs(candidate.h - other.h),
-                  360 - Math.abs(candidate.h - other.h),
-                ) / 360
-                var distance = Math.hypot(hueGap, candidate.s - other.s, candidate.l - other.l)
-                if (distance < 0.16) {
-                  distinct = false
-                  break
-                }
-              }
-              if (distinct) picked.push(candidate)
-            }
-            if (picked.length === 0) {
-              resolve(fallbackCoverAccent())
-              return
-            }
-            while (picked.length < 3) {
-              var base = picked[0]
-              picked.push({
-                h: (base.h + (picked.length === 1 ? 32 : 328)) % 360,
-                s: base.s,
-                l: Math.min(0.8, Math.max(0.38, base.l + (picked.length === 1 ? 0.08 : -0.06))),
-                count: 0,
-              })
-            }
-            if (colors.length === 0) {
-              resolve(fallbackCoverAccent())
-              return
-            }
-            // Signature colour: among reasonably saturated clusters, prefer area
-            // times saturation. This ignores both a large cream background and a
-            // tiny saturated JPEG fringe (which used to win and turn the wave blue).
-            var maxCount = colors.reduce(function (max, color) {
-              return Math.max(max, color.count || 1)
-            }, 1)
-            var minCount = Math.max(3, Math.floor(maxCount * 0.02))
-            var saturated = colors.filter(function (color) {
-              return (
-                color.s > 0.3 &&
-                color.l > 0.06 &&
-                color.l < 0.92 &&
-                Math.max(1, color.count || 1) >= minCount
-              )
-            })
-            var pool = saturated.length > 0 ? saturated : colors
-            var base = pool.reduce(function (best, color) {
-              var score = Math.max(1, color.count || 1) * (0.35 + color.s)
-              var bestScore = Math.max(1, best.count || 1) * (0.35 + best.s)
-              return score > bestScore ? color : best
-            }, pool[0])
-            var feature = []
-            function addFeature(source) {
-              var candidate = {
-                h: Math.round(source.h),
-                s: Math.round(Math.min(1, Math.max(0.16, source.s)) * 100),
-                l: Math.round(Math.min(0.82, Math.max(0.38, source.l)) * 100),
-              }
-              for (var f = 0; f < feature.length; f += 1) {
-                var other = feature[f]
-                var hueGap = Math.min(
-                  Math.abs(candidate.h - other.h),
-                  360 - Math.abs(candidate.h - other.h),
-                ) / 360
-                if (Math.hypot(hueGap, (candidate.s - other.s) / 100, (candidate.l - other.l) / 100) < 0.16) {
-                  return
-                }
-              }
-              feature.push(candidate)
-            }
-            addFeature(base)
-            for (var f = 0; f < picked.length; f += 1) addFeature(picked[f])
-            // Hard bound the fallback loop. addFeature() may reject a generated
-            // neighbour as too similar, so looping on it can spin forever on
-            // low-colour artwork and freeze the panel while extracting the cover.
-            var featureGuard = 0
-            while (feature.length < 3 && featureGuard < 12) {
-              var anchor = feature[0] || { h: 40, s: 16, l: 70 }
-              var angle = (featureGuard + 1) * 30
-              feature.push({
-                h: (anchor.h + angle) % 360,
-                s: Math.max(16, anchor.s),
-                l: Math.min(82, Math.max(38, anchor.l + (featureGuard % 2 === 0 ? 8 : -6))),
-              })
-              featureGuard += 1
-            }
-            feature = feature.slice(0, 4).sort(function (a, b) {
-              return a.h - b.h
-            })
-            resolve({
-              h: Math.round(base.h),
-              s: Math.round(Math.min(1, Math.max(0.16, base.s)) * 100),
-              l: Math.round(Math.min(0.82, Math.max(0.38, base.l)) * 100),
-              palette: feature,
-            })
-          } catch (error) {
-            resolve(fallbackCoverAccent())
-          }
-        }
-        img.onerror = function () {
-          resolve(fallbackCoverAccent())
-        }
-        if (image) {
-          if (img.complete) {
-            if (img.naturalWidth > 0) img.onload()
-            else img.onerror()
-          }
-        } else {
-          img.src = url
-        }
-      })
-    }
-
-    function useCoverAccent(url, imageRef) {
-      var pair = useState(fallbackCoverAccent())
-      var accent = pair[0]
-      var setAccent = pair[1]
-      useEffect(
-        function () {
-          var cancelled = false
-          var timer = null
-          var tries = 0
-          function attempt() {
-            if (cancelled) return
-            if (url === '') {
-              setAccent(fallbackCoverAccent())
-              return
-            }
-            var image = imageRef && imageRef.current ? imageRef.current : null
-            // The <img> element is reused across tracks. Wait until it actually
-            // shows the requested cover and has decoded, otherwise we would sample
-            // the previous artwork and keep the old accent after switching songs.
-            var shown = image === null ? '' : image.getAttribute('src') || ''
-            var ready = image !== null && shown === url && image.complete && image.naturalWidth > 0
-            if (!ready) {
-              if (tries < 40) {
-                tries += 1
-                timer = setTimeout(attempt, 50)
-                return
-              }
-              setAccent(fallbackCoverAccent())
-              return
-            }
-            // Sample only the <img> already rendered by the player. Online covers
-            // are served from the Host's local cache; this never makes a second
-            // request.
-            coverAccentFromUrl(url, image).then(function (next) {
-              if (!cancelled) setAccent(next)
-            })
-          }
-          attempt()
-          return function () {
-            cancelled = true
-            if (timer !== null) clearTimeout(timer)
-          }
-        },
-        [url, imageRef],
-      )
-      return accent
-    }
-
-    function createBlurredBackdrop(url) {
-      return new Promise(function (resolve) {
-        if (!url) {
-          resolve('')
-          return
-        }
-        var img = new Image()
-        img.onload = function () {
-          try {
-            var size = 64
-            var canvas = document.createElement('canvas')
-            canvas.width = size
-            canvas.height = size
-            var ctx = canvas.getContext('2d')
-            if (ctx === null) {
-              resolve('')
-              return
-            }
-            // Blur once at 64x64 instead of applying a 110px blur to a full-screen
-            // image on every raster. Upscaling this texture is visually close and
-            // orders of magnitude cheaper.
-            if (typeof ctx.filter === 'string') {
-              ctx.filter = 'blur(4px) saturate(1.6) brightness(.68)'
-            }
-            ctx.drawImage(img, 0, 0, size, size)
-            if (typeof ctx.filter === 'string') ctx.filter = 'none'
-            resolve(canvas.toDataURL('image/jpeg', 0.82))
-          } catch (error) {
-            resolve('')
-          }
-        }
-        img.onerror = function () {
-          resolve('')
-        }
-        img.src = url
-      })
-    }
-
-
+    // ── src/client/components/ui/now-playing/index.js
     /**
-     * Ambient backdrop motion: CSS handles the slow drift, and this cheap loop
-     * only raises a CSS variable with the beat so the blurred cover can pulse.
+     * The full-panel player: composition and state. Presentation lives in the sibling
+     * modules (capsule, seek bar, editor, cover accent, lyric scroll), mirroring Folia's
+     * component boundaries rather than one 3000-line file.
      */
-    function useAmbientBeat(ref, enabled, playing, sensitivity, amount, ready) {
-      var stateRef = useRef({
-        enabled: enabled === true,
-        playing: playing === true,
-        sensitivity: Number(sensitivity) || 0.6,
-        amount: Number(amount) || 0.6,
-      })
-      useEffect(
-        function () {
-          stateRef.current = {
-            enabled: enabled === true,
-            playing: playing === true,
-            sensitivity: Number(sensitivity) || 0.6,
-            amount: Number(amount) || 0.6,
-          }
-        },
-        [enabled, playing, sensitivity, amount],
-      )
-      useEffect(function () {
-        if (ready !== true) return undefined
-        var node = ref.current
-        if (node === null) return undefined
-        var tracker = createBeatTracker()
-        var raf = 0
-        var last = 0
-        function frame(now) {
-          raf = requestAnimationFrame(frame)
-          var state = stateRef.current
-          if (state.enabled !== true || state.playing !== true || document.visibilityState === 'hidden') {
-            node.style.setProperty('--mp-beat-scale', '1')
-            return
-          }
-          if (now - last < 50) return
-          last = now
-          var wave =
-            typeof player !== 'undefined' && player !== null && typeof player.getWave === 'function'
-              ? player.getWave()
-              : null
-          var beat = tracker.update(wave, true, state.sensitivity) * state.amount
-          node.style.setProperty('--mp-beat-scale', (1 + beat * 0.24).toFixed(4))
-        }
-        raf = requestAnimationFrame(frame)
-        return function () {
-          cancelAnimationFrame(raf)
-          if (node.style) node.style.removeProperty('--mp-beat-scale')
-        }
-      }, [ready])
-    }
-
-    function WaveSeekBar(props) {
-      var accent = useCoverAccent(props.cover || '', props.imageRef)
-      var time = usePlayerTime()
-      var seekPair = useState(null)
-      var seeking = seekPair[0]
-      var setSeeking = seekPair[1]
-      var seekingRef = useRef(null)
-      var hoverRef = useRef(null)
-      var duration = time.duration > 0 ? time.duration : props.fallbackDuration || 0
-      var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
-      var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
-      var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0
-      var progressRef = useRef(progress)
-      var durationRef = useRef(duration)
-      var bufferedRef = useRef(buffered)
-      var morphRef = useRef(props.wave === false ? 0 : 1)
-      var targetMorphRef = useRef(props.wave === false ? 0 : 1)
-      var canvasRef = useRef(null)
-      var drawRef = useRef(null)
-      var startRef = useRef(null)
-      var playing = props.playing === true
-      var active = props.active !== false
-      var playingRef = useRef(playing)
-      playingRef.current = playing
-      progressRef.current = progress
-      durationRef.current = duration
-      bufferedRef.current = buffered
-
-      function choose(value) {
-        seekingRef.current = value
-        setSeeking(value)
-      }
-      function commit() {
-        var value = seekingRef.current
-        if (value === null) return
-        if (duration > 0) player.seek(value)
-        seekingRef.current = null
-        setSeeking(null)
-      }
-
-      function toneOf(source) {
-        var h = Number(source && source.h)
-        if (!isFinite(h)) h = 0
-        var sat = Number(source && source.s)
-        if (!isFinite(sat) || sat < 0) sat = 0
-        if (sat > 0 && sat <= 1) sat *= 100
-        var light = Number(source && source.l)
-        if (!isFinite(light) || light < 0) light = 60
-        if (light > 0 && light <= 1) light *= 100
-        // Neutral covers must not gain a hue; muted colours keep their own tone.
-        if (sat < 20) sat = 0
-        return {
-          h: ((h % 360) + 360) % 360,
-          s: Math.min(80, Math.max(0, sat)),
-          l: Math.min(78, Math.max(52, light)),
-        }
-      }
-
-      useEffect(
-        function () {
-          targetMorphRef.current = props.wave === false ? 0 : 1
-          if (drawRef.current !== null) drawRef.current(performance.now())
-          if (startRef.current !== null) startRef.current()
-        },
-        [props.wave],
-      )
-
-      useEffect(
-        function () {
-          if (props.playing === true && startRef.current !== null) {
-            drawRef.current(performance.now())
-            startRef.current()
-          }
-        },
-        [props.playing],
-      )
-
-      useEffect(
-        function () {
-          var canvas = canvasRef.current
-          if (canvas === null) return undefined
-          var ctx = canvas.getContext('2d')
-          if (ctx === null) return undefined
-          if (active !== true) {
-            var clearTimer = setTimeout(function () {
-              var node = canvasRef.current
-              if (node === null) return
-              var clearCtx = node.getContext('2d')
-              if (clearCtx !== null) clearCtx.clearRect(0, 0, node.width, node.height)
-            }, 420)
-            return function () {
-              clearTimeout(clearTimer)
-            }
-          }
-          var dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1)
-          var levels = []
-          var bands = 32
-          var spectrumBands = 16
-          var raf = 0
-          var last = 0
-          var tone = toneOf(accent)
-
-          function resize() {
-            var width = Math.max(1, Math.round(canvas.clientWidth * dpr))
-            var height = Math.max(1, Math.round(canvas.clientHeight * dpr))
-            if (width === canvas.width && height === canvas.height) return
-            canvas.width = width
-            canvas.height = height
-            // Assigning width/height clears the bitmap; repaint when idle.
-            if (drawRef.current !== null) drawRef.current(performance.now())
-          }
-          resize()
-          var observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : null
-          if (observer !== null) observer.observe(canvas)
-          window.addEventListener('resize', resize)
-
-          function shouldAnimate() {
-            if (Math.abs(morphRef.current - targetMorphRef.current) > 0.005) return true
-            if (targetMorphRef.current === 0) return false
-            return playingRef.current === true
-          }
-
-          function draw(now) {
-            var w = canvas.width / dpr
-            var h = canvas.height / dpr
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-            ctx.clearRect(0, 0, w, h)
-            ctx.globalAlpha = 1
-            var morph = morphRef.current
-            var target = targetMorphRef.current
-            morph += (target - morph) * 0.18
-            if (Math.abs(morph - target) < 0.003) morph = target
-            morphRef.current = morph
-
-            if (morph < 0.02 && target === 0) {
-              var trackH = 4
-              var trackY = h / 2
-              function rail(x, width, color) {
-                if (width <= 0) return
-                ctx.fillStyle = color
-                if (typeof ctx.roundRect === 'function') {
-                  ctx.beginPath()
-                  ctx.roundRect(x, trackY - trackH / 2, width, trackH, trackH / 2)
-                  ctx.fill()
-                } else {
-                  ctx.fillRect(x, trackY - trackH / 2, width, trackH)
-                }
-              }
-              rail(0, w, '#26262c')
-              if (durationRef.current > 0 && bufferedRef.current > 0) {
-                rail(0, Math.min(1, bufferedRef.current / durationRef.current) * w, '#3a3a43')
-              }
-              var playedWidth = progressRef.current * w
-              rail(0, playedWidth, 'hsla(' + tone.h + ',' + tone.s + '%,' + tone.l + '%,1)')
-              ctx.fillStyle = '#f7f7f8'
-              ctx.beginPath()
-              ctx.arc(Math.max(5, Math.min(w - 5, playedWidth)), trackY, 5, 0, Math.PI * 2)
-              ctx.fill()
-              if (hoverRef.current !== null) {
-                ctx.fillStyle = 'rgba(255,255,255,.3)'
-                ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
-              }
-              return
-            }
-
-            var data = playingRef.current ? player.getWave() : null
-            var raw = []
-            if (data !== null && data.length > 0) {
-              for (var band = 0; band < spectrumBands; band += 1) {
-                var from = Math.floor(Math.pow(band / spectrumBands, 1.6) * data.length)
-                var to = Math.max(from + 1, Math.floor(Math.pow((band + 1) / spectrumBands, 1.6) * data.length))
-                to = Math.min(to, data.length)
-                var sum = 0
-                for (var i = from; i < to; i += 1) sum += data[i]
-                raw.push(sum / Math.max(1, to - from) / 255)
-              }
-            } else {
-              for (var z = 0; z < spectrumBands; z += 1) raw.push(0)
-            }
-            var peak = 0.4
-            for (var p = 0; p < raw.length; p += 1) peak = Math.max(peak, raw[p])
-            var gap = w / bands
-            var mid = (bands - 1) / 2
-            var bufferedRatio =
-              durationRef.current > 0 ? Math.min(1, bufferedRef.current / durationRef.current) : 0
-            for (var k = 0; k < bands; k += 1) {
-              var dist = Math.abs(k - mid) / mid
-              var bandIndex = Math.min(spectrumBands - 1, Math.round(dist * (spectrumBands - 1)))
-              var level = Math.pow(Math.max(0, raw[bandIndex]) / peak, 1.5)
-              level = 0.02 + Math.min(1, level) * 0.98
-              var previous = levels[k] || 0
-              levels[k] = level > previous ? level : previous * 0.45 + level * 0.55
-              var targetHalf = Math.max(2, (levels[k] * h) / 2)
-              var half = 2 + (targetHalf - 2) * morph
-              var barW = gap * (1 - 0.42 * morph)
-              var x = k * gap + (gap - barW) / 2
-              var center = (k + 0.5) / bands
-              var played = center <= progressRef.current
-              var bufferedBar = center <= bufferedRatio
-              ctx.fillStyle = played
-                ? 'hsla(' + tone.h + ',' + tone.s + '%,' + tone.l + '%,0.96)'
-                : bufferedBar
-                  ? 'rgba(255,255,255,.32)'
-                  : 'rgba(255,255,255,' + (0.18 + 0.14 * morph).toFixed(3) + ')'
-              var radius = Math.min(barW / 2, 4, half) * Math.min(1, morph * 2)
-              if (morph < 0.05 && (k === 0 || k === bands - 1)) radius = Math.min(2, half)
-              if (typeof ctx.roundRect === 'function') {
-                ctx.beginPath()
-                ctx.roundRect(x, h / 2 - half, barW, half * 2, [radius, radius, radius, radius])
-                ctx.fill()
-              } else {
-                ctx.fillRect(x, h / 2 - half, barW, half * 2)
-              }
-            }
-            if (durationRef.current > 0) {
-              var head = progressRef.current * w
-              if (morph > 0.08) {
-                ctx.fillStyle = 'rgba(255,255,255,' + (0.22 + 0.68 * morph).toFixed(3) + ')'
-                ctx.fillRect(Math.max(0, Math.min(w - 1.5, head - 0.75)), 2, 1.5, h - 4)
-              }
-              ctx.fillStyle = '#f7f7f8'
-              ctx.beginPath()
-              ctx.arc(Math.max(5, Math.min(w - 5, head)), h / 2, 5 - 2 * morph, 0, Math.PI * 2)
-              ctx.fill()
-            }
-            if (hoverRef.current !== null) {
-              ctx.fillStyle = 'rgba(255,255,255,.3)'
-              ctx.fillRect(Math.max(0, Math.min(w - 1, hoverRef.current * w)), 0, 1, h)
-            }
-          }
-
-          function frame(now) {
-            raf = 0
-            if (now - last < 33) {
-              raf = requestAnimationFrame(frame)
-              return
-            }
-            last = now
-            draw(now)
-            if (shouldAnimate()) raf = requestAnimationFrame(frame)
-          }
-          function start() {
-            if (raf === 0 && shouldAnimate()) raf = requestAnimationFrame(frame)
-          }
-          drawRef.current = draw
-          startRef.current = start
-          draw(performance.now())
-          start()
-          return function () {
-            if (raf !== 0) cancelAnimationFrame(raf)
-            if (observer !== null) observer.disconnect()
-            window.removeEventListener('resize', resize)
-            drawRef.current = null
-            startRef.current = null
-          }
-        },
-        [accent, active],
-      )
-
-      useEffect(
-        function () {
-          if (drawRef.current !== null) drawRef.current(performance.now())
-          if (startRef.current !== null) startRef.current()
-        },
-        [progress, duration, seeking],
-      )
-
-      return h(
-        'div',
-        { className: 'mp-wave-seek' },
-        h('canvas', {
-          ref: canvasRef,
-          className: cx('mp-np-reflect-wave', active !== true && 'is-fading', props.wave === false && 'is-rail'),
-          'aria-hidden': 'true',
-        }),
-        h('input', {
-          type: 'range',
-          className: 'mp-wave-seek-input',
-          min: 0,
-          max: duration > 0 ? duration : 1,
-          step: 0.5,
-          value: position,
-          disabled: duration <= 0,
-          'aria-label': t('page.duration'),
-          onChange: function (event) {
-            choose(Number(event.target.value))
-          },
-          onPointerUp: commit,
-          onKeyUp: commit,
-          onBlur: commit,
-          onPointerMove: function (event) {
-            var rect = event.currentTarget.getBoundingClientRect()
-            hoverRef.current = clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1)
-            if (drawRef.current !== null) drawRef.current(performance.now())
-          },
-          onPointerLeave: function () {
-            hoverRef.current = null
-            if (drawRef.current !== null) drawRef.current(performance.now())
-          },
-        }),
-      )
-    }
-
-    /**
-     * 播放页底部的 Folia 式播放胶囊：播放/暂停、曲名、进度与时间、循环模式、队列。
-     *
-     * Folia 的胶囊是页面自己的 transport（`FloatingPlayerControls`）；这个插件在
-     * `is-visualizer` 布局下会隐藏左侧栏，所以这里补一份页面级 transport。进度用
-     * 全局 `SeekBar`，队列沿用 `QueuePopover`，状态全部来自现有 player / props。
-     */
-    function NowPlayingCapsule(props) {
-      var snap = usePlayerSnapshot()
-      var time = usePlayerTime()
-      var track = snap.queue[snap.index] || null
-      var duration = Number(time.duration) > 0
-        ? Number(time.duration)
-        : track
-          ? Number(track.durationSec) || 0
-          : 0
-      var position = Math.min(Number(time.currentTime) || 0, duration || 0)
-      var loopMode = snap.loop === 'one' ? 'one' : snap.loop === 'all' ? 'all' : 'none'
-      var loopLabel = loopMode === 'one' ? t('page.loopOne') : loopMode === 'all' ? t('page.loopAll') : t('page.loopNone')
-      function cycleLoop() {
-        var next = loopMode === 'none' ? 'all' : loopMode === 'all' ? 'one' : 'none'
-        player.setLoop(next)
-      }
-      return h(
-        'div',
-        { className: 'mp-cap' },
-        h(
-          'div',
-          { className: 'mp-cap-inner' },
-          h(
-            'div',
-            { className: 'mp-cap-transport' },
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mp-cap-skip',
-                disabled: track === null,
-                title: t('page.prev'),
-                'aria-label': t('page.prev'),
-                onClick: function () {
-                  player.prev()
-                },
-              },
-              icon('prev', 18),
-            ),
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mp-cap-play',
-                disabled: track === null,
-                title: snap.playing ? t('page.pause') : t('page.play'),
-                'aria-label': snap.playing ? t('page.pause') : t('page.play'),
-                onClick: function () {
-                  player.toggle()
-                },
-              },
-              icon(snap.playing ? 'pause' : 'play', 20),
-            ),
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'mp-cap-skip',
-                disabled: track === null,
-                title: t('page.next'),
-                'aria-label': t('page.next'),
-                onClick: function () {
-                  player.next()
-                },
-              },
-              icon('next', 18),
-            ),
-          ),
-          h(
-            'div',
-            { className: 'mp-cap-body' },
-            h('div', { className: 'mp-cap-title', title: track ? trackTitleOf(track) : '' }, track ? trackTitleOf(track) : t('page.noTrack')),
-            h(
-              'div',
-              { className: 'mp-cap-seek' },
-              h('span', { className: 'mp-cap-time' }, fmtClock(position)),
-              h(SeekBar, { fallbackDuration: track ? Number(track.durationSec) || 0 : 0 }),
-              h('span', { className: 'mp-cap-time' }, fmtClock(duration)),
-            ),
-          ),
-          h(
-            'div',
-            { className: 'mp-cap-actions' },
-            h(IconButton, {
-              icon: loopMode === 'one' ? 'repeatOne' : 'repeat',
-              size: 20,
-              title: loopLabel,
-              active: loopMode !== 'none',
-              disabled: track === null,
-              onClick: cycleLoop,
-            }),
-            h(
-              'div',
-              { className: 'mp-pb-queue-wrap mp-cap-queue' },
-              h(IconButton, {
-                icon: 'playlist',
-                size: 20,
-                active: props.queueOpen,
-                title: t('page.queue'),
-                onClick: props.onToggleQueue,
-              }),
-              props.queueOpen
-                ? h(QueuePopover, {
-                    open: true,
-                    anchored: true,
-                    snap: snap,
-                    onClose: props.onToggleQueue,
-                  })
-                : null,
-            ),
-          ),
-        ),
-      )
-    }
 
     function NowPlaying(props) {
       var snap = usePlayerSnapshot()
