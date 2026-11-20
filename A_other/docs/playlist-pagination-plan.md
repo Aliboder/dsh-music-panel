@@ -1,6 +1,6 @@
 # 在线歌单分页执行计划
 
-状态：阶段 1–3 已完成；剩余：把 QQ 收藏/Navidrome 的整表例外继续下沉，并补齐专辑/歌手/搜索的同类分页。
+状态：在线歌单主线已完成（Provider/omni/route、客户端、P3List、页级缓存、测试）。仍有上游限制的 adapter 例外：QQ 收藏/公开、Navidrome 整表切片，酷狗收藏歌单回退整表；这些不改变分页接口。
 
 目标：把在线歌单从「Host 一次拉完整张歌单」改成 Folia 的 `getPlaylistTracks(id, limit, offset)` 形态。结果上限问题只是表象，真问题是接口形态、缓存和 UI 都把歌单当成一个全量数组。
 
