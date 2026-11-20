@@ -61,6 +61,22 @@ function onlineAudioMime(upstreamType, streamUrl, quality) {
   return 'audio/mpeg'
 }
 
+function replayGainHeaders(gain) {
+  const headers = {}
+  if (gain === null || typeof gain !== 'object') return headers
+  for (const [field, name] of [
+    ['trackGain', 'x-music-track-gain'],
+    ['albumGain', 'x-music-album-gain'],
+    ['trackPeak', 'x-music-track-peak'],
+    ['albumPeak', 'x-music-album-peak'],
+  ]) {
+    if (typeof gain[field] === 'number' && Number.isFinite(gain[field])) {
+      headers[name] = String(gain[field])
+    }
+  }
+  return headers
+}
+
 function onlineReferer(provider) {
   return ONLINE_REFERERS[provider] || 'https://www.kugou.com/'
 }
@@ -166,18 +182,7 @@ export function createOnlineRoutes(deps) {
       'cache-control': 'public, max-age=604800',
     }
     if (options.anyQuality === true) baseHeaders['x-music-cache-fallback'] = '1'
-    if (cached.replayGain && typeof cached.replayGain === 'object') {
-      for (const [field, name] of [
-        ['trackGain', 'x-music-track-gain'],
-        ['albumGain', 'x-music-album-gain'],
-        ['trackPeak', 'x-music-track-peak'],
-        ['albumPeak', 'x-music-album-peak'],
-      ]) {
-        if (typeof cached.replayGain[field] === 'number' && Number.isFinite(cached.replayGain[field])) {
-          baseHeaders[name] = String(cached.replayGain[field])
-        }
-      }
-    }
+    Object.assign(baseHeaders, replayGainHeaders(cached.replayGain))
     if (typeof rangeHeader === 'string' && rangeHeader !== '') {
       const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim())
       let start = 0
@@ -578,8 +583,7 @@ export function createOnlineRoutes(deps) {
           // Chromium treats a 200 answer to a Range request as "not seekable"
           // and restarts playback when the user scrubs (Chromium issue 973357);
           // a proxied 206 is what keeps seeking working.
-          const forwardRange = hasRange
-          if (forwardRange) upstreamHeaders.Range = rangeHeader
+          if (hasRange) upstreamHeaders.Range = rangeHeader
           let upstream
           try {
             upstream = await fetch(stream.url, {
@@ -588,7 +592,6 @@ export function createOnlineRoutes(deps) {
               headers: upstreamHeaders,
             })
           } catch (error) {
-            clearTimeout(timer)
             // The platform gave an address but the request failed; a copy of another level
             // still beats silence, as in Folia's `loadOnlineSongAudioSource`.
             if (await serveCachedAudio(req, res, provider, id, { anyQuality: true })) return
@@ -603,7 +606,6 @@ export function createOnlineRoutes(deps) {
           }
           if (!upstream.ok) {
             streamUrlCache.delete(resolvedKey)
-            clearTimeout(timer)
             // KuGou's current /song/url can hand back an old CDN object for a
             // still-existing hash. Folia resolves that case through its legacy
             // mobile play-info endpoint; do the same before degrading quality.
@@ -652,19 +654,7 @@ export function createOnlineRoutes(deps) {
             'accept-ranges': 'bytes',
           }
           if (stream.preview === true) headers['x-music-preview'] = '1'
-          if (stream.replayGain && typeof stream.replayGain === 'object') {
-            const gain = stream.replayGain
-            for (const [field, name] of [
-              ['trackGain', 'x-music-track-gain'],
-              ['albumGain', 'x-music-album-gain'],
-              ['trackPeak', 'x-music-track-peak'],
-              ['albumPeak', 'x-music-album-peak'],
-            ]) {
-              if (typeof gain[field] === 'number' && Number.isFinite(gain[field])) {
-                headers[name] = String(gain[field])
-              }
-            }
-          }
+          Object.assign(headers, replayGainHeaders(stream.replayGain))
           const seekStart = rangeStartOf(rangeHeader)
           const totalHeader = upstream.headers.get('content-length')
           if (hasRange && seekStart === 0 && upstream.status === 200 && /^bytes=0-$/.test(String(rangeHeader || '').trim()) && totalHeader !== null) {

@@ -78,6 +78,31 @@ try {
   assert.deepEqual(qualities, ['high'], 'legacy fallback happens before lowering the quality')
   assert.equal(legacyRes.body, '73,68,51,3', 'the legacy response body is the audio')
 
+// CDNs commonly answer application/octet-stream even for MP3. The Host must
+// expose a real audio MIME or MediaSource refuses the stream.
+{
+  const oldStream = omni.stream
+  const oldFetch = globalThis.fetch
+  omni.stream = async (_provider, _id, _ctx, quality) => ({
+    url: 'https://cdn.test/octet.mp3',
+    quality,
+    preview: false,
+  })
+  globalThis.fetch = async () => new Response(Buffer.from([0x49, 0x44, 0x33, 0x04]), {
+    status: 200,
+    headers: { 'content-type': 'application/octet-stream', 'content-length': '4' },
+  })
+  try {
+    const res = fakeRes()
+    await handler(fakeReq('/music/online/stream?provider=kugouLite&id=octet-mime&quality=high'), res)
+    assert.equal(res.status, 200)
+    assert.equal(res.headers['content-type'], 'audio/mpeg', 'octet-stream is normalized for MSE')
+  } finally {
+    omni.stream = oldStream
+    globalThis.fetch = oldFetch
+  }
+}
+
 // The first media Range probe is normally bytes=0-. If the CDN answers 200,
 // relay it as a full 206 so Chromium knows the resource is seekable.
 {

@@ -9,11 +9,7 @@ function NowPlayingCapsule(props) {
   var snap = usePlayerSnapshot()
   var time = usePlayerTime()
   var track = snap.queue[snap.index] || null
-  var duration = Number(time.duration) > 0
-    ? Number(time.duration)
-    : track
-      ? Number(track.durationSec) || 0
-      : 0
+  var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
   var position = Math.min(Number(time.currentTime) || 0, duration || 0)
   var loopMode = snap.loop === 'one' ? 'one' : snap.loop === 'all' ? 'all' : 'none'
   var loopLabel = loopMode === 'one' ? t('page.loopOne') : loopMode === 'all' ? t('page.loopAll') : t('page.loopNone')

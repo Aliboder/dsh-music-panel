@@ -156288,6 +156288,7 @@ window.__ModuleLoader__.load({
         if (onlineMse === null) return
         var session = onlineMse
         onlineMse = null
+        session.stopped = true
         try { if (session.controller !== null) session.controller.abort() } catch (error) {}
         try { if (session.reader !== null) session.reader.cancel().catch(function () {}) } catch (error) {}
         if (session.url !== '') {
@@ -156798,19 +156799,36 @@ window.__ModuleLoader__.load({
         return Promise.resolve(true)
       }
 
-      function playOnlineDirect(item, token, loudness) {
-        stopOnlineMse()
+      function prepareOnlineElement() {
+        if (audio === null) return
         audio.pause()
         audio.removeAttribute('src')
         audio.load()
         releaseObjectUrl()
         currentBlob = null
-        if (audio !== null) audio.preload = 'auto'
-        loadActiveSource(item.onlineUrl)
-        loudness.resolve()
-        if (pendingAutoplay) playAfterLoudness(token)
-        var gainController = typeof AbortController !== 'undefined' ? new AbortController() : null
-        fetchAbort = gainController
+        audio.preload = 'auto'
+      }
+
+      function applyPlatformGain(headers) {
+        var gain = readReplayGainHeaders(headers)
+        if (gain === null) return false
+        platformGain = gain
+        reconsiderBalance(null)
+        return true
+      }
+
+      /** Gain is metadata: HEAD only when the stream response did not carry it. */
+      function loadOnlineHeadGain(item, token) {
+        fetch(item.onlineUrl, { method: 'HEAD' })
+          .then(function (response) {
+            if (!response.ok || token !== loadToken) return
+            applyPlatformGain(response.headers)
+          })
+          .catch(function () { /* metadata only */ })
+      }
+
+      /** A cached copy can supply the full profile without delaying sound. */
+      function loadCachedOnlineProfile(item, token) {
         getJson(API + 'online/cache-info?provider=' + encodeURIComponent(item.onlineProvider) + '&id=' + encodeURIComponent(item.onlineId || ''))
           .then(function (info) {
             if (!info || info.cached !== true || token !== loadToken) return null
@@ -156829,41 +156847,37 @@ window.__ModuleLoader__.load({
               })
           })
           .catch(function () { /* optional */ })
-        fetch(item.onlineUrl, {
-          method: 'HEAD',
-          ...(gainController === null ? {} : { signal: gainController.signal }),
-        })
-          .then(function (response) {
-            if (!response.ok || token !== loadToken) return
-            var gain = readReplayGainHeaders(response.headers)
-            if (gain !== null) {
-              platformGain = gain
-              reconsiderBalance(null)
-            }
-          })
-          .catch(function () { /* metadata only */ })
-          .then(function () {
-            if (token === loadToken) fetchAbort = null
-          })
+      }
+
+      function startOnlineDirect(item, token, loudness, headers) {
+        if (token !== loadToken) return
+        stopOnlineMse()
+        prepareOnlineElement()
+        loadActiveSource(item.onlineUrl)
+        loudness.resolve()
+        if (pendingAutoplay) playAfterLoudness(token)
+        if (headers === undefined || !applyPlatformGain(headers)) loadOnlineHeadGain(item, token)
+        loadCachedOnlineProfile(item, token)
       }
 
       /** Folia-like current song, but with MediaSource owning the seekable ranges. */
       function playOnlineMse(item, token, loudness) {
         var MediaSourceCtor = typeof window !== 'undefined' ? (window.MediaSource || window.webkitMediaSource) : null
         if (typeof MediaSourceCtor !== 'function') {
-          playOnlineDirect(item, token, loudness)
+          startOnlineDirect(item, token, loudness)
           return
         }
         var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
         fetchAbort = controller
         fetch(item.onlineUrl, controller === null ? {} : { signal: controller.signal })
           .then(function (response) {
-            if (!response.ok) throw new Error('HTTP ' + response.status)
-            var gain = readReplayGainHeaders(response.headers)
-            if (gain !== null) {
-              platformGain = gain
-              reconsiderBalance(null)
+            if (token !== loadToken) {
+              if (response.body !== null) response.body.cancel().catch(function () {})
+              loudness.resolve()
+              return null
             }
+            if (!response.ok) throw new Error('HTTP ' + response.status)
+            applyPlatformGain(response.headers)
             var mime = String(response.headers.get('content-type') || 'audio/mpeg').split(';')[0].trim().toLowerCase()
             var mseMime = mime === 'audio/mp4' || mime === 'audio/m4a' || mime === 'audio/x-m4a'
               ? 'audio/mp4; codecs="mp4a.40.2"'
@@ -156871,19 +156885,16 @@ window.__ModuleLoader__.load({
             if (!MediaSourceCtor.isTypeSupported(mseMime) || response.body === null) {
               // Unsupported codec: fall back to the direct element rather than buffering the file.
               if (response.body !== null) response.body.cancel().catch(function () {})
-              playOnlineDirect(item, token, loudness)
+              startOnlineDirect(item, token, loudness, response.headers)
               return null
             }
-            audio.pause()
-            audio.removeAttribute('src')
-            audio.load()
-            releaseObjectUrl()
-            if (audio !== null) audio.preload = 'auto'
+            prepareOnlineElement()
             var mediaSource = new MediaSourceCtor()
             var objectUrl = URL.createObjectURL(mediaSource)
             var session = {
               controller: controller,
               reader: null,
+              stopped: false,
               url: objectUrl,
               seek: function (target) {
                 if (covers(target)) {
@@ -156909,6 +156920,11 @@ window.__ModuleLoader__.load({
             var pendingSeek = null
             var resumeAfterSeek = false
             var failed = false
+            function fallbackToDirect() {
+              if (failed || session.stopped) return
+              failed = true
+              startOnlineDirect(item, token, loudness, response.headers)
+            }
             function covers(target) {
               if (sourceBuffer === null || sourceBuffer.buffered.length === 0) return false
               for (var index = 0; index < sourceBuffer.buffered.length; index += 1) {
@@ -156946,8 +156962,7 @@ window.__ModuleLoader__.load({
               try {
                 sourceBuffer.appendBuffer(chunk)
               } catch (error) {
-                failed = true
-                playOnlineDirect(item, token, loudness)
+                fallbackToDirect()
               }
             }
             function maybeStart() {
@@ -156958,12 +156973,12 @@ window.__ModuleLoader__.load({
               if (pendingAutoplay) playAfterLoudness(token)
             }
             mediaSource.addEventListener('sourceopen', function () {
+              if (session.stopped) return
               try {
                 sourceBuffer = mediaSource.addSourceBuffer(mseMime)
               } catch (error) {
-                failed = true
                 console.warn('[OnlineMse] addSourceBuffer failed, falling back to direct media', error)
-                playOnlineDirect(item, token, loudness)
+                fallbackToDirect()
                 return
               }
               // Duration is metadata for the seek bar, not part of SourceBuffer
@@ -156980,7 +156995,7 @@ window.__ModuleLoader__.load({
               session.reader = response.body.getReader()
               function read() {
                 session.reader.read().then(function (result) {
-                  if (failed) return
+                  if (failed || session.stopped) return
                   if (result.done) {
                     done = true
                     pump()
@@ -156990,8 +157005,8 @@ window.__ModuleLoader__.load({
                   pump()
                   read()
                 }).catch(function () {
-                  failed = true
-                  playOnlineDirect(item, token, loudness)
+                  if (session.stopped) return
+                  fallbackToDirect()
                 })
               }
               read()
@@ -157005,7 +157020,7 @@ window.__ModuleLoader__.load({
               loudness.resolve()
               return
             }
-            playOnlineDirect(item, token, loudness)
+            startOnlineDirect(item, token, loudness)
           })
           .then(function () {
             if (token === loadToken) fetchAbort = null
@@ -157066,12 +157081,7 @@ window.__ModuleLoader__.load({
         // client rather than by Chromium's judgement of a proxy response. The
         // first appended chunk starts sound; no full-file blob and no analysis gate.
         if (typeof item.onlineUrl === 'string' && item.onlineUrl !== '') {
-          stopOnlineMse()
-          audio.pause()
-          audio.removeAttribute('src')
-          audio.load()
-          releaseObjectUrl()
-          currentBlob = null
+          prepareOnlineElement()
           playOnlineMse(item, token, loudness)
           return
         }
@@ -158401,6 +158411,20 @@ window.__ModuleLoader__.load({
     }
 
     var player = createPlayer()
+
+    // ── src/client/services/player/duration.js
+    /**
+     * One duration for every seek surface.
+     *
+     * MediaSource reports only the appended prefix until more data lands, and an
+     * <audio> element starts at 0 before metadata. The scanned track length is the
+     * full-song ceiling; never let the smaller, still-growing media duration win.
+     */
+    function effectivePlayerDuration(mediaDuration, trackDuration) {
+      var media = Number(mediaDuration)
+      var known = Number(trackDuration)
+      return Math.max(isFinite(media) && media > 0 ? media : 0, isFinite(known) && known > 0 ? known : 0)
+    }
 
     // ── src/client/services/player/audio-focus.js
     /**
@@ -162032,9 +162056,7 @@ window.__ModuleLoader__.load({
       var pair = useState(null)
       var seeking = pair[0]
       var setSeeking = pair[1]
-      var mediaDuration = time.duration > 0 ? time.duration : 0
-      var fallbackDuration = Number(props.fallbackDuration) > 0 ? Number(props.fallbackDuration) : 0
-      var duration = Math.max(mediaDuration, fallbackDuration)
+      var duration = effectivePlayerDuration(time.duration, props.fallbackDuration)
       var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
       var percent = duration > 0 ? clamp(position / duration, 0, 1) * 100 : 0
       var buffered = Math.min(duration, Math.max(0, Number(time.buffered) || 0))
@@ -164518,11 +164540,7 @@ window.__ModuleLoader__.load({
       var setSeeking = seekPair[1]
       var seekingRef = useRef(null)
       var hoverRef = useRef(null)
-      var mediaDuration = time.duration > 0 ? time.duration : 0
-      var fallbackDuration = Number(props.fallbackDuration) > 0 ? Number(props.fallbackDuration) : 0
-      // MSE reports only the appended prefix until more data lands; never let that
-      // prefix shrink the seek bar's total below the track's known length.
-      var duration = Math.max(mediaDuration, fallbackDuration)
+      var duration = effectivePlayerDuration(time.duration, props.fallbackDuration)
       var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
       var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
       var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0
@@ -164854,7 +164872,7 @@ window.__ModuleLoader__.load({
               'div',
               { className: 'mp-np-times' },
               h('span', null, fmtClock(time.currentTime)),
-              h('span', null, fmtClock(Math.max(Number(duration) || 0, track ? Number(track.durationSec) || 0 : 0))),
+              h('span', null, fmtClock(effectivePlayerDuration(duration, track ? track.durationSec : 0))),
             ),
             h(
               'div',
@@ -165306,11 +165324,7 @@ window.__ModuleLoader__.load({
       var snap = usePlayerSnapshot()
       var time = usePlayerTime()
       var track = snap.queue[snap.index] || null
-      var duration = Number(time.duration) > 0
-        ? Number(time.duration)
-        : track
-          ? Number(track.durationSec) || 0
-          : 0
+      var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
       var position = Math.min(Number(time.currentTime) || 0, duration || 0)
       var loopMode = snap.loop === 'one' ? 'one' : snap.loop === 'all' ? 'all' : 'none'
       var loopLabel = loopMode === 'one' ? t('page.loopOne') : loopMode === 'all' ? t('page.loopAll') : t('page.loopNone')
@@ -166467,7 +166481,7 @@ window.__ModuleLoader__.load({
 
       var lyricNow = time.currentTime - offsetMs / 1000
       var active = lyricActiveIndex(lyrics, lyricNow)
-      var duration = Math.max(time.duration > 0 ? time.duration : 0, track ? Number(track.durationSec) || 0 : 0)
+      var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
       var favorite = track !== null && props.favoriteSet[track.path] === true
 
       var lyricScroll = useLyricAutoScroll(
@@ -174096,7 +174110,7 @@ window.__ModuleLoader__.load({
       var time = usePlayerTime()
       var [preview, setPreview] = useState(null)
       var current = snap.queue[snap.index] || null
-      var duration = Math.max(time.duration > 0 ? time.duration : 0, current ? Number(current.durationSec) || 0 : 0)
+      var duration = effectivePlayerDuration(time.duration, current ? current.durationSec : 0)
       if (!current) {
         return h('footer', { className: 'mpv3-player is-empty' },
           h('div', { className: 'mpv3-player-track' },

@@ -654,6 +654,7 @@ var onlineMse = null
     if (onlineMse === null) return
     var session = onlineMse
     onlineMse = null
+    session.stopped = true
     try { if (session.controller !== null) session.controller.abort() } catch (error) {}
     try { if (session.reader !== null) session.reader.cancel().catch(function () {}) } catch (error) {}
     if (session.url !== '') {
@@ -1164,19 +1165,36 @@ var onlineMse = null
     return Promise.resolve(true)
   }
 
-  function playOnlineDirect(item, token, loudness) {
-    stopOnlineMse()
+  function prepareOnlineElement() {
+    if (audio === null) return
     audio.pause()
     audio.removeAttribute('src')
     audio.load()
     releaseObjectUrl()
     currentBlob = null
-    if (audio !== null) audio.preload = 'auto'
-    loadActiveSource(item.onlineUrl)
-    loudness.resolve()
-    if (pendingAutoplay) playAfterLoudness(token)
-    var gainController = typeof AbortController !== 'undefined' ? new AbortController() : null
-    fetchAbort = gainController
+    audio.preload = 'auto'
+  }
+
+  function applyPlatformGain(headers) {
+    var gain = readReplayGainHeaders(headers)
+    if (gain === null) return false
+    platformGain = gain
+    reconsiderBalance(null)
+    return true
+  }
+
+  /** Gain is metadata: HEAD only when the stream response did not carry it. */
+  function loadOnlineHeadGain(item, token) {
+    fetch(item.onlineUrl, { method: 'HEAD' })
+      .then(function (response) {
+        if (!response.ok || token !== loadToken) return
+        applyPlatformGain(response.headers)
+      })
+      .catch(function () { /* metadata only */ })
+  }
+
+  /** A cached copy can supply the full profile without delaying sound. */
+  function loadCachedOnlineProfile(item, token) {
     getJson(API + 'online/cache-info?provider=' + encodeURIComponent(item.onlineProvider) + '&id=' + encodeURIComponent(item.onlineId || ''))
       .then(function (info) {
         if (!info || info.cached !== true || token !== loadToken) return null
@@ -1195,41 +1213,37 @@ var onlineMse = null
           })
       })
       .catch(function () { /* optional */ })
-    fetch(item.onlineUrl, {
-      method: 'HEAD',
-      ...(gainController === null ? {} : { signal: gainController.signal }),
-    })
-      .then(function (response) {
-        if (!response.ok || token !== loadToken) return
-        var gain = readReplayGainHeaders(response.headers)
-        if (gain !== null) {
-          platformGain = gain
-          reconsiderBalance(null)
-        }
-      })
-      .catch(function () { /* metadata only */ })
-      .then(function () {
-        if (token === loadToken) fetchAbort = null
-      })
+  }
+
+  function startOnlineDirect(item, token, loudness, headers) {
+    if (token !== loadToken) return
+    stopOnlineMse()
+    prepareOnlineElement()
+    loadActiveSource(item.onlineUrl)
+    loudness.resolve()
+    if (pendingAutoplay) playAfterLoudness(token)
+    if (headers === undefined || !applyPlatformGain(headers)) loadOnlineHeadGain(item, token)
+    loadCachedOnlineProfile(item, token)
   }
 
   /** Folia-like current song, but with MediaSource owning the seekable ranges. */
   function playOnlineMse(item, token, loudness) {
     var MediaSourceCtor = typeof window !== 'undefined' ? (window.MediaSource || window.webkitMediaSource) : null
     if (typeof MediaSourceCtor !== 'function') {
-      playOnlineDirect(item, token, loudness)
+      startOnlineDirect(item, token, loudness)
       return
     }
     var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
     fetchAbort = controller
     fetch(item.onlineUrl, controller === null ? {} : { signal: controller.signal })
       .then(function (response) {
-        if (!response.ok) throw new Error('HTTP ' + response.status)
-        var gain = readReplayGainHeaders(response.headers)
-        if (gain !== null) {
-          platformGain = gain
-          reconsiderBalance(null)
+        if (token !== loadToken) {
+          if (response.body !== null) response.body.cancel().catch(function () {})
+          loudness.resolve()
+          return null
         }
+        if (!response.ok) throw new Error('HTTP ' + response.status)
+        applyPlatformGain(response.headers)
         var mime = String(response.headers.get('content-type') || 'audio/mpeg').split(';')[0].trim().toLowerCase()
         var mseMime = mime === 'audio/mp4' || mime === 'audio/m4a' || mime === 'audio/x-m4a'
           ? 'audio/mp4; codecs="mp4a.40.2"'
@@ -1237,19 +1251,16 @@ var onlineMse = null
         if (!MediaSourceCtor.isTypeSupported(mseMime) || response.body === null) {
           // Unsupported codec: fall back to the direct element rather than buffering the file.
           if (response.body !== null) response.body.cancel().catch(function () {})
-          playOnlineDirect(item, token, loudness)
+          startOnlineDirect(item, token, loudness, response.headers)
           return null
         }
-        audio.pause()
-        audio.removeAttribute('src')
-        audio.load()
-        releaseObjectUrl()
-        if (audio !== null) audio.preload = 'auto'
+        prepareOnlineElement()
         var mediaSource = new MediaSourceCtor()
         var objectUrl = URL.createObjectURL(mediaSource)
         var session = {
           controller: controller,
           reader: null,
+          stopped: false,
           url: objectUrl,
           seek: function (target) {
             if (covers(target)) {
@@ -1275,6 +1286,11 @@ var onlineMse = null
         var pendingSeek = null
         var resumeAfterSeek = false
         var failed = false
+        function fallbackToDirect() {
+          if (failed || session.stopped) return
+          failed = true
+          startOnlineDirect(item, token, loudness, response.headers)
+        }
         function covers(target) {
           if (sourceBuffer === null || sourceBuffer.buffered.length === 0) return false
           for (var index = 0; index < sourceBuffer.buffered.length; index += 1) {
@@ -1312,8 +1328,7 @@ var onlineMse = null
           try {
             sourceBuffer.appendBuffer(chunk)
           } catch (error) {
-            failed = true
-            playOnlineDirect(item, token, loudness)
+            fallbackToDirect()
           }
         }
         function maybeStart() {
@@ -1324,12 +1339,12 @@ var onlineMse = null
           if (pendingAutoplay) playAfterLoudness(token)
         }
         mediaSource.addEventListener('sourceopen', function () {
+          if (session.stopped) return
           try {
             sourceBuffer = mediaSource.addSourceBuffer(mseMime)
           } catch (error) {
-            failed = true
             console.warn('[OnlineMse] addSourceBuffer failed, falling back to direct media', error)
-            playOnlineDirect(item, token, loudness)
+            fallbackToDirect()
             return
           }
           // Duration is metadata for the seek bar, not part of SourceBuffer
@@ -1346,7 +1361,7 @@ var onlineMse = null
           session.reader = response.body.getReader()
           function read() {
             session.reader.read().then(function (result) {
-              if (failed) return
+              if (failed || session.stopped) return
               if (result.done) {
                 done = true
                 pump()
@@ -1356,8 +1371,8 @@ var onlineMse = null
               pump()
               read()
             }).catch(function () {
-              failed = true
-              playOnlineDirect(item, token, loudness)
+              if (session.stopped) return
+              fallbackToDirect()
             })
           }
           read()
@@ -1371,7 +1386,7 @@ var onlineMse = null
           loudness.resolve()
           return
         }
-        playOnlineDirect(item, token, loudness)
+        startOnlineDirect(item, token, loudness)
       })
       .then(function () {
         if (token === loadToken) fetchAbort = null
@@ -1432,12 +1447,7 @@ var onlineMse = null
     // client rather than by Chromium's judgement of a proxy response. The
     // first appended chunk starts sound; no full-file blob and no analysis gate.
     if (typeof item.onlineUrl === 'string' && item.onlineUrl !== '') {
-      stopOnlineMse()
-      audio.pause()
-      audio.removeAttribute('src')
-      audio.load()
-      releaseObjectUrl()
-      currentBlob = null
+      prepareOnlineElement()
       playOnlineMse(item, token, loudness)
       return
     }
