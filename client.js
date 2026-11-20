@@ -175173,86 +175173,54 @@ window.__ModuleLoader__.load({
 
       var body = h(
         'div',
-        { className: 'mp-online-add', style: { display: 'flex', flexDirection: 'column', gap: '8px', minHeight: '120px' } },
-        phase === 'loading'
-          ? h('div', { className: 'mp-empty', style: { padding: '20px' } }, t('sheet.loadingPlaylists'))
-          : null,
-        phase === 'error' ? h('div', { className: 'mp-set-desc', style: { color: '#f87171' } }, error) : null,
-        phase === 'ready' && playlists.length === 0
-          ? h('div', { className: 'mp-empty', style: { padding: '20px' } }, t('sheet.noPlaylists'))
-          : null,
-        phase === 'ready'
-          ? (playlists || []).map(function (playlist) {
-              return h(
-                'button',
-                {
-                  key: String(playlist.id),
-                  type: 'button',
-                  className: 'mp-online-add-row',
-                  disabled: busy !== '',
-                  onClick: function () {
-                    add(playlist)
+        { className: 'mp-set-card' },
+        h(
+          'div',
+          { className: 'mp-set-card-body' },
+          phase === 'loading'
+            ? h('div', { className: 'mp-folder-state' }, h(Spinner), h('span', null, t('sheet.loadingPlaylists')))
+            : null,
+          phase === 'error' ? h('div', { className: 'mp-online-error' }, error) : null,
+          phase === 'ready' && playlists.length === 0
+            ? h('div', { className: 'mp-folder-state' }, t('sheet.noPlaylists'))
+            : null,
+          phase === 'ready'
+            ? (playlists || []).map(function (playlist) {
+                var playlistId = String(playlist.id)
+                var count = Number(playlist.trackCount) || 0
+                return h(
+                  SetRow,
+                  {
+                    key: playlistId,
+                    label: String(playlist.name || ''),
+                    desc: count + ' ' + t('v2.songs'),
                   },
-                  style: {
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    border: '1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))',
-                    background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04))',
-                    color: 'inherit',
-                    font: 'inherit',
-                    fontSize: '13px',
-                    textAlign: 'left',
-                    cursor: busy !== '' ? 'default' : 'pointer',
-                  },
-                },
-                icon('note', 16),
-                h(
-                  'span',
-                  { style: { flex: '1 1 auto', minWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
-                  String(playlist.name || ''),
-                ),
-                playlist.trackCount !== undefined
-                  ? h('span', { style: { fontSize: '11px', opacity: '.55' } }, String(playlist.trackCount) + ' 首')
-                  : null,
-                busy === String(playlist.id)
-                  ? h('span', { style: { fontSize: '11px', opacity: '.7' } }, t('sheet.saving'))
-                  : null,
-              )
-            })
-          : null,
+                  h(
+                    Button,
+                    {
+                      variant: 'outline',
+                      size: 'sm',
+                      disabled: busy !== '',
+                      onClick: function () {
+                        add(playlist)
+                      },
+                    },
+                    busy === playlistId ? t('sheet.saving') : t('online.addToCloudPlaylist'),
+                  ),
+                )
+              })
+            : null,
+        ),
       )
 
       return h(
         KitModal,
         {
-          title: t('page.addToPlaylist'),
+          title: t('online.addToCloudPlaylist'),
           onClose: popLayer,
           small: true,
           footer: [
-            h(
-              'button',
-              {
-                key: 'cancel',
-                type: 'button',
-                className: 'mp-btn',
-                onClick: popLayer,
-                style: {
-                  padding: '8px 18px',
-                  borderRadius: '8px',
-                  border: '1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.12))',
-                  background: 'transparent',
-                  color: 'inherit',
-                  font: 'inherit',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                },
-              },
-              t('page.cancel'),
-            ),
+            h(Button, { key: 'cancel', variant: 'ghost', onClick: popLayer }, t('page.cancel')),
           ],
         },
         body,

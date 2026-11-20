@@ -4,6 +4,10 @@
 
 ## 0.39.2 — 2026-11-20
 
+### 在线歌单
+
+- 「添加到歌单」弹窗改为 DSH 组件体系：`SetRow` 分组行 + `Button`，使用 `mp-set-card` / `mp-folder-state` / `mp-online-error` 等现有样式；移除裸 `<button>`、内联边框/背景/圆角与硬编码错误色。
+
 ### 在线喜欢
 
 - 酷狗概念版支持写入「我喜欢」：通过 cloudlist 的 `playlist_tracks_add` / `playlist_tracks_del` 操作内置收藏歌单；取消时按 hash 在当前收藏歌单中解析 `fileid`，不会误删其他歌单中的同名行。
