@@ -148,6 +148,23 @@ assert.doesNotMatch(theme, /is-vinyl|mp-npe-cover|mp-guide-vinyl/, 'the removed 
 
 assert.match(theme, /@media \(max-width:980px\)\{[^']*\.mp-np-cover-stage\{margin-left:auto;margin-right:auto\}/, 'narrow cover is centred')
 
+// Player chrome is one idle-hide group: the top back / fullscreen buttons fade with
+// the transport capsule and the bottom-right handle, and must not swallow clicks
+// while faded. Focus wins over the fade, or Tab could land on an invisible control.
+for (const selector of ['.mp-np-head', '.mp-np-fs']) {
+  const rule = selector.replace(/\./g, '\\.')
+  assert.match(
+    theme,
+    new RegExp(`\\.mp-np\\.is-chrome-hidden ${rule}\\{[^}]*opacity:0;[^}]*pointer-events:none`),
+    `${selector} joins the idle-hide chrome`,
+  )
+}
+assert.match(
+  theme,
+  /\.mp-np\.is-chrome-hidden \.mp-np-head:focus-within,\.mp-np\.is-chrome-hidden \.mp-np-fs:focus-within\{[^}]*opacity:1/,
+  'keyboard focus overrides the top chrome fade',
+)
+
 // The player is a dark surface even in light themes; the title must not
 // inherit a dark label colour.
 assert.match(theme, /\.mp-np\{[^']*background:#141417;color:#f4f4f5/, 'player surface stays dark')

@@ -160944,10 +160944,10 @@ window.__ModuleLoader__.load({
       '@keyframes mp-ambient-echo{0%{transform:translate3d(-7%,5%,0) scale(1.22) rotate(-2.4deg)}100%{transform:translate3d(7%,-5%,0) scale(1.3) rotate(2.4deg)}}',
       '.mp-np-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.32),rgba(0,0,0,.04) 46%,rgba(0,0,0,.28) 82%,rgba(0,0,0,.42));pointer-events:none}',
       '.mp-np::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(85% 75% at 50% 45%,transparent 55%,rgba(0,0,0,.3));pointer-events:none}',
-      '.mp-np-head{position:absolute;top:22px;left:22px;z-index:5;display:flex;align-items:center;gap:8px;padding:0}',
+      '.mp-np-head{position:absolute;top:22px;left:22px;z-index:5;display:flex;align-items:center;gap:8px;padding:0;transition:opacity .25s ease,transform .25s ease}',
       '.mp-np-head .mp-iconbtn{width:36px;height:36px;border-radius:8px;color:rgba(255,255,255,.78)}',
       '.mp-np-head .mp-iconbtn:hover{background:rgba(255,255,255,.1);color:#fff}',
-      '.mp-np-fs{position:absolute;top:22px;right:22px;z-index:6}',
+      '.mp-np-fs{position:absolute;top:22px;right:22px;z-index:6;transition:opacity .25s ease,transform .25s ease}',
       '.mp-np-fs .mp-iconbtn{width:36px;height:36px;border-radius:8px;color:rgba(255,255,255,.78)}',
       // Folia's player panel button: one round sliders button at the page's bottom-right.
       '.mp-cap{position:absolute;left:50%;bottom:32px;transform:translateX(-50%);z-index:60;width:min(560px,calc(100% - 260px));pointer-events:auto;transition:opacity .25s ease,transform .25s ease}',
@@ -160980,6 +160980,13 @@ window.__ModuleLoader__.load({
       '.mp-np-handle-btn:focus-visible{outline:2px solid var(--dsw-focus-ring-color,#7AAAFF);outline-offset:2px}',
       '.mp-np.is-chrome-hidden .mp-cap{opacity:0;transform:translate(-50%,10px);pointer-events:none}',
       '.mp-np.is-chrome-hidden .mp-np-handle{opacity:0;transform:translateY(10px);pointer-events:none}',
+      // The top chrome (back / fullscreen) rides the same idle timer: it retreats
+      // toward its edge and stops taking clicks, so a resting page is just the song.
+      '.mp-np.is-chrome-hidden .mp-np-head{opacity:0;transform:translateY(-8px);pointer-events:none}',
+      '.mp-np.is-chrome-hidden .mp-np-fs{opacity:0;transform:translateY(-8px);pointer-events:none}',
+      // Keyboard focus wins over the idle fade: once Tab lands on a hidden control it
+      // must become visible again, or the focus ring sits on nothing.
+      '.mp-np.is-chrome-hidden .mp-np-head:focus-within,.mp-np.is-chrome-hidden .mp-np-fs:focus-within{opacity:1;transform:none;pointer-events:auto}',
       '@media (max-width:760px){.mp-cap{width:calc(100% - 220px);bottom:24px}.mp-cap-inner{padding:10px 14px;gap:10px}.mp-cap-play{width:42px;height:42px}.mp-cap-skip{width:26px;height:26px}.mp-np-handle{right:16px;bottom:33px;width:84px;height:44px}.mp-np-handle-track{width:84px;height:44px}.mp-np-handle-btn{width:44px;height:44px}}',
       '@media (max-width:560px){.mp-cap{width:calc(100% - 32px);bottom:82px}.mp-np-handle{bottom:18px}}',
       '.mp-np-fs .mp-iconbtn:hover{background:rgba(255,255,255,.1);color:#fff}',
