@@ -271,3 +271,30 @@ function analyzeLoudnessBlob(item, blob, isCurrent, onMeasured) {
       return null
     })
 }
+
+/** A library server's front: decode whatever the range prefix gave us. */
+function analyzePartialLoudnessBlob(item, blob) {
+  if (!item || !blob) return Promise.resolve(null)
+  var decoder = loudnessContext()
+  if (decoder === null) return Promise.resolve(null)
+  var measuredBuffer = null
+  return blob
+    .arrayBuffer()
+    .then(function (bytes) { return decoder.decodeAudioData(bytes) })
+    .then(function (buffer) {
+      measuredBuffer = buffer
+      return lufsFromAudioBuffer(buffer)
+    })
+    .then(function (lufs) {
+      if (lufs === null) return null
+      var measured = {
+        programLoudness: lufs,
+        peak: peakOfAudioBuffer(measuredBuffer),
+        leadIn: leadInOfAudioBuffer(measuredBuffer),
+        partial: true,
+      }
+      noteProfile(item.path, measured)
+      return measured
+    })
+    .catch(function () { return null })
+}

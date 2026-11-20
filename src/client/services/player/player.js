@@ -678,8 +678,7 @@ var prefetchedProfilePath = ''
       tag: tagGainDb && typeof tagGainDb.trackGain === 'number'
         ? { gainDb: tagGainDb.trackGain, peak: typeof tagGainDb.trackPeak === 'number' ? tagGainDb.trackPeak : null }
         : null,
-      head: null,
-      platformDb: null,
+      head: prof && prof.partial ? prof.programLoudness : null,
       live: extra && typeof extra.live === 'number' ? extra.live : null,
       platformDb: platformGain && typeof platformGain.trackGain === 'number' ? platformGain.trackGain : null,
       typicalDb: typicalGainDb(balanceTypicalGains()),
@@ -1035,15 +1034,20 @@ var prefetchedProfilePath = ''
     var next = nextIndexOf(state.index, state.queue.length)
     if (next === state.index) return
     var item = state.queue[next]
-    if (!item || item.onlineProvider || typeof item.path !== 'string' || item.path === '') return
+    if (!item || typeof item.path !== 'string' || item.path === '') return
     if (prefetchedProfilePath === item.path || profileFor(item.path) !== null) return
+    if (item.onlineProvider && item.onlineProvider !== 'navidrome') return
     prefetchedProfilePath = item.path
-    fetch(streamUrl(item.path))
+    var request = item.onlineProvider === 'navidrome'
+      ? fetch(item.onlineUrl, { headers: { Range: 'bytes=0-1572863' } })
+      : fetch(streamUrl(item.path))
+    request
       .then(function (response) {
         if (!response.ok) throw new Error('HTTP ' + response.status)
         return response.blob()
       })
       .then(function (blob) {
+        if (item.onlineProvider === 'navidrome') return analyzePartialLoudnessBlob(item, blob)
         return analyzeLoudnessBlob(
           item,
           blob,

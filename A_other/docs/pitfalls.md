@@ -624,6 +624,15 @@
 
 ---
 
+## 70. Navidrome 的 head 不能整曲下载
+
+- **现象**：profile 调度直接把 Navidrome 下一首当本地曲整曲下载，浪费带宽。
+- **原因**：Folia 对 library server 只读文件头部；整曲分析属于本地文件或已缓存音频。
+- **处理**：对 Navidrome 用 `Range: bytes=0-1572863` 取前缀，解码成功才写 `partial: true` 的 profile；失败不重试、不占播放。
+- **防回归**：`head` 只来自 partial profile；没有 partial 数据时传 null。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

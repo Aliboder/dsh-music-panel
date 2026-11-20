@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const source = readFileSync(join(root, 'src/client/components/ui/settings.js'), 'utf8')
 const prefsSource = readFileSync(join(root, 'src/client/stores/prefs.js'), 'utf8')
+const profileSource = readFileSync(join(root, 'src/client/services/player/effects/profile.js'), 'utf8')
 
 test('clear-all data flow keeps the confirm token and two-step UI', () => {
   assert.match(source, /data\/clear/)
@@ -43,6 +44,11 @@ test('settings page reflects current features and no dead preferences', () => {
   assert.match(source, /voiceInputPause/, 'Folia voice-input pause has a settings row')
   assert.match(source, /audioFocusDucking/, 'external TTS ducking has a settings row')
   assert.match(prefsSource, /audioFocusDuckLevel/, 'ducking level has a persisted default')
+})
+
+test('profile storage is covered by the music. clear prefix', () => {
+  assert.match(profileSource, /music\.profile\.v1/, 'profile storage lives under music.')
+  assert.match(source, /'music\.'/, 'clear-all removes the music. prefix')
 })
 
 test('clear-all data flow covers plugin localStorage ownership prefixes', () => {
