@@ -78,6 +78,32 @@ try {
   assert.deepEqual(qualities, ['high'], 'legacy fallback happens before lowering the quality')
   assert.equal(legacyRes.body, '73,68,51,3', 'the legacy response body is the audio')
 
+// The first media Range probe is normally bytes=0-. If the CDN answers 200,
+// relay it as a full 206 so Chromium knows the resource is seekable.
+{
+  const oldStream = omni.stream
+  const oldFetch = globalThis.fetch
+  omni.stream = async (_provider, _id, _ctx, quality) => ({
+    url: 'https://cdn.test/full-range.mp3',
+    quality,
+    preview: false,
+  })
+  globalThis.fetch = async () => new Response(Buffer.from('0123456789'), {
+    status: 200,
+    headers: { 'content-type': 'audio/mpeg', 'content-length': '10' },
+  })
+  try {
+    const res = fakeRes()
+    await handler(fakeReq('/music/online/stream?provider=kugouLite&id=full-range&quality=high', 'GET', { range: 'bytes=0-' }), res)
+    assert.equal(res.status, 206, 'a 200 answer to bytes=0- becomes a full 206')
+    assert.equal(res.headers['content-range'], 'bytes 0-9/10')
+    assert.equal(res.body, '48,49,50,51,52,53,54,55,56,57', 'the full body is passed through')
+  } finally {
+    omni.stream = oldStream
+    globalThis.fetch = oldFetch
+  }
+}
+
 // A media seek asks for a later byte range. Some CDNs answer 200 anyway;
 // the Host must turn the slice into a real 206 or Chromium restarts at zero.
 {

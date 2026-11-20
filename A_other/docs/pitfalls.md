@@ -727,7 +727,7 @@
 
 - **现象**：在线歌曲拖到中间又跳回开头；首音正常。
 - **原因**：媒体元素 seek 会发 Range 请求；CDN/Host 若回 200 而不是 206，Chromium 把它当不可 seek 流，重置到 0。旧 blob 方案通过本地随机访问绕开了它。
-- **处理**：Host 缓存已解析 CDN URL，Range 请求复用同一对象；CDN 回 200 时由 Host 读取全量并切片为 206 + `Content-Range`；`preload=auto` 让浏览器提前缓冲。
+- **处理**：Host 缓存已解析 CDN URL，Range 请求复用同一对象；CDN 对 `bytes=0-` 回 200 时直接标记为完整 206，对后续 start>0 的 Range 读取全量并切片为 206 + `Content-Range`；`preload=auto` 让浏览器提前缓冲。
 - **防回归**：不要只检查 `Accept-Ranges`；必须检查 seek 请求的响应状态是 206 且 `Content-Range` 正确。
 
 ---

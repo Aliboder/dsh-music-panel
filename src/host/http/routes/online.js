@@ -651,6 +651,31 @@ export function createOnlineRoutes(deps) {
             }
           }
           const seekStart = rangeStartOf(rangeHeader)
+          const totalHeader = upstream.headers.get('content-length')
+          if (hasRange && seekStart === 0 && upstream.status === 200 && /^bytes=0-$/.test(String(rangeHeader || '').trim()) && totalHeader !== null) {
+            // A media element's first Range probe is normally `bytes=0-`. If the
+            // CDN answers 200, relay it as the valid full 206 it represents so
+            // Chromium marks the resource seekable without buffering the file first.
+            const total = Number(totalHeader)
+            if (Number.isFinite(total) && total > 0) {
+              headers['content-length'] = String(total)
+              headers['content-range'] = 'bytes 0-' + (total - 1) + '/' + total
+              res.writeHead(206, headers)
+              if (method === 'HEAD') {
+                if (upstream.body !== null) upstream.body.cancel().catch(() => {})
+                res.end()
+                return
+              }
+              if (upstream.body !== null) {
+                for await (const chunk of upstream.body) {
+                  if (res.writableEnded || res.destroyed) break
+                  res.write(chunk)
+                }
+              }
+              if (!res.writableEnded) res.end()
+              return
+            }
+          }
           if (hasRange && seekStart !== null && seekStart > 0 && upstream.status === 200) {
             // Some CDNs answer a Range request with 200. Passing that through makes
             // Chromium restart from zero; slice it into a real 206 instead. The
