@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.40.0 — 2026-11-21
+
 ### 歌词
 
 - 歌词匹配新增“写入文件标签”：本地 MP3 写 ID3 USLT，FLAC 写 Vorbis `LYRICS`；逐字歌词先由 Folia 的 `serializeEnhancedLrc` 转成增强型 LRC，再随标签写入，播放时由本地原始文本解析器恢复逐字时轴。写入前保留 `.lyrics.bak`，成功后把歌词来源切到 `embedded`。
