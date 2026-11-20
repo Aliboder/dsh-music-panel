@@ -115,7 +115,12 @@ function PlayerSheetInner(props) {
   var contentRef = useRef(null)
   var tabRefs = useRef([])
 
-  var TABS = ['sheet.cover', 'sheet.local', 'sheet.controls', 'sheet.queue', 'sheet.quality']
+  // Folia's source tab follows the song: local files say "本地", platform songs say
+  // "歌词", and a Navidrome song names its server. The tab index stays the same.
+  var isOnlineTrack = track !== null && Boolean(track.onlineProvider)
+  var isNavidromeTrack = isOnlineTrack && track.onlineProvider === 'navidrome'
+  var sourceTabKey = isNavidromeTrack ? 'sheet.navidrome' : isOnlineTrack ? 'sheet.lyrics' : 'sheet.local'
+  var TABS = ['sheet.cover', sourceTabKey, 'sheet.controls', 'sheet.queue', 'sheet.quality']
   var isCover = index === 0
   var useFramerMark = framer !== null
 
@@ -1096,53 +1101,81 @@ function PlayerSheetInner(props) {
    */
   function lyricSourceControl() {
     var info = props.lyricSources || null
+    var onlineLabel = track && track.onlineProvider ? sourceLabelOf(track.onlineProvider) : t('sheet.srcOnline')
     var hasEmbedded = info !== null && info.embedded === true
     var hasLocal = info !== null && info.local === true
     var hasOnline = info !== null && info.online === true
     var hasImported = info !== null && info.imported === true
-    if (!hasEmbedded && !hasLocal && !hasOnline && !hasImported) {
+    var options = []
+    var active = ''
+    var explicit = false
+    var resetVisible = false
+
+    if (isOnlineTrack) {
+      // Folia's online source row offers the platform's own lyric and an imported
+      // one; pure music is a result of the lyric match, never a selectable source.
+      if (hasOnline) options.push({ value: 'online', label: onlineLabel })
+      if (hasImported) options.push({ value: 'imported', label: t('sheet.srcImported') })
+      active = hasImported && info.active === 'imported' ? 'imported' : hasOnline ? 'online' : ''
+      explicit = info !== null && (
+        info.markedPureMusic === true ||
+        (info.source !== null && info.source !== undefined) ||
+        hasImported
+      )
+      resetVisible = explicit
+    } else if (isNavidromeTrack) {
+      if (hasOnline) options.push({ value: 'online', label: onlineLabel })
+      if (hasLocal) options.push({ value: 'local', label: t('sheet.srcLocal') })
+      active = hasOnline ? 'online' : hasLocal ? 'local' : ''
+    } else {
+      // Folia's local row: local file, embedded tag, matched online lyric. A
+      // matched lyric is one choice; an instrumental mark is only a label.
+      if (hasLocal) options.push({ value: 'local', label: t('sheet.srcLocal') })
+      if (hasEmbedded) options.push({ value: 'embedded', label: t('sheet.srcEmbedded') })
+      if (hasOnline) options.push({ value: 'online', label: onlineLabel })
+      active = info !== null && info.active === 'online' && hasOnline
+        ? 'online'
+        : info !== null && info.active === 'embedded' && hasEmbedded
+          ? 'embedded'
+          : hasLocal
+            ? 'local'
+            : hasEmbedded
+              ? 'embedded'
+              : hasOnline
+                ? 'online'
+                : ''
+    }
+
+    if (options.length === 0) {
+      var label = info !== null && info.markedPureMusic === true
+        ? t('sheet.srcPureMusic')
+        : (props.lyricSourceLabel || t('sheet.srcNone'))
       return h(
         'span',
         { style: { fontSize: '13px', opacity: '.75', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
-        props.lyricSourceLabel || t('sheet.srcNone'),
+        label,
       )
     }
-    var settled = info !== null && info.markedPureMusic === true
-    var active = settled
-      ? 'pure'
-      : info.active === 'imported' && hasImported
-        ? 'imported'
-        : info.active === 'embedded' && hasEmbedded
-          ? 'embedded'
-          : info.active === 'online' && hasOnline
-            ? 'online'
-            : info.active === 'local' && hasLocal
-              ? 'local'
-              : hasOnline
-                ? 'online'
-                : hasLocal
-                  ? 'local'
-                  : hasEmbedded
-                    ? 'embedded'
-                    : 'imported'
-    var options = []
-    if (hasLocal) options.push({ value: 'local', label: t('sheet.srcLocal') })
-    if (hasEmbedded) options.push({ value: 'embedded', label: t('sheet.srcEmbedded') })
-    if (hasOnline) options.push({ value: 'online', label: t('sheet.srcOnline') })
-    if (hasImported) options.push({ value: 'imported', label: t('sheet.srcImported') })
-    options.push({ value: 'pure', label: t('sheet.srcPureMusic') })
-    var explicit = settled || (info !== null && info.source !== null && info.source !== undefined)
+
+    var choice = options.length > 1
+      ? mpSegment(options, active, function (next) {
+          if (typeof props.onSwitchLyricSource === 'function') props.onSwitchLyricSource(next)
+        })
+      : h(
+          'span',
+          { style: { fontSize: '13px', opacity: '.75', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
+          options[0].label,
+        )
+
     return h(
       'div',
       { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
-      mpSegment(options, active, function (next) {
-        if (typeof props.onSwitchLyricSource === 'function') props.onSwitchLyricSource(next)
-      }),
-      explicit
+      resetVisible
         ? mpSmallButton('\u21ba', function () {
             if (typeof props.onResetLyricSource === 'function') props.onResetLyricSource()
           })
         : null,
+      choice,
     )
   }
 
@@ -1168,13 +1201,7 @@ function PlayerSheetInner(props) {
   function cardLocalPane() {
     var row = track !== null && track.path ? trackByPath(track.path) : null
     var name = row && row.name ? row.name : track && track.path ? String(track.path).split(/[\\/]/).pop() : ''
-    var durationSec = row && row.durationSec ? Number(row.durationSec) : track && track.durationSec ? Number(track.durationSec) : 0
     var offset = Number(props.offsetMs) || 0
-    var normalizeOn = props.normalizeOn !== false
-    var note =
-      track !== null && track.onlineProvider
-        ? h('div', { style: { padding: '10px 4px 2px', fontSize: '12px', opacity: '.6' } }, t('sheet.noLocalFile'))
-        : null
 
     function step(delta) {
       if (typeof props.onOffsetChange === 'function') props.onOffsetChange(offset + delta)
@@ -1248,18 +1275,29 @@ function PlayerSheetInner(props) {
         },
         '-',
       ),
-      h(
-        'span',
-        {
-          style: {
-            minWidth: '54px',
-            textAlign: 'center',
-            fontSize: '12px',
-            fontVariantNumeric: 'tabular-nums',
-          },
+      h('input', {
+        type: 'text',
+        inputMode: 'numeric',
+        'aria-label': t('sheet.lyricOffset'),
+        value: (offset > 0 ? '+' : '') + String(offset),
+        onChange: function (event) {
+          var next = Number(String(event.target.value || '').replace(/[^0-9+-]/g, ''))
+          if (typeof props.onOffsetChange === 'function') props.onOffsetChange(Number.isFinite(next) ? next : 0)
         },
-        (offset > 0 ? '+' : '') + String(offset) + ' ms',
-      ),
+        style: {
+          width: '54px',
+          minWidth: '0',
+          border: '0',
+          outline: '0',
+          background: 'transparent',
+          color: 'inherit',
+          textAlign: 'center',
+          font: 'inherit',
+          fontSize: '12px',
+          fontVariantNumeric: 'tabular-nums',
+        },
+      }),
+      h('span', { style: { fontSize: '10px', opacity: '.55', marginLeft: '-2px' } }, 'ms'),
       h(
         'button',
         {
@@ -1278,21 +1316,11 @@ function PlayerSheetInner(props) {
     return h(
       'div',
       { key: 'local-pane' },
-      note,
       mpPanelRow(
         t('sheet.lyrics'),
         lyricSourceControl(),
       ),
-      mpPanelRow(
-        t('page.translation'),
-        h(Switch, {
-          value: prefs.showTranslation === true,
-          label: t('page.translation'),
-          onChange: function (next) {
-            setPrefs({ showTranslation: next })
-          },
-        }),
-      ),
+
       mpPanelRow(
         t('sheet.lyricOffset'),
         h(
@@ -1332,23 +1360,7 @@ function PlayerSheetInner(props) {
           t('sheet.lyricFile'),
         ),
       ),
-      mpPanelRow(
-        t('sheet.lyricSegmentation'),
-        h(
-          'div',
-          { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
-          h(
-            'span',
-            { style: { fontSize: '12px', opacity: '.65' } },
-            Number(props.lyricSegCount) > 0
-              ? t('sheet.lyricSegCount', { count: String(props.lyricSegCount) })
-              : t('sheet.lyricSegDefault'),
-          ),
-          mpSmallButton(t('sheet.lyricSegOpen'), function () {
-            if (typeof props.onOpenLyricSegmentation === 'function') props.onOpenLyricSegmentation()
-          }),
-        ),
-      ),
+
       h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
       mpPanelRow(
         t('sheet.audioGain'),
@@ -1366,17 +1378,29 @@ function PlayerSheetInner(props) {
         ),
       ),
       h('div', { style: { padding: '0 4px 6px', fontSize: '11px', opacity: '.45' } }, gainHint()),
-      h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
-      mpFacts([
-        { label: t('sheet.file'), value: name },
-        {
-          label: t('sheet.size'),
-          value:
-            mpFormatBytes(row && row.size) +
-            (row && row.bitrate ? ' / ' + String(Math.round(Number(row.bitrate) / 1000)) + ' kbps' : ''),
-        },
-        { label: t('sheet.duration'), value: durationSec > 0 ? Math.floor(durationSec / 60) + ':' + ('0' + Math.round(durationSec % 60)).slice(-2) : '' },
-      ]),
+      !isOnlineTrack
+        ? h(
+            'div',
+            null,
+            h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
+            mpFacts([
+              { label: t('sheet.file'), value: name },
+              {
+                label: t('sheet.size'),
+                value:
+                  mpFormatBytes(row && row.size) +
+                  (row && row.bitrate ? ' / ' + String(Math.round(Number(row.bitrate) / 1000)) + ' kbps' : ''),
+              },
+            ]),
+          )
+        : isNavidromeTrack
+          ? h(
+              'div',
+              null,
+              h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
+              mpFacts([{ label: 'Song ID', value: String(track.onlineId || '') }]),
+            )
+          : null,
     )
   }
 

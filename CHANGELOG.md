@@ -2,11 +2,10 @@
 
 ## Unreleased
 
-## 0.39.2 — 2026-11-20
+### 播放卡片
 
-### 在线歌单
-
-- 「添加到歌单」弹窗改为 DSH 组件体系：`SetRow` 分组行 + `Button`，使用 `mp-set-card` / `mp-folder-state` / `mp-online-error` 等现有样式；移除裸 `<button>`、内联边框/背景/圆角与硬编码错误色。
+- 「本地」来源页按 Folia 的 SourceTab 语义对齐：标签随歌曲类型变为「本地 / 歌词 / Navidrome」；在线歌曲不再显示「没有本地文件」和本地文件信息，本地歌曲只显示文件名与大小/码率，Navidrome 显示 Song ID。
+- 歌词来源行改为 Folia 的本地 / 内嵌 / 在线 / 导入语义；纯音乐只作为无歌词时的状态标签，不再是可选来源；时间轴偏移支持直接输入并按 250ms 步进，翻译开关和歌词分词不再重复出现在来源页。
 
 ### 在线喜欢
 
@@ -14,6 +13,12 @@
 - 波点音乐补齐 `likes` / `likeWrite`：读取 `liked_songs`，写入 `like_song`，与 Folia 的 `getLikedSongIds` / `likeSong` 行为一致。
 - 在线平台喜欢能力现在为：网易云、QQ、酷狗概念版、波点、汽水、Navidrome 均可读写（具体平台仍取决于登录态与上游授权）。
 - 酷狗概念版与波点补齐「收藏到歌单」：概念版按歌单 `listid` 写入 cloudlist，波点读取账号歌单并调用 `playlist_tracks_add`；播放器卡片的在线收藏对话框现在能列出目标歌单并完成添加。
+
+### 在线歌单
+
+- 「添加到歌单」弹窗改为 DSH 组件体系：`SetRow` 分组行 + `Button`，使用 `mp-set-card` / `mp-folder-state` / `mp-online-error` 等现有样式；移除裸 `<button>`、内联边框/背景/圆角与硬编码错误色。
+
+## 0.39.2 — 2026-11-20
 
 ### 播放时钟
 
