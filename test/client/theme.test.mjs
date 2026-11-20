@@ -161,8 +161,15 @@ for (const selector of ['.mp-np-head', '.mp-np-fs']) {
 }
 assert.match(
   theme,
-  /\.mp-np\.is-chrome-hidden \.mp-np-head:focus-within,\.mp-np\.is-chrome-hidden \.mp-np-fs:focus-within\{[^}]*opacity:1/,
+  /\.mp-np\.is-chrome-hidden \.mp-np-head:has\(:focus-visible\),\.mp-np\.is-chrome-hidden \.mp-np-fs:has\(:focus-visible\)\{[^}]*opacity:1/,
   'keyboard focus overrides the top chrome fade',
+)
+// A plain :focus-within would pin the chrome: clicking the fullscreen button leaves
+// it focused, so the idle fade could never finish (it never hid in fullscreen).
+assert.doesNotMatch(
+  theme,
+  /\.mp-np\.is-chrome-hidden \.mp-np-(?:head|fs):focus-within/,
+  'pointer focus must not pin the idle-hide chrome',
 )
 
 // The player is a dark surface even in light themes; the title must not

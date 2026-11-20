@@ -160991,8 +160991,10 @@ window.__ModuleLoader__.load({
       '.mp-np.is-chrome-hidden .mp-np-head{opacity:0;transform:translateY(-8px);pointer-events:none}',
       '.mp-np.is-chrome-hidden .mp-np-fs{opacity:0;transform:translateY(-8px);pointer-events:none}',
       // Keyboard focus wins over the idle fade: once Tab lands on a hidden control it
-      // must become visible again, or the focus ring sits on nothing.
-      '.mp-np.is-chrome-hidden .mp-np-head:focus-within,.mp-np.is-chrome-hidden .mp-np-fs:focus-within{opacity:1;transform:none;pointer-events:auto}',
+      // must become visible again, or the focus ring sits on nothing. Pointer focus must
+      // not win: clicking the fullscreen button leaves it focused, and a bare
+      // :focus-within would pin the chrome on screen (it never hides in fullscreen).
+      '.mp-np.is-chrome-hidden .mp-np-head:has(:focus-visible),.mp-np.is-chrome-hidden .mp-np-fs:has(:focus-visible){opacity:1;transform:none;pointer-events:auto}',
       '@media (max-width:760px){.mp-cap{width:calc(100% - 220px);bottom:24px}.mp-cap-inner{padding:10px 14px;gap:10px}.mp-cap-play{width:42px;height:42px}.mp-cap-skip{width:26px;height:26px}.mp-np-handle{right:16px;bottom:33px;width:84px;height:44px}.mp-np-handle-track{width:84px;height:44px}.mp-np-handle-btn{width:44px;height:44px}}',
       '@media (max-width:560px){.mp-cap{width:calc(100% - 32px);bottom:82px}.mp-np-handle{bottom:18px}}',
       '.mp-np-fs .mp-iconbtn:hover{background:rgba(255,255,255,.1);color:#fff}',
