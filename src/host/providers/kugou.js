@@ -809,12 +809,28 @@ export async function getPlaylistSongs(specialId, _session = {}) {
   }).then((r) => r.json()).catch(() => null)
   const meta = (metaRes && metaRes.status === 1 && metaRes.data) || {}
 
-  const res = await fetchWithTimeout(`http://mobilecdn.kugou.com/api/v3/special/song?specialid=${sid}&page=1&pagesize=300&version=9108&area_code=1`, {
-    headers: { 'User-Agent': UA_WEB, Referer: 'http://m.kugou.com/' },
-  })
-  const j = await res.json().catch(() => null)
-  if (!j || Number(j.status) !== 1 || !j.data) throw new Error('酷狗歌单详情获取失败')
-  const songs = (j.data.info || []).map((o) => normalizeSong(o)).filter((x) => x.hash)
+  // Folia's kugouProvider reads playlist_track_all as a page; the mobilecdn
+  // special/song route is paged too. The Host route returns one array, so drain
+  // it instead of treating pagesize=300 as the whole playlist.
+  const pageSize = 300
+  const songs = []
+  let total = 0
+  for (let page = 1; page <= 1000; page += 1) {
+    const res = await fetchWithTimeout(`http://mobilecdn.kugou.com/api/v3/special/song?specialid=${sid}&page=${page}&pagesize=${pageSize}&version=9108&area_code=1`, {
+      headers: { 'User-Agent': UA_WEB, Referer: 'http://m.kugou.com/' },
+    })
+    const j = await res.json().catch(() => null)
+    if (!j || Number(j.status) !== 1 || !j.data) {
+      if (page > 1) break
+      throw new Error('酷狗歌单详情获取失败')
+    }
+    const rows = Array.isArray(j.data.info) ? j.data.info : []
+    total = Number(j.data.total) || Number(j.data.count) || total
+    if (rows.length === 0) break
+    songs.push(...rows.map((o) => normalizeSong(o)).filter((x) => x.hash))
+    if (total > 0 && songs.length >= total) break
+    if (rows.length < pageSize) break
+  }
   return {
     id: sid,
     name: emStrip(meta.specialname || ''),
@@ -827,7 +843,7 @@ export async function getPlaylistSongs(specialId, _session = {}) {
     slid: String(meta.slid ?? ''),
     description: dec(typeof meta.intro === 'string' ? meta.intro : ''),
     cover: kgCover(meta.imgurl, 300),
-    trackCount: Number(j.data.total) || Number(j.data.count) || songs.length,
+    trackCount: total || songs.length,
     source: 'kugou',
     link: PL_LINK(sid),
     songs,

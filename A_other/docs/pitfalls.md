@@ -572,9 +572,9 @@
 
 ## 64. 网易云歌单只加载 1000 首
 
-- **现象**：网易云歌单超过 1000 首时，客户端只显示前 1000 首，和网页歌单数量不一致。
-- **原因**：`getPlaylistSongs` 只请求一次 `/playlist/track/all`，参数固定为 `{ limit: 1000, offset: 0 }`；`limit=1000` 是单页上限，不是歌单总数。Folia 的 provider 接口是 `getPlaylistTracks(id, limit, offset)`，UI 按页继续请求。
-- **处理**：Host 按 500 首一页循环请求，直到达到 `playlist.trackCount`，或某页返回不足 500 首；结果保留完整顺序。
+- **现象**：某些平台的歌单只显示固定数量：网易云 1000、波点 100、汽水 60、酷狗标准版 300、酷狗概念版 2000/4000。
+- **原因**：Host 的 `playlistSongs` 只请求第一页，把单页 `limit/pagesize` 当成了总数。Folia 的 provider 接口是 `getPlaylistTracks(id, limit, offset)`，UI 按页继续请求。
+- **处理**：网易云按 `trackCount` 以 500 首循环；波点按 100 首、汽水按 60 首并用 `hasMore`、酷狗标准版按 300 首、概念版按 100/200 首继续翻页，直到 total、hasMore 结束或短页。QQ 自建/喜欢已有分页，Navidrome/本地无固定上限。
 - **防回归**：任何“全量列表”接口都要核对上游分页语义；单请求 `limit` 不能当作总数，必须用 `trackCount`/`hasMore`/短页终止。
 
 ---

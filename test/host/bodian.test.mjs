@@ -199,6 +199,37 @@ assert.equal(sessions.get(), null)
   assert.deepEqual(addCall[1], { id: '5', trackIds: '77' })
 }
 
+// Playlist pages are drained by the Host route, not stopped at the first 100.
+{
+  const calls = []
+  const total = 150
+  const source = createBodianSource({
+    deviceId: 'a'.repeat(32),
+    sessions: createMemorySessions(),
+    createApi: () => ({
+      request: async (operation, params) => {
+        calls.push([operation, params])
+        if (operation === 'playlist_tracks') {
+          const offset = Number(params.offset) || 0
+          const count = Math.max(0, Math.min(100, total - offset))
+          return {
+            ok: true,
+            data: {
+              resultList: Array.from({ length: count }, (_, index) => ({ id: offset + index, name: 'Track ' + (offset + index) })),
+              total,
+            },
+          }
+        }
+        return { ok: true, data: {} }
+      },
+    }),
+  })
+  const playlist = await source.playlistSongs('p1')
+  assert.equal(playlist.songs.length, total)
+  assert.equal(playlist.trackCount, total)
+  assert.deepEqual(calls.filter(([operation]) => operation === 'playlist_tracks').map(([, params]) => params.offset), [0, 100])
+}
+
 // Sign-out is complete: the stored session is cleared, and the route's optional
 // `forgetTokens` call has an implementation (a missing one crashed the Host).
 {

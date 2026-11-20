@@ -339,10 +339,26 @@ export function createQishuiSource(options) {
     },
 
     async playlistSongs(id) {
-      const data = await request('playlist_tracks', { id: String(id), limit: 60, offset: 0 })
-      const items = Array.isArray(data?.items) ? data.items : []
-      const songs = items.map(toTrack).filter(Boolean)
-      return { name: '', cover: '', trackCount: songs.length, songs }
+      // Qishui returns a page plus hasMore; the Host route returns one array, so
+      // keep asking until the bridge says the last page was reached.
+      const pageSize = 60
+      const songs = []
+      let offset = 0
+      let total = 0
+      let hasMore = true
+      for (let page = 0; page < 1000; page += 1) {
+        const data = await request('playlist_tracks', { id: String(id), limit: pageSize, offset })
+        const items = Array.isArray(data?.items) ? data.items : []
+        total = Number(data?.total) || total
+        if (items.length === 0) break
+        songs.push(...items.map(toTrack).filter(Boolean))
+        offset += items.length
+        hasMore = data?.hasMore === true
+        if (!hasMore) break
+        if (total > 0 && offset >= total) break
+        if (items.length < pageSize) break
+      }
+      return { name: '', cover: '', trackCount: total || songs.length, songs }
     },
 
     async liked(id) {

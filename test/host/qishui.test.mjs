@@ -182,6 +182,40 @@ assert.deepEqual(await source.likedIds(), ['online:qishui:123'])
 assert.equal(await source.liked('123'), true)
 assert.equal(await source.setLiked({ id: '123' }, true), true)
 
+// The bridge returns pages; the Host route drains them past the first 60.
+{
+  const offsets = []
+  const total = 130
+  const paged = createQishuiSource({
+    createApi: () => ({
+      request: async (operation, params) => {
+        if (operation === 'playlist_tracks') {
+          const offset = Number(params.offset) || 0
+          offsets.push(offset)
+          const count = Math.max(0, Math.min(60, total - offset))
+          return {
+            ok: true,
+            data: {
+              items: Array.from({ length: count }, (_, index) => ({
+                base_info: { id: String(offset + index), name: 'Track ' + (offset + index), duration_ms: 1000 },
+              })),
+              hasMore: offset + count < total,
+              total,
+            },
+          }
+        }
+        return { ok: true, data: {} }
+      },
+    }),
+    deviceId: 'device',
+    sessions,
+  })
+  const playlist = await paged.playlistSongs('p2')
+  assert.equal(playlist.songs.length, total)
+  assert.equal(playlist.trackCount, total)
+  assert.deepEqual(offsets, [0, 60, 120])
+}
+
 await source.cancelLogin('qr-key')
 assert.equal(cancelled, 1)
 await source.logout()

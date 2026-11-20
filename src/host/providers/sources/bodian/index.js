@@ -405,10 +405,23 @@ export function createBodianSource(options) {
     },
 
     async playlistSongs(id) {
-      const data = await request('playlist_tracks', { id: String(id), limit: 100, offset: 0, source: 4 })
-      const rows = Array.isArray(data?.resultList) ? data.resultList : Array.isArray(data?.list) ? data.list : []
-      const songs = rows.map(toTrack).filter(Boolean)
-      return { name: '', cover: '', trackCount: Number(data?.total) || songs.length, songs }
+      // Folia's bodianCatalog asks for a page; this Host route still returns one
+      // array, so drain until the provider's total or a short page.
+      const pageSize = 100
+      const songs = []
+      let offset = 0
+      let total = 0
+      for (let page = 0; page < 1000; page += 1) {
+        const data = await request('playlist_tracks', { id: String(id), limit: pageSize, offset, source: 4 })
+        const rows = Array.isArray(data?.resultList) ? data.resultList : Array.isArray(data?.list) ? data.list : []
+        total = Number(data?.total) || total
+        if (rows.length === 0) break
+        songs.push(...rows.map(toTrack).filter(Boolean))
+        offset += rows.length
+        if (total > 0 && offset >= total) break
+        if (rows.length < pageSize) break
+      }
+      return { name: '', cover: '', trackCount: total || songs.length, songs }
     },
 
     async addToPlaylist(song, playlistId) {

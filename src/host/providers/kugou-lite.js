@@ -594,7 +594,7 @@ export async function getMyPlaylistSongs(listId, session = {}) {
   const s = normSession(session)
   try {
     const collected = []
-    for (let page = 1; page <= 20; page += 1) {
+    for (let page = 1; page <= 1000; page += 1) {
       const answer = await callKugou('lite', 'playlist_track_all', {
         id: String(listId),
         page,
@@ -623,7 +623,7 @@ export async function getMyPlaylistSongs(listId, session = {}) {
   }
   const songs = new Map()
   const pageSize = 200
-  for (let page = 0; page < 20; page += 1) {
+  for (let page = 0; page < 1000; page += 1) {
     const begin = page * pageSize
     const data = await liteRequest('/pubsongs/v2/get_other_list_file_nofilt', {
       area_code: '1',
