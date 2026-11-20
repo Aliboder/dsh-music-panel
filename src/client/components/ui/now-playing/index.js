@@ -937,11 +937,22 @@ function NowPlaying(props) {
     setSheetOpen(true)
   }
 
+  // Folia seeds the visualizer with the displayed song's identity, not its
+  // storage path (App.tsx: visualizerGeometrySeed = displaySong.id). Hanabi and
+  // Lumiere use that seed for every deterministic layout choice; feeding them
+  // "online:provider:id" instead of the provider's id selects different
+  // variants, including vertical lyric layouts. Keep path only as a fallback
+  // for tracks that do not expose a platform id.
+  var visualizerSeed = track === null
+    ? ''
+    : track.onlineProvider
+      ? String(track.onlineId || track.path || '')
+      : String(track.id || track.path || '')
   var foliaBackdrop = h(FoliaBackgroundHost, {
     mode: mpLookId(MP_BG_MODES, prefs.bgMode),
     cover: cover,
     accent: flowAccent,
-    seed: track && track.path ? track.path : '',
+    seed: visualizerSeed,
     url: typeof prefs.bgUrl === 'string' ? prefs.bgUrl : '',
     latentDisplayMode: prefs.latentDisplayMode,
     latentColorSource: prefs.latentColorSource,
@@ -951,7 +962,7 @@ function NowPlaying(props) {
   // the renderer never disagree. The clock is the raw playback position, not the
   // lyric offset, so a lyric nudge does not move the style boundaries.
   var lyricStyleId = mpResolveLyricStyle(prefs.lyricStyle, {
-    seed: trackPath,
+    seed: visualizerSeed,
     time: Number(time.currentTime) || 0,
     duration: duration,
   })
@@ -971,7 +982,7 @@ function NowPlaying(props) {
     manualIndex: lyricScroll.manualIndex,
     formatClock: fmtClock,
     stylePref: lyricStyleId,
-    seed: trackPath,
+    seed: visualizerSeed,
     accent: mpAccentCss(flowAccent),
     coverUrl: cover,
     title: track && track.title ? track.title : '',

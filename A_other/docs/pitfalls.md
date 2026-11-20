@@ -579,6 +579,15 @@
 
 ---
 
+## 65. 花火/绘光的歌词变成竖排
+
+- **现象**：同一首歌词在花火或绘光里偶尔排成竖列，Folia 参考实现是横排；切换歌词/重新播放时又会变。
+- **原因**：两个样式的源码与 Folia 逐字节一致，但 `visualizerGeometrySeed` 传错了。Folia 用 `displaySong.id`（`App.tsx`），本插件用完整 `trackPath`；在线歌曲因此是 `online:provider:id`，所有按 seed 决定的 shot/layout 分支都跟着变，其中包含竖排 variant。
+- **处理**：`NowPlaying` 统一用在线 `onlineId`、本地 `id` / `path` 生成 `visualizerSeed`，同时传给背景、样式解析和 `LyricStage`；不要再传 `track.path`。
+- **防回归**：Folia 样式源码保持上游逐字节；行为差异先查传入的 seed / lines / duration，不要先改样式实现。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

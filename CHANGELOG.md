@@ -54,6 +54,8 @@
 
 ### Folia 样式
 
+- 花火/绘光的竖排布局差异不是样式代码写错：本地 44 个 Hanabi 文件和 63 个 Lumiere 文件与 Folia 上游逐字节一致。差异在 seed：Folia 用 `displaySong.id` 作为 `visualizerGeometrySeed`，我们之前传完整 `trackPath`（在线歌曲是 `online:provider:id`），导致同一首歌的确定性随机分支不同；现在改用在线 `onlineId`、本地 `id/path` 作为 seed，布局分支与 Folia 一致。
+
 - `VisualizerShell` 补上 Folia 页面由 Tailwind preflight 提供的默认 `line-height: 1.5`：此前宿主页面的行高更紧，Monet 歌手名被 `truncate` 的 `overflow:hidden` 上下裁切。Monet 源码本身与 Folia 一致，差异在宿主 shell 的全局排版上下文。
 - 13 个歌词样式的源码目录与 Folia 上游逐文件一致；`FOLIA_STYLE_META` 的排序改为各 `entry.tsx` 的 `order`（sonnet 10 … still 130），`VisualizerShell` 同时恢复 Folia 的 flex 居中布局。
 
