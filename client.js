@@ -155364,7 +155364,7 @@ window.__ModuleLoader__.load({
         if (balanceMeter === null) return
         var play = balanceMeter.play()
         if (typeof balanceMeter.reset === 'function') balanceMeter.reset()
-        if (!item || item.onlineProvider) return
+        if (!item) return
         if (balanceWholePlayIssue(play, durationSec) !== null) return
         noteBalanceMeasurement(item.path, 'played', play)
       }
