@@ -156373,14 +156373,16 @@ window.__ModuleLoader__.load({
       function onPlaying(event) {
         if (!isActiveEvent(event)) return
         errorStreak = 0
-      }
-
-      function onPlay(event) {
-        if (!isActiveEvent(event)) return
+        // `play` only asks the element to start; `playing` means media is actually
+        // advancing. The pause icon must not appear while a seek is still buffering.
         if (!state.playing) {
           patch({ playing: true })
           syncMediaSession()
         }
+      }
+
+      function onPlay(event) {
+        if (!isActiveEvent(event)) return
         // Warm the next online track while this one plays (crossfade only).
         maybePrefetchNext()
       }
@@ -156906,6 +156908,10 @@ window.__ModuleLoader__.load({
                 if (audio !== null && !audio.paused) {
                   resumeAfterSeek = true
                   audio.pause()
+                }
+                if (state.playing) {
+                  patch({ playing: false })
+                  syncMediaSession()
                 }
               },
               seeking: function () { return pendingSeek !== null },

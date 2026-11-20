@@ -31,6 +31,8 @@
 
 ### 在线播放启动
 
+- 修复 MSE 远距离 seek 等待缓冲时底栏提前切成暂停图标：播放状态只在媒体真正 `playing` 后置为 true，`play` 请求不再冒充可听播放；pending seek 立即回到暂停态。
+
 - Host 现在把 CDN 的 `application/octet-stream` 等泛类型按 URL/音质归一为 `audio/mpeg` / `audio/flac` / `audio/mp4`，避免 MSE 因 MIME 不支持而静默回退直连。
 
 
