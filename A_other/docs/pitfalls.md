@@ -561,6 +561,15 @@
 
 ---
 
+## 63. 在线歌曲红心不亮，但 Folia 是亮的
+
+- **现象**：同一首在线歌曲在 Folia 中红心点亮，本插件显示空心；歌手、封面和点击后的写入都正常。
+- **原因**：`likeStateOf` 从 `onlineStore.liked[track.path]` 取状态，但客户端只在右键菜单里按单曲请求 `/online/liked`，从未调用已有的 `/online/liked-ids`；`onlineStore.liked` 初始化为 `{}` 后一直为空。不是歌单、不是 UI 图标，也不是 `favoriteSet` 的问题。
+- **处理**：`loadProviders()` 在来源列表返回后，对每个 `loggedIn` 的来源调用 `loadLikedIds`，按 `online:<provider>:` 前缀替换该来源的键，再合并进全局 map；Host 已返回完整 `track.path`，客户端也兼容裸 id。
+- **防回归**：在线红心状态必须来自 provider 的喜欢集合；修改 `likeStateOf` 或来源加载时，先验证 `onlineStore.liked` 有对应 provider 的键。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

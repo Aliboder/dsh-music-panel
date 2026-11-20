@@ -157726,7 +157726,18 @@ window.__ModuleLoader__.load({
       onlineStore.set({ providersPhase: 'loading' })
       try {
         var body = await getJson(API + 'online/providers')
-        onlineStore.set({ providers: body.providers || {}, providersPhase: 'ready' })
+        var providers = body.providers || {}
+        onlineStore.set({ providers: providers, providersPhase: 'ready' })
+        // Folia hydrates the liked set together with the source list. Without this
+        // the heart had no state to read and rendered empty even for a liked song.
+        Object.keys(providers).forEach(function (provider) {
+          if (providers[provider] && providers[provider].loggedIn === true && typeof loadLikedIds === 'function') {
+            void loadLikedIds(provider).catch(function () {
+              // A provider can expose likes without a readable liked list; the
+              // context menu still asks for the single-song state on demand.
+            })
+          }
+        })
       } catch (error) {
         // Provider status only drives labels. Mark ready so the source menu never
         // waits forever for a failed background request.
@@ -157997,16 +158008,44 @@ window.__ModuleLoader__.load({
       })
     }
 
-    /** Fill the liked map for a provider (the lists and the card share it). */
+    var likedIdLoads = {}
+
+    /**
+     * Fill the liked map for one provider. The Host returns full client paths
+     * ("online:<provider>:<id>") so the map is keyed exactly like track.path; raw
+     * provider ids are normalized too, because provider adapters differ.
+     *
+     * The map is merged per provider instead of replaced: several accounts can be
+     * connected at once, and a slow response for one provider must not erase
+     * another provider's hearts. In-flight loads are shared so repeated
+     * loadProviders calls do not fan out duplicate requests.
+     */
     function loadLikedIds(provider) {
-      return getJson(API + 'online/liked-ids?provider=' + encodeURIComponent(provider)).then(function (body) {
-        var map = {}
-        ;(Array.isArray(body.ids) ? body.ids : []).forEach(function (path) {
+      var id = String(provider || '')
+      if (id === '') return Promise.resolve({})
+      if (likedIdLoads[id]) return likedIdLoads[id]
+      var request = getJson(API + 'online/liked-ids?provider=' + encodeURIComponent(id)).then(function (body) {
+        var current = onlineStore.get().liked || {}
+        var prefix = 'online:' + id + ':'
+        var map = Object.assign({}, current)
+        Object.keys(map).forEach(function (path) {
+          if (path.indexOf(prefix) === 0) delete map[path]
+        })
+        ;(Array.isArray(body.ids) ? body.ids : []).forEach(function (key) {
+          var path = String(key || '')
+          if (path === '') return
+          if (path.indexOf('online:') !== 0) path = prefix + path
           map[path] = true
         })
         onlineStore.set({ liked: map })
         return map
       })
+      likedIdLoads[id] = request
+      request.then(
+        function () { delete likedIdLoads[id] },
+        function () { delete likedIdLoads[id] },
+      )
+      return request
     }
 
     // ── src/client/services/player/effects/volume-balance.js

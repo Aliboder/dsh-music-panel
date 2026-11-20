@@ -576,7 +576,18 @@ async function loadProviders() {
   onlineStore.set({ providersPhase: 'loading' })
   try {
     var body = await getJson(API + 'online/providers')
-    onlineStore.set({ providers: body.providers || {}, providersPhase: 'ready' })
+    var providers = body.providers || {}
+    onlineStore.set({ providers: providers, providersPhase: 'ready' })
+    // Folia hydrates the liked set together with the source list. Without this
+    // the heart had no state to read and rendered empty even for a liked song.
+    Object.keys(providers).forEach(function (provider) {
+      if (providers[provider] && providers[provider].loggedIn === true && typeof loadLikedIds === 'function') {
+        void loadLikedIds(provider).catch(function () {
+          // A provider can expose likes without a readable liked list; the
+          // context menu still asks for the single-song state on demand.
+        })
+      }
+    })
   } catch (error) {
     // Provider status only drives labels. Mark ready so the source menu never
     // waits forever for a failed background request.
