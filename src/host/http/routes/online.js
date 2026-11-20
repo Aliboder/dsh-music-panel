@@ -595,6 +595,19 @@ export function createOnlineRoutes(deps) {
             'accept-ranges': 'bytes',
           }
           if (stream.preview === true) headers['x-music-preview'] = '1'
+          if (stream.replayGain && typeof stream.replayGain === 'object') {
+            const gain = stream.replayGain
+            for (const [field, name] of [
+              ['trackGain', 'x-music-track-gain'],
+              ['albumGain', 'x-music-album-gain'],
+              ['trackPeak', 'x-music-track-peak'],
+              ['albumPeak', 'x-music-album-peak'],
+            ]) {
+              if (typeof gain[field] === 'number' && Number.isFinite(gain[field])) {
+                headers[name] = String(gain[field])
+              }
+            }
+          }
           const length = upstream.headers.get('content-length')
           if (length !== null) headers['content-length'] = length
           const contentRange = upstream.headers.get('content-range')

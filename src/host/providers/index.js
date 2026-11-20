@@ -740,6 +740,7 @@ export async function resolveStream(provider, id, cookie = '', session = {}, qua
       code: dl.code || 0,
       fee: dl.fee || 0,
       preview: typeof dl.freeTrialInfo === 'object' && dl.freeTrialInfo !== null,
+      replayGain: typeof dl.trackGain === 'number' ? { trackGain: dl.trackGain } : null,
     }
   }
   if (provider === 'qq') {
@@ -758,7 +759,7 @@ export async function resolveStream(provider, id, cookie = '', session = {}, qua
           ? ['320', '128']
           : ['flac', '320', '128']
     const dl = concept ? await KGL.resolveStream(song, ready, prefer) : await KG.getDownloadURL(song, ready, prefer)
-    return { url: dl.url || '', quality: dl.quality || '' }
+    return { url: dl.url || '', quality: dl.quality || '', replayGain: dl.replayGain || null }
   }
   throw new Error('未知平台：' + provider)
 }

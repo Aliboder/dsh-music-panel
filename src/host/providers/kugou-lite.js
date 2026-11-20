@@ -307,6 +307,19 @@ async function songAuth(session, song) {
   }
 }
 
+function kgReplayGainOf(payload) {
+  if (!payload || typeof payload !== 'object') return null
+  const gain = Number(payload.volume)
+  const peakDb = Number(payload.volume_peak)
+  const trackGain = Number.isFinite(gain) ? gain : null
+  const trackPeak = Number.isFinite(peakDb) ? Math.pow(10, peakDb / 20) : null
+  if (trackGain === null && trackPeak === null) return null
+  return {
+    ...(trackGain === null ? {} : { trackGain }),
+    ...(trackPeak === null ? {} : { trackPeak }),
+  }
+}
+
 export async function resolveStream(song, session = {}, prefer = ['flac', '320', '128']) {
   const s = normSession(session)
   const hash = String(song.hash || '').toLowerCase()
@@ -314,7 +327,7 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
   if (song.variant === 'cloud') {
     const answer = await callKugou('lite', 'user_cloud_url', { hash, id: String(song.fileId || '') })
     const url = findPlaybackUrl(answer.body)
-    if (url) return { url, quality: 'standard' }
+    if (url) return { url, quality: 'standard', replayGain: kgReplayGainOf(answer.body) }
     throw new Error('酷狗概念版云盘没有返回播放地址')
   }
   const albumId = Number(song.albumId) || 0
@@ -341,7 +354,7 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
           })
           const url = findPlaybackUrl(answer.body)
           if (url && !/\/p_0_/.test(url)) {
-            return { url, quality, bitrate: Number(answer.body?.bitrate) || 0 }
+            return { url, quality, bitrate: Number(answer.body?.bitrate) || 0, replayGain: kgReplayGainOf(answer.body) }
           }
         } catch {
           // Try the next variant for this quality.
@@ -389,7 +402,7 @@ export async function resolveStream(song, session = {}, prefer = ['flac', '320',
       if (!url) continue
       const full = Number(data.is_full_audio) !== 0 && !/\/p_0_/.test(url)
       if (!full) continue
-      return { url, quality, bitrate: Number(data.bitrate) || 0 }
+      return { url, quality, bitrate: Number(data.bitrate) || 0, replayGain: kgReplayGainOf(data) }
     }
   }
   throw new Error('酷狗概念版取链失败')
@@ -414,7 +427,7 @@ export async function resolveLegacyStream(hash) {
   if (!response.ok || json === null || typeof json !== 'object') return null
   const url = findPlaybackUrl(json.url) || findPlaybackUrl(json.backup_url)
   if (url === '' || /\/p_0_/.test(url)) return null
-  return { url, quality: 'standard', bitrate: 128 }
+  return { url, quality: 'standard', bitrate: 128, replayGain: kgReplayGainOf(json) }
 }
 
 function findPlaybackUrl(root) {

@@ -165,6 +165,7 @@ function createPlayer() {
   var balanceAppliedReading = ''
   /** The song's own gain tags (local file or Navidrome), for the balance's fallbacks. */
   var tagGainDb = null
+var platformGain = null
   var currentLoudnessBlob = null
   /** In-flight track download. */
   var fetchAbort = null
@@ -646,6 +647,23 @@ function createPlayer() {
     return event === null || event === undefined || !event.target || event.target === audio
   }
 
+  function readReplayGainHeaders(headers) {
+    if (!headers || typeof headers.get !== 'function') return null
+    var fields = {
+      trackGain: headers.get('x-music-track-gain'),
+      albumGain: headers.get('x-music-album-gain'),
+      trackPeak: headers.get('x-music-track-peak'),
+      albumPeak: headers.get('x-music-album-peak'),
+    }
+    var out = {}
+    Object.keys(fields).forEach(function (key) {
+      if (fields[key] === null || fields[key] === '') return
+      var value = Number(fields[key])
+      if (Number.isFinite(value)) out[key] = value
+    })
+    return Object.keys(out).length > 0 ? out : null
+  }
+
   function balanceInputs(extra) {
     var item = currentItem()
     var record = item === null ? null : balanceRecordFor(item.path)
@@ -659,6 +677,7 @@ function createPlayer() {
       head: null,
       platformDb: null,
       live: extra && typeof extra.live === 'number' ? extra.live : null,
+      platformDb: platformGain && typeof platformGain.trackGain === 'number' ? platformGain.trackGain : null,
       typicalDb: typicalGainDb(balanceTypicalGains()),
     }
   }
@@ -1060,6 +1079,7 @@ function createPlayer() {
     flushSessionPosition()
     var token = (loadToken += 1)
     tagGainDb = null
+    platformGain = null
     state = Object.assign({}, state, { index: at, currentTime: 0, duration: 0, buffered: 0 })
     emit()
     syncMediaSession()
@@ -1109,7 +1129,14 @@ function createPlayer() {
       fetchAbort = onlineController
       fetch(item.onlineUrl, onlineController === null ? {} : { signal: onlineController.signal })
         .then(function (response) {
-          if (response.ok) return response.blob()
+          if (response.ok) {
+            var gain = readReplayGainHeaders(response.headers)
+            if (gain !== null) {
+              platformGain = gain
+              reconsiderBalance(null)
+            }
+            return response.blob()
+          }
           // Read the Host's error body so the toast names the platform's reason instead of
           // a bare HTTP status (or, worse, a media-element "no supported source").
           return response

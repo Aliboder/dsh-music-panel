@@ -389,9 +389,11 @@ export async function getDownloadURL(id, cookie = '', quality = 'lossless') {
   const level = LEVEL_OF_QUALITY[quality] ?? 'exhigh'
   const json = await callUpstream('/song/url/v1', { id: songId, level, randomCNIP: true, https: true }, { cookie: await dataCookie(cookie) })
   const entry = json.data?.[0] ?? {}
+  const gain = Number(entry.gain)
   return {
     id: songId,
     url: typeof entry.url === 'string' ? entry.url : '',
+    trackGain: Number.isFinite(gain) ? gain : null,
     level: entry.level ?? '',
     br: Number(entry.br) || 0,
     fee: Number(entry.fee) || 0,

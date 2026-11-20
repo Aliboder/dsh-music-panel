@@ -185,7 +185,7 @@ assert.equal(nextLowerOnlineQuality('standard'), null)
     const metadata = String(params.album_id) !== '0' || String(params.album_audio_id) !== '0'
     return {
       status: 200,
-      body: metadata ? { data: {} } : { data: { play_url: 'https://cdn.example/a.mp3' } },
+      body: metadata ? { data: {} } : { data: { play_url: 'https://cdn.example/a.mp3', volume: -7.5, volume_peak: -1 } },
       cookie: [],
     }
   })
@@ -198,6 +198,8 @@ assert.equal(nextLowerOnlineQuality('standard'), null)
     assert.equal(String(seen[1].album_audio_id), '0', 'standard playback retries without album ids')
     const lite = await KGL.resolveStream({ hash: 'HASH2', albumId: 9, albumAudioId: 8 }, { token: 'T', userid: '1', mid: '123' }, ['128'])
     assert.equal(lite.url, 'https://cdn.example/a.mp3')
+    assert.equal(standard.replayGain.trackGain, -7.5, 'KuGou volume is kept as trackGain')
+    assert.ok(Math.abs(standard.replayGain.trackPeak - Math.pow(10, -1 / 20)) < 1e-9, 'KuGou volume_peak becomes linear peak')
     assert.equal(String(seen[2].album_id), '9', 'concept playback asks with precise metadata first')
     assert.equal(String(seen[3].album_id), '0', 'concept playback retries by hash alone')
   } finally {

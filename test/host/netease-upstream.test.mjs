@@ -6,7 +6,7 @@
  */
 
 import assert from 'node:assert/strict'
-import { cloudSongs, dailySongs, plain, recommendedCollections, searchAlbums, songOf } from '../../src/host/providers/netease.js'
+import { cloudSongs, dailySongs, getDownloadURL as getNeteaseDownloadURL, plain, recommendedCollections, searchAlbums, songOf } from '../../src/host/providers/netease.js'
 import { assertOk, ensureNeteaseService, resetUpstreamOverride, setUpstreamOverride, stopNeteaseService } from '../../src/host/services/netease-api.js'
 import {
   createLoginQrCheck,
@@ -243,6 +243,20 @@ assert.equal(assertOk({ code: 200, ok: true }, '/cloudsearch').ok, true)
 assert.throws(() => assertOk({ code: 801, message: '等待扫码' }, '/login/qr/check'), /等待扫码/)
 assert.equal(assertOk({ code: 801, message: '等待扫码' }, '/login/qr/check', { skipCodeCheck: true }).code, 801)
 assert.equal(assertOk({ code: 803, cookie: 'MUSIC_U=x' }, '/login/qr/check', { skipCodeCheck: true }).cookie, 'MUSIC_U=x')
+
+// ── platform gain ────────────────────────────────────────────────────────────
+{
+  setUpstreamOverride(async (route) => {
+    assert.equal(route, '/song/url/v1')
+    return { data: [{ url: 'https://cdn.example/song.mp3', gain: -7.5, level: 'exhigh', br: 320000 }] }
+  })
+  try {
+    const dl = await getNeteaseDownloadURL('42', 'MUSIC_U=cookie', 'high')
+    assert.equal(dl.trackGain, -7.5, 'NetEase gain is kept for platformDb')
+  } finally {
+    resetUpstreamOverride()
+  }
+}
 
 // ── live (opt-in) ───────────────────────────────────────────────────────────
 

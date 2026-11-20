@@ -9,6 +9,11 @@
 - ReplayGain 标签的 `trackPeak` / `albumPeak` 现在从文件标签读取并传到平衡输入，避免有正向标签增益时因缺少 peak 被错误限制为 0 dB。
 - 新增 `volume-balance-parity.test.mjs`，逐项比对本地回退规则与 Folia 音频 bundle 的 `chooseBalance` / `planBalanceMove` / `whyNotWholePlay`。
 
+### 在线增益
+
+- 网易云 `getDownloadURL` 保留平台返回的 `gain`，酷狗标准版/概念版保留 `volume` / `volume_peak`，并统一通过 `/online/stream` 的 `x-music-*-gain/peak` 响应头交给播放器。
+- 客户端把该增益作为 `platformDb` 送入智能平衡；切歌时清空，平台没有真实增益时不伪造。
+
 ### 代码结构
 
 - `now-playing.js` 按职责拆到 `src/client/components/ui/now-playing/`：`index.js` 只保留页面编排与状态，`capsule.js`、`transport-pill.js`、`seek-bar.js`、`settings-panel.js`、`secondary-actions.js`、`sleep-menu.js`、`editor.js`、`lyrics-scroll.js`、`lyrics-timing.js`、`cover-accent.js`、`fullscreen.js` 各自承担一个组件或 hook；不再把所有功能塞进一个 3200 行文件。

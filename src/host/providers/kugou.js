@@ -941,6 +941,19 @@ export async function getPlaylistSongs(specialId, _session = {}) {
 // =====================================================================
 
 // 从 tracker 应答元素中提取第一个可用流地址（兼容 url 数组/字符串、backup 字段）。
+function kgReplayGainOf(payload) {
+  if (!payload || typeof payload !== 'object') return null
+  const gain = Number(payload.volume)
+  const peakDb = Number(payload.volume_peak)
+  const trackGain = Number.isFinite(gain) ? gain : null
+  const trackPeak = Number.isFinite(peakDb) ? Math.pow(10, peakDb / 20) : null
+  if (trackGain === null && trackPeak === null) return null
+  return {
+    ...(trackGain === null ? {} : { trackGain }),
+    ...(trackPeak === null ? {} : { trackPeak }),
+  }
+}
+
 function pickStreamUrl(e) {
   if (!e || typeof e !== 'object') return ''
   for (const k of ['url', 'play_url', 'backupUrl', 'backup_url']) {
@@ -969,7 +982,7 @@ const QUALITY_LABELS = { flac: '无损', high: '无损', 320: '高音质', 128: 
  */
 async function packageStreamUrl(song, session, platform, quality, hash, albumId = 0, albumAudioId = 0) {
   const s = normSession(session)
-  if (!s.userid && !s.token) return ''
+  if (!s.userid && !s.token) return null
   const attempts = []
   // Folia only has a precise album identity when album_audio_id is present. An
   // album_id without it is a half identity: KuGou can answer with another file's
@@ -992,12 +1005,12 @@ async function packageStreamUrl(song, session, platform, quality, hash, albumId 
       const raw = payload?.play_url ?? payload?.playUrl ?? payload?.url
         ?? (Array.isArray(data) ? data[0]?.url : '')
       const url = Array.isArray(raw) ? raw.find((entry) => typeof entry === 'string' && entry !== '') : raw
-      if (typeof url === 'string' && url !== '') return url
+      if (typeof url === 'string' && url !== '') return { url, replayGain: kgReplayGainOf(payload) }
     } catch {
       // Try the next variant, then the gateway.
     }
   }
-  return ''
+  return null
 }
 
 export async function getDownloadURL(song, session = {}, prefer = ['flac', '320', '128']) {
@@ -1013,7 +1026,7 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
     const payload = Array.isArray(data) ? data[0] : data
     const raw = payload?.play_url ?? payload?.playUrl ?? payload?.url ?? payload?.backup_url
     const url = Array.isArray(raw) ? raw.find((entry) => typeof entry === 'string' && entry !== '') : raw
-    if (typeof url === 'string' && url !== '') return { url, quality: '标准' }
+    if (typeof url === 'string' && url !== '') return { url, quality: '标准', replayGain: kgReplayGainOf(payload) }
     throw new Error('酷狗云盘没有返回播放地址')
   }
   const ladder = ['flac', '320', '128']
@@ -1035,11 +1048,12 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
   let lastExplain = ''
   for (const quality of qualities) {
     const qHash = primaryHash
-    const packageUrl = await packageStreamUrl(song, session, 'standard', quality, qHash, albumId, albumAudioId)
-    if (packageUrl !== '') {
+    const packageAnswer = await packageStreamUrl(song, session, 'standard', quality, qHash, albumId, albumAudioId)
+    if (packageAnswer !== null && packageAnswer.url !== '') {
       return {
-        url: packageUrl,
+        url: packageAnswer.url,
         quality: QUALITY_LABELS[quality] || quality,
+        replayGain: packageAnswer.replayGain,
       }
     }
     const { d } = gatewayDefaults(s)
@@ -1089,7 +1103,7 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
     for (const e of candidates) {
       const url = pickStreamUrl(e)
       if (url) {
-        return { url, quality: QUALITY_LABELS[quality] || quality, bitrate: Number(e.bitrate) || Number(json.bitrate) || 0, hash: primaryHash }
+        return { url, quality: QUALITY_LABELS[quality] || quality, bitrate: Number(e.bitrate) || Number(json.bitrate) || 0, hash: primaryHash, replayGain: kgReplayGainOf(e) }
       }
     }
   }
@@ -1144,7 +1158,7 @@ export async function getDownloadURL(song, session = {}, prefer = ['flac', '320'
         const url = pickStreamUrl(entries[i])
         if (!url) continue
         const bitrate = Number(entries[i].bitrate) || Number(entries[i].kbps) || 0
-        return { url, quality: QUALITY_LABELS[labelByIndex] || String(labelByIndex), bitrate, hash: primaryHash }
+        return { url, quality: QUALITY_LABELS[labelByIndex] || String(labelByIndex), bitrate, hash: primaryHash, replayGain: kgReplayGainOf(entries[i]) }
       }
       break
     }
