@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 歌词
+
+- 歌词匹配新增“写入文件标签”：本地 MP3 写 ID3 USLT，FLAC 写 Vorbis `LYRICS`；逐字歌词先由 Folia 的 `serializeEnhancedLrc` 转成增强型 LRC，再随标签写入，播放时由本地原始文本解析器恢复逐字时轴。写入前保留 `.lyrics.bak`，成功后把歌词来源切到 `embedded`。
+
 ### 元数据编辑器
 
 - 按 DSH 主题与组件规范彻底重做编辑元数据：顶部封面/标题/格式/在线歌词 hero；下面左侧基本信息与制作信息、右侧歌词卡片的双栏工作区（`.mp-meta-work`），`KitModal` + `KitInput` + 0.5px 分隔线 + token 化歌词输入，窄屏自动折叠为单列。

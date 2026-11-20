@@ -202,11 +202,11 @@ export function createLyricMatchService(deps) {
      */
     async preview(input) {
       const id = String(input.id ?? '').trim()
-      if (id === '') return { lrc: '', translation: '', romaji: '', lines: null, wordLevel: false }
+      if (id === '') return { lrc: '', translation: '', romaji: '', lines: null, wordLevel: false, raw: null }
       if (input.source === 'amll') {
         const url = buildLyricsUrl(input.platform === 'qq' ? 'qq' : 'ncm', id, deps.amllBaseUrl)
         const response = await fetchImpl(url, { signal: AbortSignal.timeout(timeoutMs) })
-        if (!response.ok) return { lrc: '', translation: '', romaji: '', lines: null, wordLevel: false }
+        if (!response.ok) return { lrc: '', translation: '', romaji: '', lines: null, wordLevel: false, raw: null }
         const body = await response.json()
         const { parseTtml } = await import('./amll.js')
         const lines = parseTtml(body?.data?.lyrics)
@@ -216,6 +216,7 @@ export function createLyricMatchService(deps) {
           romaji: '',
           lines,
           wordLevel: lines !== null && lines.some((line) => Array.isArray(line.words)),
+          raw: { type: 'local', lrcContent: String(body?.data?.lyrics ?? ''), formatHint: 'ttml' },
         }
       }
       const cookie = deps.providerStore === undefined ? '' : await deps.providerStore.cookie(String(input.source))
@@ -226,6 +227,7 @@ export function createLyricMatchService(deps) {
         romaji: String(lyric?.romaji ?? ''),
         lines: Array.isArray(lyric?.lines) ? lyric.lines : null,
         wordLevel: lyric?.wordLevel === true,
+        raw: lyric?.raw && typeof lyric.raw === 'object' ? lyric.raw : null,
       }
     },
   }

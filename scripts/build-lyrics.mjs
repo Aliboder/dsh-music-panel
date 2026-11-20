@@ -7,6 +7,9 @@
  * src/folia/types.ts).
  *
  * Usage: node scripts/build-lyrics.mjs
+ *
+ * The upstream `shared/lyricSegmentationPrompt.mjs` lives under A_other/shared in
+ * this repository; the alias below keeps the verbatim Folia import working.
  */
 
 import { build } from 'esbuild'
@@ -33,6 +36,17 @@ const icuFoliaStubs = {
   },
 }
 
+// Folia's parser imports its shared segmentation prompt from the upstream
+// `shared/` directory. The plugin keeps that non-plugin source under A_other/shared.
+const sharedPrompt = {
+  name: 'folia-shared-prompt',
+  setup(pluginBuild) {
+    pluginBuild.onResolve({ filter: /shared\/lyricSegmentationPrompt\.mjs$/ }, () => ({
+      path: join(root, 'A_other', 'shared', 'lyricSegmentationPrompt.mjs'),
+    }))
+  },
+}
+
 const inlineWorker = {
   name: 'inline-lyric-worker',
   setup(pluginBuild) {
@@ -49,7 +63,7 @@ await build({
   target: ['chrome120'],
   legalComments: 'none',
   outfile: join(root, 'src', 'client', 'render', 'lyrics', 'lyrics.bundle.js'),
-  plugins: [inlineWorker, icuFoliaStubs],
+  plugins: [sharedPrompt, inlineWorker, icuFoliaStubs],
   logLevel: 'info',
 })
 

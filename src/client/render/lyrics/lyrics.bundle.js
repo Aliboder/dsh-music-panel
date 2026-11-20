@@ -7181,6 +7181,7 @@ var MPFoliaLyrics = (() => {
     prepare: () => prepare,
     readLyricOffset: () => readLyricOffset,
     resolveLyricProcessingOptions: () => resolveLyricProcessingOptions,
+    serializeEnhancedLrc: () => serializeEnhancedLrc,
     writeLyricOffset: () => writeLyricOffset
   });
 
@@ -10095,6 +10096,107 @@ var MPFoliaLyrics = (() => {
     }
   };
 
+  // src/client/utils/lyrics/enhancedLrcSerializer.ts
+  var MAX_TIMESTAMP_MS = (99 * 60 + 59) * 1e3 + 999;
+  var clampTimestampMs = (seconds2) => Math.min(Math.max(Math.round(seconds2 * 1e3), 0), MAX_TIMESTAMP_MS);
+  var splitTimestamp = (seconds2) => {
+    const totalMs = clampTimestampMs(seconds2);
+    return {
+      minutes: Math.floor(totalMs / 6e4),
+      seconds: Math.floor(totalMs % 6e4 / 1e3),
+      millis: totalMs % 1e3
+    };
+  };
+  var pad2 = (value) => `${value}`.padStart(2, "0");
+  var formatLrcLineTimestamp = (seconds2) => formatLrcTimestamp(clampTimestampMs(seconds2));
+  var formatLrcWordTimestamp = (seconds2) => {
+    const { minutes, seconds: secs, millis } = splitTimestamp(seconds2);
+    return `<${pad2(minutes)}:${pad2(secs)}.${`${millis}`.padStart(3, "0")}>`;
+  };
+  var inferLyricWordTiming = (lyrics) => lyrics.isWordByWord === true ? "word" : "line";
+  var alignWordSegments = (line) => {
+    const segments = line.words.map((word) => ({ word, text: word.text }));
+    if (segments.map((segment) => segment.text).join("") === line.fullText) {
+      return segments;
+    }
+    let cursor = 0;
+    const aligned = [];
+    let leading = "";
+    for (const word of line.words) {
+      const needle = word.text.trim();
+      const index = needle ? line.fullText.indexOf(needle, cursor) : -1;
+      if (index < 0) return segments;
+      const gap = line.fullText.slice(cursor, index);
+      if (aligned.length > 0) {
+        aligned[aligned.length - 1].text += gap;
+      } else {
+        leading = gap;
+      }
+      aligned.push({ word, text: needle });
+      cursor = index + needle.length;
+    }
+    if (aligned.length > 0) {
+      aligned[0].text = leading + aligned[0].text;
+      aligned[aligned.length - 1].text += line.fullText.slice(cursor);
+    }
+    return aligned;
+  };
+  var serializeWordTimedBody = (line) => {
+    const segments = alignWordSegments(line);
+    let body = "";
+    let previousEnd = null;
+    for (const { word, text } of segments) {
+      if (previousEnd !== null && word.startTime - previousEnd > 5e-4) {
+        body += formatLrcWordTimestamp(previousEnd);
+      }
+      body += `${formatLrcWordTimestamp(word.startTime)}${text}`;
+      previousEnd = word.endTime;
+    }
+    const lineEnd = Math.max(previousEnd ?? line.endTime, line.startTime);
+    return `${body}${formatLrcWordTimestamp(lineEnd)}`;
+  };
+  var formatLengthTag = (durationMs) => {
+    const totalSeconds = Math.round(durationMs / 1e3);
+    return `${pad2(Math.floor(totalSeconds / 60))}:${pad2(totalSeconds % 60)}`;
+  };
+  var sanitizeTagValue = (value) => value.replace(/[\]\r\n]/g, " ").trim();
+  var oneLine = (text) => text.replace(/\s*[\r\n]+\s*/g, " ").trim();
+  var serializeEnhancedLrc = (lyrics, options = {}) => {
+    const {
+      metadata = {},
+      includeTranslation = true,
+      includeRomanization = true,
+      wordTiming = "auto"
+    } = options;
+    const timing = wordTiming === "auto" ? inferLyricWordTiming(lyrics) : wordTiming;
+    const output = [];
+    const title = metadata.title ?? lyrics.title;
+    const artist = metadata.artist ?? lyrics.artist;
+    if (title) output.push(`[ti:${sanitizeTagValue(title)}]`);
+    if (artist) output.push(`[ar:${sanitizeTagValue(artist)}]`);
+    if (metadata.album) output.push(`[al:${sanitizeTagValue(metadata.album)}]`);
+    if (metadata.durationMs && metadata.durationMs > 0) output.push(`[length:${formatLengthTag(metadata.durationMs)}]`);
+    output.push("[re:Folia]");
+    let previousTagMs = Number.NEGATIVE_INFINITY;
+    for (const line of lyrics.lines) {
+      if (isInterludeLine(line)) continue;
+      const text = oneLine(line.fullText);
+      if (!text) continue;
+      const tagMs = Math.max(Math.floor(Math.round(Math.max(line.startTime, 0) * 1e3) / 10) * 10, previousTagMs + 10);
+      if (tagMs > MAX_TIMESTAMP_MS) break;
+      previousTagMs = tagMs;
+      const lineTag = formatLrcLineTimestamp(tagMs / 1e3);
+      const useWordTiming = timing === "word" && line.words.length > 0;
+      output.push(`${lineTag}${useWordTiming ? serializeWordTimedBody({ ...line, fullText: text }) : text}`);
+      const translation = includeTranslation && line.translation ? oneLine(line.translation) : "";
+      if (translation) output.push(`${lineTag}${translation}`);
+      const romanization = includeRomanization && line.romanization ? oneLine(line.romanization) : "";
+      if (romanization) output.push(`${lineTag}${romanization}`);
+    }
+    return `${output.join("\n")}
+`;
+  };
+
   // src/client/utils/lyrics/staffCreditsAbsorb.ts
   var isShortLine = (line, maxDuration) => !isFillerLine(line) && line.endTime - line.startTime < maxDuration;
   var sortAscending = (values) => [...values].sort((a, b) => a - b);
@@ -10553,7 +10655,7 @@ var MPFoliaLyrics = (() => {
   // src/client/types/lyricSegmentation.ts
   var LYRIC_SEGMENTATION_RECORD_VERSION = 1;
 
-  // shared/lyricSegmentationPrompt.mjs
+  // A_other/shared/lyricSegmentationPrompt.mjs
   var SEGMENTATION_SYSTEM_PROMPT = [
     "You segment song lyrics into words for a typography engine.",
     "",

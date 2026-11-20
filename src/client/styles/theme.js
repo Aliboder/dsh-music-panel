@@ -1118,6 +1118,7 @@ var THEME_CSS = [
   '.mp-lym-info-album{max-width:100%;font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
   '.mp-lym-switches{width:100%;margin-top:16px;display:flex;flex-direction:column;gap:6px}',
   '.mp-lym-switch-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#b4b4bd)}',
+  '.mp-lym-switch-note{margin-left:6px;font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
   '.mp-lym-preview{width:100%;flex:0 0 auto;margin-top:16px;display:flex;flex-direction:column}',
   '.mp-lym-badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:6px;min-height:20px}',
   '.mp-lym-foot{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:.5px solid var(--dsw-alias-border-l3,#ffffff1a);flex:0 0 auto;flex-wrap:wrap}',

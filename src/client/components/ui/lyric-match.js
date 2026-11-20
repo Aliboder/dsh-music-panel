@@ -98,11 +98,15 @@ function LyricMatchDialog(props) {
   var markedPurePair = useState(track.markedPureMusic === true)
   var markedPureMusic = markedPurePair[0]
   var setMarkedPureMusic = markedPurePair[1]
+  var embedPair = useState(false)
+  var embedTags = embedPair[0]
+  var setEmbedTags = embedPair[1]
 
   // Folia's three toggles under the cover; they only exist for a local file
   // whose match can also write tags. An online song only picks lyrics.
   var applyToRecord = layer.props && layer.props.applyToRecord === true
   var onlineTrack = layer.props && layer.props.online === true
+  var embeddable = onlineTrack !== true && /\.(mp3|flac)$/i.test(String(track.path || ''))
   var coverPair = useState(onlineTrack !== true)
   var useCover = coverPair[0]
   var setUseCover = coverPair[1]
@@ -240,6 +244,43 @@ function LyricMatchDialog(props) {
     return parseLrcText(body.lrc || '')
   }
 
+  /**
+   * The text written into a file tag. A word-timed source becomes enhanced LRC
+   * (`[line]<word>text...`), the only word timeline our local parser can read back
+   * from USLT / FLAC LYRICS. Line-level sources stay plain LRC.
+   */
+  function embeddableLyricsText(body) {
+    if (body === null || typeof body !== 'object') return ''
+    var lrc = typeof body.lrc === 'string' ? body.lrc : ''
+    if (body.wordLevel !== true) {
+      var plain = linesOf(body)
+      if (body.translation) mergeLyricTranslation(plain, body.translation)
+      return body.translation ? buildTranslatedLrc(plain, lrc) : lrc
+    }
+    if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null
+      || typeof MPFoliaLyrics.serializeEnhancedLrc !== 'function'
+      || typeof legacyLinesToFolia !== 'function') return lrc
+    try {
+      var lines = Array.isArray(body.lines) && body.lines.length > 0
+        ? body.lines.map(function (line) {
+            var copy = Object.assign({}, line)
+            if (!isFinite(Number(copy.time)) && isFinite(Number(copy.t))) copy.time = Number(copy.t)
+            return copy
+          })
+        : parseLrcText(lrc)
+      if (body.translation) mergeLyricTranslation(lines, body.translation)
+      var document = { lines: legacyLinesToFolia(lines), isWordByWord: true }
+      var text = MPFoliaLyrics.serializeEnhancedLrc(document, {
+        includeTranslation: true,
+        includeRomanization: true,
+        wordTiming: 'word',
+      })
+      return typeof text === 'string' && text.trim() !== '' ? text : lrc
+    } catch (error) {
+      return lrc
+    }
+  }
+
   function canSave() {
     if (saving) return false
     if (selected === null) return false
@@ -262,6 +303,7 @@ function LyricMatchDialog(props) {
     if (!canSave()) return
     setSaving(true)
     setError('')
+    var lyricText = embeddableLyricsText(preview)
     if (applyToRecord) {
       postJson(API + 'lyrics/match-apply', {
         path: track.path,
@@ -271,7 +313,9 @@ function LyricMatchDialog(props) {
         artist: selected ? (Array.isArray(selected.artists) ? selected.artists.join(' / ') : '') : '',
         album: selected ? String(selected.album || '') : '',
         coverUrl: selected ? String(selected.coverUrl || '') : '',
-        lrc: preview && typeof preview.lrc === 'string' ? preview.lrc : '',
+        lrc: lyricText,
+        embeddedLrc: lyricText,
+        embedTags: useLyrics === true && embedTags === true && embeddable === true,
         wordLevel: preview ? preview.wordLevel === true : false,
         score: selected ? Number(selected.score) || 0 : 0,
         applyLyrics: useLyrics === true,
@@ -291,13 +335,10 @@ function LyricMatchDialog(props) {
       setSaving(false)
       return
     }
-    var lines = linesOf(preview)
-    if (preview.translation) mergeLyricTranslation(lines, preview.translation)
-    var lrc = preview.translation ? buildTranslatedLrc(lines, preview.lrc) : preview.lrc
     if (typeof onApply === 'function') {
       setSaving(false)
       closeSheet()
-      onApply(lrc)
+      onApply(lyricText)
       return
     }
     if (!track.path) {
@@ -305,7 +346,7 @@ function LyricMatchDialog(props) {
       setError(t('sheet.noLocalFile'))
       return
     }
-    postJson(API + 'lyrics/save', { path: track.path, lrc: lrc })
+    postJson(API + 'lyrics/save', { path: track.path, lrc: lyricText })
       .then(function () {
         setSaving(false)
         closeSheet()
@@ -559,6 +600,24 @@ function LyricMatchDialog(props) {
                 label: t('sheet.matchApplyCover'),
                 disabled: !selectedHasCover,
                 onChange: setUseCover,
+              }),
+            ),
+            h(
+              'div',
+              { className: 'mp-lym-switch-row' },
+              h(
+                'span',
+                null,
+                t('sheet.matchEmbedTags'),
+                embeddable !== true
+                  ? h('span', { className: 'mp-lym-switch-note' }, t('sheet.matchEmbedTagsUnsupported'))
+                  : null,
+              ),
+              h(Switch, {
+                value: embedTags === true && embeddable,
+                label: t('sheet.matchEmbedTags'),
+                disabled: !embeddable || useLyrics !== true || preview === null || String(preview.lrc || '').trim() === '',
+                onChange: setEmbedTags,
               }),
             ),
           )

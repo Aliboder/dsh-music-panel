@@ -84,6 +84,16 @@ assert.ok(typeof lyrics.LyricParserFactory?.parse === 'function', 'and the parse
   assert.equal(lyrics.detectNonTtmlTimedLyricFormat('<tt xmlns="http://www.w3.org/ns/ttml"></tt>'), 'lrc')
 }
 
+// ── enhanced LRC export for embedding in file tags ─────────────────────────
+{
+  assert.equal(typeof lyrics.serializeEnhancedLrc, 'function', 'the bundle exposes the tag writer serializer')
+  const document = await parseDocument({ type: 'local', lrcContent: '[00:01.00]<00:01.00>晴<00:01.50>天<00:02.00>' })
+  const text = lyrics.serializeEnhancedLrc(document, { wordTiming: 'word', includeTranslation: true })
+  assert.match(text, /\[00:01\.00\]<00:01\.000>晴<00:01\.500>天/)
+  const roundTrip = await parseDocument({ type: 'local', lrcContent: text })
+  assert.deepEqual(roundTrip.lines[0].words.map((word) => word.text), ['晴', '天'])
+}
+
 // ── the display-time pass (Folia's createLyricsSetter) ─────────────────────
 {
   const credits = '[00:00.00]作词: A\n[00:00.20]作曲: B\n[00:00.40]编曲: C\n[00:20.00]第一句\n[00:24.00]第二句'

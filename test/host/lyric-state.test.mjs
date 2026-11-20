@@ -21,6 +21,7 @@ import {
   resolveLocalMatchTarget,
 } from '../../src/host/services/lyrics/local-match.js'
 import { fakeReq, fakeRes, tempWav } from '../helpers.mjs'
+import { readTags } from '../../src/host/services/media/tags.js'
 
 // ── the record store ───────────────────────────────────────────────────────
 
@@ -251,7 +252,7 @@ const routeFile = join(matchDir, 'Routed.wav')
 await writeFile(routeFile, 'not really audio')
 const routeRoot = matchDir
 const settings = {
-  read: async () => ({ roots: [routeRoot], depth: 2, extensions: ['wav'] }),
+  read: async () => ({ roots: [routeRoot], depth: 2, extensions: ['wav', 'mp3'] }),
   write: async (patch) => ({ roots: [], depth: 4, extensions: ['wav'], ...patch }),
   home: 'C:/dsh-home',
   file: 'C:/dsh-home/music/settings.json',
@@ -340,6 +341,30 @@ answer = await call('POST', '/music/lyrics/choice', { path: routeFile, source: '
 assert.equal(answer.body.raw, '[00:04.000]手动匹配')
 assert.equal(answer.body.matched.source, 'qq')
 assert.equal(answer.body.matched.title, 'Picked')
+
+// A word-level pick can be embedded into an MP3 USLT tag; the tag keeps the
+// enhanced-LRC text verbatim so the local parser can rebuild word timing.
+const embedFile = join(matchDir, 'Word.mp3')
+await writeFile(embedFile, Buffer.alloc(0))
+const enhanced = '[00:01.00]<00:01.000>晴<00:01.500>天<00:02.000>'
+answer = await call('POST', '/music/lyrics/match-apply', {
+  path: embedFile,
+  provider: 'qq',
+  id: 'word-1',
+  lrc: enhanced,
+  embeddedLrc: enhanced,
+  embedTags: true,
+  applyLyrics: true,
+  applyMetadata: false,
+  applyCover: false,
+})
+assert.equal(answer.status, 200)
+assert.equal(answer.body.lyricsEmbedded, true)
+assert.equal((await readTags(embedFile)).tags.lyrics, enhanced)
+const embeddedAnswer = await call('GET', '/music/lyrics?path=' + encodeURIComponent(embedFile))
+assert.equal(embeddedAnswer.status, 200)
+assert.equal(embeddedAnswer.body.source, 'embedded')
+assert.equal(embeddedAnswer.body.raw, enhanced)
 
 // "Stop matching this song" is a real answer on the record.
 answer = await call('POST', '/music/lyrics/match-apply', { path: routeFile, noAutoMatch: true })

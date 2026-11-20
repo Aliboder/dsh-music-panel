@@ -113,6 +113,7 @@ assert.deepEqual(await service.preview({ source: 'qq', id: '' }), {
   romaji: '',
   lines: null,
   wordLevel: false,
+  raw: null,
 })
 
 console.log('lyrics-match-service.test.mjs ok')

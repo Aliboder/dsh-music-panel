@@ -787,6 +787,8 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         const songId = String(body?.id ?? '')
         const recordKey = onlineKey !== '' ? onlineKey : file
         let lyricsApplied = false
+        let lyricsEmbedded = false
+        let embedWarning = ''
         if (noAutoMatch) {
           await lyricRecords.patch(recordKey, { noAutoMatch: true })
         } else if (applyLyrics && lrc.trim() !== '') {
@@ -816,14 +818,32 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
           return sendJson(res, 200, {
             ok: true,
             lyricsApplied,
+            lyricsEmbedded: false,
             metadataApplied: false,
             coverApplied: false,
             noAutoMatch,
           })
         }
+        if (body?.embedTags === true && applyLyrics && lrc.trim() !== '') {
+          const embeddedLrc = typeof body?.embeddedLrc === 'string' && body.embeddedLrc.trim() !== ''
+            ? body.embeddedLrc
+            : lrc
+          try {
+            const existing = await readLyricsFor(file)
+            const raw = typeof existing?.raw === 'string' && existing.raw.trim() !== '' ? existing.raw : ''
+            if (raw !== '') await backupLyrics(file, raw)
+            await writeEmbeddedLyrics(file, embeddedLrc)
+            // The file is now the authoritative local lyric; stop resolving to the
+            // online record on the next play.
+            await lyricRecords.patch(recordKey, { source: 'embedded' }).catch(() => {})
+            lyricsEmbedded = true
+          } catch (error) {
+            embedWarning = error instanceof Error ? error.message : String(error)
+          }
+        }
         let metadataApplied = false
         let coverApplied = false
-        let warning = ''
+        let warning = embedWarning
         if (applyMetadata || applyCover) {
           try {
             // The tag writer rewrites the whole editable set, so the file's own values are
@@ -841,12 +861,15 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
             coverApplied = coverUrl !== ''
           } catch (error) {
             // An unsupported container keeps the lyrics: say what was skipped.
-            warning = error instanceof Error ? error.message : String(error)
+            warning = warning === ''
+              ? (error instanceof Error ? error.message : String(error))
+              : warning + '；' + (error instanceof Error ? error.message : String(error))
           }
         }
         return sendJson(res, 200, {
           ok: true,
           lyricsApplied,
+          lyricsEmbedded,
           metadataApplied,
           coverApplied,
           noAutoMatch,

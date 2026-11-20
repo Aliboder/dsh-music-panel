@@ -12,6 +12,7 @@ import type { RawLyricSource } from '../../utils/lyrics/types';
 
 export { LyricParserFactory } from '../../utils/lyrics/LyricParserFactory';
 export { detectNonTtmlTimedLyricFormat } from '../../utils/lyrics/formatDetection';
+export { serializeEnhancedLrc } from '../../utils/lyrics/enhancedLrcSerializer';
 export { ensureLyricDataRenderHints } from '../../utils/lyrics/renderHints';
 export { resolveLyricProcessingOptions } from '../../utils/lyrics/filtering';
 export { applyLyricStaffPolicy } from '../../utils/lyrics/staffCreditsPolicy';
