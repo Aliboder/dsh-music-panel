@@ -26,6 +26,7 @@
 - crossfade 的尾部/开头估算在没有 envelope 时回退到 profile 的 `bodyOut` / `leadIn`。
 - profile 预分析带当前队列 token；切歌后旧分析即使完成也不再写入 profile。
 - crossfade 按 Folia 的 outroKey/introKey 关系缩放 overlap：clashing 0.4、neutral 0.7、adjacent 0.85、compatible/unknown 1。
+- crossfade 接入 Folia `chooseTransitionStyle` / `shapeBlend`：按 key、tempo、endsHot、startsHot、outroSlope 选择 beatCut / bassSwap / tailRide / plainBlend，并把 `hold` / `together` / `crossover` 真正传给 transport。
 
 ### 代码结构
 

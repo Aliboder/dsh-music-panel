@@ -31,4 +31,22 @@ assert.ok(grid)
 assert.ok(Math.abs(grid.bpm - 120) < 1e-9)
 assert.equal(grid.beatsPerBar, 4)
 assert.equal(api.gridFromBeats({ beats: [0, 0.5], downbeats: [] }, {}), null)
+const style = api.chooseTransitionStyle({
+  from: { bpm: 120, outroBpm: 120, outroSlope: -2, endsHot: false, tailDb: -22, key: 0, major: true, keyConfidence: 0.8 },
+  to: { bpm: 120, leadIn: 3, startsHot: false, headDb: -20, introSlope: 0.1, key: 0, major: true, keyConfidence: 0.8 },
+})
+assert.equal(style.style, 'bassSwap')
+assert.equal(style.relation, 'compatible')
+const shaped = api.shapeBlend({
+  style: style.style,
+  room: 10,
+  overlap: 6,
+  crossover: 0.5,
+  nextBeatIn: 0.2,
+  periodSec: 0.5,
+  incomingLeadIn: 3,
+})
+assert.equal(typeof shaped.overlap, 'number')
+assert.equal(typeof shaped.hold, 'number')
+assert.equal(typeof shaped.together, 'number')
 console.log('automix-profile.test.mjs ok')

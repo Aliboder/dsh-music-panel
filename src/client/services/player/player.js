@@ -1506,21 +1506,16 @@ var profileToken = 0
         abortCrossfade()
         return
       }
-      var keyRelation = crossfadeKeyRelation(currentProfile, nextProfile)
-      var keyScale = crossfadeKeyLengthScale(keyRelation)
-      if (keyScale !== 1) {
-        plan.overlap = Math.max(CROSSFADE_MIN_SECONDS, Math.min(CROSSFADE_MAX_SECONDS, plan.overlap * keyScale))
+      var audioApi = typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
+      if (audioApi !== null && typeof window !== 'undefined') window.__mpFoliaAudio = audioApi
+      var periodSec = nextProfile && typeof nextProfile.bpm === 'number' && nextProfile.bpm > 0 ? 60 / nextProfile.bpm : null
+      var nextBeatIn = null
+      if (periodSec !== null) {
+        var phase = ((plan.startInNext - (typeof nextProfile.beatOffset === 'number' ? nextProfile.beatOffset : 0)) % periodSec + periodSec) % periodSec
+        nextBeatIn = phase === 0 ? 0 : periodSec - phase
       }
       var shape = null
-      var audioApi = typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
-  if (audioApi !== null && typeof window !== 'undefined') window.__mpFoliaAudio = audioApi
       if (audioApi !== null && typeof audioApi.planBlendShape === 'function') {
-        var periodSec = nextProfile && typeof nextProfile.bpm === 'number' && nextProfile.bpm > 0 ? 60 / nextProfile.bpm : null
-        var nextBeatIn = null
-        if (periodSec !== null) {
-          var phase = ((plan.startInNext - (typeof nextProfile.beatOffset === 'number' ? nextProfile.beatOffset : 0)) % periodSec + periodSec) % periodSec
-          nextBeatIn = phase === 0 ? 0 : periodSec - phase
-        }
         shape = audioApi.planBlendShape({
           overlap: plan.overlap,
           outgoingDb: results[0] ? results[0].loudnessDb : null,
@@ -1529,14 +1524,36 @@ var profileToken = 0
           minOverlap: CROSSFADE_MIN_SECONDS,
           maxOverlap: CROSSFADE_MAX_SECONDS,
         })
-        if (shape !== null && typeof shape.overlap === 'number' && shape.overlap > 0) {
-          plan.overlap = shape.overlap
+      }
+      var styled = null
+      var profileApi = typeof __mpProfileBundle === 'function' ? __mpProfileBundle() : null
+      if (profileApi !== null && typeof profileApi.chooseTransitionStyle === 'function' && typeof profileApi.shapeBlend === 'function') {
+        var styleChoice = profileApi.chooseTransitionStyle({ from: currentProfile, to: nextProfile })
+        styled = profileApi.shapeBlend({
+          style: styleChoice.style,
+          room: Math.max(0, duration - audio.currentTime),
+          overlap: shape !== null && typeof shape.overlap === 'number' ? shape.overlap : plan.overlap,
+          crossover: shape !== null ? shape.crossover : 0.5,
+          nextBeatIn: nextBeatIn,
+          periodSec: periodSec,
+          incomingLeadIn: plan.startInNext,
+        })
+      }
+      if (styled !== null && typeof styled.overlap === 'number' && styled.overlap > 0) {
+        plan.overlap = styled.overlap
+      } else {
+        var keyScale = crossfadeKeyLengthScale(crossfadeKeyRelation(currentProfile, nextProfile))
+        if (keyScale !== 1) {
+          plan.overlap = Math.max(CROSSFADE_MIN_SECONDS, Math.min(CROSSFADE_MAX_SECONDS, plan.overlap * keyScale))
         }
       }
       xfadePrepared = {
         nextAt: nextAt,
         plan: plan,
-        crossover: shape !== null ? shape.crossover : 0.5,
+        crossover: styled !== null ? styled.crossover : shape !== null ? shape.crossover : 0.5,
+        hold: styled !== null ? styled.hold : 0,
+        together: styled !== null ? styled.together : 0,
+        style: styled !== null ? styled.style : 'plainBlend',
         blob: nextBlob,
         trim: incoming.trim,
         duration: incoming.envelope ? incoming.envelope.duration : 0,
@@ -1586,7 +1603,8 @@ var profileToken = 0
     if (audioB === null || audioContext === null || foliaTransport === null) return abortCrossfade()
     var remaining = (state.duration > 0 ? state.duration : audio.duration || 0) - audio.currentTime
     var fade = Math.min(prepared.plan.overlap, remaining - 0.05)
-    if (!(fade >= 1)) return abortCrossfade()
+    // Folia's beatCut is intentionally a few milliseconds; only a zero/negative window is refused.
+    if (!(fade >= 0.02)) return abortCrossfade()
     var token = xfadeToken
     // The outgoing song never fires `ended` once the fade takes it off the active deck; its
     // "played whole" report is made when the fade lands, from this capture.
@@ -1603,8 +1621,8 @@ var profileToken = 0
       .crossfadeTo(incomingDeck, objectUrlB, {
         seconds: fade,
         crossover: prepared.crossover,
-        hold: 0,
-        together: 0,
+        hold: prepared.hold || 0,
+        together: prepared.together || 0,
         startAt: prepared.plan.startInNext,
         replayGainDb: trimDb,
         setActive: false,

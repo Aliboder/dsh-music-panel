@@ -696,6 +696,15 @@
 
 ---
 
+## 78. style 计划要真的传给 transport
+
+- **现象**：`chooseTransitionStyle` 选出了 bassSwap/tailRide，crossfade 仍传 `hold: 0, together: 0`，听感还是纯 crossfade。
+- **原因**：planner 只给了计划，执行端没有消费 `hold/together/crossover`。
+- **处理**：`prepareCrossfade` 把 `shapeBlend` 结果写进 `xfadePrepared`，`beginCrossfadePlayback` 传给 `crossfadeTo`；beatCut 允许 0.02 秒级窗口。
+- **防回归**：planner 的输出字段必须逐个有执行端；只算不传等于没接。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

@@ -6,4 +6,5 @@ export {
     programIsWholeTrack,
 } from './trackProfile';
 export { gridFromBeats } from './gridFromBeats';
+export { chooseTransitionStyle, shapeBlend } from './transitionChooser';
 export type { BeatGrid, BeatThisGrid } from './gridFromBeats';
