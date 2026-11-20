@@ -667,10 +667,13 @@ var platformGain = null
   function balanceInputs(extra) {
     var item = currentItem()
     var record = item === null ? null : balanceRecordFor(item.path)
+    var prof = item === null ? null : profileFor(item.path)
     return {
       file: record && record.file ? record.file : null,
       played: record && record.played ? record.played : null,
-      profile: null,
+      profile: prof && !prof.partial
+        ? { loudness: prof.programLoudness, peak: prof.peak }
+        : null,
       tag: tagGainDb && typeof tagGainDb.trackGain === 'number'
         ? { gainDb: tagGainDb.trackGain, peak: typeof tagGainDb.trackPeak === 'number' ? tagGainDb.trackPeak : null }
         : null,
@@ -1019,7 +1022,8 @@ var platformGain = null
     var play = balanceMeter.play()
     if (typeof balanceMeter.reset === 'function') balanceMeter.reset()
     if (!item) return
-    if (balanceWholePlayIssue(play, durationSec) !== null) return
+    var prof = profileFor(item.path)
+    if (balanceWholePlayIssue(play, durationSec, prof ? prof.leadIn : 0) !== null) return
     noteBalanceMeasurement(item.path, 'played', play)
   }
 

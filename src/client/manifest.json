@@ -60,6 +60,7 @@
     "src/client/services/player/effects/likes.js",
     "src/client/services/player/effects/volume-balance.js",
     "src/client/services/player/effects/balance-meter.js",
+    "src/client/services/player/effects/profile.js",
     "src/client/components/common/overlay.js",
     "src/client/components/common/select.js",
     "src/client/styles/theme.js",

@@ -36,11 +36,20 @@ function loudnessCacheKey(item, blob) {
 function lookupLoudnessMeasurement(key) {
   var row = loudnessCache[key]
   if (!row || typeof row.loudness !== 'number' || !Number.isFinite(row.loudness)) return null
-  return { loudness: row.loudness, peak: typeof row.peak === 'number' ? row.peak : null }
+  return {
+    loudness: row.loudness,
+    peak: typeof row.peak === 'number' ? row.peak : null,
+    leadIn: typeof row.leadIn === 'number' ? row.leadIn : 0,
+  }
 }
 
 function storeLoudnessMeasurement(key, measured) {
-  loudnessCache[key] = { loudness: measured.loudness, peak: measured.peak, at: Date.now() }
+  loudnessCache[key] = {
+    loudness: measured.loudness,
+    peak: measured.peak,
+    leadIn: typeof measured.leadIn === 'number' ? measured.leadIn : 0,
+    at: Date.now(),
+  }
   var keys = Object.keys(loudnessCache)
   if (keys.length > 1200) {
     keys
@@ -189,6 +198,25 @@ function integratedLoudnessOf(buffer) {
 }
 
 /** Loudest sample of the decoded file, linear, for the balance's peak ceiling. */
+function leadInOfAudioBuffer(buffer) {
+  var sampleRate = buffer.sampleRate
+  var block = Math.max(1, Math.round(sampleRate * 0.05))
+  var threshold = Math.pow(10, -50 / 20)
+  var channels = []
+  for (var channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+    channels.push(buffer.getChannelData(channel))
+  }
+  for (var start = 0; start + block <= buffer.length; start += block) {
+    for (var ch = 0; ch < channels.length; ch += 1) {
+      var data = channels[ch]
+      var sum = 0
+      for (var index = start; index < start + block; index += 1) sum += data[index] * data[index]
+      if (Math.sqrt(sum / block) > threshold) return start / sampleRate
+    }
+  }
+  return 0
+}
+
 function peakOfAudioBuffer(buffer) {
   var peak = 0
   for (var channel = 0; channel < buffer.numberOfChannels; channel += 1) {
@@ -207,6 +235,7 @@ function analyzeLoudnessBlob(item, blob, isCurrent, onMeasured) {
   var cached = lookupLoudnessMeasurement(key)
   if (cached !== null) {
     noteBalanceMeasurement(item.path, 'file', cached)
+    noteProfile(item.path, { programLoudness: cached.loudness, peak: cached.peak, leadIn: cached.leadIn, partial: false })
     if (isCurrent() && typeof onMeasured === 'function') onMeasured(cached)
     return Promise.resolve(cached)
   }
@@ -225,8 +254,14 @@ function analyzeLoudnessBlob(item, blob, isCurrent, onMeasured) {
     })
     .then(function (lufs) {
       if (lufs === null || !isCurrent()) return null
-      var measured = { loudness: lufs, peak: peakOfAudioBuffer(measuredBuffer) }
+      var measured = {
+        loudness: lufs,
+        peak: peakOfAudioBuffer(measuredBuffer),
+        leadIn: leadInOfAudioBuffer(measuredBuffer),
+        partial: false,
+      }
       noteBalanceMeasurement(item.path, 'file', measured)
+      noteProfile(item.path, { programLoudness: lufs, peak: measured.peak, leadIn: measured.leadIn, partial: false })
       storeLoudnessMeasurement(key, measured)
       if (typeof onMeasured === 'function') onMeasured(measured)
       return measured

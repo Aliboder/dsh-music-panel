@@ -150379,11 +150379,20 @@ window.__ModuleLoader__.load({
     function lookupLoudnessMeasurement(key) {
       var row = loudnessCache[key]
       if (!row || typeof row.loudness !== 'number' || !Number.isFinite(row.loudness)) return null
-      return { loudness: row.loudness, peak: typeof row.peak === 'number' ? row.peak : null }
+      return {
+        loudness: row.loudness,
+        peak: typeof row.peak === 'number' ? row.peak : null,
+        leadIn: typeof row.leadIn === 'number' ? row.leadIn : 0,
+      }
     }
 
     function storeLoudnessMeasurement(key, measured) {
-      loudnessCache[key] = { loudness: measured.loudness, peak: measured.peak, at: Date.now() }
+      loudnessCache[key] = {
+        loudness: measured.loudness,
+        peak: measured.peak,
+        leadIn: typeof measured.leadIn === 'number' ? measured.leadIn : 0,
+        at: Date.now(),
+      }
       var keys = Object.keys(loudnessCache)
       if (keys.length > 1200) {
         keys
@@ -150532,6 +150541,25 @@ window.__ModuleLoader__.load({
     }
 
     /** Loudest sample of the decoded file, linear, for the balance's peak ceiling. */
+    function leadInOfAudioBuffer(buffer) {
+      var sampleRate = buffer.sampleRate
+      var block = Math.max(1, Math.round(sampleRate * 0.05))
+      var threshold = Math.pow(10, -50 / 20)
+      var channels = []
+      for (var channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+        channels.push(buffer.getChannelData(channel))
+      }
+      for (var start = 0; start + block <= buffer.length; start += block) {
+        for (var ch = 0; ch < channels.length; ch += 1) {
+          var data = channels[ch]
+          var sum = 0
+          for (var index = start; index < start + block; index += 1) sum += data[index] * data[index]
+          if (Math.sqrt(sum / block) > threshold) return start / sampleRate
+        }
+      }
+      return 0
+    }
+
     function peakOfAudioBuffer(buffer) {
       var peak = 0
       for (var channel = 0; channel < buffer.numberOfChannels; channel += 1) {
@@ -150550,6 +150578,7 @@ window.__ModuleLoader__.load({
       var cached = lookupLoudnessMeasurement(key)
       if (cached !== null) {
         noteBalanceMeasurement(item.path, 'file', cached)
+        noteProfile(item.path, { programLoudness: cached.loudness, peak: cached.peak, leadIn: cached.leadIn, partial: false })
         if (isCurrent() && typeof onMeasured === 'function') onMeasured(cached)
         return Promise.resolve(cached)
       }
@@ -150568,8 +150597,14 @@ window.__ModuleLoader__.load({
         })
         .then(function (lufs) {
           if (lufs === null || !isCurrent()) return null
-          var measured = { loudness: lufs, peak: peakOfAudioBuffer(measuredBuffer) }
+          var measured = {
+            loudness: lufs,
+            peak: peakOfAudioBuffer(measuredBuffer),
+            leadIn: leadInOfAudioBuffer(measuredBuffer),
+            partial: false,
+          }
           noteBalanceMeasurement(item.path, 'file', measured)
+          noteProfile(item.path, { programLoudness: lufs, peak: measured.peak, leadIn: measured.leadIn, partial: false })
           storeLoudnessMeasurement(key, measured)
           if (typeof onMeasured === 'function') onMeasured(measured)
           return measured
@@ -155034,10 +155069,13 @@ window.__ModuleLoader__.load({
       function balanceInputs(extra) {
         var item = currentItem()
         var record = item === null ? null : balanceRecordFor(item.path)
+        var prof = item === null ? null : profileFor(item.path)
         return {
           file: record && record.file ? record.file : null,
           played: record && record.played ? record.played : null,
-          profile: null,
+          profile: prof && !prof.partial
+            ? { loudness: prof.programLoudness, peak: prof.peak }
+            : null,
           tag: tagGainDb && typeof tagGainDb.trackGain === 'number'
             ? { gainDb: tagGainDb.trackGain, peak: typeof tagGainDb.trackPeak === 'number' ? tagGainDb.trackPeak : null }
             : null,
@@ -155386,7 +155424,8 @@ window.__ModuleLoader__.load({
         var play = balanceMeter.play()
         if (typeof balanceMeter.reset === 'function') balanceMeter.reset()
         if (!item) return
-        if (balanceWholePlayIssue(play, durationSec) !== null) return
+        var prof = profileFor(item.path)
+        if (balanceWholePlayIssue(play, durationSec, prof ? prof.leadIn : 0) !== null) return
         noteBalanceMeasurement(item.path, 'played', play)
       }
 
@@ -158709,10 +158748,83 @@ window.__ModuleLoader__.load({
     }
 
     /** Why this play is not the whole song, or null; the engine owns the rule. */
-    function balanceWholePlayIssue(play, durationSec) {
+    function balanceWholePlayIssue(play, durationSec, leadInSec) {
       if (!play) return 'no play'
-      var issue = whyNotWholePlay(play, { duration: durationSec })
+      var issue = whyNotWholePlay(play, { duration: durationSec, leadInSec: Number(leadInSec) || 0 })
       return issue === null || issue === undefined ? null : String(issue).trim()
+    }
+
+    // ── src/client/services/player/effects/profile.js
+    /**
+     * Folia's automix profile, for the volume balance.
+     *
+     * Folia measures a track once (whole file, or only its head for a library
+     * server) and keeps programLoudness / peak / leadIn. This store is the small
+     * client-side equivalent: a whole-track measurement made from the bytes the
+     * player already fetched, keyed by song path. It never fabricates a head or a
+     * profile for a track whose bytes were not read.
+     */
+
+    var PROFILE_STORE_KEY = 'music.profile.v1'
+    var PROFILE_MAX_RECORDS = 200
+
+    function readProfileStore() {
+      try {
+        var raw = window.localStorage.getItem(PROFILE_STORE_KEY)
+        var parsed = raw === null ? null : JSON.parse(raw)
+        return parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
+      } catch (error) {
+        return {}
+      }
+    }
+
+    var profileStoreData = readProfileStore()
+
+    function writeProfileStore() {
+      try {
+        window.localStorage.setItem(PROFILE_STORE_KEY, JSON.stringify(profileStoreData))
+      } catch (error) {
+        // Quota/private mode: the in-memory copy still works for this session.
+      }
+    }
+
+    /** The stored whole-track profile for a path, or null. */
+    function profileFor(path) {
+      var entry = path ? profileStoreData[path] : null
+      if (!entry || typeof entry.programLoudness !== 'number') return null
+      return {
+        programLoudness: entry.programLoudness,
+        peak: typeof entry.peak === 'number' ? entry.peak : null,
+        leadIn: typeof entry.leadIn === 'number' ? entry.leadIn : 0,
+        partial: entry.partial === true,
+        at: Number(entry.at) || 0,
+      }
+    }
+
+    /** A whole-track measurement, or a head-only one when partial is true. */
+    function noteProfile(path, measured) {
+      if (!path || !measured || typeof measured.programLoudness !== 'number') return
+      if (!(measured.programLoudness > -90)) return
+      profileStoreData[path] = {
+        programLoudness: measured.programLoudness,
+        peak: typeof measured.peak === 'number' ? measured.peak : null,
+        leadIn: typeof measured.leadIn === 'number' ? measured.leadIn : 0,
+        partial: measured.partial === true,
+        at: Date.now(),
+      }
+      var keys = Object.keys(profileStoreData)
+      if (keys.length > PROFILE_MAX_RECORDS) {
+        keys
+          .sort(function (a, b) { return (profileStoreData[a].at || 0) - (profileStoreData[b].at || 0) })
+          .slice(0, keys.length - PROFILE_MAX_RECORDS)
+          .forEach(function (key) { delete profileStoreData[key] })
+      }
+      writeProfileStore()
+    }
+
+    /** Test-only: forget the in-memory copy. */
+    function resetProfileStoreForTests() {
+      profileStoreData = {}
     }
 
     // ── src/client/components/common/overlay.js

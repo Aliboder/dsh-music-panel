@@ -297,9 +297,9 @@ function createBalanceMeter(left, right, audio) {
 }
 
 /** Why this play is not the whole song, or null; the engine owns the rule. */
-function balanceWholePlayIssue(play, durationSec) {
+function balanceWholePlayIssue(play, durationSec, leadInSec) {
   if (!play) return 'no play'
-  var issue = whyNotWholePlay(play, { duration: durationSec })
+  var issue = whyNotWholePlay(play, { duration: durationSec, leadInSec: Number(leadInSec) || 0 })
   return issue === null || issue === undefined ? null : String(issue).trim()
 }
 

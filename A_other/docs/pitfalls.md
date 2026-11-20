@@ -606,6 +606,15 @@
 
 ---
 
+## 68. profile 不是“有字段就算对齐”
+
+- **现象**：本插件已有 `music.profile.v1`，但 Folia 的 automix profile 是独立预分析服务，会分析当前和下一首，并为 Navidrome 只读头部。
+- **原因**：播放器只能测量已经取到的当前曲 blob；没有下一首预取，也没有 partial head。
+- **处理**：当前只把真实测出的整曲 `programLoudness/peak/leadIn` 作为 profile；没有下一首或头部数据时传 null。
+- **防回归**：不要把当前曲的 file 记录改名成 profile 来冒充 automix；要补的是调度和字节读取规则。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。
