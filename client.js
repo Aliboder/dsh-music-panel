@@ -150376,14 +150376,14 @@ window.__ModuleLoader__.load({
       return String(item.path || '') + '|' + String(blob.size || 0)
     }
 
-    function lookupLoudnessGain(key) {
+    function lookupLoudnessMeasurement(key) {
       var row = loudnessCache[key]
-      var gain = row && Number(row.gainDb)
-      return Number.isFinite(gain) ? gain : null
+      if (!row || typeof row.loudness !== 'number' || !Number.isFinite(row.loudness)) return null
+      return { loudness: row.loudness, peak: typeof row.peak === 'number' ? row.peak : null }
     }
 
-    function storeLoudnessGain(key, gainDb) {
-      loudnessCache[key] = { gainDb: gainDb, at: Date.now() }
+    function storeLoudnessMeasurement(key, measured) {
+      loudnessCache[key] = { loudness: measured.loudness, peak: measured.peak, at: Date.now() }
       var keys = Object.keys(loudnessCache)
       if (keys.length > 1200) {
         keys
@@ -150400,20 +150400,61 @@ window.__ModuleLoader__.load({
 
     function loudnessContext() {
       if (loudnessDecoder !== null) return loudnessDecoder
-      var Ctor = window.AudioContext || window.webkitAudioContext
-      if (!Ctor) return null
+      // Folia decodes at 22.05 kHz so the file measurement and the live meter use
+      // the same analysis band. decodeAudioData resamples into this context.
+      var Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext
       try {
-        loudnessDecoder = new Ctor()
+        if (Offline) loudnessDecoder = new Offline(2, 1, 22050)
+        else loudnessDecoder = new (window.AudioContext || window.webkitAudioContext)()
       } catch (error) {
         loudnessDecoder = null
       }
       return loudnessDecoder
     }
 
+    /** Folia's K-weighting + gated loudness, on a decoded buffer. */
+    function lufsWithFoliaMath(buffer) {
+      var api = typeof balanceAudioApi === 'function' ? balanceAudioApi() : null
+      if (!api || typeof api.kWeightStep !== 'function' || typeof api.gatedLoudness !== 'function') return null
+      var sampleRate = buffer.sampleRate
+      var stepLength = Math.round(sampleRate / 10)
+      if (!(stepLength > 0)) return null
+      var channels = []
+      var filters = []
+      var count = Math.min(2, buffer.numberOfChannels)
+      for (var ch = 0; ch < count; ch += 1) {
+        channels.push(buffer.getChannelData(ch))
+        filters.push(api.kWeightStep(sampleRate))
+      }
+      if (channels.length === 0) return null
+      var steps = []
+      var power = 0
+      var filled = 0
+      var length = channels[0].length
+      for (var index = 0; index < length; index += 1) {
+        var weighted = 0
+        for (var c = 0; c < channels.length; c += 1) {
+          var value = filters[c](channels[c][index])
+          weighted += value * value
+        }
+        power += weighted
+        filled += 1
+        if (filled === stepLength) {
+          steps.push(power / stepLength)
+          power = 0
+          filled = 0
+        }
+      }
+      var lufs = api.gatedLoudness(steps)
+      return Number.isFinite(lufs) && lufs > -90 ? lufs : null
+    }
+
     /** Integrated loudness in LUFS, following ITU-R BS.1770-4 / EBU R128. */
     function lufsFromAudioBuffer(buffer) {
       var Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext
       if (!Offline) return Promise.reject(new Error('OfflineAudioContext unavailable'))
+      var folia = lufsWithFoliaMath(buffer)
+      if (folia !== null) return Promise.resolve(folia)
       return new Promise(function (resolve, reject) {
         var offline
         try {
@@ -150503,13 +150544,13 @@ window.__ModuleLoader__.load({
       return peak
     }
 
-    function analyzeLoudnessBlob(item, blob, isCurrent, onGain) {
+    function analyzeLoudnessBlob(item, blob, isCurrent, onMeasured) {
       if (!item || !blob || typeof isCurrent !== 'function') return Promise.resolve(null)
       var key = loudnessCacheKey(item, blob)
-      var cached = lookupLoudnessGain(key)
+      var cached = lookupLoudnessMeasurement(key)
       if (cached !== null) {
-        setBalanceChoice({ reading: 'file', effectiveGainDb: cached, estimated: false })
-        if (isCurrent() && typeof onGain === 'function') onGain(cached)
+        noteBalanceMeasurement(item.path, 'file', cached)
+        if (isCurrent() && typeof onMeasured === 'function') onMeasured(cached)
         return Promise.resolve(cached)
       }
       var decoder = loudnessContext()
@@ -150527,12 +150568,11 @@ window.__ModuleLoader__.load({
         })
         .then(function (lufs) {
           if (lufs === null || !isCurrent()) return null
-          var choice = chooseBalance({ file: { loudness: lufs, peak: peakOfAudioBuffer(measuredBuffer) } })
-          setBalanceChoice(choice)
-          var gainDb = clamp(choice.effectiveGainDb, -15, VOLUME_BALANCE_MAX_BOOST_DB)
-          storeLoudnessGain(key, gainDb)
-          if (typeof onGain === 'function') onGain(gainDb)
-          return gainDb
+          var measured = { loudness: lufs, peak: peakOfAudioBuffer(measuredBuffer) }
+          noteBalanceMeasurement(item.path, 'file', measured)
+          storeLoudnessMeasurement(key, measured)
+          if (typeof onMeasured === 'function') onMeasured(measured)
+          return measured
         })
         .catch(function () {
           // Corrupt/unsupported file: keep the user volume.
@@ -154973,26 +155013,49 @@ window.__ModuleLoader__.load({
         return event === null || event === undefined || !event.target || event.target === audio
       }
 
+      function balanceInputs(extra) {
+        var item = currentItem()
+        var record = item === null ? null : balanceRecordFor(item.path)
+        return {
+          file: record && record.file ? record.file : null,
+          played: record && record.played ? record.played : null,
+          profile: null,
+          tag: tagGainDb && typeof tagGainDb.trackGain === 'number' ? { gainDb: tagGainDb.trackGain } : null,
+          head: null,
+          platformDb: null,
+          live: extra && typeof extra.live === 'number' ? extra.live : null,
+          typicalDb: typicalGainDb(balanceTypicalGains()),
+        }
+      }
+
+      function applyBalancePlan(choice, plan) {
+        if (plan === 'set') {
+          applyBalanceChoice(choice, 0.1)
+          return
+        }
+        if (plan === 'hold' || plan === null || plan === undefined) return
+        if (typeof plan === 'object' && typeof plan.rampSec === 'number') {
+          balanceMoved = true
+          applyBalanceChoice(choice, plan.rampSec)
+        }
+      }
+
+      function reconsiderBalance(live) {
+        if (readPrefs().normalizeVolume === false) return
+        var choice = chooseBalance(balanceInputs({ live: live }))
+        var plan = planBalanceMove({
+          playSec: audio === null ? 0 : audio.currentTime,
+          moved: balanceMoved,
+          currentDb: balanceAppliedDb,
+          nextDb: choice.effectiveGainDb,
+          blendAudible: typeof crossfadeActive === 'function' ? crossfadeActive() : false,
+        })
+        applyBalancePlan(choice, plan)
+      }
+
       function onTime(event) {
-        if (balanceMeter !== null) {
-          // Until the file itself was read, a better live reading may move the gain:
-          // within the first 10 s it eases in, later only a clear turn-down.
-          if (readPrefs().normalizeVolume !== false && balanceAppliedReading !== 'file') {
-            var liveLoudness = balanceMeter.liveLoudness()
-            if (liveLoudness !== null) {
-              var liveNextDb = chooseBalance({ live: liveLoudness }).effectiveGainDb
-              var plan = planBalanceMove({
-                playSec: audio === null ? 0 : audio.currentTime,
-                moved: balanceMoved,
-                currentDb: balanceAppliedDb,
-                nextDb: liveNextDb,
-              })
-              if (plan !== null && plan !== 'set') {
-                balanceMoved = true
-                applyBalanceChoice({ reading: 'live', effectiveGainDb: liveNextDb, estimated: true })
-              }
-            }
-          }
+        if (balanceMeter !== null && readPrefs().normalizeVolume !== false) {
+          reconsiderBalance(balanceMeter.liveLoudness())
         }
         if (!isActiveEvent(event)) return
         if (audio === null) return
@@ -155146,26 +155209,32 @@ window.__ModuleLoader__.load({
       }
 
       /** Push a linear gain into one deck's trim node (short ramp while playing). */
-      function applyTrimGain(node, linear, paused) {
+      function applyTrimGain(node, linear, paused, rampSec) {
         if (node === null || audioContext === null) return
         try {
           var now = audioContext.currentTime
+          var ramp = Number(rampSec)
           node.gain.cancelScheduledValues(now)
-          if (paused) node.gain.setValueAtTime(linear, now)
-          else node.gain.setTargetAtTime(linear, now, 0.12)
+          if (paused || !isFinite(ramp) || ramp <= 0) {
+            if (paused) node.gain.setValueAtTime(linear, now)
+            else node.gain.setTargetAtTime(linear, now, 0.12)
+            return
+          }
+          node.gain.setValueAtTime(node.gain.value, now)
+          node.gain.linearRampToValueAtTime(linear, now + ramp)
         } catch (error) {
           node.gain.value = linear
         }
       }
 
-      function applyNormalizeGain(linear) {
+      function applyNormalizeGain(linear, rampSec) {
         normalizeBase = Number.isFinite(linear) && linear > 0 ? linear : 1
         normalizeGain = normalizeBase * replayGainFactor
         if (trimNode !== null && audioContext !== null) {
           // Before playback starts the gain must already be at its target;
           // otherwise the first seconds ramp down audibly. While a track is
           // playing, keep the short ramp so toggling normalization is smooth.
-          applyTrimGain(trimNode, normalizeGain, audio === null || audio.paused === true)
+          applyTrimGain(trimNode, normalizeGain, audio === null || audio.paused === true, rampSec)
         } else {
           applyOutputVolume()
         }
@@ -155282,12 +155351,12 @@ window.__ModuleLoader__.load({
 
       /** Analyse the downloaded blob in-browser and apply the per-track gain. */
       /** Apply the balance's decision through the loudness trim. */
-      function applyBalanceChoice(choice) {
+      function applyBalanceChoice(choice, rampSec) {
         if (!choice) return
         setBalanceChoice(choice)
         balanceAppliedDb = Number(choice.effectiveGainDb) || 0
         balanceAppliedReading = String(choice.reading || '')
-        applyNormalizeGain(Math.pow(10, clamp(balanceAppliedDb, -15, VOLUME_BALANCE_MAX_BOOST_DB) / 20))
+        applyNormalizeGain(Math.pow(10, clamp(balanceAppliedDb, -15, VOLUME_BALANCE_MAX_BOOST_DB) / 20), rampSec)
       }
 
       /** A whole play becomes a reading for this song, and joins the typical gains. */
@@ -155296,14 +155365,13 @@ window.__ModuleLoader__.load({
         var play = balanceMeter.play()
         if (typeof balanceMeter.reset === 'function') balanceMeter.reset()
         if (!item || item.onlineProvider) return
-        if (!balanceWholePlay(play, durationSec)) return
-        noteBalanceReading(item.path, play, VOLUME_BALANCE_TARGET_DB - play.loudness)
+        if (balanceWholePlayIssue(play, durationSec) !== null) return
+        noteBalanceMeasurement(item.path, 'played', play)
       }
 
       function scheduleLoudness(item, blob, done) {
         var token = (loudnessToken += 1)
         currentLoudnessBlob = blob || null
-        applyNormalizeGain(1)
         var finish = typeof done === 'function' ? done : function () {}
         if (readPrefs().normalizeVolume === false || !item || !blob) {
           finish()
@@ -155315,18 +155383,18 @@ window.__ModuleLoader__.load({
           function () {
             return token === loudnessToken
           },
-          function (gainDb) {
+          function (measured) {
             if (token !== loudnessToken) return
-            applyNormalizeGain(Math.pow(10, clamp(gainDb, -15, 6) / 20))
+            reconsiderBalance(null)
           },
         )
-          .then(function (gainDb) {
-            if (token === loudnessToken && (gainDb === null || gainDb === undefined)) {
-              applyNormalizeGain(1)
+          .then(function (measured) {
+            if (token === loudnessToken && (measured === null || measured === undefined)) {
+              reconsiderBalance(null)
             }
           })
           .catch(function () {
-            if (token === loudnessToken) applyNormalizeGain(1)
+            if (token === loudnessToken) reconsiderBalance(null)
           })
           .then(function () {
             finish()
@@ -155356,6 +155424,7 @@ window.__ModuleLoader__.load({
         flushListening(true)
         flushSessionPosition()
         var token = (loadToken += 1)
+        tagGainDb = null
         state = Object.assign({}, state, { index: at, currentTime: 0, duration: 0, buffered: 0 })
         emit()
         syncMediaSession()
@@ -155371,9 +155440,9 @@ window.__ModuleLoader__.load({
         if (balanceMeter !== null && typeof balanceMeter.reset === 'function') balanceMeter.reset()
         balanceMoved = false
         if (readPrefs().normalizeVolume !== false) {
-          // What is known before the file is read: a whole play of it, else the typical gain.
-          var seededRecord = balanceRecordFor(item && item.path)
-          applyBalanceChoice(chooseBalance({ played: seededRecord, tag: tagGainDb, typicalDb: typicalGainDb(balanceTypicalGains()) }))
+          // What is known before the file is read: a whole reading (file or played),
+          // then the tag, then the typical gain. Folia applies this with SET_RAMP_SEC.
+          applyBalanceChoice(chooseBalance(balanceInputs()), 0.1)
         }
         var loudness = createLoudnessGate()
         if (audio === null) {
@@ -155690,6 +155759,7 @@ window.__ModuleLoader__.load({
           }
           var shape = null
           var audioApi = typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null
+      if (audioApi !== null && typeof window !== 'undefined') window.__mpFoliaAudio = audioApi
           if (audioApi !== null && typeof audioApi.planBlendShape === 'function') {
             shape = audioApi.planBlendShape({
               overlap: plan.overlap,
@@ -156432,10 +156502,7 @@ window.__ModuleLoader__.load({
         // The song's ReplayGain tags; the balance uses them when it has no reading of its own.
         setTagGain: function (gain) {
           tagGainDb = gain && typeof gain.trackGain === 'number' ? gain : null
-          if (readPrefs().normalizeVolume !== false && balanceAppliedReading !== 'file') {
-            var record = currentItem() === null ? null : balanceRecordFor(currentItem().path)
-            applyBalanceChoice(chooseBalance({ played: record, tag: tagGainDb, typicalDb: typicalGainDb(balanceTypicalGains()) }))
-          }
+          if (readPrefs().normalizeVolume !== false) reconsiderBalance(null)
         },
         setReplayGain: function (db) {
           var value = Number(db)
@@ -158146,11 +158213,11 @@ window.__ModuleLoader__.load({
 
     // ── src/client/services/player/effects/volume-balance.js
     /**
-     * 音量平衡 — the decision Folia's `balanceRules.ts` makes for ReplayGain mode `auto`.
+     * 音量平衡 — Folia's `balanceRules.ts` decisions for ReplayGain mode `auto`.
      *
-     * Same constants and same order of trust: a whole-track reading beats a tag, a tag
-     * beats an estimate, and an estimate may only turn a song down. The reading itself
-     * (BS.1770 / EBU R128) lives in 35-loudness.js.
+     * Production asks the already-bundled Folia engine for the decision, because the
+     * engine and the player must share one rule set. The local implementation below
+     * is the fallback used by the pure tests / a runtime without Web Audio.
      */
 
     var VOLUME_BALANCE_TARGET_DB = -14
@@ -158159,6 +158226,35 @@ window.__ModuleLoader__.load({
     var TAG_TARGET_OFFSET_DB = 4
     var VOLUME_BALANCE_TYPICAL_SIZE = 20
     var VOLUME_BALANCE_TYPICAL_FALLBACK_DB = -5
+    var BALANCE_SILENCE_DB = -90
+    var BALANCE_SAME_GAIN_DB = 0.05
+    var BALANCE_EARLY_MOVE_SEC = 10
+    var BALANCE_EARLY_RAMP_SEC = 2
+    var BALANCE_LATE_MOVE_SEC = 30
+    var BALANCE_LATE_RAMP_SEC = 5
+    var BALANCE_LATE_MIN_CUT_DB = 3
+    var BALANCE_SET_RAMP_SEC = 0.1
+
+    var __mpBalanceAudio = null
+
+    function balanceAudioApi() {
+      if (__mpBalanceAudio !== null) return __mpBalanceAudio
+      if (typeof window !== 'undefined' && window.__mpFoliaAudio) {
+        __mpBalanceAudio = window.__mpFoliaAudio
+        return __mpBalanceAudio
+      }
+      if (typeof __mpAudioBundle !== 'function') return null
+      try {
+        __mpBalanceAudio = __mpAudioBundle()
+      } catch (error) {
+        __mpBalanceAudio = null
+      }
+      return __mpBalanceAudio
+    }
+
+    function isAudibleMeasurement(measured) {
+      return Boolean(measured && typeof measured.loudness === 'number' && measured.loudness > BALANCE_SILENCE_DB)
+    }
 
     /** A gain that may lift: no more than the cap, and only while the peak stays under the ceiling. */
     function liftWithinPeak(gainDb, peak) {
@@ -158168,53 +158264,109 @@ window.__ModuleLoader__.load({
       return Math.min(gainDb, VOLUME_BALANCE_MAX_BOOST_DB, Math.max(0, headroomDb))
     }
 
-    /** Median of the last readings, never a lift. */
-    function typicalGainDb(gains) {
+    function typicalGainDbFallback(gains) {
       var recent = (gains || [])
         .slice(-VOLUME_BALANCE_TYPICAL_SIZE)
-        .filter(function (value) {
-          return typeof value === 'number' && isFinite(value)
-        })
-        .sort(function (a, b) {
-          return a - b
-        })
+        .filter(function (value) { return typeof value === 'number' && isFinite(value) })
+        .sort(function (a, b) { return a - b })
       if (recent.length === 0) return VOLUME_BALANCE_TYPICAL_FALLBACK_DB
       var middle = Math.floor(recent.length / 2)
       var median = recent.length % 2 ? recent[middle] : (recent[middle - 1] + recent[middle]) / 2
       return Math.min(0, median)
     }
 
-    /**
-     * The most trusted reading available, and the gain it gives.
-     *
-     * @param {{ file?: {loudness:number, peak?:number}, tag?: {gainDb:number, peak?:number}, typicalDb?: number }} inputs
-     */
-    function chooseBalance(inputs) {
-      var file = inputs && inputs.file
-      if (file && typeof file.loudness === 'number' && file.loudness > -70) {
-        var measured = VOLUME_BALANCE_TARGET_DB - file.loudness
-        return { reading: 'file', gainDb: measured, effectiveGainDb: liftWithinPeak(measured, file.peak), estimated: false }
-      }
-      var played = inputs && inputs.played
-      if (played && typeof played.loudness === 'number' && played.loudness > -70) {
-        var fromPlayed = VOLUME_BALANCE_TARGET_DB - played.loudness
-        return { reading: 'played', gainDb: fromPlayed, effectiveGainDb: liftWithinPeak(fromPlayed, played.peak), estimated: false }
+    /** The exact Folia fallback when the engine bundle is unavailable. */
+    function chooseBalanceFallback(inputs) {
+      var whole = [
+        ['file', inputs && inputs.file],
+        ['played', inputs && inputs.played],
+        ['profile', inputs && inputs.profile],
+      ]
+      for (var i = 0; i < whole.length; i += 1) {
+        var reading = whole[i][0]
+        var measured = whole[i][1]
+        if (!isAudibleMeasurement(measured)) continue
+        var gainDb = VOLUME_BALANCE_TARGET_DB - measured.loudness
+        return { reading: reading, gainDb: gainDb, effectiveGainDb: liftWithinPeak(gainDb, measured.peak), estimated: false }
       }
       var tag = inputs && inputs.tag
       if (tag && typeof tag.gainDb === 'number' && isFinite(tag.gainDb)) {
         var fromTag = tag.gainDb + TAG_TARGET_OFFSET_DB
         return { reading: 'tag', gainDb: fromTag, effectiveGainDb: liftWithinPeak(fromTag, tag.peak), estimated: false }
       }
-      var live = inputs && typeof inputs.live === 'number' && isFinite(inputs.live) ? VOLUME_BALANCE_TARGET_DB - inputs.live : null
-      if (live !== null) {
-        // An estimate only turns a song down.
-        return { reading: 'live', gainDb: live, effectiveGainDb: Math.min(0, live), estimated: true }
+      var estimates = [
+        ['head', inputs && typeof inputs.head === 'number' ? VOLUME_BALANCE_TARGET_DB - inputs.head : null],
+        ['platform', inputs && typeof inputs.platformDb === 'number' ? inputs.platformDb : null],
+        ['live', inputs && typeof inputs.live === 'number' ? VOLUME_BALANCE_TARGET_DB - inputs.live : null],
+        ['typical', inputs && typeof inputs.typicalDb === 'number' ? inputs.typicalDb : null],
+      ]
+      for (var j = 0; j < estimates.length; j += 1) {
+        var estimate = estimates[j][1]
+        if (typeof estimate === 'number' && isFinite(estimate)) {
+          return { reading: estimates[j][0], gainDb: estimate, effectiveGainDb: Math.min(0, estimate), estimated: true }
+        }
       }
-      var typical =
-        inputs && typeof inputs.typicalDb === 'number' && isFinite(inputs.typicalDb)
-          ? inputs.typicalDb
-          : VOLUME_BALANCE_TYPICAL_FALLBACK_DB
-      return { reading: 'typical', gainDb: typical, effectiveGainDb: Math.min(0, typical), estimated: true }
+      return {
+        reading: 'typical',
+        gainDb: VOLUME_BALANCE_TYPICAL_FALLBACK_DB,
+        effectiveGainDb: VOLUME_BALANCE_TYPICAL_FALLBACK_DB,
+        estimated: true,
+      }
+    }
+
+    function chooseBalance(inputs) {
+      var api = balanceAudioApi()
+      if (api && typeof api.chooseBalance === 'function') return api.chooseBalance(inputs)
+      return chooseBalanceFallback(inputs)
+    }
+
+    function typicalGainDb(gains) {
+      var api = balanceAudioApi()
+      if (api && typeof api.typicalGainDb === 'function') return api.typicalGainDb(gains)
+      return typicalGainDbFallback(gains)
+    }
+
+    /**
+     * The Folia fallback: set before sound, one eased move in a play, hold while a
+     * blend is audible, otherwise null.
+     */
+    function planBalanceMoveFallback(question) {
+      var nextDb = Number(question.nextDb)
+      var currentDb = Number(question.currentDb) || 0
+      if (!isFinite(nextDb)) return null
+      if (Math.abs(nextDb - currentDb) < BALANCE_SAME_GAIN_DB) return null
+      if (question.playSec <= 0) return 'set'
+      if (question.moved) return null
+      var rampSec =
+        question.playSec < BALANCE_EARLY_MOVE_SEC
+          ? BALANCE_EARLY_RAMP_SEC
+          : question.playSec < BALANCE_LATE_MOVE_SEC && nextDb <= currentDb - BALANCE_LATE_MIN_CUT_DB
+            ? BALANCE_LATE_RAMP_SEC
+            : null
+      if (rampSec === null) return null
+      return question.blendAudible ? 'hold' : { rampSec: rampSec }
+    }
+
+    function planBalanceMove(question) {
+      var api = balanceAudioApi()
+      if (api && typeof api.planBalanceMove === 'function') return api.planBalanceMove(question)
+      return planBalanceMoveFallback(question)
+    }
+
+    /** Why a play does not describe the whole song, or null. */
+    function whyNotWholePlay(play, question) {
+      var api = balanceAudioApi()
+      if (api && typeof api.whyNotWholePlay === 'function') return api.whyNotWholePlay(play, question)
+      if (!play) return 'no play'
+      if (play.broken) return play.broken
+      if (question && question.clip) return 'not the whole song (' + question.clip + ')'
+      var duration = Number(question && question.duration)
+      if (!(Number.isFinite(duration) && duration > 0)) return 'length unknown'
+      var leadIn = Number(question && question.leadInSec) || 0
+      if (play.fromSec > Math.max(0, leadIn) + 2) return 'started at ' + play.fromSec.toFixed(1) + 's'
+      if (duration - play.toSec > 2) return 'stopped at ' + play.toSec.toFixed(1) + 's'
+      if (play.loudness <= BALANCE_SILENCE_DB) return 'silence'
+      return null
     }
 
     /** What the balance decided for the playing song, for the 音频增益 row. */
@@ -158226,30 +158378,6 @@ window.__ModuleLoader__.load({
         estimated: Boolean(choice && choice.estimated),
         reading: String((choice && choice.reading) || ''),
       })
-    }
-
-    /** Smaller differences are not a move. */
-    var BALANCE_SAME_GAIN_DB = 0.05
-    var BALANCE_EARLY_MOVE_SEC = 10
-    var BALANCE_EARLY_RAMP_SEC = 2
-    var BALANCE_LATE_MOVE_SEC = 30
-    var BALANCE_LATE_RAMP_SEC = 5
-    var BALANCE_LATE_MIN_CUT_DB = 3
-
-    /**
-     * What a better reading may do to a song already sounding: 'set' before it starts,
-     * the one eased move of the play, or null (the next play uses it).
-     */
-    function planBalanceMove(question) {
-      var nextDb = Number(question.nextDb)
-      var currentDb = Number(question.currentDb) || 0
-      if (!isFinite(nextDb)) return null
-      if (Math.abs(nextDb - currentDb) < BALANCE_SAME_GAIN_DB) return null
-      if (question.playSec <= 0) return 'set'
-      if (question.moved) return null
-      if (question.playSec < BALANCE_EARLY_MOVE_SEC) return BALANCE_EARLY_RAMP_SEC
-      if (question.playSec < BALANCE_LATE_MOVE_SEC && nextDb <= currentDb - BALANCE_LATE_MIN_CUT_DB) return BALANCE_LATE_RAMP_SEC
-      return null
     }
 
     // ── src/client/services/player/effects/balance-meter.js
@@ -158271,16 +158399,44 @@ window.__ModuleLoader__.load({
     var BALANCE_ABS_GATE_LUFS = -70
     var BALANCE_REL_GATE_LU = 10
     var BALANCE_LUFS_OFFSET_DB = -0.691
+    var BALANCE_MAX_RECORDS = 600
 
     function readBalanceStore() {
       try {
         var raw = window.localStorage.getItem(BALANCE_METER_KEY)
         var parsed = raw === null ? null : JSON.parse(raw)
         if (parsed === null || typeof parsed !== 'object') return { songs: {}, typical: [] }
-        return {
-          songs: parsed.songs && typeof parsed.songs === 'object' ? parsed.songs : {},
-          typical: Array.isArray(parsed.typical) ? parsed.typical : [],
-        }
+        var songs = {}
+        var sourceSongs = parsed.songs && typeof parsed.songs === 'object' ? parsed.songs : {}
+        Object.keys(sourceSongs).forEach(function (path) {
+          var entry = sourceSongs[path]
+          if (entry === null || typeof entry !== 'object') return
+          // v1 stored one flat reading; it was a whole-play reading.
+          if (typeof entry.loudness === 'number') {
+            songs[path] = {
+              played: { loudness: entry.loudness, peak: typeof entry.peak === 'number' ? entry.peak : null },
+              at: Number(entry.at) || 0,
+            }
+            return
+          }
+          var next = { at: Number(entry.at) || 0 }
+          if (entry.file && typeof entry.file.loudness === 'number') {
+            next.file = { loudness: entry.file.loudness, peak: typeof entry.file.peak === 'number' ? entry.file.peak : null }
+          }
+          if (entry.played && typeof entry.played.loudness === 'number') {
+            next.played = { loudness: entry.played.loudness, peak: typeof entry.played.peak === 'number' ? entry.played.peak : null }
+          }
+          if (next.file || next.played) songs[path] = next
+        })
+        var typical = []
+        ;(Array.isArray(parsed.typical) ? parsed.typical : []).forEach(function (entry, index) {
+          if (typeof entry === 'number' && isFinite(entry)) {
+            typical.push({ key: '', gainDb: entry })
+          } else if (entry && typeof entry.gainDb === 'number' && isFinite(entry.gainDb)) {
+            typical.push({ key: String(entry.key || ''), gainDb: entry.gainDb })
+          }
+        })
+        return { songs: songs, typical: typical.slice(-VOLUME_BALANCE_TYPICAL_SIZE) }
       } catch (error) {
         return { songs: {}, typical: [] }
       }
@@ -158296,43 +158452,60 @@ window.__ModuleLoader__.load({
       }
     }
 
-    /** The whole-play loudness of a song, when one was heard. */
+    /** The file and whole-play loudness records for a song, as Folia keeps them. */
     function balanceRecordFor(path) {
-      var entry = balanceStoreData.songs[path]
-      if (!entry || typeof entry.loudness !== 'number') return null
-      return { loudness: entry.loudness, peak: typeof entry.peak === 'number' ? entry.peak : null }
+      var entry = path ? balanceStoreData.songs[path] : null
+      if (!entry) return null
+      var record = {}
+      if (entry.file && typeof entry.file.loudness === 'number') record.file = entry.file
+      if (entry.played && typeof entry.played.loudness === 'number') record.played = entry.played
+      return record.file || record.played ? record : null
     }
 
-    /** The typical gain: the median of the last readings, never a lift. */
+    /** The gains of the last whole-track readings, oldest first. */
     function balanceTypicalGains() {
-      return balanceStoreData.typical.slice(-VOLUME_BALANCE_TYPICAL_SIZE)
+      return balanceStoreData.typical.slice(-VOLUME_BALANCE_TYPICAL_SIZE).map(function (entry) { return entry.gainDb })
     }
 
-    function noteBalanceReading(path, measured, gainDb) {
-      if (!path || !measured || typeof measured.loudness !== 'number') return
-      balanceStoreData.songs[path] = {
+    /** Count one whole-track gain once per song, as Folia's noteWholeReading does. */
+    function noteTypicalReading(path, gainDb) {
+      if (typeof gainDb !== 'number' || !isFinite(gainDb)) return
+      var key = String(path || '')
+      balanceStoreData.typical = balanceStoreData.typical.filter(function (entry) {
+        return entry.key !== key
+      })
+      balanceStoreData.typical.push({ key: key, gainDb: gainDb })
+      if (balanceStoreData.typical.length > VOLUME_BALANCE_TYPICAL_SIZE) {
+        balanceStoreData.typical = balanceStoreData.typical.slice(-VOLUME_BALANCE_TYPICAL_SIZE)
+      }
+    }
+
+    /** Keep a file / played reading; silence is not a reading. */
+    function noteBalanceMeasurement(path, kind, measured) {
+      if (!path || (kind !== 'file' && kind !== 'played')) return
+      if (!measured || typeof measured.loudness !== 'number') return
+      if (!(measured.loudness > -90)) return
+      var entry = balanceStoreData.songs[path] || {}
+      entry[kind] = {
         loudness: measured.loudness,
         peak: typeof measured.peak === 'number' ? measured.peak : null,
-        at: Date.now(),
       }
+      entry.at = Date.now()
+      balanceStoreData.songs[path] = entry
+      noteTypicalReading(path, VOLUME_BALANCE_TARGET_DB - measured.loudness)
       var keys = Object.keys(balanceStoreData.songs)
-      if (keys.length > 600) {
+      if (keys.length > BALANCE_MAX_RECORDS) {
         keys
-          .sort(function (a, b) {
-            return (balanceStoreData.songs[a].at || 0) - (balanceStoreData.songs[b].at || 0)
-          })
-          .slice(0, keys.length - 600)
-          .forEach(function (key) {
-            delete balanceStoreData.songs[key]
-          })
-      }
-      if (typeof gainDb === 'number' && isFinite(gainDb)) {
-        balanceStoreData.typical.push(gainDb)
-        if (balanceStoreData.typical.length > VOLUME_BALANCE_TYPICAL_SIZE) {
-          balanceStoreData.typical = balanceStoreData.typical.slice(-VOLUME_BALANCE_TYPICAL_SIZE)
-        }
+          .sort(function (a, b) { return (balanceStoreData.songs[a].at || 0) - (balanceStoreData.songs[b].at || 0) })
+          .slice(0, keys.length - BALANCE_MAX_RECORDS)
+          .forEach(function (key) { delete balanceStoreData.songs[key] })
       }
       writeBalanceStore()
+    }
+
+    /** v1 API kept for callers that only know a played reading. */
+    function noteBalanceReading(path, measured, _gainDb) {
+      noteBalanceMeasurement(path, 'played', measured)
     }
 
     /** K-weighting as two biquads, coefficients derived at the running sample rate. */
@@ -158506,14 +158679,11 @@ window.__ModuleLoader__.load({
       }
     }
 
-    /** A play heard the song whole: no seek, not a clip, from its start to near its end. */
-    function balanceWholePlay(play, durationSec) {
-      if (!play || typeof play.loudness !== 'number') return false
-      if (play.broken !== null) return false
-      if (play.loudness <= -70) return false
-      if (!(durationSec > 0)) return false
-      if (play.fromSec > 2) return false
-      return play.toSec >= durationSec - BALANCE_PLAY_MISS_TOLERANCE_SEC
+    /** Why this play is not the whole song, or null; the engine owns the rule. */
+    function balanceWholePlayIssue(play, durationSec) {
+      if (!play) return 'no play'
+      var issue = whyNotWholePlay(play, { duration: durationSec })
+      return issue === null || issue === undefined ? null : String(issue).trim()
     }
 
     // ── src/client/components/common/overlay.js

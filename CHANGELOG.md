@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 智能平衡
+
+- 智能平衡改用 Folia 音频 bundle 的 `chooseBalance` / `planBalanceMove` / `whyNotWholePlay` 作为权威规则（无 bundle 时保留纯 JS 回退），补齐 `profile` / `head` / `platform` 输入顺序、`blendAudible` 的 hold 和整曲 clip/lead-in 判定。
+- 响度记录改为 `file` / `played` 两份 `loudness + peak`，典型增益按歌曲去重；文件分析改在 22.05kHz、用 Folia 的 K-weighting 与 gated loudness，缓存测量值而不是最终 gain。
+
 ### 代码结构
 
 - `now-playing.js` 按职责拆到 `src/client/components/ui/now-playing/`：`index.js` 只保留页面编排与状态，`capsule.js`、`transport-pill.js`、`seek-bar.js`、`settings-panel.js`、`secondary-actions.js`、`sleep-menu.js`、`editor.js`、`lyrics-scroll.js`、`lyrics-timing.js`、`cover-accent.js`、`fullscreen.js` 各自承担一个组件或 hook；不再把所有功能塞进一个 3200 行文件。

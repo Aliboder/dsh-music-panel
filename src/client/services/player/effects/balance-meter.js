@@ -16,16 +16,44 @@ var BALANCE_STEP_SEC = 0.1
 var BALANCE_ABS_GATE_LUFS = -70
 var BALANCE_REL_GATE_LU = 10
 var BALANCE_LUFS_OFFSET_DB = -0.691
+var BALANCE_MAX_RECORDS = 600
 
 function readBalanceStore() {
   try {
     var raw = window.localStorage.getItem(BALANCE_METER_KEY)
     var parsed = raw === null ? null : JSON.parse(raw)
     if (parsed === null || typeof parsed !== 'object') return { songs: {}, typical: [] }
-    return {
-      songs: parsed.songs && typeof parsed.songs === 'object' ? parsed.songs : {},
-      typical: Array.isArray(parsed.typical) ? parsed.typical : [],
-    }
+    var songs = {}
+    var sourceSongs = parsed.songs && typeof parsed.songs === 'object' ? parsed.songs : {}
+    Object.keys(sourceSongs).forEach(function (path) {
+      var entry = sourceSongs[path]
+      if (entry === null || typeof entry !== 'object') return
+      // v1 stored one flat reading; it was a whole-play reading.
+      if (typeof entry.loudness === 'number') {
+        songs[path] = {
+          played: { loudness: entry.loudness, peak: typeof entry.peak === 'number' ? entry.peak : null },
+          at: Number(entry.at) || 0,
+        }
+        return
+      }
+      var next = { at: Number(entry.at) || 0 }
+      if (entry.file && typeof entry.file.loudness === 'number') {
+        next.file = { loudness: entry.file.loudness, peak: typeof entry.file.peak === 'number' ? entry.file.peak : null }
+      }
+      if (entry.played && typeof entry.played.loudness === 'number') {
+        next.played = { loudness: entry.played.loudness, peak: typeof entry.played.peak === 'number' ? entry.played.peak : null }
+      }
+      if (next.file || next.played) songs[path] = next
+    })
+    var typical = []
+    ;(Array.isArray(parsed.typical) ? parsed.typical : []).forEach(function (entry, index) {
+      if (typeof entry === 'number' && isFinite(entry)) {
+        typical.push({ key: '', gainDb: entry })
+      } else if (entry && typeof entry.gainDb === 'number' && isFinite(entry.gainDb)) {
+        typical.push({ key: String(entry.key || ''), gainDb: entry.gainDb })
+      }
+    })
+    return { songs: songs, typical: typical.slice(-VOLUME_BALANCE_TYPICAL_SIZE) }
   } catch (error) {
     return { songs: {}, typical: [] }
   }
@@ -41,43 +69,60 @@ function writeBalanceStore() {
   }
 }
 
-/** The whole-play loudness of a song, when one was heard. */
+/** The file and whole-play loudness records for a song, as Folia keeps them. */
 function balanceRecordFor(path) {
-  var entry = balanceStoreData.songs[path]
-  if (!entry || typeof entry.loudness !== 'number') return null
-  return { loudness: entry.loudness, peak: typeof entry.peak === 'number' ? entry.peak : null }
+  var entry = path ? balanceStoreData.songs[path] : null
+  if (!entry) return null
+  var record = {}
+  if (entry.file && typeof entry.file.loudness === 'number') record.file = entry.file
+  if (entry.played && typeof entry.played.loudness === 'number') record.played = entry.played
+  return record.file || record.played ? record : null
 }
 
-/** The typical gain: the median of the last readings, never a lift. */
+/** The gains of the last whole-track readings, oldest first. */
 function balanceTypicalGains() {
-  return balanceStoreData.typical.slice(-VOLUME_BALANCE_TYPICAL_SIZE)
+  return balanceStoreData.typical.slice(-VOLUME_BALANCE_TYPICAL_SIZE).map(function (entry) { return entry.gainDb })
 }
 
-function noteBalanceReading(path, measured, gainDb) {
-  if (!path || !measured || typeof measured.loudness !== 'number') return
-  balanceStoreData.songs[path] = {
+/** Count one whole-track gain once per song, as Folia's noteWholeReading does. */
+function noteTypicalReading(path, gainDb) {
+  if (typeof gainDb !== 'number' || !isFinite(gainDb)) return
+  var key = String(path || '')
+  balanceStoreData.typical = balanceStoreData.typical.filter(function (entry) {
+    return entry.key !== key
+  })
+  balanceStoreData.typical.push({ key: key, gainDb: gainDb })
+  if (balanceStoreData.typical.length > VOLUME_BALANCE_TYPICAL_SIZE) {
+    balanceStoreData.typical = balanceStoreData.typical.slice(-VOLUME_BALANCE_TYPICAL_SIZE)
+  }
+}
+
+/** Keep a file / played reading; silence is not a reading. */
+function noteBalanceMeasurement(path, kind, measured) {
+  if (!path || (kind !== 'file' && kind !== 'played')) return
+  if (!measured || typeof measured.loudness !== 'number') return
+  if (!(measured.loudness > -90)) return
+  var entry = balanceStoreData.songs[path] || {}
+  entry[kind] = {
     loudness: measured.loudness,
     peak: typeof measured.peak === 'number' ? measured.peak : null,
-    at: Date.now(),
   }
+  entry.at = Date.now()
+  balanceStoreData.songs[path] = entry
+  noteTypicalReading(path, VOLUME_BALANCE_TARGET_DB - measured.loudness)
   var keys = Object.keys(balanceStoreData.songs)
-  if (keys.length > 600) {
+  if (keys.length > BALANCE_MAX_RECORDS) {
     keys
-      .sort(function (a, b) {
-        return (balanceStoreData.songs[a].at || 0) - (balanceStoreData.songs[b].at || 0)
-      })
-      .slice(0, keys.length - 600)
-      .forEach(function (key) {
-        delete balanceStoreData.songs[key]
-      })
-  }
-  if (typeof gainDb === 'number' && isFinite(gainDb)) {
-    balanceStoreData.typical.push(gainDb)
-    if (balanceStoreData.typical.length > VOLUME_BALANCE_TYPICAL_SIZE) {
-      balanceStoreData.typical = balanceStoreData.typical.slice(-VOLUME_BALANCE_TYPICAL_SIZE)
-    }
+      .sort(function (a, b) { return (balanceStoreData.songs[a].at || 0) - (balanceStoreData.songs[b].at || 0) })
+      .slice(0, keys.length - BALANCE_MAX_RECORDS)
+      .forEach(function (key) { delete balanceStoreData.songs[key] })
   }
   writeBalanceStore()
+}
+
+/** v1 API kept for callers that only know a played reading. */
+function noteBalanceReading(path, measured, _gainDb) {
+  noteBalanceMeasurement(path, 'played', measured)
 }
 
 /** K-weighting as two biquads, coefficients derived at the running sample rate. */
@@ -251,12 +296,10 @@ function createBalanceMeter(left, right, audio) {
   }
 }
 
-/** A play heard the song whole: no seek, not a clip, from its start to near its end. */
-function balanceWholePlay(play, durationSec) {
-  if (!play || typeof play.loudness !== 'number') return false
-  if (play.broken !== null) return false
-  if (play.loudness <= -70) return false
-  if (!(durationSec > 0)) return false
-  if (play.fromSec > 2) return false
-  return play.toSec >= durationSec - BALANCE_PLAY_MISS_TOLERANCE_SEC
+/** Why this play is not the whole song, or null; the engine owns the rule. */
+function balanceWholePlayIssue(play, durationSec) {
+  if (!play) return 'no play'
+  var issue = whyNotWholePlay(play, { duration: durationSec })
+  return issue === null || issue === undefined ? null : String(issue).trim()
 }
+

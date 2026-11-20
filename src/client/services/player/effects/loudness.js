@@ -33,14 +33,14 @@ function loudnessCacheKey(item, blob) {
   return String(item.path || '') + '|' + String(blob.size || 0)
 }
 
-function lookupLoudnessGain(key) {
+function lookupLoudnessMeasurement(key) {
   var row = loudnessCache[key]
-  var gain = row && Number(row.gainDb)
-  return Number.isFinite(gain) ? gain : null
+  if (!row || typeof row.loudness !== 'number' || !Number.isFinite(row.loudness)) return null
+  return { loudness: row.loudness, peak: typeof row.peak === 'number' ? row.peak : null }
 }
 
-function storeLoudnessGain(key, gainDb) {
-  loudnessCache[key] = { gainDb: gainDb, at: Date.now() }
+function storeLoudnessMeasurement(key, measured) {
+  loudnessCache[key] = { loudness: measured.loudness, peak: measured.peak, at: Date.now() }
   var keys = Object.keys(loudnessCache)
   if (keys.length > 1200) {
     keys
@@ -57,20 +57,61 @@ function storeLoudnessGain(key, gainDb) {
 
 function loudnessContext() {
   if (loudnessDecoder !== null) return loudnessDecoder
-  var Ctor = window.AudioContext || window.webkitAudioContext
-  if (!Ctor) return null
+  // Folia decodes at 22.05 kHz so the file measurement and the live meter use
+  // the same analysis band. decodeAudioData resamples into this context.
+  var Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext
   try {
-    loudnessDecoder = new Ctor()
+    if (Offline) loudnessDecoder = new Offline(2, 1, 22050)
+    else loudnessDecoder = new (window.AudioContext || window.webkitAudioContext)()
   } catch (error) {
     loudnessDecoder = null
   }
   return loudnessDecoder
 }
 
+/** Folia's K-weighting + gated loudness, on a decoded buffer. */
+function lufsWithFoliaMath(buffer) {
+  var api = typeof balanceAudioApi === 'function' ? balanceAudioApi() : null
+  if (!api || typeof api.kWeightStep !== 'function' || typeof api.gatedLoudness !== 'function') return null
+  var sampleRate = buffer.sampleRate
+  var stepLength = Math.round(sampleRate / 10)
+  if (!(stepLength > 0)) return null
+  var channels = []
+  var filters = []
+  var count = Math.min(2, buffer.numberOfChannels)
+  for (var ch = 0; ch < count; ch += 1) {
+    channels.push(buffer.getChannelData(ch))
+    filters.push(api.kWeightStep(sampleRate))
+  }
+  if (channels.length === 0) return null
+  var steps = []
+  var power = 0
+  var filled = 0
+  var length = channels[0].length
+  for (var index = 0; index < length; index += 1) {
+    var weighted = 0
+    for (var c = 0; c < channels.length; c += 1) {
+      var value = filters[c](channels[c][index])
+      weighted += value * value
+    }
+    power += weighted
+    filled += 1
+    if (filled === stepLength) {
+      steps.push(power / stepLength)
+      power = 0
+      filled = 0
+    }
+  }
+  var lufs = api.gatedLoudness(steps)
+  return Number.isFinite(lufs) && lufs > -90 ? lufs : null
+}
+
 /** Integrated loudness in LUFS, following ITU-R BS.1770-4 / EBU R128. */
 function lufsFromAudioBuffer(buffer) {
   var Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext
   if (!Offline) return Promise.reject(new Error('OfflineAudioContext unavailable'))
+  var folia = lufsWithFoliaMath(buffer)
+  if (folia !== null) return Promise.resolve(folia)
   return new Promise(function (resolve, reject) {
     var offline
     try {
@@ -160,13 +201,13 @@ function peakOfAudioBuffer(buffer) {
   return peak
 }
 
-function analyzeLoudnessBlob(item, blob, isCurrent, onGain) {
+function analyzeLoudnessBlob(item, blob, isCurrent, onMeasured) {
   if (!item || !blob || typeof isCurrent !== 'function') return Promise.resolve(null)
   var key = loudnessCacheKey(item, blob)
-  var cached = lookupLoudnessGain(key)
+  var cached = lookupLoudnessMeasurement(key)
   if (cached !== null) {
-    setBalanceChoice({ reading: 'file', effectiveGainDb: cached, estimated: false })
-    if (isCurrent() && typeof onGain === 'function') onGain(cached)
+    noteBalanceMeasurement(item.path, 'file', cached)
+    if (isCurrent() && typeof onMeasured === 'function') onMeasured(cached)
     return Promise.resolve(cached)
   }
   var decoder = loudnessContext()
@@ -184,12 +225,11 @@ function analyzeLoudnessBlob(item, blob, isCurrent, onGain) {
     })
     .then(function (lufs) {
       if (lufs === null || !isCurrent()) return null
-      var choice = chooseBalance({ file: { loudness: lufs, peak: peakOfAudioBuffer(measuredBuffer) } })
-      setBalanceChoice(choice)
-      var gainDb = clamp(choice.effectiveGainDb, -15, VOLUME_BALANCE_MAX_BOOST_DB)
-      storeLoudnessGain(key, gainDb)
-      if (typeof onGain === 'function') onGain(gainDb)
-      return gainDb
+      var measured = { loudness: lufs, peak: peakOfAudioBuffer(measuredBuffer) }
+      noteBalanceMeasurement(item.path, 'file', measured)
+      storeLoudnessMeasurement(key, measured)
+      if (typeof onMeasured === 'function') onMeasured(measured)
+      return measured
     })
     .catch(function () {
       // Corrupt/unsupported file: keep the user volume.

@@ -588,6 +588,15 @@
 
 ---
 
+## 66. 智能平衡只有常量像 Folia
+
+- **现象**：目标 -14 LUFS、+6 dB 等常量与 Folia 相同，但同一首歌的 dB 和播放中移动仍可能不同。
+- **原因**：本地只实现了 file/played/tag/live/typical 五级来源；缺少 profile/head/platform，typical 不去重，实时 meter 用本地简化记录，文件缓存的是最终 gain，播放中也没有 blend hold。
+- **处理**：生产规则直接使用 `MPAudio.chooseBalance` / `planBalanceMove` / `whyNotWholePlay`；记录改为 file/played 的 loudness+peak，typical 按歌曲 key 去重；文件分析改用 22.05kHz + Folia K-weighting/gated loudness；播放中按规则 ramp/hold。
+- **防回归**：不要把“常量一致”当成算法一致；修改平衡时先核对 Folia 的输入顺序、记录结构和 mover 返回值。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

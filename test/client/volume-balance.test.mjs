@@ -37,6 +37,9 @@ assert.equal(chooseBalance({ played: { loudness: -20 }, tag: { gainDb: -3 } }).r
 
 // A tag adds the 4 dB offset that ReplayGain 2 tags are short by.
 assert.equal(chooseBalance({ tag: { gainDb: -6 } }).gainDb, -2)
+assert.equal(chooseBalance({ profile: { loudness: -20 }, tag: { gainDb: -6 } }).reading, 'profile')
+assert.equal(chooseBalance({ head: -20, typicalDb: -5 }).reading, 'head')
+assert.equal(chooseBalance({ platformDb: -3, typicalDb: -5 }).reading, 'platform')
 
 // Estimates only turn down.
 assert.equal(chooseBalance({ live: -20 }).effectiveGainDb, 0)
@@ -54,8 +57,9 @@ assert.equal(liftWithinPeak(-3, 5), -3)
 
 // Moves: before sound it is a set; early in a play it eases in; later only a 3 dB cut.
 assert.equal(planBalanceMove({ playSec: 0, moved: false, currentDb: 0, nextDb: -4 }), 'set')
-assert.equal(planBalanceMove({ playSec: 5, moved: false, currentDb: 0, nextDb: -4 }), 2)
-assert.equal(planBalanceMove({ playSec: 20, moved: false, currentDb: 0, nextDb: -4 }), 5)
+assert.deepEqual(planBalanceMove({ playSec: 5, moved: false, currentDb: 0, nextDb: -4 }), { rampSec: 2 })
+assert.deepEqual(planBalanceMove({ playSec: 20, moved: false, currentDb: 0, nextDb: -4 }), { rampSec: 5 })
+assert.equal(planBalanceMove({ playSec: 5, moved: false, currentDb: 0, nextDb: -4, blendAudible: true }), 'hold')
 assert.equal(planBalanceMove({ playSec: 20, moved: false, currentDb: 0, nextDb: -1 }), null)
 assert.equal(planBalanceMove({ playSec: 5, moved: true, currentDb: 0, nextDb: -4 }), null)
 assert.equal(planBalanceMove({ playSec: 5, moved: false, currentDb: -4, nextDb: -4 }), null)
