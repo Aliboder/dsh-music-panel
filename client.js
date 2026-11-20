@@ -8677,6 +8677,7 @@ window.__ModuleLoader__.load({
         'p3.discoverEmptyHint': '当前平台没有可展示的每日推荐或推荐歌单。',
         'p3.cloudEmpty': '云盘为空',
         'p3.cloudEmptyHint': '登录后，音乐云盘里的歌曲会显示在这里。',
+        'p3.cloudEmptyHintSignedIn': '这个账号的云盘里还没有歌曲，在平台客户端上传后就会出现在这里。',
         'p3.subscribe': '订阅',
         'p3.subscribed': '已订阅',
         'p3.removeFromPlaylist': '从当前歌单移除',
@@ -9370,6 +9371,7 @@ window.__ModuleLoader__.load({
         'p3.discoverEmptyHint': 'This platform has no daily picks or recommended playlists to show.',
         'p3.cloudEmpty': 'Cloud drive is empty',
         'p3.cloudEmptyHint': 'Songs in your music cloud drive appear here after signing in.',
+        'p3.cloudEmptyHintSignedIn': 'This account has no cloud files yet — files uploaded in the platform app appear here.',
         'p3.subscribe': 'Subscribe',
         'p3.subscribed': 'Subscribed',
         'p3.removeFromPlaylist': 'Remove from this playlist',
@@ -173020,7 +173022,7 @@ window.__ModuleLoader__.load({
       }
       if (state.items.length === 0) {
         return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
-          h(P3Empty, { icon: 'download', title: t('p3.cloudEmpty'), hint: t('p3.cloudEmptyHint') }),
+          h(P3Empty, { icon: 'download', title: t('p3.cloudEmpty'), hint: p3SourceLoggedIn(source) ? t('p3.cloudEmptyHintSignedIn') : t('p3.cloudEmptyHint') }),
         )
       }
       var more = state.hasMore === true

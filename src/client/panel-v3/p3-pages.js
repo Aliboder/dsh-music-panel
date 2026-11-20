@@ -687,7 +687,7 @@ function P3CloudPage(props) {
   }
   if (state.items.length === 0) {
     return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
-      h(P3Empty, { icon: 'download', title: t('p3.cloudEmpty'), hint: t('p3.cloudEmptyHint') }),
+      h(P3Empty, { icon: 'download', title: t('p3.cloudEmpty'), hint: p3SourceLoggedIn(source) ? t('p3.cloudEmptyHintSignedIn') : t('p3.cloudEmptyHint') }),
     )
   }
   var more = state.hasMore === true
