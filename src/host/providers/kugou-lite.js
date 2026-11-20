@@ -309,8 +309,9 @@ async function songAuth(session, song) {
 
 function kgReplayGainOf(payload) {
   if (!payload || typeof payload !== 'object') return null
-  const gain = Number(payload.volume)
-  const peakDb = Number(payload.volume_peak)
+  const row = payload.data && typeof payload.data === 'object' ? payload.data : payload
+  const gain = Number(row.volume)
+  const peakDb = Number(row.volume_peak)
   const trackGain = Number.isFinite(gain) ? gain : null
   const trackPeak = Number.isFinite(peakDb) ? Math.pow(10, peakDb / 20) : null
   if (trackGain === null && trackPeak === null) return null
