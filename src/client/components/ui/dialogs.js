@@ -1096,10 +1096,10 @@ function TagDialog(props) {
       return line.trim() !== ''
     }).length
 
-  function section(title, body, extra) {
+  function section(title, body, extra, className) {
     return h(
       'section',
-      { className: 'mp-meta-section' },
+      { className: 'mp-meta-section' + (className ? ' ' + className : '') },
       h(
         'div',
         { className: 'mp-meta-section-head' },
@@ -1122,46 +1122,50 @@ function TagDialog(props) {
           error !== '' ? h('div', { className: 'mp-meta-error', role: 'alert' }, error) : null,
           h(
             'div',
-            { className: 'mp-meta-layout' },
+            { className: 'mp-meta-hero' },
+            h(Cover, { src: coverSrc, className: 'mp-meta-cover', iconSize: 40 }),
             h(
-              'aside',
-              { className: 'mp-meta-preview' },
-              h(Cover, { src: coverSrc, className: 'mp-meta-cover', iconSize: 52 }),
+              'div',
+              { className: 'mp-meta-identity' },
               h('div', { className: 'mp-meta-title' }, form.title || fileName || t('page.editMeta')),
               h('div', { className: 'mp-meta-artist' }, form.artist || t('page.unknownArtist')),
               h(
                 'div',
                 { className: 'mp-meta-source' },
-                [tags && tags.format, fileName].filter(Boolean).join(' · '),
+                tags && tags.format ? h(KitTag, { tone: 'neutral' }, tags.format) : null,
+                h('span', { className: 'mp-meta-file' }, fileName),
               ),
-              h(
-                'div',
-                { className: 'mp-meta-actions' },
-                h(
-                  Button,
-                  { icon: 'search', disabled: busy, onClick: openOnlineLyric },
-                  t('page.onlineLyrics'),
-                ),
-                coverPreview !== null
-                  ? h(
-                      Button,
-                      {
-                        variant: 'ghost',
-                        icon: 'refresh',
-                        disabled: busy,
-                        onClick: function () {
-                          setCoverPreview(null)
-                        },
-                      },
-                      t('page.resetCover'),
-                    )
-                  : null,
-              ),
-              h('p', { className: 'mp-meta-hint' }, t('page.metaHint')),
             ),
             h(
               'div',
-              { className: 'mp-meta-fields' },
+              { className: 'mp-meta-actions' },
+              h(
+                Button,
+                { icon: 'search', disabled: busy, onClick: openOnlineLyric },
+                t('page.onlineLyrics'),
+              ),
+              coverPreview !== null
+                ? h(
+                    Button,
+                    {
+                      variant: 'ghost',
+                      icon: 'refresh',
+                      disabled: busy,
+                      onClick: function () {
+                        setCoverPreview(null)
+                      },
+                    },
+                    t('page.resetCover'),
+                  )
+                : null,
+            ),
+          ),
+          h(
+            'div',
+            { className: 'mp-meta-work' },
+            h(
+              'div',
+              { className: 'mp-meta-main' },
               section(
                 t('page.metaBasic'),
                 h(
@@ -1197,27 +1201,29 @@ function TagDialog(props) {
                   ),
                 ],
               ),
-              section(
-                t('page.lyrics'),
-                h(
-                  'label',
-                  { className: 'mp-meta-field is-wide' },
-                  h('span', { className: 'mp-meta-label' }, t('page.lyrics')),
-                  h('textarea', {
-                    className: 'mp-meta-textarea',
-                    rows: 10,
-                    value: form.lyrics || '',
-                    placeholder: t('page.lyricsPlaceholder'),
-                    disabled: busy,
-                    onChange: function (event) {
-                      setField('lyrics', event.target.value)
-                    },
-                  }),
-                ),
-                h('span', { className: 'mp-meta-count' }, t('page.lyricsLineCount', { n: lyricLineCount })),
+            ),
+            section(
+              t('page.lyrics'),
+              h(
+                'label',
+                { className: 'mp-meta-field is-wide' },
+                h('span', { className: 'mp-meta-label' }, t('page.lyrics')),
+                h('textarea', {
+                  className: 'mp-meta-textarea',
+                  rows: 14,
+                  value: form.lyrics || '',
+                  placeholder: t('page.lyricsPlaceholder'),
+                  disabled: busy,
+                  onChange: function (event) {
+                    setField('lyrics', event.target.value)
+                  },
+                }),
               ),
+              h('span', { className: 'mp-meta-count' }, t('page.lyricsLineCount', { n: lyricLineCount })),
+              'mp-meta-lyrics',
             ),
           ),
+          h('p', { className: 'mp-meta-note' }, t('page.metaHint')),
         )
 
   return h(

@@ -161603,21 +161603,24 @@ window.__ModuleLoader__.load({
 
       // ── selection / batch / match / lyric search ───────────────────────────
       '.mp-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-meta-modal{width:min(880px,calc(100vw - 48px))}',
-      '.mp-meta-body{max-height:min(70vh,760px);overflow-y:auto;padding-right:4px;scrollbar-width:thin;overscroll-behavior:contain}',
-      '.mp-meta-layout{display:grid;grid-template-columns:188px minmax(0,1fr);gap:24px;align-items:start;min-width:0}',
-      '.mp-meta-preview{position:sticky;top:0;display:flex;flex-direction:column;gap:12px;min-width:0;padding:16px;border:.5px solid var(--dsw-alias-settings-card-stroke,rgba(255,255,255,.12));border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-settings-card-fill,rgba(255,255,255,.03))}',
-      '.mp-meta-cover{width:100%;aspect-ratio:1;border-radius:var(--dsw-radius-lg,16px);flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));display:grid;place-items:center;overflow:hidden;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-meta-modal{width:min(960px,calc(100vw - 48px))}',
+      '.mp-meta-body{max-height:min(78vh,840px);overflow-y:auto;padding-right:4px;scrollbar-width:thin;overscroll-behavior:contain}',
+      '.mp-meta-hero{display:flex;align-items:center;gap:16px;width:100%;max-width:840px;margin:0 auto;padding:16px;box-sizing:border-box;border:.5px solid var(--dsw-alias-settings-card-stroke,rgba(255,255,255,.12));border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-settings-card-fill,rgba(255,255,255,.03));min-width:0}',
+      '.mp-meta-cover{width:96px;height:96px;border-radius:var(--dsw-radius-lg,16px);flex:none;background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));display:grid;place-items:center;overflow:hidden;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-meta-cover img{width:100%;height:100%;object-fit:cover}',
-      '.mp-meta-title{font-size:16px;line-height:22px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-meta-artist{font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#a1a1aa);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-meta-source{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-meta-actions{display:flex;flex-direction:column;gap:8px}',
-      '.mp-meta-actions .mp-btn{width:100%;justify-content:center}',
-      '.mp-meta-hint{margin:0;font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mp-meta-fields{display:flex;flex-direction:column;min-width:0}',
-      '.mp-meta-section{padding:0 0 22px;min-width:0}',
-      '.mp-meta-section+.mp-meta-section{padding-top:22px;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-meta-identity{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}',
+      '.mp-meta-title{font-size:20px;line-height:28px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-meta-artist{font-size:13px;line-height:20px;color:var(--dsw-alias-label-secondary,#a1a1aa);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-meta-source{display:flex;align-items:center;gap:8px;min-width:0;color:var(--dsw-alias-label-tertiary,#8a8a93);font-size:12px;line-height:18px}',
+      '.mp-meta-file{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}',
+      '.mp-meta-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;flex:none}',
+      '.mp-meta-work{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start;width:100%;max-width:840px;margin:0 auto;padding-top:24px;min-width:0}',
+      '.mp-meta-main{display:flex;flex-direction:column;min-width:0}',
+      '.mp-meta-section.mp-meta-lyrics{padding:16px;border:.5px solid var(--dsw-alias-settings-card-stroke,rgba(255,255,255,.12));border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-settings-card-fill,rgba(255,255,255,.03))}',
+      '.mp-meta-lyrics .mp-meta-textarea{min-height:360px}',
+      '.mp-meta-section{padding:0 0 24px;min-width:0}',
+      '.mp-meta-section+.mp-meta-section{padding-top:24px;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-meta-note{width:100%;max-width:840px;margin:0 auto;padding:16px 0 0;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-meta-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;min-width:0}',
       '.mp-meta-section-head .mp-set-label{margin:0}',
       '.mp-meta-section-extra{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;min-width:0}',
@@ -161626,7 +161629,7 @@ window.__ModuleLoader__.load({
       '.mp-meta-field.is-wide{grid-column:1/-1}',
       '.mp-meta-label{font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mp-meta-field .mp-kit-input-wrap,.mp-meta-field .mp-meta-input{width:100%}',
-      '.mp-meta-textarea{box-sizing:border-box;width:100%;min-height:180px;padding:10px 12px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-bg-layer-1,rgba(255,255,255,.03));color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:13px;line-height:20px;outline:none;resize:vertical}',
+      '.mp-meta-textarea{box-sizing:border-box;width:100%;min-height:240px;padding:10px 12px;border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.12));border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-bg-layer-1,rgba(255,255,255,.03));color:var(--dsw-alias-label-primary,#f4f4f5);font:inherit;font-size:13px;line-height:20px;outline:none;resize:vertical}',
       '.mp-meta-textarea::placeholder{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-meta-textarea:focus-visible{border-color:var(--dsw-alias-state-business-primary,#4176E6);box-shadow:0 0 0 var(--dsw-focus-ring-width,2px) var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6))}',
       '.mp-meta-count{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93);white-space:nowrap}',
@@ -161818,8 +161821,8 @@ window.__ModuleLoader__.load({
       '@media (max-width:720px){.mp-sheet-nav{padding-right:48px}.mp-sheet-close{top:8px;right:8px}.mp-sheet{width:calc(100vw - 16px);height:calc(100dvh - 16px);grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.mp-sheet-nav{flex-direction:row;align-items:center;gap:4px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));padding:8px}.mp-sheet-title{display:none}.mp-sheet-tab{flex:none;white-space:nowrap;height:30px}.mp-sheet-nav>div:last-child{margin-top:0!important;margin-left:auto}.mp-sheet-body{padding:12px 14px 18px}}',
       '@media (max-width:620px){.mp-online-grid{grid-template-columns:1fr}.mp-online-name{font-size:13px}}',
       '@media (max-width:620px){.mp-set-row{flex-direction:column;align-items:stretch;gap:6px}.mp-set-text{flex:0 0 auto}.mp-set-control{justify-content:flex-start;margin-left:0}.mp-set-control select,.mp-range{max-width:100%}}',
-      '@media (max-width:900px){.mp-meta-modal{width:calc(100vw - 24px)}.mp-meta-layout{grid-template-columns:168px minmax(0,1fr);gap:16px}}',
-      '@media (max-width:760px){.mp-meta-layout{grid-template-columns:1fr}.mp-meta-preview{position:static;display:grid;grid-template-columns:96px minmax(0,1fr);align-items:start;column-gap:12px;row-gap:4px}.mp-meta-cover{width:96px;height:96px;grid-row:1/4}.mp-meta-title,.mp-meta-artist,.mp-meta-source{grid-column:2}.mp-meta-actions,.mp-meta-hint{grid-column:1/-1}.mp-meta-actions{flex-direction:row;flex-wrap:wrap}.mp-meta-actions .mp-btn{width:auto;flex:1 1 140px}.mp-meta-body{max-height:min(68vh,620px)}}',
+      '@media (max-width:900px){.mp-meta-modal{width:calc(100vw - 24px)}}',
+      '@media (max-width:760px){.mp-meta-hero{flex-wrap:wrap;align-items:flex-start}.mp-meta-cover{width:80px;height:80px}.mp-meta-actions{width:100%;justify-content:flex-start;margin-top:4px}.mp-meta-actions .mp-btn{flex:1 1 140px;justify-content:center}.mp-meta-body{max-height:min(70vh,620px)}.mp-meta-work{grid-template-columns:1fr}.mp-meta-lyrics .mp-meta-textarea{min-height:200px}}',
       '@media (max-width:620px){.mp-meta-grid{grid-template-columns:1fr}.mp-meta-footer{flex-wrap:wrap}.mp-meta-footer .mp-btn{flex:1}}',
       '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
       '@media (prefers-reduced-motion:reduce){.mp-np-line-trans{transition:none}.mp-np.is-trans .mp-np-line-trans{transition:none}}',
@@ -170103,10 +170106,10 @@ window.__ModuleLoader__.load({
           return line.trim() !== ''
         }).length
 
-      function section(title, body, extra) {
+      function section(title, body, extra, className) {
         return h(
           'section',
-          { className: 'mp-meta-section' },
+          { className: 'mp-meta-section' + (className ? ' ' + className : '') },
           h(
             'div',
             { className: 'mp-meta-section-head' },
@@ -170129,46 +170132,50 @@ window.__ModuleLoader__.load({
               error !== '' ? h('div', { className: 'mp-meta-error', role: 'alert' }, error) : null,
               h(
                 'div',
-                { className: 'mp-meta-layout' },
+                { className: 'mp-meta-hero' },
+                h(Cover, { src: coverSrc, className: 'mp-meta-cover', iconSize: 40 }),
                 h(
-                  'aside',
-                  { className: 'mp-meta-preview' },
-                  h(Cover, { src: coverSrc, className: 'mp-meta-cover', iconSize: 52 }),
+                  'div',
+                  { className: 'mp-meta-identity' },
                   h('div', { className: 'mp-meta-title' }, form.title || fileName || t('page.editMeta')),
                   h('div', { className: 'mp-meta-artist' }, form.artist || t('page.unknownArtist')),
                   h(
                     'div',
                     { className: 'mp-meta-source' },
-                    [tags && tags.format, fileName].filter(Boolean).join(' · '),
+                    tags && tags.format ? h(KitTag, { tone: 'neutral' }, tags.format) : null,
+                    h('span', { className: 'mp-meta-file' }, fileName),
                   ),
-                  h(
-                    'div',
-                    { className: 'mp-meta-actions' },
-                    h(
-                      Button,
-                      { icon: 'search', disabled: busy, onClick: openOnlineLyric },
-                      t('page.onlineLyrics'),
-                    ),
-                    coverPreview !== null
-                      ? h(
-                          Button,
-                          {
-                            variant: 'ghost',
-                            icon: 'refresh',
-                            disabled: busy,
-                            onClick: function () {
-                              setCoverPreview(null)
-                            },
-                          },
-                          t('page.resetCover'),
-                        )
-                      : null,
-                  ),
-                  h('p', { className: 'mp-meta-hint' }, t('page.metaHint')),
                 ),
                 h(
                   'div',
-                  { className: 'mp-meta-fields' },
+                  { className: 'mp-meta-actions' },
+                  h(
+                    Button,
+                    { icon: 'search', disabled: busy, onClick: openOnlineLyric },
+                    t('page.onlineLyrics'),
+                  ),
+                  coverPreview !== null
+                    ? h(
+                        Button,
+                        {
+                          variant: 'ghost',
+                          icon: 'refresh',
+                          disabled: busy,
+                          onClick: function () {
+                            setCoverPreview(null)
+                          },
+                        },
+                        t('page.resetCover'),
+                      )
+                    : null,
+                ),
+              ),
+              h(
+                'div',
+                { className: 'mp-meta-work' },
+                h(
+                  'div',
+                  { className: 'mp-meta-main' },
                   section(
                     t('page.metaBasic'),
                     h(
@@ -170204,27 +170211,29 @@ window.__ModuleLoader__.load({
                       ),
                     ],
                   ),
-                  section(
-                    t('page.lyrics'),
-                    h(
-                      'label',
-                      { className: 'mp-meta-field is-wide' },
-                      h('span', { className: 'mp-meta-label' }, t('page.lyrics')),
-                      h('textarea', {
-                        className: 'mp-meta-textarea',
-                        rows: 10,
-                        value: form.lyrics || '',
-                        placeholder: t('page.lyricsPlaceholder'),
-                        disabled: busy,
-                        onChange: function (event) {
-                          setField('lyrics', event.target.value)
-                        },
-                      }),
-                    ),
-                    h('span', { className: 'mp-meta-count' }, t('page.lyricsLineCount', { n: lyricLineCount })),
+                ),
+                section(
+                  t('page.lyrics'),
+                  h(
+                    'label',
+                    { className: 'mp-meta-field is-wide' },
+                    h('span', { className: 'mp-meta-label' }, t('page.lyrics')),
+                    h('textarea', {
+                      className: 'mp-meta-textarea',
+                      rows: 14,
+                      value: form.lyrics || '',
+                      placeholder: t('page.lyricsPlaceholder'),
+                      disabled: busy,
+                      onChange: function (event) {
+                        setField('lyrics', event.target.value)
+                      },
+                    }),
                   ),
+                  h('span', { className: 'mp-meta-count' }, t('page.lyricsLineCount', { n: lyricLineCount })),
+                  'mp-meta-lyrics',
                 ),
               ),
+              h('p', { className: 'mp-meta-note' }, t('page.metaHint')),
             )
 
       return h(
