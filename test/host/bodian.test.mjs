@@ -145,6 +145,33 @@ assert.equal(sessions.get(), null)
   assert.equal(playable.coverUrl, 'https://img1.kuwo.cn/a.jpg', 'kuwo http artwork is upgraded to https')
 }
 
+// Likes are a provider capability, not a UI-only affordance: read, write, and the
+// namespaced ids the player's heart consumes all go through the source.
+{
+  const calls = []
+  const source = createBodianSource({
+    deviceId: 'a'.repeat(32),
+    sessions: createMemorySessions(),
+    createApi: () => ({
+      request: async (operation, params) => {
+        calls.push([operation, params])
+        if (operation === 'liked_songs') {
+          return { ok: true, data: { list: [{ id: 11 }, { id: 12 }], total: 2 } }
+        }
+        if (operation === 'like_song') return { ok: true, data: {} }
+        return { ok: true, data: {} }
+      },
+    }),
+  })
+  assert.equal(source.capabilities.likes, true)
+  assert.equal(source.capabilities.likeWrite, true)
+  assert.deepEqual(await source.likedIds(), ['online:bodian:11', 'online:bodian:12'])
+  assert.equal(await source.liked(11), true)
+  assert.equal(await source.setLiked({ id: 11 }, false), true)
+  const likeCall = calls.find(([operation]) => operation === 'like_song')
+  assert.deepEqual(likeCall[1], { id: '11', liked: false })
+}
+
 // Sign-out is complete: the stored session is cleared, and the route's optional
 // `forgetTokens` call has an implementation (a missing one crashed the Host).
 {

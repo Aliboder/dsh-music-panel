@@ -173,10 +173,10 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   assert.equal(builtinRegistry.get('navidrome').capabilities.loginPassword, true)
   assert.equal(builtinRegistry.get('navidrome').capabilities.loginQr, false)
   assert.equal(builtinRegistry.get('qq').capabilities.search, true)
-  // A declared capability must be executable: KuGou Concept reads likes but
-  // cannot write them or add to a cloud playlist yet.
+  // A declared capability must be executable: KuGou Concept reads and writes likes
+  // through its cloudlist endpoints, but still has no cloud playlist add.
   assert.equal(builtinRegistry.get('kugouLite').capabilities.likes, true)
-  assert.equal(builtinRegistry.get('kugouLite').capabilities.likeWrite, false)
+  assert.equal(builtinRegistry.get('kugouLite').capabilities.likeWrite, true)
   assert.equal(builtinRegistry.get('kugouLite').capabilities.playlistAdd, false)
   assert.equal(builtinRegistry.get('kugouLite').capabilities.mutations, false)
   assert.equal(builtinRegistry.get('netease').capabilities.listeningRank, true)

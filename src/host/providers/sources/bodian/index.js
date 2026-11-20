@@ -153,6 +153,8 @@ export function createBodianSource(options) {
     loginQr: true,
     artists: true,
     albums: true,
+    likes: true,
+    likeWrite: true,
   })
 
   async function request(operation, params) {
@@ -366,6 +368,39 @@ export function createBodianSource(options) {
         throw new MusicError('this track has no lyrics', { code: 'not-playable', sourceId: SOURCE_ID })
       }
       return { lrc: text, translation: String(data?.transText ?? data?.translation ?? '') }
+    },
+
+    async liked(id) {
+      const ids = await this.likedIds()
+      return ids.includes('online:' + SOURCE_ID + ':' + String(id))
+    },
+
+    async likedIds() {
+      const ids = []
+      const seen = new Set()
+      for (let page = 0, offset = 0; page < 50; page += 1, offset += 100) {
+        const data = await request('liked_songs', { limit: 100, offset })
+        const rows = Array.isArray(data?.list) ? data.list : []
+        let added = 0
+        for (const row of rows) {
+          const id = String(row?.id ?? '')
+          if (id === '' || seen.has(id)) continue
+          seen.add(id)
+          ids.push('online:' + SOURCE_ID + ':' + id)
+          added += 1
+        }
+        const total = Number(data?.total)
+        if (rows.length < 100 || added === 0) break
+        if (Number.isFinite(total) && offset + rows.length >= total) break
+      }
+      return ids
+    },
+
+    async setLiked(song, on) {
+      const id = String(song?.id ?? song ?? '')
+      if (id === '') throw new MusicError('missing song id', { code: 'not-playable', sourceId: SOURCE_ID })
+      await request('like_song', { id, liked: on === true })
+      return true
     },
 
     // Facade methods so `omni.loginStart/loginStatus` work like any other source.

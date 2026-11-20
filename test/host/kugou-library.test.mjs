@@ -4,6 +4,7 @@
 
 import assert from 'node:assert/strict'
 import { addSongToPlaylist, deleteSongFromPlaylist, getMyPlaylistSongs, getMyPlaylists } from '../../src/host/providers/kugou.js'
+import { setLiked as setLiteLiked } from '../../src/host/providers/kugou-lite.js'
 import { resetUpstreamOverride, setUpstreamOverride } from '../../src/host/services/kugou-api.js'
 
 const calls = []
@@ -68,6 +69,18 @@ assert.equal(addCall[1].data, 'Song|kg-hash|1|2')
 assert.equal(await deleteSongFromPlaylist(916, 2, session), true)
 const delCall = calls.find(([operation]) => operation === 'playlist_tracks_del')
 assert.equal(delCall[1].fileids, '916')
+
+// The concept client writes likes through the same cloudlist endpoints. It must
+// resolve the liked playlist's listid and the song's row id inside that playlist.
+calls.length = 0
+assert.equal(await setLiteLiked({ hash: 'kg-hash', title: 'Song', albumId: 1, mixSongId: 2 }, true, session), true)
+const liteAdd = calls.find(([operation]) => operation === 'playlist_tracks_add')
+assert.equal(liteAdd[1].listid, '2')
+assert.equal(liteAdd[1].data, 'Song|kg-hash|1|2')
+assert.equal(await setLiteLiked({ hash: 'kg-hash', title: 'Song' }, false, session), true)
+const liteDel = calls.find(([operation]) => operation === 'playlist_tracks_del')
+assert.equal(liteDel[1].listid, '2')
+assert.equal(liteDel[1].fileids, '916')
 
 resetUpstreamOverride()
 console.log('kugou-library.test.mjs ok')

@@ -84,8 +84,8 @@ const KUGOU_LITE_CAPABILITIES = {
   recommendations: true,
   userCloud: true,
   historyRecommendations: true,
-  // The package exposes read/play, but not cloud like/playlist writes yet.
-  likeWrite: false,
+  // Likes write through the same cloudlist endpoint as the standard client.
+  likeWrite: true,
   playlistAdd: false,
   mutations: false,
   userAlbums: false,

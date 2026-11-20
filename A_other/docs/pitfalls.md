@@ -524,6 +524,15 @@
 
 ---
 
+## 58. 酷狗概念版点赞提示不支持，波点没有喜欢能力
+
+- **现象**：播放页点喜欢只看到「暂不支持」；酷狗概念版和波点都无法取消/写入喜欢。
+- **原因**：来源能力表把 `kugouLite.likeWrite` 写成 false，且 `setOnlineLiked` 对概念版直接抛错；波点 source 没有声明 `likes` / `likeWrite`，也没有实现 `likedIds` / `setLiked`。
+- **处理**：概念版通过 cloudlist 的 `playlist_tracks_add` / `playlist_tracks_del` 写内置「我喜欢」；波点补 `liked_songs` 与 `like_song`。酷狗取消时按 hash 在「我喜欢」歌单里解析 `fileid`，不把其他歌单的行号传过去。
+- **防回归**：sources 断言能力位；kugou-library 与 bodian 测试覆盖读写和变更参数。
+
+---
+
 ## 模板
 
 新坑照这个写，编号连续，标题一句话；控制在 4 行以内。

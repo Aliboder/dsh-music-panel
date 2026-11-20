@@ -1409,7 +1409,16 @@ export async function setOnlineLiked(provider, song, on, cookie = '', session = 
     const raw = await qqWriteSong(id, cookie)
     return on ? QQ.addQQFav(raw, cookie) : QQ.removeQQFav(raw, cookie)
   }
-  if (provider === 'kugouLite') throw new Error('酷狗概念版暂不支持云端喜欢写入')
+  if (provider === 'kugouLite') {
+    const raw = rawSongs.get('kugouLite:' + id) || {
+      id,
+      hash: id,
+      title: String((song && song.title) || ''),
+      albumId: Number((song && song.albumId) || 0),
+      mixSongId: Number((song && (song.mixSongId || song.albumAudioId)) || 0),
+    }
+    return KGL.setLiked(raw, on === true, session)
+  }
   const like = await resolveLikePlaylist(provider, cookie, session)
   if (like === null) throw new Error('没有找到「我喜欢」歌单')
   if (provider === 'kugou') {

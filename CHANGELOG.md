@@ -4,6 +4,12 @@
 
 ## 0.39.2 — 2026-11-20
 
+### 在线喜欢
+
+- 酷狗概念版支持写入「我喜欢」：通过 cloudlist 的 `playlist_tracks_add` / `playlist_tracks_del` 操作内置收藏歌单；取消时按 hash 在当前收藏歌单中解析 `fileid`，不会误删其他歌单中的同名行。
+- 波点音乐补齐 `likes` / `likeWrite`：读取 `liked_songs`，写入 `like_song`，与 Folia 的 `getLikedSongIds` / `likeSong` 行为一致。
+- 在线平台喜欢能力现在为：网易云、QQ、酷狗概念版、波点、汽水、Navidrome 均可读写（具体平台仍取决于登录态与上游授权）。
+
 ### 播放时钟
 
 - Folia 歌词舞台的共享时钟改用播放器当前 active deck 的 `getPlaybackTime()`，不再 `querySelector` 第一个 `audio.mp-audio-host`；交叉淡入淡出切换到 B deck 后，回环等所有歌词样式不会再冻结在每句第一个字。音频带也按 active deck 判断是否在播放。

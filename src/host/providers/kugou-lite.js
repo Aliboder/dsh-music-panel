@@ -485,12 +485,16 @@ export async function getMyPlaylists(session = {}) {
   return flattenObjects(data)
     .map((item) => {
       if (item.hash || item.Hash || item.FileHash) return null
-      const id = String(item.global_collection_id || item.specialid || item.listid || item.id || '')
+      const globalCollectionId = String(item.global_collection_id || item.globalCollectionId || '')
+      const listId = String(item.listid || item.list_id || item.specialid || '')
+      const id = String(globalCollectionId || listId || item.id || '')
       const name = String(item.specialname || item.listname || item.name || '')
       if (!id || !name) return null
       return {
         source: 'kugouLite',
         id,
+        listId,
+        globalCollectionId,
         name,
         cover: String(item.imgurl || item.cover || item.pic || '').replace(/\{size\}/g, '240'),
         trackCount: Number(item.song_count || item.songcount || item.count || 0) || 0,
@@ -501,6 +505,64 @@ export async function getMyPlaylists(session = {}) {
       }
     })
     .filter(Boolean)
+}
+
+function playlistMutationSucceeded(answer) {
+  const status = Number(answer?.body?.status)
+  const errorCode = Number(answer?.body?.error_code)
+  return status === 1 || errorCode === 0
+}
+
+/**
+ * Add/remove one song in the account's built-in "我喜欢" playlist.
+ * The concept client uses the same cloudlist mutations as the standard client; the
+ * only identity difference is the lite signed cookie.
+ */
+export async function setLiked(song, on, session = {}) {
+  const s = normSession(session)
+  const hash = String(song?.hash || song?.id || '').trim().toLowerCase()
+  if (hash === '') throw new Error('缺少歌曲 hash')
+  const playlists = await getMyPlaylists(s)
+  const like = playlists.find((item) => item.isLike === true) || null
+  if (like === null) throw new Error('没有找到「我喜欢」歌单')
+  const listId = String(like.listId || '').trim()
+  if (listId === '') throw new Error('「我喜欢」歌单缺少 listid')
+  const cookie = kugouCookies({ ...s, dfid: s.dfid }, 'lite')
+  const userid = String(s.userid || '')
+  const token = String(s.token || '')
+
+  if (on === true) {
+    const title = String(song?.title || '未知歌曲').replace(/[|,]/g, ' ')
+    const albumId = Number(song?.albumId) || 0
+    const mixSongId = Number(song?.mixSongId || song?.albumAudioId) || 0
+    const answer = await callKugou('lite', 'playlist_tracks_add', {
+      listid: listId,
+      data: [title, hash, String(albumId), String(mixSongId)].join('|'),
+      cookie,
+      userid,
+      token,
+    })
+    if (!playlistMutationSucceeded(answer)) throw new Error('酷狗没有确认加入「我喜欢」')
+    return true
+  }
+
+  const collectionId = String(like.globalCollectionId || like.id || '')
+  const songs = collectionId === '' ? [] : await getMyPlaylistSongs(collectionId, s)
+  const hit = songs.find((item) => String(item.hash || '').toLowerCase() === hash)
+  // The target state is already reached: clear a stale local heart without calling
+  // the delete endpoint with an unrelated playlist row id.
+  if (!hit) return true
+  const fileId = String(hit.fileId || '')
+  if (fileId === '') throw new Error('未找到「我喜欢」中的歌曲行号')
+  const answer = await callKugou('lite', 'playlist_tracks_del', {
+    listid: listId,
+    fileids: fileId,
+    cookie,
+    userid,
+    token,
+  })
+  if (!playlistMutationSucceeded(answer)) throw new Error('酷狗没有确认从「我喜欢」移除')
+  return true
 }
 
 export async function getMyPlaylistSongs(listId, session = {}) {
