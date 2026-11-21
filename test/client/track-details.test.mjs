@@ -48,6 +48,11 @@ for (const key of localFields) assert.match(details, new RegExp(key.replace(/\./
 assert.match(details, /online\/info\?provider=/, 'an online row reads its cache state from the host')
 assert.match(details, /page\.infoNotCached/, 'an uncached online row says so')
 assert.match(details, /copyTextSafely\(track\.path\)/, 'the path can be copied from the panel')
+assert.match(details, /revealTrackPath\(track\.path\)/, 'clicking the path reveals the file in its folder')
+assert.match(details, /className: 'mp-detail-link'/, 'the path renders as a focusable control')
+const library = read('src/client/components/library/library.js')
+assert.match(library, /async function revealTrackPath\(path\)/, 'the reveal request lives in one place')
+assert.match(dialogs, /void revealTrackPath\(track\.path\)/, 'the row menu reuses the same request')
 assert.match(details, /fmtKbps\(track\.bitrate\)/, 'the bitrate reuses the shared formatter')
 
 // ── formatting rules ──────────────────────────────────────────────────────
@@ -70,6 +75,8 @@ assert.match(f.detailDateText(Date.UTC(2026, 0, 2, 3, 4, 5), true), /2026/, 'a k
 const theme = read('src/client/styles/theme.js')
 assert.match(theme, /\.mp-detail-row\{[^']*border-bottom:\.5px solid var\(--dsw-alias-border-l1/, 'rows are split by a 0.5px token hairline')
 assert.match(theme, /\.mp-detail-value\.is-mono\{/, 'paths and ids render monospace')
+assert.match(theme, /\.mp-detail-link\{[^']*color:var\(--dsw-alias-link/, 'the path link uses the link token')
+assert.match(theme, /\.mp-detail-link:focus-visible\{[^']*outline:var\(--dsw-focus-ring-width/, 'the link keeps a keyboard focus ring')
 assert.doesNotMatch(theme, /\.mp-detail-row\{[^']*border-radius:(?:6|7|9|10|11|14|18)px/, 'no off-spec radius')
 
 const i18n = read('src/client/i18n/i18n.js')

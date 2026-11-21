@@ -75,15 +75,31 @@ function TrackDetailsDialog(props) {
     }
   }, [online, provider, onlineId])
 
-  function row(key, label, value, mono) {
+  // `options.mono`: monospace for paths and ids. `options.onClick`: the value is an action
+  // (the path reveals the file in its folder), rendered as a link so it can be focused too.
+  function row(key, label, value, options) {
     if (value === null || value === undefined) return null
+    var settings = options === null || options === undefined ? {} : options
     var text = String(value)
     if (text.trim() === '') return null
+    var body = text
+    if (typeof settings.onClick === 'function') {
+      body = h(
+        'button',
+        {
+          type: 'button',
+          className: 'mp-detail-link',
+          title: settings.title || '',
+          onClick: settings.onClick,
+        },
+        text,
+      )
+    }
     return h(
       'div',
       { key: key, className: 'mp-detail-row' },
       h('div', { className: 'mp-detail-label' }, label),
-      h('div', { className: 'mp-detail-value' + (mono === true ? ' is-mono' : '') }, text),
+      h('div', { className: 'mp-detail-value' + (settings.mono === true ? ' is-mono' : '') }, body),
     )
   }
 
@@ -99,7 +115,7 @@ function TrackDetailsDialog(props) {
     if (online) {
       var quality = cache.info ? detailQualityText(cache.info.quality) : ''
       rows.push(row('source', t('page.infoSource'), sourceLabelOf(provider)))
-      rows.push(row('songid', t('page.infoSongId'), onlineId, true))
+      rows.push(row('songid', t('page.infoSongId'), onlineId, { mono: true }))
       rows.push(row('quality', t('sheet.quality'), quality))
       var cachedText = cache.phase === 'loading'
         ? t('v2.loading')
@@ -114,7 +130,15 @@ function TrackDetailsDialog(props) {
       rows.push(row('size', t('page.infoSize'), Number(track.size) > 0 ? fmtBytes(Number(track.size)) : ''))
       rows.push(row('bitrate', t('page.infoBitrate'), fmtKbps(track.bitrate)))
       rows.push(row('samplerate', t('page.infoSampleRate'), detailSampleRateText(track.sampleRate)))
-      rows.push(row('path', t('page.infoPath'), track.path, true))
+      rows.push(
+        row('path', t('page.infoPath'), track.path, {
+          mono: true,
+          title: t('page.reveal'),
+          onClick: function () {
+            void revealTrackPath(track.path)
+          },
+        }),
+      )
       rows.push(row('mtime', t('page.infoModified'), detailDateText(track.mtime, true)))
       rows.push(row('added', t('page.infoAdded'), detailDateText(track.addedAt, false)))
       rows.push(row('plays', t('page.infoPlays'), Number(track.plays) > 0 ? String(Number(track.plays)) : ''))

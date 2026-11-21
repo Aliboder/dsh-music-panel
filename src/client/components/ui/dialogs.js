@@ -281,13 +281,7 @@ function ContextMenu(props) {
       icon: 'folder',
       label: t('page.reveal'),
       run: function () {
-        postJson(API + 'reveal', { path: track.path })
-          .then(function () {
-            showToast(t('page.revealed'))
-          })
-          .catch(function (error) {
-            showToast(errorText(error))
-          })
+        void revealTrackPath(track.path)
       },
     })
   }

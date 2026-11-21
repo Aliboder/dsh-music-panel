@@ -158952,6 +158952,20 @@ window.__ModuleLoader__.load({
         showToast(errorText(error))
       }
     }
+    /**
+     * Show a local file in its folder. The row menu and the details panel share this request so a
+     * change to the route or the wording only has one place to go.
+     */
+    async function revealTrackPath(path) {
+      var value = String(path || '')
+      if (value === '') return
+      try {
+        await postJson(API + 'reveal', { path: value })
+        showToast(t('page.revealed'))
+      } catch (error) {
+        showToast(errorText(error))
+      }
+    }
 
     async function loadPlaylists() {
       try {
@@ -161723,6 +161737,9 @@ window.__ModuleLoader__.load({
       '.mp-detail-label{font-size:12px;line-height:20px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-detail-value{font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary,#f4f4f5);min-width:0;overflow-wrap:anywhere}',
       '.mp-detail-value.is-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}',
+      '.mp-detail-link{appearance:none;display:inline;padding:0;border:0;background:none;font:inherit;text-align:left;color:var(--dsw-alias-link,var(--dsw-alias-state-business-primary,#4176E6));font-weight:500;cursor:pointer}',
+      '.mp-detail-link:hover{text-decoration:underline dotted;text-underline-offset:3px}',
+      '.mp-detail-link:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
       '.mp-field{display:flex;flex-direction:column;gap:5px;min-width:0}',
       '.mp-field label{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-d-body > *{flex-shrink:0}',
@@ -169490,13 +169507,7 @@ window.__ModuleLoader__.load({
           icon: 'folder',
           label: t('page.reveal'),
           run: function () {
-            postJson(API + 'reveal', { path: track.path })
-              .then(function () {
-                showToast(t('page.revealed'))
-              })
-              .catch(function (error) {
-                showToast(errorText(error))
-              })
+            void revealTrackPath(track.path)
           },
         })
       }
@@ -170591,15 +170602,31 @@ window.__ModuleLoader__.load({
         }
       }, [online, provider, onlineId])
 
-      function row(key, label, value, mono) {
+      // `options.mono`: monospace for paths and ids. `options.onClick`: the value is an action
+      // (the path reveals the file in its folder), rendered as a link so it can be focused too.
+      function row(key, label, value, options) {
         if (value === null || value === undefined) return null
+        var settings = options === null || options === undefined ? {} : options
         var text = String(value)
         if (text.trim() === '') return null
+        var body = text
+        if (typeof settings.onClick === 'function') {
+          body = h(
+            'button',
+            {
+              type: 'button',
+              className: 'mp-detail-link',
+              title: settings.title || '',
+              onClick: settings.onClick,
+            },
+            text,
+          )
+        }
         return h(
           'div',
           { key: key, className: 'mp-detail-row' },
           h('div', { className: 'mp-detail-label' }, label),
-          h('div', { className: 'mp-detail-value' + (mono === true ? ' is-mono' : '') }, text),
+          h('div', { className: 'mp-detail-value' + (settings.mono === true ? ' is-mono' : '') }, body),
         )
       }
 
@@ -170615,7 +170642,7 @@ window.__ModuleLoader__.load({
         if (online) {
           var quality = cache.info ? detailQualityText(cache.info.quality) : ''
           rows.push(row('source', t('page.infoSource'), sourceLabelOf(provider)))
-          rows.push(row('songid', t('page.infoSongId'), onlineId, true))
+          rows.push(row('songid', t('page.infoSongId'), onlineId, { mono: true }))
           rows.push(row('quality', t('sheet.quality'), quality))
           var cachedText = cache.phase === 'loading'
             ? t('v2.loading')
@@ -170630,7 +170657,15 @@ window.__ModuleLoader__.load({
           rows.push(row('size', t('page.infoSize'), Number(track.size) > 0 ? fmtBytes(Number(track.size)) : ''))
           rows.push(row('bitrate', t('page.infoBitrate'), fmtKbps(track.bitrate)))
           rows.push(row('samplerate', t('page.infoSampleRate'), detailSampleRateText(track.sampleRate)))
-          rows.push(row('path', t('page.infoPath'), track.path, true))
+          rows.push(
+            row('path', t('page.infoPath'), track.path, {
+              mono: true,
+              title: t('page.reveal'),
+              onClick: function () {
+                void revealTrackPath(track.path)
+              },
+            }),
+          )
           rows.push(row('mtime', t('page.infoModified'), detailDateText(track.mtime, true)))
           rows.push(row('added', t('page.infoAdded'), detailDateText(track.addedAt, false)))
           rows.push(row('plays', t('page.infoPlays'), Number(track.plays) > 0 ? String(Number(track.plays)) : ''))

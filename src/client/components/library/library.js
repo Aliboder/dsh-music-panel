@@ -90,6 +90,20 @@ async function toggleFavorite(path) {
     showToast(errorText(error))
   }
 }
+/**
+ * Show a local file in its folder. The row menu and the details panel share this request so a
+ * change to the route or the wording only has one place to go.
+ */
+async function revealTrackPath(path) {
+  var value = String(path || '')
+  if (value === '') return
+  try {
+    await postJson(API + 'reveal', { path: value })
+    showToast(t('page.revealed'))
+  } catch (error) {
+    showToast(errorText(error))
+  }
+}
 
 async function loadPlaylists() {
   try {
