@@ -105,7 +105,6 @@ test('歌词页按 Folia 分组，插件自有设置落在「插件」组', () =
   ]) {
     assert.ok(settingsSource.includes(key), key + ' is one of the page groups')
   }
-  assert.match(tab, /lyricAnchorTabs()/, 'the groups are also the in-page tabs')
   for (const key of ['source', 'timing', 'segmentation', 'format', 'plugin']) {
     assert.match(tab, new RegExp("lyricGroup\\('" + key + "'"), 'the ' + key + ' group renders')
   }

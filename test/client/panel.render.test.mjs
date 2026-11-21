@@ -234,13 +234,10 @@ assert.ok(internals.p3Tabs('navidrome').indexOf('artists') >= 0, 'Navidrome expo
     assert.ok(text.includes(row), 'the lyric page shows the ' + row + ' row')
   }
   assert.ok(text.includes('0 ms'), 'the global offset row shows its value')
-  const tabNodes = []
   const buttonTexts = []
   walk(tree, (node) => {
-    if (node.props && node.props.role === 'tab') tabNodes.push(node)
     if (node.type === 'button') buttonTexts.push(textOf(node))
   })
-  assert.ok(tabNodes.length >= 5, 'the in-page tabs render one per group')
   assert.ok(buttonTexts.some((label) => label.includes('调整')), 'the offset row opens its window')
   assert.ok(buttonTexts.some((label) => label.includes('编辑')), 'the filter row opens its window')
   const ranges = []

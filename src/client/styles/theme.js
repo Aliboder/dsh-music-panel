@@ -781,11 +781,7 @@ var THEME_CSS = [
   '.mp-sheet-body{overflow-y:auto;padding:20px 48px 28px 22px}',
   '.mp-sheet-body h2{margin:0 0 4px;font-size:14px;line-height:20px;font-weight:650}',
   '.mp-set-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-height:44px;padding:11px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-  // 歌词页：Folia 的锚点页签与分组卡片（组标题在卡外，行在卡内）。
-  '.mp-set-anchor{position:sticky;top:0;z-index:3;padding:6px 0 10px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:0 1px 0 0 var(--dsw-alias-border-l1,rgba(255,255,255,.07));overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}',
-  '.mp-set-anchor::-webkit-scrollbar{display:none}',
-  '.mp-set-anchor .mp-segment{display:inline-flex;width:max-content}',
-  '.mp-lyric-group{scroll-margin-top:64px}',
+  // 歌词页：Folia 的分组卡片（组标题在卡外，行在卡内）。
   '.mp-lyric-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',
   '.mp-lyric-group:first-of-type .mp-lyric-group-head{padding-top:18px}',
   '.mp-lyric-group .mp-set-card{margin-top:8px}',

@@ -15,8 +15,7 @@ var SETTINGS_TABS = [
   { key: 'about', label: 'settings.tabAbout', glyph: 'info' },
 ]
 
-// The lyric page's in-page tabs, Folia's order plus the plugin's own group last. Each
-// one is also the group anchor id in the page (mp-lyric-group-<key>).
+// The lyric page's groups, Folia's order plus the plugin's own group last.
 var LYRIC_GROUP_DEFS = [
   { key: 'source', labelKey: 'settings.lyricGroupSource' },
   { key: 'timing', labelKey: 'settings.lyricGroupTiming' },
@@ -86,11 +85,8 @@ function SettingsSheet(props) {
   var navOpenPair = useState(false)
   var navOpen = navOpenPair[0]
   var setNavOpen = navOpenPair[1]
-  // Lyric page: which group the in-page tabs mark, the folded format order, and the two
-  // windows its rows open (Folia's global offset and the lyric filter).
-  var lyricAnchorPair = useState('source')
-  var lyricAnchor = lyricAnchorPair[0]
-  var setLyricAnchor = lyricAnchorPair[1]
+  // Lyric page: the folded format order, and the two windows its rows open (Folia's
+  // global offset and the lyric filter).
   var lyricFormatOpenPair = useState(false)
   var lyricFormatOpen = lyricFormatOpenPair[0]
   var setLyricFormatOpen = lyricFormatOpenPair[1]
@@ -431,7 +427,7 @@ function SettingsSheet(props) {
     )
   }
 
-  /** One lyric group: Folia's heading + card, with an anchor id for the in-page tabs. */
+  /** One lyric group: Folia's heading over one card of rows. */
   function lyricGroup(key, rows) {
     var def = null
     for (var index = 0; index < LYRIC_GROUP_DEFS.length; index += 1) {
@@ -440,51 +436,10 @@ function SettingsSheet(props) {
     if (def === null) return null
     return h(
       'section',
-      {
-        key: 'lyric-group-' + key,
-        id: 'mp-lyric-group-' + key,
-        className: 'mp-lyric-group',
-        'data-lyric-anchor': key,
-      },
+      { key: 'lyric-group-' + key, className: 'mp-lyric-group' },
       h('div', { className: 'mp-lyric-group-head' }, h('span', { className: 'mp-set-label' }, t(def.labelKey))),
       h('div', { className: 'mp-set-card' }, h('div', { className: 'mp-set-card-body' }, rows)),
     )
-  }
-
-  function jumpToLyricGroup(key) {
-    setLyricAnchor(key)
-    if (typeof document === 'undefined') return
-    var node = document.getElementById('mp-lyric-group-' + key)
-    if (node && typeof node.scrollIntoView === 'function') node.scrollIntoView({ block: 'start', behavior: 'smooth' })
-  }
-
-  /** The in-page tabs jump to a group; the scroll listener keeps the mark on the group in view. */
-  function lyricAnchorTabs() {
-    return h('div', { key: 'lyric-anchors', className: 'mp-set-anchor' },
-      h(KitSegmentedTabs, {
-        items: LYRIC_GROUP_DEFS.map(function (def) {
-          return { value: def.key, label: t(def.labelKey), id: 'mp-lyric-tab-' + def.key, panelId: 'mp-lyric-group-' + def.key }
-        }),
-        value: lyricAnchor,
-        size: 'sm',
-        label: t('v2.lyrics'),
-        onChange: function (key) { jumpToLyricGroup(key) },
-      }),
-    )
-  }
-
-  function onSheetScroll(event) {
-    if (tab !== 'lyrics') return
-    var body = event && event.currentTarget
-    if (body === null || body === undefined || typeof body.getBoundingClientRect !== 'function') return
-    var line = body.getBoundingClientRect().top + 56
-    var next = LYRIC_GROUP_DEFS[0].key
-    for (var index = 0; index < LYRIC_GROUP_DEFS.length; index += 1) {
-      var key = LYRIC_GROUP_DEFS[index].key
-      var node = typeof document !== 'undefined' ? document.getElementById('mp-lyric-group-' + key) : null
-      if (node && node.getBoundingClientRect().top <= line) next = key
-    }
-    if (next !== lyricAnchor) setLyricAnchor(next)
   }
 
   function currentLyricGlobalOffset() {
@@ -502,7 +457,7 @@ function SettingsSheet(props) {
 
   function lyricsTab() {
     // Folia's lyric page: 歌词来源 / 时间与过滤 / 分词 / 本地歌词文件格式优先级, plus the
-    // plugin's own display controls in 插件. Every group is also an in-page tab anchor.
+    // plugin's own display controls in 插件.
     var lyricStyleId = typeof mpStyleIdOf === 'function' ? mpStyleIdOf(prefs.lyricStyle) : String(prefs.lyricStyle || '')
     // 莫奈 and 静止 paint their own translation row instead of Folia's shared subtitle
     // overlay, so the subtitle-background switch cannot do anything there.
@@ -740,7 +695,6 @@ function SettingsSheet(props) {
 
     return [
       h('h2', { key: 'h' }, t('v2.lyrics')),
-      lyricAnchorTabs(),
       lyricGroup('source', sourceRows),
       lyricGroup('timing', timingRows),
       lyricGroup('segmentation', segmentationRows),
@@ -1879,18 +1833,7 @@ function SettingsSheet(props) {
               },
               icon('x', 16),
             ),
-            h(
-              'div',
-              {
-                key: 'body',
-                className: 'mp-sheet-body',
-                onScroll: function (event) {
-                  onSheetScroll(event)
-                },
-              },
-              body,
-              resetDialog(),
-            ),
+            h('div', { key: 'body', className: 'mp-sheet-body' }, body, resetDialog()),
           ],
     ),
   )
