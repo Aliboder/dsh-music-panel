@@ -25,11 +25,6 @@ var PREF_DEFAULTS = {
    * the preferred source, and only by a word-timed lyric; off, every source competes.
    */
   lyricKeepProviderWordTiming: true,
-  /**
-   * Folia's `autoAiLyricSegmentation`, local-edition: split a lyric that has no word timing
-   * with the bundled dictionary once per load. Saved splits are never overwritten.
-   */
-  lyricAutoWordSegmentation: true,
   /** Folia's device-wide lyric offset, added on top of the per-song one (limited to ±2000 ms). */
   lyricGlobalOffsetMs: 0,
   /** Folia's `subtitleOverlayBackground`: a soft halo behind the bottom subtitle line. */
@@ -186,7 +181,7 @@ function readPrefs() {
   // The classic lyric list is gone: every style is a Folia renderer whose typography
   // inputs are multipliers, so the old px-based keys have no reader. Drop them once
   // instead of leaving stored values that look like they still do something.
-  var deadLyricKeys = ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2']
+  var deadLyricKeys = ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2', 'lyricAutoWordSegmentation']
   var dropped = false
   deadLyricKeys.forEach(function (key) {
     if (Object.prototype.hasOwnProperty.call(merged, key)) {

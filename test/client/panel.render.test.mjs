@@ -227,10 +227,10 @@ assert.ok(internals.p3Tabs('navidrome').indexOf('artists') >= 0, 'Navidrome expo
   assert.ok(!text.includes('模糊非当前歌词'), 'the dead blur row is gone')
   assert.ok(!text.includes('歌词对齐方式'), 'the dead alignment row is gone')
   // Folia's groups, with the plugin's own group last.
-  for (const group of ['歌词来源', '时间与过滤', '分词', '本地歌词文件格式优先级', '插件']) {
+  for (const group of ['歌词来源', '时间与过滤', '本地歌词文件格式优先级', '插件']) {
     assert.ok(text.includes(group), 'the lyric page shows the ' + group + ' group')
   }
-  for (const row of ['保留平台自带的逐字歌词', '全局时间偏移', '歌词过滤', '自动分词', '格式顺序']) {
+  for (const row of ['保留平台自带的逐字歌词', '全局时间偏移', '歌词过滤', '格式顺序']) {
     assert.ok(text.includes(row), 'the lyric page shows the ' + row + ' row')
   }
   assert.ok(text.includes('0 ms'), 'the global offset row shows its value')

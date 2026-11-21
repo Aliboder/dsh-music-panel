@@ -6963,7 +6963,6 @@ window.__ModuleLoader__.load({
         'settings.lyricLocalPriorityOnline': '在线优先',
         'settings.lyricGroupSource': '歌词来源',
         'settings.lyricGroupTiming': '时间与过滤',
-        'settings.lyricGroupSegmentation': '分词',
         'settings.lyricGroupFormat': '本地歌词文件格式优先级',
         'settings.lyricGroupPlugin': '插件',
         'settings.lyricMatchPriority': '歌词匹配优先级',
@@ -6979,8 +6978,6 @@ window.__ModuleLoader__.load({
         'settings.lyricFilterDesc': '逐行过滤规则，命中的歌词行不显示。',
         'settings.lyricFilterEdit': '编辑',
         'settings.lyricFilterDialogHint': '过滤只影响显示，不改写歌词文件。',
-        'settings.lyricSegmentationAuto': '自动分词',
-        'settings.lyricSegmentationAutoDesc': '没有逐字时间轴的歌词，用本地词典自动分词；只影响按词排版的歌词样式。',
         'settings.lyricFormatOrder': '格式顺序',
         'settings.lyricFormatOrderDesc': '同名歌词文件按此顺序选用，.fia 始终最优先。',
         'settings.lyricFormatSummary': '{format} 优先',
@@ -7619,7 +7616,6 @@ window.__ModuleLoader__.load({
         'settings.lyricLocalPriorityOnline': 'Online first',
         'settings.lyricGroupSource': 'Lyric source',
         'settings.lyricGroupTiming': 'Timing & filters',
-        'settings.lyricGroupSegmentation': 'Word segmentation',
         'settings.lyricGroupFormat': 'Local lyric format priority',
         'settings.lyricGroupPlugin': 'Plugins',
         'settings.lyricMatchPriority': 'Lyric match priority',
@@ -7635,8 +7631,6 @@ window.__ModuleLoader__.load({
         'settings.lyricFilterDesc': 'Line rules; a matching line is hidden.',
         'settings.lyricFilterEdit': 'Edit',
         'settings.lyricFilterDialogHint': 'Filtering only affects what is shown; the lyric file is not rewritten.',
-        'settings.lyricSegmentationAuto': 'Auto word segmentation',
-        'settings.lyricSegmentationAutoDesc': 'A lyric without word timing is split with the bundled dictionary; only word-driven styles are affected.',
         'settings.lyricFormatOrder': 'Format order',
         'settings.lyricFormatOrderDesc': 'Sidecar lyric files are read in this order; .fia always ranks first.',
         'settings.lyricFormatSummary': '{format} first',
@@ -10595,19 +10589,11 @@ window.__ModuleLoader__.load({
       return key
     }
 
-    /** Whether a lyric without word timing is split by the bundled dictionary automatically. */
-    function lyricAutoSegmentationEnabled() {
-      var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
-      return state.lyricAutoWordSegmentation !== false
-    }
-
     /** A signature of the listener's display-pass settings, so a change re-runs it. */
     function mpLyricRulesKey() {
       var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
       var presets = Array.isArray(state.lyricFilterPresets) ? state.lyricFilterPresets : []
-      return presets.join(',')
-        + '\u0000' + String(state.lyricFilterWords || '')
-        + '\u0000' + (lyricAutoSegmentationEnabled() ? 'seg' : 'noseg')
+      return presets.join(',') + '\u0000' + String(state.lyricFilterWords || '')
     }
 
     /**
@@ -10696,8 +10682,7 @@ window.__ModuleLoader__.load({
       if (record !== null && typeof MPFoliaLyrics.applyLyricWordSegmentation === 'function') {
         next = MPFoliaLyrics.applyLyricWordSegmentation(next, record)
       }
-      if (lyricAutoSegmentationEnabled()
-        && typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
+      if (typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
         && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
         next = MPFoliaLyrics.applyAutoWordSegmentation(next)
       }
@@ -150411,11 +150396,6 @@ window.__ModuleLoader__.load({
        * the preferred source, and only by a word-timed lyric; off, every source competes.
        */
       lyricKeepProviderWordTiming: true,
-      /**
-       * Folia's `autoAiLyricSegmentation`, local-edition: split a lyric that has no word timing
-       * with the bundled dictionary once per load. Saved splits are never overwritten.
-       */
-      lyricAutoWordSegmentation: true,
       /** Folia's device-wide lyric offset, added on top of the per-song one (limited to ±2000 ms). */
       lyricGlobalOffsetMs: 0,
       /** Folia's `subtitleOverlayBackground`: a soft halo behind the bottom subtitle line. */
@@ -150572,7 +150552,7 @@ window.__ModuleLoader__.load({
       // The classic lyric list is gone: every style is a Folia renderer whose typography
       // inputs are multipliers, so the old px-based keys have no reader. Drop them once
       // instead of leaving stored values that look like they still do something.
-      var deadLyricKeys = ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2']
+      var deadLyricKeys = ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2', 'lyricAutoWordSegmentation']
       var dropped = false
       deadLyricKeys.forEach(function (key) {
         if (Object.prototype.hasOwnProperty.call(merged, key)) {
@@ -167136,7 +167116,6 @@ window.__ModuleLoader__.load({
     var LYRIC_GROUP_DEFS = [
       { key: 'source', labelKey: 'settings.lyricGroupSource' },
       { key: 'timing', labelKey: 'settings.lyricGroupTiming' },
-      { key: 'segmentation', labelKey: 'settings.lyricGroupSegmentation' },
       { key: 'format', labelKey: 'settings.lyricGroupFormat' },
       { key: 'plugin', labelKey: 'settings.lyricGroupPlugin' },
     ]
@@ -167681,23 +167660,6 @@ window.__ModuleLoader__.load({
           ),
         ]
 
-        var segmentationRows = [
-          h(
-            SetRow,
-            {
-              key: 'auto-segmentation',
-              label: t('settings.lyricSegmentationAuto'),
-              desc: t('settings.lyricSegmentationAutoDesc'),
-            },
-            h(Switch, {
-              value: prefs.lyricAutoWordSegmentation !== false,
-              onChange: function (value) {
-                patchPrefs({ lyricAutoWordSegmentation: value })
-              },
-            }),
-          ),
-        ]
-
         var formatRows = [
           h(
             SetRow,
@@ -167814,7 +167776,6 @@ window.__ModuleLoader__.load({
           h('h2', { key: 'h' }, t('v2.lyrics')),
           lyricGroup('source', sourceRows),
           lyricGroup('timing', timingRows),
-          lyricGroup('segmentation', segmentationRows),
           lyricGroup('format', formatRows),
           lyricGroup('plugin', pluginRows),
           lyricOffsetDialog(),

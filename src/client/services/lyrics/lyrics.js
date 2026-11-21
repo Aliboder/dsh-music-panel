@@ -448,19 +448,11 @@ function mpLyricSourceLabel(id) {
   return key
 }
 
-/** Whether a lyric without word timing is split by the bundled dictionary automatically. */
-function lyricAutoSegmentationEnabled() {
-  var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
-  return state.lyricAutoWordSegmentation !== false
-}
-
 /** A signature of the listener's display-pass settings, so a change re-runs it. */
 function mpLyricRulesKey() {
   var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
   var presets = Array.isArray(state.lyricFilterPresets) ? state.lyricFilterPresets : []
-  return presets.join(',')
-    + '\u0000' + String(state.lyricFilterWords || '')
-    + '\u0000' + (lyricAutoSegmentationEnabled() ? 'seg' : 'noseg')
+  return presets.join(',') + '\u0000' + String(state.lyricFilterWords || '')
 }
 
 /**
@@ -549,8 +541,7 @@ function mpPrepareLyrics(document, songKey, chorusRanges) {
   if (record !== null && typeof MPFoliaLyrics.applyLyricWordSegmentation === 'function') {
     next = MPFoliaLyrics.applyLyricWordSegmentation(next, record)
   }
-  if (lyricAutoSegmentationEnabled()
-    && typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
+  if (typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
     && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
     next = MPFoliaLyrics.applyAutoWordSegmentation(next)
   }

@@ -19,7 +19,6 @@ var SETTINGS_TABS = [
 var LYRIC_GROUP_DEFS = [
   { key: 'source', labelKey: 'settings.lyricGroupSource' },
   { key: 'timing', labelKey: 'settings.lyricGroupTiming' },
-  { key: 'segmentation', labelKey: 'settings.lyricGroupSegmentation' },
   { key: 'format', labelKey: 'settings.lyricGroupFormat' },
   { key: 'plugin', labelKey: 'settings.lyricGroupPlugin' },
 ]
@@ -564,23 +563,6 @@ function SettingsSheet(props) {
       ),
     ]
 
-    var segmentationRows = [
-      h(
-        SetRow,
-        {
-          key: 'auto-segmentation',
-          label: t('settings.lyricSegmentationAuto'),
-          desc: t('settings.lyricSegmentationAutoDesc'),
-        },
-        h(Switch, {
-          value: prefs.lyricAutoWordSegmentation !== false,
-          onChange: function (value) {
-            patchPrefs({ lyricAutoWordSegmentation: value })
-          },
-        }),
-      ),
-    ]
-
     var formatRows = [
       h(
         SetRow,
@@ -697,7 +679,6 @@ function SettingsSheet(props) {
       h('h2', { key: 'h' }, t('v2.lyrics')),
       lyricGroup('source', sourceRows),
       lyricGroup('timing', timingRows),
-      lyricGroup('segmentation', segmentationRows),
       lyricGroup('format', formatRows),
       lyricGroup('plugin', pluginRows),
       lyricOffsetDialog(),

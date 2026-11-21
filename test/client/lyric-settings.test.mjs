@@ -70,7 +70,7 @@ test('被移除的经典排版键不再有默认值，旧的持久化值会被�
   for (const dead of ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign']) {
     assert.doesNotMatch(prefsSource, new RegExp('^\\s*' + dead + ':', 'm'), dead + ' is not a PREF_DEFAULTS key')
   }
-  assert.match(prefsSource, /deadLyricKeys = \['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2'\]/, 'stored values are dropped on read')
+  assert.match(prefsSource, /deadLyricKeys = \['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2', 'lyricAutoWordSegmentation'\]/, 'stored values are dropped on read')
   assert.match(prefsSource, /lyricsFontScale: 1/, 'the multiplier keeps a default')
   assert.match(prefsSource, /translationScale: 90/, 'the translation percentage keeps a default')
 })
@@ -99,13 +99,12 @@ test('歌词页按 Folia 分组，插件自有设置落在「插件」组', () =
   for (const key of [
     'settings.lyricGroupSource',
     'settings.lyricGroupTiming',
-    'settings.lyricGroupSegmentation',
     'settings.lyricGroupFormat',
     'settings.lyricGroupPlugin',
   ]) {
     assert.ok(settingsSource.includes(key), key + ' is one of the page groups')
   }
-  for (const key of ['source', 'timing', 'segmentation', 'format', 'plugin']) {
+  for (const key of ['source', 'timing', 'format', 'plugin']) {
     assert.match(tab, new RegExp("lyricGroup\\('" + key + "'"), 'the ' + key + ' group renders')
   }
   // The plugin's own display controls live in the last group, not scattered over Folia's.
@@ -133,7 +132,7 @@ test('歌词页按 Folia 分组，插件自有设置落在「插件」组', () =
   assert.ok(timingRows.includes('setLyricFilterOpen'), 'the lyric filter sits in 时间与过滤')
 })
 
-test('保留平台逐字歌词、全局偏移、自动分词都有真实消费者', () => {
+test('保留平台逐字歌词与全局偏移都有真实消费者', () => {
   const loader = readFileSync(join(root, 'src/client/services/lyrics/loader.js'), 'utf8')
   assert.match(loader, /lyricKeepProviderWordTiming/, 'the keep-own switch is read by the loader')
   assert.match(loader, /only: preferred/, 'and narrows the upgrade to the preferred source')
@@ -143,11 +142,12 @@ test('保留平台逐字歌词、全局偏移、自动分词都有真实消费�
   const composer = readFileSync(join(root, 'src/client/components/ui/composer.js'), 'utf8')
   assert.match(composer, /lyricClock\(/, 'the composer strip uses the same clock')
   const lyrics = readFileSync(join(root, 'src/client/services/lyrics/lyrics.js'), 'utf8')
-  assert.match(lyrics, /lyricAutoSegmentationEnabled\(\)/, 'the segmentation switch gates the display pass')
   assert.match(lyrics, /function lyricClock\(seconds, offsetMs, globalOffsetMs\)/, 'the clock adds both offsets')
   assert.match(prefsSource, /lyricKeepProviderWordTiming: true/, 'keep-own defaults on')
-  assert.match(prefsSource, /lyricAutoWordSegmentation: true/, 'auto segmentation defaults on')
   assert.match(prefsSource, /lyricGlobalOffsetMs: 0/, 'the global offset defaults to zero')
+  // The 分词 group was not wanted: its switch must not come back, and a stored value is dropped.
+  assert.doesNotMatch(prefsSource, /^\s*lyricAutoWordSegmentation:/m, 'no segmentation preference is persisted')
+  assert.doesNotMatch(settingsSource, /lyricSegmentationAuto|lyricGroupSegmentation/, 'no 分词 group or switch')
 })
 
 console.log('lyric-settings.test.mjs ok')
