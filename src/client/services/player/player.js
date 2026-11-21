@@ -152,6 +152,12 @@ function createPlayer() {
   // trim, `replayGainFactor` the ReplayGain tag multiplier (1 when off).
   var normalizeBase = 1
   var replayGainFactor = 1
+  /** Folia's ReplayGain data for the current track (local tags / Navidrome / platform). */
+  var replayGainInfo = null
+  var replayGainToken = 0
+  /** Last shuffle-round signature tracked, and the round just reshuffled (Folia's guard). */
+  var shuffleRoundTracked = ''
+  var shuffleReshuffledGuard = ''
   var loudnessToken = 0
   /** Resolves when the current track's gain is ready (or analysis gave up). */
   var loudnessGate = null
@@ -614,21 +620,6 @@ var onlineMse = null
     })
   }
 
-  /**
-   * The next queue slot for an automatic advance. With Folia's shuffleRoundNoRepeat the
-   * queue is re-shuffled when a round wraps, so every pass plays in a new order.
-   */
-  function advanceIndex(index, size) {
-    var next = nextIndexOf(index, size)
-    if (next === 0 && size > 1 && state.order === 'random' && readPrefs().shuffleRoundNoRepeat === true) {
-      var queue = shuffleTracks(state.queue, null)
-      state = Object.assign({}, state, { queue: queue })
-      emit()
-      savePlaybackState()
-    }
-    return next
-  }
-
   function patch(next) {
     var wasPlaying = state.playing
     state = Object.assign({}, state, next)
@@ -862,7 +853,7 @@ var onlineMse = null
       patch({ playing: false })
       return
     }
-    load(advanceIndex(state.index, state.queue.length), true)
+    load(nextIndexOf(state.index, state.queue.length), true)
   }
 
   function onError(eventOrReason) {
@@ -904,7 +895,7 @@ var onlineMse = null
       // Folia's autoSkipUnplayable: a track the account cannot play is skipped like a
       // taken-down one instead of parking the queue on it. A run of failures stops.
       if (readPrefs().autoSkipUnplayable === true && state.queue.length > 1 && errorStreak <= 3) {
-        load(advanceIndex(state.index, state.queue.length), true)
+        load(nextIndexOf(state.index, state.queue.length), true)
         return
       }
       errorStreak = 0
@@ -916,7 +907,7 @@ var onlineMse = null
       patch({ playing: false })
       return
     }
-    load(advanceIndex(state.index, state.queue.length), true)
+    load(nextIndexOf(state.index, state.queue.length), true)
   }
 
   function releaseObjectUrl() {
@@ -1177,7 +1168,7 @@ var onlineMse = null
     }
     prefetchedProfilePath = item.path
     var request = item.onlineProvider === 'navidrome'
-      ? fetch(item.onlineUrl, { headers: { Range: 'bytes=0-1572863' } })
+      ? fetch(onlineUrlFor(item), { headers: { Range: 'bytes=0-1572863' } })
       : fetch(streamUrl(item.path))
     request
       .then(function (response) {
@@ -1275,7 +1266,7 @@ var onlineMse = null
 
   /** Gain is metadata: HEAD only when the stream response did not carry it. */
   function loadOnlineHeadGain(item, token) {
-    fetch(item.onlineUrl, { method: 'HEAD' })
+    fetch(onlineUrlFor(item), { method: 'HEAD' })
       .then(function (response) {
         if (!response.ok || token !== loadToken) return
         applyPlatformGain(response.headers)
@@ -1324,7 +1315,7 @@ var onlineMse = null
     if (token !== loadToken) return
     stopOnlineMse()
     prepareOnlineElement()
-    loadActiveSource(item.onlineUrl)
+    loadActiveSource(onlineUrlFor(item))
     loudness.resolve()
     if (pendingAutoplay) playAfterLoudness(token)
     if (headers === undefined || !applyPlatformGain(headers)) loadOnlineHeadGain(item, token)
@@ -1340,7 +1331,7 @@ var onlineMse = null
     }
     var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
     fetchAbort = controller
-    fetch(item.onlineUrl, controller === null ? {} : { signal: controller.signal })
+    fetch(onlineUrlFor(item), controller === null ? {} : { signal: controller.signal })
       .then(function (response) {
         if (token !== loadToken) {
           if (response.body !== null) response.body.cancel().catch(function () {})
@@ -1511,6 +1502,137 @@ var onlineMse = null
       })
   }
 
+  function replayGainModeOf() {
+    var mode = readPrefs().replayGainMode
+    return mode === 'off' || mode === 'track' || mode === 'album' ? mode : 'auto'
+  }
+
+  function replayGainEndpoint(item) {
+    if (item === null || item === undefined) return null
+    if (typeof item.onlineProvider === 'string' && item.onlineProvider !== '') {
+      // Folia reads Navidrome's gain from OpenSubsonic; other platforms have no file tags,
+      // and their provider gain (when it exists) arrives with the stream, not as a lyric API.
+      if (item.onlineProvider !== 'navidrome') return null
+      if (typeof item.onlineId !== 'string' || item.onlineId === '') return null
+      return API + 'online/replaygain?provider=navidrome&id=' + encodeURIComponent(item.onlineId)
+    }
+    if (typeof item.path !== 'string' || item.path === '') return null
+    return API + 'replaygain?path=' + encodeURIComponent(item.path)
+  }
+
+  function applyReplayGainFactor(factor) {
+    var next = Number.isFinite(Number(factor)) && Number(factor) > 0 ? Number(factor) : 1
+    replayGainFactor = next
+    if (trimNode !== null && audioContext !== null) {
+      applyTrimGain(trimNode, normalizeBase * replayGainFactor, audio === null || audio.paused === true)
+    } else {
+      applyOutputVolume()
+    }
+  }
+
+  /** Folia's calculateReplayGain: off/auto leave the tag factor at unity. */
+  function applyReplayGainState() {
+    var mode = replayGainModeOf()
+    if (mode === 'off' || mode === 'auto') {
+      applyReplayGainFactor(1)
+      return
+    }
+    var calculation = calculateReplayGain(replayGainInfo, mode)
+    applyReplayGainFactor(calculation.linearGain)
+  }
+
+  /**
+   * Ask the Host for the track's ReplayGain tags (Folia's applyReplayGain reads them from the
+   * local metadata / Navidrome carrier). The factor is reset first so a slow answer never keeps
+   * the previous song's gain.
+   */
+  function loadReplayGainFor(item) {
+    replayGainInfo = null
+    var token = (replayGainToken += 1)
+    applyReplayGainFactor(1)
+    var url = replayGainEndpoint(item)
+    if (url === null) {
+      applyReplayGainState()
+      return
+    }
+    getJson(url)
+      .then(function (body) {
+        if (token !== replayGainToken) return
+        replayGainInfo = {
+          trackGain: body && body.trackGain,
+          trackPeak: body && body.trackPeak,
+          albumGain: body && body.albumGain,
+          albumPeak: body && body.albumPeak,
+        }
+        tagGainDb = replayGainInfo.trackGain === undefined ? null : replayGainInfo
+        if (readPrefs().normalizeVolume !== false) reconsiderBalance(null)
+        applyReplayGainState()
+      })
+      .catch(function () {
+        if (token !== replayGainToken) return
+        applyReplayGainState()
+      })
+  }
+
+  /** Folia's shuffleRound: record the song now playing and reshuffle a finished round. */
+  function trackShuffleRoundProgress() {
+    if (readPrefs().shuffleRoundNoRepeat !== true) return
+    if (state.order !== 'random' || state.index < 0) return
+    var current = currentItem()
+    if (current === null) return
+    var keys = state.queue.map(shuffleRoundKeyOf).filter(function (key) { return key !== '' })
+    var currentKey = shuffleRoundKeyOf(current)
+    if (keys.indexOf(currentKey) < 0) return
+    var signature = currentKey + '\u0000' + keys.join('\u0001')
+    if (signature === shuffleRoundTracked) return
+    shuffleRoundTracked = signature
+    var step = decideShuffleRoundStep({
+      state: readShuffleRoundState(),
+      keys: keys,
+      currentKey: currentKey,
+      countedKeys: keys,
+      loopMode: state.loop === 'all' ? 'all' : state.loop,
+    })
+    if (step.kind === 'write') {
+      writeShuffleRoundState(step.state)
+      return
+    }
+    if (step.kind !== 'reshuffle') return
+    var round = readShuffleRoundState()
+    var guard = currentKey + '\u0000' + (round === null ? '' : round.orderHash)
+    if (guard === shuffleReshuffledGuard) return
+    shuffleReshuffledGuard = guard
+    var nextQueue = shuffleQueueInRounds(state.queue, current)
+    state = Object.assign({}, state, { queue: nextQueue, index: 0 })
+    emit()
+    savePlaybackState()
+    cancelPrefetch()
+    maybePrefetchNext()
+  }
+
+  /** Folia's round shuffle when the setting is on; the old flat shuffle otherwise. */
+  function shuffleForOrder(list, current) {
+    if (readPrefs().shuffleRoundNoRepeat === true) return shuffleQueueInRounds(list, current)
+    return shuffleTracks(list, current)
+  }
+
+  /**
+   * Folia resolves a stream URL when it asks the provider for audio, not when the row was
+   * built: the quality preference is read at play time. Do the same here, so changing
+   * 在线音质 affects the next play even for songs already in the queue.
+   */
+  function onlineUrlFor(item) {
+    if (item === null || item === undefined) return ''
+    if (
+      typeof item.onlineProvider === 'string' && item.onlineProvider !== '' &&
+      typeof item.onlineId === 'string' && item.onlineId !== '' &&
+      typeof onlineStreamUrl === 'function'
+    ) {
+      return onlineStreamUrl(item.onlineProvider, item.onlineId)
+    }
+    return typeof item.onlineUrl === 'string' ? item.onlineUrl : ''
+  }
+
   function load(at, autoplay) {
     var item = state.queue[at]
     if (!item) return
@@ -1525,6 +1647,7 @@ var onlineMse = null
     var token = (loadToken += 1)
     tagGainDb = null
     platformGain = null
+    loadReplayGainFor(item)
     prefetchedProfilePath = ''
     profileToken += 1
     state = Object.assign({}, state, { index: at, currentTime: 0, duration: 0, buffered: 0 })
@@ -1534,6 +1657,8 @@ var onlineMse = null
     // A new session starts here. The play count is recorded later, and
     // only when the Last.fm / MusicBee threshold is reached.
     resetSession(item)
+    // Folia's shuffleRound tracks the song now playing; a finished round reshuffles here.
+    trackShuffleRoundProgress()
     // Folia's light prefetch window: the next two and the previous track's lyrics.
     prefetchLyricsAround()
     currentLoudnessBlob = null
@@ -1564,7 +1689,7 @@ var onlineMse = null
     // MediaSource owns the online byte stream, so seek is decided by this
     // client rather than by Chromium's judgement of a proxy response. The
     // first appended chunk starts sound; no full-file blob and no analysis gate.
-    if (typeof item.onlineUrl === 'string' && item.onlineUrl !== '') {
+    if (onlineUrlFor(item) !== '') {
       prepareOnlineElement()
       playOnlineMse(item, token, loudness)
       return
@@ -1681,7 +1806,7 @@ var onlineMse = null
     var next = nextIndexOf(state.index, state.queue.length)
     if (next === state.index) return
     var item = state.queue[next]
-    if (!item || typeof item.onlineUrl !== 'string' || item.onlineUrl === '') return
+    if (!item || onlineUrlFor(item) === '') return
     if (!crossfadeNextAllowed(settings, currentItem(), item)) return
     if (prefetchedNext !== null && prefetchedNext.path === item.path) return
     if (prefetchAbort !== null) return
@@ -1705,8 +1830,9 @@ var onlineMse = null
   /** Fetch one track the same way `load()` does, without touching the decks. */
   function fetchTrackBlob(item, signal) {
     var options = signal === undefined || signal === null ? {} : { signal: signal }
-    if (typeof item.onlineUrl === 'string' && item.onlineUrl !== '') {
-      return fetch(item.onlineUrl, options).then(function (response) {
+    var resolvedOnlineUrl = onlineUrlFor(item)
+    if (resolvedOnlineUrl !== '') {
+      return fetch(resolvedOnlineUrl, options).then(function (response) {
         if (!response.ok) throw new Error('HTTP ' + response.status)
         return response.blob()
       })
@@ -2009,8 +2135,10 @@ var onlineMse = null
     session.lastTime = audio.currentTime || 0
     syncMediaSession()
     applyOutputVolume()
+    trackShuffleRoundProgress()
     emit()
     savePlaybackState()
+    loadReplayGainFor(item)
     prefetchLyricsAround()
     maybePrefetchNext()
   }
@@ -2340,7 +2468,7 @@ var onlineMse = null
     setQueue: function (list) {
       // Never replace a queue that is already playing or paused mid-track.
       if (state.index >= 0) return
-      var queue = state.order === 'random' ? shuffleTracks(list, null) : list.slice()
+      var queue = state.order === 'random' ? shuffleForOrder(list, null) : list.slice()
       state = Object.assign({}, state, { queue: queue, index: -1 })
       emit()
     },
@@ -2349,7 +2477,7 @@ var onlineMse = null
       var queue = list.slice()
       var index = at
       if (state.order === 'random') {
-        queue = shuffleTracks(queue, queue[at])
+        queue = shuffleForOrder(queue, queue[at])
         index = 0
       }
       state = Object.assign({}, state, { queue: queue, index: index })
@@ -2394,7 +2522,7 @@ var onlineMse = null
         var queue = list.slice()
         var index = at
         if (state.order === 'random') {
-          queue = shuffleTracks(queue, queue[at])
+          queue = shuffleForOrder(queue, queue[at])
           index = 0
         }
         state = Object.assign({}, state, { queue: queue, index: index })
@@ -2545,7 +2673,7 @@ var onlineMse = null
     },
     next: function () {
       if (state.queue.length === 0) return
-      load(advanceIndex(state.index, state.queue.length), true)
+      load(nextIndexOf(state.index, state.queue.length), true)
     },
     prev: function () {
       if (state.queue.length === 0) return
@@ -2634,6 +2762,10 @@ var onlineMse = null
       } else if (currentItem()) {
         scheduleLoudness(currentItem(), currentLoudnessBlob)
       }
+    },
+    /** Re-apply the ReplayGain mode after the setting changed (Folia's applyReplayGain). */
+    refreshReplayGain: function () {
+      applyReplayGainState()
     },
     /**
      * Update the equalizer. Every call persists, so the panel can drive this
@@ -2761,7 +2893,7 @@ var onlineMse = null
       if (next === 'random' && state.queue.length > 1) {
         // Shuffle the canonical queue once; the panel order is the play order.
         var current = currentItem()
-        var queue = shuffleTracks(state.queue, current)
+        var queue = shuffleForOrder(state.queue, current)
         state = Object.assign({}, state, { queue: queue, index: current ? 0 : state.index, order: next })
       } else {
         state = Object.assign({}, state, { order: next })

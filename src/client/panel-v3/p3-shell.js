@@ -797,29 +797,6 @@ function P3Shell() {
 
 
   useEffect(function () {
-    var deadline = Number(prefs.sleepDeadline) || 0
-    var minutes = Number(prefs.sleepTimerMinutes) || 0
-    if (deadline <= 0 && minutes > 0) {
-      setPrefs({ sleepDeadline: Date.now() + minutes * 60000 })
-      return undefined
-    }
-    if (deadline <= 0) return undefined
-    var delay = deadline - Date.now()
-    if (delay <= 0) {
-      player.pause()
-      setPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 })
-      showToast(t('settings.sleepTimerDone'))
-      return undefined
-    }
-    var timer = window.setTimeout(function () {
-      player.pause()
-      setPrefs({ sleepTimerMinutes: 0, sleepDeadline: 0 })
-      showToast(t('settings.sleepTimerDone'))
-    }, delay)
-    return function () { window.clearTimeout(timer) }
-  }, [prefs.sleepDeadline, prefs.sleepTimerMinutes])
-
-  useEffect(function () {
     function onKey(event) {
       var tag = event.target && event.target.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {

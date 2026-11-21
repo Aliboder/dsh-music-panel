@@ -315,6 +315,12 @@ function apply(ctx) {
     }
   })
 
+  // Folia keeps its sleep timer at the app root; so does the plugin. Folding the panel
+  // must not stop a countdown that was already armed.
+  ctx.effect(function () {
+    return startSleepTimer()
+  })
+
   ctx.effect(function () {
     return function () {
       player.suspend()

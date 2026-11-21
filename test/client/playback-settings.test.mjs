@@ -66,13 +66,28 @@ test('加入队列的默认位置两端都实现', () => {
 test('无法播放跳过、轮换重洗、播放时阻止休眠接到播放器', () => {
   assert.match(prefs, /autoSkipUnplayable: false/, 'skip is off by default')
   assert.match(player, /readPrefs\(\)\.autoSkipUnplayable === true/, 'the error path reads the switch')
-  assert.match(player, /function advanceIndex\(index, size\)/, 'one advance helper exists')
-  assert.match(player, /shuffleRoundNoRepeat === true/, 'a shuffled round is re-shuffled on wrap')
-  assert.ok((player.match(/advanceIndex\(/g) || []).length >= 4, 'onEnded, onError and next all advance through it')
+  // Folia's shuffleRound: a finished round is reshuffled from the tracking pass, not from
+  // the advance step, so a crossfade at the boundary cannot bypass it.
+  assert.match(player, /shuffleQueueInRounds\(/, 'shuffle uses the round helper')
+  assert.match(player, /function trackShuffleRoundProgress\(\)/, 'a tracking pass exists')
+  assert.match(player, /decideShuffleRoundStep\(/, 'the tracking pass uses Folia\'s step decision')
+  assert.match(player, /readShuffleRoundState\(/, 'the round is remembered across songs')
+  assert.doesNotMatch(player, /function advanceIndex\(/, 'the old wrap-only reshuffle is gone')
   assert.match(prefs, /preventSleepDuringPlayback: false/, 'screen lock is off by default')
   assert.match(player, /preventSleepDuringPlayback === true/, 'the player reads the switch')
   assert.match(player, /navigator\.wakeLock\.request\('screen'\)/, 'it asks the browser for the lock')
   assert.match(player, /refreshWakeLock: function/, 'the settings switch can re-sync it immediately')
+})
+
+test('睡眠定时、ReplayGain、在线音质由插件生命周期接管', () => {
+  const plugin = readFileSync(join(root, 'src/client/app/plugin.js'), 'utf8')
+  const shell = readFileSync(join(root, 'src/client/panel-v3/p3-shell.js'), 'utf8')
+  assert.match(plugin, /startSleepTimer\(\)/, 'the sleep timer starts from apply()')
+  assert.doesNotMatch(shell, /window\.setTimeout\(function \(\) \{\n\s+player\.pause\(\)/, 'the panel no longer owns the countdown')
+  assert.match(player, /calculateReplayGain\(/, 'the player applies Folia\'s ReplayGain arithmetic')
+  assert.match(player, /loadReplayGainFor\(item\)/, 'gain is resolved on every load')
+  assert.match(player, /function onlineUrlFor\(item\)/, 'stream URLs are resolved at play time')
+  assert.match(player, /onlineStreamUrl\(item\.onlineProvider, item\.onlineId\)/, 'and read the current quality preference')
 })
 
 console.log('playback-settings.test.mjs ok')

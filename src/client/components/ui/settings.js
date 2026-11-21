@@ -932,14 +932,11 @@ function SettingsSheet(props) {
           ],
           onChange: function (value) {
             var next = String(value)
-            // 'off' also switches the loudness analysis off; the tag modes leave it
-            // off too, since they read the file's own gain.
-            patchPrefs({
-              replayGainMode: next,
-              normalizeVolume: next === 'off' ? false : true,
-            })
+            // Folia: only 智能平衡 measures loudness; the tag modes read the file's own
+            // gain, and off applies neither. The player applies the mode on every load.
+            patchPrefs({ replayGainMode: next })
             if (player.setNormalize) player.setNormalize(next === 'auto')
-            if (player.setReplayGain) player.setReplayGain(0)
+            if (player.refreshReplayGain) player.refreshReplayGain()
           },
         }),
       ),
@@ -950,7 +947,13 @@ function SettingsSheet(props) {
           key: 'normalize-status',
           className: cx(
             'mp-set-status',
-            prefs.normalizeVolume === false ? 'is-off' : builtinLoudness ? 'is-on' : 'is-bad',
+            prefs.normalizeVolume === false
+              ? replayGainValue === 'track' || replayGainValue === 'album'
+                ? 'is-on'
+                : 'is-off'
+              : builtinLoudness
+                ? 'is-on'
+                : 'is-bad',
           ),
         },
         h('i'),
@@ -958,7 +961,9 @@ function SettingsSheet(props) {
           'span',
           null,
           prefs.normalizeVolume === false
-            ? t('settings.volumeNormalizeOff')
+            ? replayGainValue === 'track' || replayGainValue === 'album'
+              ? t('settings.replayGainTagMode')
+              : t('settings.volumeNormalizeOff')
             : builtinLoudness
               ? t('settings.volumeNormalizeReady')
               : t('settings.volumeNormalizeMissing'),

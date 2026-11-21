@@ -380,15 +380,9 @@ function NowPlaying(props) {
     },
     [props.open],
   )
-  // ReplayGain values from the file's tags, and which lyric sources it has.
+  // ReplayGain values for the local tab's readout; the player applies the gain itself
+  // (Folia's applyReplayGain), so this fetch is display-only.
   var gainPair = useState(null)
-  // The song's tag gain goes to the player, which uses it when the balance has no reading.
-  useEffect(
-    function () {
-      if (player.setTagGain) player.setTagGain(gainInfo)
-    },
-    [gainInfo, trackPath],
-  )
   var gainInfo = gainPair[0]
   var setGainInfo = gainPair[1]
   var sourceInfoPair = useState(null)
@@ -482,32 +476,6 @@ function NowPlaying(props) {
     [trackPath, lyricReload, lyricPriorityKey],
   )
 
-  // off / auto / track / album — auto is the measured loudness trim, the two tag
-  // modes use the file's own gains, and off disables both.
-  useEffect(
-    function () {
-      if (!player.setReplayGain || !player.setNormalize) return
-      if (gainMode === 'off') {
-        player.setReplayGain(0)
-        player.setNormalize(false)
-        return
-      }
-      if (gainMode === 'auto') {
-        player.setReplayGain(0)
-        player.setNormalize(true)
-        return
-      }
-      var db = gainInfo === null ? null : gainMode === 'album' ? gainInfo.albumGain ?? gainInfo.trackGain : gainInfo.trackGain
-      if (typeof db === 'number' && Number.isFinite(db)) {
-        player.setNormalize(false)
-        player.setReplayGain(db)
-      } else {
-        player.setReplayGain(0)
-        player.setNormalize(true)
-      }
-    },
-    [gainMode, gainInfo, trackPath],
-  )
   // 本地 tab: the timeline offset, the lyric source's name, the lyric text to export.
   var lyricSourceLabel =
     lyricSource === 'embedded'
