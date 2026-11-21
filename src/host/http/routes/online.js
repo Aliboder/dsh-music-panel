@@ -12,6 +12,7 @@
  */
 
 import { createReadStream } from 'node:fs'
+import { open } from 'node:fs/promises'
 import { fail, readJson, sendJson } from '../http.js'
 import { isAllowedCoverUrl } from '../url-safety.js'
 import { readTrackMeta } from '../../services/media/meta.js'
@@ -59,6 +60,101 @@ function onlineAudioMime(upstreamType, streamUrl, quality) {
   if (path.endsWith('.mp3')) return 'audio/mpeg'
   if (quality === 'lossless' || quality === 'hires') return 'audio/flac'
   return 'audio/mpeg'
+}
+
+/**
+ * Issue #28: NetEase's CDN labels a real FLAC file as `audio/mpeg`. The browser trusts the
+ * label, tries to demux MP3, and reports a decode failure. Sniff the container from the first
+ * bytes instead of believing the header; return null when the bytes say nothing.
+ */
+function sniffAudioMime(chunk) {
+  if (chunk === null || chunk === undefined || chunk.length < 4) return null
+  const tag = chunk.subarray(0, 4).toString('latin1')
+  if (tag === 'fLaC') return 'audio/flac'
+  if (tag === 'OggS') return 'audio/ogg'
+  if (tag === 'RIFF') return 'audio/wav'
+  if (tag === 'ID3') return 'audio/mpeg'
+  if (chunk.length >= 8 && chunk.subarray(4, 8).toString('latin1') === 'ftyp') return 'audio/mp4'
+  // MPEG audio frame sync: 11 set bits at the start of an MP3 frame.
+  if (chunk[0] === 0xff && (chunk[1] & 0xe0) === 0xe0) return 'audio/mpeg'
+  return null
+}
+
+/**
+ * The same sniff for a copy in Folia's media cache: its stored mime came from the CDN, and a
+ * NetEase lossless copy carries the same wrong audio/mpeg label. Read the file's first bytes.
+ */
+async function sniffFileAudioMime(file) {
+  if (typeof file !== 'string' || file === '') return null
+  let handle = null
+  try {
+    handle = await open(file, 'r')
+    const header = Buffer.alloc(16)
+    const read = await handle.read(header, 0, header.length, 0)
+    return sniffAudioMime(header.subarray(0, read.bytesRead))
+  } catch (error) {
+    return null
+  } finally {
+    if (handle !== null) await handle.close().catch(() => {})
+  }
+}
+
+/** Read only the first chunk so the container can be sniffed before headers go out. */
+async function peekFirstChunk(body) {
+  if (body === null || typeof body.getReader !== 'function') return null
+  const reader = body.getReader()
+  try {
+    const first = await reader.read()
+    if (first.done) {
+      try { reader.releaseLock() } catch (error) {}
+      return null
+    }
+    return { first: Buffer.from(first.value), reader }
+  } catch (error) {
+    try { reader.releaseLock() } catch (releaseError) {}
+    return null
+  }
+}
+
+/**
+ * Write the peeked first chunk (if any) and the rest of the upstream body. With no peek, the
+ * original stream is iterated as before.
+ */
+async function writeUpstreamBody(res, upstream, firstChunk, reader, onStop) {
+  // A Buffer is a Uint8Array, but writing one through a plain Node response is fine while a
+  // fake/test sink stringifies it differently. Hand over a plain view either way.
+  const writeChunk = (chunk) => {
+    res.write(Buffer.isBuffer(chunk)
+      ? new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength)
+      : chunk)
+  }
+  if (firstChunk !== null && firstChunk.length > 0) {
+    if (res.writableEnded || res.destroyed) {
+      if (reader !== null) reader.cancel().catch(() => {})
+      return
+    }
+    writeChunk(firstChunk)
+  }
+  if (reader !== null) {
+    while (true) {
+      const next = await reader.read()
+      if (next.done) return
+      if (res.writableEnded || res.destroyed) {
+        if (typeof onStop === 'function') onStop()
+        reader.cancel().catch(() => {})
+        return
+      }
+      writeChunk(next.value)
+    }
+  }
+  if (upstream.body === null) return
+  for await (const chunk of upstream.body) {
+    if (res.writableEnded || res.destroyed) {
+      if (typeof onStop === 'function') onStop()
+      break
+    }
+    res.write(chunk)
+  }
 }
 
 function replayGainHeaders(gain) {
@@ -202,8 +298,9 @@ export function createOnlineRoutes(deps) {
     void mediaCache.touch(provider, id)
     if (cacheWriter !== null) cacheWriter.noteStream(provider, id, { preview: false })
     const rangeHeader = req.headers.range
+    const cachedMime = await sniffFileAudioMime(cached.file)
     const baseHeaders = {
-      'content-type': cached.mime,
+      'content-type': cachedMime || cached.mime,
       'accept-ranges': 'bytes',
       'cache-control': 'public, max-age=604800',
     }
@@ -696,8 +793,20 @@ export function createOnlineRoutes(deps) {
               upstreamStatus: Number(upstream.status) || 0,
             })
           }
+          const seekStart = rangeStartOf(rangeHeader)
+          // A container can only be sniffed from a request that starts at byte 0: a later
+          // range begins mid-file. HEAD carries no body, so it keeps the header-derived type.
+          const canSniff = method === 'GET'
+            && upstream.body !== null
+            && (!hasRange || seekStart === 0)
+          const peeked = canSniff ? await peekFirstChunk(upstream.body) : null
+          const firstChunk = peeked === null ? null : peeked.first
+          const bodyReader = peeked === null ? null : peeked.reader
+          const sniffedMime = sniffAudioMime(firstChunk)
           const headers = {
-            'content-type': onlineAudioMime(upstream.headers.get('content-type'), stream.url, quality),
+            // Issue #28: the bytes win over a CDN's wrong content-type (NetEase sends FLAC
+            // as audio/mpeg at lossless/hires), because the media element trusts the label.
+            'content-type': sniffedMime || onlineAudioMime(upstream.headers.get('content-type'), stream.url, quality),
             'cache-control': 'no-store',
             // We always proxy Range (cache hit serves it locally, a miss is
             // forwarded upstream), so advertise it even when the CDN omits the
@@ -706,7 +815,6 @@ export function createOnlineRoutes(deps) {
           }
           if (stream.preview === true) headers['x-music-preview'] = '1'
           Object.assign(headers, replayGainHeaders(stream.replayGain))
-          const seekStart = rangeStartOf(rangeHeader)
           const totalHeader = upstream.headers.get('content-length')
           if (hasRange && seekStart === 0 && upstream.status === 200 && /^bytes=0-$/.test(String(rangeHeader || '').trim()) && totalHeader !== null) {
             // A media element's first Range probe is normally `bytes=0-`. If the
@@ -722,12 +830,7 @@ export function createOnlineRoutes(deps) {
                 res.end()
                 return
               }
-              if (upstream.body !== null) {
-                for await (const chunk of upstream.body) {
-                  if (res.writableEnded || res.destroyed) break
-                  res.write(chunk)
-                }
-              }
+              await writeUpstreamBody(res, upstream, firstChunk, bodyReader)
               if (!res.writableEnded) res.end()
               return
             }
@@ -769,15 +872,7 @@ export function createOnlineRoutes(deps) {
             res.end()
             return
           }
-          if (upstream.body !== null) {
-            for await (const chunk of upstream.body) {
-              if (res.writableEnded || res.destroyed) {
-                controller.abort()
-                break
-              }
-              res.write(chunk)
-            }
-          }
+          await writeUpstreamBody(res, upstream, firstChunk, bodyReader, function () { controller.abort() })
           if (!res.writableEnded) res.end()
           // Remember how this stream turned out: /online/played only caches a song whose
           // last stream was the real thing, never a provider-marked preview clip.

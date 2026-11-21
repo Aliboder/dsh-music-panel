@@ -156463,6 +156463,8 @@ window.__ModuleLoader__.load({
     var prefetchedProfilePath = ''
     var profileToken = 0
     var onlineMse = null
+    /** One direct-element retry per load when MSE cannot decode the stream (Folia plays direct). */
+    var mseFallbackToken = -1
       var currentLoudnessBlob = null
       /** In-flight track download. */
       var fetchAbort = null
@@ -157164,8 +157166,24 @@ window.__ModuleLoader__.load({
           console.warn('[Player] Media pipeline failure:', reason)
           reason = ''
         }
-        errorStreak += 1
         var failedTrack = state.queue[state.index] || null
+        // Folia never decodes an online song through MediaSource: it hands the address to the
+        // media element, which sniffs the container itself. Keep that as the safety net when an
+        // MSE append/decoder rejects a stream whose declared type was wrong (issue #28).
+        if (
+          failedTrack !== null && failedTrack.onlineProvider &&
+          onlineMse !== null &&
+          mseFallbackToken !== loadToken
+        ) {
+          mseFallbackToken = loadToken
+          var fallbackPlaying = state.playing === true
+          console.warn('[Player] MSE could not decode the stream; playing it directly like Folia')
+          stopOnlineMse()
+          pendingAutoplay = fallbackPlaying
+          startOnlineDirect(failedTrack, loadToken, { promise: Promise.resolve(), resolve: function () {} }, null)
+          return
+        }
+        errorStreak += 1
         // An online track that could not be played says so: the queue stops on it, so the
         // "skipped to the next track" wording would be wrong there.
         if (reason === '' && failedTrack !== null && failedTrack.onlineProvider) reason = t('page.playbackFailedMedia')
@@ -157933,6 +157951,7 @@ window.__ModuleLoader__.load({
         flushListening(true)
         flushSessionPosition()
         var token = (loadToken += 1)
+        mseFallbackToken = -1
         tagGainDb = null
         platformGain = null
         loadReplayGainFor(item)

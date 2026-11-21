@@ -24,6 +24,10 @@
 - 清理经典歌词列表残留：删除 `lyrics-scroll.js`（refs 永远接不上的自动滚动）、`text-styles.js`、`--mp-lyric-size` / `--mp-line-gap` / `mp-align-*` / `is-blur` 等 CSS 钩子，以及播放页的 inert 手动浏览状态；旧的 `lyricSize` / `lyricGap` / `lyricBlur` / `lyricAlign` 持久化值在读取时丢弃。
 - 匹配歌词窗口的搜索框只自动填入歌名（此前是「歌名 - 歌手 - 专辑」）：各平台搜索只接受一个字符串，长查询会把歌名埋在后面，结果全是同名不同版；歌手/专辑/时长仍随请求提交，排序照旧按元数据打分。
 
+### 在线播放
+
+- 修复 issue #28：网易云无损 / 高解析档在海外（荷兰）立即失败。CDN 把真实的 FLAC 标成 `audio/mpeg`，Host 原来原样透传，客户端于是按 MIME 选了 MSE，append 时解码失败。Host 现在在写响应头前读第一块并嗅探容器（`fLaC` / `OggS` / `RIFF` / `ID3` / `ftyp` / MP3 帧同步），实时流与媒体缓存副本都以嗅探结果为准；嗅探只在请求从 0 开始时做，后面的 Range 仍按原逻辑。客户端保留 MSE（为了可控 seek），但 MSE 解码失败时会像 Folia 一样退回直连媒体元素再试一次。
+
 ### 队列
 
 - 队列只剩一套界面：删除输入框浮层、播放器卡片与播放页各自的队列列表（`queue.js` 的 `QueuePopover` / `QueueList` / `QueuePanel`、播放器卡片的队列页签、`music-queue` 浮层挂载），全部指向音乐面板里那份带「正在播放 / 接下来播放」的队列。

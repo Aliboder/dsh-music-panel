@@ -103,6 +103,34 @@ try {
   }
 }
 
+// Issue #28: NetEase's lossless CDN labels a real FLAC file as audio/mpeg. Sniffing the
+// first bytes must win, or the media element tries to demux it as MP3 and fails.
+{
+  const oldStream = omni.stream
+  const oldFetch = globalThis.fetch
+  omni.stream = async (_provider, _id, _ctx, quality) => ({
+    url: 'https://cdn.test/lossless',
+    quality,
+    preview: false,
+  })
+  const flac = Buffer.concat([Buffer.from('fLaC', 'latin1'), Buffer.alloc(12)])
+  globalThis.fetch = async () => new Response(flac, {
+    status: 200,
+    headers: { 'content-type': 'audio/mpeg', 'content-length': String(flac.length) },
+  })
+  try {
+    const res = fakeRes()
+    await handler(fakeReq('/music/online/stream?provider=netease&id=flac-mime&quality=lossless'), res)
+    assert.equal(res.status, 200)
+    assert.equal(res.headers['content-type'], 'audio/flac', 'the bytes beat the CDN\'s audio/mpeg label')
+    assert.equal(res.body, Array.from(flac).join(','), 'the sniffed first chunk is still written')
+    assert.equal(res.headers['content-length'], String(flac.length), 'length is unchanged')
+  } finally {
+    omni.stream = oldStream
+    globalThis.fetch = oldFetch
+  }
+}
+
 // The first media Range probe is normally bytes=0-. If the CDN answers 200,
 // relay it as a full 206 so Chromium knows the resource is seekable.
 {
