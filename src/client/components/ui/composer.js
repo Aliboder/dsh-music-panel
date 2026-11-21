@@ -139,27 +139,22 @@ function ComposerLyrics() {
   )
 }
 
+/**
+ * The composer seat is one control: the current track's queue button. It opens the queue
+ * and nothing else — the bar has no room for a second target about the same song, and
+ * pause/resume is already one row above in the sidebar transport, which is always visible.
+ * The lyric strip above the input keeps its own switch.
+ */
 function ComposerCluster() {
+  var prefs = usePrefs()
   var snap = usePlayerSnapshot()
   var ui = useStore(uiStore)
   var track = snap.queue[snap.index] || null
   var queueOpen = ui.queueOpen === true && ui.queueSource === 'composer'
-  if (track === null) return null
+  if (prefs.composerListButton === false || track === null) return null
   return h(
     'div',
     { className: 'mp-composer-cluster' },
-    h(
-      'button',
-      {
-        type: 'button',
-        className: 'mp-cbtn',
-        title: snap.playing ? t('page.pause') : t('page.play'),
-        onClick: function () {
-          player.toggle()
-        },
-      },
-      icon(snap.playing ? 'pause' : 'play', 14),
-    ),
     h(
       'button',
       {

@@ -289,6 +289,23 @@ function SettingsSheet(props) {
         { key: 'layout', label: t('v2.layout'), desc: t('v2.layoutHint') },
         layoutChoices(),
       ),
+      h(
+        SetRow,
+        {
+          key: 'composer-list-button',
+          label: t('settings.composerListButton'),
+          desc: t('settings.composerListButtonDesc'),
+        },
+        h(Switch, {
+          value: prefs.composerListButton !== false,
+          onChange: function (value) {
+            // The queue popover is anchored to this button; close it together with the
+            // button so the popover cannot survive without an anchor.
+            if (value !== true) setUi({ queueOpen: false })
+            patchPrefs({ composerListButton: value })
+          },
+        }),
+      ),
       h('div', { key: 'player-head', className: 'mp-set-label' }, t('settings.appearancePlayer')),
       h('div', { key: 'player-hint', className: 'mp-set-desc' }, t('settings.appearancePlayerHint')),
       h(

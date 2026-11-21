@@ -535,6 +535,8 @@ var DICTS = {
     'settings.composerLyrics': '输入框歌词',
     'settings.composerTranslation': '输入框歌词翻译',
     'settings.composerTranslationDesc': '关闭后输入框上方只显示原文',
+    'settings.composerListButton': '输入框列表按钮',
+    'settings.composerListButtonDesc': '在对话输入框里显示当前歌曲的列表按钮，点开即可查看队列；关闭后输入框不再显示音乐控件',
       'settings.placeInputLeft': '输入框内（播放列表按钮左侧）',
     'settings.placeAbove': '输入框上方',
     // ── Folia login window (src/render/login/folia-src) ─────────────────────────
@@ -1162,6 +1164,8 @@ var DICTS = {
     'settings.composerLyrics': 'Composer lyrics',
     'settings.composerTranslation': 'Composer lyric translation',
     'settings.composerTranslationDesc': 'Turn off to show only the original line above the input',
+    'settings.composerListButton': 'Composer list button',
+    'settings.composerListButtonDesc': 'Shows the current track beside the chat input and opens the queue; turn off to remove the music control from the input bar',
       'settings.placeInputLeft': 'Left of the queue button',
     'settings.placeAbove': 'Above input',
     // ── Folia login window (src/render/login/folia-src) ─────────────────────────

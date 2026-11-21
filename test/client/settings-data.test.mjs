@@ -14,6 +14,8 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const source = readFileSync(join(root, 'src/client/components/ui/settings.js'), 'utf8')
 const prefsSource = readFileSync(join(root, 'src/client/stores/prefs.js'), 'utf8')
+const composerSource = readFileSync(join(root, 'src/client/components/ui/composer.js'), 'utf8')
+const i18nSource = readFileSync(join(root, 'src/client/i18n/i18n.js'), 'utf8')
 const profileSource = readFileSync(join(root, 'src/client/services/player/effects/profile.js'), 'utf8')
 
 test('clear-all data flow keeps the confirm token and two-step UI', () => {
@@ -44,6 +46,30 @@ test('settings page reflects current features and no dead preferences', () => {
   assert.match(source, /voiceInputPause/, 'Folia voice-input pause has a settings row')
   assert.match(source, /audioFocusDucking/, 'external TTS ducking has a settings row')
   assert.match(prefsSource, /audioFocusDuckLevel/, 'ducking level has a persisted default')
+})
+
+test('the composer seat is one list button, hidden by its own switch', () => {
+  const start = composerSource.indexOf('function ComposerCluster')
+  const end = composerSource.indexOf('function GlobalQueueHost')
+  assert.ok(start >= 0 && end > start, 'ComposerCluster still exists')
+  const cluster = composerSource.slice(start, end)
+  assert.match(cluster, /data-queue-toggle/, 'the seat opens the queue')
+  assert.equal(
+    (cluster.match(/mp-cbtn/g) || []).length,
+    1,
+    'the seat renders one button: pause/resume lives in the sidebar transport, not here',
+  )
+  assert.doesNotMatch(cluster, /player\.toggle/, 'the seat carries no transport action')
+  assert.match(cluster, /prefs\.composerListButton === false/, 'the switch removes the seat')
+  assert.match(prefsSource, /composerListButton: true/, 'the seat is shown by default')
+  assert.match(source, /settings\.composerListButton/, 'the switch has a settings row')
+  for (const key of ['settings.composerListButton', 'settings.composerListButtonDesc']) {
+    assert.equal(
+      (i18nSource.match(new RegExp("'" + key.replace(/\./g, '\\.') + "':", 'g')) || []).length,
+      2,
+      key + ' is defined in zh and en',
+    )
+  }
 })
 
 test('profile storage is covered by the music. clear prefix', () => {

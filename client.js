@@ -7309,6 +7309,8 @@ window.__ModuleLoader__.load({
         'settings.composerLyrics': '输入框歌词',
         'settings.composerTranslation': '输入框歌词翻译',
         'settings.composerTranslationDesc': '关闭后输入框上方只显示原文',
+        'settings.composerListButton': '输入框列表按钮',
+        'settings.composerListButtonDesc': '在对话输入框里显示当前歌曲的列表按钮，点开即可查看队列；关闭后输入框不再显示音乐控件',
           'settings.placeInputLeft': '输入框内（播放列表按钮左侧）',
         'settings.placeAbove': '输入框上方',
         // ── Folia login window (src/render/login/folia-src) ─────────────────────────
@@ -7936,6 +7938,8 @@ window.__ModuleLoader__.load({
         'settings.composerLyrics': 'Composer lyrics',
         'settings.composerTranslation': 'Composer lyric translation',
         'settings.composerTranslationDesc': 'Turn off to show only the original line above the input',
+        'settings.composerListButton': 'Composer list button',
+        'settings.composerListButtonDesc': 'Shows the current track beside the chat input and opens the queue; turn off to remove the music control from the input bar',
           'settings.placeInputLeft': 'Left of the queue button',
         'settings.placeAbove': 'Above input',
         // ── Folia login window (src/render/login/folia-src) ─────────────────────────
@@ -150369,6 +150373,11 @@ window.__ModuleLoader__.load({
       npBeatAmount: 300,
       composerLyrics: false,
       composerTranslation: true,
+      /**
+       * The composer seat: one list button beside the chat input that opens the queue.
+       * Off removes the seat, not just its content; the lyric strip keeps `composerLyrics`.
+       */
+      composerListButton: true,
       volume: 1,
       audioOutputDeviceId: '',
       playbackFade: true,
@@ -168034,6 +168043,23 @@ window.__ModuleLoader__.load({
             { key: 'layout', label: t('v2.layout'), desc: t('v2.layoutHint') },
             layoutChoices(),
           ),
+          h(
+            SetRow,
+            {
+              key: 'composer-list-button',
+              label: t('settings.composerListButton'),
+              desc: t('settings.composerListButtonDesc'),
+            },
+            h(Switch, {
+              value: prefs.composerListButton !== false,
+              onChange: function (value) {
+                // The queue popover is anchored to this button; close it together with the
+                // button so the popover cannot survive without an anchor.
+                if (value !== true) setUi({ queueOpen: false })
+                patchPrefs({ composerListButton: value })
+              },
+            }),
+          ),
           h('div', { key: 'player-head', className: 'mp-set-label' }, t('settings.appearancePlayer')),
           h('div', { key: 'player-hint', className: 'mp-set-desc' }, t('settings.appearancePlayerHint')),
           h(
@@ -178566,27 +178592,22 @@ window.__ModuleLoader__.load({
       )
     }
 
+    /**
+     * The composer seat is one control: the current track's queue button. It opens the queue
+     * and nothing else — the bar has no room for a second target about the same song, and
+     * pause/resume is already one row above in the sidebar transport, which is always visible.
+     * The lyric strip above the input keeps its own switch.
+     */
     function ComposerCluster() {
+      var prefs = usePrefs()
       var snap = usePlayerSnapshot()
       var ui = useStore(uiStore)
       var track = snap.queue[snap.index] || null
       var queueOpen = ui.queueOpen === true && ui.queueSource === 'composer'
-      if (track === null) return null
+      if (prefs.composerListButton === false || track === null) return null
       return h(
         'div',
         { className: 'mp-composer-cluster' },
-        h(
-          'button',
-          {
-            type: 'button',
-            className: 'mp-cbtn',
-            title: snap.playing ? t('page.pause') : t('page.play'),
-            onClick: function () {
-              player.toggle()
-            },
-          },
-          icon(snap.playing ? 'pause' : 'play', 14),
-        ),
         h(
           'button',
           {

@@ -75,6 +75,11 @@ var PREF_DEFAULTS = {
   npBeatAmount: 300,
   composerLyrics: false,
   composerTranslation: true,
+  /**
+   * The composer seat: one list button beside the chat input that opens the queue.
+   * Off removes the seat, not just its content; the lyric strip keeps `composerLyrics`.
+   */
+  composerListButton: true,
   volume: 1,
   audioOutputDeviceId: '',
   playbackFade: true,
