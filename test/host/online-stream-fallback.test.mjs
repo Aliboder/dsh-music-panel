@@ -156,6 +156,65 @@ try {
   }
 }
 
+// Issue #26: the platform signs the address for ONE CDN node, and that node can refuse this
+// client while the same file is served fine elsewhere. Ask for a fresh address once at the same
+// quality (a new signature, usually another node) before telling the listener anything.
+{
+  const oldStream = omni.stream
+  const oldFetch = globalThis.fetch
+  const asked = []
+  let calls = 0
+  omni.stream = async (_provider, _id, _ctx, quality) => {
+    asked.push(quality)
+    return { url: 'https://cdn.test/node-' + asked.length + '-' + quality + '.mp3', quality, preview: false }
+  }
+  globalThis.fetch = async () => {
+    calls += 1
+    if (calls === 1) return new Response('', { status: 403 })
+    return new Response(Buffer.from([0x49, 0x44, 0x33, 0x04]), {
+      status: 206,
+      headers: { 'content-type': 'audio/mpeg', 'content-length': '4', 'content-range': 'bytes 0-3/4' },
+    })
+  }
+  try {
+    const res = fakeRes()
+    await handler(fakeReq('/music/online/stream?provider=netease&id=node-refusal-once&quality=high'), res)
+    assert.equal(res.status, 206, 'a node refusal is retried with a fresh address instead of reported')
+    assert.deepEqual(asked, ['high', 'high'], 'the first retry keeps the requested quality')
+  } finally {
+    omni.stream = oldStream
+    globalThis.fetch = oldFetch
+  }
+}
+
+// A node that keeps refusing ends the song, and the answer carries a reason a person can read:
+// the status alone used to reach Chromium and come back as a demuxer error.
+{
+  const oldStream = omni.stream
+  const oldFetch = globalThis.fetch
+  const asked = []
+  omni.stream = async (_provider, _id, _ctx, quality) => {
+    asked.push(quality)
+    return { url: 'https://cdn.test/always-' + asked.length + '-' + quality + '.mp3', quality, preview: false }
+  }
+  globalThis.fetch = async () => new Response('', { status: 403 })
+  try {
+    const res = fakeRes()
+    await handler(fakeReq('/music/online/stream?provider=netease&id=node-refusal-always&quality=high'), res)
+    assert.equal(res.status, 502, 'a node that keeps refusing ends as an error, not as silence')
+    assert.deepEqual(asked, ['high', 'high', 'standard'], 'same quality once more, then one level down')
+    const body = res.json()
+    assert.equal(body.ok, false)
+    assert.equal(body.error.code, 'UPSTREAM_FAILED')
+    assert.equal(body.error.upstreamStatus, 403, 'the CDN status travels so the client can classify it')
+    assert.match(body.error.message, /403/, 'the message quotes what the CDN answered')
+    assert.match(body.error.message, /CDN 节点/, 'a 403 is reported as a node refusal, not as a generic failure')
+  } finally {
+    omni.stream = oldStream
+    globalThis.fetch = oldFetch
+  }
+}
+
 } finally {
   omni.stream = originalStream
   globalThis.fetch = originalFetch

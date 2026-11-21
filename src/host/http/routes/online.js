@@ -94,6 +94,32 @@ export function nextLowerOnlineQuality(quality) {
   return index > 0 ? ONLINE_QUALITY_LADDER[index - 1] : null
 }
 
+/**
+ * A CDN answer that is about this request, not this song: a node rejecting the client it was
+ * asked from (403), an object the node no longer has, throttling, or a node that is down. Worth
+ * one more signed address before the listener is told the track is unavailable.
+ */
+function retriableCdnStatus(status) {
+  const code = Number(status) || 0
+  return code === 403 || code === 404 || code === 408 || code === 429 || code >= 500
+}
+
+/**
+ * What a refused CDN answer means, in one line.
+ *
+ * Before this, only the status reached the client, and a status is not a reason: the client fed
+ * the answer to its media element and Chromium reported the kernel's
+ * `PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN` instead (issue #26).
+ */
+function cdnFailureMessage(status) {
+  const code = Number(status) || 0
+  if (code === 403) return '音乐平台 CDN 节点拒绝了取流请求（HTTP 403）'
+  if (code === 404 || code === 410) return '音乐平台 CDN 上已没有这个文件（HTTP ' + code + '）'
+  if (code === 429) return '音乐平台 CDN 正在限流，请稍后再试（HTTP 429）'
+  if (code >= 500) return '音乐平台 CDN 暂时不可用（HTTP ' + code + '）'
+  return '音乐平台 CDN 返回 HTTP ' + code
+}
+
 /** Client tracks carry onlineId; accept both wire shapes. */
 export function onlineSongId(song) {
   if (song === null || typeof song !== 'object') return ''
@@ -643,7 +669,28 @@ export function createOnlineRoutes(deps) {
                 )
               }
             }
-            return fail(res, 502, 'UPSTREAM_FAILED', 'HTTP ' + upstream.status)
+            // The platform signed this address for one CDN node, and that node refused this
+            // client (issue #26: NetEase hands an overseas listener a mainland node → HTTP 403,
+            // while the same file is served fine by another node). Asking the platform again
+            // mints a fresh signature, so retry once at the same quality (a new node), then once
+            // a level lower (Folia's ladder), and only then report.
+            const kugouAlreadyDegraded = (provider === 'kugou' || provider === 'kugouLite') && upstream.status === 404
+            const refreshed = Math.max(0, Number(params.get('refresh')) || 0)
+            const nextQuality = refreshed === 0 ? quality : nextLowerOnlineQuality(quality)
+            if (!kugouAlreadyDegraded && retriableCdnStatus(upstream.status) && refreshed < 2 && nextQuality !== null) {
+              if (upstream.body !== null) await upstream.body.cancel().catch(() => {})
+              const retryUrl = new URL(req.url ?? '/', 'http://localhost')
+              retryUrl.searchParams.set('refresh', String(refreshed + 1))
+              if (nextQuality !== quality) retryUrl.searchParams.set('quality', nextQuality)
+              return handle(
+                Object.assign(Object.create(req), { url: retryUrl.pathname + retryUrl.search }),
+                res,
+                { ...ctx, url: retryUrl, params: retryUrl.searchParams },
+              )
+            }
+            return fail(res, 502, 'UPSTREAM_FAILED', cdnFailureMessage(upstream.status), {
+              upstreamStatus: Number(upstream.status) || 0,
+            })
           }
           const headers = {
             'content-type': onlineAudioMime(upstream.headers.get('content-type'), stream.url, quality),
