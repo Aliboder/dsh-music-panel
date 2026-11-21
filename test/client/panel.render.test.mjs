@@ -286,6 +286,34 @@ assert.deepEqual(
   ['Gamma'],
   'up next = the play order after the current track',
 )
+// The player page keeps its own queue popover: opening it must not leave the page,
+// and it must be the same queue surface, anchored to the control that opened it.
+const npQueueTree = internals.NowPlaying({
+  open: true,
+  queueOpen: true,
+  favoriteSet: new Set(),
+  onToggleQueue: function () {},
+  onClose: function () {},
+  onLocate: function () {},
+  onHome: function () {},
+  onOpenSettings: function () {},
+})
+const npQueue = nodesWithClass(npQueueTree, 'mpv3-queue')[0]
+assert.ok(npQueue, 'the player page renders the queue')
+assert.ok(String(npQueue.props.className).includes('is-floating'), 'it floats over the page')
+assert.ok(/px$/.test(String(npQueue.props.style.right)), 'it is anchored at explicit coordinates')
+const npClosed = internals.NowPlaying({
+  open: true,
+  queueOpen: false,
+  favoriteSet: new Set(),
+  onToggleQueue: function () {},
+  onClose: function () {},
+  onLocate: function () {},
+  onHome: function () {},
+  onOpenSettings: function () {},
+})
+assert.equal(nodesWithClass(npClosed, 'mpv3-queue').length, 0, 'the queue is absent until asked for')
+
 const removeButtons = nodesWithClass(queueTree, 'mpv3-queue-remove')
 assert.ok(removeButtons.length > 0, 'queue rows expose a remove action')
 const queueBefore = internals.player.getSnapshot().queue.length

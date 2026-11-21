@@ -530,7 +530,14 @@ function P3Queue(props) {
     function onDown(event) {
       var target = event.target
       if (!target || typeof target.closest !== 'function') return
-      if (target.closest('.mpv3-queue') || target.closest('.mpv3-queue-btn')) return
+      // Every queue control is ignored here, so clicking the same button again toggles
+      // instead of closing on pointerdown and reopening on click.
+      if (
+        target.closest('.mpv3-queue') ||
+        target.closest('.mpv3-queue-btn') ||
+        target.closest('.mp-pb-queue-wrap') ||
+        target.closest('.mp-composer-cluster')
+      ) return
       // A confirmation/dialog opened from the queue should not dismiss it behind the dialog.
       if (target.closest('[role="dialog"]') || target.closest('.mp-overlay')) return
       props.onClose()
@@ -614,7 +621,12 @@ function P3Queue(props) {
     )
   }
 
-  return h('aside', { className: 'mpv3-queue', role: 'dialog', 'aria-label': t('page.queue') },
+  return h('aside', {
+    className: cx('mpv3-queue', props.floating === true && 'is-floating', props.className),
+    style: props.style,
+    role: 'dialog',
+    'aria-label': t('page.queue'),
+  },
     h('div', { className: 'mpv3-queue-head' },
       h('strong', null, t('page.queue')),
       h('span', null, snap.queue.length + ' ' + t('p3.unitSong') + ' · ' + (snap.order === 'random' ? t('page.shuffle') : t('p3.sequence'))),
@@ -678,6 +690,9 @@ function P3Shell() {
     p3SetQueueOpen(open)
   }
   var [npOpen, setNpOpen] = useState(false)
+  // The player page covers the panel, so its queue is a popover anchored to the
+  // control that opened it (rendered by NowPlaying), not the workspace queue.
+  var [npQueueOpen, setNpQueueOpen] = useState(false)
   var [guideOpen, setGuideOpen] = useState(startupGuideOpen)
   var [wide, setWide] = useState(typeof window !== 'undefined' ? window.innerWidth : 1400)
 
@@ -768,6 +783,7 @@ function P3Shell() {
         if (popLayer()) return
         if (selectionStore.get().active === true) { setSelectionMode(false); return }
         if (queueOpen) { setQueueOpen(false); return }
+        if (npQueueOpen) { setNpQueueOpen(false); return }
         if (npOpen) { setNpOpen(false); return }
         if (p3CanGoBack()) { p3GoBack(); return }
         return
@@ -788,7 +804,7 @@ function P3Shell() {
     }
     window.addEventListener('keydown', onKey)
     return function () { window.removeEventListener('keydown', onKey) }
-  }, [queueOpen, npOpen])
+  }, [queueOpen, npOpen, npQueueOpen])
 
   var topLayout = prefs.layout !== 'rail' || wide < 1000
   var current = snap.queue[snap.index] || null
@@ -813,13 +829,12 @@ function P3Shell() {
     h(NowPlaying, {
       open: npOpen,
       favoriteSet: p3FavoriteSet(library.favorites),
-      onClose: function () { setNpOpen(false) },
-      // The player page covers the panel; its queue control returns to the one panel
-      // queue instead of opening a second list over the page.
-      onToggleQueue: function () { setNpOpen(false); p3OpenQueue() },
+      onClose: function () { setNpOpen(false); setNpQueueOpen(false) },
+      queueOpen: npQueueOpen,
+      onToggleQueue: function () { setNpQueueOpen(!npQueueOpen) },
       onToggleFavorite: function (track) { likeStateOf(track, p3FavoriteSet(library.favorites)).onLike() },
       onLocate: function () { p3LocateCurrent(snap) },
-      onHome: function () { setNpOpen(false); p3SelectBrowseTab('songs') },
+      onHome: function () { setNpOpen(false); setNpQueueOpen(false); p3SelectBrowseTab('songs') },
       onOpenSettings: function () { pushLayer('settings') },
     }),
     h(OverlayRoot),

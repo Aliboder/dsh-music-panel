@@ -175,6 +175,8 @@ ${body}
           AudioEffectsPanel: AudioEffectsPanel,
           // The player card renders in tests so a missing pane cannot ship silently.
           PlayerSheet: PlayerSheet,
+          // The player page renders so its queue popover cannot silently leave the page.
+          NowPlaying: typeof NowPlaying === 'function' ? NowPlaying : null,
           LyricMatchDialog: LyricMatchDialog,
           EqPanel: EqPanel,
           normalizeEqPrefs: normalizeEqPrefs,

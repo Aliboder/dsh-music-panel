@@ -160,7 +160,30 @@ function NowPlaying(props) {
   var chromeVisible = chromePair[0]
   var setChromeVisible = chromePair[1]
   var chromePinned =
-    sheetOpen || editorOpen || settingsOpen || extraPanel !== ''
+    sheetOpen || editorOpen || settingsOpen || extraPanel !== '' || props.queueOpen === true
+  // The queue pops out beside whichever control opened it (capsule or secondary row):
+  // the player page stays, and the popover is the panel's queue, only anchored here.
+  var queueAnchorPair = useState(null)
+  var queueAnchor = queueAnchorPair[0]
+  var setQueueAnchor = queueAnchorPair[1]
+  function toggleQueue(event) {
+    var el = event && event.currentTarget
+    if (el && typeof el.getBoundingClientRect === 'function') setQueueAnchor(el.getBoundingClientRect())
+    if (typeof props.onToggleQueue === 'function') props.onToggleQueue()
+  }
+  function queuePopoverStyle(rect) {
+    var width = Math.min(340, (window.innerWidth || 1400) - 16)
+    var right = rect ? Math.max(8, window.innerWidth - rect.right) : 24
+    var bottom = rect ? Math.max(8, window.innerHeight - rect.top + 10) : 96
+    return {
+      left: 'auto',
+      right: right + 'px',
+      top: 'auto',
+      bottom: bottom + 'px',
+      width: width + 'px',
+      maxHeight: 'min(560px, 60vh)',
+    }
+  }
   useEffect(
     function () {
       if (props.open !== true) return undefined
@@ -1134,7 +1157,7 @@ function NowPlaying(props) {
           setSleep: setSleep,
           snap: snap,
           track: track,
-          onToggleQueue: props.onToggleQueue,
+          onToggleQueue: toggleQueue,
           setSettingsOpen: setSettingsOpen,
           setEditorOpen: setEditorOpen,
         }),
@@ -1163,7 +1186,7 @@ function NowPlaying(props) {
         { className: 'mp-np-right' },
         lyricStage,
       ),
-      h(NowPlayingCapsule, { onToggleQueue: props.onToggleQueue }),
+      h(NowPlayingCapsule, { onToggleQueue: toggleQueue }),
       h(
         'div',
         { className: cx('mp-np-handle', sheetOpen && 'is-on') },
@@ -1396,7 +1419,20 @@ function NowPlaying(props) {
           },
         })
       : null,
-
+    // One queue implementation: the panel queue, popped out beside the control that
+    // opened it. Opening it must not leave the player page.
+    props.queueOpen === true
+      ? h(P3Queue, {
+          open: true,
+          floating: true,
+          style: queuePopoverStyle(queueAnchor),
+          onClose: function () { props.onToggleQueue() },
+          onLocate: function () {
+            if (typeof props.onLocate === 'function') props.onLocate()
+            props.onToggleQueue()
+          },
+        })
+      : null,
   )
 }
 
