@@ -259,6 +259,31 @@ assert.ok(internals.p3Tabs('navidrome').indexOf('artists') >= 0, 'Navidrome expo
   internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { lyricStyle: 'monet', lyricsFontScale: 1, translationScale: 90 }))
 }
 
+// 播放控制：Folia 的三个分组，插件自有的项在「插件」组。
+{
+  const sheet = internals.SettingsSheet({ open: true, initialTab: 'playback' })
+  const tree = expand(sheet)
+  const text = textOf(tree)
+  for (const group of ['Folia 智能过渡', '声音与设备', '播放行为', '插件']) {
+    assert.ok(text.includes(group), 'the playback page shows the ' + group + ' group')
+  }
+  for (const row of [
+    '过渡',
+    '当前播放声卡',
+    'ReplayGain 模式（响度平衡）',
+    '暂停/播放淡入淡出',
+    '加入队列的默认位置',
+    '无法播放时自动跳过',
+    '一轮不重复',
+    '播放时阻止休眠',
+    '语音输入时暂停播放',
+  ]) {
+    assert.ok(text.includes(row), 'the playback page shows the ' + row + ' row')
+  }
+  assert.ok(text.includes('播放控制'), 'the tab and page title read 播放控制')
+  assert.ok(!text.includes('播放与音频'), 'the old tab name is gone')
+}
+
 // The source menu must not list local twice, and must not grow after the provider
 // metadata arrives: known platforms are placeholders while the request is in flight.
 {

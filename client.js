@@ -7188,6 +7188,8 @@ window.__ModuleLoader__.load({
         'page.addToPlaylist': '添加到播放列表',
         'page.addedToPlaylist': '已添加到播放列表',
         'page.addedNext': '已插入下一首',
+        'page.addToQueue': '加入队列',
+        'page.addedToQueue': '已加入队列',
         'page.reveal': '在文件夹中显示',
         'page.revealed': '已在文件夹中打开',
         'page.favoriteSelected': '喜欢选中',
@@ -7303,7 +7305,7 @@ window.__ModuleLoader__.load({
         'settings.tabAppearance': '外观',
         'settings.tabLyrics': '歌词',
         'settings.tabLibrary': '音乐库',
-        'settings.tabPlayback': '播放',
+        'settings.tabPlayback': '播放控制',
         'settings.resumeOnStart': '启动时恢复上次播放',
         'settings.autoResume': '恢复后自动播放',
         'settings.rememberPerTrack': '每首歌记住播放位置',
@@ -7496,6 +7498,9 @@ window.__ModuleLoader__.load({
         'page.pause': 'Pause',
         'page.prev': 'Previous',
         'page.next': 'Next',
+        'page.addedNext': 'Inserted next',
+        'page.addToQueue': 'Add to queue',
+        'page.addedToQueue': 'Added to queue',
         'page.queue': 'Queue',
         'page.locateCurrent': 'Locate current track',
         'page.clearQueue': 'Clear queue',
@@ -8194,7 +8199,7 @@ window.__ModuleLoader__.load({
         'v2.sortRecent': '最近播放',
         'v2.appearance': '外观',
         'v2.lyrics': '歌词',
-        'v2.playback': '播放',
+        'v2.playback': '播放控制',
         'v2.library': '音乐库',
         'v2.folderAdd': '添加文件夹',
         'v2.folderPick': '选择文件夹',
@@ -8349,7 +8354,7 @@ window.__ModuleLoader__.load({
         'gallery.emptyTitle': "这里是空的",
         'gallery.emptyHint': "空状态用 Empty，不用空白页。",
         'settings.volumeNormalize': '音量均衡',
-        'settings.replayGain': '音频增益',
+        'settings.replayGain': 'ReplayGain 模式（响度平衡）',
         'settings.replayGainHint': '智能平衡把每首歌的响度带到 -14 LUFS（EBU R128 分析，首次需要几秒）；单曲 / 专辑使用文件自带的 ReplayGain 标签。',
         'settings.replayGainOff': '关闭',
         'settings.replayGainAuto': '智能平衡',
@@ -8372,14 +8377,18 @@ window.__ModuleLoader__.load({
         'settings.playbackReportsUnavailable': '当前没有平台声明支持播放上报。',
         'about.diagnostics': '诊断',
         'settings.tabAppearance': '外观与布局',
-        'settings.tabPlayback': '播放与音频',
+        'settings.tabPlayback': '播放控制',
         'settings.tabOnline': '在线与账号',
         'settings.tabLibrary': '音乐库',
         'settings.tabStorage': '存储与数据',
         'settings.tabAbout': '关于与诊断',
         'settings.groupStartup': '启动与恢复',
-        'settings.groupSound': '音质与音量',
-        'settings.groupTransition': '过渡',
+        'settings.groupSound': '声音与设备',
+        'settings.groupTransition': 'Folia 智能过渡',
+        'settings.groupBehavior': '播放行为',
+        'settings.groupPlugin': '插件',
+        'settings.transition': '过渡',
+        'settings.transitionNote': '本插件只有自动交叉淡入淡出（Folia 的 crossfade 模式），不含 automix。',
         'settings.groupAudioFocus': '音频焦点',
         'settings.voiceInputPause': '语音输入时暂停播放',
         'settings.voiceInputPauseDesc': '检测到系统语音输入或其他应用占用麦克风时暂停，结束后恢复。',
@@ -8404,14 +8413,29 @@ window.__ModuleLoader__.load({
         'settings.crossfade': '智能过渡',
         'settings.crossfadeHint': '等功率淡入淡出，重叠长度受设定上限、曲目剩余空间和静音边限制；同专辑连续曲目保持原始的硬切衔接。',
         'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
-        'settings.playbackFade': '播放淡入淡出',
+        'settings.playbackFade': '暂停/播放淡入淡出',
         'settings.playbackFadeHint': '暂停时淡出、恢复时淡入，避免 click/pop。',
         'settings.playbackReports': '播放上报',
         'settings.playbackReportsHint': '播放满 30 秒后把这次收听从账号上报给平台（目前仅网易云）；写入真实账号，默认关闭。',
-        'settings.outputDevice': '输出设备',
-        'settings.outputDeviceHint': '仅在支持 AudioContext.setSinkId 的环境显示。',
+        'settings.outputDevice': '当前播放声卡',
+        'settings.outputDeviceHint': '默认跟随系统；这里可以换到另一块声卡。',
+        'settings.outputDeviceUnsupported': '当前环境不支持切换播放设备。',
+        'settings.outputDeviceLoadFailed': '没有读到可用的播放设备。',
+        'settings.outputDeviceRefresh': '刷新设备列表',
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
+        'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.queueAddBehavior': '加入队列的默认位置',
+        'settings.queueAddBehaviorDesc': '从歌曲菜单「加入队列」时，放到队尾还是当前曲之后。',
+        'settings.queueAppend': '追加到末尾',
+        'settings.queueNext': '追加到下一首',
+        'settings.autoSkipUnplayable': '无法播放时自动跳过',
+        'settings.autoSkipUnplayableDesc': '在线歌曲因权限、地区或地址失效无法播放时，自动跳到下一首；连续失败会停下。',
+        'settings.shuffleRoundNoRepeat': '一轮不重复',
+        'settings.shuffleRoundNoRepeatDesc': '打乱播放每轮重新洗牌；关闭后列表循环每轮保持同一顺序。',
+        'settings.preventSleep': '播放时阻止休眠',
+        'settings.preventSleepDesc': '播放期间保持屏幕唤醒。',
+        'settings.preventSleepUnsupported': '当前环境不支持 Wake Lock，无法保持屏幕唤醒。',
         'v2.listenTime': '累计播放时长',
         'v2.totalPlays': '总播放次数',
         'v2.trackedTracks': '有记录曲目',
@@ -9076,14 +9100,18 @@ window.__ModuleLoader__.load({
         'settings.playbackReportsUnavailable': 'No platform currently declares playback reporting.',
         'about.diagnostics': 'Diagnostics',
         'settings.tabAppearance': 'Appearance & layout',
-        'settings.tabPlayback': 'Playback & audio',
+        'settings.tabPlayback': 'Playback',
         'settings.tabOnline': 'Online & accounts',
         'settings.tabLibrary': 'Library',
         'settings.tabStorage': 'Storage & data',
         'settings.tabAbout': 'About & diagnostics',
         'settings.groupStartup': 'Startup & resume',
-        'settings.groupSound': 'Quality & volume',
-        'settings.groupTransition': 'Transitions',
+        'settings.groupSound': 'Sound & devices',
+        'settings.groupTransition': 'Folia smart transition',
+        'settings.groupBehavior': 'Playback behavior',
+        'settings.groupPlugin': 'Plugins',
+        'settings.transition': 'Transition',
+        'settings.transitionNote': 'This plugin has the automatic crossfade only (Folia\'s crossfade mode); there is no automix.',
         'settings.groupAudioFocus': 'Audio focus',
         'settings.voiceInputPause': 'Pause playback on voice input',
         'settings.voiceInputPauseDesc': 'Pauses when system voice input or another app captures the microphone; resumes afterwards.',
@@ -9100,14 +9128,36 @@ window.__ModuleLoader__.load({
         'settings.groupLyricFilter': 'Filters',
         'settings.groupCache': 'Online cache',
         'settings.groupReset': 'Data cleanup',
-        'settings.playbackFade': 'Playback fade',
+        'settings.playbackFade': 'Pause/play fades',
         'settings.playbackFadeHint': 'Fade out on pause and in on resume to avoid clicks and pops.',
         'settings.playbackReports': 'Playback reports',
         'settings.playbackReportsHint': 'After 30 seconds of real playback, report the listen to the account\u2019s platform (NetEase today). This writes to a real account, so it is off by default.',
-        'settings.outputDevice': 'Output device',
-        'settings.outputDeviceHint': 'Shown only where AudioContext.setSinkId is available.',
+        'settings.outputDevice': 'Current output device',
+        'settings.outputDeviceHint': 'Follows the system by default; pick another device here.',
+        'settings.outputDeviceUnsupported': 'Switching output devices is not supported here.',
+        'settings.outputDeviceLoadFailed': 'No output device could be read.',
+        'settings.outputDeviceRefresh': 'Refresh devices',
         'settings.outputDefault': 'System default',
         'settings.outputDeviceN': 'Device {n}',
+        'settings.replayGain': 'ReplayGain mode (loudness leveling)',
+        'settings.replayGainHint': 'With gain data, single/album ReplayGain levels the playback loudness; Smart balance measures each song and turns loud ones down.',
+        'settings.replayGainOff': 'Off',
+        'settings.replayGainAuto': 'Smart balance',
+        'settings.replayGainTrack': 'Track',
+        'settings.replayGainAlbum': 'Album',
+        'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
+        'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.queueAddBehavior': 'Default position for added songs',
+        'settings.queueAddBehaviorDesc': 'Where 「Add to queue」 in the song menu puts it: at the end, or right after the current song.',
+        'settings.queueAppend': 'Append to queue',
+        'settings.queueNext': 'Play next',
+        'settings.autoSkipUnplayable': 'Skip unplayable tracks',
+        'settings.autoSkipUnplayableDesc': 'When an online song cannot play because of account, region or an expired address, skip to the next one; a run of failures stops.',
+        'settings.shuffleRoundNoRepeat': 'New shuffle each round',
+        'settings.shuffleRoundNoRepeatDesc': 'Re-shuffle when a shuffled round wraps; off keeps the same order for every round.',
+        'settings.preventSleep': 'Keep the screen awake while playing',
+        'settings.preventSleepDesc': 'Keeps the display awake during playback.',
+        'settings.preventSleepUnsupported': 'Wake Lock is not available here, so the screen cannot be kept awake.',
         'v2.listenTime': 'Listening time',
         'v2.totalPlays': 'Total plays',
         'v2.trackedTracks': 'Tracks tracked',
@@ -150503,6 +150553,14 @@ window.__ModuleLoader__.load({
       ],
       /** 0 keeps the old hard cut; a positive value enables the automatic blend. */
       crossfadeSeconds: 0,
+      /** Folia's `queueAddBehavior`: where 「加入队列」 puts a song, after the current one or at the end. */
+      queueAddBehavior: 'append',
+      /** Folia's `autoSkipUnplayable`: a track that cannot be played is skipped instead of stopping. */
+      autoSkipUnplayable: false,
+      /** Folia's `shuffleRoundNoRepeat`: a shuffled queue is re-shuffled for every round. */
+      shuffleRoundNoRepeat: false,
+      /** Keep the screen awake while a song plays (Wake Lock, where the host offers it). */
+      preventSleepDuringPlayback: false,
       onlinePlaylistSort: 'source',
       onboardingDone: true,
     }
@@ -150567,6 +150625,7 @@ window.__ModuleLoader__.load({
       var globalOffset = Number(merged.lyricGlobalOffsetMs)
       if (!isFinite(globalOffset)) globalOffset = PREF_DEFAULTS.lyricGlobalOffsetMs
       merged.lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Math.round(globalOffset)))
+      if (merged.queueAddBehavior !== 'next') merged.queueAddBehavior = 'append'
       if (dropped) {
         try {
           window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
@@ -156448,8 +156507,82 @@ window.__ModuleLoader__.load({
         })
       }
 
+      // ── screen wake lock (Folia's 播放时阻止休眠) ─────────────────────────
+      // The browser hands out a screen lock only while a page is visible; the sentinel is
+      // released by the browser on hide, so a visibility change re-asks for it.
+      var wakeLock = null
+      var wakeLockWanted = false
+      function wakeLockSupported() {
+        return typeof navigator !== 'undefined'
+          && navigator.wakeLock !== null
+          && typeof navigator.wakeLock === 'object'
+          && typeof navigator.wakeLock.request === 'function'
+      }
+      function releaseWakeLock() {
+        wakeLockWanted = false
+        if (wakeLock === null) return
+        var sentinel = wakeLock
+        wakeLock = null
+        try {
+          Promise.resolve(sentinel.release()).catch(function () {})
+        } catch (error) {
+          // Already released.
+        }
+      }
+      function syncWakeLock(playing) {
+        var wanted = readPrefs().preventSleepDuringPlayback === true && playing === true
+        if (wanted === wakeLockWanted) return
+        wakeLockWanted = wanted
+        if (!wanted) {
+          releaseWakeLock()
+          return
+        }
+        if (!wakeLockSupported()) return
+        try {
+          navigator.wakeLock.request('screen').then(function (sentinel) {
+            if (!wakeLockWanted) {
+              Promise.resolve(sentinel.release()).catch(function () {})
+              return
+            }
+            wakeLock = sentinel
+            if (sentinel && typeof sentinel.addEventListener === 'function') {
+              sentinel.addEventListener('release', function () {
+                if (wakeLock === sentinel) wakeLock = null
+              })
+            }
+          }).catch(function () {})
+        } catch (error) {
+          // A denied lock never blocks playback.
+        }
+      }
+      if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState !== 'visible') return
+          if (!wakeLockWanted || wakeLock !== null) return
+          wakeLockWanted = false
+          syncWakeLock(state.playing === true)
+        })
+      }
+
+      /**
+       * The next queue slot for an automatic advance. With Folia's shuffleRoundNoRepeat the
+       * queue is re-shuffled when a round wraps, so every pass plays in a new order.
+       */
+      function advanceIndex(index, size) {
+        var next = nextIndexOf(index, size)
+        if (next === 0 && size > 1 && state.order === 'random' && readPrefs().shuffleRoundNoRepeat === true) {
+          var queue = shuffleTracks(state.queue, null)
+          state = Object.assign({}, state, { queue: queue })
+          emit()
+          savePlaybackState()
+        }
+        return next
+      }
+
       function patch(next) {
+        var wasPlaying = state.playing
         state = Object.assign({}, state, next)
+        if (state.playing !== wasPlaying) syncWakeLock(state.playing === true)
         emit()
       }
 
@@ -156679,7 +156812,7 @@ window.__ModuleLoader__.load({
           patch({ playing: false })
           return
         }
-        load(nextIndexOf(state.index, state.queue.length), true)
+        load(advanceIndex(state.index, state.queue.length), true)
       }
 
       function onError(eventOrReason) {
@@ -156718,6 +156851,12 @@ window.__ModuleLoader__.load({
         // An online track that cannot be fetched (expired sign-in, rights restriction, provider
         // refusal) must not spin the queue: stop on it and let the toast name the reason.
         if (failedTrack !== null && failedTrack.onlineProvider) {
+          // Folia's autoSkipUnplayable: a track the account cannot play is skipped like a
+          // taken-down one instead of parking the queue on it. A run of failures stops.
+          if (readPrefs().autoSkipUnplayable === true && state.queue.length > 1 && errorStreak <= 3) {
+            load(advanceIndex(state.index, state.queue.length), true)
+            return
+          }
           errorStreak = 0
           patch({ playing: false })
           return
@@ -156727,7 +156866,7 @@ window.__ModuleLoader__.load({
           patch({ playing: false })
           return
         }
-        load(nextIndexOf(state.index, state.queue.length), true)
+        load(advanceIndex(state.index, state.queue.length), true)
       }
 
       function releaseObjectUrl() {
@@ -158346,13 +158485,17 @@ window.__ModuleLoader__.load({
           if (foliaTransport !== null) foliaTransport.pause(foliaTransport.getActiveDeck())
           else if (audio) audio.pause()
         },
+        /** Re-read the wake-lock preference after the settings switch changed. */
+        refreshWakeLock: function () {
+          syncWakeLock(state.playing === true)
+        },
         toggle: function () {
           if (state.playing) api.pause()
           else api.play()
         },
         next: function () {
           if (state.queue.length === 0) return
-          load(nextIndexOf(state.index, state.queue.length), true)
+          load(advanceIndex(state.index, state.queue.length), true)
         },
         prev: function () {
           if (state.queue.length === 0) return
@@ -161859,11 +162002,12 @@ window.__ModuleLoader__.load({
       '.mp-sheet-body{overflow-y:auto;padding:20px 48px 28px 22px}',
       '.mp-sheet-body h2{margin:0 0 4px;font-size:14px;line-height:20px;font-weight:650}',
       '.mp-set-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-height:44px;padding:11px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      // 歌词页：Folia 的分组卡片（组标题在卡外，行在卡内）。
-      '.mp-lyric-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',
-      '.mp-lyric-group:first-of-type .mp-lyric-group-head{padding-top:18px}',
-      '.mp-lyric-group .mp-set-card{margin-top:8px}',
-      '.mp-lyric-group .mp-set-card-body{padding:0 14px}',
+      // 设置页分组卡片：组标题在卡外，行在卡内（歌词页与播放控制页共用）。
+      '.mp-set-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',
+      '.mp-set-group:first-of-type .mp-set-group-head{padding-top:18px}',
+      '.mp-set-group .mp-set-card{margin-top:8px}',
+      '.mp-set-group .mp-set-card-body{padding:0 14px}',
+      '.mp-set-foot{margin:8px 4px 0;font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-lyric-format-fold{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:4px 0 12px;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
       '.mp-lyric-format-list{display:flex;flex-direction:column;gap:4px;padding-top:6px}',
       '.mp-lyric-format-row{display:flex;align-items:center;gap:6px}',
@@ -167203,40 +167347,41 @@ window.__ModuleLoader__.load({
         typeof window.AudioContext !== 'undefined' &&
         typeof window.AudioContext.prototype.setSinkId === 'function'
 
+      function refreshOutputDevices() {
+        if (
+          typeof navigator === 'undefined' ||
+          !navigator.mediaDevices ||
+          typeof navigator.mediaDevices.enumerateDevices !== 'function'
+        ) {
+          setOutputDevices([])
+          return
+        }
+        navigator.mediaDevices
+          .enumerateDevices()
+          .then(function (devices) {
+            setOutputDevices(
+              devices
+                .filter(function (device) {
+                  return device.kind === 'audiooutput'
+                })
+                .map(function (device, index) {
+                  return {
+                    id: device.deviceId,
+                    label: device.label || t('settings.outputDeviceN', { n: index + 1 }),
+                  }
+                }),
+            )
+          })
+          .catch(function () {
+            setOutputDevices([])
+          })
+      }
+
       useEffect(
         function () {
           if (tab !== 'playback' || props.open !== true || !sinkSupported) return undefined
-          if (
-            typeof navigator === 'undefined' ||
-            !navigator.mediaDevices ||
-            typeof navigator.mediaDevices.enumerateDevices !== 'function'
-          ) {
-            return undefined
-          }
-          var cancelled = false
-          navigator.mediaDevices
-            .enumerateDevices()
-            .then(function (devices) {
-              if (cancelled) return
-              setOutputDevices(
-                devices
-                  .filter(function (device) {
-                    return device.kind === 'audiooutput'
-                  })
-                  .map(function (device, index) {
-                    return {
-                      id: device.deviceId,
-                      label: device.label || t('settings.outputDeviceN', { n: index + 1 }),
-                    }
-                  }),
-              )
-            })
-            .catch(function () {
-              if (!cancelled) setOutputDevices([])
-            })
-          return function () {
-            cancelled = true
-          }
+          refreshOutputDevices()
+          return undefined
         },
         [tab, props.open, sinkSupported],
       )
@@ -167523,19 +167668,24 @@ window.__ModuleLoader__.load({
         )
       }
 
-      /** One lyric group: Folia's heading over one card of rows. */
+      /** One settings group: Folia's heading over one card of rows. */
+      function settingsGroup(key, labelKey, rows, foot) {
+        return h(
+          'section',
+          { key: 'group-' + key, className: 'mp-set-group' },
+          h('div', { className: 'mp-set-group-head' }, h('span', { className: 'mp-set-label' }, t(labelKey))),
+          h('div', { className: 'mp-set-card' }, h('div', { className: 'mp-set-card-body' }, rows)),
+          foot ? h('div', { key: 'foot', className: 'mp-set-foot' }, foot) : null,
+        )
+      }
+
+      /** The lyric page's groups read their label from LYRIC_GROUP_DEFS. */
       function lyricGroup(key, rows) {
         var def = null
         for (var index = 0; index < LYRIC_GROUP_DEFS.length; index += 1) {
           if (LYRIC_GROUP_DEFS[index].key === key) def = LYRIC_GROUP_DEFS[index]
         }
-        if (def === null) return null
-        return h(
-          'section',
-          { key: 'lyric-group-' + key, className: 'mp-lyric-group' },
-          h('div', { className: 'mp-lyric-group-head' }, h('span', { className: 'mp-set-label' }, t(def.labelKey))),
-          h('div', { className: 'mp-set-card' }, h('div', { className: 'mp-set-card-body' }, rows)),
-        )
+        return def === null ? null : settingsGroup('lyric-' + key, def.labelKey, rows)
       }
 
       function currentLyricGlobalOffset() {
@@ -167916,83 +168066,125 @@ window.__ModuleLoader__.load({
       }
 
       function playbackTab() {
+        // Folia's 播放控制 page: 智能过渡 / 声音与设备 / 播放行为, then the plugin's own
+        // extras (startup, online quality, reports, audio focus, sleep) in 插件.
         var reportSupported = availableSources().some(function (provider) { return supports(provider, 'playbackReports') })
-        return [
-          h('h2', { key: 'h' }, t('v2.playback')),
-          h('div', { key: 'startup-head', className: 'mp-set-label' }, t('settings.groupStartup')),
-          h(
-            SetRow,
-            { key: 'resume', label: t('settings.resumeOnStart') },
-            h(Switch, {
-              value: prefs.resumeOnStart === true,
-              onChange: function (value) {
-                patchPrefs({ resumeOnStart: value })
-              },
-            }),
-          ),
-          h(
-            SetRow,
-            { key: 'auto', label: t('settings.autoResume') },
-            h(Switch, {
-              value: prefs.autoResume === true,
-              onChange: function (value) {
-                patchPrefs({ autoResume: value })
-              },
-            }),
-          ),
-          h(
-            SetRow,
-            { key: 'per', label: t('settings.rememberPerTrack') },
-            h(Switch, {
-              value: prefs.rememberPerTrack === true,
-              onChange: function (value) {
-                patchPrefs({ rememberPerTrack: value })
-              },
-            }),
-          ),
-          h('div', { key: 'sound-head', className: 'mp-set-label' }, t('settings.groupSound')),
+        var crossfadeOn = crossfadeFadeSeconds(prefs) > 0
+        var replayGainValue =
+          prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album'
+            ? prefs.replayGainMode
+            : prefs.normalizeVolume === false
+              ? 'off'
+              : 'auto'
+        var queueAddBehavior = prefs.queueAddBehavior === 'next' ? 'next' : 'append'
+        var wakeLockAvailable = typeof navigator !== 'undefined'
+          && navigator.wakeLock !== null
+          && typeof navigator.wakeLock === 'object'
+          && typeof navigator.wakeLock.request === 'function'
+
+        var transitionRows = [
           h(
             SetRow,
             {
-              key: 'replayGain',
-              label: t('settings.replayGain'),
-              desc: t('settings.replayGainHint'),
+              key: 'crossfade',
+              label: t('settings.transition'),
+              desc: t('settings.crossfadeHint'),
+            },
+            h(Switch, {
+              value: crossfadeOn,
+              onChange: function (value) {
+                patchPrefs({ crossfadeSeconds: value ? CROSSFADE_DEFAULT_SECONDS : 0 })
+              },
+            }),
+          ),
+          crossfadeOn
+            ? h(
+                SetRow,
+                { key: 'crossfade-seconds', label: t('settings.crossfadeSeconds'), desc: t('settings.crossfadeSecondsHint') },
+                h('input', {
+                  type: 'range',
+                  className: 'mp-range',
+                  min: CROSSFADE_MIN_SECONDS,
+                  max: CROSSFADE_MAX_SECONDS,
+                  step: 1,
+                  value: crossfadeFadeSeconds(prefs),
+                  onChange: function (event) { patchPrefs({ crossfadeSeconds: Number(event.target.value) }) },
+                }),
+                h('span', { className: 'mp-set-val' }, crossfadeFadeSeconds(prefs) + ' s'),
+              )
+            : null,
+        ]
+
+        var soundRows = [
+          h(
+            SetRow,
+            {
+              key: 'output-device',
+              label: t('settings.outputDevice'),
+              desc: !sinkSupported
+                ? t('settings.outputDeviceUnsupported')
+                : outputDevices.length === 0
+                  ? t('settings.outputDeviceLoadFailed')
+                  : t('settings.outputDeviceHint'),
             },
             h(
               'div',
               { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
+              h(IconButton, {
+                icon: 'refresh',
+                size: 15,
+                title: t('settings.outputDeviceRefresh'),
+                disabled: !sinkSupported,
+                onClick: function () { refreshOutputDevices() },
+              }),
               h(KitSelect, {
-                value: prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album'
-                  ? prefs.replayGainMode
-                  : prefs.normalizeVolume === false
-                    ? 'off'
-                    : 'auto',
-                label: t('settings.replayGain'),
-                options: [
-                  { value: 'off', label: t('settings.replayGainOff') },
-                  { value: 'auto', label: t('settings.replayGainAuto') },
-                  { value: 'track', label: t('settings.replayGainTrack') },
-                  { value: 'album', label: t('settings.replayGainAlbum') },
-                ],
+                value: prefs.audioOutputDeviceId || '',
+                label: t('settings.outputDevice'),
+                disabled: !sinkSupported || outputDevices.length === 0,
+                options: [{ value: '', label: t('settings.outputDefault') }].concat(
+                  outputDevices.map(function (device) {
+                    return { value: device.id, label: device.label }
+                  }),
+                ),
                 onChange: function (value) {
-                  var next = String(value)
-                  // 'off' also switches the loudness analysis off; the tag modes leave it
-                  // off too, since they read the file's own gain.
-                  patchPrefs({
-                    replayGainMode: next,
-                    normalizeVolume: next === 'off' ? false : true,
-                  })
-                  if (player.setNormalize) player.setNormalize(next === 'auto')
-                  if (player.setReplayGain) player.setReplayGain(0)
+                  var next = String(value || '')
+                  patchPrefs({ audioOutputDeviceId: next })
+                  player.setOutputDevice(next)
                 },
               }),
             ),
           ),
           h(
-            'div',
-            { className: 'mp-set-hint' },
-            t('settings.replayGainStatus'),
+            SetRow,
+            {
+              key: 'replayGain',
+              label: t('settings.replayGain'),
+              desc: t('settings.replayGainModeDesc'),
+            },
+            h(KitSegmented, {
+              id: 'mp-replay-gain-mode',
+              value: replayGainValue,
+              label: t('settings.replayGain'),
+              options: [
+                { value: 'off', label: t('settings.replayGainOff') },
+                { value: 'auto', label: t('settings.replayGainAuto') },
+                { value: 'track', label: t('settings.replayGainTrack') },
+                { value: 'album', label: t('settings.replayGainAlbum') },
+              ],
+              onChange: function (value) {
+                var next = String(value)
+                // 'off' also switches the loudness analysis off; the tag modes leave it
+                // off too, since they read the file's own gain.
+                patchPrefs({
+                  replayGainMode: next,
+                  normalizeVolume: next === 'off' ? false : true,
+                })
+                if (player.setNormalize) player.setNormalize(next === 'auto')
+                if (player.setReplayGain) player.setReplayGain(0)
+              },
+            }),
           ),
+          h('div', { key: 'replay-status-hint', className: 'mp-set-hint' }, t('settings.replayGainStatus')),
           h(
             'div',
             {
@@ -168019,6 +168211,125 @@ window.__ModuleLoader__.load({
           h(
             SetRow,
             {
+              key: 'playback-fade',
+              label: t('settings.playbackFade'),
+              desc: t('settings.playbackFadeHint'),
+            },
+            h(Switch, {
+              value: prefs.playbackFade !== false,
+              onChange: function (value) {
+                patchPrefs({ playbackFade: value })
+                player.setPlaybackFade(value)
+              },
+            }),
+          ),
+        ]
+
+        var behaviorRows = [
+          h(
+            SetRow,
+            {
+              key: 'queue-add',
+              label: t('settings.queueAddBehavior'),
+              desc: t('settings.queueAddBehaviorDesc'),
+            },
+            h(KitSegmented, {
+              id: 'mp-queue-add-behavior',
+              value: queueAddBehavior,
+              label: t('settings.queueAddBehavior'),
+              options: [
+                { value: 'append', label: t('settings.queueAppend') },
+                { value: 'next', label: t('settings.queueNext') },
+              ],
+              onChange: function (value) {
+                patchPrefs({ queueAddBehavior: String(value) === 'next' ? 'next' : 'append' })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            {
+              key: 'auto-skip',
+              label: t('settings.autoSkipUnplayable'),
+              desc: t('settings.autoSkipUnplayableDesc'),
+            },
+            h(Switch, {
+              value: prefs.autoSkipUnplayable === true,
+              onChange: function (value) { patchPrefs({ autoSkipUnplayable: value }) },
+            }),
+          ),
+          h(
+            SetRow,
+            {
+              key: 'shuffle-round',
+              label: t('settings.shuffleRoundNoRepeat'),
+              desc: t('settings.shuffleRoundNoRepeatDesc'),
+            },
+            h(Switch, {
+              value: prefs.shuffleRoundNoRepeat === true,
+              onChange: function (value) { patchPrefs({ shuffleRoundNoRepeat: value }) },
+            }),
+          ),
+          h(
+            SetRow,
+            {
+              key: 'prevent-sleep',
+              label: t('settings.preventSleep'),
+              desc: t('settings.preventSleepDesc') + (wakeLockAvailable ? '' : ' ' + t('settings.preventSleepUnsupported')),
+            },
+            h(Switch, {
+              value: prefs.preventSleepDuringPlayback === true,
+              disabled: !wakeLockAvailable,
+              onChange: function (value) {
+                patchPrefs({ preventSleepDuringPlayback: value })
+                if (player.refreshWakeLock) player.refreshWakeLock()
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            {
+              key: 'voice-input-pause',
+              label: t('settings.voiceInputPause'),
+              desc: t('settings.voiceInputPauseDesc') + (audioFocus.supported ? '' : ' ' + t('settings.audioFocusUnsupported')),
+            },
+            h(Switch, {
+              value: prefs.voiceInputPause === true,
+              label: t('settings.voiceInputPause'),
+              disabled: !audioFocus.supported,
+              onChange: function (value) { patchPrefs({ voiceInputPause: value }) },
+            }),
+          ),
+        ]
+
+        var pluginRows = [
+          h(
+            SetRow,
+            { key: 'resume', label: t('settings.resumeOnStart') },
+            h(Switch, {
+              value: prefs.resumeOnStart === true,
+              onChange: function (value) { patchPrefs({ resumeOnStart: value }) },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'auto', label: t('settings.autoResume') },
+            h(Switch, {
+              value: prefs.autoResume === true,
+              onChange: function (value) { patchPrefs({ autoResume: value }) },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'per', label: t('settings.rememberPerTrack') },
+            h(Switch, {
+              value: prefs.rememberPerTrack === true,
+              onChange: function (value) { patchPrefs({ rememberPerTrack: value }) },
+            }),
+          ),
+          h(
+            SetRow,
+            {
               key: 'online-quality',
               label: t('settings.onlineQuality'),
               desc: t('settings.onlineQualityDesc'),
@@ -168035,52 +168346,6 @@ window.__ModuleLoader__.load({
               onChange: function (value) { patchPrefs({ onlineQuality: String(value) }) },
             }),
           ),
-          h('div', { key: 'transition-head', className: 'mp-set-label' }, t('settings.groupTransition')),
-          h(
-            SetRow,
-            {
-              key: 'crossfade',
-              label: t('settings.crossfade'),
-              desc: t('settings.crossfadeHint'),
-            },
-            h(Switch, {
-              value: crossfadeFadeSeconds(prefs) > 0,
-              onChange: function (value) {
-                patchPrefs({ crossfadeSeconds: value ? CROSSFADE_DEFAULT_SECONDS : 0 })
-              },
-            }),
-          ),
-          crossfadeFadeSeconds(prefs) > 0
-            ? h(
-                SetRow,
-                { key: 'crossfade-seconds', label: t('settings.crossfadeSeconds'), desc: t('settings.crossfadeSecondsHint') },
-                h('input', {
-                  type: 'range',
-                  className: 'mp-range',
-                  min: CROSSFADE_MIN_SECONDS,
-                  max: CROSSFADE_MAX_SECONDS,
-                  step: 1,
-                  value: crossfadeFadeSeconds(prefs),
-                  onChange: function (event) { patchPrefs({ crossfadeSeconds: Number(event.target.value) }) },
-                }),
-                h('span', { className: 'mp-set-val' }, crossfadeFadeSeconds(prefs) + ' s'),
-              )
-            : null,
-          h(
-            SetRow,
-            {
-              key: 'playback-fade',
-              label: t('settings.playbackFade'),
-              desc: t('settings.playbackFadeHint'),
-            },
-            h(Switch, {
-              value: prefs.playbackFade !== false,
-              onChange: function (value) {
-                patchPrefs({ playbackFade: value })
-                player.setPlaybackFade(value)
-              },
-            }),
-          ),
           h(
             SetRow,
             {
@@ -168090,24 +168355,7 @@ window.__ModuleLoader__.load({
             },
             h(Switch, {
               value: prefs.playbackReports === true,
-              onChange: function (value) {
-                patchPrefs({ playbackReports: value })
-              },
-            }),
-          ),
-          h('div', { key: 'focus-head', className: 'mp-set-label' }, t('settings.groupAudioFocus')),
-          h(
-            SetRow,
-            {
-              key: 'voice-input-pause',
-              label: t('settings.voiceInputPause'),
-              desc: t('settings.voiceInputPauseDesc') + (audioFocus.supported ? '' : ' ' + t('settings.audioFocusUnsupported')),
-            },
-            h(Switch, {
-              value: prefs.voiceInputPause === true,
-              label: t('settings.voiceInputPause'),
-              disabled: !audioFocus.supported,
-              onChange: function (value) { patchPrefs({ voiceInputPause: value }) },
+              onChange: function (value) { patchPrefs({ playbackReports: value }) },
             }),
           ),
           h(
@@ -168157,31 +168405,6 @@ window.__ModuleLoader__.load({
                 h('span', { className: 'mp-set-val' }, (Number(prefs.audioFocusFadeMs) || 0) + ' ms'),
               )
             : null,
-          h('div', { key: 'output-head', className: 'mp-set-label' }, t('settings.groupOutput')),
-          sinkSupported && outputDevices.length > 0
-            ? h(
-                SetRow,
-                {
-                  key: 'output-device',
-                  label: t('settings.outputDevice'),
-                  desc: t('settings.outputDeviceHint'),
-                },
-                h(KitSelect, {
-                  value: prefs.audioOutputDeviceId || '',
-                  label: t('settings.outputDevice'),
-                  options: [{ value: '', label: t('settings.outputDefault') }].concat(
-                    outputDevices.map(function (device) {
-                      return { value: device.id, label: device.label }
-                    }),
-                  ),
-                  onChange: function (value) {
-                    var next = String(value || '')
-                    patchPrefs({ audioOutputDeviceId: next })
-                    player.setOutputDevice(next)
-                  },
-                }),
-              )
-            : null,
           h(
             SetRow,
             { key: 'sleep', label: t('settings.sleepTimer') },
@@ -168222,6 +168445,14 @@ window.__ModuleLoader__.load({
                 : null,
             ),
           ),
+        ]
+
+        return [
+          h('h2', { key: 'h' }, t('v2.playback')),
+          settingsGroup('transition', 'settings.groupTransition', transitionRows, t('settings.transitionNote')),
+          settingsGroup('sound', 'settings.groupSound', soundRows),
+          settingsGroup('behavior', 'settings.groupBehavior', behaviorRows),
+          settingsGroup('plugin', 'settings.groupPlugin', pluginRows),
         ]
       }
 
@@ -169132,6 +169363,17 @@ window.__ModuleLoader__.load({
         run: function () {
           player.enqueueNext(track)
           showToast(t('page.addedNext'))
+        },
+      })
+      items.push({
+        key: 'queue',
+        icon: 'plus',
+        label: t('page.addToQueue'),
+        run: function () {
+          // Folia's queueDefaultBehavior decides where 「加入队列」 puts it.
+          if (readPrefs().queueAddBehavior === 'next') player.enqueueNext(track)
+          else player.enqueue(track)
+          showToast(t('page.addedToQueue'))
         },
       })
       if (online) {

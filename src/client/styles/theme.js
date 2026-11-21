@@ -781,11 +781,12 @@ var THEME_CSS = [
   '.mp-sheet-body{overflow-y:auto;padding:20px 48px 28px 22px}',
   '.mp-sheet-body h2{margin:0 0 4px;font-size:14px;line-height:20px;font-weight:650}',
   '.mp-set-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-height:44px;padding:11px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-  // 歌词页：Folia 的分组卡片（组标题在卡外，行在卡内）。
-  '.mp-lyric-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',
-  '.mp-lyric-group:first-of-type .mp-lyric-group-head{padding-top:18px}',
-  '.mp-lyric-group .mp-set-card{margin-top:8px}',
-  '.mp-lyric-group .mp-set-card-body{padding:0 14px}',
+  // 设置页分组卡片：组标题在卡外，行在卡内（歌词页与播放控制页共用）。
+  '.mp-set-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',
+  '.mp-set-group:first-of-type .mp-set-group-head{padding-top:18px}',
+  '.mp-set-group .mp-set-card{margin-top:8px}',
+  '.mp-set-group .mp-set-card-body{padding:0 14px}',
+  '.mp-set-foot{margin:8px 4px 0;font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
   '.mp-lyric-format-fold{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:4px 0 12px;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
   '.mp-lyric-format-list{display:flex;flex-direction:column;gap:4px;padding-top:6px}',
   '.mp-lyric-format-row{display:flex;align-items:center;gap:6px}',

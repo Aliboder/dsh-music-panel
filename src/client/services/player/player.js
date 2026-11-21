@@ -557,8 +557,82 @@ var onlineMse = null
     })
   }
 
+  // ── screen wake lock (Folia's 播放时阻止休眠) ─────────────────────────
+  // The browser hands out a screen lock only while a page is visible; the sentinel is
+  // released by the browser on hide, so a visibility change re-asks for it.
+  var wakeLock = null
+  var wakeLockWanted = false
+  function wakeLockSupported() {
+    return typeof navigator !== 'undefined'
+      && navigator.wakeLock !== null
+      && typeof navigator.wakeLock === 'object'
+      && typeof navigator.wakeLock.request === 'function'
+  }
+  function releaseWakeLock() {
+    wakeLockWanted = false
+    if (wakeLock === null) return
+    var sentinel = wakeLock
+    wakeLock = null
+    try {
+      Promise.resolve(sentinel.release()).catch(function () {})
+    } catch (error) {
+      // Already released.
+    }
+  }
+  function syncWakeLock(playing) {
+    var wanted = readPrefs().preventSleepDuringPlayback === true && playing === true
+    if (wanted === wakeLockWanted) return
+    wakeLockWanted = wanted
+    if (!wanted) {
+      releaseWakeLock()
+      return
+    }
+    if (!wakeLockSupported()) return
+    try {
+      navigator.wakeLock.request('screen').then(function (sentinel) {
+        if (!wakeLockWanted) {
+          Promise.resolve(sentinel.release()).catch(function () {})
+          return
+        }
+        wakeLock = sentinel
+        if (sentinel && typeof sentinel.addEventListener === 'function') {
+          sentinel.addEventListener('release', function () {
+            if (wakeLock === sentinel) wakeLock = null
+          })
+        }
+      }).catch(function () {})
+    } catch (error) {
+      // A denied lock never blocks playback.
+    }
+  }
+  if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState !== 'visible') return
+      if (!wakeLockWanted || wakeLock !== null) return
+      wakeLockWanted = false
+      syncWakeLock(state.playing === true)
+    })
+  }
+
+  /**
+   * The next queue slot for an automatic advance. With Folia's shuffleRoundNoRepeat the
+   * queue is re-shuffled when a round wraps, so every pass plays in a new order.
+   */
+  function advanceIndex(index, size) {
+    var next = nextIndexOf(index, size)
+    if (next === 0 && size > 1 && state.order === 'random' && readPrefs().shuffleRoundNoRepeat === true) {
+      var queue = shuffleTracks(state.queue, null)
+      state = Object.assign({}, state, { queue: queue })
+      emit()
+      savePlaybackState()
+    }
+    return next
+  }
+
   function patch(next) {
+    var wasPlaying = state.playing
     state = Object.assign({}, state, next)
+    if (state.playing !== wasPlaying) syncWakeLock(state.playing === true)
     emit()
   }
 
@@ -788,7 +862,7 @@ var onlineMse = null
       patch({ playing: false })
       return
     }
-    load(nextIndexOf(state.index, state.queue.length), true)
+    load(advanceIndex(state.index, state.queue.length), true)
   }
 
   function onError(eventOrReason) {
@@ -827,6 +901,12 @@ var onlineMse = null
     // An online track that cannot be fetched (expired sign-in, rights restriction, provider
     // refusal) must not spin the queue: stop on it and let the toast name the reason.
     if (failedTrack !== null && failedTrack.onlineProvider) {
+      // Folia's autoSkipUnplayable: a track the account cannot play is skipped like a
+      // taken-down one instead of parking the queue on it. A run of failures stops.
+      if (readPrefs().autoSkipUnplayable === true && state.queue.length > 1 && errorStreak <= 3) {
+        load(advanceIndex(state.index, state.queue.length), true)
+        return
+      }
       errorStreak = 0
       patch({ playing: false })
       return
@@ -836,7 +916,7 @@ var onlineMse = null
       patch({ playing: false })
       return
     }
-    load(nextIndexOf(state.index, state.queue.length), true)
+    load(advanceIndex(state.index, state.queue.length), true)
   }
 
   function releaseObjectUrl() {
@@ -2455,13 +2535,17 @@ var onlineMse = null
       if (foliaTransport !== null) foliaTransport.pause(foliaTransport.getActiveDeck())
       else if (audio) audio.pause()
     },
+    /** Re-read the wake-lock preference after the settings switch changed. */
+    refreshWakeLock: function () {
+      syncWakeLock(state.playing === true)
+    },
     toggle: function () {
       if (state.playing) api.pause()
       else api.play()
     },
     next: function () {
       if (state.queue.length === 0) return
-      load(nextIndexOf(state.index, state.queue.length), true)
+      load(advanceIndex(state.index, state.queue.length), true)
     },
     prev: function () {
       if (state.queue.length === 0) return

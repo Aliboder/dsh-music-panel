@@ -106,40 +106,41 @@ function SettingsSheet(props) {
     typeof window.AudioContext !== 'undefined' &&
     typeof window.AudioContext.prototype.setSinkId === 'function'
 
+  function refreshOutputDevices() {
+    if (
+      typeof navigator === 'undefined' ||
+      !navigator.mediaDevices ||
+      typeof navigator.mediaDevices.enumerateDevices !== 'function'
+    ) {
+      setOutputDevices([])
+      return
+    }
+    navigator.mediaDevices
+      .enumerateDevices()
+      .then(function (devices) {
+        setOutputDevices(
+          devices
+            .filter(function (device) {
+              return device.kind === 'audiooutput'
+            })
+            .map(function (device, index) {
+              return {
+                id: device.deviceId,
+                label: device.label || t('settings.outputDeviceN', { n: index + 1 }),
+              }
+            }),
+        )
+      })
+      .catch(function () {
+        setOutputDevices([])
+      })
+  }
+
   useEffect(
     function () {
       if (tab !== 'playback' || props.open !== true || !sinkSupported) return undefined
-      if (
-        typeof navigator === 'undefined' ||
-        !navigator.mediaDevices ||
-        typeof navigator.mediaDevices.enumerateDevices !== 'function'
-      ) {
-        return undefined
-      }
-      var cancelled = false
-      navigator.mediaDevices
-        .enumerateDevices()
-        .then(function (devices) {
-          if (cancelled) return
-          setOutputDevices(
-            devices
-              .filter(function (device) {
-                return device.kind === 'audiooutput'
-              })
-              .map(function (device, index) {
-                return {
-                  id: device.deviceId,
-                  label: device.label || t('settings.outputDeviceN', { n: index + 1 }),
-                }
-              }),
-          )
-        })
-        .catch(function () {
-          if (!cancelled) setOutputDevices([])
-        })
-      return function () {
-        cancelled = true
-      }
+      refreshOutputDevices()
+      return undefined
     },
     [tab, props.open, sinkSupported],
   )
@@ -426,19 +427,24 @@ function SettingsSheet(props) {
     )
   }
 
-  /** One lyric group: Folia's heading over one card of rows. */
+  /** One settings group: Folia's heading over one card of rows. */
+  function settingsGroup(key, labelKey, rows, foot) {
+    return h(
+      'section',
+      { key: 'group-' + key, className: 'mp-set-group' },
+      h('div', { className: 'mp-set-group-head' }, h('span', { className: 'mp-set-label' }, t(labelKey))),
+      h('div', { className: 'mp-set-card' }, h('div', { className: 'mp-set-card-body' }, rows)),
+      foot ? h('div', { key: 'foot', className: 'mp-set-foot' }, foot) : null,
+    )
+  }
+
+  /** The lyric page's groups read their label from LYRIC_GROUP_DEFS. */
   function lyricGroup(key, rows) {
     var def = null
     for (var index = 0; index < LYRIC_GROUP_DEFS.length; index += 1) {
       if (LYRIC_GROUP_DEFS[index].key === key) def = LYRIC_GROUP_DEFS[index]
     }
-    if (def === null) return null
-    return h(
-      'section',
-      { key: 'lyric-group-' + key, className: 'mp-lyric-group' },
-      h('div', { className: 'mp-lyric-group-head' }, h('span', { className: 'mp-set-label' }, t(def.labelKey))),
-      h('div', { className: 'mp-set-card' }, h('div', { className: 'mp-set-card-body' }, rows)),
-    )
+    return def === null ? null : settingsGroup('lyric-' + key, def.labelKey, rows)
   }
 
   function currentLyricGlobalOffset() {
@@ -819,83 +825,125 @@ function SettingsSheet(props) {
   }
 
   function playbackTab() {
+    // Folia's 播放控制 page: 智能过渡 / 声音与设备 / 播放行为, then the plugin's own
+    // extras (startup, online quality, reports, audio focus, sleep) in 插件.
     var reportSupported = availableSources().some(function (provider) { return supports(provider, 'playbackReports') })
-    return [
-      h('h2', { key: 'h' }, t('v2.playback')),
-      h('div', { key: 'startup-head', className: 'mp-set-label' }, t('settings.groupStartup')),
-      h(
-        SetRow,
-        { key: 'resume', label: t('settings.resumeOnStart') },
-        h(Switch, {
-          value: prefs.resumeOnStart === true,
-          onChange: function (value) {
-            patchPrefs({ resumeOnStart: value })
-          },
-        }),
-      ),
-      h(
-        SetRow,
-        { key: 'auto', label: t('settings.autoResume') },
-        h(Switch, {
-          value: prefs.autoResume === true,
-          onChange: function (value) {
-            patchPrefs({ autoResume: value })
-          },
-        }),
-      ),
-      h(
-        SetRow,
-        { key: 'per', label: t('settings.rememberPerTrack') },
-        h(Switch, {
-          value: prefs.rememberPerTrack === true,
-          onChange: function (value) {
-            patchPrefs({ rememberPerTrack: value })
-          },
-        }),
-      ),
-      h('div', { key: 'sound-head', className: 'mp-set-label' }, t('settings.groupSound')),
+    var crossfadeOn = crossfadeFadeSeconds(prefs) > 0
+    var replayGainValue =
+      prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album'
+        ? prefs.replayGainMode
+        : prefs.normalizeVolume === false
+          ? 'off'
+          : 'auto'
+    var queueAddBehavior = prefs.queueAddBehavior === 'next' ? 'next' : 'append'
+    var wakeLockAvailable = typeof navigator !== 'undefined'
+      && navigator.wakeLock !== null
+      && typeof navigator.wakeLock === 'object'
+      && typeof navigator.wakeLock.request === 'function'
+
+    var transitionRows = [
       h(
         SetRow,
         {
-          key: 'replayGain',
-          label: t('settings.replayGain'),
-          desc: t('settings.replayGainHint'),
+          key: 'crossfade',
+          label: t('settings.transition'),
+          desc: t('settings.crossfadeHint'),
+        },
+        h(Switch, {
+          value: crossfadeOn,
+          onChange: function (value) {
+            patchPrefs({ crossfadeSeconds: value ? CROSSFADE_DEFAULT_SECONDS : 0 })
+          },
+        }),
+      ),
+      crossfadeOn
+        ? h(
+            SetRow,
+            { key: 'crossfade-seconds', label: t('settings.crossfadeSeconds'), desc: t('settings.crossfadeSecondsHint') },
+            h('input', {
+              type: 'range',
+              className: 'mp-range',
+              min: CROSSFADE_MIN_SECONDS,
+              max: CROSSFADE_MAX_SECONDS,
+              step: 1,
+              value: crossfadeFadeSeconds(prefs),
+              onChange: function (event) { patchPrefs({ crossfadeSeconds: Number(event.target.value) }) },
+            }),
+            h('span', { className: 'mp-set-val' }, crossfadeFadeSeconds(prefs) + ' s'),
+          )
+        : null,
+    ]
+
+    var soundRows = [
+      h(
+        SetRow,
+        {
+          key: 'output-device',
+          label: t('settings.outputDevice'),
+          desc: !sinkSupported
+            ? t('settings.outputDeviceUnsupported')
+            : outputDevices.length === 0
+              ? t('settings.outputDeviceLoadFailed')
+              : t('settings.outputDeviceHint'),
         },
         h(
           'div',
           { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
+          h(IconButton, {
+            icon: 'refresh',
+            size: 15,
+            title: t('settings.outputDeviceRefresh'),
+            disabled: !sinkSupported,
+            onClick: function () { refreshOutputDevices() },
+          }),
           h(KitSelect, {
-            value: prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album'
-              ? prefs.replayGainMode
-              : prefs.normalizeVolume === false
-                ? 'off'
-                : 'auto',
-            label: t('settings.replayGain'),
-            options: [
-              { value: 'off', label: t('settings.replayGainOff') },
-              { value: 'auto', label: t('settings.replayGainAuto') },
-              { value: 'track', label: t('settings.replayGainTrack') },
-              { value: 'album', label: t('settings.replayGainAlbum') },
-            ],
+            value: prefs.audioOutputDeviceId || '',
+            label: t('settings.outputDevice'),
+            disabled: !sinkSupported || outputDevices.length === 0,
+            options: [{ value: '', label: t('settings.outputDefault') }].concat(
+              outputDevices.map(function (device) {
+                return { value: device.id, label: device.label }
+              }),
+            ),
             onChange: function (value) {
-              var next = String(value)
-              // 'off' also switches the loudness analysis off; the tag modes leave it
-              // off too, since they read the file's own gain.
-              patchPrefs({
-                replayGainMode: next,
-                normalizeVolume: next === 'off' ? false : true,
-              })
-              if (player.setNormalize) player.setNormalize(next === 'auto')
-              if (player.setReplayGain) player.setReplayGain(0)
+              var next = String(value || '')
+              patchPrefs({ audioOutputDeviceId: next })
+              player.setOutputDevice(next)
             },
           }),
         ),
       ),
       h(
-        'div',
-        { className: 'mp-set-hint' },
-        t('settings.replayGainStatus'),
+        SetRow,
+        {
+          key: 'replayGain',
+          label: t('settings.replayGain'),
+          desc: t('settings.replayGainModeDesc'),
+        },
+        h(KitSegmented, {
+          id: 'mp-replay-gain-mode',
+          value: replayGainValue,
+          label: t('settings.replayGain'),
+          options: [
+            { value: 'off', label: t('settings.replayGainOff') },
+            { value: 'auto', label: t('settings.replayGainAuto') },
+            { value: 'track', label: t('settings.replayGainTrack') },
+            { value: 'album', label: t('settings.replayGainAlbum') },
+          ],
+          onChange: function (value) {
+            var next = String(value)
+            // 'off' also switches the loudness analysis off; the tag modes leave it
+            // off too, since they read the file's own gain.
+            patchPrefs({
+              replayGainMode: next,
+              normalizeVolume: next === 'off' ? false : true,
+            })
+            if (player.setNormalize) player.setNormalize(next === 'auto')
+            if (player.setReplayGain) player.setReplayGain(0)
+          },
+        }),
       ),
+      h('div', { key: 'replay-status-hint', className: 'mp-set-hint' }, t('settings.replayGainStatus')),
       h(
         'div',
         {
@@ -922,6 +970,125 @@ function SettingsSheet(props) {
       h(
         SetRow,
         {
+          key: 'playback-fade',
+          label: t('settings.playbackFade'),
+          desc: t('settings.playbackFadeHint'),
+        },
+        h(Switch, {
+          value: prefs.playbackFade !== false,
+          onChange: function (value) {
+            patchPrefs({ playbackFade: value })
+            player.setPlaybackFade(value)
+          },
+        }),
+      ),
+    ]
+
+    var behaviorRows = [
+      h(
+        SetRow,
+        {
+          key: 'queue-add',
+          label: t('settings.queueAddBehavior'),
+          desc: t('settings.queueAddBehaviorDesc'),
+        },
+        h(KitSegmented, {
+          id: 'mp-queue-add-behavior',
+          value: queueAddBehavior,
+          label: t('settings.queueAddBehavior'),
+          options: [
+            { value: 'append', label: t('settings.queueAppend') },
+            { value: 'next', label: t('settings.queueNext') },
+          ],
+          onChange: function (value) {
+            patchPrefs({ queueAddBehavior: String(value) === 'next' ? 'next' : 'append' })
+          },
+        }),
+      ),
+      h(
+        SetRow,
+        {
+          key: 'auto-skip',
+          label: t('settings.autoSkipUnplayable'),
+          desc: t('settings.autoSkipUnplayableDesc'),
+        },
+        h(Switch, {
+          value: prefs.autoSkipUnplayable === true,
+          onChange: function (value) { patchPrefs({ autoSkipUnplayable: value }) },
+        }),
+      ),
+      h(
+        SetRow,
+        {
+          key: 'shuffle-round',
+          label: t('settings.shuffleRoundNoRepeat'),
+          desc: t('settings.shuffleRoundNoRepeatDesc'),
+        },
+        h(Switch, {
+          value: prefs.shuffleRoundNoRepeat === true,
+          onChange: function (value) { patchPrefs({ shuffleRoundNoRepeat: value }) },
+        }),
+      ),
+      h(
+        SetRow,
+        {
+          key: 'prevent-sleep',
+          label: t('settings.preventSleep'),
+          desc: t('settings.preventSleepDesc') + (wakeLockAvailable ? '' : ' ' + t('settings.preventSleepUnsupported')),
+        },
+        h(Switch, {
+          value: prefs.preventSleepDuringPlayback === true,
+          disabled: !wakeLockAvailable,
+          onChange: function (value) {
+            patchPrefs({ preventSleepDuringPlayback: value })
+            if (player.refreshWakeLock) player.refreshWakeLock()
+          },
+        }),
+      ),
+      h(
+        SetRow,
+        {
+          key: 'voice-input-pause',
+          label: t('settings.voiceInputPause'),
+          desc: t('settings.voiceInputPauseDesc') + (audioFocus.supported ? '' : ' ' + t('settings.audioFocusUnsupported')),
+        },
+        h(Switch, {
+          value: prefs.voiceInputPause === true,
+          label: t('settings.voiceInputPause'),
+          disabled: !audioFocus.supported,
+          onChange: function (value) { patchPrefs({ voiceInputPause: value }) },
+        }),
+      ),
+    ]
+
+    var pluginRows = [
+      h(
+        SetRow,
+        { key: 'resume', label: t('settings.resumeOnStart') },
+        h(Switch, {
+          value: prefs.resumeOnStart === true,
+          onChange: function (value) { patchPrefs({ resumeOnStart: value }) },
+        }),
+      ),
+      h(
+        SetRow,
+        { key: 'auto', label: t('settings.autoResume') },
+        h(Switch, {
+          value: prefs.autoResume === true,
+          onChange: function (value) { patchPrefs({ autoResume: value }) },
+        }),
+      ),
+      h(
+        SetRow,
+        { key: 'per', label: t('settings.rememberPerTrack') },
+        h(Switch, {
+          value: prefs.rememberPerTrack === true,
+          onChange: function (value) { patchPrefs({ rememberPerTrack: value }) },
+        }),
+      ),
+      h(
+        SetRow,
+        {
           key: 'online-quality',
           label: t('settings.onlineQuality'),
           desc: t('settings.onlineQualityDesc'),
@@ -938,52 +1105,6 @@ function SettingsSheet(props) {
           onChange: function (value) { patchPrefs({ onlineQuality: String(value) }) },
         }),
       ),
-      h('div', { key: 'transition-head', className: 'mp-set-label' }, t('settings.groupTransition')),
-      h(
-        SetRow,
-        {
-          key: 'crossfade',
-          label: t('settings.crossfade'),
-          desc: t('settings.crossfadeHint'),
-        },
-        h(Switch, {
-          value: crossfadeFadeSeconds(prefs) > 0,
-          onChange: function (value) {
-            patchPrefs({ crossfadeSeconds: value ? CROSSFADE_DEFAULT_SECONDS : 0 })
-          },
-        }),
-      ),
-      crossfadeFadeSeconds(prefs) > 0
-        ? h(
-            SetRow,
-            { key: 'crossfade-seconds', label: t('settings.crossfadeSeconds'), desc: t('settings.crossfadeSecondsHint') },
-            h('input', {
-              type: 'range',
-              className: 'mp-range',
-              min: CROSSFADE_MIN_SECONDS,
-              max: CROSSFADE_MAX_SECONDS,
-              step: 1,
-              value: crossfadeFadeSeconds(prefs),
-              onChange: function (event) { patchPrefs({ crossfadeSeconds: Number(event.target.value) }) },
-            }),
-            h('span', { className: 'mp-set-val' }, crossfadeFadeSeconds(prefs) + ' s'),
-          )
-        : null,
-      h(
-        SetRow,
-        {
-          key: 'playback-fade',
-          label: t('settings.playbackFade'),
-          desc: t('settings.playbackFadeHint'),
-        },
-        h(Switch, {
-          value: prefs.playbackFade !== false,
-          onChange: function (value) {
-            patchPrefs({ playbackFade: value })
-            player.setPlaybackFade(value)
-          },
-        }),
-      ),
       h(
         SetRow,
         {
@@ -993,24 +1114,7 @@ function SettingsSheet(props) {
         },
         h(Switch, {
           value: prefs.playbackReports === true,
-          onChange: function (value) {
-            patchPrefs({ playbackReports: value })
-          },
-        }),
-      ),
-      h('div', { key: 'focus-head', className: 'mp-set-label' }, t('settings.groupAudioFocus')),
-      h(
-        SetRow,
-        {
-          key: 'voice-input-pause',
-          label: t('settings.voiceInputPause'),
-          desc: t('settings.voiceInputPauseDesc') + (audioFocus.supported ? '' : ' ' + t('settings.audioFocusUnsupported')),
-        },
-        h(Switch, {
-          value: prefs.voiceInputPause === true,
-          label: t('settings.voiceInputPause'),
-          disabled: !audioFocus.supported,
-          onChange: function (value) { patchPrefs({ voiceInputPause: value }) },
+          onChange: function (value) { patchPrefs({ playbackReports: value }) },
         }),
       ),
       h(
@@ -1060,31 +1164,6 @@ function SettingsSheet(props) {
             h('span', { className: 'mp-set-val' }, (Number(prefs.audioFocusFadeMs) || 0) + ' ms'),
           )
         : null,
-      h('div', { key: 'output-head', className: 'mp-set-label' }, t('settings.groupOutput')),
-      sinkSupported && outputDevices.length > 0
-        ? h(
-            SetRow,
-            {
-              key: 'output-device',
-              label: t('settings.outputDevice'),
-              desc: t('settings.outputDeviceHint'),
-            },
-            h(KitSelect, {
-              value: prefs.audioOutputDeviceId || '',
-              label: t('settings.outputDevice'),
-              options: [{ value: '', label: t('settings.outputDefault') }].concat(
-                outputDevices.map(function (device) {
-                  return { value: device.id, label: device.label }
-                }),
-              ),
-              onChange: function (value) {
-                var next = String(value || '')
-                patchPrefs({ audioOutputDeviceId: next })
-                player.setOutputDevice(next)
-              },
-            }),
-          )
-        : null,
       h(
         SetRow,
         { key: 'sleep', label: t('settings.sleepTimer') },
@@ -1125,6 +1204,14 @@ function SettingsSheet(props) {
             : null,
         ),
       ),
+    ]
+
+    return [
+      h('h2', { key: 'h' }, t('v2.playback')),
+      settingsGroup('transition', 'settings.groupTransition', transitionRows, t('settings.transitionNote')),
+      settingsGroup('sound', 'settings.groupSound', soundRows),
+      settingsGroup('behavior', 'settings.groupBehavior', behaviorRows),
+      settingsGroup('plugin', 'settings.groupPlugin', pluginRows),
     ]
   }
 

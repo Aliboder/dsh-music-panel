@@ -214,6 +214,17 @@ function ContextMenu(props) {
       showToast(t('page.addedNext'))
     },
   })
+  items.push({
+    key: 'queue',
+    icon: 'plus',
+    label: t('page.addToQueue'),
+    run: function () {
+      // Folia's queueDefaultBehavior decides where 「加入队列」 puts it.
+      if (readPrefs().queueAddBehavior === 'next') player.enqueueNext(track)
+      else player.enqueue(track)
+      showToast(t('page.addedToQueue'))
+    },
+  })
   if (online) {
     items.push({
       key: 'fav',

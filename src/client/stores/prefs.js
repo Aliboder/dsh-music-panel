@@ -132,6 +132,14 @@ var PREF_DEFAULTS = {
   ],
   /** 0 keeps the old hard cut; a positive value enables the automatic blend. */
   crossfadeSeconds: 0,
+  /** Folia's `queueAddBehavior`: where 「加入队列」 puts a song, after the current one or at the end. */
+  queueAddBehavior: 'append',
+  /** Folia's `autoSkipUnplayable`: a track that cannot be played is skipped instead of stopping. */
+  autoSkipUnplayable: false,
+  /** Folia's `shuffleRoundNoRepeat`: a shuffled queue is re-shuffled for every round. */
+  shuffleRoundNoRepeat: false,
+  /** Keep the screen awake while a song plays (Wake Lock, where the host offers it). */
+  preventSleepDuringPlayback: false,
   onlinePlaylistSort: 'source',
   onboardingDone: true,
 }
@@ -196,6 +204,7 @@ function readPrefs() {
   var globalOffset = Number(merged.lyricGlobalOffsetMs)
   if (!isFinite(globalOffset)) globalOffset = PREF_DEFAULTS.lyricGlobalOffsetMs
   merged.lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Math.round(globalOffset)))
+  if (merged.queueAddBehavior !== 'next') merged.queueAddBehavior = 'append'
   if (dropped) {
     try {
       window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
