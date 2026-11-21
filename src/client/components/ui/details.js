@@ -6,12 +6,6 @@
  * disk, so the panel cannot disagree with the list it was opened from.
  */
 
-/** `320000` → `320 kbps`; unknown stays empty. */
-function detailBitrateText(value) {
-  var bitrate = Number(value) || 0
-  if (bitrate <= 0) return ''
-  return Math.round(bitrate / 1000) + ' kbps'
-}
 
 /** `44100` → `44.1 kHz`; unknown stays empty. */
 function detailSampleRateText(value) {
@@ -118,7 +112,7 @@ function TrackDetailsDialog(props) {
       if (format !== '' && track.codec) format += ' · ' + String(track.codec)
       rows.push(row('format', t('page.infoFormat'), format))
       rows.push(row('size', t('page.infoSize'), Number(track.size) > 0 ? fmtBytes(Number(track.size)) : ''))
-      rows.push(row('bitrate', t('page.infoBitrate'), detailBitrateText(track.bitrate)))
+      rows.push(row('bitrate', t('page.infoBitrate'), fmtKbps(track.bitrate)))
       rows.push(row('samplerate', t('page.infoSampleRate'), detailSampleRateText(track.sampleRate)))
       rows.push(row('path', t('page.infoPath'), track.path, true))
       rows.push(row('mtime', t('page.infoModified'), detailDateText(track.mtime, true)))

@@ -48,17 +48,16 @@ for (const key of localFields) assert.match(details, new RegExp(key.replace(/\./
 assert.match(details, /online\/info\?provider=/, 'an online row reads its cache state from the host')
 assert.match(details, /page\.infoNotCached/, 'an uncached online row says so')
 assert.match(details, /copyTextSafely\(track\.path\)/, 'the path can be copied from the panel')
+assert.match(details, /fmtKbps\(track\.bitrate\)/, 'the bitrate reuses the shared formatter')
 
 // ── formatting rules ──────────────────────────────────────────────────────
 const factory = new Function(
   'var t = function (key) { return key };\n' +
     details +
-    '\nreturn { detailBitrateText, detailSampleRateText, detailQualityText, detailDateText };',
+    '\nreturn { detailSampleRateText, detailQualityText, detailDateText };',
 )
 const f = factory()
-assert.equal(f.detailBitrateText(320000), '320 kbps')
-assert.equal(f.detailBitrateText(128000), '128 kbps')
-assert.equal(f.detailBitrateText(0), '', 'an unknown bitrate is left out')
+
 assert.equal(f.detailSampleRateText(44100), '44.1 kHz')
 assert.equal(f.detailSampleRateText(48000), '48 kHz', 'whole kHz keeps no decimal')
 assert.equal(f.detailSampleRateText(undefined), '')

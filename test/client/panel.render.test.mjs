@@ -382,4 +382,17 @@ assert.match(coreSource, /iconSize: 21/, 'row cover icon scales with the cover')
 assert.doesNotMatch(stylesSource, /max-width: 1280px/, 'list no longer centres a 1280px island')
 assert.doesNotMatch(stylesSource, /scrollbar-gutter: stable/, 'no reserved right gutter')
 
+// 右键 → 详细信息（issue #25）：菜单打开的面板读库里完整记录，而不是只带 path 的
+// 收藏/歌单快照；路径、大小、专辑都要真的渲染出来。
+internals.overlayStore.set({ layers: [{ kind: 'details', props: { track: { path: 'D:/Music/a.mp3', title: 'Alpha' } } }] })
+const detailsTree = panel()
+const detailsClasses = classesOf(detailsTree)
+assert.ok(detailsClasses.has('mp-detail'), 'the details dialog renders its field list')
+assert.ok(detailsClasses.has('mp-detail-row'), 'the field rows render')
+const detailsText = textOf(detailsTree)
+assert.ok(detailsText.includes('D:/Music/a.mp3'), 'the path row shows the file path from the library record')
+assert.ok(detailsText.includes('1000 B'), 'the size row comes from the stat, not the snapshot')
+assert.ok(detailsText.includes('Album One'), 'the album comes from the library record')
+internals.overlayStore.set({ layers: [] })
+
 console.log('panel.render.test.mjs ok')
