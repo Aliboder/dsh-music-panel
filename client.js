@@ -6889,6 +6889,21 @@ window.__ModuleLoader__.load({
         'editor.close': '关闭',
         'page.copyPath': '复制文件路径',
         'page.copied': '已复制',
+        'page.infoSong': '歌曲',
+        'page.infoDuration': '时长',
+        'page.infoFormat': '格式',
+        'page.infoSize': '文件大小',
+        'page.infoBitrate': '码率',
+        'page.infoSampleRate': '采样率',
+        'page.infoPath': '路径',
+        'page.infoModified': '修改时间',
+        'page.infoAdded': '加入曲库',
+        'page.infoPlays': '播放次数',
+        'page.infoSource': '来源',
+        'page.infoSongId': '歌曲 ID',
+        'page.infoCache': '缓存',
+        'page.infoNotCached': '未缓存',
+        'page.infoUnavailable': '没有可显示的信息',
         'page.volume': '音量',
         'page.mute': '静音',
         'page.sortTitle': '标题',
@@ -7504,6 +7519,21 @@ window.__ModuleLoader__.load({
         'editor.close': 'Close',
         'page.copyPath': 'Copy file path',
         'page.copied': 'Copied',
+        'page.infoSong': 'Song',
+        'page.infoDuration': 'Duration',
+        'page.infoFormat': 'Format',
+        'page.infoSize': 'File size',
+        'page.infoBitrate': 'Bitrate',
+        'page.infoSampleRate': 'Sample rate',
+        'page.infoPath': 'Path',
+        'page.infoModified': 'Modified',
+        'page.infoAdded': 'Added to library',
+        'page.infoPlays': 'Play count',
+        'page.infoSource': 'Source',
+        'page.infoSongId': 'Song ID',
+        'page.infoCache': 'Cache',
+        'page.infoNotCached': 'Not cached',
+        'page.infoUnavailable': 'Nothing to show',
         'page.volume': 'Volume',
         'page.mute': 'Mute',
         'page.sortTitle': 'Title',
@@ -9613,6 +9643,16 @@ window.__ModuleLoader__.load({
      */
     function isBrowserMediaFailureText(text) {
       return /PipelineStatus|DEMUXER_ERROR|MEDIA_ERR_|MediaSource endOfStream|audio decoder|Failed to demux/i.test(String(text || ''))
+    }
+    /** Copy text without throwing where the clipboard is blocked; the caller still confirms intent. */
+    function copyTextSafely(text) {
+      var value = String(text || '')
+      if (value === '') return
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) void navigator.clipboard.writeText(value)
+      } catch (error) {
+        // Clipboard can be blocked; the toast still confirms the intent.
+      }
     }
 
     /** Absolute directory of a track (backslashes kept for display). */
@@ -161677,6 +161717,12 @@ window.__ModuleLoader__.load({
       '.mp-d-head .mp-spacer{margin-left:auto}',
       '.mp-d-body{padding:16px 18px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:12px}',
       '.mp-d-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-detail{display:flex;flex-direction:column;margin:-4px 0 2px}',
+      '.mp-detail-row{display:grid;grid-template-columns:88px minmax(0,1fr);gap:12px;padding:9px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-detail-row:last-child{border-bottom:0}',
+      '.mp-detail-label{font-size:12px;line-height:20px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-detail-value{font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary,#f4f4f5);min-width:0;overflow-wrap:anywhere}',
+      '.mp-detail-value.is-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}',
       '.mp-field{display:flex;flex-direction:column;gap:5px;min-width:0}',
       '.mp-field label{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-d-body > *{flex-shrink:0}',
@@ -169460,18 +169506,21 @@ window.__ModuleLoader__.load({
           icon: 'copy',
           label: t('page.copyPath'),
           run: function () {
-            var path = track.path
-            try {
-              if (navigator.clipboard && navigator.clipboard.writeText) {
-                void navigator.clipboard.writeText(path)
-              }
-            } catch (error) {
-              // Clipboard can be blocked; the toast still confirms the intent.
-            }
+            copyTextSafely(track.path)
             showToast(t('page.copied'))
           },
         })
       }
+      // The same panel serves both kinds: a local file's stat and tags, or an online row's
+      // provider metadata plus what the media cache holds for it.
+      items.push({
+        key: 'details',
+        icon: 'info',
+        label: t('page.details'),
+        run: function () {
+          pushLayer('details', { track: track })
+        },
+      })
 
         }
     var width = 190
@@ -170464,6 +170513,162 @@ window.__ModuleLoader__.load({
       )
     }
 
+    // ── src/client/components/ui/details.js
+    /**
+     * details: the read-only information panel behind the row menu's「详细信息」.
+     *
+     * Everything it shows is already known: a local file's stat and tags from the library scan,
+     * or an online row's provider metadata plus the media-cache lookup. Nothing is re-read from
+     * disk, so the panel cannot disagree with the list it was opened from.
+     */
+
+    /** `320000` → `320 kbps`; unknown stays empty. */
+    function detailBitrateText(value) {
+      var bitrate = Number(value) || 0
+      if (bitrate <= 0) return ''
+      return Math.round(bitrate / 1000) + ' kbps'
+    }
+
+    /** `44100` → `44.1 kHz`; unknown stays empty. */
+    function detailSampleRateText(value) {
+      var rate = Number(value) || 0
+      if (rate <= 0) return ''
+      var kHz = rate / 1000
+      return (kHz % 1 === 0 ? String(kHz) : kHz.toFixed(1)) + ' kHz'
+    }
+
+    /** The cache's quality label, in the words the settings already use. */
+    function detailQualityText(quality) {
+      var keys = {
+        standard: 'sheet.qStandard',
+        high: 'sheet.qHigh',
+        lossless: 'sheet.qLossless',
+        hires: 'sheet.qHires',
+        original: 'sheet.originalQuality',
+      }
+      var key = keys[String(quality || '')]
+      return key === undefined ? '' : t(key)
+    }
+
+    /** `1723…` → a readable local date, or empty for an unknown stamp. */
+    function detailDateText(value, withTime) {
+      var stamp = Number(value) || 0
+      if (stamp <= 0) return ''
+      return withTime === true ? new Date(stamp).toLocaleString() : new Date(stamp).toLocaleDateString()
+    }
+
+    function TrackDetailsDialog(props) {
+      var asked = props.layer && props.layer.props ? props.layer.props.track : null
+      // A row from a favorites / playlist / recent snapshot carries only the path: the library
+      // record holds the stat and tag fields this panel exists to show.
+      var track = asked === null || asked === undefined
+        ? null
+        : asked.onlineProvider
+          ? asked
+          : (trackByPath(asked.path) || asked)
+      var provider = track !== null && typeof track.onlineProvider === 'string' ? track.onlineProvider : ''
+      var online = provider !== ''
+      var onlineId = track === null ? '' : String(track.onlineId || track.id || '')
+      var cachePair = useState({ phase: online ? 'loading' : 'ready', info: null })
+      var cache = cachePair[0]
+      var setCache = cachePair[1]
+
+      // Online rows have no file on disk; what the cache holds is the only size there is.
+      useEffect(function () {
+        if (!online || onlineId === '') return undefined
+        var cancelled = false
+        getJson(
+          API +
+            'online/info?provider=' +
+            encodeURIComponent(provider) +
+            '&id=' +
+            encodeURIComponent(onlineId),
+        )
+          .then(function (body) {
+            if (cancelled) return
+            setCache({ phase: 'ready', info: body && body.cached === true && body.info ? body.info : null })
+          })
+          .catch(function () {
+            if (cancelled) return
+            setCache({ phase: 'ready', info: null })
+          })
+        return function () {
+          cancelled = true
+        }
+      }, [online, provider, onlineId])
+
+      function row(key, label, value, mono) {
+        if (value === null || value === undefined) return null
+        var text = String(value)
+        if (text.trim() === '') return null
+        return h(
+          'div',
+          { key: key, className: 'mp-detail-row' },
+          h('div', { className: 'mp-detail-label' }, label),
+          h('div', { className: 'mp-detail-value' + (mono === true ? ' is-mono' : '') }, text),
+        )
+      }
+
+      var rows = []
+      if (track === null) {
+        rows.push(h('div', { key: 'none', className: 'mp-set-desc' }, t('page.infoUnavailable')))
+      } else {
+        var durationSec = Number(track.durationSec) || 0
+        rows.push(row('title', t('page.infoSong'), track.title || track.name || ''))
+        rows.push(row('artist', t('v2.artist'), track.artist || ''))
+        rows.push(row('album', t('v2.album'), track.album || ''))
+        rows.push(row('duration', t('page.infoDuration'), durationSec > 0 ? fmtTime(durationSec) : ''))
+        if (online) {
+          var quality = cache.info ? detailQualityText(cache.info.quality) : ''
+          rows.push(row('source', t('page.infoSource'), sourceLabelOf(provider)))
+          rows.push(row('songid', t('page.infoSongId'), onlineId, true))
+          rows.push(row('quality', t('sheet.quality'), quality))
+          var cachedText = cache.phase === 'loading'
+            ? t('v2.loading')
+            : cache.info
+              ? [fmtBytes(Number(cache.info.size) || 0), quality].filter(function (part) { return part !== '' }).join(' · ')
+              : t('page.infoNotCached')
+          rows.push(row('cache', t('page.infoCache'), cachedText))
+        } else {
+          var format = String(track.ext || '').toUpperCase()
+          if (format !== '' && track.codec) format += ' · ' + String(track.codec)
+          rows.push(row('format', t('page.infoFormat'), format))
+          rows.push(row('size', t('page.infoSize'), Number(track.size) > 0 ? fmtBytes(Number(track.size)) : ''))
+          rows.push(row('bitrate', t('page.infoBitrate'), detailBitrateText(track.bitrate)))
+          rows.push(row('samplerate', t('page.infoSampleRate'), detailSampleRateText(track.sampleRate)))
+          rows.push(row('path', t('page.infoPath'), track.path, true))
+          rows.push(row('mtime', t('page.infoModified'), detailDateText(track.mtime, true)))
+          rows.push(row('added', t('page.infoAdded'), detailDateText(track.addedAt, false)))
+          rows.push(row('plays', t('page.infoPlays'), Number(track.plays) > 0 ? String(Number(track.plays)) : ''))
+        }
+      }
+
+      var footer = []
+      if (!online && track !== null && typeof track.path === 'string' && track.path !== '') {
+        footer.push(
+          h(
+            Button,
+            {
+              key: 'copy',
+              variant: 'ghost',
+              onClick: function () {
+                copyTextSafely(track.path)
+                showToast(t('page.copied'))
+              },
+            },
+            t('page.copyPath'),
+          ),
+        )
+      }
+      footer.push(h(Button, { key: 'close', variant: 'primary', onClick: function () { popLayer() } }, t('v2.close')))
+
+      return h(
+        KitModal,
+        { title: t('page.details'), onClose: popLayer, footer: footer },
+        h('div', { className: 'mp-detail' }, rows),
+      )
+    }
+
     // ── src/client/panel-v3/p3-overlay.js
     /**
      * panel-v3 overlay: shared boundaries, control actions, overlay host and startup guide.
@@ -170582,6 +170787,7 @@ window.__ModuleLoader__.load({
         if (layer.kind === 'lyricSeg') return h(LyricSegmentationDialog, { key: 'lyricSeg', layer: layer })
         if (layer.kind === 'onlineLyric') return h(OnlineLyricDialog, { key: 'onlineLyric', layer: layer })
         if (layer.kind === 'trash') return h(TrashDialog, { key: 'trash', layer: layer })
+        if (layer.kind === 'details') return h(TrackDetailsDialog, { key: 'details', layer: layer })
         if (layer.kind === 'confirm') return h(ConfirmDialog, { key: 'confirm', layer: layer })
         if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
         if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })

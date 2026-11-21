@@ -297,18 +297,21 @@ function ContextMenu(props) {
       icon: 'copy',
       label: t('page.copyPath'),
       run: function () {
-        var path = track.path
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            void navigator.clipboard.writeText(path)
-          }
-        } catch (error) {
-          // Clipboard can be blocked; the toast still confirms the intent.
-        }
+        copyTextSafely(track.path)
         showToast(t('page.copied'))
       },
     })
   }
+  // The same panel serves both kinds: a local file's stat and tags, or an online row's
+  // provider metadata plus what the media cache holds for it.
+  items.push({
+    key: 'details',
+    icon: 'info',
+    label: t('page.details'),
+    run: function () {
+      pushLayer('details', { track: track })
+    },
+  })
 
     }
 var width = 190

@@ -115,6 +115,7 @@ function OverlayRoot() {
     if (layer.kind === 'lyricSeg') return h(LyricSegmentationDialog, { key: 'lyricSeg', layer: layer })
     if (layer.kind === 'onlineLyric') return h(OnlineLyricDialog, { key: 'onlineLyric', layer: layer })
     if (layer.kind === 'trash') return h(TrashDialog, { key: 'trash', layer: layer })
+    if (layer.kind === 'details') return h(TrackDetailsDialog, { key: 'details', layer: layer })
     if (layer.kind === 'confirm') return h(ConfirmDialog, { key: 'confirm', layer: layer })
     if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
     if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })

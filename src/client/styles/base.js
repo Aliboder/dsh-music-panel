@@ -136,6 +136,16 @@ function errorText(error) {
 function isBrowserMediaFailureText(text) {
   return /PipelineStatus|DEMUXER_ERROR|MEDIA_ERR_|MediaSource endOfStream|audio decoder|Failed to demux/i.test(String(text || ''))
 }
+/** Copy text without throwing where the clipboard is blocked; the caller still confirms intent. */
+function copyTextSafely(text) {
+  var value = String(text || '')
+  if (value === '') return
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) void navigator.clipboard.writeText(value)
+  } catch (error) {
+    // Clipboard can be blocked; the toast still confirms the intent.
+  }
+}
 
 /** Absolute directory of a track (backslashes kept for display). */
 function trackDirOf(track) {
