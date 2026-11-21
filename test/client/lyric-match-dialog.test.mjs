@@ -54,7 +54,17 @@ assert.equal(dialog.props.headless, true, 'the host modal only supplies the fram
 
 // The window opens on the song's own Folia query, searches immediately and uses
 // the DSH primitives instead of one-off zinc/blue controls.
-assert.match(source, /lyricMatchSongQuery/, 'the initial query is built from title/artist/album')
+assert.match(source, /lyricMatchSongQuery/, 'the initial query comes from one helper')
+assert.equal(
+  api.__internals.lyricMatchSongQuery({ title: '晴天', artist: '周杰伦', album: '叶惠美' }),
+  '晴天',
+  'the preset query is the song title, not title - artist - album',
+)
+assert.equal(
+  api.__internals.lyricMatchSongQuery({ title: '周杰伦 - 晴天', artist: '周杰伦', album: '叶惠美' }),
+  '晴天',
+  'an artist-prefixed title is reduced to the song name',
+)
 assert.match(source, /runSearch\(initialQueryRef\.current, 'netease'\)/, 'the first source searches on open')
 assert.match(source, /lyricMatchPickResult/, 'online results auto-pick the first candidate')
 assert.match(source, /KitSegmentedTabs/, 'source tabs use the host tab primitive')

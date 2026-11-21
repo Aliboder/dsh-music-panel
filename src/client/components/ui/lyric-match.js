@@ -7,7 +7,7 @@
  *   header      title, song line, file (or "streaming track, no local file")
  *   footer      no-match / instrumental actions, cancel / save
  *
- * The window opens on the song's Folia search query and searches immediately.
+ * The window opens on the song title and searches immediately.
  * An online song picks the first result (Folia's pickOnlineResult); a local song
  * waits for a click. The right panel shows the song itself until a result is
  * picked, then the picked result's cover, names and lyric.
@@ -23,21 +23,13 @@ function lyricMatchTitle(target) {
   return normalize(separator[1]) === normalize(artist) ? separator[2].trim() : title
 }
 
-function lyricMatchAlbum(album) {
-  var value = String(album || '').trim()
-  if (value === '' || value.length <= 48) return value
-  var compact = value
-    .replace(/\s*※.*$/u, '')
-    .replace(/\s*(歌|歌唱|アーティスト|Artist)\s*[:：]?\s*.+$/iu, '')
-    .trim()
-  return compact.slice(0, 48).trim()
-}
-
+/**
+ * The search box starts on the song title alone: providers search on one string, and
+ * "title - artist - album" buries the title in a query they do not split the same way.
+ * Artist/album/duration still go along as metadata, so ranking keeps using them.
+ */
 function lyricMatchSongQuery(target) {
-  return [lyricMatchTitle(target), target.artist, lyricMatchAlbum(target.album)]
-    .map(function (part) { return String(part || '').trim() })
-    .filter(Boolean)
-    .join(' - ')
+  return lyricMatchTitle(target)
 }
 
 function lyricMatchSourceLabel(entry) {
@@ -136,8 +128,8 @@ function LyricMatchDialog(props) {
     { id: 'qishui', label: 'Qishui Music' },
   ]
 
-  // Folia opens the same query it shows: title - artist - album, and searches
-  // without waiting for a click. Source availability comes from the Host.
+  // Opens on the same text it shows (the song title) and searches without waiting for a
+  // click. Source availability comes from the Host.
   useEffect(function () {
     setQuery(initialQueryRef.current)
     runSearch(initialQueryRef.current, 'netease')

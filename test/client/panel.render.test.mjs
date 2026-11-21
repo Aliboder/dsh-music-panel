@@ -281,6 +281,14 @@ const currentRow = queueRows.filter((row) => String(row.props.className).include
 const upcomingRows = queueRows.filter((row) => !String(row.props.className).includes('is-cur'))
 assert.equal(currentRow.length, 1, 'exactly one current row')
 assert.equal(textOf(nodesWithClass(currentRow[0], 'mpv3-queue-name')[0]).trim(), 'Beta')
+// The playing row's index is live bars, not a number: it says which row is sounding.
+const currentIdx = nodesWithClass(currentRow[0], 'mpv3-queue-idx')[0]
+const currentWave = nodesWithClass(currentIdx, 'mpv3-queue-wave')[0]
+assert.ok(currentWave, 'the playing row shows a wave instead of its number')
+const waveBars = (Array.isArray(currentWave.children) ? currentWave.children : []).flat()
+assert.equal(waveBars.length, 4, 'the wave has one bar per band')
+assert.equal(waveBars[0].type, 'i', 'each band is a bar element')
+assert.equal(textOf(currentIdx).trim(), '', 'no number is left behind the wave')
 assert.deepEqual(
   upcomingRows.map((row) => textOf(nodesWithClass(row, 'mpv3-queue-name')[0]).trim()),
   ['Gamma'],

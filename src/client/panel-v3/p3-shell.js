@@ -520,6 +520,55 @@ function playerLoopNext(loop) {
   return 'none'
 }
 
+var P3_QUEUE_BANDS = [0, 3, 8, 20, 48]
+
+/**
+ * The playing row's index turns into live bars, so the queue says which row is sounding
+ * even when the row is scrolled away from the transport. Bars fall back to a quiet static
+ * shape while paused; the animation only runs for the visible row.
+ */
+function P3QueueWave(props) {
+  var pair = useState([0.18, 0.3, 0.22, 0.14])
+  var levels = pair[0]
+  var setLevels = pair[1]
+  useEffect(function () {
+    if (props.playing !== true) {
+      setLevels([0.18, 0.3, 0.22, 0.14])
+      return undefined
+    }
+    var frame = 0
+    var last = 0
+    function tick(now) {
+      frame = requestAnimationFrame(tick)
+      if (now - last < 70) return
+      last = now
+      var data = player.getWave()
+      if (data === null || data.length === 0) return
+      var next = []
+      for (var band = 0; band < P3_QUEUE_BANDS.length - 1; band += 1) {
+        var start = P3_QUEUE_BANDS[band]
+        var end = Math.min(P3_QUEUE_BANDS[band + 1], data.length)
+        var sum = 0
+        for (var i = start; i < end; i += 1) sum += data[i]
+        var avg = end > start ? sum / (end - start) : 0
+        next.push(0.08 + Math.pow(Math.max(0, Math.min(1, (avg - 4) / 240)), 1.3) * 0.92)
+      }
+      setLevels(next)
+    }
+    frame = requestAnimationFrame(tick)
+    return function () {
+      cancelAnimationFrame(frame)
+    }
+  }, [props.playing])
+  return h(
+    'span',
+    { className: 'mpv3-queue-wave', 'aria-hidden': 'true' },
+    levels.map(function (level, index) {
+      return h('i', { key: index, style: { height: Math.round(3 + level * 9) + 'px' } })
+    }),
+  )
+}
+
 function P3Queue(props) {
   var snap = usePlayerSnapshot()
   var dragFrom = useRef(null)
@@ -579,6 +628,7 @@ function P3Queue(props) {
       tabIndex: 0,
       draggable: true,
       className: cx('mpv3-queue-row', isCurrent && 'is-cur'),
+      'aria-current': isCurrent ? 'true' : undefined,
       onClick: function () { selectQueue(index) },
       onKeyDown: function (event) {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -604,7 +654,7 @@ function P3Queue(props) {
       },
       onDragEnd: function () { dragFrom.current = null },
     },
-      h('span', { className: 'mpv3-queue-idx' }, isCurrent ? icon('play', 11) : String(position + 1)),
+      h('span', { className: 'mpv3-queue-idx' }, isCurrent ? h(P3QueueWave, { playing: snap.playing }) : String(position + 1)),
       h('span', { className: 'mpv3-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
       h('span', { className: 'mpv3-queue-main' }, h('span', { className: 'mpv3-queue-name' }, trackTitleOf(track)), h('span', { className: 'mpv3-queue-artist' }, trackArtistOf(track))),
       h('span', { className: 'mpv3-queue-time' }, fmtClock(track.durationSec || 0)),
