@@ -20,6 +20,9 @@ var libraryStore = createStore({
 })
 
 var libraryToken = 0
+// The in-flight load the control drainer shares with the panel: with the panel closed nothing
+// else would fetch the tracks a local `play` action searches.
+var libraryLoadPromise = null
 
 async function loadLibrary(refresh) {
   var token = (libraryToken += 1)
@@ -45,6 +48,21 @@ async function loadLibrary(refresh) {
 
 function tracksNow() {
   return libraryStore.get().tracks
+}
+
+/**
+ * The library, for a caller outside the panel (the control drainer). Concurrent callers share
+ * one request; a failed load is retried by the next caller.
+ */
+function ensureLibraryLoaded() {
+  if (libraryStore.get().phase === 'ready') return Promise.resolve()
+  if (libraryLoadPromise !== null) return libraryLoadPromise
+  libraryLoadPromise = loadLibrary(false).then(function () {
+    libraryLoadPromise = null
+  }, function () {
+    libraryLoadPromise = null
+  })
+  return libraryLoadPromise
 }
 
 function trackByPath(path) {

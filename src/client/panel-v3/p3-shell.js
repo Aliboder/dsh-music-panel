@@ -701,14 +701,6 @@ function P3Shell() {
     }
   }, [online.providers, browse.source, browse.tab])
 
-  useEffect(function () {
-    var timer = window.setInterval(function () {
-      getJson(API + 'control/pending')
-        .then(function (body) { (body.actions || []).forEach(applyControlAction) })
-        .catch(function () {})
-    }, 2000)
-    return function () { window.clearInterval(timer) }
-  }, [])
 
   useEffect(function () {
     var deadline = Number(prefs.sleepDeadline) || 0

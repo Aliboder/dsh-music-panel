@@ -55,6 +55,7 @@
     "src/client/components/common/ui.js",
     "src/client/styles/wave-color.js",
     "src/client/services/player/player.js",
+    "src/client/services/player/control-drainer.js",
     "src/client/services/player/duration.js",
     "src/client/services/player/audio-focus.js",
     "src/client/components/library/library.js",

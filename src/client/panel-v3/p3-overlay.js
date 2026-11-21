@@ -55,7 +55,11 @@ function AudioHost() {
   return h('audio', { ref: ref, className: 'mp-audio-host', preload: 'metadata', 'aria-hidden': 'true' })
 }
 
-function applyControlAction(action) {
+/**
+ * Apply one queued control action. Awaited by the drainer so a batch keeps its order;
+ * the panel is not part of this path any more, so the dependencies are loaded here.
+ */
+async function applyControlAction(action) {
   if (!action || typeof action.action !== 'string') return
   if (action.action === 'pause') {
     player.pause()
@@ -76,6 +80,9 @@ function applyControlAction(action) {
   // silently degrades to a local library search (wrong track, or none at all).
   var source = isOnlineSource(action.source) ? action.source : 'local'
   if (source === 'local') {
+    // A local play searches the scanned library; with the panel closed nothing else has
+    // loaded it, so the drainer asks for it itself.
+    if (libraryStore.get().tracks.length === 0) await ensureLibraryLoaded()
     var tracks = libraryStore.get().tracks
     var needle = query.toLowerCase()
     var hit = null
@@ -89,14 +96,13 @@ function applyControlAction(action) {
     if (hit !== null) player.playList([hit], 0)
     return
   }
-  getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&q=' + encodeURIComponent(query))
-    .then(function (body) {
-      var results = Array.isArray(body.results) ? body.results : []
-      if (results.length > 0) playOnlineResults(results, 0)
-    })
-    .catch(function () {
-      // The model action is best effort.
-    })
+  try {
+    var body = await getJson(API + 'online/search?provider=' + encodeURIComponent(source) + '&q=' + encodeURIComponent(query))
+    var results = Array.isArray(body.results) ? body.results : []
+    if (results.length > 0) playOnlineResults(results, 0)
+  } catch (error) {
+    // The model action is best effort.
+  }
 }
 
 function OverlayRoot() {

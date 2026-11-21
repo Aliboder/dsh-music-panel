@@ -314,6 +314,11 @@ function apply(ctx) {
       player.suspend()
     }
   })
+  // `music_control` is drained here, not by the panel: folding the panel (or never opening it)
+  // must not stop the model from controlling playback.
+  ctx.effect(function () {
+    return startControlDrainer()
+  })
 
   ctx.effect(function () {
     function onVisibility() {

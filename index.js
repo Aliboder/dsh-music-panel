@@ -164,7 +164,7 @@ export function apply(ctx, rawConfig) {
         {
           name: 'music_control',
           description:
-            'Control the music player: play a song by title/artist (local library or an online provider), pause, next, previous. Actions are queued and applied by the open music panel within about two seconds.',
+            'Control the music player: play a song by title/artist (local library or an online provider), pause, next, previous. Actions are queued and applied by the player within about two seconds; the music panel does not need to be open.',
           parameters: {
             type: 'object',
             properties: {
