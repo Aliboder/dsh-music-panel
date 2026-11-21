@@ -84,7 +84,6 @@
     "src/client/components/ui/now-playing/capsule.js",
     "src/client/components/ui/now-playing/editor.js",
     "src/client/components/ui/now-playing/index.js",
-    "src/client/components/ui/queue.js",
     "src/client/components/ui/settings.js",
     "src/client/components/ui/dialogs.js",
     "src/client/components/ui/details.js",

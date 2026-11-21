@@ -11,7 +11,6 @@ function NpSecondaryActions(props) {
   var setSleep = props.setSleep
   var snap = props.snap
   var track = props.track
-  var queueOpen = props.queueOpen
   var onToggleQueue = props.onToggleQueue
   var setSettingsOpen = props.setSettingsOpen
   var setEditorOpen = props.setEditorOpen
@@ -80,21 +79,13 @@ function NpSecondaryActions(props) {
           h(
             'div',
             { className: 'mp-pb-queue-wrap' },
+            // One queue surface: the owner closes this page and shows the panel queue.
             h(IconButton, {
               icon: 'playlist',
               size: 22,
-              active: props.queueOpen,
               title: t('page.queue'),
               onClick: props.onToggleQueue,
             }),
-            props.queueOpen
-              ? h(QueuePopover, {
-                  open: true,
-                  anchored: true,
-                  snap: snap,
-                  onClose: props.onToggleQueue,
-                })
-              : null,
           ),
           h(IconButton, {
             icon: 'more',

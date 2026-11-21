@@ -3,7 +3,7 @@
  *
  * Folia 的胶囊是页面自己的 transport（`FloatingPlayerControls`）；这个插件在
  * `is-visualizer` 布局下会隐藏左侧栏，所以这里补一份页面级 transport。进度用
- * 全局 `SeekBar`，队列沿用 `QueuePopover`，状态全部来自现有 player / props。
+ * 全局 `SeekBar`，队列按钮交给面板里唯一那份队列，状态全部来自现有 player / props。
  */
 function NowPlayingCapsule(props) {
   var snap = usePlayerSnapshot()
@@ -95,21 +95,13 @@ function NowPlayingCapsule(props) {
         h(
           'div',
           { className: 'mp-pb-queue-wrap mp-cap-queue' },
+          // The panel queue is the only queue surface; the owner closes this page first.
           h(IconButton, {
             icon: 'playlist',
             size: 20,
-            active: props.queueOpen,
             title: t('page.queue'),
             onClick: props.onToggleQueue,
           }),
-          props.queueOpen
-            ? h(QueuePopover, {
-                open: true,
-                anchored: true,
-                snap: snap,
-                onClose: props.onToggleQueue,
-              })
-            : null,
         ),
       ),
     ),

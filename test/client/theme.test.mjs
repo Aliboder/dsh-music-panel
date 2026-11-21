@@ -26,7 +26,6 @@ const uiFiles = [
   'now-playing/capsule.js',
   'now-playing/editor.js',
   'now-playing/index.js',
-  'queue.js',
   'settings.js',
   'dialogs.js',
   'composer.js',
@@ -56,7 +55,7 @@ assert.doesNotMatch(joined, /fontSize:\s*'(?:10\.5|11\.5|12\.5)px'/, 'inline fon
 // container that shows one must clamp it; otherwise the artwork paints at its
 // natural size and blows the layout open. The artist/album cards shipped
 // exactly that bug, so the containers are listed explicitly.
-for (const selector of ['.mp-srow-cover', '.mp-q-cover', '.mp-pb-cover']) {
+for (const selector of ['.mp-srow-cover', '.mp-pb-cover']) {
   const rule = new RegExp(`\\${selector} img\\{[^}]*width:100%;height:100%;object-fit:cover`)
   assert.match(theme, rule, `${selector} must clamp its Cover image to the container`)
 }

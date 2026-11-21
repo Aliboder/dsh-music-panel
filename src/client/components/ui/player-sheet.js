@@ -33,12 +33,7 @@ var MP_COVER_GAP = 14
 var MP_MIN_COVER = 96
 var MP_TOP_MARGIN = 56
 var MP_BOTTOM_GAP = 24
-// The queue tab scrolls after this much content even in a tall window: the card must not
-// climb all the way to the top.
-var MP_QUEUE_BODY_MAX = 420
-
-function clampCardBodyHeight(measured, isQueue) {
-  if (isQueue === true) measured = Math.min(measured, MP_QUEUE_BODY_MAX)
+function clampCardBodyHeight(measured) {
   var viewport = typeof window === 'undefined' ? 800 : window.innerHeight || 800
   // Bottom-anchored (like Folia): the surface grows upward, so the room is what is left between the bottom gap and the top margin.
   var room = viewport - MP_TOP_MARGIN - MP_BOTTOM_GAP - MP_PADDING * 2 - MP_FOLDED - MP_DOCK_HEIGHT - MP_DOCK_GAP
@@ -120,7 +115,7 @@ function PlayerSheetInner(props) {
   var isOnlineTrack = track !== null && Boolean(track.onlineProvider)
   var isNavidromeTrack = isOnlineTrack && track.onlineProvider === 'navidrome'
   var sourceTabKey = isNavidromeTrack ? 'sheet.navidrome' : isOnlineTrack ? 'sheet.lyrics' : 'sheet.local'
-  var TABS = ['sheet.cover', sourceTabKey, 'sheet.controls', 'sheet.queue', 'sheet.quality']
+  var TABS = ['sheet.cover', sourceTabKey, 'sheet.controls', 'sheet.quality']
   var isCover = index === 0
   var useFramerMark = framer !== null
 
@@ -146,7 +141,7 @@ function PlayerSheetInner(props) {
       if (props.open !== true) return
       var el = contentRef.current
       if (el === null) return
-      setBodyH(clampCardBodyHeight(el.scrollHeight, index === 3))
+      setBodyH(clampCardBodyHeight(el.scrollHeight))
     },
     [props.open, index],
   )
@@ -157,7 +152,7 @@ function PlayerSheetInner(props) {
       var el = contentRef.current
       if (el === null || typeof ResizeObserver !== 'function') return undefined
       var observer = new ResizeObserver(function () {
-        setBodyH(clampCardBodyHeight(el.scrollHeight, index === 3))
+        setBodyH(clampCardBodyHeight(el.scrollHeight))
       })
       observer.observe(el)
       return function () {
@@ -1536,26 +1531,7 @@ function PlayerSheetInner(props) {
         : null,
     )
   }
-  var queueCount = snap.queue.length || 0
-  var bodies = [null, cardLocalPane(), cardControlsPane(), h(
-    'div',
-    { key: 'queue-pane', className: 'mp-queue mp-queue-card' },
-    h(
-      'div',
-      { className: 'mp-q-head' },
-      h(
-        'div',
-        null,
-        h('div', { className: 'mp-q-title' }, t('page.queue')),
-        h(
-          'div',
-          { className: 'mp-q-sub' },
-          queueCount + ' · ' + (snap.order === 'random' ? t('page.shuffle') : t('page.modeSequence')),
-        ),
-      ),
-    ),
-    h(QueueList, { snap: snap }),
-  ), cardQualityPane()]
+  var bodies = [null, cardLocalPane(), cardControlsPane(), cardQualityPane()]
 
   var bodyHeight = isCover ? 0 : MP_BODY_GAP + MP_BODY_LINE + MP_BODY_UNDER + (bodyH > 0 ? bodyH : 0)
 

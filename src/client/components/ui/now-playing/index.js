@@ -160,7 +160,7 @@ function NowPlaying(props) {
   var chromeVisible = chromePair[0]
   var setChromeVisible = chromePair[1]
   var chromePinned =
-    sheetOpen || editorOpen || settingsOpen || extraPanel !== '' || props.queueOpen === true
+    sheetOpen || editorOpen || settingsOpen || extraPanel !== ''
   useEffect(
     function () {
       if (props.open !== true) return undefined
@@ -1134,7 +1134,6 @@ function NowPlaying(props) {
           setSleep: setSleep,
           snap: snap,
           track: track,
-          queueOpen: props.queueOpen,
           onToggleQueue: props.onToggleQueue,
           setSettingsOpen: setSettingsOpen,
           setEditorOpen: setEditorOpen,
@@ -1164,7 +1163,7 @@ function NowPlaying(props) {
         { className: 'mp-np-right' },
         lyricStage,
       ),
-      h(NowPlayingCapsule, { queueOpen: props.queueOpen, onToggleQueue: props.onToggleQueue }),
+      h(NowPlayingCapsule, { onToggleQueue: props.onToggleQueue }),
       h(
         'div',
         { className: cx('mp-np-handle', sheetOpen && 'is-on') },

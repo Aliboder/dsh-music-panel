@@ -1,10 +1,7 @@
 /**
- * composer seats: the inline lyric line and the compact transport next to the
- * chat input. Both are optional and disappear when nothing is playing.
+ * composer seats: the inline lyric line and the single queue button next to the chat
+ * input. Both are optional and disappear when nothing is playing.
  */
-
-var useComposerLayoutEffect =
-  typeof React !== 'undefined' && typeof React.useLayoutEffect === 'function' ? React.useLayoutEffect : useEffect
 
 function firstComposerTranslation(value) {
   var parts = String(value || '').split(/\r?\n/)
@@ -148,9 +145,8 @@ function ComposerLyrics() {
 function ComposerCluster() {
   var prefs = usePrefs()
   var snap = usePlayerSnapshot()
-  var ui = useStore(uiStore)
+  var queueOpen = useStore(p3QueueStore).open
   var track = snap.queue[snap.index] || null
-  var queueOpen = ui.queueOpen === true && ui.queueSource === 'composer'
   if (prefs.composerListButton === false || track === null) return null
   return h(
     'div',
@@ -163,7 +159,7 @@ function ComposerCluster() {
         'data-queue-toggle': 'true',
         title: t('page.queue'),
         onClick: function () {
-          setUi({ queueOpen: !queueOpen, queueSource: 'composer' })
+          p3OpenQueue()
         },
       },
       icon('playlist', 14),
@@ -172,65 +168,3 @@ function ComposerCluster() {
   )
 }
 
-function GlobalQueueHost() {
-  var state = useStore(uiStore)
-  var open = state.queueOpen === true && state.queueSource === 'composer'
-  var snap = usePlayerSnapshot()
-  var posPair = useState(null)
-  var pos = posPair[0]
-  var setPos = posPair[1]
-  useEffect(
-    function () {
-      function onKey(event) {
-        if (event.key === 'Escape' && uiStore.get().queueOpen) {
-          setUi({ queueOpen: false })
-        }
-      }
-      window.addEventListener('keydown', onKey)
-      return function () {
-        window.removeEventListener('keydown', onKey)
-      }
-    },
-    [],
-  )
-  useComposerLayoutEffect(
-    function () {
-      if (open !== true) {
-        setPos(null)
-        return undefined
-      }
-      function place() {
-        var button = document.querySelector('.mp-composer-cluster [data-queue-toggle]')
-        if (!button) {
-          setPos({ left: 'auto', right: '24px', bottom: '96px', width: 'min(340px, calc(100vw - 16px))' })
-          return
-        }
-        var rect = button.getBoundingClientRect()
-        var width = Math.min(340, window.innerWidth - 16)
-        var left = Math.max(8, Math.min(window.innerWidth - width - 8, rect.right - width))
-        var below = rect.top < window.innerHeight * 0.5
-        setPos(
-          below
-            ? { left: left + 'px', right: 'auto', top: rect.bottom + 10 + 'px', bottom: 'auto', width: width + 'px' }
-            : { left: left + 'px', right: 'auto', top: 'auto', bottom: window.innerHeight - rect.top + 10 + 'px', width: width + 'px' },
-        )
-      }
-      place()
-      window.addEventListener('resize', place)
-      window.addEventListener('scroll', place, true)
-      return function () {
-        window.removeEventListener('resize', place)
-        window.removeEventListener('scroll', place, true)
-      }
-    },
-    [open],
-  )
-  return h(QueuePopover, {
-    open: open,
-    snap: snap,
-    style: pos || { visibility: 'hidden' },
-    onClose: function () {
-      setUi({ queueOpen: false })
-    },
-  })
-}

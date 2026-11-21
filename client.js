@@ -155491,8 +155491,6 @@ window.__ModuleLoader__.load({
         {
           filter: null,
           query: '',
-          queueOpen: false,
-          queueSource: '',
           npOpen: false,
         },
         readUiState(),
@@ -161247,28 +161245,6 @@ window.__ModuleLoader__.load({
       '.mp-playerbar.is-empty .mp-pb-cover{box-shadow:inset 0 0 0 1px var(--dsw-alias-border-l1,rgba(255,255,255,.06))}',
       '.mp-playerbar.is-empty .mp-pb-play{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));color:var(--dsw-alias-label-tertiary,#8a8a93);box-shadow:none}',
 
-      // ── queue (side panel and floating variant) ─────────────────────────────
-      '.mp-queue{display:none;flex-direction:column;min-height:0;border-left:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-1,#15151a)}',
-      '.mp-queue-card{display:flex;flex-direction:column;min-height:0;border-left:0;background:transparent}',
-      '.mp-queue-card .mp-q-list{flex:0 0 auto;overflow:visible;padding:0 0 6px}',
-      '.mp-q-head{display:flex;align-items:center;gap:8px;padding:14px 12px 8px;flex:none}',
-      '.mp-q-title{font-size:13px;font-weight:650}',
-      '.mp-q-sub{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mp-q-list{flex:1;min-height:0;overflow-y:auto;padding:0 6px 14px}',
-      '.mp-q-row{display:flex;align-items:center;gap:10px;height:52px;padding:0 9px;border-radius:8px;cursor:grab;font-size:13px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
-      '.mp-q-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.055))}',
-      '.mp-q-row.is-cur{background:color-mix(in srgb, var(--dsw-alias-state-business-primary,#4176E6) 12%, transparent)}',
-      '.mp-q-row.is-cur .mp-q-name{color:var(--dsw-alias-state-business-primary,#7AAAFF)}',
-      '.mp-q-idx{width:18px;font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:center;font-variant-numeric:tabular-nums;flex:none}',
-      '.mp-q-wave{display:inline-flex;align-items:flex-end;justify-content:center;gap:1px;width:14px;height:14px;vertical-align:middle}',
-      '.mp-q-wave i{width:2px;min-height:2px;border-radius:1px;background:linear-gradient(180deg,#9cbcff,#4d7dff);transition:height .07s linear}',
-      '.mp-q-cover{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));overflow:hidden}',
-      '.mp-q-cover img{width:100%;height:100%;object-fit:cover}',
-      '.mp-q-main{min-width:0;flex:1}',
-      '.mp-q-name{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-q-artist{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.mp-queue-pop{position:fixed;right:24px;bottom:96px;z-index:var(--mp-z-page-raised,70);width:340px;max-height:56vh;display:flex;flex-direction:column;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:16px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:0 16px 48px rgba(0,0,0,.5);overflow:hidden}',
-      '.mp-queue-pop .mp-q-list{max-height:40vh}',
 
       // ── now playing (reference layout) ──────────────────────────────────────────
       '.mp-np{--mp-cover:min(31vw,48vh,520px);--mp-pane-gap:5vw;position:absolute;inset:0;z-index:var(--mp-z-page-raised,70);display:flex;flex-direction:column;overflow:hidden;background:#141417;color:#f4f4f5;transform:translateY(100%);visibility:hidden;transition:transform .32s ease,visibility .32s;pointer-events:none;user-select:none}',
@@ -162153,8 +162129,6 @@ window.__ModuleLoader__.load({
       '.mp-pb-seek-full .mp-seek::before{background:color-mix(in srgb,var(--dsw-alias-label-primary,#f4f4f5) 13%,transparent)}',
       '.mp-pb-time{width:auto;min-width:0;margin-right:4px;white-space:nowrap}',
       '.mp-pb-queue-wrap{position:relative;display:flex;align-items:center}',
-      '.mp-queue-pop.is-anchored{position:absolute;left:auto;right:0;bottom:calc(100% + 10px);width:340px;max-height:50vh;z-index:var(--mp-z-menu,80)}',
-      '.mp-queue-pop.is-anchored .mp-q-list{max-height:calc(50vh - 56px)}',
       '@media (max-height:860px){.mp-np-reflect-wave{height:30px}.mp-np{--mp-cover:min(31vw,40vh,440px)}.mp-np-body{padding-top:64px}.mp-np-meta{margin-bottom:20px}.mp-np-title{font-size:24px}.mp-np-artist{font-size:13px;margin-top:4px}.mp-np-cover-stage{margin-bottom:12px}.mp-np-quality{margin-bottom:12px;font-size:12px}.mp-np-transport{margin-top:16px;gap:40px}.mp-np-left{padding-bottom:46px}.mp-np-right{padding-bottom:46px}.mp-np-lyrics{padding-top:28px}}',
       '@media (max-width:1100px){.mp-np-body{padding:64px 2.5vw 0 6.5vw}.mp-np-title{font-size:24px}}',
       '@media (min-width:981px){.mp-np-body{justify-content:flex-start;padding-left:0;padding-right:0;--mp-split-w:24px;--mp-gap-w:var(--mp-pane-gap-w,60px);--mp-lyric-fit:min(var(--mp-lyric-w,560px),calc((100% - 0.5*var(--mp-cover,480px) - var(--mp-gap-w) - 2*var(--mp-split-w))/1.5))}.mp-np-split{display:flex;flex:0 0 var(--mp-split-w)}.mp-np-split[data-side="left"]{flex:0 0 var(--mp-gap-w)}.mp-np-left{flex:none;margin-left:calc((100% - 1.5*var(--mp-cover,480px) - var(--mp-gap-w) - 0.5*var(--mp-lyric-fit))/2)}.mp-np-right{flex:none;width:var(--mp-lyric-fit);max-width:none;min-width:0;margin-left:0}}',
@@ -165564,7 +165538,6 @@ window.__ModuleLoader__.load({
       var setSleep = props.setSleep
       var snap = props.snap
       var track = props.track
-      var queueOpen = props.queueOpen
       var onToggleQueue = props.onToggleQueue
       var setSettingsOpen = props.setSettingsOpen
       var setEditorOpen = props.setEditorOpen
@@ -165633,21 +165606,13 @@ window.__ModuleLoader__.load({
               h(
                 'div',
                 { className: 'mp-pb-queue-wrap' },
+                // One queue surface: the owner closes this page and shows the panel queue.
                 h(IconButton, {
                   icon: 'playlist',
                   size: 22,
-                  active: props.queueOpen,
                   title: t('page.queue'),
                   onClick: props.onToggleQueue,
                 }),
-                props.queueOpen
-                  ? h(QueuePopover, {
-                      open: true,
-                      anchored: true,
-                      snap: snap,
-                      onClose: props.onToggleQueue,
-                    })
-                  : null,
               ),
               h(IconButton, {
                 icon: 'more',
@@ -165667,7 +165632,7 @@ window.__ModuleLoader__.load({
      *
      * Folia 的胶囊是页面自己的 transport（`FloatingPlayerControls`）；这个插件在
      * `is-visualizer` 布局下会隐藏左侧栏，所以这里补一份页面级 transport。进度用
-     * 全局 `SeekBar`，队列沿用 `QueuePopover`，状态全部来自现有 player / props。
+     * 全局 `SeekBar`，队列按钮交给面板里唯一那份队列，状态全部来自现有 player / props。
      */
     function NowPlayingCapsule(props) {
       var snap = usePlayerSnapshot()
@@ -165759,21 +165724,13 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { className: 'mp-pb-queue-wrap mp-cap-queue' },
+              // The panel queue is the only queue surface; the owner closes this page first.
               h(IconButton, {
                 icon: 'playlist',
                 size: 20,
-                active: props.queueOpen,
                 title: t('page.queue'),
                 onClick: props.onToggleQueue,
               }),
-              props.queueOpen
-                ? h(QueuePopover, {
-                    open: true,
-                    anchored: true,
-                    snap: snap,
-                    onClose: props.onToggleQueue,
-                  })
-                : null,
             ),
           ),
         ),
@@ -166281,7 +166238,7 @@ window.__ModuleLoader__.load({
       var chromeVisible = chromePair[0]
       var setChromeVisible = chromePair[1]
       var chromePinned =
-        sheetOpen || editorOpen || settingsOpen || extraPanel !== '' || props.queueOpen === true
+        sheetOpen || editorOpen || settingsOpen || extraPanel !== ''
       useEffect(
         function () {
           if (props.open !== true) return undefined
@@ -167255,7 +167212,6 @@ window.__ModuleLoader__.load({
               setSleep: setSleep,
               snap: snap,
               track: track,
-              queueOpen: props.queueOpen,
               onToggleQueue: props.onToggleQueue,
               setSettingsOpen: setSettingsOpen,
               setEditorOpen: setEditorOpen,
@@ -167285,7 +167241,7 @@ window.__ModuleLoader__.load({
             { className: 'mp-np-right' },
             lyricStage,
           ),
-          h(NowPlayingCapsule, { queueOpen: props.queueOpen, onToggleQueue: props.onToggleQueue }),
+          h(NowPlayingCapsule, { onToggleQueue: props.onToggleQueue }),
           h(
             'div',
             { className: cx('mp-np-handle', sheetOpen && 'is-on') },
@@ -167519,235 +167475,6 @@ window.__ModuleLoader__.load({
             })
           : null,
 
-      )
-    }
-
-    // ── src/client/components/ui/queue.js
-    /**
-     * queue: side panel inside the workspace, plus the floating variant used from
-     * the chat composer. Both share QueueList so there is one row implementation.
-     */
-
-    var QUEUE_BANDS = [0, 3, 8, 20, 48]
-
-    function QueueWave(props) {
-      var pair = useState([0.16, 0.28, 0.2, 0.12])
-      var levels = pair[0]
-      var setLevels = pair[1]
-      useEffect(
-        function () {
-          if (props.playing !== true) return undefined
-          var frame = 0
-          var last = 0
-          function tick(now) {
-            frame = requestAnimationFrame(tick)
-            if (now - last < 70) return
-            last = now
-            var data = player.getWave()
-            if (data === null || data.length === 0) return
-            var next = []
-            for (var band = 0; band < QUEUE_BANDS.length - 1; band += 1) {
-              var start = QUEUE_BANDS[band]
-              var end = Math.min(QUEUE_BANDS[band + 1], data.length)
-              var sum = 0
-              for (var i = start; i < end; i += 1) sum += data[i]
-              var avg = end > start ? sum / (end - start) : 0
-              var normalized = Math.max(0, Math.min(1, (avg - 4) / 240))
-              next.push(0.08 + Math.pow(normalized, 1.3) * 0.92)
-            }
-            setLevels(next)
-          }
-          frame = requestAnimationFrame(tick)
-          return function () {
-            cancelAnimationFrame(frame)
-          }
-        },
-        [props.playing],
-      )
-      return h(
-        'span',
-        { className: 'mp-q-wave', 'aria-hidden': 'true' },
-        levels.map(function (level, index) {
-          return h('i', {
-            key: index,
-            style: { height: Math.round(3 + level * 11) + 'px' },
-          })
-        }),
-      )
-    }
-
-    function QueueList(props) {
-      var snap = props.snap
-      var listRef = useRef(null)
-      var dragFromRef = useRef(null)
-      useEffect(
-        function () {
-          var box = listRef.current
-          if (!box || box.clientHeight === 0) return
-          var row = box.querySelector('.mp-q-row.is-cur')
-          if (!row) return
-          // Only move the list when the active row is outside the viewport. The
-          // queue used to centre it on every play/pause, which made clicking a
-          // visible row jump the entire list.
-          var rowRect = row.getBoundingClientRect()
-          var boxRect = box.getBoundingClientRect()
-          if (rowRect.top < boxRect.top + 4) {
-            box.scrollTop -= boxRect.top - rowRect.top + 8
-          } else if (rowRect.bottom > boxRect.bottom - 4) {
-            box.scrollTop += rowRect.bottom - boxRect.bottom + 8
-          }
-        },
-        [snap && snap.queue, snap && snap.index, snap && snap.order],
-      )
-      if (!snap || !snap.queue || snap.queue.length === 0) {
-        return h(
-          'div',
-          { className: 'mp-empty', style: { padding: '36px 16px' } },
-          icon('list', 24),
-          h('strong', null, t('page.queueEmpty')),
-        )
-      }
-      var order = snap.order === 'random' ? player.getPlayOrder() : snap.queue.map(function (_, index) { return index })
-      if (!Array.isArray(order) || order.length !== snap.queue.length) {
-        order = snap.queue.map(function (_, index) { return index })
-      }
-      return h(
-        'div',
-        { className: 'mp-q-list', ref: listRef },
-        order.map(function (queueIndex, position) {
-          var track = snap.queue[queueIndex]
-          if (!track) return null
-          var current = queueIndex === snap.index
-          return h(
-            'div',
-            {
-              key: track.path + ':' + queueIndex,
-              className: cx('mp-q-row', current && 'is-cur'),
-              draggable: true,
-              onDragStart: function (event) {
-                dragFromRef.current = position
-                if (event.dataTransfer) {
-                  event.dataTransfer.effectAllowed = 'move'
-                  event.dataTransfer.setData('text/plain', String(position))
-                }
-              },
-              onDragOver: function (event) {
-                if (dragFromRef.current === null) return
-                event.preventDefault()
-                if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
-              },
-              onDrop: function (event) {
-                event.preventDefault()
-                var from = dragFromRef.current
-                dragFromRef.current = null
-                if (from === null || from === position) return
-                var indices = order.slice()
-                var moved = indices.splice(from, 1)[0]
-                indices.splice(position, 0, moved)
-                player.reorderQueue(indices)
-              },
-              onDragEnd: function () {
-                dragFromRef.current = null
-              },
-              onClick: function () {
-                if (dragFromRef.current === null) player.select(snap.queue, queueIndex)
-              },
-              title: trackTitleOf(track),
-            },
-            h(
-              'div',
-              { className: 'mp-q-idx' },
-              current
-                ? snap.playing
-                  ? h(QueueWave, { playing: true })
-                  : icon('play', 12)
-                : String(position + 1),
-            ),
-            h('div', { className: 'mp-q-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 14 })),
-            h(
-              'div',
-              { className: 'mp-q-main' },
-              h('div', { className: 'mp-q-name' }, trackTitleOf(track)),
-              h('div', { className: 'mp-q-artist' }, trackArtistOf(track)),
-            ),
-            h('div', { className: 'mp-q-artist' }, fmtTime(track.durationSec)),
-          )
-        }),
-      )
-    }
-
-    function QueuePanel(props) {
-      return h(
-        'aside',
-        { className: 'mp-queue', 'aria-label': t('page.queue') },
-        h(
-          'div',
-          { className: 'mp-q-head' },
-          h(
-            'div',
-            null,
-            h('div', { className: 'mp-q-title' }, t('page.queue')),
-            h(
-              'div',
-              { className: 'mp-q-sub' },
-              (props.snap.queue.length || 0) + ' · ' + (props.snap.order === 'random' ? t('page.shuffle') : t('page.modeSequence')),
-            ),
-          ),
-          h('div', { className: 'mp-spacer', style: { marginLeft: 'auto' } }),
-          h(IconButton, {
-            icon: 'target',
-            size: 15,
-            title: t('page.locateCurrent'),
-            onClick: props.onLocate,
-          }),
-          h(IconButton, {
-            icon: 'x',
-            size: 15,
-            title: t('v2.close'),
-            onClick: props.onClose,
-          }),
-        ),
-        h(QueueList, { snap: props.snap }),
-      )
-    }
-
-    function QueuePopover(props) {
-      useEffect(
-        function () {
-          if (props.open !== true) return undefined
-          function onDown(event) {
-            var target = event.target
-            if (target && target.closest) {
-              if (target.closest('.mp-queue-pop')) return
-              if (target.closest('.mp-pb-queue-wrap')) return
-              if (target.closest('.mp-composer-cluster')) return
-            }
-            props.onClose()
-          }
-          document.addEventListener('pointerdown', onDown, true)
-          return function () {
-            document.removeEventListener('pointerdown', onDown, true)
-          }
-        },
-        [props.open, props.onClose],
-      )
-      if (props.open !== true) return null
-      return h(
-        'div',
-        {
-          className: cx('mp-queue-pop', props.anchored === true && 'is-anchored'),
-          role: 'dialog',
-          'aria-label': t('page.queue'),
-          style: props.style,
-        },
-        h(
-          'div',
-          { className: 'mp-q-head' },
-          h('div', { className: 'mp-q-title' }, t('page.queue')),
-          h('div', { className: 'mp-spacer', style: { marginLeft: 'auto' } }),
-          h(IconButton, { icon: 'x', size: 14, title: t('v2.close'), onClick: props.onClose }),
-        ),
-        h(QueueList, { snap: props.snap }),
       )
     }
 
@@ -168053,9 +167780,6 @@ window.__ModuleLoader__.load({
             h(Switch, {
               value: prefs.composerListButton !== false,
               onChange: function (value) {
-                // The queue popover is anchored to this button; close it together with the
-                // button so the popover cannot survive without an anchor.
-                if (value !== true) setUi({ queueOpen: false })
                 patchPrefs({ composerListButton: value })
               },
             }),
@@ -174198,6 +173922,26 @@ window.__ModuleLoader__.load({
      * panel-v3 shell: top bar, view bar, content, player bar, queue and runtime.
      */
 
+    /**
+     * One queue panel. Its open state lives here so every entry point asks for the same
+     * surface: in-panel buttons toggle it, and from the chat the panel is brought up first
+     * because `.mpv3-root` is unmounted while the host keeps the panel hidden.
+     */
+    var p3QueueStore = createStore({ open: false })
+
+    function p3SetQueueOpen(open) {
+      p3QueueStore.set({ open: open === true })
+    }
+
+    /** Open the queue from anywhere, bringing the panel up when it is not mounted. */
+    function p3OpenQueue() {
+      p3SetQueueOpen(true)
+      if (typeof document === 'undefined') return
+      if (document.querySelector('.mpv3-root') !== null) return
+      var row = document.querySelector('[data-music-panel-row]')
+      if (row !== null && typeof row.click === 'function') row.click()
+    }
+
     function p3AccountPictureSrc(url) {
       var text = String(url || '')
       if (text === '') return ''
@@ -174719,8 +174463,8 @@ window.__ModuleLoader__.load({
 
       var order = snap.order === 'random' ? player.getPlayOrder() : snap.queue.map(function (_, index) { return index })
       if (!Array.isArray(order) || order.length !== snap.queue.length) order = snap.queue.map(function (_, index) { return index })
+      // -1 means nothing is current: the list then starts at the head instead of skipping it.
       var currentPosition = order.indexOf(snap.index)
-      if (currentPosition < 0) currentPosition = 0
 
       function selectQueue(index) {
         if (dragFrom.current !== null) return
@@ -174809,8 +174553,8 @@ window.__ModuleLoader__.load({
           current ? h('div', { className: 'mpv3-queue-section' }, t('p3.nowPlaying')) : null,
           current ? row(current, snap.index, currentPosition, true) : null,
           h('div', { className: 'mpv3-queue-section' }, t('p3.nextUp')),
-          order.map(function (index, position) {
-            if (index === snap.index) return null
+          order.slice(currentPosition + 1).map(function (index, offset) {
+            var position = currentPosition + 1 + offset
             var track = snap.queue[index]
             if (!track) return null
             return row(track, index, position, false)
@@ -174849,9 +174593,11 @@ window.__ModuleLoader__.load({
       var online = useStore(onlineStore)
       var prefs = usePrefs()
       var snap = usePlayerSnapshot()
-      var [queueOpen, setQueueOpen] = useState(false)
+      var queueOpen = useStore(p3QueueStore).open
+      function setQueueOpen(open) {
+        p3SetQueueOpen(open)
+      }
       var [npOpen, setNpOpen] = useState(false)
-      var [npQueueOpen, setNpQueueOpen] = useState(false)
       var [guideOpen, setGuideOpen] = useState(startupGuideOpen)
       var [wide, setWide] = useState(typeof window !== 'undefined' ? window.innerWidth : 1400)
 
@@ -174859,6 +174605,13 @@ window.__ModuleLoader__.load({
         function measure() { setWide(window.innerWidth) }
         window.addEventListener('resize', measure)
         return function () { window.removeEventListener('resize', measure) }
+      }, [])
+
+      // Leaving the panel drops its queue: reopening it must not resurrect a stale one.
+      useEffect(function () {
+        return function () {
+          p3SetQueueOpen(false)
+        }
       }, [])
 
       useEffect(function () {
@@ -174980,12 +174733,13 @@ window.__ModuleLoader__.load({
         h(NowPlaying, {
           open: npOpen,
           favoriteSet: p3FavoriteSet(library.favorites),
-          onClose: function () { setNpOpen(false); setNpQueueOpen(false) },
-          queueOpen: npQueueOpen,
-          onToggleQueue: function () { setNpQueueOpen(!npQueueOpen) },
+          onClose: function () { setNpOpen(false) },
+          // The player page covers the panel; its queue control returns to the one panel
+          // queue instead of opening a second list over the page.
+          onToggleQueue: function () { setNpOpen(false); p3OpenQueue() },
           onToggleFavorite: function (track) { likeStateOf(track, p3FavoriteSet(library.favorites)).onLike() },
           onLocate: function () { p3LocateCurrent(snap) },
-          onHome: function () { setNpOpen(false); setNpQueueOpen(false); p3SelectBrowseTab('songs') },
+          onHome: function () { setNpOpen(false); p3SelectBrowseTab('songs') },
           onOpenSettings: function () { pushLayer('settings') },
         }),
         h(OverlayRoot),
@@ -175031,12 +174785,7 @@ window.__ModuleLoader__.load({
     var MP_MIN_COVER = 96
     var MP_TOP_MARGIN = 56
     var MP_BOTTOM_GAP = 24
-    // The queue tab scrolls after this much content even in a tall window: the card must not
-    // climb all the way to the top.
-    var MP_QUEUE_BODY_MAX = 420
-
-    function clampCardBodyHeight(measured, isQueue) {
-      if (isQueue === true) measured = Math.min(measured, MP_QUEUE_BODY_MAX)
+    function clampCardBodyHeight(measured) {
       var viewport = typeof window === 'undefined' ? 800 : window.innerHeight || 800
       // Bottom-anchored (like Folia): the surface grows upward, so the room is what is left between the bottom gap and the top margin.
       var room = viewport - MP_TOP_MARGIN - MP_BOTTOM_GAP - MP_PADDING * 2 - MP_FOLDED - MP_DOCK_HEIGHT - MP_DOCK_GAP
@@ -175118,7 +174867,7 @@ window.__ModuleLoader__.load({
       var isOnlineTrack = track !== null && Boolean(track.onlineProvider)
       var isNavidromeTrack = isOnlineTrack && track.onlineProvider === 'navidrome'
       var sourceTabKey = isNavidromeTrack ? 'sheet.navidrome' : isOnlineTrack ? 'sheet.lyrics' : 'sheet.local'
-      var TABS = ['sheet.cover', sourceTabKey, 'sheet.controls', 'sheet.queue', 'sheet.quality']
+      var TABS = ['sheet.cover', sourceTabKey, 'sheet.controls', 'sheet.quality']
       var isCover = index === 0
       var useFramerMark = framer !== null
 
@@ -175144,7 +174893,7 @@ window.__ModuleLoader__.load({
           if (props.open !== true) return
           var el = contentRef.current
           if (el === null) return
-          setBodyH(clampCardBodyHeight(el.scrollHeight, index === 3))
+          setBodyH(clampCardBodyHeight(el.scrollHeight))
         },
         [props.open, index],
       )
@@ -175155,7 +174904,7 @@ window.__ModuleLoader__.load({
           var el = contentRef.current
           if (el === null || typeof ResizeObserver !== 'function') return undefined
           var observer = new ResizeObserver(function () {
-            setBodyH(clampCardBodyHeight(el.scrollHeight, index === 3))
+            setBodyH(clampCardBodyHeight(el.scrollHeight))
           })
           observer.observe(el)
           return function () {
@@ -176534,26 +176283,7 @@ window.__ModuleLoader__.load({
             : null,
         )
       }
-      var queueCount = snap.queue.length || 0
-      var bodies = [null, cardLocalPane(), cardControlsPane(), h(
-        'div',
-        { key: 'queue-pane', className: 'mp-queue mp-queue-card' },
-        h(
-          'div',
-          { className: 'mp-q-head' },
-          h(
-            'div',
-            null,
-            h('div', { className: 'mp-q-title' }, t('page.queue')),
-            h(
-              'div',
-              { className: 'mp-q-sub' },
-              queueCount + ' · ' + (snap.order === 'random' ? t('page.shuffle') : t('page.modeSequence')),
-            ),
-          ),
-        ),
-        h(QueueList, { snap: snap }),
-      ), cardQualityPane()]
+      var bodies = [null, cardLocalPane(), cardControlsPane(), cardQualityPane()]
 
       var bodyHeight = isCover ? 0 : MP_BODY_GAP + MP_BODY_LINE + MP_BODY_UNDER + (bodyH > 0 ? bodyH : 0)
 
@@ -178452,12 +178182,9 @@ window.__ModuleLoader__.load({
 
     // ── src/client/components/ui/composer.js
     /**
-     * composer seats: the inline lyric line and the compact transport next to the
-     * chat input. Both are optional and disappear when nothing is playing.
+     * composer seats: the inline lyric line and the single queue button next to the chat
+     * input. Both are optional and disappear when nothing is playing.
      */
-
-    var useComposerLayoutEffect =
-      typeof React !== 'undefined' && typeof React.useLayoutEffect === 'function' ? React.useLayoutEffect : useEffect
 
     function firstComposerTranslation(value) {
       var parts = String(value || '').split(/\r?\n/)
@@ -178601,9 +178328,8 @@ window.__ModuleLoader__.load({
     function ComposerCluster() {
       var prefs = usePrefs()
       var snap = usePlayerSnapshot()
-      var ui = useStore(uiStore)
+      var queueOpen = useStore(p3QueueStore).open
       var track = snap.queue[snap.index] || null
-      var queueOpen = ui.queueOpen === true && ui.queueSource === 'composer'
       if (prefs.composerListButton === false || track === null) return null
       return h(
         'div',
@@ -178616,76 +178342,13 @@ window.__ModuleLoader__.load({
             'data-queue-toggle': 'true',
             title: t('page.queue'),
             onClick: function () {
-              setUi({ queueOpen: !queueOpen, queueSource: 'composer' })
+              p3OpenQueue()
             },
           },
           icon('playlist', 14),
           h('span', null, trackTitleOf(track)),
         ),
       )
-    }
-
-    function GlobalQueueHost() {
-      var state = useStore(uiStore)
-      var open = state.queueOpen === true && state.queueSource === 'composer'
-      var snap = usePlayerSnapshot()
-      var posPair = useState(null)
-      var pos = posPair[0]
-      var setPos = posPair[1]
-      useEffect(
-        function () {
-          function onKey(event) {
-            if (event.key === 'Escape' && uiStore.get().queueOpen) {
-              setUi({ queueOpen: false })
-            }
-          }
-          window.addEventListener('keydown', onKey)
-          return function () {
-            window.removeEventListener('keydown', onKey)
-          }
-        },
-        [],
-      )
-      useComposerLayoutEffect(
-        function () {
-          if (open !== true) {
-            setPos(null)
-            return undefined
-          }
-          function place() {
-            var button = document.querySelector('.mp-composer-cluster [data-queue-toggle]')
-            if (!button) {
-              setPos({ left: 'auto', right: '24px', bottom: '96px', width: 'min(340px, calc(100vw - 16px))' })
-              return
-            }
-            var rect = button.getBoundingClientRect()
-            var width = Math.min(340, window.innerWidth - 16)
-            var left = Math.max(8, Math.min(window.innerWidth - width - 8, rect.right - width))
-            var below = rect.top < window.innerHeight * 0.5
-            setPos(
-              below
-                ? { left: left + 'px', right: 'auto', top: rect.bottom + 10 + 'px', bottom: 'auto', width: width + 'px' }
-                : { left: left + 'px', right: 'auto', top: 'auto', bottom: window.innerHeight - rect.top + 10 + 'px', width: width + 'px' },
-            )
-          }
-          place()
-          window.addEventListener('resize', place)
-          window.addEventListener('scroll', place, true)
-          return function () {
-            window.removeEventListener('resize', place)
-            window.removeEventListener('scroll', place, true)
-          }
-        },
-        [open],
-      )
-      return h(QueuePopover, {
-        open: open,
-        snap: snap,
-        style: pos || { visibility: 'hidden' },
-        onClose: function () {
-          setUi({ queueOpen: false })
-        },
-      })
     }
 
     // ── src/client/components/ui/batch.js
@@ -179431,6 +179094,9 @@ window.__ModuleLoader__.load({
           // sidebar). Mark the host row here instead of relying on its CSS.
           var row = node.closest('button') || node.closest('[role="button"]') || node.closest('a')
           if (row !== null) row.classList.add('mp-side-row')
+          // Composer-side controls open the panel queue by clicking this row: the host owns
+          // panel visibility, so asking its own entry is the only supported way to show it.
+          if (row !== null) row.setAttribute('data-music-panel-row', '1')
           // Host rows are React-managed. When playback starts the host re-renders
           // and can overwrite className, dropping our positioning hook and making
           // the controls anchor to the sidebar instead. Put it back if that happens.
@@ -179454,7 +179120,10 @@ window.__ModuleLoader__.load({
             window.removeEventListener('resize', measure)
             if (observer !== null) observer.disconnect()
             if (rowObserver !== null) rowObserver.disconnect()
-            if (row !== null) row.classList.remove('mp-side-row')
+            if (row !== null) {
+              row.classList.remove('mp-side-row')
+              row.removeAttribute('data-music-panel-row')
+            }
           }
         },
         [],
@@ -179790,7 +179459,6 @@ window.__ModuleLoader__.load({
       }
 
       mount('shell.overlay', { name: 'shell.overlay', id: 'music-player', order: 15 }, AudioHost)
-      mount('shell.overlay', { name: 'shell.overlay', id: 'music-queue', order: 16 }, GlobalQueueHost)
       mount(
         'sidebar.panellist',
         {

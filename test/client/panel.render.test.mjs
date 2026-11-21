@@ -264,13 +264,28 @@ assert.ok(textOf(onlineSearch).includes('Online Song'), 'online song search rend
 
 internals.p3RouteStore.set({ source: 'local', page: 'songs', filter: null, query: '', history: [], scroll: {} })
 
+// Play the middle track: "up next" must be the tail of the order, which the old
+// "every track except the current one" rendering cannot produce.
+internals.player.playList(TRACKS, 1)
 const queueTree = internals.P3Queue({
   open: true,
   onClose: function () {},
   onLocate: function () {},
 })
 assert.ok(classesOf(queueTree).has('mpv3-queue'), 'queue popover renders')
-assert.ok(textOf(queueTree).includes('Alpha'), 'queue lists the current track')
+assert.ok(textOf(queueTree).includes('Beta'), 'queue lists the current track')
+// 接下来播放 starts after the current track, not at the head of the queue: the panel
+// used to list every track except the current one, which is not what plays next.
+const queueRows = nodesWithClass(queueTree, 'mpv3-queue-row')
+const currentRow = queueRows.filter((row) => String(row.props.className).includes('is-cur'))
+const upcomingRows = queueRows.filter((row) => !String(row.props.className).includes('is-cur'))
+assert.equal(currentRow.length, 1, 'exactly one current row')
+assert.equal(textOf(nodesWithClass(currentRow[0], 'mpv3-queue-name')[0]).trim(), 'Beta')
+assert.deepEqual(
+  upcomingRows.map((row) => textOf(nodesWithClass(row, 'mpv3-queue-name')[0]).trim()),
+  ['Gamma'],
+  'up next = the play order after the current track',
+)
 const removeButtons = nodesWithClass(queueTree, 'mpv3-queue-remove')
 assert.ok(removeButtons.length > 0, 'queue rows expose a remove action')
 const queueBefore = internals.player.getSnapshot().queue.length

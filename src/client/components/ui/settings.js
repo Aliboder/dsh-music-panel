@@ -299,9 +299,6 @@ function SettingsSheet(props) {
         h(Switch, {
           value: prefs.composerListButton !== false,
           onChange: function (value) {
-            // The queue popover is anchored to this button; close it together with the
-            // button so the popover cannot survive without an anchor.
-            if (value !== true) setUi({ queueOpen: false })
             patchPrefs({ composerListButton: value })
           },
         }),

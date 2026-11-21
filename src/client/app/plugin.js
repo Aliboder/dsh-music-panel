@@ -30,6 +30,9 @@ function MusicSideIcon() {
       // sidebar). Mark the host row here instead of relying on its CSS.
       var row = node.closest('button') || node.closest('[role="button"]') || node.closest('a')
       if (row !== null) row.classList.add('mp-side-row')
+      // Composer-side controls open the panel queue by clicking this row: the host owns
+      // panel visibility, so asking its own entry is the only supported way to show it.
+      if (row !== null) row.setAttribute('data-music-panel-row', '1')
       // Host rows are React-managed. When playback starts the host re-renders
       // and can overwrite className, dropping our positioning hook and making
       // the controls anchor to the sidebar instead. Put it back if that happens.
@@ -53,7 +56,10 @@ function MusicSideIcon() {
         window.removeEventListener('resize', measure)
         if (observer !== null) observer.disconnect()
         if (rowObserver !== null) rowObserver.disconnect()
-        if (row !== null) row.classList.remove('mp-side-row')
+        if (row !== null) {
+          row.classList.remove('mp-side-row')
+          row.removeAttribute('data-music-panel-row')
+        }
       }
     },
     [],
@@ -389,7 +395,6 @@ function apply(ctx) {
   }
 
   mount('shell.overlay', { name: 'shell.overlay', id: 'music-player', order: 15 }, AudioHost)
-  mount('shell.overlay', { name: 'shell.overlay', id: 'music-queue', order: 16 }, GlobalQueueHost)
   mount(
     'sidebar.panellist',
     {

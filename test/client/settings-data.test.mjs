@@ -50,7 +50,7 @@ test('settings page reflects current features and no dead preferences', () => {
 
 test('the composer seat is one list button, hidden by its own switch', () => {
   const start = composerSource.indexOf('function ComposerCluster')
-  const end = composerSource.indexOf('function GlobalQueueHost')
+  const end = composerSource.length
   assert.ok(start >= 0 && end > start, 'ComposerCluster still exists')
   const cluster = composerSource.slice(start, end)
   assert.match(cluster, /data-queue-toggle/, 'the seat opens the queue')

@@ -2,6 +2,26 @@
  * panel-v3 shell: top bar, view bar, content, player bar, queue and runtime.
  */
 
+/**
+ * One queue panel. Its open state lives here so every entry point asks for the same
+ * surface: in-panel buttons toggle it, and from the chat the panel is brought up first
+ * because `.mpv3-root` is unmounted while the host keeps the panel hidden.
+ */
+var p3QueueStore = createStore({ open: false })
+
+function p3SetQueueOpen(open) {
+  p3QueueStore.set({ open: open === true })
+}
+
+/** Open the queue from anywhere, bringing the panel up when it is not mounted. */
+function p3OpenQueue() {
+  p3SetQueueOpen(true)
+  if (typeof document === 'undefined') return
+  if (document.querySelector('.mpv3-root') !== null) return
+  var row = document.querySelector('[data-music-panel-row]')
+  if (row !== null && typeof row.click === 'function') row.click()
+}
+
 function p3AccountPictureSrc(url) {
   var text = String(url || '')
   if (text === '') return ''
@@ -523,8 +543,8 @@ function P3Queue(props) {
 
   var order = snap.order === 'random' ? player.getPlayOrder() : snap.queue.map(function (_, index) { return index })
   if (!Array.isArray(order) || order.length !== snap.queue.length) order = snap.queue.map(function (_, index) { return index })
+  // -1 means nothing is current: the list then starts at the head instead of skipping it.
   var currentPosition = order.indexOf(snap.index)
-  if (currentPosition < 0) currentPosition = 0
 
   function selectQueue(index) {
     if (dragFrom.current !== null) return
@@ -613,8 +633,8 @@ function P3Queue(props) {
       current ? h('div', { className: 'mpv3-queue-section' }, t('p3.nowPlaying')) : null,
       current ? row(current, snap.index, currentPosition, true) : null,
       h('div', { className: 'mpv3-queue-section' }, t('p3.nextUp')),
-      order.map(function (index, position) {
-        if (index === snap.index) return null
+      order.slice(currentPosition + 1).map(function (index, offset) {
+        var position = currentPosition + 1 + offset
         var track = snap.queue[index]
         if (!track) return null
         return row(track, index, position, false)
@@ -653,9 +673,11 @@ function P3Shell() {
   var online = useStore(onlineStore)
   var prefs = usePrefs()
   var snap = usePlayerSnapshot()
-  var [queueOpen, setQueueOpen] = useState(false)
+  var queueOpen = useStore(p3QueueStore).open
+  function setQueueOpen(open) {
+    p3SetQueueOpen(open)
+  }
   var [npOpen, setNpOpen] = useState(false)
-  var [npQueueOpen, setNpQueueOpen] = useState(false)
   var [guideOpen, setGuideOpen] = useState(startupGuideOpen)
   var [wide, setWide] = useState(typeof window !== 'undefined' ? window.innerWidth : 1400)
 
@@ -663,6 +685,13 @@ function P3Shell() {
     function measure() { setWide(window.innerWidth) }
     window.addEventListener('resize', measure)
     return function () { window.removeEventListener('resize', measure) }
+  }, [])
+
+  // Leaving the panel drops its queue: reopening it must not resurrect a stale one.
+  useEffect(function () {
+    return function () {
+      p3SetQueueOpen(false)
+    }
   }, [])
 
   useEffect(function () {
@@ -784,12 +813,13 @@ function P3Shell() {
     h(NowPlaying, {
       open: npOpen,
       favoriteSet: p3FavoriteSet(library.favorites),
-      onClose: function () { setNpOpen(false); setNpQueueOpen(false) },
-      queueOpen: npQueueOpen,
-      onToggleQueue: function () { setNpQueueOpen(!npQueueOpen) },
+      onClose: function () { setNpOpen(false) },
+      // The player page covers the panel; its queue control returns to the one panel
+      // queue instead of opening a second list over the page.
+      onToggleQueue: function () { setNpOpen(false); p3OpenQueue() },
       onToggleFavorite: function (track) { likeStateOf(track, p3FavoriteSet(library.favorites)).onLike() },
       onLocate: function () { p3LocateCurrent(snap) },
-      onHome: function () { setNpOpen(false); setNpQueueOpen(false); p3SelectBrowseTab('songs') },
+      onHome: function () { setNpOpen(false); p3SelectBrowseTab('songs') },
       onOpenSettings: function () { pushLayer('settings') },
     }),
     h(OverlayRoot),
