@@ -7141,6 +7141,7 @@ window.__ModuleLoader__.load({
         'page.playAll': '播放全部',
         'page.playbackFailed': '无法播放：{reason}',
         'page.playbackFailedNoReason': '无法播放，已跳到下一首',
+        'page.playbackFailedMedia': '音频无法解码，取流地址可能已失效',
         'page.addTo': '添加到歌单',
         'page.addToPlaylist': '添加到播放列表',
         'page.addedToPlaylist': '已添加到播放列表',
@@ -7753,6 +7754,7 @@ window.__ModuleLoader__.load({
         'page.playAll': 'Play all',
         'page.playbackFailed': 'Cannot play: {reason}',
         'page.playbackFailedNoReason': 'Cannot play; skipped to the next track',
+        'page.playbackFailedMedia': 'The audio could not be decoded — the stream address may have expired',
         'page.addTo': 'Add to playlist',
         'page.addToPlaylist': 'Add to play queue',
         'page.addedToPlaylist': 'Added to play queue',
@@ -9601,6 +9603,16 @@ window.__ModuleLoader__.load({
       if (typeof error === 'string') return error
       if (typeof error.message === 'string' && error.message !== '') return error.message
       return String(error)
+    }
+
+    /**
+     * Chromium's own pipeline words are a kernel detail, not a reason a listener can act on:
+     * `PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: MediaSource endOfStream…` reached the toast
+     * whenever a refused stream answer was handed to the media element. It belongs in the log;
+     * the toast says what it means in words.
+     */
+    function isBrowserMediaFailureText(text) {
+      return /PipelineStatus|DEMUXER_ERROR|MEDIA_ERR_|MediaSource endOfStream|audio decoder|Failed to demux/i.test(String(text || ''))
     }
 
     /** Absolute directory of a track (backslashes kept for display). */
@@ -156548,8 +156560,16 @@ window.__ModuleLoader__.load({
             : eventOrReason && typeof eventOrReason.message === 'string'
               ? eventOrReason.message
               : ''
+        // Chromium's pipeline text is a kernel detail: keep it in the log and say the rest in words.
+        if (isBrowserMediaFailureText(reason)) {
+          console.warn('[Player] Media pipeline failure:', reason)
+          reason = ''
+        }
         errorStreak += 1
         var failedTrack = state.queue[state.index] || null
+        // An online track that could not be played says so: the queue stops on it, so the
+        // "skipped to the next track" wording would be wrong there.
+        if (reason === '' && failedTrack !== null && failedTrack.onlineProvider) reason = t('page.playbackFailedMedia')
         reportCacheDistrust(failedTrack)
         errorListeners.forEach(function (fn) {
           try {
@@ -156959,6 +156979,21 @@ window.__ModuleLoader__.load({
           .catch(function () { /* optional */ })
       }
 
+      /**
+       * The Host answers a refused stream with `{ ok:false, error:{ code, message } }`, and that
+       * message is the only part that says WHY (a CDN node refusing this client, a region lock).
+       * The media element cannot see an HTTP answer at all: given the same URL it reports the
+       * kernel's demuxer text instead, so the reason has to be read here.
+       */
+      function onlineStreamFailure(response) {
+        return response.json().catch(function () { return null }).then(function (body) {
+          var message = body && body.error && typeof body.error.message === 'string' ? body.error.message.trim() : ''
+          var failure = new Error(message === '' ? 'HTTP ' + response.status : message)
+          failure.onlineStreamRefused = true
+          return failure
+        })
+      }
+
       function startOnlineDirect(item, token, loudness, headers) {
         if (token !== loadToken) return
         stopOnlineMse()
@@ -156986,7 +157021,9 @@ window.__ModuleLoader__.load({
               loudness.resolve()
               return null
             }
-            if (!response.ok) throw new Error('HTTP ' + response.status)
+            // A refused answer is the Host speaking about this request, not audio. Read what it
+            // said; the catch below reports it instead of handing the answer to the media element.
+            if (!response.ok) return onlineStreamFailure(response).then(function (failure) { throw failure })
             applyPlatformGain(response.headers)
             var mime = String(response.headers.get('content-type') || 'audio/mpeg').split(';')[0].trim().toLowerCase()
             var mseMime = mime === 'audio/mp4' || mime === 'audio/m4a' || mime === 'audio/x-m4a'
@@ -157129,9 +157166,16 @@ window.__ModuleLoader__.load({
             if (!pendingAutoplay) loudness.resolve()
             return null
           })
-          .catch(function () {
+          .catch(function (error) {
             if (token !== loadToken) {
               loudness.resolve()
+              return
+            }
+            // The Host refused this stream: the same URL through the media element cannot become
+            // audio, it only turns the answer into Chromium's DEMUXER_ERROR_COULD_NOT_OPEN.
+            if (error && error.onlineStreamRefused === true) {
+              loudness.resolve()
+              onError(error.message)
               return
             }
             startOnlineDirect(item, token, loudness)

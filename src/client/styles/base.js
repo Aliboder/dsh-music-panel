@@ -127,6 +127,16 @@ function errorText(error) {
   return String(error)
 }
 
+/**
+ * Chromium's own pipeline words are a kernel detail, not a reason a listener can act on:
+ * `PipelineStatus::DEMUXER_ERROR_COULD_NOT_OPEN: MediaSource endOfStream…` reached the toast
+ * whenever a refused stream answer was handed to the media element. It belongs in the log;
+ * the toast says what it means in words.
+ */
+function isBrowserMediaFailureText(text) {
+  return /PipelineStatus|DEMUXER_ERROR|MEDIA_ERR_|MediaSource endOfStream|audio decoder|Failed to demux/i.test(String(text || ''))
+}
+
 /** Absolute directory of a track (backslashes kept for display). */
 function trackDirOf(track) {
   var path = String((track && track.path) || '')
