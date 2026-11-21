@@ -38,7 +38,11 @@ test('settings page reflects current features and no dead preferences', () => {
   assert.match(source, /LookChoiceGrid/, 'Folia lyric style and background pickers are in settings')
   assert.match(source, /settings.crossfadeSeconds/, 'crossfade duration is configurable')
   assert.match(source, /about.diagnostics/, 'Host diagnosis lives under About')
-  for (const dead of ['bgBlend', 'composerLyricPlace', 'lyricKeepProviderWordTiming', 'coverStyle', 'npTransparentBg']) {
+  // Folia's 歌词来源 page restored this switch: a platform's own word timing is kept
+  // unless the preferred source has word timing too.
+  assert.match(prefsSource, /lyricKeepProviderWordTiming: true/, 'the keep-own-word-timing switch has a default')
+  assert.match(source, /settings\.lyricKeepProviderWordTiming/, 'and a settings row')
+  for (const dead of ['bgBlend', 'composerLyricPlace', 'coverStyle', 'npTransparentBg']) {
     assert.doesNotMatch(prefsSource, new RegExp(dead), `${dead} was removed from PREF_DEFAULTS`)
     assert.doesNotMatch(source, new RegExp(dead), `${dead} has no settings UI`)
   }

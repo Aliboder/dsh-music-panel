@@ -448,11 +448,28 @@ function mpLyricSourceLabel(id) {
   return key
 }
 
-/** A signature of the listener's line rules, so a change re-runs the display pass. */
+/** Whether a lyric without word timing is split by the bundled dictionary automatically. */
+function lyricAutoSegmentationEnabled() {
+  var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
+  return state.lyricAutoWordSegmentation !== false
+}
+
+/** A signature of the listener's display-pass settings, so a change re-runs it. */
 function mpLyricRulesKey() {
   var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
   var presets = Array.isArray(state.lyricFilterPresets) ? state.lyricFilterPresets : []
-  return presets.join(',') + '\u0000' + String(state.lyricFilterWords || '')
+  return presets.join(',')
+    + '\u0000' + String(state.lyricFilterWords || '')
+    + '\u0000' + (lyricAutoSegmentationEnabled() ? 'seg' : 'noseg')
+}
+
+/**
+ * The lyric clock a surface should read: the player's position, shifted by the per-song
+ * correction and Folia's device-wide offset. Both surfaces (stage and composer strip)
+ * must use this, or the same lyric runs on two clocks.
+ */
+function lyricClock(seconds, offsetMs, globalOffsetMs) {
+  return Number(seconds) - ((Number(offsetMs) || 0) + (Number(globalOffsetMs) || 0)) / 1000
 }
 
 /**
@@ -532,7 +549,8 @@ function mpPrepareLyrics(document, songKey, chorusRanges) {
   if (record !== null && typeof MPFoliaLyrics.applyLyricWordSegmentation === 'function') {
     next = MPFoliaLyrics.applyLyricWordSegmentation(next, record)
   }
-  if (typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
+  if (lyricAutoSegmentationEnabled()
+    && typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
     && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
     next = MPFoliaLyrics.applyAutoWordSegmentation(next)
   }

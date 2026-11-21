@@ -101,6 +101,9 @@ var MPLyricLoader = (function () {
     result.chorusRanges = chorusRanges
     result.source = body.source === 'imported' ? 'imported' : 'online'
     result.override = body.override === true
+    // What is on screen is the platform's own lyric (not an imported one, not a match from
+    // another source): only then can Folia's keepProviderWordTiming apply.
+    result.ownPlatform = result.source !== 'imported' && result.override !== true
     result.offsetMs = readSavedLyricOffset(key)
     if (body.pureMusic === true) {
       result.pureMusic = true
@@ -226,11 +229,17 @@ var MPLyricLoader = (function () {
     }
   }
 
-  /** A source with better timing for this song, or nothing. Never awaited by playback. */
-  async function upgrade(track, base) {
+  /**
+   * A source with better timing for this song, or nothing. Never awaited by playback.
+   * `options.only` restricts the search to one source and `options.requireWordLevel` makes
+   * a line-level answer a miss: Folia's `keepProviderWordTiming` asks the preferred source
+   * alone, for word timing or nothing.
+   */
+  async function upgrade(track, base, options) {
     var key = keyOf(track)
     var provider = String(track.onlineProvider || '')
     var wanted = lyricPrefs()
+    var opts = options !== null && typeof options === 'object' ? options : {}
     try {
       var answer = await getJson(
         API +
@@ -248,6 +257,8 @@ var MPLyricLoader = (function () {
           encodeURIComponent(String(track.durationSec || 0)) +
           '&preferred=' +
           encodeURIComponent(String(wanted.lyricPreferredSource || '')) +
+          (opts.only === undefined || opts.only === '' ? '' : '&only=' + encodeURIComponent(String(opts.only))) +
+          (opts.requireWordLevel === true ? '&requireWordLevel=1' : '') +
           // Remember the upgrade on the song record: the next play reads it from there.
           '&persist=1',
       )
@@ -267,6 +278,8 @@ var MPLyricLoader = (function () {
         base.chorusRanges,
       )
       if (parsed.pureMusic === true || parsed.lyrics.length === 0) return null
+      // A line-level answer is no answer when word timing is what was asked for.
+      if (opts.requireWordLevel === true && parsed.isWordByWord !== true) return null
       var next = Object.assign({}, base, parsed, {
         upgraded: {
           source: String(match.source || ''),
@@ -284,9 +297,23 @@ var MPLyricLoader = (function () {
 
   function maybeUpgrade(track, result) {
     if (!track || !track.onlineProvider) return
-    if (lyricPrefs().autoUseBestLyric === false) return
+    var wanted = lyricPrefs()
+    if (wanted.autoUseBestLyric === false) return
     if (result.pureMusic === true || result.source === 'imported') return
     if (result.override === true) return
+    // Folia's `keepProviderWordTiming`: the platform's own word timing is kept over every
+    // source but the preferred one, and only a word-timed answer there replaces it.
+    var preferred = String(wanted.lyricPreferredSource || '')
+    var keepOwn = wanted.lyricKeepProviderWordTiming !== false
+      && result.isWordByWord === true
+      && result.ownPlatform === true
+    if (keepOwn) {
+      // AMLL is looked up under a platform id, so it cannot be asked on its own; the song's
+      // own platform has nothing better to offer than what is already on screen.
+      if (preferred === '' || preferred === 'amll' || preferred === String(track.onlineProvider || '')) return
+      upgrade(track, result, { only: preferred, requireWordLevel: true }).catch(function () {})
+      return
+    }
     // Folia searches even when the platform has no lyric at all: the other sources may, and
     // a full "nothing anywhere" answer still tells the surface to stop looking.
     upgrade(track, result).catch(function () {})

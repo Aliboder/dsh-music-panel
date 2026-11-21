@@ -94,4 +94,61 @@ test('经典歌词列表的残留不再被打包', () => {
   assert.doesNotMatch(theme, /mp-align-|mp-np\.is-blur|mp-np-line-trans/, 'the classic list CSS hooks are gone')
 })
 
+test('歌词页按 Folia 分组，插件自有设置落在「插件」组', () => {
+  const tab = lyricsTabSource()
+  for (const key of [
+    'settings.lyricGroupSource',
+    'settings.lyricGroupTiming',
+    'settings.lyricGroupSegmentation',
+    'settings.lyricGroupFormat',
+    'settings.lyricGroupPlugin',
+  ]) {
+    assert.ok(settingsSource.includes(key), key + ' is one of the page groups')
+  }
+  assert.match(tab, /lyricAnchorTabs()/, 'the groups are also the in-page tabs')
+  for (const key of ['source', 'timing', 'segmentation', 'format', 'plugin']) {
+    assert.match(tab, new RegExp("lyricGroup\\('" + key + "'"), 'the ' + key + ' group renders')
+  }
+  // The plugin's own display controls live in the last group, not scattered over Folia's.
+  const start = tab.indexOf('var pluginRows = [')
+  const end = tab.indexOf('return [')
+  assert.ok(start >= 0 && end > start, 'the plugin group is one block')
+  const pluginRows = tab.slice(start, end)
+  for (const key of [
+    'showTranslation',
+    'subtitleOverlayBackground',
+    'lyricsFontScale',
+    'translationScale',
+    'composerLyrics',
+    'composerTranslation',
+  ]) {
+    assert.ok(pluginRows.includes(key), key + ' sits in the plugin group')
+  }
+  // Folia's rows are in Folia's groups.
+  const sourceRows = tab.slice(tab.indexOf('var sourceRows = ['), tab.indexOf('var timingRows = ['))
+  for (const key of ['autoUseBestLyric', 'lyricPreferredSource', 'lyricKeepProviderWordTiming', 'lyricLocalPriority']) {
+    assert.ok(sourceRows.includes(key), key + ' sits in 歌词来源')
+  }
+  const timingRows = tab.slice(tab.indexOf('var timingRows = ['), tab.indexOf('var segmentationRows = ['))
+  assert.ok(timingRows.includes('setLyricOffsetOpen'), 'the global offset sits in 时间与过滤')
+  assert.ok(timingRows.includes('setLyricFilterOpen'), 'the lyric filter sits in 时间与过滤')
+})
+
+test('保留平台逐字歌词、全局偏移、自动分词都有真实消费者', () => {
+  const loader = readFileSync(join(root, 'src/client/services/lyrics/loader.js'), 'utf8')
+  assert.match(loader, /lyricKeepProviderWordTiming/, 'the keep-own switch is read by the loader')
+  assert.match(loader, /only: preferred/, 'and narrows the upgrade to the preferred source')
+  assert.match(loader, /requireWordLevel: true/, 'and refuses line-level answers')
+  const indexSource = readFileSync(join(root, 'src/client/components/ui/now-playing/index.js'), 'utf8')
+  assert.match(indexSource, /lyricClock\(time\.currentTime, offsetMs, prefs\.lyricGlobalOffsetMs\)/, 'the stage clock adds the global offset')
+  const composer = readFileSync(join(root, 'src/client/components/ui/composer.js'), 'utf8')
+  assert.match(composer, /lyricClock\(/, 'the composer strip uses the same clock')
+  const lyrics = readFileSync(join(root, 'src/client/services/lyrics/lyrics.js'), 'utf8')
+  assert.match(lyrics, /lyricAutoSegmentationEnabled\(\)/, 'the segmentation switch gates the display pass')
+  assert.match(lyrics, /function lyricClock\(seconds, offsetMs, globalOffsetMs\)/, 'the clock adds both offsets')
+  assert.match(prefsSource, /lyricKeepProviderWordTiming: true/, 'keep-own defaults on')
+  assert.match(prefsSource, /lyricAutoWordSegmentation: true/, 'auto segmentation defaults on')
+  assert.match(prefsSource, /lyricGlobalOffsetMs: 0/, 'the global offset defaults to zero')
+})
+
 console.log('lyric-settings.test.mjs ok')

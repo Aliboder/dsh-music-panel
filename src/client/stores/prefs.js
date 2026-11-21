@@ -20,6 +20,18 @@ var PREF_DEFAULTS = {
   lyricLocalPriority: 'local',
   /** Folia's `preferredAlternativeLyricSource`: asked first when another source is searched. */
   lyricPreferredSource: 'qq',
+  /**
+   * Folia's `keepProviderWordTiming`: a platform's own word-timed lyric is only replaced by
+   * the preferred source, and only by a word-timed lyric; off, every source competes.
+   */
+  lyricKeepProviderWordTiming: true,
+  /**
+   * Folia's `autoAiLyricSegmentation`, local-edition: split a lyric that has no word timing
+   * with the bundled dictionary once per load. Saved splits are never overwritten.
+   */
+  lyricAutoWordSegmentation: true,
+  /** Folia's device-wide lyric offset, added on top of the per-song one (limited to ±2000 ms). */
+  lyricGlobalOffsetMs: 0,
   /** Folia's `subtitleOverlayBackground`: a soft halo behind the bottom subtitle line. */
   subtitleOverlayBackground: true,
   /** Folia's `localLyricFormatOrder`: which sidecar lyric file wins when several exist. */
@@ -186,6 +198,9 @@ function readPrefs() {
   if (!isFinite(fontScale) || fontScale < 0.5 || fontScale > 2) merged.lyricsFontScale = PREF_DEFAULTS.lyricsFontScale
   var transScale = Number(merged.translationScale)
   if (!isFinite(transScale) || transScale < 50 || transScale > 150) merged.translationScale = PREF_DEFAULTS.translationScale
+  var globalOffset = Number(merged.lyricGlobalOffsetMs)
+  if (!isFinite(globalOffset)) globalOffset = PREF_DEFAULTS.lyricGlobalOffsetMs
+  merged.lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Math.round(globalOffset)))
   if (dropped) {
     try {
       window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))

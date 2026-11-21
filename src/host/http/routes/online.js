@@ -26,7 +26,7 @@ import { qqServiceStatus, restartQqService } from '../../services/qq-api.js'
 import { kugouServiceStatus, restartKugouService } from '../../services/kugou-api.js'
 import { createAmllClient } from '../../services/lyrics/amll.js'
 import { pickBestLyricCandidate } from '../../services/lyrics/lyrics-match.js'
-import { buildLyricSourceOrder } from '../../services/lyrics/lyrics-sources.js'
+import { buildLyricSourceOrder, isLyricSource } from '../../services/lyrics/lyrics-sources.js'
 import {
   buildLyricSearchQuery,
   findBestLyrics,
@@ -395,6 +395,8 @@ export function createOnlineRoutes(deps) {
       durationMs: Number(params.get('duration')) > 0 ? Number(params.get('duration')) * 1000 : 0,
     }
     const preferred = String(params.get('preferred') || '').trim() || undefined
+    // Folia's `keepProviderWordTiming` asks the preferred source alone for word timing.
+    const only = String(params.get('only') || '').trim()
     const searchOverride = ioOverride('search')
     const fetchAmllOverride = ioOverride('fetchAmll')
     // The AMLL client is only built when nothing injects it: a test that injects all three
@@ -414,7 +416,9 @@ export function createOnlineRoutes(deps) {
     try {
       return await findBestLyrics(wantedTrack, {
         // Folia keeps the song's own platform in the order: a word-level own lyric can win.
-        order: buildLyricSourceOrder(preferred).map((source) => source.id),
+        order: only !== '' && isLyricSource(only)
+          ? [only]
+          : buildLyricSourceOrder(preferred).map((source) => source.id),
         search,
         fetchLyric: fetchLyricSource,
         fetchAmll: fetchAmllOverride ?? ((platform, musicId) => amll.fetchLyrics(platform, musicId)),
@@ -989,7 +993,12 @@ export function createOnlineRoutes(deps) {
           // `onlineOverrideLyrics`: next play reads it from the song's record, not the network.
           // A match from the song's own platform is not an override — its lyric is cached by
           // /online/lyric already, so only another source is written here.
-          const persist = params.get('persist') === '1' && matchable && match !== null && match.source !== provider
+          const persist = params.get('persist') === '1'
+            && matchable
+            && match !== null
+            && match.source !== provider
+            // A line-level answer must not be remembered when word timing was asked for.
+            && (params.get('requireWordLevel') !== '1' || match.wordLevel === true)
           if (persist) {
             const lyricKey = onlineLyricKey(provider, id)
             await lyricRecords.writePayload(lyricKey, {

@@ -30,6 +30,8 @@ function queryOf(provider, id, extra = {}) {
     duration: String(extra.duration ?? track.duration),
     persist: '1',
     ...(extra.preferred === undefined ? {} : { preferred: String(extra.preferred) }),
+    ...(extra.only === undefined ? {} : { only: String(extra.only) }),
+    ...(extra.requireWordLevel === true ? { requireWordLevel: '1' } : {}),
   })
   return { params, url: new URL('http://127.0.0.1/music/online/best-lyric?' + params.toString()) }
 }
@@ -256,6 +258,37 @@ async function send(routes, pathname, method, params, body) {
 
   answer = await send(routes, '/online/lyric-choice', 'POST', {}, { ...target, source: 'bogus' })
   assert.equal(answer.status, 400)
+}
+
+// ── keepProviderWordTiming: one source, word timing only, and no bad persist ──
+
+{
+  const calls = []
+  const answer = await ask(routesWith(wordLevelIo(calls)), 'netease', 'keep-1', {
+    only: 'qq',
+    requireWordLevel: true,
+  })
+  assert.equal(answer.status, 200)
+  assert.equal(answer.body.match.source, 'qq')
+  const searched = calls.filter(([kind]) => kind === 'search').map(([, source]) => source)
+  assert.deepEqual([...new Set(searched)], ['qq'], 'only the preferred source is searched')
+}
+
+{
+  const lineOnly = {
+    search: async (sourceId) => [
+      { id: sourceId + '-keep-line', title: track.title, artist: track.artist, album: track.album, durationMs: 269000 },
+    ],
+    fetchLyric: async () => ({ lines: [{ t: 1, end: 2, text: '只有整行' }], lrc: '[00:01.000]只有整行' }),
+    fetchAmll: async () => null,
+  }
+  const answer = await ask(routesWith(lineOnly), 'netease', 'keep-2', {
+    only: 'qq',
+    requireWordLevel: true,
+  })
+  assert.equal(answer.status, 200)
+  assert.equal(answer.body.match.wordLevel, false, 'the client is told it was line-level')
+  assert.equal(await recordOf('netease', 'keep-2'), null, 'a line-level answer must not be remembered as the match')
 }
 
 // ── AMLL is probed through a NetEase candidate for a non-NetEase track ─────

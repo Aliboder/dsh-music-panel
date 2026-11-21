@@ -429,6 +429,8 @@ function NowPlaying(props) {
   // when their dependency arrays are built.
   var lyricPriorityKey = (prefs.lyricLocalPriority === 'online' ? 'online' : 'local')
     + '\u0000' + String(prefs.lyricPreferredSource || '')
+    // The own-word-timing rule changes which source the upgrade asks: a change re-reads.
+    + '\u0000' + (prefs.lyricKeepProviderWordTiming !== false ? 'keep-own' : 'all-sources')
 
   useEffect(
     function () {
@@ -722,7 +724,8 @@ function NowPlaying(props) {
     [lyricRulesKey],
   )
 
-  var lyricNow = time.currentTime - offsetMs / 1000
+  // The per-song correction plus Folia's device-wide offset: one clock for every surface.
+  var lyricNow = lyricClock(time.currentTime, offsetMs, prefs.lyricGlobalOffsetMs)
   var active = lyricActiveIndex(lyrics, lyricNow)
   var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
   var favorite = track !== null && props.favoriteSet[track.path] === true

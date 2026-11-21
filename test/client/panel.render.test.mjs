@@ -226,6 +226,23 @@ assert.ok(internals.p3Tabs('navidrome').indexOf('artists') >= 0, 'Navidrome expo
   assert.ok(!text.includes('歌词间距'), 'the dead line-spacing row is gone')
   assert.ok(!text.includes('模糊非当前歌词'), 'the dead blur row is gone')
   assert.ok(!text.includes('歌词对齐方式'), 'the dead alignment row is gone')
+  // Folia's groups, with the plugin's own group last.
+  for (const group of ['歌词来源', '时间与过滤', '分词', '本地歌词文件格式优先级', '插件']) {
+    assert.ok(text.includes(group), 'the lyric page shows the ' + group + ' group')
+  }
+  for (const row of ['保留平台自带的逐字歌词', '全局时间偏移', '歌词过滤', '自动分词', '格式顺序']) {
+    assert.ok(text.includes(row), 'the lyric page shows the ' + row + ' row')
+  }
+  assert.ok(text.includes('0 ms'), 'the global offset row shows its value')
+  const tabNodes = []
+  const buttonTexts = []
+  walk(tree, (node) => {
+    if (node.props && node.props.role === 'tab') tabNodes.push(node)
+    if (node.type === 'button') buttonTexts.push(textOf(node))
+  })
+  assert.ok(tabNodes.length >= 5, 'the in-page tabs render one per group')
+  assert.ok(buttonTexts.some((label) => label.includes('调整')), 'the offset row opens its window')
+  assert.ok(buttonTexts.some((label) => label.includes('编辑')), 'the filter row opens its window')
   const ranges = []
   walk(tree, (node) => {
     if (node.type === 'input' && node.props && node.props.type === 'range') ranges.push(node)

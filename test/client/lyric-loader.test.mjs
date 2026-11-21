@@ -18,6 +18,14 @@ const root = join(here, '..', '..', 'src', 'client')
 const stored = new Map()
 const requests = []
 let responder = null
+let prefsState = {
+  lyricPreferredSource: 'qq',
+  lyricLocalPriority: 'online',
+  lyricFormatOrder: ['yrc', 'lrc'],
+  autoUseBestLyric: true,
+  lyricKeepProviderWordTiming: true,
+  lyricGlobalOffsetMs: 0,
+}
 
 const sandbox = {
   console,
@@ -39,12 +47,7 @@ const sandbox = {
   // The app's preferences live in a store; a component's `prefs` is a local value, so the
   // loader must read the store (specifically: no bare `prefs` in this sandbox).
   prefsStore: {
-    get: () => ({
-      lyricPreferredSource: 'qq',
-      lyricLocalPriority: 'online',
-      lyricFormatOrder: ['yrc', 'lrc'],
-      autoUseBestLyric: true,
-    }),
+    get: () => prefsState,
   },
   getJson: async (url) => {
     requests.push(url)
@@ -189,6 +192,94 @@ async function settle(notifications) {
   await loader.load({ onlineProvider: 'qq', onlineId: 'imp1' })
   await new Promise((resolve) => setTimeout(resolve, 50))
   assert.equal(requests.some((url) => url.includes('online/best-lyric')), false, 'an imported lyric is not upgraded')
+}
+
+// ── keepProviderWordTiming: own word timing is only replaced by the preferred source ──
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+{
+  requests.length = 0
+  loader.invalidate()
+  prefsState = { ...prefsState, lyricKeepProviderWordTiming: true }
+  responder = async (url) => {
+    if (url.includes('online/best-lyric')) {
+      return {
+        ok: true,
+        match: {
+          source: 'qq',
+          id: 'q-keep',
+          wordLevel: true,
+          raw: { type: 'local', lrcContent: '[1000,2000](1000,900,0)升级', formatHint: 'yrc' },
+        },
+      }
+    }
+    return { source: 'online', raw: { type: 'local', lrcContent: '[1000,2000](1000,900,0)原词', formatHint: 'yrc' } }
+  }
+  const track = { onlineProvider: 'netease', onlineId: 'keep1', title: 't', artist: 'a' }
+  const base = await loader.load(track)
+  assert.equal(base.isWordByWord, true, 'the own lyric is word-timed')
+  await wait(60)
+  const best = requests.filter((url) => url.includes('online/best-lyric'))
+  assert.equal(best.length, 1, 'the upgrade ran once')
+  assert.ok(best[0].includes('only=qq'), 'only the preferred source is asked')
+  assert.ok(best[0].includes('requireWordLevel=1'), 'and only for word timing')
+}
+
+// A line-level answer from the preferred source must not replace the own word timing.
+{
+  requests.length = 0
+  loader.invalidate()
+  responder = async (url) => {
+    if (url.includes('online/best-lyric')) {
+      return { ok: true, match: { source: 'qq', id: 'q-line', wordLevel: false, raw: null, lrc: '[00:01.000]只有行' } }
+    }
+    return { source: 'online', raw: { type: 'local', lrcContent: '[1000,2000](1000,900,0)原词', formatHint: 'yrc' } }
+  }
+  const track = { onlineProvider: 'netease', onlineId: 'keep2', title: 't', artist: 'a' }
+  const base = await loader.load(track)
+  await wait(60)
+  const after = await loader.load(track)
+  assert.equal(after.lyrics[0].fullText, '原词', 'a line-level answer is no answer')
+  assert.equal(after.upgraded, undefined, 'nothing was announced')
+}
+
+// Off: the own word timing competes like any other lyric.
+{
+  requests.length = 0
+  loader.invalidate()
+  prefsState = { ...prefsState, lyricKeepProviderWordTiming: false }
+  responder = async (url) => {
+    if (url.includes('online/best-lyric')) {
+      return {
+        ok: true,
+        match: {
+          source: 'qq',
+          id: 'q-all',
+          wordLevel: false,
+          raw: null,
+          lrc: '[00:01.000]别家行级',
+        },
+      }
+    }
+    return { source: 'online', raw: { type: 'local', lrcContent: '[1000,2000](1000,900,0)原词', formatHint: 'yrc' } }
+  }
+  const track = { onlineProvider: 'netease', onlineId: 'keep3', title: 't', artist: 'a' }
+  await loader.load(track)
+  await wait(60)
+  const best = requests.filter((url) => url.includes('online/best-lyric'))
+  assert.equal(best.length, 1)
+  assert.equal(best[0].includes('only='), false, 'every source competes when the switch is off')
+  assert.equal(requests.some((url) => url.includes('requireWordLevel=1')), false)
+  prefsState = { ...prefsState, lyricKeepProviderWordTiming: true }
+}
+
+// ── the display clock adds both corrections ────────────────────────────────
+
+{
+  assert.equal(sandbox.lyricClock(10, 0, 0), 10)
+  assert.equal(sandbox.lyricClock(10, 500, 0), 9.5, 'the per-song offset moves the lyric clock')
+  assert.equal(sandbox.lyricClock(10, 500, -200), 9.7, 'the global offset is added on top')
 }
 
 // ── the gate always resolves: a hung request times out ─────────────────────

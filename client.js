@@ -6955,16 +6955,45 @@ window.__ModuleLoader__.load({
         'settings.lyricFilterWordsDesc': '逗号或换行分隔；歌词行包含其中任一词就不显示',
         'settings.lyricFilterWordsPlaceholder': '例如：歌词贡献者，LRC',
         'settings.lyricAutoBest': '自动使用最佳歌词',
-        'settings.lyricAutoBestDesc': '平台自己的歌词没有逐字时间轴时，检索网易云、AMLL、QQ、酷狗的匹配歌词，有逐字歌词就换用',
+        'settings.lyricAutoBestDesc': '平台自己的歌词没有逐字时间轴时，检索网易云、AMLL、QQ、酷狗、汽水的匹配歌词，有逐字歌词就换用',
         'settings.lyricAutoBestOff': '只使用平台自己的歌词',
         'settings.lyricLocalPriority': '本地歌曲歌词优先级',
         'settings.lyricLocalPriorityDesc': '同一首本地歌既有自己的歌词文件、又有匹配到的在线歌词时，先显示哪一个',
-        'settings.lyricLocalPriorityLocal': '本地（同目录 > 内嵌）',
-        'settings.lyricLocalPriorityOnline': '在线（匹配歌词）',
-        'settings.lyricPreferredSource': '首选歌词来源',
-        'settings.lyricPreferredSourceDesc': '自动匹配歌词时最先检索的来源',
-        'settings.lyricFormatOrder': '同目录歌词优先格式',
-        'settings.lyricFormatOrderDesc': '一首歌有多个歌词文件时先读哪种；其余格式按默认顺序',
+        'settings.lyricLocalPriorityLocal': '本地歌词',
+        'settings.lyricLocalPriorityOnline': '在线优先',
+        'settings.lyricGroupSource': '歌词来源',
+        'settings.lyricGroupTiming': '时间与过滤',
+        'settings.lyricGroupSegmentation': '分词',
+        'settings.lyricGroupFormat': '本地歌词文件格式优先级',
+        'settings.lyricGroupPlugin': '插件',
+        'settings.lyricMatchPriority': '歌词匹配优先级',
+        'settings.lyricMatchPriorityDesc': '多个来源都有合格匹配时，优先采用该来源的歌词。',
+        'settings.lyricKeepProviderWordTiming': '保留平台自带的逐字歌词',
+        'settings.lyricKeepProviderWordTimingDesc': '平台自带的歌词有逐字时间轴时，只有「歌词匹配优先级」选中的来源也有逐字歌词才替换它；关闭后按优先级在所有来源里择优。',
+        'settings.lyricLocalPriorityLocalDesc': '优先使用同目录和内嵌歌词，缺失时再使用在线歌词。',
+        'settings.lyricLocalPriorityOnlineDesc': '优先使用已匹配的在线歌词，缺失时再使用本地歌词。',
+        'settings.lyricGlobalOffset': '全局时间偏移',
+        'settings.lyricGlobalOffsetDesc': '整体平移歌词时间轴，补偿蓝牙等输出延迟。',
+        'settings.lyricGlobalOffsetAdjust': '调整',
+        'settings.lyricFilter': '歌词过滤',
+        'settings.lyricFilterDesc': '逐行过滤规则，命中的歌词行不显示。',
+        'settings.lyricFilterEdit': '编辑',
+        'settings.lyricFilterDialogHint': '过滤只影响显示，不改写歌词文件。',
+        'settings.lyricSegmentationAuto': '自动分词',
+        'settings.lyricSegmentationAutoDesc': '没有逐字时间轴的歌词，用本地词典自动分词；只影响按词排版的歌词样式。',
+        'settings.lyricFormatOrder': '格式顺序',
+        'settings.lyricFormatOrderDesc': '同名歌词文件按此顺序选用，.fia 始终最优先。',
+        'settings.lyricFormatSummary': '{format} 优先',
+        'settings.lyricFormatExpand': '展开',
+        'settings.lyricFormatCollapse': '收起',
+        'settings.lyricFormatReset': '恢复默认',
+        'settings.lyricOffsetTitle': '全局时间偏移',
+        'settings.lyricOffsetSubtitle': '补偿蓝牙耳机等输出设备造成的音画不同步',
+        'settings.lyricOffsetApply': '应用',
+        'settings.lyricOffsetReset': '归零',
+        'settings.lyricOffsetNeutral': '歌词与音频时钟完全同步',
+        'settings.lyricOffsetLater': '歌词延后显示，适合声音听起来更晚的情况',
+        'settings.lyricOffsetEarlier': '歌词提前显示，适合声音听起来更早的情况',
         'settings.subtitleOverlayBackground': '字幕背景',
         'settings.subtitleOverlayBackgroundDesc': '为底部歌词加一层随主题的柔和背景；关掉后只留文字',
         'settings.subtitleOverlayBackgroundUnsupported': '当前歌词样式自己绘制译文行，不受这个开关影响',
@@ -7582,16 +7611,45 @@ window.__ModuleLoader__.load({
         'settings.lyricFilterWordsDesc': 'Separated by commas or newlines; a line containing any of them is hidden',
         'settings.lyricFilterWordsPlaceholder': 'e.g. lyrics by, LRC',
         'settings.lyricAutoBest': 'Auto use best lyrics',
-        'settings.lyricAutoBestDesc': "When the platform's own lyric has no word timing, search NetEase, AMLL, QQ and KuGou and use a matched word-by-word lyric",
+        'settings.lyricAutoBestDesc': "When the platform's own lyric has no word timing, search NetEase, AMLL, QQ, KuGou and Qishui and use a matched word-by-word lyric",
         'settings.lyricAutoBestOff': 'Use the platform lyric only',
         'settings.lyricLocalPriority': 'Local song lyric priority',
         'settings.lyricLocalPriorityDesc': 'When a local file has both its own lyric and a matched online one, which one shows first',
-        'settings.lyricLocalPriorityLocal': 'Local file (sidecar > embedded)',
-        'settings.lyricLocalPriorityOnline': 'Online (matched lyric)',
-        'settings.lyricPreferredSource': 'Preferred lyric source',
-        'settings.lyricPreferredSourceDesc': 'The source the automatic lyric pick asks first',
-        'settings.lyricFormatOrder': 'Preferred sidecar format',
-        'settings.lyricFormatOrderDesc': 'Which lyric file next to the audio reads first when a track has several; the rest keep the default order',
+        'settings.lyricLocalPriorityLocal': 'Local lyric',
+        'settings.lyricLocalPriorityOnline': 'Online first',
+        'settings.lyricGroupSource': 'Lyric source',
+        'settings.lyricGroupTiming': 'Timing & filters',
+        'settings.lyricGroupSegmentation': 'Word segmentation',
+        'settings.lyricGroupFormat': 'Local lyric format priority',
+        'settings.lyricGroupPlugin': 'Plugins',
+        'settings.lyricMatchPriority': 'Lyric match priority',
+        'settings.lyricMatchPriorityDesc': 'When several sources have an acceptable match, prefer this source.',
+        'settings.lyricKeepProviderWordTiming': 'Keep platform word-timed lyrics',
+        'settings.lyricKeepProviderWordTimingDesc': 'When the platform own lyric is word-timed, only the source chosen in Lyric match priority may replace it, and only with word timing. Off, every source competes by priority.',
+        'settings.lyricLocalPriorityLocalDesc': 'Use the sidecar and embedded lyric first; fall back to the online lyric when missing.',
+        'settings.lyricLocalPriorityOnlineDesc': 'Use the matched online lyric first; fall back to the local lyric when missing.',
+        'settings.lyricGlobalOffset': 'Global lyric offset',
+        'settings.lyricGlobalOffsetDesc': 'Shift the whole lyric timeline to compensate for Bluetooth output latency.',
+        'settings.lyricGlobalOffsetAdjust': 'Adjust',
+        'settings.lyricFilter': 'Lyric filter',
+        'settings.lyricFilterDesc': 'Line rules; a matching line is hidden.',
+        'settings.lyricFilterEdit': 'Edit',
+        'settings.lyricFilterDialogHint': 'Filtering only affects what is shown; the lyric file is not rewritten.',
+        'settings.lyricSegmentationAuto': 'Auto word segmentation',
+        'settings.lyricSegmentationAutoDesc': 'A lyric without word timing is split with the bundled dictionary; only word-driven styles are affected.',
+        'settings.lyricFormatOrder': 'Format order',
+        'settings.lyricFormatOrderDesc': 'Sidecar lyric files are read in this order; .fia always ranks first.',
+        'settings.lyricFormatSummary': '{format} first',
+        'settings.lyricFormatExpand': 'Expand',
+        'settings.lyricFormatCollapse': 'Collapse',
+        'settings.lyricFormatReset': 'Reset to default',
+        'settings.lyricOffsetTitle': 'Global lyric offset',
+        'settings.lyricOffsetSubtitle': 'Compensates for audio/video drift from Bluetooth and other outputs',
+        'settings.lyricOffsetApply': 'Apply',
+        'settings.lyricOffsetReset': 'Reset to zero',
+        'settings.lyricOffsetNeutral': 'Lyrics are in sync with the audio clock',
+        'settings.lyricOffsetLater': 'Lyrics shown later, for when the sound arrives later',
+        'settings.lyricOffsetEarlier': 'Lyrics shown earlier, for when the sound arrives earlier',
         'settings.subtitleOverlayBackground': 'Subtitle background',
         'settings.subtitleOverlayBackgroundDesc': 'A soft theme-coloured halo behind the bottom lyric; off leaves the text alone',
         'settings.subtitleOverlayBackgroundUnsupported': 'This lyric style draws its own translation row, so the switch does nothing here',
@@ -10537,11 +10595,28 @@ window.__ModuleLoader__.load({
       return key
     }
 
-    /** A signature of the listener's line rules, so a change re-runs the display pass. */
+    /** Whether a lyric without word timing is split by the bundled dictionary automatically. */
+    function lyricAutoSegmentationEnabled() {
+      var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
+      return state.lyricAutoWordSegmentation !== false
+    }
+
+    /** A signature of the listener's display-pass settings, so a change re-runs it. */
     function mpLyricRulesKey() {
       var state = typeof prefsStore !== 'undefined' && prefsStore !== null ? prefsStore.get() : {}
       var presets = Array.isArray(state.lyricFilterPresets) ? state.lyricFilterPresets : []
-      return presets.join(',') + '\u0000' + String(state.lyricFilterWords || '')
+      return presets.join(',')
+        + '\u0000' + String(state.lyricFilterWords || '')
+        + '\u0000' + (lyricAutoSegmentationEnabled() ? 'seg' : 'noseg')
+    }
+
+    /**
+     * The lyric clock a surface should read: the player's position, shifted by the per-song
+     * correction and Folia's device-wide offset. Both surfaces (stage and composer strip)
+     * must use this, or the same lyric runs on two clocks.
+     */
+    function lyricClock(seconds, offsetMs, globalOffsetMs) {
+      return Number(seconds) - ((Number(offsetMs) || 0) + (Number(globalOffsetMs) || 0)) / 1000
     }
 
     /**
@@ -10621,7 +10696,8 @@ window.__ModuleLoader__.load({
       if (record !== null && typeof MPFoliaLyrics.applyLyricWordSegmentation === 'function') {
         next = MPFoliaLyrics.applyLyricWordSegmentation(next, record)
       }
-      if (typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
+      if (lyricAutoSegmentationEnabled()
+        && typeof MPFoliaLyrics.applyAutoWordSegmentation === 'function'
         && typeof MPFoliaLyrics.isIcuFoliaReady === 'function' && MPFoliaLyrics.isIcuFoliaReady()) {
         next = MPFoliaLyrics.applyAutoWordSegmentation(next)
       }
@@ -10732,6 +10808,9 @@ window.__ModuleLoader__.load({
         result.chorusRanges = chorusRanges
         result.source = body.source === 'imported' ? 'imported' : 'online'
         result.override = body.override === true
+        // What is on screen is the platform's own lyric (not an imported one, not a match from
+        // another source): only then can Folia's keepProviderWordTiming apply.
+        result.ownPlatform = result.source !== 'imported' && result.override !== true
         result.offsetMs = readSavedLyricOffset(key)
         if (body.pureMusic === true) {
           result.pureMusic = true
@@ -10857,11 +10936,17 @@ window.__ModuleLoader__.load({
         }
       }
 
-      /** A source with better timing for this song, or nothing. Never awaited by playback. */
-      async function upgrade(track, base) {
+      /**
+       * A source with better timing for this song, or nothing. Never awaited by playback.
+       * `options.only` restricts the search to one source and `options.requireWordLevel` makes
+       * a line-level answer a miss: Folia's `keepProviderWordTiming` asks the preferred source
+       * alone, for word timing or nothing.
+       */
+      async function upgrade(track, base, options) {
         var key = keyOf(track)
         var provider = String(track.onlineProvider || '')
         var wanted = lyricPrefs()
+        var opts = options !== null && typeof options === 'object' ? options : {}
         try {
           var answer = await getJson(
             API +
@@ -10879,6 +10964,8 @@ window.__ModuleLoader__.load({
               encodeURIComponent(String(track.durationSec || 0)) +
               '&preferred=' +
               encodeURIComponent(String(wanted.lyricPreferredSource || '')) +
+              (opts.only === undefined || opts.only === '' ? '' : '&only=' + encodeURIComponent(String(opts.only))) +
+              (opts.requireWordLevel === true ? '&requireWordLevel=1' : '') +
               // Remember the upgrade on the song record: the next play reads it from there.
               '&persist=1',
           )
@@ -10898,6 +10985,8 @@ window.__ModuleLoader__.load({
             base.chorusRanges,
           )
           if (parsed.pureMusic === true || parsed.lyrics.length === 0) return null
+          // A line-level answer is no answer when word timing is what was asked for.
+          if (opts.requireWordLevel === true && parsed.isWordByWord !== true) return null
           var next = Object.assign({}, base, parsed, {
             upgraded: {
               source: String(match.source || ''),
@@ -10915,9 +11004,23 @@ window.__ModuleLoader__.load({
 
       function maybeUpgrade(track, result) {
         if (!track || !track.onlineProvider) return
-        if (lyricPrefs().autoUseBestLyric === false) return
+        var wanted = lyricPrefs()
+        if (wanted.autoUseBestLyric === false) return
         if (result.pureMusic === true || result.source === 'imported') return
         if (result.override === true) return
+        // Folia's `keepProviderWordTiming`: the platform's own word timing is kept over every
+        // source but the preferred one, and only a word-timed answer there replaces it.
+        var preferred = String(wanted.lyricPreferredSource || '')
+        var keepOwn = wanted.lyricKeepProviderWordTiming !== false
+          && result.isWordByWord === true
+          && result.ownPlatform === true
+        if (keepOwn) {
+          // AMLL is looked up under a platform id, so it cannot be asked on its own; the song's
+          // own platform has nothing better to offer than what is already on screen.
+          if (preferred === '' || preferred === 'amll' || preferred === String(track.onlineProvider || '')) return
+          upgrade(track, result, { only: preferred, requireWordLevel: true }).catch(function () {})
+          return
+        }
         // Folia searches even when the platform has no lyric at all: the other sources may, and
         // a full "nothing anywhere" answer still tells the surface to stop looking.
         upgrade(track, result).catch(function () {})
@@ -150303,6 +150406,18 @@ window.__ModuleLoader__.load({
       lyricLocalPriority: 'local',
       /** Folia's `preferredAlternativeLyricSource`: asked first when another source is searched. */
       lyricPreferredSource: 'qq',
+      /**
+       * Folia's `keepProviderWordTiming`: a platform's own word-timed lyric is only replaced by
+       * the preferred source, and only by a word-timed lyric; off, every source competes.
+       */
+      lyricKeepProviderWordTiming: true,
+      /**
+       * Folia's `autoAiLyricSegmentation`, local-edition: split a lyric that has no word timing
+       * with the bundled dictionary once per load. Saved splits are never overwritten.
+       */
+      lyricAutoWordSegmentation: true,
+      /** Folia's device-wide lyric offset, added on top of the per-song one (limited to ±2000 ms). */
+      lyricGlobalOffsetMs: 0,
       /** Folia's `subtitleOverlayBackground`: a soft halo behind the bottom subtitle line. */
       subtitleOverlayBackground: true,
       /** Folia's `localLyricFormatOrder`: which sidecar lyric file wins when several exist. */
@@ -150469,6 +150584,9 @@ window.__ModuleLoader__.load({
       if (!isFinite(fontScale) || fontScale < 0.5 || fontScale > 2) merged.lyricsFontScale = PREF_DEFAULTS.lyricsFontScale
       var transScale = Number(merged.translationScale)
       if (!isFinite(transScale) || transScale < 50 || transScale > 150) merged.translationScale = PREF_DEFAULTS.translationScale
+      var globalOffset = Number(merged.lyricGlobalOffsetMs)
+      if (!isFinite(globalOffset)) globalOffset = PREF_DEFAULTS.lyricGlobalOffsetMs
+      merged.lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Math.round(globalOffset)))
       if (dropped) {
         try {
           window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
@@ -161761,6 +161879,23 @@ window.__ModuleLoader__.load({
       '.mp-sheet-body{overflow-y:auto;padding:20px 48px 28px 22px}',
       '.mp-sheet-body h2{margin:0 0 4px;font-size:14px;line-height:20px;font-weight:650}',
       '.mp-set-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-height:44px;padding:11px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      // 歌词页：Folia 的锚点页签与分组卡片（组标题在卡外，行在卡内）。
+      '.mp-set-anchor{position:sticky;top:0;z-index:3;padding:6px 0 10px;background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:0 1px 0 0 var(--dsw-alias-border-l1,rgba(255,255,255,.07));overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}',
+      '.mp-set-anchor::-webkit-scrollbar{display:none}',
+      '.mp-set-anchor .mp-segment{display:inline-flex;width:max-content}',
+      '.mp-lyric-group{scroll-margin-top:64px}',
+      '.mp-lyric-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',
+      '.mp-lyric-group:first-of-type .mp-lyric-group-head{padding-top:18px}',
+      '.mp-lyric-group .mp-set-card{margin-top:8px}',
+      '.mp-lyric-group .mp-set-card-body{padding:0 14px}',
+      '.mp-lyric-format-fold{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:4px 0 12px;border-top:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
+      '.mp-lyric-format-list{display:flex;flex-direction:column;gap:4px;padding-top:6px}',
+      '.mp-lyric-format-row{display:flex;align-items:center;gap:6px}',
+      '.mp-lyric-format-name{min-width:56px;font-size:12px;line-height:18px;opacity:.8}',
+      '.mp-lyric-format-reset{align-self:flex-start}',
+      '.mp-lyric-offset-value{padding:12px 0;text-align:center;font-size:24px;line-height:32px;font-weight:650;font-variant-numeric:tabular-nums}',
+      '.mp-lyric-offset-hint{text-align:center}',
+      '.mp-lyric-offset-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding-top:4px}',
       '.mp-set-choice-row{display:flex;flex-wrap:wrap;gap:4px}',
       '.mp-set-text{min-width:0;flex:1 1 220px}',
       '.mp-set-label{font-size:13px;line-height:18px;font-weight:500}',
@@ -166024,6 +166159,8 @@ window.__ModuleLoader__.load({
       // when their dependency arrays are built.
       var lyricPriorityKey = (prefs.lyricLocalPriority === 'online' ? 'online' : 'local')
         + '\u0000' + String(prefs.lyricPreferredSource || '')
+        // The own-word-timing rule changes which source the upgrade asks: a change re-reads.
+        + '\u0000' + (prefs.lyricKeepProviderWordTiming !== false ? 'keep-own' : 'all-sources')
 
       useEffect(
         function () {
@@ -166317,7 +166454,8 @@ window.__ModuleLoader__.load({
         [lyricRulesKey],
       )
 
-      var lyricNow = time.currentTime - offsetMs / 1000
+      // The per-song correction plus Folia's device-wide offset: one clock for every surface.
+      var lyricNow = lyricClock(time.currentTime, offsetMs, prefs.lyricGlobalOffsetMs)
       var active = lyricActiveIndex(lyrics, lyricNow)
       var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
       var favorite = track !== null && props.favoriteSet[track.path] === true
@@ -166998,7 +167136,24 @@ window.__ModuleLoader__.load({
       { key: 'about', label: 'settings.tabAbout', glyph: 'info' },
     ]
 
+    // The lyric page's in-page tabs, Folia's order plus the plugin's own group last. Each
+    // one is also the group anchor id in the page (mp-lyric-group-<key>).
+    var LYRIC_GROUP_DEFS = [
+      { key: 'source', labelKey: 'settings.lyricGroupSource' },
+      { key: 'timing', labelKey: 'settings.lyricGroupTiming' },
+      { key: 'segmentation', labelKey: 'settings.lyricGroupSegmentation' },
+      { key: 'format', labelKey: 'settings.lyricGroupFormat' },
+      { key: 'plugin', labelKey: 'settings.lyricGroupPlugin' },
+    ]
 
+    var LYRIC_FORMAT_FALLBACK = ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc']
+    var LYRIC_GLOBAL_OFFSET_LIMIT_MS = 2000
+
+    function clampLyricGlobalOffset(value) {
+      var number = Number(value)
+      if (!isFinite(number)) number = 0
+      return Math.max(-LYRIC_GLOBAL_OFFSET_LIMIT_MS, Math.min(LYRIC_GLOBAL_OFFSET_LIMIT_MS, Math.round(number)))
+    }
 
     function SettingsSheet(props) {
       var prefs = usePrefs()
@@ -167052,6 +167207,23 @@ window.__ModuleLoader__.load({
       var navOpenPair = useState(false)
       var navOpen = navOpenPair[0]
       var setNavOpen = navOpenPair[1]
+      // Lyric page: which group the in-page tabs mark, the folded format order, and the two
+      // windows its rows open (Folia's global offset and the lyric filter).
+      var lyricAnchorPair = useState('source')
+      var lyricAnchor = lyricAnchorPair[0]
+      var setLyricAnchor = lyricAnchorPair[1]
+      var lyricFormatOpenPair = useState(false)
+      var lyricFormatOpen = lyricFormatOpenPair[0]
+      var setLyricFormatOpen = lyricFormatOpenPair[1]
+      var lyricOffsetOpenPair = useState(false)
+      var lyricOffsetOpen = lyricOffsetOpenPair[0]
+      var setLyricOffsetOpen = lyricOffsetOpenPair[1]
+      var lyricOffsetDraftPair = useState(0)
+      var lyricOffsetDraft = lyricOffsetDraftPair[0]
+      var setLyricOffsetDraft = lyricOffsetDraftPair[1]
+      var lyricFilterOpenPair = useState(false)
+      var lyricFilterOpen = lyricFilterOpenPair[0]
+      var setLyricFilterOpen = lyricFilterOpenPair[1]
       var outputPair = useState([])
       var outputDevices = outputPair[0]
       var setOutputDevices = outputPair[1]
@@ -167339,15 +167511,24 @@ window.__ModuleLoader__.load({
         ]
       }
 
-      /** The sidecar lyric formats, reorderable: the first one wins when a track has several. */
-      function lyricFormatOrderList() {
-        var fallback = ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc']
+      /** The listener order of sidecar formats, normalized against the default list. */
+      function lyricFormatOrder() {
         var order = Array.isArray(prefs.lyricFormatOrder) && prefs.lyricFormatOrder.length > 0
           ? prefs.lyricFormatOrder.slice()
-          : fallback.slice()
-        for (var index = 0; index < fallback.length; index += 1) {
-          if (order.indexOf(fallback[index]) < 0) order.push(fallback[index])
+          : LYRIC_FORMAT_FALLBACK.slice()
+        for (var index = 0; index < LYRIC_FORMAT_FALLBACK.length; index += 1) {
+          if (order.indexOf(LYRIC_FORMAT_FALLBACK[index]) < 0) order.push(LYRIC_FORMAT_FALLBACK[index])
         }
+        return order
+      }
+
+      function lyricFormatSummary() {
+        return t('settings.lyricFormatSummary', { format: '.' + lyricFormatOrder()[0] })
+      }
+
+      /** The sidecar lyric formats, reorderable: the first one wins when a track has several. */
+      function lyricFormatOrderRows() {
+        var order = lyricFormatOrder()
         function move(from, delta) {
           var target = from + delta
           if (from < 0 || target < 0 || from >= order.length || target >= order.length) return
@@ -167358,12 +167539,12 @@ window.__ModuleLoader__.load({
         }
         return h(
           'div',
-          { style: { display: 'flex', flexDirection: 'column', gap: '4px' } },
+          { className: 'mp-lyric-format-list' },
           order.map(function (format, index) {
             return h(
               'div',
-              { key: format, style: { display: 'flex', alignItems: 'center', gap: '6px' } },
-              h('span', { style: { minWidth: '56px', fontSize: '12px', opacity: '.8' } }, format.toUpperCase()),
+              { key: format, className: 'mp-lyric-format-row' },
+              h('span', { className: 'mp-lyric-format-name' }, format.toUpperCase()),
               index > 0 ? mpSmallButton('\u2191', function () { move(index, -1) }) : null,
               index < order.length - 1 ? mpSmallButton('\u2193', function () { move(index, 1) }) : null,
             )
@@ -167371,18 +167552,230 @@ window.__ModuleLoader__.load({
         )
       }
 
+      /** One lyric group: Folia's heading + card, with an anchor id for the in-page tabs. */
+      function lyricGroup(key, rows) {
+        var def = null
+        for (var index = 0; index < LYRIC_GROUP_DEFS.length; index += 1) {
+          if (LYRIC_GROUP_DEFS[index].key === key) def = LYRIC_GROUP_DEFS[index]
+        }
+        if (def === null) return null
+        return h(
+          'section',
+          {
+            key: 'lyric-group-' + key,
+            id: 'mp-lyric-group-' + key,
+            className: 'mp-lyric-group',
+            'data-lyric-anchor': key,
+          },
+          h('div', { className: 'mp-lyric-group-head' }, h('span', { className: 'mp-set-label' }, t(def.labelKey))),
+          h('div', { className: 'mp-set-card' }, h('div', { className: 'mp-set-card-body' }, rows)),
+        )
+      }
+
+      function jumpToLyricGroup(key) {
+        setLyricAnchor(key)
+        if (typeof document === 'undefined') return
+        var node = document.getElementById('mp-lyric-group-' + key)
+        if (node && typeof node.scrollIntoView === 'function') node.scrollIntoView({ block: 'start', behavior: 'smooth' })
+      }
+
+      /** The in-page tabs jump to a group; the scroll listener keeps the mark on the group in view. */
+      function lyricAnchorTabs() {
+        return h('div', { key: 'lyric-anchors', className: 'mp-set-anchor' },
+          h(KitSegmentedTabs, {
+            items: LYRIC_GROUP_DEFS.map(function (def) {
+              return { value: def.key, label: t(def.labelKey), id: 'mp-lyric-tab-' + def.key, panelId: 'mp-lyric-group-' + def.key }
+            }),
+            value: lyricAnchor,
+            size: 'sm',
+            label: t('v2.lyrics'),
+            onChange: function (key) { jumpToLyricGroup(key) },
+          }),
+        )
+      }
+
+      function onSheetScroll(event) {
+        if (tab !== 'lyrics') return
+        var body = event && event.currentTarget
+        if (body === null || body === undefined || typeof body.getBoundingClientRect !== 'function') return
+        var line = body.getBoundingClientRect().top + 56
+        var next = LYRIC_GROUP_DEFS[0].key
+        for (var index = 0; index < LYRIC_GROUP_DEFS.length; index += 1) {
+          var key = LYRIC_GROUP_DEFS[index].key
+          var node = typeof document !== 'undefined' ? document.getElementById('mp-lyric-group-' + key) : null
+          if (node && node.getBoundingClientRect().top <= line) next = key
+        }
+        if (next !== lyricAnchor) setLyricAnchor(next)
+      }
+
+      function currentLyricGlobalOffset() {
+        return clampLyricGlobalOffset(prefs.lyricGlobalOffsetMs)
+      }
+
+      function formatLyricOffset(value) {
+        var number = clampLyricGlobalOffset(value)
+        return (number > 0 ? '+' : '') + number + ' ms'
+      }
+
+      function adjustLyricOffsetDraft(delta) {
+        setLyricOffsetDraft(clampLyricGlobalOffset(lyricOffsetDraft + delta))
+      }
+
       function lyricsTab() {
-        // The two typography rows are the multipliers every Folia style reads. The px
-        // controls of the removed classic lyric list (字体大小/歌词间距) and its CSS-only
-        // switches (对齐/模糊) left with it; see A_other/docs/踩坑记录.md.
+        // Folia's lyric page: 歌词来源 / 时间与过滤 / 分词 / 本地歌词文件格式优先级, plus the
+        // plugin's own display controls in 插件. Every group is also an in-page tab anchor.
         var lyricStyleId = typeof mpStyleIdOf === 'function' ? mpStyleIdOf(prefs.lyricStyle) : String(prefs.lyricStyle || '')
         // 莫奈 and 静止 paint their own translation row instead of Folia's shared subtitle
         // overlay, so the subtitle-background switch cannot do anything there.
         var subtitleBackgroundApplies = lyricStyleId !== 'monet' && lyricStyleId !== 'still'
         var fontScale = Math.round((Number(prefs.lyricsFontScale) || 1) * 100)
         var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
-        return [      h('h2', { key: 'h' }, t('v2.lyrics')),
-          h('div', { key: 'display-head', className: 'mp-set-label' }, t('settings.groupLyricDisplay')),
+        var localPriority = prefs.lyricLocalPriority === 'online' ? 'online' : 'local'
+        var preferredSource = String(prefs.lyricPreferredSource || 'qq')
+        var globalOffset = currentLyricGlobalOffset()
+
+        var sourceRows = [
+          h(
+            SetRow,
+            {
+              key: 'auto-best',
+              label: t('settings.lyricAutoBest'),
+              desc: t(prefs.autoUseBestLyric === false ? 'settings.lyricAutoBestOff' : 'settings.lyricAutoBestDesc'),
+            },
+            h(Switch, {
+              value: prefs.autoUseBestLyric !== false,
+              onChange: function (value) {
+                patchPrefs({ autoUseBestLyric: value })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            { key: 'match-priority', label: t('settings.lyricMatchPriority'), desc: t('settings.lyricMatchPriorityDesc') },
+            h(KitSelect, {
+              value: preferredSource,
+              label: t('settings.lyricMatchPriority'),
+              options: [
+                { value: 'qq', label: t('lyricSource.qq') },
+                { value: 'netease', label: t('lyricSource.netease') },
+                { value: 'amll', label: t('lyricSource.amll') },
+                { value: 'kugouLite', label: t('lyricSource.kugouLite') },
+                { value: 'qishui', label: t('lyricSource.qishui') },
+              ],
+              onChange: function (value) {
+                patchPrefs({ lyricPreferredSource: String(value) })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            {
+              key: 'keep-provider-word-timing',
+              label: t('settings.lyricKeepProviderWordTiming'),
+              desc: t('settings.lyricKeepProviderWordTimingDesc'),
+            },
+            h(Switch, {
+              value: prefs.lyricKeepProviderWordTiming !== false,
+              onChange: function (value) {
+                patchPrefs({ lyricKeepProviderWordTiming: value })
+              },
+            }),
+          ),
+          h(
+            SetRow,
+            {
+              key: 'local-priority',
+              label: t('settings.lyricLocalPriority'),
+              desc: t(localPriority === 'online'
+                ? 'settings.lyricLocalPriorityOnlineDesc'
+                : 'settings.lyricLocalPriorityLocalDesc'),
+            },
+            h(KitSegmented, {
+              id: 'mp-lyric-local-priority',
+              value: localPriority,
+              label: t('settings.lyricLocalPriority'),
+              options: [
+                { value: 'local', label: t('settings.lyricLocalPriorityLocal') },
+                { value: 'online', label: t('settings.lyricLocalPriorityOnline') },
+              ],
+              onChange: function (value) {
+                patchPrefs({ lyricLocalPriority: String(value) })
+              },
+            }),
+          ),
+        ]
+
+        var timingRows = [
+          h(
+            SetRow,
+            { key: 'global-offset', label: t('settings.lyricGlobalOffset'), desc: t('settings.lyricGlobalOffsetDesc') },
+            h('span', { className: 'mp-set-val' }, formatLyricOffset(globalOffset)),
+            h(Button, {
+              variant: 'ghost',
+              onClick: function () {
+                setLyricOffsetDraft(globalOffset)
+                setLyricOffsetOpen(true)
+              },
+            }, t('settings.lyricGlobalOffsetAdjust')),
+          ),
+          h(
+            SetRow,
+            { key: 'filter', label: t('settings.lyricFilter'), desc: t('settings.lyricFilterDesc') },
+            h(Button, {
+              variant: 'ghost',
+              onClick: function () {
+                setLyricFilterOpen(true)
+              },
+            }, t('settings.lyricFilterEdit')),
+          ),
+        ]
+
+        var segmentationRows = [
+          h(
+            SetRow,
+            {
+              key: 'auto-segmentation',
+              label: t('settings.lyricSegmentationAuto'),
+              desc: t('settings.lyricSegmentationAutoDesc'),
+            },
+            h(Switch, {
+              value: prefs.lyricAutoWordSegmentation !== false,
+              onChange: function (value) {
+                patchPrefs({ lyricAutoWordSegmentation: value })
+              },
+            }),
+          ),
+        ]
+
+        var formatRows = [
+          h(
+            SetRow,
+            { key: 'format-order', label: t('settings.lyricFormatOrder'), desc: t('settings.lyricFormatOrderDesc') },
+            h('span', { className: 'mp-set-val' }, lyricFormatSummary()),
+            h(Button, {
+              variant: 'ghost',
+              onClick: function () {
+                setLyricFormatOpen(!lyricFormatOpen)
+              },
+            }, t(lyricFormatOpen ? 'settings.lyricFormatCollapse' : 'settings.lyricFormatExpand')),
+          ),
+          lyricFormatOpen
+            ? h(
+                'div',
+                { key: 'format-rows', className: 'mp-lyric-format-fold' },
+                lyricFormatOrderRows(),
+                h(Button, {
+                  variant: 'ghost',
+                  className: 'mp-lyric-format-reset',
+                  onClick: function () {
+                    patchPrefs({ lyricFormatOrder: LYRIC_FORMAT_FALLBACK.slice() })
+                  },
+                }, t('settings.lyricFormatReset')),
+              )
+            : null,
+        ]
+
+        var pluginRows = [
           h(
             SetRow,
             { key: 'tr', label: t('page.translation') },
@@ -167405,30 +167798,6 @@ window.__ModuleLoader__.load({
               disabled: !subtitleBackgroundApplies,
               onChange: function (value) {
                 patchPrefs({ subtitleOverlayBackground: value })
-              },
-            }),
-          ),
-          h(
-            SetRow,
-            { key: 'composer-lyrics', label: t('settings.composerLyrics') },
-            h(Switch, {
-              value: prefs.composerLyrics === true,
-              onChange: function (value) {
-                patchPrefs({ composerLyrics: value })
-              },
-            }),
-          ),
-          h(
-            SetRow,
-            {
-              key: 'composer-translation',
-              label: t('settings.composerTranslation'),
-              desc: t('settings.composerTranslationDesc'),
-            },
-            h(Switch, {
-              value: prefs.composerTranslation !== false,
-              onChange: function (value) {
-                patchPrefs({ composerTranslation: value })
               },
             }),
           ),
@@ -167464,98 +167833,175 @@ window.__ModuleLoader__.load({
             }),
             h('span', { className: 'mp-set-val' }, translationScale + '%'),
           ),
-          h('div', { key: 'source-head', className: 'mp-set-label' }, t('settings.groupLyricSource')),
           h(
             SetRow,
-            { key: 'local-priority', label: t('settings.lyricLocalPriority'), desc: t('settings.lyricLocalPriorityDesc') },
-            h(KitSelect, {
-              value: prefs.lyricLocalPriority === 'online' ? 'online' : 'local',
-              label: t('settings.lyricLocalPriority'),
-              options: [
-                { value: 'local', label: t('settings.lyricLocalPriorityLocal') },
-                { value: 'online', label: t('settings.lyricLocalPriorityOnline') },
-              ],
-              onChange: function (value) {
-                patchPrefs({ lyricLocalPriority: String(value) })
-              },
-            }),
-          ),
-          h(
-            SetRow,
-            { key: 'preferred-source', label: t('settings.lyricPreferredSource'), desc: t('settings.lyricPreferredSourceDesc') },
-            h(KitSelect, {
-              value: prefs.lyricPreferredSource || 'qq',
-              label: t('settings.lyricPreferredSource'),
-              options: [
-                { value: 'qq', label: 'QQ Music' },
-                { value: 'netease', label: 'NetEase Cloud Music' },
-                { value: 'amll', label: 'AMLLDB' },
-                { value: 'kugouLite', label: 'KuGou' },
-                { value: 'qishui', label: 'Qishui' },
-              ],
-              onChange: function (value) {
-                patchPrefs({ lyricPreferredSource: String(value) })
-              },
-            }),
-          ),
-          h(
-            'div',
-            {
-              key: 'format-order',
-              style: { display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px 0 4px' },
-            },
-            h('div', { className: 'mp-set-label' }, t('settings.lyricFormatOrder')),
-            h('div', { className: 'mp-set-desc' }, t('settings.lyricFormatOrderDesc')),
-            lyricFormatOrderList(),
-          ),
-          h('div', { key: 'filter-head', className: 'mp-set-label' }, t('settings.groupLyricFilter')),
-          h(
-            SetRow,
-            { key: 'filter-copyright', label: t('settings.lyricFilterCopyright'), desc: t('settings.lyricFilterCopyrightDesc') },
+            { key: 'composer-lyrics', label: t('settings.composerLyrics') },
             h(Switch, {
-              value: lyricFilterPresets().indexOf('copyright') >= 0,
+              value: prefs.composerLyrics === true,
               onChange: function (value) {
-                toggleLyricFilterPreset('copyright', value)
-              },
-            }),
-          ),
-          h(
-            SetRow,
-            { key: 'filter-source', label: t('settings.lyricFilterSource') },
-            h(Switch, {
-              value: lyricFilterPresets().indexOf('lyricSource') >= 0,
-              onChange: function (value) {
-                toggleLyricFilterPreset('lyricSource', value)
-              },
-            }),
-          ),
-          h(
-            SetRow,
-            { key: 'filter-words', label: t('settings.lyricFilterWords'), desc: t('settings.lyricFilterWordsDesc') },
-            h(KitInput, {
-              value: String(prefs.lyricFilterWords || ''),
-              placeholder: t('settings.lyricFilterWordsPlaceholder'),
-              label: t('settings.lyricFilterWords'),
-              onChange: function (value) {
-                patchPrefs({ lyricFilterWords: value })
+                patchPrefs({ composerLyrics: value })
               },
             }),
           ),
           h(
             SetRow,
             {
-              key: 'auto-best-lyric',
-              label: t('settings.lyricAutoBest'),
-              desc: t(prefs.autoUseBestLyric === false ? 'settings.lyricAutoBestOff' : 'settings.lyricAutoBestDesc'),
+              key: 'composer-translation',
+              label: t('settings.composerTranslation'),
+              desc: t('settings.composerTranslationDesc'),
             },
             h(Switch, {
-              value: prefs.autoUseBestLyric !== false,
+              value: prefs.composerTranslation !== false,
               onChange: function (value) {
-                patchPrefs({ autoUseBestLyric: value })
+                patchPrefs({ composerTranslation: value })
               },
             }),
           ),
         ]
+
+        return [
+          h('h2', { key: 'h' }, t('v2.lyrics')),
+          lyricAnchorTabs(),
+          lyricGroup('source', sourceRows),
+          lyricGroup('timing', timingRows),
+          lyricGroup('segmentation', segmentationRows),
+          lyricGroup('format', formatRows),
+          lyricGroup('plugin', pluginRows),
+          lyricOffsetDialog(),
+          lyricFilterDialog(),
+        ]
+      }
+
+      /** Folia's global lyric offset window: a draft, ±50 / ±10 steps, then Apply. */
+      function lyricOffsetDialog() {
+        if (!lyricOffsetOpen) return null
+        var applied = currentLyricGlobalOffset()
+        var draft = clampLyricGlobalOffset(lyricOffsetDraft)
+        return h(
+          KitModal,
+          {
+            key: 'lyric-offset',
+            title: t('settings.lyricOffsetTitle'),
+            small: true,
+            onClose: function () {
+              setLyricOffsetOpen(false)
+            },
+            footer: [
+              h(Button, {
+                key: 'cancel',
+                variant: 'ghost',
+                onClick: function () {
+                  setLyricOffsetOpen(false)
+                },
+              }, t('page.cancel')),
+              h(Button, {
+                key: 'apply',
+                variant: 'primary',
+                disabled: draft === applied,
+                onClick: function () {
+                  patchPrefs({ lyricGlobalOffsetMs: draft })
+                  setLyricOffsetOpen(false)
+                },
+              }, t('settings.lyricOffsetApply')),
+            ],
+          },
+          h(
+            'div',
+            { className: 'mp-kit-body' },
+            h('p', { className: 'mp-set-desc' }, t('settings.lyricOffsetSubtitle')),
+            h('div', { className: 'mp-lyric-offset-value' }, formatLyricOffset(draft)),
+            h('p', { className: 'mp-set-desc mp-lyric-offset-hint' }, t(
+              draft === 0
+                ? 'settings.lyricOffsetNeutral'
+                : draft > 0
+                  ? 'settings.lyricOffsetLater'
+                  : 'settings.lyricOffsetEarlier',
+            )),
+            h(
+              'div',
+              { className: 'mp-lyric-offset-actions' },
+              [-50, -10, 10, 50].map(function (step) {
+                return h(Button, {
+                  key: 'step-' + String(step),
+                  variant: 'ghost',
+                  onClick: function () {
+                    adjustLyricOffsetDraft(step)
+                  },
+                }, (step > 0 ? '+' : '') + String(step))
+              }),
+              h(Button, {
+                key: 'reset',
+                variant: 'ghost',
+                disabled: draft === 0,
+                onClick: function () {
+                  setLyricOffsetDraft(0)
+                },
+              }, t('settings.lyricOffsetReset')),
+            ),
+          ),
+        )
+      }
+
+      /** The lyric filter window: the two ready-made line presets plus free words. */
+      function lyricFilterDialog() {
+        if (!lyricFilterOpen) return null
+        return h(
+          KitModal,
+          {
+            key: 'lyric-filter',
+            title: t('settings.lyricFilter'),
+            small: true,
+            onClose: function () {
+              setLyricFilterOpen(false)
+            },
+            footer: [
+              h(Button, {
+                key: 'done',
+                variant: 'primary',
+                onClick: function () {
+                  setLyricFilterOpen(false)
+                },
+              }, t('page.done')),
+            ],
+          },
+          h(
+            'div',
+            { className: 'mp-kit-body' },
+            h('p', { className: 'mp-set-desc' }, t('settings.lyricFilterDialogHint')),
+            h(
+              SetRow,
+              { key: 'filter-copyright', label: t('settings.lyricFilterCopyright'), desc: t('settings.lyricFilterCopyrightDesc') },
+              h(Switch, {
+                value: lyricFilterPresets().indexOf('copyright') >= 0,
+                onChange: function (value) {
+                  toggleLyricFilterPreset('copyright', value)
+                },
+              }),
+            ),
+            h(
+              SetRow,
+              { key: 'filter-source', label: t('settings.lyricFilterSource') },
+              h(Switch, {
+                value: lyricFilterPresets().indexOf('lyricSource') >= 0,
+                onChange: function (value) {
+                  toggleLyricFilterPreset('lyricSource', value)
+                },
+              }),
+            ),
+            h(
+              SetRow,
+              { key: 'filter-words', label: t('settings.lyricFilterWords'), desc: t('settings.lyricFilterWordsDesc') },
+              h(KitInput, {
+                value: String(prefs.lyricFilterWords || ''),
+                placeholder: t('settings.lyricFilterWordsPlaceholder'),
+                label: t('settings.lyricFilterWords'),
+                onChange: function (value) {
+                  patchPrefs({ lyricFilterWords: value })
+                },
+              }),
+            ),
+          ),
+        )
       }
 
       function playbackTab() {
@@ -168554,7 +169000,18 @@ window.__ModuleLoader__.load({
                   },
                   icon('x', 16),
                 ),
-                h('div', { key: 'body', className: 'mp-sheet-body' }, body, resetDialog()),
+                h(
+                  'div',
+                  {
+                    key: 'body',
+                    className: 'mp-sheet-body',
+                    onScroll: function (event) {
+                      onSheetScroll(event)
+                    },
+                  },
+                  body,
+                  resetDialog(),
+                ),
               ],
         ),
       )
@@ -177830,7 +178287,11 @@ window.__ModuleLoader__.load({
       )
 
       if (prefs.composerLyrics !== true || track === null) return null
-      var index = lyricActiveIndex(lines, time.currentTime)
+      // Same clock as the player page: the song's saved correction plus the global offset.
+      var index = lyricActiveIndex(
+        lines,
+        lyricClock(time.currentTime, readSavedLyricOffset(trackPath), prefs.lyricGlobalOffsetMs),
+      )
       var line = index >= 0 ? lines[index] : null
       return h(
         'div',

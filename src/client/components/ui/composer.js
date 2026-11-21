@@ -120,7 +120,11 @@ function ComposerLyrics() {
   )
 
   if (prefs.composerLyrics !== true || track === null) return null
-  var index = lyricActiveIndex(lines, time.currentTime)
+  // Same clock as the player page: the song's saved correction plus the global offset.
+  var index = lyricActiveIndex(
+    lines,
+    lyricClock(time.currentTime, readSavedLyricOffset(trackPath), prefs.lyricGlobalOffsetMs),
+  )
   var line = index >= 0 ? lines[index] : null
   return h(
     'div',
