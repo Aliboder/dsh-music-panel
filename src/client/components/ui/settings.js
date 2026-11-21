@@ -389,6 +389,15 @@ function SettingsSheet(props) {
   }
 
   function lyricsTab() {
+    // The two typography rows are the multipliers every Folia style reads. The px
+    // controls of the removed classic lyric list (字体大小/歌词间距) and its CSS-only
+    // switches (对齐/模糊) left with it; see A_other/docs/踩坑记录.md.
+    var lyricStyleId = typeof mpStyleIdOf === 'function' ? mpStyleIdOf(prefs.lyricStyle) : String(prefs.lyricStyle || '')
+    // 莫奈 and 静止 paint their own translation row instead of Folia's shared subtitle
+    // overlay, so the subtitle-background switch cannot do anything there.
+    var subtitleBackgroundApplies = lyricStyleId !== 'monet' && lyricStyleId !== 'still'
+    var fontScale = Math.round((Number(prefs.lyricsFontScale) || 1) * 100)
+    var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
     return [      h('h2', { key: 'h' }, t('v2.lyrics')),
       h('div', { key: 'display-head', className: 'mp-set-label' }, t('settings.groupLyricDisplay')),
       h(
@@ -406,10 +415,11 @@ function SettingsSheet(props) {
         {
           key: 'subtitle-bg',
           label: t('settings.subtitleOverlayBackground'),
-          desc: t('settings.subtitleOverlayBackgroundDesc'),
+          desc: t(subtitleBackgroundApplies ? 'settings.subtitleOverlayBackgroundDesc' : 'settings.subtitleOverlayBackgroundUnsupported'),
         },
         h(Switch, {
           value: prefs.subtitleOverlayBackground !== false,
+          disabled: !subtitleBackgroundApplies,
           onChange: function (value) {
             patchPrefs({ subtitleOverlayBackground: value })
           },
@@ -441,51 +451,35 @@ function SettingsSheet(props) {
       ),
       h(
         SetRow,
-        { key: 'size', label: t('page.lyricSize') },
+        { key: 'font-scale', label: t('settings.lyricFontScale'), desc: t('settings.lyricFontScaleDesc') },
         h('input', {
           type: 'range',
           className: 'mp-range',
-          min: 14,
-          max: 40,
-          step: 1,
-          value: prefs.lyricSize,
-          onChange: function (event) {
-            patchPrefs({ lyricSize: Number(event.target.value) })
-          },
-        }),
-        h('span', { className: 'mp-set-val' }, String(prefs.lyricSize) + ' px'),
-      ),
-      h(
-        SetRow,
-        { key: 'gap', label: t('page.lyricGap') },
-        h('input', {
-          type: 'range',
-          className: 'mp-range',
-          min: 2,
-          max: 16,
-          step: 1,
-          value: Number(prefs.lyricGap) || 15,
-          onChange: function (event) {
-            patchPrefs({ lyricGap: Number(event.target.value) })
-          },
-        }),
-        h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 15) + ' px'),
-      ),
-      h(
-        SetRow,
-        { key: 'scale', label: t('page.translationScale') },
-        h('input', {
-          type: 'range',
-          className: 'mp-range',
-          min: 60,
-          max: 100,
+          min: 70,
+          max: 150,
           step: 5,
-          value: prefs.translationScale,
+          value: fontScale,
+          onChange: function (event) {
+            patchPrefs({ lyricsFontScale: Number(event.target.value) / 100 })
+          },
+        }),
+        h('span', { className: 'mp-set-val' }, fontScale + '%'),
+      ),
+      h(
+        SetRow,
+        { key: 'scale', label: t('page.translationScale'), desc: t('settings.translationScaleDesc') },
+        h('input', {
+          type: 'range',
+          className: 'mp-range',
+          min: 50,
+          max: 150,
+          step: 5,
+          value: translationScale,
           onChange: function (event) {
             patchPrefs({ translationScale: Number(event.target.value) })
           },
         }),
-        h('span', { className: 'mp-set-val' }, String(prefs.translationScale) + '%'),
+        h('span', { className: 'mp-set-val' }, translationScale + '%'),
       ),
       h('div', { key: 'source-head', className: 'mp-set-label' }, t('settings.groupLyricSource')),
       h(
@@ -530,32 +524,6 @@ function SettingsSheet(props) {
         h('div', { className: 'mp-set-label' }, t('settings.lyricFormatOrder')),
         h('div', { className: 'mp-set-desc' }, t('settings.lyricFormatOrderDesc')),
         lyricFormatOrderList(),
-      ),
-      h(
-        SetRow,
-        { key: 'blur', label: t('page.lyricBlur') },
-        h(Switch, {
-          value: prefs.lyricBlur === true,
-          onChange: function (value) {
-            patchPrefs({ lyricBlur: value })
-          },
-        }),
-      ),
-      h(
-        SetRow,
-        { key: 'align', label: t('settings.lyricAlign') },
-        h(KitSelect, {
-          value: prefs.lyricAlign || 'left',
-          label: t('settings.lyricAlign'),
-          options: [
-            { value: 'center', label: t('settings.alignCenter') },
-            { value: 'left', label: t('settings.alignLeft') },
-            { value: 'right', label: t('settings.alignRight') },
-          ],
-          onChange: function (value) {
-            patchPrefs({ lyricAlign: String(value) })
-          },
-        }),
       ),
       h('div', { key: 'filter-head', className: 'mp-set-label' }, t('settings.groupLyricFilter')),
       h(

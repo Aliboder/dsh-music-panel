@@ -390,13 +390,15 @@ function SetRow(props) {
 
 /** Single-line text input. `icon` is a local icon name; `onChange(value)`. */
 /** A small text button shared by the settings sheet and the player sheet. */
-function mpSmallButton(label, onClick) {
+function mpSmallButton(label, onClick, title) {
   return h(
     'button',
     {
       key: 'btn-' + String(label),
       type: 'button',
       onClick: onClick,
+      title: title || undefined,
+      'aria-label': title || undefined,
       style: {
         height: '28px',
         padding: '0 10px',

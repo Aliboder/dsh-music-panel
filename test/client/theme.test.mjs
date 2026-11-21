@@ -16,7 +16,6 @@ const uiFiles = [
   'eq-panel.js',
   'now-playing/fullscreen.js',
   'now-playing/lyrics-timing.js',
-  'now-playing/lyrics-scroll.js',
   'now-playing/cover-accent.js',
   'now-playing/seek-bar.js',
   'now-playing/transport-pill.js',
@@ -136,9 +135,12 @@ assert.match(theme, /\.mp-np-bg\.is-ambient \.mp-np-bg-drift\{[^']*animation:mp-
 assert.match(theme, /\.mp-np-bg\.is-ambient img\.is-echo\{[^']*animation:mp-ambient-echo/, 'echo animation is gated on is-ambient')
 assert.doesNotMatch(theme, /\.mp-np-bg img\.is-echo\{[^}]*animation:/, 'echo does not animate while the backdrop is off')
 
-// The lyric footer buttons follow the chosen lyric alignment.
-assert.match(theme, /\.mp-align-center \.mp-np-lyric-foot\{justify-content:center\}/, 'footer follows the lyric alignment')
-assert.match(theme, /\.mp-align-right \.mp-np-lyric-foot\{justify-content:flex-end\}/, 'right alignment ends the footer')
+// The classic lyric list is gone: its alignment/blur/translation hooks styled markup no
+// renderer emits any more, so they must not come back (A_other/docs/踩坑记录.md).
+assert.doesNotMatch(theme, /\.mp-align-/, 'classic alignment classes are gone')
+assert.doesNotMatch(theme, /\.mp-np\.is-blur/, 'the classic blur class is gone')
+assert.doesNotMatch(theme, /--mp-lyric-size|--mp-lyric-trans|--mp-line-gap/, 'the classic lyric CSS variables are gone')
+assert.match(theme, /\.mp-np-line-text\{font-size:26px/, 'the plain fallback keeps a readable fixed size')
 
 // The editor becomes a three-column tablet layout on wide screens.
 assert.match(theme, /@media \(min-width:1000px\)\{[^']*\.mp-npe-body\{[^']*display:grid/, 'tablet editor grid')

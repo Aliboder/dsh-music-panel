@@ -283,6 +283,14 @@ function FoliaPendoloStage(props) {
     currentLineIndex = lines.length === 0 ? -1 : mapped
   }
   var seed = typeof props.seed === 'string' && props.seed !== '' ? props.seed : 'pendolo'
+  // The style host used to hardcode these three, so 字号 / 翻译缩放 / 翻译开关 did nothing
+  // while 时计 was the style on screen. Read them the same way folia-styles.js does.
+  var prefs = props.prefs || {}
+  var lyricsFontScale = Number(prefs.lyricsFontScale)
+  if (!isFinite(lyricsFontScale) || lyricsFontScale <= 0) lyricsFontScale = 1
+  var translationScale = Number(prefs.translationScale)
+  if (!isFinite(translationScale) || translationScale <= 0) translationScale = 90
+  var showTranslation = prefs.showTranslation !== false
   var foliaProps = {
     // Folia's entry remounts the renderer per song (`key={props.seed}`); the rail's
     // scroll anchor and the clockwork's cover must not survive a track change.
@@ -296,11 +304,11 @@ function FoliaPendoloStage(props) {
     audioBands: bandsRef.current,
     showText: true,
     subtitleContentMode: 'translation',
-    showSubtitleTranslation: true,
-    lyricsFontScale: 1,
-    subtitleFontScale: 1,
-    subtitleOverlayBackground: !(props.prefs && props.prefs.subtitleOverlayBackground === false),
-    hideTranslationSubtitle: false,
+    showSubtitleTranslation: showTranslation,
+    lyricsFontScale: lyricsFontScale,
+    subtitleFontScale: translationScale / 100,
+    subtitleOverlayBackground: prefs.subtitleOverlayBackground !== false,
+    hideTranslationSubtitle: !showTranslation,
     isPlayerChromeHidden: false,
     isPreviewMode: false,
     paused: snapshot.playing !== true,

@@ -32,11 +32,8 @@ function NpEditor(props) {
 
   function resetDefaults() {
     setPrefs({
-      lyricSize: 35,
-      lyricGap: 15,
+      lyricsFontScale: 1,
       translationScale: 90,
-      lyricAlign: 'left',
-      lyricBlur: true,
       waveEnabled: true,
       showTranslation: true,
       lyricLocalPriority: 'local',
@@ -102,15 +99,17 @@ function NpEditor(props) {
   }
 
   function previewCard() {
-    var align = prefs.lyricAlign || 'left'
-    var size = Number(prefs.lyricSize) || 35
-    var scale = Math.max(0.5, Math.min(1, (Number(prefs.translationScale) || 100) / 100))
-    var activeSize = Math.max(13, Math.round(size * 0.5))
-    var sideSize = Math.max(12, Math.round(size * 0.42))
-    var transSize = Math.max(11, Math.round(size * 0.42 * scale))
+    // The preview is a schematic of the player page: it shows the two multipliers the
+    // settings actually drive, not the styles' own per-line layout.
+    var fontScale = Math.min(2, Math.max(0.5, Number(prefs.lyricsFontScale) || 1))
+    var scale = Math.min(1.5, Math.max(0.5, (Number(prefs.translationScale) || 90) / 100))
+    var size = 16 * fontScale
+    var activeSize = Math.max(13, Math.round(size * 1.05))
+    var sideSize = Math.max(12, Math.round(size * 0.86))
+    var transSize = Math.max(11, Math.round(size * 0.86 * scale))
     return h(
       'div',
-      { className: 'mp-npe-preview' + (prefs.lyricBlur === true ? ' is-blur' : '') },
+      { className: 'mp-npe-preview' },
       h(
         'div',
         { className: 'mp-npe-preview-stage' },
@@ -133,7 +132,7 @@ function NpEditor(props) {
           ),
           h(
             'div',
-            { className: 'mp-npe-preview-text', style: { textAlign: align } },
+            { className: 'mp-npe-preview-text' },
             h('div', { className: 'mp-npe-preview-title' }, title || t('editor.sampleTitle')),
             artist !== '' ? h('div', { className: 'mp-npe-preview-artist' }, artist) : null,
             h(
@@ -248,52 +247,31 @@ function NpEditor(props) {
           'div',
           { className: 'mp-npe-section is-type' },
           sectionHead(t('editor.type')),
-          rangeRow(t('page.lyricSize'), prefs.lyricSize || 25, 14, 40, 1, ' px', function (value) {
-            setPrefs({ lyricSize: value })
-          }),
-          rangeRow(t('page.lyricGap'), Number(prefs.lyricGap) || 10, 2, 16, 1, ' px', function (value) {
-            setPrefs({ lyricGap: value })
-          }),
+          rangeRow(
+            t('settings.lyricFontScale'),
+            Math.round((Number(prefs.lyricsFontScale) || 1) * 100),
+            70,
+            150,
+            5,
+            '%',
+            function (value) {
+              setPrefs({ lyricsFontScale: value / 100 })
+            },
+            t('settings.lyricFontScaleDesc'),
+          ),
           rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 60, 12, 96, 4, ' px', function (value) {
             setPrefs({ npPaneGap: value })
           }, t('editor.paneGapHint')),
           rangeRow(
             t('page.translationScale'),
-            prefs.translationScale || 100,
+            Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90))),
             50,
-            100,
+            150,
             5,
             '%',
             function (value) {
               setPrefs({ translationScale: value })
             },
-          ),
-          h(
-            'div',
-            { className: 'mp-npe-row' },
-            h('div', { className: 'mp-npe-range-head' }, h('span', null, t('settings.lyricAlign'))),
-            h(
-              'div',
-              { className: 'mp-npe-seg' },
-              [
-                ['left', 'settings.alignLeft'],
-                ['center', 'settings.alignCenter'],
-                ['right', 'settings.alignRight'],
-              ].map(function (item) {
-                return h(
-                  'button',
-                  {
-                    key: item[0],
-                    type: 'button',
-                    className: cx('mp-npe-seg-btn', (prefs.lyricAlign || 'left') === item[0] && 'is-on'),
-                    onClick: function () {
-                      setPrefs({ lyricAlign: item[0] })
-                    },
-                  },
-                  t(item[1]),
-                )
-              }),
-            ),
           ),
         ),
         h(
@@ -302,9 +280,6 @@ function NpEditor(props) {
           sectionHead(t('editor.display')),
           switchRow(t('page.translation'), prefs.showTranslation === true, function (value) {
             setPrefs({ showTranslation: value })
-          }),
-          switchRow(t('page.lyricBlur'), prefs.lyricBlur === true, function (value) {
-            setPrefs({ lyricBlur: value })
           }),
           switchRow(t('editor.wave'), prefs.waveEnabled !== false, function (value) {
             setPrefs({ waveEnabled: value })

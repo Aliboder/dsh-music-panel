@@ -179,19 +179,6 @@ function attachWordTimeline(lines, wordLines) {
 }
 
 /**
- * Per-word render state for the active line (null when it has no timeline).
- * @returns {Array<{text:string,sung:boolean}>|null}
- */
-function wordSpans(line, atSeconds) {
-  if (!line || !Array.isArray(line.words) || line.words.length === 0) return null
-  var now = Number(atSeconds)
-  if (!isFinite(now)) return null
-  return line.words.map(function (word) {
-    var at = isFinite(Number(word.startTime)) ? Number(word.startTime) : Number(word.t)
-    return { text: word.text, sung: now >= at - 0.02 }
-  })
-}
-/**
  * Folia's `Line` is the player's lyric line, exactly as the parser produced it.
  *
  * Folia's own app keeps `LyricData.lines` in the store and hands those very objects

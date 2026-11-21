@@ -216,6 +216,35 @@ internals.onlineStore.set({ providers: { navidrome: { loggedIn: true, capabiliti
 assert.ok(internals.p3Tabs('navidrome').indexOf('albums') >= 0, 'Navidrome exposes its album browse tab')
 assert.ok(internals.p3Tabs('navidrome').indexOf('artists') >= 0, 'Navidrome exposes its artist browse tab')
 
+// 歌词设置：字号是倍率滑杆，翻译缩放是百分比滑杆；拖动必须真的写进偏好。
+{
+  const sheet = internals.SettingsSheet({ open: true, initialTab: 'lyrics' })
+  const tree = expand(sheet)
+  const text = textOf(tree)
+  assert.ok(text.includes('歌词字号'), 'the lyric tab shows the font multiplier row')
+  assert.ok(text.includes('翻译字体缩放'), 'the lyric tab shows the translation scale row')
+  assert.ok(!text.includes('歌词间距'), 'the dead line-spacing row is gone')
+  assert.ok(!text.includes('模糊非当前歌词'), 'the dead blur row is gone')
+  assert.ok(!text.includes('歌词对齐方式'), 'the dead alignment row is gone')
+  const ranges = []
+  walk(tree, (node) => {
+    if (node.type === 'input' && node.props && node.props.type === 'range') ranges.push(node)
+  })
+  const fontRange = ranges.find((node) => node.props.min === 70 && node.props.max === 150)
+  assert.ok(fontRange, 'the font-size row is a 70–150% slider')
+  fontRange.props.onChange({ target: { value: '120' } })
+  assert.equal(internals.prefsStore.get().lyricsFontScale, 1.2, 'dragging it writes the multiplier')
+  const transRange = ranges.find((node) => node.props.min === 50 && node.props.max === 150)
+  assert.ok(transRange, 'the translation row is a 50–150% slider')
+  transRange.props.onChange({ target: { value: '120' } })
+  assert.equal(internals.prefsStore.get().translationScale, 120, 'dragging it writes the percentage')
+  assert.ok(text.includes('不受这个开关影响'), '莫奈 explains why the subtitle background does nothing here')
+  internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { lyricStyle: 'tilt' }))
+  const tiltText = textOf(expand(internals.SettingsSheet({ open: true, initialTab: 'lyrics' })))
+  assert.ok(tiltText.includes('为底部歌词加一层随主题的柔和背景'), 'a subtitle-overlay style keeps the normal description')
+  internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { lyricStyle: 'monet', lyricsFontScale: 1, translationScale: 90 }))
+}
+
 // The source menu must not list local twice, and must not grow after the provider
 // metadata arrives: known platforms are placeholders while the request is in flight.
 {

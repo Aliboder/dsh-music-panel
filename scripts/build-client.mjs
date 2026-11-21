@@ -175,6 +175,8 @@ ${body}
           AudioEffectsPanel: AudioEffectsPanel,
           // The player card renders in tests so a missing pane cannot ship silently.
           PlayerSheet: PlayerSheet,
+          // The settings sheet renders so a lyric-settings row cannot ship without a result.
+          SettingsSheet: typeof SettingsSheet === 'function' ? SettingsSheet : null,
           // The player page renders so its queue popover cannot silently leave the page.
           NowPlaying: typeof NowPlaying === 'function' ? NowPlaying : null,
           LyricMatchDialog: LyricMatchDialog,

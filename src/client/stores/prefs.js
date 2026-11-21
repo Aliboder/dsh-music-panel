@@ -33,14 +33,13 @@ var PREF_DEFAULTS = {
   onlineCacheEnabled: false,
   /** Folia's `mediaCacheLimitGb`: 1/2/5/10/20/50, 0 = no ceiling. */
   onlineCacheLimitGb: 5,
-  lyricAlign: 'left',
-  lyricSize: 35,
-  lyricGap: 15,
-  lyricBlur: true,
   waveEnabled: true,
   showTranslation: true,
+  /** Translation row size as a percentage of the lyric size (50–150). */
   translationScale: 90,
-  npLayoutV2: false,
+  /** Ready-made line filters (Folia's preset ids) and free words that hide a line. */
+  lyricFilterPresets: [],
+  lyricFilterWords: '',
   /** Lyrics column width in the player page (px), dragged by the splitter. */
   npLyricWidth: 560,
   /** Gap between the album column and the lyrics column (px), editable in the player editor. */
@@ -56,7 +55,7 @@ var PREF_DEFAULTS = {
    * ask the other lyric sources for a matched word-by-word one. On by default there too.
    */
   autoUseBestLyric: true,
-  /** Global lyric font multiplier (the ≋ quick control). */
+  /** Every Folia lyric style's font multiplier (设置 · 歌词 · 字号, and the ≋ quick control). */
   lyricsFontScale: 1,
   bgMode: 'latent',
   bgCoverOnly: false,
@@ -172,14 +171,22 @@ function readPrefs() {
   if (['off', 'auto', 'track', 'album'].indexOf(merged.replayGainMode) < 0) {
     merged.replayGainMode = merged.normalizeVolume === false ? 'off' : 'auto'
   }
-  // One-time move to the reference now-playing layout (square cover, left lyrics,
-  // denser lyric typography). Later user edits still win.
-  if (merged.npLayoutV2 !== true) {
-    merged.lyricAlign = PREF_DEFAULTS.lyricAlign
-    merged.lyricSize = PREF_DEFAULTS.lyricSize
-    merged.lyricBlur = PREF_DEFAULTS.lyricBlur
-    merged.translationScale = PREF_DEFAULTS.translationScale
-    merged.npLayoutV2 = true
+  // The classic lyric list is gone: every style is a Folia renderer whose typography
+  // inputs are multipliers, so the old px-based keys have no reader. Drop them once
+  // instead of leaving stored values that look like they still do something.
+  var deadLyricKeys = ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2']
+  var dropped = false
+  deadLyricKeys.forEach(function (key) {
+    if (Object.prototype.hasOwnProperty.call(merged, key)) {
+      delete merged[key]
+      dropped = true
+    }
+  })
+  var fontScale = Number(merged.lyricsFontScale)
+  if (!isFinite(fontScale) || fontScale < 0.5 || fontScale > 2) merged.lyricsFontScale = PREF_DEFAULTS.lyricsFontScale
+  var transScale = Number(merged.translationScale)
+  if (!isFinite(transScale) || transScale < 50 || transScale > 150) merged.translationScale = PREF_DEFAULTS.translationScale
+  if (dropped) {
     try {
       window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
     } catch (error) {

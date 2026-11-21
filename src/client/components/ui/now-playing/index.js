@@ -231,11 +231,6 @@ function NowPlaying(props) {
   var reloadPair = useState(0)
   var lyricReload = reloadPair[0]
   var setLyricReload = reloadPair[1]
-  var boxRef = useRef(null)
-  var innerRef = useRef(null)
-  var discWrapRef = useRef(null)
-  var rowRefs = useRef([])
-
   useEffect(
     function () {
       if (!settingsOpen) return undefined
@@ -385,9 +380,6 @@ function NowPlaying(props) {
     },
     [props.open],
   )
-  var lyricSize = prefs.lyricSize || 18
-  var translationSize = Math.round((lyricSize * (prefs.translationScale || 80)) / 100)
-  var lyricsTimed = lyrics.length > 0 && mpLineStart(lyrics[0]) >= 0
   // ReplayGain values from the file's tags, and which lyric sources it has.
   var gainPair = useState(null)
   // The song's tag gain goes to the player, which uses it when the balance has no reading.
@@ -735,33 +727,6 @@ function NowPlaying(props) {
   var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
   var favorite = track !== null && props.favoriteSet[track.path] === true
 
-  var lyricScroll = useLyricAutoScroll(
-    boxRef,
-    innerRef,
-    discWrapRef,
-    rowRefs,
-    active,
-    lyrics,
-    lyricsTimed,
-    props.open === true,
-    prefs.showTranslation === true,
-    lyricSize,
-    Number(prefs.lyricGap) || 6,
-    prefs.translationScale || 80,
-    prefs.lyricAlign || 'center',
-  )
-  // While the user browses with the wheel, sharpness follows the line at the
-  // cover centre, not the (possibly off-screen) playing line.
-  var lyricFocus = lyricScroll.manualIndex >= 0 ? lyricScroll.manualIndex : active
-
-  function seekLine(line, index) {
-    if (!line || mpLineStart(line) < 0) return
-    // Clicking is the explicit "follow this line" gesture; wheel browsing alone
-    // must not resume the auto-scroll spring.
-    lyricScroll.resume(index)
-    player.seek(mpLineStart(line) + offsetMs / 1000)
-  }
-
   function applyOffset(delta) {
     if (!track) return
     var next = Math.max(-60000, Math.min(60000, offsetMs + delta))
@@ -993,17 +958,8 @@ function NowPlaying(props) {
     lines: lyrics,
     offsetMs: offsetMs,
     active: active,
-    focus: lyricFocus,
     now: lyricNow,
-    timed: lyricsTimed,
     prefs: prefs,
-    boxRef: boxRef,
-    innerRef: innerRef,
-    rowRefs: rowRefs.current,
-    wordSpans: wordSpans,
-    onSeekLine: seekLine,
-    manualIndex: lyricScroll.manualIndex,
-    formatClock: fmtClock,
     stylePref: lyricStyleId,
     seed: visualizerSeed,
     accent: mpAccentCss(flowAccent),
@@ -1020,9 +976,6 @@ function NowPlaying(props) {
         'mp-np',
         props.open === true && 'is-open',
         isFullscreen && 'is-fs',
-        prefs.lyricBlur === true && 'is-blur',
-        prefs.showTranslation === true && 'is-trans',
-        'mp-align-' + (prefs.lyricAlign || 'center'),
         // 外观: the lyric style and backdrop mode come from the registry. A random
         // preference has already been resolved to a concrete id for this slice.
         'mp-style-' + lyricStyleId,
@@ -1037,9 +990,6 @@ function NowPlaying(props) {
       'aria-label': t('page.openPlayer'),
       'aria-hidden': props.open === true ? 'false' : 'true',
       style: {
-        '--mp-lyric-size': lyricSize + 'px',
-        '--mp-lyric-trans': translationSize + 'px',
-        '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
         '--mp-lyric-w': lyricWidth + 'px',
         '--mp-pane-gap-w': paneGap + 'px',
         '--mp-look-accent': mpLookAccent(prefs, flowAccent),
@@ -1068,7 +1018,6 @@ function NowPlaying(props) {
           settingsPos: settingsPos,
           prefs: prefs,
           setPrefs: setPrefs,
-          lyricSize: lyricSize,
           track: track,
           offsetMs: offsetMs,
           applyOffset: applyOffset,
@@ -1111,7 +1060,7 @@ function NowPlaying(props) {
           { className: 'mp-np-cover-stage', ref: coverMotionRef },
           h(
             'div',
-            { key: 'cover:' + trackPath, className: 'mp-np-disc-wrap', ref: discWrapRef },
+            { key: 'cover:' + trackPath, className: 'mp-np-disc-wrap' },
           h(
             'div',
             { className: 'mp-np-disc' },

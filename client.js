@@ -6967,10 +6967,11 @@ window.__ModuleLoader__.load({
         'settings.lyricFormatOrderDesc': '一首歌有多个歌词文件时先读哪种；其余格式按默认顺序',
         'settings.subtitleOverlayBackground': '字幕背景',
         'settings.subtitleOverlayBackgroundDesc': '为底部歌词加一层随主题的柔和背景；关掉后只留文字',
-        'page.lyricSize': '字体大小',
-        'page.lyricGap': '歌词间距',
-        'page.lyricBlur': '模糊非当前歌词',
+        'settings.subtitleOverlayBackgroundUnsupported': '当前歌词样式自己绘制译文行，不受这个开关影响',
+        'settings.lyricFontScale': '歌词字号',
+        'settings.lyricFontScaleDesc': '各歌词样式共用的字号倍率；个别样式还会按屏幕尺寸自动适配',
         'page.translationScale': '翻译字体缩放',
+        'settings.translationScaleDesc': '译文行相对歌词字号的比例',
         'stats.rangeWeek': '最近一周',
         'stats.modeRanking': '收听排行',
         'stats.modeRecent': '最近播放',
@@ -7298,12 +7299,6 @@ window.__ModuleLoader__.load({
                       'settings.lyricOrder': '歌词获取顺序',
         'settings.lyricSourceEmbedded': '内嵌歌词',
         'settings.lyricSourceLrc': 'LRC 文件',
-        'settings.lyricAlign': '歌词对齐方式',
-        'settings.alignCenter': '居中',
-        'settings.alignLeft': '左对齐',
-        'settings.alignRight': '右对齐',
-        'settings.lyricSize': '歌词字体大小',
-        'settings.lyricBlur': '模糊非当前歌词',
         'settings.lyricTranslation': '歌词翻译',
         'settings.translationScale': '翻译字体缩放',
         'settings.composerLyrics': '输入框歌词',
@@ -7599,10 +7594,11 @@ window.__ModuleLoader__.load({
         'settings.lyricFormatOrderDesc': 'Which lyric file next to the audio reads first when a track has several; the rest keep the default order',
         'settings.subtitleOverlayBackground': 'Subtitle background',
         'settings.subtitleOverlayBackgroundDesc': 'A soft theme-coloured halo behind the bottom lyric; off leaves the text alone',
-        'page.lyricSize': 'Font size',
-        'page.lyricGap': 'Line spacing',
-        'page.lyricBlur': 'Blur inactive lines',
+        'settings.subtitleOverlayBackgroundUnsupported': 'This lyric style draws its own translation row, so the switch does nothing here',
+        'settings.lyricFontScale': 'Lyric size',
+        'settings.lyricFontScaleDesc': 'The multiplier every lyric style shares; some styles still auto-fit to the screen',
         'page.translationScale': 'Translation scale',
+        'settings.translationScaleDesc': 'The translation row, relative to the lyric size',
         'stats.rangeWeek': 'Last week',
         'stats.modeRanking': 'Ranking',
         'stats.modeRecent': 'Recently played',
@@ -7927,12 +7923,6 @@ window.__ModuleLoader__.load({
                       'settings.lyricOrder': 'Lyric source order',
         'settings.lyricSourceEmbedded': 'Embedded',
         'settings.lyricSourceLrc': 'LRC file',
-        'settings.lyricAlign': 'Lyric alignment',
-        'settings.alignCenter': 'Center',
-        'settings.alignLeft': 'Left',
-        'settings.alignRight': 'Right',
-        'settings.lyricSize': 'Lyric font size',
-        'settings.lyricBlur': 'Blur inactive lines',
         'settings.lyricTranslation': 'Lyric translation',
         'settings.translationScale': 'Translation scale',
         'settings.composerLyrics': 'Composer lyrics',
@@ -10277,19 +10267,6 @@ window.__ModuleLoader__.load({
       return lines
     }
 
-    /**
-     * Per-word render state for the active line (null when it has no timeline).
-     * @returns {Array<{text:string,sung:boolean}>|null}
-     */
-    function wordSpans(line, atSeconds) {
-      if (!line || !Array.isArray(line.words) || line.words.length === 0) return null
-      var now = Number(atSeconds)
-      if (!isFinite(now)) return null
-      return line.words.map(function (word) {
-        var at = isFinite(Number(word.startTime)) ? Number(word.startTime) : Number(word.t)
-        return { text: word.text, sung: now >= at - 0.02 }
-      })
-    }
     /**
      * Folia's `Line` is the player's lyric line, exactly as the parser produced it.
      *
@@ -32316,6 +32293,14 @@ window.__ModuleLoader__.load({
         currentLineIndex = lines.length === 0 ? -1 : mapped
       }
       var seed = typeof props.seed === 'string' && props.seed !== '' ? props.seed : 'pendolo'
+      // The style host used to hardcode these three, so 字号 / 翻译缩放 / 翻译开关 did nothing
+      // while 时计 was the style on screen. Read them the same way folia-styles.js does.
+      var prefs = props.prefs || {}
+      var lyricsFontScale = Number(prefs.lyricsFontScale)
+      if (!isFinite(lyricsFontScale) || lyricsFontScale <= 0) lyricsFontScale = 1
+      var translationScale = Number(prefs.translationScale)
+      if (!isFinite(translationScale) || translationScale <= 0) translationScale = 90
+      var showTranslation = prefs.showTranslation !== false
       var foliaProps = {
         // Folia's entry remounts the renderer per song (`key={props.seed}`); the rail's
         // scroll anchor and the clockwork's cover must not survive a track change.
@@ -32329,11 +32314,11 @@ window.__ModuleLoader__.load({
         audioBands: bandsRef.current,
         showText: true,
         subtitleContentMode: 'translation',
-        showSubtitleTranslation: true,
-        lyricsFontScale: 1,
-        subtitleFontScale: 1,
-        subtitleOverlayBackground: !(props.prefs && props.prefs.subtitleOverlayBackground === false),
-        hideTranslationSubtitle: false,
+        showSubtitleTranslation: showTranslation,
+        lyricsFontScale: lyricsFontScale,
+        subtitleFontScale: translationScale / 100,
+        subtitleOverlayBackground: prefs.subtitleOverlayBackground !== false,
+        hideTranslationSubtitle: !showTranslation,
         isPlayerChromeHidden: false,
         isPreviewMode: false,
         paused: snapshot.playing !== true,
@@ -150331,14 +150316,13 @@ window.__ModuleLoader__.load({
       onlineCacheEnabled: false,
       /** Folia's `mediaCacheLimitGb`: 1/2/5/10/20/50, 0 = no ceiling. */
       onlineCacheLimitGb: 5,
-      lyricAlign: 'left',
-      lyricSize: 35,
-      lyricGap: 15,
-      lyricBlur: true,
       waveEnabled: true,
       showTranslation: true,
+      /** Translation row size as a percentage of the lyric size (50–150). */
       translationScale: 90,
-      npLayoutV2: false,
+      /** Ready-made line filters (Folia's preset ids) and free words that hide a line. */
+      lyricFilterPresets: [],
+      lyricFilterWords: '',
       /** Lyrics column width in the player page (px), dragged by the splitter. */
       npLyricWidth: 560,
       /** Gap between the album column and the lyrics column (px), editable in the player editor. */
@@ -150354,7 +150338,7 @@ window.__ModuleLoader__.load({
        * ask the other lyric sources for a matched word-by-word one. On by default there too.
        */
       autoUseBestLyric: true,
-      /** Global lyric font multiplier (the ≋ quick control). */
+      /** Every Folia lyric style's font multiplier (设置 · 歌词 · 字号, and the ≋ quick control). */
       lyricsFontScale: 1,
       bgMode: 'latent',
       bgCoverOnly: false,
@@ -150470,14 +150454,22 @@ window.__ModuleLoader__.load({
       if (['off', 'auto', 'track', 'album'].indexOf(merged.replayGainMode) < 0) {
         merged.replayGainMode = merged.normalizeVolume === false ? 'off' : 'auto'
       }
-      // One-time move to the reference now-playing layout (square cover, left lyrics,
-      // denser lyric typography). Later user edits still win.
-      if (merged.npLayoutV2 !== true) {
-        merged.lyricAlign = PREF_DEFAULTS.lyricAlign
-        merged.lyricSize = PREF_DEFAULTS.lyricSize
-        merged.lyricBlur = PREF_DEFAULTS.lyricBlur
-        merged.translationScale = PREF_DEFAULTS.translationScale
-        merged.npLayoutV2 = true
+      // The classic lyric list is gone: every style is a Folia renderer whose typography
+      // inputs are multipliers, so the old px-based keys have no reader. Drop them once
+      // instead of leaving stored values that look like they still do something.
+      var deadLyricKeys = ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2']
+      var dropped = false
+      deadLyricKeys.forEach(function (key) {
+        if (Object.prototype.hasOwnProperty.call(merged, key)) {
+          delete merged[key]
+          dropped = true
+        }
+      })
+      var fontScale = Number(merged.lyricsFontScale)
+      if (!isFinite(fontScale) || fontScale < 0.5 || fontScale > 2) merged.lyricsFontScale = PREF_DEFAULTS.lyricsFontScale
+      var transScale = Number(merged.translationScale)
+      if (!isFinite(transScale) || transScale < 50 || transScale > 150) merged.translationScale = PREF_DEFAULTS.translationScale
+      if (dropped) {
         try {
           window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
         } catch (error) {
@@ -161484,11 +161476,6 @@ window.__ModuleLoader__.load({
       '.mp-np .mp-seek:hover input::-webkit-slider-thumb{width:12px;height:12px;margin-top:2px}',
       '.mp-np .mp-seek input::-moz-range-track{height:16px}',
       '.mp-np .mp-seek input::-moz-range-thumb{width:10px;height:10px;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.16);opacity:1}',
-      '.mp-look-glow .mp-np-line{text-shadow:0 0 18px var(--mp-look-accent,rgba(255,255,255,.35))}',
-      '.mp-look-glow .mp-np-line.is-active{text-shadow:0 0 26px var(--mp-look-accent,rgba(255,255,255,.5)),0 0 8px rgba(0,0,0,.35)}',
-      '.mp-look-outline .mp-np-line{-webkit-text-stroke:1px var(--mp-look-accent,rgba(255,255,255,.4));paint-order:stroke fill}',
-      '.mp-look-outline .mp-np-line.is-active{-webkit-text-stroke-width:1.4px}',
-      '.mp-look-standard .mp-np-line{text-shadow:none}',
       '.mp-bgmode-cover .mp-np-bg-drift img{filter:blur(2px) saturate(1.25) brightness(.9);transform:scale(1.02)}',
       '.mp-bgmode-off .mp-np-bg{display:none}',
       '.mp-shell{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#f4f4f5;background:#101014;font-family:inherit}',
@@ -161509,16 +161496,6 @@ window.__ModuleLoader__.load({
       '.mp-np-pill .mp-np-progress{flex:1 1 auto;min-width:0;margin:0}',
       '.mp-np-pill .mp-np-times{flex:0 0 auto;margin:0;font-size:11px;opacity:.7}',
       '.mp-np-pill .mp-np-transport{flex:0 0 auto;margin:0;gap:10px}',
-      '.mp-style-still .mp-np-line{opacity:.85!important;transform:none!important}',
-      '.mp-style-still .mp-np-line.is-active{opacity:1!important}',
-      '.mp-style-falling .mp-np-line.is-active{animation:mp-line-fall .5s cubic-bezier(.22,1,.36,1) both}',
-      '@keyframes mp-line-fall{from{opacity:.25;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}',
-      '.mp-style-float .mp-np-line.is-active{animation:mp-line-float 3.6s ease-in-out infinite}',
-      '@keyframes mp-line-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}',
-      '.mp-style-chorus .mp-np-line.is-active{transform:translateX(8px)}',
-      '.mp-style-chorus .mp-np-line.is-active{animation:mp-line-chorus .45s cubic-bezier(.22,1,.36,1) both}',
-      '@keyframes mp-line-chorus{from{opacity:.4;transform:translateX(-6px)}to{opacity:1;transform:translateX(8px)}}',
-      '.mp-style-still .mp-np-line{animation:none!important}',
       '.mp-np-lyrics.is-full{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;padding:6vh 6vw;pointer-events:none;background:transparent}',
       '.mp-np.is-visualizer .mp-np-left{display:none}',
       '.mp-np.is-visualizer .mp-np-body{display:block;position:relative;height:100%}',
@@ -161530,47 +161507,20 @@ window.__ModuleLoader__.load({
       '.mp-np-lyrics.is-full .mp-np-line{width:100%;text-align:center;opacity:.3;transform:none!important;font-size:clamp(20px,2.5vw,34px);line-height:1.4;pointer-events:auto}',
       '.mp-np-lyrics.is-full .mp-np-line.is-active{opacity:1;font-size:clamp(26px,3.4vw,46px);font-weight:700;text-shadow:0 6px 30px rgba(0,0,0,.45)}',
       '.mp-np-lyrics.is-full .mp-np-line.is-past{opacity:.16}',
-      '.mp-np-lyrics.is-full .mp-np-line-trans{font-size:.5em;opacity:.7;margin-top:6px;transform:none!important}',
       '.mp-np-lyrics.is-full .mp-np-line-text{display:inline-block}',
-    '.mp-style-falling .mp-np-line.is-active .mp-np-word{display:inline-block;animation:mp-fall-in .5s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--mp-word-i,0)*45ms)}',
-      '@keyframes mp-fall-in{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}',
-      '.mp-style-float .mp-np-line.is-active .mp-np-word{display:inline-block;animation:mp-float 3.6s ease-in-out infinite;animation-delay:calc(var(--mp-word-i,0)*-180ms)}',
-      '@keyframes mp-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}',
-      '.mp-style-chorus .mp-np-line.is-active{letter-spacing:.04em}',
-      '.mp-style-chorus .mp-np-line-trans{filter:saturate(1.1)}',
-      '.mp-look-karaoke .mp-np-word.is-sung{color:var(--mp-look-accent,#f2607a);text-shadow:0 0 14px var(--mp-look-accent,rgba(242,96,122,.5))}',
-      '.mp-look-karaoke .mp-np-line.is-active{text-shadow:0 0 10px rgba(0,0,0,.35)}',
-      '.mp-look-mirror .mp-np-line{transform:scaleX(-1);transform-origin:center}',
-    '.mp-align-left .mp-np-line{text-align:left}',
-      '.mp-align-center .mp-np-line{text-align:center}',
-      '.mp-align-right .mp-np-line{text-align:right}',
       '.mp-np-right{position:relative;flex:1 1 auto;width:auto;min-width:0;min-height:0;margin-left:var(--mp-pane-gap,5vw);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding-bottom:77px}',
       '.mp-np-split{display:none;flex:0 0 24px;align-self:stretch;position:relative;z-index:4;align-items:center;justify-content:center;cursor:col-resize;touch-action:none;outline:none}',
       '.mp-np-split::before{content:"";width:4px;height:64px;border-radius:999px;background:rgba(255,255,255,.28);opacity:0;transition:opacity .16s ease,background .15s ease,height .15s ease}',
       '.mp-np-split:hover::before,.mp-np-split:focus-visible::before,.mp-np-split.is-dragging::before{opacity:1;background:rgba(255,255,255,.55);height:120px}',
       '.mp-np-lyrics{position:relative;flex:1;width:100%;min-height:0;height:auto;max-width:none;max-height:none;padding-top:78px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 10%,#000 88%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 10%,#000 88%,transparent 100%)}',
-      '.mp-np-lyrics.is-static{overflow-y:auto;-webkit-mask-image:none;mask-image:none}',
-      '.mp-np-lyrics.is-static .mp-np-line{opacity:.75;cursor:default}',
       '.mp-np-lyrics-inner{padding:0;will-change:transform;backface-visibility:hidden}',
-      '.mp-np-line{padding:var(--mp-line-gap,6px) 0;border-radius:0;color:rgba(255,255,255,.6);cursor:pointer;transition:color .25s ease,opacity .3s ease,filter .25s ease;text-align:left;opacity:1;transform:none}',
-      '.mp-np-line:hover{color:rgba(255,255,255,.86)}',
-      '.mp-np-line.is-past{opacity:.46}',
+      // Only the plain fallback (the style bundle failed to load) still draws this list, and it
+      // shows one plain line per lyric: no translation row, alignment, blur or per-line spacing.
+      // Those controls went with the classic renderer (A_other/docs/踩坑记录.md).
+      '.mp-np-line{padding:6px 0;border-radius:0;color:rgba(255,255,255,.6);transition:color .25s ease,opacity .3s ease;text-align:left;opacity:1}',
       '.mp-np-line.is-active{color:#fff;opacity:1}',
-      '.mp-np-line.is-focus{opacity:1;filter:none}',
-      '.mp-np-line.is-focus:not(.is-active){color:rgba(255,255,255,.88)}',
-      '.mp-np-line-text{font-size:var(--mp-lyric-size,26px);line-height:1.2;font-weight:600;white-space:normal;word-break:break-word;overflow-wrap:anywhere;letter-spacing:.005em}',
-      '.mp-np-line-time{display:inline-block;margin-left:8px;font-size:11px;line-height:1;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.42);vertical-align:middle;white-space:nowrap;font-variant-numeric:tabular-nums}',
+      '.mp-np-line-text{font-size:26px;line-height:1.2;font-weight:600;white-space:normal;word-break:break-word;overflow-wrap:anywhere;letter-spacing:.005em}',
       '.mp-np-line.is-active .mp-np-line-text{text-shadow:0 2px 22px rgba(0,0,0,.35)}',
-      '.mp-np-line-trans{display:grid;grid-template-rows:0fr;margin-top:0;opacity:0;font-size:var(--mp-lyric-trans,16px);line-height:1.2;font-weight:400;color:rgba(255,255,255,.58);transition:grid-template-rows .26s cubic-bezier(.22,.61,.36,1) .14s,opacity .14s ease 0s,margin-top .26s cubic-bezier(.22,.61,.36,1) .14s}.mp-np-line-trans-inner{display:block;min-height:0;overflow:hidden}.mp-np.is-trans .mp-np-line-trans-inner{min-height:calc(var(--mp-trans,1) * var(--mp-lyric-trans,16px) * 1.2)}.mp-np-line-trans-text{display:block}.mp-np.is-trans .mp-np-line-trans{grid-template-rows:1fr;margin-top:calc(var(--mp-trans,1) * 2px);opacity:1;transition:grid-template-rows .26s cubic-bezier(.22,.61,.36,1) 0s,opacity .2s ease .1s,margin-top .26s cubic-bezier(.22,.61,.36,1) 0s}',
-      '.mp-np-line.is-active .mp-np-line-trans{color:rgba(255,255,255,.82)}',
-      '.mp-np.is-blur .mp-np-line:not(.is-focus){opacity:.44;filter:blur(calc(0.2px + var(--mp-line-stagger,0) * 0.22px))}',
-      '.mp-np-lyric-foot{display:flex;align-items:center;justify-content:flex-start;gap:12px;width:100%;flex:none;margin-top:14px;min-height:30px}',
-      '.mp-align-left .mp-np-lyric-foot{justify-content:flex-start}',
-      '.mp-align-center .mp-np-lyric-foot{justify-content:center}',
-      '.mp-align-right .mp-np-lyric-foot{justify-content:flex-end}',
-      '.mp-np-lyric-tag{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.7)}',
-      '.mp-np-lyric-tag-badge{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 5px;border:1px solid rgba(255,255,255,.42);border-radius:8px;background:transparent;font:inherit;font-size:14px;font-weight:600;line-height:1;color:rgba(255,255,255,.92);cursor:pointer}.mp-np-lyric-tag-badge:hover,.mp-np-lyric-tag-badge.is-on{border-color:rgba(255,255,255,.72);background:rgba(255,255,255,.1);color:#fff}',
-      '.mp-np-lyric-source{font-size:12px;letter-spacing:.06em;color:rgba(255,255,255,.8)}',
         '.mp-npe{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:24px;overflow:hidden;background:rgba(0,0,0,.62);animation:mp-npe-fade .18s ease}',
       '.mp-npe-panel{position:relative;width:min(440px,100%);min-width:0;box-sizing:border-box;height:auto;max-height:min(760px,100%);display:flex;flex-direction:column;background:#151519;border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.6);animation:mp-npe-pop .22s cubic-bezier(.22,.61,.36,1)}',
       '.mp-npe-head{display:flex;align-items:flex-start;gap:12px;padding:22px 22px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex:none}',
@@ -161604,7 +161554,6 @@ window.__ModuleLoader__.load({
       '.mp-npe-preview-line{margin-top:7px;line-height:1.35;color:rgba(255,255,255,.48);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.mp-npe-preview-line.is-active{color:#fff;font-weight:650}',
       '.mp-npe-preview-trans{color:rgba(255,255,255,.82);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-      '.mp-npe-preview.is-blur .mp-npe-preview-line:not(.is-active){filter:blur(1px);opacity:.6}',
       '.mp-npe-hint{display:block;margin-top:4px;font-size:11px;line-height:1.45;color:rgba(255,255,255,.42)}',
       '.mp-npe-switch-row.has-hint{align-items:flex-start}',
       '.mp-npe-switch-text{display:flex;flex-direction:column;gap:2px;min-width:0}',
@@ -162141,7 +162090,6 @@ window.__ModuleLoader__.load({
       '@media (max-width:760px){.mp-meta-hero{flex-wrap:wrap;align-items:flex-start}.mp-meta-cover{width:80px;height:80px}.mp-meta-actions{width:100%;justify-content:flex-start;margin-top:4px}.mp-meta-actions .mp-btn{flex:1 1 140px;justify-content:center}.mp-meta-body{max-height:min(70vh,620px)}.mp-meta-work{grid-template-columns:1fr}.mp-meta-lyrics .mp-meta-textarea{min-height:200px}}',
       '@media (max-width:620px){.mp-meta-grid{grid-template-columns:1fr}.mp-meta-footer{flex-wrap:wrap}.mp-meta-footer .mp-btn{flex:1}}',
       '@media (prefers-reduced-motion:reduce){.mp-root *,.mp-root *::before,.mp-root *::after{animation:none!important;transition:none!important}}',
-      '@media (prefers-reduced-motion:reduce){.mp-np-line-trans{transition:none}.mp-np.is-trans .mp-np-line-trans{transition:none}}',
 
       // ── host-primitive fallbacks (主题与组件开发规范 §3.2) ───────────────────
       // Geometry copied from the official primitive stylesheets pinned in
@@ -162604,13 +162552,15 @@ window.__ModuleLoader__.load({
 
     /** Single-line text input. `icon` is a local icon name; `onChange(value)`. */
     /** A small text button shared by the settings sheet and the player sheet. */
-    function mpSmallButton(label, onClick) {
+    function mpSmallButton(label, onClick, title) {
       return h(
         'button',
         {
           key: 'btn-' + String(label),
           type: 'button',
           onClick: onClick,
+          title: title || undefined,
+          'aria-label': title || undefined,
           style: {
             height: '28px',
             padding: '0 10px',
@@ -164187,337 +164137,6 @@ window.__ModuleLoader__.load({
       return found
     }
 
-    // ── src/client/components/ui/now-playing/lyrics-scroll.js
-    function useLyricAutoScroll(
-      boxRef,
-      innerRef,
-      coverRef,
-      rowRefs,
-      active,
-      lyrics,
-      timed,
-      open,
-      showTranslation,
-      lyricSize,
-      lyricGap,
-      translationScale,
-      lyricAlign,
-    ) {
-      var MANUAL_RETURN_MS = 1500
-      var stateRef = useRef(null)
-      if (stateRef.current === null) {
-        stateRef.current = {
-          y: 0,
-          target: 0,
-          velocity: 0,
-          frame: 0,
-          last: 0,
-          boxH: 0,
-          contentH: 0,
-          activeTop: 0,
-          activeHeight: 0,
-          settleUntil: 0,
-          active: 0,
-          focusShift: 0,
-        }
-      }
-      var s = stateRef.current
-      var activeRef = useRef(active)
-      activeRef.current = active
-      var timedRef = useRef(timed)
-      timedRef.current = timed
-      // Wheel scrolling pauses the follow animation; clicking a lyric line resumes
-      // it at the clicked line. The player itself never changes on wheel.
-      var manualRef = useRef(false)
-      var manualPair = useState(-1)
-      var manualIndex = manualPair[0]
-      var setManualIndex = manualPair[1]
-      var idleTimerRef = useRef(0)
-      var lastRef = useRef({ initialized: false, lyrics: null, open: false, trans: false })
-
-      function clock() {
-        return typeof performance !== 'undefined' && typeof performance.now === 'function' ? performance.now() : Date.now()
-      }
-      function raf(callback) {
-        return typeof requestAnimationFrame === 'function'
-          ? requestAnimationFrame(callback)
-          : setTimeout(function () {
-              callback(clock())
-            }, 16)
-      }
-      function caf(id) {
-        if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(id)
-        else clearTimeout(id)
-      }
-      function reduced() {
-        return (
-          typeof window !== 'undefined' &&
-          typeof window.matchMedia === 'function' &&
-          window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        )
-      }
-      function measure() {
-        var box = boxRef.current
-        var inner = innerRef.current
-        if (box === null || inner === null) return false
-        s.boxH = box.clientHeight
-        s.contentH = inner.offsetHeight
-        var row = rowRefs.current[s.active]
-        if (!row || row.isConnected === false) {
-          s.activeTop = 0
-          s.activeHeight = 0
-          return true
-        }
-        // Measure against the box while cancelling the current translate: offsetTop
-        // excludes the lyrics box padding, which made the target drift by ~78px.
-        var rowRect = row.getBoundingClientRect()
-        var boxRect = box.getBoundingClientRect()
-        s.activeTop = rowRect.top - boxRect.top + s.y
-        s.activeHeight = rowRect.height
-        // On the two-column layout, centre the active line on the cover's centre
-        // instead of the lyrics viewport's centre. On stacked/narrow layouts the
-        // cover sits above the lyrics, so the shift stays 0.
-        s.focusShift = 0
-        var cover = coverRef.current
-        if (cover !== null) {
-          var coverRect = cover.getBoundingClientRect()
-          if (coverRect.bottom > boxRect.top && coverRect.top < boxRect.bottom) {
-            var shift = coverRect.top + coverRect.height / 2 - (boxRect.top + s.boxH / 2)
-            var limit = Math.max(0, s.boxH / 2 - s.activeHeight / 2 - 8)
-            s.focusShift = Math.max(-limit, Math.min(limit, shift))
-          }
-        }
-        return true
-      }
-      function targetFor() {
-        // Always centre the active line, including the first and last one. On the
-        // two-column layout the centre is the cover's centre, not the box centre.
-        return s.activeTop - (s.boxH / 2 - s.activeHeight / 2) - s.focusShift
-      }
-      function write() {
-        var inner = innerRef.current
-        if (inner !== null) inner.style.transform = 'translate3d(0,' + -s.y + 'px,0)'
-      }
-      function stop() {
-        if (s.frame !== 0) {
-          caf(s.frame)
-          s.frame = 0
-        }
-      }
-      function clearReturnTimer() {
-        if (idleTimerRef.current !== 0) {
-          clearTimeout(idleTimerRef.current)
-          idleTimerRef.current = 0
-        }
-      }
-      function nearestRowIndex() {
-        var box = boxRef.current
-        var rows = rowRefs.current
-        if (box === null || !Array.isArray(rows) || rows.length === 0) return -1
-        var boxRect = box.getBoundingClientRect()
-        var centerY = boxRect.top + boxRect.height / 2 + s.focusShift
-        var best = -1
-        var bestDiff = Infinity
-        for (var i = 0; i < rows.length; i += 1) {
-          var row = rows[i]
-          if (!row || row.isConnected === false) continue
-          var rowRect = row.getBoundingClientRect()
-          var diff = Math.abs(rowRect.top + rowRect.height / 2 - centerY)
-          if (diff < bestDiff) {
-            best = i
-            bestDiff = diff
-          }
-        }
-        return best
-      }
-      function resumeFollow(index) {
-        clearReturnTimer()
-        manualRef.current = false
-        setManualIndex(-1)
-        if (timedRef.current !== true) return
-        s.active = Number.isInteger(index) && index >= 0
-          ? index
-          : activeRef.current >= 0 ? activeRef.current : 0
-        s.velocity = 0
-        s.settleUntil = 0
-        if (!measure()) return
-        s.target = targetFor()
-        kick()
-      }
-      function armReturnTimer() {
-        clearReturnTimer()
-        idleTimerRef.current = setTimeout(function () {
-          idleTimerRef.current = 0
-          if (manualRef.current) resumeFollow()
-        }, MANUAL_RETURN_MS)
-      }
-      function frame(nowMs) {
-        s.frame = 0
-        var dt = s.last > 0 ? Math.min((nowMs - s.last) / 1000, 0.032) : 0.016
-        s.last = nowMs
-        if (nowMs < s.settleUntil) {
-          // While the translation rows animate, pin the active line to the moving
-          // target instead of letting the spring lag behind the reflow.
-          if (measure()) s.target = targetFor()
-          s.y = s.target
-          s.velocity = 0
-          write()
-          s.frame = raf(frame)
-          return
-        }
-        var stiffness = 240
-        var damping = 34
-        var force = -stiffness * (s.y - s.target) - damping * s.velocity
-        s.velocity += force * dt
-        s.y += s.velocity * dt
-        var done = Math.abs(s.y - s.target) < 0.2 && Math.abs(s.velocity) < 0.2
-        if (done) {
-          s.y = s.target
-          s.velocity = 0
-        }
-        write()
-        if (done && nowMs >= s.settleUntil) {
-          s.last = 0
-          return
-        }
-        s.frame = raf(frame)
-      }
-      function kick() {
-        if (reduced()) {
-          stop()
-          s.y = s.target
-          s.velocity = 0
-          write()
-          return
-        }
-        if (s.frame === 0) {
-          s.last = 0
-          s.frame = raf(frame)
-        }
-      }
-      function onResize() {
-        var inner = innerRef.current
-        if (inner === null) return
-        if (timedRef.current !== true) {
-          stop()
-          inner.style.transform = ''
-          return
-        }
-        if (manualRef.current) {
-          measure()
-          return
-        }
-        s.active = activeRef.current >= 0 ? activeRef.current : 0
-        if (!measure()) return
-        s.target = targetFor()
-        kick()
-      }
-
-      useEffect(
-        function () {
-          var inner = innerRef.current
-          var observer =
-            typeof ResizeObserver === 'function' && inner !== null ? new ResizeObserver(onResize) : null
-          if (observer !== null) {
-            observer.observe(inner)
-            var cover = coverRef.current
-            if (cover !== null) observer.observe(cover)
-          }
-          window.addEventListener('resize', onResize)
-          return function () {
-            stop()
-            if (observer !== null) observer.disconnect()
-            window.removeEventListener('resize', onResize)
-          }
-        },
-        [lyrics.length],
-      )
-
-      useEffect(
-        function () {
-          var box = boxRef.current
-          var inner = innerRef.current
-          if (box === null || inner === null) return undefined
-          function onWheel(event) {
-            if (timedRef.current !== true) return
-            if (event.ctrlKey) return // leave browser zoom alone
-            event.preventDefault()
-            manualRef.current = true
-            stop()
-            s.velocity = 0
-            s.boxH = box.clientHeight
-            s.contentH = inner.offsetHeight
-            measure()
-            var delta = Number(event.deltaY) || 0
-            if (event.deltaMode === 1) delta *= 16
-            else if (event.deltaMode === 2) delta *= s.boxH
-            var minY = -Math.max(40, s.boxH * 0.75)
-            var maxY = Math.max(minY, s.contentH - s.boxH * 0.5)
-            s.y = Math.max(minY, Math.min(maxY, s.y + delta))
-            write()
-            var focus = nearestRowIndex()
-            if (focus >= 0) setManualIndex(focus)
-            armReturnTimer()
-          }
-          box.addEventListener('wheel', onWheel, { passive: false })
-          return function () {
-            clearReturnTimer()
-            box.removeEventListener('wheel', onWheel, { passive: false })
-          }
-        },
-        [lyrics.length, open],
-      )
-
-      useLayoutEffect(
-        function () {
-          var inner = innerRef.current
-          if (inner === null) return
-          if (timed !== true || lyrics.length === 0) {
-            manualRef.current = false
-            clearReturnTimer()
-            setManualIndex(-1)
-            stop()
-            s.y = 0
-            s.target = 0
-            s.velocity = 0
-            inner.style.transform = ''
-            return
-          }
-          var prev = lastRef.current
-          var reset = prev.initialized !== true || prev.lyrics !== lyrics || (prev.open !== true && open === true)
-          var settle = prev.initialized === true && prev.trans !== showTranslation
-          lastRef.current = { initialized: true, lyrics: lyrics, open: open, trans: showTranslation }
-          if (reset) {
-            manualRef.current = false
-            clearReturnTimer()
-            setManualIndex(-1)
-          }
-          s.active = active >= 0 ? active : 0
-          if (!measure()) return
-          if (manualRef.current) return
-          s.target = targetFor()
-          if (reset || Math.abs(s.target - s.y) > s.boxH * 3) {
-            stop()
-            s.y = s.target
-            s.velocity = 0
-            write()
-            return
-          }
-          if (settle) s.settleUntil = clock() + 480
-          kick()
-        },
-        [active, lyrics, open, showTranslation, lyricSize, lyricGap, translationScale, lyricAlign, timed],
-      )
-
-      return {
-        manualIndex: manualIndex,
-        isManual: function () {
-          return manualRef.current
-        },
-        resume: resumeFollow,
-      }
-    }
-
     // ── src/client/components/ui/now-playing/cover-accent.js
     function fallbackCoverAccent() {
       var h = 40
@@ -165238,7 +164857,6 @@ window.__ModuleLoader__.load({
     function NpSettingsPanel(props) {
       var prefs = props.prefs
       var setPrefs = props.setPrefs
-      var lyricSize = props.lyricSize
       var track = props.track
       var offsetMs = props.offsetMs
       var settingsRef = props.settingsRef
@@ -165246,6 +164864,10 @@ window.__ModuleLoader__.load({
       var applyOffset = props.applyOffset
       var writeLyricsBack = props.writeLyricsBack
       var openOnlineLyric = props.openOnlineLyric
+      // Typography that every Folia style reads lives in 设置 · 歌词 and the appearance panel;
+      // this popover keeps the two controls tied to the playing song: the translation row's
+      // size and whether it is shown at all. The removed classic list's px controls are gone.
+      var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
 
       return h(
               'div',
@@ -165262,98 +164884,18 @@ window.__ModuleLoader__.load({
                 h(
                   'div',
                   { className: 'mp-np-setting-head' },
-                  h('span', null, t('page.lyricSize')),
-                  h('span', { className: 'mp-set-val' }, lyricSize + ' px'),
+                  h('span', null, t('page.translationScale')),
+                  h('span', { className: 'mp-set-val' }, translationScale + '%'),
                 ),
                 h('input', {
                   type: 'range',
                   className: 'mp-range',
-                  min: 14,
-                  max: 40,
-                  step: 1,
-                  value: lyricSize,
+                  min: 50,
+                  max: 150,
+                  step: 5,
+                  value: translationScale,
                   onChange: function (event) {
-                    setPrefs({ lyricSize: Number(event.target.value) })
-                  },
-                }),
-              ),
-              h(
-                'div',
-                { className: 'mp-np-setting' },
-                h(
-                  'div',
-                  { className: 'mp-np-setting-head' },
-                  h('span', null, t('page.lyricGap')),
-                  h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 6) + ' px'),
-                ),
-                h('input', {
-                  type: 'range',
-                  className: 'mp-range',
-                  min: 2,
-                  max: 16,
-                  step: 1,
-                  value: Number(prefs.lyricGap) || 6,
-                  onChange: function (event) {
-                    setPrefs({ lyricGap: Number(event.target.value) })
-                  },
-                }),
-              ),
-              h(
-                'div',
-                { className: 'mp-np-setting-head' },
-                // The editor is a dark surface too; inherit its light ink (the head sets it)
-                // instead of the host label token, which is dark ink in the light theme.
-                h('span', { style: { fontSize: '12px' } }, t('page.translationScale')),
-                h('span', { className: 'mp-set-val' }, String(prefs.translationScale || 80) + '%'),
-              ),
-              h('input', {
-                type: 'range',
-                className: 'mp-range',
-                min: 50,
-                max: 100,
-                step: 5,
-                value: prefs.translationScale || 80,
-                onChange: function (event) {
-                  setPrefs({ translationScale: Number(event.target.value) })
-                },
-              }),
-              h(
-                'div',
-                { className: 'mp-np-setting' },
-                h('div', { className: 'mp-np-setting-head' }, h('span', null, t('settings.lyricAlign'))),
-                h(
-                  'div',
-                  { className: 'mp-np-align-row' },
-                  [
-                    ['left', 'settings.alignLeft'],
-                    ['center', 'settings.alignCenter'],
-                    ['right', 'settings.alignRight'],
-                  ].map(function (item) {
-                    return h(
-                      'button',
-                      {
-                        key: item[0],
-                        type: 'button',
-                        className: cx(
-                          'mp-chip',
-                          (prefs.lyricAlign || 'left') === item[0] && 'is-on',
-                        ),
-                        onClick: function () {
-                          setPrefs({ lyricAlign: item[0] })
-                        },
-                      },
-                      t(item[1]),
-                    )
-                  }),
-                ),
-              ),
-              h(
-                SetRow,
-                { label: t('page.lyricBlur') },
-                h(Switch, {
-                  value: prefs.lyricBlur === true,
-                  onChange: function (value) {
-                    setPrefs({ lyricBlur: value })
+                    setPrefs({ translationScale: Number(event.target.value) })
                   },
                 }),
               ),
@@ -165772,11 +165314,8 @@ window.__ModuleLoader__.load({
 
       function resetDefaults() {
         setPrefs({
-          lyricSize: 35,
-          lyricGap: 15,
+          lyricsFontScale: 1,
           translationScale: 90,
-          lyricAlign: 'left',
-          lyricBlur: true,
           waveEnabled: true,
           showTranslation: true,
           lyricLocalPriority: 'local',
@@ -165842,15 +165381,17 @@ window.__ModuleLoader__.load({
       }
 
       function previewCard() {
-        var align = prefs.lyricAlign || 'left'
-        var size = Number(prefs.lyricSize) || 35
-        var scale = Math.max(0.5, Math.min(1, (Number(prefs.translationScale) || 100) / 100))
-        var activeSize = Math.max(13, Math.round(size * 0.5))
-        var sideSize = Math.max(12, Math.round(size * 0.42))
-        var transSize = Math.max(11, Math.round(size * 0.42 * scale))
+        // The preview is a schematic of the player page: it shows the two multipliers the
+        // settings actually drive, not the styles' own per-line layout.
+        var fontScale = Math.min(2, Math.max(0.5, Number(prefs.lyricsFontScale) || 1))
+        var scale = Math.min(1.5, Math.max(0.5, (Number(prefs.translationScale) || 90) / 100))
+        var size = 16 * fontScale
+        var activeSize = Math.max(13, Math.round(size * 1.05))
+        var sideSize = Math.max(12, Math.round(size * 0.86))
+        var transSize = Math.max(11, Math.round(size * 0.86 * scale))
         return h(
           'div',
-          { className: 'mp-npe-preview' + (prefs.lyricBlur === true ? ' is-blur' : '') },
+          { className: 'mp-npe-preview' },
           h(
             'div',
             { className: 'mp-npe-preview-stage' },
@@ -165873,7 +165414,7 @@ window.__ModuleLoader__.load({
               ),
               h(
                 'div',
-                { className: 'mp-npe-preview-text', style: { textAlign: align } },
+                { className: 'mp-npe-preview-text' },
                 h('div', { className: 'mp-npe-preview-title' }, title || t('editor.sampleTitle')),
                 artist !== '' ? h('div', { className: 'mp-npe-preview-artist' }, artist) : null,
                 h(
@@ -165988,52 +165529,31 @@ window.__ModuleLoader__.load({
               'div',
               { className: 'mp-npe-section is-type' },
               sectionHead(t('editor.type')),
-              rangeRow(t('page.lyricSize'), prefs.lyricSize || 25, 14, 40, 1, ' px', function (value) {
-                setPrefs({ lyricSize: value })
-              }),
-              rangeRow(t('page.lyricGap'), Number(prefs.lyricGap) || 10, 2, 16, 1, ' px', function (value) {
-                setPrefs({ lyricGap: value })
-              }),
+              rangeRow(
+                t('settings.lyricFontScale'),
+                Math.round((Number(prefs.lyricsFontScale) || 1) * 100),
+                70,
+                150,
+                5,
+                '%',
+                function (value) {
+                  setPrefs({ lyricsFontScale: value / 100 })
+                },
+                t('settings.lyricFontScaleDesc'),
+              ),
               rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 60, 12, 96, 4, ' px', function (value) {
                 setPrefs({ npPaneGap: value })
               }, t('editor.paneGapHint')),
               rangeRow(
                 t('page.translationScale'),
-                prefs.translationScale || 100,
+                Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90))),
                 50,
-                100,
+                150,
                 5,
                 '%',
                 function (value) {
                   setPrefs({ translationScale: value })
                 },
-              ),
-              h(
-                'div',
-                { className: 'mp-npe-row' },
-                h('div', { className: 'mp-npe-range-head' }, h('span', null, t('settings.lyricAlign'))),
-                h(
-                  'div',
-                  { className: 'mp-npe-seg' },
-                  [
-                    ['left', 'settings.alignLeft'],
-                    ['center', 'settings.alignCenter'],
-                    ['right', 'settings.alignRight'],
-                  ].map(function (item) {
-                    return h(
-                      'button',
-                      {
-                        key: item[0],
-                        type: 'button',
-                        className: cx('mp-npe-seg-btn', (prefs.lyricAlign || 'left') === item[0] && 'is-on'),
-                        onClick: function () {
-                          setPrefs({ lyricAlign: item[0] })
-                        },
-                      },
-                      t(item[1]),
-                    )
-                  }),
-                ),
               ),
             ),
             h(
@@ -166042,9 +165562,6 @@ window.__ModuleLoader__.load({
               sectionHead(t('editor.display')),
               switchRow(t('page.translation'), prefs.showTranslation === true, function (value) {
                 setPrefs({ showTranslation: value })
-              }),
-              switchRow(t('page.lyricBlur'), prefs.lyricBlur === true, function (value) {
-                setPrefs({ lyricBlur: value })
               }),
               switchRow(t('editor.wave'), prefs.waveEnabled !== false, function (value) {
                 setPrefs({ waveEnabled: value })
@@ -166309,11 +165826,6 @@ window.__ModuleLoader__.load({
       var reloadPair = useState(0)
       var lyricReload = reloadPair[0]
       var setLyricReload = reloadPair[1]
-      var boxRef = useRef(null)
-      var innerRef = useRef(null)
-      var discWrapRef = useRef(null)
-      var rowRefs = useRef([])
-
       useEffect(
         function () {
           if (!settingsOpen) return undefined
@@ -166463,9 +165975,6 @@ window.__ModuleLoader__.load({
         },
         [props.open],
       )
-      var lyricSize = prefs.lyricSize || 18
-      var translationSize = Math.round((lyricSize * (prefs.translationScale || 80)) / 100)
-      var lyricsTimed = lyrics.length > 0 && mpLineStart(lyrics[0]) >= 0
       // ReplayGain values from the file's tags, and which lyric sources it has.
       var gainPair = useState(null)
       // The song's tag gain goes to the player, which uses it when the balance has no reading.
@@ -166813,33 +166322,6 @@ window.__ModuleLoader__.load({
       var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
       var favorite = track !== null && props.favoriteSet[track.path] === true
 
-      var lyricScroll = useLyricAutoScroll(
-        boxRef,
-        innerRef,
-        discWrapRef,
-        rowRefs,
-        active,
-        lyrics,
-        lyricsTimed,
-        props.open === true,
-        prefs.showTranslation === true,
-        lyricSize,
-        Number(prefs.lyricGap) || 6,
-        prefs.translationScale || 80,
-        prefs.lyricAlign || 'center',
-      )
-      // While the user browses with the wheel, sharpness follows the line at the
-      // cover centre, not the (possibly off-screen) playing line.
-      var lyricFocus = lyricScroll.manualIndex >= 0 ? lyricScroll.manualIndex : active
-
-      function seekLine(line, index) {
-        if (!line || mpLineStart(line) < 0) return
-        // Clicking is the explicit "follow this line" gesture; wheel browsing alone
-        // must not resume the auto-scroll spring.
-        lyricScroll.resume(index)
-        player.seek(mpLineStart(line) + offsetMs / 1000)
-      }
-
       function applyOffset(delta) {
         if (!track) return
         var next = Math.max(-60000, Math.min(60000, offsetMs + delta))
@@ -167071,17 +166553,8 @@ window.__ModuleLoader__.load({
         lines: lyrics,
         offsetMs: offsetMs,
         active: active,
-        focus: lyricFocus,
         now: lyricNow,
-        timed: lyricsTimed,
         prefs: prefs,
-        boxRef: boxRef,
-        innerRef: innerRef,
-        rowRefs: rowRefs.current,
-        wordSpans: wordSpans,
-        onSeekLine: seekLine,
-        manualIndex: lyricScroll.manualIndex,
-        formatClock: fmtClock,
         stylePref: lyricStyleId,
         seed: visualizerSeed,
         accent: mpAccentCss(flowAccent),
@@ -167098,9 +166571,6 @@ window.__ModuleLoader__.load({
             'mp-np',
             props.open === true && 'is-open',
             isFullscreen && 'is-fs',
-            prefs.lyricBlur === true && 'is-blur',
-            prefs.showTranslation === true && 'is-trans',
-            'mp-align-' + (prefs.lyricAlign || 'center'),
             // 外观: the lyric style and backdrop mode come from the registry. A random
             // preference has already been resolved to a concrete id for this slice.
             'mp-style-' + lyricStyleId,
@@ -167115,9 +166585,6 @@ window.__ModuleLoader__.load({
           'aria-label': t('page.openPlayer'),
           'aria-hidden': props.open === true ? 'false' : 'true',
           style: {
-            '--mp-lyric-size': lyricSize + 'px',
-            '--mp-lyric-trans': translationSize + 'px',
-            '--mp-line-gap': (Number(prefs.lyricGap) || 6) + 'px',
             '--mp-lyric-w': lyricWidth + 'px',
             '--mp-pane-gap-w': paneGap + 'px',
             '--mp-look-accent': mpLookAccent(prefs, flowAccent),
@@ -167146,7 +166613,6 @@ window.__ModuleLoader__.load({
               settingsPos: settingsPos,
               prefs: prefs,
               setPrefs: setPrefs,
-              lyricSize: lyricSize,
               track: track,
               offsetMs: offsetMs,
               applyOffset: applyOffset,
@@ -167189,7 +166655,7 @@ window.__ModuleLoader__.load({
               { className: 'mp-np-cover-stage', ref: coverMotionRef },
               h(
                 'div',
-                { key: 'cover:' + trackPath, className: 'mp-np-disc-wrap', ref: discWrapRef },
+                { key: 'cover:' + trackPath, className: 'mp-np-disc-wrap' },
               h(
                 'div',
                 { className: 'mp-np-disc' },
@@ -167906,6 +167372,15 @@ window.__ModuleLoader__.load({
       }
 
       function lyricsTab() {
+        // The two typography rows are the multipliers every Folia style reads. The px
+        // controls of the removed classic lyric list (字体大小/歌词间距) and its CSS-only
+        // switches (对齐/模糊) left with it; see A_other/docs/踩坑记录.md.
+        var lyricStyleId = typeof mpStyleIdOf === 'function' ? mpStyleIdOf(prefs.lyricStyle) : String(prefs.lyricStyle || '')
+        // 莫奈 and 静止 paint their own translation row instead of Folia's shared subtitle
+        // overlay, so the subtitle-background switch cannot do anything there.
+        var subtitleBackgroundApplies = lyricStyleId !== 'monet' && lyricStyleId !== 'still'
+        var fontScale = Math.round((Number(prefs.lyricsFontScale) || 1) * 100)
+        var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
         return [      h('h2', { key: 'h' }, t('v2.lyrics')),
           h('div', { key: 'display-head', className: 'mp-set-label' }, t('settings.groupLyricDisplay')),
           h(
@@ -167923,10 +167398,11 @@ window.__ModuleLoader__.load({
             {
               key: 'subtitle-bg',
               label: t('settings.subtitleOverlayBackground'),
-              desc: t('settings.subtitleOverlayBackgroundDesc'),
+              desc: t(subtitleBackgroundApplies ? 'settings.subtitleOverlayBackgroundDesc' : 'settings.subtitleOverlayBackgroundUnsupported'),
             },
             h(Switch, {
               value: prefs.subtitleOverlayBackground !== false,
+              disabled: !subtitleBackgroundApplies,
               onChange: function (value) {
                 patchPrefs({ subtitleOverlayBackground: value })
               },
@@ -167958,51 +167434,35 @@ window.__ModuleLoader__.load({
           ),
           h(
             SetRow,
-            { key: 'size', label: t('page.lyricSize') },
+            { key: 'font-scale', label: t('settings.lyricFontScale'), desc: t('settings.lyricFontScaleDesc') },
             h('input', {
               type: 'range',
               className: 'mp-range',
-              min: 14,
-              max: 40,
-              step: 1,
-              value: prefs.lyricSize,
-              onChange: function (event) {
-                patchPrefs({ lyricSize: Number(event.target.value) })
-              },
-            }),
-            h('span', { className: 'mp-set-val' }, String(prefs.lyricSize) + ' px'),
-          ),
-          h(
-            SetRow,
-            { key: 'gap', label: t('page.lyricGap') },
-            h('input', {
-              type: 'range',
-              className: 'mp-range',
-              min: 2,
-              max: 16,
-              step: 1,
-              value: Number(prefs.lyricGap) || 15,
-              onChange: function (event) {
-                patchPrefs({ lyricGap: Number(event.target.value) })
-              },
-            }),
-            h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 15) + ' px'),
-          ),
-          h(
-            SetRow,
-            { key: 'scale', label: t('page.translationScale') },
-            h('input', {
-              type: 'range',
-              className: 'mp-range',
-              min: 60,
-              max: 100,
+              min: 70,
+              max: 150,
               step: 5,
-              value: prefs.translationScale,
+              value: fontScale,
+              onChange: function (event) {
+                patchPrefs({ lyricsFontScale: Number(event.target.value) / 100 })
+              },
+            }),
+            h('span', { className: 'mp-set-val' }, fontScale + '%'),
+          ),
+          h(
+            SetRow,
+            { key: 'scale', label: t('page.translationScale'), desc: t('settings.translationScaleDesc') },
+            h('input', {
+              type: 'range',
+              className: 'mp-range',
+              min: 50,
+              max: 150,
+              step: 5,
+              value: translationScale,
               onChange: function (event) {
                 patchPrefs({ translationScale: Number(event.target.value) })
               },
             }),
-            h('span', { className: 'mp-set-val' }, String(prefs.translationScale) + '%'),
+            h('span', { className: 'mp-set-val' }, translationScale + '%'),
           ),
           h('div', { key: 'source-head', className: 'mp-set-label' }, t('settings.groupLyricSource')),
           h(
@@ -168047,32 +167507,6 @@ window.__ModuleLoader__.load({
             h('div', { className: 'mp-set-label' }, t('settings.lyricFormatOrder')),
             h('div', { className: 'mp-set-desc' }, t('settings.lyricFormatOrderDesc')),
             lyricFormatOrderList(),
-          ),
-          h(
-            SetRow,
-            { key: 'blur', label: t('page.lyricBlur') },
-            h(Switch, {
-              value: prefs.lyricBlur === true,
-              onChange: function (value) {
-                patchPrefs({ lyricBlur: value })
-              },
-            }),
-          ),
-          h(
-            SetRow,
-            { key: 'align', label: t('settings.lyricAlign') },
-            h(KitSelect, {
-              value: prefs.lyricAlign || 'left',
-              label: t('settings.lyricAlign'),
-              options: [
-                { value: 'center', label: t('settings.alignCenter') },
-                { value: 'left', label: t('settings.alignLeft') },
-                { value: 'right', label: t('settings.alignRight') },
-              ],
-              onChange: function (value) {
-                patchPrefs({ lyricAlign: String(value) })
-              },
-            }),
           ),
           h('div', { key: 'filter-head', className: 'mp-set-label' }, t('settings.groupLyricFilter')),
           h(
@@ -175784,10 +175218,10 @@ window.__ModuleLoader__.load({
                     padding: '2px 4px',
                   },
                 },
-                mpSmallButton(t('sheet.standard'), function () { setPrefs({ lyricIntensity: prefs.lyricIntensity === 'normal' ? 'calm' : prefs.lyricIntensity === 'calm' ? 'chaotic' : 'normal' }) }),
-                mpSmallButton('\u2261', function () { setPrefs({ showTranslation: prefs.showTranslation === false }) }),
-                mpSmallButton('\u2194', function () { setPrefs({ translationScale: prefs.translationScale === 100 ? 110 : prefs.translationScale === 110 ? 90 : 100 }) }),
-                mpSmallButton('\u224b', function () { setPrefs({ lyricsFontScale: prefs.lyricsFontScale === 1 ? 1.15 : prefs.lyricsFontScale === 1.15 ? 0.9 : 1 }) }),
+                mpSmallButton(t('sheet.standard'), function () { setPrefs({ lyricIntensity: prefs.lyricIntensity === 'normal' ? 'calm' : prefs.lyricIntensity === 'calm' ? 'chaotic' : 'normal' }) }, t('settings.lyricIntensity')),
+                mpSmallButton('\u2261', function () { setPrefs({ showTranslation: prefs.showTranslation === false }) }, t('page.translation')),
+                mpSmallButton('\u2194', function () { setPrefs({ translationScale: prefs.translationScale === 100 ? 110 : prefs.translationScale === 110 ? 90 : 100 }) }, t('page.translationScale')),
+                mpSmallButton('\u224b', function () { setPrefs({ lyricsFontScale: prefs.lyricsFontScale === 1 ? 1.15 : prefs.lyricsFontScale === 1.15 ? 0.9 : 1 }) }, t('settings.lyricFontScale')),
               ),
               mpNavRow(
                 t('sheet.background'),
@@ -179642,6 +179076,8 @@ window.__ModuleLoader__.load({
           AudioEffectsPanel: AudioEffectsPanel,
           // The player card renders in tests so a missing pane cannot ship silently.
           PlayerSheet: PlayerSheet,
+          // The settings sheet renders so a lyric-settings row cannot ship without a result.
+          SettingsSheet: typeof SettingsSheet === 'function' ? SettingsSheet : null,
           // The player page renders so its queue popover cannot silently leave the page.
           NowPlaying: typeof NowPlaying === 'function' ? NowPlaying : null,
           LyricMatchDialog: LyricMatchDialog,

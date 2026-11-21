@@ -74,7 +74,6 @@
     "src/client/components/ui/eq-panel.js",
     "src/client/components/ui/now-playing/fullscreen.js",
     "src/client/components/ui/now-playing/lyrics-timing.js",
-    "src/client/components/ui/now-playing/lyrics-scroll.js",
     "src/client/components/ui/now-playing/cover-accent.js",
     "src/client/components/ui/now-playing/seek-bar.js",
     "src/client/components/ui/now-playing/transport-pill.js",

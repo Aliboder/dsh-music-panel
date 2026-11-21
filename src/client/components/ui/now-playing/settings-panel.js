@@ -1,7 +1,6 @@
 function NpSettingsPanel(props) {
   var prefs = props.prefs
   var setPrefs = props.setPrefs
-  var lyricSize = props.lyricSize
   var track = props.track
   var offsetMs = props.offsetMs
   var settingsRef = props.settingsRef
@@ -9,6 +8,10 @@ function NpSettingsPanel(props) {
   var applyOffset = props.applyOffset
   var writeLyricsBack = props.writeLyricsBack
   var openOnlineLyric = props.openOnlineLyric
+  // Typography that every Folia style reads lives in 设置 · 歌词 and the appearance panel;
+  // this popover keeps the two controls tied to the playing song: the translation row's
+  // size and whether it is shown at all. The removed classic list's px controls are gone.
+  var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
 
   return h(
           'div',
@@ -25,98 +28,18 @@ function NpSettingsPanel(props) {
             h(
               'div',
               { className: 'mp-np-setting-head' },
-              h('span', null, t('page.lyricSize')),
-              h('span', { className: 'mp-set-val' }, lyricSize + ' px'),
+              h('span', null, t('page.translationScale')),
+              h('span', { className: 'mp-set-val' }, translationScale + '%'),
             ),
             h('input', {
               type: 'range',
               className: 'mp-range',
-              min: 14,
-              max: 40,
-              step: 1,
-              value: lyricSize,
+              min: 50,
+              max: 150,
+              step: 5,
+              value: translationScale,
               onChange: function (event) {
-                setPrefs({ lyricSize: Number(event.target.value) })
-              },
-            }),
-          ),
-          h(
-            'div',
-            { className: 'mp-np-setting' },
-            h(
-              'div',
-              { className: 'mp-np-setting-head' },
-              h('span', null, t('page.lyricGap')),
-              h('span', { className: 'mp-set-val' }, (Number(prefs.lyricGap) || 6) + ' px'),
-            ),
-            h('input', {
-              type: 'range',
-              className: 'mp-range',
-              min: 2,
-              max: 16,
-              step: 1,
-              value: Number(prefs.lyricGap) || 6,
-              onChange: function (event) {
-                setPrefs({ lyricGap: Number(event.target.value) })
-              },
-            }),
-          ),
-          h(
-            'div',
-            { className: 'mp-np-setting-head' },
-            // The editor is a dark surface too; inherit its light ink (the head sets it)
-            // instead of the host label token, which is dark ink in the light theme.
-            h('span', { style: { fontSize: '12px' } }, t('page.translationScale')),
-            h('span', { className: 'mp-set-val' }, String(prefs.translationScale || 80) + '%'),
-          ),
-          h('input', {
-            type: 'range',
-            className: 'mp-range',
-            min: 50,
-            max: 100,
-            step: 5,
-            value: prefs.translationScale || 80,
-            onChange: function (event) {
-              setPrefs({ translationScale: Number(event.target.value) })
-            },
-          }),
-          h(
-            'div',
-            { className: 'mp-np-setting' },
-            h('div', { className: 'mp-np-setting-head' }, h('span', null, t('settings.lyricAlign'))),
-            h(
-              'div',
-              { className: 'mp-np-align-row' },
-              [
-                ['left', 'settings.alignLeft'],
-                ['center', 'settings.alignCenter'],
-                ['right', 'settings.alignRight'],
-              ].map(function (item) {
-                return h(
-                  'button',
-                  {
-                    key: item[0],
-                    type: 'button',
-                    className: cx(
-                      'mp-chip',
-                      (prefs.lyricAlign || 'left') === item[0] && 'is-on',
-                    ),
-                    onClick: function () {
-                      setPrefs({ lyricAlign: item[0] })
-                    },
-                  },
-                  t(item[1]),
-                )
-              }),
-            ),
-          ),
-          h(
-            SetRow,
-            { label: t('page.lyricBlur') },
-            h(Switch, {
-              value: prefs.lyricBlur === true,
-              onChange: function (value) {
-                setPrefs({ lyricBlur: value })
+                setPrefs({ translationScale: Number(event.target.value) })
               },
             }),
           ),
