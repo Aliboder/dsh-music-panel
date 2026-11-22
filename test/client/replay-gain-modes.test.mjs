@@ -254,10 +254,28 @@ if (typeof URL.createObjectURL !== 'function') {
 }
 
 const tags = { ok: true, trackGain: -4, trackPeak: 0.5, albumGain: -7, albumPeak: 0.5 }
+// A platform's own gain rides on the stream's headers, as the Host relays it.
+const platformHeaders = new Map([
+  ['x-music-track-gain', '-8.9'],
+  ['x-music-track-peak', '0.9'],
+])
 globalThis.fetch = async (url) => {
   const target = String(url)
+  if (target.includes('online/replaygain')) {
+    // The Host keeps a platform's gain with the cached audio; a song not cached yet has none.
+    return { ok: true, status: 200, json: async () => ({ ok: true, trackGain: null, albumGain: null }) }
+  }
   if (target.includes('replaygain')) {
     return { ok: true, status: 200, json: async () => tags }
+  }
+  if (target.includes('online/stream')) {
+    return {
+      ok: true,
+      status: 200,
+      headers: platformHeaders,
+      json: async () => ({ ok: true }),
+      blob: async () => ({ size: 1, arrayBuffer: async () => new ArrayBuffer(8) }),
+    }
   }
   if (target.includes('stream')) {
     return {
@@ -343,6 +361,31 @@ near(deck(), -6, 'auto writes the balance gain')
 player.setGainMode('track')
 await settle()
 near(applied(), -4, 'switching back re-decides at once')
+
+// 在线平台（酷狗这类没有文件标签）：增益来自播放地址，Folia 把它记在歌上，
+// 单曲模式照用，面板也读得到 —— 而不是「该文件没有增益标签」。
+const ONLINE = {
+  path: 'online:kugou:abc123',
+  name: 'Go Girl (Explicit)',
+  durationSec: 229,
+  onlineProvider: 'kugou',
+  onlineId: 'abc123',
+}
+player.select([ONLINE], 0)
+await settle()
+assert.equal(player.getGainState().mode, 'track')
+assert.equal(player.getGainState().available, true, 'a platform gain counts as this song\'s own figures')
+near(applied(), -8.9, 'track mode applies the platform gain')
+near(deck(), -8.9, 'the platform gain reaches the deck')
+assert.equal(player.getSnapshot().gainTags && player.getSnapshot().gainTags.trackGain, -8.9, 'the panel reads the platform figures')
+
+// 专辑模式没有专辑增益时回退到单曲增益，与 Folia 的 calculateReplayGain 一致。
+player.setGainMode('album')
+await settle()
+near(applied(), -8.9, 'album mode falls back to the platform track gain')
+
+player.setGainMode('track')
+await settle()
 
 // 模式写进 prefs，旧的 normalizeVolume 只作为镜像。
 const lastPrefs = JSON.parse(

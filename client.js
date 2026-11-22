@@ -156686,8 +156686,14 @@ window.__ModuleLoader__.load({
       var appliedGainDb = 0
       var appliedGainEstimated = false
       var appliedGainAvailable = false
-      /** Folia's ReplayGain figures for the current track (a local file's tags / Navidrome). */
-      var replayGainInfo = null
+      /**
+       * A song's ReplayGain figures, by track path — Folia's `song.replayGain`. They are not the
+       * current track's alone: a local file's tags, a Navidrome song's own gain or a streaming
+       * platform's own gain (from the stream's headers) all land here, and the panel, the tag
+       * modes and the balance read the one record.
+       */
+      var gainRecords = {}
+      var GAIN_RECORD_LIMIT = 200
       var replayGainToken = 0
       /** The mode the engine last applied, to notice a change from any UI (Folia's store select). */
       var gainModeSeen = ''
@@ -156704,8 +156710,7 @@ window.__ModuleLoader__.load({
       /** What the balance asked for this play (null until it set one), and whether it already moved once. */
       var balanceMoved = false
       var balanceAppliedDb = null
-      /** A streaming platform's own gain for the current track, from the stream's headers. */
-      var platformGain = null
+
     var prefetchedProfilePath = ''
     var profileToken = 0
     var onlineMse = null
@@ -156743,6 +156748,8 @@ window.__ModuleLoader__.load({
         gainAppliedDb: 0,
         gainEstimated: false,
         gainAvailable: false,
+        /** The current song's own figures (Folia's `currentSong.replayGain`), for the panel's readout. */
+        gainTags: null,
       }
 
       // ── resume + listening statistics ───────────────────────────────────
@@ -157286,12 +157293,11 @@ window.__ModuleLoader__.load({
 
       /**
        * Folia's BalanceInputs, in its own order: what is known of the song (`file`, `played`,
-       * `profile`), then its tag or the platform's gain, then the stand-ins. `infoOverride` is
-       * the incoming side of a blend, whose figures are not the playing song's yet.
+       * `profile`), then its tag or the platform's gain, then the stand-ins.
        */
-      function balanceInputs(item, extra, infoOverride) {
+      function balanceInputs(item, extra) {
         var kind = playbackSourceKind(item)
-        var info = infoOverride === undefined ? replayGainInfoFor(item) : infoOverride
+        var info = gainRecordFor(item)
         var record = item === null || item === undefined ? null : balanceRecordFor(item.path)
         var prof = item === null || item === undefined ? null : profileFor(item.path)
         return {
@@ -157839,7 +157845,9 @@ window.__ModuleLoader__.load({
       function applyPlatformGain(headers) {
         var gain = readReplayGainHeaders(headers)
         if (gain === null) return false
-        platformGain = gain
+        // The gain belongs to the song (Folia's `song.replayGain`), so it is kept where the panel
+        // and the balance can read it too — not only on the audio graph.
+        rememberGainRecord(currentItem(), gain)
         // Folia gives an online song the platform's own figures in the tag modes too, not only
         // to the balance, so the mode is re-decided rather than only re-balanced.
         applyModeGain(GAIN_SET_RAMP_SEC)
@@ -158167,11 +158175,12 @@ window.__ModuleLoader__.load({
       function replayGainEndpoint(item) {
         if (item === null || item === undefined) return null
         if (typeof item.onlineProvider === 'string' && item.onlineProvider !== '') {
-          // Folia reads Navidrome's gain from OpenSubsonic; other platforms have no file tags,
-          // and their provider gain (when it exists) arrives with the stream, not as a lyric API.
-          if (item.onlineProvider !== 'navidrome') return null
+          // Folia reads Navidrome's gain from OpenSubsonic; a streaming platform's own gain is
+          // what its play URL stated, which the Host keeps with the cached audio — the live copy
+          // arrives with the stream's headers and wins over this answer.
           if (typeof item.onlineId !== 'string' || item.onlineId === '') return null
-          return API + 'online/replaygain?provider=navidrome&id=' + encodeURIComponent(item.onlineId)
+          return API + 'online/replaygain?provider=' + encodeURIComponent(item.onlineProvider)
+            + '&id=' + encodeURIComponent(item.onlineId)
         }
         if (typeof item.path !== 'string' || item.path === '') return null
         return API + 'replaygain?path=' + encodeURIComponent(item.path)
@@ -158189,13 +158198,27 @@ window.__ModuleLoader__.load({
         return provider === 'navidrome' ? 'navidrome' : 'online'
       }
 
+      /** The song's own figures, from wherever they were learned (tag, library server, platform). */
+      function gainRecordFor(item) {
+        if (item === null || item === undefined || typeof item.path !== 'string' || item.path === '') return null
+        var record = gainRecords[item.path]
+        return record === undefined ? null : record
+      }
+
       /**
-       * The song's ReplayGain figures as its source gives them (Folia's applyReplayGain): a local
-       * file's tags and a Navidrome song's own gain come from the Host, a streaming platform's
-       * own gain arrives with the stream.
+       * Keep a song's figures where Folia keeps them — on the song. A source that states only some
+       * fields adds those; nothing ever overwrites a known figure with "no figure".
        */
-      function replayGainInfoFor(item) {
-        return playbackSourceKind(item) === 'online' ? platformGain : replayGainInfo
+      function rememberGainRecord(item, info) {
+        if (item === null || item === undefined || typeof item.path !== 'string' || item.path === '') return
+        if (!info || typeof info !== 'object') return
+        var next = Object.assign({}, gainRecords[item.path] || {}, info)
+        if (typeof next.trackGain !== 'number' && typeof next.albumGain !== 'number') return
+        gainRecords[item.path] = next
+        var keys = Object.keys(gainRecords)
+        if (keys.length > GAIN_RECORD_LIMIT) delete gainRecords[keys[0]]
+        // The panel reads the current song's record, so a late figure can show without a re-apply.
+        if (currentItem() !== null && currentItem().path === item.path) patch({ gainTags: next })
       }
 
       /** Read the Host's ReplayGain answer into the four figures, dropping anything unusable. */
@@ -158229,7 +158252,7 @@ window.__ModuleLoader__.load({
           writeDeckGain(0, ramp)
           return
         }
-        var info = replayGainInfoFor(currentItem())
+        var info = gainRecordFor(currentItem())
         var available = info !== null && (typeof info.trackGain === 'number' || typeof info.albumGain === 'number')
         appliedGainAvailable = available
         var calculation = calculateReplayGain(info, mode)
@@ -158237,18 +158260,17 @@ window.__ModuleLoader__.load({
       }
 
       /**
-       * Ask the Host for the track's ReplayGain tags (Folia's applyReplayGain reads them from the
-       * local metadata / Navidrome carrier). What is known is applied first, so a slow answer never
-       * keeps the previous song's gain.
+       * Ask the Host for the song's figures (Folia's applyReplayGain reads them from the local
+       * metadata / Navidrome carrier / the platform's cached answer). What is already known — a
+       * file's tags, a platform's gain from the stream, a previous play this session — is applied
+       * first, so a slow answer never keeps the previous song's gain.
        */
-      function loadReplayGainFor(item, knownInfo) {
-        // A blended song already has its figures: they were fetched for its deck before it sounded.
-        replayGainInfo = knownInfo === undefined ? null : knownInfo
+      function loadReplayGainFor(item) {
         var token = (replayGainToken += 1)
         applyModeGain(GAIN_SET_RAMP_SEC)
         fetchReplayGainInfo(item).then(function (info) {
           if (token !== replayGainToken) return
-          replayGainInfo = info
+          rememberGainRecord(item, info)
           applyModeGain(GAIN_SET_RAMP_SEC)
         })
       }
@@ -158270,18 +158292,19 @@ window.__ModuleLoader__.load({
        * What the mode decides for a song that is not playing yet (the incoming side of a blend):
        * the same inputs `applyModeGain` would see, minus the live meter.
        */
-      function modeGainFor(item, info) {
+      function modeGainFor(item) {
         var mode = replayGainModeOf()
         if (mode === 'off') return { db: 0, available: false }
+        var info = gainRecordFor(item)
         if (mode !== 'auto') {
-          var available = Boolean(info)
+          var available = info !== null
             && (typeof info.trackGain === 'number' || typeof info.albumGain === 'number')
           return {
             db: available ? calculateReplayGain(info, mode).effectiveGainDb : 0,
             available: available,
           }
         }
-        var choice = chooseBalance(balanceInputs(item, { live: null }, info))
+        var choice = chooseBalance(balanceInputs(item, { live: null }))
         return { db: choice ? choice.effectiveGainDb : 0, available: true }
       }
 
@@ -158357,10 +158380,16 @@ window.__ModuleLoader__.load({
         flushSessionPosition()
         var token = (loadToken += 1)
         mseFallbackToken = -1
-        platformGain = null
         prefetchedProfilePath = ''
         profileToken += 1
-        state = Object.assign({}, state, { index: at, currentTime: 0, duration: 0, buffered: 0 })
+        state = Object.assign({}, state, {
+          index: at,
+          currentTime: 0,
+          duration: 0,
+          buffered: 0,
+          // The panel reads this song's own figures, whether this is its first play or its tenth.
+          gainTags: gainRecordFor(item),
+        })
         emit()
         syncMediaSession()
         pendingAutoplay = autoplay === true
@@ -158707,6 +158736,11 @@ window.__ModuleLoader__.load({
               plan.overlap = Math.max(CROSSFADE_MIN_SECONDS, Math.min(CROSSFADE_MAX_SECONDS, plan.overlap * keyScale))
             }
           }
+          // The incoming song's figures are kept on the song now, so its deck can carry the
+          // mode's gain before it sounds and the panel already knows them when it arrives.
+          rememberGainRecord(item, playbackSourceKind(item) === 'online'
+            ? nextPlatformGain
+            : results[2] === undefined ? null : results[2])
           xfadePrepared = {
             nextAt: nextAt,
             plan: plan,
@@ -158715,10 +158749,6 @@ window.__ModuleLoader__.load({
             together: styled !== null ? styled.together : 0,
             style: styled !== null ? styled.style : 'plainBlend',
             blob: nextBlob,
-            // A local file's tags / a Navidrome gain, or a platform's own gain from the stream.
-            info: playbackSourceKind(item) === 'online'
-              ? nextPlatformGain
-              : results[2] === undefined ? null : results[2],
             duration: incoming.envelope ? incoming.envelope.duration : 0,
           }
           xfadePending = false
@@ -158776,7 +158806,7 @@ window.__ModuleLoader__.load({
         xfadeOutgoingMeter = balanceMeter
         var incomingDeck = foliaGraph !== null && audio === foliaGraph.getDeckElement('A') ? 'B' : 'A'
         // The incoming song's own mode gain, on the incoming song's own deck (Folia's per-deck node).
-        var incomingGain = modeGainFor(state.queue[prepared.nextAt], prepared.info)
+        var incomingGain = modeGainFor(state.queue[prepared.nextAt])
         prepared.gainDb = incomingGain.db
         prepared.gainAvailable = incomingGain.available
         releaseObjectUrlB()
@@ -158851,8 +158881,6 @@ window.__ModuleLoader__.load({
         })
         currentBlob = prepared.blob
         currentLoudnessBlob = prepared.blob
-        // An online song keeps the platform's own gain the stream's headers carried.
-        if (playbackSourceKind(item) === 'online') platformGain = prepared.info === undefined ? null : prepared.info
         // The incoming song starts on the gain its deck was given, so 智能平衡 reasons from it
         // rather than from the song that is fading out.
         balanceAppliedDb = balancing() ? prepared.gainDb : null
@@ -158860,7 +158888,12 @@ window.__ModuleLoader__.load({
         appliedGainDb = Number(prepared.gainDb) || 0
         appliedGainEstimated = false
         appliedGainAvailable = prepared.gainAvailable === true
-        patch({ gainAppliedDb: appliedGainDb, gainEstimated: false, gainAvailable: appliedGainAvailable })
+        patch({
+          gainAppliedDb: appliedGainDb,
+          gainEstimated: false,
+          gainAvailable: appliedGainAvailable,
+          gainTags: gainRecordFor(item),
+        })
         xfadePrepared = null
         xfadeAdopted = true
         xfadeNext = -1
@@ -158871,7 +158904,7 @@ window.__ModuleLoader__.load({
         trackShuffleRoundProgress()
         emit()
         savePlaybackState()
-        loadReplayGainFor(item, playbackSourceKind(item) === 'online' ? null : prepared.info)
+        loadReplayGainFor(item)
         prefetchLyricsAround()
         maybePrefetchNext()
       }
@@ -167224,43 +167257,11 @@ window.__ModuleLoader__.load({
         },
         [props.open],
       )
-      // ReplayGain values for the local tab's readout; the player applies the gain itself
-      // (Folia's applyReplayGain), so this fetch is display-only.
-      var gainPair = useState(null)
-      var gainInfo = gainPair[0]
-      var setGainInfo = gainPair[1]
       var sourceInfoPair = useState(null)
       var sourceInfo = sourceInfoPair[0]
       var setSourceInfo = sourceInfoPair[1]
       // The engine is the authority on what the mode applied (Folia's replayGainAppliedDb).
       var gainMode = prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album' ? prefs.replayGainMode : 'auto'
-
-      useEffect(
-        function () {
-          setGainInfo(null)
-          if (trackPath === '') return undefined
-          if (track !== null && track.onlineProvider && track.onlineProvider !== 'navidrome') return undefined
-          var cancelled = false
-          // Navidrome reports its gain through OpenSubsonic; the file route only knows local paths.
-          var gainUrl =
-            track !== null && track.onlineProvider === 'navidrome'
-              ? API +
-                'online/replaygain?provider=navidrome&id=' +
-                encodeURIComponent(track.onlineId || '')
-              : API + 'replaygain?path=' + encodeURIComponent(trackPath)
-          getJson(gainUrl)
-            .then(function (body) {
-              if (!cancelled) setGainInfo({ trackGain: body.trackGain, albumGain: body.albumGain, trackPeak: body.trackPeak, albumPeak: body.albumPeak })
-            })
-            .catch(function () {
-              if (!cancelled) setGainInfo({ trackGain: null, albumGain: null, trackPeak: null, albumPeak: null })
-            })
-          return function () {
-            cancelled = true
-          }
-        },
-        [trackPath],
-      )
 
       // The local lyric pick depends on these settings; a change re-reads the track.
       // Declared before the effects that use it: a `var` below them would still be undefined
@@ -168008,7 +168009,6 @@ window.__ModuleLoader__.load({
                   MPLyricLoader.invalidate(trackPath)
                   setLyricReload(lyricReload + 1)
                 },
-                gainValues: gainInfo,
                 accentCss: mpAccentCss(flowAccent),
                 gainAutoEstimated: snap.gainEstimated === true,
                 gainAvailable: snap.gainAvailable === true,

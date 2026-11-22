@@ -380,43 +380,11 @@ function NowPlaying(props) {
     },
     [props.open],
   )
-  // ReplayGain values for the local tab's readout; the player applies the gain itself
-  // (Folia's applyReplayGain), so this fetch is display-only.
-  var gainPair = useState(null)
-  var gainInfo = gainPair[0]
-  var setGainInfo = gainPair[1]
   var sourceInfoPair = useState(null)
   var sourceInfo = sourceInfoPair[0]
   var setSourceInfo = sourceInfoPair[1]
   // The engine is the authority on what the mode applied (Folia's replayGainAppliedDb).
   var gainMode = prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album' ? prefs.replayGainMode : 'auto'
-
-  useEffect(
-    function () {
-      setGainInfo(null)
-      if (trackPath === '') return undefined
-      if (track !== null && track.onlineProvider && track.onlineProvider !== 'navidrome') return undefined
-      var cancelled = false
-      // Navidrome reports its gain through OpenSubsonic; the file route only knows local paths.
-      var gainUrl =
-        track !== null && track.onlineProvider === 'navidrome'
-          ? API +
-            'online/replaygain?provider=navidrome&id=' +
-            encodeURIComponent(track.onlineId || '')
-          : API + 'replaygain?path=' + encodeURIComponent(trackPath)
-      getJson(gainUrl)
-        .then(function (body) {
-          if (!cancelled) setGainInfo({ trackGain: body.trackGain, albumGain: body.albumGain, trackPeak: body.trackPeak, albumPeak: body.albumPeak })
-        })
-        .catch(function () {
-          if (!cancelled) setGainInfo({ trackGain: null, albumGain: null, trackPeak: null, albumPeak: null })
-        })
-      return function () {
-        cancelled = true
-      }
-    },
-    [trackPath],
-  )
 
   // The local lyric pick depends on these settings; a change re-reads the track.
   // Declared before the effects that use it: a `var` below them would still be undefined
@@ -1164,7 +1132,6 @@ function NowPlaying(props) {
               MPLyricLoader.invalidate(trackPath)
               setLyricReload(lyricReload + 1)
             },
-            gainValues: gainInfo,
             accentCss: mpAccentCss(flowAccent),
             gainAutoEstimated: snap.gainEstimated === true,
             gainAvailable: snap.gainAvailable === true,
