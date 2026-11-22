@@ -338,3 +338,6 @@ console.log('sources.test.mjs ok')
   const withoutReader = createLocalSource({ scan: async () => ({ tracks: [] }) })
   assert.deepEqual((await withoutReader.lyric('x')).lines, [])
 }
+
+// The plugin bootstrap leaves its long-lived sockets/watchers open; the assertions above are the test.
+process.exit(0)
