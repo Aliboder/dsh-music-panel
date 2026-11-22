@@ -730,7 +730,7 @@ function PlayerSheetInner(props) {
       'div',
       { key: 'look-pane' },
       mpSection(
-        t('sheet.background'),
+        t('sheet.backgroundSection'),
         h(
           'div',
           null,

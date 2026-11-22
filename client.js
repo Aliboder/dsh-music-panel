@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.43.0"
-    var CLIENT_BUILD = "2506e8e13813"
+    var CLIENT_BUILD = "addd03d46f4d"
 
     // ── src/client/app/runtime.js
     /**
@@ -8665,6 +8665,8 @@ window.__ModuleLoader__.load({
         'sheet.lyricSegNoTimedLines': '这首歌的歌词没有时间轴，无法按行分词。',
         'sheet.lyricSegFailed': '分词没有保存：内容和歌词对不上。',
         'sheet.background': '背景类型',
+        'sheet.backgroundSection': '背景',
+        'sheet.backgroundSection': '背景',
         'sheet.scene': '场景',
         'sheet.sceneOff': '关',
         'sheet.sceneCinema': '影厅',
@@ -9460,6 +9462,7 @@ window.__ModuleLoader__.load({
         'sheet.lyricSegNoTimedLines': 'This lyric has no timeline, so it cannot be split by line.',
         'sheet.lyricSegFailed': 'The split was not saved: it does not match the lyrics.',
         'sheet.background': 'Background type',
+        'sheet.backgroundSection': 'Background',
         'sheet.scene': 'Scene',
         'sheet.sceneOff': 'Off',
         'sheet.sceneCinema': 'Cinema',
@@ -176932,7 +176935,6 @@ window.__ModuleLoader__.load({
           onToggleQueue: function () { setNpQueueOpen(!npQueueOpen) },
           onToggleFavorite: function (track) { likeStateOf(track, p3FavoriteSet(library.favorites)).onLike() },
           onLocate: function () { p3LocateCurrent(snap) },
-          onOpenSettings: function () { pushLayer('settings') },
         }),
         h(OverlayRoot),
         h(P3PlaylistDialogHost),
@@ -177674,7 +177676,7 @@ window.__ModuleLoader__.load({
           'div',
           { key: 'look-pane' },
           mpSection(
-            t('sheet.background'),
+            t('sheet.backgroundSection'),
             h(
               'div',
               null,
