@@ -6487,6 +6487,31 @@ window.__ModuleLoader__.load({
       return null
     }
 
+    /** The names the panel actually renders. The about row must describe these, not the package. */
+    var HOST_KIT_COMPONENTS = [
+      'Button',
+      'Switch',
+      'Modal',
+      'Input',
+      'Checkbox',
+      'SegmentedControl',
+      'SegmentedTabs',
+      'Tag',
+      'StateDot',
+      'Tooltip',
+      'Pill',
+      'Menu',
+    ]
+
+    /** native = every component resolved, partial = the package loaded but some are missing. */
+    function hostKitState() {
+      if (!hostUi) return { state: 'fallback', missing: HOST_KIT_COMPONENTS.slice() }
+      var missing = HOST_KIT_COMPONENTS.filter(function (name) {
+        return hostComponent(name) === null
+      })
+      return { state: missing.length === 0 ? 'native' : 'partial', missing: missing }
+    }
+
     /** Local icon name -> host icon component. Unmapped names keep the local SVG. */
     var HOST_ICON_MAP = {
       search: 'IconSearchOutlineRegular',
@@ -7023,7 +7048,7 @@ window.__ModuleLoader__.load({
         'page.favoritesEmpty': '还没有收藏',
         'page.favoritesHint': '点歌曲右侧的爱心加入喜欢。',
         'settings.tabOnline': '在线',
-        'online.settingsHint': '登录后可播放高音质与更多曲目；未登录只能播放免费曲目。Cookie 只保存在本机。',
+        'online.settingsHint': '登录后可播放更多曲目；音质在「播放控制」里设置。Cookie 只保存在本机。',
         'online.loggedCount': '已登录 {n} / {total}',
         'online.accountHint': '登录后可播放高音质与更多曲目',
         'online.loggedIn': '已登录',
@@ -7107,7 +7132,9 @@ window.__ModuleLoader__.load({
         'online.allSongsEmptyHint': '服务器上没有可播放的歌曲',
         'online.albumCount': '{n} 张专辑',
         'online.navidromeKeep': '保存密码，启用完整曲库',
-        'online.navidromeKeepWarn': '密码将以明文保存在本机 providers.json（权限 0600）。原生接口是 Navidrome 的内部接口，可能随版本变化。',
+        'online.navidromeNativeOn': '完整曲库已启用（保存了密码，可原生分页）',
+        'online.navidromeNativeOff': '仅基础曲库；重新连接并勾选「保存密码」可启用完整分页',
+        'online.navidromeKeepWarn': '密码将以明文保存在本机登录数据 sessions.json（权限 0600）。原生接口是 Navidrome 的内部接口，可能随版本变化。',
         'online.pageOf': '第 {page} / {pages} 页 · 共 {total} 首',
         'online.randomSample': '当前为随机采样（{n} 首），不是完整曲库',
         'online.enableFullLibrary': '启用完整曲库',
@@ -7278,7 +7305,6 @@ window.__ModuleLoader__.load({
         'page.coverPending': '已选择在线封面，保存后写入',
         'page.matchField': '搜索替换',
         'page.listView': '列表视图',
-        'page.addedCount': '已添加 {n} 首',
         'page.trackCount': '{n} 首',
         'page.removeTrack': '从歌单移除',
         'page.playlistEmpty': '还没有播放列表',
@@ -7308,6 +7334,7 @@ window.__ModuleLoader__.load({
         'settings.tabPlayback': '播放控制',
         'settings.resumeOnStart': '启动时恢复上次播放',
         'settings.autoResume': '恢复后自动播放',
+        'settings.autoResumeHint': '仅在「启动时恢复上次播放」开启时生效',
         'settings.rememberPerTrack': '每首歌记住播放位置',
         'settings.playbackHint': '播放次数按 Last.fm 规则记录：曲目超过 30 秒，且播放到一半或 4 分钟（先到为准）才算一次；播放时长只累计真正在播放的时间。',
         'settings.libraryHint': '音乐文件夹（自动保存）',
@@ -7315,7 +7342,10 @@ window.__ModuleLoader__.load({
         'settings.scannedTracks': '已扫描 {n} 首',
         'settings.scanSettings': '扫描设置',
         'settings.openTrash': '打开',
-        'settings.formatsHint': '支持 MP3 / FLAC / M4A / AAC / OGG / OPUS / WAV / AIFF / WMA / APE',
+        'settings.addFolder': '音乐文件夹路径',
+        'settings.addFolderAction': '添加',
+        'settings.foldersAdded': '已添加 {n} 个文件夹',
+        'settings.formatsHint': '支持 MP3 / FLAC / M4A / MP4 / AAC / OGG / OPUS / WAV',
         'settings.scanWarnings': '{n} 条扫描警告',
         'settings.removeConfirm': '确定移除这个音乐文件夹？不会删除文件。',
         'settings.up': '↑ 上级',
@@ -7681,7 +7711,7 @@ window.__ModuleLoader__.load({
         'page.favoritesEmpty': 'No liked songs yet',
         'page.favoritesHint': 'Tap the heart next to a song to add it here.',
         'settings.tabOnline': 'Online',
-        'online.settingsHint': 'Sign in for higher quality and more tracks; free tracks play without an account. Cookies stay on this machine.',
+        'online.settingsHint': 'Sign in for more tracks; playback quality lives under Playback control. Cookies stay on this machine.',
         'online.loggedCount': '{n} of {total} signed in',
         'online.accountHint': 'Sign in for higher quality and more tracks',
         'online.loggedIn': 'Signed in',
@@ -7763,7 +7793,9 @@ window.__ModuleLoader__.load({
         'online.allSongsEmptyHint': 'The server has no playable songs',
         'online.albumCount': '{n} albums',
         'online.navidromeKeep': 'Save the password to enable the full library',
-        'online.navidromeKeepWarn': 'The password is stored as plain text in the local providers.json (mode 0600). The native API is Navidrome-internal and may change between releases.',
+        'online.navidromeNativeOn': 'Full library enabled (password saved; native paging)',
+        'online.navidromeNativeOff': 'Basic library only; reconnect with “keep password” for full paging',
+        'online.navidromeKeepWarn': 'The password is stored as plain text in the local sessions.json (mode 0600). The native API is Navidrome-internal and may change between releases.',
         'online.pageOf': 'Page {page} of {pages} · {total} tracks',
         'online.randomSample': 'Showing a random sample of {n} tracks, not the whole library',
         'online.enableFullLibrary': 'Enable full library',
@@ -7931,7 +7963,6 @@ window.__ModuleLoader__.load({
         'page.coverPending': 'Online cover selected — saved with tags',
         'page.matchField': 'Search & replace',
         'page.listView': 'List view',
-        'page.addedCount': '{n} added',
         'page.trackCount': '{n} tracks',
         'page.removeTrack': 'Remove from playlist',
         'page.playlistEmpty': 'No playlists yet',
@@ -7961,6 +7992,7 @@ window.__ModuleLoader__.load({
         'settings.tabPlayback': 'Playback',
         'settings.resumeOnStart': 'Resume last playback on start',
         'settings.autoResume': 'Start playing after restore',
+        'settings.autoResumeHint': 'Only applies when resuming the last playback on start',
         'settings.rememberPerTrack': 'Remember each track position',
         'settings.playbackHint': 'Play counts follow the Last.fm rule: a track longer than 30 seconds counts once after half its duration or 4 minutes, whichever comes first. Listening time only counts time actually played.',
         'settings.libraryHint': 'Music folders (auto-saved)',
@@ -7968,7 +8000,10 @@ window.__ModuleLoader__.load({
         'settings.scannedTracks': '{n} tracks scanned',
         'settings.scanSettings': 'Scan settings',
         'settings.openTrash': 'Open',
-        'settings.formatsHint': 'MP3 / FLAC / M4A / AAC / OGG / OPUS / WAV / AIFF / WMA / APE',
+        'settings.addFolder': 'Music folder path',
+        'settings.addFolderAction': 'Add',
+        'settings.foldersAdded': '{n} folders added',
+        'settings.formatsHint': 'MP3 / FLAC / M4A / MP4 / AAC / OGG / OPUS / WAV',
         'settings.scanWarnings': '{n} scan warnings',
         'settings.removeConfirm': 'Remove this music folder? Files are not deleted.',
         'settings.up': '↑ Up',
@@ -8177,7 +8212,7 @@ window.__ModuleLoader__.load({
         'v2.scanning': '正在扫描曲库…',
         'v2.scanFailed': '曲库加载失败',
         'v2.noTracks': '还没有音乐',
-        'v2.noTracksHint': '在设置 → 音乐库添加文件夹，然后点刷新。',
+        'v2.noTracksHint': '在设置 → 音乐库添加文件夹，添加后会自动扫描。',
         'v2.noFavorites': '还没有喜欢的歌',
         'v2.noFavoritesHint': '点歌曲右侧的爱心加入喜欢。',
         'v2.noPlaylistTracks': '这个歌单还没有歌',
@@ -8283,7 +8318,7 @@ window.__ModuleLoader__.load({
         'data.exportDone': '已导出 {n} 首歌词',
         'data.exportEmpty': '没有可导出的歌词',
         'data.watchEnable': '自动扫描已导入文件夹',
-        'data.watchEnableDesc': '文件有变化时自动做一次增量扫描。',
+        'data.watchEnableDesc': '文件有变化后自动重新扫描（整库刷新，不是增量索引）。',
         'data.backupTitle': '备份与导入',
         'data.backupRow': '设置备份',
         'data.backupDesc': '导出或导入插件设置；不含缓存、歌词与登录凭证。',
@@ -8293,6 +8328,7 @@ window.__ModuleLoader__.load({
         'data.backupImport': '导入备份',
         'data.backupExported': '备份已导出',
         'data.backupImported': '设置已导入',
+        'data.backupImportedSkipped': '已恢复；{n} 个文件夹在本机不存在，已跳过',
         'data.backupBadFile': '不是有效的备份文件',
         'data.backupUnavailable': '当前环境不支持下载',
         'data.category.other': '其他',
@@ -8424,6 +8460,8 @@ window.__ModuleLoader__.load({
         'settings.lyricIntensityNormal': '标准',
         'settings.lyricIntensityChaotic': '剧烈',
         'settings.themeSourceDesc': '主题强调色的来源。',
+        'settings.themeAccent': '自定义强调色',
+        'settings.themeAccentDesc': '形如 #f2607a；留空时使用默认强调色',
         'settings.onlineQuality': '在线音质',
         'settings.onlineQualityDesc': '在线播放时优先请求的音质；平台不支持时会自动降级。',
         'settings.crossfadeSeconds': '过渡上限',
@@ -8466,7 +8504,6 @@ window.__ModuleLoader__.load({
         'settings.volumeNormalizeHint': '浏览器内置 EBU R128 分析，按曲目响度自动调整增益；首次分析需要几秒。',
         'settings.crossfade': '智能过渡',
         'settings.crossfadeHint': '等功率淡入淡出，重叠长度受设定上限、曲目剩余空间和静音边限制；同专辑连续曲目保持原始的硬切衔接。',
-        'settings.crossfadeRuntimeHint': '需要 Web Audio；浏览器不支持或音源跨域时会自动跳过。',
         'settings.playbackFade': '暂停/播放淡入淡出',
         'settings.playbackFadeHint': '暂停时淡出、恢复时淡入，避免 click/pop。',
         'settings.playbackReports': '播放上报',
@@ -8505,8 +8542,9 @@ window.__ModuleLoader__.load({
         'v2.pickTrack': '从列表里选一首歌开始播放',
         'v2.selAll': '全部选择',
         'v2.hostKit': '宿主组件',
-        'v2.hostKitDesc': 'native = 正在使用 DSH 官方组件；fallback = 本地回退实现',
+        'v2.hostKitDesc': 'native = 正在使用 DSH 官方组件；partial = 部分组件缺失；fallback = 本地回退实现',
         'v2.hostKitNative': 'native',
+        'v2.hostKitPartial': '部分原生（缺 {n} 项）',
         'v2.hostKitFallback': 'fallback',
         'v2.selNone': '全部取消',
         'v2.selRange': '区域选择',
@@ -8953,7 +8991,7 @@ window.__ModuleLoader__.load({
         'v2.scanning': 'Scanning library…',
         'v2.scanFailed': 'Failed to load library',
         'v2.noTracks': 'No music yet',
-        'v2.noTracksHint': 'Add a folder in Settings → Library, then refresh.',
+        'v2.noTracksHint': 'Add a folder in Settings → Library; it is scanned automatically.',
         'v2.noFavorites': 'No favorites yet',
         'v2.noFavoritesHint': 'Use the heart on a row to add one.',
         'v2.noPlaylistTracks': 'This playlist is empty',
@@ -9059,7 +9097,7 @@ window.__ModuleLoader__.load({
         'data.exportDone': 'Exported {n} lyrics',
         'data.exportEmpty': 'No lyrics to export',
         'data.watchEnable': 'Automatically rescan imported folders',
-        'data.watchEnableDesc': 'Runs an incremental scan when files change.',
+        'data.watchEnableDesc': 'Rescans after files change (a full refresh, not an incremental index).',
         'data.backupTitle': 'Backup & import',
         'data.backupRow': 'Settings backup',
         'data.backupDesc': 'Export or import plugin settings; no cache, lyrics or sign-ins.',
@@ -9069,6 +9107,7 @@ window.__ModuleLoader__.load({
         'data.backupImport': 'Import backup',
         'data.backupExported': 'Backup exported',
         'data.backupImported': 'Settings imported',
+        'data.backupImportedSkipped': 'Restored; {n} folders do not exist on this machine and were skipped',
         'data.backupBadFile': 'Not a valid backup file',
         'data.backupUnavailable': 'Downloading is not available here',
         'data.category.other': 'Other',
@@ -9190,7 +9229,6 @@ window.__ModuleLoader__.load({
         'settings.volumeNormalizeHint': 'Built-in EBU R128 analysis adjusts each track to avoid jumps between songs; the first analysis takes a few seconds.',
         'settings.crossfade': 'Smart transition',
         'settings.crossfadeHint': 'Equal-power crossfade capped by the selected maximum, remaining track room and silence edges; consecutive tracks of one album keep their original hard join.',
-        'settings.crossfadeRuntimeHint': 'Needs Web Audio; skipped when the browser or the source cannot route through it.',
         'settings.appearancePanel': 'Main panel',
         'settings.appearancePlayer': 'Now playing',
         'settings.appearancePlayerHint': 'These are defaults; changes in the player editor write the same settings.',
@@ -9200,6 +9238,8 @@ window.__ModuleLoader__.load({
         'settings.lyricIntensityNormal': 'Normal',
         'settings.lyricIntensityChaotic': 'Chaotic',
         'settings.themeSourceDesc': 'Where the accent colour comes from.',
+        'settings.themeAccent': 'Custom accent colour',
+        'settings.themeAccentDesc': 'A value like #f2607a; empty keeps the default accent',
         'settings.onlineQuality': 'Online quality',
         'settings.onlineQualityDesc': 'The preferred quality for online playback; unsupported levels fall back automatically.',
         'settings.crossfadeSeconds': 'Maximum transition',
@@ -9281,8 +9321,9 @@ window.__ModuleLoader__.load({
         'v2.pickTrack': 'Pick a track from the list to start',
         'v2.selAll': 'Select all',
         'v2.hostKit': 'Host components',
-        'v2.hostKitDesc': 'native = using DSH primitives; fallback = local implementations',
+        'v2.hostKitDesc': 'native = using DSH primitives; partial = some missing; fallback = local implementations',
         'v2.hostKitNative': 'native',
+        'v2.hostKitPartial': 'partial ({n} missing)',
         'v2.hostKitFallback': 'fallback',
         'v2.selNone': 'Clear selection',
         'v2.selRange': 'Range select',
@@ -10703,6 +10744,17 @@ window.__ModuleLoader__.load({
       } catch (error) {
         // Blocked storage: nothing to forget.
       }
+      // The shared loader keeps up to 12 resolved lyrics; a clear has to drop them or the
+      // current song keeps showing the lyric whose files were just removed.
+      if (typeof MPLyricLoader !== 'undefined' && MPLyricLoader !== null && typeof MPLyricLoader.invalidate === 'function') {
+        MPLyricLoader.invalidate()
+      }
+      // Let every lyric surface re-read now that the files and the memory copy are gone.
+      try {
+        window.dispatchEvent(new CustomEvent('dsh-music:lyrics-cleared'))
+      } catch (error) {
+        // A missing CustomEvent (old harness) keeps the cleared flag only.
+      }
     }
 
     /** This song's saved segmentation record, or null when it has none (or it is malformed). */
@@ -10766,6 +10818,26 @@ window.__ModuleLoader__.load({
         return info.displayName
       }
       return key
+    }
+
+    /**
+     * Apply the listener's line rules to already-converted Folia lines. The normal path filters
+     * inside Folia's `prepare`; a legacy Host answer (no parseable document) has no document to
+     * prepare, so the same rules run on the converted lines instead.
+     */
+    function mpApplyLineRulesToFolia(lines) {
+      if (!Array.isArray(lines) || lines.length === 0) return lines
+      var rules = lyricFilterRules()
+      if (rules.length === 0) return lines
+      if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return lines
+      if (typeof MPFoliaLyrics.applyLyricLineRules !== 'function'
+        || typeof MPFoliaLyrics.compileLyricLineRules !== 'function') return lines
+      try {
+        var filtered = MPFoliaLyrics.applyLyricLineRules({ lines: lines }, MPFoliaLyrics.compileLyricLineRules(rules))
+        return filtered !== null && Array.isArray(filtered.lines) ? filtered.lines : lines
+      } catch (error) {
+        return lines
+      }
     }
 
     /** A signature of the listener's display-pass settings, so a change re-runs it. */
@@ -11012,7 +11084,8 @@ window.__ModuleLoader__.load({
         var lines = parseLrcText(body.lrc || '')
         if (body.translation) mergeLyricTranslation(lines, body.translation)
         attachWordTimeline(lines, body.lines)
-        parsed.lyrics = legacyLinesToFolia(lines)
+        // A legacy answer has no document to prepare, but the line rules still apply.
+        parsed.lyrics = mpApplyLineRulesToFolia(legacyLinesToFolia(lines))
         parsed.isWordByWord = body.wordLevel === true
         return parsed
       }
@@ -11135,6 +11208,9 @@ window.__ModuleLoader__.load({
           )
           var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
           if (match === null) return null
+          // The switch may have been turned off while the search was in flight; the answer must
+          // not replace the lyric against the listener's current choice.
+          if (lyricPrefs().autoUseBestLyric === false) return null
           // The platform's own lyric cannot replace itself.
           if (String(match.source || '') === provider) return null
           var parsed = await parseOnlineBody(
@@ -150697,8 +150773,10 @@ window.__ModuleLoader__.load({
         { bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], effects: {} },
         { bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], effects: {} },
       ],
-      /** 0 keeps the old hard cut; a positive value enables the automatic blend. */
-      crossfadeSeconds: 0,
+      /** Folia's automix/crossfade switch, kept apart from the maximum overlap. */
+      crossfadeEnabled: false,
+      /** Folia's `crossfadeMaxSec`: the upper bound of the automatic overlap. */
+      crossfadeSeconds: 5,
       /** Folia's `queueAddBehavior`: where 「加入队列」 puts a song, after the current one or at the end. */
       queueAddBehavior: 'append',
       /** Folia's `autoSkipUnplayable`: a track that cannot be played is skipped instead of stopping. */
@@ -150732,8 +150810,9 @@ window.__ModuleLoader__.load({
         }
       }
       if (raw === null) return merged
+      var parsed = null
       try {
-        var parsed = JSON.parse(raw)
+        parsed = JSON.parse(raw)
         if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return merged
         Object.keys(parsed).forEach(function (key) {
           if (parsed[key] !== undefined && parsed[key] !== null) merged[key] = parsed[key]
@@ -150772,6 +150851,14 @@ window.__ModuleLoader__.load({
       if (!isFinite(globalOffset)) globalOffset = PREF_DEFAULTS.lyricGlobalOffsetMs
       merged.lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Math.round(globalOffset)))
       if (merged.queueAddBehavior !== 'next') merged.queueAddBehavior = 'append'
+      // Before the switch existed, a positive seconds value was the switch itself. Fresh installs
+      // (defaults above) stay off; old users keep exactly the state they had.
+      var storedHadCrossfadeSwitch = parsed !== null && Object.prototype.hasOwnProperty.call(parsed, 'crossfadeEnabled')
+      var storedCrossfadeSeconds = parsed === null ? NaN : Number(parsed.crossfadeSeconds)
+      if (!storedHadCrossfadeSwitch) merged.crossfadeEnabled = isFinite(storedCrossfadeSeconds) && storedCrossfadeSeconds > 0
+      var crossfadeSeconds = Number(merged.crossfadeSeconds)
+      if (!isFinite(crossfadeSeconds) || crossfadeSeconds < 1) crossfadeSeconds = PREF_DEFAULTS.crossfadeSeconds
+      merged.crossfadeSeconds = Math.min(25, Math.max(1, Math.round(crossfadeSeconds)))
       if (dropped) {
         try {
           window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))
@@ -152934,7 +153021,6 @@ window.__ModuleLoader__.load({
 
     var CROSSFADE_MAX_SECONDS = 25
     var CROSSFADE_MIN_SECONDS = 1
-    var CROSSFADE_DEFAULT_SECONDS = 5
     /** Start analysing this early; analysis is fast but the fetch is not. */
     var CROSSFADE_PREPARE_SECONDS = 28
     /** Only a genuinely silent intro is skipped, and never more than this. */
@@ -152948,9 +153034,15 @@ window.__ModuleLoader__.load({
      */
     var CROSSFADE_INCOMING_SECONDS = 2.5
 
-    /** 0 means off. The stored value is the upper bound of the automatic overlap. */
+    /**
+     * The overlap length in use, or 0 when the transition is off. The switch and the maximum
+     * are two stored values (as Folia's automixEnabled / crossfadeMaxSec): turning the switch
+     * off must not throw away the length the listener chose.
+     */
     function crossfadeFadeSeconds(prefs) {
-      var value = Number(prefs !== null && typeof prefs === 'object' ? prefs.crossfadeSeconds : 0)
+      var settings = prefs !== null && typeof prefs === 'object' ? prefs : {}
+      if (settings.crossfadeEnabled !== true) return 0
+      var value = Number(settings.crossfadeSeconds)
       if (!isFinite(value) || value <= 0) return 0
       return Math.min(CROSSFADE_MAX_SECONDS, Math.max(CROSSFADE_MIN_SECONDS, value))
     }
@@ -157766,11 +157858,47 @@ window.__ModuleLoader__.load({
         })
       }
 
+      /** The direct-element fallback cannot use the MSE session's seek queue; wait for metadata. */
+      function applyDirectSavedStart(item, token) {
+        function seekTo(seconds) {
+          if (token !== loadToken || audio === null) return
+          try {
+            audio.currentTime = seconds
+          } catch (error) {
+            return
+          }
+          if (pendingAutoplay && audio.paused) playAfterLoudness(token)
+        }
+        function whenReady(seconds) {
+          if (audio === null) return
+          if (audio.readyState >= 1) {
+            seekTo(seconds)
+            return
+          }
+          audio.addEventListener('loadedmetadata', function () { seekTo(seconds) }, { once: true })
+        }
+        if (pendingResumeSeconds !== null) {
+          var savedSeconds = pendingResumeSeconds
+          pendingResumeSeconds = null
+          if (savedSeconds > 0) whenReady(savedSeconds)
+          return
+        }
+        if (readPrefs().rememberPerTrack !== true || typeof item.path !== 'string' || item.path === '') return
+        getJson(API + 'position?path=' + encodeURIComponent(item.path))
+          .then(function (body) {
+            if (token !== loadToken) return
+            var seconds = Number(body.lastPositionSec)
+            if (isFinite(seconds) && seconds > 1) whenReady(seconds)
+          })
+          .catch(function () {})
+      }
+
       function startOnlineDirect(item, token, loudness, headers) {
         if (token !== loadToken) return
         stopOnlineMse()
         prepareOnlineElement()
         loadActiveSource(onlineUrlFor(item))
+        applyDirectSavedStart(item, token)
         loudness.resolve()
         if (pendingAutoplay) playAfterLoudness(token)
         if (headers === undefined || !applyPlatformGain(headers)) loadOnlineHeadGain(item, token)
@@ -157869,6 +157997,10 @@ window.__ModuleLoader__.load({
                 resumeAfterSeek = false
                 if (pendingAutoplay) playAfterLoudness(token)
                 else audio.play().catch(function () {})
+              } else if (pendingAutoplay && (audio === null || audio.paused)) {
+                // The saved position was known before the first chunk arrived: seeking paused
+                // the deck, so start it again at the restored point.
+                playAfterLoudness(token)
               }
             }
             function pump() {
@@ -157895,6 +158027,24 @@ window.__ModuleLoader__.load({
               loudness.resolve()
               if (pendingAutoplay) playAfterLoudness(token)
             }
+            /** Folia's startAtSec / 每首歌记住播放位置 on the MSE path too. */
+            function applySavedStart() {
+              if (pendingResumeSeconds !== null) {
+                var savedSeconds = pendingResumeSeconds
+                pendingResumeSeconds = null
+                if (savedSeconds > 0) session.seek(savedSeconds)
+                return
+              }
+              if (readPrefs().rememberPerTrack !== true || typeof item.path !== 'string' || item.path === '') return
+              getJson(API + 'position?path=' + encodeURIComponent(item.path))
+                .then(function (body) {
+                  if (token !== loadToken) return
+                  var seconds = Number(body.lastPositionSec)
+                  if (isFinite(seconds) && seconds > 1) session.seek(seconds)
+                })
+                .catch(function () {})
+            }
+
             mediaSource.addEventListener('sourceopen', function () {
               if (session.stopped) return
               try {
@@ -157916,6 +158066,7 @@ window.__ModuleLoader__.load({
                 pump()
               })
               session.reader = response.body.getReader()
+              applySavedStart()
               function read() {
                 session.reader.read().then(function (result) {
                   if (failed || session.stopped) return
@@ -159760,8 +159911,12 @@ window.__ModuleLoader__.load({
 
       function syncConfig() {
         if (stopped) return
+        var prefs = audioFocusPrefs()
         postJson(API + 'audio-focus/config', {
-          voiceInputPause: audioFocusPrefs().voiceInputPause === true,
+          voiceInputPause: prefs.voiceInputPause === true,
+          // Cross-process ducks that do not state a level use the listener's settings.
+          duckLevel: audioFocusDuckLevel(prefs),
+          duckFadeMs: audioFocusDuckFade(prefs),
         }).catch(function () {
           // The status endpoint remains the source of truth.
         })
@@ -160890,8 +161045,10 @@ window.__ModuleLoader__.load({
      * it for a salted token; the Host stores only salt + token.
      */
     function useNavidromeForm() {
-      var serverPair = useState('')
-      var userPair = useState('')
+      var online = useStore(onlineStore)
+      var known = online && online.providers && online.providers.navidrome ? online.providers.navidrome : null
+      var serverPair = useState(known && typeof known.server === 'string' ? known.server : '')
+      var userPair = useState(known && typeof known.nickname === 'string' ? known.nickname : '')
       var passPair = useState('')
       var phasePair = useState('idle') // idle | loading
       var errorPair = useState('')
@@ -160907,6 +161064,18 @@ window.__ModuleLoader__.load({
       var setError = errorPair[1]
       var setNotice = noticePair[1]
       var setKeepPassword = keepPair[1]
+
+      // The providers endpoint already carries the stored server/username; fill them when the
+      // form is opened after a load instead of making the listener retype a known server.
+      useEffect(
+        function () {
+          if (known === null) return
+          if (serverPair[0] === '' && typeof known.server === 'string' && known.server !== '') setServer(known.server)
+          var name = typeof known.nickname === 'string' ? known.nickname : ''
+          if (userPair[0] === '' && name !== '') setUsername(name)
+        },
+        [known, known && known.server, known && known.nickname, serverPair, userPair],
+      )
 
       function reset() {
         setServer('')
@@ -164559,9 +164728,8 @@ window.__ModuleLoader__.load({
       }
 
       function toggleCrossfade(value) {
-        // A positive value enables the feature; the engine decides the real
-        // overlap, this is only its upper bound.
-        setPrefs({ crossfadeSeconds: value ? CROSSFADE_DEFAULT_SECONDS : 0 })
+        // The switch and the maximum are separate values; the engine decides the real overlap.
+        setPrefs({ crossfadeEnabled: value })
       }
 
       var body =
@@ -167235,6 +167403,22 @@ window.__ModuleLoader__.load({
         [lyricRulesKey],
       )
 
+      // 存储与备份 → 清空歌词: re-read this song once the files and the loader cache are gone.
+      useEffect(
+        function () {
+          function onLyricsCleared() {
+            setLyricReload(function (value) {
+              return value + 1
+            })
+          }
+          window.addEventListener('dsh-music:lyrics-cleared', onLyricsCleared)
+          return function () {
+            window.removeEventListener('dsh-music:lyrics-cleared', onLyricsCleared)
+          }
+        },
+        [],
+      )
+
       // The per-song correction plus Folia's device-wide offset: one clock for every surface.
       var lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Number(prefs.lyricGlobalOffsetMs) || 0))
       var lyricNow = lyricClock(time.currentTime, offsetMs, lyricGlobalOffsetMs)
@@ -168095,7 +168279,8 @@ window.__ModuleLoader__.load({
             cancelled = true
           }
         },
-        [tab, props.open],
+        // A cache directory change moves the store: re-read the sizes for the new root.
+        [tab, props.open, library.cacheDir],
       )
 
       if (props.open !== true) return null
@@ -168302,6 +168487,18 @@ window.__ModuleLoader__.load({
               onChange: function (value) { patchPrefs({ themeSource: String(value) }) },
             }),
           ),
+          prefs.themeSource === 'custom'
+            ? h(
+                SetRow,
+                { key: 'theme-accent', label: t('settings.themeAccent'), desc: t('settings.themeAccentDesc') },
+                h(KitInput, {
+                  value: typeof prefs.themeAccent === 'string' ? prefs.themeAccent : '',
+                  placeholder: '#f2607a',
+                  label: t('settings.themeAccent'),
+                  onChange: function (value) { patchPrefs({ themeAccent: String(value).trim() }) },
+                }),
+              )
+            : null,
         ]
       }
 
@@ -168802,7 +168999,9 @@ window.__ModuleLoader__.load({
             h(Switch, {
               value: crossfadeOn,
               onChange: function (value) {
-                patchPrefs({ crossfadeSeconds: value ? CROSSFADE_DEFAULT_SECONDS : 0 })
+                // Separate switch: turning it back on keeps the chosen maximum (Folia's
+                // automixEnabled beside crossfadeMaxSec).
+                patchPrefs({ crossfadeEnabled: value })
               },
             }),
           ),
@@ -169027,9 +169226,16 @@ window.__ModuleLoader__.load({
           ),
           h(
             SetRow,
-            { key: 'auto', label: t('settings.autoResume') },
+            {
+              key: 'auto',
+              label: t('settings.autoResume'),
+              // Folia restores and starts in one call; here the two are separate switches, so
+              // the second one must say when it cannot do anything.
+              desc: t('settings.autoResumeHint'),
+            },
             h(Switch, {
               value: prefs.autoResume === true,
+              disabled: prefs.resumeOnStart !== true,
               onChange: function (value) { patchPrefs({ autoResume: value }) },
             }),
           ),
@@ -169230,6 +169436,11 @@ window.__ModuleLoader__.load({
                     { className: 'mp-online-meta' },
                     h('strong', { className: 'mp-online-nick' }, info.nickname || info.username || t('online.loggedIn')),
                     info.server ? h('span', { className: 'mp-online-hint-text' }, info.server) : null,
+                    h(
+                      'span',
+                      { className: 'mp-online-hint-text' },
+                      t(info.nativeSongs === true ? 'online.navidromeNativeOn' : 'online.navidromeNativeOff'),
+                    ),
                   ),
                   h(IconButton, {
                     icon: 'logout',
@@ -169539,7 +169750,7 @@ window.__ModuleLoader__.load({
                 icon: 'plus',
                 disabled: busy || rootDraft.trim() === '',
                 onClick: addRoot,
-                children: t('page.create'),
+                children: t('settings.addFolderAction'),
               }),
             ),
           ),
@@ -169597,7 +169808,7 @@ window.__ModuleLoader__.load({
           setBusy(false)
           if (ok) {
             setRootDraft('')
-            showToast(t('page.addedCount', { n: roots.length }))
+            showToast(t('settings.foldersAdded', { n: roots.length }))
           }
         })
       }
@@ -169933,33 +170144,37 @@ window.__ModuleLoader__.load({
 
       /** Folia's 备份与导入: settings only (no cache, no credentials), as one JSON file. */
       function exportBackup() {
-        try {
-          var payload = {
-            format: 'dsh-music-panel.backup',
-            version: 1,
-            at: new Date().toISOString(),
-            prefs: readPrefs(),
-            host: library.config || {},
-          }
-          if (typeof Blob === 'undefined' || typeof URL === 'undefined' || typeof document === 'undefined') {
-            showToast(t('data.backupUnavailable'))
-            return
-          }
-          var url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
-          var anchor = document.createElement('a')
-          anchor.href = url
-          anchor.download = 'dsh-music-panel-backup-' + new Date().toISOString().slice(0, 10) + '.json'
-          anchor.style.display = 'none'
-          document.body.appendChild(anchor)
-          anchor.click()
-          if (typeof anchor.remove === 'function') anchor.remove()
-          window.setTimeout(function () {
-            URL.revokeObjectURL(url)
-          }, 1000)
-          showToast(t('data.backupExported'))
-        } catch (error) {
-          showToast(errorText(error))
+        if (typeof Blob === 'undefined' || typeof URL === 'undefined' || typeof document === 'undefined') {
+          showToast(t('data.backupUnavailable'))
+          return
         }
+        // The Host config in memory is the copy the cache page last read; fetch it fresh so an
+        // export made from another tab still carries roots/hiddenRoots/watchFolders.
+        loadConfig().then(function (hostConfig) {
+          try {
+            var payload = {
+              format: 'dsh-music-panel.backup',
+              version: 1,
+              at: new Date().toISOString(),
+              prefs: readPrefs(),
+              host: hostConfig || library.config || {},
+            }
+            var url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
+            var anchor = document.createElement('a')
+            anchor.href = url
+            anchor.download = 'dsh-music-panel-backup-' + new Date().toISOString().slice(0, 10) + '.json'
+            anchor.style.display = 'none'
+            document.body.appendChild(anchor)
+            anchor.click()
+            if (typeof anchor.remove === 'function') anchor.remove()
+            window.setTimeout(function () {
+              URL.revokeObjectURL(url)
+            }, 1000)
+            showToast(t('data.backupExported'))
+          } catch (error) {
+            showToast(errorText(error))
+          }
+        })
       }
 
       function pickBackupFile() {
@@ -169981,12 +170196,24 @@ window.__ModuleLoader__.load({
             var host = parsed.host && typeof parsed.host === 'object' ? parsed.host : {}
             var patch = {}
             if (Array.isArray(host.roots)) patch.roots = host.roots
+            if (Array.isArray(host.hiddenRoots)) patch.hiddenRoots = host.hiddenRoots
             if (host.depth !== undefined) patch.depth = host.depth
             if (Array.isArray(host.extensions)) patch.extensions = host.extensions
             if (typeof host.cacheDir === 'string') patch.cacheDir = host.cacheDir
             if (typeof host.watchFolders === 'boolean') patch.watchFolders = host.watchFolders
+            // A backup from another computer names folders and a cache directory that may not
+            // exist here: drop the missing folders and retry without the cache path rather than
+            // failing the whole restore.
+            patch.allowMissingRoots = true
             setBackupBusy(true)
-            saveHostConfig(patch).then(function (body) {
+            function restoreHost() {
+              return saveHostConfig(patch).then(function (body) {
+                if (body || patch.cacheDir === undefined) return body
+                delete patch.cacheDir
+                return saveHostConfig(patch)
+              })
+            }
+            restoreHost().then(function (body) {
               setBackupBusy(false)
               if (!body) return
               var source = parsed.prefs && typeof parsed.prefs === 'object' ? parsed.prefs : {}
@@ -169997,13 +170224,18 @@ window.__ModuleLoader__.load({
               })
               if (Object.keys(prefsPatch).length > 0) setPrefs(prefsPatch)
               setBackupOpen(false)
-              showToast(t('data.backupImported'))
+              var skipped = Array.isArray(body.skippedRoots) ? body.skippedRoots.length : 0
+              showToast(skipped > 0 ? t('data.backupImportedSkipped', { n: skipped }) : t('data.backupImported'))
               void loadLibrary(true)
             })
           } catch (error) {
             setBackupBusy(false)
             showToast(errorText(error))
           }
+        }
+        reader.onerror = function () {
+          setBackupBusy(false)
+          showToast(t('data.backupBadFile'))
         }
         reader.readAsText(file)
         if (input) input.value = ''
@@ -170057,6 +170289,7 @@ window.__ModuleLoader__.load({
       }
 
       function aboutTab() {
+        var kit = typeof hostKitState === 'function' ? hostKitState() : { state: hostUi ? 'native' : 'fallback', missing: [] }
         return [
           h('h2', { key: 'h' }, t('v2.about')),
           h(
@@ -170106,7 +170339,15 @@ window.__ModuleLoader__.load({
           h(
             SetRow,
             { key: 'hostkit', label: t('v2.hostKit'), desc: t('v2.hostKitDesc') },
-            h(KitTag, { tone: hostUi ? 'info' : 'neutral' }, hostUi ? t('v2.hostKitNative') : t('v2.hostKitFallback')),
+            h(
+              KitTag,
+              { tone: kit.state === 'native' ? 'info' : kit.state === 'partial' ? 'warning' : 'neutral' },
+              kit.state === 'native'
+                ? t('v2.hostKitNative')
+                : kit.state === 'partial'
+                  ? t('v2.hostKitPartial', { n: kit.missing.length })
+                  : t('v2.hostKitFallback'),
+            ),
           ),
           h(
             SetRow,
@@ -179448,6 +179689,24 @@ window.__ModuleLoader__.load({
         + '\u0000' + (prefs.lyricKeepProviderWordTiming !== false ? 'keep-own' : 'all-sources')
         + '\u0000' + (Array.isArray(prefs.lyricFormatOrder) ? prefs.lyricFormatOrder.join(',') : '')
       var lastSourceKeyRef = useRef(null)
+      var reloadPair = useState(0)
+      var lyricReload = reloadPair[0]
+      var setLyricReload = reloadPair[1]
+
+      useEffect(
+        function () {
+          function onLyricsCleared() {
+            setLyricReload(function (value) {
+              return value + 1
+            })
+          }
+          window.addEventListener('dsh-music:lyrics-cleared', onLyricsCleared)
+          return function () {
+            window.removeEventListener('dsh-music:lyrics-cleared', onLyricsCleared)
+          }
+        },
+        [],
+      )
 
       useEffect(
         function () {
@@ -179494,7 +179753,7 @@ window.__ModuleLoader__.load({
             if (typeof unsubscribe === 'function') unsubscribe()
           }
         },
-        [prefs.composerLyrics, trackPath, lyricSourceKey],
+        [prefs.composerLyrics, trackPath, lyricSourceKey, lyricReload],
       )
 
       // A changed line filter re-bakes the strip from the same document (no new request).

@@ -91,7 +91,8 @@ test('Host 提供缓存目录、目录监视、分类清空、歌词导出与版
     assert.ok(routesSource.includes(route), 'route ' + route + ' exists')
   }
   assert.match(routesSource, /CLEARABLE_CATEGORIES/, 'setting/account categories are excluded from single clears')
-  assert.match(routesSource, /lyricRecords\.invalidate/, 'clearing lyrics forgets the memoized records')
+  assert.match(routesSource, /lyrics:\s*lyricRecords/, 'clearing lyrics maps to the memoized records')
+  assert.match(routesSource, /forget\.invalidate\(\)/, 'a category clear forgets its memoized store')
   assert.ok(existsSync(join(root, 'src/host/services/media/watch.js')), 'the folder watcher exists')
   const watch = readFileSync(join(root, 'src/host/services/media/watch.js'), 'utf8')
   assert.match(watch, /debounceMs/, 'watcher changes are debounced')

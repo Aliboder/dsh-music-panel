@@ -428,12 +428,22 @@ export function createRoutes({
         } catch {
           return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
         }
-        if (typeof body?.voiceInputPause !== 'boolean') {
+        if (body?.voiceInputPause !== undefined && typeof body.voiceInputPause !== 'boolean') {
           return fail(res, 400, 'BAD_REQUEST', 'voiceInputPause 必须是布尔值')
+        }
+        if (body?.duckLevel !== undefined && !Number.isFinite(Number(body.duckLevel))) {
+          return fail(res, 400, 'BAD_REQUEST', 'duckLevel 必须是数字')
+        }
+        if (body?.duckFadeMs !== undefined && !Number.isFinite(Number(body.duckFadeMs))) {
+          return fail(res, 400, 'BAD_REQUEST', 'duckFadeMs 必须是数字')
         }
         return sendJson(res, 200, {
           ok: true,
-          ...audioFocus.configure({ voiceInputPause: body.voiceInputPause }),
+          ...audioFocus.configure({
+            voiceInputPause: body?.voiceInputPause,
+            duckLevel: body?.duckLevel,
+            duckFadeMs: body?.duckFadeMs,
+          }),
         })
       }
       if (pathname === '/audio-focus/duck' && method === 'POST') {
@@ -599,17 +609,33 @@ export function createRoutes({
         }
         const rawRoots = Array.isArray(body?.roots) ? body.roots : null
         const patch = {}
+        let skippedRoots = []
         if (rawRoots !== null) {
-          const { good, bad } = await validateRoots(rawRoots)
-          if (bad.length > 0) {
+          const current = await settings.read()
+          const known = new Set(Array.isArray(current.roots) ? current.roots : [])
+          const { bad } = await validateRoots(rawRoots)
+          // A root that was accepted before may be offline now (external drive, renamed
+          // folder). That must not block editing another root; the scanner already warns
+          // per missing root. Only a newly added non-folder is rejected.
+          const addedMissing = bad.filter((root) => !known.has(root))
+          const allowMissing = body?.allowMissingRoots === true
+          if (addedMissing.length > 0 && !allowMissing) {
             return sendJson(res, 400, {
               ok: false,
               error: { code: 'BAD_ROOT', message: '目录不存在或不是文件夹' },
-              bad,
+              bad: addedMissing,
             })
           }
-          patch.roots = good
+          const blocked = new Set(addedMissing)
+          // A backup imported on another machine can name folders that do not exist yet;
+          // with allowMissingRoots they are dropped (and reported) instead of failing the
+          // whole restore.
+          patch.roots = rawRoots.filter((root) => !blocked.has(root))
+          skippedRoots = addedMissing
         }
+        // The folder row's visible/hidden switch lives here (normalizeConfig checks it is a
+        // subset of roots); it used to be read by the scanner but never written by the route.
+        if (Array.isArray(body?.hiddenRoots)) patch.hiddenRoots = body.hiddenRoots
         if (body?.depth !== undefined) patch.depth = body.depth
         if (Array.isArray(body?.extensions)) patch.extensions = body.extensions
         if (typeof body?.onlineQuality === 'string') patch.onlineQuality = body.onlineQuality
@@ -618,6 +644,17 @@ export function createRoutes({
             return fail(res, 400, 'BAD_CACHE_DIR', '缓存目录需要绝对路径')
           }
           patch.cacheDir = body.cacheDir.trim()
+          // Prove the target is writable before switching: a directory that cannot be
+          // created would make /online/cache fail and the page silently show zeros.
+          const cacheTarget = patch.cacheDir === '' ? defaultCacheDir : patch.cacheDir
+          try {
+            await mkdir(cacheTarget, { recursive: true })
+            const probe = join(cacheTarget, '.write-test-' + process.pid + '-' + Date.now())
+            await writeFile(probe, '')
+            await unlink(probe)
+          } catch {
+            return fail(res, 400, 'BAD_CACHE_DIR', '缓存目录不可写')
+          }
         }
         if (body?.watchFolders !== undefined) patch.watchFolders = body.watchFolders === true
         const config = await settings.write(patch)
@@ -627,6 +664,7 @@ export function createRoutes({
         return sendJson(res, 200, {
           ok: true,
           config,
+          skippedRoots,
           home: settings.home,
           file: settings.file,
           effectiveCacheDir: cacheDirOf(config),
@@ -1139,8 +1177,16 @@ export function createRoutes({
           const config = await settings.read()
           try {
             const cleared = await clearDataCategory(settings.dir, category, Array.isArray(config.roots) ? config.roots : [])
-            // The lyric records are memoized: forget them with the files.
-            if (category === 'lyrics' && typeof lyricRecords.invalidate === 'function') lyricRecords.invalidate()
+            // Every store memoizes its file; clearing the files must also drop the memory copy,
+            // or the next write puts the whole old payload back (and a restart reads the .bak).
+            const forget = {
+              favorites: favorites,
+              playlists: playlists,
+              stats: stats,
+              playback: playback,
+              lyrics: lyricRecords,
+            }[category]
+            if (forget !== undefined && forget !== null && typeof forget.invalidate === 'function') forget.invalidate()
             return sendJson(res, 200, { ok: true, ...cleared, category })
           } catch (error) {
             return fail(res, 500, 'CLEAR_FAILED', String(error?.message ?? error))

@@ -130,8 +130,10 @@ var PREF_DEFAULTS = {
     { bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], effects: {} },
     { bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], effects: {} },
   ],
-  /** 0 keeps the old hard cut; a positive value enables the automatic blend. */
-  crossfadeSeconds: 0,
+  /** Folia's automix/crossfade switch, kept apart from the maximum overlap. */
+  crossfadeEnabled: false,
+  /** Folia's `crossfadeMaxSec`: the upper bound of the automatic overlap. */
+  crossfadeSeconds: 5,
   /** Folia's `queueAddBehavior`: where 「加入队列」 puts a song, after the current one or at the end. */
   queueAddBehavior: 'append',
   /** Folia's `autoSkipUnplayable`: a track that cannot be played is skipped instead of stopping. */
@@ -165,8 +167,9 @@ function readPrefs() {
     }
   }
   if (raw === null) return merged
+  var parsed = null
   try {
-    var parsed = JSON.parse(raw)
+    parsed = JSON.parse(raw)
     if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return merged
     Object.keys(parsed).forEach(function (key) {
       if (parsed[key] !== undefined && parsed[key] !== null) merged[key] = parsed[key]
@@ -205,6 +208,14 @@ function readPrefs() {
   if (!isFinite(globalOffset)) globalOffset = PREF_DEFAULTS.lyricGlobalOffsetMs
   merged.lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Math.round(globalOffset)))
   if (merged.queueAddBehavior !== 'next') merged.queueAddBehavior = 'append'
+  // Before the switch existed, a positive seconds value was the switch itself. Fresh installs
+  // (defaults above) stay off; old users keep exactly the state they had.
+  var storedHadCrossfadeSwitch = parsed !== null && Object.prototype.hasOwnProperty.call(parsed, 'crossfadeEnabled')
+  var storedCrossfadeSeconds = parsed === null ? NaN : Number(parsed.crossfadeSeconds)
+  if (!storedHadCrossfadeSwitch) merged.crossfadeEnabled = isFinite(storedCrossfadeSeconds) && storedCrossfadeSeconds > 0
+  var crossfadeSeconds = Number(merged.crossfadeSeconds)
+  if (!isFinite(crossfadeSeconds) || crossfadeSeconds < 1) crossfadeSeconds = PREF_DEFAULTS.crossfadeSeconds
+  merged.crossfadeSeconds = Math.min(25, Math.max(1, Math.round(crossfadeSeconds)))
   if (dropped) {
     try {
       window.localStorage.setItem(PREFS_KEY, JSON.stringify(merged))

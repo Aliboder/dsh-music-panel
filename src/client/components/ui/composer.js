@@ -98,6 +98,24 @@ function ComposerLyrics() {
     + '\u0000' + (prefs.lyricKeepProviderWordTiming !== false ? 'keep-own' : 'all-sources')
     + '\u0000' + (Array.isArray(prefs.lyricFormatOrder) ? prefs.lyricFormatOrder.join(',') : '')
   var lastSourceKeyRef = useRef(null)
+  var reloadPair = useState(0)
+  var lyricReload = reloadPair[0]
+  var setLyricReload = reloadPair[1]
+
+  useEffect(
+    function () {
+      function onLyricsCleared() {
+        setLyricReload(function (value) {
+          return value + 1
+        })
+      }
+      window.addEventListener('dsh-music:lyrics-cleared', onLyricsCleared)
+      return function () {
+        window.removeEventListener('dsh-music:lyrics-cleared', onLyricsCleared)
+      }
+    },
+    [],
+  )
 
   useEffect(
     function () {
@@ -144,7 +162,7 @@ function ComposerLyrics() {
         if (typeof unsubscribe === 'function') unsubscribe()
       }
     },
-    [prefs.composerLyrics, trackPath, lyricSourceKey],
+    [prefs.composerLyrics, trackPath, lyricSourceKey, lyricReload],
   )
 
   // A changed line filter re-bakes the strip from the same document (no new request).

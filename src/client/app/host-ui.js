@@ -24,6 +24,31 @@ function hostComponent(name) {
   return null
 }
 
+/** The names the panel actually renders. The about row must describe these, not the package. */
+var HOST_KIT_COMPONENTS = [
+  'Button',
+  'Switch',
+  'Modal',
+  'Input',
+  'Checkbox',
+  'SegmentedControl',
+  'SegmentedTabs',
+  'Tag',
+  'StateDot',
+  'Tooltip',
+  'Pill',
+  'Menu',
+]
+
+/** native = every component resolved, partial = the package loaded but some are missing. */
+function hostKitState() {
+  if (!hostUi) return { state: 'fallback', missing: HOST_KIT_COMPONENTS.slice() }
+  var missing = HOST_KIT_COMPONENTS.filter(function (name) {
+    return hostComponent(name) === null
+  })
+  return { state: missing.length === 0 ? 'native' : 'partial', missing: missing }
+}
+
 /** Local icon name -> host icon component. Unmapped names keep the local SVG. */
 var HOST_ICON_MAP = {
   search: 'IconSearchOutlineRegular',

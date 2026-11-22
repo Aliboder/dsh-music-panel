@@ -14,10 +14,12 @@ import { join, relative, sep } from 'node:path'
 
 const CATEGORIES = [
   { id: 'settings', label: 'settings', names: ['settings.json'] },
-  { id: 'favorites', label: 'favorites', names: ['favorites.json'] },
-  { id: 'playlists', label: 'playlists', names: ['playlists.json'] },
-  { id: 'stats', label: 'stats', names: ['stats.json'] },
-  { id: 'lyrics', label: 'lyrics', names: ['lyric-states.json', 'lyrics'] },
+  // Every store writes a `.bak` copy next to the live file (json-store.js); clearing the
+  // category has to remove it too or the next read resurrects the data (readJsonWithBackup).
+  { id: 'favorites', label: 'favorites', names: ['favorites.json', 'favorites.json.bak'] },
+  { id: 'playlists', label: 'playlists', names: ['playlists.json', 'playlists.json.bak'] },
+  { id: 'stats', label: 'stats', names: ['stats.json', 'stats.json.bak'] },
+  { id: 'lyrics', label: 'lyrics', names: ['lyric-states.json', 'lyric-states.json.bak', 'lyrics'] },
   { id: 'playback', label: 'playback', names: ['playback.json', 'playback.json.bak'] },
   { id: 'accounts', label: 'accounts', names: ['sessions.json', 'accounts.json', 'providers.json', 'bodian-device.json', 'qishui-device.json', 'qq-auth-sessions.json'] },
   { id: 'cache', label: 'cache', names: ['cache'] },

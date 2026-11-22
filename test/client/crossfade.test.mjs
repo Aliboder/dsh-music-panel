@@ -25,13 +25,15 @@ const fx = factory()
 // ── on/off and the overlap cap ────────────────────────────────────────────
 assert.equal(fx.crossfadeFadeSeconds({}), 0, 'missing means off')
 assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 0 }), 0)
-assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: -4 }), 0)
-assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 6 }), 6)
-assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 99 }), fx.CROSSFADE_MAX_SECONDS)
-assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 0.2 }), fx.CROSSFADE_MIN_SECONDS)
+assert.equal(fx.crossfadeFadeSeconds({ crossfadeEnabled: true, crossfadeSeconds: 0 }), 0)
+assert.equal(fx.crossfadeFadeSeconds({ crossfadeEnabled: true, crossfadeSeconds: -4 }), 0)
+assert.equal(fx.crossfadeFadeSeconds({ crossfadeEnabled: true, crossfadeSeconds: 6 }), 6)
+assert.equal(fx.crossfadeFadeSeconds({ crossfadeEnabled: true, crossfadeSeconds: 99 }), fx.CROSSFADE_MAX_SECONDS)
+assert.equal(fx.crossfadeFadeSeconds({ crossfadeEnabled: true, crossfadeSeconds: 0.2 }), fx.CROSSFADE_MIN_SECONDS)
+assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 6 }), 0, 'the length alone does not switch it on')
 assert.equal(fx.CROSSFADE_MAX_SECONDS, 25, 'Folia slider ceiling')
 assert.equal(fx.CROSSFADE_MIN_SECONDS, 1, 'Folia slider floor')
-assert.equal(fx.crossfadeFadeSeconds({ crossfadeSeconds: 'abc' }), 0)
+assert.equal(fx.crossfadeFadeSeconds({ crossfadeEnabled: true, crossfadeSeconds: 'abc' }), 0)
 
 // ── album continuity ──────────────────────────────────────────────────────
 const albumA = { path: 'a', album: 'Thriller', artist: 'Michael Jackson' }
@@ -67,7 +69,7 @@ assert.equal(fx.crossfadeKeyLengthScale('clashing'), 0.4)
 assert.equal(fx.crossfadeKeyLengthScale('unknown'), 1)
 
 // ── the automatic plan ────────────────────────────────────────────────────
-const prefs = { crossfadeSeconds: 10 }
+const prefs = { crossfadeEnabled: true, crossfadeSeconds: 10 }
 const plan = (current, next, remaining) => fx.crossfadePlan(current, next, { prefs, remaining })
 
 // Folia's crossfade is blind: the requested ceiling is used while the pair has room.
@@ -86,11 +88,12 @@ assert.equal(plan({ duration: 180, outroQuietSec: 4 }, { durationSec: 180, intro
 assert.equal(plan({ duration: 180, outroQuietSec: 4 }, { durationSec: 180 }, 30).startInNext, 0)
 // Disabled or no remaining time means no plan at all.
 assert.equal(fx.crossfadePlan({}, {}, { prefs: { crossfadeSeconds: 0 }, remaining: 30 }), null)
+assert.equal(fx.crossfadePlan({}, {}, { prefs: { crossfadeEnabled: false, crossfadeSeconds: 10 }, remaining: 30 }), null, 'switch off wins over the saved length')
 assert.equal(fx.crossfadePlan({}, {}, { prefs, remaining: 0 }), null)
 
 // ── preparation gate ──────────────────────────────────────────────────────
 const base = {
-  prefs: { crossfadeSeconds: 10 },
+  prefs: { crossfadeEnabled: true, crossfadeSeconds: 10 },
   playing: true,
   hasGraph: true,
   loop: 'none',
@@ -142,7 +145,8 @@ const settings = readFileSync(join(root, 'src/client/components/ui/settings.js')
 assert.match(settings, /crossfadeSeconds/, 'the settings sheet writes the preference')
 assert.doesNotMatch(settings, /crossfadeOff/, 'there is no duration dropdown to translate any more')
 assert.doesNotMatch(settings, /crossfadeAlbums/, 'the album rule is not a setting')
-assert.match(settings, /CROSSFADE_MAX_SECONDS/, 'turning it on stores the automatic cap')
+assert.match(settings, /crossfadeEnabled/, 'the switch is its own preference, so it cannot wipe the cap')
+assert.match(settings, /CROSSFADE_MAX_SECONDS/, 'the slider still uses the cap')
 
 const player = readFileSync(join(root, 'src/client/services/player/player.js'), 'utf8')
 assert.match(player, /getDeckChain\('B'\)/, 'the spare deck comes from Folia graph')
@@ -163,7 +167,7 @@ assert.match(loudness, /LOUDNESS_TARGET = -14/, 'crossfade uses the same balance
 // The control sits inside the volume view of the audio-effects panel.
 const panel = readFileSync(join(root, 'src/client/components/ui/eq-panel.js'), 'utf8')
 assert.match(panel, /settings\.crossfade/, 'the switch is rendered in the effects panel')
-assert.match(panel, /crossfadeSeconds/, 'it writes the same preference as settings')
+assert.match(panel, /crossfadeEnabled/, 'it writes the same switch as settings')
 assert.doesNotMatch(panel, /id: 'transition'/, 'no separate transition view')
 assert.doesNotMatch(panel, /mp-xf-chip/, 'no duration chips: the engine decides')
 

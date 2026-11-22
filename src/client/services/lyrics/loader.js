@@ -141,7 +141,8 @@ var MPLyricLoader = (function () {
     var lines = parseLrcText(body.lrc || '')
     if (body.translation) mergeLyricTranslation(lines, body.translation)
     attachWordTimeline(lines, body.lines)
-    parsed.lyrics = legacyLinesToFolia(lines)
+    // A legacy answer has no document to prepare, but the line rules still apply.
+    parsed.lyrics = mpApplyLineRulesToFolia(legacyLinesToFolia(lines))
     parsed.isWordByWord = body.wordLevel === true
     return parsed
   }
@@ -264,6 +265,9 @@ var MPLyricLoader = (function () {
       )
       var match = answer && answer.match !== null && typeof answer.match === 'object' ? answer.match : null
       if (match === null) return null
+      // The switch may have been turned off while the search was in flight; the answer must
+      // not replace the lyric against the listener's current choice.
+      if (lyricPrefs().autoUseBestLyric === false) return null
       // The platform's own lyric cannot replace itself.
       if (String(match.source || '') === provider) return null
       var parsed = await parseOnlineBody(

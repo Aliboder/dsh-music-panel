@@ -9,7 +9,6 @@
 
 var CROSSFADE_MAX_SECONDS = 25
 var CROSSFADE_MIN_SECONDS = 1
-var CROSSFADE_DEFAULT_SECONDS = 5
 /** Start analysing this early; analysis is fast but the fetch is not. */
 var CROSSFADE_PREPARE_SECONDS = 28
 /** Only a genuinely silent intro is skipped, and never more than this. */
@@ -23,9 +22,15 @@ var CROSSFADE_SKIP_LIMIT_SECONDS = 10
  */
 var CROSSFADE_INCOMING_SECONDS = 2.5
 
-/** 0 means off. The stored value is the upper bound of the automatic overlap. */
+/**
+ * The overlap length in use, or 0 when the transition is off. The switch and the maximum
+ * are two stored values (as Folia's automixEnabled / crossfadeMaxSec): turning the switch
+ * off must not throw away the length the listener chose.
+ */
 function crossfadeFadeSeconds(prefs) {
-  var value = Number(prefs !== null && typeof prefs === 'object' ? prefs.crossfadeSeconds : 0)
+  var settings = prefs !== null && typeof prefs === 'object' ? prefs : {}
+  if (settings.crossfadeEnabled !== true) return 0
+  var value = Number(settings.crossfadeSeconds)
   if (!isFinite(value) || value <= 0) return 0
   return Math.min(CROSSFADE_MAX_SECONDS, Math.max(CROSSFADE_MIN_SECONDS, value))
 }

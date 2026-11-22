@@ -110,6 +110,16 @@ const cover = await cache.coverFile(PROVIDER, ID)
 assert.ok(cover && cover.mime === 'image/png')
 assert.ok(await cache.hasCover(PROVIDER, ID))
 
+// Covers without audio are covered by the same ceiling: a cover-only entry is pruned
+// by age instead of growing the cache without limit.
+await cache.writeCover({ provider: 'qq', id: 'cover-only', mime: 'image/jpeg', ext: 'jpg', buffer: audioBytes(8192) })
+assert.ok(await cache.hasCover('qq', 'cover-only'))
+await cache.prune(1024)
+assert.equal(await cache.hasCover('qq', 'cover-only'), false, 'the cover-only entry is pruned')
+// The tight ceiling also took the audio entry and its cover; put one back for the stats
+// assertions below.
+await cache.writeCover({ provider: PROVIDER, id: ID, mime: 'image/png', ext: 'png', buffer: audioBytes(4096) })
+
 stats = await cache.stats()
 assert.equal(stats.categories.cover.files, 1)
 assert.ok(stats.bytes > stats.categories.audio.bytes, 'cover bytes are counted in the total')

@@ -294,22 +294,93 @@ export function createMediaCache(options) {
     return list
   }
 
+  /** Every stored cover with its metadata; used by stats and pruning. */
+  async function coverEntries() {
+    const list = []
+    let providers
+    try {
+      providers = await readdir(coverRoot, { withFileTypes: true })
+    } catch {
+      return list
+    }
+    for (const provider of providers) {
+      if (!provider.isDirectory()) continue
+      let names
+      try {
+        names = await readdir(join(coverRoot, provider.name))
+      } catch {
+        continue
+      }
+      for (const name of names) {
+        if (!name.endsWith('.json')) continue
+        const metaFile = join(coverRoot, provider.name, name)
+        const meta = await readMetaFile(metaFile)
+        if (meta === null) continue
+        const ext = typeof meta.ext === 'string' && /^(jpg|jpeg|png|webp|gif)$/.test(meta.ext) ? meta.ext : 'jpg'
+        const file = join(coverRoot, provider.name, name.slice(0, -5) + '.' + ext)
+        let info = null
+        try {
+          info = await stat(file)
+        } catch {
+          info = null
+        }
+        if (info === null || !info.isFile()) continue
+        list.push({
+          provider: provider.name,
+          id: name.slice(0, -5),
+          file,
+          metaFile,
+          size: info.size,
+          at: finite(meta.at),
+        })
+      }
+    }
+    return list
+  }
+
   /**
-   * Prune least-recently-played entries until the store fits `limitBytes`.
+   * Prune least-recently-used entries until the store fits `limitBytes`.
+   * Audio and covers share the one ceiling (Folia resourceCache prunes the two stores
+   * separately); removing an audio entry also removes its cover, so audio goes first and
+   * covers without audio are removed by age afterwards.
    * 0 (or anything unusable) means no ceiling, as in Folia's setting.
    */
   async function prune(limitBytes) {
     const limit = finite(limitBytes)
     if (limit === 0) return 0
-    const list = await entries()
-    let total = list.reduce((sum, item) => sum + item.size, 0)
+    const audio = await entries()
+    const covers = await coverEntries()
+    let total = audio.reduce((sum, item) => sum + item.size, 0)
+      + covers.reduce((sum, item) => sum + item.size, 0)
     if (total <= limit) return 0
-    list.sort((left, right) => left.usedAt - right.usedAt)
+    const coverByKey = new Map(covers.map((cover) => [cover.provider + '\u0000' + cover.id, cover]))
+    audio.sort((left, right) => left.usedAt - right.usedAt)
     let removed = 0
-    for (const item of list) {
+    for (const item of audio) {
       if (total <= limit) break
       await remove(item.provider, item.id)
       total -= item.size
+      // remove() takes the song's cover too; count that space as freed as well, or a tight
+      // ceiling would prune audio it did not need to.
+      const key = item.provider + '\u0000' + item.id
+      const cover = coverByKey.get(key)
+      if (cover !== undefined) {
+        total -= cover.size
+        coverByKey.delete(key)
+      }
+      removed += 1
+    }
+    // remove() already deleted each pruned song's cover; measure what is actually left.
+    const leftCovers = await coverEntries()
+    total = (await entries()).reduce((sum, item) => sum + item.size, 0)
+      + leftCovers.reduce((sum, item) => sum + item.size, 0)
+    if (total <= limit) return removed
+    leftCovers.sort((left, right) => left.at - right.at)
+    for (const cover of leftCovers) {
+      if (total <= limit) break
+      await unlink(cover.file).catch(() => {})
+      await unlink(cover.metaFile).catch(() => {})
+      total -= cover.size
       removed += 1
     }
     return removed

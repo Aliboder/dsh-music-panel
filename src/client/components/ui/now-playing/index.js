@@ -694,6 +694,22 @@ function NowPlaying(props) {
     [lyricRulesKey],
   )
 
+  // 存储与备份 → 清空歌词: re-read this song once the files and the loader cache are gone.
+  useEffect(
+    function () {
+      function onLyricsCleared() {
+        setLyricReload(function (value) {
+          return value + 1
+        })
+      }
+      window.addEventListener('dsh-music:lyrics-cleared', onLyricsCleared)
+      return function () {
+        window.removeEventListener('dsh-music:lyrics-cleared', onLyricsCleared)
+      }
+    },
+    [],
+  )
+
   // The per-song correction plus Folia's device-wide offset: one clock for every surface.
   var lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Number(prefs.lyricGlobalOffsetMs) || 0))
   var lyricNow = lyricClock(time.currentTime, offsetMs, lyricGlobalOffsetMs)

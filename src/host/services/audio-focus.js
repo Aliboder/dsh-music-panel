@@ -215,6 +215,10 @@ export function createAudioFocusService(options = {}) {
   const now = typeof options.now === 'function' ? options.now : Date.now
   let voiceInputPause = false
   let voiceInputActive = false
+  // Defaults for ducks whose caller does not pass a level/fade (the browser half mirrors
+  // the two settings here so a cross-process caller gets the listener's levels).
+  let duckLevel = DEFAULT_DUCK_LEVEL
+  let duckFadeMs = DEFAULT_DUCK_FADE_MS
   const ducks = new Map()
 
   const monitor = createVoiceInputMonitor({
@@ -260,9 +264,13 @@ export function createAudioFocusService(options = {}) {
   }
 
   function configure(input) {
-    if (input !== null && typeof input === 'object' && typeof input.voiceInputPause === 'boolean') {
-      voiceInputPause = input.voiceInputPause
-      monitor.syncState()
+    if (input !== null && typeof input === 'object') {
+      if (typeof input.voiceInputPause === 'boolean') {
+        voiceInputPause = input.voiceInputPause
+        monitor.syncState()
+      }
+      if (Number.isFinite(Number(input.duckLevel))) duckLevel = clamp(Number(input.duckLevel), 0, 1)
+      if (Number.isFinite(Number(input.duckFadeMs))) duckFadeMs = clamp(Math.round(Number(input.duckFadeMs)), 0, 5000)
     }
     return status()
   }
@@ -270,10 +278,10 @@ export function createAudioFocusService(options = {}) {
   function beginDuck(input = {}) {
     const reason = normalizeReason(input.reason)
     if (reason === '') return status()
-    const level = Number.isFinite(Number(input.level)) ? clamp(Number(input.level), 0, 1) : DEFAULT_DUCK_LEVEL
+    const level = Number.isFinite(Number(input.level)) ? clamp(Number(input.level), 0, 1) : duckLevel
     const fadeMs = Number.isFinite(Number(input.fadeMs))
       ? clamp(Math.round(Number(input.fadeMs)), 0, 5000)
-      : DEFAULT_DUCK_FADE_MS
+      : duckFadeMs
     const ttl = Number.isFinite(Number(input.ttlMs))
       ? clamp(Math.round(Number(input.ttlMs)), 0, MAX_DUCK_TTL_MS)
       : DEFAULT_DUCK_TTL_MS

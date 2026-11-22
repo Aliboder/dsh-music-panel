@@ -1329,11 +1329,47 @@ var mseFallbackToken = -1
     })
   }
 
+  /** The direct-element fallback cannot use the MSE session's seek queue; wait for metadata. */
+  function applyDirectSavedStart(item, token) {
+    function seekTo(seconds) {
+      if (token !== loadToken || audio === null) return
+      try {
+        audio.currentTime = seconds
+      } catch (error) {
+        return
+      }
+      if (pendingAutoplay && audio.paused) playAfterLoudness(token)
+    }
+    function whenReady(seconds) {
+      if (audio === null) return
+      if (audio.readyState >= 1) {
+        seekTo(seconds)
+        return
+      }
+      audio.addEventListener('loadedmetadata', function () { seekTo(seconds) }, { once: true })
+    }
+    if (pendingResumeSeconds !== null) {
+      var savedSeconds = pendingResumeSeconds
+      pendingResumeSeconds = null
+      if (savedSeconds > 0) whenReady(savedSeconds)
+      return
+    }
+    if (readPrefs().rememberPerTrack !== true || typeof item.path !== 'string' || item.path === '') return
+    getJson(API + 'position?path=' + encodeURIComponent(item.path))
+      .then(function (body) {
+        if (token !== loadToken) return
+        var seconds = Number(body.lastPositionSec)
+        if (isFinite(seconds) && seconds > 1) whenReady(seconds)
+      })
+      .catch(function () {})
+  }
+
   function startOnlineDirect(item, token, loudness, headers) {
     if (token !== loadToken) return
     stopOnlineMse()
     prepareOnlineElement()
     loadActiveSource(onlineUrlFor(item))
+    applyDirectSavedStart(item, token)
     loudness.resolve()
     if (pendingAutoplay) playAfterLoudness(token)
     if (headers === undefined || !applyPlatformGain(headers)) loadOnlineHeadGain(item, token)
@@ -1432,6 +1468,10 @@ var mseFallbackToken = -1
             resumeAfterSeek = false
             if (pendingAutoplay) playAfterLoudness(token)
             else audio.play().catch(function () {})
+          } else if (pendingAutoplay && (audio === null || audio.paused)) {
+            // The saved position was known before the first chunk arrived: seeking paused
+            // the deck, so start it again at the restored point.
+            playAfterLoudness(token)
           }
         }
         function pump() {
@@ -1458,6 +1498,24 @@ var mseFallbackToken = -1
           loudness.resolve()
           if (pendingAutoplay) playAfterLoudness(token)
         }
+        /** Folia's startAtSec / 每首歌记住播放位置 on the MSE path too. */
+        function applySavedStart() {
+          if (pendingResumeSeconds !== null) {
+            var savedSeconds = pendingResumeSeconds
+            pendingResumeSeconds = null
+            if (savedSeconds > 0) session.seek(savedSeconds)
+            return
+          }
+          if (readPrefs().rememberPerTrack !== true || typeof item.path !== 'string' || item.path === '') return
+          getJson(API + 'position?path=' + encodeURIComponent(item.path))
+            .then(function (body) {
+              if (token !== loadToken) return
+              var seconds = Number(body.lastPositionSec)
+              if (isFinite(seconds) && seconds > 1) session.seek(seconds)
+            })
+            .catch(function () {})
+        }
+
         mediaSource.addEventListener('sourceopen', function () {
           if (session.stopped) return
           try {
@@ -1479,6 +1537,7 @@ var mseFallbackToken = -1
             pump()
           })
           session.reader = response.body.getReader()
+          applySavedStart()
           function read() {
             session.reader.read().then(function (result) {
               if (failed || session.stopped) return

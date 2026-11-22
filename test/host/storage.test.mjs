@@ -21,6 +21,10 @@ async function dataDir() {
   await writeFile(join(dir, 'favorites.json'), '{"favorites":[]}')
   await writeFile(join(dir, 'playlists.json'), '{"playlists":[]}')
   await writeFile(join(dir, 'lyric-states.json'), '{"version":1,"tracks":{}}')
+  // Stores keep a backup copy; a clear that leaves it would resurrect on the next read.
+  await writeFile(join(dir, 'favorites.json.bak'), '{"favorites":[{"path":"old.mp3"}]}')
+  await writeFile(join(dir, 'playlists.json.bak'), '{"playlists":[{"id":"old"}]}')
+  await writeFile(join(dir, 'lyric-states.json.bak'), '{"version":1,"tracks":{"x":{}}}')
   return dir
 }
 
@@ -63,6 +67,7 @@ test('clearDataCategory清空一个类别，其它类别保留', async () => {
     assert.ok(before.categories.some((row) => row.id === 'favorites'))
     const cleared = await clearDataCategory(dir, 'favorites')
     assert.ok(cleared.removed.includes('favorites.json'))
+    assert.ok(cleared.removed.includes('favorites.json.bak'), 'the backup copy is cleared too')
     const after = await inspectData(dir)
     assert.equal(after.categories.some((row) => row.id === 'favorites'), false)
     assert.ok(after.categories.some((row) => row.id === 'playlists'), 'the neighbouring category stays')
@@ -105,6 +110,82 @@ test('config 返回并保存缓存目录与目录监视开关', async () => {
     )
     assert.equal(res.status, 400)
     assert.equal(res.json().error.code, 'BAD_CACHE_DIR')
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('config 保存隐藏目录，并容忍已配置目录离线', async () => {
+  const dir = await dataDir()
+  const offline = join(dir, 'offline-root')
+  try {
+    const { handle, config } = routesFor(dir, {})
+    // An already configured root that vanished stays in the list (the scanner warns);
+    // editing another root must not be blocked by it.
+    config().roots = [dir, offline]
+    let res = fakeRes()
+    await handle(
+      fakeReq('/music/config', 'POST', { 'content-type': 'application/json' }, JSON.stringify({ hiddenRoots: [dir] })),
+      res,
+    )
+    assert.equal(res.status, 200)
+    assert.deepEqual(res.json().config.hiddenRoots, [dir], 'the folder visibility switch is persisted')
+
+    res = fakeRes()
+    await handle(
+      fakeReq('/music/config', 'POST', { 'content-type': 'application/json' }, JSON.stringify({ roots: [dir, offline] })),
+      res,
+    )
+    assert.equal(res.status, 200)
+    assert.deepEqual(res.json().config.roots, [dir, offline])
+
+    // A newly added folder that does not exist is still rejected.
+    res = fakeRes()
+    await handle(
+      fakeReq('/music/config', 'POST', { 'content-type': 'application/json' }, JSON.stringify({ roots: [dir, join(dir, 'missing-new')] })),
+      res,
+    )
+    assert.equal(res.status, 400)
+    assert.equal(res.json().error.code, 'BAD_ROOT')
+
+    // A backup import may skip those instead of failing the whole restore.
+    res = fakeRes()
+    await handle(
+      fakeReq('/music/config', 'POST', { 'content-type': 'application/json' }, JSON.stringify({
+        roots: [dir, join(dir, 'missing-new')],
+        allowMissingRoots: true,
+      })),
+      res,
+    )
+    assert.equal(res.status, 200)
+    assert.deepEqual(res.json().skippedRoots, [join(dir, 'missing-new')])
+    assert.deepEqual(res.json().config.roots, [dir])
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('按类别清空同时丢弃内存缓存', async () => {
+  const dir = await dataDir()
+  try {
+    const calls = []
+    const fakeStore = (name) => ({ invalidate: () => calls.push(name) })
+    const { handle } = routesFor(dir, {
+      favorites: fakeStore('favorites'),
+      playlists: fakeStore('playlists'),
+      stats: fakeStore('stats'),
+      playback: fakeStore('playback'),
+      lyricState: fakeStore('lyrics'),
+    })
+    for (const category of ['favorites', 'playlists', 'stats', 'playback', 'lyrics']) {
+      const res = fakeRes()
+      await handle(
+        fakeReq('/music/data/clear', 'POST', { 'content-type': 'application/json' }, JSON.stringify({ category })),
+        res,
+      )
+      assert.equal(res.status, 200, category)
+    }
+    assert.deepEqual(calls, ['favorites', 'playlists', 'stats', 'playback', 'lyrics'])
   } finally {
     await rm(dir, { recursive: true, force: true })
   }

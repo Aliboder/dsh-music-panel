@@ -797,8 +797,10 @@ async function logoutProvider(provider) {
  * it for a salted token; the Host stores only salt + token.
  */
 function useNavidromeForm() {
-  var serverPair = useState('')
-  var userPair = useState('')
+  var online = useStore(onlineStore)
+  var known = online && online.providers && online.providers.navidrome ? online.providers.navidrome : null
+  var serverPair = useState(known && typeof known.server === 'string' ? known.server : '')
+  var userPair = useState(known && typeof known.nickname === 'string' ? known.nickname : '')
   var passPair = useState('')
   var phasePair = useState('idle') // idle | loading
   var errorPair = useState('')
@@ -814,6 +816,18 @@ function useNavidromeForm() {
   var setError = errorPair[1]
   var setNotice = noticePair[1]
   var setKeepPassword = keepPair[1]
+
+  // The providers endpoint already carries the stored server/username; fill them when the
+  // form is opened after a load instead of making the listener retype a known server.
+  useEffect(
+    function () {
+      if (known === null) return
+      if (serverPair[0] === '' && typeof known.server === 'string' && known.server !== '') setServer(known.server)
+      var name = typeof known.nickname === 'string' ? known.nickname : ''
+      if (userPair[0] === '' && name !== '') setUsername(name)
+    },
+    [known, known && known.server, known && known.nickname, serverPair, userPair],
+  )
 
   function reset() {
     setServer('')

@@ -190,7 +190,8 @@ function SettingsSheet(props) {
         cancelled = true
       }
     },
-    [tab, props.open],
+    // A cache directory change moves the store: re-read the sizes for the new root.
+    [tab, props.open, library.cacheDir],
   )
 
   if (props.open !== true) return null
@@ -397,6 +398,18 @@ function SettingsSheet(props) {
           onChange: function (value) { patchPrefs({ themeSource: String(value) }) },
         }),
       ),
+      prefs.themeSource === 'custom'
+        ? h(
+            SetRow,
+            { key: 'theme-accent', label: t('settings.themeAccent'), desc: t('settings.themeAccentDesc') },
+            h(KitInput, {
+              value: typeof prefs.themeAccent === 'string' ? prefs.themeAccent : '',
+              placeholder: '#f2607a',
+              label: t('settings.themeAccent'),
+              onChange: function (value) { patchPrefs({ themeAccent: String(value).trim() }) },
+            }),
+          )
+        : null,
     ]
   }
 
@@ -897,7 +910,9 @@ function SettingsSheet(props) {
         h(Switch, {
           value: crossfadeOn,
           onChange: function (value) {
-            patchPrefs({ crossfadeSeconds: value ? CROSSFADE_DEFAULT_SECONDS : 0 })
+            // Separate switch: turning it back on keeps the chosen maximum (Folia's
+            // automixEnabled beside crossfadeMaxSec).
+            patchPrefs({ crossfadeEnabled: value })
           },
         }),
       ),
@@ -1122,9 +1137,16 @@ function SettingsSheet(props) {
       ),
       h(
         SetRow,
-        { key: 'auto', label: t('settings.autoResume') },
+        {
+          key: 'auto',
+          label: t('settings.autoResume'),
+          // Folia restores and starts in one call; here the two are separate switches, so
+          // the second one must say when it cannot do anything.
+          desc: t('settings.autoResumeHint'),
+        },
         h(Switch, {
           value: prefs.autoResume === true,
+          disabled: prefs.resumeOnStart !== true,
           onChange: function (value) { patchPrefs({ autoResume: value }) },
         }),
       ),
@@ -1325,6 +1347,11 @@ function SettingsSheet(props) {
                 { className: 'mp-online-meta' },
                 h('strong', { className: 'mp-online-nick' }, info.nickname || info.username || t('online.loggedIn')),
                 info.server ? h('span', { className: 'mp-online-hint-text' }, info.server) : null,
+                h(
+                  'span',
+                  { className: 'mp-online-hint-text' },
+                  t(info.nativeSongs === true ? 'online.navidromeNativeOn' : 'online.navidromeNativeOff'),
+                ),
               ),
               h(IconButton, {
                 icon: 'logout',
@@ -1634,7 +1661,7 @@ function SettingsSheet(props) {
             icon: 'plus',
             disabled: busy || rootDraft.trim() === '',
             onClick: addRoot,
-            children: t('page.create'),
+            children: t('settings.addFolderAction'),
           }),
         ),
       ),
@@ -1692,7 +1719,7 @@ function SettingsSheet(props) {
       setBusy(false)
       if (ok) {
         setRootDraft('')
-        showToast(t('page.addedCount', { n: roots.length }))
+        showToast(t('settings.foldersAdded', { n: roots.length }))
       }
     })
   }
@@ -2028,33 +2055,37 @@ function SettingsSheet(props) {
 
   /** Folia's 备份与导入: settings only (no cache, no credentials), as one JSON file. */
   function exportBackup() {
-    try {
-      var payload = {
-        format: 'dsh-music-panel.backup',
-        version: 1,
-        at: new Date().toISOString(),
-        prefs: readPrefs(),
-        host: library.config || {},
-      }
-      if (typeof Blob === 'undefined' || typeof URL === 'undefined' || typeof document === 'undefined') {
-        showToast(t('data.backupUnavailable'))
-        return
-      }
-      var url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
-      var anchor = document.createElement('a')
-      anchor.href = url
-      anchor.download = 'dsh-music-panel-backup-' + new Date().toISOString().slice(0, 10) + '.json'
-      anchor.style.display = 'none'
-      document.body.appendChild(anchor)
-      anchor.click()
-      if (typeof anchor.remove === 'function') anchor.remove()
-      window.setTimeout(function () {
-        URL.revokeObjectURL(url)
-      }, 1000)
-      showToast(t('data.backupExported'))
-    } catch (error) {
-      showToast(errorText(error))
+    if (typeof Blob === 'undefined' || typeof URL === 'undefined' || typeof document === 'undefined') {
+      showToast(t('data.backupUnavailable'))
+      return
     }
+    // The Host config in memory is the copy the cache page last read; fetch it fresh so an
+    // export made from another tab still carries roots/hiddenRoots/watchFolders.
+    loadConfig().then(function (hostConfig) {
+      try {
+        var payload = {
+          format: 'dsh-music-panel.backup',
+          version: 1,
+          at: new Date().toISOString(),
+          prefs: readPrefs(),
+          host: hostConfig || library.config || {},
+        }
+        var url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
+        var anchor = document.createElement('a')
+        anchor.href = url
+        anchor.download = 'dsh-music-panel-backup-' + new Date().toISOString().slice(0, 10) + '.json'
+        anchor.style.display = 'none'
+        document.body.appendChild(anchor)
+        anchor.click()
+        if (typeof anchor.remove === 'function') anchor.remove()
+        window.setTimeout(function () {
+          URL.revokeObjectURL(url)
+        }, 1000)
+        showToast(t('data.backupExported'))
+      } catch (error) {
+        showToast(errorText(error))
+      }
+    })
   }
 
   function pickBackupFile() {
@@ -2076,12 +2107,24 @@ function SettingsSheet(props) {
         var host = parsed.host && typeof parsed.host === 'object' ? parsed.host : {}
         var patch = {}
         if (Array.isArray(host.roots)) patch.roots = host.roots
+        if (Array.isArray(host.hiddenRoots)) patch.hiddenRoots = host.hiddenRoots
         if (host.depth !== undefined) patch.depth = host.depth
         if (Array.isArray(host.extensions)) patch.extensions = host.extensions
         if (typeof host.cacheDir === 'string') patch.cacheDir = host.cacheDir
         if (typeof host.watchFolders === 'boolean') patch.watchFolders = host.watchFolders
+        // A backup from another computer names folders and a cache directory that may not
+        // exist here: drop the missing folders and retry without the cache path rather than
+        // failing the whole restore.
+        patch.allowMissingRoots = true
         setBackupBusy(true)
-        saveHostConfig(patch).then(function (body) {
+        function restoreHost() {
+          return saveHostConfig(patch).then(function (body) {
+            if (body || patch.cacheDir === undefined) return body
+            delete patch.cacheDir
+            return saveHostConfig(patch)
+          })
+        }
+        restoreHost().then(function (body) {
           setBackupBusy(false)
           if (!body) return
           var source = parsed.prefs && typeof parsed.prefs === 'object' ? parsed.prefs : {}
@@ -2092,13 +2135,18 @@ function SettingsSheet(props) {
           })
           if (Object.keys(prefsPatch).length > 0) setPrefs(prefsPatch)
           setBackupOpen(false)
-          showToast(t('data.backupImported'))
+          var skipped = Array.isArray(body.skippedRoots) ? body.skippedRoots.length : 0
+          showToast(skipped > 0 ? t('data.backupImportedSkipped', { n: skipped }) : t('data.backupImported'))
           void loadLibrary(true)
         })
       } catch (error) {
         setBackupBusy(false)
         showToast(errorText(error))
       }
+    }
+    reader.onerror = function () {
+      setBackupBusy(false)
+      showToast(t('data.backupBadFile'))
     }
     reader.readAsText(file)
     if (input) input.value = ''
@@ -2152,6 +2200,7 @@ function SettingsSheet(props) {
   }
 
   function aboutTab() {
+    var kit = typeof hostKitState === 'function' ? hostKitState() : { state: hostUi ? 'native' : 'fallback', missing: [] }
     return [
       h('h2', { key: 'h' }, t('v2.about')),
       h(
@@ -2201,7 +2250,15 @@ function SettingsSheet(props) {
       h(
         SetRow,
         { key: 'hostkit', label: t('v2.hostKit'), desc: t('v2.hostKitDesc') },
-        h(KitTag, { tone: hostUi ? 'info' : 'neutral' }, hostUi ? t('v2.hostKitNative') : t('v2.hostKitFallback')),
+        h(
+          KitTag,
+          { tone: kit.state === 'native' ? 'info' : kit.state === 'partial' ? 'warning' : 'neutral' },
+          kit.state === 'native'
+            ? t('v2.hostKitNative')
+            : kit.state === 'partial'
+              ? t('v2.hostKitPartial', { n: kit.missing.length })
+              : t('v2.hostKitFallback'),
+        ),
       ),
       h(
         SetRow,

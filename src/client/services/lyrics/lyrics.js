@@ -404,6 +404,17 @@ function clearLyricClientCaches() {
   } catch (error) {
     // Blocked storage: nothing to forget.
   }
+  // The shared loader keeps up to 12 resolved lyrics; a clear has to drop them or the
+  // current song keeps showing the lyric whose files were just removed.
+  if (typeof MPLyricLoader !== 'undefined' && MPLyricLoader !== null && typeof MPLyricLoader.invalidate === 'function') {
+    MPLyricLoader.invalidate()
+  }
+  // Let every lyric surface re-read now that the files and the memory copy are gone.
+  try {
+    window.dispatchEvent(new CustomEvent('dsh-music:lyrics-cleared'))
+  } catch (error) {
+    // A missing CustomEvent (old harness) keeps the cleared flag only.
+  }
 }
 
 /** This song's saved segmentation record, or null when it has none (or it is malformed). */
@@ -467,6 +478,26 @@ function mpLyricSourceLabel(id) {
     return info.displayName
   }
   return key
+}
+
+/**
+ * Apply the listener's line rules to already-converted Folia lines. The normal path filters
+ * inside Folia's `prepare`; a legacy Host answer (no parseable document) has no document to
+ * prepare, so the same rules run on the converted lines instead.
+ */
+function mpApplyLineRulesToFolia(lines) {
+  if (!Array.isArray(lines) || lines.length === 0) return lines
+  var rules = lyricFilterRules()
+  if (rules.length === 0) return lines
+  if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return lines
+  if (typeof MPFoliaLyrics.applyLyricLineRules !== 'function'
+    || typeof MPFoliaLyrics.compileLyricLineRules !== 'function') return lines
+  try {
+    var filtered = MPFoliaLyrics.applyLyricLineRules({ lines: lines }, MPFoliaLyrics.compileLyricLineRules(rules))
+    return filtered !== null && Array.isArray(filtered.lines) ? filtered.lines : lines
+  } catch (error) {
+    return lines
+  }
 }
 
 /** A signature of the listener's display-pass settings, so a change re-runs it. */

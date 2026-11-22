@@ -222,9 +222,8 @@ function AudioEffectsPanel(props) {
   }
 
   function toggleCrossfade(value) {
-    // A positive value enables the feature; the engine decides the real
-    // overlap, this is only its upper bound.
-    setPrefs({ crossfadeSeconds: value ? CROSSFADE_DEFAULT_SECONDS : 0 })
+    // The switch and the maximum are separate values; the engine decides the real overlap.
+    setPrefs({ crossfadeEnabled: value })
   }
 
   var body =

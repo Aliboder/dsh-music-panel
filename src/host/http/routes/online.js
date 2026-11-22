@@ -2334,6 +2334,11 @@ export function createOnlineRoutes(deps) {
             qualityLevels: source.qualityLevels,
             loginMethods: source.loginMethods,
             availability: source.availability,
+            // Navidrome is "configured" once a server is stored; the other platforms need
+            // no configuration beyond signing in.
+            configured: source.id === 'navidrome'
+              ? Boolean(summary[source.id] && summary[source.id].server)
+              : true,
             requiresAccount: source.requiresAccount,
             status: signedIn ? (account?.freshness === 'error' ? 'error' : 'authenticated') : 'anonymous',
             user: storedUser ?? rowUser,

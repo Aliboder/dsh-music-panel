@@ -156,8 +156,12 @@ function startAudioFocus() {
 
   function syncConfig() {
     if (stopped) return
+    var prefs = audioFocusPrefs()
     postJson(API + 'audio-focus/config', {
-      voiceInputPause: audioFocusPrefs().voiceInputPause === true,
+      voiceInputPause: prefs.voiceInputPause === true,
+      // Cross-process ducks that do not state a level use the listener's settings.
+      duckLevel: audioFocusDuckLevel(prefs),
+      duckFadeMs: audioFocusDuckFade(prefs),
     }).catch(function () {
       // The status endpoint remains the source of truth.
     })
