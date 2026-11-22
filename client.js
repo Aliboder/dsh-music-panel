@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.44.1"
-    var CLIENT_BUILD = "0f2ba8885112"
+    var CLIENT_BUILD = "c9c6bd3b0311"
 
     // ── src/client/app/runtime.js
     /**
@@ -163390,7 +163390,10 @@ window.__ModuleLoader__.load({
       '.mp-np-setting-hint{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);margin-top:6px;line-height:1.5}',
 
       // ── composer / sidebar ──────────────────────────────────────────────────
-      '.mp-composer-lyrics{display:flex;align-items:center;gap:6px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto 6px;height:calc(24px + var(--dsh-content-font-delta,0px));padding:0 2px;color:var(--dsw-alias-label-secondary,#cfd3d6);font-family:var(--dsw-font-family,inherit);font-size:calc(12px + var(--dsh-content-font-delta,0px));line-height:calc(20px + var(--dsh-content-font-delta,0px));overflow:hidden;white-space:nowrap}',
+      // The strip must keep its box even when the host composer stack is tight (the hero/empty
+      // session): without flex:none its overflow:hidden made min-height 0, so it shrank and the
+      // glyphs were clipped. The decorative mask moved into the viewport only.
+      '.mp-composer-lyrics{display:flex;align-items:center;gap:6px;box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance,0px) - var(--dsh-composer-side-clearance,0px));max-width:var(--dsh-composer-card-max-width,100%);flex:0 0 auto;min-height:calc(24px + var(--dsh-content-font-delta,0px));margin:0 auto 6px;padding:0 2px;color:var(--dsw-alias-label-secondary,#cfd3d6);font-family:var(--dsw-font-family,inherit);font-size:calc(12px + var(--dsh-content-font-delta,0px));line-height:calc(20px + var(--dsh-content-font-delta,0px));overflow:visible;white-space:nowrap;position:relative;z-index:2}',
       '.mp-composer-lyric-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.9}',
       '.mp-composer-lyric-icon svg{width:calc(12px + var(--dsh-content-font-delta,0px));height:calc(12px + var(--dsh-content-font-delta,0px))}',
       '.mp-composer-lyric-viewport{position:relative;display:inline-flex;align-items:center;flex:0 1 auto;min-width:0;max-width:100%;height:calc(20px + var(--dsh-content-font-delta,0px));overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%)}',
