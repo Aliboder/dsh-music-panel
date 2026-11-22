@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.42.0"
-    var CLIENT_BUILD = "968823199d84"
+    var CLIENT_BUILD = "014389703754"
 
     // ── src/client/app/runtime.js
     /**
@@ -163360,6 +163360,9 @@ window.__ModuleLoader__.load({
       '@media (prefers-reduced-motion:reduce){.mp-composer-lyric-layer.is-entering{animation:none}.mp-composer-lyric-layer.is-leaving{display:none;animation:none}}',
       '.mp-composer-lyrics.is-empty{display:none}',
       '.mp-composer-cluster{display:flex;align-items:center;gap:2px}',
+      // The composer's queue opens in the top layer (popover); the wrapper carries no chrome of
+      // its own, the queue surface inside it stays the panel's one queue.
+      '.mp-composer-queue-pop{margin:0;padding:0;border:0;background:transparent;overflow:visible}',
       '.mp-cbtn{height:28px;min-width:28px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;max-width:150px;overflow:hidden}',
       '.mp-cbtn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-cbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
@@ -180399,17 +180402,100 @@ window.__ModuleLoader__.load({
     }
 
     /**
+     * Where the composer's queue pops out: above the bar, its right edge on the button's, clamped
+     * into the window. Folia's rule for every queue surface — opening it must not move the page.
+     */
+    function composerQueueStyle(rect) {
+      var viewportWidth = typeof window !== 'undefined' && window.innerWidth ? window.innerWidth : 1400
+      var viewportHeight = typeof window !== 'undefined' && window.innerHeight ? window.innerHeight : 900
+      var width = Math.min(340, viewportWidth - 16)
+      var right = rect ? Math.max(8, viewportWidth - rect.right) : 16
+      var bottom = rect ? Math.max(8, viewportHeight - rect.top + 8) : 56
+      return {
+        // A popover opens in the top layer, whose margin:auto/inset:0 must be reset here.
+        inset: 'auto',
+        position: 'fixed',
+        left: 'auto',
+        right: right + 'px',
+        top: 'auto',
+        bottom: bottom + 'px',
+        width: width + 'px',
+        margin: 0,
+        padding: 0,
+        border: 0,
+        background: 'transparent',
+        overflow: 'visible',
+        color: 'inherit',
+      }
+    }
+
+    /**
+     * The queue beside the composer, in the top layer.
+     *
+     * The chat input is the host's DOM: an ancestor with a transform or a backdrop-filter would
+     * turn `position: fixed` into "fixed to that box" and clip the popover. Promoting the element
+     * with the HTML popover API escapes that box (Chromium), and a browser without it simply
+     * ignores the attribute — the same element then sits at the fixed coordinates.
+     */
+    function ComposerQueuePopover(props) {
+      var ref = useRef(null)
+      useEffect(function () {
+        var node = ref.current
+        if (node === null || typeof node.showPopover !== 'function') return
+        if (typeof node.matches === 'function' && node.matches(':popover-open')) return
+        try {
+          node.showPopover()
+        } catch (error) {
+          // Already open, or refused: the fixed coordinates still place it.
+        }
+      }, [])
+      return h(
+        'div',
+        {
+          ref: ref,
+          popover: 'manual',
+          className: 'mp-composer-queue-pop',
+          style: composerQueueStyle(props.rect),
+        },
+        props.children,
+      )
+    }
+
+    /**
      * The composer seat is one control: the current track's queue button. It opens the queue
-     * and nothing else — the bar has no room for a second target about the same song, and
-     * pause/resume is already one row above in the sidebar transport, which is always visible.
-     * The lyric strip above the input keeps its own switch.
+     * beside itself — the page does not move (Folia's rule for every queue surface). Pause and
+     * resume live one row above in the sidebar transport, which is always visible.
      */
     function ComposerCluster() {
       var prefs = usePrefs()
       var snap = usePlayerSnapshot()
-      var queueOpen = useStore(p3QueueStore).open
+      var anchorPair = useState(null)
+      var anchor = anchorPair[0]
+      var setAnchor = anchorPair[1]
+      var openPair = useState(false)
+      var open = openPair[0]
+      var setOpen = openPair[1]
       var track = snap.queue[snap.index] || null
+      useEffect(function () {
+        if (!open) return undefined
+        function onKey(event) {
+          if (event.key !== 'Escape') return
+          event.stopPropagation()
+          setOpen(false)
+        }
+        document.addEventListener('keydown', onKey, true)
+        return function () {
+          document.removeEventListener('keydown', onKey, true)
+        }
+      }, [open])
       if (prefs.composerListButton === false || track === null) return null
+
+      function toggle(event) {
+        var el = event && event.currentTarget
+        if (el && typeof el.getBoundingClientRect === 'function') setAnchor(el.getBoundingClientRect())
+        setOpen(!open)
+      }
+
       return h(
         'div',
         { className: 'mp-composer-cluster' },
@@ -180417,16 +180503,33 @@ window.__ModuleLoader__.load({
           'button',
           {
             type: 'button',
-            className: cx('mp-cbtn', queueOpen && 'is-on'),
+            className: cx('mp-cbtn', open && 'is-on'),
             'data-queue-toggle': 'true',
+            'aria-expanded': open ? 'true' : 'false',
             title: t('page.queue'),
-            onClick: function () {
-              p3OpenQueue()
-            },
+            onClick: toggle,
           },
           icon('playlist', 14),
           h('span', null, trackTitleOf(track)),
         ),
+        open
+          ? h(
+              ComposerQueuePopover,
+              { rect: anchor },
+              h(P3Queue, {
+                open: true,
+                style: { position: 'static', right: 'auto', bottom: 'auto', width: '100%', maxHeight: 'min(560px, 60vh)' },
+                onClose: function () {
+                  setOpen(false)
+                },
+                onLocate: function () {
+                  // The one action that does move: the panel's queue, at the current track.
+                  setOpen(false)
+                  p3OpenQueue()
+                },
+              }),
+            )
+          : null,
       )
     }
 

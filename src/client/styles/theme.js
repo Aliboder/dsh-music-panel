@@ -1030,6 +1030,9 @@ var THEME_CSS = [
   '@media (prefers-reduced-motion:reduce){.mp-composer-lyric-layer.is-entering{animation:none}.mp-composer-lyric-layer.is-leaving{display:none;animation:none}}',
   '.mp-composer-lyrics.is-empty{display:none}',
   '.mp-composer-cluster{display:flex;align-items:center;gap:2px}',
+  // The composer's queue opens in the top layer (popover); the wrapper carries no chrome of
+  // its own, the queue surface inside it stays the panel's one queue.
+  '.mp-composer-queue-pop{margin:0;padding:0;border:0;background:transparent;overflow:visible}',
   '.mp-cbtn{height:28px;min-width:28px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font-size:12px;cursor:pointer;max-width:150px;overflow:hidden}',
   '.mp-cbtn:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f4f4f5)}',
   '.mp-cbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',

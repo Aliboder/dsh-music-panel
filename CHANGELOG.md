@@ -4,6 +4,7 @@
 
 ### 播放控制
 
+- 输入框旁的队列按钮不再把面板抬起来：点击在按钮上方弹出队列浮窗（同一份面板队列，`P3Queue`），页面不跳。浮窗用 HTML popover 进入顶层（top layer），宿主输入框祖先上的 transform / backdrop-filter 不会把它裁掉；外层点击、Esc、关闭按钮都能收起；「定位当前曲」仍是唯一会把面板调出来的动作。
 - 插件热更新把新客户端 bundle 换进页面时，旧的播放器引擎还留在 `window` 上：它和旧 bundle 共用一套 `prefsStore`，而新面板读的是新 bundle 自己那套，于是「拉滑杆音效会变、控件纹丝不动」。现在 bundle 带构建指纹（`CLIENT_BUILD`，构建脚本按内容生成），播放器把它记在实例上；同一页面里再次执行这个模块（任何一次热替换）时，新 bundle 会重建页面一次，让 UI 与引擎来自同一次加载。带 sessionStorage 守卫，重载无效时不循环。
 - 播放页「控制 → 音频效果器」不再是展开式开关：点击直接打开 Folia 的音频效果窗口（`AudioEqualizerDialog`）。窗口按 Folia 排：标题与副标题、音频处理开关、六个内置预设加两个自定义栏位（选中自定义栏位时可重置）、十段推子（刻度 + 曲线）、效果链九项。数据与取值来自音频 bundle 里 Folia 的源码（`AUDIO_SOUND_PRESETS` / `AUDIO_EFFECT_CONTROLS`，含 `addsNoise` 标记）；决策照搬 `setEnabled` / `writeCustomDraft` / `applyPreset` / `resetActiveCustomSlot`：编辑写进当前自定义栏位（内置预设生效时写 custom1）并打开处理，选预设写入其曲线，重置只清当前自定义栏位。外观按 DSH token（面板圆角、elevation、0.5px 发丝线、字号/间距刻度），不照搬 Folia 配色；播放页均衡器按钮上的旧展开面板保持原样。
 - 与 Folia 的两处适配：插件没有独立设置仓库，所以窗口直接经 `player.setEq` 写 prefs（Folia 用草稿、松手提交）；曲线画在推子上方而非穿过推子滑块。

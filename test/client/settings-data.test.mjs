@@ -65,6 +65,13 @@ test('the composer seat is one list button, hidden by its own switch', () => {
   )
   assert.doesNotMatch(cluster, /player\.toggle/, 'the seat carries no transport action')
   assert.match(cluster, /prefs\.composerListButton === false/, 'the switch removes the seat')
+  // The button pops the queue out beside itself: leaving the chat to the panel was the bug.
+  assert.match(cluster, /onClick: toggle/, 'the seat toggles a popover instead of leaving the page')
+  assert.match(cluster, /function toggle\(event\)[\s\S]{0,260}setOpen\(\!open\)/, 'the toggle flips a local popover')
+  assert.match(cluster, /h\(P3Queue, \{/, 'the popover is the panel queue, one implementation')
+  assert.match(composerSource, /function composerQueueStyle\(rect\)/, 'the popover position is computed from the button rect')
+  assert.match(cluster, /\{ rect: anchor \}/, 'the popover is anchored to the button')
+  assert.match(composerSource, /popover: 'manual'/, 'the top layer keeps a transformed host ancestor from clipping it')
   assert.match(prefsSource, /composerListButton: true/, 'the seat is shown by default')
   assert.match(source, /settings\.composerListButton/, 'the switch has a settings row')
   for (const key of ['settings.composerListButton', 'settings.composerListButtonDesc']) {
