@@ -10,6 +10,9 @@
 function MpVolumeRail(props) {
   var prefs = usePrefs()
   var snap = usePlayerSnapshot()
+  // The player card carries the same row on its 音频 page; two volume bars at once read as
+  // a duplicated control, so the rail steps aside while the card is open.
+  if (props.hidden === true) return null
   if (prefs.floatingVolume === false) return null
   var volume = Number(snap.volume)
   if (!isFinite(volume)) volume = 1

@@ -90,6 +90,9 @@ internals.player.setVolume(1)
 range.props.onChange({ target: { value: '0.35' } })
 assert.ok(Math.abs(internals.player.getSnapshot().volume - 0.35) < 0.001, 'the drag reaches the player')
 
+// The card carries the same row, so the rail steps aside while the card is open.
+assert.equal(internals.MpVolumeRail({ hidden: true }), null, 'hidden while the player card is open')
+
 // The switch hides it.
 internals.prefsStore.set({ floatingVolume: false })
 assert.equal(internals.MpVolumeRail({}), null, 'switching it off removes the rail')

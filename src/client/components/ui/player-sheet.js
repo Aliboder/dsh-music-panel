@@ -718,14 +718,9 @@ function PlayerSheetInner(props) {
     )
   }
 
-  // 外观 tab — the stage's look: background, theme and the volume row. The sound tiles that
-  // used to sit here moved to the audio page; this page only paints.
+  // 外观 tab — the stage's look: background and theme. Sound (including volume) lives on the
+  // audio page, so this page only paints.
   function cardLookPane() {
-    var volume = Number(snap.volume)
-    if (!isFinite(volume)) volume = 1
-    var muted = snap.muted === true
-    var heard = muted ? 0 : volume
-
     return h(
       'div',
       { key: 'look-pane' },
@@ -882,66 +877,6 @@ function PlayerSheetInner(props) {
                   if (typeof showToast === 'function') showToast(t('sheet.themeFailed'))
                 },
               )
-            }),
-          ),
-        ),
-      ),
-      mpSection(
-        t('sheet.volume'),
-        h(
-          'div',
-          { style: { padding: '0 4px' } },
-          h(
-            'div',
-            { style: { display: 'flex', alignItems: 'center', gap: '10px', height: '32px' } },
-            h(
-              'button',
-              {
-                type: 'button',
-                title: muted ? t('sheet.unmute') : t('sheet.mute'),
-                onClick: function () {
-                  player.setMuted(!muted)
-                },
-                style: {
-                  width: '28px',
-                  height: '28px',
-                  display: 'grid',
-                  placeItems: 'center',
-                  border: '0',
-                  borderRadius: '8px',
-                  background: 'transparent',
-                  color: 'inherit',
-                  cursor: 'pointer',
-                },
-              },
-              icon(muted || heard === 0 ? 'mute' : heard < 0.5 ? 'volumeLow' : 'volume', 17),
-            ),
-            h('input', {
-              type: 'range',
-              min: '0',
-              max: '1',
-              step: '0.01',
-              value: String(heard),
-              'aria-label': t('sheet.volume'),
-              onChange: function (event) {
-                player.setVolume(Number(event.target.value))
-              },
-              style: { flex: '1 1 auto', minWidth: '0', accentColor: (typeof props.accentCss === 'string' && props.accentCss) || 'var(--dsw-alias-state-business-primary,#4f8cff)' },
-            }),
-            h(
-              'span',
-              { style: { minWidth: '36px', textAlign: 'right', fontSize: '12px', opacity: '.7' } },
-              String(Math.round(heard * 100)) + '%',
-            ),
-          ),
-          mpPanelRow(
-            t('sheet.floatingVolume'),
-            h(Switch, {
-              value: prefs.floatingVolume !== false,
-              label: t('sheet.floatingVolume'),
-              onChange: function (value) {
-                setPrefs({ floatingVolume: value })
-              },
             }),
           ),
         ),
@@ -1376,7 +1311,78 @@ function PlayerSheetInner(props) {
     )
   }
 
-  // 音频 tab — quality, how playback flows, the loudness fix and the effects window.
+  /**
+   * 音量 — the card's volume row, now on the audio page. It is the keyboard path; the player
+   * page's edge rail is the fast one.
+   */
+  function volumeBlock() {
+    var volume = Number(snap.volume)
+    if (!isFinite(volume)) volume = 1
+    var muted = snap.muted === true
+    var heard = muted ? 0 : volume
+    return mpSection(
+      t('sheet.volume'),
+      h(
+        'div',
+        { style: { padding: '0 4px' } },
+        h(
+          'div',
+          { style: { display: 'flex', alignItems: 'center', gap: '10px', height: '32px' } },
+          h(
+            'button',
+            {
+              type: 'button',
+              title: muted ? t('sheet.unmute') : t('sheet.mute'),
+              onClick: function () {
+                player.setMuted(!muted)
+              },
+              style: {
+                width: '28px',
+                height: '28px',
+                display: 'grid',
+                placeItems: 'center',
+                border: '0',
+                borderRadius: '8px',
+                background: 'transparent',
+                color: 'inherit',
+                cursor: 'pointer',
+              },
+            },
+            icon(muted || heard === 0 ? 'mute' : heard < 0.5 ? 'volumeLow' : 'volume', 17),
+          ),
+          h('input', {
+            type: 'range',
+            min: '0',
+            max: '1',
+            step: '0.01',
+            value: String(heard),
+            'aria-label': t('sheet.volume'),
+            onChange: function (event) {
+              player.setVolume(Number(event.target.value))
+            },
+            style: { flex: '1 1 auto', minWidth: '0', accentColor: (typeof props.accentCss === 'string' && props.accentCss) || 'var(--dsw-alias-state-business-primary,#4f8cff)' },
+          }),
+          h(
+            'span',
+            { style: { minWidth: '36px', textAlign: 'right', fontSize: '12px', opacity: '.7' } },
+            String(Math.round(heard * 100)) + '%',
+          ),
+        ),
+        mpPanelRow(
+          t('sheet.floatingVolume'),
+          h(Switch, {
+            value: prefs.floatingVolume !== false,
+            label: t('sheet.floatingVolume'),
+            onChange: function (value) {
+              setPrefs({ floatingVolume: value })
+            },
+          }),
+        ),
+      ),
+    )
+  }
+
+  // 音频 tab — quality, volume, how playback flows, the loudness fix and the effects window.
   function cardAudioPane() {
     var loop = snap.loop || 'none'
     var options = [
@@ -1395,6 +1401,8 @@ function PlayerSheetInner(props) {
           setPrefs({ onlineQuality: value })
         }),
       ),
+      h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
+      volumeBlock(),
       h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
       mpPanelRow(
         t('sheet.playMode'),

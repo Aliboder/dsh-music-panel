@@ -43,20 +43,24 @@ test('歌词 page: source, timeline, match/file, word split and style', () => {
   assert.doesNotMatch(lyrics, /sheet\.audioGain/, 'the gain control left the lyrics page')
 })
 
-test('音频 page: quality, play mode, fade, gain and the effects window', () => {
+test('音频 page: quality, volume, play mode, fade, gain and the effects window', () => {
   for (const key of ['sheet.quality', 'sheet.playMode', 'sheet.smartFade', 'sheet.effects']) {
     assert.ok(audio.includes("t('" + key + "')"), key + ' is on the audio page')
   }
+  assert.match(audio, /volumeBlock\(\)/, 'the volume row is on the audio page')
   assert.match(audio, /gainBlock\(\)/, 'the gain block is the one the lyrics page used to hold')
   assert.match(sheet, /function gainBlock\(\)[\s\S]{0,600}sheet\.audioGain/, 'the gain block keeps its label')
+  assert.match(sheet, /function volumeBlock\(\)/, 'the volume block exists')
+  assert.match(sheet, /t\('sheet\.floatingVolume'\)/, 'the floating switch travels with the volume row')
   assert.doesNotMatch(audio, /sheet\.lyricSegmentation/, 'the word split left the audio page')
   assert.doesNotMatch(audio, /sheet\.provider|sheet\.account/, 'platform and account facts left the card')
 })
 
-test('外观 page: background, theme and the volume row', () => {
-  for (const key of ['sheet.background', 'sheet.theme', 'sheet.volume']) {
+test('外观 page: background and theme, and nothing that makes sound', () => {
+  for (const key of ['sheet.background', 'sheet.theme', 'sheet.backgroundSection']) {
     assert.ok(look.includes("t('" + key + "')"), key + ' is on the look page')
   }
+  assert.doesNotMatch(look, /sheet\.volume/, 'the volume row is on the audio page, not here')
   assert.doesNotMatch(look, /sheet\.lyricStyle/, 'the lyric style left the look page')
   assert.doesNotMatch(look, /sheet\.smartFade|sheet\.effects/, 'sound controls left the look page')
   assert.doesNotMatch(look, /player\.setLoop/, 'the play mode left the look page')
