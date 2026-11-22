@@ -353,8 +353,8 @@ assert.ok(textOf(onlineSearch).includes('Online Song'), 'online song search rend
 
 internals.p3RouteStore.set({ source: 'local', page: 'songs', filter: null, query: '', history: [], scroll: {} })
 
-// Play the middle track: "up next" must be the tail of the order, which the old
-// "every track except the current one" rendering cannot produce.
+// Play the middle track. Folia's queue is the whole queue in order, the playing row marked
+// where it stands: everything already played must still be there (the list used to drop it).
 internals.player.playList(TRACKS, 1)
 const queueTree = internals.P3Queue({
   open: true,
@@ -362,14 +362,15 @@ const queueTree = internals.P3Queue({
   onLocate: function () {},
 })
 assert.ok(classesOf(queueTree).has('mpv3-queue'), 'queue popover renders')
-assert.ok(textOf(queueTree).includes('Beta'), 'queue lists the current track')
-// 接下来播放 starts after the current track, not at the head of the queue: the panel
-// used to list every track except the current one, which is not what plays next.
 const queueRows = nodesWithClass(queueTree, 'mpv3-queue-row')
+const rowNames = queueRows.map((row) => textOf(nodesWithClass(row, 'mpv3-queue-name')[0]).trim())
+assert.deepEqual(rowNames, ['Alpha', 'Beta', 'Gamma'], 'the whole queue renders in play order, played rows included')
 const currentRow = queueRows.filter((row) => String(row.props.className).includes('is-cur'))
-const upcomingRows = queueRows.filter((row) => !String(row.props.className).includes('is-cur'))
 assert.equal(currentRow.length, 1, 'exactly one current row')
-assert.equal(textOf(nodesWithClass(currentRow[0], 'mpv3-queue-name')[0]).trim(), 'Beta')
+assert.equal(textOf(nodesWithClass(currentRow[0], 'mpv3-queue-name')[0]).trim(), 'Beta', 'the current row is the one playing')
+// Row numbers are the queue positions, so the played rows above keep their place.
+const rowIndices = queueRows.map((row) => textOf(nodesWithClass(row, 'mpv3-queue-idx')[0]).trim())
+assert.deepEqual(rowIndices, ['1', '', '3'], 'positions stay, the playing row shows a wave instead')
 // The playing row's index is live bars, not a number: it says which row is sounding.
 const currentIdx = nodesWithClass(currentRow[0], 'mpv3-queue-idx')[0]
 const currentWave = nodesWithClass(currentIdx, 'mpv3-queue-wave')[0]
@@ -378,11 +379,7 @@ const waveBars = (Array.isArray(currentWave.children) ? currentWave.children : [
 assert.equal(waveBars.length, 4, 'the wave has one bar per band')
 assert.equal(waveBars[0].type, 'i', 'each band is a bar element')
 assert.equal(textOf(currentIdx).trim(), '', 'no number is left behind the wave')
-assert.deepEqual(
-  upcomingRows.map((row) => textOf(nodesWithClass(row, 'mpv3-queue-name')[0]).trim()),
-  ['Gamma'],
-  'up next = the play order after the current track',
-)
+assert.ok(!textOf(queueTree).includes('接下来播放'), 'no split section that hides what was played')
 // The player page keeps its own queue popover: opening it must not leave the page,
 // and it must be the same queue surface, anchored to the control that opened it.
 const npQueueTree = internals.NowPlaying({

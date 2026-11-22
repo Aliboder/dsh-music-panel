@@ -574,7 +574,24 @@ function P3QueueWave(props) {
 function P3Queue(props) {
   var snap = usePlayerSnapshot()
   var dragFrom = useRef(null)
+  var listRef = useRef(null)
+  var currentRowRef = useRef(null)
   var current = snap.queue[snap.index] || null
+
+  // Folia's queue is the whole queue in order, the playing row in place. Opening it puts the
+  // row before the playing one at the top, so what was just played stays in view.
+  useEffect(function () {
+    if (!props.open) return
+    var list = listRef.current
+    var rowEl = currentRowRef.current
+    if (list === null || rowEl === null) return
+    var offset = rowEl.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop
+    var previous = rowEl.previousElementSibling
+    var lead = previous !== null && previous.classList && previous.classList.contains('mpv3-queue-row')
+      ? previous.getBoundingClientRect().height
+      : 0
+    list.scrollTop = Math.max(0, Math.round(offset - lead))
+  }, [props.open, snap.index])
 
   useEffect(function () {
     if (!props.open) return undefined
@@ -601,8 +618,6 @@ function P3Queue(props) {
 
   var order = snap.order === 'random' ? player.getPlayOrder() : snap.queue.map(function (_, index) { return index })
   if (!Array.isArray(order) || order.length !== snap.queue.length) order = snap.queue.map(function (_, index) { return index })
-  // -1 means nothing is current: the list then starts at the head instead of skipping it.
-  var currentPosition = order.indexOf(snap.index)
 
   function selectQueue(index) {
     if (dragFrom.current !== null) return
@@ -626,6 +641,7 @@ function P3Queue(props) {
   function row(track, index, position, isCurrent) {
     return h('div', {
       key: track.path + ':' + index,
+      ref: isCurrent ? currentRowRef : undefined,
       role: 'button',
       tabIndex: 0,
       draggable: true,
@@ -693,15 +709,13 @@ function P3Queue(props) {
       h(IconButton, { icon: 'target', size: 15, title: t('page.locateCurrent'), onClick: function () { props.onLocate() } }),
       h(IconButton, { icon: 'x', size: 15, title: t('page.close'), onClick: props.onClose }),
     ),
-    h('div', { className: 'mpv3-queue-list' },
-      current ? h('div', { className: 'mpv3-queue-section' }, t('p3.nowPlaying')) : null,
-      current ? row(current, snap.index, currentPosition, true) : null,
-      h('div', { className: 'mpv3-queue-section' }, t('p3.nextUp')),
-      order.slice(currentPosition + 1).map(function (index, offset) {
-        var position = currentPosition + 1 + offset
+    h('div', { className: 'mpv3-queue-list', ref: listRef },
+      // The whole queue, in play order, the playing row marked where it stands — the list
+      // used to drop everything before the current track, so nothing already played was left.
+      order.map(function (index, position) {
         var track = snap.queue[index]
         if (!track) return null
-        return row(track, index, position, false)
+        return row(track, index, position, index === snap.index)
       }),
       snap.queue.length === 0 ? h('div', { className: 'mpv3-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty'))) : null,
     ),
