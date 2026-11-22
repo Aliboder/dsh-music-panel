@@ -126,12 +126,9 @@ function titlesOf(node, out) {
   return list
 }
 
-// Four pages, one subject each: 歌曲 / 歌词 / 音频 / 外观. Every pane function runs while
-// the bodies array is built, so a pane that was renamed or dropped throws here.
-const cardText = textOf(rendered).join('\u0001')
-for (const label of ['歌曲', '歌词', '音频', '外观']) {
-  assert.ok(cardText.includes(label), 'the dock still labels the ' + label + ' page')
-}
+// Every pane function runs while the bodies array is built, so a pane that was renamed or
+// dropped throws here. The dock labels come from TABS through KitSegmentedTabs (asserted in
+// sheet-pages), not from this tree: the mock React does not execute component elements.
 assert.deepEqual(
   titlesOf(rendered).filter((title) => title === '设置'),
   [],

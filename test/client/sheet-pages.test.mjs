@@ -32,6 +32,7 @@ test('four tabs, one subject each', () => {
     'the dock is 歌曲 / 歌词 / 音频 / 外观',
   )
   assert.match(sheet, /var bodies = \[null, cardLyricsPane\(\), cardAudioPane\(\), cardLookPane\(\)\]/, 'the pages line up with the tabs')
+  assert.match(sheet, /h\(KitSegmentedTabs, \{/, 'the dock is the official SegmentedTabs')
 })
 
 test('歌词 page: source, timeline, match/file, word split and style', () => {

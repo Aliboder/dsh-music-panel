@@ -8,6 +8,7 @@
 
 ### 播放卡片
 
+- 卡片底部的四个分页改成官方 `SegmentedTabs`（`KitSegmentedTabs`，sm 34px）：不再自绘轨道与滑动标记，选中态用官方 `.is-on`（bg-layer-1 + elevation-soft）；卡片内补 `.mp-card-tabs` 让分段铺满一行。原 Folia 共享标记动效随之移除。
 - 按《主题与组件开发规范》把卡片里的控件整套换成 DSH 组件（交互与 handler 不变）：设置行用 `SetRow`（`.mp-set-row`）、互斥分段用宿主 `SegmentedControl`（`KitSegmented`）、按钮与图标按钮用 `Button` / `IconButton`、文本输入用 `KitInput`、滑杆用 `.mp-range`、分区标题用 `.mp-set-label`、标签页的圆角改为 `--dsw-radius-md` / `--dsw-radius-sm`。
 - 卡面按 §2.4 去掉与阴影叠加的 1px 描边，改用 `--dsw-elevation-prominent`；圆角走 `--dsw-radius-xl`；分组之间的显式分隔线删除（行自带的 0.5px 发丝线足够）。
 - 深色岛补齐宿主控件要用的 token（accent / button fill / label foreground / border-l3 / bg-base），避免 native 路径在浅色主题里读到浅色 token。

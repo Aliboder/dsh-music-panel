@@ -23,7 +23,7 @@ var MP_DUR_MOVE = 0.22
 var MP_DUR_UNFOLD = 0.3
 
 var MP_PADDING = 12
-var MP_DOCK_HEIGHT = 36
+var MP_DOCK_HEIGHT = 34
 var MP_DOCK_GAP = 12
 var MP_BODY_GAP = 12
 var MP_BODY_LINE = 1
@@ -53,14 +53,12 @@ function PlayerSheet(props) {
             key: 'mp-card-sheet',
             framer: {
               surface: motion.div,
-              mark: motion.span,
-              enter: { opacity: 0, scale: 0.92 },
+                enter: { opacity: 0, scale: 0.92 },
               shown: { opacity: 1, scale: 1 },
               leave: { opacity: 0, scale: 0.92 },
               transition: { duration: MP_DUR_UNFOLD, ease: MP_EASE_OUT },
               leaveTransition: { duration: MP_DUR_MOVE, ease: MP_EASE_OUT },
-              markTransition: { duration: MP_DUR_MOVE, ease: MP_EASE_OUT },
-            },
+              },
           }),
         )
       : null,
@@ -99,13 +97,7 @@ function PlayerSheetInner(props) {
   var bodyH = bodyHPair[0]
   var setBodyH = bodyHPair[1]
 
-  // Only used by the CSS fallback: framer's layoutId does the same job itself.
-  var markPair = useState({ left: 0, width: 0, ready: false })
-  var mark = markPair[0]
-  var setMark = markPair[1]
-
   var contentRef = useRef(null)
-  var tabRefs = useRef([])
   var underRef = useRef(null)
   // The under-cover block grows when a long title wraps to a second line; the header cannot
   // reserve a fixed height for it or the block slides up over the cover. Measure it.
@@ -120,7 +112,6 @@ function PlayerSheetInner(props) {
   var isNavidromeTrack = isOnlineTrack && track.onlineProvider === 'navidrome'
   var TABS = ['sheet.song', 'sheet.lyrics', 'sheet.audio', 'sheet.look']
   var isCover = index === 0
-  var useFramerMark = framer !== null
 
   useEffect(
     function () {
@@ -182,28 +173,6 @@ function PlayerSheetInner(props) {
       }
     },
     [props.open, index],
-  )
-
-  // CSS fallback only: follow the open tab with a measured mark.
-  useLayoutEffect(
-    function () {
-      if (props.open !== true || useFramerMark) return undefined
-      function place() {
-        var el = tabRefs.current[index]
-        if (el === undefined || el === null || !el.offsetWidth) return
-        setMark({ left: el.offsetLeft, width: el.offsetWidth, ready: true })
-      }
-      place()
-      if (typeof ResizeObserver !== 'function') return undefined
-      var observer = new ResizeObserver(place)
-      tabRefs.current.forEach(function (el) {
-        if (el !== null && el !== undefined) observer.observe(el)
-      })
-      return function () {
-        observer.disconnect()
-      }
-    },
-    [props.open, index, useFramerMark],
   )
 
   // The page computes the cover (local file cover or the provider's URL); the card
@@ -1291,103 +1260,23 @@ function PlayerSheetInner(props) {
     ),
   )
 
-  var markEl = null
-  if (!useFramerMark && mark.ready) {
-    markEl = h('div', {
-      key: 'mark',
-      'aria-hidden': 'true',
-      style: {
-        position: 'absolute',
-        top: '4px',
-        bottom: '4px',
-        left: '0',
-        width: String(mark.width) + 'px',
-        borderRadius: 'var(--dsw-radius-sm,8px)',
-        background: 'var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.14))',
-        transform: 'translate3d(' + String(mark.left - 4) + 'px,0,0)',
-        transition:
-          'transform ' + MP_DUR_MOVE + 's cubic-bezier(.22,1,.36,1), width ' + MP_DUR_MOVE + 's cubic-bezier(.22,1,.36,1)',
-        pointerEvents: 'none',
-      },
-    })
-  }
-
+  // The card's pages are the official SegmentedTabs (sm): one control, one visual language.
+  // The old custom dock drew its own background and a floating mark; both now come from the
+  // host primitive (or its `.mp-segment` fallback).
   var dock = h(
     'div',
-    {
-      className: 'mp-card-tabs',
-      role: 'tablist',
-      style: {
-        position: 'relative',
-        display: 'flex',
-        flex: '0 0 auto',
-        gap: '2px',
-        height: String(MP_DOCK_HEIGHT) + 'px',
-        marginTop: String(MP_DOCK_GAP) + 'px',
-        padding: '4px',
-        borderRadius: 'var(--dsw-radius-md,12px)',
-        background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))',
+    { className: 'mp-card-tabs', style: { marginTop: String(MP_DOCK_GAP) + 'px', flex: '0 0 auto' } },
+    h(KitSegmentedTabs, {
+      items: TABS.map(function (key, tabIndex) {
+        return { value: String(tabIndex), label: t(key), id: 'mp-card-tab-' + String(tabIndex) }
+      }),
+      value: String(index),
+      size: 'sm',
+      label: t('sheet.pages'),
+      onChange: function (next) {
+        var parsed = Number(next)
+        if (Number.isFinite(parsed)) setIndex(parsed)
       },
-    },
-    markEl,
-    TABS.map(function (key, tabIndex) {
-      var active = tabIndex === index
-      return h(
-        'button',
-        {
-          key: key,
-          type: 'button',
-          role: 'tab',
-          ref: function (el) {
-            tabRefs.current[tabIndex] = el
-          },
-          'aria-selected': active ? 'true' : 'false',
-          className: cx('mp-card-tab', active && 'is-active'),
-          onClick: function (event) {
-            event.stopPropagation()
-            setIndex(tabIndex)
-          },
-          style: {
-            position: 'relative',
-            zIndex: '1',
-            flex: '1 1 0',
-            minWidth: '0',
-            border: '0',
-            borderRadius: 'var(--dsw-radius-sm,8px)',
-            background: 'transparent',
-            color: 'inherit',
-            font: 'inherit',
-            fontSize: '12px',
-            padding: '0 6px',
-            color: active ? 'var(--dsw-alias-label-primary,inherit)' : 'var(--dsw-alias-label-secondary,rgba(255,255,255,.6))',
-            cursor: 'pointer',
-            transition: 'opacity ' + MP_DUR_MOVE + 's cubic-bezier(.22,1,.36,1)',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          },
-        },
-        // Segments: one shared element (layoutId) inside the open tab; framer
-        // animates its position and width between tabs.
-        useFramerMark && active
-          ? h(framer.mark, {
-              key: 'mark-shared',
-              layoutId: 'mp-card-tab-mark',
-              transition: framer.markTransition,
-              'aria-hidden': 'true',
-              style: {
-                position: 'absolute',
-                inset: '0',
-                borderRadius: 'var(--dsw-radius-sm,8px)',
-                background: 'var(--dsw-alias-bg-layer-3,rgba(255,255,255,.18))',
-                boxShadow: 'var(--dsw-elevation-soft,0 1px 2px rgba(0,0,0,.2))',
-                zIndex: '0',
-                pointerEvents: 'none',
-              },
-            })
-          : null,
-        h('span', { style: { position: 'relative', zIndex: '1' }, key: 'label' }, t(key)),
-      )
     }),
   )
 

@@ -1078,6 +1078,11 @@ var THEME_CSS = [
   // The card's panes scroll, but a scrollbar appearing for one frame during the tab
   // animation takes width from the content and the layout jumps when it leaves again.
   // Hide it on every scroll container inside the card instead of reserving a gutter.
+  // The card's page tabs are the official SegmentedTabs; inside the 336px card they must
+  // fill the row instead of shrinking to their labels.
+  '.mp-card-tabs{display:flex}',
+  '.mp-card-tabs>*{flex:1 1 auto;min-width:0}',
+  '.mp-card-tabs .mp-segment{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;width:100%}',
   '.mp-card-scroll{scrollbar-width:none;-ms-overflow-style:none}',
   '.mp-card-scroll::-webkit-scrollbar{width:0;height:0;display:none}',
   '.mp-card-body-wrap ::-webkit-scrollbar{width:0;height:0;display:none}',
