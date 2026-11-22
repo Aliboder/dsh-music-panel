@@ -148,6 +148,14 @@ function P3TopBar(props) {
   return h(
     'header',
     { className: 'mpv3-topbar' },
+    h('a', {
+      className: 'mpv3-brand',
+      href: 'https://github.com/Aliboder/dsh-music-panel',
+      target: '_blank',
+      rel: 'noreferrer noopener',
+      title: t('p3.openGithub'),
+      'aria-label': t('p3.openGithub'),
+    }, h('img', { src: P3_BRAND_ICON, alt: '', draggable: false })),
     p3CanGoBack() ? h('button', {
       type: 'button',
       className: 'mpv3-back-btn',

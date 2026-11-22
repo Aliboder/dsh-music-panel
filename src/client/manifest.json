@@ -95,6 +95,7 @@
     "src/client/panel-v3/p3-core.js",
     "src/client/panel-v3/p3-pages.js",
     "src/client/panel-v3/p3-dialogs.js",
+    "src/client/app/brand.js",
     "src/client/panel-v3/p3-shell.js",
     "src/client/components/ui/player-sheet.js",
     "src/client/components/ui/lyric-match.js",
