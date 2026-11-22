@@ -155,13 +155,6 @@ function whyNotWholePlay(play, question) {
   return null
 }
 
-/** What the balance decided for the playing song, for the 音频增益 row. */
-var balanceStore = createStore({ gainDb: 0, estimated: false, reading: '' })
-
-function setBalanceChoice(choice) {
-  balanceStore.set({
-    gainDb: Number(choice && choice.effectiveGainDb) || 0,
-    estimated: Boolean(choice && choice.estimated),
-    reading: String((choice && choice.reading) || ''),
-  })
-}
+// The reading the balance stands on is the player's own (its snapshot's `gainAppliedDb` /
+// `gainEstimated`, Folia's replayGainAppliedDb / replayGainEstimated): one authority, so the
+// 音频增益 row cannot show one figure while the deck is playing another.

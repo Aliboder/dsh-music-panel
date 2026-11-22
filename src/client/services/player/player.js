@@ -105,6 +105,8 @@ var PLAYER_KEY = '__dshMusicPlayer'
 function createPlayer() {
   if (typeof window !== 'undefined' && window[PLAYER_KEY]) return window[PLAYER_KEY]
   var prefs = readPrefs()
+  /** Folia's SET_RAMP_SEC: how a gain set before a song sounds is put in. */
+  var GAIN_SET_RAMP_SEC = 0.1
   var audio = null
   /** Folia graph/transport boundary; one per player instance. */
   var foliaGraph = null
@@ -117,10 +119,10 @@ function createPlayer() {
   var audioB = null
   var fadeNode = null
   var fadeNodeB = null
-  var trimNode = null
-  var trimNodeB = null
+  /** The active deck's Folia `replayGain` node — where every mode's gain is written. */
+  var replayGainNode = null
+  var replayGainNodeB = null
   var objectUrlB = null
-  var normalizeGainB = 1
   /** Crossfade controller: token cancels stale fetches, timer lands the swap. */
   var xfadeToken = 0
   var xfadeActive = false
@@ -132,8 +134,9 @@ function createPlayer() {
   var currentBlob = null
   /** Measured plan + fetched audio for the incoming side. */
   var xfadePrepared = null
-  /** The track leaving on the ghost deck, kept until the fade lands (cache report). */
+  /** The track leaving on the ghost deck, kept until the fade lands (cache report, balance reading). */
   var xfadeOutgoing = null
+  var xfadeOutgoingMeter = null
   /** Background download of the next track, so an uncached online song is ready. */
   var prefetchedNext = null
   var prefetchAbort = null
@@ -147,14 +150,18 @@ function createPlayer() {
   /** Resolved EQ settings; persisted through prefs on every change. */
   var eq = normalizeEqPrefs(prefs)
   var waveData = null
-  var normalizeGain = 1
-  // The loudness trim and the tag gain multiply: `normalizeBase` is the measured
-  // trim, `replayGainFactor` the ReplayGain tag multiplier (1 when off).
-  var normalizeBase = 1
-  var replayGainFactor = 1
-  /** Folia's ReplayGain data for the current track (local tags / Navidrome / platform). */
+  /**
+   * What the chosen 音频增益 mode applied to the active deck, in dB (Folia's
+   * `replayGainAppliedDb`). One value, one node: the mode is the only authority on gain.
+   */
+  var appliedGainDb = 0
+  var appliedGainEstimated = false
+  var appliedGainAvailable = false
+  /** Folia's ReplayGain figures for the current track (a local file's tags / Navidrome). */
   var replayGainInfo = null
   var replayGainToken = 0
+  /** The mode the engine last applied, to notice a change from any UI (Folia's store select). */
+  var gainModeSeen = ''
   /** Last shuffle-round signature tracked, and the round just reshuffled (Folia's guard). */
   var shuffleRoundTracked = ''
   var shuffleReshuffledGuard = ''
@@ -165,13 +172,11 @@ function createPlayer() {
   var objectUrl = null
   /** Live meter tapped ahead of the balance gain (see 49-balance-meter.js). */
   var balanceMeter = null
-  /** What the balance asked for this play, and whether it already moved once. */
+  /** What the balance asked for this play (null until it set one), and whether it already moved once. */
   var balanceMoved = false
-  var balanceAppliedDb = 0
-  var balanceAppliedReading = ''
-  /** The song's own gain tags (local file or Navidrome), for the balance's fallbacks. */
-  var tagGainDb = null
-var platformGain = null
+  var balanceAppliedDb = null
+  /** A streaming platform's own gain for the current track, from the stream's headers. */
+  var platformGain = null
 var prefetchedProfilePath = ''
 var profileToken = 0
 var onlineMse = null
@@ -205,6 +210,10 @@ var mseFallbackToken = -1
     currentTime: 0,
     duration: 0,
     buffered: 0,
+    /** Folia's replayGainAppliedDb / replayGainEstimated, and whether the mode had data to apply. */
+    gainAppliedDb: 0,
+    gainEstimated: false,
+    gainAvailable: false,
   }
 
   // ── resume + listening statistics ───────────────────────────────────
@@ -746,29 +755,36 @@ var mseFallbackToken = -1
     return Object.keys(out).length > 0 ? out : null
   }
 
-  function balanceInputs(extra) {
-    var item = currentItem()
-    var record = item === null ? null : balanceRecordFor(item.path)
-    var prof = item === null ? null : profileFor(item.path)
+  /**
+   * Folia's BalanceInputs, in its own order: what is known of the song (`file`, `played`,
+   * `profile`), then its tag or the platform's gain, then the stand-ins. `infoOverride` is
+   * the incoming side of a blend, whose figures are not the playing song's yet.
+   */
+  function balanceInputs(item, extra, infoOverride) {
+    var kind = playbackSourceKind(item)
+    var info = infoOverride === undefined ? replayGainInfoFor(item) : infoOverride
+    var record = item === null || item === undefined ? null : balanceRecordFor(item.path)
+    var prof = item === null || item === undefined ? null : profileFor(item.path)
     return {
       file: record && record.file ? record.file : null,
       played: record && record.played ? record.played : null,
       profile: prof && !prof.partial
         ? { loudness: prof.programLoudness, peak: prof.peak }
         : null,
-      tag: tagGainDb && typeof tagGainDb.trackGain === 'number'
-        ? { gainDb: tagGainDb.trackGain, peak: typeof tagGainDb.trackPeak === 'number' ? tagGainDb.trackPeak : null }
+      tag: kind !== 'online' && info && typeof info.trackGain === 'number'
+        ? { gainDb: info.trackGain, peak: typeof info.trackPeak === 'number' ? info.trackPeak : null }
         : null,
       head: prof && prof.partial ? prof.programLoudness : null,
       live: extra && typeof extra.live === 'number' ? extra.live : null,
-      platformDb: platformGain && typeof platformGain.trackGain === 'number' ? platformGain.trackGain : null,
+      platformDb: kind === 'online' && info && typeof info.trackGain === 'number' ? info.trackGain : null,
       typicalDb: typicalGainDb(balanceTypicalGains()),
     }
   }
 
-  function applyBalancePlan(choice, plan) {
+  function applyBalancePlan(choice, plan, rampSec) {
+    if (!choice) return
     if (plan === 'set') {
-      applyBalanceChoice(choice, 0.1)
+      applyBalanceChoice(choice, rampSec === undefined ? GAIN_SET_RAMP_SEC : rampSec)
       return
     }
     if (plan === 'hold' || plan === null || plan === undefined) return
@@ -778,21 +794,30 @@ var mseFallbackToken = -1
     }
   }
 
-  function reconsiderBalance(live) {
-    if (readPrefs().normalizeVolume === false) return
-    var choice = chooseBalance(balanceInputs({ live: live }))
+  /**
+   * 智能平衡 re-decides the song: before it sounds a better reading sets it, during a play
+   * the rules allow one move, and never while a blend can be heard. The other modes never
+   * reach here (Folia runs these rules only for `replayGainMode === 'auto'`).
+   */
+  function reconsiderBalance(live, rampSec) {
+    if (!balancing()) return
+    var choice = chooseBalance(balanceInputs(currentItem(), { live: live }))
+    if (balanceAppliedDb === null) {
+      applyBalanceChoice(choice, rampSec === undefined ? GAIN_SET_RAMP_SEC : rampSec)
+      return
+    }
     var plan = planBalanceMove({
       playSec: audio === null ? 0 : audio.currentTime,
       moved: balanceMoved,
       currentDb: balanceAppliedDb,
       nextDb: choice.effectiveGainDb,
-      blendAudible: typeof crossfadeActive === 'function' ? crossfadeActive() : false,
+      blendAudible: crossfadeActive(),
     })
-    applyBalancePlan(choice, plan)
+    applyBalancePlan(choice, plan, rampSec)
   }
 
   function onTime(event) {
-    if (balanceMeter !== null && readPrefs().normalizeVolume !== false) {
+    if (balanceMeter !== null && balancing()) {
       reconsiderBalance(balanceMeter.liveLoudness())
     }
     if (!isActiveEvent(event)) return
@@ -833,8 +858,8 @@ var mseFallbackToken = -1
   }
 
   function onEnded(event) {
-    // The song was heard whole: keep its reading for the next play.
-    commitBalanceReading(currentItem(), audio === null ? 0 : audio.duration)
+    // The song was heard whole: keep its reading for the next play. Only 智能平衡 measures.
+    if (balancing()) commitBalanceReading(currentItem(), audio === null ? 0 : audio.duration)
     if (!isActiveEvent(event)) return
     // Folia's cache rule: the song was heard whole, so the Host may keep it.
     reportPlayed(currentItem())
@@ -957,10 +982,10 @@ var mseFallbackToken = -1
    * the track. A Blob is local media and seeks reliably. The download is a
    * loopback request, so it costs one disk read, not a network hop.
    */
-  /** Element volume when normalization is applied without a Web Audio graph. */
+  /** Element volume when no Web Audio graph exists to hold the deck's own gain. */
   function effectiveVolume() {
     if (gainNode !== null) return 1
-    var trim = Math.min(1, normalizeGain)
+    var trim = Math.min(1, gainDbToLinear(appliedGainDb))
     return clamp(state.volume * trim * duckFactor, 0, 1)
   }
 
@@ -978,16 +1003,21 @@ var mseFallbackToken = -1
     if (audioB) audioB.volume = effectiveVolume()
   }
 
-  /** Push a linear gain into one deck's trim node (short ramp while playing). */
+  function gainDbToLinear(db) {
+    var value = Number(db)
+    return Number.isFinite(value) ? Math.pow(10, value / 20) : 1
+  }
+
+  /** Push a linear gain into one deck's ReplayGain node (Folia's `rampGain`). */
   function applyTrimGain(node, linear, paused, rampSec) {
     if (node === null || audioContext === null) return
     try {
       var now = audioContext.currentTime
       var ramp = Number(rampSec)
-      node.gain.cancelScheduledValues(now)
+      if (typeof node.gain.cancelAndHoldAtTime === 'function') node.gain.cancelAndHoldAtTime(now)
+      else node.gain.cancelScheduledValues(now)
       if (paused || !isFinite(ramp) || ramp <= 0) {
-        if (paused) node.gain.setValueAtTime(linear, now)
-        else node.gain.setTargetAtTime(linear, now, 0.12)
+        node.gain.setValueAtTime(linear, now)
         return
       }
       node.gain.setValueAtTime(node.gain.value, now)
@@ -997,17 +1027,20 @@ var mseFallbackToken = -1
     }
   }
 
-  function applyNormalizeGain(linear, rampSec) {
-    normalizeBase = Number.isFinite(linear) && linear > 0 ? linear : 1
-    normalizeGain = normalizeBase * replayGainFactor
-    if (trimNode !== null && audioContext !== null) {
-      // Before playback starts the gain must already be at its target;
-      // otherwise the first seconds ramp down audibly. While a track is
-      // playing, keep the short ramp so toggling normalization is smooth.
-      applyTrimGain(trimNode, normalizeGain, audio === null || audio.paused === true, rampSec)
+  /**
+   * Write the song's gain where Folia writes it: the active deck's own `replayGain` node.
+   * Every mode ends here, so exactly one of them is in effect, and the song fading out
+   * keeps its own gain on its own deck.
+   */
+  function writeDeckGain(db, rampSec) {
+    var next = Number(db)
+    appliedGainDb = Number.isFinite(next) ? next : 0
+    if (replayGainNode !== null && audioContext !== null) {
+      applyTrimGain(replayGainNode, gainDbToLinear(appliedGainDb), audio === null || audio.paused === true, rampSec)
     } else {
       applyOutputVolume()
     }
+    patch({ gainAppliedDb: appliedGainDb, gainEstimated: appliedGainEstimated === true, gainAvailable: appliedGainAvailable === true })
   }
 
   /**
@@ -1119,21 +1152,21 @@ var mseFallbackToken = -1
       })
   }
 
-  /** Analyse the downloaded blob in-browser and apply the per-track gain. */
-  /** Apply the balance's decision through the loudness trim. */
+  /** Apply the balance's decision to the active deck (Folia's balancePlay.setGain). */
   function applyBalanceChoice(choice, rampSec) {
     if (!choice) return
-    setBalanceChoice(choice)
     balanceAppliedDb = Number(choice.effectiveGainDb) || 0
-    balanceAppliedReading = String(choice.reading || '')
-    applyNormalizeGain(Math.pow(10, clamp(balanceAppliedDb, -15, VOLUME_BALANCE_MAX_BOOST_DB) / 20), rampSec)
+    appliedGainEstimated = choice.estimated === true
+    appliedGainAvailable = true
+    writeDeckGain(balanceAppliedDb, rampSec)
   }
 
-  /** A whole play becomes a reading for this song, and joins the typical gains. */
-  function commitBalanceReading(item, durationSec) {
-    if (balanceMeter === null) return
-    var play = balanceMeter.play()
-    if (typeof balanceMeter.reset === 'function') balanceMeter.reset()
+  /** A whole play becomes a reading for this song, and joins the typical gains (Folia's learnPlayedSong). */
+  function commitBalanceReading(item, durationSec, meter) {
+    var heardBy = meter === undefined || meter === null ? balanceMeter : meter
+    if (heardBy === null) return
+    var play = heardBy.play()
+    if (typeof heardBy.reset === 'function') heardBy.reset()
     if (!item) return
     var prof = profileFor(item.path)
     if (balanceWholePlayIssue(play, durationSec, prof ? prof.leadIn : 0) !== null) return
@@ -1215,9 +1248,9 @@ var mseFallbackToken = -1
       finish()
       return
     }
-    if (readPrefs().normalizeVolume === false) {
+    if (!balancing()) {
       // Folia's automix profile is independent of the balance: analyse the bytes,
-      // but never make playback wait for it when normalization is off.
+      // but only 智能平衡 makes playback wait for the reading.
       analyzeLoudnessBlob(
         item,
         blob,
@@ -1278,7 +1311,9 @@ var mseFallbackToken = -1
     var gain = readReplayGainHeaders(headers)
     if (gain === null) return false
     platformGain = gain
-    reconsiderBalance(null)
+    // Folia gives an online song the platform's own figures in the tag modes too, not only
+    // to the balance, so the mode is re-decided rather than only re-balanced.
+    applyModeGain(GAIN_SET_RAMP_SEC)
     return true
   }
 
@@ -1579,9 +1614,25 @@ var mseFallbackToken = -1
       })
   }
 
-  function replayGainModeOf() {
-    var mode = readPrefs().replayGainMode
+  function normalizeGainMode(mode) {
     return mode === 'off' || mode === 'track' || mode === 'album' ? mode : 'auto'
+  }
+
+  function replayGainModeOf() {
+    return normalizeGainMode(readPrefs().replayGainMode)
+  }
+
+  /**
+   * Folia's store select on `replayGainMode`: a change from any entry point re-decides the
+   * playing song at once. Leaving 智能平衡 ends the play it was in (Folia's balancePlay.reset).
+   */
+  function syncGainMode(nextPrefs) {
+    var mode = nextPrefs === undefined || nextPrefs === null
+      ? replayGainModeOf()
+      : normalizeGainMode(nextPrefs.replayGainMode)
+    if (mode === gainModeSeen) return
+    gainModeSeen = mode
+    applyModeGain(GAIN_SET_RAMP_SEC)
   }
 
   function replayGainEndpoint(item) {
@@ -1597,58 +1648,112 @@ var mseFallbackToken = -1
     return API + 'replaygain?path=' + encodeURIComponent(item.path)
   }
 
-  function applyReplayGainFactor(factor) {
-    var next = Number.isFinite(Number(factor)) && Number(factor) > 0 ? Number(factor) : 1
-    replayGainFactor = next
-    if (trimNode !== null && audioContext !== null) {
-      applyTrimGain(trimNode, normalizeBase * replayGainFactor, audio === null || audio.paused === true)
-    } else {
-      applyOutputVolume()
-    }
+  function balancing() {
+    return replayGainModeOf() === 'auto'
   }
 
-  /** Folia's calculateReplayGain: off/auto leave the tag factor at unity. */
-  function applyReplayGainState() {
+  /** Folia's getPlaybackSourceRef kinds: a local file, a library server, or a streaming platform. */
+  function playbackSourceKind(item) {
+    if (item === null || item === undefined) return 'local'
+    var provider = String(item.onlineProvider || '')
+    if (provider === '') return 'local'
+    return provider === 'navidrome' ? 'navidrome' : 'online'
+  }
+
+  /**
+   * The song's ReplayGain figures as its source gives them (Folia's applyReplayGain): a local
+   * file's tags and a Navidrome song's own gain come from the Host, a streaming platform's
+   * own gain arrives with the stream.
+   */
+  function replayGainInfoFor(item) {
+    return playbackSourceKind(item) === 'online' ? platformGain : replayGainInfo
+  }
+
+  /** Read the Host's ReplayGain answer into the four figures, dropping anything unusable. */
+  function replayGainInfoOf(body) {
+    var info = {}
+    if (!body || typeof body !== 'object') return null
+    if (typeof body.trackGain === 'number' && isFinite(body.trackGain)) info.trackGain = body.trackGain
+    if (typeof body.trackPeak === 'number' && isFinite(body.trackPeak)) info.trackPeak = body.trackPeak
+    if (typeof body.albumGain === 'number' && isFinite(body.albumGain)) info.albumGain = body.albumGain
+    if (typeof body.albumPeak === 'number' && isFinite(body.albumPeak)) info.albumPeak = body.albumPeak
+    return Object.keys(info).length > 0 ? info : null
+  }
+
+  /**
+   * Folia's applyReplayGain: one mode decides this song's gain. 智能平衡 asks the balance
+   * rules; 单曲 / 专辑 read the source's own figures; 关闭 is unity. Leaving 智能平衡 ends the
+   * play it was balancing (Folia's balancePlay.reset()).
+   */
+  function applyModeGain(rampSec) {
+    var ramp = rampSec === undefined ? GAIN_SET_RAMP_SEC : rampSec
     var mode = replayGainModeOf()
-    if (mode === 'off' || mode === 'auto') {
-      applyReplayGainFactor(1)
+    if (mode === 'auto') {
+      reconsiderBalance(balanceMeter === null ? null : balanceMeter.liveLoudness(), ramp)
       return
     }
-    var calculation = calculateReplayGain(replayGainInfo, mode)
-    applyReplayGainFactor(calculation.linearGain)
+    balanceAppliedDb = null
+    balanceMoved = false
+    appliedGainEstimated = false
+    if (mode === 'off') {
+      appliedGainAvailable = false
+      writeDeckGain(0, ramp)
+      return
+    }
+    var info = replayGainInfoFor(currentItem())
+    var available = info !== null && (typeof info.trackGain === 'number' || typeof info.albumGain === 'number')
+    appliedGainAvailable = available
+    var calculation = calculateReplayGain(info, mode)
+    writeDeckGain(available ? calculation.effectiveGainDb : 0, ramp)
   }
 
   /**
    * Ask the Host for the track's ReplayGain tags (Folia's applyReplayGain reads them from the
-   * local metadata / Navidrome carrier). The factor is reset first so a slow answer never keeps
-   * the previous song's gain.
+   * local metadata / Navidrome carrier). What is known is applied first, so a slow answer never
+   * keeps the previous song's gain.
    */
-  function loadReplayGainFor(item) {
-    replayGainInfo = null
+  function loadReplayGainFor(item, knownInfo) {
+    // A blended song already has its figures: they were fetched for its deck before it sounded.
+    replayGainInfo = knownInfo === undefined ? null : knownInfo
     var token = (replayGainToken += 1)
-    applyReplayGainFactor(1)
+    applyModeGain(GAIN_SET_RAMP_SEC)
+    fetchReplayGainInfo(item).then(function (info) {
+      if (token !== replayGainToken) return
+      replayGainInfo = info
+      applyModeGain(GAIN_SET_RAMP_SEC)
+    })
+  }
+
+  /** The song's ReplayGain figures from the Host; never rejects, and null means it has none. */
+  function fetchReplayGainInfo(item) {
     var url = replayGainEndpoint(item)
-    if (url === null) {
-      applyReplayGainState()
-      return
-    }
-    getJson(url)
+    if (url === null) return Promise.resolve(null)
+    return getJson(url)
       .then(function (body) {
-        if (token !== replayGainToken) return
-        replayGainInfo = {
-          trackGain: body && body.trackGain,
-          trackPeak: body && body.trackPeak,
-          albumGain: body && body.albumGain,
-          albumPeak: body && body.albumPeak,
-        }
-        tagGainDb = replayGainInfo.trackGain === undefined ? null : replayGainInfo
-        if (readPrefs().normalizeVolume !== false) reconsiderBalance(null)
-        applyReplayGainState()
+        return replayGainInfoOf(body)
       })
       .catch(function () {
-        if (token !== replayGainToken) return
-        applyReplayGainState()
+        return null
       })
+  }
+
+  /**
+   * What the mode decides for a song that is not playing yet (the incoming side of a blend):
+   * the same inputs `applyModeGain` would see, minus the live meter.
+   */
+  function modeGainFor(item, info) {
+    var mode = replayGainModeOf()
+    if (mode === 'off') return { db: 0, available: false }
+    if (mode !== 'auto') {
+      var available = Boolean(info)
+        && (typeof info.trackGain === 'number' || typeof info.albumGain === 'number')
+      return {
+        db: available ? calculateReplayGain(info, mode).effectiveGainDb : 0,
+        available: available,
+      }
+    }
+    var choice = chooseBalance(balanceInputs(item, { live: null }, info))
+    return { db: choice ? choice.effectiveGainDb : 0, available: true }
   }
 
   /** Folia's shuffleRound: record the song now playing and reshuffle a finished round. */
@@ -1723,9 +1828,7 @@ var mseFallbackToken = -1
     flushSessionPosition()
     var token = (loadToken += 1)
     mseFallbackToken = -1
-    tagGainDb = null
     platformGain = null
-    loadReplayGainFor(item)
     prefetchedProfilePath = ''
     profileToken += 1
     state = Object.assign({}, state, { index: at, currentTime: 0, duration: 0, buffered: 0 })
@@ -1741,14 +1844,13 @@ var mseFallbackToken = -1
     prefetchLyricsAround()
     currentLoudnessBlob = null
     loudnessToken += 1
-    applyNormalizeGain(1)
-    if (balanceMeter !== null && typeof balanceMeter.reset === 'function') balanceMeter.reset()
+    // A new play: the balance starts over, and the mode sets the gain before sound
+    // (Folia's balancePlay + SET_RAMP_SEC) — from what is known now, then again when
+    // the source's own figures arrive.
     balanceMoved = false
-    if (readPrefs().normalizeVolume !== false) {
-      // What is known before the file is read: a whole reading (file or played),
-      // then the tag, then the typical gain. Folia applies this with SET_RAMP_SEC.
-      applyBalanceChoice(chooseBalance(balanceInputs()), 0.1)
-    }
+    balanceAppliedDb = null
+    if (balanceMeter !== null && typeof balanceMeter.reset === 'function') balanceMeter.reset()
+    loadReplayGainFor(item)
     var loudness = createLoudnessGate()
     if (audio === null) {
       loudness.resolve()
@@ -1840,9 +1942,9 @@ var mseFallbackToken = -1
   // ── crossfade: two decks, equal-power overlap ───────────────────────
   //
   // The outgoing track keeps playing on the active element while the incoming
-  // track starts on the spare one. When the fade lands, the two decks swap
-  // roles, so every other part of the engine keeps working with `audio` and
-  // `normalizeGain`.
+  // track starts on the spare one, each deck carrying its own song's gain. When the
+  // fade lands, the two decks swap roles, so every other part of the engine keeps
+  // working with `audio` and `replayGainNode`.
 
   function releaseObjectUrlB() {
     if (objectUrlB === null) return
@@ -1892,13 +1994,17 @@ var mseFallbackToken = -1
     var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
     prefetchAbort = controller
     var itemPath = item.path
-    fetchTrackBlob(item, controller === null ? null : controller.signal)
+    var itemGain = null
+    fetchTrackBlob(item, controller === null ? null : controller.signal, function (headers) {
+      // The platform's own gain comes with the stream's headers; keep it for the blend.
+      itemGain = readReplayGainHeaders(headers)
+    })
       .then(function (blob) {
         if (token !== prefetchToken) return
         prefetchAbort = null
         // One track of memory at most; bigger files rely on the Host cache.
         prefetchedNext =
-          blob.size > 80 * 1024 * 1024 ? null : { path: itemPath, blob: blob }
+          blob.size > 80 * 1024 * 1024 ? null : { path: itemPath, blob: blob, gain: itemGain }
       })
       .catch(function () {
         if (token === prefetchToken) prefetchAbort = null
@@ -1906,16 +2012,21 @@ var mseFallbackToken = -1
   }
 
   /** Fetch one track the same way `load()` does, without touching the decks. */
-  function fetchTrackBlob(item, signal) {
+  function fetchTrackBlob(item, signal, onHeaders) {
     var options = signal === undefined || signal === null ? {} : { signal: signal }
+    var report = function (response) {
+      if (typeof onHeaders === 'function' && response && response.headers) onHeaders(response.headers)
+    }
     var resolvedOnlineUrl = onlineUrlFor(item)
     if (resolvedOnlineUrl !== '') {
       return fetch(resolvedOnlineUrl, options).then(function (response) {
+        report(response)
         if (!response.ok) throw new Error('HTTP ' + response.status)
         return response.blob()
       })
     }
     return fetch(streamUrl(item.path), options).then(function (response) {
+      report(response)
       if (response.ok) return response.blob()
       return response
         .json()
@@ -1938,21 +2049,13 @@ var mseFallbackToken = -1
   }
 
   /**
-   * Decode once and return what the transition needs: the level envelope and,
-   * for the incoming deck, its loudness trim.
+   * Decode once and return what the transition needs: the level envelope. The gain is
+   * not measured here — the song's 音频增益 mode owns it (Folia's applyReplayGain), and
+   * the incoming deck is written with the mode's decision instead.
    */
-  function analyzeTransitionBlob(blob, wantTrim) {
+  function analyzeTransitionBlob(blob) {
     return decodeBlob(blob).then(function (buffer) {
-      var envelope = analyzeTransitionBuffer(buffer)
-      if (!wantTrim) return { envelope: envelope, trim: 1 }
-      return lufsFromAudioBuffer(buffer)
-        .then(function (lufs) {
-          var gainDb = clamp(LOUDNESS_TARGET - lufs, -15, 6)
-          return { envelope: envelope, trim: Math.pow(10, gainDb / 20) }
-        })
-        .catch(function () {
-          return { envelope: envelope, trim: 1 }
-        })
+      return { envelope: analyzeTransitionBuffer(buffer) }
     })
   }
 
@@ -1964,12 +2067,14 @@ var mseFallbackToken = -1
     xfadePending = true
     xfadeNext = nextAt
     var outgoingBlob = currentBlob
-    var wantTrim = readPrefs().normalizeVolume !== false
     var nextBlob = null
-    var cachedBlob = prefetchedNext !== null && prefetchedNext.path === item.path ? prefetchedNext.blob : null
+    /** The platform's own gain, seen on the incoming stream's headers. */
+    var nextPlatformGain = null
+    var cached = prefetchedNext !== null && prefetchedNext.path === item.path ? prefetchedNext : null
+    var cachedBlob = cached === null ? null : cached.blob
     Promise.all([
       outgoingBlob
-        ? analyzeTransitionBlob(outgoingBlob, false)
+        ? analyzeTransitionBlob(outgoingBlob)
             .then(function (result) {
               return result.envelope
             })
@@ -1978,16 +2083,23 @@ var mseFallbackToken = -1
             })
         : Promise.resolve(null),
       (cachedBlob !== null
-        ? Promise.resolve(cachedBlob)
-        : fetchTrackBlob(item)
+        ? Promise.resolve(cachedBlob).then(function (blob) {
+            nextPlatformGain = cached === null ? null : cached.gain || null
+            return blob
+          })
+        : fetchTrackBlob(item, undefined, function (headers) {
+            nextPlatformGain = readReplayGainHeaders(headers)
+          })
       )
         .then(function (blob) {
           nextBlob = blob
-          return analyzeTransitionBlob(blob, wantTrim)
+          return analyzeTransitionBlob(blob)
         })
         .catch(function () {
           return null
         }),
+      // The incoming song's own figures, so its deck can carry the mode's gain before it sounds.
+      fetchReplayGainInfo(item),
     ]).then(function (results) {
       if (token !== xfadeToken || audio === null) return
       var incoming = results[1]
@@ -2074,7 +2186,10 @@ var mseFallbackToken = -1
         together: styled !== null ? styled.together : 0,
         style: styled !== null ? styled.style : 'plainBlend',
         blob: nextBlob,
-        trim: incoming.trim,
+        // A local file's tags / a Navidrome gain, or a platform's own gain from the stream.
+        info: playbackSourceKind(item) === 'online'
+          ? nextPlatformGain
+          : results[2] === undefined ? null : results[2],
         duration: incoming.envelope ? incoming.envelope.duration : 0,
       }
       xfadePending = false
@@ -2128,11 +2243,15 @@ var mseFallbackToken = -1
     // The outgoing song never fires `ended` once the fade takes it off the active deck; its
     // "played whole" report is made when the fade lands, from this capture.
     xfadeOutgoing = { item: currentItem(), duration: state.duration > 0 ? state.duration : audio.duration || 0 }
+    // Its deck's meter too: a blended song's balance reading is taken where the blend lands.
+    xfadeOutgoingMeter = balanceMeter
     var incomingDeck = foliaGraph !== null && audio === foliaGraph.getDeckElement('A') ? 'B' : 'A'
+    // The incoming song's own mode gain, on the incoming song's own deck (Folia's per-deck node).
+    var incomingGain = modeGainFor(state.queue[prepared.nextAt], prepared.info)
+    prepared.gainDb = incomingGain.db
+    prepared.gainAvailable = incomingGain.available
     releaseObjectUrlB()
     objectUrlB = URL.createObjectURL(prepared.blob)
-    normalizeGainB = prepared.trim
-    var trimDb = prepared.trim > 0 ? 20 * Math.log10(prepared.trim) : 0
     xfadeActive = true
     xfadePending = false
     xfadeAdopted = false
@@ -2143,7 +2262,7 @@ var mseFallbackToken = -1
         hold: prepared.hold || 0,
         together: prepared.together || 0,
         startAt: prepared.plan.startInNext,
-        replayGainDb: trimDb,
+        replayGainDb: prepared.gainDb,
         setActive: false,
       })
       .then(function (started) {
@@ -2168,15 +2287,12 @@ var mseFallbackToken = -1
     var fade = fadeNode
     fadeNode = fadeNodeB
     fadeNodeB = fade
-    var trim = trimNode
-    trimNode = trimNodeB
-    trimNodeB = trim
+    var gain = replayGainNode
+    replayGainNode = replayGainNodeB
+    replayGainNodeB = gain
     var url = objectUrl
     objectUrl = objectUrlB
     objectUrlB = url
-    var loudness = normalizeGain
-    normalizeGain = normalizeGainB
-    normalizeGainB = loudness
     if (foliaTransport !== null) foliaTransport.setActiveDeck(nextDeck)
     if (foliaGraph !== null) balanceMeter = foliaGraph.getDeckChain(nextDeck).balanceMeter
   }
@@ -2206,6 +2322,16 @@ var mseFallbackToken = -1
     })
     currentBlob = prepared.blob
     currentLoudnessBlob = prepared.blob
+    // An online song keeps the platform's own gain the stream's headers carried.
+    if (playbackSourceKind(item) === 'online') platformGain = prepared.info === undefined ? null : prepared.info
+    // The incoming song starts on the gain its deck was given, so 智能平衡 reasons from it
+    // rather than from the song that is fading out.
+    balanceAppliedDb = balancing() ? prepared.gainDb : null
+    balanceMoved = false
+    appliedGainDb = Number(prepared.gainDb) || 0
+    appliedGainEstimated = false
+    appliedGainAvailable = prepared.gainAvailable === true
+    patch({ gainAppliedDb: appliedGainDb, gainEstimated: false, gainAvailable: appliedGainAvailable })
     xfadePrepared = null
     xfadeAdopted = true
     xfadeNext = -1
@@ -2216,7 +2342,7 @@ var mseFallbackToken = -1
     trackShuffleRoundProgress()
     emit()
     savePlaybackState()
-    loadReplayGainFor(item)
+    loadReplayGainFor(item, playbackSourceKind(item) === 'online' ? null : prepared.info)
     prefetchLyricsAround()
     maybePrefetchNext()
   }
@@ -2248,6 +2374,12 @@ var mseFallbackToken = -1
         }
       }
     }
+    // The song that just faded out was heard whole: its balance reading lands here, where the
+    // blend does (Folia's settle path — a blended song never fires `ended`).
+    if (balancing() && xfadeOutgoing !== null) {
+      commitBalanceReading(xfadeOutgoing.item, xfadeOutgoing.duration, xfadeOutgoingMeter)
+    }
+    xfadeOutgoingMeter = null
     if (audioB !== null) {
       try {
         // Before the ghost is silenced: did it reach the end of the song? The fade is
@@ -2267,7 +2399,6 @@ var mseFallbackToken = -1
     }
     xfadeOutgoing = null
     releaseObjectUrlB()
-    normalizeGainB = 1
     maybePrefetchNext()
   }
 
@@ -2280,6 +2411,7 @@ var mseFallbackToken = -1
     xfadeNext = -1
     xfadePrepared = null
     xfadeOutgoing = null
+    xfadeOutgoingMeter = null
     if (xfadeTimer !== null) {
       clearTimeout(xfadeTimer)
       xfadeTimer = null
@@ -2294,7 +2426,6 @@ var mseFallbackToken = -1
       }
     }
     releaseObjectUrlB()
-    normalizeGainB = 1
     if (audioContext !== null) {
       var now = audioContext.currentTime
       if (fadeNode !== null) {
@@ -2336,7 +2467,9 @@ var mseFallbackToken = -1
   }
 
   function transportTimeChanged(info) {
-    if (foliaTransport !== null && foliaGraph !== null && audioContext !== null) {
+    // 智能平衡 meters every deck as it plays — either deck, so a blend's incoming side is
+    // measured too — and no other mode meters at all (Folia's `balancing` gate).
+    if (balancing() && foliaTransport !== null && foliaGraph !== null && audioContext !== null) {
       var chain = foliaGraph.getDeckChain(info.deck)
       if (chain !== null && chain.balanceMeter && typeof chain.balanceMeter.tick === 'function') {
         chain.balanceMeter.tick(audioContext.currentTime)
@@ -2359,6 +2492,14 @@ var mseFallbackToken = -1
   function transportEnded(info) {
     if (!transportIsActive(info)) return
     onEnded({ target: audio })
+  }
+
+  // The engine starts on the stored mode, and follows every later write (Folia's store select).
+  gainModeSeen = replayGainModeOf()
+  if (typeof prefsStore !== 'undefined' && prefsStore !== null && typeof prefsStore.subscribe === 'function') {
+    prefsStore.subscribe(function (next) {
+      syncGainMode(next)
+    })
   }
 
   var api = {
@@ -2459,16 +2600,16 @@ var mseFallbackToken = -1
         return null
       }
       // Compatibility aliases while the transport half is still the old code:
-      // the deck chain's four gain stages now back the old names. The old
+      // the deck chain's fade and ReplayGain stages now back the old names. The old
       // preamp/limiter are not created any more.
       fadeNode = chainA.fade
       fadeNodeB = chainB.fade
-      trimNode = chainA.replayGain
-      trimNodeB = chainB.replayGain
+      replayGainNode = chainA.replayGain
+      replayGainNodeB = chainB.replayGain
       balanceMeter = chainA.balanceMeter
       eqNodes = []
       waveData = new Uint8Array(analyser.frequencyBinCount)
-      applyNormalizeGain(normalizeGain)
+      writeDeckGain(appliedGainDb, 0)
       applyEq(true)
       applyOutputVolume()
       try {
@@ -2507,8 +2648,8 @@ var mseFallbackToken = -1
       gainNode = null
       fadeNode = null
       fadeNodeB = null
-      trimNode = null
-      trimNodeB = null
+      replayGainNode = null
+      replayGainNodeB = null
       eqNodes = []
       waveData = null
       audio = el
@@ -2817,33 +2958,31 @@ var mseFallbackToken = -1
         // The listener above retries once metadata is ready.
       }
     },
-    // ReplayGain tag value in dB; folds into the same trim node as the loudness gain.
-    // The song's ReplayGain tags; the balance uses them when it has no reading of its own.
-    setTagGain: function (gain) {
-      tagGainDb = gain && typeof gain.trackGain === 'number' ? gain : null
-      if (readPrefs().normalizeVolume !== false) reconsiderBalance(null)
+    /**
+     * The 音频增益 mode (Folia's `replayGainMode`) — the only switch the engine reads.
+     * Writing it is enough: the prefs subscription below re-decides the playing song at
+     * once, so every entry point (设置 · 播放控制, the panel sheet, the quick panel) lands
+     * on the same path. `normalizeVolume` is kept as the legacy mirror older builds read.
+     */
+    setGainMode: function (mode) {
+      var next = mode === 'off' || mode === 'track' || mode === 'album' ? mode : 'auto'
+      savePrefs({ replayGainMode: next, normalizeVolume: next === 'auto' })
+      syncGainMode()
     },
-    setReplayGain: function (db) {
-      var value = Number(db)
-      replayGainFactor = Number.isFinite(value) && value !== 0 ? Math.pow(10, value / 20) : 1
-      if (trimNode !== null && audioContext !== null) {
-        applyTrimGain(trimNode, normalizeBase * replayGainFactor, audio === null || audio.paused === true)
-      } else {
-        applyOutputVolume()
+    /**
+     * What the mode applied and what the deck's own node holds. The panel reads the
+     * snapshot (Folia's replayGainAppliedDb); `deckDb` is the same value at the node,
+     * for diagnosing a path that bypassed `writeDeckGain`.
+     */
+    getGainState: function () {
+      var deck = replayGainNode === null ? null : replayGainNode.gain.value
+      return {
+        mode: replayGainModeOf(),
+        appliedDb: appliedGainDb,
+        estimated: appliedGainEstimated === true,
+        available: appliedGainAvailable === true,
+        deckDb: replayGainNode === null ? null : 20 * Math.log10(Math.max(1e-6, deck)),
       }
-    },
-    setNormalize: function (value) {
-      savePrefs({ normalizeVolume: value !== false })
-      if (value === false) {
-        loudnessToken += 1
-        applyNormalizeGain(1)
-      } else if (currentItem()) {
-        scheduleLoudness(currentItem(), currentLoudnessBlob)
-      }
-    },
-    /** Re-apply the ReplayGain mode after the setting changed (Folia's applyReplayGain). */
-    refreshReplayGain: function () {
-      applyReplayGainState()
     },
     /**
      * Update the equalizer. Every call persists, so the panel can drive this

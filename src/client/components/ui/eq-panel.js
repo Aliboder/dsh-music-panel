@@ -254,9 +254,12 @@ function AudioEffectsPanel(props) {
             { className: 'mp-np-extra-row' },
             h('span', null, t('settings.volumeNormalize')),
             h(Switch, {
-              value: prefs.normalizeVolume !== false,
+              // The switch is 智能平衡 / 关闭 — the same mode the 音频增益 row shows
+              // (Folia has no separate normalization flag).
+              value: prefs.replayGainMode === 'auto',
               onChange: function (value) {
-                setPrefs({ normalizeVolume: value })
+                if (player && typeof player.setGainMode === 'function') player.setGainMode(value ? 'auto' : 'off')
+                else setPrefs({ replayGainMode: value ? 'auto' : 'off', normalizeVolume: value })
               },
             }),
           ),

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### 音频增益
+
+- 三个模式严格按 Folia 的 `applyReplayGain` 走：同一时刻只有一个模式写当前 deck 的 `replayGain` 节点。关闭 = 0 dB；单曲 / 专辑 = `calculateReplayGain`（专辑回退单曲、正增益按 peak 防削波）；智能平衡 = `chooseBalance` / `planBalanceMove`。此前响度修正与标签增益是两个变量、在同一个节点上相乘：面板里选「单曲 / 专辑」实际是平衡 + 标签叠加，选「关闭」也仍在做平衡。
+- 模式成为播放器的单一开关：设置 → 播放控制、播放页「音频增益」、快捷面板的「音量平衡」三个入口都只写 `replayGainMode`，播放器订阅到变化后立即重算当前曲；离开智能平衡会结束这次播放的平衡状态（Folia 的 `balancePlay.reset`）。`normalizeVolume` 只保留为旧版镜像，不再参与任何判断。
+- 智能平衡只在「智能平衡」模式下测量与学习：deck 电平表只在 auto 时 tick，整曲读数也只在 auto 下写入；文件 / 平台分析仍独立运行，automix profile 不受影响。
+- 交叉淡化：入场的 deck 不再用「解码后现测的 LUFS」当增益，而是按同一个模式决定（标签 / 平台增益 / 平衡读数），与 Folia 每 deck 一个 `replayGain` 节点一致；淡出的歌在交接处补记整曲平衡读数。
+- 在线歌曲自带的平台增益（酷狗、网易云、Navidrome 缓存里的 `volume` / `gain`）在单曲 / 专辑模式下也生效，与 Folia 的 `currentSong.replayGain` 一致；此前只作为智能平衡的 `platformDb`。
+- 音频增益下面那行说明改为播报引擎实际应用的 dB（含 peak 上限，智能平衡标注「估计」），单曲 / 专辑没有增益数据时显示「未检测到 ReplayGain」，与 Folia 的 `ReplayGainControl` 一致；三个入口显示同一份值。
+
 ## 0.42.0 — 2026-11-22
 
 ### 播放控制

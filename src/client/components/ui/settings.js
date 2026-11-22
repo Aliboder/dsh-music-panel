@@ -887,12 +887,11 @@ function SettingsSheet(props) {
     // extras (startup, online quality, reports, audio focus, sleep) in 插件.
     var reportSupported = availableSources().some(function (provider) { return supports(provider, 'playbackReports') })
     var crossfadeOn = crossfadeFadeSeconds(prefs) > 0
+    // The mode is the only switch; `normalizeVolume` is the legacy mirror of it.
     var replayGainValue =
       prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album'
         ? prefs.replayGainMode
-        : prefs.normalizeVolume === false
-          ? 'off'
-          : 'auto'
+        : 'auto'
     var queueAddBehavior = prefs.queueAddBehavior === 'next' ? 'next' : 'append'
     var wakeLockAvailable = typeof navigator !== 'undefined'
       && navigator.wakeLock !== null
@@ -991,12 +990,11 @@ function SettingsSheet(props) {
             { value: 'album', label: t('settings.replayGainAlbum') },
           ],
           onChange: function (value) {
-            var next = String(value)
-            // Folia: only 智能平衡 measures loudness; the tag modes read the file's own
-            // gain, and off applies neither. The player applies the mode on every load.
-            patchPrefs({ replayGainMode: next })
-            if (player.setNormalize) player.setNormalize(next === 'auto')
-            if (player.refreshReplayGain) player.refreshReplayGain()
+            // Folia: only 智能平衡 measures loudness; the tag modes read the source's own
+            // figures, and off applies neither. The engine decides at once and mirrors the
+            // legacy on/off key for older builds.
+            if (player && typeof player.setGainMode === 'function') player.setGainMode(String(value))
+            else patchPrefs({ replayGainMode: String(value) })
           },
         }),
       ),
@@ -1007,28 +1005,28 @@ function SettingsSheet(props) {
           key: 'normalize-status',
           className: cx(
             'mp-set-status',
-            prefs.normalizeVolume === false
-              ? replayGainValue === 'track' || replayGainValue === 'album'
-                ? 'is-on'
-                : 'is-off'
-              : builtinLoudness
-                ? 'is-on'
-                : 'is-bad',
+            replayGainValue === 'track' || replayGainValue === 'album'
+              ? 'is-on'
+              : replayGainValue === 'off'
+                ? 'is-off'
+                : builtinLoudness
+                  ? 'is-on'
+                  : 'is-bad',
           ),
         },
         h('i'),
         h(
           'span',
           null,
-          prefs.normalizeVolume === false
-            ? replayGainValue === 'track' || replayGainValue === 'album'
-              ? t('settings.replayGainTagMode')
-              : t('settings.volumeNormalizeOff')
-            : builtinLoudness
-              ? t('settings.volumeNormalizeReady')
-              : t('settings.volumeNormalizeMissing'),
+          replayGainValue === 'track' || replayGainValue === 'album'
+            ? t('settings.replayGainTagMode')
+            : replayGainValue === 'off'
+              ? t('settings.volumeNormalizeOff')
+              : builtinLoudness
+                ? t('settings.volumeNormalizeReady')
+                : t('settings.volumeNormalizeMissing'),
         ),
-        prefs.normalizeVolume !== false && !builtinLoudness
+        replayGainValue === 'auto' && !builtinLoudness
           ? h('span', { className: 'mp-set-status-hint' }, t('settings.volumeNormalizeMissingHint'))
           : null,
       ),

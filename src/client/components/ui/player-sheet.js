@@ -1174,21 +1174,23 @@ function PlayerSheetInner(props) {
     )
   }
 
-  /** One line under 音频增益: what the chosen mode does to this track. */
+  /**
+   * One line under 音频增益 — Folia's ReplayGainControl: nothing for 关闭, 未检测到 ReplayGain
+   * for a tag mode the source gave nothing to, otherwise the mode's name and the gain the
+   * engine actually applied (after the peak cap), with 估计 while the balance stands on a
+   * stand-in reading.
+   */
   function gainHint() {
     var mode = typeof props.gainMode === 'string' ? props.gainMode : 'auto'
     if (mode === 'off') return ''
-    if (mode === 'auto') {
-      var autoDb = typeof props.gainAutoDb === 'number' ? props.gainAutoDb : null
-      if (autoDb === null) return t('sheet.gainAutoHint')
-      return (
-        t('sheet.gainAuto') + ' ' + (autoDb > 0 ? '+' : '') + autoDb.toFixed(1) + ' dB' +
-        (props.gainAutoEstimated === true ? ' · ' + t('sheet.gainEstimated') : '')
-      )
-    }
+    if (mode !== 'auto' && props.gainAvailable === false) return t('sheet.gainUnavailable')
     var db = props.gainAppliedDb
     if (typeof db !== 'number' || !isFinite(db)) return t('sheet.gainUnavailable')
-    return (mode === 'album' ? t('sheet.gainAlbum') : t('sheet.gainTrack')) + ' ' + (db > 0 ? '+' : '') + db.toFixed(1) + ' dB'
+    var label = mode === 'album' ? t('sheet.gainAlbum') : mode === 'track' ? t('sheet.gainTrack') : t('sheet.gainAuto')
+    return (
+      label + ' ' + (db > 0 ? '+' : '') + db.toFixed(1) + ' dB' +
+      (mode === 'auto' && props.gainAutoEstimated === true ? ' · ' + t('sheet.gainEstimated') : '')
+    )
   }
 
   // 本地 tab — Folia's SourceTab: lyric source, timeline offset, match + lyric file,

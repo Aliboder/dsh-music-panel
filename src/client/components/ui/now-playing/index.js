@@ -388,7 +388,7 @@ function NowPlaying(props) {
   var sourceInfoPair = useState(null)
   var sourceInfo = sourceInfoPair[0]
   var setSourceInfo = sourceInfoPair[1]
-  var balance = useStore(balanceStore)
+  // The engine is the authority on what the mode applied (Folia's replayGainAppliedDb).
   var gainMode = prefs.replayGainMode === 'off' || prefs.replayGainMode === 'track' || prefs.replayGainMode === 'album' ? prefs.replayGainMode : 'auto'
 
   useEffect(
@@ -1166,21 +1166,14 @@ function NowPlaying(props) {
             },
             gainValues: gainInfo,
             accentCss: mpAccentCss(flowAccent),
-            gainAutoDb: balance.gainDb,
-            gainAutoEstimated: balance.estimated === true,
+            gainAutoEstimated: snap.gainEstimated === true,
+            gainAvailable: snap.gainAvailable === true,
             gainMode: gainMode,
-            gainAppliedDb:
-              gainMode === 'auto'
-                ? null
-                : gainInfo === null
-                  ? null
-                  : gainMode === 'album'
-                    ? gainInfo.albumGain ?? gainInfo.trackGain
-                    : gainMode === 'track'
-                      ? gainInfo.trackGain
-                      : null,
+            gainAppliedDb: typeof snap.gainAppliedDb === 'number' ? snap.gainAppliedDb : null,
             onGainModeChange: function (next) {
-              setPrefs({ replayGainMode: next })
+              // The panel writes the mode; the engine applies it at once (Folia's store select).
+              if (player && typeof player.setGainMode === 'function') player.setGainMode(next)
+              else setPrefs({ replayGainMode: next })
             },
             lyricSources: sourceInfo,
             // Folia keeps the choice on the song, not in a global setting: each switch
@@ -1247,11 +1240,6 @@ function NowPlaying(props) {
                   setLyricReload(lyricReload + 1)
                 },
               })
-            },
-            normalizeOn: prefs.normalizeVolume !== false,
-            onToggleNormalize: function (next) {
-              setPrefs({ normalizeVolume: next })
-              if (player.setNormalize) player.setNormalize(next)
             },
             anchor: sheetAnchor,
             onClose: function () {
