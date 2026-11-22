@@ -148,6 +148,15 @@ var ICONS = {
       ['path', { d: 'M15.5 8.5a5 5 0 010 7' }],
     ],
   },
+  // The output device: a speaker cabinet, so the card's fourth action reads as
+  // "where the sound comes out" rather than another play control.
+  speaker: {
+    parts: [
+      ['rect', { x: 4, y: 2, width: 16, height: 20, rx: 2 }],
+      ['circle', { cx: 12, cy: 15, r: 4 }],
+      ['path', { d: 'M12 6.5h.01' }],
+    ],
+  },
   equalizer: {
     parts: [
       ['path', { d: 'M4 10v4' }],

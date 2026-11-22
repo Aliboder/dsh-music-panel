@@ -32,6 +32,52 @@ function clampLyricGlobalOffset(value) {
   return Math.max(-LYRIC_GLOBAL_OFFSET_LIMIT_MS, Math.min(LYRIC_GLOBAL_OFFSET_LIMIT_MS, Math.round(number)))
 }
 
+/**
+ * 设置 → 在线与账号: the song that is playing.
+ *
+ * The player card used to show the platform, the account state and the ID on its audio page;
+ * they live here now, next to the account they describe.
+ */
+function SettingsNowPlayingCard() {
+  var snap = usePlayerSnapshot()
+  var store = useStore(onlineStore)
+  var track = snap.queue[snap.index] || null
+  var providerId = track && track.onlineProvider ? String(track.onlineProvider) : ''
+  if (providerId === '') return null
+  var info = (store.providers || {})[providerId] || {}
+  return h(
+    'div',
+    { key: 'now-playing', className: cx('mp-online-card', 'is-now-playing') },
+    h(
+      'div',
+      { className: 'mp-online-card-head' },
+      h('span', { className: 'mp-online-logo' }, providerLogo(providerId, 38)),
+      h(
+        'div',
+        { className: 'mp-online-title' },
+        h('div', { className: 'mp-online-name' }, t('settings.nowPlaying')),
+        h('div', { className: 'mp-online-state' }, sourceLabelOf(providerId)),
+      ),
+    ),
+    h(
+      'div',
+      { className: 'mp-online-body' },
+      h(
+        'div',
+        { className: 'mp-online-meta' },
+        h('strong', { className: 'mp-online-nick', title: String(track.title || '') }, String(track.title || '')),
+        h(
+          'span',
+          { className: 'mp-online-hint-text' },
+          (info.loggedIn === true ? t('online.loggedIn') : t('online.loggedOut')) +
+            (track.artist ? ' · ' + track.artist : ''),
+        ),
+        track.onlineId ? h('span', { className: 'mp-online-id', title: 'ID ' + track.onlineId }, 'ID ' + track.onlineId) : null,
+      ),
+    ),
+  )
+}
+
 function SettingsSheet(props) {
   var prefs = usePrefs()
   var sleepRemaining = useCountdown(prefs.sleepDeadline)
@@ -1529,6 +1575,7 @@ function SettingsSheet(props) {
         h('h2', null, t('v2.online')),
         h('span', { className: 'mp-online-count' }, t('online.loggedCount', { n: logged, total: ids.length })),
       ),
+      h(SettingsNowPlayingCard, { key: 'now-playing' }),
       h('div', { key: 'grid', className: 'mp-online-grid' }, ids.map(card)),
       h(
         'div',

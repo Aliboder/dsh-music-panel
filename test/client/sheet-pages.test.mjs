@@ -67,6 +67,8 @@ test('the song page keeps its actions and drops the settings gear', () => {
   assert.match(actions, /iconButton\(\s*'favorite'/, 'the heart stays')
   assert.match(actions, /iconButton\(\s*'addToPlaylist'/, 'the star stays')
   assert.match(actions, /'locate'/, 'the locate control stays')
+  assert.match(actions, /iconButton\(\s*'outputDevice'/, 'the output device is the fourth action')
   assert.doesNotMatch(actions, /iconButton\(\s*'settings'/, 'the gear moved to the panel header')
+  assert.doesNotMatch(actions, /iconButton\(\s*'home'/, 'the home button gave its place to the device button')
 })
 console.log('sheet-pages.test.mjs ok')

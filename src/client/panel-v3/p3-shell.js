@@ -903,7 +903,6 @@ function P3Shell() {
       onToggleQueue: function () { setNpQueueOpen(!npQueueOpen) },
       onToggleFavorite: function (track) { likeStateOf(track, p3FavoriteSet(library.favorites)).onLike() },
       onLocate: function () { p3LocateCurrent(snap) },
-      onHome: function () { setNpOpen(false); setNpQueueOpen(false); p3SelectBrowseTab('songs') },
       onOpenSettings: function () { pushLayer('settings') },
     }),
     h(OverlayRoot),

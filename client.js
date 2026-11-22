@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.43.0"
-    var CLIENT_BUILD = "2a2348b27bc9"
+    var CLIENT_BUILD = "4b804a9dcc20"
 
     // ── src/client/app/runtime.js
     /**
@@ -8690,6 +8690,8 @@ window.__ModuleLoader__.load({
         'sheet.genAI': '主题生成',
         'sheet.entry': '入口',
         'sheet.open': '打开',
+        'sheet.outputDevice': '播放设备',
+        'settings.nowPlaying': '当前歌曲',
         'sheet.sourceDefault': '默认',
         'sheet.sourceCustom': '自定义',
         'sheet.light': '浅色',
@@ -9482,6 +9484,8 @@ window.__ModuleLoader__.load({
         'sheet.genAI': 'Theme generation',
         'sheet.entry': 'Entry',
         'sheet.open': 'Open',
+        'sheet.outputDevice': 'Output device',
+        'settings.nowPlaying': 'Now playing',
         'sheet.sourceDefault': 'Default',
         'sheet.sourceCustom': 'Custom',
         'sheet.light': 'Light',
@@ -10174,6 +10178,15 @@ window.__ModuleLoader__.load({
         parts: [
           ['path', { d: 'M11 5L6 9H2v6h4l5 4V5z' }],
           ['path', { d: 'M15.5 8.5a5 5 0 010 7' }],
+        ],
+      },
+      // The output device: a speaker cabinet, so the card's fourth action reads as
+      // "where the sound comes out" rather than another play control.
+      speaker: {
+        parts: [
+          ['rect', { x: 4, y: 2, width: 16, height: 20, rx: 2 }],
+          ['circle', { cx: 12, cy: 15, r: 4 }],
+          ['path', { d: 'M12 6.5h.01' }],
         ],
       },
       equalizer: {
@@ -168612,14 +168625,17 @@ window.__ModuleLoader__.load({
                     if (typeof props.onLocate === 'function') props.onLocate()
                     return
                   }
-                  if (key === 'home') {
+                  if (key === 'outputDevice') {
+                    // 声音与设备 is a settings row; the card sends the reader there instead of
+                    // growing a device picker of its own.
                     setSheetOpen(false)
-                    if (typeof props.onHome === 'function') props.onHome()
+                    pushLayer('settings', { tab: 'playback' })
                     return
                   }
                   if (key === 'settings') {
+                    // The theme row's ▤: appearance lives in the settings sheet.
                     setSheetOpen(false)
-                    if (typeof props.onOpenSettings === 'function') props.onOpenSettings()
+                    pushLayer('settings', { tab: 'appearance' })
                     return
                   }
                   if (key === 'lyricSettings') {
@@ -168742,6 +168758,52 @@ window.__ModuleLoader__.load({
       var number = Number(value)
       if (!isFinite(number)) number = 0
       return Math.max(-LYRIC_GLOBAL_OFFSET_LIMIT_MS, Math.min(LYRIC_GLOBAL_OFFSET_LIMIT_MS, Math.round(number)))
+    }
+
+    /**
+     * 设置 → 在线与账号: the song that is playing.
+     *
+     * The player card used to show the platform, the account state and the ID on its audio page;
+     * they live here now, next to the account they describe.
+     */
+    function SettingsNowPlayingCard() {
+      var snap = usePlayerSnapshot()
+      var store = useStore(onlineStore)
+      var track = snap.queue[snap.index] || null
+      var providerId = track && track.onlineProvider ? String(track.onlineProvider) : ''
+      if (providerId === '') return null
+      var info = (store.providers || {})[providerId] || {}
+      return h(
+        'div',
+        { key: 'now-playing', className: cx('mp-online-card', 'is-now-playing') },
+        h(
+          'div',
+          { className: 'mp-online-card-head' },
+          h('span', { className: 'mp-online-logo' }, providerLogo(providerId, 38)),
+          h(
+            'div',
+            { className: 'mp-online-title' },
+            h('div', { className: 'mp-online-name' }, t('settings.nowPlaying')),
+            h('div', { className: 'mp-online-state' }, sourceLabelOf(providerId)),
+          ),
+        ),
+        h(
+          'div',
+          { className: 'mp-online-body' },
+          h(
+            'div',
+            { className: 'mp-online-meta' },
+            h('strong', { className: 'mp-online-nick', title: String(track.title || '') }, String(track.title || '')),
+            h(
+              'span',
+              { className: 'mp-online-hint-text' },
+              (info.loggedIn === true ? t('online.loggedIn') : t('online.loggedOut')) +
+                (track.artist ? ' · ' + track.artist : ''),
+            ),
+            track.onlineId ? h('span', { className: 'mp-online-id', title: 'ID ' + track.onlineId }, 'ID ' + track.onlineId) : null,
+          ),
+        ),
+      )
     }
 
     function SettingsSheet(props) {
@@ -170241,6 +170303,7 @@ window.__ModuleLoader__.load({
             h('h2', null, t('v2.online')),
             h('span', { className: 'mp-online-count' }, t('online.loggedCount', { n: logged, total: ids.length })),
           ),
+          h(SettingsNowPlayingCard, { key: 'now-playing' }),
           h('div', { key: 'grid', className: 'mp-online-grid' }, ids.map(card)),
           h(
             'div',
@@ -176798,7 +176861,6 @@ window.__ModuleLoader__.load({
           onToggleQueue: function () { setNpQueueOpen(!npQueueOpen) },
           onToggleFavorite: function (track) { likeStateOf(track, p3FavoriteSet(library.favorites)).onLike() },
           onLocate: function () { p3LocateCurrent(snap) },
-          onHome: function () { setNpOpen(false); setNpQueueOpen(false); p3SelectBrowseTab('songs') },
           onOpenSettings: function () { pushLayer('settings') },
         }),
         h(OverlayRoot),
@@ -177202,7 +177264,9 @@ window.__ModuleLoader__.load({
                 ),
               ),
           h('div', { style: { flex: '1 1 auto' } }),
-          iconButton('home', t('page.home'), icon('house', 17), false),
+          // The output device, not another play control: it opens 设置 · 播放控制, where the
+          // sound card row lives (the Folia device list is the same list).
+          iconButton('outputDevice', t('sheet.outputDevice'), icon('speaker', 17), false),
         )
       }
 

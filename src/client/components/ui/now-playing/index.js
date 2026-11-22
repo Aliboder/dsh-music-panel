@@ -1235,14 +1235,17 @@ function NowPlaying(props) {
                 if (typeof props.onLocate === 'function') props.onLocate()
                 return
               }
-              if (key === 'home') {
+              if (key === 'outputDevice') {
+                // 声音与设备 is a settings row; the card sends the reader there instead of
+                // growing a device picker of its own.
                 setSheetOpen(false)
-                if (typeof props.onHome === 'function') props.onHome()
+                pushLayer('settings', { tab: 'playback' })
                 return
               }
               if (key === 'settings') {
+                // The theme row's ▤: appearance lives in the settings sheet.
                 setSheetOpen(false)
-                if (typeof props.onOpenSettings === 'function') props.onOpenSettings()
+                pushLayer('settings', { tab: 'appearance' })
                 return
               }
               if (key === 'lyricSettings') {

@@ -391,7 +391,9 @@ function PlayerSheetInner(props) {
             ),
           ),
       h('div', { style: { flex: '1 1 auto' } }),
-      iconButton('home', t('page.home'), icon('house', 17), false),
+      // The output device, not another play control: it opens 设置 · 播放控制, where the
+      // sound card row lives (the Folia device list is the same list).
+      iconButton('outputDevice', t('sheet.outputDevice'), icon('speaker', 17), false),
     )
   }
 
