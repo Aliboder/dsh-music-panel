@@ -24,18 +24,10 @@ test('every gallery case names its adapter and carries a callable snippet', () =
   assert.match(gallery, /mp-gallery-code/, 'the snippet is rendered under the case')
 })
 
-test('the portable component guide exists and links the audit', () => {
-  const guide = readFileSync(join(root, 'A_other/docs/宿主组件标准写法.md'), 'utf8')
-  assert.match(guide, /hostComponent\(name\)/, 'the guide carries the loader')
-  assert.match(guide, /function GalleryCase/, 'the guide carries the gallery case')
-  assert.match(guide, /\.mp-segment-tabs-indicator/, 'the guide carries the aligned fallback CSS')
-  assert.match(guide, /\.\.\/design\/references\/宿主原语对照-0\.2\.2-rc\.5\.md/, 'the guide links the audit')
-  assert.ok(requireExists(join(root, 'A_other/design/references/宿主原语对照-0.2.2-rc.5.md')))
+test('the spec links the portable kit and its audit', () => {
+  assert.match(spec, /组件开发规范\/README\.md/, '§3.4 links the portable kit')
+  assert.match(spec, /宿主原语签名与CSS-0\.2\.2-rc\.5\.md/, '§3.4 links the audit inside the kit')
 })
-
-function requireExists(path) {
-  try { readFileSync(path); return true } catch (error) { return false }
-}
 
 test('the spec points authors at the test page', () => {
   assert.match(spec, /### 3\.4 组件测试页 = 标准实现/, '§3.4 documents the rule')

@@ -1,27 +1,27 @@
-# 宿主原语对照（DSH 0.2.2-rc.5）
+# 宿主原语签名与 CSS（DSH 0.2.2-rc.5）
 
-> 目的：让「组件测试页是标准实现」这条规则可审计。下表来自本机 DSH 安装包的实际产物，不是记忆或推测。
-> 上游位置：`D:\DeepSeek Harness\resources\app.asar` → `dsh/node_modules/@deepseek-ai/dsh-web-frontend/dist/assets/index-*.js`（模块表把 `@deepseek-ai/dsh-client-ui-primitives` 指到同一个 bundle）与 `index-*.css`。
+> 目的：让「组件测试页是标准实现」这条规则可审计。下表来自 DSH 安装包的实际产物，不是记忆或推测。
+> 上游位置：`<DSH 安装目录>/resources/app.asar` → `dsh/node_modules/@deepseek-ai/dsh-web-frontend/dist/assets/index-*.js`（模块表把 `@deepseek-ai/dsh-client-ui-primitives` 指到同一个 bundle）与 `index-*.css`。
 
 ## 1. 组件与 props（从宿主 bundle 读出）
 
-| 导出 | 宿主实现签名 | 本仓适配层 | 结论 |
+| 导出 | 宿主实现签名 | 模板适配层 | 结论 |
 |---|---|---|---|
-| Button | `{variant='ghost', size='md', icon, className, children, ...rest}` | `Button` 显式传 variant/size/icon/className/disabled/onClick/title | 一致；本仓默认 variant 是 `outline`（显式传入），宿主自身默认是 `ghost` |
+| Button | `{variant='ghost', size='md', icon, className, children, ...rest}` | `Button` 显式传 variant/size/icon/className/disabled/onClick/title | 一致；模板默认 `outline`（显式传入），宿主自身默认 `ghost` |
 | Switch | `{checked, onChange(boolean), label, disabled, title, className}` | `Switch` 传 checked/onChange(boolean)/label/title/disabled | 一致 |
 | Checkbox | `{checked, onChange(boolean), label, disabled, title, className, modalAutofocus}` | `KitCheckbox` 传 checked/onChange/label/disabled/title/className | 一致 |
-| Input | `{icon, className, ...inputProps}`（`...inputProps` 直接展开到 `<input>`；`onChange` 是原生事件） | `KitInput` 传 value/type/placeholder/icon/disabled/readOnly/aria-label/onChange(事件) | 一致 |
-| SegmentedControl | `{id, value, options:[{value,label,title,disabled}], onChange, label, disabled, className}` | `KitSegmented` 传 id/value/options/onChange/label/disabled/className；选项映射 value/label/disabled/title | 一致；`id` 现在按实例自增，避免同页重复 id |
-| SegmentedTabs | `{items:[{value,label,id,panelId}], value, onChange, label, size='md', className}` | `KitSegmentedTabs` 传 items/value/onChange/label/size/className | 一致；卡片分页补了 `panelId` 与 `role=tabpanel` |
+| Input | `{icon, className, ...inputProps}`（`...inputProps` 展开到 `<input>`；`onChange` 是原生事件） | `KitInput` 传 value/type/placeholder/icon/disabled/readOnly/aria-label/onChange(事件) | 一致 |
+| SegmentedControl | `{id, value, options:[{value,label,title,disabled}], onChange, label, disabled, className}` | `KitSegmented` 传 id/value/options/onChange/label/disabled/className；选项映射 value/label/disabled/title | 一致；`id` 按实例自增，避免同页重复 id |
+| SegmentedTabs | `{items:[{value,label,id,panelId}], value, onChange, label, size='md', className}` | `KitSegmentedTabs` 传 items/value/onChange/label/size/className | 一致；面板由调用方提供 `panelId` 与 `role=tabpanel` |
 | Pill | `{active=false, className, onClick, children, ...rest}` | `KitPill` 传 active/className/title/onClick/children | 一致（无 onClick 时宿主渲染 `<span>`） |
 | Modal | `{open, onClose, title, closeLabel, description, children, footer, className, contentClassName, headless, ...}` | `KitModal` 传 open/onClose/title/closeLabel/children/footer/className/contentClassName | 一致 |
 | Tooltip | `{label, side='right', align='center', delayMs, focusDelayMs, gap, disabled, portal, ...}` | `IconButton` 用 Tooltip 包按钮（label/side='bottom'/delayMs=400） | 一致 |
-| Tag | `{tone='outline', className, children}`；tone: outline/solid/neutral/quiet/success/info/warning/danger | `KitTag` 传 tone/className/children | 一致（fallback 本轮补齐 `solid`） |
+| Tag | `{tone='outline', className, children}`；tone: outline/solid/neutral/quiet/success/info/warning/danger | `KitTag` 传 tone/className/children | 一致（模板含全部八种 tone） |
 | StateDot | `{state, size, className, appearance='dot'}` | `KitStateDot` 传 state | 一致 |
-| Menu | `{open, anchor(元素), anchorRef, anchorPoint, items, selectedId, selectedIds, onSelect(id), onClose, side, align, portal, compact, ...}` | `KitSelect`、`HeadMenu` 传 open/anchor/items/selectedId/onSelect/onClose/side/align/portal/compact | 一致；item 形状 `{id,label,icon,disabled,danger,shortcut,submenu,type:'separator'}` |
-| Toast | `{text, icon, tone, anchor, holdMs, actions, onDone}` | 本仓用自有 `showToast` 服务 | 有意差异：Toast 是展示组件，不是服务 |
+| Menu | `{open, anchor(元素), anchorRef, anchorPoint, items, selectedId, selectedIds, onSelect(id), onClose, side, align, portal, compact, ...}` | `KitSelect` 传 open/anchor/items/selectedId/onSelect/onClose/side/align/portal/compact | 一致；item 形状 `{id,label,icon,disabled,danger,shortcut,submenu,type:'separator'}` |
+| Toast | `{text, icon, tone, anchor, holdMs, actions, onDone}` | 模板用服务式 `showToast` | 有意差异：Toast 是展示组件，不是服务 |
 
-## 2. 关键 CSS（与 fallback 对齐用）
+## 2. 关键 CSS（fallback 对齐用）
 
 ```css
 /* Switch */
@@ -53,16 +53,16 @@
 ._tag{padding:1px 8px;border-radius:999px;font-size:11px;line-height:17px}
 ```
 
-## 3. 本轮核对结论
+## 3. 核对结论（相比早期实现的修正点）
 
-- 宿主 props 全部对得上；唯一真实缺陷是 `KitSegmented` 之前用固定默认 id（`mp-segment`），同页多个分段会产生重复 DOM id 与 `aria-controls`。已改为每实例自增 id。
-- fallback 与宿主 CSS 的差异集中在 **分段控件/分段页签**：补了滑动指示块、SegmentedTabs 的 R16/R12、14px 字号与选中加粗，以及 `solid` Tag。
-- Button 默认 variant：本仓适配层显式传 `outline`（宿主自身默认 `ghost`），因此两条路径一致；测试页的 outline 用例已写显式 variant。
-- Toast 用自有 `showToast`；`IconButton` 是本地组合（宿主 Tooltip + 按钮），二者在测试页照实标注。
+- 宿主 props 全部对得上；最容易错的是 `SegmentedControl` 的 id：固定默认 id（例如 `ui-segment`）会让同页多个分段产生重复 DOM id 与 `aria-controls`。模板改为每实例自增 id。
+- fallback 与宿主 CSS 的差异集中在 **分段控件 / 分段页签**：必须有滑动指示块、SegmentedTabs 的 R16/R12、14px 字号与选中加粗，以及 Tag 的 `solid`。
+- Button 默认 variant：模板显式传 `outline`（宿主自身默认 `ghost`），因此两条路径一致；测试页示例也写显式 variant。
+- Toast 用服务式 `showToast`；`IconButton` 是本地组合（宿主 Tooltip + 按钮），测试页照实标注。
 
 ## 4. DSH 升级后如何复核
 
-1. 解析 `app.asar`：前 16 字节后是 JSON 头，`offset 12` 是 JSON 字节长度，数据起点 `16 + jsonLen`；
+1. 解析 `app.asar`：offset 12 是 JSON 字节长度，JSON 头从 offset 16 开始，数据起点 `16 + jsonLen`；
 2. 取 `dsh-web-frontend/dist/assets/index-*.js`，搜 `const DK=Object.freeze` 得到原语导出表；
 3. 取同目录 `index-*.css`，按本文件第 2 节逐项比对；
 4. 有变化时先改测试页与 fallback，再改业务代码。

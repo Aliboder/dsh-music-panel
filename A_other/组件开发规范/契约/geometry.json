@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "alignedWith": "0.2.2-rc.5",
+  "hairline": 0.5,
+  "radius": { "sm": 8, "md": 12, "lg": 16, "xl": 20 },
+  "button": { "sm": 28, "md": 36 },
+  "input": { "height": 32, "paddingX": 8 },
+  "segment": { "tabHeight": 28, "padding": 4, "gap": 2, "indicatorRadius": 8 },
+  "segmentTabs": { "tabHeight": 34, "smTabHeight": 30, "inset": 4, "smInset": 2 },
+  "switch": { "width": 36, "height": 20, "thumb": 16, "padding": 2 },
+  "pill": { "height": 24, "paddingX": 8 },
+  "tag": { "paddingY": 1, "paddingX": 8, "lineHeight": 17 },
+  "iconButton": { "size": 28, "icon": 16 },
+  "setRow": { "minHeight": 44 },
+  "toast": { "maxVisible": 3, "holdMs": 2400 }
+}
