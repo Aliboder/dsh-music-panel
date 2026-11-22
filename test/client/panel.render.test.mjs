@@ -216,13 +216,13 @@ internals.onlineStore.set({ providers: { navidrome: { loggedIn: true, capabiliti
 assert.ok(internals.p3Tabs('navidrome').indexOf('albums') >= 0, 'Navidrome exposes its album browse tab')
 assert.ok(internals.p3Tabs('navidrome').indexOf('artists') >= 0, 'Navidrome exposes its artist browse tab')
 
-// 歌词设置：字号是倍率滑杆，翻译缩放是百分比滑杆；拖动必须真的写进偏好。
+// 歌词设置：只有一条文字大小滑杆（翻译行固定为歌词字号的 90%，不再有第二个滑杆）。
 {
   const sheet = internals.SettingsSheet({ open: true, initialTab: 'lyrics' })
   const tree = expand(sheet)
   const text = textOf(tree)
   assert.ok(text.includes('歌词字号'), 'the lyric tab shows the font multiplier row')
-  assert.ok(text.includes('翻译字体缩放'), 'the lyric tab shows the translation scale row')
+  assert.ok(!text.includes('翻译字体缩放'), 'the relative translation size row is gone')
   assert.ok(!text.includes('歌词间距'), 'the dead line-spacing row is gone')
   assert.ok(!text.includes('模糊非当前歌词'), 'the dead blur row is gone')
   assert.ok(!text.includes('歌词对齐方式'), 'the dead alignment row is gone')
@@ -248,15 +248,11 @@ assert.ok(internals.p3Tabs('navidrome').indexOf('artists') >= 0, 'Navidrome expo
   assert.ok(fontRange, 'the font-size row is a 70–150% slider')
   fontRange.props.onChange({ target: { value: '120' } })
   assert.equal(internals.prefsStore.get().lyricsFontScale, 1.2, 'dragging it writes the multiplier')
-  const transRange = ranges.find((node) => node.props.min === 50 && node.props.max === 150)
-  assert.ok(transRange, 'the translation row is a 50–150% slider')
-  transRange.props.onChange({ target: { value: '120' } })
-  assert.equal(internals.prefsStore.get().translationScale, 120, 'dragging it writes the percentage')
   assert.ok(text.includes('不受这个开关影响'), '莫奈 explains why the subtitle background does nothing here')
   internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { lyricStyle: 'tilt' }))
   const tiltText = textOf(expand(internals.SettingsSheet({ open: true, initialTab: 'lyrics' })))
   assert.ok(tiltText.includes('为底部歌词加一层随主题的柔和背景'), 'a subtitle-overlay style keeps the normal description')
-  internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { lyricStyle: 'monet', lyricsFontScale: 1, translationScale: 90 }))
+  internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { lyricStyle: 'monet', lyricsFontScale: 1 }))
 }
 
 // 存储与备份：Folia 的四组 + 危险操作；缓存目录、缓存详情与备份窗口都有入口。

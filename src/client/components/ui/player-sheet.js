@@ -1299,7 +1299,6 @@ function PlayerSheetInner(props) {
   /** 歌词样式 + 歌词显示 — the style picker and the display controls, each named in words. */
   function lyricLookBlock() {
     var intensity = ['calm', 'normal', 'chaotic'].indexOf(prefs.lyricIntensity) >= 0 ? prefs.lyricIntensity : 'normal'
-    var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
     var lyricScale = Math.min(150, Math.max(50, Math.round((Number(prefs.lyricsFontScale) || 1) * 100)))
     return h(
       'div',
@@ -1352,12 +1351,6 @@ function PlayerSheetInner(props) {
               onChange: function (value) {
                 setPrefs({ showTranslation: value })
               },
-            }),
-          ),
-          mpPanelRow(
-            t('page.translationScale'),
-            mpScaleStepper(translationScale, 10, function (next) {
-              setPrefs({ translationScale: Math.min(150, Math.max(50, next)) })
             }),
           ),
           mpPanelRow(

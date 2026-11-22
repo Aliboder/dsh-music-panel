@@ -45,7 +45,7 @@ test('歌词 page: source, timeline, match/file, word split and style', () => {
 
 test('歌词显示 has named controls, not glyph-only buttons', () => {
   const style = paneSource('lyricLookBlock')
-  for (const key of ['settings.lyricIntensity', 'sheet.showTranslation', 'page.translationScale', 'settings.lyricFontScale']) {
+  for (const key of ['settings.lyricIntensity', 'sheet.showTranslation', 'settings.lyricFontScale']) {
     assert.ok(style.includes("t('" + key + "')"), key + ' is labelled in the lyric display group')
   }
   assert.match(style, /mpSegment\(/, '歌词动态 is a segmented choice')

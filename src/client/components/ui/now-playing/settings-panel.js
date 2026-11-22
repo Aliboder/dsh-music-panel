@@ -9,9 +9,8 @@ function NpSettingsPanel(props) {
   var writeLyricsBack = props.writeLyricsBack
   var openOnlineLyric = props.openOnlineLyric
   // Typography that every Folia style reads lives in 设置 · 歌词 and the appearance panel;
-  // this popover keeps the two controls tied to the playing song: the translation row's
-  // size and whether it is shown at all. The removed classic list's px controls are gone.
-  var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
+  // This popover keeps the switch tied to the playing song: whether its translation is
+  // shown at all. Sizes live in 设置 · 歌词 (one text-size control) and the card.
 
   return h(
           'div',
@@ -22,27 +21,6 @@ function NpSettingsPanel(props) {
               ? { left: settingsPos.left + 'px', bottom: settingsPos.bottom + 'px', width: settingsPos.width + 'px', right: 'auto', top: 'auto' }
               : undefined,
           },
-          h(
-            'div',
-            { className: 'mp-np-setting' },
-            h(
-              'div',
-              { className: 'mp-np-setting-head' },
-              h('span', null, t('page.translationScale')),
-              h('span', { className: 'mp-set-val' }, translationScale + '%'),
-            ),
-            h('input', {
-              type: 'range',
-              className: 'mp-range',
-              min: 50,
-              max: 150,
-              step: 5,
-              value: translationScale,
-              onChange: function (event) {
-                setPrefs({ translationScale: Number(event.target.value) })
-              },
-            }),
-          ),
           h(
             SetRow,
             { label: t('page.translation') },

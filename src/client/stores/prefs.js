@@ -42,8 +42,6 @@ var PREF_DEFAULTS = {
   onlineCacheLimitGb: 5,
   waveEnabled: true,
   showTranslation: true,
-  /** Translation row size as a percentage of the lyric size (50–150). */
-  translationScale: 90,
   /** Ready-made line filters (Folia's preset ids) and free words that hide a line. */
   lyricFilterPresets: [],
   lyricFilterWords: '',
@@ -190,9 +188,10 @@ function readPrefs() {
     merged.replayGainMode = merged.normalizeVolume === false ? 'off' : 'auto'
   }
   // The classic lyric list is gone: every style is a Folia renderer whose typography
-  // inputs are multipliers, so the old px-based keys have no reader. Drop them once
-  // instead of leaving stored values that look like they still do something.
-  var deadLyricKeys = ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2', 'lyricAutoWordSegmentation']
+  // inputs are multipliers, so the old px-based keys have no reader. The relative
+  // translation size is gone too — one text-size control, translation at Folia's 90%.
+  // Drop them once instead of leaving stored values that look like they still do something.
+  var deadLyricKeys = ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2', 'lyricAutoWordSegmentation', 'translationScale']
   var dropped = false
   deadLyricKeys.forEach(function (key) {
     if (Object.prototype.hasOwnProperty.call(merged, key)) {
@@ -202,8 +201,6 @@ function readPrefs() {
   })
   var fontScale = Number(merged.lyricsFontScale)
   if (!isFinite(fontScale) || fontScale < 0.5 || fontScale > 2) merged.lyricsFontScale = PREF_DEFAULTS.lyricsFontScale
-  var transScale = Number(merged.translationScale)
-  if (!isFinite(transScale) || transScale < 50 || transScale > 150) merged.translationScale = PREF_DEFAULTS.translationScale
   var globalOffset = Number(merged.lyricGlobalOffsetMs)
   if (!isFinite(globalOffset)) globalOffset = PREF_DEFAULTS.lyricGlobalOffsetMs
   merged.lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Math.round(globalOffset)))

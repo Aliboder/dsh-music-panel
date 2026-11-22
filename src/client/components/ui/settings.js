@@ -572,7 +572,6 @@ function SettingsSheet(props) {
     // overlay, so the subtitle-background switch cannot do anything there.
     var subtitleBackgroundApplies = lyricStyleId !== 'monet' && lyricStyleId !== 'still'
     var fontScale = Math.round((Number(prefs.lyricsFontScale) || 1) * 100)
-    var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
     var localPriority = prefs.lyricLocalPriority === 'online' ? 'online' : 'local'
     var preferredSource = String(prefs.lyricPreferredSource || 'qq')
     var globalOffset = currentLyricGlobalOffset()
@@ -742,22 +741,6 @@ function SettingsSheet(props) {
           },
         }),
         h('span', { className: 'mp-set-val' }, fontScale + '%'),
-      ),
-      h(
-        SetRow,
-        { key: 'scale', label: t('page.translationScale'), desc: t('settings.translationScaleDesc') },
-        h('input', {
-          type: 'range',
-          className: 'mp-range',
-          min: 50,
-          max: 150,
-          step: 5,
-          value: translationScale,
-          onChange: function (event) {
-            patchPrefs({ translationScale: Number(event.target.value) })
-          },
-        }),
-        h('span', { className: 'mp-set-val' }, translationScale + '%'),
       ),
       h(
         SetRow,

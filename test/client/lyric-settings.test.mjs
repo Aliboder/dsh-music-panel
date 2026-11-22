@@ -43,10 +43,11 @@ test('歌词页只保留真实生效的排版设置', () => {
   for (const dead of ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2']) {
     assert.doesNotMatch(tab, new RegExp('\\b' + dead + '\\b'), dead + ' has no consumer any more')
   }
-  // The live typography controls: a multiplier and the translation percentage.
+  // One text-size control: the multiplier every style uses. The translation row keeps
+  // Folia's fixed 90% ratio instead of a second, relative size slider.
   assert.match(tab, /prefs\.lyricsFontScale/, '歌词字号 reads the multiplier every style uses')
   assert.match(tab, /patchPrefs\(\{ lyricsFontScale: Number\(event\.target\.value\) \/ 100 \}\)/, 'the font-size slider writes a multiplier')
-  assert.match(tab, /prefs\.translationScale/, '翻译缩放 is still offered')
+  assert.doesNotMatch(tab, /translationScale/, 'no second translation-size slider')
   assert.match(tab, /prefs\.showTranslation/, '显示 / 隐藏翻译 is still offered')
   assert.match(tab, /prefs\.subtitleOverlayBackground/, '字幕背景 is still offered')
   assert.match(tab, /subtitleBackgroundApplies/, '字幕背景 says when the current style ignores it')
@@ -70,15 +71,15 @@ test('被移除的经典排版键不再有默认值，旧的持久化值会被�
   for (const dead of ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign']) {
     assert.doesNotMatch(prefsSource, new RegExp('^\\s*' + dead + ':', 'm'), dead + ' is not a PREF_DEFAULTS key')
   }
-  assert.match(prefsSource, /deadLyricKeys = \['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2', 'lyricAutoWordSegmentation'\]/, 'stored values are dropped on read')
+  assert.match(prefsSource, /deadLyricKeys = \[[^\]]*'translationScale'\]/, 'stored values are dropped on read, including the retired translation scale')
   assert.match(prefsSource, /lyricsFontScale: 1/, 'the multiplier keeps a default')
-  assert.match(prefsSource, /translationScale: 90/, 'the translation percentage keeps a default')
+  assert.doesNotMatch(prefsSource, /translationScale:/, 'the relative translation size is not a stored preference')
 })
 
 test('时计样式读取真实偏好，而不是写死的 1', () => {
   const pendolo = readFileSync(join(root, 'src/client/render/styles/folia-pendolo.js'), 'utf8')
   assert.match(pendolo, /prefs\.lyricsFontScale/, '字号倍率 reaches 时计')
-  assert.match(pendolo, /prefs\.translationScale/, '翻译缩放 reaches 时计')
+  assert.match(pendolo, /subtitleFontScale: 0\.9/, 'the translation keeps Folia的 90%')
   assert.match(pendolo, /prefs\.showTranslation/, '翻译开关 reaches 时计')
   assert.doesNotMatch(pendolo, /lyricsFontScale: 1,/, 'the hardcoded multiplier is gone')
 })
@@ -116,7 +117,6 @@ test('歌词页按 Folia 分组，插件自有设置落在「插件」组', () =
     'showTranslation',
     'subtitleOverlayBackground',
     'lyricsFontScale',
-    'translationScale',
     'composerLyrics',
     'composerTranslation',
   ]) {

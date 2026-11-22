@@ -33,7 +33,6 @@ function NpEditor(props) {
   function resetDefaults() {
     setPrefs({
       lyricsFontScale: 1,
-      translationScale: 90,
       waveEnabled: true,
       showTranslation: true,
       lyricLocalPriority: 'local',
@@ -99,14 +98,13 @@ function NpEditor(props) {
   }
 
   function previewCard() {
-    // The preview is a schematic of the player page: it shows the two multipliers the
-    // settings actually drive, not the styles' own per-line layout.
+    // The preview is a schematic of the player page: it shows the size multiplier the
+    // settings drive, not the styles' own per-line layout. Translations keep Folia's 90%.
     var fontScale = Math.min(2, Math.max(0.5, Number(prefs.lyricsFontScale) || 1))
-    var scale = Math.min(1.5, Math.max(0.5, (Number(prefs.translationScale) || 90) / 100))
     var size = 16 * fontScale
     var activeSize = Math.max(13, Math.round(size * 1.05))
     var sideSize = Math.max(12, Math.round(size * 0.86))
-    var transSize = Math.max(11, Math.round(size * 0.86 * scale))
+    var transSize = Math.max(11, Math.round(size * 0.86 * 0.9))
     return h(
       'div',
       { className: 'mp-npe-preview' },
@@ -262,17 +260,6 @@ function NpEditor(props) {
           rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 60, 12, 96, 4, ' px', function (value) {
             setPrefs({ npPaneGap: value })
           }, t('editor.paneGapHint')),
-          rangeRow(
-            t('page.translationScale'),
-            Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90))),
-            50,
-            150,
-            5,
-            '%',
-            function (value) {
-              setPrefs({ translationScale: value })
-            },
-          ),
         ),
         h(
           'div',

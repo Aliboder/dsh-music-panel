@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.43.0"
-    var CLIENT_BUILD = "e170af9f4951"
+    var CLIENT_BUILD = "bb255bea1d95"
 
     // ── src/client/app/runtime.js
     /**
@@ -32695,13 +32695,12 @@ window.__ModuleLoader__.load({
         currentLineIndex = lines.length === 0 ? -1 : mapped
       }
       var seed = typeof props.seed === 'string' && props.seed !== '' ? props.seed : 'pendolo'
-      // The style host used to hardcode these three, so 字号 / 翻译缩放 / 翻译开关 did nothing
-      // while 时计 was the style on screen. Read them the same way folia-styles.js does.
+      // The style host used to hardcode these, so 字号 / 翻译开关 did nothing while 时计 was the
+      // style on screen. Read them the same way folia-styles.js does; the translation ratio is
+      // fixed at Folia's 90% (one text-size control).
       var prefs = props.prefs || {}
       var lyricsFontScale = Number(prefs.lyricsFontScale)
       if (!isFinite(lyricsFontScale) || lyricsFontScale <= 0) lyricsFontScale = 1
-      var translationScale = Number(prefs.translationScale)
-      if (!isFinite(translationScale) || translationScale <= 0) translationScale = 90
       var showTranslation = prefs.showTranslation !== false
       var foliaProps = {
         // Folia's entry remounts the renderer per song (`key={props.seed}`); the rail's
@@ -32718,7 +32717,7 @@ window.__ModuleLoader__.load({
         subtitleContentMode: showTranslation ? 'translation' : 'none',
         showSubtitleTranslation: showTranslation,
         lyricsFontScale: lyricsFontScale,
-        subtitleFontScale: translationScale / 100,
+        subtitleFontScale: 0.9,
         subtitleOverlayBackground: prefs.subtitleOverlayBackground !== false,
         hideTranslationSubtitle: !showTranslation,
         isPlayerChromeHidden: false,
@@ -140046,8 +140045,6 @@ window.__ModuleLoader__.load({
       var styledTheme = Object.assign({}, theme, { animationIntensity: intensity })
       var lyricsFontScale = Number(prefs.lyricsFontScale)
       if (!isFinite(lyricsFontScale) || lyricsFontScale <= 0) lyricsFontScale = 1
-      var translationScale = Number(prefs.translationScale)
-      if (!isFinite(translationScale) || translationScale <= 0) translationScale = 90
       var showTranslation = prefs.showTranslation !== false
       // Folia's subtitle overlay draws a soft theme-coloured halo behind the bottom line. It is
       // a setting there too (`subtitleOverlayBackground`), on by default; ours mirrors it.
@@ -140076,7 +140073,8 @@ window.__ModuleLoader__.load({
         subtitleContentMode: showTranslation ? 'translation' : 'none',
         showSubtitleTranslation: showTranslation,
         lyricsFontScale: lyricsFontScale,
-        subtitleFontScale: translationScale / 100,
+        // One text-size control: the translation row keeps Folia's 90% of the lyric size.
+        subtitleFontScale: 0.9,
         subtitleOverlayBackground: subtitleOverlayBackground,
         hideTranslationSubtitle: !showTranslation,
         isPlayerChromeHidden: false,
@@ -150731,8 +150729,6 @@ window.__ModuleLoader__.load({
       onlineCacheLimitGb: 5,
       waveEnabled: true,
       showTranslation: true,
-      /** Translation row size as a percentage of the lyric size (50–150). */
-      translationScale: 90,
       /** Ready-made line filters (Folia's preset ids) and free words that hide a line. */
       lyricFilterPresets: [],
       lyricFilterWords: '',
@@ -150879,9 +150875,10 @@ window.__ModuleLoader__.load({
         merged.replayGainMode = merged.normalizeVolume === false ? 'off' : 'auto'
       }
       // The classic lyric list is gone: every style is a Folia renderer whose typography
-      // inputs are multipliers, so the old px-based keys have no reader. Drop them once
-      // instead of leaving stored values that look like they still do something.
-      var deadLyricKeys = ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2', 'lyricAutoWordSegmentation']
+      // inputs are multipliers, so the old px-based keys have no reader. The relative
+      // translation size is gone too — one text-size control, translation at Folia's 90%.
+      // Drop them once instead of leaving stored values that look like they still do something.
+      var deadLyricKeys = ['lyricSize', 'lyricGap', 'lyricBlur', 'lyricAlign', 'npLayoutV2', 'lyricAutoWordSegmentation', 'translationScale']
       var dropped = false
       deadLyricKeys.forEach(function (key) {
         if (Object.prototype.hasOwnProperty.call(merged, key)) {
@@ -150891,8 +150888,6 @@ window.__ModuleLoader__.load({
       })
       var fontScale = Number(merged.lyricsFontScale)
       if (!isFinite(fontScale) || fontScale < 0.5 || fontScale > 2) merged.lyricsFontScale = PREF_DEFAULTS.lyricsFontScale
-      var transScale = Number(merged.translationScale)
-      if (!isFinite(transScale) || transScale < 50 || transScale > 150) merged.translationScale = PREF_DEFAULTS.translationScale
       var globalOffset = Number(merged.lyricGlobalOffsetMs)
       if (!isFinite(globalOffset)) globalOffset = PREF_DEFAULTS.lyricGlobalOffsetMs
       merged.lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Math.round(globalOffset)))
@@ -166663,9 +166658,8 @@ window.__ModuleLoader__.load({
       var writeLyricsBack = props.writeLyricsBack
       var openOnlineLyric = props.openOnlineLyric
       // Typography that every Folia style reads lives in 设置 · 歌词 and the appearance panel;
-      // this popover keeps the two controls tied to the playing song: the translation row's
-      // size and whether it is shown at all. The removed classic list's px controls are gone.
-      var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
+      // This popover keeps the switch tied to the playing song: whether its translation is
+      // shown at all. Sizes live in 设置 · 歌词 (one text-size control) and the card.
 
       return h(
               'div',
@@ -166676,27 +166670,6 @@ window.__ModuleLoader__.load({
                   ? { left: settingsPos.left + 'px', bottom: settingsPos.bottom + 'px', width: settingsPos.width + 'px', right: 'auto', top: 'auto' }
                   : undefined,
               },
-              h(
-                'div',
-                { className: 'mp-np-setting' },
-                h(
-                  'div',
-                  { className: 'mp-np-setting-head' },
-                  h('span', null, t('page.translationScale')),
-                  h('span', { className: 'mp-set-val' }, translationScale + '%'),
-                ),
-                h('input', {
-                  type: 'range',
-                  className: 'mp-range',
-                  min: 50,
-                  max: 150,
-                  step: 5,
-                  value: translationScale,
-                  onChange: function (event) {
-                    setPrefs({ translationScale: Number(event.target.value) })
-                  },
-                }),
-              ),
               h(
                 SetRow,
                 { label: t('page.translation') },
@@ -167113,7 +167086,6 @@ window.__ModuleLoader__.load({
       function resetDefaults() {
         setPrefs({
           lyricsFontScale: 1,
-          translationScale: 90,
           waveEnabled: true,
           showTranslation: true,
           lyricLocalPriority: 'local',
@@ -167179,14 +167151,13 @@ window.__ModuleLoader__.load({
       }
 
       function previewCard() {
-        // The preview is a schematic of the player page: it shows the two multipliers the
-        // settings actually drive, not the styles' own per-line layout.
+        // The preview is a schematic of the player page: it shows the size multiplier the
+        // settings drive, not the styles' own per-line layout. Translations keep Folia's 90%.
         var fontScale = Math.min(2, Math.max(0.5, Number(prefs.lyricsFontScale) || 1))
-        var scale = Math.min(1.5, Math.max(0.5, (Number(prefs.translationScale) || 90) / 100))
         var size = 16 * fontScale
         var activeSize = Math.max(13, Math.round(size * 1.05))
         var sideSize = Math.max(12, Math.round(size * 0.86))
-        var transSize = Math.max(11, Math.round(size * 0.86 * scale))
+        var transSize = Math.max(11, Math.round(size * 0.86 * 0.9))
         return h(
           'div',
           { className: 'mp-npe-preview' },
@@ -167342,17 +167313,6 @@ window.__ModuleLoader__.load({
               rangeRow(t('editor.paneGap'), Number(prefs.npPaneGap) || 60, 12, 96, 4, ' px', function (value) {
                 setPrefs({ npPaneGap: value })
               }, t('editor.paneGapHint')),
-              rangeRow(
-                t('page.translationScale'),
-                Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90))),
-                50,
-                150,
-                5,
-                '%',
-                function (value) {
-                  setPrefs({ translationScale: value })
-                },
-              ),
             ),
             h(
               'div',
@@ -169303,7 +169263,6 @@ window.__ModuleLoader__.load({
         // overlay, so the subtitle-background switch cannot do anything there.
         var subtitleBackgroundApplies = lyricStyleId !== 'monet' && lyricStyleId !== 'still'
         var fontScale = Math.round((Number(prefs.lyricsFontScale) || 1) * 100)
-        var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
         var localPriority = prefs.lyricLocalPriority === 'online' ? 'online' : 'local'
         var preferredSource = String(prefs.lyricPreferredSource || 'qq')
         var globalOffset = currentLyricGlobalOffset()
@@ -169473,22 +169432,6 @@ window.__ModuleLoader__.load({
               },
             }),
             h('span', { className: 'mp-set-val' }, fontScale + '%'),
-          ),
-          h(
-            SetRow,
-            { key: 'scale', label: t('page.translationScale'), desc: t('settings.translationScaleDesc') },
-            h('input', {
-              type: 'range',
-              className: 'mp-range',
-              min: 50,
-              max: 150,
-              step: 5,
-              value: translationScale,
-              onChange: function (event) {
-                patchPrefs({ translationScale: Number(event.target.value) })
-              },
-            }),
-            h('span', { className: 'mp-set-val' }, translationScale + '%'),
           ),
           h(
             SetRow,
@@ -178174,7 +178117,6 @@ window.__ModuleLoader__.load({
       /** 歌词样式 + 歌词显示 — the style picker and the display controls, each named in words. */
       function lyricLookBlock() {
         var intensity = ['calm', 'normal', 'chaotic'].indexOf(prefs.lyricIntensity) >= 0 ? prefs.lyricIntensity : 'normal'
-        var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
         var lyricScale = Math.min(150, Math.max(50, Math.round((Number(prefs.lyricsFontScale) || 1) * 100)))
         return h(
           'div',
@@ -178227,12 +178169,6 @@ window.__ModuleLoader__.load({
                   onChange: function (value) {
                     setPrefs({ showTranslation: value })
                   },
-                }),
-              ),
-              mpPanelRow(
-                t('page.translationScale'),
-                mpScaleStepper(translationScale, 10, function (next) {
-                  setPrefs({ translationScale: Math.min(150, Math.max(50, next)) })
                 }),
               ),
               mpPanelRow(

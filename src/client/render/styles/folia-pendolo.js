@@ -285,13 +285,12 @@ function FoliaPendoloStage(props) {
     currentLineIndex = lines.length === 0 ? -1 : mapped
   }
   var seed = typeof props.seed === 'string' && props.seed !== '' ? props.seed : 'pendolo'
-  // The style host used to hardcode these three, so 字号 / 翻译缩放 / 翻译开关 did nothing
-  // while 时计 was the style on screen. Read them the same way folia-styles.js does.
+  // The style host used to hardcode these, so 字号 / 翻译开关 did nothing while 时计 was the
+  // style on screen. Read them the same way folia-styles.js does; the translation ratio is
+  // fixed at Folia's 90% (one text-size control).
   var prefs = props.prefs || {}
   var lyricsFontScale = Number(prefs.lyricsFontScale)
   if (!isFinite(lyricsFontScale) || lyricsFontScale <= 0) lyricsFontScale = 1
-  var translationScale = Number(prefs.translationScale)
-  if (!isFinite(translationScale) || translationScale <= 0) translationScale = 90
   var showTranslation = prefs.showTranslation !== false
   var foliaProps = {
     // Folia's entry remounts the renderer per song (`key={props.seed}`); the rail's
@@ -308,7 +307,7 @@ function FoliaPendoloStage(props) {
     subtitleContentMode: showTranslation ? 'translation' : 'none',
     showSubtitleTranslation: showTranslation,
     lyricsFontScale: lyricsFontScale,
-    subtitleFontScale: translationScale / 100,
+    subtitleFontScale: 0.9,
     subtitleOverlayBackground: prefs.subtitleOverlayBackground !== false,
     hideTranslationSubtitle: !showTranslation,
     isPlayerChromeHidden: false,
