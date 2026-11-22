@@ -48,7 +48,7 @@ test('歌词显示 has named controls, not glyph-only buttons', () => {
   for (const key of ['settings.lyricIntensity', 'sheet.showTranslation', 'settings.lyricFontScale']) {
     assert.ok(style.includes("t('" + key + "')"), key + ' is labelled in the lyric display group')
   }
-  assert.match(style, /mpSegment\(/, '歌词动态 is a segmented choice')
+  assert.match(style, /segmented\(/, '歌词动态 is a segmented choice (KitSegmented)')
   assert.match(style, /mpScaleStepper\(/, 'the two size rows are steppers with a percentage')
   assert.doesNotMatch(style, /mpSmallButton\('≡'/, 'the wired ≡ glyph is gone')
   assert.doesNotMatch(style, /mpSmallButton\('≋'/, 'the wired ≋ glyph is gone')

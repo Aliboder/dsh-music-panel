@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.43.0"
-    var CLIENT_BUILD = "a6f0fa668763"
+    var CLIENT_BUILD = "726a4d1095a9"
 
     // ── src/client/app/runtime.js
     /**
@@ -8713,6 +8713,7 @@ window.__ModuleLoader__.load({
         'sheet.addedToPlaylist': '已加入歌单',
         'sheet.loginToLike': '登录后可以喜欢这首歌',
         'sheet.lyricOffset': '时间轴偏移',
+        'sheet.offsetReset': '重置偏移',
         'sheet.lyricImport': '导入歌词',
         'sheet.lyricExport': '导出歌词',
         'sheet.audioGain': '音频增益',
@@ -9508,6 +9509,7 @@ window.__ModuleLoader__.load({
         'sheet.addedToPlaylist': 'Added to playlist',
         'sheet.loginToLike': 'Sign in to like this track',
         'sheet.lyricOffset': 'Timeline offset',
+        'sheet.offsetReset': 'Reset offset',
         'sheet.lyricImport': 'Import lyrics',
         'sheet.lyricExport': 'Export lyrics',
         'sheet.audioGain': 'Audio gain',
@@ -163441,7 +163443,7 @@ window.__ModuleLoader__.load({
       // near-white layers, so the card ended up with white-on-white tiles, pills and inputs.
       // Pin the tokens it sits on to their dark-theme values for everything inside the card;
       // the surface itself stays on the inline dark glass above.
-      '.mp-card{--dsw-alias-label-primary:#f4f4f5;--dsw-alias-label-secondary:#a1a1aa;--dsw-alias-label-tertiary:#8a8a93;--dsw-alias-bg-layer-1:#17171a;--dsw-alias-bg-layer-2:rgba(255,255,255,.06);--dsw-alias-bg-layer-3:rgba(255,255,255,.08);--dsw-alias-border-l1:rgba(255,255,255,.07);--dsw-alias-border-l2:rgba(255,255,255,.14);--dsw-alias-interactive-bg-hover:rgba(255,255,255,.07);--dsw-alias-interactive-bg-active:rgba(255,255,255,.1);color:#f4f4f5}',
+      '.mp-card{--dsw-alias-label-primary:#f4f4f5;--dsw-alias-label-secondary:#a1a1aa;--dsw-alias-label-tertiary:#8a8a93;--dsw-alias-label-primary-foreground:#ffffff;--dsw-alias-bg-base:#141417;--dsw-alias-bg-layer-1:#17171a;--dsw-alias-bg-layer-2:rgba(255,255,255,.06);--dsw-alias-bg-layer-3:rgba(255,255,255,.08);--dsw-alias-border-l1:rgba(255,255,255,.07);--dsw-alias-border-l2:rgba(255,255,255,.14);--dsw-alias-border-l3:rgba(255,255,255,.18);--dsw-alias-interactive-bg-hover:rgba(255,255,255,.07);--dsw-alias-interactive-bg-active:rgba(255,255,255,.1);--dsw-alias-state-business-primary:#4f8cff;--dsw-alias-button-primary-fill:#4f8cff;color:#f4f4f5}',
       // The card's panes scroll, but a scrollbar appearing for one frame during the tab
       // animation takes width from the content and the layout jumps when it leaves again.
       // Hide it on every scroll container inside the card instead of reserving a gutter.
@@ -177033,41 +177035,19 @@ window.__ModuleLoader__.load({
       var artist = track ? track.artist || '' : ''
       var album = track && track.album ? track.album : ''
 
+      /** DSH icon button: host Tooltip + `.mp-iconbtn` fallback (主题规范 §3.1). */
       function iconButton(key, label, glyph, active) {
-        return h(
-          'button',
-          {
-            key: key,
-            type: 'button',
-            className: cx('mp-card-icon-btn', active === true && 'is-on'),
-            title: label,
-            'aria-label': label,
-            onClick: function (event) {
-              event.stopPropagation()
-              if (typeof props.onAction === 'function') props.onAction(key)
-            },
-            style: {
-              width: '32px',
-              height: '32px',
-              flex: '0 0 auto',
-              display: 'grid',
-              placeItems: 'center',
-              borderRadius: '8px',
-              border: '0',
-              // PanelIconButton: `filled` draws the square; home/settings stay bare.
-              background:
-                key === 'favorite' || key === 'addToPlaylist'
-                  ? 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.07))'
-                  : 'transparent',
-              color: 'var(--dsw-alias-label-secondary,rgba(255,255,255,.72))',
-              cursor: 'pointer',
-              transition:
-                'background-color ' + MP_DUR_FAST + 's cubic-bezier(.4,0,.2,1), color ' +
-                MP_DUR_FAST + 's cubic-bezier(.4,0,.2,1)',
-            },
+        return h(IconButton, {
+          key: key,
+          icon: glyph,
+          size: 17,
+          title: label,
+          active: active === true,
+          onClick: function (event) {
+            event.stopPropagation()
+            if (typeof props.onAction === 'function') props.onAction(key)
           },
-          glyph,
-        )
+        })
       }
 
       function coverArt(size, radius) {
@@ -177179,64 +177159,35 @@ window.__ModuleLoader__.load({
             className: 'mp-card-actions',
             style: { display: 'flex', alignItems: 'center', gap: '6px', marginTop: '14px', flex: '0 0 auto' },
           },
-          // LikeButton: pressed state paints the heart in the player's like colour.
+          // DSH IconButton for the like state (active is the accent), 收藏 and the device.
           iconButton(
             'favorite',
             likeInfo !== null && likeInfo.disabled === true ? String(likeInfo.reason || '') || t('page.favorite') : t('page.favorite'),
-            h(
-              'span',
-              {
-                style: {
-                  display: 'flex',
-                  color: favorite ? '#f2607a' : 'inherit',
-                  opacity: likeInfo !== null && likeInfo.disabled === true ? '.4' : '1',
-                },
-              },
-              icon(favorite ? 'heartFill' : 'heart', 17),
-            ),
+            favorite ? 'heartFill' : 'heart',
             favorite,
           ),
-          iconButton('addToPlaylist', t('page.addToPlaylist'), icon('star', 17), false),
+          iconButton('addToPlaylist', t('page.addToPlaylist'), 'star', false),
           // The collection the queue came from, like Folia's "playing from" pill.
           props.canLocate === false
             ? null
             : h(
-                'button',
+                Button,
                 {
                   key: 'locate',
-                  type: 'button',
-                  className: 'mp-card-actions-mid',
+                  variant: 'ghost',
+                  icon: 'target',
                   title: t('page.locateCurrent'),
                   onClick: function (event) {
                     event.stopPropagation()
                     if (typeof props.onAction === 'function') props.onAction('locate')
                   },
-                  style: {
-                    height: '32px',
-                    minWidth: '0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '0 12px 0 10px',
-                    borderRadius: '8px',
-                    border: '0',
-                    background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.07))',
-                    color: 'inherit',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                  },
                 },
-                icon('target', 15),
-                h(
-                  'span',
-                  { style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
-                  t('page.locateCurrent'),
-                ),
+                t('page.locateCurrent'),
               ),
           h('div', { style: { flex: '1 1 auto' } }),
           // The output device, not another play control: it opens 设置 · 播放控制, where the
           // sound card row lives (the Folia device list is the same list).
-          iconButton('outputDevice', t('sheet.outputDevice'), icon('speaker', 17), false),
+          iconButton('outputDevice', t('sheet.outputDevice'), 'speaker', false),
         )
       }
 
@@ -177441,129 +177392,44 @@ window.__ModuleLoader__.load({
           {
             key: 'nav-' + String(label),
             type: 'button',
+            className: 'mp-set-row',
             onClick: onOpen,
             style: {
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
               width: '100%',
-              minHeight: '44px',
-              padding: '6px 4px',
-              border: '0',
+              textAlign: 'left',
               background: 'transparent',
+              border: 0,
+              borderBottom: '.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))',
               color: 'inherit',
               font: 'inherit',
-              textAlign: 'left',
               cursor: 'pointer',
             },
           },
-          h('span', { style: { display: 'flex', opacity: '.55', flex: '0 0 auto' } }, '\u2039'),
-          h(
-            'span',
-            {
-              style: {
-                width: '30px',
-                height: '30px',
-                flex: '0 0 auto',
-                display: 'grid',
-                placeItems: 'center',
-                borderRadius: '8px',
-                background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.08))',
-                opacity: '.85',
-              },
-            },
-            icon(glyph, 16),
-          ),
-          h(
-            'span',
-            { style: { flex: '1 1 auto', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '1px' } },
-            h('span', { style: { fontSize: '11px', opacity: '.55' } }, label),
-            h('span', { style: { fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, value),
-          ),
-          h('span', { style: { display: 'flex', opacity: '.45', flex: '0 0 auto' } }, '\u203a'),
-        )
-      }
-
-      function mpPanelRow(label, control, hint) {
-        return h(
-          'div',
-          {
-            key: 'prow-' + String(label),
-            style: {
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              columnGap: '12px',
-              rowGap: '4px',
-              minHeight: '44px',
-              padding: '6px 4px',
-            },
-          },
+          h('div', { className: 'mp-set-text' }, h('div', { className: 'mp-set-label' }, label)),
           h(
             'div',
-            { style: { minWidth: '0', flex: '1 1 72px' } },
-            h('div', { style: { fontSize: '14px', lineHeight: '20px' } }, label),
-            hint ? h('div', { style: { fontSize: '12px', lineHeight: '16px', opacity: '.45' } }, hint) : null,
+            { className: 'mp-set-control' },
+            icon(glyph, 16),
+            h('span', { className: 'mp-set-val' }, value),
+            h('span', { style: { display: 'flex', opacity: '.45' } }, '\u203a'),
           ),
-          control
-            ? h(
-                'div',
-                {
-                  style: {
-                    marginLeft: 'auto',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    minWidth: '0',
-                    maxWidth: '100%',
-                  },
-                },
-                control,
-              )
-            : null,
         )
       }
 
-      function mpSmallButton(label, onClick) {
-        return h(
-          'button',
-          {
-            key: 'btn-' + String(label),
-            type: 'button',
-            onClick: onClick,
-            style: {
-              height: '28px',
-              padding: '0 10px',
-              borderRadius: '8px',
-              border: '0',
-              background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.07))',
-              color: 'inherit',
-              fontSize: '12px',
-              font: 'inherit',
-              cursor: 'pointer',
-            },
-          },
-          label,
-        )
+      /** One DSH settings row: .mp-set-row label/desc on the left, the control on the right. */
+      function mpPanelRow(label, control, hint) {
+        return h(SetRow, { label: label, desc: hint }, control)
+      }
+
+      function cardButton(label, onClick, title) {
+        return h(Button, { variant: 'ghost', size: 'sm', onClick: onClick, title: title }, label)
       }
 
       function mpSection(title, children) {
         return h(
           'div',
           { key: 'section-' + String(title), style: { marginBottom: '2px' } },
-          h(
-            'div',
-            {
-              style: {
-                fontSize: '11px',
-                letterSpacing: '.04em',
-                textTransform: 'uppercase',
-                opacity: '.45',
-                padding: '10px 4px 4px',
-              },
-            },
-            title,
-          ),
+          h('div', { className: 'mp-set-label', style: { padding: '12px 0 2px', opacity: '.9' } }, title),
           children,
         )
       }
@@ -177602,25 +177468,13 @@ window.__ModuleLoader__.load({
                       },
                     }),
                     mpLookId(MP_BG_MODES, prefs.bgMode) === 'url'
-                      ? h('input', {
+                      ? h(KitInput, {
                           type: 'url',
                           value: typeof prefs.bgUrl === 'string' ? prefs.bgUrl : '',
                           placeholder: 'https://…',
-                          'aria-label': t('sheet.foliaBgUrl'),
-                          style: {
-                            width: '100%',
-                            marginTop: '8px',
-                            height: '30px',
-                            padding: '0 10px',
-                            borderRadius: '8px',
-                            border: '1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.1))',
-                            background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04))',
-                            color: 'inherit',
-                            font: 'inherit',
-                            outline: 'none',
-                          },
-                          onChange: function (event) {
-                            setPrefs({ bgUrl: event.target.value })
+                          label: t('sheet.foliaBgUrl'),
+                          onChange: function (value) {
+                            setPrefs({ bgUrl: value })
                           },
                         })
                       : null,
@@ -177632,7 +177486,7 @@ window.__ModuleLoader__.load({
                   key: 'bg-quick',
                   style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', padding: '2px 4px' },
                 },
-                mpSegment(
+                segmented(
                   [
                     { value: 'dithering', label: t('sheet.latentDithering') },
                     { value: 'mesh', label: t('sheet.latentMesh') },
@@ -177643,7 +177497,7 @@ window.__ModuleLoader__.load({
                     setPrefs({ latentDisplayMode: next, bgMode: 'latent' })
                   },
                 ),
-                mpSmallButton(t('sheet.bgCoverOnly'), function () {
+                cardButton(t('sheet.bgCoverOnly'), function () {
                   setPrefs({ bgCoverOnly: prefs.bgCoverOnly !== true, latentColorSource: prefs.bgCoverOnly === true ? 'cover-theme' : 'cover-only' })
                 }),
               ),
@@ -177659,7 +177513,7 @@ window.__ModuleLoader__.load({
                 h(
                   'div',
                   { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
-                  mpSegment(
+                  segmented(
                     [
                       { value: 'default', label: t('sheet.sourceDefault') },
                       { value: 'cover', label: t('sheet.sourceAI') },
@@ -177670,7 +177524,7 @@ window.__ModuleLoader__.load({
                       setPrefs({ themeSource: next })
                     },
                   ),
-                  mpSmallButton('\u25a4', function () {
+                  cardButton('\u25a4', function () {
                     if (typeof props.onAction === 'function') props.onAction('settings')
                   }),
                 ),
@@ -177693,7 +177547,7 @@ window.__ModuleLoader__.load({
                         ? localThemeState.theme.name
                         : t('sheet.themeBuiltin')),
                   ),
-                  mpSegment(
+                  segmented(
                     [
                       { value: 'light', label: t('sheet.light') },
                       { value: 'dark', label: t('sheet.dark') },
@@ -177701,7 +177555,7 @@ window.__ModuleLoader__.load({
                     colorMode,
                     setColorMode,
                   ),
-                  mpSmallButton('\u21c4', function () {
+                  cardButton('\u21c4', function () {
                     setColorMode(colorMode === 'dark' ? 'light' : 'dark')
                   }),
                 ),
@@ -177710,7 +177564,7 @@ window.__ModuleLoader__.load({
               // no network; the button is a fresh variation, the page auto-fills on song change.
               mpPanelRow(
                 t('sheet.genAI'),
-                mpSmallButton(t('sheet.genFromCover'), function () {
+                cardButton(t('sheet.genFromCover'), function () {
                   setPrefs({ themeSource: 'cover' })
                   if (typeof mpGenerateLocalThemeForSong !== 'function') return
                   mpGenerateLocalThemeForSong({
@@ -177798,7 +177652,7 @@ window.__ModuleLoader__.load({
         }
 
         var choice = options.length > 1
-          ? mpSegment(options, active, function (next) {
+          ? segmented(options, active, function (next) {
               if (typeof props.onSwitchLyricSource === 'function') props.onSwitchLyricSource(next)
             })
           : h(
@@ -177811,7 +177665,7 @@ window.__ModuleLoader__.load({
           'div',
           { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
           resetVisible
-            ? mpSmallButton('\u21ba', function () {
+            ? cardButton('\u21ba', function () {
                 if (typeof props.onResetLyricSource === 'function') props.onResetLyricSource()
               })
             : null,
@@ -177868,22 +177722,21 @@ window.__ModuleLoader__.load({
             style: {
               display: 'flex',
               alignItems: 'center',
-              gap: '2px',
-              padding: '2px',
-              borderRadius: '10px',
-              background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))',
+              gap: '4px',
+              padding: '4px',
+              borderRadius: 'var(--dsw-radius-md,12px)',
+              background: 'var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))',
             },
           },
           h(
-            'button',
+            Button,
             {
-              type: 'button',
-              className: 'mp-card-step',
+              variant: 'ghost',
+              size: 'sm',
               title: '-',
               onClick: function () {
                 step(-250)
               },
-              style: mpStepperStyle(),
             },
             '-',
           ),
@@ -177909,17 +177762,16 @@ window.__ModuleLoader__.load({
               fontVariantNumeric: 'tabular-nums',
             },
           }),
-          h('span', { style: { fontSize: '10px', opacity: '.55', marginLeft: '-2px' } }, 'ms'),
+          h('span', { className: 'mp-set-desc', style: { marginTop: 0 } }, 'ms'),
           h(
-            'button',
+            Button,
             {
-              type: 'button',
-              className: 'mp-card-step',
+              variant: 'ghost',
+              size: 'sm',
               title: '+',
               onClick: function () {
                 step(250)
               },
-              style: mpStepperStyle(),
             },
             '+',
           ),
@@ -177940,127 +177792,48 @@ window.__ModuleLoader__.load({
               'div',
               { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
               offset !== 0
-                ? mpSmallButton('\u21ba', reset)
+                ? h(IconButton, { icon: 'refresh', size: 16, title: t('sheet.offsetReset'), onClick: reset })
                 : null,
               offsetStepper,
             ),
           ),
           h(
             'div',
-            { style: { display: 'flex', gap: '8px', padding: '8px 2px 4px' } },
+            { style: { display: 'flex', gap: '8px', padding: '8px 0 4px' } },
             h(
-              'button',
+              Button,
               {
-                type: 'button',
+                variant: 'ghost',
+                size: 'md',
+                icon: 'search',
                 onClick: function () {
                   if (typeof props.onAction === 'function') props.onAction('matchOnline')
                 },
-                style: mpWideButtonStyle(),
               },
-              icon('search', 15),
               t('sheet.matchOnline'),
             ),
             h(
-              'button',
+              Button,
               {
-                type: 'button',
+                variant: 'ghost',
+                size: 'md',
+                icon: 'note',
                 onClick: function () {
                   if (typeof props.onOpenLyricFile === 'function') props.onOpenLyricFile()
                 },
-                style: mpWideButtonStyle(),
               },
-              icon('note', 15),
               t('sheet.lyricFile'),
             ),
           ),
 
-          h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
           lyricSegRow(),
-          h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
           lyricLookBlock(),
         )
       }
 
-      function mpStepperStyle() {
-        return {
-          width: '26px',
-          height: '24px',
-          display: 'grid',
-          placeItems: 'center',
-          borderRadius: '8px',
-          border: '0',
-          background: 'transparent',
-          color: 'inherit',
-          fontSize: '14px',
-          lineHeight: '1',
-          cursor: 'pointer',
-        }
-      }
 
-      function mpWideButtonStyle() {
-        return {
-          flex: '1 1 0',
-          minWidth: '0',
-          height: '34px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          padding: '0 8px',
-          borderRadius: '10px',
-          border: '0',
-          background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.07))',
-          color: 'inherit',
-          font: 'inherit',
-          fontSize: '12px',
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
-        }
-      }
-
-      function mpSegment(options, value, onChange) {
-        return h(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              gap: '2px',
-              padding: '2px',
-              borderRadius: '10px',
-              background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))',
-            },
-          },
-          options.map(function (option) {
-            var selected = option.value === value
-            return h(
-              'button',
-              {
-                key: option.value,
-                type: 'button',
-                'aria-pressed': selected ? 'true' : 'false',
-                onClick: function () {
-                  onChange(option.value)
-                },
-                style: {
-                  height: '28px',
-                  padding: '0 10px',
-                  borderRadius: '8px',
-                  border: '0',
-                  background: selected ? 'var(--st-raise,rgba(255,255,255,.18))' : 'transparent',
-                  boxShadow: selected ? '0 1px 2px rgba(0,0,0,.2)' : 'none',
-                  color: 'inherit',
-                  font: 'inherit',
-                  fontSize: '12px',
-                  opacity: selected ? '1' : '.65',
-                  cursor: 'pointer',
-                  transition:
-                    'background-color ' + MP_DUR_MOVE + 's cubic-bezier(.22,1,.36,1), opacity ' + MP_DUR_MOVE + 's',
-                },
-              },
-              option.label,
-            )
-          }),
-        )
+      function segmented(options, value, onChange) {
+        return h(KitSegmented, { options: options, value: String(value), onChange: onChange })
       }
 
       /**
@@ -178073,7 +177846,7 @@ window.__ModuleLoader__.load({
           { key: 'gain-block' },
           mpPanelRow(
             t('sheet.audioGain'),
-            mpSegment(
+            segmented(
               [
                 { value: 'off', label: t('sheet.gainOff') },
                 { value: 'auto', label: t('sheet.gainAuto') },
@@ -178107,7 +177880,7 @@ window.__ModuleLoader__.load({
                 ? t('sheet.lyricSegCount', { count: String(props.lyricSegCount) })
                 : t('sheet.lyricSegDefault'),
             ),
-            mpSmallButton(t('sheet.lyricSegOpen'), function () {
+            cardButton(t('sheet.lyricSegOpen'), function () {
               if (typeof props.onOpenLyricSegmentation === 'function') props.onOpenLyricSegmentation()
             }),
           ),
@@ -178118,31 +177891,10 @@ window.__ModuleLoader__.load({
       function mpScaleStepper(value, step, onChange) {
         return h(
           'div',
-          {
-            style: {
-              display: 'flex',
-              alignItems: 'center',
-              gap: '2px',
-              padding: '2px',
-              borderRadius: '10px',
-              background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))',
-            },
-          },
-          h(
-            'button',
-            { type: 'button', className: 'mp-card-step', title: '-', onClick: function () { onChange(value - step) }, style: mpStepperStyle() },
-            '-',
-          ),
-          h(
-            'span',
-            { style: { minWidth: '42px', textAlign: 'center', fontSize: '12px', fontVariantNumeric: 'tabular-nums' } },
-            value + '%',
-          ),
-          h(
-            'button',
-            { type: 'button', className: 'mp-card-step', title: '+', onClick: function () { onChange(value + step) }, style: mpStepperStyle() },
-            '+',
-          ),
+          { style: { display: 'flex', alignItems: 'center', gap: '4px' } },
+          h(Button, { variant: 'ghost', size: 'sm', title: '-', onClick: function () { onChange(value - step) } }, '\u2212'),
+          h('span', { className: 'mp-set-val', style: { minWidth: '42px', textAlign: 'center' } }, value + '%'),
+          h(Button, { variant: 'ghost', size: 'sm', title: '+', onClick: function () { onChange(value + step) } }, '+'),
         )
       }
 
@@ -178181,7 +177933,7 @@ window.__ModuleLoader__.load({
               null,
               mpPanelRow(
                 t('settings.lyricIntensity'),
-                mpSegment(
+                segmented(
                   [
                     { value: 'calm', label: t('settings.lyricIntensityCalm') },
                     { value: 'normal', label: t('settings.lyricIntensityNormal') },
@@ -178223,55 +177975,31 @@ window.__ModuleLoader__.load({
         if (!isFinite(volume)) volume = 1
         var muted = snap.muted === true
         var heard = muted ? 0 : volume
-        return mpSection(
-          t('sheet.volume'),
-          h(
-            'div',
-            { style: { padding: '0 4px' } },
-            h(
-              'div',
-              { style: { display: 'flex', alignItems: 'center', gap: '10px', height: '32px' } },
-              h(
-                'button',
-                {
-                  type: 'button',
-                  title: muted ? t('sheet.unmute') : t('sheet.mute'),
-                  onClick: function () {
-                    player.setMuted(!muted)
-                  },
-                  style: {
-                    width: '28px',
-                    height: '28px',
-                    display: 'grid',
-                    placeItems: 'center',
-                    border: '0',
-                    borderRadius: '8px',
-                    background: 'transparent',
-                    color: 'inherit',
-                    cursor: 'pointer',
-                  },
-                },
-                icon(muted || heard === 0 ? 'mute' : heard < 0.5 ? 'volumeLow' : 'volume', 17),
-              ),
-              h('input', {
-                type: 'range',
-                min: '0',
-                max: '1',
-                step: '0.01',
-                value: String(heard),
-                'aria-label': t('sheet.volume'),
-                onChange: function (event) {
-                  player.setVolume(Number(event.target.value))
-                },
-                style: { flex: '1 1 auto', minWidth: '0', accentColor: (typeof props.accentCss === 'string' && props.accentCss) || 'var(--dsw-alias-state-business-primary,#4f8cff)' },
-              }),
-              h(
-                'span',
-                { style: { minWidth: '36px', textAlign: 'right', fontSize: '12px', opacity: '.7' } },
-                String(Math.round(heard * 100)) + '%',
-              ),
-            ),
-          ),
+        return h(
+          'div',
+          { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
+          h(IconButton, {
+            icon: muted || heard === 0 ? 'mute' : heard < 0.5 ? 'volumeLow' : 'volume',
+            size: 16,
+            title: muted ? t('sheet.unmute') : t('sheet.mute'),
+            onClick: function () {
+              player.setMuted(!muted)
+            },
+          }),
+          h('input', {
+            type: 'range',
+            className: 'mp-range',
+            min: '0',
+            max: '1',
+            step: '0.01',
+            value: String(heard),
+            'aria-label': t('sheet.volume'),
+            onChange: function (event) {
+              player.setVolume(Number(event.target.value))
+            },
+            style: { width: '96px', minWidth: '0' },
+          }),
+          h('span', { className: 'mp-set-val', style: { width: '36px' } }, String(Math.round(heard * 100)) + '%'),
         )
       }
 
@@ -178290,16 +178018,14 @@ window.__ModuleLoader__.load({
           // AccountTab puts audio quality on a PanelRow with a Segments control.
           mpPanelRow(
             t('sheet.quality'),
-            mpSegment(options, prefs.onlineQuality || 'high', function (value) {
+            segmented(options, prefs.onlineQuality || 'high', function (value) {
               setPrefs({ onlineQuality: value })
             }),
           ),
-          h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
-          volumeBlock(),
-          h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
+          mpPanelRow(t('sheet.volume'), volumeBlock()),
           mpPanelRow(
             t('sheet.playMode'),
-            mpSegment(
+            segmented(
               [
                 { value: 'none', label: t('sheet.loopOff') },
                 { value: 'all', label: t('sheet.loopAll') },
@@ -178321,12 +178047,10 @@ window.__ModuleLoader__.load({
               },
             }),
           ),
-          h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
           gainBlock(),
-          h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
           mpPanelRow(
             t('sheet.effects'),
-            mpSmallButton(t('sheet.open'), function () {
+            cardButton(t('sheet.open'), function () {
               pushLayer('equalizer', {})
             }),
             t(normalizeEqPrefs(prefs).enabled ? 'eq.procOn' : 'eq.procOff'),
@@ -178353,11 +178077,11 @@ window.__ModuleLoader__.load({
         },
         h('div', {
           style: {
-            height: '1px',
+            height: '.5px',
             flex: '0 0 auto',
             marginTop: String(MP_BODY_GAP) + 'px',
             marginInline: String(MP_PADDING) + 'px',
-            background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))',
+            background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.07))',
           },
         }),
         h(
@@ -178394,13 +178118,13 @@ window.__ModuleLoader__.load({
           'aria-hidden': 'true',
           style: {
             position: 'absolute',
-            top: '2px',
-            bottom: '2px',
+            top: '4px',
+            bottom: '4px',
             left: '0',
             width: String(mark.width) + 'px',
-            borderRadius: '8px',
-            background: 'rgba(255,255,255,.14)',
-            transform: 'translate3d(' + String(mark.left - 2) + 'px,0,0)',
+            borderRadius: 'var(--dsw-radius-sm,8px)',
+            background: 'var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.14))',
+            transform: 'translate3d(' + String(mark.left - 4) + 'px,0,0)',
             transition:
               'transform ' + MP_DUR_MOVE + 's cubic-bezier(.22,1,.36,1), width ' + MP_DUR_MOVE + 's cubic-bezier(.22,1,.36,1)',
             pointerEvents: 'none',
@@ -178420,8 +178144,8 @@ window.__ModuleLoader__.load({
             gap: '2px',
             height: String(MP_DOCK_HEIGHT) + 'px',
             marginTop: String(MP_DOCK_GAP) + 'px',
-            padding: '2px',
-            borderRadius: '10px',
+            padding: '4px',
+            borderRadius: 'var(--dsw-radius-md,12px)',
             background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))',
           },
         },
@@ -178449,7 +178173,7 @@ window.__ModuleLoader__.load({
                 flex: '1 1 0',
                 minWidth: '0',
                 border: '0',
-                borderRadius: '8px',
+                borderRadius: 'var(--dsw-radius-sm,8px)',
                 background: 'transparent',
                 color: 'inherit',
                 font: 'inherit',
@@ -178474,9 +178198,9 @@ window.__ModuleLoader__.load({
                   style: {
                     position: 'absolute',
                     inset: '0',
-                    borderRadius: '8px',
-                    background: 'var(--st-raise,rgba(255,255,255,.18))',
-                    boxShadow: '0 1px 2px rgba(0,0,0,.2)',
+                    borderRadius: 'var(--dsw-radius-sm,8px)',
+                    background: 'var(--dsw-alias-bg-layer-3,rgba(255,255,255,.18))',
+                    boxShadow: 'var(--dsw-elevation-soft,0 1px 2px rgba(0,0,0,.2))',
                     zIndex: '0',
                     pointerEvents: 'none',
                   },
@@ -178502,12 +178226,13 @@ window.__ModuleLoader__.load({
         display: 'flex',
         flexDirection: 'column',
         padding: String(MP_PADDING) + 'px',
-        borderRadius: '20px',
+        borderRadius: 'var(--dsw-radius-xl,20px)',
         pointerEvents: 'auto',
         background: 'rgba(23, 23, 26, 0.95)',
         backdropFilter: 'blur(40px) saturate(1.3)',
-        border: '1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.09))',
-        boxShadow: '0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.09)',
+        // §2.4: an elevated surface carries the elevation (its own hairline), never a border too.
+        border: 0,
+        boxShadow: 'var(--dsw-elevation-prominent,0 30px 80px rgba(0,0,0,.55))',
         transformOrigin: 'calc(100% - 24px) calc(100% + 24px)',
         overflow: 'hidden',
       }
