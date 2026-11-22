@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.44.0"
-    var CLIENT_BUILD = "7b99b2de583d"
+    var CLIENT_BUILD = "0f2ba8885112"
 
     // ── src/client/app/runtime.js
     /**
@@ -168210,9 +168210,12 @@ window.__ModuleLoader__.load({
       var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
       var favorite = track !== null && props.favoriteSet[track.path] === true
 
-      function applyOffset(delta) {
+      // Every offset edit goes through here: state + Folia's per-song memory. The card used to
+      // receive the raw setter, so its changes never reached the memory and the next load reset
+      // them to the stored value (usually 0).
+      function setLyricOffset(value) {
         if (!track) return
-        var next = Math.max(-60000, Math.min(60000, offsetMs + delta))
+        var next = Math.max(-60000, Math.min(60000, Number(value) || 0))
         setOffsetMs(next)
         // Remembered per song, exactly as Folia's lyricOffsetMemory does for every track.
         rememberLyricOffset(trackPath, next)
@@ -168221,6 +168224,11 @@ window.__ModuleLoader__.load({
         postJson(API + 'lyrics/calibrate', { path: track.path, offsetMs: next }).catch(function (error) {
           setLyricError(errorText(error))
         })
+      }
+
+      function applyOffset(delta) {
+        if (!track) return
+        setLyricOffset(offsetMs + delta)
       }
 
       function setSleep(minutes) {
@@ -168649,7 +168657,7 @@ window.__ModuleLoader__.load({
                 like: likeStateOf(track, props.favoriteSet),
                 canLocate: track !== null,
                 offsetMs: offsetMs,
-                onOffsetChange: setOffsetMs,
+                onOffsetChange: setLyricOffset,
                 lyricSourceLabel: lyricSourceLabel,
                 lyricsText: lyricsText,
                 lyricsPath: trackPath,
