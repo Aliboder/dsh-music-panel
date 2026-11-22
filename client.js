@@ -8863,15 +8863,15 @@ window.__ModuleLoader__.load({
         'eq.slotHint': '两个自定义槽保存当前 10 段曲线与音效。',
         'eq.saveHere': '保存当前',
         'eq.fxHint': 'Folia 后期音效链；默认值保持透明。',
-        'eq.fxHighpass': '低切',
-        'eq.fxLowpass': '高切',
-        'eq.fxDrive': '饱和',
-        'eq.fxCrush': '位深压缩',
-        'eq.fxWow': '走带抖动',
+        'eq.fxHighpass': '低频截止',
+        'eq.fxLowpass': '高频截止',
+        'eq.fxDrive': '饱和失真',
+        'eq.fxCrush': '比特降质',
+        'eq.fxWow': '抖晃',
         'eq.fxNoise': '黑胶噪声',
         'eq.fxWidth': '立体声宽度',
         'eq.fxSpace': '空间混响',
-        'eq.fxPunch': '冲击感',
+        'eq.fxPunch': '动态压缩',
         'p3.account': '账号',
         'p3.discover': '推荐',
         'p3.cloud': '云盘',
@@ -9609,10 +9609,10 @@ window.__ModuleLoader__.load({
         'eq.procOff': 'Processing off',
         'eq.gainTitle': 'Band gain',
         'eq.chainTitle': 'Effect chain',
-        'eq.chainHint': 'Processed after the bands',
-        'eq.resetSlotChip': 'Clear the chosen custom slot',
-        'eq.noiseTag': 'Noise',
-        'eq.noiseTagHint': 'This slider adds noise of its own; the quieter the music, the more audible',
+        'eq.chainHint': 'Applied after the bands',
+        'eq.resetSlotChip': 'Reset the active custom slot',
+        'eq.noiseTag': 'noise',
+        'eq.noiseTagHint': 'This slider adds a noise floor of its own - most audible where the music is quietest',
         'eq.tabPresets': 'Presets',
         'eq.tabDevices': 'Devices',
         'eq.tabMine': 'Mine',
@@ -9653,10 +9653,10 @@ window.__ModuleLoader__.load({
         'eq.fxLowpass': 'High cut',
         'eq.fxDrive': 'Saturation',
         'eq.fxCrush': 'Bit crush',
-        'eq.fxWow': 'Wow / flutter',
+        'eq.fxWow': 'Wow & flutter',
         'eq.fxNoise': 'Vinyl noise',
         'eq.fxWidth': 'Stereo width',
-        'eq.fxSpace': 'Reverb',
+        'eq.fxSpace': 'Space',
         'eq.fxPunch': 'Punch',
         'p3.account': 'Account',
         'p3.discover': 'Discover',
@@ -165688,7 +165688,14 @@ window.__ModuleLoader__.load({
         var index = EQ_CUSTOM_SLOT_IDS.indexOf(String(eq.preset))
         var next = normalizeEqSlots(eq.slots)
         next[index] = { bands: AUDIO_EQ_FLAT.bands.slice(), effects: normalizeEqEffects(AUDIO_EQ_FLAT.effects) }
-        player.setEq({ bands: next[index].bands, effects: next[index].effects, slots: next })
+        // Still the chosen slot (Folia keeps it); without the preset the flat curve would be read
+        // as the built-in 「flat」 preset and the chip would jump.
+        player.setEq({
+          preset: eq.preset,
+          bands: next[index].bands,
+          effects: next[index].effects,
+          slots: next,
+        })
       }
 
       return h(
@@ -165773,7 +165780,6 @@ window.__ModuleLoader__.load({
               'div',
               { className: 'mp-eqwin-section-head' },
               h('span', { className: 'mp-set-label' }, t('eq.gainTitle')),
-              h('span', { className: 'mp-set-desc' }, t('eq.chainHint')),
             ),
             h(EqCurve, { bands: eq.bands }),
             h(

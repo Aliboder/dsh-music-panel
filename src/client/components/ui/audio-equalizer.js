@@ -172,7 +172,14 @@ function AudioEqualizerWindow(props) {
     var index = EQ_CUSTOM_SLOT_IDS.indexOf(String(eq.preset))
     var next = normalizeEqSlots(eq.slots)
     next[index] = { bands: AUDIO_EQ_FLAT.bands.slice(), effects: normalizeEqEffects(AUDIO_EQ_FLAT.effects) }
-    player.setEq({ bands: next[index].bands, effects: next[index].effects, slots: next })
+    // Still the chosen slot (Folia keeps it); without the preset the flat curve would be read
+    // as the built-in 「flat」 preset and the chip would jump.
+    player.setEq({
+      preset: eq.preset,
+      bands: next[index].bands,
+      effects: next[index].effects,
+      slots: next,
+    })
   }
 
   return h(
@@ -257,7 +264,6 @@ function AudioEqualizerWindow(props) {
           'div',
           { className: 'mp-eqwin-section-head' },
           h('span', { className: 'mp-set-label' }, t('eq.gainTitle')),
-          h('span', { className: 'mp-set-desc' }, t('eq.chainHint')),
         ),
         h(EqCurve, { bands: eq.bands }),
         h(

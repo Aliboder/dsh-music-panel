@@ -455,6 +455,7 @@ assert.equal(afterEdit.bands[0], 6, 'the band takes the new gain')
 const resetButton = nodesWithClass(panel(), 'mp-eqwin-reset')[0]
 resetButton.props.onClick()
 assert.equal(internals.player.getEq().bands[0], 0, 'reset clears the custom slot')
+assert.equal(internals.player.getEq().preset, 'custom1', 'reset keeps the chosen custom slot')
 
 internals.overlayStore.set({ layers: [] })
 
