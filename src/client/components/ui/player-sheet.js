@@ -83,10 +83,7 @@ function PlayerSheetInner(props) {
   var indexPair = useState(0)
   var index = indexPair[0]
   var setIndex = indexPair[1]
-  // Controls tab state: the effects panel's disclosure, the theme source and light/dark.
-  var effectsPair = useState(false)
-  var effectsOpen = effectsPair[0]
-  var setEffectsOpen = effectsPair[1]
+  // Controls tab state: the theme source and light/dark.
   // Which appearance picker is open under its row (Folia opens one at a time).
   var lookPickerPair = useState('')
   var lookPicker = lookPickerPair[0]
@@ -885,13 +882,19 @@ function PlayerSheetInner(props) {
             mpQuickTile(icon('shuffle', 18), t('sheet.smartFade'), crossfadeFadeSeconds(prefs) > 0, function () {
               setPrefs({ crossfadeEnabled: crossfadeFadeSeconds(prefs) <= 0 })
             }),
-            mpQuickTile(icon('equalizer', 18), t('sheet.effects'), effectsOpen, function () {
-              setEffectsOpen(!effectsOpen)
-            }),
+            // Folia's SoundTiles: an opening tile, lit while processing is on. The window it
+            // raises is the audio effect panel (audio-equalizer.js).
+            mpQuickTile(
+              icon('equalizer', 18),
+              t('sheet.effects'),
+              normalizeEqPrefs(prefs).enabled,
+              function () {
+                pushLayer('equalizer', {})
+              },
+            ),
           ),
         ),
       ),
-      effectsOpen ? h(AudioEffectsPanel, { snap: snap, prefs: prefs, track: track, view: 'audio' }) : null,
       mpSection(
         t('sheet.appearance'),
         h(

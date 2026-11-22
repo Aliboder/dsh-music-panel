@@ -14,6 +14,7 @@ const uiFiles = [
   'primitives.js',
   'component-gallery.js',
   'eq-panel.js',
+  'audio-equalizer.js',
   'now-playing/fullscreen.js',
   'now-playing/lyrics-timing.js',
   'now-playing/cover-accent.js',
@@ -73,6 +74,17 @@ assert.match(effectsRule[1], /overflow:hidden/, 'the panel clips; each view scro
 for (const rule of ['\\.mp-fx-body\\{[^}]*overflow-y:auto', '\\.mp-eq-body\\{[^}]*overflow-y:auto']) {
   assert.match(theme, new RegExp(rule), 'view bodies scroll inside the fixed panel')
 }
+
+// The audio effect window is raised from the player card, so it follows the app theme like the
+// lyric-match window: token material, panel radius, elevation (a hairline border on an elevated
+// surface counts as a double edge), pointer-only hovers.
+assert.match(theme, /\.mp-eqwin\{[^']*border-radius:var\(--dsw-radius-panel/, 'the window keeps the panel radius')
+assert.match(theme, /\.mp-eqwin\{[^']*background:var\(--dsw-alias-bg-layer-1/, 'the window surface is a token surface')
+assert.match(theme, /\.mp-eqwin\{[^']*box-shadow:var\(--dsw-elevation-prominent/, 'the window is raised by elevation')
+assert.doesNotMatch(theme, /\.mp-eqwin\{[^']*border:1px/, 'an elevated surface must not add a hairline border')
+assert.match(theme, /\.mp-eqwin-title\{[^']*font-size:16px;line-height:20px/, 'the window title follows the type scale')
+assert.match(theme, /@media \(hover: hover\)\{\.mp-eqwin-chip:hover/, 'window hovers are pointer-only')
+assert.match(theme, /\.mp-eqwin-chip\.is-on\{[^']*background:var\(--dsw-alias-state-business-primary/, 'the chosen chip uses the business token')
 
 // Required tokens/recipes must stay present.
 for (const token of [

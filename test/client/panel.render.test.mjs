@@ -429,6 +429,33 @@ assert.ok(classesOf(panel()).has('mp-ctx'), 'the context menu renders')
 internals.overlayStore.set({ layers: [{ kind: 'settings', props: {} }] })
 assert.ok(classesOf(panel()).has('mp-sheet'), 'the settings sheet renders')
 
+// Folia's audio effect window, opened from the control tab's 「音频效果器」 tile.
+internals.overlayStore.set({ layers: [{ kind: 'equalizer', props: {} }] })
+const eqWindow = panel()
+const eqClasses = classesOf(eqWindow)
+assert.ok(eqClasses.has('mp-eqwin'), 'the audio effect window renders')
+assert.equal(nodesWithClass(eqWindow, 'mp-eqwin-chip').length, 8, 'six built-in presets and two custom slots')
+assert.equal(nodesWithClass(eqWindow, 'mp-eq-fader').length, 10, 'ten band faders')
+assert.ok(textOf(eqWindow).includes('频段增益'), 'the band section is titled')
+assert.ok(textOf(eqWindow).includes('效果链'), 'the effect chain is titled')
+// A chip writes its preset and switches processing on.
+nodesWithClass(eqWindow, 'mp-eqwin-chip')[2].props.onClick()
+assert.equal(internals.player.getEq().preset, 'radio', 'a chip applies its preset')
+assert.equal(internals.player.getEq().enabled, true, 'a chip switches processing on')
+// A band edit lands in the first custom slot (Folia's writeCustomDraft).
+const fader = nodesWithClass(panel(), 'mp-eq-fader')[0]
+const bandInput = (fader.children || []).find((child) => child && child.type === 'input')
+assert.ok(bandInput, 'a band fader has its range input')
+bandInput.props.onChange({ target: { value: '6' } })
+const afterEdit = internals.player.getEq()
+assert.equal(afterEdit.preset, 'custom1', 'an edit goes into the first custom slot')
+assert.equal(afterEdit.enabled, true, 'an edit switches processing on')
+assert.equal(afterEdit.bands[0], 6, 'the band takes the new gain')
+// Reset clears the chosen custom slot only.
+const resetButton = nodesWithClass(panel(), 'mp-eqwin-reset')[0]
+resetButton.props.onClick()
+assert.equal(internals.player.getEq().bands[0], 0, 'reset clears the custom slot')
+
 internals.overlayStore.set({ layers: [] })
 
 internals.p3SelectBrowseTab('songs')

@@ -126,6 +126,14 @@ function OverlayRoot() {
     if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
     if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
     if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
+    if (layer.kind === 'equalizer') {
+      return h(AudioEqualizerDialog, {
+        key: 'equalizer',
+        onClose: function () {
+          removeLayer('equalizer')
+        },
+      })
+    }
     if (layer.kind === 'settings') {
       return h(SettingsSheet, {
         key: 'settings',

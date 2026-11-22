@@ -8817,6 +8817,16 @@ window.__ModuleLoader__.load({
         'page.filterEmptyHint': '换个关键词试试，搜索只作用于当前列表',
         'eq.title': '均衡器',
         'eq.enable': '启用均衡器',
+        // Folia's audio effect window (AudioEqualizerDialog).
+        'eq.winSub': '频段均衡与音频效果',
+        'eq.procOn': '音频处理已开启',
+        'eq.procOff': '音频处理已关闭',
+        'eq.gainTitle': '频段增益',
+        'eq.chainTitle': '效果链',
+        'eq.chainHint': '在频段之后处理',
+        'eq.resetSlotChip': '重置当前自定义栏位',
+        'eq.noiseTag': '噪声',
+        'eq.noiseTagHint': '这个滑块本身会产生噪声，音乐越安静越明显',
         'eq.tabPresets': '预设',
         'eq.tabDevices': '设备',
         'eq.tabMine': '我的',
@@ -9594,6 +9604,15 @@ window.__ModuleLoader__.load({
         'page.filterEmptyHint': 'Try another keyword; search only applies to this list',
         'eq.title': 'Equalizer',
         'eq.enable': 'Enable equalizer',
+        'eq.winSub': 'Band equalization and audio effects',
+        'eq.procOn': 'Processing on',
+        'eq.procOff': 'Processing off',
+        'eq.gainTitle': 'Band gain',
+        'eq.chainTitle': 'Effect chain',
+        'eq.chainHint': 'Processed after the bands',
+        'eq.resetSlotChip': 'Clear the chosen custom slot',
+        'eq.noiseTag': 'Noise',
+        'eq.noiseTagHint': 'This slider adds noise of its own; the quieter the music, the more audible',
         'eq.tabPresets': 'Presets',
         'eq.tabDevices': 'Devices',
         'eq.tabMine': 'Mine',
@@ -162788,6 +162807,53 @@ window.__ModuleLoader__.load({
       '.mp-eq-action:hover{background:rgba(255,255,255,.08);color:#fff}',
       '.mp-eq-warn{font-size:11px;line-height:1.5;color:#e6b061}',
       '.mp-eqp :focus-visible{outline:2px solid var(--dsw-focus-ring-color,#7AAAFF);outline-offset:2px}',
+      // Folia's audio effect window (AudioEqualizerDialog). It is raised from the player card, so it
+      // follows the app theme like the lyric-match window rather than the card's dark island: token
+      // material, 0.5px hairlines, elevation instead of a border.
+      '.mp-kit-modal.mp-kit-modal-headless.mp-eqwin-modal{width:100vw;height:100vh;max-width:100vw;max-height:100vh;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none}',
+      '.mp-kit-modal.mp-kit-modal-headless.mp-eqwin-modal .mp-kit-body{padding:0;gap:0;height:100%}',
+      '.mp-kit-modal.mp-kit-modal-headless.mp-eqwin-modal .mp-kit-content{max-height:100%;height:100%;padding:0;overflow:visible}',
+      '.mp-eqwin-layer{display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:24px;box-sizing:border-box}',
+      '.mp-eqwin{display:flex;flex-direction:column;width:min(720px,100%);height:min(640px,100%);border-radius:var(--dsw-radius-panel,28px);background:var(--dsw-alias-bg-layer-1,#1a1a1e);box-shadow:var(--dsw-elevation-prominent,0 24px 64px rgba(0,0,0,.45));color:var(--dsw-alias-label-primary,#f4f4f5);font-size:13px;line-height:20px;overflow:hidden}',
+      '.mp-eqwin-head{display:flex;align-items:flex-start;gap:12px;padding:16px 24px;border-bottom:.5px solid var(--dsw-alias-border-l3,#ffffff1a);flex:0 0 auto}',
+      '.mp-eqwin-titles{flex:1 1 auto;min-width:0}',
+      '.mp-eqwin-title{font-size:16px;line-height:20px;font-weight:650;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-eqwin-sub{margin-top:4px;font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#b4b4bd)}',
+      '.mp-eqwin-switch{display:flex;align-items:center;gap:8px;flex:0 0 auto;font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#b4b4bd);cursor:pointer;white-space:nowrap}',
+      '.mp-eqwin-close{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer}',
+      '@media (hover: hover){.mp-eqwin-close:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}}',
+      '.mp-eqwin-body{display:flex;flex:1 1 auto;flex-direction:column;gap:16px;min-height:0;padding:16px 24px 24px;overflow-y:auto;overscroll-behavior:contain}',
+      '.mp-eqwin-warn{font-size:12px;line-height:18px;color:var(--dsw-alias-state-warn-primary,#c08a2e)}',
+      '.mp-eqwin-chips{display:flex;align-items:flex-start;gap:8px}',
+      '.mp-eqwin-chip-list{display:flex;flex:1 1 auto;flex-wrap:wrap;gap:6px;min-width:0}',
+      '.mp-eqwin-chip{height:28px;padding:0 12px;border:0;border-radius:var(--dsw-radius-sm,8px);background:color-mix(in srgb,var(--dsw-alias-label-primary,#f4f4f5) 8%,transparent);color:var(--dsw-alias-label-secondary,#b4b4bd);font:inherit;font-size:12px;white-space:nowrap;cursor:pointer;transition:background-color .12s ease,color .12s ease}',
+      '@media (hover: hover){.mp-eqwin-chip:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}}',
+      '.mp-eqwin-chip.is-on{background:var(--dsw-alias-state-business-primary,#4176E6);color:var(--dsw-alias-label-primary-foreground,#fff)}',
+      '.mp-eqwin-reset{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-tertiary,#8a8a93);cursor:pointer}',
+      '@media (hover: hover){.mp-eqwin-reset:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.07));color:var(--dsw-alias-label-primary,#f4f4f5)}}',
+      '.mp-eqwin-reset:disabled{opacity:.4;cursor:default}',
+      '.mp-eqwin-section{display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:.5px solid var(--dsw-alias-border-l1,#ffffff0f);transition:opacity .15s ease}',
+      '.mp-eqwin-section.is-off{opacity:.45}',
+      '.mp-eqwin-section-head{display:flex;align-items:baseline;gap:8px;min-width:0}',
+      '.mp-eqwin-section .mp-set-desc{margin:0}',
+      '.mp-eqwin-bands{display:flex;align-items:flex-end;gap:12px}',
+      '.mp-eqwin-scale{display:flex;flex-direction:column;justify-content:space-between;flex:none;width:52px;height:118px;font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93);text-align:right;font-variant-numeric:tabular-nums}',
+      '.mp-eqwin-faders{display:flex;flex:1 1 auto;justify-content:space-between;gap:2px;min-width:0}',
+      '.mp-eqwin-hz{flex:none;padding-bottom:2px;font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-eqwin .mp-eq-fader-value{color:var(--dsw-alias-label-secondary,#b4b4bd)}',
+      '.mp-eqwin .mp-eq-fader.is-active .mp-eq-fader-value{color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-eqwin .mp-eq-fader-label{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-eqwin .mp-eq-fader input{accent-color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-eqwin-effects{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px 22px}',
+      '.mp-eqwin-effect{display:flex;flex-direction:column;gap:4px;min-width:0}',
+      '.mp-eqwin-effect-head{display:flex;align-items:center;gap:6px;font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-eqwin-effect-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.mp-eqwin-effect-tag{flex:none;padding:0 5px;border-radius:var(--dsw-radius-xs,4px);background:var(--dsw-alias-bg-layer-2,#1e1e22);color:var(--dsw-alias-label-secondary,#b4b4bd);font-size:11px;line-height:16px}',
+      '.mp-eqwin-effect-tag.is-on{background:var(--dsw-alias-state-business-primary,#4176E6);color:var(--dsw-alias-label-primary-foreground,#fff)}',
+      '.mp-eqwin-effect-value{flex:none;font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#b4b4bd);font-variant-numeric:tabular-nums}',
+      '.mp-eqwin-effect input{width:100%;accent-color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-eqwin :focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
+      '@media (max-width:900px){.mp-eqwin-layer{padding:12px}.mp-eqwin{width:100%;height:100%}.mp-eqwin-head{padding:12px 16px}.mp-eqwin-body{padding:12px 16px 16px;gap:12px}}',
       '.mp-np .mp-seek{height:16px}',
       '.mp-np .mp-seek::before{height:2px;background:rgba(255,255,255,.24)}',
       '.mp-np .mp-seek-buffer{height:2px;background:rgba(255,255,255,.34)}',
@@ -165444,6 +165510,337 @@ window.__ModuleLoader__.load({
         ),
         eq.enabled && !available ? h('div', { className: 'mp-eq-warn' }, t('eq.unavailable')) : null,
         h('div', { className: 'mp-eq-body' }, body),
+      )
+    }
+
+    // ── src/client/components/ui/audio-equalizer.js
+    /**
+     * audio-equalizer: Folia's audio effect window (AudioEqualizerDialog), ported.
+     *
+     * Folia's src/components/panelTab/AudioEqualizerDialog.tsx opens this from the control tab's
+     * 「音频效果器」tile: the processing switch in the header, the preset chips (six built-ins plus the
+     * two custom slots, with a reset for the chosen slot), the ten band faders with their scale and
+     * curve, then the post-EQ effect chain. Its decisions are kept word for word below:
+     *
+     *   setEnabled          the switch stops processing and keeps every value
+     *   writeCustomDraft    a band or effect edit goes into the active custom slot, or the first one
+     *                       while a built-in plays, and switches processing on
+     *   applyPreset         a chip writes its gains and effects, and switches processing on
+     *   resetActiveCustomSlot  reset only ever clears a custom slot; built-ins are not editable
+     *
+     * What differs is the plumbing: the plugin has no settings store of its own, so the same decisions
+     * go through player.setEq, which persists to prefs (Folia keeps a draft and writes it on release).
+     */
+
+    /** Folia's effect controls carry Folly's own noise tags; the local mirror is the fallback. */
+    var AUDIO_EQ_EFFECT_CONTROLS =
+      FOLIA_AUDIO_API !== null &&
+      Array.isArray(FOLIA_AUDIO_API.AUDIO_EFFECT_CONTROLS) &&
+      FOLIA_AUDIO_API.AUDIO_EFFECT_CONTROLS.length > 0
+        ? FOLIA_AUDIO_API.AUDIO_EFFECT_CONTROLS
+        : EQ_EFFECT_CONTROLS
+
+    /** Folia's PRESET_IDS: the six built-ins, then the two custom slots. */
+    var AUDIO_EQ_PRESET_IDS =
+      (FOLIA_SOUND_PRESET_IDS.length > 0 ? FOLIA_SOUND_PRESET_IDS : EQ_SOUND_PRESET_IDS)
+        .concat(EQ_CUSTOM_SLOT_IDS)
+
+    function audioEqPresetLabel(id) {
+      if (isEqCustomSlotId(id)) {
+        var index = EQ_CUSTOM_SLOT_IDS.indexOf(String(id))
+        return t('eq.slotN', { n: index + 1 })
+      }
+      var labelKey = FOLIA_SOUND_PRESET_LABELS[String(id)]
+      return labelKey ? t(labelKey) : String(id)
+    }
+
+    /** The gains and effects a chip stands for (Folia's applyPreset source). */
+    function audioEqPresetSource(id, slots) {
+      if (isEqCustomSlotId(id)) {
+        var slot = slots[EQ_CUSTOM_SLOT_IDS.indexOf(String(id))]
+        return {
+          bands: normalizeEqBands(slot ? slot.bands : zeroEqBands()),
+          effects: normalizeEqEffects(slot ? slot.effects : {}),
+        }
+      }
+      var preset = FOLIA_SOUND_PRESETS[String(id)]
+      if (preset) {
+        return { bands: normalizeEqBands(preset.gains), effects: normalizeEqEffects(preset.effects) }
+      }
+      return { bands: eqBandsForPreset(id), effects: normalizeEqEffects({}) }
+    }
+
+    var AUDIO_EQ_FLAT = (function () {
+      var flat = FOLIA_SOUND_PRESETS.flat
+      return {
+        bands: normalizeEqBands(flat ? flat.gains : zeroEqBands()),
+        effects: normalizeEqEffects(flat ? flat.effects : {}),
+      }
+    })()
+
+    /** Folia's writeCustomDraft: the edit lands in a custom slot and switches processing on. */
+    function audioEqWriteCustom(eq, bands, effects) {
+      var slotId = isEqCustomSlotId(eq.preset) ? eq.preset : EQ_CUSTOM_SLOT_IDS[0]
+      var index = EQ_CUSTOM_SLOT_IDS.indexOf(String(slotId))
+      var next = normalizeEqBands(bands)
+      var fx = normalizeEqEffects(effects)
+      var slots = normalizeEqSlots(eq.slots)
+      slots[index] = { bands: next, effects: fx }
+      player.setEq({ enabled: true, preset: slotId, bands: next, effects: fx, slots: slots })
+    }
+
+    /** One band column: Folia's EqualizerBandGrid fader, value above and frequency under it. */
+    function AudioEqualizerBand(props) {
+      return h(
+        'div',
+        { className: cx('mp-eq-fader', (Number(props.value) || 0) !== 0 && 'is-active') },
+        h('span', { className: 'mp-eq-fader-value' }, eqFormatDb(props.value)),
+        h('input', {
+          type: 'range',
+          min: -EQ_MAX_DB,
+          max: EQ_MAX_DB,
+          step: 0.5,
+          value: Number(props.value) || 0,
+          'aria-label': props.label + ' Hz',
+          'aria-valuetext': eqFormatDb(props.value) + ' dB',
+          onChange: function (event) {
+            props.onChange(Number(event.target.value))
+          },
+          onDoubleClick: function () {
+            props.onChange(0)
+          },
+        }),
+        h('span', { className: 'mp-eq-fader-label' }, props.label),
+      )
+    }
+
+    /** One effect row: Folia's AudioEffectGrid entry (name, noise tag, value, slider). */
+    function AudioEqualizerEffect(props) {
+      var control = props.control
+      var value = Number(props.value)
+      if (!isFinite(value)) value = control.neutral
+      var name = t(EQ_EFFECT_LABEL_KEYS[control.id])
+      var valueText = eqEffectReadout(control, value)
+      return h(
+        'div',
+        { className: 'mp-eqwin-effect' },
+        h(
+          'div',
+          { className: 'mp-eqwin-effect-head' },
+          h('span', { className: 'mp-eqwin-effect-name' }, name),
+          control.addsNoise === true
+            ? h(
+                'span',
+                { className: cx('mp-eqwin-effect-tag', value !== control.neutral && 'is-on'), title: t('eq.noiseTagHint') },
+                t('eq.noiseTag'),
+              )
+            : null,
+          h('span', { className: 'mp-eqwin-effect-value' }, valueText),
+        ),
+        h('input', {
+          type: 'range',
+          className: 'mp-range',
+          min: control.min,
+          max: control.max,
+          step: control.step,
+          value: value,
+          'aria-label': name,
+          'aria-valuetext': valueText,
+          onChange: function (event) {
+            props.onChange(Number(event.target.value))
+          },
+        }),
+      )
+    }
+
+    /** The window itself — Folia's AudioEqualizerDialog body, in the plugin's dialog chrome. */
+    function AudioEqualizerWindow(props) {
+      var prefs = usePrefs()
+      var eq = normalizeEqPrefs(prefs)
+      var slots = normalizeEqSlots(eq.slots)
+      var available = player.getEq().available
+      var canReset = isEqCustomSlotId(eq.preset)
+
+      function setEnabled(value) {
+        // The switch stops processing and keeps every value.
+        player.setEq({ enabled: value })
+      }
+
+      function changeBand(index, value) {
+        var bands = eq.bands.slice()
+        bands[index] = clamp(Number(value) || 0, -EQ_MAX_DB, EQ_MAX_DB)
+        audioEqWriteCustom(eq, bands, eq.effects)
+      }
+
+      function changeEffect(id, value) {
+        var effects = normalizeEqEffects(eq.effects)
+        effects[id] = value
+        audioEqWriteCustom(eq, eq.bands, effects)
+      }
+
+      function applyPreset(id) {
+        var source = audioEqPresetSource(id, slots)
+        player.setEq({ enabled: true, preset: id, bands: source.bands, effects: source.effects })
+      }
+
+      function resetActiveCustomSlot() {
+        if (!isEqCustomSlotId(eq.preset)) return
+        var index = EQ_CUSTOM_SLOT_IDS.indexOf(String(eq.preset))
+        var next = normalizeEqSlots(eq.slots)
+        next[index] = { bands: AUDIO_EQ_FLAT.bands.slice(), effects: normalizeEqEffects(AUDIO_EQ_FLAT.effects) }
+        player.setEq({ bands: next[index].bands, effects: next[index].effects, slots: next })
+      }
+
+      return h(
+        'div',
+        { className: 'mp-eqwin', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('sheet.effects') },
+        h(
+          'div',
+          { className: 'mp-eqwin-head' },
+          h(
+            'div',
+            { className: 'mp-eqwin-titles' },
+            h('div', { className: 'mp-eqwin-title' }, t('sheet.effects')),
+            h('div', { className: 'mp-eqwin-sub' }, t('eq.winSub')),
+          ),
+          h(
+            'div',
+            { className: 'mp-eqwin-switch' },
+            h('span', null, t(eq.enabled ? 'eq.procOn' : 'eq.procOff')),
+            h(Switch, {
+              value: eq.enabled,
+              label: t('eq.enable'),
+              onChange: setEnabled,
+            }),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'mp-eqwin-close',
+              title: t('v2.close'),
+              'aria-label': t('v2.close'),
+              onClick: props.onClose,
+            },
+            icon('x', 16),
+          ),
+        ),
+        h(
+          'div',
+          { className: 'mp-eqwin-body' },
+          eq.enabled && !available ? h('div', { className: 'mp-eqwin-warn' }, t('eq.unavailable')) : null,
+          // Presets: six built-ins and the two custom slots, with the reset Folia keeps for a slot.
+          h(
+            'div',
+            { className: 'mp-eqwin-chips' },
+            h(
+              'div',
+              { className: 'mp-eqwin-chip-list' },
+              AUDIO_EQ_PRESET_IDS.map(function (id) {
+                var chosen = eq.enabled && eq.preset === id
+                return h(
+                  'button',
+                  {
+                    key: id,
+                    type: 'button',
+                    className: cx('mp-eqwin-chip', chosen && 'is-on'),
+                    'aria-pressed': chosen ? 'true' : 'false',
+                    onClick: function () {
+                      applyPreset(id)
+                    },
+                  },
+                  audioEqPresetLabel(id),
+                )
+              }),
+            ),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'mp-eqwin-reset',
+                title: t('eq.resetSlotChip'),
+                'aria-label': t('eq.resetSlotChip'),
+                disabled: !canReset,
+                onClick: resetActiveCustomSlot,
+              },
+              icon('refresh', 15),
+            ),
+          ),
+          h(
+            'section',
+            { className: cx('mp-eqwin-section', !eq.enabled && 'is-off') },
+            h(
+              'div',
+              { className: 'mp-eqwin-section-head' },
+              h('span', { className: 'mp-set-label' }, t('eq.gainTitle')),
+              h('span', { className: 'mp-set-desc' }, t('eq.chainHint')),
+            ),
+            h(EqCurve, { bands: eq.bands }),
+            h(
+              'div',
+              { className: 'mp-eqwin-bands' },
+              h(
+                'div',
+                { className: 'mp-eqwin-scale', 'aria-hidden': 'true' },
+                h('span', null, '+' + EQ_MAX_DB + ' dB'),
+                h('span', null, '0'),
+                h('span', null, '−' + EQ_MAX_DB + ' dB'),
+              ),
+              h(
+                'div',
+                { className: 'mp-eqwin-faders' },
+                EQ_FREQS.map(function (freq, index) {
+                  return h(AudioEqualizerBand, {
+                    key: freq,
+                    label: eqFrequencyLabel(freq),
+                    value: eq.bands[index],
+                    onChange: function (value) {
+                      changeBand(index, value)
+                    },
+                  })
+                }),
+              ),
+              h('span', { className: 'mp-eqwin-hz', 'aria-hidden': 'true' }, 'Hz'),
+            ),
+          ),
+          h(
+            'section',
+            { className: cx('mp-eqwin-section', !eq.enabled && 'is-off') },
+            h(
+              'div',
+              { className: 'mp-eqwin-section-head' },
+              h('span', { className: 'mp-set-label' }, t('eq.chainTitle')),
+              h('span', { className: 'mp-set-desc' }, t('eq.chainHint')),
+            ),
+            h(
+              'div',
+              { className: 'mp-eqwin-effects' },
+              AUDIO_EQ_EFFECT_CONTROLS.map(function (control) {
+                return h(AudioEqualizerEffect, {
+                  key: control.id,
+                  control: control,
+                  value: normalizeEqEffects(eq.effects)[control.id],
+                  onChange: function (value) {
+                    changeEffect(control.id, value)
+                  },
+                })
+              }),
+            ),
+          ),
+        ),
+      )
+    }
+
+    /** Opens as a layer: the plugin's modal chrome, Folia's window inside it. */
+    function AudioEqualizerDialog(props) {
+      return h(
+        KitModal,
+        { headless: true, onClose: props.onClose, className: 'mp-eqwin-modal' },
+        h(
+          'div',
+          { className: 'mp-eqwin-layer' },
+          h(AudioEqualizerWindow, { onClose: props.onClose }),
+        ),
       )
     }
 
@@ -172221,6 +172618,14 @@ window.__ModuleLoader__.load({
         if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
         if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
         if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
+        if (layer.kind === 'equalizer') {
+          return h(AudioEqualizerDialog, {
+            key: 'equalizer',
+            onClose: function () {
+              removeLayer('equalizer')
+            },
+          })
+        }
         if (layer.kind === 'settings') {
           return h(SettingsSheet, {
             key: 'settings',
@@ -176432,10 +176837,7 @@ window.__ModuleLoader__.load({
       var indexPair = useState(0)
       var index = indexPair[0]
       var setIndex = indexPair[1]
-      // Controls tab state: the effects panel's disclosure, the theme source and light/dark.
-      var effectsPair = useState(false)
-      var effectsOpen = effectsPair[0]
-      var setEffectsOpen = effectsPair[1]
+      // Controls tab state: the theme source and light/dark.
       // Which appearance picker is open under its row (Folia opens one at a time).
       var lookPickerPair = useState('')
       var lookPicker = lookPickerPair[0]
@@ -177234,13 +177636,19 @@ window.__ModuleLoader__.load({
                 mpQuickTile(icon('shuffle', 18), t('sheet.smartFade'), crossfadeFadeSeconds(prefs) > 0, function () {
                   setPrefs({ crossfadeEnabled: crossfadeFadeSeconds(prefs) <= 0 })
                 }),
-                mpQuickTile(icon('equalizer', 18), t('sheet.effects'), effectsOpen, function () {
-                  setEffectsOpen(!effectsOpen)
-                }),
+                // Folia's SoundTiles: an opening tile, lit while processing is on. The window it
+                // raises is the audio effect panel (audio-equalizer.js).
+                mpQuickTile(
+                  icon('equalizer', 18),
+                  t('sheet.effects'),
+                  normalizeEqPrefs(prefs).enabled,
+                  function () {
+                    pushLayer('equalizer', {})
+                  },
+                ),
               ),
             ),
           ),
-          effectsOpen ? h(AudioEffectsPanel, { snap: snap, prefs: prefs, track: track, view: 'audio' }) : null,
           mpSection(
             t('sheet.appearance'),
             h(

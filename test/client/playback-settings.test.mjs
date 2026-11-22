@@ -59,6 +59,16 @@ test('播放页的「智能过渡」是一枚开关，不是设置入口', () =>
   assert.doesNotMatch(block, /onAction\('settings'\)/, 'the tile no longer opens the settings page')
 })
 
+test('播放页的「音频效果器」打开 Folia 的效果窗口，并按处理开关点亮', () => {
+  // Folia's SoundTiles: <QuickTile kind="open" lit={isEqualizerOn} onClick={openAudioEqualizer} />.
+  const at = sheet.indexOf("t('sheet.effects')")
+  assert.ok(at > 0, 'the sheet still shows the 音频效果器 tile')
+  const block = sheet.slice(at, at + 360)
+  assert.match(block, /pushLayer\('equalizer'/, 'the tile opens the audio effect window')
+  assert.match(block, /normalizeEqPrefs\(prefs\)\.enabled/, 'the tile lights while processing is on')
+  assert.doesNotMatch(block, /setEffectsOpen/, 'the tile no longer unfolds an inline panel')
+})
+
 test('标签改为「播放控制」，中英两份字典都改', () => {
   assert.match(zh, /'settings\.tabPlayback': '播放控制'/, 'the tab label is 播放控制')
   assert.match(zh, /'v2\.playback': '播放控制'/, 'the page title is 播放控制')

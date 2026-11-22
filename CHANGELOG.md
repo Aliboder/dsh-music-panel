@@ -4,6 +4,8 @@
 
 ### 播放控制
 
+- 播放页「控制 → 音频效果器」不再是展开式开关：点击直接打开 Folia 的音频效果窗口（`AudioEqualizerDialog`）。窗口按 Folia 排：标题与副标题、音频处理开关、六个内置预设加两个自定义栏位（选中自定义栏位时可重置）、十段推子（刻度 + 曲线）、效果链九项。数据与取值来自音频 bundle 里 Folia 的源码（`AUDIO_SOUND_PRESETS` / `AUDIO_EFFECT_CONTROLS`，含 `addsNoise` 标记）；决策照搬 `setEnabled` / `writeCustomDraft` / `applyPreset` / `resetActiveCustomSlot`：编辑写进当前自定义栏位（内置预设生效时写 custom1）并打开处理，选预设写入其曲线，重置只清当前自定义栏位。外观按 DSH token（面板圆角、elevation、0.5px 发丝线、字号/间距刻度），不照搬 Folia 配色；播放页均衡器按钮上的旧展开面板保持原样。
+- 与 Folia 的两处适配：插件没有独立设置仓库，所以窗口直接经 `player.setEq` 写 prefs（Folia 用草稿、松手提交）；曲线画在推子上方而非穿过推子滑块。
 - 播放页「控制」里的「智能过渡」改成真正的开关（Folia 的 `QuickTile kind="toggle"`）：它按 `crossfadeEnabled` 亮起，点一下直接开关自动过渡，不再是把人送进设置面板的入口。设置 → 播放控制的过渡上限与细节仍是细则入口，效果器窗口里的同一个开关保持不变。
 
 ### 音频增益
