@@ -17,9 +17,9 @@ var PREF_DEFAULTS = {
    * Folia's `localLyricsPriority`: which lyric a local file shows when it has both
    * its own file lyric and a matched online one. 'local' keeps the file's own.
    */
-  lyricLocalPriority: 'local',
+  lyricLocalPriority: 'online',
   /** Folia's `preferredAlternativeLyricSource`: asked first when another source is searched. */
-  lyricPreferredSource: 'qq',
+  lyricPreferredSource: 'kugouLite',
   /**
    * Folia's `keepProviderWordTiming`: a platform's own word-timed lyric is only replaced by
    * the preferred source, and only by a word-timed lyric; off, every source competes.
@@ -32,12 +32,12 @@ var PREF_DEFAULTS = {
   /** Folia's `localLyricFormatOrder`: which sidecar lyric file wins when several exist. */
   lyricFormatOrder: ['lrc', 'vtt', 'ttml', 'qrc', 'yrc', 'krc'],
   /** Preferred online audio level: standard | high | lossless | hires. */
-  onlineQuality: 'high',
+  onlineQuality: 'standard',
   /**
    * Folia's `enableMediaCache`: cache a song's audio only after it was played through.
    * Off by default, exactly as upstream; reads use the cache either way.
    */
-  onlineCacheEnabled: false,
+  onlineCacheEnabled: true,
   /** Folia's `mediaCacheLimitGb`: 1/2/5/10/20/50, 0 = no ceiling. */
   onlineCacheLimitGb: 5,
   waveEnabled: true,
@@ -77,7 +77,7 @@ var PREF_DEFAULTS = {
   npAmbientSpeed: 400,
   npBeatSensitivity: 200,
   npBeatAmount: 300,
-  composerLyrics: false,
+  composerLyrics: true,
   composerTranslation: true,
   /**
    * The composer seat: one list button beside the chat input that opens the queue.
@@ -86,7 +86,7 @@ var PREF_DEFAULTS = {
   composerListButton: true,
   volume: 1,
   audioOutputDeviceId: '',
-  playbackFade: true,
+  playbackFade: false,
   // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
   playbackReports: false,
   /** Folia's voice-input pause: Windows microphone capture pauses playback. */
@@ -98,7 +98,7 @@ var PREF_DEFAULTS = {
   /** Duck/release ramp in milliseconds. */
   audioFocusFadeMs: 300,
   /** Folia's replay-gain choice; `normalizeVolume` is the legacy on/off form. */
-  replayGainMode: 'auto',
+  replayGainMode: 'off',
   loop: 'none',
   order: 'list',
   resumeOnStart: true,
@@ -106,7 +106,7 @@ var PREF_DEFAULTS = {
   sleepDeadline: 0,
   autoResume: false,
   rememberPerTrack: false,
-  normalizeVolume: true,
+  normalizeVolume: false,
   eqEnabled: false,
   eqPreset: 'flat',
   eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -135,7 +135,7 @@ var PREF_DEFAULTS = {
   /** Folia's `queueAddBehavior`: where 「加入队列」 puts a song, after the current one or at the end. */
   queueAddBehavior: 'append',
   /** Folia's `autoSkipUnplayable`: a track that cannot be played is skipped instead of stopping. */
-  autoSkipUnplayable: false,
+  autoSkipUnplayable: true,
   /** Folia's `shuffleRoundNoRepeat`: a shuffled queue is re-shuffled for every round. */
   shuffleRoundNoRepeat: false,
   /** Keep the screen awake while a song plays (Wake Lock, where the host offers it). */

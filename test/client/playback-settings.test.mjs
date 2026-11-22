@@ -85,7 +85,7 @@ test('加入队列的默认位置两端都实现', () => {
 })
 
 test('无法播放跳过、轮换重洗、播放时阻止休眠接到播放器', () => {
-  assert.match(prefs, /autoSkipUnplayable: false/, 'skip is off by default')
+  assert.match(prefs, /autoSkipUnplayable: true/, 'skip is on by default')
   assert.match(player, /readPrefs\(\)\.autoSkipUnplayable === true/, 'the error path reads the switch')
   // Folia's shuffleRound: a finished round is reshuffled from the tracking pass, not from
   // the advance step, so a crossfade at the boundary cannot bypass it.
