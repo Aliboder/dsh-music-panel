@@ -37,6 +37,8 @@
 ## 配套 DSH skill
 
 本规范已封装为 skill `dsh-component-development`：涉及 DSH 界面开发时，AI 会自动加载它；它给出最小规则、工作流、模板片段与验收清单，完整代码与逐组件说明仍以本文件夹为准。
+
+项目级安装（优先于用户级）：把 `SKILL.md` 放到 `<项目根>/.dsh/skills/dsh-component-development/`，DSH 会在下一次模型步骤自动发现，无需重启。
 公开仓库：https://github.com/Aliboder/dsh-component-development
 
 ## 目录
