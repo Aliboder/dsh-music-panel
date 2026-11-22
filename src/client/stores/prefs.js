@@ -142,6 +142,8 @@ var PREF_DEFAULTS = {
   shuffleRoundNoRepeat: false,
   /** Keep the screen awake while a song plays (Wake Lock, where the host offers it). */
   preventSleepDuringPlayback: false,
+  /** The player page's floating volume rail: on by default, one switch to hide it. */
+  floatingVolume: true,
   onlinePlaylistSort: 'source',
   onboardingDone: true,
 }

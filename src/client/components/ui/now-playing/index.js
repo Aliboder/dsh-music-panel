@@ -1318,6 +1318,9 @@ function NowPlaying(props) {
           },
         })
       : null,
+    // The stage's volume, on the right edge: the card's 外观 · 音量 row stays as the
+    // keyboard path and the discoverable one.
+    h(MpVolumeRail),
     // One queue implementation: the panel queue, popped out beside the control that
     // opened it. Opening it must not leave the player page.
     props.queueOpen === true

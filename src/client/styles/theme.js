@@ -306,6 +306,17 @@ var THEME_CSS = [
   '.mp-np-handle-btn:focus-visible{outline:2px solid var(--dsw-focus-ring-color,#7AAAFF);outline-offset:2px}',
   '.mp-np.is-chrome-hidden .mp-cap{opacity:0;transform:translate(-50%,10px);pointer-events:none}',
   '.mp-np.is-chrome-hidden .mp-np-handle{opacity:0;transform:translateY(10px);pointer-events:none}',
+  // 悬浮音量条: the stage's volume on the right edge. Only the strip takes pointer events, so
+  // lyric dragging and the seek bar are untouched; contrast rises on hover and focus.
+  '.mp-vol-rail{position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 5px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#232324) 74%,transparent);box-shadow:var(--dsw-elevation-soft,0 6px 18px rgba(0,0,0,.28));opacity:.45;transition:opacity .18s ease,background-color .18s ease}',
+  '.mp-vol-rail:hover,.mp-vol-rail:focus-within{opacity:1;background:var(--dsw-alias-bg-layer-1,#232324)}',
+  '.mp-vol-rail-btn{width:24px;height:24px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer}',
+  '.mp-vol-rail-btn:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08))}',
+  '.mp-vol-rail-btn:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,#4f8cff);outline-offset:1px}',
+  '.mp-vol-rail-range{width:20px;height:96px;writing-mode:vertical-lr;direction:rtl;accent-color:var(--dsw-alias-state-business-primary,#4f8cff);cursor:pointer}',
+  '.mp-vol-rail-value{font-size:11px;font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:0;transition:opacity .18s ease}',
+  '.mp-vol-rail:hover .mp-vol-rail-value,.mp-vol-rail:focus-within .mp-vol-rail-value{opacity:1}',
+  '@media (hover:none){.mp-vol-rail{opacity:.75}}',
   // The top chrome (back / fullscreen) rides the same idle timer: it retreats
   // toward its edge and stops taking clicks, so a resting page is just the song.
   '.mp-np.is-chrome-hidden .mp-np-head{opacity:0;transform:translateY(-8px);pointer-events:none}',

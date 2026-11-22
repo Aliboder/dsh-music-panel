@@ -188,6 +188,8 @@ ${body}
           SettingsSheet: typeof SettingsSheet === 'function' ? SettingsSheet : null,
           // The player page renders so its queue popover cannot silently leave the page.
           NowPlaying: typeof NowPlaying === 'function' ? NowPlaying : null,
+          // The stage's floating volume rail: a render check keeps the switch honest.
+          MpVolumeRail: typeof MpVolumeRail === 'function' ? MpVolumeRail : null,
           LyricMatchDialog: LyricMatchDialog,
           // The match window's preset query is pure, so a test pins it to the title.
           lyricMatchSongQuery: typeof lyricMatchSongQuery === 'function' ? lyricMatchSongQuery : null,

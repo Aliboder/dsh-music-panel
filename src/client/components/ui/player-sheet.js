@@ -934,6 +934,16 @@ function PlayerSheetInner(props) {
               String(Math.round(heard * 100)) + '%',
             ),
           ),
+          mpPanelRow(
+            t('sheet.floatingVolume'),
+            h(Switch, {
+              value: prefs.floatingVolume !== false,
+              label: t('sheet.floatingVolume'),
+              onChange: function (value) {
+                setPrefs({ floatingVolume: value })
+              },
+            }),
+          ),
         ),
       ),
     )
