@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 播放控制
+
+- 播放页「控制」里的「智能过渡」改成真正的开关（Folia 的 `QuickTile kind="toggle"`）：它按 `crossfadeEnabled` 亮起，点一下直接开关自动过渡，不再是把人送进设置面板的入口。设置 → 播放控制的过渡上限与细节仍是细则入口，效果器窗口里的同一个开关保持不变。
+
 ### 音频增益
 
 - 三个模式严格按 Folia 的 `applyReplayGain` 走：同一时刻只有一个模式写当前 deck 的 `replayGain` 节点。关闭 = 0 dB；单曲 / 专辑 = `calculateReplayGain`（专辑回退单曲、正增益按 peak 防削波）；智能平衡 = `chooseBalance` / `planBalanceMove`。此前响度修正与标签增益是两个变量、在同一个节点上相乘：面板里选「单曲 / 专辑」实际是平衡 + 标签叠加，选「关闭」也仍在做平衡。

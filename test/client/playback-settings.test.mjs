@@ -15,6 +15,7 @@ const settings = readFileSync(join(root, 'src/client/components/ui/settings.js')
 const prefs = readFileSync(join(root, 'src/client/stores/prefs.js'), 'utf8')
 const player = readFileSync(join(root, 'src/client/services/player/player.js'), 'utf8')
 const dialogs = readFileSync(join(root, 'src/client/components/ui/dialogs.js'), 'utf8')
+const sheet = readFileSync(join(root, 'src/client/components/ui/player-sheet.js'), 'utf8')
 const zh = readFileSync(join(root, 'src/client/i18n/strings.js'), 'utf8')
 const page = readFileSync(join(root, 'src/client/i18n/i18n.js'), 'utf8')
 
@@ -46,6 +47,16 @@ test('播放控制页按 Folia 分组，插件项收进「插件」组', () => {
   ]) {
     assert.ok(tab.includes(key), key + ' has a row on the page')
   }
+})
+
+test('播放页的「智能过渡」是一枚开关，不是设置入口', () => {
+  // Folia's SoundTiles: <QuickTile kind="toggle" lit={automixEnabled} onClick={() => toggleAutomix(!automixEnabled)} />.
+  const at = sheet.indexOf("t('sheet.smartFade')")
+  assert.ok(at > 0, 'the sheet still shows the 智能过渡 tile')
+  const block = sheet.slice(at, at + 300)
+  assert.match(block, /crossfadeFadeSeconds\(prefs\) > 0/, 'the tile lights from the live switch')
+  assert.match(block, /setPrefs\(\{ crossfadeEnabled: crossfadeFadeSeconds\(prefs\) <= 0 \}\)/, 'a click flips the switch')
+  assert.doesNotMatch(block, /onAction\('settings'\)/, 'the tile no longer opens the settings page')
 })
 
 test('标签改为「播放控制」，中英两份字典都改', () => {

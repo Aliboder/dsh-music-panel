@@ -880,8 +880,10 @@ function PlayerSheetInner(props) {
                 player.setLoop(loop === 'none' ? 'all' : loop === 'all' ? 'one' : 'none')
               },
             ),
-            mpQuickTile(icon('shuffle', 18), t('sheet.smartFade'), false, function () {
-              if (typeof props.onAction === 'function') props.onAction('settings')
+            // Folia's QuickTile: a switch, lit while blending is on — the gear at the top of
+            // the sheet is still the way into 设置 · 播放控制 for the length and the details.
+            mpQuickTile(icon('shuffle', 18), t('sheet.smartFade'), crossfadeFadeSeconds(prefs) > 0, function () {
+              setPrefs({ crossfadeEnabled: crossfadeFadeSeconds(prefs) <= 0 })
             }),
             mpQuickTile(icon('equalizer', 18), t('sheet.effects'), effectsOpen, function () {
               setEffectsOpen(!effectsOpen)
