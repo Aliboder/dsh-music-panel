@@ -128,6 +128,8 @@ ${body}
           overlayStore: overlayStore,
           selectionStore: selectionStore,
           player: player,
+          // What a new client bundle requires of an engine that may predate it (a plugin hot swap).
+          playerApiComplete: playerApiComplete,
           // The Folia audio subsystem bundle: tests can build a graph with a fake context.
           MPAudio: typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null,
           createFoliaGraph: typeof createFoliaGraph === 'function' ? createFoliaGraph : null,

@@ -1185,7 +1185,11 @@ function PlayerSheetInner(props) {
     if (mode === 'off') return ''
     if (mode !== 'auto' && props.gainAvailable === false) return t('sheet.gainUnavailable')
     var db = props.gainAppliedDb
-    if (typeof db !== 'number' || !isFinite(db)) return t('sheet.gainUnavailable')
+    if (typeof db !== 'number' || !isFinite(db)) {
+      // 智能平衡 always has a decision, even 0 dB; a missing figure means the engine is older
+      // than this panel, and "no tags" would be a false statement about the song.
+      return mode === 'auto' ? t('sheet.gainAutoHint') : t('sheet.gainUnavailable')
+    }
     var label = mode === 'album' ? t('sheet.gainAlbum') : mode === 'track' ? t('sheet.gainTrack') : t('sheet.gainAuto')
     return (
       label + ' ' + (db > 0 ? '+' : '') + db.toFixed(1) + ' dB' +

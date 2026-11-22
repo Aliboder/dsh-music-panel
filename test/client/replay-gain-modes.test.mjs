@@ -314,6 +314,26 @@ const plugin = definition.factory((name) => {
 const player = plugin.__internals.player
 assert.ok(player && typeof player.setGainMode === 'function', 'the player owns the gain mode')
 
+// A bundle swapped under a running window gets a fresh engine, never a pair of mismatched halves:
+// the handshake must accept this engine and reject one that lacks the gain state or methods.
+const apiComplete = plugin.__internals.playerApiComplete
+assert.equal(typeof apiComplete, 'function', 'the bundle carries the engine handshake')
+assert.equal(apiComplete(player), true, 'a current engine passes the handshake')
+assert.equal(apiComplete({ getSnapshot: () => ({}) }), false, 'an engine without the gain methods is stale')
+assert.equal(
+  apiComplete({
+    subscribe() {},
+    subscribeTime() {},
+    getSnapshot: () => ({}),
+    attachAudio() {},
+    ensureAnalyser() {},
+    setGainMode() {},
+    getGainState() {},
+  }),
+  false,
+  'an engine whose snapshot predates the gain fields is stale',
+)
+
 const primary = createAudioElement()
 primary.parentNode = { insertBefore(child) { child.parentNode = this }, removeChild(child) { child.parentNode = null } }
 primary.nextSibling = null

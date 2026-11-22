@@ -156621,6 +156621,62 @@ window.__ModuleLoader__.load({
     // module-table rebuild; a second engine would own a second <audio> and
     // play on top of the first. Every execution reuses the same instance.
     var PLAYER_KEY = '__dshMusicPlayer'
+    /**
+     * What a client bundle needs from the engine. A plugin hot swap re-runs this
+     * module while the old engine object stays on `window`, so a new UI can meet an
+     * engine that predates its methods — the state it reads then simply is not there
+     * (the 音频增益 row showed 「未检测到」 because `gainAppliedDb` had never existed on
+     * that engine). The page is rebuilt once instead of pairing the two.
+     */
+    var PLAYER_REQUIRED_API = [
+      'subscribe',
+      'subscribeTime',
+      'getSnapshot',
+      'attachAudio',
+      'ensureAnalyser',
+      'setGainMode',
+      'getGainState',
+    ]
+    /** The snapshot fields this bundle reads; an older engine's state has no such keys. */
+    var PLAYER_REQUIRED_STATE = ['gainAppliedDb', 'gainEstimated', 'gainAvailable', 'gainTags']
+
+    /** True when an engine object serves every method and state field this bundle reads. */
+    function playerApiComplete(player) {
+      if (player === null || typeof player !== 'object') return false
+      for (var i = 0; i < PLAYER_REQUIRED_API.length; i += 1) {
+        if (typeof player[PLAYER_REQUIRED_API[i]] !== 'function') return false
+      }
+      var snapshot = null
+      try {
+        snapshot = player.getSnapshot()
+      } catch (error) {
+        snapshot = null
+      }
+      if (snapshot === null || typeof snapshot !== 'object') return false
+      for (var k = 0; k < PLAYER_REQUIRED_STATE.length; k += 1) {
+        if (!Object.prototype.hasOwnProperty.call(snapshot, PLAYER_REQUIRED_STATE[k])) return false
+      }
+      return true
+    }
+
+    /**
+     * Rebuild the page so the new bundle gets an engine of its own. Guarded by the
+     * wanted API list, so a reload that did not help cannot loop.
+     */
+    function reloadForPlayerApi() {
+      try {
+        if (typeof window === 'undefined' || !window.location || typeof window.location.reload !== 'function') return
+        var wanted = PLAYER_REQUIRED_API.concat(PLAYER_REQUIRED_STATE).join(',')
+        var storage = null
+        try { storage = window.sessionStorage } catch (error) { storage = null }
+        if (storage !== null && storage.getItem('music.playerApiReload') === wanted) return
+        if (storage !== null) storage.setItem('music.playerApiReload', wanted)
+        console.warn('[music] the player engine changed under a running window; reloading once')
+        window.location.reload()
+      } catch (error) {
+        // No reload available: keep the old engine rather than run two.
+      }
+    }
 
     /**
      * Playback engine, one per page.
@@ -156632,7 +156688,11 @@ window.__ModuleLoader__.load({
      * while this engine stays the single source of playback state.
      */
     function createPlayer() {
-      if (typeof window !== 'undefined' && window[PLAYER_KEY]) return window[PLAYER_KEY]
+      if (typeof window !== 'undefined' && window[PLAYER_KEY]) {
+        if (playerApiComplete(window[PLAYER_KEY])) return window[PLAYER_KEY]
+        reloadForPlayerApi()
+        return window[PLAYER_KEY]
+      }
       var prefs = readPrefs()
       /** Folia's SET_RAMP_SEC: how a gain set before a song sounds is put in. */
       var GAIN_SET_RAMP_SEC = 0.1
@@ -177474,7 +177534,11 @@ window.__ModuleLoader__.load({
         if (mode === 'off') return ''
         if (mode !== 'auto' && props.gainAvailable === false) return t('sheet.gainUnavailable')
         var db = props.gainAppliedDb
-        if (typeof db !== 'number' || !isFinite(db)) return t('sheet.gainUnavailable')
+        if (typeof db !== 'number' || !isFinite(db)) {
+          // 智能平衡 always has a decision, even 0 dB; a missing figure means the engine is older
+          // than this panel, and "no tags" would be a false statement about the song.
+          return mode === 'auto' ? t('sheet.gainAutoHint') : t('sheet.gainUnavailable')
+        }
         var label = mode === 'album' ? t('sheet.gainAlbum') : mode === 'track' ? t('sheet.gainTrack') : t('sheet.gainAuto')
         return (
           label + ' ' + (db > 0 ? '+' : '') + db.toFixed(1) + ' dB' +
@@ -181112,6 +181176,8 @@ window.__ModuleLoader__.load({
           overlayStore: overlayStore,
           selectionStore: selectionStore,
           player: player,
+          // What a new client bundle requires of an engine that may predate it (a plugin hot swap).
+          playerApiComplete: playerApiComplete,
           // The Folia audio subsystem bundle: tests can build a graph with a fake context.
           MPAudio: typeof __mpAudioBundle === 'function' ? __mpAudioBundle() : null,
           createFoliaGraph: typeof createFoliaGraph === 'function' ? createFoliaGraph : null,
