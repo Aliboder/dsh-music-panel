@@ -107,12 +107,12 @@ function PlayerSheetInner(props) {
   var contentRef = useRef(null)
   var tabRefs = useRef([])
 
-  // Folia's source tab follows the song: local files say "本地", platform songs say
-  // "歌词", and a Navidrome song names its server. The tab index stays the same.
+  // Four pages, one subject each: the song, the lyrics, the sound, the look. The source
+  // tab used to follow the song (本地 / 歌词 / server name); it is the lyrics page now, and
+  // a server name is a hint inside its source row instead of a tab label.
   var isOnlineTrack = track !== null && Boolean(track.onlineProvider)
   var isNavidromeTrack = isOnlineTrack && track.onlineProvider === 'navidrome'
-  var sourceTabKey = isNavidromeTrack ? 'sheet.navidrome' : isOnlineTrack ? 'sheet.lyrics' : 'sheet.local'
-  var TABS = ['sheet.cover', sourceTabKey, 'sheet.controls', 'sheet.quality']
+  var TABS = ['sheet.song', 'sheet.lyrics', 'sheet.audio', 'sheet.look']
   var isCover = index === 0
   var useFramerMark = framer !== null
 
@@ -392,7 +392,6 @@ function PlayerSheetInner(props) {
           ),
       h('div', { style: { flex: '1 1 auto' } }),
       iconButton('home', t('page.home'), icon('house', 17), false),
-      iconButton('settings', t('page.settings'), icon('settings', 17), false),
     )
   }
 
@@ -582,18 +581,6 @@ function PlayerSheetInner(props) {
   // Content mirrors Folia's panelTab/*: the playing song's files (local), the
   // sound/appearance/theme groups (controls), the queue, and the streaming account.
 
-  function mpFormatBytes(bytes) {
-    var value = Number(bytes) || 0
-    if (value <= 0) return ''
-    var units = ['B', 'KB', 'MB', 'GB']
-    var at = 0
-    while (value >= 1024 && at < units.length - 1) {
-      value = value / 1024
-      at += 1
-    }
-    return (at === 0 ? String(Math.round(value)) : value.toFixed(1)) + ' ' + units[at]
-  }
-
   // PanelRow (the panel's own 44px row) and FactList (a name/value grid) from Folia.
   /** Folia's `‹ glyph name / value ›` row: the whole line opens the picker. */
   function mpNavRow(label, value, glyph, onOpen) {
@@ -685,47 +672,6 @@ function PlayerSheetInner(props) {
     )
   }
 
-  function mpFacts(facts) {
-    return h(
-      'dl',
-      {
-        style: {
-          display: 'grid',
-          gridTemplateColumns: 'auto minmax(0,1fr)',
-          columnGap: '16px',
-          rowGap: '4px',
-          padding: '0 4px 6px',
-          margin: '0',
-          fontSize: '12px',
-          lineHeight: '18px',
-        },
-      },
-      facts.map(function (fact) {
-        return h(
-          'div',
-          { key: 'fact-' + fact.label, style: { display: 'contents' } },
-          h('dt', { style: { margin: '0', opacity: '.45' } }, fact.label),
-          h(
-            'dd',
-            {
-              style: {
-                margin: '0',
-                minWidth: '0',
-                textAlign: 'right',
-                opacity: '.75',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              },
-              title: String(fact.value),
-            },
-            String(fact.value === undefined || fact.value === null || fact.value === '' ? '—' : fact.value),
-          ),
-        )
-      }),
-    )
-  }
-
   function mpSmallButton(label, onClick) {
     return h(
       'button',
@@ -770,177 +716,24 @@ function PlayerSheetInner(props) {
     )
   }
 
-  function mpQuickTile(glyph, label, on, onClick) {
-    return h(
-      'button',
-      {
-        type: 'button',
-        onClick: onClick,
-        style: {
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          height: '58px',
-          borderRadius: '10px',
-          border: '0',
-          background:
-            on === true ? 'var(--st-raise,rgba(255,255,255,.18))' : 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))',
-          color: 'inherit',
-          font: 'inherit',
-          fontSize: '11.5px',
-          cursor: 'pointer',
-          padding: '0 6px',
-          transition: 'background-color ' + MP_DUR_MOVE + 's cubic-bezier(.22,1,.36,1)',
-        },
-      },
-      glyph,
-      h(
-        'span',
-        { style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' } },
-        label,
-      ),
-    )
-  }
-
-  // ControlsTab: 声音 (VolumeRow + SoundTiles) / 外观 (AppearanceSection rows) / 主题
-  // (ThemeSourceRow + ThemeNameRow). Entries for settings this plugin does not own yet
-  // stay visible and say where they lead.
-  function cardControlsPane() {
+  // 外观 tab — the stage's look: background, theme and the volume row. The sound tiles that
+  // used to sit here moved to the audio page; this page only paints.
+  function cardLookPane() {
     var volume = Number(snap.volume)
     if (!isFinite(volume)) volume = 1
     var muted = snap.muted === true
-    var loop = snap.loop || 'none'
-    var loopLabel = loop === 'one' ? t('sheet.loopOne') : loop === 'all' ? t('sheet.loopAll') : t('sheet.loopOff')
     var heard = muted ? 0 : volume
 
     return h(
       'div',
-      { key: 'controls-pane' },
+      { key: 'look-pane' },
       mpSection(
-        t('sheet.sound'),
-        h(
-          'div',
-          { style: { padding: '0 4px' } },
-          h(
-            'div',
-            { style: { display: 'flex', alignItems: 'center', gap: '10px', height: '32px' } },
-            h(
-              'button',
-              {
-                type: 'button',
-                title: muted ? t('sheet.unmute') : t('sheet.mute'),
-                onClick: function () {
-                  player.setMuted(!muted)
-                },
-                style: {
-                  width: '28px',
-                  height: '28px',
-                  display: 'grid',
-                  placeItems: 'center',
-                  border: '0',
-                  borderRadius: '8px',
-                  background: 'transparent',
-                  color: 'inherit',
-                  cursor: 'pointer',
-                },
-              },
-              icon(muted || heard === 0 ? 'mute' : heard < 0.5 ? 'volumeLow' : 'volume', 17),
-            ),
-            h('input', {
-              type: 'range',
-              min: '0',
-              max: '1',
-              step: '0.01',
-              value: String(heard),
-              'aria-label': t('sheet.volume'),
-              onChange: function (event) {
-                player.setVolume(Number(event.target.value))
-              },
-              style: { flex: '1 1 auto', minWidth: '0', accentColor: (typeof props.accentCss === 'string' && props.accentCss) || 'var(--dsw-alias-state-business-primary,#4f8cff)' },
-            }),
-            h(
-              'span',
-              { style: { minWidth: '36px', textAlign: 'right', fontSize: '12px', opacity: '.7' } },
-              String(Math.round(heard * 100)) + '%',
-            ),
-          ),
-          h(
-            'div',
-            { style: { marginTop: '8px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' } },
-            mpQuickTile(
-              icon(loop === 'one' ? 'repeatOne' : loop === 'all' ? 'repeat' : 'list', 18),
-              loopLabel,
-              loop !== 'none',
-              function () {
-                player.setLoop(loop === 'none' ? 'all' : loop === 'all' ? 'one' : 'none')
-              },
-            ),
-            // Folia's QuickTile: a switch, lit while blending is on — the gear at the top of
-            // the sheet is still the way into 设置 · 播放控制 for the length and the details.
-            mpQuickTile(icon('shuffle', 18), t('sheet.smartFade'), crossfadeFadeSeconds(prefs) > 0, function () {
-              setPrefs({ crossfadeEnabled: crossfadeFadeSeconds(prefs) <= 0 })
-            }),
-            // Folia's SoundTiles: an opening tile, lit while processing is on. The window it
-            // raises is the audio effect panel (audio-equalizer.js).
-            mpQuickTile(
-              icon('equalizer', 18),
-              t('sheet.effects'),
-              normalizeEqPrefs(prefs).enabled,
-              function () {
-                pushLayer('equalizer', {})
-              },
-            ),
-          ),
-        ),
-      ),
-      mpSection(
-        t('sheet.appearance'),
+        t('sheet.background'),
         h(
           'div',
           null,
           // Folia's rows: a glyph, the name, the current value and a chevron that opens
           // the same place the old 「打开」 button did.
-          mpNavRow(
-            t('sheet.lyricStyle'),
-            mpStyleLabelOf(prefs.lyricStyle),
-            'note',
-            function () {
-              setLookPicker(lookPicker === 'lyricStyle' ? '' : 'lyricStyle')
-            },
-          ),
-          lookPicker === 'lyricStyle'
-            ? h(
-                'div',
-                { style: { padding: '2px 4px 10px 44px' } },
-                h(LookChoiceGrid, {
-                  kind: 'lyricStyle',
-                  value: mpStyleIdOf(prefs.lyricStyle),
-                  onPick: function (next) {
-                    setPrefs({ lyricStyle: next })
-                  },
-                }),
-              )
-            : null,
-          h(
-            'div',
-            {
-              key: 'lyric-quick',
-              style: {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                gap: '4px',
-                minHeight: '36px',
-                padding: '2px 4px',
-              },
-            },
-            mpSmallButton(t('sheet.standard'), function () { setPrefs({ lyricIntensity: prefs.lyricIntensity === 'normal' ? 'calm' : prefs.lyricIntensity === 'calm' ? 'chaotic' : 'normal' }) }, t('settings.lyricIntensity')),
-            mpSmallButton('\u2261', function () { setPrefs({ showTranslation: prefs.showTranslation === false }) }, t('page.translation')),
-            mpSmallButton('\u2194', function () { setPrefs({ translationScale: prefs.translationScale === 100 ? 110 : prefs.translationScale === 110 ? 90 : 100 }) }, t('page.translationScale')),
-            mpSmallButton('\u224b', function () { setPrefs({ lyricsFontScale: prefs.lyricsFontScale === 1 ? 1.15 : prefs.lyricsFontScale === 1.15 ? 0.9 : 1 }) }, t('settings.lyricFontScale')),
-          ),
           mpNavRow(
             t('sheet.background'),
             mpLookLabel(MP_BG_MODES, prefs.bgMode),
@@ -1091,6 +884,56 @@ function PlayerSheetInner(props) {
           ),
         ),
       ),
+      mpSection(
+        t('sheet.volume'),
+        h(
+          'div',
+          { style: { padding: '0 4px' } },
+          h(
+            'div',
+            { style: { display: 'flex', alignItems: 'center', gap: '10px', height: '32px' } },
+            h(
+              'button',
+              {
+                type: 'button',
+                title: muted ? t('sheet.unmute') : t('sheet.mute'),
+                onClick: function () {
+                  player.setMuted(!muted)
+                },
+                style: {
+                  width: '28px',
+                  height: '28px',
+                  display: 'grid',
+                  placeItems: 'center',
+                  border: '0',
+                  borderRadius: '8px',
+                  background: 'transparent',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                },
+              },
+              icon(muted || heard === 0 ? 'mute' : heard < 0.5 ? 'volumeLow' : 'volume', 17),
+            ),
+            h('input', {
+              type: 'range',
+              min: '0',
+              max: '1',
+              step: '0.01',
+              value: String(heard),
+              'aria-label': t('sheet.volume'),
+              onChange: function (event) {
+                player.setVolume(Number(event.target.value))
+              },
+              style: { flex: '1 1 auto', minWidth: '0', accentColor: (typeof props.accentCss === 'string' && props.accentCss) || 'var(--dsw-alias-state-business-primary,#4f8cff)' },
+            }),
+            h(
+              'span',
+              { style: { minWidth: '36px', textAlign: 'right', fontSize: '12px', opacity: '.7' } },
+              String(Math.round(heard * 100)) + '%',
+            ),
+          ),
+        ),
+      ),
     )
   }
 
@@ -1204,56 +1047,22 @@ function PlayerSheetInner(props) {
 
   // 本地 tab — Folia's SourceTab: lyric source, timeline offset, match + lyric file,
   // audio gain, then what is known about the file.
-  function cardLocalPane() {
-    var row = track !== null && track.path ? trackByPath(track.path) : null
-    var name = row && row.name ? row.name : track && track.path ? String(track.path).split(/[\\/]/).pop() : ''
+  // 歌词 tab — where the lyric comes from, its timeline, the match and the file, then the
+  // word split and the style that paints it.
+  function cardLyricsPane() {
     var offset = Number(props.offsetMs) || 0
+    // A Navidrome song used to name its server in the tab label; the label is 歌词 now, so
+    // the server rides along as the source row's hint instead.
+    var navidromeServer =
+      isNavidromeTrack && online.providers && online.providers.navidrome
+        ? String(online.providers.navidrome.server || '')
+        : ''
 
     function step(delta) {
       if (typeof props.onOffsetChange === 'function') props.onOffsetChange(offset + delta)
     }
     function reset() {
       if (typeof props.onOffsetChange === 'function') props.onOffsetChange(0)
-    }
-    function pickLyricFile() {
-      if (typeof document === 'undefined') return
-      var input = document.createElement('input')
-      input.type = 'file'
-      input.accept = '.lrc,.txt,text/plain'
-      input.onchange = function () {
-        var file = input.files && input.files[0]
-        if (!file) return
-        var reader = new FileReader()
-        reader.onload = function () {
-          var text = String(reader.result || '')
-          if (text.trim() === '' || typeof props.lyricsPath !== 'string' || props.lyricsPath === '') return
-          postJson(API + 'lyrics/save', { path: props.lyricsPath, lrc: text })
-            .then(function () {
-              if (typeof showToast === 'function') showToast(t('sheet.lyricsImported'))
-              if (typeof props.onLyricsSaved === 'function') props.onLyricsSaved()
-            })
-            .catch(function (error) {
-              if (typeof showToast === 'function') showToast(errorText(error))
-            })
-        }
-        reader.readAsText(file)
-      }
-      input.click()
-    }
-    function exportLyricFile() {
-      if (typeof document === 'undefined') return
-      var text = typeof props.lyricsText === 'string' ? props.lyricsText : ''
-      if (text.trim() === '') {
-        if (typeof showToast === 'function') showToast(t('sheet.noLyricsToExport'))
-        return
-      }
-      var blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
-      var url = URL.createObjectURL(blob)
-      var link = document.createElement('a')
-      link.href = url
-      link.download = (name.replace(/\.[^.]+$/, '') || 'lyrics') + '.lrc'
-      link.click()
-      URL.revokeObjectURL(url)
     }
 
     var offsetStepper = h(
@@ -1321,10 +1130,11 @@ function PlayerSheetInner(props) {
 
     return h(
       'div',
-      { key: 'local-pane' },
+      { key: 'lyrics-pane' },
       mpPanelRow(
         t('sheet.lyrics'),
         lyricSourceControl(),
+        navidromeServer !== '' ? navidromeServer : undefined,
       ),
 
       mpPanelRow(
@@ -1368,45 +1178,9 @@ function PlayerSheetInner(props) {
       ),
 
       h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
-      mpPanelRow(
-        t('sheet.audioGain'),
-        mpSegment(
-          [
-            { value: 'off', label: t('sheet.gainOff') },
-            { value: 'auto', label: t('sheet.gainAuto') },
-            { value: 'track', label: t('sheet.gainTrack') },
-            { value: 'album', label: t('sheet.gainAlbum') },
-          ],
-          typeof props.gainMode === 'string' ? props.gainMode : 'auto',
-          function (next) {
-            if (typeof props.onGainModeChange === 'function') props.onGainModeChange(next)
-          },
-        ),
-      ),
-      h('div', { style: { padding: '0 4px 6px', fontSize: '11px', opacity: '.45' } }, gainHint()),
-      !isOnlineTrack
-        ? h(
-            'div',
-            null,
-            h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
-            mpFacts([
-              { label: t('sheet.file'), value: name },
-              {
-                label: t('sheet.size'),
-                value:
-                  mpFormatBytes(row && row.size) +
-                  (row && row.bitrate ? ' / ' + String(Math.round(Number(row.bitrate) / 1000)) + ' kbps' : ''),
-              },
-            ]),
-          )
-        : isNavidromeTrack
-          ? h(
-              'div',
-              null,
-              h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
-              mpFacts([{ label: 'Song ID', value: String(track.onlineId || '') }]),
-            )
-          : null,
+      lyricSegRow(),
+      h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
+      lyricLookBlock(),
     )
   }
 
@@ -1492,10 +1266,107 @@ function PlayerSheetInner(props) {
     )
   }
 
-  function cardQualityPane() {
-    var providerId = track && track.onlineProvider ? String(track.onlineProvider) : ''
-    var info = providerId !== '' && online.providers ? online.providers[providerId] : null
-    var label = info && info.displayName ? info.displayName : providerId
+  /**
+   * 音频增益 — Folia's ReplayGainControl: the four modes, then the gain the engine applied
+   * (after the peak cap); 智能平衡 keeps its reading even at 0 dB.
+   */
+  function gainBlock() {
+    return h(
+      'div',
+      { key: 'gain-block' },
+      mpPanelRow(
+        t('sheet.audioGain'),
+        mpSegment(
+          [
+            { value: 'off', label: t('sheet.gainOff') },
+            { value: 'auto', label: t('sheet.gainAuto') },
+            { value: 'track', label: t('sheet.gainTrack') },
+            { value: 'album', label: t('sheet.gainAlbum') },
+          ],
+          typeof props.gainMode === 'string' ? props.gainMode : 'auto',
+          function (next) {
+            if (typeof props.onGainModeChange === 'function') props.onGainModeChange(next)
+          },
+        ),
+      ),
+      h('div', { style: { padding: '0 4px 6px', fontSize: '11px', opacity: '.45' } }, gainHint()),
+    )
+  }
+
+  /**
+   * 歌词分词 — the saved word split, for every song: it is stored per song, so a local file
+   * keeps its own split too (the old quality pane only offered it to online tracks).
+   */
+  function lyricSegRow() {
+    return mpPanelRow(
+      t('sheet.lyricSegmentation'),
+      h(
+        'div',
+        { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+        h(
+          'span',
+          { style: { fontSize: '12px', opacity: '.65' } },
+          Number(props.lyricSegCount) > 0
+            ? t('sheet.lyricSegCount', { count: String(props.lyricSegCount) })
+            : t('sheet.lyricSegDefault'),
+        ),
+        mpSmallButton(t('sheet.lyricSegOpen'), function () {
+          if (typeof props.onOpenLyricSegmentation === 'function') props.onOpenLyricSegmentation()
+        }),
+      ),
+    )
+  }
+
+  /** 歌词样式 — the style picker and the four display switches that belong with it. */
+  function lyricLookBlock() {
+    return h(
+      'div',
+      { key: 'lyric-look' },
+      mpNavRow(
+        t('sheet.lyricStyle'),
+        mpStyleLabelOf(prefs.lyricStyle),
+        'note',
+        function () {
+          setLookPicker(lookPicker === 'lyricStyle' ? '' : 'lyricStyle')
+        },
+      ),
+      lookPicker === 'lyricStyle'
+        ? h(
+            'div',
+            { style: { padding: '2px 4px 10px 44px' } },
+            h(LookChoiceGrid, {
+              kind: 'lyricStyle',
+              value: mpStyleIdOf(prefs.lyricStyle),
+              onPick: function (next) {
+                setPrefs({ lyricStyle: next })
+              },
+            }),
+          )
+        : null,
+      h(
+        'div',
+        {
+          key: 'lyric-quick',
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: '4px',
+            minHeight: '36px',
+            padding: '2px 4px',
+          },
+        },
+        mpSmallButton(t('sheet.standard'), function () { setPrefs({ lyricIntensity: prefs.lyricIntensity === 'normal' ? 'calm' : prefs.lyricIntensity === 'calm' ? 'chaotic' : 'normal' }) }, t('settings.lyricIntensity')),
+        mpSmallButton('≡', function () { setPrefs({ showTranslation: prefs.showTranslation === false }) }, t('page.translation')),
+        mpSmallButton('↔', function () { setPrefs({ translationScale: prefs.translationScale === 100 ? 110 : prefs.translationScale === 110 ? 90 : 100 }) }, t('page.translationScale')),
+        mpSmallButton('≋', function () { setPrefs({ lyricsFontScale: prefs.lyricsFontScale === 1 ? 1.15 : prefs.lyricsFontScale === 1.15 ? 0.9 : 1 }) }, t('settings.lyricFontScale')),
+      ),
+    )
+  }
+
+  // 音频 tab — quality, how playback flows, the loudness fix and the effects window.
+  function cardAudioPane() {
+    var loop = snap.loop || 'none'
     var options = [
       { value: 'standard', label: t('sheet.qStandard') },
       { value: 'high', label: t('sheet.qHigh') },
@@ -1504,7 +1375,7 @@ function PlayerSheetInner(props) {
     ]
     return h(
       'div',
-      { key: 'quality-pane' },
+      { key: 'audio-pane' },
       // AccountTab puts audio quality on a PanelRow with a Segments control.
       mpPanelRow(
         t('sheet.quality'),
@@ -1512,37 +1383,44 @@ function PlayerSheetInner(props) {
           setPrefs({ onlineQuality: value })
         }),
       ),
-      track !== null && providerId !== ''
-        ? mpFacts([
-            { label: t('sheet.provider'), value: label },
-            { label: t('sheet.account'), value: info && info.loggedIn === true ? t('sheet.loggedIn') : t('sheet.loggedOut') },
-            { label: 'ID', value: track.onlineId || '' },
-          ])
-        : mpFacts([{ label: t('sheet.provider'), value: '—' }]),
-      // Online tracks split their lyrics here too: the saved split is per song, not per
-      // file, so a platform lyric and a local lyric each keep their own.
-      track !== null && providerId !== ''
-        ? mpPanelRow(
-            t('sheet.lyricSegmentation'),
-            h(
-              'div',
-              { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
-              h(
-                'span',
-                { style: { fontSize: '12px', opacity: '.65' } },
-                Number(props.lyricSegCount) > 0
-                  ? t('sheet.lyricSegCount', { count: String(props.lyricSegCount) })
-                  : t('sheet.lyricSegDefault'),
-              ),
-              mpSmallButton(t('sheet.lyricSegOpen'), function () {
-                if (typeof props.onOpenLyricSegmentation === 'function') props.onOpenLyricSegmentation()
-              }),
-            ),
-          )
-        : null,
+      h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
+      mpPanelRow(
+        t('sheet.playMode'),
+        mpSegment(
+          [
+            { value: 'none', label: t('sheet.loopOff') },
+            { value: 'all', label: t('sheet.loopAll') },
+            { value: 'one', label: t('sheet.loopOne') },
+          ],
+          loop,
+          function (value) {
+            player.setLoop(value)
+          },
+        ),
+      ),
+      mpPanelRow(
+        t('sheet.smartFade'),
+        h(Switch, {
+          value: crossfadeFadeSeconds(prefs) > 0,
+          label: t('sheet.smartFade'),
+          onChange: function (value) {
+            setPrefs({ crossfadeEnabled: value })
+          },
+        }),
+      ),
+      h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
+      gainBlock(),
+      h('div', { style: { height: '1px', background: 'var(--dsw-alias-border-l1,rgba(255,255,255,.08))', margin: '8px 0' } }),
+      mpPanelRow(
+        t('sheet.effects'),
+        mpSmallButton(t('sheet.open'), function () {
+          pushLayer('equalizer', {})
+        }),
+        t(normalizeEqPrefs(prefs).enabled ? 'eq.procOn' : 'eq.procOff'),
+      ),
     )
   }
-  var bodies = [null, cardLocalPane(), cardControlsPane(), cardQualityPane()]
+  var bodies = [null, cardLyricsPane(), cardAudioPane(), cardLookPane()]
 
   var bodyHeight = isCover ? 0 : MP_BODY_GAP + MP_BODY_LINE + MP_BODY_UNDER + (bodyH > 0 ? bodyH : 0)
 

@@ -96,6 +96,47 @@ assert.ok(card !== null && typeof card === 'object', 'the card renders')
 // The mock React does not run components, so the element the wrapper returned is
 // invoked by hand: that is what executes every pane function and would throw.
 const rendered = typeof card.type === 'function' ? card.type(card.props) : card
+
+/** Every string in the tree, in render order. */
+function textOf(node, out) {
+  const list = out || []
+  if (node === null || node === undefined) return list
+  if (typeof node === 'string' || typeof node === 'number') {
+    list.push(String(node))
+    return list
+  }
+  if (Array.isArray(node)) {
+    node.forEach((child) => textOf(child, list))
+    return list
+  }
+  if (typeof node === 'object' && node.children) textOf(node.children, list)
+  return list
+}
+
+/** Every element that carries a title (the card's icon buttons). */
+function titlesOf(node, out) {
+  const list = out || []
+  if (node === null || node === undefined || typeof node !== 'object') return list
+  if (Array.isArray(node)) {
+    node.forEach((child) => titlesOf(child, list))
+    return list
+  }
+  if (node.props && typeof node.props.title === 'string') list.push(node.props.title)
+  titlesOf(node.children, list)
+  return list
+}
+
+// Four pages, one subject each: 歌曲 / 歌词 / 音频 / 外观. Every pane function runs while
+// the bodies array is built, so a pane that was renamed or dropped throws here.
+const cardText = textOf(rendered).join('\u0001')
+for (const label of ['歌曲', '歌词', '音频', '外观']) {
+  assert.ok(cardText.includes(label), 'the dock still labels the ' + label + ' page')
+}
+assert.deepEqual(
+  titlesOf(rendered).filter((title) => title === '设置'),
+  [],
+  'the card no longer carries the global settings gear',
+)
 assert.equal(rendered.props.className, 'mp-card-root', 'the card root is the dialog')
 // The motion engine is labelled so the browser can be checked.
 assert.ok(['framer', 'css'].includes(rendered.props['data-card-motion']))

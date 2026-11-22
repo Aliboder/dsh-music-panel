@@ -52,10 +52,10 @@ test('播放控制页按 Folia 分组，插件项收进「插件」组', () => {
 test('播放页的「智能过渡」是一枚开关，不是设置入口', () => {
   // Folia's SoundTiles: <QuickTile kind="toggle" lit={automixEnabled} onClick={() => toggleAutomix(!automixEnabled)} />.
   const at = sheet.indexOf("t('sheet.smartFade')")
-  assert.ok(at > 0, 'the sheet still shows the 智能过渡 tile')
+  assert.ok(at > 0, 'the sheet still shows the 智能过渡 row')
   const block = sheet.slice(at, at + 300)
-  assert.match(block, /crossfadeFadeSeconds\(prefs\) > 0/, 'the tile lights from the live switch')
-  assert.match(block, /setPrefs\(\{ crossfadeEnabled: crossfadeFadeSeconds\(prefs\) <= 0 \}\)/, 'a click flips the switch')
+  assert.match(block, /crossfadeFadeSeconds\(prefs\) > 0/, 'the switch lights from the live value')
+  assert.match(block, /setPrefs\(\{ crossfadeEnabled: value \}\)/, 'flipping writes the switch')
   assert.doesNotMatch(block, /onAction\('settings'\)/, 'the tile no longer opens the settings page')
 })
 
