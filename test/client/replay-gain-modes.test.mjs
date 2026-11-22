@@ -319,6 +319,9 @@ assert.ok(player && typeof player.setGainMode === 'function', 'the player owns t
 const apiComplete = plugin.__internals.playerApiComplete
 assert.equal(typeof apiComplete, 'function', 'the bundle carries the engine handshake')
 assert.equal(apiComplete(player), true, 'a current engine passes the handshake')
+// The engine is stamped with the bundle that built it: any second evaluation of this module
+// meets an engine of another evaluation and rebuilds the page instead of pairing two stores.
+assert.match(player.build, /^[0-9a-f]{12}$/, 'the engine carries the build id of its bundle')
 assert.equal(apiComplete({ getSnapshot: () => ({}) }), false, 'an engine without the gain methods is stale')
 assert.equal(
   apiComplete({

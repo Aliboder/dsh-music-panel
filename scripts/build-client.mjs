@@ -10,6 +10,7 @@
  *   node scripts/build-client.mjs --check    # fail if client.js is stale
  */
 
+import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -104,11 +105,17 @@ function build() {
  */
 
 `
+  // A stable id for this exact bundle: the host can re-execute a client module in a live page
+  // (a plugin hot swap), and an engine left on window by an earlier evaluation must not be
+  // paired with this one — they have separate prefs stores, so the new UI would sit still
+  // while the old engine kept writing the old settings (A_other/docs/踩坑记录.md).
+  const buildId = createHash('sha256').update(body).digest('hex').slice(0, 12)
   const output = `${banner}window.__ModuleLoader__.load({
   id: '${MODULE_ID}',
   factory: function (require) {
     'use strict'
     var APP_VERSION = ${JSON.stringify(PKG.version)}
+    var CLIENT_BUILD = ${JSON.stringify(buildId)}
 
 ${body}
 

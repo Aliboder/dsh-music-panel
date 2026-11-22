@@ -451,6 +451,9 @@ const afterEdit = internals.player.getEq()
 assert.equal(afterEdit.preset, 'custom1', 'an edit goes into the first custom slot')
 assert.equal(afterEdit.enabled, true, 'an edit switches processing on')
 assert.equal(afterEdit.bands[0], 6, 'the band takes the new gain')
+// The panel reads prefs: the same store must hold the edit, or the sliders would sit still
+// while the engine played the new sound (the two-evaluation case is guarded by the reload).
+assert.equal(internals.prefsStore.get().eqBands[0], 6, 'the edit reaches the prefs store the panel reads')
 // Reset clears the chosen custom slot only.
 const resetButton = nodesWithClass(panel(), 'mp-eqwin-reset')[0]
 resetButton.props.onClick()

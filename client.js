@@ -9,6 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.42.0"
+    var CLIENT_BUILD = "968823199d84"
 
     // ── src/client/app/runtime.js
     /**
@@ -156638,14 +156639,15 @@ window.__ModuleLoader__.load({
 
     // One engine per page. Client modules can be re-executed by HMR or by a
     // module-table rebuild; a second engine would own a second <audio> and
-    // play on top of the first. Every execution reuses the same instance.
+    // play on top of the first.
     var PLAYER_KEY = '__dshMusicPlayer'
+    /** The id of the bundle that is running (scripts/build-client.mjs stamps it). */
+    function currentClientBuild() {
+      return typeof CLIENT_BUILD === 'string' ? CLIENT_BUILD : ''
+    }
     /**
-     * What a client bundle needs from the engine. A plugin hot swap re-runs this
-     * module while the old engine object stays on `window`, so a new UI can meet an
-     * engine that predates its methods — the state it reads then simply is not there
-     * (the 音频增益 row showed 「未检测到」 because `gainAppliedDb` had never existed on
-     * that engine). The page is rebuilt once instead of pairing the two.
+     * What a client bundle needs from the engine. Kept for diagnostics and tests: an engine
+     * that predates these methods or state fields is by definition from another evaluation.
      */
     var PLAYER_REQUIRED_API = [
       'subscribe',
@@ -156679,18 +156681,20 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * Rebuild the page so the new bundle gets an engine of its own. Guarded by the
-     * wanted API list, so a reload that did not help cannot loop.
+     * Rebuild the page so the new bundle gets an engine of its own. An engine already on
+     * `window` was made by an earlier evaluation of this module, with its own stores: the new
+     * UI's `prefsStore` would never hear the old engine's writes, so controls would sit still
+     * while the sound changed. Guarded by the build id, so a reload that did not help cannot loop.
      */
-    function reloadForPlayerApi() {
+    function reloadForPlayerApi(reason) {
       try {
         if (typeof window === 'undefined' || !window.location || typeof window.location.reload !== 'function') return
-        var wanted = PLAYER_REQUIRED_API.concat(PLAYER_REQUIRED_STATE).join(',')
+        var wanted = currentClientBuild() + '|' + PLAYER_REQUIRED_API.concat(PLAYER_REQUIRED_STATE).join(',')
         var storage = null
         try { storage = window.sessionStorage } catch (error) { storage = null }
-        if (storage !== null && storage.getItem('music.playerApiReload') === wanted) return
-        if (storage !== null) storage.setItem('music.playerApiReload', wanted)
-        console.warn('[music] the player engine changed under a running window; reloading once')
+        if (storage !== null && storage.getItem('music.playerReload') === wanted) return
+        if (storage !== null) storage.setItem('music.playerReload', wanted)
+        console.warn('[music] a new client bundle met the engine of an older one (' + reason + '); reloading once')
         window.location.reload()
       } catch (error) {
         // No reload available: keep the old engine rather than run two.
@@ -156708,8 +156712,10 @@ window.__ModuleLoader__.load({
      */
     function createPlayer() {
       if (typeof window !== 'undefined' && window[PLAYER_KEY]) {
-        if (playerApiComplete(window[PLAYER_KEY])) return window[PLAYER_KEY]
-        reloadForPlayerApi()
+        // Reaching here means this module was evaluated a second time in the same page (a plugin
+        // hot swap): the engine on window belongs to the first evaluation, with that evaluation's
+        // prefs store. The two must not be paired — see reloadForPlayerApi.
+        reloadForPlayerApi(playerApiComplete(window[PLAYER_KEY]) ? 'module evaluated again' : 'engine api missing')
         return window[PLAYER_KEY]
       }
       var prefs = readPrefs()
@@ -159884,6 +159890,8 @@ window.__ModuleLoader__.load({
       }
 
       syncMediaHandlers()
+      /** The bundle that built this engine, so a later evaluation can tell it is not its own. */
+      api.build = currentClientBuild()
       if (typeof window !== 'undefined') window[PLAYER_KEY] = api
       return api
     }
