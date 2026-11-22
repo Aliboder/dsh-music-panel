@@ -15,13 +15,26 @@ var GALLERY_SECTIONS = [
   { key: 'states', labelKey: 'gallery.secStates' },
 ]
 
-/** One labelled case in the grid: a title above whatever the case renders. */
+/**
+ * One reference case: the adapter name, the live control, and the exact call to copy.
+ *
+ * This is the page AI (and people) should port from: `adapter` names the wrapper in
+ * primitives.js, `code` is the canonical call with its real props, and the live row above
+ * shows both paths — the host component when the host exposes it, the local fallback
+ * otherwise (主题与组件开发规范 §3.4).
+ */
 function GalleryCase(props) {
   return h(
     'div',
-    { className: cx('mp-gallery-case', props.wide === true && 'is-wide') },
-    h('div', { className: 'mp-gallery-case-title' }, props.title),
+    { className: cx('mp-gallery-case', props.wide === true && 'is-wide'), 'data-adapter': props.adapter || undefined },
+    h(
+      'div',
+      { className: 'mp-gallery-case-title' },
+      props.title,
+      props.adapter ? h('span', { className: 'mp-gallery-adapter' }, props.adapter) : null,
+    ),
     h('div', { className: 'mp-gallery-row' }, props.children),
+    props.code ? h('pre', { className: 'mp-gallery-code' }, h('code', null, props.code)) : null,
   )
 }
 
@@ -75,28 +88,52 @@ function ComponentGallery(props) {
         h(
           'div',
           { className: 'mp-gallery-grid' },
-          h(GalleryCase, { title: t('gallery.caseButtonVariants') },
+          h(GalleryCase, {
+            title: t('gallery.caseButtonVariants'),
+            adapter: 'Button',
+            code: "h(Button, { variant: 'primary' }, label)\nh(Button, { variant: 'outline' }, label)\nh(Button, { variant: 'ghost' }, label)\nh(Button, { variant: 'toolbar' }, label)",
+          },
             h(Button, { variant: 'primary' }, t('gallery.primary')),
             h(Button, null, t('gallery.outline')),
             h(Button, { variant: 'ghost' }, t('gallery.ghost')),
             h(Button, { variant: 'toolbar' }, t('gallery.toolbar')),
           ),
-          h(GalleryCase, { title: t('gallery.caseButtonSizes') },
+          h(GalleryCase, {
+            title: t('gallery.caseButtonSizes'),
+            adapter: 'Button',
+            code: "h(Button, { size: 'md' }, label)\nh(Button, { size: 'sm' }, label)",
+          },
             h(Button, { size: 'md' }, t('gallery.medium')),
             h(Button, { size: 'sm' }, t('gallery.small')),
           ),
-          h(GalleryCase, { title: t('gallery.caseButtonIcon') },
+          h(GalleryCase, {
+            title: t('gallery.caseButtonIcon'),
+            adapter: 'Button',
+            code: "h(Button, { icon: 'plus' }, label)\nh(Button, { variant: 'primary', icon: 'play' }, label)",
+          },
             h(Button, { icon: 'plus' }, t('gallery.withIcon')),
             h(Button, { variant: 'primary', icon: 'play' }, t('gallery.play')),
           ),
-          h(GalleryCase, { title: t('gallery.caseButtonDisabled') },
+          h(GalleryCase, {
+            title: t('gallery.caseButtonDisabled'),
+            adapter: 'Button',
+            code: "h(Button, { disabled: true }, label)",
+          },
             h(Button, { disabled: true }, t('gallery.disabled')),
             h(Button, { variant: 'primary', disabled: true }, t('gallery.disabled')),
           ),
-          h(GalleryCase, { title: t('gallery.caseDanger') },
+          h(GalleryCase, {
+            title: t('gallery.caseDanger'),
+            adapter: 'Button',
+            code: "h(Button, { className: 'mp-data-danger-btn', icon: 'trash' }, label)",
+          },
             h(Button, { className: 'mp-data-danger-btn', icon: 'trash' }, t('gallery.danger')),
           ),
-          h(GalleryCase, { title: t('gallery.caseIconButton') },
+          h(GalleryCase, {
+            title: t('gallery.caseIconButton'),
+            adapter: 'IconButton',
+            code: "h(IconButton, { icon: 'note', title: label })\nh(IconButton, { icon: 'list', title: label, active: true })",
+          },
             h(IconButton, { icon: 'note', title: t('gallery.iconButton') }),
             h(IconButton, { icon: 'list', title: t('gallery.iconButton'), active: true }),
             h(IconButton, { icon: 'refresh', title: t('gallery.iconButton'), disabled: true }),
@@ -111,7 +148,11 @@ function ComponentGallery(props) {
       h(
         'div',
         { key: 'grid', className: 'mp-gallery-grid' },
-        h(GalleryCase, { title: t('gallery.caseInput') },
+        h(GalleryCase, {
+            title: t('gallery.caseInput'),
+            adapter: 'KitInput',
+            code: "h(KitInput, { value, placeholder, icon: 'search', label, onChange })",
+          },
           h(KitInput, {
             value: inputValue,
             placeholder: t('gallery.inputPlaceholder'),
@@ -120,7 +161,11 @@ function ComponentGallery(props) {
             onChange: setInputValue,
           }),
         ),
-        h(GalleryCase, { title: t('gallery.caseSelect') },
+        h(GalleryCase, {
+            title: t('gallery.caseSelect'),
+            adapter: 'KitSelect',
+            code: "h(KitSelect, { value, label, options, onChange })",
+          },
           h(KitSelect, {
             value: selectValue,
             label: t('gallery.caseSelect'),
@@ -132,16 +177,28 @@ function ComponentGallery(props) {
             onChange: setSelectValue,
           }),
         ),
-        h(GalleryCase, { title: t('gallery.caseSwitch') },
+        h(GalleryCase, {
+            title: t('gallery.caseSwitch'),
+            adapter: 'Switch',
+            code: "h(Switch, { value, label, onChange })",
+          },
           h(Switch, { value: switchOn, label: t('gallery.caseSwitch'), onChange: setSwitchOn }),
           h(Switch, { value: !switchOn, label: t('gallery.caseSwitch'), onChange: setSwitchOn }),
           h(Switch, { value: false, label: t('gallery.caseSwitch'), disabled: true }),
         ),
-        h(GalleryCase, { title: t('gallery.caseCheckbox') },
+        h(GalleryCase, {
+            title: t('gallery.caseCheckbox'),
+            adapter: 'KitCheckbox',
+            code: "h(KitCheckbox, { checked, label, onChange })",
+          },
           h(KitCheckbox, { checked: checked, label: t('gallery.caseCheckbox'), onChange: setChecked }),
           h(KitCheckbox, { checked: false, label: t('gallery.disabled'), disabled: true, onChange: function () {} }),
         ),
-        h(GalleryCase, { title: t('gallery.caseRange') },
+        h(GalleryCase, {
+            title: t('gallery.caseRange'),
+            adapter: '.mp-range',
+            code: "h('input', { type: 'range', className: 'mp-range', min, max, value, onChange })",
+          },
           h('input', {
             type: 'range',
             className: 'mp-range',
@@ -155,7 +212,11 @@ function ComponentGallery(props) {
           }),
           h('span', { className: 'mp-set-val' }, rangeValue + '%'),
         ),
-        h(GalleryCase, { title: t('gallery.casePill') },
+        h(GalleryCase, {
+            title: t('gallery.casePill'),
+            adapter: 'KitPill',
+            code: "h(KitPill, { active: value === id, onClick }, label)",
+          },
           [
             ['lyrics', t('gallery.pillLyrics')],
             ['cover', t('gallery.pillCover')],
@@ -188,7 +249,11 @@ function ComponentGallery(props) {
       h(
         'div',
         { key: 'grid', className: 'mp-gallery-grid' },
-        h(GalleryCase, { title: t('gallery.caseSegmented') },
+        h(GalleryCase, {
+            title: t('gallery.caseSegmented'),
+            adapter: 'KitSegmented',
+            code: "h(KitSegmented, { id, value, label, options, onChange })",
+          },
           h(KitSegmented, {
             id: 'mp-gallery-segment',
             value: segmentValue,
@@ -201,7 +266,11 @@ function ComponentGallery(props) {
             onChange: setSegmentValue,
           }),
         ),
-        h(GalleryCase, { title: t('gallery.caseSegmentedTabs') },
+        h(GalleryCase, {
+            title: t('gallery.caseSegmentedTabs'),
+            adapter: 'KitSegmentedTabs',
+            code: "h(KitSegmentedTabs, { items, value, label, onChange })",
+          },
           h(KitSegmentedTabs, {
             items: tabItems,
             value: tabsValue,
@@ -209,7 +278,11 @@ function ComponentGallery(props) {
             onChange: setTabsValue,
           }),
         ),
-        h(GalleryCase, { title: t('gallery.caseTabsSm') },
+        h(GalleryCase, {
+            title: t('gallery.caseTabsSm'),
+            adapter: 'KitSegmentedTabs',
+            code: "h(KitSegmentedTabs, { items, value, size: 'sm', label, onChange })",
+          },
           h(KitSegmentedTabs, {
             items: tabItems,
             value: tabsValue,
@@ -218,12 +291,20 @@ function ComponentGallery(props) {
             onChange: setTabsValue,
           }),
         ),
-        h(GalleryCase, { title: t('gallery.casePillsTab') },
+        h(GalleryCase, {
+            title: t('gallery.casePillsTab'),
+            adapter: 'KitPill',
+            code: "h(KitPill, { active, onClick }, label)",
+          },
           h(KitPill, { active: true, onClick: function () {} }, t('gallery.pillTabOne')),
           h(KitPill, { active: false, onClick: function () {} }, t('gallery.pillTabTwo')),
           h(KitPill, { active: false, onClick: function () {} }, t('gallery.pillTabThree')),
         ),
-        h(GalleryCase, { title: t('gallery.caseTag') },
+        h(GalleryCase, {
+            title: t('gallery.caseTag'),
+            adapter: 'KitTag',
+            code: "h(KitTag, { tone: 'success' }, label)",
+          },
           h(KitTag, { tone: 'outline' }, t('gallery.tagOutline')),
           h(KitTag, { tone: 'neutral' }, t('gallery.tagNeutral')),
           h(KitTag, { tone: 'success' }, t('gallery.tagSuccess')),
@@ -252,14 +333,30 @@ function ComponentGallery(props) {
       h(
         'div',
         { key: 'grid', className: 'mp-gallery-grid' },
-        h(GalleryCase, { title: t('gallery.caseMenu') }, h(HeadMenu, { icon: 'more', title: t('gallery.caseMenu'), items: menuItems })),
-        h(GalleryCase, { title: t('gallery.caseTooltip') },
+        h(GalleryCase, {
+            title: t('gallery.caseMenu'),
+            adapter: 'HeadMenu',
+            code: "h(HeadMenu, { icon: 'more', title, items })",
+        }, h(HeadMenu, { icon: 'more', title: t('gallery.caseMenu'), items: menuItems })),
+        h(GalleryCase, {
+            title: t('gallery.caseTooltip'),
+            adapter: 'IconButton',
+            code: "h(IconButton, { icon: 'info', title })",
+          },
           h(IconButton, { icon: 'info', title: t('gallery.caseTooltip') }),
         ),
-        h(GalleryCase, { title: t('gallery.caseModal') },
+        h(GalleryCase, {
+            title: t('gallery.caseModal'),
+            adapter: 'KitModal',
+            code: "h(KitModal, { title, onClose, footer }, body)",
+          },
           h(Button, { onClick: function () { setModalOpen(true) } }, t('gallery.openModal')),
         ),
-        h(GalleryCase, { title: t('gallery.caseToast') },
+        h(GalleryCase, {
+            title: t('gallery.caseToast'),
+            adapter: 'showToast',
+            code: "showToast(text)",
+          },
           h(Button, { onClick: function () { showToast(t('gallery.toastText')) } }, t('gallery.showToast')),
         ),
       ),
@@ -285,15 +382,28 @@ function ComponentGallery(props) {
       h(
         'div',
         { key: 'grid', className: 'mp-gallery-grid' },
-        h(GalleryCase, { title: t('gallery.caseState') },
+        h(GalleryCase, {
+            title: t('gallery.caseState'),
+            adapter: 'KitStateDot',
+            code: "h(KitStateDot, { state: 'done' })",
+          },
           h(KitStateDot, { state: 'done' }),
           h(KitStateDot, { state: 'warning' }),
           h(KitStateDot, { state: 'error' }),
           h(KitStateDot, { state: 'idle' }),
           h(KitStateDot, { state: 'ongoing' }),
         ),
-        h(GalleryCase, { title: t('gallery.caseSpinner') }, h(Spinner), h('span', { className: 'mp-gallery-note' }, t('gallery.loading'))),
-        h(GalleryCase, { title: t('gallery.caseSetRow'), wide: true },
+        h(GalleryCase, {
+            title: t('gallery.caseSpinner'),
+            adapter: 'Spinner',
+            code: "h(Spinner)",
+        }, h(Spinner), h('span', { className: 'mp-gallery-note' }, t('gallery.loading'))),
+        h(GalleryCase, {
+            title: t('gallery.caseSetRow'),
+            adapter: 'SetRow',
+            code: "h(SetRow, { label, desc }, control)",
+            wide: true,
+          },
           h(SetRow, { label: t('gallery.caseSetRow'), desc: t('gallery.caseSetRowDesc') }, h(Button, null, t('gallery.action'))),
         ),
       ),
@@ -317,6 +427,7 @@ function ComponentGallery(props) {
       { className: 'mp-gallery-head' },
       h(IconButton, { icon: 'chevronLeft', title: t('gallery.back'), onClick: props.onClose }),
       h('div', { className: 'mp-gallery-title' }, t('gallery.title')),
+      h('span', { className: 'mp-gallery-hint' }, t('gallery.usageHint')),
       h('span', { className: 'mp-gallery-hint' }, t('gallery.hostKit') + ': ' + (hostKit === 'native' ? t('gallery.native') : t('gallery.fallback'))),
     ),
     h(
