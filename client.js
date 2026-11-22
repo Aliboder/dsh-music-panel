@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.43.0"
-    var CLIENT_BUILD = "9464def06203"
+    var CLIENT_BUILD = "61bde7364380"
 
     // ── src/client/app/runtime.js
     /**
@@ -8625,7 +8625,6 @@ window.__ModuleLoader__.load({
         'sheet.smartFade': '智能过渡',
         'sheet.effects': '音频效果器',
         'sheet.volume': '音量',
-        'sheet.floatingVolume': '悬浮音量条',
         'sheet.mute': '静音',
         'sheet.unmute': '取消静音',
         'sheet.lyricStyle': '歌词样式',
@@ -9422,7 +9421,6 @@ window.__ModuleLoader__.load({
         'sheet.smartFade': 'Smart fade',
         'sheet.effects': 'Effects',
         'sheet.volume': 'Volume',
-        'sheet.floatingVolume': 'Floating volume',
         'sheet.mute': 'Mute',
         'sheet.unmute': 'Unmute',
         'sheet.lyricStyle': 'Lyric style',
@@ -150833,8 +150831,6 @@ window.__ModuleLoader__.load({
       shuffleRoundNoRepeat: false,
       /** Keep the screen awake while a song plays (Wake Lock, where the host offers it). */
       preventSleepDuringPlayback: false,
-      /** The player page's floating volume rail: on by default, one switch to hide it. */
-      floatingVolume: true,
       onlinePlaylistSort: 'source',
       onboardingDone: true,
     }
@@ -162682,17 +162678,6 @@ window.__ModuleLoader__.load({
       '.mp-np-handle-btn:focus-visible{outline:2px solid var(--dsw-focus-ring-color,#7AAAFF);outline-offset:2px}',
       '.mp-np.is-chrome-hidden .mp-cap{opacity:0;transform:translate(-50%,10px);pointer-events:none}',
       '.mp-np.is-chrome-hidden .mp-np-handle{opacity:0;transform:translateY(10px);pointer-events:none}',
-      // 悬浮音量条: the stage's volume on the right edge. Only the strip takes pointer events, so
-      // lyric dragging and the seek bar are untouched; contrast rises on hover and focus.
-      '.mp-vol-rail{position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 5px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#232324) 74%,transparent);box-shadow:var(--dsw-elevation-soft,0 6px 18px rgba(0,0,0,.28));opacity:.45;transition:opacity .18s ease,background-color .18s ease}',
-      '.mp-vol-rail:hover,.mp-vol-rail:focus-within{opacity:1;background:var(--dsw-alias-bg-layer-1,#232324)}',
-      '.mp-vol-rail-btn{width:24px;height:24px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer}',
-      '.mp-vol-rail-btn:hover{color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08))}',
-      '.mp-vol-rail-btn:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,#4f8cff);outline-offset:1px}',
-      '.mp-vol-rail-range{width:20px;height:96px;writing-mode:vertical-lr;direction:rtl;accent-color:var(--dsw-alias-state-business-primary,#4f8cff);cursor:pointer}',
-      '.mp-vol-rail-value{font-size:11px;font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:0;transition:opacity .18s ease}',
-      '.mp-vol-rail:hover .mp-vol-rail-value,.mp-vol-rail:focus-within .mp-vol-rail-value{opacity:1}',
-      '@media (hover:none){.mp-vol-rail{opacity:.75}}',
       // The top chrome (back / fullscreen) rides the same idle timer: it retreats
       // toward its edge and stops taking clicks, so a resting page is just the song.
       '.mp-np.is-chrome-hidden .mp-np-head{opacity:0;transform:translateY(-8px);pointer-events:none}',
@@ -167405,62 +167390,6 @@ window.__ModuleLoader__.load({
       )
     }
 
-    // ── src/client/components/ui/now-playing/volume-rail.js
-    /**
-     * 悬浮音量条 — the player page's volume, always one gesture away.
-     *
-     * The card keeps a volume row (外观 · 音量) for keyboards and for discoverability; this rail
-     * is the stage's fast path. It only takes the right edge strip, so dragging a lyric line or
-     * the seek bar never hits it by accident, and it reaches full contrast on hover or focus.
-     * Folia draws its volume on the transport; the page here has no transport bar of its own,
-     * so the rail plays that role.
-     */
-    function MpVolumeRail(props) {
-      var prefs = usePrefs()
-      var snap = usePlayerSnapshot()
-      // The player card carries the same row on its 音频 page; two volume bars at once read as
-      // a duplicated control, so the rail steps aside while the card is open.
-      if (props.hidden === true) return null
-      if (prefs.floatingVolume === false) return null
-      var volume = Number(snap.volume)
-      if (!isFinite(volume)) volume = 1
-      var muted = snap.muted === true
-      var heard = muted ? 0 : Math.max(0, Math.min(1, volume))
-      return h(
-        'div',
-        {
-          className: cx('mp-vol-rail', muted && 'is-muted'),
-          role: 'group',
-          'aria-label': t('sheet.volume'),
-        },
-        h(
-          'button',
-          {
-            type: 'button',
-            className: 'mp-vol-rail-btn',
-            title: muted ? t('sheet.unmute') : t('sheet.mute'),
-            onClick: function () {
-              player.setMuted(!muted)
-            },
-          },
-          icon(muted || heard === 0 ? 'mute' : heard < 0.5 ? 'volumeLow' : 'volume', 16),
-        ),
-        h('input', {
-          type: 'range',
-          className: 'mp-vol-rail-range',
-          min: '0',
-          max: '1',
-          step: '0.01',
-          value: String(heard),
-          'aria-label': t('sheet.volume'),
-          onChange: function (event) {
-            player.setVolume(Number(event.target.value))
-          },
-        }),
-        h('span', { className: 'mp-vol-rail-value', 'aria-hidden': 'true' }, String(Math.round(heard * 100)) + '%'),
-      )
-    }
-
     // ── src/client/components/ui/now-playing/index.js
     /**
      * The full-panel player: composition and state. Presentation lives in the sibling
@@ -168782,9 +168711,6 @@ window.__ModuleLoader__.load({
               },
             })
           : null,
-        // The stage's volume, on the right edge: the card's 音频 · 音量 row stays as the
-        // keyboard path and the discoverable one. Hidden while the card shows its own.
-        h(MpVolumeRail, { hidden: sheetOpen }),
         // One queue implementation: the panel queue, popped out beside the control that
         // opened it. Opening it must not leave the player page.
         props.queueOpen === true
@@ -178317,16 +178243,6 @@ window.__ModuleLoader__.load({
                 String(Math.round(heard * 100)) + '%',
               ),
             ),
-            mpPanelRow(
-              t('sheet.floatingVolume'),
-              h(Switch, {
-                value: prefs.floatingVolume !== false,
-                label: t('sheet.floatingVolume'),
-                onChange: function (value) {
-                  setPrefs({ floatingVolume: value })
-                },
-              }),
-            ),
           ),
         )
       }
@@ -181832,8 +181748,6 @@ window.__ModuleLoader__.load({
           SettingsSheet: typeof SettingsSheet === 'function' ? SettingsSheet : null,
           // The player page renders so its queue popover cannot silently leave the page.
           NowPlaying: typeof NowPlaying === 'function' ? NowPlaying : null,
-          // The stage's floating volume rail: a render check keeps the switch honest.
-          MpVolumeRail: typeof MpVolumeRail === 'function' ? MpVolumeRail : null,
           LyricMatchDialog: LyricMatchDialog,
           // The match window's preset query is pure, so a test pins it to the title.
           lyricMatchSongQuery: typeof lyricMatchSongQuery === 'function' ? lyricMatchSongQuery : null,

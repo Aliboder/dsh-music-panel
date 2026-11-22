@@ -51,7 +51,6 @@ test('音频 page: quality, volume, play mode, fade, gain and the effects window
   assert.match(audio, /gainBlock\(\)/, 'the gain block is the one the lyrics page used to hold')
   assert.match(sheet, /function gainBlock\(\)[\s\S]{0,600}sheet\.audioGain/, 'the gain block keeps its label')
   assert.match(sheet, /function volumeBlock\(\)/, 'the volume block exists')
-  assert.match(sheet, /t\('sheet\.floatingVolume'\)/, 'the floating switch travels with the volume row')
   assert.doesNotMatch(audio, /sheet\.lyricSegmentation/, 'the word split left the audio page')
   assert.doesNotMatch(audio, /sheet\.provider|sheet\.account/, 'platform and account facts left the card')
 })

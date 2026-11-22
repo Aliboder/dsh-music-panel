@@ -86,7 +86,6 @@
     "src/client/components/ui/now-playing/secondary-actions.js",
     "src/client/components/ui/now-playing/capsule.js",
     "src/client/components/ui/now-playing/editor.js",
-    "src/client/components/ui/now-playing/volume-rail.js",
     "src/client/components/ui/now-playing/index.js",
     "src/client/components/ui/settings.js",
     "src/client/components/ui/dialogs.js",
