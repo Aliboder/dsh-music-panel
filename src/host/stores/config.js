@@ -14,6 +14,10 @@ export const DEFAULTS = Object.freeze({
   depth: 4,
   extensions: ['mp3', 'flac', 'm4a', 'wav', 'ogg', 'oga', 'opus', 'aac', 'mp4'],
   onlineQuality: 'standard',
+  /** Media cache directory; '' means the plugin's own data directory. */
+  cacheDir: '',
+  /** Folia's 自动扫描已导入文件夹: rescan when a watched folder changes. */
+  watchFolders: false,
 })
 
 /** Extensions the scanner may emit; anything else is ignored on disk. */
@@ -89,7 +93,10 @@ export function normalizeConfig(raw) {
   // Online playback is standard quality only (no user-facing quality choice).
   const onlineQuality = 'standard'
 
-  return { roots, hiddenRoots, depth, extensions, onlineQuality }
+  const cacheDir = strOf(input.cacheDir).slice(0, MAX_ROOT_LENGTH)
+  const watchFolders = input.watchFolders === true
+
+  return { roots, hiddenRoots, depth, extensions, onlineQuality, cacheDir, watchFolders }
 }
 
 /**

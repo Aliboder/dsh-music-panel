@@ -20,7 +20,7 @@ const dataDir = await mkdtemp(join(tmpdir(), 'dsh-music-media-cache-'))
 await mkdir(join(dataDir, 'cache', 'online', PROVIDER), { recursive: true })
 await writeFile(join(dataDir, 'cache', 'online', PROVIDER, ID + '.mp3'), audioBytes(2048))
 
-const cache = createMediaCache({ dir: dataDir })
+const cache = createMediaCache({ dir: join(dataDir, 'cache') })
 await cache.ensure()
 
 assert.equal(

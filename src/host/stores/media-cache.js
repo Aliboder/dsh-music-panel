@@ -77,11 +77,26 @@ function replayGainOf(value) {
 
 /** @param {{ dir: string }} options */
 export function createMediaCache(options) {
-  const root = join(options.dir, 'cache')
-  const audioRoot = join(root, 'audio')
-  const coverRoot = join(root, 'cover')
-  const versionFile = join(root, 'version.json')
+  // options.dir is the cache root itself: the default <data>/cache, or the folder the
+  // listener picked in 存储与备份 → 缓存目录.
+  let root = options.dir
+  let audioRoot = join(root, 'audio')
+  let coverRoot = join(root, 'cover')
+  let versionFile = join(root, 'version.json')
   let preparing = null
+
+  /**
+   * Point the store at another directory (the listener's 缓存目录 setting). Nothing is
+   * moved: the old directory keeps its files, and the store starts from the new one.
+   */
+  function setDir(dir) {
+    const base = typeof dir === 'string' && dir.trim() !== '' ? dir : options.dir
+    root = base
+    audioRoot = join(root, 'audio')
+    coverRoot = join(root, 'cover')
+    versionFile = join(root, 'version.json')
+    preparing = null
+  }
 
   function ensure() {
     if (preparing === null) preparing = prepare()
@@ -412,6 +427,11 @@ export function createMediaCache(options) {
 
   return {
     ensure,
+    setDir,
+    /** The cache root on disk, for the settings page's 缓存目录 row. */
+    dir() {
+      return root
+    },
     lookup,
     touch,
     store,

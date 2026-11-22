@@ -61,6 +61,16 @@ function readBalanceStore() {
 
 var balanceStoreData = readBalanceStore()
 
+/** Forget every balance record (设置 · 存储与备份 · 清除智能平衡数据). */
+function clearBalanceStore() {
+  balanceStoreData = { songs: {}, typical: [] }
+  try {
+    window.localStorage.removeItem(BALANCE_METER_KEY)
+  } catch (error) {
+    // Blocked storage: the in-memory copy is already empty.
+  }
+}
+
 function writeBalanceStore() {
   try {
     window.localStorage.setItem(BALANCE_METER_KEY, JSON.stringify(balanceStoreData))

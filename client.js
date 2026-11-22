@@ -8217,7 +8217,7 @@ window.__ModuleLoader__.load({
 
         'v2.online': '在线',
         'v2.cacheTab': '缓存',
-        'v2.dataTab': '数据',
+        'v2.dataTab': '存储与备份',
         'data.total': '插件数据',
         'data.files': '{size} · {n} 个文件',
         'data.cacheEnable': '缓存歌曲',
@@ -8242,6 +8242,59 @@ window.__ModuleLoader__.load({
         'data.category.accounts': '账号与登录',
         'data.category.cache': '缓存',
         'data.category.trash': '回收站',
+        'data.groupMedia': '媒体缓存',
+        'data.groupDetails': '缓存详情',
+        'data.groupWatch': '本地文件夹监视',
+        'data.groupBackup': '备份与导入',
+        'data.groupDanger': '危险操作',
+        'data.cacheDir': '缓存目录',
+        'data.cacheDirDefault': '当前使用默认缓存目录。',
+        'data.cacheDirCustom': '当前使用自定义缓存目录；切换后旧目录的缓存不会自动迁移。',
+        'data.cacheDirUnset': '未设置',
+        'data.cacheDirOpen': '打开目录',
+        'data.cacheDirPick': '选择文件夹',
+        'data.cacheDirChanged': '缓存目录已切换',
+        'data.cacheSongs': '已缓存歌曲',
+        'data.cacheSongsDesc': '缓存了音频与封面的歌曲数量。',
+        'data.cacheSongsValue': '{songs} 首 · {size}',
+        'data.cacheCleared': '已清空',
+        'data.rowPlaylists': '歌单数据',
+        'data.rowLyrics': '歌词',
+        'data.rowCover': '封面',
+        'data.rowAudio': '媒体文件',
+        'data.rowProfile': '分析数据',
+        'data.rowBalance': '智能平衡数据',
+        'data.rowLyricsExport': '批量导出歌词',
+        'data.clearAll': '全部清空',
+        'data.clearPlaylistsTitle': '清空歌单数据',
+        'data.clearPlaylistsText': '会清空收藏与歌单列表；音乐文件不会删除。',
+        'data.clearLyricsTitle': '清空歌词缓存',
+        'data.clearLyricsText': '会删除已缓存歌词、匹配记录与逐字偏移记忆。',
+        'data.clearCoverTitle': '清空封面缓存',
+        'data.clearCoverText': '会删除在线歌曲缓存的封面图片。',
+        'data.clearAudioTitle': '清空媒体缓存',
+        'data.clearAudioText': '会删除缓存的音频文件；这些歌的封面也会一起删除。',
+        'data.clearProfileTitle': '清空分析数据',
+        'data.clearProfileText': '会删除自动过渡所用的曲目分析数据。',
+        'data.clearBalanceTitle': '清空智能平衡数据',
+        'data.clearBalanceText': '会删除响度均衡的历史记录。',
+        'data.clearAllTitle': '清空缓存详情',
+        'data.clearAllText': '会清空歌单数据、歌词、封面、媒体文件、分析数据与智能平衡数据；设置、登录与音乐文件保留。',
+        'data.exportDone': '已导出 {n} 首歌词',
+        'data.exportEmpty': '没有可导出的歌词',
+        'data.watchEnable': '自动扫描已导入文件夹',
+        'data.watchEnableDesc': '文件有变化时自动做一次增量扫描。',
+        'data.backupTitle': '备份与导入',
+        'data.backupRow': '设置备份',
+        'data.backupDesc': '导出或导入插件设置；不含缓存、歌词与登录凭证。',
+        'data.backupOpen': '管理',
+        'data.backupHint': '备份只包含插件设置与音乐目录配置。导入会覆盖当前设置，但不会删除缓存与登录状态。',
+        'data.backupExport': '导出备份',
+        'data.backupImport': '导入备份',
+        'data.backupExported': '备份已导出',
+        'data.backupImported': '设置已导入',
+        'data.backupBadFile': '不是有效的备份文件',
+        'data.backupUnavailable': '当前环境不支持下载',
         'data.category.other': '其他',
         'data.resetTitle': '清空插件所有数据',
         'data.resetHint': '会删除设置、收藏、歌单、统计、播放状态、登录凭证、缓存和回收站。音乐文件不会删除。',
@@ -8381,7 +8434,7 @@ window.__ModuleLoader__.load({
         'settings.tabPlayback': '播放控制',
         'settings.tabOnline': '在线与账号',
         'settings.tabLibrary': '音乐库',
-        'settings.tabStorage': '存储与数据',
+        'settings.tabStorage': '存储与备份',
         'settings.tabAbout': '关于与诊断',
         'settings.groupStartup': '启动与恢复',
         'settings.groupSound': '声音与设备',
@@ -8940,7 +8993,7 @@ window.__ModuleLoader__.load({
 
         'v2.online': 'Online',
         'v2.cacheTab': 'Cache',
-        'v2.dataTab': 'Data',
+        'v2.dataTab': 'Storage & backup',
         'data.total': 'Plugin data',
         'data.files': '{size} · {n} files',
         'data.cacheEnable': 'Cache songs',
@@ -8965,6 +9018,59 @@ window.__ModuleLoader__.load({
         'data.category.accounts': 'Accounts & sign-ins',
         'data.category.cache': 'Cache',
         'data.category.trash': 'Recycle bin',
+        'data.groupMedia': 'Media cache',
+        'data.groupDetails': 'Cache details',
+        'data.groupWatch': 'Local folder watching',
+        'data.groupBackup': 'Backup & import',
+        'data.groupDanger': 'Danger zone',
+        'data.cacheDir': 'Cache folder',
+        'data.cacheDirDefault': 'Using the default cache folder.',
+        'data.cacheDirCustom': 'Using a custom cache folder; caches in the old folder are not moved.',
+        'data.cacheDirUnset': 'Not set',
+        'data.cacheDirOpen': 'Open folder',
+        'data.cacheDirPick': 'Choose folder',
+        'data.cacheDirChanged': 'Cache folder changed',
+        'data.cacheSongs': 'Cached songs',
+        'data.cacheSongsDesc': 'Songs whose audio and cover are cached.',
+        'data.cacheSongsValue': '{songs} songs · {size}',
+        'data.cacheCleared': 'Cleared',
+        'data.rowPlaylists': 'Playlist data',
+        'data.rowLyrics': 'Lyrics',
+        'data.rowCover': 'Covers',
+        'data.rowAudio': 'Media files',
+        'data.rowProfile': 'Analysis data',
+        'data.rowBalance': 'Smart balance data',
+        'data.rowLyricsExport': 'Export lyrics',
+        'data.clearAll': 'Clear all',
+        'data.clearPlaylistsTitle': 'Clear playlist data',
+        'data.clearPlaylistsText': 'Clears favorites and playlists; music files are not deleted.',
+        'data.clearLyricsTitle': 'Clear lyric cache',
+        'data.clearLyricsText': 'Deletes cached lyrics, match records and word-timing offset memory.',
+        'data.clearCoverTitle': 'Clear cover cache',
+        'data.clearCoverText': 'Deletes cached cover images for online songs.',
+        'data.clearAudioTitle': 'Clear media cache',
+        'data.clearAudioText': 'Deletes cached audio files; their covers go too.',
+        'data.clearProfileTitle': 'Clear analysis data',
+        'data.clearProfileText': 'Deletes the track analysis used by automatic transitions.',
+        'data.clearBalanceTitle': 'Clear smart balance data',
+        'data.clearBalanceText': 'Deletes the loudness-balance history.',
+        'data.clearAllTitle': 'Clear cache details',
+        'data.clearAllText': 'Clears playlist data, lyrics, covers, media files, analysis and smart balance data; settings, sign-ins and music files stay.',
+        'data.exportDone': 'Exported {n} lyrics',
+        'data.exportEmpty': 'No lyrics to export',
+        'data.watchEnable': 'Automatically rescan imported folders',
+        'data.watchEnableDesc': 'Runs an incremental scan when files change.',
+        'data.backupTitle': 'Backup & import',
+        'data.backupRow': 'Settings backup',
+        'data.backupDesc': 'Export or import plugin settings; no cache, lyrics or sign-ins.',
+        'data.backupOpen': 'Manage',
+        'data.backupHint': 'The backup contains plugin settings and music folder configuration only. Importing overwrites the current settings but keeps caches and sign-ins.',
+        'data.backupExport': 'Export backup',
+        'data.backupImport': 'Import backup',
+        'data.backupExported': 'Backup exported',
+        'data.backupImported': 'Settings imported',
+        'data.backupBadFile': 'Not a valid backup file',
+        'data.backupUnavailable': 'Downloading is not available here',
         'data.category.other': 'Other',
         'data.resetTitle': 'Clear all plugin data',
         'data.resetHint': 'Deletes settings, favorites, playlists, stats, playback state, sign-ins, cache and the recycle bin. Music files are not deleted.',
@@ -9104,7 +9210,7 @@ window.__ModuleLoader__.load({
         'settings.tabPlayback': 'Playback',
         'settings.tabOnline': 'Online & accounts',
         'settings.tabLibrary': 'Library',
-        'settings.tabStorage': 'Storage & data',
+        'settings.tabStorage': 'Storage & backup',
         'settings.tabAbout': 'About & diagnostics',
         'settings.groupStartup': 'Startup & resume',
         'settings.groupSound': 'Sound & devices',
@@ -10575,6 +10681,27 @@ window.__ModuleLoader__.load({
         window.localStorage.setItem(LYRIC_SEGMENTATION_KEY, JSON.stringify(map))
       } catch (error) {
         // Storage full or blocked: the lyrics in this session keep the split until a reload.
+      }
+    }
+
+    /**
+     * Forget every client-side lyric memory: the saved offsets (the bundle's map) and the
+     * saved word-splits used by the player. 存储与备份 calls this so a clear also holds in the
+     * running session, not only after a reload.
+     */
+    function clearLyricClientCaches() {
+      try {
+        if (typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null && typeof MPFoliaLyrics.clearLyricOffsets === 'function') {
+          MPFoliaLyrics.clearLyricOffsets()
+        }
+      } catch (error) {
+        // A missing/older bundle leaves the offsets until reload; the key is removed below.
+      }
+      lyricSegmentationCache = null
+      try {
+        window.localStorage.removeItem(LYRIC_SEGMENTATION_KEY)
+      } catch (error) {
+        // Blocked storage: nothing to forget.
       }
     }
 
@@ -18321,6 +18448,7 @@ window.__ModuleLoader__.load({
         applyLyricWordSegmentation: () => applyLyricWordSegmentation,
         buildSegmentationBoundaries: () => buildSegmentationBoundaries,
         buildSegmentationExportText: () => buildSegmentationExportText,
+        clearLyricOffsets: () => clearLyricOffsets,
         compileLyricLineRules: () => compileLyricLineRules,
         countAppliedSegmentationLines: () => countAppliedSegmentationLines,
         createLyricSegmentationRecord: () => createLyricSegmentationRecord,
@@ -21719,6 +21847,16 @@ window.__ModuleLoader__.load({
         }
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(map)));
+        } catch {
+        }
+      };
+      var clearLyricOffsets = () => {
+        cache = /* @__PURE__ */ new Map();
+        if (typeof window === "undefined") {
+          return;
+        }
+        try {
+          localStorage.removeItem(STORAGE_KEY);
         } catch {
         }
       };
@@ -150638,6 +150776,11 @@ window.__ModuleLoader__.load({
       return merged
     }
 
+    /** The settings a backup may carry; unknown keys in an imported file are ignored. */
+    function prefKeys() {
+      return Object.keys(PREF_DEFAULTS)
+    }
+
     function savePrefs(patch) {
       var next = readPrefs()
       if (patch !== null && typeof patch === 'object') {
@@ -159874,10 +160017,40 @@ window.__ModuleLoader__.load({
     async function loadConfig() {
       try {
         var body = await getJson(API + 'config')
-        libraryStore.set({ config: body.config || null })
+        libraryStore.set({
+          config: body.config || null,
+          cacheDir: typeof body.effectiveCacheDir === 'string' ? body.effectiveCacheDir : '',
+          defaultCacheDir: typeof body.defaultCacheDir === 'string' ? body.defaultCacheDir : '',
+        })
         return body.config || null
       } catch (error) {
         return null
+      }
+    }
+
+    /** Save settings that do not change the library (cache directory, folder watching). */
+    async function saveHostConfig(patch) {
+      try {
+        var body = await postJson(API + 'config', patch)
+        libraryStore.set({
+          config: body.config || null,
+          cacheDir: typeof body.effectiveCacheDir === 'string' ? body.effectiveCacheDir : '',
+          defaultCacheDir: typeof body.defaultCacheDir === 'string' ? body.defaultCacheDir : '',
+        })
+        return body
+      } catch (error) {
+        showToast(errorText(error))
+        return null
+      }
+    }
+
+    /** Show a plugin-owned directory in the OS file manager. */
+    async function revealHostDir(kind) {
+      try {
+        await postJson(API + 'reveal-dir', { kind: kind })
+        showToast(t('page.revealed'))
+      } catch (error) {
+        showToast(errorText(error))
       }
     }
 
@@ -161141,6 +161314,16 @@ window.__ModuleLoader__.load({
 
     var balanceStoreData = readBalanceStore()
 
+    /** Forget every balance record (设置 · 存储与备份 · 清除智能平衡数据). */
+    function clearBalanceStore() {
+      balanceStoreData = { songs: {}, typical: [] }
+      try {
+        window.localStorage.removeItem(BALANCE_METER_KEY)
+      } catch (error) {
+        // Blocked storage: the in-memory copy is already empty.
+      }
+    }
+
     function writeBalanceStore() {
       try {
         window.localStorage.setItem(BALANCE_METER_KEY, JSON.stringify(balanceStoreData))
@@ -161466,6 +161649,16 @@ window.__ModuleLoader__.load({
           .forEach(function (key) { delete profileStoreData[key] })
       }
       writeProfileStore()
+    }
+
+    /** Forget every analysis record (设置 · 存储与备份 · 清除分析数据). */
+    function clearProfileStore() {
+      profileStoreData = {}
+      try {
+        window.localStorage.removeItem(PROFILE_STORE_KEY)
+      } catch (error) {
+        // Blocked storage: the in-memory copy is already empty.
+      }
     }
 
     /** Test-only: forget the in-memory copy. */
@@ -162436,6 +162629,9 @@ window.__ModuleLoader__.load({
       '.mp-data-row + .mp-data-row{border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
       '.mp-data-row-label{color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-data-row-meta{color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums}',
+      '.mp-data-path{max-width:min(46vw,420px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-data-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
+      '.mp-data-size{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums;white-space:nowrap}',
       '.mp-data-danger{margin-top:22px;padding:12px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 34%,transparent);border-radius:12px;background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#e5484d) 7%,transparent)}',
       '.mp-data-danger-title{font-size:12px;font-weight:650;color:var(--dsw-alias-state-error-primary,#e5484d)}',
       '.mp-data-danger-desc{margin:5px 0 10px;font-size:11px;line-height:1.55;color:var(--dsw-alias-label-secondary,#b4b4bd)}',
@@ -167768,6 +167964,18 @@ window.__ModuleLoader__.load({
       var resetBusyPair = useState(false)
       var resetBusy = resetBusyPair[0]
       var setResetBusy = resetBusyPair[1]
+      // 存储与备份: the backup window, and a counter that re-renders after localStorage rows
+      // are cleared (their sizes are read from storage during render).
+      var backupOpenPair = useState(false)
+      var backupOpen = backupOpenPair[0]
+      var setBackupOpen = backupOpenPair[1]
+      var backupBusyPair = useState(false)
+      var backupBusy = backupBusyPair[0]
+      var setBackupBusy = backupBusyPair[1]
+      var backupFileRef = useRef(null)
+      var storageTickPair = useState(0)
+      var storageTick = storageTickPair[0]
+      var setStorageTick = storageTickPair[1]
       var pathPair = useState('')
       var rootDraft = pathPair[0]
       var setRootDraft = pathPair[1]
@@ -167856,6 +168064,8 @@ window.__ModuleLoader__.load({
         function () {
           if (tab !== 'cache' || props.open !== true) return undefined
           var cancelled = false
+          // The cache directory and 自动扫描 live in the Host config; read it with the sizes.
+          void loadConfig()
           getJson(API + 'online/cache')
             .then(function (body) {
               if (!cancelled) setCache(body)
@@ -168126,11 +168336,16 @@ window.__ModuleLoader__.load({
       }
 
       /** One settings group: Folia's heading over one card of rows. */
-      function settingsGroup(key, labelKey, rows, foot) {
+      function settingsGroup(key, labelKey, rows, foot, action) {
         return h(
           'section',
           { key: 'group-' + key, className: 'mp-set-group' },
-          h('div', { className: 'mp-set-group-head' }, h('span', { className: 'mp-set-label' }, t(labelKey))),
+          h(
+            'div',
+            { className: 'mp-set-group-head' },
+            h('span', { className: 'mp-set-label' }, t(labelKey)),
+            action || null,
+          ),
           h('div', { className: 'mp-set-card' }, h('div', { className: 'mp-set-card-body' }, rows)),
           foot ? h('div', { key: 'foot', className: 'mp-set-foot' }, foot) : null,
         )
@@ -168143,6 +168358,32 @@ window.__ModuleLoader__.load({
           if (LYRIC_GROUP_DEFS[index].key === key) def = LYRIC_GROUP_DEFS[index]
         }
         return def === null ? null : settingsGroup('lyric-' + key, def.labelKey, rows)
+      }
+
+      /** Bytes held by these localStorage keys: browsers keep strings as UTF-16. */
+      function storageBytes(keys) {
+        var total = 0
+        if (typeof window === 'undefined' || !window.localStorage) return total
+        for (var index = 0; index < keys.length; index += 1) {
+          try {
+            var raw = window.localStorage.getItem(keys[index])
+            if (raw !== null) total += raw.length * 2
+          } catch (error) {
+            /* private mode */
+          }
+        }
+        return total
+      }
+
+      function clearStorageKeys(keys) {
+        if (typeof window === 'undefined' || !window.localStorage) return
+        for (var index = 0; index < keys.length; index += 1) {
+          try {
+            window.localStorage.removeItem(keys[index])
+          } catch (error) {
+            /* private mode */
+          }
+        }
       }
 
       function currentLyricGlobalOffset() {
@@ -169351,15 +169592,26 @@ window.__ModuleLoader__.load({
       }
 
       function cacheTab() {
+        // Sizes below are read fresh each render; clearing localStorage rows bumps storageTick.
+        void storageTick
+        var config = library.config || {}
         var stats = cache || { songs: 0, files: 0, bytes: 0, categories: { audio: { files: 0, bytes: 0 }, cover: { files: 0, bytes: 0 } } }
         var dataStats = data || { files: 0, bytes: 0, categories: [] }
         var categories = Array.isArray(dataStats.categories) ? dataStats.categories : []
-        var lyricsCategory = categories.filter(function (category) { return category.id === 'lyrics' })[0] || null
-        var cacheCategories = [
-          { key: 'audio', label: t('data.cacheAudio'), meta: fmtBytes((stats.categories && stats.categories.audio && stats.categories.audio.bytes) || 0) },
-          { key: 'cover', label: t('data.cacheCovers'), meta: fmtBytes((stats.categories && stats.categories.cover && stats.categories.cover.bytes) || 0) },
-          { key: 'lyrics', label: t('data.cacheLyrics'), meta: lyricsCategory ? fmtBytes(lyricsCategory.bytes || 0) : '' },
-        ]
+        function categoryBytes(id) {
+          for (var index = 0; index < categories.length; index += 1) {
+            if (categories[index].id === id) return Number(categories[index].bytes) || 0
+          }
+          return 0
+        }
+        var audioBytes = Number(stats.categories && stats.categories.audio && stats.categories.audio.bytes) || 0
+        var coverBytes = Number(stats.categories && stats.categories.cover && stats.categories.cover.bytes) || 0
+        var playlistsBytes = categoryBytes('favorites') + categoryBytes('playlists')
+        var lyricClientKeys = ['lyric_timeline_offsets', 'lyric_segmentations']
+        var lyricsBytes = categoryBytes('lyrics') + storageBytes(lyricClientKeys)
+        var profileBytes = storageBytes(['music.profile.v1'])
+        var balanceBytes = storageBytes(['music.balance.v1'])
+        var limitGb = prefs.onlineCacheLimitGb === undefined ? 5 : Number(prefs.onlineCacheLimitGb)
         var limitOptions = [
           { value: '1', label: '1 GB' },
           { value: '2', label: '2 GB' },
@@ -169369,22 +169621,149 @@ window.__ModuleLoader__.load({
           { value: '50', label: '50 GB' },
           { value: '0', label: t('data.cacheNoLimit') },
         ]
-        var limitGb = prefs.onlineCacheLimitGb === undefined ? 5 : Number(prefs.onlineCacheLimitGb)
-        function clearCategory(category) {
-          postJson(API + 'online/cache', { category: category })
-            .then(function () {
-              showToast(t('online.cacheCleared'))
-              return getJson(API + 'online/cache').then(function (body) {
-                setCache(body)
-              })
+        var cacheDir = library.cacheDir || library.defaultCacheDir || ''
+        var customCache = typeof config.cacheDir === 'string' && config.cacheDir !== ''
+
+        function refreshStorage() {
+          getJson(API + 'online/cache').then(function (body) { setCache(body) }).catch(function () { setCache(null) })
+          getJson(API + 'data').then(function (body) { setData(body) }).catch(function () { setData(null) })
+          void loadConfig()
+          setStorageTick(function (value) { return value + 1 })
+        }
+
+        function clearHostCategory(category) {
+          return postJson(API + 'data/clear', { category: category })
+        }
+
+        function clearCacheCategory(category) {
+          return postJson(API + 'online/cache', { category: category })
+        }
+
+        function runClear(run) {
+          Promise.resolve().then(run).then(function () {
+            showToast(t('data.cacheCleared'))
+            refreshStorage()
+          }).catch(function (error) {
+            showToast(errorText(error))
+          })
+        }
+
+        function confirmClear(titleKey, textKey, run) {
+          pushLayer('confirm', {
+            title: t(titleKey),
+            text: t(textKey),
+            onConfirm: function () {
+              runClear(run)
+            },
+          })
+        }
+
+        function clearPlaylistsData() {
+          runClear(function () {
+            return Promise.all([clearHostCategory('favorites'), clearHostCategory('playlists')]).then(function () {
+              void loadLibrary(false)
+              void loadFavorites()
+              void loadPlaylists()
+            })
+          })
+        }
+
+        function clearLyricClient() {
+          if (typeof clearLyricClientCaches === 'function') {
+            clearLyricClientCaches()
+            return
+          }
+          clearStorageKeys(lyricClientKeys)
+        }
+
+        function clearLyricsData() {
+          runClear(function () {
+            return clearHostCategory('lyrics').then(function () {
+              clearLyricClient()
+            })
+          })
+        }
+
+        function clearCoverData() {
+          runClear(function () {
+            return clearCacheCategory('cover')
+          })
+        }
+
+        function clearAudioData() {
+          runClear(function () {
+            return clearCacheCategory('audio')
+          })
+        }
+
+        function clearProfileData() {
+          runClear(function () {
+            if (typeof clearProfileStore === 'function') clearProfileStore()
+            else clearStorageKeys(['music.profile.v1'])
+          })
+        }
+
+        function clearBalanceData() {
+          runClear(function () {
+            if (typeof clearBalanceStore === 'function') clearBalanceStore()
+            else clearStorageKeys(['music.balance.v1'])
+          })
+        }
+
+        function clearAllDetails() {
+          runClear(function () {
+            return Promise.all([
+              clearHostCategory('favorites'),
+              clearHostCategory('playlists'),
+              clearHostCategory('lyrics'),
+              clearCacheCategory('cover'),
+              clearCacheCategory('audio'),
+            ]).then(function () {
+              clearLyricClient()
+              if (typeof clearProfileStore === 'function') clearProfileStore()
+              else clearStorageKeys(['music.profile.v1'])
+              if (typeof clearBalanceStore === 'function') clearBalanceStore()
+              else clearStorageKeys(['music.balance.v1'])
+              void loadLibrary(false)
+              void loadFavorites()
+              void loadPlaylists()
+            })
+          })
+        }
+
+        function exportLyrics() {
+          if (busy) return
+          setBusy(true)
+          postJson(API + 'data/export-lyrics', {})
+            .then(function (body) {
+              setBusy(false)
+              if (!body || !body.count) {
+                showToast(t('data.exportEmpty'))
+                return
+              }
+              showToast(t('data.exportDone', { n: body.count }))
+              void revealHostDir('exports')
             })
             .catch(function (error) {
+              setBusy(false)
               showToast(errorText(error))
             })
         }
-        return [
-          h('h2', { key: 'h' }, t('v2.dataTab')),
-          h('div', { key: 'cache-head', className: 'mp-set-label' }, t('settings.groupCache')),
+
+        function clearButton(onClick) {
+          return h(Button, { variant: 'ghost', icon: 'trash', onClick: onClick }, t('data.cacheClear'))
+        }
+
+        function detailRow(key, label, bytes, actions) {
+          return h(
+            SetRow,
+            { key: 'detail-' + key, label: label },
+            h('span', { className: 'mp-data-size' }, fmtBytes(bytes)),
+            actions,
+          )
+        }
+
+        var mediaRows = [
           h(
             SetRow,
             { key: 'cache-enable', label: t('data.cacheEnable'), desc: t('data.cacheEnableDesc') },
@@ -169397,71 +169776,129 @@ window.__ModuleLoader__.load({
           ),
           h(
             SetRow,
-            { key: 'cache-limit', label: t('data.cacheLimit'), desc: t('data.cacheLimitDesc') },
-            mpSegment(limitOptions, String(limitGb), function (value) {
-              patchPrefs({ onlineCacheLimitGb: Number(value) })
+            {
+              key: 'cache-dir',
+              label: t('data.cacheDir'),
+              desc: t(customCache ? 'data.cacheDirCustom' : 'data.cacheDirDefault'),
+            },
+            h('span', { className: 'mp-data-path', title: cacheDir }, cacheDir || t('data.cacheDirUnset')),
+            h(IconButton, {
+              icon: 'folder',
+              size: 15,
+              title: t('data.cacheDirOpen'),
+              onClick: function () {
+                void revealHostDir('cache')
+              },
             }),
-          ),
-          h(
-            'div',
-            { key: 'cache-usage', className: 'mp-data-total' },
-            h('span', { className: 'mp-data-total-label' }, t('data.cacheUsageLabel')),
             h(
-              'strong',
-              null,
-              t('data.cacheUsage', { songs: stats.songs || 0, size: fmtBytes(stats.bytes || 0) }),
+              Button,
+              {
+                variant: 'ghost',
+                onClick: function () {
+                  pushLayer('folderPicker', { mode: 'cacheDir' })
+                },
+              },
+              t('data.cacheDirPick'),
             ),
           ),
           h(
-            'div',
-            { key: 'cache-rows', className: 'mp-data-rows' },
-            cacheCategories.map(function (category) {
-              return h(
-                'div',
-                { key: category.key, className: 'mp-data-row' },
-                h('span', { className: 'mp-data-row-label' }, category.label),
-                h('span', { className: 'mp-data-row-meta' }, category.meta),
-                h(
-                  Button,
-                  {
-                    variant: 'ghost',
-                    icon: 'trash',
-                    onClick: function () {
-                      clearCategory(category.key)
-                    },
-                  },
-                  t('data.cacheClear'),
-                ),
-              )
+            SetRow,
+            { key: 'cache-limit', label: t('data.cacheLimit'), desc: t('data.cacheLimitDesc') },
+            h(KitSelect, {
+              value: String(limitGb),
+              label: t('data.cacheLimit'),
+              options: limitOptions,
+              onChange: function (value) {
+                patchPrefs({ onlineCacheLimitGb: Number(value) })
+              },
             }),
           ),
-          h('p', { key: 'cache-hint', className: 'mp-set-desc' }, t('data.cacheHint')),
           h(
-            'div',
-            { key: 'data-total', className: 'mp-data-total' },
-            h('span', { className: 'mp-data-total-label' }, t('data.total')),
-            h('strong', null, t('data.files', { n: dataStats.files || 0, size: fmtBytes(dataStats.bytes || 0) })),
+            SetRow,
+            { key: 'cache-songs', label: t('data.cacheSongs'), desc: t('data.cacheSongsDesc') },
+            h('span', { className: 'mp-data-size' }, t('data.cacheSongsValue', {
+              songs: stats.songs || 0,
+              size: fmtBytes(stats.bytes || 0),
+            })),
           ),
-          categories.length === 0
-            ? null
-            : h(
-                'div',
-                { key: 'data-rows', className: 'mp-data-rows' },
-                categories.map(function (category) {
-                  return h(
-                    'div',
-                    { key: category.id, className: 'mp-data-row' },
-                    h('span', { className: 'mp-data-row-label' }, t('data.category.' + category.id)),
-                    h(
-                      'span',
-                      { className: 'mp-data-row-meta' },
-                      t('data.files', { n: category.files || 0, size: fmtBytes(category.bytes || 0) }),
-                    ),
-                  )
-                }),
-              ),
-          h('p', { key: 'data-hint', className: 'mp-set-desc' }, t('data.hint')),
-          h('div', { key: 'reset-head', className: 'mp-set-label' }, t('settings.groupReset')),
+        ]
+
+        var detailRows = [
+          detailRow('playlists', t('data.rowPlaylists'), playlistsBytes, clearButton(function () {
+            confirmClear('data.clearPlaylistsTitle', 'data.clearPlaylistsText', clearPlaylistsData)
+          })),
+          detailRow('lyrics', t('data.rowLyrics'), lyricsBytes, [
+            h(Button, { key: 'export', variant: 'ghost', icon: 'download', disabled: busy, onClick: exportLyrics }, t('data.rowLyricsExport')),
+            clearButton(function () {
+              confirmClear('data.clearLyricsTitle', 'data.clearLyricsText', clearLyricsData)
+            }),
+          ]),
+          detailRow('cover', t('data.rowCover'), coverBytes, clearButton(function () {
+            confirmClear('data.clearCoverTitle', 'data.clearCoverText', clearCoverData)
+          })),
+          detailRow('audio', t('data.rowAudio'), audioBytes, clearButton(function () {
+            confirmClear('data.clearAudioTitle', 'data.clearAudioText', clearAudioData)
+          })),
+          detailRow('profile', t('data.rowProfile'), profileBytes, clearButton(function () {
+            confirmClear('data.clearProfileTitle', 'data.clearProfileText', clearProfileData)
+          })),
+          detailRow('balance', t('data.rowBalance'), balanceBytes, clearButton(function () {
+            confirmClear('data.clearBalanceTitle', 'data.clearBalanceText', clearBalanceData)
+          })),
+        ]
+
+        var watchRows = [
+          h(
+            SetRow,
+            { key: 'watch-folders', label: t('data.watchEnable'), desc: t('data.watchEnableDesc') },
+            h(Switch, {
+              value: config.watchFolders === true,
+              onChange: function (value) {
+                void saveHostConfig({ watchFolders: value })
+              },
+            }),
+          ),
+        ]
+
+        var backupRows = [
+          h(
+            SetRow,
+            { key: 'backup-row', label: t('data.backupRow'), desc: t('data.backupDesc') },
+            h(
+              Button,
+              {
+                variant: 'ghost',
+                onClick: function () {
+                  setBackupOpen(true)
+                },
+              },
+              t('data.backupOpen'),
+            ),
+          ),
+        ]
+
+        return [
+          h('h2', { key: 'h' }, t('v2.dataTab')),
+          settingsGroup('mediaCache', 'data.groupMedia', mediaRows),
+          settingsGroup(
+            'cacheDetails',
+            'data.groupDetails',
+            detailRows,
+            null,
+            h(
+              Button,
+              {
+                variant: 'ghost',
+                onClick: function () {
+                  confirmClear('data.clearAllTitle', 'data.clearAllText', clearAllDetails)
+                },
+              },
+              t('data.clearAll'),
+            ),
+          ),
+          settingsGroup('watch', 'data.groupWatch', watchRows),
+          settingsGroup('backup', 'data.groupBackup', backupRows),
+          h('div', { key: 'reset-head', className: 'mp-set-label' }, t('data.groupDanger')),
           h(
             'div',
             { key: 'danger', className: 'mp-data-danger' },
@@ -169479,7 +169916,133 @@ window.__ModuleLoader__.load({
               t('data.resetAction'),
             ),
           ),
+          backupDialog(),
         ]
+      }
+
+      /** Folia's 备份与导入: settings only (no cache, no credentials), as one JSON file. */
+      function exportBackup() {
+        try {
+          var payload = {
+            format: 'dsh-music-panel.backup',
+            version: 1,
+            at: new Date().toISOString(),
+            prefs: readPrefs(),
+            host: library.config || {},
+          }
+          if (typeof Blob === 'undefined' || typeof URL === 'undefined' || typeof document === 'undefined') {
+            showToast(t('data.backupUnavailable'))
+            return
+          }
+          var url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
+          var anchor = document.createElement('a')
+          anchor.href = url
+          anchor.download = 'dsh-music-panel-backup-' + new Date().toISOString().slice(0, 10) + '.json'
+          anchor.style.display = 'none'
+          document.body.appendChild(anchor)
+          anchor.click()
+          if (typeof anchor.remove === 'function') anchor.remove()
+          window.setTimeout(function () {
+            URL.revokeObjectURL(url)
+          }, 1000)
+          showToast(t('data.backupExported'))
+        } catch (error) {
+          showToast(errorText(error))
+        }
+      }
+
+      function pickBackupFile() {
+        if (backupBusy) return
+        if (backupFileRef.current && typeof backupFileRef.current.click === 'function') backupFileRef.current.click()
+      }
+
+      function readBackupFile(event) {
+        var input = event && event.target
+        var file = input && input.files && input.files[0]
+        if (!file) return
+        var reader = new FileReader()
+        reader.onload = function () {
+          try {
+            var parsed = JSON.parse(String(reader.result || ''))
+            if (!parsed || parsed.format !== 'dsh-music-panel.backup' || parsed.version !== 1) {
+              throw new Error(t('data.backupBadFile'))
+            }
+            var host = parsed.host && typeof parsed.host === 'object' ? parsed.host : {}
+            var patch = {}
+            if (Array.isArray(host.roots)) patch.roots = host.roots
+            if (host.depth !== undefined) patch.depth = host.depth
+            if (Array.isArray(host.extensions)) patch.extensions = host.extensions
+            if (typeof host.cacheDir === 'string') patch.cacheDir = host.cacheDir
+            if (typeof host.watchFolders === 'boolean') patch.watchFolders = host.watchFolders
+            setBackupBusy(true)
+            saveHostConfig(patch).then(function (body) {
+              setBackupBusy(false)
+              if (!body) return
+              var source = parsed.prefs && typeof parsed.prefs === 'object' ? parsed.prefs : {}
+              var allowed = typeof prefKeys === 'function' ? prefKeys() : []
+              var prefsPatch = {}
+              allowed.forEach(function (key) {
+                if (source[key] !== undefined) prefsPatch[key] = source[key]
+              })
+              if (Object.keys(prefsPatch).length > 0) setPrefs(prefsPatch)
+              setBackupOpen(false)
+              showToast(t('data.backupImported'))
+              void loadLibrary(true)
+            })
+          } catch (error) {
+            setBackupBusy(false)
+            showToast(errorText(error))
+          }
+        }
+        reader.readAsText(file)
+        if (input) input.value = ''
+      }
+
+      function backupDialog() {
+        if (!backupOpen) return null
+        return h(
+          KitModal,
+          {
+            key: 'backup',
+            title: t('data.backupTitle'),
+            small: true,
+            onClose: function () {
+              if (!backupBusy) setBackupOpen(false)
+            },
+            footer: [
+              h(
+                Button,
+                {
+                  key: 'close',
+                  variant: 'ghost',
+                  disabled: backupBusy,
+                  onClick: function () {
+                    setBackupOpen(false)
+                  },
+                },
+                t('v2.close'),
+              ),
+            ],
+          },
+          h(
+            'div',
+            { className: 'mp-kit-body' },
+            h('p', { className: 'mp-set-desc' }, t('data.backupHint')),
+            h(
+              'div',
+              { className: 'mp-data-actions' },
+              h(Button, { icon: 'download', disabled: backupBusy, onClick: exportBackup }, t('data.backupExport')),
+              h(Button, { disabled: backupBusy, onClick: pickBackupFile }, t('data.backupImport')),
+            ),
+            h('input', {
+              ref: backupFileRef,
+              type: 'file',
+              accept: '.json,application/json',
+              style: { display: 'none' },
+              onChange: readBackupFile,
+            }),
+          ),
+        )
       }
 
       function aboutTab() {
@@ -174459,6 +175022,8 @@ window.__ModuleLoader__.load({
      * because `.mpv3-root` is unmounted while the host keeps the panel hidden.
      */
     var p3QueueStore = createStore({ open: false })
+    /** Last watcher revision seen; 0 until the first poll establishes the baseline. */
+    var p3LastLibraryRevision = 0
 
     function p3SetQueueOpen(open) {
       p3QueueStore.set({ open: open === true })
@@ -175216,6 +175781,32 @@ window.__ModuleLoader__.load({
         void loadPlaylists()
         void loadConfig()
         void loadProviders()
+      }, [])
+
+      // 自动扫描已导入文件夹: the host watcher bumps a revision after its debounced rescan; the
+      // panel polls that number (a few bytes) and re-reads the library when it moves.
+      useEffect(function () {
+        var timer = setInterval(function () {
+          var config = libraryStore.get().config
+          if (!config || config.watchFolders !== true) return
+          getJson(API + 'library/revision')
+            .then(function (body) {
+              var revision = Number(body && body.revision) || 0
+              if (revision === 0) return
+              if (p3LastLibraryRevision === 0) {
+                p3LastLibraryRevision = revision
+                return
+              }
+              if (revision !== p3LastLibraryRevision) {
+                p3LastLibraryRevision = revision
+                void loadLibrary(false)
+              }
+            })
+            .catch(function () {})
+        }, 4000)
+        return function () {
+          clearInterval(timer)
+        }
       }, [])
 
       useEffect(function () {
@@ -179440,6 +180031,17 @@ window.__ModuleLoader__.load({
 
       function useHere() {
         if (state.path === '') return
+        // 存储与备份 → 缓存目录 reuses this browser, but writes the cache directory instead
+        // of adding a music root (Folia's 选择文件夹).
+        var mode = props.layer && props.layer.props ? props.layer.props.mode : ''
+        if (mode === 'cacheDir') {
+          saveHostConfig({ cacheDir: state.path }).then(function (body) {
+            if (!body) return
+            showToast(t('data.cacheDirChanged'))
+            popLayer()
+          })
+          return
+        }
         var config = libraryStore.get().config || {}
         var roots = Array.isArray(config.roots) ? config.roots.slice() : []
         if (roots.indexOf(state.path) < 0) roots.push(state.path)
@@ -179491,7 +180093,9 @@ window.__ModuleLoader__.load({
       return h(
         KitModal,
         {
-          title: t('v2.folderPick'),
+          title: props.layer && props.layer.props && props.layer.props.mode === 'cacheDir'
+            ? t('data.cacheDirPick')
+            : t('v2.folderPick'),
           onClose: popLayer,
           footer: [
             h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),

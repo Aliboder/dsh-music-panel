@@ -36,6 +36,17 @@ function FolderPickerDialog(props) {
 
   function useHere() {
     if (state.path === '') return
+    // 存储与备份 → 缓存目录 reuses this browser, but writes the cache directory instead
+    // of adding a music root (Folia's 选择文件夹).
+    var mode = props.layer && props.layer.props ? props.layer.props.mode : ''
+    if (mode === 'cacheDir') {
+      saveHostConfig({ cacheDir: state.path }).then(function (body) {
+        if (!body) return
+        showToast(t('data.cacheDirChanged'))
+        popLayer()
+      })
+      return
+    }
     var config = libraryStore.get().config || {}
     var roots = Array.isArray(config.roots) ? config.roots.slice() : []
     if (roots.indexOf(state.path) < 0) roots.push(state.path)
@@ -87,7 +98,9 @@ function FolderPickerDialog(props) {
   return h(
     KitModal,
     {
-      title: t('v2.folderPick'),
+      title: props.layer && props.layer.props && props.layer.props.mode === 'cacheDir'
+        ? t('data.cacheDirPick')
+        : t('v2.folderPick'),
       onClose: popLayer,
       footer: [
         h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),

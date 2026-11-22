@@ -215,6 +215,11 @@ function readPrefs() {
   return merged
 }
 
+/** The settings a backup may carry; unknown keys in an imported file are ignored. */
+function prefKeys() {
+  return Object.keys(PREF_DEFAULTS)
+}
+
 function savePrefs(patch) {
   var next = readPrefs()
   if (patch !== null && typeof patch === 'object') {

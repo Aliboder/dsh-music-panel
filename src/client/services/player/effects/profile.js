@@ -82,6 +82,16 @@ function noteProfile(path, measured) {
   writeProfileStore()
 }
 
+/** Forget every analysis record (设置 · 存储与备份 · 清除分析数据). */
+function clearProfileStore() {
+  profileStoreData = {}
+  try {
+    window.localStorage.removeItem(PROFILE_STORE_KEY)
+  } catch (error) {
+    // Blocked storage: the in-memory copy is already empty.
+  }
+}
+
 /** Test-only: forget the in-memory copy. */
 function resetProfileStoreForTests() {
   profileStoreData = {}

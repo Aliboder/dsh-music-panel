@@ -18,7 +18,7 @@ export { resolveLyricProcessingOptions } from '../../utils/lyrics/filtering';
 export { applyLyricStaffPolicy } from '../../utils/lyrics/staffCreditsPolicy';
 export { applyChorusRangesByTime, applyDetectedChorusEffects } from '../../utils/lyrics/chorusEffects';
 export { isPureMusicLyricLines, isPureMusicLyricText } from '../../utils/lyrics/pureMusic';
-export { readLyricOffset, writeLyricOffset } from '../../utils/lyrics/lyricOffsetMemory';
+export { clearLyricOffsets, readLyricOffset, writeLyricOffset } from '../../utils/lyrics/lyricOffsetMemory';
 export { applyLyricLineRules, compileLyricLineRules, LYRIC_LINE_PRESETS } from '../../utils/lyrics/lyricLineRules';
 export {
   SEGMENTATION_DELIMITER,

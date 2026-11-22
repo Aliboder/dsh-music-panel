@@ -25,7 +25,7 @@
 import { spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
-import { copyFile, mkdir, readdir, readFile, realpath, rename, stat, unlink, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readdir, readFile, realpath, rename, rm, stat, unlink, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { SUPPORTED_EXTENSIONS, extensionOf, mimeOf } from '../stores/config.js'
@@ -42,7 +42,7 @@ import { searchOnline } from '../services/online-metadata.js'
 import { fetchLyricById, searchLyricCandidates } from '../services/lyrics/lyrics-search.js'
 import { takeControls } from '../services/playback/control.js'
 import { createTrash } from '../services/media/trash.js'
-import { clearData, inspectData } from '../services/media/plugin-data.js'
+import { clearData, clearDataCategory, inspectData, CLEARABLE_CATEGORIES } from '../services/media/plugin-data.js'
 import { eqPresetRow, loadEqPresets, searchEqPresets } from '../stores/eq-presets.js'
 import * as providers from '../providers/index.js'
 import { createOnlineRoutes, onlineSongId } from './routes/online.js'
@@ -234,7 +234,45 @@ async function validateRoots(list) {
  */
 const debugReports = []
 
-export function createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, mediaCache, kugouSessions, resetData, lyricState, lyricOmni, audioFocus }) {
+export function createRoutes({
+  settings,
+  library,
+  playlists,
+  stats,
+  playback,
+  favorites,
+  providerStore,
+  accountStore,
+  accountReads,
+  mediaCache,
+  kugouSessions,
+  resetData,
+  lyricState,
+  lyricOmni,
+  audioFocus,
+  cacheDirFor,
+  watcher,
+  getLibraryRevision,
+}) {
+  /** '' in settings means the plugin's own data directory. */
+  const settingsDir = typeof settings.dir === 'string' && settings.dir !== '' ? settings.dir : ''
+  const defaultCacheDir = settingsDir === '' ? '' : join(settingsDir, 'cache')
+  const cacheDirOf = typeof cacheDirFor === 'function'
+    ? cacheDirFor
+    : (config) => (config !== null && typeof config === 'object' && typeof config.cacheDir === 'string' && config.cacheDir !== ''
+      ? config.cacheDir
+      : defaultCacheDir)
+  const libraryRevisionOf = typeof getLibraryRevision === 'function' ? getLibraryRevision : () => 0
+  const LYRIC_EXPORT_EXT = { lrc: 'lrc', vtt: 'vtt', ttml: 'ttml', qrc: 'qrc', yrc: 'yrc', krc: 'krc' }
+  /** A lyric record key as a file name: the local song's name, or provider-id for online. */
+  function lyricExportName(key) {
+    const raw = String(key)
+    const name = raw.startsWith('online:')
+      ? raw.split(':').slice(1).join('-')
+      : basename(raw, extname(raw))
+    const safe = name.replace(/[\\/:*?"<>|]/g, '_').trim()
+    return safe === '' ? 'lyrics' : safe.slice(0, 120)
+  }
   // The per-song lyric record (choice, matched lyric, instrumental mark). Routes stay
   // usable without one — a test or an older wiring simply never remembers anything.
   const lyricRecords = lyricState === undefined || lyricState === null
@@ -498,7 +536,14 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
 
       if (pathname === '/config' && method === 'GET') {
         const config = await settings.read()
-        return sendJson(res, 200, { ok: true, config, home: settings.home, file: settings.file })
+        return sendJson(res, 200, {
+          ok: true,
+          config,
+          home: settings.home,
+          file: settings.file,
+          effectiveCacheDir: cacheDirOf(config),
+          defaultCacheDir,
+        })
       }
 
       // Folder browser backing the library picker (read-only directory listing).
@@ -568,14 +613,37 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         if (body?.depth !== undefined) patch.depth = body.depth
         if (Array.isArray(body?.extensions)) patch.extensions = body.extensions
         if (typeof body?.onlineQuality === 'string') patch.onlineQuality = body.onlineQuality
+        if (body?.cacheDir !== undefined) {
+          if (typeof body.cacheDir !== 'string' || (body.cacheDir.trim() !== '' && !isAbsolute(body.cacheDir.trim()))) {
+            return fail(res, 400, 'BAD_CACHE_DIR', '缓存目录需要绝对路径')
+          }
+          patch.cacheDir = body.cacheDir.trim()
+        }
+        if (body?.watchFolders !== undefined) patch.watchFolders = body.watchFolders === true
         const config = await settings.write(patch)
-        return sendJson(res, 200, { ok: true, config, home: settings.home, file: settings.file })
+        // The cache store and the watchers follow the new settings without a restart.
+        if (mediaCache !== undefined && typeof mediaCache.setDir === 'function') mediaCache.setDir(cacheDirOf(config))
+        if (watcher !== undefined && typeof watcher.sync === 'function') void watcher.sync()
+        return sendJson(res, 200, {
+          ok: true,
+          config,
+          home: settings.home,
+          file: settings.file,
+          effectiveCacheDir: cacheDirOf(config),
+          defaultCacheDir,
+        })
       }
 
       if (pathname === '/library' && (method === 'GET' || method === 'HEAD')) {
         const config = await settings.read()
         const result = await library.scan({ refresh: params.get('refresh') === '1' })
         return sendJson(res, 200, { ok: true, config, ...result })
+      }
+
+      // A cheap number the panel polls while 自动扫描已导入文件夹 is on; a change means the
+      // watcher finished a rescan and the client should re-read the library.
+      if (pathname === '/library/revision' && method === 'GET') {
+        return sendJson(res, 200, { ok: true, revision: Number(libraryRevisionOf()) || 0 })
       }
 
       if (pathname === '/stream' && (method === 'GET' || method === 'HEAD')) {
@@ -1063,6 +1131,21 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
         } catch {
           return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
         }
+        const category = typeof body?.category === 'string' ? body.category : ''
+        if (category !== '') {
+          if (!CLEARABLE_CATEGORIES.includes(category)) {
+            return fail(res, 400, 'BAD_CATEGORY', '该类别不能单独清空')
+          }
+          const config = await settings.read()
+          try {
+            const cleared = await clearDataCategory(settings.dir, category, Array.isArray(config.roots) ? config.roots : [])
+            // The lyric records are memoized: forget them with the files.
+            if (category === 'lyrics' && typeof lyricRecords.invalidate === 'function') lyricRecords.invalidate()
+            return sendJson(res, 200, { ok: true, ...cleared, category })
+          } catch (error) {
+            return fail(res, 500, 'CLEAR_FAILED', String(error?.message ?? error))
+          }
+        }
         if (body?.confirm !== 'clear-all') {
           return fail(res, 400, 'CONFIRM_REQUIRED', '缺少清空确认')
         }
@@ -1076,6 +1159,41 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
           return sendJson(res, 200, { ok: true, ...cleared })
         } catch (error) {
           return fail(res, 500, 'RESET_FAILED', String(error?.message ?? error))
+        }
+      }
+
+      // Folia's 批量导出歌词: every cached lyric text as a file under <data>/exports/.
+      if (pathname === '/data/export-lyrics' && method === 'POST') {
+        try {
+          const keys = typeof lyricRecords.listKeys === 'function' ? await lyricRecords.listKeys() : []
+          const stamp = new Date().toISOString().slice(0, 19).replace(/[:]/g, '').replace('T', '-')
+          const dir = join(settings.dir, 'exports', 'lyrics-' + stamp)
+          const used = new Set()
+          let count = 0
+          for (const key of keys) {
+            if (typeof lyricRecords.readPayload !== 'function') break
+            const payload = await lyricRecords.readPayload(key)
+            if (payload === null || typeof payload.text !== 'string' || payload.text.trim() === '') continue
+            const ext = LYRIC_EXPORT_EXT[payload.formatHint] || 'lrc'
+            const base = lyricExportName(key)
+            let name = base + '.' + ext
+            let copy = 2
+            while (used.has(name.toLowerCase())) {
+              name = base + ' (' + String(copy) + ').' + ext
+              copy += 1
+            }
+            used.add(name.toLowerCase())
+            await mkdir(dir, { recursive: true })
+            await writeFile(join(dir, name), payload.text, 'utf8')
+            count += 1
+          }
+          if (count === 0) {
+            await rm(dir, { recursive: true, force: true }).catch(() => {})
+            return sendJson(res, 200, { ok: true, dir: null, count: 0 })
+          }
+          return sendJson(res, 200, { ok: true, dir, count })
+        } catch (error) {
+          return fail(res, 500, 'EXPORT_FAILED', String(error?.message ?? error))
         }
       }
 
@@ -1108,6 +1226,51 @@ export function createRoutes({ settings, library, playlists, stats, playback, fa
           child.on('error', () => {})
           child.unref()
           return sendJson(res, 200, { ok: true })
+        } catch (error) {
+          return fail(res, 500, 'REVEAL_FAILED', String(error?.message ?? error))
+        }
+      }
+
+      // Open the plugin's own directory (cache or data) in the OS file manager. Only these
+      // two locations are addressable: the path never comes from the request.
+      if (pathname === '/reveal-dir' && method === 'POST') {
+        let body
+        try {
+          body = await readJson(req)
+        } catch {
+          return fail(res, 400, 'BAD_JSON', '请求体不是合法 JSON')
+        }
+        const kind = body?.kind === 'cache'
+          ? 'cache'
+          : body?.kind === 'data'
+            ? 'data'
+            : body?.kind === 'exports'
+              ? 'exports'
+              : ''
+        if (kind === '') return fail(res, 400, 'BAD_REQUEST', '未知的目录')
+        const config = await settings.read()
+        const target = kind === 'cache'
+          ? cacheDirOf(config)
+          : kind === 'exports'
+            ? join(settings.dir, 'exports')
+            : settings.dir
+        if (kind === 'cache') {
+          if (mediaCache !== undefined && typeof mediaCache.ensure === 'function') await mediaCache.ensure()
+          else await mkdir(target, { recursive: true })
+        } else if (kind === 'exports') {
+          await mkdir(target, { recursive: true })
+        }
+        try {
+          const opener =
+            process.platform === 'win32'
+              ? { name: 'explorer.exe', args: [target] }
+              : process.platform === 'darwin'
+                ? { name: 'open', args: [target] }
+                : { name: 'xdg-open', args: [target] }
+          const child = spawn(opener.name, opener.args, { detached: true, stdio: 'ignore' })
+          child.on('error', () => {})
+          child.unref()
+          return sendJson(res, 200, { ok: true, path: target })
         } catch (error) {
           return fail(res, 500, 'REVEAL_FAILED', String(error?.message ?? error))
         }

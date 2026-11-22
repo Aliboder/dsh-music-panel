@@ -87,6 +87,58 @@ export async function inspectData(dir) {
   }
 }
 
+/** Categories a single row may clear; settings and accounts are only cleared wholesale. */
+export const CLEARABLE_CATEGORIES = ['favorites', 'playlists', 'stats', 'lyrics', 'playback', 'cache', 'trash', 'other']
+
+/**
+ * Remove one category's entries from the plugin data directory. Settings and sign-ins are
+ * deliberately not addressable here: logging the listener out is the clear-all path's job.
+ *
+ * @param {string} dir
+ * @param {string} category
+ * @param {string[]} [roots]
+ */
+export async function clearDataCategory(dir, category, roots = []) {
+  if (!CLEARABLE_CATEGORIES.includes(category)) return { removed: [], bytes: 0, protected: [] }
+  const known = CATEGORIES.find((entry) => entry.id === category)
+  let entries
+  try {
+    entries = await readdir(dir, { withFileTypes: true })
+  } catch {
+    return { removed: [], bytes: 0, protected: [] }
+  }
+  const removed = []
+  const protectedEntries = []
+  let bytes = 0
+  for (const entry of entries) {
+    const matches = category === 'other'
+      ? categoryOf(entry.name) === 'other'
+      : known.names.includes(entry.name)
+    if (!matches) continue
+    const full = join(dir, entry.name)
+    if (isProtected(full, roots)) {
+      protectedEntries.push(entry.name)
+      continue
+    }
+    let size = 0
+    if (entry.isDirectory()) {
+      const rows = []
+      await walk(full, dir, rows)
+      size = rows.reduce((total, row) => total + row.size, 0)
+    } else if (entry.isFile()) {
+      size = await fileSize(full)
+    }
+    try {
+      await rm(full, { recursive: true, force: true })
+      removed.push(entry.name)
+      bytes += size
+    } catch {
+      /* A locked file must not stop the rest of the category. */
+    }
+  }
+  return { removed, bytes, protected: protectedEntries }
+}
+
 function isProtected(entry, roots) {
   return roots.some((root) => {
     if (typeof root !== 'string' || root === '') return false

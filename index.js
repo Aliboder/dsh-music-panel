@@ -13,6 +13,8 @@ import { createLibrary } from './src/host/services/media/library.js'
 import { createPlayback } from './src/host/services/playback/playback.js'
 import { createPlaylists } from './src/host/stores/playlists.js'
 import { createMediaCache } from './src/host/stores/media-cache.js'
+import { createLibraryWatcher } from './src/host/services/media/watch.js'
+import { join } from 'node:path'
 import { createProviderStore } from './src/host/providers/provider-store.js'
 import { createAccountStore } from './src/host/stores/accounts.js'
 import { createAccountReads } from './src/host/services/account-read.js'
@@ -71,8 +73,27 @@ export function apply(ctx, rawConfig) {
     clear: (provider) => providerStore.clear(provider),
   }
   // Folia's media cache: written after a full play, with its own layout and one-time migration.
-  const mediaCache = createMediaCache({ dir: settings.dir })
+  const mediaCache = createMediaCache({ dir: join(settings.dir, 'cache') })
   void mediaCache.ensure()
+  /** '' in settings means the plugin's own data directory. */
+  function cacheDirFor(config) {
+    return config !== null && typeof config === 'object' && typeof config.cacheDir === 'string' && config.cacheDir !== ''
+      ? config.cacheDir
+      : join(settings.dir, 'cache')
+  }
+  let libraryRevision = 0
+  const watcher = createLibraryWatcher({
+    getConfig: settings.read,
+    async onChange() {
+      await library.scan({ refresh: true })
+      libraryRevision += 1
+    },
+  })
+  // The cache directory lives in settings.json; read it once at startup, then switch.
+  void settings.read().then((config) => {
+    mediaCache.setDir(cacheDirFor(config))
+    return watcher.sync()
+  }).catch(() => {})
   const kugouSessions = createKugouSessionManager({ providerStore })
 
   /**
@@ -93,6 +114,9 @@ export function apply(ctx, rawConfig) {
     await mediaCache.clear('all')
     settings.invalidate()
     await settings.reset()
+    const fresh = await settings.read()
+    mediaCache.setDir(cacheDirFor(fresh))
+    await watcher.sync()
     library.clear()
   }
 
@@ -101,7 +125,28 @@ export function apply(ctx, rawConfig) {
     audioFocus.dispose()
   }, 'music: audio focus')
 
-  const handle = createRoutes({ settings, library, playlists, stats, playback, favorites, providerStore, accountStore, accountReads, mediaCache, kugouSessions, resetData, lyricState, audioFocus })
+  // Watchers do not outlive the plugin; config writes resync them from the route.
+  ctx.effect(() => () => watcher.stop(), 'music: folder watcher')
+
+  const handle = createRoutes({
+    settings,
+    library,
+    playlists,
+    stats,
+    playback,
+    favorites,
+    providerStore,
+    accountStore,
+    accountReads,
+    mediaCache,
+    cacheDirFor,
+    watcher,
+    getLibraryRevision: () => libraryRevision,
+    kugouSessions,
+    resetData,
+    lyricState,
+    audioFocus,
+  })
 
 
   // Sources are registered once per load; the registry is the single list every

@@ -8,6 +8,8 @@
  * because `.mpv3-root` is unmounted while the host keeps the panel hidden.
  */
 var p3QueueStore = createStore({ open: false })
+/** Last watcher revision seen; 0 until the first poll establishes the baseline. */
+var p3LastLibraryRevision = 0
 
 function p3SetQueueOpen(open) {
   p3QueueStore.set({ open: open === true })
@@ -765,6 +767,32 @@ function P3Shell() {
     void loadPlaylists()
     void loadConfig()
     void loadProviders()
+  }, [])
+
+  // 自动扫描已导入文件夹: the host watcher bumps a revision after its debounced rescan; the
+  // panel polls that number (a few bytes) and re-reads the library when it moves.
+  useEffect(function () {
+    var timer = setInterval(function () {
+      var config = libraryStore.get().config
+      if (!config || config.watchFolders !== true) return
+      getJson(API + 'library/revision')
+        .then(function (body) {
+          var revision = Number(body && body.revision) || 0
+          if (revision === 0) return
+          if (p3LastLibraryRevision === 0) {
+            p3LastLibraryRevision = revision
+            return
+          }
+          if (revision !== p3LastLibraryRevision) {
+            p3LastLibraryRevision = revision
+            void loadLibrary(false)
+          }
+        })
+        .catch(function () {})
+    }, 4000)
+    return function () {
+      clearInterval(timer)
+    }
   }, [])
 
   useEffect(function () {

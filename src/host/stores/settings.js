@@ -41,17 +41,23 @@ export function createSettings({ dshHome, seed } = {}) {
   const base = normalizeConfig(seed)
   let cached
 
+  /** The cache directory is a path: expand a leading ~ once, at the store boundary. */
+  function resolved(config) {
+    const cacheDir = config.cacheDir === '' ? '' : resolve(expandHome(config.cacheDir))
+    return { ...config, cacheDir }
+  }
+
   async function read() {
     if (cached !== undefined) return cached
     let saved = {}
     const parsed = await readJsonWithBackup(file)
     if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) saved = parsed
-    cached = normalizeConfig({ ...base, ...saved })
+    cached = resolved(normalizeConfig({ ...base, ...saved }))
     return cached
   }
 
   async function write(patch) {
-    const next = normalizeConfig({ ...base, ...(await read()), ...(patch ?? {}) })
+    const next = resolved(normalizeConfig({ ...base, ...(await read()), ...(patch ?? {}) }))
     await writeJsonAtomic(file, next)
     cached = next
     return next
@@ -63,7 +69,7 @@ export function createSettings({ dshHome, seed } = {}) {
    * back after "clear all data" (the user explicitly chose an empty library).
    */
   async function reset() {
-    const next = normalizeConfig({ ...base, roots: [], hiddenRoots: [] })
+    const next = resolved(normalizeConfig({ ...base, roots: [], hiddenRoots: [], cacheDir: '', watchFolders: false }))
     await writeJsonAtomic(file, next)
     cached = next
     return next

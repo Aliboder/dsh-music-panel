@@ -184,10 +184,40 @@ async function loadStats(range) {
 async function loadConfig() {
   try {
     var body = await getJson(API + 'config')
-    libraryStore.set({ config: body.config || null })
+    libraryStore.set({
+      config: body.config || null,
+      cacheDir: typeof body.effectiveCacheDir === 'string' ? body.effectiveCacheDir : '',
+      defaultCacheDir: typeof body.defaultCacheDir === 'string' ? body.defaultCacheDir : '',
+    })
     return body.config || null
   } catch (error) {
     return null
+  }
+}
+
+/** Save settings that do not change the library (cache directory, folder watching). */
+async function saveHostConfig(patch) {
+  try {
+    var body = await postJson(API + 'config', patch)
+    libraryStore.set({
+      config: body.config || null,
+      cacheDir: typeof body.effectiveCacheDir === 'string' ? body.effectiveCacheDir : '',
+      defaultCacheDir: typeof body.defaultCacheDir === 'string' ? body.defaultCacheDir : '',
+    })
+    return body
+  } catch (error) {
+    showToast(errorText(error))
+    return null
+  }
+}
+
+/** Show a plugin-owned directory in the OS file manager. */
+async function revealHostDir(kind) {
+  try {
+    await postJson(API + 'reveal-dir', { kind: kind })
+    showToast(t('page.revealed'))
+  } catch (error) {
+    showToast(errorText(error))
   }
 }
 

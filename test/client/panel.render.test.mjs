@@ -259,6 +259,27 @@ assert.ok(internals.p3Tabs('navidrome').indexOf('artists') >= 0, 'Navidrome expo
   internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { lyricStyle: 'monet', lyricsFontScale: 1, translationScale: 90 }))
 }
 
+// 存储与备份：Folia 的四组 + 危险操作；缓存目录、缓存详情与备份窗口都有入口。
+{
+  const sheet = internals.SettingsSheet({ open: true, initialTab: 'cache' })
+  const tree = expand(sheet)
+  const text = textOf(tree)
+  assert.ok(text.includes('存储与备份'), 'the page is named after Folia\'s 存储与备份')
+  for (const group of ['媒体缓存', '缓存详情', '本地文件夹监视', '备份与导入', '危险操作']) {
+    assert.ok(text.includes(group), 'the storage page shows the ' + group + ' group')
+  }
+  for (const row of ['缓存歌曲', '缓存目录', '缓存上限', '已缓存歌曲', '歌单数据', '歌词', '封面', '媒体文件', '分析数据', '智能平衡数据', '自动扫描已导入文件夹']) {
+    assert.ok(text.includes(row), 'the storage page shows the ' + row + ' row')
+  }
+  const buttons = []
+  walk(tree, (node) => {
+    if (node.type === 'button') buttons.push(textOf(node))
+  })
+  assert.ok(buttons.some((label) => label.includes('全部清空')), 'the details group can be cleared at once')
+  assert.ok(buttons.some((label) => label.includes('选择文件夹')), 'the cache folder can be chosen')
+  assert.ok(buttons.some((label) => label.includes('管理')), 'backup & import has an entry')
+}
+
 // 播放控制：Folia 的三个分组，插件自有的项在「插件」组。
 {
   const sheet = internals.SettingsSheet({ open: true, initialTab: 'playback' })

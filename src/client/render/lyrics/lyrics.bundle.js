@@ -7165,6 +7165,7 @@ var MPFoliaLyrics = (() => {
     applyLyricWordSegmentation: () => applyLyricWordSegmentation,
     buildSegmentationBoundaries: () => buildSegmentationBoundaries,
     buildSegmentationExportText: () => buildSegmentationExportText,
+    clearLyricOffsets: () => clearLyricOffsets,
     compileLyricLineRules: () => compileLyricLineRules,
     countAppliedSegmentationLines: () => countAppliedSegmentationLines,
     createLyricSegmentationRecord: () => createLyricSegmentationRecord,
@@ -10563,6 +10564,16 @@ var MPFoliaLyrics = (() => {
     }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(map)));
+    } catch {
+    }
+  };
+  var clearLyricOffsets = () => {
+    cache = /* @__PURE__ */ new Map();
+    if (typeof window === "undefined") {
+      return;
+    }
+    try {
+      localStorage.removeItem(STORAGE_KEY);
     } catch {
     }
   };

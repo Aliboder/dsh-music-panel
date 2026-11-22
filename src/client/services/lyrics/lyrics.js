@@ -385,6 +385,27 @@ function writeLyricSegmentationMap(map) {
   }
 }
 
+/**
+ * Forget every client-side lyric memory: the saved offsets (the bundle's map) and the
+ * saved word-splits used by the player. 存储与备份 calls this so a clear also holds in the
+ * running session, not only after a reload.
+ */
+function clearLyricClientCaches() {
+  try {
+    if (typeof MPFoliaLyrics !== 'undefined' && MPFoliaLyrics !== null && typeof MPFoliaLyrics.clearLyricOffsets === 'function') {
+      MPFoliaLyrics.clearLyricOffsets()
+    }
+  } catch (error) {
+    // A missing/older bundle leaves the offsets until reload; the key is removed below.
+  }
+  lyricSegmentationCache = null
+  try {
+    window.localStorage.removeItem(LYRIC_SEGMENTATION_KEY)
+  } catch (error) {
+    // Blocked storage: nothing to forget.
+  }
+}
+
 /** This song's saved segmentation record, or null when it has none (or it is malformed). */
 function readLyricSegmentation(songKey) {
   if (typeof MPFoliaLyrics === 'undefined' || MPFoliaLyrics === null) return null

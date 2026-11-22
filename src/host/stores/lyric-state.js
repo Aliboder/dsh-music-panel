@@ -159,6 +159,11 @@ export function createLyricState({ dir }) {
   }
 
   return {
+    /** Every song key with a record, for the data pane and the lyric export. */
+    async listKeys() {
+      return Object.keys(await load())
+    },
+
     /** The record for one song, or null when nothing was ever chosen or matched. */
     async get(key) {
       const tracks = await load()

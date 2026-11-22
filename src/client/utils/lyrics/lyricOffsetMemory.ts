@@ -63,6 +63,19 @@ const persist = (map: Map<string, number>): void => {
     }
 };
 
+/** Forget every saved offset (设置 · 存储与备份 · 清除歌词). */
+export const clearLyricOffsets = (): void => {
+    cache = new Map();
+    if (typeof window === 'undefined') {
+        return;
+    }
+    try {
+        localStorage.removeItem(STORAGE_KEY);
+    } catch {
+        // Blocked storage: the in-memory map is already empty.
+    }
+};
+
 /** Saved offset (ms) for this song, or 0 when none was ever set - identical to the old reset default. */
 export const readLyricOffset = (songKey: SongKey): number => {
     const key = normalizeKey(songKey);
