@@ -101,7 +101,8 @@ for (const token of [
 
 // The local Switch fallback must use the host's thumb token, otherwise the
 // documented light/dark contract and the actual control drift apart.
-assert.match(theme, /\.mp-switch i\{[^']*background:var\(--dsw-alias-switch-thumb/, 'switch thumb follows the token')
+assert.match(theme, /\.mp-switch i\{[^']*background:var\(--dsw-alias-switch-thumb/, 'off-state thumb follows the token')
+assert.match(theme, /\.mp-switch\.is-on i\{[^']*background:var\(--dsw-alias-label-primary-foreground/, 'on-state thumb contrasts the brand track, like the host switch')
 
 // Only the adapter may require the host client package.
 for (const [index, text] of all.entries()) {
@@ -201,8 +202,9 @@ assert.match(theme, /\.mp-card\{[^']*--dsw-alias-border-l1:rgba\(255,255,255,\.0
 assert.match(theme, /\.mp-card\{[^']*color:#f4f4f5/, 'player card sets its own light ink')
 // The host Switch inside the island reads the brand track + thumb tokens; unpinned they
 // resolve to the app theme and the knob disappears into the track.
-assert.match(theme, /\.mp-card\{[^']*--dsw-alias-brand-primary:#f4f4f5/, 'player card pins the switch track')
-assert.match(theme, /\.mp-card\{[^']*--dsw-alias-switch-thumb:rgb\(173,178,184\)/, 'player card pins a visible switch knob')
+assert.match(theme, /\.mp-card\{[^']*--dsw-alias-brand-primary:var\(--dsw-static-neutral-bluish-50\)/, 'player card pins the switch track to the dark-theme value')
+assert.match(theme, /\.mp-card\{[^']*--dsw-alias-switch-thumb:var\(--dsw-static-neutral-bluish-400\)/, 'player card pins the switch knob to the dark-theme value')
+assert.match(theme, /\.mp-card\{[^']*--dsw-alias-label-primary-foreground:var\(--dsw-static-neutral-bluish-1000\)/, 'the on-state knob contrasts like the official switch')
 
 // panel-v3 rows: 76px, 54px cover, 18px title (90% of the 84/60/20 scale).
 assert.match(p3Css, /\.mpv3-row \{[^"]*height: 76px/, 'panel-v3 rows are 76px')

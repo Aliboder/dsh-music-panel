@@ -11,7 +11,7 @@
 - 按《主题与组件开发规范》把卡片里的控件整套换成 DSH 组件（交互与 handler 不变）：设置行用 `SetRow`（`.mp-set-row`）、互斥分段用宿主 `SegmentedControl`（`KitSegmented`）、按钮与图标按钮用 `Button` / `IconButton`、文本输入用 `KitInput`、滑杆用 `.mp-range`、分区标题用 `.mp-set-label`、标签页的圆角改为 `--dsw-radius-md` / `--dsw-radius-sm`。
 - 卡面按 §2.4 去掉与阴影叠加的 1px 描边，改用 `--dsw-elevation-prominent`；圆角走 `--dsw-radius-xl`；分组之间的显式分隔线删除（行自带的 0.5px 发丝线足够）。
 - 深色岛补齐宿主控件要用的 token（accent / button fill / label foreground / border-l3 / bg-base），避免 native 路径在浅色主题里读到浅色 token。
-- 卡片里的宿主开关（例如「显示译文」）之前轨道和滑块都是白色、分不清开关：把 `--dsw-alias-brand-primary`（开启轨道）与 `--dsw-alias-switch-thumb`（滑块）在岛根钉成深色主题值——开启是白色轨道 + 深色滑块，关闭是半透明轨道 + 灰色滑块，和官方开关一致。
+- 卡片里的宿主开关（例如「显示译文」）之前轨道和滑块都是白色、分不清开关：在岛根把 `--dsw-alias-brand-primary`（开启轨道）、`--dsw-alias-switch-thumb`（关态滑块）、`--dsw-alias-label-primary-foreground`（开态滑块）钉到深色主题的同一组静态 token（`--dsw-static-neutral-bluish-50 / -400 / -1000`），不再手写近似色，和「设置 → 关于 → 测试页面」的官方开关逐像素一致。
 
 - 右下角的播放卡片按「一页一件事」重排为四页：歌曲 / 歌词 / 音频 / 外观。原来四页是 封面 / 本地（歌词）/ 控制 / 音质，声音与外观混在「控制」里、增益与分词塞在歌词页与音质页。
 - 歌曲页只留这首歌：封面、歌名/歌手/专辑，底部 红心 / 收藏星 / 定位；齿轮移出（全局设置在面板标题栏），文件信息与平台 ID 一并移走。

@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.43.0"
-    var CLIENT_BUILD = "878417bef0a2"
+    var CLIENT_BUILD = "76f83bafdb4c"
 
     // ── src/client/app/runtime.js
     /**
@@ -163225,7 +163225,7 @@ window.__ModuleLoader__.load({
       '.mp-switch{box-sizing:border-box;position:relative;width:36px;height:20px;padding:2px;border-radius:999px;corner-shape:round;border:0;background:var(--dsw-alias-border-l3,rgba(255,255,255,.18));cursor:pointer;transition:background .12s;flex:none}',
       '.mp-switch i{display:block;width:16px;height:16px;border-radius:50%;corner-shape:round;background:var(--dsw-alias-switch-thumb,#fff);transition:transform .12s}',
       '.mp-switch.is-on{background:var(--dsw-alias-brand-primary,var(--dsw-alias-state-business-primary,#4176E6))}',
-      '.mp-switch.is-on i{transform:translateX(16px)}',
+      '.mp-switch.is-on i{transform:translateX(16px);background:var(--dsw-alias-label-primary-foreground,#0f1115)}',
       '.mp-switch:disabled{cursor:default;opacity:.5}',
       '.mp-switch:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
       '.mp-dialog{position:relative;width:min(640px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--dsw-alias-bg-layer-1,#1a1a1e);border:0;border-radius:var(--dsw-radius-panel,28px);overflow:hidden;box-shadow:var(--dsw-elevation-panel,0 30px 80px rgba(0,0,0,.5))}',
@@ -163443,7 +163443,7 @@ window.__ModuleLoader__.load({
       // near-white layers, so the card ended up with white-on-white tiles, pills and inputs.
       // Pin the tokens it sits on to their dark-theme values for everything inside the card;
       // the surface itself stays on the inline dark glass above.
-      '.mp-card{--dsw-alias-label-primary:#f4f4f5;--dsw-alias-label-secondary:#a1a1aa;--dsw-alias-label-tertiary:#8a8a93;--dsw-alias-label-primary-foreground:#ffffff;--dsw-alias-bg-base:#141417;--dsw-alias-bg-layer-1:#17171a;--dsw-alias-bg-layer-2:rgba(255,255,255,.06);--dsw-alias-bg-layer-3:rgba(255,255,255,.08);--dsw-alias-border-l1:rgba(255,255,255,.07);--dsw-alias-border-l2:rgba(255,255,255,.14);--dsw-alias-border-l3:rgba(255,255,255,.18);--dsw-alias-interactive-bg-hover:rgba(255,255,255,.07);--dsw-alias-interactive-bg-active:rgba(255,255,255,.1);--dsw-alias-state-business-primary:#4f8cff;--dsw-alias-button-primary-fill:#4f8cff;--dsw-alias-brand-primary:#f4f4f5;--dsw-alias-switch-thumb:rgb(173,178,184);--dsw-alias-label-primary-foreground:#0f1115;color:#f4f4f5}',
+      '.mp-card{--dsw-alias-label-primary:#f4f4f5;--dsw-alias-label-secondary:#a1a1aa;--dsw-alias-label-tertiary:#8a8a93;--dsw-alias-bg-base:#141417;--dsw-alias-bg-layer-1:#17171a;--dsw-alias-bg-layer-2:rgba(255,255,255,.06);--dsw-alias-bg-layer-3:rgba(255,255,255,.08);--dsw-alias-border-l1:rgba(255,255,255,.07);--dsw-alias-border-l2:rgba(255,255,255,.14);--dsw-alias-border-l3:rgba(255,255,255,.16);--dsw-alias-interactive-bg-hover:rgba(255,255,255,.07);--dsw-alias-interactive-bg-active:rgba(255,255,255,.1);--dsw-alias-state-business-primary:#4f8cff;--dsw-alias-button-primary-fill:#4f8cff;--dsw-alias-brand-primary:var(--dsw-static-neutral-bluish-50);--dsw-alias-switch-thumb:var(--dsw-static-neutral-bluish-400);--dsw-alias-label-primary-foreground:var(--dsw-static-neutral-bluish-1000);color:#f4f4f5}',
       // The card's panes scroll, but a scrollbar appearing for one frame during the tab
       // animation takes width from the content and the layout jumps when it leaves again.
       // Hide it on every scroll container inside the card instead of reserving a gutter.
