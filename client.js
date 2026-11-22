@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.43.0"
-    var CLIENT_BUILD = "e1cdfca29473"
+    var CLIENT_BUILD = "3e09b5ef509f"
 
     // ── src/client/app/runtime.js
     /**
@@ -177069,10 +177069,13 @@ window.__ModuleLoader__.load({
     var MP_MIN_COVER = 96
     var MP_TOP_MARGIN = 56
     var MP_BOTTOM_GAP = 24
-    function clampCardBodyHeight(measured) {
-      var viewport = typeof window === 'undefined' ? 800 : window.innerHeight || 800
-      // Bottom-anchored (like Folia): the surface grows upward, so the room is what is left between the bottom gap and the top margin.
-      var room = viewport - MP_TOP_MARGIN - MP_BOTTOM_GAP - MP_PADDING * 2 - MP_FOLDED - MP_DOCK_HEIGHT - MP_DOCK_GAP
+    // The card is bottom-anchored at the real anchor offset, so its body room is
+    // viewport - top margin - bottom offset - card chrome. Using the fixed bottom gap here
+    // ignored that offset and let the dock slide under the clipped edge.
+    function clampCardBodyHeight(measured, viewport, bottom) {
+      var height = viewport > 0 ? viewport : (typeof window === 'undefined' ? 800 : window.innerHeight || 800)
+      var gap = bottom >= 0 ? bottom : MP_BOTTOM_GAP
+      var room = height - MP_TOP_MARGIN - gap - MP_PADDING * 2 - MP_FOLDED - MP_DOCK_HEIGHT - MP_DOCK_GAP - MP_BODY_GAP - MP_BODY_LINE - MP_BODY_UNDER
       return Math.max(0, Math.min(measured, room))
     }
 
@@ -177132,6 +177135,12 @@ window.__ModuleLoader__.load({
       var bodyHPair = useState(0)
       var bodyH = bodyHPair[0]
       var setBodyH = bodyHPair[1]
+      // Both the viewport and the real anchor offset decide the maximum expanded height.
+      // Resizing the window must re-clamp the body, otherwise it keeps its old height.
+      var viewportPair = useState(0)
+      var viewportH = viewportPair[0]
+      var setViewportH = viewportPair[1]
+      var cardBottom = props.anchor && props.anchor.bottom >= 0 ? props.anchor.bottom : MP_BOTTOM_GAP
 
       var contentRef = useRef(null)
       var underRef = useRef(null)
@@ -177166,14 +177175,29 @@ window.__ModuleLoader__.load({
         [props.open, onClose],
       )
 
+      useEffect(
+        function () {
+          if (props.open !== true) return undefined
+          function update() {
+            setViewportH(window.innerHeight || 800)
+          }
+          update()
+          window.addEventListener('resize', update)
+          return function () {
+            window.removeEventListener('resize', update)
+          }
+        },
+        [props.open],
+      )
+
       useLayoutEffect(
         function () {
           if (props.open !== true) return
           var el = contentRef.current
           if (el === null) return
-          setBodyH(clampCardBodyHeight(el.scrollHeight))
+          setBodyH(clampCardBodyHeight(el.scrollHeight, viewportH, cardBottom))
         },
-        [props.open, index],
+        [props.open, index, viewportH, cardBottom],
       )
 
       // The under-cover block changes height with the title (one line, two lines, no album);
@@ -177201,14 +177225,14 @@ window.__ModuleLoader__.load({
           var el = contentRef.current
           if (el === null || typeof ResizeObserver !== 'function') return undefined
           var observer = new ResizeObserver(function () {
-            setBodyH(clampCardBodyHeight(el.scrollHeight))
+            setBodyH(clampCardBodyHeight(el.scrollHeight, viewportH, cardBottom))
           })
           observer.observe(el)
           return function () {
             observer.disconnect()
           }
         },
-        [props.open, index],
+        [props.open, index, viewportH, cardBottom],
       )
 
       // The page computes the cover (local file cover or the provider's URL); the card
@@ -177378,11 +177402,17 @@ window.__ModuleLoader__.load({
 
       // SongHeader sizing and the two transition vocabularies it uses (Folia's
       // `st-t-unfold` for the cover/height morph, `st-t-move`/`st-t-fast` for the fades).
-      var coverBig = 'min(336px, 52vh)'
       // The under block is bottom-anchored inside the header, so a fixed reserve slides it up
       // over the cover as soon as the title wraps. Its measured height is the reserve instead;
       // 114px is the one-line case, used for the frame before the measurement lands.
       var underHForLayout = underH > 0 ? underH : 114
+      // The card never grows past the viewport: viewport - top margin - real bottom anchor.
+      // The cover is capped by the room left after padding, dock, gap and the title block,
+      // otherwise a tall cover pushes the dock under the clipped edge on short windows.
+      var viewportForLayout = viewportH > 0 ? viewportH : 800
+      var cardMaxH = Math.max(240, viewportForLayout - MP_TOP_MARGIN - cardBottom)
+      var coverRoom = cardMaxH - MP_PADDING * 2 - MP_DOCK_HEIGHT - MP_DOCK_GAP - MP_COVER_GAP - underHForLayout
+      var coverBig = 'min(336px, 52vh, ' + String(Math.max(140, coverRoom)) + 'px)'
       var headerH = isCover
         ? 'calc(' + coverBig + ' + ' + String(MP_COVER_GAP) + 'px + ' + String(underHForLayout) + 'px)'
         : String(MP_FOLDED) + 'px'
@@ -178327,15 +178357,10 @@ window.__ModuleLoader__.load({
       var surfaceStyle = {
         position: 'absolute',
         right: (props.anchor && props.anchor.right >= 0 ? String(props.anchor.right) + 'px' : '22px'),
-        bottom: (props.anchor && props.anchor.bottom >= 0 ? String(props.anchor.bottom) + 'px' : '24px'),
+        bottom: String(cardBottom) + 'px',
         width: '360px',
         maxWidth: 'calc(100vw - 2rem)',
-        maxHeight:
-          'calc(100dvh - ' +
-          String(MP_TOP_MARGIN) +
-          'px - ' +
-          (props.anchor && props.anchor.bottom >= 0 ? String(props.anchor.bottom) + 'px' : '24px') +
-          ')',
+        maxHeight: String(cardMaxH) + 'px',
         display: 'flex',
         flexDirection: 'column',
         padding: String(MP_PADDING) + 'px',
