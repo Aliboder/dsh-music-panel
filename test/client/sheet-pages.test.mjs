@@ -43,6 +43,17 @@ test('歌词 page: source, timeline, match/file, word split and style', () => {
   assert.doesNotMatch(lyrics, /sheet\.audioGain/, 'the gain control left the lyrics page')
 })
 
+test('歌词显示 has named controls, not glyph-only buttons', () => {
+  const style = paneSource('lyricLookBlock')
+  for (const key of ['settings.lyricIntensity', 'sheet.showTranslation', 'page.translationScale', 'settings.lyricFontScale']) {
+    assert.ok(style.includes("t('" + key + "')"), key + ' is labelled in the lyric display group')
+  }
+  assert.match(style, /mpSegment\(/, '歌词动态 is a segmented choice')
+  assert.match(style, /mpScaleStepper\(/, 'the two size rows are steppers with a percentage')
+  assert.doesNotMatch(style, /mpSmallButton\('≡'/, 'the wired ≡ glyph is gone')
+  assert.doesNotMatch(style, /mpSmallButton\('≋'/, 'the wired ≋ glyph is gone')
+})
+
 test('音频 page: quality, volume, play mode, fade, gain and the effects window', () => {
   for (const key of ['sheet.quality', 'sheet.playMode', 'sheet.smartFade', 'sheet.effects']) {
     assert.ok(audio.includes("t('" + key + "')"), key + ' is on the audio page')

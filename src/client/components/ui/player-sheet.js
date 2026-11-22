@@ -1264,8 +1264,43 @@ function PlayerSheetInner(props) {
     )
   }
 
-  /** 歌词样式 — the style picker and the four display switches that belong with it. */
+  /** A labelled ±% stepper for the lyric display rows (no glyph-only buttons). */
+  function mpScaleStepper(value, step, onChange) {
+    return h(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: '2px',
+          padding: '2px',
+          borderRadius: '10px',
+          background: 'var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))',
+        },
+      },
+      h(
+        'button',
+        { type: 'button', className: 'mp-card-step', title: '-', onClick: function () { onChange(value - step) }, style: mpStepperStyle() },
+        '-',
+      ),
+      h(
+        'span',
+        { style: { minWidth: '42px', textAlign: 'center', fontSize: '12px', fontVariantNumeric: 'tabular-nums' } },
+        value + '%',
+      ),
+      h(
+        'button',
+        { type: 'button', className: 'mp-card-step', title: '+', onClick: function () { onChange(value + step) }, style: mpStepperStyle() },
+        '+',
+      ),
+    )
+  }
+
+  /** 歌词样式 + 歌词显示 — the style picker and the display controls, each named in words. */
   function lyricLookBlock() {
+    var intensity = ['calm', 'normal', 'chaotic'].indexOf(prefs.lyricIntensity) >= 0 ? prefs.lyricIntensity : 'normal'
+    var translationScale = Math.min(150, Math.max(50, Math.round(Number(prefs.translationScale) || 90)))
+    var lyricScale = Math.min(150, Math.max(50, Math.round((Number(prefs.lyricsFontScale) || 1) * 100)))
     return h(
       'div',
       { key: 'lyric-look' },
@@ -1290,23 +1325,48 @@ function PlayerSheetInner(props) {
             }),
           )
         : null,
-      h(
-        'div',
-        {
-          key: 'lyric-quick',
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            gap: '4px',
-            minHeight: '36px',
-            padding: '2px 4px',
-          },
-        },
-        mpSmallButton(t('sheet.standard'), function () { setPrefs({ lyricIntensity: prefs.lyricIntensity === 'normal' ? 'calm' : prefs.lyricIntensity === 'calm' ? 'chaotic' : 'normal' }) }, t('settings.lyricIntensity')),
-        mpSmallButton('≡', function () { setPrefs({ showTranslation: prefs.showTranslation === false }) }, t('page.translation')),
-        mpSmallButton('↔', function () { setPrefs({ translationScale: prefs.translationScale === 100 ? 110 : prefs.translationScale === 110 ? 90 : 100 }) }, t('page.translationScale')),
-        mpSmallButton('≋', function () { setPrefs({ lyricsFontScale: prefs.lyricsFontScale === 1 ? 1.15 : prefs.lyricsFontScale === 1.15 ? 0.9 : 1 }) }, t('settings.lyricFontScale')),
+      mpSection(
+        t('sheet.lyricDisplay'),
+        h(
+          'div',
+          null,
+          mpPanelRow(
+            t('settings.lyricIntensity'),
+            mpSegment(
+              [
+                { value: 'calm', label: t('settings.lyricIntensityCalm') },
+                { value: 'normal', label: t('settings.lyricIntensityNormal') },
+                { value: 'chaotic', label: t('settings.lyricIntensityChaotic') },
+              ],
+              intensity,
+              function (value) {
+                setPrefs({ lyricIntensity: value })
+              },
+            ),
+          ),
+          mpPanelRow(
+            t('sheet.showTranslation'),
+            h(Switch, {
+              value: prefs.showTranslation === true,
+              label: t('sheet.showTranslation'),
+              onChange: function (value) {
+                setPrefs({ showTranslation: value })
+              },
+            }),
+          ),
+          mpPanelRow(
+            t('page.translationScale'),
+            mpScaleStepper(translationScale, 10, function (next) {
+              setPrefs({ translationScale: Math.min(150, Math.max(50, next)) })
+            }),
+          ),
+          mpPanelRow(
+            t('settings.lyricFontScale'),
+            mpScaleStepper(lyricScale, 5, function (next) {
+              setPrefs({ lyricsFontScale: Math.min(150, Math.max(50, next)) / 100 })
+            }),
+          ),
+        ),
       ),
     )
   }
