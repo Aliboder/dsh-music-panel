@@ -32557,7 +32557,9 @@ window.__ModuleLoader__.load({
       var theme = useFoliaCoverTheme(props.coverUrl, props.seed, props.accent)
 
       var seek = useCallback(function (seconds) {
-        player.seek(Number(seconds) || 0)
+        // The rail's timestamps are raw audio time; the clock is offset, so seek to the
+        // line's place in the shifted clock or the next line becomes active.
+        player.seek((Number(seconds) || 0) + offsetRef.current)
       }, [])
 
       var active = Number(props.active)
@@ -32591,7 +32593,7 @@ window.__ModuleLoader__.load({
         audioPower: power,
         audioBands: bandsRef.current,
         showText: true,
-        subtitleContentMode: 'translation',
+        subtitleContentMode: showTranslation ? 'translation' : 'none',
         showSubtitleTranslation: showTranslation,
         lyricsFontScale: lyricsFontScale,
         subtitleFontScale: translationScale / 100,
@@ -139947,7 +139949,9 @@ window.__ModuleLoader__.load({
         audioPower: power,
         audioBands: bandsRef.current,
         showText: true,
-        subtitleContentMode: 'translation',
+        // Monet ignores hideTranslationSubtitle and only reads the content mode (resolveSubtitleContentMode
+        // returns the given mode as-is), so the mode itself has to carry the translation switch.
+        subtitleContentMode: showTranslation ? 'translation' : 'none',
         showSubtitleTranslation: showTranslation,
         lyricsFontScale: lyricsFontScale,
         subtitleFontScale: translationScale / 100,
@@ -139964,8 +139968,10 @@ window.__ModuleLoader__.load({
         songArtist: props.artist || '',
         songAlbum: props.album || '',
         isDaylight: false,
+        // A lyric line's timestamp is raw audio time; the stage clock is shifted by the
+        // offsets, so seeking to the raw value would stop on the neighbouring line.
         onLyricLineSeek: function (seconds) {
-          player.seek(Number(seconds) || 0)
+          player.seek((Number(seconds) || 0) + offsetRef.current)
         },
       }
 
@@ -166953,13 +166959,15 @@ window.__ModuleLoader__.load({
         [trackPath],
       )
 
-      // The local lyric pick depends on these two settings; a change re-reads the track.
+      // The local lyric pick depends on these settings; a change re-reads the track.
       // Declared before the effects that use it: a `var` below them would still be undefined
       // when their dependency arrays are built.
       var lyricPriorityKey = (prefs.lyricLocalPriority === 'online' ? 'online' : 'local')
         + '\u0000' + String(prefs.lyricPreferredSource || '')
         // The own-word-timing rule changes which source the upgrade asks: a change re-reads.
         + '\u0000' + (prefs.lyricKeepProviderWordTiming !== false ? 'keep-own' : 'all-sources')
+        // A new sidecar order must re-read the current file, not wait for the next track.
+        + '\u0000' + (Array.isArray(prefs.lyricFormatOrder) ? prefs.lyricFormatOrder.join(',') : '')
 
       useEffect(
         function () {
@@ -167228,7 +167236,8 @@ window.__ModuleLoader__.load({
       )
 
       // The per-song correction plus Folia's device-wide offset: one clock for every surface.
-      var lyricNow = lyricClock(time.currentTime, offsetMs, prefs.lyricGlobalOffsetMs)
+      var lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Number(prefs.lyricGlobalOffsetMs) || 0))
+      var lyricNow = lyricClock(time.currentTime, offsetMs, lyricGlobalOffsetMs)
       var active = lyricActiveIndex(lyrics, lyricNow)
       var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
       var favorite = track !== null && props.favoriteSet[track.path] === true
@@ -167462,7 +167471,9 @@ window.__ModuleLoader__.load({
       })
       var lyricStage = h(LyricStage, {
         lines: lyrics,
-        offsetMs: offsetMs,
+        // The stage builds its own clock from the player's position; hand it the combined
+        // correction so the word sweep and the active line both honour the global offset.
+        offsetMs: offsetMs + lyricGlobalOffsetMs,
         active: active,
         now: lyricNow,
         prefs: prefs,
@@ -179424,18 +179435,42 @@ window.__ModuleLoader__.load({
       var pair = useState([])
       var lines = pair[0]
       var setLines = pair[1]
+      var offsetPair = useState(0)
+      var lyricOffsetMs = offsetPair[0]
+      var setLyricOffsetMs = offsetPair[1]
+      // The parsed document the strip's lines came from: a change of the line filters re-runs
+      // the display pass on it, exactly as the player page does.
+      var docRef = useRef(null)
+      var lyricRulesKey = mpLyricRulesKey()
+      // The same source settings the player page reloads for: the strip follows the same lyric.
+      var lyricSourceKey = (prefs.lyricLocalPriority === 'online' ? 'online' : 'local')
+        + '\u0000' + String(prefs.lyricPreferredSource || '')
+        + '\u0000' + (prefs.lyricKeepProviderWordTiming !== false ? 'keep-own' : 'all-sources')
+        + '\u0000' + (Array.isArray(prefs.lyricFormatOrder) ? prefs.lyricFormatOrder.join(',') : '')
+      var lastSourceKeyRef = useRef(null)
 
       useEffect(
         function () {
           if (prefs.composerLyrics !== true || trackPath === '') {
             setLines([])
+            setLyricOffsetMs(0)
+            docRef.current = null
             return undefined
           }
           var cancelled = false
+          // A changed source setting invalidates the shared load before reading it again.
+          if (lastSourceKeyRef.current !== null && lastSourceKeyRef.current !== lyricSourceKey) {
+            MPLyricLoader.invalidate(trackPath)
+          }
+          lastSourceKeyRef.current = lyricSourceKey
           var active = snap.queue[snap.index]
           if (!active) return undefined
           var unsubscribe = MPLyricLoader.subscribe(trackPath, function (next) {
             if (cancelled || next.upgraded === undefined) return
+            docRef.current = next.document === null
+              ? null
+              : { document: next.document, chorusRanges: next.chorusRanges }
+            setLyricOffsetMs(Number(next.offsetMs) || 0)
             setLines(composerLyricRows(next.lyrics))
           })
           async function load() {
@@ -179444,6 +179479,10 @@ window.__ModuleLoader__.load({
               // stage and the player card show, including a matched or imported online lyric.
               var loaded = await MPLyricLoader.load(active)
               if (cancelled) return
+              docRef.current = loaded.document === null
+                ? null
+                : { document: loaded.document, chorusRanges: loaded.chorusRanges }
+              setLyricOffsetMs(Number(loaded.offsetMs) || 0)
               setLines(composerLyricRows(loaded.lyrics))
             } catch (error) {
               if (!cancelled) setLines([])
@@ -179455,14 +179494,24 @@ window.__ModuleLoader__.load({
             if (typeof unsubscribe === 'function') unsubscribe()
           }
         },
-        [prefs.composerLyrics, trackPath],
+        [prefs.composerLyrics, trackPath, lyricSourceKey],
+      )
+
+      // A changed line filter re-bakes the strip from the same document (no new request).
+      useEffect(
+        function () {
+          var saved = docRef.current
+          if (saved === null || trackPath === '') return
+          setLines(composerLyricRows(mpPrepareLyrics(saved.document, trackPath, saved.chorusRanges).lyrics))
+        },
+        [lyricRulesKey],
       )
 
       if (prefs.composerLyrics !== true || track === null) return null
-      // Same clock as the player page: the song's saved correction plus the global offset.
+      // Same clock as the player page: the lyric record's per-song offset plus the global one.
       var index = lyricActiveIndex(
         lines,
-        lyricClock(time.currentTime, readSavedLyricOffset(trackPath), prefs.lyricGlobalOffsetMs),
+        lyricClock(time.currentTime, lyricOffsetMs, prefs.lyricGlobalOffsetMs),
       )
       var line = index >= 0 ? lines[index] : null
       return h(

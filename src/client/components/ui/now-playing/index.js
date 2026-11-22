@@ -418,13 +418,15 @@ function NowPlaying(props) {
     [trackPath],
   )
 
-  // The local lyric pick depends on these two settings; a change re-reads the track.
+  // The local lyric pick depends on these settings; a change re-reads the track.
   // Declared before the effects that use it: a `var` below them would still be undefined
   // when their dependency arrays are built.
   var lyricPriorityKey = (prefs.lyricLocalPriority === 'online' ? 'online' : 'local')
     + '\u0000' + String(prefs.lyricPreferredSource || '')
     // The own-word-timing rule changes which source the upgrade asks: a change re-reads.
     + '\u0000' + (prefs.lyricKeepProviderWordTiming !== false ? 'keep-own' : 'all-sources')
+    // A new sidecar order must re-read the current file, not wait for the next track.
+    + '\u0000' + (Array.isArray(prefs.lyricFormatOrder) ? prefs.lyricFormatOrder.join(',') : '')
 
   useEffect(
     function () {
@@ -693,7 +695,8 @@ function NowPlaying(props) {
   )
 
   // The per-song correction plus Folia's device-wide offset: one clock for every surface.
-  var lyricNow = lyricClock(time.currentTime, offsetMs, prefs.lyricGlobalOffsetMs)
+  var lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Number(prefs.lyricGlobalOffsetMs) || 0))
+  var lyricNow = lyricClock(time.currentTime, offsetMs, lyricGlobalOffsetMs)
   var active = lyricActiveIndex(lyrics, lyricNow)
   var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
   var favorite = track !== null && props.favoriteSet[track.path] === true
@@ -927,7 +930,9 @@ function NowPlaying(props) {
   })
   var lyricStage = h(LyricStage, {
     lines: lyrics,
-    offsetMs: offsetMs,
+    // The stage builds its own clock from the player's position; hand it the combined
+    // correction so the word sweep and the active line both honour the global offset.
+    offsetMs: offsetMs + lyricGlobalOffsetMs,
     active: active,
     now: lyricNow,
     prefs: prefs,

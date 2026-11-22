@@ -269,7 +269,9 @@ function FoliaPendoloStage(props) {
   var theme = useFoliaCoverTheme(props.coverUrl, props.seed, props.accent)
 
   var seek = useCallback(function (seconds) {
-    player.seek(Number(seconds) || 0)
+    // The rail's timestamps are raw audio time; the clock is offset, so seek to the
+    // line's place in the shifted clock or the next line becomes active.
+    player.seek((Number(seconds) || 0) + offsetRef.current)
   }, [])
 
   var active = Number(props.active)
@@ -303,7 +305,7 @@ function FoliaPendoloStage(props) {
     audioPower: power,
     audioBands: bandsRef.current,
     showText: true,
-    subtitleContentMode: 'translation',
+    subtitleContentMode: showTranslation ? 'translation' : 'none',
     showSubtitleTranslation: showTranslation,
     lyricsFontScale: lyricsFontScale,
     subtitleFontScale: translationScale / 100,

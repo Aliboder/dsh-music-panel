@@ -379,7 +379,9 @@ function FoliaStyleStage(props) {
     audioPower: power,
     audioBands: bandsRef.current,
     showText: true,
-    subtitleContentMode: 'translation',
+    // Monet ignores hideTranslationSubtitle and only reads the content mode (resolveSubtitleContentMode
+    // returns the given mode as-is), so the mode itself has to carry the translation switch.
+    subtitleContentMode: showTranslation ? 'translation' : 'none',
     showSubtitleTranslation: showTranslation,
     lyricsFontScale: lyricsFontScale,
     subtitleFontScale: translationScale / 100,
@@ -396,8 +398,10 @@ function FoliaStyleStage(props) {
     songArtist: props.artist || '',
     songAlbum: props.album || '',
     isDaylight: false,
+    // A lyric line's timestamp is raw audio time; the stage clock is shifted by the
+    // offsets, so seeking to the raw value would stop on the neighbouring line.
     onLyricLineSeek: function (seconds) {
-      player.seek(Number(seconds) || 0)
+      player.seek((Number(seconds) || 0) + offsetRef.current)
     },
   }
 
