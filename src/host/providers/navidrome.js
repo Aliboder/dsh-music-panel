@@ -591,21 +591,43 @@ export async function playlistSongs(config, playlistId) {
 /**
  * Subsonic has no playlist paging; this adapter still honours the page contract
  * so callers do not need a provider-specific branch. The full list is read once
- * per request and sliced here.
+ * and kept briefly, so "load more" does not re-download the whole playlist for
+ * every page (one request per page session instead of one per page).
  */
+const playlistPageCache = new Map()
+const PLAYLIST_PAGE_TTL_MS = 20 * 1000
+const PLAYLIST_PAGE_CACHE_MAX = 24
+
 export async function playlistSongsPage(config, playlistId, limit = 100, offset = 0) {
-  const body = await requestJson(config, 'getPlaylist.view', { id: String(playlistId ?? '') })
-  const wrap = body.playlist || {}
-  const entries = Array.isArray(wrap.entry) ? wrap.entry : []
-  const all = entries.map(songOf).filter((song) => song !== null)
+  const id = String(playlistId ?? '')
+  const key = [config?.server || '', config?.username || '', id].join('|')
+  let cached = playlistPageCache.get(key)
+  if (cached === undefined || Date.now() - cached.at >= PLAYLIST_PAGE_TTL_MS) {
+    const body = await requestJson(config, 'getPlaylist.view', { id })
+    const wrap = body.playlist || {}
+    const entries = Array.isArray(wrap.entry) ? wrap.entry : []
+    cached = { at: Date.now(), name: wrap.name || '', songs: entries.map(songOf).filter((song) => song !== null) }
+    playlistPageCache.set(key, cached)
+    if (playlistPageCache.size > PLAYLIST_PAGE_CACHE_MAX) {
+      let oldestKey = ''
+      let oldestAt = Infinity
+      playlistPageCache.forEach((entry, cacheKey) => {
+        if (entry.at < oldestAt) {
+          oldestAt = entry.at
+          oldestKey = cacheKey
+        }
+      })
+      if (oldestKey !== '') playlistPageCache.delete(oldestKey)
+    }
+  }
   const size = Math.max(1, Math.min(200, parseInt(limit, 10) || 100))
   const at = Math.max(0, parseInt(offset, 10) || 0)
-  const songs = all.slice(at, at + size)
+  const songs = cached.songs.slice(at, at + size)
   return {
-    name: wrap.name || '', cover: '',
-    trackCount: all.length,
+    name: cached.name, cover: '',
+    trackCount: cached.songs.length,
     songs,
-    hasMore: at + songs.length < all.length,
+    hasMore: at + songs.length < cached.songs.length,
     nextOffset: at + songs.length,
   }
 }

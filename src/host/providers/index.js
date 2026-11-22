@@ -1363,6 +1363,28 @@ function shapePlaylistSongs(provider, rows) {
 }
 
 /**
+ * The account's playlist list for KuGou, kept briefly: every page of every playlist used to
+ * re-read it upstream just to recognise one id.
+ */
+const kugouPlaylistListCache = new Map()
+const KUGOU_PLAYLIST_LIST_TTL = 30 * 1000
+
+async function kugouAccountPlaylists(provider, session) {
+  const hit = kugouPlaylistListCache.get(provider)
+  if (hit && Date.now() - hit.at < KUGOU_PLAYLIST_LIST_TTL) return hit.list
+  try {
+    const list = await (provider === 'kugouLite' ? KGL.getMyPlaylists(session) : KG.getMyPlaylists(session))
+    if (Array.isArray(list)) {
+      kugouPlaylistListCache.set(provider, { at: Date.now(), list })
+      return list
+    }
+  } catch {
+    // Fall through: an unrecognised id takes the legacy path, which asks again if it must.
+  }
+  return []
+}
+
+/**
  * One page of a playlist. Folia's catalogue contract is page-shaped; providers
  * with a native paged read return it directly, the rest are adapted from the
  * legacy full read until their page primitive is migrated.
@@ -1403,38 +1425,34 @@ export async function playlistSongsPage(provider, id, cookie = '', session = {},
     }
   }
   if (provider === 'kugou' || provider === 'kugouLite') {
-    // The id a playlist row carries (a cloud list id) is the one playlist_track_all takes, so
-    // ask the page API first. The account-list lookup below costs one or two extra upstream
-    // calls on every page; when one of them was slow or rate-limited, the old order sent the
-    // whole open down the legacy full-read path and the page sat on skeletons until it landed
-    // (the "switch away and back and it opens" report). The lookup stays as the fallback for
-    // collected playlists and for ids the page API refuses.
-    const pageReader = provider === 'kugouLite' ? KGL : KG
-    let direct = null
-    try {
-      direct = await pageReader.getMyPlaylistSongsPage(id, limit, offset, session)
-    } catch {
-      direct = null
-    }
-    const directSongs = direct !== null && Array.isArray(direct.songs) ? direct.songs : []
-    const directTotal = direct === null ? 0 : Number(direct.trackCount) || 0
-    if (direct !== null && (directSongs.length > 0 || directTotal > 0 || offset > 0)) {
-      return {
-        // The row already carries its name and cover; the page answer has no room for them.
-        name: '',
-        cover: '',
-        trackCount: directTotal || directSongs.length,
-        songs: shapePlaylistSongs(provider, directSongs),
-        hasMore: direct.hasMore === true,
-        nextOffset: Number(direct.nextOffset) || offset + directSongs.length,
+    // kugouLite takes the row's own id (a cloud list id) straight in playlist_track_all, so it
+    // is asked first: the account-list lookup below costs one or two extra upstream calls on
+    // every page, and when one of them was slow or rate-limited the old order fell into the
+    // legacy full-read path — the "stuck on skeletons until I switch away and back" report.
+    // The standard client's page reader needs the cloud ids only its account list carries, so
+    // it keeps the lookup (now cached for a moment) as its first step.
+    if (provider === 'kugouLite') {
+      let direct = null
+      try {
+        direct = await KGL.getMyPlaylistSongsPage(id, limit, offset, session)
+      } catch {
+        direct = null
+      }
+      const directSongs = direct !== null && Array.isArray(direct.songs) ? direct.songs : []
+      const directTotal = direct === null ? 0 : Number(direct.trackCount) || 0
+      if (direct !== null && (directSongs.length > 0 || directTotal > 0 || offset > 0)) {
+        return {
+          // The row already carries its name and cover; the page answer has no room for them.
+          name: '',
+          cover: '',
+          trackCount: directTotal || directSongs.length,
+          songs: shapePlaylistSongs(provider, directSongs),
+          hasMore: direct.hasMore === true,
+          nextOffset: Number(direct.nextOffset) || offset + directSongs.length,
+        }
       }
     }
-    let mine = []
-    try {
-      mine = await (provider === 'kugouLite' ? KGL.getMyPlaylists(session) : KG.getMyPlaylists(session))
-    } catch {
-      mine = []
-    }
+    const mine = await kugouAccountPlaylists(provider, session)
     const item = (mine || []).find((entry) => String(entry.id) === String(id))
     if (item && item.kind !== 'collect') {
       const result = await (provider === 'kugouLite'

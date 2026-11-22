@@ -280,6 +280,47 @@ export async function getMyPlaylists(cookie = '') {
   })
 }
 
+/**
+ * A whole-playlist read kept briefly.
+ *
+ * The page route has to read the whole list for a playlist it cannot page (a favourite, or an
+ * id the account list does not know). Without this every "load more" downloads the entire
+ * playlist again; with it a page session costs one full read.
+ */
+const legacyPlaylistSongsCache = new Map()
+const LEGACY_PLAYLIST_TTL_MS = 30 * 1000
+const LEGACY_PLAYLIST_CACHE_MAX = 24
+
+async function legacyPlaylistSongsCached(key, cookie) {
+  const hit = legacyPlaylistSongsCache.get(key)
+  if (hit && Date.now() - hit.at < LEGACY_PLAYLIST_TTL_MS) return hit.value
+  const value = await legacyPlaylistSongs(key, cookie)
+  legacyPlaylistSongsCache.set(key, { at: Date.now(), value })
+  if (legacyPlaylistSongsCache.size > LEGACY_PLAYLIST_CACHE_MAX) {
+    let oldestKey = ''
+    let oldestAt = Infinity
+    legacyPlaylistSongsCache.forEach((entry, cacheKey) => {
+      if (entry.at < oldestAt) {
+        oldestAt = entry.at
+        oldestKey = cacheKey
+      }
+    })
+    if (oldestKey !== '') legacyPlaylistSongsCache.delete(oldestKey)
+  }
+  return value
+}
+
+/** The page API needs the tid/dirid that only the account list carries; read it once on a miss. */
+async function ensurePlaylistMeta(key, cookie) {
+  if (playlistMeta.has(key)) return playlistMeta.get(key)
+  try {
+    await getMyPlaylists(cookie)
+  } catch {
+    // Not signed in, or the list failed: the legacy read below is the fallback either way.
+  }
+  return playlistMeta.get(key)
+}
+
 const PLAYLIST_PAGE_SIZE = 100
 const PLAYLIST_MAX_PAGES = 100
 
@@ -373,9 +414,9 @@ export async function getPlaylistSongsPage(id, limit = 100, offset = 0, cookie =
   const key = String(id ?? '')
   const size = Math.max(1, Math.min(200, parseInt(limit, 10) || 100))
   const at = Math.max(0, parseInt(offset, 10) || 0)
-  const meta = playlistMeta.get(key)
+  const meta = await ensurePlaylistMeta(key, cookie)
   if (!meta || meta.owned !== true) {
-    const full = await legacyPlaylistSongs(key, cookie)
+    const full = await legacyPlaylistSongsCached(key, cookie)
     const songs = (full.songs || []).slice(at, at + size)
     return {
       name: full.name || '',

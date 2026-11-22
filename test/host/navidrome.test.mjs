@@ -312,6 +312,33 @@ test('playlistSongs maps entries', async () => {
   )
 })
 
+// Subsonic has no paging: the adapter reads the whole playlist and slices. Two pages of one
+// session must not download it twice (it used to, once per "load more").
+test('playlistSongsPage reads the whole list once per session', async () => {
+  let requests = 0
+  await withFetch(
+    async () => {
+      requests += 1
+      return jsonResponse(okBody({
+        playlist: {
+          name: 'Long',
+          entry: Array.from({ length: 150 }, (_, index) => ({ id: 'e' + index, title: 'T' + index, artist: 'A', duration: 5 })),
+        },
+      }))
+    },
+    async () => {
+      const first = await ND.playlistSongsPage(cfg, 'paged-1', 100, 0)
+      assert.equal(first.songs.length, 100)
+      assert.equal(first.trackCount, 150)
+      assert.equal(first.hasMore, true)
+      const second = await ND.playlistSongsPage(cfg, 'paged-1', 100, 100)
+      assert.equal(second.songs.length, 50)
+      assert.equal(second.hasMore, false)
+      assert.equal(requests, 1, 'the whole playlist is read once, not once per page')
+    },
+  )
+})
+
 // ── lyrics ───────────────────────────────────────────────────────────────
 
 test('lyric formats structured lyrics into LRC, treating start as milliseconds', async () => {
