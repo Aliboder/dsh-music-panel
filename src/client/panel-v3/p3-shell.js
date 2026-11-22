@@ -578,20 +578,50 @@ function P3Queue(props) {
   var currentRowRef = useRef(null)
   var current = snap.queue[snap.index] || null
 
-  // Folia's queue is the whole queue in order, the playing row in place. Opening it puts the
-  // row before the playing one at the top, so what was just played stays in view.
+  // Opening the queue brings the playing row into view (the row before it goes to the top,
+  // Folia's alignment). It runs on open only: a row the reader just clicked is already on
+  // screen, and re-positioning the list under that click made it jump.
   useEffect(function () {
-    if (!props.open) return
-    var list = listRef.current
-    var rowEl = currentRowRef.current
-    if (list === null || rowEl === null) return
-    var offset = rowEl.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop
-    var previous = rowEl.previousElementSibling
-    var lead = previous !== null && previous.classList && previous.classList.contains('mpv3-queue-row')
-      ? previous.getBoundingClientRect().height
-      : 0
-    list.scrollTop = Math.max(0, Math.round(offset - lead))
-  }, [props.open, snap.index])
+    if (!props.open) return undefined
+    var cancelled = false
+    var attempts = 0
+    var frame = 0
+    var schedule =
+      typeof requestAnimationFrame === 'function'
+        ? function (fn) { return requestAnimationFrame(fn) }
+        : function (fn) { return setTimeout(fn, 16) }
+    var unschedule =
+      typeof cancelAnimationFrame === 'function'
+        ? function (id) { cancelAnimationFrame(id) }
+        : function (id) { clearTimeout(id) }
+    function place() {
+      if (cancelled) return
+      var list = listRef.current
+      var rowEl = currentRowRef.current
+      if (list === null || rowEl === null) return
+      // A popover stays display:none until showPopover() runs, so the first measurement can
+      // be zero-sized; try the next frames instead of scrolling to nowhere.
+      if (list.clientHeight === 0 || rowEl.getBoundingClientRect().height === 0) {
+        attempts += 1
+        if (attempts < 6) frame = schedule(place)
+        return
+      }
+      var listRect = list.getBoundingClientRect()
+      var rowRect = rowEl.getBoundingClientRect()
+      if (rowRect.top >= listRect.top && rowRect.bottom <= listRect.bottom) return
+      var offset = rowRect.top - listRect.top + list.scrollTop
+      var previous = rowEl.previousElementSibling
+      var lead = previous !== null && previous.classList && previous.classList.contains('mpv3-queue-row')
+        ? previous.getBoundingClientRect().height
+        : 0
+      list.scrollTop = Math.max(0, Math.round(offset - lead))
+    }
+    frame = schedule(place)
+    return function () {
+      cancelled = true
+      unschedule(frame)
+    }
+  }, [props.open])
 
   useEffect(function () {
     if (!props.open) return undefined

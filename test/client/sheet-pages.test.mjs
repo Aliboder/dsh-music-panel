@@ -76,6 +76,13 @@ test('外观 page: background and theme, and nothing that makes sound', () => {
   assert.doesNotMatch(look, /player\.setLoop/, 'the play mode left the look page')
 })
 
+test('opening the queue locates the playing row without jumping under a click', () => {
+  const shell = readFileSync(join(root, 'src/client/panel-v3/p3-shell.js'), 'utf8')
+  assert.match(shell, /if \(rowRect\.top >= listRect\.top && rowRect\.bottom <= listRect\.bottom\) return/, 'a row already on screen is left alone')
+  assert.match(shell, /\}, \[props\.open\]\)/, 'the scroll runs when the queue opens, not on every track change')
+  assert.match(shell, /schedule\(place\)/, 'a hidden popover is measured again on the next frame')
+})
+
 test('the cover header reserves the measured title block, not a fixed guess', () => {
   assert.match(sheet, /underHForLayout = underH > 0 \? underH : 114/, 'the one-line fallback is explicit')
   assert.match(sheet, /headerH = isCover[\s\S]{0,220}underHForLayout/, 'the header uses the measured height')

@@ -199,6 +199,10 @@ assert.match(theme, /\.mp-card\{[^']*--dsw-alias-bg-layer-2:rgba\(255,255,255,\.
 assert.match(theme, /\.mp-card\{[^']*--dsw-alias-bg-layer-3:rgba\(255,255,255,\.08\)/, 'player card nested surfaces stay dark')
 assert.match(theme, /\.mp-card\{[^']*--dsw-alias-border-l1:rgba\(255,255,255,\.07\)/, 'player card hairlines stay light')
 assert.match(theme, /\.mp-card\{[^']*color:#f4f4f5/, 'player card sets its own light ink')
+// The host Switch inside the island reads the brand track + thumb tokens; unpinned they
+// resolve to the app theme and the knob disappears into the track.
+assert.match(theme, /\.mp-card\{[^']*--dsw-alias-brand-primary:#f4f4f5/, 'player card pins the switch track')
+assert.match(theme, /\.mp-card\{[^']*--dsw-alias-switch-thumb:rgb\(173,178,184\)/, 'player card pins a visible switch knob')
 
 // panel-v3 rows: 76px, 54px cover, 18px title (90% of the 84/60/20 scale).
 assert.match(p3Css, /\.mpv3-row \{[^"]*height: 76px/, 'panel-v3 rows are 76px')

@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.43.0"
-    var CLIENT_BUILD = "726a4d1095a9"
+    var CLIENT_BUILD = "878417bef0a2"
 
     // ── src/client/app/runtime.js
     /**
@@ -163443,7 +163443,7 @@ window.__ModuleLoader__.load({
       // near-white layers, so the card ended up with white-on-white tiles, pills and inputs.
       // Pin the tokens it sits on to their dark-theme values for everything inside the card;
       // the surface itself stays on the inline dark glass above.
-      '.mp-card{--dsw-alias-label-primary:#f4f4f5;--dsw-alias-label-secondary:#a1a1aa;--dsw-alias-label-tertiary:#8a8a93;--dsw-alias-label-primary-foreground:#ffffff;--dsw-alias-bg-base:#141417;--dsw-alias-bg-layer-1:#17171a;--dsw-alias-bg-layer-2:rgba(255,255,255,.06);--dsw-alias-bg-layer-3:rgba(255,255,255,.08);--dsw-alias-border-l1:rgba(255,255,255,.07);--dsw-alias-border-l2:rgba(255,255,255,.14);--dsw-alias-border-l3:rgba(255,255,255,.18);--dsw-alias-interactive-bg-hover:rgba(255,255,255,.07);--dsw-alias-interactive-bg-active:rgba(255,255,255,.1);--dsw-alias-state-business-primary:#4f8cff;--dsw-alias-button-primary-fill:#4f8cff;color:#f4f4f5}',
+      '.mp-card{--dsw-alias-label-primary:#f4f4f5;--dsw-alias-label-secondary:#a1a1aa;--dsw-alias-label-tertiary:#8a8a93;--dsw-alias-label-primary-foreground:#ffffff;--dsw-alias-bg-base:#141417;--dsw-alias-bg-layer-1:#17171a;--dsw-alias-bg-layer-2:rgba(255,255,255,.06);--dsw-alias-bg-layer-3:rgba(255,255,255,.08);--dsw-alias-border-l1:rgba(255,255,255,.07);--dsw-alias-border-l2:rgba(255,255,255,.14);--dsw-alias-border-l3:rgba(255,255,255,.18);--dsw-alias-interactive-bg-hover:rgba(255,255,255,.07);--dsw-alias-interactive-bg-active:rgba(255,255,255,.1);--dsw-alias-state-business-primary:#4f8cff;--dsw-alias-button-primary-fill:#4f8cff;--dsw-alias-brand-primary:#f4f4f5;--dsw-alias-switch-thumb:rgb(173,178,184);--dsw-alias-label-primary-foreground:#0f1115;color:#f4f4f5}',
       // The card's panes scroll, but a scrollbar appearing for one frame during the tab
       // animation takes width from the content and the layout jumps when it leaves again.
       // Hide it on every scroll container inside the card instead of reserving a gutter.
@@ -176484,20 +176484,50 @@ window.__ModuleLoader__.load({
       var currentRowRef = useRef(null)
       var current = snap.queue[snap.index] || null
 
-      // Folia's queue is the whole queue in order, the playing row in place. Opening it puts the
-      // row before the playing one at the top, so what was just played stays in view.
+      // Opening the queue brings the playing row into view (the row before it goes to the top,
+      // Folia's alignment). It runs on open only: a row the reader just clicked is already on
+      // screen, and re-positioning the list under that click made it jump.
       useEffect(function () {
-        if (!props.open) return
-        var list = listRef.current
-        var rowEl = currentRowRef.current
-        if (list === null || rowEl === null) return
-        var offset = rowEl.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop
-        var previous = rowEl.previousElementSibling
-        var lead = previous !== null && previous.classList && previous.classList.contains('mpv3-queue-row')
-          ? previous.getBoundingClientRect().height
-          : 0
-        list.scrollTop = Math.max(0, Math.round(offset - lead))
-      }, [props.open, snap.index])
+        if (!props.open) return undefined
+        var cancelled = false
+        var attempts = 0
+        var frame = 0
+        var schedule =
+          typeof requestAnimationFrame === 'function'
+            ? function (fn) { return requestAnimationFrame(fn) }
+            : function (fn) { return setTimeout(fn, 16) }
+        var unschedule =
+          typeof cancelAnimationFrame === 'function'
+            ? function (id) { cancelAnimationFrame(id) }
+            : function (id) { clearTimeout(id) }
+        function place() {
+          if (cancelled) return
+          var list = listRef.current
+          var rowEl = currentRowRef.current
+          if (list === null || rowEl === null) return
+          // A popover stays display:none until showPopover() runs, so the first measurement can
+          // be zero-sized; try the next frames instead of scrolling to nowhere.
+          if (list.clientHeight === 0 || rowEl.getBoundingClientRect().height === 0) {
+            attempts += 1
+            if (attempts < 6) frame = schedule(place)
+            return
+          }
+          var listRect = list.getBoundingClientRect()
+          var rowRect = rowEl.getBoundingClientRect()
+          if (rowRect.top >= listRect.top && rowRect.bottom <= listRect.bottom) return
+          var offset = rowRect.top - listRect.top + list.scrollTop
+          var previous = rowEl.previousElementSibling
+          var lead = previous !== null && previous.classList && previous.classList.contains('mpv3-queue-row')
+            ? previous.getBoundingClientRect().height
+            : 0
+          list.scrollTop = Math.max(0, Math.round(offset - lead))
+        }
+        frame = schedule(place)
+        return function () {
+          cancelled = true
+          unschedule(frame)
+        }
+      }, [props.open])
 
       useEffect(function () {
         if (!props.open) return undefined
