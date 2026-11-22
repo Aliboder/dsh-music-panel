@@ -94,7 +94,7 @@ function ComponentGallery(props) {
             code: "h(Button, { variant: 'primary' }, label)\nh(Button, { variant: 'outline' }, label)\nh(Button, { variant: 'ghost' }, label)\nh(Button, { variant: 'toolbar' }, label)",
           },
             h(Button, { variant: 'primary' }, t('gallery.primary')),
-            h(Button, null, t('gallery.outline')),
+            h(Button, { variant: 'outline' }, t('gallery.outline')),
             h(Button, { variant: 'ghost' }, t('gallery.ghost')),
             h(Button, { variant: 'toolbar' }, t('gallery.toolbar')),
           ),

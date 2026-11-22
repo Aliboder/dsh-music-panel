@@ -1252,6 +1252,9 @@ function PlayerSheetInner(props) {
         {
           key: 'page-' + String(index),
           ref: contentRef,
+          id: 'mp-card-panel-' + String(index),
+          role: 'tabpanel',
+          'aria-labelledby': 'mp-card-tab-' + String(index),
           className: 'mp-card-page',
           style: { animation: 'mp-page-in ' + MP_DUR_MOVE + 's cubic-bezier(.22,1,.36,1) backwards' },
         },
@@ -1268,7 +1271,12 @@ function PlayerSheetInner(props) {
     { className: 'mp-card-tabs', style: { marginTop: String(MP_DOCK_GAP) + 'px', flex: '0 0 auto' } },
     h(KitSegmentedTabs, {
       items: TABS.map(function (key, tabIndex) {
-        return { value: String(tabIndex), label: t(key), id: 'mp-card-tab-' + String(tabIndex) }
+        return {
+          value: String(tabIndex),
+          label: t(key),
+          id: 'mp-card-tab-' + String(tabIndex),
+          panelId: 'mp-card-panel-' + String(tabIndex),
+        }
       }),
       value: String(index),
       size: 'sm',

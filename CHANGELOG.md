@@ -5,6 +5,8 @@
 ### 组件测试页
 
 - 测试页每个用例现在同时给出**适配层名**（`data-adapter`）与**可整段复制的标准调用代码**（`mp-gallery-code`），成为《主题与组件开发规范》§3.4 的标准实现参照：新界面照抄代码，新增控件先在测试页立用例再回业务使用。
+- 按 DSH 安装包里的真实实现核对了一遍原语：从 `dsh-web-frontend` 的 bundle 读出 Button / Switch / Input / Checkbox / SegmentedControl / SegmentedTabs / Pill / Tag / Tooltip / Modal / Menu / StateDot 的签名与 CSS，写进 `A_other/design/references/宿主原语对照-0.2.2-rc.5.md`。
+- 核对后修掉三处：`KitSegmented` 原来固定默认 id（同页多个分段会重复 DOM id 与 aria-controls），改为每实例自增并转发 `option.title`；分段控件与分段页签的 fallback 补上宿主的滑动指示块、R16/R12 与 14px 选中加粗；Tag 补 `solid` 色调。卡片分页同时补上 `panelId` 与 `role=tabpanel` 的对应关系。
 - 规范新增 §3.4「组件测试页 = 标准实现（照抄这里）」，写明 native / fallback 两条路径都要在本页看过、没有用例的控件不许上界面。
 
 ### 队列

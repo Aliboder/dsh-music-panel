@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.43.0"
-    var CLIENT_BUILD = "01a509b9eafd"
+    var CLIENT_BUILD = "360a5fba5bff"
 
     // ── src/client/app/runtime.js
     /**
@@ -163447,7 +163447,7 @@ window.__ModuleLoader__.load({
       // near-white layers, so the card ended up with white-on-white tiles, pills and inputs.
       // Pin the tokens it sits on to their dark-theme values for everything inside the card;
       // the surface itself stays on the inline dark glass above.
-      '.mp-card{--dsw-alias-label-primary:#f4f4f5;--dsw-alias-label-secondary:#a1a1aa;--dsw-alias-label-tertiary:#8a8a93;--dsw-alias-bg-base:#141417;--dsw-alias-bg-layer-1:#17171a;--dsw-alias-bg-layer-2:rgba(255,255,255,.06);--dsw-alias-bg-layer-3:rgba(255,255,255,.08);--dsw-alias-border-l1:rgba(255,255,255,.07);--dsw-alias-border-l2:rgba(255,255,255,.14);--dsw-alias-border-l3:rgba(255,255,255,.16);--dsw-alias-interactive-bg-hover:rgba(255,255,255,.07);--dsw-alias-interactive-bg-active:rgba(255,255,255,.1);--dsw-alias-state-business-primary:#4f8cff;--dsw-alias-button-primary-fill:#4f8cff;--dsw-alias-brand-primary:var(--dsw-static-neutral-bluish-50);--dsw-alias-switch-thumb:var(--dsw-static-neutral-bluish-400);--dsw-alias-label-primary-foreground:var(--dsw-static-neutral-bluish-1000);color:#f4f4f5}',
+      '.mp-card{--dsw-alias-label-primary:#f4f4f5;--dsw-alias-label-secondary:#a1a1aa;--dsw-alias-label-tertiary:#8a8a93;--dsw-alias-bg-base:#141417;--dsw-alias-bg-layer-1:#17171a;--dsw-alias-bg-layer-2:rgba(255,255,255,.06);--dsw-alias-bg-layer-3:rgba(255,255,255,.08);--dsw-alias-border-l1:rgba(255,255,255,.07);--dsw-alias-border-l2:rgba(255,255,255,.14);--dsw-alias-border-l3:rgba(255,255,255,.16);--dsw-alias-bg-module-platform:var(--dsw-static-neutral-bluish-800);--dsw-alias-interactive-bg-hover:rgba(255,255,255,.07);--dsw-alias-interactive-bg-active:rgba(255,255,255,.1);--dsw-alias-state-business-primary:#4f8cff;--dsw-alias-button-primary-fill:#4f8cff;--dsw-alias-brand-primary:var(--dsw-static-neutral-bluish-50);--dsw-alias-switch-thumb:var(--dsw-static-neutral-bluish-400);--dsw-alias-label-primary-foreground:var(--dsw-static-neutral-bluish-1000);color:#f4f4f5}',
       // The card's panes scroll, but a scrollbar appearing for one frame during the tab
       // animation takes width from the content and the layout jumps when it leaves again.
       // Hide it on every scroll container inside the card instead of reserving a gutter.
@@ -163569,7 +163569,17 @@ window.__ModuleLoader__.load({
       '.mp-check.is-disabled{cursor:default;opacity:.5}',
       '.mp-segment{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;padding:4px;border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}',
       '.mp-segment-tab{box-sizing:border-box;position:relative;height:28px;padding:0 16px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-secondary,#a1a1aa);font:inherit;font-size:13px;line-height:20px;font-weight:500;white-space:nowrap;cursor:pointer;transition:color .12s}',
-      '.mp-segment-tab.is-on{background:var(--dsw-alias-bg-layer-1,#1b1b1e);box-shadow:var(--dsw-elevation-soft,0 2px 8px rgba(0,0,0,.18));color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      // The selected segment is drawn by the sliding indicator under it, exactly like the host
+      // control; the tab itself only changes ink.
+      '.mp-segment-tab.is-on{background:transparent;color:var(--dsw-alias-label-primary,#f4f4f5)}',
+      '.mp-segment-indicator{position:absolute;top:4px;left:4px;width:calc((100% - 8px - 2px * (var(--dsh-segment-count, 1) - 1)) / var(--dsh-segment-count, 1));height:calc(100% - 8px);border:0;border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-1,#1b1b1e);box-shadow:var(--dsw-elevation-soft,0 2px 8px rgba(0,0,0,.18));transform:translate(calc(var(--dsh-segment-index, 0) * (100% + 2px)));transition:transform .16s ease;pointer-events:none}',
+      '.mp-segment-tabs{--segmented-tabs-inset:4px;position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;padding:var(--segmented-tabs-inset);border-radius:var(--dsw-radius-lg,16px);background:var(--dsw-alias-bg-module-platform,rgba(255,255,255,.06))}',
+      '.mp-segment-tabs.is-sm{--segmented-tabs-inset:2px;border-radius:calc(var(--dsw-radius-md,12px) + var(--segmented-tabs-inset))}',
+      '.mp-segment-tabs-indicator{position:absolute;top:var(--segmented-tabs-inset);bottom:var(--segmented-tabs-inset);left:var(--segmented-tabs-inset);box-sizing:border-box;border:.5px solid var(--dsw-alias-border-l3,rgba(255,255,255,.16));border-radius:var(--dsw-radius-md,12px);background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.08));transition:transform .18s ease;pointer-events:none}',
+      '.mp-segment-tabs .mp-segment-tab{height:34px;padding:0 12px;border-radius:var(--dsw-radius-md,12px);font-size:14px;line-height:20px}',
+      '.mp-segment-tabs .mp-segment-tab.is-on{color:var(--dsw-alias-label-primary,#f4f4f5);font-weight:600}',
+      '.mp-segment-tabs.is-sm .mp-segment-tab{height:30px}',
+      '.mp-segment-tabs.is-sm .mp-segment-tab.is-on{font-weight:500}',
       '.mp-segment-tab:disabled{cursor:default;opacity:.4}',
       // SegmentedTabs sizing (official): md = 34px tabs in a 4px inset (42 total),
       // sm = 30px tabs in a 2px inset (34 total).
@@ -163578,6 +163588,7 @@ window.__ModuleLoader__.load({
       '.mp-segment-tabs.is-sm .mp-segment-tab{height:30px;font-size:12px;line-height:18px}',
       '.mp-tag{display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;corner-shape:round;font-size:11px;line-height:17px;font-weight:500;white-space:nowrap}',
       '.mp-tag[data-tone="outline"]{border:.5px solid var(--dsw-alias-border-l4,rgba(255,255,255,.12));color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-tag[data-tone="solid"]{background:var(--dsw-alias-label-primary,#f4f4f5);color:var(--dsw-alias-bg-layer-3,#232324)}',
       '.mp-tag[data-tone="neutral"]{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.07));color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mp-tag[data-tone="quiet"]{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-tag[data-tone="success"]{background:color-mix(in srgb,var(--dsw-alias-state-success-primary,#2f9e68) 10%,transparent);color:var(--dsw-alias-state-success-primary,#2f9e68)}',
@@ -164164,18 +164175,35 @@ window.__ModuleLoader__.load({
     }
 
     /** Mutually exclusive segments. `options` = [{ value, label }]; `onChange(value)`. */
+    var MP_SEGMENT_SEQ = 0
+
     function KitSegmented(props) {
       var options = Array.isArray(props.options) ? props.options : []
       var value = String(props.value === undefined ? '' : props.value)
       var label = props.label || ''
-      var id = props.id || 'mp-segment'
+      var index = 0
+      for (var at = 0; at < options.length; at += 1) {
+        if (String(options[at].value) === value) {
+          index = at
+          break
+        }
+      }
+      // The host derives `${id}-${value}` ids and aria-controls pairs from this id. A shared
+      // default (`mp-segment`) gave every control on a page the same ids, so each instance now
+      // gets its own unless the caller supplies one.
+      var idRef = useRef(null)
+      if (idRef.current === null) {
+        MP_SEGMENT_SEQ += 1
+        idRef.current = 'mp-seg-' + String(MP_SEGMENT_SEQ)
+      }
+      var id = props.id || idRef.current
       var HostSegmented = hostComponent('SegmentedControl')
       if (HostSegmented !== null) {
         return h(HostSegmented, {
           id: id,
           value: value,
           options: options.map(function (option) {
-            return { value: String(option.value), label: option.label, disabled: option.disabled === true }
+            return { value: String(option.value), label: option.label, disabled: option.disabled === true, title: option.title }
           }),
           onChange: function (next) {
             if (typeof props.onChange === 'function') props.onChange(next)
@@ -164187,7 +164215,13 @@ window.__ModuleLoader__.load({
       }
       return h(
         'div',
-        { className: cx('mp-segment', props.className), role: 'tablist', 'aria-label': label },
+        {
+          className: cx('mp-segment', props.className),
+          role: 'tablist',
+          'aria-label': label,
+          style: { '--dsh-segment-count': String(options.length), '--dsh-segment-index': String(index) },
+        },
+        h('span', { className: 'mp-segment-indicator', 'aria-hidden': 'true' }),
         options.map(function (option) {
           var on = String(option.value) === value
           return h(
@@ -164227,13 +164261,25 @@ window.__ModuleLoader__.load({
           className: props.className,
         })
       }
+      var activeAt = 0
+      for (var at = 0; at < items.length; at += 1) {
+        if (String(items[at].value) === value) activeAt = at
+      }
       return h(
         'div',
         {
-          className: cx('mp-segment', 'mp-segment-tabs', size === 'sm' && 'is-sm', props.className),
+          className: cx('mp-segment-tabs', size === 'sm' && 'is-sm', props.className),
           role: 'tablist',
           'aria-label': props.label || '',
         },
+        h('span', {
+          className: 'mp-segment-tabs-indicator',
+          'aria-hidden': 'true',
+          style: {
+            width: 'calc((100% - 2 * var(--segmented-tabs-inset)) / ' + String(items.length) + ')',
+            transform: 'translateX(' + String(activeAt * 100) + '%)',
+          },
+        }),
         items.map(function (item) {
           var on = String(item.value) === value
           return h(
@@ -164602,7 +164648,7 @@ window.__ModuleLoader__.load({
                 code: "h(Button, { variant: 'primary' }, label)\nh(Button, { variant: 'outline' }, label)\nh(Button, { variant: 'ghost' }, label)\nh(Button, { variant: 'toolbar' }, label)",
               },
                 h(Button, { variant: 'primary' }, t('gallery.primary')),
-                h(Button, null, t('gallery.outline')),
+                h(Button, { variant: 'outline' }, t('gallery.outline')),
                 h(Button, { variant: 'ghost' }, t('gallery.ghost')),
                 h(Button, { variant: 'toolbar' }, t('gallery.toolbar')),
               ),
@@ -178224,6 +178270,9 @@ window.__ModuleLoader__.load({
             {
               key: 'page-' + String(index),
               ref: contentRef,
+              id: 'mp-card-panel-' + String(index),
+              role: 'tabpanel',
+              'aria-labelledby': 'mp-card-tab-' + String(index),
               className: 'mp-card-page',
               style: { animation: 'mp-page-in ' + MP_DUR_MOVE + 's cubic-bezier(.22,1,.36,1) backwards' },
             },
@@ -178240,7 +178289,12 @@ window.__ModuleLoader__.load({
         { className: 'mp-card-tabs', style: { marginTop: String(MP_DOCK_GAP) + 'px', flex: '0 0 auto' } },
         h(KitSegmentedTabs, {
           items: TABS.map(function (key, tabIndex) {
-            return { value: String(tabIndex), label: t(key), id: 'mp-card-tab-' + String(tabIndex) }
+            return {
+              value: String(tabIndex),
+              label: t(key),
+              id: 'mp-card-tab-' + String(tabIndex),
+              panelId: 'mp-card-panel-' + String(tabIndex),
+            }
           }),
           value: String(index),
           size: 'sm',

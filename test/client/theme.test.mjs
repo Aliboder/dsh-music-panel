@@ -102,6 +102,11 @@ for (const token of [
 // The local Switch fallback must use the host's thumb token, otherwise the
 // documented light/dark contract and the actual control drift apart.
 assert.match(theme, /\.mp-switch i\{[^']*background:var\(--dsw-alias-switch-thumb/, 'off-state thumb follows the token')
+// The segmented fallbacks reproduce the host's sliding indicator and geometry.
+assert.match(theme, /\.mp-segment-indicator\{[^']*position:absolute/, 'the segment indicator exists')
+assert.match(theme, /\.mp-segment-tabs\{[^']*--segmented-tabs-inset/, 'tabs keep the host inset variable')
+assert.match(theme, /\.mp-segment-tabs-indicator\{[^']*border:\.5px solid/, 'the tabs indicator keeps the host hairline')
+assert.match(theme, /\.mp-tag\[data-tone="solid"\]/, 'every host tag tone has a fallback')
 assert.match(theme, /\.mp-switch\.is-on i\{[^']*background:var\(--dsw-alias-label-primary-foreground/, 'on-state thumb contrasts the brand track, like the host switch')
 
 // Only the adapter may require the host client package.

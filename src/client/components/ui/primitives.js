@@ -535,18 +535,35 @@ function KitCheckbox(props) {
 }
 
 /** Mutually exclusive segments. `options` = [{ value, label }]; `onChange(value)`. */
+var MP_SEGMENT_SEQ = 0
+
 function KitSegmented(props) {
   var options = Array.isArray(props.options) ? props.options : []
   var value = String(props.value === undefined ? '' : props.value)
   var label = props.label || ''
-  var id = props.id || 'mp-segment'
+  var index = 0
+  for (var at = 0; at < options.length; at += 1) {
+    if (String(options[at].value) === value) {
+      index = at
+      break
+    }
+  }
+  // The host derives `${id}-${value}` ids and aria-controls pairs from this id. A shared
+  // default (`mp-segment`) gave every control on a page the same ids, so each instance now
+  // gets its own unless the caller supplies one.
+  var idRef = useRef(null)
+  if (idRef.current === null) {
+    MP_SEGMENT_SEQ += 1
+    idRef.current = 'mp-seg-' + String(MP_SEGMENT_SEQ)
+  }
+  var id = props.id || idRef.current
   var HostSegmented = hostComponent('SegmentedControl')
   if (HostSegmented !== null) {
     return h(HostSegmented, {
       id: id,
       value: value,
       options: options.map(function (option) {
-        return { value: String(option.value), label: option.label, disabled: option.disabled === true }
+        return { value: String(option.value), label: option.label, disabled: option.disabled === true, title: option.title }
       }),
       onChange: function (next) {
         if (typeof props.onChange === 'function') props.onChange(next)
@@ -558,7 +575,13 @@ function KitSegmented(props) {
   }
   return h(
     'div',
-    { className: cx('mp-segment', props.className), role: 'tablist', 'aria-label': label },
+    {
+      className: cx('mp-segment', props.className),
+      role: 'tablist',
+      'aria-label': label,
+      style: { '--dsh-segment-count': String(options.length), '--dsh-segment-index': String(index) },
+    },
+    h('span', { className: 'mp-segment-indicator', 'aria-hidden': 'true' }),
     options.map(function (option) {
       var on = String(option.value) === value
       return h(
@@ -598,13 +621,25 @@ function KitSegmentedTabs(props) {
       className: props.className,
     })
   }
+  var activeAt = 0
+  for (var at = 0; at < items.length; at += 1) {
+    if (String(items[at].value) === value) activeAt = at
+  }
   return h(
     'div',
     {
-      className: cx('mp-segment', 'mp-segment-tabs', size === 'sm' && 'is-sm', props.className),
+      className: cx('mp-segment-tabs', size === 'sm' && 'is-sm', props.className),
       role: 'tablist',
       'aria-label': props.label || '',
     },
+    h('span', {
+      className: 'mp-segment-tabs-indicator',
+      'aria-hidden': 'true',
+      style: {
+        width: 'calc((100% - 2 * var(--segmented-tabs-inset)) / ' + String(items.length) + ')',
+        transform: 'translateX(' + String(activeAt * 100) + '%)',
+      },
+    }),
     items.map(function (item) {
       var on = String(item.value) === value
       return h(
