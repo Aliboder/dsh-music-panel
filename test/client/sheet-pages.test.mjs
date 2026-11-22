@@ -76,6 +76,14 @@ test('外观 page: background and theme, and nothing that makes sound', () => {
   assert.doesNotMatch(look, /player\.setLoop/, 'the play mode left the look page')
 })
 
+test('the cover header reserves the measured title block, not a fixed guess', () => {
+  assert.match(sheet, /underHForLayout = underH > 0 \? underH : 114/, 'the one-line fallback is explicit')
+  assert.match(sheet, /headerH = isCover[\s\S]{0,220}underHForLayout/, 'the header uses the measured height')
+  assert.doesNotMatch(sheet, /\+ 108px\)/, 'the old fixed reserve that slid a wrapped title onto the cover is gone')
+  assert.match(sheet, /underRef = useRef\(null\)/, 'the under block is measured through a ref')
+  assert.match(sheet, /setUnderH\(el\.offsetHeight\)/, 'its real height feeds the header')
+})
+
 test('the song page keeps its actions and drops the settings gear', () => {
   const actions = sheet.slice(sheet.indexOf('function actionsRow()'), sheet.indexOf('function actionsRow()') + 4200)
   assert.match(actions, /iconButton\(\s*'favorite'/, 'the heart stays')

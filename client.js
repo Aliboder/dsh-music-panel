@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.43.0"
-    var CLIENT_BUILD = "bb255bea1d95"
+    var CLIENT_BUILD = "a6f0fa668763"
 
     // ── src/client/app/runtime.js
     /**
@@ -176924,6 +176924,12 @@ window.__ModuleLoader__.load({
 
       var contentRef = useRef(null)
       var tabRefs = useRef([])
+      var underRef = useRef(null)
+      // The under-cover block grows when a long title wraps to a second line; the header cannot
+      // reserve a fixed height for it or the block slides up over the cover. Measure it.
+      var underHPair = useState(0)
+      var underH = underHPair[0]
+      var setUnderH = underHPair[1]
 
       // Four pages, one subject each: the song, the lyrics, the sound, the look. The source
       // tab used to follow the song (本地 / 歌词 / server name); it is the lyrics page now, and
@@ -176959,6 +176965,25 @@ window.__ModuleLoader__.load({
           setBodyH(clampCardBodyHeight(el.scrollHeight))
         },
         [props.open, index],
+      )
+
+      // The under-cover block changes height with the title (one line, two lines, no album);
+      // the header follows it so the block never climbs into the cover.
+      useLayoutEffect(
+        function () {
+          var el = underRef.current
+          if (el === null) return undefined
+          setUnderH(el.offsetHeight)
+          if (typeof ResizeObserver !== 'function') return undefined
+          var observer = new ResizeObserver(function () {
+            setUnderH(el.offsetHeight)
+          })
+          observer.observe(el)
+          return function () {
+            observer.disconnect()
+          }
+        },
+        [props.open, track ? track.path : ''],
       )
 
       useEffect(
@@ -177218,7 +177243,13 @@ window.__ModuleLoader__.load({
       // SongHeader sizing and the two transition vocabularies it uses (Folia's
       // `st-t-unfold` for the cover/height morph, `st-t-move`/`st-t-fast` for the fades).
       var coverBig = 'min(336px, 52vh)'
-      var headerH = isCover ? 'calc(' + coverBig + ' + ' + String(MP_COVER_GAP) + 'px + 108px)' : String(MP_FOLDED) + 'px'
+      // The under block is bottom-anchored inside the header, so a fixed reserve slides it up
+      // over the cover as soon as the title wraps. Its measured height is the reserve instead;
+      // 114px is the one-line case, used for the frame before the measurement lands.
+      var underHForLayout = underH > 0 ? underH : 114
+      var headerH = isCover
+        ? 'calc(' + coverBig + ' + ' + String(MP_COVER_GAP) + 'px + ' + String(underHForLayout) + 'px)'
+        : String(MP_FOLDED) + 'px'
       var tMorph =
         'width ' + MP_DUR_UNFOLD + 's cubic-bezier(.22,1,.36,1), height ' + MP_DUR_UNFOLD +
         's cubic-bezier(.22,1,.36,1), border-radius ' + MP_DUR_UNFOLD + 's cubic-bezier(.22,1,.36,1)'
@@ -177379,6 +177410,7 @@ window.__ModuleLoader__.load({
           'div',
           {
             className: 'mp-card-under',
+            ref: underRef,
             style: {
               position: 'absolute',
               left: '4px',
