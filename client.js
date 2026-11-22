@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.42.0"
-    var CLIENT_BUILD = "e0fb76c185d0"
+    var CLIENT_BUILD = "0a6a23319fbe"
 
     // ── src/client/app/runtime.js
     /**
@@ -8902,6 +8902,7 @@ window.__ModuleLoader__.load({
         'p3.hotSongs': '热门歌曲',
         'p3.hour': '小时',
         'p3.loadFailed': '加载失败',
+        'p3.requestTimeout': '请求超时，点重试再取一次',
         'p3.loadMore': '加载更多',
         'p3.loadingMore': '正在加载…',
         'p3.loggedOut': '已退出登录',
@@ -9688,6 +9689,7 @@ window.__ModuleLoader__.load({
         'p3.hotSongs': 'Popular songs',
         'p3.hour': 'hours',
         'p3.loadFailed': 'Could not load',
+        'p3.requestTimeout': 'The request timed out — retry to fetch it again',
         'p3.loadMore': 'Load more',
         'p3.loadingMore': 'Loading…',
         'p3.loggedOut': 'Signed out',
@@ -161010,6 +161012,8 @@ window.__ModuleLoader__.load({
     }
 
     var PLAYLIST_PAGE_SIZE = 100
+    /** A page that never lands must not leave the page on skeletons for good (Host is bounded too). */
+    var PLAYLIST_REQUEST_TIMEOUT_MS = 20000
 
     function playlistPageOf(hit, offset) {
       if (!hit || !hit.pages) return null
@@ -161024,6 +161028,13 @@ window.__ModuleLoader__.load({
       var key = playlistCacheKey(provider, id)
       var inflightKey = key + '|' + String(offset)
       if (!force && playlistInflight.has(inflightKey)) return playlistInflight.get(inflightKey)
+      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+      var timer =
+        controller === null
+          ? null
+          : setTimeout(function () {
+              controller.abort()
+            }, PLAYLIST_REQUEST_TIMEOUT_MS)
       var request = getJson(
         API +
           'online/playlist-songs?provider=' +
@@ -161034,7 +161045,13 @@ window.__ModuleLoader__.load({
           String(PLAYLIST_PAGE_SIZE) +
           '&offset=' +
           String(offset),
+        controller === null ? undefined : { signal: controller.signal },
       )
+        .catch(function (error) {
+          // An aborted page becomes a visible error with its retry, not an endless skeleton.
+          if (error && error.name === 'AbortError') throw new Error(t('p3.requestTimeout'))
+          throw error
+        })
         .then(function (body) {
           var songs = Array.isArray(body.songs) ? body.songs : []
           var page = {
@@ -161057,6 +161074,7 @@ window.__ModuleLoader__.load({
           return page
         })
         .finally(function () {
+          if (timer !== null) clearTimeout(timer)
           if (playlistInflight.get(inflightKey) === request) playlistInflight.delete(inflightKey)
         })
       playlistInflight.set(inflightKey, request)

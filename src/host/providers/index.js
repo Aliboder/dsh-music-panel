@@ -1403,6 +1403,32 @@ export async function playlistSongsPage(provider, id, cookie = '', session = {},
     }
   }
   if (provider === 'kugou' || provider === 'kugouLite') {
+    // The id a playlist row carries (a cloud list id) is the one playlist_track_all takes, so
+    // ask the page API first. The account-list lookup below costs one or two extra upstream
+    // calls on every page; when one of them was slow or rate-limited, the old order sent the
+    // whole open down the legacy full-read path and the page sat on skeletons until it landed
+    // (the "switch away and back and it opens" report). The lookup stays as the fallback for
+    // collected playlists and for ids the page API refuses.
+    const pageReader = provider === 'kugouLite' ? KGL : KG
+    let direct = null
+    try {
+      direct = await pageReader.getMyPlaylistSongsPage(id, limit, offset, session)
+    } catch {
+      direct = null
+    }
+    const directSongs = direct !== null && Array.isArray(direct.songs) ? direct.songs : []
+    const directTotal = direct === null ? 0 : Number(direct.trackCount) || 0
+    if (direct !== null && (directSongs.length > 0 || directTotal > 0 || offset > 0)) {
+      return {
+        // The row already carries its name and cover; the page answer has no room for them.
+        name: '',
+        cover: '',
+        trackCount: directTotal || directSongs.length,
+        songs: shapePlaylistSongs(provider, directSongs),
+        hasMore: direct.hasMore === true,
+        nextOffset: Number(direct.nextOffset) || offset + directSongs.length,
+      }
+    }
     let mine = []
     try {
       mine = await (provider === 'kugouLite' ? KGL.getMyPlaylists(session) : KG.getMyPlaylists(session))
