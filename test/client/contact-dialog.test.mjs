@@ -26,6 +26,9 @@ test('the contact button sits immediately left of the search field', () => {
   const searchAt = shell.indexOf("className: 'mpv3-search'")
   assert.ok(buttonAt > 0, 'contact button is rendered')
   assert.ok(searchAt > buttonAt, 'contact button is before the search field')
+  assert.match(shell, /className: 'mpv3-contact-btn'/) 
+  assert.match(shell, /t\('contact\.join'\)/) 
+  assert.match(strings, /'contact\.join': '加入交流群'/) 
   assert.match(shell, /h\(P3ContactDialog, \{ onClose:/)
 })
 

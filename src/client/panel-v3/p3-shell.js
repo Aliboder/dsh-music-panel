@@ -252,7 +252,17 @@ function P3TopBar(props) {
       h(P3Menu, { open: sourceOpen, anchor: sourceRef.current, items: menuItems, align: 'left', onSelect: pickMenuItem, onClose: function () { setSourceOpen(false) } }),
     ),
     h('div', { className: 'mpv3-grow' }),
-    h(IconButton, { icon: 'user', size: 16, title: t('contact.title'), onClick: function () { setContactOpen(true) } }),
+    h(
+      'button',
+      {
+        type: 'button',
+        className: 'mpv3-contact-btn',
+        title: t('contact.title'),
+        onClick: function () { setContactOpen(true) },
+      },
+      icon('user', 15),
+      h('span', null, t('contact.join')),
+    ),
     h('div', {
       ref: searchRef,
       className: 'mpv3-search',
