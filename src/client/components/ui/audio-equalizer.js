@@ -259,6 +259,28 @@ function AudioEqualizerWindow(props) {
       ),
       h(
         'section',
+        { className: 'mp-eqwin-section' },
+        h(
+          'div',
+          { className: 'mp-eqwin-section-head' },
+          h('span', { className: 'mp-set-label' }, t('eq.headphonePresets')),
+          h('span', { className: 'mp-set-desc' }, t('eq.headphoneHint')),
+        ),
+        h(EqDeviceBrowser, {
+          className: 'mp-eqwin-devices',
+          value: eq.preset === 'device' ? eq.device : '',
+          onChange: function (entry) {
+            player.setEq({
+              enabled: true,
+              preset: 'device',
+              device: entry.id,
+              bands: entry.bands,
+            })
+          },
+        }),
+      ),
+      h(
+        'section',
         { className: cx('mp-eqwin-section', !eq.enabled && 'is-off') },
         h(
           'div',
