@@ -1011,15 +1011,13 @@ function NowPlaying(props) {
             'div',
             { key: 'artist:' + trackPath, className: 'mp-np-artist-row' },
             h('div', { className: 'mp-np-artist' }, track ? trackArtistOf(track) : ''),
-            h(IconButton, {
-              className: 'mp-np-meta-audio',
-              icon: snap.muted ? 'mute' : 'volume',
-              size: 20,
-              active: snap.muted === true,
-              title: t('page.volume'),
-              onClick: function () {
-                player.setMuted(!snap.muted)
-              },
+            h(VolumeControl, {
+              className: 'mp-np-meta-volume',
+              value: snap.volume,
+              muted: snap.muted,
+              iconSize: 20,
+              onChange: function (value) { player.setVolume(value) },
+              onMutedChange: function (value) { player.setMuted(value) },
             }),
           ),
         ),

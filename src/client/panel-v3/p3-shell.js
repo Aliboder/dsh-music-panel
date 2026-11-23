@@ -498,26 +498,13 @@ function P3PlayerBar(props) {
       h('span', { className: 'mpv3-player-time' }, fmtClock(preview !== null ? preview : time.currentTime) + ' / ' + fmtClock(duration)),
       h(P3SleepChip, { deadline: prefs.sleepDeadline }),
       h(IconButton, { icon: 'target', size: 16, className: 'mpv3-player-locate', title: t('page.locateCurrent'), onClick: props.onLocate }),
-      h('div', { className: 'mpv3-player-vol' },
-        h(IconButton, {
-          icon: snap.muted || snap.volume === 0 ? 'mute' : 'volume',
-          size: 16,
-          title: t('page.mute'),
-          onClick: function () { player.setMuted(!snap.muted) },
-        }),
-        h('input', {
-          type: 'range',
-          min: 0,
-          max: 100,
-          value: Math.round((snap.muted ? 0 : snap.volume) * 100),
-          onChange: function (event) {
-            var value = Number(event.target.value) / 100
-            if (snap.muted && value > 0) player.setMuted(false)
-            player.setVolume(value)
-          },
-          'aria-label': t('page.volume'),
-        }),
-      ),
+      h(VolumeControl, {
+        className: 'mpv3-player-vol',
+        value: snap.volume,
+        muted: snap.muted,
+        onChange: function (next) { player.setVolume(next) },
+        onMutedChange: function (next) { player.setMuted(next) },
+      }),
       h(IconButton, { icon: 'playlist', size: 16, active: props.queueOpen, className: 'mpv3-queue-btn', title: t('page.queue'), onClick: props.onToggleQueue }),
       h(IconButton, { icon: 'chevronDown', size: 16, className: 'mpv3-player-expand', title: t('page.openPlayer'), onClick: props.onOpenPlayer }),
     ),
@@ -756,6 +743,15 @@ function P3Queue(props) {
         return row(track, index, position, index === snap.index)
       }),
       snap.queue.length === 0 ? h('div', { className: 'mpv3-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty'))) : null,
+    ),
+    h('div', { className: 'mpv3-queue-foot' },
+      h(VolumeControl, {
+        value: snap.volume,
+        muted: snap.muted,
+        showValue: true,
+        onChange: function (next) { player.setVolume(next) },
+        onMutedChange: function (next) { player.setMuted(next) },
+      }),
     ),
   )
 }

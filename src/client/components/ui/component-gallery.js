@@ -66,6 +66,13 @@ function ComponentGallery(props) {
   var rangeValue = rangePair[0]
   var setRangeValue = rangePair[1]
 
+  var volumePair = useState(0.8)
+  var volumeValue = volumePair[0]
+  var setVolumeValue = volumePair[1]
+  var volumeMutedPair = useState(false)
+  var volumeMuted = volumeMutedPair[0]
+  var setVolumeMuted = volumeMutedPair[1]
+
   var pillPair = useState('lyrics')
   var pillValue = pillPair[0]
   var setPillValue = pillPair[1]
@@ -211,6 +218,19 @@ function ComponentGallery(props) {
             },
           }),
           h('span', { className: 'mp-set-val' }, rangeValue + '%'),
+        ),
+        h(GalleryCase, {
+            title: t('gallery.caseVolume'),
+            adapter: 'VolumeControl',
+            code: "h(VolumeControl, { value, muted, onChange, onMutedChange, showValue: true })",
+          },
+          h(VolumeControl, {
+            value: volumeValue,
+            muted: volumeMuted,
+            showValue: true,
+            onChange: setVolumeValue,
+            onMutedChange: setVolumeMuted,
+          }),
         ),
         h(GalleryCase, {
             title: t('gallery.casePill'),

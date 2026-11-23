@@ -10,7 +10,7 @@
 歌词 · Folia 歌词舞台 · 在线歌单 · 播放统计 · 音量均衡 · 均衡器
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
-[![release](https://img.shields.io/badge/release-0.44.2-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
+[![release](https://img.shields.io/badge/release-0.45.0-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
 [![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
 
@@ -44,7 +44,7 @@
 | **Navidrome** | 连接自建 Navidrome / Subsonic，搜索、播放、歌词、封面、收藏与歌单。 |
 | **歌词** | LRC / KRC / QRC / YRC / TTML / VTT、逐字高亮、翻译、罗马音、偏移与字号。 |
 | **Folia 舞台** | 14 种歌词样式、封面取色、动态背景、逐字时钟，支持随机轮换。 |
-| **播放体验** | 10 段均衡器、AutoEQ、EBU R128 音量均衡、智能过渡、音频焦点避让。 |
+| **播放体验** | 10 段均衡器、AutoEQ、EBU R128 音量均衡、智能过渡、音频焦点避让；侧栏、队列与播放页均可调音量，音量条支持滚轮 5% 微调。 |
 | **整理** | 在线补全标签、替换封面、匹配歌词、重复检测、批量收藏 / 歌单。 |
 | **DSH 原生** | 侧栏入口、输入框上方歌词条、会话内播放、宿主主题与设置页。 |
 

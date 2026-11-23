@@ -19,6 +19,12 @@ function MusicSideIcon() {
   var waveFadingPair = useState(false)
   var waveFading = waveFadingPair[0]
   var setWaveFading = waveFadingPair[1]
+  var volumeOpenPair = useState(false)
+  var volumeOpen = volumeOpenPair[0]
+  var setVolumeOpen = volumeOpenPair[1]
+  var volumeRectPair = useState(null)
+  var volumeRect = volumeRectPair[0]
+  var setVolumeRect = volumeRectPair[1]
 
   useEffect(
     function () {
@@ -177,10 +183,49 @@ function MusicSideIcon() {
           control('next', 'next', t('page.next'), function () {
             player.next()
           }),
+          h(
+            'span',
+            {
+              className: 'mp-side-btn mp-side-vol-btn',
+              role: 'button',
+              tabIndex: 0,
+              title: t('page.volume') + ' · ' + Math.round((snap.muted ? 0 : snap.volume) * 100) + '%',
+              'aria-label': t('page.volume'),
+              'data-volume-trigger': '1',
+              onClick: function (event) {
+                event.preventDefault()
+                event.stopPropagation()
+                var el = event.currentTarget
+                if (el && typeof el.getBoundingClientRect === 'function') setVolumeRect(el.getBoundingClientRect())
+                setVolumeOpen(!volumeOpen)
+              },
+              onKeyDown: function (event) {
+                if (event.key !== 'Enter' && event.key !== ' ') return
+                event.preventDefault()
+                event.stopPropagation()
+                var el = event.currentTarget
+                if (el && typeof el.getBoundingClientRect === 'function') setVolumeRect(el.getBoundingClientRect())
+                setVolumeOpen(!volumeOpen)
+              },
+            },
+            icon(snap.muted || snap.volume === 0 ? 'mute' : snap.volume < 0.5 ? 'volumeLow' : 'volume', 13),
+          ),
         )
       : null,
+    volumeOpen
+      ? h(VolumePopover, {
+          rect: volumeRect,
+          onClose: function () { setVolumeOpen(false) },
+          control: {
+            value: snap.volume,
+            muted: snap.muted,
+            onChange: function (next) { player.setVolume(next) },
+            onMutedChange: function (next) { player.setMuted(next) },
+          },
+        })
+      : null,
   )
-}
+ }
 
 function NewPlaylistDialog(props) {
   var pair = useState('')

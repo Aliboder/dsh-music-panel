@@ -71,6 +71,7 @@
     "src/client/components/common/select.js",
     "src/client/styles/theme.js",
     "src/client/components/ui/primitives.js",
+    "src/client/components/ui/volume-control.js",
     "src/client/components/common/head-menu.js",
     "src/client/panel-v3/p3-styles.js",
     "src/client/components/ui/component-gallery.js",
