@@ -13,6 +13,8 @@ var PREF_DEFAULTS = {
   layout: 'top',
   sortBy: 'title',
   sortDir: 'asc',
+  /** Recent P3 search queries, newest first (max 8). */
+  searchHistory: [],
   /**
    * Folia's `localLyricsPriority`: which lyric a local file shows when it has both
    * its own file lyric and a matched online one. 'local' keeps the file's own.

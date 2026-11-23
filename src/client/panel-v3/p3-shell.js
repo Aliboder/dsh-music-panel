@@ -42,11 +42,13 @@ function P3TopBar(props) {
   var sourceRef = useRef(null)
   var [sourceOpen, setSourceOpen] = useState(false)
   var [draft, setDraft] = useState('')
+  var [historyOpen, setHistoryOpen] = useState(false)
   var source = route.source
   var info = p3SourceInfo(source)
   var meta = p3PageMeta(route, props.library, online, prefs)
   var loggedIn = p3SourceLoggedIn(source)
   var avatarUrl = p3AccountPictureSrc(info.avatarUrl)
+  var history = Array.isArray(prefs.searchHistory) ? prefs.searchHistory : []
   var sourceItems = p3SourceList().map(function (item) {
     return {
       key: item.id,
@@ -74,37 +76,80 @@ function P3TopBar(props) {
     ? accountItems.concat([{ separator: true, key: 'account-sep' }], sourceItems)
     : sourceItems
 
+  // Keep the editable draft separate from the submitted query: typing must not
+  // navigate or hit the search APIs; Enter commits, Escape backs out.
+  useEffect(function () {
+    setDraft(search.open ? String(search.query || '') : '')
+    setHistoryOpen(false)
+  }, [search.open, search.query])
+
   function searchValue() {
-    return search.open ? search.query : draft
+    return draft
+  }
+
+  function rememberSearch(text) {
+    var value = String(text || '').trim()
+    if (value === '') return
+    var next = [value].concat(
+      (Array.isArray(prefs.searchHistory) ? prefs.searchHistory : []).filter(function (item) {
+        return item !== value
+      }),
+    ).slice(0, 8)
+    setPrefs({ searchHistory: next })
+  }
+
+  function submitSearch(value) {
+    var text = String(value || '').trim()
+    if (text === '') return
+    setDraft(text)
+    setHistoryOpen(false)
+    rememberSearch(text)
+    p3SetSearchQuery(text)
   }
 
   function onFocusSearch() {
-    // Focus is not navigation: typing the first character enters the search page.
+    if (draft.trim() === '' && history.length > 0) setHistoryOpen(true)
   }
 
   function onChangeSearch(event) {
     var value = event.target.value
     setDraft(value)
-    if (value === '' && !search.open) return
-    p3SetSearchQuery(value)
+    var empty = value.trim() === ''
+    setHistoryOpen(empty && history.length > 0)
+    // Erasing the whole field exits an open result page immediately; everything
+    // else waits for Enter instead of firing a request per keystroke.
+    if (empty && search.open) p3SetSearchQuery('')
   }
 
   function onSearchKey(event) {
+    // Chinese IME commits with Enter too; never submit the composition.
+    if (event.isComposing || event.keyCode === 229) return
     if (event.key === 'Enter') {
       event.preventDefault()
-      var text = searchValue().trim()
-      if (text === '') return
-      p3SetSearchQuery(text)
-      if (source !== 'local') void searchOnline(text)
+      submitSearch(draft)
     } else if (event.key === 'Escape') {
       event.preventDefault()
+      if (historyOpen) {
+        setHistoryOpen(false)
+        return
+      }
       if (p3CanGoBack()) p3GoBack()
       else setDraft('')
     }
   }
 
+  function pickHistory(text) {
+    submitSearch(text)
+  }
+
+  function clearHistory() {
+    setPrefs({ searchHistory: [] })
+    setHistoryOpen(false)
+  }
+
   function clearSearch() {
     setDraft('')
+    setHistoryOpen(false)
     if (search.open) p3CloseSearch()
   }
 
@@ -195,13 +240,20 @@ function P3TopBar(props) {
       h(P3Menu, { open: sourceOpen, anchor: sourceRef.current, items: menuItems, align: 'left', onSelect: pickMenuItem, onClose: function () { setSourceOpen(false) } }),
     ),
     h('div', { className: 'mpv3-grow' }),
-    h('div', { className: 'mpv3-search' },
+    h('div', {
+      className: 'mpv3-search',
+      onBlur: function (event) {
+        var next = event.relatedTarget
+        if (next === null || next === undefined || !event.currentTarget.contains(next)) setHistoryOpen(false)
+      },
+    },
       icon('search', 14),
       h('input', {
         id: 'p3-search',
         type: 'search',
         value: searchValue(),
         placeholder: t('p3.searchPlaceholder'),
+        autoComplete: 'off',
         onFocus: onFocusSearch,
         onChange: onChangeSearch,
         onKeyDown: onSearchKey,
@@ -209,6 +261,42 @@ function P3TopBar(props) {
       }),
       !collection.snapshot && searchValue() !== ''
         ? h('button', { type: 'button', className: 'mpv3-search-clear', title: t('p3.clearSearch'), onClick: clearSearch }, icon('close', 13))
+        : null,
+      historyOpen && history.length > 0
+        ? h(
+            'div',
+            {
+              className: 'mpv3-search-history',
+            },
+            h(
+              'div',
+              { className: 'mpv3-search-history-head' },
+              h('span', { className: 'mpv3-search-history-title' }, t('p3.searchHistory')),
+              h(
+                'button',
+                { type: 'button', className: 'mpv3-search-history-clear', onClick: clearHistory },
+                t('p3.clearSearchHistory'),
+              ),
+            ),
+            h(
+              'div',
+              { className: 'mpv3-search-history-list' },
+              history.map(function (text) {
+                return h(
+                  'button',
+                  {
+                    key: text,
+                    type: 'button',
+                    className: 'mpv3-search-history-item',
+                    title: text,
+                    onClick: function () { pickHistory(text) },
+                  },
+                  icon('search', 13),
+                  h('span', { className: 'mpv3-search-history-text' }, text),
+                )
+              }),
+            ),
+          )
         : null,
     ),
     h(IconButton, { icon: 'refresh', size: 16, title: t('page.refresh'), onClick: refresh }),
