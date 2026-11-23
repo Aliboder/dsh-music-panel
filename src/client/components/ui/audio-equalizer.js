@@ -156,13 +156,12 @@ function AudioEqualizerWindow(props) {
   var selectedDevice = selectedDevicePair[0]
   var setSelectedDevice = selectedDevicePair[1]
   useEffect(function () {
-    if (eq.preset === 'device') {
-      setDeviceTab(true)
-      setSelectedDevice(eq.device || '')
-      return
-    }
-    setDeviceTab(false)
-    setSelectedDevice('')
+    // Persisted prefs are authoritative only when they actually name the device
+    // preset. Do not wipe the local tab/selection on an unrelated or stale prefs
+    // write: that was what made a click audible but visually reverted.
+    if (eq.preset !== 'device') return
+    setDeviceTab(true)
+    setSelectedDevice(eq.device || '')
   }, [eq.preset, eq.device])
   function setEnabled(value) {
     // The switch stops processing and keeps every value.

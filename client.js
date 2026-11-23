@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.0"
-    var CLIENT_BUILD = "45154c004da5"
+    var CLIENT_BUILD = "0817cd71cc57"
 
     // ── src/client/app/runtime.js
     /**
@@ -163074,6 +163074,28 @@ window.__ModuleLoader__.load({
       '.mp-eqwin .mp-eq-fader.is-active .mp-eq-fader-value{color:var(--dsw-alias-label-primary,#f4f4f5)}',
       '.mp-eqwin .mp-eq-fader-label{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-eqwin .mp-eq-fader input{accent-color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      // The device browser is shared with the dark EQ popover, so re-theme its nested controls
+      // at the light-aware effects window instead of hardcoding a second palette there.
+      '.mp-eqwin .mp-eq-search{width:100%;border:.5px solid var(--dsw-alias-border-l1,#e5e5ea);background:var(--dsw-alias-bg-layer-2,#f2f2f7);color:var(--dsw-alias-label-primary,#1a1a1e)}',
+      '.mp-eqwin .mp-eq-search::placeholder{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-eqwin .mp-eq-search:focus{border-color:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-eqwin .mp-eq-preset{border:.5px solid var(--dsw-alias-border-l1,#e5e5ea);background:var(--dsw-alias-bg-layer-2,#f2f2f7);color:var(--dsw-alias-label-primary,#1a1a1e)}',
+      '@media (hover: hover){.mp-eqwin .mp-eq-preset:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(0,0,0,.06));color:var(--dsw-alias-label-primary,#1a1a1e)}}',
+      '.mp-eqwin .mp-eq-preset.is-on{border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 14%,var(--dsw-alias-bg-layer-1,#fff));color:var(--dsw-alias-label-primary,#1a1a1e)}',
+      '.mp-eqwin .mp-eq-preset-caption{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-eqwin .mp-eq-preset.is-on .mp-eq-preset-caption{color:var(--dsw-alias-label-secondary,#5c5c66)}',
+      '.mp-eqwin .mp-eq-bars i{background:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-eqwin .mp-eq-preset.is-on .mp-eq-bars i{background:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-eqwin-devices{border-color:var(--dsw-alias-border-l1,#e5e5ea);background:var(--dsw-alias-bg-layer-2,#f2f2f7)}',
+      '.mp-eqwin .mp-eq-device-current{color:var(--dsw-alias-label-secondary,#5c5c66)}',
+      '.mp-eqwin .mp-eq-device-count{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-eqwin .mp-eq-more{border:.5px solid var(--dsw-alias-border-l1,#e5e5ea);background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-secondary,#5c5c66)}',
+      '@media (hover: hover){.mp-eqwin .mp-eq-more:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(0,0,0,.06));color:var(--dsw-alias-label-primary,#1a1a1e)}}',
+      '.mp-eqwin .mp-eq-empty-title{color:var(--dsw-alias-label-primary,#1a1a1e)}',
+      '.mp-eqwin .mp-eq-empty-hint{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
+      '.mp-eqwin .mp-eq-curve{background:var(--dsw-alias-bg-layer-2,#f2f2f7)}',
+      '.mp-eqwin .mp-eq-curve-zero{stroke:var(--dsw-alias-border-l2,#d4d4dc)}',
+      '.mp-eqwin .mp-eq-curve-line{stroke:var(--dsw-alias-state-business-primary,#4176E6)}',
       '.mp-eqwin-effects{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px 22px}',
       '.mp-eqwin-effect{display:flex;flex-direction:column;gap:4px;min-width:0}',
       '.mp-eqwin-effect-head{display:flex;align-items:center;gap:6px;font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary,#f4f4f5)}',
@@ -166261,13 +166283,12 @@ window.__ModuleLoader__.load({
       var selectedDevice = selectedDevicePair[0]
       var setSelectedDevice = selectedDevicePair[1]
       useEffect(function () {
-        if (eq.preset === 'device') {
-          setDeviceTab(true)
-          setSelectedDevice(eq.device || '')
-          return
-        }
-        setDeviceTab(false)
-        setSelectedDevice('')
+        // Persisted prefs are authoritative only when they actually name the device
+        // preset. Do not wipe the local tab/selection on an unrelated or stale prefs
+        // write: that was what made a click audible but visually reverted.
+        if (eq.preset !== 'device') return
+        setDeviceTab(true)
+        setSelectedDevice(eq.device || '')
       }, [eq.preset, eq.device])
       function setEnabled(value) {
         // The switch stops processing and keeps every value.

@@ -35,6 +35,20 @@ test('the search field stays inside its rounded panel', () => {
   assert.match(theme, /\.mp-eq-search\{box-sizing:border-box/)
 })
 
+test('a device click survives a stale or unrelated prefs write', () => {
+  const sync = window.slice(window.indexOf("useEffect(function () {", window.indexOf('var selectedDevice')), window.indexOf('function setEnabled'))
+  assert.match(sync, /if \(eq\.preset !== 'device'\) return/)
+  assert.doesNotMatch(sync, /setSelectedDevice\(''\)/)
+})
+
+test('the light-aware window re-themes its nested device controls', () => {
+  for (const selector of ['.mp-eqwin .mp-eq-search', '.mp-eqwin .mp-eq-preset', '.mp-eqwin .mp-eq-device-current', '.mp-eqwin .mp-eq-curve']) {
+    assert.ok(theme.includes(selector), 'missing scoped override ' + selector)
+  }
+  assert.match(theme, /\.mp-eqwin \.mp-eq-preset\{[^}]*var\(--dsw-alias-label-primary/)
+  assert.match(theme, /\.mp-eqwin \.mp-eq-curve-line\{[^}]*var\(--dsw-alias-state-business-primary/)
+})
+
 test('the window labels the headphone preset section in both languages', () => {
   assert.match(strings, /'eq\.headphonePresets': '耳机预设'/)
   assert.match(strings, /'eq\.headphonePresets': 'Headphone presets'/)
