@@ -48,7 +48,7 @@ assert.match(
 // The refused branch reports and returns; only a media-level failure may fall back to the
 // element. Falling back here is what turned a 502 body into DEMUXER_ERROR_COULD_NOT_OPEN.
 const catchStart = player.indexOf('.catch(function (error) {')
-const catchEnd = player.indexOf('startOnlineDirect(item, token, loudness)', catchStart)
+const catchEnd = player.indexOf('startOnlineBlob(item, token, loudness)', catchStart)
 assert.ok(catchStart >= 0 && catchEnd > catchStart, 'the MSE catch handles a refusal before the direct fallback')
 const refusalBranch = player.slice(catchStart, catchEnd)
 assert.match(refusalBranch, /error\.onlineStreamRefused === true/, 'the catch distinguishes a refused stream')

@@ -45,7 +45,10 @@ test('a fallback keeps play intent and the position where MSE stopped', () => {
 
 test('the player uses the guard and preserves state on every MSE fallback', () => {
   assert.match(player, /mpMseStreamTooLarge\(response\.headers\)/)
-  assert.match(player, /loadActiveSource\(onlineUrlFor\(item, true\)\)/)
+  assert.match(player, /function startOnlineBlob\(item, token, loudness, headers\)/)
+  assert.match(player, /function playOnlineEntry\(item, token, loudness\)/)
+  assert.match(player, /info && info\.cached === true/)
+  assert.match(player, /loadActiveSource\(objectUrl\)/)
   assert.match(api, /direct === true \? '&direct=1'/)
   assert.match(player, /if \(captureMseFallbackIntent\(\)\) pendingAutoplay = true/)
   assert.match(player, /sourceBuffer\.addEventListener\('error'/)

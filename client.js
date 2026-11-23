@@ -8,8 +8,8 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
-    var APP_VERSION = "0.45.1"
-    var CLIENT_BUILD = "9c9e588536a0"
+    var APP_VERSION = "0.45.2"
+    var CLIENT_BUILD = "d376f90e72f3"
 
     // ── src/client/app/runtime.js
     /**
@@ -157581,7 +157581,7 @@ window.__ModuleLoader__.load({
           console.warn('[Player] MSE could not decode the stream; playing it directly like Folia')
           stopOnlineMse()
           pendingAutoplay = fallbackPlaying
-          startOnlineDirect(failedTrack, loadToken, { promise: Promise.resolve(), resolve: function () {} }, null)
+          startOnlineBlob(failedTrack, loadToken, { promise: Promise.resolve(), resolve: function () {} }, null)
           return
         }
         errorStreak += 1
@@ -158065,23 +158065,90 @@ window.__ModuleLoader__.load({
           .catch(function () {})
       }
 
-      function startOnlineDirect(item, token, loudness, headers) {
+      /**
+       * Folia hands the media element a CDN URL and seeks natively. Behind the Host proxy,
+       * writing currentTime on the HTTP stream is dropped by the Electron media stack (the old
+       * reason MSE exists), so download the response into a Blob: local media seeks reliably and
+       * has none of MSE's SourceBuffer quota. This is the fallback for unsupported codecs, large
+       * files and every MSE failure.
+       */
+      function startOnlineBlob(item, token, loudness, headers) {
         if (token !== loadToken) return
         stopOnlineMse()
         prepareOnlineElement()
-        loadActiveSource(onlineUrlFor(item, true))
-        applyDirectSavedStart(item, token)
-        loudness.resolve()
-        if (pendingAutoplay) playAfterLoudness(token)
-        if (headers === undefined || !applyPlatformGain(headers)) loadOnlineHeadGain(item, token)
-        loadCachedOnlineProfile(item, token)
+        var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+        fetchAbort = controller
+        fetch(onlineUrlFor(item), controller === null ? {} : { signal: controller.signal })
+          .then(function (response) {
+            if (token !== loadToken) {
+              if (response.body !== null) response.body.cancel().catch(function () {})
+              loudness.resolve()
+              return null
+            }
+            if (!response.ok) return onlineStreamFailure(response).then(function (failure) { throw failure })
+            var gainHeaders = headers === undefined || headers === null ? response.headers : headers
+            if (!applyPlatformGain(gainHeaders)) loadOnlineHeadGain(item, token)
+            return response.blob()
+          })
+          .then(function (blob) {
+            if (blob === null || token !== loadToken) return
+            fetchAbort = null
+            if (audio === null) {
+              loudness.resolve()
+              return
+            }
+            releaseObjectUrl()
+            objectUrl = URL.createObjectURL(blob)
+            currentBlob = blob
+            loadActiveSource(objectUrl)
+            applyDirectSavedStart(item, token)
+            loudness.resolve()
+            if (pendingAutoplay) playAfterLoudness(token)
+            loadCachedOnlineProfile(item, token)
+          })
+          .catch(function (error) {
+            if (token !== loadToken) {
+              loudness.resolve()
+              return
+            }
+            fetchAbort = null
+            loudness.resolve()
+            if (error && error.name === 'AbortError') return
+            if (error && error.onlineStreamRefused === true) {
+              onError(error.message)
+              return
+            }
+            onError(error && typeof error.message === 'string' ? error.message : '')
+          })
       }
 
+      /**
+       * A cached copy is already on the Host's disk: play it as a Blob so native seek works
+       * (the proxy HTTP stream is the one Electron refuses to seek, issue #82/#110). Only a
+       * miss uses MSE's streaming start.
+       */
+      function playOnlineEntry(item, token, loudness) {
+        var infoUrl = API + 'online/cache-info?provider=' + encodeURIComponent(item.onlineProvider)
+          + '&id=' + encodeURIComponent(item.onlineId || '')
+        getJson(infoUrl)
+          .then(function (info) {
+            if (token !== loadToken) return
+            if (info && info.cached === true) {
+              startOnlineBlob(item, token, loudness)
+              return
+            }
+            playOnlineMse(item, token, loudness)
+          })
+          .catch(function () {
+            if (token !== loadToken) return
+            playOnlineMse(item, token, loudness)
+          })
+      }
       /** Folia-like current song, but with MediaSource owning the seekable ranges. */
       function playOnlineMse(item, token, loudness) {
         var MediaSourceCtor = typeof window !== 'undefined' ? (window.MediaSource || window.webkitMediaSource) : null
         if (typeof MediaSourceCtor !== 'function') {
-          startOnlineDirect(item, token, loudness)
+          startOnlineBlob(item, token, loudness)
           return
         }
         var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
@@ -158101,7 +158168,7 @@ window.__ModuleLoader__.load({
             // stream the same Host URL without that cap, so keep large files out of MSE.
             if (mpMseStreamTooLarge(response.headers)) {
               if (response.body !== null) response.body.cancel().catch(function () {})
-              startOnlineDirect(item, token, loudness, response.headers)
+              startOnlineBlob(item, token, loudness, response.headers)
               return null
             }
             applyPlatformGain(response.headers)
@@ -158112,7 +158179,7 @@ window.__ModuleLoader__.load({
             if (!MediaSourceCtor.isTypeSupported(mseMime) || response.body === null) {
               // Unsupported codec: fall back to the direct element rather than buffering the file.
               if (response.body !== null) response.body.cancel().catch(function () {})
-              startOnlineDirect(item, token, loudness, response.headers)
+              startOnlineBlob(item, token, loudness, response.headers)
               return null
             }
             prepareOnlineElement()
@@ -158159,7 +158226,7 @@ window.__ModuleLoader__.load({
               // ends up paused at 0:00 with no error and no ended event.
               if (captureMseFallbackIntent()) pendingAutoplay = true
               if (reason !== undefined && reason !== null) console.warn('[Player] MSE fell back to direct playback:', reason)
-              startOnlineDirect(item, token, loudness, response.headers)
+              startOnlineBlob(item, token, loudness, response.headers)
             }
             function covers(target) {
               if (sourceBuffer === null || sourceBuffer.buffered.length === 0) return false
@@ -158291,10 +158358,10 @@ window.__ModuleLoader__.load({
               onError(error.message)
               return
             }
-            startOnlineDirect(item, token, loudness)
+            startOnlineBlob(item, token, loudness)
           })
           .then(function () {
-            if (token === loadToken) fetchAbort = null
+            if (token === loadToken && fetchAbort === controller) fetchAbort = null
           })
       }
 
@@ -158576,7 +158643,7 @@ window.__ModuleLoader__.load({
         // first appended chunk starts sound; no full-file blob and no analysis gate.
         if (onlineUrlFor(item) !== '') {
           prepareOnlineElement()
-          playOnlineMse(item, token, loudness)
+          playOnlineEntry(item, token, loudness)
           return
         }
         // Detach the old blob before revoking it: a revoked URL still
