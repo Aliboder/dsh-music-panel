@@ -36,6 +36,8 @@ test('recent searches render as a selectable dropdown with a clear action', () =
   assert.match(shell, /className: 'mpv3-search-history-clear'/)
   assert.match(strings, /'p3\.searchHistory': '搜索历史'/)
   assert.match(strings, /'p3\.searchHistory': 'Recent searches'/)
+  assert.match(styles, /\.mpv3-search-clear \{/) 
+  assert.match(styles, /\.mpv3-search-clear \{[\s\S]{0,120}position: absolute; right: 4px; top: 4px/) 
   assert.match(styles, /\.mpv3-search-history \{/)
 })
 

@@ -40,6 +40,7 @@ function P3TopBar(props) {
   var online = useStore(onlineStore)
   var prefs = usePrefs()
   var sourceRef = useRef(null)
+  var searchRef = useRef(null)
   var [sourceOpen, setSourceOpen] = useState(false)
   var [draft, setDraft] = useState('')
   var [historyOpen, setHistoryOpen] = useState(false)
@@ -82,6 +83,16 @@ function P3TopBar(props) {
     setDraft(search.open ? String(search.query || '') : '')
     setHistoryOpen(false)
   }, [search.open, search.query])
+  useEffect(function () {
+    if (!historyOpen || typeof document === 'undefined') return undefined
+    function onPointerDown(event) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) setHistoryOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown, true)
+    return function () {
+      document.removeEventListener('pointerdown', onPointerDown, true)
+    }
+  }, [historyOpen])
 
   function searchValue() {
     return draft
@@ -108,14 +119,14 @@ function P3TopBar(props) {
   }
 
   function onFocusSearch() {
-    if (draft.trim() === '' && history.length > 0) setHistoryOpen(true)
+    if (!search.open && draft.trim() === '' && history.length > 0) setHistoryOpen(true)
   }
 
   function onChangeSearch(event) {
     var value = event.target.value
     setDraft(value)
     var empty = value.trim() === ''
-    setHistoryOpen(empty && history.length > 0)
+    setHistoryOpen(!search.open && empty && history.length > 0)
     // Erasing the whole field exits an open result page immediately; everything
     // else waits for Enter instead of firing a request per keystroke.
     if (empty && search.open) p3SetSearchQuery('')
@@ -241,6 +252,7 @@ function P3TopBar(props) {
     ),
     h('div', { className: 'mpv3-grow' }),
     h('div', {
+      ref: searchRef,
       className: 'mpv3-search',
       onBlur: function (event) {
         var next = event.relatedTarget
@@ -262,7 +274,7 @@ function P3TopBar(props) {
       !collection.snapshot && searchValue() !== ''
         ? h('button', { type: 'button', className: 'mpv3-search-clear', title: t('p3.clearSearch'), onClick: clearSearch }, icon('close', 13))
         : null,
-      historyOpen && history.length > 0
+      historyOpen && !search.open && searchValue().trim() === '' && history.length > 0
         ? h(
             'div',
             {
