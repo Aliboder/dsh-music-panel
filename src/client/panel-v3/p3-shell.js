@@ -274,7 +274,12 @@ function P3TopBar(props) {
               h('span', { className: 'mpv3-search-history-title' }, t('p3.searchHistory')),
               h(
                 'button',
-                { type: 'button', className: 'mpv3-search-history-clear', onClick: clearHistory },
+                {
+                  type: 'button',
+                  className: 'mpv3-search-history-clear',
+                  onMouseDown: function (event) { event.preventDefault() },
+                  onClick: clearHistory,
+                },
                 t('p3.clearSearchHistory'),
               ),
             ),
@@ -289,6 +294,7 @@ function P3TopBar(props) {
                     type: 'button',
                     className: 'mpv3-search-history-item',
                     title: text,
+                    onMouseDown: function (event) { event.preventDefault() },
                     onClick: function () { pickHistory(text) },
                   },
                   icon('search', 13),

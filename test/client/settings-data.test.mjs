@@ -94,3 +94,8 @@ test('clear-all data flow covers plugin localStorage ownership prefixes', () => 
   }
   assert.match(source, /_tuning/)
 })
+
+test('search history is covered by the music. prefs clear scope', () => {
+  assert.match(prefsSource, /searchHistory: \[\]/)
+  assert.match(source, /'music\.'/)
+})

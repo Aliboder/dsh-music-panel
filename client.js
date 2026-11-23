@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.45.2"
-    var CLIENT_BUILD = "e5dc3fef94f9"
+    var CLIENT_BUILD = "2c7fc76d8568"
 
     // ── src/client/app/runtime.js
     /**
@@ -176769,7 +176769,12 @@ window.__ModuleLoader__.load({
                   h('span', { className: 'mpv3-search-history-title' }, t('p3.searchHistory')),
                   h(
                     'button',
-                    { type: 'button', className: 'mpv3-search-history-clear', onClick: clearHistory },
+                    {
+                      type: 'button',
+                      className: 'mpv3-search-history-clear',
+                      onMouseDown: function (event) { event.preventDefault() },
+                      onClick: clearHistory,
+                    },
                     t('p3.clearSearchHistory'),
                   ),
                 ),
@@ -176784,6 +176789,7 @@ window.__ModuleLoader__.load({
                         type: 'button',
                         className: 'mpv3-search-history-item',
                         title: text,
+                        onMouseDown: function (event) { event.preventDefault() },
                         onClick: function () { pickHistory(text) },
                       },
                       icon('search', 13),
