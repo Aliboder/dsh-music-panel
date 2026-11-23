@@ -777,7 +777,12 @@ export function createOnlineRoutes(deps) {
             // a level lower (Folia's ladder), and only then report.
             const kugouAlreadyDegraded = (provider === 'kugou' || provider === 'kugouLite') && upstream.status === 404
             const refreshed = Math.max(0, Number(params.get('refresh')) || 0)
-            const nextQuality = refreshed === 0 ? quality : nextLowerOnlineQuality(quality)
+            // A media element asks for a new byte range on every seek. Each answer must be
+            // bytes of the SAME file; lowering the quality mid-resource would mix two
+            // encodings under one Content-Range. MSE's single full request may still use
+            // the quality ladder, but a Range request may only re-sign the same quality.
+            const directStream = params.get('direct') === '1'
+            const nextQuality = refreshed === 0 || hasRange || directStream ? quality : nextLowerOnlineQuality(quality)
             if (!kugouAlreadyDegraded && retriableCdnStatus(upstream.status) && refreshed < 2 && nextQuality !== null) {
               if (upstream.body !== null) await upstream.body.cancel().catch(() => {})
               const retryUrl = new URL(req.url ?? '/', 'http://localhost')

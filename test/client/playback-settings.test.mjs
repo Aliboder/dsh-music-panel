@@ -107,8 +107,8 @@ test('睡眠定时、ReplayGain、在线音质由插件生命周期接管', () =
   assert.doesNotMatch(shell, /window\.setTimeout\(function \(\) \{\n\s+player\.pause\(\)/, 'the panel no longer owns the countdown')
   assert.match(player, /calculateReplayGain\(/, 'the player applies Folia\'s ReplayGain arithmetic')
   assert.match(player, /loadReplayGainFor\(item\)/, 'gain is resolved on every load')
-  assert.match(player, /function onlineUrlFor\(item\)/, 'stream URLs are resolved at play time')
-  assert.match(player, /onlineStreamUrl\(item\.onlineProvider, item\.onlineId\)/, 'and read the current quality preference')
+  assert.match(player, /function onlineUrlFor\(item, direct\)/, 'stream URLs are resolved at play time')
+  assert.match(player, /onlineStreamUrl\(item\.onlineProvider, item\.onlineId, undefined, direct === true\)/, 'and read the current quality preference')
 })
 
 console.log('playback-settings.test.mjs ok')

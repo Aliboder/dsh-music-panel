@@ -15,7 +15,7 @@ function coverUrl(path) {
   return API + 'cover?path=' + encodeURIComponent(path)
 }
 
-function onlineStreamUrl(provider, id, quality) {
+function onlineStreamUrl(provider, id, quality, direct) {
   var level =
     typeof quality === 'string' && quality !== ''
       ? quality
@@ -27,7 +27,8 @@ function onlineStreamUrl(provider, id, quality) {
     '&id=' +
     encodeURIComponent(id) +
     '&quality=' +
-    encodeURIComponent(level)
+    encodeURIComponent(level) +
+    (direct === true ? '&direct=1' : '')
   )
 }
 

@@ -8,8 +8,8 @@ window.__ModuleLoader__.load({
   id: 'dsh-music-panel',
   factory: function (require) {
     'use strict'
-    var APP_VERSION = "0.45.0"
-    var CLIENT_BUILD = "0f546874799f"
+    var APP_VERSION = "0.45.1"
+    var CLIENT_BUILD = "9c9e588536a0"
 
     // ── src/client/app/runtime.js
     /**
@@ -22684,7 +22684,7 @@ window.__ModuleLoader__.load({
       return API + 'cover?path=' + encodeURIComponent(path)
     }
 
-    function onlineStreamUrl(provider, id, quality) {
+    function onlineStreamUrl(provider, id, quality, direct) {
       var level =
         typeof quality === 'string' && quality !== ''
           ? quality
@@ -22696,7 +22696,8 @@ window.__ModuleLoader__.load({
         '&id=' +
         encodeURIComponent(id) +
         '&quality=' +
-        encodeURIComponent(level)
+        encodeURIComponent(level) +
+        (direct === true ? '&direct=1' : '')
       )
     }
 
@@ -157534,6 +157535,18 @@ window.__ModuleLoader__.load({
         load(nextIndexOf(state.index, state.queue.length), true)
       }
 
+      /** Preserve what the listener asked for before MSE is torn down and playback restarts. */
+      function captureMseFallbackIntent() {
+        var intent = mpFallbackPlaybackState({
+          pendingAutoplay: pendingAutoplay,
+          playing: state.playing === true,
+          paused: audio === null ? true : audio.paused,
+          ended: audio === null ? true : audio.ended,
+          currentTime: audio === null ? 0 : audio.currentTime,
+        })
+        if (intent.resumeAt !== null && pendingResumeSeconds === null) pendingResumeSeconds = intent.resumeAt
+        return intent.shouldResume
+      }
       function onError(eventOrReason) {
         if (
           eventOrReason !== null &&
@@ -157564,7 +157577,7 @@ window.__ModuleLoader__.load({
           mseFallbackToken !== loadToken
         ) {
           mseFallbackToken = loadToken
-          var fallbackPlaying = state.playing === true
+          var fallbackPlaying = captureMseFallbackIntent()
           console.warn('[Player] MSE could not decode the stream; playing it directly like Folia')
           stopOnlineMse()
           pendingAutoplay = fallbackPlaying
@@ -158056,7 +158069,7 @@ window.__ModuleLoader__.load({
         if (token !== loadToken) return
         stopOnlineMse()
         prepareOnlineElement()
-        loadActiveSource(onlineUrlFor(item))
+        loadActiveSource(onlineUrlFor(item, true))
         applyDirectSavedStart(item, token)
         loudness.resolve()
         if (pendingAutoplay) playAfterLoudness(token)
@@ -158083,6 +158096,14 @@ window.__ModuleLoader__.load({
             // A refused answer is the Host speaking about this request, not audio. Read what it
             // said; the catch below reports it instead of handing the answer to the media element.
             if (!response.ok) return onlineStreamFailure(response).then(function (failure) { throw failure })
+            // Chromium's audio SourceBuffer is capped around 12 MiB. A long track appended
+            // without backpressure throws QuotaExceededError after ~1 s; the media element can
+            // stream the same Host URL without that cap, so keep large files out of MSE.
+            if (mpMseStreamTooLarge(response.headers)) {
+              if (response.body !== null) response.body.cancel().catch(function () {})
+              startOnlineDirect(item, token, loudness, response.headers)
+              return null
+            }
             applyPlatformGain(response.headers)
             var mime = String(response.headers.get('content-type') || 'audio/mpeg').split(';')[0].trim().toLowerCase()
             var mseMime = mime === 'audio/mp4' || mime === 'audio/m4a' || mime === 'audio/x-m4a'
@@ -158130,9 +158151,14 @@ window.__ModuleLoader__.load({
             var pendingSeek = null
             var resumeAfterSeek = false
             var failed = false
-            function fallbackToDirect() {
+            function fallbackToDirect(reason) {
               if (failed || session.stopped) return
               failed = true
+              // The first chunk may already have started playback, which clears pendingAutoplay.
+              // Carry the listener's intent and position into the direct element or the song
+              // ends up paused at 0:00 with no error and no ended event.
+              if (captureMseFallbackIntent()) pendingAutoplay = true
+              if (reason !== undefined && reason !== null) console.warn('[Player] MSE fell back to direct playback:', reason)
               startOnlineDirect(item, token, loudness, response.headers)
             }
             function covers(target) {
@@ -158176,7 +158202,7 @@ window.__ModuleLoader__.load({
               try {
                 sourceBuffer.appendBuffer(chunk)
               } catch (error) {
-                fallbackToDirect()
+                fallbackToDirect(error)
               }
             }
             function maybeStart() {
@@ -158210,7 +158236,7 @@ window.__ModuleLoader__.load({
                 sourceBuffer = mediaSource.addSourceBuffer(mseMime)
               } catch (error) {
                 console.warn('[OnlineMse] addSourceBuffer failed, falling back to direct media', error)
-                fallbackToDirect()
+                fallbackToDirect(error)
                 return
               }
               // Duration is metadata for the seek bar, not part of SourceBuffer
@@ -158223,6 +158249,11 @@ window.__ModuleLoader__.load({
                 maybeStart()
                 trySeek()
                 pump()
+              })
+              // SourceBuffer can report a quota/decoder failure asynchronously; without this
+              // listener the session would stall and never reach fallbackToDirect().
+              sourceBuffer.addEventListener('error', function () {
+                fallbackToDirect('SourceBuffer error')
               })
               session.reader = response.body.getReader()
               applySavedStart()
@@ -158237,9 +158268,9 @@ window.__ModuleLoader__.load({
                   queue.push(result.value)
                   pump()
                   read()
-                }).catch(function () {
+                }).catch(function (error) {
                   if (session.stopped) return
-                  fallbackToDirect()
+                  fallbackToDirect(error)
                 })
               }
               read()
@@ -158471,14 +158502,14 @@ window.__ModuleLoader__.load({
        * built: the quality preference is read at play time. Do the same here, so changing
        * 在线音质 affects the next play even for songs already in the queue.
        */
-      function onlineUrlFor(item) {
+      function onlineUrlFor(item, direct) {
         if (item === null || item === undefined) return ''
         if (
           typeof item.onlineProvider === 'string' && item.onlineProvider !== '' &&
           typeof item.onlineId === 'string' && item.onlineId !== '' &&
           typeof onlineStreamUrl === 'function'
         ) {
-          return onlineStreamUrl(item.onlineProvider, item.onlineId)
+          return onlineStreamUrl(item.onlineProvider, item.onlineId, undefined, direct === true)
         }
         return typeof item.onlineUrl === 'string' ? item.onlineUrl : ''
       }
@@ -160040,6 +160071,54 @@ window.__ModuleLoader__.load({
       var media = Number(mediaDuration)
       var known = Number(trackDuration)
       return Math.max(isFinite(media) && media > 0 ? media : 0, isFinite(known) && known > 0 ? known : 0)
+    }
+
+    // ── src/client/services/player/online-fallback.js
+    /**
+     * Pure decisions for an online stream that cannot stay in MediaSource.
+     *
+     * Chromium gives an audio SourceBuffer roughly 12 MiB. A long 320 kbps track is
+     * larger than that, so the player must stream it through the media element instead
+     * of appending the whole file. These helpers keep the threshold and the resume
+     * decision testable without a browser.
+     */
+
+    var MP_MSE_MAX_STREAM_BYTES = 10 * 1024 * 1024
+
+    /** Total bytes of the resource; Content-Range's total wins over a partial length. */
+    function mpStreamTotalBytes(headers) {
+      if (!headers || typeof headers.get !== 'function') return null
+      var range = headers.get('content-range')
+      if (typeof range === 'string' && range !== '') {
+        var slash = range.lastIndexOf('/')
+        if (slash >= 0) {
+          var total = Number(range.slice(slash + 1))
+          if (isFinite(total) && total > 0) return total
+        }
+      }
+      var length = Number(headers.get('content-length'))
+      return isFinite(length) && length > 0 ? length : null
+    }
+
+    function mpMseStreamTooLarge(headers, limit) {
+      var cap = typeof limit === 'number' && isFinite(limit) && limit > 0 ? limit : MP_MSE_MAX_STREAM_BYTES
+      var total = mpStreamTotalBytes(headers)
+      return total !== null && total > cap
+    }
+
+    /**
+     * What the listener asked for at the moment MSE failed. A pending autoplay, an
+     * already-playing deck, or an element that is mid-play all mean "keep going"; a
+     * deliberate pause means "stay paused". The position is kept separately so direct
+     * playback can resume where MSE stopped.
+     */
+    function mpFallbackPlaybackState(input) {
+      var source = input || {}
+      var shouldResume = source.pendingAutoplay === true || source.playing === true ||
+        (source.paused === false && source.ended !== true)
+      var seconds = Number(source.currentTime)
+      var resumeAt = isFinite(seconds) && seconds > 0.5 ? seconds : null
+      return { shouldResume: shouldResume, resumeAt: resumeAt }
     }
 
     // ── src/client/services/player/audio-focus.js

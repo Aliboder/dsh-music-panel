@@ -243,6 +243,82 @@ try {
   }
 }
 
+// The direct element may probe without Range first; the client marks it direct=1 so
+// the Host still refuses to change quality underneath a resource it is already using.
+{
+  const oldStream = omni.stream
+  const oldFetch = globalThis.fetch
+  const asked = []
+  omni.stream = async (_provider, _id, _ctx, quality) => {
+    asked.push(quality)
+    return { url: 'https://cdn.test/direct-' + asked.length + '.mp3', quality, preview: false }
+  }
+  globalThis.fetch = async () => new Response('', { status: 403 })
+  try {
+    const res = fakeRes()
+    await handler(fakeReq('/music/online/stream?provider=netease&id=direct-pin&quality=hires&direct=1'), res)
+    assert.equal(res.status, 502)
+    assert.deepEqual(asked, ['hires', 'hires', 'hires'], 'a direct stream never downgrades')
+  } finally {
+    omni.stream = oldStream
+    globalThis.fetch = oldFetch
+  }
+}
+// Issue #31: a media element asks for Range, and each answer must stay the same file.
+// A 403 may mint a fresh address at the SAME quality; it must not downgrade mid-resource.
+{
+  const oldStream = omni.stream
+  const oldFetch = globalThis.fetch
+  const asked = []
+  const ranges = []
+  let calls = 0
+  omni.stream = async (_provider, _id, _ctx, quality) => {
+    asked.push(quality)
+    return { url: 'https://cdn.test/range-node-' + asked.length + '.mp3', quality, preview: false }
+  }
+  globalThis.fetch = async (_url, options) => {
+    ranges.push(options && options.headers ? options.headers.Range : undefined)
+    calls += 1
+    if (calls === 1) return new Response('', { status: 403 })
+    return new Response(Buffer.from([0x49, 0x44, 0x33, 0x04]), {
+      status: 206,
+      headers: { 'content-type': 'audio/mpeg', 'content-length': '4', 'content-range': 'bytes 0-3/4' },
+    })
+  }
+  try {
+    const res = fakeRes()
+    await handler(fakeReq('/music/online/stream?provider=netease&id=range-node&quality=hires', 'GET', { range: 'bytes=0-' }), res)
+    assert.equal(res.status, 206, 'a Range request is retried and served')
+    assert.deepEqual(asked, ['hires', 'hires'], 'the retry keeps the requested quality')
+    assert.ok(ranges.every((value) => value === 'bytes=0-'), 'the Range header is forwarded on both attempts')
+  } finally {
+    omni.stream = oldStream
+    globalThis.fetch = oldFetch
+  }
+}
+
+// If the node keeps refusing a Range request, stop rather than mixing a lower quality
+// into a resource whose byte offsets already belong to the requested quality.
+{
+  const oldStream = omni.stream
+  const oldFetch = globalThis.fetch
+  const asked = []
+  omni.stream = async (_provider, _id, _ctx, quality) => {
+    asked.push(quality)
+    return { url: 'https://cdn.test/range-refused-' + asked.length + '.mp3', quality, preview: false }
+  }
+  globalThis.fetch = async () => new Response('', { status: 403 })
+  try {
+    const res = fakeRes()
+    await handler(fakeReq('/music/online/stream?provider=netease&id=range-refused&quality=hires', 'GET', { range: 'bytes=0-' }), res)
+    assert.equal(res.status, 502)
+    assert.deepEqual(asked, ['hires', 'hires', 'hires'], 'Range retries never lower the quality')
+    assert.match(res.json().error.message, /403/)
+  } finally {
+    omni.stream = oldStream
+    globalThis.fetch = oldFetch
+  }
+}
 } finally {
   omni.stream = originalStream
   globalThis.fetch = originalFetch

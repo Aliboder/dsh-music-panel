@@ -954,6 +954,18 @@ var mseFallbackToken = -1
     load(nextIndexOf(state.index, state.queue.length), true)
   }
 
+  /** Preserve what the listener asked for before MSE is torn down and playback restarts. */
+  function captureMseFallbackIntent() {
+    var intent = mpFallbackPlaybackState({
+      pendingAutoplay: pendingAutoplay,
+      playing: state.playing === true,
+      paused: audio === null ? true : audio.paused,
+      ended: audio === null ? true : audio.ended,
+      currentTime: audio === null ? 0 : audio.currentTime,
+    })
+    if (intent.resumeAt !== null && pendingResumeSeconds === null) pendingResumeSeconds = intent.resumeAt
+    return intent.shouldResume
+  }
   function onError(eventOrReason) {
     if (
       eventOrReason !== null &&
@@ -984,7 +996,7 @@ var mseFallbackToken = -1
       mseFallbackToken !== loadToken
     ) {
       mseFallbackToken = loadToken
-      var fallbackPlaying = state.playing === true
+      var fallbackPlaying = captureMseFallbackIntent()
       console.warn('[Player] MSE could not decode the stream; playing it directly like Folia')
       stopOnlineMse()
       pendingAutoplay = fallbackPlaying
@@ -1476,7 +1488,7 @@ var mseFallbackToken = -1
     if (token !== loadToken) return
     stopOnlineMse()
     prepareOnlineElement()
-    loadActiveSource(onlineUrlFor(item))
+    loadActiveSource(onlineUrlFor(item, true))
     applyDirectSavedStart(item, token)
     loudness.resolve()
     if (pendingAutoplay) playAfterLoudness(token)
@@ -1503,6 +1515,14 @@ var mseFallbackToken = -1
         // A refused answer is the Host speaking about this request, not audio. Read what it
         // said; the catch below reports it instead of handing the answer to the media element.
         if (!response.ok) return onlineStreamFailure(response).then(function (failure) { throw failure })
+        // Chromium's audio SourceBuffer is capped around 12 MiB. A long track appended
+        // without backpressure throws QuotaExceededError after ~1 s; the media element can
+        // stream the same Host URL without that cap, so keep large files out of MSE.
+        if (mpMseStreamTooLarge(response.headers)) {
+          if (response.body !== null) response.body.cancel().catch(function () {})
+          startOnlineDirect(item, token, loudness, response.headers)
+          return null
+        }
         applyPlatformGain(response.headers)
         var mime = String(response.headers.get('content-type') || 'audio/mpeg').split(';')[0].trim().toLowerCase()
         var mseMime = mime === 'audio/mp4' || mime === 'audio/m4a' || mime === 'audio/x-m4a'
@@ -1550,9 +1570,14 @@ var mseFallbackToken = -1
         var pendingSeek = null
         var resumeAfterSeek = false
         var failed = false
-        function fallbackToDirect() {
+        function fallbackToDirect(reason) {
           if (failed || session.stopped) return
           failed = true
+          // The first chunk may already have started playback, which clears pendingAutoplay.
+          // Carry the listener's intent and position into the direct element or the song
+          // ends up paused at 0:00 with no error and no ended event.
+          if (captureMseFallbackIntent()) pendingAutoplay = true
+          if (reason !== undefined && reason !== null) console.warn('[Player] MSE fell back to direct playback:', reason)
           startOnlineDirect(item, token, loudness, response.headers)
         }
         function covers(target) {
@@ -1596,7 +1621,7 @@ var mseFallbackToken = -1
           try {
             sourceBuffer.appendBuffer(chunk)
           } catch (error) {
-            fallbackToDirect()
+            fallbackToDirect(error)
           }
         }
         function maybeStart() {
@@ -1630,7 +1655,7 @@ var mseFallbackToken = -1
             sourceBuffer = mediaSource.addSourceBuffer(mseMime)
           } catch (error) {
             console.warn('[OnlineMse] addSourceBuffer failed, falling back to direct media', error)
-            fallbackToDirect()
+            fallbackToDirect(error)
             return
           }
           // Duration is metadata for the seek bar, not part of SourceBuffer
@@ -1643,6 +1668,11 @@ var mseFallbackToken = -1
             maybeStart()
             trySeek()
             pump()
+          })
+          // SourceBuffer can report a quota/decoder failure asynchronously; without this
+          // listener the session would stall and never reach fallbackToDirect().
+          sourceBuffer.addEventListener('error', function () {
+            fallbackToDirect('SourceBuffer error')
           })
           session.reader = response.body.getReader()
           applySavedStart()
@@ -1657,9 +1687,9 @@ var mseFallbackToken = -1
               queue.push(result.value)
               pump()
               read()
-            }).catch(function () {
+            }).catch(function (error) {
               if (session.stopped) return
-              fallbackToDirect()
+              fallbackToDirect(error)
             })
           }
           read()
@@ -1891,14 +1921,14 @@ var mseFallbackToken = -1
    * built: the quality preference is read at play time. Do the same here, so changing
    * 在线音质 affects the next play even for songs already in the queue.
    */
-  function onlineUrlFor(item) {
+  function onlineUrlFor(item, direct) {
     if (item === null || item === undefined) return ''
     if (
       typeof item.onlineProvider === 'string' && item.onlineProvider !== '' &&
       typeof item.onlineId === 'string' && item.onlineId !== '' &&
       typeof onlineStreamUrl === 'function'
     ) {
-      return onlineStreamUrl(item.onlineProvider, item.onlineId)
+      return onlineStreamUrl(item.onlineProvider, item.onlineId, undefined, direct === true)
     }
     return typeof item.onlineUrl === 'string' ? item.onlineUrl : ''
   }
