@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.45.2"
-    var CLIENT_BUILD = "a3ecefbb1461"
+    var CLIENT_BUILD = "12878b28290d"
 
     // ── src/client/app/runtime.js
     /**
@@ -8973,7 +8973,7 @@ window.__ModuleLoader__.load({
       'contact.join': '加入交流群',
       'contact.qrAlt': 'dsh-music-panel 反馈群二维码',
       'contact.groupNumber': '群号：{number}',
-      'contact.hint': '用 QQ 扫一扫加入反馈群，问题、建议都可以在群里讨论。',
+      'contact.hint': 'QQ 扫码进群，反馈问题或交流使用。',
       'contact.copyNumber': '复制群号',
       'contact.numberCopied': '群号已复制',
       'p3.searchHistory': '搜索历史',
@@ -9784,7 +9784,7 @@ window.__ModuleLoader__.load({
       'contact.join': 'Join the group',
       'contact.qrAlt': 'QR code for the dsh-music-panel feedback group',
       'contact.groupNumber': 'Group: {number}',
-      'contact.hint': 'Scan with QQ to join the feedback group for questions and suggestions.',
+      'contact.hint': 'Scan with QQ to join the group for help.',
       'contact.copyNumber': 'Copy group number',
       'contact.numberCopied': 'Group number copied',
       'p3.searchHistory': 'Recent searches',
