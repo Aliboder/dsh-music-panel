@@ -13,6 +13,7 @@ const browser = read('src/client/components/ui/eq-device-browser.js')
 const panel = read('src/client/components/ui/eq-panel.js')
 const window = read('src/client/components/ui/audio-equalizer.js')
 const strings = read('src/client/i18n/strings.js')
+const theme = read('src/client/styles/theme.js')
 
 test('the AutoEQ browser owns search, paging and selection', () => {
   assert.match(browser, /function EqDeviceBrowser\(props\)/)
@@ -28,6 +29,10 @@ test('both equalizer surfaces mount the shared browser', () => {
   assert.match(window, /eq\.headphonePresets/)
   assert.match(window, /AUDIO_EQ_BUILTIN_PRESET_IDS[\s\S]{0,40}\.concat\(\['device'\]\)/)
   assert.match(window, /id === 'device' \? deviceTab/)
+})
+
+test('the search field stays inside its rounded panel', () => {
+  assert.match(theme, /\.mp-eq-search\{box-sizing:border-box/)
 })
 
 test('the window labels the headphone preset section in both languages', () => {

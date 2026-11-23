@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.45.2"
-    var CLIENT_BUILD = "04dd46da8963"
+    var CLIENT_BUILD = "34ca7bd36070"
 
     // ── src/client/app/runtime.js
     /**
@@ -162965,7 +162965,7 @@ window.__ModuleLoader__.load({
       '.mp-eq-slot-save:hover{background:rgba(255,255,255,.08);color:#fff}',
       // AutoEQ device browser: search stays fixed, only the result list scrolls.
       '.mp-eq-device{display:flex;flex:1;flex-direction:column;min-height:0;gap:8px}',
-      '.mp-eq-search{flex:none;height:30px;padding:0 9px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none}',
+      '.mp-eq-search{box-sizing:border-box;flex:none;height:30px;padding:0 9px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f4f4f5;font:inherit;font-size:12px;outline:none}',
       '.mp-eq-search::placeholder{color:rgba(255,255,255,.35)}',
       '.mp-eq-search:focus{border-color:rgba(120,160,255,.6)}',
       '.mp-eq-device-scroll{display:flex;flex:1;flex-direction:column;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}',
