@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.46.0 — 2026-11-23
 
 ### 联系作者
 

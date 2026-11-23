@@ -10,9 +10,13 @@
 歌词 · Folia 歌词舞台 · 在线歌单 · 播放统计 · 音量均衡 · 均衡器
 
 [![npm](https://img.shields.io/npm/v/dsh-music-panel.svg?color=%235686fe)](https://www.npmjs.com/package/dsh-music-panel)
-[![release](https://img.shields.io/badge/release-0.45.2-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
+[![release](https://img.shields.io/badge/release-0.46.0-5686fe)](https://github.com/Aliboder/dsh-music-panel/releases)
 [![CI](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Aliboder/dsh-music-panel/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/dsh-music-panel.svg)](LICENSE)
+
+<img src="https://raw.githubusercontent.com/Aliboder/dsh-music-panel/main/docs/screenshots/qq-group.webp" alt="dsh-music-panel 交流群二维码" width="180" />
+
+<sub>QQ 交流群 495049439 · 扫码加入交流</sub>
 
 [安装](#安装) · [功能](#功能) · [截图](#截图) · [隐私](#隐私与边界) · [English](#english)
 
