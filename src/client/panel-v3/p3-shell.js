@@ -44,6 +44,7 @@ function P3TopBar(props) {
   var [sourceOpen, setSourceOpen] = useState(false)
   var [draft, setDraft] = useState('')
   var [historyOpen, setHistoryOpen] = useState(false)
+  var [contactOpen, setContactOpen] = useState(false)
   var source = route.source
   var info = p3SourceInfo(source)
   var meta = p3PageMeta(route, props.library, online, prefs)
@@ -251,6 +252,7 @@ function P3TopBar(props) {
       h(P3Menu, { open: sourceOpen, anchor: sourceRef.current, items: menuItems, align: 'left', onSelect: pickMenuItem, onClose: function () { setSourceOpen(false) } }),
     ),
     h('div', { className: 'mpv3-grow' }),
+    h(IconButton, { icon: 'user', size: 16, title: t('contact.title'), onClick: function () { setContactOpen(true) } }),
     h('div', {
       ref: searchRef,
       className: 'mpv3-search',
@@ -319,6 +321,7 @@ function P3TopBar(props) {
     ),
     h(IconButton, { icon: 'refresh', size: 16, title: t('page.refresh'), onClick: refresh }),
     h(IconButton, { icon: 'settings', size: 16, title: t('page.settings'), onClick: function () { pushLayer('settings') } }),
+    contactOpen ? h(P3ContactDialog, { onClose: function () { setContactOpen(false) } }) : null,
   )
 }
 
