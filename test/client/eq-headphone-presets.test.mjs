@@ -26,10 +26,14 @@ test('both equalizer surfaces mount the shared browser', () => {
   assert.match(panel, /tab === 'device'/)
   assert.match(window, /h\(EqDeviceBrowser, \{/)
   assert.match(window, /eq\.headphonePresets/)
+  assert.match(window, /AUDIO_EQ_BUILTIN_PRESET_IDS[\s\S]{0,40}\.concat\(\['device'\]\)/)
+  assert.match(window, /id === 'device' \? deviceTab/)
 })
 
 test('the window labels the headphone preset section in both languages', () => {
   assert.match(strings, /'eq\.headphonePresets': '耳机预设'/)
   assert.match(strings, /'eq\.headphonePresets': 'Headphone presets'/)
+  assert.match(strings, /'eq\.devicePresets': '设备预设'/)
+  assert.match(strings, /'eq\.devicePresets': 'Device presets'/)
 })
 console.log('eq-headphone-presets.test.mjs ok')

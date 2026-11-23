@@ -25,11 +25,14 @@ var AUDIO_EQ_EFFECT_CONTROLS =
     : EQ_EFFECT_CONTROLS
 
 /** Folia's PRESET_IDS: the six built-ins, then the two custom slots. */
-var AUDIO_EQ_PRESET_IDS =
-  (FOLIA_SOUND_PRESET_IDS.length > 0 ? FOLIA_SOUND_PRESET_IDS : EQ_SOUND_PRESET_IDS)
-    .concat(EQ_CUSTOM_SLOT_IDS)
+var AUDIO_EQ_BUILTIN_PRESET_IDS =
+  FOLIA_SOUND_PRESET_IDS.length > 0 ? FOLIA_SOUND_PRESET_IDS : EQ_SOUND_PRESET_IDS
+var AUDIO_EQ_PRESET_IDS = AUDIO_EQ_BUILTIN_PRESET_IDS
+  .concat(['device'])
+  .concat(EQ_CUSTOM_SLOT_IDS)
 
 function audioEqPresetLabel(id) {
+  if (id === 'device') return t('eq.devicePresets')
   if (isEqCustomSlotId(id)) {
     var index = EQ_CUSTOM_SLOT_IDS.indexOf(String(id))
     return t('eq.slotN', { n: index + 1 })
@@ -144,7 +147,23 @@ function AudioEqualizerWindow(props) {
   var slots = normalizeEqSlots(eq.slots)
   var available = player.getEq().available
   var canReset = isEqCustomSlotId(eq.preset)
-
+  // The device tab is a surface of its own; keep it responsive even while the persisted
+  // prefs write is settling. The persisted state remains the source of truth on reload.
+  var deviceTabPair = useState(eq.preset === 'device')
+  var deviceTab = deviceTabPair[0]
+  var setDeviceTab = deviceTabPair[1]
+  var selectedDevicePair = useState(eq.preset === 'device' ? eq.device : '')
+  var selectedDevice = selectedDevicePair[0]
+  var setSelectedDevice = selectedDevicePair[1]
+  useEffect(function () {
+    if (eq.preset === 'device') {
+      setDeviceTab(true)
+      setSelectedDevice(eq.device || '')
+      return
+    }
+    setDeviceTab(false)
+    setSelectedDevice('')
+  }, [eq.preset, eq.device])
   function setEnabled(value) {
     // The switch stops processing and keeps every value.
     player.setEq({ enabled: value })
@@ -163,6 +182,12 @@ function AudioEqualizerWindow(props) {
   }
 
   function applyPreset(id) {
+    if (id === 'device') {
+      setDeviceTab(true)
+      player.setEq({ enabled: true, preset: 'device' })
+      return
+    }
+    setDeviceTab(false)
     var source = audioEqPresetSource(id, slots)
     player.setEq({ enabled: true, preset: id, bands: source.bands, effects: source.effects })
   }
@@ -228,7 +253,7 @@ function AudioEqualizerWindow(props) {
           'div',
           { className: 'mp-eqwin-chip-list' },
           AUDIO_EQ_PRESET_IDS.map(function (id) {
-            var chosen = eq.enabled && eq.preset === id
+            var chosen = id === 'device' ? deviceTab : !deviceTab && eq.enabled && eq.preset === id
             return h(
               'button',
               {
@@ -251,34 +276,37 @@ function AudioEqualizerWindow(props) {
             className: 'mp-eqwin-reset',
             title: t('eq.resetSlotChip'),
             'aria-label': t('eq.resetSlotChip'),
-            disabled: !canReset,
+            disabled: !canReset || deviceTab,
             onClick: resetActiveCustomSlot,
           },
           icon('refresh', 15),
         ),
       ),
-      h(
-        'section',
-        { className: 'mp-eqwin-section' },
-        h(
-          'div',
-          { className: 'mp-eqwin-section-head' },
-          h('span', { className: 'mp-set-label' }, t('eq.headphonePresets')),
+      deviceTab
+        ? h(
+            'section',
+            { className: 'mp-eqwin-section' },
+            h(
+              'div',
+              { className: 'mp-eqwin-section-head' },
+              h('span', { className: 'mp-set-label' }, t('eq.headphonePresets')),
           h('span', { className: 'mp-set-desc' }, t('eq.headphoneHint')),
         ),
-        h(EqDeviceBrowser, {
-          className: 'mp-eqwin-devices',
-          value: eq.preset === 'device' ? eq.device : '',
-          onChange: function (entry) {
-            player.setEq({
-              enabled: true,
-              preset: 'device',
-              device: entry.id,
-              bands: entry.bands,
-            })
-          },
-        }),
-      ),
+              h(EqDeviceBrowser, {
+                className: 'mp-eqwin-devices',
+                value: selectedDevice,
+                onChange: function (entry) {
+                  setSelectedDevice(entry.id)
+                  player.setEq({
+                    enabled: true,
+                    preset: 'device',
+                    device: entry.id,
+                    bands: entry.bands,
+                  })
+                },
+              }),
+            )
+        : null,
       h(
         'section',
         { className: cx('mp-eqwin-section', !eq.enabled && 'is-off') },
