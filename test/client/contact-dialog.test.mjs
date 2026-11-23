@@ -29,6 +29,7 @@ test('the contact button sits immediately left of the search field', () => {
   assert.match(shell, /className: 'mpv3-contact-btn'/) 
   assert.match(shell, /t\('contact\.join'\)/) 
   assert.match(strings, /'contact\.join': '加入交流群'/) 
+  assert.match(strings, /'contact\.title': '加入交流群'/) 
   assert.match(shell, /h\(P3ContactDialog, \{ onClose:/)
 })
 
@@ -37,8 +38,8 @@ test('the dialog shows the QR, group name and number', () => {
   assert.match(contact, /CONTACT_QQ_GROUP\.name/)
   assert.match(contact, /contact\.groupNumber/)
   assert.match(contact, /copyTextSafely\(CONTACT_QQ_GROUP\.number\)/)
-  assert.match(strings, /'contact\.title': '联系作者'/)
-  assert.match(strings, /'contact\.title': 'Contact the author'/)
+  assert.match(strings, /'contact\.title': '加入交流群'/)
+  assert.match(strings, /'contact\.title': 'Join the group'/)
   assert.match(styles, /\.mpv3-contact-qr \{/)
 })
 console.log('contact-dialog.test.mjs ok')

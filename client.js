@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.45.2"
-    var CLIENT_BUILD = "12878b28290d"
+    var CLIENT_BUILD = "45154c004da5"
 
     // ── src/client/app/runtime.js
     /**
@@ -8969,7 +8969,7 @@ window.__ModuleLoader__.load({
         'p3.searchNoResult': '没有找到结果',
         'p3.searchNoResultHint': '换一个关键词试试。',
         'p3.searchPlaceholder': '搜索歌曲、歌手、专辑',
-      'contact.title': '联系作者',
+      'contact.title': '加入交流群',
       'contact.join': '加入交流群',
       'contact.qrAlt': 'dsh-music-panel 反馈群二维码',
       'contact.groupNumber': '群号：{number}',
@@ -9780,7 +9780,7 @@ window.__ModuleLoader__.load({
         'p3.searchNoResult': 'No results',
         'p3.searchNoResultHint': 'Try another keyword.',
         'p3.searchPlaceholder': 'Search songs, artists, albums',
-      'contact.title': 'Contact the author',
+      'contact.title': 'Join the group',
       'contact.join': 'Join the group',
       'contact.qrAlt': 'QR code for the dsh-music-panel feedback group',
       'contact.groupNumber': 'Group: {number}',
