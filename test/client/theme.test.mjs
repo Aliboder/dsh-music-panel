@@ -207,6 +207,7 @@ assert.doesNotMatch(theme, /\.mp-card\{[^']*--dsw-alias-label-primary:/, 'player
 const playerSheet = readFileSync(join(uiDir, 'player-sheet.js'), 'utf8')
 assert.match(playerSheet, /background: 'color-mix\(in srgb, var\(--dsw-alias-bg-layer-1/, 'player card glass uses the host surface token')
 assert.doesNotMatch(playerSheet, /rgba\(23, 23, 26, 0\.95\)/, 'player card no longer paints fixed dark glass')
+assert.doesNotMatch(playerSheet, /colorMode|setColorMode|sheet\.light|sheet\.dark/, 'no dead theme-mode switch; theme follows DSH')
 
 // panel-v3 rows: 76px, 54px cover, 18px title (90% of the 84/60/20 scale).
 assert.match(p3Css, /\.mpv3-row \{[^"]*height: 76px/, 'panel-v3 rows are 76px')

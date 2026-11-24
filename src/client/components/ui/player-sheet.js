@@ -84,17 +84,10 @@ function PlayerSheetInner(props) {
   var indexPair = useState(0)
   var index = indexPair[0]
   var setIndex = indexPair[1]
-  // Controls tab state: the theme source and light/dark.
   // Which appearance picker is open under its row (Folia opens one at a time).
   var lookPickerPair = useState('')
   var lookPicker = lookPickerPair[0]
   var setLookPicker = lookPickerPair[1]
-  var themeSourcePair = useState('default')
-  var themeSource = themeSourcePair[0]
-  var setThemeSource = themeSourcePair[1]
-  var modePair = useState('dark')
-  var colorMode = modePair[0]
-  var setColorMode = modePair[1]
 
   var bodyHPair = useState(0)
   var bodyH = bodyHPair[0]
@@ -711,32 +704,17 @@ function PlayerSheetInner(props) {
           mpPanelRow(
             t('sheet.themeName'),
             h(
-              'div',
-              { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
-              h(
-                'span',
-                { style: { fontSize: '12px', opacity: '.75', marginRight: '2px' } },
-                (prefs.themeSource === 'custom'
-                  ? t('sheet.sourceCustom')
-                  : prefs.themeSource === 'cover'
-                    ? t('sheet.sourceAI')
-                    : t('sheet.sourceDefault')) +
-                  ' · ' +
-                  (prefs.themeSource === 'cover' && localThemeState.theme
-                    ? localThemeState.theme.name
-                    : t('sheet.themeBuiltin')),
-              ),
-              segmented(
-                [
-                  { value: 'light', label: t('sheet.light') },
-                  { value: 'dark', label: t('sheet.dark') },
-                ],
-                colorMode,
-                setColorMode,
-              ),
-              cardButton('\u21c4', function () {
-                setColorMode(colorMode === 'dark' ? 'light' : 'dark')
-              }),
+              'span',
+              { style: { fontSize: '12px', opacity: '.75' } },
+              (prefs.themeSource === 'custom'
+                ? t('sheet.sourceCustom')
+                : prefs.themeSource === 'cover'
+                  ? t('sheet.sourceAI')
+                  : t('sheet.sourceDefault')) +
+                ' · ' +
+                (prefs.themeSource === 'cover' && localThemeState.theme
+                  ? localThemeState.theme.name
+                  : t('sheet.themeBuiltin')),
             ),
           ),
           // Local theme: cover palette + lyric mood, generated on this machine. No model,
