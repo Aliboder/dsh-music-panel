@@ -1,7 +1,7 @@
 /**
  * Folia lyric styles (batch 1: DOM / Canvas).
  *
- * `src/folia/styles.bundle.js` is compiled from Folia's own style directories;
+ * `src/folia-build/styles.bundle.js` is compiled from Folia's own style directories;
  * this file is the boundary: one host builds Folia's VisualizerSharedProps (clock,
  * lines, theme, audio bands) and mounts the selected style once per song.
  */

@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "b5a46159b5f0"
+    var CLIENT_BUILD = "856974cbbc23"
 
     // ── src/client/app/runtime.js
     /**
@@ -6542,7 +6542,7 @@ window.__ModuleLoader__.load({
       list: 'IconQueueOutlineRegular',
     }
 
-    // ── src/folia/folia-css.js
+    // ── src/folia-build/folia-css.js
     /**
      * The Tailwind utilities the ported Folia Pendolo subtree uses.
      *
@@ -6794,7 +6794,7 @@ window.__ModuleLoader__.load({
       '.mp-np .mp-folia-pendolo{position:absolute;inset:0;width:100%;height:100%}',
     ].join('\n')
 
-    // ── src/folia/folia-tailwind.js
+    // ── src/folia-build/folia-tailwind.js
     var FOLIA_TAILWIND = "@property --tw-translate-x{syntax:\"*\";inherits:false;initial-value:0}@property --tw-translate-y{syntax:\"*\";inherits:false;initial-value:0}@property --tw-translate-z{syntax:\"*\";inherits:false;initial-value:0}@property --tw-rotate-x{syntax:\"*\";inherits:false}@property --tw-rotate-y{syntax:\"*\";inherits:false}@property --tw-rotate-z{syntax:\"*\";inherits:false}@property --tw-skew-x{syntax:\"*\";inherits:false}@property --tw-skew-y{syntax:\"*\";inherits:false}@property --tw-border-style{syntax:\"*\";inherits:false;initial-value:solid}@property --tw-leading{syntax:\"*\";inherits:false}@property --tw-tracking{syntax:\"*\";inherits:false}@property --tw-ordinal{syntax:\"*\";inherits:false}@property --tw-slashed-zero{syntax:\"*\";inherits:false}@property --tw-numeric-figure{syntax:\"*\";inherits:false}@property --tw-numeric-spacing{syntax:\"*\";inherits:false}@property --tw-numeric-fraction{syntax:\"*\";inherits:false}@property --tw-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:\"*\";inherits:false}@property --tw-shadow-alpha{syntax:\"<percentage>\";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:\"*\";inherits:false}@property --tw-inset-shadow-alpha{syntax:\"<percentage>\";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:\"*\";inherits:false}@property --tw-ring-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:\"*\";inherits:false}@property --tw-inset-ring-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:\"*\";inherits:false}@property --tw-ring-offset-width{syntax:\"<length>\";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:\"*\";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:\"*\";inherits:false;initial-value:solid}@property --tw-blur{syntax:\"*\";inherits:false}@property --tw-brightness{syntax:\"*\";inherits:false}@property --tw-contrast{syntax:\"*\";inherits:false}@property --tw-grayscale{syntax:\"*\";inherits:false}@property --tw-hue-rotate{syntax:\"*\";inherits:false}@property --tw-invert{syntax:\"*\";inherits:false}@property --tw-opacity{syntax:\"*\";inherits:false}@property --tw-saturate{syntax:\"*\";inherits:false}@property --tw-sepia{syntax:\"*\";inherits:false}@property --tw-drop-shadow{syntax:\"*\";inherits:false}@property --tw-drop-shadow-color{syntax:\"*\";inherits:false}@property --tw-drop-shadow-alpha{syntax:\"<percentage>\";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:\"*\";inherits:false}@property --tw-backdrop-blur{syntax:\"*\";inherits:false}@property --tw-backdrop-brightness{syntax:\"*\";inherits:false}@property --tw-backdrop-contrast{syntax:\"*\";inherits:false}@property --tw-backdrop-grayscale{syntax:\"*\";inherits:false}@property --tw-backdrop-hue-rotate{syntax:\"*\";inherits:false}@property --tw-backdrop-invert{syntax:\"*\";inherits:false}@property --tw-backdrop-opacity{syntax:\"*\";inherits:false}@property --tw-backdrop-saturate{syntax:\"*\";inherits:false}@property --tw-backdrop-sepia{syntax:\"*\";inherits:false}@property --tw-duration{syntax:\"*\";inherits:false}@property --tw-scale-x{syntax:\"*\";inherits:false;initial-value:1}@property --tw-scale-y{syntax:\"*\";inherits:false;initial-value:1}@property --tw-scale-z{syntax:\"*\";inherits:false;initial-value:1}@property --tw-content{syntax:\"*\";inherits:false;initial-value:\"\"}\n\n\n.mp-np{\n.\\[container-type\\:size\\]{container-type:size}.pointer-events-auto{pointer-events:auto}.pointer-events-none{pointer-events:none}.collapse{visibility:collapse}.invisible{visibility:hidden}.visible{visibility:visible}.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.static{position:static}.sticky{position:sticky}.inset-0{inset:0}.-inset-x-10{inset-inline:calc(var(--spacing) * -10)}.inset-x-0{inset-inline:0}.-inset-y-6{inset-block:calc(var(--spacing) * -6)}.-inset-y-14{inset-block:calc(var(--spacing) * -14)}.inset-y-0{inset-block:0}.-top-6{top:calc(var(--spacing) * -6)}.-top-10{top:calc(var(--spacing) * -10)}.top-0{top:0}.top-1\\/2{top:50%}.top-1\\/3{top:33.3333%}.top-2{top:calc(var(--spacing) * 2)}.top-2\\/3{top:66.6667%}.top-3{top:calc(var(--spacing) * 3)}.top-4{top:calc(var(--spacing) * 4)}.top-5{top:calc(var(--spacing) * 5)}.top-6{top:calc(var(--spacing) * 6)}.top-12{top:calc(var(--spacing) * 12)}.top-\\[22\\%\\]{top:22%}.top-\\[28\\%\\]{top:28%}.right-0{right:0}.right-2{right:calc(var(--spacing) * 2)}.right-3{right:calc(var(--spacing) * 3)}.right-4{right:calc(var(--spacing) * 4)}.right-5{right:calc(var(--spacing) * 5)}.right-6{right:calc(var(--spacing) * 6)}.right-\\[10\\%\\]{right:10%}.right-\\[60px\\]{right:60px}.bottom-0{bottom:0}.bottom-4{bottom:calc(var(--spacing) * 4)}.bottom-6{bottom:calc(var(--spacing) * 6)}.bottom-full{bottom:100%}.left-0{left:0}.left-1\\/2{left:50%}.left-1\\/3{left:33.3333%}.left-2\\/3{left:66.6667%}.left-4{left:calc(var(--spacing) * 4)}.left-5{left:calc(var(--spacing) * 5)}.left-6{left:calc(var(--spacing) * 6)}.left-\\[10\\%\\]{left:10%}.left-\\[14\\%\\]{left:14%}.isolate{isolation:isolate}.-z-10{z-index:calc(10 * -1)}.z-0{z-index:0}.z-10{z-index:10}.z-20{z-index:20}.z-30{z-index:30}.z-40{z-index:40}.z-50{z-index:50}.z-\\[1\\]{z-index:1}.z-\\[5\\]{z-index:5}.container{width:100%}@media (min-width:40rem){.container{max-width:40rem}}@media (min-width:48rem){.container{max-width:48rem}}@media (min-width:64rem){.container{max-width:64rem}}@media (min-width:80rem){.container{max-width:80rem}}@media (min-width:96rem){.container{max-width:96rem}}.-mx-4{margin-inline:calc(var(--spacing) * -4)}.mx-auto{margin-inline:auto}.mt-0\\.5{margin-top:calc(var(--spacing) * .5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mt-7{margin-top:calc(var(--spacing) * 7)}.mt-auto{margin-top:auto}.mb-1{margin-bottom:var(--spacing)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.mb-6{margin-bottom:calc(var(--spacing) * 6)}.-ml-1{margin-left:calc(var(--spacing) * -1)}.ml-1\\.5{margin-left:calc(var(--spacing) * 1.5)}.ml-auto{margin-left:auto}.line-clamp-2{-webkit-line-clamp:2;-webkit-box-orient:vertical;display:-webkit-box;overflow:hidden}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-block{display:inline-block}.inline-flex{display:inline-flex}.table{display:table}.aspect-\\[0\\.74\\]{aspect-ratio:.74}.aspect-\\[3\\/4\\]{aspect-ratio:3/4}.aspect-square{aspect-ratio:1}.h-1\\.5{height:calc(var(--spacing) * 1.5)}.h-2{height:calc(var(--spacing) * 2)}.h-2\\.5{height:calc(var(--spacing) * 2.5)}.h-3{height:calc(var(--spacing) * 3)}.h-4{height:calc(var(--spacing) * 4)}.h-5{height:calc(var(--spacing) * 5)}.h-6{height:calc(var(--spacing) * 6)}.h-7{height:calc(var(--spacing) * 7)}.h-8{height:calc(var(--spacing) * 8)}.h-10{height:calc(var(--spacing) * 10)}.h-14{height:calc(var(--spacing) * 14)}.h-20{height:calc(var(--spacing) * 20)}.h-\\[18\\%\\]{height:18%}.h-\\[20\\%\\]{height:20%}.h-\\[42\\%\\]{height:42%}.h-\\[48\\%\\]{height:48%}.h-\\[56\\%\\]{height:56%}.h-\\[70\\%\\]{height:70%}.h-\\[70vh\\]{height:70vh}.h-\\[76\\%\\]{height:76%}.h-\\[150\\%\\]{height:150%}.h-full{height:100%}.h-px{height:1px}.max-h-\\[62vh\\]{max-height:62vh}.max-h-\\[640px\\]{max-height:640px}.min-h-0{min-height:0}.min-h-6{min-height:calc(var(--spacing) * 6)}.min-h-7{min-height:calc(var(--spacing) * 7)}.min-h-8{min-height:calc(var(--spacing) * 8)}.min-h-\\[24rem\\]{min-height:24rem}.min-h-\\[160px\\]{min-height:160px}.w-2\\.5{width:calc(var(--spacing) * 2.5)}.w-3{width:calc(var(--spacing) * 3)}.w-4{width:calc(var(--spacing) * 4)}.w-5{width:calc(var(--spacing) * 5)}.w-6{width:calc(var(--spacing) * 6)}.w-7{width:calc(var(--spacing) * 7)}.w-8{width:calc(var(--spacing) * 8)}.w-9{width:calc(var(--spacing) * 9)}.w-10{width:calc(var(--spacing) * 10)}.w-12{width:calc(var(--spacing) * 12)}.w-28{width:calc(var(--spacing) * 28)}.w-52{width:calc(var(--spacing) * 52)}.w-\\[26\\%\\]{width:26%}.w-\\[44\\%\\]{width:44%}.w-\\[72\\%\\]{width:72%}.w-auto{width:auto}.w-fit{width:fit-content}.w-full{width:100%}.w-px{width:1px}.max-w-2xl{max-width:var(--container-2xl)}.max-w-4xl{max-width:var(--container-4xl)}.max-w-5xl{max-width:var(--container-5xl)}.max-w-\\[78\\%\\]{max-width:78%}.max-w-\\[560px\\]{max-width:560px}.max-w-\\[920px\\]{max-width:920px}.max-w-full{max-width:100%}.max-w-none{max-width:none}.min-w-0{min-width:0}.min-w-40{min-width:calc(var(--spacing) * 40)}.min-w-\\[3\\.8rem\\]{min-width:3.8rem}.flex-1{flex:1}.shrink{flex-shrink:1}.shrink-0{flex-shrink:0}.grow{flex-grow:1}.origin-center{transform-origin:50%}.origin-top-left{transform-origin:0 0}.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.rotate-90{rotate:90deg}.rotate-180{rotate:180deg}.-skew-x-\\[24deg\\]{--tw-skew-x:skewX(calc(24deg * -1));transform:var(--tw-rotate-x, ) var(--tw-rotate-y, ) var(--tw-rotate-z, ) var(--tw-skew-x, ) var(--tw-skew-y, )}.transform{transform:var(--tw-rotate-x, ) var(--tw-rotate-y, ) var(--tw-rotate-z, ) var(--tw-skew-x, ) var(--tw-skew-y, )}.animate-pulse{animation:var(--animate-pulse)}.animate-spin{animation:var(--animate-spin)}.cursor-pointer{cursor:pointer}.resize{resize:both}.appearance-none{appearance:none}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}.grid-cols-\\[repeat\\(auto-fill\\,minmax\\(200px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}.grid-rows-3{grid-template-rows:repeat(3,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-row{flex-direction:row}.flex-row-reverse{flex-direction:row-reverse}.flex-wrap{flex-wrap:wrap}.place-items-center{place-items:center}.items-center{align-items:center}.items-end{align-items:flex-end}.items-start{align-items:flex-start}.items-stretch{align-items:stretch}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.justify-end{justify-content:flex-end}.justify-start{justify-content:flex-start}.gap-1{gap:var(--spacing)}.gap-1\\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-2\\.5{gap:calc(var(--spacing) * 2.5)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-8{gap:calc(var(--spacing) * 8)}:where(.space-y-1>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(var(--spacing) * var(--tw-space-y-reverse));margin-block-end:calc(var(--spacing) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-1\\.5>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 1.5) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 1.5) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-2>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-3>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 3) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-4>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-5>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 5) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 5) * calc(1 - var(--tw-space-y-reverse)))}.gap-x-2{column-gap:calc(var(--spacing) * 2)}.gap-x-6{column-gap:calc(var(--spacing) * 6)}:where(.-space-x-2>:not(:last-child)){--tw-space-x-reverse:0;margin-inline-start:calc(calc(var(--spacing) * -2) * var(--tw-space-x-reverse));margin-inline-end:calc(calc(var(--spacing) * -2) * calc(1 - var(--tw-space-x-reverse)))}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.gap-y-3{row-gap:calc(var(--spacing) * 3)}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-hidden{overflow:hidden}.overflow-visible{overflow:visible}.overflow-y-auto{overflow-y:auto}.rounded{border-radius:.25rem}.rounded-2xl{border-radius:var(--radius-2xl)}.rounded-3xl{border-radius:var(--radius-3xl)}.rounded-\\[1\\.85rem\\]{border-radius:1.85rem}.rounded-\\[2\\.5rem\\]{border-radius:2.5rem}.rounded-\\[2\\.15rem\\]{border-radius:2.15rem}.rounded-\\[2rem\\]{border-radius:2rem}.rounded-\\[14px\\]{border-radius:14px}.rounded-\\[24px\\]{border-radius:24px}.rounded-\\[inherit\\]{border-radius:inherit}.rounded-full{border-radius:2147483647px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-sm{border-radius:var(--radius-sm)}.rounded-xl{border-radius:var(--radius-xl)}.rounded-br-md{border-bottom-right-radius:var(--radius-md)}.rounded-bl-md{border-bottom-left-radius:var(--radius-md)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.border-1{border-style:var(--tw-border-style);border-width:1px}.border-2{border-style:var(--tw-border-style);border-width:2px}.border-t-2{border-top-style:var(--tw-border-style);border-top-width:2px}.border-r-2{border-right-style:var(--tw-border-style);border-right-width:2px}.border-b-2{border-bottom-style:var(--tw-border-style);border-bottom-width:2px}.border-l-2{border-left-style:var(--tw-border-style);border-left-width:2px}.border-dashed{--tw-border-style:dashed;border-style:dashed}.border-white\\/10{border-color:#ffffff1a}@supports (color:color-mix(in lab, red, red)){.border-white\\/10{border-color:color-mix(in oklab, var(--color-white) 10%, transparent)}}.border-white\\/60{border-color:#fff9}@supports (color:color-mix(in lab, red, red)){.border-white\\/60{border-color:color-mix(in oklab, var(--color-white) 60%, transparent)}}.border-white\\/70{border-color:#ffffffb3}@supports (color:color-mix(in lab, red, red)){.border-white\\/70{border-color:color-mix(in oklab, var(--color-white) 70%, transparent)}}.bg-\\[color-mix\\(in_srgb\\,var\\(--st-win\\)_72\\%\\,transparent\\)\\]{background-color:var(--st-win)}@supports (color:color-mix(in lab, red, red)){.bg-\\[color-mix\\(in_srgb\\,var\\(--st-win\\)_72\\%\\,transparent\\)\\]{background-color:color-mix(in srgb,var(--st-win) 72%,transparent)}}.bg-\\[rgba\\(18\\,18\\,20\\,0\\.74\\)\\]{background-color:#121214bd}.bg-\\[var\\(--st-fill\\)\\]{background-color:var(--st-fill)}.bg-\\[var\\(--st-fill2\\)\\]{background-color:var(--st-fill2)}.bg-\\[var\\(--st-t2\\)\\]{background-color:var(--st-t2)}.bg-\\[var\\(--st-win\\)\\]{background-color:var(--st-win)}.bg-black\\/15{background-color:#00000026}@supports (color:color-mix(in lab, red, red)){.bg-black\\/15{background-color:color-mix(in oklab, var(--color-black) 15%, transparent)}}.bg-black\\/20{background-color:#0003}@supports (color:color-mix(in lab, red, red)){.bg-black\\/20{background-color:color-mix(in oklab, var(--color-black) 20%, transparent)}}.bg-black\\/45{background-color:#00000073}@supports (color:color-mix(in lab, red, red)){.bg-black\\/45{background-color:color-mix(in oklab, var(--color-black) 45%, transparent)}}.bg-black\\/50{background-color:#00000080}@supports (color:color-mix(in lab, red, red)){.bg-black\\/50{background-color:color-mix(in oklab, var(--color-black) 50%, transparent)}}.bg-transparent{background-color:#0000}.bg-white\\/10{background-color:#ffffff1a}@supports (color:color-mix(in lab, red, red)){.bg-white\\/10{background-color:color-mix(in oklab, var(--color-white) 10%, transparent)}}.bg-white\\/15{background-color:#ffffff26}@supports (color:color-mix(in lab, red, red)){.bg-white\\/15{background-color:color-mix(in oklab, var(--color-white) 15%, transparent)}}.bg-white\\/75{background-color:#ffffffbf}@supports (color:color-mix(in lab, red, red)){.bg-white\\/75{background-color:color-mix(in oklab, var(--color-white) 75%, transparent)}}.bg-white\\/80{background-color:#fffc}@supports (color:color-mix(in lab, red, red)){.bg-white\\/80{background-color:color-mix(in oklab, var(--color-white) 80%, transparent)}}.bg-zinc-900\\/95{background-color:#18181bf2}@supports (color:color-mix(in lab, red, red)){.bg-zinc-900\\/95{background-color:color-mix(in oklab, var(--color-zinc-900) 95%, transparent)}}.bg-\\[radial-gradient\\(ellipse_at_center\\,transparent_0\\%\\,\\#000_100\\%\\)\\]{background-image:radial-gradient(#0000 0%,#000 100%)}.bg-center{background-position:50%}.object-contain{object-fit:contain}.object-cover{object-fit:cover}.p-1\\.5{padding:calc(var(--spacing) * 1.5)}.p-2{padding:calc(var(--spacing) * 2)}.p-3{padding:calc(var(--spacing) * 3)}.p-4{padding:calc(var(--spacing) * 4)}.p-8{padding:calc(var(--spacing) * 8)}.px-1{padding-inline:var(--spacing)}.px-1\\.5{padding-inline:calc(var(--spacing) * 1.5)}.px-2\\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-4{padding-inline:calc(var(--spacing) * 4)}.px-5{padding-inline:calc(var(--spacing) * 5)}.px-6{padding-inline:calc(var(--spacing) * 6)}.px-10{padding-inline:calc(var(--spacing) * 10)}.px-12{padding-inline:calc(var(--spacing) * 12)}.py-0\\.5{padding-block:calc(var(--spacing) * .5)}.py-1{padding-block:var(--spacing)}.py-1\\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-2\\.5{padding-block:calc(var(--spacing) * 2.5)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-5{padding-block:calc(var(--spacing) * 5)}.py-6{padding-block:calc(var(--spacing) * 6)}.py-14{padding-block:calc(var(--spacing) * 14)}.pt-1{padding-top:var(--spacing)}.pt-2{padding-top:calc(var(--spacing) * 2)}.pt-3{padding-top:calc(var(--spacing) * 3)}.pt-4{padding-top:calc(var(--spacing) * 4)}.pt-12{padding-top:calc(var(--spacing) * 12)}.pr-1{padding-right:var(--spacing)}.pr-2{padding-right:calc(var(--spacing) * 2)}.pr-3{padding-right:calc(var(--spacing) * 3)}.pr-5{padding-right:calc(var(--spacing) * 5)}.pb-1{padding-bottom:var(--spacing)}.pb-3{padding-bottom:calc(var(--spacing) * 3)}.pb-4{padding-bottom:calc(var(--spacing) * 4)}.pb-5{padding-bottom:calc(var(--spacing) * 5)}.pb-16{padding-bottom:calc(var(--spacing) * 16)}.pb-36{padding-bottom:calc(var(--spacing) * 36)}.pl-4{padding-left:calc(var(--spacing) * 4)}.pl-5{padding-left:calc(var(--spacing) * 5)}.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}.font-mono{font-family:var(--font-mono)}.text-2xl{font-size:var(--text-2xl);line-height:var(--tw-leading,var(--text-2xl--line-height))}.text-3xl{font-size:var(--text-3xl);line-height:var(--tw-leading,var(--text-3xl--line-height))}.text-lg{font-size:var(--text-lg);line-height:var(--tw-leading,var(--text-lg--line-height))}.text-sm{font-size:var(--text-sm);line-height:var(--tw-leading,var(--text-sm--line-height))}.text-xl{font-size:var(--text-xl);line-height:var(--tw-leading,var(--text-xl--line-height))}.text-xs{font-size:var(--text-xs);line-height:var(--tw-leading,var(--text-xs--line-height))}.text-\\[2\\.5rem\\]{font-size:2.5rem}.text-\\[11px\\]{font-size:11px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[15px\\]{font-size:15px}.text-\\[17px\\]{font-size:17px}.leading-5{--tw-leading:calc(var(--spacing) * 5);line-height:calc(var(--spacing) * 5)}.leading-6{--tw-leading:calc(var(--spacing) * 6);line-height:calc(var(--spacing) * 6)}.leading-\\[1\\.06\\]{--tw-leading:1.06;line-height:1.06}.leading-\\[18px\\]{--tw-leading:18px;line-height:18px}.leading-none{--tw-leading:1;line-height:1}.leading-snug{--tw-leading:var(--leading-snug);line-height:var(--leading-snug)}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-normal{--tw-font-weight:var(--font-weight-normal);font-weight:var(--font-weight-normal)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\\[0\\.02em\\]{--tw-tracking:.02em;letter-spacing:.02em}.tracking-wide{--tw-tracking:var(--tracking-wide);letter-spacing:var(--tracking-wide)}.break-words{overflow-wrap:break-word}.break-all{word-break:break-all}.whitespace-nowrap{white-space:nowrap}.whitespace-pre{white-space:pre}.whitespace-pre-wrap{white-space:pre-wrap}.text-\\[color\\:var\\(--st-accent\\)\\]{color:var(--st-accent)}.text-\\[color\\:var\\(--st-err\\)\\]{color:var(--st-err)}.text-\\[color\\:var\\(--st-t1\\)\\]{color:var(--st-t1)}.text-\\[color\\:var\\(--st-t2\\)\\]{color:var(--st-t2)}.text-\\[color\\:var\\(--st-t3\\)\\]{color:var(--st-t3)}.text-white{color:var(--color-white)}.text-white\\/60{color:#fff9}@supports (color:color-mix(in lab, red, red)){.text-white\\/60{color:color-mix(in oklab, var(--color-white) 60%, transparent)}}.uppercase{text-transform:uppercase}.italic{font-style:italic}.ordinal{--tw-ordinal:ordinal;font-variant-numeric:var(--tw-ordinal, ) var(--tw-slashed-zero, ) var(--tw-numeric-figure, ) var(--tw-numeric-spacing, ) var(--tw-numeric-fraction, )}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal, ) var(--tw-slashed-zero, ) var(--tw-numeric-figure, ) var(--tw-numeric-spacing, ) var(--tw-numeric-fraction, )}.underline{text-decoration-line:underline}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.opacity-0{opacity:0}.opacity-30{opacity:.3}.opacity-40{opacity:.4}.opacity-50{opacity:.5}.opacity-60{opacity:.6}.opacity-70{opacity:.7}.opacity-80{opacity:.8}.opacity-100{opacity:1}.opacity-\\[0\\.65\\]{opacity:.65}.mix-blend-multiply{mix-blend-mode:multiply}.shadow{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-2xl{--tw-shadow:0 25px 50px -12px var(--tw-shadow-color,#00000040);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_0_0_1px_var\\(--st-line\\)\\]{--tw-shadow:0 0 0 1px var(--tw-shadow-color,var(--st-line));box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_12px_40px_rgba\\(0\\,0\\,0\\,0\\.45\\)\\]{--tw-shadow:0 12px 40px var(--tw-shadow-color,#00000073);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_24px_60px_rgba\\(0\\,0\\,0\\,0\\.35\\)\\,0_0_0_1px_var\\(--st-line2\\)\\]{--tw-shadow:0 24px 60px var(--tw-shadow-color,#00000059), 0 0 0 1px var(--tw-shadow-color,var(--st-line2));box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[inset_0_0_0_1\\.5px_var\\(--st-accent\\)\\]{--tw-shadow:inset 0 0 0 1.5px var(--tw-shadow-color,var(--st-accent));box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[inset_0_0_0_1\\.5px_var\\(--st-t3\\)\\]{--tw-shadow:inset 0 0 0 1.5px var(--tw-shadow-color,var(--st-t3));box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[inset_0_0_0_5px_var\\(--st-accent\\)\\]{--tw-shadow:inset 0 0 0 5px var(--tw-shadow-color,var(--st-accent));box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px var(--tw-shadow-color,#0000001a), 0 4px 6px -4px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px var(--tw-shadow-color,#0000001a), 0 2px 4px -2px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring{--tw-ring-shadow:var(--tw-ring-inset, ) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.outline{outline-style:var(--tw-outline-style);outline-width:1px}.blur{--tw-blur:blur(8px);filter:var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, )}.blur-2xl{--tw-blur:blur(var(--blur-2xl));filter:var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, )}.blur-\\[1px\\]{--tw-blur:blur(1px);filter:var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, )}.drop-shadow{--tw-drop-shadow-size:drop-shadow(0 1px 2px var(--tw-drop-shadow-color,#0000001a)) drop-shadow(0 1px 1px var(--tw-drop-shadow-color,#0000000f));--tw-drop-shadow:drop-shadow(0 1px 2px #0000001a) drop-shadow(0 1px 1px #0000000f);filter:var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, )}.drop-shadow-md{--tw-drop-shadow-size:drop-shadow(0 3px 3px var(--tw-drop-shadow-color,#0000001f));--tw-drop-shadow:drop-shadow(var(--drop-shadow-md));filter:var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, )}.drop-shadow-sm{--tw-drop-shadow-size:drop-shadow(0 1px 2px var(--tw-drop-shadow-color,#00000026));--tw-drop-shadow:drop-shadow(var(--drop-shadow-sm));filter:var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, )}.grayscale{--tw-grayscale:grayscale(100%);filter:var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, )}.invert{--tw-invert:invert(100%);filter:var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, )}.filter{filter:var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, )}.backdrop-blur-md{--tw-backdrop-blur:blur(var(--blur-md));-webkit-backdrop-filter:var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );backdrop-filter:var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, )}.backdrop-blur-sm{--tw-backdrop-blur:blur(var(--blur-sm));-webkit-backdrop-filter:var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );backdrop-filter:var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, )}.backdrop-blur-xl{--tw-backdrop-blur:blur(var(--blur-xl));-webkit-backdrop-filter:var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );backdrop-filter:var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, )}.\\!transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events!important;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function))!important;transition-duration:var(--tw-duration,var(--default-transition-duration))!important}.transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[box-shadow\\,background-color\\,border-color\\]{transition-property:box-shadow,background-color,border-color;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[box-shadow\\,background-color\\]{transition-property:box-shadow,background-color;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[color\\,background-color\\,border-color\\,opacity\\]{transition-property:color,background-color,border-color,opacity;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[min-height\\,box-shadow\\,background-color\\]{transition-property:min-height,box-shadow,background-color;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[opacity\\,transform\\]{transition-property:opacity,transform;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-opacity{transition-property:opacity;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-shadow{transition-property:box-shadow;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.duration-200{--tw-duration:.2s;transition-duration:.2s}.duration-300{--tw-duration:.3s;transition-duration:.3s}.duration-700{--tw-duration:.7s;transition-duration:.7s}.duration-1000{--tw-duration:1s;transition-duration:1s}.ease-in-out{--tw-ease:var(--ease-in-out);transition-timing-function:var(--ease-in-out)}.ease-out{--tw-ease:var(--ease-out);transition-timing-function:var(--ease-out)}.will-change-transform{will-change:transform}.outline-none{--tw-outline-style:none;outline-style:none}.select-none{-webkit-user-select:none;user-select:none}@media (hover:hover){:is(:where(.group):hover .group-hover\\:scale-125){--tw-scale-x:125%;--tw-scale-y:125%;--tw-scale-z:125%;scale:var(--tw-scale-x) var(--tw-scale-y)}:is(:where(.group\\/monet-cover):hover .group-hover\\/monet-cover\\:opacity-100),:is(:where(.group\\/monet-description):hover .group-hover\\/monet-description\\:opacity-100){opacity:1}}.placeholder\\:text-\\[color\\:var\\(--st-t3\\)\\]::placeholder{color:var(--st-t3)}.before\\:absolute:before{content:var(--tw-content);position:absolute}.before\\:-inset-x-6:before{content:var(--tw-content);inset-inline:calc(var(--spacing) * -6)}.before\\:top-0:before{content:var(--tw-content);top:0}.before\\:-bottom-6:before{content:var(--tw-content);bottom:calc(var(--spacing) * -6)}.before\\:content-\\[\\'\\'\\]:before{--tw-content:\"\";content:var(--tw-content)}.empty\\:hidden:empty{display:none}@media (hover:hover){.hover\\:scale-y-105:hover{--tw-scale-y:105%;scale:var(--tw-scale-x) var(--tw-scale-y)}.hover\\:bg-\\[var\\(--st-fill\\)\\]:hover{background-color:var(--st-fill)}.hover\\:bg-black\\/65:hover{background-color:#000000a6}@supports (color:color-mix(in lab, red, red)){.hover\\:bg-black\\/65:hover{background-color:color-mix(in oklab, var(--color-black) 65%, transparent)}}.hover\\:bg-black\\/70:hover{background-color:#000000b3}@supports (color:color-mix(in lab, red, red)){.hover\\:bg-black\\/70:hover{background-color:color-mix(in oklab, var(--color-black) 70%, transparent)}}.hover\\:bg-black\\/\\[0\\.06\\]:hover{background-color:#0000000f}@supports (color:color-mix(in lab, red, red)){.hover\\:bg-black\\/\\[0\\.06\\]:hover{background-color:color-mix(in oklab, var(--color-black) 6%, transparent)}}.hover\\:bg-white:hover{background-color:var(--color-white)}.hover\\:bg-white\\/10:hover{background-color:#ffffff1a}@supports (color:color-mix(in lab, red, red)){.hover\\:bg-white\\/10:hover{background-color:color-mix(in oklab, var(--color-white) 10%, transparent)}}}.focus-visible\\:opacity-100:focus-visible{opacity:1}.active\\:scale-95:active{--tw-scale-x:95%;--tw-scale-y:95%;--tw-scale-z:95%;scale:var(--tw-scale-x) var(--tw-scale-y)}.active\\:scale-y-95:active{--tw-scale-y:95%;scale:var(--tw-scale-x) var(--tw-scale-y)}.disabled\\:cursor-not-allowed:disabled{cursor:not-allowed}.disabled\\:opacity-35:disabled{opacity:.35}@media (hover:hover){.disabled\\:hover\\:bg-transparent:disabled:hover{background-color:#0000}}@media (prefers-reduced-motion:reduce){.motion-reduce\\:transition-none{transition-property:none}}@media (min-width:40rem){.sm\\:w-\\[68\\%\\]{width:68%}.sm\\:max-w-\\[68\\%\\]{max-width:68%}.sm\\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\\:gap-y-4{row-gap:calc(var(--spacing) * 4)}.sm\\:p-6{padding:calc(var(--spacing) * 6)}.sm\\:px-6{padding-inline:calc(var(--spacing) * 6)}.sm\\:px-8{padding-inline:calc(var(--spacing) * 8)}.sm\\:py-6{padding-block:calc(var(--spacing) * 6)}.sm\\:pt-16{padding-top:calc(var(--spacing) * 16)}.sm\\:pr-4{padding-right:calc(var(--spacing) * 4)}.sm\\:pr-8{padding-right:calc(var(--spacing) * 8)}.sm\\:pb-40{padding-bottom:calc(var(--spacing) * 40)}.sm\\:pl-8{padding-left:calc(var(--spacing) * 8)}}@media (min-width:48rem){.md\\:flex{display:flex}}@media (min-width:64rem){.lg\\:w-\\[60\\%\\]{width:60%}.lg\\:justify-end{justify-content:flex-end}.lg\\:justify-start{justify-content:flex-start}.lg\\:px-14{padding-inline:calc(var(--spacing) * 14)}.lg\\:py-8{padding-block:calc(var(--spacing) * 8)}.lg\\:pt-20{padding-top:calc(var(--spacing) * 20)}.lg\\:pr-10{padding-right:calc(var(--spacing) * 10)}.lg\\:pl-10{padding-left:calc(var(--spacing) * 10)}}@media (min-width:80rem){.xl\\:pr-12{padding-right:calc(var(--spacing) * 12)}.xl\\:pl-12{padding-left:calc(var(--spacing) * 12)}}@media (min-width:96rem){.\\32 xl\\:px-20{padding-inline:calc(var(--spacing) * 20)}}.\\[\\&\\:\\:-moz-range-thumb\\]\\:h-3\\.5::-moz-range-thumb{height:calc(var(--spacing) * 3.5)}.\\[\\&\\:\\:-moz-range-thumb\\]\\:w-3\\.5::-moz-range-thumb{width:calc(var(--spacing) * 3.5)}.\\[\\&\\:\\:-moz-range-thumb\\]\\:rounded-full::-moz-range-thumb{border-radius:2147483647px}.\\[\\&\\:\\:-moz-range-thumb\\]\\:border-0::-moz-range-thumb{border-style:var(--tw-border-style);border-width:0}.\\[\\&\\:\\:-moz-range-thumb\\]\\:bg-white::-moz-range-thumb{background-color:var(--color-white)}.\\[\\&\\:\\:-moz-range-thumb\\]\\:bg-zinc-700::-moz-range-thumb{background-color:var(--color-zinc-700)}.\\[\\&\\:\\:-moz-range-thumb\\]\\:transition-transform::-moz-range-thumb{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.\\[\\&\\:\\:-webkit-slider-thumb\\]\\:h-3\\.5::-webkit-slider-thumb{height:calc(var(--spacing) * 3.5)}.\\[\\&\\:\\:-webkit-slider-thumb\\]\\:w-3\\.5::-webkit-slider-thumb{width:calc(var(--spacing) * 3.5)}.\\[\\&\\:\\:-webkit-slider-thumb\\]\\:appearance-none::-webkit-slider-thumb{appearance:none}.\\[\\&\\:\\:-webkit-slider-thumb\\]\\:rounded-full::-webkit-slider-thumb{border-radius:2147483647px}.\\[\\&\\:\\:-webkit-slider-thumb\\]\\:bg-white::-webkit-slider-thumb{background-color:var(--color-white)}.\\[\\&\\:\\:-webkit-slider-thumb\\]\\:bg-zinc-700::-webkit-slider-thumb{background-color:var(--color-zinc-700)}.\\[\\&\\:\\:-webkit-slider-thumb\\]\\:transition-transform::-webkit-slider-thumb{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}@media (hover:hover){.\\[\\&\\:\\:-webkit-slider-thumb\\]\\:hover\\:scale-125::-webkit-slider-thumb:hover{--tw-scale-x:125%;--tw-scale-y:125%;--tw-scale-z:125%;scale:var(--tw-scale-x) var(--tw-scale-y)}}.\\[\\&\\>input\\]\\:w-full>input{width:100%}@media (hover:none){.\\[\\@media\\(hover\\:none\\)\\]\\:opacity-100{opacity:1}}\n@layer components;@property --tw-translate-x{syntax:\"*\";inherits:false;initial-value:0}@property --tw-translate-y{syntax:\"*\";inherits:false;initial-value:0}@property --tw-translate-z{syntax:\"*\";inherits:false;initial-value:0}@property --tw-rotate-x{syntax:\"*\";inherits:false}@property --tw-rotate-y{syntax:\"*\";inherits:false}@property --tw-rotate-z{syntax:\"*\";inherits:false}@property --tw-skew-x{syntax:\"*\";inherits:false}@property --tw-skew-y{syntax:\"*\";inherits:false}@property --tw-space-y-reverse{syntax:\"*\";inherits:false;initial-value:0}@property --tw-space-x-reverse{syntax:\"*\";inherits:false;initial-value:0}@property --tw-border-style{syntax:\"*\";inherits:false;initial-value:solid}@property --tw-leading{syntax:\"*\";inherits:false}@property --tw-font-weight{syntax:\"*\";inherits:false}@property --tw-tracking{syntax:\"*\";inherits:false}@property --tw-ordinal{syntax:\"*\";inherits:false}@property --tw-slashed-zero{syntax:\"*\";inherits:false}@property --tw-numeric-figure{syntax:\"*\";inherits:false}@property --tw-numeric-spacing{syntax:\"*\";inherits:false}@property --tw-numeric-fraction{syntax:\"*\";inherits:false}@property --tw-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:\"*\";inherits:false}@property --tw-shadow-alpha{syntax:\"<percentage>\";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:\"*\";inherits:false}@property --tw-inset-shadow-alpha{syntax:\"<percentage>\";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:\"*\";inherits:false}@property --tw-ring-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:\"*\";inherits:false}@property --tw-inset-ring-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:\"*\";inherits:false}@property --tw-ring-offset-width{syntax:\"<length>\";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:\"*\";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:\"*\";inherits:false;initial-value:solid}@property --tw-blur{syntax:\"*\";inherits:false}@property --tw-brightness{syntax:\"*\";inherits:false}@property --tw-contrast{syntax:\"*\";inherits:false}@property --tw-grayscale{syntax:\"*\";inherits:false}@property --tw-hue-rotate{syntax:\"*\";inherits:false}@property --tw-invert{syntax:\"*\";inherits:false}@property --tw-opacity{syntax:\"*\";inherits:false}@property --tw-saturate{syntax:\"*\";inherits:false}@property --tw-sepia{syntax:\"*\";inherits:false}@property --tw-drop-shadow{syntax:\"*\";inherits:false}@property --tw-drop-shadow-color{syntax:\"*\";inherits:false}@property --tw-drop-shadow-alpha{syntax:\"<percentage>\";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:\"*\";inherits:false}@property --tw-backdrop-blur{syntax:\"*\";inherits:false}@property --tw-backdrop-brightness{syntax:\"*\";inherits:false}@property --tw-backdrop-contrast{syntax:\"*\";inherits:false}@property --tw-backdrop-grayscale{syntax:\"*\";inherits:false}@property --tw-backdrop-hue-rotate{syntax:\"*\";inherits:false}@property --tw-backdrop-invert{syntax:\"*\";inherits:false}@property --tw-backdrop-opacity{syntax:\"*\";inherits:false}@property --tw-backdrop-saturate{syntax:\"*\";inherits:false}@property --tw-backdrop-sepia{syntax:\"*\";inherits:false}@property --tw-duration{syntax:\"*\";inherits:false}@property --tw-ease{syntax:\"*\";inherits:false}@property --tw-scale-x{syntax:\"*\";inherits:false;initial-value:1}@property --tw-scale-y{syntax:\"*\";inherits:false;initial-value:1}@property --tw-scale-z{syntax:\"*\";inherits:false;initial-value:1}@property --tw-content{syntax:\"*\";inherits:false;initial-value:\"\"}@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{50%{opacity:.5}}\n}\n";
 
     // ── src/client/i18n/i18n.js
@@ -8174,7 +8174,7 @@ window.__ModuleLoader__.load({
     // The vendored Folia login tree translates through this, so it says what the panel says.
     globalThis.MP_LOGIN_T = t
     // The ported Folia lyric styles read their labels through this. A key the dictionary does
-    // not have is shown as nothing, never as the raw key (`src/folia/shims/i18n.ts`).
+    // not have is shown as nothing, never as the raw key (`src/folia-adapters/shims/i18n.ts`).
     globalThis.MP_FOLIA_T = t
 
     // ── src/client/i18n/strings.js
@@ -23968,7 +23968,7 @@ window.__ModuleLoader__.load({
       })
     }
 
-    // ── src/folia/pendolo.bundle.js
+    // ── src/folia-build/pendolo.bundle.js
     function __mpPendoloBundle() {
       var MPFoliaPendolo = (() => {
         var __defProp = Object.defineProperty;
@@ -23989,9 +23989,9 @@ window.__ModuleLoader__.load({
         };
         var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
       
-        // src/render/folia/entry.tsx
-        var entry_exports = {};
-        __export(entry_exports, {
+        // src/folia-build/pendolo-entry.tsx
+        var pendolo_entry_exports = {};
+        __export(pendolo_entry_exports, {
           DEFAULT_PENDOLO_TUNING: () => DEFAULT_PENDOLO_TUNING,
           VisualizerPendolo: () => VisualizerPendolo_default,
           buildTimedWords: () => buildTimedWords,
@@ -23999,7 +23999,7 @@ window.__ModuleLoader__.load({
           hasMotion: () => hasMotion
         });
       
-        // src/vendor/react-shim.js
+        // src/client/vendor/react-shim.js
         var BaseReact = globalThis.__MP_REACT__ || {};
         var React = typeof BaseReact.memo === "function" && typeof BaseReact.forwardRef === "function" ? BaseReact : Object.assign({}, BaseReact, {
           memo: typeof BaseReact.memo === "function" ? BaseReact.memo : (component) => component,
@@ -24044,7 +24044,7 @@ window.__ModuleLoader__.load({
         var PureComponent = React.PureComponent;
         var version = React.version;
       
-        // src/render/folia/shims/framer-motion.js
+        // src/folia-adapters/shims/framer-motion.js
         var framer = typeof MPFramer !== "undefined" && MPFramer !== null ? MPFramer : {};
         var motionFallback = new Proxy({}, {
           get: (_target, tag) => function MotionFallback(props) {
@@ -24064,6 +24064,8 @@ window.__ModuleLoader__.load({
             },
             on: () => () => {
             },
+            subscribe: () => () => {
+            },
             destroy: () => {
             }
           };
@@ -24075,12 +24077,21 @@ window.__ModuleLoader__.load({
           },
           on: () => () => {
           },
+          subscribe: () => () => {
+          },
           destroy: () => {
           }
         }));
-        var useMotionValueEvent = framer.useMotionValueEvent || (() => {
-        });
+        var useMotionValueEvent = framer.useMotionValueEvent || function useMotionValueEvent2(value, event, callback) {
+          react_shim_default.useEffect(() => {
+            if (!value || typeof value.on !== "function") return void 0;
+            const unsubscribe = value.on(event, callback);
+            if (event === "change" && typeof value.get === "function") callback(value.get());
+            return typeof unsubscribe === "function" ? unsubscribe : void 0;
+          }, [value, event, callback]);
+        };
         var useDragControls = framer.useDragControls || (() => ({ start: () => {
+        }, subscribe: () => () => {
         } }));
         var motionValue = framer.motionValue || ((initial) => {
           let value = initial;
@@ -24091,6 +24102,8 @@ window.__ModuleLoader__.load({
             },
             on: () => () => {
             },
+            subscribe: () => () => {
+            },
             destroy: () => {
             }
           };
@@ -24099,7 +24112,7 @@ window.__ModuleLoader__.load({
         var animate = framer.animate || (() => ({ stop: () => {
         } }));
       
-        // src/render/folia/shims/lucide-react.js
+        // src/folia-adapters/shims/lucide-react.js
         var starPath = "M12 2.6l2.95 5.98 6.6.96-4.78 4.66 1.13 6.58L12 17.68l-5.9 3.1 1.13-6.58L2.45 9.54l6.6-.96L12 2.6z";
         function makeIcon(path) {
           return function Icon(props) {
@@ -24140,12 +24153,22 @@ window.__ModuleLoader__.load({
         var Hourglass = makeIcon(starPath);
         var EyeOff = makeIcon(starPath);
         var RotateCcw = makeIcon(starPath);
+        var RotateCw = makeIcon("M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6");
         var AlignLeft = makeIcon(starPath);
         var AudioWaveform = makeIcon(starPath);
         var Move = makeIcon(starPath);
         var Spline = makeIcon(starPath);
+        var Frame = makeIcon(starPath);
+        var Sparkles = makeIcon(starPath);
+        var WandSparkles = makeIcon(starPath);
+        var Scan = makeIcon(starPath);
+        var Ghost = makeIcon(starPath);
+        var Highlighter = makeIcon(starPath);
+        var Camera = makeIcon("M4 7h3l2-3h6l2 3h3v12H4zM12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6z");
+        var Orbit = makeIcon("M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c4 4 4 14 0 18M12 3c-4 4-4 14 0 18");
+        var X = makeIcon("M6 6l12 12M18 6L6 18");
       
-        // src/render/folia/types.ts
+        // src/folia/types.ts
         var DEFAULT_PENDOLO_TUNING = {
           render: { scale: "global", antialias: "global" },
           arcRadius: 0.42,
@@ -24167,7 +24190,7 @@ window.__ModuleLoader__.load({
           hubViewBack: 1.2
         };
       
-        // src/render/folia/utils/lyricRenderQuality.ts
+        // src/folia/utils/lyricRenderQuality.ts
         var MAX_LYRIC_PIXEL_RATIO = 3;
         var resolveLyricRenderQuality = (global, override) => ({
           scale: override && override.scale !== "global" ? override.scale : global.scale,
@@ -24180,11 +24203,11 @@ window.__ModuleLoader__.load({
         };
         var resolveLyricAntialias = (antialias, styleDefault) => antialias === "auto" ? styleDefault : antialias === "on";
       
-        // src/render/folia/components/visualizer/renderQuality/useLyricRenderQuality.ts
+        // src/folia/components/visualizer/renderQuality/useLyricRenderQuality.ts
         var GLOBAL_QUALITY = { scale: 1, antialias: "auto" };
         var useLyricRenderQuality = (override) => useMemo(() => resolveLyricRenderQuality(GLOBAL_QUALITY, override), [override]);
       
-        // src/render/folia/components/visualizer/textMeasureCache.ts
+        // src/folia/components/visualizer/textMeasureCache.ts
         var rememberBounded = (cache, key, value, limit) => {
           if (!cache.has(key) && cache.size >= limit) {
             const oldest = cache.keys().next();
@@ -24201,7 +24224,7 @@ window.__ModuleLoader__.load({
           return offsets;
         };
       
-        // src/render/folia/components/visualizer/colorMix.ts
+        // src/folia/components/visualizer/colorMix.ts
         var clamp = (value, min, max) => Math.max(min, Math.min(max, value));
         var mix = (from, to, amount) => from + (to - from) * amount;
         var FALLBACK_RGB = { r: 255, g: 255, b: 255 };
@@ -24268,13 +24291,13 @@ window.__ModuleLoader__.load({
           return `rgba(${Math.round(mix(fromParsed.r, toParsed.r, normalizedAmount))}, ${Math.round(mix(fromParsed.g, toParsed.g, normalizedAmount))}, ${Math.round(mix(fromParsed.b, toParsed.b, normalizedAmount))}, ${clamp(alpha, 0, 1)})`;
         };
       
-        // src/render/folia/hooks/useLucideIcons.ts
+        // src/folia/hooks/useLucideIcons.ts
         var useLucideIcons = (_names) => 0;
       
-        // src/render/folia/services/lucideIconResolver.ts
+        // src/folia/services/lucideIconResolver.ts
         var resolveLucideIcon = (_name) => null;
       
-        // src/render/folia/utils/fontStacks.ts
+        // src/folia/utils/fontStacks.ts
         var MIN_FONT_WEIGHT = 100;
         var MAX_FONT_WEIGHT = 900;
         var FONT_WEIGHT_STEP = 10;
@@ -24360,7 +24383,7 @@ window.__ModuleLoader__.load({
           return `${customFontStack.join(", ")}, ${fallbackStack}`;
         };
       
-        // src/vendor/jsx-runtime-shim.js
+        // src/client/vendor/jsx-runtime-shim.js
         var React2 = globalThis.__MP_REACT__ || {};
         var createElement2 = React2.createElement;
         var Fragment2 = React2.Fragment;
@@ -24383,26 +24406,36 @@ window.__ModuleLoader__.load({
         }
         var jsxs = jsx;
       
-        // src/render/folia/components/visualizer/VisualizerShell.tsx
-        var VisualizerShell = ({ theme, children }) => /* @__PURE__ */ jsx(
+        // src/folia/components/visualizer/VisualizerShell.tsx
+        var VisualizerShell = react_shim_default.forwardRef(({ theme, children }, ref) => /* @__PURE__ */ jsx(
           "div",
           {
+            ref,
             style: {
               position: "absolute",
               inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
               overflow: "hidden",
+              // Tailwind preflight gives Folia's page the normal 1.5 line box. The host
+              // page is a different stacking context, so without this the artist row's
+              // italic glyphs get clipped by `truncate` on a shorter inherited line box.
+              lineHeight: 1.5,
               fontFamily: resolveThemeFontStack(theme),
               fontWeight: resolveThemeFontWeight(theme, 400),
-              // The page's own controls sit above the style; the style keeps the box.
-              pointerEvents: "none"
+              // Folia styles own pointer interaction (line seek, scroll, camera drag). Page
+              // controls above them carry explicit z-indexes (the settings FAB is z-9999).
+              pointerEvents: "auto"
             },
             children
           }
-        );
+        ));
         VisualizerShell.displayName = "VisualizerShell";
         var VisualizerShell_default = VisualizerShell;
       
-        // src/render/folia/components/visualizer/pendolo/pendoloClockworkScene.ts
+        // src/folia/components/visualizer/pendolo/pendoloClockworkScene.ts
         var buildPendoloClockworkPalette = (primaryTextColor, accentTextColor, showGearDecor) => {
           const isFull = showGearDecor === "full";
           const m = isFull ? 1 : 0.6;
@@ -24484,7 +24517,7 @@ window.__ModuleLoader__.load({
           };
         };
       
-        // src/render/folia/components/visualizer/pendolo/pendoloClockworkDraw2d.ts
+        // src/folia/components/visualizer/pendolo/pendoloClockworkDraw2d.ts
         function drawGearTeeth(ctx, cx, cy, radius, teethCount, toothDepth, rotationRad, strokeColor, lineWidth, fillColor) {
           ctx.save();
           ctx.translate(cx, cy);
@@ -24929,7 +24962,7 @@ window.__ModuleLoader__.load({
           ctx.fill();
         };
       
-        // src/render/folia/services/beatFx/beatFxLive.ts
+        // src/folia/services/beatFx/beatFxLive.ts
         var isBeatFxReady = () => false;
         var getBeatEffectStrength = (_effectId) => 0;
         var getBeatFxBeatPeriod = () => 0.5;
@@ -24940,7 +24973,7 @@ window.__ModuleLoader__.load({
         var getBeatFxFiredCounts = () => ({});
         var getBeatFxIntensities = () => ({});
       
-        // src/render/folia/services/beatFx/clock.ts
+        // src/folia/services/beatFx/clock.ts
         var BEAT_FX_WEAK_BEAT_FLOOR = 0.35;
         var resolveBeatFxAccentGain = (event, trackScale) => {
           if (event?.rhythmic === false) return 0;
@@ -24948,7 +24981,7 @@ window.__ModuleLoader__.load({
           return (BEAT_FX_WEAK_BEAT_FLOOR + (1 - BEAT_FX_WEAK_BEAT_FLOOR) * event.impact) * trackScale;
         };
       
-        // src/render/folia/components/visualizer/pendolo/pendoloBeatFx.ts
+        // src/folia/components/visualizer/pendolo/pendoloBeatFx.ts
         var FLARE_DECAY_SECONDS = 0.25;
         var PENDOLO_MAX_SPARKS = 192;
         var PENDOLO_SPARK_STRIDE = 6;
@@ -25204,7 +25237,7 @@ window.__ModuleLoader__.load({
           Math.round(color[2] + (255 - color[2]) * heat)
         ];
       
-        // src/render/folia/services/beatFx/beatEffects.ts
+        // src/folia/services/beatFx/beatEffects.ts
         var BEAT_EFFECT_IDS = {
           sonnetLensTear: "sonnet.lensTear",
           dioramaRipple: "diorama.ripple",
@@ -25219,7 +25252,7 @@ window.__ModuleLoader__.load({
         };
         var smartBeatActive = (settings) => settings !== null && settings !== void 0 && settings.mode !== "off";
       
-        // src/render/folia/components/visualizer/pendolo/pendoloParallax.ts
+        // src/folia/components/visualizer/pendolo/pendoloParallax.ts
         var DIAL_FACE = 0;
         var MAIN_SUN_TOP = 0.09;
         var SECOND_TOP = 0.1;
@@ -25263,7 +25296,7 @@ window.__ModuleLoader__.load({
           return DIAL_FACE;
         };
       
-        // src/render/folia/components/visualizer/pendolo/pendoloBeatFxDraw.ts
+        // src/folia/components/visualizer/pendolo/pendoloBeatFxDraw.ts
         var TICK_COUNT = 60;
         var DIAL_SEGMENTS = 120;
         var DIAL_GLOW_WIDTH = 10;
@@ -25543,7 +25576,7 @@ window.__ModuleLoader__.load({
           ctx.restore();
         };
       
-        // src/render/folia/components/visualizer/pendolo/pendoloClockworkMotion.ts
+        // src/folia/components/visualizer/pendolo/pendoloClockworkMotion.ts
         var createPendoloClockworkMotionState = () => ({
           phase: 0,
           smoothedBass: 0.15,
@@ -25626,7 +25659,7 @@ window.__ModuleLoader__.load({
           };
         };
       
-        // src/render/folia/components/visualizer/pendolo/pendoloClockworkMeshes.ts
+        // src/folia/components/visualizer/pendolo/pendoloClockworkMeshes.ts
         var PENDOLO_MESH_STRIDE = 7;
         var PENDOLO_MAX_PARTS = 44;
         var PENDOLO_MITER_LIMIT = 10;
@@ -26259,7 +26292,7 @@ window.__ModuleLoader__.load({
           }
         };
       
-        // src/render/folia/components/visualizer/pendolo/pendoloDialProjection.ts
+        // src/folia/components/visualizer/pendolo/pendoloDialProjection.ts
         var PENDOLO_TILT_LIMIT_DEG = 70;
         var PENDOLO_PERSPECTIVE_FACTOR = 1.2;
         var buildPendoloTiltProjection = (tiltDeg, axisDeg, viewportWidth, viewportHeight) => {
@@ -26381,7 +26414,7 @@ window.__ModuleLoader__.load({
           return `matrix3d(${a}, ${d}, 0, ${g}, ${b}, ${e}, 0, ${h}, 0, 0, 1, 0, ${c}, ${f}, 0, ${i})`;
         };
       
-        // src/render/folia/components/visualizer/pendolo/pendoloClockworkWebGL.ts
+        // src/folia/components/visualizer/pendolo/pendoloClockworkWebGL.ts
         var PENDOLO_PROJECTION_NEAR = "0.02";
         var VERT = `#version 300 es
       precision highp float;
@@ -27186,7 +27219,7 @@ window.__ModuleLoader__.load({
           }
         };
       
-        // src/render/folia/components/visualizer/pendolo/PendoloClockworkCanvas.tsx
+        // src/folia/components/visualizer/pendolo/PendoloClockworkCanvas.tsx
         var PendoloClockworkCanvas = ({
           centerX,
           centerY,
@@ -27605,7 +27638,7 @@ window.__ModuleLoader__.load({
         };
         var PendoloClockworkCanvas_default = PendoloClockworkCanvas;
       
-        // src/render/folia/utils/lyrics/alternateText.ts
+        // src/folia/utils/lyrics/alternateText.ts
         var findAlternateText = (alternateTexts, role) => alternateTexts?.find((entry) => entry.role === role && entry.text.trim())?.text.trim() ?? null;
         var resolveTrackText = (source, role) => {
           const directText = role === "translation" ? source.translation : source.romanization;
@@ -27631,7 +27664,7 @@ window.__ModuleLoader__.load({
         };
         var resolveSubtitleContentMode = (mode, legacyShowTranslation = true) => mode ?? (legacyShowTranslation ? "translation" : "none");
       
-        // src/render/folia/vendor/pretext/dist/generated/bidi-data.js
+        // src/folia-adapters/vendor/pretext/dist/generated/bidi-data.js
         var latin1BidiTypes = [
           "BN",
           "BN",
@@ -28607,7 +28640,7 @@ window.__ModuleLoader__.load({
           [1114110, 1114111, "BN"]
         ];
       
-        // src/render/folia/vendor/pretext/dist/bidi.js
+        // src/folia-adapters/vendor/pretext/dist/bidi.js
         function classifyCodePoint(codePoint) {
           if (codePoint <= 255)
             return latin1BidiTypes[codePoint];
@@ -28779,7 +28812,7 @@ window.__ModuleLoader__.load({
           return segLevels;
         }
       
-        // src/render/folia/vendor/pretext/dist/analysis.js
+        // src/folia-adapters/vendor/pretext/dist/analysis.js
         var collapsibleWhitespaceRunRe = /[ \t\n\r\f]+/g;
         var needsWhitespaceNormalizationRe = /[\t\n\r\f]| {2,}|^ | $/;
         function normalizeWhitespaceNormal(text) {
@@ -30058,7 +30091,7 @@ window.__ModuleLoader__.load({
           };
         }
       
-        // src/render/folia/vendor/pretext/dist/measurement.js
+        // src/folia-adapters/vendor/pretext/dist/measurement.js
         var measureContext = null;
         var segmentMetricCaches = /* @__PURE__ */ new Map();
         var cachedEngineProfile = null;
@@ -30245,7 +30278,7 @@ window.__ModuleLoader__.load({
           return { cache, emojiCorrection };
         }
       
-        // src/render/folia/vendor/pretext/dist/line-break.js
+        // src/folia-adapters/vendor/pretext/dist/line-break.js
         function isDiscretionaryLineEnd(kinds, endSegmentIndex, endGraphemeIndex) {
           return endGraphemeIndex === 0 && endSegmentIndex > 0 && endSegmentIndex < kinds.length && kinds[endSegmentIndex - 1] === "soft-hyphen";
         }
@@ -30743,7 +30776,7 @@ window.__ModuleLoader__.load({
           return { lineCount, lastLineWidth };
         }
       
-        // src/render/folia/vendor/pretext/dist/line-text.js
+        // src/folia-adapters/vendor/pretext/dist/line-text.js
         var sharedLineTextCaches = /* @__PURE__ */ new WeakMap();
         function getSegmentGraphemeOffsets(segmentIndex, segments, cache) {
           let offsets = cache.get(segmentIndex);
@@ -30784,7 +30817,7 @@ window.__ModuleLoader__.load({
           return isDiscretionaryLineEnd(prepared.kinds, endSegmentIndex, endGraphemeIndex) ? text + "-" : text;
         }
       
-        // src/render/folia/vendor/pretext/dist/layout.js
+        // src/folia-adapters/vendor/pretext/dist/layout.js
         function createEmptyPrepared(includeSegments) {
           if (includeSegments) {
             return {
@@ -31007,7 +31040,7 @@ window.__ModuleLoader__.load({
           return { lineCount, height: lineCount * lineHeight, lines };
         }
       
-        // src/render/folia/components/visualizer/pendolo/pendoloGeometry.ts
+        // src/folia/components/visualizer/pendolo/pendoloGeometry.ts
         var resolvePendoloWheelCenterX = (viewportWidth, tuning) => tuning.mirrorLayout === true ? viewportWidth * (1 - tuning.wheelCenterX) : viewportWidth * tuning.wheelCenterX;
         function calculatePendoloWheelLayout(lines, targetLineIndex, escapementAngleOffsetRad, viewportWidth, viewportHeight, tuning, radiusOffsetPx = 0, lineBlockHeights) {
           const mirrored = tuning.mirrorLayout === true;
@@ -31070,7 +31103,7 @@ window.__ModuleLoader__.load({
           return items;
         }
       
-        // src/render/folia/utils/lyrics/graphemeTiming.ts
+        // src/folia/utils/lyrics/graphemeTiming.ts
         var graphemeSegmenter = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
         var splitLyricGraphemes = (text) => {
           if (!text) {
@@ -31179,13 +31212,13 @@ window.__ModuleLoader__.load({
           return timeline;
         };
       
-        // src/render/folia/utils/lyrics/subtitleTrackStyle.ts
+        // src/folia/utils/lyrics/subtitleTrackStyle.ts
         var SECONDARY_TRACK_SIZE_FACTOR = 0.88;
         var SECONDARY_TRACK_OPACITY = 0.82;
         var SECONDARY_TRACK_FONT_WEIGHT_FALLBACK = 400;
         var SECONDARY_TRACK_GAP_EM = 0.25;
       
-        // src/render/folia/utils/lyrics/estimatedLineTiming.ts
+        // src/folia/utils/lyrics/estimatedLineTiming.ts
         var buildTimedWords = (text, startTime, endTime) => {
           const duration = Math.max(endTime - startTime, 0.1);
           const rawTokens = text.split(/\s+/).filter((token) => token);
@@ -31247,7 +31280,7 @@ window.__ModuleLoader__.load({
           return startTime + duration;
         };
       
-        // src/render/folia/components/visualizer/wordColoring.ts
+        // src/folia/components/visualizer/wordColoring.ts
         var CJK_REGEX = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
         var isCJK2 = (text) => CJK_REGEX.test(text);
         var normalizeWordColorToken = (text) => text.toLowerCase().replace(/[^\w]/g, "");
@@ -31374,7 +31407,7 @@ window.__ModuleLoader__.load({
           return colors;
         };
       
-        // src/render/folia/components/visualizer/monet/monetLyricsModel.ts
+        // src/folia/components/visualizer/monet/monetLyricsModel.ts
         var MONET_GRAPHEME_OFFSETS_CACHE_LIMIT = 420;
         var monetGraphemeOffsetsCache = /* @__PURE__ */ new Map();
         var graphemeSegmenter2 = typeof Intl !== "undefined" ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
@@ -31406,7 +31439,7 @@ window.__ModuleLoader__.load({
           return rememberBounded(monetGraphemeOffsetsCache, cacheKey, offsets, MONET_GRAPHEME_OFFSETS_CACHE_LIMIT);
         };
       
-        // src/render/folia/components/visualizer/pendolo/pendoloTextLayout.ts
+        // src/folia/components/visualizer/pendolo/pendoloTextLayout.ts
         var buildPendoloTextLayout = (text, fontSpec, maxWidth, lineHeight) => {
           const prepared = prepareWithSegments(text || " ", fontSpec, {
             whiteSpace: "pre-wrap"
@@ -31431,7 +31464,7 @@ window.__ModuleLoader__.load({
           };
         };
       
-        // src/render/folia/components/visualizer/pendolo/pendoloColorRuns.ts
+        // src/folia/components/visualizer/pendolo/pendoloColorRuns.ts
         var buildPendoloColorRuns = (text, graphemeStart, tokenColors, fallbackColor) => {
           const runs = [];
           splitLyricGraphemes(text).forEach((grapheme, localIndex) => {
@@ -31446,7 +31479,7 @@ window.__ModuleLoader__.load({
           return runs;
         };
       
-        // src/render/folia/components/visualizer/pendolo/PendoloActiveLyricSweep.tsx
+        // src/folia/components/visualizer/pendolo/PendoloActiveLyricSweep.tsx
         var PendoloSweepLine = ({
           layoutLine,
           timings,
@@ -31608,7 +31641,7 @@ window.__ModuleLoader__.load({
         };
         var PendoloActiveLyricSweep_default = PendoloActiveLyricSweep;
       
-        // src/render/folia/components/visualizer/pendolo/pendoloSubtitleTracks.ts
+        // src/folia/components/visualizer/pendolo/pendoloSubtitleTracks.ts
         var FOCAL_SUBTITLE_PX = 16;
         var IDLE_SUBTITLE_PX = 12;
         var LEAD_TRACK_GAP_EM = 0.25;
@@ -31644,7 +31677,7 @@ window.__ModuleLoader__.load({
           return total;
         };
       
-        // src/render/folia/components/visualizer/pendolo/pendoloMotionProfile.ts
+        // src/folia/components/visualizer/pendolo/pendoloMotionProfile.ts
         var PENDOLO_MOTION_PROFILES = {
           calm: {
             balanceSpeedMultiplier: 0.72,
@@ -31693,7 +31726,7 @@ window.__ModuleLoader__.load({
           };
         };
       
-        // src/render/folia/components/visualizer/pendolo/pendoloTimeline.ts
+        // src/folia/components/visualizer/pendolo/pendoloTimeline.ts
         var resolvePendoloFallbackAnchorIndex = (lines, currentLineIndex, lastValidLineIndex, hasObservedLine, currentTime) => {
           if (currentLineIndex >= 0 && currentLineIndex < lines.length) {
             return currentLineIndex;
@@ -31717,7 +31750,7 @@ window.__ModuleLoader__.load({
           return baseOpacity * edgeProgress;
         };
       
-        // src/render/folia/components/visualizer/pendolo/PendoloRotatingLine.tsx
+        // src/folia/components/visualizer/pendolo/PendoloRotatingLine.tsx
         var PENDOLO_STAND_FADE_DEG = 65;
         var PENDOLO_STAND_HIDE_DEG = 75;
         var resolvePendoloStandEdgeFade = (angleDeg) => Math.max(
@@ -31795,13 +31828,13 @@ window.__ModuleLoader__.load({
         };
         var PendoloRotatingLine_default = react_shim_default.memo(PendoloRotatingLine);
       
-        // src/render/folia/services/analysis/drumHits.ts
+        // src/folia/services/analysis/drumHits.ts
         var DRUM_KICK = 1;
         var DRUM_SNARE = 2;
         var DRUM_HAT = 3;
         var getDrumHits = (_key) => null;
       
-        // src/render/folia/components/visualizer/pendolo/usePendoloBeatFx.ts
+        // src/folia/components/visualizer/pendolo/usePendoloBeatFx.ts
         var resolvePendoloWaveReach = (layout) => Math.hypot(
           Math.max(layout.centerX, layout.viewportWidth - layout.centerX),
           Math.max(layout.centerY, layout.viewportHeight - layout.centerY)
@@ -32011,16 +32044,18 @@ window.__ModuleLoader__.load({
           return { shared, waveRadius, waveBand, waveStrength, shakeX, shakeY, haloScale, haloOpacity, waveX, waveY, haloX, haloY, breath, color };
         };
       
-        // src/render/folia/stores/useVisualizerSettingsStore.ts
+        // src/folia/stores/useVisualizerSettingsStore.ts
         var STATE = {
-          smartBeat: { mode: "off", effects: {} }
+          smartBeat: { mode: "off", effects: {} },
+          visualizerFrameRate: 60
         };
         var useVisualizerSettingsStore = (selector) => {
           if (typeof selector === "function") return selector(STATE);
           return STATE;
         };
+        useVisualizerSettingsStore.getState = () => STATE;
       
-        // src/render/folia/components/visualizer/pendolo/VisualizerPendolo.tsx
+        // src/folia/components/visualizer/pendolo/VisualizerPendolo.tsx
         var PENDOLO_SCROLL_IDLE_RESET_MS = 2500;
         var PENDOLO_HALO_ALPHA = 0.45;
         var PENDOLO_SCROLL_STEP_PX = 90;
@@ -32746,9 +32781,9 @@ window.__ModuleLoader__.load({
         };
         var VisualizerPendolo_default = react_shim_default.memo(VisualizerPendolo);
       
-        // src/render/folia/entry.tsx
+        // src/folia-build/pendolo-entry.tsx
         var hasMotion = Boolean(react_shim_default) && true;
-        return __toCommonJS(entry_exports);
+        return __toCommonJS(pendolo_entry_exports);
       })();
       
       return typeof MPFoliaPendolo === "undefined" ? null : MPFoliaPendolo
@@ -32897,7 +32932,7 @@ window.__ModuleLoader__.load({
      * 时计（Folia 原版）— the ported Folia `pendolo` renderer.
      *
      * `src/folia/` mirrors Folia's tree (components/visualizer/pendolo, utils,
-     * services, stores) and `src/folia/pendolo.bundle.js` is compiled from it by
+     * services, stores) and `src/folia-build/pendolo.bundle.js` is compiled from it by
      * `scripts/build-pendolo.mjs`. This file is the only boundary: it builds Folia's
      * `VisualizerSharedProps` (MotionValue clock, Line[] with word timings, Theme, audio
      * bands), mounts the renderer once, and keeps every service Folia reads out of the
@@ -33233,7 +33268,7 @@ window.__ModuleLoader__.load({
       render: renderFoliaPendolo,
     })
 
-    // ── src/folia/styles.bundle.js
+    // ── src/folia-build/styles.bundle.js
     function __mpStylesBundle() {
       var MPFoliaStyles = (() => {
         var __defProp = Object.defineProperty;
@@ -33318,7 +33353,7 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/shims/lucide-react.js
+        // src/folia-adapters/shims/lucide-react.js
         function makeIcon(path2) {
           return function Icon(props) {
             const size = Number(props && props.size) || 24;
@@ -33342,7 +33377,7 @@ window.__ModuleLoader__.load({
         }
         var starPath, Star, Disc3, Aperture, Cone, Layers, Columns3, Wind, Square, ImagePlus, Trash2, Pencil, Plus, Upload, Smile, SeparatorVertical, Hourglass, EyeOff, RotateCcw, RotateCw, AlignLeft, AudioWaveform, Move, Spline, Frame, Sparkles, WandSparkles, Scan, Ghost, Highlighter, Camera, Orbit, X;
         var init_lucide_react = __esm({
-          "src/folia/shims/lucide-react.js"() {
+          "src/folia-adapters/shims/lucide-react.js"() {
             init_react_shim();
             starPath = "M12 2.6l2.95 5.98 6.6.96-4.78 4.66 1.13 6.58L12 17.68l-5.9 3.1 1.13-6.58L2.45 9.54l6.6-.96L12 2.6z";
             Star = makeIcon(starPath);
@@ -33380,10 +33415,10 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/shims/settings-card.tsx
+        // src/folia-adapters/shims/settings-card.tsx
         var Stub, CappellaSettingsPanel, ClassicSettingsPanel, CladdaghSettingsPanel, DioramaSettingsPanel, FumeSettingsPanel, MonetSettingsPanel, PartitaSettingsPanel, TiltSettingsPanel, Tooltip, SettingsKitThemeContext, NEBBIA_APPEAR_LABEL_KEYS, NEBBIA_FADE_LABEL_KEYS, Slider, Toggle, settings_card_default, passthrough, Button, Segmented, Tabs, settingsTokens, percent, times;
         var init_settings_card = __esm({
-          "src/folia/shims/settings-card.tsx"() {
+          "src/folia-adapters/shims/settings-card.tsx"() {
             init_react_shim();
             Stub = () => null;
             CappellaSettingsPanel = Stub;
@@ -33442,10 +33477,10 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/shims/framer-motion.js
+        // src/folia-adapters/shims/framer-motion.js
         var framer, motionFallback, motion, AnimatePresence, MotionConfig, LayoutGroup, useMotionValue, useSpring, useTransform, useMotionValueEvent, useDragControls, motionValue, useReducedMotion, animate;
         var init_framer_motion = __esm({
-          "src/folia/shims/framer-motion.js"() {
+          "src/folia-adapters/shims/framer-motion.js"() {
             init_react_shim();
             framer = typeof MPFramer !== "undefined" && MPFramer !== null ? MPFramer : {};
             motionFallback = new Proxy({}, {
@@ -33516,10 +33551,10 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/shims/i18n.ts
+        // src/folia-adapters/shims/i18n.ts
         var pluginTranslate, useTranslation;
         var init_i18n = __esm({
-          "src/folia/shims/i18n.ts"() {
+          "src/folia-adapters/shims/i18n.ts"() {
             pluginTranslate = (key, vars) => {
               const translate = globalThis.MP_FOLIA_T;
               if (typeof translate !== "function") return "";
@@ -35977,10 +36012,10 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/vendor/pretext/dist/generated/bidi-data.js
+        // src/folia-adapters/vendor/pretext/dist/generated/bidi-data.js
         var latin1BidiTypes, nonLatin1BidiRanges;
         var init_bidi_data = __esm({
-          "src/folia/vendor/pretext/dist/generated/bidi-data.js"() {
+          "src/folia-adapters/vendor/pretext/dist/generated/bidi-data.js"() {
             latin1BidiTypes = [
               "BN",
               "BN",
@@ -36958,7 +36993,7 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/vendor/pretext/dist/bidi.js
+        // src/folia-adapters/vendor/pretext/dist/bidi.js
         function classifyCodePoint(codePoint) {
           if (codePoint <= 255)
             return latin1BidiTypes[codePoint];
@@ -37130,12 +37165,12 @@ window.__ModuleLoader__.load({
           return segLevels;
         }
         var init_bidi = __esm({
-          "src/folia/vendor/pretext/dist/bidi.js"() {
+          "src/folia-adapters/vendor/pretext/dist/bidi.js"() {
             init_bidi_data();
           }
         });
       
-        // src/folia/vendor/pretext/dist/analysis.js
+        // src/folia-adapters/vendor/pretext/dist/analysis.js
         function normalizeWhitespaceNormal(text) {
           if (!needsWhitespaceNormalizationRe.test(text))
             return text;
@@ -38194,7 +38229,7 @@ window.__ModuleLoader__.load({
         }
         var collapsibleWhitespaceRunRe, needsWhitespaceNormalizationRe, sharedGraphemeSegmenter, sharedWordSegmenter, segmenterLocale, arabicScriptRe, combiningMarkRe, decimalDigitRe, cjkRe, keepAllGlueChars, keepAllDashBreakChars, kinsokuStart, kinsokuEnd, forwardStickyGlue, leftStickyPunctuation, arabicNoSpaceTrailingPunctuation, myanmarMedialGlue, closingQuoteChars, lineBreakNumericAffixRanges, breakCharRe, urlSchemeSegmentRe, numericJoinerChars, wordInternalSymbolRe, emojiPresentationRe, noSpaceWordBreakAfterChars, asciiAlphabeticBoundaryRe;
         var init_analysis = __esm({
-          "src/folia/vendor/pretext/dist/analysis.js"() {
+          "src/folia-adapters/vendor/pretext/dist/analysis.js"() {
             collapsibleWhitespaceRunRe = /[ \t\n\r\f]+/g;
             needsWhitespaceNormalizationRe = /[\t\n\r\f]| {2,}|^ | $/;
             sharedGraphemeSegmenter = null;
@@ -38422,7 +38457,7 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/vendor/pretext/dist/measurement.js
+        // src/folia-adapters/vendor/pretext/dist/measurement.js
         function getMeasureContext() {
           if (measureContext !== null)
             return measureContext;
@@ -38607,7 +38642,7 @@ window.__ModuleLoader__.load({
         }
         var measureContext, segmentMetricCaches, cachedEngineProfile, MAX_PREFIX_FIT_GRAPHEMES, emojiPresentationRe2, maybeEmojiRe, emojiCorrectionCache;
         var init_measurement = __esm({
-          "src/folia/vendor/pretext/dist/measurement.js"() {
+          "src/folia-adapters/vendor/pretext/dist/measurement.js"() {
             init_analysis();
             measureContext = null;
             segmentMetricCaches = /* @__PURE__ */ new Map();
@@ -38619,7 +38654,7 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/vendor/pretext/dist/line-break.js
+        // src/folia-adapters/vendor/pretext/dist/line-break.js
         function isDiscretionaryLineEnd(kinds, endSegmentIndex, endGraphemeIndex) {
           return endGraphemeIndex === 0 && endSegmentIndex > 0 && endSegmentIndex < kinds.length && kinds[endSegmentIndex - 1] === "soft-hyphen";
         }
@@ -39237,12 +39272,12 @@ window.__ModuleLoader__.load({
           return stepPreparedLineGeometryFromChunk(prepared, cursor, chunkIndex, maxWidth);
         }
         var init_line_break = __esm({
-          "src/folia/vendor/pretext/dist/line-break.js"() {
+          "src/folia-adapters/vendor/pretext/dist/line-break.js"() {
             init_measurement();
           }
         });
       
-        // src/folia/vendor/pretext/dist/line-text.js
+        // src/folia-adapters/vendor/pretext/dist/line-text.js
         function getSegmentGraphemeOffsets(segmentIndex, segments, cache2) {
           let offsets = cache2.get(segmentIndex);
           if (offsets !== void 0)
@@ -39286,14 +39321,14 @@ window.__ModuleLoader__.load({
         }
         var sharedLineTextCaches;
         var init_line_text = __esm({
-          "src/folia/vendor/pretext/dist/line-text.js"() {
+          "src/folia-adapters/vendor/pretext/dist/line-text.js"() {
             init_analysis();
             init_line_break();
             sharedLineTextCaches = /* @__PURE__ */ new WeakMap();
           }
         });
       
-        // src/folia/vendor/pretext/dist/layout.js
+        // src/folia-adapters/vendor/pretext/dist/layout.js
         function createEmptyPrepared(includeSegments) {
           if (includeSegments) {
             return {
@@ -39549,7 +39584,7 @@ window.__ModuleLoader__.load({
           clearMeasurementCaches();
         }
         var init_layout = __esm({
-          "src/folia/vendor/pretext/dist/layout.js"() {
+          "src/folia-adapters/vendor/pretext/dist/layout.js"() {
             init_bidi();
             init_analysis();
             init_measurement();
@@ -64505,9 +64540,9 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/shims/ttml.ts
+        // src/folia-adapters/shims/ttml.ts
         var init_ttml = __esm({
-          "src/folia/shims/ttml.ts"() {
+          "src/folia-adapters/shims/ttml.ts"() {
           }
         });
       
@@ -77968,7 +78003,7 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/vendor/pretext/dist/rich-inline.js
+        // src/folia-adapters/vendor/pretext/dist/rich-inline.js
         function getInternalPreparedRichInline(prepared) {
           return prepared;
         }
@@ -78225,7 +78260,7 @@ window.__ModuleLoader__.load({
         }
         var EMPTY_LAYOUT_CURSOR, RICH_INLINE_START_CURSOR;
         var init_rich_inline = __esm({
-          "src/folia/vendor/pretext/dist/rich-inline.js"() {
+          "src/folia-adapters/vendor/pretext/dist/rich-inline.js"() {
             init_layout();
             init_line_break();
             init_measurement();
@@ -83909,7 +83944,7 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/vendor/pixi/pixi.min.mjs
+        // src/folia-adapters/vendor/pixi/pixi.min.mjs
         var pixi_min_exports = {};
         __export(pixi_min_exports, {
           AbstractBitmapFont: () => Cu2,
@@ -88963,7 +88998,7 @@ window.__ModuleLoader__.load({
         }
         var IS, Zc2, FS, BS, Qc2, Jc2, DS, $S, US, td2, kS, LS, ed2, rd2, NS, T2, No2, ds2, L2, fi2, NB, sd2, HS, It2, zS, Ie2, Ft2, oe2, id2, nd2, jo2, WS, mi2, od2, ad2, ld2, ud2, hd2, ps2, VS, YS, KS, qS, Xo2, cd2, dd2, Ho2, zo2, pd2, gi2, xe2, fd2, ZS, JS, md2, t2, e2, gd2, r2, Ar2, tt2, _d2, xd2, vd2, bd2, lt2, Wo2, D2, s2, i2, gt2, fs2, tr2, yd2, Td2, St2, Sd2, wd2, Ed2, ms2, Ad2, _i2, o2, Pd2, a2, l2, Cd2, Rd2, Md2, Od2, xi2, it2, Gd2, Ct2, Ut2, ve2, u2, Id2, Bd2, Dd2, h2, Ud2, kd2, Ld2, Nd2, yi2, p2, jd2, f2, m2, Xd2, Hd2, zd2, Wd2, ae2, _2, Vd2, x2, v22, Yd2, Kd2, qd2, ct2, sr2, ir2, nr2, or2, Ko2, Zd2, Ti2, H2, qo2, y2, T22, S2, Qd2, w2, E2, Jd2, A2, P2, Si2, tp2, Zo2, B2, Qo2, C2, R2, M2, ep2, O2, G2, rp2, I2, F2, B22, D22, $2, sp2, U2, ip2, ft2, wi2, Jo2, ta2, ea2, ra2, xs2, Ai2, Pr2, N2, dt2, Te2, Pi2, np2, Rt2, sa2, ns2, ia2, op2, ap2, lp2, na2, up2, Cr2, Ci2, Fe2, hp2, cp2, dp2, pp2, fp2, mp2, gp2, xp2, X22, vp2, H22, bp2, z2, W2, yp2, Tp2, V2, Sp2, Y2, K2, wp2, Ep2, q2, Z2, Q2, oa2, Ap2, Pp2, aa2, Se2, J2, Ri2, Cp2, Rp2, Mp2, tw, ew, rw, sw, we2, vs2, le2, ar2, iw, nw, bs2, Op2, ow, Gp2, aw, lw, Ip2, uw, hw, cw, la2, ua2, Fp2, ee2, Bp2, Dp2, X3, Vt2, ue2, Ts2, mw, gw, _w, kp2, xw, vw, Lp2, lr2, bw, Ne2, Mi2, jp2, ha2, yw, Hp2, Tw, Oi2, zp2, Wp2, Vp2, Sw, ww, _e2, Ew, da2, pa2, fa2, re2, je2, ma2, Aw, Pw, Cw, Kp2, Rw, Mw, qp2, _a2, Ow, Fi2, Rr2, Gw, rt2, xa2, Mr2, Z3, ef2, se2, Io2, Fo2, Fw, Bw, os2, Bi2, Bo2, Wc2, rf2, Dw, $w, Ea2, Aa2, Pa2, sf, ws2, $i2, Uw, kw, Lw, cf, Nw, jw, df, pf, Ra2, Es2, ff, Yt2, mf, Xw, gf, At2, As2, zt2, Ee2, Mt2, zw, Tf, Ww, Vw, Sf, Yw, as2, Ma2, wf, Kw, Af, qw, Zw, Pf, Cf, Rf, wt2, Qw, ki2, Mf, Of, Gf, Jw, tE, ne2, eE, Oa2, Ga2, Ia2, Fa2, Ba2, Da2, $a2, Ua2, Kt2, rE, Li2, If, Ff, Bf, ka2, sE, Df, Ae2, Ps2, $f, La2, Uf, st2, qt2, hr2, nE, oE, ja2, aE, Xa2, Cs2, Wf, Pt2, Ka2, wE, Vf, EE, AE, Yf, Xi2, PE, Kf, Gr2, qa2, Za2, CE, qf, RE, ME, Zf, Ir2, Qf, OE, Bs2, Qa2, Ja2, tl2, el2, GE, tm2, IE, FE, em2, BE, rm2, sm2, Hi2, rl2, sl2, DE, im2, nm2, om2, am2, lm2, um2, hm2, $E, cm2, dm2, pm2, fm2, UE, kE, LE, mm2, NE, jE, gm2, Fr2, XE, _m2, xm2, HE, zE, vm2, WE, VE, bm2, YE, KE, qE, ym2, ZE, QE, Tm2, JE, tA, eA, rA, sA, iA, nA, wm2, nl2, aA, lA, Am2, pr2, Pm2, ol2, dA, pA, Br2, $s2, Cm2, bt2, fA, $r2, Mm2, gA, Om2, _A, xA, Gm2, Im2, Fm2, Us2, Vi2, ks2, $m2, Um2, vA, bA, km2, yA, fr2, dl2, wA, Vm2, Ym2, Km2, qm2, Zm2, AA, Qm2, PA, Jm2, CA, RA, tg, MA, Yi2, Ki2, pl2, fl2, Lr2, Nr2, eg, ml2, Ls2, rg, Ji2, kt2, FA, en2, BA, DA, $A, sg, UA, kA, ig, rn2, sn2, jr2, ng, og, xl2, vl2, LA, ug, hg, cg, NA, dg, jA, XA, pg, fg, mg, yl2, Lt2, zA, WA, VA, Xe2, YA, KA, bg, yg, Sl2, on2, QA, an2, JA, wl2, Xr2, gr2, eP, rP, sP, iP, Tg, Ns2, Rl2, Ml2, Eg, aP, lP, Rg, ge2, Ol2, Mg, Il2, dP, Ug, pP, fP, kg, ln2, jg, zr2, gP, un2, Xg, Hg, zg, fe2, _P, SP, Zg, wP, EP, Qg, Wr2, AP, Jg, Dl2, Nt2, PP, hn2, t_, e_, r_, CP, RP, MP, OP, s_, FP, Vr2, $l2, BP, Yr2, i_, n_, Ul2, DP, kl2, $P, o_, UP2, kP, a_, LP, NP, jP, Ll2, XP, HP, zP, u_, WP, VP, h_, Nl2, c_, YP, jl2, Xl2, m_, Hl2, g_, qP, __, ZP, QP, x_, v_, b_, Xs2, y_, JP, tC, eC, rC, T_, sC, iC, S_, nC, oC, Hs2, cn2, dn2, Vl2, w_, pn2, aC, Kr2, E_, fn2, Ws2, A_, hC, cC, dC, C_, pC, fC, R_, mC, gC, _C, vC, yC, TC, Kl2, ql2, Zt2, Zl2, Qt2, Y3, M_, PC, CC, RC, G_, MC, OC, I_, GC, IC, FC, F_, BC, DC, $C, UC, kC, LC, NC, jC, XC, HC, zC, yt2, qC, ZC, QC, D_, JC, tR, $_, eR, rR, sR, iR, qr2, U_, mn2, Vs2, k_, L_, aR, lR, uR, j_, hR, cR, X_, dR, pR, fR, Ql2, _R, xR, bR, gn2, TR, _n2, SR, ER, AR, Ys2, Jl2, V_, Y_, PR, K_, q_, Z_, CR, Q_, RR, MR, J_, tx, OR, GR, IR, rx, tu2, FR, BR, DR, xn2, sx, ix, nx, eu2, $R, UR, ox, kR, ru2, LR, NR, hx, jR, dx, XR, HR, px, su2, fx, vn2, zR, WR, VR, bn2, mx, gx, _x, Ks2, YR, KR, xx, vx, iu2, qR, ZR, QR, bx, JR, tM, yx, eM, rM, sM, Tx, Sx, nu2, iM, nM, oM, yn2, wx, Ex, Ax, aM, lM, uM, hM, Px, ou2, cM, dM, pM, Tn2, Cx, Rx, Mx, au2, fM, mM, Ox, gM, Gx, Ix, lu2, _M, xM, vM, Sn2, Fx, Bx, Dx, bM, yM, TM, $x, SM, Ux, kx, wM, EM, uu2, Lx, hu2, Nx, cu2, PM, wn2, jx, Xx, Hx, CM, RM, Er2, MM, zx, OM, GM, Wx, Vx, Yx, Ve2, En2, du2, pu2, IM, An2, Kx, qx, Zx, FM, BM, Qr2, DM, $M, UM, Pn2, Qx, Jx, tv, kM, LM, NM, hi2, ev, Cn2, De2, Pe2, fu2, jM, XM, HM, rv, zM, WM, sv, iv, nv, Jr2, ov, Rn2, av, lv, mu2, gu2, uv, hv, Mn2, fv, _u2, VM, On2, mv, gv, _v2, qs2, YM, xv, vv, KM, Gn2, bv, yv, Tv, qM, ZM, In2, _r2, $e2, JM, Pv, Cv, Rv, Mv, Ov, Gv, Iv, Fv, Bv, Dv, rO, sO, jv, Ue2, vt2, iO, Xv, Hv, nO, me2, oO, aO, lO, zv, uO, hO, Wv, jt2, cO, Su2, Xt2, Qs2, Vv, wu2, Eu2, Au2, Pu2, Js2, Yv, Cu2, fO, Kv, mO, gO, qv, Zv, Qv, Ru2, bO, tb, yO, TO, eb, Mu2, Nn2, SO, rs2, rb, Ou2, Gu2, ib, nb, ob, ab, Iu2, Fu2, lb, Bu2, Du2, wO, ub, EO, AO, hb, $u2, pb, fb, CO, mb, RO, MO, gb, _b, Do2, xb, vb, ku2, bb, yb, Nu2, jn2, Xu2, Rb, Mb, Ob, Hu2, Gb, zu2, Xn2, Wu2, Vu2, Hn2, Ib, Fb, FO, BO, zn2, Yu2, Ku2, DO, qu2, Zu2, pt2, LO, Qu2, Ju2, Wn2, Yn2, NO, Kn2, jO, XO, th2, HO, eh2, Zn2, ti2, Qn2, qO, $b, ZO, ih2, QO, Nb, JO, t3, jb, Xb, nh2, Hb, e3, zb, r3, s3, Wb, oh2, ah2, lh2, Vb, i3, n3, o3, to2, Yb, Kb, qb, a3, l3, u3, $o2, h3, c3, d3, Zb, p3, f3, Qb, m3, g3, _3, x3, v32, uh2, b3, ey, y3, T3, ry, sy, hh2, iy, ch2, S3, dh2, ny, eo2, w3, ay, E3, A3, ly, uy, ph2, hy, fh2, cy, P3, dy, C3, R3, py, fy, my, ei2, M3, gy, O3, G3, _y, I3, vr2, B3, xy, D3, $3, vy, by, gh2, yy, ro2, _h2, so2, wy, xh2, vh2, U3, k3, L3, Ey, Ay, Py, Cy, Ry, N3, ri2, My, bh2, j3, X32, H3, Oy, z3, W3, Gy, io2, Iy, yh2, Fy, oo2, ao2, By, at2, Dy, Y32, Uy, Th2, K3, ky, q3, Z32, Ly, Ny, Q3, Sh2, jy, wh2, Eh2, Ah2, Xy, ke2, Ph2, Ch2, Rh2, br2, J3, tG, eG, zy, rG, sG, Wy, iG, nG, Oh2, Vy, Gh2, qy, Ih2, lo2, Zy, oG, Jy, uo2, t0, aG, ho2, Uh2, l0, u0, kh2, uG, cG, dG, pG, fG, mG, d0, p0, f0, Lh2, m0, gG, g0, _0, Nh2, vG, v0, jh2, b0, co2, y0, bG, yG, TG, S0, SG, wG, w0, yr2, EG, PG, CG, RG, C0, MG, OG, R0, M0, GG, IG, Hh2, zh2, Wh2, Vh2, FG, BG, DG, O0, G0, I0, F0, B0, $G, UG, Yh2, D0, Kh2, $0, qh2, po2, U0, Zh2, Qh2, Jh2, si2, tc2, Ye2, ec2, kG, LG, NG, j0, jG, XG, X0, HG, zG, H0, WG, VG, z02, V0, YG, sc2, K0, ZG, q0, QG, JG, Z0, tI, eI, Q0, ic2, nc2, Ht2, oc2, J0, ac2, sI, t1, e1, lc2, s1, i1, iI, nI, oI, n1, aI, lI, o1, fo2, uI, uc2, hc2, cc2, dc2, pc2, hI, cI, dI, l1, u1, h1, c1, d1, pI, fI, mI, fc2, gI, mc2, _I, xI, vI, bI, mo2, p1, f1, m1, yI, TI, SI, ls2, wI, EI, AI, go2, g1, _1, x12, v1, PI, CI, gc2, Uo2, _c2, xc2, OI, GI, BI, _o2, b1, y1, T1, DI, $I, UI, S1, Tr2, XI, qI, C1, ZI, QI, R1, M1, O1, JI, tF, G1, eF, rF, I1, F1, B1, xo2, iF, nF, vo2, oF, aF, N1, lF, uF, hF, bo2, j1, X1, H1, bc2, cF, dF, z12, pF, fF, mF, gF, yo2, W1, V1, Y1, _F, xF, vF, bF, yF, K1, TF, SF, q1, Z1, Q1, J1, wF, EF, AF, To2, tT, eT, rT, yc2, PF, CF, sT, RF, MF, OF, GF, So2, iT, nT, oT, IF, FF, BF, DF, aT, hT, cT, dT, Sc2, pT, ni2, wc2, fT, Ec2, mT, Ac2, kF, gT, LF, NF, _T, xT, vT, jF, Pc2, XF, HF, zF, wo2, bT, yT, TT, is2, ST, WF, VF, wT, YF, Cc2, Rc2, Mc2, Oc2, Gc2, KF, ET, qF, ZF, AT, PT, CT, qe2, RT, Ic2, QF, Ao2, MT, OT, GT, JF, tB, IT, FT, eB, BT, rB, $T, sB, iB, nB, Fc2, oB, aB, lB, UT, uB, hB, kT, oi2, cB, LT, dB, pB, gB, _B, xB, XT, vB, bB, HT, ai2, yB, zT, TB, WT, CB, RB, MB, YT, OB, GB, KT, qT, IB, FB, BB;
         var init_pixi_min = __esm({
-          "src/folia/vendor/pixi/pixi.min.mjs"() {
+          "src/folia-adapters/vendor/pixi/pixi.min.mjs"() {
             IS = Object.defineProperty;
             Zc2 = Object.getOwnPropertySymbols;
             FS = Object.prototype.hasOwnProperty;
@@ -111724,10 +111759,10 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/shims/mods.ts
+        // src/folia-adapters/shims/mods.ts
         var useFoliumTunings;
         var init_mods = __esm({
-          "src/folia/shims/mods.ts"() {
+          "src/folia-adapters/shims/mods.ts"() {
             useFoliumTunings = (_mode) => ({});
           }
         });
@@ -112088,10 +112123,10 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/shims/react-dom-server.ts
+        // src/folia-adapters/shims/react-dom-server.ts
         var renderToStaticMarkup;
         var init_react_dom_server = __esm({
-          "src/folia/shims/react-dom-server.ts"() {
+          "src/folia-adapters/shims/react-dom-server.ts"() {
             renderToStaticMarkup = (_element) => "";
           }
         });
@@ -145634,7 +145669,7 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/vendor/r3f/r3f8.mjs
+        // src/folia-adapters/vendor/r3f/r3f8.mjs
         function Bc3(o4) {
           let u4, s4 = /* @__PURE__ */ new Set(), d4 = (C4, c4) => {
             let h4 = typeof C4 == "function" ? C4(u4) : C4;
@@ -146435,7 +146470,7 @@ window.__ModuleLoader__.load({
         }
         var Tc3, Au3, Mc3, Lc3, Ic3, Oc3, Fc3, vn3, Dc3, hn3, Bu3, yi3, is3, tl3, ss3, Ci3, pt3, Qc3, Wu3, Wc3, Kt3, Yu3, Ku3, Ju3, gs3, il3, Bi3, Qi3, cs2, fs3, Ni3, ys3, Ss3, ws3, xn3, Zn3, _s3, ds3, Xc3, Sn3, le3, ps3, Yc2, Ns3, Vi3, qc2, rl3, $c3, bc3, ef3, Ii3, Oi3, vs3, qt3, Ui3, Ai3, qn3, Zt3, yn3, nf3, Di3, cf2, ff2, df2, pf2, mf2, Hs3, vf2, hf2, js3, Us3, gf2, As3, Bs3, Bf2, Qs3, Ki3, bn3, rd3, ld3, id3, Ef2, _f2;
         var init_r3f8 = __esm({
-          "src/folia/vendor/r3f/r3f8.mjs"() {
+          "src/folia-adapters/vendor/r3f/r3f8.mjs"() {
             init_three_esm();
             init_react_shim();
             init_react_shim();
@@ -154337,7 +154372,7 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/styles-entry.tsx
+        // src/folia-build/styles-entry.tsx
         var styles_entry_exports = {};
         __export(styles_entry_exports, {
           DAYLIGHT_THEME: () => DAYLIGHT_THEME,
@@ -154727,7 +154762,7 @@ window.__ModuleLoader__.load({
         init_cameraBar();
         init_cameraControls();
       
-        // src/folia/shims/machi-settings.tsx
+        // src/folia-adapters/shims/machi-settings.tsx
         var Stub2 = () => null;
         var MACHI_SCENE_CHOICES = [];
         var MACHI_SCENE_LABEL_KEYS = {};
@@ -155809,7 +155844,7 @@ window.__ModuleLoader__.load({
           };
         };
       
-        // src/folia/styles-entry.tsx
+        // src/folia-build/styles-entry.tsx
         init_colorExtractor();
       
         // src/folia/services/baseThemes.ts
@@ -156293,7 +156328,7 @@ window.__ModuleLoader__.load({
           };
         };
       
-        // src/folia/styles-entry.tsx
+        // src/folia-build/styles-entry.tsx
         init_types();
         init_types2();
         init_types();
@@ -156802,7 +156837,7 @@ window.__ModuleLoader__.load({
     /**
      * Folia lyric styles (batch 1: DOM / Canvas).
      *
-     * `src/folia/styles.bundle.js` is compiled from Folia's own style directories;
+     * `src/folia-build/styles.bundle.js` is compiled from Folia's own style directories;
      * this file is the boundary: one host builds Folia's VisualizerSharedProps (clock,
      * lines, theme, audio bands) and mounts the selected style once per song.
      */
@@ -157317,7 +157352,7 @@ window.__ModuleLoader__.load({
 
     FOLIA_STYLE_META.forEach(registerFoliaStyle)
 
-    // ── src/folia/backgrounds.bundle.js
+    // ── src/folia-build/backgrounds.bundle.js
     function __mpBackgroundsBundle() {
       var MPFoliaBackgrounds = (() => {
         var __defProp = Object.defineProperty;
@@ -157338,7 +157373,7 @@ window.__ModuleLoader__.load({
         };
         var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
       
-        // src/render/folia/backgrounds-entry.tsx
+        // src/folia-build/backgrounds-entry.tsx
         var backgrounds_entry_exports = {};
         __export(backgrounds_entry_exports, {
           DEFAULT_LATENT_BACKGROUND_TUNING: () => DEFAULT_LATENT_BACKGROUND_TUNING,
@@ -157353,7 +157388,7 @@ window.__ModuleLoader__.load({
           hasVisualizerBackgroundMode: () => hasVisualizerBackgroundMode
         });
       
-        // src/render/folia/types/visualizerModes.ts
+        // src/folia/types/visualizerModes.ts
         var BUILTIN_VISUALIZER_MODES = [
           "cadenza",
           "cappella",
@@ -157385,7 +157420,7 @@ window.__ModuleLoader__.load({
         var VISUALIZER_MODE_SET = new Set(BUILTIN_VISUALIZER_MODES);
         var VISUALIZER_BACKGROUND_MODE_SET = new Set(BUILTIN_VISUALIZER_BACKGROUND_MODES);
       
-        // src/vendor/react-shim.js
+        // src/client/vendor/react-shim.js
         var BaseReact = globalThis.__MP_REACT__ || {};
         var React = typeof BaseReact.memo === "function" && typeof BaseReact.forwardRef === "function" ? BaseReact : Object.assign({}, BaseReact, {
           memo: typeof BaseReact.memo === "function" ? BaseReact.memo : (component) => component,
@@ -157430,7 +157465,7 @@ window.__ModuleLoader__.load({
         var PureComponent = React.PureComponent;
         var version = React.version;
       
-        // src/render/folia/shims/lucide-react.js
+        // src/folia-adapters/shims/lucide-react.js
         var starPath = "M12 2.6l2.95 5.98 6.6.96-4.78 4.66 1.13 6.58L12 17.68l-5.9 3.1 1.13-6.58L2.45 9.54l6.6-.96L12 2.6z";
         function makeIcon(path) {
           return function Icon(props) {
@@ -157471,6 +157506,7 @@ window.__ModuleLoader__.load({
         var Hourglass = makeIcon(starPath);
         var EyeOff = makeIcon(starPath);
         var RotateCcw = makeIcon(starPath);
+        var RotateCw = makeIcon("M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6");
         var AlignLeft = makeIcon(starPath);
         var AudioWaveform = makeIcon(starPath);
         var Move = makeIcon(starPath);
@@ -157481,11 +157517,14 @@ window.__ModuleLoader__.load({
         var Scan = makeIcon(starPath);
         var Ghost = makeIcon(starPath);
         var Highlighter = makeIcon(starPath);
+        var Camera = makeIcon("M4 7h3l2-3h6l2 3h3v12H4zM12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6z");
+        var Orbit = makeIcon("M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c4 4 4 14 0 18M12 3c-4 4-4 14 0 18");
+        var X = makeIcon("M6 6l12 12M18 6L6 18");
       
-        // src/render/folia/components/visualizer/backgrounds/definition.ts
+        // src/folia/components/visualizer/backgrounds/definition.ts
         var defineVisualizerBackground = (entry) => entry;
       
-        // src/render/folia/components/shared/QuickControlChip.tsx
+        // src/folia/components/shared/QuickControlChip.tsx
         var QuickControlChip = (_props) => null;
         var QuickControlToggle = (_props) => null;
         var cycleValue = (values, current) => {
@@ -157493,14 +157532,21 @@ window.__ModuleLoader__.load({
           return values[(index + 1) % values.length] ?? values[0];
         };
       
-        // src/render/folia/shims/settings-card.tsx
+        // src/folia-adapters/shims/settings-card.tsx
         var Stub = () => null;
         var MonetBackgroundSettingsCard = Stub;
         var UrlBackgroundSettingsCard = Stub;
         var SettingsKitThemeContext = react_shim_default.createContext(null);
         var settings_card_default = Stub;
+        var passthrough = (name) => {
+          const Component2 = (props) => react_shim_default.createElement(name, props, props && props.children);
+          return Component2;
+        };
+        var Button = passthrough("button");
+        var Segmented = passthrough("div");
+        var Tabs = passthrough("div");
       
-        // src/render/folia/shims/framer-motion.js
+        // src/folia-adapters/shims/framer-motion.js
         var framer = typeof MPFramer !== "undefined" && MPFramer !== null ? MPFramer : {};
         var motionFallback = new Proxy({}, {
           get: (_target, tag) => function MotionFallback(props) {
@@ -157568,10 +157614,10 @@ window.__ModuleLoader__.load({
         var animate = framer.animate || (() => ({ stop: () => {
         } }));
       
-        // src/render/folia/components/visualizer/preview/frozenPicture.ts
+        // src/folia/components/visualizer/preview/frozenPicture.ts
         var ARRIVING_MARK = "data-picture-arriving";
       
-        // src/render/folia/components/visualizer/styleTransition/firstFrame.ts
+        // src/folia/components/visualizer/styleTransition/firstFrame.ts
         var FirstFrameContext = createContext(null);
         var useFirstFrameDrawn = () => {
           const report = useContext(FirstFrameContext);
@@ -157583,7 +157629,7 @@ window.__ModuleLoader__.load({
         var LayerUnseenContext = createContext(false);
         var useLayerUnseen = () => useContext(LayerUnseenContext);
       
-        // src/render/folia/components/visualizer/textMeasureCache.ts
+        // src/folia/components/visualizer/textMeasureCache.ts
         var rememberBounded = (cache, key, value, limit) => {
           if (!cache.has(key) && cache.size >= limit) {
             const oldest = cache.keys().next();
@@ -157593,7 +157639,7 @@ window.__ModuleLoader__.load({
           return value;
         };
       
-        // src/render/folia/components/visualizer/colorMix.ts
+        // src/folia/components/visualizer/colorMix.ts
         var clamp = (value, min, max) => Math.max(min, Math.min(max, value));
         var mix = (from, to, amount) => from + (to - from) * amount;
         var FALLBACK_RGB = { r: 255, g: 255, b: 255 };
@@ -157660,11 +157706,11 @@ window.__ModuleLoader__.load({
           return `rgba(${Math.round(mix(fromParsed.r, toParsed.r, normalizedAmount))}, ${Math.round(mix(fromParsed.g, toParsed.g, normalizedAmount))}, ${Math.round(mix(fromParsed.b, toParsed.b, normalizedAmount))}, ${clamp(alpha, 0, 1)})`;
         };
       
-        // src/render/folia/services/automix/handoffProgress.ts
+        // src/folia/services/automix/handoffProgress.ts
         var clamp01 = (value) => Math.max(0, Math.min(1, value));
         var progressSince = (value, start) => start >= 1 ? 1 : clamp01((value - start) / (1 - start));
       
-        // src/render/folia/components/visualizer/backgrounds/useBlendedColors.ts
+        // src/folia/components/visualizer/backgrounds/useBlendedColors.ts
         var easeOut = (t) => 1 - (1 - t) ** 3;
         var sameColors = (left, right) => left.length === right.length && left.every((color, index) => color === right[index]);
         var useBlendedColors = (colors, durationMs, progress) => {
@@ -157702,7 +157748,7 @@ window.__ModuleLoader__.load({
           return durationMs <= 0 ? target : drawn;
         };
       
-        // src/vendor/jsx-runtime-shim.js
+        // src/client/vendor/jsx-runtime-shim.js
         var React2 = globalThis.__MP_REACT__ || {};
         var createElement2 = React2.createElement;
         var Fragment2 = React2.Fragment;
@@ -157725,7 +157771,7 @@ window.__ModuleLoader__.load({
         }
         var jsxs = jsx;
       
-        // src/render/folia/components/visualizer/backgrounds/common/FluidBackground.tsx
+        // src/folia/components/visualizer/backgrounds/common/FluidBackground.tsx
         var IOS_SOFT_FOCUS_SAMPLE_SIZE = 24;
         var IOS_SOFT_FOCUS_OUTPUT_SIZE = 96;
         var detectIOSSafari = () => {
@@ -158215,14 +158261,14 @@ window.__ModuleLoader__.load({
         });
         var FluidBackground_default = FluidBackground;
       
-        // src/render/folia/hooks/useLucideIcons.ts
+        // src/folia/hooks/useLucideIcons.ts
         var useLucideIcons = (_names) => 0;
       
-        // src/render/folia/services/lucideIconResolver.ts
+        // src/folia/services/lucideIconResolver.ts
         var resolveLucideIcon = (_name) => null;
         var getLucideIconStatus = (_name) => "ready";
       
-        // src/render/folia/components/visualizer/backgrounds/common/GeometricBackground.tsx
+        // src/folia/components/visualizer/backgrounds/common/GeometricBackground.tsx
         var getShapeScaleKey = (shape) => {
           switch (shape.type) {
             case "circle":
@@ -158443,7 +158489,7 @@ window.__ModuleLoader__.load({
         });
         var GeometricBackground_default = GeometricBackground;
       
-        // src/render/folia/components/visualizer/backgrounds/common/entry.tsx
+        // src/folia/components/visualizer/backgrounds/common/entry.tsx
         var entry_default = defineVisualizerBackground({
           mode: "common",
           order: 10,
@@ -158536,7 +158582,7 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/render/folia/types.ts
+        // src/folia/types.ts
         var DEFAULT_MONET_BACKGROUND_TUNING = {
           backgroundSource: "cover-derived",
           backgroundLayout: "full-overlay",
@@ -158597,7 +158643,7 @@ window.__ModuleLoader__.load({
           blank: false
         };
       
-        // src/render/folia/vendor/paper-shaders/dist/vertex-shader.js
+        // src/folia-adapters/vendor/paper-shaders/dist/vertex-shader.js
         var vertexShaderSource = `#version 300 es
       precision mediump float;
       
@@ -158750,7 +158796,7 @@ window.__ModuleLoader__.load({
         v_imageUV.y = 1. - v_imageUV.y;
       }`;
       
-        // src/render/folia/vendor/paper-shaders/dist/shader-mount.js
+        // src/folia-adapters/vendor/paper-shaders/dist/shader-mount.js
         var DEFAULT_MAX_PIXEL_COUNT = 1920 * 1080 * 4;
         var ShaderMount = class {
           parentElement;
@@ -159248,7 +159294,7 @@ window.__ModuleLoader__.load({
           return ratio;
         }
       
-        // src/render/folia/vendor/paper-shaders/dist/shader-sizing.js
+        // src/folia-adapters/vendor/paper-shaders/dist/shader-sizing.js
         var defaultObjectSizing = {
           fit: "contain",
           scale: 1,
@@ -159277,7 +159323,7 @@ window.__ModuleLoader__.load({
           cover: 2
         };
       
-        // src/render/folia/vendor/paper-shaders/dist/shader-utils.js
+        // src/folia-adapters/vendor/paper-shaders/dist/shader-utils.js
         var declarePI = `
       #define TWO_PI 6.28318530718
       #define PI 3.14159265358979323846
@@ -159376,7 +159422,7 @@ window.__ModuleLoader__.load({
       }
       `;
       
-        // src/render/folia/vendor/paper-shaders/dist/shaders/mesh-gradient.js
+        // src/folia-adapters/vendor/paper-shaders/dist/shaders/mesh-gradient.js
         var meshGradientMeta = {
           maxColorCount: 10
         };
@@ -159492,7 +159538,7 @@ window.__ModuleLoader__.load({
       }
       `;
       
-        // src/render/folia/vendor/paper-shaders/dist/shaders/dithering.js
+        // src/folia-adapters/vendor/paper-shaders/dist/shaders/dithering.js
         var ditheringFragmentShader = `#version 300 es
       precision mediump float;
       
@@ -159751,7 +159797,7 @@ window.__ModuleLoader__.load({
           "8x8": 4
         };
       
-        // src/render/folia/vendor/paper-shaders/dist/shaders/paper-texture.js
+        // src/folia-adapters/vendor/paper-shaders/dist/shaders/paper-texture.js
         var paperTextureFragmentShader = `#version 300 es
       precision mediump float;
       
@@ -159990,7 +160036,7 @@ window.__ModuleLoader__.load({
       }
       `;
       
-        // src/render/folia/vendor/paper-shaders/dist/shaders/fluted-glass.js
+        // src/folia-adapters/vendor/paper-shaders/dist/shaders/fluted-glass.js
         var flutedGlassFragmentShader = `#version 300 es
       precision mediump float;
       
@@ -160337,7 +160383,7 @@ window.__ModuleLoader__.load({
           flat: 5
         };
       
-        // src/render/folia/vendor/paper-shaders/dist/shaders/image-dithering.js
+        // src/folia-adapters/vendor/paper-shaders/dist/shaders/image-dithering.js
         var imageDitheringFragmentShader = `#version 300 es
       precision mediump float;
       
@@ -160522,7 +160568,7 @@ window.__ModuleLoader__.load({
       }
       `;
       
-        // src/render/folia/vendor/paper-shaders/dist/shaders/lens-distortion.js
+        // src/folia-adapters/vendor/paper-shaders/dist/shaders/lens-distortion.js
         var lensDistortionMeta = {
           maxSamples: 50
         };
@@ -160788,7 +160834,7 @@ window.__ModuleLoader__.load({
       }
       `;
       
-        // src/render/folia/vendor/paper-shaders/dist/shaders/halftone-dots.js
+        // src/folia-adapters/vendor/paper-shaders/dist/shaders/halftone-dots.js
         var halftoneDotsFragmentShader = `#version 300 es
       precision mediump float;
       
@@ -161098,7 +161144,7 @@ window.__ModuleLoader__.load({
           hex: 1
         };
       
-        // src/render/folia/vendor/paper-shaders/dist/get-shader-color-from-string.js
+        // src/folia-adapters/vendor/paper-shaders/dist/get-shader-color-from-string.js
         function getShaderColorFromString(colorString) {
           if (Array.isArray(colorString)) {
             if (colorString.length === 4) return colorString;
@@ -161191,7 +161237,7 @@ window.__ModuleLoader__.load({
         var clamp2 = (n, min, max) => Math.min(Math.max(n, min), max);
         var fallbackColor = [0.5, 0.5, 0.5, 1];
       
-        // src/render/folia/vendor/paper-shaders/dist/get-shader-noise-texture.js
+        // src/folia-adapters/vendor/paper-shaders/dist/get-shader-noise-texture.js
         function getShaderNoiseTexture() {
           if (typeof window === "undefined") {
             return void 0;
@@ -161202,10 +161248,10 @@ window.__ModuleLoader__.load({
         }
         var noiseSrc = "data:image/png;base64,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";
       
-        // src/render/folia/vendor/paper-shaders/dist/empty-pixel.js
+        // src/folia-adapters/vendor/paper-shaders/dist/empty-pixel.js
         var emptyPixel = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
       
-        // src/render/folia/vendor/paper-shaders-react/dist/use-merge-refs.js
+        // src/folia-adapters/vendor/paper-shaders-react/dist/use-merge-refs.js
         function useMergeRefs(refs) {
           const cleanupRef = useRef(void 0);
           const refEffect = useCallback((instance) => {
@@ -161245,7 +161291,7 @@ window.__ModuleLoader__.load({
           }, refs);
         }
       
-        // src/render/folia/vendor/paper-shaders-react/dist/set-min-image-size.js
+        // src/folia-adapters/vendor/paper-shaders-react/dist/set-min-image-size.js
         function setMinImageSize(img) {
           if (img.naturalWidth < 1024 && img.naturalHeight < 1024) {
             if (img.naturalWidth < 1 || img.naturalHeight < 1) {
@@ -161257,7 +161303,7 @@ window.__ModuleLoader__.load({
           }
         }
       
-        // src/render/folia/vendor/paper-shaders-react/dist/shader-mount.js
+        // src/folia-adapters/vendor/paper-shaders-react/dist/shader-mount.js
         async function processUniforms(uniformsProp) {
           const processedUniforms = {};
           const imageLoadPromises = [];
@@ -161401,7 +161447,7 @@ window.__ModuleLoader__.load({
         );
         ShaderMount2.displayName = "ShaderMount";
       
-        // src/render/folia/vendor/paper-shaders-react/dist/color-props-are-equal.js
+        // src/folia-adapters/vendor/paper-shaders-react/dist/color-props-are-equal.js
         function colorPropsAreEqual(prevProps, nextProps) {
           if (Object.keys(prevProps).length !== Object.keys(nextProps).length) {
             return false;
@@ -161431,7 +161477,7 @@ window.__ModuleLoader__.load({
           return true;
         }
       
-        // src/render/folia/vendor/paper-shaders-react/dist/shaders/mesh-gradient.js
+        // src/folia-adapters/vendor/paper-shaders-react/dist/shaders/mesh-gradient.js
         var defaultPreset = {
           name: "Default",
           params: {
@@ -161538,7 +161584,7 @@ window.__ModuleLoader__.load({
           );
         }), colorPropsAreEqual);
       
-        // src/render/folia/vendor/paper-shaders-react/dist/shaders/dithering.js
+        // src/folia-adapters/vendor/paper-shaders-react/dist/shaders/dithering.js
         var defaultPreset2 = {
           name: "Default",
           params: {
@@ -161662,7 +161708,7 @@ window.__ModuleLoader__.load({
           return /* @__PURE__ */ jsx(ShaderMount2, { ...props, ref, speed, frame, fragmentShader: ditheringFragmentShader, uniforms });
         }));
       
-        // src/render/folia/vendor/paper-shaders-react/dist/shaders/paper-texture.js
+        // src/folia-adapters/vendor/paper-shaders-react/dist/shaders/paper-texture.js
         var defaultPreset3 = {
           name: "Default",
           params: {
@@ -161833,7 +161879,7 @@ window.__ModuleLoader__.load({
           );
         }), colorPropsAreEqual);
       
-        // src/render/folia/vendor/paper-shaders-react/dist/shaders/fluted-glass.js
+        // src/folia-adapters/vendor/paper-shaders-react/dist/shaders/fluted-glass.js
         var defaultPreset4 = {
           name: "Default",
           params: {
@@ -162044,7 +162090,7 @@ window.__ModuleLoader__.load({
           );
         }));
       
-        // src/render/folia/vendor/paper-shaders-react/dist/shaders/image-dithering.js
+        // src/folia-adapters/vendor/paper-shaders-react/dist/shaders/image-dithering.js
         var defaultPreset5 = {
           name: "Default",
           params: {
@@ -162175,7 +162221,7 @@ window.__ModuleLoader__.load({
           );
         }), colorPropsAreEqual);
       
-        // src/render/folia/vendor/paper-shaders-react/dist/shaders/lens-distortion.js
+        // src/folia-adapters/vendor/paper-shaders-react/dist/shaders/lens-distortion.js
         var defaultPreset6 = {
           name: "Default",
           params: {
@@ -162380,7 +162426,7 @@ window.__ModuleLoader__.load({
           );
         }), colorPropsAreEqual);
       
-        // src/render/folia/vendor/paper-shaders-react/dist/shaders/halftone-dots.js
+        // src/folia-adapters/vendor/paper-shaders-react/dist/shaders/halftone-dots.js
         var defaultPreset7 = {
           name: "Default",
           params: {
@@ -162533,7 +162579,7 @@ window.__ModuleLoader__.load({
           );
         }), colorPropsAreEqual);
       
-        // src/render/folia/utils/colorPalette.ts
+        // src/folia/utils/colorPalette.ts
         var QUANTIZATION_SHIFT = 4;
         var MIN_ALPHA = 128;
         var getChannelRange = (colors, channel) => {
@@ -162638,7 +162684,7 @@ window.__ModuleLoader__.load({
           return buckets.map(averageBucket).sort((a, b) => b.weight - a.weight).map(toHex);
         };
       
-        // src/render/folia/utils/colorExtractor.ts
+        // src/folia/utils/colorExtractor.ts
         var loadImagePixels = (imageUrl, { silent = false } = {}) => new Promise((resolve) => {
           const img = new Image();
           img.crossOrigin = "Anonymous";
@@ -162672,7 +162718,7 @@ window.__ModuleLoader__.load({
           return pixels ? extractRepresentativeColorsFromPixels(pixels, count) : [];
         };
       
-        // src/render/folia/utils/paperShaderUniforms.ts
+        // src/folia/utils/paperShaderUniforms.ts
         var updatePaperShaderUniforms = (mount, uniforms, animating) => {
           const writer = mount.setUniformValues;
           if (animating && typeof writer === "function") {
@@ -162682,7 +162728,7 @@ window.__ModuleLoader__.load({
           mount.setUniforms(uniforms);
         };
       
-        // src/render/folia/utils/paperShaderContext.ts
+        // src/folia/utils/paperShaderContext.ts
         var PAPER_SHADER_CONTEXT_ATTRIBUTES = Object.freeze({
           antialias: false,
           depth: false
@@ -162702,15 +162748,15 @@ window.__ModuleLoader__.load({
           };
         });
       
-        // src/render/folia/stores/motionSignals.ts
+        // src/folia/stores/motionSignals.ts
         var beatImpact = motionValue(0);
         var downbeatImpact = motionValue(0);
       
-        // src/render/folia/services/beatFx/beatFxLive.ts
+        // src/folia/services/beatFx/beatFxLive.ts
         var isBeatFxReady = () => false;
         var getBeatEffectStrength = (_effectId) => 0;
       
-        // src/render/folia/services/beatFx/beatEffects.ts
+        // src/folia/services/beatFx/beatEffects.ts
         var BEAT_EFFECT_IDS = {
           sonnetLensTear: "sonnet.lensTear",
           dioramaRipple: "diorama.ripple",
@@ -162724,7 +162770,7 @@ window.__ModuleLoader__.load({
           machiDrumRipple: "machi.drumRipple"
         };
       
-        // src/render/folia/components/visualizer/backgrounds/latent/LatentBackground.tsx
+        // src/folia/components/visualizer/backgrounds/latent/LatentBackground.tsx
         var MAX_SHADER_PIXELS = 1280 * 720;
         var PAUSED_SPEED_SCALE = 0.12;
         var PAUSE_EASE_MS = 300;
@@ -163009,7 +163055,7 @@ window.__ModuleLoader__.load({
         };
         var LatentBackground_default = react_shim_default.memo(LatentBackground);
       
-        // src/render/folia/components/visualizer/backgrounds/latent/entry.tsx
+        // src/folia/components/visualizer/backgrounds/latent/entry.tsx
         var LATENT_DISPLAY_MODES = ["dithering", "mesh", "both"];
         var LATENT_DISPLAY_LABEL_KEYS = {
           dithering: "options.latentDisplayDithering",
@@ -163103,7 +163149,7 @@ window.__ModuleLoader__.load({
           resetSettings: (actions) => actions?.latent?.onResetTuning?.()
         });
       
-        // src/render/folia/components/visualizer/monet/monetBackgroundPaint.ts
+        // src/folia/components/visualizer/monet/monetBackgroundPaint.ts
         var MONET_BACKGROUND_WIDTH = 1920;
         var MONET_BACKGROUND_HEIGHT = 1080;
         var FALLBACK_DARK = { r: 10, g: 10, b: 12 };
@@ -163242,7 +163288,7 @@ window.__ModuleLoader__.load({
           paintMonetOverlay(context, width, height, colors, tuning);
         };
       
-        // src/render/folia/components/visualizer/backgrounds/monet/monetBackgroundPipeline.ts
+        // src/folia-adapters/components/visualizer/backgrounds/monet/monetBackgroundPipeline.ts
         var monetBackgroundCache = /* @__PURE__ */ new Map();
         var clamp4 = (value, min, max) => Math.min(max, Math.max(min, value));
         var resolveSourceUrl = ({
@@ -163429,7 +163475,7 @@ window.__ModuleLoader__.load({
           };
         };
       
-        // src/render/folia/components/visualizer/backgrounds/monet/monetBackgroundDrift.ts
+        // src/folia/components/visualizer/backgrounds/monet/monetBackgroundDrift.ts
         var DRIFT_LOOP_SECONDS = 240;
         var DRIFT_LATTICE_POINTS = 76;
         var DRIFT_SAMPLE_COUNT = 156;
@@ -163488,7 +163534,7 @@ window.__ModuleLoader__.load({
           };
         };
       
-        // src/render/folia/hooks/useReducedMotionFor.ts
+        // src/folia/hooks/useReducedMotionFor.ts
         var useReducedMotionFor = (_surface) => {
           if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
           try {
@@ -163498,7 +163544,7 @@ window.__ModuleLoader__.load({
           }
         };
       
-        // src/render/folia/components/visualizer/backgrounds/monet/MonetBackgroundLayer.tsx
+        // src/folia/components/visualizer/backgrounds/monet/MonetBackgroundLayer.tsx
         var PIPELINE_DEBOUNCE_MS = 180;
         var clamp5 = (value, min, max) => Math.min(max, Math.max(min, value));
         var useMonetBackgroundDrift = (ref, enabled, strength, reducedMotion) => {
@@ -163716,7 +163762,7 @@ window.__ModuleLoader__.load({
         };
         var MonetBackgroundLayer_default = MonetBackgroundLayer;
       
-        // src/render/folia/utils/coverUrl.ts
+        // src/folia/utils/coverUrl.ts
         var KUWO_COVER_HOST_PATTERN = /^img\d*(?:\.(?:sycdn|kwcdn))?\.kuwo\.cn$/i;
         var KUWO_COVER_PATH_PATTERN = /^(\/star\/(?:albumcover|starheads)\/)(\d+)(\/)/;
         var QQ_COVER_HOSTNAMES = /* @__PURE__ */ new Set(["y.gtimg.cn", "y.qq.com"]);
@@ -163771,7 +163817,7 @@ window.__ModuleLoader__.load({
         };
         var COVER_MAX_SIZE = 1200;
       
-        // src/render/folia/components/visualizer/backgrounds/monet/entry.tsx
+        // src/folia/components/visualizer/backgrounds/monet/entry.tsx
         var SOURCE_LABEL_KEYS = {
           "cover-derived": "options.monetBackgroundSourceCover",
           "uploaded-global": "options.monetBackgroundSourceUploaded"
@@ -163875,7 +163921,7 @@ window.__ModuleLoader__.load({
           resetSettings: (actions) => actions?.monet?.onResetTuning?.()
         });
       
-        // src/render/folia/components/visualizer/backgrounds/nomand/nomandShaderAdjustments.ts
+        // src/folia/components/visualizer/backgrounds/nomand/nomandShaderAdjustments.ts
         var MAX_OVERSCAN = 1.8;
         var OVERSCAN_MARGIN = 0.01;
         var REFERENCE_ASPECT = 16 / 9;
@@ -163931,7 +163977,7 @@ window.__ModuleLoader__.load({
           return applyOverscanMargin(high);
         };
       
-        // src/render/folia/components/visualizer/backgrounds/nomand/NomandBackgroundLayer.tsx
+        // src/folia/components/visualizer/backgrounds/nomand/NomandBackgroundLayer.tsx
         var useShaderDrawn = (shaderRef, shader) => {
           const drawn = useFirstFrameDrawn();
           useEffect(() => {
@@ -164093,7 +164139,7 @@ window.__ModuleLoader__.load({
         };
         var NomandBackgroundLayer_default = react_shim_default.memo(NomandBackgroundLayer);
       
-        // src/render/folia/components/visualizer/backgrounds/nomand/NomandBackgroundEffectSettings.tsx
+        // src/folia/components/visualizer/backgrounds/nomand/NomandBackgroundEffectSettings.tsx
         var EFFECTS = [
           "dithering",
           "fluted-glass",
@@ -164109,7 +164155,7 @@ window.__ModuleLoader__.load({
           "lens-distortion": "options.nomandBackgroundEffectLensDistortion"
         };
       
-        // src/render/folia/components/visualizer/backgrounds/nomand/entry.tsx
+        // src/folia/components/visualizer/backgrounds/nomand/entry.tsx
         var SOURCE_LABEL_KEYS2 = {
           "cover-derived": "options.monetBackgroundSourceCover",
           "uploaded-global": "options.monetBackgroundSourceUploaded"
@@ -164198,7 +164244,7 @@ window.__ModuleLoader__.load({
           resetSettings: (actions) => actions?.nomand?.onResetTuning?.()
         });
       
-        // src/render/folia/vendor/twgl/dist/7.x/twgl-full.module.js
+        // src/folia-adapters/vendor/twgl/dist/7.x/twgl-full.module.js
         var VecType = Float32Array;
         function create$1(x, y, z) {
           const dst = new VecType(3);
@@ -167172,7 +167218,7 @@ window.__ModuleLoader__.load({
           return false;
         }
       
-        // src/render/folia/components/visualizer/backgrounds/sora/SoraBackground.tsx
+        // src/folia/components/visualizer/backgrounds/sora/SoraBackground.tsx
         var PARTICLE_COUNT = 150;
         var VERTEX_SHADER2 = `
       attribute float a_index;
@@ -167355,7 +167401,7 @@ window.__ModuleLoader__.load({
         };
         var SoraBackground_default = SoraBackground;
       
-        // src/render/folia/components/visualizer/backgrounds/sora/entry.tsx
+        // src/folia/components/visualizer/backgrounds/sora/entry.tsx
         var entry_default5 = defineVisualizerBackground({
           mode: "sora",
           order: 50,
@@ -167398,7 +167444,7 @@ window.__ModuleLoader__.load({
           resetSettings: (actions) => actions?.sora?.onResetTuning?.()
         });
       
-        // src/render/folia/utils/urlBackground.ts
+        // src/folia/utils/urlBackground.ts
         var normalizeUrlBackgroundUrl = (value) => {
           if (typeof value !== "string") {
             return null;
@@ -167429,7 +167475,7 @@ window.__ModuleLoader__.load({
           return { id, url, note };
         };
       
-        // src/render/folia/components/visualizer/backgrounds/url/UrlBackgroundLayer.tsx
+        // src/folia/components/visualizer/backgrounds/url/UrlBackgroundLayer.tsx
         var UrlBackgroundLayer = ({
           urlBackgroundList = [],
           urlBackgroundSelectedId = null
@@ -167493,7 +167539,7 @@ window.__ModuleLoader__.load({
         };
         var UrlBackgroundLayer_default = UrlBackgroundLayer;
       
-        // src/render/folia/components/visualizer/backgrounds/url/entry.tsx
+        // src/folia/components/visualizer/backgrounds/url/entry.tsx
         var entry_default6 = defineVisualizerBackground({
           mode: "url",
           order: 40,
@@ -167530,7 +167576,7 @@ window.__ModuleLoader__.load({
           )
         });
       
-        // src/render/folia/components/visualizer/backgrounds/registry.tsx
+        // src/folia/components/visualizer/backgrounds/registry.tsx
         var ENTRIES = [
           entry_default,
           entry_default3,
@@ -167548,7 +167594,7 @@ window.__ModuleLoader__.load({
         var getVisualizerBackgroundRegistryEntry = (mode) => BY_MODE[mode] ?? BY_MODE[DEFAULT_VISUALIZER_BACKGROUND_MODE] ?? ENTRIES[0];
         var VISUALIZER_BACKGROUND_MODE_IDS = ENTRIES.map((entry) => entry.mode);
       
-        // src/render/folia/components/visualizer/backgrounds/VisualizerBackgroundRenderer.tsx
+        // src/folia/components/visualizer/backgrounds/VisualizerBackgroundRenderer.tsx
         var VisualizerBackgroundRenderer = (props) => {
           if (props.config?.transparent) {
             return null;

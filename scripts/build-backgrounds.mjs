@@ -13,23 +13,23 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const OUT = join(ROOT, 'src/folia/backgrounds.bundle.js')
+const OUT = join(ROOT, 'src/folia-build/backgrounds.bundle.js')
 
 const aliases = [
   [/^react$/, 'src/client/vendor/react-shim.js'],
   [/^react\/jsx-runtime$/, 'src/client/vendor/jsx-runtime-shim.js'],
-  [/^framer-motion$/, 'src/folia/shims/framer-motion.js'],
-  [/^lucide-react$/, 'src/folia/shims/lucide-react.js'],
-  [/^@paper-design\/shaders-react$/, 'src/folia/vendor/paper-shaders-react/dist/index.js'],
-  [/^@paper-design\/shaders$/, 'src/folia/vendor/paper-shaders/dist/index.js'],
-  [/^twgl\.js$/, 'src/folia/vendor/twgl/dist/7.x/twgl-full.module.js'],
-  [/BackgroundSettingsCard$/, 'src/folia/shims/settings-card.tsx'],
-  [/monet\/monetBackgroundPipeline$/, 'src/folia/components/visualizer/backgrounds/monet/monetBackgroundPipeline.ts'],
+  [/^framer-motion$/, 'src/folia-adapters/shims/framer-motion.js'],
+  [/^lucide-react$/, 'src/folia-adapters/shims/lucide-react.js'],
+  [/^@paper-design\/shaders-react$/, 'src/folia-adapters/vendor/paper-shaders-react/dist/index.js'],
+  [/^@paper-design\/shaders$/, 'src/folia-adapters/vendor/paper-shaders/dist/index.js'],
+  [/^twgl\.js$/, 'src/folia-adapters/vendor/twgl/dist/7.x/twgl-full.module.js'],
+  [/BackgroundSettingsCard$/, 'src/folia-adapters/shims/settings-card.tsx'],
+  [/monet\/monetBackgroundPipeline$/, 'src/folia-adapters/components/visualizer/backgrounds/monet/monetBackgroundPipeline.ts'],
 ]
 
 try {
   const result = await build({
-    entryPoints: [join(ROOT, 'src/folia/backgrounds-entry.tsx')],
+    entryPoints: [join(ROOT, 'src/folia-build/backgrounds-entry.tsx')],
     write: false,
     bundle: true,
     format: 'iife',

@@ -2,6 +2,10 @@
 
 ## 未发布
 
+### 维护
+
+- 目录结构对齐：`src/folia/` 只保留已移植的 Folia 文件，路径与上游 `src/` 一致；shims/vendor 移到 `src/folia-adapters/`，构建入口和 bundle 移到 `src/folia-build/`。
+
 ### 播放器
 
 - 面板新增队列页签：窗口化渲染、当前行高亮、播放/下一首/移到末尾/移除/清空。

@@ -138,7 +138,7 @@ assert.equal(transparent.transparent, true)
 // response and the pause slowdown) never run. The committed bundle must carry the
 // forwardRef wrappers.
 const backgroundsSource = readFileSync(
-  new URL('../../src/folia/backgrounds.bundle.js', import.meta.url),
+  new URL('../../src/folia-build/backgrounds.bundle.js', import.meta.url),
   'utf8',
 )
 assert.match(

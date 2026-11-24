@@ -177,7 +177,7 @@ assert.equal(internals.mpStyleOf('classic').id, 'classic')
 // Folia's compiled Tailwind sheet is written against its theme variables; the plugin has to
 // define them or every utility that uses one (spacing, blur, radii, text sizes) is dropped
 // by the browser — the subtitle glow then paints as a hard box.
-const foliaCss = readFileSync(join(ROOT, 'src/folia/folia-css.js'), 'utf8')
+const foliaCss = readFileSync(join(ROOT, 'src/folia-build/folia-css.js'), 'utf8')
 assert.match(foliaCss, /--spacing:\.25rem/, 'the Tailwind spacing scale is defined')
 assert.match(foliaCss, /--blur-2xl:40px/, 'the blur scale the subtitle glow uses is defined')
 assert.match(foliaCss, /--radius-2xl:1rem/, 'the radius scale is defined')
@@ -191,7 +191,7 @@ const pendoloHost = readFileSync(join(ROOT, 'src/client/render/styles/folia-pend
 assert.match(pendoloHost, /subtitleOverlayBackground/, 'pendolo gets the same setting')
 
 // Folia leaves `ui.waitingForMusic` empty; the renderers must not print the raw key.
-const i18nShim = readFileSync(join(ROOT, 'src/folia/shims/i18n.ts'), 'utf8')
+const i18nShim = readFileSync(join(ROOT, 'src/folia-adapters/shims/i18n.ts'), 'utf8')
 assert.match(i18nShim, /MP_FOLIA_T/, 'the ported styles translate through the plugin dictionary')
 assert.doesNotMatch(i18nShim, /t: \(key: string\) => key/, 'the identity translation is gone')
 const i18nSource = readFileSync(join(ROOT, 'src/client/i18n/i18n.js'), 'utf8')

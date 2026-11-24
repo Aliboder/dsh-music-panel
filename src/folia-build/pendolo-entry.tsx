@@ -1,6 +1,6 @@
 import React from 'react';
-import VisualizerPendolo from './components/visualizer/pendolo/VisualizerPendolo';
-import { DEFAULT_PENDOLO_TUNING } from './types';
+import VisualizerPendolo from '../folia/components/visualizer/pendolo/VisualizerPendolo';
+import { DEFAULT_PENDOLO_TUNING } from '../folia/types';
 
 // src/render/folia/entry.tsx
 // Build entry for the ported Folia Pendolo renderer. The component is exported as-is;
@@ -8,6 +8,6 @@ import { DEFAULT_PENDOLO_TUNING } from './types';
 // VisualizerSharedProps and mounts it once.
 
 export { VisualizerPendolo, DEFAULT_PENDOLO_TUNING };
-export { buildTimedWords, estimateLrcLineEndTime } from './utils/lyrics/estimatedLineTiming';
+export { buildTimedWords, estimateLrcLineEndTime } from '../folia/utils/lyrics/estimatedLineTiming';
 
 export const hasMotion = Boolean(React) && true;

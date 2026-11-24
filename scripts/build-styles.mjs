@@ -9,19 +9,20 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const OUT = join(ROOT, 'src/folia/styles.bundle.js')
+const OUT = join(ROOT, 'src/folia-build/styles.bundle.js')
 const FOLIA = 'src/folia'
+const FOLIA_ADAPTERS = 'src/folia-adapters'
 
 const aliases = [
   [/^react$/, 'src/client/vendor/react-shim.js'],
   [/^react\/jsx-runtime$/, 'src/client/vendor/jsx-runtime-shim.js'],
-  [/^framer-motion$/, `${FOLIA}/shims/framer-motion.js`],
-  [/^lucide-react$/, `${FOLIA}/shims/lucide-react.js`],
-  [/^@chenglou\/pretext$/, `${FOLIA}/vendor/pretext/dist/layout.js`],
-  [/^@chenglou\/pretext\/rich-inline$/, `${FOLIA}/vendor/pretext/dist/rich-inline.js`],
-  [/^pixi\.js$/, `${FOLIA}/vendor/pixi/pixi.min.mjs`],
-  [/^pixi\.js\/advanced-blend-modes$/, `${FOLIA}/vendor/pixi/pixi.min.mjs`],
-  [/^@react-three\/fiber$/, `${FOLIA}/vendor/r3f/r3f8.mjs`],
+  [/^framer-motion$/, `${FOLIA_ADAPTERS}/shims/framer-motion.js`],
+  [/^lucide-react$/, `${FOLIA_ADAPTERS}/shims/lucide-react.js`],
+  [/^@chenglou\/pretext$/, `${FOLIA_ADAPTERS}/vendor/pretext/dist/layout.js`],
+  [/^@chenglou\/pretext\/rich-inline$/, `${FOLIA_ADAPTERS}/vendor/pretext/dist/rich-inline.js`],
+  [/^pixi\.js$/, `${FOLIA_ADAPTERS}/vendor/pixi/pixi.min.mjs`],
+  [/^pixi\.js\/advanced-blend-modes$/, `${FOLIA_ADAPTERS}/vendor/pixi/pixi.min.mjs`],
+  [/^@react-three\/fiber$/, `${FOLIA_ADAPTERS}/vendor/r3f/r3f8.mjs`],
   [/^three$/, 'src/client/vendor/three.esm.js'],
   [/^three\/examples\/jsm\/controls\/OrbitControls\.js$/, 'src/client/vendor/three-examples/controls/OrbitControls.js'],
   [/^three\/examples\/jsm\/postprocessing\/Pass\.js$/, 'src/client/vendor/three-examples/postprocessing/Pass.js'],
@@ -31,24 +32,24 @@ const aliases = [
   [/^three\/examples\/jsm\/postprocessing\/SMAAPass\.js$/, 'src/client/vendor/three-examples/postprocessing/SMAAPass.js'],
   [/^three\/examples\/jsm\/utils\/BufferGeometryUtils\.js$/, 'src/client/vendor/three-examples/utils/BufferGeometryUtils.js'],
   [/^three\/examples\/jsm\/geometries\/RoundedBoxGeometry\.js$/, 'src/client/vendor/three-examples/geometries/RoundedBoxGeometry.js'],
-  [/^@applemusic-like-lyrics\/ttml$/, `${FOLIA}/shims/ttml.ts`],
-  [/^@xmldom\/xmldom$/, `${FOLIA}/shims/ttml.ts`],
-  [/^react-dom\/server$/, `${FOLIA}/shims/react-dom-server.ts`],
-  [/BackgroundSettingsCard$/, `${FOLIA}/shims/settings-card.tsx`],
-  [/MachiSettingsPanel$/, `${FOLIA}/shims/machi-settings.tsx`],
-  [/SettingsPanel$/, `${FOLIA}/shims/settings-card.tsx`],
-  [/SettingsCard$/, `${FOLIA}/shims/settings-card.tsx`],
-  [/settingsPanels$/, `${FOLIA}/shims/settings-card.tsx`],
-  [/panelRows$/, `${FOLIA}/shims/settings-card.tsx`],
-  [/modal\/settings\/kit/, `${FOLIA}/shims/settings-card.tsx`],
-  [/^react-i18next$/, `${FOLIA}/shims/i18n.ts`],
-  [/^i18next$/, `${FOLIA}/shims/i18n.ts`],
-  [/^@\/mods\//, `${FOLIA}/shims/mods.ts`],
+  [/^@applemusic-like-lyrics\/ttml$/, `${FOLIA_ADAPTERS}/shims/ttml.ts`],
+  [/^@xmldom\/xmldom$/, `${FOLIA_ADAPTERS}/shims/ttml.ts`],
+  [/^react-dom\/server$/, `${FOLIA_ADAPTERS}/shims/react-dom-server.ts`],
+  [/BackgroundSettingsCard$/, `${FOLIA_ADAPTERS}/shims/settings-card.tsx`],
+  [/MachiSettingsPanel$/, `${FOLIA_ADAPTERS}/shims/machi-settings.tsx`],
+  [/SettingsPanel$/, `${FOLIA_ADAPTERS}/shims/settings-card.tsx`],
+  [/SettingsCard$/, `${FOLIA_ADAPTERS}/shims/settings-card.tsx`],
+  [/settingsPanels$/, `${FOLIA_ADAPTERS}/shims/settings-card.tsx`],
+  [/panelRows$/, `${FOLIA_ADAPTERS}/shims/settings-card.tsx`],
+  [/modal\/settings\/kit/, `${FOLIA_ADAPTERS}/shims/settings-card.tsx`],
+  [/^react-i18next$/, `${FOLIA_ADAPTERS}/shims/i18n.ts`],
+  [/^i18next$/, `${FOLIA_ADAPTERS}/shims/i18n.ts`],
+  [/^@\/mods\//, `${FOLIA_ADAPTERS}/shims/mods.ts`],
 ]
 
 try {
   const result = await build({
-    entryPoints: [join(ROOT, 'src/folia/styles-entry.tsx')],
+    entryPoints: [join(ROOT, 'src/folia-build/styles-entry.tsx')],
     write: false,
     bundle: true,
     format: 'iife',

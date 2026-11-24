@@ -82,7 +82,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/shims/lucide-react.js
+    // src/folia-adapters/shims/lucide-react.js
     function makeIcon(path2) {
       return function Icon(props) {
         const size = Number(props && props.size) || 24;
@@ -106,7 +106,7 @@ function __mpStylesBundle() {
     }
     var starPath, Star, Disc3, Aperture, Cone, Layers, Columns3, Wind, Square, ImagePlus, Trash2, Pencil, Plus, Upload, Smile, SeparatorVertical, Hourglass, EyeOff, RotateCcw, RotateCw, AlignLeft, AudioWaveform, Move, Spline, Frame, Sparkles, WandSparkles, Scan, Ghost, Highlighter, Camera, Orbit, X;
     var init_lucide_react = __esm({
-      "src/folia/shims/lucide-react.js"() {
+      "src/folia-adapters/shims/lucide-react.js"() {
         init_react_shim();
         starPath = "M12 2.6l2.95 5.98 6.6.96-4.78 4.66 1.13 6.58L12 17.68l-5.9 3.1 1.13-6.58L2.45 9.54l6.6-.96L12 2.6z";
         Star = makeIcon(starPath);
@@ -144,10 +144,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/shims/settings-card.tsx
+    // src/folia-adapters/shims/settings-card.tsx
     var Stub, CappellaSettingsPanel, ClassicSettingsPanel, CladdaghSettingsPanel, DioramaSettingsPanel, FumeSettingsPanel, MonetSettingsPanel, PartitaSettingsPanel, TiltSettingsPanel, Tooltip, SettingsKitThemeContext, NEBBIA_APPEAR_LABEL_KEYS, NEBBIA_FADE_LABEL_KEYS, Slider, Toggle, settings_card_default, passthrough, Button, Segmented, Tabs, settingsTokens, percent, times;
     var init_settings_card = __esm({
-      "src/folia/shims/settings-card.tsx"() {
+      "src/folia-adapters/shims/settings-card.tsx"() {
         init_react_shim();
         Stub = () => null;
         CappellaSettingsPanel = Stub;
@@ -206,10 +206,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/shims/framer-motion.js
+    // src/folia-adapters/shims/framer-motion.js
     var framer, motionFallback, motion, AnimatePresence, MotionConfig, LayoutGroup, useMotionValue, useSpring, useTransform, useMotionValueEvent, useDragControls, motionValue, useReducedMotion, animate;
     var init_framer_motion = __esm({
-      "src/folia/shims/framer-motion.js"() {
+      "src/folia-adapters/shims/framer-motion.js"() {
         init_react_shim();
         framer = typeof MPFramer !== "undefined" && MPFramer !== null ? MPFramer : {};
         motionFallback = new Proxy({}, {
@@ -280,10 +280,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/shims/i18n.ts
+    // src/folia-adapters/shims/i18n.ts
     var pluginTranslate, useTranslation;
     var init_i18n = __esm({
-      "src/folia/shims/i18n.ts"() {
+      "src/folia-adapters/shims/i18n.ts"() {
         pluginTranslate = (key, vars) => {
           const translate = globalThis.MP_FOLIA_T;
           if (typeof translate !== "function") return "";
@@ -2741,10 +2741,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/vendor/pretext/dist/generated/bidi-data.js
+    // src/folia-adapters/vendor/pretext/dist/generated/bidi-data.js
     var latin1BidiTypes, nonLatin1BidiRanges;
     var init_bidi_data = __esm({
-      "src/folia/vendor/pretext/dist/generated/bidi-data.js"() {
+      "src/folia-adapters/vendor/pretext/dist/generated/bidi-data.js"() {
         latin1BidiTypes = [
           "BN",
           "BN",
@@ -3722,7 +3722,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/vendor/pretext/dist/bidi.js
+    // src/folia-adapters/vendor/pretext/dist/bidi.js
     function classifyCodePoint(codePoint) {
       if (codePoint <= 255)
         return latin1BidiTypes[codePoint];
@@ -3894,12 +3894,12 @@ function __mpStylesBundle() {
       return segLevels;
     }
     var init_bidi = __esm({
-      "src/folia/vendor/pretext/dist/bidi.js"() {
+      "src/folia-adapters/vendor/pretext/dist/bidi.js"() {
         init_bidi_data();
       }
     });
   
-    // src/folia/vendor/pretext/dist/analysis.js
+    // src/folia-adapters/vendor/pretext/dist/analysis.js
     function normalizeWhitespaceNormal(text) {
       if (!needsWhitespaceNormalizationRe.test(text))
         return text;
@@ -4958,7 +4958,7 @@ function __mpStylesBundle() {
     }
     var collapsibleWhitespaceRunRe, needsWhitespaceNormalizationRe, sharedGraphemeSegmenter, sharedWordSegmenter, segmenterLocale, arabicScriptRe, combiningMarkRe, decimalDigitRe, cjkRe, keepAllGlueChars, keepAllDashBreakChars, kinsokuStart, kinsokuEnd, forwardStickyGlue, leftStickyPunctuation, arabicNoSpaceTrailingPunctuation, myanmarMedialGlue, closingQuoteChars, lineBreakNumericAffixRanges, breakCharRe, urlSchemeSegmentRe, numericJoinerChars, wordInternalSymbolRe, emojiPresentationRe, noSpaceWordBreakAfterChars, asciiAlphabeticBoundaryRe;
     var init_analysis = __esm({
-      "src/folia/vendor/pretext/dist/analysis.js"() {
+      "src/folia-adapters/vendor/pretext/dist/analysis.js"() {
         collapsibleWhitespaceRunRe = /[ \t\n\r\f]+/g;
         needsWhitespaceNormalizationRe = /[\t\n\r\f]| {2,}|^ | $/;
         sharedGraphemeSegmenter = null;
@@ -5186,7 +5186,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/vendor/pretext/dist/measurement.js
+    // src/folia-adapters/vendor/pretext/dist/measurement.js
     function getMeasureContext() {
       if (measureContext !== null)
         return measureContext;
@@ -5371,7 +5371,7 @@ function __mpStylesBundle() {
     }
     var measureContext, segmentMetricCaches, cachedEngineProfile, MAX_PREFIX_FIT_GRAPHEMES, emojiPresentationRe2, maybeEmojiRe, emojiCorrectionCache;
     var init_measurement = __esm({
-      "src/folia/vendor/pretext/dist/measurement.js"() {
+      "src/folia-adapters/vendor/pretext/dist/measurement.js"() {
         init_analysis();
         measureContext = null;
         segmentMetricCaches = /* @__PURE__ */ new Map();
@@ -5383,7 +5383,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/vendor/pretext/dist/line-break.js
+    // src/folia-adapters/vendor/pretext/dist/line-break.js
     function isDiscretionaryLineEnd(kinds, endSegmentIndex, endGraphemeIndex) {
       return endGraphemeIndex === 0 && endSegmentIndex > 0 && endSegmentIndex < kinds.length && kinds[endSegmentIndex - 1] === "soft-hyphen";
     }
@@ -6001,12 +6001,12 @@ function __mpStylesBundle() {
       return stepPreparedLineGeometryFromChunk(prepared, cursor, chunkIndex, maxWidth);
     }
     var init_line_break = __esm({
-      "src/folia/vendor/pretext/dist/line-break.js"() {
+      "src/folia-adapters/vendor/pretext/dist/line-break.js"() {
         init_measurement();
       }
     });
   
-    // src/folia/vendor/pretext/dist/line-text.js
+    // src/folia-adapters/vendor/pretext/dist/line-text.js
     function getSegmentGraphemeOffsets(segmentIndex, segments, cache2) {
       let offsets = cache2.get(segmentIndex);
       if (offsets !== void 0)
@@ -6050,14 +6050,14 @@ function __mpStylesBundle() {
     }
     var sharedLineTextCaches;
     var init_line_text = __esm({
-      "src/folia/vendor/pretext/dist/line-text.js"() {
+      "src/folia-adapters/vendor/pretext/dist/line-text.js"() {
         init_analysis();
         init_line_break();
         sharedLineTextCaches = /* @__PURE__ */ new WeakMap();
       }
     });
   
-    // src/folia/vendor/pretext/dist/layout.js
+    // src/folia-adapters/vendor/pretext/dist/layout.js
     function createEmptyPrepared(includeSegments) {
       if (includeSegments) {
         return {
@@ -6313,7 +6313,7 @@ function __mpStylesBundle() {
       clearMeasurementCaches();
     }
     var init_layout = __esm({
-      "src/folia/vendor/pretext/dist/layout.js"() {
+      "src/folia-adapters/vendor/pretext/dist/layout.js"() {
         init_bidi();
         init_analysis();
         init_measurement();
@@ -31269,9 +31269,9 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/shims/ttml.ts
+    // src/folia-adapters/shims/ttml.ts
     var init_ttml = __esm({
-      "src/folia/shims/ttml.ts"() {
+      "src/folia-adapters/shims/ttml.ts"() {
       }
     });
   
@@ -44732,7 +44732,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/vendor/pretext/dist/rich-inline.js
+    // src/folia-adapters/vendor/pretext/dist/rich-inline.js
     function getInternalPreparedRichInline(prepared) {
       return prepared;
     }
@@ -44989,7 +44989,7 @@ function __mpStylesBundle() {
     }
     var EMPTY_LAYOUT_CURSOR, RICH_INLINE_START_CURSOR;
     var init_rich_inline = __esm({
-      "src/folia/vendor/pretext/dist/rich-inline.js"() {
+      "src/folia-adapters/vendor/pretext/dist/rich-inline.js"() {
         init_layout();
         init_line_break();
         init_measurement();
@@ -50673,7 +50673,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/vendor/pixi/pixi.min.mjs
+    // src/folia-adapters/vendor/pixi/pixi.min.mjs
     var pixi_min_exports = {};
     __export(pixi_min_exports, {
       AbstractBitmapFont: () => Cu2,
@@ -55727,7 +55727,7 @@ function __mpStylesBundle() {
     }
     var IS, Zc2, FS, BS, Qc2, Jc2, DS, $S, US, td2, kS, LS, ed2, rd2, NS, T2, No2, ds2, L2, fi2, NB, sd2, HS, It2, zS, Ie2, Ft2, oe2, id2, nd2, jo2, WS, mi2, od2, ad2, ld2, ud2, hd2, ps2, VS, YS, KS, qS, Xo2, cd2, dd2, Ho2, zo2, pd2, gi2, xe2, fd2, ZS, JS, md2, t2, e2, gd2, r2, Ar2, tt2, _d2, xd2, vd2, bd2, lt2, Wo2, D2, s2, i2, gt2, fs2, tr2, yd2, Td2, St2, Sd2, wd2, Ed2, ms2, Ad2, _i2, o2, Pd2, a2, l2, Cd2, Rd2, Md2, Od2, xi2, it2, Gd2, Ct2, Ut2, ve2, u2, Id2, Bd2, Dd2, h2, Ud2, kd2, Ld2, Nd2, yi2, p2, jd2, f2, m2, Xd2, Hd2, zd2, Wd2, ae2, _2, Vd2, x2, v22, Yd2, Kd2, qd2, ct2, sr2, ir2, nr2, or2, Ko2, Zd2, Ti2, H2, qo2, y2, T22, S2, Qd2, w2, E2, Jd2, A2, P2, Si2, tp2, Zo2, B2, Qo2, C2, R2, M2, ep2, O2, G2, rp2, I2, F2, B22, D22, $2, sp2, U2, ip2, ft2, wi2, Jo2, ta2, ea2, ra2, xs2, Ai2, Pr2, N2, dt2, Te2, Pi2, np2, Rt2, sa2, ns2, ia2, op2, ap2, lp2, na2, up2, Cr2, Ci2, Fe2, hp2, cp2, dp2, pp2, fp2, mp2, gp2, xp2, X22, vp2, H22, bp2, z2, W2, yp2, Tp2, V2, Sp2, Y2, K2, wp2, Ep2, q2, Z2, Q2, oa2, Ap2, Pp2, aa2, Se2, J2, Ri2, Cp2, Rp2, Mp2, tw, ew, rw, sw, we2, vs2, le2, ar2, iw, nw, bs2, Op2, ow, Gp2, aw, lw, Ip2, uw, hw, cw, la2, ua2, Fp2, ee2, Bp2, Dp2, X3, Vt2, ue2, Ts2, mw, gw, _w, kp2, xw, vw, Lp2, lr2, bw, Ne2, Mi2, jp2, ha2, yw, Hp2, Tw, Oi2, zp2, Wp2, Vp2, Sw, ww, _e2, Ew, da2, pa2, fa2, re2, je2, ma2, Aw, Pw, Cw, Kp2, Rw, Mw, qp2, _a2, Ow, Fi2, Rr2, Gw, rt2, xa2, Mr2, Z3, ef2, se2, Io2, Fo2, Fw, Bw, os2, Bi2, Bo2, Wc2, rf2, Dw, $w, Ea2, Aa2, Pa2, sf, ws2, $i2, Uw, kw, Lw, cf, Nw, jw, df, pf, Ra2, Es2, ff, Yt2, mf, Xw, gf, At2, As2, zt2, Ee2, Mt2, zw, Tf, Ww, Vw, Sf, Yw, as2, Ma2, wf, Kw, Af, qw, Zw, Pf, Cf, Rf, wt2, Qw, ki2, Mf, Of, Gf, Jw, tE, ne2, eE, Oa2, Ga2, Ia2, Fa2, Ba2, Da2, $a2, Ua2, Kt2, rE, Li2, If, Ff, Bf, ka2, sE, Df, Ae2, Ps2, $f, La2, Uf, st2, qt2, hr2, nE, oE, ja2, aE, Xa2, Cs2, Wf, Pt2, Ka2, wE, Vf, EE, AE, Yf, Xi2, PE, Kf, Gr2, qa2, Za2, CE, qf, RE, ME, Zf, Ir2, Qf, OE, Bs2, Qa2, Ja2, tl2, el2, GE, tm2, IE, FE, em2, BE, rm2, sm2, Hi2, rl2, sl2, DE, im2, nm2, om2, am2, lm2, um2, hm2, $E, cm2, dm2, pm2, fm2, UE, kE, LE, mm2, NE, jE, gm2, Fr2, XE, _m2, xm2, HE, zE, vm2, WE, VE, bm2, YE, KE, qE, ym2, ZE, QE, Tm2, JE, tA, eA, rA, sA, iA, nA, wm2, nl2, aA, lA, Am2, pr2, Pm2, ol2, dA, pA, Br2, $s2, Cm2, bt2, fA, $r2, Mm2, gA, Om2, _A, xA, Gm2, Im2, Fm2, Us2, Vi2, ks2, $m2, Um2, vA, bA, km2, yA, fr2, dl2, wA, Vm2, Ym2, Km2, qm2, Zm2, AA, Qm2, PA, Jm2, CA, RA, tg, MA, Yi2, Ki2, pl2, fl2, Lr2, Nr2, eg, ml2, Ls2, rg, Ji2, kt2, FA, en2, BA, DA, $A, sg, UA, kA, ig, rn2, sn2, jr2, ng, og, xl2, vl2, LA, ug, hg, cg, NA, dg, jA, XA, pg, fg, mg, yl2, Lt2, zA, WA, VA, Xe2, YA, KA, bg, yg, Sl2, on2, QA, an2, JA, wl2, Xr2, gr2, eP, rP, sP, iP, Tg, Ns2, Rl2, Ml2, Eg, aP, lP, Rg, ge2, Ol2, Mg, Il2, dP, Ug, pP, fP, kg, ln2, jg, zr2, gP, un2, Xg, Hg, zg, fe2, _P, SP, Zg, wP, EP, Qg, Wr2, AP, Jg, Dl2, Nt2, PP, hn2, t_, e_, r_, CP, RP, MP, OP, s_, FP, Vr2, $l2, BP, Yr2, i_, n_, Ul2, DP, kl2, $P, o_, UP2, kP, a_, LP, NP, jP, Ll2, XP, HP, zP, u_, WP, VP, h_, Nl2, c_, YP, jl2, Xl2, m_, Hl2, g_, qP, __, ZP, QP, x_, v_, b_, Xs2, y_, JP, tC, eC, rC, T_, sC, iC, S_, nC, oC, Hs2, cn2, dn2, Vl2, w_, pn2, aC, Kr2, E_, fn2, Ws2, A_, hC, cC, dC, C_, pC, fC, R_, mC, gC, _C, vC, yC, TC, Kl2, ql2, Zt2, Zl2, Qt2, Y3, M_, PC, CC, RC, G_, MC, OC, I_, GC, IC, FC, F_, BC, DC, $C, UC, kC, LC, NC, jC, XC, HC, zC, yt2, qC, ZC, QC, D_, JC, tR, $_, eR, rR, sR, iR, qr2, U_, mn2, Vs2, k_, L_, aR, lR, uR, j_, hR, cR, X_, dR, pR, fR, Ql2, _R, xR, bR, gn2, TR, _n2, SR, ER, AR, Ys2, Jl2, V_, Y_, PR, K_, q_, Z_, CR, Q_, RR, MR, J_, tx, OR, GR, IR, rx, tu2, FR, BR, DR, xn2, sx, ix, nx, eu2, $R, UR, ox, kR, ru2, LR, NR, hx, jR, dx, XR, HR, px, su2, fx, vn2, zR, WR, VR, bn2, mx, gx, _x, Ks2, YR, KR, xx, vx, iu2, qR, ZR, QR, bx, JR, tM, yx, eM, rM, sM, Tx, Sx, nu2, iM, nM, oM, yn2, wx, Ex, Ax, aM, lM, uM, hM, Px, ou2, cM, dM, pM, Tn2, Cx, Rx, Mx, au2, fM, mM, Ox, gM, Gx, Ix, lu2, _M, xM, vM, Sn2, Fx, Bx, Dx, bM, yM, TM, $x, SM, Ux, kx, wM, EM, uu2, Lx, hu2, Nx, cu2, PM, wn2, jx, Xx, Hx, CM, RM, Er2, MM, zx, OM, GM, Wx, Vx, Yx, Ve2, En2, du2, pu2, IM, An2, Kx, qx, Zx, FM, BM, Qr2, DM, $M, UM, Pn2, Qx, Jx, tv, kM, LM, NM, hi2, ev, Cn2, De2, Pe2, fu2, jM, XM, HM, rv, zM, WM, sv, iv, nv, Jr2, ov, Rn2, av, lv, mu2, gu2, uv, hv, Mn2, fv, _u2, VM, On2, mv, gv, _v2, qs2, YM, xv, vv, KM, Gn2, bv, yv, Tv, qM, ZM, In2, _r2, $e2, JM, Pv, Cv, Rv, Mv, Ov, Gv, Iv, Fv, Bv, Dv, rO, sO, jv, Ue2, vt2, iO, Xv, Hv, nO, me2, oO, aO, lO, zv, uO, hO, Wv, jt2, cO, Su2, Xt2, Qs2, Vv, wu2, Eu2, Au2, Pu2, Js2, Yv, Cu2, fO, Kv, mO, gO, qv, Zv, Qv, Ru2, bO, tb, yO, TO, eb, Mu2, Nn2, SO, rs2, rb, Ou2, Gu2, ib, nb, ob, ab, Iu2, Fu2, lb, Bu2, Du2, wO, ub, EO, AO, hb, $u2, pb, fb, CO, mb, RO, MO, gb, _b, Do2, xb, vb, ku2, bb, yb, Nu2, jn2, Xu2, Rb, Mb, Ob, Hu2, Gb, zu2, Xn2, Wu2, Vu2, Hn2, Ib, Fb, FO, BO, zn2, Yu2, Ku2, DO, qu2, Zu2, pt2, LO, Qu2, Ju2, Wn2, Yn2, NO, Kn2, jO, XO, th2, HO, eh2, Zn2, ti2, Qn2, qO, $b, ZO, ih2, QO, Nb, JO, t3, jb, Xb, nh2, Hb, e3, zb, r3, s3, Wb, oh2, ah2, lh2, Vb, i3, n3, o3, to2, Yb, Kb, qb, a3, l3, u3, $o2, h3, c3, d3, Zb, p3, f3, Qb, m3, g3, _3, x3, v32, uh2, b3, ey, y3, T3, ry, sy, hh2, iy, ch2, S3, dh2, ny, eo2, w3, ay, E3, A3, ly, uy, ph2, hy, fh2, cy, P3, dy, C3, R3, py, fy, my, ei2, M3, gy, O3, G3, _y, I3, vr2, B3, xy, D3, $3, vy, by, gh2, yy, ro2, _h2, so2, wy, xh2, vh2, U3, k3, L3, Ey, Ay, Py, Cy, Ry, N3, ri2, My, bh2, j3, X32, H3, Oy, z3, W3, Gy, io2, Iy, yh2, Fy, oo2, ao2, By, at2, Dy, Y32, Uy, Th2, K3, ky, q3, Z32, Ly, Ny, Q3, Sh2, jy, wh2, Eh2, Ah2, Xy, ke2, Ph2, Ch2, Rh2, br2, J3, tG, eG, zy, rG, sG, Wy, iG, nG, Oh2, Vy, Gh2, qy, Ih2, lo2, Zy, oG, Jy, uo2, t0, aG, ho2, Uh2, l0, u0, kh2, uG, cG, dG, pG, fG, mG, d0, p0, f0, Lh2, m0, gG, g0, _0, Nh2, vG, v0, jh2, b0, co2, y0, bG, yG, TG, S0, SG, wG, w0, yr2, EG, PG, CG, RG, C0, MG, OG, R0, M0, GG, IG, Hh2, zh2, Wh2, Vh2, FG, BG, DG, O0, G0, I0, F0, B0, $G, UG, Yh2, D0, Kh2, $0, qh2, po2, U0, Zh2, Qh2, Jh2, si2, tc2, Ye2, ec2, kG, LG, NG, j0, jG, XG, X0, HG, zG, H0, WG, VG, z02, V0, YG, sc2, K0, ZG, q0, QG, JG, Z0, tI, eI, Q0, ic2, nc2, Ht2, oc2, J0, ac2, sI, t1, e1, lc2, s1, i1, iI, nI, oI, n1, aI, lI, o1, fo2, uI, uc2, hc2, cc2, dc2, pc2, hI, cI, dI, l1, u1, h1, c1, d1, pI, fI, mI, fc2, gI, mc2, _I, xI, vI, bI, mo2, p1, f1, m1, yI, TI, SI, ls2, wI, EI, AI, go2, g1, _1, x12, v1, PI, CI, gc2, Uo2, _c2, xc2, OI, GI, BI, _o2, b1, y1, T1, DI, $I, UI, S1, Tr2, XI, qI, C1, ZI, QI, R1, M1, O1, JI, tF, G1, eF, rF, I1, F1, B1, xo2, iF, nF, vo2, oF, aF, N1, lF, uF, hF, bo2, j1, X1, H1, bc2, cF, dF, z12, pF, fF, mF, gF, yo2, W1, V1, Y1, _F, xF, vF, bF, yF, K1, TF, SF, q1, Z1, Q1, J1, wF, EF, AF, To2, tT, eT, rT, yc2, PF, CF, sT, RF, MF, OF, GF, So2, iT, nT, oT, IF, FF, BF, DF, aT, hT, cT, dT, Sc2, pT, ni2, wc2, fT, Ec2, mT, Ac2, kF, gT, LF, NF, _T, xT, vT, jF, Pc2, XF, HF, zF, wo2, bT, yT, TT, is2, ST, WF, VF, wT, YF, Cc2, Rc2, Mc2, Oc2, Gc2, KF, ET, qF, ZF, AT, PT, CT, qe2, RT, Ic2, QF, Ao2, MT, OT, GT, JF, tB, IT, FT, eB, BT, rB, $T, sB, iB, nB, Fc2, oB, aB, lB, UT, uB, hB, kT, oi2, cB, LT, dB, pB, gB, _B, xB, XT, vB, bB, HT, ai2, yB, zT, TB, WT, CB, RB, MB, YT, OB, GB, KT, qT, IB, FB, BB;
     var init_pixi_min = __esm({
-      "src/folia/vendor/pixi/pixi.min.mjs"() {
+      "src/folia-adapters/vendor/pixi/pixi.min.mjs"() {
         IS = Object.defineProperty;
         Zc2 = Object.getOwnPropertySymbols;
         FS = Object.prototype.hasOwnProperty;
@@ -78488,10 +78488,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/shims/mods.ts
+    // src/folia-adapters/shims/mods.ts
     var useFoliumTunings;
     var init_mods = __esm({
-      "src/folia/shims/mods.ts"() {
+      "src/folia-adapters/shims/mods.ts"() {
         useFoliumTunings = (_mode) => ({});
       }
     });
@@ -78852,10 +78852,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/shims/react-dom-server.ts
+    // src/folia-adapters/shims/react-dom-server.ts
     var renderToStaticMarkup;
     var init_react_dom_server = __esm({
-      "src/folia/shims/react-dom-server.ts"() {
+      "src/folia-adapters/shims/react-dom-server.ts"() {
         renderToStaticMarkup = (_element) => "";
       }
     });
@@ -112398,7 +112398,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/vendor/r3f/r3f8.mjs
+    // src/folia-adapters/vendor/r3f/r3f8.mjs
     function Bc3(o4) {
       let u4, s4 = /* @__PURE__ */ new Set(), d4 = (C4, c4) => {
         let h4 = typeof C4 == "function" ? C4(u4) : C4;
@@ -113199,7 +113199,7 @@ function __mpStylesBundle() {
     }
     var Tc3, Au3, Mc3, Lc3, Ic3, Oc3, Fc3, vn3, Dc3, hn3, Bu3, yi3, is3, tl3, ss3, Ci3, pt3, Qc3, Wu3, Wc3, Kt3, Yu3, Ku3, Ju3, gs3, il3, Bi3, Qi3, cs2, fs3, Ni3, ys3, Ss3, ws3, xn3, Zn3, _s3, ds3, Xc3, Sn3, le3, ps3, Yc2, Ns3, Vi3, qc2, rl3, $c3, bc3, ef3, Ii3, Oi3, vs3, qt3, Ui3, Ai3, qn3, Zt3, yn3, nf3, Di3, cf2, ff2, df2, pf2, mf2, Hs3, vf2, hf2, js3, Us3, gf2, As3, Bs3, Bf2, Qs3, Ki3, bn3, rd3, ld3, id3, Ef2, _f2;
     var init_r3f8 = __esm({
-      "src/folia/vendor/r3f/r3f8.mjs"() {
+      "src/folia-adapters/vendor/r3f/r3f8.mjs"() {
         init_three_esm();
         init_react_shim();
         init_react_shim();
@@ -121101,7 +121101,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/styles-entry.tsx
+    // src/folia-build/styles-entry.tsx
     var styles_entry_exports = {};
     __export(styles_entry_exports, {
       DAYLIGHT_THEME: () => DAYLIGHT_THEME,
@@ -121491,7 +121491,7 @@ function __mpStylesBundle() {
     init_cameraBar();
     init_cameraControls();
   
-    // src/folia/shims/machi-settings.tsx
+    // src/folia-adapters/shims/machi-settings.tsx
     var Stub2 = () => null;
     var MACHI_SCENE_CHOICES = [];
     var MACHI_SCENE_LABEL_KEYS = {};
@@ -122573,7 +122573,7 @@ function __mpStylesBundle() {
       };
     };
   
-    // src/folia/styles-entry.tsx
+    // src/folia-build/styles-entry.tsx
     init_colorExtractor();
   
     // src/folia/services/baseThemes.ts
@@ -123057,7 +123057,7 @@ function __mpStylesBundle() {
       };
     };
   
-    // src/folia/styles-entry.tsx
+    // src/folia-build/styles-entry.tsx
     init_types();
     init_types2();
     init_types();

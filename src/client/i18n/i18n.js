@@ -1374,5 +1374,5 @@ function t(key, vars) {
 // The vendored Folia login tree translates through this, so it says what the panel says.
 globalThis.MP_LOGIN_T = t
 // The ported Folia lyric styles read their labels through this. A key the dictionary does
-// not have is shown as nothing, never as the raw key (`src/folia/shims/i18n.ts`).
+// not have is shown as nothing, never as the raw key (`src/folia-adapters/shims/i18n.ts`).
 globalThis.MP_FOLIA_T = t

@@ -2,7 +2,7 @@
  * 时计（Folia 原版）— the ported Folia `pendolo` renderer.
  *
  * `src/folia/` mirrors Folia's tree (components/visualizer/pendolo, utils,
- * services, stores) and `src/folia/pendolo.bundle.js` is compiled from it by
+ * services, stores) and `src/folia-build/pendolo.bundle.js` is compiled from it by
  * `scripts/build-pendolo.mjs`. This file is the only boundary: it builds Folia's
  * `VisualizerSharedProps` (MotionValue clock, Line[] with word timings, Theme, audio
  * bands), mounts the renderer once, and keeps every service Folia reads out of the
