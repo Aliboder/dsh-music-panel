@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.46.3 — 2026-11-24
 
 ### 启动
 
