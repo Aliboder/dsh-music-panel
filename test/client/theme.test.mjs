@@ -198,6 +198,9 @@ assert.doesNotMatch(
 // inherit a dark label colour.
 assert.match(theme, /\.mp-np\{[^']*background:#141417;color:#f4f4f5/, 'player surface stays dark')
 assert.match(theme, /\.mp-np-title\{[^']*color:#f7f7f8/, 'player title stays light')
+assert.match(theme, /\.mp-np \.mp-cap \.mp-seek::before\{[^']*var\(--dsw-alias-label-primary/, 'capsule seek track follows the capsule theme')
+assert.match(theme, /\.mp-np \.mp-cap \.mp-seek::after\{[^']*var\(--dsw-alias-state-business-primary/, 'capsule progress uses the business token')
+assert.doesNotMatch(theme, /\.mp-np \.mp-cap \.mp-seek[^']*#fff/, 'capsule seek has no white-only fill')
 
 // The floating player card follows the host theme like every other sheet: the glass is
 // token-based and the controls keep host tokens. It must not pin a dark palette or inherit

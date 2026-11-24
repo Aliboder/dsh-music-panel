@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.1"
-    var CLIENT_BUILD = "20d2a1eabcd8"
+    var CLIENT_BUILD = "aef1761ee4ad"
 
     // ── src/client/app/runtime.js
     /**
@@ -163073,7 +163073,7 @@ window.__ModuleLoader__.load({
       '.mp-eqwin .mp-eq-search:focus{border-color:var(--dsw-alias-state-business-primary,#4176E6)}',
       '.mp-eqwin .mp-eq-preset{border:.5px solid var(--dsw-alias-border-l1,#e5e5ea);background:var(--dsw-alias-bg-layer-2,#f2f2f7);color:var(--dsw-alias-label-primary,#1a1a1e)}',
       '@media (hover: hover){.mp-eqwin .mp-eq-preset:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(0,0,0,.06));color:var(--dsw-alias-label-primary,#1a1a1e)}}',
-      '.mp-eqwin .mp-eq-preset.is-on{border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 14%,var(--dsw-alias-bg-layer-1,#fff));color:var(--dsw-alias-label-primary,#1a1a1e)}',
+      '.mp-eqwin .mp-eq-preset.is-on{border-color:var(--dsw-alias-state-business-primary,#4176E6);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 14%,var(--dsw-alias-bg-layer-1));color:var(--dsw-alias-label-primary,#1a1a1e)}',
       '.mp-eqwin .mp-eq-preset-caption{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
       '.mp-eqwin .mp-eq-preset.is-on .mp-eq-preset-caption{color:var(--dsw-alias-label-secondary,#5c5c66)}',
       '.mp-eqwin .mp-eq-bars i{background:var(--dsw-alias-label-tertiary,#8a8a93)}',
@@ -163081,7 +163081,7 @@ window.__ModuleLoader__.load({
       '.mp-eqwin-devices{border-color:var(--dsw-alias-border-l1,#e5e5ea);background:var(--dsw-alias-bg-layer-2,#f2f2f7)}',
       '.mp-eqwin .mp-eq-device-current{color:var(--dsw-alias-label-secondary,#5c5c66)}',
       '.mp-eqwin .mp-eq-device-count{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
-      '.mp-eqwin .mp-eq-more{border:.5px solid var(--dsw-alias-border-l1,#e5e5ea);background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-secondary,#5c5c66)}',
+      '.mp-eqwin .mp-eq-more{border:.5px solid var(--dsw-alias-border-l1,#e5e5ea);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary,#5c5c66)}',
       '@media (hover: hover){.mp-eqwin .mp-eq-more:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(0,0,0,.06));color:var(--dsw-alias-label-primary,#1a1a1e)}}',
       '.mp-eqwin .mp-eq-empty-title{color:var(--dsw-alias-label-primary,#1a1a1e)}',
       '.mp-eqwin .mp-eq-empty-hint{color:var(--dsw-alias-label-tertiary,#8a8a93)}',
@@ -163109,6 +163109,13 @@ window.__ModuleLoader__.load({
       '.mp-np .mp-seek:hover input::-webkit-slider-thumb{width:12px;height:12px;margin-top:2px}',
       '.mp-np .mp-seek input::-moz-range-track{height:16px}',
       '.mp-np .mp-seek input::-moz-range-thumb{width:10px;height:10px;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.16);opacity:1}',
+      // The capsule is a host-theme surface inside the dark player page: its seek bar
+      // must not inherit the page's white seek overrides.
+      '.mp-np .mp-cap .mp-seek::before{background:color-mix(in srgb,var(--dsw-alias-label-primary,#1a1a1e) 18%,transparent)}',
+      '.mp-np .mp-cap .mp-seek-buffer{background:color-mix(in srgb,var(--dsw-alias-label-primary,#1a1a1e) 30%,transparent)}',
+      '.mp-np .mp-cap .mp-seek::after{background:var(--dsw-alias-state-business-primary,#4176E6)}',
+      '.mp-np .mp-cap .mp-seek input::-webkit-slider-thumb{background:var(--dsw-alias-label-primary,#1a1a1e);box-shadow:0 0 0 2px var(--dsw-alias-bg-layer-1),0 0 0 4px color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 22%,transparent)}',
+      '.mp-np .mp-cap .mp-seek input::-moz-range-thumb{background:var(--dsw-alias-label-primary,#1a1a1e);box-shadow:0 0 0 2px var(--dsw-alias-bg-layer-1),0 0 0 4px color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 22%,transparent)}',
       '.mp-bgmode-cover .mp-np-bg-drift img{filter:blur(2px) saturate(1.25) brightness(.9);transform:scale(1.02)}',
       '.mp-bgmode-off .mp-np-bg{display:none}',
       '.mp-shell{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#f4f4f5;background:#101014;font-family:inherit}',
