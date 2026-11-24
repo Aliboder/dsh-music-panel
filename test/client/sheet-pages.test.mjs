@@ -38,6 +38,7 @@ test('five tabs, one subject each', () => {
 
 test('队列 page: Folia row, move and remove actions', () => {
   assert.match(queue, /mp-queue-row/, 'the queue renders Folia rows')
+  assert.match(queue, /queueScroll/, 'the queue windows long lists')
   assert.match(queue, /player\.reorderQueue/, 'move next/end uses the player order')
   assert.match(queue, /player\.removeQueueAt/, 'remove uses the player queue')
 })

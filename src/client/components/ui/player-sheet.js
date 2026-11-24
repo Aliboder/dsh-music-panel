@@ -89,6 +89,9 @@ function PlayerSheetInner(props) {
   var lookPicker = lookPickerPair[0]
   var setLookPicker = lookPickerPair[1]
 
+  var queueScrollPair = useState(0)
+  var queueScroll = queueScrollPair[0]
+  var setQueueScroll = queueScrollPair[1]
   var bodyHPair = useState(0)
   var bodyH = bodyHPair[0]
   var setBodyH = bodyHPair[1]
@@ -1176,39 +1179,57 @@ function PlayerSheetInner(props) {
       ),
       queue.length === 0
         ? h('div', { className: 'mp-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty')))
-        : h('div', { className: 'mp-queue-list' }, queue.map(function (track, at) {
-            if (track === null || typeof track !== 'object') return null
-            var active = at === current
-            return h(
-              'div',
-              {
-                key: String(track.path || at) + ':' + String(at),
-                className: 'mp-queue-row' + (active ? ' is-on' : ''),
-                role: 'button',
-                tabIndex: 0,
-                onClick: function () { player.select(queue, at) },
-                onKeyDown: function (event) {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    player.select(queue, at)
-                  }
-                },
-              },
-              h('span', { className: 'mp-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
-              h('span', { className: 'mp-queue-main' },
-                h('span', { className: 'mp-queue-name' }, trackTitleOf(track)),
-                h('span', { className: 'mp-queue-artist' }, trackArtistOf(track)),
-              ),
-              h('span', { className: 'mp-queue-time' }, fmtClock(track.durationSec || 0)),
-              h(
-                'span',
-                { className: 'mp-queue-actions' },
-                h(IconButton, { icon: 'playlist', size: 13, title: t('p3.playNext'), onClick: function (event) { event.stopPropagation(); move(at, current + 1) } }),
-                h(IconButton, { icon: 'down', size: 13, title: t('p3.moveToEnd'), onClick: function (event) { event.stopPropagation(); move(at, queue.length - 1) } }),
-                h(IconButton, { icon: 'x', size: 13, title: t('p3.removeFromQueue'), onClick: function (event) { event.stopPropagation(); player.removeQueueAt(at) } }),
-              ),
-            )
-          })),
+        : h('div', {
+            className: 'mp-queue-list',
+            style: { height: String(Math.min(queue.length * 48, 360)) + 'px', overflowY: 'auto' },
+            onScroll: function (event) { setQueueScroll(event.currentTarget.scrollTop) },
+          },
+            (function () {
+              var rowHeight = 48
+              var viewport = 360
+              var start = Math.max(0, Math.floor(queueScroll / rowHeight) - 2)
+              var end = Math.min(queue.length, start + Math.ceil(viewport / rowHeight) + 4)
+              var rows = []
+              if (start > 0) rows.push(h('div', { key: 'before', style: { height: String(start * rowHeight) + 'px' } }))
+              for (var at = start; at < end; at += 1) {
+                var track = queue[at]
+                if (track === null || typeof track !== 'object') continue
+                var active = at === current
+                rows.push(h(
+                  'div',
+                  {
+                    key: String(track.path || at) + ':' + String(at),
+                    className: 'mp-queue-row' + (active ? ' is-on' : ''),
+                    role: 'button',
+                    tabIndex: 0,
+                    style: { height: String(rowHeight) + 'px', boxSizing: 'border-box' },
+                    onClick: function () { player.select(queue, at) },
+                    onKeyDown: function (event) {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        player.select(queue, at)
+                      }
+                    },
+                  },
+                  h('span', { className: 'mp-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+                  h('span', { className: 'mp-queue-main' },
+                    h('span', { className: 'mp-queue-name' }, trackTitleOf(track)),
+                    h('span', { className: 'mp-queue-artist' }, trackArtistOf(track)),
+                  ),
+                  h('span', { className: 'mp-queue-time' }, fmtClock(track.durationSec || 0)),
+                  h(
+                    'span',
+                    { className: 'mp-queue-actions' },
+                    h(IconButton, { icon: 'playlist', size: 13, title: t('p3.playNext'), onClick: function (event) { event.stopPropagation(); move(at, current + 1) } }),
+                    h(IconButton, { icon: 'down', size: 13, title: t('p3.moveToEnd'), onClick: function (event) { event.stopPropagation(); move(at, queue.length - 1) } }),
+                    h(IconButton, { icon: 'x', size: 13, title: t('p3.removeFromQueue'), onClick: function (event) { event.stopPropagation(); player.removeQueueAt(at) } }),
+                  ),
+                ))
+              }
+              if (end < queue.length) rows.push(h('div', { key: 'after', style: { height: String((queue.length - end) * rowHeight) + 'px' } }))
+              return rows
+            })(),
+          ),
     )
   }
   /** Folia classic's own tuning controls (settings are DSH rows; values are Folia's). */
