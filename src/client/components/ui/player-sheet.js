@@ -1101,6 +1101,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'pendolo' ? pendoloTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'diorama' ? dioramaTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'tempera' ? temperaTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'nebbia' ? nebbiaTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1695,6 +1696,39 @@ function PlayerSheetInner(props) {
       num('settings.temperaRgb', 'postProcessRgbShift', 0, 1, 0.01),
       num('settings.temperaVignette', 'postProcessVignette', 0, 2, 0.01),
       num('settings.temperaLens', 'postProcessLensDistortion', 0, 2, 0.01),
+    ))
+  }
+  /** Folia nebbia tuning: window/glass and the handwriting core. */
+  function nebbiaTuningBlock() {
+    var tuning = prefs.nebbiaTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ nebbiaTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    function choice(label, key, options) {
+      var current = options.some(function (item) { return item.value === tuning[key] }) ? tuning[key] : options[0].value
+      return mpPanelRow(t(label), segmented(options, current, function (value) { setPrefs({ nebbiaTuning: Object.assign({}, tuning, { [key]: value }) }) }))
+    }
+    return mpSection(t('settings.nebbiaTuning'), h('div', null,
+      choice('settings.nebbiaBehind', 'behind', [{ value: 'night', label: 'Night' }, { value: 'aquarium', label: 'Aquarium' }, { value: 'backdrop', label: 'Backdrop' }]),
+      choice('settings.nebbiaGlass', 'glass', [{ value: 'rain', label: 'Rain' }, { value: 'dew', label: 'Dew' }, { value: 'snow', label: 'Snow' }]),
+      choice('settings.nebbiaRain', 'rain', [{ value: 'slant', label: 'Slant' }, { value: 'straight', label: 'Straight' }, { value: 'off', label: 'Off' }]),
+      mpPanelRow(t('settings.nebbiaCredits'), h(Switch, { value: tuning.credits !== false, label: t('settings.nebbiaCredits'), onChange: function (value) { setPrefs({ nebbiaTuning: Object.assign({}, tuning, { credits: value }) }) } })),
+      num('settings.nebbiaJitter', 'jitter', 0, 1.5, 0.05),
+      num('settings.nebbiaWarp', 'warp', 0, 1.5, 0.05),
+      num('settings.nebbiaMist', 'mist', 0.2, 1, 0.01),
+      num('settings.nebbiaHold', 'hold', 0, 6, 0.1),
+      num('settings.nebbiaRefog', 'refog', 0.5, 12, 0.1),
+      num('settings.nebbiaStroke', 'strokeWidth', 0.04, 0.16, 0.005),
+      num('settings.nebbiaWriteSpeed', 'writeSpeed', 0.4, 2.5, 0.05),
+      num('settings.nebbiaDoodle', 'doodle', 0, 1, 0.05),
+      num('settings.nebbiaBusSpeed', 'busSpeed', 0, 3, 0.05),
+      num('settings.nebbiaNeon', 'neon', 0, 2, 0.05),
     ))
   }
   /**

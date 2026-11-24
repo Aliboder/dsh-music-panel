@@ -57,6 +57,22 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  nebbiaTuning: {
+    behind: 'night',
+    glass: 'rain',
+    rain: 'slant',
+    credits: true,
+    jitter: 0.6,
+    warp: 0.6,
+    mist: 0.75,
+    hold: 1.2,
+    refog: 4,
+    strokeWidth: 0.09,
+    writeSpeed: 1,
+    doodle: 0.3,
+    busSpeed: 1,
+    neon: 1,
+  },
   temperaTuning: {
     cameraIntensity: 1,
     glyphMotion: 1,
@@ -455,6 +471,32 @@ function readPrefs() {
     tiltDeg: pendoloNumber('tiltDeg', -45, 45),
     parallaxDepth: pendoloNumber('parallaxDepth', 0, 2),
     mirrorLayout: storedPendolo.mirrorLayout === true,
+  }
+  // Folia nebbia tuning: window/glass choices and the handwriting/mist core.
+  var nebbiaDefaults = PREF_DEFAULTS.nebbiaTuning
+  var storedNebbia = merged.nebbiaTuning && typeof merged.nebbiaTuning === 'object' ? merged.nebbiaTuning : {}
+  function nebbiaNumber(key, min, max) {
+    var value = Number(storedNebbia[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : nebbiaDefaults[key]
+  }
+  function nebbiaChoice(key, choices) {
+    return choices.indexOf(storedNebbia[key]) >= 0 ? storedNebbia[key] : nebbiaDefaults[key]
+  }
+  merged.nebbiaTuning = {
+    behind: nebbiaChoice('behind', ['night', 'aquarium', 'backdrop']),
+    glass: nebbiaChoice('glass', ['rain', 'dew', 'snow']),
+    rain: nebbiaChoice('rain', ['slant', 'straight', 'off']),
+    credits: storedNebbia.credits !== false,
+    jitter: nebbiaNumber('jitter', 0, 1.5),
+    warp: nebbiaNumber('warp', 0, 1.5),
+    mist: nebbiaNumber('mist', 0.2, 1),
+    hold: nebbiaNumber('hold', 0, 6),
+    refog: nebbiaNumber('refog', 0.5, 12),
+    strokeWidth: nebbiaNumber('strokeWidth', 0.04, 0.16),
+    writeSpeed: nebbiaNumber('writeSpeed', 0.4, 2.5),
+    doodle: nebbiaNumber('doodle', 0, 1),
+    busSpeed: nebbiaNumber('busSpeed', 0, 3),
+    neon: nebbiaNumber('neon', 0, 2),
   }
   // Folia tempera tuning: camera, print passes and colour mode.
   var temperaDefaults = PREF_DEFAULTS.temperaTuning

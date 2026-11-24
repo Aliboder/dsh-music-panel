@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "9c7d32112903"
+    var CLIENT_BUILD = "076d146b8d93"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,21 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.nebbiaTuning': '雾笺参数',
+        'settings.nebbiaBehind': '窗外',
+        'settings.nebbiaGlass': '玻璃',
+        'settings.nebbiaRain': '雨',
+        'settings.nebbiaCredits': '片尾字幕',
+        'settings.nebbiaJitter': '手写歪斜',
+        'settings.nebbiaWarp': '手写变形',
+        'settings.nebbiaMist': '雾气浓度',
+        'settings.nebbiaHold': '保持时间',
+        'settings.nebbiaRefog': '重新起雾',
+        'settings.nebbiaStroke': '笔画粗细',
+        'settings.nebbiaWriteSpeed': '书写速度',
+        'settings.nebbiaDoodle': '句尾涂鸦',
+        'settings.nebbiaBusSpeed': '车速',
+        'settings.nebbiaNeon': '霓虹亮度',
         'settings.temperaTuning': '凝彩参数',
         'settings.temperaCamera': '镜头强度',
         'settings.temperaGlyphMotion': '字形动效',
@@ -9521,6 +9536,21 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.nebbiaTuning': 'Nebbia tuning',
+        'settings.nebbiaBehind': 'Behind window',
+        'settings.nebbiaGlass': 'Glass',
+        'settings.nebbiaRain': 'Rain',
+        'settings.nebbiaCredits': 'Credits',
+        'settings.nebbiaJitter': 'Handwriting jitter',
+        'settings.nebbiaWarp': 'Handwriting warp',
+        'settings.nebbiaMist': 'Mist density',
+        'settings.nebbiaHold': 'Hold',
+        'settings.nebbiaRefog': 'Refog',
+        'settings.nebbiaStroke': 'Stroke width',
+        'settings.nebbiaWriteSpeed': 'Write speed',
+        'settings.nebbiaDoodle': 'Doodle',
+        'settings.nebbiaBusSpeed': 'Bus speed',
+        'settings.nebbiaNeon': 'Neon',
         'settings.temperaTuning': 'Tempera tuning',
         'settings.temperaCamera': 'Camera intensity',
         'settings.temperaGlyphMotion': 'Glyph motion',
@@ -157116,6 +157146,7 @@ window.__ModuleLoader__.load({
         machiTuning: prefs.machiTuning || undefined,
         lumiereTuning: prefs.lumiereTuning || undefined,
         dioramaTuning: prefs.dioramaTuning || undefined,
+        nebbiaTuning: prefs.nebbiaTuning || undefined,
         temperaTuning: prefs.temperaTuning
           ? Object.assign({}, prefs.temperaTuning, { colorMode: prefs.temperaTuning.temperaColorMode })
           : undefined,
@@ -167801,6 +167832,22 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      nebbiaTuning: {
+        behind: 'night',
+        glass: 'rain',
+        rain: 'slant',
+        credits: true,
+        jitter: 0.6,
+        warp: 0.6,
+        mist: 0.75,
+        hold: 1.2,
+        refog: 4,
+        strokeWidth: 0.09,
+        writeSpeed: 1,
+        doodle: 0.3,
+        busSpeed: 1,
+        neon: 1,
+      },
       temperaTuning: {
         cameraIntensity: 1,
         glyphMotion: 1,
@@ -168199,6 +168246,32 @@ window.__ModuleLoader__.load({
         tiltDeg: pendoloNumber('tiltDeg', -45, 45),
         parallaxDepth: pendoloNumber('parallaxDepth', 0, 2),
         mirrorLayout: storedPendolo.mirrorLayout === true,
+      }
+      // Folia nebbia tuning: window/glass choices and the handwriting/mist core.
+      var nebbiaDefaults = PREF_DEFAULTS.nebbiaTuning
+      var storedNebbia = merged.nebbiaTuning && typeof merged.nebbiaTuning === 'object' ? merged.nebbiaTuning : {}
+      function nebbiaNumber(key, min, max) {
+        var value = Number(storedNebbia[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : nebbiaDefaults[key]
+      }
+      function nebbiaChoice(key, choices) {
+        return choices.indexOf(storedNebbia[key]) >= 0 ? storedNebbia[key] : nebbiaDefaults[key]
+      }
+      merged.nebbiaTuning = {
+        behind: nebbiaChoice('behind', ['night', 'aquarium', 'backdrop']),
+        glass: nebbiaChoice('glass', ['rain', 'dew', 'snow']),
+        rain: nebbiaChoice('rain', ['slant', 'straight', 'off']),
+        credits: storedNebbia.credits !== false,
+        jitter: nebbiaNumber('jitter', 0, 1.5),
+        warp: nebbiaNumber('warp', 0, 1.5),
+        mist: nebbiaNumber('mist', 0.2, 1),
+        hold: nebbiaNumber('hold', 0, 6),
+        refog: nebbiaNumber('refog', 0.5, 12),
+        strokeWidth: nebbiaNumber('strokeWidth', 0.04, 0.16),
+        writeSpeed: nebbiaNumber('writeSpeed', 0.4, 2.5),
+        doodle: nebbiaNumber('doodle', 0, 1),
+        busSpeed: nebbiaNumber('busSpeed', 0, 3),
+        neon: nebbiaNumber('neon', 0, 2),
       }
       // Folia tempera tuning: camera, print passes and colour mode.
       var temperaDefaults = PREF_DEFAULTS.temperaTuning
@@ -196440,6 +196513,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'pendolo' ? pendoloTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'diorama' ? dioramaTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'tempera' ? temperaTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'nebbia' ? nebbiaTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -197034,6 +197108,39 @@ window.__ModuleLoader__.load({
           num('settings.temperaRgb', 'postProcessRgbShift', 0, 1, 0.01),
           num('settings.temperaVignette', 'postProcessVignette', 0, 2, 0.01),
           num('settings.temperaLens', 'postProcessLensDistortion', 0, 2, 0.01),
+        ))
+      }
+      /** Folia nebbia tuning: window/glass and the handwriting core. */
+      function nebbiaTuningBlock() {
+        var tuning = prefs.nebbiaTuning || {}
+        function num(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ nebbiaTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        function choice(label, key, options) {
+          var current = options.some(function (item) { return item.value === tuning[key] }) ? tuning[key] : options[0].value
+          return mpPanelRow(t(label), segmented(options, current, function (value) { setPrefs({ nebbiaTuning: Object.assign({}, tuning, { [key]: value }) }) }))
+        }
+        return mpSection(t('settings.nebbiaTuning'), h('div', null,
+          choice('settings.nebbiaBehind', 'behind', [{ value: 'night', label: 'Night' }, { value: 'aquarium', label: 'Aquarium' }, { value: 'backdrop', label: 'Backdrop' }]),
+          choice('settings.nebbiaGlass', 'glass', [{ value: 'rain', label: 'Rain' }, { value: 'dew', label: 'Dew' }, { value: 'snow', label: 'Snow' }]),
+          choice('settings.nebbiaRain', 'rain', [{ value: 'slant', label: 'Slant' }, { value: 'straight', label: 'Straight' }, { value: 'off', label: 'Off' }]),
+          mpPanelRow(t('settings.nebbiaCredits'), h(Switch, { value: tuning.credits !== false, label: t('settings.nebbiaCredits'), onChange: function (value) { setPrefs({ nebbiaTuning: Object.assign({}, tuning, { credits: value }) }) } })),
+          num('settings.nebbiaJitter', 'jitter', 0, 1.5, 0.05),
+          num('settings.nebbiaWarp', 'warp', 0, 1.5, 0.05),
+          num('settings.nebbiaMist', 'mist', 0.2, 1, 0.01),
+          num('settings.nebbiaHold', 'hold', 0, 6, 0.1),
+          num('settings.nebbiaRefog', 'refog', 0.5, 12, 0.1),
+          num('settings.nebbiaStroke', 'strokeWidth', 0.04, 0.16, 0.005),
+          num('settings.nebbiaWriteSpeed', 'writeSpeed', 0.4, 2.5, 0.05),
+          num('settings.nebbiaDoodle', 'doodle', 0, 1, 0.05),
+          num('settings.nebbiaBusSpeed', 'busSpeed', 0, 3, 0.05),
+          num('settings.nebbiaNeon', 'neon', 0, 2, 0.05),
         ))
       }
       /**
