@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### 启动
+
+- 修复偶发启动崩溃：HTTP 路由暴露时 source registry 仍为空，账号读取调用 `omni.capabilities` 抛出 `MusicError`，成为未处理的 Host fatal。source 现在在暴露路由前同步注册；账号读取对不可用源降级，且永不 reject。
+
 ## 0.46.2 — 2026-11-24
 
 ### 播放器

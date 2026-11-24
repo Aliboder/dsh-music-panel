@@ -67,10 +67,20 @@ export function createAccountReads(options) {
     const running = pending.get(provider)
     if (running !== undefined) return running
     const task = (async () => {
-      const previous = await accountStore.get(provider)
+      let previous = null
+      try {
+        previous = await accountStore.get(provider)
       if (!(await isSignedIn(provider))) return previous
       const ctx = await contextOf(provider)
-      const capabilities = omni.capabilities(provider)
+      let capabilities
+      try {
+        capabilities = omni.capabilities(provider)
+      } catch (caught) {
+        // A source can be temporarily unavailable while the host is booting; an
+        // account snapshot must degrade to stale, never reject the host load.
+        try { await accountStore.markError(provider, messageOf(caught)) } catch {}
+        return previous
+      }
       let user = previous?.user ?? null
       let collections = previous?.collections ?? []
       let likedSongIds = previous?.likedSongIds ?? []
@@ -135,7 +145,12 @@ export function createAccountReads(options) {
           savedAt: now(),
         })
       }
-      return await accountStore.get(provider)
+        return await accountStore.get(provider)
+      } catch (caught) {
+        // The read is a status path: even store/source failures must resolve.
+        try { await accountStore.markError(provider, messageOf(caught)) } catch {}
+        return previous
+      }
     })().finally(() => {
       pending.delete(provider)
     })

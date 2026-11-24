@@ -128,6 +128,18 @@ export function apply(ctx, rawConfig) {
   // Watchers do not outlive the plugin; config writes resync them from the route.
   ctx.effect(() => () => watcher.stop(), 'music: folder watcher')
 
+  // Register every source while apply() is still running. The HTTP route must not
+  // become observable with an empty registry: the client asks for account status
+  // immediately on boot, and a delayed effect used to lose that race.
+  registerOnlineSources()
+  registerBodianSource({ dir: settings.dir, store: bodianStore })
+  registerQishuiSource({ dir: settings.dir, store: qishuiStore })
+  if (library !== null && typeof library.scan === 'function') {
+    registerLocalSource({
+      scan: (options) => library.scan(options),
+      readLyrics: (file) => readLyricsFor(file),
+    })
+  }
   const handle = createRoutes({
     settings,
     library,
@@ -149,27 +161,13 @@ export function apply(ctx, rawConfig) {
   })
 
 
-  // Sources are registered once per load; the registry is the single list every
-  // future caller reads instead of branching on platform names.
-  ctx.effect(() => {
-    registerOnlineSources()
-    // Native upstream package (AGPL), registered outside the legacy factory.
-    registerBodianSource({ dir: settings.dir, store: bodianStore })
-    // Qishui is pure Node; its package owns the car protocol.
-    registerQishuiSource({ dir: settings.dir, store: qishuiStore })
-    if (library !== null && typeof library.scan === 'function') {
-      registerLocalSource({
-        scan: (options) => library.scan(options),
-        readLyrics: (file) => readLyricsFor(file),
-      })
-    }
-    return () => {
-      resetSources()
-      // Upstream services hold listening sockets and workers; they must not outlive the plugin.
-      void stopNeteaseService()
-      void stopQqService()
-      void stopAllKugouServices()
-    }
+  // Sources stay registered for the plugin lifetime; only the cleanup is deferred.
+  ctx.effect(() => () => {
+    resetSources()
+    // Upstream services hold listening sockets and workers; they must not outlive the plugin.
+    void stopNeteaseService()
+    void stopQqService()
+    void stopAllKugouServices()
   }, 'music: sources')
 
   // KuGou standard tokens last under a day. Refresh while the app stays open;

@@ -500,6 +500,12 @@ console.log('login-session.test ok')
 
   await reads.signOut('netease')
   assert.equal(await accountStore.get('netease'), null)
+
+  // A boot race can leave the source registry momentarily empty. The account read
+  // must degrade instead of rejecting the host load.
+  omni.capabilities = () => { throw new Error('source is not registered: netease') }
+  const unavailable = await reads.read('netease', 'sync')
+  assert.equal(unavailable, null, 'unavailable source resolves to the previous snapshot')
 }
 
 console.log('account-read.test ok')
