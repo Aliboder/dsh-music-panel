@@ -995,7 +995,7 @@ function NowPlaying(props) {
         'mp-style-' + lyricStyleId,
         // A visualizer style is a full stage (Folia's VisualizerShell): the cover
         // column steps aside and the lyrics take the whole page.
-        lyricStyleId !== 'classic' && 'is-visualizer',
+        'is-visualizer',
         chromeVisible !== true && 'is-chrome-hidden',
         'mp-bgmode-' + mpLookId(MP_BG_MODES, prefs.bgMode),
       ),
