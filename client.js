@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "57f7d19a031a"
+    var CLIENT_BUILD = "b795c2492309"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,16 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.pendoloTuning': '时计参数',
+        'settings.pendoloArcRadius': '弧半径',
+        'settings.pendoloArcAngle': '弧角度',
+        'settings.pendoloCenterX': '水平位置',
+        'settings.pendoloCenterY': '垂直位置',
+        'settings.pendoloSnappiness': '指针回弹',
+        'settings.pendoloActiveScale': '当前字缩放',
+        'settings.pendoloTilt': '倾斜',
+        'settings.pendoloParallax': '视差深度',
+        'settings.pendoloMirror': '镜像布局',
         'settings.lumiereTuning': '绘光参数',
         'settings.lumiereLight': '光强',
         'settings.lumiereAudio': '音频响应',
@@ -9470,6 +9480,16 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.pendoloTuning': 'Pendolo tuning',
+        'settings.pendoloArcRadius': 'Arc radius',
+        'settings.pendoloArcAngle': 'Arc angle',
+        'settings.pendoloCenterX': 'Horizontal position',
+        'settings.pendoloCenterY': 'Vertical position',
+        'settings.pendoloSnappiness': 'Tick snappiness',
+        'settings.pendoloActiveScale': 'Active scale',
+        'settings.pendoloTilt': 'Tilt',
+        'settings.pendoloParallax': 'Parallax depth',
+        'settings.pendoloMirror': 'Mirror layout',
         'settings.lumiereTuning': 'Lumiere tuning',
         'settings.lumiereLight': 'Light intensity',
         'settings.lumiereAudio': 'Audio response',
@@ -33033,7 +33053,7 @@ window.__ModuleLoader__.load({
         staticMode: false,
         seed: seed,
         coverUrl: '',
-        pendoloTuning: FOLIA_PENDOLO.DEFAULT_PENDOLO_TUNING,
+        pendoloTuning: Object.assign({}, FOLIA_PENDOLO.DEFAULT_PENDOLO_TUNING, prefs.pendoloTuning || {}),
         onLyricLineSeek: seek,
       }
       return h(FoliaPendoloRenderer, foliaProps)
@@ -167693,6 +167713,17 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      pendoloTuning: {
+        arcRadius: 0.42,
+        arcAngleDeg: 100,
+        wheelCenterX: 0,
+        wheelCenterY: 0.5,
+        tickSnappiness: 2,
+        activeScale: 1.25,
+        tiltDeg: 0,
+        parallaxDepth: 1,
+        mirrorLayout: false,
+      },
       lumiereTuning: {
         lightIntensity: 1,
         audioResponse: 1,
@@ -168019,6 +168050,24 @@ window.__ModuleLoader__.load({
         showPortraitDragHanger: storedMonet.showPortraitDragHanger !== false,
         portraitHangerVisibility: monetVisibility('portraitHangerVisibility'),
         mirrorLayout: storedMonet.mirrorLayout === true,
+      }
+      // Folia pendolo tuning: arc geometry and small display options.
+      var pendoloDefaults = PREF_DEFAULTS.pendoloTuning
+      var storedPendolo = merged.pendoloTuning && typeof merged.pendoloTuning === 'object' ? merged.pendoloTuning : {}
+      function pendoloNumber(key, min, max) {
+        var value = Number(storedPendolo[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : pendoloDefaults[key]
+      }
+      merged.pendoloTuning = {
+        arcRadius: pendoloNumber('arcRadius', 0.2, 0.6),
+        arcAngleDeg: pendoloNumber('arcAngleDeg', 30, 180),
+        wheelCenterX: pendoloNumber('wheelCenterX', -0.5, 0.5),
+        wheelCenterY: pendoloNumber('wheelCenterY', 0, 1),
+        tickSnappiness: pendoloNumber('tickSnappiness', 0.5, 4),
+        activeScale: pendoloNumber('activeScale', 0.8, 1.6),
+        tiltDeg: pendoloNumber('tiltDeg', -45, 45),
+        parallaxDepth: pendoloNumber('parallaxDepth', 0, 2),
+        mirrorLayout: storedPendolo.mirrorLayout === true,
       }
       // Folia lumiere tuning: light field and effects; unknown enums fall back.
       var lumiereDefaults = PREF_DEFAULTS.lumiereTuning
@@ -196194,6 +196243,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'monet' ? monetTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'machi' ? machiTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'lumiere' ? lumiereTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'pendolo' ? pendoloTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -196687,6 +196737,30 @@ window.__ModuleLoader__.load({
           sw('settings.lumiereIcons', 'themeIcons'),
           num('settings.lumiereMix', 'themeColorMix', 0, 1, 0.01),
           mpPanelRow(t('settings.lumiereTuning'), segmented([{ value: 'full', label: 'Full' }, { value: 'balanced', label: 'Balanced' }, { value: 'low', label: 'Low' }], ['full', 'balanced', 'low'].indexOf(tuning.renderQuality) >= 0 ? tuning.renderQuality : 'full', function (value) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { renderQuality: value }) }) })),
+        ))
+      }
+      /** Folia pendolo tuning: arc geometry, tick response and tilt. */
+      function pendoloTuningBlock() {
+        var tuning = prefs.pendoloTuning || {}
+        function num(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ pendoloTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        return mpSection(t('settings.pendoloTuning'), h('div', null,
+          num('settings.pendoloArcRadius', 'arcRadius', 0.2, 0.6, 0.01),
+          num('settings.pendoloArcAngle', 'arcAngleDeg', 30, 180, 1),
+          num('settings.pendoloCenterX', 'wheelCenterX', -0.5, 0.5, 0.01),
+          num('settings.pendoloCenterY', 'wheelCenterY', 0, 1, 0.01),
+          num('settings.pendoloSnappiness', 'tickSnappiness', 0.5, 4, 0.05),
+          num('settings.pendoloActiveScale', 'activeScale', 0.8, 1.6, 0.01),
+          num('settings.pendoloTilt', 'tiltDeg', -45, 45, 1),
+          num('settings.pendoloParallax', 'parallaxDepth', 0, 2, 0.05),
+          mpPanelRow(t('settings.pendoloMirror'), h(Switch, { value: tuning.mirrorLayout === true, label: t('settings.pendoloMirror'), onChange: function (value) { setPrefs({ pendoloTuning: Object.assign({}, tuning, { mirrorLayout: value }) }) } })),
         ))
       }
       /**

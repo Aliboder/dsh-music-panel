@@ -1098,6 +1098,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'monet' ? monetTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'machi' ? machiTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'lumiere' ? lumiereTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'pendolo' ? pendoloTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1591,6 +1592,30 @@ function PlayerSheetInner(props) {
       sw('settings.lumiereIcons', 'themeIcons'),
       num('settings.lumiereMix', 'themeColorMix', 0, 1, 0.01),
       mpPanelRow(t('settings.lumiereTuning'), segmented([{ value: 'full', label: 'Full' }, { value: 'balanced', label: 'Balanced' }, { value: 'low', label: 'Low' }], ['full', 'balanced', 'low'].indexOf(tuning.renderQuality) >= 0 ? tuning.renderQuality : 'full', function (value) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { renderQuality: value }) }) })),
+    ))
+  }
+  /** Folia pendolo tuning: arc geometry, tick response and tilt. */
+  function pendoloTuningBlock() {
+    var tuning = prefs.pendoloTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ pendoloTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    return mpSection(t('settings.pendoloTuning'), h('div', null,
+      num('settings.pendoloArcRadius', 'arcRadius', 0.2, 0.6, 0.01),
+      num('settings.pendoloArcAngle', 'arcAngleDeg', 30, 180, 1),
+      num('settings.pendoloCenterX', 'wheelCenterX', -0.5, 0.5, 0.01),
+      num('settings.pendoloCenterY', 'wheelCenterY', 0, 1, 0.01),
+      num('settings.pendoloSnappiness', 'tickSnappiness', 0.5, 4, 0.05),
+      num('settings.pendoloActiveScale', 'activeScale', 0.8, 1.6, 0.01),
+      num('settings.pendoloTilt', 'tiltDeg', -45, 45, 1),
+      num('settings.pendoloParallax', 'parallaxDepth', 0, 2, 0.05),
+      mpPanelRow(t('settings.pendoloMirror'), h(Switch, { value: tuning.mirrorLayout === true, label: t('settings.pendoloMirror'), onChange: function (value) { setPrefs({ pendoloTuning: Object.assign({}, tuning, { mirrorLayout: value }) }) } })),
     ))
   }
   /**

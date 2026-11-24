@@ -316,7 +316,7 @@ function FoliaPendoloStage(props) {
     staticMode: false,
     seed: seed,
     coverUrl: '',
-    pendoloTuning: FOLIA_PENDOLO.DEFAULT_PENDOLO_TUNING,
+    pendoloTuning: Object.assign({}, FOLIA_PENDOLO.DEFAULT_PENDOLO_TUNING, prefs.pendoloTuning || {}),
     onLyricLineSeek: seek,
   }
   return h(FoliaPendoloRenderer, foliaProps)

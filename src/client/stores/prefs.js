@@ -57,6 +57,17 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  pendoloTuning: {
+    arcRadius: 0.42,
+    arcAngleDeg: 100,
+    wheelCenterX: 0,
+    wheelCenterY: 0.5,
+    tickSnappiness: 2,
+    activeScale: 1.25,
+    tiltDeg: 0,
+    parallaxDepth: 1,
+    mirrorLayout: false,
+  },
   lumiereTuning: {
     lightIntensity: 1,
     audioResponse: 1,
@@ -383,6 +394,24 @@ function readPrefs() {
     showPortraitDragHanger: storedMonet.showPortraitDragHanger !== false,
     portraitHangerVisibility: monetVisibility('portraitHangerVisibility'),
     mirrorLayout: storedMonet.mirrorLayout === true,
+  }
+  // Folia pendolo tuning: arc geometry and small display options.
+  var pendoloDefaults = PREF_DEFAULTS.pendoloTuning
+  var storedPendolo = merged.pendoloTuning && typeof merged.pendoloTuning === 'object' ? merged.pendoloTuning : {}
+  function pendoloNumber(key, min, max) {
+    var value = Number(storedPendolo[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : pendoloDefaults[key]
+  }
+  merged.pendoloTuning = {
+    arcRadius: pendoloNumber('arcRadius', 0.2, 0.6),
+    arcAngleDeg: pendoloNumber('arcAngleDeg', 30, 180),
+    wheelCenterX: pendoloNumber('wheelCenterX', -0.5, 0.5),
+    wheelCenterY: pendoloNumber('wheelCenterY', 0, 1),
+    tickSnappiness: pendoloNumber('tickSnappiness', 0.5, 4),
+    activeScale: pendoloNumber('activeScale', 0.8, 1.6),
+    tiltDeg: pendoloNumber('tiltDeg', -45, 45),
+    parallaxDepth: pendoloNumber('parallaxDepth', 0, 2),
+    mirrorLayout: storedPendolo.mirrorLayout === true,
   }
   // Folia lumiere tuning: light field and effects; unknown enums fall back.
   var lumiereDefaults = PREF_DEFAULTS.lumiereTuning
