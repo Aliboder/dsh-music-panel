@@ -66,7 +66,7 @@ test('歌词显示 has named controls, not glyph-only buttons', () => {
 })
 
 test('style tuning sliders show values and respond to the wheel', () => {
-  assert.match(sheet, /onWheel: tuningWheel/)
+  assert.match(sheet, /addEventListener\('wheel', onWheel, \{ passive: false \}\)/, 'the wheel listener is non-passive')
   assert.match(sheet, /mp-tuning-range-value/)
   assert.match(sheet, /input\.dispatchEvent\(new Event\('input'/, 'wheel moves the native range input')
 })

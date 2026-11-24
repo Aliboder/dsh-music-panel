@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "b87ba45521bf"
+    var CLIENT_BUILD = "e5f6fff00e4e"
 
     // ── src/client/app/runtime.js
     /**
@@ -194813,7 +194813,7 @@ window.__ModuleLoader__.load({
       function tuningWheel(event) {
         var target = event.target
         var input = target && typeof target.closest === 'function' ? target.closest('input[type="range"]') : null
-        if (input === null || input.disabled) return
+        if (input === null || input.disabled) return false
         event.preventDefault()
         var step = Number(input.step) || 1
         var min = Number(input.min)
@@ -194823,11 +194823,30 @@ window.__ModuleLoader__.load({
         if (!isFinite(max)) max = 100
         if (!isFinite(current)) current = min
         var next = Math.min(max, Math.max(min, current + (event.deltaY < 0 ? step : -step)))
-        if (next === current) return
+        if (next === current) return true
         var setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
         setter.call(input, String(next))
         input.dispatchEvent(new Event('input', { bubbles: true }))
         input.dispatchEvent(new Event('change', { bubbles: true }))
+        return true
+      }
+
+      /** The tuning grid owns a non-passive wheel listener so a slider does not scroll the sheet. */
+      function TuningGrid(props) {
+        var ref = useRef(null)
+        useEffect(function () {
+          var el = ref.current
+          if (el === null) return undefined
+          function onWheel(event) {
+            if (tuningWheel(event)) {
+              event.preventDefault()
+              event.stopPropagation()
+            }
+          }
+          el.addEventListener('wheel', onWheel, { passive: false })
+          return function () { el.removeEventListener('wheel', onWheel) }
+        }, [])
+        return h('div', { ref: ref, className: 'mp-tuning-grid' }, props.children)
       }
       function cardLookPane() {
         var tuningBlocks = lyricTuningBlocks()
@@ -194965,7 +194984,7 @@ window.__ModuleLoader__.load({
             ),
           ),
           tuningBlocks.length > 0
-            ? mpSection(t('sheet.lyricStyleParams'), h('div', { className: 'mp-tuning-grid', onWheel: tuningWheel }, tuningBlocks))
+            ? mpSection(t('sheet.lyricStyleParams'), h(TuningGrid, null, tuningBlocks))
             : null,
         )
       }
