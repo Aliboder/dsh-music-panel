@@ -24,6 +24,19 @@ function LyricStyleStudio(props) {
   var tabPair = useState('animation')
   var tab = tabPair[0]
   var setTab = tabPair[1]
+  var previewPausedPair = useState(false)
+  var previewPaused = previewPausedPair[0]
+  var setPreviewPaused = previewPausedPair[1]
+  var previewNowPair = useState(1.4)
+  var previewNow = previewNowPair[0]
+  var setPreviewNow = previewNowPair[1]
+  useEffect(function () {
+    if (previewPaused) return undefined
+    var timer = setInterval(function () {
+      setPreviewNow(function (value) { return value >= 7.6 ? 0.2 : value + 0.1 })
+    }, 100)
+    return function () { clearInterval(timer) }
+  }, [previewPaused])
   var styleId = mpStyleIdOf(prefs.lyricStyle)
   var track = snap.queue[snap.index] || null
   var cover = track === null ? '' : trackCoverSrc(track)
@@ -148,7 +161,7 @@ function LyricStyleStudio(props) {
                 stylePref: prefs.lyricStyle,
                 lines: MP_STUDIO_SAMPLE,
                 active: 0,
-                now: 1.4,
+                now: previewNow,
                 duration: 8,
                 accent: '#6ea8ff',
                 seed: 'studio-preview',
@@ -158,6 +171,7 @@ function LyricStyleStudio(props) {
             h('div', { className: 'mp-studio-preview-top' },
               h('span', { className: 'mp-studio-preview-chip' }, t('studio.builtin')),
               h('span', { className: 'mp-studio-preview-chip is-off' }, t('studio.live')),
+              h('button', { type: 'button', className: 'mp-studio-preview-chip mp-studio-pause', title: previewPaused ? t('studio.play') : t('studio.pause'), onClick: function () { setPreviewPaused(!previewPaused) } }, icon(previewPaused ? 'play' : 'pause', 13)),
             ),
           ),
           h('div', { className: 'mp-studio-count' }, t('studio.styles', { count: String(catalog.length) })),

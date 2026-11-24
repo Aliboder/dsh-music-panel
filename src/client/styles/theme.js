@@ -1139,6 +1139,7 @@ var THEME_CSS = [
 '.mp-studio-preview-top{position:absolute;top:10px;right:10px;display:flex;gap:6px;align-items:center;z-index:2}',
 '.mp-studio-preview-chip{padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font-size:11px;line-height:16px}',
 '.mp-studio-preview-chip.is-off{opacity:.55}',
+'.mp-studio-pause{display:grid;place-items:center;border:0;cursor:pointer;padding:4px 7px}',
 '.mp-studio-count{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
 '.mp-studio-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}',
 '.mp-studio-cell{display:flex;flex-direction:column;gap:4px;padding:4px;border:1px solid transparent;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}',

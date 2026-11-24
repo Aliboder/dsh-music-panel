@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "0a698178c084"
+    var CLIENT_BUILD = "11b54b4a0f71"
 
     // ── src/client/app/runtime.js
     /**
@@ -8861,6 +8861,8 @@ window.__ModuleLoader__.load({
         'studio.subtitle': '字幕',
         'studio.global': '全局',
         'studio.styles': '样式 {count}',
+        'studio.play': '播放',
+        'studio.pause': '暂停',
         'studio.builtin': '内置',
         'studio.live': '实时',
         'studio.animationHint': '样式参数在播放面板的「歌词」页继续调整；这里用于快速切换和预览。',
@@ -9921,6 +9923,8 @@ window.__ModuleLoader__.load({
         'studio.subtitle': 'Subtitles',
         'studio.global': 'Global',
         'studio.styles': 'Styles {count}',
+        'studio.play': 'Play',
+        'studio.pause': 'Pause',
         'studio.builtin': 'Built-in',
         'studio.live': 'Live',
         'studio.animationHint': 'Style tunings stay in the player panel\'s Lyrics page; this window is for quick switching and preview.',
@@ -181487,6 +181491,7 @@ window.__ModuleLoader__.load({
     '.mp-studio-preview-top{position:absolute;top:10px;right:10px;display:flex;gap:6px;align-items:center;z-index:2}',
     '.mp-studio-preview-chip{padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font-size:11px;line-height:16px}',
     '.mp-studio-preview-chip.is-off{opacity:.55}',
+    '.mp-studio-pause{display:grid;place-items:center;border:0;cursor:pointer;padding:4px 7px}',
     '.mp-studio-count{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
     '.mp-studio-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}',
     '.mp-studio-cell{display:flex;flex-direction:column;gap:4px;padding:4px;border:1px solid transparent;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}',
@@ -198934,6 +198939,19 @@ window.__ModuleLoader__.load({
       var tabPair = useState('animation')
       var tab = tabPair[0]
       var setTab = tabPair[1]
+      var previewPausedPair = useState(false)
+      var previewPaused = previewPausedPair[0]
+      var setPreviewPaused = previewPausedPair[1]
+      var previewNowPair = useState(1.4)
+      var previewNow = previewNowPair[0]
+      var setPreviewNow = previewNowPair[1]
+      useEffect(function () {
+        if (previewPaused) return undefined
+        var timer = setInterval(function () {
+          setPreviewNow(function (value) { return value >= 7.6 ? 0.2 : value + 0.1 })
+        }, 100)
+        return function () { clearInterval(timer) }
+      }, [previewPaused])
       var styleId = mpStyleIdOf(prefs.lyricStyle)
       var track = snap.queue[snap.index] || null
       var cover = track === null ? '' : trackCoverSrc(track)
@@ -199058,7 +199076,7 @@ window.__ModuleLoader__.load({
                     stylePref: prefs.lyricStyle,
                     lines: MP_STUDIO_SAMPLE,
                     active: 0,
-                    now: 1.4,
+                    now: previewNow,
                     duration: 8,
                     accent: '#6ea8ff',
                     seed: 'studio-preview',
@@ -199068,6 +199086,7 @@ window.__ModuleLoader__.load({
                 h('div', { className: 'mp-studio-preview-top' },
                   h('span', { className: 'mp-studio-preview-chip' }, t('studio.builtin')),
                   h('span', { className: 'mp-studio-preview-chip is-off' }, t('studio.live')),
+                  h('button', { type: 'button', className: 'mp-studio-preview-chip mp-studio-pause', title: previewPaused ? t('studio.play') : t('studio.pause'), onClick: function () { setPreviewPaused(!previewPaused) } }, icon(previewPaused ? 'play' : 'pause', 13)),
                 ),
               ),
               h('div', { className: 'mp-studio-count' }, t('studio.styles', { count: String(catalog.length) })),
