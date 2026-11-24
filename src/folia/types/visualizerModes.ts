@@ -14,7 +14,6 @@ import type { VisualizerBackgroundMode, VisualizerMode } from '../types';
 
 export const BUILTIN_VISUALIZER_MODES = [
     'cadenza',
-    'cappella',
     'claddagh',
     'classic',
     'diorama',

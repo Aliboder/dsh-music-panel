@@ -111,8 +111,6 @@ Folia 的在线层架构。
   上游原样。
 - 上游版本：`folia-major-main` 0.7.28。
 - 随本项目以 AGPL-3.0-only 分发；完整对应源码即本仓库的上述目录。
-- Cappella 的内置头像/表情图片也来自该上游仓库（`src/render/folia/components/
-  visualizer/cappella/{avatar,emo}`），由插件 `/music/assets` 路由提供。
 
 ## @paper-design/shaders / @paper-design/shaders-react
 

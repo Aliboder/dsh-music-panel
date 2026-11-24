@@ -58,7 +58,6 @@ test('playback defaults', () => {
   assert.equal(defaults.hanabiTuning.sparkAmount, 1, 'Folia hanabi tuning defaults')
   assert.equal(defaults.cadenzaTuning.fontScale, 1.12, 'Folia cadenza tuning defaults')
   assert.equal(defaults.sonnetTuning.cameraIntensity, 1, 'Folia sonnet tuning defaults')
-  assert.equal(defaults.cappellaTuning.avatarSource, 'cover', 'Folia cappella tuning defaults')
   assert.equal(defaults.monetTuning.fontScale, 1.2, 'Folia monet tuning defaults')
   assert.equal(defaults.machiTuning.aperture, 8, 'Folia machi tuning defaults')
   assert.equal(defaults.lumiereTuning.lightIntensity, 1, 'Folia lumiere tuning defaults')

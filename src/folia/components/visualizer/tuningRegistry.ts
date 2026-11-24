@@ -1,5 +1,4 @@
 import type {
-    CappellaTuning,
     CadenzaTuning,
     ClassicTuning,
     CladdaghTuning,
@@ -28,7 +27,6 @@ export interface VisualizerTuningMap {
     partita: PartitaTuning;
     fume: FumeTuning;
     claddagh: CladdaghTuning;
-    cappella: CappellaTuning;
     tilt: TiltTuning;
     diorama: DioramaTuning;
     monet: MonetTuning;

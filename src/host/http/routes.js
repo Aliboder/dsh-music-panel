@@ -514,25 +514,6 @@ export function createRoutes({
         }
       }
 
-      // Cappella's built-in avatars/emoji, served from the upstream asset directory.
-      if (pathname.startsWith('/assets/cappella/') && method === 'GET') {
-        const name = pathname.slice('/assets/cappella/'.length)
-        if (!/^(avatar|emo)\/[a-z0-9]+\.png$/.test(name)) {
-          return fail(res, 404, 'NOT_FOUND', '资源不存在')
-        }
-        try {
-          const file = await readFile(fileURLToPath(new URL('../assets/cappella/' + name, import.meta.url)))
-          res.writeHead(200, {
-            'content-type': 'image/png',
-            'content-length': file.length,
-            'cache-control': 'public, max-age=31536000, immutable',
-          })
-          res.end(file)
-          return
-        } catch {
-          return fail(res, 404, 'ASSET_MISSING', 'Cappella 素材缺失，请重新安装插件')
-        }
-      }
       // icu-folia data (Folia's jieba/HMM tables), gzipped and shipped with the plugin.
       // Served with Content-Encoding so the browser decodes it transparently.
       if (pathname.startsWith('/assets/icu-folia/') && method === 'GET') {

@@ -3,9 +3,6 @@ import type { BeatEffectDef } from '../../services/beatFx/beatEffects';
 import { type MotionValue } from 'framer-motion';
 import {
     type AudioBands,
-    type CappellaAvatarImage,
-    type CappellaEmojiImage,
-    type CappellaTuning,
     type CadenzaTuning,
     type ClassicTuning,
     type CladdaghTuning,
@@ -119,9 +116,6 @@ export interface VisualizerSharedProps {
     partitaTuning?: PartitaTuning;
     fumeTuning?: FumeTuning;
     claddaghTuning?: CladdaghTuning;
-    cappellaTuning?: CappellaTuning;
-    cappellaCustomEmojiImages?: CappellaEmojiImage[];
-    cappellaCustomAvatarImages?: CappellaAvatarImage[];
     tiltTuning?: TiltTuning;
     dioramaTuning?: DioramaTuning;
     monetTuning?: MonetTuning;

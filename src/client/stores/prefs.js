@@ -199,11 +199,6 @@ var PREF_DEFAULTS = {
     portraitHangerVisibility: 'auto',
     mirrorLayout: false,
   },
-  cappellaTuning: {
-    showEmoMessages: true,
-    emojiPackSource: 'builtin',
-    avatarSource: 'cover',
-  },
   sonnetTuning: {
     cameraIntensity: 1,
     typographyMotion: 1,
@@ -673,14 +668,6 @@ function readPrefs() {
     focus: machiChoice('focus', ['center', 'lyrics', 'manual']),
     focusOffset: machiNumber('focusOffset', -10, 10),
     simulatedBeat: storedMachi.simulatedBeat !== false,
-  }
-  // Folia cappella tuning: three fields, unknown values fall back.
-  var cappellaDefaults = PREF_DEFAULTS.cappellaTuning
-  var storedCappella = merged.cappellaTuning && typeof merged.cappellaTuning === 'object' ? merged.cappellaTuning : {}
-  merged.cappellaTuning = {
-    showEmoMessages: storedCappella.showEmoMessages !== false,
-    emojiPackSource: storedCappella.emojiPackSource === 'custom' ? 'custom' : 'builtin',
-    avatarSource: ['cover', 'builtin', 'color', 'custom'].indexOf(storedCappella.avatarSource) >= 0 ? storedCappella.avatarSource : 'cover',
   }
   // Folia sonnet tuning: ranges and switches from its resolve().
   var sonnetDefaults = PREF_DEFAULTS.sonnetTuning

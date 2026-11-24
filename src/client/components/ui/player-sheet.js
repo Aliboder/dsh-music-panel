@@ -1009,7 +1009,6 @@ function PlayerSheetInner(props) {
     if (style === 'hanabi') blocks.push(hanabiTuningBlock())
     if (style === 'cadenza') blocks.push(cadenzaTuningBlock())
     if (style === 'sonnet') blocks.push(sonnetTuningBlock())
-    if (style === 'cappella') blocks.push(cappellaTuningBlock())
     if (style === 'monet') blocks.push(monetTuningBlock())
     if (style === 'machi') blocks.push(machiTuningBlock())
     if (style === 'lumiere') blocks.push(lumiereTuningBlock())
@@ -1493,18 +1492,6 @@ function PlayerSheetInner(props) {
       num('settings.sonnetVignette', 'postProcessVignette', 0, 2, 0.01),
       num('settings.sonnetLens', 'postProcessLensDistortion', 0, 2, 0.01),
       num('settings.sonnetDispersion', 'postProcessLensDispersion', 0, 1, 0.01),
-    ))
-  }
-  /** Folia cappella tuning: emoji messages and avatar source. */
-  function cappellaTuningBlock() {
-    var tuning = prefs.cappellaTuning || {}
-    return mpSection(t('settings.cappellaTuning'), h('div', null,
-      mpPanelRow(t('settings.cappellaEmo'), h(Switch, { value: tuning.showEmoMessages !== false, label: t('settings.cappellaEmo'), onChange: function (value) { setPrefs({ cappellaTuning: Object.assign({}, tuning, { showEmoMessages: value }) }) } })),
-      mpPanelRow(t('settings.cappellaAvatar'), segmented([
-        { value: 'cover', label: t('settings.optCover') },
-        { value: 'builtin', label: t('settings.optBuiltin') },
-        { value: 'color', label: t('settings.optColor') },
-      ], ['cover', 'builtin', 'color'].indexOf(tuning.avatarSource) >= 0 ? tuning.avatarSource : 'cover', function (value) { setPrefs({ cappellaTuning: Object.assign({}, tuning, { avatarSource: value }) }) })),
     ))
   }
   /** Folia monet tuning: description, audio strip, portrait and mirror. */

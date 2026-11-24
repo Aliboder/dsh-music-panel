@@ -104,7 +104,6 @@ assert.ok(entries, 'styles bundle exports FOLIA_STYLE_ENTRIES')
 
 const expected = [
   'classic',
-  'cappella',
   'machi',
   'still',
   'tilt',
@@ -156,7 +155,7 @@ for (const mode of expected) {
 assert.ok(Array.isArray(internals.FOLIA_STYLE_META))
 assert.deepEqual(
   internals.FOLIA_STYLE_META.map((item) => item.id),
-  ['sonnet', 'tempera', 'lumiere', 'hanabi', 'machi', 'nebbia', 'classic', 'cadenza', 'partita', 'fume', 'tilt', 'claddagh', 'monet', 'cappella', 'diorama', 'still'],
+  ['sonnet', 'tempera', 'lumiere', 'hanabi', 'machi', 'nebbia', 'classic', 'cadenza', 'partita', 'fume', 'tilt', 'claddagh', 'monet', 'diorama', 'still'],
   'style order follows the upstream entry order values',
 )
 assert.deepEqual(
@@ -218,8 +217,3 @@ test('styles merge the full Folia tuning defaults', () => {
   assert.match(host, /DEFAULT_NEBBIA_TUNING/)
 })
 
-test('cappella skips blank chat rows', () => {
-  const source = readFileSync(join(ROOT, 'src/folia/components/visualizer/cappella/cappellaMessages.ts'), 'utf8')
-  assert.match(source, /line\.fullText\.trim\(\) === ''/)
-  assert.match(source, /if \(titleText\.trim\(\) !== ''\)/)
-})

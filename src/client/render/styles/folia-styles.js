@@ -33,7 +33,6 @@ var FOLIA_STYLE_META = [
   { id: 'tilt', labelKey: 'sheet.foliaStyleTilt', glyph: 'note', order: 70 },
   { id: 'claddagh', labelKey: 'sheet.foliaStyleCladdagh', glyph: 'disc', order: 80 },
   { id: 'monet', labelKey: 'sheet.foliaStyleMonet', glyph: 'disc', order: 90 },
-  { id: 'cappella', labelKey: 'sheet.foliaStyleCappella', glyph: 'note', order: 110 },
   { id: 'diorama', labelKey: 'sheet.foliaStyleDiorama', glyph: 'disc', order: 120 },
   { id: 'still', labelKey: 'sheet.foliaStyleStill', glyph: 'note', order: 130 },
 ]
@@ -390,7 +389,6 @@ function FoliaStyleStage(props) {
     fumeTuning: foliaTuning(FOLIA_STYLES.DEFAULT_FUME_TUNING, prefs.fumeTuning),
     cadenzaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_CADENZA_TUNING, prefs.cadenzaTuning),
     sonnetTuning: foliaTuning(FOLIA_STYLES.DEFAULT_SONNET_TUNING, prefs.sonnetTuning),
-    cappellaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_CAPPELLA_TUNING, prefs.cappellaTuning),
     monetTuning: foliaTuning(FOLIA_STYLES.DEFAULT_MONET_TUNING, prefs.monetTuning),
     machiTuning: foliaTuning(FOLIA_STYLES.DEFAULT_MACHI_TUNING, prefs.machiTuning),
     lumiereTuning: foliaTuning(FOLIA_STYLES.DEFAULT_LUMIERE_TUNING, prefs.lumiereTuning),

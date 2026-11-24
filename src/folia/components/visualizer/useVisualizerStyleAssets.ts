@@ -7,7 +7,5 @@ import { useVisualizerAssetStore } from '../../stores/useVisualizerAssetStore';
 // page, the settings window's sample and its small pictures) spreads this onto the renderer's props.
 
 export const useVisualizerStyleAssets = () => useVisualizerAssetStore(useShallow(state => ({
-    cappellaCustomEmojiImages: state.cappellaCustomEmojiImages,
-    cappellaCustomAvatarImages: state.cappellaCustomAvatarImages,
     monetPortraitImage: state.monetPortraitImage,
 })));

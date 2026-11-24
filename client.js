@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "0662059c658f"
+    var CLIENT_BUILD = "1ed94fe261f4"
 
     // ── src/client/app/runtime.js
     /**
@@ -8700,10 +8700,6 @@ window.__ModuleLoader__.load({
         'settings.monetPortraitOffset': '肖像位置',
         'settings.monetHanger': '拖拽手柄',
         'settings.monetMirror': '镜像布局',
-        'settings.cappellaTuning': '群唱参数',
-        'settings.cappellaEmo': '表情消息',
-        'settings.cappellaAvatar': '头像来源',
-        'settings.cappellaEmojiPack': '表情包',
         'settings.sonnetTuning': '商籁参数',
         'settings.sonnetCamera': '镜头强度',
         'settings.sonnetTypography': '字体动效',
@@ -9050,7 +9046,6 @@ window.__ModuleLoader__.load({
         'sheet.foliaStylePartita': '云阶',
         'sheet.foliaStyleFume': '浮名',
         'sheet.foliaStyleMonet': '莫奈',
-        'sheet.foliaStyleCappella': '群唱',
         'sheet.foliaStyleTilt': '倾诉',
         'sheet.foliaStyleCladdagh': '回环',
         'sheet.foliaStyleCadenza': '心象',
@@ -9785,10 +9780,6 @@ window.__ModuleLoader__.load({
         'settings.monetPortraitOffset': 'Portrait offset',
         'settings.monetHanger': 'Drag hanger',
         'settings.monetMirror': 'Mirror layout',
-        'settings.cappellaTuning': 'Cappella tuning',
-        'settings.cappellaEmo': 'Emoji messages',
-        'settings.cappellaAvatar': 'Avatar source',
-        'settings.cappellaEmojiPack': 'Emoji pack',
         'settings.sonnetTuning': 'Sonnet tuning',
         'settings.sonnetCamera': 'Camera intensity',
         'settings.sonnetTypography': 'Typography motion',
@@ -10132,7 +10123,6 @@ window.__ModuleLoader__.load({
         'sheet.foliaStylePartita': 'Partita',
         'sheet.foliaStyleFume': 'Fume',
         'sheet.foliaStyleMonet': 'Monet',
-        'sheet.foliaStyleCappella': 'Cappella',
         'sheet.foliaStyleTilt': 'Tilt',
         'sheet.foliaStyleCladdagh': 'Claddagh',
         'sheet.foliaStyleCadenza': 'Cadenza',
@@ -33506,12 +33496,11 @@ window.__ModuleLoader__.load({
         });
       
         // src/folia-adapters/shims/settings-card.tsx
-        var Stub, CappellaSettingsPanel, ClassicSettingsPanel, CladdaghSettingsPanel, DioramaSettingsPanel, FumeSettingsPanel, MonetSettingsPanel, PartitaSettingsPanel, TiltSettingsPanel, Tooltip, SettingsKitThemeContext, NEBBIA_APPEAR_LABEL_KEYS, NEBBIA_FADE_LABEL_KEYS, Slider, Toggle, settings_card_default, passthrough, Button, Segmented, Tabs, settingsTokens, percent, times;
+        var Stub, ClassicSettingsPanel, CladdaghSettingsPanel, DioramaSettingsPanel, FumeSettingsPanel, MonetSettingsPanel, PartitaSettingsPanel, TiltSettingsPanel, Tooltip, SettingsKitThemeContext, NEBBIA_APPEAR_LABEL_KEYS, NEBBIA_FADE_LABEL_KEYS, Slider, Toggle, settings_card_default, passthrough, Button, Segmented, Tabs, settingsTokens, percent, times;
         var init_settings_card = __esm({
           "src/folia-adapters/shims/settings-card.tsx"() {
             init_react_shim();
             Stub = () => null;
-            CappellaSettingsPanel = Stub;
             ClassicSettingsPanel = Stub;
             CladdaghSettingsPanel = Stub;
             DioramaSettingsPanel = Stub;
@@ -33663,7 +33652,7 @@ window.__ModuleLoader__.load({
         });
       
         // src/folia/types.ts
-        var DEFAULT_CLASSIC_TUNING, DEFAULT_CADENZA_TUNING, DEFAULT_PARTITA_TUNING, DEFAULT_FUME_TUNING, DEFAULT_CLADDAGH_TUNING, DEFAULT_CAPPELLA_TUNING, DEFAULT_TILT_TUNING, DEFAULT_SONNET_TUNING, DEFAULT_TEMPERA_TUNING, DEFAULT_LUMIERE_TUNING, DEFAULT_DIORAMA_GEOMETRY_VISIBILITY, DIORAMA_PARTICLE_DENSITY_MIN, DIORAMA_PARTICLE_DENSITY_MAX, DIORAMA_PARTICLE_DENSITY_STEP, DIORAMA_MOTE_CIRCUMFERENCE_MIN, DIORAMA_MOTE_CIRCUMFERENCE_MAX, DIORAMA_MOTE_RADIAL_MIN, DIORAMA_MOTE_RADIAL_MAX, DEFAULT_DIORAMA_TUNING, MONET_CHROME_VISIBILITIES, DEFAULT_MONET_TUNING;
+        var DEFAULT_CLASSIC_TUNING, DEFAULT_CADENZA_TUNING, DEFAULT_PARTITA_TUNING, DEFAULT_FUME_TUNING, DEFAULT_CLADDAGH_TUNING, DEFAULT_TILT_TUNING, DEFAULT_SONNET_TUNING, DEFAULT_TEMPERA_TUNING, DEFAULT_LUMIERE_TUNING, DEFAULT_DIORAMA_GEOMETRY_VISIBILITY, DIORAMA_PARTICLE_DENSITY_MIN, DIORAMA_PARTICLE_DENSITY_MAX, DIORAMA_PARTICLE_DENSITY_STEP, DIORAMA_MOTE_CIRCUMFERENCE_MIN, DIORAMA_MOTE_CIRCUMFERENCE_MAX, DIORAMA_MOTE_RADIAL_MIN, DIORAMA_MOTE_RADIAL_MAX, DEFAULT_DIORAMA_TUNING, MONET_CHROME_VISIBILITIES, DEFAULT_MONET_TUNING;
         var init_types = __esm({
           "src/folia/types.ts"() {
             DEFAULT_CLASSIC_TUNING = {
@@ -33710,11 +33699,6 @@ window.__ModuleLoader__.load({
               showTranslation: false,
               translationScale: 1,
               translationLetterSpacingOffset: 0
-            };
-            DEFAULT_CAPPELLA_TUNING = {
-              showEmoMessages: true,
-              emojiPackSource: "builtin",
-              avatarSource: "cover"
             };
             DEFAULT_TILT_TUNING = {
               splitProbability: 0.75,
@@ -46840,1525 +46824,6 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/stores/useVisualizerAssetStore.ts
-        var STATE, useVisualizerAssetStore;
-        var init_useVisualizerAssetStore = __esm({
-          "src/folia/stores/useVisualizerAssetStore.ts"() {
-            STATE = {
-              cappellaAvatars: [],
-              cappellaEmoji: [],
-              cappellaEmojiPack: null,
-              storedMonetPortraitImage: null
-            };
-            useVisualizerAssetStore = (selector) => {
-              if (typeof selector === "function") return selector(STATE);
-              return STATE;
-            };
-            useVisualizerAssetStore.setState = (patch) => {
-              Object.assign(STATE, patch);
-            };
-            useVisualizerAssetStore.getState = () => STATE;
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/emoImages.ts
-        var EMO_FILES, EMO_BASE, emoModules, builtinEmoImages;
-        var init_emoImages = __esm({
-          "src/folia/components/visualizer/cappella/emoImages.ts"() {
-            EMO_FILES = ["happy1.png", "love1.png", "normal1.png", "sleepy1.png", "sleepy2.png", "sleepy3.png", "vibe1.png", "vibe2.png", "vibe3.png"];
-            EMO_BASE = (typeof API === "string" ? API : "music/") + "assets/cappella/emo/";
-            emoModules = Object.fromEntries(EMO_FILES.map((file) => [file, { default: EMO_BASE + file }]));
-            builtinEmoImages = Object.entries(emoModules).map(
-              ([path2, mod]) => {
-                const filename = path2.split("/").pop() ?? "";
-                const name = filename.replace(/\.[^.]+$/, "");
-                return {
-                  id: `builtin-${name}`,
-                  url: mod.default,
-                  name
-                };
-              }
-            );
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/cappellaConstants.ts
-        var SHORT_LINE_CHAR_LIMIT, MAX_VISIBLE_MESSAGES, AVATAR_GRID_SIZE, LEFT_AVATAR_INDICES, RIGHT_AVATAR_INDEX, CAPPELLA_PREHEAT_WINDOW, CAPPELLA_LAYOUT_CACHE_LIMIT, CAPPELLA_WIDTH_LOOKAHEAD_SECONDS, CAPPELLA_BUBBLE_TEXT_OPTIONS, CAPPELLA_BUBBLE_FONT_WEIGHT, INTERLUDE_TEXT, DEFAULT_CHAR_FADE_MS, MIN_CHAR_FADE_MS;
-        var init_cappellaConstants = __esm({
-          "src/folia/components/visualizer/cappella/cappellaConstants.ts"() {
-            SHORT_LINE_CHAR_LIMIT = 12;
-            MAX_VISIBLE_MESSAGES = 20;
-            AVATAR_GRID_SIZE = 3;
-            LEFT_AVATAR_INDICES = [0, 3, 6, 1, 4];
-            RIGHT_AVATAR_INDEX = 8;
-            CAPPELLA_PREHEAT_WINDOW = {
-              minLead: 0.18,
-              maxLead: 1.1
-            };
-            CAPPELLA_LAYOUT_CACHE_LIMIT = 32;
-            CAPPELLA_WIDTH_LOOKAHEAD_SECONDS = 0.2;
-            CAPPELLA_BUBBLE_TEXT_OPTIONS = { whiteSpace: "pre-wrap" };
-            CAPPELLA_BUBBLE_FONT_WEIGHT = 400;
-            INTERLUDE_TEXT = "......";
-            DEFAULT_CHAR_FADE_MS = 220;
-            MIN_CHAR_FADE_MS = 40;
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/cappellaIntensity.ts
-        var getCappellaIntensityConfig;
-        var init_cappellaIntensity = __esm({
-          "src/folia/components/visualizer/cappella/cappellaIntensity.ts"() {
-            getCappellaIntensityConfig = (animationIntensity) => {
-              if (animationIntensity === "calm") {
-                return {
-                  sequencing: {
-                    forceRightEveryLines: 7,
-                    shortLineCarryChance: 0.92,
-                    sideSequence: ["left", "left", "right", "left", "right"],
-                    sideFlipChance: 0.08,
-                    randomEmoChance: 0,
-                    minLinesBetweenRandomEmos: 6,
-                    maxRandomEmoRatio: 0
-                  },
-                  motion: {
-                    rowEnterY: 14,
-                    rowEnterScale: 0.992,
-                    rowEnterDuration: 0.28,
-                    rowExitY: -10,
-                    rowExitScale: 0.985,
-                    rowExitDuration: 0.22,
-                    avatarSpring: { stiffness: 280, damping: 30, mass: 0.78 },
-                    activeScale: 1.07,
-                    passedScale: 0.96,
-                    passedOpacity: 0.88,
-                    activeFontMultiplier: 1.22,
-                    inactiveFontMultiplier: 0.96,
-                    activePaddingX: 18,
-                    activePaddingY: 14,
-                    inactivePaddingX: 16,
-                    inactivePaddingY: 12,
-                    activeMinHeight: 58,
-                    inactiveMinHeight: 44,
-                    glowOpacity: 0.26,
-                    glowDuration: 2.2,
-                    glowRightAlpha: 0.26,
-                    glowLeftAlpha: 0.14,
-                    activeShadowAlpha: 0.24,
-                    emoActiveSize: 132,
-                    emoInactiveSize: 96,
-                    emoEnterScale: 0.74,
-                    emoSizeTransitionDuration: 0.22
-                  }
-                };
-              }
-              if (animationIntensity === "chaotic") {
-                return {
-                  sequencing: {
-                    forceRightEveryLines: 3,
-                    shortLineCarryChance: 0.36,
-                    sideSequence: ["left", "right", "right", "left", "right", "left"],
-                    sideFlipChance: 0.42,
-                    randomEmoChance: 0.22,
-                    minLinesBetweenRandomEmos: 2,
-                    maxRandomEmoRatio: 1 / 6
-                  },
-                  motion: {
-                    rowEnterY: 30,
-                    rowEnterScale: 0.968,
-                    rowEnterDuration: 0.38,
-                    rowExitY: -26,
-                    rowExitScale: 0.94,
-                    rowExitDuration: 0.28,
-                    avatarSpring: { stiffness: 360, damping: 24, mass: 0.68 },
-                    activeScale: 1.18,
-                    passedScale: 0.88,
-                    passedOpacity: 0.76,
-                    activeFontMultiplier: 1.4,
-                    inactiveFontMultiplier: 0.92,
-                    activePaddingX: 22,
-                    activePaddingY: 17,
-                    inactivePaddingX: 15,
-                    inactivePaddingY: 11,
-                    activeMinHeight: 68,
-                    inactiveMinHeight: 42,
-                    glowOpacity: 0.52,
-                    glowDuration: 1.35,
-                    glowRightAlpha: 0.42,
-                    glowLeftAlpha: 0.24,
-                    activeShadowAlpha: 0.42,
-                    emoActiveSize: 178,
-                    emoInactiveSize: 122,
-                    emoEnterScale: 0.54,
-                    emoSizeTransitionDuration: 0.28
-                  }
-                };
-              }
-              return {
-                sequencing: {
-                  forceRightEveryLines: 5,
-                  shortLineCarryChance: 0.68,
-                  sideSequence: ["left", "right", "left", "right", "right"],
-                  sideFlipChance: 0.18,
-                  randomEmoChance: 0.1,
-                  minLinesBetweenRandomEmos: 3,
-                  maxRandomEmoRatio: 1 / 8
-                },
-                motion: {
-                  rowEnterY: 22,
-                  rowEnterScale: 0.98,
-                  rowEnterDuration: 0.32,
-                  rowExitY: -18,
-                  rowExitScale: 0.965,
-                  rowExitDuration: 0.24,
-                  avatarSpring: { stiffness: 340, damping: 28, mass: 0.72 },
-                  activeScale: 1.12,
-                  passedScale: 0.92,
-                  passedOpacity: 0.82,
-                  activeFontMultiplier: 1.34,
-                  inactiveFontMultiplier: 0.94,
-                  activePaddingX: 20,
-                  activePaddingY: 16,
-                  inactivePaddingX: 16,
-                  inactivePaddingY: 12,
-                  activeMinHeight: 64,
-                  inactiveMinHeight: 44,
-                  glowOpacity: 0.4,
-                  glowDuration: 1.8,
-                  glowRightAlpha: 0.34,
-                  glowLeftAlpha: 0.18,
-                  activeShadowAlpha: 0.34,
-                  emoActiveSize: 160,
-                  emoInactiveSize: 110,
-                  emoEnterScale: 0.6,
-                  emoSizeTransitionDuration: 0.25
-                }
-              };
-            };
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/cappellaMessageSenders.ts
-        var normalizeAgentId, collectDistinctAgentIds, createCappellaAgentSenderResolver;
-        var init_cappellaMessageSenders = __esm({
-          "src/folia/components/visualizer/cappella/cappellaMessageSenders.ts"() {
-            normalizeAgentId = (agentId) => {
-              const trimmed = agentId?.trim();
-              return trimmed ? trimmed : null;
-            };
-            collectDistinctAgentIds = (lines) => {
-              const ids = [];
-              const seen = /* @__PURE__ */ new Set();
-              lines.forEach((line2) => {
-                const agentId = normalizeAgentId(line2.agentId);
-                if (!agentId || seen.has(agentId)) {
-                  return;
-                }
-                seen.add(agentId);
-                ids.push(agentId);
-              });
-              return ids;
-            };
-            createCappellaAgentSenderResolver = (lines, options) => {
-              const agentIds = collectDistinctAgentIds(lines);
-              if (agentIds.length < 2) {
-                return null;
-              }
-              const rightAgentId = agentIds[0];
-              const leftAvatarCount = Math.max(1, options.leftAvatarCount);
-              const senderByAgentId = /* @__PURE__ */ new Map();
-              agentIds.forEach((agentId, index) => {
-                senderByAgentId.set(agentId, agentId === rightAgentId ? {
-                  side: "right",
-                  avatarIndex: options.rightAvatarIndex
-                } : {
-                  side: "left",
-                  avatarIndex: (index - 1) % leftAvatarCount
-                });
-              });
-              return {
-                resolve: (line2) => {
-                  const agentId = normalizeAgentId(line2.agentId);
-                  return agentId ? senderByAgentId.get(agentId) ?? null : null;
-                }
-              };
-            };
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/cappellaMessages.ts
-        var countCompactChars, hashString3, seededUnit, pickStableEmoImage, getEffectiveRenderEndTime, buildCappellaMessages;
-        var init_cappellaMessages = __esm({
-          "src/folia/components/visualizer/cappella/cappellaMessages.ts"() {
-            init_renderHints();
-            init_cappellaMessageSenders();
-            init_cappellaConstants();
-            countCompactChars = (text) => Array.from(text.replace(/\s/g, "")).length;
-            hashString3 = (input) => {
-              let hash2 = 2166136261;
-              for (let index = 0; index < input.length; index += 1) {
-                hash2 ^= input.charCodeAt(index);
-                hash2 = Math.imul(hash2, 16777619);
-              }
-              return hash2 >>> 0;
-            };
-            seededUnit = (...parts) => hashString3(parts.join("|")) / 4294967295;
-            pickStableEmoImage = (imagePool, ...seedParts) => {
-              if (imagePool.length === 0) {
-                return null;
-              }
-              const index = Math.floor(seededUnit(...seedParts) * imagePool.length) % imagePool.length;
-              return imagePool[index] ?? imagePool[0];
-            };
-            getEffectiveRenderEndTime = (line2, nextLine) => Math.min(getLineRenderEndTime(line2), nextLine?.startTime ?? Number.POSITIVE_INFINITY);
-            buildCappellaMessages = (lines, titleText, config, tuning, emoImagePool, forcePreviewEmo) => {
-              const messages = [];
-              if (titleText.trim() !== "") {
-                messages.push({
-                  id: "title",
-                  kind: "title",
-                  text: titleText,
-                  side: "right",
-                  avatarIndex: AVATAR_GRID_SIZE * AVATAR_GRID_SIZE - 1
-                });
-              }
-              const showEmoMessages = tuning.showEmoMessages && emoImagePool.length > 0;
-              if (lines.length === 0) {
-                const fallbackEmo = showEmoMessages ? pickStableEmoImage(emoImagePool, "no-lyrics", titleText, config.sequencing.forceRightEveryLines) : null;
-                if (fallbackEmo && showEmoMessages) {
-                  messages.push({
-                    id: "emo-no-lyrics",
-                    kind: "emo",
-                    line: {
-                      words: [],
-                      startTime: 0,
-                      endTime: 0,
-                      fullText: INTERLUDE_TEXT
-                    },
-                    lineIndex: 0,
-                    side: "right",
-                    avatarIndex: AVATAR_GRID_SIZE * AVATAR_GRID_SIZE - 1,
-                    emoImageUrl: fallbackEmo.url,
-                    activationStartTime: 0,
-                    activationEndTime: 999999
-                  });
-                }
-                return messages;
-              }
-              let sideSequenceCursor = 0;
-              let nextLeftAvatarCursor = 0;
-              let lastLyricSender = null;
-              let lyricMessagesSinceRandomEmo = Number.POSITIVE_INFINITY;
-              let randomEmoCount = 0;
-              const randomEmoCap = Math.floor(lines.length * config.sequencing.maxRandomEmoRatio);
-              const agentSenderResolver = createCappellaAgentSenderResolver(lines, {
-                rightAvatarIndex: RIGHT_AVATAR_INDEX,
-                leftAvatarCount: LEFT_AVATAR_INDICES.length
-              });
-              lines.forEach((line2, lineIndex) => {
-                if (!line2 || typeof line2.fullText !== "string" || line2.fullText.trim() === "") return;
-                const nextLine = lines[lineIndex + 1];
-                const isShortLine2 = countCompactChars(line2.fullText) <= SHORT_LINE_CHAR_LIMIT;
-                const agentSender = agentSenderResolver?.resolve(line2) ?? null;
-                const shouldForceRight = !agentSender && (lineIndex + 1) % config.sequencing.forceRightEveryLines === 0;
-                const shouldCarrySender = Boolean(!agentSender && isShortLine2 && lastLyricSender && seededUnit("carry", line2.startTime, lineIndex) <= config.sequencing.shortLineCarryChance);
-                const baseSide = config.sequencing.sideSequence[sideSequenceCursor % config.sequencing.sideSequence.length];
-                const shouldFlipSide = !shouldForceRight && seededUnit("flip", line2.startTime, lineIndex) < config.sequencing.sideFlipChance;
-                const resolvedSide = shouldFlipSide ? baseSide === "left" ? "right" : "left" : baseSide;
-                let sender;
-                if (agentSender) {
-                  sender = agentSender;
-                } else if (shouldForceRight) {
-                  sender = {
-                    side: "right",
-                    avatarIndex: RIGHT_AVATAR_INDEX
-                  };
-                } else if (shouldCarrySender && lastLyricSender) {
-                  sender = lastLyricSender;
-                } else {
-                  sender = {
-                    side: resolvedSide,
-                    avatarIndex: resolvedSide === "left" ? nextLeftAvatarCursor : RIGHT_AVATAR_INDEX
-                  };
-                }
-                const isInterlude = line2.fullText === INTERLUDE_TEXT;
-                const emoImage = isInterlude && showEmoMessages ? pickStableEmoImage(emoImagePool, "interlude", line2.startTime, lineIndex) : null;
-                const effectiveRenderEndTime = getEffectiveRenderEndTime(line2, nextLine);
-                if (isInterlude && emoImage && showEmoMessages) {
-                  messages.push({
-                    id: `emo-${line2.startTime}-${lineIndex}`,
-                    kind: "emo",
-                    line: line2,
-                    lineIndex,
-                    side: sender.side,
-                    avatarIndex: sender.avatarIndex,
-                    emoImageUrl: emoImage.url,
-                    activationStartTime: line2.startTime,
-                    activationEndTime: Math.max(line2.startTime + 0.12, effectiveRenderEndTime)
-                  });
-                } else {
-                  messages.push({
-                    id: `line-${line2.startTime}-${lineIndex}`,
-                    kind: "lyric",
-                    line: line2,
-                    lineIndex,
-                    side: sender.side,
-                    avatarIndex: sender.avatarIndex
-                  });
-                }
-                lyricMessagesSinceRandomEmo += 1;
-                const renderHints = getLineRenderHints(line2);
-                const canAppendRandomEmo = !isInterlude && showEmoMessages && config.sequencing.randomEmoChance > 0 && randomEmoCount < randomEmoCap && lyricMessagesSinceRandomEmo >= config.sequencing.minLinesBetweenRandomEmos && renderHints?.timingClass === "normal";
-                if (canAppendRandomEmo) {
-                  const score = seededUnit("random-emo", line2.startTime, line2.endTime, lineIndex, config.sequencing.randomEmoChance);
-                  if (score < config.sequencing.randomEmoChance) {
-                    const reactionImage = pickStableEmoImage(emoImagePool, "reaction", line2.startTime, line2.endTime, lineIndex, sender.side);
-                    if (reactionImage) {
-                      messages.push({
-                        id: `emo-reaction-${line2.startTime}-${lineIndex}`,
-                        kind: "emo",
-                        line: line2,
-                        lineIndex,
-                        side: sender.side,
-                        avatarIndex: sender.avatarIndex,
-                        emoImageUrl: reactionImage.url,
-                        activationStartTime: line2.endTime,
-                        activationEndTime: Math.max(line2.endTime + 0.08, effectiveRenderEndTime)
-                      });
-                      randomEmoCount += 1;
-                      lyricMessagesSinceRandomEmo = 0;
-                    }
-                  }
-                }
-                if (agentSender) {
-                  lastLyricSender = sender;
-                } else if (shouldForceRight) {
-                  sideSequenceCursor = 0;
-                  lastLyricSender = null;
-                } else if (!shouldCarrySender) {
-                  if (sender.side === "left") {
-                    nextLeftAvatarCursor += 1;
-                  }
-                  sideSequenceCursor += 1;
-                  lastLyricSender = sender;
-                } else {
-                  lastLyricSender = sender;
-                }
-              });
-              if (forcePreviewEmo && showEmoMessages && !messages.some((message) => message.kind === "emo")) {
-                const previewLine = lines[0] ?? {
-                  words: [],
-                  startTime: 0,
-                  endTime: 0,
-                  fullText: INTERLUDE_TEXT
-                };
-                const previewEmo = pickStableEmoImage(emoImagePool, "preview-emo", titleText, lines.length);
-                if (previewEmo) {
-                  messages.splice(1, 0, {
-                    id: "emo-preview",
-                    kind: "emo",
-                    line: previewLine,
-                    lineIndex: -1,
-                    side: "right",
-                    avatarIndex: RIGHT_AVATAR_INDEX,
-                    emoImageUrl: previewEmo.url,
-                    activationStartTime: 0,
-                    activationEndTime: Number.POSITIVE_INFINITY
-                  });
-                }
-              }
-              return messages;
-            };
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/cappellaTypes.ts
-        var isTimedMessage;
-        var init_cappellaTypes = __esm({
-          "src/folia/components/visualizer/cappella/cappellaTypes.ts"() {
-            isTimedMessage = (m4) => m4.kind === "lyric" || m4.kind === "emo";
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/cappellaReveal.ts
-        var getLineCharacters, getWordTextRanges, buildCharacterRevealTimes, getCharacterCountAtTime, getBubbleTargetCharacterCount, getTimestampReadyTime, buildCharacterFadeDurationsMs, getTimestampReadyTimeFromMetrics, getCharacterRevealPlan;
-        var init_cappellaReveal = __esm({
-          "src/folia/components/visualizer/cappella/cappellaReveal.ts"() {
-            init_graphemeTiming();
-            init_cappellaConstants();
-            getLineCharacters = (line2) => splitLyricGraphemes(line2.fullText);
-            getWordTextRanges = (line2) => {
-              const ranges = [];
-              let searchCursor = 0;
-              line2.words.forEach((word) => {
-                const start = line2.fullText.indexOf(word.text, searchCursor);
-                if (start < 0) {
-                  ranges.push(null);
-                  return;
-                }
-                const end = start + word.text.length;
-                ranges.push({ start, end });
-                searchCursor = end;
-              });
-              return ranges;
-            };
-            buildCharacterRevealTimes = (line2, characters) => {
-              const revealTimes = characters.map(() => Number.POSITIVE_INFINITY);
-              const lineTimeline = buildLineGraphemeTimeline(line2);
-              if (lineTimeline.length === characters.length) {
-                lineTimeline.forEach((timing, index) => {
-                  revealTimes[index] = timing.startTime;
-                });
-                return revealTimes;
-              }
-              const ranges = getWordTextRanges(line2);
-              let previousWordEndCharacterIndex = 0;
-              let lastResolvedRevealTime = line2.startTime;
-              let hasResolvedRevealTime = false;
-              line2.words.forEach((word, index) => {
-                const range = ranges[index];
-                if (!range) {
-                  return;
-                }
-                const startCharacterIndex = splitLyricGraphemes(line2.fullText.slice(0, range.start)).length;
-                const endCharacterIndex = splitLyricGraphemes(line2.fullText.slice(0, range.end)).length;
-                const wordTimings = buildWordGraphemeTimings(word);
-                for (let characterIndex = previousWordEndCharacterIndex; characterIndex < startCharacterIndex; characterIndex += 1) {
-                  revealTimes[characterIndex] = word.startTime;
-                }
-                wordTimings.forEach((timing, characterIndex) => {
-                  const targetIndex = startCharacterIndex + characterIndex;
-                  if (targetIndex >= revealTimes.length) {
-                    return;
-                  }
-                  revealTimes[targetIndex] = timing.startTime;
-                  lastResolvedRevealTime = Math.max(lastResolvedRevealTime, revealTimes[targetIndex]);
-                  hasResolvedRevealTime = true;
-                });
-                previousWordEndCharacterIndex = endCharacterIndex;
-              });
-              const trailingRevealTime = hasResolvedRevealTime ? lastResolvedRevealTime : line2.endTime;
-              for (let characterIndex = previousWordEndCharacterIndex; characterIndex < revealTimes.length; characterIndex += 1) {
-                revealTimes[characterIndex] = trailingRevealTime;
-              }
-              return revealTimes;
-            };
-            getCharacterCountAtTime = (revealTimes, currentTime) => {
-              let low = 0;
-              let high = revealTimes.length;
-              while (low < high) {
-                const mid = Math.floor((low + high) / 2);
-                if (revealTimes[mid] <= currentTime) {
-                  low = mid + 1;
-                } else {
-                  high = mid;
-                }
-              }
-              return low;
-            };
-            getBubbleTargetCharacterCount = (metrics, currentTime) => getCharacterCountAtTime(metrics.bubbleTargetTimes, currentTime);
-            getTimestampReadyTime = (metrics, line2) => metrics?.timestampReadyTime ?? line2.endTime;
-            buildCharacterFadeDurationsMs = (line2, characters) => {
-              const fadeDurationsMs = characters.map(() => DEFAULT_CHAR_FADE_MS);
-              const lineTimeline = buildLineGraphemeTimeline(line2);
-              if (lineTimeline.length === characters.length) {
-                lineTimeline.forEach((timing, index) => {
-                  fadeDurationsMs[index] = Math.max((timing.endTime - timing.startTime) * 1e3, MIN_CHAR_FADE_MS);
-                });
-                return fadeDurationsMs;
-              }
-              const ranges = getWordTextRanges(line2);
-              line2.words.forEach((word, index) => {
-                const range = ranges[index];
-                if (!range) {
-                  return;
-                }
-                const startCharacterIndex = splitLyricGraphemes(line2.fullText.slice(0, range.start)).length;
-                const wordTimings = buildWordGraphemeTimings(word);
-                for (let characterIndex = 0; characterIndex < wordTimings.length; characterIndex += 1) {
-                  const targetIndex = startCharacterIndex + characterIndex;
-                  if (targetIndex >= fadeDurationsMs.length) {
-                    break;
-                  }
-                  const timing = wordTimings[characterIndex];
-                  fadeDurationsMs[targetIndex] = timing ? Math.max((timing.endTime - timing.startTime) * 1e3, MIN_CHAR_FADE_MS) : DEFAULT_CHAR_FADE_MS;
-                }
-              });
-              return fadeDurationsMs;
-            };
-            getTimestampReadyTimeFromMetrics = (line2, revealTimes, fadeDurationsMs) => {
-              if (revealTimes.length === 0) {
-                return line2.endTime;
-              }
-              return revealTimes.reduce((latest, time, index) => {
-                if (!Number.isFinite(time)) {
-                  return latest;
-                }
-                return Math.max(latest, time + (fadeDurationsMs[index] ?? DEFAULT_CHAR_FADE_MS) / 1e3);
-              }, line2.startTime);
-            };
-            getCharacterRevealPlan = (line2) => {
-              const characters = Array.from(line2.fullText);
-              const fadeDurationsMs = buildCharacterFadeDurationsMs(line2, characters);
-              return { characters, fadeDurationsMs };
-            };
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/cappellaBubbleMetrics.ts
-        var measureBubbleText, getBubbleMetricsCacheKey, getOrBuildBubbleMetrics;
-        var init_cappellaBubbleMetrics = __esm({
-          "src/folia/components/visualizer/cappella/cappellaBubbleMetrics.ts"() {
-            init_layout();
-            init_fontStacks();
-            init_cappellaConstants();
-            init_cappellaReveal();
-            init_textMeasureCache();
-            measureBubbleText = ({
-              text,
-              theme,
-              fontSize,
-              lineHeightPx,
-              maxTextWidth,
-              paddingX,
-              paddingY
-            }) => {
-              const bubbleBorderWidth = 1;
-              const safeText = text || " ";
-              const prepared = prepareWithSegments(
-                safeText,
-                `${resolveThemeFontWeight(theme, CAPPELLA_BUBBLE_FONT_WEIGHT)} ${fontSize}px ${resolveThemeFontStack(theme)}`,
-                CAPPELLA_BUBBLE_TEXT_OPTIONS
-              );
-              const layout = layoutWithLines(prepared, Math.max(1, maxTextWidth), Math.round(lineHeightPx));
-              const textWidth = Math.max(...layout.lines.map((line2) => line2.width), fontSize);
-              const textHeight = Math.max(layout.lines.length, 1) * lineHeightPx;
-              return {
-                width: Math.ceil(
-                  Math.min(textWidth, maxTextWidth) + paddingX * 2 + bubbleBorderWidth * 2
-                ),
-                height: Math.ceil(textHeight + paddingY * 2 + bubbleBorderWidth * 2)
-              };
-            };
-            getBubbleMetricsCacheKey = ({
-              line: line2,
-              theme,
-              fontSize,
-              lineHeightPx,
-              maxTextWidth,
-              paddingX,
-              paddingY
-            }) => [
-              line2.startTime,
-              line2.endTime,
-              line2.words.length,
-              theme.name,
-              resolveThemeFontStack(theme),
-              resolveThemeFontWeight(theme, CAPPELLA_BUBBLE_FONT_WEIGHT),
-              fontSize.toFixed(3),
-              lineHeightPx.toFixed(3),
-              maxTextWidth,
-              paddingX,
-              paddingY
-            ].join("|");
-            getOrBuildBubbleMetrics = (cache2, {
-              line: line2,
-              theme,
-              fontSize,
-              lineHeightPx,
-              maxTextWidth,
-              paddingX,
-              paddingY
-            }) => {
-              const cacheKey = getBubbleMetricsCacheKey({
-                line: line2,
-                theme,
-                fontSize,
-                lineHeightPx,
-                maxTextWidth,
-                paddingX,
-                paddingY
-              });
-              const cached = cache2.get(cacheKey);
-              if (cached) {
-                cache2.delete(cacheKey);
-                cache2.set(cacheKey, cached);
-                return cached;
-              }
-              const characters = getLineCharacters(line2);
-              const revealTimes = buildCharacterRevealTimes(line2, characters);
-              const fadeDurationsMs = buildCharacterFadeDurationsMs(line2, characters);
-              const timestampReadyTime = getTimestampReadyTimeFromMetrics(line2, revealTimes, fadeDurationsMs);
-              const bubbleTargetTimes = revealTimes.map((time) => time - CAPPELLA_WIDTH_LOOKAHEAD_SECONDS);
-              const sizes = [];
-              for (let visibleCount = 0; visibleCount <= characters.length; visibleCount += 1) {
-                const measuredText = characters.slice(0, visibleCount).join("");
-                sizes.push(measureBubbleText({
-                  text: measuredText,
-                  theme,
-                  fontSize,
-                  lineHeightPx,
-                  maxTextWidth,
-                  paddingX,
-                  paddingY
-                }));
-              }
-              const prepared = { characters, sizes, revealTimes, bubbleTargetTimes, timestampReadyTime };
-              return rememberBounded(cache2, cacheKey, prepared, CAPPELLA_LAYOUT_CACHE_LIMIT);
-            };
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/cappellaMessageLayout.ts
-        var getAvatarPosition, getEstimatedMessageHeight, getVisibleMessages, getVisibleLineIndexAtTime, getTimedMessageState, getBubbleColors, formatTimestamp;
-        var init_cappellaMessageLayout = __esm({
-          "src/folia/components/visualizer/cappella/cappellaMessageLayout.ts"() {
-            init_colorMix();
-            init_cappellaTypes();
-            init_cappellaConstants();
-            init_cappellaBubbleMetrics();
-            getAvatarPosition = (avatarIndex) => {
-              const safeIndex = (avatarIndex % 9 + 9) % 9;
-              const col = safeIndex % AVATAR_GRID_SIZE;
-              const row = Math.floor(safeIndex / AVATAR_GRID_SIZE);
-              return {
-                backgroundPosition: `${col * 50}% ${row * 50}%`,
-                backgroundSize: `${AVATAR_GRID_SIZE * 100}% ${AVATAR_GRID_SIZE * 100}%`
-              };
-            };
-            getEstimatedMessageHeight = (message, isActive, motionConfig, theme, baseFontSize, maxTextWidth) => {
-              if (message.kind === "emo") {
-                const imageSize = isActive ? motionConfig.emoActiveSize : motionConfig.emoInactiveSize;
-                const scaleOverflow2 = isActive && motionConfig.activeScale > 1 ? Math.ceil(imageSize * (motionConfig.activeScale - 1)) : 0;
-                return imageSize + scaleOverflow2 + 48 + 12;
-              }
-              const fontSize = message.kind === "title" ? baseFontSize : baseFontSize * (isActive ? motionConfig.activeFontMultiplier : motionConfig.inactiveFontMultiplier);
-              const paddingX = isActive ? motionConfig.activePaddingX : motionConfig.inactivePaddingX;
-              const paddingY = isActive ? motionConfig.activePaddingY : motionConfig.inactivePaddingY;
-              const lineHeightPx = fontSize * 1.45;
-              const measuredHeight = measureBubbleText({
-                text: message.kind === "title" ? message.text : message.line.fullText,
-                theme,
-                fontSize,
-                lineHeightPx,
-                maxTextWidth,
-                paddingX,
-                paddingY
-              }).height;
-              const minHeight = Math.max(
-                isActive ? motionConfig.activeMinHeight : motionConfig.inactiveMinHeight,
-                lineHeightPx + paddingY * 2
-              );
-              const renderedHeight = Math.max(measuredHeight, minHeight);
-              const scaleOverflow = isActive && motionConfig.activeScale > 1 ? Math.ceil(renderedHeight * (motionConfig.activeScale - 1)) : 0;
-              return renderedHeight + scaleOverflow + 12;
-            };
-            getVisibleMessages = (messages, visibleLineIndex, viewportHeight, currentLineIndex, currentTime, motionConfig, theme, baseFontSize, maxTextWidth) => {
-              const visible = messages.filter((message) => {
-                if (message.kind === "title") {
-                  return true;
-                }
-                if (message.kind === "emo") {
-                  return currentTime >= message.activationStartTime;
-                }
-                return message.lineIndex <= visibleLineIndex;
-              });
-              const usableHeight = Math.max(200, viewportHeight - 300);
-              let accumulatedHeight = 0;
-              const result = [];
-              for (let i4 = visible.length - 1; i4 >= 0; i4--) {
-                const message = visible[i4];
-                const timedData = isTimedMessage(message) ? message : null;
-                const isActive = timedData ? getTimedMessageState(timedData, currentTime, currentLineIndex).isActive : false;
-                const estHeight = getEstimatedMessageHeight(
-                  message,
-                  isActive,
-                  motionConfig,
-                  theme,
-                  baseFontSize,
-                  maxTextWidth
-                );
-                if (accumulatedHeight + estHeight > usableHeight && result.length >= 2) {
-                  break;
-                }
-                accumulatedHeight += estHeight;
-                result.unshift(message);
-                if (result.length >= MAX_VISIBLE_MESSAGES) {
-                  break;
-                }
-              }
-              return result;
-            };
-            getVisibleLineIndexAtTime = (lines, currentTime) => {
-              for (let index = lines.length - 1; index >= 0; index--) {
-                if (currentTime >= lines[index].startTime) {
-                  return index;
-                }
-              }
-              return -1;
-            };
-            getTimedMessageState = (message, currentTime, currentLineIndex) => {
-              if (message.kind === "emo") {
-                return {
-                  isActive: currentTime >= message.activationStartTime && currentTime < message.activationEndTime,
-                  isPassed: currentTime >= message.activationEndTime
-                };
-              }
-              return {
-                isActive: message.lineIndex === currentLineIndex,
-                isPassed: message.lineIndex < currentLineIndex
-              };
-            };
-            getBubbleColors = (message, theme) => {
-              if (message.side === "right") {
-                return {
-                  backgroundColor: mixColors(theme.accentColor, theme.primaryColor, 0.18, 0.94),
-                  borderColor: mixColors(theme.accentColor, theme.primaryColor, 0.34, 0.3),
-                  textColor: theme.backgroundColor
-                };
-              }
-              const avatarTone = message.avatarIndex % (AVATAR_GRID_SIZE * AVATAR_GRID_SIZE) / (AVATAR_GRID_SIZE * AVATAR_GRID_SIZE - 1);
-              const accentMix = 0.18 + avatarTone * 0.62;
-              return {
-                backgroundColor: mixColors(theme.secondaryColor, theme.accentColor, accentMix, 1),
-                borderColor: mixColors(theme.secondaryColor, theme.accentColor, Math.min(accentMix + 0.18, 1), 0.26),
-                textColor: theme.primaryColor
-              };
-            };
-            formatTimestamp = (seconds) => {
-              if (!Number.isFinite(seconds) || seconds < 0) {
-                return "0:00";
-              }
-              const totalSeconds = Math.max(0, Math.floor(seconds));
-              const minutes = Math.floor(totalSeconds / 60);
-              const remainingSeconds = totalSeconds % 60;
-              return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-            };
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/avatarImages.ts
-        var AVATAR_FILES, AVATAR_BASE, avatarModules, toStableAvatarImages, builtinAvatarImages, hashString4, getSeededIndex, pickStableBuiltinAvatarImage, resolveCappellaAvatarUrl;
-        var init_avatarImages = __esm({
-          "src/folia/components/visualizer/cappella/avatarImages.ts"() {
-            AVATAR_FILES = ["avatar10.png", "avatar11.png", "avatar12.png", "avatar13.png", "avatar14.png", "avatar15.png", "avatar16.png", "avatar17.png", "avatar2.png", "avatar3.png", "avatar4.png", "avatar5.png", "avatar6.png", "avatar8.png", "avatar9.png"];
-            AVATAR_BASE = (typeof API === "string" ? API : "music/") + "assets/cappella/avatar/";
-            avatarModules = Object.fromEntries(AVATAR_FILES.map((file) => [file, { default: AVATAR_BASE + file }]));
-            toStableAvatarImages = () => Object.entries(avatarModules).sort(([leftPath], [rightPath]) => leftPath.localeCompare(rightPath)).map(([path2, mod]) => {
-              const filename = path2.split("/").pop() ?? "";
-              const name = filename.replace(/\.[^.]+$/, "");
-              return {
-                id: `builtin-avatar-${name}`,
-                name,
-                url: mod.default
-              };
-            });
-            builtinAvatarImages = toStableAvatarImages();
-            hashString4 = (input) => {
-              let hash2 = 2166136261;
-              for (let index = 0; index < input.length; index += 1) {
-                hash2 ^= input.charCodeAt(index);
-                hash2 = Math.imul(hash2, 16777619);
-              }
-              return hash2 >>> 0;
-            };
-            getSeededIndex = (seed, side, length) => hashString4(`${seed}|${side}|${length}`) % length;
-            pickStableBuiltinAvatarImage = (avatars, avatarIndex, side, seed = "cappella") => {
-              if (avatars.length === 0) {
-                return null;
-              }
-              const rightAvatarIndex = getSeededIndex(seed, "right", avatars.length);
-              if (side === "right") {
-                return avatars[rightAvatarIndex] ?? null;
-              }
-              const leftAvatarPool = avatars.filter((_4, index) => index !== rightAvatarIndex);
-              if (leftAvatarPool.length === 0) {
-                return avatars[rightAvatarIndex] ?? null;
-              }
-              const leftSeedOffset = getSeededIndex(seed, "left", leftAvatarPool.length);
-              const resolvedLeftIndex = Math.abs(Math.trunc(avatarIndex + leftSeedOffset)) % leftAvatarPool.length;
-              return leftAvatarPool[resolvedLeftIndex] ?? null;
-            };
-            resolveCappellaAvatarUrl = ({
-              avatarSource,
-              coverUrl,
-              avatarIndex,
-              side,
-              seed,
-              avatars = builtinAvatarImages,
-              customAvatarImages
-            }) => {
-              if (avatarSource === "color") {
-                return null;
-              }
-              if (avatarSource === "cover" && coverUrl) {
-                return coverUrl;
-              }
-              if (avatarSource === "custom" && customAvatarImages && customAvatarImages.length > 0) {
-                return pickStableBuiltinAvatarImage(customAvatarImages, avatarIndex, side, seed)?.url ?? null;
-              }
-              return pickStableBuiltinAvatarImage(avatars, avatarIndex, side, seed)?.url ?? null;
-            };
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/CappellaBubbleParts.tsx
-        var CappellaAvatar, CappellaText, CappellaTimestamp, AnimatedBubbleFrame, ActiveCappellaText, CappellaBubbleGlow;
-        var init_CappellaBubbleParts = __esm({
-          "src/folia/components/visualizer/cappella/CappellaBubbleParts.tsx"() {
-            init_react_shim();
-            init_framer_motion();
-            init_cappellaConstants();
-            init_cappellaReveal();
-            init_cappellaMessageLayout();
-            init_jsx_runtime_shim();
-            CappellaAvatar = ({ avatarUrl, avatarIndex, theme, side, useAvatarGridCrop }) => {
-              const shouldUseAvatarGridCrop = useAvatarGridCrop || !avatarUrl;
-              const resolvedIndex = shouldUseAvatarGridCrop ? side === "right" ? RIGHT_AVATAR_INDEX : LEFT_AVATAR_INDICES[avatarIndex % LEFT_AVATAR_INDICES.length] : avatarIndex;
-              const avatarPosition = getAvatarPosition(resolvedIndex);
-              return /* @__PURE__ */ jsx(
-                motion.div,
-                {
-                  initial: { opacity: 0 },
-                  animate: { opacity: 1 },
-                  transition: { duration: 0.2, ease: "easeOut" },
-                  className: "h-10 w-10 shrink-0 overflow-hidden rounded-full border shadow-lg",
-                  style: {
-                    borderColor: "rgba(255,255,255,0.24)",
-                    backgroundColor: theme.secondaryColor,
-                    backgroundImage: avatarUrl ? `url("${avatarUrl}")` : `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
-                    backgroundClip: "padding-box",
-                    backgroundPosition: shouldUseAvatarGridCrop ? avatarPosition.backgroundPosition : "center",
-                    backgroundRepeat: "no-repeat",
-                    backgroundSize: shouldUseAvatarGridCrop ? avatarPosition.backgroundSize : "cover"
-                  }
-                }
-              );
-            };
-            CappellaText = ({ message }) => {
-              if (message.kind === "title") {
-                return /* @__PURE__ */ jsx(Fragment2, { children: message.text });
-              }
-              if (message.kind === "emo") {
-                return null;
-              }
-              return /* @__PURE__ */ jsx(Fragment2, { children: message.line.fullText });
-            };
-            CappellaTimestamp = ({ line: line2, color, isVisible, style }) => {
-              if (!isVisible) {
-                return null;
-              }
-              return /* @__PURE__ */ jsx(
-                motion.span,
-                {
-                  initial: { opacity: 0, y: 4 },
-                  animate: { opacity: 0.62, y: 0 },
-                  transition: { duration: 0.18, ease: "easeOut" },
-                  className: "pointer-events-none absolute text-[11px] font-medium tabular-nums",
-                  style: { color, ...style },
-                  children: formatTimestamp(line2.endTime)
-                }
-              );
-            };
-            AnimatedBubbleFrame = ({ children, className, floatingAdornment, targetSize, style }) => {
-              return /* @__PURE__ */ jsxs(
-                motion.div,
-                {
-                  className: "relative shrink-0",
-                  animate: {
-                    ...targetSize ? {
-                      width: targetSize.width,
-                      height: targetSize.height
-                    } : {}
-                  },
-                  transition: {
-                    scale: {
-                      type: "spring",
-                      stiffness: 340,
-                      damping: 28,
-                      mass: 0.72
-                    },
-                    ...targetSize ? {
-                      width: { duration: 0.2, ease: "easeOut" },
-                      height: { duration: 0.2, ease: "easeOut" }
-                    } : {}
-                  },
-                  style: {
-                    width: targetSize ? targetSize.width : "fit-content",
-                    height: targetSize ? targetSize.height : "auto"
-                  },
-                  children: [
-                    /* @__PURE__ */ jsx(
-                      "div",
-                      {
-                        className,
-                        style: {
-                          ...style,
-                          height: targetSize ? "100%" : "auto",
-                          overflow: "hidden",
-                          whiteSpace: "pre-wrap",
-                          overflowWrap: "anywhere"
-                        },
-                        children
-                      }
-                    ),
-                    floatingAdornment
-                  ]
-                }
-              );
-            };
-            ActiveCappellaText = ({ line: line2, visibleCharacterCount }) => {
-              const revealPlan = useMemo(() => getCharacterRevealPlan(line2), [line2]);
-              const visibleCharacters = revealPlan.characters.slice(0, Math.max(0, visibleCharacterCount));
-              const visibleFadeDurations = revealPlan.fadeDurationsMs.slice(0, Math.max(0, visibleCharacterCount));
-              return (
-                // 保持普通 inline 文本流，使 DOM 的字形塑形和换行规则与 pretext 的连续文本量度一致。
-                /* @__PURE__ */ jsx("span", { children: visibleCharacters.map((character, index) => /* @__PURE__ */ jsx(
-                  "span",
-                  {
-                    style: {
-                      animationName: "cappella-char-fade",
-                      animationDuration: `${visibleFadeDurations[index] ?? DEFAULT_CHAR_FADE_MS}ms`,
-                      animationTimingFunction: "ease-out"
-                    },
-                    children: character
-                  },
-                  `${index}-${character}`
-                )) })
-              );
-            };
-            CappellaBubbleGlow = ({ isActive, isRight, motionConfig }) => {
-              if (!isActive) {
-                return null;
-              }
-              const glowAlpha = isRight ? motionConfig.glowRightAlpha : motionConfig.glowLeftAlpha;
-              const glowColor = `rgba(255,255,255,${glowAlpha})`;
-              return /* @__PURE__ */ jsx(
-                "div",
-                {
-                  className: "pointer-events-none absolute inset-y-0 left-0",
-                  style: {
-                    width: "200%",
-                    opacity: motionConfig.glowOpacity,
-                    // Duplicate one broad sweep in each half so translateX(0) and translateX(-50%) match exactly.
-                    background: `linear-gradient(105deg, transparent 0%, ${glowColor} 23%, transparent 34%, transparent 50%, transparent 50%, ${glowColor} 73%, transparent 84%, transparent 100%)`,
-                    animation: `cappella-bubble-glow-pan ${motionConfig.glowDuration}s linear infinite`,
-                    willChange: "transform"
-                  }
-                }
-              );
-            };
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/CappellaMessageRow.tsx
-        var CappellaMessageRow;
-        var init_CappellaMessageRow = __esm({
-          "src/folia/components/visualizer/cappella/CappellaMessageRow.tsx"() {
-            init_react_shim();
-            init_framer_motion();
-            init_fontStacks();
-            init_colorMix();
-            init_avatarImages();
-            init_cappellaTypes();
-            init_cappellaConstants();
-            init_cappellaReveal();
-            init_cappellaMessageLayout();
-            init_cappellaBubbleMetrics();
-            init_CappellaBubbleParts();
-            init_jsx_runtime_shim();
-            CappellaMessageRow = react_shim_default.forwardRef(({
-              message,
-              currentTime,
-              currentLineIndex,
-              theme,
-              coverUrl,
-              cappellaTuning,
-              avatarSeed,
-              baseFontSize,
-              maxTextWidth,
-              metricsCache,
-              intensityConfig,
-              customAvatarImages
-            }, ref) => {
-              const isRight = message.side === "right";
-              const timedData = isTimedMessage(message) ? message : null;
-              const timedState = timedData ? getTimedMessageState(timedData, currentTime.get(), currentLineIndex) : null;
-              const isActiveMessage = timedState?.isActive ?? false;
-              const isPassedMessage = timedState?.isPassed ?? false;
-              const isEmoMessage = message.kind === "emo";
-              const motionConfig = intensityConfig.motion;
-              const bubbleFontSize = isActiveMessage ? baseFontSize * motionConfig.activeFontMultiplier : message.kind === "title" ? baseFontSize : baseFontSize * motionConfig.inactiveFontMultiplier;
-              const bubblePaddingX = isActiveMessage ? motionConfig.activePaddingX : motionConfig.inactivePaddingX;
-              const bubblePaddingY = isActiveMessage ? motionConfig.activePaddingY : motionConfig.inactivePaddingY;
-              const bubbleColors = getBubbleColors(message, theme);
-              const avatarUrl = resolveCappellaAvatarUrl({
-                avatarSource: cappellaTuning.avatarSource,
-                coverUrl,
-                avatarIndex: message.avatarIndex,
-                side: message.side,
-                seed: avatarSeed,
-                avatars: builtinAvatarImages,
-                customAvatarImages
-              });
-              const useAvatarGridCrop = cappellaTuning.avatarSource === "cover" && Boolean(coverUrl);
-              const lineHeightPx = bubbleFontSize * 1.45;
-              const preparedMetrics = useMemo(
-                () => message.kind === "lyric" && isActiveMessage ? getOrBuildBubbleMetrics(metricsCache.current, {
-                  line: message.line,
-                  theme,
-                  fontSize: bubbleFontSize,
-                  lineHeightPx,
-                  maxTextWidth,
-                  paddingX: bubblePaddingX,
-                  paddingY: bubblePaddingY
-                }) : null,
-                [bubbleFontSize, bubblePaddingX, bubblePaddingY, isActiveMessage, lineHeightPx, maxTextWidth, message, metricsCache, theme]
-              );
-              const [visibleCharacterCount, setVisibleCharacterCount] = useState(() => preparedMetrics ? getCharacterCountAtTime(preparedMetrics.revealTimes, currentTime.get()) : 0);
-              const [targetCharacterCount, setTargetCharacterCount] = useState(() => preparedMetrics ? getBubbleTargetCharacterCount(preparedMetrics, currentTime.get()) : 0);
-              const [isTimestampVisible, setIsTimestampVisible] = useState(() => timedData !== null && (timedData.kind === "emo" ? currentTime.get() >= timedData.activationEndTime : isPassedMessage || currentTime.get() >= getTimestampReadyTime(preparedMetrics, timedData.line)));
-              const emoImageSize = isActiveMessage ? motionConfig.emoActiveSize : motionConfig.emoInactiveSize;
-              const targetSize = useMemo(() => {
-                if (isEmoMessage) {
-                  return { width: emoImageSize, height: emoImageSize };
-                }
-                if (message.kind !== "lyric") {
-                  return null;
-                }
-                if (isActiveMessage) {
-                  const prepared = preparedMetrics ?? getOrBuildBubbleMetrics(metricsCache.current, {
-                    line: message.line,
-                    theme,
-                    fontSize: bubbleFontSize,
-                    lineHeightPx,
-                    maxTextWidth,
-                    paddingX: bubblePaddingX,
-                    paddingY: bubblePaddingY
-                  });
-                  const clampedTargetCount = Math.max(0, Math.min(targetCharacterCount, prepared.sizes.length - 1));
-                  return prepared.sizes[clampedTargetCount];
-                }
-                return measureBubbleText({
-                  text: message.line.fullText,
-                  theme,
-                  fontSize: bubbleFontSize,
-                  lineHeightPx,
-                  maxTextWidth,
-                  paddingX: bubblePaddingX,
-                  paddingY: bubblePaddingY
-                });
-              }, [
-                bubbleFontSize,
-                bubblePaddingX,
-                bubblePaddingY,
-                emoImageSize,
-                isActiveMessage,
-                isEmoMessage,
-                lineHeightPx,
-                maxTextWidth,
-                message,
-                metricsCache,
-                preparedMetrics,
-                theme,
-                targetCharacterCount
-              ]);
-              const scaleOverflow = isActiveMessage && motionConfig.activeScale > 1 ? Math.ceil(
-                Math.max(
-                  isEmoMessage ? emoImageSize : message.kind === "lyric" && preparedMetrics ? preparedMetrics.sizes[preparedMetrics.sizes.length - 1]?.height ?? motionConfig.activeMinHeight : motionConfig.activeMinHeight,
-                  40
-                ) * (motionConfig.activeScale - 1)
-              ) : 0;
-              useEffect(() => {
-                if (message.kind !== "lyric" && message.kind !== "emo") {
-                  return;
-                }
-                const latest = currentTime.get();
-                const nextVisibleCount = message.kind === "lyric" && preparedMetrics ? getCharacterCountAtTime(preparedMetrics.revealTimes, latest) : 0;
-                const nextTargetCount = message.kind === "lyric" && preparedMetrics ? getBubbleTargetCharacterCount(preparedMetrics, latest) : 0;
-                setVisibleCharacterCount((current) => current === nextVisibleCount ? current : nextVisibleCount);
-                setTargetCharacterCount((current) => current === nextTargetCount ? current : nextTargetCount);
-                const nextTimestampVisible = message.kind === "emo" ? latest >= message.activationEndTime : isPassedMessage || latest >= getTimestampReadyTime(preparedMetrics, message.line);
-                setIsTimestampVisible(nextTimestampVisible);
-              }, [currentTime, isActiveMessage, isPassedMessage, message, preparedMetrics]);
-              useMotionValueEvent(currentTime, "change", (latest) => {
-                if (message.kind === "lyric" || message.kind === "emo") {
-                  const nextTimestampVisible = message.kind === "emo" ? latest >= message.activationEndTime : isPassedMessage || latest >= getTimestampReadyTime(preparedMetrics, message.line);
-                  setIsTimestampVisible((current) => current === nextTimestampVisible ? current : nextTimestampVisible);
-                }
-                if (isActiveMessage) {
-                  const nextVisibleCount = message.kind === "lyric" && preparedMetrics ? getCharacterCountAtTime(preparedMetrics.revealTimes, latest) : 0;
-                  const nextTargetCount = message.kind === "lyric" && preparedMetrics ? getBubbleTargetCharacterCount(preparedMetrics, latest) : 0;
-                  setVisibleCharacterCount((current) => current === nextVisibleCount ? current : nextVisibleCount);
-                  setTargetCharacterCount((current) => current === nextTargetCount ? current : nextTargetCount);
-                }
-              });
-              return /* @__PURE__ */ jsx(
-                motion.div,
-                {
-                  ref,
-                  layout: "position",
-                  initial: { opacity: 0, y: motionConfig.rowEnterY, scale: motionConfig.rowEnterScale },
-                  animate: { opacity: 1, y: 0, scale: 1 },
-                  exit: {
-                    opacity: 0,
-                    y: motionConfig.rowExitY,
-                    scale: motionConfig.rowExitScale,
-                    transition: { duration: motionConfig.rowExitDuration, ease: "easeIn" }
-                  },
-                  transition: { duration: motionConfig.rowEnterDuration, ease: "easeOut" },
-                  className: `flex w-full items-end gap-3 ${isRight ? "justify-end" : "justify-start"} ${isEmoMessage ? "pt-12" : ""}`,
-                  children: /* @__PURE__ */ jsxs(
-                    motion.div,
-                    {
-                      animate: {
-                        opacity: isPassedMessage ? motionConfig.passedOpacity : 1,
-                        scale: isActiveMessage ? motionConfig.activeScale : isPassedMessage ? motionConfig.passedScale : 1,
-                        marginTop: scaleOverflow
-                      },
-                      transition: { type: "spring", ...motionConfig.avatarSpring },
-                      className: `flex w-full max-w-[78%] items-end gap-3 sm:max-w-[68%] ${isRight ? "flex-row-reverse" : "flex-row"}`,
-                      style: {
-                        transformOrigin: isRight ? "100% 100%" : "0% 100%"
-                      },
-                      children: [
-                        /* @__PURE__ */ jsx(
-                          CappellaAvatar,
-                          {
-                            avatarUrl,
-                            avatarIndex: message.avatarIndex,
-                            theme,
-                            side: message.side,
-                            useAvatarGridCrop
-                          }
-                        ),
-                        isEmoMessage ? /* @__PURE__ */ jsxs(
-                          motion.div,
-                          {
-                            className: "relative shrink-0",
-                            animate: {
-                              width: emoImageSize,
-                              height: emoImageSize
-                            },
-                            transition: {
-                              width: { duration: motionConfig.emoSizeTransitionDuration, ease: "easeOut" },
-                              height: { duration: motionConfig.emoSizeTransitionDuration, ease: "easeOut" }
-                            },
-                            style: { width: emoImageSize, height: emoImageSize },
-                            children: [
-                              timedData && /* @__PURE__ */ jsx(
-                                CappellaTimestamp,
-                                {
-                                  line: timedData.line,
-                                  color: theme.secondaryColor,
-                                  isVisible: isTimestampVisible,
-                                  style: {
-                                    bottom: -2,
-                                    [isRight ? "right" : "left"]: "calc(100% + 8px)"
-                                  }
-                                }
-                              ),
-                              /* @__PURE__ */ jsx(
-                                motion.div,
-                                {
-                                  initial: { opacity: 0, scale: motionConfig.emoEnterScale },
-                                  animate: { opacity: 1, scale: 1 },
-                                  transition: { duration: motionConfig.rowEnterDuration, ease: "easeOut" },
-                                  style: {
-                                    width: "100%",
-                                    height: "100%",
-                                    display: "block"
-                                  },
-                                  children: /* @__PURE__ */ jsx(
-                                    "img",
-                                    {
-                                      src: message.emoImageUrl,
-                                      alt: "emo",
-                                      className: "rounded-2xl",
-                                      style: {
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "contain",
-                                        display: "block",
-                                        animation: "cappella-emo-wiggle 1.9s ease-in-out infinite",
-                                        willChange: "transform"
-                                      }
-                                    }
-                                  )
-                                }
-                              )
-                            ]
-                          }
-                        ) : /* @__PURE__ */ jsxs(
-                          AnimatedBubbleFrame,
-                          {
-                            className: `relative rounded-3xl shadow-lg transition-[min-height,box-shadow,background-color] duration-200 ease-out ${isRight ? "rounded-br-md" : "rounded-bl-md"}`,
-                            floatingAdornment: timedData ? /* @__PURE__ */ jsx(
-                              CappellaTimestamp,
-                              {
-                                line: timedData.line,
-                                color: theme.secondaryColor,
-                                isVisible: isTimestampVisible,
-                                style: {
-                                  bottom: 4,
-                                  [isRight ? "right" : "left"]: "calc(100% + 8px)"
-                                }
-                              }
-                            ) : void 0,
-                            targetSize: targetSize ?? void 0,
-                            style: {
-                              backgroundColor: bubbleColors.backgroundColor,
-                              border: `1px solid ${bubbleColors.borderColor}`,
-                              color: bubbleColors.textColor,
-                              fontSize: bubbleFontSize,
-                              fontWeight: resolveThemeFontWeight(theme, CAPPELLA_BUBBLE_FONT_WEIGHT),
-                              lineHeight: 1.45,
-                              maxWidth: maxTextWidth + bubblePaddingX * 2 + 2,
-                              minHeight: Math.max(
-                                isActiveMessage ? motionConfig.activeMinHeight : motionConfig.inactiveMinHeight,
-                                bubbleFontSize * 1.45 + bubblePaddingY * 2
-                              ),
-                              minWidth: isActiveMessage ? 72 : void 0,
-                              padding: `${bubblePaddingY}px ${bubblePaddingX}px`,
-                              boxShadow: isActiveMessage ? `0 18px 48px ${mixColors(theme.backgroundColor, theme.accentColor, 0.2, motionConfig.activeShadowAlpha)}` : void 0,
-                              whiteSpace: "pre-wrap",
-                              overflowWrap: "anywhere"
-                            },
-                            children: [
-                              /* @__PURE__ */ jsx("div", { className: "absolute inset-0 overflow-hidden rounded-[inherit]", children: /* @__PURE__ */ jsx(CappellaBubbleGlow, { isActive: isActiveMessage, isRight, motionConfig }) }),
-                              /* @__PURE__ */ jsx("span", { className: "relative z-10", children: message.kind === "lyric" && isActiveMessage && preparedMetrics ? /* @__PURE__ */ jsx(
-                                ActiveCappellaText,
-                                {
-                                  line: message.line,
-                                  visibleCharacterCount
-                                }
-                              ) : /* @__PURE__ */ jsx(CappellaText, { message }) })
-                            ]
-                          }
-                        )
-                      ]
-                    }
-                  )
-                }
-              );
-            });
-            CappellaMessageRow.displayName = "CappellaMessageRow";
-          }
-        });
-      
-        // src/folia/components/visualizer/cappella/VisualizerCappella.tsx
-        var VisualizerCappella_exports = {};
-        __export(VisualizerCappella_exports, {
-          default: () => VisualizerCappella_default
-        });
-        var VisualizerCappella, VisualizerCappella_default;
-        var init_VisualizerCappella = __esm({
-          "src/folia/components/visualizer/cappella/VisualizerCappella.tsx"() {
-            init_react_shim();
-            init_framer_motion();
-            init_i18n();
-            init_types();
-            init_renderHints();
-            init_runtime();
-            init_VisualizerShell();
-            init_VisualizerSubtitleOverlay();
-            init_emoImages();
-            init_cappellaConstants();
-            init_cappellaIntensity();
-            init_cappellaMessages();
-            init_cappellaMessageLayout();
-            init_cappellaBubbleMetrics();
-            init_CappellaMessageRow();
-            init_jsx_runtime_shim();
-            VisualizerCappella = (props) => {
-              const {
-                currentTime,
-                currentLineIndex,
-                lines,
-                theme,
-                subtitleTheme,
-                audioPower,
-                audioBands,
-                showText = true,
-                songTitle,
-                coverUrl,
-                seed,
-                lyricsFontScale = 1,
-                subtitleFontScale = 1,
-                subtitleOverlayOpacity,
-                subtitleOverlayBackground,
-                subtitleUpcomingLyricsBlur,
-                isPlayerChromeHidden = false,
-                hideTranslationSubtitle = false,
-                subtitleOverlayLayout,
-                cappellaTuning = DEFAULT_CAPPELLA_TUNING,
-                cappellaCustomEmojiImages = [],
-                cappellaCustomAvatarImages = [],
-                isPreviewMode = false
-              } = props;
-              const { t: t4 } = useTranslation();
-              const [viewportSize, setViewportSize] = useState(() => typeof window === "undefined" ? { width: 1280, height: 900 } : { width: window.innerWidth, height: window.innerHeight });
-              const bubbleMetricsCacheRef = useRef(/* @__PURE__ */ new Map());
-              const [visibleLineIndex, setVisibleLineIndex] = useState(() => getVisibleLineIndexAtTime(lines, currentTime.get()));
-              const visibleLineIndexRef = useRef(visibleLineIndex);
-              const titleText = songTitle?.trim() || t4("ui.noTrack");
-              const avatarSeed = seed ?? titleText;
-              const intensityConfig = useMemo(() => getCappellaIntensityConfig(theme.animationIntensity), [theme.animationIntensity]);
-              const resolvedCappellaTuning = useMemo(() => ({
-                showEmoMessages: cappellaTuning.showEmoMessages ?? DEFAULT_CAPPELLA_TUNING.showEmoMessages,
-                emojiPackSource: cappellaTuning.emojiPackSource === "custom" && cappellaCustomEmojiImages.length > 0 ? "custom" : DEFAULT_CAPPELLA_TUNING.emojiPackSource,
-                avatarSource: cappellaTuning.avatarSource === "builtin" || cappellaTuning.avatarSource === "color" || cappellaTuning.avatarSource === "cover" || cappellaTuning.avatarSource === "custom" && cappellaCustomAvatarImages.length > 0 ? cappellaTuning.avatarSource : DEFAULT_CAPPELLA_TUNING.avatarSource
-              }), [cappellaCustomEmojiImages.length, cappellaCustomAvatarImages.length, cappellaTuning.avatarSource, cappellaTuning.emojiPackSource, cappellaTuning.showEmoMessages]);
-              const activeEmoImages = useMemo(
-                () => resolvedCappellaTuning.emojiPackSource === "custom" && cappellaCustomEmojiImages.length > 0 ? cappellaCustomEmojiImages : builtinEmoImages,
-                [cappellaCustomEmojiImages, resolvedCappellaTuning.emojiPackSource]
-              );
-              const customAvatarImages = useMemo(
-                () => resolvedCappellaTuning.avatarSource === "custom" ? cappellaCustomAvatarImages : [],
-                [cappellaCustomAvatarImages, resolvedCappellaTuning.avatarSource]
-              );
-              const messages = useMemo(
-                () => buildCappellaMessages(lines, titleText, intensityConfig, resolvedCappellaTuning, activeEmoImages, isPreviewMode),
-                [activeEmoImages, intensityConfig, isPreviewMode, lines, resolvedCappellaTuning, titleText]
-              );
-              const baseFontSize = Math.max(15, Math.min(26, 18 * lyricsFontScale));
-              const maxPanelWidth = Math.min(Math.max(viewportSize.width - 32, 1), 896);
-              const bubbleGroupRatio = viewportSize.width >= 640 ? 0.68 : 0.78;
-              const maxTextWidth = Math.max(96, Math.floor(maxPanelWidth * bubbleGroupRatio - 56));
-              const visibleMessages = useMemo(
-                () => getVisibleMessages(
-                  messages,
-                  visibleLineIndex,
-                  viewportSize.height,
-                  currentLineIndex,
-                  currentTime.get(),
-                  intensityConfig.motion,
-                  theme,
-                  baseFontSize,
-                  maxTextWidth
-                ),
-                [
-                  baseFontSize,
-                  currentLineIndex,
-                  currentTime,
-                  intensityConfig.motion,
-                  maxTextWidth,
-                  messages,
-                  theme,
-                  viewportSize.height,
-                  visibleLineIndex
-                ]
-              );
-              const { activeLine: activeLine2, recentCompletedLine, upcomingLine, nextLines } = useVisualizerRuntime({
-                currentTime,
-                currentLineIndex,
-                lines,
-                getLineEndTime: getLineRenderEndTime
-              });
-              useEffect(() => {
-                const handleResize = () => {
-                  setViewportSize({
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                  });
-                };
-                window.addEventListener("resize", handleResize);
-                return () => window.removeEventListener("resize", handleResize);
-              }, []);
-              useEffect(() => {
-                const nextVisibleLineIndex = getVisibleLineIndexAtTime(lines, currentTime.get());
-                visibleLineIndexRef.current = nextVisibleLineIndex;
-                setVisibleLineIndex(nextVisibleLineIndex);
-              }, [currentTime, lines]);
-              useMotionValueEvent(currentTime, "change", (latest) => {
-                const nextVisibleLineIndex = getVisibleLineIndexAtTime(lines, latest);
-                if (nextVisibleLineIndex !== visibleLineIndexRef.current) {
-                  visibleLineIndexRef.current = nextVisibleLineIndex;
-                  setVisibleLineIndex(nextVisibleLineIndex);
-                }
-                if (!upcomingLine || !shouldPreheatLine(upcomingLine, latest, CAPPELLA_PREHEAT_WINDOW)) {
-                  return;
-                }
-                getOrBuildBubbleMetrics(bubbleMetricsCacheRef.current, {
-                  line: upcomingLine,
-                  theme,
-                  fontSize: baseFontSize * intensityConfig.motion.activeFontMultiplier,
-                  lineHeightPx: baseFontSize * intensityConfig.motion.activeFontMultiplier * 1.45,
-                  maxTextWidth,
-                  paddingX: intensityConfig.motion.activePaddingX,
-                  paddingY: intensityConfig.motion.activePaddingY
-                });
-              });
-              return /* @__PURE__ */ jsxs(
-                VisualizerShell_default,
-                {
-                  theme,
-                  audioPower,
-                  audioBands,
-                  sharedProps: props,
-                  children: [
-                    showText && /* @__PURE__ */ jsx("div", { className: "relative z-10 flex h-full w-full items-start justify-center overflow-visible px-4 pb-52 pt-12 sm:px-8 sm:pb-56 sm:pt-16 lg:px-14 lg:pt-20", children: /* @__PURE__ */ jsx("div", { className: "relative flex w-full max-w-4xl flex-col justify-start gap-3 overflow-visible", children: /* @__PURE__ */ jsx(AnimatePresence, { initial: false, mode: "popLayout", children: visibleMessages.map((message) => /* @__PURE__ */ jsx(
-                      CappellaMessageRow,
-                      {
-                        message,
-                        currentTime,
-                        currentLineIndex,
-                        theme,
-                        coverUrl,
-                        cappellaTuning: resolvedCappellaTuning,
-                        avatarSeed,
-                        baseFontSize,
-                        maxTextWidth,
-                        metricsCache: bubbleMetricsCacheRef,
-                        intensityConfig,
-                        customAvatarImages
-                      },
-                      message.id
-                    )) }) }) }),
-                    /* @__PURE__ */ jsx("style", { children: `
-                      @keyframes cappella-char-fade {
-                          from { opacity: 0; }
-                          to { opacity: 1; }
-                      }
-      
-                      @keyframes cappella-bubble-glow-pan {
-                          from { transform: translateX(0); }
-                          to { transform: translateX(-50%); }
-                      }
-      
-                      @keyframes cappella-emo-wiggle {
-                          0%, 100% { transform: rotate(-1.6deg); }
-                          50% { transform: rotate(1.6deg); }
-                      }
-                  ` }),
-                    /* @__PURE__ */ jsx(
-                      VisualizerSubtitleOverlay_default,
-                      {
-                        showText,
-                        activeLine: activeLine2,
-                        recentCompletedLine,
-                        nextLines,
-                        theme,
-                        subtitleTheme,
-                        translationFontSize: `${Math.max(14, 16 * lyricsFontScale)}px`,
-                        upcomingFontSize: `${Math.max(12, 14 * lyricsFontScale)}px`,
-                        subtitleOverlayOpacity,
-                        subtitleOverlayBackground,
-                        subtitleUpcomingLyricsBlur,
-                        subtitleFontScale,
-                        isPlayerChromeHidden,
-                        hideTranslationSubtitle,
-                        subtitleOverlayLayout
-                      }
-                    )
-                  ]
-                }
-              );
-            };
-            VisualizerCappella_default = VisualizerCappella;
-          }
-        });
-      
         // src/folia/services/beatFx/beatEffects.ts
         var BEAT_EFFECT_IDS, smartBeatActive, beatEffectPartId;
         var init_beatEffects = __esm({
@@ -48622,12 +47087,12 @@ window.__ModuleLoader__.load({
         });
       
         // src/folia/stores/useAppViewStore.ts
-        var STATE2, useAppViewStore;
+        var STATE, useAppViewStore;
         var init_useAppViewStore = __esm({
           "src/folia/stores/useAppViewStore.ts"() {
-            STATE2 = { view: "player" };
-            useAppViewStore = (selector) => typeof selector === "function" ? selector(STATE2) : STATE2;
-            useAppViewStore.getState = () => STATE2;
+            STATE = { view: "player" };
+            useAppViewStore = (selector) => typeof selector === "function" ? selector(STATE) : STATE;
+            useAppViewStore.getState = () => STATE;
           }
         });
       
@@ -76240,18 +74705,18 @@ window.__ModuleLoader__.load({
         });
       
         // src/folia/stores/useVisualizerSettingsStore.ts
-        var STATE3, useVisualizerSettingsStore;
+        var STATE2, useVisualizerSettingsStore;
         var init_useVisualizerSettingsStore = __esm({
           "src/folia/stores/useVisualizerSettingsStore.ts"() {
-            STATE3 = {
+            STATE2 = {
               smartBeat: { mode: "off", effects: {} },
               visualizerFrameRate: 60
             };
             useVisualizerSettingsStore = (selector) => {
-              if (typeof selector === "function") return selector(STATE3);
-              return STATE3;
+              if (typeof selector === "function") return selector(STATE2);
+              return STATE2;
             };
-            useVisualizerSettingsStore.getState = () => STATE3;
+            useVisualizerSettingsStore.getState = () => STATE2;
           }
         });
       
@@ -77525,6 +75990,27 @@ window.__ModuleLoader__.load({
         var init_useStatusMessageStore = __esm({
           "src/folia/stores/useStatusMessageStore.ts"() {
             setStatusMessage = (_message) => void 0;
+          }
+        });
+      
+        // src/folia/stores/useVisualizerAssetStore.ts
+        var STATE3, useVisualizerAssetStore;
+        var init_useVisualizerAssetStore = __esm({
+          "src/folia/stores/useVisualizerAssetStore.ts"() {
+            STATE3 = {
+              cappellaAvatars: [],
+              cappellaEmoji: [],
+              cappellaEmojiPack: null,
+              storedMonetPortraitImage: null
+            };
+            useVisualizerAssetStore = (selector) => {
+              if (typeof selector === "function") return selector(STATE3);
+              return STATE3;
+            };
+            useVisualizerAssetStore.setState = (patch) => {
+              Object.assign(STATE3, patch);
+            };
+            useVisualizerAssetStore.getState = () => STATE3;
           }
         });
       
@@ -130119,7 +128605,7 @@ window.__ModuleLoader__.load({
         });
       
         // src/folia/components/visualizer/hanabi/mg/mgMath.ts
-        var TAU12, clamp0113, clamp17, lerp4, fract2, wrap2, easeOutCubic6, easeInCubic2, easeOutExpo2, easeOutBack, easeInBack, spring, beatSteps, hash012, hashString5, mixColor, WHITE3, GOLD, EMBER;
+        var TAU12, clamp0113, clamp17, lerp4, fract2, wrap2, easeOutCubic6, easeInCubic2, easeOutExpo2, easeOutBack, easeInBack, spring, beatSteps, hash012, hashString3, mixColor, WHITE3, GOLD, EMBER;
         var init_mgMath = __esm({
           "src/folia/components/visualizer/hanabi/mg/mgMath.ts"() {
             TAU12 = Math.PI * 2;
@@ -130148,7 +128634,7 @@ window.__ModuleLoader__.load({
               return whole + easeOutBack(fract2(beats) / snap, 2.2);
             };
             hash012 = (n4, salt = 0) => fract2(Math.sin(n4 * 127.1 + salt * 311.7) * 43758.5453123);
-            hashString5 = (key) => {
+            hashString3 = (key) => {
               let hash2 = 2166136261;
               for (let i4 = 0; i4 < key.length; i4 += 1) {
                 hash2 ^= key.charCodeAt(i4);
@@ -132408,7 +130894,7 @@ window.__ModuleLoader__.load({
             drawLaunch = (launch2, time, unit2, emit) => {
               const age = time - launch2.at;
               if (age < 0 || time > launchEnd(launch2)) return true;
-              const salt = hashString5(launch2.seed) % 1e5;
+              const salt = hashString3(launch2.seed) % 1e5;
               const duration = Math.max(0.05, launch2.duration);
               const color = launch2.color;
               const ember = mixColor(color, GOLD, 0.55);
@@ -135417,7 +133903,7 @@ window.__ModuleLoader__.load({
             DISTANT_KINDS = ["kiku", "botan", "ring", "yanagi", "senrin", "kamuro", "strobe", "kiku", "botan"];
             DISTANT_DURATION = 2.6;
             distantBurstAt = (seed, k4, rate, startTime, width, span) => {
-              const salt = hashString5(seed) % 9973;
+              const salt = hashString3(seed) % 9973;
               const h4 = (i4) => hash012(k4 * 17 + i4, salt + 0.37);
               const at3 = startTime + (k4 + 0.1 + h4(1) * 0.8) / rate;
               const kind = DISTANT_KINDS[Math.floor(h4(2) * DISTANT_KINDS.length) % DISTANT_KINDS.length];
@@ -150669,7 +149155,7 @@ window.__ModuleLoader__.load({
         });
       
         // src/folia/components/visualizer/diorama/cameraPath.ts
-        var DIORAMA_STEP_DISTANCE, DIORAMA_MAX_YAW, DIORAMA_MAX_PITCH, DIORAMA_HERO_DISTANCE, DIORAMA_CAMERA_LIFT, DIORAMA_SAFE_FRAME_FRACTION, DIORAMA_SWAY_AMP, DIORAMA_LIFT_AMP, DIORAMA_DIST_AMP, DIORAMA_SNAP_DISTANCE, DIORAMA_TEXT_OFFSET_R, DIORAMA_TEXT_OFFSET_U, DIORAMA_TEXT_ROLL, DIORAMA_TEXT_YAW, DIORAMA_TEXT_LOOK, DIORAMA_SHAPE_FADE_IN_START, DIORAMA_SHAPE_FADE_IN_END, DIORAMA_SHAPE_DISSOLVE_START, DIORAMA_SHAPE_DISSOLVE_END, DEG_TO_RAD, clamp0116, clamp19, vsub, vcross, vnorm, vadd, seededUnit2, hashSeed, smoothDamp, frameHalfWidth, DIORAMA_SUB_MODE_PRESETS, resolveDioramaMotionParams, WORLD_UP, DEFAULT_FRAME, buildDioramaPath, getFrame, translateFrames, composeLocal, resolveReadHeadTruck, getDioramaTextPlacement, SHOT_KINDS, easeInOut2, CHORUS_PART, getShotDir, getLineNoteProfile, computeShotWeights, weightedPickShot, basePickShot, getDioramaShot, resolveShotOffset, HOLD_SETTLE_DELAY, HOLD_SETTLE_EASE, resolveHoldSettle, resolveCameraDrift, DIORAMA_PARTICLE_AUDIO_SCALE_MAX, getSpecClearanceRadius, separateSpecs, TEXT_CLEAR_LATERAL, TEXT_CLEAR_VERTICAL, enforceTextClearance, enforceRailClearance, buildFormation;
+        var DIORAMA_STEP_DISTANCE, DIORAMA_MAX_YAW, DIORAMA_MAX_PITCH, DIORAMA_HERO_DISTANCE, DIORAMA_CAMERA_LIFT, DIORAMA_SAFE_FRAME_FRACTION, DIORAMA_SWAY_AMP, DIORAMA_LIFT_AMP, DIORAMA_DIST_AMP, DIORAMA_SNAP_DISTANCE, DIORAMA_TEXT_OFFSET_R, DIORAMA_TEXT_OFFSET_U, DIORAMA_TEXT_ROLL, DIORAMA_TEXT_YAW, DIORAMA_TEXT_LOOK, DIORAMA_SHAPE_FADE_IN_START, DIORAMA_SHAPE_FADE_IN_END, DIORAMA_SHAPE_DISSOLVE_START, DIORAMA_SHAPE_DISSOLVE_END, DEG_TO_RAD, clamp0116, clamp19, vsub, vcross, vnorm, vadd, seededUnit, hashSeed, smoothDamp, frameHalfWidth, DIORAMA_SUB_MODE_PRESETS, resolveDioramaMotionParams, WORLD_UP, DEFAULT_FRAME, buildDioramaPath, getFrame, translateFrames, composeLocal, resolveReadHeadTruck, getDioramaTextPlacement, SHOT_KINDS, easeInOut2, CHORUS_PART, getShotDir, getLineNoteProfile, computeShotWeights, weightedPickShot, basePickShot, getDioramaShot, resolveShotOffset, HOLD_SETTLE_DELAY, HOLD_SETTLE_EASE, resolveHoldSettle, resolveCameraDrift, DIORAMA_PARTICLE_AUDIO_SCALE_MAX, getSpecClearanceRadius, separateSpecs, TEXT_CLEAR_LATERAL, TEXT_CLEAR_VERTICAL, enforceTextClearance, enforceRailClearance, buildFormation;
         var init_cameraPath = __esm({
           "src/folia/components/visualizer/diorama/cameraPath.ts"() {
             init_types();
@@ -150706,7 +149192,7 @@ window.__ModuleLoader__.load({
               return { x: a4.x / len2, y: a4.y / len2, z: a4.z / len2 };
             };
             vadd = (a4, b4) => ({ x: a4.x + b4.x, y: a4.y + b4.y, z: a4.z + b4.z });
-            seededUnit2 = (seed) => {
+            seededUnit = (seed) => {
               const x4 = Math.sin(seed * 12.9898) * 43758.5453;
               return x4 - Math.floor(x4);
             };
@@ -150805,17 +149291,17 @@ window.__ModuleLoader__.load({
             getDioramaTextPlacement = (lineIndex, seed, weave = 1) => {
               const base = hashSeed(seed);
               const i4 = Math.max(lineIndex, 0);
-              const jitterR = (seededUnit2(base + i4 * 11 + 2) - 0.5) * 0.6;
-              const jitterU = (seededUnit2(base + i4 * 11 + 4) - 0.5) * 0.6;
+              const jitterR = (seededUnit(base + i4 * 11 + 2) - 0.5) * 0.6;
+              const jitterU = (seededUnit(base + i4 * 11 + 4) - 0.5) * 0.6;
               const wanderR = Math.sin(i4 * 0.47 + base * 0.019) * 0.7 + jitterR;
               const wanderU = Math.sin(i4 * 0.29 + base * 0.027 + 0.9) * 0.7 + jitterU;
               return {
                 offsetR: wanderR * DIORAMA_TEXT_OFFSET_R * weave,
                 offsetU: wanderU * DIORAMA_TEXT_OFFSET_U * weave,
-                scale: 0.82 + seededUnit2(base + i4 * 11 + 5) * 0.46,
-                roll: (seededUnit2(base + i4 * 11 + 6) - 0.5) * 2 * DIORAMA_TEXT_ROLL * weave,
-                yaw: (seededUnit2(base + i4 * 11 + 7) - 0.5) * 2 * DIORAMA_TEXT_YAW * weave,
-                lookR: (seededUnit2(base + i4 * 11 + 8) - 0.5) * 2 * DIORAMA_TEXT_LOOK * weave
+                scale: 0.82 + seededUnit(base + i4 * 11 + 5) * 0.46,
+                roll: (seededUnit(base + i4 * 11 + 6) - 0.5) * 2 * DIORAMA_TEXT_ROLL * weave,
+                yaw: (seededUnit(base + i4 * 11 + 7) - 0.5) * 2 * DIORAMA_TEXT_YAW * weave,
+                lookR: (seededUnit(base + i4 * 11 + 8) - 0.5) * 2 * DIORAMA_TEXT_LOOK * weave
               };
             };
             SHOT_KINDS = [
@@ -150838,7 +149324,7 @@ window.__ModuleLoader__.load({
               return c4 * c4 * (3 - 2 * c4);
             };
             CHORUS_PART = /chorus|hook|refrain|drop/i;
-            getShotDir = (lineIndex, seed) => seededUnit2(hashSeed(seed) + lineIndex * 7 + 3) < 0.5 ? -1 : 1;
+            getShotDir = (lineIndex, seed) => seededUnit(hashSeed(seed) + lineIndex * 7 + 3) < 0.5 ? -1 : 1;
             getLineNoteProfile = (line2) => {
               let maxNote = 0;
               let sum = 0;
@@ -150971,7 +149457,7 @@ window.__ModuleLoader__.load({
             };
             basePickShot = (lineIndex, lines, seed, subMode = "normal") => {
               if (!lines[lineIndex]) return "hold";
-              const u4 = seededUnit2(hashSeed(seed) + lineIndex * 101 + 7);
+              const u4 = seededUnit(hashSeed(seed) + lineIndex * 101 + 7);
               return weightedPickShot(computeShotWeights(lineIndex, lines, subMode), u4);
             };
             getDioramaShot = (lineIndex, lines, seed, subMode = "normal") => {
@@ -150981,7 +149467,7 @@ window.__ModuleLoader__.load({
               if (pick2 === prev1 || pick2 === prev2) {
                 const others = SHOT_KINDS.filter((k4) => k4 !== pick2 && k4 !== prev1 && k4 !== prev2);
                 const pool = others.length > 0 ? others : SHOT_KINDS.filter((k4) => k4 !== pick2);
-                const alt = seededUnit2(hashSeed(seed) + lineIndex * 53 + 19);
+                const alt = seededUnit(hashSeed(seed) + lineIndex * 53 + 19);
                 return pool[Math.floor(clamp0116(alt) * pool.length) % pool.length];
               }
               return pick2;
@@ -151157,7 +149643,7 @@ window.__ModuleLoader__.load({
             };
             buildFormation = (lineIndex, seed, shot, frame2, placement, volumeScale = 1) => {
               const salt = hashSeed(seed) + lineIndex * 97;
-              const rnd = (k4) => seededUnit2(salt + k4);
+              const rnd = (k4) => seededUnit(salt + k4);
               const dir = getShotDir(lineIndex, seed);
               const specs = [];
               const safeVolumeScale = Math.min(1.6, Math.max(0.65, volumeScale));
@@ -151363,7 +149849,7 @@ window.__ModuleLoader__.load({
               const l4 = Math.hypot(perp.x, perp.y, perp.z);
               return l4 < 1e-3 ? { x: 1, y: 0, z: 0 } : { x: perp.x / l4, y: perp.y / l4, z: perp.z / l4 };
             };
-            flightSide = (seed, epoch) => seededUnit2(hashSeed(seed) + epoch * 17) < 0.5 ? -1 : 1;
+            flightSide = (seed, epoch) => seededUnit(hashSeed(seed) + epoch * 17) < 0.5 ? -1 : 1;
             len = (a4) => Math.hypot(a4.x, a4.y, a4.z);
             scaleTo = (a4, target) => {
               const l4 = len(a4) || 1;
@@ -151371,8 +149857,8 @@ window.__ModuleLoader__.load({
             };
             pickTransitionOffset = (seed, epoch) => {
               const base = hashSeed(seed) + epoch * 131;
-              const azimuth = seededUnit2(base + 1) * Math.PI * 2;
-              const elevation = (seededUnit2(base + 2) - 0.35) * 1.3;
+              const azimuth = seededUnit(base + 1) * Math.PI * 2;
+              const elevation = (seededUnit(base + 2) - 0.35) * 1.3;
               const ce3 = Math.cos(elevation);
               const dir = {
                 x: Math.sin(azimuth) * ce3,
@@ -151701,17 +150187,17 @@ window.__ModuleLoader__.load({
               const base = hashSeed(seed);
               const goldenAngle = Math.PI * (3 - Math.sqrt(5));
               const twoPi = Math.PI * 2;
-              const phase = seededUnit2(base + 991) * twoPi;
+              const phase = seededUnit(base + 991) * twoPi;
               const total = circumference * radial2;
               let write = dioramaMoteSlot(line2) * total * 3;
               for (let ri3 = 0; ri3 < radial2; ri3 += 1) {
                 for (let ci2 = 0; ci2 < circumference; ci2 += 1) {
                   const p4 = ri3 * circumference + ci2;
                   const s4 = base + line2 * 131 + p4 * 17;
-                  const stratum = (ri3 + 0.35 + seededUnit2(s4 + 4) * 0.3) / radial2;
+                  const stratum = (ri3 + 0.35 + seededUnit(s4 + 4) * 0.3) / radial2;
                   const radius = MOTE_INNER_RADIUS + Math.sqrt(stratum) * MOTE_RADIAL_SPAN;
-                  const angle = phase + (line2 + ri3) * goldenAngle + ci2 / circumference * twoPi + (seededUnit2(s4 + 3) - 0.5) * (twoPi / circumference);
-                  const depth = (radicalInverse(p4 + 1, 2) + (seededUnit2(s4 + 2) - 0.5) / total - 0.5) * DIORAMA_STEP_DISTANCE;
+                  const angle = phase + (line2 + ri3) * goldenAngle + ci2 / circumference * twoPi + (seededUnit(s4 + 3) - 0.5) * (twoPi / circumference);
+                  const depth = (radicalInverse(p4 + 1, 2) + (seededUnit(s4 + 2) - 0.5) / total - 0.5) * DIORAMA_STEP_DISTANCE;
                   const point = composeLocal(
                     frame2,
                     Math.cos(angle) * radius,
@@ -151976,7 +150462,7 @@ window.__ModuleLoader__.load({
               clusters.forEach((cluster, clusterIndex) => {
                 const surface = surfaces[clusterIndex];
                 const seed = hashSeed(`${cluster.particleSeed}|${cluster.kind}`);
-                const clusterPhase = seededUnit2(seed + 31) * Math.PI * 2;
+                const clusterPhase = seededUnit(seed + 31) * Math.PI * 2;
                 const family2 = FAMILY_INDEX[cluster.kind];
                 const isFar = cluster.layer === "far" ? 1 : 0;
                 for (let pointIndex = 0; pointIndex < surface.count; pointIndex += 1, target += 1) {
@@ -152835,18 +151321,18 @@ window.__ModuleLoader__.load({
             spawnRipple = (pool, bandIndex, strength, now, corridor, readHeadAlong) => {
               const seed = hashSeed(`diorama-ripple:${pool.spawned}`);
               const preset = RIPPLE_BANDS[bandIndex];
-              const height = seededUnit2(seed + 1);
-              const spread = seededUnit2(seed + 2);
-              const pace = seededUnit2(seed + 3);
+              const height = seededUnit(seed + 1);
+              const spread = seededUnit(seed + 2);
+              const pace = seededUnit(seed + 3);
               const cursor = pool.cursor[bandIndex];
               const offset = (bandIndex * RIPPLE_SLOTS_PER_BAND + cursor) * 4;
               if (corridor) {
-                pool.sources[offset] = readHeadAlong + 0.4 + seededUnit2(seed + 4) * 2.2;
-                pool.sources[offset + 1] = seededUnit2(seed + 5) * Math.PI * 2;
+                pool.sources[offset] = readHeadAlong + 0.4 + seededUnit(seed + 4) * 2.2;
+                pool.sources[offset + 1] = seededUnit(seed + 5) * Math.PI * 2;
                 pool.sources[offset + 2] = 0;
               } else {
-                const up3 = seededUnit2(seed + 4) * 2 - 1;
-                const around = seededUnit2(seed + 5) * Math.PI * 2;
+                const up3 = seededUnit(seed + 4) * 2 - 1;
+                const around = seededUnit(seed + 5) * Math.PI * 2;
                 const ring = Math.sqrt(Math.max(0, 1 - up3 * up3));
                 pool.sources[offset] = ring * Math.cos(around);
                 pool.sources[offset + 1] = up3;
@@ -154471,7 +152957,6 @@ window.__ModuleLoader__.load({
         __export(styles_entry_exports, {
           DAYLIGHT_THEME: () => DAYLIGHT_THEME,
           DEFAULT_CADENZA_TUNING: () => DEFAULT_CADENZA_TUNING,
-          DEFAULT_CAPPELLA_TUNING: () => DEFAULT_CAPPELLA_TUNING,
           DEFAULT_CLADDAGH_TUNING: () => DEFAULT_CLADDAGH_TUNING,
           DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
           DEFAULT_DIORAMA_TUNING: () => DEFAULT_DIORAMA_TUNING,
@@ -154788,68 +153273,6 @@ window.__ModuleLoader__.load({
           }
         });
       
-        // src/folia/components/visualizer/cappella/entry.tsx
-        init_react_shim();
-        init_lucide_react();
-        init_useVisualizerAssetStore();
-        init_settings_card();
-        init_jsx_runtime_shim();
-        var VisualizerCappella2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerCappella(), VisualizerCappella_exports)));
-        var AVATAR_SOURCES = ["cover", "builtin", "color", "custom"];
-        var AVATAR_SOURCE_LABEL_KEYS = {
-          cover: "options.cappellaAvatarSourceCover",
-          builtin: "options.cappellaAvatarSourceBuiltin",
-          color: "options.cappellaAvatarSourceColor",
-          custom: "options.cappellaAvatarSourceCustom"
-        };
-        var entry_default8 = defineVisualizer({
-          mode: "cappella",
-          order: 110,
-          labelKey: "ui.visualizerCappella",
-          labelFallback: "Cappella",
-          previewSeed: "cappella",
-          previewStartOffset: 0,
-          // 群唱：左右交替的对话气泡
-          glyph: /* @__PURE__ */ jsxs(Fragment2, { children: [
-            /* @__PURE__ */ jsx("rect", { x: "3", y: "5", width: "12", height: "6", rx: "3" }),
-            /* @__PURE__ */ jsx("rect", { x: "9", y: "13.5", width: "12", height: "6", rx: "3", opacity: "0.5" })
-          ] }),
-          command: {
-            title: "Visualizer: Cappella",
-            description: "Switch to cappella visualizer",
-            keywords: ["cappella", "\u7FA4\u5531"]
-          },
-          render: (props) => /* @__PURE__ */ jsx(VisualizerCappella2, { ...props }),
-          renderSettingsPanel: (props) => /* @__PURE__ */ jsx(CappellaSettingsPanel, { ...props }),
-          renderQuickControls: ({ tuning, onTuningChange, t: t4 }) => {
-            const avatarLabel = t4(AVATAR_SOURCE_LABEL_KEYS[tuning.avatarSource]);
-            const cycleAvatarSource = () => {
-              const hasCustom = useVisualizerAssetStore.getState().cappellaCustomAvatarImages.length > 0;
-              const sources = hasCustom ? AVATAR_SOURCES : AVATAR_SOURCES.filter((source) => source !== "custom");
-              onTuningChange({ avatarSource: cycleValue(sources, tuning.avatarSource) });
-            };
-            return /* @__PURE__ */ jsxs(Fragment2, { children: [
-              /* @__PURE__ */ jsx(
-                QuickControlChip,
-                {
-                  label: avatarLabel,
-                  title: `${t4("options.cappellaAvatarSource")}: ${avatarLabel}`,
-                  onClick: cycleAvatarSource
-                }
-              ),
-              /* @__PURE__ */ jsx(
-                QuickControlToggle,
-                {
-                  active: tuning.showEmoMessages,
-                  label: t4("options.cappellaShowEmoMessages"),
-                  onToggle: () => onTuningChange({ showEmoMessages: !tuning.showEmoMessages }),
-                  children: /* @__PURE__ */ jsx(Smile, { size: 14 })
-                }
-              )
-            ] });
-          }
-        });
-      
         // src/folia/components/visualizer/machi/entry.tsx
         init_react_shim();
         init_lucide_react();
@@ -154919,7 +153342,7 @@ window.__ModuleLoader__.load({
             }
           );
         };
-        var entry_default9 = defineVisualizer({
+        var entry_default8 = defineVisualizer({
           mode: "machi",
           order: 27,
           labelKey: "ui.visualizerMachi",
@@ -155031,7 +153454,7 @@ window.__ModuleLoader__.load({
           hidden: "options.monetChromeVisibilityHidden"
         };
         var VisualizerMonet2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerMonet(), VisualizerMonet_exports)));
-        var entry_default10 = defineVisualizer({
+        var entry_default9 = defineVisualizer({
           mode: "monet",
           order: 90,
           labelKey: "ui.visualizerMonet",
@@ -155108,7 +153531,7 @@ window.__ModuleLoader__.load({
         init_settings_card();
         init_jsx_runtime_shim();
         var VisualizerLumiere2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerLumiere(), VisualizerLumiere_exports)));
-        var entry_default11 = defineVisualizer({
+        var entry_default10 = defineVisualizer({
           mode: "lumiere",
           order: 25,
           labelKey: "ui.visualizerLumiere",
@@ -155167,7 +153590,7 @@ window.__ModuleLoader__.load({
           frame: "options.sonnetOuterFrameFrame",
           full: "options.sonnetOuterFrameFull"
         };
-        var entry_default12 = defineVisualizer({
+        var entry_default11 = defineVisualizer({
           mode: "sonnet",
           order: 10,
           labelKey: "ui.visualizerSonnet",
@@ -155249,7 +153672,7 @@ window.__ModuleLoader__.load({
           mono: "options.temperaColorModeMono",
           gradient: "options.temperaColorModeGradient"
         };
-        var entry_default13 = defineVisualizer({
+        var entry_default12 = defineVisualizer({
           mode: "tempera",
           order: 20,
           labelKey: "ui.visualizerTempera",
@@ -155363,7 +153786,7 @@ window.__ModuleLoader__.load({
         // src/folia/components/visualizer/hanabi/entry.tsx
         init_jsx_runtime_shim();
         var VisualizerHanabi2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerHanabi(), VisualizerHanabi_exports)));
-        var entry_default14 = defineVisualizer({
+        var entry_default13 = defineVisualizer({
           mode: "hanabi",
           order: 26,
           labelKey: "ui.visualizerHanabi",
@@ -155446,7 +153869,7 @@ window.__ModuleLoader__.load({
           { fade: ["fog", "fingers"], labelKey: "options.nebbiaFadeMix" }
         ];
         var presetIndex = (presets, pick2, on3) => presets.findIndex((_4, i4) => pick2(i4).join() === on3.join());
-        var entry_default15 = defineVisualizer({
+        var entry_default14 = defineVisualizer({
           mode: "nebbia",
           order: 29,
           labelKey: "ui.visualizerNebbia",
@@ -155545,7 +153968,7 @@ window.__ModuleLoader__.load({
         init_settings_card();
         init_jsx_runtime_shim();
         var VisualizerDiorama2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerDiorama(), VisualizerDiorama_exports)));
-        var entry_default16 = defineVisualizer({
+        var entry_default15 = defineVisualizer({
           mode: "diorama",
           order: 120,
           labelKey: "ui.visualizerDiorama",
@@ -156430,21 +154853,20 @@ window.__ModuleLoader__.load({
         init_types7();
         var FOLIA_STYLE_ENTRIES = {
           classic: entry_default,
-          cappella: entry_default8,
-          machi: entry_default9,
+          machi: entry_default8,
           still: entry_default2,
           tilt: entry_default3,
           partita: entry_default4,
           claddagh: entry_default5,
           cadenza: entry_default6,
           fume: entry_default7,
-          monet: entry_default10,
-          lumiere: entry_default11,
-          sonnet: entry_default12,
-          tempera: entry_default13,
-          hanabi: entry_default14,
-          nebbia: entry_default15,
-          diorama: entry_default16
+          monet: entry_default9,
+          lumiere: entry_default10,
+          sonnet: entry_default11,
+          tempera: entry_default12,
+          hanabi: entry_default13,
+          nebbia: entry_default14,
+          diorama: entry_default15
         };
         return __toCommonJS(styles_entry_exports);
       })();
@@ -156965,7 +155387,6 @@ window.__ModuleLoader__.load({
       { id: 'tilt', labelKey: 'sheet.foliaStyleTilt', glyph: 'note', order: 70 },
       { id: 'claddagh', labelKey: 'sheet.foliaStyleCladdagh', glyph: 'disc', order: 80 },
       { id: 'monet', labelKey: 'sheet.foliaStyleMonet', glyph: 'disc', order: 90 },
-      { id: 'cappella', labelKey: 'sheet.foliaStyleCappella', glyph: 'note', order: 110 },
       { id: 'diorama', labelKey: 'sheet.foliaStyleDiorama', glyph: 'disc', order: 120 },
       { id: 'still', labelKey: 'sheet.foliaStyleStill', glyph: 'note', order: 130 },
     ]
@@ -157322,7 +155743,6 @@ window.__ModuleLoader__.load({
         fumeTuning: foliaTuning(FOLIA_STYLES.DEFAULT_FUME_TUNING, prefs.fumeTuning),
         cadenzaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_CADENZA_TUNING, prefs.cadenzaTuning),
         sonnetTuning: foliaTuning(FOLIA_STYLES.DEFAULT_SONNET_TUNING, prefs.sonnetTuning),
-        cappellaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_CAPPELLA_TUNING, prefs.cappellaTuning),
         monetTuning: foliaTuning(FOLIA_STYLES.DEFAULT_MONET_TUNING, prefs.monetTuning),
         machiTuning: foliaTuning(FOLIA_STYLES.DEFAULT_MACHI_TUNING, prefs.machiTuning),
         lumiereTuning: foliaTuning(FOLIA_STYLES.DEFAULT_LUMIERE_TUNING, prefs.lumiereTuning),
@@ -168160,11 +166580,6 @@ window.__ModuleLoader__.load({
         portraitHangerVisibility: 'auto',
         mirrorLayout: false,
       },
-      cappellaTuning: {
-        showEmoMessages: true,
-        emojiPackSource: 'builtin',
-        avatarSource: 'cover',
-      },
       sonnetTuning: {
         cameraIntensity: 1,
         typographyMotion: 1,
@@ -168634,14 +167049,6 @@ window.__ModuleLoader__.load({
         focus: machiChoice('focus', ['center', 'lyrics', 'manual']),
         focusOffset: machiNumber('focusOffset', -10, 10),
         simulatedBeat: storedMachi.simulatedBeat !== false,
-      }
-      // Folia cappella tuning: three fields, unknown values fall back.
-      var cappellaDefaults = PREF_DEFAULTS.cappellaTuning
-      var storedCappella = merged.cappellaTuning && typeof merged.cappellaTuning === 'object' ? merged.cappellaTuning : {}
-      merged.cappellaTuning = {
-        showEmoMessages: storedCappella.showEmoMessages !== false,
-        emojiPackSource: storedCappella.emojiPackSource === 'custom' ? 'custom' : 'builtin',
-        avatarSource: ['cover', 'builtin', 'color', 'custom'].indexOf(storedCappella.avatarSource) >= 0 ? storedCappella.avatarSource : 'cover',
       }
       // Folia sonnet tuning: ranges and switches from its resolve().
       var sonnetDefaults = PREF_DEFAULTS.sonnetTuning
@@ -196708,7 +195115,6 @@ window.__ModuleLoader__.load({
         if (style === 'hanabi') blocks.push(hanabiTuningBlock())
         if (style === 'cadenza') blocks.push(cadenzaTuningBlock())
         if (style === 'sonnet') blocks.push(sonnetTuningBlock())
-        if (style === 'cappella') blocks.push(cappellaTuningBlock())
         if (style === 'monet') blocks.push(monetTuningBlock())
         if (style === 'machi') blocks.push(machiTuningBlock())
         if (style === 'lumiere') blocks.push(lumiereTuningBlock())
@@ -197192,18 +195598,6 @@ window.__ModuleLoader__.load({
           num('settings.sonnetVignette', 'postProcessVignette', 0, 2, 0.01),
           num('settings.sonnetLens', 'postProcessLensDistortion', 0, 2, 0.01),
           num('settings.sonnetDispersion', 'postProcessLensDispersion', 0, 1, 0.01),
-        ))
-      }
-      /** Folia cappella tuning: emoji messages and avatar source. */
-      function cappellaTuningBlock() {
-        var tuning = prefs.cappellaTuning || {}
-        return mpSection(t('settings.cappellaTuning'), h('div', null,
-          mpPanelRow(t('settings.cappellaEmo'), h(Switch, { value: tuning.showEmoMessages !== false, label: t('settings.cappellaEmo'), onChange: function (value) { setPrefs({ cappellaTuning: Object.assign({}, tuning, { showEmoMessages: value }) }) } })),
-          mpPanelRow(t('settings.cappellaAvatar'), segmented([
-            { value: 'cover', label: t('settings.optCover') },
-            { value: 'builtin', label: t('settings.optBuiltin') },
-            { value: 'color', label: t('settings.optColor') },
-          ], ['cover', 'builtin', 'color'].indexOf(tuning.avatarSource) >= 0 ? tuning.avatarSource : 'cover', function (value) { setPrefs({ cappellaTuning: Object.assign({}, tuning, { avatarSource: value }) }) })),
         ))
       }
       /** Folia monet tuning: description, audio strip, portrait and mirror. */
