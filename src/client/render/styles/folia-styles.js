@@ -25,6 +25,7 @@ var FOLIA_STYLE_META = [
   { id: 'lumiere', labelKey: 'sheet.foliaStyleLumiere', glyph: 'note', order: 25 },
   { id: 'hanabi', labelKey: 'sheet.foliaStyleHanabi', glyph: 'star', order: 26 },
   { id: 'nebbia', labelKey: 'sheet.foliaStyleNebbia', glyph: 'note', order: 29 },
+  { id: 'classic', labelKey: 'sheet.foliaStyleClassic', glyph: 'note', order: 30 },
   { id: 'cadenza', labelKey: 'sheet.foliaStyleCadenza', glyph: 'note', order: 40 },
   { id: 'partita', labelKey: 'sheet.foliaStylePartita', glyph: 'list', order: 50 },
   { id: 'fume', labelKey: 'sheet.foliaStyleFume', glyph: 'note', order: 60 },

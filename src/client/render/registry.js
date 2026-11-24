@@ -135,10 +135,10 @@ function mpStyleFromPrefs(pref) {
   var value = typeof pref === 'string' ? pref : ''
   if (value === MP_RANDOM_STYLE_ID) return { id: MP_RANDOM_STYLE_ID, variant: '' }
   if (mpStyleOf(value) !== null && mpStyleOf(value).id === value) return { id: value, variant: '' }
-  return { id: 'monet', variant: '' }
+  return { id: 'classic', variant: '' }
 }
 
-/** The style id the page paints for a stored preference (legacy variants → monet). */
+/** The style id the page paints for a stored preference (legacy variants → classic). */
 function mpStyleIdOf(pref) {
   return mpStyleFromPrefs(pref).id
 }

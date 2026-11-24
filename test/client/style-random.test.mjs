@@ -88,7 +88,7 @@ assert.deepEqual(pool, ['a', 'b', 'c', 'd', 'e'], 'the shuffle does not mutate i
 
 // Concrete preferences pass through; an unknown one still falls back.
 assert.equal(resolve('monet', { seed: 'x', time: 0, duration: 100 }), 'monet')
-assert.equal(resolve('whatever', { seed: 'x', time: 0, duration: 100 }), 'monet')
+assert.equal(resolve('whatever', { seed: 'x', time: 0, duration: 100 }), 'classic')
 
 // 99 s over three choices: each style owns 33 s, and a seek lands on the same slot.
 const at = (time, duration = 99) => resolve('random', { seed: 'song', time, duration, pool: ['a', 'b', 'c'] })

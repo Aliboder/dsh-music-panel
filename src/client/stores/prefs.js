@@ -54,7 +54,7 @@ var PREF_DEFAULTS = {
   /** Animated flowing-light background on the player page. */
   npFlowBg: true,
   /** 外观: lyric style, Folia shell background and where the accent comes from (28-look.js). */
-  lyricStyle: 'monet',
+  lyricStyle: 'classic',
   /** Folia's calm/normal/chaotic chip (used by the styles' animation tuning). */
   lyricIntensity: 'normal',
   /**
@@ -177,8 +177,8 @@ function readPrefs() {
   } catch (error) {
     // Corrupt value: defaults stand.
   }
-  // The classic renderer is removed; legacy variant ids now select the default Monet style.
-  if (['standard', 'glow', 'outline', 'karaoke', 'mirror', 'classic', 'cappella'].indexOf(merged.lyricStyle) >= 0) merged.lyricStyle = 'monet'
+  // Legacy variant ids now select Folia's classic style; a stored `classic` is kept.
+  if (['standard', 'glow', 'outline', 'karaoke', 'mirror', 'cappella'].indexOf(merged.lyricStyle) >= 0) merged.lyricStyle = 'classic'
   // The player page switched from the old ambient/flow backdrop to Folia's six shell
   // backgrounds; a stored old id falls back to Folia's default (latent).
   var foliaBackgrounds = ['common', 'monet', 'nomand', 'latent', 'sora', 'url', 'none']

@@ -82,6 +82,86 @@ function __mpStylesBundle() {
       }
     });
   
+    // src/folia/shims/lucide-react.js
+    function makeIcon(path2) {
+      return function Icon(props) {
+        const size = Number(props && props.size) || 24;
+        return react_shim_default.createElement(
+          "svg",
+          {
+            xmlns: "http://www.w3.org/2000/svg",
+            width: size,
+            height: size,
+            viewBox: "0 0 24 24",
+            fill: "currentColor",
+            stroke: "currentColor",
+            strokeWidth: 1,
+            "aria-hidden": "true",
+            style: props && props.style,
+            className: props && props.className
+          },
+          react_shim_default.createElement("path", { d: path2 })
+        );
+      };
+    }
+    var starPath, Star, Disc3, Aperture, Cone, Layers, Columns3, Wind, Square, ImagePlus, Trash2, Pencil, Plus, Upload, Smile, SeparatorVertical, Hourglass, EyeOff, RotateCcw, RotateCw, AlignLeft, AudioWaveform, Move, Spline, Frame, Sparkles, WandSparkles, Scan, Ghost, Highlighter;
+    var init_lucide_react = __esm({
+      "src/folia/shims/lucide-react.js"() {
+        init_react_shim();
+        starPath = "M12 2.6l2.95 5.98 6.6.96-4.78 4.66 1.13 6.58L12 17.68l-5.9 3.1 1.13-6.58L2.45 9.54l6.6-.96L12 2.6z";
+        Star = makeIcon(starPath);
+        Disc3 = makeIcon("M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 5a4 4 0 1 1 0 8 4 4 0 0 1 0-8z");
+        Aperture = makeIcon(starPath);
+        Cone = makeIcon(starPath);
+        Layers = makeIcon(starPath);
+        Columns3 = makeIcon(starPath);
+        Wind = makeIcon(starPath);
+        Square = makeIcon("M4 4h16v16H4z");
+        ImagePlus = makeIcon(starPath);
+        Trash2 = makeIcon(starPath);
+        Pencil = makeIcon(starPath);
+        Plus = makeIcon("M12 5v14M5 12h14");
+        Upload = makeIcon(starPath);
+        Smile = makeIcon(starPath);
+        SeparatorVertical = makeIcon(starPath);
+        Hourglass = makeIcon(starPath);
+        EyeOff = makeIcon(starPath);
+        RotateCcw = makeIcon(starPath);
+        RotateCw = makeIcon("M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6");
+        AlignLeft = makeIcon(starPath);
+        AudioWaveform = makeIcon(starPath);
+        Move = makeIcon(starPath);
+        Spline = makeIcon(starPath);
+        Frame = makeIcon(starPath);
+        Sparkles = makeIcon(starPath);
+        WandSparkles = makeIcon(starPath);
+        Scan = makeIcon(starPath);
+        Ghost = makeIcon(starPath);
+        Highlighter = makeIcon(starPath);
+      }
+    });
+  
+    // src/folia/shims/settings-card.tsx
+    var Stub, ClassicSettingsPanel, CladdaghSettingsPanel, DioramaSettingsPanel, FumeSettingsPanel, MonetSettingsPanel, PartitaSettingsPanel, TiltSettingsPanel, Tooltip, SettingsKitThemeContext, NEBBIA_APPEAR_LABEL_KEYS, NEBBIA_FADE_LABEL_KEYS, settings_card_default;
+    var init_settings_card = __esm({
+      "src/folia/shims/settings-card.tsx"() {
+        init_react_shim();
+        Stub = () => null;
+        ClassicSettingsPanel = Stub;
+        CladdaghSettingsPanel = Stub;
+        DioramaSettingsPanel = Stub;
+        FumeSettingsPanel = Stub;
+        MonetSettingsPanel = Stub;
+        PartitaSettingsPanel = Stub;
+        TiltSettingsPanel = Stub;
+        Tooltip = Stub;
+        SettingsKitThemeContext = react_shim_default.createContext(null);
+        NEBBIA_APPEAR_LABEL_KEYS = {};
+        NEBBIA_FADE_LABEL_KEYS = {};
+        settings_card_default = Stub;
+      }
+    });
+  
     // src/client/vendor/jsx-runtime-shim.js
     function build(type, props, key) {
       const attributes = {};
@@ -107,6 +187,545 @@ function __mpStylesBundle() {
         createElement2 = React2.createElement;
         Fragment2 = React2.Fragment;
         jsxs = jsx;
+      }
+    });
+  
+    // src/folia/shims/framer-motion.js
+    var framer, motionFallback, motion, AnimatePresence, MotionConfig, LayoutGroup, useMotionValue, useSpring, useTransform, useMotionValueEvent, useDragControls, motionValue, useReducedMotion, animate;
+    var init_framer_motion = __esm({
+      "src/folia/shims/framer-motion.js"() {
+        init_react_shim();
+        framer = typeof MPFramer !== "undefined" && MPFramer !== null ? MPFramer : {};
+        motionFallback = new Proxy({}, {
+          get: (_target, tag) => function MotionFallback(props) {
+            return react_shim_default.createElement(tag, props);
+          }
+        });
+        motion = framer.motion || motionFallback;
+        AnimatePresence = framer.AnimatePresence || ((props) => props && props.children || null);
+        MotionConfig = framer.MotionConfig || ((props) => props && props.children || null);
+        LayoutGroup = framer.LayoutGroup || ((props) => props && props.children || null);
+        useMotionValue = framer.useMotionValue || function useMotionValue2(initial) {
+          let value = initial;
+          return {
+            get: () => value,
+            set: (next) => {
+              value = next;
+            },
+            on: () => () => {
+            },
+            subscribe: () => () => {
+            },
+            destroy: () => {
+            }
+          };
+        };
+        useSpring = framer.useSpring || ((value) => value);
+        useTransform = framer.useTransform || ((value, map) => ({
+          get: () => typeof map === "function" ? map(value && typeof value.get === "function" ? value.get() : value) : 0,
+          set: () => {
+          },
+          on: () => () => {
+          },
+          subscribe: () => () => {
+          },
+          destroy: () => {
+          }
+        }));
+        useMotionValueEvent = framer.useMotionValueEvent || function useMotionValueEvent2(value, event, callback) {
+          react_shim_default.useEffect(() => {
+            if (!value || typeof value.on !== "function") return void 0;
+            const unsubscribe = value.on(event, callback);
+            if (event === "change" && typeof value.get === "function") callback(value.get());
+            return typeof unsubscribe === "function" ? unsubscribe : void 0;
+          }, [value, event, callback]);
+        };
+        useDragControls = framer.useDragControls || (() => ({ start: () => {
+        }, subscribe: () => () => {
+        } }));
+        motionValue = framer.motionValue || ((initial) => {
+          let value = initial;
+          return {
+            get: () => value,
+            set: (next) => {
+              value = next;
+            },
+            on: () => () => {
+            },
+            subscribe: () => () => {
+            },
+            destroy: () => {
+            }
+          };
+        });
+        useReducedMotion = framer.useReducedMotion || (() => false);
+        animate = framer.animate || (() => ({ stop: () => {
+        } }));
+      }
+    });
+  
+    // src/folia/shims/i18n.ts
+    var pluginTranslate, useTranslation;
+    var init_i18n = __esm({
+      "src/folia/shims/i18n.ts"() {
+        pluginTranslate = (key, vars) => {
+          const translate = globalThis.MP_FOLIA_T;
+          if (typeof translate !== "function") return "";
+          try {
+            const text = translate(key, vars);
+            return typeof text === "string" && text !== key ? text : "";
+          } catch {
+            return "";
+          }
+        };
+        useTranslation = () => ({
+          t: pluginTranslate,
+          i18n: { language: "zh", changeLanguage: async () => void 0 }
+        });
+      }
+    });
+  
+    // src/folia/types.ts
+    var DEFAULT_CLASSIC_TUNING, DEFAULT_CADENZA_TUNING, DEFAULT_PARTITA_TUNING, DEFAULT_FUME_TUNING, DEFAULT_CLADDAGH_TUNING, DEFAULT_TILT_TUNING, DEFAULT_SONNET_TUNING, DEFAULT_TEMPERA_TUNING, DEFAULT_LUMIERE_TUNING, DEFAULT_DIORAMA_GEOMETRY_VISIBILITY, DIORAMA_PARTICLE_DENSITY_MIN, DIORAMA_PARTICLE_DENSITY_MAX, DIORAMA_PARTICLE_DENSITY_STEP, DIORAMA_MOTE_CIRCUMFERENCE_MIN, DIORAMA_MOTE_CIRCUMFERENCE_MAX, DIORAMA_MOTE_RADIAL_MIN, DIORAMA_MOTE_RADIAL_MAX, DEFAULT_DIORAMA_TUNING, MONET_CHROME_VISIBILITIES, DEFAULT_MONET_TUNING;
+    var init_types = __esm({
+      "src/folia/types.ts"() {
+        DEFAULT_CLASSIC_TUNING = {
+          enableWordRotation: true,
+          breathingFloatMultiplier: 1,
+          useLegacyLayout: false,
+          wordSpacing: 0.7,
+          avoidOverlap: false
+        };
+        DEFAULT_CADENZA_TUNING = {
+          render: { scale: "global", antialias: "global" },
+          fontScale: 1.12,
+          widthRatio: 0.72,
+          motionAmount: 1,
+          glowIntensity: 1,
+          beamIntensity: 0
+        };
+        DEFAULT_PARTITA_TUNING = {
+          showGuideLines: true,
+          useSemanticLayout: true,
+          staggerMin: 20,
+          staggerMax: 100,
+          avoidOverlap: false
+        };
+        DEFAULT_FUME_TUNING = {
+          render: { scale: "global", antialias: "global" },
+          hidePrintSymbols: false,
+          disableGeometricBackground: true,
+          backgroundObjectOpacity: 0.5,
+          textHoldRatio: 1,
+          cameraTrackingMode: "smooth",
+          cameraSpeed: 1,
+          glowIntensity: 1,
+          heroScale: 1
+        };
+        DEFAULT_CLADDAGH_TUNING = {
+          focusScaleRatio: 0.65,
+          radiusScale: 1,
+          ellipseTiltDeg: 45,
+          showAxisLine: true,
+          letterSpacingOffset: 0,
+          positionX: 0,
+          positionY: 0,
+          showTranslation: false,
+          translationScale: 1,
+          translationLetterSpacingOffset: 0
+        };
+        DEFAULT_TILT_TUNING = {
+          splitProbability: 0.75,
+          tiltStyleProbability: 0.35,
+          colorScheme: "default"
+        };
+        DEFAULT_SONNET_TUNING = {
+          render: { scale: "global", antialias: "global" },
+          cameraIntensity: 1,
+          typographyMotion: 1,
+          mgDensity: 1,
+          showOnlyText: false,
+          showGuide: true,
+          showBackgroundMg: true,
+          showFixedGeo: true,
+          showGiantDecorativeText: true,
+          showBackgroundDecor: true,
+          enableTransitions: true,
+          outerFrameMode: "full",
+          textureResolution: 1.5,
+          postProcessEnabled: false,
+          postProcessGrain: 0.2,
+          postProcessContrast: 0,
+          postProcessRgbShift: 0,
+          postProcessHalftone: 0,
+          postProcessVignette: 0.85,
+          postProcessLensDistortion: 0.3,
+          postProcessLensDispersion: 0.6
+        };
+        DEFAULT_TEMPERA_TUNING = {
+          render: { scale: "global", antialias: "global" },
+          cameraIntensity: 1,
+          glyphMotion: 1,
+          wholeLineLyrics: false,
+          glyphSettleStretch: 0.5,
+          depthOfField: 1,
+          depthPan: 1,
+          glyphDepth: 1,
+          colorMode: "duo",
+          showBlocks: true,
+          showDecor: true,
+          showCornerMarks: true,
+          textInversion: true,
+          layerImages: [],
+          layerImageDepth: "back",
+          layerImageFrequency: 0.6,
+          enableTransitions: true,
+          textureResolution: 1.5,
+          postProcessEnabled: true,
+          postProcessTextureCompression: false,
+          postProcessGrain: 0.2,
+          postProcessContrast: 0,
+          postProcessRgbShift: 0,
+          postProcessVignette: 0.85,
+          postProcessLensDistortion: 0.3
+        };
+        DEFAULT_LUMIERE_TUNING = {
+          render: { scale: "global", antialias: "global" },
+          lightIntensity: 1,
+          audioResponse: 1,
+          fogDensity: 1,
+          darkField: 0.75,
+          moteAmount: 1,
+          bloom: 1,
+          textBloom: 1,
+          unlitOpacity: 0.22,
+          windowNeighbors: 2,
+          decay: 1,
+          echo: 1,
+          fogOctaves: 5,
+          lineArt: true,
+          frontBokeh: true,
+          trails: true,
+          hideTrails: false,
+          seamlessTransitions: true,
+          overlayFrame: true,
+          textOnly: false,
+          keywordColors: true,
+          themeIcons: true,
+          themeColorMix: 0.3,
+          renderQuality: "full"
+        };
+        DEFAULT_DIORAMA_GEOMETRY_VISIBILITY = {
+          enabled: true,
+          mode: "clouds",
+          strands: true,
+          blobs: true,
+          ribbons: true,
+          rings: true
+        };
+        DIORAMA_PARTICLE_DENSITY_MIN = 96;
+        DIORAMA_PARTICLE_DENSITY_MAX = 1536;
+        DIORAMA_PARTICLE_DENSITY_STEP = 24;
+        DIORAMA_MOTE_CIRCUMFERENCE_MIN = 4;
+        DIORAMA_MOTE_CIRCUMFERENCE_MAX = 48;
+        DIORAMA_MOTE_RADIAL_MIN = 1;
+        DIORAMA_MOTE_RADIAL_MAX = 4;
+        DEFAULT_DIORAMA_TUNING = {
+          render: { scale: "global", antialias: "global" },
+          cameraSpeed: 1,
+          motionAmount: 1,
+          audioReactivity: 1,
+          geometryVisibility: DEFAULT_DIORAMA_GEOMETRY_VISIBILITY,
+          particleDensity: 576,
+          particleScale: 1,
+          particleGlowEnabled: true,
+          particleGlowIntensity: 0.65,
+          showParticles: true,
+          backgroundParticleCircumference: 28,
+          backgroundParticleRadial: 2,
+          glowEnabled: true,
+          glowIntensity: 1,
+          soulEnabled: true,
+          soulIntensity: 1,
+          soulActiveEnabled: false,
+          gradientEnabled: false,
+          gradientIntensity: 1,
+          keywordColoringEnabled: true
+        };
+        MONET_CHROME_VISIBILITIES = ["auto", "always", "hidden"];
+        DEFAULT_MONET_TUNING = {
+          render: { scale: "global", antialias: "global" },
+          keywordColoringEnabled: true,
+          showDescription: true,
+          descriptionVisibility: "auto",
+          showAudioVisualization: true,
+          audioStyle: "bar",
+          fontScale: 1.2,
+          portraitSource: "cover",
+          portraitOffsetX: 0,
+          portraitStyle: "square",
+          showPortraitDragHanger: true,
+          portraitHangerVisibility: "auto",
+          mirrorLayout: false,
+          customDescription: ""
+        };
+      }
+    });
+  
+    // src/folia/utils/lyrics/renderHints.ts
+    function buildLineRenderHints(lineOrStart, endTime) {
+      const line2 = typeof lineOrStart === "number" ? { startTime: lineOrStart, endTime: endTime ?? lineOrStart } : lineOrStart;
+      const rawDuration = Math.max(line2.endTime - line2.startTime, 0);
+      const timingClass = getTimingClass(rawDuration);
+      const lineTransitionMode = getLineTransitionMode(timingClass);
+      const wordRevealMode = getWordRevealMode(timingClass);
+      return {
+        rawDuration,
+        timingClass,
+        renderEndTime: buildLineRenderEndTime(line2, rawDuration, lineTransitionMode, wordRevealMode),
+        lineTransitionMode,
+        wordRevealMode
+      };
+    }
+    function migrateLyricDataRenderHints(lyrics) {
+      if (!lyrics) {
+        return { value: null, changed: false };
+      }
+      const migration = migrateLyricLinesRenderHints(lyrics.lines);
+      if (!migration.changed) {
+        return { value: lyrics, changed: false };
+      }
+      return {
+        value: {
+          ...lyrics,
+          lines: migration.value
+        },
+        changed: true
+      };
+    }
+    var MICRO_LINE_DURATION_THRESHOLD, SHORT_LINE_DURATION_THRESHOLD, MICRO_LINE_RENDER_FLOOR, getLastWordEndTime, getLineTransitionTiming, getTimingClass, getLineTransitionMode, getWordRevealMode, clamp, buildLineRenderEndTime, getLineRenderHints, getLineRenderEndTime, hasExpectedRenderHints, migrateLyricLinesRenderHints, annotateLyricLines, ensureLyricDataRenderHints;
+    var init_renderHints = __esm({
+      "src/folia/utils/lyrics/renderHints.ts"() {
+        MICRO_LINE_DURATION_THRESHOLD = 0.1;
+        SHORT_LINE_DURATION_THRESHOLD = 0.18;
+        MICRO_LINE_RENDER_FLOOR = 0.067;
+        getLastWordEndTime = (line2) => {
+          const lastWord = line2.words?.[line2.words.length - 1];
+          return lastWord?.endTime ?? line2.endTime;
+        };
+        getLineTransitionTiming = (rawDuration, lineTransitionMode, wordRevealMode) => {
+          if (lineTransitionMode === "none") {
+            return {
+              enterDuration: 0,
+              exitDuration: 0,
+              linePassHold: 0
+            };
+          }
+          if (lineTransitionMode === "fast") {
+            return {
+              enterDuration: clamp(rawDuration * 0.45, 0.045, 0.06),
+              exitDuration: clamp(rawDuration * 0.22, 0.03, 0.04),
+              linePassHold: wordRevealMode === "instant" ? 0 : 0.03
+            };
+          }
+          return {
+            enterDuration: Math.min(0.42, Math.max(0.22, Math.max(rawDuration, 0.12) * 0.34)),
+            exitDuration: Math.min(0.32, Math.max(0.18, Math.max(rawDuration, 0.12) * 0.18)),
+            linePassHold: wordRevealMode === "instant" ? 0 : 0.06
+          };
+        };
+        getTimingClass = (rawDuration) => {
+          if (rawDuration < MICRO_LINE_DURATION_THRESHOLD) {
+            return "micro";
+          }
+          if (rawDuration < SHORT_LINE_DURATION_THRESHOLD) {
+            return "short";
+          }
+          return "normal";
+        };
+        getLineTransitionMode = (timingClass) => {
+          if (timingClass === "micro") {
+            return "none";
+          }
+          if (timingClass === "short") {
+            return "fast";
+          }
+          return "normal";
+        };
+        getWordRevealMode = (timingClass) => {
+          if (timingClass === "micro") {
+            return "instant";
+          }
+          if (timingClass === "short") {
+            return "fast";
+          }
+          return "normal";
+        };
+        clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+        buildLineRenderEndTime = (line2, rawDuration, lineTransitionMode, wordRevealMode) => {
+          if (lineTransitionMode === "none") {
+            return Math.max(line2.endTime, line2.startTime + MICRO_LINE_RENDER_FLOOR);
+          }
+          const transitionTiming = getLineTransitionTiming(rawDuration, lineTransitionMode, wordRevealMode);
+          const linePassStart = Math.max(getLastWordEndTime(line2), line2.startTime) + transitionTiming.linePassHold;
+          const exitStart = lineTransitionMode === "fast" ? Math.max(line2.startTime + transitionTiming.enterDuration + 0.01, linePassStart, line2.endTime - transitionTiming.exitDuration) : Math.max(linePassStart, line2.endTime - transitionTiming.exitDuration);
+          return Math.max(line2.endTime, exitStart + transitionTiming.exitDuration);
+        };
+        getLineRenderHints = (line2) => {
+          if (!line2) {
+            return null;
+          }
+          return line2.renderHints ?? buildLineRenderHints(line2);
+        };
+        getLineRenderEndTime = (line2) => {
+          if (!line2) {
+            return Number.NEGATIVE_INFINITY;
+          }
+          return getLineRenderHints(line2)?.renderEndTime ?? line2.endTime;
+        };
+        hasExpectedRenderHints = (line2, expected) => {
+          const current = line2.renderHints;
+          return Boolean(
+            current && current.rawDuration === expected.rawDuration && current.timingClass === expected.timingClass && current.renderEndTime === expected.renderEndTime && current.lineTransitionMode === expected.lineTransitionMode && current.wordRevealMode === expected.wordRevealMode
+          );
+        };
+        migrateLyricLinesRenderHints = (lines) => {
+          let changed = false;
+          const nextLines = lines.map((line2) => {
+            const renderHints = buildLineRenderHints(line2);
+            if (hasExpectedRenderHints(line2, renderHints)) {
+              return line2;
+            }
+            changed = true;
+            return {
+              ...line2,
+              renderHints
+            };
+          });
+          return {
+            value: changed ? nextLines : lines,
+            changed
+          };
+        };
+        annotateLyricLines = (lines) => {
+          return migrateLyricLinesRenderHints(lines).value;
+        };
+        ensureLyricDataRenderHints = (lyrics) => {
+          return migrateLyricDataRenderHints(lyrics).value;
+        };
+      }
+    });
+  
+    // src/folia/utils/lyrics/textDirection.ts
+    var RTL_LETTER_RE, LETTER_RE, resolveLyricTextDirection;
+    var init_textDirection = __esm({
+      "src/folia/utils/lyrics/textDirection.ts"() {
+        RTL_LETTER_RE = /[\p{Script=Arabic}\p{Script=Hebrew}\p{Script=Syriac}\p{Script=Thaana}\p{Script=Nko}\p{Script=Samaritan}\p{Script=Mandaic}\p{Script=Adlam}\p{Script=Hanifi_Rohingya}\p{Script=Yezidi}]/u;
+        LETTER_RE = new RegExp("\\p{L}", "u");
+        resolveLyricTextDirection = (text) => {
+          for (const char of text) {
+            if (!LETTER_RE.test(char)) continue;
+            return RTL_LETTER_RE.test(char) ? "rtl" : "ltr";
+          }
+          return "ltr";
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/runtime.ts
+    var getRecentCompletedLine, getUpcomingLine, getUpcomingLines, getSubtitleNextLines, shouldPreheatLine, prepareActiveAndUpcoming, useVisualizerRuntime;
+    var init_runtime = __esm({
+      "src/folia/components/visualizer/runtime.ts"() {
+        init_react_shim();
+        getRecentCompletedLine = ({
+          lines,
+          currentLineIndex,
+          currentTime,
+          getLineEndTime = (line2) => line2.endTime
+        }) => {
+          if (currentLineIndex !== -1 || lines.length === 0) {
+            return null;
+          }
+          for (let i4 = lines.length - 1; i4 >= 0; i4--) {
+            if (currentTime > getLineEndTime(lines[i4])) {
+              return lines[i4];
+            }
+          }
+          return null;
+        };
+        getUpcomingLine = (lines, currentLineIndex, currentTime) => {
+          const activeLine2 = lines[currentLineIndex];
+          if (activeLine2) {
+            return lines[currentLineIndex + 1] ?? null;
+          }
+          for (const line2 of lines) {
+            if (line2.startTime > currentTime) {
+              return line2;
+            }
+          }
+          return null;
+        };
+        getUpcomingLines = (lines, currentLineIndex, count = 2) => {
+          if (currentLineIndex < 0) {
+            return [];
+          }
+          return lines.slice(currentLineIndex + 1, currentLineIndex + 1 + count);
+        };
+        getSubtitleNextLines = (lines, currentLineIndex, recentCompletedLine, count = 2) => getUpcomingLines(
+          lines,
+          currentLineIndex >= 0 || !recentCompletedLine ? currentLineIndex : lines.indexOf(recentCompletedLine),
+          count
+        );
+        shouldPreheatLine = (line2, currentTime, window2) => {
+          if (!line2) {
+            return false;
+          }
+          const leadTime = line2.startTime - currentTime;
+          return leadTime >= window2.minLead && leadTime <= window2.maxLead;
+        };
+        prepareActiveAndUpcoming = ({
+          activeLine: activeLine2,
+          upcomingLine,
+          prepareLine
+        }) => {
+          if (!activeLine2) {
+            prepareLine(upcomingLine);
+            return null;
+          }
+          const currentState = prepareLine(activeLine2);
+          prepareLine(upcomingLine);
+          return currentState;
+        };
+        useVisualizerRuntime = ({
+          currentTime,
+          currentLineIndex,
+          lines,
+          getLineEndTime
+        }) => {
+          const currentTimeValue = currentTime.get();
+          const activeLine2 = lines[currentLineIndex] ?? null;
+          const recentCompletedLine = useMemo(() => getRecentCompletedLine({
+            lines,
+            currentLineIndex,
+            currentTime: currentTimeValue,
+            getLineEndTime
+          }), [currentLineIndex, currentTimeValue, getLineEndTime, lines]);
+          const upcomingLine = useMemo(
+            () => getUpcomingLine(lines, currentLineIndex, currentTimeValue),
+            [currentLineIndex, currentTimeValue, lines]
+          );
+          const nextLines = useMemo(
+            () => getSubtitleNextLines(lines, currentLineIndex, recentCompletedLine),
+            [currentLineIndex, lines, recentCompletedLine]
+          );
+          return {
+            currentTimeValue,
+            activeLine: activeLine2,
+            recentCompletedLine,
+            upcomingLine,
+            nextLines
+          };
+        };
       }
     });
   
@@ -238,6 +857,1773 @@ function __mpStylesBundle() {
       }
     });
   
+    // src/folia/utils/lyrics/alternateText.ts
+    var resolveSingleTrackSubtitleMode, findAlternateText, resolveTrackText, resolveLyricAlternateText, resolveLyricSubtitleTracks, resolveSubtitleContentMode;
+    var init_alternateText = __esm({
+      "src/folia/utils/lyrics/alternateText.ts"() {
+        resolveSingleTrackSubtitleMode = (mode) => mode === "both" ? "translation" : mode;
+        findAlternateText = (alternateTexts, role) => alternateTexts?.find((entry) => entry.role === role && entry.text.trim())?.text.trim() ?? null;
+        resolveTrackText = (source, role) => {
+          const directText = role === "translation" ? source.translation : source.romanization;
+          return directText?.trim() || findAlternateText(source.alternateTexts, role);
+        };
+        resolveLyricAlternateText = (source, mode) => {
+          const singleTrackMode = resolveSingleTrackSubtitleMode(mode);
+          if (!source || singleTrackMode === "none") {
+            return null;
+          }
+          return resolveTrackText(source, singleTrackMode);
+        };
+        resolveLyricSubtitleTracks = (source, mode, isReadable = () => true) => {
+          if (!source || mode === "none") {
+            return [];
+          }
+          const roles = mode === "both" ? ["romanization", "translation"] : [mode];
+          const tracks = [];
+          for (const role of roles) {
+            const text = resolveTrackText(source, role);
+            if (!text || !isReadable(text)) {
+              continue;
+            }
+            if (tracks.some((track) => track.text === text)) {
+              continue;
+            }
+            tracks.push({ role, text });
+          }
+          return tracks;
+        };
+        resolveSubtitleContentMode = (mode, legacyShowTranslation = true) => mode ?? (legacyShowTranslation ? "translation" : "none");
+      }
+    });
+  
+    // src/folia/utils/lyrics/subtitleOverlayLayout.ts
+    var DEFAULT_SUBTITLE_OVERLAY_LAYOUT, ROWS_ONLY_SUFFIX, subtitleOverlayPreviewsUpcoming, rowsLayoutOf, getSubtitleOverlayRows;
+    var init_subtitleOverlayLayout = __esm({
+      "src/folia/utils/lyrics/subtitleOverlayLayout.ts"() {
+        DEFAULT_SUBTITLE_OVERLAY_LAYOUT = "translation";
+        ROWS_ONLY_SUFFIX = "|only";
+        subtitleOverlayPreviewsUpcoming = (layout) => !layout.endsWith(ROWS_ONLY_SUFFIX);
+        rowsLayoutOf = (layout) => subtitleOverlayPreviewsUpcoming(layout) ? layout : layout.slice(0, -ROWS_ONLY_SUFFIX.length);
+        getSubtitleOverlayRows = (layout) => rowsLayoutOf(layout).split("+");
+      }
+    });
+  
+    // src/folia/utils/lyrics/subtitleTrackStyle.ts
+    var SECONDARY_TRACK_SIZE_FACTOR, SECONDARY_TRACK_OPACITY, SECONDARY_TRACK_FONT_WEIGHT_FALLBACK, SECONDARY_TRACK_GAP_EM;
+    var init_subtitleTrackStyle = __esm({
+      "src/folia/utils/lyrics/subtitleTrackStyle.ts"() {
+        SECONDARY_TRACK_SIZE_FACTOR = 0.88;
+        SECONDARY_TRACK_OPACITY = 0.82;
+        SECONDARY_TRACK_FONT_WEIGHT_FALLBACK = 400;
+        SECONDARY_TRACK_GAP_EM = 0.25;
+      }
+    });
+  
+    // src/folia/components/visualizer/textMeasureCache.ts
+    var rememberBounded, measurePrefixOffsets;
+    var init_textMeasureCache = __esm({
+      "src/folia/components/visualizer/textMeasureCache.ts"() {
+        rememberBounded = (cache2, key, value, limit) => {
+          if (!cache2.has(key) && cache2.size >= limit) {
+            const oldest = cache2.keys().next();
+            if (!oldest.done) cache2.delete(oldest.value);
+          }
+          cache2.set(key, value);
+          return value;
+        };
+        measurePrefixOffsets = (graphemes2, measurePrefix) => {
+          const offsets = new Array(graphemes2.length + 1).fill(0);
+          for (let count = 1; count <= graphemes2.length; count += 1) {
+            offsets[count] = measurePrefix(graphemes2.slice(0, count).join(""), count, offsets[count - 1]);
+          }
+          return offsets;
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/colorMix.ts
+    var clamp2, mix, FALLBACK_RGB, isFiniteChannel, formatRgba, readColor, parsedColors, PARSED_COLOR_LIMIT, parseColor, colorWithAlpha, parseColorChannels, resolveGlowColorStrength, mixColors;
+    var init_colorMix = __esm({
+      "src/folia/components/visualizer/colorMix.ts"() {
+        init_textMeasureCache();
+        clamp2 = (value, min, max) => Math.max(min, Math.min(max, value));
+        mix = (from, to3, amount) => from + (to3 - from) * amount;
+        FALLBACK_RGB = { r: 255, g: 255, b: 255 };
+        isFiniteChannel = (value) => Number.isFinite(value);
+        formatRgba = (channels, alpha) => `rgba(${Math.round(clamp2(channels.r, 0, 255))}, ${Math.round(clamp2(channels.g, 0, 255))}, ${Math.round(clamp2(channels.b, 0, 255))}, ${alpha})`;
+        readColor = (normalizedColor) => {
+          if (!normalizedColor) return "fallback";
+          if (normalizedColor.startsWith("#")) {
+            const hex = normalizedColor.slice(1);
+            const parse = (value) => Number.parseInt(value, 16);
+            if (/^[0-9a-fA-F]{3}$/.test(hex)) {
+              return {
+                r: parse(hex[0] + hex[0]),
+                g: parse(hex[1] + hex[1]),
+                b: parse(hex[2] + hex[2])
+              };
+            }
+            if (/^[0-9a-fA-F]{6}$/.test(hex)) {
+              return {
+                r: parse(hex.slice(0, 2)),
+                g: parse(hex.slice(2, 4)),
+                b: parse(hex.slice(4, 6))
+              };
+            }
+            return "fallback";
+          }
+          const rgbMatch = normalizedColor.match(/^rgba?\(([^)]+)\)$/);
+          if (rgbMatch) {
+            const [r4, g4, b4] = rgbMatch[1].split(",").slice(0, 3).map((part) => Number.parseFloat(part.trim()));
+            if ([r4, g4, b4].every(isFiniteChannel)) {
+              return { r: r4, g: g4, b: b4 };
+            }
+            return "fallback";
+          }
+          return "passthrough";
+        };
+        parsedColors = /* @__PURE__ */ new Map();
+        PARSED_COLOR_LIMIT = 512;
+        parseColor = (color) => {
+          const normalized = typeof color === "string" ? color.trim() : "";
+          let parsed = parsedColors.get(normalized);
+          if (parsed === void 0) {
+            parsed = rememberBounded(parsedColors, normalized, readColor(normalized), PARSED_COLOR_LIMIT);
+          }
+          return { normalized, parsed };
+        };
+        colorWithAlpha = (color, alpha) => {
+          const normalizedAlpha = clamp2(alpha, 0, 1);
+          const { normalized, parsed } = parseColor(color);
+          if (parsed === "passthrough") return normalized;
+          return formatRgba(parsed === "fallback" ? FALLBACK_RGB : parsed, normalizedAlpha);
+        };
+        parseColorChannels = (color) => {
+          const { parsed } = parseColor(color);
+          return typeof parsed === "string" ? null : { ...parsed };
+        };
+        resolveGlowColorStrength = (r4, g4, b4) => {
+          const value = Math.max(r4, g4, b4);
+          const progress = clamp2((value - 110) / 50, 0, 1);
+          return progress * progress * (3 - 2 * progress);
+        };
+        mixColors = (from, to3, amount, alpha = 1) => {
+          const normalizedAmount = clamp2(amount, 0, 1);
+          const fromParsed = parseColor(from).parsed;
+          const toParsed = parseColor(to3).parsed;
+          if (typeof fromParsed === "string" || typeof toParsed === "string") {
+            return colorWithAlpha(normalizedAmount >= 0.5 ? to3 : from, alpha);
+          }
+          return `rgba(${Math.round(mix(fromParsed.r, toParsed.r, normalizedAmount))}, ${Math.round(mix(fromParsed.g, toParsed.g, normalizedAmount))}, ${Math.round(mix(fromParsed.b, toParsed.b, normalizedAmount))}, ${clamp2(alpha, 0, 1)})`;
+        };
+      }
+    });
+  
+    // src/folia/hooks/usePlayerBottomBarBottomPx.ts
+    var PLAYER_BOTTOM_BAR_BASE_OFFSET_PX, PLAYER_SUBTITLE_CLEARANCE_PX, usePlayerSubtitleBottomPx, usePlayerSubtitleYieldsToDock;
+    var init_usePlayerBottomBarBottomPx = __esm({
+      "src/folia/hooks/usePlayerBottomBarBottomPx.ts"() {
+        PLAYER_BOTTOM_BAR_BASE_OFFSET_PX = 32;
+        PLAYER_SUBTITLE_CLEARANCE_PX = 80;
+        usePlayerSubtitleBottomPx = (isPlayerChromeHidden) => isPlayerChromeHidden ? PLAYER_BOTTOM_BAR_BASE_OFFSET_PX : PLAYER_BOTTOM_BAR_BASE_OFFSET_PX + PLAYER_SUBTITLE_CLEARANCE_PX;
+        usePlayerSubtitleYieldsToDock = (_4) => false;
+      }
+    });
+  
+    // src/folia/components/visualizer/VisualizerSubtitleOverlay.tsx
+    var hasReadableText, getUpcomingLyricsClassName, resolveVisualizerSubtitleOverlayContent, VisualizerSubtitleOverlay, VisualizerSubtitleOverlay_default;
+    var init_VisualizerSubtitleOverlay = __esm({
+      "src/folia/components/visualizer/VisualizerSubtitleOverlay.tsx"() {
+        init_framer_motion();
+        init_fontStacks();
+        init_alternateText();
+        init_subtitleOverlayLayout();
+        init_subtitleTrackStyle();
+        init_colorMix();
+        init_usePlayerBottomBarBottomPx();
+        init_jsx_runtime_shim();
+        hasReadableText = (text) => !!text && /[\p{L}\p{N}]/u.test(text);
+        getUpcomingLyricsClassName = (blur = true) => `truncate max-w-2xl mx-auto transition-all duration-500${blur ? " blur-[1px]" : ""}`;
+        resolveVisualizerSubtitleOverlayContent = ({
+          showText,
+          activeLine: activeLine2,
+          recentCompletedLine,
+          nextLines,
+          hideTranslationSubtitle = false,
+          subtitleOverlayLayout = DEFAULT_SUBTITLE_OVERLAY_LAYOUT
+        }) => {
+          if (!showText || hideTranslationSubtitle) {
+            return {
+              shouldRenderOverlay: false,
+              rows: [],
+              upcomingLines: []
+            };
+          }
+          const line2 = activeLine2 ?? recentCompletedLine;
+          const previewLines = nextLines.filter((next) => hasReadableText(next.fullText));
+          const rows = [];
+          let nextIndex = 0;
+          for (const source of line2 ? getSubtitleOverlayRows(subtitleOverlayLayout) : []) {
+            if (source === "next") {
+              const next = previewLines[nextIndex];
+              nextIndex += 1;
+              if (next) rows.push({ key: `next-${nextIndex}`, source, text: next.fullText });
+              continue;
+            }
+            const text = source === "current" ? line2?.fullText.trim() : resolveLyricAlternateText(line2, source);
+            if (!text || !hasReadableText(text)) continue;
+            if (source !== "current" && rows.some((row) => row.source !== "next" && row.text === text)) continue;
+            rows.push({ key: source, source, text });
+          }
+          if (rows.every((row) => row.source === "next")) rows.length = 0;
+          return {
+            shouldRenderOverlay: true,
+            rows,
+            // A layout with nothing to show for this line (a single translation row on a song without one)
+            // previews the coming lines instead, unless the layout says its rows are all it shows.
+            upcomingLines: rows.length === 0 && activeLine2 && subtitleOverlayPreviewsUpcoming(subtitleOverlayLayout) ? previewLines : []
+          };
+        };
+        VisualizerSubtitleOverlay = ({
+          showText,
+          activeLine: activeLine2,
+          recentCompletedLine,
+          nextLines,
+          theme,
+          subtitleTheme,
+          translationFontSize,
+          upcomingFontSize,
+          subtitleFontScale = 1,
+          opacity = 0.6,
+          subtitleOverlayOpacity,
+          subtitleOverlayBackground = true,
+          subtitleUpcomingLyricsBlur = true,
+          isPlayerChromeHidden = false,
+          hideTranslationSubtitle = false,
+          subtitleOverlayLayout
+        }) => {
+          const subtitleBottomPx = usePlayerSubtitleBottomPx(Boolean(isPlayerChromeHidden));
+          const yieldsToDock = usePlayerSubtitleYieldsToDock();
+          const { shouldRenderOverlay, rows, upcomingLines } = resolveVisualizerSubtitleOverlayContent({
+            showText,
+            activeLine: activeLine2,
+            recentCompletedLine,
+            nextLines,
+            hideTranslationSubtitle,
+            subtitleOverlayLayout
+          });
+          const resolvedOpacity = subtitleOverlayOpacity ?? opacity;
+          const scaleFontSize = (fontSize, factor = 1) => fontSize.replace(/(-?\d*\.?\d+)(rem|vw|px)/g, (_match, value, unit2) => `${(Number(value) * subtitleFontScale * factor).toFixed(3)}${unit2}`);
+          const contentClassName = subtitleOverlayBackground ? "relative isolate inline-block px-1.5 py-0.5" : "inline-block";
+          const subtitleGlowStyle = subtitleOverlayBackground ? {
+            background: `radial-gradient(ellipse 115% 130% at center, ${colorWithAlpha(theme.backgroundColor, 0.96)} 0%, ${colorWithAlpha(theme.backgroundColor, 0.78)} 62%, transparent 100%)`,
+            transform: "translateZ(0)",
+            WebkitTransform: "translateZ(0)",
+            WebkitBackfaceVisibility: "hidden"
+          } : void 0;
+          const textShadow = `0 1px 2px ${colorWithAlpha(theme.backgroundColor, 0.24)}`;
+          return /* @__PURE__ */ jsx(AnimatePresence, { children: shouldRenderOverlay && /* @__PURE__ */ jsx(
+            motion.div,
+            {
+              initial: { opacity: 0, y: 20 },
+              animate: { opacity: yieldsToDock ? 0 : resolvedOpacity, y: 0 },
+              exit: { opacity: 0, y: 20 },
+              transition: {
+                opacity: { duration: 0.24, ease: "easeOut" },
+                y: { duration: 0.24, ease: "easeOut" }
+              },
+              style: { bottom: subtitleBottomPx },
+              className: "absolute left-0 right-0 text-center space-y-2 px-4 z-20 pointer-events-none",
+              children: rows.length > 0 ? /* @__PURE__ */ jsxs("div", { className: contentClassName, children: [
+                subtitleOverlayBackground && /* @__PURE__ */ jsx(
+                  "div",
+                  {
+                    "aria-hidden": "true",
+                    className: "pointer-events-none absolute -inset-x-10 -inset-y-6 z-0 blur-2xl",
+                    style: subtitleGlowStyle
+                  }
+                ),
+                /* @__PURE__ */ jsx(
+                  motion.div,
+                  {
+                    initial: { opacity: 0, y: 10 },
+                    animate: { opacity: 1, y: 0 },
+                    exit: { opacity: 0 },
+                    className: "relative z-10 max-w-4xl mx-auto",
+                    children: rows.map((row, index) => {
+                      const isSecondaryRow = index > 0;
+                      const isUpcomingRow = row.source === "next";
+                      return /* @__PURE__ */ jsx(
+                        "div",
+                        {
+                          "data-font-debug-target": "visualizer-translation",
+                          "data-subtitle-track": row.source,
+                          className: isUpcomingRow ? getUpcomingLyricsClassName(subtitleUpcomingLyricsBlur) : void 0,
+                          style: {
+                            color: theme.secondaryColor,
+                            fontSize: scaleFontSize(translationFontSize, isSecondaryRow ? SECONDARY_TRACK_SIZE_FACTOR : 1),
+                            fontFamily: resolveThemeTranslationFontStack(subtitleTheme ?? theme),
+                            fontWeight: resolveThemeFontWeight(subtitleTheme ?? theme, isSecondaryRow ? SECONDARY_TRACK_FONT_WEIGHT_FALLBACK : 500),
+                            opacity: isSecondaryRow ? SECONDARY_TRACK_OPACITY : void 0,
+                            marginTop: isSecondaryRow ? `${SECONDARY_TRACK_GAP_EM}em` : void 0,
+                            textShadow
+                          },
+                          children: row.text
+                        },
+                        row.key
+                      );
+                    })
+                  },
+                  `trans-${activeLine2?.startTime || recentCompletedLine?.startTime}`
+                )
+              ] }) : activeLine2 && upcomingLines.length > 0 ? /* @__PURE__ */ jsxs("div", { className: `${contentClassName} space-y-2`, children: [
+                subtitleOverlayBackground && /* @__PURE__ */ jsx(
+                  "div",
+                  {
+                    "aria-hidden": "true",
+                    className: "pointer-events-none absolute -inset-x-10 -inset-y-6 z-0 blur-2xl",
+                    style: subtitleGlowStyle
+                  }
+                ),
+                /* @__PURE__ */ jsx("div", { className: "relative z-10 space-y-2", children: upcomingLines.map((line2, index) => /* @__PURE__ */ jsx(
+                  "p",
+                  {
+                    className: getUpcomingLyricsClassName(subtitleUpcomingLyricsBlur),
+                    style: {
+                      color: theme.secondaryColor,
+                      fontSize: scaleFontSize(upcomingFontSize),
+                      fontWeight: resolveThemeFontWeight(subtitleTheme ?? theme, 400),
+                      textShadow
+                    },
+                    children: line2.fullText
+                  },
+                  index
+                )) })
+              ] }) : null
+            }
+          ) });
+        };
+        VisualizerSubtitleOverlay_default = VisualizerSubtitleOverlay;
+      }
+    });
+  
+    // src/folia/components/visualizer/subtitleFontSizes.ts
+    var clampSize, resolveSubtitleFontSizes;
+    var init_subtitleFontSizes = __esm({
+      "src/folia/components/visualizer/subtitleFontSizes.ts"() {
+        clampSize = (min, preferred, max, scale) => `clamp(${(min * scale).toFixed(3)}rem, ${(preferred * scale).toFixed(3)}vw, ${(max * scale).toFixed(3)}rem)`;
+        resolveSubtitleFontSizes = (lyricsFontScale = 1) => {
+          const scale = Number.isFinite(lyricsFontScale) && lyricsFontScale > 0 ? lyricsFontScale : 1;
+          return {
+            translationFontSize: clampSize(1.125, 2.6, 1.25, scale),
+            upcomingFontSize: clampSize(0.875, 2, 1, scale)
+          };
+        };
+      }
+    });
+  
+    // src/folia/utils/lyrics/graphemeTiming.ts
+    var graphemeSegmenter, splitLyricGraphemes, buildEvenGraphemeTimings, buildWordGraphemeTimings, findGraphemeSequence, buildLineGraphemeTimeline;
+    var init_graphemeTiming = __esm({
+      "src/folia/utils/lyrics/graphemeTiming.ts"() {
+        graphemeSegmenter = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
+        splitLyricGraphemes = (text) => {
+          if (!text) {
+            return [];
+          }
+          if (graphemeSegmenter) {
+            return Array.from(graphemeSegmenter.segment(text), ({ segment: segment2 }) => segment2);
+          }
+          return Array.from(text);
+        };
+        buildEvenGraphemeTimings = (text, startTime, endTime, wordIndex) => {
+          const graphemes2 = splitLyricGraphemes(text);
+          if (graphemes2.length === 0) {
+            return [];
+          }
+          const duration = Math.max(endTime - startTime, 0);
+          const unitDuration = duration / graphemes2.length;
+          return graphemes2.map((char, index) => ({
+            char,
+            startTime: startTime + unitDuration * index,
+            endTime: index === graphemes2.length - 1 ? endTime : startTime + unitDuration * (index + 1),
+            ...typeof wordIndex === "number" ? { wordIndex } : {}
+          }));
+        };
+        buildWordGraphemeTimings = (word, wordIndex) => {
+          if (!word.syllables?.length) {
+            return buildEvenGraphemeTimings(word.text, word.startTime, word.endTime, wordIndex);
+          }
+          return word.syllables.flatMap(
+            (syllable) => buildEvenGraphemeTimings(syllable.text, syllable.startTime, syllable.endTime, wordIndex)
+          );
+        };
+        findGraphemeSequence = (source, target, fromIndex) => {
+          if (target.length === 0) {
+            return fromIndex;
+          }
+          for (let index = fromIndex; index <= source.length - target.length; index += 1) {
+            let matched = true;
+            for (let targetIndex = 0; targetIndex < target.length; targetIndex += 1) {
+              if (source[index + targetIndex] !== target[targetIndex]) {
+                matched = false;
+                break;
+              }
+            }
+            if (matched) {
+              return index;
+            }
+          }
+          return -1;
+        };
+        buildLineGraphemeTimeline = (line2) => {
+          const lineGraphemes = splitLyricGraphemes(line2.fullText);
+          if (lineGraphemes.length === 0) {
+            return [];
+          }
+          if (line2.words.length === 0) {
+            return buildEvenGraphemeTimings(line2.fullText, line2.startTime, line2.endTime);
+          }
+          const timeline = [];
+          let cursor = 0;
+          let lastResolvedTime = line2.startTime;
+          line2.words.forEach((word, wordIndex) => {
+            const wordGraphemes = splitLyricGraphemes(word.text);
+            if (wordGraphemes.length === 0) {
+              return;
+            }
+            const matchedStart = findGraphemeSequence(lineGraphemes, wordGraphemes, cursor);
+            const start = matchedStart >= 0 ? matchedStart : cursor;
+            const end = Math.min(start + wordGraphemes.length, lineGraphemes.length);
+            for (let gapIndex = cursor; gapIndex < start; gapIndex += 1) {
+              timeline[gapIndex] = {
+                char: lineGraphemes[gapIndex],
+                startTime: word.startTime,
+                endTime: word.startTime
+              };
+            }
+            const wordTimings = buildWordGraphemeTimings(word, wordIndex);
+            for (let localIndex = 0; localIndex < end - start; localIndex += 1) {
+              const timing = wordTimings[localIndex] ?? buildEvenGraphemeTimings(
+                wordGraphemes[localIndex] ?? "",
+                word.startTime,
+                word.endTime,
+                wordIndex
+              )[0];
+              if (!timing) {
+                continue;
+              }
+              timeline[start + localIndex] = {
+                ...timing,
+                char: lineGraphemes[start + localIndex]
+              };
+              lastResolvedTime = Math.max(lastResolvedTime, timing.endTime);
+            }
+            cursor = Math.max(cursor, end);
+          });
+          for (let index = 0; index < lineGraphemes.length; index += 1) {
+            if (timeline[index]) {
+              continue;
+            }
+            timeline[index] = {
+              char: lineGraphemes[index],
+              startTime: lastResolvedTime,
+              endTime: lastResolvedTime
+            };
+          }
+          return timeline;
+        };
+      }
+    });
+  
+    // src/folia/utils/lyrics/wordSegmentation.ts
+    var PUNCTUATION_ONLY, isWordLikeText, segmentsFromBoundaries, segmentTextWords, isValidWordSegmentation, EDGE_WHITESPACE, splitEdgeWhitespace, segmentLyricWords, getWordSegmentationKey, hasWordSegmentationOverride;
+    var init_wordSegmentation = __esm({
+      "src/folia/utils/lyrics/wordSegmentation.ts"() {
+        init_graphemeTiming();
+        PUNCTUATION_ONLY = /^[\s\p{P}\p{S}]+$/u;
+        isWordLikeText = (text) => !PUNCTUATION_ONLY.test(text);
+        segmentsFromBoundaries = (boundaries) => {
+          let cursor = 0;
+          return boundaries.map((segment2) => {
+            const part = { segment: segment2, index: cursor, isWordLike: isWordLikeText(segment2) };
+            cursor += segment2.length;
+            return part;
+          });
+        };
+        segmentTextWords = (text) => {
+          if (!text) {
+            return [];
+          }
+          const Segmenter = typeof Intl !== "undefined" ? Intl.Segmenter : void 0;
+          if (Segmenter) {
+            try {
+              return Array.from(new Segmenter(void 0, { granularity: "word" }).segment(text), (part) => ({
+                segment: part.segment,
+                index: part.index,
+                isWordLike: part.isWordLike ?? isWordLikeText(part.segment)
+              }));
+            } catch {
+            }
+          }
+          return segmentsFromBoundaries(splitLyricGraphemes(text));
+        };
+        isValidWordSegmentation = (text, boundaries) => Array.isArray(boundaries) && boundaries.length > 0 && boundaries.every((segment2) => typeof segment2 === "string") && boundaries.join("") === text;
+        EDGE_WHITESPACE = /^(\s*)(.*?)(\s*)$/su;
+        splitEdgeWhitespace = (boundaries) => boundaries.flatMap((boundary) => {
+          const [, lead, core, trail] = EDGE_WHITESPACE.exec(boundary) ?? [];
+          return core ? [lead, core, trail].filter(Boolean) : [boundary].filter(Boolean);
+        });
+        segmentLyricWords = (line2) => {
+          if (isValidWordSegmentation(line2.fullText, line2.wordSegments)) {
+            return segmentsFromBoundaries(splitEdgeWhitespace(line2.wordSegments));
+          }
+          if (isValidWordSegmentation(line2.fullText, line2.autoWordSegments)) {
+            return segmentsFromBoundaries(line2.autoWordSegments);
+          }
+          return segmentTextWords(line2.fullText);
+        };
+        getWordSegmentationKey = (line2) => {
+          if (line2.wordSegments) {
+            return line2.wordSegments.map((segment2) => segment2.length).join(",");
+          }
+          return line2.autoWordSegments ? `a${line2.autoWordSegments.map((segment2) => segment2.length).join(",")}` : "";
+        };
+        hasWordSegmentationOverride = (line2) => isValidWordSegmentation(line2.fullText, line2.wordSegments);
+      }
+    });
+  
+    // src/folia/utils/lyrics/cjkSemanticLayout.ts
+    var CJK_REGEX, APOSTROPHE_ONLY_REGEX, CONTRACTION_SUFFIX_REGEX, DIRECT_CONTRACTION_REGEX, TRAILING_APOSTROPHE_REGEX, TRAILING_WORD_CHAR_REGEX, INLINE_CONTRACTION_REGEX, STICKY_TRAILING_PUNCTUATION_REGEX, hasCjkText, createSingleWordLayoutUnits, getWordSegments, appendWordsToUnit, cloneUnit, appendUnitToStickyUnit, canAttachToPrevious, endsWithApostrophe, isApostropheOnlyUnit, isContractionSuffixUnit, isDirectContractionUnit, isStickyTrailingPunctuationUnit, hasAttachedTrailingPunctuation, hasInlineContraction, stripWhitespace, mapSegmentsToWords, buildCjkSemanticLayoutUnits, applyStickyPunctuationLayoutUnits, buildPostLyricLayoutUnits, buildDisplayWordsFromLayoutUnits;
+    var init_cjkSemanticLayout = __esm({
+      "src/folia/utils/lyrics/cjkSemanticLayout.ts"() {
+        init_wordSegmentation();
+        CJK_REGEX = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
+        APOSTROPHE_ONLY_REGEX = /^['’]\s*$/;
+        CONTRACTION_SUFFIX_REGEX = /^(s|t|m|d|ll|re|ve|em)\s*$/i;
+        DIRECT_CONTRACTION_REGEX = /^['’](s|t|m|d|ll|re|ve|em)\s*$/i;
+        TRAILING_APOSTROPHE_REGEX = /['’]\s*$/;
+        TRAILING_WORD_CHAR_REGEX = /[\p{L}\p{N}]$/u;
+        INLINE_CONTRACTION_REGEX = /[\p{L}\p{N}]+['’](s|t|m|d|ll|re|ve|em)/iu;
+        STICKY_TRAILING_PUNCTUATION_REGEX = /^[,.;:!?，。！？、：；）】》」』〉〕］)}\]"'’”’]+$/u;
+        hasCjkText = (text) => CJK_REGEX.test(text);
+        createSingleWordLayoutUnits = (words) => words.map((word) => ({
+          text: word.text,
+          words: [word],
+          startTime: word.startTime,
+          endTime: word.endTime,
+          isSemantic: false
+        }));
+        getWordSegments = (line2) => {
+          const segments = segmentLyricWords(line2);
+          return segments.length > 0 ? segments.map(({ segment: segment2, isWordLike }) => ({ segment: segment2, isWordLike })) : null;
+        };
+        appendWordsToUnit = (unit2, text, words) => {
+          unit2.text += text;
+          unit2.words.push(...words);
+          unit2.endTime = words[words.length - 1]?.endTime ?? unit2.endTime;
+        };
+        cloneUnit = (unit2) => ({
+          ...unit2,
+          words: [...unit2.words]
+        });
+        appendUnitToStickyUnit = (target, unit2) => {
+          target.text += unit2.text;
+          target.words.push(...unit2.words);
+          target.endTime = unit2.endTime;
+          target.isSticky = true;
+        };
+        canAttachToPrevious = (text) => TRAILING_WORD_CHAR_REGEX.test(text.trimEnd());
+        endsWithApostrophe = (text) => TRAILING_APOSTROPHE_REGEX.test(text.trimEnd());
+        isApostropheOnlyUnit = (unit2) => APOSTROPHE_ONLY_REGEX.test(unit2.text.trim());
+        isContractionSuffixUnit = (unit2) => CONTRACTION_SUFFIX_REGEX.test(unit2.text.trim());
+        isDirectContractionUnit = (unit2) => DIRECT_CONTRACTION_REGEX.test(unit2.text.trim());
+        isStickyTrailingPunctuationUnit = (unit2) => STICKY_TRAILING_PUNCTUATION_REGEX.test(unit2.text.trim());
+        hasAttachedTrailingPunctuation = (unit2) => {
+          if (unit2.words.length <= 1) {
+            return false;
+          }
+          const lastWord = unit2.words[unit2.words.length - 1];
+          return Boolean(lastWord && isStickyTrailingPunctuationUnit({
+            text: lastWord.text,
+            words: [lastWord],
+            startTime: lastWord.startTime,
+            endTime: lastWord.endTime,
+            isSemantic: false
+          }));
+        };
+        hasInlineContraction = (unit2) => unit2.words.length > 1 && !unit2.isSemantic && INLINE_CONTRACTION_REGEX.test(unit2.text);
+        stripWhitespace = (text) => text.replace(/\s+/g, "");
+        mapSegmentsToWords = (segments, words) => {
+          const units = [];
+          let wordIndex = 0;
+          const absorbWhitespaceWords = () => {
+            const previous = units[units.length - 1];
+            while (previous && wordIndex < words.length && !stripWhitespace(words[wordIndex].text)) {
+              appendWordsToUnit(previous, words[wordIndex].text, [words[wordIndex]]);
+              wordIndex += 1;
+            }
+          };
+          for (const segment2 of segments) {
+            const segmentKey = stripWhitespace(segment2.segment);
+            if (!segmentKey) {
+              continue;
+            }
+            absorbWhitespaceWords();
+            const startWordIndex = wordIndex;
+            let collectedKey = "";
+            while (wordIndex < words.length && collectedKey.length < segmentKey.length) {
+              collectedKey += stripWhitespace(words[wordIndex].text);
+              wordIndex += 1;
+              if (!segmentKey.startsWith(collectedKey)) {
+                return null;
+              }
+            }
+            if (collectedKey !== segmentKey) {
+              return null;
+            }
+            const segmentWords2 = words.slice(startWordIndex, wordIndex);
+            const firstWord = segmentWords2[0];
+            const lastWord = segmentWords2[segmentWords2.length - 1];
+            if (!firstWord || !lastWord) {
+              return null;
+            }
+            const segmentText = segmentWords2.map((word) => word.text).join("");
+            if (!segment2.isWordLike && units.length > 0) {
+              appendWordsToUnit(units[units.length - 1], segmentText, segmentWords2);
+              continue;
+            }
+            const glyphWordCount = segmentWords2.filter((word) => stripWhitespace(word.text)).length;
+            units.push({
+              text: segmentText,
+              words: segmentWords2,
+              startTime: firstWord.startTime,
+              endTime: lastWord.endTime,
+              isSemantic: Boolean(segment2.isWordLike && hasCjkText(segmentText) && glyphWordCount > 1)
+            });
+          }
+          absorbWhitespaceWords();
+          if (wordIndex !== words.length || units.length === 0) {
+            return null;
+          }
+          return units;
+        };
+        buildCjkSemanticLayoutUnits = (line2) => {
+          if (line2.words.length === 0) {
+            return [];
+          }
+          const fallbackUnits = createSingleWordLayoutUnits(line2.words);
+          if (!hasCjkText(line2.fullText) && !hasWordSegmentationOverride(line2)) {
+            return fallbackUnits;
+          }
+          const segments = getWordSegments(line2);
+          if (!segments) {
+            return fallbackUnits;
+          }
+          return mapSegmentsToWords(segments, line2.words) ?? fallbackUnits;
+        };
+        applyStickyPunctuationLayoutUnits = (units) => {
+          const merged = [];
+          for (let index = 0; index < units.length; index += 1) {
+            const current = units[index];
+            const previous = merged[merged.length - 1];
+            if (!previous) {
+              merged.push(cloneUnit(current));
+              continue;
+            }
+            const next = units[index + 1];
+            if (isApostropheOnlyUnit(current) && next && canAttachToPrevious(previous.text) && isContractionSuffixUnit(next)) {
+              appendUnitToStickyUnit(previous, current);
+              appendUnitToStickyUnit(previous, next);
+              index += 1;
+              continue;
+            }
+            if (isDirectContractionUnit(current) && canAttachToPrevious(previous.text)) {
+              appendUnitToStickyUnit(previous, current);
+              continue;
+            }
+            if (isContractionSuffixUnit(current) && endsWithApostrophe(previous.text)) {
+              appendUnitToStickyUnit(previous, current);
+              continue;
+            }
+            if (isStickyTrailingPunctuationUnit(current) && canAttachToPrevious(previous.text)) {
+              appendUnitToStickyUnit(previous, current);
+              continue;
+            }
+            merged.push(cloneUnit(current));
+          }
+          return merged.map((unit2) => hasAttachedTrailingPunctuation(unit2) || hasInlineContraction(unit2) ? { ...unit2, isSticky: true } : unit2);
+        };
+        buildPostLyricLayoutUnits = (line2, options = {}) => {
+          const rawUnits = options.semantic ? buildCjkSemanticLayoutUnits(line2) : createSingleWordLayoutUnits(line2.words);
+          return options.sticky ? applyStickyPunctuationLayoutUnits(rawUnits) : rawUnits;
+        };
+        buildDisplayWordsFromLayoutUnits = (units) => units.flatMap((unit2) => {
+          if (!unit2.isSticky || unit2.isSemantic) {
+            return unit2.words;
+          }
+          return [{
+            text: unit2.text,
+            startTime: unit2.startTime,
+            endTime: unit2.endTime
+          }];
+        });
+      }
+    });
+  
+    // src/folia/components/visualizer/wordColoring.ts
+    var CJK_REGEX2, isCJK, normalizeWordColorToken, resolveWordColorEntryText, resolveWordColorEntryColor, rangesOverlap, selectNonOverlappingRanges, prepareWordColorMatchers, buildWordColorRangesFromMatchers, buildWordColorRanges, resolveWordColor, resolveTokenColorMap;
+    var init_wordColoring = __esm({
+      "src/folia/components/visualizer/wordColoring.ts"() {
+        CJK_REGEX2 = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
+        isCJK = (text) => CJK_REGEX2.test(text);
+        normalizeWordColorToken = (text) => text.toLowerCase().replace(/[^\w]/g, "");
+        resolveWordColorEntryText = (entry) => {
+          if (!entry || typeof entry !== "object" || !("word" in entry)) {
+            return "";
+          }
+          const word = entry.word;
+          return typeof word === "string" ? word.trim() : "";
+        };
+        resolveWordColorEntryColor = (entry) => {
+          if (!entry || typeof entry !== "object" || !("color" in entry)) {
+            return "";
+          }
+          const color = entry.color;
+          return typeof color === "string" ? color : "";
+        };
+        rangesOverlap = (a4, b4) => a4.startOffset < b4.endOffset && b4.startOffset < a4.endOffset;
+        selectNonOverlappingRanges = (ranges) => {
+          const selected = [];
+          const prioritySorted = [...ranges].sort((a4, b4) => b4.priority - a4.priority || a4.startOffset - b4.startOffset || a4.endOffset - b4.endOffset);
+          prioritySorted.forEach((range) => {
+            if (!selected.some((current) => rangesOverlap(current, range))) {
+              selected.push(range);
+            }
+          });
+          return selected.sort((a4, b4) => a4.startOffset - b4.startOffset || a4.endOffset - b4.endOffset);
+        };
+        prepareWordColorMatchers = (wordColors, keywordColoringEnabled = true) => {
+          if (!keywordColoringEnabled || !wordColors || wordColors.length === 0) {
+            return [];
+          }
+          return wordColors.flatMap((entry) => {
+            const target = resolveWordColorEntryText(entry);
+            if (!target) {
+              return [];
+            }
+            const color = resolveWordColorEntryColor(entry);
+            if (!color) {
+              return [];
+            }
+            if (isCJK(target)) {
+              return [{
+                color,
+                cjkPhrases: [target],
+                englishWords: [],
+                priority: target.length
+              }];
+            }
+            const englishWords = target.split(/\s+/).map(normalizeWordColorToken).filter(Boolean);
+            if (englishWords.length === 0) {
+              return [];
+            }
+            return [{
+              color,
+              cjkPhrases: [],
+              englishWords,
+              priority: Math.max(...englishWords.map((word) => word.length))
+            }];
+          });
+        };
+        buildWordColorRangesFromMatchers = (lineText, matchers) => {
+          if (!lineText || matchers.length === 0) {
+            return [];
+          }
+          const ranges = [];
+          const englishColorByWord = /* @__PURE__ */ new Map();
+          matchers.forEach((matcher) => {
+            matcher.cjkPhrases.forEach((target) => {
+              let cursor = 0;
+              while (cursor < lineText.length) {
+                const startOffset = lineText.indexOf(target, cursor);
+                if (startOffset < 0) {
+                  break;
+                }
+                ranges.push({
+                  startOffset,
+                  endOffset: startOffset + target.length,
+                  color: matcher.color,
+                  priority: matcher.priority
+                });
+                cursor = startOffset + Math.max(target.length, 1);
+              }
+            });
+            matcher.englishWords.forEach((word) => {
+              const current = englishColorByWord.get(word);
+              if (!current || matcher.priority > current.priority) {
+                englishColorByWord.set(word, { color: matcher.color, priority: matcher.priority });
+              }
+            });
+          });
+          if (englishColorByWord.size > 0) {
+            const wordRegex = /\w+/g;
+            let match;
+            while ((match = wordRegex.exec(lineText)) !== null) {
+              const wordColor = englishColorByWord.get(normalizeWordColorToken(match[0]));
+              if (wordColor) {
+                ranges.push({
+                  startOffset: match.index,
+                  endOffset: match.index + match[0].length,
+                  color: wordColor.color,
+                  priority: wordColor.priority
+                });
+              }
+            }
+          }
+          return selectNonOverlappingRanges(ranges);
+        };
+        buildWordColorRanges = (lineText, wordColors, keywordColoringEnabled = true) => buildWordColorRangesFromMatchers(
+          lineText,
+          prepareWordColorMatchers(wordColors, keywordColoringEnabled)
+        );
+        resolveWordColor = (wordText, wordColors, fallbackColor, {
+          keywordColoringEnabled = true,
+          cjkMatchMode = "target-contains-token"
+        } = {}) => {
+          if (!keywordColoringEnabled || !wordColors || wordColors.length === 0) {
+            return fallbackColor;
+          }
+          const cleanCurrent = wordText.trim();
+          if (!cleanCurrent) {
+            return fallbackColor;
+          }
+          const matched = wordColors.find((entry) => {
+            const target = resolveWordColorEntryText(entry);
+            if (!target) {
+              return false;
+            }
+            if (isCJK(cleanCurrent)) {
+              if (cjkMatchMode === "exact") {
+                return target === cleanCurrent;
+              }
+              if (cjkMatchMode === "bidirectional-contains") {
+                return target.includes(cleanCurrent) || cleanCurrent.includes(target);
+              }
+              return target.includes(cleanCurrent);
+            }
+            const targetWords = target.split(/\s+/).map(normalizeWordColorToken).filter(Boolean);
+            const normalizedCurrent = normalizeWordColorToken(cleanCurrent);
+            return Boolean(normalizedCurrent) && targetWords.includes(normalizedCurrent);
+          });
+          return resolveWordColorEntryColor(matched) || fallbackColor;
+        };
+        resolveTokenColorMap = (tokens, ranges) => {
+          const colors = /* @__PURE__ */ new Map();
+          let rangeIndex = 0;
+          tokens.forEach((token) => {
+            if (!token.timed) {
+              return;
+            }
+            while (rangeIndex < ranges.length && ranges[rangeIndex].endOffset <= token.startOffset) {
+              rangeIndex += 1;
+            }
+            const range = ranges[rangeIndex];
+            if (range && rangesOverlap(range, token)) {
+              colors.set(token.key, range.color);
+            }
+          });
+          return colors;
+        };
+      }
+    });
+  
+    // src/folia/utils/glowBlurQuantize.ts
+    var GLOW_BLUR_QUANTIZE_STORAGE_KEY, isLinuxRuntime, readStoredGlowBlurQuantize, glowBlurQuantized, isGlowBlurQuantized, quantizeShadowBlur, setCanvasTextGlow, clearCanvasTextGlow, GLOW_FILTER_SIGMA, fillGlowText;
+    var init_glowBlurQuantize = __esm({
+      "src/folia/utils/glowBlurQuantize.ts"() {
+        GLOW_BLUR_QUANTIZE_STORAGE_KEY = "visualizer_glow_blur_quantize";
+        isLinuxRuntime = () => {
+          if (typeof window === "undefined") return false;
+          const electronPlatform = window.electron?.platform;
+          if (electronPlatform) return electronPlatform === "linux";
+          const userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent;
+          return /Linux/.test(userAgent) && !/Android/.test(userAgent);
+        };
+        readStoredGlowBlurQuantize = () => {
+          try {
+            const stored = localStorage.getItem(GLOW_BLUR_QUANTIZE_STORAGE_KEY);
+            if (stored === "true" || stored === "false") return stored === "true";
+          } catch {
+          }
+          return isLinuxRuntime();
+        };
+        glowBlurQuantized = readStoredGlowBlurQuantize();
+        isGlowBlurQuantized = () => glowBlurQuantized;
+        quantizeShadowBlur = (px2) => {
+          if (!Number.isFinite(px2)) return 0;
+          return glowBlurQuantized ? Math.max(0, Math.round(px2)) : px2;
+        };
+        setCanvasTextGlow = (context, blur, color) => {
+          if (!glowBlurQuantized) {
+            context.shadowBlur = blur;
+            context.shadowColor = color;
+            return;
+          }
+          context.shadowBlur = 0;
+          context.shadowColor = "transparent";
+          context.filter = blur > 0 ? `drop-shadow(0 0 ${blur / 2}px ${color})` : "none";
+        };
+        clearCanvasTextGlow = (context) => {
+          context.shadowBlur = 0;
+          context.shadowColor = "transparent";
+          if (glowBlurQuantized) context.filter = "none";
+        };
+        GLOW_FILTER_SIGMA = /^drop-shadow\(0 0 ([\d.]+)px /;
+        fillGlowText = (context, text, x4, y4) => {
+          const sigma = Number(GLOW_FILTER_SIGMA.exec(context.filter)?.[1] ?? 0);
+          if (!sigma) {
+            context.fillText(text, x4, y4);
+            return;
+          }
+          const metrics = context.measureText(text);
+          const pad = sigma * 4 + 4;
+          const left = x4 - metrics.actualBoundingBoxLeft - pad;
+          const top = y4 - metrics.actualBoundingBoxAscent - pad;
+          context.save();
+          context.beginPath();
+          context.rect(
+            left,
+            top,
+            metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight + pad * 2,
+            metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent + pad * 2
+          );
+          context.clip();
+          context.fillText(text, x4, y4);
+          context.restore();
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/wordGlow.ts
+    var DROP_SHADOW_RADIUS_SCALE, DROP_SHADOW_INNER_ALPHA, withAlpha, textShadowAt, dropShadowAt, glowRadii, glowKeyframes, wordGlowVariants;
+    var init_wordGlow = __esm({
+      "src/folia/components/visualizer/wordGlow.ts"() {
+        init_colorMix();
+        init_glowBlurQuantize();
+        DROP_SHADOW_RADIUS_SCALE = 0.4;
+        DROP_SHADOW_INNER_ALPHA = 0.7;
+        withAlpha = (color, alpha) => /^\s*(#|rgba?\()/.test(color) ? colorWithAlpha(color, alpha) : color;
+        textShadowAt = (color, inner, outer) => `0 0 ${inner}px ${color}, 0 0 ${outer}px ${color}`;
+        dropShadowAt = (color, inner, outer) => `drop-shadow(0 0 ${inner * DROP_SHADOW_RADIUS_SCALE}px ${withAlpha(color, DROP_SHADOW_INNER_ALPHA)}) drop-shadow(0 0 ${outer * DROP_SHADOW_RADIUS_SCALE}px ${color})`;
+        glowRadii = (wordRevealMode) => wordRevealMode === "instant" ? [14, 24] : wordRevealMode === "fast" ? [18, 32] : [20, 40];
+        glowKeyframes = (color, inner, outer, peaks) => {
+          if (!isGlowBlurQuantized()) {
+            return {
+              color: "transparent",
+              textShadow: textShadowAt(color, inner, outer),
+              opacity: peaks
+            };
+          }
+          return {
+            color,
+            opacity: peaks,
+            filter: peaks.map((peak) => dropShadowAt(color, inner * peak, outer * peak))
+          };
+        };
+        wordGlowVariants = {
+          waiting: ({ activeColor = "", wordRevealMode }) => isGlowBlurQuantized() ? { color: "transparent", opacity: 0, filter: "none", transition: { duration: 0 } } : { color: "transparent", textShadow: textShadowAt(activeColor, ...glowRadii(wordRevealMode)), opacity: 0, filter: "none", transition: { duration: 0 } },
+          active: ({ activeColor = "", duration, index, total, charStartTime, charEndTime, wordStartTime, wordRevealMode }) => {
+            if (wordRevealMode === "instant") {
+              return {
+                ...glowKeyframes(activeColor, ...glowRadii(wordRevealMode), [0, 1, 0]),
+                transition: {
+                  duration: Math.min(duration || 0.08, 0.12),
+                  times: [0, 0.35, 1],
+                  ease: "easeOut"
+                }
+              };
+            }
+            if (wordRevealMode === "fast") {
+              return {
+                ...glowKeyframes(activeColor, ...glowRadii(wordRevealMode), [0, 1, 0]),
+                transition: {
+                  duration: Math.min(Math.max(duration || 0.12, 0.12), 0.2),
+                  times: [0, 0.4, 1],
+                  ease: "easeInOut"
+                }
+              };
+            }
+            if (total !== void 0 && total > 1) {
+              const singleDuration = (duration ?? 0) / total;
+              const hasCharTiming = typeof charStartTime === "number" && typeof charEndTime === "number" && typeof wordStartTime === "number";
+              const charDuration = hasCharTiming ? Math.max(charEndTime - charStartTime, 1e-3) : singleDuration;
+              const charDelay = hasCharTiming ? Math.max(0, charStartTime - wordStartTime) : singleDuration * (index ?? 0);
+              return {
+                ...glowKeyframes(activeColor, ...glowRadii(wordRevealMode), [0, 1, 0]),
+                transition: {
+                  duration: charDuration * 6,
+                  // stretch the fade over a few letters
+                  times: [0, 0.3, 1],
+                  // peak early, then fade
+                  delay: charDelay,
+                  ease: "easeInOut"
+                }
+              };
+            }
+            return {
+              ...glowKeyframes(activeColor, ...glowRadii(wordRevealMode), [0, 1, 1]),
+              transition: {
+                duration: duration || 0.1,
+                // stretch the fade over the word duration
+                times: [0, 0.9, 1],
+                // peak early, then fade
+                ease: "easeInOut"
+              }
+            };
+          },
+          passed: ({ activeColor = "", wordRevealMode }) => {
+            const transition = { duration: wordRevealMode === "instant" ? 0.12 : wordRevealMode === "fast" ? 0.22 : 0.9, ease: "easeOut" };
+            if (!isGlowBlurQuantized()) {
+              return { color: "transparent", textShadow: textShadowAt(activeColor, ...glowRadii(wordRevealMode)), opacity: 0, transition };
+            }
+            return { color: activeColor, opacity: 0, filter: dropShadowAt(activeColor, 0, 0), transition };
+          }
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/glowWordTiming.ts
+    var resolveGlowWordRenderProfile, getGlowWordActiveEndTime, getGlowWordDisplayDuration, getGlowWordLineContainerMotion;
+    var init_glowWordTiming = __esm({
+      "src/folia/components/visualizer/glowWordTiming.ts"() {
+        init_renderHints();
+        resolveGlowWordRenderProfile = (line2) => {
+          if (!line2) {
+            return null;
+          }
+          const renderHints = getLineRenderHints(line2);
+          const wordRevealMode = renderHints?.wordRevealMode ?? "normal";
+          return {
+            renderHints,
+            lineRenderEndTime: getLineRenderEndTime(line2),
+            lineTransitionMode: renderHints?.lineTransitionMode ?? "normal",
+            wordRevealMode,
+            wordLookahead: wordRevealMode === "instant" ? 0.03 : wordRevealMode === "fast" ? 0.08 : 0.15
+          };
+        };
+        getGlowWordActiveEndTime = (word, renderProfile) => {
+          if (renderProfile.wordRevealMode === "instant") {
+            return renderProfile.lineRenderEndTime;
+          }
+          if (renderProfile.wordRevealMode === "fast") {
+            return Math.min(renderProfile.lineRenderEndTime, Math.max(word.endTime, word.startTime + 0.12));
+          }
+          return word.endTime;
+        };
+        getGlowWordDisplayDuration = (word, renderProfile) => {
+          const activeEndTime = getGlowWordActiveEndTime(word, renderProfile);
+          const minDuration = renderProfile.wordRevealMode === "instant" ? 0.08 : renderProfile.wordRevealMode === "fast" ? 0.12 : 0.1;
+          return Math.max(activeEndTime - word.startTime, minDuration);
+        };
+        getGlowWordLineContainerMotion = (renderProfile) => {
+          if (renderProfile?.lineTransitionMode === "none") {
+            return {
+              initial: { opacity: 1, scale: 1, filter: "blur(0px)" },
+              animate: { opacity: 1, scale: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } },
+              exit: { opacity: 0, scale: 1.02, filter: "blur(6px)", transition: { duration: 0.12, ease: "easeOut" } }
+            };
+          }
+          if (renderProfile?.lineTransitionMode === "fast") {
+            return {
+              initial: { opacity: 0.35, scale: 0.96, filter: "blur(4px)" },
+              animate: {
+                opacity: 1,
+                scale: 1,
+                filter: "blur(0px)",
+                transition: { duration: 0.16, ease: "easeOut" },
+                transitionEnd: { filter: "none" }
+              },
+              exit: {
+                opacity: 0,
+                scale: 1.04,
+                filter: "blur(10px)",
+                transition: { duration: 0.16, ease: "easeInOut" }
+              }
+            };
+          }
+          return {
+            initial: { opacity: 0, scale: 0.9, filter: "blur(10px)" },
+            animate: { opacity: 1, scale: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } },
+            exit: { opacity: 0, scale: 1.1, filter: "blur(20px)", transition: { duration: 0.3 } }
+          };
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/glowWordVariants.ts
+    var GLOW_WORD_ACTIVE_SCALE, buildGlowWordLayoutVariants, glowWordBodyVariants;
+    var init_glowWordVariants = __esm({
+      "src/folia/components/visualizer/glowWordVariants.ts"() {
+        GLOW_WORD_ACTIVE_SCALE = 1.4;
+        buildGlowWordLayoutVariants = (animationIntensity, enableWordRotation = true) => ({
+          waiting: ({ config } = {}) => {
+            const safe = config || { x: 0, y: 0, rotate: 0, scale: 1, passedRotate: 0 };
+            return {
+              opacity: 0,
+              scale: 0.5,
+              x: safe.x + Math.sin(safe.y) * 100,
+              y: safe.y + Math.cos(safe.x) * 50,
+              rotate: enableWordRotation ? safe.rotate + 20 : 0,
+              transition: { duration: 0.4 }
+            };
+          },
+          active: ({ config } = {}) => {
+            const safe = config || { x: 0, y: 0, rotate: 0, scale: 1 };
+            return {
+              opacity: 1,
+              scale: isNaN(safe.scale) ? 1.5 : safe.scale * GLOW_WORD_ACTIVE_SCALE,
+              x: safe.x,
+              y: safe.y,
+              rotate: safe.rotate,
+              transition: {
+                type: "spring",
+                stiffness: 200,
+                damping: 20,
+                opacity: { duration: 0.1 }
+              }
+            };
+          },
+          passed: ({ config, baseColor } = {}) => {
+            const safe = config || { x: 0, y: 0, rotate: 0, scale: 1, passedRotate: 0 };
+            return {
+              opacity: animationIntensity === "chaotic" ? 0.9 : 0.82,
+              scale: safe.scale || 1,
+              x: safe.x,
+              y: safe.y,
+              rotate: safe.rotate + safe.passedRotate,
+              transition: {
+                duration: 0.5,
+                rotate: {
+                  duration: 5,
+                  ease: "linear"
+                }
+              }
+            };
+          }
+        });
+        glowWordBodyVariants = {
+          waiting: ({ baseColor }) => ({
+            color: baseColor,
+            filter: "blur(10px)",
+            transition: { duration: 0.4 }
+          }),
+          active: ({ activeColor, duration, wordRevealMode }) => ({
+            color: activeColor,
+            filter: "none",
+            transition: {
+              color: { duration: duration || 0.2, ease: "linear" },
+              filter: { type: "tween", duration: wordRevealMode === "instant" ? 0.08 : wordRevealMode === "fast" ? 0.12 : 0.2 }
+            },
+            transitionEnd: {
+              filter: "none"
+            }
+          }),
+          passed: ({ baseColor, wordRevealMode }) => ({
+            color: baseColor,
+            filter: "blur(0px)",
+            transition: {
+              color: { duration: wordRevealMode === "instant" ? 0.12 : wordRevealMode === "fast" ? 0.24 : 0.8, ease: "easeInOut" },
+              filter: { duration: wordRevealMode === "instant" ? 0.12 : wordRevealMode === "fast" ? 0.2 : 0.5 }
+            },
+            transitionEnd: {
+              filter: "none"
+            }
+          })
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/glowWordOverlap.ts
+    var GLOW_WORD_LINE_HEIGHT, GLYPH_HEIGHT_EM, PASSED_TURN_SAMPLES, measureCanvas, measureGlowWordWidth, reachAt, getGlowWordReach, getGlowWordPairGap, getGlowWordOverflow;
+    var init_glowWordOverlap = __esm({
+      "src/folia/components/visualizer/glowWordOverlap.ts"() {
+        init_glowWordVariants();
+        GLOW_WORD_LINE_HEIGHT = 1.22;
+        GLYPH_HEIGHT_EM = 1;
+        PASSED_TURN_SAMPLES = 8;
+        measureCanvas = null;
+        measureGlowWordWidth = (text, pxSize, fontStack, fontWeight) => {
+          if (typeof document === "undefined") {
+            return text.length * pxSize * 0.65;
+          }
+          if (!measureCanvas) {
+            measureCanvas = document.createElement("canvas");
+          }
+          const context = measureCanvas.getContext("2d");
+          if (!context) {
+            return text.length * pxSize * 0.65;
+          }
+          context.font = `${fontWeight} ${pxSize}px ${fontStack}`;
+          return context.measureText(text).width;
+        };
+        reachAt = (width, glyphHeight, scale, rotateDeg) => {
+          const radians = rotateDeg * Math.PI / 180;
+          const cos = Math.abs(Math.cos(radians));
+          const sin = Math.abs(Math.sin(radians));
+          return {
+            halfWidth: scale * (width * cos + glyphHeight * sin) / 2,
+            halfHeight: scale * (glyphHeight * cos + width * sin) / 2
+          };
+        };
+        getGlowWordReach = (width, fontSize, pose) => {
+          const glyphHeight = fontSize * GLYPH_HEIGHT_EM;
+          const active = reachAt(width, glyphHeight, pose.scale * GLOW_WORD_ACTIVE_SCALE, pose.rotate);
+          let halfWidth = active.halfWidth;
+          let halfHeight = active.halfHeight;
+          for (let step = 0; step <= PASSED_TURN_SAMPLES; step += 1) {
+            const passed = reachAt(width, glyphHeight, pose.scale, pose.rotate + pose.passedRotate * step / PASSED_TURN_SAMPLES);
+            halfWidth = Math.max(halfWidth, passed.halfWidth);
+            halfHeight = Math.max(halfHeight, passed.halfHeight);
+          }
+          return { halfWidth, halfHeight };
+        };
+        getGlowWordPairGap = (first, second, fontSize, direction = "ltr") => {
+          const firstReach = getGlowWordReach(first.width, fontSize, first.pose);
+          const secondReach = getGlowWordReach(second.width, fontSize, second.pose);
+          const firstOffset = first.offset ?? { x: 0, y: 0 };
+          const secondOffset = second.offset ?? { x: 0, y: 0 };
+          const towardEachOther = direction === "rtl" ? secondOffset.x - firstOffset.x : firstOffset.x - secondOffset.x;
+          return firstReach.halfWidth - first.width / 2 + (secondReach.halfWidth - second.width / 2) + towardEachOther;
+        };
+        getGlowWordOverflow = (width, fontSize, pose, offset = { x: 0, y: 0 }) => {
+          const { halfWidth, halfHeight } = getGlowWordReach(width, fontSize, pose);
+          const overWidth = halfWidth - width / 2;
+          const overHeight = halfHeight - fontSize * GLOW_WORD_LINE_HEIGHT / 2;
+          return {
+            left: Math.max(0, overWidth - offset.x),
+            right: Math.max(0, overWidth + offset.x),
+            top: Math.max(0, overHeight - offset.y),
+            bottom: Math.max(0, overHeight + offset.y)
+          };
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/GlowWord.tsx
+    var GlowWord;
+    var init_GlowWord = __esm({
+      "src/folia/components/visualizer/GlowWord.tsx"() {
+        init_react_shim();
+        init_framer_motion();
+        init_graphemeTiming();
+        init_fontStacks();
+        init_wordGlow();
+        init_glowWordTiming();
+        init_glowWordOverlap();
+        init_jsx_runtime_shim();
+        GlowWord = ({
+          word,
+          config,
+          currentTime,
+          theme,
+          layoutVariants,
+          bodyVariants,
+          baseColor,
+          activeColor,
+          renderProfile,
+          isChorus,
+          fontSize,
+          layoutStyle
+        }) => {
+          const [status, setStatus] = useState("waiting");
+          const rippleScale = useMemo(() => 1.5 + Math.random() * 2, []);
+          const duration = getGlowWordDisplayDuration(word, renderProfile);
+          const activeEndTime = getGlowWordActiveEndTime(word, renderProfile);
+          const graphemeTimings = useMemo(() => buildWordGraphemeTimings(word), [word]);
+          useMotionValueEvent(currentTime, "change", (latest) => {
+            let newStatus = "waiting";
+            if (latest >= word.startTime - renderProfile.wordLookahead && latest <= activeEndTime) {
+              newStatus = "active";
+            } else if (latest > activeEndTime) {
+              newStatus = "passed";
+            }
+            if (newStatus !== status) setStatus(newStatus);
+          });
+          return /* @__PURE__ */ jsxs(
+            motion.div,
+            {
+              custom: {
+                config,
+                activeColor,
+                baseColor,
+                duration,
+                wordRevealMode: renderProfile.wordRevealMode
+              },
+              variants: layoutVariants,
+              initial: "waiting",
+              animate: status,
+              className: "inline-block origin-center relative will-change-transform whitespace-nowrap",
+              style: {
+                fontSize,
+                fontWeight: resolveThemeFontWeight(theme, 700),
+                lineHeight: GLOW_WORD_LINE_HEIGHT,
+                ...layoutStyle
+              },
+              children: [
+                /* @__PURE__ */ jsx(
+                  "span",
+                  {
+                    className: "absolute inset-0 select-none pointer-events-none block",
+                    "aria-hidden": "true",
+                    children: graphemeTimings.length > 1 ? graphemeTimings.map((timing, index) => /* @__PURE__ */ jsx(
+                      motion.span,
+                      {
+                        variants: wordGlowVariants,
+                        custom: {
+                          config,
+                          activeColor,
+                          baseColor,
+                          duration,
+                          index,
+                          total: graphemeTimings.length,
+                          charStartTime: timing.startTime,
+                          charEndTime: timing.endTime,
+                          wordStartTime: word.startTime,
+                          wordRevealMode: renderProfile.wordRevealMode
+                        },
+                        children: timing.char
+                      },
+                      index
+                    )) : /* @__PURE__ */ jsx(
+                      motion.span,
+                      {
+                        variants: wordGlowVariants,
+                        custom: { config, activeColor, baseColor, duration, wordRevealMode: renderProfile.wordRevealMode },
+                        children: word.text
+                      }
+                    )
+                  }
+                ),
+                /* @__PURE__ */ jsx(
+                  motion.span,
+                  {
+                    variants: bodyVariants,
+                    custom: { config, activeColor, baseColor, duration, wordRevealMode: renderProfile.wordRevealMode },
+                    className: "relative z-10 block",
+                    children: word.text
+                  }
+                ),
+                /* @__PURE__ */ jsx(AnimatePresence, { children: isChorus && status === "active" && /* @__PURE__ */ jsx(
+                  motion.span,
+                  {
+                    className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[150%] aspect-square rounded-full border-1 pointer-events-none z-0",
+                    style: { borderColor: activeColor, filter: "blur(1px)" },
+                    initial: { scale: 0.2, opacity: 0.8 },
+                    animate: { scale: rippleScale, opacity: 0 },
+                    exit: { opacity: 0 },
+                    transition: { duration: 0.5, ease: "easeOut" }
+                  },
+                  "ripple"
+                ) })
+              ]
+            },
+            `${config.id}`
+          );
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/useOverlapFit.ts
+    var OVERLAP_FIT_LINE_ATTRIBUTE, OVERLAP_FIT_ROW_ATTRIBUTE, MIN_FIT, FIT_SLACK, useOverlapFit;
+    var init_useOverlapFit = __esm({
+      "src/folia/components/visualizer/useOverlapFit.ts"() {
+        init_react_shim();
+        OVERLAP_FIT_LINE_ATTRIBUTE = "data-overlap-fit-line";
+        OVERLAP_FIT_ROW_ATTRIBUTE = "data-overlap-fit-row";
+        MIN_FIT = 0.5;
+        FIT_SLACK = 0.98;
+        useOverlapFit = (enabled, lineKey, areaRef, layoutKeys) => {
+          const [fit, setFit] = useState({ key: null, scale: 1 });
+          const scale = enabled && fit.key === lineKey ? fit.scale : 1;
+          useLayoutEffect(() => {
+            if (!enabled || lineKey === null || lineKey === void 0) return;
+            const area = areaRef.current;
+            const line2 = area?.querySelector(`[${OVERLAP_FIT_LINE_ATTRIBUTE}="${String(lineKey)}"]`);
+            if (!area || !line2) return;
+            const style = getComputedStyle(area);
+            const availableHeight = area.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+            const availableWidth = area.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+            const rows = line2.querySelectorAll(`[${OVERLAP_FIT_ROW_ATTRIBUTE}]`);
+            const widestRow = Array.from(rows).reduce((widest, row) => Math.max(widest, row.offsetWidth), 0);
+            const ratio = Math.min(
+              availableHeight / line2.offsetHeight,
+              widestRow > 0 ? availableWidth / widestRow : Number.POSITIVE_INFINITY
+            );
+            if (!(ratio < 1)) return;
+            const next = Math.max(MIN_FIT, scale * ratio * FIT_SLACK);
+            if (next < scale - 5e-3) setFit({ key: lineKey, scale: next });
+          }, [enabled, lineKey, scale, areaRef, ...layoutKeys]);
+          return scale;
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/classic/Visualizer.tsx
+    var Visualizer_exports = {};
+    __export(Visualizer_exports, {
+      default: () => Visualizer_default
+    });
+    var clampClassicBreathingFloatMultiplier, clampClassicWordSpacing, resolveClassicTuning, TEXT_HIDDEN_EXIT, Visualizer, Visualizer_default;
+    var init_Visualizer = __esm({
+      "src/folia/components/visualizer/classic/Visualizer.tsx"() {
+        init_react_shim();
+        init_framer_motion();
+        init_i18n();
+        init_types();
+        init_renderHints();
+        init_textDirection();
+        init_runtime();
+        init_VisualizerShell();
+        init_VisualizerSubtitleOverlay();
+        init_subtitleFontSizes();
+        init_cjkSemanticLayout();
+        init_fontStacks();
+        init_wordColoring();
+        init_GlowWord();
+        init_glowWordTiming();
+        init_glowWordVariants();
+        init_glowWordOverlap();
+        init_useOverlapFit();
+        init_jsx_runtime_shim();
+        clampClassicBreathingFloatMultiplier = (value) => Math.min(2, Math.max(0, value));
+        clampClassicWordSpacing = (value) => Math.min(2, Math.max(0, value));
+        resolveClassicTuning = (tuning) => ({
+          enableWordRotation: tuning?.enableWordRotation ?? DEFAULT_CLASSIC_TUNING.enableWordRotation,
+          breathingFloatMultiplier: clampClassicBreathingFloatMultiplier(
+            tuning?.breathingFloatMultiplier ?? DEFAULT_CLASSIC_TUNING.breathingFloatMultiplier
+          ),
+          useLegacyLayout: tuning?.useLegacyLayout ?? DEFAULT_CLASSIC_TUNING.useLegacyLayout,
+          wordSpacing: clampClassicWordSpacing(tuning?.wordSpacing ?? DEFAULT_CLASSIC_TUNING.wordSpacing ?? 0.7),
+          avoidOverlap: tuning?.avoidOverlap ?? DEFAULT_CLASSIC_TUNING.avoidOverlap
+        });
+        TEXT_HIDDEN_EXIT = { opacity: 0, transition: { duration: 0.2, ease: "easeOut" } };
+        Visualizer = (props) => {
+          const {
+            currentTime,
+            currentLineIndex,
+            lines,
+            theme,
+            subtitleTheme,
+            audioPower,
+            audioBands,
+            showText = true,
+            lyricsFontScale = 1,
+            subtitleFontScale = 1,
+            subtitleOverlayOpacity,
+            subtitleOverlayBackground,
+            subtitleUpcomingLyricsBlur,
+            isPlayerChromeHidden = false,
+            hideTranslationSubtitle = false,
+            subtitleOverlayLayout,
+            classicTuning
+          } = props;
+          const { t: t4 } = useTranslation();
+          const resolvedClassicTuning = useMemo(() => resolveClassicTuning(classicTuning), [classicTuning]);
+          const {
+            activeLine: activeLine2,
+            recentCompletedLine,
+            nextLines
+          } = useVisualizerRuntime({
+            currentTime,
+            currentLineIndex,
+            lines,
+            getLineEndTime: getLineRenderEndTime
+          });
+          const activeLineRenderProfile = activeLine2 ? resolveGlowWordRenderProfile(activeLine2) : null;
+          const activeWordRenderProfile = activeLineRenderProfile ?? (activeLine2 ? resolveGlowWordRenderProfile(activeLine2) : null);
+          const activeLineContainerMotion = getGlowWordLineContainerMotion(activeLineRenderProfile);
+          const [viewportWidth, setViewportWidth] = useState(() => typeof window === "undefined" ? 1200 : window.innerWidth);
+          const [viewportHeight, setViewportHeight] = useState(() => typeof window === "undefined" ? 800 : window.innerHeight);
+          useEffect(() => {
+            const handleResize = () => {
+              setViewportWidth(window.innerWidth);
+              setViewportHeight(window.innerHeight);
+            };
+            window.addEventListener("resize", handleResize);
+            return () => window.removeEventListener("resize", handleResize);
+          }, []);
+          const displayWords = useMemo(() => {
+            if (!activeLine2) return [];
+            if (resolvedClassicTuning.useLegacyLayout) {
+              return activeLine2.words;
+            }
+            const layoutUnits = buildPostLyricLayoutUnits(activeLine2, { semantic: true, sticky: true });
+            return buildDisplayWordsFromLayoutUnits(layoutUnits);
+          }, [activeLine2, resolvedClassicTuning.useLegacyLayout]);
+          const lyricAreaRef = useRef(null);
+          const overlapFit = useOverlapFit(
+            Boolean(resolvedClassicTuning.avoidOverlap) && !resolvedClassicTuning.useLegacyLayout,
+            activeLine2?.startTime,
+            lyricAreaRef,
+            [displayWords, lyricsFontScale, viewportWidth, viewportHeight, resolvedClassicTuning, theme]
+          );
+          const lineFontScale = lyricsFontScale * overlapFit;
+          const mainFontSize = `clamp(${(2.25 * lineFontScale).toFixed(3)}rem, ${(6 * lineFontScale).toFixed(3)}vw, ${(4.5 * lineFontScale).toFixed(3)}rem)`;
+          const emptyFontSize = `clamp(${(1.5 * lyricsFontScale).toFixed(3)}rem, ${(3.5 * lyricsFontScale).toFixed(3)}vw, ${(2.25 * lyricsFontScale).toFixed(3)}rem)`;
+          const { translationFontSize, upcomingFontSize } = resolveSubtitleFontSizes(lyricsFontScale);
+          const { wordConfigs, lineConfig } = useMemo(() => {
+            if (!activeLine2) return { wordConfigs: [], lineConfig: { justifyContent: "center", alignItems: "center", perspective: 1e3 } };
+            const seed = activeLine2.startTime;
+            const intensity = theme.animationIntensity;
+            const isChaotic = intensity === "chaotic";
+            const isCalm = intensity === "calm";
+            const justifyOptions = isCalm ? ["justify-center"] : ["justify-start", "justify-center", "justify-end", "justify-around", "justify-between"];
+            const alignOptions = isCalm ? ["items-center"] : ["items-start", "items-center", "items-end"];
+            const isInterlude = activeLine2.fullText === "......";
+            const lineConfig2 = {
+              justifyContent: isInterlude ? "justify-center" : justifyOptions[Math.floor(seed % justifyOptions.length)],
+              // deterministic random
+              alignItems: alignOptions[Math.floor(seed * 2 % alignOptions.length)],
+              perspective: isChaotic ? 500 + seed % 500 : 1e3
+            };
+            const fontStack = resolveThemeFontStack(theme);
+            const fontWeight = resolveThemeFontWeight(theme, 700);
+            const getPixelFontSize = (fontScale2, width) => {
+              const rem = 16;
+              const minPx = 2.25 * fontScale2 * rem;
+              const valPx = 6 * fontScale2 * width / 100;
+              const maxPx = 4.5 * fontScale2 * rem;
+              return Math.max(minPx, Math.min(valPx, maxPx));
+            };
+            const pxFontSize = getPixelFontSize(lineFontScale, viewportWidth);
+            const wordWidths = displayWords.map((w4) => measureGlowWordWidth(w4.text, pxFontSize, fontStack, fontWeight));
+            const baseSpread = isChaotic ? 60 : isCalm ? 0 : 20;
+            const baseRotate = isChaotic ? 30 : isCalm ? 0 : 5;
+            const rtl = resolveLyricTextDirection(activeLine2.fullText) === "rtl";
+            const avoidOverlap = Boolean(resolvedClassicTuning.avoidOverlap) && !resolvedClassicTuning.useLegacyLayout;
+            let rowReachTop = 0;
+            let rowReachBottom = 0;
+            const placementOf = (i4) => {
+              const random = (offset) => {
+                const x4 = Math.sin(seed + i4 + offset) * 1e4;
+                return x4 - Math.floor(x4);
+              };
+              return {
+                width: wordWidths[i4] ?? 0,
+                pose: {
+                  scale: isChaotic ? 0.8 + random(4) * 0.6 : 1.1 + random(4) * 0.2,
+                  rotate: resolvedClassicTuning.enableWordRotation ? (random(3) - 0.5) * baseRotate * 2 : 0,
+                  passedRotate: resolvedClassicTuning.enableWordRotation ? (random(8) - 0.5) * 45 : 0
+                },
+                offset: { x: (random(1) - 0.5) * baseSpread * 2, y: (random(2) - 0.5) * baseSpread * 2 }
+              };
+            };
+            const wordConfigs2 = displayWords.map((w4, i4) => {
+              const wordSeed = seed + i4;
+              const random = (offset) => {
+                const x4 = Math.sin(wordSeed + offset) * 1e4;
+                return x4 - Math.floor(x4);
+              };
+              if (isInterlude) {
+                return {
+                  id: `${w4.text}-${i4}-${seed}`,
+                  x: 0,
+                  y: (random(2) - 0.5) * 15,
+                  // Slight vertical randomness
+                  rotate: 0,
+                  scale: 1.5,
+                  marginRight: "3rem",
+                  alignSelf: "center",
+                  passedRotate: 0
+                };
+              }
+              const placement = placementOf(i4);
+              const wordConfigScale = placement.pose.scale;
+              const xVal = placement.offset.x;
+              const yVal = placement.offset.y;
+              let marginRight = isChaotic ? `${random(5) * 1.5}rem` : "0.8rem";
+              if (!resolvedClassicTuning.useLegacyLayout) {
+                const w_i = wordWidths[i4] ?? 0;
+                const s_i = wordConfigScale * 1.4;
+                let w_next = 0;
+                let s_next = 1;
+                let x_next = 0;
+                if (i4 + 1 < displayWords.length) {
+                  const next = placementOf(i4 + 1);
+                  s_next = next.pose.scale * 1.4;
+                  x_next = next.offset.x;
+                  w_next = next.width;
+                }
+                const spacingMultiplier = resolvedClassicTuning.wordSpacing ?? 0.7;
+                const gap = 0.05 * pxFontSize;
+                const halfOverflow_i = w_i * (s_i - 1) / 2;
+                const halfOverflow_next = w_next * (s_next - 1) / 2;
+                const xOffsetDiff = rtl ? x_next - xVal : xVal - x_next;
+                const calculatedMargin = (halfOverflow_i + halfOverflow_next + xOffsetDiff + gap) * spacingMultiplier;
+                const minMargin = (isChaotic ? 0.08 * pxFontSize : 0.12 * pxFontSize) * spacingMultiplier;
+                let finalMargin = Math.max(minMargin, calculatedMargin);
+                if (avoidOverlap) {
+                  if (i4 + 1 < displayWords.length) {
+                    const pairGap = getGlowWordPairGap(placement, placementOf(i4 + 1), pxFontSize, rtl ? "rtl" : "ltr");
+                    finalMargin = Math.max(finalMargin, pairGap + gap);
+                  }
+                  const overflow = getGlowWordOverflow(placement.width, pxFontSize, placement.pose, placement.offset);
+                  rowReachTop = Math.max(rowReachTop, overflow.top);
+                  rowReachBottom = Math.max(rowReachBottom, overflow.bottom);
+                }
+                marginRight = `${finalMargin.toFixed(1)}px`;
+              }
+              return {
+                id: `${w4.text}-${i4}-${seed}`,
+                x: xVal,
+                y: yVal,
+                rotate: placement.pose.rotate,
+                scale: wordConfigScale,
+                marginRight,
+                alignSelf: isChaotic && random(6) > 0.7 ? random(7) > 0.5 ? "flex-start" : "flex-end" : "auto",
+                passedRotate: placement.pose.passedRotate
+              };
+            });
+            if (avoidOverlap) {
+              lineConfig2.rowGap = Math.ceil(rowReachTop + rowReachBottom);
+              lineConfig2.reachTop = Math.ceil(rowReachTop);
+              lineConfig2.reachBottom = Math.ceil(rowReachBottom);
+            }
+            return { wordConfigs: wordConfigs2, lineConfig: lineConfig2 };
+          }, [activeLine2, displayWords, resolvedClassicTuning.enableWordRotation, resolvedClassicTuning.useLegacyLayout, resolvedClassicTuning.wordSpacing, resolvedClassicTuning.avoidOverlap, theme, lineFontScale, viewportWidth]);
+          const layoutVariants = buildGlowWordLayoutVariants(theme.animationIntensity, resolvedClassicTuning.enableWordRotation);
+          const bodyVariants = glowWordBodyVariants;
+          const lyricContainerFloat = useMemo(() => {
+            const multiplier = resolvedClassicTuning.breathingFloatMultiplier;
+            if (multiplier <= 0) {
+              return null;
+            }
+            const configByIntensity = {
+              calm: { distance: 10, duration: 8.5 },
+              normal: { distance: 14, duration: 7 },
+              chaotic: { distance: 18, duration: 5.8 }
+            };
+            const { distance, duration } = configByIntensity[theme.animationIntensity];
+            const scaledDistance = distance * multiplier;
+            return {
+              animate: {
+                y: [0, -scaledDistance, 0, scaledDistance * 0.45, 0],
+                scale: [1, 1 + 0.01 * multiplier, 1, 1 - 5e-3 * multiplier, 1]
+              },
+              transition: {
+                duration,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }
+            };
+          }, [resolvedClassicTuning.breathingFloatMultiplier, theme.animationIntensity]);
+          return /* @__PURE__ */ jsxs(
+            VisualizerShell_default,
+            {
+              theme,
+              audioPower,
+              audioBands,
+              sharedProps: props,
+              children: [
+                /* @__PURE__ */ jsx(
+                  motion.div,
+                  {
+                    ref: lyricAreaRef,
+                    className: "relative z-10 w-full h-[70vh] flex items-center justify-center p-8 pointer-events-none will-change-transform",
+                    animate: lyricContainerFloat?.animate,
+                    transition: lyricContainerFloat?.transition,
+                    children: /* @__PURE__ */ jsxs(AnimatePresence, { mode: "popLayout", custom: !showText, children: [
+                      showText && activeLine2 && /* @__PURE__ */ jsx(
+                        motion.div,
+                        {
+                          initial: activeLineContainerMotion.initial,
+                          animate: activeLineContainerMotion.animate,
+                          custom: !showText,
+                          variants: { leave: (hidden) => hidden ? TEXT_HIDDEN_EXIT : activeLineContainerMotion.exit },
+                          exit: "leave",
+                          dir: resolveLyricTextDirection(activeLine2.fullText),
+                          className: `flex flex-wrap w-full max-w-6xl content-center ${lineConfig.justifyContent} ${lineConfig.alignItems}`,
+                          ...{ [OVERLAP_FIT_LINE_ATTRIBUTE]: activeLine2.startTime },
+                          style: {
+                            perspective: `${lineConfig.perspective}px`,
+                            // The overlap fit measures the content: the rows are centred either way.
+                            minHeight: lineConfig.rowGap === void 0 ? "300px" : void 0,
+                            rowGap: lineConfig.rowGap,
+                            paddingTop: lineConfig.reachTop,
+                            paddingBottom: lineConfig.reachBottom
+                          },
+                          children: displayWords.map((word, idx) => {
+                            const config = wordConfigs[idx] || { id: `fallback-${idx}`, x: 0, y: 0, rotate: 0, scale: 1, marginRight: "0.5rem", alignSelf: "auto", passedRotate: 0 };
+                            const activeColor = resolveWordColor(word.text, theme.wordColors, theme.accentColor);
+                            return /* @__PURE__ */ jsx(
+                              GlowWord,
+                              {
+                                word,
+                                config,
+                                currentTime,
+                                theme,
+                                layoutVariants,
+                                bodyVariants,
+                                baseColor: theme.primaryColor,
+                                activeColor,
+                                renderProfile: activeWordRenderProfile,
+                                isChorus: activeLine2.isChorus,
+                                fontSize: mainFontSize,
+                                layoutStyle: { marginInlineEnd: config.marginRight, alignSelf: config.alignSelf }
+                              },
+                              `${word.text}-${idx}-${activeLine2.startTime}`
+                            );
+                          })
+                        },
+                        activeLine2.startTime
+                      ),
+                      showText && !activeLine2 && /* @__PURE__ */ jsx(
+                        motion.div,
+                        {
+                          initial: { opacity: 0 },
+                          animate: { opacity: 1 },
+                          exit: { opacity: 0 },
+                          className: "text-2xl opacity-50 absolute",
+                          style: {
+                            color: theme.secondaryColor,
+                            fontSize: emptyFontSize
+                          },
+                          children: t4("ui.waitingForMusic")
+                        },
+                        "empty"
+                      )
+                    ] })
+                  }
+                ),
+                /* @__PURE__ */ jsx(
+                  VisualizerSubtitleOverlay_default,
+                  {
+                    showText,
+                    activeLine: activeLine2,
+                    recentCompletedLine,
+                    nextLines,
+                    theme,
+                    subtitleTheme,
+                    translationFontSize,
+                    upcomingFontSize,
+                    subtitleOverlayOpacity,
+                    subtitleOverlayBackground,
+                    subtitleUpcomingLyricsBlur,
+                    subtitleFontScale,
+                    isPlayerChromeHidden,
+                    hideTranslationSubtitle,
+                    subtitleOverlayLayout
+                  }
+                )
+              ]
+            }
+          );
+        };
+        Visualizer_default = Visualizer;
+      }
+    });
+  
     // src/folia/components/visualizer/still/VisualizerStill.tsx
     var VisualizerStill_exports = {};
     __export(VisualizerStill_exports, {
@@ -333,121 +2719,6 @@ function __mpStylesBundle() {
           );
         };
         VisualizerStill_default = VisualizerStill;
-      }
-    });
-  
-    // src/folia/shims/settings-card.tsx
-    var Stub, CladdaghSettingsPanel, DioramaSettingsPanel, FumeSettingsPanel, MonetSettingsPanel, PartitaSettingsPanel, TiltSettingsPanel, Tooltip, SettingsKitThemeContext, NEBBIA_APPEAR_LABEL_KEYS, NEBBIA_FADE_LABEL_KEYS, settings_card_default;
-    var init_settings_card = __esm({
-      "src/folia/shims/settings-card.tsx"() {
-        init_react_shim();
-        Stub = () => null;
-        CladdaghSettingsPanel = Stub;
-        DioramaSettingsPanel = Stub;
-        FumeSettingsPanel = Stub;
-        MonetSettingsPanel = Stub;
-        PartitaSettingsPanel = Stub;
-        TiltSettingsPanel = Stub;
-        Tooltip = Stub;
-        SettingsKitThemeContext = react_shim_default.createContext(null);
-        NEBBIA_APPEAR_LABEL_KEYS = {};
-        NEBBIA_FADE_LABEL_KEYS = {};
-        settings_card_default = Stub;
-      }
-    });
-  
-    // src/folia/shims/framer-motion.js
-    var framer, motionFallback, motion, AnimatePresence, MotionConfig, LayoutGroup, useMotionValue, useSpring, useTransform, useMotionValueEvent, useDragControls, motionValue, useReducedMotion, animate;
-    var init_framer_motion = __esm({
-      "src/folia/shims/framer-motion.js"() {
-        init_react_shim();
-        framer = typeof MPFramer !== "undefined" && MPFramer !== null ? MPFramer : {};
-        motionFallback = new Proxy({}, {
-          get: (_target, tag) => function MotionFallback(props) {
-            return react_shim_default.createElement(tag, props);
-          }
-        });
-        motion = framer.motion || motionFallback;
-        AnimatePresence = framer.AnimatePresence || ((props) => props && props.children || null);
-        MotionConfig = framer.MotionConfig || ((props) => props && props.children || null);
-        LayoutGroup = framer.LayoutGroup || ((props) => props && props.children || null);
-        useMotionValue = framer.useMotionValue || function useMotionValue2(initial) {
-          let value = initial;
-          return {
-            get: () => value,
-            set: (next) => {
-              value = next;
-            },
-            on: () => () => {
-            },
-            subscribe: () => () => {
-            },
-            destroy: () => {
-            }
-          };
-        };
-        useSpring = framer.useSpring || ((value) => value);
-        useTransform = framer.useTransform || ((value, map) => ({
-          get: () => typeof map === "function" ? map(value && typeof value.get === "function" ? value.get() : value) : 0,
-          set: () => {
-          },
-          on: () => () => {
-          },
-          subscribe: () => () => {
-          },
-          destroy: () => {
-          }
-        }));
-        useMotionValueEvent = framer.useMotionValueEvent || function useMotionValueEvent2(value, event, callback) {
-          react_shim_default.useEffect(() => {
-            if (!value || typeof value.on !== "function") return void 0;
-            const unsubscribe = value.on(event, callback);
-            if (event === "change" && typeof value.get === "function") callback(value.get());
-            return typeof unsubscribe === "function" ? unsubscribe : void 0;
-          }, [value, event, callback]);
-        };
-        useDragControls = framer.useDragControls || (() => ({ start: () => {
-        }, subscribe: () => () => {
-        } }));
-        motionValue = framer.motionValue || ((initial) => {
-          let value = initial;
-          return {
-            get: () => value,
-            set: (next) => {
-              value = next;
-            },
-            on: () => () => {
-            },
-            subscribe: () => () => {
-            },
-            destroy: () => {
-            }
-          };
-        });
-        useReducedMotion = framer.useReducedMotion || (() => false);
-        animate = framer.animate || (() => ({ stop: () => {
-        } }));
-      }
-    });
-  
-    // src/folia/shims/i18n.ts
-    var pluginTranslate, useTranslation;
-    var init_i18n = __esm({
-      "src/folia/shims/i18n.ts"() {
-        pluginTranslate = (key, vars) => {
-          const translate = globalThis.MP_FOLIA_T;
-          if (typeof translate !== "function") return "";
-          try {
-            const text = translate(key, vars);
-            return typeof text === "string" && text !== key ? text : "";
-          } catch {
-            return "";
-          }
-        };
-        useTranslation = () => ({
-          t: pluginTranslate,
-          i18n: { language: "zh", changeLanguage: async () => void 0 }
-        });
       }
     });
   
@@ -1646,7 +3917,7 @@ function __mpStylesBundle() {
     function containsArabicScript(text) {
       return arabicScriptRe.test(text);
     }
-    function isCJK(s4) {
+    function isCJK2(s4) {
       return cjkRe.test(s4);
     }
     function endsWithLineStartProhibitedText(text) {
@@ -2036,14 +4307,14 @@ function __mpStylesBundle() {
         return asciiAlphabeticBoundaryRe.test(last) || decimalDigitRe.test(last) || `"'([{`.includes(last) || isLineBreakNumericAffix(last);
       }
       if (last.charCodeAt(0) >= 128) {
-        return !isCJK(last) && /[\p{L}\p{N}]/u.test(last) ? true : null;
+        return !isCJK2(last) && /[\p{L}\p{N}]/u.test(last) ? true : null;
       }
       return /[A-Za-z0-9]/.test(last) || "$'(/<@[^_`{".includes(last);
     }
     function canJoinNoSpaceWordBoundary(leftText, leftWordLike, rightText, rightWordLike, profile) {
-      if (rightText[0] === "-" && isCJK(leftText))
+      if (rightText[0] === "-" && isCJK2(leftText))
         return true;
-      if (isCJK(leftText) || isCJK(rightText))
+      if (isCJK2(leftText) || isCJK2(rightText))
         return false;
       const openingJoin = openingPunctuationJoinsPrevious(leftText, rightText, profile);
       if (openingJoin !== null)
@@ -2251,7 +4522,7 @@ function __mpStylesBundle() {
       for (let i4 = 0; i4 < texts.length - 1; i4++) {
         if (kinds[i4] !== "text" || kinds[i4 + 1] !== "text")
           continue;
-        if (!isCJK(texts[i4]) || !isCJK(texts[i4 + 1]))
+        if (!isCJK2(texts[i4]) || !isCJK2(texts[i4 + 1]))
           continue;
         const split = splitTrailingForwardStickyCluster(texts[i4]);
         if (split === null)
@@ -2283,7 +4554,7 @@ function __mpStylesBundle() {
         for (const piece of splitSegmentByBreakKind(s4.segment, s4.isWordLike ?? false, s4.index, whiteSpace)) {
           const isText = piece.kind === "text";
           const repeatableSingleCharRunChar = getRepeatableSingleCharRunChar(piece.text, piece.isWordLike, piece.kind);
-          const pieceContainsCJK = isCJK(piece.text);
+          const pieceContainsCJK = isCJK2(piece.text);
           const pieceContainsArabicScript = containsArabicScript(piece.text);
           const pieceLastCodePoint = getLastCodePoint(piece.text);
           const pieceEndsWithClosingQuote = endsWithClosingQuote(piece.text);
@@ -2346,7 +4617,7 @@ function __mpStylesBundle() {
         mergedLen++;
       }
       for (let i4 = 1; i4 < mergedLen; i4++) {
-        if (mergedKinds[i4] === "text" && !mergedWordLike[i4] && isPunctuationGlueCluster(mergedTexts[i4]) && mergedKinds[i4 - 1] === "text" && !isCJK(mergedTexts[i4 - 1]) && (numericAffixBoundary(normalized, mergedStarts[i4], profile) ?? openingPunctuationJoinsPrevious(normalized, mergedTexts[i4], profile, mergedStarts[i4])) !== false) {
+        if (mergedKinds[i4] === "text" && !mergedWordLike[i4] && isPunctuationGlueCluster(mergedTexts[i4]) && mergedKinds[i4 - 1] === "text" && !isCJK2(mergedTexts[i4 - 1]) && (numericAffixBoundary(normalized, mergedStarts[i4], profile) ?? openingPunctuationJoinsPrevious(normalized, mergedTexts[i4], profile, mergedStarts[i4])) !== false) {
           mergedTexts[i4 - 1] += mergedTexts[i4];
           mergedWordLike[i4 - 1] = mergedWordLike[i4 - 1] || mergedWordLike[i4];
           mergedTexts[i4] = "";
@@ -2469,7 +4740,7 @@ function __mpStylesBundle() {
           }
           if (groupStart < 0)
             groupStart = i4;
-          groupContainsCJK = groupContainsCJK || isCJK(text);
+          groupContainsCJK = groupContainsCJK || isCJK2(text);
           continue;
         }
         flushGroup(i4);
@@ -2501,7 +4772,7 @@ function __mpStylesBundle() {
         const start = previousCodePointStart(text, end);
         const previous = text.slice(start, end);
         if (!combiningMarkRe.test(previous))
-          return isCJK(previous) || !/[\p{L}\p{N}]/u.test(previous);
+          return isCJK2(previous) || !/[\p{L}\p{N}]/u.test(previous);
         end = start;
       }
       return true;
@@ -2552,7 +4823,7 @@ function __mpStylesBundle() {
       }
       for (const gs4 of getSharedGraphemeSegmenter().segment(segText)) {
         const grapheme = gs4.segment;
-        const graphemeContainsCJK = isCJK(grapheme);
+        const graphemeContainsCJK = isCJK2(grapheme);
         if (unitEnd === unitStart) {
           startUnit(grapheme, gs4.index, graphemeContainsCJK);
           continue;
@@ -2612,7 +4883,7 @@ function __mpStylesBundle() {
         }
         if (groupStart < 0)
           groupStart = i4;
-        groupContainsCJK = groupContainsCJK || isCJK(unit2.text);
+        groupContainsCJK = groupContainsCJK || isCJK2(unit2.text);
       }
       flushGroup(units.length);
       return merged;
@@ -3900,7 +6171,7 @@ function __mpStylesBundle() {
           pushMeasuredSegment(segText, 0, 0, 0, segKind, segStart, null, null, hasLetterSpacing ? countRenderedSpacingGraphemes(segText, segKind) : 0);
           continue;
         }
-        if (segKind === "text" && isCJK(segText)) {
+        if (segKind === "text" && isCJK2(segText)) {
           const measuredUnits = getCjkTextUnits(segText, engineProfile, wordBreak);
           for (let i4 = 0; i4 < measuredUnits.length; i4++) {
             const unit2 = measuredUnits[i4];
@@ -4032,444 +6303,6 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/types.ts
-    var DEFAULT_CADENZA_TUNING, DEFAULT_PARTITA_TUNING, DEFAULT_FUME_TUNING, DEFAULT_CLADDAGH_TUNING, DEFAULT_TILT_TUNING, DEFAULT_SONNET_TUNING, DEFAULT_TEMPERA_TUNING, DEFAULT_LUMIERE_TUNING, DEFAULT_DIORAMA_GEOMETRY_VISIBILITY, DIORAMA_PARTICLE_DENSITY_MIN, DIORAMA_PARTICLE_DENSITY_MAX, DIORAMA_PARTICLE_DENSITY_STEP, DIORAMA_MOTE_CIRCUMFERENCE_MIN, DIORAMA_MOTE_CIRCUMFERENCE_MAX, DIORAMA_MOTE_RADIAL_MIN, DIORAMA_MOTE_RADIAL_MAX, DEFAULT_DIORAMA_TUNING, MONET_CHROME_VISIBILITIES, DEFAULT_MONET_TUNING;
-    var init_types = __esm({
-      "src/folia/types.ts"() {
-        DEFAULT_CADENZA_TUNING = {
-          render: { scale: "global", antialias: "global" },
-          fontScale: 1.12,
-          widthRatio: 0.72,
-          motionAmount: 1,
-          glowIntensity: 1,
-          beamIntensity: 0
-        };
-        DEFAULT_PARTITA_TUNING = {
-          showGuideLines: true,
-          useSemanticLayout: true,
-          staggerMin: 20,
-          staggerMax: 100,
-          avoidOverlap: false
-        };
-        DEFAULT_FUME_TUNING = {
-          render: { scale: "global", antialias: "global" },
-          hidePrintSymbols: false,
-          disableGeometricBackground: true,
-          backgroundObjectOpacity: 0.5,
-          textHoldRatio: 1,
-          cameraTrackingMode: "smooth",
-          cameraSpeed: 1,
-          glowIntensity: 1,
-          heroScale: 1
-        };
-        DEFAULT_CLADDAGH_TUNING = {
-          focusScaleRatio: 0.65,
-          radiusScale: 1,
-          ellipseTiltDeg: 45,
-          showAxisLine: true,
-          letterSpacingOffset: 0,
-          positionX: 0,
-          positionY: 0,
-          showTranslation: false,
-          translationScale: 1,
-          translationLetterSpacingOffset: 0
-        };
-        DEFAULT_TILT_TUNING = {
-          splitProbability: 0.75,
-          tiltStyleProbability: 0.35,
-          colorScheme: "default"
-        };
-        DEFAULT_SONNET_TUNING = {
-          render: { scale: "global", antialias: "global" },
-          cameraIntensity: 1,
-          typographyMotion: 1,
-          mgDensity: 1,
-          showOnlyText: false,
-          showGuide: true,
-          showBackgroundMg: true,
-          showFixedGeo: true,
-          showGiantDecorativeText: true,
-          showBackgroundDecor: true,
-          enableTransitions: true,
-          outerFrameMode: "full",
-          textureResolution: 1.5,
-          postProcessEnabled: false,
-          postProcessGrain: 0.2,
-          postProcessContrast: 0,
-          postProcessRgbShift: 0,
-          postProcessHalftone: 0,
-          postProcessVignette: 0.85,
-          postProcessLensDistortion: 0.3,
-          postProcessLensDispersion: 0.6
-        };
-        DEFAULT_TEMPERA_TUNING = {
-          render: { scale: "global", antialias: "global" },
-          cameraIntensity: 1,
-          glyphMotion: 1,
-          wholeLineLyrics: false,
-          glyphSettleStretch: 0.5,
-          depthOfField: 1,
-          depthPan: 1,
-          glyphDepth: 1,
-          colorMode: "duo",
-          showBlocks: true,
-          showDecor: true,
-          showCornerMarks: true,
-          textInversion: true,
-          layerImages: [],
-          layerImageDepth: "back",
-          layerImageFrequency: 0.6,
-          enableTransitions: true,
-          textureResolution: 1.5,
-          postProcessEnabled: true,
-          postProcessTextureCompression: false,
-          postProcessGrain: 0.2,
-          postProcessContrast: 0,
-          postProcessRgbShift: 0,
-          postProcessVignette: 0.85,
-          postProcessLensDistortion: 0.3
-        };
-        DEFAULT_LUMIERE_TUNING = {
-          render: { scale: "global", antialias: "global" },
-          lightIntensity: 1,
-          audioResponse: 1,
-          fogDensity: 1,
-          darkField: 0.75,
-          moteAmount: 1,
-          bloom: 1,
-          textBloom: 1,
-          unlitOpacity: 0.22,
-          windowNeighbors: 2,
-          decay: 1,
-          echo: 1,
-          fogOctaves: 5,
-          lineArt: true,
-          frontBokeh: true,
-          trails: true,
-          hideTrails: false,
-          seamlessTransitions: true,
-          overlayFrame: true,
-          textOnly: false,
-          keywordColors: true,
-          themeIcons: true,
-          themeColorMix: 0.3,
-          renderQuality: "full"
-        };
-        DEFAULT_DIORAMA_GEOMETRY_VISIBILITY = {
-          enabled: true,
-          mode: "clouds",
-          strands: true,
-          blobs: true,
-          ribbons: true,
-          rings: true
-        };
-        DIORAMA_PARTICLE_DENSITY_MIN = 96;
-        DIORAMA_PARTICLE_DENSITY_MAX = 1536;
-        DIORAMA_PARTICLE_DENSITY_STEP = 24;
-        DIORAMA_MOTE_CIRCUMFERENCE_MIN = 4;
-        DIORAMA_MOTE_CIRCUMFERENCE_MAX = 48;
-        DIORAMA_MOTE_RADIAL_MIN = 1;
-        DIORAMA_MOTE_RADIAL_MAX = 4;
-        DEFAULT_DIORAMA_TUNING = {
-          render: { scale: "global", antialias: "global" },
-          cameraSpeed: 1,
-          motionAmount: 1,
-          audioReactivity: 1,
-          geometryVisibility: DEFAULT_DIORAMA_GEOMETRY_VISIBILITY,
-          particleDensity: 576,
-          particleScale: 1,
-          particleGlowEnabled: true,
-          particleGlowIntensity: 0.65,
-          showParticles: true,
-          backgroundParticleCircumference: 28,
-          backgroundParticleRadial: 2,
-          glowEnabled: true,
-          glowIntensity: 1,
-          soulEnabled: true,
-          soulIntensity: 1,
-          soulActiveEnabled: false,
-          gradientEnabled: false,
-          gradientIntensity: 1,
-          keywordColoringEnabled: true
-        };
-        MONET_CHROME_VISIBILITIES = ["auto", "always", "hidden"];
-        DEFAULT_MONET_TUNING = {
-          render: { scale: "global", antialias: "global" },
-          keywordColoringEnabled: true,
-          showDescription: true,
-          descriptionVisibility: "auto",
-          showAudioVisualization: true,
-          audioStyle: "bar",
-          fontScale: 1.2,
-          portraitSource: "cover",
-          portraitOffsetX: 0,
-          portraitStyle: "square",
-          showPortraitDragHanger: true,
-          portraitHangerVisibility: "auto",
-          mirrorLayout: false,
-          customDescription: ""
-        };
-      }
-    });
-  
-    // src/folia/utils/lyrics/graphemeTiming.ts
-    var graphemeSegmenter, splitLyricGraphemes, buildEvenGraphemeTimings, buildWordGraphemeTimings, findGraphemeSequence, buildLineGraphemeTimeline;
-    var init_graphemeTiming = __esm({
-      "src/folia/utils/lyrics/graphemeTiming.ts"() {
-        graphemeSegmenter = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
-        splitLyricGraphemes = (text) => {
-          if (!text) {
-            return [];
-          }
-          if (graphemeSegmenter) {
-            return Array.from(graphemeSegmenter.segment(text), ({ segment: segment2 }) => segment2);
-          }
-          return Array.from(text);
-        };
-        buildEvenGraphemeTimings = (text, startTime, endTime, wordIndex) => {
-          const graphemes2 = splitLyricGraphemes(text);
-          if (graphemes2.length === 0) {
-            return [];
-          }
-          const duration = Math.max(endTime - startTime, 0);
-          const unitDuration = duration / graphemes2.length;
-          return graphemes2.map((char, index) => ({
-            char,
-            startTime: startTime + unitDuration * index,
-            endTime: index === graphemes2.length - 1 ? endTime : startTime + unitDuration * (index + 1),
-            ...typeof wordIndex === "number" ? { wordIndex } : {}
-          }));
-        };
-        buildWordGraphemeTimings = (word, wordIndex) => {
-          if (!word.syllables?.length) {
-            return buildEvenGraphemeTimings(word.text, word.startTime, word.endTime, wordIndex);
-          }
-          return word.syllables.flatMap(
-            (syllable) => buildEvenGraphemeTimings(syllable.text, syllable.startTime, syllable.endTime, wordIndex)
-          );
-        };
-        findGraphemeSequence = (source, target, fromIndex) => {
-          if (target.length === 0) {
-            return fromIndex;
-          }
-          for (let index = fromIndex; index <= source.length - target.length; index += 1) {
-            let matched = true;
-            for (let targetIndex = 0; targetIndex < target.length; targetIndex += 1) {
-              if (source[index + targetIndex] !== target[targetIndex]) {
-                matched = false;
-                break;
-              }
-            }
-            if (matched) {
-              return index;
-            }
-          }
-          return -1;
-        };
-        buildLineGraphemeTimeline = (line2) => {
-          const lineGraphemes = splitLyricGraphemes(line2.fullText);
-          if (lineGraphemes.length === 0) {
-            return [];
-          }
-          if (line2.words.length === 0) {
-            return buildEvenGraphemeTimings(line2.fullText, line2.startTime, line2.endTime);
-          }
-          const timeline = [];
-          let cursor = 0;
-          let lastResolvedTime = line2.startTime;
-          line2.words.forEach((word, wordIndex) => {
-            const wordGraphemes = splitLyricGraphemes(word.text);
-            if (wordGraphemes.length === 0) {
-              return;
-            }
-            const matchedStart = findGraphemeSequence(lineGraphemes, wordGraphemes, cursor);
-            const start = matchedStart >= 0 ? matchedStart : cursor;
-            const end = Math.min(start + wordGraphemes.length, lineGraphemes.length);
-            for (let gapIndex = cursor; gapIndex < start; gapIndex += 1) {
-              timeline[gapIndex] = {
-                char: lineGraphemes[gapIndex],
-                startTime: word.startTime,
-                endTime: word.startTime
-              };
-            }
-            const wordTimings = buildWordGraphemeTimings(word, wordIndex);
-            for (let localIndex = 0; localIndex < end - start; localIndex += 1) {
-              const timing = wordTimings[localIndex] ?? buildEvenGraphemeTimings(
-                wordGraphemes[localIndex] ?? "",
-                word.startTime,
-                word.endTime,
-                wordIndex
-              )[0];
-              if (!timing) {
-                continue;
-              }
-              timeline[start + localIndex] = {
-                ...timing,
-                char: lineGraphemes[start + localIndex]
-              };
-              lastResolvedTime = Math.max(lastResolvedTime, timing.endTime);
-            }
-            cursor = Math.max(cursor, end);
-          });
-          for (let index = 0; index < lineGraphemes.length; index += 1) {
-            if (timeline[index]) {
-              continue;
-            }
-            timeline[index] = {
-              char: lineGraphemes[index],
-              startTime: lastResolvedTime,
-              endTime: lastResolvedTime
-            };
-          }
-          return timeline;
-        };
-      }
-    });
-  
-    // src/folia/utils/lyrics/renderHints.ts
-    function buildLineRenderHints(lineOrStart, endTime) {
-      const line2 = typeof lineOrStart === "number" ? { startTime: lineOrStart, endTime: endTime ?? lineOrStart } : lineOrStart;
-      const rawDuration = Math.max(line2.endTime - line2.startTime, 0);
-      const timingClass = getTimingClass(rawDuration);
-      const lineTransitionMode = getLineTransitionMode(timingClass);
-      const wordRevealMode = getWordRevealMode(timingClass);
-      return {
-        rawDuration,
-        timingClass,
-        renderEndTime: buildLineRenderEndTime(line2, rawDuration, lineTransitionMode, wordRevealMode),
-        lineTransitionMode,
-        wordRevealMode
-      };
-    }
-    function migrateLyricDataRenderHints(lyrics) {
-      if (!lyrics) {
-        return { value: null, changed: false };
-      }
-      const migration = migrateLyricLinesRenderHints(lyrics.lines);
-      if (!migration.changed) {
-        return { value: lyrics, changed: false };
-      }
-      return {
-        value: {
-          ...lyrics,
-          lines: migration.value
-        },
-        changed: true
-      };
-    }
-    var MICRO_LINE_DURATION_THRESHOLD, SHORT_LINE_DURATION_THRESHOLD, MICRO_LINE_RENDER_FLOOR, getLastWordEndTime, getLineTransitionTiming, getTimingClass, getLineTransitionMode, getWordRevealMode, clamp, buildLineRenderEndTime, getLineRenderHints, getLineRenderEndTime, hasExpectedRenderHints, migrateLyricLinesRenderHints, annotateLyricLines, ensureLyricDataRenderHints;
-    var init_renderHints = __esm({
-      "src/folia/utils/lyrics/renderHints.ts"() {
-        MICRO_LINE_DURATION_THRESHOLD = 0.1;
-        SHORT_LINE_DURATION_THRESHOLD = 0.18;
-        MICRO_LINE_RENDER_FLOOR = 0.067;
-        getLastWordEndTime = (line2) => {
-          const lastWord = line2.words?.[line2.words.length - 1];
-          return lastWord?.endTime ?? line2.endTime;
-        };
-        getLineTransitionTiming = (rawDuration, lineTransitionMode, wordRevealMode) => {
-          if (lineTransitionMode === "none") {
-            return {
-              enterDuration: 0,
-              exitDuration: 0,
-              linePassHold: 0
-            };
-          }
-          if (lineTransitionMode === "fast") {
-            return {
-              enterDuration: clamp(rawDuration * 0.45, 0.045, 0.06),
-              exitDuration: clamp(rawDuration * 0.22, 0.03, 0.04),
-              linePassHold: wordRevealMode === "instant" ? 0 : 0.03
-            };
-          }
-          return {
-            enterDuration: Math.min(0.42, Math.max(0.22, Math.max(rawDuration, 0.12) * 0.34)),
-            exitDuration: Math.min(0.32, Math.max(0.18, Math.max(rawDuration, 0.12) * 0.18)),
-            linePassHold: wordRevealMode === "instant" ? 0 : 0.06
-          };
-        };
-        getTimingClass = (rawDuration) => {
-          if (rawDuration < MICRO_LINE_DURATION_THRESHOLD) {
-            return "micro";
-          }
-          if (rawDuration < SHORT_LINE_DURATION_THRESHOLD) {
-            return "short";
-          }
-          return "normal";
-        };
-        getLineTransitionMode = (timingClass) => {
-          if (timingClass === "micro") {
-            return "none";
-          }
-          if (timingClass === "short") {
-            return "fast";
-          }
-          return "normal";
-        };
-        getWordRevealMode = (timingClass) => {
-          if (timingClass === "micro") {
-            return "instant";
-          }
-          if (timingClass === "short") {
-            return "fast";
-          }
-          return "normal";
-        };
-        clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-        buildLineRenderEndTime = (line2, rawDuration, lineTransitionMode, wordRevealMode) => {
-          if (lineTransitionMode === "none") {
-            return Math.max(line2.endTime, line2.startTime + MICRO_LINE_RENDER_FLOOR);
-          }
-          const transitionTiming = getLineTransitionTiming(rawDuration, lineTransitionMode, wordRevealMode);
-          const linePassStart = Math.max(getLastWordEndTime(line2), line2.startTime) + transitionTiming.linePassHold;
-          const exitStart = lineTransitionMode === "fast" ? Math.max(line2.startTime + transitionTiming.enterDuration + 0.01, linePassStart, line2.endTime - transitionTiming.exitDuration) : Math.max(linePassStart, line2.endTime - transitionTiming.exitDuration);
-          return Math.max(line2.endTime, exitStart + transitionTiming.exitDuration);
-        };
-        getLineRenderHints = (line2) => {
-          if (!line2) {
-            return null;
-          }
-          return line2.renderHints ?? buildLineRenderHints(line2);
-        };
-        getLineRenderEndTime = (line2) => {
-          if (!line2) {
-            return Number.NEGATIVE_INFINITY;
-          }
-          return getLineRenderHints(line2)?.renderEndTime ?? line2.endTime;
-        };
-        hasExpectedRenderHints = (line2, expected) => {
-          const current = line2.renderHints;
-          return Boolean(
-            current && current.rawDuration === expected.rawDuration && current.timingClass === expected.timingClass && current.renderEndTime === expected.renderEndTime && current.lineTransitionMode === expected.lineTransitionMode && current.wordRevealMode === expected.wordRevealMode
-          );
-        };
-        migrateLyricLinesRenderHints = (lines) => {
-          let changed = false;
-          const nextLines = lines.map((line2) => {
-            const renderHints = buildLineRenderHints(line2);
-            if (hasExpectedRenderHints(line2, renderHints)) {
-              return line2;
-            }
-            changed = true;
-            return {
-              ...line2,
-              renderHints
-            };
-          });
-          return {
-            value: changed ? nextLines : lines,
-            changed
-          };
-        };
-        annotateLyricLines = (lines) => {
-          return migrateLyricLinesRenderHints(lines).value;
-        };
-        ensureLyricDataRenderHints = (lyrics) => {
-          return migrateLyricDataRenderHints(lyrics).value;
-        };
-      }
-    });
-  
     // src/folia/utils/lyrics/sentenceLayout.ts
     function findRegexMatch(regex, text, fromIndex = 0) {
       regex.lastIndex = fromIndex;
@@ -4480,11 +6313,11 @@ function __mpStylesBundle() {
       const idx = text.indexOf(str, fromIndex);
       return idx === -1 ? null : { start: idx, end: idx + str.length };
     }
-    var CJK_REGEX, hasCjkText, SentenceLayout;
+    var CJK_REGEX3, hasCjkText2, SentenceLayout;
     var init_sentenceLayout = __esm({
       "src/folia/utils/lyrics/sentenceLayout.ts"() {
-        CJK_REGEX = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
-        hasCjkText = (text) => CJK_REGEX.test(text);
+        CJK_REGEX3 = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
+        hasCjkText2 = (text) => CJK_REGEX3.test(text);
         SentenceLayout = class _SentenceLayout {
           text;
           words = [];
@@ -4569,7 +6402,7 @@ function __mpStylesBundle() {
             return result.filter((r4) => r4.length > 0);
           }
           static splitByWesternWords(text) {
-            if (!hasCjkText(text)) {
+            if (!hasCjkText2(text)) {
               return [text];
             }
             const westernBlockRegex = /[a-zA-Z0-9]+(?:[a-zA-Z0-9'\-]*[a-zA-Z0-9]+)?(?:\s+[a-zA-Z0-9]+(?:[a-zA-Z0-9'\-]*[a-zA-Z0-9]+)?)+[.,;:!?。，；：！？]?\s*/g;
@@ -4629,7 +6462,7 @@ function __mpStylesBundle() {
             return false;
           }
           static splitWesternPhrase(text) {
-            if (!hasCjkText(text) && text.length > 0) {
+            if (!hasCjkText2(text) && text.length > 0) {
               const splitRegex = /(?<=\w[.,;:!?。，；：！？])(?=\s+\w)/;
               const parts = text.split(splitRegex);
               if (parts.length > 1) {
@@ -4696,7 +6529,7 @@ function __mpStylesBundle() {
             return best;
           }
           static splitCJKBySpace(text) {
-            if (!hasCjkText(text)) {
+            if (!hasCjkText2(text)) {
               return [text];
             }
             const segments = [];
@@ -4704,7 +6537,7 @@ function __mpStylesBundle() {
             let inCjkBlock = false;
             for (let i4 = 0; i4 < text.length; i4++) {
               const char = text[i4];
-              const isCJK5 = CJK_REGEX.test(char);
+              const isCJK5 = CJK_REGEX3.test(char);
               const isWestern = /[a-zA-Z0-9]/.test(char);
               const isSpace = /\s/.test(char);
               if (isCJK5) {
@@ -4721,7 +6554,7 @@ function __mpStylesBundle() {
                   inCjkBlock = false;
                 } else if (inCjkBlock && currentSegment.length > 0) {
                   const lastChar = currentSegment[currentSegment.length - 1];
-                  if (CJK_REGEX.test(lastChar)) {
+                  if (CJK_REGEX3.test(lastChar)) {
                     currentSegment += char;
                     segments.push(currentSegment);
                     currentSegment = "";
@@ -4888,468 +6721,6 @@ function __mpStylesBundle() {
             }
             return sentences;
           }
-        };
-      }
-    });
-  
-    // src/folia/components/visualizer/runtime.ts
-    var getRecentCompletedLine, getUpcomingLine, getUpcomingLines, getSubtitleNextLines, shouldPreheatLine, prepareActiveAndUpcoming, useVisualizerRuntime;
-    var init_runtime = __esm({
-      "src/folia/components/visualizer/runtime.ts"() {
-        init_react_shim();
-        getRecentCompletedLine = ({
-          lines,
-          currentLineIndex,
-          currentTime,
-          getLineEndTime = (line2) => line2.endTime
-        }) => {
-          if (currentLineIndex !== -1 || lines.length === 0) {
-            return null;
-          }
-          for (let i4 = lines.length - 1; i4 >= 0; i4--) {
-            if (currentTime > getLineEndTime(lines[i4])) {
-              return lines[i4];
-            }
-          }
-          return null;
-        };
-        getUpcomingLine = (lines, currentLineIndex, currentTime) => {
-          const activeLine2 = lines[currentLineIndex];
-          if (activeLine2) {
-            return lines[currentLineIndex + 1] ?? null;
-          }
-          for (const line2 of lines) {
-            if (line2.startTime > currentTime) {
-              return line2;
-            }
-          }
-          return null;
-        };
-        getUpcomingLines = (lines, currentLineIndex, count = 2) => {
-          if (currentLineIndex < 0) {
-            return [];
-          }
-          return lines.slice(currentLineIndex + 1, currentLineIndex + 1 + count);
-        };
-        getSubtitleNextLines = (lines, currentLineIndex, recentCompletedLine, count = 2) => getUpcomingLines(
-          lines,
-          currentLineIndex >= 0 || !recentCompletedLine ? currentLineIndex : lines.indexOf(recentCompletedLine),
-          count
-        );
-        shouldPreheatLine = (line2, currentTime, window2) => {
-          if (!line2) {
-            return false;
-          }
-          const leadTime = line2.startTime - currentTime;
-          return leadTime >= window2.minLead && leadTime <= window2.maxLead;
-        };
-        prepareActiveAndUpcoming = ({
-          activeLine: activeLine2,
-          upcomingLine,
-          prepareLine
-        }) => {
-          if (!activeLine2) {
-            prepareLine(upcomingLine);
-            return null;
-          }
-          const currentState = prepareLine(activeLine2);
-          prepareLine(upcomingLine);
-          return currentState;
-        };
-        useVisualizerRuntime = ({
-          currentTime,
-          currentLineIndex,
-          lines,
-          getLineEndTime
-        }) => {
-          const currentTimeValue = currentTime.get();
-          const activeLine2 = lines[currentLineIndex] ?? null;
-          const recentCompletedLine = useMemo(() => getRecentCompletedLine({
-            lines,
-            currentLineIndex,
-            currentTime: currentTimeValue,
-            getLineEndTime
-          }), [currentLineIndex, currentTimeValue, getLineEndTime, lines]);
-          const upcomingLine = useMemo(
-            () => getUpcomingLine(lines, currentLineIndex, currentTimeValue),
-            [currentLineIndex, currentTimeValue, lines]
-          );
-          const nextLines = useMemo(
-            () => getSubtitleNextLines(lines, currentLineIndex, recentCompletedLine),
-            [currentLineIndex, lines, recentCompletedLine]
-          );
-          return {
-            currentTimeValue,
-            activeLine: activeLine2,
-            recentCompletedLine,
-            upcomingLine,
-            nextLines
-          };
-        };
-      }
-    });
-  
-    // src/folia/utils/lyrics/alternateText.ts
-    var resolveSingleTrackSubtitleMode, findAlternateText, resolveTrackText, resolveLyricAlternateText, resolveLyricSubtitleTracks, resolveSubtitleContentMode;
-    var init_alternateText = __esm({
-      "src/folia/utils/lyrics/alternateText.ts"() {
-        resolveSingleTrackSubtitleMode = (mode) => mode === "both" ? "translation" : mode;
-        findAlternateText = (alternateTexts, role) => alternateTexts?.find((entry) => entry.role === role && entry.text.trim())?.text.trim() ?? null;
-        resolveTrackText = (source, role) => {
-          const directText = role === "translation" ? source.translation : source.romanization;
-          return directText?.trim() || findAlternateText(source.alternateTexts, role);
-        };
-        resolveLyricAlternateText = (source, mode) => {
-          const singleTrackMode = resolveSingleTrackSubtitleMode(mode);
-          if (!source || singleTrackMode === "none") {
-            return null;
-          }
-          return resolveTrackText(source, singleTrackMode);
-        };
-        resolveLyricSubtitleTracks = (source, mode, isReadable = () => true) => {
-          if (!source || mode === "none") {
-            return [];
-          }
-          const roles = mode === "both" ? ["romanization", "translation"] : [mode];
-          const tracks = [];
-          for (const role of roles) {
-            const text = resolveTrackText(source, role);
-            if (!text || !isReadable(text)) {
-              continue;
-            }
-            if (tracks.some((track) => track.text === text)) {
-              continue;
-            }
-            tracks.push({ role, text });
-          }
-          return tracks;
-        };
-        resolveSubtitleContentMode = (mode, legacyShowTranslation = true) => mode ?? (legacyShowTranslation ? "translation" : "none");
-      }
-    });
-  
-    // src/folia/utils/lyrics/subtitleOverlayLayout.ts
-    var DEFAULT_SUBTITLE_OVERLAY_LAYOUT, ROWS_ONLY_SUFFIX, subtitleOverlayPreviewsUpcoming, rowsLayoutOf, getSubtitleOverlayRows;
-    var init_subtitleOverlayLayout = __esm({
-      "src/folia/utils/lyrics/subtitleOverlayLayout.ts"() {
-        DEFAULT_SUBTITLE_OVERLAY_LAYOUT = "translation";
-        ROWS_ONLY_SUFFIX = "|only";
-        subtitleOverlayPreviewsUpcoming = (layout) => !layout.endsWith(ROWS_ONLY_SUFFIX);
-        rowsLayoutOf = (layout) => subtitleOverlayPreviewsUpcoming(layout) ? layout : layout.slice(0, -ROWS_ONLY_SUFFIX.length);
-        getSubtitleOverlayRows = (layout) => rowsLayoutOf(layout).split("+");
-      }
-    });
-  
-    // src/folia/utils/lyrics/subtitleTrackStyle.ts
-    var SECONDARY_TRACK_SIZE_FACTOR, SECONDARY_TRACK_OPACITY, SECONDARY_TRACK_FONT_WEIGHT_FALLBACK, SECONDARY_TRACK_GAP_EM;
-    var init_subtitleTrackStyle = __esm({
-      "src/folia/utils/lyrics/subtitleTrackStyle.ts"() {
-        SECONDARY_TRACK_SIZE_FACTOR = 0.88;
-        SECONDARY_TRACK_OPACITY = 0.82;
-        SECONDARY_TRACK_FONT_WEIGHT_FALLBACK = 400;
-        SECONDARY_TRACK_GAP_EM = 0.25;
-      }
-    });
-  
-    // src/folia/components/visualizer/textMeasureCache.ts
-    var rememberBounded, measurePrefixOffsets;
-    var init_textMeasureCache = __esm({
-      "src/folia/components/visualizer/textMeasureCache.ts"() {
-        rememberBounded = (cache2, key, value, limit) => {
-          if (!cache2.has(key) && cache2.size >= limit) {
-            const oldest = cache2.keys().next();
-            if (!oldest.done) cache2.delete(oldest.value);
-          }
-          cache2.set(key, value);
-          return value;
-        };
-        measurePrefixOffsets = (graphemes2, measurePrefix) => {
-          const offsets = new Array(graphemes2.length + 1).fill(0);
-          for (let count = 1; count <= graphemes2.length; count += 1) {
-            offsets[count] = measurePrefix(graphemes2.slice(0, count).join(""), count, offsets[count - 1]);
-          }
-          return offsets;
-        };
-      }
-    });
-  
-    // src/folia/components/visualizer/colorMix.ts
-    var clamp2, mix, FALLBACK_RGB, isFiniteChannel, formatRgba, readColor, parsedColors, PARSED_COLOR_LIMIT, parseColor, colorWithAlpha, parseColorChannels, resolveGlowColorStrength, mixColors;
-    var init_colorMix = __esm({
-      "src/folia/components/visualizer/colorMix.ts"() {
-        init_textMeasureCache();
-        clamp2 = (value, min, max) => Math.max(min, Math.min(max, value));
-        mix = (from, to3, amount) => from + (to3 - from) * amount;
-        FALLBACK_RGB = { r: 255, g: 255, b: 255 };
-        isFiniteChannel = (value) => Number.isFinite(value);
-        formatRgba = (channels, alpha) => `rgba(${Math.round(clamp2(channels.r, 0, 255))}, ${Math.round(clamp2(channels.g, 0, 255))}, ${Math.round(clamp2(channels.b, 0, 255))}, ${alpha})`;
-        readColor = (normalizedColor) => {
-          if (!normalizedColor) return "fallback";
-          if (normalizedColor.startsWith("#")) {
-            const hex = normalizedColor.slice(1);
-            const parse = (value) => Number.parseInt(value, 16);
-            if (/^[0-9a-fA-F]{3}$/.test(hex)) {
-              return {
-                r: parse(hex[0] + hex[0]),
-                g: parse(hex[1] + hex[1]),
-                b: parse(hex[2] + hex[2])
-              };
-            }
-            if (/^[0-9a-fA-F]{6}$/.test(hex)) {
-              return {
-                r: parse(hex.slice(0, 2)),
-                g: parse(hex.slice(2, 4)),
-                b: parse(hex.slice(4, 6))
-              };
-            }
-            return "fallback";
-          }
-          const rgbMatch = normalizedColor.match(/^rgba?\(([^)]+)\)$/);
-          if (rgbMatch) {
-            const [r4, g4, b4] = rgbMatch[1].split(",").slice(0, 3).map((part) => Number.parseFloat(part.trim()));
-            if ([r4, g4, b4].every(isFiniteChannel)) {
-              return { r: r4, g: g4, b: b4 };
-            }
-            return "fallback";
-          }
-          return "passthrough";
-        };
-        parsedColors = /* @__PURE__ */ new Map();
-        PARSED_COLOR_LIMIT = 512;
-        parseColor = (color) => {
-          const normalized = typeof color === "string" ? color.trim() : "";
-          let parsed = parsedColors.get(normalized);
-          if (parsed === void 0) {
-            parsed = rememberBounded(parsedColors, normalized, readColor(normalized), PARSED_COLOR_LIMIT);
-          }
-          return { normalized, parsed };
-        };
-        colorWithAlpha = (color, alpha) => {
-          const normalizedAlpha = clamp2(alpha, 0, 1);
-          const { normalized, parsed } = parseColor(color);
-          if (parsed === "passthrough") return normalized;
-          return formatRgba(parsed === "fallback" ? FALLBACK_RGB : parsed, normalizedAlpha);
-        };
-        parseColorChannels = (color) => {
-          const { parsed } = parseColor(color);
-          return typeof parsed === "string" ? null : { ...parsed };
-        };
-        resolveGlowColorStrength = (r4, g4, b4) => {
-          const value = Math.max(r4, g4, b4);
-          const progress = clamp2((value - 110) / 50, 0, 1);
-          return progress * progress * (3 - 2 * progress);
-        };
-        mixColors = (from, to3, amount, alpha = 1) => {
-          const normalizedAmount = clamp2(amount, 0, 1);
-          const fromParsed = parseColor(from).parsed;
-          const toParsed = parseColor(to3).parsed;
-          if (typeof fromParsed === "string" || typeof toParsed === "string") {
-            return colorWithAlpha(normalizedAmount >= 0.5 ? to3 : from, alpha);
-          }
-          return `rgba(${Math.round(mix(fromParsed.r, toParsed.r, normalizedAmount))}, ${Math.round(mix(fromParsed.g, toParsed.g, normalizedAmount))}, ${Math.round(mix(fromParsed.b, toParsed.b, normalizedAmount))}, ${clamp2(alpha, 0, 1)})`;
-        };
-      }
-    });
-  
-    // src/folia/hooks/usePlayerBottomBarBottomPx.ts
-    var PLAYER_BOTTOM_BAR_BASE_OFFSET_PX, PLAYER_SUBTITLE_CLEARANCE_PX, usePlayerSubtitleBottomPx, usePlayerSubtitleYieldsToDock;
-    var init_usePlayerBottomBarBottomPx = __esm({
-      "src/folia/hooks/usePlayerBottomBarBottomPx.ts"() {
-        PLAYER_BOTTOM_BAR_BASE_OFFSET_PX = 32;
-        PLAYER_SUBTITLE_CLEARANCE_PX = 80;
-        usePlayerSubtitleBottomPx = (isPlayerChromeHidden) => isPlayerChromeHidden ? PLAYER_BOTTOM_BAR_BASE_OFFSET_PX : PLAYER_BOTTOM_BAR_BASE_OFFSET_PX + PLAYER_SUBTITLE_CLEARANCE_PX;
-        usePlayerSubtitleYieldsToDock = (_4) => false;
-      }
-    });
-  
-    // src/folia/components/visualizer/VisualizerSubtitleOverlay.tsx
-    var hasReadableText, getUpcomingLyricsClassName, resolveVisualizerSubtitleOverlayContent, VisualizerSubtitleOverlay, VisualizerSubtitleOverlay_default;
-    var init_VisualizerSubtitleOverlay = __esm({
-      "src/folia/components/visualizer/VisualizerSubtitleOverlay.tsx"() {
-        init_framer_motion();
-        init_fontStacks();
-        init_alternateText();
-        init_subtitleOverlayLayout();
-        init_subtitleTrackStyle();
-        init_colorMix();
-        init_usePlayerBottomBarBottomPx();
-        init_jsx_runtime_shim();
-        hasReadableText = (text) => !!text && /[\p{L}\p{N}]/u.test(text);
-        getUpcomingLyricsClassName = (blur = true) => `truncate max-w-2xl mx-auto transition-all duration-500${blur ? " blur-[1px]" : ""}`;
-        resolveVisualizerSubtitleOverlayContent = ({
-          showText,
-          activeLine: activeLine2,
-          recentCompletedLine,
-          nextLines,
-          hideTranslationSubtitle = false,
-          subtitleOverlayLayout = DEFAULT_SUBTITLE_OVERLAY_LAYOUT
-        }) => {
-          if (!showText || hideTranslationSubtitle) {
-            return {
-              shouldRenderOverlay: false,
-              rows: [],
-              upcomingLines: []
-            };
-          }
-          const line2 = activeLine2 ?? recentCompletedLine;
-          const previewLines = nextLines.filter((next) => hasReadableText(next.fullText));
-          const rows = [];
-          let nextIndex = 0;
-          for (const source of line2 ? getSubtitleOverlayRows(subtitleOverlayLayout) : []) {
-            if (source === "next") {
-              const next = previewLines[nextIndex];
-              nextIndex += 1;
-              if (next) rows.push({ key: `next-${nextIndex}`, source, text: next.fullText });
-              continue;
-            }
-            const text = source === "current" ? line2?.fullText.trim() : resolveLyricAlternateText(line2, source);
-            if (!text || !hasReadableText(text)) continue;
-            if (source !== "current" && rows.some((row) => row.source !== "next" && row.text === text)) continue;
-            rows.push({ key: source, source, text });
-          }
-          if (rows.every((row) => row.source === "next")) rows.length = 0;
-          return {
-            shouldRenderOverlay: true,
-            rows,
-            // A layout with nothing to show for this line (a single translation row on a song without one)
-            // previews the coming lines instead, unless the layout says its rows are all it shows.
-            upcomingLines: rows.length === 0 && activeLine2 && subtitleOverlayPreviewsUpcoming(subtitleOverlayLayout) ? previewLines : []
-          };
-        };
-        VisualizerSubtitleOverlay = ({
-          showText,
-          activeLine: activeLine2,
-          recentCompletedLine,
-          nextLines,
-          theme,
-          subtitleTheme,
-          translationFontSize,
-          upcomingFontSize,
-          subtitleFontScale = 1,
-          opacity = 0.6,
-          subtitleOverlayOpacity,
-          subtitleOverlayBackground = true,
-          subtitleUpcomingLyricsBlur = true,
-          isPlayerChromeHidden = false,
-          hideTranslationSubtitle = false,
-          subtitleOverlayLayout
-        }) => {
-          const subtitleBottomPx = usePlayerSubtitleBottomPx(Boolean(isPlayerChromeHidden));
-          const yieldsToDock = usePlayerSubtitleYieldsToDock();
-          const { shouldRenderOverlay, rows, upcomingLines } = resolveVisualizerSubtitleOverlayContent({
-            showText,
-            activeLine: activeLine2,
-            recentCompletedLine,
-            nextLines,
-            hideTranslationSubtitle,
-            subtitleOverlayLayout
-          });
-          const resolvedOpacity = subtitleOverlayOpacity ?? opacity;
-          const scaleFontSize = (fontSize, factor = 1) => fontSize.replace(/(-?\d*\.?\d+)(rem|vw|px)/g, (_match, value, unit2) => `${(Number(value) * subtitleFontScale * factor).toFixed(3)}${unit2}`);
-          const contentClassName = subtitleOverlayBackground ? "relative isolate inline-block px-1.5 py-0.5" : "inline-block";
-          const subtitleGlowStyle = subtitleOverlayBackground ? {
-            background: `radial-gradient(ellipse 115% 130% at center, ${colorWithAlpha(theme.backgroundColor, 0.96)} 0%, ${colorWithAlpha(theme.backgroundColor, 0.78)} 62%, transparent 100%)`,
-            transform: "translateZ(0)",
-            WebkitTransform: "translateZ(0)",
-            WebkitBackfaceVisibility: "hidden"
-          } : void 0;
-          const textShadow = `0 1px 2px ${colorWithAlpha(theme.backgroundColor, 0.24)}`;
-          return /* @__PURE__ */ jsx(AnimatePresence, { children: shouldRenderOverlay && /* @__PURE__ */ jsx(
-            motion.div,
-            {
-              initial: { opacity: 0, y: 20 },
-              animate: { opacity: yieldsToDock ? 0 : resolvedOpacity, y: 0 },
-              exit: { opacity: 0, y: 20 },
-              transition: {
-                opacity: { duration: 0.24, ease: "easeOut" },
-                y: { duration: 0.24, ease: "easeOut" }
-              },
-              style: { bottom: subtitleBottomPx },
-              className: "absolute left-0 right-0 text-center space-y-2 px-4 z-20 pointer-events-none",
-              children: rows.length > 0 ? /* @__PURE__ */ jsxs("div", { className: contentClassName, children: [
-                subtitleOverlayBackground && /* @__PURE__ */ jsx(
-                  "div",
-                  {
-                    "aria-hidden": "true",
-                    className: "pointer-events-none absolute -inset-x-10 -inset-y-6 z-0 blur-2xl",
-                    style: subtitleGlowStyle
-                  }
-                ),
-                /* @__PURE__ */ jsx(
-                  motion.div,
-                  {
-                    initial: { opacity: 0, y: 10 },
-                    animate: { opacity: 1, y: 0 },
-                    exit: { opacity: 0 },
-                    className: "relative z-10 max-w-4xl mx-auto",
-                    children: rows.map((row, index) => {
-                      const isSecondaryRow = index > 0;
-                      const isUpcomingRow = row.source === "next";
-                      return /* @__PURE__ */ jsx(
-                        "div",
-                        {
-                          "data-font-debug-target": "visualizer-translation",
-                          "data-subtitle-track": row.source,
-                          className: isUpcomingRow ? getUpcomingLyricsClassName(subtitleUpcomingLyricsBlur) : void 0,
-                          style: {
-                            color: theme.secondaryColor,
-                            fontSize: scaleFontSize(translationFontSize, isSecondaryRow ? SECONDARY_TRACK_SIZE_FACTOR : 1),
-                            fontFamily: resolveThemeTranslationFontStack(subtitleTheme ?? theme),
-                            fontWeight: resolveThemeFontWeight(subtitleTheme ?? theme, isSecondaryRow ? SECONDARY_TRACK_FONT_WEIGHT_FALLBACK : 500),
-                            opacity: isSecondaryRow ? SECONDARY_TRACK_OPACITY : void 0,
-                            marginTop: isSecondaryRow ? `${SECONDARY_TRACK_GAP_EM}em` : void 0,
-                            textShadow
-                          },
-                          children: row.text
-                        },
-                        row.key
-                      );
-                    })
-                  },
-                  `trans-${activeLine2?.startTime || recentCompletedLine?.startTime}`
-                )
-              ] }) : activeLine2 && upcomingLines.length > 0 ? /* @__PURE__ */ jsxs("div", { className: `${contentClassName} space-y-2`, children: [
-                subtitleOverlayBackground && /* @__PURE__ */ jsx(
-                  "div",
-                  {
-                    "aria-hidden": "true",
-                    className: "pointer-events-none absolute -inset-x-10 -inset-y-6 z-0 blur-2xl",
-                    style: subtitleGlowStyle
-                  }
-                ),
-                /* @__PURE__ */ jsx("div", { className: "relative z-10 space-y-2", children: upcomingLines.map((line2, index) => /* @__PURE__ */ jsx(
-                  "p",
-                  {
-                    className: getUpcomingLyricsClassName(subtitleUpcomingLyricsBlur),
-                    style: {
-                      color: theme.secondaryColor,
-                      fontSize: scaleFontSize(upcomingFontSize),
-                      fontWeight: resolveThemeFontWeight(subtitleTheme ?? theme, 400),
-                      textShadow
-                    },
-                    children: line2.fullText
-                  },
-                  index
-                )) })
-              ] }) : null
-            }
-          ) });
-        };
-        VisualizerSubtitleOverlay_default = VisualizerSubtitleOverlay;
-      }
-    });
-  
-    // src/folia/components/visualizer/subtitleFontSizes.ts
-    var clampSize, resolveSubtitleFontSizes;
-    var init_subtitleFontSizes = __esm({
-      "src/folia/components/visualizer/subtitleFontSizes.ts"() {
-        clampSize = (min, preferred, max, scale) => `clamp(${(min * scale).toFixed(3)}rem, ${(preferred * scale).toFixed(3)}vw, ${(max * scale).toFixed(3)}rem)`;
-        resolveSubtitleFontSizes = (lyricsFontScale = 1) => {
-          const scale = Number.isFinite(lyricsFontScale) && lyricsFontScale > 0 ? lyricsFontScale : 1;
-          return {
-            translationFontSize: clampSize(1.125, 2.6, 1.25, scale),
-            upcomingFontSize: clampSize(0.875, 2, 1, scale)
-          };
         };
       }
     });
@@ -5944,617 +7315,6 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/shims/lucide-react.js
-    function makeIcon(path2) {
-      return function Icon(props) {
-        const size = Number(props && props.size) || 24;
-        return react_shim_default.createElement(
-          "svg",
-          {
-            xmlns: "http://www.w3.org/2000/svg",
-            width: size,
-            height: size,
-            viewBox: "0 0 24 24",
-            fill: "currentColor",
-            stroke: "currentColor",
-            strokeWidth: 1,
-            "aria-hidden": "true",
-            style: props && props.style,
-            className: props && props.className
-          },
-          react_shim_default.createElement("path", { d: path2 })
-        );
-      };
-    }
-    var starPath, Star, Disc3, Aperture, Cone, Layers, Columns3, Wind, Square, ImagePlus, Trash2, Pencil, Plus, Upload, Smile, SeparatorVertical, Hourglass, EyeOff, RotateCcw, AlignLeft, AudioWaveform, Move, Spline, Frame, Sparkles, WandSparkles, Scan, Ghost, Highlighter;
-    var init_lucide_react = __esm({
-      "src/folia/shims/lucide-react.js"() {
-        init_react_shim();
-        starPath = "M12 2.6l2.95 5.98 6.6.96-4.78 4.66 1.13 6.58L12 17.68l-5.9 3.1 1.13-6.58L2.45 9.54l6.6-.96L12 2.6z";
-        Star = makeIcon(starPath);
-        Disc3 = makeIcon("M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 5a4 4 0 1 1 0 8 4 4 0 0 1 0-8z");
-        Aperture = makeIcon(starPath);
-        Cone = makeIcon(starPath);
-        Layers = makeIcon(starPath);
-        Columns3 = makeIcon(starPath);
-        Wind = makeIcon(starPath);
-        Square = makeIcon("M4 4h16v16H4z");
-        ImagePlus = makeIcon(starPath);
-        Trash2 = makeIcon(starPath);
-        Pencil = makeIcon(starPath);
-        Plus = makeIcon("M12 5v14M5 12h14");
-        Upload = makeIcon(starPath);
-        Smile = makeIcon(starPath);
-        SeparatorVertical = makeIcon(starPath);
-        Hourglass = makeIcon(starPath);
-        EyeOff = makeIcon(starPath);
-        RotateCcw = makeIcon(starPath);
-        AlignLeft = makeIcon(starPath);
-        AudioWaveform = makeIcon(starPath);
-        Move = makeIcon(starPath);
-        Spline = makeIcon(starPath);
-        Frame = makeIcon(starPath);
-        Sparkles = makeIcon(starPath);
-        WandSparkles = makeIcon(starPath);
-        Scan = makeIcon(starPath);
-        Ghost = makeIcon(starPath);
-        Highlighter = makeIcon(starPath);
-      }
-    });
-  
-    // src/folia/components/visualizer/glowWordVariants.ts
-    var GLOW_WORD_ACTIVE_SCALE, buildGlowWordLayoutVariants, glowWordBodyVariants;
-    var init_glowWordVariants = __esm({
-      "src/folia/components/visualizer/glowWordVariants.ts"() {
-        GLOW_WORD_ACTIVE_SCALE = 1.4;
-        buildGlowWordLayoutVariants = (animationIntensity, enableWordRotation = true) => ({
-          waiting: ({ config } = {}) => {
-            const safe = config || { x: 0, y: 0, rotate: 0, scale: 1, passedRotate: 0 };
-            return {
-              opacity: 0,
-              scale: 0.5,
-              x: safe.x + Math.sin(safe.y) * 100,
-              y: safe.y + Math.cos(safe.x) * 50,
-              rotate: enableWordRotation ? safe.rotate + 20 : 0,
-              transition: { duration: 0.4 }
-            };
-          },
-          active: ({ config } = {}) => {
-            const safe = config || { x: 0, y: 0, rotate: 0, scale: 1 };
-            return {
-              opacity: 1,
-              scale: isNaN(safe.scale) ? 1.5 : safe.scale * GLOW_WORD_ACTIVE_SCALE,
-              x: safe.x,
-              y: safe.y,
-              rotate: safe.rotate,
-              transition: {
-                type: "spring",
-                stiffness: 200,
-                damping: 20,
-                opacity: { duration: 0.1 }
-              }
-            };
-          },
-          passed: ({ config, baseColor } = {}) => {
-            const safe = config || { x: 0, y: 0, rotate: 0, scale: 1, passedRotate: 0 };
-            return {
-              opacity: animationIntensity === "chaotic" ? 0.9 : 0.82,
-              scale: safe.scale || 1,
-              x: safe.x,
-              y: safe.y,
-              rotate: safe.rotate + safe.passedRotate,
-              transition: {
-                duration: 0.5,
-                rotate: {
-                  duration: 5,
-                  ease: "linear"
-                }
-              }
-            };
-          }
-        });
-        glowWordBodyVariants = {
-          waiting: ({ baseColor }) => ({
-            color: baseColor,
-            filter: "blur(10px)",
-            transition: { duration: 0.4 }
-          }),
-          active: ({ activeColor, duration, wordRevealMode }) => ({
-            color: activeColor,
-            filter: "none",
-            transition: {
-              color: { duration: duration || 0.2, ease: "linear" },
-              filter: { type: "tween", duration: wordRevealMode === "instant" ? 0.08 : wordRevealMode === "fast" ? 0.12 : 0.2 }
-            },
-            transitionEnd: {
-              filter: "none"
-            }
-          }),
-          passed: ({ baseColor, wordRevealMode }) => ({
-            color: baseColor,
-            filter: "blur(0px)",
-            transition: {
-              color: { duration: wordRevealMode === "instant" ? 0.12 : wordRevealMode === "fast" ? 0.24 : 0.8, ease: "easeInOut" },
-              filter: { duration: wordRevealMode === "instant" ? 0.12 : wordRevealMode === "fast" ? 0.2 : 0.5 }
-            },
-            transitionEnd: {
-              filter: "none"
-            }
-          })
-        };
-      }
-    });
-  
-    // src/folia/components/visualizer/glowWordTiming.ts
-    var resolveGlowWordRenderProfile, getGlowWordActiveEndTime, getGlowWordDisplayDuration, getGlowWordLineContainerMotion;
-    var init_glowWordTiming = __esm({
-      "src/folia/components/visualizer/glowWordTiming.ts"() {
-        init_renderHints();
-        resolveGlowWordRenderProfile = (line2) => {
-          if (!line2) {
-            return null;
-          }
-          const renderHints = getLineRenderHints(line2);
-          const wordRevealMode = renderHints?.wordRevealMode ?? "normal";
-          return {
-            renderHints,
-            lineRenderEndTime: getLineRenderEndTime(line2),
-            lineTransitionMode: renderHints?.lineTransitionMode ?? "normal",
-            wordRevealMode,
-            wordLookahead: wordRevealMode === "instant" ? 0.03 : wordRevealMode === "fast" ? 0.08 : 0.15
-          };
-        };
-        getGlowWordActiveEndTime = (word, renderProfile) => {
-          if (renderProfile.wordRevealMode === "instant") {
-            return renderProfile.lineRenderEndTime;
-          }
-          if (renderProfile.wordRevealMode === "fast") {
-            return Math.min(renderProfile.lineRenderEndTime, Math.max(word.endTime, word.startTime + 0.12));
-          }
-          return word.endTime;
-        };
-        getGlowWordDisplayDuration = (word, renderProfile) => {
-          const activeEndTime = getGlowWordActiveEndTime(word, renderProfile);
-          const minDuration = renderProfile.wordRevealMode === "instant" ? 0.08 : renderProfile.wordRevealMode === "fast" ? 0.12 : 0.1;
-          return Math.max(activeEndTime - word.startTime, minDuration);
-        };
-        getGlowWordLineContainerMotion = (renderProfile) => {
-          if (renderProfile?.lineTransitionMode === "none") {
-            return {
-              initial: { opacity: 1, scale: 1, filter: "blur(0px)" },
-              animate: { opacity: 1, scale: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } },
-              exit: { opacity: 0, scale: 1.02, filter: "blur(6px)", transition: { duration: 0.12, ease: "easeOut" } }
-            };
-          }
-          if (renderProfile?.lineTransitionMode === "fast") {
-            return {
-              initial: { opacity: 0.35, scale: 0.96, filter: "blur(4px)" },
-              animate: {
-                opacity: 1,
-                scale: 1,
-                filter: "blur(0px)",
-                transition: { duration: 0.16, ease: "easeOut" },
-                transitionEnd: { filter: "none" }
-              },
-              exit: {
-                opacity: 0,
-                scale: 1.04,
-                filter: "blur(10px)",
-                transition: { duration: 0.16, ease: "easeInOut" }
-              }
-            };
-          }
-          return {
-            initial: { opacity: 0, scale: 0.9, filter: "blur(10px)" },
-            animate: { opacity: 1, scale: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } },
-            exit: { opacity: 0, scale: 1.1, filter: "blur(20px)", transition: { duration: 0.3 } }
-          };
-        };
-      }
-    });
-  
-    // src/folia/utils/lyrics/wordSegmentation.ts
-    var PUNCTUATION_ONLY, isWordLikeText, segmentsFromBoundaries, segmentTextWords, isValidWordSegmentation, EDGE_WHITESPACE, splitEdgeWhitespace, segmentLyricWords, getWordSegmentationKey, hasWordSegmentationOverride;
-    var init_wordSegmentation = __esm({
-      "src/folia/utils/lyrics/wordSegmentation.ts"() {
-        init_graphemeTiming();
-        PUNCTUATION_ONLY = /^[\s\p{P}\p{S}]+$/u;
-        isWordLikeText = (text) => !PUNCTUATION_ONLY.test(text);
-        segmentsFromBoundaries = (boundaries) => {
-          let cursor = 0;
-          return boundaries.map((segment2) => {
-            const part = { segment: segment2, index: cursor, isWordLike: isWordLikeText(segment2) };
-            cursor += segment2.length;
-            return part;
-          });
-        };
-        segmentTextWords = (text) => {
-          if (!text) {
-            return [];
-          }
-          const Segmenter = typeof Intl !== "undefined" ? Intl.Segmenter : void 0;
-          if (Segmenter) {
-            try {
-              return Array.from(new Segmenter(void 0, { granularity: "word" }).segment(text), (part) => ({
-                segment: part.segment,
-                index: part.index,
-                isWordLike: part.isWordLike ?? isWordLikeText(part.segment)
-              }));
-            } catch {
-            }
-          }
-          return segmentsFromBoundaries(splitLyricGraphemes(text));
-        };
-        isValidWordSegmentation = (text, boundaries) => Array.isArray(boundaries) && boundaries.length > 0 && boundaries.every((segment2) => typeof segment2 === "string") && boundaries.join("") === text;
-        EDGE_WHITESPACE = /^(\s*)(.*?)(\s*)$/su;
-        splitEdgeWhitespace = (boundaries) => boundaries.flatMap((boundary) => {
-          const [, lead, core, trail] = EDGE_WHITESPACE.exec(boundary) ?? [];
-          return core ? [lead, core, trail].filter(Boolean) : [boundary].filter(Boolean);
-        });
-        segmentLyricWords = (line2) => {
-          if (isValidWordSegmentation(line2.fullText, line2.wordSegments)) {
-            return segmentsFromBoundaries(splitEdgeWhitespace(line2.wordSegments));
-          }
-          if (isValidWordSegmentation(line2.fullText, line2.autoWordSegments)) {
-            return segmentsFromBoundaries(line2.autoWordSegments);
-          }
-          return segmentTextWords(line2.fullText);
-        };
-        getWordSegmentationKey = (line2) => {
-          if (line2.wordSegments) {
-            return line2.wordSegments.map((segment2) => segment2.length).join(",");
-          }
-          return line2.autoWordSegments ? `a${line2.autoWordSegments.map((segment2) => segment2.length).join(",")}` : "";
-        };
-        hasWordSegmentationOverride = (line2) => isValidWordSegmentation(line2.fullText, line2.wordSegments);
-      }
-    });
-  
-    // src/folia/utils/lyrics/cjkSemanticLayout.ts
-    var CJK_REGEX2, APOSTROPHE_ONLY_REGEX, CONTRACTION_SUFFIX_REGEX, DIRECT_CONTRACTION_REGEX, TRAILING_APOSTROPHE_REGEX, TRAILING_WORD_CHAR_REGEX, INLINE_CONTRACTION_REGEX, STICKY_TRAILING_PUNCTUATION_REGEX, hasCjkText2, createSingleWordLayoutUnits, getWordSegments, appendWordsToUnit, cloneUnit, appendUnitToStickyUnit, canAttachToPrevious, endsWithApostrophe, isApostropheOnlyUnit, isContractionSuffixUnit, isDirectContractionUnit, isStickyTrailingPunctuationUnit, hasAttachedTrailingPunctuation, hasInlineContraction, stripWhitespace, mapSegmentsToWords, buildCjkSemanticLayoutUnits, applyStickyPunctuationLayoutUnits, buildPostLyricLayoutUnits, buildDisplayWordsFromLayoutUnits;
-    var init_cjkSemanticLayout = __esm({
-      "src/folia/utils/lyrics/cjkSemanticLayout.ts"() {
-        init_wordSegmentation();
-        CJK_REGEX2 = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
-        APOSTROPHE_ONLY_REGEX = /^['’]\s*$/;
-        CONTRACTION_SUFFIX_REGEX = /^(s|t|m|d|ll|re|ve|em)\s*$/i;
-        DIRECT_CONTRACTION_REGEX = /^['’](s|t|m|d|ll|re|ve|em)\s*$/i;
-        TRAILING_APOSTROPHE_REGEX = /['’]\s*$/;
-        TRAILING_WORD_CHAR_REGEX = /[\p{L}\p{N}]$/u;
-        INLINE_CONTRACTION_REGEX = /[\p{L}\p{N}]+['’](s|t|m|d|ll|re|ve|em)/iu;
-        STICKY_TRAILING_PUNCTUATION_REGEX = /^[,.;:!?，。！？、：；）】》」』〉〕］)}\]"'’”’]+$/u;
-        hasCjkText2 = (text) => CJK_REGEX2.test(text);
-        createSingleWordLayoutUnits = (words) => words.map((word) => ({
-          text: word.text,
-          words: [word],
-          startTime: word.startTime,
-          endTime: word.endTime,
-          isSemantic: false
-        }));
-        getWordSegments = (line2) => {
-          const segments = segmentLyricWords(line2);
-          return segments.length > 0 ? segments.map(({ segment: segment2, isWordLike }) => ({ segment: segment2, isWordLike })) : null;
-        };
-        appendWordsToUnit = (unit2, text, words) => {
-          unit2.text += text;
-          unit2.words.push(...words);
-          unit2.endTime = words[words.length - 1]?.endTime ?? unit2.endTime;
-        };
-        cloneUnit = (unit2) => ({
-          ...unit2,
-          words: [...unit2.words]
-        });
-        appendUnitToStickyUnit = (target, unit2) => {
-          target.text += unit2.text;
-          target.words.push(...unit2.words);
-          target.endTime = unit2.endTime;
-          target.isSticky = true;
-        };
-        canAttachToPrevious = (text) => TRAILING_WORD_CHAR_REGEX.test(text.trimEnd());
-        endsWithApostrophe = (text) => TRAILING_APOSTROPHE_REGEX.test(text.trimEnd());
-        isApostropheOnlyUnit = (unit2) => APOSTROPHE_ONLY_REGEX.test(unit2.text.trim());
-        isContractionSuffixUnit = (unit2) => CONTRACTION_SUFFIX_REGEX.test(unit2.text.trim());
-        isDirectContractionUnit = (unit2) => DIRECT_CONTRACTION_REGEX.test(unit2.text.trim());
-        isStickyTrailingPunctuationUnit = (unit2) => STICKY_TRAILING_PUNCTUATION_REGEX.test(unit2.text.trim());
-        hasAttachedTrailingPunctuation = (unit2) => {
-          if (unit2.words.length <= 1) {
-            return false;
-          }
-          const lastWord = unit2.words[unit2.words.length - 1];
-          return Boolean(lastWord && isStickyTrailingPunctuationUnit({
-            text: lastWord.text,
-            words: [lastWord],
-            startTime: lastWord.startTime,
-            endTime: lastWord.endTime,
-            isSemantic: false
-          }));
-        };
-        hasInlineContraction = (unit2) => unit2.words.length > 1 && !unit2.isSemantic && INLINE_CONTRACTION_REGEX.test(unit2.text);
-        stripWhitespace = (text) => text.replace(/\s+/g, "");
-        mapSegmentsToWords = (segments, words) => {
-          const units = [];
-          let wordIndex = 0;
-          const absorbWhitespaceWords = () => {
-            const previous = units[units.length - 1];
-            while (previous && wordIndex < words.length && !stripWhitespace(words[wordIndex].text)) {
-              appendWordsToUnit(previous, words[wordIndex].text, [words[wordIndex]]);
-              wordIndex += 1;
-            }
-          };
-          for (const segment2 of segments) {
-            const segmentKey = stripWhitespace(segment2.segment);
-            if (!segmentKey) {
-              continue;
-            }
-            absorbWhitespaceWords();
-            const startWordIndex = wordIndex;
-            let collectedKey = "";
-            while (wordIndex < words.length && collectedKey.length < segmentKey.length) {
-              collectedKey += stripWhitespace(words[wordIndex].text);
-              wordIndex += 1;
-              if (!segmentKey.startsWith(collectedKey)) {
-                return null;
-              }
-            }
-            if (collectedKey !== segmentKey) {
-              return null;
-            }
-            const segmentWords2 = words.slice(startWordIndex, wordIndex);
-            const firstWord = segmentWords2[0];
-            const lastWord = segmentWords2[segmentWords2.length - 1];
-            if (!firstWord || !lastWord) {
-              return null;
-            }
-            const segmentText = segmentWords2.map((word) => word.text).join("");
-            if (!segment2.isWordLike && units.length > 0) {
-              appendWordsToUnit(units[units.length - 1], segmentText, segmentWords2);
-              continue;
-            }
-            const glyphWordCount = segmentWords2.filter((word) => stripWhitespace(word.text)).length;
-            units.push({
-              text: segmentText,
-              words: segmentWords2,
-              startTime: firstWord.startTime,
-              endTime: lastWord.endTime,
-              isSemantic: Boolean(segment2.isWordLike && hasCjkText2(segmentText) && glyphWordCount > 1)
-            });
-          }
-          absorbWhitespaceWords();
-          if (wordIndex !== words.length || units.length === 0) {
-            return null;
-          }
-          return units;
-        };
-        buildCjkSemanticLayoutUnits = (line2) => {
-          if (line2.words.length === 0) {
-            return [];
-          }
-          const fallbackUnits = createSingleWordLayoutUnits(line2.words);
-          if (!hasCjkText2(line2.fullText) && !hasWordSegmentationOverride(line2)) {
-            return fallbackUnits;
-          }
-          const segments = getWordSegments(line2);
-          if (!segments) {
-            return fallbackUnits;
-          }
-          return mapSegmentsToWords(segments, line2.words) ?? fallbackUnits;
-        };
-        applyStickyPunctuationLayoutUnits = (units) => {
-          const merged = [];
-          for (let index = 0; index < units.length; index += 1) {
-            const current = units[index];
-            const previous = merged[merged.length - 1];
-            if (!previous) {
-              merged.push(cloneUnit(current));
-              continue;
-            }
-            const next = units[index + 1];
-            if (isApostropheOnlyUnit(current) && next && canAttachToPrevious(previous.text) && isContractionSuffixUnit(next)) {
-              appendUnitToStickyUnit(previous, current);
-              appendUnitToStickyUnit(previous, next);
-              index += 1;
-              continue;
-            }
-            if (isDirectContractionUnit(current) && canAttachToPrevious(previous.text)) {
-              appendUnitToStickyUnit(previous, current);
-              continue;
-            }
-            if (isContractionSuffixUnit(current) && endsWithApostrophe(previous.text)) {
-              appendUnitToStickyUnit(previous, current);
-              continue;
-            }
-            if (isStickyTrailingPunctuationUnit(current) && canAttachToPrevious(previous.text)) {
-              appendUnitToStickyUnit(previous, current);
-              continue;
-            }
-            merged.push(cloneUnit(current));
-          }
-          return merged.map((unit2) => hasAttachedTrailingPunctuation(unit2) || hasInlineContraction(unit2) ? { ...unit2, isSticky: true } : unit2);
-        };
-        buildPostLyricLayoutUnits = (line2, options = {}) => {
-          const rawUnits = options.semantic ? buildCjkSemanticLayoutUnits(line2) : createSingleWordLayoutUnits(line2.words);
-          return options.sticky ? applyStickyPunctuationLayoutUnits(rawUnits) : rawUnits;
-        };
-        buildDisplayWordsFromLayoutUnits = (units) => units.flatMap((unit2) => {
-          if (!unit2.isSticky || unit2.isSemantic) {
-            return unit2.words;
-          }
-          return [{
-            text: unit2.text,
-            startTime: unit2.startTime,
-            endTime: unit2.endTime
-          }];
-        });
-      }
-    });
-  
-    // src/folia/components/visualizer/wordColoring.ts
-    var CJK_REGEX3, isCJK2, normalizeWordColorToken, resolveWordColorEntryText, resolveWordColorEntryColor, rangesOverlap, selectNonOverlappingRanges, prepareWordColorMatchers, buildWordColorRangesFromMatchers, buildWordColorRanges, resolveWordColor, resolveTokenColorMap;
-    var init_wordColoring = __esm({
-      "src/folia/components/visualizer/wordColoring.ts"() {
-        CJK_REGEX3 = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
-        isCJK2 = (text) => CJK_REGEX3.test(text);
-        normalizeWordColorToken = (text) => text.toLowerCase().replace(/[^\w]/g, "");
-        resolveWordColorEntryText = (entry) => {
-          if (!entry || typeof entry !== "object" || !("word" in entry)) {
-            return "";
-          }
-          const word = entry.word;
-          return typeof word === "string" ? word.trim() : "";
-        };
-        resolveWordColorEntryColor = (entry) => {
-          if (!entry || typeof entry !== "object" || !("color" in entry)) {
-            return "";
-          }
-          const color = entry.color;
-          return typeof color === "string" ? color : "";
-        };
-        rangesOverlap = (a4, b4) => a4.startOffset < b4.endOffset && b4.startOffset < a4.endOffset;
-        selectNonOverlappingRanges = (ranges) => {
-          const selected = [];
-          const prioritySorted = [...ranges].sort((a4, b4) => b4.priority - a4.priority || a4.startOffset - b4.startOffset || a4.endOffset - b4.endOffset);
-          prioritySorted.forEach((range) => {
-            if (!selected.some((current) => rangesOverlap(current, range))) {
-              selected.push(range);
-            }
-          });
-          return selected.sort((a4, b4) => a4.startOffset - b4.startOffset || a4.endOffset - b4.endOffset);
-        };
-        prepareWordColorMatchers = (wordColors, keywordColoringEnabled = true) => {
-          if (!keywordColoringEnabled || !wordColors || wordColors.length === 0) {
-            return [];
-          }
-          return wordColors.flatMap((entry) => {
-            const target = resolveWordColorEntryText(entry);
-            if (!target) {
-              return [];
-            }
-            const color = resolveWordColorEntryColor(entry);
-            if (!color) {
-              return [];
-            }
-            if (isCJK2(target)) {
-              return [{
-                color,
-                cjkPhrases: [target],
-                englishWords: [],
-                priority: target.length
-              }];
-            }
-            const englishWords = target.split(/\s+/).map(normalizeWordColorToken).filter(Boolean);
-            if (englishWords.length === 0) {
-              return [];
-            }
-            return [{
-              color,
-              cjkPhrases: [],
-              englishWords,
-              priority: Math.max(...englishWords.map((word) => word.length))
-            }];
-          });
-        };
-        buildWordColorRangesFromMatchers = (lineText, matchers) => {
-          if (!lineText || matchers.length === 0) {
-            return [];
-          }
-          const ranges = [];
-          const englishColorByWord = /* @__PURE__ */ new Map();
-          matchers.forEach((matcher) => {
-            matcher.cjkPhrases.forEach((target) => {
-              let cursor = 0;
-              while (cursor < lineText.length) {
-                const startOffset = lineText.indexOf(target, cursor);
-                if (startOffset < 0) {
-                  break;
-                }
-                ranges.push({
-                  startOffset,
-                  endOffset: startOffset + target.length,
-                  color: matcher.color,
-                  priority: matcher.priority
-                });
-                cursor = startOffset + Math.max(target.length, 1);
-              }
-            });
-            matcher.englishWords.forEach((word) => {
-              const current = englishColorByWord.get(word);
-              if (!current || matcher.priority > current.priority) {
-                englishColorByWord.set(word, { color: matcher.color, priority: matcher.priority });
-              }
-            });
-          });
-          if (englishColorByWord.size > 0) {
-            const wordRegex = /\w+/g;
-            let match;
-            while ((match = wordRegex.exec(lineText)) !== null) {
-              const wordColor = englishColorByWord.get(normalizeWordColorToken(match[0]));
-              if (wordColor) {
-                ranges.push({
-                  startOffset: match.index,
-                  endOffset: match.index + match[0].length,
-                  color: wordColor.color,
-                  priority: wordColor.priority
-                });
-              }
-            }
-          }
-          return selectNonOverlappingRanges(ranges);
-        };
-        buildWordColorRanges = (lineText, wordColors, keywordColoringEnabled = true) => buildWordColorRangesFromMatchers(
-          lineText,
-          prepareWordColorMatchers(wordColors, keywordColoringEnabled)
-        );
-        resolveWordColor = (wordText, wordColors, fallbackColor, {
-          keywordColoringEnabled = true,
-          cjkMatchMode = "target-contains-token"
-        } = {}) => {
-          if (!keywordColoringEnabled || !wordColors || wordColors.length === 0) {
-            return fallbackColor;
-          }
-          const cleanCurrent = wordText.trim();
-          if (!cleanCurrent) {
-            return fallbackColor;
-          }
-          const matched = wordColors.find((entry) => {
-            const target = resolveWordColorEntryText(entry);
-            if (!target) {
-              return false;
-            }
-            if (isCJK2(cleanCurrent)) {
-              if (cjkMatchMode === "exact") {
-                return target === cleanCurrent;
-              }
-              if (cjkMatchMode === "bidirectional-contains") {
-                return target.includes(cleanCurrent) || cleanCurrent.includes(target);
-              }
-              return target.includes(cleanCurrent);
-            }
-            const targetWords = target.split(/\s+/).map(normalizeWordColorToken).filter(Boolean);
-            const normalizedCurrent = normalizeWordColorToken(cleanCurrent);
-            return Boolean(normalizedCurrent) && targetWords.includes(normalizedCurrent);
-          });
-          return resolveWordColorEntryColor(matched) || fallbackColor;
-        };
-        resolveTokenColorMap = (tokens, ranges) => {
-          const colors = /* @__PURE__ */ new Map();
-          let rangeIndex = 0;
-          tokens.forEach((token) => {
-            if (!token.timed) {
-              return;
-            }
-            while (rangeIndex < ranges.length && ranges[rangeIndex].endOffset <= token.startOffset) {
-              rangeIndex += 1;
-            }
-            const range = ranges[rangeIndex];
-            if (range && rangesOverlap(range, token)) {
-              colors.set(token.key, range.color);
-            }
-          });
-          return colors;
-        };
-      }
-    });
-  
     // src/folia/components/visualizer/partita/partitaLayout.ts
     var EMPTY_PARTITA_LAYOUT, PARTITA_LAYOUT_CACHE_LIMIT, PARTITA_WORD_LAYOUT_STYLE, PARTITA_PREHEAT_WINDOW, graphemeSegmenter2, splitGraphemes, clamp3, clampPartitaStagger, resolvePartitaTuning, buildPartitaWordConfigs, getActiveColor, buildSequentialColumns, buildPartitaLayoutCacheKey, getOrBuildPartitaLayout;
     var init_partitaLayout = __esm({
@@ -6744,391 +7504,6 @@ function __mpStylesBundle() {
           }
           const layout = buildSequentialColumns(line2, theme, windowHeight, tuning);
           return rememberBounded(cache2, cacheKey, layout, PARTITA_LAYOUT_CACHE_LIMIT);
-        };
-      }
-    });
-  
-    // src/folia/utils/glowBlurQuantize.ts
-    var GLOW_BLUR_QUANTIZE_STORAGE_KEY, isLinuxRuntime, readStoredGlowBlurQuantize, glowBlurQuantized, isGlowBlurQuantized, quantizeShadowBlur, setCanvasTextGlow, clearCanvasTextGlow, GLOW_FILTER_SIGMA, fillGlowText;
-    var init_glowBlurQuantize = __esm({
-      "src/folia/utils/glowBlurQuantize.ts"() {
-        GLOW_BLUR_QUANTIZE_STORAGE_KEY = "visualizer_glow_blur_quantize";
-        isLinuxRuntime = () => {
-          if (typeof window === "undefined") return false;
-          const electronPlatform = window.electron?.platform;
-          if (electronPlatform) return electronPlatform === "linux";
-          const userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent;
-          return /Linux/.test(userAgent) && !/Android/.test(userAgent);
-        };
-        readStoredGlowBlurQuantize = () => {
-          try {
-            const stored = localStorage.getItem(GLOW_BLUR_QUANTIZE_STORAGE_KEY);
-            if (stored === "true" || stored === "false") return stored === "true";
-          } catch {
-          }
-          return isLinuxRuntime();
-        };
-        glowBlurQuantized = readStoredGlowBlurQuantize();
-        isGlowBlurQuantized = () => glowBlurQuantized;
-        quantizeShadowBlur = (px2) => {
-          if (!Number.isFinite(px2)) return 0;
-          return glowBlurQuantized ? Math.max(0, Math.round(px2)) : px2;
-        };
-        setCanvasTextGlow = (context, blur, color) => {
-          if (!glowBlurQuantized) {
-            context.shadowBlur = blur;
-            context.shadowColor = color;
-            return;
-          }
-          context.shadowBlur = 0;
-          context.shadowColor = "transparent";
-          context.filter = blur > 0 ? `drop-shadow(0 0 ${blur / 2}px ${color})` : "none";
-        };
-        clearCanvasTextGlow = (context) => {
-          context.shadowBlur = 0;
-          context.shadowColor = "transparent";
-          if (glowBlurQuantized) context.filter = "none";
-        };
-        GLOW_FILTER_SIGMA = /^drop-shadow\(0 0 ([\d.]+)px /;
-        fillGlowText = (context, text, x4, y4) => {
-          const sigma = Number(GLOW_FILTER_SIGMA.exec(context.filter)?.[1] ?? 0);
-          if (!sigma) {
-            context.fillText(text, x4, y4);
-            return;
-          }
-          const metrics = context.measureText(text);
-          const pad = sigma * 4 + 4;
-          const left = x4 - metrics.actualBoundingBoxLeft - pad;
-          const top = y4 - metrics.actualBoundingBoxAscent - pad;
-          context.save();
-          context.beginPath();
-          context.rect(
-            left,
-            top,
-            metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight + pad * 2,
-            metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent + pad * 2
-          );
-          context.clip();
-          context.fillText(text, x4, y4);
-          context.restore();
-        };
-      }
-    });
-  
-    // src/folia/components/visualizer/wordGlow.ts
-    var DROP_SHADOW_RADIUS_SCALE, DROP_SHADOW_INNER_ALPHA, withAlpha, textShadowAt, dropShadowAt, glowRadii, glowKeyframes, wordGlowVariants;
-    var init_wordGlow = __esm({
-      "src/folia/components/visualizer/wordGlow.ts"() {
-        init_colorMix();
-        init_glowBlurQuantize();
-        DROP_SHADOW_RADIUS_SCALE = 0.4;
-        DROP_SHADOW_INNER_ALPHA = 0.7;
-        withAlpha = (color, alpha) => /^\s*(#|rgba?\()/.test(color) ? colorWithAlpha(color, alpha) : color;
-        textShadowAt = (color, inner, outer) => `0 0 ${inner}px ${color}, 0 0 ${outer}px ${color}`;
-        dropShadowAt = (color, inner, outer) => `drop-shadow(0 0 ${inner * DROP_SHADOW_RADIUS_SCALE}px ${withAlpha(color, DROP_SHADOW_INNER_ALPHA)}) drop-shadow(0 0 ${outer * DROP_SHADOW_RADIUS_SCALE}px ${color})`;
-        glowRadii = (wordRevealMode) => wordRevealMode === "instant" ? [14, 24] : wordRevealMode === "fast" ? [18, 32] : [20, 40];
-        glowKeyframes = (color, inner, outer, peaks) => {
-          if (!isGlowBlurQuantized()) {
-            return {
-              color: "transparent",
-              textShadow: textShadowAt(color, inner, outer),
-              opacity: peaks
-            };
-          }
-          return {
-            color,
-            opacity: peaks,
-            filter: peaks.map((peak) => dropShadowAt(color, inner * peak, outer * peak))
-          };
-        };
-        wordGlowVariants = {
-          waiting: ({ activeColor = "", wordRevealMode }) => isGlowBlurQuantized() ? { color: "transparent", opacity: 0, filter: "none", transition: { duration: 0 } } : { color: "transparent", textShadow: textShadowAt(activeColor, ...glowRadii(wordRevealMode)), opacity: 0, filter: "none", transition: { duration: 0 } },
-          active: ({ activeColor = "", duration, index, total, charStartTime, charEndTime, wordStartTime, wordRevealMode }) => {
-            if (wordRevealMode === "instant") {
-              return {
-                ...glowKeyframes(activeColor, ...glowRadii(wordRevealMode), [0, 1, 0]),
-                transition: {
-                  duration: Math.min(duration || 0.08, 0.12),
-                  times: [0, 0.35, 1],
-                  ease: "easeOut"
-                }
-              };
-            }
-            if (wordRevealMode === "fast") {
-              return {
-                ...glowKeyframes(activeColor, ...glowRadii(wordRevealMode), [0, 1, 0]),
-                transition: {
-                  duration: Math.min(Math.max(duration || 0.12, 0.12), 0.2),
-                  times: [0, 0.4, 1],
-                  ease: "easeInOut"
-                }
-              };
-            }
-            if (total !== void 0 && total > 1) {
-              const singleDuration = (duration ?? 0) / total;
-              const hasCharTiming = typeof charStartTime === "number" && typeof charEndTime === "number" && typeof wordStartTime === "number";
-              const charDuration = hasCharTiming ? Math.max(charEndTime - charStartTime, 1e-3) : singleDuration;
-              const charDelay = hasCharTiming ? Math.max(0, charStartTime - wordStartTime) : singleDuration * (index ?? 0);
-              return {
-                ...glowKeyframes(activeColor, ...glowRadii(wordRevealMode), [0, 1, 0]),
-                transition: {
-                  duration: charDuration * 6,
-                  // stretch the fade over a few letters
-                  times: [0, 0.3, 1],
-                  // peak early, then fade
-                  delay: charDelay,
-                  ease: "easeInOut"
-                }
-              };
-            }
-            return {
-              ...glowKeyframes(activeColor, ...glowRadii(wordRevealMode), [0, 1, 1]),
-              transition: {
-                duration: duration || 0.1,
-                // stretch the fade over the word duration
-                times: [0, 0.9, 1],
-                // peak early, then fade
-                ease: "easeInOut"
-              }
-            };
-          },
-          passed: ({ activeColor = "", wordRevealMode }) => {
-            const transition = { duration: wordRevealMode === "instant" ? 0.12 : wordRevealMode === "fast" ? 0.22 : 0.9, ease: "easeOut" };
-            if (!isGlowBlurQuantized()) {
-              return { color: "transparent", textShadow: textShadowAt(activeColor, ...glowRadii(wordRevealMode)), opacity: 0, transition };
-            }
-            return { color: activeColor, opacity: 0, filter: dropShadowAt(activeColor, 0, 0), transition };
-          }
-        };
-      }
-    });
-  
-    // src/folia/components/visualizer/glowWordOverlap.ts
-    var GLOW_WORD_LINE_HEIGHT, GLYPH_HEIGHT_EM, PASSED_TURN_SAMPLES, measureCanvas, measureGlowWordWidth, reachAt, getGlowWordReach, getGlowWordPairGap;
-    var init_glowWordOverlap = __esm({
-      "src/folia/components/visualizer/glowWordOverlap.ts"() {
-        init_glowWordVariants();
-        GLOW_WORD_LINE_HEIGHT = 1.22;
-        GLYPH_HEIGHT_EM = 1;
-        PASSED_TURN_SAMPLES = 8;
-        measureCanvas = null;
-        measureGlowWordWidth = (text, pxSize, fontStack, fontWeight) => {
-          if (typeof document === "undefined") {
-            return text.length * pxSize * 0.65;
-          }
-          if (!measureCanvas) {
-            measureCanvas = document.createElement("canvas");
-          }
-          const context = measureCanvas.getContext("2d");
-          if (!context) {
-            return text.length * pxSize * 0.65;
-          }
-          context.font = `${fontWeight} ${pxSize}px ${fontStack}`;
-          return context.measureText(text).width;
-        };
-        reachAt = (width, glyphHeight, scale, rotateDeg) => {
-          const radians = rotateDeg * Math.PI / 180;
-          const cos = Math.abs(Math.cos(radians));
-          const sin = Math.abs(Math.sin(radians));
-          return {
-            halfWidth: scale * (width * cos + glyphHeight * sin) / 2,
-            halfHeight: scale * (glyphHeight * cos + width * sin) / 2
-          };
-        };
-        getGlowWordReach = (width, fontSize, pose) => {
-          const glyphHeight = fontSize * GLYPH_HEIGHT_EM;
-          const active = reachAt(width, glyphHeight, pose.scale * GLOW_WORD_ACTIVE_SCALE, pose.rotate);
-          let halfWidth = active.halfWidth;
-          let halfHeight = active.halfHeight;
-          for (let step = 0; step <= PASSED_TURN_SAMPLES; step += 1) {
-            const passed = reachAt(width, glyphHeight, pose.scale, pose.rotate + pose.passedRotate * step / PASSED_TURN_SAMPLES);
-            halfWidth = Math.max(halfWidth, passed.halfWidth);
-            halfHeight = Math.max(halfHeight, passed.halfHeight);
-          }
-          return { halfWidth, halfHeight };
-        };
-        getGlowWordPairGap = (first, second, fontSize, direction = "ltr") => {
-          const firstReach = getGlowWordReach(first.width, fontSize, first.pose);
-          const secondReach = getGlowWordReach(second.width, fontSize, second.pose);
-          const firstOffset = first.offset ?? { x: 0, y: 0 };
-          const secondOffset = second.offset ?? { x: 0, y: 0 };
-          const towardEachOther = direction === "rtl" ? secondOffset.x - firstOffset.x : firstOffset.x - secondOffset.x;
-          return firstReach.halfWidth - first.width / 2 + (secondReach.halfWidth - second.width / 2) + towardEachOther;
-        };
-      }
-    });
-  
-    // src/folia/components/visualizer/GlowWord.tsx
-    var GlowWord;
-    var init_GlowWord = __esm({
-      "src/folia/components/visualizer/GlowWord.tsx"() {
-        init_react_shim();
-        init_framer_motion();
-        init_graphemeTiming();
-        init_fontStacks();
-        init_wordGlow();
-        init_glowWordTiming();
-        init_glowWordOverlap();
-        init_jsx_runtime_shim();
-        GlowWord = ({
-          word,
-          config,
-          currentTime,
-          theme,
-          layoutVariants,
-          bodyVariants,
-          baseColor,
-          activeColor,
-          renderProfile,
-          isChorus,
-          fontSize,
-          layoutStyle
-        }) => {
-          const [status, setStatus] = useState("waiting");
-          const rippleScale = useMemo(() => 1.5 + Math.random() * 2, []);
-          const duration = getGlowWordDisplayDuration(word, renderProfile);
-          const activeEndTime = getGlowWordActiveEndTime(word, renderProfile);
-          const graphemeTimings = useMemo(() => buildWordGraphemeTimings(word), [word]);
-          useMotionValueEvent(currentTime, "change", (latest) => {
-            let newStatus = "waiting";
-            if (latest >= word.startTime - renderProfile.wordLookahead && latest <= activeEndTime) {
-              newStatus = "active";
-            } else if (latest > activeEndTime) {
-              newStatus = "passed";
-            }
-            if (newStatus !== status) setStatus(newStatus);
-          });
-          return /* @__PURE__ */ jsxs(
-            motion.div,
-            {
-              custom: {
-                config,
-                activeColor,
-                baseColor,
-                duration,
-                wordRevealMode: renderProfile.wordRevealMode
-              },
-              variants: layoutVariants,
-              initial: "waiting",
-              animate: status,
-              className: "inline-block origin-center relative will-change-transform whitespace-nowrap",
-              style: {
-                fontSize,
-                fontWeight: resolveThemeFontWeight(theme, 700),
-                lineHeight: GLOW_WORD_LINE_HEIGHT,
-                ...layoutStyle
-              },
-              children: [
-                /* @__PURE__ */ jsx(
-                  "span",
-                  {
-                    className: "absolute inset-0 select-none pointer-events-none block",
-                    "aria-hidden": "true",
-                    children: graphemeTimings.length > 1 ? graphemeTimings.map((timing, index) => /* @__PURE__ */ jsx(
-                      motion.span,
-                      {
-                        variants: wordGlowVariants,
-                        custom: {
-                          config,
-                          activeColor,
-                          baseColor,
-                          duration,
-                          index,
-                          total: graphemeTimings.length,
-                          charStartTime: timing.startTime,
-                          charEndTime: timing.endTime,
-                          wordStartTime: word.startTime,
-                          wordRevealMode: renderProfile.wordRevealMode
-                        },
-                        children: timing.char
-                      },
-                      index
-                    )) : /* @__PURE__ */ jsx(
-                      motion.span,
-                      {
-                        variants: wordGlowVariants,
-                        custom: { config, activeColor, baseColor, duration, wordRevealMode: renderProfile.wordRevealMode },
-                        children: word.text
-                      }
-                    )
-                  }
-                ),
-                /* @__PURE__ */ jsx(
-                  motion.span,
-                  {
-                    variants: bodyVariants,
-                    custom: { config, activeColor, baseColor, duration, wordRevealMode: renderProfile.wordRevealMode },
-                    className: "relative z-10 block",
-                    children: word.text
-                  }
-                ),
-                /* @__PURE__ */ jsx(AnimatePresence, { children: isChorus && status === "active" && /* @__PURE__ */ jsx(
-                  motion.span,
-                  {
-                    className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[150%] aspect-square rounded-full border-1 pointer-events-none z-0",
-                    style: { borderColor: activeColor, filter: "blur(1px)" },
-                    initial: { scale: 0.2, opacity: 0.8 },
-                    animate: { scale: rippleScale, opacity: 0 },
-                    exit: { opacity: 0 },
-                    transition: { duration: 0.5, ease: "easeOut" }
-                  },
-                  "ripple"
-                ) })
-              ]
-            },
-            `${config.id}`
-          );
-        };
-      }
-    });
-  
-    // src/folia/utils/lyrics/textDirection.ts
-    var RTL_LETTER_RE, LETTER_RE, resolveLyricTextDirection;
-    var init_textDirection = __esm({
-      "src/folia/utils/lyrics/textDirection.ts"() {
-        RTL_LETTER_RE = /[\p{Script=Arabic}\p{Script=Hebrew}\p{Script=Syriac}\p{Script=Thaana}\p{Script=Nko}\p{Script=Samaritan}\p{Script=Mandaic}\p{Script=Adlam}\p{Script=Hanifi_Rohingya}\p{Script=Yezidi}]/u;
-        LETTER_RE = new RegExp("\\p{L}", "u");
-        resolveLyricTextDirection = (text) => {
-          for (const char of text) {
-            if (!LETTER_RE.test(char)) continue;
-            return RTL_LETTER_RE.test(char) ? "rtl" : "ltr";
-          }
-          return "ltr";
-        };
-      }
-    });
-  
-    // src/folia/components/visualizer/useOverlapFit.ts
-    var OVERLAP_FIT_LINE_ATTRIBUTE, OVERLAP_FIT_ROW_ATTRIBUTE, MIN_FIT, FIT_SLACK, useOverlapFit;
-    var init_useOverlapFit = __esm({
-      "src/folia/components/visualizer/useOverlapFit.ts"() {
-        init_react_shim();
-        OVERLAP_FIT_LINE_ATTRIBUTE = "data-overlap-fit-line";
-        OVERLAP_FIT_ROW_ATTRIBUTE = "data-overlap-fit-row";
-        MIN_FIT = 0.5;
-        FIT_SLACK = 0.98;
-        useOverlapFit = (enabled, lineKey, areaRef, layoutKeys) => {
-          const [fit, setFit] = useState({ key: null, scale: 1 });
-          const scale = enabled && fit.key === lineKey ? fit.scale : 1;
-          useLayoutEffect(() => {
-            if (!enabled || lineKey === null || lineKey === void 0) return;
-            const area = areaRef.current;
-            const line2 = area?.querySelector(`[${OVERLAP_FIT_LINE_ATTRIBUTE}="${String(lineKey)}"]`);
-            if (!area || !line2) return;
-            const style = getComputedStyle(area);
-            const availableHeight = area.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-            const availableWidth = area.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-            const rows = line2.querySelectorAll(`[${OVERLAP_FIT_ROW_ATTRIBUTE}]`);
-            const widestRow = Array.from(rows).reduce((widest, row) => Math.max(widest, row.offsetWidth), 0);
-            const ratio = Math.min(
-              availableHeight / line2.offsetHeight,
-              widestRow > 0 ? availableWidth / widestRow : Number.POSITIVE_INFINITY
-            );
-            if (!(ratio < 1)) return;
-            const next = Math.max(MIN_FIT, scale * ratio * FIT_SLACK);
-            if (next < scale - 5e-3) setFit({ key: lineKey, scale: next });
-          }, [enabled, lineKey, scale, areaRef, ...layoutKeys]);
-          return scale;
         };
       }
     });
@@ -7384,7 +7759,7 @@ function __mpStylesBundle() {
     __export(VisualizerPartita_exports, {
       default: () => VisualizerPartita_default
     });
-    var OVERLAP_MEASURE_PX, TEXT_HIDDEN_EXIT, VisualizerPartita, VisualizerPartita_default;
+    var OVERLAP_MEASURE_PX, TEXT_HIDDEN_EXIT2, VisualizerPartita, VisualizerPartita_default;
     var init_VisualizerPartita = __esm({
       "src/folia/components/visualizer/partita/VisualizerPartita.tsx"() {
         init_react_shim();
@@ -7407,7 +7782,7 @@ function __mpStylesBundle() {
         init_partitaOverlap();
         init_jsx_runtime_shim();
         OVERLAP_MEASURE_PX = 100;
-        TEXT_HIDDEN_EXIT = { opacity: 0, transition: { duration: 0.2, ease: "easeOut" } };
+        TEXT_HIDDEN_EXIT2 = { opacity: 0, transition: { duration: 0.2, ease: "easeOut" } };
         VisualizerPartita = (props) => {
           const {
             currentTime,
@@ -7544,7 +7919,7 @@ function __mpStylesBundle() {
                           initial: activeLineContainerMotion.initial,
                           animate: activeLineContainerMotion.animate,
                           custom: !showText,
-                          variants: { leave: (hidden) => hidden ? TEXT_HIDDEN_EXIT : activeLineContainerMotion.exit },
+                          variants: { leave: (hidden) => hidden ? TEXT_HIDDEN_EXIT2 : activeLineContainerMotion.exit },
                           exit: "leave",
                           ...{ [OVERLAP_FIT_LINE_ATTRIBUTE]: activeLine2.startTime },
                           className: "flex flex-row-reverse items-stretch justify-center w-full max-w-5xl",
@@ -104670,16 +105045,61 @@ function __mpStylesBundle() {
       generateBuiltinDualTheme: () => generateBuiltinDualTheme
     });
   
-    // src/folia/components/visualizer/still/entry.tsx
+    // src/folia/components/visualizer/classic/entry.tsx
     init_react_shim();
+    init_lucide_react();
+  
+    // src/folia/components/shared/QuickControlChip.tsx
+    var QuickControlChip = (_props) => null;
+    var QuickControlToggle = (_props) => null;
+    var cycleValue = (values, current) => {
+      const index = values.indexOf(current);
+      return values[(index + 1) % values.length] ?? values[0];
+    };
   
     // src/folia/components/visualizer/definition.ts
     var defineVisualizer = (entry) => entry;
   
+    // src/folia/components/visualizer/classic/entry.tsx
+    init_settings_card();
+    init_jsx_runtime_shim();
+    var Visualizer2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_Visualizer(), Visualizer_exports)));
+    var entry_default = defineVisualizer({
+      mode: "classic",
+      order: 30,
+      labelKey: "ui.visualizerClassic",
+      labelFallback: "Luminous",
+      previewSeed: "classic",
+      previewStartOffset: 0,
+      // 流光：单行居中歌词，逐字点亮
+      glyph: /* @__PURE__ */ jsxs(Fragment2, { children: [
+        /* @__PURE__ */ jsx("path", { d: "M3 12h18", opacity: "0.35" }),
+        /* @__PURE__ */ jsx("path", { d: "M3 12h8" })
+      ] }),
+      command: {
+        title: "Visualizer: Luminous",
+        description: "Switch to classic visualizer",
+        keywords: ["visualizer classic", "classic", "\u6D41\u5149"]
+      },
+      usesWordSegmentation: true,
+      render: (props) => /* @__PURE__ */ jsx(Visualizer2, { ...props }),
+      renderSettingsPanel: (props) => /* @__PURE__ */ jsx(ClassicSettingsPanel, { ...props }),
+      renderQuickControls: ({ tuning, onTuningChange, t: t4 }) => /* @__PURE__ */ jsx(
+        QuickControlToggle,
+        {
+          active: tuning.enableWordRotation,
+          label: t4("options.classicWordRotation"),
+          onToggle: () => onTuningChange({ enableWordRotation: !tuning.enableWordRotation }),
+          children: /* @__PURE__ */ jsx(RotateCw, { size: 14 })
+        }
+      )
+    });
+  
     // src/folia/components/visualizer/still/entry.tsx
+    init_react_shim();
     init_jsx_runtime_shim();
     var VisualizerStill2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerStill(), VisualizerStill_exports)));
-    var entry_default = defineVisualizer({
+    var entry_default2 = defineVisualizer({
       mode: "still",
       order: 130,
       labelKey: "ui.visualizerStill",
@@ -104704,16 +105124,6 @@ function __mpStylesBundle() {
   
     // src/folia/components/visualizer/tilt/entry.tsx
     init_react_shim();
-  
-    // src/folia/components/shared/QuickControlChip.tsx
-    var QuickControlChip = (_props) => null;
-    var QuickControlToggle = (_props) => null;
-    var cycleValue = (values, current) => {
-      const index = values.indexOf(current);
-      return values[(index + 1) % values.length] ?? values[0];
-    };
-  
-    // src/folia/components/visualizer/tilt/entry.tsx
     init_settings_card();
     init_jsx_runtime_shim();
     var VisualizerTilt2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerTilt(), VisualizerTilt_exports)));
@@ -104724,7 +105134,7 @@ function __mpStylesBundle() {
       accentAll: "options.tiltColorSchemeAccentAll",
       primaryAll: "options.tiltColorSchemePrimaryAll"
     };
-    var entry_default2 = defineVisualizer({
+    var entry_default3 = defineVisualizer({
       mode: "tilt",
       order: 70,
       labelKey: "ui.visualizerTilt",
@@ -104763,7 +105173,7 @@ function __mpStylesBundle() {
     init_settings_card();
     init_jsx_runtime_shim();
     var VisualizerPartita2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerPartita(), VisualizerPartita_exports)));
-    var entry_default3 = defineVisualizer({
+    var entry_default4 = defineVisualizer({
       mode: "partita",
       order: 50,
       labelKey: "ui.visualizerPartita",
@@ -104801,7 +105211,7 @@ function __mpStylesBundle() {
     init_settings_card();
     init_jsx_runtime_shim();
     var VisualizerCladdagh2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerCladdagh(), VisualizerCladdagh_exports)));
-    var entry_default4 = defineVisualizer({
+    var entry_default5 = defineVisualizer({
       mode: "claddagh",
       order: 80,
       labelKey: "ui.visualizerCladdagh",
@@ -104852,7 +105262,7 @@ function __mpStylesBundle() {
         }
       }
     );
-    var entry_default5 = defineVisualizer({
+    var entry_default6 = defineVisualizer({
       mode: "cadenza",
       order: 40,
       labelKey: "ui.visualizerCadenze",
@@ -104887,7 +105297,7 @@ function __mpStylesBundle() {
       stepped: "options.fumeCameraTrackingStepped",
       smooth: "options.fumeCameraTrackingSmooth"
     };
-    var entry_default6 = defineVisualizer({
+    var entry_default7 = defineVisualizer({
       mode: "fume",
       order: 60,
       labelKey: "ui.visualizerFume",
@@ -104945,7 +105355,7 @@ function __mpStylesBundle() {
       hidden: "options.monetChromeVisibilityHidden"
     };
     var VisualizerMonet2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerMonet(), VisualizerMonet_exports)));
-    var entry_default7 = defineVisualizer({
+    var entry_default8 = defineVisualizer({
       mode: "monet",
       order: 90,
       labelKey: "ui.visualizerMonet",
@@ -105022,7 +105432,7 @@ function __mpStylesBundle() {
     init_settings_card();
     init_jsx_runtime_shim();
     var VisualizerLumiere2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerLumiere(), VisualizerLumiere_exports)));
-    var entry_default8 = defineVisualizer({
+    var entry_default9 = defineVisualizer({
       mode: "lumiere",
       order: 25,
       labelKey: "ui.visualizerLumiere",
@@ -105081,7 +105491,7 @@ function __mpStylesBundle() {
       frame: "options.sonnetOuterFrameFrame",
       full: "options.sonnetOuterFrameFull"
     };
-    var entry_default9 = defineVisualizer({
+    var entry_default10 = defineVisualizer({
       mode: "sonnet",
       order: 10,
       labelKey: "ui.visualizerSonnet",
@@ -105163,7 +105573,7 @@ function __mpStylesBundle() {
       mono: "options.temperaColorModeMono",
       gradient: "options.temperaColorModeGradient"
     };
-    var entry_default10 = defineVisualizer({
+    var entry_default11 = defineVisualizer({
       mode: "tempera",
       order: 20,
       labelKey: "ui.visualizerTempera",
@@ -105277,7 +105687,7 @@ function __mpStylesBundle() {
     // src/folia/components/visualizer/hanabi/entry.tsx
     init_jsx_runtime_shim();
     var VisualizerHanabi2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerHanabi(), VisualizerHanabi_exports)));
-    var entry_default11 = defineVisualizer({
+    var entry_default12 = defineVisualizer({
       mode: "hanabi",
       order: 26,
       labelKey: "ui.visualizerHanabi",
@@ -105360,7 +105770,7 @@ function __mpStylesBundle() {
       { fade: ["fog", "fingers"], labelKey: "options.nebbiaFadeMix" }
     ];
     var presetIndex = (presets, pick2, on3) => presets.findIndex((_4, i4) => pick2(i4).join() === on3.join());
-    var entry_default12 = defineVisualizer({
+    var entry_default13 = defineVisualizer({
       mode: "nebbia",
       order: 29,
       labelKey: "ui.visualizerNebbia",
@@ -105459,7 +105869,7 @@ function __mpStylesBundle() {
     init_settings_card();
     init_jsx_runtime_shim();
     var VisualizerDiorama2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerDiorama(), VisualizerDiorama_exports)));
-    var entry_default13 = defineVisualizer({
+    var entry_default14 = defineVisualizer({
       mode: "diorama",
       order: 120,
       labelKey: "ui.visualizerDiorama",
@@ -106440,19 +106850,20 @@ function __mpStylesBundle() {
   
     // src/folia/styles-entry.tsx
     var FOLIA_STYLE_ENTRIES = {
-      still: entry_default,
-      tilt: entry_default2,
-      partita: entry_default3,
-      claddagh: entry_default4,
-      cadenza: entry_default5,
-      fume: entry_default6,
-      monet: entry_default7,
-      lumiere: entry_default8,
-      sonnet: entry_default9,
-      tempera: entry_default10,
-      hanabi: entry_default11,
-      nebbia: entry_default12,
-      diorama: entry_default13
+      classic: entry_default,
+      still: entry_default2,
+      tilt: entry_default3,
+      partita: entry_default4,
+      claddagh: entry_default5,
+      cadenza: entry_default6,
+      fume: entry_default7,
+      monet: entry_default8,
+      lumiere: entry_default9,
+      sonnet: entry_default10,
+      tempera: entry_default11,
+      hanabi: entry_default12,
+      nebbia: entry_default13,
+      diorama: entry_default14
     };
     return __toCommonJS(styles_entry_exports);
   })();

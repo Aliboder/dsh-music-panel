@@ -4,7 +4,7 @@
  * The style renderers are Folia's files; the plugin owns the explicit registry, the
  * mode/label metadata and the host adapter. This test loads client.js with the mock
  * React used by the smoke tests and checks that every compiled entry is registered and
- * that monet is the default/fallback style.
+ * that Folia classic is the default/fallback style.
  */
 
 import assert from 'node:assert/strict'
@@ -102,6 +102,7 @@ const entries = styles.FOLIA_STYLE_ENTRIES
 assert.ok(entries, 'styles bundle exports FOLIA_STYLE_ENTRIES')
 
 const expected = [
+  'classic',
   'still',
   'tilt',
   'partita',
@@ -152,7 +153,7 @@ for (const mode of expected) {
 assert.ok(Array.isArray(internals.FOLIA_STYLE_META))
 assert.deepEqual(
   internals.FOLIA_STYLE_META.map((item) => item.id),
-  ['sonnet', 'tempera', 'lumiere', 'hanabi', 'nebbia', 'cadenza', 'partita', 'fume', 'tilt', 'claddagh', 'monet', 'diorama', 'still'],
+  ['sonnet', 'tempera', 'lumiere', 'hanabi', 'nebbia', 'classic', 'cadenza', 'partita', 'fume', 'tilt', 'claddagh', 'monet', 'diorama', 'still'],
   'style order follows the upstream entry order values',
 )
 assert.deepEqual(
@@ -160,16 +161,15 @@ assert.deepEqual(
   [...expected].sort(),
 )
 
-// The plugin's own classic style must stay untouched, and the machi engine registers
-// alongside the styles bundle.
+// Folia's classic, monet and the machi engine all register through the same catalog.
 const catalog = internals.mpStyleCatalog()
-for (const id of ['monet', 'pendolo', ...expected]) {
+for (const id of ['classic', 'monet', 'pendolo', ...expected]) {
   assert.ok(
     catalog.some((style) => style.id === id),
     `style ${id} is registered`,
   )
 }
-assert.equal(internals.mpStyleOf('monet').id, 'monet')
+assert.equal(internals.mpStyleOf('classic').id, 'classic')
 
 // ── the boundary helpers the renderers rely on ───────────────────────────────
 // Folia's compiled Tailwind sheet is written against its theme variables; the plugin has to

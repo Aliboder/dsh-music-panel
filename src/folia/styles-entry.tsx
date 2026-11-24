@@ -1,3 +1,4 @@
+import classic from './components/visualizer/classic/entry';
 import still from './components/visualizer/still/entry';
 import tilt from './components/visualizer/tilt/entry';
 import partita from './components/visualizer/partita/entry';
@@ -17,6 +18,7 @@ import diorama from './components/visualizer/diorama/entry';
 // the build aliases their settings/preview imports to boundary stubs.
 
 export const FOLIA_STYLE_ENTRIES = {
+    classic,
     still,
     tilt,
     partita,

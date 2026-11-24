@@ -23,7 +23,7 @@ const defaults = vm.runInContext('PREF_DEFAULTS', context)
 test('look and layout defaults', () => {
   assert.equal(defaults.layout, 'top', 'top bar layout')
   assert.equal(defaults.composerListButton, true, 'composer list button')
-  assert.equal(defaults.lyricStyle, 'monet', 'Monet lyrics')
+  assert.equal(defaults.lyricStyle, 'classic', 'Folia classic lyrics')
   assert.equal(defaults.bgMode, 'latent', 'latent background')
   assert.equal(defaults.lyricIntensity, 'normal', 'standard lyric motion')
   assert.equal(defaults.themeSource, 'default', 'default theme source')
@@ -57,4 +57,17 @@ test('storage defaults', () => {
   // Lyrics have no switch: resolved lyrics are written to the cache unconditionally.
   assert.equal(Object.prototype.hasOwnProperty.call(defaults, 'lyricCacheEnabled'), false)
 })
+test('legacy lyric variants migrate to Folia classic', () => {
+  const raw = JSON.stringify({ lyricStyle: 'glow' })
+  const legacy = vm.createContext({
+    window: { localStorage: { getItem: (key) => (key === 'music.prefs.v2' ? raw : null), setItem() {} } },
+    createStore: function (state) {
+      return { get: () => state, set() {}, subscribe: () => () => {} }
+    },
+    console,
+  })
+  vm.runInContext(source, legacy)
+  assert.equal(vm.runInContext('readPrefs().lyricStyle', legacy), 'classic')
+})
+
 console.log('install-defaults.test.mjs ok')

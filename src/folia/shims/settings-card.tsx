@@ -14,6 +14,7 @@ export const SoraBackgroundSettingsCard = Stub;
 export const UrlBackgroundSettingsCard = Stub;
 
 export const CappellaSettingsPanel = Stub;
+export const ClassicSettingsPanel = Stub;
 export const CadenzaSettingsPanel = Stub;
 export const CladdaghSettingsPanel = Stub;
 export const DioramaSettingsPanel = Stub;
