@@ -25,6 +25,7 @@ const lyrics = paneSource('cardLyricsPane')
 const audio = paneSource('cardAudioPane')
 const look = paneSource('cardLookPane')
 const queue = paneSource('cardQueuePane')
+const tuning = paneSource('lyricTuningBlocks')
 
 test('five tabs, one subject each', () => {
   assert.match(
@@ -59,24 +60,15 @@ test('歌词显示 has named controls, not glyph-only buttons', () => {
   }
   assert.match(style, /segmented\(/, '歌词动态 is a segmented choice (KitSegmented)')
   assert.match(style, /mpScaleStepper\(/, 'the two size rows are steppers with a percentage')
-  assert.match(style, /classicTuningBlock\(\)/, 'classic exposes its Folia tuning')
-  assert.match(style, /tiltTuningBlock\(\)/, 'tilt exposes its Folia tuning')
-  assert.match(style, /partitaTuningBlock\(\)/, 'partita exposes its Folia tuning')
-  assert.match(style, /fumeTuningBlock\(\)/, 'fume exposes its Folia tuning')
-  assert.match(style, /claddaghTuningBlock\(\)/, 'claddagh exposes its Folia tuning')
-  assert.match(style, /hanabiTuningBlock\(\)/, 'hanabi exposes its Folia tuning')
-  assert.match(style, /cadenzaTuningBlock\(\)/, 'cadenza exposes its Folia tuning')
-  assert.match(style, /sonnetTuningBlock\(\)/, 'sonnet exposes its Folia tuning')
-  assert.match(style, /cappellaTuningBlock\(\)/, 'cappella exposes its Folia tuning')
-  assert.match(style, /monetTuningBlock\(\)/, 'monet exposes its Folia tuning')
-  assert.match(style, /machiTuningBlock\(\)/, 'machi exposes its Folia tuning')
-  assert.match(style, /lumiereTuningBlock\(\)/, 'lumiere exposes its Folia tuning')
-  assert.match(style, /pendoloTuningBlock\(\)/, 'pendolo exposes its Folia tuning')
-  assert.match(style, /dioramaTuningBlock\(\)/, 'diorama exposes its Folia tuning')
-  assert.match(style, /temperaTuningBlock\(\)/, 'tempera exposes its Folia tuning')
-  assert.match(style, /nebbiaTuningBlock\(\)/, 'nebbia exposes its Folia tuning')
+  assert.doesNotMatch(style, /TuningBlock\(\)/, 'Folia tunings live in the look page now')
   assert.doesNotMatch(style, /mpSmallButton\('≡'/, 'the wired ≡ glyph is gone')
   assert.doesNotMatch(style, /mpSmallButton\('≋'/, 'the wired ≋ glyph is gone')
+})
+
+test('外观 page exposes the selected style tuning', () => {
+  for (const name of ['classic', 'tilt', 'partita', 'fume', 'claddagh', 'hanabi', 'cadenza', 'sonnet', 'cappella', 'monet', 'machi', 'lumiere', 'pendolo', 'diorama', 'tempera', 'nebbia']) {
+    assert.match(tuning, new RegExp(name + 'TuningBlock\\(\\)'), name + ' tuning is routed from the look page')
+  }
 })
 
 test('音频 page: quality, volume, play mode, fade, gain and the effects window', () => {
@@ -97,7 +89,9 @@ test('外观 page: background and theme, and nothing that makes sound', () => {
     assert.ok(look.includes("t('" + key + "')"), key + ' is on the look page')
   }
   assert.doesNotMatch(look, /sheet\.volume/, 'the volume row is on the audio page, not here')
-  assert.doesNotMatch(look, /sheet\.lyricStyle/, 'the lyric style left the look page')
+  assert.match(look, /sheet\.lyricStyleParams/, 'the style tuning moved into the look page')
+  assert.match(look, /lyricTuningBlocks\(\)/, 'the look page routes the selected style tuning')
+  assert.doesNotMatch(look, /t\('sheet\.lyricStyle'\)/, 'the style selector stayed on the lyrics page')
   assert.doesNotMatch(look, /sheet\.smartFade|sheet\.effects/, 'sound controls left the look page')
   assert.doesNotMatch(look, /player\.setLoop/, 'the play mode left the look page')
 })

@@ -612,6 +612,7 @@ function PlayerSheetInner(props) {
   // 外观 tab — the stage's look: background and theme. Sound (including volume) lives on the
   // audio page, so this page only paints.
   function cardLookPane() {
+    var tuningBlocks = lyricTuningBlocks()
     return h(
       'div',
       { key: 'look-pane' },
@@ -745,6 +746,9 @@ function PlayerSheetInner(props) {
           ),
         ),
       ),
+      tuningBlocks.length > 0
+        ? mpSection(t('sheet.lyricStyleParams'), h('div', { className: 'mp-tuning-grid' }, tuningBlocks))
+        : null,
     )
   }
 
@@ -992,6 +996,28 @@ function PlayerSheetInner(props) {
   }
 
 
+  /** The selected style's Folia tuning, rendered in the 外观 tab. */
+  function lyricTuningBlocks() {
+    var style = mpStyleIdOf(prefs.lyricStyle)
+    var blocks = []
+    if (style === 'classic') blocks.push(classicTuningBlock())
+    if (style === 'tilt') blocks.push(tiltTuningBlock())
+    if (style === 'partita') blocks.push(partitaTuningBlock())
+    if (style === 'fume') blocks.push(fumeTuningBlock())
+    if (style === 'claddagh') blocks.push(claddaghTuningBlock())
+    if (style === 'hanabi') blocks.push(hanabiTuningBlock())
+    if (style === 'cadenza') blocks.push(cadenzaTuningBlock())
+    if (style === 'sonnet') blocks.push(sonnetTuningBlock())
+    if (style === 'cappella') blocks.push(cappellaTuningBlock())
+    if (style === 'monet') blocks.push(monetTuningBlock())
+    if (style === 'machi') blocks.push(machiTuningBlock())
+    if (style === 'lumiere') blocks.push(lumiereTuningBlock())
+    if (style === 'pendolo') blocks.push(pendoloTuningBlock())
+    if (style === 'diorama') blocks.push(dioramaTuningBlock())
+    if (style === 'tempera') blocks.push(temperaTuningBlock())
+    if (style === 'nebbia') blocks.push(nebbiaTuningBlock())
+    return blocks
+  }
   function segmented(options, value, onChange) {
     return h(KitSegmented, { options: options, value: String(value), onChange: onChange })
   }
@@ -1086,22 +1112,6 @@ function PlayerSheetInner(props) {
             }),
           )
         : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'tilt' ? tiltTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'partita' ? partitaTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'fume' ? fumeTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'claddagh' ? claddaghTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'hanabi' ? hanabiTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'cadenza' ? cadenzaTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'sonnet' ? sonnetTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'cappella' ? cappellaTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'monet' ? monetTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'machi' ? machiTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'lumiere' ? lumiereTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'pendolo' ? pendoloTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'diorama' ? dioramaTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'tempera' ? temperaTuningBlock() : null,
-      mpStyleIdOf(prefs.lyricStyle) === 'nebbia' ? nebbiaTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1297,10 +1307,10 @@ function PlayerSheetInner(props) {
         mpPanelRow(t('settings.tiltStyle'), probability('tiltStyleProbability', 'settings.tiltStyle')),
         mpPanelRow(t('settings.tiltColorScheme'), segmented(
           [
-            { value: 'default', label: 'Default' },
-            { value: 'swap', label: 'Swap' },
-            { value: 'accentAll', label: 'Accent' },
-            { value: 'primaryAll', label: 'Primary' },
+            { value: 'default', label: t('settings.optDefault') },
+            { value: 'swap', label: t('settings.optSwap') },
+            { value: 'accentAll', label: t('settings.optAccent') },
+            { value: 'primaryAll', label: t('settings.optPrimary') },
           ],
           ['default', 'swap', 'accentAll', 'primaryAll'].indexOf(tuning.colorScheme) >= 0 ? tuning.colorScheme : 'default',
           function (value) { setPrefs({ tiltTuning: Object.assign({}, tuning, { colorScheme: value }) }) },
@@ -1356,7 +1366,7 @@ function PlayerSheetInner(props) {
         switchRow('settings.fumeGeo', 'disableGeometricBackground', true),
         numberRow('settings.fumeBgOpacity', 'backgroundObjectOpacity', 0, 1, 0.05),
         numberRow('settings.fumeHold', 'textHoldRatio', 0, 1, 0.05),
-        mpPanelRow(t('settings.fumeCameraMode'), segmented([{ value: 'stepped', label: 'Stepped' }, { value: 'smooth', label: 'Smooth' }], tuning.cameraTrackingMode === 'stepped' ? 'stepped' : 'smooth', function (value) { setPrefs({ fumeTuning: Object.assign({}, tuning, { cameraTrackingMode: value }) }) })),
+        mpPanelRow(t('settings.fumeCameraMode'), segmented([{ value: 'stepped', label: t('settings.optStepped') }, { value: 'smooth', label: t('settings.optSmooth') }], tuning.cameraTrackingMode === 'stepped' ? 'stepped' : 'smooth', function (value) { setPrefs({ fumeTuning: Object.assign({}, tuning, { cameraTrackingMode: value }) }) })),
         numberRow('settings.fumeCameraSpeed', 'cameraSpeed', 0.55, 1.85, 0.05),
         numberRow('settings.fumeGlow', 'glowIntensity', 0, 1.8, 0.05),
         numberRow('settings.fumeHeroScale', 'heroScale', 0.82, 1.32, 0.02),
@@ -1409,7 +1419,7 @@ function PlayerSheetInner(props) {
       return mpPanelRow(t(label), h(Switch, { value: value, label: t(label), onChange: function (next) { setPrefs({ hanabiTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
     }
     return mpSection(t('settings.hanabiTuning'), h('div', null,
-      mpPanelRow(t('settings.hanabiColorMode'), segmented([{ value: 'theme', label: 'Theme' }, { value: 'vivid', label: 'Vivid' }, { value: 'mixed', label: 'Mixed' }], ['theme', 'vivid', 'mixed'].indexOf(tuning.hanabiColorMode) >= 0 ? tuning.hanabiColorMode : 'mixed', function (value) { setPrefs({ hanabiTuning: Object.assign({}, tuning, { hanabiColorMode: value }) }) })),
+      mpPanelRow(t('settings.hanabiColorMode'), segmented([{ value: 'theme', label: t('settings.optTheme') }, { value: 'vivid', label: t('settings.optVivid') }, { value: 'mixed', label: t('settings.optMixed') }], ['theme', 'vivid', 'mixed'].indexOf(tuning.hanabiColorMode) >= 0 ? tuning.hanabiColorMode : 'mixed', function (value) { setPrefs({ hanabiTuning: Object.assign({}, tuning, { hanabiColorMode: value }) }) })),
       num('settings.hanabiSpark', 'sparkAmount', 0, 2, 0.05),
       num('settings.hanabiOrnament', 'ornamentAmount', 0, 2, 0.05),
       num('settings.hanabiTextMotion', 'textMotion', 0, 2, 0.05),
@@ -1472,7 +1482,7 @@ function PlayerSheetInner(props) {
       sw('settings.sonnetGiantText', 'showGiantDecorativeText'),
       sw('settings.sonnetDecor', 'showBackgroundDecor'),
       sw('settings.sonnetTransitions', 'enableTransitions'),
-      mpPanelRow(t('settings.sonnetFrame'), segmented([{ value: 'none', label: 'None' }, { value: 'frame', label: 'Frame' }, { value: 'full', label: 'Full' }], ['none', 'frame', 'full'].indexOf(tuning.outerFrameMode) >= 0 ? tuning.outerFrameMode : 'full', function (value) { setPrefs({ sonnetTuning: Object.assign({}, tuning, { outerFrameMode: value }) }) })),
+      mpPanelRow(t('settings.sonnetFrame'), segmented([{ value: 'none', label: t('settings.optNone') }, { value: 'frame', label: t('settings.optFrame') }, { value: 'full', label: t('settings.optFull') }], ['none', 'frame', 'full'].indexOf(tuning.outerFrameMode) >= 0 ? tuning.outerFrameMode : 'full', function (value) { setPrefs({ sonnetTuning: Object.assign({}, tuning, { outerFrameMode: value }) }) })),
       num('settings.sonnetTexture', 'textureResolution', 0.5, 4, 0.1),
       sw('settings.sonnetPost', 'postProcessEnabled'),
       num('settings.sonnetGrain', 'postProcessGrain', 0, 1, 0.01),
@@ -1490,9 +1500,9 @@ function PlayerSheetInner(props) {
     return mpSection(t('settings.cappellaTuning'), h('div', null,
       mpPanelRow(t('settings.cappellaEmo'), h(Switch, { value: tuning.showEmoMessages !== false, label: t('settings.cappellaEmo'), onChange: function (value) { setPrefs({ cappellaTuning: Object.assign({}, tuning, { showEmoMessages: value }) }) } })),
       mpPanelRow(t('settings.cappellaAvatar'), segmented([
-        { value: 'cover', label: 'Cover' },
-        { value: 'builtin', label: 'Builtin' },
-        { value: 'color', label: 'Color' },
+        { value: 'cover', label: t('settings.optCover') },
+        { value: 'builtin', label: t('settings.optBuiltin') },
+        { value: 'color', label: t('settings.optColor') },
       ], ['cover', 'builtin', 'color'].indexOf(tuning.avatarSource) >= 0 ? tuning.avatarSource : 'cover', function (value) { setPrefs({ cappellaTuning: Object.assign({}, tuning, { avatarSource: value }) }) })),
     ))
   }
@@ -1515,10 +1525,10 @@ function PlayerSheetInner(props) {
       sw('settings.monetKeyword', 'keywordColoringEnabled'),
       sw('settings.monetDescription', 'showDescription'),
       sw('settings.monetAudio', 'showAudioVisualization'),
-      mpPanelRow(t('settings.monetAudioStyle'), segmented([{ value: 'bar', label: 'Bar' }, { value: 'line', label: 'Line' }], tuning.audioStyle === 'line' ? 'line' : 'bar', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { audioStyle: value }) }) })),
+      mpPanelRow(t('settings.monetAudioStyle'), segmented([{ value: 'bar', label: t('settings.optBar') }, { value: 'line', label: t('settings.optLine') }], tuning.audioStyle === 'line' ? 'line' : 'bar', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { audioStyle: value }) }) })),
       num('settings.monetFontScale', 'fontScale', 0.7, 1.5, 0.01),
-      mpPanelRow(t('settings.monetPortrait'), segmented([{ value: 'cover', label: 'Cover' }, { value: 'none', label: 'None' }], tuning.portraitSource === 'none' ? 'none' : 'cover', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { portraitSource: value }) }) })),
-      mpPanelRow(t('settings.monetPortraitStyle'), segmented([{ value: 'square', label: 'Square' }, { value: 'rectangular', label: 'Rect' }], tuning.portraitStyle === 'rectangular' ? 'rectangular' : 'square', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { portraitStyle: value }) }) })),
+      mpPanelRow(t('settings.monetPortrait'), segmented([{ value: 'cover', label: t('settings.optCover') }, { value: 'none', label: t('settings.optNone') }], tuning.portraitSource === 'none' ? 'none' : 'cover', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { portraitSource: value }) }) })),
+      mpPanelRow(t('settings.monetPortraitStyle'), segmented([{ value: 'square', label: t('settings.optSquare') }, { value: 'rectangular', label: t('settings.optRect') }], tuning.portraitStyle === 'rectangular' ? 'rectangular' : 'square', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { portraitStyle: value }) }) })),
       num('settings.monetPortraitOffset', 'portraitOffsetX', -150, 0, 1),
       sw('settings.monetHanger', 'showPortraitDragHanger'),
       sw('settings.monetMirror', 'mirrorLayout'),
@@ -1541,17 +1551,17 @@ function PlayerSheetInner(props) {
       return mpPanelRow(t(label), segmented(options, current, function (value) { setPrefs({ machiTuning: Object.assign({}, tuning, { [key]: value }) }) }))
     }
     return mpSection(t('settings.machiTuning'), h('div', null,
-      choice('settings.machiScene', 'scene', [{ value: 'auto', label: 'Auto' }, { value: 'konbini', label: 'Konbini' }, { value: 'station', label: 'Station' }, { value: 'kowloon', label: 'Kowloon' }]),
-      choice('settings.machiTime', 'timeOfDay', [{ value: 'auto', label: 'Auto' }, { value: 'day', label: 'Day' }, { value: 'dusk', label: 'Dusk' }, { value: 'night', label: 'Night' }]),
-      choice('settings.machiWeather', 'weather', [{ value: 'auto', label: 'Auto' }, { value: 'clear', label: 'Clear' }, { value: 'rain', label: 'Rain' }, { value: 'snow', label: 'Snow' }, { value: 'fog', label: 'Fog' }]),
-      choice('settings.machiCamera', 'camera', [{ value: 'default', label: 'Default' }, { value: 'custom', label: 'Custom' }]),
+      choice('settings.machiScene', 'scene', [{ value: 'auto', label: t('settings.optAuto') }, { value: 'konbini', label: t('settings.optKonbini') }, { value: 'station', label: t('settings.optStation') }, { value: 'kowloon', label: t('settings.optKowloon') }]),
+      choice('settings.machiTime', 'timeOfDay', [{ value: 'auto', label: t('settings.optAuto') }, { value: 'day', label: t('settings.optDay') }, { value: 'dusk', label: t('settings.optDusk') }, { value: 'night', label: t('settings.optNight') }]),
+      choice('settings.machiWeather', 'weather', [{ value: 'auto', label: t('settings.optAuto') }, { value: 'clear', label: t('settings.optClear') }, { value: 'rain', label: t('settings.optRain') }, { value: 'snow', label: t('settings.optSnow') }, { value: 'fog', label: t('settings.optFog') }]),
+      choice('settings.machiCamera', 'camera', [{ value: 'default', label: t('settings.optDefault') }, { value: 'custom', label: t('settings.optCustom') }]),
       mpPanelRow(t('settings.machiMotion'), h(Switch, { value: tuning.motion === true, label: t('settings.machiMotion'), onChange: function (value) { setPrefs({ machiTuning: Object.assign({}, tuning, { motion: value }) }) } })),
       num('settings.machiMotionSpeed', 'motionSpeed', 0.25, 3, 0.05),
       num('settings.machiAperture', 'aperture', 1.4, 16, 0.1),
       num('settings.machiDof', 'dof', 0, 2, 0.05),
       num('settings.machiDofRange', 'dofRange', 0.3, 3, 0.05),
       num('settings.machiTilt', 'tiltShift', 0, 1, 0.01),
-      choice('settings.machiFocus', 'focus', [{ value: 'center', label: 'Center' }, { value: 'lyrics', label: 'Lyrics' }, { value: 'manual', label: 'Manual' }]),
+      choice('settings.machiFocus', 'focus', [{ value: 'center', label: t('settings.optCenter') }, { value: 'lyrics', label: t('settings.optLyrics') }, { value: 'manual', label: t('settings.optManual') }]),
       num('settings.machiFocusOffset', 'focusOffset', -10, 10, 0.1),
       mpPanelRow(t('settings.machiBeat'), h(Switch, { value: tuning.simulatedBeat !== false, label: t('settings.machiBeat'), onChange: function (value) { setPrefs({ machiTuning: Object.assign({}, tuning, { simulatedBeat: value }) }) } })),
     ))
@@ -1594,7 +1604,7 @@ function PlayerSheetInner(props) {
       sw('settings.lumiereKeyword', 'keywordColors'),
       sw('settings.lumiereIcons', 'themeIcons'),
       num('settings.lumiereMix', 'themeColorMix', 0, 1, 0.01),
-      mpPanelRow(t('settings.lumiereTuning'), segmented([{ value: 'full', label: 'Full' }, { value: 'balanced', label: 'Balanced' }, { value: 'low', label: 'Low' }], ['full', 'balanced', 'low'].indexOf(tuning.renderQuality) >= 0 ? tuning.renderQuality : 'full', function (value) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { renderQuality: value }) }) })),
+      mpPanelRow(t('settings.lumiereTuning'), segmented([{ value: 'full', label: t('settings.optFull') }, { value: 'balanced', label: t('settings.optBalanced') }, { value: 'low', label: t('settings.optLow') }], ['full', 'balanced', 'low'].indexOf(tuning.renderQuality) >= 0 ? tuning.renderQuality : 'full', function (value) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { renderQuality: value }) }) })),
     ))
   }
   /** Folia pendolo tuning: arc geometry, tick response and tilt. */
@@ -1682,7 +1692,7 @@ function PlayerSheetInner(props) {
       num('settings.temperaDof', 'depthOfField', 0, 2, 0.05),
       num('settings.temperaDepthPan', 'depthPan', 0, 2, 0.05),
       num('settings.temperaGlyphDepth', 'glyphDepth', 0, 2, 0.05),
-      mpPanelRow(t('settings.temperaColorMode'), segmented([{ value: 'duo', label: 'Duo' }, { value: 'mono', label: 'Mono' }], tuning.temperaColorMode === 'mono' ? 'mono' : 'duo', function (value) { setPrefs({ temperaTuning: Object.assign({}, tuning, { temperaColorMode: value }) }) })),
+      mpPanelRow(t('settings.temperaColorMode'), segmented([{ value: 'duo', label: t('settings.optDuo') }, { value: 'mono', label: t('settings.optMono') }], tuning.temperaColorMode === 'mono' ? 'mono' : 'duo', function (value) { setPrefs({ temperaTuning: Object.assign({}, tuning, { temperaColorMode: value }) }) })),
       sw('settings.temperaBlocks', 'showBlocks', true),
       sw('settings.temperaDecor', 'showDecor', true),
       sw('settings.temperaCorners', 'showCornerMarks', true),
@@ -1738,9 +1748,9 @@ function PlayerSheetInner(props) {
       listRow('settings.nebbiaFade', 'fade', [{ value: 'fog', text: t('settings.nebbiaFadeFog') }, { value: 'fingers', text: t('settings.nebbiaFadeFingers') }], true),
       listRow('settings.nebbiaLayouts', 'layouts', [{ value: 'ribbon', text: 'Ribbon' }, { value: 'lines2', text: 'Lines 2' }, { value: 'lines3', text: 'Lines 3' }, { value: 'cross', text: 'Cross' }, { value: 'pillar', text: 'Pillar' }, { value: 'header', text: 'Header' }, { value: 'badge', text: 'Badge' }, { value: 'columns', text: 'Columns' }, { value: 'orbit', text: 'Orbit' }], true),
       listRow('settings.nebbiaScenery', 'scenery', [{ value: 'spot', text: 'Spotlight' }, { value: 'buildings', text: 'Buildings' }, { value: 'lights', text: 'Lights' }, { value: 'cars', text: 'Cars' }, { value: 'road', text: 'Road' }], false),
-      choice('settings.nebbiaBehind', 'behind', [{ value: 'night', label: 'Night' }, { value: 'aquarium', label: 'Aquarium' }, { value: 'backdrop', label: 'Backdrop' }]),
-      choice('settings.nebbiaGlass', 'glass', [{ value: 'rain', label: 'Rain' }, { value: 'dew', label: 'Dew' }, { value: 'snow', label: 'Snow' }]),
-      choice('settings.nebbiaRain', 'rain', [{ value: 'slant', label: 'Slant' }, { value: 'straight', label: 'Straight' }, { value: 'off', label: 'Off' }]),
+      choice('settings.nebbiaBehind', 'behind', [{ value: 'night', label: t('settings.optNight') }, { value: 'aquarium', label: t('settings.optAquarium') }, { value: 'backdrop', label: t('settings.optBackdrop') }]),
+      choice('settings.nebbiaGlass', 'glass', [{ value: 'rain', label: t('settings.optRain') }, { value: 'dew', label: t('settings.optDew') }, { value: 'snow', label: t('settings.optSnow') }]),
+      choice('settings.nebbiaRain', 'rain', [{ value: 'slant', label: t('settings.optSlant') }, { value: 'straight', label: t('settings.optStraight') }, { value: 'off', label: t('settings.optOff') }]),
       mpPanelRow(t('settings.nebbiaCredits'), h(Switch, { value: tuning.credits !== false, label: t('settings.nebbiaCredits'), onChange: function (value) { setPrefs({ nebbiaTuning: Object.assign({}, tuning, { credits: value }) }) } })),
       num('settings.nebbiaJitter', 'jitter', 0, 1.5, 0.05),
       num('settings.nebbiaWarp', 'warp', 0, 1.5, 0.05),
