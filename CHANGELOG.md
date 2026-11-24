@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.46.2 — 2026-11-24
 
 ### 播放器
 
