@@ -1089,6 +1089,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'fume' ? fumeTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'claddagh' ? claddaghTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'hanabi' ? hanabiTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'cadenza' ? cadenzaTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1394,6 +1395,25 @@ function PlayerSheetInner(props) {
       sw('settings.hanabiTextOnly', 'textOnly', false),
       num('settings.hanabiSky', 'sky', 0, 1, 0.05),
       num('settings.hanabiCollage', 'collage', 0, 2, 0.05),
+    ))
+  }
+  /** Folia cadenza tuning: font/width ratio, motion and glow. */
+  function cadenzaTuningBlock() {
+    var tuning = prefs.cadenzaTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ cadenzaTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    return mpSection(t('settings.cadenzaTuning'), h('div', null,
+      num('settings.cadenzaFontScale', 'fontScale', 0.7, 1.5, 0.01),
+      num('settings.cadenzaWidthRatio', 'widthRatio', 0.3, 1, 0.01),
+      num('settings.cadenzaMotion', 'motionAmount', 0, 2, 0.05),
+      num('settings.cadenzaGlow', 'glowIntensity', 0, 2, 0.05),
     ))
   }
   /**

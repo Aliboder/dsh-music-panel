@@ -56,6 +56,7 @@ test('playback defaults', () => {
   assert.equal(defaults.fumeTuning.cameraSpeed, 1, 'Folia fume tuning defaults')
   assert.equal(defaults.claddaghTuning.radiusScale, 1, 'Folia claddagh tuning defaults')
   assert.equal(defaults.hanabiTuning.sparkAmount, 1, 'Folia hanabi tuning defaults')
+  assert.equal(defaults.cadenzaTuning.fontScale, 1.12, 'Folia cadenza tuning defaults')
   assert.equal(defaults.resumeOnStart, true)
   assert.equal(defaults.onlineQuality, 'standard')
 })

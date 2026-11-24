@@ -57,6 +57,12 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  cadenzaTuning: {
+    fontScale: 1.12,
+    widthRatio: 0.72,
+    motionAmount: 1,
+    glowIntensity: 1,
+  },
   hanabiTuning: {
     hanabiColorMode: 'mixed',
     sparkAmount: 1,
@@ -273,6 +279,19 @@ function readPrefs() {
       dropped = true
     }
   })
+  // Folia cadenza tuning: font/width ratios plus motion and glow.
+  var cadenzaDefaults = PREF_DEFAULTS.cadenzaTuning
+  var storedCadenza = merged.cadenzaTuning && typeof merged.cadenzaTuning === 'object' ? merged.cadenzaTuning : {}
+  function cadenzaNumber(key, min, max) {
+    var value = Number(storedCadenza[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : cadenzaDefaults[key]
+  }
+  merged.cadenzaTuning = {
+    fontScale: cadenzaNumber('fontScale', 0.7, 1.5),
+    widthRatio: cadenzaNumber('widthRatio', 0.3, 1),
+    motionAmount: cadenzaNumber('motionAmount', 0, 2),
+    glowIntensity: cadenzaNumber('glowIntensity', 0, 2),
+  }
   // Folia hanabi tuning: numeric amounts clamp, switches default as upstream.
   var hanabiDefaults = PREF_DEFAULTS.hanabiTuning
   var storedHanabi = merged.hanabiTuning && typeof merged.hanabiTuning === 'object' ? merged.hanabiTuning : {}

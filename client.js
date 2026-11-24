@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "3140d4c5bffb"
+    var CLIENT_BUILD = "14e8f4ffb794"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,11 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.cadenzaTuning': '心象参数',
+        'settings.cadenzaFontScale': '字号',
+        'settings.cadenzaWidthRatio': '画面宽度',
+        'settings.cadenzaMotion': '动态幅度',
+        'settings.cadenzaGlow': '辉光',
         'settings.hanabiTuning': '花火参数',
         'settings.hanabiColorMode': '配色模式',
         'settings.hanabiSpark': '火花量',
@@ -9392,6 +9397,11 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.cadenzaTuning': 'Cadenza tuning',
+        'settings.cadenzaFontScale': 'Font scale',
+        'settings.cadenzaWidthRatio': 'Width ratio',
+        'settings.cadenzaMotion': 'Motion amount',
+        'settings.cadenzaGlow': 'Glow',
         'settings.hanabiTuning': 'Hanabi tuning',
         'settings.hanabiColorMode': 'Color mode',
         'settings.hanabiSpark': 'Sparks',
@@ -137940,6 +137950,7 @@ window.__ModuleLoader__.load({
         var styles_entry_exports = {};
         __export(styles_entry_exports, {
           DAYLIGHT_THEME: () => DAYLIGHT_THEME,
+          DEFAULT_CADENZA_TUNING: () => DEFAULT_CADENZA_TUNING,
           DEFAULT_CLADDAGH_TUNING: () => DEFAULT_CLADDAGH_TUNING,
           DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
           DEFAULT_FUME_TUNING: () => DEFAULT_FUME_TUNING,
@@ -140641,6 +140652,7 @@ window.__ModuleLoader__.load({
         tiltTuning: prefs.tiltTuning || undefined,
         partitaTuning: prefs.partitaTuning || undefined,
         fumeTuning: prefs.fumeTuning || undefined,
+        cadenzaTuning: prefs.cadenzaTuning || undefined,
         hanabiTuning: prefs.hanabiTuning
           ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
           : undefined,
@@ -151323,6 +151335,12 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      cadenzaTuning: {
+        fontScale: 1.12,
+        widthRatio: 0.72,
+        motionAmount: 1,
+        glowIntensity: 1,
+      },
       hanabiTuning: {
         hanabiColorMode: 'mixed',
         sparkAmount: 1,
@@ -151539,6 +151557,19 @@ window.__ModuleLoader__.load({
           dropped = true
         }
       })
+      // Folia cadenza tuning: font/width ratios plus motion and glow.
+      var cadenzaDefaults = PREF_DEFAULTS.cadenzaTuning
+      var storedCadenza = merged.cadenzaTuning && typeof merged.cadenzaTuning === 'object' ? merged.cadenzaTuning : {}
+      function cadenzaNumber(key, min, max) {
+        var value = Number(storedCadenza[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : cadenzaDefaults[key]
+      }
+      merged.cadenzaTuning = {
+        fontScale: cadenzaNumber('fontScale', 0.7, 1.5),
+        widthRatio: cadenzaNumber('widthRatio', 0.3, 1),
+        motionAmount: cadenzaNumber('motionAmount', 0, 2),
+        glowIntensity: cadenzaNumber('glowIntensity', 0, 2),
+      }
       // Folia hanabi tuning: numeric amounts clamp, switches default as upstream.
       var hanabiDefaults = PREF_DEFAULTS.hanabiTuning
       var storedHanabi = merged.hanabiTuning && typeof merged.hanabiTuning === 'object' ? merged.hanabiTuning : {}
@@ -179591,6 +179622,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'fume' ? fumeTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'claddagh' ? claddaghTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'hanabi' ? hanabiTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'cadenza' ? cadenzaTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -179896,6 +179928,25 @@ window.__ModuleLoader__.load({
           sw('settings.hanabiTextOnly', 'textOnly', false),
           num('settings.hanabiSky', 'sky', 0, 1, 0.05),
           num('settings.hanabiCollage', 'collage', 0, 2, 0.05),
+        ))
+      }
+      /** Folia cadenza tuning: font/width ratio, motion and glow. */
+      function cadenzaTuningBlock() {
+        var tuning = prefs.cadenzaTuning || {}
+        function num(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ cadenzaTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        return mpSection(t('settings.cadenzaTuning'), h('div', null,
+          num('settings.cadenzaFontScale', 'fontScale', 0.7, 1.5, 0.01),
+          num('settings.cadenzaWidthRatio', 'widthRatio', 0.3, 1, 0.01),
+          num('settings.cadenzaMotion', 'motionAmount', 0, 2, 0.05),
+          num('settings.cadenzaGlow', 'glowIntensity', 0, 2, 0.05),
         ))
       }
       /**
