@@ -184,30 +184,11 @@ function NowPlaying(props) {
       maxHeight: 'min(560px, 60vh)',
     }
   }
+  // Port of Folia src/hooks/usePlayerChromeAutoHide.ts: window-level mouseout/mousemove,
+  // 3 s idle after movement, 300 ms after the pointer leaves the window; any open panel pins it.
   useEffect(
     function () {
       if (props.open !== true) return undefined
-      var timer = null
-      function clear() {
-        if (timer !== null) {
-          clearTimeout(timer)
-          timer = null
-        }
-      }
-      var chromeMode = prefs.playerChromeVisibilityMode === 'auto-hide'
-        ? 'auto-hide'
-        : (prefs.playerChromeVisibilityMode === 'always-hidden' ? 'always-hidden' : 'always-visible')
-      function arm() {
-        clear()
-        if (chromeMode !== 'auto-hide' || chromePinned) return
-        timer = setTimeout(function () {
-          setChromeVisible(false)
-        }, 3000)
-      }
-      function wake() {
-        setChromeVisible(true)
-        arm()
-      }
       var chromeMode = prefs.playerChromeVisibilityMode === 'auto-hide'
         ? 'auto-hide'
         : (prefs.playerChromeVisibilityMode === 'always-hidden' ? 'always-hidden' : 'always-visible')
@@ -215,26 +196,79 @@ function NowPlaying(props) {
         setChromeVisible(false)
         return undefined
       }
-      if (chromeMode === 'always-visible') setChromeVisible(true)
-      var root = npRef.current
-      if (root === null) return undefined
-      root.addEventListener('pointermove', wake, { passive: true })
-      root.addEventListener('pointerdown', wake, { passive: true })
-      root.addEventListener('keydown', wake)
-      if (chromePinned) {
+      if (chromeMode === 'always-visible' || chromePinned) {
         setChromeVisible(true)
-        clear()
-      } else {
-        wake()
+        return undefined
       }
+      var timer = null
+      var raf = null
+      var throttled = false
+      var held = false
+      function clear() {
+        if (timer !== null) {
+          clearTimeout(timer)
+          timer = null
+        }
+      }
+      function schedule(delay) {
+        clear()
+        if (held) return
+        timer = setTimeout(function () {
+          timer = null
+          setChromeVisible(false)
+        }, delay)
+      }
+      function show() {
+        setChromeVisible(true)
+        schedule(3000)
+      }
+      function onOut(event) {
+        var left = !event.relatedTarget || event.clientY <= 0 || event.clientX <= 0 ||
+          event.clientX >= window.innerWidth || event.clientY >= window.innerHeight
+        if (left) schedule(300)
+      }
+      function onMove(event) {
+        if (held && event.buttons === 0) held = false
+        if (throttled) return
+        throttled = true
+        raf = requestAnimationFrame(function () {
+          show()
+          throttled = false
+        })
+      }
+      function onDown() {
+        held = true
+        clear()
+        setChromeVisible(true)
+      }
+      function onUp() {
+        held = false
+        show()
+      }
+      function onBlur() {
+        held = false
+        schedule(300)
+      }
+      show()
+      window.addEventListener('mouseout', onOut)
+      window.addEventListener('mousemove', onMove)
+      window.addEventListener('pointerdown', onDown)
+      window.addEventListener('pointerup', onUp)
+      window.addEventListener('pointercancel', onUp)
+      window.addEventListener('wheel', show, { passive: true })
+      window.addEventListener('blur', onBlur)
       return function () {
         clear()
-        root.removeEventListener('pointermove', wake)
-        root.removeEventListener('pointerdown', wake)
-        root.removeEventListener('keydown', wake)
+        if (raf !== null) cancelAnimationFrame(raf)
+        window.removeEventListener('mouseout', onOut)
+        window.removeEventListener('mousemove', onMove)
+        window.removeEventListener('pointerdown', onDown)
+        window.removeEventListener('pointerup', onUp)
+        window.removeEventListener('pointercancel', onUp)
+        window.removeEventListener('wheel', show)
+        window.removeEventListener('blur', onBlur)
       }
-    },
-    [props.open, chromePinned, prefs.playerChromeVisibilityMode],
+    },    [props.open, chromePinned, prefs.playerChromeVisibilityMode],
   )
   var offsetPair = useState(0)
   var offsetMs = offsetPair[0]

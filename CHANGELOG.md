@@ -8,6 +8,8 @@
 
 ### 播放器
 
+- 修正播放页自动隐藏：改为 Folia `usePlayerChromeAutoHide` 的 window 级 `mouseout` / `mousemove` 时序，鼠标离开窗口约 300ms、静止约 3s 后收起；打开面板时仍保持显示。
+
 - 面板新增队列页签：窗口化渲染、当前行高亮、播放/下一首/移到末尾/移除/清空。
 - 播放控制显示改为 Folia 三态：始终显示 / 自动隐藏 / 始终隐藏；默认始终显示，隐藏时同步隐藏鼠标。
 - 下一首/上一首、预取和错误跳过改用 Folia `nextQueueIndex` / `prevQueueIndex`；关闭列表循环时到边界不再绕回。
