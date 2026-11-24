@@ -112,7 +112,7 @@ function PlayerSheetInner(props) {
   // a server name is a hint inside its source row instead of a tab label.
   var isOnlineTrack = track !== null && Boolean(track.onlineProvider)
   var isNavidromeTrack = isOnlineTrack && track.onlineProvider === 'navidrome'
-  var TABS = ['sheet.song', 'sheet.lyrics', 'sheet.audio', 'sheet.look']
+  var TABS = ['sheet.song', 'sheet.lyrics', 'sheet.queue', 'sheet.audio', 'sheet.look']
   var isCover = index === 0
 
   useEffect(
@@ -1083,6 +1083,7 @@ function PlayerSheetInner(props) {
             }),
           )
         : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1123,6 +1124,122 @@ function PlayerSheetInner(props) {
     )
   }
 
+  /**
+   * 播放列表 — Folia's QueueTab, with the plugin's player actions and DSH rows.
+   * The panel body already scrolls, so the list lets that scroll (no nested scrollbar).
+   */
+  function cardQueuePane() {
+    var queue = Array.isArray(snap.queue) ? snap.queue : []
+    var current = Number(snap.index)
+    function move(index, target) {
+      if (!Number.isInteger(index) || index < 0 || index >= queue.length) return
+      var indices = queue.map(function (_, at) { return at })
+      var from = indices.indexOf(index)
+      if (from < 0) return
+      var to = Math.max(0, Math.min(indices.length - 1, target))
+      if (to === from) return
+      var moved = indices.splice(from, 1)[0]
+      indices.splice(to, 0, moved)
+      player.reorderQueue(indices)
+    }
+    return h(
+      'div',
+      { key: 'queue-pane', className: 'mp-queue-pane' },
+      h(
+        'div',
+        { className: 'mp-queue-head' },
+        h('strong', null, String(queue.length) + ' ' + t('p3.unitSong')),
+        h('span', { className: 'mp-queue-grow' }),
+        queue.length > 0
+          ? h(IconButton, {
+              icon: 'trash',
+              size: 15,
+              title: t('p3.clearQueue'),
+              onClick: function () {
+                pushLayer('confirm', {
+                  title: t('p3.clearQueue'),
+                  text: t('p3.clearQueueConfirm'),
+                  onConfirm: function () { player.clearQueue(); onClose() },
+                })
+              },
+            })
+          : null,
+      ),
+      queue.length === 0
+        ? h('div', { className: 'mp-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty')))
+        : h('div', { className: 'mp-queue-list' }, queue.map(function (track, at) {
+            if (track === null || typeof track !== 'object') return null
+            var active = at === current
+            return h(
+              'div',
+              {
+                key: String(track.path || at) + ':' + String(at),
+                className: 'mp-queue-row' + (active ? ' is-on' : ''),
+                role: 'button',
+                tabIndex: 0,
+                onClick: function () { player.select(queue, at) },
+                onKeyDown: function (event) {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    player.select(queue, at)
+                  }
+                },
+              },
+              h('span', { className: 'mp-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+              h('span', { className: 'mp-queue-main' },
+                h('span', { className: 'mp-queue-name' }, trackTitleOf(track)),
+                h('span', { className: 'mp-queue-artist' }, trackArtistOf(track)),
+              ),
+              h('span', { className: 'mp-queue-time' }, fmtClock(track.durationSec || 0)),
+              h(
+                'span',
+                { className: 'mp-queue-actions' },
+                h(IconButton, { icon: 'playlist', size: 13, title: t('p3.playNext'), onClick: function (event) { event.stopPropagation(); move(at, current + 1) } }),
+                h(IconButton, { icon: 'down', size: 13, title: t('p3.moveToEnd'), onClick: function (event) { event.stopPropagation(); move(at, queue.length - 1) } }),
+                h(IconButton, { icon: 'x', size: 13, title: t('p3.removeFromQueue'), onClick: function (event) { event.stopPropagation(); player.removeQueueAt(at) } }),
+              ),
+            )
+          })),
+    )
+  }
+  /** Folia classic's own tuning controls (settings are DSH rows; values are Folia's). */
+  function classicTuningBlock() {
+    var tuning = prefs.classicTuning || {}
+    function range(key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = 0
+      return h('input', {
+        type: 'range',
+        className: 'mp-range',
+        min: String(min),
+        max: String(max),
+        step: String(step),
+        value: String(value),
+        'aria-label': t(key === 'breathingFloatMultiplier' ? 'settings.classicBreathing' : 'settings.classicWordSpacing'),
+        onChange: function (event) {
+          var next = Object.assign({}, tuning)
+          next[key] = Number(event.target.value)
+          setPrefs({ classicTuning: next })
+        },
+      })
+    }
+    return mpSection(
+      t('settings.classicTuning'),
+      h(
+        'div',
+        null,
+        mpPanelRow(t('settings.classicWordRotation'), h(Switch, {
+          value: tuning.enableWordRotation !== false,
+          label: t('settings.classicWordRotation'),
+          onChange: function (value) {
+            setPrefs({ classicTuning: Object.assign({}, tuning, { enableWordRotation: value }) })
+          },
+        })),
+        mpPanelRow(t('settings.classicBreathing'), range('breathingFloatMultiplier', 0, 2, 0.1)),
+        mpPanelRow(t('settings.classicWordSpacing'), range('wordSpacing', 0, 2, 0.1)),
+      ),
+    )
+  }
   /**
    * 音量 — the card's volume row, now on the audio page. It is the keyboard path; the player
    * page's edge rail is the fast one.
@@ -1206,6 +1323,26 @@ function PlayerSheetInner(props) {
       ),
       gainBlock(),
       mpPanelRow(
+        t('settings.playerChromeMode'),
+        segmented(
+          [
+            { value: 'always-visible', label: t('settings.playerChromeAlwaysVisible') },
+            { value: 'auto-hide', label: t('settings.playerChromeAutoHide') },
+            { value: 'always-hidden', label: t('settings.playerChromeAlwaysHidden') },
+          ],
+          ['always-visible', 'auto-hide', 'always-hidden'].indexOf(prefs.playerChromeVisibilityMode) >= 0
+            ? prefs.playerChromeVisibilityMode
+            : (prefs.autoHidePlayerChrome === true ? 'auto-hide' : 'always-visible'),
+          function (value) {
+            setPrefs({
+              playerChromeVisibilityMode: value,
+              autoHidePlayerChrome: value === 'auto-hide',
+            })
+          },
+        ),
+        t('settings.autoHidePlayerChromeDesc'),
+      ),
+      mpPanelRow(
         t('sheet.effects'),
         cardButton(t('sheet.open'), function () {
           pushLayer('equalizer', {})
@@ -1214,7 +1351,7 @@ function PlayerSheetInner(props) {
       ),
     )
   }
-  var bodies = [null, cardLyricsPane(), cardAudioPane(), cardLookPane()]
+  var bodies = [null, cardLyricsPane(), cardQueuePane(), cardAudioPane(), cardLookPane()]
 
   var bodyHeight = isCover ? 0 : MP_BODY_GAP + MP_BODY_LINE + MP_BODY_UNDER + (bodyH > 0 ? bodyH : 0)
 

@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "87619b11297a"
+    var CLIENT_BUILD = "552e0c632eda"
 
     // ── src/client/app/runtime.js
     /**
@@ -157141,14 +157141,20 @@ window.__ModuleLoader__.load({
       applyPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(current) + 1) % PLAY_MODES.length])
     }
 
-    function nextIndexOf(index, size) {
-      if (size <= 1) return 0
-      return (index + 1) % size
+    /**
+     * Folia playbackNeighbors: nextQueueIndex / prevQueueIndex, copied verbatim.
+     * At the end with loop 'none' there is no target (-1); only loop 'all' wraps.
+     */
+    function nextQueueIndex(queueLength, currentIndex, loopMode) {
+      if (queueLength <= 0) return -1
+      if (currentIndex < 0) return 0
+      if (currentIndex < queueLength - 1) return currentIndex + 1
+      return loopMode === 'all' ? 0 : -1
     }
 
-    function prevIndexOf(index, size) {
-      if (size <= 1) return 0
-      return (index - 1 + size) % size
+    function prevQueueIndex(queueLength, currentIndex, loopMode) {
+      if (currentIndex > 0) return currentIndex - 1
+      return loopMode === 'all' ? queueLength - 1 : -1
     }
 
     // ── playback engine (module-level: survives panel unmount) ───────────
@@ -158026,7 +158032,9 @@ window.__ModuleLoader__.load({
           patch({ playing: false })
           return
         }
-        load(nextIndexOf(state.index, state.queue.length), true)
+        var nextAtEnd = nextQueueIndex(state.queue.length, state.index, state.loop)
+        if (nextAtEnd < 0) { patch({ playing: false }); return }
+        load(nextAtEnd, true)
       }
 
       /** Preserve what the listener asked for before MSE is torn down and playback restarts. */
@@ -158096,7 +158104,9 @@ window.__ModuleLoader__.load({
           // Folia's autoSkipUnplayable: a track the account cannot play is skipped like a
           // taken-down one instead of parking the queue on it. A run of failures stops.
           if (readPrefs().autoSkipUnplayable === true && state.queue.length > 1 && errorStreak <= 3) {
-            load(nextIndexOf(state.index, state.queue.length), true)
+            var skipTo = nextQueueIndex(state.queue.length, state.index, state.loop)
+            if (skipTo < 0) { errorStreak = 0; patch({ playing: false }); return }
+            load(skipTo, true)
             return
           }
           errorStreak = 0
@@ -158108,7 +158118,13 @@ window.__ModuleLoader__.load({
           patch({ playing: false })
           return
         }
-        load(nextIndexOf(state.index, state.queue.length), true)
+        var nextAfterError = nextQueueIndex(state.queue.length, state.index, state.loop)
+        if (nextAfterError < 0) {
+          errorStreak = 0
+          patch({ playing: false })
+          return
+        }
+        load(nextAfterError, true)
       }
 
       function releaseObjectUrl() {
@@ -158336,8 +158352,8 @@ window.__ModuleLoader__.load({
         var token = profileToken
         var stillCurrent = function () { return token === profileToken }
         if (state.index < 0 || state.queue.length < 2) return
-        var next = nextIndexOf(state.index, state.queue.length)
-        if (next === state.index) return
+        var next = nextQueueIndex(state.queue.length, state.index, state.loop)
+        if (next < 0 || next === state.index) return
         var item = state.queue[next]
         if (!item || typeof item.path !== 'string' || item.path === '') return
         if (prefetchedProfilePath === item.path || profileFor(item.path) !== null) return
@@ -159249,8 +159265,8 @@ window.__ModuleLoader__.load({
         var settings = readPrefs()
         if (crossfadeFadeSeconds(settings) <= 0) return
         if (state.index < 0 || state.queue.length < 2) return
-        var next = nextIndexOf(state.index, state.queue.length)
-        if (next === state.index) return
+        var next = nextQueueIndex(state.queue.length, state.index, state.loop)
+        if (next < 0 || next === state.index) return
         var item = state.queue[next]
         if (!item || onlineUrlFor(item) === '') return
         if (!crossfadeNextAllowed(settings, currentItem(), item)) return
@@ -159482,7 +159498,7 @@ window.__ModuleLoader__.load({
         }
         if (xfadePending) return
         if (state.index < 0 || state.queue.length < 2) return
-        var next = nextIndexOf(state.index, state.queue.length)
+        var next = nextQueueIndex(state.queue.length, state.index, state.loop)
         if (next < 0 || next === state.index) return
         if (!crossfadeNextAllowed(settings, currentItem(), state.queue[next])) return
         var should = crossfadeShouldStart({
@@ -160162,11 +160178,15 @@ window.__ModuleLoader__.load({
         },
         next: function () {
           if (state.queue.length === 0) return
-          load(nextIndexOf(state.index, state.queue.length), true)
+          var next = nextQueueIndex(state.queue.length, state.index, state.loop)
+          if (next < 0) return
+          load(next, true)
         },
         prev: function () {
           if (state.queue.length === 0) return
-          load(prevIndexOf(state.index, state.queue.length), true)
+          var previous = prevQueueIndex(state.queue.length, state.index, state.loop)
+          if (previous < 0) return
+          load(previous, true)
         },
         seek: function (seconds) {
           if (audio === null) return
@@ -164140,7 +164160,26 @@ window.__ModuleLoader__.load({
       '.mp-card-tabs{display:flex}',
       '.mp-card-tabs>*{flex:1 1 auto;min-width:0}',
       '.mp-card-tabs .mp-segment{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;width:100%}',
-    '.mp-card-body-wrap ::-webkit-scrollbar{width:0;height:0;display:none}',
+    '.mp-queue-pane{display:flex;flex-direction:column;padding:0 4px}',
+    '.mp-queue-head{display:flex;align-items:center;gap:6px;height:36px;font-size:12px;color:var(--dsw-alias-label-secondary,inherit)}',
+    '.mp-queue-head strong{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,inherit)}',
+    '.mp-queue-grow{flex:1 1 auto}',
+    '.mp-queue-list{display:flex;flex-direction:column;gap:1px}',
+    '.mp-queue-row{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 4px;border-radius:8px;cursor:pointer;color:var(--dsw-alias-label-primary,inherit)}',
+    '.mp-queue-row:hover,.mp-queue-row:focus-visible{background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#232324) 70%,transparent);outline:none}',
+    '.mp-queue-row.is-on{background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#232324) 88%,transparent)}',
+    '.mp-queue-row.is-on:before{content:"";width:3px;height:22px;border-radius:0 3px 3px 0;margin-left:-8px;background:var(--dsw-alias-state-business-primary,#4f8cff)}',
+    '.mp-queue-cover{width:32px;height:32px;flex:0 0 auto;overflow:hidden;border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))}',
+    '.mp-queue-main{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}',
+    '.mp-queue-name{font-size:13px;line-height:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    '.mp-queue-artist{font-size:12px;line-height:17px;opacity:.62;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    '.mp-queue-time{flex:0 0 auto;font-size:11px;opacity:.5;font-variant-numeric:tabular-nums}',
+    '.mp-queue-actions{display:flex;align-items:center;gap:1px;flex:0 0 auto;opacity:0;pointer-events:none;transition:opacity .12s ease}',
+    '.mp-queue-row:hover .mp-queue-actions,.mp-queue-row:focus-within .mp-queue-actions{opacity:1;pointer-events:auto}',
+    '.mp-queue-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;font-size:13px;opacity:.55}',
+      '.mp-card-scroll{scrollbar-width:none;-ms-overflow-style:none}',
+      '.mp-card-scroll::-webkit-scrollbar{width:0;height:0;display:none}',
+      '.mp-card-body-wrap ::-webkit-scrollbar{width:0;height:0;display:none}',
       '.mp-card-body-wrap *{scrollbar-width:none;-ms-overflow-style:none}',
         // The match window draws its own frame: the host layer only provides the modal
       // stack (so it sits above the tag editor), and this makes that layer a full
@@ -178316,7 +178355,7 @@ window.__ModuleLoader__.load({
       // a server name is a hint inside its source row instead of a tab label.
       var isOnlineTrack = track !== null && Boolean(track.onlineProvider)
       var isNavidromeTrack = isOnlineTrack && track.onlineProvider === 'navidrome'
-      var TABS = ['sheet.song', 'sheet.lyrics', 'sheet.audio', 'sheet.look']
+      var TABS = ['sheet.song', 'sheet.lyrics', 'sheet.queue', 'sheet.audio', 'sheet.look']
       var isCover = index === 0
 
       useEffect(
@@ -179287,6 +179326,7 @@ window.__ModuleLoader__.load({
                 }),
               )
             : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -179327,6 +179367,122 @@ window.__ModuleLoader__.load({
         )
       }
 
+      /**
+       * 播放列表 — Folia's QueueTab, with the plugin's player actions and DSH rows.
+       * The panel body already scrolls, so the list lets that scroll (no nested scrollbar).
+       */
+      function cardQueuePane() {
+        var queue = Array.isArray(snap.queue) ? snap.queue : []
+        var current = Number(snap.index)
+        function move(index, target) {
+          if (!Number.isInteger(index) || index < 0 || index >= queue.length) return
+          var indices = queue.map(function (_, at) { return at })
+          var from = indices.indexOf(index)
+          if (from < 0) return
+          var to = Math.max(0, Math.min(indices.length - 1, target))
+          if (to === from) return
+          var moved = indices.splice(from, 1)[0]
+          indices.splice(to, 0, moved)
+          player.reorderQueue(indices)
+        }
+        return h(
+          'div',
+          { key: 'queue-pane', className: 'mp-queue-pane' },
+          h(
+            'div',
+            { className: 'mp-queue-head' },
+            h('strong', null, String(queue.length) + ' ' + t('p3.unitSong')),
+            h('span', { className: 'mp-queue-grow' }),
+            queue.length > 0
+              ? h(IconButton, {
+                  icon: 'trash',
+                  size: 15,
+                  title: t('p3.clearQueue'),
+                  onClick: function () {
+                    pushLayer('confirm', {
+                      title: t('p3.clearQueue'),
+                      text: t('p3.clearQueueConfirm'),
+                      onConfirm: function () { player.clearQueue(); onClose() },
+                    })
+                  },
+                })
+              : null,
+          ),
+          queue.length === 0
+            ? h('div', { className: 'mp-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty')))
+            : h('div', { className: 'mp-queue-list' }, queue.map(function (track, at) {
+                if (track === null || typeof track !== 'object') return null
+                var active = at === current
+                return h(
+                  'div',
+                  {
+                    key: String(track.path || at) + ':' + String(at),
+                    className: 'mp-queue-row' + (active ? ' is-on' : ''),
+                    role: 'button',
+                    tabIndex: 0,
+                    onClick: function () { player.select(queue, at) },
+                    onKeyDown: function (event) {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        player.select(queue, at)
+                      }
+                    },
+                  },
+                  h('span', { className: 'mp-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+                  h('span', { className: 'mp-queue-main' },
+                    h('span', { className: 'mp-queue-name' }, trackTitleOf(track)),
+                    h('span', { className: 'mp-queue-artist' }, trackArtistOf(track)),
+                  ),
+                  h('span', { className: 'mp-queue-time' }, fmtClock(track.durationSec || 0)),
+                  h(
+                    'span',
+                    { className: 'mp-queue-actions' },
+                    h(IconButton, { icon: 'playlist', size: 13, title: t('p3.playNext'), onClick: function (event) { event.stopPropagation(); move(at, current + 1) } }),
+                    h(IconButton, { icon: 'down', size: 13, title: t('p3.moveToEnd'), onClick: function (event) { event.stopPropagation(); move(at, queue.length - 1) } }),
+                    h(IconButton, { icon: 'x', size: 13, title: t('p3.removeFromQueue'), onClick: function (event) { event.stopPropagation(); player.removeQueueAt(at) } }),
+                  ),
+                )
+              })),
+        )
+      }
+      /** Folia classic's own tuning controls (settings are DSH rows; values are Folia's). */
+      function classicTuningBlock() {
+        var tuning = prefs.classicTuning || {}
+        function range(key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = 0
+          return h('input', {
+            type: 'range',
+            className: 'mp-range',
+            min: String(min),
+            max: String(max),
+            step: String(step),
+            value: String(value),
+            'aria-label': t(key === 'breathingFloatMultiplier' ? 'settings.classicBreathing' : 'settings.classicWordSpacing'),
+            onChange: function (event) {
+              var next = Object.assign({}, tuning)
+              next[key] = Number(event.target.value)
+              setPrefs({ classicTuning: next })
+            },
+          })
+        }
+        return mpSection(
+          t('settings.classicTuning'),
+          h(
+            'div',
+            null,
+            mpPanelRow(t('settings.classicWordRotation'), h(Switch, {
+              value: tuning.enableWordRotation !== false,
+              label: t('settings.classicWordRotation'),
+              onChange: function (value) {
+                setPrefs({ classicTuning: Object.assign({}, tuning, { enableWordRotation: value }) })
+              },
+            })),
+            mpPanelRow(t('settings.classicBreathing'), range('breathingFloatMultiplier', 0, 2, 0.1)),
+            mpPanelRow(t('settings.classicWordSpacing'), range('wordSpacing', 0, 2, 0.1)),
+          ),
+        )
+      }
       /**
        * 音量 — the card's volume row, now on the audio page. It is the keyboard path; the player
        * page's edge rail is the fast one.
@@ -179410,6 +179566,26 @@ window.__ModuleLoader__.load({
           ),
           gainBlock(),
           mpPanelRow(
+            t('settings.playerChromeMode'),
+            segmented(
+              [
+                { value: 'always-visible', label: t('settings.playerChromeAlwaysVisible') },
+                { value: 'auto-hide', label: t('settings.playerChromeAutoHide') },
+                { value: 'always-hidden', label: t('settings.playerChromeAlwaysHidden') },
+              ],
+              ['always-visible', 'auto-hide', 'always-hidden'].indexOf(prefs.playerChromeVisibilityMode) >= 0
+                ? prefs.playerChromeVisibilityMode
+                : (prefs.autoHidePlayerChrome === true ? 'auto-hide' : 'always-visible'),
+              function (value) {
+                setPrefs({
+                  playerChromeVisibilityMode: value,
+                  autoHidePlayerChrome: value === 'auto-hide',
+                })
+              },
+            ),
+            t('settings.autoHidePlayerChromeDesc'),
+          ),
+          mpPanelRow(
             t('sheet.effects'),
             cardButton(t('sheet.open'), function () {
               pushLayer('equalizer', {})
@@ -179418,7 +179594,7 @@ window.__ModuleLoader__.load({
           ),
         )
       }
-      var bodies = [null, cardLyricsPane(), cardAudioPane(), cardLookPane()]
+      var bodies = [null, cardLyricsPane(), cardQueuePane(), cardAudioPane(), cardLookPane()]
 
       var bodyHeight = isCover ? 0 : MP_BODY_GAP + MP_BODY_LINE + MP_BODY_UNDER + (bodyH > 0 ? bodyH : 0)
 

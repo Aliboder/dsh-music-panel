@@ -66,14 +66,20 @@ function cyclePlayMode(snap) {
   applyPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(current) + 1) % PLAY_MODES.length])
 }
 
-function nextIndexOf(index, size) {
-  if (size <= 1) return 0
-  return (index + 1) % size
+/**
+ * Folia playbackNeighbors: nextQueueIndex / prevQueueIndex, copied verbatim.
+ * At the end with loop 'none' there is no target (-1); only loop 'all' wraps.
+ */
+function nextQueueIndex(queueLength, currentIndex, loopMode) {
+  if (queueLength <= 0) return -1
+  if (currentIndex < 0) return 0
+  if (currentIndex < queueLength - 1) return currentIndex + 1
+  return loopMode === 'all' ? 0 : -1
 }
 
-function prevIndexOf(index, size) {
-  if (size <= 1) return 0
-  return (index - 1 + size) % size
+function prevQueueIndex(queueLength, currentIndex, loopMode) {
+  if (currentIndex > 0) return currentIndex - 1
+  return loopMode === 'all' ? queueLength - 1 : -1
 }
 
 // ── playback engine (module-level: survives panel unmount) ───────────
@@ -951,7 +957,9 @@ var mseFallbackToken = -1
       patch({ playing: false })
       return
     }
-    load(nextIndexOf(state.index, state.queue.length), true)
+    var nextAtEnd = nextQueueIndex(state.queue.length, state.index, state.loop)
+    if (nextAtEnd < 0) { patch({ playing: false }); return }
+    load(nextAtEnd, true)
   }
 
   /** Preserve what the listener asked for before MSE is torn down and playback restarts. */
@@ -1021,7 +1029,9 @@ var mseFallbackToken = -1
       // Folia's autoSkipUnplayable: a track the account cannot play is skipped like a
       // taken-down one instead of parking the queue on it. A run of failures stops.
       if (readPrefs().autoSkipUnplayable === true && state.queue.length > 1 && errorStreak <= 3) {
-        load(nextIndexOf(state.index, state.queue.length), true)
+        var skipTo = nextQueueIndex(state.queue.length, state.index, state.loop)
+        if (skipTo < 0) { errorStreak = 0; patch({ playing: false }); return }
+        load(skipTo, true)
         return
       }
       errorStreak = 0
@@ -1033,7 +1043,13 @@ var mseFallbackToken = -1
       patch({ playing: false })
       return
     }
-    load(nextIndexOf(state.index, state.queue.length), true)
+    var nextAfterError = nextQueueIndex(state.queue.length, state.index, state.loop)
+    if (nextAfterError < 0) {
+      errorStreak = 0
+      patch({ playing: false })
+      return
+    }
+    load(nextAfterError, true)
   }
 
   function releaseObjectUrl() {
@@ -1261,8 +1277,8 @@ var mseFallbackToken = -1
     var token = profileToken
     var stillCurrent = function () { return token === profileToken }
     if (state.index < 0 || state.queue.length < 2) return
-    var next = nextIndexOf(state.index, state.queue.length)
-    if (next === state.index) return
+    var next = nextQueueIndex(state.queue.length, state.index, state.loop)
+    if (next < 0 || next === state.index) return
     var item = state.queue[next]
     if (!item || typeof item.path !== 'string' || item.path === '') return
     if (prefetchedProfilePath === item.path || profileFor(item.path) !== null) return
@@ -2174,8 +2190,8 @@ var mseFallbackToken = -1
     var settings = readPrefs()
     if (crossfadeFadeSeconds(settings) <= 0) return
     if (state.index < 0 || state.queue.length < 2) return
-    var next = nextIndexOf(state.index, state.queue.length)
-    if (next === state.index) return
+    var next = nextQueueIndex(state.queue.length, state.index, state.loop)
+    if (next < 0 || next === state.index) return
     var item = state.queue[next]
     if (!item || onlineUrlFor(item) === '') return
     if (!crossfadeNextAllowed(settings, currentItem(), item)) return
@@ -2407,7 +2423,7 @@ var mseFallbackToken = -1
     }
     if (xfadePending) return
     if (state.index < 0 || state.queue.length < 2) return
-    var next = nextIndexOf(state.index, state.queue.length)
+    var next = nextQueueIndex(state.queue.length, state.index, state.loop)
     if (next < 0 || next === state.index) return
     if (!crossfadeNextAllowed(settings, currentItem(), state.queue[next])) return
     var should = crossfadeShouldStart({
@@ -3087,11 +3103,15 @@ var mseFallbackToken = -1
     },
     next: function () {
       if (state.queue.length === 0) return
-      load(nextIndexOf(state.index, state.queue.length), true)
+      var next = nextQueueIndex(state.queue.length, state.index, state.loop)
+      if (next < 0) return
+      load(next, true)
     },
     prev: function () {
       if (state.queue.length === 0) return
-      load(prevIndexOf(state.index, state.queue.length), true)
+      var previous = prevQueueIndex(state.queue.length, state.index, state.loop)
+      if (previous < 0) return
+      load(previous, true)
     },
     seek: function (seconds) {
       if (audio === null) return
