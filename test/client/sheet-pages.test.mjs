@@ -65,6 +65,12 @@ test('歌词显示 has named controls, not glyph-only buttons', () => {
   assert.doesNotMatch(style, /mpSmallButton\('≋'/, 'the wired ≋ glyph is gone')
 })
 
+test('style tuning sliders show values and respond to the wheel', () => {
+  assert.match(sheet, /onWheel: tuningWheel/)
+  assert.match(sheet, /mp-tuning-range-value/)
+  assert.match(sheet, /input\.dispatchEvent\(new Event\('input'/, 'wheel moves the native range input')
+})
+
 test('style option labels are translated', () => {
   assert.doesNotMatch(sheet, /label: '[A-Za-z]/, 'no hardcoded English option labels')
   assert.doesNotMatch(sheet, /text: '[A-Za-z]/, 'no hardcoded English option text')

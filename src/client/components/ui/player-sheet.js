@@ -591,13 +591,43 @@ function PlayerSheetInner(props) {
     )
   }
 
+  /** Tuning labels: never truncate silently; scroll the text back and forth only when it cannot fit. */
+  function TuningLabel(props) {
+    var ref = useRef(null)
+    var overflowPair = useState(false)
+    var overflow = overflowPair[0]
+    var setOverflow = overflowPair[1]
+    useEffect(function () {
+      var el = ref.current
+      if (el === null) return undefined
+      function measure() {
+        var inner = el.firstElementChild
+        if (inner === null) return
+        var shift = Math.max(0, inner.scrollWidth - el.clientWidth)
+        el.style.setProperty('--mp-label-shift', String(shift + 4) + 'px')
+        setOverflow(shift > 1)
+      }
+      measure()
+      if (typeof ResizeObserver !== 'function') return undefined
+      var observer = new ResizeObserver(measure)
+      observer.observe(el)
+      return function () { observer.disconnect() }
+    }, [props.text])
+    return h('span', { ref: ref, className: 'mp-tuning-label' + (overflow ? ' is-overflow' : ''), title: props.text },
+      h('span', { className: 'mp-tuning-label-inner' }, props.text),
+    )
+  }
   /** One DSH settings row: .mp-set-row label/desc on the left, the control on the right. */
   function mpPanelRow(label, control, hint) {
     var range = control && control.props && control.props.type === 'range'
     var toggle = control && control.type === Switch
     var segmented = control && control.type === KitSegmented
     var className = range ? 'mp-tuning-range' : toggle ? 'mp-tuning-toggle' : segmented ? 'mp-tuning-segmented' : ''
-    return h(SetRow, { label: label, desc: hint, className: className }, control)
+    var labelNode = range || toggle ? h(TuningLabel, { text: label }) : label
+    var body = range
+      ? h('div', { className: 'mp-tuning-range-wrap' }, control, h('span', { className: 'mp-tuning-range-value' }, String(control.props.value === undefined ? '' : control.props.value)))
+      : control
+    return h(SetRow, { label: labelNode, desc: hint, className: className }, body)
   }
 
   function cardButton(label, onClick, title) {
@@ -615,6 +645,26 @@ function PlayerSheetInner(props) {
 
   // 外观 tab — the stage's look: background and theme. Sound (including volume) lives on the
   // audio page, so this page only paints.
+  /** Mouse wheel over a tuning slider: adjust by its step without scrolling the sheet. */
+  function tuningWheel(event) {
+    var target = event.target
+    var input = target && typeof target.closest === 'function' ? target.closest('input[type="range"]') : null
+    if (input === null || input.disabled) return
+    event.preventDefault()
+    var step = Number(input.step) || 1
+    var min = Number(input.min)
+    var max = Number(input.max)
+    var current = Number(input.value)
+    if (!isFinite(min)) min = 0
+    if (!isFinite(max)) max = 100
+    if (!isFinite(current)) current = min
+    var next = Math.min(max, Math.max(min, current + (event.deltaY < 0 ? step : -step)))
+    if (next === current) return
+    var setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+    setter.call(input, String(next))
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+    input.dispatchEvent(new Event('change', { bubbles: true }))
+  }
   function cardLookPane() {
     var tuningBlocks = lyricTuningBlocks()
     return h(
@@ -751,7 +801,7 @@ function PlayerSheetInner(props) {
         ),
       ),
       tuningBlocks.length > 0
-        ? mpSection(t('sheet.lyricStyleParams'), h('div', { className: 'mp-tuning-grid' }, tuningBlocks))
+        ? mpSection(t('sheet.lyricStyleParams'), h('div', { className: 'mp-tuning-grid', onWheel: tuningWheel }, tuningBlocks))
         : null,
     )
   }

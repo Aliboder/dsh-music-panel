@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "a390a31ff2d5"
+    var CLIENT_BUILD = "b87ba45521bf"
 
     // ── src/client/app/runtime.js
     /**
@@ -179765,15 +179765,22 @@ window.__ModuleLoader__.load({
     '.mp-set-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-height:44px;padding:11px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
       '.mp-tuning-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:0;align-items:start;grid-auto-rows:min-content}',
       '.mp-tuning-grid>div,.mp-tuning-grid>div>div:not(.mp-set-label){display:contents}',
-      '.mp-tuning-grid .mp-set-row{grid-column:1/-1;order:2;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;min-height:36px;padding:4px 0}',
+      '.mp-tuning-grid .mp-set-row{grid-column:1/-1;order:2;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,44%);align-items:center;gap:10px;min-height:36px;padding:4px 0}',
       '.mp-tuning-grid .mp-set-row.mp-tuning-range{grid-column:span 1;order:1}',
       '.mp-tuning-grid .mp-set-row.mp-tuning-toggle{grid-column:span 1;order:3}',
       '.mp-tuning-grid .mp-set-row.mp-tuning-segmented{grid-column:1/-1;order:2}',
-      '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control{width:min(150px,52%)}',
-      '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control input{width:100%}',
-      '.mp-tuning-grid .mp-set-label{grid-column:1/-1;order:0;padding:8px 0 0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-      '.mp-tuning-grid .mp-set-text{min-width:0}',
-      '.mp-tuning-grid .mp-set-row .mp-set-label{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control{width:100%;min-width:0}',
+      '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control input{width:100%;min-width:0}',
+      '.mp-tuning-grid .mp-set-label{grid-column:1/-1;order:0;padding:8px 0 0 !important;white-space:nowrap;overflow:visible}',
+      '.mp-tuning-grid .mp-set-text{min-width:0;overflow:visible}',
+      '.mp-tuning-grid .mp-set-row .mp-set-label{font-size:13px;white-space:nowrap;overflow:visible;text-overflow:clip}',
+      '.mp-tuning-label{display:block;max-width:100%;overflow:hidden;white-space:nowrap}',
+      '.mp-tuning-label-inner{display:inline-block;white-space:nowrap;will-change:transform}',
+      '.mp-tuning-label.is-overflow .mp-tuning-label-inner{animation:mp-tuning-marquee 3.2s ease-in-out infinite alternate}',
+      '@keyframes mp-tuning-marquee{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--mp-label-shift,0px)))}}',
+      '.mp-tuning-range-wrap{display:flex;align-items:center;gap:8px;width:100%;min-width:0}',
+      '.mp-tuning-range-wrap input{flex:1 1 auto;min-width:0}',
+      '.mp-tuning-range-value{flex:0 0 auto;min-width:32px;text-align:right;font-size:11px;line-height:16px;opacity:.72;font-variant-numeric:tabular-nums}',
       // 设置页分组卡片：组标题在卡外，行在卡内（歌词页与播放控制页共用）。
       '.mp-set-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',
       '.mp-set-group:first-of-type .mp-set-group-head{padding-top:18px}',
@@ -194748,13 +194755,43 @@ window.__ModuleLoader__.load({
         )
       }
 
+      /** Tuning labels: never truncate silently; scroll the text back and forth only when it cannot fit. */
+      function TuningLabel(props) {
+        var ref = useRef(null)
+        var overflowPair = useState(false)
+        var overflow = overflowPair[0]
+        var setOverflow = overflowPair[1]
+        useEffect(function () {
+          var el = ref.current
+          if (el === null) return undefined
+          function measure() {
+            var inner = el.firstElementChild
+            if (inner === null) return
+            var shift = Math.max(0, inner.scrollWidth - el.clientWidth)
+            el.style.setProperty('--mp-label-shift', String(shift + 4) + 'px')
+            setOverflow(shift > 1)
+          }
+          measure()
+          if (typeof ResizeObserver !== 'function') return undefined
+          var observer = new ResizeObserver(measure)
+          observer.observe(el)
+          return function () { observer.disconnect() }
+        }, [props.text])
+        return h('span', { ref: ref, className: 'mp-tuning-label' + (overflow ? ' is-overflow' : ''), title: props.text },
+          h('span', { className: 'mp-tuning-label-inner' }, props.text),
+        )
+      }
       /** One DSH settings row: .mp-set-row label/desc on the left, the control on the right. */
       function mpPanelRow(label, control, hint) {
         var range = control && control.props && control.props.type === 'range'
         var toggle = control && control.type === Switch
         var segmented = control && control.type === KitSegmented
         var className = range ? 'mp-tuning-range' : toggle ? 'mp-tuning-toggle' : segmented ? 'mp-tuning-segmented' : ''
-        return h(SetRow, { label: label, desc: hint, className: className }, control)
+        var labelNode = range || toggle ? h(TuningLabel, { text: label }) : label
+        var body = range
+          ? h('div', { className: 'mp-tuning-range-wrap' }, control, h('span', { className: 'mp-tuning-range-value' }, String(control.props.value === undefined ? '' : control.props.value)))
+          : control
+        return h(SetRow, { label: labelNode, desc: hint, className: className }, body)
       }
 
       function cardButton(label, onClick, title) {
@@ -194772,6 +194809,26 @@ window.__ModuleLoader__.load({
 
       // 外观 tab — the stage's look: background and theme. Sound (including volume) lives on the
       // audio page, so this page only paints.
+      /** Mouse wheel over a tuning slider: adjust by its step without scrolling the sheet. */
+      function tuningWheel(event) {
+        var target = event.target
+        var input = target && typeof target.closest === 'function' ? target.closest('input[type="range"]') : null
+        if (input === null || input.disabled) return
+        event.preventDefault()
+        var step = Number(input.step) || 1
+        var min = Number(input.min)
+        var max = Number(input.max)
+        var current = Number(input.value)
+        if (!isFinite(min)) min = 0
+        if (!isFinite(max)) max = 100
+        if (!isFinite(current)) current = min
+        var next = Math.min(max, Math.max(min, current + (event.deltaY < 0 ? step : -step)))
+        if (next === current) return
+        var setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+        setter.call(input, String(next))
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+        input.dispatchEvent(new Event('change', { bubbles: true }))
+      }
       function cardLookPane() {
         var tuningBlocks = lyricTuningBlocks()
         return h(
@@ -194908,7 +194965,7 @@ window.__ModuleLoader__.load({
             ),
           ),
           tuningBlocks.length > 0
-            ? mpSection(t('sheet.lyricStyleParams'), h('div', { className: 'mp-tuning-grid' }, tuningBlocks))
+            ? mpSection(t('sheet.lyricStyleParams'), h('div', { className: 'mp-tuning-grid', onWheel: tuningWheel }, tuningBlocks))
             : null,
         )
       }
