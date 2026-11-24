@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "9ffa2bb5da87"
+    var CLIENT_BUILD = "bdac0e49f1e9"
 
     // ── src/client/app/runtime.js
     /**
@@ -34434,10 +34434,12 @@ window.__ModuleLoader__.load({
         });
       
         // src/folia/hooks/usePlayerBottomBarBottomPx.ts
-        var usePlayerSubtitleBottomPx, usePlayerSubtitleYieldsToDock;
+        var SUBTITLE_BOTTOM_WITH_BAR_PX, SUBTITLE_BOTTOM_WITHOUT_BAR_PX, usePlayerSubtitleBottomPx, usePlayerSubtitleYieldsToDock;
         var init_usePlayerBottomBarBottomPx = __esm({
           "src/folia/hooks/usePlayerBottomBarBottomPx.ts"() {
-            usePlayerSubtitleBottomPx = () => 0;
+            SUBTITLE_BOTTOM_WITH_BAR_PX = 96;
+            SUBTITLE_BOTTOM_WITHOUT_BAR_PX = 32;
+            usePlayerSubtitleBottomPx = (isPlayerChromeHidden = false) => isPlayerChromeHidden ? SUBTITLE_BOTTOM_WITHOUT_BAR_PX : SUBTITLE_BOTTOM_WITH_BAR_PX;
             usePlayerSubtitleYieldsToDock = () => false;
           }
         });
