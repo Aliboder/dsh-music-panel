@@ -642,7 +642,7 @@ function PlayerSheetInner(props) {
 
   // 外观 tab — the stage's look: background and theme. Sound (including volume) lives on the
   // audio page, so this page only paints.
-  /** Custom tuning slider: pointer drag, keyboard and wheel, no native range quirks. */
+  /** Custom tuning slider: window-level pointer tracking, keyboard and wheel. */
   function TuningRange(props) {
     var controlProps = props.control && props.control.props ? props.control.props : {}
     var min = Number(controlProps.min)
@@ -656,71 +656,80 @@ function PlayerSheetInner(props) {
     var valuePair = useState(Number(controlProps.value))
     var shown = valuePair[0]
     var setShown = valuePair[1]
+    if (!isFinite(shown)) shown = min
     var trackRef = useRef(null)
     var draggingRef = useRef(false)
-    if (!isFinite(shown)) shown = min
+    var valueRef = useRef(shown)
+    var configRef = useRef({ min: min, max: max, step: step, disabled: disabled, onChange: onChange })
+    configRef.current = { min: min, max: max, step: step, disabled: disabled, onChange: onChange }
     function quantize(next) {
-      var steps = Math.round((next - min) / step)
-      var result = min + steps * step
-      result = Math.min(max, Math.max(min, result))
-      var decimals = (String(step).split('.')[1] || '').length
+      var config = configRef.current
+      var steps = Math.round((next - config.min) / config.step)
+      var result = config.min + steps * config.step
+      result = Math.min(config.max, Math.max(config.min, result))
+      var decimals = (String(config.step).split('.')[1] || '').length
       return Number(result.toFixed(Math.min(6, decimals + 2)))
     }
     function emit(next) {
       var clean = quantize(next)
-      if (clean === shown) return
+      if (clean === valueRef.current) return
+      valueRef.current = clean
       setShown(clean)
-      if (onChange !== null) {
-        onChange({ target: { value: String(clean) }, currentTarget: { value: String(clean) } })
-      }
+      var handler = configRef.current.onChange
+      if (handler !== null) handler({ target: { value: String(clean) }, currentTarget: { value: String(clean) } })
     }
-    function ratioFromClientX(clientX) {
+    function updateFromClientX(clientX) {
       var track = trackRef.current
-      if (track === null) return shown
+      if (track === null) return
       var rect = track.getBoundingClientRect()
-      if (rect.width <= 0) return shown
+      if (rect.width <= 0) return
       var ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
-      return min + ratio * (max - min)
+      var config = configRef.current
+      emit(config.min + ratio * (config.max - config.min))
     }
     useEffect(function () {
+      valueRef.current = Number(controlProps.value)
       setShown(Number(controlProps.value))
     }, [controlProps.value])
     useEffect(function () {
       var track = trackRef.current
-      if (track === null || disabled) return undefined
+      if (track === null) return undefined
       function onWheel(event) {
+        if (configRef.current.disabled) return
         event.preventDefault()
-        var delta = event.deltaY < 0 ? step : -step
-        emit(Number(track.getAttribute('aria-valuenow')) + delta)
+        var delta = event.deltaY < 0 ? configRef.current.step : -configRef.current.step
+        emit(valueRef.current + delta)
       }
       track.addEventListener('wheel', onWheel, { passive: false })
       return function () { track.removeEventListener('wheel', onWheel) }
-    }, [disabled, max, min, shown, step])
+    }, [])
     function down(event) {
-      if (disabled || event.button !== 0) return
+      if (configRef.current.disabled || event.button !== 0) return
       event.preventDefault()
       draggingRef.current = true
-      if (typeof event.currentTarget.setPointerCapture === 'function') event.currentTarget.setPointerCapture(event.pointerId)
-      emit(ratioFromClientX(event.clientX))
-    }
-    function move(event) {
-      if (!draggingRef.current) return
-      event.preventDefault()
-      emit(ratioFromClientX(event.clientX))
-    }
-    function up(event) {
-      draggingRef.current = false
-      if (typeof event.currentTarget.releasePointerCapture === 'function') {
-        try { event.currentTarget.releasePointerCapture(event.pointerId) } catch (error) {}
+      updateFromClientX(event.clientX)
+      function move(moveEvent) {
+        if (!draggingRef.current) return
+        moveEvent.preventDefault()
+        updateFromClientX(moveEvent.clientX)
       }
+      function end() {
+        draggingRef.current = false
+        window.removeEventListener('pointermove', move)
+        window.removeEventListener('pointerup', end)
+        window.removeEventListener('pointercancel', end)
+      }
+      window.addEventListener('pointermove', move, { passive: false })
+      window.addEventListener('pointerup', end)
+      window.addEventListener('pointercancel', end)
     }
     function key(event) {
-      if (disabled) return
-      var next = shown
-      if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next += step
-      else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next -= step
-      else if (event.key === 'Home') next = min
-      else if (event.key === 'End') next = max
+      if (configRef.current.disabled) return
+      var next = valueRef.current
+      if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next += configRef.current.step
+      else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next -= configRef.current.step
+      else if (event.key === 'Home') next = configRef.current.min
+      else if (event.key === 'End') next = configRef.current.max
       else return
       event.preventDefault()
       emit(next)
@@ -738,9 +747,6 @@ function PlayerSheetInner(props) {
         'aria-valuemax': String(max),
         'aria-valuenow': String(shown),
         onPointerDown: down,
-        onPointerMove: move,
-        onPointerUp: up,
-        onPointerCancel: up,
         onKeyDown: key,
       },
         h('div', { className: 'mp-tuning-slider-track' },
