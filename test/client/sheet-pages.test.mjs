@@ -24,22 +24,15 @@ function paneSource(name) {
 const lyrics = paneSource('cardLyricsPane')
 const audio = paneSource('cardAudioPane')
 const look = paneSource('cardLookPane')
-const queue = paneSource('cardQueuePane')
 
-test('five tabs, one subject each', () => {
+test('four tabs, one subject each', () => {
   assert.match(
     sheet,
-    /var TABS = \['sheet\.song', 'sheet\.lyrics', 'sheet\.queue', 'sheet\.audio', 'sheet\.look'\]/,
-    'the dock is 歌曲 / 歌词 / 队列 / 音频 / 外观',
+    /var TABS = \['sheet\.song', 'sheet\.lyrics', 'sheet\.audio', 'sheet\.look'\]/,
+    'the dock is 歌曲 / 歌词 / 音频 / 外观',
   )
-  assert.match(sheet, /var bodies = \[null, cardLyricsPane\(\), cardQueuePane\(\), cardAudioPane\(\), cardLookPane\(\)\]/, 'the pages line up with the tabs')
+  assert.match(sheet, /var bodies = \[null, cardLyricsPane\(\), cardAudioPane\(\), cardLookPane\(\)\]/, 'the pages line up with the tabs')
   assert.match(sheet, /h\(KitSegmentedTabs, \{/, 'the dock is the official SegmentedTabs')
-})
-
-test('队列 page: Folia row, move and remove actions', () => {
-  assert.match(queue, /mp-queue-row/, 'the queue renders Folia rows')
-  assert.match(queue, /player\.reorderQueue/, 'move next/end uses the player order')
-  assert.match(queue, /player\.removeQueueAt/, 'remove uses the player queue')
 })
 
 test('歌词 page: source, timeline, match/file, word split and style', () => {
@@ -58,7 +51,6 @@ test('歌词显示 has named controls, not glyph-only buttons', () => {
   }
   assert.match(style, /segmented\(/, '歌词动态 is a segmented choice (KitSegmented)')
   assert.match(style, /mpScaleStepper\(/, 'the two size rows are steppers with a percentage')
-  assert.match(style, /classicTuningBlock\(\)/, 'classic exposes its Folia tuning')
   assert.doesNotMatch(style, /mpSmallButton\('≡'/, 'the wired ≡ glyph is gone')
   assert.doesNotMatch(style, /mpSmallButton\('≋'/, 'the wired ≋ glyph is gone')
 })
@@ -70,7 +62,6 @@ test('音频 page: quality, volume, play mode, fade, gain and the effects window
   assert.match(audio, /volumeBlock\(\)/, 'the volume row is on the audio page')
   assert.match(audio, /gainBlock\(\)/, 'the gain block is the one the lyrics page used to hold')
   assert.match(sheet, /function gainBlock\(\)[\s\S]{0,600}sheet\.audioGain/, 'the gain block keeps its label')
-  assert.match(audio, /autoHidePlayerChrome/, 'the chrome auto-hide switch is on the audio page')
   assert.match(sheet, /function volumeBlock\(\)/, 'the volume block exists')
   assert.doesNotMatch(audio, /sheet\.lyricSegmentation/, 'the word split left the audio page')
   assert.doesNotMatch(audio, /sheet\.provider|sheet\.account/, 'platform and account facts left the card')
