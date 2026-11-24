@@ -57,6 +57,13 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  partitaTuning: {
+    showGuideLines: true,
+    useSemanticLayout: true,
+    staggerMin: 20,
+    staggerMax: 100,
+    avoidOverlap: false,
+  },
   tiltTuning: {
     splitProbability: 0.75,
     tiltStyleProbability: 0.35,
@@ -226,6 +233,20 @@ function readPrefs() {
       dropped = true
     }
   })
+  // Folia partita tuning: two staggers clamp to 0..180 and stay ordered.
+  var partitaDefaults = PREF_DEFAULTS.partitaTuning
+  var storedPartita = merged.partitaTuning && typeof merged.partitaTuning === 'object' ? merged.partitaTuning : {}
+  var staggerA = Number(storedPartita.staggerMin)
+  var staggerB = Number(storedPartita.staggerMax)
+  if (!isFinite(staggerA)) staggerA = partitaDefaults.staggerMin
+  if (!isFinite(staggerB)) staggerB = partitaDefaults.staggerMax
+  merged.partitaTuning = {
+    showGuideLines: storedPartita.showGuideLines !== false,
+    useSemanticLayout: storedPartita.useSemanticLayout !== false,
+    staggerMin: Math.min(180, Math.max(0, Math.min(staggerA, staggerB))),
+    staggerMax: Math.min(180, Math.max(0, Math.max(staggerA, staggerB))),
+    avoidOverlap: storedPartita.avoidOverlap === true,
+  }
   // Folia tilt tuning: probabilities clamp to 0..1, unknown colour schemes fall back.
   var tiltDefaults = PREF_DEFAULTS.tiltTuning
   var storedTilt = merged.tiltTuning && typeof merged.tiltTuning === 'object' ? merged.tiltTuning : {}

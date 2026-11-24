@@ -39,7 +39,7 @@ export { generateBuiltinDualTheme } from './utils/builtinTheme/generateBuiltinDu
 export { extractColors } from './utils/colorExtractor';
 export { DEFAULT_THEME, DAYLIGHT_THEME } from './services/baseThemes';
 export { applyLyricStaffPolicy } from './utils/lyrics/staffCreditsPolicy';
-export { DEFAULT_CLASSIC_TUNING, DEFAULT_TILT_TUNING } from './types';
+export { DEFAULT_CLASSIC_TUNING, DEFAULT_TILT_TUNING, DEFAULT_PARTITA_TUNING } from './types';
 
 
 

@@ -60,6 +60,7 @@ test('歌词显示 has named controls, not glyph-only buttons', () => {
   assert.match(style, /mpScaleStepper\(/, 'the two size rows are steppers with a percentage')
   assert.match(style, /classicTuningBlock\(\)/, 'classic exposes its Folia tuning')
   assert.match(style, /tiltTuningBlock\(\)/, 'tilt exposes its Folia tuning')
+  assert.match(style, /partitaTuningBlock\(\)/, 'partita exposes its Folia tuning')
   assert.doesNotMatch(style, /mpSmallButton\('≡'/, 'the wired ≡ glyph is gone')
   assert.doesNotMatch(style, /mpSmallButton\('≋'/, 'the wired ≋ glyph is gone')
 })

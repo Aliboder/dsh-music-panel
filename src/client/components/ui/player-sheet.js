@@ -1085,6 +1085,7 @@ function PlayerSheetInner(props) {
         : null,
       mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'tilt' ? tiltTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'partita' ? partitaTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1270,6 +1271,31 @@ function PlayerSheetInner(props) {
           ['default', 'swap', 'accentAll', 'primaryAll'].indexOf(tuning.colorScheme) >= 0 ? tuning.colorScheme : 'default',
           function (value) { setPrefs({ tiltTuning: Object.assign({}, tuning, { colorScheme: value }) }) },
         )),
+      ),
+    )
+  }
+  /** Folia partita tuning: guide lines, semantic layout, stagger range and overlap. */
+  function partitaTuningBlock() {
+    var tuning = prefs.partitaTuning || {}
+    function stagger(key, label) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = 0
+      return h('input', {
+        type: 'range', className: 'mp-range', min: '0', max: '180', step: '1',
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) {
+          setPrefs({ partitaTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) })
+        },
+      })
+    }
+    return mpSection(
+      t('settings.partitaTuning'),
+      h('div', null,
+        mpPanelRow(t('settings.partitaGuides'), h(Switch, { value: tuning.showGuideLines !== false, label: t('settings.partitaGuides'), onChange: function (value) { setPrefs({ partitaTuning: Object.assign({}, tuning, { showGuideLines: value }) }) } })),
+        mpPanelRow(t('settings.partitaSemantic'), h(Switch, { value: tuning.useSemanticLayout !== false, label: t('settings.partitaSemantic'), onChange: function (value) { setPrefs({ partitaTuning: Object.assign({}, tuning, { useSemanticLayout: value }) }) } })),
+        mpPanelRow(t('settings.partitaStaggerMin'), stagger('staggerMin', 'settings.partitaStaggerMin')),
+        mpPanelRow(t('settings.partitaStaggerMax'), stagger('staggerMax', 'settings.partitaStaggerMax')),
+        mpPanelRow(t('settings.partitaAvoidOverlap'), h(Switch, { value: tuning.avoidOverlap === true, label: t('settings.partitaAvoidOverlap'), onChange: function (value) { setPrefs({ partitaTuning: Object.assign({}, tuning, { avoidOverlap: value }) }) } })),
       ),
     )
   }

@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "fab8c61cefe9"
+    var CLIENT_BUILD = "fa625107fe5e"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,12 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.partitaTuning': '云阶参数',
+        'settings.partitaGuides': '参考线',
+        'settings.partitaSemantic': '语义布局',
+        'settings.partitaStaggerMin': '最小错峰',
+        'settings.partitaStaggerMax': '最大错峰',
+        'settings.partitaAvoidOverlap': '避免重叠',
         'settings.tiltTuning': '倾诉参数',
         'settings.tiltSplit': '分屏概率',
         'settings.tiltStyle': '倾斜样式概率',
@@ -9349,6 +9355,12 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.partitaTuning': 'Partita tuning',
+        'settings.partitaGuides': 'Guide lines',
+        'settings.partitaSemantic': 'Semantic layout',
+        'settings.partitaStaggerMin': 'Min stagger',
+        'settings.partitaStaggerMax': 'Max stagger',
+        'settings.partitaAvoidOverlap': 'Avoid overlap',
         'settings.tiltTuning': 'Tilt tuning',
         'settings.tiltSplit': 'Split probability',
         'settings.tiltStyle': 'Tilt style probability',
@@ -137855,6 +137867,7 @@ window.__ModuleLoader__.load({
         __export(styles_entry_exports, {
           DAYLIGHT_THEME: () => DAYLIGHT_THEME,
           DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
+          DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,
           DEFAULT_THEME: () => DEFAULT_THEME,
           DEFAULT_TILT_TUNING: () => DEFAULT_TILT_TUNING,
           FOLIA_STYLE_ENTRIES: () => FOLIA_STYLE_ENTRIES,
@@ -140550,6 +140563,7 @@ window.__ModuleLoader__.load({
         showText: true,
         classicTuning: prefs.classicTuning || undefined,
         tiltTuning: prefs.tiltTuning || undefined,
+        partitaTuning: prefs.partitaTuning || undefined,
         // Monet ignores hideTranslationSubtitle and only reads the content mode (resolveSubtitleContentMode
         // returns the given mode as-is), so the mode itself has to carry the translation switch.
         subtitleContentMode: showTranslation ? 'translation' : 'none',
@@ -151226,6 +151240,13 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      partitaTuning: {
+        showGuideLines: true,
+        useSemanticLayout: true,
+        staggerMin: 20,
+        staggerMax: 100,
+        avoidOverlap: false,
+      },
       tiltTuning: {
         splitProbability: 0.75,
         tiltStyleProbability: 0.35,
@@ -151395,6 +151416,20 @@ window.__ModuleLoader__.load({
           dropped = true
         }
       })
+      // Folia partita tuning: two staggers clamp to 0..180 and stay ordered.
+      var partitaDefaults = PREF_DEFAULTS.partitaTuning
+      var storedPartita = merged.partitaTuning && typeof merged.partitaTuning === 'object' ? merged.partitaTuning : {}
+      var staggerA = Number(storedPartita.staggerMin)
+      var staggerB = Number(storedPartita.staggerMax)
+      if (!isFinite(staggerA)) staggerA = partitaDefaults.staggerMin
+      if (!isFinite(staggerB)) staggerB = partitaDefaults.staggerMax
+      merged.partitaTuning = {
+        showGuideLines: storedPartita.showGuideLines !== false,
+        useSemanticLayout: storedPartita.useSemanticLayout !== false,
+        staggerMin: Math.min(180, Math.max(0, Math.min(staggerA, staggerB))),
+        staggerMax: Math.min(180, Math.max(0, Math.max(staggerA, staggerB))),
+        avoidOverlap: storedPartita.avoidOverlap === true,
+      }
       // Folia tilt tuning: probabilities clamp to 0..1, unknown colour schemes fall back.
       var tiltDefaults = PREF_DEFAULTS.tiltTuning
       var storedTilt = merged.tiltTuning && typeof merged.tiltTuning === 'object' ? merged.tiltTuning : {}
@@ -179368,6 +179403,7 @@ window.__ModuleLoader__.load({
             : null,
           mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'tilt' ? tiltTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'partita' ? partitaTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -179553,6 +179589,31 @@ window.__ModuleLoader__.load({
               ['default', 'swap', 'accentAll', 'primaryAll'].indexOf(tuning.colorScheme) >= 0 ? tuning.colorScheme : 'default',
               function (value) { setPrefs({ tiltTuning: Object.assign({}, tuning, { colorScheme: value }) }) },
             )),
+          ),
+        )
+      }
+      /** Folia partita tuning: guide lines, semantic layout, stagger range and overlap. */
+      function partitaTuningBlock() {
+        var tuning = prefs.partitaTuning || {}
+        function stagger(key, label) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = 0
+          return h('input', {
+            type: 'range', className: 'mp-range', min: '0', max: '180', step: '1',
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) {
+              setPrefs({ partitaTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) })
+            },
+          })
+        }
+        return mpSection(
+          t('settings.partitaTuning'),
+          h('div', null,
+            mpPanelRow(t('settings.partitaGuides'), h(Switch, { value: tuning.showGuideLines !== false, label: t('settings.partitaGuides'), onChange: function (value) { setPrefs({ partitaTuning: Object.assign({}, tuning, { showGuideLines: value }) }) } })),
+            mpPanelRow(t('settings.partitaSemantic'), h(Switch, { value: tuning.useSemanticLayout !== false, label: t('settings.partitaSemantic'), onChange: function (value) { setPrefs({ partitaTuning: Object.assign({}, tuning, { useSemanticLayout: value }) }) } })),
+            mpPanelRow(t('settings.partitaStaggerMin'), stagger('staggerMin', 'settings.partitaStaggerMin')),
+            mpPanelRow(t('settings.partitaStaggerMax'), stagger('staggerMax', 'settings.partitaStaggerMax')),
+            mpPanelRow(t('settings.partitaAvoidOverlap'), h(Switch, { value: tuning.avoidOverlap === true, label: t('settings.partitaAvoidOverlap'), onChange: function (value) { setPrefs({ partitaTuning: Object.assign({}, tuning, { avoidOverlap: value }) }) } })),
           ),
         )
       }
