@@ -1,5 +1,12 @@
 # Changelog
 
+## 未发布
+
+### 歌词
+
+- 照搬 Folia 的 `classic`（流光）渲染器并设为默认/回退样式；旧 `standard/glow/outline/karaoke/mirror/cappella` 迁移到 classic，旧默认 monet 只迁移一次，用户主动选择后写入 `lyricStyleChosen` 不再覆盖。
+- 新增 classic 的样式目录、i18n 文案与迁移测试；样式列表、默认值和 Folia 一致。
+
 ## 0.46.4 — 2026-11-24
 
 ### 在线音乐
