@@ -1097,6 +1097,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'cappella' ? cappellaTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'monet' ? monetTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'machi' ? machiTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'lumiere' ? lumiereTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1549,6 +1550,47 @@ function PlayerSheetInner(props) {
       choice('settings.machiFocus', 'focus', [{ value: 'center', label: 'Center' }, { value: 'lyrics', label: 'Lyrics' }, { value: 'manual', label: 'Manual' }]),
       num('settings.machiFocusOffset', 'focusOffset', -10, 10, 0.1),
       mpPanelRow(t('settings.machiBeat'), h(Switch, { value: tuning.simulatedBeat !== false, label: t('settings.machiBeat'), onChange: function (value) { setPrefs({ machiTuning: Object.assign({}, tuning, { simulatedBeat: value }) }) } })),
+    ))
+  }
+  /** Folia lumiere tuning: light field, effects and switches. */
+  function lumiereTuningBlock() {
+    var tuning = prefs.lumiereTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    function sw(label, key) {
+      return mpPanelRow(t(label), h(Switch, { value: tuning[key] === true, label: t(label), onChange: function (next) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+    }
+    return mpSection(t('settings.lumiereTuning'), h('div', null,
+      num('settings.lumiereLight', 'lightIntensity', 0.3, 2, 0.05),
+      num('settings.lumiereAudio', 'audioResponse', 0, 2, 0.05),
+      num('settings.lumiereFog', 'fogDensity', 0, 2, 0.05),
+      num('settings.lumiereDark', 'darkField', 0, 1, 0.01),
+      num('settings.lumiereMote', 'moteAmount', 0, 2, 0.05),
+      num('settings.lumiereBloom', 'bloom', 0, 2, 0.05),
+      num('settings.lumiereTextBloom', 'textBloom', 0, 2, 0.05),
+      num('settings.lumiereUnlit', 'unlitOpacity', 0.05, 0.6, 0.01),
+      num('settings.lumiereNeighbors', 'windowNeighbors', 1, 2, 1),
+      num('settings.lumiereDecay', 'decay', 0, 2, 0.05),
+      num('settings.lumiereEcho', 'echo', 0, 2, 0.05),
+      num('settings.lumiereFogOctaves', 'fogOctaves', 1, 8, 1),
+      sw('settings.lumiereLineArt', 'lineArt'),
+      sw('settings.lumiereBokeh', 'frontBokeh'),
+      sw('settings.lumiereTrails', 'trails'),
+      sw('settings.lumiereHideTrails', 'hideTrails'),
+      sw('settings.lumiereSeamless', 'seamlessTransitions'),
+      sw('settings.lumiereFrame', 'overlayFrame'),
+      sw('settings.lumiereTextOnly', 'textOnly'),
+      sw('settings.lumiereKeyword', 'keywordColors'),
+      sw('settings.lumiereIcons', 'themeIcons'),
+      num('settings.lumiereMix', 'themeColorMix', 0, 1, 0.01),
+      mpPanelRow(t('settings.lumiereTuning'), segmented([{ value: 'full', label: 'Full' }, { value: 'balanced', label: 'Balanced' }, { value: 'low', label: 'Low' }], ['full', 'balanced', 'low'].indexOf(tuning.renderQuality) >= 0 ? tuning.renderQuality : 'full', function (value) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { renderQuality: value }) }) })),
     ))
   }
   /**

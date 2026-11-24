@@ -57,6 +57,31 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  lumiereTuning: {
+    lightIntensity: 1,
+    audioResponse: 1,
+    fogDensity: 1,
+    darkField: 0.75,
+    moteAmount: 1,
+    bloom: 1,
+    textBloom: 1,
+    unlitOpacity: 0.22,
+    windowNeighbors: 2,
+    decay: 1,
+    echo: 1,
+    fogOctaves: 5,
+    lineArt: true,
+    frontBokeh: true,
+    trails: true,
+    hideTrails: false,
+    seamlessTransitions: true,
+    overlayFrame: true,
+    textOnly: false,
+    keywordColors: true,
+    themeIcons: true,
+    themeColorMix: 0.3,
+    renderQuality: 'full',
+  },
   machiTuning: {
     scene: 'auto',
     timeOfDay: 'auto',
@@ -358,6 +383,41 @@ function readPrefs() {
     showPortraitDragHanger: storedMonet.showPortraitDragHanger !== false,
     portraitHangerVisibility: monetVisibility('portraitHangerVisibility'),
     mirrorLayout: storedMonet.mirrorLayout === true,
+  }
+  // Folia lumiere tuning: light field and effects; unknown enums fall back.
+  var lumiereDefaults = PREF_DEFAULTS.lumiereTuning
+  var storedLumiere = merged.lumiereTuning && typeof merged.lumiereTuning === 'object' ? merged.lumiereTuning : {}
+  function lumiereNumber(key, min, max) {
+    var value = Number(storedLumiere[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : lumiereDefaults[key]
+  }
+  function lumiereSwitch(key, fallback) {
+    return typeof storedLumiere[key] === 'boolean' ? storedLumiere[key] : fallback
+  }
+  merged.lumiereTuning = {
+    lightIntensity: lumiereNumber('lightIntensity', 0.3, 2),
+    audioResponse: lumiereNumber('audioResponse', 0, 2),
+    fogDensity: lumiereNumber('fogDensity', 0, 2),
+    darkField: lumiereNumber('darkField', 0, 1),
+    moteAmount: lumiereNumber('moteAmount', 0, 2),
+    bloom: lumiereNumber('bloom', 0, 2),
+    textBloom: lumiereNumber('textBloom', 0, 2),
+    unlitOpacity: lumiereNumber('unlitOpacity', 0.05, 0.6),
+    windowNeighbors: Math.round(lumiereNumber('windowNeighbors', 1, 2)),
+    decay: lumiereNumber('decay', 0, 2),
+    echo: lumiereNumber('echo', 0, 2),
+    fogOctaves: Math.round(lumiereNumber('fogOctaves', 1, 8)),
+    lineArt: lumiereSwitch('lineArt', true),
+    frontBokeh: lumiereSwitch('frontBokeh', true),
+    trails: lumiereSwitch('trails', true),
+    hideTrails: lumiereSwitch('hideTrails', false),
+    seamlessTransitions: lumiereSwitch('seamlessTransitions', true),
+    overlayFrame: lumiereSwitch('overlayFrame', true),
+    textOnly: lumiereSwitch('textOnly', false),
+    keywordColors: lumiereSwitch('keywordColors', true),
+    themeIcons: lumiereSwitch('themeIcons', true),
+    themeColorMix: lumiereNumber('themeColorMix', 0, 1),
+    renderQuality: ['full', 'balanced', 'low'].indexOf(storedLumiere.renderQuality) >= 0 ? storedLumiere.renderQuality : 'full',
   }
   // Folia machi tuning: scene/time/weather/camera and lens; quality uses the upstream default.
   var machiDefaults = PREF_DEFAULTS.machiTuning

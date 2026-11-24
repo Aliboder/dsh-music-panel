@@ -61,6 +61,7 @@ test('playback defaults', () => {
   assert.equal(defaults.cappellaTuning.avatarSource, 'cover', 'Folia cappella tuning defaults')
   assert.equal(defaults.monetTuning.fontScale, 1.2, 'Folia monet tuning defaults')
   assert.equal(defaults.machiTuning.aperture, 8, 'Folia machi tuning defaults')
+  assert.equal(defaults.lumiereTuning.lightIntensity, 1, 'Folia lumiere tuning defaults')
   assert.equal(defaults.resumeOnStart, true)
   assert.equal(defaults.onlineQuality, 'standard')
 })

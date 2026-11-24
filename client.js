@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "fd0ed42cfd0b"
+    var CLIENT_BUILD = "57f7d19a031a"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,29 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.lumiereTuning': '绘光参数',
+        'settings.lumiereLight': '光强',
+        'settings.lumiereAudio': '音频响应',
+        'settings.lumiereFog': '雾密度',
+        'settings.lumiereDark': '暗场',
+        'settings.lumiereMote': '浮尘',
+        'settings.lumiereBloom': '泛光',
+        'settings.lumiereTextBloom': '文字泛光',
+        'settings.lumiereUnlit': '未点亮透明度',
+        'settings.lumiereNeighbors': '窗口邻接',
+        'settings.lumiereDecay': '衰减',
+        'settings.lumiereEcho': '回声',
+        'settings.lumiereFogOctaves': '雾层数',
+        'settings.lumiereLineArt': '线稿',
+        'settings.lumiereBokeh': '前景散景',
+        'settings.lumiereTrails': '轨迹',
+        'settings.lumiereHideTrails': '隐藏轨迹',
+        'settings.lumiereSeamless': '无缝转场',
+        'settings.lumiereFrame': '画框',
+        'settings.lumiereTextOnly': '仅文字',
+        'settings.lumiereKeyword': '关键词着色',
+        'settings.lumiereIcons': '主题图标',
+        'settings.lumiereMix': '主题色占比',
         'settings.machiTuning': '町景参数',
         'settings.machiScene': '场景',
         'settings.machiTime': '时间',
@@ -9447,6 +9470,29 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.lumiereTuning': 'Lumiere tuning',
+        'settings.lumiereLight': 'Light intensity',
+        'settings.lumiereAudio': 'Audio response',
+        'settings.lumiereFog': 'Fog density',
+        'settings.lumiereDark': 'Dark field',
+        'settings.lumiereMote': 'Motes',
+        'settings.lumiereBloom': 'Bloom',
+        'settings.lumiereTextBloom': 'Text bloom',
+        'settings.lumiereUnlit': 'Unlit opacity',
+        'settings.lumiereNeighbors': 'Window neighbors',
+        'settings.lumiereDecay': 'Decay',
+        'settings.lumiereEcho': 'Echo',
+        'settings.lumiereFogOctaves': 'Fog octaves',
+        'settings.lumiereLineArt': 'Line art',
+        'settings.lumiereBokeh': 'Front bokeh',
+        'settings.lumiereTrails': 'Trails',
+        'settings.lumiereHideTrails': 'Hide trails',
+        'settings.lumiereSeamless': 'Seamless transitions',
+        'settings.lumiereFrame': 'Overlay frame',
+        'settings.lumiereTextOnly': 'Text only',
+        'settings.lumiereKeyword': 'Keyword colors',
+        'settings.lumiereIcons': 'Theme icons',
+        'settings.lumiereMix': 'Theme color mix',
         'settings.machiTuning': 'Machi tuning',
         'settings.machiScene': 'Scene',
         'settings.machiTime': 'Time',
@@ -154122,6 +154168,7 @@ window.__ModuleLoader__.load({
           DEFAULT_CLADDAGH_TUNING: () => DEFAULT_CLADDAGH_TUNING,
           DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
           DEFAULT_FUME_TUNING: () => DEFAULT_FUME_TUNING,
+          DEFAULT_LUMIERE_TUNING: () => DEFAULT_LUMIERE_TUNING,
           DEFAULT_MACHI_TUNING: () => DEFAULT_MACHI_TUNING,
           DEFAULT_MONET_TUNING: () => DEFAULT_MONET_TUNING,
           DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,
@@ -156069,6 +156116,7 @@ window.__ModuleLoader__.load({
         // src/folia/styles-entry.tsx
         init_types();
         init_types2();
+        init_types();
         var FOLIA_STYLE_ENTRIES = {
           classic: entry_default,
           cappella: entry_default8,
@@ -156962,6 +157010,7 @@ window.__ModuleLoader__.load({
         cappellaTuning: prefs.cappellaTuning || undefined,
         monetTuning: prefs.monetTuning || undefined,
         machiTuning: prefs.machiTuning || undefined,
+        lumiereTuning: prefs.lumiereTuning || undefined,
         hanabiTuning: prefs.hanabiTuning
           ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
           : undefined,
@@ -167644,6 +167693,31 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      lumiereTuning: {
+        lightIntensity: 1,
+        audioResponse: 1,
+        fogDensity: 1,
+        darkField: 0.75,
+        moteAmount: 1,
+        bloom: 1,
+        textBloom: 1,
+        unlitOpacity: 0.22,
+        windowNeighbors: 2,
+        decay: 1,
+        echo: 1,
+        fogOctaves: 5,
+        lineArt: true,
+        frontBokeh: true,
+        trails: true,
+        hideTrails: false,
+        seamlessTransitions: true,
+        overlayFrame: true,
+        textOnly: false,
+        keywordColors: true,
+        themeIcons: true,
+        themeColorMix: 0.3,
+        renderQuality: 'full',
+      },
       machiTuning: {
         scene: 'auto',
         timeOfDay: 'auto',
@@ -167945,6 +168019,41 @@ window.__ModuleLoader__.load({
         showPortraitDragHanger: storedMonet.showPortraitDragHanger !== false,
         portraitHangerVisibility: monetVisibility('portraitHangerVisibility'),
         mirrorLayout: storedMonet.mirrorLayout === true,
+      }
+      // Folia lumiere tuning: light field and effects; unknown enums fall back.
+      var lumiereDefaults = PREF_DEFAULTS.lumiereTuning
+      var storedLumiere = merged.lumiereTuning && typeof merged.lumiereTuning === 'object' ? merged.lumiereTuning : {}
+      function lumiereNumber(key, min, max) {
+        var value = Number(storedLumiere[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : lumiereDefaults[key]
+      }
+      function lumiereSwitch(key, fallback) {
+        return typeof storedLumiere[key] === 'boolean' ? storedLumiere[key] : fallback
+      }
+      merged.lumiereTuning = {
+        lightIntensity: lumiereNumber('lightIntensity', 0.3, 2),
+        audioResponse: lumiereNumber('audioResponse', 0, 2),
+        fogDensity: lumiereNumber('fogDensity', 0, 2),
+        darkField: lumiereNumber('darkField', 0, 1),
+        moteAmount: lumiereNumber('moteAmount', 0, 2),
+        bloom: lumiereNumber('bloom', 0, 2),
+        textBloom: lumiereNumber('textBloom', 0, 2),
+        unlitOpacity: lumiereNumber('unlitOpacity', 0.05, 0.6),
+        windowNeighbors: Math.round(lumiereNumber('windowNeighbors', 1, 2)),
+        decay: lumiereNumber('decay', 0, 2),
+        echo: lumiereNumber('echo', 0, 2),
+        fogOctaves: Math.round(lumiereNumber('fogOctaves', 1, 8)),
+        lineArt: lumiereSwitch('lineArt', true),
+        frontBokeh: lumiereSwitch('frontBokeh', true),
+        trails: lumiereSwitch('trails', true),
+        hideTrails: lumiereSwitch('hideTrails', false),
+        seamlessTransitions: lumiereSwitch('seamlessTransitions', true),
+        overlayFrame: lumiereSwitch('overlayFrame', true),
+        textOnly: lumiereSwitch('textOnly', false),
+        keywordColors: lumiereSwitch('keywordColors', true),
+        themeIcons: lumiereSwitch('themeIcons', true),
+        themeColorMix: lumiereNumber('themeColorMix', 0, 1),
+        renderQuality: ['full', 'balanced', 'low'].indexOf(storedLumiere.renderQuality) >= 0 ? storedLumiere.renderQuality : 'full',
       }
       // Folia machi tuning: scene/time/weather/camera and lens; quality uses the upstream default.
       var machiDefaults = PREF_DEFAULTS.machiTuning
@@ -196084,6 +196193,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'cappella' ? cappellaTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'monet' ? monetTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'machi' ? machiTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'lumiere' ? lumiereTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -196536,6 +196646,47 @@ window.__ModuleLoader__.load({
           choice('settings.machiFocus', 'focus', [{ value: 'center', label: 'Center' }, { value: 'lyrics', label: 'Lyrics' }, { value: 'manual', label: 'Manual' }]),
           num('settings.machiFocusOffset', 'focusOffset', -10, 10, 0.1),
           mpPanelRow(t('settings.machiBeat'), h(Switch, { value: tuning.simulatedBeat !== false, label: t('settings.machiBeat'), onChange: function (value) { setPrefs({ machiTuning: Object.assign({}, tuning, { simulatedBeat: value }) }) } })),
+        ))
+      }
+      /** Folia lumiere tuning: light field, effects and switches. */
+      function lumiereTuningBlock() {
+        var tuning = prefs.lumiereTuning || {}
+        function num(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        function sw(label, key) {
+          return mpPanelRow(t(label), h(Switch, { value: tuning[key] === true, label: t(label), onChange: function (next) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+        }
+        return mpSection(t('settings.lumiereTuning'), h('div', null,
+          num('settings.lumiereLight', 'lightIntensity', 0.3, 2, 0.05),
+          num('settings.lumiereAudio', 'audioResponse', 0, 2, 0.05),
+          num('settings.lumiereFog', 'fogDensity', 0, 2, 0.05),
+          num('settings.lumiereDark', 'darkField', 0, 1, 0.01),
+          num('settings.lumiereMote', 'moteAmount', 0, 2, 0.05),
+          num('settings.lumiereBloom', 'bloom', 0, 2, 0.05),
+          num('settings.lumiereTextBloom', 'textBloom', 0, 2, 0.05),
+          num('settings.lumiereUnlit', 'unlitOpacity', 0.05, 0.6, 0.01),
+          num('settings.lumiereNeighbors', 'windowNeighbors', 1, 2, 1),
+          num('settings.lumiereDecay', 'decay', 0, 2, 0.05),
+          num('settings.lumiereEcho', 'echo', 0, 2, 0.05),
+          num('settings.lumiereFogOctaves', 'fogOctaves', 1, 8, 1),
+          sw('settings.lumiereLineArt', 'lineArt'),
+          sw('settings.lumiereBokeh', 'frontBokeh'),
+          sw('settings.lumiereTrails', 'trails'),
+          sw('settings.lumiereHideTrails', 'hideTrails'),
+          sw('settings.lumiereSeamless', 'seamlessTransitions'),
+          sw('settings.lumiereFrame', 'overlayFrame'),
+          sw('settings.lumiereTextOnly', 'textOnly'),
+          sw('settings.lumiereKeyword', 'keywordColors'),
+          sw('settings.lumiereIcons', 'themeIcons'),
+          num('settings.lumiereMix', 'themeColorMix', 0, 1, 0.01),
+          mpPanelRow(t('settings.lumiereTuning'), segmented([{ value: 'full', label: 'Full' }, { value: 'balanced', label: 'Balanced' }, { value: 'low', label: 'Low' }], ['full', 'balanced', 'low'].indexOf(tuning.renderQuality) >= 0 ? tuning.renderQuality : 'full', function (value) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { renderQuality: value }) }) })),
         ))
       }
       /**

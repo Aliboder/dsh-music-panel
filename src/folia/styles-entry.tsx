@@ -48,3 +48,4 @@ export { DEFAULT_CLASSIC_TUNING, DEFAULT_TILT_TUNING, DEFAULT_PARTITA_TUNING, DE
 
 
 export { DEFAULT_MACHI_TUNING } from './components/visualizer/machi/types';
+export { DEFAULT_LUMIERE_TUNING } from './types';

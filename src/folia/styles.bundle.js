@@ -121110,6 +121110,7 @@ function __mpStylesBundle() {
       DEFAULT_CLADDAGH_TUNING: () => DEFAULT_CLADDAGH_TUNING,
       DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
       DEFAULT_FUME_TUNING: () => DEFAULT_FUME_TUNING,
+      DEFAULT_LUMIERE_TUNING: () => DEFAULT_LUMIERE_TUNING,
       DEFAULT_MACHI_TUNING: () => DEFAULT_MACHI_TUNING,
       DEFAULT_MONET_TUNING: () => DEFAULT_MONET_TUNING,
       DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,
@@ -123057,6 +123058,7 @@ function __mpStylesBundle() {
     // src/folia/styles-entry.tsx
     init_types();
     init_types2();
+    init_types();
     var FOLIA_STYLE_ENTRIES = {
       classic: entry_default,
       cappella: entry_default8,
