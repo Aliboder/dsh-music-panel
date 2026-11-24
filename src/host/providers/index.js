@@ -1354,12 +1354,20 @@ function pageBounds(page) {
   }
 }
 
+/** One queue song: normalise once and keep the raw upstream row for writes. */
+function shapeQueueSong(provider, song) {
+  const shaped = shape(provider, song)
+  rawSongs.set(provider + ':' + shaped.id, song)
+  return shaped
+}
+
 function shapePlaylistSongs(provider, rows) {
-  return (Array.isArray(rows) ? rows : []).map((song) => {
-    const shaped = shape(provider, song)
-    rawSongs.set(provider + ':' + shaped.id, song)
-    return shaped
-  })
+  return (Array.isArray(rows) ? rows : []).map((song) => shapeQueueSong(provider, song))
+}
+
+/** A rank row has the same playable shape as a playlist row, plus the listen count. */
+function shapeRankSong(provider, song, listenCount) {
+  return { ...shapeQueueSong(provider, song), listenCount: Number(listenCount) || 0 }
 }
 
 /**
@@ -1653,7 +1661,7 @@ export async function listeningRank(provider, range, cookie = '', session = {}) 
       .filter((row) => row && row.song && typeof row.song === 'object')
       .map((row) => {
         const song = NC.songOf(row.song)
-        return song === null ? null : { ...song, listenCount: Number(row.playCount) || 0 }
+        return song === null ? null : shapeRankSong('netease', song, row.playCount)
       })
       .filter(Boolean)
   }
@@ -1665,7 +1673,7 @@ export async function listeningRank(provider, range, cookie = '', session = {}) 
     return items.flatMap((item) => {
       if (item === null || typeof item !== 'object' || item.track === null || typeof item.track !== 'object') return []
       const song = QQ.toLegacyResult(item.track)
-      return song === null ? [] : [{ ...song, listenCount: Number(item.listenCount) || 0 }]
+      return song === null ? [] : [shapeRankSong('qq', song, item.listenCount)]
     })
   }
   if (provider === 'kugou' || provider === 'kugouLite') {
@@ -1677,8 +1685,11 @@ export async function listeningRank(provider, range, cookie = '', session = {}) 
     const rows = answer.body?.data?.lists
     if (!Array.isArray(rows)) throw new Error('酷狗没有返回听歌排行')
     return rows
-      .map((item) => ({ ...KG.normalizeSong(item), listenCount: Number(item?.listen_count) || 0 }))
-      .filter((song) => song.id !== '')
+      .map((item) => {
+        const song = KG.normalizeSong(item)
+        return song.id === '' ? null : shapeRankSong(provider, song, item?.listen_count)
+      })
+      .filter(Boolean)
   }
   throw new Error('该平台没有听歌排行')
 }
