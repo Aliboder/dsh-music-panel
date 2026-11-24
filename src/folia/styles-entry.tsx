@@ -6,6 +6,7 @@ import claddagh from './components/visualizer/claddagh/entry';
 import cadenza from './components/visualizer/cadenza/entry';
 import fume from './components/visualizer/fume/entry';
 import cappella from './components/visualizer/cappella/entry';
+import machi from './components/visualizer/machi/entry';
 import monet from './components/visualizer/monet/entry';
 import lumiere from './components/visualizer/lumiere/entry';
 import sonnet from './components/visualizer/sonnet/entry';
@@ -21,6 +22,7 @@ import diorama from './components/visualizer/diorama/entry';
 export const FOLIA_STYLE_ENTRIES = {
     classic,
     cappella,
+    machi,
     still,
     tilt,
     partita,

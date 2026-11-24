@@ -104,6 +104,7 @@ assert.ok(entries, 'styles bundle exports FOLIA_STYLE_ENTRIES')
 const expected = [
   'classic',
   'cappella',
+  'machi',
   'still',
   'tilt',
   'partita',
@@ -154,7 +155,7 @@ for (const mode of expected) {
 assert.ok(Array.isArray(internals.FOLIA_STYLE_META))
 assert.deepEqual(
   internals.FOLIA_STYLE_META.map((item) => item.id),
-  ['sonnet', 'tempera', 'lumiere', 'hanabi', 'nebbia', 'classic', 'cadenza', 'partita', 'fume', 'tilt', 'claddagh', 'monet', 'cappella', 'diorama', 'still'],
+  ['sonnet', 'tempera', 'lumiere', 'hanabi', 'machi', 'nebbia', 'classic', 'cadenza', 'partita', 'fume', 'tilt', 'claddagh', 'monet', 'cappella', 'diorama', 'still'],
   'style order follows the upstream entry order values',
 )
 assert.deepEqual(

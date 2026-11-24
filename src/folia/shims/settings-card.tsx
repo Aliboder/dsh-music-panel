@@ -42,3 +42,17 @@ export const Select = Stub;
 export const Toggle = Stub;
 
 export default Stub;
+
+// Machi camera bar / settings controls: rendered only on the player page; DSH styling is not used here.
+const passthrough = (name: string) => {
+    const Component = (props: any) => React.createElement(name, props, props && props.children);
+    return Component;
+}
+export const Button = passthrough('button');
+export const Segmented = passthrough('div');
+export const Tabs = passthrough('div');
+export const SliderControl = () => null;
+export const ToggleControl = () => null;
+export const settingsTokens = () => ({});
+export const percent = (value: number) => `${Math.round(value * 100)}%`;
+export const times = (value: number) => `${value}×`;
