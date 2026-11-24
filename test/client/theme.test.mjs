@@ -199,20 +199,14 @@ assert.doesNotMatch(
 assert.match(theme, /\.mp-np\{[^']*background:#141417;color:#f4f4f5/, 'player surface stays dark')
 assert.match(theme, /\.mp-np-title\{[^']*color:#f7f7f8/, 'player title stays light')
 
-// The floating player card is a dark island on that surface: it paints its own dark
-// glass, so the tokens its controls read must be pinned to the dark theme. Without
-// this the light theme resolves them to dark ink / near-white layers and the card's
-// tiles, pills and inputs turn white-on-white.
-assert.match(theme, /\.mp-card\{[^']*--dsw-alias-label-primary:#f4f4f5/, 'player card ink stays light')
-assert.match(theme, /\.mp-card\{[^']*--dsw-alias-bg-layer-2:rgba\(255,255,255,\.06\)/, 'player card tiles stay dark')
-assert.match(theme, /\.mp-card\{[^']*--dsw-alias-bg-layer-3:rgba\(255,255,255,\.08\)/, 'player card nested surfaces stay dark')
-assert.match(theme, /\.mp-card\{[^']*--dsw-alias-border-l1:rgba\(255,255,255,\.07\)/, 'player card hairlines stay light')
-assert.match(theme, /\.mp-card\{[^']*color:#f4f4f5/, 'player card sets its own light ink')
-// The host Switch inside the island reads the brand track + thumb tokens; unpinned they
-// resolve to the app theme and the knob disappears into the track.
-assert.match(theme, /\.mp-card\{[^']*--dsw-alias-brand-primary:var\(--dsw-static-neutral-bluish-50\)/, 'player card pins the switch track to the dark-theme value')
-assert.match(theme, /\.mp-card\{[^']*--dsw-alias-switch-thumb:var\(--dsw-static-neutral-bluish-400\)/, 'player card pins the switch knob to the dark-theme value')
-assert.match(theme, /\.mp-card\{[^']*--dsw-alias-label-primary-foreground:var\(--dsw-static-neutral-bluish-1000\)/, 'the on-state knob contrasts like the official switch')
+// The floating player card follows the host theme like every other sheet: the glass is
+// token-based and the controls keep host tokens. It must not pin a dark palette or inherit
+// the dark player page's white ink.
+assert.match(theme, /\.mp-card\{[^']*color:var\(--dsw-alias-label-primary/, 'player card ink follows the theme')
+assert.doesNotMatch(theme, /\.mp-card\{[^']*--dsw-alias-label-primary:/, 'player card does not pin dark ink')
+const playerSheet = readFileSync(join(uiDir, 'player-sheet.js'), 'utf8')
+assert.match(playerSheet, /background: 'color-mix\(in srgb, var\(--dsw-alias-bg-layer-1/, 'player card glass uses the host surface token')
+assert.doesNotMatch(playerSheet, /rgba\(23, 23, 26, 0\.95\)/, 'player card no longer paints fixed dark glass')
 
 // panel-v3 rows: 76px, 54px cover, 18px title (90% of the 84/60/20 scale).
 assert.match(p3Css, /\.mpv3-row \{[^"]*height: 76px/, 'panel-v3 rows are 76px')
@@ -222,8 +216,7 @@ assert.match(p3Css, /\.mpv3-row-cover img \{[^"]*width: 100%; height: 100%; obje
 assert.match(p3Css, /\.mpv3-queue-list \{[^"]*overflow-x: hidden; overflow-y: auto/, 'queue list scrolls vertically only')
 assert.match(p3Css, /\.mpv3-queue-row \{[^"]*box-sizing: border-box/, 'queue rows include their padding in the width')
 assert.match(p3Css, /\.mpv3-queue \{[^"]*color: var\(--dsw-alias-label-primary/, 'queue panel sets its own ink instead of inheriting a page color')
-assert.match(p3Css, /\.mp-np \.mpv3-queue \{[^"]*--dsw-alias-bg-layer-1: #17171a/, 'player-page queue pins dark surface tokens')
-assert.match(p3Css, /\.mp-np \.mpv3-queue \{[^"]*color: #f4f4f5/, 'player-page queue uses light ink on its dark surface')
+assert.doesNotMatch(p3Css, /\.mp-np \.mpv3-queue/, 'player-page queue follows the host theme instead of pinning a dark island')
 
 assert.match(theme, /\.mp-npe-section\.is-ambient\{grid-column:1\/4;grid-row:3\}/, 'ambient section spans the editor')
 assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/, 'ambient section has four columns')

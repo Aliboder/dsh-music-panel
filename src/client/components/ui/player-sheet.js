@@ -1330,7 +1330,7 @@ function PlayerSheetInner(props) {
     padding: String(MP_PADDING) + 'px',
     borderRadius: 'var(--dsw-radius-xl,20px)',
     pointerEvents: 'auto',
-    background: 'rgba(23, 23, 26, 0.95)',
+    background: 'color-mix(in srgb, var(--dsw-alias-bg-layer-1, #232324) 95%, transparent)',
     backdropFilter: 'blur(40px) saturate(1.3)',
     // §2.4: an elevated surface carries the elevation (its own hairline), never a border too.
     border: 0,

@@ -1108,13 +1108,10 @@ var THEME_CSS = [
   '.mp-pill:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#4176E6));outline-offset:2px}',
   '.mp-pill.is-primary{background:var(--dsw-alias-state-business-primary,#4176E6);border-color:transparent;color:#fff}',
   '.mp-kit-modal{width:min(640px,calc(100vw - 48px))}',
-  // The floating player card paints its own dark glass on the always-dark player page
-  // (the same dark-surface exception as `.mp-np`, guarded in test/theme.test.mjs), but
-  // its controls read the host tokens. In the light theme those resolve to dark ink and
-  // near-white layers, so the card ended up with white-on-white tiles, pills and inputs.
-  // Pin the tokens it sits on to their dark-theme values for everything inside the card;
-  // the surface itself stays on the inline dark glass above.
-  '.mp-card{--dsw-alias-label-primary:#f4f4f5;--dsw-alias-label-secondary:#a1a1aa;--dsw-alias-label-tertiary:#8a8a93;--dsw-alias-bg-base:#141417;--dsw-alias-bg-layer-1:#17171a;--dsw-alias-bg-layer-2:rgba(255,255,255,.06);--dsw-alias-bg-layer-3:rgba(255,255,255,.08);--dsw-alias-border-l1:rgba(255,255,255,.07);--dsw-alias-border-l2:rgba(255,255,255,.14);--dsw-alias-border-l3:rgba(255,255,255,.16);--dsw-alias-bg-module-platform:var(--dsw-static-neutral-bluish-800);--dsw-alias-interactive-bg-hover:rgba(255,255,255,.07);--dsw-alias-interactive-bg-active:rgba(255,255,255,.1);--dsw-alias-state-business-primary:#4f8cff;--dsw-alias-button-primary-fill:#4f8cff;--dsw-alias-brand-primary:var(--dsw-static-neutral-bluish-50);--dsw-alias-switch-thumb:var(--dsw-static-neutral-bluish-400);--dsw-alias-label-primary-foreground:var(--dsw-static-neutral-bluish-1000);color:#f4f4f5}',
+  // The floating player card is a normal host surface in both themes: its glass uses the
+  // host layer token and its controls read the host label/border tokens. It must not inherit
+  // the dark player page's hardcoded white ink when the page behind it is dark.
+  '.mp-card{color:var(--dsw-alias-label-primary,#1a1a1e)}',
   // The card's panes scroll, but a scrollbar appearing for one frame during the tab
   // animation takes width from the content and the layout jumps when it leaves again.
   // Hide it on every scroll container inside the card instead of reserving a gutter.
