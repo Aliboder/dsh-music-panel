@@ -46,6 +46,66 @@ function useCountdown(deadline) {
   return Math.max(0, (Number(deadline) || 0) - now)
 }
 
+/**
+ * Sliders: one wheel contract for the whole plugin.
+ *
+ * The bottom bar's volume and the appearance page's tuning rows both go through it, so a
+ * notch means the same thing everywhere: 5% of the range (never less than one step). The
+ * listener has to be native — React's onWheel is passive, so preventDefault there cannot
+ * stop the page from scrolling.
+ */
+var MP_SLIDER_WHEEL_RATIO = 0.05
+
+/** One notch in the slider's own units, snapped to `step` (never below one step). */
+function mpSliderWheelNotch(min, max, step) {
+  var low = isFinite(min) ? Number(min) : 0
+  var high = isFinite(max) ? Number(max) : 1
+  var span = Math.abs(high - low)
+  var unit = isFinite(step) && Number(step) > 0 ? Number(step) : span > 0 ? span / 100 : 1
+  var steps = Math.round((span * MP_SLIDER_WHEEL_RATIO) / unit)
+  if (!isFinite(steps) || steps < 1) steps = 1
+  return steps * unit
+}
+
+/** The value one notch up (direction > 0) or down lands on. */
+function mpSliderWheelValue(value, min, max, step, direction) {
+  var low = isFinite(min) ? Number(min) : 0
+  var high = isFinite(max) ? Number(max) : 1
+  if (high < low) {
+    var swap = low
+    low = high
+    high = swap
+  }
+  var unit = isFinite(step) && Number(step) > 0 ? Number(step) : high > low ? (high - low) / 100 : 1
+  var base = Number(value)
+  if (!isFinite(base)) base = low
+  var next = base + (direction < 0 ? -mpSliderWheelNotch(low, high, unit) : mpSliderWheelNotch(low, high, unit))
+  var snapped = low + Math.round((next - low) / unit) * unit
+  var decimals = (String(unit).split('.')[1] || '').length
+  return Number(Math.min(high, Math.max(low, snapped)).toFixed(Math.min(6, decimals + 2)))
+}
+
+/**
+ * Attach that contract to a slider root. `onStep(direction)` gets +1 for a notch up and -1
+ * for one down; return false when the slider cannot take input (disabled) and the page keeps
+ * scrolling as usual.
+ */
+function useWheelStep(nodeRef, onStep) {
+  var live = useRef(onStep)
+  live.current = onStep
+  useEffect(function () {
+    var node = nodeRef.current
+    if (node === null || typeof node.addEventListener !== 'function') return undefined
+    function onWheel(event) {
+      if (event.deltaY === 0) return
+      var step = live.current
+      if (typeof step !== 'function' || step(event.deltaY < 0 ? 1 : -1) === false) return
+      event.preventDefault()
+    }
+    node.addEventListener('wheel', onWheel, { passive: false })
+    return function () { node.removeEventListener('wheel', onWheel) }
+  }, [])
+}
 function IconButton(props) {
   var button = h(
     'button',

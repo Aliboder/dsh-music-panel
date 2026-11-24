@@ -2,17 +2,15 @@
  * VolumeControl: the one volume row used by the sidebar, the queue and the player page.
  *
  * It is controlled (value / muted / onChange / onMutedChange) so the gallery can use it
- * without touching the player. The wheel is a native listener: React's onWheel is passive,
- * and preventDefault there cannot stop the page from scrolling.
+ * without touching the player. The wheel is the shared slider contract (useWheelStep in
+ * primitives.js): a native non-passive listener, because React's onWheel is passive and
+ * preventDefault there cannot stop the page from scrolling.
  */
 
-var MP_VOLUME_WHEEL_STEP = 0.05
-
-/** One wheel notch = 5%; muted starts from 0 so scrolling up also unmutes. */
-function mpVolumeWheelNext(value, muted, deltaY) {
+/** One wheel notch = 5% of the range; muted starts from 0 so scrolling up also unmutes. */
+function mpVolumeWheelNext(value, muted, direction) {
   var base = muted === true ? 0 : clamp(Number(value) || 0, 0, 1)
-  var direction = deltaY > 0 ? -1 : 1
-  return Math.round(clamp(base + direction * MP_VOLUME_WHEEL_STEP, 0, 1) * 100) / 100
+  return mpSliderWheelValue(base, 0, 1, MP_SLIDER_WHEEL_RATIO, direction)
 }
 function mpVolumePercent(value, muted) {
   var heard = muted === true ? 0 : clamp(Number(value) || 0, 0, 1)
@@ -42,22 +40,13 @@ function VolumeControl(props) {
     if (typeof current.onChange === 'function') current.onChange(rounded)
   }
 
-  useEffect(function () {
-    var node = rootRef.current
-    if (node === null) return undefined
-    function onWheel(event) {
-      var current = live.current
-      if (current.disabled || event.deltaY === 0) return
-      // The slider owns the wheel while the pointer is over it; never scroll the page.
-      event.preventDefault()
-      var base = current.muted ? 0 : current.value
-      var next = mpVolumeWheelNext(current.value, current.muted, event.deltaY)
-      if (next === base && !(current.muted && next > 0)) return
-      commit(next)
-    }
-    node.addEventListener('wheel', onWheel, { passive: false })
-    return function () { node.removeEventListener('wheel', onWheel) }
-  }, [])
+  useWheelStep(rootRef, function (direction) {
+    var current = live.current
+    if (current.disabled) return false
+    // The slider owns the wheel while the pointer is over it; never scroll the page.
+    commit(mpVolumeWheelNext(current.value, current.muted, direction))
+    return true
+  })
 
   var percent = mpVolumePercent(value, muted)
   var iconName = muted || percent === 0 ? 'mute' : percent < 50 ? 'volumeLow' : 'volume'

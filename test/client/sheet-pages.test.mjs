@@ -66,11 +66,15 @@ test('歌词显示 has named controls, not glyph-only buttons', () => {
   assert.doesNotMatch(style, /mpSmallButton\('≋'/, 'the wired ≋ glyph is gone')
 })
 
-test('style tuning sliders show values and respond to the wheel', () => {
+test('style tuning sliders are one stable component on the shared wheel contract', () => {
   assert.match(sheet, /mp-range mp-tuning-range-input/, 'the slider uses the native range')
   assert.match(sheet, /onPointerDown: function \(event\) \{ event\.stopPropagation\(\) \}/, 'the slider stops parent pointer capture')
-  assert.match(sheet, /addEventListener\('wheel', onWheel, \{ passive: false \}\)/, 'the wheel listener is non-passive')
+  assert.match(sheet, /useWheelStep\(rootRef,/, 'the wheel is the shared contract (primitives.js), not a local listener')
+  assert.match(sheet, /mpSliderWheelValue\(/, 'one notch is 5% of the range, snapped to step')
   assert.match(sheet, /mp-tuning-range-value/)
+  const inner = sheet.indexOf('function PlayerSheetInner(')
+  const slider = sheet.indexOf('function TuningRange(')
+  assert.ok(slider > 0 && slider < inner, 'TuningRange is declared once at module scope, so a re-render never replaces the <input>')
 })
 
 test('style option labels are translated', () => {

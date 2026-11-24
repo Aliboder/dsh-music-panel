@@ -879,7 +879,7 @@ var THEME_CSS = [
   '.mp-tuning-label-inner{display:inline-block;white-space:nowrap;will-change:transform}',
   '.mp-tuning-label.is-overflow .mp-tuning-label-inner{animation:mp-tuning-marquee 3.2s ease-in-out infinite alternate}',
   '@keyframes mp-tuning-marquee{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--mp-label-shift,0px)))}}',
-  '.mp-tuning-slider{display:flex;align-items:center;flex:1 1 auto;min-width:64px;min-width:0}',
+  '.mp-tuning-slider{display:flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0}',
   '.mp-tuning-slider.is-disabled{opacity:.45}',
   '.mp-tuning-slider .mp-tuning-range-input{width:100%;min-width:0;flex:1 1 auto}',
   '.mp-tuning-range-value{flex:0 0 auto;min-width:32px;text-align:right;font-size:11px;line-height:16px;opacity:.72;font-variant-numeric:tabular-nums;pointer-events:none}',

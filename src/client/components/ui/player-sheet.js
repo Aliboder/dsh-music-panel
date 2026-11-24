@@ -43,6 +43,107 @@ function clampCardBodyHeight(measured, viewport, bottom) {
   return Math.max(0, Math.min(measured, room))
 }
 
+/** Tuning labels: never truncate silently; scroll the text back and forth only when it cannot fit. */
+function TuningLabel(props) {
+  var ref = useRef(null)
+  var overflowPair = useState(false)
+  var overflow = overflowPair[0]
+  var setOverflow = overflowPair[1]
+  useEffect(function () {
+    var el = ref.current
+    if (el === null) return undefined
+    function measure() {
+      var inner = el.firstElementChild
+      if (inner === null) return
+      var shift = Math.max(0, inner.scrollWidth - el.clientWidth)
+      el.style.setProperty('--mp-label-shift', String(shift + 4) + 'px')
+      setOverflow(shift > 1)
+    }
+    measure()
+    if (typeof ResizeObserver !== 'function') return undefined
+    var observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return function () { observer.disconnect() }
+  }, [props.text])
+  return h('span', { ref: ref, className: 'mp-tuning-label' + (overflow ? ' is-overflow' : ''), title: props.text },
+    h('span', { className: 'mp-tuning-label-inner' }, props.text),
+  )
+}
+
+/**
+ * The appearance page's tuning slider.
+ *
+ * Same native range + wheel contract as the bottom bar's volume (primitives.js
+ * `useWheelStep`): a notch is 5% of the range, snapped to `step`, and `preventDefault` keeps
+ * the card from scrolling. Drag, keyboard and the accessibility tree stay the browser's own.
+ *
+ * This has to stay a module-level component: React reads the function as the element type, so
+ * a component declared inside PlayerSheetInner is a NEW type on every render — React then
+ * replaces the <input>, and a native range drag dies after its first step. The bottom bar's
+ * VolumeControl is declared once in volume-control.js, which is exactly why its drag works.
+ */
+function TuningRange(props) {
+  var controlProps = props.control && props.control.props ? props.control.props : {}
+  var min = Number(controlProps.min)
+  var max = Number(controlProps.max)
+  var step = Number(controlProps.step)
+  if (!isFinite(min)) min = 0
+  if (!isFinite(max)) max = 1
+  if (!isFinite(step) || step <= 0) step = (max - min) / 100
+  var value = Number(controlProps.value)
+  if (!isFinite(value)) value = min
+  var disabled = controlProps.disabled === true
+  var onChange = typeof controlProps.onChange === 'function' ? controlProps.onChange : null
+  var rootRef = useRef(null)
+  var live = useRef({ value: value, min: min, max: max, step: step, disabled: disabled, onChange: onChange })
+  live.current = { value: value, min: min, max: max, step: step, disabled: disabled, onChange: onChange }
+  function clean(next) {
+    var config = live.current
+    var steps = Math.round((next - config.min) / config.step)
+    var result = config.min + steps * config.step
+    result = Math.min(config.max, Math.max(config.min, result))
+    var decimals = (String(config.step).split('.')[1] || '').length
+    return Number(result.toFixed(Math.min(6, decimals + 2)))
+  }
+  function commit(next) {
+    var config = live.current
+    if (config.disabled || config.onChange === null) return
+    var valueNow = clean(next)
+    if (valueNow === config.value) return
+    config.onChange({ target: { value: String(valueNow) }, currentTarget: { value: String(valueNow) } })
+  }
+  useWheelStep(rootRef, function (direction) {
+    var config = live.current
+    if (config.disabled || config.onChange === null) return false
+    commit(mpSliderWheelValue(config.value, config.min, config.max, config.step, direction))
+    return true
+  })
+  return h('span', {
+    ref: rootRef,
+    className: 'mp-tuning-slider' + (disabled ? ' is-disabled' : ''),
+    onPointerDown: function (event) { event.stopPropagation() },
+    onClick: function (event) { event.stopPropagation() },
+  },
+    h('input', {
+      type: 'range',
+      className: 'mp-range mp-tuning-range-input',
+      min: String(min),
+      max: String(max),
+      step: String(step),
+      value: String(value),
+      disabled: disabled,
+      'aria-label': controlProps['aria-label'] || 'slider',
+      'aria-valuetext': String(value),
+      onChange: onChange === null ? undefined : function (event) { commit(Number(event.target.value)) },
+    }),
+    h('span', { className: 'mp-tuning-range-value' }, String(value)),
+  )
+}
+
+function TuningGrid(props) {
+  return h('div', { className: 'mp-tuning-grid' }, props.children)
+}
+
 function PlayerSheet(props) {
   var framer = motion !== null && AnimatePresence !== null
   if (!framer) return props.open === true ? h(PlayerSheetInner, props) : null
@@ -588,32 +689,6 @@ function PlayerSheetInner(props) {
     )
   }
 
-  /** Tuning labels: never truncate silently; scroll the text back and forth only when it cannot fit. */
-  function TuningLabel(props) {
-    var ref = useRef(null)
-    var overflowPair = useState(false)
-    var overflow = overflowPair[0]
-    var setOverflow = overflowPair[1]
-    useEffect(function () {
-      var el = ref.current
-      if (el === null) return undefined
-      function measure() {
-        var inner = el.firstElementChild
-        if (inner === null) return
-        var shift = Math.max(0, inner.scrollWidth - el.clientWidth)
-        el.style.setProperty('--mp-label-shift', String(shift + 4) + 'px')
-        setOverflow(shift > 1)
-      }
-      measure()
-      if (typeof ResizeObserver !== 'function') return undefined
-      var observer = new ResizeObserver(measure)
-      observer.observe(el)
-      return function () { observer.disconnect() }
-    }, [props.text])
-    return h('span', { ref: ref, className: 'mp-tuning-label' + (overflow ? ' is-overflow' : ''), title: props.text },
-      h('span', { className: 'mp-tuning-label-inner' }, props.text),
-    )
-  }
   /** One DSH settings row: .mp-set-row label/desc on the left, the control on the right. */
   function mpPanelRow(label, control, hint) {
     var range = control && control.props && control.props.type === 'range'
@@ -642,74 +717,6 @@ function PlayerSheetInner(props) {
 
   // 外观 tab — the stage's look: background and theme. Sound (including volume) lives on the
   // audio page, so this page only paints.
-  /** Tuning slider: same native-range + non-passive wheel pattern as VolumeControl. */
-  function TuningRange(props) {
-    var controlProps = props.control && props.control.props ? props.control.props : {}
-    var min = Number(controlProps.min)
-    var max = Number(controlProps.max)
-    var step = Number(controlProps.step)
-    if (!isFinite(min)) min = 0
-    if (!isFinite(max)) max = 1
-    if (!isFinite(step) || step <= 0) step = (max - min) / 100
-    var value = Number(controlProps.value)
-    if (!isFinite(value)) value = min
-    var disabled = controlProps.disabled === true
-    var onChange = typeof controlProps.onChange === 'function' ? controlProps.onChange : null
-    var rootRef = useRef(null)
-    var live = useRef({ value: value, min: min, max: max, step: step, disabled: disabled, onChange: onChange })
-    live.current = { value: value, min: min, max: max, step: step, disabled: disabled, onChange: onChange }
-    function clean(next) {
-      var config = live.current
-      var steps = Math.round((next - config.min) / config.step)
-      var result = config.min + steps * config.step
-      result = Math.min(config.max, Math.max(config.min, result))
-      var decimals = (String(config.step).split('.')[1] || '').length
-      return Number(result.toFixed(Math.min(6, decimals + 2)))
-    }
-    function commit(next) {
-      var config = live.current
-      if (config.disabled || config.onChange === null) return
-      var valueNow = clean(next)
-      if (valueNow === config.value) return
-      config.onChange({ target: { value: String(valueNow) }, currentTarget: { value: String(valueNow) } })
-    }
-    useEffect(function () {
-      var node = rootRef.current
-      if (node === null) return undefined
-      function onWheel(event) {
-        var config = live.current
-        if (config.disabled || event.deltaY === 0) return
-        event.preventDefault()
-        commit(config.value + (event.deltaY < 0 ? config.step : -config.step))
-      }
-      node.addEventListener('wheel', onWheel, { passive: false })
-      return function () { node.removeEventListener('wheel', onWheel) }
-    }, [])
-    return h(React.Fragment, null,
-      h('span', {
-        ref: rootRef,
-        className: 'mp-tuning-slider' + (disabled ? ' is-disabled' : ''),
-        onPointerDown: function (event) { event.stopPropagation() },
-        onClick: function (event) { event.stopPropagation() },
-      },
-        h('input', {
-          type: 'range',
-          className: 'mp-range mp-tuning-range-input',
-          min: String(min),
-          max: String(max),
-          step: String(step),
-          value: String(value),
-          disabled: disabled,
-          'aria-label': controlProps['aria-label'] || 'slider',
-          onChange: onChange === null ? undefined : function (event) { commit(Number(event.target.value)) },
-        }),
-      ),
-      h('span', { className: 'mp-tuning-range-value' }, String(value)),
-    )
-  }
-  function TuningGrid(props) {
-    return h('div', { className: 'mp-tuning-grid' }, props.children)
-  }
   function cardLookPane() {
     var tuningBlocks = lyricTuningBlocks()
     return h(
