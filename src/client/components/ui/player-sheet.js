@@ -1284,6 +1284,17 @@ function PlayerSheetInner(props) {
       ),
       gainBlock(),
       mpPanelRow(
+        t('settings.autoHidePlayerChrome'),
+        h(Switch, {
+          value: prefs.autoHidePlayerChrome === true,
+          label: t('settings.autoHidePlayerChrome'),
+          onChange: function (value) {
+            setPrefs({ autoHidePlayerChrome: value })
+          },
+        }),
+        t('settings.autoHidePlayerChromeDesc'),
+      ),
+      mpPanelRow(
         t('sheet.effects'),
         cardButton(t('sheet.open'), function () {
           pushLayer('equalizer', {})

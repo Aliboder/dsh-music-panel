@@ -90,6 +90,8 @@ var PREF_DEFAULTS = {
   volume: 1,
   audioOutputDeviceId: '',
   playbackFade: false,
+  /** Folia default: the player chrome stays visible until the user asks it to hide. */
+  autoHidePlayerChrome: false,
   // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
   playbackReports: false,
   /** Folia's voice-input pause: Windows microphone capture pauses playback. */

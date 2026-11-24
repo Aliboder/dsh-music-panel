@@ -196,7 +196,7 @@ function NowPlaying(props) {
       }
       function arm() {
         clear()
-        if (chromePinned) return
+        if (chromePinned || prefs.autoHidePlayerChrome !== true) return
         timer = setTimeout(function () {
           setChromeVisible(false)
         }, 3000)
@@ -223,7 +223,7 @@ function NowPlaying(props) {
         root.removeEventListener('keydown', wake)
       }
     },
-    [props.open, chromePinned],
+    [props.open, chromePinned, prefs.autoHidePlayerChrome],
   )
   var offsetPair = useState(0)
   var offsetMs = offsetPair[0]

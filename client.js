@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "75c48081af44"
+    var CLIENT_BUILD = "8d566f776bbb"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,8 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.autoHidePlayerChrome': '自动隐藏播放控制',
+        'settings.autoHidePlayerChromeDesc': '鼠标离开后自动收起进度条和右下角按钮；默认关闭，和 Folia 一致',
         'settings.queueAddBehavior': '加入队列的默认位置',
         'settings.queueAddBehaviorDesc': '从歌曲菜单「加入队列」时，放到队尾还是当前曲之后。',
         'settings.queueAppend': '追加到末尾',
@@ -9335,6 +9337,8 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.autoHidePlayerChrome': 'Auto-hide player chrome',
+        'settings.autoHidePlayerChromeDesc': 'Fold away the progress bar and bottom-right button after the pointer leaves; off by default, as in Folia',
         'settings.queueAddBehavior': 'Default position for added songs',
         'settings.queueAddBehaviorDesc': 'Where 「Add to queue」 in the song menu puts it: at the end, or right after the current song.',
         'settings.queueAppend': 'Append to queue',
@@ -151226,6 +151230,8 @@ window.__ModuleLoader__.load({
       volume: 1,
       audioOutputDeviceId: '',
       playbackFade: false,
+      /** Folia default: the player chrome stays visible until the user asks it to hide. */
+      autoHidePlayerChrome: false,
       // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
       playbackReports: false,
       /** Folia's voice-input pause: Windows microphone capture pauses playback. */
@@ -168600,7 +168606,7 @@ window.__ModuleLoader__.load({
           }
           function arm() {
             clear()
-            if (chromePinned) return
+            if (chromePinned || prefs.autoHidePlayerChrome !== true) return
             timer = setTimeout(function () {
               setChromeVisible(false)
             }, 3000)
@@ -168627,7 +168633,7 @@ window.__ModuleLoader__.load({
             root.removeEventListener('keydown', wake)
           }
         },
-        [props.open, chromePinned],
+        [props.open, chromePinned, prefs.autoHidePlayerChrome],
       )
       var offsetPair = useState(0)
       var offsetMs = offsetPair[0]
@@ -179449,6 +179455,17 @@ window.__ModuleLoader__.load({
             }),
           ),
           gainBlock(),
+          mpPanelRow(
+            t('settings.autoHidePlayerChrome'),
+            h(Switch, {
+              value: prefs.autoHidePlayerChrome === true,
+              label: t('settings.autoHidePlayerChrome'),
+              onChange: function (value) {
+                setPrefs({ autoHidePlayerChrome: value })
+              },
+            }),
+            t('settings.autoHidePlayerChromeDesc'),
+          ),
           mpPanelRow(
             t('sheet.effects'),
             cardButton(t('sheet.open'), function () {
