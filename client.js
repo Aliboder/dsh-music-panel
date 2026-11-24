@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "100c60e5148d"
+    var CLIENT_BUILD = "fd0ed42cfd0b"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,20 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.machiTuning': '町景参数',
+        'settings.machiScene': '场景',
+        'settings.machiTime': '时间',
+        'settings.machiWeather': '天气',
+        'settings.machiCamera': '镜头',
+        'settings.machiMotion': '缓慢运镜',
+        'settings.machiMotionSpeed': '运镜速度',
+        'settings.machiAperture': '光圈',
+        'settings.machiDof': '景深',
+        'settings.machiDofRange': '清晰范围',
+        'settings.machiTilt': '移轴',
+        'settings.machiFocus': '对焦',
+        'settings.machiFocusOffset': '对焦偏移',
+        'settings.machiBeat': '模拟节拍',
         'settings.monetTuning': '莫奈参数',
         'settings.monetKeyword': '关键词着色',
         'settings.monetDescription': '描述',
@@ -9433,6 +9447,20 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.machiTuning': 'Machi tuning',
+        'settings.machiScene': 'Scene',
+        'settings.machiTime': 'Time',
+        'settings.machiWeather': 'Weather',
+        'settings.machiCamera': 'Camera',
+        'settings.machiMotion': 'Slow motion',
+        'settings.machiMotionSpeed': 'Motion speed',
+        'settings.machiAperture': 'Aperture',
+        'settings.machiDof': 'Depth of field',
+        'settings.machiDofRange': 'Focus range',
+        'settings.machiTilt': 'Tilt shift',
+        'settings.machiFocus': 'Focus',
+        'settings.machiFocusOffset': 'Focus offset',
+        'settings.machiBeat': 'Simulated beat',
         'settings.monetTuning': 'Monet tuning',
         'settings.monetKeyword': 'Keyword coloring',
         'settings.monetDescription': 'Description',
@@ -154094,6 +154122,7 @@ window.__ModuleLoader__.load({
           DEFAULT_CLADDAGH_TUNING: () => DEFAULT_CLADDAGH_TUNING,
           DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
           DEFAULT_FUME_TUNING: () => DEFAULT_FUME_TUNING,
+          DEFAULT_MACHI_TUNING: () => DEFAULT_MACHI_TUNING,
           DEFAULT_MONET_TUNING: () => DEFAULT_MONET_TUNING,
           DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,
           DEFAULT_SONNET_TUNING: () => DEFAULT_SONNET_TUNING,
@@ -156039,6 +156068,7 @@ window.__ModuleLoader__.load({
       
         // src/folia/styles-entry.tsx
         init_types();
+        init_types2();
         var FOLIA_STYLE_ENTRIES = {
           classic: entry_default,
           cappella: entry_default8,
@@ -156931,6 +156961,7 @@ window.__ModuleLoader__.load({
         sonnetTuning: prefs.sonnetTuning || undefined,
         cappellaTuning: prefs.cappellaTuning || undefined,
         monetTuning: prefs.monetTuning || undefined,
+        machiTuning: prefs.machiTuning || undefined,
         hanabiTuning: prefs.hanabiTuning
           ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
           : undefined,
@@ -167613,6 +167644,21 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      machiTuning: {
+        scene: 'auto',
+        timeOfDay: 'auto',
+        weather: 'auto',
+        camera: 'default',
+        motion: false,
+        motionSpeed: 1,
+        aperture: 8,
+        dof: 1,
+        dofRange: 1,
+        tiltShift: 0.3,
+        focus: 'center',
+        focusOffset: 0,
+        simulatedBeat: true,
+      },
       monetTuning: {
         keywordColoringEnabled: true,
         showDescription: true,
@@ -167899,6 +167945,31 @@ window.__ModuleLoader__.load({
         showPortraitDragHanger: storedMonet.showPortraitDragHanger !== false,
         portraitHangerVisibility: monetVisibility('portraitHangerVisibility'),
         mirrorLayout: storedMonet.mirrorLayout === true,
+      }
+      // Folia machi tuning: scene/time/weather/camera and lens; quality uses the upstream default.
+      var machiDefaults = PREF_DEFAULTS.machiTuning
+      var storedMachi = merged.machiTuning && typeof merged.machiTuning === 'object' ? merged.machiTuning : {}
+      function machiChoice(key, choices) {
+        return choices.indexOf(storedMachi[key]) >= 0 ? storedMachi[key] : machiDefaults[key]
+      }
+      function machiNumber(key, min, max) {
+        var value = Number(storedMachi[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : machiDefaults[key]
+      }
+      merged.machiTuning = {
+        scene: machiChoice('scene', ['auto', 'konbini', 'station', 'kowloon']),
+        timeOfDay: machiChoice('timeOfDay', ['auto', 'day', 'dusk', 'night']),
+        weather: machiChoice('weather', ['auto', 'clear', 'rain', 'snow', 'fog']),
+        camera: machiChoice('camera', ['default', 'custom']),
+        motion: storedMachi.motion === true,
+        motionSpeed: machiNumber('motionSpeed', 0.25, 3),
+        aperture: machiNumber('aperture', 1.4, 16),
+        dof: machiNumber('dof', 0, 2),
+        dofRange: machiNumber('dofRange', 0.3, 3),
+        tiltShift: machiNumber('tiltShift', 0, 1),
+        focus: machiChoice('focus', ['center', 'lyrics', 'manual']),
+        focusOffset: machiNumber('focusOffset', -10, 10),
+        simulatedBeat: storedMachi.simulatedBeat !== false,
       }
       // Folia cappella tuning: three fields, unknown values fall back.
       var cappellaDefaults = PREF_DEFAULTS.cappellaTuning
@@ -196012,6 +196083,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'sonnet' ? sonnetTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'cappella' ? cappellaTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'monet' ? monetTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'machi' ? machiTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -196432,6 +196504,38 @@ window.__ModuleLoader__.load({
           num('settings.monetPortraitOffset', 'portraitOffsetX', -150, 0, 1),
           sw('settings.monetHanger', 'showPortraitDragHanger'),
           sw('settings.monetMirror', 'mirrorLayout'),
+        ))
+      }
+      /** Folia machi tuning: scene, time, weather, camera and lens. */
+      function machiTuningBlock() {
+        var tuning = prefs.machiTuning || {}
+        function num(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ machiTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        function choice(label, key, options) {
+          var current = options.some(function (item) { return item.value === tuning[key] }) ? tuning[key] : options[0].value
+          return mpPanelRow(t(label), segmented(options, current, function (value) { setPrefs({ machiTuning: Object.assign({}, tuning, { [key]: value }) }) }))
+        }
+        return mpSection(t('settings.machiTuning'), h('div', null,
+          choice('settings.machiScene', 'scene', [{ value: 'auto', label: 'Auto' }, { value: 'konbini', label: 'Konbini' }, { value: 'station', label: 'Station' }, { value: 'kowloon', label: 'Kowloon' }]),
+          choice('settings.machiTime', 'timeOfDay', [{ value: 'auto', label: 'Auto' }, { value: 'day', label: 'Day' }, { value: 'dusk', label: 'Dusk' }, { value: 'night', label: 'Night' }]),
+          choice('settings.machiWeather', 'weather', [{ value: 'auto', label: 'Auto' }, { value: 'clear', label: 'Clear' }, { value: 'rain', label: 'Rain' }, { value: 'snow', label: 'Snow' }, { value: 'fog', label: 'Fog' }]),
+          choice('settings.machiCamera', 'camera', [{ value: 'default', label: 'Default' }, { value: 'custom', label: 'Custom' }]),
+          mpPanelRow(t('settings.machiMotion'), h(Switch, { value: tuning.motion === true, label: t('settings.machiMotion'), onChange: function (value) { setPrefs({ machiTuning: Object.assign({}, tuning, { motion: value }) }) } })),
+          num('settings.machiMotionSpeed', 'motionSpeed', 0.25, 3, 0.05),
+          num('settings.machiAperture', 'aperture', 1.4, 16, 0.1),
+          num('settings.machiDof', 'dof', 0, 2, 0.05),
+          num('settings.machiDofRange', 'dofRange', 0.3, 3, 0.05),
+          num('settings.machiTilt', 'tiltShift', 0, 1, 0.01),
+          choice('settings.machiFocus', 'focus', [{ value: 'center', label: 'Center' }, { value: 'lyrics', label: 'Lyrics' }, { value: 'manual', label: 'Manual' }]),
+          num('settings.machiFocusOffset', 'focusOffset', -10, 10, 0.1),
+          mpPanelRow(t('settings.machiBeat'), h(Switch, { value: tuning.simulatedBeat !== false, label: t('settings.machiBeat'), onChange: function (value) { setPrefs({ machiTuning: Object.assign({}, tuning, { simulatedBeat: value }) }) } })),
         ))
       }
       /**

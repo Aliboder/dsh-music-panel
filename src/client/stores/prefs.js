@@ -57,6 +57,21 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  machiTuning: {
+    scene: 'auto',
+    timeOfDay: 'auto',
+    weather: 'auto',
+    camera: 'default',
+    motion: false,
+    motionSpeed: 1,
+    aperture: 8,
+    dof: 1,
+    dofRange: 1,
+    tiltShift: 0.3,
+    focus: 'center',
+    focusOffset: 0,
+    simulatedBeat: true,
+  },
   monetTuning: {
     keywordColoringEnabled: true,
     showDescription: true,
@@ -343,6 +358,31 @@ function readPrefs() {
     showPortraitDragHanger: storedMonet.showPortraitDragHanger !== false,
     portraitHangerVisibility: monetVisibility('portraitHangerVisibility'),
     mirrorLayout: storedMonet.mirrorLayout === true,
+  }
+  // Folia machi tuning: scene/time/weather/camera and lens; quality uses the upstream default.
+  var machiDefaults = PREF_DEFAULTS.machiTuning
+  var storedMachi = merged.machiTuning && typeof merged.machiTuning === 'object' ? merged.machiTuning : {}
+  function machiChoice(key, choices) {
+    return choices.indexOf(storedMachi[key]) >= 0 ? storedMachi[key] : machiDefaults[key]
+  }
+  function machiNumber(key, min, max) {
+    var value = Number(storedMachi[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : machiDefaults[key]
+  }
+  merged.machiTuning = {
+    scene: machiChoice('scene', ['auto', 'konbini', 'station', 'kowloon']),
+    timeOfDay: machiChoice('timeOfDay', ['auto', 'day', 'dusk', 'night']),
+    weather: machiChoice('weather', ['auto', 'clear', 'rain', 'snow', 'fog']),
+    camera: machiChoice('camera', ['default', 'custom']),
+    motion: storedMachi.motion === true,
+    motionSpeed: machiNumber('motionSpeed', 0.25, 3),
+    aperture: machiNumber('aperture', 1.4, 16),
+    dof: machiNumber('dof', 0, 2),
+    dofRange: machiNumber('dofRange', 0.3, 3),
+    tiltShift: machiNumber('tiltShift', 0, 1),
+    focus: machiChoice('focus', ['center', 'lyrics', 'manual']),
+    focusOffset: machiNumber('focusOffset', -10, 10),
+    simulatedBeat: storedMachi.simulatedBeat !== false,
   }
   // Folia cappella tuning: three fields, unknown values fall back.
   var cappellaDefaults = PREF_DEFAULTS.cappellaTuning

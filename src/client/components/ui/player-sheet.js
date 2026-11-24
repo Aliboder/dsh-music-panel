@@ -1096,6 +1096,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'sonnet' ? sonnetTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'cappella' ? cappellaTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'monet' ? monetTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'machi' ? machiTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1516,6 +1517,38 @@ function PlayerSheetInner(props) {
       num('settings.monetPortraitOffset', 'portraitOffsetX', -150, 0, 1),
       sw('settings.monetHanger', 'showPortraitDragHanger'),
       sw('settings.monetMirror', 'mirrorLayout'),
+    ))
+  }
+  /** Folia machi tuning: scene, time, weather, camera and lens. */
+  function machiTuningBlock() {
+    var tuning = prefs.machiTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ machiTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    function choice(label, key, options) {
+      var current = options.some(function (item) { return item.value === tuning[key] }) ? tuning[key] : options[0].value
+      return mpPanelRow(t(label), segmented(options, current, function (value) { setPrefs({ machiTuning: Object.assign({}, tuning, { [key]: value }) }) }))
+    }
+    return mpSection(t('settings.machiTuning'), h('div', null,
+      choice('settings.machiScene', 'scene', [{ value: 'auto', label: 'Auto' }, { value: 'konbini', label: 'Konbini' }, { value: 'station', label: 'Station' }, { value: 'kowloon', label: 'Kowloon' }]),
+      choice('settings.machiTime', 'timeOfDay', [{ value: 'auto', label: 'Auto' }, { value: 'day', label: 'Day' }, { value: 'dusk', label: 'Dusk' }, { value: 'night', label: 'Night' }]),
+      choice('settings.machiWeather', 'weather', [{ value: 'auto', label: 'Auto' }, { value: 'clear', label: 'Clear' }, { value: 'rain', label: 'Rain' }, { value: 'snow', label: 'Snow' }, { value: 'fog', label: 'Fog' }]),
+      choice('settings.machiCamera', 'camera', [{ value: 'default', label: 'Default' }, { value: 'custom', label: 'Custom' }]),
+      mpPanelRow(t('settings.machiMotion'), h(Switch, { value: tuning.motion === true, label: t('settings.machiMotion'), onChange: function (value) { setPrefs({ machiTuning: Object.assign({}, tuning, { motion: value }) }) } })),
+      num('settings.machiMotionSpeed', 'motionSpeed', 0.25, 3, 0.05),
+      num('settings.machiAperture', 'aperture', 1.4, 16, 0.1),
+      num('settings.machiDof', 'dof', 0, 2, 0.05),
+      num('settings.machiDofRange', 'dofRange', 0.3, 3, 0.05),
+      num('settings.machiTilt', 'tiltShift', 0, 1, 0.01),
+      choice('settings.machiFocus', 'focus', [{ value: 'center', label: 'Center' }, { value: 'lyrics', label: 'Lyrics' }, { value: 'manual', label: 'Manual' }]),
+      num('settings.machiFocusOffset', 'focusOffset', -10, 10, 0.1),
+      mpPanelRow(t('settings.machiBeat'), h(Switch, { value: tuning.simulatedBeat !== false, label: t('settings.machiBeat'), onChange: function (value) { setPrefs({ machiTuning: Object.assign({}, tuning, { simulatedBeat: value }) }) } })),
     ))
   }
   /**
