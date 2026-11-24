@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.1"
-    var CLIENT_BUILD = "d65006d92f7b"
+    var CLIENT_BUILD = "caf9e87f4d26"
 
     // ── src/client/app/runtime.js
     /**
@@ -8699,8 +8699,6 @@ window.__ModuleLoader__.load({
         'settings.nowPlaying': '当前歌曲',
         'sheet.sourceDefault': '默认',
         'sheet.sourceCustom': '自定义',
-        'sheet.light': '浅色',
-        'sheet.dark': '深色',
         'sheet.matchLyricsTitle': '匹配歌词',
         'sheet.searchForSong': '搜索歌曲',
         'sheet.search': '搜索',
@@ -9511,8 +9509,6 @@ window.__ModuleLoader__.load({
         'settings.nowPlaying': 'Now playing',
         'sheet.sourceDefault': 'Default',
         'sheet.sourceCustom': 'Custom',
-        'sheet.light': 'Light',
-        'sheet.dark': 'Dark',
         'sheet.matchLyricsTitle': 'Match lyrics',
         'sheet.searchForSong': 'Search for a song',
         'sheet.search': 'Search',
