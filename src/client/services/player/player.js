@@ -66,21 +66,7 @@ function cyclePlayMode(snap) {
   applyPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(current) + 1) % PLAY_MODES.length])
 }
 
-/**
- * Folia playbackNeighbors: nextQueueIndex / prevQueueIndex, copied verbatim.
- * At the end with loop 'none' there is no target (-1); only loop 'all' wraps.
- */
-function nextQueueIndex(queueLength, currentIndex, loopMode) {
-  if (queueLength <= 0) return -1
-  if (currentIndex < 0) return 0
-  if (currentIndex < queueLength - 1) return currentIndex + 1
-  return loopMode === 'all' ? 0 : -1
-}
 
-function prevQueueIndex(queueLength, currentIndex, loopMode) {
-  if (currentIndex > 0) return currentIndex - 1
-  return loopMode === 'all' ? queueLength - 1 : -1
-}
 
 // ── playback engine (module-level: survives panel unmount) ───────────
 // The <audio> element lives here rather than in the React tree, so

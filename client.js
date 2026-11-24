@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "552e0c632eda"
+    var CLIENT_BUILD = "d6035d6afc91"
 
     // ── src/client/app/runtime.js
     /**
@@ -157072,6 +157072,33 @@ window.__ModuleLoader__.load({
       }
     }
 
+    // ── src/client/services/player/playback-neighbors.js
+    /**
+     * Folia playbackNeighbors — the pure queue index rules for next/prev.
+     *
+     * Ported from Folia: src/utils/playbackNeighbors.ts
+     * The plugin has no FM/stage mode yet, so the index helpers are kept verbatim.
+     */
+
+    /** Next queue index; -1 at the end unless list loop wraps. */
+    function nextQueueIndex(queueLength, currentIndex, loopMode) {
+      if (queueLength <= 0) return -1
+      if (currentIndex < 0) return 0
+      if (currentIndex < queueLength - 1) return currentIndex + 1
+      return loopMode === 'all' ? 0 : -1
+    }
+
+    /** Previous queue index; -1 at the start unless list loop wraps. */
+    function prevQueueIndex(queueLength, currentIndex, loopMode) {
+      if (currentIndex > 0) return currentIndex - 1
+      return loopMode === 'all' ? queueLength - 1 : -1
+    }
+
+    /** Whether another track follows, for crossfade/prefetch decisions. */
+    function hasTrackAfter(queueLength, currentIndex, loopMode) {
+      return (currentIndex >= 0 && currentIndex < queueLength - 1) || (loopMode === 'all' && queueLength > 1)
+    }
+
     // ── src/client/services/player/player.js
     /**
      * playback engine moved verbatim from 0.11.1. It relies on the helpers in 10-base / 20-api / 30-prefs keeping their names.
@@ -157141,21 +157168,7 @@ window.__ModuleLoader__.load({
       applyPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(current) + 1) % PLAY_MODES.length])
     }
 
-    /**
-     * Folia playbackNeighbors: nextQueueIndex / prevQueueIndex, copied verbatim.
-     * At the end with loop 'none' there is no target (-1); only loop 'all' wraps.
-     */
-    function nextQueueIndex(queueLength, currentIndex, loopMode) {
-      if (queueLength <= 0) return -1
-      if (currentIndex < 0) return 0
-      if (currentIndex < queueLength - 1) return currentIndex + 1
-      return loopMode === 'all' ? 0 : -1
-    }
 
-    function prevQueueIndex(queueLength, currentIndex, loopMode) {
-      if (currentIndex > 0) return currentIndex - 1
-      return loopMode === 'all' ? queueLength - 1 : -1
-    }
 
     // ── playback engine (module-level: survives panel unmount) ───────────
     // The <audio> element lives here rather than in the React tree, so

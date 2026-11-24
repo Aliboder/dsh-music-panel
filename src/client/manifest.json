@@ -57,6 +57,7 @@
     "src/client/services/player/sleep-timer.js",
     "src/client/components/common/ui.js",
     "src/client/styles/wave-color.js",
+    "src/client/services/player/playback-neighbors.js",
     "src/client/services/player/player.js",
     "src/client/services/player/control-drainer.js",
     "src/client/services/player/duration.js",
