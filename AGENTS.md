@@ -11,14 +11,18 @@
 ✅ **总是做**
 
 - **分析、修复问题一律采用第一性原理的思想**，第一性原理是：把问题拆到最小、可验证的事实，从这些事实推导原因，而不是从惯例、符号或猜测出发。
-- **新增或修改任何界面组件前，先加载并使用 skill `dsh-component-development`**（项目内已安装于 `.dsh/skills/`；完整规范见 `A_other/组件开发规范/`）。
+- **新增或修改任何界面组件前，先加载并使用 skill `dsh-component-development`**（项目内已安装于 `.dsh/skills/`）。
 - **新增任何持久化/存储时**，同步扩充“清空插件所有数据”的范围、分类与测试：Host 文件/目录、localStorage、IndexedDB、CacheStorage、内存缓存、远端 session 都算；只加存储不更新清理视为未完成。
 - **文档命名一律用中文**：新建或改名的说明文档都用中文文件名（如 `踩坑记录.md`、`发布手册.md`），路径里也不夹带英文标题。例外只有平台约定的 `README.md` / `CHANGELOG.md` / `AGENTS.md` / `LICENSE` / `THIRD_PARTY_NOTICES.md`，以及 `vendor/`、`official/` 这类上游镜像。
 - **每做完一步修改就打一个 git 存档点**（`git commit`），message 中文写清这一步做了什么，回退时能直接找到；没验证过的改动不要攒进存档点。
-- **最终给用户的回答：**简要修改流程 代码块“段A→段B→段C...、通俗易懂的简要说明（问题、思路、做法、收益）、(若有)受影响的文档修改清单和变更内容简介（代码块）、存档点代码块（axxbxx：优化了...）”
+- **最终给用户的回答格式：**简要修改流程 代码块“段A→段B→段C...、通俗易懂的简要说明（问题、思路、做法、收益）、(若有)受影响的文档修改清单和变更内容简介（代码块）、存档点代码块（axxbxx：优化了...）”
+- 当我让你参考folia的代码或者对齐代码时，能照搬folia的代码就照搬，不要只借鉴思路。
+- **Folia 移植目录必须与上游对齐**：已移植文件放在 `src/folia/`，目录名和相对路径与 `A_other/upstream/folia-major-main/src` 一致；插件适配（shims / vendor / 插件特有实现）放 `src/folia-adapters/`，构建入口与 bundle 放 `src/folia-build/`；上游不存在的文件不得混进 `src/folia/`。
 - 相关文档描述内容实际发生变更时，要更新文档。
 
 🚫 **不要做**
+
+- **发版必须等用户明确说“发版”**：不要修改版本号、打 tag、创建 GitHub Release 或发布 npm；但每次修改通过验证后，要立即用 `node scripts/install-local.mjs desktop` 把当前构建替换到本机 DSH profile 供用户做最新测试。
 
 ## 命令
 
@@ -63,7 +67,9 @@ src/client/                  Client：浏览器侧片段，按 manifest.json 顺
   audio/ styles/ stores/     音频引擎 bundle、主题与配色、状态
   i18n/ types/ utils/ vendor/
 src/audio/                   音频引擎 TS 源码 → 构建为 src/client/audio/engine.bundle.js
-src/folia/                   Folia 上游源码、i18n、*.bundle.js、Tailwind
+src/folia/                   Folia 上游源码镜像（路径与上游 src 对齐）
+src/folia-adapters/          插件适配：shims / vendor / 插件特有实现
+src/folia-build/             构建入口与 bundle（styles / backgrounds / pendolo / css）
 src/shared/types.ts          Host/Client 共享类型
 scripts/                     构建与检查脚本（见「命令」）
 test/                        client / host / integration / manual
@@ -76,7 +82,7 @@ A_other/                     非插件资料：design / docs / releases / shared
 
 - **Host**：承担重活与全部外部访问——扫库与标签、歌词抓取与匹配、在线源与登录、媒体缓存写入、`/music/*` HTTP。浏览器侧不直连外部平台，凭据和缓存都落在 Host 的数据目录。
 - **Client**：只消费 Host 的 HTTP 接口，负责面板、播放器、队列与歌词舞台；片段顺序由 `src/client/manifest.json` 定死。
-- **构建产物**（都提交进仓，改源码后由对应脚本重建）：`client.js`、`src/client/audio/engine.bundle.js`、`src/client/render/lyrics/lyrics.bundle.js`、`src/client/services/automix/profile.bundle.js`、`src/folia/*.bundle.js`、`src/client/vendor/*.bundle.js`。
+- **构建产物**（都提交进仓，改源码后由对应脚本重建）：`client.js`、`src/client/audio/engine.bundle.js`、`src/client/render/lyrics/lyrics.bundle.js`、`src/client/services/automix/profile.bundle.js`、`src/folia-build/*.bundle.js`、`src/client/vendor/*.bundle.js`。
 
 > 构建产物、播放/Folia、歌词、安装与数据相关的具体陷阱，全部记在
 > [踩坑记录](A_other/docs/踩坑记录.md)；改这些区域前先查对应条目，不要在这里重复维护。
