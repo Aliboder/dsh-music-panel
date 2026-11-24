@@ -189,7 +189,8 @@ function NowPlaying(props) {
   useEffect(
     function () {
       if (props.open !== true) return undefined
-      var chromeMode = prefs.playerChromeVisibilityMode === 'auto-hide'
+      var chromeMode = prefs.playerChromeVisibilityMode === 'auto-hide' ||
+        (prefs.playerChromeVisibilityMode === 'always-visible' && prefs.autoHidePlayerChrome === true)
         ? 'auto-hide'
         : (prefs.playerChromeVisibilityMode === 'always-hidden' ? 'always-hidden' : 'always-visible')
       if (chromeMode === 'always-hidden') {
@@ -268,7 +269,7 @@ function NowPlaying(props) {
         window.removeEventListener('wheel', show)
         window.removeEventListener('blur', onBlur)
       }
-    },    [props.open, chromePinned, prefs.playerChromeVisibilityMode],
+    },    [props.open, chromePinned, prefs.playerChromeVisibilityMode, prefs.autoHidePlayerChrome],
   )
   var offsetPair = useState(0)
   var offsetMs = offsetPair[0]

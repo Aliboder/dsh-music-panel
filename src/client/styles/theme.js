@@ -300,7 +300,8 @@ var THEME_CSS = [
   '.mp-np-handle-btn:hover{transform:scale(1.05);filter:brightness(1.08)}',
   '.mp-np-handle.is-on .mp-np-handle-btn,.mp-np-handle-btn.is-on{background:var(--dsw-alias-state-business-primary,#4f8cff);color:var(--dsw-alias-label-primary-foreground,#fff)}',
   '.mp-np-handle-btn:focus-visible{outline:2px solid var(--dsw-focus-ring-color,#7AAAFF);outline-offset:2px}',
-  '.mp-np.is-chrome-hidden .mp-cap{opacity:0;transform:translate(-50%,10px);pointer-events:none}',
+  '.mp-np.is-chrome-hidden .mp-cap,.mp-np.is-chrome-hidden .mp-np-pill{opacity:0;transform:translate(-50%,10px);pointer-events:none}',
+'.mp-np.is-chrome-hidden .mp-np-secondary{opacity:0;transform:translateY(10px);pointer-events:none}',
   '.mp-np.is-chrome-hidden{cursor:none}',
   '.mp-np.is-chrome-hidden .mp-np-handle{opacity:0;transform:translateY(10px);pointer-events:none}',
   // The top chrome (back / fullscreen) rides the same idle timer: it retreats
