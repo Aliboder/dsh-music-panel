@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "14e8f4ffb794"
+    var CLIENT_BUILD = "fb352440219c"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,27 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.sonnetTuning': '商籁参数',
+        'settings.sonnetCamera': '镜头强度',
+        'settings.sonnetTypography': '字体动效',
+        'settings.sonnetMgDensity': 'MG 密度',
+        'settings.sonnetOnlyText': '仅文字',
+        'settings.sonnetGuide': '参考线',
+        'settings.sonnetBgMg': '背景 MG',
+        'settings.sonnetFixedGeo': '固定几何',
+        'settings.sonnetGiantText': '巨型装饰字',
+        'settings.sonnetDecor': '背景装饰',
+        'settings.sonnetTransitions': '转场',
+        'settings.sonnetFrame': '外框',
+        'settings.sonnetTexture': '纹理分辨率',
+        'settings.sonnetPost': '后期处理',
+        'settings.sonnetGrain': '颗粒',
+        'settings.sonnetContrast': '对比度',
+        'settings.sonnetRgb': 'RGB 错位',
+        'settings.sonnetHalftone': '半调',
+        'settings.sonnetVignette': '暗角',
+        'settings.sonnetLens': '镜头畸变',
+        'settings.sonnetDispersion': '色散',
         'settings.cadenzaTuning': '心象参数',
         'settings.cadenzaFontScale': '字号',
         'settings.cadenzaWidthRatio': '画面宽度',
@@ -9397,6 +9418,27 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.sonnetTuning': 'Sonnet tuning',
+        'settings.sonnetCamera': 'Camera intensity',
+        'settings.sonnetTypography': 'Typography motion',
+        'settings.sonnetMgDensity': 'MG density',
+        'settings.sonnetOnlyText': 'Text only',
+        'settings.sonnetGuide': 'Guide',
+        'settings.sonnetBgMg': 'Background MG',
+        'settings.sonnetFixedGeo': 'Fixed geometry',
+        'settings.sonnetGiantText': 'Giant decorative text',
+        'settings.sonnetDecor': 'Background decor',
+        'settings.sonnetTransitions': 'Transitions',
+        'settings.sonnetFrame': 'Outer frame',
+        'settings.sonnetTexture': 'Texture resolution',
+        'settings.sonnetPost': 'Post-process',
+        'settings.sonnetGrain': 'Grain',
+        'settings.sonnetContrast': 'Contrast',
+        'settings.sonnetRgb': 'RGB shift',
+        'settings.sonnetHalftone': 'Halftone',
+        'settings.sonnetVignette': 'Vignette',
+        'settings.sonnetLens': 'Lens distortion',
+        'settings.sonnetDispersion': 'Dispersion',
         'settings.cadenzaTuning': 'Cadenza tuning',
         'settings.cadenzaFontScale': 'Font scale',
         'settings.cadenzaWidthRatio': 'Width ratio',
@@ -137955,6 +137997,7 @@ window.__ModuleLoader__.load({
           DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
           DEFAULT_FUME_TUNING: () => DEFAULT_FUME_TUNING,
           DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,
+          DEFAULT_SONNET_TUNING: () => DEFAULT_SONNET_TUNING,
           DEFAULT_THEME: () => DEFAULT_THEME,
           DEFAULT_TILT_TUNING: () => DEFAULT_TILT_TUNING,
           FOLIA_STYLE_ENTRIES: () => FOLIA_STYLE_ENTRIES,
@@ -140653,6 +140696,7 @@ window.__ModuleLoader__.load({
         partitaTuning: prefs.partitaTuning || undefined,
         fumeTuning: prefs.fumeTuning || undefined,
         cadenzaTuning: prefs.cadenzaTuning || undefined,
+        sonnetTuning: prefs.sonnetTuning || undefined,
         hanabiTuning: prefs.hanabiTuning
           ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
           : undefined,
@@ -151335,6 +151379,28 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      sonnetTuning: {
+        cameraIntensity: 1,
+        typographyMotion: 1,
+        mgDensity: 1,
+        showOnlyText: false,
+        showGuide: true,
+        showBackgroundMg: true,
+        showFixedGeo: true,
+        showGiantDecorativeText: true,
+        showBackgroundDecor: true,
+        enableTransitions: true,
+        outerFrameMode: 'full',
+        textureResolution: 1.5,
+        postProcessEnabled: false,
+        postProcessGrain: 0.2,
+        postProcessContrast: 0,
+        postProcessRgbShift: 0,
+        postProcessHalftone: 0,
+        postProcessVignette: 0.85,
+        postProcessLensDistortion: 0.3,
+        postProcessLensDispersion: 0.6,
+      },
       cadenzaTuning: {
         fontScale: 1.12,
         widthRatio: 0.72,
@@ -151557,6 +151623,38 @@ window.__ModuleLoader__.load({
           dropped = true
         }
       })
+      // Folia sonnet tuning: ranges and switches from its resolve().
+      var sonnetDefaults = PREF_DEFAULTS.sonnetTuning
+      var storedSonnet = merged.sonnetTuning && typeof merged.sonnetTuning === 'object' ? merged.sonnetTuning : {}
+      function sonnetNumber(key, min, max) {
+        var value = Number(storedSonnet[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : sonnetDefaults[key]
+      }
+      function sonnetSwitch(key, fallback) {
+        return typeof storedSonnet[key] === 'boolean' ? storedSonnet[key] : fallback
+      }
+      merged.sonnetTuning = {
+        cameraIntensity: sonnetNumber('cameraIntensity', 0, 2),
+        typographyMotion: sonnetNumber('typographyMotion', 0, 2),
+        mgDensity: sonnetNumber('mgDensity', 0, 2),
+        showOnlyText: sonnetSwitch('showOnlyText', false),
+        showGuide: sonnetSwitch('showGuide', true),
+        showBackgroundMg: sonnetSwitch('showBackgroundMg', true),
+        showFixedGeo: sonnetSwitch('showFixedGeo', true),
+        showGiantDecorativeText: sonnetSwitch('showGiantDecorativeText', true),
+        showBackgroundDecor: sonnetSwitch('showBackgroundDecor', true),
+        enableTransitions: sonnetSwitch('enableTransitions', true),
+        outerFrameMode: ['none', 'frame', 'full'].indexOf(storedSonnet.outerFrameMode) >= 0 ? storedSonnet.outerFrameMode : 'full',
+        textureResolution: sonnetNumber('textureResolution', 0.5, 4),
+        postProcessEnabled: sonnetSwitch('postProcessEnabled', false),
+        postProcessGrain: sonnetNumber('postProcessGrain', 0, 1),
+        postProcessContrast: sonnetNumber('postProcessContrast', 0, 1),
+        postProcessRgbShift: sonnetNumber('postProcessRgbShift', 0, 1),
+        postProcessHalftone: sonnetNumber('postProcessHalftone', 0, 1),
+        postProcessVignette: sonnetNumber('postProcessVignette', 0, 2),
+        postProcessLensDistortion: sonnetNumber('postProcessLensDistortion', 0, 2),
+        postProcessLensDispersion: sonnetNumber('postProcessLensDispersion', 0, 1),
+      }
       // Folia cadenza tuning: font/width ratios plus motion and glow.
       var cadenzaDefaults = PREF_DEFAULTS.cadenzaTuning
       var storedCadenza = merged.cadenzaTuning && typeof merged.cadenzaTuning === 'object' ? merged.cadenzaTuning : {}
@@ -179623,6 +179721,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'claddagh' ? claddaghTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'hanabi' ? hanabiTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'cadenza' ? cadenzaTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'sonnet' ? sonnetTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -179947,6 +180046,44 @@ window.__ModuleLoader__.load({
           num('settings.cadenzaWidthRatio', 'widthRatio', 0.3, 1, 0.01),
           num('settings.cadenzaMotion', 'motionAmount', 0, 2, 0.05),
           num('settings.cadenzaGlow', 'glowIntensity', 0, 2, 0.05),
+        ))
+      }
+      /** Folia sonnet tuning: camera, typography, scene switches and post-process. */
+      function sonnetTuningBlock() {
+        var tuning = prefs.sonnetTuning || {}
+        function num(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ sonnetTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        function sw(label, key) {
+          return mpPanelRow(t(label), h(Switch, { value: tuning[key] === true, label: t(label), onChange: function (next) { setPrefs({ sonnetTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+        }
+        return mpSection(t('settings.sonnetTuning'), h('div', null,
+          num('settings.sonnetCamera', 'cameraIntensity', 0, 2, 0.05),
+          num('settings.sonnetTypography', 'typographyMotion', 0, 2, 0.05),
+          num('settings.sonnetMgDensity', 'mgDensity', 0, 2, 0.05),
+          sw('settings.sonnetOnlyText', 'showOnlyText'),
+          sw('settings.sonnetGuide', 'showGuide'),
+          sw('settings.sonnetBgMg', 'showBackgroundMg'),
+          sw('settings.sonnetFixedGeo', 'showFixedGeo'),
+          sw('settings.sonnetGiantText', 'showGiantDecorativeText'),
+          sw('settings.sonnetDecor', 'showBackgroundDecor'),
+          sw('settings.sonnetTransitions', 'enableTransitions'),
+          mpPanelRow(t('settings.sonnetFrame'), segmented([{ value: 'none', label: 'None' }, { value: 'frame', label: 'Frame' }, { value: 'full', label: 'Full' }], ['none', 'frame', 'full'].indexOf(tuning.outerFrameMode) >= 0 ? tuning.outerFrameMode : 'full', function (value) { setPrefs({ sonnetTuning: Object.assign({}, tuning, { outerFrameMode: value }) }) })),
+          num('settings.sonnetTexture', 'textureResolution', 0.5, 4, 0.1),
+          sw('settings.sonnetPost', 'postProcessEnabled'),
+          num('settings.sonnetGrain', 'postProcessGrain', 0, 1, 0.01),
+          num('settings.sonnetContrast', 'postProcessContrast', 0, 1, 0.01),
+          num('settings.sonnetRgb', 'postProcessRgbShift', 0, 1, 0.01),
+          num('settings.sonnetHalftone', 'postProcessHalftone', 0, 1, 0.01),
+          num('settings.sonnetVignette', 'postProcessVignette', 0, 2, 0.01),
+          num('settings.sonnetLens', 'postProcessLensDistortion', 0, 2, 0.01),
+          num('settings.sonnetDispersion', 'postProcessLensDispersion', 0, 1, 0.01),
         ))
       }
       /**

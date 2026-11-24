@@ -1090,6 +1090,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'claddagh' ? claddaghTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'hanabi' ? hanabiTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'cadenza' ? cadenzaTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'sonnet' ? sonnetTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1414,6 +1415,44 @@ function PlayerSheetInner(props) {
       num('settings.cadenzaWidthRatio', 'widthRatio', 0.3, 1, 0.01),
       num('settings.cadenzaMotion', 'motionAmount', 0, 2, 0.05),
       num('settings.cadenzaGlow', 'glowIntensity', 0, 2, 0.05),
+    ))
+  }
+  /** Folia sonnet tuning: camera, typography, scene switches and post-process. */
+  function sonnetTuningBlock() {
+    var tuning = prefs.sonnetTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ sonnetTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    function sw(label, key) {
+      return mpPanelRow(t(label), h(Switch, { value: tuning[key] === true, label: t(label), onChange: function (next) { setPrefs({ sonnetTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+    }
+    return mpSection(t('settings.sonnetTuning'), h('div', null,
+      num('settings.sonnetCamera', 'cameraIntensity', 0, 2, 0.05),
+      num('settings.sonnetTypography', 'typographyMotion', 0, 2, 0.05),
+      num('settings.sonnetMgDensity', 'mgDensity', 0, 2, 0.05),
+      sw('settings.sonnetOnlyText', 'showOnlyText'),
+      sw('settings.sonnetGuide', 'showGuide'),
+      sw('settings.sonnetBgMg', 'showBackgroundMg'),
+      sw('settings.sonnetFixedGeo', 'showFixedGeo'),
+      sw('settings.sonnetGiantText', 'showGiantDecorativeText'),
+      sw('settings.sonnetDecor', 'showBackgroundDecor'),
+      sw('settings.sonnetTransitions', 'enableTransitions'),
+      mpPanelRow(t('settings.sonnetFrame'), segmented([{ value: 'none', label: 'None' }, { value: 'frame', label: 'Frame' }, { value: 'full', label: 'Full' }], ['none', 'frame', 'full'].indexOf(tuning.outerFrameMode) >= 0 ? tuning.outerFrameMode : 'full', function (value) { setPrefs({ sonnetTuning: Object.assign({}, tuning, { outerFrameMode: value }) }) })),
+      num('settings.sonnetTexture', 'textureResolution', 0.5, 4, 0.1),
+      sw('settings.sonnetPost', 'postProcessEnabled'),
+      num('settings.sonnetGrain', 'postProcessGrain', 0, 1, 0.01),
+      num('settings.sonnetContrast', 'postProcessContrast', 0, 1, 0.01),
+      num('settings.sonnetRgb', 'postProcessRgbShift', 0, 1, 0.01),
+      num('settings.sonnetHalftone', 'postProcessHalftone', 0, 1, 0.01),
+      num('settings.sonnetVignette', 'postProcessVignette', 0, 2, 0.01),
+      num('settings.sonnetLens', 'postProcessLensDistortion', 0, 2, 0.01),
+      num('settings.sonnetDispersion', 'postProcessLensDispersion', 0, 1, 0.01),
     ))
   }
   /**

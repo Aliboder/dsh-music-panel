@@ -57,6 +57,28 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  sonnetTuning: {
+    cameraIntensity: 1,
+    typographyMotion: 1,
+    mgDensity: 1,
+    showOnlyText: false,
+    showGuide: true,
+    showBackgroundMg: true,
+    showFixedGeo: true,
+    showGiantDecorativeText: true,
+    showBackgroundDecor: true,
+    enableTransitions: true,
+    outerFrameMode: 'full',
+    textureResolution: 1.5,
+    postProcessEnabled: false,
+    postProcessGrain: 0.2,
+    postProcessContrast: 0,
+    postProcessRgbShift: 0,
+    postProcessHalftone: 0,
+    postProcessVignette: 0.85,
+    postProcessLensDistortion: 0.3,
+    postProcessLensDispersion: 0.6,
+  },
   cadenzaTuning: {
     fontScale: 1.12,
     widthRatio: 0.72,
@@ -279,6 +301,38 @@ function readPrefs() {
       dropped = true
     }
   })
+  // Folia sonnet tuning: ranges and switches from its resolve().
+  var sonnetDefaults = PREF_DEFAULTS.sonnetTuning
+  var storedSonnet = merged.sonnetTuning && typeof merged.sonnetTuning === 'object' ? merged.sonnetTuning : {}
+  function sonnetNumber(key, min, max) {
+    var value = Number(storedSonnet[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : sonnetDefaults[key]
+  }
+  function sonnetSwitch(key, fallback) {
+    return typeof storedSonnet[key] === 'boolean' ? storedSonnet[key] : fallback
+  }
+  merged.sonnetTuning = {
+    cameraIntensity: sonnetNumber('cameraIntensity', 0, 2),
+    typographyMotion: sonnetNumber('typographyMotion', 0, 2),
+    mgDensity: sonnetNumber('mgDensity', 0, 2),
+    showOnlyText: sonnetSwitch('showOnlyText', false),
+    showGuide: sonnetSwitch('showGuide', true),
+    showBackgroundMg: sonnetSwitch('showBackgroundMg', true),
+    showFixedGeo: sonnetSwitch('showFixedGeo', true),
+    showGiantDecorativeText: sonnetSwitch('showGiantDecorativeText', true),
+    showBackgroundDecor: sonnetSwitch('showBackgroundDecor', true),
+    enableTransitions: sonnetSwitch('enableTransitions', true),
+    outerFrameMode: ['none', 'frame', 'full'].indexOf(storedSonnet.outerFrameMode) >= 0 ? storedSonnet.outerFrameMode : 'full',
+    textureResolution: sonnetNumber('textureResolution', 0.5, 4),
+    postProcessEnabled: sonnetSwitch('postProcessEnabled', false),
+    postProcessGrain: sonnetNumber('postProcessGrain', 0, 1),
+    postProcessContrast: sonnetNumber('postProcessContrast', 0, 1),
+    postProcessRgbShift: sonnetNumber('postProcessRgbShift', 0, 1),
+    postProcessHalftone: sonnetNumber('postProcessHalftone', 0, 1),
+    postProcessVignette: sonnetNumber('postProcessVignette', 0, 2),
+    postProcessLensDistortion: sonnetNumber('postProcessLensDistortion', 0, 2),
+    postProcessLensDispersion: sonnetNumber('postProcessLensDispersion', 0, 1),
+  }
   // Folia cadenza tuning: font/width ratios plus motion and glow.
   var cadenzaDefaults = PREF_DEFAULTS.cadenzaTuning
   var storedCadenza = merged.cadenzaTuning && typeof merged.cadenzaTuning === 'object' ? merged.cadenzaTuning : {}
