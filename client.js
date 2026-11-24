@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "2359e26b4c92"
+    var CLIENT_BUILD = "12e4d6a42ccc"
 
     // ── src/client/app/runtime.js
     /**
@@ -8862,6 +8862,10 @@ window.__ModuleLoader__.load({
         'studio.global': '全局',
         'studio.styles': '样式 {count}',
         'studio.animationHint': '样式参数在播放面板的「歌词」页继续调整；这里用于快速切换和预览。',
+        'settings.latentDynamicOnlyInPlayer': '仅在播放页启用动态效果',
+        'settings.latentEnhancedBeat': '增强节拍响应',
+        'settings.latentOverlay': '可读性叠色',
+        'settings.latentOverlayOpacity': '叠色透明度',
         'studio.latentLayers': '显示图层',
         'studio.latentDither': '像素',
         'studio.latentMesh': '流体',
@@ -9916,6 +9920,10 @@ window.__ModuleLoader__.load({
         'studio.global': 'Global',
         'studio.styles': 'Styles {count}',
         'studio.animationHint': 'Style tunings stay in the player panel\'s Lyrics page; this window is for quick switching and preview.',
+        'settings.latentDynamicOnlyInPlayer': 'Dynamic effects only on player page',
+        'settings.latentEnhancedBeat': 'Enhanced beat response',
+        'settings.latentOverlay': 'Readability overlay',
+        'settings.latentOverlayOpacity': 'Overlay opacity',
         'studio.latentLayers': 'Layers',
         'studio.latentDither': 'Dithering',
         'studio.latentMesh': 'Mesh',
@@ -167627,7 +167635,7 @@ window.__ModuleLoader__.load({
     /** Modes the player sheet offers; ids match Folia's registry. */
     var FOLIA_BG_NONE = 'none'
 
-    function foliaBackgroundConfig(mode, url, transparent, latentDisplayMode, latentColorSource) {
+    function foliaBackgroundConfig(mode, url, transparent, latentDisplayMode, latentColorSource, latentTuning) {
       if (FOLIA_BG === null) return null
       var resolved = mode === FOLIA_BG_NONE ? FOLIA_BG.DEFAULT_VISUALIZER_BACKGROUND_MODE : mode
       var items = typeof url === 'string' && url.trim() !== ''
@@ -167648,6 +167656,10 @@ window.__ModuleLoader__.load({
               ? latentDisplayMode
               : 'both',
             colorSource: latentColorSource === 'cover-only' ? 'cover-only' : 'cover-theme',
+            dynamicOnlyInPlayer: latentTuning && latentTuning.dynamicOnlyInPlayer !== false,
+            enhancedBeatResponse: latentTuning && latentTuning.enhancedBeatResponse !== false,
+            overlayEnabled: latentTuning && latentTuning.overlayEnabled !== false,
+            overlayOpacity: latentTuning && isFinite(Number(latentTuning.overlayOpacity)) ? Number(latentTuning.overlayOpacity) : 0.35,
           }),
         },
         monet: { tuning: FOLIA_BG.DEFAULT_MONET_BACKGROUND_TUNING },
@@ -167720,8 +167732,8 @@ window.__ModuleLoader__.load({
       var theme = useFoliaCoverTheme(props.cover, props.seed, props.accent)
 
       var config = useMemo(function () {
-        return foliaBackgroundConfig(props.mode, props.url, props.transparent, props.latentDisplayMode, props.latentColorSource)
-      }, [props.mode, props.transparent, props.url, props.latentDisplayMode, props.latentColorSource])
+        return foliaBackgroundConfig(props.mode, props.url, props.transparent, props.latentDisplayMode, props.latentColorSource, props.latentTuning)
+      }, [props.mode, props.transparent, props.url, props.latentDisplayMode, props.latentColorSource, props.latentTuning])
 
       if (config === null || FoliaBackgroundRenderer === null) {
         // A solid backdrop is still better than the old ambient layer when the bundle
@@ -168158,6 +168170,10 @@ window.__ModuleLoader__.load({
       /** Latent background layers: pixel dithering, fluid mesh, or both. */
       latentDisplayMode: 'both',
       latentColorSource: 'cover-theme',
+      latentDynamicOnlyInPlayer: true,
+      latentEnhancedBeatResponse: true,
+      latentOverlayEnabled: true,
+      latentOverlayOpacity: 0.35,
       /** URL for the Folia "url" (embedded) background. */
       bgUrl: '',
       themeSource: 'default',
@@ -181454,7 +181470,7 @@ window.__ModuleLoader__.load({
       '.mp-card-tabs .mp-segment{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;width:100%}',
     '.mp-queue-pane{display:flex;flex-direction:column;padding:0 4px}',
     '.mp-studio-backdrop{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;padding:24px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px)}',
-    '.mp-studio{width:min(1120px,96vw);height:min(760px,88vh);display:flex;flex-direction:column;overflow:hidden;border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-bg-layer-1,#232324);color:var(--dsw-alias-label-primary,#f4f4f5);box-shadow:var(--dsw-elevation-prominent,0 30px 80px rgba(0,0,0,.55))}',
+    '.mp-studio{width:min(1320px,96vw);height:min(820px,88vh);display:flex;flex-direction:column;overflow:hidden;border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-bg-layer-1,#232324);color:var(--dsw-alias-label-primary,#f4f4f5);box-shadow:var(--dsw-elevation-prominent,0 30px 80px rgba(0,0,0,.55))}',
     '.mp-studio-head{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
     '.mp-studio-head h2{margin:0;font-size:18px;font-weight:600;flex:1 1 auto}',
     '.mp-studio-close{display:grid;place-items:center;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:inherit;cursor:pointer}',
@@ -181463,7 +181479,7 @@ window.__ModuleLoader__.load({
     '.mp-studio-preview{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;background:var(--dsw-alias-bg-layer-2,#191919) center/cover no-repeat;overflow:hidden}',
     '.mp-studio-preview-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:.7}',
     '.mp-studio-count{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-    '.mp-studio-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}',
+    '.mp-studio-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}',
     '.mp-studio-cell{display:flex;flex-direction:column;gap:4px;padding:4px;border:1px solid transparent;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}',
     '.mp-studio-cell.is-on{border-color:var(--dsw-alias-state-business-primary,#4f8cff);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4f8cff) 12%,transparent)}',
     '.mp-studio-cell-art{display:grid;place-items:center;width:100%;aspect-ratio:3/2;border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-2,#191919) center/cover no-repeat;overflow:hidden}',
@@ -186703,6 +186719,12 @@ window.__ModuleLoader__.load({
         url: typeof prefs.bgUrl === 'string' ? prefs.bgUrl : '',
         latentDisplayMode: prefs.latentDisplayMode,
         latentColorSource: prefs.latentColorSource,
+        latentTuning: {
+          dynamicOnlyInPlayer: prefs.latentDynamicOnlyInPlayer !== false,
+          enhancedBeatResponse: prefs.latentEnhancedBeatResponse !== false,
+          overlayEnabled: prefs.latentOverlayEnabled !== false,
+          overlayOpacity: Number(prefs.latentOverlayOpacity) || 0.35,
+        },
       })
       // 外观 · 随机: the page paints one concrete style per slice of the song. The same
       // resolved id drives both the stage and the `mp-style-*` class, so CSS variants and
@@ -198911,7 +198933,7 @@ window.__ModuleLoader__.load({
         return h(KitSegmented, { value: String(value), label: props.label || '', options: options, onChange: onChange })
       }
       function row(label, control, desc) {
-        return h(SetRow, { label: label, desc: desc }, control)
+        return h(SetRow, { label: t(label), desc: desc }, control)
       }
       function animationPanel() {
         return h('div', { className: 'mp-studio-panel' },
@@ -198956,6 +198978,12 @@ window.__ModuleLoader__.load({
               ],
               function (value) { setPrefs({ latentColorSource: value }) },
             )),
+          ) : null,
+          bg === 'latent' ? h('div', { className: 'mp-studio-sub' },
+            row('settings.latentDynamicOnlyInPlayer', h(Switch, { value: prefs.latentDynamicOnlyInPlayer !== false, label: t('settings.latentDynamicOnlyInPlayer'), onChange: function (value) { setPrefs({ latentDynamicOnlyInPlayer: value }) } })),
+            row('settings.latentEnhancedBeat', h(Switch, { value: prefs.latentEnhancedBeatResponse !== false, label: t('settings.latentEnhancedBeat'), onChange: function (value) { setPrefs({ latentEnhancedBeatResponse: value }) } })),
+            row('settings.latentOverlay', h(Switch, { value: prefs.latentOverlayEnabled !== false, label: t('settings.latentOverlay'), onChange: function (value) { setPrefs({ latentOverlayEnabled: value }) } })),
+            row('settings.latentOverlayOpacity', h('input', { type: 'range', className: 'mp-range', min: '0', max: '100', step: '1', value: String(Math.round((Number(prefs.latentOverlayOpacity) || 0.35) * 100)), 'aria-label': t('settings.latentOverlayOpacity'), onChange: function (event) { setPrefs({ latentOverlayOpacity: Number(event.target.value) / 100 }) } })),
           ) : null,
         )
       }

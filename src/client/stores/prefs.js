@@ -305,6 +305,10 @@ var PREF_DEFAULTS = {
   /** Latent background layers: pixel dithering, fluid mesh, or both. */
   latentDisplayMode: 'both',
   latentColorSource: 'cover-theme',
+  latentDynamicOnlyInPlayer: true,
+  latentEnhancedBeatResponse: true,
+  latentOverlayEnabled: true,
+  latentOverlayOpacity: 0.35,
   /** URL for the Folia "url" (embedded) background. */
   bgUrl: '',
   themeSource: 'default',

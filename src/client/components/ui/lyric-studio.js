@@ -32,7 +32,7 @@ function LyricStyleStudio(props) {
     return h(KitSegmented, { value: String(value), label: props.label || '', options: options, onChange: onChange })
   }
   function row(label, control, desc) {
-    return h(SetRow, { label: label, desc: desc }, control)
+    return h(SetRow, { label: t(label), desc: desc }, control)
   }
   function animationPanel() {
     return h('div', { className: 'mp-studio-panel' },
@@ -77,6 +77,12 @@ function LyricStyleStudio(props) {
           ],
           function (value) { setPrefs({ latentColorSource: value }) },
         )),
+      ) : null,
+      bg === 'latent' ? h('div', { className: 'mp-studio-sub' },
+        row('settings.latentDynamicOnlyInPlayer', h(Switch, { value: prefs.latentDynamicOnlyInPlayer !== false, label: t('settings.latentDynamicOnlyInPlayer'), onChange: function (value) { setPrefs({ latentDynamicOnlyInPlayer: value }) } })),
+        row('settings.latentEnhancedBeat', h(Switch, { value: prefs.latentEnhancedBeatResponse !== false, label: t('settings.latentEnhancedBeat'), onChange: function (value) { setPrefs({ latentEnhancedBeatResponse: value }) } })),
+        row('settings.latentOverlay', h(Switch, { value: prefs.latentOverlayEnabled !== false, label: t('settings.latentOverlay'), onChange: function (value) { setPrefs({ latentOverlayEnabled: value }) } })),
+        row('settings.latentOverlayOpacity', h('input', { type: 'range', className: 'mp-range', min: '0', max: '100', step: '1', value: String(Math.round((Number(prefs.latentOverlayOpacity) || 0.35) * 100)), 'aria-label': t('settings.latentOverlayOpacity'), onChange: function (event) { setPrefs({ latentOverlayOpacity: Number(event.target.value) / 100 }) } })),
       ) : null,
     )
   }

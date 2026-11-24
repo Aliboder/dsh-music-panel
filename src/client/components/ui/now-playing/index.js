@@ -921,6 +921,12 @@ function NowPlaying(props) {
     url: typeof prefs.bgUrl === 'string' ? prefs.bgUrl : '',
     latentDisplayMode: prefs.latentDisplayMode,
     latentColorSource: prefs.latentColorSource,
+    latentTuning: {
+      dynamicOnlyInPlayer: prefs.latentDynamicOnlyInPlayer !== false,
+      enhancedBeatResponse: prefs.latentEnhancedBeatResponse !== false,
+      overlayEnabled: prefs.latentOverlayEnabled !== false,
+      overlayOpacity: Number(prefs.latentOverlayOpacity) || 0.35,
+    },
   })
   // 外观 · 随机: the page paints one concrete style per slice of the song. The same
   // resolved id drives both the stage and the `mp-style-*` class, so CSS variants and
