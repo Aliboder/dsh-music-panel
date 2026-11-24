@@ -59,6 +59,7 @@ test('playback defaults', () => {
   assert.equal(defaults.cadenzaTuning.fontScale, 1.12, 'Folia cadenza tuning defaults')
   assert.equal(defaults.sonnetTuning.cameraIntensity, 1, 'Folia sonnet tuning defaults')
   assert.equal(defaults.cappellaTuning.avatarSource, 'cover', 'Folia cappella tuning defaults')
+  assert.equal(defaults.monetTuning.fontScale, 1.2, 'Folia monet tuning defaults')
   assert.equal(defaults.resumeOnStart, true)
   assert.equal(defaults.onlineQuality, 'standard')
 })

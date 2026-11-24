@@ -1092,6 +1092,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'cadenza' ? cadenzaTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'sonnet' ? sonnetTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'cappella' ? cappellaTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'monet' ? monetTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1466,6 +1467,34 @@ function PlayerSheetInner(props) {
         { value: 'builtin', label: 'Builtin' },
         { value: 'color', label: 'Color' },
       ], ['cover', 'builtin', 'color'].indexOf(tuning.avatarSource) >= 0 ? tuning.avatarSource : 'cover', function (value) { setPrefs({ cappellaTuning: Object.assign({}, tuning, { avatarSource: value }) }) })),
+    ))
+  }
+  /** Folia monet tuning: description, audio strip, portrait and mirror. */
+  function monetTuningBlock() {
+    var tuning = prefs.monetTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ monetTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    function sw(label, key) {
+      return mpPanelRow(t(label), h(Switch, { value: tuning[key] === true, label: t(label), onChange: function (next) { setPrefs({ monetTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+    }
+    return mpSection(t('settings.monetTuning'), h('div', null,
+      sw('settings.monetKeyword', 'keywordColoringEnabled'),
+      sw('settings.monetDescription', 'showDescription'),
+      sw('settings.monetAudio', 'showAudioVisualization'),
+      mpPanelRow(t('settings.monetAudioStyle'), segmented([{ value: 'bar', label: 'Bar' }, { value: 'line', label: 'Line' }], tuning.audioStyle === 'line' ? 'line' : 'bar', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { audioStyle: value }) }) })),
+      num('settings.monetFontScale', 'fontScale', 0.7, 1.5, 0.01),
+      mpPanelRow(t('settings.monetPortrait'), segmented([{ value: 'cover', label: 'Cover' }, { value: 'none', label: 'None' }], tuning.portraitSource === 'none' ? 'none' : 'cover', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { portraitSource: value }) }) })),
+      mpPanelRow(t('settings.monetPortraitStyle'), segmented([{ value: 'square', label: 'Square' }, { value: 'rectangular', label: 'Rect' }], tuning.portraitStyle === 'rectangular' ? 'rectangular' : 'square', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { portraitStyle: value }) }) })),
+      num('settings.monetPortraitOffset', 'portraitOffsetX', -150, 0, 1),
+      sw('settings.monetHanger', 'showPortraitDragHanger'),
+      sw('settings.monetMirror', 'mirrorLayout'),
     ))
   }
   /**

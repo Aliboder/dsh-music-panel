@@ -386,6 +386,7 @@ function FoliaStyleStage(props) {
     cadenzaTuning: prefs.cadenzaTuning || undefined,
     sonnetTuning: prefs.sonnetTuning || undefined,
     cappellaTuning: prefs.cappellaTuning || undefined,
+    monetTuning: prefs.monetTuning || undefined,
     hanabiTuning: prefs.hanabiTuning
       ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
       : undefined,

@@ -57,6 +57,20 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  monetTuning: {
+    keywordColoringEnabled: true,
+    showDescription: true,
+    descriptionVisibility: 'auto',
+    showAudioVisualization: true,
+    audioStyle: 'bar',
+    fontScale: 1.2,
+    portraitSource: 'cover',
+    portraitOffsetX: 0,
+    portraitStyle: 'square',
+    showPortraitDragHanger: true,
+    portraitHangerVisibility: 'auto',
+    mirrorLayout: false,
+  },
   cappellaTuning: {
     showEmoMessages: true,
     emojiPackSource: 'builtin',
@@ -306,6 +320,30 @@ function readPrefs() {
       dropped = true
     }
   })
+  // Folia monet tuning: visibility, portrait and audio options.
+  var monetDefaults = PREF_DEFAULTS.monetTuning
+  var storedMonet = merged.monetTuning && typeof merged.monetTuning === 'object' ? merged.monetTuning : {}
+  function monetNumber(key, min, max) {
+    var value = Number(storedMonet[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : monetDefaults[key]
+  }
+  function monetVisibility(key) {
+    return ['auto', 'always', 'hidden'].indexOf(storedMonet[key]) >= 0 ? storedMonet[key] : 'auto'
+  }
+  merged.monetTuning = {
+    keywordColoringEnabled: storedMonet.keywordColoringEnabled !== false,
+    showDescription: storedMonet.showDescription !== false,
+    descriptionVisibility: monetVisibility('descriptionVisibility'),
+    showAudioVisualization: storedMonet.showAudioVisualization !== false,
+    audioStyle: storedMonet.audioStyle === 'line' ? 'line' : 'bar',
+    fontScale: monetNumber('fontScale', 0.7, 1.5),
+    portraitSource: ['cover', 'custom', 'none'].indexOf(storedMonet.portraitSource) >= 0 ? storedMonet.portraitSource : 'cover',
+    portraitOffsetX: monetNumber('portraitOffsetX', -150, 0),
+    portraitStyle: storedMonet.portraitStyle === 'rectangular' ? 'rectangular' : 'square',
+    showPortraitDragHanger: storedMonet.showPortraitDragHanger !== false,
+    portraitHangerVisibility: monetVisibility('portraitHangerVisibility'),
+    mirrorLayout: storedMonet.mirrorLayout === true,
+  }
   // Folia cappella tuning: three fields, unknown values fall back.
   var cappellaDefaults = PREF_DEFAULTS.cappellaTuning
   var storedCappella = merged.cappellaTuning && typeof merged.cappellaTuning === 'object' ? merged.cappellaTuning : {}

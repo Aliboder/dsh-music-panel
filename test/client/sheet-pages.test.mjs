@@ -67,6 +67,7 @@ test('歌词显示 has named controls, not glyph-only buttons', () => {
   assert.match(style, /cadenzaTuningBlock\(\)/, 'cadenza exposes its Folia tuning')
   assert.match(style, /sonnetTuningBlock\(\)/, 'sonnet exposes its Folia tuning')
   assert.match(style, /cappellaTuningBlock\(\)/, 'cappella exposes its Folia tuning')
+  assert.match(style, /monetTuningBlock\(\)/, 'monet exposes its Folia tuning')
   assert.doesNotMatch(style, /mpSmallButton\('≡'/, 'the wired ≡ glyph is gone')
   assert.doesNotMatch(style, /mpSmallButton\('≋'/, 'the wired ≋ glyph is gone')
 })

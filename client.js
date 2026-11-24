@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "041d3c3012c3"
+    var CLIENT_BUILD = "20bab8d3888d"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,17 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.monetTuning': '莫奈参数',
+        'settings.monetKeyword': '关键词着色',
+        'settings.monetDescription': '描述',
+        'settings.monetAudio': '音频可视化',
+        'settings.monetAudioStyle': '音频样式',
+        'settings.monetFontScale': '字号',
+        'settings.monetPortrait': '肖像来源',
+        'settings.monetPortraitStyle': '肖像样式',
+        'settings.monetPortraitOffset': '肖像位置',
+        'settings.monetHanger': '拖拽手柄',
+        'settings.monetMirror': '镜像布局',
         'settings.cappellaTuning': '群唱参数',
         'settings.cappellaEmo': '表情消息',
         'settings.cappellaAvatar': '头像来源',
@@ -9422,6 +9433,17 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.monetTuning': 'Monet tuning',
+        'settings.monetKeyword': 'Keyword coloring',
+        'settings.monetDescription': 'Description',
+        'settings.monetAudio': 'Audio visualization',
+        'settings.monetAudioStyle': 'Audio style',
+        'settings.monetFontScale': 'Font scale',
+        'settings.monetPortrait': 'Portrait source',
+        'settings.monetPortraitStyle': 'Portrait style',
+        'settings.monetPortraitOffset': 'Portrait offset',
+        'settings.monetHanger': 'Drag hanger',
+        'settings.monetMirror': 'Mirror layout',
         'settings.cappellaTuning': 'Cappella tuning',
         'settings.cappellaEmo': 'Emoji messages',
         'settings.cappellaAvatar': 'Avatar source',
@@ -139505,6 +139527,7 @@ window.__ModuleLoader__.load({
           DEFAULT_CLADDAGH_TUNING: () => DEFAULT_CLADDAGH_TUNING,
           DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
           DEFAULT_FUME_TUNING: () => DEFAULT_FUME_TUNING,
+          DEFAULT_MONET_TUNING: () => DEFAULT_MONET_TUNING,
           DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,
           DEFAULT_SONNET_TUNING: () => DEFAULT_SONNET_TUNING,
           DEFAULT_THEME: () => DEFAULT_THEME,
@@ -142271,6 +142294,7 @@ window.__ModuleLoader__.load({
         cadenzaTuning: prefs.cadenzaTuning || undefined,
         sonnetTuning: prefs.sonnetTuning || undefined,
         cappellaTuning: prefs.cappellaTuning || undefined,
+        monetTuning: prefs.monetTuning || undefined,
         hanabiTuning: prefs.hanabiTuning
           ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
           : undefined,
@@ -152953,6 +152977,20 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      monetTuning: {
+        keywordColoringEnabled: true,
+        showDescription: true,
+        descriptionVisibility: 'auto',
+        showAudioVisualization: true,
+        audioStyle: 'bar',
+        fontScale: 1.2,
+        portraitSource: 'cover',
+        portraitOffsetX: 0,
+        portraitStyle: 'square',
+        showPortraitDragHanger: true,
+        portraitHangerVisibility: 'auto',
+        mirrorLayout: false,
+      },
       cappellaTuning: {
         showEmoMessages: true,
         emojiPackSource: 'builtin',
@@ -153202,6 +153240,30 @@ window.__ModuleLoader__.load({
           dropped = true
         }
       })
+      // Folia monet tuning: visibility, portrait and audio options.
+      var monetDefaults = PREF_DEFAULTS.monetTuning
+      var storedMonet = merged.monetTuning && typeof merged.monetTuning === 'object' ? merged.monetTuning : {}
+      function monetNumber(key, min, max) {
+        var value = Number(storedMonet[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : monetDefaults[key]
+      }
+      function monetVisibility(key) {
+        return ['auto', 'always', 'hidden'].indexOf(storedMonet[key]) >= 0 ? storedMonet[key] : 'auto'
+      }
+      merged.monetTuning = {
+        keywordColoringEnabled: storedMonet.keywordColoringEnabled !== false,
+        showDescription: storedMonet.showDescription !== false,
+        descriptionVisibility: monetVisibility('descriptionVisibility'),
+        showAudioVisualization: storedMonet.showAudioVisualization !== false,
+        audioStyle: storedMonet.audioStyle === 'line' ? 'line' : 'bar',
+        fontScale: monetNumber('fontScale', 0.7, 1.5),
+        portraitSource: ['cover', 'custom', 'none'].indexOf(storedMonet.portraitSource) >= 0 ? storedMonet.portraitSource : 'cover',
+        portraitOffsetX: monetNumber('portraitOffsetX', -150, 0),
+        portraitStyle: storedMonet.portraitStyle === 'rectangular' ? 'rectangular' : 'square',
+        showPortraitDragHanger: storedMonet.showPortraitDragHanger !== false,
+        portraitHangerVisibility: monetVisibility('portraitHangerVisibility'),
+        mirrorLayout: storedMonet.mirrorLayout === true,
+      }
       // Folia cappella tuning: three fields, unknown values fall back.
       var cappellaDefaults = PREF_DEFAULTS.cappellaTuning
       var storedCappella = merged.cappellaTuning && typeof merged.cappellaTuning === 'object' ? merged.cappellaTuning : {}
@@ -181310,6 +181372,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'cadenza' ? cadenzaTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'sonnet' ? sonnetTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'cappella' ? cappellaTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'monet' ? monetTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -181684,6 +181747,34 @@ window.__ModuleLoader__.load({
             { value: 'builtin', label: 'Builtin' },
             { value: 'color', label: 'Color' },
           ], ['cover', 'builtin', 'color'].indexOf(tuning.avatarSource) >= 0 ? tuning.avatarSource : 'cover', function (value) { setPrefs({ cappellaTuning: Object.assign({}, tuning, { avatarSource: value }) }) })),
+        ))
+      }
+      /** Folia monet tuning: description, audio strip, portrait and mirror. */
+      function monetTuningBlock() {
+        var tuning = prefs.monetTuning || {}
+        function num(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ monetTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        function sw(label, key) {
+          return mpPanelRow(t(label), h(Switch, { value: tuning[key] === true, label: t(label), onChange: function (next) { setPrefs({ monetTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+        }
+        return mpSection(t('settings.monetTuning'), h('div', null,
+          sw('settings.monetKeyword', 'keywordColoringEnabled'),
+          sw('settings.monetDescription', 'showDescription'),
+          sw('settings.monetAudio', 'showAudioVisualization'),
+          mpPanelRow(t('settings.monetAudioStyle'), segmented([{ value: 'bar', label: 'Bar' }, { value: 'line', label: 'Line' }], tuning.audioStyle === 'line' ? 'line' : 'bar', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { audioStyle: value }) }) })),
+          num('settings.monetFontScale', 'fontScale', 0.7, 1.5, 0.01),
+          mpPanelRow(t('settings.monetPortrait'), segmented([{ value: 'cover', label: 'Cover' }, { value: 'none', label: 'None' }], tuning.portraitSource === 'none' ? 'none' : 'cover', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { portraitSource: value }) }) })),
+          mpPanelRow(t('settings.monetPortraitStyle'), segmented([{ value: 'square', label: 'Square' }, { value: 'rectangular', label: 'Rect' }], tuning.portraitStyle === 'rectangular' ? 'rectangular' : 'square', function (value) { setPrefs({ monetTuning: Object.assign({}, tuning, { portraitStyle: value }) }) })),
+          num('settings.monetPortraitOffset', 'portraitOffsetX', -150, 0, 1),
+          sw('settings.monetHanger', 'showPortraitDragHanger'),
+          sw('settings.monetMirror', 'mirrorLayout'),
         ))
       }
       /**
