@@ -6,6 +6,10 @@
  * the Folia-style groups (animation / background / font / subtitle / global).
  */
 
+var MP_STUDIO_SAMPLE = [
+  { text: '编织那没有诗意，', startTime: 0, endTime: 4, fullText: '编织那没有诗意，' },
+  { text: '却能带你到现实的唯文之诗。', startTime: 4, endTime: 8, fullText: '却能带你到现实的唯文之诗。' },
+]
 var MP_STUDIO_TABS = [
   { value: 'animation', label: 'studio.animation' },
   { value: 'background', label: 'studio.background' },
@@ -138,11 +142,23 @@ function LyricStyleStudio(props) {
       ),
       h('div', { className: 'mp-studio-body' },
         h('div', { className: 'mp-studio-left' },
-          h('div', {
-            className: 'mp-studio-preview',
-            style: thumb !== '' ? { backgroundImage: 'url("' + thumb + '")' } : undefined,
-          },
-            thumb === '' ? h('div', { className: 'mp-studio-preview-fallback' }, icon((mpStyleOf(styleId) || {}).glyph || 'note', 56), h('span', null, mpStyleLabelOf(prefs.lyricStyle))) : null,
+          h('div', { className: 'mp-studio-preview' },
+            h('div', { className: 'mp-studio-preview-live' },
+              h(LyricStage, {
+                stylePref: prefs.lyricStyle,
+                lines: MP_STUDIO_SAMPLE,
+                active: 0,
+                now: 1.4,
+                duration: 8,
+                accent: '#6ea8ff',
+                seed: 'studio-preview',
+                prefs: prefs,
+              }),
+            ),
+            h('div', { className: 'mp-studio-preview-top' },
+              h('span', { className: 'mp-studio-preview-chip' }, t('studio.builtin')),
+              h('span', { className: 'mp-studio-preview-chip is-off' }, t('studio.live')),
+            ),
           ),
           h('div', { className: 'mp-studio-count' }, t('studio.styles', { count: String(catalog.length) })),
           h('div', { className: 'mp-studio-grid' }, catalog.map(function (entry) {

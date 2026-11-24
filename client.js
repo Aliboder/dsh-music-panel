@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "12e4d6a42ccc"
+    var CLIENT_BUILD = "0a698178c084"
 
     // ── src/client/app/runtime.js
     /**
@@ -8861,6 +8861,8 @@ window.__ModuleLoader__.load({
         'studio.subtitle': '字幕',
         'studio.global': '全局',
         'studio.styles': '样式 {count}',
+        'studio.builtin': '内置',
+        'studio.live': '实时',
         'studio.animationHint': '样式参数在播放面板的「歌词」页继续调整；这里用于快速切换和预览。',
         'settings.latentDynamicOnlyInPlayer': '仅在播放页启用动态效果',
         'settings.latentEnhancedBeat': '增强节拍响应',
@@ -9919,6 +9921,8 @@ window.__ModuleLoader__.load({
         'studio.subtitle': 'Subtitles',
         'studio.global': 'Global',
         'studio.styles': 'Styles {count}',
+        'studio.builtin': 'Built-in',
+        'studio.live': 'Live',
         'studio.animationHint': 'Style tunings stay in the player panel\'s Lyrics page; this window is for quick switching and preview.',
         'settings.latentDynamicOnlyInPlayer': 'Dynamic effects only on player page',
         'settings.latentEnhancedBeat': 'Enhanced beat response',
@@ -181478,6 +181482,11 @@ window.__ModuleLoader__.load({
     '.mp-studio-left{width:58%;min-width:0;display:flex;flex-direction:column;gap:10px;padding:16px 20px;overflow-y:auto}',
     '.mp-studio-preview{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;background:var(--dsw-alias-bg-layer-2,#191919) center/cover no-repeat;overflow:hidden}',
     '.mp-studio-preview-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:.7}',
+    '.mp-studio-preview-live{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center}',
+    '.mp-studio-preview-live > *{width:100%;height:100%}',
+    '.mp-studio-preview-top{position:absolute;top:10px;right:10px;display:flex;gap:6px;align-items:center;z-index:2}',
+    '.mp-studio-preview-chip{padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font-size:11px;line-height:16px}',
+    '.mp-studio-preview-chip.is-off{opacity:.55}',
     '.mp-studio-count{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
     '.mp-studio-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}',
     '.mp-studio-cell{display:flex;flex-direction:column;gap:4px;padding:4px;border:1px solid transparent;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}',
@@ -198907,6 +198916,10 @@ window.__ModuleLoader__.load({
      * the Folia-style groups (animation / background / font / subtitle / global).
      */
 
+    var MP_STUDIO_SAMPLE = [
+      { text: '编织那没有诗意，', startTime: 0, endTime: 4, fullText: '编织那没有诗意，' },
+      { text: '却能带你到现实的唯文之诗。', startTime: 4, endTime: 8, fullText: '却能带你到现实的唯文之诗。' },
+    ]
     var MP_STUDIO_TABS = [
       { value: 'animation', label: 'studio.animation' },
       { value: 'background', label: 'studio.background' },
@@ -199039,11 +199052,23 @@ window.__ModuleLoader__.load({
           ),
           h('div', { className: 'mp-studio-body' },
             h('div', { className: 'mp-studio-left' },
-              h('div', {
-                className: 'mp-studio-preview',
-                style: thumb !== '' ? { backgroundImage: 'url("' + thumb + '")' } : undefined,
-              },
-                thumb === '' ? h('div', { className: 'mp-studio-preview-fallback' }, icon((mpStyleOf(styleId) || {}).glyph || 'note', 56), h('span', null, mpStyleLabelOf(prefs.lyricStyle))) : null,
+              h('div', { className: 'mp-studio-preview' },
+                h('div', { className: 'mp-studio-preview-live' },
+                  h(LyricStage, {
+                    stylePref: prefs.lyricStyle,
+                    lines: MP_STUDIO_SAMPLE,
+                    active: 0,
+                    now: 1.4,
+                    duration: 8,
+                    accent: '#6ea8ff',
+                    seed: 'studio-preview',
+                    prefs: prefs,
+                  }),
+                ),
+                h('div', { className: 'mp-studio-preview-top' },
+                  h('span', { className: 'mp-studio-preview-chip' }, t('studio.builtin')),
+                  h('span', { className: 'mp-studio-preview-chip is-off' }, t('studio.live')),
+                ),
               ),
               h('div', { className: 'mp-studio-count' }, t('studio.styles', { count: String(catalog.length) })),
               h('div', { className: 'mp-studio-grid' }, catalog.map(function (entry) {
