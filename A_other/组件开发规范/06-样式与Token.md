@@ -79,6 +79,36 @@ var(--dsw-focus-ring-width)
 var(--dsw-focus-ring-color)
 ```
 
+## 2.1 色彩配对与继承
+
+背景和前景不是随便挑两个 token，必须来自同一语义对：
+
+| 背景 | 前景 |
+|---|---|
+| `--dsw-alias-label-primary` | `--dsw-alias-label-primary-foreground` |
+| `--dsw-alias-button-primary-fill` | `--dsw-alias-label-primary-foreground` |
+| `--dsw-alias-state-business-primary` | `--dsw-alias-label-primary-foreground` |
+| `--dsw-alias-bg-layer-1/2/3` | `--dsw-alias-label-primary` |
+| `--dsw-alias-bg-module-platform` | `--dsw-alias-label-primary` |
+
+禁止：
+
+```css
+/* 表面 token 当文字色：主题层重定义后可能是同色 */
+background: var(--dsw-alias-label-primary);
+color: var(--dsw-alias-bg-base);
+
+/* 浮层表面跟宿主，文字却继承深色页面的硬编码白色 */
+.floating-panel { background: var(--dsw-alias-bg-layer-1); }
+.floating-panel { color: inherit; }
+```
+
+规则：
+
+1. 每个浮层/弹层/卡片在根节点显式写 `color`，不依赖祖先；
+2. 深色页面里的子面板，如果要跟随 DSH 主题，不要做深色岛；要始终深色，才在岛根固定整组 token；
+3. 复用自深色区域的子组件，必须在新的主题作用域里重新检查 token，不能只检查外层；
+4. 深色岛内部也优先使用固定的这组 token，保持同一色阶。
 ## 3. 交互约定
 
 - hover 写在 `@media (hover: hover)` 里，触摸设备不要粘住；

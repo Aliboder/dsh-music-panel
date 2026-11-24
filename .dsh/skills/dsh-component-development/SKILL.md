@@ -37,14 +37,15 @@ README → 01 核心原则 → 02 宿主组件加载 → 03 适配层规范 → 
 找不到时：按本 skill 的规则执行，并建议把公开仓库的 `组件开发规范/` 引入项目：
 `https://github.com/Aliboder/dsh-component-development`
 
-## 六条硬规则
+## 七条硬规则
 
 1. **宿主优先**：`hostComponent('X') !== null` 时必须渲染宿主组件；只有不可用时才用 fallback。
 2. **fallback 等价**：props、DOM/aria、几何、交互、颜色五个维度一致，不是「看起来像」。
 3. **测试页唯一标准**：每个控件先在组件测试页立用例（适配层名 + 实际控件 + 可复制调用），业务只出现验证过的写法。
 4. **token 优先**：颜色、圆角、阴影、焦点环只用 `--dsw-*`；禁止写死十六进制。
-5. **深色岛固定 token**：浅色主题下的深色面板，在岛根固定宿主会读的 token（`--dsw-static-*`），否则开关会白底白滑块。
-6. **唯一加载入口**：全插件只有一处 `require('@deepseek-ai/dsh-client-ui-primitives')`，业务只通过 `hostComponent(name)` 取组件。
+5. **深色岛固定 token**：浅色主题下仍然深色的面板，才在岛根固定宿主会读的 token（`--dsw-static-*`）；应当跟随 DSH 主题的浮层不要做岛。
+6. **表面与文字同源**：浮层的背景和文字必须来自同一主题作用域；根节点显式声明 `background` + `color`，禁止表面用宿主 token、文字却 `color: inherit` 深色页面的硬编码白色。`label-primary` 背景配 `label-primary-foreground`，`bg-*` 表面 token 不能当 `color`。
+7. **唯一加载入口**：全插件只有一处 `require('@deepseek-ai/dsh-client-ui-primitives')`，业务只通过 `hostComponent(name)` 取组件。
 
 ## 选型决策
 
@@ -63,8 +64,8 @@ README → 01 核心原则 → 02 宿主组件加载 → 03 适配层规范 → 
 2. 查测试页是否已有用例；没有就先加用例
 3. 写适配层：宿主分支 + fallback 分支，同一组业务 props
 4. 写 fallback CSS：结构 → 几何 → token → 交互
-5. 深色面板：在岛根固定 token
-6. 自检：native/fallback、浅色/深色、键盘、重复 id、硬编码颜色
+5. 需要固定 token 的面板：先判断是否真是深色岛；确需固定才在岛根固定，否则让浮层自设 background/color 跟随主题
+6. 自检：native/fallback、浅色/深色、键盘、重复 id、硬编码颜色；把浮层放回真实祖先（深色页面/卡片/弹窗）各切一次主题
 7. 同步文档与 CHANGELOG，再提交
 ```
 
@@ -75,7 +76,7 @@ README → 01 核心原则 → 02 宿主组件加载 → 03 适配层规范 → 
 | 2 | 测试页用例（adapter / code / 实际控件） |
 | 3 | 适配层函数（含宿主与 fallback 两条路径） |
 | 4 | fallback CSS（只用 token） |
-| 5 | 岛根 token 清单（如需） |
+| 5 | 岛根 token 清单，或「跟随主题」的根节点 background/color |
 | 6 | 验收结果（两条路径、两套主题、键盘） |
 | 7 | 文档与 CHANGELOG 更新 |
 
