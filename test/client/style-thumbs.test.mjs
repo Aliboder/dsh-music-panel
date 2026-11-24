@@ -16,8 +16,11 @@ const picker = readFileSync(join(root, 'src/client/components/ui/look-picker.js'
 const thumbDir = join(root, 'src/host/assets/lyric-style-thumbs')
 
 // The picker's catalog: every real style, then the random pseudo-style that has no picture.
-const ids = [...styles.matchAll(/\{ id: '([a-z]+)', labelKey: 'sheet\.foliaStyle[A-Za-z]+'/g)].map((match) => match[1])
-assert.ok(ids.length >= 15, 'the style list parses: ' + ids.length)
+// Most styles register from one list, 时计 (pendolo) from its own renderer file.
+const ids = [...styles.matchAll(/\{ id: '([a-z]+)', labelKey: 'sheet\.(?:foliaStyle|style)[A-Za-z]+'/g)].map((match) => match[1])
+const pendolo = readFileSync(join(root, 'src/client/render/styles/folia-pendolo.js'), 'utf8')
+for (const match of pendolo.matchAll(/mpRegisterStyle\(\{[\s\S]{0,120}?id: '([a-z]+)'/g)) ids.push(match[1])
+assert.ok(ids.length >= 16, 'the style list parses: ' + ids.length)
 
 const start = picker.indexOf('var MP_LYRIC_STYLE_THUMBS = {')
 assert.ok(start >= 0, 'the thumbnail map exists')
