@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "bdd45048029f"
+    var CLIENT_BUILD = "0662059c658f"
 
     // ── src/client/app/runtime.js
     /**
@@ -47563,7 +47563,7 @@ window.__ModuleLoader__.load({
                 }
                 return message.lineIndex <= visibleLineIndex;
               });
-              const usableHeight = Math.max(200, viewportHeight - 240);
+              const usableHeight = Math.max(200, viewportHeight - 300);
               let accumulatedHeight = 0;
               const result = [];
               for (let i4 = visible.length - 1; i4 >= 0; i4--) {
@@ -48297,7 +48297,7 @@ window.__ModuleLoader__.load({
                   audioBands,
                   sharedProps: props,
                   children: [
-                    showText && /* @__PURE__ */ jsx("div", { className: "relative z-10 flex h-full w-full items-start justify-center overflow-visible px-4 pb-36 pt-12 sm:px-8 sm:pb-40 sm:pt-16 lg:px-14 lg:pt-20", children: /* @__PURE__ */ jsx("div", { className: "relative flex w-full max-w-4xl flex-col justify-start gap-3 overflow-visible", children: /* @__PURE__ */ jsx(AnimatePresence, { initial: false, mode: "popLayout", children: visibleMessages.map((message) => /* @__PURE__ */ jsx(
+                    showText && /* @__PURE__ */ jsx("div", { className: "relative z-10 flex h-full w-full items-start justify-center overflow-visible px-4 pb-52 pt-12 sm:px-8 sm:pb-56 sm:pt-16 lg:px-14 lg:pt-20", children: /* @__PURE__ */ jsx("div", { className: "relative flex w-full max-w-4xl flex-col justify-start gap-3 overflow-visible", children: /* @__PURE__ */ jsx(AnimatePresence, { initial: false, mode: "popLayout", children: visibleMessages.map((message) => /* @__PURE__ */ jsx(
                       CappellaMessageRow,
                       {
                         message,

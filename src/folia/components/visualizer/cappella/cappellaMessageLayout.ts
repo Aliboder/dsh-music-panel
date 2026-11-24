@@ -90,8 +90,8 @@ export const getVisibleMessages = (
         return message.lineIndex <= visibleLineIndex;
     });
 
-    // 计算气泡展示区域的可用高度：总高度减去底部播放控制条区域 (~160px) 和顶部状态栏/间距 (~80px)
-    const usableHeight = Math.max(200, viewportHeight - 240);
+    // 计算气泡展示区域的可用高度：插件播放页比 Folia 多一条全局播放条，底部安全区留大一些。
+    const usableHeight = Math.max(200, viewportHeight - 300);
     let accumulatedHeight = 0;
     const result: CappellaMessage[] = [];
 
