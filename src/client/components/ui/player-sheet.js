@@ -1729,6 +1729,20 @@ function PlayerSheetInner(props) {
       num('settings.nebbiaDoodle', 'doodle', 0, 1, 0.05),
       num('settings.nebbiaBusSpeed', 'busSpeed', 0, 3, 0.05),
       num('settings.nebbiaNeon', 'neon', 0, 2, 0.05),
+      num('settings.nebbiaSpot', 'spot', 0, 2, 0.05),
+      num('settings.nebbiaSpotX', 'spotX', 0, 1, 0.01),
+      num('settings.nebbiaRainHit', 'rainHit', 0, 3, 0.05),
+      num('settings.nebbiaRainBig', 'rainBig', 0, 2, 0.05),
+      num('settings.nebbiaBump', 'bump', 0, 2.5, 0.05),
+      num('settings.nebbiaJellies', 'jellies', 0, 24, 1),
+      num('settings.nebbiaJellySize', 'jellySize', 0.5, 1.8, 0.05),
+      num('settings.nebbiaBubbles', 'bubbles', 0, 1, 0.01),
+      num('settings.nebbiaDew', 'dew', 0, 1.5, 0.01),
+      num('settings.nebbiaDewSize', 'dewSize', 0.5, 2, 0.05),
+      num('settings.nebbiaDewGlint', 'dewGlint', 0, 2, 0.05),
+      num('settings.nebbiaSnow', 'snow', 0, 3, 0.05),
+      num('settings.nebbiaSnowSize', 'snowSize', 0.5, 2, 0.05),
+      num('settings.nebbiaSnowMelt', 'snowMelt', 0.25, 3, 0.05),
     ))
   }
   /**
