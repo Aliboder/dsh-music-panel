@@ -1592,7 +1592,7 @@ function PlayerSheetInner(props) {
       sw('settings.lumiereKeyword', 'keywordColors'),
       sw('settings.lumiereIcons', 'themeIcons'),
       num('settings.lumiereMix', 'themeColorMix', 0, 1, 0.01),
-      mpPanelRow(t('settings.lumiereTuning'), segmented([{ value: 'full', label: t('settings.optFull') }, { value: 'balanced', label: t('settings.optBalanced') }, { value: 'low', label: t('settings.optLow') }], ['full', 'balanced', 'low'].indexOf(tuning.renderQuality) >= 0 ? tuning.renderQuality : 'full', function (value) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { renderQuality: value }) }) })),
+      mpPanelRow(t('settings.lumiereTuning'), segmented([{ value: 'full', label: t('settings.lumiereFull') }, { value: 'balanced', label: t('settings.optBalanced') }, { value: 'low', label: t('settings.optLow') }], ['full', 'balanced', 'low'].indexOf(tuning.renderQuality) >= 0 ? tuning.renderQuality : 'full', function (value) { setPrefs({ lumiereTuning: Object.assign({}, tuning, { renderQuality: value }) }) })),
     ))
   }
   /** Folia pendolo tuning: arc geometry, tick response and tilt. */
@@ -1734,11 +1734,11 @@ function PlayerSheetInner(props) {
     return mpSection(t('settings.nebbiaTuning'), h('div', null,
       listRow('settings.nebbiaAppear', 'appear', [{ value: 'write', text: t('settings.nebbiaAppearWrite') }, { value: 'fade', text: t('settings.nebbiaAppearFade') }, { value: 'breath', text: t('settings.nebbiaAppearBreath') }], true),
       listRow('settings.nebbiaFade', 'fade', [{ value: 'fog', text: t('settings.nebbiaFadeFog') }, { value: 'fingers', text: t('settings.nebbiaFadeFingers') }], true),
-      listRow('settings.nebbiaLayouts', 'layouts', [{ value: 'ribbon', text: 'Ribbon' }, { value: 'lines2', text: 'Lines 2' }, { value: 'lines3', text: 'Lines 3' }, { value: 'cross', text: 'Cross' }, { value: 'pillar', text: 'Pillar' }, { value: 'header', text: 'Header' }, { value: 'badge', text: 'Badge' }, { value: 'columns', text: 'Columns' }, { value: 'orbit', text: 'Orbit' }], true),
-      listRow('settings.nebbiaScenery', 'scenery', [{ value: 'spot', text: 'Spotlight' }, { value: 'buildings', text: 'Buildings' }, { value: 'lights', text: 'Lights' }, { value: 'cars', text: 'Cars' }, { value: 'road', text: 'Road' }], false),
-      choice('settings.nebbiaBehind', 'behind', [{ value: 'night', label: t('settings.optNight') }, { value: 'aquarium', label: t('settings.optAquarium') }, { value: 'backdrop', label: t('settings.optBackdrop') }]),
-      choice('settings.nebbiaGlass', 'glass', [{ value: 'rain', label: t('settings.optRain') }, { value: 'dew', label: t('settings.optDew') }, { value: 'snow', label: t('settings.optSnow') }]),
-      choice('settings.nebbiaRain', 'rain', [{ value: 'slant', label: t('settings.optSlant') }, { value: 'straight', label: t('settings.optStraight') }, { value: 'off', label: t('settings.optOff') }]),
+      listRow('settings.nebbiaLayouts', 'layouts', [{ value: 'ribbon', text: t('settings.nebbiaLayoutRibbon') }, { value: 'lines2', text: t('settings.nebbiaLayoutLines2') }, { value: 'lines3', text: t('settings.nebbiaLayoutLines3') }, { value: 'cross', text: t('settings.nebbiaLayoutCross') }, { value: 'pillar', text: t('settings.nebbiaLayoutPillar') }, { value: 'header', text: t('settings.nebbiaLayoutHeader') }, { value: 'badge', text: t('settings.nebbiaLayoutBadge') }, { value: 'columns', text: t('settings.nebbiaLayoutColumns') }, { value: 'orbit', text: t('settings.nebbiaLayoutOrbit') }], true),
+      listRow('settings.nebbiaScenery', 'scenery', [{ value: 'spot', text: t('settings.nebbiaScenerySpot') }, { value: 'buildings', text: t('settings.nebbiaSceneryBuildings') }, { value: 'lights', text: t('settings.nebbiaSceneryLights') }, { value: 'cars', text: t('settings.nebbiaSceneryCars') }, { value: 'road', text: t('settings.nebbiaSceneryRoad') }], false),
+      choice('settings.nebbiaBehind', 'behind', [{ value: 'night', label: t('settings.nebbiaBehindNight') }, { value: 'aquarium', label: t('settings.nebbiaBehindAquarium') }, { value: 'backdrop', label: t('settings.nebbiaBehindBackdrop') }]),
+      choice('settings.nebbiaGlass', 'glass', [{ value: 'rain', label: t('settings.nebbiaGlassRain') }, { value: 'dew', label: t('settings.nebbiaGlassDew') }, { value: 'snow', label: t('settings.nebbiaGlassSnow') }]),
+      choice('settings.nebbiaRain', 'rain', [{ value: 'slant', label: t('settings.nebbiaRainSlant') }, { value: 'straight', label: t('settings.nebbiaRainStraight') }, { value: 'off', label: t('settings.nebbiaRainOff') }]),
       mpPanelRow(t('settings.nebbiaCredits'), h(Switch, { value: tuning.credits !== false, label: t('settings.nebbiaCredits'), onChange: function (value) { setPrefs({ nebbiaTuning: Object.assign({}, tuning, { credits: value }) }) } })),
       num('settings.nebbiaJitter', 'jitter', 0, 1.5, 0.05),
       num('settings.nebbiaWarp', 'warp', 0, 1.5, 0.05),

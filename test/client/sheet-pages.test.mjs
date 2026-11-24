@@ -65,6 +65,11 @@ test('歌词显示 has named controls, not glyph-only buttons', () => {
   assert.doesNotMatch(style, /mpSmallButton\('≋'/, 'the wired ≋ glyph is gone')
 })
 
+test('style option labels are translated', () => {
+  assert.doesNotMatch(sheet, /label: '[A-Za-z]/, 'no hardcoded English option labels')
+  assert.doesNotMatch(sheet, /text: '[A-Za-z]/, 'no hardcoded English option text')
+})
+
 test('外观 page exposes the selected style tuning', () => {
   for (const name of ['classic', 'tilt', 'partita', 'fume', 'claddagh', 'hanabi', 'cadenza', 'sonnet', 'monet', 'machi', 'lumiere', 'pendolo', 'diorama', 'tempera', 'nebbia']) {
     assert.match(tuning, new RegExp(name + 'TuningBlock\\(\\)'), name + ' tuning is routed from the look page')
