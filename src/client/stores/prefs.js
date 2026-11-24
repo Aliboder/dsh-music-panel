@@ -57,6 +57,26 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  dioramaTuning: {
+    cameraSpeed: 1,
+    motionAmount: 1,
+    audioReactivity: 1,
+    particleDensity: 576,
+    particleScale: 1,
+    particleGlowEnabled: true,
+    particleGlowIntensity: 0.65,
+    showParticles: true,
+    backgroundParticleCircumference: 28,
+    backgroundParticleRadial: 2,
+    glowEnabled: true,
+    glowIntensity: 1,
+    soulEnabled: true,
+    soulIntensity: 1,
+    soulActiveEnabled: false,
+    gradientEnabled: false,
+    gradientIntensity: 1,
+    keywordColoringEnabled: true,
+  },
   pendoloTuning: {
     arcRadius: 0.42,
     arcAngleDeg: 100,
@@ -412,6 +432,36 @@ function readPrefs() {
     tiltDeg: pendoloNumber('tiltDeg', -45, 45),
     parallaxDepth: pendoloNumber('parallaxDepth', 0, 2),
     mirrorLayout: storedPendolo.mirrorLayout === true,
+  }
+  // Folia diorama tuning: camera, particles and follow-singing effects.
+  var dioramaDefaults = PREF_DEFAULTS.dioramaTuning
+  var storedDiorama = merged.dioramaTuning && typeof merged.dioramaTuning === 'object' ? merged.dioramaTuning : {}
+  function dioramaNumber(key, min, max) {
+    var value = Number(storedDiorama[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : dioramaDefaults[key]
+  }
+  function dioramaSwitch(key, fallback) {
+    return typeof storedDiorama[key] === 'boolean' ? storedDiorama[key] : fallback
+  }
+  merged.dioramaTuning = {
+    cameraSpeed: dioramaNumber('cameraSpeed', 0.55, 1.85),
+    motionAmount: dioramaNumber('motionAmount', 0.4, 1.6),
+    audioReactivity: dioramaNumber('audioReactivity', 0, 1.5),
+    particleDensity: Math.round(dioramaNumber('particleDensity', 32, 2048)),
+    particleScale: dioramaNumber('particleScale', 0.5, 2),
+    particleGlowEnabled: dioramaSwitch('particleGlowEnabled', true),
+    particleGlowIntensity: dioramaNumber('particleGlowIntensity', 0, 1.5),
+    showParticles: dioramaSwitch('showParticles', true),
+    backgroundParticleCircumference: Math.round(dioramaNumber('backgroundParticleCircumference', 4, 64)),
+    backgroundParticleRadial: Math.round(dioramaNumber('backgroundParticleRadial', 1, 8)),
+    glowEnabled: dioramaSwitch('glowEnabled', true),
+    glowIntensity: dioramaNumber('glowIntensity', 0.1, 1.5),
+    soulEnabled: dioramaSwitch('soulEnabled', true),
+    soulIntensity: dioramaNumber('soulIntensity', 0.1, 1.5),
+    soulActiveEnabled: dioramaSwitch('soulActiveEnabled', false),
+    gradientEnabled: dioramaSwitch('gradientEnabled', false),
+    gradientIntensity: dioramaNumber('gradientIntensity', 0.1, 1.5),
+    keywordColoringEnabled: dioramaSwitch('keywordColoringEnabled', true),
   }
   // Folia lumiere tuning: light field and effects; unknown enums fall back.
   var lumiereDefaults = PREF_DEFAULTS.lumiereTuning

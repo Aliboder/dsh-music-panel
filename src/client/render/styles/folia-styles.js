@@ -390,6 +390,7 @@ function FoliaStyleStage(props) {
     monetTuning: prefs.monetTuning || undefined,
     machiTuning: prefs.machiTuning || undefined,
     lumiereTuning: prefs.lumiereTuning || undefined,
+    dioramaTuning: prefs.dioramaTuning || undefined,
     hanabiTuning: prefs.hanabiTuning
       ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
       : undefined,

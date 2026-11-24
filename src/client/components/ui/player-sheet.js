@@ -1099,6 +1099,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'machi' ? machiTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'lumiere' ? lumiereTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'pendolo' ? pendoloTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'diorama' ? dioramaTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1616,6 +1617,43 @@ function PlayerSheetInner(props) {
       num('settings.pendoloTilt', 'tiltDeg', -45, 45, 1),
       num('settings.pendoloParallax', 'parallaxDepth', 0, 2, 0.05),
       mpPanelRow(t('settings.pendoloMirror'), h(Switch, { value: tuning.mirrorLayout === true, label: t('settings.pendoloMirror'), onChange: function (value) { setPrefs({ pendoloTuning: Object.assign({}, tuning, { mirrorLayout: value }) }) } })),
+    ))
+  }
+  /** Folia diorama tuning: camera, particles and follow-singing effects. */
+  function dioramaTuningBlock() {
+    var tuning = prefs.dioramaTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ dioramaTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    function sw(label, key, fallback) {
+      var value = fallback ? tuning[key] !== false : tuning[key] === true
+      return mpPanelRow(t(label), h(Switch, { value: value, label: t(label), onChange: function (next) { setPrefs({ dioramaTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+    }
+    return mpSection(t('settings.dioramaTuning'), h('div', null,
+      num('settings.dioramaCamera', 'cameraSpeed', 0.55, 1.85, 0.05),
+      num('settings.dioramaMotion', 'motionAmount', 0.4, 1.6, 0.05),
+      num('settings.dioramaAudio', 'audioReactivity', 0, 1.5, 0.05),
+      num('settings.dioramaDensity', 'particleDensity', 32, 2048, 32),
+      num('settings.dioramaScale', 'particleScale', 0.5, 2, 0.05),
+      sw('settings.dioramaParticleGlow', 'particleGlowEnabled', true),
+      num('settings.dioramaParticleGlowIntensity', 'particleGlowIntensity', 0, 1.5, 0.05),
+      sw('settings.dioramaParticles', 'showParticles', true),
+      num('settings.dioramaBgCircumference', 'backgroundParticleCircumference', 4, 64, 1),
+      num('settings.dioramaBgRadial', 'backgroundParticleRadial', 1, 8, 1),
+      sw('settings.dioramaGlow', 'glowEnabled', true),
+      num('settings.dioramaGlowIntensity', 'glowIntensity', 0.1, 1.5, 0.05),
+      sw('settings.dioramaSoul', 'soulEnabled', true),
+      num('settings.dioramaSoulIntensity', 'soulIntensity', 0.1, 1.5, 0.05),
+      sw('settings.dioramaSoulActive', 'soulActiveEnabled', false),
+      sw('settings.dioramaGradient', 'gradientEnabled', false),
+      num('settings.dioramaGradientIntensity', 'gradientIntensity', 0.1, 1.5, 0.05),
+      sw('settings.dioramaKeyword', 'keywordColoringEnabled', true),
     ))
   }
   /**

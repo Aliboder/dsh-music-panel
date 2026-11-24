@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "b795c2492309"
+    var CLIENT_BUILD = "0aaf2b2a0e08"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,25 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.dioramaTuning': '镜台参数',
+        'settings.dioramaCamera': '镜头速度',
+        'settings.dioramaMotion': '动态幅度',
+        'settings.dioramaAudio': '音频响应',
+        'settings.dioramaDensity': '粒子密度',
+        'settings.dioramaScale': '粒子大小',
+        'settings.dioramaParticleGlow': '粒子辉光',
+        'settings.dioramaParticleGlowIntensity': '粒子辉光强度',
+        'settings.dioramaParticles': '显示粒子',
+        'settings.dioramaBgCircumference': '背景粒子圆周',
+        'settings.dioramaBgRadial': '背景粒子径向',
+        'settings.dioramaGlow': '跟唱辉光',
+        'settings.dioramaGlowIntensity': '辉光强度',
+        'settings.dioramaSoul': '灵魂出窍',
+        'settings.dioramaSoulIntensity': '灵魂强度',
+        'settings.dioramaSoulActive': '当前字漂移',
+        'settings.dioramaGradient': '渐变跟唱',
+        'settings.dioramaGradientIntensity': '渐变强度',
+        'settings.dioramaKeyword': '关键词着色',
         'settings.pendoloTuning': '时计参数',
         'settings.pendoloArcRadius': '弧半径',
         'settings.pendoloArcAngle': '弧角度',
@@ -9480,6 +9499,25 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.dioramaTuning': 'Diorama tuning',
+        'settings.dioramaCamera': 'Camera speed',
+        'settings.dioramaMotion': 'Motion amount',
+        'settings.dioramaAudio': 'Audio reactivity',
+        'settings.dioramaDensity': 'Particle density',
+        'settings.dioramaScale': 'Particle scale',
+        'settings.dioramaParticleGlow': 'Particle glow',
+        'settings.dioramaParticleGlowIntensity': 'Particle glow intensity',
+        'settings.dioramaParticles': 'Show particles',
+        'settings.dioramaBgCircumference': 'Background circumference',
+        'settings.dioramaBgRadial': 'Background radial',
+        'settings.dioramaGlow': 'Sung glow',
+        'settings.dioramaGlowIntensity': 'Glow intensity',
+        'settings.dioramaSoul': 'Soul drift',
+        'settings.dioramaSoulIntensity': 'Soul intensity',
+        'settings.dioramaSoulActive': 'Active glyph drift',
+        'settings.dioramaGradient': 'Gradient follow',
+        'settings.dioramaGradientIntensity': 'Gradient intensity',
+        'settings.dioramaKeyword': 'Keyword coloring',
         'settings.pendoloTuning': 'Pendolo tuning',
         'settings.pendoloArcRadius': 'Arc radius',
         'settings.pendoloArcAngle': 'Arc angle',
@@ -154187,6 +154225,7 @@ window.__ModuleLoader__.load({
           DEFAULT_CAPPELLA_TUNING: () => DEFAULT_CAPPELLA_TUNING,
           DEFAULT_CLADDAGH_TUNING: () => DEFAULT_CLADDAGH_TUNING,
           DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
+          DEFAULT_DIORAMA_TUNING: () => DEFAULT_DIORAMA_TUNING,
           DEFAULT_FUME_TUNING: () => DEFAULT_FUME_TUNING,
           DEFAULT_LUMIERE_TUNING: () => DEFAULT_LUMIERE_TUNING,
           DEFAULT_MACHI_TUNING: () => DEFAULT_MACHI_TUNING,
@@ -157031,6 +157070,7 @@ window.__ModuleLoader__.load({
         monetTuning: prefs.monetTuning || undefined,
         machiTuning: prefs.machiTuning || undefined,
         lumiereTuning: prefs.lumiereTuning || undefined,
+        dioramaTuning: prefs.dioramaTuning || undefined,
         hanabiTuning: prefs.hanabiTuning
           ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
           : undefined,
@@ -167713,6 +167753,26 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      dioramaTuning: {
+        cameraSpeed: 1,
+        motionAmount: 1,
+        audioReactivity: 1,
+        particleDensity: 576,
+        particleScale: 1,
+        particleGlowEnabled: true,
+        particleGlowIntensity: 0.65,
+        showParticles: true,
+        backgroundParticleCircumference: 28,
+        backgroundParticleRadial: 2,
+        glowEnabled: true,
+        glowIntensity: 1,
+        soulEnabled: true,
+        soulIntensity: 1,
+        soulActiveEnabled: false,
+        gradientEnabled: false,
+        gradientIntensity: 1,
+        keywordColoringEnabled: true,
+      },
       pendoloTuning: {
         arcRadius: 0.42,
         arcAngleDeg: 100,
@@ -168068,6 +168128,36 @@ window.__ModuleLoader__.load({
         tiltDeg: pendoloNumber('tiltDeg', -45, 45),
         parallaxDepth: pendoloNumber('parallaxDepth', 0, 2),
         mirrorLayout: storedPendolo.mirrorLayout === true,
+      }
+      // Folia diorama tuning: camera, particles and follow-singing effects.
+      var dioramaDefaults = PREF_DEFAULTS.dioramaTuning
+      var storedDiorama = merged.dioramaTuning && typeof merged.dioramaTuning === 'object' ? merged.dioramaTuning : {}
+      function dioramaNumber(key, min, max) {
+        var value = Number(storedDiorama[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : dioramaDefaults[key]
+      }
+      function dioramaSwitch(key, fallback) {
+        return typeof storedDiorama[key] === 'boolean' ? storedDiorama[key] : fallback
+      }
+      merged.dioramaTuning = {
+        cameraSpeed: dioramaNumber('cameraSpeed', 0.55, 1.85),
+        motionAmount: dioramaNumber('motionAmount', 0.4, 1.6),
+        audioReactivity: dioramaNumber('audioReactivity', 0, 1.5),
+        particleDensity: Math.round(dioramaNumber('particleDensity', 32, 2048)),
+        particleScale: dioramaNumber('particleScale', 0.5, 2),
+        particleGlowEnabled: dioramaSwitch('particleGlowEnabled', true),
+        particleGlowIntensity: dioramaNumber('particleGlowIntensity', 0, 1.5),
+        showParticles: dioramaSwitch('showParticles', true),
+        backgroundParticleCircumference: Math.round(dioramaNumber('backgroundParticleCircumference', 4, 64)),
+        backgroundParticleRadial: Math.round(dioramaNumber('backgroundParticleRadial', 1, 8)),
+        glowEnabled: dioramaSwitch('glowEnabled', true),
+        glowIntensity: dioramaNumber('glowIntensity', 0.1, 1.5),
+        soulEnabled: dioramaSwitch('soulEnabled', true),
+        soulIntensity: dioramaNumber('soulIntensity', 0.1, 1.5),
+        soulActiveEnabled: dioramaSwitch('soulActiveEnabled', false),
+        gradientEnabled: dioramaSwitch('gradientEnabled', false),
+        gradientIntensity: dioramaNumber('gradientIntensity', 0.1, 1.5),
+        keywordColoringEnabled: dioramaSwitch('keywordColoringEnabled', true),
       }
       // Folia lumiere tuning: light field and effects; unknown enums fall back.
       var lumiereDefaults = PREF_DEFAULTS.lumiereTuning
@@ -196244,6 +196334,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'machi' ? machiTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'lumiere' ? lumiereTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'pendolo' ? pendoloTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'diorama' ? dioramaTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -196761,6 +196852,43 @@ window.__ModuleLoader__.load({
           num('settings.pendoloTilt', 'tiltDeg', -45, 45, 1),
           num('settings.pendoloParallax', 'parallaxDepth', 0, 2, 0.05),
           mpPanelRow(t('settings.pendoloMirror'), h(Switch, { value: tuning.mirrorLayout === true, label: t('settings.pendoloMirror'), onChange: function (value) { setPrefs({ pendoloTuning: Object.assign({}, tuning, { mirrorLayout: value }) }) } })),
+        ))
+      }
+      /** Folia diorama tuning: camera, particles and follow-singing effects. */
+      function dioramaTuningBlock() {
+        var tuning = prefs.dioramaTuning || {}
+        function num(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ dioramaTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        function sw(label, key, fallback) {
+          var value = fallback ? tuning[key] !== false : tuning[key] === true
+          return mpPanelRow(t(label), h(Switch, { value: value, label: t(label), onChange: function (next) { setPrefs({ dioramaTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+        }
+        return mpSection(t('settings.dioramaTuning'), h('div', null,
+          num('settings.dioramaCamera', 'cameraSpeed', 0.55, 1.85, 0.05),
+          num('settings.dioramaMotion', 'motionAmount', 0.4, 1.6, 0.05),
+          num('settings.dioramaAudio', 'audioReactivity', 0, 1.5, 0.05),
+          num('settings.dioramaDensity', 'particleDensity', 32, 2048, 32),
+          num('settings.dioramaScale', 'particleScale', 0.5, 2, 0.05),
+          sw('settings.dioramaParticleGlow', 'particleGlowEnabled', true),
+          num('settings.dioramaParticleGlowIntensity', 'particleGlowIntensity', 0, 1.5, 0.05),
+          sw('settings.dioramaParticles', 'showParticles', true),
+          num('settings.dioramaBgCircumference', 'backgroundParticleCircumference', 4, 64, 1),
+          num('settings.dioramaBgRadial', 'backgroundParticleRadial', 1, 8, 1),
+          sw('settings.dioramaGlow', 'glowEnabled', true),
+          num('settings.dioramaGlowIntensity', 'glowIntensity', 0.1, 1.5, 0.05),
+          sw('settings.dioramaSoul', 'soulEnabled', true),
+          num('settings.dioramaSoulIntensity', 'soulIntensity', 0.1, 1.5, 0.05),
+          sw('settings.dioramaSoulActive', 'soulActiveEnabled', false),
+          sw('settings.dioramaGradient', 'gradientEnabled', false),
+          num('settings.dioramaGradientIntensity', 'gradientIntensity', 0.1, 1.5, 0.05),
+          sw('settings.dioramaKeyword', 'keywordColoringEnabled', true),
         ))
       }
       /**
