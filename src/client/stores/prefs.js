@@ -57,6 +57,24 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  hanabiTuning: {
+    hanabiColorMode: 'mixed',
+    sparkAmount: 1,
+    ornamentAmount: 1,
+    textMotion: 1,
+    blockOpacity: 1,
+    riseSpeed: 1,
+    spin: 1,
+    ambient: 1,
+    glow: 1,
+    bloom: 0.8,
+    chorusBloom: 1.3,
+    launches: true,
+    overlayFrame: true,
+    textOnly: false,
+    sky: 0.85,
+    collage: 1,
+  },
   claddaghTuning: {
     focusScaleRatio: 0.65,
     radiusScale: 1.0,
@@ -255,6 +273,31 @@ function readPrefs() {
       dropped = true
     }
   })
+  // Folia hanabi tuning: numeric amounts clamp, switches default as upstream.
+  var hanabiDefaults = PREF_DEFAULTS.hanabiTuning
+  var storedHanabi = merged.hanabiTuning && typeof merged.hanabiTuning === 'object' ? merged.hanabiTuning : {}
+  function hanabiNumber(key, min, max) {
+    var value = Number(storedHanabi[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : hanabiDefaults[key]
+  }
+  merged.hanabiTuning = {
+    hanabiColorMode: ['theme', 'vivid', 'mixed'].indexOf(storedHanabi.hanabiColorMode) >= 0 ? storedHanabi.hanabiColorMode : hanabiDefaults.hanabiColorMode,
+    sparkAmount: hanabiNumber('sparkAmount', 0, 2),
+    ornamentAmount: hanabiNumber('ornamentAmount', 0, 2),
+    textMotion: hanabiNumber('textMotion', 0, 2),
+    blockOpacity: hanabiNumber('blockOpacity', 0, 1),
+    riseSpeed: hanabiNumber('riseSpeed', 0, 2),
+    spin: hanabiNumber('spin', 0, 2),
+    ambient: hanabiNumber('ambient', 0, 2),
+    glow: hanabiNumber('glow', 0, 2),
+    bloom: hanabiNumber('bloom', 0, 2),
+    chorusBloom: hanabiNumber('chorusBloom', 0, 2),
+    launches: storedHanabi.launches !== false,
+    overlayFrame: storedHanabi.overlayFrame !== false,
+    textOnly: storedHanabi.textOnly === true,
+    sky: hanabiNumber('sky', 0, 1),
+    collage: hanabiNumber('collage', 0, 2),
+  }
   // Folia claddagh tuning: angular/numeric ranges mirror the upstream resolve().
   var claddaghDefaults = PREF_DEFAULTS.claddaghTuning
   var storedCladdagh = merged.claddaghTuning && typeof merged.claddaghTuning === 'object' ? merged.claddaghTuning : {}

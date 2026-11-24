@@ -382,6 +382,9 @@ function FoliaStyleStage(props) {
     tiltTuning: prefs.tiltTuning || undefined,
     partitaTuning: prefs.partitaTuning || undefined,
     fumeTuning: prefs.fumeTuning || undefined,
+    hanabiTuning: prefs.hanabiTuning
+      ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
+      : undefined,
     claddaghTuning: prefs.claddaghTuning
       ? Object.assign({}, prefs.claddaghTuning, { translationScale: prefs.claddaghTuning.translationFontScale })
       : undefined,

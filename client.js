@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "bfa30ff78fc2"
+    var CLIENT_BUILD = "3140d4c5bffb"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,23 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.hanabiTuning': '花火参数',
+        'settings.hanabiColorMode': '配色模式',
+        'settings.hanabiSpark': '火花量',
+        'settings.hanabiOrnament': '装饰量',
+        'settings.hanabiTextMotion': '文字动效',
+        'settings.hanabiBlockOpacity': '文字块透明度',
+        'settings.hanabiRise': '上升速度',
+        'settings.hanabiSpin': '旋转',
+        'settings.hanabiAmbient': '环境',
+        'settings.hanabiGlow': '辉光',
+        'settings.hanabiBloom': '泛光',
+        'settings.hanabiChorusBloom': '合唱泛光',
+        'settings.hanabiLaunches': '发射',
+        'settings.hanabiOverlay': '叠加边框',
+        'settings.hanabiTextOnly': '仅文字',
+        'settings.hanabiSky': '天空',
+        'settings.hanabiCollage': '拼贴',
         'settings.claddaghTuning': '回环参数',
         'settings.claddaghFocus': '聚焦缩放',
         'settings.claddaghRadius': '圆环半径',
@@ -9375,6 +9392,23 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.hanabiTuning': 'Hanabi tuning',
+        'settings.hanabiColorMode': 'Color mode',
+        'settings.hanabiSpark': 'Sparks',
+        'settings.hanabiOrnament': 'Ornaments',
+        'settings.hanabiTextMotion': 'Text motion',
+        'settings.hanabiBlockOpacity': 'Text block opacity',
+        'settings.hanabiRise': 'Rise speed',
+        'settings.hanabiSpin': 'Spin',
+        'settings.hanabiAmbient': 'Ambient',
+        'settings.hanabiGlow': 'Glow',
+        'settings.hanabiBloom': 'Bloom',
+        'settings.hanabiChorusBloom': 'Chorus bloom',
+        'settings.hanabiLaunches': 'Launches',
+        'settings.hanabiOverlay': 'Overlay frame',
+        'settings.hanabiTextOnly': 'Text only',
+        'settings.hanabiSky': 'Sky',
+        'settings.hanabiCollage': 'Collage',
         'settings.claddaghTuning': 'Claddagh tuning',
         'settings.claddaghFocus': 'Focus scale',
         'settings.claddaghRadius': 'Ring radius',
@@ -140607,6 +140641,9 @@ window.__ModuleLoader__.load({
         tiltTuning: prefs.tiltTuning || undefined,
         partitaTuning: prefs.partitaTuning || undefined,
         fumeTuning: prefs.fumeTuning || undefined,
+        hanabiTuning: prefs.hanabiTuning
+          ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
+          : undefined,
         claddaghTuning: prefs.claddaghTuning
           ? Object.assign({}, prefs.claddaghTuning, { translationScale: prefs.claddaghTuning.translationFontScale })
           : undefined,
@@ -151286,6 +151323,24 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      hanabiTuning: {
+        hanabiColorMode: 'mixed',
+        sparkAmount: 1,
+        ornamentAmount: 1,
+        textMotion: 1,
+        blockOpacity: 1,
+        riseSpeed: 1,
+        spin: 1,
+        ambient: 1,
+        glow: 1,
+        bloom: 0.8,
+        chorusBloom: 1.3,
+        launches: true,
+        overlayFrame: true,
+        textOnly: false,
+        sky: 0.85,
+        collage: 1,
+      },
       claddaghTuning: {
         focusScaleRatio: 0.65,
         radiusScale: 1.0,
@@ -151484,6 +151539,31 @@ window.__ModuleLoader__.load({
           dropped = true
         }
       })
+      // Folia hanabi tuning: numeric amounts clamp, switches default as upstream.
+      var hanabiDefaults = PREF_DEFAULTS.hanabiTuning
+      var storedHanabi = merged.hanabiTuning && typeof merged.hanabiTuning === 'object' ? merged.hanabiTuning : {}
+      function hanabiNumber(key, min, max) {
+        var value = Number(storedHanabi[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : hanabiDefaults[key]
+      }
+      merged.hanabiTuning = {
+        hanabiColorMode: ['theme', 'vivid', 'mixed'].indexOf(storedHanabi.hanabiColorMode) >= 0 ? storedHanabi.hanabiColorMode : hanabiDefaults.hanabiColorMode,
+        sparkAmount: hanabiNumber('sparkAmount', 0, 2),
+        ornamentAmount: hanabiNumber('ornamentAmount', 0, 2),
+        textMotion: hanabiNumber('textMotion', 0, 2),
+        blockOpacity: hanabiNumber('blockOpacity', 0, 1),
+        riseSpeed: hanabiNumber('riseSpeed', 0, 2),
+        spin: hanabiNumber('spin', 0, 2),
+        ambient: hanabiNumber('ambient', 0, 2),
+        glow: hanabiNumber('glow', 0, 2),
+        bloom: hanabiNumber('bloom', 0, 2),
+        chorusBloom: hanabiNumber('chorusBloom', 0, 2),
+        launches: storedHanabi.launches !== false,
+        overlayFrame: storedHanabi.overlayFrame !== false,
+        textOnly: storedHanabi.textOnly === true,
+        sky: hanabiNumber('sky', 0, 1),
+        collage: hanabiNumber('collage', 0, 2),
+      }
       // Folia claddagh tuning: angular/numeric ranges mirror the upstream resolve().
       var claddaghDefaults = PREF_DEFAULTS.claddaghTuning
       var storedCladdagh = merged.claddaghTuning && typeof merged.claddaghTuning === 'object' ? merged.claddaghTuning : {}
@@ -179510,6 +179590,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'partita' ? partitaTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'fume' ? fumeTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'claddagh' ? claddaghTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'hanabi' ? hanabiTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -179780,6 +179861,41 @@ window.__ModuleLoader__.load({
           sw('settings.claddaghTranslation', 'showTranslation', false),
           num('settings.claddaghTranslationScale', 'translationFontScale', 0.5, 2, 0.05),
           num('settings.claddaghTranslationSpacing', 'translationLetterSpacingOffset', -5, 20, 1),
+        ))
+      }
+      /** Folia hanabi tuning: amounts, switches and colour mode. */
+      function hanabiTuningBlock() {
+        var tuning = prefs.hanabiTuning || {}
+        function num(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ hanabiTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        function sw(label, key, fallback) {
+          var value = fallback ? tuning[key] !== false : tuning[key] === true
+          return mpPanelRow(t(label), h(Switch, { value: value, label: t(label), onChange: function (next) { setPrefs({ hanabiTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+        }
+        return mpSection(t('settings.hanabiTuning'), h('div', null,
+          mpPanelRow(t('settings.hanabiColorMode'), segmented([{ value: 'theme', label: 'Theme' }, { value: 'vivid', label: 'Vivid' }, { value: 'mixed', label: 'Mixed' }], ['theme', 'vivid', 'mixed'].indexOf(tuning.hanabiColorMode) >= 0 ? tuning.hanabiColorMode : 'mixed', function (value) { setPrefs({ hanabiTuning: Object.assign({}, tuning, { hanabiColorMode: value }) }) })),
+          num('settings.hanabiSpark', 'sparkAmount', 0, 2, 0.05),
+          num('settings.hanabiOrnament', 'ornamentAmount', 0, 2, 0.05),
+          num('settings.hanabiTextMotion', 'textMotion', 0, 2, 0.05),
+          num('settings.hanabiBlockOpacity', 'blockOpacity', 0, 1, 0.05),
+          num('settings.hanabiRise', 'riseSpeed', 0, 2, 0.05),
+          num('settings.hanabiSpin', 'spin', 0, 2, 0.05),
+          num('settings.hanabiAmbient', 'ambient', 0, 2, 0.05),
+          num('settings.hanabiGlow', 'glow', 0, 2, 0.05),
+          num('settings.hanabiBloom', 'bloom', 0, 2, 0.05),
+          num('settings.hanabiChorusBloom', 'chorusBloom', 0, 2, 0.05),
+          sw('settings.hanabiLaunches', 'launches', true),
+          sw('settings.hanabiOverlay', 'overlayFrame', true),
+          sw('settings.hanabiTextOnly', 'textOnly', false),
+          num('settings.hanabiSky', 'sky', 0, 1, 0.05),
+          num('settings.hanabiCollage', 'collage', 0, 2, 0.05),
         ))
       }
       /**

@@ -1088,6 +1088,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'partita' ? partitaTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'fume' ? fumeTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'claddagh' ? claddaghTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'hanabi' ? hanabiTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1358,6 +1359,41 @@ function PlayerSheetInner(props) {
       sw('settings.claddaghTranslation', 'showTranslation', false),
       num('settings.claddaghTranslationScale', 'translationFontScale', 0.5, 2, 0.05),
       num('settings.claddaghTranslationSpacing', 'translationLetterSpacingOffset', -5, 20, 1),
+    ))
+  }
+  /** Folia hanabi tuning: amounts, switches and colour mode. */
+  function hanabiTuningBlock() {
+    var tuning = prefs.hanabiTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ hanabiTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    function sw(label, key, fallback) {
+      var value = fallback ? tuning[key] !== false : tuning[key] === true
+      return mpPanelRow(t(label), h(Switch, { value: value, label: t(label), onChange: function (next) { setPrefs({ hanabiTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+    }
+    return mpSection(t('settings.hanabiTuning'), h('div', null,
+      mpPanelRow(t('settings.hanabiColorMode'), segmented([{ value: 'theme', label: 'Theme' }, { value: 'vivid', label: 'Vivid' }, { value: 'mixed', label: 'Mixed' }], ['theme', 'vivid', 'mixed'].indexOf(tuning.hanabiColorMode) >= 0 ? tuning.hanabiColorMode : 'mixed', function (value) { setPrefs({ hanabiTuning: Object.assign({}, tuning, { hanabiColorMode: value }) }) })),
+      num('settings.hanabiSpark', 'sparkAmount', 0, 2, 0.05),
+      num('settings.hanabiOrnament', 'ornamentAmount', 0, 2, 0.05),
+      num('settings.hanabiTextMotion', 'textMotion', 0, 2, 0.05),
+      num('settings.hanabiBlockOpacity', 'blockOpacity', 0, 1, 0.05),
+      num('settings.hanabiRise', 'riseSpeed', 0, 2, 0.05),
+      num('settings.hanabiSpin', 'spin', 0, 2, 0.05),
+      num('settings.hanabiAmbient', 'ambient', 0, 2, 0.05),
+      num('settings.hanabiGlow', 'glow', 0, 2, 0.05),
+      num('settings.hanabiBloom', 'bloom', 0, 2, 0.05),
+      num('settings.hanabiChorusBloom', 'chorusBloom', 0, 2, 0.05),
+      sw('settings.hanabiLaunches', 'launches', true),
+      sw('settings.hanabiOverlay', 'overlayFrame', true),
+      sw('settings.hanabiTextOnly', 'textOnly', false),
+      num('settings.hanabiSky', 'sky', 0, 1, 0.05),
+      num('settings.hanabiCollage', 'collage', 0, 2, 0.05),
     ))
   }
   /**
