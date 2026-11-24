@@ -95,7 +95,8 @@ const card = api.__internals.PlayerSheet({
 assert.ok(card !== null && typeof card === 'object', 'the card renders')
 // The mock React does not run components, so the element the wrapper returned is
 // invoked by hand: that is what executes every pane function and would throw.
-const rendered = typeof card.type === 'function' ? card.type(card.props) : card
+const inner = typeof card.type === 'function' ? card.type(card.props) : card
+const rendered = typeof inner.type === 'function' ? inner.type(inner.props) : inner
 
 /** Every string in the tree, in render order. */
 function textOf(node, out) {

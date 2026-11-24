@@ -207,7 +207,7 @@ assert.doesNotMatch(theme, /\.mp-np \.mp-cap \.mp-seek[^']*#fff/, 'capsule seek 
 // the dark player page's white ink.
 assert.match(theme, /\.mp-card\{[^']*color:var\(--dsw-alias-label-primary/, 'player card ink follows the theme')
 assert.doesNotMatch(theme, /\.mp-card\{[^']*--dsw-alias-label-primary:/, 'player card does not pin dark ink')
-const playerSheet = readFileSync(join(uiDir, 'player-sheet.js'), 'utf8')
+const playerSheet = readFileSync(join(uiDir, 'player-shell.js'), 'utf8') + readFileSync(join(uiDir, 'player-sheet.js'), 'utf8')
 assert.match(playerSheet, /background: 'color-mix\(in srgb, var\(--dsw-alias-bg-layer-1/, 'player card glass uses the host surface token')
 assert.doesNotMatch(playerSheet, /rgba\(23, 23, 26, 0\.95\)/, 'player card no longer paints fixed dark glass')
 assert.doesNotMatch(playerSheet, /colorMode|setColorMode|sheet\.light|sheet\.dark/, 'no dead theme-mode switch; theme follows DSH')

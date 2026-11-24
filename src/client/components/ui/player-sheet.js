@@ -1374,78 +1374,16 @@ function PlayerSheetInner(props) {
     }),
   )
 
-  var surfaceStyle = {
-    position: 'absolute',
-    right: (props.anchor && props.anchor.right >= 0 ? String(props.anchor.right) + 'px' : '22px'),
+  return h(FoliaPanelShell, {
+    framer: framer,
+    right: props.anchor && props.anchor.right >= 0 ? String(props.anchor.right) + 'px' : '22px',
     bottom: String(cardBottom) + 'px',
-    width: '360px',
-    maxWidth: 'calc(100vw - 2rem)',
     maxHeight: String(cardMaxH) + 'px',
-    display: 'flex',
-    flexDirection: 'column',
-    padding: String(MP_PADDING) + 'px',
-    borderRadius: 'var(--dsw-radius-xl,20px)',
-    pointerEvents: 'auto',
-    background: 'color-mix(in srgb, var(--dsw-alias-bg-layer-1, #232324) 95%, transparent)',
-    backdropFilter: 'blur(40px) saturate(1.3)',
-    // §2.4: an elevated surface carries the elevation (its own hairline), never a border too.
-    border: 0,
-    boxShadow: 'var(--dsw-elevation-prominent,0 30px 80px rgba(0,0,0,.55))',
-    transformOrigin: 'calc(100% - 24px) calc(100% + 24px)',
-    overflow: 'hidden',
-  }
-
-  var surfaceProps = framer
-    ? {
-        className: 'mp-card',
-        initial: framer.enter,
-        animate: Object.assign({}, framer.shown, { transition: framer.transition }),
-        exit: Object.assign({}, framer.leave, { transition: framer.leaveTransition }),
-        style: surfaceStyle,
-        onClick: function (event) {
-          event.stopPropagation()
-        },
-      }
-    : {
-        className: 'mp-card',
-        style: Object.assign({}, surfaceStyle, {
-          animation: 'mp-card-in ' + MP_DUR_UNFOLD + 's cubic-bezier(.22,1,.36,1) backwards',
-        }),
-        onClick: function (event) {
-          event.stopPropagation()
-        },
-      }
-
-  var Surface = framer ? framer.surface : 'div'
-
-  return h(
-    'div',
-    {
-      className: 'mp-card-root',
-      'data-card-motion': framer ? 'framer' : 'css',
-      role: 'dialog',
-      'aria-modal': 'false',
-      style: { position: 'fixed', inset: '0', zIndex: String(MP_Z.page), pointerEvents: 'none' },
-    },
-    h('div', {
-      className: 'mp-card-catcher',
-      onClick: onClose,
-      style: { position: 'absolute', inset: '0', pointerEvents: 'auto', background: 'transparent' },
-    }),
-    h(
-      Surface,
-      surfaceProps,
-      h(
-        'style',
-        null,
-        '@keyframes mp-card-in{from{opacity:0;scale:.92}to{opacity:1;scale:1}}' +
-          '@keyframes mp-page-in{from{opacity:0;transform:translateY(6px)}}',
-      ),
-      header,
-      body,
-      dock,
-    ),
-  )
+    onClose: onClose,
+    header: header,
+    body: body,
+    dock: dock,
+  })
 }
 
 

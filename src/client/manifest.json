@@ -101,6 +101,7 @@
     "src/client/app/brand.js",
     "src/client/app/contact.js",
     "src/client/panel-v3/p3-shell.js",
+    "src/client/components/ui/player-shell.js",
     "src/client/components/ui/player-sheet.js",
     "src/client/components/ui/lyric-match.js",
     "src/client/components/ui/lyric-preview.js",
