@@ -89,9 +89,6 @@ function PlayerSheetInner(props) {
   var lookPicker = lookPickerPair[0]
   var setLookPicker = lookPickerPair[1]
 
-  var queueScrollPair = useState(0)
-  var queueScroll = queueScrollPair[0]
-  var setQueueScroll = queueScrollPair[1]
   var bodyHPair = useState(0)
   var bodyH = bodyHPair[0]
   var setBodyH = bodyHPair[1]
@@ -645,44 +642,115 @@ function PlayerSheetInner(props) {
 
   // 外观 tab — the stage's look: background and theme. Sound (including volume) lives on the
   // audio page, so this page only paints.
-  /** Mouse wheel over a tuning slider: adjust by its step without scrolling the sheet. */
-  function tuningWheel(event) {
-    var target = event.target
-    var input = target && typeof target.closest === 'function' ? target.closest('input[type="range"]') : null
-    if (input === null || input.disabled) return false
-    event.preventDefault()
-    var step = Number(input.step) || 1
-    var min = Number(input.min)
-    var max = Number(input.max)
-    var current = Number(input.value)
-    if (!isFinite(min)) min = 0
-    if (!isFinite(max)) max = 100
-    if (!isFinite(current)) current = min
-    var next = Math.min(max, Math.max(min, current + (event.deltaY < 0 ? step : -step)))
-    if (next === current) return true
-    var setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
-    setter.call(input, String(next))
-    input.dispatchEvent(new Event('input', { bubbles: true }))
-    input.dispatchEvent(new Event('change', { bubbles: true }))
-    return true
-  }
-
-  /** A range input plus its value; the input owns a non-passive wheel listener. */
+  /** Custom tuning slider: pointer drag, keyboard and wheel, no native range quirks. */
   function TuningRange(props) {
-    var ref = useRef(null)
-    useEffect(function () {
-      var input = ref.current
-      if (input === null) return undefined
-      function onWheel(event) {
-        if (tuningWheel(event)) event.preventDefault()
+    var controlProps = props.control && props.control.props ? props.control.props : {}
+    var min = Number(controlProps.min)
+    var max = Number(controlProps.max)
+    var step = Number(controlProps.step)
+    if (!isFinite(min)) min = 0
+    if (!isFinite(max)) max = 1
+    if (!isFinite(step) || step <= 0) step = (max - min) / 100
+    var disabled = controlProps.disabled === true
+    var onChange = typeof controlProps.onChange === 'function' ? controlProps.onChange : null
+    var valuePair = useState(Number(controlProps.value))
+    var shown = valuePair[0]
+    var setShown = valuePair[1]
+    var trackRef = useRef(null)
+    var draggingRef = useRef(false)
+    if (!isFinite(shown)) shown = min
+    function quantize(next) {
+      var steps = Math.round((next - min) / step)
+      var result = min + steps * step
+      result = Math.min(max, Math.max(min, result))
+      var decimals = (String(step).split('.')[1] || '').length
+      return Number(result.toFixed(Math.min(6, decimals + 2)))
+    }
+    function emit(next) {
+      var clean = quantize(next)
+      if (clean === shown) return
+      setShown(clean)
+      if (onChange !== null) {
+        onChange({ target: { value: String(clean) }, currentTarget: { value: String(clean) } })
       }
-      input.addEventListener('wheel', onWheel, { passive: false })
-      return function () { input.removeEventListener('wheel', onWheel) }
-    }, [])
-    var control = React.cloneElement(props.control, { ref: ref })
-    return h(React.Fragment, null, control, h('span', { className: 'mp-tuning-range-value' }, String(props.value === undefined ? '' : props.value)))
+    }
+    function ratioFromClientX(clientX) {
+      var track = trackRef.current
+      if (track === null) return shown
+      var rect = track.getBoundingClientRect()
+      if (rect.width <= 0) return shown
+      var ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
+      return min + ratio * (max - min)
+    }
+    useEffect(function () {
+      setShown(Number(controlProps.value))
+    }, [controlProps.value])
+    useEffect(function () {
+      var track = trackRef.current
+      if (track === null || disabled) return undefined
+      function onWheel(event) {
+        event.preventDefault()
+        var delta = event.deltaY < 0 ? step : -step
+        emit(Number(track.getAttribute('aria-valuenow')) + delta)
+      }
+      track.addEventListener('wheel', onWheel, { passive: false })
+      return function () { track.removeEventListener('wheel', onWheel) }
+    }, [disabled, max, min, shown, step])
+    function down(event) {
+      if (disabled || event.button !== 0) return
+      event.preventDefault()
+      draggingRef.current = true
+      if (typeof event.currentTarget.setPointerCapture === 'function') event.currentTarget.setPointerCapture(event.pointerId)
+      emit(ratioFromClientX(event.clientX))
+    }
+    function move(event) {
+      if (!draggingRef.current) return
+      event.preventDefault()
+      emit(ratioFromClientX(event.clientX))
+    }
+    function up(event) {
+      draggingRef.current = false
+      if (typeof event.currentTarget.releasePointerCapture === 'function') {
+        try { event.currentTarget.releasePointerCapture(event.pointerId) } catch (error) {}
+      }
+    }
+    function key(event) {
+      if (disabled) return
+      var next = shown
+      if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next += step
+      else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next -= step
+      else if (event.key === 'Home') next = min
+      else if (event.key === 'End') next = max
+      else return
+      event.preventDefault()
+      emit(next)
+    }
+    var percent = max > min ? ((shown - min) / (max - min)) * 100 : 0
+    percent = Math.max(0, Math.min(100, percent))
+    return h(React.Fragment, null,
+      h('div', {
+        ref: trackRef,
+        className: 'mp-tuning-slider' + (disabled ? ' is-disabled' : ''),
+        role: 'slider',
+        tabIndex: disabled ? -1 : 0,
+        'aria-label': controlProps['aria-label'] || 'slider',
+        'aria-valuemin': String(min),
+        'aria-valuemax': String(max),
+        'aria-valuenow': String(shown),
+        onPointerDown: down,
+        onPointerMove: move,
+        onPointerUp: up,
+        onPointerCancel: up,
+        onKeyDown: key,
+      },
+        h('div', { className: 'mp-tuning-slider-track' },
+          h('div', { className: 'mp-tuning-slider-fill', style: { width: String(percent) + '%' } }),
+          h('div', { className: 'mp-tuning-slider-thumb', style: { left: String(percent) + '%' } }),
+        ),
+      ),
+      h('span', { className: 'mp-tuning-range-value' }, String(shown)),
+    )
   }
-
   function TuningGrid(props) {
     return h('div', { className: 'mp-tuning-grid' }, props.children)
   }
@@ -1232,12 +1300,12 @@ function PlayerSheetInner(props) {
    */
   function cardQueuePane() {
     var queue = Array.isArray(snap.queue) ? snap.queue : []
-    var listHeight = Math.max(320, Math.min(900, (typeof window !== 'undefined' ? window.innerHeight : 900) - 300))
     var current = Number(snap.index)
     var order = snap.order === 'random' && typeof player.getPlayOrder === 'function'
       ? player.getPlayOrder()
       : queue.map(function (_, index) { return index })
     if (!Array.isArray(order) || order.length !== queue.length) order = queue.map(function (_, index) { return index })
+    var listHeight = Math.max(320, Math.min(900, (typeof window !== 'undefined' ? window.innerHeight : 900) - 300))
     function move(index, target) {
       if (!Number.isInteger(index) || index < 0 || index >= queue.length) return
       var indices = queue.map(function (_, at) { return at })
@@ -1277,51 +1345,39 @@ function PlayerSheetInner(props) {
         ? h('div', { className: 'mpv3-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty')))
         : h('div', {
             className: 'mpv3-queue-list',
-            style: { height: String(Math.min(queue.length * 56, listHeight)) + 'px' },
-            onScroll: function (event) { setQueueScroll(event.currentTarget.scrollTop) },
+            style: { height: String(listHeight) + 'px', overflowY: 'auto' },
           },
-            (function () {
-              var rowHeight = 56
-              var viewport = listHeight
-              var start = Math.max(0, Math.floor(queueScroll / rowHeight) - 2)
-              var endAt = Math.min(queue.length, start + Math.ceil(viewport / rowHeight) + 4)
-              var rows = []
-              if (start > 0) rows.push(h('div', { key: 'before', style: { height: String(start * rowHeight) + 'px' } }))
-              for (var position = start; position < endAt; position += 1) {
-                var at = Number(order[position])
-                var track = queue[at]
-                if (track === null || typeof track !== 'object') continue
-                var active = at === current
-                rows.push(h(
-                  'div',
-                  {
-                    key: String(track.path || at) + ':' + String(position),
-                    className: 'mpv3-queue-row' + (active ? ' is-cur' : ''),
-                    role: 'button',
-                    tabIndex: 0,
-                    onClick: function () { player.select(queue, at) },
-                    onKeyDown: function (event) {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault()
-                        player.select(queue, at)
-                      }
-                    },
+            order.map(function (at, position) {
+              var track = queue[at]
+              if (track === null || typeof track !== 'object') return null
+              var active = at === current
+              return h(
+                'div',
+                {
+                  key: String(track.path || at) + ':' + String(position),
+                  className: 'mpv3-queue-row' + (active ? ' is-cur' : ''),
+                  role: 'button',
+                  tabIndex: 0,
+                  onClick: function () { player.select(queue, at) },
+                  onKeyDown: function (event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      player.select(queue, at)
+                    }
                   },
-                  h('span', { className: 'mpv3-queue-idx' }, active ? h(P3QueueWave, { playing: snap.playing }) : String(position + 1)),
-                  h('span', { className: 'mpv3-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
-                  h('span', { className: 'mpv3-queue-main' },
-                    h('span', { className: 'mpv3-queue-name' }, trackTitleOf(track)),
-                    h('span', { className: 'mpv3-queue-artist' }, trackArtistOf(track)),
-                  ),
-                  h('span', { className: 'mpv3-queue-time' }, fmtClock(track.durationSec || 0)),
-                  h(IconButton, { icon: 'playlist', size: 13, title: t('p3.playNext'), className: 'mpv3-queue-remove', onClick: function (event) { event.stopPropagation(); move(at, current + 1) } }),
-                  h(IconButton, { icon: 'down', size: 13, title: t('p3.moveToEnd'), className: 'mpv3-queue-remove', onClick: function (event) { event.stopPropagation(); move(at, queue.length - 1) } }),
-                  h(IconButton, { icon: 'x', size: 13, title: t('p3.removeFromQueue'), className: 'mpv3-queue-remove', onClick: function (event) { event.stopPropagation(); player.removeQueueAt(at) } }),
-                ))
-              }
-              if (endAt < queue.length) rows.push(h('div', { key: 'after', style: { height: String((queue.length - endAt) * rowHeight) + 'px' } }))
-              return rows
-            })(),
+                },
+                h('span', { className: 'mpv3-queue-idx' }, active ? h(P3QueueWave, { playing: snap.playing }) : String(position + 1)),
+                h('span', { className: 'mpv3-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+                h('span', { className: 'mpv3-queue-main' },
+                  h('span', { className: 'mpv3-queue-name' }, trackTitleOf(track)),
+                  h('span', { className: 'mpv3-queue-artist' }, trackArtistOf(track)),
+                ),
+                h('span', { className: 'mpv3-queue-time' }, fmtClock(track.durationSec || 0)),
+                h(IconButton, { icon: 'playlist', size: 13, title: t('p3.playNext'), className: 'mpv3-queue-remove', onClick: function (event) { event.stopPropagation(); move(at, current + 1) } }),
+                h(IconButton, { icon: 'down', size: 13, title: t('p3.moveToEnd'), className: 'mpv3-queue-remove', onClick: function (event) { event.stopPropagation(); move(at, queue.length - 1) } }),
+                h(IconButton, { icon: 'x', size: 13, title: t('p3.removeFromQueue'), className: 'mpv3-queue-remove', onClick: function (event) { event.stopPropagation(); player.removeQueueAt(at) } }),
+              )
+            }),
           ),
     )
   }

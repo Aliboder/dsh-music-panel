@@ -39,7 +39,7 @@ test('five tabs, one subject each', () => {
 
 test('队列 page: Folia row, move and remove actions', () => {
   assert.match(queue, /mpv3-queue-row/, 'the queue renders the playback queue rows')
-  assert.match(queue, /queueScroll/, 'the queue windows long lists')
+  assert.match(queue, /overflowY: 'auto'/, 'the queue scrolls long lists')
   assert.match(queue, /mpv3-queue-name/, 'the queue uses the playback queue title style')
   assert.match(queue, /player\.reorderQueue/, 'move next/end uses the player order')
   assert.match(queue, /player\.removeQueueAt/, 'remove uses the player queue')
@@ -67,9 +67,10 @@ test('歌词显示 has named controls, not glyph-only buttons', () => {
 })
 
 test('style tuning sliders show values and respond to the wheel', () => {
+  assert.match(sheet, /onPointerDown: down/, 'the slider is pointer-controlled')
+  assert.match(sheet, /onPointerMove: move/, 'dragging tracks the pointer')
   assert.match(sheet, /addEventListener\('wheel', onWheel, \{ passive: false \}\)/, 'the wheel listener is non-passive')
   assert.match(sheet, /mp-tuning-range-value/)
-  assert.match(sheet, /input\.dispatchEvent\(new Event\('input'/, 'wheel moves the native range input')
 })
 
 test('style option labels are translated', () => {
