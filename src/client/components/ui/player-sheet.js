@@ -642,7 +642,7 @@ function PlayerSheetInner(props) {
 
   // 外观 tab — the stage's look: background and theme. Sound (including volume) lives on the
   // audio page, so this page only paints.
-  /** Custom tuning slider: window-level pointer tracking, keyboard and wheel. */
+  /** Tuning slider: same native-range + non-passive wheel pattern as VolumeControl. */
   function TuningRange(props) {
     var controlProps = props.control && props.control.props ? props.control.props : {}
     var min = Number(controlProps.min)
@@ -651,110 +651,60 @@ function PlayerSheetInner(props) {
     if (!isFinite(min)) min = 0
     if (!isFinite(max)) max = 1
     if (!isFinite(step) || step <= 0) step = (max - min) / 100
+    var value = Number(controlProps.value)
+    if (!isFinite(value)) value = min
     var disabled = controlProps.disabled === true
     var onChange = typeof controlProps.onChange === 'function' ? controlProps.onChange : null
-    var valuePair = useState(Number(controlProps.value))
-    var shown = valuePair[0]
-    var setShown = valuePair[1]
-    if (!isFinite(shown)) shown = min
-    var trackRef = useRef(null)
-    var draggingRef = useRef(false)
-    var valueRef = useRef(shown)
-    var configRef = useRef({ min: min, max: max, step: step, disabled: disabled, onChange: onChange })
-    configRef.current = { min: min, max: max, step: step, disabled: disabled, onChange: onChange }
-    function quantize(next) {
-      var config = configRef.current
+    var rootRef = useRef(null)
+    var live = useRef({ value: value, min: min, max: max, step: step, disabled: disabled, onChange: onChange })
+    live.current = { value: value, min: min, max: max, step: step, disabled: disabled, onChange: onChange }
+    function clean(next) {
+      var config = live.current
       var steps = Math.round((next - config.min) / config.step)
       var result = config.min + steps * config.step
       result = Math.min(config.max, Math.max(config.min, result))
       var decimals = (String(config.step).split('.')[1] || '').length
       return Number(result.toFixed(Math.min(6, decimals + 2)))
     }
-    function emit(next) {
-      var clean = quantize(next)
-      if (clean === valueRef.current) return
-      valueRef.current = clean
-      setShown(clean)
-      var handler = configRef.current.onChange
-      if (handler !== null) handler({ target: { value: String(clean) }, currentTarget: { value: String(clean) } })
-    }
-    function updateFromClientX(clientX) {
-      var track = trackRef.current
-      if (track === null) return
-      var rect = track.getBoundingClientRect()
-      if (rect.width <= 0) return
-      var ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
-      var config = configRef.current
-      emit(config.min + ratio * (config.max - config.min))
+    function commit(next) {
+      var config = live.current
+      if (config.disabled || config.onChange === null) return
+      var valueNow = clean(next)
+      if (valueNow === config.value) return
+      config.onChange({ target: { value: String(valueNow) }, currentTarget: { value: String(valueNow) } })
     }
     useEffect(function () {
-      valueRef.current = Number(controlProps.value)
-      setShown(Number(controlProps.value))
-    }, [controlProps.value])
-    useEffect(function () {
-      var track = trackRef.current
-      if (track === null) return undefined
+      var node = rootRef.current
+      if (node === null) return undefined
       function onWheel(event) {
-        if (configRef.current.disabled) return
+        var config = live.current
+        if (config.disabled || event.deltaY === 0) return
         event.preventDefault()
-        var delta = event.deltaY < 0 ? configRef.current.step : -configRef.current.step
-        emit(valueRef.current + delta)
+        commit(config.value + (event.deltaY < 0 ? config.step : -config.step))
       }
-      track.addEventListener('wheel', onWheel, { passive: false })
-      return function () { track.removeEventListener('wheel', onWheel) }
+      node.addEventListener('wheel', onWheel, { passive: false })
+      return function () { node.removeEventListener('wheel', onWheel) }
     }, [])
-    function down(event) {
-      if (configRef.current.disabled || event.button !== 0) return
-      event.preventDefault()
-      draggingRef.current = true
-      updateFromClientX(event.clientX)
-      function move(moveEvent) {
-        if (!draggingRef.current) return
-        moveEvent.preventDefault()
-        updateFromClientX(moveEvent.clientX)
-      }
-      function end() {
-        draggingRef.current = false
-        window.removeEventListener('pointermove', move)
-        window.removeEventListener('pointerup', end)
-        window.removeEventListener('pointercancel', end)
-      }
-      window.addEventListener('pointermove', move, { passive: false })
-      window.addEventListener('pointerup', end)
-      window.addEventListener('pointercancel', end)
-    }
-    function key(event) {
-      if (configRef.current.disabled) return
-      var next = valueRef.current
-      if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next += configRef.current.step
-      else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next -= configRef.current.step
-      else if (event.key === 'Home') next = configRef.current.min
-      else if (event.key === 'End') next = configRef.current.max
-      else return
-      event.preventDefault()
-      emit(next)
-    }
-    var percent = max > min ? ((shown - min) / (max - min)) * 100 : 0
-    percent = Math.max(0, Math.min(100, percent))
     return h(React.Fragment, null,
-      h('div', {
-        ref: trackRef,
+      h('span', {
+        ref: rootRef,
         className: 'mp-tuning-slider' + (disabled ? ' is-disabled' : ''),
-        role: 'slider',
-        tabIndex: disabled ? -1 : 0,
-        'aria-label': controlProps['aria-label'] || 'slider',
-        'aria-valuemin': String(min),
-        'aria-valuemax': String(max),
-        'aria-valuenow': String(shown),
-        onPointerDown: down,
-        onKeyDown: key,
+        onPointerDown: function (event) { event.stopPropagation() },
+        onClick: function (event) { event.stopPropagation() },
       },
-        h('div', { className: 'mp-tuning-slider-track' },
-          h('div', { className: 'mp-tuning-slider-fill', style: { width: String(percent) + '%' } }),
-          h('div', { className: 'mp-tuning-slider-thumb', style: { left: String(percent) + '%' } }),
-        ),
+        h('input', {
+          type: 'range',
+          className: 'mp-range mp-tuning-range-input',
+          min: String(min),
+          max: String(max),
+          step: String(step),
+          value: String(value),
+          disabled: disabled,
+          'aria-label': controlProps['aria-label'] || 'slider',
+          onChange: onChange === null ? undefined : function (event) { commit(Number(event.target.value)) },
+        }),
       ),
-      h('span', { className: 'mp-tuning-range-value' }, String(shown)),
+      h('span', { className: 'mp-tuning-range-value' }, String(value)),
     )
   }
   function TuningGrid(props) {

@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "acc550d0a5f3"
+    var CLIENT_BUILD = "95cdc30474b6"
 
     // ── src/client/app/runtime.js
     /**
@@ -179778,12 +179778,9 @@ window.__ModuleLoader__.load({
       '.mp-tuning-label-inner{display:inline-block;white-space:nowrap;will-change:transform}',
       '.mp-tuning-label.is-overflow .mp-tuning-label-inner{animation:mp-tuning-marquee 3.2s ease-in-out infinite alternate}',
       '@keyframes mp-tuning-marquee{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--mp-label-shift,0px)))}}',
-      '.mp-tuning-slider{position:relative;display:flex;align-items:center;flex:1 1 auto;min-width:64px;height:22px;cursor:pointer;touch-action:none;outline:none}',
-      '.mp-tuning-slider.is-disabled{cursor:default;opacity:.45}',
-      '.mp-tuning-slider-track{position:relative;width:100%;height:4px;border-radius:999px;background:var(--dsw-alias-border-l2,rgba(255,255,255,.18))}',
-      '.mp-tuning-slider-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--dsw-alias-state-business-primary,#4176E6)}',
-      '.mp-tuning-slider-thumb{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--dsw-alias-label-primary,#f4f4f5);transform:translate(-50%,-50%);box-shadow:0 1px 3px rgba(0,0,0,.35)}',
-      '.mp-tuning-slider:focus-visible .mp-tuning-slider-thumb{box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176E6) 38%,transparent)}',
+      '.mp-tuning-slider{display:flex;align-items:center;flex:1 1 auto;min-width:64px;min-width:0}',
+      '.mp-tuning-slider.is-disabled{opacity:.45}',
+      '.mp-tuning-slider .mp-tuning-range-input{width:100%;min-width:0;flex:1 1 auto}',
       '.mp-tuning-range-value{flex:0 0 auto;min-width:32px;text-align:right;font-size:11px;line-height:16px;opacity:.72;font-variant-numeric:tabular-nums;pointer-events:none}',
       // 设置页分组卡片：组标题在卡外，行在卡内（歌词页与播放控制页共用）。
       '.mp-set-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',
@@ -194810,7 +194807,7 @@ window.__ModuleLoader__.load({
 
       // 外观 tab — the stage's look: background and theme. Sound (including volume) lives on the
       // audio page, so this page only paints.
-      /** Custom tuning slider: window-level pointer tracking, keyboard and wheel. */
+      /** Tuning slider: same native-range + non-passive wheel pattern as VolumeControl. */
       function TuningRange(props) {
         var controlProps = props.control && props.control.props ? props.control.props : {}
         var min = Number(controlProps.min)
@@ -194819,110 +194816,60 @@ window.__ModuleLoader__.load({
         if (!isFinite(min)) min = 0
         if (!isFinite(max)) max = 1
         if (!isFinite(step) || step <= 0) step = (max - min) / 100
+        var value = Number(controlProps.value)
+        if (!isFinite(value)) value = min
         var disabled = controlProps.disabled === true
         var onChange = typeof controlProps.onChange === 'function' ? controlProps.onChange : null
-        var valuePair = useState(Number(controlProps.value))
-        var shown = valuePair[0]
-        var setShown = valuePair[1]
-        if (!isFinite(shown)) shown = min
-        var trackRef = useRef(null)
-        var draggingRef = useRef(false)
-        var valueRef = useRef(shown)
-        var configRef = useRef({ min: min, max: max, step: step, disabled: disabled, onChange: onChange })
-        configRef.current = { min: min, max: max, step: step, disabled: disabled, onChange: onChange }
-        function quantize(next) {
-          var config = configRef.current
+        var rootRef = useRef(null)
+        var live = useRef({ value: value, min: min, max: max, step: step, disabled: disabled, onChange: onChange })
+        live.current = { value: value, min: min, max: max, step: step, disabled: disabled, onChange: onChange }
+        function clean(next) {
+          var config = live.current
           var steps = Math.round((next - config.min) / config.step)
           var result = config.min + steps * config.step
           result = Math.min(config.max, Math.max(config.min, result))
           var decimals = (String(config.step).split('.')[1] || '').length
           return Number(result.toFixed(Math.min(6, decimals + 2)))
         }
-        function emit(next) {
-          var clean = quantize(next)
-          if (clean === valueRef.current) return
-          valueRef.current = clean
-          setShown(clean)
-          var handler = configRef.current.onChange
-          if (handler !== null) handler({ target: { value: String(clean) }, currentTarget: { value: String(clean) } })
-        }
-        function updateFromClientX(clientX) {
-          var track = trackRef.current
-          if (track === null) return
-          var rect = track.getBoundingClientRect()
-          if (rect.width <= 0) return
-          var ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
-          var config = configRef.current
-          emit(config.min + ratio * (config.max - config.min))
+        function commit(next) {
+          var config = live.current
+          if (config.disabled || config.onChange === null) return
+          var valueNow = clean(next)
+          if (valueNow === config.value) return
+          config.onChange({ target: { value: String(valueNow) }, currentTarget: { value: String(valueNow) } })
         }
         useEffect(function () {
-          valueRef.current = Number(controlProps.value)
-          setShown(Number(controlProps.value))
-        }, [controlProps.value])
-        useEffect(function () {
-          var track = trackRef.current
-          if (track === null) return undefined
+          var node = rootRef.current
+          if (node === null) return undefined
           function onWheel(event) {
-            if (configRef.current.disabled) return
+            var config = live.current
+            if (config.disabled || event.deltaY === 0) return
             event.preventDefault()
-            var delta = event.deltaY < 0 ? configRef.current.step : -configRef.current.step
-            emit(valueRef.current + delta)
+            commit(config.value + (event.deltaY < 0 ? config.step : -config.step))
           }
-          track.addEventListener('wheel', onWheel, { passive: false })
-          return function () { track.removeEventListener('wheel', onWheel) }
+          node.addEventListener('wheel', onWheel, { passive: false })
+          return function () { node.removeEventListener('wheel', onWheel) }
         }, [])
-        function down(event) {
-          if (configRef.current.disabled || event.button !== 0) return
-          event.preventDefault()
-          draggingRef.current = true
-          updateFromClientX(event.clientX)
-          function move(moveEvent) {
-            if (!draggingRef.current) return
-            moveEvent.preventDefault()
-            updateFromClientX(moveEvent.clientX)
-          }
-          function end() {
-            draggingRef.current = false
-            window.removeEventListener('pointermove', move)
-            window.removeEventListener('pointerup', end)
-            window.removeEventListener('pointercancel', end)
-          }
-          window.addEventListener('pointermove', move, { passive: false })
-          window.addEventListener('pointerup', end)
-          window.addEventListener('pointercancel', end)
-        }
-        function key(event) {
-          if (configRef.current.disabled) return
-          var next = valueRef.current
-          if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next += configRef.current.step
-          else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next -= configRef.current.step
-          else if (event.key === 'Home') next = configRef.current.min
-          else if (event.key === 'End') next = configRef.current.max
-          else return
-          event.preventDefault()
-          emit(next)
-        }
-        var percent = max > min ? ((shown - min) / (max - min)) * 100 : 0
-        percent = Math.max(0, Math.min(100, percent))
         return h(React.Fragment, null,
-          h('div', {
-            ref: trackRef,
+          h('span', {
+            ref: rootRef,
             className: 'mp-tuning-slider' + (disabled ? ' is-disabled' : ''),
-            role: 'slider',
-            tabIndex: disabled ? -1 : 0,
-            'aria-label': controlProps['aria-label'] || 'slider',
-            'aria-valuemin': String(min),
-            'aria-valuemax': String(max),
-            'aria-valuenow': String(shown),
-            onPointerDown: down,
-            onKeyDown: key,
+            onPointerDown: function (event) { event.stopPropagation() },
+            onClick: function (event) { event.stopPropagation() },
           },
-            h('div', { className: 'mp-tuning-slider-track' },
-              h('div', { className: 'mp-tuning-slider-fill', style: { width: String(percent) + '%' } }),
-              h('div', { className: 'mp-tuning-slider-thumb', style: { left: String(percent) + '%' } }),
-            ),
+            h('input', {
+              type: 'range',
+              className: 'mp-range mp-tuning-range-input',
+              min: String(min),
+              max: String(max),
+              step: String(step),
+              value: String(value),
+              disabled: disabled,
+              'aria-label': controlProps['aria-label'] || 'slider',
+              onChange: onChange === null ? undefined : function (event) { commit(Number(event.target.value)) },
+            }),
           ),
-          h('span', { className: 'mp-tuning-range-value' }, String(shown)),
+          h('span', { className: 'mp-tuning-range-value' }, String(value)),
         )
       }
       function TuningGrid(props) {
