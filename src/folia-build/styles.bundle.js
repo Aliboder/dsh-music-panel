@@ -121114,6 +121114,7 @@ function __mpStylesBundle() {
       DEFAULT_LUMIERE_TUNING: () => DEFAULT_LUMIERE_TUNING,
       DEFAULT_MACHI_TUNING: () => DEFAULT_MACHI_TUNING,
       DEFAULT_MONET_TUNING: () => DEFAULT_MONET_TUNING,
+      DEFAULT_NEBBIA_TUNING: () => DEFAULT_NEBBIA_TUNING,
       DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,
       DEFAULT_SONNET_TUNING: () => DEFAULT_SONNET_TUNING,
       DEFAULT_TEMPERA_TUNING: () => DEFAULT_TEMPERA_TUNING,
@@ -123061,6 +123062,7 @@ function __mpStylesBundle() {
     init_types();
     init_types2();
     init_types();
+    init_types7();
     var FOLIA_STYLE_ENTRIES = {
       classic: entry_default,
       cappella: entry_default8,

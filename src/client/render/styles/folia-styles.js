@@ -210,6 +210,10 @@ function foliaLineForActive(lines, active) {
   return lines.length === 0 ? -1 : mapped
 }
 
+function foliaTuning(defaults, override, extra) {
+  return Object.assign({}, defaults || {}, override || {}, extra || {})
+}
+
 function FoliaStyleStage(props) {
   var snapshot = usePlayerSnapshot()
   var clock = useMotionValue(0)
@@ -380,27 +384,21 @@ function FoliaStyleStage(props) {
     audioPower: power,
     audioBands: bandsRef.current,
     showText: true,
-    classicTuning: prefs.classicTuning || undefined,
-    tiltTuning: prefs.tiltTuning || undefined,
-    partitaTuning: prefs.partitaTuning || undefined,
-    fumeTuning: prefs.fumeTuning || undefined,
-    cadenzaTuning: prefs.cadenzaTuning || undefined,
-    sonnetTuning: prefs.sonnetTuning || undefined,
-    cappellaTuning: prefs.cappellaTuning || undefined,
-    monetTuning: prefs.monetTuning || undefined,
-    machiTuning: prefs.machiTuning || undefined,
-    lumiereTuning: prefs.lumiereTuning || undefined,
-    dioramaTuning: prefs.dioramaTuning || undefined,
-    nebbiaTuning: prefs.nebbiaTuning || undefined,
-    temperaTuning: prefs.temperaTuning
-      ? Object.assign({}, prefs.temperaTuning, { colorMode: prefs.temperaTuning.temperaColorMode })
-      : undefined,
-    hanabiTuning: prefs.hanabiTuning
-      ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
-      : undefined,
-    claddaghTuning: prefs.claddaghTuning
-      ? Object.assign({}, prefs.claddaghTuning, { translationScale: prefs.claddaghTuning.translationFontScale })
-      : undefined,
+    classicTuning: foliaTuning(FOLIA_STYLES.DEFAULT_CLASSIC_TUNING, prefs.classicTuning),
+    tiltTuning: foliaTuning(FOLIA_STYLES.DEFAULT_TILT_TUNING, prefs.tiltTuning),
+    partitaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_PARTITA_TUNING, prefs.partitaTuning),
+    fumeTuning: foliaTuning(FOLIA_STYLES.DEFAULT_FUME_TUNING, prefs.fumeTuning),
+    cadenzaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_CADENZA_TUNING, prefs.cadenzaTuning),
+    sonnetTuning: foliaTuning(FOLIA_STYLES.DEFAULT_SONNET_TUNING, prefs.sonnetTuning),
+    cappellaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_CAPPELLA_TUNING, prefs.cappellaTuning),
+    monetTuning: foliaTuning(FOLIA_STYLES.DEFAULT_MONET_TUNING, prefs.monetTuning),
+    machiTuning: foliaTuning(FOLIA_STYLES.DEFAULT_MACHI_TUNING, prefs.machiTuning),
+    lumiereTuning: foliaTuning(FOLIA_STYLES.DEFAULT_LUMIERE_TUNING, prefs.lumiereTuning),
+    dioramaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_DIORAMA_TUNING, prefs.dioramaTuning),
+    nebbiaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_NEBBIA_TUNING, prefs.nebbiaTuning),
+    temperaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_TEMPERA_TUNING, prefs.temperaTuning, { colorMode: prefs.temperaTuning && prefs.temperaTuning.temperaColorMode }),
+    hanabiTuning: foliaTuning(FOLIA_STYLES.DEFAULT_HANABI_TUNING, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning && prefs.hanabiTuning.hanabiColorMode }),
+    claddaghTuning: foliaTuning(FOLIA_STYLES.DEFAULT_CLADDAGH_TUNING, prefs.claddaghTuning, { translationScale: prefs.claddaghTuning && prefs.claddaghTuning.translationFontScale }),
     // Monet ignores hideTranslationSubtitle and only reads the content mode (resolveSubtitleContentMode
     // returns the given mode as-is), so the mode itself has to carry the translation switch.
     subtitleContentMode: showTranslation ? 'translation' : 'none',

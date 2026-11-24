@@ -8,6 +8,7 @@
  */
 
 import assert from 'node:assert/strict'
+import test from 'node:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { dirname } from 'node:path'
@@ -209,3 +210,10 @@ console.log('folia-styles.test.mjs ok')
 
 
 
+
+test('styles merge the full Folia tuning defaults', () => {
+  const host = readFileSync(join(ROOT, 'src/client/render/styles/folia-styles.js'), 'utf8')
+  assert.match(host, /function foliaTuning\(defaults, override, extra\)/)
+  assert.match(host, /DEFAULT_TEMPERA_TUNING/)
+  assert.match(host, /DEFAULT_NEBBIA_TUNING/)
+})
