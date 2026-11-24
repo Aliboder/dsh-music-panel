@@ -51,6 +51,7 @@ test('playback defaults', () => {
   assert.equal(defaults.autoHidePlayerChrome, false, 'Folia default: chrome stays visible')
   assert.equal(defaults.playerChromeVisibilityMode, 'always-visible', 'Folia three-way chrome mode')
   assert.equal(defaults.classicTuning.wordSpacing, 0.7, 'Folia classic tuning defaults')
+  assert.equal(defaults.tiltTuning.splitProbability, 0.75, 'Folia tilt tuning defaults')
   assert.equal(defaults.resumeOnStart, true)
   assert.equal(defaults.onlineQuality, 'standard')
 })

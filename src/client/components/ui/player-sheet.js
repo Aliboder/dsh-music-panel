@@ -1084,6 +1084,7 @@ function PlayerSheetInner(props) {
           )
         : null,
       mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'tilt' ? tiltTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1237,6 +1238,38 @@ function PlayerSheetInner(props) {
         })),
         mpPanelRow(t('settings.classicBreathing'), range('breathingFloatMultiplier', 0, 2, 0.1)),
         mpPanelRow(t('settings.classicWordSpacing'), range('wordSpacing', 0, 2, 0.1)),
+      ),
+    )
+  }
+  /** Folia tilt's tuning: two probabilities plus its colour scheme. */
+  function tiltTuningBlock() {
+    var tuning = prefs.tiltTuning || {}
+    function probability(key, label) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = 0
+      return h('input', {
+        type: 'range', className: 'mp-range', min: '0', max: '1', step: '0.05',
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) {
+          setPrefs({ tiltTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) })
+        },
+      })
+    }
+    return mpSection(
+      t('settings.tiltTuning'),
+      h('div', null,
+        mpPanelRow(t('settings.tiltSplit'), probability('splitProbability', 'settings.tiltSplit')),
+        mpPanelRow(t('settings.tiltStyle'), probability('tiltStyleProbability', 'settings.tiltStyle')),
+        mpPanelRow(t('settings.tiltColorScheme'), segmented(
+          [
+            { value: 'default', label: 'Default' },
+            { value: 'swap', label: 'Swap' },
+            { value: 'accentAll', label: 'Accent' },
+            { value: 'primaryAll', label: 'Primary' },
+          ],
+          ['default', 'swap', 'accentAll', 'primaryAll'].indexOf(tuning.colorScheme) >= 0 ? tuning.colorScheme : 'default',
+          function (value) { setPrefs({ tiltTuning: Object.assign({}, tuning, { colorScheme: value }) }) },
+        )),
       ),
     )
   }

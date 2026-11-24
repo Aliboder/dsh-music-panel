@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "84a9e521cf1e"
+    var CLIENT_BUILD = "fab8c61cefe9"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,10 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.tiltTuning': '倾诉参数',
+        'settings.tiltSplit': '分屏概率',
+        'settings.tiltStyle': '倾斜样式概率',
+        'settings.tiltColorScheme': '配色',
         'settings.classicTuning': '流光参数',
         'settings.classicWordRotation': '逐字旋转',
         'settings.classicBreathing': '呼吸浮动',
@@ -9345,6 +9349,10 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.tiltTuning': 'Tilt tuning',
+        'settings.tiltSplit': 'Split probability',
+        'settings.tiltStyle': 'Tilt style probability',
+        'settings.tiltColorScheme': 'Color scheme',
         'settings.classicTuning': 'Luminous tuning',
         'settings.classicWordRotation': 'Word rotation',
         'settings.classicBreathing': 'Breathing float',
@@ -137848,6 +137856,7 @@ window.__ModuleLoader__.load({
           DAYLIGHT_THEME: () => DAYLIGHT_THEME,
           DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
           DEFAULT_THEME: () => DEFAULT_THEME,
+          DEFAULT_TILT_TUNING: () => DEFAULT_TILT_TUNING,
           FOLIA_STYLE_ENTRIES: () => FOLIA_STYLE_ENTRIES,
           applyLyricStaffPolicy: () => applyLyricStaffPolicy,
           extractColors: () => extractColors,
@@ -140540,6 +140549,7 @@ window.__ModuleLoader__.load({
         audioBands: bandsRef.current,
         showText: true,
         classicTuning: prefs.classicTuning || undefined,
+        tiltTuning: prefs.tiltTuning || undefined,
         // Monet ignores hideTranslationSubtitle and only reads the content mode (resolveSubtitleContentMode
         // returns the given mode as-is), so the mode itself has to carry the translation switch.
         subtitleContentMode: showTranslation ? 'translation' : 'none',
@@ -151216,6 +151226,11 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      tiltTuning: {
+        splitProbability: 0.75,
+        tiltStyleProbability: 0.35,
+        colorScheme: 'default',
+      },
       classicTuning: {
         enableWordRotation: true,
         breathingFloatMultiplier: 1,
@@ -151380,6 +151395,17 @@ window.__ModuleLoader__.load({
           dropped = true
         }
       })
+      // Folia tilt tuning: probabilities clamp to 0..1, unknown colour schemes fall back.
+      var tiltDefaults = PREF_DEFAULTS.tiltTuning
+      var storedTilt = merged.tiltTuning && typeof merged.tiltTuning === 'object' ? merged.tiltTuning : {}
+      var tiltSplit = Number(storedTilt.splitProbability)
+      var tiltStyle = Number(storedTilt.tiltStyleProbability)
+      var tiltScheme = ['default', 'swap', 'accentAll', 'primaryAll'].indexOf(storedTilt.colorScheme) >= 0 ? storedTilt.colorScheme : tiltDefaults.colorScheme
+      merged.tiltTuning = {
+        splitProbability: isFinite(tiltSplit) ? Math.min(1, Math.max(0, tiltSplit)) : tiltDefaults.splitProbability,
+        tiltStyleProbability: isFinite(tiltStyle) ? Math.min(1, Math.max(0, tiltStyle)) : tiltDefaults.tiltStyleProbability,
+        colorScheme: tiltScheme,
+      }
       // Folia's classic tuning is one stored object: a partial older value keeps the upstream defaults.
       var classicTuningDefaults = PREF_DEFAULTS.classicTuning
       var storedClassicTuning = merged.classicTuning
@@ -179341,6 +179367,7 @@ window.__ModuleLoader__.load({
               )
             : null,
           mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'tilt' ? tiltTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -179494,6 +179521,38 @@ window.__ModuleLoader__.load({
             })),
             mpPanelRow(t('settings.classicBreathing'), range('breathingFloatMultiplier', 0, 2, 0.1)),
             mpPanelRow(t('settings.classicWordSpacing'), range('wordSpacing', 0, 2, 0.1)),
+          ),
+        )
+      }
+      /** Folia tilt's tuning: two probabilities plus its colour scheme. */
+      function tiltTuningBlock() {
+        var tuning = prefs.tiltTuning || {}
+        function probability(key, label) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = 0
+          return h('input', {
+            type: 'range', className: 'mp-range', min: '0', max: '1', step: '0.05',
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) {
+              setPrefs({ tiltTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) })
+            },
+          })
+        }
+        return mpSection(
+          t('settings.tiltTuning'),
+          h('div', null,
+            mpPanelRow(t('settings.tiltSplit'), probability('splitProbability', 'settings.tiltSplit')),
+            mpPanelRow(t('settings.tiltStyle'), probability('tiltStyleProbability', 'settings.tiltStyle')),
+            mpPanelRow(t('settings.tiltColorScheme'), segmented(
+              [
+                { value: 'default', label: 'Default' },
+                { value: 'swap', label: 'Swap' },
+                { value: 'accentAll', label: 'Accent' },
+                { value: 'primaryAll', label: 'Primary' },
+              ],
+              ['default', 'swap', 'accentAll', 'primaryAll'].indexOf(tuning.colorScheme) >= 0 ? tuning.colorScheme : 'default',
+              function (value) { setPrefs({ tiltTuning: Object.assign({}, tuning, { colorScheme: value }) }) },
+            )),
           ),
         )
       }

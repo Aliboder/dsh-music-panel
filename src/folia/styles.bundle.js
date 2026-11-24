@@ -105040,6 +105040,7 @@ function __mpStylesBundle() {
       DAYLIGHT_THEME: () => DAYLIGHT_THEME,
       DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
       DEFAULT_THEME: () => DEFAULT_THEME,
+      DEFAULT_TILT_TUNING: () => DEFAULT_TILT_TUNING,
       FOLIA_STYLE_ENTRIES: () => FOLIA_STYLE_ENTRIES,
       applyLyricStaffPolicy: () => applyLyricStaffPolicy,
       extractColors: () => extractColors,

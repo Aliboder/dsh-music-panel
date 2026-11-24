@@ -57,6 +57,11 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  tiltTuning: {
+    splitProbability: 0.75,
+    tiltStyleProbability: 0.35,
+    colorScheme: 'default',
+  },
   classicTuning: {
     enableWordRotation: true,
     breathingFloatMultiplier: 1,
@@ -221,6 +226,17 @@ function readPrefs() {
       dropped = true
     }
   })
+  // Folia tilt tuning: probabilities clamp to 0..1, unknown colour schemes fall back.
+  var tiltDefaults = PREF_DEFAULTS.tiltTuning
+  var storedTilt = merged.tiltTuning && typeof merged.tiltTuning === 'object' ? merged.tiltTuning : {}
+  var tiltSplit = Number(storedTilt.splitProbability)
+  var tiltStyle = Number(storedTilt.tiltStyleProbability)
+  var tiltScheme = ['default', 'swap', 'accentAll', 'primaryAll'].indexOf(storedTilt.colorScheme) >= 0 ? storedTilt.colorScheme : tiltDefaults.colorScheme
+  merged.tiltTuning = {
+    splitProbability: isFinite(tiltSplit) ? Math.min(1, Math.max(0, tiltSplit)) : tiltDefaults.splitProbability,
+    tiltStyleProbability: isFinite(tiltStyle) ? Math.min(1, Math.max(0, tiltStyle)) : tiltDefaults.tiltStyleProbability,
+    colorScheme: tiltScheme,
+  }
   // Folia's classic tuning is one stored object: a partial older value keeps the upstream defaults.
   var classicTuningDefaults = PREF_DEFAULTS.classicTuning
   var storedClassicTuning = merged.classicTuning
