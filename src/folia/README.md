@@ -9,7 +9,7 @@ modules they import. Upstream: `folia-major-main` **0.7.28** (AGPL-3.0-only).
 | Path | Origin | Notes |
 |---|---|---|
 | `components/visualizer/pendolo/` | `src/components/visualizer/pendolo/` | All 23 files, unchanged. The settings panel, `entry.tsx` and `tuning.ts` are kept but not compiled/registered yet. |
-| `components/visualizer/{still,tilt,partita,claddagh,cappella,cadenza,fume,monet,lumiere,sonnet,tempera,hanabi,nebbia,diorama}/` | same paths | Verbatim sources for the 14 styles compiled by `styles.bundle.js`; their entries declare labels/glyphs and the settings panels are build-time no-ops. |
+| `components/visualizer/{still,tilt,partita,claddagh,cappella,cadenza,fume,monet,lumiere,sonnet,tempera,hanabi,nebbia,diorama}/` | same paths | Verbatim sources for the 15 styles compiled by `styles.bundle.js`, including `cappella`; their entries declare labels/glyphs and the settings panels are build-time no-ops. |
 | `components/visualizer/machi/` | same path | Source kept for reference; the runtime actually uses the already compiled `machi.bundle.js` (Folia engine) through `src/render/styles/machi-native.js`. |
 | `components/visualizer/diorama/` | same path | Verbatim source, enabled; `@react-three/fiber@8.18.0` is vendored in `vendor/r3f/`. Canvas/CameraRig/DioramaScene render; a React 18 host is caught by the style error boundary and falls back to classic. |
 | `components/visualizer/backgrounds/` | `src/components/visualizer/backgrounds/` | The six background renderers and their entries, unchanged except: `registry.tsx` is an explicit-import boundary (Vite's `import.meta.glob` is not available here); `monet/monetBackgroundPipeline.ts` paints on an `OffscreenCanvas` instead of a Worker (same `paintMonetBackground`); `nomand/NomandBackgroundEffectSettings.tsx` keeps only the effect data used by the entry. Settings cards are aliased to a no-op stub at build time. |
@@ -48,7 +48,7 @@ modules they import. Upstream: `folia-major-main` **0.7.28** (AGPL-3.0-only).
 - Monet's background Worker: the same `paintMonetBackground` runs on an `OffscreenCanvas`
   in the main thread because the plugin has no separate worker file.
 - `nebbia` stroke data (`nebbia-strokes.json`); falls back to the font skeleton. Cappella's
-  built-in avatars/emoji are Folia's images, served from the plugin's `/music/assets` route.
+  built-in avatars/emoji are Folia's images, served from the plugin's `/music/assets/cappella/` route.
 - Smart beat (`beat_this`) and drum stems (`htdemucs`): the drum-head / gear-beat effects
   stay off; the base picture is unaffected.
 - Global render quality tiers, frame-rate cap, prewarm and the per-style tuning UI.
