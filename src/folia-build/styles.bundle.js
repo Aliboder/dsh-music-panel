@@ -13751,13 +13751,16 @@ function __mpStylesBundle() {
         };
         getEffectiveRenderEndTime = (line2, nextLine) => Math.min(getLineRenderEndTime(line2), nextLine?.startTime ?? Number.POSITIVE_INFINITY);
         buildCappellaMessages = (lines, titleText, config, tuning, emoImagePool, forcePreviewEmo) => {
-          const messages = [{
-            id: "title",
-            kind: "title",
-            text: titleText,
-            side: "right",
-            avatarIndex: AVATAR_GRID_SIZE * AVATAR_GRID_SIZE - 1
-          }];
+          const messages = [];
+          if (titleText.trim() !== "") {
+            messages.push({
+              id: "title",
+              kind: "title",
+              text: titleText,
+              side: "right",
+              avatarIndex: AVATAR_GRID_SIZE * AVATAR_GRID_SIZE - 1
+            });
+          }
           const showEmoMessages = tuning.showEmoMessages && emoImagePool.length > 0;
           if (lines.length === 0) {
             const fallbackEmo = showEmoMessages ? pickStableEmoImage(emoImagePool, "no-lyrics", titleText, config.sequencing.forceRightEveryLines) : null;
@@ -13792,6 +13795,7 @@ function __mpStylesBundle() {
             leftAvatarCount: LEFT_AVATAR_INDICES.length
           });
           lines.forEach((line2, lineIndex) => {
+            if (!line2 || typeof line2.fullText !== "string" || line2.fullText.trim() === "") return;
             const nextLine = lines[lineIndex + 1];
             const isShortLine2 = countCompactChars(line2.fullText) <= SHORT_LINE_CHAR_LIMIT;
             const agentSender = agentSenderResolver?.resolve(line2) ?? null;

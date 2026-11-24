@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "24d669e0148c"
+    var CLIENT_BUILD = "bdd45048029f"
 
     // ── src/client/app/runtime.js
     /**
@@ -47112,13 +47112,16 @@ window.__ModuleLoader__.load({
             };
             getEffectiveRenderEndTime = (line2, nextLine) => Math.min(getLineRenderEndTime(line2), nextLine?.startTime ?? Number.POSITIVE_INFINITY);
             buildCappellaMessages = (lines, titleText, config, tuning, emoImagePool, forcePreviewEmo) => {
-              const messages = [{
-                id: "title",
-                kind: "title",
-                text: titleText,
-                side: "right",
-                avatarIndex: AVATAR_GRID_SIZE * AVATAR_GRID_SIZE - 1
-              }];
+              const messages = [];
+              if (titleText.trim() !== "") {
+                messages.push({
+                  id: "title",
+                  kind: "title",
+                  text: titleText,
+                  side: "right",
+                  avatarIndex: AVATAR_GRID_SIZE * AVATAR_GRID_SIZE - 1
+                });
+              }
               const showEmoMessages = tuning.showEmoMessages && emoImagePool.length > 0;
               if (lines.length === 0) {
                 const fallbackEmo = showEmoMessages ? pickStableEmoImage(emoImagePool, "no-lyrics", titleText, config.sequencing.forceRightEveryLines) : null;
@@ -47153,6 +47156,7 @@ window.__ModuleLoader__.load({
                 leftAvatarCount: LEFT_AVATAR_INDICES.length
               });
               lines.forEach((line2, lineIndex) => {
+                if (!line2 || typeof line2.fullText !== "string" || line2.fullText.trim() === "") return;
                 const nextLine = lines[lineIndex + 1];
                 const isShortLine2 = countCompactChars(line2.fullText) <= SHORT_LINE_CHAR_LIMIT;
                 const agentSender = agentSenderResolver?.resolve(line2) ?? null;
@@ -186865,8 +186869,8 @@ window.__ModuleLoader__.load({
         seed: visualizerSeed,
         accent: mpAccentCss(flowAccent),
         coverUrl: cover,
-        title: track && track.title ? track.title : '',
-        artist: track && track.artist ? track.artist : '',
+        title: track ? trackTitleOf(track) : '',
+        artist: track ? trackArtistOf(track) : '',
         album: track && track.album ? track.album : '',
         duration: Number(snap.duration) || (track && Number(track.durationSec)) || 0,
       })

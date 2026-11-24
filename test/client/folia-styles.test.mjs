@@ -217,3 +217,9 @@ test('styles merge the full Folia tuning defaults', () => {
   assert.match(host, /DEFAULT_TEMPERA_TUNING/)
   assert.match(host, /DEFAULT_NEBBIA_TUNING/)
 })
+
+test('cappella skips blank chat rows', () => {
+  const source = readFileSync(join(ROOT, 'src/folia/components/visualizer/cappella/cappellaMessages.ts'), 'utf8')
+  assert.match(source, /line\.fullText\.trim\(\) === ''/)
+  assert.match(source, /if \(titleText\.trim\(\) !== ''\)/)
+})

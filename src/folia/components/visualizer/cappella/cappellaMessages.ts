@@ -41,13 +41,16 @@ export const buildCappellaMessages = (
     emoImagePool: CappellaEmojiImage[],
     forcePreviewEmo: boolean,
 ): CappellaMessage[] => {
-    const messages: CappellaMessage[] = [{
-        id: 'title',
-        kind: 'title',
-        text: titleText,
-        side: 'right',
-        avatarIndex: AVATAR_GRID_SIZE * AVATAR_GRID_SIZE - 1,
-    }];
+    const messages: CappellaMessage[] = [];
+    if (titleText.trim() !== '') {
+        messages.push({
+            id: 'title',
+            kind: 'title',
+            text: titleText,
+            side: 'right',
+            avatarIndex: AVATAR_GRID_SIZE * AVATAR_GRID_SIZE - 1,
+        });
+    }
 
     const showEmoMessages = tuning.showEmoMessages && emoImagePool.length > 0;
 
@@ -89,6 +92,9 @@ export const buildCappellaMessages = (
     });
 
     lines.forEach((line, lineIndex) => {
+        // A blank line is not a chat message; letting it through leaves an empty
+        // bubble row and the next lyric is pushed into the same visual slot.
+        if (!line || typeof line.fullText !== 'string' || line.fullText.trim() === '') return;
         const nextLine = lines[lineIndex + 1];
         const isShortLine = countCompactChars(line.fullText) <= SHORT_LINE_CHAR_LIMIT;
         const agentSender = agentSenderResolver?.resolve(line) ?? null;

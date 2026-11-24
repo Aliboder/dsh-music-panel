@@ -978,8 +978,8 @@ function NowPlaying(props) {
     seed: visualizerSeed,
     accent: mpAccentCss(flowAccent),
     coverUrl: cover,
-    title: track && track.title ? track.title : '',
-    artist: track && track.artist ? track.artist : '',
+    title: track ? trackTitleOf(track) : '',
+    artist: track ? trackArtistOf(track) : '',
     album: track && track.album ? track.album : '',
     duration: Number(snap.duration) || (track && Number(track.durationSec)) || 0,
   })
