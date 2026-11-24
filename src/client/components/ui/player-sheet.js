@@ -1086,6 +1086,7 @@ function PlayerSheetInner(props) {
             }),
           )
         : null,
+      h('div', { style: { padding: '0 4px 10px 44px' } }, h(Button, { variant: 'ghost', size: 'sm', onClick: function () { pushLayer('lyricStudio') } }, t('studio.open'))),
       mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'tilt' ? tiltTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'partita' ? partitaTuningBlock() : null,
