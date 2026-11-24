@@ -134,8 +134,7 @@ function OverlayRoot() {
         },
       })
     }
-    if (layer.kind === 'lyricStudio') return h(LyricStyleStudio, { key: 'lyricStudio', layer: layer })
-  if (layer.kind === 'settings') {
+    if (layer.kind === 'settings') {
       return h(SettingsSheet, {
         key: 'settings',
         open: true,

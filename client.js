@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "11b54b4a0f71"
+    var CLIENT_BUILD = "b5a46159b5f0"
 
     // ── src/client/app/runtime.js
     /**
@@ -8853,30 +8853,6 @@ window.__ModuleLoader__.load({
         'sheet.volume': '音量',
         'sheet.mute': '静音',
         'sheet.unmute': '取消静音',
-        'studio.title': '歌词样式',
-        'studio.open': '打开样式面板',
-        'studio.animation': '歌词动画',
-        'studio.background': '背景',
-        'studio.font': '字体',
-        'studio.subtitle': '字幕',
-        'studio.global': '全局',
-        'studio.styles': '样式 {count}',
-        'studio.play': '播放',
-        'studio.pause': '暂停',
-        'studio.builtin': '内置',
-        'studio.live': '实时',
-        'studio.animationHint': '样式参数在播放面板的「歌词」页继续调整；这里用于快速切换和预览。',
-        'settings.latentDynamicOnlyInPlayer': '仅在播放页启用动态效果',
-        'settings.latentEnhancedBeat': '增强节拍响应',
-        'settings.latentOverlay': '可读性叠色',
-        'settings.latentOverlayOpacity': '叠色透明度',
-        'studio.latentLayers': '显示图层',
-        'studio.latentDither': '像素',
-        'studio.latentMesh': '流体',
-        'studio.latentBoth': '混合',
-        'studio.latentColor': '颜色来源',
-        'studio.latentCoverTheme': '封面与主题',
-        'studio.latentCoverOnly': '仅封面取色',
         'sheet.lyricStyle': '歌词样式',
         'sheet.lyricUpgraded': '已换用 {source} 的逐字歌词',
         'sheet.lyricSwitched': '已换用 {source} 的歌词',
@@ -9915,30 +9891,6 @@ window.__ModuleLoader__.load({
         'sheet.volume': 'Volume',
         'sheet.mute': 'Mute',
         'sheet.unmute': 'Unmute',
-        'studio.title': 'Lyric styles',
-        'studio.open': 'Open style panel',
-        'studio.animation': 'Lyrics animation',
-        'studio.background': 'Background',
-        'studio.font': 'Font',
-        'studio.subtitle': 'Subtitles',
-        'studio.global': 'Global',
-        'studio.styles': 'Styles {count}',
-        'studio.play': 'Play',
-        'studio.pause': 'Pause',
-        'studio.builtin': 'Built-in',
-        'studio.live': 'Live',
-        'studio.animationHint': 'Style tunings stay in the player panel\'s Lyrics page; this window is for quick switching and preview.',
-        'settings.latentDynamicOnlyInPlayer': 'Dynamic effects only on player page',
-        'settings.latentEnhancedBeat': 'Enhanced beat response',
-        'settings.latentOverlay': 'Readability overlay',
-        'settings.latentOverlayOpacity': 'Overlay opacity',
-        'studio.latentLayers': 'Layers',
-        'studio.latentDither': 'Dithering',
-        'studio.latentMesh': 'Mesh',
-        'studio.latentBoth': 'Both',
-        'studio.latentColor': 'Color source',
-        'studio.latentCoverTheme': 'Cover and theme',
-        'studio.latentCoverOnly': 'Cover only',
         'sheet.lyricStyle': 'Lyric style',
         'sheet.lyricUpgraded': 'Using {source} word-by-word lyrics',
         'sheet.lyricSwitched': 'Using {source} lyrics',
@@ -167643,7 +167595,7 @@ window.__ModuleLoader__.load({
     /** Modes the player sheet offers; ids match Folia's registry. */
     var FOLIA_BG_NONE = 'none'
 
-    function foliaBackgroundConfig(mode, url, transparent, latentDisplayMode, latentColorSource, latentTuning) {
+    function foliaBackgroundConfig(mode, url, transparent, latentDisplayMode, latentColorSource) {
       if (FOLIA_BG === null) return null
       var resolved = mode === FOLIA_BG_NONE ? FOLIA_BG.DEFAULT_VISUALIZER_BACKGROUND_MODE : mode
       var items = typeof url === 'string' && url.trim() !== ''
@@ -167664,10 +167616,6 @@ window.__ModuleLoader__.load({
               ? latentDisplayMode
               : 'both',
             colorSource: latentColorSource === 'cover-only' ? 'cover-only' : 'cover-theme',
-            dynamicOnlyInPlayer: latentTuning && latentTuning.dynamicOnlyInPlayer !== false,
-            enhancedBeatResponse: latentTuning && latentTuning.enhancedBeatResponse !== false,
-            overlayEnabled: latentTuning && latentTuning.overlayEnabled !== false,
-            overlayOpacity: latentTuning && isFinite(Number(latentTuning.overlayOpacity)) ? Number(latentTuning.overlayOpacity) : 0.35,
           }),
         },
         monet: { tuning: FOLIA_BG.DEFAULT_MONET_BACKGROUND_TUNING },
@@ -167740,8 +167688,8 @@ window.__ModuleLoader__.load({
       var theme = useFoliaCoverTheme(props.cover, props.seed, props.accent)
 
       var config = useMemo(function () {
-        return foliaBackgroundConfig(props.mode, props.url, props.transparent, props.latentDisplayMode, props.latentColorSource, props.latentTuning)
-      }, [props.mode, props.transparent, props.url, props.latentDisplayMode, props.latentColorSource, props.latentTuning])
+        return foliaBackgroundConfig(props.mode, props.url, props.transparent, props.latentDisplayMode, props.latentColorSource)
+      }, [props.mode, props.transparent, props.url, props.latentDisplayMode, props.latentColorSource])
 
       if (config === null || FoliaBackgroundRenderer === null) {
         // A solid backdrop is still better than the old ambient layer when the bundle
@@ -168178,10 +168126,6 @@ window.__ModuleLoader__.load({
       /** Latent background layers: pixel dithering, fluid mesh, or both. */
       latentDisplayMode: 'both',
       latentColorSource: 'cover-theme',
-      latentDynamicOnlyInPlayer: true,
-      latentEnhancedBeatResponse: true,
-      latentOverlayEnabled: true,
-      latentOverlayOpacity: 0.35,
       /** URL for the Folia "url" (embedded) background. */
       bgUrl: '',
       themeSource: 'default',
@@ -181477,32 +181421,6 @@ window.__ModuleLoader__.load({
       '.mp-card-tabs>*{flex:1 1 auto;min-width:0}',
       '.mp-card-tabs .mp-segment{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;width:100%}',
     '.mp-queue-pane{display:flex;flex-direction:column;padding:0 4px}',
-    '.mp-studio-backdrop{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;padding:24px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px)}',
-    '.mp-studio{width:min(1320px,96vw);height:min(820px,88vh);display:flex;flex-direction:column;overflow:hidden;border-radius:var(--dsw-radius-xl,20px);background:var(--dsw-alias-bg-layer-1,#232324);color:var(--dsw-alias-label-primary,#f4f4f5);box-shadow:var(--dsw-elevation-prominent,0 30px 80px rgba(0,0,0,.55))}',
-    '.mp-studio-head{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08))}',
-    '.mp-studio-head h2{margin:0;font-size:18px;font-weight:600;flex:1 1 auto}',
-    '.mp-studio-close{display:grid;place-items:center;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:inherit;cursor:pointer}',
-    '.mp-studio-body{display:flex;min-height:0;flex:1 1 auto}',
-    '.mp-studio-left{width:58%;min-width:0;display:flex;flex-direction:column;gap:10px;padding:16px 20px;overflow-y:auto}',
-    '.mp-studio-preview{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;background:var(--dsw-alias-bg-layer-2,#191919) center/cover no-repeat;overflow:hidden}',
-    '.mp-studio-preview-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:.7}',
-    '.mp-studio-preview-live{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center}',
-    '.mp-studio-preview-live > *{width:100%;height:100%}',
-    '.mp-studio-preview-top{position:absolute;top:10px;right:10px;display:flex;gap:6px;align-items:center;z-index:2}',
-    '.mp-studio-preview-chip{padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font-size:11px;line-height:16px}',
-    '.mp-studio-preview-chip.is-off{opacity:.55}',
-    '.mp-studio-pause{display:grid;place-items:center;border:0;cursor:pointer;padding:4px 7px}',
-    '.mp-studio-count{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
-    '.mp-studio-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}',
-    '.mp-studio-cell{display:flex;flex-direction:column;gap:4px;padding:4px;border:1px solid transparent;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}',
-    '.mp-studio-cell.is-on{border-color:var(--dsw-alias-state-business-primary,#4f8cff);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4f8cff) 12%,transparent)}',
-    '.mp-studio-cell-art{display:grid;place-items:center;width:100%;aspect-ratio:3/2;border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-2,#191919) center/cover no-repeat;overflow:hidden}',
-    '.mp-studio-cell-name{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-    '.mp-studio-right{width:42%;min-width:0;display:flex;flex-direction:column;border-left:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));padding:16px 20px;overflow-y:auto}',
-    '.mp-studio-tab-body{margin-top:12px;min-height:0}',
-    '.mp-studio-panel{display:flex;flex-direction:column;gap:8px}',
-    '.mp-studio-label{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);padding:4px 0}',
-    '.mp-studio-hint,.mp-studio-sub{font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary,#a1a1aa);padding:4px 0}',
     '.mp-queue-head{display:flex;align-items:center;gap:6px;height:36px;font-size:12px;color:var(--dsw-alias-label-secondary,inherit)}',
     '.mp-queue-head strong{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,inherit)}',
     '.mp-queue-grow{flex:1 1 auto}',
@@ -186733,12 +186651,6 @@ window.__ModuleLoader__.load({
         url: typeof prefs.bgUrl === 'string' ? prefs.bgUrl : '',
         latentDisplayMode: prefs.latentDisplayMode,
         latentColorSource: prefs.latentColorSource,
-        latentTuning: {
-          dynamicOnlyInPlayer: prefs.latentDynamicOnlyInPlayer !== false,
-          enhancedBeatResponse: prefs.latentEnhancedBeatResponse !== false,
-          overlayEnabled: prefs.latentOverlayEnabled !== false,
-          overlayOpacity: Number(prefs.latentOverlayOpacity) || 0.35,
-        },
       })
       // 外观 · 随机: the page paints one concrete style per slice of the song. The same
       // resolved id drives both the stage and the `mp-style-*` class, so CSS variants and
@@ -187577,7 +187489,6 @@ window.__ModuleLoader__.load({
               value: styleId,
               onPick: function (next) { patchPrefs({ lyricStyle: next, lyricStyleChosen: true }) },
             }),
-            h(Button, { variant: 'ghost', size: 'sm', onClick: function () { pushLayer('lyricStudio') } }, t('studio.open')),
           ),
           h(
             'div',
@@ -191160,8 +191071,7 @@ window.__ModuleLoader__.load({
             },
           })
         }
-        if (layer.kind === 'lyricStudio') return h(LyricStyleStudio, { key: 'lyricStudio', layer: layer })
-      if (layer.kind === 'settings') {
+        if (layer.kind === 'settings') {
           return h(SettingsSheet, {
             key: 'settings',
             open: true,
@@ -196679,7 +196589,6 @@ window.__ModuleLoader__.load({
                 }),
               )
             : null,
-          h('div', { style: { padding: '0 4px 10px 44px' } }, h(Button, { variant: 'ghost', size: 'sm', onClick: function () { pushLayer('lyricStudio') } }, t('studio.open'))),
           mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'tilt' ? tiltTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'partita' ? partitaTuningBlock() : null,
@@ -198735,7 +198644,6 @@ window.__ModuleLoader__.load({
     // Settings screenshots for every real lyric style, shipped with the plugin at
     // /music/assets/lyric-style-thumbs/<id>.webp. The random pseudo-style has none.
     var MP_LYRIC_STYLE_THUMBS = {
-      classic: 'classic',
       still: 'still',
       partita: 'partita',
       fume: 'fume',
@@ -198909,215 +198817,6 @@ window.__ModuleLoader__.load({
             h('span', { style: { fontSize: '11px', opacity: '.7' } }, t(entry.labelKey)),
           )
         }),
-      )
-    }
-
-    // ── src/client/components/ui/lyric-studio.js
-    /**
-     * 歌词样式面板 — a dedicated editor for lyric styles and their Folia tunings.
-     *
-     * Opened from the appearance settings or the player card. The left column previews
-     * the selected style and lists the real style thumbnails; the right column holds
-     * the Folia-style groups (animation / background / font / subtitle / global).
-     */
-
-    var MP_STUDIO_SAMPLE = [
-      { text: '编织那没有诗意，', startTime: 0, endTime: 4, fullText: '编织那没有诗意，' },
-      { text: '却能带你到现实的唯文之诗。', startTime: 4, endTime: 8, fullText: '却能带你到现实的唯文之诗。' },
-    ]
-    var MP_STUDIO_TABS = [
-      { value: 'animation', label: 'studio.animation' },
-      { value: 'background', label: 'studio.background' },
-      { value: 'font', label: 'studio.font' },
-      { value: 'subtitle', label: 'studio.subtitle' },
-      { value: 'global', label: 'studio.global' },
-    ]
-
-    function LyricStyleStudio(props) {
-      var prefs = usePrefs()
-      var snap = usePlayerSnapshot()
-      var tabPair = useState('animation')
-      var tab = tabPair[0]
-      var setTab = tabPair[1]
-      var previewPausedPair = useState(false)
-      var previewPaused = previewPausedPair[0]
-      var setPreviewPaused = previewPausedPair[1]
-      var previewNowPair = useState(1.4)
-      var previewNow = previewNowPair[0]
-      var setPreviewNow = previewNowPair[1]
-      useEffect(function () {
-        if (previewPaused) return undefined
-        var timer = setInterval(function () {
-          setPreviewNow(function (value) { return value >= 7.6 ? 0.2 : value + 0.1 })
-        }, 100)
-        return function () { clearInterval(timer) }
-      }, [previewPaused])
-      var styleId = mpStyleIdOf(prefs.lyricStyle)
-      var track = snap.queue[snap.index] || null
-      var cover = track === null ? '' : trackCoverSrc(track)
-      var close = function () { popLayer() }
-      var pick = function (id) { setPrefs({ lyricStyle: id, lyricStyleChosen: true }) }
-      var catalog = mpStylePickerCatalog()
-      var thumb = mpLyricStyleThumb(styleId)
-
-      function seg(value, options, onChange) {
-        return h(KitSegmented, { value: String(value), label: props.label || '', options: options, onChange: onChange })
-      }
-      function row(label, control, desc) {
-        return h(SetRow, { label: t(label), desc: desc }, control)
-      }
-      function animationPanel() {
-        return h('div', { className: 'mp-studio-panel' },
-          row('settings.lyricIntensity', seg(
-            ['calm', 'normal', 'chaotic'].indexOf(prefs.lyricIntensity) >= 0 ? prefs.lyricIntensity : 'normal',
-            [
-              { value: 'calm', label: t('settings.lyricIntensityCalm') },
-              { value: 'normal', label: t('settings.lyricIntensityNormal') },
-              { value: 'chaotic', label: t('settings.lyricIntensityChaotic') },
-            ],
-            function (value) { setPrefs({ lyricIntensity: value }) },
-          )),
-          h('div', { className: 'mp-studio-hint' }, t('studio.animationHint')),
-        )
-      }
-
-      function backgroundPanel() {
-        var bg = prefs.bgMode || 'latent'
-        return h('div', { className: 'mp-studio-panel' },
-          h('div', { className: 'mp-studio-label' }, t('sheet.background')),
-          h(LookChoiceGrid, {
-            kind: 'bgMode',
-            value: bg,
-            cover: cover,
-            onPick: function (next) { setPrefs({ bgMode: next }) },
-          }),
-          bg === 'latent' ? h('div', { className: 'mp-studio-sub' },
-            row('studio.latentLayers', seg(
-              prefs.latentDisplayMode || 'both',
-              [
-                { value: 'dithering', label: 'studio.latentDither' },
-                { value: 'mesh', label: 'studio.latentMesh' },
-                { value: 'both', label: 'studio.latentBoth' },
-              ],
-              function (value) { setPrefs({ latentDisplayMode: value }) },
-            )),
-            row('studio.latentColor', seg(
-              prefs.latentColorSource || 'cover-theme',
-              [
-                { value: 'cover-theme', label: 'studio.latentCoverTheme' },
-                { value: 'cover-only', label: 'studio.latentCoverOnly' },
-              ],
-              function (value) { setPrefs({ latentColorSource: value }) },
-            )),
-          ) : null,
-          bg === 'latent' ? h('div', { className: 'mp-studio-sub' },
-            row('settings.latentDynamicOnlyInPlayer', h(Switch, { value: prefs.latentDynamicOnlyInPlayer !== false, label: t('settings.latentDynamicOnlyInPlayer'), onChange: function (value) { setPrefs({ latentDynamicOnlyInPlayer: value }) } })),
-            row('settings.latentEnhancedBeat', h(Switch, { value: prefs.latentEnhancedBeatResponse !== false, label: t('settings.latentEnhancedBeat'), onChange: function (value) { setPrefs({ latentEnhancedBeatResponse: value }) } })),
-            row('settings.latentOverlay', h(Switch, { value: prefs.latentOverlayEnabled !== false, label: t('settings.latentOverlay'), onChange: function (value) { setPrefs({ latentOverlayEnabled: value }) } })),
-            row('settings.latentOverlayOpacity', h('input', { type: 'range', className: 'mp-range', min: '0', max: '100', step: '1', value: String(Math.round((Number(prefs.latentOverlayOpacity) || 0.35) * 100)), 'aria-label': t('settings.latentOverlayOpacity'), onChange: function (event) { setPrefs({ latentOverlayOpacity: Number(event.target.value) / 100 }) } })),
-          ) : null,
-        )
-      }
-
-      function fontPanel() {
-        var value = Math.round((Number(prefs.lyricsFontScale) || 1) * 100)
-        return h('div', { className: 'mp-studio-panel' },
-          row('settings.lyricFontScale', h('input', {
-            type: 'range', className: 'mp-range', min: '70', max: '150', step: '5',
-            value: String(value), 'aria-label': t('settings.lyricFontScale'),
-            onChange: function (event) { setPrefs({ lyricsFontScale: Number(event.target.value) / 100 }) },
-          }), value + '%'),
-        )
-      }
-
-      function subtitlePanel() {
-        return h('div', { className: 'mp-studio-panel' },
-          row('sheet.showTranslation', h(Switch, { value: prefs.showTranslation === true, label: t('sheet.showTranslation'), onChange: function (value) { setPrefs({ showTranslation: value }) } })),
-          row('settings.subtitleOverlayBackground', h(Switch, { value: prefs.subtitleOverlayBackground !== false, label: t('settings.subtitleOverlayBackground'), onChange: function (value) { setPrefs({ subtitleOverlayBackground: value }) } })),
-        )
-      }
-
-      function globalPanel() {
-        return h('div', { className: 'mp-studio-panel' },
-          row('sheet.themeSource', seg(
-            MP_THEME_SOURCES.indexOf(prefs.themeSource) >= 0 ? prefs.themeSource : 'default',
-            [
-              { value: 'default', label: t('sheet.sourceDefault') },
-              { value: 'cover', label: t('sheet.sourceAI') },
-              { value: 'custom', label: t('sheet.sourceCustom') },
-            ],
-            function (value) { setPrefs({ themeSource: value }) },
-          )),
-          row('settings.playerChromeMode', seg(
-            ['always-visible', 'auto-hide', 'always-hidden'].indexOf(prefs.playerChromeVisibilityMode) >= 0 ? prefs.playerChromeVisibilityMode : 'always-visible',
-            [
-              { value: 'always-visible', label: t('settings.playerChromeAlwaysVisible') },
-              { value: 'auto-hide', label: t('settings.playerChromeAutoHide') },
-              { value: 'always-hidden', label: t('settings.playerChromeAlwaysHidden') },
-            ],
-            function (value) { setPrefs({ playerChromeVisibilityMode: value }) },
-          )),
-        )
-      }
-
-      var panel = tab === 'background' ? backgroundPanel() : tab === 'font' ? fontPanel() : tab === 'subtitle' ? subtitlePanel() : tab === 'global' ? globalPanel() : animationPanel()
-
-      return h('div', { className: 'mp-studio-backdrop', onMouseDown: function (event) { if (event.target === event.currentTarget) close() } },
-        h('section', { className: 'mp-studio', role: 'dialog', 'aria-label': t('studio.title') },
-          h('header', { className: 'mp-studio-head' },
-            h('h2', null, t('studio.title')),
-            h('button', { type: 'button', className: 'mp-studio-close', title: t('sheet.close'), onClick: close }, icon('x', 18)),
-          ),
-          h('div', { className: 'mp-studio-body' },
-            h('div', { className: 'mp-studio-left' },
-              h('div', { className: 'mp-studio-preview' },
-                h('div', { className: 'mp-studio-preview-live' },
-                  h(LyricStage, {
-                    stylePref: prefs.lyricStyle,
-                    lines: MP_STUDIO_SAMPLE,
-                    active: 0,
-                    now: previewNow,
-                    duration: 8,
-                    accent: '#6ea8ff',
-                    seed: 'studio-preview',
-                    prefs: prefs,
-                  }),
-                ),
-                h('div', { className: 'mp-studio-preview-top' },
-                  h('span', { className: 'mp-studio-preview-chip' }, t('studio.builtin')),
-                  h('span', { className: 'mp-studio-preview-chip is-off' }, t('studio.live')),
-                  h('button', { type: 'button', className: 'mp-studio-preview-chip mp-studio-pause', title: previewPaused ? t('studio.play') : t('studio.pause'), onClick: function () { setPreviewPaused(!previewPaused) } }, icon(previewPaused ? 'play' : 'pause', 13)),
-                ),
-              ),
-              h('div', { className: 'mp-studio-count' }, t('studio.styles', { count: String(catalog.length) })),
-              h('div', { className: 'mp-studio-grid' }, catalog.map(function (entry) {
-                var selected = entry.id === styleId
-                var src = mpLyricStyleThumb(entry.id)
-                return h('button', {
-                  key: entry.id,
-                  type: 'button',
-                  className: 'mp-studio-cell' + (selected ? ' is-on' : ''),
-                  onClick: function () { pick(entry.id) },
-                },
-                  h('span', { className: 'mp-studio-cell-art', style: src !== '' ? { backgroundImage: 'url("' + src + '")' } : undefined },
-                    src === '' ? icon(entry.glyph || 'note', 22) : null,
-                  ),
-                  h('span', { className: 'mp-studio-cell-name' }, t(entry.labelKey)),
-                )
-              })),
-            ),
-            h('div', { className: 'mp-studio-right' },
-              h(KitSegmentedTabs, {
-                items: MP_STUDIO_TABS.map(function (item) { return { value: item.value, label: t(item.label), id: 'mp-studio-tab-' + item.value, panelId: 'mp-studio-panel-' + item.value } }),
-                value: tab,
-                size: 'sm',
-                label: t('studio.title'),
-                onChange: function (next) { setTab(next) },
-              }),
-              h('div', { id: 'mp-studio-panel-' + tab, role: 'tabpanel', className: 'mp-studio-tab-body' }, panel),
-            ),
-          ),
-        ),
       )
     }
 

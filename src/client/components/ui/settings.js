@@ -405,7 +405,6 @@ function SettingsSheet(props) {
           value: styleId,
           onPick: function (next) { patchPrefs({ lyricStyle: next, lyricStyleChosen: true }) },
         }),
-        h(Button, { variant: 'ghost', size: 'sm', onClick: function () { pushLayer('lyricStudio') } }, t('studio.open')),
       ),
       h(
         'div',

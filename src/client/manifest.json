@@ -109,7 +109,6 @@
     "src/client/components/ui/online-add-to-playlist-dialog.js",
     "src/client/components/ui/lyric-file.js",
     "src/client/components/ui/look-picker.js",
-    "src/client/components/ui/lyric-studio.js",
     "src/client/components/ui/fx.js",
     "src/client/components/ui/lyric-segmentation.js",
     "src/client/components/ui/composer.js",

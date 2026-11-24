@@ -26,7 +26,7 @@ var FoliaBackgroundRenderer = FOLIA_BG !== null && FOLIA_BG.VisualizerBackground
 /** Modes the player sheet offers; ids match Folia's registry. */
 var FOLIA_BG_NONE = 'none'
 
-function foliaBackgroundConfig(mode, url, transparent, latentDisplayMode, latentColorSource, latentTuning) {
+function foliaBackgroundConfig(mode, url, transparent, latentDisplayMode, latentColorSource) {
   if (FOLIA_BG === null) return null
   var resolved = mode === FOLIA_BG_NONE ? FOLIA_BG.DEFAULT_VISUALIZER_BACKGROUND_MODE : mode
   var items = typeof url === 'string' && url.trim() !== ''
@@ -47,10 +47,6 @@ function foliaBackgroundConfig(mode, url, transparent, latentDisplayMode, latent
           ? latentDisplayMode
           : 'both',
         colorSource: latentColorSource === 'cover-only' ? 'cover-only' : 'cover-theme',
-        dynamicOnlyInPlayer: latentTuning && latentTuning.dynamicOnlyInPlayer !== false,
-        enhancedBeatResponse: latentTuning && latentTuning.enhancedBeatResponse !== false,
-        overlayEnabled: latentTuning && latentTuning.overlayEnabled !== false,
-        overlayOpacity: latentTuning && isFinite(Number(latentTuning.overlayOpacity)) ? Number(latentTuning.overlayOpacity) : 0.35,
       }),
     },
     monet: { tuning: FOLIA_BG.DEFAULT_MONET_BACKGROUND_TUNING },
@@ -123,8 +119,8 @@ function FoliaBackgroundStage(props) {
   var theme = useFoliaCoverTheme(props.cover, props.seed, props.accent)
 
   var config = useMemo(function () {
-    return foliaBackgroundConfig(props.mode, props.url, props.transparent, props.latentDisplayMode, props.latentColorSource, props.latentTuning)
-  }, [props.mode, props.transparent, props.url, props.latentDisplayMode, props.latentColorSource, props.latentTuning])
+    return foliaBackgroundConfig(props.mode, props.url, props.transparent, props.latentDisplayMode, props.latentColorSource)
+  }, [props.mode, props.transparent, props.url, props.latentDisplayMode, props.latentColorSource])
 
   if (config === null || FoliaBackgroundRenderer === null) {
     // A solid backdrop is still better than the old ambient layer when the bundle
