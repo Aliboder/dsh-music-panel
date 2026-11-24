@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "48c6d49d3b78"
+    var CLIENT_BUILD = "2b559178f4f9"
 
     // ── src/client/app/runtime.js
     /**
@@ -179774,11 +179774,11 @@ window.__ModuleLoader__.load({
       '.mp-tuning-grid .mp-set-label{grid-column:1/-1;order:0;padding:8px 0 0 !important;white-space:nowrap;overflow:visible}',
       '.mp-tuning-grid .mp-set-text{min-width:0;overflow:visible}',
       '.mp-tuning-grid .mp-set-row .mp-set-label{font-size:13px;white-space:nowrap;overflow:visible;text-overflow:clip}',
-      '.mp-tuning-label{display:block;max-width:100%;overflow:hidden;white-space:nowrap}',
+      '.mp-tuning-label{display:block;max-width:100%;overflow:hidden;white-space:nowrap;pointer-events:none}',
       '.mp-tuning-label-inner{display:inline-block;white-space:nowrap;will-change:transform}',
       '.mp-tuning-label.is-overflow .mp-tuning-label-inner{animation:mp-tuning-marquee 3.2s ease-in-out infinite alternate}',
       '@keyframes mp-tuning-marquee{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--mp-label-shift,0px)))}}',
-      '.mp-tuning-range-value{flex:0 0 auto;min-width:32px;text-align:right;font-size:11px;line-height:16px;opacity:.72;font-variant-numeric:tabular-nums}',
+      '.mp-tuning-range-value{flex:0 0 auto;min-width:32px;text-align:right;font-size:11px;line-height:16px;opacity:.72;font-variant-numeric:tabular-nums;pointer-events:none}',
       // 设置页分组卡片：组标题在卡外，行在卡内（歌词页与播放控制页共用）。
       '.mp-set-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',
       '.mp-set-group:first-of-type .mp-set-group-head{padding-top:18px}',
@@ -195394,6 +195394,7 @@ window.__ModuleLoader__.load({
        */
       function cardQueuePane() {
         var queue = Array.isArray(snap.queue) ? snap.queue : []
+        var listHeight = Math.max(320, Math.min(900, (typeof window !== 'undefined' ? window.innerHeight : 900) - 300))
         var current = Number(snap.index)
         var order = snap.order === 'random' && typeof player.getPlayOrder === 'function'
           ? player.getPlayOrder()
@@ -195438,12 +195439,12 @@ window.__ModuleLoader__.load({
             ? h('div', { className: 'mpv3-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty')))
             : h('div', {
                 className: 'mpv3-queue-list',
-                style: { height: String(Math.min(queue.length * 56, 360)) + 'px' },
+                style: { height: String(Math.min(queue.length * 56, listHeight)) + 'px' },
                 onScroll: function (event) { setQueueScroll(event.currentTarget.scrollTop) },
               },
                 (function () {
                   var rowHeight = 56
-                  var viewport = 360
+                  var viewport = listHeight
                   var start = Math.max(0, Math.floor(queueScroll / rowHeight) - 2)
                   var endAt = Math.min(queue.length, start + Math.ceil(viewport / rowHeight) + 4)
                   var rows = []

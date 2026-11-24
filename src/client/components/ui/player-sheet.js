@@ -1232,6 +1232,7 @@ function PlayerSheetInner(props) {
    */
   function cardQueuePane() {
     var queue = Array.isArray(snap.queue) ? snap.queue : []
+    var listHeight = Math.max(320, Math.min(900, (typeof window !== 'undefined' ? window.innerHeight : 900) - 300))
     var current = Number(snap.index)
     var order = snap.order === 'random' && typeof player.getPlayOrder === 'function'
       ? player.getPlayOrder()
@@ -1276,12 +1277,12 @@ function PlayerSheetInner(props) {
         ? h('div', { className: 'mpv3-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty')))
         : h('div', {
             className: 'mpv3-queue-list',
-            style: { height: String(Math.min(queue.length * 56, 360)) + 'px' },
+            style: { height: String(Math.min(queue.length * 56, listHeight)) + 'px' },
             onScroll: function (event) { setQueueScroll(event.currentTarget.scrollTop) },
           },
             (function () {
               var rowHeight = 56
-              var viewport = 360
+              var viewport = listHeight
               var start = Math.max(0, Math.floor(queueScroll / rowHeight) - 2)
               var endAt = Math.min(queue.length, start + Math.ceil(viewport / rowHeight) + 4)
               var rows = []
