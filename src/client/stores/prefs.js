@@ -55,6 +55,7 @@ var PREF_DEFAULTS = {
   npFlowBg: true,
   /** 外观: lyric style, Folia shell background and where the accent comes from (28-look.js). */
   lyricStyle: 'classic',
+  lyricStyleChosen: false,
   /** Folia's calm/normal/chaotic chip (used by the styles' animation tuning). */
   lyricIntensity: 'normal',
   /**
@@ -179,6 +180,13 @@ function readPrefs() {
   }
   // Legacy variant ids now select Folia's classic style; a stored `classic` is kept.
   if (['standard', 'glow', 'outline', 'karaoke', 'mirror', 'cappella'].indexOf(merged.lyricStyle) >= 0) merged.lyricStyle = 'classic'
+  // The old default was Monet. Move a preference the user never chose to Folia's
+  // default once; an explicit later choice writes `lyricStyleChosen` and is kept.
+  if (merged.lyricStyleChosen !== true && merged.lyricStyle === 'monet') {
+    merged.lyricStyle = 'classic'
+    merged.lyricStyleChosen = true
+    dropped = true
+  }
   // The player page switched from the old ambient/flow backdrop to Folia's six shell
   // backgrounds; a stored old id falls back to Folia's default (latent).
   var foliaBackgrounds = ['common', 'monet', 'nomand', 'latent', 'sora', 'url', 'none']

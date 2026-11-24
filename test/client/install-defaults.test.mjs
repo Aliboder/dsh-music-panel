@@ -70,4 +70,19 @@ test('legacy lyric variants migrate to Folia classic', () => {
   assert.equal(vm.runInContext('readPrefs().lyricStyle', legacy), 'classic')
 })
 
+test('old default Monet migrates once', () => {
+  const raw = JSON.stringify({ lyricStyle: 'monet' })
+  const legacy = vm.createContext({
+    window: { localStorage: { getItem: (key) => (key === 'music.prefs.v2' ? raw : null), setItem() {} } },
+    createStore: function (state) {
+      return { get: () => state, set() {}, subscribe: () => () => {} }
+    },
+    console,
+  })
+  vm.runInContext(source, legacy)
+  const migrated = vm.runInContext('readPrefs()', legacy)
+  assert.equal(migrated.lyricStyle, 'classic')
+  assert.equal(migrated.lyricStyleChosen, true)
+})
+
 console.log('install-defaults.test.mjs ok')

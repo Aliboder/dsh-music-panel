@@ -403,7 +403,7 @@ function SettingsSheet(props) {
         h(LookChoiceGrid, {
           kind: 'lyricStyle',
           value: styleId,
-          onPick: function (next) { patchPrefs({ lyricStyle: next }) },
+          onPick: function (next) { patchPrefs({ lyricStyle: next, lyricStyleChosen: true }) },
         }),
       ),
       h(

@@ -1078,7 +1078,7 @@ function PlayerSheetInner(props) {
               kind: 'lyricStyle',
               value: mpStyleIdOf(prefs.lyricStyle),
               onPick: function (next) {
-                setPrefs({ lyricStyle: next })
+                setPrefs({ lyricStyle: next, lyricStyleChosen: true })
               },
             }),
           )

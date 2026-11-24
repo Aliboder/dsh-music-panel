@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "d0f61ff5d8e4"
+    var CLIENT_BUILD = "2152e02af175"
 
     // ── src/client/app/runtime.js
     /**
@@ -151187,6 +151187,7 @@ window.__ModuleLoader__.load({
       npFlowBg: true,
       /** 外观: lyric style, Folia shell background and where the accent comes from (28-look.js). */
       lyricStyle: 'classic',
+      lyricStyleChosen: false,
       /** Folia's calm/normal/chaotic chip (used by the styles' animation tuning). */
       lyricIntensity: 'normal',
       /**
@@ -151311,6 +151312,13 @@ window.__ModuleLoader__.load({
       }
       // Legacy variant ids now select Folia's classic style; a stored `classic` is kept.
       if (['standard', 'glow', 'outline', 'karaoke', 'mirror', 'cappella'].indexOf(merged.lyricStyle) >= 0) merged.lyricStyle = 'classic'
+      // The old default was Monet. Move a preference the user never chose to Folia's
+      // default once; an explicit later choice writes `lyricStyleChosen` and is kept.
+      if (merged.lyricStyleChosen !== true && merged.lyricStyle === 'monet') {
+        merged.lyricStyle = 'classic'
+        merged.lyricStyleChosen = true
+        dropped = true
+      }
       // The player page switched from the old ambient/flow backdrop to Folia's six shell
       // backgrounds; a stored old id falls back to Folia's default (latent).
       var foliaBackgrounds = ['common', 'monet', 'nomand', 'latent', 'sora', 'url', 'none']
@@ -170121,7 +170129,7 @@ window.__ModuleLoader__.load({
             h(LookChoiceGrid, {
               kind: 'lyricStyle',
               value: styleId,
-              onPick: function (next) { patchPrefs({ lyricStyle: next }) },
+              onPick: function (next) { patchPrefs({ lyricStyle: next, lyricStyleChosen: true }) },
             }),
           ),
           h(
@@ -179127,7 +179135,7 @@ window.__ModuleLoader__.load({
                   kind: 'lyricStyle',
                   value: mpStyleIdOf(prefs.lyricStyle),
                   onPick: function (next) {
-                    setPrefs({ lyricStyle: next })
+                    setPrefs({ lyricStyle: next, lyricStyleChosen: true })
                   },
                 }),
               )
