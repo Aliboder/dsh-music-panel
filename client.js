@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.1"
-    var CLIENT_BUILD = "caf9e87f4d26"
+    var CLIENT_BUILD = "20d2a1eabcd8"
 
     // ── src/client/app/runtime.js
     /**
@@ -162840,14 +162840,10 @@ window.__ModuleLoader__.load({
       '.mp-cap-actions .mp-iconbtn{width:32px;height:32px;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mp-cap-actions .mp-iconbtn:hover{background:rgba(255,255,255,.1);color:#fff}',
       '.mp-cap-queue{position:relative}',
-      '.mp-np-handle{position:absolute;right:24px;bottom:44px;z-index:9999;width:96px;height:48px;display:flex;align-items:center;justify-content:flex-end;pointer-events:auto;transition:opacity .25s ease,transform .25s ease}',
-      '.mp-np-handle-track{position:absolute;right:0;top:0;width:96px;height:48px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);opacity:0;transition:opacity .2s ease;pointer-events:none}',
-      '.mp-np-handle:hover .mp-np-handle-track,.mp-np-handle.is-on .mp-np-handle-track{opacity:1}',
-      '.mp-np-handle-track svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.45)}',
-      '.mp-np-handle-btn{position:relative;z-index:1;width:48px;height:48px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;color:#fff;background:rgba(0,0,0,.4);box-shadow:0 10px 30px rgba(0,0,0,.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:transform .15s ease,background .15s ease}',
-      '.mp-np-handle-btn:hover{transform:scale(1.05);background:rgba(0,0,0,.55)}',
-      '.mp-np-handle.is-on .mp-np-handle-btn{background:#fff;color:#111}',
-      '.mp-np-handle-btn.is-on{background:#fff;color:#111}',
+      '.mp-np-handle{position:absolute;right:24px;bottom:44px;z-index:9999;width:48px;height:48px;display:flex;align-items:center;justify-content:flex-end;pointer-events:auto;transition:opacity .25s ease,transform .25s ease}',
+      '.mp-np-handle-btn{position:relative;z-index:1;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--dsw-alias-label-primary,#f4f4f5);background:var(--dsw-alias-bg-layer-1,#17171a);border:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.14));box-shadow:var(--dsw-elevation-soft,0 8px 24px rgba(0,0,0,.28));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:transform .15s ease,filter .15s ease}',
+      '.mp-np-handle-btn:hover{transform:scale(1.05);filter:brightness(1.08)}',
+      '.mp-np-handle.is-on .mp-np-handle-btn,.mp-np-handle-btn.is-on{background:var(--dsw-alias-state-business-primary,#4f8cff);color:var(--dsw-alias-label-primary-foreground,#fff)}',
       '.mp-np-handle-btn:focus-visible{outline:2px solid var(--dsw-focus-ring-color,#7AAAFF);outline-offset:2px}',
       '.mp-np.is-chrome-hidden .mp-cap{opacity:0;transform:translate(-50%,10px);pointer-events:none}',
       '.mp-np.is-chrome-hidden .mp-np-handle{opacity:0;transform:translateY(10px);pointer-events:none}',
@@ -162860,7 +162856,7 @@ window.__ModuleLoader__.load({
       // not win: clicking the fullscreen button leaves it focused, and a bare
       // :focus-within would pin the chrome on screen (it never hides in fullscreen).
       '.mp-np.is-chrome-hidden .mp-np-head:has(:focus-visible),.mp-np.is-chrome-hidden .mp-np-fs:has(:focus-visible){opacity:1;transform:none;pointer-events:auto}',
-      '@media (max-width:760px){.mp-cap{width:calc(100% - 220px);bottom:24px}.mp-cap-inner{padding:10px 14px;gap:10px}.mp-cap-play{width:42px;height:42px}.mp-cap-skip{width:26px;height:26px}.mp-np-handle{right:16px;bottom:33px;width:84px;height:44px}.mp-np-handle-track{width:84px;height:44px}.mp-np-handle-btn{width:44px;height:44px}}',
+      '@media (max-width:760px){.mp-cap{width:calc(100% - 220px);bottom:24px}.mp-cap-inner{padding:10px 14px;gap:10px}.mp-cap-play{width:42px;height:42px}.mp-cap-skip{width:26px;height:26px}.mp-np-handle{right:16px;bottom:33px;width:44px;height:44px}.mp-np-handle-btn{width:44px;height:44px}}',
       '@media (max-width:560px){.mp-cap{width:calc(100% - 32px);bottom:82px}.mp-np-handle{bottom:18px}}',
       '.mp-np-fs .mp-iconbtn:hover{background:rgba(255,255,255,.1);color:#fff}',
       '.mp-np:fullscreen{width:100vw;height:100vh;transform:none;visibility:visible;background:var(--dsw-alias-bg-base,#141417)}',
@@ -169063,8 +169059,7 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: cx('mp-np-handle', sheetOpen && 'is-on') },
-            h('div', { className: 'mp-np-handle-track', 'aria-hidden': 'true' }, icon('equalizer', 14)),
-            h(
+              h(
               'button',
               {
                 type: 'button',

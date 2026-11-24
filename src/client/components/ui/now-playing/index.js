@@ -1105,8 +1105,7 @@ function NowPlaying(props) {
       h(
         'div',
         { className: cx('mp-np-handle', sheetOpen && 'is-on') },
-        h('div', { className: 'mp-np-handle-track', 'aria-hidden': 'true' }, icon('equalizer', 14)),
-        h(
+          h(
           'button',
           {
             type: 'button',

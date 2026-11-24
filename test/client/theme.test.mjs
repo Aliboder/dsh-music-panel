@@ -231,6 +231,11 @@ assert.match(theme, /\.mp-btn\.is-md\{[^']*height:36px/, 'md buttons are 36px ta
 assert.match(theme, /\.mp-switch\{[^']*width:36px;height:20px/, 'switch is the official 36x20')
 assert.match(theme, /\.mp-pill\{[^']*height:24px/, 'pill is the official 24px capsule')
 assert.match(theme, /\.mp-iconbtn\{[^']*width:28px;height:28px/, 'compact icon button is 28px')
+assert.match(theme, /\.mp-np-handle-btn\{[^']*background:var\(--dsw-alias-bg-layer-1/, 'floating settings handle uses the host surface token')
+assert.match(theme, /\.mp-np-handle-btn\{[^']*color:var\(--dsw-alias-label-primary/, 'floating settings handle icon follows the theme')
+assert.match(theme, /\.mp-np-handle\.is-on \.mp-np-handle-btn[^']*var\(--dsw-alias-state-business-primary/, 'open handle uses the business token')
+assert.doesNotMatch(theme, /\.mp-np-handle-track/, 'no decorative pill behind the floating settings handle')
+assert.match(theme, /\.mp-np-handle\{[^']*width:48px/, 'floating handle is just the 48px button')
 
 // Elevated surfaces draw their edge with the elevation shadow, never with an extra
 // alias border (主题与组件开发规范 §2.4).
