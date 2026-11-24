@@ -26,6 +26,8 @@ var MP_LYRIC_STYLE_THUMBS = {
   nebbia: 'nebbia',
   diorama: 'diorama',
   pendolo: 'pendolo',
+  machi: 'machi',
+  classic: 'classic',
 }
 
 function mpLyricStyleThumb(id) {

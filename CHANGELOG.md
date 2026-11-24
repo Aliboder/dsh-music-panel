@@ -18,6 +18,8 @@
 
 ### 歌词样式
 
+- 外观页样式网格补上「町景」与「流光」的缩略图：15 个真实样式现在都有真实界面预览，不再有占位音符图标。
+
 - 补齐 Folia `cappella`（群唱）与 `machi`（町景）渲染器；cappella 内置头像/表情由 Host `/music/assets/cappella/` 提供。
 - 接入 Folia tuning：classic、tilt、partita、fume、claddagh、hanabi、cadenza、sonnet、cappella、monet、machi、lumiere、pendolo、diorama、tempera、nebbia。
 - 新增 `player-shell.js` 作为 PanelShell 基座；保留现有页面结构。

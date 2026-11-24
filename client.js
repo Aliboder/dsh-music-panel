@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "15c545fa30f9"
+    var CLIENT_BUILD = "9ffa2bb5da87"
 
     // ── src/client/app/runtime.js
     /**
@@ -197464,6 +197464,8 @@ window.__ModuleLoader__.load({
       nebbia: 'nebbia',
       diorama: 'diorama',
       pendolo: 'pendolo',
+      machi: 'machi',
+      classic: 'classic',
     }
 
     function mpLyricStyleThumb(id) {
