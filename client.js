@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "274f1bb36688"
+    var CLIENT_BUILD = "2359e26b4c92"
 
     // ── src/client/app/runtime.js
     /**
@@ -8853,6 +8853,22 @@ window.__ModuleLoader__.load({
         'sheet.volume': '音量',
         'sheet.mute': '静音',
         'sheet.unmute': '取消静音',
+        'studio.title': '歌词样式',
+        'studio.open': '打开样式面板',
+        'studio.animation': '歌词动画',
+        'studio.background': '背景',
+        'studio.font': '字体',
+        'studio.subtitle': '字幕',
+        'studio.global': '全局',
+        'studio.styles': '样式 {count}',
+        'studio.animationHint': '样式参数在播放面板的「歌词」页继续调整；这里用于快速切换和预览。',
+        'studio.latentLayers': '显示图层',
+        'studio.latentDither': '像素',
+        'studio.latentMesh': '流体',
+        'studio.latentBoth': '混合',
+        'studio.latentColor': '颜色来源',
+        'studio.latentCoverTheme': '封面与主题',
+        'studio.latentCoverOnly': '仅封面取色',
         'sheet.lyricStyle': '歌词样式',
         'sheet.lyricUpgraded': '已换用 {source} 的逐字歌词',
         'sheet.lyricSwitched': '已换用 {source} 的歌词',
@@ -9891,6 +9907,22 @@ window.__ModuleLoader__.load({
         'sheet.volume': 'Volume',
         'sheet.mute': 'Mute',
         'sheet.unmute': 'Unmute',
+        'studio.title': 'Lyric styles',
+        'studio.open': 'Open style panel',
+        'studio.animation': 'Lyrics animation',
+        'studio.background': 'Background',
+        'studio.font': 'Font',
+        'studio.subtitle': 'Subtitles',
+        'studio.global': 'Global',
+        'studio.styles': 'Styles {count}',
+        'studio.animationHint': 'Style tunings stay in the player panel\'s Lyrics page; this window is for quick switching and preview.',
+        'studio.latentLayers': 'Layers',
+        'studio.latentDither': 'Dithering',
+        'studio.latentMesh': 'Mesh',
+        'studio.latentBoth': 'Both',
+        'studio.latentColor': 'Color source',
+        'studio.latentCoverTheme': 'Cover and theme',
+        'studio.latentCoverOnly': 'Cover only',
         'sheet.lyricStyle': 'Lyric style',
         'sheet.lyricUpgraded': 'Using {source} word-by-word lyrics',
         'sheet.lyricSwitched': 'Using {source} lyrics',
@@ -181434,7 +181466,7 @@ window.__ModuleLoader__.load({
     '.mp-studio-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}',
     '.mp-studio-cell{display:flex;flex-direction:column;gap:4px;padding:4px;border:1px solid transparent;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}',
     '.mp-studio-cell.is-on{border-color:var(--dsw-alias-state-business-primary,#4f8cff);background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4f8cff) 12%,transparent)}',
-    '.mp-studio-cell-art{display:grid;place-items:center;width:100%;aspect-ratio:3/2;border-radius:6px;background:var(--dsw-alias-bg-layer-2,#191919) center/cover no-repeat;overflow:hidden}',
+    '.mp-studio-cell-art{display:grid;place-items:center;width:100%;aspect-ratio:3/2;border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-2,#191919) center/cover no-repeat;overflow:hidden}',
     '.mp-studio-cell-name{font-size:11px;color:var(--dsw-alias-label-secondary,#a1a1aa);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.mp-studio-right{width:42%;min-width:0;display:flex;flex-direction:column;border-left:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));padding:16px 20px;overflow-y:auto}',
     '.mp-studio-tab-body{margin-top:12px;min-height:0}',
@@ -198667,6 +198699,7 @@ window.__ModuleLoader__.load({
     // Settings screenshots for every real lyric style, shipped with the plugin at
     // /music/assets/lyric-style-thumbs/<id>.webp. The random pseudo-style has none.
     var MP_LYRIC_STYLE_THUMBS = {
+      classic: 'classic',
       still: 'still',
       partita: 'partita',
       fume: 'fume',

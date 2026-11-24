@@ -12,6 +12,7 @@ var MP_LOOK_SAMPLE = '夜に駆ける'
 // Settings screenshots for every real lyric style, shipped with the plugin at
 // /music/assets/lyric-style-thumbs/<id>.webp. The random pseudo-style has none.
 var MP_LYRIC_STYLE_THUMBS = {
+  classic: 'classic',
   still: 'still',
   partita: 'partita',
   fume: 'fume',
