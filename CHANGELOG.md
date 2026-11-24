@@ -2,6 +2,19 @@
 
 ## 未发布
 
+### 播放器
+
+- 面板新增队列页签：窗口化渲染、当前行高亮、播放/下一首/移到末尾/移除/清空。
+- 播放控制显示改为 Folia 三态：始终显示 / 自动隐藏 / 始终隐藏；默认始终显示，隐藏时同步隐藏鼠标。
+- 下一首/上一首、预取和错误跳过改用 Folia `nextQueueIndex` / `prevQueueIndex`；关闭列表循环时到边界不再绕回。
+
+### 歌词样式
+
+- 补齐 Folia `cappella`（群唱）与 `machi`（町景）渲染器；cappella 内置头像/表情由 Host `/music/assets/cappella/` 提供。
+- 接入 Folia tuning：classic、tilt、partita、fume、claddagh、hanabi、cadenza、sonnet、cappella、monet、machi、lumiere、pendolo、diorama、tempera、nebbia。
+- 新增 `player-shell.js` 作为 PanelShell 基座；保留现有页面结构。
+
+
 ### 歌词
 
 - 照搬 Folia 的 `classic`（流光）渲染器并设为默认/回退样式；旧 `standard/glow/outline/karaoke/mirror/cappella` 迁移到 classic，旧默认 monet 只迁移一次，用户主动选择后写入 `lyricStyleChosen` 不再覆盖。
