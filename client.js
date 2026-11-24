@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "8d566f776bbb"
+    var CLIENT_BUILD = "436d0c15c5d8"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,10 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.playerChromeMode': '播放控制显示',
+        'settings.playerChromeAlwaysVisible': '始终显示',
+        'settings.playerChromeAutoHide': '自动隐藏',
+        'settings.playerChromeAlwaysHidden': '始终隐藏',
         'settings.autoHidePlayerChrome': '自动隐藏播放控制',
         'settings.autoHidePlayerChromeDesc': '鼠标离开后自动收起进度条和右下角按钮；默认关闭，和 Folia 一致',
         'settings.queueAddBehavior': '加入队列的默认位置',
@@ -9337,6 +9341,10 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.playerChromeMode': 'Player chrome',
+        'settings.playerChromeAlwaysVisible': 'Always visible',
+        'settings.playerChromeAutoHide': 'Auto-hide',
+        'settings.playerChromeAlwaysHidden': 'Always hidden',
         'settings.autoHidePlayerChrome': 'Auto-hide player chrome',
         'settings.autoHidePlayerChromeDesc': 'Fold away the progress bar and bottom-right button after the pointer leaves; off by default, as in Folia',
         'settings.queueAddBehavior': 'Default position for added songs',
@@ -151232,6 +151240,8 @@ window.__ModuleLoader__.load({
       playbackFade: false,
       /** Folia default: the player chrome stays visible until the user asks it to hide. */
       autoHidePlayerChrome: false,
+      /** Folia's three-way player chrome mode: always-visible / auto-hide / always-hidden. */
+      playerChromeVisibilityMode: 'always-visible',
       // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
       playbackReports: false,
       /** Folia's voice-input pause: Windows microphone capture pauses playback. */
@@ -168604,9 +168614,12 @@ window.__ModuleLoader__.load({
               timer = null
             }
           }
+          var chromeMode = prefs.playerChromeVisibilityMode === 'auto-hide'
+            ? 'auto-hide'
+            : (prefs.playerChromeVisibilityMode === 'always-hidden' ? 'always-hidden' : 'always-visible')
           function arm() {
             clear()
-            if (chromePinned || prefs.autoHidePlayerChrome !== true) return
+            if (chromeMode !== 'auto-hide' || chromePinned) return
             timer = setTimeout(function () {
               setChromeVisible(false)
             }, 3000)
@@ -168615,6 +168628,14 @@ window.__ModuleLoader__.load({
             setChromeVisible(true)
             arm()
           }
+          var chromeMode = prefs.playerChromeVisibilityMode === 'auto-hide'
+            ? 'auto-hide'
+            : (prefs.playerChromeVisibilityMode === 'always-hidden' ? 'always-hidden' : 'always-visible')
+          if (chromeMode === 'always-hidden') {
+            setChromeVisible(false)
+            return undefined
+          }
+          if (chromeMode === 'always-visible') setChromeVisible(true)
           var root = npRef.current
           if (root === null) return undefined
           root.addEventListener('pointermove', wake, { passive: true })
@@ -168633,7 +168654,7 @@ window.__ModuleLoader__.load({
             root.removeEventListener('keydown', wake)
           }
         },
-        [props.open, chromePinned, prefs.autoHidePlayerChrome],
+        [props.open, chromePinned, prefs.playerChromeVisibilityMode],
       )
       var offsetPair = useState(0)
       var offsetMs = offsetPair[0]
@@ -179456,14 +179477,23 @@ window.__ModuleLoader__.load({
           ),
           gainBlock(),
           mpPanelRow(
-            t('settings.autoHidePlayerChrome'),
-            h(Switch, {
-              value: prefs.autoHidePlayerChrome === true,
-              label: t('settings.autoHidePlayerChrome'),
-              onChange: function (value) {
-                setPrefs({ autoHidePlayerChrome: value })
+            t('settings.playerChromeMode'),
+            segmented(
+              [
+                { value: 'always-visible', label: t('settings.playerChromeAlwaysVisible') },
+                { value: 'auto-hide', label: t('settings.playerChromeAutoHide') },
+                { value: 'always-hidden', label: t('settings.playerChromeAlwaysHidden') },
+              ],
+              ['always-visible', 'auto-hide', 'always-hidden'].indexOf(prefs.playerChromeVisibilityMode) >= 0
+                ? prefs.playerChromeVisibilityMode
+                : (prefs.autoHidePlayerChrome === true ? 'auto-hide' : 'always-visible'),
+              function (value) {
+                setPrefs({
+                  playerChromeVisibilityMode: value,
+                  autoHidePlayerChrome: value === 'auto-hide',
+                })
               },
-            }),
+            ),
             t('settings.autoHidePlayerChromeDesc'),
           ),
           mpPanelRow(

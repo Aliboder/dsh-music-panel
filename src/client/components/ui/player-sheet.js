@@ -1284,14 +1284,23 @@ function PlayerSheetInner(props) {
       ),
       gainBlock(),
       mpPanelRow(
-        t('settings.autoHidePlayerChrome'),
-        h(Switch, {
-          value: prefs.autoHidePlayerChrome === true,
-          label: t('settings.autoHidePlayerChrome'),
-          onChange: function (value) {
-            setPrefs({ autoHidePlayerChrome: value })
+        t('settings.playerChromeMode'),
+        segmented(
+          [
+            { value: 'always-visible', label: t('settings.playerChromeAlwaysVisible') },
+            { value: 'auto-hide', label: t('settings.playerChromeAutoHide') },
+            { value: 'always-hidden', label: t('settings.playerChromeAlwaysHidden') },
+          ],
+          ['always-visible', 'auto-hide', 'always-hidden'].indexOf(prefs.playerChromeVisibilityMode) >= 0
+            ? prefs.playerChromeVisibilityMode
+            : (prefs.autoHidePlayerChrome === true ? 'auto-hide' : 'always-visible'),
+          function (value) {
+            setPrefs({
+              playerChromeVisibilityMode: value,
+              autoHidePlayerChrome: value === 'auto-hide',
+            })
           },
-        }),
+        ),
         t('settings.autoHidePlayerChromeDesc'),
       ),
       mpPanelRow(

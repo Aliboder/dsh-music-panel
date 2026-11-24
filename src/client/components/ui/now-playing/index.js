@@ -194,9 +194,12 @@ function NowPlaying(props) {
           timer = null
         }
       }
+      var chromeMode = prefs.playerChromeVisibilityMode === 'auto-hide'
+        ? 'auto-hide'
+        : (prefs.playerChromeVisibilityMode === 'always-hidden' ? 'always-hidden' : 'always-visible')
       function arm() {
         clear()
-        if (chromePinned || prefs.autoHidePlayerChrome !== true) return
+        if (chromeMode !== 'auto-hide' || chromePinned) return
         timer = setTimeout(function () {
           setChromeVisible(false)
         }, 3000)
@@ -205,6 +208,14 @@ function NowPlaying(props) {
         setChromeVisible(true)
         arm()
       }
+      var chromeMode = prefs.playerChromeVisibilityMode === 'auto-hide'
+        ? 'auto-hide'
+        : (prefs.playerChromeVisibilityMode === 'always-hidden' ? 'always-hidden' : 'always-visible')
+      if (chromeMode === 'always-hidden') {
+        setChromeVisible(false)
+        return undefined
+      }
+      if (chromeMode === 'always-visible') setChromeVisible(true)
       var root = npRef.current
       if (root === null) return undefined
       root.addEventListener('pointermove', wake, { passive: true })
@@ -223,7 +234,7 @@ function NowPlaying(props) {
         root.removeEventListener('keydown', wake)
       }
     },
-    [props.open, chromePinned, prefs.autoHidePlayerChrome],
+    [props.open, chromePinned, prefs.playerChromeVisibilityMode],
   )
   var offsetPair = useState(0)
   var offsetMs = offsetPair[0]
