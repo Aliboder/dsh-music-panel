@@ -1714,7 +1714,30 @@ function PlayerSheetInner(props) {
       var current = options.some(function (item) { return item.value === tuning[key] }) ? tuning[key] : options[0].value
       return mpPanelRow(t(label), segmented(options, current, function (value) { setPrefs({ nebbiaTuning: Object.assign({}, tuning, { [key]: value }) }) }))
     }
+    function listRow(label, key, options, minOne) {
+      var current = Array.isArray(tuning[key]) ? tuning[key] : []
+      return h('div', { key: key },
+        h('div', { className: 'mp-set-label', style: { paddingTop: '8px' } }, t(label)),
+        options.map(function (item) {
+          var on = current.indexOf(item.value) >= 0
+          return mpPanelRow(item.text, h(Switch, {
+            value: on,
+            label: item.text,
+            onChange: function (next) {
+              var list = current.filter(function (value) { return value !== item.value })
+              if (next) list.push(item.value)
+              if (minOne && list.length === 0) return
+              setPrefs({ nebbiaTuning: Object.assign({}, tuning, { [key]: list }) })
+            },
+          }))
+        }),
+      )
+    }
     return mpSection(t('settings.nebbiaTuning'), h('div', null,
+      listRow('settings.nebbiaAppear', 'appear', [{ value: 'write', text: t('settings.nebbiaAppearWrite') }, { value: 'fade', text: t('settings.nebbiaAppearFade') }, { value: 'breath', text: t('settings.nebbiaAppearBreath') }], true),
+      listRow('settings.nebbiaFade', 'fade', [{ value: 'fog', text: t('settings.nebbiaFadeFog') }, { value: 'fingers', text: t('settings.nebbiaFadeFingers') }], true),
+      listRow('settings.nebbiaLayouts', 'layouts', [{ value: 'ribbon', text: 'Ribbon' }, { value: 'lines2', text: 'Lines 2' }, { value: 'lines3', text: 'Lines 3' }, { value: 'cross', text: 'Cross' }, { value: 'pillar', text: 'Pillar' }, { value: 'header', text: 'Header' }, { value: 'badge', text: 'Badge' }, { value: 'columns', text: 'Columns' }, { value: 'orbit', text: 'Orbit' }], true),
+      listRow('settings.nebbiaScenery', 'scenery', [{ value: 'spot', text: 'Spotlight' }, { value: 'buildings', text: 'Buildings' }, { value: 'lights', text: 'Lights' }, { value: 'cars', text: 'Cars' }, { value: 'road', text: 'Road' }], false),
       choice('settings.nebbiaBehind', 'behind', [{ value: 'night', label: 'Night' }, { value: 'aquarium', label: 'Aquarium' }, { value: 'backdrop', label: 'Backdrop' }]),
       choice('settings.nebbiaGlass', 'glass', [{ value: 'rain', label: 'Rain' }, { value: 'dew', label: 'Dew' }, { value: 'snow', label: 'Snow' }]),
       choice('settings.nebbiaRain', 'rain', [{ value: 'slant', label: 'Slant' }, { value: 'straight', label: 'Straight' }, { value: 'off', label: 'Off' }]),

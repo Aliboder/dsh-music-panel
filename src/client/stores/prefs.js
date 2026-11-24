@@ -58,6 +58,10 @@ var PREF_DEFAULTS = {
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
   nebbiaTuning: {
+    appear: ['write', 'fade'],
+    fade: ['fog'],
+    layouts: ['ribbon', 'lines2', 'lines3', 'cross', 'pillar', 'header', 'badge', 'columns', 'orbit'],
+    scenery: ['spot', 'buildings', 'lights', 'cars', 'road'],
     behind: 'night',
     glass: 'rain',
     rain: 'slant',
@@ -496,7 +500,20 @@ function readPrefs() {
   function nebbiaChoice(key, choices) {
     return choices.indexOf(storedNebbia[key]) >= 0 ? storedNebbia[key] : nebbiaDefaults[key]
   }
+  function nebbiaList(key, choices, fallback, minOne) {
+    var picked = Array.isArray(storedNebbia[key]) ? choices.filter(function (item) { return storedNebbia[key].indexOf(item) >= 0 }) : []
+    if (picked.length === 0 && minOne) return fallback.slice()
+    return picked
+  }
+  var nebbiaAppear = nebbiaList('appear', ['write', 'fade', 'breath'], ['write', 'fade'], true)
+  var nebbiaFade = nebbiaList('fade', ['fog', 'fingers'], ['fog'], true)
+  var nebbiaLayouts = nebbiaList('layouts', ['ribbon', 'lines2', 'lines3', 'cross', 'pillar', 'header', 'badge', 'columns', 'orbit'], ['ribbon'], true)
+  var nebbiaScenery = nebbiaList('scenery', ['spot', 'buildings', 'lights', 'cars', 'road'], ['spot', 'buildings', 'lights', 'cars', 'road'], false)
   merged.nebbiaTuning = {
+    appear: nebbiaAppear,
+    fade: nebbiaFade,
+    layouts: nebbiaLayouts,
+    scenery: nebbiaScenery,
     behind: nebbiaChoice('behind', ['night', 'aquarium', 'backdrop']),
     glass: nebbiaChoice('glass', ['rain', 'dew', 'snow']),
     rain: nebbiaChoice('rain', ['slant', 'straight', 'off']),

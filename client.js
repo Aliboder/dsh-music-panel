@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "c79b49da887b"
+    var CLIENT_BUILD = "b5a46159b5f0"
 
     // ── src/client/app/runtime.js
     /**
@@ -8520,6 +8520,15 @@ window.__ModuleLoader__.load({
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
         'settings.nebbiaTuning': '雾笺参数',
+        'settings.nebbiaAppear': '出现方式',
+        'settings.nebbiaFade': '消失方式',
+        'settings.nebbiaLayouts': '构图',
+        'settings.nebbiaScenery': '窗外元素',
+        'settings.nebbiaAppearWrite': '书写',
+        'settings.nebbiaAppearFade': '淡入',
+        'settings.nebbiaAppearBreath': '哈气',
+        'settings.nebbiaFadeFog': '起雾',
+        'settings.nebbiaFadeFingers': '搓掉',
         'settings.nebbiaBehind': '窗外',
         'settings.nebbiaGlass': '玻璃',
         'settings.nebbiaRain': '雨',
@@ -9551,6 +9560,15 @@ window.__ModuleLoader__.load({
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
         'settings.nebbiaTuning': 'Nebbia tuning',
+        'settings.nebbiaAppear': 'Appearance',
+        'settings.nebbiaFade': 'Disappearance',
+        'settings.nebbiaLayouts': 'Layouts',
+        'settings.nebbiaScenery': 'Scenery',
+        'settings.nebbiaAppearWrite': 'Write',
+        'settings.nebbiaAppearFade': 'Fade in',
+        'settings.nebbiaAppearBreath': 'Breath',
+        'settings.nebbiaFadeFog': 'Fog',
+        'settings.nebbiaFadeFingers': 'Fingers',
         'settings.nebbiaBehind': 'Behind window',
         'settings.nebbiaGlass': 'Glass',
         'settings.nebbiaRain': 'Rain',
@@ -167861,6 +167879,10 @@ window.__ModuleLoader__.load({
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
       nebbiaTuning: {
+        appear: ['write', 'fade'],
+        fade: ['fog'],
+        layouts: ['ribbon', 'lines2', 'lines3', 'cross', 'pillar', 'header', 'badge', 'columns', 'orbit'],
+        scenery: ['spot', 'buildings', 'lights', 'cars', 'road'],
         behind: 'night',
         glass: 'rain',
         rain: 'slant',
@@ -168299,7 +168321,20 @@ window.__ModuleLoader__.load({
       function nebbiaChoice(key, choices) {
         return choices.indexOf(storedNebbia[key]) >= 0 ? storedNebbia[key] : nebbiaDefaults[key]
       }
+      function nebbiaList(key, choices, fallback, minOne) {
+        var picked = Array.isArray(storedNebbia[key]) ? choices.filter(function (item) { return storedNebbia[key].indexOf(item) >= 0 }) : []
+        if (picked.length === 0 && minOne) return fallback.slice()
+        return picked
+      }
+      var nebbiaAppear = nebbiaList('appear', ['write', 'fade', 'breath'], ['write', 'fade'], true)
+      var nebbiaFade = nebbiaList('fade', ['fog', 'fingers'], ['fog'], true)
+      var nebbiaLayouts = nebbiaList('layouts', ['ribbon', 'lines2', 'lines3', 'cross', 'pillar', 'header', 'badge', 'columns', 'orbit'], ['ribbon'], true)
+      var nebbiaScenery = nebbiaList('scenery', ['spot', 'buildings', 'lights', 'cars', 'road'], ['spot', 'buildings', 'lights', 'cars', 'road'], false)
       merged.nebbiaTuning = {
+        appear: nebbiaAppear,
+        fade: nebbiaFade,
+        layouts: nebbiaLayouts,
+        scenery: nebbiaScenery,
         behind: nebbiaChoice('behind', ['night', 'aquarium', 'backdrop']),
         glass: nebbiaChoice('glass', ['rain', 'dew', 'snow']),
         rain: nebbiaChoice('rain', ['slant', 'straight', 'off']),
@@ -197182,7 +197217,30 @@ window.__ModuleLoader__.load({
           var current = options.some(function (item) { return item.value === tuning[key] }) ? tuning[key] : options[0].value
           return mpPanelRow(t(label), segmented(options, current, function (value) { setPrefs({ nebbiaTuning: Object.assign({}, tuning, { [key]: value }) }) }))
         }
+        function listRow(label, key, options, minOne) {
+          var current = Array.isArray(tuning[key]) ? tuning[key] : []
+          return h('div', { key: key },
+            h('div', { className: 'mp-set-label', style: { paddingTop: '8px' } }, t(label)),
+            options.map(function (item) {
+              var on = current.indexOf(item.value) >= 0
+              return mpPanelRow(item.text, h(Switch, {
+                value: on,
+                label: item.text,
+                onChange: function (next) {
+                  var list = current.filter(function (value) { return value !== item.value })
+                  if (next) list.push(item.value)
+                  if (minOne && list.length === 0) return
+                  setPrefs({ nebbiaTuning: Object.assign({}, tuning, { [key]: list }) })
+                },
+              }))
+            }),
+          )
+        }
         return mpSection(t('settings.nebbiaTuning'), h('div', null,
+          listRow('settings.nebbiaAppear', 'appear', [{ value: 'write', text: t('settings.nebbiaAppearWrite') }, { value: 'fade', text: t('settings.nebbiaAppearFade') }, { value: 'breath', text: t('settings.nebbiaAppearBreath') }], true),
+          listRow('settings.nebbiaFade', 'fade', [{ value: 'fog', text: t('settings.nebbiaFadeFog') }, { value: 'fingers', text: t('settings.nebbiaFadeFingers') }], true),
+          listRow('settings.nebbiaLayouts', 'layouts', [{ value: 'ribbon', text: 'Ribbon' }, { value: 'lines2', text: 'Lines 2' }, { value: 'lines3', text: 'Lines 3' }, { value: 'cross', text: 'Cross' }, { value: 'pillar', text: 'Pillar' }, { value: 'header', text: 'Header' }, { value: 'badge', text: 'Badge' }, { value: 'columns', text: 'Columns' }, { value: 'orbit', text: 'Orbit' }], true),
+          listRow('settings.nebbiaScenery', 'scenery', [{ value: 'spot', text: 'Spotlight' }, { value: 'buildings', text: 'Buildings' }, { value: 'lights', text: 'Lights' }, { value: 'cars', text: 'Cars' }, { value: 'road', text: 'Road' }], false),
           choice('settings.nebbiaBehind', 'behind', [{ value: 'night', label: 'Night' }, { value: 'aquarium', label: 'Aquarium' }, { value: 'backdrop', label: 'Backdrop' }]),
           choice('settings.nebbiaGlass', 'glass', [{ value: 'rain', label: 'Rain' }, { value: 'dew', label: 'Dew' }, { value: 'snow', label: 'Snow' }]),
           choice('settings.nebbiaRain', 'rain', [{ value: 'slant', label: 'Slant' }, { value: 'straight', label: 'Straight' }, { value: 'off', label: 'Off' }]),
