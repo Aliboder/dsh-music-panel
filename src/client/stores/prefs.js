@@ -57,6 +57,11 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  cappellaTuning: {
+    showEmoMessages: true,
+    emojiPackSource: 'builtin',
+    avatarSource: 'cover',
+  },
   sonnetTuning: {
     cameraIntensity: 1,
     typographyMotion: 1,
@@ -301,6 +306,14 @@ function readPrefs() {
       dropped = true
     }
   })
+  // Folia cappella tuning: three fields, unknown values fall back.
+  var cappellaDefaults = PREF_DEFAULTS.cappellaTuning
+  var storedCappella = merged.cappellaTuning && typeof merged.cappellaTuning === 'object' ? merged.cappellaTuning : {}
+  merged.cappellaTuning = {
+    showEmoMessages: storedCappella.showEmoMessages !== false,
+    emojiPackSource: storedCappella.emojiPackSource === 'custom' ? 'custom' : 'builtin',
+    avatarSource: ['cover', 'builtin', 'color', 'custom'].indexOf(storedCappella.avatarSource) >= 0 ? storedCappella.avatarSource : 'cover',
+  }
   // Folia sonnet tuning: ranges and switches from its resolve().
   var sonnetDefaults = PREF_DEFAULTS.sonnetTuning
   var storedSonnet = merged.sonnetTuning && typeof merged.sonnetTuning === 'object' ? merged.sonnetTuning : {}

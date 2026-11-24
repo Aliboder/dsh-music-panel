@@ -32,6 +32,7 @@ var FOLIA_STYLE_META = [
   { id: 'tilt', labelKey: 'sheet.foliaStyleTilt', glyph: 'note', order: 70 },
   { id: 'claddagh', labelKey: 'sheet.foliaStyleCladdagh', glyph: 'disc', order: 80 },
   { id: 'monet', labelKey: 'sheet.foliaStyleMonet', glyph: 'disc', order: 90 },
+  { id: 'cappella', labelKey: 'sheet.foliaStyleCappella', glyph: 'note', order: 110 },
   { id: 'diorama', labelKey: 'sheet.foliaStyleDiorama', glyph: 'disc', order: 120 },
   { id: 'still', labelKey: 'sheet.foliaStyleStill', glyph: 'note', order: 130 },
 ]
@@ -384,6 +385,7 @@ function FoliaStyleStage(props) {
     fumeTuning: prefs.fumeTuning || undefined,
     cadenzaTuning: prefs.cadenzaTuning || undefined,
     sonnetTuning: prefs.sonnetTuning || undefined,
+    cappellaTuning: prefs.cappellaTuning || undefined,
     hanabiTuning: prefs.hanabiTuning
       ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
       : undefined,

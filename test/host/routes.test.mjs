@@ -77,6 +77,21 @@ res = fakeRes()
 await handle(fakeReq('/music/assets/icu-folia/nope.json.gz'), res)
 assert.equal(res.status, 404, 'only the two known payloads are served')
 
+// Cappella assets: real upstream images served from the plugin's asset directory.
+res = fakeRes()
+await handle(fakeReq('/music/assets/cappella/avatar/avatar2.png'), res)
+assert.equal(res.status, 200)
+assert.equal(res.headers['content-type'], 'image/png')
+assert.ok(Number(res.headers['content-length']) > 0, 'the real avatar')
+
+res = fakeRes()
+await handle(fakeReq('/music/assets/cappella/emo/happy1.png'), res)
+assert.equal(res.status, 200)
+assert.equal(res.headers['content-type'], 'image/png')
+
+res = fakeRes()
+await handle(fakeReq('/music/assets/cappella/avatar/nope.png'), res)
+assert.equal(res.status, 404)
 // unknown route
 res = fakeRes()
 await handle(fakeReq('/music/nope'), res)

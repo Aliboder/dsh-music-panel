@@ -1091,6 +1091,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'hanabi' ? hanabiTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'cadenza' ? cadenzaTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'sonnet' ? sonnetTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'cappella' ? cappellaTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1453,6 +1454,18 @@ function PlayerSheetInner(props) {
       num('settings.sonnetVignette', 'postProcessVignette', 0, 2, 0.01),
       num('settings.sonnetLens', 'postProcessLensDistortion', 0, 2, 0.01),
       num('settings.sonnetDispersion', 'postProcessLensDispersion', 0, 1, 0.01),
+    ))
+  }
+  /** Folia cappella tuning: emoji messages and avatar source. */
+  function cappellaTuningBlock() {
+    var tuning = prefs.cappellaTuning || {}
+    return mpSection(t('settings.cappellaTuning'), h('div', null,
+      mpPanelRow(t('settings.cappellaEmo'), h(Switch, { value: tuning.showEmoMessages !== false, label: t('settings.cappellaEmo'), onChange: function (value) { setPrefs({ cappellaTuning: Object.assign({}, tuning, { showEmoMessages: value }) }) } })),
+      mpPanelRow(t('settings.cappellaAvatar'), segmented([
+        { value: 'cover', label: 'Cover' },
+        { value: 'builtin', label: 'Builtin' },
+        { value: 'color', label: 'Color' },
+      ], ['cover', 'builtin', 'color'].indexOf(tuning.avatarSource) >= 0 ? tuning.avatarSource : 'cover', function (value) { setPrefs({ cappellaTuning: Object.assign({}, tuning, { avatarSource: value }) }) })),
     ))
   }
   /**

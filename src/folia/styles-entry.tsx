@@ -5,6 +5,7 @@ import partita from './components/visualizer/partita/entry';
 import claddagh from './components/visualizer/claddagh/entry';
 import cadenza from './components/visualizer/cadenza/entry';
 import fume from './components/visualizer/fume/entry';
+import cappella from './components/visualizer/cappella/entry';
 import monet from './components/visualizer/monet/entry';
 import lumiere from './components/visualizer/lumiere/entry';
 import sonnet from './components/visualizer/sonnet/entry';
@@ -19,6 +20,7 @@ import diorama from './components/visualizer/diorama/entry';
 
 export const FOLIA_STYLE_ENTRIES = {
     classic,
+    cappella,
     still,
     tilt,
     partita,
@@ -39,7 +41,7 @@ export { generateBuiltinDualTheme } from './utils/builtinTheme/generateBuiltinDu
 export { extractColors } from './utils/colorExtractor';
 export { DEFAULT_THEME, DAYLIGHT_THEME } from './services/baseThemes';
 export { applyLyricStaffPolicy } from './utils/lyrics/staffCreditsPolicy';
-export { DEFAULT_CLASSIC_TUNING, DEFAULT_TILT_TUNING, DEFAULT_PARTITA_TUNING, DEFAULT_FUME_TUNING, DEFAULT_CLADDAGH_TUNING, DEFAULT_HANABI_TUNING, DEFAULT_CADENZA_TUNING, DEFAULT_SONNET_TUNING } from './types';
+export { DEFAULT_CLASSIC_TUNING, DEFAULT_TILT_TUNING, DEFAULT_PARTITA_TUNING, DEFAULT_FUME_TUNING, DEFAULT_CLADDAGH_TUNING, DEFAULT_HANABI_TUNING, DEFAULT_CADENZA_TUNING, DEFAULT_SONNET_TUNING, DEFAULT_CAPPELLA_TUNING } from './types';
 
 
 
