@@ -48,8 +48,8 @@ test('playback defaults', () => {
   assert.equal(defaults.playbackFade, false)
   assert.equal(defaults.queueAddBehavior, 'append')
   assert.equal(defaults.autoSkipUnplayable, true)
-  assert.equal(defaults.autoHidePlayerChrome, false, 'Folia default: chrome stays visible')
-  assert.equal(defaults.playerChromeVisibilityMode, 'always-visible', 'Folia three-way chrome mode')
+  assert.equal(defaults.autoHidePlayerChrome, true, 'player chrome auto-hides by default')
+  assert.equal(defaults.playerChromeVisibilityMode, 'auto-hide', 'player chrome auto-hides by default')
   assert.equal(defaults.classicTuning.wordSpacing, 0.7, 'Folia classic tuning defaults')
   assert.equal(defaults.tiltTuning.splitProbability, 0.75, 'Folia tilt tuning defaults')
   assert.equal(defaults.partitaTuning.staggerMin, 20, 'Folia partita tuning defaults')
@@ -104,3 +104,24 @@ test('old default Monet migrates once', () => {
 })
 
 console.log('install-defaults.test.mjs ok')
+
+test('old always-visible profile migrates to auto-hide once', () => {
+  const stored = JSON.stringify({ playerChromeVisibilityMode: 'always-visible', autoHidePlayerChrome: false })
+  const context = vm.createContext({
+    window: {
+      localStorage: {
+        getItem: (key) => key === 'music.prefs.v2' ? stored : null,
+        setItem() {},
+      },
+    },
+    createStore: function (state) {
+      return { get: () => state, set() {}, subscribe: () => () => {} }
+    },
+    console,
+  })
+  vm.runInContext(source, context)
+  const prefs = vm.runInContext('readPrefs()', context)
+  assert.equal(prefs.playerChromeVisibilityMode, 'auto-hide')
+  assert.equal(prefs.autoHidePlayerChrome, true)
+  assert.equal(prefs.playerChromeModeChosen, true)
+})

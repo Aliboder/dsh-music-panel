@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "baa940db9e01"
+    var CLIENT_BUILD = "2d26540d0a1e"
 
     // ── src/client/app/runtime.js
     /**
@@ -8742,7 +8742,7 @@ window.__ModuleLoader__.load({
         'settings.playerChromeAutoHide': '自动隐藏',
         'settings.playerChromeAlwaysHidden': '始终隐藏',
         'settings.autoHidePlayerChrome': '自动隐藏播放控制',
-        'settings.autoHidePlayerChromeDesc': '鼠标离开后自动收起进度条和右下角按钮；默认关闭，和 Folia 一致',
+        'settings.autoHidePlayerChromeDesc': '鼠标离开或静止后自动收起进度条和右下角按钮；默认开启，可切回始终显示。',
         'settings.queueAddBehavior': '加入队列的默认位置',
         'settings.queueAddBehaviorDesc': '从歌曲菜单「加入队列」时，放到队尾还是当前曲之后。',
         'settings.queueAppend': '追加到末尾',
@@ -9782,7 +9782,7 @@ window.__ModuleLoader__.load({
         'settings.playerChromeAutoHide': 'Auto-hide',
         'settings.playerChromeAlwaysHidden': 'Always hidden',
         'settings.autoHidePlayerChrome': 'Auto-hide player chrome',
-        'settings.autoHidePlayerChromeDesc': 'Fold away the progress bar and bottom-right button after the pointer leaves; off by default, as in Folia',
+        'settings.autoHidePlayerChromeDesc': 'Fold away the progress bar and bottom-right button after the pointer leaves or rests; on by default, switchable to always visible.',
         'settings.queueAddBehavior': 'Default position for added songs',
         'settings.queueAddBehaviorDesc': 'Where 「Add to queue」 in the song menu puts it: at the end, or right after the current song.',
         'settings.queueAppend': 'Append to queue',
@@ -168192,10 +168192,11 @@ window.__ModuleLoader__.load({
       volume: 1,
       audioOutputDeviceId: '',
       playbackFade: false,
-      /** Folia default: the player chrome stays visible until the user asks it to hide. */
-      autoHidePlayerChrome: false,
-      /** Folia's three-way player chrome mode: always-visible / auto-hide / always-hidden. */
-      playerChromeVisibilityMode: 'always-visible',
+      /** Player chrome auto-hide is the plugin default; the three-way control can pin it visible. */
+      autoHidePlayerChrome: true,
+      /** Default follows the plugin's auto-hide request; the three-way control still allows always-visible. */
+      playerChromeVisibilityMode: 'auto-hide',
+      playerChromeModeChosen: false,
       // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
       playbackReports: false,
       /** Folia's voice-input pause: Windows microphone capture pauses playback. */
@@ -168283,6 +168284,13 @@ window.__ModuleLoader__.load({
         })
       } catch (error) {
         // Corrupt value: defaults stand.
+      }
+      // One-time default switch: profiles that still hold the old always-visible default move to
+      // auto-hide. An explicit later choice writes `playerChromeModeChosen` and is kept.
+      if (merged.playerChromeModeChosen !== true && merged.playerChromeVisibilityMode === 'always-visible' && merged.autoHidePlayerChrome === false) {
+        merged.playerChromeVisibilityMode = 'auto-hide'
+        merged.autoHidePlayerChrome = true
+        merged.playerChromeModeChosen = true
       }
       // Legacy variant ids now select Folia's classic style; a stored `classic` is kept.
       if (['standard', 'glow', 'outline', 'karaoke', 'mirror', 'cappella'].indexOf(merged.lyricStyle) >= 0) merged.lyricStyle = 'classic'
@@ -197450,6 +197458,7 @@ window.__ModuleLoader__.load({
                 setPrefs({
                   playerChromeVisibilityMode: value,
                   autoHidePlayerChrome: value === 'auto-hide',
+                  playerChromeModeChosen: true,
                 })
               },
             ),

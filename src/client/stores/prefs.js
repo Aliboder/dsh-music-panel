@@ -325,10 +325,11 @@ var PREF_DEFAULTS = {
   volume: 1,
   audioOutputDeviceId: '',
   playbackFade: false,
-  /** Folia default: the player chrome stays visible until the user asks it to hide. */
-  autoHidePlayerChrome: false,
-  /** Folia's three-way player chrome mode: always-visible / auto-hide / always-hidden. */
-  playerChromeVisibilityMode: 'always-visible',
+  /** Player chrome auto-hide is the plugin default; the three-way control can pin it visible. */
+  autoHidePlayerChrome: true,
+  /** Default follows the plugin's auto-hide request; the three-way control still allows always-visible. */
+  playerChromeVisibilityMode: 'auto-hide',
+  playerChromeModeChosen: false,
   // Writing a real play to a music account is opt-in, as Folia's scrobble switch is.
   playbackReports: false,
   /** Folia's voice-input pause: Windows microphone capture pauses playback. */
@@ -416,6 +417,13 @@ function readPrefs() {
     })
   } catch (error) {
     // Corrupt value: defaults stand.
+  }
+  // One-time default switch: profiles that still hold the old always-visible default move to
+  // auto-hide. An explicit later choice writes `playerChromeModeChosen` and is kept.
+  if (merged.playerChromeModeChosen !== true && merged.playerChromeVisibilityMode === 'always-visible' && merged.autoHidePlayerChrome === false) {
+    merged.playerChromeVisibilityMode = 'auto-hide'
+    merged.autoHidePlayerChrome = true
+    merged.playerChromeModeChosen = true
   }
   // Legacy variant ids now select Folia's classic style; a stored `classic` is kept.
   if (['standard', 'glow', 'outline', 'karaoke', 'mirror', 'cappella'].indexOf(merged.lyricStyle) >= 0) merged.lyricStyle = 'classic'

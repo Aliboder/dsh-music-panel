@@ -1865,6 +1865,7 @@ function PlayerSheetInner(props) {
             setPrefs({
               playerChromeVisibilityMode: value,
               autoHidePlayerChrome: value === 'auto-hide',
+              playerChromeModeChosen: true,
             })
           },
         ),
