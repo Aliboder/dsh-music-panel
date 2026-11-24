@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "fa625107fe5e"
+    var CLIENT_BUILD = "d58bf396a23c"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,15 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.fumeTuning': '浮名参数',
+        'settings.fumePrint': '隐藏印刷符号',
+        'settings.fumeGeo': '关闭几何背景',
+        'settings.fumeBgOpacity': '背景物体透明度',
+        'settings.fumeHold': '文字停留',
+        'settings.fumeCameraMode': '镜头跟随',
+        'settings.fumeCameraSpeed': '镜头速度',
+        'settings.fumeGlow': '辉光',
+        'settings.fumeHeroScale': '主文字大小',
         'settings.partitaTuning': '云阶参数',
         'settings.partitaGuides': '参考线',
         'settings.partitaSemantic': '语义布局',
@@ -9355,6 +9364,15 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.fumeTuning': 'Fume tuning',
+        'settings.fumePrint': 'Hide print symbols',
+        'settings.fumeGeo': 'Disable geometric background',
+        'settings.fumeBgOpacity': 'Background object opacity',
+        'settings.fumeHold': 'Text hold',
+        'settings.fumeCameraMode': 'Camera tracking',
+        'settings.fumeCameraSpeed': 'Camera speed',
+        'settings.fumeGlow': 'Glow',
+        'settings.fumeHeroScale': 'Hero text scale',
         'settings.partitaTuning': 'Partita tuning',
         'settings.partitaGuides': 'Guide lines',
         'settings.partitaSemantic': 'Semantic layout',
@@ -137867,6 +137885,7 @@ window.__ModuleLoader__.load({
         __export(styles_entry_exports, {
           DAYLIGHT_THEME: () => DAYLIGHT_THEME,
           DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
+          DEFAULT_FUME_TUNING: () => DEFAULT_FUME_TUNING,
           DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,
           DEFAULT_THEME: () => DEFAULT_THEME,
           DEFAULT_TILT_TUNING: () => DEFAULT_TILT_TUNING,
@@ -140564,6 +140583,7 @@ window.__ModuleLoader__.load({
         classicTuning: prefs.classicTuning || undefined,
         tiltTuning: prefs.tiltTuning || undefined,
         partitaTuning: prefs.partitaTuning || undefined,
+        fumeTuning: prefs.fumeTuning || undefined,
         // Monet ignores hideTranslationSubtitle and only reads the content mode (resolveSubtitleContentMode
         // returns the given mode as-is), so the mode itself has to carry the translation switch.
         subtitleContentMode: showTranslation ? 'translation' : 'none',
@@ -151240,6 +151260,16 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      fumeTuning: {
+        hidePrintSymbols: false,
+        disableGeometricBackground: true,
+        backgroundObjectOpacity: 0.5,
+        textHoldRatio: 1,
+        cameraTrackingMode: 'smooth',
+        cameraSpeed: 1,
+        glowIntensity: 1,
+        heroScale: 1,
+      },
       partitaTuning: {
         showGuideLines: true,
         useSemanticLayout: true,
@@ -151416,6 +151446,23 @@ window.__ModuleLoader__.load({
           dropped = true
         }
       })
+      // Folia fume tuning: numeric ranges clamp, camera mode falls back to smooth.
+      var fumeDefaults = PREF_DEFAULTS.fumeTuning
+      var storedFume = merged.fumeTuning && typeof merged.fumeTuning === 'object' ? merged.fumeTuning : {}
+      function fumeNumber(key, min, max) {
+        var value = Number(storedFume[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : fumeDefaults[key]
+      }
+      merged.fumeTuning = {
+        hidePrintSymbols: storedFume.hidePrintSymbols === true,
+        disableGeometricBackground: storedFume.disableGeometricBackground !== false,
+        backgroundObjectOpacity: fumeNumber('backgroundObjectOpacity', 0, 1),
+        textHoldRatio: fumeNumber('textHoldRatio', 0, 1),
+        cameraTrackingMode: storedFume.cameraTrackingMode === 'stepped' ? 'stepped' : 'smooth',
+        cameraSpeed: fumeNumber('cameraSpeed', 0.55, 1.85),
+        glowIntensity: fumeNumber('glowIntensity', 0, 1.8),
+        heroScale: fumeNumber('heroScale', 0.82, 1.32),
+      }
       // Folia partita tuning: two staggers clamp to 0..180 and stay ordered.
       var partitaDefaults = PREF_DEFAULTS.partitaTuning
       var storedPartita = merged.partitaTuning && typeof merged.partitaTuning === 'object' ? merged.partitaTuning : {}
@@ -179404,6 +179451,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'tilt' ? tiltTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'partita' ? partitaTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'fume' ? fumeTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -179614,6 +179662,36 @@ window.__ModuleLoader__.load({
             mpPanelRow(t('settings.partitaStaggerMin'), stagger('staggerMin', 'settings.partitaStaggerMin')),
             mpPanelRow(t('settings.partitaStaggerMax'), stagger('staggerMax', 'settings.partitaStaggerMax')),
             mpPanelRow(t('settings.partitaAvoidOverlap'), h(Switch, { value: tuning.avoidOverlap === true, label: t('settings.partitaAvoidOverlap'), onChange: function (value) { setPrefs({ partitaTuning: Object.assign({}, tuning, { avoidOverlap: value }) }) } })),
+          ),
+        )
+      }
+      /** Folia fume tuning: print, geometry, camera and glow. */
+      function fumeTuningBlock() {
+        var tuning = prefs.fumeTuning || {}
+        function numberRow(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ fumeTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        function switchRow(label, key, fallback) {
+          var on = key === 'hidePrintSymbols' ? tuning[key] === true : tuning[key] !== false
+          return mpPanelRow(t(label), h(Switch, { value: on, label: t(label), onChange: function (value) { setPrefs({ fumeTuning: Object.assign({}, tuning, { [key]: value }) }) } }))
+        }
+        return mpSection(
+          t('settings.fumeTuning'),
+          h('div', null,
+            switchRow('settings.fumePrint', 'hidePrintSymbols', false),
+            switchRow('settings.fumeGeo', 'disableGeometricBackground', true),
+            numberRow('settings.fumeBgOpacity', 'backgroundObjectOpacity', 0, 1, 0.05),
+            numberRow('settings.fumeHold', 'textHoldRatio', 0, 1, 0.05),
+            mpPanelRow(t('settings.fumeCameraMode'), segmented([{ value: 'stepped', label: 'Stepped' }, { value: 'smooth', label: 'Smooth' }], tuning.cameraTrackingMode === 'stepped' ? 'stepped' : 'smooth', function (value) { setPrefs({ fumeTuning: Object.assign({}, tuning, { cameraTrackingMode: value }) }) })),
+            numberRow('settings.fumeCameraSpeed', 'cameraSpeed', 0.55, 1.85, 0.05),
+            numberRow('settings.fumeGlow', 'glowIntensity', 0, 1.8, 0.05),
+            numberRow('settings.fumeHeroScale', 'heroScale', 0.82, 1.32, 0.02),
           ),
         )
       }

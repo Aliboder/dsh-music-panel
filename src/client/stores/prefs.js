@@ -57,6 +57,16 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  fumeTuning: {
+    hidePrintSymbols: false,
+    disableGeometricBackground: true,
+    backgroundObjectOpacity: 0.5,
+    textHoldRatio: 1,
+    cameraTrackingMode: 'smooth',
+    cameraSpeed: 1,
+    glowIntensity: 1,
+    heroScale: 1,
+  },
   partitaTuning: {
     showGuideLines: true,
     useSemanticLayout: true,
@@ -233,6 +243,23 @@ function readPrefs() {
       dropped = true
     }
   })
+  // Folia fume tuning: numeric ranges clamp, camera mode falls back to smooth.
+  var fumeDefaults = PREF_DEFAULTS.fumeTuning
+  var storedFume = merged.fumeTuning && typeof merged.fumeTuning === 'object' ? merged.fumeTuning : {}
+  function fumeNumber(key, min, max) {
+    var value = Number(storedFume[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : fumeDefaults[key]
+  }
+  merged.fumeTuning = {
+    hidePrintSymbols: storedFume.hidePrintSymbols === true,
+    disableGeometricBackground: storedFume.disableGeometricBackground !== false,
+    backgroundObjectOpacity: fumeNumber('backgroundObjectOpacity', 0, 1),
+    textHoldRatio: fumeNumber('textHoldRatio', 0, 1),
+    cameraTrackingMode: storedFume.cameraTrackingMode === 'stepped' ? 'stepped' : 'smooth',
+    cameraSpeed: fumeNumber('cameraSpeed', 0.55, 1.85),
+    glowIntensity: fumeNumber('glowIntensity', 0, 1.8),
+    heroScale: fumeNumber('heroScale', 0.82, 1.32),
+  }
   // Folia partita tuning: two staggers clamp to 0..180 and stay ordered.
   var partitaDefaults = PREF_DEFAULTS.partitaTuning
   var storedPartita = merged.partitaTuning && typeof merged.partitaTuning === 'object' ? merged.partitaTuning : {}

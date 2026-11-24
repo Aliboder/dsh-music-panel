@@ -381,6 +381,7 @@ function FoliaStyleStage(props) {
     classicTuning: prefs.classicTuning || undefined,
     tiltTuning: prefs.tiltTuning || undefined,
     partitaTuning: prefs.partitaTuning || undefined,
+    fumeTuning: prefs.fumeTuning || undefined,
     // Monet ignores hideTranslationSubtitle and only reads the content mode (resolveSubtitleContentMode
     // returns the given mode as-is), so the mode itself has to carry the translation switch.
     subtitleContentMode: showTranslation ? 'translation' : 'none',

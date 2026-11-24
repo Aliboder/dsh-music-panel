@@ -53,6 +53,7 @@ test('playback defaults', () => {
   assert.equal(defaults.classicTuning.wordSpacing, 0.7, 'Folia classic tuning defaults')
   assert.equal(defaults.tiltTuning.splitProbability, 0.75, 'Folia tilt tuning defaults')
   assert.equal(defaults.partitaTuning.staggerMin, 20, 'Folia partita tuning defaults')
+  assert.equal(defaults.fumeTuning.cameraSpeed, 1, 'Folia fume tuning defaults')
   assert.equal(defaults.resumeOnStart, true)
   assert.equal(defaults.onlineQuality, 'standard')
 })

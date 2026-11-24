@@ -1086,6 +1086,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'tilt' ? tiltTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'partita' ? partitaTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'fume' ? fumeTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1296,6 +1297,36 @@ function PlayerSheetInner(props) {
         mpPanelRow(t('settings.partitaStaggerMin'), stagger('staggerMin', 'settings.partitaStaggerMin')),
         mpPanelRow(t('settings.partitaStaggerMax'), stagger('staggerMax', 'settings.partitaStaggerMax')),
         mpPanelRow(t('settings.partitaAvoidOverlap'), h(Switch, { value: tuning.avoidOverlap === true, label: t('settings.partitaAvoidOverlap'), onChange: function (value) { setPrefs({ partitaTuning: Object.assign({}, tuning, { avoidOverlap: value }) }) } })),
+      ),
+    )
+  }
+  /** Folia fume tuning: print, geometry, camera and glow. */
+  function fumeTuningBlock() {
+    var tuning = prefs.fumeTuning || {}
+    function numberRow(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ fumeTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    function switchRow(label, key, fallback) {
+      var on = key === 'hidePrintSymbols' ? tuning[key] === true : tuning[key] !== false
+      return mpPanelRow(t(label), h(Switch, { value: on, label: t(label), onChange: function (value) { setPrefs({ fumeTuning: Object.assign({}, tuning, { [key]: value }) }) } }))
+    }
+    return mpSection(
+      t('settings.fumeTuning'),
+      h('div', null,
+        switchRow('settings.fumePrint', 'hidePrintSymbols', false),
+        switchRow('settings.fumeGeo', 'disableGeometricBackground', true),
+        numberRow('settings.fumeBgOpacity', 'backgroundObjectOpacity', 0, 1, 0.05),
+        numberRow('settings.fumeHold', 'textHoldRatio', 0, 1, 0.05),
+        mpPanelRow(t('settings.fumeCameraMode'), segmented([{ value: 'stepped', label: 'Stepped' }, { value: 'smooth', label: 'Smooth' }], tuning.cameraTrackingMode === 'stepped' ? 'stepped' : 'smooth', function (value) { setPrefs({ fumeTuning: Object.assign({}, tuning, { cameraTrackingMode: value }) }) })),
+        numberRow('settings.fumeCameraSpeed', 'cameraSpeed', 0.55, 1.85, 0.05),
+        numberRow('settings.fumeGlow', 'glowIntensity', 0, 1.8, 0.05),
+        numberRow('settings.fumeHeroScale', 'heroScale', 0.82, 1.32, 0.02),
       ),
     )
   }
