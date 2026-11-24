@@ -24,15 +24,22 @@ function paneSource(name) {
 const lyrics = paneSource('cardLyricsPane')
 const audio = paneSource('cardAudioPane')
 const look = paneSource('cardLookPane')
+const queue = paneSource('cardQueuePane')
 
-test('four tabs, one subject each', () => {
+test('five tabs, one subject each', () => {
   assert.match(
     sheet,
-    /var TABS = \['sheet\.song', 'sheet\.lyrics', 'sheet\.audio', 'sheet\.look'\]/,
-    'the dock is 歌曲 / 歌词 / 音频 / 外观',
+    /var TABS = \['sheet\.song', 'sheet\.lyrics', 'sheet\.queue', 'sheet\.audio', 'sheet\.look'\]/,
+    'the dock is 歌曲 / 歌词 / 队列 / 音频 / 外观',
   )
-  assert.match(sheet, /var bodies = \[null, cardLyricsPane\(\), cardAudioPane\(\), cardLookPane\(\)\]/, 'the pages line up with the tabs')
+  assert.match(sheet, /var bodies = \[null, cardLyricsPane\(\), cardQueuePane\(\), cardAudioPane\(\), cardLookPane\(\)\]/, 'the pages line up with the tabs')
   assert.match(sheet, /h\(KitSegmentedTabs, \{/, 'the dock is the official SegmentedTabs')
+})
+
+test('队列 page: Folia row, move and remove actions', () => {
+  assert.match(queue, /mp-queue-row/, 'the queue renders Folia rows')
+  assert.match(queue, /player\.reorderQueue/, 'move next/end uses the player order')
+  assert.match(queue, /player\.removeQueueAt/, 'remove uses the player queue')
 })
 
 test('歌词 page: source, timeline, match/file, word split and style', () => {

@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "2152e02af175"
+    var CLIENT_BUILD = "d382dc2dd502"
 
     // ── src/client/app/runtime.js
     /**
@@ -8957,6 +8957,8 @@ window.__ModuleLoader__.load({
         'p3.refreshOnline': '正在刷新在线来源',
         'p3.relogin': '重新登录',
         'p3.removeConfirm': '移除选中的 {n} 首歌？',
+        'p3.playNext': '下一首播放',
+        'p3.moveToEnd': '移到末尾',
         'p3.removeFromQueue': '从队列移除',
         'p3.retry': '重试',
         'p3.searchEmpty': '搜索歌曲、专辑、歌手',
@@ -9767,6 +9769,8 @@ window.__ModuleLoader__.load({
         'p3.refreshOnline': 'Refreshing online source',
         'p3.relogin': 'Sign in again',
         'p3.removeConfirm': 'Remove the selected {n} songs?',
+        'p3.playNext': 'Play next',
+        'p3.moveToEnd': 'Move to end',
         'p3.removeFromQueue': 'Remove from queue',
         'p3.retry': 'Retry',
         'p3.searchEmpty': 'Search songs, albums, artists',
@@ -164090,6 +164094,23 @@ window.__ModuleLoader__.load({
       '.mp-card-tabs{display:flex}',
       '.mp-card-tabs>*{flex:1 1 auto;min-width:0}',
       '.mp-card-tabs .mp-segment{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;width:100%}',
+    '.mp-queue-pane{display:flex;flex-direction:column;padding:0 4px}',
+    '.mp-queue-head{display:flex;align-items:center;gap:6px;height:36px;font-size:12px;color:var(--dsw-alias-label-secondary,inherit)}',
+    '.mp-queue-head strong{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,inherit)}',
+    '.mp-queue-grow{flex:1 1 auto}',
+    '.mp-queue-list{display:flex;flex-direction:column;gap:1px}',
+    '.mp-queue-row{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 4px;border-radius:8px;cursor:pointer;color:var(--dsw-alias-label-primary,inherit)}',
+    '.mp-queue-row:hover,.mp-queue-row:focus-visible{background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#232324) 70%,transparent);outline:none}',
+    '.mp-queue-row.is-on{background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#232324) 88%,transparent)}',
+    '.mp-queue-row.is-on:before{content:"";width:3px;height:22px;border-radius:0 3px 3px 0;margin-left:-8px;background:var(--dsw-alias-state-business-primary,#4f8cff)}',
+    '.mp-queue-cover{width:32px;height:32px;flex:0 0 auto;overflow:hidden;border-radius:var(--dsw-radius-sm,8px);background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.06))}',
+    '.mp-queue-main{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}',
+    '.mp-queue-name{font-size:13px;line-height:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    '.mp-queue-artist{font-size:12px;line-height:17px;opacity:.62;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    '.mp-queue-time{flex:0 0 auto;font-size:11px;opacity:.5;font-variant-numeric:tabular-nums}',
+    '.mp-queue-actions{display:flex;align-items:center;gap:1px;flex:0 0 auto;opacity:0;pointer-events:none;transition:opacity .12s ease}',
+    '.mp-queue-row:hover .mp-queue-actions,.mp-queue-row:focus-within .mp-queue-actions{opacity:1;pointer-events:auto}',
+    '.mp-queue-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;font-size:13px;opacity:.55}',
       '.mp-card-scroll{scrollbar-width:none;-ms-overflow-style:none}',
       '.mp-card-scroll::-webkit-scrollbar{width:0;height:0;display:none}',
       '.mp-card-body-wrap ::-webkit-scrollbar{width:0;height:0;display:none}',
@@ -178169,7 +178190,7 @@ window.__ModuleLoader__.load({
       // a server name is a hint inside its source row instead of a tab label.
       var isOnlineTrack = track !== null && Boolean(track.onlineProvider)
       var isNavidromeTrack = isOnlineTrack && track.onlineProvider === 'navidrome'
-      var TABS = ['sheet.song', 'sheet.lyrics', 'sheet.audio', 'sheet.look']
+      var TABS = ['sheet.song', 'sheet.lyrics', 'sheet.queue', 'sheet.audio', 'sheet.look']
       var isCover = index === 0
 
       useEffect(
@@ -179181,6 +179202,84 @@ window.__ModuleLoader__.load({
       }
 
       /**
+       * 播放列表 — Folia's QueueTab, with the plugin's player actions and DSH rows.
+       * The panel body already scrolls, so the list lets that scroll (no nested scrollbar).
+       */
+      function cardQueuePane() {
+        var queue = Array.isArray(snap.queue) ? snap.queue : []
+        var current = Number(snap.index)
+        function move(index, target) {
+          if (!Number.isInteger(index) || index < 0 || index >= queue.length) return
+          var indices = queue.map(function (_, at) { return at })
+          var from = indices.indexOf(index)
+          if (from < 0) return
+          var to = Math.max(0, Math.min(indices.length - 1, target))
+          if (to === from) return
+          var moved = indices.splice(from, 1)[0]
+          indices.splice(to, 0, moved)
+          player.reorderQueue(indices)
+        }
+        return h(
+          'div',
+          { key: 'queue-pane', className: 'mp-queue-pane' },
+          h(
+            'div',
+            { className: 'mp-queue-head' },
+            h('strong', null, String(queue.length) + ' ' + t('p3.unitSong')),
+            h('span', { className: 'mp-queue-grow' }),
+            queue.length > 0
+              ? h(IconButton, {
+                  icon: 'trash',
+                  size: 15,
+                  title: t('p3.clearQueue'),
+                  onClick: function () {
+                    pushLayer('confirm', {
+                      title: t('p3.clearQueue'),
+                      text: t('p3.clearQueueConfirm'),
+                      onConfirm: function () { player.clearQueue(); onClose() },
+                    })
+                  },
+                })
+              : null,
+          ),
+          queue.length === 0
+            ? h('div', { className: 'mp-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty')))
+            : h('div', { className: 'mp-queue-list' }, queue.map(function (track, at) {
+                if (track === null || typeof track !== 'object') return null
+                var active = at === current
+                return h(
+                  'div',
+                  {
+                    key: String(track.path || at) + ':' + String(at),
+                    className: 'mp-queue-row' + (active ? ' is-on' : ''),
+                    role: 'button',
+                    tabIndex: 0,
+                    onClick: function () { player.select(queue, at) },
+                    onKeyDown: function (event) {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        player.select(queue, at)
+                      }
+                    },
+                  },
+                  h('span', { className: 'mp-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+                  h('span', { className: 'mp-queue-main' },
+                    h('span', { className: 'mp-queue-name' }, trackTitleOf(track)),
+                    h('span', { className: 'mp-queue-artist' }, trackArtistOf(track)),
+                  ),
+                  h('span', { className: 'mp-queue-time' }, fmtClock(track.durationSec || 0)),
+                  h(
+                    'span',
+                    { className: 'mp-queue-actions' },
+                    h(IconButton, { icon: 'playlist', size: 13, title: t('p3.playNext'), onClick: function (event) { event.stopPropagation(); move(at, current + 1) } }),
+                    h(IconButton, { icon: 'down', size: 13, title: t('p3.moveToEnd'), onClick: function (event) { event.stopPropagation(); move(at, queue.length - 1) } }),
+                    h(IconButton, { icon: 'x', size: 13, title: t('p3.removeFromQueue'), onClick: function (event) { event.stopPropagation(); player.removeQueueAt(at) } }),
+                  ),
+                )
+              })),
+        )
+      }
+      /**
        * 音量 — the card's volume row, now on the audio page. It is the keyboard path; the player
        * page's edge rail is the fast one.
        */
@@ -179271,7 +179370,7 @@ window.__ModuleLoader__.load({
           ),
         )
       }
-      var bodies = [null, cardLyricsPane(), cardAudioPane(), cardLookPane()]
+      var bodies = [null, cardLyricsPane(), cardQueuePane(), cardAudioPane(), cardLookPane()]
 
       var bodyHeight = isCover ? 0 : MP_BODY_GAP + MP_BODY_LINE + MP_BODY_UNDER + (bodyH > 0 ? bodyH : 0)
 

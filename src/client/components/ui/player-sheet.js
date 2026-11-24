@@ -112,7 +112,7 @@ function PlayerSheetInner(props) {
   // a server name is a hint inside its source row instead of a tab label.
   var isOnlineTrack = track !== null && Boolean(track.onlineProvider)
   var isNavidromeTrack = isOnlineTrack && track.onlineProvider === 'navidrome'
-  var TABS = ['sheet.song', 'sheet.lyrics', 'sheet.audio', 'sheet.look']
+  var TABS = ['sheet.song', 'sheet.lyrics', 'sheet.queue', 'sheet.audio', 'sheet.look']
   var isCover = index === 0
 
   useEffect(
@@ -1124,6 +1124,84 @@ function PlayerSheetInner(props) {
   }
 
   /**
+   * 播放列表 — Folia's QueueTab, with the plugin's player actions and DSH rows.
+   * The panel body already scrolls, so the list lets that scroll (no nested scrollbar).
+   */
+  function cardQueuePane() {
+    var queue = Array.isArray(snap.queue) ? snap.queue : []
+    var current = Number(snap.index)
+    function move(index, target) {
+      if (!Number.isInteger(index) || index < 0 || index >= queue.length) return
+      var indices = queue.map(function (_, at) { return at })
+      var from = indices.indexOf(index)
+      if (from < 0) return
+      var to = Math.max(0, Math.min(indices.length - 1, target))
+      if (to === from) return
+      var moved = indices.splice(from, 1)[0]
+      indices.splice(to, 0, moved)
+      player.reorderQueue(indices)
+    }
+    return h(
+      'div',
+      { key: 'queue-pane', className: 'mp-queue-pane' },
+      h(
+        'div',
+        { className: 'mp-queue-head' },
+        h('strong', null, String(queue.length) + ' ' + t('p3.unitSong')),
+        h('span', { className: 'mp-queue-grow' }),
+        queue.length > 0
+          ? h(IconButton, {
+              icon: 'trash',
+              size: 15,
+              title: t('p3.clearQueue'),
+              onClick: function () {
+                pushLayer('confirm', {
+                  title: t('p3.clearQueue'),
+                  text: t('p3.clearQueueConfirm'),
+                  onConfirm: function () { player.clearQueue(); onClose() },
+                })
+              },
+            })
+          : null,
+      ),
+      queue.length === 0
+        ? h('div', { className: 'mp-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty')))
+        : h('div', { className: 'mp-queue-list' }, queue.map(function (track, at) {
+            if (track === null || typeof track !== 'object') return null
+            var active = at === current
+            return h(
+              'div',
+              {
+                key: String(track.path || at) + ':' + String(at),
+                className: 'mp-queue-row' + (active ? ' is-on' : ''),
+                role: 'button',
+                tabIndex: 0,
+                onClick: function () { player.select(queue, at) },
+                onKeyDown: function (event) {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    player.select(queue, at)
+                  }
+                },
+              },
+              h('span', { className: 'mp-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+              h('span', { className: 'mp-queue-main' },
+                h('span', { className: 'mp-queue-name' }, trackTitleOf(track)),
+                h('span', { className: 'mp-queue-artist' }, trackArtistOf(track)),
+              ),
+              h('span', { className: 'mp-queue-time' }, fmtClock(track.durationSec || 0)),
+              h(
+                'span',
+                { className: 'mp-queue-actions' },
+                h(IconButton, { icon: 'playlist', size: 13, title: t('p3.playNext'), onClick: function (event) { event.stopPropagation(); move(at, current + 1) } }),
+                h(IconButton, { icon: 'down', size: 13, title: t('p3.moveToEnd'), onClick: function (event) { event.stopPropagation(); move(at, queue.length - 1) } }),
+                h(IconButton, { icon: 'x', size: 13, title: t('p3.removeFromQueue'), onClick: function (event) { event.stopPropagation(); player.removeQueueAt(at) } }),
+              ),
+            )
+          })),
+    )
+  }
+  /**
    * 音量 — the card's volume row, now on the audio page. It is the keyboard path; the player
    * page's edge rail is the fast one.
    */
@@ -1214,7 +1292,7 @@ function PlayerSheetInner(props) {
       ),
     )
   }
-  var bodies = [null, cardLyricsPane(), cardAudioPane(), cardLookPane()]
+  var bodies = [null, cardLyricsPane(), cardQueuePane(), cardAudioPane(), cardLookPane()]
 
   var bodyHeight = isCover ? 0 : MP_BODY_GAP + MP_BODY_LINE + MP_BODY_UNDER + (bodyH > 0 ? bodyH : 0)
 
