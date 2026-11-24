@@ -105038,6 +105038,7 @@ function __mpStylesBundle() {
     var styles_entry_exports = {};
     __export(styles_entry_exports, {
       DAYLIGHT_THEME: () => DAYLIGHT_THEME,
+      DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
       DEFAULT_THEME: () => DEFAULT_THEME,
       FOLIA_STYLE_ENTRIES: () => FOLIA_STYLE_ENTRIES,
       applyLyricStaffPolicy: () => applyLyricStaffPolicy,
@@ -106849,6 +106850,7 @@ function __mpStylesBundle() {
     };
   
     // src/folia/styles-entry.tsx
+    init_types();
     var FOLIA_STYLE_ENTRIES = {
       classic: entry_default,
       still: entry_default2,

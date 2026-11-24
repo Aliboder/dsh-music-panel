@@ -56,6 +56,14 @@ var PREF_DEFAULTS = {
   /** 外观: lyric style, Folia shell background and where the accent comes from (28-look.js). */
   lyricStyle: 'classic',
   lyricStyleChosen: false,
+  /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  classicTuning: {
+    enableWordRotation: true,
+    breathingFloatMultiplier: 1,
+    useLegacyLayout: false,
+    wordSpacing: 0.7,
+    avoidOverlap: false,
+  },
   /** Folia's calm/normal/chaotic chip (used by the styles' animation tuning). */
   lyricIntensity: 'normal',
   /**
@@ -213,6 +221,17 @@ function readPrefs() {
       dropped = true
     }
   })
+  // Folia's classic tuning is one stored object: a partial older value keeps the upstream defaults.
+  var classicTuningDefaults = PREF_DEFAULTS.classicTuning
+  var storedClassicTuning = merged.classicTuning
+  merged.classicTuning = Object.assign({}, classicTuningDefaults, storedClassicTuning && typeof storedClassicTuning === 'object' ? storedClassicTuning : {})
+  var classicFloat = Number(merged.classicTuning.breathingFloatMultiplier)
+  var classicSpacing = Number(merged.classicTuning.wordSpacing)
+  merged.classicTuning.enableWordRotation = merged.classicTuning.enableWordRotation !== false
+  merged.classicTuning.useLegacyLayout = merged.classicTuning.useLegacyLayout === true
+  merged.classicTuning.avoidOverlap = merged.classicTuning.avoidOverlap === true
+  merged.classicTuning.breathingFloatMultiplier = isFinite(classicFloat) ? Math.min(2, Math.max(0, classicFloat)) : classicTuningDefaults.breathingFloatMultiplier
+  merged.classicTuning.wordSpacing = isFinite(classicSpacing) ? Math.min(2, Math.max(0, classicSpacing)) : classicTuningDefaults.wordSpacing
   var fontScale = Number(merged.lyricsFontScale)
   if (!isFinite(fontScale) || fontScale < 0.5 || fontScale > 2) merged.lyricsFontScale = PREF_DEFAULTS.lyricsFontScale
   var globalOffset = Number(merged.lyricGlobalOffsetMs)

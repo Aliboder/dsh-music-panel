@@ -1083,6 +1083,7 @@ function PlayerSheetInner(props) {
             }),
           )
         : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1199,6 +1200,44 @@ function PlayerSheetInner(props) {
               ),
             )
           })),
+    )
+  }
+  /** Folia classic's own tuning controls (settings are DSH rows; values are Folia's). */
+  function classicTuningBlock() {
+    var tuning = prefs.classicTuning || {}
+    function range(key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = 0
+      return h('input', {
+        type: 'range',
+        className: 'mp-range',
+        min: String(min),
+        max: String(max),
+        step: String(step),
+        value: String(value),
+        'aria-label': t(key === 'breathingFloatMultiplier' ? 'settings.classicBreathing' : 'settings.classicWordSpacing'),
+        onChange: function (event) {
+          var next = Object.assign({}, tuning)
+          next[key] = Number(event.target.value)
+          setPrefs({ classicTuning: next })
+        },
+      })
+    }
+    return mpSection(
+      t('settings.classicTuning'),
+      h(
+        'div',
+        null,
+        mpPanelRow(t('settings.classicWordRotation'), h(Switch, {
+          value: tuning.enableWordRotation !== false,
+          label: t('settings.classicWordRotation'),
+          onChange: function (value) {
+            setPrefs({ classicTuning: Object.assign({}, tuning, { enableWordRotation: value }) })
+          },
+        })),
+        mpPanelRow(t('settings.classicBreathing'), range('breathingFloatMultiplier', 0, 2, 0.1)),
+        mpPanelRow(t('settings.classicWordSpacing'), range('wordSpacing', 0, 2, 0.1)),
+      ),
     )
   }
   /**

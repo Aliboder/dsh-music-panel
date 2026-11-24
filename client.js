@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "436d0c15c5d8"
+    var CLIENT_BUILD = "5d7cd574f577"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,10 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.classicTuning': '流光参数',
+        'settings.classicWordRotation': '逐字旋转',
+        'settings.classicBreathing': '呼吸浮动',
+        'settings.classicWordSpacing': '字距',
         'settings.playerChromeMode': '播放控制显示',
         'settings.playerChromeAlwaysVisible': '始终显示',
         'settings.playerChromeAutoHide': '自动隐藏',
@@ -9341,6 +9345,10 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.classicTuning': 'Luminous tuning',
+        'settings.classicWordRotation': 'Word rotation',
+        'settings.classicBreathing': 'Breathing float',
+        'settings.classicWordSpacing': 'Word spacing',
         'settings.playerChromeMode': 'Player chrome',
         'settings.playerChromeAlwaysVisible': 'Always visible',
         'settings.playerChromeAutoHide': 'Auto-hide',
@@ -137838,6 +137846,7 @@ window.__ModuleLoader__.load({
         var styles_entry_exports = {};
         __export(styles_entry_exports, {
           DAYLIGHT_THEME: () => DAYLIGHT_THEME,
+          DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
           DEFAULT_THEME: () => DEFAULT_THEME,
           FOLIA_STYLE_ENTRIES: () => FOLIA_STYLE_ENTRIES,
           applyLyricStaffPolicy: () => applyLyricStaffPolicy,
@@ -139649,6 +139658,7 @@ window.__ModuleLoader__.load({
         };
       
         // src/folia/styles-entry.tsx
+        init_types();
         var FOLIA_STYLE_ENTRIES = {
           classic: entry_default,
           still: entry_default2,
@@ -140529,6 +140539,7 @@ window.__ModuleLoader__.load({
         audioPower: power,
         audioBands: bandsRef.current,
         showText: true,
+        classicTuning: prefs.classicTuning || undefined,
         // Monet ignores hideTranslationSubtitle and only reads the content mode (resolveSubtitleContentMode
         // returns the given mode as-is), so the mode itself has to carry the translation switch.
         subtitleContentMode: showTranslation ? 'translation' : 'none',
@@ -151204,6 +151215,14 @@ window.__ModuleLoader__.load({
       /** 外观: lyric style, Folia shell background and where the accent comes from (28-look.js). */
       lyricStyle: 'classic',
       lyricStyleChosen: false,
+      /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      classicTuning: {
+        enableWordRotation: true,
+        breathingFloatMultiplier: 1,
+        useLegacyLayout: false,
+        wordSpacing: 0.7,
+        avoidOverlap: false,
+      },
       /** Folia's calm/normal/chaotic chip (used by the styles' animation tuning). */
       lyricIntensity: 'normal',
       /**
@@ -151361,6 +151380,17 @@ window.__ModuleLoader__.load({
           dropped = true
         }
       })
+      // Folia's classic tuning is one stored object: a partial older value keeps the upstream defaults.
+      var classicTuningDefaults = PREF_DEFAULTS.classicTuning
+      var storedClassicTuning = merged.classicTuning
+      merged.classicTuning = Object.assign({}, classicTuningDefaults, storedClassicTuning && typeof storedClassicTuning === 'object' ? storedClassicTuning : {})
+      var classicFloat = Number(merged.classicTuning.breathingFloatMultiplier)
+      var classicSpacing = Number(merged.classicTuning.wordSpacing)
+      merged.classicTuning.enableWordRotation = merged.classicTuning.enableWordRotation !== false
+      merged.classicTuning.useLegacyLayout = merged.classicTuning.useLegacyLayout === true
+      merged.classicTuning.avoidOverlap = merged.classicTuning.avoidOverlap === true
+      merged.classicTuning.breathingFloatMultiplier = isFinite(classicFloat) ? Math.min(2, Math.max(0, classicFloat)) : classicTuningDefaults.breathingFloatMultiplier
+      merged.classicTuning.wordSpacing = isFinite(classicSpacing) ? Math.min(2, Math.max(0, classicSpacing)) : classicTuningDefaults.wordSpacing
       var fontScale = Number(merged.lyricsFontScale)
       if (!isFinite(fontScale) || fontScale < 0.5 || fontScale > 2) merged.lyricsFontScale = PREF_DEFAULTS.lyricsFontScale
       var globalOffset = Number(merged.lyricGlobalOffsetMs)
@@ -179276,6 +179306,7 @@ window.__ModuleLoader__.load({
                 }),
               )
             : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'classic' ? classicTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -179392,6 +179423,44 @@ window.__ModuleLoader__.load({
                   ),
                 )
               })),
+        )
+      }
+      /** Folia classic's own tuning controls (settings are DSH rows; values are Folia's). */
+      function classicTuningBlock() {
+        var tuning = prefs.classicTuning || {}
+        function range(key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = 0
+          return h('input', {
+            type: 'range',
+            className: 'mp-range',
+            min: String(min),
+            max: String(max),
+            step: String(step),
+            value: String(value),
+            'aria-label': t(key === 'breathingFloatMultiplier' ? 'settings.classicBreathing' : 'settings.classicWordSpacing'),
+            onChange: function (event) {
+              var next = Object.assign({}, tuning)
+              next[key] = Number(event.target.value)
+              setPrefs({ classicTuning: next })
+            },
+          })
+        }
+        return mpSection(
+          t('settings.classicTuning'),
+          h(
+            'div',
+            null,
+            mpPanelRow(t('settings.classicWordRotation'), h(Switch, {
+              value: tuning.enableWordRotation !== false,
+              label: t('settings.classicWordRotation'),
+              onChange: function (value) {
+                setPrefs({ classicTuning: Object.assign({}, tuning, { enableWordRotation: value }) })
+              },
+            })),
+            mpPanelRow(t('settings.classicBreathing'), range('breathingFloatMultiplier', 0, 2, 0.1)),
+            mpPanelRow(t('settings.classicWordSpacing'), range('wordSpacing', 0, 2, 0.1)),
+          ),
         )
       }
       /**
