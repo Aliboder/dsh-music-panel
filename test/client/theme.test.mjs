@@ -217,6 +217,15 @@ assert.match(p3Css, /\.mpv3-row \{[^"]*height: 76px/, 'panel-v3 rows are 76px')
 assert.match(p3Css, /\.mpv3-row-cover \{[^"]*width: 54px; height: 54px/, 'panel-v3 row covers are 54px')
 assert.match(p3Css, /\.mpv3-row-title \{[^"]*font-size: 18px/, 'panel-v3 row titles follow the scaled type')
 assert.match(p3Css, /\.mpv3-row-cover img \{[^"]*width: 100%; height: 100%; object-fit: cover/, 'panel-v3 covers clamp their image')
+// A later block once re-declared .mpv3-row at 56px: it won the cascade, shrank every list font
+// and left a 20px gap under each row because the virtual list still stepped by 76px.
+const rowHeights = [...p3Css.matchAll(/\.mpv3-row\s*\{([^{}]*)\}/g)]
+  .map((match) => match[1].match(/height:\s*(\d+)px/))
+  .filter((hit) => hit !== null)
+  .map((hit) => Number(hit[1]))
+assert.ok(rowHeights.length > 0, 'the row height is declared')
+assert.deepEqual([...new Set(rowHeights)], [76], 'every .mpv3-row height agrees with the 76px virtual slot')
+assert.doesNotMatch(p3Css, /\.mpv3-row-title\{font-size/, 'no later block overrides the row type')
 assert.match(p3Css, /\.mpv3-queue-list \{[^"]*overflow-x: hidden; overflow-y: auto/, 'queue list scrolls vertically only')
 assert.match(p3Css, /\.mpv3-queue-row \{[^"]*box-sizing: border-box/, 'queue rows include their padding in the width')
 assert.match(p3Css, /\.mpv3-queue \{[^"]*color: var\(--dsw-alias-label-primary/, 'queue panel sets its own ink instead of inheriting a page color')
