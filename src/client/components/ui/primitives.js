@@ -371,7 +371,7 @@ function KitModal(props) {
 function SetRow(props) {
   return h(
     'div',
-    { className: 'mp-set-row' },
+    { className: 'mp-set-row' + (props.className ? ' ' + String(props.className) : '') },
     h(
       'div',
       { className: 'mp-set-text' },
