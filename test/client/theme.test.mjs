@@ -108,6 +108,9 @@ assert.match(theme, /\.mp-segment-tabs\{[^']*--segmented-tabs-inset/, 'tabs keep
 assert.match(theme, /\.mp-segment-tabs-indicator\{[^']*border:\.5px solid/, 'the tabs indicator keeps the host hairline')
 assert.match(theme, /\.mp-tag\[data-tone="solid"\]/, 'every host tag tone has a fallback')
 assert.match(theme, /\.mp-switch\.is-on i\{[^']*background:var\(--dsw-alias-label-primary-foreground/, 'on-state thumb contrasts the brand track, like the host switch')
+assert.match(theme, /\.mp-cap-play\{[^']*background:var\(--dsw-alias-label-primary[^']*color:var\(--dsw-alias-label-primary-foreground/, 'capsule play foreground pairs with its light fill')
+assert.match(theme, /\.mp-pb-play\{[^']*background:var\(--dsw-alias-label-primary[^']*color:var\(--dsw-alias-label-primary-foreground/, 'player bar play foreground pairs with its light fill')
+assert.doesNotMatch(theme, /\.mp-(cap|pb)-play\{[^']*color:var\(--dsw-alias-bg-base/, 'play buttons never use bg-base as ink')
 
 // Only the adapter may require the host client package.
 for (const [index, text] of all.entries()) {

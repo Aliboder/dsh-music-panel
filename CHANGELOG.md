@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### 播放器
+
+- 修复底部胶囊播放/暂停键白底白图：前景从 `--dsw-alias-bg-base` 改为与 `--dsw-alias-label-primary` 配对的前景 token；同类的底栏播放键一并修正。
+
 ## 0.46.1 — 2026-11-24
 
 ### 音频效果器
