@@ -1100,6 +1100,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'lumiere' ? lumiereTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'pendolo' ? pendoloTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'diorama' ? dioramaTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'tempera' ? temperaTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1654,6 +1655,46 @@ function PlayerSheetInner(props) {
       sw('settings.dioramaGradient', 'gradientEnabled', false),
       num('settings.dioramaGradientIntensity', 'gradientIntensity', 0.1, 1.5, 0.05),
       sw('settings.dioramaKeyword', 'keywordColoringEnabled', true),
+    ))
+  }
+  /** Folia tempera tuning: camera, colour mode and print passes. */
+  function temperaTuningBlock() {
+    var tuning = prefs.temperaTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ temperaTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    function sw(label, key, fallback) {
+      var value = fallback ? tuning[key] !== false : tuning[key] === true
+      return mpPanelRow(t(label), h(Switch, { value: value, label: t(label), onChange: function (next) { setPrefs({ temperaTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+    }
+    return mpSection(t('settings.temperaTuning'), h('div', null,
+      num('settings.temperaCamera', 'cameraIntensity', 0, 2, 0.05),
+      num('settings.temperaGlyphMotion', 'glyphMotion', 0, 2, 0.05),
+      sw('settings.temperaWholeLine', 'wholeLineLyrics', false),
+      num('settings.temperaStretch', 'glyphSettleStretch', 0, 1, 0.01),
+      num('settings.temperaDof', 'depthOfField', 0, 2, 0.05),
+      num('settings.temperaDepthPan', 'depthPan', 0, 2, 0.05),
+      num('settings.temperaGlyphDepth', 'glyphDepth', 0, 2, 0.05),
+      mpPanelRow(t('settings.temperaColorMode'), segmented([{ value: 'duo', label: 'Duo' }, { value: 'mono', label: 'Mono' }], tuning.temperaColorMode === 'mono' ? 'mono' : 'duo', function (value) { setPrefs({ temperaTuning: Object.assign({}, tuning, { temperaColorMode: value }) }) })),
+      sw('settings.temperaBlocks', 'showBlocks', true),
+      sw('settings.temperaDecor', 'showDecor', true),
+      sw('settings.temperaCorners', 'showCornerMarks', true),
+      sw('settings.temperaInversion', 'textInversion', true),
+      sw('settings.temperaTransitions', 'enableTransitions', true),
+      num('settings.temperaTexture', 'textureResolution', 0.5, 4, 0.1),
+      sw('settings.temperaPost', 'postProcessEnabled', true),
+      sw('settings.temperaCompression', 'postProcessTextureCompression', false),
+      num('settings.temperaGrain', 'postProcessGrain', 0, 1, 0.01),
+      num('settings.temperaContrast', 'postProcessContrast', 0, 1, 0.01),
+      num('settings.temperaRgb', 'postProcessRgbShift', 0, 1, 0.01),
+      num('settings.temperaVignette', 'postProcessVignette', 0, 2, 0.01),
+      num('settings.temperaLens', 'postProcessLensDistortion', 0, 2, 0.01),
     ))
   }
   /**

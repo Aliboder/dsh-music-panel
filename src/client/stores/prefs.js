@@ -57,6 +57,29 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  temperaTuning: {
+    cameraIntensity: 1,
+    glyphMotion: 1,
+    wholeLineLyrics: false,
+    glyphSettleStretch: 0.5,
+    depthOfField: 1,
+    depthPan: 1,
+    glyphDepth: 1,
+    temperaColorMode: 'duo',
+    showBlocks: true,
+    showDecor: true,
+    showCornerMarks: true,
+    textInversion: true,
+    enableTransitions: true,
+    textureResolution: 1.5,
+    postProcessEnabled: true,
+    postProcessTextureCompression: false,
+    postProcessGrain: 0.2,
+    postProcessContrast: 0,
+    postProcessRgbShift: 0,
+    postProcessVignette: 0.85,
+    postProcessLensDistortion: 0.3,
+  },
   dioramaTuning: {
     cameraSpeed: 1,
     motionAmount: 1,
@@ -432,6 +455,39 @@ function readPrefs() {
     tiltDeg: pendoloNumber('tiltDeg', -45, 45),
     parallaxDepth: pendoloNumber('parallaxDepth', 0, 2),
     mirrorLayout: storedPendolo.mirrorLayout === true,
+  }
+  // Folia tempera tuning: camera, print passes and colour mode.
+  var temperaDefaults = PREF_DEFAULTS.temperaTuning
+  var storedTempera = merged.temperaTuning && typeof merged.temperaTuning === 'object' ? merged.temperaTuning : {}
+  function temperaNumber(key, min, max) {
+    var value = Number(storedTempera[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : temperaDefaults[key]
+  }
+  function temperaSwitch(key, fallback) {
+    return typeof storedTempera[key] === 'boolean' ? storedTempera[key] : fallback
+  }
+  merged.temperaTuning = {
+    cameraIntensity: temperaNumber('cameraIntensity', 0, 2),
+    glyphMotion: temperaNumber('glyphMotion', 0, 2),
+    wholeLineLyrics: temperaSwitch('wholeLineLyrics', false),
+    glyphSettleStretch: temperaNumber('glyphSettleStretch', 0, 1),
+    depthOfField: temperaNumber('depthOfField', 0, 2),
+    depthPan: temperaNumber('depthPan', 0, 2),
+    glyphDepth: temperaNumber('glyphDepth', 0, 2),
+    temperaColorMode: storedTempera.temperaColorMode === 'mono' ? 'mono' : 'duo',
+    showBlocks: temperaSwitch('showBlocks', true),
+    showDecor: temperaSwitch('showDecor', true),
+    showCornerMarks: temperaSwitch('showCornerMarks', true),
+    textInversion: temperaSwitch('textInversion', true),
+    enableTransitions: temperaSwitch('enableTransitions', true),
+    textureResolution: temperaNumber('textureResolution', 0.5, 4),
+    postProcessEnabled: temperaSwitch('postProcessEnabled', true),
+    postProcessTextureCompression: temperaSwitch('postProcessTextureCompression', false),
+    postProcessGrain: temperaNumber('postProcessGrain', 0, 1),
+    postProcessContrast: temperaNumber('postProcessContrast', 0, 1),
+    postProcessRgbShift: temperaNumber('postProcessRgbShift', 0, 1),
+    postProcessVignette: temperaNumber('postProcessVignette', 0, 2),
+    postProcessLensDistortion: temperaNumber('postProcessLensDistortion', 0, 2),
   }
   // Folia diorama tuning: camera, particles and follow-singing effects.
   var dioramaDefaults = PREF_DEFAULTS.dioramaTuning

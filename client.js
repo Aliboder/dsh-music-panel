@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "0aaf2b2a0e08"
+    var CLIENT_BUILD = "9c7d32112903"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,28 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.temperaTuning': '凝彩参数',
+        'settings.temperaCamera': '镜头强度',
+        'settings.temperaGlyphMotion': '字形动效',
+        'settings.temperaWholeLine': '整行歌词',
+        'settings.temperaStretch': '落字拉伸',
+        'settings.temperaDof': '景深',
+        'settings.temperaDepthPan': '深度平移',
+        'settings.temperaGlyphDepth': '歌词远近',
+        'settings.temperaColorMode': '配色模式',
+        'settings.temperaBlocks': '色块',
+        'settings.temperaDecor': '装饰',
+        'settings.temperaCorners': '角标',
+        'settings.temperaInversion': '文字反色',
+        'settings.temperaTransitions': '转场',
+        'settings.temperaTexture': '纹理分辨率',
+        'settings.temperaPost': '后期处理',
+        'settings.temperaCompression': '后处理压缩',
+        'settings.temperaGrain': '颗粒',
+        'settings.temperaContrast': '对比度',
+        'settings.temperaRgb': 'RGB 错位',
+        'settings.temperaVignette': '暗角',
+        'settings.temperaLens': '镜头畸变',
         'settings.dioramaTuning': '镜台参数',
         'settings.dioramaCamera': '镜头速度',
         'settings.dioramaMotion': '动态幅度',
@@ -9499,6 +9521,28 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.temperaTuning': 'Tempera tuning',
+        'settings.temperaCamera': 'Camera intensity',
+        'settings.temperaGlyphMotion': 'Glyph motion',
+        'settings.temperaWholeLine': 'Whole-line lyrics',
+        'settings.temperaStretch': 'Glyph settle stretch',
+        'settings.temperaDof': 'Depth of field',
+        'settings.temperaDepthPan': 'Depth pan',
+        'settings.temperaGlyphDepth': 'Glyph depth',
+        'settings.temperaColorMode': 'Color mode',
+        'settings.temperaBlocks': 'Blocks',
+        'settings.temperaDecor': 'Decor',
+        'settings.temperaCorners': 'Corner marks',
+        'settings.temperaInversion': 'Text inversion',
+        'settings.temperaTransitions': 'Transitions',
+        'settings.temperaTexture': 'Texture resolution',
+        'settings.temperaPost': 'Post-process',
+        'settings.temperaCompression': 'Post-process compression',
+        'settings.temperaGrain': 'Grain',
+        'settings.temperaContrast': 'Contrast',
+        'settings.temperaRgb': 'RGB shift',
+        'settings.temperaVignette': 'Vignette',
+        'settings.temperaLens': 'Lens distortion',
         'settings.dioramaTuning': 'Diorama tuning',
         'settings.dioramaCamera': 'Camera speed',
         'settings.dioramaMotion': 'Motion amount',
@@ -154232,6 +154276,7 @@ window.__ModuleLoader__.load({
           DEFAULT_MONET_TUNING: () => DEFAULT_MONET_TUNING,
           DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,
           DEFAULT_SONNET_TUNING: () => DEFAULT_SONNET_TUNING,
+          DEFAULT_TEMPERA_TUNING: () => DEFAULT_TEMPERA_TUNING,
           DEFAULT_THEME: () => DEFAULT_THEME,
           DEFAULT_TILT_TUNING: () => DEFAULT_TILT_TUNING,
           FOLIA_STYLE_ENTRIES: () => FOLIA_STYLE_ENTRIES,
@@ -157071,6 +157116,9 @@ window.__ModuleLoader__.load({
         machiTuning: prefs.machiTuning || undefined,
         lumiereTuning: prefs.lumiereTuning || undefined,
         dioramaTuning: prefs.dioramaTuning || undefined,
+        temperaTuning: prefs.temperaTuning
+          ? Object.assign({}, prefs.temperaTuning, { colorMode: prefs.temperaTuning.temperaColorMode })
+          : undefined,
         hanabiTuning: prefs.hanabiTuning
           ? Object.assign({}, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning.hanabiColorMode })
           : undefined,
@@ -167753,6 +167801,29 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      temperaTuning: {
+        cameraIntensity: 1,
+        glyphMotion: 1,
+        wholeLineLyrics: false,
+        glyphSettleStretch: 0.5,
+        depthOfField: 1,
+        depthPan: 1,
+        glyphDepth: 1,
+        temperaColorMode: 'duo',
+        showBlocks: true,
+        showDecor: true,
+        showCornerMarks: true,
+        textInversion: true,
+        enableTransitions: true,
+        textureResolution: 1.5,
+        postProcessEnabled: true,
+        postProcessTextureCompression: false,
+        postProcessGrain: 0.2,
+        postProcessContrast: 0,
+        postProcessRgbShift: 0,
+        postProcessVignette: 0.85,
+        postProcessLensDistortion: 0.3,
+      },
       dioramaTuning: {
         cameraSpeed: 1,
         motionAmount: 1,
@@ -168128,6 +168199,39 @@ window.__ModuleLoader__.load({
         tiltDeg: pendoloNumber('tiltDeg', -45, 45),
         parallaxDepth: pendoloNumber('parallaxDepth', 0, 2),
         mirrorLayout: storedPendolo.mirrorLayout === true,
+      }
+      // Folia tempera tuning: camera, print passes and colour mode.
+      var temperaDefaults = PREF_DEFAULTS.temperaTuning
+      var storedTempera = merged.temperaTuning && typeof merged.temperaTuning === 'object' ? merged.temperaTuning : {}
+      function temperaNumber(key, min, max) {
+        var value = Number(storedTempera[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : temperaDefaults[key]
+      }
+      function temperaSwitch(key, fallback) {
+        return typeof storedTempera[key] === 'boolean' ? storedTempera[key] : fallback
+      }
+      merged.temperaTuning = {
+        cameraIntensity: temperaNumber('cameraIntensity', 0, 2),
+        glyphMotion: temperaNumber('glyphMotion', 0, 2),
+        wholeLineLyrics: temperaSwitch('wholeLineLyrics', false),
+        glyphSettleStretch: temperaNumber('glyphSettleStretch', 0, 1),
+        depthOfField: temperaNumber('depthOfField', 0, 2),
+        depthPan: temperaNumber('depthPan', 0, 2),
+        glyphDepth: temperaNumber('glyphDepth', 0, 2),
+        temperaColorMode: storedTempera.temperaColorMode === 'mono' ? 'mono' : 'duo',
+        showBlocks: temperaSwitch('showBlocks', true),
+        showDecor: temperaSwitch('showDecor', true),
+        showCornerMarks: temperaSwitch('showCornerMarks', true),
+        textInversion: temperaSwitch('textInversion', true),
+        enableTransitions: temperaSwitch('enableTransitions', true),
+        textureResolution: temperaNumber('textureResolution', 0.5, 4),
+        postProcessEnabled: temperaSwitch('postProcessEnabled', true),
+        postProcessTextureCompression: temperaSwitch('postProcessTextureCompression', false),
+        postProcessGrain: temperaNumber('postProcessGrain', 0, 1),
+        postProcessContrast: temperaNumber('postProcessContrast', 0, 1),
+        postProcessRgbShift: temperaNumber('postProcessRgbShift', 0, 1),
+        postProcessVignette: temperaNumber('postProcessVignette', 0, 2),
+        postProcessLensDistortion: temperaNumber('postProcessLensDistortion', 0, 2),
       }
       // Folia diorama tuning: camera, particles and follow-singing effects.
       var dioramaDefaults = PREF_DEFAULTS.dioramaTuning
@@ -196335,6 +196439,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'lumiere' ? lumiereTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'pendolo' ? pendoloTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'diorama' ? dioramaTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'tempera' ? temperaTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -196889,6 +196994,46 @@ window.__ModuleLoader__.load({
           sw('settings.dioramaGradient', 'gradientEnabled', false),
           num('settings.dioramaGradientIntensity', 'gradientIntensity', 0.1, 1.5, 0.05),
           sw('settings.dioramaKeyword', 'keywordColoringEnabled', true),
+        ))
+      }
+      /** Folia tempera tuning: camera, colour mode and print passes. */
+      function temperaTuningBlock() {
+        var tuning = prefs.temperaTuning || {}
+        function num(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ temperaTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        function sw(label, key, fallback) {
+          var value = fallback ? tuning[key] !== false : tuning[key] === true
+          return mpPanelRow(t(label), h(Switch, { value: value, label: t(label), onChange: function (next) { setPrefs({ temperaTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+        }
+        return mpSection(t('settings.temperaTuning'), h('div', null,
+          num('settings.temperaCamera', 'cameraIntensity', 0, 2, 0.05),
+          num('settings.temperaGlyphMotion', 'glyphMotion', 0, 2, 0.05),
+          sw('settings.temperaWholeLine', 'wholeLineLyrics', false),
+          num('settings.temperaStretch', 'glyphSettleStretch', 0, 1, 0.01),
+          num('settings.temperaDof', 'depthOfField', 0, 2, 0.05),
+          num('settings.temperaDepthPan', 'depthPan', 0, 2, 0.05),
+          num('settings.temperaGlyphDepth', 'glyphDepth', 0, 2, 0.05),
+          mpPanelRow(t('settings.temperaColorMode'), segmented([{ value: 'duo', label: 'Duo' }, { value: 'mono', label: 'Mono' }], tuning.temperaColorMode === 'mono' ? 'mono' : 'duo', function (value) { setPrefs({ temperaTuning: Object.assign({}, tuning, { temperaColorMode: value }) }) })),
+          sw('settings.temperaBlocks', 'showBlocks', true),
+          sw('settings.temperaDecor', 'showDecor', true),
+          sw('settings.temperaCorners', 'showCornerMarks', true),
+          sw('settings.temperaInversion', 'textInversion', true),
+          sw('settings.temperaTransitions', 'enableTransitions', true),
+          num('settings.temperaTexture', 'textureResolution', 0.5, 4, 0.1),
+          sw('settings.temperaPost', 'postProcessEnabled', true),
+          sw('settings.temperaCompression', 'postProcessTextureCompression', false),
+          num('settings.temperaGrain', 'postProcessGrain', 0, 1, 0.01),
+          num('settings.temperaContrast', 'postProcessContrast', 0, 1, 0.01),
+          num('settings.temperaRgb', 'postProcessRgbShift', 0, 1, 0.01),
+          num('settings.temperaVignette', 'postProcessVignette', 0, 2, 0.01),
+          num('settings.temperaLens', 'postProcessLensDistortion', 0, 2, 0.01),
         ))
       }
       /**
