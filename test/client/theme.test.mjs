@@ -221,6 +221,9 @@ assert.match(p3Css, /\.mpv3-row-title \{[^"]*font-size: 18px/, 'panel-v3 row tit
 assert.match(p3Css, /\.mpv3-row-cover img \{[^"]*width: 100%; height: 100%; object-fit: cover/, 'panel-v3 covers clamp their image')
 assert.match(p3Css, /\.mpv3-queue-list \{[^"]*overflow-x: hidden; overflow-y: auto/, 'queue list scrolls vertically only')
 assert.match(p3Css, /\.mpv3-queue-row \{[^"]*box-sizing: border-box/, 'queue rows include their padding in the width')
+assert.match(p3Css, /\.mpv3-queue \{[^"]*color: var\(--dsw-alias-label-primary/, 'queue panel sets its own ink instead of inheriting a page color')
+assert.match(p3Css, /\.mp-np \.mpv3-queue \{[^"]*--dsw-alias-bg-layer-1: #17171a/, 'player-page queue pins dark surface tokens')
+assert.match(p3Css, /\.mp-np \.mpv3-queue \{[^"]*color: #f4f4f5/, 'player-page queue uses light ink on its dark surface')
 
 assert.match(theme, /\.mp-npe-section\.is-ambient\{grid-column:1\/4;grid-row:3\}/, 'ambient section spans the editor')
 assert.match(theme, /\.mp-npe-smoke-grid\{[^']*grid-template-columns:repeat\(4/, 'ambient section has four columns')
