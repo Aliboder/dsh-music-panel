@@ -871,7 +871,7 @@ var THEME_CSS = [
   '.mp-tuning-grid .mp-set-row.mp-tuning-toggle{grid-column:span 1;order:3}',
   '.mp-tuning-grid .mp-set-row.mp-tuning-segmented{grid-column:1/-1;order:2}',
   '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control{width:100%;min-width:0}',
-  '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control input{width:100%;min-width:0}',
+  '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control input{flex:1 1 auto;width:100%;min-width:0}',
   '.mp-tuning-grid .mp-set-label{grid-column:1/-1;order:0;padding:8px 0 0 !important;white-space:nowrap;overflow:visible}',
   '.mp-tuning-grid .mp-set-text{min-width:0;overflow:visible}',
   '.mp-tuning-grid .mp-set-row .mp-set-label{font-size:13px;white-space:nowrap;overflow:visible;text-overflow:clip}',
@@ -879,8 +879,6 @@ var THEME_CSS = [
   '.mp-tuning-label-inner{display:inline-block;white-space:nowrap;will-change:transform}',
   '.mp-tuning-label.is-overflow .mp-tuning-label-inner{animation:mp-tuning-marquee 3.2s ease-in-out infinite alternate}',
   '@keyframes mp-tuning-marquee{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--mp-label-shift,0px)))}}',
-  '.mp-tuning-range-wrap{display:flex;align-items:center;gap:8px;width:100%;min-width:0}',
-  '.mp-tuning-range-wrap input{flex:1 1 auto;min-width:0}',
   '.mp-tuning-range-value{flex:0 0 auto;min-width:32px;text-align:right;font-size:11px;line-height:16px;opacity:.72;font-variant-numeric:tabular-nums}',
   // 设置页分组卡片：组标题在卡外，行在卡内（歌词页与播放控制页共用）。
   '.mp-set-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',

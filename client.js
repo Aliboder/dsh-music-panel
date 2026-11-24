@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "e5f6fff00e4e"
+    var CLIENT_BUILD = "48c6d49d3b78"
 
     // ── src/client/app/runtime.js
     /**
@@ -179770,7 +179770,7 @@ window.__ModuleLoader__.load({
       '.mp-tuning-grid .mp-set-row.mp-tuning-toggle{grid-column:span 1;order:3}',
       '.mp-tuning-grid .mp-set-row.mp-tuning-segmented{grid-column:1/-1;order:2}',
       '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control{width:100%;min-width:0}',
-      '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control input{width:100%;min-width:0}',
+      '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control input{flex:1 1 auto;width:100%;min-width:0}',
       '.mp-tuning-grid .mp-set-label{grid-column:1/-1;order:0;padding:8px 0 0 !important;white-space:nowrap;overflow:visible}',
       '.mp-tuning-grid .mp-set-text{min-width:0;overflow:visible}',
       '.mp-tuning-grid .mp-set-row .mp-set-label{font-size:13px;white-space:nowrap;overflow:visible;text-overflow:clip}',
@@ -179778,8 +179778,6 @@ window.__ModuleLoader__.load({
       '.mp-tuning-label-inner{display:inline-block;white-space:nowrap;will-change:transform}',
       '.mp-tuning-label.is-overflow .mp-tuning-label-inner{animation:mp-tuning-marquee 3.2s ease-in-out infinite alternate}',
       '@keyframes mp-tuning-marquee{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--mp-label-shift,0px)))}}',
-      '.mp-tuning-range-wrap{display:flex;align-items:center;gap:8px;width:100%;min-width:0}',
-      '.mp-tuning-range-wrap input{flex:1 1 auto;min-width:0}',
       '.mp-tuning-range-value{flex:0 0 auto;min-width:32px;text-align:right;font-size:11px;line-height:16px;opacity:.72;font-variant-numeric:tabular-nums}',
       // 设置页分组卡片：组标题在卡外，行在卡内（歌词页与播放控制页共用）。
       '.mp-set-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',
@@ -194789,7 +194787,7 @@ window.__ModuleLoader__.load({
         var className = range ? 'mp-tuning-range' : toggle ? 'mp-tuning-toggle' : segmented ? 'mp-tuning-segmented' : ''
         var labelNode = range || toggle ? h(TuningLabel, { text: label }) : label
         var body = range
-          ? h('div', { className: 'mp-tuning-range-wrap' }, control, h('span', { className: 'mp-tuning-range-value' }, String(control.props.value === undefined ? '' : control.props.value)))
+          ? h(TuningRange, { control: control, value: control.props.value })
           : control
         return h(SetRow, { label: labelNode, desc: hint, className: className }, body)
       }
@@ -194831,22 +194829,24 @@ window.__ModuleLoader__.load({
         return true
       }
 
-      /** The tuning grid owns a non-passive wheel listener so a slider does not scroll the sheet. */
-      function TuningGrid(props) {
+      /** A range input plus its value; the input owns a non-passive wheel listener. */
+      function TuningRange(props) {
         var ref = useRef(null)
         useEffect(function () {
-          var el = ref.current
-          if (el === null) return undefined
+          var input = ref.current
+          if (input === null) return undefined
           function onWheel(event) {
-            if (tuningWheel(event)) {
-              event.preventDefault()
-              event.stopPropagation()
-            }
+            if (tuningWheel(event)) event.preventDefault()
           }
-          el.addEventListener('wheel', onWheel, { passive: false })
-          return function () { el.removeEventListener('wheel', onWheel) }
+          input.addEventListener('wheel', onWheel, { passive: false })
+          return function () { input.removeEventListener('wheel', onWheel) }
         }, [])
-        return h('div', { ref: ref, className: 'mp-tuning-grid' }, props.children)
+        var control = React.cloneElement(props.control, { ref: ref })
+        return h(React.Fragment, null, control, h('span', { className: 'mp-tuning-range-value' }, String(props.value === undefined ? '' : props.value)))
+      }
+
+      function TuningGrid(props) {
+        return h('div', { className: 'mp-tuning-grid' }, props.children)
       }
       function cardLookPane() {
         var tuningBlocks = lyricTuningBlocks()
@@ -195395,6 +195395,10 @@ window.__ModuleLoader__.load({
       function cardQueuePane() {
         var queue = Array.isArray(snap.queue) ? snap.queue : []
         var current = Number(snap.index)
+        var order = snap.order === 'random' && typeof player.getPlayOrder === 'function'
+          ? player.getPlayOrder()
+          : queue.map(function (_, index) { return index })
+        if (!Array.isArray(order) || order.length !== queue.length) order = queue.map(function (_, index) { return index })
         function move(index, target) {
           if (!Number.isInteger(index) || index < 0 || index >= queue.length) return
           var indices = queue.map(function (_, at) { return at })
@@ -195411,9 +195415,10 @@ window.__ModuleLoader__.load({
           { key: 'queue-pane', className: 'mp-queue-pane' },
           h(
             'div',
-            { className: 'mp-queue-head' },
-            h('strong', null, String(queue.length) + ' ' + t('p3.unitSong')),
-            h('span', { className: 'mp-queue-grow' }),
+            { className: 'mpv3-queue-head' },
+            h('strong', null, t('page.queue')),
+            h('span', null, String(queue.length) + ' ' + t('p3.unitSong') + ' · ' + (snap.order === 'random' ? t('page.shuffle') : t('p3.sequence'))),
+            h('span', { className: 'mpv3-grow' }),
             queue.length > 0
               ? h(IconButton, {
                   icon: 'trash',
@@ -195430,31 +195435,31 @@ window.__ModuleLoader__.load({
               : null,
           ),
           queue.length === 0
-            ? h('div', { className: 'mp-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty')))
+            ? h('div', { className: 'mpv3-queue-empty' }, icon('playlist', 24), h('span', null, t('p3.queueEmpty')))
             : h('div', {
-                className: 'mp-queue-list',
-                style: { height: String(Math.min(queue.length * 48, 360)) + 'px', overflowY: 'auto' },
+                className: 'mpv3-queue-list',
+                style: { height: String(Math.min(queue.length * 56, 360)) + 'px' },
                 onScroll: function (event) { setQueueScroll(event.currentTarget.scrollTop) },
               },
                 (function () {
-                  var rowHeight = 48
+                  var rowHeight = 56
                   var viewport = 360
                   var start = Math.max(0, Math.floor(queueScroll / rowHeight) - 2)
-                  var end = Math.min(queue.length, start + Math.ceil(viewport / rowHeight) + 4)
+                  var endAt = Math.min(queue.length, start + Math.ceil(viewport / rowHeight) + 4)
                   var rows = []
                   if (start > 0) rows.push(h('div', { key: 'before', style: { height: String(start * rowHeight) + 'px' } }))
-                  for (var at = start; at < end; at += 1) {
+                  for (var position = start; position < endAt; position += 1) {
+                    var at = Number(order[position])
                     var track = queue[at]
                     if (track === null || typeof track !== 'object') continue
                     var active = at === current
                     rows.push(h(
                       'div',
                       {
-                        key: String(track.path || at) + ':' + String(at),
-                        className: 'mp-queue-row' + (active ? ' is-on' : ''),
+                        key: String(track.path || at) + ':' + String(position),
+                        className: 'mpv3-queue-row' + (active ? ' is-cur' : ''),
                         role: 'button',
                         tabIndex: 0,
-                        style: { height: String(rowHeight) + 'px', boxSizing: 'border-box' },
                         onClick: function () { player.select(queue, at) },
                         onKeyDown: function (event) {
                           if (event.key === 'Enter' || event.key === ' ') {
@@ -195463,22 +195468,19 @@ window.__ModuleLoader__.load({
                           }
                         },
                       },
-                      h('span', { className: 'mp-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
-                      h('span', { className: 'mp-queue-main' },
-                        h('span', { className: 'mp-queue-name' }, trackTitleOf(track)),
-                        h('span', { className: 'mp-queue-artist' }, trackArtistOf(track)),
+                      h('span', { className: 'mpv3-queue-idx' }, active ? h(P3QueueWave, { playing: snap.playing }) : String(position + 1)),
+                      h('span', { className: 'mpv3-queue-cover' }, h(Cover, { src: trackCoverSrc(track), iconSize: 12 })),
+                      h('span', { className: 'mpv3-queue-main' },
+                        h('span', { className: 'mpv3-queue-name' }, trackTitleOf(track)),
+                        h('span', { className: 'mpv3-queue-artist' }, trackArtistOf(track)),
                       ),
-                      h('span', { className: 'mp-queue-time' }, fmtClock(track.durationSec || 0)),
-                      h(
-                        'span',
-                        { className: 'mp-queue-actions' },
-                        h(IconButton, { icon: 'playlist', size: 13, title: t('p3.playNext'), onClick: function (event) { event.stopPropagation(); move(at, current + 1) } }),
-                        h(IconButton, { icon: 'down', size: 13, title: t('p3.moveToEnd'), onClick: function (event) { event.stopPropagation(); move(at, queue.length - 1) } }),
-                        h(IconButton, { icon: 'x', size: 13, title: t('p3.removeFromQueue'), onClick: function (event) { event.stopPropagation(); player.removeQueueAt(at) } }),
-                      ),
+                      h('span', { className: 'mpv3-queue-time' }, fmtClock(track.durationSec || 0)),
+                      h(IconButton, { icon: 'playlist', size: 13, title: t('p3.playNext'), className: 'mpv3-queue-remove', onClick: function (event) { event.stopPropagation(); move(at, current + 1) } }),
+                      h(IconButton, { icon: 'down', size: 13, title: t('p3.moveToEnd'), className: 'mpv3-queue-remove', onClick: function (event) { event.stopPropagation(); move(at, queue.length - 1) } }),
+                      h(IconButton, { icon: 'x', size: 13, title: t('p3.removeFromQueue'), className: 'mpv3-queue-remove', onClick: function (event) { event.stopPropagation(); player.removeQueueAt(at) } }),
                     ))
                   }
-                  if (end < queue.length) rows.push(h('div', { key: 'after', style: { height: String((queue.length - end) * rowHeight) + 'px' } }))
+                  if (endAt < queue.length) rows.push(h('div', { key: 'after', style: { height: String((queue.length - endAt) * rowHeight) + 'px' } }))
                   return rows
                 })(),
               ),
