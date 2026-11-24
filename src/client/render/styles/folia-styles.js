@@ -382,6 +382,9 @@ function FoliaStyleStage(props) {
     tiltTuning: prefs.tiltTuning || undefined,
     partitaTuning: prefs.partitaTuning || undefined,
     fumeTuning: prefs.fumeTuning || undefined,
+    claddaghTuning: prefs.claddaghTuning
+      ? Object.assign({}, prefs.claddaghTuning, { translationScale: prefs.claddaghTuning.translationFontScale })
+      : undefined,
     // Monet ignores hideTranslationSubtitle and only reads the content mode (resolveSubtitleContentMode
     // returns the given mode as-is), so the mode itself has to carry the translation switch.
     subtitleContentMode: showTranslation ? 'translation' : 'none',

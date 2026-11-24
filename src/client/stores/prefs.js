@@ -57,6 +57,18 @@ var PREF_DEFAULTS = {
   lyricStyle: 'classic',
   lyricStyleChosen: false,
   /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+  claddaghTuning: {
+    focusScaleRatio: 0.65,
+    radiusScale: 1.0,
+    ellipseTiltDeg: 45,
+    showAxisLine: true,
+    letterSpacingOffset: 0,
+    positionX: 0,
+    positionY: 0,
+    showTranslation: false,
+    translationFontScale: 1,
+    translationLetterSpacingOffset: 0,
+  },
   fumeTuning: {
     hidePrintSymbols: false,
     disableGeometricBackground: true,
@@ -243,6 +255,25 @@ function readPrefs() {
       dropped = true
     }
   })
+  // Folia claddagh tuning: angular/numeric ranges mirror the upstream resolve().
+  var claddaghDefaults = PREF_DEFAULTS.claddaghTuning
+  var storedCladdagh = merged.claddaghTuning && typeof merged.claddaghTuning === 'object' ? merged.claddaghTuning : {}
+  function claddaghNumber(key, min, max) {
+    var value = Number(storedCladdagh[key])
+    return isFinite(value) ? Math.min(max, Math.max(min, value)) : claddaghDefaults[key]
+  }
+  merged.claddaghTuning = {
+    focusScaleRatio: claddaghNumber('focusScaleRatio', 0, 1.5),
+    radiusScale: claddaghNumber('radiusScale', 0.5, 1.5),
+    ellipseTiltDeg: claddaghNumber('ellipseTiltDeg', 0, 60),
+    showAxisLine: storedCladdagh.showAxisLine !== false,
+    letterSpacingOffset: claddaghNumber('letterSpacingOffset', -5, 20),
+    positionX: claddaghNumber('positionX', -40, 40),
+    positionY: claddaghNumber('positionY', -40, 40),
+    showTranslation: storedCladdagh.showTranslation === true,
+    translationFontScale: claddaghNumber('translationFontScale', 0.5, 2),
+    translationLetterSpacingOffset: claddaghNumber('translationLetterSpacingOffset', -5, 20),
+  }
   // Folia fume tuning: numeric ranges clamp, camera mode falls back to smooth.
   var fumeDefaults = PREF_DEFAULTS.fumeTuning
   var storedFume = merged.fumeTuning && typeof merged.fumeTuning === 'object' ? merged.fumeTuning : {}

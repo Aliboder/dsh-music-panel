@@ -105038,6 +105038,7 @@ function __mpStylesBundle() {
     var styles_entry_exports = {};
     __export(styles_entry_exports, {
       DAYLIGHT_THEME: () => DAYLIGHT_THEME,
+      DEFAULT_CLADDAGH_TUNING: () => DEFAULT_CLADDAGH_TUNING,
       DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
       DEFAULT_FUME_TUNING: () => DEFAULT_FUME_TUNING,
       DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,

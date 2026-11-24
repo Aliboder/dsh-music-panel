@@ -1087,6 +1087,7 @@ function PlayerSheetInner(props) {
       mpStyleIdOf(prefs.lyricStyle) === 'tilt' ? tiltTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'partita' ? partitaTuningBlock() : null,
       mpStyleIdOf(prefs.lyricStyle) === 'fume' ? fumeTuningBlock() : null,
+      mpStyleIdOf(prefs.lyricStyle) === 'claddagh' ? claddaghTuningBlock() : null,
       mpSection(
         t('sheet.lyricDisplay'),
         h(
@@ -1329,6 +1330,35 @@ function PlayerSheetInner(props) {
         numberRow('settings.fumeHeroScale', 'heroScale', 0.82, 1.32, 0.02),
       ),
     )
+  }
+  /** Folia claddagh tuning: ring geometry, text spacing and the translation row. */
+  function claddaghTuningBlock() {
+    var tuning = prefs.claddaghTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ claddaghTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    function sw(label, key, fallback) {
+      var value = key === 'showTranslation' ? tuning[key] === true : tuning[key] !== false
+      return mpPanelRow(t(label), h(Switch, { value: value, label: t(label), onChange: function (next) { setPrefs({ claddaghTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+    }
+    return mpSection(t('settings.claddaghTuning'), h('div', null,
+      num('settings.claddaghFocus', 'focusScaleRatio', 0, 1.5, 0.05),
+      num('settings.claddaghRadius', 'radiusScale', 0.5, 1.5, 0.05),
+      num('settings.claddaghTilt', 'ellipseTiltDeg', 0, 60, 1),
+      sw('settings.claddaghAxis', 'showAxisLine', true),
+      num('settings.claddaghSpacing', 'letterSpacingOffset', -5, 20, 1),
+      num('settings.claddaghPositionX', 'positionX', -40, 40, 1),
+      num('settings.claddaghPositionY', 'positionY', -40, 40, 1),
+      sw('settings.claddaghTranslation', 'showTranslation', false),
+      num('settings.claddaghTranslationScale', 'translationFontScale', 0.5, 2, 0.05),
+      num('settings.claddaghTranslationSpacing', 'translationLetterSpacingOffset', -5, 20, 1),
+    ))
   }
   /**
    * 音量 — the card's volume row, now on the audio page. It is the keyboard path; the player

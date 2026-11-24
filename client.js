@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "d58bf396a23c"
+    var CLIENT_BUILD = "bfa30ff78fc2"
 
     // ── src/client/app/runtime.js
     /**
@@ -8519,6 +8519,17 @@ window.__ModuleLoader__.load({
         'settings.outputDefault': '系统默认',
         'settings.outputDeviceN': '设备 {n}',
         'settings.replayGainModeDesc': '检测到增益数据时，按单曲或专辑 ReplayGain 统一播放响度；「智能平衡」会测量每首歌的响度，把偏响的歌调小。',
+        'settings.claddaghTuning': '回环参数',
+        'settings.claddaghFocus': '聚焦缩放',
+        'settings.claddaghRadius': '圆环半径',
+        'settings.claddaghTilt': '椭圆倾角',
+        'settings.claddaghAxis': '显示轴线',
+        'settings.claddaghSpacing': '字距偏移',
+        'settings.claddaghPositionX': '横向位置',
+        'settings.claddaghPositionY': '纵向位置',
+        'settings.claddaghTranslation': '翻译行',
+        'settings.claddaghTranslationScale': '翻译字号',
+        'settings.claddaghTranslationSpacing': '翻译字距',
         'settings.fumeTuning': '浮名参数',
         'settings.fumePrint': '隐藏印刷符号',
         'settings.fumeGeo': '关闭几何背景',
@@ -9364,6 +9375,17 @@ window.__ModuleLoader__.load({
         'settings.replayGainStatus': 'Estimates only lower the gain; after a song plays through, the next play uses the measured reading.',
         'settings.replayGainTagMode': 'Uses the file\'s own ReplayGain tags (a song without tags plays at its original level)',
         'settings.replayGainModeDesc': 'With gain data, single or album ReplayGain levels the playback loudness. Smart balance measures every song and turns the loud ones down.',
+        'settings.claddaghTuning': 'Claddagh tuning',
+        'settings.claddaghFocus': 'Focus scale',
+        'settings.claddaghRadius': 'Ring radius',
+        'settings.claddaghTilt': 'Ellipse tilt',
+        'settings.claddaghAxis': 'Show axis line',
+        'settings.claddaghSpacing': 'Letter spacing',
+        'settings.claddaghPositionX': 'Horizontal position',
+        'settings.claddaghPositionY': 'Vertical position',
+        'settings.claddaghTranslation': 'Translation row',
+        'settings.claddaghTranslationScale': 'Translation scale',
+        'settings.claddaghTranslationSpacing': 'Translation spacing',
         'settings.fumeTuning': 'Fume tuning',
         'settings.fumePrint': 'Hide print symbols',
         'settings.fumeGeo': 'Disable geometric background',
@@ -137884,6 +137906,7 @@ window.__ModuleLoader__.load({
         var styles_entry_exports = {};
         __export(styles_entry_exports, {
           DAYLIGHT_THEME: () => DAYLIGHT_THEME,
+          DEFAULT_CLADDAGH_TUNING: () => DEFAULT_CLADDAGH_TUNING,
           DEFAULT_CLASSIC_TUNING: () => DEFAULT_CLASSIC_TUNING,
           DEFAULT_FUME_TUNING: () => DEFAULT_FUME_TUNING,
           DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,
@@ -140584,6 +140607,9 @@ window.__ModuleLoader__.load({
         tiltTuning: prefs.tiltTuning || undefined,
         partitaTuning: prefs.partitaTuning || undefined,
         fumeTuning: prefs.fumeTuning || undefined,
+        claddaghTuning: prefs.claddaghTuning
+          ? Object.assign({}, prefs.claddaghTuning, { translationScale: prefs.claddaghTuning.translationFontScale })
+          : undefined,
         // Monet ignores hideTranslationSubtitle and only reads the content mode (resolveSubtitleContentMode
         // returns the given mode as-is), so the mode itself has to carry the translation switch.
         subtitleContentMode: showTranslation ? 'translation' : 'none',
@@ -151260,6 +151286,18 @@ window.__ModuleLoader__.load({
       lyricStyle: 'classic',
       lyricStyleChosen: false,
       /** Folia classic's own tuning; defaults are the upstream DEFAULT_CLASSIC_TUNING. */
+      claddaghTuning: {
+        focusScaleRatio: 0.65,
+        radiusScale: 1.0,
+        ellipseTiltDeg: 45,
+        showAxisLine: true,
+        letterSpacingOffset: 0,
+        positionX: 0,
+        positionY: 0,
+        showTranslation: false,
+        translationFontScale: 1,
+        translationLetterSpacingOffset: 0,
+      },
       fumeTuning: {
         hidePrintSymbols: false,
         disableGeometricBackground: true,
@@ -151446,6 +151484,25 @@ window.__ModuleLoader__.load({
           dropped = true
         }
       })
+      // Folia claddagh tuning: angular/numeric ranges mirror the upstream resolve().
+      var claddaghDefaults = PREF_DEFAULTS.claddaghTuning
+      var storedCladdagh = merged.claddaghTuning && typeof merged.claddaghTuning === 'object' ? merged.claddaghTuning : {}
+      function claddaghNumber(key, min, max) {
+        var value = Number(storedCladdagh[key])
+        return isFinite(value) ? Math.min(max, Math.max(min, value)) : claddaghDefaults[key]
+      }
+      merged.claddaghTuning = {
+        focusScaleRatio: claddaghNumber('focusScaleRatio', 0, 1.5),
+        radiusScale: claddaghNumber('radiusScale', 0.5, 1.5),
+        ellipseTiltDeg: claddaghNumber('ellipseTiltDeg', 0, 60),
+        showAxisLine: storedCladdagh.showAxisLine !== false,
+        letterSpacingOffset: claddaghNumber('letterSpacingOffset', -5, 20),
+        positionX: claddaghNumber('positionX', -40, 40),
+        positionY: claddaghNumber('positionY', -40, 40),
+        showTranslation: storedCladdagh.showTranslation === true,
+        translationFontScale: claddaghNumber('translationFontScale', 0.5, 2),
+        translationLetterSpacingOffset: claddaghNumber('translationLetterSpacingOffset', -5, 20),
+      }
       // Folia fume tuning: numeric ranges clamp, camera mode falls back to smooth.
       var fumeDefaults = PREF_DEFAULTS.fumeTuning
       var storedFume = merged.fumeTuning && typeof merged.fumeTuning === 'object' ? merged.fumeTuning : {}
@@ -179452,6 +179509,7 @@ window.__ModuleLoader__.load({
           mpStyleIdOf(prefs.lyricStyle) === 'tilt' ? tiltTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'partita' ? partitaTuningBlock() : null,
           mpStyleIdOf(prefs.lyricStyle) === 'fume' ? fumeTuningBlock() : null,
+          mpStyleIdOf(prefs.lyricStyle) === 'claddagh' ? claddaghTuningBlock() : null,
           mpSection(
             t('sheet.lyricDisplay'),
             h(
@@ -179694,6 +179752,35 @@ window.__ModuleLoader__.load({
             numberRow('settings.fumeHeroScale', 'heroScale', 0.82, 1.32, 0.02),
           ),
         )
+      }
+      /** Folia claddagh tuning: ring geometry, text spacing and the translation row. */
+      function claddaghTuningBlock() {
+        var tuning = prefs.claddaghTuning || {}
+        function num(label, key, min, max, step) {
+          var value = Number(tuning[key])
+          if (!isFinite(value)) value = min
+          return mpPanelRow(t(label), h('input', {
+            type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+            value: String(value), 'aria-label': t(label),
+            onChange: function (event) { setPrefs({ claddaghTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+          }))
+        }
+        function sw(label, key, fallback) {
+          var value = key === 'showTranslation' ? tuning[key] === true : tuning[key] !== false
+          return mpPanelRow(t(label), h(Switch, { value: value, label: t(label), onChange: function (next) { setPrefs({ claddaghTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+        }
+        return mpSection(t('settings.claddaghTuning'), h('div', null,
+          num('settings.claddaghFocus', 'focusScaleRatio', 0, 1.5, 0.05),
+          num('settings.claddaghRadius', 'radiusScale', 0.5, 1.5, 0.05),
+          num('settings.claddaghTilt', 'ellipseTiltDeg', 0, 60, 1),
+          sw('settings.claddaghAxis', 'showAxisLine', true),
+          num('settings.claddaghSpacing', 'letterSpacingOffset', -5, 20, 1),
+          num('settings.claddaghPositionX', 'positionX', -40, 40, 1),
+          num('settings.claddaghPositionY', 'positionY', -40, 40, 1),
+          sw('settings.claddaghTranslation', 'showTranslation', false),
+          num('settings.claddaghTranslationScale', 'translationFontScale', 0.5, 2, 0.05),
+          num('settings.claddaghTranslationSpacing', 'translationLetterSpacingOffset', -5, 20, 1),
+        ))
       }
       /**
        * 音量 — the card's volume row, now on the audio page. It is the keyboard path; the player
