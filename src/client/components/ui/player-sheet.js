@@ -594,7 +594,10 @@ function PlayerSheetInner(props) {
   /** One DSH settings row: .mp-set-row label/desc on the left, the control on the right. */
   function mpPanelRow(label, control, hint) {
     var range = control && control.props && control.props.type === 'range'
-    return h(SetRow, { label: label, desc: hint, className: range ? 'mp-tuning-range' : '' }, control)
+    var toggle = control && control.type === Switch
+    var segmented = control && control.type === KitSegmented
+    var className = range ? 'mp-tuning-range' : toggle ? 'mp-tuning-toggle' : segmented ? 'mp-tuning-segmented' : ''
+    return h(SetRow, { label: label, desc: hint, className: className }, control)
   }
 
   function cardButton(label, onClick, title) {

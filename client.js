@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.46.4"
-    var CLIENT_BUILD = "d630b278fc68"
+    var CLIENT_BUILD = "a390a31ff2d5"
 
     // ── src/client/app/runtime.js
     /**
@@ -179763,14 +179763,17 @@ window.__ModuleLoader__.load({
       '.mp-sheet-body h2{margin:0 0 4px;font-size:14px;line-height:20px;font-weight:650}',
       '.mpv3-row-title,.mpv3-row-title-text,.mpv3-row-sub,.mpv3-row-album,.mpv3-queue-name,.mpv3-queue-artist,.mp-srow-title,.mp-srow-sub,.mp-queue-name,.mp-queue-artist{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}',
     '.mp-set-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-height:44px;padding:11px 0;border-bottom:.5px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07))}',
-      '.mp-tuning-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;align-items:start;grid-auto-rows:min-content}',
+      '.mp-tuning-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:0;align-items:start;grid-auto-rows:min-content}',
       '.mp-tuning-grid>div,.mp-tuning-grid>div>div:not(.mp-set-label){display:contents}',
-      '.mp-tuning-grid .mp-set-label{grid-column:1/-1;padding:8px 0 0 !important}',
-      '.mp-tuning-grid .mp-set-row{grid-column:1/-1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;min-height:36px;padding:4px 0}',
-      '.mp-tuning-grid .mp-set-row.mp-tuning-range{grid-column:span 1}',
-      '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control{width:min(132px,46%)}',
+      '.mp-tuning-grid .mp-set-row{grid-column:1/-1;order:2;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;min-height:36px;padding:4px 0}',
+      '.mp-tuning-grid .mp-set-row.mp-tuning-range{grid-column:span 1;order:1}',
+      '.mp-tuning-grid .mp-set-row.mp-tuning-toggle{grid-column:span 1;order:3}',
+      '.mp-tuning-grid .mp-set-row.mp-tuning-segmented{grid-column:1/-1;order:2}',
+      '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control{width:min(150px,52%)}',
       '.mp-tuning-grid .mp-set-row.mp-tuning-range .mp-set-control input{width:100%}',
+      '.mp-tuning-grid .mp-set-label{grid-column:1/-1;order:0;padding:8px 0 0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.mp-tuning-grid .mp-set-text{min-width:0}',
+      '.mp-tuning-grid .mp-set-row .mp-set-label{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       // 设置页分组卡片：组标题在卡外，行在卡内（歌词页与播放控制页共用）。
       '.mp-set-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 4px 0}',
       '.mp-set-group:first-of-type .mp-set-group-head{padding-top:18px}',
@@ -194748,7 +194751,10 @@ window.__ModuleLoader__.load({
       /** One DSH settings row: .mp-set-row label/desc on the left, the control on the right. */
       function mpPanelRow(label, control, hint) {
         var range = control && control.props && control.props.type === 'range'
-        return h(SetRow, { label: label, desc: hint, className: range ? 'mp-tuning-range' : '' }, control)
+        var toggle = control && control.type === Switch
+        var segmented = control && control.type === KitSegmented
+        var className = range ? 'mp-tuning-range' : toggle ? 'mp-tuning-toggle' : segmented ? 'mp-tuning-segmented' : ''
+        return h(SetRow, { label: label, desc: hint, className: className }, control)
       }
 
       function cardButton(label, onClick, title) {
