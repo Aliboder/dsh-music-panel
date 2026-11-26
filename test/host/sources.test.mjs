@@ -199,11 +199,13 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   assert.equal(builtinRegistry.get('navidrome').capabilities.loginQr, false)
   assert.equal(builtinRegistry.get('qq').capabilities.search, true)
   // A declared capability must be executable: KuGou Concept reads and writes likes
-  // through its cloudlist endpoints, but still has no cloud playlist add.
+  // through its cloudlist endpoints, and adds/removes rows in the account's own
+  // playlists through the same signed client (Folia's kugou provider declares both).
   assert.equal(builtinRegistry.get('kugouLite').capabilities.likes, true)
   assert.equal(builtinRegistry.get('kugouLite').capabilities.likeWrite, true)
   assert.equal(builtinRegistry.get('kugouLite').capabilities.playlistAdd, true)
-  assert.equal(builtinRegistry.get('kugouLite').capabilities.mutations, false)
+  assert.equal(builtinRegistry.get('kugouLite').capabilities.mutations, true)
+  assert.equal(builtinRegistry.get('kugouLite').capabilities.playlistTrackMutations, true)
   assert.equal(builtinRegistry.get('netease').capabilities.listeningRank, true)
   assert.equal(builtinRegistry.get('netease').capabilities.playbackReports, true)
   assert.equal(builtinRegistry.get('qq').capabilities.listeningRank, true)

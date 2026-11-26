@@ -1805,6 +1805,9 @@ export function createOnlineRoutes(deps) {
                   type: 'listening',
                   listeningRank: range,
                   isOwned: false,
+                  // A ranking is the platform's play counts, not a playlist this account
+                  // can write into: the picker must not offer it as a target.
+                  addable: false,
                   creator: profile?.nickname || '',
                 })
               } catch {

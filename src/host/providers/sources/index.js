@@ -87,7 +87,12 @@ const KUGOU_LITE_CAPABILITIES = {
   // Likes write through the same cloudlist endpoint as the standard client.
   likeWrite: true,
   playlistAdd: true,
-  mutations: false,
+  // The concept client adds (playlist_tracks_add) and removes (playlist_tracks_del)
+  // rows in the account's own lists; Folia's kugou provider declares the same pair.
+  // Without these two flags the「从当前歌单移除」入口和 /online/playlist-remove 都会被
+  // 能力门挡住，实现存在却永远跑不到。
+  mutations: true,
+  playlistTrackMutations: true,
   userAlbums: false,
 }
 
