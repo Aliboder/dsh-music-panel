@@ -438,8 +438,10 @@ export function createBodianSource(options) {
         name: '', cover: '',
         trackCount: total || songs.length,
         songs,
-        hasMore: total > 0 ? offset + songs.length < total : rows.length >= limit,
-        nextOffset: offset + songs.length,
+        // The cursor follows the rows upstream returned: a row that does not normalize
+        // must not pull the next request one row back, or that row is shown twice.
+        hasMore: total > 0 ? offset + rows.length < total : rows.length >= limit,
+        nextOffset: offset + rows.length,
       }
     },
 

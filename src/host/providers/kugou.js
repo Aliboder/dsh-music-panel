@@ -981,8 +981,9 @@ export async function getPlaylistSongsPage(specialId, limit = 100, offset = 0, _
     ...meta,
     trackCount: total || songs.length,
     songs,
-    hasMore: total > 0 ? at + songs.length < total : rows.length >= size,
-    nextOffset: at + songs.length,
+    // The cursor follows the rows this page consumed, not the ones left after filtering.
+    hasMore: total > 0 ? at + rows.length < total : rows.length >= size,
+    nextOffset: at + rows.length,
   }
 }
 
@@ -1004,11 +1005,14 @@ export async function getMyPlaylistSongsPage(listId, limit = 100, offset = 0, se
       const rows = Array.isArray(data.songs) ? data.songs : []
       const songs = rows.map(normalizePackageSong).filter((song) => song.id)
       const total = Number(data.count) || 0
+      // Advance by the rows the page consumed: a row dropped by normalization must not
+      // pull the next page boundary back, or the next request repeats rows (the
+      // duplicated-playlist bug).
       return {
         songs,
         trackCount: total || songs.length,
-        hasMore: total > 0 ? at + songs.length < total : rows.length >= size,
-        nextOffset: at + songs.length,
+        hasMore: total > 0 ? at + rows.length < total : rows.length >= size,
+        nextOffset: at + rows.length,
       }
     } catch {
       // Fall back to the legacy reader below.

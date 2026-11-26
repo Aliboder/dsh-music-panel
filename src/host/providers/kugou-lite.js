@@ -643,20 +643,45 @@ export async function setLiked(song, on, session = {}) {
   return true
 }
 
+/**
+ * The page size the concept route really serves, per list.
+ *
+ * The upstream route is page-based (`page` + `pagesize`) while the Host hands out an
+ * offset cursor; the two only line up when the offset is a page boundary of the size the
+ * route serves. Asking for 100 and being served 30 has to move the cursor in 30s.
+ */
+const kgCloudPageStride = new Map()
+
+/**
+ * One page of a concept cloud playlist.
+ *
+ * Two rules keep the cursor honest, and both were broken by the reported duplicated
+ * playlist:
+ *   1. the offset advances by the rows the page *consumed*, not by the rows that survived
+ *      normalization (a page of 100 losing one row returned 99, and 99 / 100 sends the
+ *      next request back to page 1);
+ *   2. the page number is derived from the offset with the stride the route actually
+ *      serves, not with the size we asked for.
+ */
 export async function getMyPlaylistSongsPage(listId, limit = 100, offset = 0, session = {}) {
-  const size = Math.max(1, Math.min(200, parseInt(limit, 10) || 100))
+  const requested = Math.max(1, Math.min(200, parseInt(limit, 10) || 100))
   const at = Math.max(0, parseInt(offset, 10) || 0)
+  const key = String(listId)
+  const stride = kgCloudPageStride.get(key) || requested
+  const pageStart = Math.floor(at / stride) * stride
+  const skip = at - pageStart
   const s = normSession(session)
   try {
-    const page = Math.floor(at / size) + 1
     const answer = await callKugou('lite', 'playlist_track_all', {
-      id: String(listId),
-      page,
-      pagesize: size,
+      id: key,
+      page: Math.floor(pageStart / stride) + 1,
+      pagesize: stride,
       cookie: kugouCookies({ ...s, dfid: s.dfid }, 'lite'),
     })
     const data = answer.body?.data ?? {}
     const rows = Array.isArray(data.songs) ? data.songs : []
+    // The first page tells the truth about this route's page size.
+    if (rows.length > 0 && pageStart === 0) kgCloudPageStride.set(key, rows.length)
     const songs = []
     for (const row of rows) {
       const song = normalizePackageSong(row)
@@ -665,14 +690,15 @@ export async function getMyPlaylistSongsPage(listId, limit = 100, offset = 0, se
     }
     const total = Number(data.count) || 0
     return {
-      songs,
+      songs: songs.slice(skip, skip + requested),
       trackCount: total || songs.length,
-      hasMore: total > 0 ? at + songs.length < total : rows.length >= size,
-      nextOffset: at + songs.length,
+      hasMore: rows.length > 0 && (total > 0 ? pageStart + rows.length < total : rows.length >= stride),
+      // Page boundary, not "offset + kept rows": the next request must land on the next page.
+      nextOffset: pageStart + rows.length,
     }
   } catch {
     const all = await getMyPlaylistSongs(listId, session)
-    const songs = all.slice(at, at + size)
+    const songs = all.slice(at, at + requested)
     return {
       songs,
       trackCount: all.length,

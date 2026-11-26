@@ -63,6 +63,37 @@ const cardRow = (hash, name) => ({
   fileid: '456',
 })
 
+// 概念版 playlist_track_all 的分页夹具：按 page/pagesize 切一段「原始行」。
+// collection_page_raw 的第一页里有一行没有 hash —— normalizePackageSong 会把它丢掉，
+// 游标必须仍然按这一页吃掉的 100 行走，否则下一请求会落回第 1 页（重复歌单的根因）。
+const pageRawAll = Array.from({ length: 130 }, (_, index) => ({
+  hash: 'PAGERAW' + String(index).padStart(3, '0'),
+  filename: '歌手 - 第 ' + String(index + 1) + ' 首',
+  timelen: 180000,
+}))
+pageRawAll[3] = { filename: '坏行没有 hash', timelen: 1000 }
+// collection_page_cap 模拟上游把 pagesize 压到 30：要 100 也只给 30。
+const pageCapAll = Array.from({ length: 60 }, (_, index) => ({
+  hash: 'PAGECAP' + String(index).padStart(3, '0'),
+  filename: '歌手 - C' + String(index),
+  timelen: 1000,
+}))
+const pageCalls = []
+function pagingFixture(id, params) {
+  const pagesize = Number(params.pagesize) || 30
+  const page = Number(params.page) || 1
+  const capped = id === 'collection_page_cap' && pagesize > 30
+  const served = capped ? 30 : pagesize
+  pageCalls.push({ id, page, pagesize })
+  const all = id === 'collection_page_raw' ? pageRawAll : pageCapAll
+  const start = (page - 1) * served
+  return {
+    status: 200,
+    body: { status: 1, error_code: 0, data: { count: all.length, songs: all.slice(start, start + served) } },
+    cookie: [],
+  }
+}
+
 setUpstreamOverride((operation, params) => {
   cardCalls.push({ operation, params })
   if (operation === 'top_card_youth') {
@@ -82,6 +113,8 @@ setUpstreamOverride((operation, params) => {
   }
   // 概念版把 specialid 送进 playlist_track_all 时包直接失败（真实环境是 502）。
   if (operation === 'playlist_track_all') {
+    const id = String(params.id || '')
+    if (id.startsWith('collection_page_')) return pagingFixture(id, params)
     const error = new Error('KuGou request failed')
     error.status = 502
     throw error
@@ -141,6 +174,32 @@ try {
   assert.equal(fullList.name, '国漫精选')
   assert.equal(fullList.trackCount, 165)
   assert.equal(fullList.songs.length, 2)
+  // 5. 分页游标：被 normalize 丢掉的坏行不能让 offset 少走一格（否则下一请求回到第 1 页）。
+  const raw0 = await playlistSongsPage('kugouLite', 'collection_page_raw', '', session, { limit: 100, offset: 0 })
+  assert.equal(raw0.songs.length, 99, 'the bad row is not shown')
+  assert.equal(raw0.nextOffset, 100, 'the cursor advances by the rows the page consumed')
+  assert.equal(raw0.hasMore, true)
+  const raw1 = await playlistSongsPage('kugouLite', 'collection_page_raw', '', session, { limit: 100, offset: raw0.nextOffset })
+  assert.equal(raw1.songs.length, 30)
+  assert.equal(raw1.songs[0].id, 'pageraw100', 'the second page starts where the first one ended')
+  assert.equal(raw1.nextOffset, 130)
+  assert.equal(raw1.hasMore, false)
+  const rawCalls = pageCalls.filter((call) => call.id === 'collection_page_raw')
+  assert.equal(rawCalls[1].page, 2, 'offset 100 on a 100-row page really asks for page 2')
+  const rawIds = raw0.songs.concat(raw1.songs).map((song) => song.id)
+  assert.equal(new Set(rawIds).size, rawIds.length, 'no song is shown twice')
+
+  // 6. 上游把 pagesize 压到 30 时，游标按 30 走，页号跟着 offset 走（不是跟着「要了 100」走）。
+  const cap0 = await playlistSongsPage('kugouLite', 'collection_page_cap', '', session, { limit: 100, offset: 0 })
+  assert.equal(cap0.songs.length, 30)
+  assert.equal(cap0.nextOffset, 30)
+  const cap1 = await playlistSongsPage('kugouLite', 'collection_page_cap', '', session, { limit: 100, offset: cap0.nextOffset })
+  const capCalls = pageCalls.filter((call) => call.id === 'collection_page_cap')
+  assert.equal(capCalls[1].page, 2, 'offset 30 on a 30-row page is page 2')
+  assert.equal(capCalls[1].pagesize, 30, 'the learned stride is the size actually asked for')
+  assert.equal(cap1.songs[0].id, 'pagecap030')
+  assert.equal(cap1.nextOffset, 60)
+
 } finally {
   resetUpstreamOverride()
 }

@@ -512,6 +512,39 @@ function playlistPageOf(hit, offset) {
 }
 
 /**
+ * One song's identity inside a Host playlist answer.
+ *
+ * The Host answers shaped rows (`provider` + `id`); a client track carries `path`. The
+ * per-page dedupe and the page merge must key on the same thing — the merge used to read
+ * `path` off rows that never had one, so a repeated page was appended as if it were new
+ * (the duplicated KuGou playlist). React also keys rows by this, so equal keys are a
+ * rendering bug on their own.
+ */
+function onlineSongKey(song, provider) {
+  if (!song || typeof song !== 'object') return ''
+  if (typeof song.path === 'string' && song.path !== '') return song.path
+  var id = String(song.id || song.onlineId || '')
+  if (id === '') return ''
+  var owner = String(song.provider || provider || '')
+  return 'online:' + owner + ':' + id
+}
+
+/** One row per song, in upstream order: a playlist row repeated in the answer is one entry. */
+function onlineSongsUnique(list, provider) {
+  var seen = {}
+  var out = []
+  ;(list || []).forEach(function (song) {
+    var key = onlineSongKey(song, provider)
+    if (key !== '') {
+      if (seen[key] === true) return
+      seen[key] = true
+    }
+    out.push(song)
+  })
+  return out
+}
+
+/**
  * One page from the Host. The cache stores pages, never a synthetic full list;
  * a playlist of 10k tracks must not allocate 10k rows to paint the first screen.
  */
@@ -544,7 +577,7 @@ function fetchPlaylistPage(provider, id, offset, force) {
       throw error
     })
     .then(function (body) {
-      var songs = Array.isArray(body.songs) ? body.songs : []
+      var songs = onlineSongsUnique(Array.isArray(body.songs) ? body.songs : [], provider)
       var page = {
         songs: songs,
         name: body.name || '',
@@ -644,15 +677,21 @@ async function loadMoreOnlinePlaylist() {
     var page = await fetchPlaylistPage(provider, id, offset, false)
     var current = onlineStore.get()
     if (String(current.playlistId) !== String(id) || current.provider !== provider) return
+    // Key on the provider song id (see onlineSongKey): Host rows carry no path, so the old
+    // key never matched and a repeated page was appended a second time.
     var seen = {}
     var merged = (current.playlistSongs || []).slice()
-    merged.forEach(function (song) { seen[String(song.path || '')] = true })
+    merged.forEach(function (song) { seen[onlineSongKey(song, provider)] = true })
     ;(page.songs || []).forEach(function (song) {
-      var path = String(song.path || '')
-      if (path !== '' && seen[path] === true) return
-      if (path !== '') seen[path] = true
+      var key = onlineSongKey(song, provider)
+      if (key !== '') {
+        if (seen[key] === true) return
+        seen[key] = true
+      }
       merged.push(song)
     })
+    // A cursor that does not move forward can only repeat the same page: stop instead of
+    // letting the list grow identical rows forever.
     var nextOffset = Number(page.nextOffset) || offset + page.songs.length
     if (nextOffset <= offset) nextOffset = offset + page.songs.length
     onlineStore.set({

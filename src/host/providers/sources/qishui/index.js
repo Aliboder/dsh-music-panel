@@ -372,8 +372,9 @@ export function createQishuiSource(options) {
         name: '', cover: '',
         trackCount: total || songs.length,
         songs,
-        hasMore: data?.hasMore === true || (total > 0 && offset + songs.length < total),
-        nextOffset: offset + songs.length,
+        // Same cursor rule as every other platform: advance by the rows upstream returned.
+        hasMore: data?.hasMore === true || (total > 0 && offset + items.length < total),
+        nextOffset: offset + items.length,
       }
     },
 

@@ -593,15 +593,18 @@ export async function getPlaylistSongsPage(id, limit = 100, offset = 0, cookie =
     { id: playlistId, limit: size, offset: at },
     { cookie: requestCookie },
   )
-  const songs = (Array.isArray(page.songs) ? page.songs : []).map(songOf).filter(Boolean)
+  const rows = Array.isArray(page.songs) ? page.songs : []
+  const songs = rows.map(songOf).filter(Boolean)
   const trackCount = meta.trackCount || songs.length
+  // The offset advances by the rows upstream returned: a row that does not normalize
+  // must not pull the next request one row back, or that row is shown twice.
   return {
     name: meta.name,
     cover: meta.cover,
     trackCount,
     songs,
-    hasMore: at + songs.length < trackCount || (trackCount === 0 && songs.length === size),
-    nextOffset: at + songs.length,
+    hasMore: at + rows.length < trackCount || (trackCount === 0 && rows.length === size),
+    nextOffset: at + rows.length,
   }
 }
 
