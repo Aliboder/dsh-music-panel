@@ -113,6 +113,9 @@ function OverlayRoot() {
     if (layer.kind === 'login') return h(LoginDialog, { key: 'login', layer: layer })
     if (layer.kind === 'tag') return h(TagDialog, { key: 'tag', layer: layer })
     if (layer.kind === 'addTo') return h(AddToPlaylistDialog, { key: 'addTo', layer: layer })
+    // Only one picker writes to the account's cloud playlists; the older
+    // `online-add-to-dialog.js` was a second implementation of this branch (and an
+    // unreachable one), which is how its callers drifted onto a different payload.
     if (layer.kind === 'onlineAddTo') return h(OnlineAddToPlaylistDialog, { key: 'onlineAddTo', layer: layer })
     if (layer.kind === 'batchEdit') return h(BatchEditDialog, { key: 'batchEdit', layer: layer })
     if (layer.kind === 'duplicates') return h(DuplicatesDialog, { key: 'duplicates', layer: layer })
@@ -125,7 +128,6 @@ function OverlayRoot() {
     if (layer.kind === 'confirm') return h(ConfirmDialog, { key: 'confirm', layer: layer })
     if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
     if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
-    if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
     if (layer.kind === 'equalizer') {
       return h(AudioEqualizerDialog, {
         key: 'equalizer',

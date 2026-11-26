@@ -248,7 +248,11 @@ function ContextMenu(props) {
       icon: 'plus',
       label: t('online.addToCloudPlaylist'),
       run: function () {
-        pushLayer('onlineAddTo', { track: track })
+        // Folia's picker reads the source off the song itself (useAddToPlaylistStore +
+        // openAddSongsToPlaylist); a bare `track` left every row without its provider, so
+        // the dialog could only answer「当前曲目没有在线平台」. Pass the song, the way the
+        // player card's star does.
+        pushLayer('onlineAddTo', { provider: track.onlineProvider, song: track })
       },
     })
   } else {
@@ -433,27 +437,35 @@ function AddToPlaylistDialog(props) {
     },
     playlists.length === 0
       ? h('p', { className: 'mp-set-desc' }, t('v2.noPlaylists'))
-      : playlists.map(function (playlist) {
-          return h(
-            'button',
-            {
-              key: playlist.id,
-              type: 'button',
-              className: 'mp-srow',
-              onClick: function () {
-                addTo(playlist.id)
+      : h(
+          // The list scrolls on its own (Folia's PlaylistSelectionDialog keeps the rows in
+          // a scrolling list inside the dialog): before, a library with more playlists
+          // than the dialog is tall simply cut the rest off with no way to reach them.
+          'div',
+          { className: 'mp-pick-list', role: 'list' },
+          playlists.map(function (playlist) {
+            return h(
+              'button',
+              {
+                key: playlist.id,
+                type: 'button',
+                role: 'listitem',
+                className: 'mp-srow',
+                onClick: function () {
+                  addTo(playlist.id)
+                },
               },
-            },
-            h('div', { className: 'mp-srow-cover' }, icon('list', 16)),
-            h(
-              'div',
-              { className: 'mp-srow-main' },
-              h('div', { className: 'mp-srow-title' }, playlist.name),
-              h('div', { className: 'mp-srow-sub' }, (playlist.trackPaths || []).length + ''),
-            ),
-            icon('chevronRight', 14),
-          )
-        }),
+              h('div', { className: 'mp-srow-cover' }, icon('list', 16)),
+              h(
+                'div',
+                { className: 'mp-srow-main' },
+                h('div', { className: 'mp-srow-title' }, playlist.name),
+                h('div', { className: 'mp-srow-sub' }, (playlist.trackPaths || []).length + ''),
+              ),
+              icon('chevronRight', 14),
+            )
+          }),
+        ),
     h(
       'div',
       { style: { display: 'flex', gap: '8px', paddingTop: '6px' } },

@@ -182,6 +182,10 @@ var THEME_CSS = [
   '.mp-srow-title{font-size:14px;line-height:19px;font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
   '.mp-srow-sub{font-size:12px;line-height:17px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
   '.mp-srow-meta{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums;flex:none}',
+  // 「加入歌单」两个弹窗的歌单列表：自己滚，不靠弹窗裁切。上限用视口高度的一半多一点，
+  // 上下留出标题与「新建歌单」那一行；歌单少时高度自然收窄。
+  '.mp-pick-list{max-height:min(56vh,420px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin}',
+  '.mp-pick-list > *{flex:none}',
   '.mp-stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;padding:6px 10px 16px}',
   '.mp-stat-card{padding:14px 16px;border-radius:12px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04))}',
   '.mp-stat-k{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',

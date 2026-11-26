@@ -7,10 +7,28 @@
  * steps for an online song).
  */
 
+/**
+ * What the picker is about: the song it was asked for, and the platform that owns it.
+ *
+ * The song answers for its own source — Folia's picker does the same
+ * (`getPlaybackSourceRef(song)` in useAddToPlaylistStore / AddToPlaylistHost) — so a caller
+ * cannot strand the dialog on「当前曲目没有在线平台」by leaving the provider prop out. An
+ * explicit `provider` still wins; `track` is the older prop name the context menu used.
+ */
+function onlineAddTarget(layerProps) {
+  var props = layerProps !== null && typeof layerProps === 'object' ? layerProps : {}
+  var song = props.song || props.track || null
+  return {
+    song: song,
+    provider: String(props.provider || (song && song.onlineProvider) || ''),
+  }
+}
+
 function OnlineAddToPlaylistDialog(props) {
   var layer = props.layer || {}
-  var provider = String((layer.props && layer.props.provider) || '')
-  var song = (layer.props && layer.props.song) || null
+  var target = onlineAddTarget(layer.props)
+  var song = target.song
+  var provider = target.provider
 
   var listPair = useState(null)
   var playlists = listPair[0]
@@ -76,7 +94,9 @@ function OnlineAddToPlaylistDialog(props) {
     { className: 'mp-set-card' },
     h(
       'div',
-      { className: 'mp-set-card-body' },
+      // Same scrolling list as the local picker: the account can hold more playlists than
+      // the dialog is tall (Folia's picker scrolls its list instead of clipping it).
+      { className: 'mp-set-card-body mp-pick-list' },
       phase === 'loading'
         ? h('div', { className: 'mp-folder-state' }, h(Spinner), h('span', null, t('sheet.loadingPlaylists')))
         : null,

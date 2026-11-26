@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.0"
-    var CLIENT_BUILD = "bdac0e49f1e9"
+    var CLIENT_BUILD = "ddc6ccde061a"
 
     // ── src/client/app/runtime.js
     /**
@@ -179083,6 +179083,10 @@ window.__ModuleLoader__.load({
       '.mp-srow-title{font-size:14px;line-height:19px;font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-srow-sub{font-size:12px;line-height:17px;color:var(--dsw-alias-label-tertiary,#8a8a93);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-srow-meta{font-size:12px;color:var(--dsw-alias-label-tertiary,#8a8a93);font-variant-numeric:tabular-nums;flex:none}',
+      // 「加入歌单」两个弹窗的歌单列表：自己滚，不靠弹窗裁切。上限用视口高度的一半多一点，
+      // 上下留出标题与「新建歌单」那一行；歌单少时高度自然收窄。
+      '.mp-pick-list{max-height:min(56vh,420px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin}',
+      '.mp-pick-list > *{flex:none}',
       '.mp-stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;padding:6px 10px 16px}',
       '.mp-stat-card{padding:14px 16px;border-radius:12px;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));background:var(--dsw-alias-bg-layer-2,rgba(255,255,255,.04))}',
       '.mp-stat-k{font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93)}',
@@ -188412,7 +188416,11 @@ window.__ModuleLoader__.load({
           icon: 'plus',
           label: t('online.addToCloudPlaylist'),
           run: function () {
-            pushLayer('onlineAddTo', { track: track })
+            // Folia's picker reads the source off the song itself (useAddToPlaylistStore +
+            // openAddSongsToPlaylist); a bare `track` left every row without its provider, so
+            // the dialog could only answer「当前曲目没有在线平台」. Pass the song, the way the
+            // player card's star does.
+            pushLayer('onlineAddTo', { provider: track.onlineProvider, song: track })
           },
         })
       } else {
@@ -188597,27 +188605,35 @@ window.__ModuleLoader__.load({
         },
         playlists.length === 0
           ? h('p', { className: 'mp-set-desc' }, t('v2.noPlaylists'))
-          : playlists.map(function (playlist) {
-              return h(
-                'button',
-                {
-                  key: playlist.id,
-                  type: 'button',
-                  className: 'mp-srow',
-                  onClick: function () {
-                    addTo(playlist.id)
+          : h(
+              // The list scrolls on its own (Folia's PlaylistSelectionDialog keeps the rows in
+              // a scrolling list inside the dialog): before, a library with more playlists
+              // than the dialog is tall simply cut the rest off with no way to reach them.
+              'div',
+              { className: 'mp-pick-list', role: 'list' },
+              playlists.map(function (playlist) {
+                return h(
+                  'button',
+                  {
+                    key: playlist.id,
+                    type: 'button',
+                    role: 'listitem',
+                    className: 'mp-srow',
+                    onClick: function () {
+                      addTo(playlist.id)
+                    },
                   },
-                },
-                h('div', { className: 'mp-srow-cover' }, icon('list', 16)),
-                h(
-                  'div',
-                  { className: 'mp-srow-main' },
-                  h('div', { className: 'mp-srow-title' }, playlist.name),
-                  h('div', { className: 'mp-srow-sub' }, (playlist.trackPaths || []).length + ''),
-                ),
-                icon('chevronRight', 14),
-              )
-            }),
+                  h('div', { className: 'mp-srow-cover' }, icon('list', 16)),
+                  h(
+                    'div',
+                    { className: 'mp-srow-main' },
+                    h('div', { className: 'mp-srow-title' }, playlist.name),
+                    h('div', { className: 'mp-srow-sub' }, (playlist.trackPaths || []).length + ''),
+                  ),
+                  icon('chevronRight', 14),
+                )
+              }),
+            ),
         h(
           'div',
           { style: { display: 'flex', gap: '8px', paddingTop: '6px' } },
@@ -189763,6 +189779,9 @@ window.__ModuleLoader__.load({
         if (layer.kind === 'login') return h(LoginDialog, { key: 'login', layer: layer })
         if (layer.kind === 'tag') return h(TagDialog, { key: 'tag', layer: layer })
         if (layer.kind === 'addTo') return h(AddToPlaylistDialog, { key: 'addTo', layer: layer })
+        // Only one picker writes to the account's cloud playlists; the older
+        // `online-add-to-dialog.js` was a second implementation of this branch (and an
+        // unreachable one), which is how its callers drifted onto a different payload.
         if (layer.kind === 'onlineAddTo') return h(OnlineAddToPlaylistDialog, { key: 'onlineAddTo', layer: layer })
         if (layer.kind === 'batchEdit') return h(BatchEditDialog, { key: 'batchEdit', layer: layer })
         if (layer.kind === 'duplicates') return h(DuplicatesDialog, { key: 'duplicates', layer: layer })
@@ -189775,7 +189794,6 @@ window.__ModuleLoader__.load({
         if (layer.kind === 'confirm') return h(ConfirmDialog, { key: 'confirm', layer: layer })
         if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
         if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
-        if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
         if (layer.kind === 'equalizer') {
           return h(AudioEqualizerDialog, {
             key: 'equalizer',
@@ -197152,10 +197170,28 @@ window.__ModuleLoader__.load({
      * steps for an online song).
      */
 
+    /**
+     * What the picker is about: the song it was asked for, and the platform that owns it.
+     *
+     * The song answers for its own source — Folia's picker does the same
+     * (`getPlaybackSourceRef(song)` in useAddToPlaylistStore / AddToPlaylistHost) — so a caller
+     * cannot strand the dialog on「当前曲目没有在线平台」by leaving the provider prop out. An
+     * explicit `provider` still wins; `track` is the older prop name the context menu used.
+     */
+    function onlineAddTarget(layerProps) {
+      var props = layerProps !== null && typeof layerProps === 'object' ? layerProps : {}
+      var song = props.song || props.track || null
+      return {
+        song: song,
+        provider: String(props.provider || (song && song.onlineProvider) || ''),
+      }
+    }
+
     function OnlineAddToPlaylistDialog(props) {
       var layer = props.layer || {}
-      var provider = String((layer.props && layer.props.provider) || '')
-      var song = (layer.props && layer.props.song) || null
+      var target = onlineAddTarget(layer.props)
+      var song = target.song
+      var provider = target.provider
 
       var listPair = useState(null)
       var playlists = listPair[0]
@@ -197221,7 +197257,9 @@ window.__ModuleLoader__.load({
         { className: 'mp-set-card' },
         h(
           'div',
-          { className: 'mp-set-card-body' },
+          // Same scrolling list as the local picker: the account can hold more playlists than
+          // the dialog is tall (Folia's picker scrolls its list instead of clipping it).
+          { className: 'mp-set-card-body mp-pick-list' },
           phase === 'loading'
             ? h('div', { className: 'mp-folder-state' }, h(Spinner), h('span', null, t('sheet.loadingPlaylists')))
             : null,
@@ -198884,119 +198922,6 @@ window.__ModuleLoader__.load({
       )
     }
 
-    // ── src/client/components/ui/online-add-to-dialog.js
-    /**
-     * add one online song to one of the signed-in account's cloud playlists.
-     */
-
-    function OnlineAddToDialog(props) {
-      var layerProps = props.layer.props || {}
-      var track = layerProps.track || null
-      var provider = track && track.onlineProvider ? track.onlineProvider : ''
-      var statePair = useState({ phase: 'loading', playlists: [], error: '' })
-      var state = statePair[0]
-      var setState = statePair[1]
-      var busyPair = useState('')
-      var busy = busyPair[0]
-      var setBusy = busyPair[1]
-
-      useEffect(
-        function () {
-          if (provider === '') return undefined
-          var cancelled = false
-          getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(provider))
-            .then(function (body) {
-              if (cancelled) return
-              setState({
-                phase: 'ready',
-                playlists: Array.isArray(body.playlists) ? body.playlists : [],
-                error: '',
-              })
-            })
-            .catch(function (error) {
-              if (cancelled) return
-              setState({ phase: 'error', playlists: [], error: errorText(error) })
-            })
-          return function () {
-            cancelled = true
-          }
-        },
-        [provider],
-      )
-
-      function addTo(playlist) {
-        if (busy !== '' || track === null) return
-        setBusy(playlist.id)
-        postJson(API + 'online/playlist-add', {
-          provider: provider,
-          playlistId: playlist.id,
-          song: track,
-        })
-          .then(function () {
-            setBusy('')
-            showToast(t('online.addedToCloudPlaylist'))
-            popLayer()
-          })
-          .catch(function (error) {
-            setBusy('')
-            showToast(errorText(error))
-          })
-      }
-
-      var body = null
-      if (state.phase === 'loading') {
-        body = h('div', { className: 'mp-folder-state' }, h(Spinner), h('span', null, t('v2.loading')))
-      } else if (state.phase === 'error') {
-        body = h('div', { className: 'mp-folder-state' }, state.error || t('page.loadFailed'))
-      } else if (state.playlists.length === 0) {
-        body = h('div', { className: 'mp-folder-state' }, t('online.noCloudPlaylists'))
-      } else {
-        body = h(
-          'div',
-          { className: 'mp-folder-list' },
-          state.playlists.map(function (playlist) {
-            return h(
-              'button',
-              {
-                key: playlist.id,
-                type: 'button',
-                className: 'mp-srow',
-                disabled: busy !== '',
-                onClick: function () {
-                  addTo(playlist)
-                },
-              },
-              h(
-                'div',
-                { className: 'mp-srow-cover' },
-                playlist.cover
-                  ? h(Cover, { src: onlineCoverSrc({ coverUrl: playlist.cover }, undefined, 'playlist'), iconSize: 18 })
-                  : icon('list', 18),
-              ),
-              h(
-                'div',
-                { className: 'mp-srow-main' },
-                h('div', { className: 'mp-srow-title' }, playlist.name || ''),
-                h('div', { className: 'mp-srow-sub' }, (playlist.trackCount || 0) + ' · ' + t('v2.songs')),
-              ),
-              busy === playlist.id ? h(Spinner) : icon('plus', 14),
-            )
-          }),
-        )
-      }
-
-      return h(
-        KitModal,
-        {
-          title: t('online.addToCloudPlaylist'),
-          onClose: popLayer,
-          footer: h(Button, { variant: 'ghost', onClick: function () { popLayer() } }, t('v2.close')),
-        },
-        h('div', { className: 'mp-set-desc' }, track ? track.title || '' : ''),
-        body,
-      )
-    }
-
     // ── src/client/app/plugin.js
     /**
      * plugin: seat registration and lifecycle.
@@ -199543,6 +199468,9 @@ window.__ModuleLoader__.load({
           // The player page renders so its queue popover cannot silently leave the page.
           NowPlaying: typeof NowPlaying === 'function' ? NowPlaying : null,
           LyricMatchDialog: LyricMatchDialog,
+          // 「加入歌单」的目标解析：来源从歌曲自身读（Folia 的做法），测试钉住这个契约。
+          onlineAddTarget: typeof onlineAddTarget === 'function' ? onlineAddTarget : null,
+          OnlineAddToPlaylistDialog: typeof OnlineAddToPlaylistDialog === 'function' ? OnlineAddToPlaylistDialog : null,
           // The match window's preset query is pure, so a test pins it to the title.
           lyricMatchSongQuery: typeof lyricMatchSongQuery === 'function' ? lyricMatchSongQuery : null,
           EqPanel: EqPanel,
