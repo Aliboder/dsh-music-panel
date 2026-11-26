@@ -11,6 +11,7 @@
 ✅ **总是做**
 
 - **分析、修复问题一律采用第一性原理的思想**，第一性原理是：把问题拆到最小、可验证的事实，从这些事实推导原因，而不是从惯例、符号或猜测出发。
+- **动在线平台的歌单/推荐/写入（addToPlaylist、playlistSongs、recommendedCollections、myPlaylists）前，先看 [在线平台对齐清单](A_other/docs/在线平台对齐清单.md)**：id 归属、读写同一客户端、能力声明与实现同一次提交。
 - **新增或修改任何界面组件前，先加载并使用 skill `dsh-component-development`**（项目内已安装于 `.dsh/skills/`）。
 - **新增任何持久化/存储时**，同步扩充“清空插件所有数据”的范围、分类与测试：Host 文件/目录、localStorage、IndexedDB、CacheStorage、内存缓存、远端 session 都算；只加存储不更新清理视为未完成。
 - **文档命名一律用中文**：新建或改名的说明文档都用中文文件名（如 `踩坑记录.md`、`发布手册.md`），路径里也不夹带英文标题。例外只有平台约定的 `README.md` / `CHANGELOG.md` / `AGENTS.md` / `LICENSE` / `THIRD_PARTY_NOTICES.md`，以及 `vendor/`、`official/` 这类上游镜像。
@@ -93,6 +94,7 @@ A_other/                     非插件资料：design / docs / releases / shared
 - [组件开发规范（可移植）](A_other/组件开发规范/README.md)
 - [主题与组件开发规范](A_other/docs/主题与组件开发规范.md)
 - [踩坑记录](A_other/docs/踩坑记录.md)
+- [在线平台对齐清单](A_other/docs/在线平台对齐清单.md)
 - [目录结构图](A_other/docs/目录结构图.html)
 - [发布流程](A_other/docs/发布手册.md)
 - [CHANGELOG](CHANGELOG.md)
