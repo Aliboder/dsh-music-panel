@@ -647,15 +647,125 @@ function normalizePlaylistItem(o) {
   }
 }
 
-/** 推荐歌单（热门精选，匿名；HTTP-only 老接口，Host 出网无碍）。 */
-export async function getRecommendedPlaylists(_cookieOrSession = {}, page = 1) {
-  const p = Math.max(1, parseInt(page, 10) || 1)
-  const res = await fetchWithTimeout(`http://m.kugou.com/plist/index?json=true&page=${p}`, {
-    headers: { 'User-Agent': UA_WEB, Referer: 'http://m.kugou.com/' },
+// ── 推荐 = 概念版自己的几张卡（Folia getRecommendedCollections）──────────────
+//
+// Folia 的酷狗推荐不是一份歌单列表，而是概念客户端首页的几张卡：
+// 包模块 top_card_youth（/top/card/youth?card_id=…），每张卡自己就是一页可翻的推荐歌曲，
+// 见 src/services/onlineMusic/kugou/kugouProvider.ts 的 KUGOU_RECOMMENDATION_CARDS /
+// getKugouRecommendationCard / createKugouRecommendationCollection / getKugouRecommendationPage。
+//
+// 这里原来发的是 m.kugou.com/plist 的歌单行。那些行唯一的 id 是网页 specialid，而概念版
+// 读歌单要的是 global_collection_id（/pubsongs/v2/get_other_list_file_nofilt 的
+// global_collection_id），于是点进任何一张推荐卡都是 error_code 20010（参数错误）。
+// 照 Folia 换成本地卡：id 写成 `kugou-card-<card_id>`，点进去读同一张卡，不再拿外部歌单
+// id 去猜另一个平台的读取接口。
+const KUGOU_RECOMMENDATION_PAGE_SIZE = 30
+const KUGOU_RECOMMENDATION_CARDS = [
+  { id: 3006, name: 'VIP 专属推荐' },
+  { id: 3001, name: '私人专属好歌' },
+  { id: 3004, name: '小众宝藏佳作' },
+  { id: 3014, name: '喜欢这首歌的 TA 也喜欢' },
+  { id: 3101, name: '概念 er 新推' },
+  { id: 3005, name: '潮流尝鲜' },
+]
+/** cardId → { id, cardId, name, cover, trackCount, songs }：翻页时先读这份，缺了再问一次。 */
+const kgRecommendationCards = new Map()
+
+/** `kugou-card-3006` → 3006（Folia getKugouRecommendationCardId）。 */
+export function kugouRecommendationCardId(id) {
+  const match = /^kugou-card-(\d+)$/u.exec(String(id ?? ''))
+  return match === null ? undefined : Number(match[1])
+}
+
+function recommendationCardOf(cardId) {
+  return KUGOU_RECOMMENDATION_CARDS.find((card) => card.id === Number(cardId)) || null
+}
+
+/** top_card_youth 的一行：标题在 ori_audio_name、封面/专辑在 album_info、时长在 audio_info。 */
+function normalizeRecommendationRow(row) {
+  const item = row !== null && typeof row === 'object' ? row : {}
+  const audio = item.audio_info !== null && typeof item.audio_info === 'object' ? item.audio_info : {}
+  const album = item.album_info !== null && typeof item.album_info === 'object' ? item.album_info : {}
+  const song = normalizeSong({
+    hash: item.hash || audio.hash_128 || audio.hash || '',
+    '320hash': audio.hash_320 || '',
+    sqhash: audio.hash_flac || '',
+    hash_high: audio.hash_high || '',
+    hash_super: audio.hash_super || '',
+    songname: item.ori_audio_name || item.audio_name || item.suffix_audio_name || '',
+    authors: Array.isArray(item.authors) ? item.authors : [],
+    albumname: album.album_name || '',
+    AlbumImage: album.sizable_cover || item.cover_pic || '',
+    album_id: album.album_id || 0,
+    album_audio_id: item.album_audio_id || 0,
+    mixsongid: item.mixsongid || 0,
+    duration: Math.round((Number(audio.timelength) || 0) / 1000),
+    privilege: Number(audio.privilege) || 0,
+    pay_type: Number(audio.pay_type) || 0,
   })
-  const j = await res.json().catch(() => null)
-  const list = ((j && j.plist && j.plist.list && j.plist.list.info) || [])
-  return { playlists: list.map(normalizePlaylistItem).filter((x) => x.id), total: (j && j.plist && j.plist.list && j.plist.list.total) || list.length, page: p }
+  if (item.fileid !== undefined) song.fileId = item.fileid
+  return song
+}
+
+/** 一张推荐卡（Folia getKugouRecommendationCard）：读完缓存，翻页与再进都用它。 */
+async function loadRecommendationCard(cardId, platform, pagesize = KUGOU_RECOMMENDATION_PAGE_SIZE) {
+  const answer = await callKugou(platform, 'top_card_youth', { card_id: Number(cardId), pagesize })
+  const data = answer.body?.data ?? {}
+  const rows = Array.isArray(data.song_list) ? data.song_list : []
+  const songs = rows.map(normalizeRecommendationRow).filter((song) => song.id !== '')
+  const info = data.card_info !== null && typeof data.card_info === 'object' ? data.card_info : {}
+  const card = {
+    id: 'kugou-card-' + String(cardId),
+    cardId: Number(cardId),
+    name: emStrip(info.card_title || info.card_name || info.name || (recommendationCardOf(cardId) || {}).name || ''),
+    cover: (songs.find((song) => song.cover) || {}).cover || '',
+    trackCount: Number(data.song_count) || songs.length,
+    songs,
+  }
+  kgRecommendationCards.set(card.cardId, card)
+  return card
+}
+
+/** Folia getRecommendedCollections：每张卡自己问一次，读空/失败的卡不出（不拿别的内容充数）。 */
+export async function getRecommendedCollections(platform = 'lite', limit = KUGOU_RECOMMENDATION_PAGE_SIZE) {
+  const pagesize = Math.max(1, Math.min(Number(limit) || KUGOU_RECOMMENDATION_PAGE_SIZE, KUGOU_RECOMMENDATION_PAGE_SIZE))
+  const cards = await Promise.all(KUGOU_RECOMMENDATION_CARDS.map(async (card) => {
+    try {
+      const loaded = await loadRecommendationCard(card.id, platform, pagesize)
+      if (loaded.songs.length === 0) return null
+      return {
+        id: loaded.id,
+        cardId: loaded.cardId,
+        name: loaded.name,
+        cover: loaded.cover,
+        trackCount: loaded.trackCount,
+        description: '',
+        source: 'kugou',
+      }
+    } catch {
+      return null
+    }
+  }))
+  return cards.filter(Boolean)
+}
+
+/** Folia getKugouRecommendationPage：一张推荐卡的某一段，卡不在手上时重读一次。 */
+export async function getRecommendationCardSongs(id, limit = 100, offset = 0, platform = 'lite') {
+  const cardId = kugouRecommendationCardId(id)
+  if (cardId === undefined) throw new Error('不是酷狗推荐卡：' + String(id))
+  let card = kgRecommendationCards.get(cardId)
+  if (card === undefined || card.songs.length === 0) card = await loadRecommendationCard(cardId, platform)
+  const size = Math.max(1, Math.min(200, parseInt(limit, 10) || 100))
+  const at = Math.max(0, parseInt(offset, 10) || 0)
+  const songs = card.songs.slice(at, at + size)
+  return {
+    name: card.name,
+    cover: card.cover,
+    trackCount: card.trackCount || card.songs.length,
+    songs,
+    hasMore: at + songs.length < card.songs.length,
+    nextOffset: at + songs.length,
+  }
 }
 
 /** 确保有可用的设备会话（网关签名必需 mid/dfid）。传入的 session 缺 mid 时，

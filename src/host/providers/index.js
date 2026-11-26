@@ -221,8 +221,10 @@ export async function recommendedCollections(provider, cookie = '', session = {}
   if (provider === 'netease') rows = await NC.recommendedCollections(cookie, limit)
   else if (provider === 'qq') rows = await QQ.recommendedCollections(cookie, limit)
   else if (provider === 'kugou' || provider === 'kugouLite') {
-    const data = await KG.getRecommendedPlaylists(session, 1)
-    rows = Array.isArray(data.playlists) ? data.playlists : []
+    // Folia's KuGou recommendations are the concept client's own cards
+    // (`kugou-card-<card_id>`), not web playlists: their only id is a specialid the
+    // concept reader cannot take, so opening one used to answer error_code 20010.
+    rows = await KG.getRecommendedCollections(provider === 'kugouLite' ? 'lite' : 'standard', limit)
   } else throw new Error('该平台没有推荐歌单')
   return rows.map((playlist) => playlistCard(provider, playlist)).filter((playlist) => playlist.id !== '')
 }
@@ -1285,6 +1287,53 @@ export async function myPlaylists(provider, cookie = '', session = {}) {
 }
 
 /**
+ * KuGou: one playlist's songs, from whichever surface the id belongs to.
+ *
+ * Three id spaces meet here, and each has exactly one reader:
+ *   • a recommendation card ("kugou-card-3006") — Folia's virtual playlist, reads its own card;
+ *   • one of the account's cloud playlists — the cloudlist reader (collected ones read through
+ *     the original global_collection_id);
+ *   • a public playlist (search / category / home) — its web specialid only, which the concept
+ *     cloudlist reader cannot take (it wants a global_collection_id and answers error_code 20010,
+ *     the「点进推荐歌单就加载失败」report), so it reads through the public page reader.
+ */
+async function kugouPlaylistSongs(provider, id, session) {
+  if (KG.kugouRecommendationCardId(id) !== undefined) {
+    const card = await KG.getRecommendationCardSongs(id, 200, 0, provider === 'kugouLite' ? 'lite' : 'standard')
+    return { name: card.name, cover: card.cover, trackCount: card.trackCount, songs: card.songs }
+  }
+  let songs = []
+  let meta = { name: '', cover: '', trackCount: 0 }
+  let matched = false
+  try {
+    const mine = await (provider === 'kugouLite' ? KGL.getMyPlaylists(session) : KG.getMyPlaylists(session))
+    const item = (mine || []).find((entry) => String(entry.id) === String(id))
+    if (item) {
+      matched = true
+      meta = { name: item.name || '', cover: item.cover || '', trackCount: item.trackCount || 0 }
+      if (item.kind === 'collect' && item.creatorGid) {
+        songs = await KG.getCollectedPlaylistSongs(item.creatorGid, session)
+      } else {
+        songs = await (provider === 'kugouLite' ? KGL.getMyPlaylistSongs(id, session) : KG.getMyPlaylistSongs(id, session))
+      }
+    }
+  } catch {
+    matched = false
+  }
+  if (!matched) {
+    // A public playlist is only addressable by its web specialid; that is the id the
+    // public page reader takes.
+    const publicId = /^\d+$/.test(String(id))
+    const detail = publicId || provider !== 'kugouLite'
+      ? await KG.getPlaylistSongs(id, session)
+      : await KGL.getMyPlaylistSongs(id, session)
+    songs = detail.songs || []
+    meta = { name: detail.name || '', cover: detail.cover || '', trackCount: detail.trackCount || songs.length }
+  }
+  return { name: meta.name, cover: meta.cover, trackCount: meta.trackCount || songs.length, songs }
+}
+
+/**
  * One playlist's songs, normalised like search results.
  * @returns {Promise<{ name: string, cover: string, trackCount: number, songs: object[] }>}
  */
@@ -1299,38 +1348,7 @@ export async function playlistSongs(provider, id, cookie = '', session = {}) {
   } else if (provider === 'qq') {
     result = await QQ.getPlaylistSongs(id, cookie)
   } else if (provider === 'kugou' || provider === 'kugouLite') {
-    // "我的歌单" ids are cloud-playlist listids (not public specialids): use the
-    // cloudlist endpoints. Collected playlists only list songs through
-    // get_other_list_file_nofilt (the local copy is often empty).
-    let songs = []
-    let meta = { name: '', cover: '', trackCount: 0 }
-    let matched = false
-    try {
-      const mine = await (provider === 'kugouLite' ? KGL.getMyPlaylists(session) : KG.getMyPlaylists(session))
-      const item = (mine || []).find((entry) => String(entry.id) === String(id))
-      if (item) {
-        matched = true
-        meta = { name: item.name || '', cover: item.cover || '', trackCount: item.trackCount || 0 }
-        if (item.kind === 'collect' && item.creatorGid) {
-          songs = await KG.getCollectedPlaylistSongs(item.creatorGid, session)
-        } else {
-          songs = await (provider === 'kugouLite' ? KGL.getMyPlaylistSongs(id, session) : KG.getMyPlaylistSongs(id, session))
-        }
-      }
-    } catch {
-      matched = false
-    }
-    if (!matched) {
-      const detail = await (provider === 'kugouLite' ? KGL.getMyPlaylistSongs(id, session) : KG.getPlaylistSongs(id, session))
-      songs = detail.songs || []
-      meta = { name: detail.name || '', cover: detail.cover || '', trackCount: detail.trackCount || songs.length }
-    }
-    result = {
-      name: meta.name,
-      cover: meta.cover,
-      trackCount: meta.trackCount || songs.length,
-      songs,
-    }
+    result = await kugouPlaylistSongs(provider, id, session)
   } else {
     throw new Error('未知平台：' + provider)
   }
@@ -1393,6 +1411,17 @@ async function kugouAccountPlaylists(provider, session) {
 }
 
 /**
+ * True only when a moment-old list of the account's playlists already says this id is not
+ * one of them — then the cloudlist reader cannot answer, and asking it costs two failed
+ * upstream calls on the way to the public reader. A cold cache answers false (ask it).
+ */
+function kugouKnownNotAccountPlaylist(provider, id) {
+  const hit = kugouPlaylistListCache.get(provider)
+  if (hit === undefined || Date.now() - hit.at >= KUGOU_PLAYLIST_LIST_TTL) return false
+  return !hit.list.some((entry) => String(entry.id) === String(id))
+}
+
+/**
  * One page of a playlist. Folia's catalogue contract is page-shaped; providers
  * with a native paged read return it directly, the rest are adapted from the
  * legacy full read until their page primitive is migrated.
@@ -1433,13 +1462,26 @@ export async function playlistSongsPage(provider, id, cookie = '', session = {},
     }
   }
   if (provider === 'kugou' || provider === 'kugouLite') {
+    // A recommendation card is a virtual playlist of the platform's own (Folia's
+    // getKugouRecommendationPage): its id is never sent upstream as a playlist id.
+    if (KG.kugouRecommendationCardId(id) !== undefined) {
+      const card = await KG.getRecommendationCardSongs(id, limit, offset, provider === 'kugouLite' ? 'lite' : 'standard')
+      return {
+        name: card.name,
+        cover: card.cover,
+        trackCount: Number(card.trackCount) || 0,
+        songs: shapePlaylistSongs(provider, card.songs),
+        hasMore: card.hasMore === true,
+        nextOffset: Number(card.nextOffset) || offset,
+      }
+    }
     // kugouLite takes the row's own id (a cloud list id) straight in playlist_track_all, so it
     // is asked first: the account-list lookup below costs one or two extra upstream calls on
     // every page, and when one of them was slow or rate-limited the old order fell into the
     // legacy full-read path — the "stuck on skeletons until I switch away and back" report.
     // The standard client's page reader needs the cloud ids only its account list carries, so
     // it keeps the lookup (now cached for a moment) as its first step.
-    if (provider === 'kugouLite') {
+    if (provider === 'kugouLite' && !kugouKnownNotAccountPlaylist(provider, id)) {
       let direct = null
       try {
         direct = await KGL.getMyPlaylistSongsPage(id, limit, offset, session)
@@ -1476,6 +1518,21 @@ export async function playlistSongsPage(provider, id, cookie = '', session = {},
       }
     }
     if (provider === 'kugou') {
+      const result = await KG.getPlaylistSongsPage(id, limit, offset, session)
+      return {
+        name: result.name || '',
+        cover: result.cover || '',
+        trackCount: Number(result.trackCount) || 0,
+        songs: shapePlaylistSongs(provider, result.songs),
+        hasMore: result.hasMore === true,
+        nextOffset: Number(result.nextOffset) || offset,
+      }
+    }
+    // Not one of the account's playlists: a public playlist addressed by its web
+    // specialid. The concept cloudlist reader wants a global_collection_id and answers
+    // error_code 20010 for a specialid (the reported「加载失败」), so the public page
+    // reader — the one that takes a specialid — answers instead.
+    if (item === undefined && /^\d+$/.test(String(id))) {
       const result = await KG.getPlaylistSongsPage(id, limit, offset, session)
       return {
         name: result.name || '',
