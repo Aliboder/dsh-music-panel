@@ -504,6 +504,11 @@ export async function getMyPlaylists(session = {}) {
       const id = String(globalCollectionId || listId || item.id || '')
       const name = String(item.specialname || item.listname || item.name || '')
       if (!id || !name) return null
+      const isLike = item.is_def === 2 || item.is_like === true
+      // type 1 is a playlist collected from someone else (the standard client's
+      // reader has always split it this way); only this account's own list takes
+      // a write, and the liked list is a heart (Folia canAddToKugouPlaylist).
+      const collected = Number(item.type) === 1
       return {
         source: 'kugouLite',
         id,
@@ -513,9 +518,11 @@ export async function getMyPlaylists(session = {}) {
         cover: String(item.imgurl || item.cover || item.pic || '').replace(/\{size\}/g, '240'),
         trackCount: Number(item.song_count || item.songcount || item.count || 0) || 0,
         creator: String(item.nickname || item.username || ''),
-        kind: item.is_def === 2 || item.is_like ? 'like' : 'own',
-        isLike: item.is_def === 2 || item.is_like === true,
-        isDefault: item.is_def === 2 || item.is_like === true,
+        kind: isLike ? 'like' : collected ? 'collect' : 'own',
+        isLike,
+        isDefault: isLike,
+        // Whether「加入歌单」can offer this row for Folia's write path.
+        addable: !isLike && !collected,
       }
     })
     .filter(Boolean)
@@ -549,6 +556,38 @@ export async function addSongToPlaylist(song, playlistId, session = {}) {
     token: String(s.token || ''),
   })
   if (!playlistMutationSucceeded(answer)) throw new Error('酷狗没有确认加入歌单')
+  return true
+}
+
+/**
+ * Remove one song from one of the account's cloud playlists.
+ *
+ * The concept client signs its own writes (appid 3116); the standard client's delete
+ * helper would send this account's listid through the 1005 worker, which is the same
+ * credential mix-up the cloud-drive read had. Row ids come from the playlist reader
+ * (`fileid`), so the caller passes the raw row it got there.
+ */
+export async function removeSongFromPlaylist(song, playlistId, session = {}) {
+  const s = normSession(session)
+  const targetId = String(playlistId || '').trim()
+  if (targetId === '') throw new Error('缺少歌单 id')
+  const hash = String(song?.hash || song?.id || '').trim().toLowerCase()
+  if (hash === '') throw new Error('缺少歌曲 hash')
+  const playlists = await getMyPlaylists(s)
+  const target = playlists.find((item) => String(item.id) === targetId || String(item.listId) === targetId) || null
+  if (target === null) throw new Error('没有找到目标歌单')
+  const listId = String(target.listId || '').trim()
+  if (listId === '') throw new Error('目标歌单缺少 listid')
+  const fileId = String(song?.fileId || '')
+  if (fileId === '') throw new Error('未找到歌单中的歌曲行号')
+  const answer = await callKugou('lite', 'playlist_tracks_del', {
+    listid: listId,
+    fileids: fileId,
+    cookie: kugouCookies({ ...s, dfid: s.dfid }, 'lite'),
+    userid: String(s.userid || ''),
+    token: String(s.token || ''),
+  })
+  if (!playlistMutationSucceeded(answer)) throw new Error('酷狗没有确认从歌单移除')
   return true
 }
 

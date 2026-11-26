@@ -396,6 +396,9 @@ export function createBodianSource(options) {
           isOwned,
           isLike,
           isDefault: isLike,
+          // Folia's bodianMutations.canAddToPlaylist: only a playlist this account owns
+          // takes a write; a collected one belongs to someone else.
+          addable: isOwned === true,
         })
       }
       if (data?.liked?.id !== undefined && data.liked !== null) add(data.liked, true, true)

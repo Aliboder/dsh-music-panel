@@ -191,6 +191,7 @@ ${body}
           LyricMatchDialog: LyricMatchDialog,
           // 「加入歌单」的目标解析：来源从歌曲自身读（Folia 的做法），测试钉住这个契约。
           onlineAddTarget: typeof onlineAddTarget === 'function' ? onlineAddTarget : null,
+          onlineAddPlaylists: typeof onlineAddPlaylists === 'function' ? onlineAddPlaylists : null,
           OnlineAddToPlaylistDialog: typeof OnlineAddToPlaylistDialog === 'function' ? OnlineAddToPlaylistDialog : null,
           // The match window's preset query is pure, so a test pins it to the title.
           lyricMatchSongQuery: typeof lyricMatchSongQuery === 'function' ? lyricMatchSongQuery : null,

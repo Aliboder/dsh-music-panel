@@ -979,32 +979,9 @@ export async function removeQQFav(song, cookie = '') {
   return qqFavWrite(song, cookie, 'DelSonglist')
 }
 
-// 把歌曲加入某个自建歌单（dirId = 该歌单的目录 id，tid = 歌单 tid，可为 0）。
-export async function addSongToPlaylist(song, dirId, tid = 0, cookie = '') {
-  const songId = Number(song.songid) || 0
-  if (!songId) throw new Error('缺少歌曲 songid，无法加入歌单')
-  await playlistDetailWrite('AddSonglist', {
-    dirId: Number(dirId) || 0,
-    tid: Number(tid) || 0,
-    bFmtUtf8: true,
-    v_songInfo: [{ songId, songType: Number(song.songtype) || 0 }],
-  }, cookie)
-  return true
-}
-
-// 把歌曲从某个歌单移除（DelSonglist）。「我喜欢」也是 dirId=201，同在列。
-// tid 固定 0 即可（与 addSongToPlaylist 一致）。
-export async function deleteSongFromPlaylist(song, dirId, tid = 0, cookie = '') {
-  const songId = Number(song.songid) || 0
-  if (!songId) throw new Error('缺少歌曲 songid，无法从歌单移除')
-  await playlistDetailWrite('DelSonglist', {
-    dirId: Number(dirId) || 0,
-    tid: Number(tid) || 0,
-    bFmtUtf8: true,
-    v_songInfo: [{ songId, songType: Number(song.songtype) || 0 }],
-  }, cookie)
-  return true
-}
+// 往歌单加/删歌不再走这里的 musicu AddSonglist/DelSonglist：那条路要 dirId，而歌单卡片
+// 手里只有 tid，两个 id 会被对调（见 qq.js 的 addSongToPlaylist / removeFromPlaylist，
+// 走包的 /user/playlist/tracks，由它自己按 tid 解析 dirId）。
 
 // 创建自建歌单（AddPlaylist / PlaylistBaseWrite），返回 { id, name }。
 // AddPlaylist 响应把新歌单信息嵌套在 data.result 下（dirId/dirName/tid）。

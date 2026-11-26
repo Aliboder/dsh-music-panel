@@ -24,6 +24,17 @@ function onlineAddTarget(layerProps) {
   }
 }
 
+/**
+ * The playlists「加入歌单」may offer: the Host marks a playlist its provider cannot
+ * write as `addable: false` (Folia filters with `mutations.canAddToPlaylist`), so the
+ * picker never shows a target that would only answer with an error.
+ */
+function onlineAddPlaylists(list) {
+  return (Array.isArray(list) ? list : []).filter(function (playlist) {
+    return playlist !== null && typeof playlist === 'object' && playlist.addable !== false
+  })
+}
+
 function OnlineAddToPlaylistDialog(props) {
   var layer = props.layer || {}
   var target = onlineAddTarget(layer.props)
@@ -54,7 +65,7 @@ function OnlineAddToPlaylistDialog(props) {
       getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(provider))
         .then(function (body) {
           if (cancelled) return
-          setPlaylists(Array.isArray(body.playlists) ? body.playlists : [])
+          setPlaylists(onlineAddPlaylists(body.playlists))
           setPhase('ready')
         })
         .catch(function (loadError) {

@@ -4,7 +4,7 @@
 
 import assert from 'node:assert/strict'
 import { addSongToPlaylist, deleteSongFromPlaylist, getMyPlaylistSongs, getMyPlaylists } from '../../src/host/providers/kugou.js'
-import { addSongToPlaylist as addLiteSongToPlaylist, setLiked as setLiteLiked } from '../../src/host/providers/kugou-lite.js'
+import { addSongToPlaylist as addLiteSongToPlaylist, removeSongFromPlaylist as removeLiteSongFromPlaylist, setLiked as setLiteLiked } from '../../src/host/providers/kugou-lite.js'
 import { resetUpstreamOverride, setUpstreamOverride } from '../../src/host/services/kugou-api.js'
 
 const calls = []
@@ -87,6 +87,14 @@ assert.equal(await addLiteSongToPlaylist({ hash: 'kg-hash', title: 'Song', album
 const playlistAdd = calls.find(([operation]) => operation === 'playlist_tracks_add')
 assert.equal(playlistAdd[1].listid, '18')
 assert.equal(playlistAdd[1].data, 'Song|kg-hash|1|2')
+
+// The concept client also removes rows from its own lists (not through the 1005 worker):
+// the listid and the row id both come from that account's reader.
+calls.length = 0
+assert.equal(await removeLiteSongFromPlaylist({ hash: 'kg-hash', fileId: 916 }, '18', session), true)
+const playlistDel = calls.find(([operation]) => operation === 'playlist_tracks_del')
+assert.equal(playlistDel[1].listid, '18')
+assert.equal(playlistDel[1].fileids, '916')
 
 resetUpstreamOverride()
 console.log('kugou-library.test.mjs ok')

@@ -19,6 +19,8 @@ import { callUpstream } from '../services/qq-api.js'
 const QR_TTL_MS = 2 * 60 * 1000
 const PAGE_SIZE = 60
 const playlistMeta = new Map()
+// 后端只接受目录号 1–199、没有系统类型标记的自建歌单（Folia qqMutations 的同一条判定）。
+const QQ_MAX_NORMAL_DIR_ID = 199
 
 const QR_STATUS = { 800: 'expired', 801: 'waiting', 802: 'scanned', 803: 'success' }
 const QR_MESSAGE = {
@@ -219,6 +221,32 @@ export async function removeFromPlaylist(song, playlistId, cookie = '') {
   return true
 }
 
+/**
+ * Add one song to an owned playlist — the same package route Folia writes through.
+ *
+ * The route is addressed by `tid` and looks the account's `dirId` up itself (it also
+ * refuses system directories and verifies the change). The old musicu `AddSonglist`
+ * helper this replaced took a `dirId`, while every playlist card here carries a
+ * `tid`, so the two ids were being swapped: the write went into a folder that did not
+ * exist. `qqPlaylistWriteTarget` decides whether the id is writable at all.
+ */
+export async function addSongToPlaylist(song, playlistId, cookie = '') {
+  const tid = String(playlistId || '').trim()
+  const songId = Number(song?.songid ?? song?.id)
+  if (tid === '' || !Number.isSafeInteger(songId) || songId <= 0) throw new Error('缺少歌单或歌曲 id')
+  const json = await callUpstream('/user/playlist/tracks', {}, {
+    cookie,
+    method: 'POST',
+    body: { tid, op: 'add', songs: [{ id: songId, type: 0 }] },
+  })
+  // Folia treats "no change" as success only when the read-back already shows the song;
+  // the package reports that as verification.status = 'present'.
+  if (json?.changed === false && json?.verification?.status !== 'present') {
+    throw new Error('QQ 音乐没有确认加入歌单')
+  }
+  return true
+}
+
 /** Folia subscription status; an unknown answer means "not subscribed". */
 export async function subscriptionStatus(type, id, cookie = '') {
   const key = type === 'album' ? String(id || '').trim() : String(Number(id) || '')
@@ -265,7 +293,9 @@ export async function getMyPlaylists(cookie = '') {
     // favourited (name/songnum/orderTime): a favourite also carries a creator's
     // dirId, but the credential-backed owned route loses paid songs there.
     const owned = row.dirName !== undefined || row.dirname !== undefined
-    playlistMeta.set(id, { dirId, tid, liked, owned })
+    // System directory marker: 0 (or absent) is an ordinary playlist.
+    const dirType = row.dirType === undefined || row.dirType === null ? undefined : Number(row.dirType)
+    playlistMeta.set(id, { dirId, tid, liked, owned, dirType })
     return {
       source: 'qq',
       id,
@@ -276,8 +306,48 @@ export async function getMyPlaylists(cookie = '') {
       kind: liked ? 'default' : owned ? 'own' : 'collect',
       isLike: liked,
       isDefault: liked,
+      // Folia's canEditQqPlaylistTracks, decided by the host that knows the account
+      // shape: only this account's ordinary playlists (dirId 1–199, no system marker)
+      // with a tid take a write. 「我喜欢」 is a heart, a collected playlist belongs to
+      // someone else — neither is a target for「加入歌单」.
+      addable: owned === true && !liked
+        && Number.isInteger(dirId) && dirId >= 1 && dirId <= QQ_MAX_NORMAL_DIR_ID
+        && (dirType === undefined || dirType === 0)
+        && tid !== '',
     }
   })
+}
+
+/**
+ * Whether「加入歌单」may write into this playlist — Folia's `canAddToPlaylist` decision.
+ *
+ * Cards are addressed by `tid` (the content id the account list carries). A collected
+ * playlist belongs to someone else, a system directory (「我喜欢」 = 201) is a heart, and
+ * a playlist without a tid cannot be named by the write route: all three are refused
+ * here, before anything is sent upstream.
+ *
+ * Returns `{ dirId, tid, liked }`; throws where Folia refuses the write.
+ */
+export async function qqPlaylistWriteTarget(playlistId, cookie = '') {
+  const key = String(playlistId ?? '').trim()
+  if (key === '') throw new Error('缺少歌单 id')
+  let meta = playlistMeta.get(key)
+  if (meta === undefined) {
+    try {
+      await getMyPlaylists(cookie)
+    } catch {
+      // The refusal below says the account list could not even name it.
+    }
+    meta = playlistMeta.get(key)
+  }
+  if (meta === undefined) throw new Error('QQ 账号里没有这张歌单')
+  if (meta.liked === true) return { tid: '', liked: true }
+  if (meta.owned !== true) throw new Error('收藏的歌单不能加入歌曲')
+  if (!(Number(meta.dirId) >= 1 && Number(meta.dirId) <= QQ_MAX_NORMAL_DIR_ID)) {
+    throw new Error('QQ 只允许写入自建的普通歌单')
+  }
+  if (String(meta.tid) === '') throw new Error('QQ 歌单缺少 tid，无法写入')
+  return { dirId: Number(meta.dirId), tid: String(meta.tid), liked: false }
 }
 
 /**

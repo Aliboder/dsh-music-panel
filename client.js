@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.0"
-    var CLIENT_BUILD = "ddc6ccde061a"
+    var CLIENT_BUILD = "c2cfffdceedc"
 
     // ── src/client/app/runtime.js
     /**
@@ -197187,6 +197187,17 @@ window.__ModuleLoader__.load({
       }
     }
 
+    /**
+     * The playlists「加入歌单」may offer: the Host marks a playlist its provider cannot
+     * write as `addable: false` (Folia filters with `mutations.canAddToPlaylist`), so the
+     * picker never shows a target that would only answer with an error.
+     */
+    function onlineAddPlaylists(list) {
+      return (Array.isArray(list) ? list : []).filter(function (playlist) {
+        return playlist !== null && typeof playlist === 'object' && playlist.addable !== false
+      })
+    }
+
     function OnlineAddToPlaylistDialog(props) {
       var layer = props.layer || {}
       var target = onlineAddTarget(layer.props)
@@ -197217,7 +197228,7 @@ window.__ModuleLoader__.load({
           getJson(API + 'online/my-playlists?provider=' + encodeURIComponent(provider))
             .then(function (body) {
               if (cancelled) return
-              setPlaylists(Array.isArray(body.playlists) ? body.playlists : [])
+              setPlaylists(onlineAddPlaylists(body.playlists))
               setPhase('ready')
             })
             .catch(function (loadError) {
@@ -199470,6 +199481,7 @@ window.__ModuleLoader__.load({
           LyricMatchDialog: LyricMatchDialog,
           // 「加入歌单」的目标解析：来源从歌曲自身读（Folia 的做法），测试钉住这个契约。
           onlineAddTarget: typeof onlineAddTarget === 'function' ? onlineAddTarget : null,
+          onlineAddPlaylists: typeof onlineAddPlaylists === 'function' ? onlineAddPlaylists : null,
           OnlineAddToPlaylistDialog: typeof OnlineAddToPlaylistDialog === 'function' ? OnlineAddToPlaylistDialog : null,
           // The match window's preset query is pure, so a test pins it to the title.
           lyricMatchSongQuery: typeof lyricMatchSongQuery === 'function' ? lyricMatchSongQuery : null,

@@ -62,10 +62,23 @@ const dialog = api.__internals.OnlineAddToPlaylistDialog({ layer: { kind: 'onlin
 assert.ok(dialog !== null && typeof dialog === 'object', 'the picker renders')
 assert.equal(dialog.props.title, '添加到歌单', 'it opens as the add-to-playlist window')
 
+// The picker only offers playlists the host says it can write into (Folia filters with
+// mutations.canAddToPlaylist). 「我喜欢」 is a heart and a collected playlist belongs to
+// someone else, so the host marks both addable:false and the picker drops them.
+const onlineDialog = read('src/client/components/ui/online-add-to-playlist-dialog.js')
+const offerable = api.__internals.onlineAddPlaylists
+assert.equal(typeof offerable, 'function', 'the picker list filter is exposed to tests')
+assert.deepEqual(
+  offerable([{ id: 'own' }, { id: 'liked', addable: false }, { id: 'collected', addable: false }, { id: 'manual', addable: true }, null]).map((row) => row.id),
+  ['own', 'manual'],
+  'only targets the provider can write are offered',
+)
+assert.deepEqual(offerable(undefined), [], 'a missing list offers nothing')
+assert.match(onlineDialog, /onlineAddPlaylists\(body\.playlists\)/, 'the dialog loads the filtered list')
+
 // The list scrolls on its own in both pickers, with a bounded height (Folia's picker
 // keeps its rows in a scrolling list so a long account list is reachable).
 const localDialog = read('src/client/components/ui/dialogs.js')
-const onlineDialog = read('src/client/components/ui/online-add-to-playlist-dialog.js')
 assert.match(localDialog, /className: 'mp-pick-list'/, 'the local picker scrolls its playlist list')
 assert.match(onlineDialog, /mp-set-card-body mp-pick-list/, 'the online picker scrolls its playlist list')
 const theme = read('src/client/styles/theme.js')

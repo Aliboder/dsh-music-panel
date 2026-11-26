@@ -1149,6 +1149,10 @@ function shapePlaylist(item) {  return {
     isOwned: item.isOwned === true || (item.kind || 'own') !== 'collect',
     isLike: item.isLike === true,
     isDefault: item.isDefault === true || item.isLike === true,
+    // Whether「加入歌单」may offer this row: each platform decides with its own
+    // mutation rules (Folia's mutations.canAddToPlaylist), so the picker never lists a
+    // target the write would refuse. Undefined means the platform declared no rule.
+    ...(item.addable === undefined ? {} : { addable: item.addable === true }),
   }
 }
 
@@ -1651,8 +1655,13 @@ export async function addOnlineSongToPlaylist(provider, song, playlistId, cookie
   if (id === '') throw new Error('缺少歌曲 id')
   if (provider === 'navidrome') return ND.addSongToPlaylist(navidromeConfig(session), playlistId, id)
   if (provider === 'qq') {
+    // Card ids are tids; the write route needs the account's dirId and refuses
+    // collected / liked lists, so the target is resolved (Folia's canAddToPlaylist) first.
+    const target = await QQ.qqPlaylistWriteTarget(playlistId, cookie)
     const raw = await qqWriteSong(id, cookie)
-    await QQ.addSongToPlaylist(raw, playlistId, 0, cookie)
+    // 「我喜欢」 is the heart, not a writable ordinary playlist (Folia does the same).
+    if (target.liked === true) { await QQ.addQQFav(raw, cookie); return true }
+    await QQ.addSongToPlaylist(raw, target.tid, cookie)
     return true
   }
   if (provider === 'kugou') {
@@ -1754,12 +1763,21 @@ export async function listeningRank(provider, range, cookie = '', session = {}) 
 /** Remove one song from an owned playlist; each platform has its own write route. */
 export async function removeOnlineSongFromPlaylist(provider, song, playlistId, cookie = '', session = {}) {
   if (provider === 'netease') return await NC.removeFromPlaylist(song, playlistId, cookie)
-  if (provider === 'qq') return await QQ.removeFromPlaylist(song, playlistId, cookie)
+  if (provider === 'qq') {
+    const target = await QQ.qqPlaylistWriteTarget(playlistId, cookie)
+    const raw = await qqWriteSong(String(song?.id ?? ''), cookie)
+    if (target.liked === true) return await QQ.removeQQFav(raw, cookie)
+    return await QQ.removeFromPlaylist(raw, target.tid, cookie)
+  }
   if (provider === 'kugou' || provider === 'kugouLite') {
     const key = provider === 'kugouLite' ? 'kugouLite:' : 'kugou:'
     const raw = rawSongs.get(key + String(song?.id ?? '')) || song
     const fileId = raw?.fileId ?? song?.fileId
     if (!fileId) throw new Error('酷狗歌曲缺少 fileId，无法从歌单移除')
+    // The row id belongs to the account's own client: the concept build signs with its
+    // own appid, so its writes cannot go through the standard worker (Folia keeps one
+    // provider per edition for the same reason).
+    if (provider === 'kugouLite') return await KGL.removeSongFromPlaylist({ ...raw, fileId }, playlistId, session)
     await KG.deleteSongFromPlaylist(fileId, playlistId, session)
     return true
   }
