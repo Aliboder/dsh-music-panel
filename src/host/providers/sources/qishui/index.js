@@ -177,19 +177,51 @@ export function createQishuiSource(options) {
     warn: (message) => console.warn('[Qishui]', message),
   })
 
+  /**
+   * The car ticket guard expires; only `login_status` can renew it (the package refreshes
+   * the access code, mints a new ticket, verifies `/me/info/` and writes the session
+   * back through `sessions.set`). Returns the renewed account, or null when the stored
+   * session cannot be renewed.
+   */
+  async function renewAccount() {
+    try {
+      const answer = await api.request('login_status', {})
+      if (answer === null || typeof answer !== 'object' || answer.ok !== true) return null
+      return answer.data ?? null
+    } catch {
+      return null
+    }
+  }
+
   async function request(operation, params = {}) {
     if (typeof sessions.whenReady === 'function') await sessions.whenReady()
-    const answer = await api.request(operation, params)
+    let answer = await api.request(operation, params)
+    if (answer !== null && typeof answer === 'object' && answer.ok !== true) {
+      const error = record(answer.error)
+      const upstreamCode = text(error.upstreamCode)
+      // An account read rejected with a platform auth code means the ticket guard expired
+      // (28001008 after ~6h). Renew once, then replay the read — Folia has no equivalent
+      // step, but the package's own renewal path is exactly this.
+      if (text(error.code) === 'auth-required' && upstreamCode !== '' && !operation.startsWith('login_')) {
+        if ((await renewAccount()) !== null) answer = await api.request(operation, params)
+      }
+    }
     if (answer === null || typeof answer !== 'object') {
       throw new MusicError('Qishui returned no answer', { code: 'invalid-response', sourceId: SOURCE_ID })
     }
     if (answer.ok !== true) {
       const error = record(answer.error)
-      throw new MusicError(text(error.message) || 'Qishui request failed', {
-        code: ERROR_CODE[text(error.code)] ?? 'protocol',
-        sourceId: SOURCE_ID,
-        retryable: text(error.code) === 'network',
-      })
+      const code = text(error.code)
+      const upstreamCode = text(error.upstreamCode)
+      const rejected = code === 'auth-required' && upstreamCode !== ''
+      throw new MusicError(
+        rejected ? '汽水登录已过期，请在「设置 → 在线」重新扫码登录' : text(error.message) || 'Qishui request failed',
+        {
+          code: ERROR_CODE[code] ?? 'protocol',
+          sourceId: SOURCE_ID,
+          retryable: code === 'network',
+        },
+      )
     }
     return answer.data
   }

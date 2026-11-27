@@ -242,4 +242,83 @@ assert.equal(current, null)
   resetSources()
 }
 
+// The car ticket guard expires (~6h); an account read rejected with a platform auth code
+// renews once through login_status and replays the read.
+{
+  const account = {
+    deviceId: 'device',
+    userId: 'u1',
+    user: { id: 'u1', nickname: '汽水用户', avatar: 'https://img.example/a.jpg' },
+    ticket: 'old-ticket',
+  }
+  const store = {
+    deviceId: 'device',
+    get revision() {
+      return 0
+    },
+    get: () => account,
+    whenReady: async () => {},
+    set: () => {},
+    clear: () => {},
+  }
+  const calls = []
+  const renewing = createQishuiSource({
+    createApi: () => ({
+      request: async (operation) => {
+        calls.push(operation)
+        if (operation === 'login_status') {
+          return { ok: true, data: { id: 'u1', nickname: '汽水用户', avatar: '', isVip: false } }
+        }
+        if (operation === 'user_playlists') {
+          const seen = calls.filter((name) => name === 'user_playlists').length
+          if (seen === 1) {
+            return { ok: false, error: { code: 'auth-required', message: 'Qishui rejected the request', upstreamCode: '28001008' } }
+          }
+          return { ok: true, data: { items: [{ base_info: { id: 'p9', title: '续期后的歌单' } }], hasMore: false } }
+        }
+        return { ok: true, data: {} }
+      },
+    }),
+    deviceId: 'device',
+    sessions: store,
+  })
+  const list = await renewing.myPlaylists()
+  assert.equal(list[0].id, 'p9', 'an expired ticket is renewed and the read replayed')
+  assert.deepEqual(calls, ['user_playlists', 'login_status', 'user_playlists'], 'renewal happens between the two reads')
+}
+
+// When the stored account cannot be renewed, the page must say what to do instead of
+// showing the platform's sentence verbatim.
+{
+  const store = {
+    deviceId: 'device',
+    get revision() {
+      return 0
+    },
+    get: () => null,
+    whenReady: async () => {},
+    set: () => {},
+    clear: () => {},
+  }
+  const failing = createQishuiSource({
+    createApi: () => ({
+      request: async (operation) => {
+        if (operation === 'login_status') return { ok: true, data: null }
+        if (operation === 'search') return { ok: true, data: { items: [rawSong], hasMore: false } }
+        return { ok: false, error: { code: 'auth-required', message: 'Qishui rejected the request', upstreamCode: '28001008' } }
+      },
+    }),
+    deviceId: 'device',
+    sessions: store,
+  })
+  await assert.rejects(
+    () => failing.myPlaylists(),
+    (error) => error.code === 'auth-required' && error.message.includes('重新扫码'),
+    'an unrenewable session explains the recovery step',
+  )
+  // Public reads keep working without any account.
+  const found = await failing.searchPage('晴天', {}, 1)
+  assert.equal(found.results[0].id, '123', 'search does not depend on the account')
+}
+
 console.log('qishui.test.mjs ok')
