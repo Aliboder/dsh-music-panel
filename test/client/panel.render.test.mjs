@@ -251,6 +251,11 @@ assert.doesNotMatch(npCapsule, /playerLoopNext|cycleLoop/, 'the old loop-only co
 const p3ShellSource = readFileSync(new URL('../../src/client/panel-v3/p3-shell.js', import.meta.url), 'utf8')
 assert.match(p3ShellSource, /cyclePlayMode\(snap\)/, 'the player bar cycles modes')
 assert.match(p3ShellSource, /h\(Button, \{\s*variant: 'primary',\s*size: 'sm',\s*icon: 'user'/, 'the contact entry uses the host primary Button')
+// 角标点击优先跳到 DSH 插件面板（dsh-context 的同款做法），服务缺失时回退外链。
+assert.match(p3ShellSource, /p3ClientContext\.get\('pluginNavigation'\)/, 'the pill asks the plugin navigation service first')
+assert.match(p3ShellSource, /openBundle\('dsh-music-panel'\)/, 'it opens this plugin\'s own page')
+const pluginEntrySource = readFileSync(new URL('../../src/client/app/plugin.js', import.meta.url), 'utf8')
+assert.match(pluginEntrySource, /p3ClientContext = ctx/, 'apply keeps the client context for that jump')
 assert.doesNotMatch(p3ShellSource, /shuffleQueue|playerLoopNext|setOrder/, 'no second mode control or shuffle action')
 const playerSource = readFileSync(new URL('../../src/client/services/player/player.js', import.meta.url), 'utf8')
 assert.match(playerSource, /var PLAY_MODES = \['sequence', 'one', 'random'\]/, 'the three playback modes')

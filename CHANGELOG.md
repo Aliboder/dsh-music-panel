@@ -4,7 +4,7 @@
 
 ### 插件信息
 
-- 新增新版本检查：面板打开后（空闲约 2.5 秒）和「设置 → 关于」页会问一次 Host；Host 依次从 npm（主源）、npmmirror（镜像）、GitHub Releases（tag）取最新版本，与已安装的 `package.json` 版本比较。有更新时顶栏品牌图标旁常驻「新版本 vX.Y.Z」角标，点击打开最新 release。
+- 新增新版本检查：面板打开后（空闲约 2.5 秒）和「设置 → 关于」页会问一次 Host；Host 依次从 npm（主源）、npmmirror（镜像）、GitHub Releases（tag）取最新版本，与已安装的 `package.json` 版本比较。有更新时顶栏品牌图标旁常驻「新版本 vX.Y.Z」角标；点击优先通过 `pluginNavigation.openBundle('dsh-music-panel')` 跳到 DSH 的插件面板（与 dsh-context 一致），该服务不可用时回退为打开最新 release 页。
 - 版本检查全部在 Host 完成：结果写 `update-check.json`，默认每小时最多请求一次（可配 1/6/24 小时），失败只退避 30 分钟；离线静默，不弹提示。「设置 → 关于」显示当前/最新版本与上次检查时间，并有手动「检查更新」按钮和自动检查开关。
 
 ### 在线音乐

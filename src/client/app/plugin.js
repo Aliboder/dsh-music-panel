@@ -299,6 +299,8 @@ function NewPlaylistDialog(props) {
 }
 
 function apply(ctx) {
+  // Kept for the update pill: it opens the plugin's own DSH page through pluginNavigation.
+  p3ClientContext = ctx
   try {
     if (typeof console !== 'undefined' && console.info) {
       console.info('[dsh-music-panel] host UI kit:', hostUi ? 'native' : 'fallback')

@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.1"
-    var CLIENT_BUILD = "fc9656d03eae"
+    var CLIENT_BUILD = "a31492f01564"
 
     // ── src/client/app/runtime.js
     /**
@@ -8516,7 +8516,7 @@ window.__ModuleLoader__.load({
         'settings.playbackReportsUnavailable': '当前没有平台声明支持播放上报。',
         'about.diagnostics': '诊断',
         'update.label': '新版本',
-        'update.pillTip': '新版本 {version} 已发布，点击查看更新',
+        'update.pillTip': '新版本 {version} 已发布，点击前往插件页更新',
         'update.current': '当前版本',
         'update.latest': '最新版本',
         'update.checkedAt': '上次检查',
@@ -9645,7 +9645,7 @@ window.__ModuleLoader__.load({
         'settings.playbackReportsUnavailable': 'No platform currently declares playback reporting.',
         'about.diagnostics': 'Diagnostics',
         'update.label': 'New version',
-        'update.pillTip': 'Version {version} is available — click to see the release',
+        'update.pillTip': 'Version {version} is available — click to open the plugin page',
         'update.current': 'Current version',
         'update.latest': 'Latest version',
         'update.checkedAt': 'Last checked',
@@ -193765,7 +193765,26 @@ window.__ModuleLoader__.load({
       return text
     }
 
-    /** 新版本角标：只在 Host 确认有更新时出现，点击打开最新 release。 */
+    /** DSH client context, captured in apply(); used to open the plugin's own panel. */
+    var p3ClientContext = null
+
+    /**
+     * 让更新角标优先跳到 DSH 的插件面板（dsh-context 的做法：pluginNavigation.openBundle）。
+     * 服务不存在或抛错时返回 false，调用方保留原来的外链行为。
+     */
+    function p3OpenPluginPanel() {
+      try {
+        if (p3ClientContext === null || typeof p3ClientContext.get !== 'function') return false
+        var navigation = p3ClientContext.get('pluginNavigation')
+        if (navigation === null || navigation === undefined || typeof navigation.openBundle !== 'function') return false
+        navigation.openBundle('dsh-music-panel')
+        return true
+      } catch (error) {
+        return false
+      }
+    }
+
+    /** 新版本角标：Host 确认有更新时出现；点击优先打开插件面板，打不开再回到 release 页。 */
     function P3UpdatePill() {
       var update = useStore(updateStore)
       if (update.updateAvailable !== true || update.latest === '') return null
@@ -193777,6 +193796,11 @@ window.__ModuleLoader__.load({
         rel: 'noreferrer noopener',
         title: tip,
         'aria-label': tip,
+        onClick: function (event) {
+          // Same as dsh-context: open the plugin's page in DSH when the navigation service
+          // exists; the href stays as the fallback for builds without it.
+          if (p3OpenPluginPanel() && event && typeof event.preventDefault === 'function') event.preventDefault()
+        },
       },
         icon('download', 12),
         h('span', null, t('update.label')),
@@ -199894,6 +199918,8 @@ window.__ModuleLoader__.load({
     }
 
     function apply(ctx) {
+      // Kept for the update pill: it opens the plugin's own DSH page through pluginNavigation.
+      p3ClientContext = ctx
       try {
         if (typeof console !== 'undefined' && console.info) {
           console.info('[dsh-music-panel] host UI kit:', hostUi ? 'native' : 'fallback')

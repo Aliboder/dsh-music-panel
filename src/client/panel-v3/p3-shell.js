@@ -33,7 +33,26 @@ function p3AccountPictureSrc(url) {
   return text
 }
 
-/** 新版本角标：只在 Host 确认有更新时出现，点击打开最新 release。 */
+/** DSH client context, captured in apply(); used to open the plugin's own panel. */
+var p3ClientContext = null
+
+/**
+ * 让更新角标优先跳到 DSH 的插件面板（dsh-context 的做法：pluginNavigation.openBundle）。
+ * 服务不存在或抛错时返回 false，调用方保留原来的外链行为。
+ */
+function p3OpenPluginPanel() {
+  try {
+    if (p3ClientContext === null || typeof p3ClientContext.get !== 'function') return false
+    var navigation = p3ClientContext.get('pluginNavigation')
+    if (navigation === null || navigation === undefined || typeof navigation.openBundle !== 'function') return false
+    navigation.openBundle('dsh-music-panel')
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
+/** 新版本角标：Host 确认有更新时出现；点击优先打开插件面板，打不开再回到 release 页。 */
 function P3UpdatePill() {
   var update = useStore(updateStore)
   if (update.updateAvailable !== true || update.latest === '') return null
@@ -45,6 +64,11 @@ function P3UpdatePill() {
     rel: 'noreferrer noopener',
     title: tip,
     'aria-label': tip,
+    onClick: function (event) {
+      // Same as dsh-context: open the plugin's page in DSH when the navigation service
+      // exists; the href stays as the fallback for builds without it.
+      if (p3OpenPluginPanel() && event && typeof event.preventDefault === 'function') event.preventDefault()
+    },
   },
     icon('download', 12),
     h('span', null, t('update.label')),
