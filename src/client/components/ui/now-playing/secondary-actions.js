@@ -47,7 +47,8 @@ function NpSecondaryActions(props) {
           h(IconButton, {
             icon: playModeIcon(playModeOf(snap)),
             size: 22,
-            title: t('page.loopAll'),
+            active: playModeOf(snap) !== 'sequence',
+            title: playModeLabel(playModeOf(snap)),
             onClick: function () {
               cyclePlayMode(snap)
             },

@@ -11,12 +11,8 @@ function NowPlayingCapsule(props) {
   var track = snap.queue[snap.index] || null
   var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
   var position = Math.min(Number(time.currentTime) || 0, duration || 0)
-  var loopMode = snap.loop === 'one' ? 'one' : snap.loop === 'all' ? 'all' : 'none'
-  var loopLabel = loopMode === 'one' ? t('page.loopOne') : loopMode === 'all' ? t('page.loopAll') : t('page.loopNone')
-  function cycleLoop() {
-    var next = loopMode === 'none' ? 'all' : loopMode === 'all' ? 'one' : 'none'
-    player.setLoop(next)
-  }
+  // 顺序 → 随机 → 单曲：和面板播放条、播放页右侧是同一个三段轮转。
+  var mode = playModeOf(snap)
   return h(
     'div',
     { className: 'mp-cap' },
@@ -85,12 +81,14 @@ function NowPlayingCapsule(props) {
         'div',
         { className: 'mp-cap-actions' },
         h(IconButton, {
-          icon: loopMode === 'one' ? 'repeatOne' : 'repeat',
+          icon: playModeIcon(mode),
           size: 20,
-          title: loopLabel,
-          active: loopMode !== 'none',
+          title: playModeLabel(mode),
+          active: mode !== 'sequence',
           disabled: track === null,
-          onClick: cycleLoop,
+          onClick: function () {
+            cyclePlayMode(snap)
+          },
         }),
         h(
           'div',

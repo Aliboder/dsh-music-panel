@@ -1287,7 +1287,7 @@ function PlayerSheetInner(props) {
         'div',
         { className: 'mpv3-queue-head' },
         h('strong', null, t('page.queue')),
-        h('span', null, String(queue.length) + ' ' + t('p3.unitSong') + ' · ' + (snap.order === 'random' ? t('page.shuffle') : t('p3.sequence'))),
+        h('span', null, String(queue.length) + ' ' + t('p3.unitSong') + ' · ' + playModeLabel(playModeOf(snap))),
         h('span', { className: 'mpv3-grow' }),
         queue.length > 0
           ? h(IconButton, {

@@ -601,17 +601,17 @@ function P3PlayerBar(props) {
       }),
     ),
     h('div', { className: 'mpv3-player-center' },
-      h(IconButton, { icon: 'shuffle', size: 16, active: snap.order === 'random', title: t('page.shuffle'), onClick: function () { player.setOrder(snap.order === 'random' ? 'list' : 'random') } }),
+      // 顺序 → 随机 → 单曲，一个按钮轮转（顺序播放是本机默认态，不亮）。
+      h(IconButton, {
+        icon: playModeIcon(playModeOf(snap)),
+        size: 16,
+        active: playModeOf(snap) !== 'sequence',
+        title: playModeLabel(playModeOf(snap)),
+        onClick: function () { cyclePlayMode(snap) },
+      }),
       h(IconButton, { icon: 'prev', size: 17, title: t('page.prev'), onClick: function () { player.prev() } }),
       h('button', { type: 'button', className: 'mpv3-player-play', title: snap.playing ? t('page.pause') : t('page.play'), onClick: function () { player.toggle() } }, icon(snap.playing ? 'pause' : 'play', 15)),
       h(IconButton, { icon: 'next', size: 17, title: t('page.next'), onClick: function () { player.next() } }),
-      h(IconButton, {
-        icon: snap.loop === 'one' ? 'repeatOne' : 'repeat',
-        size: 16,
-        active: snap.loop !== 'none',
-        title: snap.loop === 'one' ? t('page.loopOne') : snap.loop === 'all' ? t('page.loopAll') : t('page.loopNone'),
-        onClick: function () { player.setLoop(playerLoopNext(snap.loop)) },
-      }),
     ),
     h('div', { className: 'mpv3-player-right' },
       h('span', { className: 'mpv3-player-time' }, fmtClock(preview !== null ? preview : time.currentTime) + ' / ' + fmtClock(duration)),
@@ -628,12 +628,6 @@ function P3PlayerBar(props) {
       h(IconButton, { icon: 'chevronDown', size: 16, className: 'mpv3-player-expand', title: t('page.openPlayer'), onClick: props.onOpenPlayer }),
     ),
   )
-}
-
-function playerLoopNext(loop) {
-  if (loop === 'none') return 'all'
-  if (loop === 'all') return 'one'
-  return 'none'
 }
 
 var P3_QUEUE_BANDS = [0, 3, 8, 20, 48]
@@ -841,7 +835,7 @@ function P3Queue(props) {
   },
     h('div', { className: 'mpv3-queue-head' },
       h('strong', null, t('page.queue')),
-      h('span', null, snap.queue.length + ' ' + t('p3.unitSong') + ' · ' + (snap.order === 'random' ? t('page.shuffle') : t('p3.sequence'))),
+      h('span', null, snap.queue.length + ' ' + t('p3.unitSong') + ' · ' + playModeLabel(playModeOf(snap))),
       h('span', { className: 'mpv3-grow' }),
       snap.queue.length > 0 ? h(IconButton, { icon: 'trash', size: 15, title: t('p3.clearQueue'), onClick: function () {
         pushLayer('confirm', {

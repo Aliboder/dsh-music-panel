@@ -171,6 +171,58 @@ const localText = textOf(local)
 assert.ok(localText.includes('Alpha'), 'the first track title is rendered')
 assert.ok(localText.includes('Gamma'), 'visible tracks are rendered')
 
+// 播放模式是一颗按钮：顺序 → 随机 → 单曲 → 顺序。
+const MODE_TITLES = ['顺序播放', '随机播放', '单曲循环']
+// Only the panel's own bottom bar: the now-playing page mounts its own mode buttons too,
+// and each surface keeps exactly one.
+function modeButtons(tree) {
+  const found = []
+  const bars = []
+  walk(expand(tree), (node) => {
+    const className = node.props && node.props.className
+    if (typeof className === 'string' && className.split(/\s+/).includes('mpv3-player')) bars.push(node)
+  })
+  bars.forEach((bar) => {
+    walk(bar, (node) => {
+      const title = node.props && node.props.title
+      if (typeof node.props?.onClick === 'function' && MODE_TITLES.includes(title)) found.push(node)
+    })
+  })
+  return found
+}
+const modeFirst = modeButtons(panel())
+assert.equal(modeFirst.length, 1, 'the player bar has one play-mode button, not shuffle + repeat')
+assert.equal(modeFirst[0].props.title, '顺序播放', 'the default mode is play-in-order')
+modeFirst[0].props.onClick()
+assert.equal(internals.player.getSnapshot().order, 'random')
+assert.equal(internals.player.getSnapshot().loop, 'all')
+const modeSecond = modeButtons(panel())
+assert.equal(modeSecond[0].props.title, '随机播放')
+modeSecond[0].props.onClick()
+assert.equal(internals.player.getSnapshot().loop, 'one')
+assert.equal(internals.player.getSnapshot().order, 'list')
+const modeThird = modeButtons(panel())
+assert.equal(modeThird[0].props.title, '单曲循环')
+modeThird[0].props.onClick()
+assert.equal(internals.player.getSnapshot().loop, 'none')
+assert.equal(modeThird.length, 1)
+assert.equal(modeButtons(panel())[0].props.title, '顺序播放', 'the cycle returns to play-in-order')
+internals.player.setLoop('none')
+internals.player.setOrder('list')
+
+// The now-playing page's own controls use the same single mode button.
+const npSecondary = readFileSync(new URL('../../src/client/components/ui/now-playing/secondary-actions.js', import.meta.url), 'utf8')
+assert.match(npSecondary, /icon: playModeIcon\(playModeOf\(snap\)\)/, 'the now-playing page shows the current mode icon')
+assert.match(npSecondary, /cyclePlayMode\(snap\)/, 'the now-playing page cycles modes')
+const npCapsule = readFileSync(new URL('../../src/client/components/ui/now-playing/capsule.js', import.meta.url), 'utf8')
+assert.match(npCapsule, /playModeIcon\(mode\)/, 'the play-page capsule shows the current mode icon')
+assert.match(npCapsule, /cyclePlayMode\(snap\)/, 'the play-page capsule cycles modes')
+assert.doesNotMatch(npCapsule, /playerLoopNext|cycleLoop/, 'the old loop-only control is gone')
+const p3ShellSource = readFileSync(new URL('../../src/client/panel-v3/p3-shell.js', import.meta.url), 'utf8')
+assert.match(p3ShellSource, /cyclePlayMode\(snap\)/, 'the player bar cycles modes')
+assert.doesNotMatch(p3ShellSource, /player\.setOrder\(snap\.order === 'random'/, 'the separate shuffle toggle is gone')
+assert.doesNotMatch(p3ShellSource, /playerLoopNext/, 'the loop-only helper is gone')
+
 internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { layout: 'rail' }))
 const railTree = panel()
 assert.ok(classesOf(railTree).has('mpv3-rail'), 'rail layout renders the left rail')
