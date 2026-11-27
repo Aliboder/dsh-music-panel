@@ -801,6 +801,10 @@ internals.overlayStore.set({ layers: [] })
   assert.match(settingsSource, /'update\.latest'/, 'the About card shows the latest version')
   assert.match(settingsSource, /saveHostConfig\(\{ updateCheck: value \}\)/, 'the auto-check switch writes the Host config')
   assert.match(settingsSource, /saveHostConfig\(\{ updateCheckIntervalHours: Number\(value\) \}\)/, 'the interval writes the Host config')
+  // 版本信息走 About 的信息表，操作项走标准设置卡片（卡片体自带 14px 横向留白）。
+  assert.match(settingsSource, /key: 'info', className: 'mp-about-rows'/, 'version facts keep the About info table')
+  assert.match(settingsSource, /key: 'actions', className: 'mp-set-group'/, 'the check rows use the standard settings card')
+  assert.match(settingsSource, /className: 'mp-set-card-body'/, 'the card body provides the horizontal inset')
   const styles = readFileSync(new URL('../../src/client/panel-v3/p3-styles.js', import.meta.url), 'utf8')
   assert.match(styles, /\.mpv3-update-pill\{/, 'the pill has a style')
 }

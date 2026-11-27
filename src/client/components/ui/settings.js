@@ -2254,30 +2254,40 @@ function AboutUpdateCard() {
   else if (update.phase === 'error' || update.failed === true) status = t('update.failed')
   else if (update.updateAvailable === true && update.latest !== '') status = t('update.available', { version: 'v' + update.latest })
   else if (update.phase === 'ready') status = t('update.upToDate')
-  return h('div', { key: 'update', className: 'mp-about-rows' },
-    h('div', { className: 'mp-about-row' }, h('span', null, t('update.current')), h('strong', null, update.current || APP_VERSION)),
-    h('div', { className: 'mp-about-row' }, h('span', null, t('update.latest')), h('strong', null, update.latest || '—')),
-    h('div', { className: 'mp-about-row' }, h('span', null, t('update.checkedAt')), h('strong', null, updateCheckedLabel(update.checkedAt))),
-    h(SetRow, { key: 'update-check', label: t('update.rowLabel'), desc: t('update.rowDesc', { hours: Number(config.updateCheckIntervalHours) || 1 }) },
-      h(Button, { variant: 'ghost', icon: 'refresh', disabled: checking, onClick: checkNow }, checking ? t('update.checking') : t('update.check')),
+  // 版本信息用 About 页的既有信息表（mp-about-rows），操作项走设置页的标准卡片，
+  // 这样和同页其他选项一样有卡片内的 14px 横向留白，不会贴着边框。
+  return h('div', { key: 'update', className: 'mp-about-update' },
+    h('div', { key: 'info', className: 'mp-about-rows' },
+      h('div', { className: 'mp-about-row' }, h('span', null, t('update.current')), h('strong', null, update.current || APP_VERSION)),
+      h('div', { className: 'mp-about-row' }, h('span', null, t('update.latest')), h('strong', null, update.latest || '—')),
+      h('div', { className: 'mp-about-row' }, h('span', null, t('update.checkedAt')), h('strong', null, updateCheckedLabel(update.checkedAt))),
     ),
-    status !== '' ? h('div', { key: 'update-status', className: 'mp-set-desc' }, status) : null,
-    h(SetRow, { key: 'update-auto', label: t('update.auto'), desc: t('update.autoDesc') },
-      h(Switch, {
-        value: config.updateCheck !== false,
-        onChange: function (value) { void saveHostConfig({ updateCheck: value }) },
-      }),
-    ),
-    h(SetRow, { key: 'update-interval', label: t('update.interval'), desc: t('update.intervalDesc') },
-      h(KitSegmented, {
-        options: [
-          { value: '1', label: t('update.interval1') },
-          { value: '6', label: t('update.interval6') },
-          { value: '24', label: t('update.interval24') },
-        ],
-        value: String(Number(config.updateCheckIntervalHours) || 1),
-        onChange: function (value) { void saveHostConfig({ updateCheckIntervalHours: Number(value) }) },
-      }),
+    h('div', { key: 'actions', className: 'mp-set-group' },
+      h('div', { className: 'mp-set-card' },
+        h('div', { className: 'mp-set-card-body' },
+          h(SetRow, { key: 'update-check', label: t('update.rowLabel'), desc: t('update.rowDesc', { hours: Number(config.updateCheckIntervalHours) || 1 }) },
+            h(Button, { variant: 'ghost', icon: 'refresh', disabled: checking, onClick: checkNow }, checking ? t('update.checking') : t('update.check')),
+          ),
+          status !== '' ? h('div', { key: 'update-status', className: 'mp-set-desc mp-about-update-status' }, status) : null,
+          h(SetRow, { key: 'update-auto', label: t('update.auto'), desc: t('update.autoDesc') },
+            h(Switch, {
+              value: config.updateCheck !== false,
+              onChange: function (value) { void saveHostConfig({ updateCheck: value }) },
+            }),
+          ),
+          h(SetRow, { key: 'update-interval', label: t('update.interval'), desc: t('update.intervalDesc') },
+            h(KitSegmented, {
+              options: [
+                { value: '1', label: t('update.interval1') },
+                { value: '6', label: t('update.interval6') },
+                { value: '24', label: t('update.interval24') },
+              ],
+              value: String(Number(config.updateCheckIntervalHours) || 1),
+              onChange: function (value) { void saveHostConfig({ updateCheckIntervalHours: Number(value) }) },
+            }),
+          ),
+        ),
+      ),
     ),
   )
 }

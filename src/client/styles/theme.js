@@ -848,6 +848,7 @@ var THEME_CSS = [
   '.mp-about-row a,.mp-about-links a{color:var(--dsw-alias-state-business-primary,#7AAAFF);text-decoration:none}',
   '.mp-about-row a:hover,.mp-about-links a:hover{text-decoration:underline}',
   '.mp-about-links{display:flex;gap:16px;margin-top:14px;font-size:12px}',
+  '.mp-about-update-status{padding:2px 0 6px}',
 
   '.mp-sheet-body > h2 + .mp-set-card{margin-top:10px}',
   '.mp-sheet-body > h2:not(:first-child){margin-top:24px}',
