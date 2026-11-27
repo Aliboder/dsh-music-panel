@@ -586,6 +586,7 @@ export function createOnlineRoutes(deps) {
             results: paged.results,
             total: paged.total,
             page: paged.page,
+            hasMore: paged.hasMore === true,
           })
         } catch (error) {
           return fail(
@@ -612,8 +613,15 @@ export function createOnlineRoutes(deps) {
         try {
           const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
           const session = providerStore === undefined ? {} : await providerStore.session(provider)
-          const songs = await omni.artistSongs(provider, artist, { cookie, session, artistId, page })
-          return sendJson(res, 200, { ok: true, provider, artist, songs })
+          const result = await omni.artistSongs(provider, artist, { cookie, session, artistId, page })
+          // Sources that still answer one array (Bodian, Qishui) are one-shot lists.
+          const songs = Array.isArray(result) ? result : (result && Array.isArray(result.songs) ? result.songs : [])
+          const total = Array.isArray(result) ? songs.length : Number(result && result.total) || songs.length
+          const hasMore = Array.isArray(result) ? false : result.hasMore === true
+          const nextOffset = Array.isArray(result)
+            ? page.offset + songs.length
+            : Number(result.nextOffset) || page.offset + songs.length
+          return sendJson(res, 200, { ok: true, provider, artist, songs, total, hasMore, nextOffset })
         } catch (error) {
           return fail(
             res,

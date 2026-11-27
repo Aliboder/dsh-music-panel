@@ -192,6 +192,40 @@ assert.ok(classesOf(panel()).has('mpv3-hero'), 'album detail renders a hero')
 internals.p3RouteStore.set({ source: 'local', page: 'artist', param: 'Artist A', filter: null, query: '', history: [], scroll: {} })
 assert.ok(classesOf(panel()).has('mpv3-hero'), 'artist detail renders a hero')
 
+// 在线歌手页：热门 10 首 + 「全部歌曲」入口（Folia 的两层结构）；完整列表在另一层翻页。
+internals.onlineStore.set({
+  providers: { kugouLite: { loggedIn: true, capabilities: { artists: true, search: true, userPlaylists: true } } },
+  provider: 'kugouLite',
+  artistName: 'Udit Narayan',
+  artistProvider: 'kugouLite',
+  artistId: '123',
+  artistPhase: 'ready',
+  artistTotal: 417,
+  artistHasMore: true,
+  artistSongs: Array.from({ length: 10 }, (_, index) => ({
+    provider: 'kugouLite',
+    id: 'k' + index,
+    title: '歌 ' + index,
+    artist: 'Udit Narayan',
+    album: '专辑',
+    durationSec: 200,
+  })),
+  artistAllSongs: [],
+  artistAllPhase: 'idle',
+})
+internals.p3RouteStore.set({ source: 'kugouLite', page: 'artist', param: 'kugouLite:Udit Narayan', filter: null, query: '', history: [], scroll: {} })
+const onlineArtist = panel()
+assert.ok(textOf(onlineArtist).includes('全部歌曲'), 'the artist page offers the paged full list')
+assert.ok(textOf(onlineArtist).includes('417'), 'the header carries the platform total, not the ten shown')
+assert.equal(nodesWithClass(onlineArtist, 'mpv3-row').length, 10, 'the page itself keeps Folia top ten')
+const p3Pages = readFileSync(new URL('../../src/client/panel-v3/p3-pages.js', import.meta.url), 'utf8')
+assert.match(p3Pages, /openArtistAllSongs\(\)/, 'the full list opens its own paged layer')
+assert.match(p3Pages, /props\.online\.artistAllHasMore === true/, 'the full list pages through P3List')
+assert.doesNotMatch(p3Pages, /items\.slice\(0, 10\)/, 'the artist page no longer hard-cuts the loaded list at ten')
+const onlineSource = readFileSync(new URL('../../src/client/components/online/online.js', import.meta.url), 'utf8')
+assert.match(onlineSource, /searchHasMore: body\.hasMore === true/, 'the search page learns whether a next page exists')
+assert.match(p3Pages, /props\.online\.searchHasMore === true/, 'search load more is gated by the host')
+
 internals.p3RouteStore.set({ source: 'local', page: 'search', param: null, filter: null, query: 'Artist', history: [], scroll: {} })
 const searchTree = panel()
 assert.ok(textOf(searchTree).includes('Alpha'), 'local search renders matching tracks')

@@ -356,6 +356,9 @@ export async function getArtistSongs(id, cookie = '', options = {}) {
     songs: rows.map(songOf).filter(Boolean),
     more: json.more === true,
     total: Number(json.total) || rows.length,
+    // The rows this page consumed, so the caller's offset can move past rows that
+    // did not normalize (A_other/docs/在线平台对齐清单.md 的分页契约).
+    count: rows.length,
   }
 }
 

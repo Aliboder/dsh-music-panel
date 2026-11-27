@@ -4,7 +4,8 @@
  */
 
 import assert from 'node:assert/strict'
-import { albumSongs, artistAlbums, artistSongs } from '../../src/host/providers/index.js'
+import { albumSongs, artistAlbums, artistSongs, searchPage } from '../../src/host/providers/index.js'
+import { resetUpstreamOverride as resetNetease, setUpstreamOverride as setNetease } from '../../src/host/services/netease-api.js'
 import { resetUpstreamOverride as resetQq, setUpstreamOverride as setQq } from '../../src/host/services/qq-api.js'
 import { resetUpstreamOverride as resetKugou, setUpstreamOverride as setKugou } from '../../src/host/services/kugou-api.js'
 
@@ -49,9 +50,12 @@ import { resetUpstreamOverride as resetKugou, setUpstreamOverride as setKugou } 
     throw new Error('unexpected QQ route: ' + route)
   })
 
-  const songs = await artistSongs('qq', '周杰伦', 'cookie', {}, 'qq-artist', { limit: 10, offset: 0 })
-  assert.equal(songs[0].id, 'qq-song')
-  assert.equal(songs[0].title, '晴天')
+  const artistPage = await artistSongs('qq', '周杰伦', 'cookie', {}, 'qq-artist', { limit: 10, offset: 0 })
+  assert.equal(artistPage.songs[0].id, 'qq-song')
+  assert.equal(artistPage.songs[0].title, '晴天')
+  assert.equal(artistPage.total, 1)
+  assert.equal(artistPage.hasMore, false)
+  assert.equal(artistPage.nextOffset, 1)
   assert.equal(calls[0][0], '/getSingerHotsong')
   assert.equal(calls[0][1].singermid, 'qq-artist')
 
@@ -105,8 +109,9 @@ import { resetUpstreamOverride as resetKugou, setUpstreamOverride as setKugou } 
     throw new Error('unexpected KuGou operation: ' + operation)
   })
 
-  const songs = await artistSongs('kugou', '周杰伦', '', {}, '12345', { limit: 10, offset: 0 })
-  assert.equal(songs[0].id, 'kg-song')
+  const artistPage = await artistSongs('kugou', '周杰伦', '', {}, '12345', { limit: 10, offset: 0 })
+  assert.equal(artistPage.songs[0].id, 'kg-song')
+  assert.equal(artistPage.hasMore, false)
   assert.equal(calls[0][0], 'artist_audios')
 
   const album = await albumSongs('kugou', 'kg-album', '', {})
@@ -120,6 +125,106 @@ import { resetUpstreamOverride as resetKugou, setUpstreamOverride as setKugou } 
   assert.equal(artist.albums[0].id, 'kg-album')
   assert.equal(calls.some(([operation]) => operation === 'artist_detail'), true)
   assert.equal(calls.some(([operation]) => operation === 'artist_albums'), true)
+  resetKugou()
+}
+
+// ── 翻页：歌手页按「这一页吃掉的原始行」前进，搜索只在自己能翻页时报 hasMore ──
+{
+  const calls = []
+  setQq(async (route, params) => {
+    calls.push([route, params])
+    if (route === '/getSingerHotsong') {
+      const pageNo = Number(params.page) || 1
+      const limit = Number(params.limit) || 10
+      const rows = Array.from({ length: limit }, (_, index) => {
+        const n = (pageNo - 1) * limit + index
+        return { mid: 'm' + n, name: '歌 ' + n, singer: [{ name: '歌手', mid: 'ar' }], album: { name: '专辑', mid: 'al' }, interval: 200 }
+      })
+      return { response: { singer: { data: { songlist: rows, total_song: 25 } } } }
+    }
+    throw new Error('unexpected QQ route: ' + route)
+  })
+  const head = await artistSongs('qq', '歌手', 'c', {}, 'ar', { limit: 10, offset: 0 })
+  assert.equal(head.songs.length, 10)
+  assert.equal(head.total, 25)
+  assert.equal(head.hasMore, true, 'the artist page knows there is a second page')
+  assert.equal(head.nextOffset, 10)
+  const next = await artistSongs('qq', '歌手', 'c', {}, 'ar', { limit: 10, offset: head.nextOffset })
+  assert.equal(next.songs[0].id, 'm10', 'the second page starts at the next row')
+  assert.equal(calls[1][1].page, 2, 'the offset really asks for page 2')
+  resetQq()
+}
+
+{
+  const calls = []
+  setKugou(async (operation, params) => {
+    calls.push([operation, params])
+    if (operation === 'artist_audios') {
+      const pageNo = Number(params.page) || 1
+      const size = Number(params.pagesize) || 10
+      const rows = Array.from({ length: size }, (_, index) => {
+        const n = (pageNo - 1) * size + index
+        return {
+          base: { audio_name: '歌 ' + n, album_id: 1, author_name: '歌手' },
+          audio_info: { hash: 'kg' + n, duration: 200000 },
+          album_info: { album_name: '专辑' },
+          authors: [{ author_name: '歌手' }],
+        }
+      })
+      return { body: { data: { total: 25, lists: rows } }, cookie: [] }
+    }
+    throw new Error('unexpected KuGou operation: ' + operation)
+  })
+  const head = await artistSongs('kugouLite', '歌手', '', {}, '123', { limit: 10, offset: 0 })
+  assert.equal(head.songs.length, 10)
+  assert.equal(head.total, 25)
+  assert.equal(head.hasMore, true)
+  assert.equal(head.nextOffset, 10)
+  const next = await artistSongs('kugouLite', '歌手', '', {}, '123', { limit: 10, offset: head.nextOffset })
+  assert.equal(next.songs[0].id, 'kg10', 'the second page starts at the next row')
+  assert.equal(calls[1][1].page, 2)
+  resetKugou()
+}
+
+{
+  const calls = []
+  setNetease(async (route, params) => {
+    calls.push([route, params])
+    if (route === '/artist/songs') {
+      const offset = Number(params.offset) || 0
+      const limit = Number(params.limit) || 10
+      const rows = Array.from({ length: limit }, (_, index) => ({
+        id: 1000 + offset + index,
+        name: '歌 ' + (offset + index),
+        ar: [{ id: 1, name: '歌手' }],
+        al: { id: 2, name: '专辑' },
+        dt: 200000,
+      }))
+      return { songs: rows, more: offset + limit < 30, total: 30 }
+    }
+    throw new Error('unexpected NetEase route: ' + route)
+  })
+  const head = await artistSongs('netease', '歌手', 'MUSIC_U=test', {}, '777', { limit: 10, offset: 0 })
+  assert.equal(head.total, 30)
+  assert.equal(head.hasMore, true)
+  assert.equal(head.nextOffset, 10)
+  const next = await artistSongs('netease', '歌手', 'MUSIC_U=test', {}, '777', { limit: 10, offset: head.nextOffset })
+  assert.equal(next.songs[0].id, '1010', 'the second page starts at the next row')
+  assert.equal(calls[1][1].offset, 10)
+  resetNetease()
+}
+
+{
+  // KuGou answers one capped list: the Host reports no next page, so the UI stops asking.
+  setKugou(async (operation) => {
+    if (operation === 'search') {
+      return { body: { status: 1, data: { total: 900, lists: [{ FileHash: 'H1', SongName: 'A', SingerName: '歌手', Duration: 200 }] } }, cookie: [] }
+    }
+    throw new Error('unexpected KuGou operation: ' + operation)
+  })
+  const page = await searchPage('kugouLite', '歌', '', {}, 1)
+  assert.equal(page.hasMore, false, 'a one-shot search has no next page')
+  assert.equal(page.total, page.results.length, 'the total matches what was actually returned')
   resetKugou()
 }
 

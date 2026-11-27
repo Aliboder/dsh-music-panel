@@ -985,6 +985,10 @@ function P3OnlineArtistPage(props) {
     }
   }
   var [detail, setDetail] = useState(null)
+  // Folia's artist page has two layers: the page itself (top ten + albums) and the
+  // 「全部歌曲」 collection opened from it. The layer lives here so the top ten keeps its
+  // one small request and the full list is paged only when asked for.
+  var [allOpen, setAllOpen] = useState(false)
   useEffect(function () {
     if (!collection) return
     if (String(props.online.artistName) !== String(collection.artist) || props.online.artistPhase === 'idle' || props.online.artistPhase === 'error') {
@@ -1000,30 +1004,63 @@ function P3OnlineArtistPage(props) {
         .catch(function () { setDetail(null) })
     }
   }, [props.route.param, props.route.source])
+  useEffect(function () { setAllOpen(false) }, [props.route.param, props.route.source])
   var items = p3OnlineTrackList(props.online.artistSongs)
+  var allItems = p3OnlineTrackList(props.online.artistAllSongs)
+  var total = Number(props.online.artistTotal) || items.length
   var albums = detail && Array.isArray(detail.albums) ? detail.albums : []
+  var hero = h(P3Hero, {
+    eyebrow: allOpen ? t('p3.allSongs') : t('v2.artist'),
+    title: props.online.artistName || (collection && collection.artist) || t('v2.artist'),
+    coverSrc: p3OnlineCover(collection, props.route.source, 'artist'),
+    round: true,
+    meta: h('span', null, (albums.length ? albums.length + ' ' + t('p3.unitAlbum') + ' · ' : '') + total + ' ' + t('p3.unitSong')),
+    actions: h('div', { className: 'mpv3-hero-actions' },
+      h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(allOpen ? allItems : items) } }, t('page.playAll')),
+      h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(allOpen ? allItems : items) } }, t('p3.shuffle')),
+      allOpen ? h(Button, { variant: 'ghost', icon: 'music', onClick: function () { setAllOpen(false) } }, t('p3.hotSongs')) : null,
+      !allOpen && (total > items.length || props.online.artistHasMore === true)
+        ? h(Button, { variant: 'ghost', icon: 'list', onClick: function () { setAllOpen(true); void openArtistAllSongs() } }, t('p3.allSongs') + (total > 0 ? ' · ' + total : ''))
+        : null,
+    ),
+  })
+  if (allOpen) {
+    var allEmpty = props.online.artistAllPhase === 'loading'
+      ? h('div', null, h(P3Skeleton, { count: 8 }))
+      : props.online.artistAllPhase === 'error'
+        ? h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.artistAllError, actions: h(Button, { variant: 'ghost', onClick: function () { void openArtistAllSongs() } }, t('p3.retry')) })
+        : h(P3Empty, { icon: 'music', title: t('page.noResults'), hint: '' })
+    return h(P3List, {
+      items: allItems,
+      header: hero,
+      currentPath: props.currentPath,
+      playing: props.playing,
+      favoriteSet: props.favoriteSet,
+      selectedSet: {},
+      hasMore: props.online.artistAllHasMore === true,
+      loadingMore: props.online.artistAllLoading === true,
+      loadMoreError: props.online.artistAllError || '',
+      onLoadMore: function () { void loadMoreArtistSongs() },
+      resetKey: 'online-artist-all:' + props.route.param,
+      empty: allEmpty,
+    })
+  }
   return h('div', { className: 'mpv3-scroll' },
     h('div', { className: 'mpv3-scroll-inner is-static' },
-      h(P3Hero, {
-        eyebrow: t('v2.artist'),
-        title: props.online.artistName || (collection && collection.artist) || t('v2.artist'),
-        coverSrc: p3OnlineCover(collection, props.route.source, 'artist'),
-        round: true,
-        meta: h('span', null, (albums.length ? albums.length + ' ' + t('p3.unitAlbum') + ' · ' : '') + items.length + ' ' + t('p3.unitSong')),
-        actions: h('div', { className: 'mpv3-hero-actions' },
-          h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
-          h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
-        ),
-      }),
+      hero,
       props.online.artistPhase === 'loading' ? h(P3Skeleton, { count: 6 }) : null,
       props.online.artistPhase === 'error' ? h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.artistError, actions: h(Button, { variant: 'ghost', onClick: function () {
         void openOnlineArtist({ onlineProvider: collection && collection.onlineProvider || props.route.source, artist: collection && collection.artist || '', artistsDetail: collection && collection.artistId ? [{ name: collection.artist, id: collection.artistId }] : [] })
       } }, t('p3.retry')) }) : null,
       items.length > 0 ? h('div', { className: 'mpv3-section' },
         h('div', { className: 'mpv3-section-head' }, h('strong', null, t('p3.hotSongs'))),
-        h('div', { className: 'mpv3-plain-list' }, items.slice(0, 10).map(function (track, index) {
+        h('div', { className: 'mpv3-plain-list' }, items.slice(0, ARTIST_TOP_SONG_SIZE).map(function (track, index) {
           return h(P3Row, { key: track.path, track: track, index: index, list: items, currentPath: props.currentPath, playing: props.playing, favoriteSet: props.favoriteSet, selected: false, tabIndex: -1 })
         })),
+        total > items.length || props.online.artistHasMore === true
+          ? h('div', { className: 'mpv3-more' },
+              h(Button, { variant: 'ghost', onClick: function () { setAllOpen(true); void openArtistAllSongs() } }, t('p3.allSongs') + (total > 0 ? ' · ' + total + ' ' + t('p3.unitSong') : '')))
+          : null,
       ) : null,
       albums.length > 0 ? h('div', { className: 'mpv3-section' },
         h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.albums'))),
@@ -1274,7 +1311,7 @@ function P3SearchPage(props) {
         h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.songs')), h('span', null, tracks.length)),
         h('div', { className: 'mpv3-plain-list' }, songRows),
       ) : null,
-      !local && tracks.length < (props.online.searchTotal || 0) ? h('div', { className: 'mpv3-more' },
+      !local && props.online.searchHasMore === true ? h('div', { className: 'mpv3-more' },
         h(Button, {
           variant: 'ghost',
           disabled: props.online.searchLoadingMore === true,

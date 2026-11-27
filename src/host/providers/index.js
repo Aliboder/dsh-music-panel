@@ -151,26 +151,36 @@ export async function searchPage(provider, query, cookie = '', session = {}, pag
   const target = Math.max(1, Number(page) || 1)
   if (provider === 'netease') {
     const text = String(query ?? '').trim()
-    if (text === '') return { results: [], total: 0, page: target }
+    if (text === '') return { results: [], total: 0, page: target, hasMore: false }
     const data = await NC.search(text, cookie, target)
     const results = (data.results || []).map((song) => {
       rawSongs.set('netease:' + song.id, song)
       return shape('netease', song)
     })
-    return { results, total: Number(data.total) || results.length, page: Number(data.page) || target }
+    const total = Number(data.total) || results.length
+    const offset = (target - 1) * 30
+    return { results, total, page: Number(data.page) || target, hasMore: offset + results.length < total }
   }
   if (provider !== 'qq') {
+    // KuGou answers up to its own single-request cap and Navidrome answers one
+    // bounded list: there is no next page to ask for, so the UI must not offer one.
     const results = await search(provider, query, cookie, session)
-    return { results, total: results.length, page: 1 }
+    return { results, total: results.length, page: 1, hasMore: false }
   }
   const text = String(query ?? '').trim()
-  if (text === '') return { results: [], total: 0, page: target }
+  if (text === '') return { results: [], total: 0, page: target, hasMore: false }
   const data = await QQ.search(text, cookie, target)
   const results = (data.results || []).map((song) => {
     rawSongs.set('qq:' + song.songmid, song)
     return shape('qq', song)
   })
-  return { results, total: Number(data.total) || results.length, page: Number(data.page) || target }
+  const total = Number(data.total) || results.length
+  return {
+    results,
+    total,
+    page: Number(data.page) || target,
+    hasMore: results.length >= 30 && (total > 0 ? target * 30 < total : true),
+  }
 }
 
 /** One playlist row from a provider's playlist search, shaped for the shared card. */
@@ -421,25 +431,50 @@ function kugouObject(body) {
  * Songs for one artist. QQ has a dedicated singer endpoint; the other providers
  * use their song search and filter to the clicked artist.
  */
+/** A one-shot list (a name search, a Subsonic search): no more pages behind it. */
+function artistPageOfSongs(songs) {
+  return { songs, total: songs.length, hasMore: false, nextOffset: songs.length }
+}
+
+/**
+ * One page of an artist's songs, in Folia's page shape.
+ *
+ * QQ and KuGou page their own artist endpoint; NetEase pages `/artist/songs`; a name
+ * search is one shot. `nextOffset` advances by the rows the page consumed, so a row a
+ * provider drops while shaping cannot pull the next window back (the cursor rule in
+ * A_other/docs/在线平台对齐清单.md).
+ *
+ * @returns {Promise<{ songs: object[], total: number, hasMore: boolean, nextOffset: number }>}
+ */
 export async function artistSongs(provider, artist, cookie = '', session = {}, artistId = '', page = {}) {
   const name = String(artist ?? '').trim()
-  if (name === '') return []
+  const offset = Math.max(0, Number(page.offset) || 0)
+  if (name === '') return { songs: [], total: 0, hasMore: false, nextOffset: 0 }
   if (provider === 'qq') {
     const mid = String(artistId || '').trim()
     if (/^[A-Za-z0-9_-]+$/.test(mid)) {
       try {
         const limit = Math.max(1, Math.min(100, Number(page.limit) || 80))
-        const pageNo = Math.floor(Math.max(0, Number(page.offset) || 0) / limit) + 1
+        const pageNo = Math.floor(offset / limit) + 1
         const answer = await qqUpstream('/getSingerHotsong', { singermid: mid, limit, page: pageNo }, { cookie })
-        const rows = answer?.response?.singer?.data?.songlist
+        const data = answer?.response?.singer?.data
+        const rows = data?.songlist
         if (Array.isArray(rows)) {
-          return rows
+          const songs = rows
             .map((row) => QQ.toLegacyResult(row))
             .filter((song) => song !== null)
             .map((song) => {
               rawSongs.set('qq:' + song.songmid, song)
               return shape('qq', song)
             })
+          const total = Number(data?.total_song)
+          const hasTotal = Number.isFinite(total) && total > 0
+          return {
+            songs,
+            total: hasTotal ? total : songs.length,
+            hasMore: hasTotal ? offset + rows.length < total : rows.length >= limit,
+            nextOffset: offset + rows.length,
+          }
         }
       } catch {
         // Older local backends may not expose this route; the name search below
@@ -447,15 +482,15 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
       }
     }
     const { results } = await QQ.searchArtistSongs(name, cookie)
-    return (results || []).map((song) => {
+    return artistPageOfSongs((results || []).map((song) => {
       rawSongs.set('qq:' + song.songmid, song)
       return shape('qq', song)
-    })
+    }))
   }
   if (provider === 'netease') {
     // Folia opens the artist page with the id the song carries and asks
-    // `/artist/songs` once. Searching by name was up to ten sequential page
-    // requests, which is what made this page slow.
+    // `/artist/songs` once per page. Searching by name was up to ten sequential
+    // page requests, which is what made this page slow.
     let id = String(artistId || session.artistId || '').trim()
     if (!/^[0-9]+$/.test(id)) id = ''
     if (id === '') {
@@ -468,7 +503,6 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
     if (id !== '') {
       try {
         const limit = Math.max(1, Math.min(500, Number(page.limit) || 200))
-        const offset = Math.max(0, Number(page.offset) || 0)
         const result = await NC.getArtistSongs(id, cookie, { limit, offset, order: 'hot' })
         const songs = result.songs
           .map((song) => {
@@ -476,7 +510,16 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
             return shape('netease', song)
           })
           .filter((song) => song.id)
-        if (songs.length > 0) return songs
+        if (songs.length > 0) {
+          const total = Number(result.total) || songs.length
+          const consumed = Number(result.count) || songs.length
+          return {
+            songs,
+            total,
+            hasMore: result.more === true || (total > 0 && offset + consumed < total),
+            nextOffset: offset + consumed,
+          }
+        }
       } catch {
         // Fall through to the name search below.
       }
@@ -498,19 +541,19 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
         collected.push(shape('netease', song))
       })
     })
-    return collected.filter((song) => artistMatches(song, name))
+    return artistPageOfSongs(collected.filter((song) => artistMatches(song, name)))
   }
   if (provider === 'navidrome') {
     const songs = await ND.search(navidromeConfig(session), name, { count: 500 })
     songs.forEach((song) => rawSongs.set('navidrome:' + song.id, song))
-    return songs.filter((song) => artistMatches(song, name))
+    return artistPageOfSongs(songs.filter((song) => artistMatches(song, name)))
   }
   if (provider === 'kugou' || provider === 'kugouLite') {
     const artistKey = String(artistId || '').trim()
     if (/^\d+$/.test(artistKey)) {
       try {
         const limit = Math.max(1, Math.min(100, Number(page.limit) || 60))
-        const pageNo = Math.floor(Math.max(0, Number(page.offset) || 0) / limit) + 1
+        const pageNo = Math.floor(offset / limit) + 1
         const platform = provider === 'kugouLite' ? 'lite' : 'standard'
         const answer = await callKugou(platform, 'artist_audios', {
           id: artistKey,
@@ -520,9 +563,16 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
         })
         const rows = kugouList(answer.body)
         if (rows.length > 0) {
-          return rows
+          const songs = rows
             .map((item) => shape(provider, KG.normalizePackageSong(item)))
             .filter((song) => song.id !== '')
+          const total = Number(answer.body?.data?.total ?? answer.body?.total) || 0
+          return {
+            songs,
+            total: total || songs.length,
+            hasMore: total > 0 ? offset + rows.length < total : rows.length >= limit,
+            nextOffset: offset + rows.length,
+          }
         }
       } catch {
         // Fall back to the name search when the local KuGou package has no
@@ -531,7 +581,7 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
     }
   }
   const results = await search(provider, name, cookie, session)
-  return results.filter((song) => artistMatches(song, name))
+  return artistPageOfSongs(results.filter((song) => artistMatches(song, name)))
 }
 
 /**
