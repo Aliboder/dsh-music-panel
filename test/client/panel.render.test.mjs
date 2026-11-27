@@ -171,8 +171,8 @@ const localText = textOf(local)
 assert.ok(localText.includes('Alpha'), 'the first track title is rendered')
 assert.ok(localText.includes('Gamma'), 'visible tracks are rendered')
 
-// 播放模式是一颗按钮：顺序 → 随机 → 单曲 → 顺序。
-const MODE_TITLES = ['顺序播放', '随机播放', '单曲循环']
+// Folia's loop modes are the only mode: 顺序 → 列表循环 → 单曲 → 顺序.
+const MODE_TITLES = ['顺序播放', '列表循环', '单曲循环']
 // Only the panel's own bottom bar: the now-playing page mounts its own mode buttons too,
 // and each surface keeps exactly one.
 function modeButtons(tree) {
@@ -194,21 +194,37 @@ const modeFirst = modeButtons(panel())
 assert.equal(modeFirst.length, 1, 'the player bar has one play-mode button, not shuffle + repeat')
 assert.equal(modeFirst[0].props.title, '顺序播放', 'the default mode is play-in-order')
 modeFirst[0].props.onClick()
-assert.equal(internals.player.getSnapshot().order, 'random')
-assert.equal(internals.player.getSnapshot().loop, 'all')
+assert.equal(internals.player.getSnapshot().loop, 'all', 'the second mode is list loop')
 const modeSecond = modeButtons(panel())
-assert.equal(modeSecond[0].props.title, '随机播放')
+assert.equal(modeSecond[0].props.title, '列表循环')
 modeSecond[0].props.onClick()
 assert.equal(internals.player.getSnapshot().loop, 'one')
-assert.equal(internals.player.getSnapshot().order, 'list')
 const modeThird = modeButtons(panel())
 assert.equal(modeThird[0].props.title, '单曲循环')
 modeThird[0].props.onClick()
 assert.equal(internals.player.getSnapshot().loop, 'none')
 assert.equal(modeThird.length, 1)
 assert.equal(modeButtons(panel())[0].props.title, '顺序播放', 'the cycle returns to play-in-order')
+
+// Folia's shuffle is a one-shot queue action, not a mode: the queue is reordered in place,
+// the playing track moves to the front, and the loop mode is untouched.
 internals.player.setLoop('none')
-internals.player.setOrder('list')
+internals.player.playList(TRACKS, 1)
+const beforeShuffle = internals.player.getSnapshot()
+assert.equal(beforeShuffle.queue[1].path, 'D:/Music/b.mp3')
+assert.equal(internals.player.shuffleQueue(), true, 'the queue can be shuffled')
+const afterShuffle = internals.player.getSnapshot()
+assert.equal(afterShuffle.loop, beforeShuffle.loop, 'shuffling does not change the loop mode')
+assert.equal(afterShuffle.queue.length, beforeShuffle.queue.length)
+assert.deepEqual(
+  afterShuffle.queue.map((track) => track.path).sort(),
+  beforeShuffle.queue.map((track) => track.path).sort(),
+  'shuffling keeps the same songs',
+)
+assert.equal(afterShuffle.queue[0].path, 'D:/Music/b.mp3', 'the playing track is pinned first')
+assert.equal(afterShuffle.index, 0)
+assert.equal(internals.player.shuffleQueue(), true)
+assert.equal(internals.player.setLoop('none'), undefined, 'setLoop stays the one mode setter')
 
 // The now-playing page's own controls use the same single mode button.
 const npSecondary = readFileSync(new URL('../../src/client/components/ui/now-playing/secondary-actions.js', import.meta.url), 'utf8')
@@ -220,8 +236,13 @@ assert.match(npCapsule, /cyclePlayMode\(snap\)/, 'the play-page capsule cycles m
 assert.doesNotMatch(npCapsule, /playerLoopNext|cycleLoop/, 'the old loop-only control is gone')
 const p3ShellSource = readFileSync(new URL('../../src/client/panel-v3/p3-shell.js', import.meta.url), 'utf8')
 assert.match(p3ShellSource, /cyclePlayMode\(snap\)/, 'the player bar cycles modes')
-assert.doesNotMatch(p3ShellSource, /player\.setOrder\(snap\.order === 'random'/, 'the separate shuffle toggle is gone')
-assert.doesNotMatch(p3ShellSource, /playerLoopNext/, 'the loop-only helper is gone')
+assert.match(p3ShellSource, /player\.shuffleQueue\(\)/, 'the queue panel offers Folia\'s shuffle action')
+assert.doesNotMatch(p3ShellSource, /playerLoopNext|setOrder/, 'the loop-only helper and random mode are gone')
+const playerSource = readFileSync(new URL('../../src/client/services/player/player.js', import.meta.url), 'utf8')
+assert.match(playerSource, /var LOOP_MODES = \['none', 'all', 'one'\]/, 'Folia\'s three loop modes')
+assert.match(playerSource, /shuffleQueue: function/, 'shuffle is a player action')
+assert.doesNotMatch(playerSource, /setOrder/, 'no random mode setter remains')
+assert.doesNotMatch(playerSource, /state\.order/, 'the player state has no order flag')
 
 internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { layout: 'rail' }))
 const railTree = panel()
@@ -275,6 +296,9 @@ assert.equal(moreRows.length, 1, 'the hot list ends with one 全部歌曲 entry'
 assert.ok(textOf(moreRows[0]).includes('全部歌曲'), 'the bottom entry names the full list')
 assert.ok(textOf(moreRows[0]).includes('417'), 'the bottom entry carries the total')
 const p3Pages = readFileSync(new URL('../../src/client/panel-v3/p3-pages.js', import.meta.url), 'utf8')
+// Folia's page-level shuffle is a one-shot action, not a global mode flip.
+assert.doesNotMatch(p3Pages, /player\.setOrder/, 'page shuffle no longer flips a global mode')
+assert.match(p3Pages, /shuffleQueueInRounds\(items\.slice\(\), null\)/, 'page shuffle is a one-shot shuffle')
 // A provider that answered the whole list on the first request (no next page) still gets
 // the entry: 「no more pages」 is not 「no second layer」.
 internals.onlineStore.set({

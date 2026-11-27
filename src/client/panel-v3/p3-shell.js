@@ -754,8 +754,8 @@ function P3Queue(props) {
 
   if (!props.open) return null
 
-  var order = snap.order === 'random' ? player.getPlayOrder() : snap.queue.map(function (_, index) { return index })
-  if (!Array.isArray(order) || order.length !== snap.queue.length) order = snap.queue.map(function (_, index) { return index })
+  // Folia's queue shows the queue in its own order: a shuffled queue IS the play order.
+  var order = snap.queue.map(function (_, index) { return index })
 
   function selectQueue(index) {
     if (dragFrom.current !== null) return
@@ -837,6 +837,10 @@ function P3Queue(props) {
       h('strong', null, t('page.queue')),
       h('span', null, snap.queue.length + ' ' + t('p3.unitSong') + ' · ' + playModeLabel(playModeOf(snap))),
       h('span', { className: 'mpv3-grow' }),
+      // Folia's 「打乱队列」: a one-shot shuffle of this queue, the playing track first.
+      snap.queue.length > 1 ? h(IconButton, { icon: 'shuffle', size: 15, title: t('page.shuffleQueue'), onClick: function () {
+        if (player.shuffleQueue()) showToast(t('page.queueShuffled'))
+      } }) : null,
       snap.queue.length > 0 ? h(IconButton, { icon: 'trash', size: 15, title: t('p3.clearQueue'), onClick: function () {
         pushLayer('confirm', {
           title: t('p3.clearQueue'),

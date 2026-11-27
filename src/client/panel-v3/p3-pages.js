@@ -9,8 +9,12 @@ function p3PlayAll(items) {
 
 function p3ShuffleAll(items) {
   if (!items || items.length === 0) return
-  player.setOrder('random')
-  p3PlayList(items, Math.floor(Math.random() * items.length))
+  // Folia's page-level 「随机播放」: shuffle this batch once and start from its first track.
+  // It is a one-shot action — the playback mode stays whatever it was.
+  var list = readPrefs().shuffleRoundNoRepeat === true
+    ? shuffleQueueInRounds(items.slice(), null)
+    : shuffleTracks(items.slice(), null)
+  p3PlayList(list, 0)
 }
 
 function p3PageMeta(state, library, online, prefs) {

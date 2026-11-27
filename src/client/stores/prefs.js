@@ -338,7 +338,6 @@ var PREF_DEFAULTS = {
   /** Folia's replay-gain choice; `normalizeVolume` is the legacy on/off form. */
   replayGainMode: 'off',
   loop: 'none',
-  order: 'list',
   resumeOnStart: true,
   sleepTimerMinutes: 0,
   sleepDeadline: 0,

@@ -73,6 +73,15 @@ var ICONS = {
       ['path', { d: 'M21 13v2a4 4 0 01-4 4H3' }],
     ],
   },
+  repeatOff: {
+    parts: [
+      ['path', { d: 'M17 2l4 4-4 4' }],
+      ['path', { d: 'M3 11V9a4 4 0 014-4h14' }],
+      ['path', { d: 'M7 22l-4-4 4-4' }],
+      ['path', { d: 'M21 13v2a4 4 0 01-4 4H3' }],
+      ['path', { d: 'M2 2l20 20' }],
+    ],
+  },
   repeatOne: {
     parts: [
       ['path', { d: 'M17 2l4 4-4 4' }],

@@ -1264,10 +1264,8 @@ function PlayerSheetInner(props) {
   function cardQueuePane() {
     var queue = Array.isArray(snap.queue) ? snap.queue : []
     var current = Number(snap.index)
-    var order = snap.order === 'random' && typeof player.getPlayOrder === 'function'
-      ? player.getPlayOrder()
-      : queue.map(function (_, index) { return index })
-    if (!Array.isArray(order) || order.length !== queue.length) order = queue.map(function (_, index) { return index })
+    // The queue's own order is the play order (a shuffle rewrites the queue itself).
+    var order = queue.map(function (_, index) { return index })
     var listHeight = Math.max(320, Math.min(900, (typeof window !== 'undefined' ? window.innerHeight : 900) - 300))
     function move(index, target) {
       if (!Number.isInteger(index) || index < 0 || index >= queue.length) return

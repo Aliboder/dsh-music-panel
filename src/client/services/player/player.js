@@ -22,48 +22,39 @@ function shuffleTracks(list, currentTrack) {
   return queue
 }
 
-// Three playback modes, mapped onto the engine's loop/order pair:
-//   sequence → in order, stop at the end
-//   random   → shuffled, looping
-//   one      → repeat the current track
-var PLAY_MODES = ['sequence', 'random', 'one']
+// Folia's loop modes are the only persistent playback mode:
+//   none → play in order, stop at the end
+//   all  → wrap around the queue
+//   one  → repeat the current track
+// Shuffle is a one-shot queue action (`player.shuffleQueue`), not a mode: the queue keeps
+// the order it was shuffled into, so switching modes never has to "restore" anything.
+var LOOP_MODES = ['none', 'all', 'one']
 
 function playModeOf(snap) {
   if (snap.loop === 'one') return 'one'
-  if (snap.order === 'random') return 'random'
-  return 'sequence'
+  if (snap.loop === 'all') return 'all'
+  return 'none'
 }
 
 function playModeLabel(mode) {
   return mode === 'one'
-    ? t('page.modeOne')
-    : mode === 'random'
-      ? t('page.modeRandom')
+    ? t('page.loopOne')
+    : mode === 'all'
+      ? t('page.loopAll')
       : t('page.modeSequence')
 }
 
 function playModeIcon(mode) {
-  return mode === 'one' ? 'repeatOne' : mode === 'random' ? 'shuffle' : 'repeat'
+  return mode === 'one' ? 'repeatOne' : mode === 'all' ? 'repeat' : 'repeatOff'
 }
 
 function applyPlayMode(mode) {
-  if (mode === 'one') {
-    player.setLoop('one')
-    player.setOrder('list')
-    return
-  }
-  if (mode === 'random') {
-    player.setLoop('all')
-    player.setOrder('random')
-    return
-  }
-  player.setLoop('none')
-  player.setOrder('list')
+  player.setLoop(mode === 'one' ? 'one' : mode === 'all' ? 'all' : 'none')
 }
 
 function cyclePlayMode(snap) {
   var current = playModeOf(snap)
-  applyPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(current) + 1) % PLAY_MODES.length])
+  applyPlayMode(LOOP_MODES[(LOOP_MODES.indexOf(current) + 1) % LOOP_MODES.length])
 }
 
 
@@ -265,8 +256,8 @@ var mseFallbackToken = -1
     queue: [],
     index: -1,
     playing: false,
-    loop: prefs.loop === 'one' ? 'one' : 'none',
-    order: prefs.order === 'random' && prefs.loop !== 'one' ? 'random' : 'list',
+    // Folia's loopMode: the one persistent playback mode.
+    loop: prefs.loop === 'one' ? 'one' : prefs.loop === 'all' ? 'all' : 'none',
     volume: clamp(savedVolume, 0, 1),
     muted: false,
     currentTime: 0,
@@ -482,7 +473,6 @@ var mseFallbackToken = -1
         positionSec: state.currentTime,
         durationSec: duration,
         loop: state.loop,
-        order: state.order,
       }).catch(function () {})
     } catch (error) {
       // Best effort.
@@ -586,8 +576,9 @@ var mseFallbackToken = -1
     state = Object.assign({}, state, {
       queue: queue,
       index: index,
-      loop: saved.loop === 'one' ? 'one' : saved.order === 'random' ? 'all' : 'none',
-      order: saved.order === 'random' && saved.loop !== 'one' ? 'random' : 'list',
+      // Folia has only a loop mode. An older save that was in "random" had already
+      // shuffled its queue in place, so it restores as 列表循环 over that same order.
+      loop: saved.loop === 'one' ? 'one' : saved.loop === 'all' || saved.order === 'random' ? 'all' : 'none',
       currentTime: saved.positionSec > 0 ? saved.positionSec : 0,
       duration: saved.durationSec > 0 ? saved.durationSec : 0,
       playing: false,
@@ -1946,7 +1937,7 @@ var mseFallbackToken = -1
   /** Folia's shuffleRound: record the song now playing and reshuffle a finished round. */
   function trackShuffleRoundProgress() {
     if (readPrefs().shuffleRoundNoRepeat !== true) return
-    if (state.order !== 'random' || state.index < 0) return
+    if (state.index < 0) return
     var current = currentItem()
     if (current === null) return
     var keys = state.queue.map(shuffleRoundKeyOf).filter(function (key) { return key !== '' })
@@ -2762,12 +2753,6 @@ var mseFallbackToken = -1
     getActiveAudio: function () {
       return audio
     },
-    /** Queue indices in the current playback order (random mode). */
-    getPlayOrder: function () {
-      return state.queue.map(function (_, index) {
-        return index
-      })
-    },
     /** Restore the last queue/position once (called by the resident host). */
     tryRestore: tryRestore,
     /** Flush statistics + resume state when the page is hidden/closed. */
@@ -2884,20 +2869,14 @@ var mseFallbackToken = -1
     setQueue: function (list) {
       // Never replace a queue that is already playing or paused mid-track.
       if (state.index >= 0) return
-      var queue = state.order === 'random' ? shuffleForOrder(list, null) : list.slice()
-      state = Object.assign({}, state, { queue: queue, index: -1 })
+      state = Object.assign({}, state, { queue: list.slice(), index: -1 })
       emit()
     },
     playList: function (list, at) {
       if (!list || list.length === 0) return
-      var queue = list.slice()
-      var index = at
-      if (state.order === 'random') {
-        queue = shuffleForOrder(queue, queue[at])
-        index = 0
-      }
-      state = Object.assign({}, state, { queue: queue, index: index })
-      load(index, true)
+      // Like Folia: a queue starts in the order it was given. Shuffle is a separate action.
+      state = Object.assign({}, state, { queue: list.slice(), index: at })
+      load(at, true)
     },
     /** Insert one track immediately after the current one, without interrupting playback. */
     enqueueNext: function (track) {
@@ -2935,14 +2914,8 @@ var mseFallbackToken = -1
         return
       }
       if (!sameQueue(list, state.queue)) {
-        var queue = list.slice()
-        var index = at
-        if (state.order === 'random') {
-          queue = shuffleForOrder(queue, queue[at])
-          index = 0
-        }
-        state = Object.assign({}, state, { queue: queue, index: index })
-        load(index, true)
+        state = Object.assign({}, state, { queue: list.slice(), index: at })
+        load(at, true)
         return
       }
       load(at, true)
@@ -3306,22 +3279,21 @@ var mseFallbackToken = -1
       savePrefs({ loop: value })
       emit()
     },
-    setOrder: function (value) {
-      var next = value === 'random' ? 'random' : 'list'
-      if (next === 'random' && state.queue.length > 1) {
-        // Shuffle the canonical queue once; the panel order is the play order.
-        var current = currentItem()
-        var queue = shuffleForOrder(state.queue, current)
-        state = Object.assign({}, state, { queue: queue, index: current ? 0 : state.index, order: next })
-      } else {
-        state = Object.assign({}, state, { order: next })
-      }
-      savePrefs({ order: next })
+    /**
+     * Folia's 「打乱队列」: shuffle the queue in place, the playing track first, keep playing.
+     * A one-shot edit of the queue — there is no random mode to switch back out of.
+     */
+    shuffleQueue: function () {
+      if (state.queue.length < 2) return false
+      var current = currentItem()
+      var queue = shuffleForOrder(state.queue, current)
+      state = Object.assign({}, state, { queue: queue, index: current ? 0 : state.index })
       emit()
       savePlaybackState()
       // The neighbour changed; drop the old prefetch and warm the new one.
       cancelPrefetch()
       maybePrefetchNext()
+      return true
     },
     clear: function () {
       loadToken += 1
