@@ -520,6 +520,20 @@ async function openArtistAllSongs() {
   var state = onlineStore.get()
   if (String(state.artistName || '') === '') return
   var token = (artistAllLoadToken += 1)
+  // A provider that answered the whole list on the first request (KuGou's bounded name
+  // fallback, Navidrome's search) already has every song: show those instead of asking for
+  // the same list a second time. Only a paged artist endpoint needs the request below.
+  if (state.artistHasMore !== true && Array.isArray(state.artistSongs) && state.artistSongs.length > 0) {
+    onlineStore.set({
+      artistAllSongs: state.artistSongs.slice(),
+      artistAllOffset: state.artistSongs.length,
+      artistAllHasMore: false,
+      artistAllPhase: 'ready',
+      artistAllLoading: false,
+      artistAllError: '',
+    })
+    return
+  }
   onlineStore.set({
     artistAllSongs: [],
     artistAllOffset: 0,
@@ -880,6 +894,11 @@ function rememberOnline(track) {
     // the entry round-trips through storage.
     coverArtId: track.coverArtId || '',
     qualityHint: track.qualityHint || '',
+    // The song carries its own catalog refs (Folia's catalogRef). Dropping them here made
+    // every artist page opened from 最近播放 lose the artist id and fall back to a name
+    // search — the "417 songs but only one page" report started on that path.
+    artistsDetail: Array.isArray(track.artistsDetail) ? track.artistsDetail : [],
+    albumDetail: track.albumDetail && typeof track.albumDetail === 'object' ? track.albumDetail : null,
     playedAt: Date.now(),
   }
   if (!entry.provider || entry.id === '') return

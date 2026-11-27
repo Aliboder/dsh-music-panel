@@ -219,11 +219,30 @@ assert.ok(textOf(onlineArtist).includes('全部歌曲'), 'the artist page offers
 assert.ok(textOf(onlineArtist).includes('417'), 'the header carries the platform total, not the ten shown')
 assert.equal(nodesWithClass(onlineArtist, 'mpv3-row').length, 10, 'the page itself keeps Folia top ten')
 const p3Pages = readFileSync(new URL('../../src/client/panel-v3/p3-pages.js', import.meta.url), 'utf8')
+// A provider that answered the whole list on the first request (no next page) still gets
+// the entry: 「no more pages」 is not 「no second layer」.
+internals.onlineStore.set({
+  artistSongs: Array.from({ length: 20 }, (_, index) => ({
+    provider: 'kugouLite',
+    id: 'f' + index,
+    title: '兜底 ' + index,
+    artist: 'Udit Narayan',
+    album: '专辑',
+    durationSec: 200,
+  })),
+  artistTotal: 20,
+  artistHasMore: false,
+})
+const fullyLoadedArtist = panel()
+assert.ok(textOf(fullyLoadedArtist).includes('全部歌曲'), 'a fully loaded list still offers the full view')
+assert.equal(nodesWithClass(fullyLoadedArtist, 'mpv3-row').length, 10, 'the hot section stays at ten')
 assert.match(p3Pages, /openArtistAllSongs\(\)/, 'the full list opens its own paged layer')
 assert.match(p3Pages, /props\.online\.artistAllHasMore === true/, 'the full list pages through P3List')
 assert.doesNotMatch(p3Pages, /items\.slice\(0, 10\)/, 'the artist page no longer hard-cuts the loaded list at ten')
 const onlineSource = readFileSync(new URL('../../src/client/components/online/online.js', import.meta.url), 'utf8')
 assert.match(onlineSource, /searchHasMore: body\.hasMore === true/, 'the search page learns whether a next page exists')
+assert.match(onlineSource, /artistsDetail: Array\.isArray\(track\.artistsDetail\)/, 'recent history keeps the artist ids a song carries')
+assert.match(onlineSource, /albumDetail: track\.albumDetail/, 'recent history keeps the album refs a song carries')
 assert.match(p3Pages, /props\.online\.searchHasMore === true/, 'search load more is gated by the host')
 
 internals.p3RouteStore.set({ source: 'local', page: 'search', param: null, filter: null, query: 'Artist', history: [], scroll: {} })

@@ -1019,7 +1019,9 @@ function P3OnlineArtistPage(props) {
       h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(allOpen ? allItems : items) } }, t('page.playAll')),
       h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(allOpen ? allItems : items) } }, t('p3.shuffle')),
       allOpen ? h(Button, { variant: 'ghost', icon: 'music', onClick: function () { setAllOpen(false) } }, t('p3.hotSongs')) : null,
-      !allOpen && (total > items.length || props.online.artistHasMore === true)
+      // Any artist with more than the ten hot songs gets the full-list entry, whether the
+      // rest is already loaded (a one-shot search) or still paged on the Host.
+      !allOpen && (total > ARTIST_TOP_SONG_SIZE || items.length > ARTIST_TOP_SONG_SIZE || props.online.artistHasMore === true)
         ? h(Button, { variant: 'ghost', icon: 'list', onClick: function () { setAllOpen(true); void openArtistAllSongs() } }, t('p3.allSongs') + (total > 0 ? ' · ' + total : ''))
         : null,
     ),
@@ -1057,7 +1059,7 @@ function P3OnlineArtistPage(props) {
         h('div', { className: 'mpv3-plain-list' }, items.slice(0, ARTIST_TOP_SONG_SIZE).map(function (track, index) {
           return h(P3Row, { key: track.path, track: track, index: index, list: items, currentPath: props.currentPath, playing: props.playing, favoriteSet: props.favoriteSet, selected: false, tabIndex: -1 })
         })),
-        total > items.length || props.online.artistHasMore === true
+        total > ARTIST_TOP_SONG_SIZE || items.length > ARTIST_TOP_SONG_SIZE || props.online.artistHasMore === true
           ? h('div', { className: 'mpv3-more' },
               h(Button, { variant: 'ghost', onClick: function () { setAllOpen(true); void openArtistAllSongs() } }, t('p3.allSongs') + (total > 0 ? ' · ' + total + ' ' + t('p3.unitSong') : '')))
           : null,

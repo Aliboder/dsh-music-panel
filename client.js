@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.1"
-    var CLIENT_BUILD = "66d30dbd7e6d"
+    var CLIENT_BUILD = "491dae586b38"
 
     // ── src/client/app/runtime.js
     /**
@@ -177582,6 +177582,20 @@ window.__ModuleLoader__.load({
       var state = onlineStore.get()
       if (String(state.artistName || '') === '') return
       var token = (artistAllLoadToken += 1)
+      // A provider that answered the whole list on the first request (KuGou's bounded name
+      // fallback, Navidrome's search) already has every song: show those instead of asking for
+      // the same list a second time. Only a paged artist endpoint needs the request below.
+      if (state.artistHasMore !== true && Array.isArray(state.artistSongs) && state.artistSongs.length > 0) {
+        onlineStore.set({
+          artistAllSongs: state.artistSongs.slice(),
+          artistAllOffset: state.artistSongs.length,
+          artistAllHasMore: false,
+          artistAllPhase: 'ready',
+          artistAllLoading: false,
+          artistAllError: '',
+        })
+        return
+      }
       onlineStore.set({
         artistAllSongs: [],
         artistAllOffset: 0,
@@ -177942,6 +177956,11 @@ window.__ModuleLoader__.load({
         // the entry round-trips through storage.
         coverArtId: track.coverArtId || '',
         qualityHint: track.qualityHint || '',
+        // The song carries its own catalog refs (Folia's catalogRef). Dropping them here made
+        // every artist page opened from 最近播放 lose the artist id and fall back to a name
+        // search — the "417 songs but only one page" report started on that path.
+        artistsDetail: Array.isArray(track.artistsDetail) ? track.artistsDetail : [],
+        albumDetail: track.albumDetail && typeof track.albumDetail === 'object' ? track.albumDetail : null,
         playedAt: Date.now(),
       }
       if (!entry.provider || entry.id === '') return
@@ -192773,7 +192792,9 @@ window.__ModuleLoader__.load({
           h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(allOpen ? allItems : items) } }, t('page.playAll')),
           h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(allOpen ? allItems : items) } }, t('p3.shuffle')),
           allOpen ? h(Button, { variant: 'ghost', icon: 'music', onClick: function () { setAllOpen(false) } }, t('p3.hotSongs')) : null,
-          !allOpen && (total > items.length || props.online.artistHasMore === true)
+          // Any artist with more than the ten hot songs gets the full-list entry, whether the
+          // rest is already loaded (a one-shot search) or still paged on the Host.
+          !allOpen && (total > ARTIST_TOP_SONG_SIZE || items.length > ARTIST_TOP_SONG_SIZE || props.online.artistHasMore === true)
             ? h(Button, { variant: 'ghost', icon: 'list', onClick: function () { setAllOpen(true); void openArtistAllSongs() } }, t('p3.allSongs') + (total > 0 ? ' · ' + total : ''))
             : null,
         ),
@@ -192811,7 +192832,7 @@ window.__ModuleLoader__.load({
             h('div', { className: 'mpv3-plain-list' }, items.slice(0, ARTIST_TOP_SONG_SIZE).map(function (track, index) {
               return h(P3Row, { key: track.path, track: track, index: index, list: items, currentPath: props.currentPath, playing: props.playing, favoriteSet: props.favoriteSet, selected: false, tabIndex: -1 })
             })),
-            total > items.length || props.online.artistHasMore === true
+            total > ARTIST_TOP_SONG_SIZE || items.length > ARTIST_TOP_SONG_SIZE || props.online.artistHasMore === true
               ? h('div', { className: 'mpv3-more' },
                   h(Button, { variant: 'ghost', onClick: function () { setAllOpen(true); void openArtistAllSongs() } }, t('p3.allSongs') + (total > 0 ? ' · ' + total + ' ' + t('p3.unitSong') : '')))
               : null,

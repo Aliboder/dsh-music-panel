@@ -549,12 +549,32 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
     return artistPageOfSongs(songs.filter((song) => artistMatches(song, name)))
   }
   if (provider === 'kugou' || provider === 'kugouLite') {
-    const artistKey = String(artistId || '').trim()
+    let artistKey = String(artistId || '').trim()
+    const platform = provider === 'kugouLite' ? 'lite' : 'standard'
+    // The page can open from a row that carries no artist id (an old cached row, a legacy
+    // playlist row): resolve one from the package's own search so the paged artist endpoint
+    // is used instead of the bounded name search — the difference is 1143 songs vs 417.
+    if (!/^\d+$/.test(artistKey)) {
+      try {
+        const found = await KG.search(name, cookie, 1, platform)
+        const wanted = name.trim().toLowerCase()
+        for (const song of found.results || []) {
+          const hit = (song.artistsDetail || []).find((artist) => (
+            String(artist.name || '').trim().toLowerCase() === wanted && artist.id
+          ))
+          if (hit) {
+            artistKey = String(hit.id)
+            break
+          }
+        }
+      } catch {
+        artistKey = ''
+      }
+    }
     if (/^\d+$/.test(artistKey)) {
       try {
         const limit = Math.max(1, Math.min(100, Number(page.limit) || 60))
         const pageNo = Math.floor(offset / limit) + 1
-        const platform = provider === 'kugouLite' ? 'lite' : 'standard'
         const answer = await callKugou(platform, 'artist_audios', {
           id: artistKey,
           page: pageNo,
