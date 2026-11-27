@@ -272,17 +272,15 @@ function P3TopBar(props) {
       h(P3Menu, { open: sourceOpen, anchor: sourceRef.current, items: menuItems, align: 'left', onSelect: pickMenuItem, onClose: function () { setSourceOpen(false) } }),
     ),
     h('div', { className: 'mpv3-grow' }),
-    h(
-      'button',
-      {
-        type: 'button',
-        className: 'mpv3-contact-btn',
-        title: t('contact.title'),
-        onClick: function () { setContactOpen(true) },
-      },
-      icon('user', 15),
-      h('span', null, t('contact.join')),
-    ),
+    // 交流群入口放在顶栏右侧：用宿主 Button 的主按钮样式，比之前的纯文字按钮显眼。
+    h(Button, {
+      variant: 'primary',
+      size: 'sm',
+      icon: 'user',
+      className: 'mpv3-contact-btn',
+      title: t('contact.title'),
+      onClick: function () { setContactOpen(true) },
+    }, t('contact.join')),
     h('div', {
       ref: searchRef,
       className: 'mpv3-search',
