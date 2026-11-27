@@ -132,6 +132,11 @@ ${body}
           libraryStore: libraryStore,
           onlineStore: onlineStore,
           prefsStore: prefsStore,
+          // New-version state: tests drive the check with a stubbed fetch and read the
+          // store the top bar and the About card share.
+          updateStore: typeof updateStore !== 'undefined' ? updateStore : null,
+          checkForUpdate: typeof checkForUpdate === 'function' ? checkForUpdate : null,
+          updateCheckedLabel: typeof updateCheckedLabel === 'function' ? updateCheckedLabel : null,
           overlayStore: overlayStore,
           selectionStore: selectionStore,
           player: player,

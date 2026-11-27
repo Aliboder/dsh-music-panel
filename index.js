@@ -30,6 +30,7 @@ import { stopNeteaseService } from './src/host/services/netease-api.js'
 import { stopQqService } from './src/host/services/qq-api.js'
 import { stopAllKugouServices } from './src/host/services/kugou-api.js'
 import { createAudioFocusService } from './src/host/services/audio-focus.js'
+import { createUpdateChecker } from './src/host/services/update/checker.js'
 
 /** Cordis plugin name. */
 export const name = 'music'
@@ -140,6 +141,12 @@ export function apply(ctx, rawConfig) {
       readLyrics: (file) => readLyricsFor(file),
     })
   }
+  // New-version check: lazy (the client asks when the panel/About opens), cached on disk,
+  // and disabled entirely by the settings switch.
+  const updateChecker = createUpdateChecker({
+    dir: settings.dir,
+    getConfig: () => settings.read(),
+  })
   const handle = createRoutes({
     settings,
     library,
@@ -158,6 +165,7 @@ export function apply(ctx, rawConfig) {
     resetData,
     lyricState,
     audioFocus,
+    updateChecker,
   })
 
 

@@ -2227,7 +2227,62 @@ function SettingsSheet(props) {
     )
   }
 
-  function aboutTab() {
+  /** 关于页的版本检查：当前/最新/上次检查、手动按钮，以及自动检查的开关与间隔。 */
+function AboutUpdateCard() {
+  var update = useStore(updateStore)
+  var library = useStore(libraryStore)
+  var config = library.config || {}
+  var busyPair = useState(false)
+  var busy = busyPair[0]
+  var setBusy = busyPair[1]
+  useEffect(function () {
+    void checkForUpdate()
+  }, [])
+  function checkNow() {
+    setBusy(true)
+    Promise.resolve(checkForUpdate({ force: true })).then(function () {
+      setBusy(false)
+    }, function () {
+      setBusy(false)
+    })
+  }
+  var checking = busy || update.phase === 'checking'
+  var status = ''
+  if (config.updateCheck === false || update.disabled === true) status = t('update.disabled')
+  else if (checking) status = t('update.checking')
+  else if (update.phase === 'offline') status = t('update.offline')
+  else if (update.phase === 'error' || update.failed === true) status = t('update.failed')
+  else if (update.updateAvailable === true && update.latest !== '') status = t('update.available', { version: 'v' + update.latest })
+  else if (update.phase === 'ready') status = t('update.upToDate')
+  return h('div', { key: 'update', className: 'mp-about-rows' },
+    h('div', { className: 'mp-about-row' }, h('span', null, t('update.current')), h('strong', null, update.current || APP_VERSION)),
+    h('div', { className: 'mp-about-row' }, h('span', null, t('update.latest')), h('strong', null, update.latest || '—')),
+    h('div', { className: 'mp-about-row' }, h('span', null, t('update.checkedAt')), h('strong', null, updateCheckedLabel(update.checkedAt))),
+    h(SetRow, { key: 'update-check', label: t('update.rowLabel'), desc: t('update.rowDesc', { hours: Number(config.updateCheckIntervalHours) || 1 }) },
+      h(Button, { variant: 'ghost', icon: 'refresh', disabled: checking, onClick: checkNow }, checking ? t('update.checking') : t('update.check')),
+    ),
+    status !== '' ? h('div', { key: 'update-status', className: 'mp-set-desc' }, status) : null,
+    h(SetRow, { key: 'update-auto', label: t('update.auto'), desc: t('update.autoDesc') },
+      h(Switch, {
+        value: config.updateCheck !== false,
+        onChange: function (value) { void saveHostConfig({ updateCheck: value }) },
+      }),
+    ),
+    h(SetRow, { key: 'update-interval', label: t('update.interval'), desc: t('update.intervalDesc') },
+      h(KitSegmented, {
+        options: [
+          { value: '1', label: t('update.interval1') },
+          { value: '6', label: t('update.interval6') },
+          { value: '24', label: t('update.interval24') },
+        ],
+        value: String(Number(config.updateCheckIntervalHours) || 1),
+        onChange: function (value) { void saveHostConfig({ updateCheckIntervalHours: Number(value) }) },
+      }),
+    ),
+  )
+}
+
+function aboutTab() {
     var kit = typeof hostKitState === 'function' ? hostKitState() : { state: hostUi ? 'native' : 'fallback', missing: [] }
     return [
       h('h2', { key: 'h' }, t('v2.about')),
@@ -2260,6 +2315,7 @@ function SettingsSheet(props) {
           ),
         ),
       ),
+      h(AboutUpdateCard, { key: 'update-card' }),
       h(
         'div',
         { key: 'links', className: 'mp-about-links' },

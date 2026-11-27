@@ -253,6 +253,7 @@ export function createRoutes({
   cacheDirFor,
   watcher,
   getLibraryRevision,
+  updateChecker,
 }) {
   /** '' in settings means the plugin's own data directory. */
   const settingsDir = typeof settings.dir === 'string' && settings.dir !== '' ? settings.dir : ''
@@ -556,6 +557,16 @@ export function createRoutes({
         })
       }
 
+      // New-version check. The answer comes from the Host's disk cache unless it is stale
+      // or the client forces a manual check; nothing here talks to npm from the browser.
+      if (pathname === '/update' && method === 'GET') {
+        if (updateChecker === undefined || updateChecker === null) {
+          return fail(res, 503, 'UPDATE_UNAVAILABLE', '版本检查不可用')
+        }
+        const update = await updateChecker.read({ force: params.get('force') === '1' })
+        return sendJson(res, 200, { ok: true, ...update })
+      }
+
       // Folder browser backing the library picker (read-only directory listing).
       if (pathname === '/browse' && method === 'GET') {
         const requested = (params.get('path') || '').trim()
@@ -657,6 +668,8 @@ export function createRoutes({
           }
         }
         if (body?.watchFolders !== undefined) patch.watchFolders = body.watchFolders === true
+        if (body?.updateCheck !== undefined) patch.updateCheck = body.updateCheck === true
+        if (body?.updateCheckIntervalHours !== undefined) patch.updateCheckIntervalHours = body.updateCheckIntervalHours
         const config = await settings.write(patch)
         // The cache store and the watchers follow the new settings without a restart.
         if (mediaCache !== undefined && typeof mediaCache.setDir === 'function') mediaCache.setDir(cacheDirOf(config))

@@ -199,5 +199,47 @@ assert.deepEqual(parseRange('bytes=2000-', 1000), { invalid: true })
 assert.equal(parseRange('', 1000), null)
 assert.equal(parseRange('pages=1', 1000), null)
 
+// 版本检查路由：有 checker 时返回 Host 的答案，force 透传；没有 checker 时明确拒绝。
+{
+  const calls = []
+  const checker = {
+    read: async (options) => {
+      calls.push(options)
+      return {
+        current: '0.47.1',
+        latest: '0.47.2',
+        updateAvailable: true,
+        checkedAt: 1,
+        failed: false,
+        source: 'npm',
+        disabled: false,
+        intervalHours: 1,
+      }
+    },
+  }
+  const withUpdate = createRoutes({ settings, library, updateChecker: checker })
+  res = fakeRes()
+  await withUpdate(fakeReq('/music/update'), res)
+  assert.equal(res.status, 200)
+  assert.equal(res.json().ok, true)
+  assert.equal(res.json().latest, '0.47.2')
+  assert.deepEqual(calls[0], { force: false })
+  res = fakeRes()
+  await withUpdate(fakeReq('/music/update?force=1'), res)
+  assert.deepEqual(calls[1], { force: true })
+  res = fakeRes()
+  await handle(fakeReq('/music/update'), res)
+  assert.equal(res.status, 503, 'without a checker the route refuses instead of guessing')
+}
+
+// /config POST 接受版本检查的两个配置项。
+{
+  res = fakeRes()
+  await handle(fakeReq('/music/config', 'POST', {}, JSON.stringify({ updateCheck: false, updateCheckIntervalHours: 6 })), res)
+  assert.equal(res.status, 200)
+  assert.equal(res.json().config.updateCheck, false)
+  assert.equal(res.json().config.updateCheckIntervalHours, 6)
+}
+
 console.log('routes.test.mjs ok')
 

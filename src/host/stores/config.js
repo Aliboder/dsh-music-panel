@@ -18,6 +18,9 @@ export const DEFAULTS = Object.freeze({
   cacheDir: '',
   /** Folia's 自动扫描已导入文件夹: rescan when a watched folder changes. */
   watchFolders: false,
+  /** New-version check: on by default, at most once per `updateCheckIntervalHours`. */
+  updateCheck: true,
+  updateCheckIntervalHours: 1,
 })
 
 /** Extensions the scanner may emit; anything else is ignored on disk. */
@@ -61,7 +64,7 @@ function clampInt(value, fallback, min, max) {
  * extension list means "everything supported".
  *
  * @param {unknown} raw
- * @returns {{ roots: string[], depth: number, extensions: string[] }}
+ * @returns {{ roots: string[], hiddenRoots: string[], depth: number, extensions: string[], onlineQuality: string, cacheDir: string, watchFolders: boolean, updateCheck: boolean, updateCheckIntervalHours: number }}
  */
 export function normalizeConfig(raw) {
   const input = raw !== null && typeof raw === 'object' ? raw : {}
@@ -96,7 +99,15 @@ export function normalizeConfig(raw) {
   const cacheDir = strOf(input.cacheDir).slice(0, MAX_ROOT_LENGTH)
   const watchFolders = input.watchFolders === true
 
-  return { roots, hiddenRoots, depth, extensions, onlineQuality, cacheDir, watchFolders }
+  // The new-version check runs on the Host; the interval is bounded so a bad value cannot
+  // hammer the registry.
+  const updateCheck = input.updateCheck !== false
+  const rawInterval = Number(input.updateCheckIntervalHours)
+  const updateCheckIntervalHours = Number.isFinite(rawInterval)
+    ? Math.min(168, Math.max(1, Math.round(rawInterval)))
+    : DEFAULTS.updateCheckIntervalHours
+
+  return { roots, hiddenRoots, depth, extensions, onlineQuality, cacheDir, watchFolders, updateCheck, updateCheckIntervalHours }
 }
 
 /**

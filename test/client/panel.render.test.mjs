@@ -754,4 +754,65 @@ assert.ok(detailsText.includes('1000 B'), 'the size row comes from the stat, not
 assert.ok(detailsText.includes('Album One'), 'the album comes from the library record')
 internals.overlayStore.set({ layers: [] })
 
+// 版本检查：面板打开时问一次 Host，有更新才出现顶部角标；客户端缓存避免重复请求。
+{
+  const updateResponses = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    updateResponses.push(String(url))
+    return {
+      ok: true,
+      json: async () => ({
+        ok: true,
+        current: '0.47.1',
+        latest: '0.47.2',
+        updateAvailable: true,
+        checkedAt: Date.now(),
+        failed: false,
+        disabled: false,
+        source: 'npm',
+        intervalHours: 1,
+      }),
+    }
+  }
+  internals.p3RouteStore.set({ source: 'local', page: 'songs', param: null, filter: null, query: '', history: [], scroll: {} })
+  const updateState = await internals.checkForUpdate({ force: true })
+  assert.equal(updateResponses.length, 1, 'the check asks the Host once')
+  assert.match(updateResponses[0], /music\/update\?force=1$/)
+  assert.equal(updateState.updateAvailable, true)
+  assert.equal(internals.updateStore.get().latest, '0.47.2')
+  await internals.checkForUpdate()
+  assert.equal(updateResponses.length, 1, 'the client cache prevents a second request')
+  const withUpdate = panel()
+  const pills = nodesWithClass(withUpdate, 'mpv3-update-pill')
+  assert.equal(pills.length, 1, 'the top bar shows the update pill')
+  assert.ok(textOf(pills[0]).includes('0.47.2'))
+  assert.ok(textOf(pills[0]).includes('新版本'))
+  internals.updateStore.set({ updateAvailable: false, latest: '' })
+  assert.equal(nodesWithClass(panel(), 'mpv3-update-pill').length, 0, 'no pill without an update')
+  globalThis.fetch = originalFetch
+}
+
+// 设置 → 关于：版本行、手动检查、自动检查与间隔都接到 Host config。
+{
+  const settingsSource = readFileSync(new URL('../../src/client/components/ui/settings.js', import.meta.url), 'utf8')
+  assert.match(settingsSource, /function AboutUpdateCard\(\)/, 'the About page has its own update card')
+  assert.match(settingsSource, /'update\.current'/, 'the About card shows the current version')
+  assert.match(settingsSource, /'update\.latest'/, 'the About card shows the latest version')
+  assert.match(settingsSource, /saveHostConfig\(\{ updateCheck: value \}\)/, 'the auto-check switch writes the Host config')
+  assert.match(settingsSource, /saveHostConfig\(\{ updateCheckIntervalHours: Number\(value\) \}\)/, 'the interval writes the Host config')
+  const styles = readFileSync(new URL('../../src/client/panel-v3/p3-styles.js', import.meta.url), 'utf8')
+  assert.match(styles, /\.mpv3-update-pill\{/, 'the pill has a style')
+}
+
+// 设置 → 关于页真的能把版本行渲染出来（不依赖网络：store 里已有答案）。
+{
+  internals.overlayStore.set({ layers: [{ kind: 'settings', props: { tab: 'about' } }] })
+  const settingsText = textOf(panel())
+  assert.ok(settingsText.includes('当前版本'), 'the About page shows the current version row')
+  assert.ok(settingsText.includes('最新版本'), 'the About page shows the latest version row')
+  assert.ok(settingsText.includes('检查更新'), 'the About page offers the manual check')
+  internals.overlayStore.set({ layers: [] })
+}
+
 console.log('panel.render.test.mjs ok')

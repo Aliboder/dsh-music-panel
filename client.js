@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.1"
-    var CLIENT_BUILD = "77ac90d653b3"
+    var CLIENT_BUILD = "dc0815485ffc"
 
     // ── src/client/app/runtime.js
     /**
@@ -8515,6 +8515,32 @@ window.__ModuleLoader__.load({
         'settings.crossfadeSecondsHint': '最长淡入淡出时间；实际长度还会受曲目剩余空间和静音边限制。',
         'settings.playbackReportsUnavailable': '当前没有平台声明支持播放上报。',
         'about.diagnostics': '诊断',
+        'update.label': '新版本',
+        'update.pillTip': '新版本 {version} 已发布，点击查看更新',
+        'update.current': '当前版本',
+        'update.latest': '最新版本',
+        'update.checkedAt': '上次检查',
+        'update.rowLabel': '检查更新',
+        'update.rowDesc': '自动检查最多每 {hours} 小时一次。',
+        'update.check': '检查更新',
+        'update.checking': '检查中…',
+        'update.upToDate': '已是最新版本',
+        'update.available': '有新版本可用：{version}',
+        'update.failed': '检查失败，稍后重试',
+        'update.offline': '当前离线，联网后自动检查',
+        'update.disabled': '自动检查已关闭',
+        'update.auto': '自动检查新版本',
+        'update.autoDesc': '打开面板或「关于」页时在后台检查，不会打断播放。',
+        'update.interval': '检查间隔',
+        'update.intervalDesc': '后台最多按这个间隔请求一次版本信息。',
+        'update.interval1': '1 小时',
+        'update.interval6': '6 小时',
+        'update.interval24': '24 小时',
+        'update.justNow': '刚刚',
+        'update.minutesAgo': '{n} 分钟前',
+        'update.hoursAgo': '{n} 小时前',
+        'update.daysAgo': '{n} 天前',
+        'update.never': '尚未检查',
         'settings.tabAppearance': '外观与布局',
         'settings.tabPlayback': '播放控制',
         'settings.tabOnline': '在线与账号',
@@ -9618,6 +9644,32 @@ window.__ModuleLoader__.load({
         'settings.crossfadeSecondsHint': 'The longest crossfade; track room and silence edges can shorten it.',
         'settings.playbackReportsUnavailable': 'No platform currently declares playback reporting.',
         'about.diagnostics': 'Diagnostics',
+        'update.label': 'New version',
+        'update.pillTip': 'Version {version} is available — click to see the release',
+        'update.current': 'Current version',
+        'update.latest': 'Latest version',
+        'update.checkedAt': 'Last checked',
+        'update.rowLabel': 'Check for updates',
+        'update.rowDesc': 'Automatic checks run at most once every {hours} hour(s).',
+        'update.check': 'Check now',
+        'update.checking': 'Checking…',
+        'update.upToDate': 'Up to date',
+        'update.available': 'New version available: {version}',
+        'update.failed': 'Check failed, try again later',
+        'update.offline': 'Offline — will check again once connected',
+        'update.disabled': 'Automatic checks are off',
+        'update.auto': 'Check for new versions',
+        'update.autoDesc': 'Checks in the background when the panel or the About page opens; it never interrupts playback.',
+        'update.interval': 'Check interval',
+        'update.intervalDesc': 'The Host asks for version info at most once per interval.',
+        'update.interval1': '1 hour',
+        'update.interval6': '6 hours',
+        'update.interval24': '24 hours',
+        'update.justNow': 'just now',
+        'update.minutesAgo': '{n} min ago',
+        'update.hoursAgo': '{n} h ago',
+        'update.daysAgo': '{n} d ago',
+        'update.never': 'Not checked yet',
         'settings.tabAppearance': 'Appearance & layout',
         'settings.tabPlayback': 'Playback',
         'settings.tabOnline': 'Online & accounts',
@@ -169387,6 +169439,106 @@ window.__ModuleLoader__.load({
       setContentFilter('')
     }
 
+    // ── src/client/stores/update.js
+    /**
+     * New-version state for the panel's top bar and 设置 → 关于.
+     *
+     * The Host owns the network call and its disk cache; this module only dedupes requests,
+     * keeps a short client cache (the Host's interval), and never shows an error by itself.
+     */
+
+    var UPDATE_CLIENT_MIN_TTL_MS = 60 * 1000
+
+    var updateStore = createStore({
+      phase: 'idle', // idle | checking | ready | error | disabled | offline
+      current: typeof APP_VERSION === 'string' ? APP_VERSION : '',
+      latest: '',
+      updateAvailable: false,
+      checkedAt: 0,
+      failed: false,
+      disabled: false,
+      source: '',
+      intervalHours: 1,
+      error: '',
+    })
+
+    var updateFetchedAt = 0
+    var updateInflight = null
+
+    function updateClientTtl() {
+      var hours = Number(updateStore.get().intervalHours)
+      if (!isFinite(hours) || hours <= 0) hours = 1
+      return Math.max(UPDATE_CLIENT_MIN_TTL_MS, hours * 60 * 60 * 1000)
+    }
+
+    function updateOnline() {
+      if (typeof navigator === 'undefined') return true
+      return navigator.onLine !== false
+    }
+
+    function updateApply(body) {
+      var current = typeof body.current === 'string' && body.current !== '' ? body.current : (typeof APP_VERSION === 'string' ? APP_VERSION : '')
+      var latest = typeof body.latest === 'string' && body.latest !== '' ? body.latest : ''
+      var disabled = body.disabled === true
+      updateStore.set({
+        phase: disabled ? 'disabled' : 'ready',
+        current: current,
+        latest: latest,
+        updateAvailable: disabled ? false : body.updateAvailable === true,
+        checkedAt: Number(body.checkedAt) || 0,
+        failed: body.failed === true,
+        disabled: disabled,
+        source: typeof body.source === 'string' ? body.source : '',
+        intervalHours: Number(body.intervalHours) > 0 ? Number(body.intervalHours) : 1,
+        error: '',
+      })
+    }
+
+    /**
+     * Read the Host's update state. `force` bypasses both caches (the manual button).
+     * Auto calls reuse the client cache, skip when offline, and stay silent on failure.
+     */
+    async function checkForUpdate(options) {
+      var force = options !== null && typeof options === 'object' && options.force === true
+      if (!force && updateFetchedAt !== 0 && Date.now() - updateFetchedAt < updateClientTtl()) {
+        return updateStore.get()
+      }
+      if (!updateOnline()) {
+        updateStore.set({ phase: 'offline', error: '' })
+        return updateStore.get()
+      }
+      if (updateInflight !== null) return updateInflight
+      updateStore.set({ phase: 'checking', error: '' })
+      updateInflight = getJson(API + 'update' + (force ? '?force=1' : ''))
+        .then(function (body) {
+          updateFetchedAt = Date.now()
+          updateApply(body || {})
+          return updateStore.get()
+        })
+        .catch(function (error) {
+          if (updateStore.get().phase === 'checking') {
+            updateStore.set({ phase: 'error', error: errorText(error) })
+          }
+          return updateStore.get()
+        })
+        .then(function (state) {
+          updateInflight = null
+          return state
+        })
+      return updateInflight
+    }
+
+    /** Relative 「上次检查」 label; '' before the first check. */
+    function updateCheckedLabel(checkedAt) {
+      var at = Number(checkedAt) || 0
+      if (at <= 0) return t('update.never')
+      var seconds = Math.max(0, Math.floor((Date.now() - at) / 1000))
+      if (seconds < 60) return t('update.justNow')
+      if (seconds < 3600) return t('update.minutesAgo', { n: Math.floor(seconds / 60) })
+      if (seconds < 86400) return t('update.hoursAgo', { n: Math.floor(seconds / 3600) })
+      return t('update.daysAgo', { n: Math.floor(seconds / 86400) })
+    }
+
     // ── src/client/components/library/filter.js
     /**
      * in-view search: match a track against what the user typed in the header.
@@ -181666,6 +181818,7 @@ window.__ModuleLoader__.load({
     // ── src/client/panel-v3/p3-styles.js
     var P3_CSS = "/**\n * panel-v3 styles. All selectors are prefixed .mpv3- so the old panel CSS can\n * coexist until the legacy files are deleted. Colors come from DSH tokens.\n */\n\n.mpv3-root {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n  min-height: 0;\n  overflow: hidden;\n  isolation: isolate;\n  background: var(--dsw-alias-bg-base, #151517);\n  color: var(--dsw-alias-label-primary, #f9fafb);\n  font-family: var(--dsw-font-family, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif);\n  font-size: 13px;\n  line-height: 20px;\n  user-select: none;\n}\n.mpv3-root input, .mpv3-root textarea { user-select: text; }\n.mpv3-root :focus-visible { outline: 2px solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary, #7aaaff)); outline-offset: 2px; }\n.mpv3-root .mp-iconbtn { flex: none; }\n.mpv3-grow { flex: 1; min-width: 0; }\n.mpv3-text-link {\n  padding: 0; border: 0; background: transparent; color: inherit; text-align: left;\n  font: inherit; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\n}\n.mpv3-text-link:hover { color: var(--dsw-alias-label-primary, #f9fafb); text-decoration: underline; text-underline-offset: 2px; }\n\n/* topbar */\n/* Plugin mark in the top-left: links to the repository in a new tab. */\n.mpv3-brand { flex: none; width: 28px; height: 28px; border-radius: 8px; overflow: hidden; display: grid; place-items: center; text-decoration: none; box-shadow: inset 0 0 0 .5px var(--dsw-alias-border-l1, rgba(255,255,255,.08)); transition: box-shadow .12s ease; }\n.mpv3-brand img { width: 100%; height: 100%; object-fit: cover; display: block; }\n.mpv3-brand:hover { box-shadow: inset 0 0 0 .5px var(--dsw-alias-border-l3, rgba(255,255,255,.16)), 0 0 0 2px var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-brand:focus-visible { outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary, #4176E6)); outline-offset: 2px; }\n.mpv3-topbar {\n  height: 56px; flex: none; display: flex; align-items: center; gap: 8px;\n  padding: 0 12px 0 8px;\n  border-bottom: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n  position: relative; z-index: 30;\n}\n.mpv3-back { flex: none; }\n.mpv3-parent { flex: none; font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n.mpv3-source-wrap { position: relative; flex: none; }\n.mpv3-source-btn {\n  height: 30px; padding: 0 10px; border: 0; border-radius: 8px;\n  display: inline-flex; align-items: center; gap: 6px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6);\n  font-size: 13px; cursor: pointer; max-width: 180px;\n}\n.mpv3-source-btn:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); color: var(--dsw-alias-label-primary, #f9fafb); }\n.mpv3-source-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-source-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dsw-alias-state-warn-primary, #f2c14e); flex: none; }\n.mpv3-contact {\n  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 2px 0 4px; text-align: center;\n}\n.mpv3-contact-qr {\n  width: 248px; height: 248px; display: block; border-radius: 12px; object-fit: cover;\n  border: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.08));\n  background: var(--dsw-alias-bg-layer-2, #2c2c2e);\n}\n.mpv3-contact-name { font-size: 15px; font-weight: 600; color: var(--dsw-alias-label-primary, #f9fafb); }\n.mpv3-contact-number { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-contact-hint { max-width: 300px; margin: 2px 0 4px; font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-secondary, #c7c9cc); }\n.mpv3-contact-btn {\n  flex: none; display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px;\n  border: 0; border-radius: 8px; background: transparent; color: var(--dsw-alias-label-secondary, #c7c9cc);\n  font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap;\n}\n.mpv3-contact-btn:hover {\n  background: var(--dsw-alias-bg-layer-2, #2c2c2e); color: var(--dsw-alias-label-primary, #f9fafb);\n}\n.mpv3-search {\n  position: relative; width: clamp(160px, 22vw, 300px); flex: none;\n}\n.mpv3-search > svg { position: absolute; left: 10px; top: 9px; color: var(--dsw-alias-label-tertiary, #adb2b8); pointer-events: none; }\n.mpv3-search input {\n  width: 100%; height: 32px; padding: 0 30px 0 31px; border-radius: 12px;\n  border: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-2, #2c2c2e);\n  color: var(--dsw-alias-label-primary, #f9fafb); font: inherit; font-size: 13px; outline: none;\n}\n.mpv3-search input::placeholder { color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-search input:focus { border-color: var(--dsw-alias-state-business-primary, #7aaaff); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 16%, transparent); }\n.mpv3-search-clear {\n  position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 8px;\n  display: grid; place-items: center; background: transparent; color: var(--dsw-alias-label-tertiary, #adb2b8); cursor: pointer;\n}\n.mpv3-search-clear:hover {\n  background: var(--dsw-alias-bg-layer-2, #2c2c2e); color: var(--dsw-alias-label-primary, #f9fafb);\n}\n.mpv3-search-history {\n  position: absolute; top: calc(100% + 6px); right: 0; width: 100%;\n  padding: 6px; border: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.08));\n  border-radius: 12px; background: var(--dsw-alias-bg-layer-1, #232324);\n  box-shadow: var(--dsw-elevation-prominent, 0 12px 32px rgba(0,0,0,.35));\n  z-index: 40;\n}\n.mpv3-search-history-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 6px 4px; color: var(--dsw-alias-label-tertiary, #adb2b8); font-size: 11px; line-height: 16px; }\n.mpv3-search-history-clear { border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; padding: 2px 0; }\n.mpv3-search-history-clear:hover { color: var(--dsw-alias-label-primary, #f9fafb); }\n.mpv3-search-history-list { display: flex; flex-direction: column; gap: 1px; max-height: 240px; overflow-y: auto; }\n.mpv3-search-history-item { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--dsw-alias-label-primary, #f9fafb); font: inherit; font-size: 12px; text-align: left; cursor: pointer; }\n.mpv3-search-history-item:hover { background: var(--dsw-alias-bg-layer-2, #2c2c2e); }\n.mpv3-search-history-item svg { flex: none; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-search-history-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-account-wrap { position: relative; flex: none; }\n.mpv3-account-btn {\n  width: 28px; height: 28px; border: 0; border-radius: 50%; display: grid; place-items: center;\n  background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent);\n  color: var(--dsw-alias-state-business-primary, #7aaaff); font-size: 11px; font-weight: 600; cursor: pointer; overflow: hidden;\n}\n.mpv3-account-btn img { width: 100%; height: 100%; object-fit: cover; }\n\n/* workspace */\n.mpv3-workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); position: relative; }\n.mpv3-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }\n.mpv3-rail {\n  display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: auto;\n  padding: 12px 8px; border-right: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n}\n.mpv3-root.is-rail .mpv3-workspace { grid-template-columns: 220px minmax(0, 1fr); }\n.mpv3-rail-group { display: flex; flex-direction: column; gap: 1px; }\n.mpv3-rail-label { padding: 0 10px 6px; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-rail-item {\n  display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border: 0; border-radius: 8px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 13px; text-align: left; cursor: pointer;\n}\n.mpv3-rail-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-rail-item.is-on { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent); color: var(--dsw-alias-label-primary, #f9fafb); font-weight: 600; box-shadow: inset 2px 0 0 var(--dsw-alias-state-business-primary, #7aaaff); }\n\n/* viewbar */\n.mpv3-viewbar { height: 44px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 16px; min-width: 0; }\n.mpv3-tabs { min-width: 0; overflow-x: auto; scrollbar-width: none; }\n.mpv3-tabs::-webkit-scrollbar { display: none; }\n.mpv3-menu-anchor { position: relative; flex: none; }\n.mpv3-selection-bar { display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; }\n.mpv3-selection-count { font-size: 13px; font-weight: 600; white-space: nowrap; margin-right: 4px; }\n.mpv3-sel-btn {\n  height: 28px; padding: 0 10px; border: 0; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;\n  background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 13px; white-space: nowrap; cursor: pointer;\n}\n.mpv3-sel-btn:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); color: var(--dsw-alias-label-primary, #f9fafb); }\n.mpv3-sel-btn.is-primary { color: var(--dsw-alias-state-business-primary, #7aaaff); font-weight: 500; }\n.mpv3-sel-btn.is-danger { color: var(--dsw-alias-state-error-primary, #f25a5a); }\n\n/* content */\n.mpv3-content { flex: 1; min-height: 0; display: flex; flex-direction: column; }\n.mpv3-filterbar { height: 34px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 16px; }\n.mpv3-chip {\n  height: 26px; padding: 0 8px; border: .5px solid var(--dsw-alias-border-l2, rgba(255,255,255,.12)); border-radius: 8px;\n  display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 12px; cursor: pointer;\n}\n.mpv3-scroll { flex: 1; min-height: 0; overflow: auto; position: relative; padding: 0 16px 24px; outline: none; }\n.mpv3-scroll-inner { position: relative; width: 100%; }\n.mpv3-scroll-inner.is-static { height: auto; }\n.mpv3-list-header { position: relative; z-index: 1; }\n.mpv3-vrow { position: absolute; left: 0; right: 0; }\n.mpv3-page-head { display: flex; align-items: baseline; gap: 10px; padding: 6px 6px 14px; min-height: 44px; }\n.mpv3-page-title { margin: 0; font-size: 20px; line-height: 28px; font-weight: 650; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-page-count { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n\n/* rows */\n.mpv3-row {\n  display: grid; grid-template-columns: 54px minmax(0, 1.6fr) minmax(0, 1fr) 86px 120px;\n  align-items: center; gap: 16px; height: 76px; padding: 0 14px; border-radius: 16px;\n  position: relative; color: var(--dsw-alias-label-primary, #f9fafb); cursor: default; outline-offset: -2px;\n}\n.mpv3-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-row.is-selected { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent); }\n.mpv3-row.is-cur { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 8%, transparent); }\n.mpv3-row.is-cur::before {\n  content: ''; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);\n  width: 3px; height: 22px; border-radius: 1.5px; background: var(--dsw-alias-state-business-primary, #7aaaff);\n}\n.mpv3-row.is-located { animation: mpv3-flash 1.2s ease; }\n@keyframes mpv3-flash { 0% { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 32%, transparent); } 100% { background: transparent; } }\n.mpv3-row-cover-wrap { position: relative; width: 54px; height: 54px; flex: none; }\n.mpv3-row-cover { width: 54px; height: 54px; border-radius: 12px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 19px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-row-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }\n.mpv3-row-play { position: absolute; inset: 0; border: 0; border-radius: 12px; display: grid; place-items: center; background: rgba(0,0,0,.42); color: #fff; opacity: 0; cursor: pointer; transition: opacity .12s; }\n.mpv3-row.is-cur .mpv3-row-play, .mpv3-row:focus-within .mpv3-row-play { opacity: 1; }\n.mpv3-row:hover .mpv3-row-play { opacity: 1; }\n.mpv3-row-check { position: absolute; right: -4px; top: -4px; width: 20px; height: 20px; border-radius: 50%; background: var(--dsw-alias-state-business-primary, #7aaaff); color: #fff; display: grid; place-items: center; border: 3px solid var(--dsw-alias-bg-base, #151517); }\n.mpv3-row-main { min-width: 0; }\n.mpv3-row-title { display: flex; align-items: center; gap: 8px; font-size: 18px; line-height: 27px; font-weight: 500; overflow: hidden; white-space: nowrap; }\n.mpv3-row-title-text { overflow: hidden; text-overflow: ellipsis; }\n.mpv3-row.is-cur .mpv3-row-title { font-weight: 600; }\n.mpv3-row-sub { display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 24px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }\n.mpv3-row-album { font-size: 16px; line-height: 24px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: left; }\n.mpv3-row-time { font-size: 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: right; font-variant-numeric: tabular-nums; }\n.mpv3-row-acts { display: flex; align-items: center; justify-content: flex-end; gap: 3px; width: 120px; opacity: 0; }\n.mpv3-row:hover .mpv3-row-acts, .mpv3-row.is-cur .mpv3-row-acts, .mpv3-row.is-selected .mpv3-row-acts, .mpv3-row:focus-within .mpv3-row-acts { opacity: 1; }\n.mpv3-row-acts .mp-iconbtn { width: 38px; height: 38px; border-radius: 12px; }\n.mpv3-vip { height: 20px; padding: 0 7px; border-radius: 6px; background: #f2c14e; color: #1a1405; font-size: 14px; line-height: 20px; font-weight: 700; flex: none; }\n.mpv3-eq { display: inline-flex; align-items: flex-end; gap: 3px; height: 14px; flex: none; }\n.mpv3-eq i { width: 3px; background: var(--dsw-alias-state-business-primary, #7aaaff); border-radius: 1px; animation: mpv3-eq .9s ease-in-out infinite; }\n.mpv3-eq i:nth-child(2) { animation-delay: .18s; }\n.mpv3-eq i:nth-child(3) { animation-delay: .36s; }\n@keyframes mpv3-eq { 0%, 100% { height: 3px; } 50% { height: 14px; } }\n\n/* grid / hero / entities */\n.mpv3-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px 16px; padding: 4px 0 20px; }\n.mpv3-card { display: flex; flex-direction: column; min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-card-cover { aspect-ratio: 1; border-radius: 12px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 28px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); transition: transform .16s; }\n.mpv3-card-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-card:hover .mpv3-card-cover { transform: translateY(-2px); }\n.mpv3-card-title { margin-top: 8px; font-size: 13px; line-height: 20px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-card-sub { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-hero { display: flex; align-items: flex-end; gap: 22px; padding: 8px 6px 20px; }\n.mpv3-hero-cover { width: 160px; height: 160px; border-radius: 16px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 48px; font-weight: 650; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-hero-cover.is-round { width: 96px; height: 96px; border-radius: 50%; font-size: 32px; }\n.mpv3-hero-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-hero-info { min-width: 0; flex: 1; padding-bottom: 4px; }\n.mpv3-hero-eyebrow { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); margin-bottom: 6px; }\n.mpv3-hero-title { margin: 0 0 8px; font-size: 24px; line-height: 32px; font-weight: 650; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-hero-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-hero-meta-line { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }\n.mpv3-hero-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }\n.mpv3-section { margin: 8px 0 22px; }\n.mpv3-list-footer { position: absolute; left: 0; right: 0; display: flex; align-items: center; justify-content: center; color: var(--dsw-alias-label-tertiary, #8a8a93); font-size: 12px; }\n.mpv3-more { display: flex; justify-content: center; padding: 8px 0 20px; }\n.mpv3-section-head { display: flex; align-items: baseline; gap: 8px; padding: 0 10px 8px; font-size: 13px; line-height: 20px; }\n.mpv3-section-head strong { font-weight: 600; }\n.mpv3-section-head span { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-plain-list { display: flex; flex-direction: column; }\n.mpv3-entity-row { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 10px; border: 0; border-radius: 12px; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-entity-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-entity-cover { width: 44px; height: 44px; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 15px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }\n.mpv3-entity-cover.is-round { border-radius: 50%; }\n.mpv3-entity-cover.is-folder { color: var(--dsw-alias-state-business-primary, #7aaaff); background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 12%, transparent); box-shadow: none; }\n.mpv3-entity-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-entity-main { min-width: 0; flex: 1; }\n.mpv3-entity-title { display: block; font-size: 13px; line-height: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-entity-sub { display: block; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n\n/* stats */\n.mpv3-stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 4px 0 18px; }\n.mpv3-stat-card { border: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06)); background: var(--dsw-alias-bg-layer-1, #232324); border-radius: 20px; padding: 14px 16px; }\n.mpv3-stat-card span { display: block; font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-stat-card strong { display: block; margin-top: 6px; font-size: 22px; line-height: 28px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }\n.mpv3-rank-list { display: flex; flex-direction: column; gap: 2px; }\n.mpv3-rank-row { display: grid; grid-template-columns: 28px 32px minmax(0, 1fr) 110px 100px; gap: 12px; align-items: center; height: 52px; padding: 0 10px; border: 0; border-radius: 12px; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-rank-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-rank-n { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: center; font-variant-numeric: tabular-nums; }\n.mpv3-rank-cover { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 12px; font-weight: 600; }\n.mpv3-rank-main { min-width: 0; }\n.mpv3-rank-bar { height: 4px; border-radius: 2px; background: var(--dsw-alias-bg-layer-3, #353638); overflow: hidden; }\n.mpv3-rank-bar i { display: block; height: 100%; background: var(--dsw-alias-state-business-primary, #7aaaff); border-radius: 2px; }\n.mpv3-rank-meta { font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: right; font-variant-numeric: tabular-nums; }\n\n/* empty / skeleton */\n.mpv3-list-empty { position: relative; padding-bottom: 24px; }\n.mpv3-empty-wrap { min-height: 240px; height: calc(100% - 60px); display: grid; place-items: center; padding: 40px 16px; }\n.mpv3-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; max-width: 380px; }\n.mpv3-empty .ico { color: var(--dsw-alias-label-tertiary, #adb2b8); opacity: .8; }\n.mpv3-empty strong { font-size: 13px; line-height: 20px; font-weight: 600; color: var(--dsw-alias-label-secondary, #cfd3d6); }\n.mpv3-empty span { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-empty-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }\n.mpv3-skeleton-list { padding-top: 10px; }\n.mpv3-skeleton-row { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 10px; }\n.mpv3-skeleton { display: block; border-radius: 6px; background: linear-gradient(90deg, var(--dsw-alias-bg-layer-2, #2c2c2e), var(--dsw-alias-bg-layer-3, #353638), var(--dsw-alias-bg-layer-2, #2c2c2e)); background-size: 200% 100%; animation: mpv3-shimmer 1.2s linear infinite; }\n.mpv3-skeleton-cover { width: 40px; height: 40px; border-radius: 8px; flex: none; }\n.mpv3-skeleton-main { flex: 1; display: flex; flex-direction: column; gap: 6px; }\n.mpv3-skeleton-line { height: 10px; }\n.mpv3-skeleton-time { width: 44px; height: 10px; }\n@keyframes mpv3-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }\n\n/* player */\n.mpv3-player {\n  height: 72px; flex: none; position: relative; display: grid;\n  grid-template-columns: minmax(180px, 1fr) auto minmax(220px, 1fr);\n  align-items: center; gap: 14px; padding: 0 14px;\n  border-top: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06));\n  background: var(--dsw-alias-bg-layer-1, #232324);\n}\n.mpv3-player-seek { position: absolute; left: 0; right: 0; top: 0; height: 14px; z-index: 2; }\n.mpv3-player-seek .mp-seek { position: absolute; left: 0; right: 0; top: 0; height: 14px; padding: 0; }\n.mpv3-player-seek .mp-seek input { width: 100%; }\n.mpv3-player-track { display: flex; align-items: center; gap: 10px; min-width: 0; }\n.mpv3-player-cover { width: 44px; height: 44px; border: 0; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; background: var(--dsw-alias-bg-layer-3, #353638); color: var(--dsw-alias-label-tertiary, #adb2b8); cursor: pointer; position: relative; }\n.mpv3-player-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-player-eq { position: absolute; right: 5px; bottom: 5px; display: flex; align-items: flex-end; gap: 2px; padding: 3px 4px; border-radius: 6px; background: rgba(0,0,0,.52); }\n.mpv3-player-eq i { width: 2px; height: 4px; border-radius: 2px; background: #fff; animation: mpv3-eq .9s ease-in-out infinite; }\n.mpv3-player-eq i:nth-child(2) { animation-delay: .15s; }\n.mpv3-player-eq i:nth-child(3) { animation-delay: .3s; }\n.mpv3-player-meta { min-width: 0; }\n.mpv3-player-title { font-size: 13px; line-height: 18px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-player-artist { font-size: 12px; line-height: 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-player-center { display: flex; align-items: center; gap: 4px; }\n.mpv3-player-play { width: 36px; height: 36px; border: 0; border-radius: 50%; display: grid; place-items: center; background: var(--dsw-alias-button-primary-fill, #f9fafb); color: var(--dsw-alias-label-primary-foreground, #0f1115); margin: 0 6px; cursor: pointer; }\n.mpv3-player-right { display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }\n.mpv3-player-time { font-size: 12px; color: var(--dsw-alias-label-tertiary, #adb2b8); font-variant-numeric: tabular-nums; white-space: nowrap; margin: 0 4px; }\n.mpv3-player-vol { display: flex; align-items: center; gap: 4px; width: 96px; flex: none; }\n.mpv3-player-vol input { width: 64px; accent-color: var(--dsw-alias-state-business-primary, #7aaaff); }\n.mpv3-player-vol .mp-volume-range { width: 60px; }\n.mpv3-player.is-empty .mpv3-player-cover { color: var(--dsw-alias-label-tertiary, #adb2b8); }\n\n/* queue */\n.mpv3-queue {\n  position: absolute; right: 14px; bottom: 12px; width: 340px; max-width: calc(100vw - 16px); box-sizing: border-box; max-height: min(560px, 62vh);\n  display: flex; flex-direction: column; min-height: 0; overflow: hidden; z-index: 50;\n  border: 0; border-radius: 16px; background: var(--dsw-alias-bg-layer-1, #232324);\n  box-shadow: var(--dsw-elevation-panel, 0 18px 48px rgba(0,0,0,.5));\n  color: var(--dsw-alias-label-primary, #1a1a1e);\n}\n.mpv3-queue-head { height: 44px; flex: none; display: flex; align-items: center; gap: 6px; min-width: 0; box-sizing: border-box; padding: 0 8px 0 14px; border-bottom: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06)); }\n.mpv3-queue-head strong { font-size: 13px; font-weight: 600; }\n.mpv3-queue-head > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-list { flex: 1; min-height: 0; min-width: 0; overflow-x: hidden; overflow-y: auto; padding: 6px 6px 12px; box-sizing: border-box; }\n.mpv3-queue-section { padding: 8px 10px 2px; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-row { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; height: 56px; padding: 0 8px; border: 0; border-radius: 12px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: grab; user-select: none; }\n.mpv3-queue-row:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-queue-row.is-cur { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 12%, transparent); }\n.mpv3-queue-idx { width: 16px; flex: none; font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); text-align: center; }\n.mpv3-queue-wave { display: inline-flex; align-items: flex-end; justify-content: center; gap: 1px; width: 12px; height: 12px; vertical-align: middle; }\n.mpv3-queue-wave i { width: 2px; min-height: 2px; border-radius: 1px; background: var(--dsw-alias-state-business-primary, #7aaaff); transition: height .07s linear; }\n.mpv3-queue-cover { width: 32px; height: 32px; border-radius: 8px; flex: none; display: grid; place-items: center; overflow: hidden; color: rgba(255,255,255,.86); font-size: 11px; font-weight: 600; }\n.mpv3-queue-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-queue-main { min-width: 0; flex: 1; }\n.mpv3-queue-name { display: block; font-size: 13px; line-height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-queue-artist { display: block; font-size: 11px; line-height: 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-queue-time { font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); flex: none; white-space: nowrap; }\n.mpv3-queue-remove { display: none; flex: none; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-row:hover .mpv3-queue-time, .mpv3-queue-row:focus-within .mpv3-queue-time { display: none; }\n.mpv3-queue-row:hover .mpv3-queue-remove, .mpv3-queue-row:focus-within .mpv3-queue-remove { display: grid; }\n.mpv3-queue-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px 16px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-queue-foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 12px; box-sizing: border-box; border-top: .5px solid var(--dsw-alias-border-l1, rgba(255,255,255,.06)); }\n.mpv3-queue-foot .mp-volume { width: 100%; }\n.mpv3-queue-foot .mp-volume-range { flex: 1 1 auto; width: auto; min-width: 0; accent-color: var(--dsw-alias-state-business-primary, #7aaaff); }\n\n/* menus */\n.mpv3-menu {\n  position: fixed; min-width: 210px; max-width: 300px; padding: 4px; border-radius: 12px; z-index: 80;\n  background: var(--dsw-menu-surface-fill, var(--dsw-alias-bg-overlay, rgba(48,49,54,.94)));\n  -webkit-backdrop-filter: var(--dsw-menu-backdrop-filter, blur(20px)); backdrop-filter: var(--dsw-menu-backdrop-filter, blur(20px));\n  box-shadow: var(--dsw-elevation-panel, 0 18px 48px rgba(0,0,0,.5));\n  color: var(--dsw-alias-label-primary, #f9fafb);\n}\n.mpv3-menu-item { display: flex; align-items: center; gap: 9px; width: 100%; height: 32px; padding: 0 9px; border: 0; border-radius: 8px; background: transparent; color: inherit; font-size: 13px; text-align: left; cursor: pointer; }\n.mpv3-menu-item:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-menu-item:disabled { opacity: .45; cursor: default; }\n.mpv3-menu-item.is-danger { color: var(--dsw-alias-state-error-primary, #f25a5a); }\n.mpv3-menu-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-menu-status { margin-left: auto; font-size: 11px; color: var(--dsw-alias-label-tertiary, #adb2b8); white-space: nowrap; }\n.mpv3-menu-sep { height: .5px; margin: 4px 6px; background: var(--dsw-alias-border-l1, rgba(255,255,255,.06)); }\n\n/* responsive */\n@media (max-width: 1079px) {\n  .mpv3-row { grid-template-columns: 60px minmax(0, 1.8fr) 96px 132px; }\n  .mpv3-row-album { display: none; }\n}\n@media (max-width: 999px) {\n  .mpv3-root.is-rail .mpv3-workspace { grid-template-columns: minmax(0, 1fr); }\n  .mpv3-rail { display: none; }\n}\n@media (max-width: 899px) {\n  .mpv3-search { width: 160px; }\n  .mpv3-player-vol { display: none; }\n}\n@media (max-width: 759px) {\n  .mpv3-search { width: 120px; }\n  .mpv3-parent { display: none; }\n  .mpv3-row { grid-template-columns: 54px minmax(0, 1fr) 78px 84px; gap: 12px; }\n  .mpv3-row-acts { width: 84px; }\n  .mpv3-row-acts .mp-iconbtn { width: 36px; height: 36px; }\n  .mpv3-row-acts .mp-iconbtn:first-child { display: none; }\n  .mpv3-hero { flex-direction: column; align-items: flex-start; gap: 14px; }\n  .mpv3-hero-cover { width: 112px; height: 112px; font-size: 36px; }\n  .mpv3-hero-title { font-size: 20px; line-height: 28px; }\n  .mpv3-player { grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; padding: 0 10px; }\n  .mpv3-player-time { display: none; }\n  .mpv3-player-right .mpv3-chip { display: none; }\n  .mpv3-player-right { gap: 0; }\n  .mpv3-queue { left: 8px; right: 8px; bottom: 8px; width: auto; max-height: min(520px, 60vh); }\n  .mpv3-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px 12px; }\n  .mpv3-rank-row { grid-template-columns: 24px 32px minmax(0, 1fr) 80px; }\n  .mpv3-rank-bar { display: none; }\n}\n@media (prefers-reduced-motion: reduce) {\n  .mpv3-root *, .mpv3-root *::before, .mpv3-root *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }\n  .mpv3-eq i, .mpv3-player-eq i { height: 7px; }\n  .mpv3-skeleton { animation: none; }\n}\n\n.mpv3-dialog-field { display: flex; flex-direction: column; gap: 8px; }\n\n@media (max-width: 620px) {\n  .mpv3-source-name { display: none; }\n  .mpv3-source-btn { padding: 0 6px; }\n  .mpv3-search { flex: 1; width: auto; min-width: 0; }\n}\n@media (max-width: 520px) {\n  .mpv3-topbar { gap: 4px; padding: 0 6px 0 4px; }\n  .mpv3-viewbar { padding: 0 10px; }\n  .mpv3-scroll { padding-left: 10px; padding-right: 10px; }\n  .mpv3-player { gap: 4px; padding: 0 8px; }\n  .mpv3-player-locate, .mpv3-player-expand { display: none; }\n  .mpv3-player-right { gap: 0; }\n  .mpv3-queue { left: 6px; right: 6px; }\n}\n\n.mpv3-search-kinds { padding: 0 6px 12px; }\n\n.mpv3-search-artist { padding: 0 6px 6px; }\n.mpv3-search-artist-main { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 76px; padding: 8px 14px; border: 0; border-radius: 14px; background: transparent; color: inherit; text-align: left; cursor: pointer; }\n.mpv3-search-artist-main:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); }\n.mpv3-search-artist-cover { width: 60px; height: 60px; flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--dsw-alias-bg-secondary, rgba(255,255,255,.08)); color: var(--dsw-alias-label-secondary, #c8ccd2); font-size: 20px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.14); }\n.mpv3-search-artist-cover img { width: 100%; height: 100%; object-fit: cover; }\n.mpv3-search-artist-meta { min-width: 0; display: flex; flex-direction: column; gap: 3px; }\n.mpv3-search-artist-name { font-size: 16px; line-height: 22px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n.mpv3-search-artist-sub { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #adb2b8); }\n.mpv3-hrow { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 16px; overflow-x: auto; overflow-y: hidden; padding: 2px 6px 12px; scroll-snap-type: x proximity; scrollbar-width: thin; }\n.mpv3-hcard { flex: 0 0 156px; width: 156px; scroll-snap-align: start; }\n.mpv3-hcard .mpv3-card-cover { width: 156px; height: 156px; }\n.mpv3-hcard-fallback { display: grid; place-items: center; width: 100%; height: 100%; }\n\n.mpv3-back-btn { height: 28px; padding: 0 8px; border: 0; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; background: transparent; color: var(--dsw-alias-label-secondary, #cfd3d6); font-size: 12px; cursor: pointer; flex: none; }\n.mpv3-back-btn:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(255,255,255,.08)); color: var(--dsw-alias-label-primary, #f9fafb); }\n.mpv3-source-btn { max-width: 220px; height: 34px; padding: 0 8px 0 5px; gap: 7px; }\n.mpv3-source-avatar { width: 26px; height: 26px; flex: none; border-radius: 50%; position: relative; display: grid; place-items: center; overflow: visible; background: var(--dsw-alias-bg-secondary, rgba(255,255,255,.08)); color: var(--dsw-alias-label-secondary, #cfd3d6); }\n.mpv3-source-avatar > img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; display: block; }\n.mpv3-source-avatar.is-local { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 14%, transparent); color: var(--dsw-alias-state-business-primary, #7aaaff); }\n.mpv3-source-initial { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #7aaaff) 18%, transparent); color: var(--dsw-alias-label-primary, #f9fafb); font-size: 11px; font-weight: 600; }\n.mpv3-source-logo { width: 26px; height: 26px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; }\n.mpv3-source-logo .mp-provider-logo { width: 100% !important; height: 100% !important; border-radius: 50%; }\n.mpv3-source-badge { position: absolute; right: -3px; bottom: -3px; width: 15px; height: 15px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--dsw-alias-bg-primary, #17181c); box-shadow: 0 0 0 1.5px var(--dsw-alias-bg-primary, #17181c); }\n.mpv3-source-badge .mp-provider-logo { width: 15px !important; height: 15px !important; border-radius: 50%; }\n.mpv3-menu-logo { width: 18px; height: 18px; flex: none; display: grid; place-items: center; border-radius: 5px; overflow: hidden; }\n.mpv3-menu-logo .mp-provider-logo { width: 18px !important; height: 18px !important; border-radius: 5px; }\n\n.mpv3-source-vip { flex: none; height: 18px; padding: 0 6px; border-radius: 5px; display: inline-flex; align-items: center; font-size: 10px; line-height: 18px; font-weight: 700; letter-spacing: .2px; color: #3a2a05; background: var(--dsw-alias-state-warning-primary, #f5c451); }\n\n.mpv3-discover-playlists { margin: 8px 0 18px; }\n\n/* Queue popover anchored to a player-page control (the page itself stays open). */\n.mpv3-queue.is-floating {\n  position: fixed; z-index: 90;\n}\n"
     P3_CSS += "/* Song rows: one line each, ellipsis when too long; sizes stay at the 76px baseline used by the\n * virtual list (rowHeight in p3-core). */\n.mpv3-row-title,.mpv3-row-sub,.mpv3-row-album,.mpv3-row-time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}";
+    P3_CSS += "/* New-version pill beside the plugin mark; hidden while there is no update. */\n.mpv3-update-pill{flex:none;display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:999px;text-decoration:none;background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#7aaaff) 16%,transparent);color:var(--dsw-alias-state-business-primary,#7aaaff);font-size:12px;line-height:18px;white-space:nowrap;box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--dsw-alias-state-business-primary,#7aaaff) 38%,transparent)}\n.mpv3-update-pill:hover{background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#7aaaff) 24%,transparent)}\n.mpv3-update-pill:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary,#7aaaff));outline-offset:2px}\n.mpv3-update-pill strong{font-weight:650}\n@media (max-width:759px){.mpv3-update-pill span{display:none}}";
 
     // ── src/client/components/ui/component-gallery.js
     /**
@@ -188326,7 +188479,62 @@ window.__ModuleLoader__.load({
         )
       }
 
-      function aboutTab() {
+      /** 关于页的版本检查：当前/最新/上次检查、手动按钮，以及自动检查的开关与间隔。 */
+    function AboutUpdateCard() {
+      var update = useStore(updateStore)
+      var library = useStore(libraryStore)
+      var config = library.config || {}
+      var busyPair = useState(false)
+      var busy = busyPair[0]
+      var setBusy = busyPair[1]
+      useEffect(function () {
+        void checkForUpdate()
+      }, [])
+      function checkNow() {
+        setBusy(true)
+        Promise.resolve(checkForUpdate({ force: true })).then(function () {
+          setBusy(false)
+        }, function () {
+          setBusy(false)
+        })
+      }
+      var checking = busy || update.phase === 'checking'
+      var status = ''
+      if (config.updateCheck === false || update.disabled === true) status = t('update.disabled')
+      else if (checking) status = t('update.checking')
+      else if (update.phase === 'offline') status = t('update.offline')
+      else if (update.phase === 'error' || update.failed === true) status = t('update.failed')
+      else if (update.updateAvailable === true && update.latest !== '') status = t('update.available', { version: 'v' + update.latest })
+      else if (update.phase === 'ready') status = t('update.upToDate')
+      return h('div', { key: 'update', className: 'mp-about-rows' },
+        h('div', { className: 'mp-about-row' }, h('span', null, t('update.current')), h('strong', null, update.current || APP_VERSION)),
+        h('div', { className: 'mp-about-row' }, h('span', null, t('update.latest')), h('strong', null, update.latest || '—')),
+        h('div', { className: 'mp-about-row' }, h('span', null, t('update.checkedAt')), h('strong', null, updateCheckedLabel(update.checkedAt))),
+        h(SetRow, { key: 'update-check', label: t('update.rowLabel'), desc: t('update.rowDesc', { hours: Number(config.updateCheckIntervalHours) || 1 }) },
+          h(Button, { variant: 'ghost', icon: 'refresh', disabled: checking, onClick: checkNow }, checking ? t('update.checking') : t('update.check')),
+        ),
+        status !== '' ? h('div', { key: 'update-status', className: 'mp-set-desc' }, status) : null,
+        h(SetRow, { key: 'update-auto', label: t('update.auto'), desc: t('update.autoDesc') },
+          h(Switch, {
+            value: config.updateCheck !== false,
+            onChange: function (value) { void saveHostConfig({ updateCheck: value }) },
+          }),
+        ),
+        h(SetRow, { key: 'update-interval', label: t('update.interval'), desc: t('update.intervalDesc') },
+          h(KitSegmented, {
+            options: [
+              { value: '1', label: t('update.interval1') },
+              { value: '6', label: t('update.interval6') },
+              { value: '24', label: t('update.interval24') },
+            ],
+            value: String(Number(config.updateCheckIntervalHours) || 1),
+            onChange: function (value) { void saveHostConfig({ updateCheckIntervalHours: Number(value) }) },
+          }),
+        ),
+      )
+    }
+
+    function aboutTab() {
         var kit = typeof hostKitState === 'function' ? hostKitState() : { state: hostUi ? 'native' : 'fallback', missing: [] }
         return [
           h('h2', { key: 'h' }, t('v2.about')),
@@ -188359,6 +188567,7 @@ window.__ModuleLoader__.load({
               ),
             ),
           ),
+          h(AboutUpdateCard, { key: 'update-card' }),
           h(
             'div',
             { key: 'links', className: 'mp-about-links' },
@@ -193545,6 +193754,25 @@ window.__ModuleLoader__.load({
       return text
     }
 
+    /** 新版本角标：只在 Host 确认有更新时出现，点击打开最新 release。 */
+    function P3UpdatePill() {
+      var update = useStore(updateStore)
+      if (update.updateAvailable !== true || update.latest === '') return null
+      var tip = t('update.pillTip', { version: 'v' + update.latest })
+      return h('a', {
+        className: 'mpv3-update-pill',
+        href: 'https://github.com/Aliboder/dsh-music-panel/releases/latest',
+        target: '_blank',
+        rel: 'noreferrer noopener',
+        title: tip,
+        'aria-label': tip,
+      },
+        icon('download', 12),
+        h('span', null, t('update.label')),
+        h('strong', null, 'v' + update.latest),
+      )
+    }
+
     function P3TopBar(props) {
       var route = useStore(p3RouteStore)
       var search = useStore(p3SearchStore)
@@ -193725,6 +193953,7 @@ window.__ModuleLoader__.load({
           title: t('p3.openGithub'),
           'aria-label': t('p3.openGithub'),
         }, h('img', { src: P3_BRAND_ICON, alt: '', draggable: false })),
+        h(P3UpdatePill, null),
         p3CanGoBack() ? h('button', {
           type: 'button',
           className: 'mpv3-back-btn',
@@ -194440,6 +194669,16 @@ window.__ModuleLoader__.load({
         void loadPlaylists()
         void loadConfig()
         void loadProviders()
+      }, [])
+
+      // 新版本检查：面板打开后空闲时问一次 Host。Host 有自己的间隔与磁盘缓存，
+      // 所以这里不放定时器，也不在每次切页时请求。
+      useEffect(function () {
+        var timer = window.setTimeout(function () {
+          if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
+          void checkForUpdate()
+        }, 2500)
+        return function () { window.clearTimeout(timer) }
       }, [])
 
       // 自动扫描已导入文件夹: the host watcher bumps a revision after its debounced rescan; the
@@ -199833,6 +200072,11 @@ window.__ModuleLoader__.load({
           libraryStore: libraryStore,
           onlineStore: onlineStore,
           prefsStore: prefsStore,
+          // New-version state: tests drive the check with a stubbed fetch and read the
+          // store the top bar and the About card share.
+          updateStore: typeof updateStore !== 'undefined' ? updateStore : null,
+          checkForUpdate: typeof checkForUpdate === 'function' ? checkForUpdate : null,
+          updateCheckedLabel: typeof updateCheckedLabel === 'function' ? updateCheckedLabel : null,
           overlayStore: overlayStore,
           selectionStore: selectionStore,
           player: player,

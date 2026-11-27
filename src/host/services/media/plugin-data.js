@@ -22,7 +22,8 @@ const CATEGORIES = [
   { id: 'lyrics', label: 'lyrics', names: ['lyric-states.json', 'lyric-states.json.bak', 'lyrics'] },
   { id: 'playback', label: 'playback', names: ['playback.json', 'playback.json.bak'] },
   { id: 'accounts', label: 'accounts', names: ['sessions.json', 'accounts.json', 'providers.json', 'bodian-device.json', 'qishui-device.json', 'qq-auth-sessions.json'] },
-  { id: 'cache', label: 'cache', names: ['cache'] },
+  // The new-version check cache is regenerable state: clearing the cache clears it too.
+  { id: 'cache', label: 'cache', names: ['cache', 'update-check.json', 'update-check.json.bak'] },
   { id: 'trash', label: 'trash', names: ['trash'] },
 ]
 

@@ -33,6 +33,25 @@ function p3AccountPictureSrc(url) {
   return text
 }
 
+/** 新版本角标：只在 Host 确认有更新时出现，点击打开最新 release。 */
+function P3UpdatePill() {
+  var update = useStore(updateStore)
+  if (update.updateAvailable !== true || update.latest === '') return null
+  var tip = t('update.pillTip', { version: 'v' + update.latest })
+  return h('a', {
+    className: 'mpv3-update-pill',
+    href: 'https://github.com/Aliboder/dsh-music-panel/releases/latest',
+    target: '_blank',
+    rel: 'noreferrer noopener',
+    title: tip,
+    'aria-label': tip,
+  },
+    icon('download', 12),
+    h('span', null, t('update.label')),
+    h('strong', null, 'v' + update.latest),
+  )
+}
+
 function P3TopBar(props) {
   var route = useStore(p3RouteStore)
   var search = useStore(p3SearchStore)
@@ -213,6 +232,7 @@ function P3TopBar(props) {
       title: t('p3.openGithub'),
       'aria-label': t('p3.openGithub'),
     }, h('img', { src: P3_BRAND_ICON, alt: '', draggable: false })),
+    h(P3UpdatePill, null),
     p3CanGoBack() ? h('button', {
       type: 'button',
       className: 'mpv3-back-btn',
@@ -928,6 +948,16 @@ function P3Shell() {
     void loadPlaylists()
     void loadConfig()
     void loadProviders()
+  }, [])
+
+  // 新版本检查：面板打开后空闲时问一次 Host。Host 有自己的间隔与磁盘缓存，
+  // 所以这里不放定时器，也不在每次切页时请求。
+  useEffect(function () {
+    var timer = window.setTimeout(function () {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
+      void checkForUpdate()
+    }, 2500)
+    return function () { window.clearTimeout(timer) }
   }, [])
 
   // 自动扫描已导入文件夹: the host watcher bumps a revision after its debounced rescan; the
