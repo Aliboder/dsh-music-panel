@@ -239,6 +239,9 @@ assert.equal(nodesWithClass(fullyLoadedArtist, 'mpv3-row').length, 10, 'the hot 
 assert.match(p3Pages, /openArtistSongsList\(/, 'the full list is the artist_songs layer')
 assert.match(p3Pages, /type: 'artistSongs'/, 'the layer is a pushed collection, like Folia\'s artist_songs')
 assert.match(p3Pages, /props\.online\.artistAllHasMore === true/, 'the layer pages through P3List')
+const p3Nav = readFileSync(new URL('../../src/client/panel-v3/p3-nav.js', import.meta.url), 'utf8')
+assert.match(p3Nav, /'playlist', 'artistSongs'\]/, 'the layer survives a restart like the other collections')
+assert.match(p3Pages, /openArtistSongsLayerByArtistId/, 'a layer restored without its descriptor can still load by artist id')
 assert.doesNotMatch(p3Pages, /items\.slice\(0, 10\)/, 'the artist page no longer hard-cuts the loaded list at ten')
 
 // The layer itself: a pushed navigation level with its own cursor (Folia's #918 shape).

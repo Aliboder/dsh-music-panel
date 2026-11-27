@@ -1070,36 +1070,65 @@ function P3OnlineArtistPage(props) {
   )
 }
 
+/** The route param of an artist_songs layer: "provider:artistId". */
+function p3ArtistSongsRouteTarget(route) {
+  var raw = String((route && route.param) || '')
+  var at = raw.indexOf(':')
+  return {
+    provider: at >= 0 ? raw.slice(0, at) : (route && route.source) || '',
+    artistId: at >= 0 ? raw.slice(at + 1) : raw,
+    artist: '',
+    name: '',
+  }
+}
+
 function P3OnlineArtistSongsPage(props) {
   var collection = p3Collection.get().artistSongs
-  var provider = (collection && (collection.provider || props.route.source)) || props.route.source
-  var artistName = (collection && collection.artist) || ''
-  var artistId = String((collection && collection.artistId) || '')
+  var target = collection
+    ? {
+        provider: collection.provider || props.route.source,
+        artistId: String(collection.artistId || ''),
+        artist: String(collection.artist || ''),
+        name: String(collection.name || ''),
+      }
+    : p3ArtistSongsRouteTarget(props.route)
+  // The descriptor is written on push; a page restored by a build that did not know this
+  // collection type only carries provider + artist id, which the Host can resolve on its own.
   useEffect(function () {
-    if (collection === null || artistName === '') return
     var store = props.online
-    var sameArtist = String(store.artistAllArtistId || '') === artistId && String(store.artistAllArtist || '') === artistName
-    if (!sameArtist || store.artistAllPhase === 'idle' || store.artistAllPhase === 'error') {
-      void openArtistSongsList(provider, artistId, artistName)
+    if (target.artist !== '') {
+      var sameArtist = String(store.artistAllArtistId || '') === target.artistId &&
+        String(store.artistAllArtist || '') === target.artist
+      if (!sameArtist || store.artistAllPhase === 'idle' || store.artistAllPhase === 'error') {
+        void openArtistSongsList(target.provider, target.artistId, target.artist)
+      }
+      return
     }
+    if (target.artistId !== '') void openArtistSongsLayerByArtistId(target.provider, target.artistId)
   }, [props.route.param, props.route.source])
-  if (collection === null || artistName === '') {
-    return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
-      h(P3Empty, { icon: 'music', title: t('p3.allSongs'), hint: t('p3.loadFailed') }))
+  function reload() {
+    if (target.artist !== '') void openArtistSongsList(target.provider, target.artistId, target.artist)
+    else if (target.artistId !== '') void openArtistSongsLayerByArtistId(target.provider, target.artistId)
   }
   var items = p3OnlineTrackList(props.online.artistAllSongs)
   var total = Number(props.online.artistAllTotal) || items.length
-  var title = collection.name || t('p3.allSongs') + ' · ' + artistName
-  if (props.online.artistAllPhase === 'loading') {
+  var phase = props.online.artistAllPhase
+  var title = target.name || (target.artist ? t('p3.allSongs') + ' · ' + target.artist : t('p3.allSongs'))
+  if (phase === 'idle' && items.length === 0 && target.artist === '' && target.artistId === '') {
+    // Nothing identifies the artist: never sit on a skeleton that can never finish.
+    return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+      h(P3Empty, { icon: 'music', title: t('p3.allSongs'), hint: t('p3.loadFailed'), actions: h(Button, { variant: 'ghost', onClick: function () { p3GoBack() } }, t('page.back')) }))
+  }
+  if (phase === 'loading' || (phase === 'idle' && items.length === 0)) {
     return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' }, h(P3Skeleton, { count: 8 })))
   }
-  if (props.online.artistAllPhase === 'error') {
+  if (phase === 'error') {
     return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
       h(P3Empty, {
         icon: 'warning',
         title: t('p3.loadFailed'),
         hint: props.online.artistAllError,
-        actions: h(Button, { variant: 'ghost', onClick: function () { void openArtistSongsList(provider, artistId, artistName) } }, t('p3.retry')),
+        actions: h(Button, { variant: 'ghost', onClick: reload }, t('p3.retry')),
       }))
   }
   return h(P3List, {
@@ -1107,7 +1136,7 @@ function P3OnlineArtistSongsPage(props) {
     header: h(P3Hero, {
       eyebrow: t('p3.allSongs'),
       title: title,
-      coverSrc: p3OnlineCover(collection, provider, 'artist'),
+      coverSrc: p3OnlineCover(collection, target.provider, 'artist'),
       round: true,
       meta: h('span', null, total + ' ' + t('p3.unitSong')),
       actions: h('div', { className: 'mpv3-hero-actions' },
@@ -1124,7 +1153,7 @@ function P3OnlineArtistSongsPage(props) {
     loadMoreError: props.online.artistAllError || '',
     onLoadMore: function () { void loadMoreArtistSongs() },
     resetKey: 'online-artist-songs:' + props.route.param,
-    empty: h(P3Empty, { icon: 'music', title: t('page.noResults') }),
+    empty: h(P3Empty, { icon: 'music', title: t('page.noResults'), hint: target.provider + (target.artistId ? ' · ' + target.artistId : '') }),
   })
 }
 

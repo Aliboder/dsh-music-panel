@@ -522,6 +522,27 @@ function artistSongsUrl(provider, artistName, artistId) {
 }
 
 /**
+ * The layer opened without its descriptor (a page restored by a build that did not know
+ * this collection type): the route only carries provider + artist id. Ask the Host for the
+ * artist name, then load the same layer — the id alone is enough for the paged endpoint.
+ */
+async function openArtistSongsLayerByArtistId(provider, artistId) {
+  var state = onlineStore.get()
+  if (state.artistAllPhase === 'loading') return
+  if (String(state.artistAllArtistId) === String(artistId) && state.artistAllPhase === 'ready') return
+  var name = ''
+  try {
+    var detail = await getJson(
+      API + 'online/artist?provider=' + encodeURIComponent(provider) + '&id=' + encodeURIComponent(artistId),
+    )
+    name = String((detail && detail.artist && detail.artist.name) || (detail && detail.name) || '')
+  } catch {
+    name = ''
+  }
+  await openArtistSongsList(provider, artistId, name || artistId)
+}
+
+/**
  * Folia's artist_songs collection layer (#918): the first page of the artist's full song
  * list. The artist page itself only ever loads the top ten; this layer is a separate
  * navigation level, so the page is gone and the list keeps its own cursor.

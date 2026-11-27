@@ -236,7 +236,8 @@ function p3ReadStoredNav() {
         ? {
             origin: saved.collection.origin === 'search' ? 'search' : 'browse',
             stack: saved.collection.stack.filter(function (item) {
-              return item && typeof item.type === 'string' && ['album', 'artist', 'playlist'].indexOf(item.type) >= 0
+              // Folia's artist_songs layer must survive a restart like album/artist/playlist.
+              return item && typeof item.type === 'string' && ['album', 'artist', 'playlist', 'artistSongs'].indexOf(item.type) >= 0
             }),
           }
         : null,
