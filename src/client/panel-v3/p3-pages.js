@@ -1056,6 +1056,13 @@ function P3OnlineArtistPage(props) {
         h('div', { className: 'mpv3-plain-list' }, items.slice(0, ARTIST_TOP_SONG_SIZE).map(function (track, index) {
           return h(P3Row, { key: track.path, track: track, index: index, list: items, currentPath: props.currentPath, playing: props.playing, favoriteSet: props.favoriteSet, selected: false, tabIndex: -1 })
         })),
+        // 热门只有十首：底部再给一次入口，不然很容易以为这位歌手就这几首歌
+        // （Folia 只在页头有 pill，这里是按产品要求补的可发现性）。
+        hasMoreSongs
+          ? h('div', { className: 'mpv3-more' },
+              h(Button, { variant: 'ghost', icon: 'list', onClick: openAllSongs },
+                t('p3.allSongs') + (total > 0 ? ' · ' + total + ' ' + t('p3.unitSong') : '')))
+          : null,
       ) : null,
       albums.length > 0 ? h('div', { className: 'mpv3-section' },
         h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.albums'))),

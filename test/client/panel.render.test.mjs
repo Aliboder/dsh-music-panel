@@ -218,6 +218,10 @@ const onlineArtist = panel()
 assert.ok(textOf(onlineArtist).includes('全部歌曲'), 'the artist page offers the paged full list')
 assert.ok(textOf(onlineArtist).includes('417'), 'the header carries the platform total, not the ten shown')
 assert.equal(nodesWithClass(onlineArtist, 'mpv3-row').length, 10, 'the page itself keeps Folia top ten')
+const moreRows = nodesWithClass(onlineArtist, 'mpv3-more')
+assert.equal(moreRows.length, 1, 'the hot list ends with one 全部歌曲 entry')
+assert.ok(textOf(moreRows[0]).includes('全部歌曲'), 'the bottom entry names the full list')
+assert.ok(textOf(moreRows[0]).includes('417'), 'the bottom entry carries the total')
 const p3Pages = readFileSync(new URL('../../src/client/panel-v3/p3-pages.js', import.meta.url), 'utf8')
 // A provider that answered the whole list on the first request (no next page) still gets
 // the entry: 「no more pages」 is not 「no second layer」.
@@ -244,18 +248,15 @@ assert.match(p3Nav, /'playlist', 'artistSongs'\]/, 'the layer survives a restart
 assert.match(p3Pages, /openArtistSongsLayerByArtistId/, 'a layer restored without its descriptor can still load by artist id')
 assert.doesNotMatch(p3Pages, /items\.slice\(0, 10\)/, 'the artist page no longer hard-cuts the loaded list at ten')
 
-// The layer itself: a pushed navigation level with its own cursor (Folia's #918 shape).
-internals.p3PushCollection({
-  type: 'artistSongs',
-  source: 'online',
-  provider: 'kugouLite',
-  id: '123',
-  param: 'kugouLite:123',
-  artist: 'Udit Narayan',
-  artistId: '123',
-  name: '全部歌曲 · Udit Narayan',
-  coverUrl: '',
+// Clicking the bottom entry opens the layer: a pushed navigation level with its own
+// cursor (Folia's #918 shape), not an in-page mode.
+const allSongsButtons = []
+walk(expand(onlineArtist), (node) => {
+  if (typeof node.props.onClick === 'function' && textOf(node).includes('全部歌曲')) allSongsButtons.push(node)
 })
+assert.ok(allSongsButtons.length >= 1, 'the page has a 全部歌曲 button')
+allSongsButtons[allSongsButtons.length - 1].props.onClick()
+assert.equal(internals.p3RouteStore.get().page, 'artistSongs', 'the click pushes the artist_songs layer')
 internals.onlineStore.set({
   artistAllProvider: 'kugouLite',
   artistAllArtist: 'Udit Narayan',
