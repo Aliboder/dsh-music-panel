@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.1"
-    var CLIENT_BUILD = "a95ab9df98b0"
+    var CLIENT_BUILD = "77ac90d653b3"
 
     // ── src/client/app/runtime.js
     /**
@@ -6857,9 +6857,6 @@ window.__ModuleLoader__.load({
         'page.loopOne': '单曲循环',
         'page.loopNone': '不循环',
         'page.shuffle': '随机播放',
-        // Folia's one-shot 「打乱队列」 action (not a playback mode).
-        'page.shuffleQueue': '打乱队列',
-        'page.queueShuffled': '队列已打乱',
         'page.play': '播放',
         'page.pause': '暂停',
         'page.prev': '上一首',
@@ -7528,8 +7525,6 @@ window.__ModuleLoader__.load({
         'page.loopOne': 'Repeat one',
         'page.loopNone': 'No repeat',
         'page.shuffle': 'Shuffle',
-        'page.shuffleQueue': 'Shuffle queue',
-        'page.queueShuffled': 'Queue shuffled',
         'page.play': 'Play',
         'page.pause': 'Pause',
         'page.prev': 'Previous',
@@ -8819,7 +8814,7 @@ window.__ModuleLoader__.load({
         'settings.autoSkipUnplayable': '无法播放时自动跳过',
         'settings.autoSkipUnplayableDesc': '在线歌曲因权限、地区或地址失效无法播放时，自动跳到下一首；连续失败会停下。',
         'settings.shuffleRoundNoRepeat': '一轮不重复',
-        'settings.shuffleRoundNoRepeatDesc': '打乱播放每轮重新洗牌；关闭后列表循环每轮保持同一顺序。',
+        'settings.shuffleRoundNoRepeatDesc': '生成随机表时，上一张表里听过的歌排在后面、先放没听过的；随机表放完一轮回到表头循环，不会再自动重洗。',
         'settings.preventSleep': '播放时阻止休眠',
         'settings.preventSleepDesc': '播放期间保持屏幕唤醒。',
         'settings.preventSleepUnsupported': '当前环境不支持 Wake Lock，无法保持屏幕唤醒。',
@@ -9923,7 +9918,7 @@ window.__ModuleLoader__.load({
         'settings.autoSkipUnplayable': 'Skip unplayable tracks',
         'settings.autoSkipUnplayableDesc': 'When an online song cannot play because of account, region or an expired address, skip to the next one; a run of failures stops.',
         'settings.shuffleRoundNoRepeat': 'New shuffle each round',
-        'settings.shuffleRoundNoRepeatDesc': 'Re-shuffle when a shuffled round wraps; off keeps the same order for every round.',
+        'settings.shuffleRoundNoRepeatDesc': 'When a random table is generated, songs already played in the previous one go last; a finished table wraps back to its start instead of reshuffling.',
         'settings.preventSleep': 'Keep the screen awake while playing',
         'settings.preventSleepDesc': 'Keeps the display awake during playback.',
         'settings.preventSleepUnsupported': 'Wake Lock is not available here, so the screen cannot be kept awake.',
@@ -166782,6 +166777,9 @@ window.__ModuleLoader__.load({
       audioFocusFadeMs: 300,
       /** Folia's replay-gain choice; `normalizeVolume` is the legacy on/off form. */
       replayGainMode: 'off',
+      /** 播放模式：顺序播放 / 单曲循环 / 随机播放（一颗按钮轮转）。 */
+      playMode: 'sequence',
+      /** 旧字段，只用于迁移到 playMode。 */
       loop: 'none',
       resumeOnStart: true,
       sleepTimerMinutes: 0,
@@ -166857,6 +166855,12 @@ window.__ModuleLoader__.load({
       } catch (error) {
         // Corrupt value: defaults stand.
       }
+      // 播放模式从旧的 loop/order 迁移（旧版没有 playMode）。随机模式后来才有的字段：
+      // 旧档 order=random 视为随机，loop=one 视为单曲，其余为顺序。
+      if (parsed !== null && parsed.playMode === undefined) {
+        merged.playMode = parsed.order === 'random' ? 'random' : parsed.loop === 'one' ? 'one' : 'sequence'
+      }
+      if (['sequence', 'one', 'random'].indexOf(merged.playMode) < 0) merged.playMode = 'sequence'
       // One-time default switch: profiles that still hold the old always-visible default move to
       // auto-hide. An explicit later choice writes `playerChromeModeChosen` and is kept.
       if (merged.playerChromeModeChosen !== true && merged.playerChromeVisibilityMode === 'always-visible' && merged.autoHidePlayerChrome === false) {
@@ -172988,39 +172992,53 @@ window.__ModuleLoader__.load({
       return queue
     }
 
-    // Folia's loop modes are the only persistent playback mode:
-    //   none → play in order, stop at the end
-    //   all  → wrap around the queue
-    //   one  → repeat the current track
-    // Shuffle is a one-shot queue action (`player.shuffleQueue`), not a mode: the queue keeps
-    // the order it was shuffled into, so switching modes never has to "restore" anything.
-    var LOOP_MODES = ['none', 'all', 'one']
+    // 播放模式：顺序播放 → 单曲循环 → 随机播放 → 顺序播放（一颗按钮轮转）。
+    // `state.queue` 永远是"正在播放的顺序"；随机模式下它是 `state.baseQueue`（原顺序）的
+    // 一个排列：当前歌固定第一位、其余随机。切出随机时按 `state.baseQueue` 还原。
+    var PLAY_MODES = ['sequence', 'one', 'random']
+    var LOOP_OF_MODE = { sequence: 'none', one: 'one', random: 'all' }
+
+    /** 旧存档迁移：早先只有 loop/order 两字段。 */
+    function storedPlayMode(prefs) {
+      if (prefs.playMode === 'sequence' || prefs.playMode === 'one' || prefs.playMode === 'random') return prefs.playMode
+      if (prefs.order === 'random') return 'random'
+      return prefs.loop === 'one' ? 'one' : 'sequence'
+    }
 
     function playModeOf(snap) {
-      if (snap.loop === 'one') return 'one'
-      if (snap.loop === 'all') return 'all'
-      return 'none'
+      return snap.playMode === 'one' || snap.playMode === 'random' ? snap.playMode : 'sequence'
     }
 
     function playModeLabel(mode) {
       return mode === 'one'
-        ? t('page.loopOne')
-        : mode === 'all'
-          ? t('page.loopAll')
+        ? t('page.modeOne')
+        : mode === 'random'
+          ? t('page.modeRandom')
           : t('page.modeSequence')
     }
 
     function playModeIcon(mode) {
-      return mode === 'one' ? 'repeatOne' : mode === 'all' ? 'repeat' : 'repeatOff'
+      return mode === 'one' ? 'repeatOne' : mode === 'random' ? 'shuffle' : 'repeatOff'
     }
 
     function applyPlayMode(mode) {
-      player.setLoop(mode === 'one' ? 'one' : mode === 'all' ? 'all' : 'none')
+      player.setPlayMode(mode)
     }
 
     function cyclePlayMode(snap) {
       var current = playModeOf(snap)
-      applyPlayMode(LOOP_MODES[(LOOP_MODES.indexOf(current) + 1) % LOOP_MODES.length])
+      applyPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(current) + 1) % PLAY_MODES.length])
+    }
+
+    /** Position of a track in a list, by path (restored queues hold fresh row objects). */
+    function queueIndexOf(list, track) {
+      if (!Array.isArray(list) || track === null || track === undefined) return -1
+      var path = typeof track.path === 'string' ? track.path : ''
+      if (path === '') return -1
+      for (var i = 0; i < list.length; i += 1) {
+        if (list[i] && list[i].path === path) return i
+      }
+      return -1
     }
 
 
@@ -173182,9 +173200,6 @@ window.__ModuleLoader__.load({
       var replayGainToken = 0
       /** The mode the engine last applied, to notice a change from any UI (Folia's store select). */
       var gainModeSeen = ''
-      /** Last shuffle-round signature tracked, and the round just reshuffled (Folia's guard). */
-      var shuffleRoundTracked = ''
-      var shuffleReshuffledGuard = ''
       var loudnessToken = 0
       /** Resolves when the current track's gain is ready (or analysis gave up). */
       var loudnessGate = null
@@ -173218,12 +173233,17 @@ window.__ModuleLoader__.load({
       // that value, or a restart resets the visible and audible level to 1.
       var savedVolume = Number(prefs.volume)
       if (!isFinite(savedVolume)) savedVolume = 1
+      var initialPlayMode = storedPlayMode(prefs)
       var state = {
+        // The order being played. In random mode this is a permutation of `baseQueue`.
         queue: [],
+        /** The original order, kept as the restore point for 顺序播放. */
+        baseQueue: [],
         index: -1,
         playing: false,
-        // Folia's loopMode: the one persistent playback mode.
-        loop: prefs.loop === 'one' ? 'one' : prefs.loop === 'all' ? 'all' : 'none',
+        playMode: initialPlayMode,
+        // Neighbour rules still speak loop modes: sequence stops, random wraps, one repeats.
+        loop: LOOP_OF_MODE[initialPlayMode],
         volume: clamp(savedVolume, 0, 1),
         muted: false,
         currentTime: 0,
@@ -173432,9 +173452,19 @@ window.__ModuleLoader__.load({
           queueItems = queueItems.slice(start, start + 500)
           index -= start
         }
+        // The original order is saved too: 切回顺序时要按它还原。Same 500 cap, windowed
+        // around the playing track so its own spot survives.
+        var baseItems = state.baseQueue.map(playbackTrackSnapshot)
+        if (baseItems.length > 500) {
+          var baseAt = queueIndexOf(state.baseQueue, item)
+          var baseStart = Math.max(0, Math.min((baseAt >= 0 ? baseAt : 0) - 250, baseItems.length - 500))
+          baseItems = baseItems.slice(baseStart, baseStart + 500)
+        }
         try {
           postJson(API + 'state', {
+            playMode: state.playMode,
             queue: queueItems,
+            baseQueue: baseItems.length > 0 ? baseItems : queueItems,
             index: index,
             positionSec: state.currentTime,
             durationSec: duration,
@@ -173524,12 +173554,23 @@ window.__ModuleLoader__.load({
         ;(Array.isArray(tracks) ? tracks : []).forEach(function (track) {
           byPath[track.path] = track
         })
-        var queue = []
-        saved.queue.forEach(function (entry) {
-          var track = trackFromSaved(entry, byPath)
-          if (track !== null && typeof track.path === 'string' && track.path !== '') queue.push(track)
-        })
-        if (queue.length === 0) return false
+        function tracksFrom(entries) {
+          var list = []
+          ;(Array.isArray(entries) ? entries : []).forEach(function (entry) {
+            var track = trackFromSaved(entry, byPath)
+            if (track !== null && typeof track.path === 'string' && track.path !== '') list.push(track)
+          })
+          return list
+        }
+        var activeQueue = tracksFrom(saved.queue)
+        if (activeQueue.length === 0) return false
+        // Older saves had no baseQueue (their queue was the only order); older still had no
+        // playMode (their loop/order pair is migrated by storedPlayMode).
+        var savedMode = storedPlayMode(saved)
+        var baseQueue = tracksFrom(saved.baseQueue)
+        if (baseQueue.length === 0) baseQueue = activeQueue.slice()
+        // 随机模式保留上次那张随机表；其它模式按原顺序开始。
+        var queue = savedMode === 'random' ? activeQueue : baseQueue
         var wanted = saved.queue[saved.index]
         var wantedPath = typeof wanted === 'string' ? wanted : wanted && wanted.path ? wanted.path : ''
         var index = 0
@@ -173541,10 +173582,10 @@ window.__ModuleLoader__.load({
         }
         state = Object.assign({}, state, {
           queue: queue,
+          baseQueue: baseQueue,
           index: index,
-          // Folia has only a loop mode. An older save that was in "random" had already
-          // shuffled its queue in place, so it restores as 列表循环 over that same order.
-          loop: saved.loop === 'one' ? 'one' : saved.loop === 'all' || saved.order === 'random' ? 'all' : 'none',
+          playMode: savedMode,
+          loop: LOOP_OF_MODE[savedMode],
           currentTime: saved.positionSec > 0 ? saved.positionSec : 0,
           duration: saved.durationSec > 0 ? saved.durationSec : 0,
           playing: false,
@@ -173661,6 +173702,42 @@ window.__ModuleLoader__.load({
 
       function currentItem() {
         return state.index >= 0 && state.queue[state.index] ? state.queue[state.index] : null
+      }
+
+      /**
+       * 随机播放的队列表：当前歌固定第一位，其余按原顺序随机。
+       * `base` 是原顺序（baseQueue）；当前歌不在其中时不钉，整队随机。
+       * 「一轮不重复」开着时用 Folia 的按轮洗牌（上一张表里听过的排在后面）；
+       * 关着时就是普通洗牌。
+       */
+      function shuffledTable(base, pinnedTrack) {
+        var pinnedIndex = pinnedTrack === null || pinnedTrack === undefined ? -1 : queueIndexOf(base, pinnedTrack)
+        if (readPrefs().shuffleRoundNoRepeat === true) {
+          var round = shuffleForRound({
+            songs: base,
+            keyOf: shuffleRoundKeyOf,
+            pinnedIndex: pinnedIndex,
+            state: readShuffleRoundState(),
+            counts: shuffleRoundPlayable,
+          })
+          writeShuffleRoundState(round.state)
+          return round.queue
+        }
+        return shuffleTracks(base.slice(), pinnedTrack)
+      }
+
+      /** Restore the original order and point the index at the song that is still playing. */
+      function restoreBaseOrder(nextMode) {
+        var canonical = state.baseQueue.length > 0 ? state.baseQueue.slice() : state.queue.slice()
+        var current = currentItem()
+        var at = queueIndexOf(canonical, current)
+        if (at < 0 && canonical.length > 0) at = Math.min(Math.max(state.index, 0), canonical.length - 1)
+        return {
+          queue: canonical,
+          index: canonical.length === 0 ? -1 : at,
+          playMode: nextMode,
+          loop: LOOP_OF_MODE[nextMode],
+        }
       }
 
       // ── media session (system media keys, lock screen, OS media panel) ──
@@ -174900,46 +174977,25 @@ window.__ModuleLoader__.load({
         return { db: choice ? choice.effectiveGainDb : 0, available: true }
       }
 
-      /** Folia's shuffleRound: record the song now playing and reshuffle a finished round. */
-      function trackShuffleRoundProgress() {
+      /**
+       * 随机表放完一轮回到表头循环，不重洗；但「一轮不重复」仍要记住这一张表里听过哪些歌，
+       * 下次进入随机时把没听过的排在前面。这里只记录，不触发任何重排。
+       */
+      function trackRandomRoundProgress() {
         if (readPrefs().shuffleRoundNoRepeat !== true) return
-        if (state.index < 0) return
+        if (state.playMode !== 'random' || state.index < 0) return
         var current = currentItem()
         if (current === null) return
-        var keys = state.queue.map(shuffleRoundKeyOf).filter(function (key) { return key !== '' })
-        var currentKey = shuffleRoundKeyOf(current)
-        if (keys.indexOf(currentKey) < 0) return
-        var signature = currentKey + '\u0000' + keys.join('\u0001')
-        if (signature === shuffleRoundTracked) return
-        shuffleRoundTracked = signature
-        var step = decideShuffleRoundStep({
-          state: readShuffleRoundState(),
-          keys: keys,
-          currentKey: currentKey,
-          countedKeys: keys,
-          loopMode: state.loop === 'all' ? 'all' : state.loop,
+        var keys = state.baseQueue.map(shuffleRoundKeyOf).filter(function (key) { return key !== '' })
+        var saved = readShuffleRoundState()
+        if (saved === null || saved.fingerprint !== shuffleRoundFingerprint(keys)) return
+        var key = shuffleRoundKeyOf(current)
+        if (key === '' || keys.indexOf(key) < 0 || saved.played.indexOf(key) >= 0) return
+        writeShuffleRoundState({
+          fingerprint: saved.fingerprint,
+          orderHash: saved.orderHash,
+          played: saved.played.concat([key]),
         })
-        if (step.kind === 'write') {
-          writeShuffleRoundState(step.state)
-          return
-        }
-        if (step.kind !== 'reshuffle') return
-        var round = readShuffleRoundState()
-        var guard = currentKey + '\u0000' + (round === null ? '' : round.orderHash)
-        if (guard === shuffleReshuffledGuard) return
-        shuffleReshuffledGuard = guard
-        var nextQueue = shuffleQueueInRounds(state.queue, current)
-        state = Object.assign({}, state, { queue: nextQueue, index: 0 })
-        emit()
-        savePlaybackState()
-        cancelPrefetch()
-        maybePrefetchNext()
-      }
-
-      /** Folia's round shuffle when the setting is on; the old flat shuffle otherwise. */
-      function shuffleForOrder(list, current) {
-        if (readPrefs().shuffleRoundNoRepeat === true) return shuffleQueueInRounds(list, current)
-        return shuffleTracks(list, current)
       }
 
       /**
@@ -174988,8 +175044,8 @@ window.__ModuleLoader__.load({
         // A new session starts here. The play count is recorded later, and
         // only when the Last.fm / MusicBee threshold is reached.
         resetSession(item)
-        // Folia's shuffleRound tracks the song now playing; a finished round reshuffles here.
-        trackShuffleRoundProgress()
+        // 「一轮不重复」: remember what this random table has played (no reshuffle).
+        trackRandomRoundProgress()
         // Folia's light prefetch window: the next two and the previous track's lyrics.
         prefetchLyricsAround()
         currentLoudnessBlob = null
@@ -175493,7 +175549,7 @@ window.__ModuleLoader__.load({
         session.lastTime = audio.currentTime || 0
         syncMediaSession()
         applyOutputVolume()
-        trackShuffleRoundProgress()
+        trackRandomRoundProgress()
         emit()
         savePlaybackState()
         loadReplayGainFor(item)
@@ -175693,8 +175749,12 @@ window.__ModuleLoader__.load({
             found = true
             return Object.assign({}, item, info)
           })
+          var baseQueue = state.baseQueue.map(function (item) {
+            if (!item || item.path !== path) return item
+            return Object.assign({}, item, info)
+          })
           if (!found) return
-          state = Object.assign({}, state, { queue: queue })
+          state = Object.assign({}, state, { queue: queue, baseQueue: baseQueue })
           emit()
         },
         getTime: function () {
@@ -175835,13 +175895,22 @@ window.__ModuleLoader__.load({
         setQueue: function (list) {
           // Never replace a queue that is already playing or paused mid-track.
           if (state.index >= 0) return
-          state = Object.assign({}, state, { queue: list.slice(), index: -1 })
+          var base = list.slice()
+          var queue = state.playMode === 'random' ? shuffledTable(base, null) : base.slice()
+          state = Object.assign({}, state, { baseQueue: base, queue: queue, index: -1 })
           emit()
         },
         playList: function (list, at) {
           if (!list || list.length === 0) return
-          // Like Folia: a queue starts in the order it was given. Shuffle is a separate action.
-          state = Object.assign({}, state, { queue: list.slice(), index: at })
+          var base = list.slice()
+          if (state.playMode === 'random') {
+            // 随机模式里开新队列：点的那首钉在随机表第一位，其余随机。
+            var table = shuffledTable(base, base[at] || null)
+            state = Object.assign({}, state, { baseQueue: base, queue: table, index: 0 })
+            load(0, true)
+            return
+          }
+          state = Object.assign({}, state, { baseQueue: base, queue: base.slice(), index: at })
           load(at, true)
         },
         /** Insert one track immediately after the current one, without interrupting playback. */
@@ -175854,7 +175923,11 @@ window.__ModuleLoader__.load({
           var at = Math.min(state.index + 1, state.queue.length)
           var queue = state.queue.slice()
           queue.splice(at, 0, track)
-          state = Object.assign({}, state, { queue: queue })
+          // The original order gains the song right after the current one there too.
+          var base = state.baseQueue.slice()
+          var baseAt = queueIndexOf(base, currentItem())
+          base.splice(baseAt < 0 ? base.length : baseAt + 1, 0, track)
+          state = Object.assign({}, state, { queue: queue, baseQueue: base })
           emit()
           savePlaybackState()
         },
@@ -175867,6 +175940,7 @@ window.__ModuleLoader__.load({
           }
           state = Object.assign({}, state, {
             queue: state.queue.concat([track]),
+            baseQueue: state.baseQueue.concat([track]),
             index: state.index < 0 ? 0 : state.index,
           })
           emit()
@@ -175880,7 +175954,14 @@ window.__ModuleLoader__.load({
             return
           }
           if (!sameQueue(list, state.queue)) {
-            state = Object.assign({}, state, { queue: list.slice(), index: at })
+            var base = list.slice()
+            if (state.playMode === 'random') {
+              var table = shuffledTable(base, base[at] || null)
+              state = Object.assign({}, state, { baseQueue: base, queue: table, index: 0 })
+              load(0, true)
+              return
+            }
+            state = Object.assign({}, state, { baseQueue: base, queue: base.slice(), index: at })
             load(at, true)
             return
           }
@@ -175890,6 +175971,7 @@ window.__ModuleLoader__.load({
           if (audio !== null) audio.pause()
           state = Object.assign({}, state, {
             queue: [],
+            baseQueue: [],
             index: -1,
             playing: false,
             currentTime: 0,
@@ -175911,14 +175993,17 @@ window.__ModuleLoader__.load({
             if (from < index) index -= 1
             if (to <= index) index += 1
           }
-          state = Object.assign({}, state, { queue: list, index: index })
+          // Outside random mode the queue IS the original order; keep the restore point in sync.
+          var patch = { queue: list, index: index }
+          if (state.playMode !== 'random') patch.baseQueue = list.slice()
+          state = Object.assign({}, state, patch)
           emit()
           savePlaybackState()
         },
         /**
          * Reorder the queue to match the displayed order (drag & drop).
          * `indices` are original queue indices in their new visual order.
-         * In random mode the new visual order becomes the play order too.
+         * In random mode this edits the random table only; the original order stays put.
          */
         reorderQueue: function (indices) {
           var length = state.queue.length
@@ -175933,28 +176018,35 @@ window.__ModuleLoader__.load({
             return state.queue[at]
           })
           var current = state.index >= 0 ? indices.indexOf(state.index) : -1
-          state = Object.assign({}, state, { queue: list, index: current })
+          var patch = { queue: list, index: current }
+          if (state.playMode !== 'random') patch.baseQueue = list.slice()
+          state = Object.assign({}, state, patch)
           emit()
           savePlaybackState()
         },
         removeQueueAt: function (at) {
           var length = state.queue.length
           if (at < 0 || at >= length) return
+          var removed = state.queue[at]
           var list = state.queue.slice()
           list.splice(at, 1)
           if (list.length === 0) {
             api.clearQueue()
             return
           }
+          // The song leaves the original order too, whatever order is playing now.
+          var base = state.baseQueue.filter(function (track) {
+            return !removed || !track || track.path !== removed.path
+          })
           if (at === state.index) {
             var nextIndex = Math.min(at, list.length - 1)
             var shouldPlay = state.playing === true
-            state = Object.assign({}, state, { queue: list })
+            state = Object.assign({}, state, { queue: list, baseQueue: base })
             load(nextIndex, shouldPlay)
             return
           }
           var index = at < state.index ? state.index - 1 : state.index
-          state = Object.assign({}, state, { queue: list, index: index })
+          state = Object.assign({}, state, { queue: list, baseQueue: base, index: index })
           emit()
           savePlaybackState()
         },
@@ -176239,27 +176331,40 @@ window.__ModuleLoader__.load({
           }
           emit()
         },
-        setLoop: function (value) {
-          if (value === 'one') abortCrossfade()
-          state = Object.assign({}, state, { loop: value })
-          savePrefs({ loop: value })
-          emit()
-        },
         /**
-         * Folia's 「打乱队列」: shuffle the queue in place, the playing track first, keep playing.
-         * A one-shot edit of the queue — there is no random mode to switch back out of.
+         * 顺序播放 → 单曲循环 → 随机播放 → 顺序播放。
+         *
+         * 进入随机：原顺序存进 baseQueue，当前歌固定为新表的第一位，其余随机。
+         * 离开随机：队列按 baseQueue 还原，并把 index 指回正在播的歌。
+         * 再次进入随机：基于 baseQueue 重新生成一张新表（不复用上一张）。
          */
-        shuffleQueue: function () {
-          if (state.queue.length < 2) return false
-          var current = currentItem()
-          var queue = shuffleForOrder(state.queue, current)
-          state = Object.assign({}, state, { queue: queue, index: current ? 0 : state.index })
+        setPlayMode: function (value) {
+          var next = value === 'one' ? 'one' : value === 'random' ? 'random' : 'sequence'
+          if (next === state.playMode) return state.playMode
+          if (next === 'one') abortCrossfade()
+          if (next === 'random') {
+            var base = state.playMode === 'random' ? state.baseQueue.slice() : state.queue.slice()
+            var current = currentItem()
+            var table = shuffledTable(base, current)
+            state = Object.assign({}, state, {
+              baseQueue: base,
+              queue: table,
+              index: current === null ? state.index : queueIndexOf(table, current),
+              playMode: 'random',
+              loop: LOOP_OF_MODE.random,
+            })
+          } else if (state.playMode === 'random') {
+            state = Object.assign({}, state, restoreBaseOrder(next))
+          } else {
+            state = Object.assign({}, state, { playMode: next, loop: LOOP_OF_MODE[next] })
+          }
+          savePrefs({ playMode: next })
           emit()
           savePlaybackState()
           // The neighbour changed; drop the old prefetch and warm the new one.
           cancelPrefetch()
           maybePrefetchNext()
-          return true
+          return next
         },
         clear: function () {
           loadToken += 1
@@ -176277,6 +176382,7 @@ window.__ModuleLoader__.load({
           }
           state = Object.assign({}, state, {
             queue: [],
+            baseQueue: [],
             index: -1,
             playing: false,
             currentTime: 0,
@@ -191803,12 +191909,9 @@ window.__ModuleLoader__.load({
 
     function p3ShuffleAll(items) {
       if (!items || items.length === 0) return
-      // Folia's page-level 「随机播放」: shuffle this batch once and start from its first track.
-      // It is a one-shot action — the playback mode stays whatever it was.
-      var list = readPrefs().shuffleRoundNoRepeat === true
-        ? shuffleQueueInRounds(items.slice(), null)
-        : shuffleTracks(items.slice(), null)
-      p3PlayList(list, 0)
+      // 随机是播放模式：先切到随机，再把这批歌按随机顺序排（点的那首/随机一首固定第一位）。
+      player.setPlayMode('random')
+      p3PlayList(items, Math.floor(Math.random() * items.length))
     }
 
     function p3PageMeta(state, library, online, prefs) {
@@ -194246,10 +194349,6 @@ window.__ModuleLoader__.load({
           h('strong', null, t('page.queue')),
           h('span', null, snap.queue.length + ' ' + t('p3.unitSong') + ' · ' + playModeLabel(playModeOf(snap))),
           h('span', { className: 'mpv3-grow' }),
-          // Folia's 「打乱队列」: a one-shot shuffle of this queue, the playing track first.
-          snap.queue.length > 1 ? h(IconButton, { icon: 'shuffle', size: 15, title: t('page.shuffleQueue'), onClick: function () {
-            if (player.shuffleQueue()) showToast(t('page.queueShuffled'))
-          } }) : null,
           snap.queue.length > 0 ? h(IconButton, { icon: 'trash', size: 15, title: t('p3.clearQueue'), onClick: function () {
             pushLayer('confirm', {
               title: t('p3.clearQueue'),
@@ -196461,7 +196560,6 @@ window.__ModuleLoader__.load({
 
       // 音频 tab — quality, volume, how playback flows, the loudness fix and the effects window.
       function cardAudioPane() {
-        var loop = snap.loop || 'none'
         var options = [
           { value: 'standard', label: t('sheet.qStandard') },
           { value: 'high', label: t('sheet.qHigh') },
@@ -196479,20 +196577,7 @@ window.__ModuleLoader__.load({
             }),
           ),
           mpPanelRow(t('sheet.volume'), volumeBlock()),
-          mpPanelRow(
-            t('sheet.playMode'),
-            segmented(
-              [
-                { value: 'none', label: t('sheet.loopOff') },
-                { value: 'all', label: t('sheet.loopAll') },
-                { value: 'one', label: t('sheet.loopOne') },
-              ],
-              loop,
-              function (value) {
-                player.setLoop(value)
-              },
-            ),
-          ),
+          // 播放模式只有一个入口：底栏那颗按钮（顺序 → 单曲 → 随机）。这里不再放第二套控件。
           mpPanelRow(
             t('sheet.smartFade'),
             h(Switch, {

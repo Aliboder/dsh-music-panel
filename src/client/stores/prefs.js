@@ -337,6 +337,9 @@ var PREF_DEFAULTS = {
   audioFocusFadeMs: 300,
   /** Folia's replay-gain choice; `normalizeVolume` is the legacy on/off form. */
   replayGainMode: 'off',
+  /** 播放模式：顺序播放 / 单曲循环 / 随机播放（一颗按钮轮转）。 */
+  playMode: 'sequence',
+  /** 旧字段，只用于迁移到 playMode。 */
   loop: 'none',
   resumeOnStart: true,
   sleepTimerMinutes: 0,
@@ -412,6 +415,12 @@ function readPrefs() {
   } catch (error) {
     // Corrupt value: defaults stand.
   }
+  // 播放模式从旧的 loop/order 迁移（旧版没有 playMode）。随机模式后来才有的字段：
+  // 旧档 order=random 视为随机，loop=one 视为单曲，其余为顺序。
+  if (parsed !== null && parsed.playMode === undefined) {
+    merged.playMode = parsed.order === 'random' ? 'random' : parsed.loop === 'one' ? 'one' : 'sequence'
+  }
+  if (['sequence', 'one', 'random'].indexOf(merged.playMode) < 0) merged.playMode = 'sequence'
   // One-time default switch: profiles that still hold the old always-visible default move to
   // auto-hide. An explicit later choice writes `playerChromeModeChosen` and is kept.
   if (merged.playerChromeModeChosen !== true && merged.playerChromeVisibilityMode === 'always-visible' && merged.autoHidePlayerChrome === false) {

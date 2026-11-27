@@ -171,8 +171,8 @@ const localText = textOf(local)
 assert.ok(localText.includes('Alpha'), 'the first track title is rendered')
 assert.ok(localText.includes('Gamma'), 'visible tracks are rendered')
 
-// Folia's loop modes are the only mode: 顺序 → 列表循环 → 单曲 → 顺序.
-const MODE_TITLES = ['顺序播放', '列表循环', '单曲循环']
+// 播放模式是一颗按钮：顺序播放 → 单曲循环 → 随机播放 → 顺序播放。
+const MODE_TITLES = ['顺序播放', '单曲循环', '随机播放']
 // Only the panel's own bottom bar: the now-playing page mounts its own mode buttons too,
 // and each surface keeps exactly one.
 function modeButtons(tree) {
@@ -194,37 +194,51 @@ const modeFirst = modeButtons(panel())
 assert.equal(modeFirst.length, 1, 'the player bar has one play-mode button, not shuffle + repeat')
 assert.equal(modeFirst[0].props.title, '顺序播放', 'the default mode is play-in-order')
 modeFirst[0].props.onClick()
-assert.equal(internals.player.getSnapshot().loop, 'all', 'the second mode is list loop')
-const modeSecond = modeButtons(panel())
-assert.equal(modeSecond[0].props.title, '列表循环')
-modeSecond[0].props.onClick()
+assert.equal(internals.player.getSnapshot().playMode, 'one', 'the second mode is repeat-one')
 assert.equal(internals.player.getSnapshot().loop, 'one')
+const modeSecond = modeButtons(panel())
+assert.equal(modeSecond[0].props.title, '单曲循环')
+modeSecond[0].props.onClick()
+assert.equal(internals.player.getSnapshot().playMode, 'random', 'the third mode is shuffle')
+assert.equal(internals.player.getSnapshot().loop, 'all')
 const modeThird = modeButtons(panel())
-assert.equal(modeThird[0].props.title, '单曲循环')
+assert.equal(modeThird[0].props.title, '随机播放')
 modeThird[0].props.onClick()
+assert.equal(internals.player.getSnapshot().playMode, 'sequence')
 assert.equal(internals.player.getSnapshot().loop, 'none')
 assert.equal(modeThird.length, 1)
 assert.equal(modeButtons(panel())[0].props.title, '顺序播放', 'the cycle returns to play-in-order')
 
-// Folia's shuffle is a one-shot queue action, not a mode: the queue is reordered in place,
-// the playing track moves to the front, and the loop mode is untouched.
-internals.player.setLoop('none')
+// 队列规则：A B C D 为原顺序；进入随机时当前歌固定第一位、其余随机；切出随机还原原顺序；
+// 再次进入随机生成一张新表（基于原顺序，而不是上一张表）。
+const PATHS = ['D:/Music/a.mp3', 'D:/Music/b.mp3', 'D:/Music/c.mp3']
+const queuePaths = () => internals.player.getSnapshot().queue.map((track) => track.path)
+internals.player.setPlayMode('sequence')
 internals.player.playList(TRACKS, 1)
-const beforeShuffle = internals.player.getSnapshot()
-assert.equal(beforeShuffle.queue[1].path, 'D:/Music/b.mp3')
-assert.equal(internals.player.shuffleQueue(), true, 'the queue can be shuffled')
-const afterShuffle = internals.player.getSnapshot()
-assert.equal(afterShuffle.loop, beforeShuffle.loop, 'shuffling does not change the loop mode')
-assert.equal(afterShuffle.queue.length, beforeShuffle.queue.length)
-assert.deepEqual(
-  afterShuffle.queue.map((track) => track.path).sort(),
-  beforeShuffle.queue.map((track) => track.path).sort(),
-  'shuffling keeps the same songs',
-)
-assert.equal(afterShuffle.queue[0].path, 'D:/Music/b.mp3', 'the playing track is pinned first')
-assert.equal(afterShuffle.index, 0)
-assert.equal(internals.player.shuffleQueue(), true)
-assert.equal(internals.player.setLoop('none'), undefined, 'setLoop stays the one mode setter')
+assert.deepEqual(queuePaths(), PATHS, 'sequence plays the list in its own order')
+assert.equal(internals.player.getSnapshot().index, 1)
+internals.player.setPlayMode('random')
+const randomFirst = internals.player.getSnapshot()
+assert.equal(randomFirst.playMode, 'random')
+assert.deepEqual(randomFirst.baseQueue.map((track) => track.path), PATHS, 'the original order is kept')
+assert.equal(randomFirst.queue[0].path, 'D:/Music/b.mp3', 'the playing track is fixed first')
+assert.equal(randomFirst.index, 0)
+assert.deepEqual(queuePaths().slice().sort(), PATHS.slice().sort(), 'the random table keeps every song')
+internals.player.setPlayMode('one')
+const afterOne = internals.player.getSnapshot()
+assert.deepEqual(queuePaths(), PATHS, 'repeat-one restores the original order first')
+assert.equal(afterOne.queue[afterOne.index].path, 'D:/Music/b.mp3', 'and keeps the playing song current')
+assert.equal(afterOne.playMode, 'one')
+assert.equal(afterOne.loop, 'one')
+internals.player.setPlayMode('random')
+const randomSecond = internals.player.getSnapshot()
+assert.equal(randomSecond.queue[0].path, 'D:/Music/b.mp3', 're-entering random pins the current song again')
+assert.deepEqual(randomSecond.baseQueue.map((track) => track.path), PATHS, 'the restore point never changes')
+assert.deepEqual(queuePaths().slice().sort(), PATHS.slice().sort(), 'the new table still has every song')
+internals.player.setPlayMode('sequence')
+assert.deepEqual(queuePaths(), PATHS, 'leaving random restores A B C D')
+assert.equal(internals.player.getSnapshot().index, 1, 'and points back at the playing song')
+internals.player.playList(TRACKS, 0)
 
 // The now-playing page's own controls use the same single mode button.
 const npSecondary = readFileSync(new URL('../../src/client/components/ui/now-playing/secondary-actions.js', import.meta.url), 'utf8')
@@ -236,13 +250,20 @@ assert.match(npCapsule, /cyclePlayMode\(snap\)/, 'the play-page capsule cycles m
 assert.doesNotMatch(npCapsule, /playerLoopNext|cycleLoop/, 'the old loop-only control is gone')
 const p3ShellSource = readFileSync(new URL('../../src/client/panel-v3/p3-shell.js', import.meta.url), 'utf8')
 assert.match(p3ShellSource, /cyclePlayMode\(snap\)/, 'the player bar cycles modes')
-assert.match(p3ShellSource, /player\.shuffleQueue\(\)/, 'the queue panel offers Folia\'s shuffle action')
-assert.doesNotMatch(p3ShellSource, /playerLoopNext|setOrder/, 'the loop-only helper and random mode are gone')
+assert.doesNotMatch(p3ShellSource, /shuffleQueue|playerLoopNext|setOrder/, 'no second mode control or shuffle action')
 const playerSource = readFileSync(new URL('../../src/client/services/player/player.js', import.meta.url), 'utf8')
-assert.match(playerSource, /var LOOP_MODES = \['none', 'all', 'one'\]/, 'Folia\'s three loop modes')
-assert.match(playerSource, /shuffleQueue: function/, 'shuffle is a player action')
-assert.doesNotMatch(playerSource, /setOrder/, 'no random mode setter remains')
-assert.doesNotMatch(playerSource, /state\.order/, 'the player state has no order flag')
+assert.match(playerSource, /var PLAY_MODES = \['sequence', 'one', 'random'\]/, 'the three playback modes')
+assert.match(playerSource, /setPlayMode: function/, 'one setter for the mode')
+assert.match(playerSource, /baseQueue/, 'the original order is kept as the restore point')
+assert.doesNotMatch(playerSource, /setOrder|shuffleQueue: function|setLoop: function/, 'the old setters are gone')
+assert.match(playerSource, /playMode: state\.playMode/, 'the saved state carries the mode')
+assert.match(playerSource, /baseQueue: baseItems/, 'the saved state carries the original order')
+assert.match(playerSource, /savedMode === 'random' \? activeQueue : baseQueue/, 'a restart keeps the random table, other modes start from the original order')
+const prefsSource = readFileSync(new URL('../../src/client/stores/prefs.js', import.meta.url), 'utf8')
+assert.match(prefsSource, /playMode: 'sequence'/, 'the mode has a stored default')
+assert.match(prefsSource, /parsed\.playMode === undefined/, 'old loop/order saves migrate to a mode')
+const sheetSource = readFileSync(new URL('../../src/client/components/ui/player-sheet.js', import.meta.url), 'utf8')
+assert.doesNotMatch(sheetSource, /player\.setLoop/, 'the audio sheet has no second mode control')
 
 internals.prefsStore.set(Object.assign({}, internals.prefsStore.get(), { layout: 'rail' }))
 const railTree = panel()
@@ -296,9 +317,9 @@ assert.equal(moreRows.length, 1, 'the hot list ends with one 全部歌曲 entry'
 assert.ok(textOf(moreRows[0]).includes('全部歌曲'), 'the bottom entry names the full list')
 assert.ok(textOf(moreRows[0]).includes('417'), 'the bottom entry carries the total')
 const p3Pages = readFileSync(new URL('../../src/client/panel-v3/p3-pages.js', import.meta.url), 'utf8')
-// Folia's page-level shuffle is a one-shot action, not a global mode flip.
-assert.doesNotMatch(p3Pages, /player\.setOrder/, 'page shuffle no longer flips a global mode')
-assert.match(p3Pages, /shuffleQueueInRounds\(items\.slice\(\), null\)/, 'page shuffle is a one-shot shuffle')
+// 页面「随机播放」现在切到随机模式，再按随机表开播。
+assert.doesNotMatch(p3Pages, /player\.setOrder/, 'no legacy order setter')
+assert.match(p3Pages, /player\.setPlayMode\('random'\)/, 'page shuffle switches to the random mode')
 // A provider that answered the whole list on the first request (no next page) still gets
 // the entry: 「no more pages」 is not 「no second layer」.
 internals.onlineStore.set({

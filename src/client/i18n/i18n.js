@@ -57,9 +57,6 @@ var DICTS = {
     'page.loopOne': '单曲循环',
     'page.loopNone': '不循环',
     'page.shuffle': '随机播放',
-    // Folia's one-shot 「打乱队列」 action (not a playback mode).
-    'page.shuffleQueue': '打乱队列',
-    'page.queueShuffled': '队列已打乱',
     'page.play': '播放',
     'page.pause': '暂停',
     'page.prev': '上一首',
@@ -728,8 +725,6 @@ var DICTS = {
     'page.loopOne': 'Repeat one',
     'page.loopNone': 'No repeat',
     'page.shuffle': 'Shuffle',
-    'page.shuffleQueue': 'Shuffle queue',
-    'page.queueShuffled': 'Queue shuffled',
     'page.play': 'Play',
     'page.pause': 'Pause',
     'page.prev': 'Previous',

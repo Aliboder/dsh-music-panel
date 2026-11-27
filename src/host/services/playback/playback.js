@@ -17,6 +17,15 @@ import { join } from 'node:path'
 const MAX_QUEUE = 500
 const LOOPS = new Set(['all', 'one', 'none'])
 const ORDERS = new Set(['list', 'random'])
+// 播放模式（顺序 / 单曲 / 随机）。随机时 queue 是随机表、baseQueue 是原顺序。
+const PLAY_MODES = new Set(['sequence', 'one', 'random'])
+
+/** 旧存档只有 loop/order：迁移到播放模式。 */
+function playModeOf(raw) {
+  if (PLAY_MODES.has(raw.playMode)) return raw.playMode
+  if (raw.order === 'random') return 'random'
+  return raw.loop === 'one' ? 'one' : 'sequence'
+}
 
 function finiteOr(value, fallback) {
   const number = Number(value)
@@ -65,27 +74,33 @@ function sanitizeQueueEntry(value) {
  * Coerce an arbitrary payload into a state the client can trust, or null.
  *
  * @param {unknown} raw
- * @returns {{queue: (string | object)[], index: number, positionSec: number, durationSec: number, loop: string, order: string, updatedAt: number} | null}
+ * @returns {{queue: (string | object)[], baseQueue: (string | object)[], index: number, positionSec: number, durationSec: number, loop: string, order: string, playMode: string, updatedAt: number} | null}
  */
 export function sanitizePlayback(raw) {
   if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return null
   const queue = Array.isArray(raw.queue)
     ? raw.queue.map(sanitizeQueueEntry).filter((entry) => entry !== null && entry !== '').slice(0, MAX_QUEUE)
     : []
+  const baseQueue = Array.isArray(raw.baseQueue)
+    ? raw.baseQueue.map(sanitizeQueueEntry).filter((entry) => entry !== null && entry !== '').slice(0, MAX_QUEUE)
+    : queue.slice()
   const durationSec = Math.max(0, finiteOr(raw.durationSec, 0))
   const positionSec = clamp(Math.max(0, finiteOr(raw.positionSec, 0)), 0, durationSec > 0 ? durationSec : Number.MAX_SAFE_INTEGER)
   const index = queue.length === 0
     ? -1
     : clamp(Math.floor(finiteOr(raw.index, 0)), 0, queue.length - 1)
-  const loop = LOOPS.has(raw.loop) ? raw.loop : 'all'
+  const playMode = playModeOf(raw)
+  const loop = LOOPS.has(raw.loop) ? raw.loop : playMode === 'sequence' ? 'none' : playMode === 'random' ? 'all' : 'one'
   const order = ORDERS.has(raw.order) ? raw.order : 'list'
   return {
     queue,
+    baseQueue: baseQueue.length > 0 ? baseQueue : queue.slice(),
     index,
     positionSec: Math.round(positionSec * 10) / 10,
     durationSec,
     loop,
     order,
+    playMode,
     updatedAt: Math.max(0, Math.round(finiteOr(raw.updatedAt, 0))),
   }
 }

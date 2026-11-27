@@ -88,10 +88,12 @@ test('外观 page exposes the selected style tuning', () => {
   }
 })
 
-test('音频 page: quality, volume, play mode, fade, gain and the effects window', () => {
-  for (const key of ['sheet.quality', 'sheet.playMode', 'sheet.smartFade', 'sheet.effects']) {
+test('音频 page: quality, volume, fade, gain and the effects window', () => {
+  for (const key of ['sheet.quality', 'sheet.smartFade', 'sheet.effects']) {
     assert.ok(audio.includes("t('" + key + "')"), key + ' is on the audio page')
   }
+  // 播放模式只有底栏那一颗按钮；音频页不再放第二套控件（第 124 条踩坑）。
+  assert.doesNotMatch(audio, /sheet\.playMode|player\.setLoop/, 'the play mode has one entry point')
   assert.match(audio, /volumeBlock\(\)/, 'the volume row is on the audio page')
   assert.match(audio, /gainBlock\(\)/, 'the gain block is the one the lyrics page used to hold')
   assert.match(sheet, /function gainBlock\(\)[\s\S]{0,600}sheet\.audioGain/, 'the gain block keeps its label')

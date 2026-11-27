@@ -84,15 +84,15 @@ test('加入队列的默认位置两端都实现', () => {
   assert.match(dialogs, /player\.enqueue\(track\)/, 'append puts it at the end')
 })
 
-test('无法播放跳过、轮换重洗、播放时阻止休眠接到播放器', () => {
+test('无法播放跳过、一轮不重复、播放时阻止休眠接到播放器', () => {
   assert.match(prefs, /autoSkipUnplayable: true/, 'skip is on by default')
   assert.match(player, /readPrefs\(\)\.autoSkipUnplayable === true/, 'the error path reads the switch')
-  // Folia's shuffleRound: a finished round is reshuffled from the tracking pass, not from
-  // the advance step, so a crossfade at the boundary cannot bypass it.
-  assert.match(player, /shuffleQueueInRounds\(/, 'shuffle uses the round helper')
-  assert.match(player, /function trackShuffleRoundProgress\(\)/, 'a tracking pass exists')
-  assert.match(player, /decideShuffleRoundStep\(/, 'the tracking pass uses Folia\'s step decision')
-  assert.match(player, /readShuffleRoundState\(/, 'the round is remembered across songs')
+  // 随机表放完一轮回到表头循环，不自动重洗；「一轮不重复」只影响下一次进入随机时的排列。
+  assert.match(player, /shuffleForRound\(/, 'the random table uses the round helper')
+  assert.match(player, /function trackRandomRoundProgress\(\)/, 'a tracking pass remembers what played')
+  assert.match(player, /readShuffleRoundState\(/, 'the round is remembered across entries')
+  assert.match(player, /writeShuffleRoundState\(/, 'and written back')
+  assert.doesNotMatch(player, /kind === 'reshuffle'/, 'a finished table wraps instead of reshuffling')
   assert.doesNotMatch(player, /function advanceIndex\(/, 'the old wrap-only reshuffle is gone')
   assert.match(prefs, /preventSleepDuringPlayback: false/, 'screen lock is off by default')
   assert.match(player, /preventSleepDuringPlayback === true/, 'the player reads the switch')

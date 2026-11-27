@@ -1899,7 +1899,6 @@ function PlayerSheetInner(props) {
 
   // 音频 tab — quality, volume, how playback flows, the loudness fix and the effects window.
   function cardAudioPane() {
-    var loop = snap.loop || 'none'
     var options = [
       { value: 'standard', label: t('sheet.qStandard') },
       { value: 'high', label: t('sheet.qHigh') },
@@ -1917,20 +1916,7 @@ function PlayerSheetInner(props) {
         }),
       ),
       mpPanelRow(t('sheet.volume'), volumeBlock()),
-      mpPanelRow(
-        t('sheet.playMode'),
-        segmented(
-          [
-            { value: 'none', label: t('sheet.loopOff') },
-            { value: 'all', label: t('sheet.loopAll') },
-            { value: 'one', label: t('sheet.loopOne') },
-          ],
-          loop,
-          function (value) {
-            player.setLoop(value)
-          },
-        ),
-      ),
+      // 播放模式只有一个入口：底栏那颗按钮（顺序 → 单曲 → 随机）。这里不再放第二套控件。
       mpPanelRow(
         t('sheet.smartFade'),
         h(Switch, {
