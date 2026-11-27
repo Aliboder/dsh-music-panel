@@ -62,10 +62,14 @@ var onlineStore = createStore({
   artistSongs: [],
   artistTotal: 0,
   artistHasMore: false,
-  // 「全部歌曲」视图：按 Folia 的做法，歌手页先拿热门 10 首，完整列表另开一层逐页读取
-  // （offset 游标），不再把首屏拿到的列表截断成 10 条。
+  // Folia's artist_songs layer (#918): the artist page only loads the top ten; this layer is
+  // a pushed collection with its own cursor and its own artist ref.
+  artistAllProvider: '',
+  artistAllArtist: '',
+  artistAllArtistId: '',
   artistAllSongs: [],
   artistAllOffset: 0,
+  artistAllTotal: 0,
   artistAllHasMore: false,
   artistAllPhase: 'idle',
   artistAllLoading: false,
@@ -303,8 +307,12 @@ function resetOnlineAccountData() {
     artistSongs: [],
     artistTotal: 0,
     artistHasMore: false,
+    artistAllProvider: '',
+    artistAllArtist: '',
+    artistAllArtistId: '',
     artistAllSongs: [],
     artistAllOffset: 0,
+    artistAllTotal: 0,
     artistAllHasMore: false,
     artistAllPhase: 'idle',
     artistAllLoading: false,
@@ -477,8 +485,8 @@ async function openOnlineArtist(track, artistOverride) {
   setNav('artistSongs')
   try {
     // Folia's artist page opens with ARTIST_TOP_SONG_LIMIT (10) songs: one small request,
-    // first paint at once. The full list is a second layer (`openArtistAllSongs`), paged.
-    var head = await getJson(artistSongsUrl() + '&limit=' + ARTIST_TOP_SONG_SIZE + '&offset=0')
+    // first paint at once. The full list is the artist_songs layer (`openArtistSongsList`).
+    var head = await getJson(artistSongsUrl(provider, artist, artistId) + '&limit=' + ARTIST_TOP_SONG_SIZE + '&offset=0')
     if (token !== artistLoadToken) return
     var songs = Array.isArray(head.songs) ? head.songs : []
     var total = Number(head.total) || songs.length
@@ -496,64 +504,57 @@ async function openOnlineArtist(track, artistOverride) {
   }
 }
 
-// Folia's ARTIST_TOP_SONG_LIMIT.
+// Folia's ARTIST_TOP_SONG_LIMIT, and the page size its artist_songs layer reads.
 var ARTIST_TOP_SONG_SIZE = 10
 var ARTIST_ALL_PAGE_SIZE = 100
 var artistAllLoadToken = 0
 
-/** The artist songs endpoint for the artist the page is showing, without paging. */
-function artistSongsUrl() {
-  var state = onlineStore.get()
-  var provider = state.artistProvider || state.provider
+/** The artist songs endpoint for one artist (the page or the layer), without paging. */
+function artistSongsUrl(provider, artistName, artistId) {
   return (
     API +
     'online/artist-songs?provider=' +
-    encodeURIComponent(provider) +
+    encodeURIComponent(String(provider || '')) +
     '&artist=' +
-    encodeURIComponent(state.artistName || '') +
-    (state.artistId ? '&artistId=' + encodeURIComponent(state.artistId) : '')
+    encodeURIComponent(String(artistName || '')) +
+    (artistId ? '&artistId=' + encodeURIComponent(String(artistId)) : '')
   )
 }
 
-/** 「全部歌曲」first page: the artist page itself only shows the top ten. */
-async function openArtistAllSongs() {
-  var state = onlineStore.get()
-  if (String(state.artistName || '') === '') return
+/**
+ * Folia's artist_songs collection layer (#918): the first page of the artist's full song
+ * list. The artist page itself only ever loads the top ten; this layer is a separate
+ * navigation level, so the page is gone and the list keeps its own cursor.
+ */
+async function openArtistSongsList(provider, artistId, artistName) {
+  var name = String(artistName || '').trim()
+  if (name === '') return
   var token = (artistAllLoadToken += 1)
-  // A provider that answered the whole list on the first request (KuGou's bounded name
-  // fallback, Navidrome's search) already has every song: show those instead of asking for
-  // the same list a second time. Only a paged artist endpoint needs the request below.
-  if (state.artistHasMore !== true && Array.isArray(state.artistSongs) && state.artistSongs.length > 0) {
-    onlineStore.set({
-      artistAllSongs: state.artistSongs.slice(),
-      artistAllOffset: state.artistSongs.length,
-      artistAllHasMore: false,
-      artistAllPhase: 'ready',
-      artistAllLoading: false,
-      artistAllError: '',
-    })
-    return
-  }
   onlineStore.set({
+    artistAllProvider: String(provider || ''),
+    artistAllArtist: name,
+    artistAllArtistId: String(artistId || ''),
     artistAllSongs: [],
     artistAllOffset: 0,
+    artistAllTotal: 0,
     artistAllHasMore: false,
     artistAllPhase: 'loading',
     artistAllLoading: true,
     artistAllError: '',
   })
   try {
-    var body = await getJson(artistSongsUrl() + '&limit=' + ARTIST_ALL_PAGE_SIZE + '&offset=0')
+    var body = await getJson(
+      artistSongsUrl(provider, name, artistId) + '&limit=' + ARTIST_ALL_PAGE_SIZE + '&offset=0',
+    )
     if (token !== artistAllLoadToken) return
     var songs = Array.isArray(body.songs) ? body.songs : []
-    var total = Number(body.total) || songs.length
     onlineStore.set({
       artistAllSongs: songs,
       artistAllOffset: Number(body.nextOffset) || songs.length,
+      artistAllTotal: Number(body.total) || songs.length,
       artistAllHasMore: body.hasMore === true,
       artistAllPhase: 'ready',
       artistAllLoading: false,
-      artistTotal: total,
     })
   } catch (error) {
     if (token !== artistAllLoadToken) return
@@ -561,23 +562,27 @@ async function openArtistAllSongs() {
   }
 }
 
-/** One more page of 「全部歌曲」, advancing by the Host's offset cursor. */
+/** One more page of the artist_songs layer, advancing by the Host's offset cursor. */
 async function loadMoreArtistSongs() {
   var state = onlineStore.get()
   if (state.artistAllPhase !== 'ready' || state.artistAllHasMore !== true || state.artistAllLoading === true) return
   var token = artistAllLoadToken
   var offset = Number(state.artistAllOffset) || 0
+  var provider = state.artistAllProvider
   onlineStore.set({ artistAllLoading: true, artistAllError: '' })
   try {
-    var body = await getJson(artistSongsUrl() + '&limit=' + ARTIST_ALL_PAGE_SIZE + '&offset=' + String(offset))
+    var body = await getJson(
+      artistSongsUrl(provider, state.artistAllArtist, state.artistAllArtistId) +
+        '&limit=' + ARTIST_ALL_PAGE_SIZE + '&offset=' + String(offset),
+    )
     if (token !== artistAllLoadToken) return
     var current = onlineStore.get()
     var seen = {}
     var merged = (current.artistAllSongs || []).slice()
-    merged.forEach(function (song) { seen[onlineSongKey(song, current.artistProvider)] = true })
+    merged.forEach(function (song) { seen[onlineSongKey(song, provider)] = true })
     var incoming = Array.isArray(body.songs) ? body.songs : []
     incoming.forEach(function (song) {
-      var key = onlineSongKey(song, current.artistProvider)
+      var key = onlineSongKey(song, provider)
       if (key !== '') {
         if (seen[key] === true) return
         seen[key] = true
@@ -609,8 +614,12 @@ function closeOnlineArtist() {
     artistSongs: [],
     artistTotal: 0,
     artistHasMore: false,
+    artistAllProvider: '',
+    artistAllArtist: '',
+    artistAllArtistId: '',
     artistAllSongs: [],
     artistAllOffset: 0,
+    artistAllTotal: 0,
     artistAllHasMore: false,
     artistAllPhase: 'idle',
     artistAllLoading: false,

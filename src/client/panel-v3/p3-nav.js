@@ -38,7 +38,7 @@ var p3CollectionNavStore = createStore({
 })
 
 /** Top-descriptor payload kept for the existing detail page components. */
-var p3Collection = createStore({ album: null, artist: null, playlist: null })
+var p3Collection = createStore({ album: null, artist: null, playlist: null, artistSongs: null })
 
 var p3RouteStore = createStore({
   source: 'local',
@@ -98,6 +98,9 @@ function p3SyncCollectionPayload() {
     album: top && top.type === 'album' ? top : null,
     artist: top && top.type === 'artist' ? top : null,
     playlist: top && top.type === 'playlist' ? top : null,
+    // Folia's artist_songs layer (#918): the id is the artist's, the name is
+    // 「全部歌曲 · <artist>」, and the tracks page through catalog.getArtistSongs.
+    artistSongs: top && top.type === 'artistSongs' ? top : null,
   })
 }
 

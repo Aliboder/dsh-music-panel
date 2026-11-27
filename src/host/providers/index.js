@@ -428,12 +428,21 @@ function kugouObject(body) {
 }
 
 /**
- * Songs for one artist. QQ has a dedicated singer endpoint; the other providers
- * use their song search and filter to the clicked artist.
+ * A page cut out of an already-collected list (a name search, a Subsonic search).
+ *
+ * These sources answer the whole list at once; the page contract still has to hold, so the
+ * caller gets only its own window and learns the real total — Folia's providers page every
+ * artist the same way, and the artist_songs layer relies on that.
  */
-/** A one-shot list (a name search, a Subsonic search): no more pages behind it. */
-function artistPageOfSongs(songs) {
-  return { songs, total: songs.length, hasMore: false, nextOffset: songs.length }
+function artistPageOfSlice(songs, offset, limit) {
+  const list = Array.isArray(songs) ? songs : []
+  const page = list.slice(offset, offset + limit)
+  return {
+    songs: page,
+    total: list.length,
+    hasMore: offset + page.length < list.length,
+    nextOffset: offset + page.length,
+  }
 }
 
 /**
@@ -451,7 +460,26 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
   const offset = Math.max(0, Number(page.offset) || 0)
   if (name === '') return { songs: [], total: 0, hasMore: false, nextOffset: 0 }
   if (provider === 'qq') {
-    const mid = String(artistId || '').trim()
+    let mid = String(artistId || '').trim()
+    // A row without a singer id (an old cached row) still resolves one from the platform's
+    // own search, so the page uses the paged singer endpoint instead of the bounded search.
+    if (!/^[A-Za-z0-9_-]+$/.test(mid)) {
+      try {
+        const found = await QQ.search(name, cookie, 1)
+        const wanted = name.trim().toLowerCase()
+        for (const song of found.results || []) {
+          const hit = (song.artistsDetail || []).find((artist) => (
+            String(artist.name || '').trim().toLowerCase() === wanted && artist.id
+          ))
+          if (hit) {
+            mid = String(hit.id)
+            break
+          }
+        }
+      } catch {
+        mid = ''
+      }
+    }
     if (/^[A-Za-z0-9_-]+$/.test(mid)) {
       try {
         const limit = Math.max(1, Math.min(100, Number(page.limit) || 80))
@@ -482,10 +510,11 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
       }
     }
     const { results } = await QQ.searchArtistSongs(name, cookie)
-    return artistPageOfSongs((results || []).map((song) => {
+    const songs = (results || []).map((song) => {
       rawSongs.set('qq:' + song.songmid, song)
       return shape('qq', song)
-    }))
+    })
+    return artistPageOfSlice(songs, offset, Math.max(1, Number(page.limit) || 80))
   }
   if (provider === 'netease') {
     // Folia opens the artist page with the id the song carries and asks
@@ -541,12 +570,12 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
         collected.push(shape('netease', song))
       })
     })
-    return artistPageOfSongs(collected.filter((song) => artistMatches(song, name)))
+    return artistPageOfSlice(collected.filter((song) => artistMatches(song, name)), offset, Math.max(1, Number(page.limit) || 200))
   }
   if (provider === 'navidrome') {
     const songs = await ND.search(navidromeConfig(session), name, { count: 500 })
     songs.forEach((song) => rawSongs.set('navidrome:' + song.id, song))
-    return artistPageOfSongs(songs.filter((song) => artistMatches(song, name)))
+    return artistPageOfSlice(songs.filter((song) => artistMatches(song, name)), offset, Math.max(1, Number(page.limit) || 200))
   }
   if (provider === 'kugou' || provider === 'kugouLite') {
     let artistKey = String(artistId || '').trim()
@@ -601,7 +630,7 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
     }
   }
   const results = await search(provider, name, cookie, session)
-  return artistPageOfSongs(results.filter((song) => artistMatches(song, name)))
+  return artistPageOfSlice(results.filter((song) => artistMatches(song, name)), offset, Math.max(1, Number(page.limit) || 80))
 }
 
 /**

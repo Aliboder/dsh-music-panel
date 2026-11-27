@@ -149,6 +149,8 @@ function p3PageLabel(page) {
     album: t('v2.album'),
     artist: t('v2.artist'),
     playlist: t('v2.playlist'),
+    // Folia's artist_songs collection layer.
+    artistSongs: t('p3.allSongs'),
     search: t('page.search'),
   }
   return labels[page] || page
@@ -156,7 +158,7 @@ function p3PageLabel(page) {
 
 function p3ParentLabel(page) {
   if (page === 'album') return t('v2.album')
-  if (page === 'artist') return t('v2.artist')
+  if (page === 'artist' || page === 'artistSongs') return t('v2.artist')
   if (page === 'playlist') return t('v2.playlist')
   if (page === 'search') return t('page.search')
   if (page === 'favorites' || page === 'playlists' || page === 'stats') return t('v2.sectionCollection')
@@ -393,6 +395,7 @@ function p3CurrentTracks(state, library, online, prefs) {
   if (page === 'playlist') return p3OnlineTrackList(p3OnlinePlaylistSongs())
   if (page === 'album') return p3OnlineTrackList(p3OnlineAlbumsFromStore())
   if (page === 'artist') return p3OnlineTrackList(p3OnlineArtistSongs())
+  if (page === 'artistSongs') return p3OnlineTrackList(online.artistAllSongs || [])
   if (page === 'search') return p3OnlineSearchResults()
   return []
 }

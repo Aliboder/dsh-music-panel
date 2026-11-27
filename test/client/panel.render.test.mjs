@@ -236,9 +236,47 @@ internals.onlineStore.set({
 const fullyLoadedArtist = panel()
 assert.ok(textOf(fullyLoadedArtist).includes('全部歌曲'), 'a fully loaded list still offers the full view')
 assert.equal(nodesWithClass(fullyLoadedArtist, 'mpv3-row').length, 10, 'the hot section stays at ten')
-assert.match(p3Pages, /openArtistAllSongs\(\)/, 'the full list opens its own paged layer')
-assert.match(p3Pages, /props\.online\.artistAllHasMore === true/, 'the full list pages through P3List')
+assert.match(p3Pages, /openArtistSongsList\(/, 'the full list is the artist_songs layer')
+assert.match(p3Pages, /type: 'artistSongs'/, 'the layer is a pushed collection, like Folia\'s artist_songs')
+assert.match(p3Pages, /props\.online\.artistAllHasMore === true/, 'the layer pages through P3List')
 assert.doesNotMatch(p3Pages, /items\.slice\(0, 10\)/, 'the artist page no longer hard-cuts the loaded list at ten')
+
+// The layer itself: a pushed navigation level with its own cursor (Folia's #918 shape).
+internals.p3PushCollection({
+  type: 'artistSongs',
+  source: 'online',
+  provider: 'kugouLite',
+  id: '123',
+  param: 'kugouLite:123',
+  artist: 'Udit Narayan',
+  artistId: '123',
+  name: '全部歌曲 · Udit Narayan',
+  coverUrl: '',
+})
+internals.onlineStore.set({
+  artistAllProvider: 'kugouLite',
+  artistAllArtist: 'Udit Narayan',
+  artistAllArtistId: '123',
+  artistAllPhase: 'ready',
+  artistAllSongs: Array.from({ length: 30 }, (_, index) => ({
+    provider: 'kugouLite',
+    id: 'a' + index,
+    title: '全部 ' + index,
+    artist: 'Udit Narayan',
+    album: '专辑',
+    durationSec: 200,
+  })),
+  artistAllTotal: 3196,
+  artistAllHasMore: true,
+  artistAllOffset: 30,
+  artistAllLoading: false,
+  artistAllError: '',
+})
+const artistLayer = panel()
+assert.ok(textOf(artistLayer).includes('全部歌曲 · Udit Narayan'), 'the layer names the artist')
+assert.ok(textOf(artistLayer).includes('3196'), 'the layer carries the platform total')
+assert.ok(nodesWithClass(artistLayer, 'mpv3-row').length > 10, 'the layer lists the paged songs')
+internals.p3GoBack()
 const onlineSource = readFileSync(new URL('../../src/client/components/online/online.js', import.meta.url), 'utf8')
 assert.match(onlineSource, /searchHasMore: body\.hasMore === true/, 'the search page learns whether a next page exists')
 assert.match(onlineSource, /artistsDetail: Array\.isArray\(track\.artistsDetail\)/, 'recent history keeps the artist ids a song carries')

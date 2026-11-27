@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.1"
-    var CLIENT_BUILD = "491dae586b38"
+    var CLIENT_BUILD = "f3471b2630d4"
 
     // ── src/client/app/runtime.js
     /**
@@ -177124,10 +177124,14 @@ window.__ModuleLoader__.load({
       artistSongs: [],
       artistTotal: 0,
       artistHasMore: false,
-      // 「全部歌曲」视图：按 Folia 的做法，歌手页先拿热门 10 首，完整列表另开一层逐页读取
-      // （offset 游标），不再把首屏拿到的列表截断成 10 条。
+      // Folia's artist_songs layer (#918): the artist page only loads the top ten; this layer is
+      // a pushed collection with its own cursor and its own artist ref.
+      artistAllProvider: '',
+      artistAllArtist: '',
+      artistAllArtistId: '',
       artistAllSongs: [],
       artistAllOffset: 0,
+      artistAllTotal: 0,
       artistAllHasMore: false,
       artistAllPhase: 'idle',
       artistAllLoading: false,
@@ -177365,8 +177369,12 @@ window.__ModuleLoader__.load({
         artistSongs: [],
         artistTotal: 0,
         artistHasMore: false,
+        artistAllProvider: '',
+        artistAllArtist: '',
+        artistAllArtistId: '',
         artistAllSongs: [],
         artistAllOffset: 0,
+        artistAllTotal: 0,
         artistAllHasMore: false,
         artistAllPhase: 'idle',
         artistAllLoading: false,
@@ -177539,8 +177547,8 @@ window.__ModuleLoader__.load({
       setNav('artistSongs')
       try {
         // Folia's artist page opens with ARTIST_TOP_SONG_LIMIT (10) songs: one small request,
-        // first paint at once. The full list is a second layer (`openArtistAllSongs`), paged.
-        var head = await getJson(artistSongsUrl() + '&limit=' + ARTIST_TOP_SONG_SIZE + '&offset=0')
+        // first paint at once. The full list is the artist_songs layer (`openArtistSongsList`).
+        var head = await getJson(artistSongsUrl(provider, artist, artistId) + '&limit=' + ARTIST_TOP_SONG_SIZE + '&offset=0')
         if (token !== artistLoadToken) return
         var songs = Array.isArray(head.songs) ? head.songs : []
         var total = Number(head.total) || songs.length
@@ -177558,64 +177566,57 @@ window.__ModuleLoader__.load({
       }
     }
 
-    // Folia's ARTIST_TOP_SONG_LIMIT.
+    // Folia's ARTIST_TOP_SONG_LIMIT, and the page size its artist_songs layer reads.
     var ARTIST_TOP_SONG_SIZE = 10
     var ARTIST_ALL_PAGE_SIZE = 100
     var artistAllLoadToken = 0
 
-    /** The artist songs endpoint for the artist the page is showing, without paging. */
-    function artistSongsUrl() {
-      var state = onlineStore.get()
-      var provider = state.artistProvider || state.provider
+    /** The artist songs endpoint for one artist (the page or the layer), without paging. */
+    function artistSongsUrl(provider, artistName, artistId) {
       return (
         API +
         'online/artist-songs?provider=' +
-        encodeURIComponent(provider) +
+        encodeURIComponent(String(provider || '')) +
         '&artist=' +
-        encodeURIComponent(state.artistName || '') +
-        (state.artistId ? '&artistId=' + encodeURIComponent(state.artistId) : '')
+        encodeURIComponent(String(artistName || '')) +
+        (artistId ? '&artistId=' + encodeURIComponent(String(artistId)) : '')
       )
     }
 
-    /** 「全部歌曲」first page: the artist page itself only shows the top ten. */
-    async function openArtistAllSongs() {
-      var state = onlineStore.get()
-      if (String(state.artistName || '') === '') return
+    /**
+     * Folia's artist_songs collection layer (#918): the first page of the artist's full song
+     * list. The artist page itself only ever loads the top ten; this layer is a separate
+     * navigation level, so the page is gone and the list keeps its own cursor.
+     */
+    async function openArtistSongsList(provider, artistId, artistName) {
+      var name = String(artistName || '').trim()
+      if (name === '') return
       var token = (artistAllLoadToken += 1)
-      // A provider that answered the whole list on the first request (KuGou's bounded name
-      // fallback, Navidrome's search) already has every song: show those instead of asking for
-      // the same list a second time. Only a paged artist endpoint needs the request below.
-      if (state.artistHasMore !== true && Array.isArray(state.artistSongs) && state.artistSongs.length > 0) {
-        onlineStore.set({
-          artistAllSongs: state.artistSongs.slice(),
-          artistAllOffset: state.artistSongs.length,
-          artistAllHasMore: false,
-          artistAllPhase: 'ready',
-          artistAllLoading: false,
-          artistAllError: '',
-        })
-        return
-      }
       onlineStore.set({
+        artistAllProvider: String(provider || ''),
+        artistAllArtist: name,
+        artistAllArtistId: String(artistId || ''),
         artistAllSongs: [],
         artistAllOffset: 0,
+        artistAllTotal: 0,
         artistAllHasMore: false,
         artistAllPhase: 'loading',
         artistAllLoading: true,
         artistAllError: '',
       })
       try {
-        var body = await getJson(artistSongsUrl() + '&limit=' + ARTIST_ALL_PAGE_SIZE + '&offset=0')
+        var body = await getJson(
+          artistSongsUrl(provider, name, artistId) + '&limit=' + ARTIST_ALL_PAGE_SIZE + '&offset=0',
+        )
         if (token !== artistAllLoadToken) return
         var songs = Array.isArray(body.songs) ? body.songs : []
-        var total = Number(body.total) || songs.length
         onlineStore.set({
           artistAllSongs: songs,
           artistAllOffset: Number(body.nextOffset) || songs.length,
+          artistAllTotal: Number(body.total) || songs.length,
           artistAllHasMore: body.hasMore === true,
           artistAllPhase: 'ready',
           artistAllLoading: false,
-          artistTotal: total,
         })
       } catch (error) {
         if (token !== artistAllLoadToken) return
@@ -177623,23 +177624,27 @@ window.__ModuleLoader__.load({
       }
     }
 
-    /** One more page of 「全部歌曲」, advancing by the Host's offset cursor. */
+    /** One more page of the artist_songs layer, advancing by the Host's offset cursor. */
     async function loadMoreArtistSongs() {
       var state = onlineStore.get()
       if (state.artistAllPhase !== 'ready' || state.artistAllHasMore !== true || state.artistAllLoading === true) return
       var token = artistAllLoadToken
       var offset = Number(state.artistAllOffset) || 0
+      var provider = state.artistAllProvider
       onlineStore.set({ artistAllLoading: true, artistAllError: '' })
       try {
-        var body = await getJson(artistSongsUrl() + '&limit=' + ARTIST_ALL_PAGE_SIZE + '&offset=' + String(offset))
+        var body = await getJson(
+          artistSongsUrl(provider, state.artistAllArtist, state.artistAllArtistId) +
+            '&limit=' + ARTIST_ALL_PAGE_SIZE + '&offset=' + String(offset),
+        )
         if (token !== artistAllLoadToken) return
         var current = onlineStore.get()
         var seen = {}
         var merged = (current.artistAllSongs || []).slice()
-        merged.forEach(function (song) { seen[onlineSongKey(song, current.artistProvider)] = true })
+        merged.forEach(function (song) { seen[onlineSongKey(song, provider)] = true })
         var incoming = Array.isArray(body.songs) ? body.songs : []
         incoming.forEach(function (song) {
-          var key = onlineSongKey(song, current.artistProvider)
+          var key = onlineSongKey(song, provider)
           if (key !== '') {
             if (seen[key] === true) return
             seen[key] = true
@@ -177671,8 +177676,12 @@ window.__ModuleLoader__.load({
         artistSongs: [],
         artistTotal: 0,
         artistHasMore: false,
+        artistAllProvider: '',
+        artistAllArtist: '',
+        artistAllArtistId: '',
         artistAllSongs: [],
         artistAllOffset: 0,
+        artistAllTotal: 0,
         artistAllHasMore: false,
         artistAllPhase: 'idle',
         artistAllLoading: false,
@@ -190279,7 +190288,7 @@ window.__ModuleLoader__.load({
     })
 
     /** Top-descriptor payload kept for the existing detail page components. */
-    var p3Collection = createStore({ album: null, artist: null, playlist: null })
+    var p3Collection = createStore({ album: null, artist: null, playlist: null, artistSongs: null })
 
     var p3RouteStore = createStore({
       source: 'local',
@@ -190339,6 +190348,9 @@ window.__ModuleLoader__.load({
         album: top && top.type === 'album' ? top : null,
         artist: top && top.type === 'artist' ? top : null,
         playlist: top && top.type === 'playlist' ? top : null,
+        // Folia's artist_songs layer (#918): the id is the artist's, the name is
+        // 「全部歌曲 · <artist>」, and the tracks page through catalog.getArtistSongs.
+        artistSongs: top && top.type === 'artistSongs' ? top : null,
       })
     }
 
@@ -190873,6 +190885,8 @@ window.__ModuleLoader__.load({
         album: t('v2.album'),
         artist: t('v2.artist'),
         playlist: t('v2.playlist'),
+        // Folia's artist_songs collection layer.
+        artistSongs: t('p3.allSongs'),
         search: t('page.search'),
       }
       return labels[page] || page
@@ -190880,7 +190894,7 @@ window.__ModuleLoader__.load({
 
     function p3ParentLabel(page) {
       if (page === 'album') return t('v2.album')
-      if (page === 'artist') return t('v2.artist')
+      if (page === 'artist' || page === 'artistSongs') return t('v2.artist')
       if (page === 'playlist') return t('v2.playlist')
       if (page === 'search') return t('page.search')
       if (page === 'favorites' || page === 'playlists' || page === 'stats') return t('v2.sectionCollection')
@@ -191117,6 +191131,7 @@ window.__ModuleLoader__.load({
       if (page === 'playlist') return p3OnlineTrackList(p3OnlinePlaylistSongs())
       if (page === 'album') return p3OnlineTrackList(p3OnlineAlbumsFromStore())
       if (page === 'artist') return p3OnlineTrackList(p3OnlineArtistSongs())
+      if (page === 'artistSongs') return p3OnlineTrackList(online.artistAllSongs || [])
       if (page === 'search') return p3OnlineSearchResults()
       return []
     }
@@ -191832,6 +191847,10 @@ window.__ModuleLoader__.load({
         var artist = p3CurrentArtist(source)
         title = artist ? artist.name : t('v2.artist')
         count = artist && artist.tracks ? artist.tracks.length + ' ' + t('p3.unitSong') : ''
+      } else if (page === 'artistSongs') {
+        var songsLayer = p3Collection.get().artistSongs
+        title = songsLayer ? songsLayer.name : t('p3.allSongs')
+        count = (Number(onlineStore.get().artistAllTotal) || 0) + ' ' + t('p3.unitSong')
       } else if (page === 'playlist') {
         var playlist = p3CurrentPlaylist(source)
         title = playlist ? playlist.name : t('v2.playlist')
@@ -192758,10 +192777,6 @@ window.__ModuleLoader__.load({
         }
       }
       var [detail, setDetail] = useState(null)
-      // Folia's artist page has two layers: the page itself (top ten + albums) and the
-      // 「全部歌曲」 collection opened from it. The layer lives here so the top ten keeps its
-      // one small request and the full list is paged only when asked for.
-      var [allOpen, setAllOpen] = useState(false)
       useEffect(function () {
         if (!collection) return
         if (String(props.online.artistName) !== String(collection.artist) || props.online.artistPhase === 'idle' || props.online.artistPhase === 'error') {
@@ -192777,49 +192792,46 @@ window.__ModuleLoader__.load({
             .catch(function () { setDetail(null) })
         }
       }, [props.route.param, props.route.source])
-      useEffect(function () { setAllOpen(false) }, [props.route.param, props.route.source])
       var items = p3OnlineTrackList(props.online.artistSongs)
-      var allItems = p3OnlineTrackList(props.online.artistAllSongs)
       var total = Number(props.online.artistTotal) || items.length
       var albums = detail && Array.isArray(detail.albums) ? detail.albums : []
+      var artistName = props.online.artistName || (collection && collection.artist) || t('v2.artist')
+      var artistProvider = (collection && collection.onlineProvider) || props.route.source
+      var artistId = String((collection && collection.artistId) || props.online.artistId || '')
+      // Folia's entry is the header「全部歌曲」pill, enabled when the artist has songs beyond
+      // the ten hot ones. It pushes the artist_songs collection layer — a navigation level of
+      // its own, with the same back path as album and playlist pages.
+      // Folia's hasMoreSongs: the platform reports songs beyond the ten hot ones.
+      var hasMoreSongs = props.online.artistHasMore === true || total > ARTIST_TOP_SONG_SIZE
+      function openAllSongs() {
+        if (!hasMoreSongs) return
+        p3PushCollection({
+          type: 'artistSongs',
+          source: 'online',
+          provider: artistProvider,
+          id: artistId || artistName,
+          param: artistProvider + ':' + (artistId || artistName),
+          artist: artistName,
+          artistId: artistId,
+          name: t('p3.allSongs') + ' · ' + artistName,
+          coverUrl: (collection && collection.coverUrl) || '',
+          trackCount: total,
+        })
+      }
       var hero = h(P3Hero, {
-        eyebrow: allOpen ? t('p3.allSongs') : t('v2.artist'),
-        title: props.online.artistName || (collection && collection.artist) || t('v2.artist'),
+        eyebrow: t('v2.artist'),
+        title: artistName,
         coverSrc: p3OnlineCover(collection, props.route.source, 'artist'),
         round: true,
         meta: h('span', null, (albums.length ? albums.length + ' ' + t('p3.unitAlbum') + ' · ' : '') + total + ' ' + t('p3.unitSong')),
         actions: h('div', { className: 'mpv3-hero-actions' },
-          h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(allOpen ? allItems : items) } }, t('page.playAll')),
-          h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(allOpen ? allItems : items) } }, t('p3.shuffle')),
-          allOpen ? h(Button, { variant: 'ghost', icon: 'music', onClick: function () { setAllOpen(false) } }, t('p3.hotSongs')) : null,
-          // Any artist with more than the ten hot songs gets the full-list entry, whether the
-          // rest is already loaded (a one-shot search) or still paged on the Host.
-          !allOpen && (total > ARTIST_TOP_SONG_SIZE || items.length > ARTIST_TOP_SONG_SIZE || props.online.artistHasMore === true)
-            ? h(Button, { variant: 'ghost', icon: 'list', onClick: function () { setAllOpen(true); void openArtistAllSongs() } }, t('p3.allSongs') + (total > 0 ? ' · ' + total : ''))
+          h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
+          h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
+          hasMoreSongs
+            ? h(Button, { variant: 'ghost', icon: 'list', onClick: openAllSongs }, t('p3.allSongs'))
             : null,
         ),
       })
-      if (allOpen) {
-        var allEmpty = props.online.artistAllPhase === 'loading'
-          ? h('div', null, h(P3Skeleton, { count: 8 }))
-          : props.online.artistAllPhase === 'error'
-            ? h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.artistAllError, actions: h(Button, { variant: 'ghost', onClick: function () { void openArtistAllSongs() } }, t('p3.retry')) })
-            : h(P3Empty, { icon: 'music', title: t('page.noResults'), hint: '' })
-        return h(P3List, {
-          items: allItems,
-          header: hero,
-          currentPath: props.currentPath,
-          playing: props.playing,
-          favoriteSet: props.favoriteSet,
-          selectedSet: {},
-          hasMore: props.online.artistAllHasMore === true,
-          loadingMore: props.online.artistAllLoading === true,
-          loadMoreError: props.online.artistAllError || '',
-          onLoadMore: function () { void loadMoreArtistSongs() },
-          resetKey: 'online-artist-all:' + props.route.param,
-          empty: allEmpty,
-        })
-      }
       return h('div', { className: 'mpv3-scroll' },
         h('div', { className: 'mpv3-scroll-inner is-static' },
           hero,
@@ -192832,10 +192844,6 @@ window.__ModuleLoader__.load({
             h('div', { className: 'mpv3-plain-list' }, items.slice(0, ARTIST_TOP_SONG_SIZE).map(function (track, index) {
               return h(P3Row, { key: track.path, track: track, index: index, list: items, currentPath: props.currentPath, playing: props.playing, favoriteSet: props.favoriteSet, selected: false, tabIndex: -1 })
             })),
-            total > ARTIST_TOP_SONG_SIZE || items.length > ARTIST_TOP_SONG_SIZE || props.online.artistHasMore === true
-              ? h('div', { className: 'mpv3-more' },
-                  h(Button, { variant: 'ghost', onClick: function () { setAllOpen(true); void openArtistAllSongs() } }, t('p3.allSongs') + (total > 0 ? ' · ' + total + ' ' + t('p3.unitSong') : '')))
-              : null,
           ) : null,
           albums.length > 0 ? h('div', { className: 'mpv3-section' },
             h('div', { className: 'mpv3-section-head' }, h('strong', null, t('v2.albums'))),
@@ -192848,6 +192856,64 @@ window.__ModuleLoader__.load({
           ) : null,
         ),
       )
+    }
+
+    function P3OnlineArtistSongsPage(props) {
+      var collection = p3Collection.get().artistSongs
+      var provider = (collection && (collection.provider || props.route.source)) || props.route.source
+      var artistName = (collection && collection.artist) || ''
+      var artistId = String((collection && collection.artistId) || '')
+      useEffect(function () {
+        if (collection === null || artistName === '') return
+        var store = props.online
+        var sameArtist = String(store.artistAllArtistId || '') === artistId && String(store.artistAllArtist || '') === artistName
+        if (!sameArtist || store.artistAllPhase === 'idle' || store.artistAllPhase === 'error') {
+          void openArtistSongsList(provider, artistId, artistName)
+        }
+      }, [props.route.param, props.route.source])
+      if (collection === null || artistName === '') {
+        return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+          h(P3Empty, { icon: 'music', title: t('p3.allSongs'), hint: t('p3.loadFailed') }))
+      }
+      var items = p3OnlineTrackList(props.online.artistAllSongs)
+      var total = Number(props.online.artistAllTotal) || items.length
+      var title = collection.name || t('p3.allSongs') + ' · ' + artistName
+      if (props.online.artistAllPhase === 'loading') {
+        return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' }, h(P3Skeleton, { count: 8 })))
+      }
+      if (props.online.artistAllPhase === 'error') {
+        return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
+          h(P3Empty, {
+            icon: 'warning',
+            title: t('p3.loadFailed'),
+            hint: props.online.artistAllError,
+            actions: h(Button, { variant: 'ghost', onClick: function () { void openArtistSongsList(provider, artistId, artistName) } }, t('p3.retry')),
+          }))
+      }
+      return h(P3List, {
+        items: items,
+        header: h(P3Hero, {
+          eyebrow: t('p3.allSongs'),
+          title: title,
+          coverSrc: p3OnlineCover(collection, provider, 'artist'),
+          round: true,
+          meta: h('span', null, total + ' ' + t('p3.unitSong')),
+          actions: h('div', { className: 'mpv3-hero-actions' },
+            h(Button, { variant: 'primary', icon: 'play', onClick: function () { p3PlayAll(items) } }, t('page.playAll')),
+            h(Button, { variant: 'ghost', icon: 'shuffle', onClick: function () { p3ShuffleAll(items) } }, t('p3.shuffle')),
+          ),
+        }),
+        currentPath: props.currentPath,
+        playing: props.playing,
+        favoriteSet: props.favoriteSet,
+        selectedSet: {},
+        hasMore: props.online.artistAllHasMore === true,
+        loadingMore: props.online.artistAllLoading === true,
+        loadMoreError: props.online.artistAllError || '',
+        onLoadMore: function () { void loadMoreArtistSongs() },
+        resetKey: 'online-artist-songs:' + props.route.param,
+        empty: h(P3Empty, { icon: 'music', title: t('page.noResults') }),
+      })
     }
 
     function p3OnlineSearchGroups(tracks, source) {
@@ -193114,6 +193180,7 @@ window.__ModuleLoader__.load({
       if (route.page === 'cloud') return h(P3CloudPage, props)
       if (route.page === 'album') return h(P3AlbumPage, props)
       if (route.page === 'artist') return h(P3ArtistPage, props)
+      if (route.page === 'artistSongs') return h(P3OnlineArtistSongsPage, props)
       if (route.page === 'playlist') return h(P3PlaylistPage, props)
       if (route.page === 'search') return h(P3SearchPage, props)
       return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'search', title: t('p3.pageMissing') }))
