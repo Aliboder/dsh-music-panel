@@ -1404,13 +1404,17 @@ var normalizeKugouSong = (raw) => {
   const duration = durationValue > 0 && durationValue < 1e4 ? durationValue * 1e3 : durationValue;
   const mixSongId = valueOf(item, "MixSongID", "mixsongid", "mixSongId") ?? valueOf(base, "MixSongID", "mixsongid", "mixSongId");
   const albumAudioId = valueOf(item, "album_audio_id", "albumAudioId") ?? valueOf(base, "album_audio_id", "albumAudioId");
+  const albumPrivilege = Number(valueOf(item, "AlbumPrivilege", "album_privilege", "privilege") ?? 0);
+  const kugouPayType = Number(valueOf(item, "PayType", "pay_type") ?? 0);
+  const vip = albumPrivilege >= 8 || kugouPayType === 3;
   const providerData = jsonData([
     ["hash", hash],
     ["mixSongId", mixSongId],
     ["albumAudioId", albumAudioId],
     ["catalogLookupId", albumAudioId ?? mixSongId],
     ["albumId", albumId],
-    ["fileId", valueOf(item, "FileID", "fileid", "file_id")]
+    ["fileId", valueOf(item, "FileID", "fileid", "file_id")],
+    ...vip ? [["vip", true]] : []
   ]);
   const rawTitle = String(valueOf(
     item,

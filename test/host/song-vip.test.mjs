@@ -18,7 +18,7 @@ assert.equal(vipOfSong('netease', track({ fee: 0 })), false)
 assert.equal(vipOfSong('netease', track({ privilege: { fee: 1 } })), true)
 
 // QQ / 波点 / 汽水：音源归一化留下的 data.vip。
-for (const sourceId of ['qq', 'bodian', 'qishui']) {
+for (const sourceId of ['qq', 'bodian', 'qishui', 'kugouLite']) {
   assert.equal(vipOfSong(sourceId, track({ vip: true })), true, sourceId + ' vip flag')
   assert.equal(vipOfSong(sourceId, track({})), false, sourceId + ' without flag')
 }

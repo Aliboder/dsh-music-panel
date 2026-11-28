@@ -305,6 +305,11 @@ export const normalizeKugouSong = (raw: unknown): FoliumSourceSong => {
         ?? valueOf(base, 'MixSongID', 'mixsongid', 'mixSongId');
     const albumAudioId = valueOf(item, 'album_audio_id', 'albumAudioId')
         ?? valueOf(base, 'album_audio_id', 'albumAudioId');
+    // 插件自己的 VIP 角标（上游不带）：酷狗在行上给 AlbumPrivilege（0 免费 / 8、10 会员或付费）
+    // 与 PayType（3 = 会员/付费）。旧实现里酷狗没有这条规则，其它平台有；这里补成同一套展示。
+    const albumPrivilege = Number(valueOf(item, 'AlbumPrivilege', 'album_privilege', 'privilege') ?? 0)
+    const kugouPayType = Number(valueOf(item, 'PayType', 'pay_type') ?? 0)
+    const vip = albumPrivilege >= 8 || kugouPayType === 3
     const providerData = jsonData([
         ['hash', hash],
         ['mixSongId', mixSongId],
@@ -312,6 +317,7 @@ export const normalizeKugouSong = (raw: unknown): FoliumSourceSong => {
         ['catalogLookupId', albumAudioId ?? mixSongId],
         ['albumId', albumId],
         ['fileId', valueOf(item, 'FileID', 'fileid', 'file_id')],
+        ...(vip ? [['vip', true] as [string, boolean]] : []),
     ]);
     const rawTitle = String(valueOf(
         item,

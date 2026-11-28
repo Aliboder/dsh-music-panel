@@ -8,6 +8,10 @@
       "upstreamSha256": "ab747ff49b69d0909ca704f0513e2fbba745e993d687ca4034926334ed9d0471"
     },
     {
+      "path": "sources/kugou/core/kugouProvider.ts",
+      "upstreamSha256": "80b9917f943786a3e7fb9cc0a23505a2fc0bcf72f8522411004feef05bd1a077"
+    },
+    {
       "path": "sources/qishui/client/qishuiNormalize.ts",
       "upstreamSha256": "1313a09f613ee69c79bb6235bd45899ceeee3a4d6d48416be7791216225bf26e"
     },
